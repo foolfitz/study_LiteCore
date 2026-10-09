@@ -48,3 +48,47 @@ Must not: change the worker or any profile file; make the canvas viewport-only o
 ## Main session's check (2026-10-10)
 
 The load-bearing correction holds: `updateState` writes `#s-revision` and then calls `paint()` (`web/e2-editor-app.js` :613, :665), and `paint()` blits the cached `lastTiles` (:960–963). The reports' paint − revision gaps are 3.8–4.1 ms (Chrome, gap 200), 0.7–0.9 (Firefox), 2.6–5.8 (boundaries), 0.1–4.2 (gap 80, rows 0–18), and 87.5 ms for row 19 — the stale overlay blit every time but the last.
+
+---
+
+# Second answer (2026-10-10): does Collabora Online change B′? (the owner's question)
+
+Returned verbatim:
+
+RULING
+
+COOL does not change B′ — keep it, with one small amendment and a sharper C registration. COOL solves the same problem with the same shape B′ already has: forward the invalidation, keep the old pixels on screen, refetch only what the user can see, visible first, coalesce bursts. What COOL adds on top (fixed 256-px tiles, a wire-id tile cache, zstd deltas, PNG, a 5-s request cooldown, prefetch borders) exists to save bandwidth and server CPU across a socket shared by many views; we have one consumer, one engine, zero-copy transferable buffers, no zoom levels — none of that pays here.
+
+- Borrow now, inside B′ (page only): (1) order the background bands by distance from the viewport, not top-to-bottom (COOL's `distanceFromView`); (2) COOL's rule "an invalidated tile keeps its old bitmap until the new one arrives" — B′ already does this by replacing bands on arrival; make it explicit in the criteria (never clear a band). (3) COOL's wsd re-renders the visible invalidated tiles proactively on invalidation, without waiting for the client — that is exactly B′'s "visible band first on `document-invalidated`"; nothing to add.
+- Borrow later (worker change → new profile identity, no relink): C in COOL's shape — forward `x, y, width, height` plus a monotonic wire id (`gEditorState.documentChangeSequence` already is one) in `document-invalidated`; the page unions rectangles and re-renders only the bands they intersect, and uses the band reply's `revision` against the invalidation's id as the race guard (`invalidFrom >= wireId`). Trigger: only if B′'s visible band measures > 40 ms on the owner's document or a document class makes full-width bands too slow. COWASM proves the forwarding is trivial inside one WASM process: it runs kit and wsd in pthreads and passes the identical `invalidatetiles:` text frame to the browser over a fake socket.
+- Do not borrow: deltas/keyframes (`Delta.hpp`), PNG/zstd, the tile cache keyed by wire id across zooms, tilecombine dedup, the 5-s cooldown, prefetch, `EMPTY` invalidation, split panes, the decompression TaskWorker. Also: borrow mechanisms, not code — COOL is MPL-2.0 (header of every file cited); cite as prior art with file:line, do not paste.
+
+WHY（給擁有者）
+
+1. 該參考，而且它印證了 B′：COOL 同一顆核心、同一個問題，做法就是「核心報哪裡髒、瀏覽器把舊圖留在畫面上、只重抓看得到的、看得到的先抓、一串髒訊息合併」——B′ 全有。
+2. COOL 多出來的那些（256 像素小磚、磚快取、差分壓縮、PNG、五秒冷卻、預抓邊緣）是為了省網路頻寬和伺服器 CPU、給很多人同時看；我們一個人、一個引擎、零拷貝傳圖，用不到。
+3. 現在只借一件小事：背景補畫的順序改成「離視窗近的先」。
+4. 之後若 B′ 量出可視那一條還是太慢，再做 C：讓 worker 把髒區矩形和一個遞增序號傳給頁面，只重畫被碰到的那幾條——COWASM 證明這在單一 WASM 行程裡就是一行訊息的事，但動 worker 就是新 profile、要 cutover。
+5. 程式碼不要抄（MPL-2.0），只引用它的做法並註明檔案行號。
+
+FACT CHECK（/home/jiajun/LibreOffice/study_LiteCore/cool-26-04）
+
+- Kit forwards `LOK_CALLBACK_INVALIDATE_TILES` with its rectangle and a wire id: `kit/ChildSession.cpp:3827–3889` (`invalidatetiles: part= mode= x= y= width= height= wid=`; `EMPTY` = everything; Writer forces part 0). The kit coalesces a burst before sending: `kit/KitQueue.cpp:160–262` — a queued invalidation fully covered by a new one is dropped (:218–230), intersecting ones are joined if the union stays under 4×3840 × 2×3840 twips (:234–262); `kit/Kit.cpp:1299–1305` routes INVALIDATE_TILES through that merge for all views.
+- Browser tile size 256 px: `browser/js/global.js:297`. Tile state with `wireId`/`invalidFrom`, `needsFetch = invalidFrom >= wireId || !hasContent`: `browser/src/app/Tile.ts:25–26, 41–43`; `forceKeyframe` :60–64; the 5-s per-tile cooldown :66–71.
+- Invalidation → tiles: `browser/src/layer/tile/CanvasTileLayer.js:1327–1342` parses the message; `browser/src/app/BitmapTileManager.ts:1424–1452` intersects the rectangle with every cached tile and calls `invalidateTile`, which keeps the old bitmap and only marks the keyframe forced (:2288–2309: a tile without content is removed, one with content gets `forceKeyframe(wireId)`).
+- Which tiles get requested, in what order: `updateTileDistance` sets `distanceFromView = 0` for visible tiles and the distance to the view centre otherwise (`BitmapTileManager.ts:1147–1178`); the request loop queues only `!tile || tile.needsFetch()` within the current/expanded tile range (:1236–1281); `sendTileCombineRequest` dedups keys and skips tiles asked < 5 s ago, sending `oldwid` per tile (:1056–1110); `tilecombine` protocol with `oldwid=0` forcing a keyframe: `wsd/protocol.txt:272–280`; `invalidatetiles:` wire format :663–671.
+- wsd side (also inside COWASM): `TileCache::invalidateTiles` marks intersecting cached tiles invalid (`wsd/TileCache.cpp:411–449`); `ClientSession::handleTileInvalidation` then builds a `TileCombined` of the invalidated tiles inside the client's visible area and renders them proactively (`wsd/ClientSession.cpp:4087–4199`, visible-area iteration :4147–4192).
+- Kit rendering: one `paintPartTile` over the bounding area of the combined request, then split into tiles (`common/RenderTiles.hpp:77–133`, warning above 4096 px :117–120); per tile a delta against the previous keyframe or a keyframe, with "identical → zero-length delta, skip" (`kit/Delta.hpp:620–630`).
+- COWASM keeps the protocol unchanged in the browser: `wasm/wasmapp.cpp:38–58` (`send2JS` → `MAIN_THREAD_EM_ASM` → `TheFakeWebSocket.onmessage`), `handle_cool_message` :62–73; wsd and kit sources compiled in: `wasm/Makefile.am:60–80` (`ClientSession.cpp`, `DocumentBroker.cpp`, `TileCache.cpp`, `KitQueue.cpp`, `FakeSocket.cpp`). The earlier study's runtime model (`research/RESEARCH-2026-08-01-cowasm-co-26-04-reference.md` §3) still describes it correctly: main-thread module, computation in pthreads, no JSPI.
+- Our side, for the mapping: the engine already stamps `documentChangeSequence` on every INVALIDATE_TILES (`wasm_sdk_probe/src/probe_engine.cpp:2632–2633`) and the tile reply already carries `revision` (:3153–3156; the worker forwards it, `sdk/sdk-worker.js:760`); the worker drops the rectangle (:1111–1114). So C needs only the worker to forward the payload rectangle and the sequence; no engine change.
+
+CONDITIONS（only what changes）
+
+1. B′ amendment: background bands ordered by distance from the viewport (unit test B2 extended: visible first, then nearest first); add to the criteria "a band is never cleared; old pixels stay until the new band arrives".
+2. C registration (relink-queue item, no relink): forward `{x, y, width, height, documentChangeSequence}` in `document-invalidated`; page: union of rectangles since the last pass → re-render only intersecting bands, visible first; race guard = band reply `revision` vs the invalidation's sequence. Trigger written now: B′'s visible-band render on the owner's document > 40 ms (either browser) or a measured document where the full pass exceeds 1 s. Cost: new profile identity (repackage, cutover, re-validation round) — not this release.
+3. Spec/finding text: cite COOL as prior art with the file:line above; no code copied (MPL-2.0).
+4. Not borrowed, and say so in the finding: deltas, PNG/zstd, tile cache across zooms, cooldown, prefetch, `EMPTY`, split panes.
+
+## Main session's spot check (2026-10-10)
+
+`cool-26-04/browser/src/app/BitmapTileManager.ts:1147` is `updateTileDistance` (visible tiles get distance 0); `wasm_sdk_probe/src/probe_engine.cpp:2632–2633` sets `documentChangeSequence` on `LOK_CALLBACK_INVALIDATE_TILES`. Both as cited.

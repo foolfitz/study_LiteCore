@@ -556,3 +556,42 @@ B-ctl／S／P 6/6、B-3x 4/4、突變 40/40；六支 M3 runner 全過、紅案�
 `make test-e2-c-static` 結束碼 0。§14.3 的預測除了「自然路徑 400 次內出現 2–3 次」與 P4「有幾格不同」之外全中。finding 119、111 改標已修（119 的自然路徑
 寫明沒有實例可量，引擎根因 C 仍在 relink 佇列）。因執行而修的檢查 1（`rollback` 突變重錨），因審核而修 0。
 - 更正（取代上一段的「04:17 UTC」，那是沒核對就寫的）：計數鏈在 **04:11 UTC** 結束（`runs-0.2.9/chain-2026-10-09b.txt` 的 `DONE`）。
+
+## 15. finding 122、121、120 的修法（2026-10-10，任何實作與驗收執行之前；fable 依擁有者明說的要求裁決）
+
+只追加。裁決原文：`findings/evidence/typing-latency/ruling/fable-ruling.md`（122＝B′，加上參考 Collabora Online 之後的兩點修正）。逼出它的：擁有者手測 0.2.9 回報的兩件事
+（`findings/121-*.md`、`findings/122-*.md`）與先前登錄的 120。
+
+### 15.1 修法（只動頁面 `web/e2-editor-app.js`；不動 worker、不換 profile、不連結；三個 commit）
+
+- **122（B′）**：`renderDocument` 把整張畫布切成約 2048 裝置像素的條（像素邊界推出 twips，沿用 062 的條迴圈），**先畫游標所在／視窗內的條，其餘依離視窗的距離由近而遠**；
+  每一條一回來就貼上；兩條之間若有新的 `document-invalidated`（`renderAgain`），就中斷這一輪、從視窗內的條重來。**任何一條在新圖到之前都保留舊圖，絕不清空**；
+  頁面安靜下來時整張畫布是最新的。不加節流或去抖常數。118（`documentSizeChanged` → 重新排版＋整輪）與 062（每一條仍檢查 `TILE_NOT_PAINTED`）照舊。
+- **121**：`beforeinput` 的刪除在選取範圍不是游標、而且 profile 提供 `delete-selection` 時改送 `delete-selection`（兩種 inputType；與剪下同一個判斷）；其餘照舊。
+- **120**：`openDocument` 在 `session.attachInput(el.sink)` 之後把 `el.sink.disabled` 同步成新轉接器的 `state.blocked`。
+
+### 15.2 判準
+
+| 判準 | 內容 | 形式 | 從來沒做時的結論 |
+| --- | --- | --- | --- |
+| **儀器** | `tools/probe_typing_latency.py` 只認「新的一張圖」貼在游標那一行、而且它的繪圖回覆帶著該字的修訂號或更新的（`45576249`）。紅案已在現行頁面讀出：Chrome 中位數 146 ms、Firefox 187 ms、快打最慢 904 ms（不是舊量法的約 4 ms 差）。驗收前另加「最後一鍵之後整張畫布全部換成新圖的時間」 | 先紅一次（已做） | 不得用舊的「畫面出現」欄位驗收 |
+| **122-U** | 單元（頁面函式抽出編譯）：B1 條剛好鋪滿畫布（像素邊界、無縫無疊；22,256 px → 11 條）；B2 視窗內的條先畫，其餘由近而遠；B3 兩條之間來了失效就中斷、下一輪從視窗內開始；B4 每條一回來就貼、`lastTiles` 對 `paint()` 一直是一致的整組；B5 任一條 `documentSizeChanged` → 重新排版＋整輪；B6 每條 `TILE_NOT_PAINTED` 照樣丟出；B7 沒有任何一條在新圖到之前被清空。紅案各紅一次：照文件順序畫（B2）、條之間不看 `renderAgain`（B3）、整輪結束才貼（B4） | 逐實例（單元） | 122 不得宣稱已修 |
+| **121-U／120-U** | 121：非游標選取＋有提供 → `delete-selection`；游標 → `delete-backward`／`-forward`；沒提供 → 今天的動作。120：`attachInput` 之後輸入槽的 `disabled` 等於新轉接器的 `state.blocked`。紅案：拿掉 offer 檢查、拿掉那一行，各紅一次 | 逐實例（單元） | 121、120 不得宣稱已修 |
+| **122-B** | 候選 `dist/`、兩個瀏覽器、修好的儀器、擁有者文件：間隔 80 ms × 20 字——按鍵到提交最慢 < 80 ms、不累積（提交間隔約等於按鍵間隔）、新字上螢幕中位數 < 70 ms（Chrome）／< 90 ms（Firefox）、最慢 < 150 ms；間隔 200 ms × 10 字——上螢幕中位數 < 70／< 90 ms；最後一鍵之後 200 ms 內整張畫布換成新圖；`boundaries.odt` 間隔 200 ms 的按鍵到提交中位數 ≤ 10 ms（今天 6.3）。紅案＝`v58-*-fixed-instrument.json` 三份 | 逐實例（每個字）＋先紅一次 | 122 不得宣稱已修 |
+| **121-B／120-B** | `findings/evidence/121/select_delete_probe.py` 兩個瀏覽器、Backspace 與 Delete、`range-single` → 選取的字被刪、`ready`、世代 1（今天的報告是紅案）；`findings/evidence/120/sink_probe.py` 殘留組 → `Q` 打得進去（今天的 `sink-*.json` 是紅案） | 逐實例＋先紅一次 | 121、120 不得宣稱已修 |
+| **R‴** | 發佈順序同 §14：三個 commit → `make test-e2-c-static`（凍結前照 §14.5 讀）與 E1-C 完好 → `make e2-c-assets`（cutover 的兩個 pin 不動）→ 上面三組瀏覽器判準 → **最後**凍殼層 v59（絕不動 v58）→ 宿主 0.2.10 → 七支 runner 改綁（只動 pin 行）→ 各自紅案、計數鏈、產品路徑網（M2-5，新頁面）、靜態結束碼 0 | 既有協定 | 0.2.10 不得稱為已計數 |
+
+不得：改 worker 或任何 profile 檔；讓畫布只畫視窗、或安靜之後留著舊的條；加節流或去抖常數；動產品路徑 runner 的像素判讀器或任何檢查（pin 行除外）；122 在兩個瀏覽器的
+「80 ms 不累積」與「200 ms 上螢幕」兩格都綠之前標已修；v59 放進 122／121／120 以外的東西。
+
+### 15.3 預測（寫在任何驗收執行之前）
+
+- 122-B：視窗內那一條約是整份的 1/11，重畫約 8–15 ms，所以新字上螢幕約為提交（Chrome 約 35 ms、Firefox 約 43 ms）加 10–20 ms：Chrome 中位數 45–60 ms、Firefox 60–80 ms；
+  80 ms 間隔不再累積、最慢 < 120 ms；最後一鍵之後整張畫布在 100–180 ms 內換新。若視窗內那一條在擁有者文件上超過 40 ms，觸發 C（§15.4）。
+- 121-B、120-B：照修法預期全綠。產品路徑網 0 紅格（讀整張畫布的檢查在頁面安靜之後讀，B′ 那時整張是新的）。
+
+### 15.4 登錄
+
+- **C**（worker 轉送失效矩形與 `documentChangeSequence`，頁面只重畫被碰到的條；Collabora Online 的形狀）：relink 佇列 `queue-f122-forward-the-invalidated-rectangle`，觸發條件見上。
+- **參考 Collabora Online（先例，只引用做法、不抄程式碼，MPL-2.0）**：失效轉送與合併 `cool-26-04/kit/ChildSession.cpp:3827–3889`、`kit/KitQueue.cpp:160–262`；
+  保留舊圖 `browser/src/app/BitmapTileManager.ts:2288–2309`；依離視窗遠近 `:1147–1178`。不借：差分、PNG／zstd、跨縮放快取、5 秒冷卻、預抓、`EMPTY`、分割窗格。

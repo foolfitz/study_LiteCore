@@ -1446,6 +1446,22 @@
         }
       ],
       "checkNote": "The pair is the state today: the engine still reports a late unit-selection callback as this error, and the shell still turns it into a banked reopen. When the engine is fixed the first check stops holding (or the shell branch goes); flip the expectation and rewrite the checks to state what the fix made true, with the reason."
+    },
+    {
+      "id": "queue-f122-forward-the-invalidated-rectangle",
+      "title": "The worker drops LOK's invalidated rectangle, so the page can only repaint whole bands visible-first (finding 122's B′); forwarding it lets the page repaint only the bands an edit touched -- OPEN, by trigger",
+      "expectation": "absent",
+      "blocksRelink": false,
+      "source": "fable's ruling on finding 122 and its Collabora Online answer, 2026-10-10 (findings/evidence/typing-latency/ruling/fable-ruling.md); prior art: Collabora Online forwards invalidatetiles with its rectangle and a wire id (cool-26-04/kit/ChildSession.cpp:3827-3889) and refetches only intersecting visible tiles (browser/src/app/BitmapTileManager.ts:1424-1452)",
+      "note": "C in Collabora's shape: forward {x, y, width, height, documentChangeSequence} in `document-invalidated` (the engine already stamps the sequence, src/probe_engine.cpp ~:2632; the paint reply already carries `revision`); the page unions the rectangles since its last pass and re-renders only the bands they intersect, visible first, with the band reply's revision against the invalidation's sequence as the race guard. TRIGGER, written before B′ was measured: B′'s visible-band render on the owner's document above 40 ms in either browser, or a measured document whose full pass exceeds 1 s. Cost: a worker change is a new profile identity (repackage, no relink, cutover, a re-validation round). Not borrowed from Collabora: deltas, PNG/zstd, a tile cache across zooms, the 5 s cooldown, prefetch, EMPTY, split panes. Mechanisms only, no code (MPL-2.0).",
+      "checks": [
+        {
+          "kind": "contains",
+          "file": "sdk/sdk-worker.js",
+          "text": "postEvent(\"document-invalidated\", {\n          documentHandle: event.documentHandle,\n          revision: event.revision,\n        });"
+        }
+      ],
+      "checkNote": "The check is the state today: the worker posts document-invalidated with the handle and the revision only. When the rectangle is forwarded this text changes and the item drifts; flip the expectation and rewrite the check to state what was forwarded, with the reason."
     }
   ],
   "blocksRelinkSemantics": "An item with blocksRelink true must be AS-DECLARED **and**, if it is declared absent, it is still outstanding work -- so P1 is not complete while it is open. Two items are deliberately false: the WASM heap field was withdrawn after measurement (2026-08-16), and the search-after-reopen wedge is an observation the product does not take today. Without this field the checker would report 'P1 complete' whenever every finished item was finished, which is the exact shape of a check that agrees with whatever it is shown.",

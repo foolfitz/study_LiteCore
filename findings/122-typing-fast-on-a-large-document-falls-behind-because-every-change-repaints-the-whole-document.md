@@ -39,3 +39,15 @@
 - **裁決**（fable，擁有者明說要交裁決；原文 `evidence/typing-latency/ruling/fable-ruling.md`）：**B′**——只改頁面，把整張畫布的重畫切成約 2048 像素的條，先畫看得到的那一條、畫一條貼一條，
   有新的修改進來就中斷、從看得到的那條重來，其餘停下時補完；不節流、不改 worker、不換 profile。與 121、120 同一次頁面發佈（殼層 v59、宿主 0.2.10）。
 
+## 2026-10-10 參考 Collabora Online（擁有者提問；fable 第二次回覆，原文同一份裁決檔）
+
+**不改變 B′。**Collabora 用同一顆核心解同一個問題，做法就是 B′ 的形狀：核心回報哪裡髒（`kit/ChildSession.cpp:3827–3889`）、瀏覽器在新圖到之前保留舊圖
+（`browser/src/app/BitmapTileManager.ts:2288–2309`）、只重抓看得到的、看得到的先抓（`BitmapTileManager.ts:1147–1178` 的 `distanceFromView`）、一串失效先合併
+（`kit/KitQueue.cpp:160–262`）。COWASM（Collabora 編成 WASM 在瀏覽器跑）照原樣保留這套協定（`wasm/wasmapp.cpp:38–58`）。
+
+- **現在借**（只動頁面，放進 B′）：背景補畫的條依「離視窗遠近」排序；任何一條在新圖到之前都保留舊圖、絕不清空。
+- **之後才借**（動 worker＝新 profile、不必連結）：worker 把失效矩形和遞增序號（我們引擎已有的 `documentChangeSequence`）轉送給頁面，頁面只重畫被碰到的條（C）。觸發條件：
+  B′ 量出看得到的那一條在擁有者文件上超過 40 ms，或有文件的整份補畫超過 1 秒。已登錄 relink 佇列。
+- **不借**：差分壓縮、PNG／zstd、跨縮放的圖塊快取、5 秒冷卻、預抓邊緣、`EMPTY` 失效、分割窗格——那些是替多人共用的伺服器省頻寬與 CPU，我們一個人、一個引擎、零拷貝傳圖用不到。
+- **只借做法、不抄程式碼**：Collabora Online 是 MPL-2.0，只以檔案行號引用為先例。
+
