@@ -682,3 +682,7 @@ B-ctl／S／P 6/6、B-3x 4/4、突變 40/40；六支 M3 runner 全過、紅案�
 | 122-B 判讀工具 `judge.py` | `f02845ac5aa8cb599459ed97efcb222d9b77217c13de6bb106e6e740a84e173c`（§15.9 審核過、§15.10 計數判讀用的就是這一份） |
 
 六支既有 runner 的 pin 同步改綁（只動 pin 行，共 12 行）；host_entry 沒有 pin。產品路徑網：v19 臂＝dist 照原樣（頁面 `18c8afbe…`），v8 臂＝同一份頁面改指 v8，改指後的 sha256 用 runner 自己的 `repointed_page()` 算出＝`d446cbfd826b1beab80b761439aa3d80b1b76ddc35a8721efb78aab436e187e6`（同一個方法對 0.2.9 的頁面算得出當時的 `4d3f3bd6…`）。
+
+### 15.12 結果（2026-10-10；`findings/evidence/m3-production-ui/RESULT-0.2.10.md`）
+
+**R‴ 在宿主 0.2.10 上成立。**計數前：122-U、121-U、120-U 全過且紅案各紅；122-B 由審核過的判讀工具判兩個瀏覽器 PASS（提交那格用 §15.8 的改寫）；121-B、120-B 在最終位元組上重跑過。重錨後的 `ignore-a-document-that-grew` 突變跑一次、該格紅。計數鏈（2026-10-09 18:24 – 23:20 UTC，六支 shakedown 乾淨之後）：本規格的臂 K／R 24/24、B-ctl／S／P 6/6、B-3x 4/4、突變 40/40；六支 M3 runner 全過、紅案全紅（154／99／68／156／23／70，與 0.2.9 相同）；產品路徑網 P1–P3 HIT、0 紅格，兩臂只差一格（Firefox `clear-format-removes-every-inline-format`，v8 3 NE、v19 1 PASS＋2 NE），新舊頁面的 v19 沒有任何退步；`make test-e2-c-static` 結束碼 0。finding 122、121、120 改標已修。因執行而修的檢查 1（`ignore-a-document-that-grew` 錨點），因審核而修 0。
