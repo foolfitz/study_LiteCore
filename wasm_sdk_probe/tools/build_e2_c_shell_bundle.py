@@ -610,7 +610,19 @@ FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
 #     "unchanged"; the notice's reopen gives the input sink its focus back.  Still pins e2-editor-v19 (1aafd4f9...).
 # Frozen AFTER both browser probes were green on dist/, as the ruling orders (finding 091's rule): F111-B 160/160
 # (a3f2a23e), F119-B injection 3/3 + 3/3 and natural 0 in 400 registered (1c3edf15).  The other modules equal v57's.
-MANIFEST = Path("e2/editor-shell-v2-bundle-v58.json")
+#
+# v59, 2026-10-10: FINDINGS 122, 121 AND 120 (fable's rulings on the owner's request; SPEC-M3-production-ui §15).
+# One file differs from v58, `web/e2-editor-app.js` (18c8afbe...):
+#   * 121 (05f46923): Backspace/Delete with a range selected sends `delete-selection` when the engine's current
+#     selection is not a caret and the profile offers it.
+#   * 120 (3632dabe): after `attachInput` the sink's `disabled` follows the new adapter's `state.blocked`.
+#   * 122 (6993186c B', 4353dcee A+B): the canvas is repainted in bands of floor(MAX_TILE_HEIGHT / 32) rows, the
+#     view's bands first, each blitted on arrival, never cleared; a new invalidation, or a key that will reach
+#     the engine while a pass runs, ends the pass after the band in flight.  Still pins e2-editor-v19 (1aafd4f9...).
+# Frozen AFTER the browser criteria were met on dist/ (finding 091's rule): 122-B read by the reviewed reader
+# `findings/evidence/typing-latency/judge.py` as PASS in both browsers (§15.8-15.9, fable's fourth ruling R),
+# 121-B and 120-B re-run on these bytes (5293628a).  The other modules equal v58's.
+MANIFEST = Path("e2/editor-shell-v2-bundle-v59.json")
 ENTRYPOINT = Path("web/e2-editor-app.js")
 
 # The directories whose *.js files must all be accounted for.  `editor-shell`
