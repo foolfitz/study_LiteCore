@@ -595,3 +595,10 @@ B-ctl／S／P 6/6、B-3x 4/4、突變 40/40；六支 M3 runner 全過、紅案�
 - **C**（worker 轉送失效矩形與 `documentChangeSequence`，頁面只重畫被碰到的條；Collabora Online 的形狀）：relink 佇列 `queue-f122-forward-the-invalidated-rectangle`，觸發條件見上。
 - **參考 Collabora Online（先例，只引用做法、不抄程式碼，MPL-2.0）**：失效轉送與合併 `cool-26-04/kit/ChildSession.cpp:3827–3889`、`kit/KitQueue.cpp:160–262`；
   保留舊圖 `browser/src/app/BitmapTileManager.ts:2288–2309`；依離視窗遠近 `:1147–1178`。不借：差分、PNG／zstd、跨縮放快取、5 秒冷卻、預抓、`EMPTY`、分割窗格。
+
+### 15.5 122-B 第一次驗收（2026-10-10，候選 `dist/` 頁面 `b10f6017…`；數字讀自 `findings/evidence/typing-latency/v59-candidate-*.json` 的 `summary`）
+
+- **Chrome 每一格都過**：80 ms × 20 字提交最慢 63.9 ms、上螢幕中位數 62.3／最慢 89.2 ms、整張換新 187.9 ms；200 ms × 10 字上螢幕中位數 50.9 ms、整張 158.8 ms；`boundaries` 提交中位數 6.3 ms。
+- **Firefox 三格沒過**：80 ms 提交最慢 93.4 ms（判準 < 80）；200 ms 上螢幕中位數 99.8 ms（判準 < 90）；整張換新 267.5／280.0 ms（判準 ≤ 200）。其餘（80 ms 不累積、上螢幕中位數 79.8、最慢 101.1／147.6 < 150、`boundaries` 8.1 ms）都過。
+- **預測對帳**（§15.3）：Chrome 上螢幕 45–60 → 50.9 中、62.3 略高；Firefox 60–80 → 79.8 中、99.8 沒中；80 ms 最慢 < 120 → 兩邊都中；整張 100–180 → Chrome 158.8 中、187.9 沒中，Firefox 都沒中。視窗內那一條的重畫（上螢幕減提交）約 8–18 ms，沒到 40 ms，**C 的觸發條件沒成立**。
+- 依 §15.2 末段，122 在 Firefox 兩格（80 ms 與 200 ms 上螢幕）都綠之前不得標已修；**v59 不凍**。Firefox 為什麼慢（逐條時間軸的讀法）寫在 `findings/evidence/typing-latency/README.md` 末節；怎麼處置送 fable 裁決（判準不自行放寬）。

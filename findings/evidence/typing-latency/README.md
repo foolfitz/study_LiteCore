@@ -28,3 +28,20 @@ The "key → on screen" column does NOT measure the character appearing. The pro
 | `v58-chrome-owner-gap80-fixed-instrument.json` | Chrome, 80 ms × 20 | 508.2, 814.6 ms | **611.0**, 177.4, 903.9 ms | 461.7 ms |
 
 The ruling predicted the fixed instrument would read about revision + 80–100 ms at gap 200; it reads revision + ≈ 111 ms (Chrome) and ≈ 144 ms (Firefox) — a little above, and nowhere near the 4 ms of the stale blit, so it tells a new render from a re-blit. These three reports are today's baseline and the acceptance criteria's red case (targets: median < 70 / < 90 ms, max < 150 ms).
+
+## Acceptance on the candidate dist/ (2026-10-10; spec §15.2 122-B; page `b10f6017…`, B′ banded repaint)
+
+Probe `probe_typing_latency.py` sha256 `dbad93c0dcf27fbf…` (adds `allCurrentAfterLastKeyMs`: after the last key, the first time every canvas row has been covered by fresh images whose paint reply carries the last character's revision or later). Six reports `v59-candidate-*.json`; numbers below are each report's `summary` block.
+
+| Report | Key → committed (median, max) | Key → on screen (median, max) | Whole canvas current after last key | §15.2 |
+|---|---|---|---|---|
+| chrome owner gap 80 × 20 | 50.0, 63.9 ms | 62.3, 89.2 ms | 187.9 ms | all met |
+| chrome owner gap 200 × 10 | 32.6, 48.4 ms | 50.9, 61.1 ms | 158.8 ms | all met |
+| chrome boundaries gap 200 × 10 | **6.3**, 17.7 ms | 16.4, 22.9 ms | 18 ms | met |
+| firefox owner gap 80 × 20 | 72.6, **93.4** ms | 79.8, 101.1 ms | **267.5** ms | commit max ≥ 80, canvas > 200 |
+| firefox owner gap 200 × 10 | 91.1, 131.8 ms | **99.8**, 147.6 ms | **280.0** ms | on-screen median ≥ 90, canvas > 200 |
+| firefox boundaries gap 200 × 10 | **8.1**, 11.5 ms | 17.9, 26.4 ms | 20.9 ms | met |
+
+No backlog in either browser at gap 80 (the per-key commit delay does not grow over the 20 characters). Chrome meets every 122-B cell; **Firefox misses three**: gap-80 commit max 93.4 ms (< 80), gap-200 on-screen median 99.8 ms (< 90), whole canvas current 267.5 / 280.0 ms (≤ 200). Against the baseline (`v58-*-fixed-instrument.json`) Chrome's on-screen median went 145.7 → 50.9 ms (gap 200) and 611.0 → 62.3 ms (gap 80); Firefox's 187.3 → 99.8 ms (gap 200).
+
+Why Firefox misses, read from the fresh-blit timeline (`raw.blits`: time, band top, rows, revision of the paint reply): the Firefox canvas is 22,257 rows (11 bands; Chrome's window gives 17,929, 9 bands), fresh band blits arrive every ≈ 18–20 ms, so a full pass takes ≈ 250 ms and a key at gap 200 usually lands inside one. Then, per key: (1) the insert waits behind the band already in flight (≈ 20 ms); (2) the page, not yet told about the change, posts the NEXT band of the old pass in its distance order — that band is rendered after the insert (its reply already carries the new revision) but it is not the visible band, ≈ 30 ms wasted; (3) only after `document-invalidated` reaches the page does the new pass start with the visible band. Example, firefox gap 200, key at 8225.7 ms: band 16376 blitted at +22.5 (old revision), band 18423 at +61.0 (new revision, off-screen), page revision shown at +78.9, band 0 (the caret's) at +87.4. The gap-80 run has the same shape (key 8631.2: +22.5 old, +54.4 new off-screen band, +83.6 visible band). Chrome at gap 200 finishes a pass before the next key, so neither (1) nor (2) happens. This reading is mine and not instrumented on the Worker side.

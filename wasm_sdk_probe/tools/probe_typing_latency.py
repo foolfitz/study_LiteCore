@@ -180,9 +180,30 @@ def main() -> int:
             xs = sorted(x for x in xs if x is not None)
             return None if not xs else {"n": len(xs), "min": xs[0], "median": xs[len(xs) // 2], "max": xs[-1]}
         report["caretLineY"] = caret_y
+        # §15.2 (fable's ruling): after the last key, how long until EVERY row of the canvas has been
+        # replaced by a fresh image from a paint reply at or past the last character's revision.
+        height = raw.get("canvasHeight") or 0
+        final = (base_rev + len(keys)) if base_rev is not None else None
+        last_key = keys[-1] if keys else None
+        covered, done = [], None
+        for t, y, h, rev in sorted(blits):
+            if last_key is None or final is None or t < last_key or not isinstance(rev, int) or rev < final:
+                continue
+            covered.append((y, y + h))
+            spans = sorted(covered)
+            reach = 0
+            for span_top, span_end in spans:
+                if span_top > reach:
+                    break
+                reach = max(reach, span_end)
+            if reach >= height > 0:
+                done = t
+                break
+        report["allCurrentAfterLastKeyMs"] = None if done is None else round(done - last_key, 1)
         report["summary"] = {"revisionMs": stats([r["revisionMs"] for r in rows]),
                              "onScreenMs": stats([r["onScreenMs"] for r in rows]),
                              "overlayBlitMs": stats([r["overlayBlitMs"] for r in rows]),
+                             "allCurrentAfterLastKeyMs": report["allCurrentAfterLastKeyMs"],
                              "keysSeen": len(keys), "revisionChanges": len(revs), "freshBlits": len(blits),
                              "staleBlits": len(paints)}
     finally:
