@@ -45,3 +45,51 @@ Probe `probe_typing_latency.py` sha256 `dbad93c0dcf27fbf…` (adds `allCurrentAf
 No backlog in either browser at gap 80 (the per-key commit delay does not grow over the 20 characters). Chrome meets every 122-B cell; **Firefox misses three**: gap-80 commit max 93.4 ms (< 80), gap-200 on-screen median 99.8 ms (< 90), whole canvas current 267.5 / 280.0 ms (≤ 200). Against the baseline (`v58-*-fixed-instrument.json`) Chrome's on-screen median went 145.7 → 50.9 ms (gap 200) and 611.0 → 62.3 ms (gap 80); Firefox's 187.3 → 99.8 ms (gap 200).
 
 Why Firefox misses, read from the fresh-blit timeline (`raw.blits`: time, band top, rows, revision of the paint reply): the Firefox canvas is 22,257 rows (11 bands; Chrome's window gives 17,929, 9 bands), fresh band blits arrive every ≈ 18–20 ms, so a full pass takes ≈ 250 ms and a key at gap 200 usually lands inside one. Then, per key: (1) the insert waits behind the band already in flight (≈ 20 ms); (2) the page, not yet told about the change, posts the NEXT band of the old pass in its distance order — that band is rendered after the insert (its reply already carries the new revision) but it is not the visible band, ≈ 30 ms wasted; (3) only after `document-invalidated` reaches the page does the new pass start with the visible band. Example, firefox gap 200, key at 8225.7 ms: band 16376 blitted at +22.5 (old revision), band 18423 at +61.0 (new revision, off-screen), page revision shown at +78.9, band 0 (the caret's) at +87.4. The gap-80 run has the same shape (key 8631.2: +22.5 old, +54.4 new off-screen band, +83.6 visible band). Chrome at gap 200 finishes a pass before the next key, so neither (1) nor (2) happens. This reading is mine and not instrumented on the Worker side.
+
+## Second acceptance, A+B (2026-10-10; spec §15.6; page `18c8afbe…`, commit `4353dcee`)
+
+Same probe (`dbad93c0dcf27fbf…`), unchanged; six reports `v59-candidate2-*.json`, run sequentially with no other headless browser (the owner's interactive Firefox, started 10-06, was open). The window was not equalised (browser launch lives in shared modules, not one line in the probe); the canvas height is listed beside every number and the canvas width is unrecorded.
+
+| Report | Key → committed (median, max) | Key → on screen (median, max) | (ii) all current after last key | canvas rows |
+|---|---|---|---|---|
+| chrome owner gap 80 × 20 | 45.2, 54.8 ms | 36.7, 59.2 ms | 216.1 ms | 17,929 |
+| chrome owner gap 200 × 10 | 38.0, 48.4 ms | 46.0, 53.2 ms | 177.7 ms | 17,929 |
+| chrome boundaries gap 200 × 10 | **6.2**, 10.8 ms | 13.7, 16.6 ms | 19.2 ms | 2,007 |
+| firefox owner gap 80 × 20 | 65.3, **82.6** ms | 49.2, 72.3 ms | 359.8 ms | 22,257 |
+| firefox owner gap 200 × 10 | 68.2, 87.1 ms | **51.1**, 72.9 ms | 336.0 ms | 22,257 |
+| firefox boundaries gap 200 × 10 | **8.3**, 9.7 ms | 15.5, 16.8 ms | 23.6 ms | 2,491 |
+
+Against §15.6: Chrome meets every cell. Firefox meets every cell but one: **gap-80 commit max 82.6 ms (criterion < 80)**; one key of 20 is ≥ 80 (the next highest 75.1, 73.1). No growth in either browser at gap 80 (commit-to-commit intervals track key-to-key intervals; Firefox first-five median 65.3, last-five 65.2). Firefox on screen: gap-80 median 49.2 / max 72.3, gap-200 median 51.1 / max 72.9 (criteria < 90, < 150). (ii) holds in all six (not `None`).
+
+Predictions (§15.6), line by line: Firefox commit max 65–78 → **82.6, missed** (high). Firefox on-screen median 55–68 → 49.2 and 51.1, **missed** (low). Chrome commit max 45–55 → 54.8 and 48.4, met. Chrome on-screen median 45–55 → 36.7 **missed** (low), 46.0 met. Full pass Firefox 230–300 → 359.8 and 336.0, **missed** (high). Chrome 160–230 → 216.1 and 177.7, met.
+
+The ruling's stop rule applies (Firefox commit max ≥ 80 with no growth): v59 is not frozen and the cell is not restated here.
+
+### The insert-alone floor, measured on the candidate (the stop rule's request)
+
+Gap 600 ms × 10 keys, owner document, Firefox — longer than a full pass (≈ 330 ms), so no pass is in flight when a key lands. The v58 page (`537d62d7…`, bytes from `05f46923^`) and the B′ page (`b10f6017…`, from `6993186c`) were run as same-session controls by copying their bytes into `dist/e2-editor-app.js` for the run only (restored to `18c8afbe…` after; checked).
+
+| Report | Page | Key → committed (median, max) | Key → on screen (median, max) |
+|---|---|---|---|
+| `control-v58page-firefox-owner-gap600-floor.json` | v58 `537d62d7` | **42.7**, 59.7 ms | 182.4, 247.6 ms |
+| `control-bprime-b10f6017-firefox-owner-gap600-floor.json` | B′ `b10f6017` | **54.1**, 57.5 ms | 74.8, 78.5 ms |
+| `v59-candidate2-firefox-owner-gap600-floor.json` | A+B `18c8afbe` | **57.6**, 74.4 ms | 69.6, 75.0 ms |
+| `v59-candidate2-chrome-owner-gap600-floor.json` | A+B, Chrome | 35.9, 41.4 ms | 49.0, 54.7 ms |
+
+So the 43 ms "insert alone" of brief 2 (F3) and the third ruling is the v58 page's floor, and it reproduces in this session (42.7). On the banded pages the idle floor is higher: ≈ 54 (B′) and ≈ 58 ms (A+B) median in Firefox, with nothing in flight.
+
+### How much of that is the instrument (diagnostic, not 122-B)
+
+The probe's paint shim writes `root.dataset.paints = JSON.stringify(<400 entries>)` on every stale `putImageData` and `root.dataset.blits = JSON.stringify(<600 entries>)` on every fresh one. The page re-blits its cached bands on every state update, so that cost scales with the band count — one call per re-blit on v58, 22 on A+B (bursts of 44–65 calls, two or three `paint()`s, spanning 11–16 ms). `diagnostic-shim-overhead/lazy_shim_probe.py` runs the same probe with those two writes coalesced into one per task (patched in memory; the committed probe is untouched; each report's `runner` says so):
+
+| Report | Page | Key → committed (median, max) |
+|---|---|---|
+| `lazy-v58page-firefox-owner-gap600.json` | v58 | 44.7, 50.9 ms |
+| `lazy-candidate2-firefox-owner-gap600.json` | A+B | 52.7, 65.9 ms |
+| `lazy-candidate2-firefox-owner-gap80.json` | A+B | 71.1, **84.9** ms (3 of 20 keys ≥ 80) |
+
+The instrument accounts for ≈ 5 ms of the A+B idle floor and nothing measurable on v58; the remaining ≈ 8 ms of floor rise is the page's, cause not located (per `paint()` the re-blit cost looks similar — v58's single whole-canvas calls start ≈ 5 ms apart, A+B's 22 calls take ≈ 5 ms — but on A+B the first re-blit burst after a key starts ≈ 5 ms later). Removing the overhead does not bring the gap-80 commit max under 80. Run-to-run spread at gap 80 is several ms (Firefox commit max 82.6 vs 84.9; median 65.3 vs 71.1).
+
+### Per-key timeline under typing (Firefox, gap 80; `raw.blits` and `raw.revs`)
+
+Key 8 (`i`, at 8670.8 ms): +20.0 state write (old revision 8) and the band in flight (top 3069, revision 8) blitted — A ended the old pass there; +51.5 band 0 blitted carrying the **new** revision 9 (the character is on screen); +75.1 the revision counter shows 9, and 0.5 ms later band 0 is blitted **again**, revision 9. Keys 9 and 10 have the same shape (+59.6 / +82.6 and +48.4 / +73.1). So per key the visible band is rendered twice: once by the pass A restarted (already after the insert) and once more because `document-invalidated` arrived while that band was in flight and ended that pass too. Brief 2 named this cost under option A. The committed time this probe reports is the moment `#s-revision` changes, and on A+B it changes just before the second band-0 blit, ≈ 23–25 ms after the character is already on screen. This is a reading of page-side timestamps; the Worker's queue order is not instrumented.

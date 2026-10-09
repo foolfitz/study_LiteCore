@@ -617,3 +617,15 @@ B-ctl／S／P 6/6、B-3x 4/4、突變 40/40；六支 M3 runner 全過、紅案�
 - **凍 v59 的條件**：Chrome 每格；Firefox 80 ms 不累積且提交最慢 < 80、200 ms 上螢幕中位數 < 90、兩種間隔最慢 < 150；兩個瀏覽器 (ii) 都成立；`boundaries` 不變。之後照 §15.2 的 R‴ 順序。
 - **不得**：B 推出的常數以外再加任何常數；A 呼叫 `preventDefault` 或碰轉接器；在沒有進行中的一輪時設 `renderAgain`；改寫延遲數字；Firefox 三格部分綠就凍。
 - **預測**（A＋B）：Firefox 提交最慢 65–78 ms、上螢幕中位數 55–68 ms；Chrome 提交最慢 45–55 ms、上螢幕中位數 45–55 ms；整輪（記錄、不當門檻）Firefox 230–300 ms、Chrome 160–230 ms。
+
+### 15.7 A＋B 的驗收（2026-10-10，候選頁面 `18c8afbe…`，commit `4353dcee`；停手規則成立）
+
+只追加；數字讀自 `findings/evidence/typing-latency/v59-candidate2-*.json` 的 `summary`，讀法與表格在該目錄 `README.md` 末節（Second acceptance, A+B）。
+
+- **Chrome 每格都過**（畫布 17,929 列）：80 ms 提交最慢 54.8、上螢幕中位數 36.7／最慢 59.2；200 ms 上螢幕中位數 46.0；(ii) 216.1／177.7 ms；`boundaries` 提交中位數 6.2。
+- **Firefox 只差一格**（畫布 22,257 列）：80 ms **提交最慢 82.6 ms（判準 < 80；20 鍵裡 1 鍵 ≥ 80）**、不累積；上螢幕中位數 49.2（80 ms）／51.1（200 ms）、最慢 72.3／72.9；(ii) 359.8／336.0 ms；`boundaries` 8.3。
+- **預測對帳**：Firefox 提交最慢 65–78 → 82.6 沒中（偏高）；Firefox 上螢幕 55–68 → 49.2、51.1 沒中（偏低）；Chrome 提交最慢 45–55 → 兩格中；Chrome 上螢幕 45–55 → 36.7 沒中（偏低）、46.0 中；整輪 Firefox 230–300 → 359.8、336.0 沒中（偏高）；Chrome 160–230 → 兩格中。
+- **停手規則成立**（§15.6：Firefox 提交最慢仍 ≥ 80 而且不累積）：v59 不凍、該格不自行改寫；第三份簡報 `findings/evidence/typing-latency/ruling/brief-3-firefox-commit-floor.md` 送 fable。
+- **候選頁面上的「只有插入」底線**（間隔 600 ms、沒有進行中的一輪；同一個 session 換 `dist/` 頁面位元組當對照，跑完還原並核對）：Firefox 提交中位數 v58 頁面 42.7、B′ 頁面 54.1、A＋B 頁面 57.6 ms。**裁決用的 43 ms 是 v58 頁面的底線；分條重畫把閒置底線抬高約 11–15 ms。**其中約 5 ms 是探針自己每次 `putImageData` 都寫一次 dataset 的開銷（診斷臂，不是 122-B 的儀器，`diagnostic-shim-overhead/`）；拿掉之後 80 ms 提交最慢仍 84.9。
+- **逐鍵時間軸**：打字時每一鍵的可視條畫兩次——A 重起的那一輪先畫（已帶新修訂號，字在 +48–60 ms 上螢幕），`document-invalidated` 在它進行中到達又結束那一輪、再畫一次；頁面的修訂號在第二次之前 0.5 ms 才變（+73–83 ms）。這是頁面側時間戳的讀法，Worker 的佇列順序沒有量。
+- 121-B／120-B 這一輪**不重跑**：裁決若再動頁面，頁面位元組還會變，到時再跑一次才綁得到最終的 sha。

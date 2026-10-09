@@ -1,0 +1,306 @@
+# Witness (2026-10-10): `make test-e2-c-static` on the A+B candidate (web = dist = 18c8afbe…, commit 4353dcee), before any re-anchor.
+# Two reds: the shell-generation guard (by design until v59 is frozen) and mutation ignore-a-document-that-grew, whose find string no longer exists since 6993186c.
+
+node --test editor-shell-v2/tests/*.test.mjs
+✔ EditorV2ParagraphAction declares exactly the runtime's actions (1.498036ms)
+✔ the gesture union matches the engine's routing classes (0.156ms)
+✔ EditorV2InheritedAction declares exactly the runtime's ten (0.281043ms)
+✔ EditorV2Action is the union of the two lists, and it is fifteen (0.27455ms)
+✔ the inherited result keeps a boolean `changed` (0.319044ms)
+✔ the declared completion is route C's, not v1's (0.174485ms)
+✔ EditorV3AppendedAction declares exactly the runtime's five (0.140942ms)
+✔ EditorV3Action is v2's fifteen plus the append, and it is twenty (0.121065ms)
+✔ the withheld action is named nowhere in the client pair (0.275673ms)
+✔ the worker's wire ids are the header's, and the header pins them (1.727955ms)
+✔ every action the v2 profile declares is reachable by a shipped shell (4.366884ms)
+✔ control: the v1 shell reaches all ten on the v1 profile (1.210833ms)
+✔ control: an action no manifest declares is reachable by nobody (0.645852ms)
+✔ the shipped session cannot open a document on the v2 profile (1.63984ms)
+✔ control: the shipped session opens on the v1 profile (0.367603ms)
+✔ the ten inherited actions decide identically in both clients (89.662006ms)
+✔ the comparison can fail (0.792334ms)
+✔ the paragraph five are not revalidated here, they are delegated (0.171469ms)
+✔ a paragraph reply shape is still rejected for an inherited action (0.300208ms)
+✔ the fifteen are the manifest's fifteen (0.461469ms)
+✔ the convenience methods reach the same actions as v1's (0.342727ms)
+✔ the client refuses a profile that is not v2 (0.12387ms)
+✔ it opens on the v2 profile, which the shipped session cannot (3.905075ms)
+✔ all fifteen go through the session's queue (1.814626ms)
+✔ the two families keep their own postconditions (0.519226ms)
+✔ a paragraph action advances the revision by exactly one (0.402328ms)
+✔ a post-dispatch failure blocks the queue and asks for a rollback (0.750967ms)
+✔ rollback reopens from the engine's own bytes with a fresh worker (0.966398ms)
+✔ a DISPATCHED postcondition failure blocks the queue too, not just the codes the base class knows (0.762839ms)
+✔ the base-class seam this depends on is still there (0.260294ms)
+✔ an undispatched failure still leaves the queue running (1.114623ms)
+✔ a pre-dispatch refusal does not ask for a rollback (0.984582ms)
+✔ a bad argument never reaches the engine and never rolls anything back (0.789208ms)
+✔ a boundary rejection still demands a fresh worker (0.320486ms)
+✔ the generation ceiling still fails closed (0.503767ms)
+✔ gestures and limits come from the manifest, for showing not for failing (0.62875ms)
+✔ finding 084: a state write whose sourceSequence went BACKWARDS does not move the caret back (0.335956ms)
+✔ finding 084: the REST of a stale patch still applies (0.248091ms)
+✔ finding 084: an ADVANCING write still lands, and so does an equal one (0.118481ms)
+✔ finding 084: a REOPEN may legitimately move the sequence backwards (0.110445ms)
+✔ finding 084: a write with no sourceSequence is not second-guessed (0.110636ms)
+✔ finding 084: the guard is installed on the machine the writers use (0.119953ms)
+✔ finding 084: the base class builds the machine ONCE, which is what makes wrapping it in the constructor enough (0.249424ms)
+✔ finding 084: after ANY order of arrivals the newest state is the one held (2.238314ms)
+✔ finding 084: a DUPLICATED announcement is idempotent, in any position (0.185855ms)
+✔ finding 084: the sequence the snapshot holds NEVER decreases, whatever arrives (0.176679ms)
+✔ finding 084: TWO announcements per commit -- the a11y core's shape -- still ends on the caret-bearing one (0.251248ms)
+✔ finding 096: a move on a DIRTY document banks a checkpoint first (0.282295ms)
+✔ finding 096: all six key-path moves bank it, and nothing else does (1.547449ms)
+✔ finding 096: a CLEAN document pays nothing (0.171549ms)
+✔ finding 096: holding the key down does not save per keypress (0.576423ms)
+✔ finding 096: a checkpoint that cannot be written does not eat the key (0.34958ms)
+✔ finding 098: moving the caret on a CLEAN document never makes it dirty and never banks anything (2.377413ms)
+✔ finding 098: on a successful answer, `dirty` says the document changed exactly when the engine said it did -- for every action the client offers (1.111889ms)
+✔ finding 099: after a rollback, the new Worker's work is banked however its revision lines up with the old checkpoint's (5.669378ms)
+✔ finding 099: the skip reads the content, never the revision -- at any revision, in any generation (28.287626ms)
+✔ finding 099: WITHIN one Worker, a change that came back unverified is banked by the next arrow key (0.674885ms)
+✔ finding 099: a checkpoint save that failed is retried on the next move (0.242431ms)
+✔ finding 098: shift+arrow on a clean document is not a mutation either (0.181307ms)
+✔ view-only: every mutating entry point is refused before it is queued (1.2467ms)
+✔ view-only: moves still run, and the gate is off by default (0.452332ms)
+✔ actionMutates is fail-closed: only the six moves are not mutations (0.14487ms)
+✔ view-only survives a fresh Worker (a rollback reopens the engine) (0.319905ms)
+✔ finding 107: unsaved edits follow dirty and pending, never the revision (1.944919ms)
+✔ finding 109: a refused boundary delete on a DIRTY document banks the work before the queue blocks, and the restart reopens it (0.544273ms)
+✔ finding 109: a CLEAN document pays nothing and loses nothing (0.167442ms)
+✔ finding 109: content a move already banked is not saved twice (0.207686ms)
+✔ finding 109: a checkpoint that cannot be written says so, and a restart is NOT reported as keeping the content (0.389655ms)
+✔ finding 109: an OLDER checkpoint does not make a restart safe (0.240528ms)
+✔ finding 109: after a save, the saved bytes are what a restart keeps (0.16667ms)
+✔ M1-3: keyPosted refusal (clean, key not applied) keeps every typed change across the restart (0.642626ms)
+✔ M1-3: keyPosted refusal (dirty, nothing banked, key not applied) keeps every typed change across the restart (0.267808ms)
+✔ M1-3: keyPosted refusal (dirty, banked at this stamp, key not applied) keeps every typed change across the restart (0.270453ms)
+✔ M1-3: keyPosted refusal (clean, key applied) keeps every typed change across the restart (0.274992ms)
+✔ M1-3: keyPosted refusal (dirty, nothing banked, key applied) keeps every typed change across the restart (0.246669ms)
+✔ M1-3: keyPosted refusal (dirty, banked at this stamp, key applied) keeps every typed change across the restart (0.253472ms)
+✔ finding 119 U1/U5: a delete the barrier could not verify banks the work, blocks as restart-required, and the restart reopens it (0.430852ms)
+✔ finding 119 U2: a CLEAN document pays nothing and loses nothing (0.168133ms)
+✔ finding 119 U3: a checkpoint that cannot be written says so; the caller still gets the engine's error (0.222053ms)
+✔ finding 119 U4: the same code anywhere else keeps today's disposition (0.352646ms)
+✔ B1: two refusals restart, and the third finds no generation left (0.463472ms)
+✔ B1: at the ceiling the refusal's content is handed out as saved, and the engine is left alone (0.764723ms)
+✔ B1: a checkpoint that could not be written is not handed out (0.263109ms)
+✔ B1: never from a running session, even with a checkpoint in hand (0.149347ms)
+✔ B1 (page): the third refusal does not restart; its content goes to the save path (1.261076ms)
+✔ B1 (page): a failed write stays `failed`, and is not retried into `clean` (0.944768ms)
+✔ B1 (page): nothing unsaved at the ceiling is `clean` and saves nothing (0.693239ms)
+✔ B1 (page): unsaved work that cannot be kept is `lost`, not saved (0.793106ms)
+✔ B1: a session stopped by something else at the ceiling hands out its content too (recoverable-error) (0.432926ms)
+✔ B1 (page): before any attempt the notice tells clean, pending and lost apart (2.038743ms)
+✔ B1 (page): `saved` only once the write has landed; the button is dead while it is in flight (12.87883ms)
+✔ B1 (page): a failed write keeps the host's own sentence (0.79ms)
+✔ B1 (page): the notice's button -- rollback below the ceiling; at it, save when nothing was attempted, reload after (4.623081ms)
+✔ finding 111: X, Y, then Delete at once -- the Delete waits for Y (45.497483ms)
+✔ finding 111: X, Y, Delete, Z -- Z after the Delete (67.561811ms)
+✔ finding 111: two keys in a row keep their order behind the text (53.146984ms)
+✔ finding 111: nothing typed -- the key goes straight in (5.705154ms)
+✔ finding 111: typed text the adapter cancels does not strand the key (26.427495ms)
+✔ finding 111 U7: a key held behind typed text is not run on the Worker of a restart (200.83468ms)
+✔ finding 111 U8: X in flight, Y in the adapter, then save -- the save holds both (43.011748ms)
+✔ an action with gestures is offered (0.943776ms)
+✔ an action PRESENT with an empty gesture list is NOT offered (0.148276ms)
+✔ an action the profile does not carry is NOT offered (0.131154ms)
+✔ gesturesFor CANNOT distinguish those two, which is why offers exists (0.615635ms)
+✔ a v1-shaped manifest carries a name list and offers what it lists (0.151653ms)
+✔ no contract at all offers everything (0.133278ms)
+✔ offersRedo reads the contract, not the action map (0.156141ms)
+✔ a profile with no contract at all does not claim redo (0.12916ms)
+✔ the product page gates redo and cut on the profile too (1.303675ms)
+✔ the product page gates its arrow keys on offers, not gesturesFor (0.770473ms)
+✔ every dispatchable action has a label, button or not (1.046637ms)
+✔ the session's allowlist covers everything the client offers (1.831648ms)
+✔ M1-5: an engine without B (no mergeKey) keeps the old, true sentence (2.554382ms)
+✔ M1-5: keyPosted true is never told 'not changed', whatever the stage (0.265534ms)
+✔ M1-5: keyPosted missing or not false is never told 'not changed' (0.180235ms)
+✔ M1-5: before-the-key stages say 'not changed'; unknown and restore-mutated do not (0.25836ms)
+✔ M1-5: the page's 'not changed' set holds only stages the engine has (0.26891ms)
+✔ M1-5: 'nothing selected' does not claim a document end (0.184954ms)
+✔ M1-5: every exit of reopenAfterBoundaryRefusal, keyPosted true, never says 'not changed' (1.063799ms)
+✔ M1-5: after a restart with the key's effect uncertain, the user is told to look (0.31684ms)
+✔ M1-5: the same exits for an engine without B still use its sentence (1.745077ms)
+✔ M1-5: the page hands the error to the reopen path (0.55361ms)
+✔ finding 119 U6: the session's restart disposition reaches the reopen path; the code alone does not (0.614723ms)
+✔ finding 119 U6: no exit says 'not changed'; each names the unfinished delete; a restart asks to look (2.495442ms)
+✔ finding 119 U6: the notice's reopen gives the input sink its focus back, after the rollback (7.373227ms)
+✔ finding 121: a range goes out as delete-selection when the profile offers it (2.151182ms)
+✔ finding 121: a caret, an unknown shape, or no offer keeps today's action (0.151883ms)
+✔ finding 121: the handler asks the engine's current selection, the page's belief only as fallback (0.334362ms)
+✔ finding 120: the sink follows the new adapter's blocked state (0.213487ms)
+✔ finding 120: openDocument syncs the sink right after attaching it (0.196135ms)
+✔ 122 B1: the bands cover the canvas exactly, from pixel edges (3.048161ms)
+✔ 122 B2: the bands under the view first, then nearest first (0.917718ms)
+✔ 122 B3: a change between bands ends the pass, and the next pass starts with the view again (8.960681ms)
+✔ 122 B4: each band is blitted when it arrives, before the next band is asked for (0.665729ms)
+✔ 122 B5: a document whose size changed is laid out again and painted in full (1.453494ms)
+✔ 122 B6: a band the engine did not paint still raises TILE_NOT_PAINTED (0.425793ms)
+✔ 122 B7: nothing is cleared; a band keeps its old pixels until its new ones arrive (1.493228ms)
+✔ 122 B8: a key that will reach the engine, mid-pass, ends the pass after the band in flight; the next pass starts with the view (1.888284ms)
+✔ 122 B8-control: a beforeinput while idle sets nothing and starts no pass; a composition update mid-pass ends nothing (1.39758ms)
+✔ a repaint rejected because the page disposed its engine says nothing (1.975596ms)
+✔ any other failed repaint is still reported (1.983571ms)
+✔ BUSY is still retried, and a later success says nothing (0.339632ms)
+✔ a BUSY retry keeps one repaint in flight (5.057379ms)
+✔ no document: nothing to lose, unless a save is still settling (2.624774ms)
+✔ the session's answer decides, whatever the revision says (0.657433ms)
+✔ a save asked for and not yet settled counts, even when the session is clean (0.660819ms)
+✔ fail closed: a session without hasUnsavedEdits throws (the host asks on a throw) (0.819905ms)
+✔ a v1 profile is refused (2.587955ms)
+✔ contract version 1 is refused even with the v2 capability (0.235338ms)
+✔ the five paragraph actions dispatch on editorActionV2 (0.46203ms)
+✔ a v1 action name is refused (0.187198ms)
+✔ neither option flag may be supplied (0.299176ms)
+✔ revision advances by exactly one and changed stays null (0.154869ms)
+✔ a v1-shaped success is rejected, not silently accepted (0.189673ms)
+✔ a revision that does not advance is rejected (0.197608ms)
+✔ gestures and limits are read from the manifest (0.58587ms)
+✔ failure disposition turns on whether anything was dispatched (0.190945ms)
+✔ a select command that came back empty is an answer, not a stall (0.207416ms)
+✔ a failure that never reached the engine does not roll the document back (0.565742ms)
+✔ a barrier saying it was dispatched still wins over the code (0.109283ms)
+✔ setList and setParagraphStyle reject anything outside the closed set (0.248262ms)
+✔ a pre-dispatch refusal needs no recovery (0.612709ms)
+✔ anything dispatched rolls back (0.16134ms)
+✔ a barrier that was not forwarded rolls back, not continues (0.126124ms)
+✔ a boundary rejection still demands a fresh worker (0.116547ms)
+✔ undo is NOT the prescribed recovery for a dispatched failure (0.179394ms)
+✔ the disposition is attached to the error the caller receives (0.469273ms)
+✔ ../../web/demo-structure-app.js: every client.* call exists on ParagraphEditorClient (1.405314ms)
+✔ ../../web/e2-editor-app.js: every session.* call exists on NarrowEditorV2Session (0.662492ms)
+✔ ../../web/e2-editor-app.js: every client.* call exists on NarrowEditorV2Client (0.509157ms)
+✔ the extractor finds calls and the membership test can say no (0.267969ms)
+✔ every snapshot field a page reads is a field the state machine has (1.239917ms)
+✔ Enter is bound to the paragraph break and Shift+Enter to the line break (0.595979ms)
+✔ a real within-line envelope is a range-single (1.401968ms)
+✔ a real cross-line envelope is a range-cross (0.126365ms)
+✔ a collapsed selection is collapsed (0.076192ms)
+✔ THE DEFECT: the v1 field names at the top level are NOT read as an answer (0.093875ms)
+✔ an envelope with no selection at all is unknown, not collapsed (0.090419ms)
+✔ a non-boolean collapsed is unknown, not a shape (0.158826ms)
+✔ null, undefined and primitives are unknown rather than throwing (0.154978ms)
+✔ a range with no rectangles array is range-single, not a crash (0.125894ms)
+✔ the evidence names the keys and carries no document text (0.310508ms)
+✔ the evidence survives the shapes that produce it (0.175967ms)
+ℹ tests 183
+ℹ suites 0
+ℹ pass 183
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 610.240294
+node --check editor-shell-v2/narrow-editor-v2-client.js
+node --check editor-shell-v2/narrow-editor-v2-session.js
+node --check web/e2-editor-app.js
+node --check web/e2-c-d0-app.js
+node --check web/e2-c-d1-probe-app.js
+node --check web/e2-c-d1-app.js
+node --check web/e2-c-d2-app.js
+node --check web/e2-c-d3-app.js
+node --check web/e2-c-d3-corpus-app.js
+node --check web/e2-c-d4-app.js
+node --check web/e2-c-d4-heap-app.js
+node --check web/e2-c-046-empty-app.js
+node --check web/e2-c-046-overshoot-app.js
+node --check web/e2-c-046-overshoot-app.js
+node --check web/e2-c-048-boundary-app.js
+node --check web/e2-c-d5-app.js
+node --check web/e2-c-search-wedge-app.js
+# SPEC E2-C 2.2: the manifest declares fifteen actions, so fifteen must be
+# reachable by a shipped shell.  The four-way inventory check cannot see
+# this -- its client side is the UNION of two shells and one of them
+# refuses to attach to the v2 profile at all.
+node --test editor-shell-v2/tests/manifest-reachability.test.mjs
+✔ every action the v2 profile declares is reachable by a shipped shell (2.441623ms)
+✔ control: the v1 shell reaches all ten on the v1 profile (0.554853ms)
+✔ control: an action no manifest declares is reachable by nobody (0.157062ms)
+✔ the shipped session cannot open a document on the v2 profile (0.840494ms)
+✔ control: the shipped session opens on the v1 profile (0.196606ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 48.704359
+# SPEC-M3-paragraph-merge.  13.2: no LOK call or emit under the engine's
+# mutexes.  M1-2: option B's attribution against a generated LOK model.
+# M1-1: B reaches only the v15 objects; the base is the last commit
+# before B's engine code (5d77dc84).
+python3 tools/check_engine_lock_scopes.py
+probe_engine.cpp: lock scopes checked (gState.mutex 12, gMergeMutex 11), 97 tainted functions
+mkdir -p build
+g++ -std=c++17 -O2 -Isrc -o build/merge_key_undo_model_test \
+	tests/merge_key_undo_model_test.cpp
+build/merge_key_undo_model_test > /dev/null
+python3 tools/check_merge_key_undo_scope.py --base 5d77dc84
+{"carriers": ["E2_V15", "E2_V19"], "rules": 25, "objects": 100, "different": 2, "unbuildable": ["FINDING_012_DIAGNOSTIC build/finding-012/diagnostic/probe_engine.o"], "guards": [{"rule": "E2_V15", "variant": "with OXSDK_MAINLOOP_ENGINE", "exit": 1}, {"rule": "E2_V15", "variant": "without OXSDK_FINDING_016_SELECTION_BARRIER", "exit": 1}, {"rule": "E2_V19", "variant": "with OXSDK_MAINLOOP_ENGINE", "exit": 1}, {"rule": "E2_V19", "variant": "without OXSDK_FINDING_016_SELECTION_BARRIER", "exit": 1}]}
+# E2-C must never touch what E1-C bound.  Read-only on purpose: a static
+# target that rewrites verdict-bound evidence has happened here once.
+python3 tools/check_e1_c_bundle_intact.py > /dev/null
+python3 -m json.tool e2/content-axis-suites.json > /dev/null
+# SPEC E2-C 8.1: D3's corpus must carry the axes the spec claims it does.
+# --suites and --output are both explicit: the tool's default output is
+# E1's baseline evidence, and E1-C's verdict records this tool's stdout
+# verbatim, so a defaulted run here would write into E1's evidence.  The
+# copy that becomes E2-C's evidence is produced by the judging run, not by
+# a syntax check.
+mkdir -p build/e2c
+# Three corpora, all named: the tool defaults to e1 + r7-compat, and D3's
+# L7 fixture lives in test-docs/e2 because E2-C may not regenerate the E1
+# corpus (its sha256s are in E1-A's frozen list and in every E1 run's
+# evidence).
+python3 tools/inventory_corpus_axes.py \
+	--corpus test-docs/e1 --corpus test-docs/r7-compat --corpus test-docs/e2 \
+	--suites e2/content-axis-suites.json \
+	--output build/e2c/content-axes.json --check > /dev/null
+python3 -m unittest tests/test_e2_corpus.py tests/test_e2_c_shell_bundle.py \
+	tests/test_e2_c_matrix.py tests/test_caret_from_columns.py \
+	tests/test_inline_styles_of.py tests/test_ink_rows_caret.py \
+	tests/test_product_path_mutations.py tests/test_session_liveness.py
+.................F.............................................................F............................
+======================================================================
+FAIL: test_the_real_manifest_matches_the_real_tree (tests.test_e2_c_shell_bundle.TestShellBundle.test_the_real_manifest_matches_the_real_tree)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tests/test_e2_c_shell_bundle.py", line 132, in test_the_real_manifest_matches_the_real_tree
+    self.assertEqual(bundle.problems(PROJECT, current, manifest), [])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ["manifest is out of date: added=[] remove[34 chars]s']"] != []
+
+First list contains 1 additional elements.
+First extra element 0:
+"manifest is out of date: added=[] removed=[] changed=['web/e2-editor-app.js']"
+
++ []
+- ['manifest is out of date: added=[] removed=[] '
+-  "changed=['web/e2-editor-app.js']"]
+
+======================================================================
+FAIL: test_every_mutation_matches_its_target_exactly_once (tests.test_product_path_mutations.MutationsStillApply.test_every_mutation_matches_its_target_exactly_once) (mutation='ignore-a-document-that-grew')
+The same count `apply_mutation` demands, asked before the run.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tests/test_product_path_mutations.py", line 154, in test_every_mutation_matches_its_target_exactly_once
+    self.assertEqual(
+    ~~~~~~~~~~~~~~~~^
+        hits, 1,
+        ^^^^^^^^
+        f"{name} expects one occurrence of its pattern in "
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        f"dist/{spec['path']} and found {hits}. The tree moved "
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        f"under the mutation; fix the pattern, not the count.")
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 != 1 : ignore-a-document-that-grew expects one occurrence of its pattern in dist/e2-editor-app.js and found 0. The tree moved under the mutation; fix the pattern, not the count.
+
+----------------------------------------------------------------------
+Ran 108 tests in 0.787s
+
+FAILED (failures=2)
+make: *** [Makefile:3554: test-e2-c-static] Error 1
