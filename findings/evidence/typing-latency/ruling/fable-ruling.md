@@ -124,3 +124,50 @@ WHY（給擁有者）
 5. 兩個延遲數字不動；A+B 之後預測 Firefox 都過。若 80 那格還是沒過，不要自己改數字，帶著量到的底線再來裁一次。
 6. 一件要記下的事：兩個瀏覽器畫的畫布大小不一樣（Firefox 多 24% 像素），所以「Firefox 比較慢」有一部分是視窗比較大。
 7. 頁面變了，六份報告兩個瀏覽器全部重跑，Chrome 不能靠上一輪。
+
+# Fourth ruling (2026-10-10, on `brief-3-firefox-commit-floor.md`; fable, on the owner's behalf — the owner sent 122 to fable, and chose "B 交 fable 裁決" for Part 2 in this session). Verbatim.
+
+PART 1
+
+FACT CHECK
+- G1 holds. `control-v58page-…gap600-floor` 42.7/59.7, `control-bprime-b10f6017-…` 54.1/57.5, `v59-candidate2-firefox-owner-gap600-floor` 57.6/74.4, Chrome A+B 35.9/41.4; each report's `page` sha is the page it claims. My third ruling's "43 + ≤11 + ≤11" used `v58-firefox-owner-gap200-fixed-instrument.json` (43.0) — the v58 floor. (The swap/restore procedure rests on the README's word; the shas are the evidence.)
+- G2 holds, with a caveat. `lazy_shim_probe.py` does only what it says (two per-call `dataset` writes → one `setTimeout(0)` flush; probe `dbad93c0` untouched). Idle v58 44.7 vs 42.7, A+B 52.7 vs 57.6 (≈5 ms); gap 80 max 84.9 (3/20 ≥ 80). Caveat: the lazy gap-80 MEDIAN is 71.1 vs 65.3 — run-to-run spread exceeds the effect measured, so "≈5 ms" is a one-run estimate. The unlocated ≈8 ms: `updateState()` ends in `paint()` (e2-editor-app.js:665, :1025–1029), which re-blits all 22 bands (~80 MB) on every state write; at idle that is 130 stale `putImageData` per key on A+B (clusters 65/44/21) against 6 whole-canvas calls on v58 — same bytes, 22× the calls, and A+B's first burst starts 5 ms later. Not located, but that is the candidate (registration R2).
+- G3 holds. `raw.blits` Firefox gap 80, keys 6–11: band 0 blitted twice per key, same revision; `#s-revision` changes 0.5 ms before the SECOND blit every time (key 8: +51.5 / +75.1 / +75.6). Chrome varies: key 7 the pass ran on to band 1 before the restart and the revision landed 0.2 ms before band 1's FIRST blit (+54.1/+54.3), then bands 0 and 1 were both re-rendered. That Chrome row is load-bearing against A′'s hoped-for gain: the drain's write is paced by when the engine answers, not by the duplicate band.
+- G4 partly holds. Fields: yes — the paint reply carries `gState.revision` (probe_engine.cpp:3157), forwarded (`sdk-worker.js:760`), returned whole by `render()` (`document-sdk.js:397–421`), so `tile.revision` is visible in `renderDocument`; `document-invalidated` carries `gCallbackRevision` (:2540–2548; worker :1111–1114) and reaches the page's `onEvent` whole (`editor-session.js:598`). Same counter: `gCallbackRevision` is a copy of `gState.revision` (:2478–2481, :3210–3211). Missed: (i) `handleInsertText` increments AFTER `paste`/`postKeyEvent` (:3189–3211) and the callback stamps the revision at delivery — "covered" is correct only if LOK delivers INVALIDATE_TILES after the handler returns; nothing measures it (the probe records no event revisions). A callback delivered inside the LOK call carries the PRE-change revision and A′ keeps a stale band — the first ruling's must-not. (ii) The comparison must run at the loop check after the in-flight band returns; in the event handler the blitted set is empty and "covered" is vacuous. (iii) A's `beforeinput` must stay a boolean that always ends the pass. (iv) Effect on commit unestablished, and the Chrome key-7 row says probably nil; the saving is Worker time (≈10–13 ms/key Firefox, 8–10 Chrome) and one band of fill-in.
+
+RULING: R. Not A′ in v59 (registered below). The restated cell replaces §15.6's "gap-80 commit max < 80", for both browsers; every other number stays.
+  Cell: "At gap 80 × 20, per browser, from `rows[].revisionMs` of the bound report: (a) every key's revisionMs < 2 × gap (= 160 ms) — no key is ever two behind; (b) the run's median revisionMs < gap (= 80 ms) — the drain keeps up with the keys."
+  Form: (a) per-instance; (b) a tool-closed aggregate over the report's rows, computed by a reader — no hand reading. The only constant is the run's own gap.
+  "No growth" becomes (a)+(b). The per-key backlog b_i = max(0, revisionMs[i−1] − (key_i − key_{i−1})) and the first-five/last-five medians are RECORDED per browser with a prediction, not gated (today's reading of them is by hand — a §2 defect in my own earlier cell).
+  Reason, written now: 80 was floor + two half-bands using the v58 floor; the candidate's own idle floor is 57.6/74.4 (G1), so the derivation's premise is gone and I withdraw the number rather than build A′ to rescue it. The user-facing cell is met with margin in both browsers; a 2.6 ms one-key excess at utilisation ≈0.8 is absorbed by the next key. Not A′-then-R: A′'s commit effect is unestablished, its safety premise is unmeasured, and the brief's own on-screen prediction for it is ±5.
+  Default if never measured: 122 not fixed; v59 does not freeze.
+  Predictions on the existing reports: Firefox (a) 82.6 < 160, (b) 65.3 < 80; Chrome 54.8 / 45.2 — PASS both. The bite lives in the reader's red cases, not in these numbers.
+
+CONDITIONS (before v59 freezes)
+1. Append §15.8 before the reader runs: the cell, form, reason with G1's numbers, default, predictions, registrations R1/R2.
+2. Reader (reads existing JSON, no browser), per browser: binds `page` = `18c8afbe…` and `runner` = `dbad93c0…` (the lazy diagnostics cannot count); checks (a), (b) on the two gap-80 reports and re-checks every other §15.6 cell from `summary` (on-screen medians/max both gaps, (ii) not None, boundaries); prints b_i and first/last-five medians; exit 0 only when both browsers pass. Red cases, each red once: `v58-chrome-owner-gap80-fixed-instrument.json` (median 508.2, max 814.6; there is no Firefox v58 gap-80 report) → FAIL (a) and (b); the Firefox candidate report with 80 added to every revisionMs → FAIL (b) only; with one row set to 160 → FAIL (a) only; a report whose `runner` is the lazy shim → refused.
+3. No page byte changes for 122: 122-B is NOT re-run; the six `v59-candidate2-*.json` are the evidence. If any page byte changes before the freeze, the third ruling's condition 3 (full 122-B, both browsers) stands.
+4. 121-B and 120-B on the final page bytes (deferred in §15.7), then R‴ of §15.2 as written; the Part 2 re-anchor goes in before `make test-e2-c-static`.
+5. Must not: implement A′ or any `paint()` change in v59; touch probe `dbad93c0`'s recording; restate any other number; freeze with either browser failing (a) or (b).
+6. Registrations (next page change, not v59). R1 A′: admissibility measurement first — the probe's Worker wrapper records `document-invalidated` revisions; admissible only if every invalidation following an insert carries that insert's post-increment revision; one pre-change value and A′ is dropped, not patched. Unit: covered → continue; not covered → restart; empty blitted set → restart; `beforeinput` → always restart. Red cases: drop the comparison (today's behaviour), never restart. Predictions: on-screen ±5, commit ±5, Worker −10–13 ms/key Firefox. R2: `updateState()→paint()` re-blits the whole canvas on every state write, ≈6 writes/key — finding candidate; measure bytes blitted per key v58 vs A+B before any design.
+
+WHY（給擁有者）
+1. 80 這個數字是我拿舊頁面（v58）的 43 ms 底線加兩個半條推出來的；新頁面在什麼都沒在畫的時候，底線本身就是 58 ms（最慢 74）。前提沒了，數字就該撤，不該再加一層機制去保它。
+2. 你真正會感覺到的是「字出現」：Firefox 中位數 49 ms、最慢 72（之前 187），Chrome 37，兩邊都過、有餘裕。
+3. 差的那 2.6 ms 是「第 9 鍵的計數更新比第 10 鍵晚了 2.6 ms 才到」，下一鍵就吸收掉，20 鍵沒有累積——使用者看不到。
+4. 改成兩條：每一鍵 < 160（絕不落後兩鍵）、全輪中位數 < 80（引擎跟得上）；由讀報告的工具算，不再用人眼讀頭五尾五。
+5. 既有六份報告就能判，頁面不動、不重跑；121／120 的瀏覽器驗收要在最終頁面上補跑。
+6. 「可視條畫兩次」是真的浪費，但只省 Worker 時間、螢幕上看不出來，而且它的安全前提（失效訊息帶的是改完之後的版本號）還沒量過——登錄到下一次改頁面時做。
+7. 另登錄：頁面每次狀態更新都把整張 80 MB 畫布重貼一次、每鍵約六次，兩個頁面都這樣，很可能就是那 8 ms 的藏身處。
+
+PART 2
+RULING: re-anchor as proposed.
+Verified: old find string 0 hits in web and dist (both `18c8afbe…`); proposed find string exactly 1 hit in both (e2-editor-app.js:918); the replacement keeps the same defect (`documentResized` never set → no relayout when the document grew; the dead `break` changes nothing); the witness shows exactly this failure, the generation guard the only other red.
+CONDITIONS
+1. Change only `find`/`replace` of `ignore-a-document-that-grew` (run_e2_c_product_path.py:1799–1807); `tests.test_product_path_mutations` green; `make test-e2-c-static` red only on the generation guard until v59 freezes.
+2. Before any counted product-path run: that one mutation, one browser, `the-canvas-follows-a-document-that-grew` must be red (precedent 521ed923); file the run beside the witness.
+3. Handoff counts 因執行而修 1／因審核而修 0; the commit message names the witness path.
+WHY（給擁有者）
+1. 突變要找的那一行被 B′ 改寫了（多了大括號和 break），找不到就報 0——是錨點過時，不是檢查錯。
+2. 新錨點意思一樣：文件長了，畫布還是開檔時的高度。
+3. 照 119 那次先例：換字串、跑一次證明它真的會咬人，計入「因執行而修 1」。
