@@ -1,0 +1,22 @@
+=== m1-chrome-dropped-key15 as chrome:owner-gap80
+  FAIL  chrome  owner-gap80 every key committed: 19 of 20
+  FAIL  chrome  owner-gap80 every key on screen: 19 of 20
+FAIL: chrome owner-gap80 every key committed, chrome owner-gap80 every key on screen
+exit 1
+=== m2-chrome-crashed as chrome:owner-gap80
+  FAIL  chrome  owner-gap80 every key committed: 0 of 20
+  FAIL  chrome  owner-gap80 every key on screen: 0 of 20
+  FAIL  chrome  owner-gap80 (ii) every band current after the last key: None
+FAIL: chrome owner-gap80 every key committed, chrome owner-gap80 every key on screen, chrome owner-gap80 (ii) every band current after the last key
+exit 1
+=== m3-boundaries-10.0 as chrome:boundaries-gap200
+PASS: both browsers, every cell
+exit 0
+=== m3b-boundaries-10.1 as chrome:boundaries-gap200
+  FAIL  chrome  boundaries-gap200 commit median: 10.1 (needs <= 10)
+FAIL: chrome boundaries-gap200 commit median
+exit 1
+=== m4-firefox-upper-median as firefox:owner-gap80
+  FAIL  firefox owner-gap80 (b) median commit < gap: 81.0 (needs < 80)
+FAIL: firefox owner-gap80 (b) median commit < gap
+exit 1

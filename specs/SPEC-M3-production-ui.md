@@ -647,3 +647,16 @@ B-ctl／S／P 6/6、B-3x 4/4、突變 40/40；六支 M3 runner 全過、紅案�
 - **不得**：v59 放 A′ 或任何 `paint()` 的改動；動探針 `dbad93c0` 的記錄方式；改寫其他任何數字；任一個瀏覽器 (a) 或 (b) 不過就凍。
 - **錨點（第二部分）**：`ignore-a-document-that-grew` 只換 `find`／`replace` 兩個字串成 `      if (tile.documentSizeChanged) { documentResized = true; break; }`／`      if (false) { documentResized = true; break; }`；任何計數的產品路徑執行之前，在一個瀏覽器上跑這一條突變一次，`the-canvas-follows-a-document-that-grew` 必須紅，報告放在證人旁邊。§34.4 計「因執行而修 1」。
 - **登錄（下一次改頁面時，不進 v59）**：**R1 A′**——先量可採性：探針的 Worker 包裝記下 `document-invalidated` 的修訂號；只有「插入之後的每一個失效都帶該插入遞增之後的修訂號」才可採，出現一個改前的值就放棄 A′、不補丁。單元：已涵蓋→繼續；未涵蓋→重來；這一輪還沒貼任何條→重來；`beforeinput`→一律重來。紅案：拿掉比較（今天的行為）、永不重來。預測：上螢幕 ±5、提交 ±5、Worker 每鍵 −10–13 ms（Firefox）。**R2**——`updateState()` → `paint()` 每次狀態更新都把整張畫布重貼一次、每鍵約六次（兩個頁面都這樣），是 finding 候選；設計之前先量每鍵貼了多少位元組（v58 對 A＋B）。
+
+### 15.9 判讀工具的雙席審核與處置（2026-10-10，§34.3 的那一次；寫在計數判讀之前）
+
+審核原文：`findings/evidence/typing-latency/review/opus-review-judge.md`、`codex-review-judge.md`（題目 `review-prompt.md`）。**因審核而修的檢查：0**——兩席的意見都沒有已 commit 的誠實執行報告當證人，照 §34.4（`SPEC-M3-paragraph-merge.md`）只登錄、不改程式。
+
+- **更正 §15.8**（取代該節紅案那句的「Firefox 候選報告每一鍵 +80 → 只有 (b) 不過」，那是照抄裁決、沒先算）：照做實際是 (a)、(b) 都不過（最慢那鍵 82.6＋80＝162.6 ≥ 160）。照原文跑過並記下實際結果；「只有 (b)」另由 Chrome 每鍵 +80（最慢 134.8、中位數 125.2）與 Firefox 每鍵 +15（97.6、80.3）隔出（`judge-red-cases.txt`）。兩席都認為這樣處理是對的。
+- **codex 的 BLOCKING（登錄）**：判讀工具在 `owner-gap200` 也要求「每一鍵都有提交時間」，而該格沒有提交的判準；探針的提交比對要求修訂號**剛好相等**（`probe_typing_latency.py:169`），上螢幕只要求「大於等於」，所以頁面若哪一次狀態更新跳過一個修訂號，該鍵會是 `revisionMs: None`，判讀工具判 FAIL 而規格會判過。這是構造的情境、沒有證人；方向是**只會多判 FAIL、不會多判 PASS**。若真的發生，那份報告就是 §34.1(b) 的證人：修判讀器、拿它當紅案、重判、不重跑。
+- **opus 的登錄**（沒有 BLOCKING）：
+  - 每鍵、`boundaries` 兩類閘門原本沒有紅案；opus 的突變副本補上了（`review/opus-mutations/`，主 session 自己重跑判讀工具的輸出在 `judge-on-opus-mutations.txt`：漏一鍵→只有「每鍵提交／上螢幕」紅；崩潰只剩表頭→每鍵＋(ii) 紅；`boundaries` 10.0 過、10.1 不過；上中位數 81 → (b) 紅）。
+  - 探針崩潰只剩表頭時判讀工具給 FAIL（結束碼 1）而不是拒絕（2）；§34.1(a) 把崩潰導向「重跑那一步」。讀法：結束碼 1 而每鍵是「0 of N」時，先當崩潰處理。
+  - **間隔的前提**：探針的 `--gap` 是「放開到下一次按下」（`probe_111_overtake.py`），實測按下到按下的中位數「80」＝98.1（Chrome）／108.6 ms（Firefox），「200」＝217.1／231.6。以名目 80 推出的門檻比格子本身的意思更嚴，所以沒有假的 PASS；但這一輪比真正 80 ms 的打字輕，裁決說的利用率約 0.8 實際約 0.60／0.46。
+  - 具名極限：`page` 只雜湊 `dist/e2-editor-app.js`（其他 `dist/` 檔案與 `e2-editor.html` 過期看不見，094 那一類）；擁有者的文件沒有雜湊，唯一的指紋是畫布高度（Chrome 17,929、Firefox 22,257，兩個瀏覽器各自的 owner 報告之間一致）。
+- **從來沒做時**：判讀工具照現狀計數使用。
