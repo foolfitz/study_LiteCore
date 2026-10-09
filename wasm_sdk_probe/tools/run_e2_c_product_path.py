@@ -1799,8 +1799,8 @@ MUTATIONS = {
     "ignore-a-document-that-grew": {
         "check": "the-canvas-follows-a-document-that-grew",
         "path": "e2-editor-app.js",
-        "find": "      if (tile.documentSizeChanged) documentResized = true;",
-        "replace": "      if (false) documentResized = true;",
+        "find": "      if (tile.documentSizeChanged) { documentResized = true; break; }",
+        "replace": "      if (false) { documentResized = true; break; }",
         "reintroduces": "an editor whose page count is frozen at the moment you "
                         "opened the file",
         "alsoRed": [],
