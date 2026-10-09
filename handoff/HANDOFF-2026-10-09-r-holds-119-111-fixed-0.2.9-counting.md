@@ -53,6 +53,8 @@ Entry points: this file; `specs/SPEC-M3-production-ui.md` §13 (R on v19) and §
 - **(jj) A diagnosis probe that leaves unsaved work hangs on the page's own leave prompt at the next navigation.** Save before moving on (`chrome-same-page-1` attempts 42–43).
 - **(kk) Fresh-page and long-lived-page runs are different populations.** 119 never appeared in 60 fresh pages and appeared at the 41st and 61st document of a long-lived page.
 
-## Results of the 0.2.9 chain
+## Results of the 0.2.9 chain (appended 2026-10-09, after it finished at 04:11 UTC)
 
-(to be appended when it finishes)
+**R′ holds on host 0.2.9** (`findings/evidence/m3-production-ui/RESULT-0.2.9.md`, spec §14.7): six shakedowns clean; production-UI K 12/12, R 12/12, ctl/S/P 6/6, B-3x 4/4, pooled mutations 40/40; PAGE HONEST, LOCKS LAND (first run), VERSIONS CORRECT, ASSETS DELIVERED, HOST_ENTRY LANDS, SAME-SECOND SAVES KEPT, each runner's red cases all red (154/99/68/156/23/70); product-path net P1–P3 HIT, 0 red cells, the two arms equal in all 84 cells, and v19 on the new page has no cell worse than on the old page; static exit 0. **Findings 119 and 111 are marked fixed** (119's natural path named as not measured; its engine cause C stays in the relink queue).
+
+So "Next" above is done through step 2. What remains is the open list. Two of my own slips this stretch were caught by re-reading against the source of truth before they spread: a hand-typed hash (`c54cd6e3`) and an unchecked end time (`66cc9afc`); and two "as before" claims about numbers I had not compared (`a3f2a23e`, `e8243a6c`). Rule (gg) covers the first; the others are the same lesson — a number in a document is read from the file, at the moment of writing.
