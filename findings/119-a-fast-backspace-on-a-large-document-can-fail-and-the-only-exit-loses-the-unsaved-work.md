@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **狀態** | **已確認、未修**（2026-10-09）：兩次重現，都在 Chrome、都在擁有者文件、都是同一頁開過幾十份文件之後；成因的機制讀原始碼，下一層（callback 為什麼遲到）未量 |
+| **狀態** | **已修**（2026-10-09，殼層 v58、頁面 `537d62d7…`、session `62a2a20e…`、宿主 0.2.9 `069de55`；`SPEC-M3-production-ui` §14 全部判準與 R′ 在 0.2.9 上計數成立，`evidence/m3-production-ui/RESULT-0.2.9.md`）。修的是不丟資料：刪除仍可能失敗，失敗時存檢查點、自動重開、打的字都留著。**自然路徑沒有實例可量**（修好的頁面上同頁 400 次 0 次），瀏覽器那一半由注入臂證明；引擎根因（callback 晚到）未修，在 relink 佇列 `queue-f119-barrier-callback-late-after-insert`。舊狀態：已確認、未修 |
 | **所在** | 我們的引擎與殼層：selection barrier 的負向期限（`wasm_sdk_probe/src/probe_engine.cpp` 約 :3888）回 `EDITOR_STATE_UNAVAILABLE`；殼層把這個代碼判成 rollback（`editor-shell-v2/paragraph-editor-client.js` `formatFailureDisposition` 的預設），擋住佇列、刪除之前沒有檢查點 |
 | **發現日** | 2026-10-09（finding 111 的擁有者文件量測裡意外碰到，之後用專門的探針重現） |
 | **嚴重度** | **高（資料遺失）**，但頻率低：同一頁連續快刪約四十到六十次一次；每次換新頁的 60 次一次都沒有 |
@@ -61,3 +61,4 @@ toast 寫 `⌫ 刪除：EDITOR_STATE_UNAVAILABLE：selection text became visible
 | 日期 | 內容 |
 |---|---|
 | 2026-10-09 | 初版：已確認、未修；兩次重現、資料遺失量到 |
+| 2026-10-09 | 已修：fable 裁決 D（擁有者授權）→ 殼層比照 109（`73da170e`）、v58、宿主 0.2.9；計數成立（`RESULT-0.2.9.md`）；自然路徑沒有實例可量；引擎根因登錄 |
