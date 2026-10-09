@@ -2051,6 +2051,17 @@ function showExpired(details) {
 // a document the user chose: both end at the same `session.open({bytes, name})`.
 // Splitting the fetch off is the whole of "open a real file" -- there is no
 // engine side to it, which is why it does not need a link.
+// FINDING 120.  The input adapter writes `disabled` on its target when it
+// blocks, and neither `detach()` nor `attach()` puts it back; a new session's
+// `setBlocked(false)` runs inside `open()`, before this page attaches the sink,
+// so it cannot reach the element.  A session that stopped therefore left the
+// sink disabled for every document opened after it in this page, and typing did
+// nothing (measured, findings/evidence/120/).  The adapter is E1-C's; the page
+// syncs the element to the NEW adapter's own answer.
+function syncSinkToInput(sink, input) {
+  sink.disabled = input?.state?.blocked === true;
+}
+
 async function openDocument(bytes, name, { readOnly = false } = {}) {
   if (session) {
     try { await session.close(); } catch { /* a dead session must not block */ }
@@ -2095,6 +2106,7 @@ async function openDocument(bytes, name, { readOnly = false } = {}) {
   session.setViewOnly?.(viewOnly);
   await session.open({ bytes, name });
   session.attachInput(el.sink);
+  syncSinkToInput(el.sink, session.input);
   const actual = session.engine.manifest?.editorContract?.wasmSha256 ?? "";
   if (!actual.startsWith(PINNED_WASM_SHA256)) {
     showExpired({ expected: PINNED_WASM_SHA256, actual: actual.slice(0, 16) });

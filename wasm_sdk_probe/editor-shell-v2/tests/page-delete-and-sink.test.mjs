@@ -20,6 +20,9 @@ function slice(pattern, what) {
 // eslint-disable-next-line no-new-func
 const deleteActionFor = new Function(
   `${slice(/^function deleteActionFor\([^)]*\) \{[\s\S]*?\n\}$/m, "deleteActionFor()")}\nreturn deleteActionFor;`)();
+// eslint-disable-next-line no-new-func
+const syncSinkToInput = new Function(
+  `${slice(/^function syncSinkToInput\([^)]*\) \{[\s\S]*?\n\}$/m, "syncSinkToInput()")}\nreturn syncSinkToInput;`)();
 
 test("finding 121: a range goes out as delete-selection when the profile offers it", () => {
   for (const action of ["delete-backward", "delete-forward"]) {
@@ -44,4 +47,16 @@ test("finding 121: the handler asks the engine's current selection, the page's b
   assert.equal(selectionShapeOf({ state: { selection: { collapsed: true } } }), "collapsed");
   assert.equal(selectionShapeOf({ state: { selection: { collapsed: false, rectangles: [{}] } } }), "range-single");
   assert.equal(selectionShapeOf({ state: undefined }), null);
+});
+
+test("finding 120: the sink follows the new adapter's blocked state", () => {
+  const sink = { disabled: true };
+  syncSinkToInput(sink, { state: { blocked: false } });
+  assert.equal(sink.disabled, false, "a sink a stopped session left disabled stays disabled");
+  syncSinkToInput(sink, { state: { blocked: true } });
+  assert.equal(sink.disabled, true);
+});
+
+test("finding 120: openDocument syncs the sink right after attaching it", () => {
+  assert.match(SOURCE, /session\.attachInput\(el\.sink\);\n\s+syncSinkToInput\(el\.sink, session\.input\);/);
 });
