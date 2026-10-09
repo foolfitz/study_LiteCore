@@ -10,3 +10,7 @@ Reported by the owner from the hand test of host 0.2.9 ("如果把文字反白�
 | `chrome-backspace-v57-page.json` | v57's page (`e00ab76a…`, from git at `6e9ec27e`) | Backspace | `range-single` | the same — so not something 0.2.9 introduced |
 
 Read from the source: the page's `beforeinput` handler maps `deleteContentBackward`/`deleteContentForward` to `delete-backward`/`delete-forward` whatever the selection (`web/e2-editor-app.js` `DELETE_INPUT_TYPES`); v19's manifest offers those two for `collapsed` only and offers `delete-selection` for `range-single` and `range-cross` (`dist/profiles/e2-editor-v19/sdk-manifest.json`, `editorContract.actions`); the page already uses `delete-selection` for cut when the profile offers it.
+
+## 121-B on the candidate dist/ (2026-10-10; spec §15.2; page `b10f6017f36582d9…`, the probe unchanged, `page: "dist"` in each report)
+
+`v59-candidate-{chrome,firefox}-{backspace,delete}.json`: in all four, the drag left `range-single`, the key ran 「刪除選取」 (13–17 ms), state `ready`, generation 1 → 1, revision 0 → 1, no toast, and the saved first paragraph is `M01 alpha` (the selected word gone). The red case is the v58-page reports above (refusal, reopen). 121-B met in both browsers.
