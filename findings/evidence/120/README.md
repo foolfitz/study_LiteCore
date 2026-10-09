@@ -9,3 +9,7 @@
 ## 120-B on the candidate dist/ (2026-10-10; spec §15.2; page `b10f6017f36582d9…`, the probe unchanged)
 
 `v59-candidate-sink-{chrome,firefox}.json`: the residue arm's sink was disabled before the second open and is enabled and focused after the open and the click; `Q` lands (revision 0 → 1), as in the control arm. The red case is `sink-*.json` (residue: disabled, 0 → 0). 120-B met in both browsers.
+
+## 120-B on the final v59 page bytes (2026-10-10; page `18c8afbe…`, A+B; fable's fourth ruling condition 4)
+
+`v59-candidate2-sink-{chrome,firefox}.json` (binding: `v59-candidate2-binding.txt`, dist `18c8afbe…` before and after): residue arm disabled before the second open, enabled and focused after it, `Q` lands (0 → 1), like the control arm. Identical to the `b10f6017…` reports. 120-B met in both browsers on the final bytes.

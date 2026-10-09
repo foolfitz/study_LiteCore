@@ -14,3 +14,7 @@ Read from the source: the page's `beforeinput` handler maps `deleteContentBackwa
 ## 121-B on the candidate dist/ (2026-10-10; spec §15.2; page `b10f6017f36582d9…`, the probe unchanged, `page: "dist"` in each report)
 
 `v59-candidate-{chrome,firefox}-{backspace,delete}.json`: in all four, the drag left `range-single`, the key ran 「刪除選取」 (13–17 ms), state `ready`, generation 1 → 1, revision 0 → 1, no toast, and the saved first paragraph is `M01 alpha` (the selected word gone). The red case is the v58-page reports above (refusal, reopen). 121-B met in both browsers.
+
+## 121-B on the final v59 page bytes (2026-10-10; page `18c8afbe…`, A+B; spec §15.7–15.8, fable's fourth ruling condition 4)
+
+Re-run because A+B changed the page after the run above, and these reports record only `page: "dist"`; the binding is `v59-candidate2-binding.txt` (dist sha256 read before and after the six 121/120 runs, `18c8afbe…` both times). `v59-candidate2-{chrome,firefox}-{backspace,delete}.json`: all four `range-single` → 「刪除選取」 (14–18 ms), `ready`, generation 1 → 1, revision 0 → 1, no toast, first paragraph `M01 alpha`. Field by field identical to the `b10f6017…` reports except the two latency strings. 121-B met in both browsers on the final bytes.
