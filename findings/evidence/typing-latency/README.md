@@ -16,3 +16,15 @@ Why, read from the source: `renderDocument` (`web/e2-editor-app.js` ~:803) re-re
 ## Correction (2026-10-10, fable's fact check, verified by the main session; replaces the "on screen" column above)
 
 The "key → on screen" column does NOT measure the character appearing. The probe took the first `putImageData` after `#s-revision` changed; `updateState` writes that element and immediately calls `paint()`, which re-blits the CACHED tiles (the old picture) plus the caret (`web/e2-editor-app.js` :613, :665, :960–963). Paint − revision is 3.8–4.1 ms on every Chrome row at gap 200, 0.7–0.9 ms on Firefox, 0.1–4.2 ms on rows 0–18 at gap 80. The column is renamed **"next overlay blit (stale tiles)"**. The only direct observation of new text on screen is row 19 of `chrome-owner-gap80.json`: 87.5 ms after its revision. So on the owner's document a character appears roughly **revision + 85–90 ms ≈ 120–135 ms after its key in Chrome at ordinary speed** (unmeasured as such; an estimate from that one row) — every keystroke is slow, not only bursts. The "key → committed" column and the backlog at gap 80 stand. Acceptance must use the fixed instrument (`ruling/fable-ruling.md`, CONDITIONS).
+
+## The fixed instrument on the current page (2026-10-10; the ruling's red case for the instrument)
+
+`probe_typing_latency.py` (sha256 `40e119324bb35770…`) now counts "on screen" only when a FRESH image (a new `ImageData`, i.e. a new render) is blitted over the caret line and its paint reply carried that character's revision or a later one; the old metric is kept as `overlayBlitMs` for comparison. On the current page (`537d62d7…`, shell v58), the owner's document:
+
+| Report | Browser, gap | Key → committed (median, max) | Key → **on screen** (median, min, max) | old metric (overlay blit, median) |
+|---|---|---|---|---|
+| `v58-chrome-owner-gap200-fixed-instrument.json` | Chrome, 200 ms × 10 | 34.9, 45.4 ms | **145.7**, 131.5, 210.3 ms | 38.8 ms |
+| `v58-firefox-owner-gap200-fixed-instrument.json` | Firefox, 200 ms × 10 | 43.0, 50.5 ms | **187.3**, 174.2, 215.9 ms | 43.6 ms |
+| `v58-chrome-owner-gap80-fixed-instrument.json` | Chrome, 80 ms × 20 | 508.2, 814.6 ms | **611.0**, 177.4, 903.9 ms | 461.7 ms |
+
+The ruling predicted the fixed instrument would read about revision + 80–100 ms at gap 200; it reads revision + ≈ 111 ms (Chrome) and ≈ 144 ms (Firefox) — a little above, and nowhere near the 4 ms of the stale blit, so it tells a new render from a re-blit. These three reports are today's baseline and the acceptance criteria's red case (targets: median < 70 / < 90 ms, max < 150 ms).

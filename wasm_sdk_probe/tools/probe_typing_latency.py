@@ -10,7 +10,11 @@ page's clock (performance.now()):
 
   key       the keydown (capture listener on the document)
   revision  the page's revision counter (#s-revision) showing that character committed
-  paint     the first putImageData after that revision change  (what the user sees)
+  onScreen  the first blit of a FRESH image (a new render) covering the caret line, from a paint reply
+            carrying that character's revision or later  (what the user sees; fable's ruling on 122)
+  (overlayBlit, kept for comparison: the first putImageData of any image after the revision -- the
+   page re-blits its cached tiles on every state change, so this is NOT the new text; the first version
+   of this probe reported it as "paint" and was wrong)
 
 Real keys (Chrome: CDP; Firefox: WebDriver actions), N characters at a fixed gap after the caret is
 placed and the page is idle.  Documents: `boundaries` (27 short paragraphs) and `owner` (563 KB).
@@ -40,13 +44,44 @@ PLACES = {  # document: (path, click inside the text on v19, then End)
 }
 PAINT_SHIM = """<script>
 (() => {
+  // fable's ruling on finding 122 (CONDITIONS, instrument): "on screen" is the first blit of a NEW
+  // ImageData -- a fresh render -- not any putImageData: updateState() re-blits the cached tiles on
+  // every state change, which is what the first version of this probe measured (0.1-4 ms after the
+  // revision, the old picture).  Each fresh image carries the revision of the paint reply it came from.
+  const root = document.documentElement;
+  const NativeImageData = window.ImageData;
+  const fresh = new WeakMap();           // image -> { born, revision }
+  let lastPaintRevision = null;
+  window.ImageData = class extends NativeImageData {
+    constructor(...args) { super(...args); fresh.set(this, { born: performance.now(), revision: lastPaintRevision }); }
+  };
+  const NativeWorker = window.Worker;
+  window.Worker = class extends NativeWorker {
+    constructor(...args) {
+      super(...args);
+      this.addEventListener("message", (e) => {
+        const d = e.data;
+        if (d && d.kind === "response" && d.ok && d.result && d.result.pixels && typeof d.result.revision === "number")
+          lastPaintRevision = d.result.revision;
+      });
+    }
+  };
   const proto = CanvasRenderingContext2D.prototype, native = proto.putImageData;
-  const log = [];
-  proto.putImageData = function (...args) {
-    log.push(Math.round(performance.now() * 10) / 10);
-    if (log.length > 5000) log.splice(0, 1000);
-    document.documentElement.dataset.paints = JSON.stringify(log.slice(-400));
-    return native.apply(this, args);
+  const stale = [], blits = [];
+  proto.putImageData = function (image, dx, dy, ...rest) {
+    const t = Math.round(performance.now() * 10) / 10;
+    const f = fresh.get(image);
+    if (f) {
+      fresh.delete(image);               // later blits of the same image are re-blits of the old picture
+      blits.push([t, dy, image.height, f.revision]);
+      if (blits.length > 2000) blits.splice(0, 500);
+      root.dataset.blits = JSON.stringify(blits.slice(-600));
+    } else {
+      stale.push(t);
+      if (stale.length > 4000) stale.splice(0, 1000);
+      root.dataset.paints = JSON.stringify(stale.slice(-400));
+    }
+    return native.call(this, image, dx, dy, ...rest);
   };
 })();
 </script>"""
@@ -62,8 +97,9 @@ WATCH = """(() => { const root = document.documentElement, rev = document.queryS
     }).observe(rev, { childList: true, characterData: true, subtree: true });
   }
   return true; })()"""
-READ = """(() => { const d = document.documentElement.dataset;
-  return { keys: JSON.parse(d.keys || '[]'), revs: JSON.parse(d.revs || '[]'), paints: JSON.parse(d.paints || '[]') }; })()"""
+READ = """(() => { const d = document.documentElement.dataset, c = document.querySelector('#canvas');
+  return { keys: JSON.parse(d.keys || '[]'), revs: JSON.parse(d.revs || '[]'), paints: JSON.parse(d.paints || '[]'),
+           blits: JSON.parse(d.blits || '[]'), canvasHeight: c ? c.height : null }; })()"""
 
 
 def main() -> int:
@@ -121,6 +157,9 @@ def main() -> int:
         keys = [t for k, t in raw["keys"] if len(k) == 1]
         revs = [(int(v), t) for v, t in raw["revs"] if str(v).isdigit()]
         paints = raw["paints"]
+        # The caret line in canvas pixels: the click's y fraction of the canvas.
+        caret_y = float(click[1]) * (raw.get("canvasHeight") or 0)
+        blits = [(t, y, h, rev) for t, y, h, rev in raw.get("blits") or []]
         rows = []
         # The page rewrites #s-revision on every state update, the same value included, so
         # the observer sees repeats; character i is the first write of start + i + 1 after its key.
@@ -128,16 +167,24 @@ def main() -> int:
         for i, tk in enumerate(keys):
             want = (base_rev + 1 + i) if base_rev is not None else None
             tr = next((t for v, t in revs if v == want and t >= tk), None)
-            tp = next((t for t in paints if tr is not None and t >= tr), None)
+            # On screen: the first blit of a fresh image covering the caret line whose paint reply carried this
+            # character's revision or a later one.
+            ts = next((t for t, y, h, rev in blits if t >= tk and want is not None and isinstance(rev, int)
+                       and rev >= want and y <= caret_y < y + h), None)
+            to = next((t for t in paints if tr is not None and t >= tr), None)
             rows.append({"i": i, "key": tk, "revisionMs": None if tr is None else round(tr - tk, 1),
-                         "paintMs": None if tp is None else round(tp - tk, 1)})
+                         "onScreenMs": None if ts is None else round(ts - tk, 1),
+                         "overlayBlitMs": None if to is None else round(to - tk, 1)})
         report["rows"] = rows
         def stats(xs):
             xs = sorted(x for x in xs if x is not None)
             return None if not xs else {"n": len(xs), "min": xs[0], "median": xs[len(xs) // 2], "max": xs[-1]}
+        report["caretLineY"] = caret_y
         report["summary"] = {"revisionMs": stats([r["revisionMs"] for r in rows]),
-                             "paintMs": stats([r["paintMs"] for r in rows]),
-                             "keysSeen": len(keys), "revisionChanges": len(revs), "paints": len(paints)}
+                             "onScreenMs": stats([r["onScreenMs"] for r in rows]),
+                             "overlayBlitMs": stats([r["overlayBlitMs"] for r in rows]),
+                             "keysSeen": len(keys), "revisionChanges": len(revs), "freshBlits": len(blits),
+                             "staleBlits": len(paints)}
     finally:
         report["completedAt"] = time.strftime("%Y-%m-%dT%H:%M:%S%z")
         if session is not None:
