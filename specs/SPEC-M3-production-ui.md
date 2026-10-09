@@ -686,3 +686,7 @@ B-ctl／S／P 6/6、B-3x 4/4、突變 40/40；六支 M3 runner 全過、紅案�
 ### 15.12 結果（2026-10-10；`findings/evidence/m3-production-ui/RESULT-0.2.10.md`）
 
 **R‴ 在宿主 0.2.10 上成立。**計數前：122-U、121-U、120-U 全過且紅案各紅；122-B 由審核過的判讀工具判兩個瀏覽器 PASS（提交那格用 §15.8 的改寫）；121-B、120-B 在最終位元組上重跑過。重錨後的 `ignore-a-document-that-grew` 突變跑一次、該格紅。計數鏈（2026-10-09 18:24 – 23:20 UTC，六支 shakedown 乾淨之後）：本規格的臂 K／R 24/24、B-ctl／S／P 6/6、B-3x 4/4、突變 40/40；六支 M3 runner 全過、紅案全紅（154／99／68／156／23／70，與 0.2.9 相同）；產品路徑網 P1–P3 HIT、0 紅格，兩臂只差一格（Firefox `clear-format-removes-every-inline-format`，v8 3 NE、v19 1 PASS＋2 NE），新舊頁面的 v19 沒有任何退步；`make test-e2-c-static` 結束碼 0。finding 122、121、120 改標已修。因執行而修的檢查 1（`ignore-a-document-that-grew` 錨點），因審核而修 0。
+
+### 15.13 擁有者手測（2026-10-10，只追加）
+
+擁有者在宿主 0.2.10 上用 Chrome、Firefox 手測三項（快打；反白後 Backspace、反白後 Delete；跨段落反白後刪除），回報「全部通過」。測之前核對過服務出去的頁面是 `18c8afbe…`、引擎資產網址帶 buildId `bebc7e83…`。事先講明沒涵蓋的：按住刪除鍵不放（自動重複）從來沒量過。記錄在 `findings/evidence/m3-production-ui/RESULT-0.2.10.md` 末節。

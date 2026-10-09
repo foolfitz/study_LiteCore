@@ -54,3 +54,7 @@ Descriptive, the shell-regression question (`old-vs-new-v19.txt`): v19 on the ol
 ## Static
 
 `make test-e2-c-static` exit 0 after the freeze, the re-anchor and the re-pin (node 183 + 5, python 108).
+
+## Owner hand test (2026-10-10, appended)
+
+Asked to try, in Chrome and Firefox on `https://litecore.ddev.site:8443` with the document of the 0.2.9 hand test: (1) typing fast, (2) select then Backspace, select then Delete, (3) a selection across paragraphs then delete. Before the test the served page was checked: both `engine/files/e2-editor-app.js.gz` and `.zst` decompress to `18c8afbe…`, the app reports `litecore: 0.2.10`, and engine asset URLs carry buildId `bebc7e83…` (no stale cache possible). The owner's reply, verbatim: "全部通過". Not covered and said so beforehand: holding a delete key down (auto-repeat) has never been measured — the counted arms rest ≥ 0.5 s between presses.
