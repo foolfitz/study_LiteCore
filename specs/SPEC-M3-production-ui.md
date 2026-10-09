@@ -547,3 +547,11 @@ HOST_ENTRY LANDS、SAME-SECOND SAVES KEPT），各自的紅案全紅；產品路
 | `run_e2_c_product_path.py` | `7468abcdaa6a0c1c59a4096a01df25bd3af7768b7299336ba390cad80c26e1b9`（`rollback` 突變重錨，fable 第二次裁決；不是計數 runner 的 pin，記在這裡供產品路徑網對照） |
 
 六支既有 runner 的 pin 同步改綁（只動 pin 行）。改綁之後 `make test-e2-c-static` 結束碼 0。
+
+### 14.7 結果（2026-10-09；`findings/evidence/m3-production-ui/RESULT-0.2.9.md`）
+
+**R′ 在宿主 0.2.9 上成立。**計數前：F119-U、F111-U 全過且紅案各紅；F111-B 160/160；F119-B 由注入臂兩個瀏覽器 3/3 負責，自然路徑同頁 400 次 0 失敗，
+照事先寫好的規則登錄「沒有實例可量」。計數鏈（2026-10-08 23:20 – 2026-10-09 04:17 UTC，六支 shakedown 乾淨之後）：本規格的臂 K 12/12、R 12/12、
+B-ctl／S／P 6/6、B-3x 4/4、突變 40/40；六支 M3 runner 全過、紅案全紅；產品路徑網 P1–P3 HIT、0 紅格、兩臂 84 格完全相同，新舊頁面的 v19 沒有任何退步；
+`make test-e2-c-static` 結束碼 0。§14.3 的預測除了「自然路徑 400 次內出現 2–3 次」與 P4「有幾格不同」之外全中。finding 119、111 改標已修（119 的自然路徑
+寫明沒有實例可量，引擎根因 C 仍在 relink 佇列）。因執行而修的檢查 1（`rollback` 突變重錨），因審核而修 0。
