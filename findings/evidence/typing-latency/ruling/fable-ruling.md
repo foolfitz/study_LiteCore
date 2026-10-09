@@ -92,3 +92,35 @@ CONDITIONS（only what changes）
 ## Main session's spot check (2026-10-10)
 
 `cool-26-04/browser/src/app/BitmapTileManager.ts:1147` is `updateTileDistance` (visible tiles get distance 0); `wasm_sdk_probe/src/probe_engine.cpp:2632–2633` sets `documentChangeSequence` on `LOK_CALLBACK_INVALIDATE_TILES`. Both as cited.
+
+---
+
+# Third ruling (2026-10-10, on `brief-2-firefox-misses.md`; fable, on the owner's behalf — the owner asked "發給fable裁決" for 122). Verbatim.
+
+RULING
+
+A + B, and the whole-canvas cell → (ii).
+
+- A (sink `beforeinput` of any input type that will reach the engine — composition updates excluded — sets `renderAgain` ONLY while `rendering` is true; no `preventDefault`, no adapter contact). It removes the structural waste F2(2): the band the page posts after the in-flight one returns, before it has been told of the change. Verified in `raw.blits`: Firefox gap 200 key c (8225.7) +22.5 old band, +61.0 new-revision band 18423 off-screen, +78.9 revision, +87.4 band 0; gap 80 key b the same shape (+22.5 / +53.3 / +72.0 / +79.5). Chrome never shows it because its pass (9 bands × 11–15 ms) ends before the next key at gap 200.
+- B (`RENDER_BAND_HEIGHT = Math.floor(MAX_TILE_HEIGHT / 32)`, ≈ 1023 rows). Halves the in-flight wait and the render of the visible band — the two terms that remain in Firefox's commit after A: insert alone 43 ms median / 50.5 max (`v58-firefox-owner-gap200-fixed-instrument.json`), so A alone leaves commit ≈ 43 + ≤ 20 + ≤ 20, which straddles the 80 line; with B ≈ 43 + ≤ 11 + ≤ 11. Band cost is near-proportional to rows (a ≈ 1100-row band ≈ 10 ms in both browsers on `boundaries`, a 2047-row band 12–16 Chrome / 18–20 Firefox), so the full pass grows only by the per-request overhead (predicted ≤ +30%).
+- Whole-canvas cell → (ii), restated per instance: after the last key, the next pass runs to completion without an abort and every band's blit carries the last character's revision (`allCurrentAfterLastKeyMs` not `None`, within the probe's quiet window); the time is RECORDED, per browser, as a named number with a prediction, not gated. Reason, written now: the 200 ms was derived from Chrome's single-strip render; a quiet Firefox pass is ≥ 11 × 18–20 ms at this window and cannot meet it under B′ whatever the ordering (F4 holds). The property the cell protects ("no band stale once quiet", first ruling's must-not) is per-instance and is what (ii) asserts. Not (i): C is not justified by a bound that was never derived for Firefox.
+- The two latency numbers stay (Firefox gap-80 commit max < 80, gap-200 on-screen median < 90). Predicted with A+B: Firefox commit max 65–78, on-screen median 55–68; Chrome commit max 45–55, on-screen median 45–55. If Firefox's commit max still lands ≥ 80 with no growth, stop and bring a third brief with the insert-alone floor measured on the candidate — do not restate that cell yourselves.
+- Fact check: F1–F4 hold against `raw.blits` and the v58 baselines. One confound to record: the two browsers do not paint the same canvas — Firefox 22,257 rows vs Chrome 17,929 (≈ 24% more pixels per band in Firefox at the same band height), so part of "Firefox is slower per band" is window size. Equalise the window in the probe if it is one line; otherwise record both canvases' width × height beside every number.
+
+CONDITIONS（before v59 freezes）
+
+1. Append §15.6 to the spec before any run: A, B, the restated whole-canvas cell with the reason above, the window confound, and predictions (the numbers above; full pass recorded: Firefox 230–300 ms, Chrome 160–230 ms).
+2. Unit: B1 re-stated for the new band count (22,256 px → 22 bands, edges exact); B8 a `beforeinput` during a pass ends it after the in-flight band and the next pass starts with the visible band; B8-control a `beforeinput` while idle sets nothing and starts no pass; B2–B7 unchanged. Red cases, each red once: band constant back to /16 (B1), drop the `rendering` guard (B8-control), drop the listener (B8).
+3. 122-B re-run in full — both browsers, all six reports — on the new candidate `dist/` (the page bytes change, so every cell re-binds to the new sha; Chrome's cells must hold, not be assumed). Same probe (`dbad93c0…` or the window-equalised one, whose red case must still read the v58 baselines as FAIL).
+4. Freeze v59 only when: Chrome all cells; Firefox gap-80 no growth and commit max < 80, gap-200 on-screen median < 90, max < 150 both gaps; whole-canvas (ii) satisfied in both; `boundaries` unchanged. Then the R‴ order of §15.2 as written.
+5. Must not: add any constant beyond B's derived one; make A call `preventDefault` or touch the adapter; set `renderAgain` outside a running pass; restate the latency numbers; freeze on Firefox's three cells partially green; run 122-B concurrently with other headless-browser work.
+
+WHY（給擁有者）
+
+1. Firefox 慢的原因讀出來了：每按一鍵，頁面在得知文件變了之前，會先多畫一條看不見的條（約 30 ms 白費），而且每條在 Firefox 要 18–20 ms。
+2. A 是讓「使用者開始輸入」就結束這一輪補畫，下一輪直接從你看得到的那條開始——白費的那條就沒了。
+3. B 是把每條切一半（約 1000 列）：等待中的那條和要畫給你看的那條都只剩一半時間；整張補完只慢一點點。
+4. 「最後一鍵後 200 ms 內整張換新」那個數字是從 Chrome 一條到底的時代推出來的，Firefox 光是安靜地畫完一輪就要 220 ms，再怎麼排序都過不了；它真正守的是「安靜之後沒有舊的條」，改成逐條驗這件事，時間照實記、不當門檻。
+5. 兩個延遲數字不動；A+B 之後預測 Firefox 都過。若 80 那格還是沒過，不要自己改數字，帶著量到的底線再來裁一次。
+6. 一件要記下的事：兩個瀏覽器畫的畫布大小不一樣（Firefox 多 24% 像素），所以「Firefox 比較慢」有一部分是視窗比較大。
+7. 頁面變了，六份報告兩個瀏覽器全部重跑，Chrome 不能靠上一輪。
