@@ -800,6 +800,51 @@ function layoutCanvas() {
 // 「重繪失敗」; 84 x 120 ms covers ten seconds.
 const RENDER_BUSY_RETRIES = 84;
 
+// FINDING 122: the band height, in device pixels -- a sixteenth of the engine's
+// tile limit (2047; about 1/11 of the owner's document per request).  Derived
+// from MAX_TILE_HEIGHT on purpose: the product-path net's
+// `one-tile-for-the-whole-document` mutation raises that constant to reintroduce
+// 062's blank long document, and with a band height of its own that mutation
+// would quietly stop biting.  Derived, raising the limit still makes a band
+// taller than the engine will paint.
+const RENDER_BAND_HEIGHT = Math.floor(MAX_TILE_HEIGHT / 16);
+
+/** The canvas cut into bands: pixel edges, no gap, no overlap, the last short. */
+function renderBands(total) {
+  const bands = [];
+  for (let top = 0, index = 0; top < total; top += RENDER_BAND_HEIGHT, index += 1)
+    bands.push({ index, top, rows: Math.min(RENDER_BAND_HEIGHT, total - top) });
+  return bands;
+}
+
+/**
+ * The bands in the order to paint them: those overlapping the visible rows
+ * first, then the rest by their distance from the visible rows, nearest first;
+ * ties keep document order.
+ */
+function bandOrder(bands, [visibleTop, visibleBottom]) {
+  const distance = (band) => {
+    const end = band.top + band.rows;
+    if (end > visibleTop && band.top < visibleBottom) return 0;
+    return band.top >= visibleBottom ? band.top - visibleBottom : visibleTop - end;
+  };
+  return bands.map((band) => ({ band, d: distance(band) }))
+    .sort((a, b) => a.d - b.d || a.band.index - b.band.index)
+    .map((entry) => entry.band);
+}
+
+/** The canvas rows (device pixels) visible inside the desk; the top rows when unknown. */
+function visibleCanvasRows() {
+  const canvas = el.canvas.getBoundingClientRect();
+  const view = el.desk.getBoundingClientRect();
+  if (!canvas.height) return [0, Math.min(el.canvas.height, RENDER_BAND_HEIGHT)];
+  const scale = el.canvas.height / canvas.height;
+  const top = Math.max(view.top, canvas.top) - canvas.top;
+  const bottom = Math.min(view.bottom, canvas.bottom) - canvas.top;
+  if (bottom <= top) return [0, Math.min(el.canvas.height, RENDER_BAND_HEIGHT)];
+  return [Math.floor(top * scale), Math.ceil(bottom * scale)];
+}
+
 async function renderDocument(retriesLeft = RENDER_BUSY_RETRIES) {
   if (!session?.document
       || !["ready", "busy"].includes(session.state.snapshot.state))
@@ -814,56 +859,69 @@ async function renderDocument(retriesLeft = RENDER_BUSY_RETRIES) {
   // a barrier keeps the engine BUSY for up to about 8 s.
   let retried = false;
   try {
-    // One request per strip, none of them taller than the engine will paint.
-    // A document short enough to fit takes exactly one strip covering the whole
-    // canvas, which is the request this page has always made -- so nothing
-    // changes for the common case.
-    const strips = [];
+    // FINDING 122 (SPEC-M3-production-ui §15; fable's ruling B′).  This used to
+    // ask for the whole canvas -- the whole document, about 80 MB of pixels on
+    // the owner's 22 pages -- in one request after every change, and the next
+    // typed character's insert waited behind it in the document Worker: each
+    // key showed up about 150 ms late, and typing faster than that fell
+    // further behind (measured, findings/evidence/typing-latency/).
+    //
+    // Now: bands of RENDER_BAND_HEIGHT, the bands under the view first and the
+    // rest nearest first (Collabora Online orders its tiles the same way,
+    // BitmapTileManager.ts `distanceFromView`; prior art, no code taken), each
+    // blitted as it arrives.  The page asks for band k+1 only after band k
+    // replies, so a typed character posted meanwhile reaches the engine first;
+    // and a change arriving between bands (`renderAgain`) ends this pass, so
+    // the next one starts again with what the user is looking at.  A band
+    // keeps its old pixels until its new ones arrive -- nothing is cleared --
+    // and once the page is quiet the last pass has covered every band.
+    //
+    // The pixel edges, and the twips edges derived from them, are 062's: no
+    // seam, no overlap, no rounding that accumulates.
     let documentResized = false;
     const total = el.canvas.height;
     const documentHeight = session.document.heightTwips;
-    for (let top = 0; top < total; top += MAX_TILE_HEIGHT) {
-      const rows = Math.min(MAX_TILE_HEIGHT, total - top);
-      // The twips edges are derived from the PIXEL edges rather than by
-      // multiplying a per-strip height, so rounding cannot accumulate into a
-      // seam or leave the last strip short.
-      const yTwips = Math.round((top / total) * documentHeight);
-      const endTwips = Math.round(((top + rows) / total) * documentHeight);
+    const bands = renderBands(total);
+    if (lastTiles.length !== bands.length) lastTiles = new Array(bands.length).fill(null);
+    for (const band of bandOrder(bands, visibleCanvasRows())) {
+      if (renderAgain) break;   // a newer change arrived; the next pass starts with the view
+      const yTwips = Math.round((band.top / total) * documentHeight);
+      const endTwips = Math.round(((band.top + band.rows) / total) * documentHeight);
       const tile = await session.document.render({
         xTwips: 0, yTwips,
         widthTwips: session.document.widthTwips,
         heightTwips: endTwips - yTwips,
         canvasWidthPx: el.canvas.width,
-        canvasHeightPx: rows,
+        canvasHeightPx: band.rows,
       }, { timeoutMs: 60000 });
       // Finding 062's second half: until the engine started reporting it, a
       // document that grew a page left this canvas sized from the height it
       // had when it was opened, and nothing could tell.  The SDK has already
       // updated the handle by the time this returns, so re-laying out picks up
       // the new height.
-      if (tile.documentSizeChanged) documentResized = true;
-      // FINDING 118: and it is acted on BEFORE the painted test.  A strip asked
+      //
+      // FINDING 118: and it is acted on BEFORE the painted test.  A band asked
       // against a height the document no longer has is not a fair question: a
       // document that LOST a page answers it with everything below its new end
-      // unpainted (measured 0.47 for two pages asked of one), the test below
-      // threw, and the size change was lost with the strip -- the canvas kept
-      // two pages' rows for every later repaint.  So stop, re-lay out, ask
-      // again.  The engine reports a change once, so the next reply says false
-      // and a genuinely unpainted strip (062) is still caught, one request on.
-      if (documentResized) break;
+      // unpainted, the test below threw, and the size change was lost with the
+      // band -- the canvas kept two pages' rows for every later repaint.  So
+      // stop, re-lay out, ask again.  The engine reports a change once, so the
+      // next reply says false and a genuinely unpainted band (062) is still
+      // caught, one request on.
+      if (tile.documentSizeChanged) { documentResized = true; break; }
       if (!tileWasPainted(tile)) {
         throw Object.assign(
           new Error("引擎回了一張沒有畫進去的圖"),
           { code: "TILE_NOT_PAINTED" });
       }
-      strips.push({
+      const strip = {
         image: new ImageData(new Uint8ClampedArray(tile.pixels),
                              tile.width, tile.height),
-        y: top,
-      });
+        y: band.top,
+      };
+      lastTiles[band.index] = strip;
+      paintBand(strip);
     }
-    lastTiles = strips;
-    paint();
     if (documentResized) {
       // Through `renderAgain` rather than by recursing here: that is the
       // path this function already uses to coalesce a repaint, and the
@@ -960,7 +1018,29 @@ function tileWasPainted(tile) {
 function paint() {
   if (!lastTiles.length) return;
   const context = el.canvas.getContext("2d");
-  for (const strip of lastTiles) context.putImageData(strip.image, 0, strip.y);
+  for (const strip of lastTiles) if (strip) context.putImageData(strip.image, 0, strip.y);
+  drawOverlay(context);
+}
+
+/**
+ * FINDING 122: one band that just arrived.  Its rows are replaced, and the
+ * caret and the selection are drawn again INSIDE those rows only -- the
+ * selection is a multiply wash, so drawing it over rows that were not just
+ * replaced would darken it twice.  Everywhere else the overlay already on the
+ * canvas is the current one: every overlay change goes through `paint()`.
+ */
+function paintBand(strip) {
+  const context = el.canvas.getContext("2d");
+  context.putImageData(strip.image, 0, strip.y);
+  context.save();
+  context.beginPath();
+  context.rect(0, strip.y, el.canvas.width, strip.image.height);
+  context.clip();
+  drawOverlay(context);
+  context.restore();
+}
+
+function drawOverlay(context) {
   const editorState = session?.state?.snapshot?.editorState;
   if (!editorState || !session?.document) return;
 

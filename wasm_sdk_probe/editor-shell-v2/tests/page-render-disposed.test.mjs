@@ -27,6 +27,13 @@ function slice(pattern, what) {
 const RENDER_FN = slice(/^async function renderDocument\(retriesLeft = RENDER_BUSY_RETRIES\) \{[\s\S]*?\n\}$/m,
                         "renderDocument()");
 const RETRIES_DECL = slice(/^const RENDER_BUSY_RETRIES = \d+;$/m, "RENDER_BUSY_RETRIES");
+// Finding 122 (SPEC-M3-production-ui §15): renderDocument paints in bands, so
+// its band helpers come with it.  The assertions below are unchanged.
+const BAND_PARTS = [
+  slice(/^const RENDER_BAND_HEIGHT = .*;$/m, "RENDER_BAND_HEIGHT"),
+  ...["renderBands", "bandOrder", "visibleCanvasRows"].map((name) =>
+    slice(new RegExp(`^function ${name}\\([^)]*\\) \\{[\\s\\S]*?\\n\\}$`, "m"), `${name}()`)),
+].join("\n");
 
 /** The page's renderDocument over a render() stub, with its toasts. */
 function renderer(render) {
@@ -35,20 +42,22 @@ function renderer(render) {
     state: { snapshot: { state: "ready" } },
     document: { heightTwips: 1000, widthTwips: 1000, render: async () => render() },
   };
-  const el = { canvas: { width: 10, height: 10 } };
+  const el = { canvas: { width: 10, height: 10, getBoundingClientRect: () => ({ top: 0, bottom: 10, height: 10 }) },
+              desk: { getBoundingClientRect: () => ({ top: 0, bottom: 10 }) } };
   // eslint-disable-next-line no-new-func
   const renderDocument = new Function(
     "session", "el", "toast", "describeError", "tileWasPainted", "paint", "layoutCanvas",
-    "setTimeout", "ImageData",
+    "setTimeout", "ImageData", "paintBand",
     `let rendering = false, renderAgain = false, lastTiles = [];
      const MAX_TILE_HEIGHT = 32767;
      ${RETRIES_DECL}
+     ${BAND_PARTS}
      ${RENDER_FN}
      return renderDocument;`)(
     session, el, (message) => toasts.push(message),
     (error) => `${error.code}：${error.message}`, () => true, () => {}, () => {},
     (resolve) => resolve(), class { constructor(pixels, width, height) {
-      Object.assign(this, { pixels, width, height }); } });
+      Object.assign(this, { pixels, width, height }); } }, () => {});
   return { renderDocument, toasts };
 }
 

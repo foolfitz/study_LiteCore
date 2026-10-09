@@ -1,0 +1,16 @@
+== R-B2 document order
+✖ 122 B2: the bands under the view first, then nearest first (1.09082ms)
+ℹ fail 1
+ℹ pass 6
+== R-B3 renderAgain ignored between bands
+✖ 122 B3: a change between bands ends the pass, and the next pass starts with the view again (6.867127ms)
+ℹ fail 1
+ℹ pass 6
+== R-B4 blit only at pass end
+✖ 122 B4: each band is blitted when it arrives, before the next band is asked for (1.927025ms)
+✖ 122 B7: nothing is cleared; a band keeps its old pixels until its new ones arrive (0.730148ms)
+ℹ fail 2
+ℹ pass 5
+== baseline
+ℹ fail 0
+ℹ pass 7
