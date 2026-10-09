@@ -43,7 +43,7 @@ Numbers from the production-UI arms (as on 0.2.8, so 111's hold changed none of 
 
 ## Product-path net (M2-5 on the new page; `../release-0.2.9/product-path/`)
 
-Twelve reports, v8 (the new page repointed, `4d3f3bd6…`) and v19 (dist as served, `537d62d7…`) interleaved, 3 rounds × Chrome/Firefox (2026-10-09 02:53–04:17 UTC). Reader `judge.py` (a copy of X5's with the roles swapped and §36.2's row 1′ for the recovery cell; made red offline once before its verdict was read: a flipped v19 cell → P3 MISS, a wrong entrypoint → P2 MISS). `judge-output.txt`:
+Twelve reports, v8 (the new page repointed, `4d3f3bd6…`) and v19 (dist as served, `537d62d7…`) interleaved, 3 rounds × Chrome/Firefox (2026-10-09 02:53–04:11 UTC; the chain log, `runs-0.2.9/chain-2026-10-09b.txt`). Reader `judge.py` (a copy of X5's with the roles swapped and §36.2's row 1′ for the recovery cell; made red offline once before its verdict was read: a flipped v19 cell → P3 MISS, a wrong entrypoint → P2 MISS). `judge-output.txt`:
 
 **`SUMMARY  P1: HIT  P2: HIT  P3: HIT (red cells 0)  P4: descriptive (differing cells 0)`** — 84 cells judged, 0 red under §23 + row 1′ (window at read time: Chrome 0 of 18 v8 records NE, Firefox 2 of 18); the two arms' counts are equal in all 84 cells. The Firefox reports exit 1 for the known red `an-inline-format-reaches-a-selection` (both arms, as in X5). Predictions: P1–P3 hit; P4 predicted a few differing cells, there were none.
 
