@@ -800,14 +800,21 @@ function layoutCanvas() {
 // 「重繪失敗」; 84 x 120 ms covers ten seconds.
 const RENDER_BUSY_RETRIES = 84;
 
-// FINDING 122: the band height, in device pixels -- a sixteenth of the engine's
-// tile limit (2047; about 1/11 of the owner's document per request).  Derived
-// from MAX_TILE_HEIGHT on purpose: the product-path net's
+// FINDING 122: the band height, in device pixels -- a thirty-second of the
+// engine's tile limit (1023; about 1/22 of the owner's document per request).
+// Derived from MAX_TILE_HEIGHT on purpose: the product-path net's
 // `one-tile-for-the-whole-document` mutation raises that constant to reintroduce
 // 062's blank long document, and with a band height of its own that mutation
 // would quietly stop biting.  Derived, raising the limit still makes a band
 // taller than the engine will paint.
-const RENDER_BAND_HEIGHT = Math.floor(MAX_TILE_HEIGHT / 16);
+//
+// A sixteenth (2047) until SPEC-M3-production-ui §15.6 (fable's third ruling,
+// B): a typed character waits behind the band in flight, and then for the
+// visible band to render, and in Firefox each 2047-row band took 18-20 ms --
+// commit max 93.4 ms at 80 ms between keys.  Halving the band halves both
+// waits; a band's cost is close to proportional to its rows, so a full pass
+// grows only by the per-request overhead.
+const RENDER_BAND_HEIGHT = Math.floor(MAX_TILE_HEIGHT / 32);
 
 /** The canvas cut into bands: pixel edges, no gap, no overlap, the last short. */
 function renderBands(total) {
@@ -1839,6 +1846,39 @@ el.sink.addEventListener("beforeinput", (event) => {
   void editorAction(deleteActionFor(action, shape,
                                     session.offers?.("delete-selection") === true)).catch(() => {});
 });
+
+// FINDING 122 (SPEC-M3-production-ui §15.6; fable's third ruling, A).  A key
+// that will reach the engine ends the repaint pass in flight.  Without this the
+// page learned of the change only from `document-invalidated`, which comes
+// back after the insert -- and by then it had already asked for one more band
+// of the old pass, usually off screen: in Firefox about 30 ms per key spent on
+// a band nobody was looking at, before the band under the caret (measured in
+// `raw.blits`, findings/evidence/typing-latency/).  Setting `renderAgain` here
+// lets the band in flight finish and blit, and the next pass starts with the
+// view, asked for after the insert.
+//
+// ONLY while a pass is running: an idle page has nothing to end, and the
+// invalidation that follows the key starts the next pass as it always did.
+// The listener only reads the event -- no preventDefault, nothing said to the
+// input adapter (E1-C binds it); it runs beside the adapter's own listener and
+// the delete listener above, and changes neither.
+//
+// The types are those that reach the engine: the adapter commits text and
+// line breaks (input-adapter.js TEXT_INPUT_TYPES, plus insertLineBreak and
+// insertParagraph), and the listener above sends the two deletes.  A
+// composition update reaches nothing until compositionend, so it is excluded.
+const ENGINE_INPUT_TYPES = new Set([
+  "insertText", "insertReplacementText", "insertFromPaste",
+  "insertLineBreak", "insertParagraph",
+  ...Object.keys(DELETE_INPUT_TYPES),
+]);
+
+function endRenderPassOnInput(event) {
+  if (!rendering || event.isComposing || !ENGINE_INPUT_TYPES.has(event.inputType)) return;
+  renderAgain = true;
+}
+
+el.sink.addEventListener("beforeinput", endRenderPassOnInput);
 
 // Arrow keys produce no `beforeinput` at all, so they need keydown.
 //

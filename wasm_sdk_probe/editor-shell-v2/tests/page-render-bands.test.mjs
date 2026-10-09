@@ -1,6 +1,9 @@
 // SPEC-M3-production-ui §15.2, 122-U: finding 122's banded repaint (fable's
 // ruling B′).  The page's own functions are taken from its source and run
 // against a recording canvas and a fake engine, so these test the page's code.
+// §15.6 (fable's third ruling, A+B): B1 restated for bands of
+// floor(32767/32) = 1023 rows, the other counts follow the page's constant,
+// and B8 / B8-control test A (a key that will reach the engine ends a pass).
 
 import assert from "node:assert/strict";
 import test from "node:test";
@@ -20,7 +23,13 @@ const PARTS = [
   slice(/^const MAX_TILE_HEIGHT = .*;$/m, "MAX_TILE_HEIGHT"),
   slice(/^const RENDER_BAND_HEIGHT = .*;$/m, "RENDER_BAND_HEIGHT"),
   fn("renderBands"), fn("bandOrder"), fn("visibleCanvasRows"), fn("renderDocument"), fn("paint"), fn("paintBand"),
+  slice(/^const DELETE_INPUT_TYPES = \{[\s\S]*?\n\};$/m, "DELETE_INPUT_TYPES"),
+  slice(/^const ENGINE_INPUT_TYPES = new Set\(\[[\s\S]*?\n\]\);$/m, "ENGINE_INPUT_TYPES"),
+  fn("endRenderPassOnInput"),
 ].join("\n");
+// A's registration, taken from the page as it stands: if the page stops
+// registering it, B8 sees the pass run on (a behaviour, not a missing string).
+const LISTENER = SOURCE.match(/^el\.sink\.addEventListener\("beforeinput", endRenderPassOnInput\);$/m)?.[0] ?? "";
 
 /** A page around the real functions: canvas, desk, session and engine are recordings. */
 function page({ height = 22256, width = 10, view = [9000, 11000], onRender = null, painted = () => true } = {}) {
@@ -40,7 +49,9 @@ function page({ height = 22256, width = 10, view = [9000, 11000], onRender = nul
     // CSS height equals device height in this fake, so rows = pixels.
     getBoundingClientRect: () => ({ top: -view[0], bottom: height - view[0], height }),
   };
-  const el = { canvas, desk: { getBoundingClientRect: () => ({ top: 0, bottom: view[1] - view[0] }) } };
+  const listeners = [];
+  const sink = { addEventListener(type, listener) { listeners.push([type, listener]); } };
+  const el = { canvas, sink, desk: { getBoundingClientRect: () => ({ top: 0, bottom: view[1] - view[0] }) } };
   const session = {
     state: { snapshot: { state: "ready", editorState: null } },
     document: {
@@ -60,11 +71,16 @@ function page({ height = 22256, width = 10, view = [9000, 11000], onRender = nul
     `let rendering = false, renderAgain = false, lastTiles = []; const RENDER_BUSY_RETRIES = 2;
      function drawOverlay(c) { c.putOverlay && c.putOverlay(); }
      ${PARTS}
-     return { renderDocument, renderBands, bandOrder, paint,
+     ${LISTENER}
+     return { renderDocument, renderBands, bandOrder, paint, RENDER_BAND_HEIGHT,
               state: () => ({ rendering, renderAgain, lastTiles }) };`)(
     session, el, (tile) => painted(tile), FakeImageData, () => { layouts += 1; },
     (message) => toasts.push(message), (error) => error?.code ?? String(error));
-  const api = { ...made, ops, requests, toasts, layouts: () => layouts, session, el };
+  /** A `beforeinput` on the sink, through whatever the page registered there. */
+  const beforeinput = (inputType, isComposing = false) => {
+    for (const [type, listener] of listeners) if (type === "beforeinput") listener({ inputType, isComposing });
+  };
+  const api = { ...made, ops, requests, toasts, layouts: () => layouts, session, el, beforeinput };
   return api;
 }
 
@@ -72,32 +88,39 @@ const settle = () => new Promise((resolve) => setTimeout(resolve, 0));
 async function quiet(p) {
   for (let i = 0; i < 200 && p.state().rendering; i += 1) await settle();
 }
-const bandOf = (request, p) => Math.round(request.yTwips / p.session.document.heightTwips * p.el.canvas.height / 2047);
+const H = page().RENDER_BAND_HEIGHT;
+/** How many bands a canvas of `rows` is cut into, at the page's band height. */
+const bandsIn = (rows) => Math.ceil(rows / H);
+const bandOf = (request, p) => Math.round(request.yTwips / p.session.document.heightTwips * p.el.canvas.height / H);
+/** The bands overlapping the default view [9000, 11000), in document order. */
+const VISIBLE = [...Array(bandsIn(22256)).keys()].filter((i) => i * H < 11000 && (i + 1) * H > 9000);
 
 test("122 B1: the bands cover the canvas exactly, from pixel edges", () => {
   const p = page();
   const bands = p.renderBands(22256);
-  assert.equal(bands.length, 11, "a 22,256-px canvas is 11 bands of 2047");
+  assert.equal(bands.length, 22, "a 22,256-px canvas is 22 bands of 1023 (§15.6 B)");
   let top = 0;
   for (const band of bands) {
     assert.equal(band.top, top, "a gap or an overlap");
     top += band.rows;
   }
   assert.equal(top, 22256);
-  assert.equal(bands.at(-1).rows, 22256 - 10 * 2047);
+  assert.ok(bands.slice(0, -1).every((band) => band.rows === 1023), "a band other than the last is not 1023 rows");
+  assert.equal(bands.at(-1).rows, 22256 - 21 * 1023);
 });
 
 test("122 B2: the bands under the view first, then nearest first", () => {
   const p = page();
   const order = p.bandOrder(p.renderBands(22256), [9000, 11000]).map((b) => b.index);
-  assert.deepEqual(order.slice(0, 2), [4, 5], "the visible bands (8188-10235, 10235-12282) first");
+  assert.ok(VISIBLE.length >= 2, "the view should span more than one band");
+  assert.deepEqual(order.slice(0, VISIBLE.length), VISIBLE, "the visible bands first, in document order");
   const bands = p.renderBands(22256);
   const gap = (i) => { const b = bands[i]; const end = b.top + b.rows;
     return end > 9000 && b.top < 11000 ? 0 : b.top >= 11000 ? b.top - 11000 : 9000 - end; };
   const distances = order.map(gap);
   for (let i = 1; i < distances.length; i += 1)
     assert.ok(distances[i] >= distances[i - 1], `band ${order[i]} before a nearer one`);
-  assert.equal(order.length, 11);
+  assert.equal(order.length, bandsIn(22256));
 });
 
 test("122 B3: a change between bands ends the pass, and the next pass starts with the view again", async () => {
@@ -113,7 +136,7 @@ test("122 B3: a change between bands ends the pass, and the next pass starts wit
   const first = order[0];
   // Pass 1 asked for the view's first band, then stopped; pass 2 asked for it again first.
   assert.equal(order[1], first, "the interrupted pass went on instead of restarting with the view");
-  assert.equal(p.requests.length, 1 + 11, "pass 2 did not cover every band");
+  assert.equal(p.requests.length, 1 + bandsIn(22256), "pass 2 did not cover every band");
 });
 
 test("122 B4: each band is blitted when it arrives, before the next band is asked for", async () => {
@@ -126,10 +149,10 @@ test("122 B4: each band is blitted when it arrives, before the next band is aske
   };
   await p.renderDocument();
   await quiet(p);
-  assert.deepEqual(seen, [...Array(11).keys()], "a band was held back until the end of the pass");
+  assert.deepEqual(seen, [...Array(bandsIn(22256)).keys()], "a band was held back until the end of the pass");
   const tiles = p.state().lastTiles;
-  assert.equal(tiles.length, 11);
-  assert.ok(tiles.every((t, i) => t && t.y === i * 2047), "lastTiles is not one band per slot in document order");
+  assert.equal(tiles.length, bandsIn(22256));
+  assert.ok(tiles.every((t, i) => t && t.y === i * H), "lastTiles is not one band per slot in document order");
 });
 
 test("122 B5: a document whose size changed is laid out again and painted in full", async () => {
@@ -138,7 +161,7 @@ test("122 B5: a document whose size changed is laid out again and painted in ful
   await p.renderDocument();
   await quiet(p);
   assert.equal(p.layouts(), 1);
-  assert.equal(p.requests.length, 1 + 11, "the pass after the relayout did not cover every band");
+  assert.equal(p.requests.length, 1 + bandsIn(22256), "the pass after the relayout did not cover every band");
 });
 
 test("122 B6: a band the engine did not paint still raises TILE_NOT_PAINTED", async () => {
@@ -161,4 +184,47 @@ test("122 B7: nothing is cleared; a band keeps its old pixels until its new ones
   const blits = p.ops.filter((op) => op[0] === "blit");
   assert.equal(clips.length, blits.length);
   assert.ok(clips.every((c, i) => c[1] === blits[i][1] && c[2] === blits[i][2]));
+});
+
+test("122 B8: a key that will reach the engine, mid-pass, ends the pass after the band in flight; the next pass starts with the view", async () => {
+  const n = bandsIn(22256);
+  const ENDS_AT = VISIBLE.length + 2;   // an off-screen band, well inside the pass
+  let blitsWhenAsked = [];
+  const p = page({
+    onRender: async (request, reply, api) => {
+      blitsWhenAsked.push(api.ops.filter((op) => op[0] === "blit").length);
+      if (api.requests.length === ENDS_AT) api.beforeinput("insertText");   // typed while this band is in flight
+    },
+  });
+  await p.renderDocument();
+  await quiet(p);
+  const bands = p.requests.map((r) => bandOf(r, p));
+  assert.equal(p.requests.length, ENDS_AT + n,
+    `the pass did not end after the band in flight (asked ${p.requests.length}, expected ${ENDS_AT} + a full pass of ${n})`);
+  assert.equal(blitsWhenAsked[ENDS_AT], ENDS_AT, "the band in flight was not blitted before the next pass");
+  assert.deepEqual(bands.slice(ENDS_AT, ENDS_AT + VISIBLE.length), VISIBLE, "the next pass did not start with the view");
+  assert.equal(new Set(bands.slice(ENDS_AT)).size, n, "the next pass did not cover every band");
+  assert.equal(p.state().renderAgain, false);
+});
+
+test("122 B8-control: a beforeinput while idle sets nothing and starts no pass; a composition update mid-pass ends nothing", async () => {
+  const idle = page();
+  for (const type of ["insertText", "insertParagraph", "deleteContentBackward"]) idle.beforeinput(type);
+  await settle();
+  assert.equal(idle.state().renderAgain, false, "an idle beforeinput set renderAgain");
+  assert.equal(idle.state().rendering, false);
+  assert.equal(idle.requests.length, 0, "an idle beforeinput started a pass");
+
+  const n = bandsIn(22256);
+  const composing = page({
+    onRender: async (request, reply, api) => {
+      if (api.requests.length === 2) {
+        api.beforeinput("insertCompositionText");
+        api.beforeinput("insertText", true);
+      }
+    },
+  });
+  await composing.renderDocument();
+  await quiet(composing);
+  assert.equal(composing.requests.length, n, "a composition update ended the pass");
 });
