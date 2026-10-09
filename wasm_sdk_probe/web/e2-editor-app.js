@@ -1734,11 +1734,30 @@ el.sink.addEventListener("compositionupdate", (event) => showComposition(event.d
 el.sink.addEventListener("compositionend", hideComposition);
 el.sink.addEventListener("blur", hideComposition);
 
+// FINDING 121.  Backspace or Delete with text selected went out as
+// `delete-backward`/`delete-forward`, which every profile offers for a caret
+// only, so the gesture gate refused it with a developer's sentence and nothing
+// was deleted (both browsers; since the v19 cutover).  A range is deleted by
+// `delete-selection` -- the action cut already uses, on the same test.  Named so
+// a test can compile it (SPEC-M3-production-ui §15.2, 121-U).
+//
+// The shape is the ENGINE's current selection (the editor state it last
+// pushed), not `lastSelectionShape`: that is the page's belief, set by drags
+// and clicks only, so after typing over a selection or deleting it the belief
+// would still say "range" and the next Backspace would go out as
+// delete-selection on a caret -- refused the other way round.  The belief is
+// the fallback only when the engine has not said.
+function deleteActionFor(action, shape, offersSelectionDelete) {
+  return shape !== null && shape !== "collapsed" && offersSelectionDelete ? "delete-selection" : action;
+}
+
 el.sink.addEventListener("beforeinput", (event) => {
   const action = DELETE_INPUT_TYPES[event.inputType];
   if (!action || !session?.document) return;
   event.preventDefault();
-  void editorAction(action).catch(() => {});
+  const shape = selectionShapeOf({ state: session.state.snapshot.editorState }) ?? lastSelectionShape;
+  void editorAction(deleteActionFor(action, shape,
+                                    session.offers?.("delete-selection") === true)).catch(() => {});
 });
 
 // Arrow keys produce no `beforeinput` at all, so they need keydown.
