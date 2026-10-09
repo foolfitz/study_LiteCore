@@ -22,3 +22,5 @@ Before the verdict is read, the reader is made red once on scratch copies (as 0.
 ## The re-anchored mutation, run once (fable's fourth ruling Part 2, condition 2; before any counted run)
 
 `mutation-ignore-a-document-that-grew-chrome.json` (Chrome, `--mutate ignore-a-document-that-grew`): result appended below when the run ends; required: `the-canvas-follows-a-document-that-grew` red.
+
+**Result (2026-10-10 02:17–02:23 +0800, before any counted run):** `the-canvas-follows-a-document-that-grew` **FAIL** — the edit reached the document (2 pages), the canvas kept the height it was opened with (2007 rows after the edit), and reopening the saved file gives the taller canvas, so the ground truth was established; exactly the defect the mutation reintroduces. The other 41 cells: 39 PASS and the two designed abstentions (`notice-action-recovers-the-session`, the recovery pairing's sentinel; `a-refused-action-is-reported-and-changes-nothing`, judgeable only in diagnostic runs). The re-anchor hit; the condition is met.
