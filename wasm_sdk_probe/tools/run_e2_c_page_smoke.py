@@ -46,12 +46,78 @@ return {
 })()
 """
 
+# SPEC-M3-production-ui §17.11: the document's rows, and the part of them the
+# canvas holds.  Release C′ draws only a window of the document -- `data-window`
+# on #canvas is `docRows winTop W`, `data-bands` the cached bands as
+# `index:top:rows:label`, `data-changes` the page's change counter -- and #paper
+# is the document's size.  The P page has none of these attributes and its
+# canvas IS the document, so every conversion here is the identity there: no
+# scroll, no wait, the same synchronous read.
+#
+# `__docRowsHeld(w, first, last, current)`: rows [first, last) are in the window
+# and under cached bands (with `current`, bands labelled with the counter).
+# `__docRowsCover(first, last)`: scroll the desk to centre those rows when they
+# are outside the window, then wait up to 15 s for their bands to be drawn
+# against the latest change.  Reached only on a windowed page, and only when the
+# rows are not already held: a reader that waited for "current" every time
+# would pad every keystroke-to-ink measurement with its own wait.
+DOC_WINDOW_JS = """
+const __docWindow = () => {
+  const c = document.querySelector('#canvas');
+  const p = (c.dataset.window || '').trim().split(/\\s+/).map(Number);
+  if (p.length === 3 && p.every(Number.isInteger))
+    return { windowed: true, docRows: p[0], top: p[1], rows: p[2] };
+  return { windowed: false, docRows: c.height, top: 0, rows: c.height };
+};
+const __docRowsHeld = (w, first, last, current) => {
+  if (!w.windowed) return true;
+  if (first < w.top || last > w.top + w.rows) return false;
+  const c = document.querySelector('#canvas');
+  const changes = Number(c.dataset.changes);
+  const bands = (c.dataset.bands || '').trim().split(/\\s+/).filter(Boolean)
+    .map((s) => s.split(':').map(Number))
+    .filter((b) => b.length === 4 && (!current || b[3] === changes))
+    .sort((a, b) => a[1] - b[1]);
+  let at = first;
+  for (const [, top, rows] of bands) {
+    if (top > at) break;
+    if (top + rows > at) at = top + rows;
+    if (at >= last) return true;
+  }
+  return at >= last;
+};
+const __docRowsCover = async (first, last) => {
+  let w = __docWindow();
+  if (first < w.top || last > w.top + w.rows) {
+    const desk = document.querySelector('#desk');
+    const paper = document.querySelector('#paper').getBoundingClientRect();
+    const view = desk.getBoundingClientRect();
+    const centre = paper.top + paper.height * ((first + last) / 2) / w.docRows;
+    desk.scrollTop += centre - (view.top + view.height / 2);
+  }
+  const deadline = performance.now() + 15000;
+  while (performance.now() < deadline) {
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    w = __docWindow();
+    if (__docRowsHeld(w, first, last, true)) return { w, waited: 'current' };
+  }
+  return { w: __docWindow(), waited: 'timeout' };
+};
+"""
+
 # Through the page's own handlers: a PointerEvent on the canvas and a click on
 # the toolbar.  Driving the session object directly would test the session,
 # which already has unit tests, and skip the wiring this run exists for.
+#
+# The point is a fraction of #paper, the document's own box (§17.11): on the P
+# page #paper holds nothing in flow but the canvas, so the two boxes are one;
+# on C′ the canvas is a window and only #paper spans the document.  Dispatched
+# on #canvas either way -- the P page listens there, C′ listens on #paper and
+# the event bubbles up to it -- and not scrolled into view first, because the
+# page converts through #paper's box wherever the point is.
 POINT_AT = """(() => {
 const canvas = document.querySelector('#canvas');
-const box = canvas.getBoundingClientRect();
+const box = document.querySelector('#paper').getBoundingClientRect();
 const x = box.left + box.width * ARG_X;
 const y = box.top + box.height * ARG_Y;
 canvas.dispatchEvent(new PointerEvent('pointerdown', {

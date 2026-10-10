@@ -50,7 +50,7 @@ from check_m3_skeleton_open import (  # noqa: E402
 from probe_m3_gate0_coep import DIST, firefox_profile, sha256_file, utc_now, wait_until  # noqa: E402
 from r7_support import evaluate  # noqa: E402
 from run_browser_probe import FirefoxSession, free_port  # noqa: E402
-from run_e2_c_page_smoke import POINT_AT, PRESS, navigate  # noqa: E402
+from run_e2_c_page_smoke import DOC_WINDOW_JS, POINT_AT, PRESS, navigate  # noqa: E402
 
 PROJECT = Path(__file__).resolve().parent.parent
 REPO = PROJECT.parent
@@ -171,9 +171,10 @@ ARROW_DOWN = """(() => document.querySelector('#sink').dispatchEvent(new Keyboar
 KEY = """(() => { const sink = document.querySelector('#sink'); sink.focus();
   return sink.dispatchEvent(new KeyboardEvent('keydown', ARG_INIT)) === false; })()"""
 # run_e2_c_product_path.DRAG, inlined (that module is 7000 lines to import for one string).
+# Fractions of #paper, dispatched on #canvas: SPEC-M3-production-ui §17.11.
 DRAG = """(() => {
 const canvas = document.querySelector('#canvas');
-const box = canvas.getBoundingClientRect();
+const box = document.querySelector('#paper').getBoundingClientRect();
 const at = (fx, fy) => ({ x: box.left + box.width * fx, y: box.top + box.height * fy });
 const a = at(ARG_X1, ARG_Y1);
 const b = at(ARG_X2, ARG_Y2);
@@ -193,15 +194,26 @@ return true;
 # finding 096: the shipped v8 engine answers nothing, the action times out after
 # 30 s and the session goes to recoverable-error -- both V arms of the first
 # shakedown (2026-09-29T091816) died that way before the census began.
-TEXT_LINES = """(() => { const c = document.querySelector('#canvas'); const w = c.width, h = c.height;
+#
+# SPEC-M3-production-ui §17.11: the scan is of the canvas, which on a windowed
+# page is rows [top, top + rows) of the document, so the bands are put back into
+# the document's rows (`off` = winTop) and `mid` is a fraction of the document
+# (`H` = docRows).  On the P page off is 0 and H is h: the read is unchanged.
+TEXT_LINES = """(() => {""" + DOC_WINDOW_JS + """
+const c = document.querySelector('#canvas');
+const read = (win) => { const w = c.width, h = c.height, off = win.top, H = win.docRows;
 const d = c.getContext('2d').getImageData(0, 0, w, h).data; const rows = [];
 for (let y = 0; y < h; y++) { let n = 0; for (let x = 0; x < w; x++) { const i = (y * w + x) * 4;
   if (d[i+3] > 128 && d[i] < 100 && d[i+1] < 100 && d[i+2] < 100) n++; } rows.push(n); }
 const bands = []; let start = -1;
 for (let y = 0; y <= h; y++) { const on = y < h && rows[y] > 2; if (on && start < 0) start = y;
-  if (!on && start >= 0) { if (y - start >= 5) bands.push({ a: start, b: y - 1, mid: +(((start + y - 1) / 2) / h).toFixed(4) });
+  if (!on && start >= 0) { if (y - start >= 5) bands.push({ a: start + off, b: y - 1 + off, mid: +(((start + off + y - 1 + off) / 2) / H).toFixed(4) });
     start = -1; } }
-return { h, w, bands }; })()"""
+return { h: H, w, bands }; };
+const win = __docWindow();
+if (__docRowsHeld(win, win.top, win.top + win.rows, false)) return read(win);
+return __docRowsCover(win.top, win.top + win.rows).then(({ w, waited }) => Object.assign(read(w), { windowWait: waited }));
+})()"""
 
 
 def first_line(session, record: dict[str, Any]) -> str:

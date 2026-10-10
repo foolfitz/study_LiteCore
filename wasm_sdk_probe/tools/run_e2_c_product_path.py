@@ -75,7 +75,7 @@ from create_long_document import build as build_long_document  # noqa: E402
 from e1_support import sha256 as sha256_file  # noqa: E402
 from r7_support import evaluate, wait_page  # noqa: E402
 from run_browser_probe import ChromeSession, FirefoxSession, free_port  # noqa: E402
-from run_e2_c_page_smoke import READ_STATE, navigate  # noqa: E402
+from run_e2_c_page_smoke import DOC_WINDOW_JS, READ_STATE, navigate  # noqa: E402
 from validate_e1_c import shell_bundle_digest  # noqa: E402
 import build_e2_c_shell_bundle as _shell_bundle  # noqa: E402
 
@@ -564,9 +564,9 @@ input.dispatchEvent(new Event("change", { bubbles: true }));
 return "dispatched";
 })()"""
 
-GEOMETRY = """(() => {
+GEOMETRY = """(() => {""" + DOC_WINDOW_JS + """
 const canvas = document.querySelector('#canvas');
-return { width: canvas.width, height: canvas.height,
+return { width: canvas.width, height: __docWindow().docRows, canvasHeight: canvas.height,
          cssWidth: canvas.style.width, cssHeight: canvas.style.height,
          devicePixelRatio: globalThis.devicePixelRatio };
 })()"""
@@ -575,11 +575,12 @@ return { width: canvas.width, height: canvas.height,
 # and it answers the only question that matters here: is the document drawn AT
 # ALL.  Finding 058 is why this is asked in pixels rather than inferred from a
 # state field -- data arriving is not the same as anything being painted.
-TOP_INK = """(() => {
+TOP_INK = """(() => {""" + DOC_WINDOW_JS + """
 const canvas = document.querySelector('#canvas');
+const read = (win) => {
 const w = canvas.width;
-const rows = Math.min(400, canvas.height);
-const data = canvas.getContext('2d').getImageData(0, 0, w, rows).data;
+const rows = Math.min(400, win.docRows);
+const data = canvas.getContext('2d').getImageData(0, -win.top, w, rows).data;
 const inked = new Uint8Array(w);
 let count = 0;
 for (let y = 0; y < rows; y += 1) {
@@ -597,7 +598,13 @@ for (let x = 0; x < w; x += 1) if (inked[x]) columns += 1;
 // -- which passed a "more than 50 dark pixels" test and reported a blank
 // document as drawn.  Text spans hundreds of columns; a caret spans two.
 return { ink: count, columns, rows,
-         height: canvas.height, width: w };
+         height: win.docRows, width: w };
+};
+// The document's top rows, on the canvas (§17.11; the identity on the P page).
+const win = __docWindow();
+const top = Math.min(400, win.docRows);
+if (__docRowsHeld(win, 0, top, false)) return read(win);
+return __docRowsCover(0, top).then(({ w, waited }) => Object.assign(read(w), { windowWait: waited }));
 })()"""
 
 CLEAR_TOAST = """(() => {
@@ -794,12 +801,17 @@ return "dispatched";
 # line are measured in the same read, so "where the caret is" is expressed
 # relative to where the text is rather than to the viewport.  A wider window
 # moves both together.
-CARET_COLUMNS = """(() => {
+CARET_COLUMNS = """(() => {""" + DOC_WINDOW_JS + """
 const canvas = document.querySelector('#canvas');
-const y = Math.floor(canvas.height * ARG_Y) - 18;
+const win = __docWindow();
+const y = Math.floor(win.docRows * ARG_Y) - 18;
 const h = 46;
-if (y < 0 || y + h > canvas.height) return { available: false };
-const data = canvas.getContext('2d').getImageData(0, y, canvas.width, h).data;
+if (y < 0 || y + h > win.docRows) return { available: false };
+const read = (win) => {
+// Rows the window still does not hold after the wait are not read: outside the
+// canvas getImageData answers transparent black, which this test counts as ink.
+if (y < win.top || y + h > win.top + win.rows) return { available: false };
+const data = canvas.getContext('2d').getImageData(0, y - win.top, canvas.width, h).data;
 const columns = new Array(canvas.width).fill(0);
 for (let row = 0; row < h; row += 1) {
   for (let x = 0; x < canvas.width; x += 1) {
@@ -808,6 +820,9 @@ for (let row = 0; row < h; row += 1) {
   }
 }
 return { available: true, columns, width: canvas.width, band: { y, h } };
+};
+if (__docRowsHeld(win, y, y + h, false)) return read(win);
+return __docRowsCover(y, y + h).then(({ w, waited }) => Object.assign(read(w), { windowWait: waited }));
 })()"""
 
 # Which LINE is which, from the page's own pixels.
@@ -829,9 +844,10 @@ return { available: true, columns, width: canvas.width, band: { y, h } };
 #     their density, below;
 #   * a repaint in flight reports a different band count from the same page,
 #     so the scan is taken until it stops moving.
-INK_ROWS = """(() => {
+INK_ROWS = """(() => {""" + DOC_WINDOW_JS + """
 const EXCLUDE_CARET = ARG_EXCLUDE_CARET;
 const canvas = document.querySelector('#canvas');
+const read = (win) => {
 const w = canvas.width, h = canvas.height;
 const data = canvas.getContext('2d').getImageData(0, 0, w, h).data;
 const dark = new Uint8Array(w * h);
@@ -1013,11 +1029,30 @@ for (let y = 0; y < h; y += 1) {
   }
   counts.push(count); firsts.push(first); lasts.push(last);
 }
-return { width: w, height: h, counts, firsts, lasts, clipped,
+const result = { width: w, height: h, counts, firsts, lasts, clipped,
          page: [inside, outside],
          pageOpaque: [pageLeft, pageRight], pageClipped, offPageInk,
          caret, caretWhy, caretRemoved,
          borderColumns: border.reduce((n, v) => n + (v ? 1 : 0), 0) };
+// SPEC-M3-production-ui §17.11.  The scan above is of the canvas, which on a
+// windowed page is rows [top, top + rows) of the document: every threshold in
+// it stays a fraction of the rows actually scanned, and the answer is put back
+// into the document's rows -- rows outside the window carry no ink.  Not
+// reached on the P page, whose canvas is the document.
+if (win.windowed && (win.top !== 0 || win.rows !== win.docRows || h !== win.docRows)) {
+  const before = Math.max(0, win.top), after = Math.max(0, win.docRows - win.top - h);
+  result.counts = [...new Array(before).fill(0), ...counts, ...new Array(after).fill(0)];
+  result.firsts = [...new Array(before).fill(-1), ...firsts, ...new Array(after).fill(-1)];
+  result.lasts = [...new Array(before).fill(-1), ...lasts, ...new Array(after).fill(-1)];
+  result.height = win.docRows;
+  if (caret) caret.y += win.top;
+}
+if (win.windowed) result.window = [win.top, win.rows];
+return result;
+};
+const win = __docWindow();
+if (__docRowsHeld(win, win.top, win.top + win.rows, false)) return read(win);
+return __docRowsCover(win.top, win.top + win.rows).then(({ w, waited }) => Object.assign(read(w), { windowWait: waited }));
 })()"""
 
 # The product writes the button's own text into #s-latency, so the wait for
@@ -1098,7 +1133,7 @@ return true;
 
 POINT_AT = """(() => {
 const canvas = document.querySelector('#canvas');
-const box = canvas.getBoundingClientRect();
+const box = document.querySelector('#paper').getBoundingClientRect();
 const x = box.left + box.width * ARG_X;
 const y = box.top + box.height * ARG_Y;
 canvas.dispatchEvent(new PointerEvent('pointerdown', {
@@ -1117,7 +1152,7 @@ return true;
 # land: mid-gesture, after the drag has started to select.
 ABORT_DRAG = """(() => {
 const canvas = document.querySelector('#canvas');
-const box = canvas.getBoundingClientRect();
+const box = document.querySelector('#paper').getBoundingClientRect();
 const at = (fx) => ({ x: box.left + box.width * fx,
                       y: box.top + box.height * ARG_Y });
 const a = at(ARG_X1);
@@ -1173,7 +1208,7 @@ return { available: true, from: current, to: other,
 
 DRAG = """(() => {
 const canvas = document.querySelector('#canvas');
-const box = canvas.getBoundingClientRect();
+const box = document.querySelector('#paper').getBoundingClientRect();
 const at = (fx, fy) => ({ x: box.left + box.width * fx, y: box.top + box.height * fy });
 const a = at(ARG_X1, ARG_Y1);
 const b = at(ARG_X2, ARG_Y2);
@@ -1231,7 +1266,7 @@ const toolbar = document.querySelector('#toolbar');
 const press = (action) => toolbar
   .querySelector(`[data-action="${action}"]`).click();
 const canvas = document.querySelector('#canvas');
-const box = canvas.getBoundingClientRect();
+const box = document.querySelector('#paper').getBoundingClientRect();
 const x = box.left + box.width * ARG_X;
 const y = box.top + box.height * ARG_Y;
 press('save');
@@ -1260,7 +1295,7 @@ const toolbar = document.querySelector('#toolbar');
 const press = (action) => toolbar
   .querySelector(`[data-action="${action}"]`).click();
 const canvas = document.querySelector('#canvas');
-const box = canvas.getBoundingClientRect();
+const box = document.querySelector('#paper').getBoundingClientRect();
 const x = box.left + box.width * ARG_X;
 const y = box.top + box.height * ARG_Y;
 canvas.dispatchEvent(new PointerEvent('pointerdown', {
@@ -2696,12 +2731,16 @@ def apply_mutation(name: str, scratch: Path,
 # Measured on Firefox: x=0.06 gives strokeLost 0 three runs running, x=0.20
 # gives 19.  Whether 0.06 separates depends on the canvas width, which depends
 # on the browser window, which is exactly what 060 was about.
-LINE_INK = """(() => {
+LINE_INK = """(() => {""" + DOC_WINDOW_JS + """
 const canvas = document.querySelector('#canvas');
-const y = Math.floor(canvas.height * ARG_Y) - 18;
+const win = __docWindow();
+const y = Math.floor(win.docRows * ARG_Y) - 18;
 const h = 46;
-if (y < 0 || y + h > canvas.height) return { available: false };
-const data = canvas.getContext('2d').getImageData(0, y, canvas.width, h).data;
+if (y < 0 || y + h > win.docRows) return { available: false };
+const read = (win) => {
+// As CARET_COLUMNS: rows the window does not hold are not read.
+if (y < win.top || y + h > win.top + win.rows) return { available: false };
+const data = canvas.getContext('2d').getImageData(0, y - win.top, canvas.width, h).data;
 let left = null, right = null;
 const columns = new Array(canvas.width).fill(0);
 for (let x = 0; x < canvas.width; x += 1) {
@@ -2718,6 +2757,9 @@ for (let x = 0; x < canvas.width; x += 1) {
 return { available: left !== null && right !== null && right > left,
          inkLeft: left, inkRight: right, width: canvas.width,
          columns };
+};
+if (__docRowsHeld(win, y, y + h, false)) return read(win);
+return __docRowsCover(y, y + h).then(({ w, waited }) => Object.assign(read(w), { windowWait: waited }));
 })()"""
 
 
