@@ -109,6 +109,33 @@ test("122 B1: the bands cover the canvas exactly, from pixel edges", () => {
   assert.equal(bands.at(-1).rows, 22256 - 21 * 1023);
 });
 
+// SPEC-M3-production-ui §16.2, 123-U: finding 123.  Every canvas height from
+// one row to five bands, generated here: the bands tile the canvas, all but
+// the last are a full band, and the last is never under half a band unless
+// the whole canvas is.
+test("123-U: no canvas height up to five bands is cut with a short last band", () => {
+  const p = page();
+  const half = Math.ceil(H / 2);
+  for (let total = 1; total <= 5 * H; total += 1) {
+    const bands = p.renderBands(total);
+    let top = 0;
+    for (const [i, band] of bands.entries()) {
+      if (band.index !== i || band.top !== top)
+        assert.fail(`height ${total}: band ${i} is index ${band.index} at ${band.top}, expected ${i} at ${top}`);
+      top += band.rows;
+    }
+    if (top !== total) assert.fail(`height ${total}: the bands cover ${top} rows`);
+    if (!bands.slice(0, -1).every((band) => band.rows === H))
+      assert.fail(`height ${total}: a band other than the last is not ${H} rows`);
+    const last = bands.at(-1).rows;
+    if (last < Math.min(total, half) || last > H + H / 2)
+      assert.fail(`height ${total}: the last band is ${last} rows, outside [${Math.min(total, half)}, ${H + H / 2}]`);
+  }
+  // §16.2's case and §16.8's (the 800-px window at ratio 2): 53 and 19 rows on the shipped page.
+  assert.deepEqual([p.renderBands(35858).length, p.renderBands(35858).at(-1).rows], [35, 1076]);
+  assert.deepEqual([p.renderBands(36847).length, p.renderBands(36847).at(-1).rows], [36, 1042]);
+});
+
 test("122 B2: the bands under the view first, then nearest first", () => {
   const p = page();
   const order = p.bandOrder(p.renderBands(22256), [9000, 11000]).map((b) => b.index);

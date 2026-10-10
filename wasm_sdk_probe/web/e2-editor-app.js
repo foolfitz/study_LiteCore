@@ -816,11 +816,27 @@ const RENDER_BUSY_RETRIES = 84;
 // grows only by the per-request overhead.
 const RENDER_BAND_HEIGHT = Math.floor(MAX_TILE_HEIGHT / 32);
 
-/** The canvas cut into bands: pixel edges, no gap, no overlap, the last short. */
+/**
+ * The canvas cut into bands: pixel edges, no gap, no overlap.  Every band is
+ * RENDER_BAND_HEIGHT rows but the last, which is between half a band and a
+ * band and a half -- or the whole canvas, when that is under half a band.
+ *
+ * FINDING 123: the last band used to be whatever was left, and could be a few
+ * dozen rows that are mostly the transparent gap below the last page (19 rows
+ * at devicePixelRatio 2 on the owner's document, all of them gap).  062's
+ * `tileWasPainted` cannot tell that from a band the engine never drew, so every
+ * pass ended in 「重繪失敗：TILE_NOT_PAINTED」 and the last band was never
+ * blitted.  A last piece under half a band joins the band above it; the guard
+ * stays as it is.
+ */
 function renderBands(total) {
   const bands = [];
   for (let top = 0, index = 0; top < total; top += RENDER_BAND_HEIGHT, index += 1)
     bands.push({ index, top, rows: Math.min(RENDER_BAND_HEIGHT, total - top) });
+  if (bands.length > 1 && bands.at(-1).rows < RENDER_BAND_HEIGHT / 2) {
+    const short = bands.pop();
+    bands.at(-1).rows += short.rows;
+  }
   return bands;
 }
 
