@@ -622,7 +622,19 @@ FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
 # Frozen AFTER the browser criteria were met on dist/ (finding 091's rule): 122-B read by the reviewed reader
 # `findings/evidence/typing-latency/judge.py` as PASS in both browsers (§15.8-15.9, fable's fourth ruling R),
 # 121-B and 120-B re-run on these bytes (5293628a).  The other modules equal v58's.
-MANIFEST = Path("e2/editor-shell-v2-bundle-v59.json")
+#
+# v60, 2026-10-10: RELEASE P AND FINDING 123 (fable's fifth ruling on the owner's request; SPEC-M3-production-ui §16).
+# One file differs from v59, `web/e2-editor-app.js` (36c2b18b...):
+#   * 123 (db9a0052): `renderBands` joins a last piece shorter than half a band to the band above it, so the last
+#     band is never a few rows of the transparent gap below the last page that 062's guard reads as unpainted.
+#   * P (706e8565): `paint()` remembers the overlay on the canvas; an equal one costs no pixels, a different one
+#     restores only the old and new rectangles from the cached bands (dirty-rect putImageData, clearRect where no
+#     band was painted) and draws the overlay clipped to them.  Still pins e2-editor-v19 (1aafd4f9...).
+# Frozen AFTER the browser criteria were met on dist/ (finding 091's rule): P1 and 123-B read by the reviewed
+# reader `findings/evidence/typing-latency/judge_p.py` (§16.9) as PASS in both browsers, P2 by `judge_p2.py`
+# (judge.py with the page constant re-bound) as PASS, 121-B and 120-B re-run on these bytes (§16.10).  The other
+# modules equal v59's.
+MANIFEST = Path("e2/editor-shell-v2-bundle-v60.json")
 ENTRYPOINT = Path("web/e2-editor-app.js")
 
 # The directories whose *.js files must all be accounted for.  `editor-shell`
