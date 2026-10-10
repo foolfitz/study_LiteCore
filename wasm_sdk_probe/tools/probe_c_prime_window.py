@@ -286,6 +286,7 @@ def main() -> int:
             p111.quiet(session, 60)
             shift_left(session, a.browser, 3)
             p111.quiet(session, 60)
+            before_bold = int((pp.evaluate(session, READ) or {}).get("changes") or 0)
             pp.evaluate(session, pp.PRESS.replace("ARG_ACTION", "set-bold"))
         time.sleep(1.0)
         report["quiet"] = p111.quiet(session, 60)
@@ -299,6 +300,12 @@ def main() -> int:
         report["boldApplied"] = (pp.evaluate(session, pp.FORMAT_BUTTON_STATE.replace("ARG_ACTION", "set-bold"))
                                  if a.arm == "bold" else None)
         cells = [report["c3"]]
+        if a.arm == "bold":
+            # The arm's positive control (opus review 2026-10-11): the bold must have CHANGED the document -- a
+            # document-invalidated and the run's completion, two counter steps -- or this is a typing arm.
+            report["boldChanges"] = int(read.get("changes") or 0) - before_bold
+            if report["boldChanges"] < 2:
+                cells.append({"judged": False, "current": False, "why": "the bold did not change the document"})
         if a.c4:
             report["c4"] = []
             for f in ("0.5", "1.0"):

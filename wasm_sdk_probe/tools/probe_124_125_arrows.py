@@ -64,10 +64,13 @@ WATCH = """(() => { const root = document.documentElement, pill = document.query
       const k = JSON.parse(root.dataset.keys124); k.push([e.key, Math.round(performance.now() * 10) / 10]);
       root.dataset.keys124 = JSON.stringify(k); }, true);
     // The machine-read state: every write of data-state, the same value included (§17.9 (d)).
+    // Each record's NEW value is the next record's oldValue (the last one's is the current value), so writes
+    // batched into one callback are all counted as what they were (opus review 2026-10-11).
     new MutationObserver((records) => { const p = JSON.parse(root.dataset.pill124);
-      for (const r of records) p.push([pill.dataset.state, Math.round(performance.now() * 10) / 10]);
+      const t = Math.round(performance.now() * 10) / 10;
+      records.forEach((r, i) => p.push([i + 1 < records.length ? records[i + 1].oldValue : pill.dataset.state, t]));
       root.dataset.pill124 = JSON.stringify(p);
-    }).observe(pill, { attributes: true, attributeFilter: ['data-state'] });
+    }).observe(pill, { attributes: true, attributeFilter: ['data-state'], attributeOldValue: true });
   }
   return true; })()"""
 GEOMETRY = """(() => { const desk = document.querySelector('#desk'), sink = document.querySelector('#sink');
