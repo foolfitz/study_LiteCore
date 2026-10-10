@@ -140,7 +140,32 @@ let lastSelectionShape = "collapsed";
 // The last tile the engine painted, kept so a caret move can be drawn without
 // asking for pixels again (finding 058).  Cleared on resize, where the canvas
 // changes size and the cached pixels stop describing it.
+//
+// Release C′ (SPEC-M3-production-ui §17, §17.9): one entry per band, indexed
+// by band, holding only the bands that overlap the window -- `{ image, y,
+// label }`, `y` in document rows and `label` the change counter when the band
+// was ASKED for.  Bounded: everything outside the window is dropped when the
+// window moves and when a pass ends.
 let lastTiles = [];
+
+// Release C′: the canvas is a window onto the document, not the document.
+//
+// Finding 126: the whole document in one canvas is blank EVERYWHERE past about
+// 65,535 rows -- 40 A4 pages at devicePixelRatio 2, 50 at 1.5, measured in both
+// browsers, Chrome without a word.  So #paper is sized as the document and the
+// canvas covers rows [winTop, winTop + canvas.height) of it, moved as the desk
+// scrolls.  `docRows` is what the canvas height used to be -- the document in
+// backing rows -- and every band, twips edge, 062 and 118 test still counts in
+// it; only where the rows are drawn changed.
+let docRows = 0;
+let winTop = 0;
+// §17.9 (c): the page's own change counter.  Every `document-invalidated` and
+// every completed `run()` adds one; a band is stamped with it when it is asked
+// for, and a band stamped below it is stale.  Not the engine's revision: the
+// engine advances that AFTER the callbacks of the command that changed the
+// document (probe_engine.cpp, nine sites), so a band painted between the two
+// would carry the new number over the old pixels and never be asked for again.
+let changes = 0;
 
 // SPEC-M3-production-ui §16 (release P): the caret and selection on the canvas
 // now, as `overlayShapes()` described them when `paint()` or `paintBand()` last
@@ -376,8 +401,10 @@ function geometryDeclared() {
  */
 function positionProjection(paragraphs) {
   const declared = geometryDeclared();
-  const width = el.canvas.clientWidth;
-  const height = el.canvas.clientHeight;
+  // #paper, the document's own box: since release C′ the canvas is a window
+  // onto the document and only #paper spans it (on the P page the two were one).
+  const width = el.paper.clientWidth;
+  const height = el.paper.clientHeight;
   const scalable = Boolean(width && height && session?.document);
   const scaleX = scalable ? width / session.document.widthTwips : 0;
   const scaleY = scalable ? height / session.document.heightTwips : 0;
@@ -778,6 +805,50 @@ function updateRedoAffordance() {
 
 /* ----------------------------------------------------------------- canvas */
 
+/**
+ * Release C′, §17.9 (a): how many document rows the canvas holds.
+ *
+ * Three times what the desk shows -- the view, and one view's worth either
+ * side to scroll into before the window has to move -- but never under four
+ * bands, and never more than the document.  Four is the fewest bands that hold
+ * one whole A4 page at the width cap (2400 x 1.374 = 3,297.6 rows; three bands
+ * are 3,069), and it is the term that decides in every window this tree
+ * measures in: 3 x 540 x 2 = 3,240 at 1400 x 1000 and ratio 2, and Chrome's
+ * default 800 x 600 leaves a 139-pixel desk.  `scale` is backing pixels per CSS
+ * pixel, the canvas's own, not devicePixelRatio (the width cap breaks the
+ * equality).
+ */
+function windowRows(documentRows, deskHeight, scale) {
+  return Math.min(documentRows,
+                  Math.max(3 * Math.floor(deskHeight * scale), 4 * RENDER_BAND_HEIGHT));
+}
+
+/** The window's first row for a view of document rows [top, bottom): the view centred, inside the document. */
+function windowTopFor(top, bottom, rows) {
+  if (rows >= docRows) return 0;
+  return Math.min(docRows - rows, Math.max(0, Math.round((top + bottom) / 2 - rows / 2)));
+}
+
+/** Put the canvas over document rows [winTop, ...), in #paper's CSS pixels. */
+function placeCanvas() {
+  const paperHeight = parseFloat(el.paper.style.height) || 0;
+  el.canvas.style.top = docRows ? `${winTop * paperHeight / docRows}px` : "0px";
+}
+
+/**
+ * §17.11: the window and the bands, said where a reader can see them -- the
+ * window as `docRows winTop W`, the counter, and each cached band as
+ * `index:top:rows:label`.  For C1, C3 and C4 and for the harness's ink reads;
+ * not a feature.
+ */
+function publishWindow() {
+  el.canvas.dataset.window = `${docRows} ${winTop} ${el.canvas.height}`;
+  el.canvas.dataset.changes = String(changes);
+  el.canvas.dataset.bands = lastTiles
+    .map((strip, index) => (strip ? `${index}:${strip.y}:${strip.image.height}:${strip.label}` : null))
+    .filter(Boolean).join(" ");
+}
+
 function layoutCanvas() {
   if (!session?.document) return;
   const available = Math.max(320, el.desk.clientWidth - 40);
@@ -785,21 +856,92 @@ function layoutCanvas() {
   const ratio = session.document.heightTwips / session.document.widthTwips;
   const backingWidth = Math.min(MAX_BACKING_WIDTH,
                                 Math.round(cssWidth * (globalThis.devicePixelRatio || 1)));
+  const cssHeight = Math.round(cssWidth * ratio);
+  // Release C′: #paper is the document's size -- what the canvas's CSS size
+  // was -- and the canvas a window of it, at the same rows per CSS pixel, so a
+  // document row lands on the screen where it always did.  Styles set here and
+  // not in e2-editor.html, which is outside the hash net (finding 094) and
+  // shipped by the host as it is.
+  docRows = Math.round(backingWidth * ratio);
+  el.paper.style.width = `${cssWidth}px`;
+  el.paper.style.height = `${cssHeight}px`;
+  el.paper.style.touchAction = "none";
+  const rows = windowRows(docRows, el.desk.clientHeight, backingWidth / cssWidth);
   el.canvas.width = backingWidth;
-  el.canvas.height = Math.round(backingWidth * ratio);
+  el.canvas.height = rows;
+  el.canvas.style.position = "absolute";
+  el.canvas.style.left = "0px";
   el.canvas.style.width = `${cssWidth}px`;
-  el.canvas.style.height = `${Math.round(cssWidth * ratio)}px`;
+  el.canvas.style.height = `${rows * cssHeight / docRows}px`;
+  // Around what the desk shows now, which also brings the window back inside
+  // a document that got shorter (finding 118's relayout).
+  const [top, bottom] = visibleDocRows();
+  winTop = windowTopFor(top, bottom, rows);
+  placeCanvas();
   // Setting width/height clears the canvas AND invalidates the cached tile,
   // which is sized in device pixels for the old dimensions -- and takes the
   // overlay drawn on it along.
   lastTiles = [];
   paintedOverlay = NO_OVERLAY;
+  publishWindow();
   // FINDING 093. The projection's nodes are placed in CSS pixels derived from
   // twips, so the scale that produced them has just changed and every node is
   // now pointing at the wrong line. This is the one place the scale moves, so
   // it is the one place that has to say so -- `projectStructure` runs on state
   // reads, and a resize is not one.
   if (lastProjectedParagraphs) positionProjection(lastProjectedParagraphs);
+}
+
+/**
+ * Release C′: the desk scrolled.  When what it shows comes within a quarter
+ * window of the canvas's edge -- the window is three views tall, so the middle
+ * view can travel three quarters of a view either way first -- the window is
+ * centred on the view again, IN THIS TASK: the canvas moves, every band the
+ * cache still holds is put back where it now falls, rows nothing holds are
+ * cleared, the overlay is drawn, and a repaint is asked for.  The scroll itself
+ * stays the browser's; the canvas moves with the content.
+ *
+ * §17.9 (g) S1: nothing when the window would not move -- the whole document
+ * on the canvas, or the window already against the document's end.
+ */
+function onDeskScroll() {
+  if (!session?.document || !docRows) return;
+  const rows = el.canvas.height;
+  if (rows >= docRows) return;
+  const [top, bottom] = visibleDocRows();
+  const margin = rows / 4;
+  if (top >= winTop + margin && bottom <= winTop + rows - margin) return;
+  const next = windowTopFor(top, bottom, rows);
+  if (next === winTop) return;
+  moveWindow(next);
+}
+
+function moveWindow(next) {
+  winTop = next;
+  placeCanvas();
+  const bands = renderBands(docRows);
+  for (const band of bands) if (!bandInWindow(band)) lastTiles[band.index] = null;
+  // Said before anything is drawn at the new place, so that nothing on the
+  // canvas is ever described by the window it left.
+  publishWindow();
+  const context = el.canvas.getContext("2d");
+  for (const band of bands) {
+    if (!bandInWindow(band)) continue;
+    const strip = lastTiles[band.index];
+    if (strip) context.putImageData(strip.image, 0, strip.y - winTop);
+    else context.clearRect(0, band.top - winTop, el.canvas.width, band.rows);
+  }
+  // Every row of the canvas was just replaced, so no overlay is on it: draw
+  // the current one whole.
+  const shapes = overlayShapes() ?? NO_OVERLAY;
+  drawOverlay(context, shapes);
+  paintedOverlay = shapes;
+  void renderDocument();
+}
+
+/** Does this band overlap the canvas's rows [winTop, winTop + canvas.height)? */
+function bandInWindow(band) {
+  return band.top < winTop + el.canvas.height && band.top + band.rows > winTop;
 }
 
 // The BUSY budget.  Every engine command is BUSY while a delete barrier is in
@@ -866,15 +1008,19 @@ function bandOrder(bands, [visibleTop, visibleBottom]) {
     .map((entry) => entry.band);
 }
 
-/** The canvas rows (device pixels) visible inside the desk; the top rows when unknown. */
-function visibleCanvasRows() {
-  const canvas = el.canvas.getBoundingClientRect();
+/**
+ * The document rows (device pixels) visible inside the desk; the top rows when
+ * unknown.  Measured on #paper, the document's box, since release C′ made the
+ * canvas a window (the P page measured the canvas, which was the document).
+ */
+function visibleDocRows() {
+  const paper = el.paper.getBoundingClientRect();
   const view = el.desk.getBoundingClientRect();
-  if (!canvas.height) return [0, Math.min(el.canvas.height, RENDER_BAND_HEIGHT)];
-  const scale = el.canvas.height / canvas.height;
-  const top = Math.max(view.top, canvas.top) - canvas.top;
-  const bottom = Math.min(view.bottom, canvas.bottom) - canvas.top;
-  if (bottom <= top) return [0, Math.min(el.canvas.height, RENDER_BAND_HEIGHT)];
+  if (!paper.height) return [0, Math.min(docRows, RENDER_BAND_HEIGHT)];
+  const scale = docRows / paper.height;
+  const top = Math.max(view.top, paper.top) - paper.top;
+  const bottom = Math.min(view.bottom, paper.bottom) - paper.top;
+  if (bottom <= top) return [0, Math.min(docRows, RENDER_BAND_HEIGHT)];
   return [Math.floor(top * scale), Math.ceil(bottom * scale)];
 }
 
@@ -911,13 +1057,27 @@ async function renderDocument(retriesLeft = RENDER_BUSY_RETRIES) {
     //
     // The pixel edges, and the twips edges derived from them, are 062's: no
     // seam, no overlap, no rounding that accumulates.
+    //
+    // Release C′ (§17.2 as amended by §17.9 (c)): a pass asks only for the
+    // bands that overlap the window AND are stale -- not cached, or stamped
+    // with a counter value below the current one.  Each band is stamped when
+    // it is ASKED for, so a band whose request was in flight across a change
+    // stays stale and is asked for again.  Bands outside the window are not
+    // asked for at all: they are not cached, so whenever one comes into the
+    // window it is stale and the pass that follows the move paints it.  After
+    // any change every band in the window is painted again -- today's
+    // behaviour, confined to the window.
     let documentResized = false;
-    const total = el.canvas.height;
+    const total = docRows;
     const documentHeight = session.document.heightTwips;
     const bands = renderBands(total);
     if (lastTiles.length !== bands.length) lastTiles = new Array(bands.length).fill(null);
-    for (const band of bandOrder(bands, visibleCanvasRows())) {
+    const stale = (band) => !lastTiles[band.index] || lastTiles[band.index].label < changes;
+    const wanted = bands.filter((band) => bandInWindow(band) && stale(band));
+    for (const band of bandOrder(wanted, visibleDocRows())) {
       if (renderAgain) break;   // a newer change arrived; the next pass starts with the view
+      if (!bandInWindow(band)) continue;   // the window moved; that move asked for a pass
+      const label = changes;
       const yTwips = Math.round((band.top / total) * documentHeight);
       const endTwips = Math.round(((band.top + band.rows) / total) * documentHeight);
       const tile = await session.document.render({
@@ -947,14 +1107,22 @@ async function renderDocument(retriesLeft = RENDER_BUSY_RETRIES) {
           new Error("引擎回了一張沒有畫進去的圖"),
           { code: "TILE_NOT_PAINTED" });
       }
+      // A band the window left while it was in flight is not kept: the cache
+      // holds the window only, and the band is stale wherever it comes back.
+      if (!bandInWindow(band)) continue;
       const strip = {
         image: new ImageData(new Uint8ClampedArray(tile.pixels),
                              tile.width, tile.height),
         y: band.top,
+        label,
       };
       lastTiles[band.index] = strip;
       paintBand(strip);
+      publishWindow();
     }
+    // Bounded (§17.2): whatever the window does not overlap is dropped.
+    for (const band of bands) if (!bandInWindow(band)) lastTiles[band.index] = null;
+    publishWindow();
     if (documentResized) {
       // Through `renderAgain` rather than by recursing here: that is the
       // path this function already uses to coalesce a repaint, and the
@@ -1077,14 +1245,18 @@ function paint() {
   }
   const context = el.canvas.getContext("2d");
   const areas = [...overlayAreas(paintedOverlay), ...overlayAreas(next)];
-  const bands = renderBands(el.canvas.height);
+  // Release C′: the areas are canvas rows, the bands document rows; a band
+  // sits `winTop` rows higher on the canvas than in the document.
+  const bands = renderBands(docRows);
   for (const [x, y, width, height] of areas) {
     for (const band of bands) {
-      const top = Math.max(y, band.top);
-      const bottom = Math.min(y + height, band.top + band.rows);
+      const bandTop = band.top - winTop;
+      const top = Math.max(y, bandTop);
+      const bottom = Math.min(y + height, bandTop + band.rows);
       if (bottom <= top) continue;
       const strip = lastTiles[band.index];
-      if (strip) context.putImageData(strip.image, 0, strip.y, x, top - strip.y, width, bottom - top);
+      const stripTop = strip ? strip.y - winTop : 0;
+      if (strip) context.putImageData(strip.image, 0, stripTop, x, top - stripTop, width, bottom - top);
       else context.clearRect(x, top, width, bottom - top);
     }
   }
@@ -1119,11 +1291,15 @@ function overlayAreas(shapes) {
  */
 function paintBand(strip) {
   const context = el.canvas.getContext("2d");
-  context.putImageData(strip.image, 0, strip.y);
+  // Release C′, §17.9 (g) S2: `winTop` is taken NOW, when the band is drawn,
+  // not when it was asked for -- the window may have moved while it was in
+  // flight.
+  const top = strip.y - winTop;
+  context.putImageData(strip.image, 0, top);
   const shapes = overlayShapes() ?? NO_OVERLAY;
   context.save();
   context.beginPath();
-  context.rect(0, strip.y, el.canvas.width, strip.image.height);
+  context.rect(0, top, el.canvas.width, strip.image.height);
   context.clip();
   drawOverlay(context, shapes);
   context.restore();
@@ -1140,10 +1316,12 @@ function overlayShapes() {
   const editorState = session?.state?.snapshot?.editorState;
   if (!editorState || !session?.document) return;
 
-  // Rectangles are twips in document space; the canvas is the whole document.
+  // Rectangles are twips in document space; the canvas holds document rows
+  // [winTop, winTop + height) since release C′, so a rectangle sits `winTop`
+  // rows higher on it (on the P page the canvas was the whole document).
   const scaleX = el.canvas.width / session.document.widthTwips;
-  const scaleY = el.canvas.height / session.document.heightTwips;
-  const box = (r) => [r.x * scaleX, r.y * scaleY,
+  const scaleY = docRows / session.document.heightTwips;
+  const box = (r) => [r.x * scaleX, r.y * scaleY - winTop,
                       Math.max(1, r.width * scaleX),
                       Math.max(1, r.height * scaleY)];
 
@@ -1160,8 +1338,9 @@ function overlayShapes() {
     shapes.caret = [x, y, Math.max(1, Math.round(scaleX * 15)), height];
     shapes.caretTwips = caret;
   }
-  shapes.key = JSON.stringify([el.canvas.width, el.canvas.height, session.document.widthTwips,
-                               session.document.heightTwips, shapes.selection, shapes.caret]);
+  shapes.key = JSON.stringify([el.canvas.width, el.canvas.height, winTop, docRows,
+                               session.document.widthTwips, session.document.heightTwips,
+                               shapes.selection, shapes.caret]);
   return shapes;
 }
 
@@ -1200,8 +1379,9 @@ function drawOverlay(context, shapes) {
 }
 
 function moveSinkToCaret(caret) {
-  const width = el.canvas.clientWidth;
-  const height = el.canvas.clientHeight;
+  // #paper's size: the document's box (release C′; the canvas is a window).
+  const width = el.paper.clientWidth;
+  const height = el.paper.clientHeight;
   if (!width || !height || !session?.document) return;
   const scaleX = width / session.document.widthTwips;
   const scaleY = height / session.document.heightTwips;
@@ -1215,7 +1395,9 @@ function moveSinkToCaret(caret) {
 }
 
 function pointToTwips(event) {
-  const rectangle = el.canvas.getBoundingClientRect();
+  // #paper's box, the document's (release C′): a point anywhere on the paper,
+  // inside the canvas's window or not, is the same twips as on the P page.
+  const rectangle = el.paper.getBoundingClientRect();
   return {
     xTwips: Math.max(0, Math.round(
       (event.clientX - rectangle.left) / rectangle.width
@@ -1427,6 +1609,10 @@ async function run(label, operation) {
   const started = performance.now();
   try {
     const result = await operation();
+    // §17.9 (c): a completed operation is a change, whether or not its
+    // `document-invalidated` came before the engine finished with it.
+    changes += 1;
+    publishWindow();
     el.s.latency.textContent = `${label} ${Math.round(performance.now() - started)} ms`;
     await renderDocument();
     return result;
@@ -1800,7 +1986,7 @@ function endDrag(event) {
   if (!drag.active) return;
   drag.active = false;
   if (drag.pointerId !== null) {
-    try { el.canvas.releasePointerCapture(drag.pointerId); } catch { /* gone */ }
+    try { el.paper.releasePointerCapture(drag.pointerId); } catch { /* gone */ }
     drag.pointerId = null;
   }
   if (!session?.document || !event) return;
@@ -1811,7 +1997,9 @@ function endDrag(event) {
   void pumpDrag();
 }
 
-el.canvas.addEventListener("pointerdown", (event) => {
+// On #paper since release C′: the canvas is a window onto the document and
+// the paper is the document, so a press anywhere on it is a press on the page.
+el.paper.addEventListener("pointerdown", (event) => {
   if (!session?.document || event.button !== 0) return;
   event.preventDefault();
   const point = pointToTwips(event);
@@ -1820,7 +2008,7 @@ el.canvas.addEventListener("pointerdown", (event) => {
   drag.start = point;
   drag.latest = null;
   drag.pointerId = event.pointerId;
-  try { el.canvas.setPointerCapture(event.pointerId); }
+  try { el.paper.setPointerCapture(event.pointerId); }
   catch { drag.pointerId = null; }
   lastSelectionShape = "collapsed";
   void run("定位游標", () => session.placeCaret(point.xTwips, point.yTwips))
@@ -2159,20 +2347,22 @@ el.sink.addEventListener("cut", (event) => {
     .catch(() => {});
 });
 
-el.canvas.addEventListener("pointermove", (event) => {
+el.paper.addEventListener("pointermove", (event) => {
   if (!drag.active || !session?.document) return;
   if ((event.buttons & 1) === 0) { endDrag(event); return; }
   drag.latest = pointToTwips(event);
   void pumpDrag();
 });
 
-el.canvas.addEventListener("pointerup", endDrag);
-el.canvas.addEventListener("pointercancel", () => endDrag(null));
+el.paper.addEventListener("pointerup", endDrag);
+el.paper.addEventListener("pointercancel", () => endDrag(null));
 globalThis.addEventListener("blur", () => endDrag(null));
 globalThis.addEventListener("resize", () => {
   layoutCanvas();
   void renderDocument();
 });
+// Release C′: the window follows the scroll.  Passive -- it never stops one.
+el.desk.addEventListener("scroll", onDeskScroll, { passive: true });
 
 /* ------------------------------------------------------------------- boot */
 
@@ -2300,8 +2490,11 @@ async function openDocument(bytes, name, { readOnly = false } = {}) {
     secureContext: globalThis.isSecureContext,
     onState: updateState,
     onEvent(event) {
-      if (event.event === "document-invalidated")
+      if (event.event === "document-invalidated") {
+        changes += 1;   // §17.9 (c): every band asked for before this is stale
+        publishWindow();
         queueMicrotask(() => void renderDocument());
+      }
     },
     // Finding 050 was invisible for as long as it existed because these two
     // callbacks were never wired: the input adapter rejected every commit after

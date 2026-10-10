@@ -29,9 +29,11 @@ const RENDER_FN = slice(/^async function renderDocument\(retriesLeft = RENDER_BU
 const RETRIES_DECL = slice(/^const RENDER_BUSY_RETRIES = \d+;$/m, "RENDER_BUSY_RETRIES");
 // Finding 122 (SPEC-M3-production-ui §15): renderDocument paints in bands, so
 // its band helpers come with it.  The assertions below are unchanged.
+// Release C′ (§17.2): and its window helpers; the canvas here is the whole
+// ten-row document.
 const BAND_PARTS = [
   slice(/^const RENDER_BAND_HEIGHT = .*;$/m, "RENDER_BAND_HEIGHT"),
-  ...["renderBands", "bandOrder", "visibleCanvasRows"].map((name) =>
+  ...["renderBands", "bandOrder", "visibleDocRows", "bandInWindow", "publishWindow"].map((name) =>
     slice(new RegExp(`^function ${name}\\([^)]*\\) \\{[\\s\\S]*?\\n\\}$`, "m"), `${name}()`)),
 ].join("\n");
 
@@ -42,23 +44,25 @@ function renderer(render) {
     state: { snapshot: { state: "ready" } },
     document: { heightTwips: 1000, widthTwips: 1000, render: async () => render() },
   };
-  const el = { canvas: { width: 10, height: 10, getBoundingClientRect: () => ({ top: 0, bottom: 10, height: 10 }) },
+  const el = { canvas: { width: 10, height: 10, dataset: {} },
+              paper: { getBoundingClientRect: () => ({ top: 0, bottom: 10, height: 10 }) },
               desk: { getBoundingClientRect: () => ({ top: 0, bottom: 10 }) } };
   // eslint-disable-next-line no-new-func
   const renderDocument = new Function(
     "session", "el", "toast", "describeError", "tileWasPainted", "paint", "layoutCanvas",
     "setTimeout", "ImageData", "paintBand",
     `let rendering = false, renderAgain = false, lastTiles = [];
+     let docRows = 10, winTop = 0, changes = 0;
      const MAX_TILE_HEIGHT = 32767;
      ${RETRIES_DECL}
      ${BAND_PARTS}
      ${RENDER_FN}
-     return renderDocument;`)(
+     return { renderDocument, change() { changes += 1; } };`)(
     session, el, (message) => toasts.push(message),
     (error) => `${error.code}：${error.message}`, () => true, () => {}, () => {},
     (resolve) => resolve(), class { constructor(pixels, width, height) {
       Object.assign(this, { pixels, width, height }); } }, () => {});
-  return { renderDocument, toasts };
+  return { renderDocument: renderDocument.renderDocument, change: renderDocument.change, toasts };
 }
 
 /** Run renderDocument once; returns the toasts and how often render() was asked. */
@@ -107,7 +111,7 @@ test("BUSY is still retried, and a later success says nothing", async () => {
 test("a BUSY retry keeps one repaint in flight", async () => {
   let calls = 0, inFlight = 0, most = 0, release;
   const held = new Promise((resolve) => { release = resolve; });
-  const { renderDocument, toasts } = renderer(async () => {
+  const { renderDocument, change, toasts } = renderer(async () => {
     calls += 1;
     inFlight += 1; most = Math.max(most, inFlight);
     try {
@@ -118,7 +122,11 @@ test("a BUSY retry keeps one repaint in flight", async () => {
   });
   const first = renderDocument();
   for (let i = 0; i < 5; i += 1) await turn();
-  const second = renderDocument();        // asked for while the retry is in flight
+  // Asked for while the retry is in flight, by a change (release C′: a pass
+  // asks only for stale bands, and on the page a repaint is asked for by a
+  // document-invalidated, which is a change).
+  change();
+  const second = renderDocument();
   for (let i = 0; i < 5; i += 1) await turn();
   release();
   await first; await second;

@@ -1,0 +1,28 @@
+BASELINE (unmutated page): 0 failing
+RED   drop the floor (C1'): 3 failing
+  P-U4 (whole): after layoutCanvas the first paint() restores nothing of the overlay drawn before it
+  P-U4 (window): after layoutCanvas the first paint() restores nothing of the overlay drawn before it
+  C1-U: the window is three views, never under four bands, never more than the document
+RED   drop the 3x term (C1'): 1 failing
+  C1-U: the window is three views, never under four bands, never more than the document
+RED   drop the y shift (paint and paintBand draw at document rows): 5 failing
+  P-U1 (window): an overlay equal to the one on the canvas costs no putImageData and no clearRect
+  P-U2 (window): a caret that moves is restored from the bands under its old and new rectangles only
+  P-U3 (window): a selection that changes is restored under every old and every new rectangle, washed once
+  P-U4 (window): after layoutCanvas the first paint() restores nothing of the overlay drawn before it
+  P-U5 (window): a restore over a band not painted yet is a clearRect
+RED   drop the staleness test (only an uncached band is stale): 6 failing
+  122 B3: a change between bands ends the pass, and the next pass starts with the view again
+  122 B7: nothing is cleared; a band keeps its old pixels until its new ones arrive
+  122 B8: a key that will reach the engine, mid-pass, ends the pass after the band in flight; the next pass starts with the view
+  W-U1: a pass asks only for the stale bands in the window; nothing changed, nothing asked
+  W-U2: a band stamped when it is ASKED for -- one in flight across a change is asked for again
+  a BUSY retry keeps one repaint in flight
+RED   drop the cache bound (bands outside the window are kept): 1 failing
+  W-U3: the window follows the scroll; the cache holds the window only
+RED   label at reply, not at request (condition 3, unit half): 4 failing
+  122 B3: a change between bands ends the pass, and the next pass starts with the view again
+  122 B8: a key that will reach the engine, mid-pass, ends the pass after the band in flight; the next pass starts with the view
+  W-U2: a band stamped when it is ASKED for -- one in flight across a change is asked for again
+  a BUSY retry keeps one repaint in flight
+exit 0

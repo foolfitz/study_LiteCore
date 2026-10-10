@@ -8,6 +8,13 @@
 // exactly the current overlay (each selection rectangle once -- the wash is a
 // multiply -- and the caret); in a band not painted yet, nothing but marks of
 // the current overlay.
+//
+// Release C′ (§17.2, §17.5): the canvas is a window onto the document, rows
+// [winTop, winTop + canvas.height).  Every case runs twice: on a canvas that
+// is the whole document (the P page's shape) and on a window that starts
+// inside a band (`winTop` 1746 of a seven-band document), with every row and
+// band of the case moved two bands down the document -- "P-U1-U5 hold at
+// winTop != 0".
 
 import assert from "node:assert/strict";
 import test from "node:test";
@@ -28,7 +35,8 @@ const PARTS = [
   slice(/^const RENDER_BAND_HEIGHT = .*;$/m, "RENDER_BAND_HEIGHT"),
   slice(/^const NO_OVERLAY = .*;$/m, "NO_OVERLAY"),
   fn("renderBands"), fn("paint"), fn("overlayAreas"), fn("paintBand"), fn("overlayShapes"), fn("drawOverlay"),
-  fn("layoutCanvas"),
+  fn("layoutCanvas"), fn("windowRows"), fn("windowTopFor"), fn("placeCanvas"), fn("publishWindow"),
+  fn("visibleDocRows"),
 ].join("\n");
 
 /** A canvas whose 2d context records its calls and models its pixels. */
@@ -86,7 +94,7 @@ function modelCanvas(initialWidth, initialHeight) {
   const canvas = {
     get width() { return width; }, set width(v) { width = v; allocate(); },
     get height() { return height; }, set height(v) { height = v; allocate(); },
-    style: {}, clientWidth: 0, clientHeight: 0,
+    style: {}, dataset: {}, clientWidth: 0, clientHeight: 0,
     getContext: () => context,
   };
   canvas.width = initialWidth;
@@ -94,44 +102,67 @@ function modelCanvas(initialWidth, initialHeight) {
   return { canvas, ops, pixels: () => ({ width, height, base, sel, caret }) };
 }
 
-/** The page around its real functions: one document of `width` x `height` backing pixels, 100 twips a pixel. */
-function page({ width = 24, height = 3 * 1023 } = {}) {
-  const model = modelCanvas(width, height);
+/**
+ * The page around its real functions: a document of `width` x `doc` backing
+ * pixels, 100 twips a pixel, and a canvas of `rows` rows over document rows
+ * [top, top + rows).  `shift` / `bandShift` move a case's rows and bands down
+ * the document, so one case reads the same in both shapes.
+ */
+const SHAPES = {
+  whole: { doc: 3 * 1023, rows: 3 * 1023, top: 0, shift: 0, bandShift: 0 },
+  window: { doc: 7 * 1023, rows: 4 * 1023, top: 2 * 1023 - 300, shift: 2 * 1023, bandShift: 2 },
+};
+
+function page({ width = 24, shape = SHAPES.whole } = {}) {
+  const model = modelCanvas(width, shape.rows);
   const sunk = [];
   const session = {
     state: { snapshot: { editorState: null } },
-    document: { widthTwips: width * 100, heightTwips: height * 100 },
+    document: { widthTwips: width * 100, heightTwips: shape.doc * 100 },
   };
-  // layoutCanvas: the desk is as wide as gives back this canvas width (cssWidth >= 320).
-  const el = { canvas: model.canvas, desk: { clientWidth: width + 40 } };
+  // layoutCanvas: the desk is as wide as gives back this canvas width (cssWidth >= 320),
+  // as tall as gives a four-band window, and shows document rows around the window's centre.
+  const centre = shape.top + shape.rows / 2;
+  const el = {
+    canvas: model.canvas,
+    desk: { clientWidth: width + 40, clientHeight: 200,
+            getBoundingClientRect: () => ({ top: 0, bottom: 200 }) },
+    paper: { style: {}, getBoundingClientRect: () => ({ top: -(centre - 100), bottom: shape.doc - (centre - 100), height: shape.doc }) },
+  };
   class FakeImage { constructor(id, w, h) { this.id = id; this.width = w; this.height = h; } }
   let images = 0;
   // eslint-disable-next-line no-new-func
   const made = new Function("session", "el", "moveSinkToCaret",
     `const MAX_BACKING_WIDTH = 2400; let lastTiles = []; let lastProjectedParagraphs = null;
+     let docRows = ${shape.doc}, winTop = ${shape.top}, changes = 0;
      function positionProjection() {}
      ${PARTS}
      return {
        paint, layoutCanvas, renderBands, overlayShapes, RENDER_BAND_HEIGHT,
-       tiles: () => lastTiles,
+       tiles: () => lastTiles, window: () => ({ docRows, winTop }),
        // What renderDocument does: a slot per band, then each band as its reply arrives.
-       allocate() { lastTiles = new Array(renderBands(el.canvas.height).length).fill(null); },
+       allocate() { lastTiles = new Array(renderBands(docRows).length).fill(null); },
        band(index, image) {
-         const b = renderBands(el.canvas.height)[index];
-         const strip = { image, y: b.top };
+         const b = renderBands(docRows)[index];
+         const strip = { image, y: b.top, label: changes };
          lastTiles[b.index] = strip;
          paintBand(strip);
        },
      };`)(session, el, (caret) => sunk.push(caret));
   const api = {
-    ...made, ...model, session, el, sunk,
+    ...made, ...model, session, el, sunk, shape,
     newImage(index) {
-      const b = made.renderBands(el.canvas.height)[index];
+      const b = made.renderBands(made.window().docRows)[index];
       return new FakeImage((images += 1), el.canvas.width, b.rows);
     },
-    paintBands(...indexes) { for (const i of indexes) made.band(i, api.newImage(i)); },
+    /** Bands by the case's numbering: band i of the case is band i + bandShift of the document. */
+    paintBands(...indexes) { for (const i of indexes) made.band(i + shape.bandShift, api.newImage(i + shape.bandShift)); },
     /** A state write, as updateState() makes one: a new editorState, then paint(). */
     state(editorState) { session.state.snapshot = { editorState }; made.paint(); },
+    /** The case's row y as a canvas row. */
+    row: (y) => y + shape.shift - made.window().winTop,
+    caretAt: (yPx, xPx = 5) => caretAt(yPx + shape.shift, xPx),
+    selectionOf: (...rects) => selectionOf(...rects.map(([x, y, w, h]) => [x, y + shape.shift, w, h])),
     clearOps() { model.ops.length = 0; },
     puts: () => model.ops.filter((op) => op[0] === "put"),
     clears: () => model.ops.filter((op) => op[0] === "clear"),
@@ -154,11 +185,13 @@ function assertCanvasCurrent(p, what) {
   const { width, height, base, sel, caret } = p.pixels();
   const shapes = p.overlayShapes() ?? { selection: [], caret: null };
   const touches = ([x, y, w, h], i, j) => x < i + 1 && x + w > i && y < j + 1 && y + h > j;
-  const bands = p.renderBands(height);
+  const { docRows, winTop } = p.window();
+  const bands = p.renderBands(docRows);
   const tiles = p.tiles();
   for (const band of bands) {
     const strip = tiles[band.index];
-    for (let j = band.top; j < band.top + band.rows; j += 1) {
+    const first = Math.max(0, band.top - winTop), last = Math.min(height, band.top + band.rows - winTop);
+    for (let j = first; j < last; j += 1) {
       for (let i = 0; i < width; i += 1) {
         const k = j * width + i;
         const wantSel = shapes.selection.filter((r) => touches(r, i, j)).length;
@@ -179,14 +212,16 @@ function assertCanvasCurrent(p, what) {
 
 const H = 1023;
 
-test("P-U1: an overlay equal to the one on the canvas costs no putImageData and no clearRect", () => {
-  const p = page();
+for (const [name, shape] of Object.entries(SHAPES)) {
+
+test(`P-U1 (${name}): an overlay equal to the one on the canvas costs no putImageData and no clearRect`, () => {
+  const p = page({ shape });
   p.allocate();
   p.paintBands(0, 1, 2);
-  p.state(caretAt(1500));
+  p.state(p.caretAt(1500));
   p.clearOps();
   // The writes typing makes around a key that do not move the caret: pending, busy, pending, ready.
-  for (let i = 0; i < 4; i += 1) p.state(caretAt(1500));
+  for (let i = 0; i < 4; i += 1) p.state(p.caretAt(1500));
   assert.equal(p.puts().length, 0, `${p.puts().length} putImageData on an unchanged overlay`);
   assert.equal(p.clears().length, 0, `${p.clears().length} clearRect on an unchanged overlay`);
   assert.equal(p.fills().length, 0, "the overlay was drawn again");
@@ -194,18 +229,18 @@ test("P-U1: an overlay equal to the one on the canvas costs no putImageData and 
   assertCanvasCurrent(p, "after four unchanged writes");
 });
 
-test("P-U2: a caret that moves is restored from the bands under its old and new rectangles only", () => {
-  const p = page();
+test(`P-U2 (${name}): a caret that moves is restored from the bands under its old and new rectangles only`, () => {
+  const p = page({ shape });
   p.allocate();
   p.paintBands(0, 1, 2);
-  p.state(caretAt(400));
+  p.state(p.caretAt(400));
   p.clearOps();
-  p.state(caretAt(1500));   // band 0 -> band 1
+  p.state(p.caretAt(1500));   // band 0 -> band 1
   const puts = p.puts();
   assert.ok(puts.length > 0 && puts.every((op) => op[3] !== null), "a whole band was put back");
   const covered = (row) => puts.some(([, , dy, [, ry, , rh]]) => dy + ry <= row && row < dy + ry + rh);
   for (const row of [399, 400, 417, 418, 1499, 1500, 1517, 1518])
-    assert.ok(covered(row), `row ${row} (old or new caret, widened by one) was not restored`);
+    assert.ok(covered(p.row(row)), `row ${row} (old or new caret, widened by one) was not restored`);
   const rows = puts.reduce((n, [, , , [, , , rh]]) => n + rh, 0);
   assert.ok(rows <= 2 * (18 + 3), `${rows} rows restored for two carets 18 rows tall`);
   assert.equal(p.clears().length, 0);
@@ -220,73 +255,76 @@ test("P-U2: a caret that moves is restored from the bands under its old and new 
     if (random(4) === 0) p.paintBands(random(3));
     const y = random(3 * H - 30);
     p.state(random(3) === 0
-      ? selectionOf([random(10), y, 5 + random(10), 18], [0, y + 18, 3 + random(20), 18])
-      : caretAt(y, random(20)));
+      ? p.selectionOf([random(10), y, 5 + random(10), 18], [0, y + 18, 3 + random(20), 18])
+      : p.caretAt(y, random(20)));
     assertCanvasCurrent(p, `step ${step}`);
   }
 });
 
-test("P-U3: a selection that changes is restored under every old and every new rectangle, washed once", () => {
-  const p = page();
+test(`P-U3 (${name}): a selection that changes is restored under every old and every new rectangle, washed once`, () => {
+  const p = page({ shape });
   p.allocate();
   p.paintBands(0, 1, 2);
-  p.state(selectionOf([2, 1000, 20, 18], [0, 1018, 12, 18]));   // across the band edge at 1023
+  p.state(p.selectionOf([2, 1000, 20, 18], [0, 1018, 12, 18]));   // across the band edge at 1023
   assertCanvasCurrent(p, "the first selection");
   p.clearOps();
-  p.state(selectionOf([4, 1018, 18, 18], [0, 1036, 15, 18], [0, 1054, 6, 18]));
+  p.state(p.selectionOf([4, 1018, 18, 18], [0, 1036, 15, 18], [0, 1054, 6, 18]));
   const puts = p.puts();
   assert.ok(puts.every((op) => op[3] !== null), "a whole band was put back");
   for (const row of [999, 1000, 1035, 1036, 1053, 1054, 1071, 1072])
-    assert.ok(puts.some(([, , dy, [, ry, , rh]]) => dy + ry <= row && row < dy + ry + rh), `row ${row} was not restored`);
+    assert.ok(puts.some(([, , dy, [, ry, , rh]]) => dy + ry <= p.row(row) && p.row(row) < dy + ry + rh), `row ${row} was not restored`);
   // The wash overlaps itself where two rectangles overlap -- as a full draw does -- and nowhere else twice.
   assertCanvasCurrent(p, "the second selection");
   assert.ok(!p.fills().some((op) => op[1] === "#1a1a1a"), "a caret drawn inside a range selection");
-  p.state(caretAt(1040, 6));   // collapsed again: every wash gone
+  p.state(p.caretAt(1040, 6));   // collapsed again: every wash gone
   assertCanvasCurrent(p, "back to a caret");
 });
 
-test("P-U4: after layoutCanvas the first paint() restores nothing of the overlay drawn before it", () => {
-  const p = page({ width: 400, height: 3 * H });
+test(`P-U4 (${name}): after layoutCanvas the first paint() restores nothing of the overlay drawn before it`, () => {
+  const p = page({ width: 400, shape });
   p.layoutCanvas();
+  assert.deepEqual(p.window(), { docRows: shape.doc, winTop: shape.top }, "layoutCanvas placed the window elsewhere");
   p.allocate();
   p.paintBands(0, 1, 2);
-  p.state(caretAt(400));
+  p.state(p.caretAt(400));
   // A resize to the same size: the canvas is cleared, the bands are asked for
   // again, and a state write lands before the first of them.
   p.layoutCanvas();
   p.allocate();
   p.clearOps();
-  p.state(caretAt(1500));
+  p.state(p.caretAt(1500));
   const areas = p.clears();
   assert.ok(areas.length > 0, "the new caret's area was not cleared before drawing it");
-  assert.ok(areas.every(([, , y]) => y >= 1400), `a rectangle of the overlay from before the layout was restored: ${JSON.stringify(areas)}`);
+  assert.ok(areas.every(([, , y]) => y >= p.row(1400)), `a rectangle of the overlay from before the layout was restored: ${JSON.stringify(areas)}`);
   assert.equal(p.puts().length, 0, "restored from a band that no longer exists");
   // The overlay drawn before the layout, again: the cleared canvas does not carry it, so it is drawn.
   p.clearOps();
-  p.state(caretAt(400));
+  p.state(p.caretAt(400));
   p.layoutCanvas();
   p.allocate();
-  p.state(caretAt(400));
+  p.state(p.caretAt(400));
   assert.ok(p.fills().some((op) => op[1] === "#1a1a1a"), "an overlay equal to the one before the layout was not drawn");
   p.paintBands(0, 1, 2);
   assertCanvasCurrent(p, "after the bands came back");
 });
 
-test("P-U5: a restore over a band not painted yet is a clearRect", () => {
-  const p = page();
+test(`P-U5 (${name}): a restore over a band not painted yet is a clearRect`, () => {
+  const p = page({ shape });
   p.allocate();
   p.paintBands(0, 2);           // band 1 (rows 1023-2045) not painted yet
-  p.state(caretAt(1200));
+  p.state(p.caretAt(1200));
   p.clearOps();
-  p.state(caretAt(1600));       // inside band 1 both times
+  p.state(p.caretAt(1600));       // inside band 1 both times
   assert.equal(p.puts().length, 0, "put from a band that has no image");
   assert.ok(p.clears().length >= 2, "the old and new rectangles were not cleared");
   assertCanvasCurrent(p, "inside the unpainted band");
   p.clearOps();
-  p.state(caretAt(300));        // band 1 -> band 0
+  p.state(p.caretAt(300));        // band 1 -> band 0
   assert.equal(p.clears().length, 1, "the old rectangle in band 1");
   assert.equal(p.puts().length, 1, "the new rectangle in band 0");
   assertCanvasCurrent(p, "back in band 0");
   p.paintBands(1);
   assertCanvasCurrent(p, "band 1 arrived");
 });
+
+}
