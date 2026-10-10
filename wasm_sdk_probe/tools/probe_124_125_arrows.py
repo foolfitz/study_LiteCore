@@ -14,6 +14,16 @@ text change with its time (MutationObserver), every keydown with its time.
 --window WxH (added after the first Chrome run, whose 800 x 600 default left a 139-px desk with the caret
 already below it): a CSS viewport of W x H at ratio 1 -- Chrome via Emulation.setDeviceMetricsOverride before
 the first navigation, Firefox via MOZ_HEADLESS_WIDTH/HEIGHT -- as the typing-latency wrapper does.
+
+Since spec SPEC-M3-production-ui §17 (124-B, 125-B; added before any run on a C′ page): it also logs the
+visible pill `#state-shown` when the page has one, and between the arrows and the letters it scrolls the desk
+back to the top with a real wheel event, waits 2 s, and reads whether the view stayed there.  The summary
+carries the two verdicts:
+  124-B  after every ArrowDown the sink lies wholly inside the desk; after the wheel the scrollTop stays at the
+         top for 2 s; after the first letter the sink lies wholly inside the desk again.
+  125-B  `#state-shown` exists and is shown, `#state-pill` is hidden; during the arrows and the letters
+         `#state-shown` never reads 處理中 while `#state-pill` reads 處理中 at least `presses` times
+         (the positive control: the engine was busy).
 """
 from __future__ import annotations
 
@@ -36,7 +46,14 @@ DIST = HERE / "dist"
 DOCUMENT = HERE / "build" / "scratch-m3-production-ui" / "PMPC指南.odt"
 CLICK = ("0.5", "0.010373")   # check_m3_production_ui.IN_TEXT: the first body paragraph
 WATCH = """(() => { const root = document.documentElement, pill = document.querySelector('#state-pill');
-  root.dataset.pill124 = '[]'; root.dataset.keys124 = '[]';
+  root.dataset.pill124 = '[]'; root.dataset.keys124 = '[]'; root.dataset.shown124 = '[]';
+  const shown = document.querySelector('#state-shown');
+  if (shown && !root.dataset.watchingShown124) {
+    root.dataset.watchingShown124 = '1';
+    new MutationObserver(() => { const p = JSON.parse(root.dataset.shown124);
+      p.push([shown.textContent, Math.round(performance.now() * 10) / 10]); root.dataset.shown124 = JSON.stringify(p);
+    }).observe(shown, { childList: true, characterData: true, subtree: true });
+  }
   if (!root.dataset.watching124) {
     root.dataset.watching124 = '1';
     document.addEventListener('keydown', (e) => {
@@ -52,11 +69,31 @@ GEOMETRY = """(() => { const desk = document.querySelector('#desk'), sink = docu
   return { scrollTop: desk.scrollTop, scrollHeight: desk.scrollHeight, deskTop: d.top, deskBottom: d.bottom,
            sinkTop: s.top, sinkBottom: s.bottom, sinkStyleTop: sink.style.top,
            sinkVisible: s.bottom > d.top && s.top < d.bottom,
+           sinkInside: s.top >= d.top && s.bottom <= d.bottom,
            revision: document.querySelector('#s-revision').textContent,
            pill: document.querySelector('#state-pill').textContent,
            focused: document.activeElement === sink }; })()"""
 READ_LOGS = """(() => { const d = document.documentElement.dataset;
-  return { pill: JSON.parse(d.pill124 || '[]'), keys: JSON.parse(d.keys124 || '[]') }; })()"""
+  return { pill: JSON.parse(d.pill124 || '[]'), keys: JSON.parse(d.keys124 || '[]'),
+           shown: JSON.parse(d.shown124 || '[]') }; })()"""
+PILLS = """(() => { const pill = document.querySelector('#state-pill'), shown = document.querySelector('#state-shown');
+  const seen = (e) => !!e && !e.hidden && e.getClientRects().length > 0;
+  return { pillHidden: !!pill && !seen(pill), shownExists: !!shown, shownSeen: seen(shown),
+           shownText: shown ? shown.textContent : null, shownState: shown ? shown.dataset.state : null }; })()"""
+DESK_CENTRE = """(() => { const d = document.querySelector('#desk').getBoundingClientRect();
+  return [Math.round(d.left + d.width / 2), Math.round(d.top + d.height / 2)]; })()"""
+
+
+def wheel_to_top(session, browser: str) -> None:
+    x, y = pp.evaluate(session, DESK_CENTRE)
+    for _ in range(4):
+        if browser == "chrome":
+            session.call("Input.dispatchMouseEvent", {"type": "mouseWheel", "x": x, "y": y, "deltaX": 0, "deltaY": -50000})
+        else:
+            session.command("POST", "/actions", {"actions": [{"type": "wheel", "id": "wheel", "actions": [
+                {"type": "scroll", "x": x, "y": y, "deltaX": 0, "deltaY": -50000, "origin": "viewport"}]}]})
+            session.command("DELETE", "/actions")
+        time.sleep(0.3)
 
 
 def press(session, browser: str, name: str) -> None:
@@ -122,6 +159,12 @@ def main() -> int:
             time.sleep(0.3)
             steps.append({"after": f"ArrowDown {i + 1}", "quiet": p111.quiet(session).get("timedOut") is None,
                           **pp.evaluate(session, GEOMETRY)})
+        wheel = {"before": pp.evaluate(session, GEOMETRY)}
+        wheel_to_top(session, a.browser)
+        wheel["afterWheel"] = pp.evaluate(session, GEOMETRY)
+        time.sleep(2.0)
+        wheel["after2s"] = pp.evaluate(session, GEOMETRY)
+        report["wheel"] = wheel
         for i in range(a.letters):
             press(session, a.browser, chr(ord("a") + i))
             time.sleep(0.3)
@@ -129,6 +172,7 @@ def main() -> int:
                           **pp.evaluate(session, GEOMETRY)})
         time.sleep(1.0)
         logs = pp.evaluate(session, READ_LOGS)
+        report["pills"] = pp.evaluate(session, PILLS)
         report["steps"] = steps
         report["logs"] = logs
         # Pill flashes: 處理中 runs, each closed by the next non-處理中 label.
@@ -172,6 +216,37 @@ def main() -> int:
             "allStepsQuiet": all(s.get("quiet", True) for s in steps),
             "sinkFocusedThroughout": all(s["focused"] for s in steps),
         }
+        # 124-B and 125-B (spec §17.4).
+        letter_steps = [s for s in steps if s["after"].startswith("letter")]
+        why124 = [f"{s['after']}: sink not wholly inside the desk" for s in arrow_steps if not s.get("sinkInside")]
+        if wheel["afterWheel"]["scrollTop"] > 1:
+            why124.append(f"the wheel did not reach the top (scrollTop {wheel['afterWheel']['scrollTop']})")
+        elif wheel["after2s"]["scrollTop"] != wheel["afterWheel"]["scrollTop"]:
+            why124.append(f"pulled back after the wheel: {wheel['afterWheel']['scrollTop']} -> {wheel['after2s']['scrollTop']}")
+        if not (letter_steps and letter_steps[0].get("sinkInside")):
+            why124.append("after the first letter the sink is not wholly inside the desk")
+        if len(arrows) != a.presses:
+            why124.append(f"{len(arrows)} ArrowDown seen, {a.presses} sent")
+        pills = report["pills"]
+        machine_busy = sum(1 for label, _ in logs["pill"] if label == "處理中")
+        shown_busy = sum(1 for label, _ in logs["shown"] if label == "處理中")
+        why125 = []
+        if not pills["shownExists"]:
+            why125.append("no #state-shown on this page")
+        else:
+            if not pills["shownSeen"]:
+                why125.append("#state-shown is not shown")
+            if not pills["pillHidden"]:
+                why125.append("#state-pill is not hidden")
+            if shown_busy:
+                why125.append(f"#state-shown read 處理中 {shown_busy} times")
+        if machine_busy < a.presses:
+            why125.append(f"#state-pill read 處理中 only {machine_busy} times (positive control needs >= {a.presses})")
+        report["summary"]["machinePillBusy"] = machine_busy
+        report["summary"]["shownPillBusy"] = shown_busy
+        report["summary"]["wheel"] = [wheel["before"]["scrollTop"], wheel["afterWheel"]["scrollTop"], wheel["after2s"]["scrollTop"]]
+        report["summary"]["verdict124B"] = {"pass": not why124, "why": why124[:6] + ([f"... {len(why124) - 6} more"] if len(why124) > 6 else [])}
+        report["summary"]["verdict125B"] = {"pass": not why125, "why": why125}
     finally:
         report["completedAt"] = time.strftime("%Y-%m-%dT%H:%M:%S%z")
         if session is not None:
