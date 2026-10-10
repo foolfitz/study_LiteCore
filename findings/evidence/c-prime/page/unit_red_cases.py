@@ -18,7 +18,8 @@ import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[4] / "wasm_sdk_probe"
-FILES = ["page-paint-overlay.test.mjs", "page-render-bands.test.mjs", "page-render-disposed.test.mjs"]
+FILES = ["page-paint-overlay.test.mjs", "page-render-bands.test.mjs", "page-render-disposed.test.mjs",
+         "page-follow-caret.test.mjs"]
 
 CASES = {
     "drop the floor (C1')": [
@@ -37,6 +38,13 @@ CASES = {
         ("\n    for (const band of bands) if (!bandInWindow(band)) lastTiles[band.index] = null;", "\n")],
     "label at reply, not at request (condition 3, unit half)": [
         ("        y: band.top,\n        label,\n", "        y: band.top,\n        label: changes,\n")],
+    # Finding 124 (§17.4 124-U, §17.9 (e)).
+    "124: drop the 'caret changed' comparison (a write with the same caret scrolls)": [
+        ("  if (key === followedCaret) return;\n", "")],
+    "124: drop the scroll": [
+        ("  el.desk.scrollTop = Math.max(0, Math.min(el.desk.scrollHeight - el.desk.clientHeight, centre));", "  void centre;")],
+    "124: drop the drag exclusion": [
+        ("  if (!caret || !session?.document || drag.active) return;", "  if (!caret || !session?.document) return;")],
 }
 
 

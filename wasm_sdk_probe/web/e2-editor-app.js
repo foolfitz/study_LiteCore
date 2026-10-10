@@ -698,6 +698,48 @@ function updateState(snapshot) {
   // Finding 058.  The caret arrives as a state update, not as a document
   // change, so redrawing only on render would leave it a gesture behind.
   paint();
+  followCaret();
+}
+
+/**
+ * FINDING 124: the view follows the caret.  The arrow keys' default is
+ * prevented (the sink would scroll itself), and nothing scrolled the desk in
+ * its place: ArrowDown walked the caret off the bottom of the desk, measured
+ * at the 15th press in Chrome and the 12th in Firefox, with `scrollTop` 0
+ * throughout.
+ *
+ * Collabora Online's rule (CanvasTileLayer.js :1854-1922, :3027-, :3082-3135;
+ * prior art, no code taken): only when the caret rectangle CHANGED, and only
+ * when it is not wholly in view, the view is scrolled so the caret is in the
+ * middle -- clamped to the desk's range.  A state write that leaves the caret
+ * where it was never scrolls, so a user who wheeled away is not pulled back
+ * until the caret moves again.  `#desk.scrollTop` only, not `scrollIntoView`,
+ * which would scroll the host's page around this one too (069, 093).  Not
+ * while a pointer drag is selecting (SPEC-M3-production-ui §17.9 (e)): the
+ * caret is under the pointer, and following it would move the page under the
+ * hand that is dragging -- named limit: no drag-autoscroll.  A drag's moves
+ * are not remembered as followed, so the first caret after it is compared
+ * with the one before it.
+ *
+ * Release C′ moves its window from the `scroll` event this causes.
+ */
+let followedCaret = null;
+
+function followCaret() {
+  const caret = session?.state?.snapshot?.editorState?.caret;
+  if (!caret || !session?.document || drag.active) return;
+  const key = `${caret.x} ${caret.y} ${caret.width} ${caret.height}`;
+  if (key === followedCaret) return;
+  followedCaret = key;
+  const paper = el.paper.getBoundingClientRect();
+  const view = el.desk.getBoundingClientRect();
+  if (!paper.height || !view.height) return;
+  const scale = paper.height / session.document.heightTwips;
+  const top = paper.top + caret.y * scale;
+  const bottom = top + Math.max(1, caret.height * scale);
+  if (top >= view.top && bottom <= view.bottom) return;
+  const centre = el.desk.scrollTop + (top + bottom) / 2 - (view.top + view.height / 2);
+  el.desk.scrollTop = Math.max(0, Math.min(el.desk.scrollHeight - el.desk.clientHeight, centre));
 }
 
 /**

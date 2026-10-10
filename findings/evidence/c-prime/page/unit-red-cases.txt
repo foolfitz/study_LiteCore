@@ -25,4 +25,13 @@ RED   label at reply, not at request (condition 3, unit half): 4 failing
   122 B8: a key that will reach the engine, mid-pass, ends the pass after the band in flight; the next pass starts with the view
   W-U2: a band stamped when it is ASKED for -- one in flight across a change is asked for again
   a BUSY retry keeps one repaint in flight
+RED   124: drop the 'caret changed' comparison (a write with the same caret scrolls): 1 failing
+  124-U3: an unchanged caret never scrolls -- a user who wheeled away is not pulled back
+RED   124: drop the scroll: 4 failing
+  124-U1: a caret that changed and is out of view is scrolled to the middle, once
+  124-U3: an unchanged caret never scrolls -- a user who wheeled away is not pulled back
+  124-U4: the scroll is clamped to the desk's range
+  124-U5 (§17.9 (e)): not while a pointer drag selects; the first caret after it is followed
+RED   124: drop the drag exclusion: 1 failing
+  124-U5 (§17.9 (e)): not while a pointer drag selects; the first caret after it is followed
 exit 0
