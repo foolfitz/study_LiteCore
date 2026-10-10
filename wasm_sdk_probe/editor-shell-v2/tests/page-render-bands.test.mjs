@@ -22,7 +22,8 @@ const fn = (name) => slice(new RegExp(`^(async )?function ${name}\\([^)]*\\) \\{
 const PARTS = [
   slice(/^const MAX_TILE_HEIGHT = .*;$/m, "MAX_TILE_HEIGHT"),
   slice(/^const RENDER_BAND_HEIGHT = .*;$/m, "RENDER_BAND_HEIGHT"),
-  fn("renderBands"), fn("bandOrder"), fn("visibleCanvasRows"), fn("renderDocument"), fn("paint"), fn("paintBand"),
+  fn("renderBands"), fn("bandOrder"), fn("visibleCanvasRows"), fn("renderDocument"), fn("paint"), fn("overlayAreas"),
+  fn("paintBand"),
   slice(/^const DELETE_INPUT_TYPES = \{[\s\S]*?\n\};$/m, "DELETE_INPUT_TYPES"),
   slice(/^const ENGINE_INPUT_TYPES = new Set\(\[[\s\S]*?\n\]\);$/m, "ENGINE_INPUT_TYPES"),
   fn("endRenderPassOnInput"),
@@ -69,6 +70,10 @@ function page({ height = 22256, width = 10, view = [9000, 11000], onRender = nul
   // eslint-disable-next-line no-new-func
   const made = new Function("session", "el", "tileWasPainted", "ImageData", "layoutCanvas", "toast", "describeError",
     `let rendering = false, renderAgain = false, lastTiles = []; const RENDER_BUSY_RETRIES = 2;
+     const NO_OVERLAY = { key: "", selection: [], caret: null, caretTwips: null };
+     let paintedOverlay = NO_OVERLAY;
+     function overlayShapes() {}
+     function moveSinkToCaret() {}
      function drawOverlay(c) { c.putOverlay && c.putOverlay(); }
      ${PARTS}
      ${LISTENER}

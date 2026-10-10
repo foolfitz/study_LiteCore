@@ -23,6 +23,24 @@ MUTATIONS = {  # name: (what it reintroduces, find, replace)
         "finding 123: a short last band",
         "  if (bands.length > 1 && bands.at(-1).rows < RENDER_BAND_HEIGHT / 2) {",
         "  if (false && bands.length > 1 && bands.at(-1).rows < RENDER_BAND_HEIGHT / 2) {"),
+    "R-P1 paint() back to whole-band blits": (
+        "release P undone: every cached band put back and the overlay drawn over all of it, on every state write",
+        "function paint() {\n  if (!lastTiles.length) return;\n",
+        "function paint() {\n  if (!lastTiles.length) return;\n"
+        "  { const c = el.canvas.getContext(\"2d\"); for (const strip of lastTiles) if (strip) c.putImageData(strip.image, 0, strip.y);\n"
+        "    const s = overlayShapes() ?? NO_OVERLAY; drawOverlay(c, s); paintedOverlay = s; return; }\n"),
+    "R-P2 no old-rect restore": (
+        "the old caret and selection left on the canvas",
+        "  const areas = [...overlayAreas(paintedOverlay), ...overlayAreas(next)];",
+        "  const areas = [...overlayAreas(next)];"),
+    "R-P4 no reset in layoutCanvas": (
+        "the overlay drawn before a layout still believed to be on the cleared canvas",
+        "  lastTiles = [];\n  paintedOverlay = NO_OVERLAY;\n",
+        "  lastTiles = [];\n"),
+    "R-Px no clip in paint()": (
+        "(extra, not a §16.2 red case) the overlay drawn unclipped: the wash lands twice where it was not restored",
+        "  for (const [x, y, width, height] of areas) context.rect(x, y, width, height);\n  context.clip();\n",
+        "  for (const [x, y, width, height] of areas) context.rect(x, y, width, height);\n"),
 }
 
 

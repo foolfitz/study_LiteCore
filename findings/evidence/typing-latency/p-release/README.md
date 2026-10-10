@@ -32,3 +32,9 @@ Result (2026-10-10 01:13 UTC; `shipped-firefox-123b.json`, exit 0): canvas **149
 ## judge_p.py's own red cases (spec §16.3, last point)
 
 `../judge_p_red_cases.py` → `../judge-p-red-cases.txt`. No report passes before P exists, so the base is the four shipped reports repaired in a temp directory into a pass (P1: every key 400 bytes; 123-B: TILE_NOT_PAINTED toasts removed, `allCurrent` 700, one blit of the merged 1,042-row last band appended). Every case came out as designed: base PASS (0); K1 one key at 3 % → only that P1 cell (1); K2 one TILE_NOT_PAINTED toast → only that 123-B cell (1); K3 wrapper hash swapped → REFUSED (2); K4 no toast recorded → only the toast cell (1); K5 `allCurrent` None → only that cell (1); K6 last-band blit removed → only that cell (1); K7 one key's snapshot missing → only the typed cell (1); the real shipped reports → 8 cells FAIL (1).
+
+## Unit red cases (123-U, P-U; `unit_red_cases.py` → `unit-red-cases.txt`)
+
+Each mutation applied alone to `web/e2-editor-app.js`, the two test files run, the page restored (sha256 checked). Spec §16.2's red cases: **R-123** (no merge) → only 123-U red; **R-P1** (paint() back to whole-band blits) → P-U1 red (and U2–U5, which also assert on calls); **R-P2** (old rectangles not restored) → P-U2, U3, U5 red; **R-P4** (no reset in `layoutCanvas`) → only P-U4 red. Baseline 15/15.
+
+One extra mutation, not a §16.2 red case: **R-Px** (paint() draws the overlay without the clip) stays **green**. It is an equivalent mutation, not a blind spot: every rectangle `paint()` draws is one of the new overlay's, and each of those was restored (widened) just before, so the clip never cuts anything; it is kept as §16.1 writes it, as a guard. The pixel model in `page-paint-overlay.test.mjs` would see a wash landing on an unrestored pixel (P-U3 counts washes per pixel).

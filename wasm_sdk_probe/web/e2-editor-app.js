@@ -142,6 +142,14 @@ let lastSelectionShape = "collapsed";
 // changes size and the cached pixels stop describing it.
 let lastTiles = [];
 
+// SPEC-M3-production-ui §16 (release P): the caret and selection on the canvas
+// now, as `overlayShapes()` described them when `paint()` or `paintBand()` last
+// drew them over the bands.  `paint()` compares against it, so a state write
+// that moves neither costs no pixels.  Cleared with the canvas in
+// `layoutCanvas()`.
+const NO_OVERLAY = Object.freeze({ key: "", selection: [], caret: null, caretTwips: null });
+let paintedOverlay = NO_OVERLAY;
+
 // Finding 062: the engine will not paint a tile taller than this.  Above it, it
 // returns a correctly sized buffer it never drew into AND reports success --
 // measured at two widths whose buffers differ by a factor of two (45 MB paints
@@ -782,8 +790,10 @@ function layoutCanvas() {
   el.canvas.style.width = `${cssWidth}px`;
   el.canvas.style.height = `${Math.round(cssWidth * ratio)}px`;
   // Setting width/height clears the canvas AND invalidates the cached tile,
-  // which is sized in device pixels for the old dimensions.
+  // which is sized in device pixels for the old dimensions -- and takes the
+  // overlay drawn on it along.
   lastTiles = [];
+  paintedOverlay = NO_OVERLAY;
   // FINDING 093. The projection's nodes are placed in CSS pixels derived from
   // twips, so the scale that produced them has just changed and every node is
   // now pointing at the wrong line. This is the one place the scale moves, so
@@ -1038,11 +1048,66 @@ function tileWasPainted(tile) {
   return seen > 0 && opaque * 2 >= seen;
 }
 
+/**
+ * Release P (SPEC-M3-production-ui §16; R2 in §15.14): bring the caret and the
+ * selection on the canvas up to date, and nothing else.
+ *
+ * This used to put every cached band back and draw the overlay over all of
+ * them, on every state write -- about six a typed key, each one the whole
+ * canvas (52 MB at 725 px, four times that at devicePixelRatio 2), 20 ms a
+ * key in Chrome and 32-46 ms in Firefox, most of it before the insert was
+ * even posted -- to move a caret two pixels wide.
+ *
+ * Now: an overlay equal to the one on the canvas costs nothing.  A different
+ * one puts back the bands' own pixels under the old and the new rectangles
+ * only -- each widened to whole pixels and one more, from the cached band by a
+ * dirty-rectangle putImageData, or by clearRect where no band has been painted
+ * yet, which is what is there -- and draws the overlay clipped to those
+ * rectangles, so the selection's multiply wash never lands on itself.
+ * Synchronous, like before: no throttle, no coalescing, nothing deferred.
+ */
 function paint() {
   if (!lastTiles.length) return;
+  const next = overlayShapes() ?? NO_OVERLAY;
+  if (next.key === paintedOverlay.key) {
+    // No pixel changes; the sink still follows the caret, as it did when
+    // every paint drew it (the CSS size it is placed by is not in the key).
+    if (next.caretTwips) moveSinkToCaret(next.caretTwips);
+    return;
+  }
   const context = el.canvas.getContext("2d");
-  for (const strip of lastTiles) if (strip) context.putImageData(strip.image, 0, strip.y);
-  drawOverlay(context);
+  const areas = [...overlayAreas(paintedOverlay), ...overlayAreas(next)];
+  const bands = renderBands(el.canvas.height);
+  for (const [x, y, width, height] of areas) {
+    for (const band of bands) {
+      const top = Math.max(y, band.top);
+      const bottom = Math.min(y + height, band.top + band.rows);
+      if (bottom <= top) continue;
+      const strip = lastTiles[band.index];
+      if (strip) context.putImageData(strip.image, 0, strip.y, x, top - strip.y, width, bottom - top);
+      else context.clearRect(x, top, width, bottom - top);
+    }
+  }
+  context.save();
+  context.beginPath();
+  for (const [x, y, width, height] of areas) context.rect(x, y, width, height);
+  context.clip();
+  drawOverlay(context, next);
+  context.restore();
+  paintedOverlay = next;
+}
+
+/** An overlay's rectangles widened to whole pixels and one more, inside the canvas. */
+function overlayAreas(shapes) {
+  const areas = [];
+  for (const [x, y, width, height] of [...shapes.selection, ...(shapes.caret ? [shapes.caret] : [])]) {
+    const left = Math.max(0, Math.floor(x) - 1);
+    const top = Math.max(0, Math.floor(y) - 1);
+    const right = Math.min(el.canvas.width, Math.ceil(x + width) + 1);
+    const bottom = Math.min(el.canvas.height, Math.ceil(y + height) + 1);
+    if (right > left && bottom > top) areas.push([left, top, right - left, bottom - top]);
+  }
+  return areas;
 }
 
 /**
@@ -1055,15 +1120,23 @@ function paint() {
 function paintBand(strip) {
   const context = el.canvas.getContext("2d");
   context.putImageData(strip.image, 0, strip.y);
+  const shapes = overlayShapes() ?? NO_OVERLAY;
   context.save();
   context.beginPath();
   context.rect(0, strip.y, el.canvas.width, strip.image.height);
   context.clip();
-  drawOverlay(context);
+  drawOverlay(context, shapes);
   context.restore();
+  paintedOverlay = shapes;
 }
 
-function drawOverlay(context) {
+/**
+ * The caret and the selection as the canvas draws them, in backing pixels, or
+ * nothing.  `key` holds everything the drawn pixels depend on -- the canvas
+ * and document sizes and every rectangle -- so two overlays with one key draw
+ * the same pixels.
+ */
+function overlayShapes() {
   const editorState = session?.state?.snapshot?.editorState;
   if (!editorState || !session?.document) return;
 
@@ -1074,23 +1147,37 @@ function drawOverlay(context) {
                       Math.max(1, r.width * scaleX),
                       Math.max(1, r.height * scaleY)];
 
+  const shapes = { selection: [], caret: null, caretTwips: null };
   const rectangles = editorState.selection?.rectangles;
-  if (Array.isArray(rectangles) && rectangles.length) {
-    context.save();
-    // Multiply keeps the glyphs readable under the wash instead of covering
-    // them, which a filled rectangle at any useful opacity would do.
-    context.globalCompositeOperation = "multiply";
-    context.fillStyle = "#b7d3f2";
-    for (const rectangle of rectangles) context.fillRect(...box(rectangle));
-    context.restore();
-  }
+  if (Array.isArray(rectangles) && rectangles.length) shapes.selection = rectangles.map(box);
 
-  // The caret last, so it is never washed over by the selection it sits in.
   // Drawn only when the selection is collapsed: LOK keeps sending a cursor
   // rectangle during a range selection, and painting a caret in the middle of
   // a highlight says something about the document that is not true.
   const caret = editorState.caret;
   if (caret && editorState.selection?.collapsed !== false) {
+    const [x, y, , height] = box(caret);
+    shapes.caret = [x, y, Math.max(1, Math.round(scaleX * 15)), height];
+    shapes.caretTwips = caret;
+  }
+  shapes.key = JSON.stringify([el.canvas.width, el.canvas.height, session.document.widthTwips,
+                               session.document.heightTwips, shapes.selection, shapes.caret]);
+  return shapes;
+}
+
+function drawOverlay(context, shapes) {
+  if (shapes.selection.length) {
+    context.save();
+    // Multiply keeps the glyphs readable under the wash instead of covering
+    // them, which a filled rectangle at any useful opacity would do.
+    context.globalCompositeOperation = "multiply";
+    context.fillStyle = "#b7d3f2";
+    for (const rectangle of shapes.selection) context.fillRect(...rectangle);
+    context.restore();
+  }
+
+  // The caret last, so it is never washed over by the selection it sits in.
+  if (shapes.caret) {
     // The sink rides the caret.  Two reasons, and the second is the one that
     // was reported: an IME's candidate window opens next to the focused
     // element, so a sink parked elsewhere puts the candidates in the wrong
@@ -1100,15 +1187,14 @@ function drawOverlay(context) {
     // until 2026-08-22, that scroll dragged the whole desk down on every
     // Chinese keystroke.
     //
-    // CSS pixels, from the canvas's DISPLAYED size -- `box()` above works in
+    // CSS pixels, from the canvas's DISPLAYED size -- the shapes are in
     // BACKING pixels, which differ by devicePixelRatio, and positioning a DOM
     // element with those would put the sink at roughly twice the offset on a
     // HiDPI screen.
-    moveSinkToCaret(caret);
-    const [x, y, , height] = box(caret);
+    moveSinkToCaret(shapes.caretTwips);
     context.save();
     context.fillStyle = "#1a1a1a";
-    context.fillRect(x, y, Math.max(1, Math.round(scaleX * 15)), height);
+    context.fillRect(...shapes.caret);
     context.restore();
   }
 }

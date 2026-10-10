@@ -6,3 +6,32 @@
 == baseline
 ℹ pass 10
 ℹ fail 0
+## 2026-10-10T01:20:51Z page 36c2b18baa8340c5
+== R-P1 paint() back to whole-band blits (release P undone: every cached band put back and the overlay drawn over all of it, on every state write)
+✖ P-U1: an overlay equal to the one on the canvas costs no putImageData and no clearRect
+✖ P-U2: a caret that moves is restored from the bands under its old and new rectangles only
+✖ P-U3: a selection that changes is restored under every old and every new rectangle, washed once
+✖ P-U4: after layoutCanvas the first paint() restores nothing of the overlay drawn before it
+✖ P-U5: a restore over a band not painted yet is a clearRect
+ℹ pass 10
+ℹ fail 5
+== R-P2 no old-rect restore (the old caret and selection left on the canvas)
+✖ P-U2: a caret that moves is restored from the bands under its old and new rectangles only
+✖ P-U3: a selection that changes is restored under every old and every new rectangle, washed once
+✖ P-U5: a restore over a band not painted yet is a clearRect
+ℹ pass 12
+ℹ fail 3
+== R-P4 no reset in layoutCanvas (the overlay drawn before a layout still believed to be on the cleared canvas)
+✖ P-U4: after layoutCanvas the first paint() restores nothing of the overlay drawn before it
+ℹ pass 14
+ℹ fail 1
+== R-Px no clip in paint() ((extra, not a §16.2 red case) the overlay drawn unclipped: the wash lands twice where it was not restored)
+ℹ pass 15
+ℹ fail 0
+== R-123 no merge (finding 123: a short last band)
+✖ 123-U: no canvas height up to five bands is cut with a short last band
+ℹ pass 14
+ℹ fail 1
+== baseline
+ℹ pass 15
+ℹ fail 0
