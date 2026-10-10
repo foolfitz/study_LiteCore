@@ -690,3 +690,16 @@ B-ctl／S／P 6/6、B-3x 4/4、突變 40/40；六支 M3 runner 全過、紅案�
 ### 15.13 擁有者手測（2026-10-10，只追加）
 
 擁有者在宿主 0.2.10 上用 Chrome、Firefox 手測三項（快打；反白後 Backspace、反白後 Delete；跨段落反白後刪除），回報「全部通過」。測之前核對過服務出去的頁面是 `18c8afbe…`、引擎資產網址帶 buildId `bebc7e83…`。事先講明沒涵蓋的：按住刪除鍵不放（自動重複）從來沒量過。記錄在 `findings/evidence/m3-production-ui/RESULT-0.2.10.md` 末節。
+
+### 15.14 R1、R2、C 的量測（2026-10-10，只追加；診斷，不計數、不動產品位元組）
+
+擁有者選先量 R2。證據：`findings/evidence/typing-latency/r2-blit-bytes/`（README 有預測、結果與逐條對照；包裝程式 `blit_bytes_probe.py` 只在記憶體與 mirror 裡改，`dist/` 不動）。
+
+- **R2 量到了**：擁有者文件上每打一個字，兩個頁面都把整張畫布重貼 6 次（Chrome 52 MB／張、Firefox 80 MB／張），花在 `putImageData` 裡 Chrome 約 20 ms、Firefox 32 ms（v58）／42–46 ms（A＋B）。其中 5 次在提交路徑上：3 次在插入送給 Worker **之前**（session 寫 pending、busy、pending 各一次，每次同步呼叫 `paint()`），2 次在修訂號顯示之前。
+- **Firefox 上 A＋B 閒置底線的上升**主要是 R2 乘上條數：同樣的位元組分成 22 次呼叫比 1 次貴約 14 ms／鍵（預測說不會，沒中）。Chrome 沒有這個代價、也沒有上升。
+- **拿掉 R2 的上界**（對照臂：重貼照計但不交給原生呼叫，與同一時段的基準成對）：提交中位數 Chrome −19／−16 ms、Firefox −24／−22 ms（間隔 600／80），字上螢幕 −10～−25 ms，約為現值的三到五成。
+- **R1（A′）可採**：140 鍵、8 輪，每個修訂號剛好一則 `document-invalidated`，沒有任何一則帶插入前的值。
+- **C 的前提在打字時不成立**：全程沒有任何 `INVALIDATE_TILES`（LOK id 0），失效通知全是游標失效（id 1）；Worker 能轉送的矩形只有游標的。是這個 build 從不發、還是只有打字時不發，沒量。
+- **未量的放大條件**：畫布寬度乘 `devicePixelRatio`，比例 2 的螢幕上每次重貼是四倍位元組；以上全在比例 1。
+- **另記**：Firefox 每個新 `ImageData` 第一次貼上約 5 ms、與大小無關（Chrome 0.18 ms），大多落在背景補畫，不在提交路徑上。
+- **從來沒處理時的結論**：0.2.10 照現狀出貨（擁有者手測已過）；R2 是每一鍵最大的剩餘主執行緒成本，修不修、何時修交擁有者。

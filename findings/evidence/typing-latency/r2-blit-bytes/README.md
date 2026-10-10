@@ -66,3 +66,27 @@ Predictions:
 2. Commit median, skip against its baseline: Chrome gap 600 drops by 12–20 ms (≈ 5/6 of 20.3), gap 80 by 10–20; Firefox gap 600 by 25–40 ms (≈ 5/6 of 46), gap 80 by 20–35.
 3. On screen median drops in both browsers, by less than the commit (the visible band's render is a Worker round trip that the re-blits only delay when they overlap it): Chrome 5–20 ms, Firefox 10–35 ms.
 4. Fresh blits are unchanged in count; in Firefox the per-call time of fresh blits stays ≈ 4–5 ms with or without the skip (i.e. it is not the stale re-blits' doing).
+
+### What-if results (2026-10-10 00:03–00:06 UTC; `whatif-*.json`, log `whatif-2026-10-10.log`; all eight exit 0, page `18c8afbe…`)
+
+| Browser | Gap | Arm | Stale time / key | Fresh time / key (per call, median) | Key → committed (median / max) | Key → on screen (median / max) | All current after last key |
+|---|---|---|---|---|---|---|---|
+| Chrome | 600 | baseline | 19.5 ms | 3.1 ms (0.18) | 35.7 / 48.7 | 48.3 / 52.7 | 205.6 |
+| Chrome | 600 | skip | 0.0 | 3.2 ms (0.18) | **16.8** / 23.0 | **28.8** / 37.3 | 183.6 |
+| Firefox | 600 | baseline | 42.6 ms | 85.8 ms (4.94) | 53.2 / 64.3 | 65.9 / 67.3 | 316.1 |
+| Firefox | 600 | skip | 0.0 | 85.7 ms (4.96) | **29.4** / 42.7 | **40.6** / 43.4 | 297.2 |
+| Chrome | 80 | baseline | 19.3 ms | 1.8 ms (0.18) | 41.9 / 51.6 | 34.1 / 50.0 | 199.3 |
+| Chrome | 80 | skip | 0.0 | 1.8 ms (0.18) | **25.7** / 37.0 | **24.6** / 35.6 | 171.1 |
+| Firefox | 80 | baseline | 35.2 ms | 24.6 ms (4.84) | 60.5 / 74.5 | 45.2 / 69.0 | 319.3 |
+| Firefox | 80 | skip | 0.0 | 25.4 ms (5.10; one call 44.1) | **38.9** / 73.9 | **31.6** / 70.2 | 315.1 |
+
+Removing the stale re-blits, against the paired baseline: commit median −18.9 / −16.2 ms (Chrome, gap 600 / 80), −23.8 / −21.6 ms (Firefox); on screen −19.5 / −9.5 (Chrome), −25.3 / −13.6 (Firefox). That is 37–48 % of the commit and 28–38 % of the on-screen time.
+
+Against the what-if predictions:
+
+1. Baselines within ± 6 ms of the earlier A+B rows: **3 of 4**. Firefox gap 80 came in at 60.5 against 72.2 (−11.7): run-to-run spread of the Firefox gap-80 commit median is wider than 6 ms (65.3, 71.1, 72.2, 60.5 over four sessions today).
+2. Commit drops: Chrome 600 (12–20) **hit** 18.9; Chrome 80 (10–20) **hit** 16.2; Firefox 600 (25–40) **miss**, 23.8; Firefox 80 (20–35) **hit** 21.6.
+3. On-screen drops in range: **4 of 4**. "By less than the commit": **hit** at gap 80, **miss** at gap 600 (the on-screen drop equals or slightly exceeds the commit drop, 19.5 vs 18.9 and 25.3 vs 23.8) — at idle the visible band's render waits behind the same re-blits.
+4. Fresh blits unchanged in count and, in Firefox, ≈ 5 ms per call with or without the skip: **hit**. Firefox's first blit of a new `ImageData` costs ≈ 5 ms regardless of its size (one 80 MB canvas on v58: 5.0 ms; one 3.7 MB band: 4.9 ms); Chrome's is 0.18 ms. Most of it falls in the background pass (≈ 22 × 5 ms per pass), not on the commit path.
+
+Scaling not measured here: the canvas backing width is `min(2400, cssWidth × devicePixelRatio)` (`web/e2-editor-app.js` `layoutCanvas`), and its height follows, so on a display with devicePixelRatio 2 each canvas — and every re-blit — carries four times these bytes. The headless runs above are at ratio 1.
