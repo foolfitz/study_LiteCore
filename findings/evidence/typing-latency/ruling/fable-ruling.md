@@ -171,3 +171,87 @@ WHY（給擁有者）
 1. 突變要找的那一行被 B′ 改寫了（多了大括號和 break），找不到就報 0——是錨點過時，不是檢查錯。
 2. 新錨點意思一樣：文件長了，畫布還是開檔時的高度。
 3. 照 119 那次先例：換字串、跑一次證明它真的會咬人，計入「因執行而修 1」。
+
+# Fifth ruling (2026-10-10, on `brief-4-whole-document-canvas.md`; fable, the owner asked "發給fable裁決"). Verbatim.
+
+## Part 1 — the option
+
+RULING: **A now, as its own release; then C′ amended (a windowed canvas, not a sticky one, with B folded in) as its own spec and release.** Not B alone (same harness port as C′, keeps the 321 MB canvas and H6's 22 ms blit — dominated). Not C (page-drawn scrolling buys nothing we measured; native scrolling is what the sink, IME and a11y nodes already ride). Not D: the measured failing configuration (ratio 2, window ≥ 940 CSS px) is a 14-inch laptop at Windows' default 150% with a maximized browser, i.e. the buyer's machine, not the owner's.
+
+Per configuration (commit median / on-screen median, ms; H# in brackets, all checked against the JSON unless marked):
+- **Ratio 1, 900 px (the owner; the counted configuration).** Shipped: Chrome 42/34, Firefox 60/45. A: Chrome ≈ 26/25, Firefox ≈ 39/32 [H2, checked: whatif-skip rows]. Already passing; A buys margin. C′ buys only memory here (160 MB → tens).
+- **Ratio 2, narrow (1450/1238 wide).** Shipped fails §15.8(b) in both (106.7/105.6) and (a) in Firefox (171.2). A: Chrome 35/33 [H4, checked]; Firefox 60/33 **only if** a small-source blit into a 152 MB canvas is cheap — unmeasured, see Part 5 item 1. C′: Firefox on-screen and the memory.
+- **Ratio 2, wide (1800 × 44,514, 321 MB).** Shipped: Chrome 426/369 (122's symptom), Firefox 208/91. A: Chrome 47/47 [H4, checked]; Firefox ≥ 159/82 — the what-if is an UPPER BOUND on A's gain (the README says so; the brief's option A text does not), and if H6's "the cost is the destination's" holds for small sources, a real A pays ≈ 22 ms per paint task twice per key and lands ≈ 200. **Named limit on the A page; closed by C′.** C′: predicted Chrome 35–50/35–50, Firefox 55–85/40–60 (H5+H6 removed; the insert floor at ratio 2 is unmeasured).
+- **Any ratio, long documents.** The brief lists "the canvas-height ceiling" without numbers. From 062 (65,535 usable rows in BOTH browsers; 65,536 → Chrome draws nothing below, Firefox NS_ERROR_FAILURE) and the measured canvases: ≈ 2,023 rows/page at ratio 2 wide → a **33-page** document is 062-blank on a HiDPI maximized window today; ≈ 1,012 rows/page at ratio 1 → **65 pages**. `layoutCanvas` (:773–785) caps width at 2400 and height not at all. Institutions have 33-page documents. This is C′'s strongest "划算" argument and the brief undersold it; verify it as a red case before C′ (Part 4).
+
+What C′ costs, corrected: the band model, visible-first order, `renderAgain`, `paintBand`, the 062/118 tests and the 1023-row band constant all stay; what changes is the destination mapping (a y-offset and which element supplies geometry) in `layoutCanvas`, `visibleCanvasRows`, `paint`/`paintBand`, `drawOverlay`, `moveSinkToCaret`, `pointToTwips`, `positionProjection`, and the four pointer listeners moving from `#canvas` to `#paper` (:1712, :2060, :2067–2068). `#sink` and `#a11y-doc` are already absolute inside `.paper` (`position: relative`, html :86/:104/:164), so their coordinates hold — the brief is right there. The real cost is the harness port (Part 2) and one more release cycle.
+
+Amendments to C′ (binding): (1) **not `position: sticky`** — a sticky canvas repainted from the `scroll` event lags the compositor's async scroll by a frame on every scroll frame (Firefox warns about exactly this); instead an absolutely positioned canvas ≈ 3 viewports tall inside the `.paper` spacer, re-placed and redrawn in one task when the view nears its edge, so native scrolling moves it with the content and the only visible cost is old pixels/blank during a fast fling while bands render on demand — a **new named limit**, measured not gated. (2) B folded in: after a revision change every band outside the window is stale-by-revision (H9 means there is no rectangle to narrow this; assume none ever comes); a band keeps its old pixels until its replacement arrives (COOL's rule, second answer). (3) `lastTiles` bounded to window ± N bands, evicting the rest — otherwise the 321 MB JS copy stays and the brief's "removes 2 × 321 MB" is half true. (4) A's dirty-rect `paint()` carries over with the y-offset; nothing from A is thrown away.
+
+A, specified: `paint()` blits nothing unless the overlay's inputs (caret rect, selection rects, collapsed flag) differ from what is on the canvas; when they do, restore the union of the old and new overlay rects from the band cache and redraw the overlay clipped to them. The pending/busy/pending/ready writes then cost zero blits [H1, checked]. No throttle, no debounce, no coalescing constant. R1 (A′): **out** in both releases — under C′+B the running pass is one or two bands and the stale-by-revision bookkeeping is the same comparison; A′ has nothing left to skip.
+
+## Part 2 — harness under §34
+
+The port is neither a new tool nor a fix of a misjudging check; it is a **check fix forced by a product change, with a witness constructed on purpose**: the run of the UNPORTED net on the C′ candidate (honest, committed, red only on geometry-addressed checks, for the reason the port exists). That satisfies 34.4's letter. Count it as 因執行而修 **1 per runner** by porting one shared addressing helper, not per check: scroll the point's document fraction into view, `elementFromPoint`, dispatch (bubbles reach `#paper` on the new page and `#canvas` on the old); ink reads scroll the rows into the window and read the window canvas — the pixels on screen, not the band cache (CLAUDE.md §7). Not a 34.3 review unless more than half the runner is rewritten (it will not be). Trust while ported: a reader (form 2, new, no browser) compares two product-path reports cell for cell; the ported net on the unchanged whole-canvas page must show **0 differences** against that page's counted verdict (RESULT-0.2.10, or the A release's — the A release is the better reference because the port then also proves A under the old addressing); then on the C′ page every mutation must be red (the runner's own self-proof) before any counted run. Counted runners touched: product path (POINT_AT/DRAG/CARET_COLUMNS/INK_ROWS/LINE_INK, the `grew` check reads `#paper`'s height), page honesty (pointer + TEXT_LINES), locks/assets/host-entry (2 each). `check_m3_production_ui.py` has 0 canvas references, not 3.
+
+## Part 3 — criteria (form; default if never done)
+
+Release A (page v60, host 0.2.11):
+- A1 per key, bytes passed to `putImageData` outside fresh band blits ≤ 2% of canvas bytes, both browsers, ratio 1 — per-instance over rows, read by the existing blit probe (no product-path change). Default: A not accepted, 0.2.10 stays.
+- A2 §15.8 (a)(b) and the §15.6 on-screen cells re-bound on the new page, ratio 1, both browsers — tool-closed (the existing §15.8 reader). Predictions: Chrome commit 24–30/max < 40, on-screen 24–30; Firefox 36–45/max < 75, on-screen 30–40.
+- A3 RECORDED, not gated, with predictions: ratio 2 narrow (Chrome 33–40; Firefox 58–70 if the small-blit bench says ≤ 1 ms, else 80–110) and ratio 2 wide (Chrome 45–55; Firefox 155–210, named limit). Default: the finding names ratio-2-wide Firefox as a limit of the A page.
+- A4 the product-path net per M2-5, no reader touched; 121-B/120-B unchanged. Default: no freeze.
+
+Release C′ (own spec section; criteria added under CLAUDE.md §9 — forced by the wide measurement, named, form 1/2, closed when C′'s count lands):
+- C1 `#canvas.height ≤ 3 × desk.clientHeight × dpr` at every state read, and `#paper`'s CSS height = document height — per-instance; unit + one runtime read. Default: C′ not accepted.
+- C2 ratio 2 wide becomes a criterion: §15.8 (a)(b), on-screen median < 70 Chrome / < 90 Firefox, max < 150, both browsers. Ratio 1 cells of A2 must still hold. Default: C′ not accepted.
+- C3 replaces §15.6 (ii), per-instance: after the last key, every band intersecting the window is blitted with revision ≥ last within the probe's quiet window; every band outside carries revision < last or is absent (read from the page's band bookkeeping exposed on a dataset attribute, cross-checked by the probe's fresh-blit coverage of the window). Default: the first ruling's must-not ("no band stale once quiet") stands unrestated and C′ fails it by construction.
+- C4 per-instance over fractions {0.5, 1.0}: after 20 keys at the top, scrolling to the fraction yields window bands with revision ≥ last within 500 ms. Default: C′ not accepted. (This is the only criterion that bites B's logic.)
+- C5 the comparator reader: 0 cell differences on the whole-canvas reference; all mutations red on the C′ page. Default: the net is not trusted on the new page; no count.
+- C6 062 ceiling: a 40-page document at ratio 2 wide opens drawn in both browsers (ink in the last strip). Default: named limit at 32/64 pages stays in the finding.
+- Recorded with predictions, not gated: full window current after last key (< 300 ms both), old-pixel/blank frames during a 10,000-px fling, live `lastTiles` bytes (≤ 60 MB at ratio 2 wide), H9 census.
+
+## Part 4 — red cases, computed now
+
+- A1: the shipped page `18c8afbe` under the blit probe = 6.0 canvases/key = 600% ≫ 2% (r2-current-* rows) → FAIL. Mutation "paint() blits every strip" (revert) → FAIL.
+- A2 reader: `v58-chrome-owner-gap80` (508.2/814.6) → FAIL (a)(b), as in the fourth ruling.
+- A unit (page functions compiled as the B1 tests do): caret moves y1→y2; rows at y1 equal the band's pixels; drop the restore → red.
+- C2 reader on existing reports: wide-base-chrome gap80 (425.7, max 516.9) → FAIL (a)(b); wide-skip-firefox gap80 (158.8, max 214.5) → FAIL (a)(b); dpr2-base-firefox gap80 (105.6, 171.2) → FAIL both; dpr2-skip-chrome gap80 (34.5) → PASS. Four reports, two verdicts, before the page exists.
+- C4: mutation "never mark off-window bands stale" → scrolled window shows pre-typing pixels → red. C3: mutation "blit the window band at pass end only" → red.
+- C5: feed the comparator the same report twice → 0; one cell flipped → 1; the unported net's run on the C′ page → red on geometry-addressed checks only (this run IS the §34.4 witness; file it).
+- C6: a 40-page document at ratio 2 wide on the A page, both browsers → blank/throws (062 reproduced; if it does NOT, the ceiling claim is withdrawn and C6 with it).
+
+## Part 5 — sequencing
+
+1. Before A's Firefox predictions are written (no product byte): one bench row — a 64 × 64 `ImageData` into 1800 × 44,514, 1238 × 30,616, 900 × 22,257, Firefox, 12 single-blit tasks. Prediction: ≤ 1 ms (then A reaches ratio-2 narrow Firefox) or ≈ 22 ms (then Firefox HiDPI is C′'s alone and A3's Firefox rows move up). Either way A ships.
+2. A: §15.16 appended (specification, A1–A4, predictions, A3 numbers) → implement → unit red cases → blit probe both browsers ratio 1 → A3 recorded → `make test-e2-c-static`, E1-C intact, `make e2-c-assets` → freeze v60 (never touch v59) → host 0.2.11 → re-pin, count chain, product-path net per M2-5. Handoff 0 / 0.
+3. One positive control if any ratio ≥ 1.5 machine is reachable: the blit probe on the A page, maximized window, both browsers. Not a blocker; if it PASSES both browsers' cells, C′'s trigger is weakened and goes back to registration with that report named.
+4. C′: own spec section first (amended design, C1–C6, predictions, the named limits, the H9 question registered — explained AFTER, with 040's never-idle build as the candidate explanation; the design assumes no rectangle ever) → the comparator reader and its red cases → the port, validated on the A page (0 differences) → the page → mutations red → C2–C6 → freeze v61 → host 0.2.12 → count. One §34.3 review only if the runner is more than half rewritten.
+- Must not: ship A and C′ in one page release; make the canvas sticky; leave `lastTiles` unbounded; restate the ratio-1 numbers; port the readers to read the band cache instead of the window's pixels; count 因執行而修 per check instead of per runner.
+
+## Wrong or missing in the brief
+
+1. **Unmentioned cell**: `dpr2-{base,skip}-chrome-owner-gap{600,80}` all carry `allCurrentAfterLastKeyMs: None` while every Firefox ratio-2 report has a number and Chrome wide has 1133.8/739.2. Either the probe's coverage computation against `canvasHeight` (probe :185–202) or a band left stale at ratio 2 narrow in Chrome — the first ruling's must-not. Explain before ratio 2 becomes a criterion (C2 presupposes the instrument is right there).
+2. Option A's Firefox-wide figure (≈ 159) assumes dirty-rect blits are free; the bench never measured a small source. Upper bound, say so.
+3. C′ as written (sticky + redraw on scroll) has the one-frame async-scroll lag; the amendment in Part 1 removes it.
+4. The ceiling has numbers (65,535 both browsers from 062, not "32,767"; 33 pages HiDPI wide, 65 at ratio 1) and is the product's strongest reason for C′.
+5. `check_m3_production_ui.py`: 0 canvas references, not 3.
+6. "Rewrites the eleven page functions": the band pipeline survives; the rewrite is the geometry mapping plus four listeners.
+7. Memory gain is half unless the band cache is bounded.
+8. R1 under C′ is moot; the brief asks "in or out" as if it were independent.
+
+WHY（給擁有者）
+1. 先做 A（只改 `paint()`：狀態更新不再整張重貼，只補游標和反白動過的那幾格）。Chrome 在每一種螢幕上都因此夠用；你的 1 倍螢幕兩個瀏覽器都已經過、再多餘裕。這是一次小改、量過上界的發佈。
+2. 再做 C′ 當獨立案子：畫布只有視窗三倍高、放在一個跟文件一樣高的墊子裡，捲動照用瀏覽器原生的；看不到的條只標記過期、捲到才畫。它買到的是 Firefox 高解析度寬視窗（A 救不到）、記憶體（兩份 321 MB 變幾十 MB）、以及一個 brief 沒算出來的牆：高解析度最大化視窗下 33 頁以上的文件今天是空白（062 的 65,535 列上限）。機構的文件常超過 33 頁，這才是「划算」。
+3. 不用 sticky：它每一格捲動都慢一幀。改成絕對定位、快到邊緣才搬一次。
+4. 回歸網要跟著搬，但方法是：先在沒動的頁面上證明搬過的網判得一模一樣（0 格不同），再去判新頁面；算「因執行而修」每支 runner 1。
+5. 兩件要先查的：Chrome 2 倍窄視窗三份報告「最後一鍵後整張換新」都是空值，README 沒提；Firefox 貼一小塊進大畫布到底是 0 ms 還是 22 ms，台架沒量過。
+
+## Main session's check (2026-10-10)
+
+Checked against the sources before adopting:
+
+- **Holds**: 062's browser ceiling is 65,535 in both browsers (`findings/062-…md` :75–80: Chrome "65536 起底部像素畫不進去", Firefox "65536 起 NS_ERROR_FAILURE"); the four pointer listeners are on `el.canvas` at :1712, :2060, :2067, :2068; `.paper` is `position: relative` (html :86) and `#sink`/`#a11y-doc` are absolute inside it (:104–105, :164); the three Chrome ratio-2-narrow reports carry `allCurrentAfterLastKeyMs: None` (every other ratio-2 and wide report has a number) — I did not report it.
+- **Wrong, 1**: "a 14-inch laptop at Windows' default 150% … ratio 2". Windows 150 % is devicePixelRatio **1.5**: backing 1350 px wide at the 900-px cap, between the measured narrow (1450 / 1238) and wide (1800) rows, nearer narrow; ≈ 1,517 rows per page, so the 65,535 ceiling is reached at ≈ 43 pages, not 33. Ratio 2 with a wide window is 200 % scaling (4K at 200 %, Retina-class panels).
+- **Wrong, 2**: "`check_m3_production_ui.py` has 0 canvas references". It imports `POINT_AT` (:64) and uses it (:272); `POINT_AT` addresses the canvas by fraction of its bounding box. One use, not three — my grep's 3 counted a comment and the import.
+- Both corrections were sent back to fable before anything is acted on.
