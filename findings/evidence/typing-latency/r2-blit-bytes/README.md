@@ -137,3 +137,20 @@ Predictions:
 4. Chrome gap 80 diverges: commit median > 120 ms and last five above first five.
 5. Chrome gap 80 with the re-blits skipped: commit median < 50, no growth.
 6. If Firefox draws: stale 140–220 ms per key, gap 80 diverges, skip brings the commit median under 80.
+
+### Wide-window results (2026-10-10 00:16–00:18 UTC; `wide-*.json`, log `wide-2026-10-10.log`; all six exit 0; wrapper `dc891cd0`)
+
+Canvas 1800 × 44,514 (321 MB) in both browsers; ink in all three strips in every run (caret line 25,974, middle ≈ 17,800, end 12,647).
+
+| Browser | Arm | Gap | Stale time / key | Key → committed median (first five / last five) / max | Key → on screen median / max | Fresh first blit, per call (median) |
+|---|---|---|---|---|---|---|
+| Chrome | base | 600 | 112.6 ms | 164.2 (168.1 / 159.2) / 171.8 | 125.6 / 178.4 | — |
+| Chrome | base | 80 | 111.2 ms | **425.7** (465.2 / 408.0) / 516.9 | **368.5 / 595.8** | — |
+| Chrome | skip | 80 | 0.0 | **46.8** (46.8 / 42.4) / 86.3 | **47.0** / 84.9 | 0.44 ms |
+| Firefox | base | 600 | 155.1 ms | 215.2 (215.2 / 214.7) / 220.9 | 108.7 / 135.0 | 22.6 ms |
+| Firefox | base | 80 | 146.4 ms | 208.1 (204.4 / 204.6) / 226.8 | 90.5 / 109.2 | 22.9 ms |
+| Firefox | skip | 80 | 0.0 | **158.8** (158.8 / 142.8) / 214.5 | 81.6 / 122.5 | 24.3 ms |
+
+Against the predictions: 1 **hit**. 2 Chrome **hit**; Firefox **miss** — it draws a 44,514-row canvas (the lean to "blank" was wrong; there is no finding-062-class defect here). 3 **hit** (112.6; 164.2). 4 median **hit** (425.7), growth **miss** (465.2 → 408.0: saturated with a large lag, not diverging within 20 keys) — on screen the characters arrive 368 ms late at the median and up to 596 ms, finding 122's symptom back on this configuration. 5 **hit** (46.8, no growth). 6 Firefox: stale 155 **hit**; growth **miss** (204.4 / 204.6); "skip brings the commit under 80" **miss** (158.8).
+
+Why Firefox stays slow without the re-blits (key 3 of each run, read from `raw.r2`): in the skip arm at gap 80 the invalidation that marks the insert done arrives **86 ms** after the keydown and the visible band is blitted at +110 (a 30 ms first blit); at gap 600 the background pass after one key is 44 bands, each first blit ≈ 22 ms on the main thread (≈ 5 ms at ratio 1 and 900 px wide). So on this configuration two costs besides R2 dominate: the Worker is busy rendering background bands when the insert arrives, and Firefox's first blit of each new band image is slow at this width. Both come from repainting the whole document after every change; neither is touched by removing the re-blits. Chrome without the re-blits is fine (46.8 / 47.0).
