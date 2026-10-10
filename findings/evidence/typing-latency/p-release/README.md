@@ -1,6 +1,6 @@
 # Release P: P1 and 123-B evidence (spec SPEC-M3-production-ui §16)
 
-Reader: `../judge_p.py` (sha256 recorded with each reading). Instrument: `../r2-blit-bytes/blit_bytes_probe.py` (sha256 prefix `3dad37cbb03a769c`, over probe `dbad93c0dcf27fbf`). Report names: `PREFIX-BROWSER-SLOT.json`, slot `p1` (ratio 1, owner, gap 600 × 10) or `123b` (`--dpr 2 --window 800x1000`, owner, gap 600 × 3).
+Reader: `../judge_p.py` (sha256 recorded with each reading). Instrument: `../r2-blit-bytes/blit_bytes_probe.py` (sha256 prefix `3dad37cbb03a769c`, over probe `dbad93c0dcf27fbf`). Report names: `PREFIX-BROWSER-SLOT.json`, slot `p1` (ratio 1, owner, gap 600 × 10) or `123b` (`--dpr 2`, `--window 800x1000` Chrome / `797x1000` Firefox per §16.8, owner, gap 600 × 3).
 
 ## Red cases on the shipped page (spec §16.3; predictions written before the runs)
 

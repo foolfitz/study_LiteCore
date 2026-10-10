@@ -1,0 +1,42 @@
+=== M1-ff-window800-real
+  FAIL  chrome  p1 every key's re-blitted bytes <= 2 % of the canvas: max 600.000000%; keys over: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+  FAIL  chrome  123b no TILE_NOT_PAINTED toast: 2 of 4 toasts
+  FAIL  chrome  123b every band current after the last key: None
+  FAIL  chrome  123b the last band blitted after the last key: never
+  FAIL  firefox p1 every key's re-blitted bytes <= 2 % of the canvas: max 1100.000000%; keys over: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+  REFUSED firefox 123b: m-firefox-123b.json is bound to {'windowRequested': [800, 1000]}, not {'page': '18c8afbe29e8a5472a7a5eb0fdfae8f94a3e7a95147972c83e192fc69ebeef1a', 'browser': 'firefox', 'document': 'owner', 'gap': 600, 'chars': 3, 'pageChoice': 'current', 'skipStale': False, 'dprRequested': 2.0, 'windowRequested': [797, 1000], 'runner': 'DIAGNOSTIC r2-blit-bytes/blit_bytes_probe.py 3dad37cbb03a769c over probe dbad93c0dcf27fbf ...', 'raw.dpr': 2}
+REFUSED: firefox 123b; also FAIL: chrome p1 every key's re-blitted bytes <= 2 % of the canvas, chrome 123b no TILE_NOT_PAINTED toast, chrome 123b every band current after the last key, chrome 123b the last band blitted after the last key, firefox p1 every key's re-blitted bytes <= 2 % of the canvas
+exit 2
+=== M2-ff-drift-unfixed-page
+  FAIL  chrome  p1 every key's re-blitted bytes <= 2 % of the canvas: max 600.000000%; keys over: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+  FAIL  chrome  123b no TILE_NOT_PAINTED toast: 2 of 4 toasts
+  FAIL  chrome  123b every band current after the last key: None
+  FAIL  chrome  123b the last band blitted after the last key: never
+  FAIL  firefox p1 every key's re-blitted bytes <= 2 % of the canvas: max 1100.000000%; keys over: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+FAIL: chrome p1 every key's re-blitted bytes <= 2 % of the canvas, chrome 123b no TILE_NOT_PAINTED toast, chrome 123b every band current after the last key, chrome 123b the last band blitted after the last key, firefox p1 every key's re-blitted bytes <= 2 % of the canvas
+exit 1
+=== M3-123b-key-missing
+  FAIL  chrome  123b every key typed: 2 of 3
+FAIL: chrome 123b every key typed
+exit 1
+=== M4b-dpr-1.25
+  REFUSED firefox p1: m-firefox-p1.json is bound to {'raw.dpr': 1.25}, not {'page': '18c8afbe29e8a5472a7a5eb0fdfae8f94a3e7a95147972c83e192fc69ebeef1a', 'browser': 'firefox', 'document': 'owner', 'gap': 600, 'chars': 10, 'pageChoice': 'current', 'skipStale': False, 'dprRequested': None, 'windowRequested': None, 'runner': 'DIAGNOSTIC r2-blit-bytes/blit_bytes_probe.py 3dad37cbb03a769c over probe dbad93c0dcf27fbf ...', 'raw.dpr': 1}
+REFUSED: firefox p1
+exit 2
+=== M4-dpr-float
+PASS: both browsers, every cell
+exit 0
+=== M5-whole-band-as-fresh
+PASS: both browsers, every cell
+exit 0
+=== M6a-exactly-2pct
+PASS: both browsers, every cell
+exit 0
+=== M6b-2pct-plus-4
+  FAIL  chrome  p1 every key's re-blitted bytes <= 2 % of the canvas: max 2.000008%; keys over: [4]
+FAIL: chrome p1 every key's re-blitted bytes <= 2 % of the canvas
+exit 1
+=== M7-last-key-window
+  FAIL  firefox p1 every key's re-blitted bytes <= 2 % of the canvas: max 3.000499%; keys over: [9]
+FAIL: firefox p1 every key's re-blitted bytes <= 2 % of the canvas
+exit 1
