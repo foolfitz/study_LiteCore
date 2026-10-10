@@ -93,13 +93,43 @@ async function runSmall(w, h) {
   c.width = 0; c.height = 0;
   return out;
 }
+// ?restore=1 (added for release A's design): restoring a 64 x 64 rectangle from a CACHED band, one per task --
+// putImageData's dirty-rect form from the band's ImageData, and drawImage's sub-rectangle form from the band as an
+// ImageBitmap.  Which one A's paint() should use in Firefox.
+async function runRestore(w, h) {
+  const desk = document.getElementById("desk");
+  desk.textContent = "";
+  const c = document.createElement("canvas");
+  c.width = w; c.height = h;
+  c.style.width = `${w / (window.devicePixelRatio || 1)}px`;
+  desk.appendChild(c);
+  const ctx = c.getContext("2d");
+  const fill = new Uint8ClampedArray(w * BAND * 4).fill(230);
+  const band = new ImageData(fill, w, BAND);
+  ctx.putImageData(band, 0, 0); await tick();
+  const bm = await createImageBitmap(band);
+  const y = (k) => (k * 997) % Math.max(1, BAND - 64);
+  const out = { canvas: [w, h], band: [w, BAND], rect: [64, 64] };
+  let t = [], tb = [];
+  for (let k = 0; k < REPS; k++) {
+    const t0 = performance.now(); ctx.putImageData(band, 0, 0, 10, y(k), 64, 64); t.push(performance.now() - t0); await tick();
+  }
+  for (let k = 0; k < REPS; k++) {
+    const t0 = performance.now(); ctx.drawImage(bm, 10, y(k), 64, 64, 10, y(k), 64, 64); tb.push(performance.now() - t0); await tick();
+  }
+  out.restorePutDirty = [med(t), max(t)];
+  out.restoreDrawSubrect = [med(tb), max(tb)];
+  c.width = 0; c.height = 0;
+  return out;
+}
+const RESTORE = new URLSearchParams(location.search).has("restore");
 const SMALL = new URLSearchParams(location.search).has("small");
 const SMALL_CONFIGS = [[1800, 44514], [1350, 33400], [1238, 30616], [900, 22257], [1800, 2000], [900, 1000]];
 
 (async () => {
   await new Promise((r) => setTimeout(r, 300));
   const results = [];
-  try { for (const [w, h] of (SMALL ? SMALL_CONFIGS : CONFIGS)) results.push(await (SMALL ? runSmall : runOne)(w, h)); }
+  try { for (const [w, h] of ((SMALL || RESTORE) ? SMALL_CONFIGS : CONFIGS)) results.push(await (RESTORE ? runRestore : SMALL ? runSmall : runOne)(w, h)); }
   catch (e) { results.push({ error: String(e && e.message || e) }); }
   document.documentElement.dataset.bench = JSON.stringify({ ua: navigator.userAgent, dpr: window.devicePixelRatio, results });
 })();

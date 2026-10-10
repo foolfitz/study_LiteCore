@@ -192,3 +192,22 @@ Reading: in Firefox the per-blit cost is a property of the canvas size, so a vie
 **Item 1, small blits** (`canvas-bench/bench.html?small=1`, `run_bench.py --small`): a 64 × 64 `ImageData` into destinations 1800 × 44,514, 1350 × 33,400 (ratio 1.5 at the 900-px cap), 1238 × 30,616, 900 × 22,257, 1800 × 2000, 900 × 1000; per task the first blit and a second one, and separately a 64 × 64 `ImageBitmap` `drawImage` per task. Prediction (mine, against fable's two-way split): in Firefox the cost is **per task, not per call** — in the product the re-blits that come 18–44 to a task cost ≈ 0.6 ms each while a band alone in its task costs ≈ 22 ms — so the **first** small blit per task costs about what a band did (≈ 15–30 ms into the 321 MB canvas, ≈ 4–8 into the 80 MB one) and the **second** in the same task < 1 ms. If the first small blit is ≤ 1 ms instead, the cost is per byte and A reaches ratio-2-narrow Firefox (fable's first branch). Chrome < 1 ms everywhere.
 
 **Item 3, ratio 1.5 wide, emulated** (`blit_bytes_probe.py --dpr 1.5 --window 1400x1000`, shipped page, owner document, gap 80 × 20, base and `--skip-stale`, both browsers — `dpr15-{base,skip}-{browser}-owner-gap80.json`). Fable's predictions on the shipped page: Chrome commit median 150–250 (fails §15.8 (b)), Firefox 120–160 (fails (b), (a) borderline). Mine: canvas 1350 × ≈ 33,400 in both; Chrome base 110–200, skip 30–45; Firefox base 100–160, skip 50–110; the finding-123 toast does not appear (remainder 33,400 mod 1023 ≈ 664 rows, far above twice the ≈ 26-row gap).
+
+### Results of items 1 and 3 (2026-10-10 00:45–00:47 UTC; `canvas-bench/bench-small-*.json`, `dpr15-*.json`, log `pre-a-2026-10-10.log`; all exit 0)
+
+Item 1, Firefox (whole ms; medians / max): first 64 × 64 `putImageData` in a task — **22** / 328 into 1800 × 44,514, **15** / 170 into 1350 × 33,400, 10 / 169 into 1238 × 30,616, 6 / 90 into 900 × 22,257, 0 / 12 and 0 / 3 into the viewport-sized ones; **the second in the same task 0 / 0 everywhere**; a 64 × 64 `ImageBitmap` `drawImage` per task **0** / 25, 0 / 16, 0 / 10, 0 / 0, 0 / 1, 0 / 0. Chrome: every cell 0 / ≤ 0.1. My prediction (per task, not per call; first ≈ a band's cost, second < 1 ms) **hit**; fable's branch is the second one (≈ 22 ms: Firefox HiDPI is C′'s). Not predicted: a small `drawImage` per task costs nothing at the median — the per-task surface cost belongs to `putImageData`, while a large `drawImage` (the first bench, a 1800 × 1023 bitmap) paid ≈ 24–28.
+
+Item 3, ratio 1.5 wide (canvas 1350 × 33,385 in both), gap 80 × 20:
+
+| Browser | Arm | Stale / key | Commit median (first five / last five) / max | On screen median / max | All current after last key |
+|---|---|---|---|---|---|
+| Chrome | base | 67.9 ms | 102.6 (100.3 / 109.0) / 133.3 | 77.3 / 121.5 | 732.6 |
+| Chrome | skip | 0.0 | 35.5 (35.4 / 34.3) / 54.6 | 34.5 / 56.8 | 626.3 |
+| Firefox | base | 104.7 ms | 151.6 (137.1 / 155.9) / 183.9 | 92.3 / 129.4 | 981.2 |
+| Firefox | skip | 0.0 | 98.1 (94.9 / 98.3) / 206.9 | 63.2 / 161.1 | 1052.0 |
+
+Against the predictions: fable's shipped-page Chrome 150–250 **miss** (102.6, low), Firefox 120–160 **hit** (151.6; max 183.9 fails (a) too). Mine: Chrome base 110–200 **miss** (low), skip 30–45 **hit**; Firefox base 100–160 **hit**, skip 50–110 **hit**; no finding-123 toast **hit**. So on the buyer's default 150 % laptop with a maximized browser the shipped page fails §15.8 (b) in both browsers; without the re-blits Chrome passes (35.5) and Firefox does not (98.1 > 80; the skip arm is an upper bound for A).
+
+## Release A's restore method (prediction written before the run)
+
+`bench.html?restore=1`: one 64 × 64 restore per task from a cached 1023-row band — `putImageData(band, 0, 0, dirtyX, dirtyY, 64, 64)` against `drawImage(bandBitmap, sx, sy, 64, 64, dx, dy, 64, 64)` — into the same six destinations. Prediction: in Firefox the dirty-rect `putImageData` pays the per-task surface cost of item 1 (≈ 22 / 15 / 10 / 6 ms into the four whole-document sizes), the sub-rectangle `drawImage` from a bitmap does not (median ≤ 1 ms). Chrome ≤ 0.1 both.
