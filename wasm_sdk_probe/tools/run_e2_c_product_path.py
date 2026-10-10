@@ -1510,8 +1510,10 @@ MUTATIONS = {
     "gesture-abort-not-wired": {
         "check": "an-aborted-gesture-stops-selecting",
         "path": "e2-editor-app.js",
-        "find": 'el.canvas.addEventListener("pointercancel", () => endDrag(null));',
-        "replace": 'el.canvas.addEventListener("pointercancel-never", () => endDrag(null));',
+        # Re-anchored for release C′ (SPEC-M3-production-ui §17.3): the pointer
+        # listeners moved from #canvas to #paper.
+        "find": 'el.paper.addEventListener("pointercancel", () => endDrag(null));',
+        "replace": 'el.paper.addEventListener("pointercancel-never", () => endDrag(null));',
         "reintroduces": "a drag the browser cancelled that keeps selecting",
         "alsoRed": [],
         # DECLARED UNDETECTABLE, and the declaration is the honest half of a
