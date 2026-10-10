@@ -1,0 +1,41 @@
+== chrome
+        chrome  p1: canvas 725 x 17929 (51994100 bytes)
+  RECORD  chrome  p1 key 0 'a': stale bytes 311964600 (600.000000% of the canvas), stale calls 108, dirty-rect calls 0, clearRect calls 0 (0 bytes), new-band blits 18
+  RECORD  chrome  p1 key 1 'b': stale bytes 311964600 (600.000000% of the canvas), stale calls 108, dirty-rect calls 0, clearRect calls 0 (0 bytes), new-band blits 18
+  RECORD  chrome  p1 key 2 'c': stale bytes 311964600 (600.000000% of the canvas), stale calls 108, dirty-rect calls 0, clearRect calls 0 (0 bytes), new-band blits 18
+  RECORD  chrome  p1 key 3 'd': stale bytes 311964600 (600.000000% of the canvas), stale calls 108, dirty-rect calls 0, clearRect calls 0 (0 bytes), new-band blits 18
+  RECORD  chrome  p1 key 4 'e': stale bytes 311964600 (600.000000% of the canvas), stale calls 108, dirty-rect calls 0, clearRect calls 0 (0 bytes), new-band blits 18
+  RECORD  chrome  p1 key 5 'f': stale bytes 311964600 (600.000000% of the canvas), stale calls 108, dirty-rect calls 0, clearRect calls 0 (0 bytes), new-band blits 18
+  RECORD  chrome  p1 key 6 'g': stale bytes 311964600 (600.000000% of the canvas), stale calls 108, dirty-rect calls 0, clearRect calls 0 (0 bytes), new-band blits 18
+  RECORD  chrome  p1 key 7 'h': stale bytes 311964600 (600.000000% of the canvas), stale calls 108, dirty-rect calls 0, clearRect calls 0 (0 bytes), new-band blits 18
+  RECORD  chrome  p1 key 8 'i': stale bytes 311964600 (600.000000% of the canvas), stale calls 108, dirty-rect calls 0, clearRect calls 0 (0 bytes), new-band blits 18
+  RECORD  chrome  p1 key 9 'j': stale bytes 311964600 (600.000000% of the canvas), stale calls 108, dirty-rect calls 0, clearRect calls 0 (0 bytes), new-band blits 18
+  PASS  chrome  p1 every key typed and measured: 10 of 10 (keys seen 10)
+  FAIL  chrome  p1 every key's re-blitted bytes <= 2 % of the canvas: max 600.000000%; keys over: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+        chrome  123b: canvas 1490 x 36847 (219608120 bytes)
+  PASS  chrome  123b every key typed: 3 of 3
+  RECORD  chrome  123b toast at 1741.6 ms: 點一下放游標，或拖曳選一段，再按動作
+  RECORD  chrome  123b toast at 4512.6 ms: 已開啟 doc.odt
+  RECORD  chrome  123b toast at 6276.4 ms: 重繪失敗：TILE_NOT_PAINTED：引擎回了一張沒有畫進去的圖
+  RECORD  chrome  123b toast at 8988.9 ms: 重繪失敗：TILE_NOT_PAINTED：引擎回了一張沒有畫進去的圖
+  FAIL  chrome  123b no TILE_NOT_PAINTED toast: 2 of 4 toasts
+  FAIL  chrome  123b every band current after the last key: None
+  FAIL  chrome  123b the last band blitted after the last key: never
+  RECORD  chrome  123b lowest band ever blitted new: y 35805, 1023 rows (canvas bottom 36847)
+== firefox
+        firefox p1: canvas 900 x 22257 (80125200 bytes)
+  RECORD  firefox p1 key 0 'a': stale bytes 881377200 (1100.000000% of the canvas), stale calls 242, dirty-rect calls 0, clearRect calls 0 (0 bytes), new-band blits 22
+  RECORD  firefox p1 key 1 'b': stale bytes 480751200 (600.000000% of the canvas), stale calls 132, dirty-rect calls 0, clearRect calls 0 (0 bytes), new-band blits 22
+  RECORD  firefox p1 key 2 'c': stale bytes 480751200 (600.000000% of the canvas), stale calls 132, dirty-rect calls 0, clearRect calls 0 (0 bytes), new-band blits 22
+  RECORD  firefox p1 key 3 'd': stale bytes 480751200 (600.000000% of the canvas), stale calls 132, dirty-rect calls 0, clearRect calls 0 (0 bytes), new-band blits 22
+  RECORD  firefox p1 key 4 'e': stale bytes 480751200 (600.000000% of the canvas), stale calls 132, dirty-rect calls 0, clearRect calls 0 (0 bytes), new-band blits 22
+  RECORD  firefox p1 key 5 'f': stale bytes 480751200 (600.000000% of the canvas), stale calls 132, dirty-rect calls 0, clearRect calls 0 (0 bytes), new-band blits 22
+  RECORD  firefox p1 key 6 'g': stale bytes 480751200 (600.000000% of the canvas), stale calls 132, dirty-rect calls 0, clearRect calls 0 (0 bytes), new-band blits 22
+  RECORD  firefox p1 key 7 'h': stale bytes 480751200 (600.000000% of the canvas), stale calls 132, dirty-rect calls 0, clearRect calls 0 (0 bytes), new-band blits 22
+  RECORD  firefox p1 key 8 'i': stale bytes 480751200 (600.000000% of the canvas), stale calls 132, dirty-rect calls 0, clearRect calls 0 (0 bytes), new-band blits 22
+  RECORD  firefox p1 key 9 'j': stale bytes 480751200 (600.000000% of the canvas), stale calls 132, dirty-rect calls 0, clearRect calls 0 (0 bytes), new-band blits 22
+  PASS  firefox p1 every key typed and measured: 10 of 10 (keys seen 10)
+  FAIL  firefox p1 every key's re-blitted bytes <= 2 % of the canvas: max 1100.000000%; keys over: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+  REFUSED firefox 123b: cannot read /home/jiajun/LibreOffice/study_LiteCore/findings/evidence/typing-latency/p-release/shipped-firefox-123b.json: [Errno 2] No such file or directory: '/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/typing-latency/p-release/shipped-firefox-123b.json'
+REFUSED: firefox 123b; also FAIL: chrome p1 every key's re-blitted bytes <= 2 % of the canvas, chrome 123b no TILE_NOT_PAINTED toast, chrome 123b every band current after the last key, chrome 123b the last band blitted after the last key, firefox p1 every key's re-blitted bytes <= 2 % of the canvas
+exit 2

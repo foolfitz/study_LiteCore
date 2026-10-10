@@ -13,7 +13,7 @@ gap / chars / requested ratio / requested window, and the ratio the page actuall
        7-argument putImageData as its dirty rectangle only, a 3-argument one as the whole image; "first blit" =
        the first putImageData of an ImageData (the wrapper's `fresh`).  Computed from raw.r2.keys / raw.r2.final,
        not from the wrapper's own r2PerKey.
-  123-B (ratio 2, window 800x1000, owner, gap 600 x 3)
+  123-B (ratio 2, window 800x1000 Chrome / 797x1000 Firefox (§16.8), owner, gap 600 x 3)
        no toast containing TILE_NOT_PAINTED in raw.r2.toasts, which must hold at least one toast (the recorder
        ran); allCurrentAfterLastKeyMs is not None; a new image blitted after the last key whose rows reach the
        canvas bottom (raw.blits: [t, y, rows, revision]); n == chars.
@@ -39,9 +39,10 @@ from pathlib import Path
 # ("DIAGNOSTIC" is its historical first word; spec §16.2 makes it P1's and 123-B's instrument).
 RUNNER = "DIAGNOSTIC r2-blit-bytes/blit_bytes_probe.py 3dad37cbb03a769c over probe dbad93c0dcf27fbf "
 BROWSERS = ("chrome", "firefox")
-SLOTS = {  # slot: (document, gap, chars, dprRequested, windowRequested, devicePixelRatio seen)
-    "p1": ("owner", 600, 10, None, None, 1),
-    "123b": ("owner", 600, 3, 2.0, [800, 1000], 2),
+SLOTS = {  # slot: (document, gap, chars, dprRequested, windowRequested by browser, devicePixelRatio seen)
+    "p1": ("owner", 600, 10, None, {"chrome": None, "firefox": None}, 1),
+    # §16.8: the window that gives both browsers the canvas 1490 x 36,847 (a 19-row last band on the shipped page).
+    "123b": ("owner", 600, 3, 2.0, {"chrome": [800, 1000], "firefox": [797, 1000]}, 2),
 }
 P1_MAX_FRACTION = 0.02
 
@@ -74,7 +75,8 @@ def main() -> int:
 
     for browser in BROWSERS:
         print(f"== {browser}")
-        for slot, (document, gap, chars, dpr_requested, window_requested, dpr_seen) in SLOTS.items():
+        for slot, (document, gap, chars, dpr_requested, windows, dpr_seen) in SLOTS.items():
+            window_requested = windows[browser]
             path = paths[(browser, slot)]
             try:
                 report = json.loads(path.read_text())
