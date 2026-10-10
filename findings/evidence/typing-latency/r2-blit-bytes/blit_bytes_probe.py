@@ -24,6 +24,8 @@ tools/probe_typing_latency.py (dbad93c0...) with, in memory only:
     Firefox via MOZ_HEADLESS_WIDTH/HEIGHT (device pixels, W x ratio by H x ratio) -- so the page's 900-px canvas
     cap is reached;
   * READ also records the opaque fraction of each of the canvas's last 120 rows (raw.ink.bottomOpaqueRows);
+  * (spec §16.2 P1, before its first use) a 7-argument putImageData counts only its dirty rectangle's bytes, and
+    clearRect calls and areas are counted (dirtyCalls, clearCalls, clearBytes);
   * every toast text is recorded with its time in raw.r2.toasts (added while explaining the Chrome ratio-2 null);
   * --page v58 serves the v58 page (537d62d7..., bytes from git 05f46923^) from the mirror instead of dist's.
 
@@ -81,7 +83,8 @@ for old, new in [
 R2_SHIM = """<script>
 (() => {
   const root = document.documentElement;
-  const st = { c: { staleCalls: 0, staleBytes: 0, staleMs: 0, freshCalls: 0, freshBytes: 0, freshMs: 0, groups: 0 },
+  const st = { c: { staleCalls: 0, staleBytes: 0, staleMs: 0, freshCalls: 0, freshBytes: 0, freshMs: 0, groups: 0,
+                   dirtyCalls: 0, clearCalls: 0, clearBytes: 0 },
                keys: [], groups: [], inval: [], fresh: [], dirty: false };
   const SKIP_STALE = __SKIP_STALE__;
   const seen = new WeakSet();
@@ -95,7 +98,16 @@ R2_SHIM = """<script>
     const t0 = performance.now();
     const out = (isFresh || !SKIP_STALE) ? native.call(this, image, dx, dy, ...rest) : undefined;
     const dt = performance.now() - t0;
-    const bytes = image.width * image.height * 4;
+    // Spec §16.2 P1: the 7-argument form copies only the dirty rectangle (clipped to the image), so only that
+    // counts; the 3-argument form copies the whole image.
+    let bytes = image.width * image.height * 4;
+    if (rest.length >= 4) {
+      const [rx, ry, rw, rh] = rest;
+      const x0 = Math.max(0, Math.min(rx, rx + rw)), x1 = Math.min(image.width, Math.max(rx, rx + rw));
+      const y0 = Math.max(0, Math.min(ry, ry + rh)), y1 = Math.min(image.height, Math.max(ry, ry + rh));
+      bytes = Math.max(0, x1 - x0) * Math.max(0, y1 - y0) * 4;
+      st.c.dirtyCalls += 1;
+    }
     if (isFresh) {
       seen.add(image);
       st.c.freshCalls += 1; st.c.freshBytes += bytes; st.c.freshMs += dt;
@@ -115,6 +127,11 @@ R2_SHIM = """<script>
     }
     st.dirty = true;
     return out;
+  };
+  const nativeClear = proto.clearRect;
+  proto.clearRect = function (x, y, w, h) {
+    st.c.clearCalls += 1; st.c.clearBytes += Math.abs(Math.round(w) * Math.round(h)) * 4; st.dirty = true;
+    return nativeClear.call(this, x, y, w, h);
   };
   document.addEventListener('keydown', (e) => {
     st.keys.push([e.key, Math.round(performance.now() * 10) / 10, snap()]); st.dirty = true; }, true);
