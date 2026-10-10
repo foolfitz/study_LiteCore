@@ -1,0 +1,39 @@
+# Brief for fable (2026-10-11): rule on the design forks that opus's review of SPEC-M3-production-ui §17 opened
+
+The owner is asleep and authorized you to decide on their behalf tonight ("授權 fable 代為裁決"): give a plain-language reason for the owner, nothing irreversible or outward-facing is in scope. Repository `/home/jiajun/LibreOffice/study_LiteCore`; read files, do not modify anything, do not run browsers or builds.
+
+Read first: `specs/SPEC-M3-production-ui.md` §17 (the C′ spec, Traditional Chinese, from "## 17." to the end); your own fifth ruling `findings/evidence/typing-latency/ruling/fable-ruling.md` ("Fifth ruling" + addendum); the review `findings/evidence/c-prime/review/opus-review-spec17.md` (its last section is the main session's check: B1, B2, B3 verified against the source). The project's criteria rules are `CLAUDE.md` §1–§11; the check-machinery stop rule is `specs/SPEC-M3-paragraph-merge.md` §34.
+
+Facts measured since §17 was written (verify, do not take on trust):
+- F-a. C6 reproduced on the P page, worse than predicted: 40 A4 pages at ratio 2 wide (canvas 1800 × 98,869) and 50 pages at ratio 1.5 wide (1350 × 92,682) are blank EVERYWHERE, top included, both browsers; Chrome silent and `ready`, Firefox toasts 「重繪失敗 … Canvas exceeds max size」; controls (59,338 and 61,181 rows) drawn. `findings/evidence/c-prime/c6/README.md`, finding 126.
+- F-b. The harness's Chrome has no window size (`tools/run_browser_probe.py:216`, `--headless=new` only) → 800 × 600 → the standalone page's desk is 139 px (`findings/evidence/124/arrows-chrome.json`, step `start`: deskTop 325.4, deskBottom 464). Firefox headless is 1366 × 768. One page in the 0.2.11 product-path reports: 725 × 1012 (Chrome), 900 × 1256 (Firefox).
+- F-c. No runner uses the pill's TEXT for logic; `READ_STATE` reads `#state-pill`'s `data-state` (`tools/run_e2_c_page_smoke.py:32–45`); INVENTORY admits visible text by `p.closest(PLACES)` with `#state-pill` in PLACES (`tools/check_m3_production_ui.py:112`, :167); `real_click("#state-pill")` at `check_m3_page_honesty.py:291`, `check_m3_production_ui.py:514`, :567.
+- F-d. Finding 124's probe, extended for 124-B/125-B, judges the P page red in both browsers (`findings/evidence/124/v2-red-p-page-*.json`).
+
+## Questions (answer each: RULING, then one line of reason)
+
+**Q1 (review B3) — the window in small runner windows.** C1 says `#canvas.height ≤ 3 × desk.clientHeight × dpr`; with a 139-px desk that is ≈ 417 rows, less than one page, so short fixtures no longer fit and every whole-canvas scan and the `len(bands)==len(lines)` preconditions (`tools/run_e2_c_product_path.py` :6186, :6278, :6367, :9408) change.
+- A (main session's lean): a floor. `W = min(docRows, max(floor(3 × desk.clientHeight × scale), 4 × RENDER_BAND_HEIGHT))`, `scale` = the page's backing/CSS width ratio (also fixes review N1). 4 bands = 4,092 rows ≈ 4 A4 pages at 725 px, 3.3 at 900 px, 16× below 65,535, ≤ 29 MB at 1800 wide. Short fixtures (the longest outside the long-document checks is the 3-page "grew" document, 3,002 / ≈ 3,727 rows) keep canvas = document, so §17.3's scope inference and the witness prediction become true again and the port stays small. Amends your binding C1.
+- B (the reviewer's lean): keep C1; the port scrolls the window across the document and stitches the scans. Bigger port, scans assembled from several moments, more §34 exposure.
+- C: larger runner windows — breaks comparability with the 0.2.11 counted reference (060: verdicts depend on the window).
+If A: is 4 bands the right floor, and is "band-aligned, a few pages at any width, far under the ceiling" an acceptable derivation, or name a better one.
+
+**Q2 (review B1) — what makes a band stale.** The engine stamps a LOK callback with the revision current when it fires (`src/probe_engine.cpp:2540–2548`), and UNO-path edits advance it only in the UNO result handler (`advanceRevision`, :2478–2481), so the invalidation announcing a Backspace/format/undo may carry the old revision; R1 measured only typing. `run()` awaits `renderDocument()` after every operation (`web/e2-editor-app.js:1425–1431`).
+- A (lean): a page-local change counter instead of the engine revision. Every `document-invalidated` and every `run()` completion advances it; a band is labelled with the counter value at its request; label < counter = stale. A pass requests the window's stale bands — so after any change every band in the window is re-requested (today's behaviour, restricted to the window); bands outside stay stale until they enter the window. C3/C4 read the labels against the counter (exposed in the dataset) and the probe cross-checks fresh blits; add a Backspace arm and a set-bold arm to C4.
+- B (reviewer): latest = max(snapshot.revision, tile reply's revision, invalidation's revision), plus always re-request the window on any invalidation or `run()`.
+
+**Q3 (review B2, S4) — finding 125's implementation.** The owner chose 125 = A on the main session's description "a separate visible pill; runners and HTML unchanged". As specified (hide `#state-pill`, add a sibling `#state-shown`) that is false (F-c).
+- A (lean): `#state-shown` is a CHILD of `#state-pill`. At start the page removes class `pill` from `#state-pill` and gives it to the child, so the existing `.pill[data-state=…]` CSS styles only the child; `#state-pill`'s `data-state` is still written immediately (machine truth). The child shows every state immediately except `busy`, which it shows only once busy has lasted 700 ms; until then it keeps the previous state's label and look (never blank). The direct writes (已過期 :2262, 錯誤 :2423) go through the same function and cancel a pending timer. Activation clicks land on the child inside `#state-pill`; INVENTORY admits the child's text; no runner byte changes; 125-B is reworded (child shown inside the pill; 0 「處理中」 on the child; `#state-pill` `data-state` busy ≥ presses times as the positive control, the probe observing attribute changes).
+- B: give up "runners unchanged": hide `#state-pill`, and port the activation clicks and TEXT_PLACES with a witness.
+- C: something else you name.
+Does A keep faith with what the owner chose?
+
+**Q4 (review S3) — 124 during a selection.** Lean: follow the caret for keyboard moves including Shift+arrow selections; do not follow while a pointer drag is active (`drag.active`), so content does not scroll under a pointer that has not moved. Collabora's `_allowViewJump` excludes only "complex" selections.
+
+**Q5 (review S6) — witness order.** Lean: the C′ commit alone → the §34.4 witness run (the unported net, from the commit before the port) → then the 124 and 125 commits → C5 (ii) on the full page.
+
+Also adopted unless you object: S1 (re-place only when `winTop` changes); S2 (the list of functions to change completed); S5 (run the `a11y-projection-at-its-static-position` mutation on the C′ page and record it surviving as an equivalent mutation; register under CLAUDE.md §3 that the projection check's C2 clause then has no red case; C5's importer list produced by a tool from the imports; row 1′ applies only as `judge.py` defines it, forward direction, and the reverse direction is plain §23); N1 (floor()); N2 (C6's text becomes "the top region of the last page", and a crash / OOM / missing report on the C′ page counts as red); N3 (keep C6's default stricter than your ruling's, because 126 is a whole-document blank, not a bottom strip); N4 (predictions recomputed with the measured ≈ 540-px desk at 1400 × 1000); N5 (V4's default written now: if 124's follow scrolls during V4 and V4 goes red, that run is the witness and V4 is ported to compare the sink in `#paper` coordinates).
+
+## Answer format
+
+`RULING` (Q1–Q5, plus any objection to the "also adopted" list) / `WHY（給擁有者，台灣正體中文白話，五行以內）` / `FACT CHECK` (each fact above you checked, and anything in this brief that is wrong) / `CONDITIONS` (what must be true or done before acting). Under about 900 words.
