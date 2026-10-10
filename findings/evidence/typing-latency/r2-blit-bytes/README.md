@@ -165,3 +165,24 @@ Predictions:
 2. **The cost is the destination's**: into the viewport-sized canvases (1800 × 2000, 900 × 1000) fresh `putImageData` is under a third of its whole-document value in Firefox. (If not, a viewport canvas alone does not remove it.)
 3. `drawImage` of an `ImageBitmap` costs under 2 ms per call in both browsers and both destination sizes, without flush.
 4. Chrome: every call under 2 ms.
+
+### Micro-bench results (2026-10-10; `canvas-bench/bench-{chrome,firefox}.json`; Chrome 151, Firefox 157, ratio 1)
+
+Medians / max in ms over 12 calls (Firefox's timer here is 1 ms — the page is not cross-origin isolated — so its values are whole milliseconds):
+
+| Browser | Destination | fresh put | same put again | createImageBitmap (async) | drawImage new bitmap | drawImage same bitmap |
+|---|---|---|---|---|---|---|
+| Firefox | 1800 × 44,514 | **26** / 358 | **24** / 26 | 9 / 14 | **28** / 40 | **24** / 25 |
+| Firefox | 1800 × 2000 | 2 / 12 | 1 / 3 | 9 / 10 | 5 / 6 | 1 / 2 |
+| Firefox | 900 × 22,257 | 6 / 86 | 0 / 7 | 2 / 4 | 7 / 8 | 0 / 6 |
+| Firefox | 900 × 1000 | 1 / 3 | 0 / 0 | 3 / 5 | 2 / 3 | 0 / 1 |
+| Chrome | 1800 × 44,514 | 0.4 / 112 | 0.4 / 0.5 | 2.6 / 2.9 | 0.0 / 0.1 | 0.0 / 0.1 |
+| Chrome | 1800 × 2000 | 0.4 / 5.3 | 0.4 / 0.5 | 2.6 / 3.8 | 0.0 / 0.1 | 0.0 / 0.1 |
+| Chrome | 900 × 22,257 | 0.2 / 27.7 | 0.2 / 0.3 | 1.2 / 1.5 | 0.0 / 0.0 | 0.0 / 0.1 |
+| Chrome | 900 × 1000 | 0.2 / 1.3 | 0.2 / 0.3 | 1.3 / 1.8 | 0.0 / 0.1 | 0.0 / 0.1 |
+
+(The "+flush" columns are in the JSON; they change no conclusion: Chrome's `drawImage` defers ≈ 1.3–3 ms to the flush, Firefox's are the same with or without.)
+
+Against the predictions: 1 **hit** (26; 6). 2 **hit, strongly** — in Firefox a blit costs what the destination costs: ≈ 24–28 ms per call into the 321 MB canvas by every method, 1–5 ms into a viewport-sized one. 3 **miss** for Firefox: `drawImage` of an `ImageBitmap` is no cheaper than `putImageData` into the big canvas (24–28) and not cheaper at viewport size either (5 vs 2 fresh). 4 **hit** by median (Chrome < 1 ms per call except the async `createImageBitmap`); two first-call outliers (112, 27.7 ms) look like the backing store's allocation.
+
+Reading: in Firefox the per-blit cost is a property of the canvas size, so a viewport-sized canvas removes it whatever the draw method; Collabora's `ImageBitmap` route by itself does not. Single blits per task here; in the product the re-blits come 18–44 to a task and cost less per call (≈ 0.6 ms in the wide Firefox run), the fresh bands one per task (≈ 22 ms there) — the bench matches the latter.
