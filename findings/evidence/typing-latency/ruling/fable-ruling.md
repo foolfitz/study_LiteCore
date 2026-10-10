@@ -255,3 +255,22 @@ Checked against the sources before adopting:
 - **Wrong, 1**: "a 14-inch laptop at Windows' default 150% … ratio 2". Windows 150 % is devicePixelRatio **1.5**: backing 1350 px wide at the 900-px cap, between the measured narrow (1450 / 1238) and wide (1800) rows, nearer narrow; ≈ 1,517 rows per page, so the 65,535 ceiling is reached at ≈ 43 pages, not 33. Ratio 2 with a wide window is 200 % scaling (4K at 200 %, Retina-class panels).
 - **Wrong, 2**: "`check_m3_production_ui.py` has 0 canvas references". It imports `POINT_AT` (:64) and uses it (:272); `POINT_AT` addresses the canvas by fraction of its bounding box. One use, not three — my grep's 3 counted a comment and the import.
 - Both corrections were sent back to fable before anything is acted on.
+
+## Fifth ruling, addendum (2026-10-10; fable's reply to the main session's two corrections). Verbatim.
+
+Both corrections are right; neither changes the option, the sequencing, the §34 classification, or the criteria forms. What moves:
+
+(1) Ratio 1.5 is the buyer's default, and it is unmeasured.
+- "Not D": the reason stands but its sentence changes — the buyer's maximized 150% laptop is a 1350 × ≈ 33,400 canvas (≈ 180 MB), which sits between the two measured rows where the shipped page already fails §15.8(b) in both browsers (narrow: 152/208 MB → 106.7/105.6; wide: 321 MB → 425.7/208.1). That is interpolation, not a measurement, so it does not carry a criterion on its own; it carries the decision to measure it (below). Ratio 2 wide is 200%/Retina — real, less common; it remains the worst measured case.
+- A3 gains a row, recorded not gated, both pages, both browsers: `--dpr 1.5 --window` wide enough for the 900-px cap. Predictions on the shipped page: Chrome commit median 150–250 → (b) FAIL; Firefox 120–160 → (b) FAIL, (a) borderline. On the A page: Chrome 35–45 PASS; Firefox 55–100, the split decided by Part 5 item 1's small-blit result (≤ 1 ms → 55–70 PASS; ≈ 22 ms → 80–100 FAIL). If the shipped page PASSES both browsers at ratio 1.5 wide, D's case strengthens for Firefox only; A still ships for Chrome's ratio-2 rows and the owner's margin.
+- Part 5 item 3 (the positive control) is now this ratio-1.5 run, emulated first (same wrapper, `--dpr 1.5`), a real 150% machine if one is reachable. Do it with item 1, before A's predictions are written.
+- C2 stays at ratio 2 wide as the criterion: the windowed canvas makes the destination size ratio-independent, and blit cost is monotone in destination size (H6), so the harder measured case covers 1.5. Ratio 1.5 wide is recorded under C′ with predictions (Chrome 35–50, Firefox 50–80).
+- C6's page counts: 43 pages at ratio 1.5 wide (1,517 rows/page), 33 at ratio 2 wide, 65 at ratio 1. The red case stays at ratio 2 wide / 40 pages (already instrumented; 80,920 rows > 65,535); add the ratio-1.5 reading: a 50-page document (75,850 rows) blank on the A page, drawn on C′. The "划算" argument weakens from 33 to 43 pages on the default laptop and holds: regulations, reports and theses exceed 43 pages.
+
+(2) `check_m3_production_ui.py` is touched through `run_e2_c_page_smoke.POINT_AT` (:64, :272). Good — that is where the shared addressing helper should live, so one port serves page smoke, production ui and (if its :175–180 copy is replaced by the import) page honesty. Counting: 因執行而修 1 for the helper's file, 0 bytes for importers; but note §34.5 — the importers' pins do not see the helper change, so each importing runner must appear in C5's 0-difference reproduction on the whole-canvas page, not only the product-path runner. Add production ui and page honesty to C5's list explicitly.
+
+The Chrome ratio-2-narrow `None` cells: measurement first is the right order; whichever way it reads (probe coverage vs a stale band), C2's instrument must be shown to print a number on a passing Chrome ratio-2 run before C2 is a criterion — that condition in my ruling is unchanged.
+
+## Main session's note on the `None` cells (2026-10-10)
+
+Explained: not the probe. The shipped page never paints its 53-row last band in that configuration and toasts 「重繪失敗：TILE_NOT_PAINTED」 after every pass — registered as **finding 123** (`findings/123-…md`, evidence `findings/evidence/123/`).

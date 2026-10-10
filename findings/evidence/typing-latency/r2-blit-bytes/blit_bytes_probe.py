@@ -23,6 +23,8 @@ tools/probe_typing_latency.py (dbad93c0...) with, in memory only:
   * --window WxH (added after the ratio-2 runs): a CSS viewport of W x H -- Chrome via the same Emulation call,
     Firefox via MOZ_HEADLESS_WIDTH/HEIGHT (device pixels, W x ratio by H x ratio) -- so the page's 900-px canvas
     cap is reached;
+  * READ also records the opaque fraction of each of the canvas's last 120 rows (raw.ink.bottomOpaqueRows);
+  * every toast text is recorded with its time in raw.r2.toasts (added while explaining the Chrome ratio-2 null);
   * --page v58 serves the v58 page (537d62d7..., bytes from git 05f46923^) from the mirror instead of dist's.
 
 Usage: blit_bytes_probe.py --page {current,v58} [--skip-stale] [--dpr N] [--window WxH] + the probe's own arguments (--browser, --document, --gap, --chars,
@@ -117,6 +119,13 @@ R2_SHIM = """<script>
   document.addEventListener('keydown', (e) => {
     st.keys.push([e.key, Math.round(performance.now() * 10) / 10, snap()]); st.dirty = true; }, true);
   const NativeWorker = window.Worker;
+  st.toasts = [];
+  document.addEventListener('DOMContentLoaded', () => {
+    const t = document.querySelector('#toast');
+    if (t) new MutationObserver(() => { if (t.textContent) { st.toasts.push([Math.round(performance.now() * 10) / 10, t.textContent.slice(0, 120)]);
+      if (st.toasts.length > 500) st.toasts.splice(0, 100); st.dirty = true; } })
+      .observe(t, { childList: true, characterData: true, subtree: true });
+  });
   window.Worker = class extends NativeWorker {
     constructor(...args) {
       super(...args);
@@ -146,7 +155,11 @@ ptl.READ = ptl.READ.replace(
               "               const px = x.getImageData(0, y, c.width, 120).data; let ink = 0, clear = 0;\n"
               "               for (let i = 0; i < px.length; i += 4) { if (px[i + 3] === 0) clear += 1;\n"
               "                 else if (px[i] < 128) ink += 1; }\n"
-              "               out[name] = { ink, transparent: clear, pixels: px.length / 4 }; } } catch (e) { out.error = String(e && e.message || e); } return out; })() }; })()")
+              "               out[name] = { ink, transparent: clear, pixels: px.length / 4 }; }\n"
+              "             const n = Math.min(120, c.height); const bp = x.getImageData(0, c.height - n, c.width, n).data;\n"
+              "             out.bottomOpaqueRows = []; for (let r = 0; r < n; r++) { let o = 0;\n"
+              "               for (let i = r * c.width * 4 + 3; i < (r + 1) * c.width * 4; i += 4) if (bp[i] > 128) o += 1;\n"
+              "               out.bottomOpaqueRows.push(Math.round(o / c.width * 100) / 100); } } catch (e) { out.error = String(e && e.message || e); } return out; })() }; })()")
 
 # 3. The mirror: worker always patched; the page only for --page v58.
 worker_src = (ROOT / "wasm_sdk_probe" / "dist" / WORKER).read_text(encoding="utf-8")
