@@ -34,4 +34,12 @@ RED   124: drop the scroll: 4 failing
   124-U5 (§17.9 (e)): not while a pointer drag selects; the first caret after it is followed
 RED   124: drop the drag exclusion: 1 failing
   124-U5 (§17.9 (e)): not while a pointer drag selects; the first caret after it is followed
+RED   125: no delay (busy shown at once): 3 failing
+  125-U1: busy for 699 ms and then not -- the shown pill never says 處理中
+  125-U2: busy that lasts shows 處理中 at exactly 700 ms
+  125-U5: never blank, and a direct write (已過期, 錯誤) cancels the wait
+RED   125: the delay applied to #state-pill (its data-state waits too): 1 failing
+  125-U4: \#state-pill's data-state and data-label are written at once, every write
+RED   125: #state-pill keeps class pill: 1 failing
+  125-U6: the class pill is on the child, not on \#state-pill; the child is \#state-pill's only content
 exit 0

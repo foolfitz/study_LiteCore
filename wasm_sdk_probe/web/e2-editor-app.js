@@ -637,13 +637,67 @@ function projectStructure(snapshot) {
   return focusedId ? focusedText : null;
 }
 
+/**
+ * FINDING 125 (the owner chose A; SPEC-M3-production-ui §17.9 (d)): 「處理中」
+ * only once `busy` has lasted 700 ms.  Every arrow key is an engine command,
+ * so every press flashed it -- 40 presses, 40 flashes, 35-41 ms each, with
+ * the document unchanged.  Collabora Online opens its busy popup 700 ms late
+ * for the same reason (Control.UIManager.ts :644-689; prior art, no code
+ * taken).
+ *
+ * Two pills, one inside the other.  `#state-pill` is the machine-read one:
+ * its `data-state` is written at once on every state write, as before, and so
+ * is `data-label`, the word the state stands for -- every runner reads it
+ * unchanged, and its box, which a runner clicks for user activation, is the
+ * child's.  The child, `#state-shown`, is what a person sees: it takes the
+ * class `pill` (so the page's `.pill[data-state=...]` styles apply to it and
+ * not to the parent) and shows every state at once EXCEPT `busy`, which it
+ * shows only after 700 ms of it; until then it keeps the state it showed
+ * before -- never blank.  Leaving `busy` shows the new state at once.  Not a
+ * throttle or a debounce: no state is delayed, only the one word's display.
+ * `#state-pill.textContent` is therefore the shown word now, not the state's.
+ */
+const BUSY_SHOWN_AFTER_MS = 700;
+let busyShownTimer = null;
+
+function installStateShown() {
+  const shown = document.createElement("span");
+  shown.id = "state-shown";
+  shown.className = "pill";
+  shown.dataset.state = el.statePill.dataset.state ?? "";
+  shown.textContent = el.statePill.textContent;
+  el.statePill.dataset.label = el.statePill.textContent;
+  el.statePill.classList.remove("pill");
+  el.statePill.replaceChildren(shown);
+  return shown;
+}
+const stateShown = installStateShown();
+
+function showState(state, label) {
+  el.statePill.dataset.state = state;
+  el.statePill.dataset.label = label;
+  if (state === "busy") {
+    if (busyShownTimer === null && stateShown.dataset.state !== "busy") {
+      busyShownTimer = setTimeout(() => {
+        busyShownTimer = null;
+        stateShown.dataset.state = "busy";
+        stateShown.textContent = label;
+      }, BUSY_SHOWN_AFTER_MS);
+    }
+    return;
+  }
+  clearTimeout(busyShownTimer);
+  busyShownTimer = null;
+  stateShown.dataset.state = state;
+  stateShown.textContent = label;
+}
+
 function updateState(snapshot) {
-  el.statePill.dataset.state = snapshot.state;
-  el.statePill.textContent = {
+  showState(snapshot.state, {
     idle: "未開啟", loading: "載入中", ready: "就緒", busy: "處理中",
     "recoverable-error": "需要回復", "restart-required": "需要重新開啟",
     stopped: "已停止",
-  }[snapshot.state] ?? snapshot.state;
+  }[snapshot.state] ?? snapshot.state);
   el.s.state.textContent = snapshot.state;
   el.s.revision.textContent = snapshot.revision ?? "—";
   el.s.pending.textContent = snapshot.pending ?? "—";
@@ -2491,8 +2545,7 @@ function showExpired(details) {
   el.paper.style.display = "none";
   el.expectedHash.textContent = details?.expected ?? PINNED_WASM_SHA256;
   el.actualHash.textContent = details?.actual ?? "（manifest 沒有提供）";
-  el.statePill.dataset.state = "expired";
-  el.statePill.textContent = "已過期";
+  showState("expired", "已過期");
   for (const button of el.toolbar.querySelectorAll("button"))
     button.disabled = true;
   el.fixture.disabled = true;
@@ -2655,7 +2708,6 @@ void (async () => {
   toast("點一下放游標，或拖曳選一段，再按動作");
 })().catch((error) => {
   if (error?.code === "PAGE_BUILD_MISMATCH") return;
-  el.statePill.dataset.state = "stopped";
-  el.statePill.textContent = "錯誤";
+  showState("stopped", "錯誤");
   toast(describeError(error), true);
 });

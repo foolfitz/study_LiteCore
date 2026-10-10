@@ -19,7 +19,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[4] / "wasm_sdk_probe"
 FILES = ["page-paint-overlay.test.mjs", "page-render-bands.test.mjs", "page-render-disposed.test.mjs",
-         "page-follow-caret.test.mjs"]
+         "page-follow-caret.test.mjs", "page-state-shown.test.mjs"]
 
 CASES = {
     "drop the floor (C1')": [
@@ -45,6 +45,15 @@ CASES = {
         ("  el.desk.scrollTop = Math.max(0, Math.min(el.desk.scrollHeight - el.desk.clientHeight, centre));", "  void centre;")],
     "124: drop the drag exclusion": [
         ("  if (!caret || !session?.document || drag.active) return;", "  if (!caret || !session?.document) return;")],
+    # Finding 125 (§17.4 125-U, §17.9 (d); ruling condition 4).
+    "125: no delay (busy shown at once)": [
+        ("  if (state === \"busy\") {\n    if (busyShownTimer === null", "  if (state === \"busy\" && false) {\n    if (busyShownTimer === null")],
+    "125: the delay applied to #state-pill (its data-state waits too)": [
+        ("  el.statePill.dataset.state = state;\n  el.statePill.dataset.label = label;\n  if (state === \"busy\") {\n",
+         "  if (state !== \"busy\") el.statePill.dataset.state = state;\n  el.statePill.dataset.label = label;\n  if (state === \"busy\") {\n"),
+        ("        stateShown.dataset.state = \"busy\";\n", "        stateShown.dataset.state = \"busy\";\n        el.statePill.dataset.state = \"busy\";\n")],
+    "125: #state-pill keeps class pill": [
+        ("  el.statePill.classList.remove(\"pill\");\n", "")],
 }
 
 
