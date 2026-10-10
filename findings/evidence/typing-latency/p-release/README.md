@@ -44,3 +44,42 @@ One extra mutation, not a §16.2 red case: **R-Px** (paint() draws the overlay w
 `dist/e2-editor-app.js` = `36c2b18b…` (`web/` after commits `db9a0052` (123) and `706e8565` (P); `make e2-c-assets` copies only that file). Script `candidate.sh`, log `candidate-2026-10-10.log`. Reports: P1 / 123-B `candidate-BROWSER-{p1,123b}.json` here; P2 `../p-candidate-BROWSER-{owner-gap80,owner-gap200,boundaries-gap200}.json` (the counted probe `dbad93c0`, as is); P3 `p3-{dpr15wide,dpr2narrow,dpr2wide}-BROWSER-owner-gap80.json` (wrapper, recorded, not gated). P1 prediction in bytes: one overlay change per key, two caret rectangles of about 4 × 21 px → ≈ 0.7 KB per key at ratio 1, ≈ 0.001 % of the canvas.
 
 **Confound, recorded before any P2 number was read (2026-10-10 01:24 UTC):** `make test-e2-c-static` (which compiles a C++ model test with `-O2`) ran in the main session from about 01:23:15 to 01:23:55 UTC, overlapping P2's Chrome `owner-gap80` probe run (01:23:33–01:23:47). Decided before reading it: that report is kept as `../p-candidate-chrome-owner-gap80-concurrent-static.json` and does not count; Chrome `owner-gap80` is re-run alone after `candidate.sh` ends (`rerun-chrome-gap80.sh`), and the re-run is the counted slot whatever either says.
+
+### Results on the candidate page (2026-10-10 01:22–01:28 UTC; all wrapper and probe runs exit 0)
+
+**P1 and 123-B** — `judge_p.py` (`1461fc03…`, reviewed §16.9) `--page 36c2b18b… --prefix candidate` → **PASS, both browsers, every cell, exit 0** (`judge-candidate.txt`, which records the reader's sha256 and the bound page):
+
+| | Chrome | Firefox |
+| --- | --- | --- |
+| P1 canvas | 725 × 17,929 | 900 × 22,257 |
+| P1 re-blitted bytes per key | 640 (key 0: 688) = **0.0012 %** of the canvas; 2 dirty-rect calls, 0 `clearRect` | 736 (key 0: 816) = **0.0009 %**; 2 dirty-rect calls, 0 `clearRect` |
+| 123-B canvas | 1490 × 36,847 | 1490 × 36,847 (the §16.9 N2 reading: as §16.8 named) |
+| 123-B | no `TILE_NOT_PAINTED` toast (2 boot toasts recorded); last band y 35,805, **1,042 rows**, new image 700.9 ms after the last key; `allCurrent` 700.9 | same; 1,047.3 ms |
+
+Predictions: P1 ≈ 0.7 KB (README) / 0.4 KB (§16.4) per key → 0.64 / 0.74 KB, both pass (hit). 123-B no toast, 1,042-row last band blitted, `allCurrent` Chrome 400–750 → 700.9 (hit), Firefox 900–1,400 → 1,047.3 (hit).
+
+**P2** — `../judge_p2.py` (`1faea9d9…` = `judge.py` with only the page constant and default file names changed; red cases in `judge-p2-red-cases.txt` before this reading) → **PASS, both browsers, every cell, exit 0** (`judge-p2-candidate.txt`). The counted Chrome `owner-gap80` is the re-run (`rerun-chrome-gap80-2026-10-10.log`); the first run (overlapping the static-test compile, excluded before reading) had commit median 31.5 / max 40.2, on screen 29.8 — kept as `../p-candidate-chrome-owner-gap80-concurrent-static.json`.
+
+| Cell | Chrome | pred. | Firefox | pred. |
+| --- | --- | --- | --- | --- |
+| gap 80 commit median (b) | **26.1** | 22–32 hit | **36.2** | 40–52 miss (lower) |
+| gap 80 commit max (a) | 38.6 | < 45 hit | 44.9 | < 80 hit |
+| gap 80 on screen median / max | 25.3 / 38.4 | 22–32 hit | 29.7 / 40.2 | 32–46 miss (lower) |
+| gap 200 on screen median / max | 28.6 / 39.1 | 25–40 hit | 30.0 / 38.1 | 35–50 miss (lower) |
+| boundaries commit median | 4.2 | 4–8 hit | 3.9 | 6–10 miss (lower) |
+| (ii) gap 80 / 200 (recorded) | 162.7 / 158.3 | 150–220 hit | 310.0 / 295.8 | 280–360 hit |
+| backlog b_i; first-five / last-five | all 0; 26.1 / 26.1 | | all 0; 36.0 / 43.0 | |
+
+For comparison, the shipped page (v59, `v59-candidate2-*`, same probe): gap-80 commit median Chrome 45.2, Firefox 65.3; on screen 36.7 / 49.2.
+
+**P3 (recorded, not gated; wrapper, gap 80 × 20, owner)**:
+
+| Configuration | Chrome canvas; commit median / max; on screen median / max | pred. | Firefox canvas; commit median / max; on screen median / max | pred. |
+| --- | --- | --- | --- | --- |
+| ratio 1.5 wide (1400x1000) | 1350 × 33,385; **35.2** / 50.6; 34.6 / 60.3 | 35–50 hit | 1350 × 33,385; **60.9** / 77.3; 37.8 / 46.9 | 105–135, fails (b) — **miss: passes (a) and (b)** |
+| ratio 2 narrow (default window) | 1450 × 35,858; **34.9** / 44.0; 33.8 / 42.8 | 34–45 hit | 1238 × 30,616; **51.6** / 115.7; 31.0 / 41.4 | 65–90 miss (lower) |
+| ratio 2 wide (1400x1000) | 1800 × 44,514; **43.9** / 87.0; 43.2 / 85.6 | 47–65 miss (lower) | 1800 × 44,514; **84.5** / 108.5; 53.4 / 83.0 | 170–220, fails (a)(b) — **miss: fails (b) only** |
+
+No `TILE_NOT_PAINTED` toast in any P3 run. Shipped page, same wrapper and configurations (`../r2-blit-bytes/`): ratio 1.5 wide commit median Chrome 102.6 / Firefox 151.6; ratio 2 wide Chrome on screen median 368.5 (max 595.8), Firefox commit 208.1.
+
+Why Firefox beat the prediction (derived, not measured): the prediction started from the shipped page's skip arm, which still ran `paint()` six times a key and drew the overlay over the whole large canvas each time; Firefox charges the first draw into a large canvas in each task, so the skip arm was not an upper bound for P, which draws once per key, clipped.

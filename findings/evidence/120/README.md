@@ -13,3 +13,7 @@
 ## 120-B on the final v59 page bytes (2026-10-10; page `18c8afbe…`, A+B; fable's fourth ruling condition 4)
 
 `v59-candidate2-sink-{chrome,firefox}.json` (binding: `v59-candidate2-binding.txt`, dist `18c8afbe…` before and after): residue arm disabled before the second open, enabled and focused after it, `Q` lands (0 → 1), like the control arm. Identical to the `b10f6017…` reports. 120-B met in both browsers on the final bytes.
+
+## 120-B on the release-P page bytes (2026-10-10; page `36c2b18b…`; spec §16.2 P4)
+
+`p-candidate-sink-{chrome,firefox}.json` (binding `p-candidate-binding.txt`, dist `36c2b18b…` before and after): identical to the `v59-candidate2-*` reports (no field differs). 120-B still met in both browsers.
