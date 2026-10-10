@@ -14,9 +14,12 @@ tools/probe_typing_latency.py (dbad93c0...) with, in memory only:
     snapshots the counters;
   * the served worker (mirror copy of profiles/e2-editor-v19/sdk-worker.js only; dist/ untouched) adds the LOK
     callback id and payload to each document-invalidated event, which the script records with its revision;
+  * --skip-stale (what-if, added after the first eight runs): stale re-blits are counted but NOT passed to the native
+    call, so the page pays nothing for paint()'s whole-canvas re-blit (the overlay is drawn over old pixels; timing
+    only).  Fresh blits are always native, and each one is logged [t, dy, height, ms];
   * --page v58 serves the v58 page (537d62d7..., bytes from git 05f46923^) from the mirror instead of dist's.
 
-Usage: blit_bytes_probe.py --page {current,v58} + the probe's own arguments (--browser, --document, --gap, --chars,
+Usage: blit_bytes_probe.py --page {current,v58} [--skip-stale] + the probe's own arguments (--browser, --document, --gap, --chars,
 --out).  The report's `runner` says what ran; its `page` is the hash of the page actually served."""
 import hashlib, json, statistics, subprocess, sys
 from pathlib import Path
@@ -32,6 +35,9 @@ assert BASE.startswith("dbad93c0dcf27fbf"), BASE
 V58_PAGE = "537d62d73b8a38d56210fc1df3bf332155b0194a1304ab6b946d657cfd53eb5d"
 WORKER = "profiles/e2-editor-v19/sdk-worker.js"
 
+skip_stale = "--skip-stale" in sys.argv
+if skip_stale:
+    sys.argv.remove("--skip-stale")
 page_choice = "current"
 if "--page" in sys.argv:
     i = sys.argv.index("--page")
@@ -58,7 +64,8 @@ R2_SHIM = """<script>
 (() => {
   const root = document.documentElement;
   const st = { c: { staleCalls: 0, staleBytes: 0, staleMs: 0, freshCalls: 0, freshBytes: 0, freshMs: 0, groups: 0 },
-               keys: [], groups: [], inval: [], dirty: false };
+               keys: [], groups: [], inval: [], fresh: [], dirty: false };
+  const SKIP_STALE = __SKIP_STALE__;
   const seen = new WeakSet();
   let group = null;
   const snap = () => Object.assign({}, st.c, { staleMs: Math.round(st.c.staleMs * 100) / 100,
@@ -66,13 +73,16 @@ R2_SHIM = """<script>
   setInterval(() => { if (st.dirty) { st.dirty = false; st.final = snap(); root.dataset.r2 = JSON.stringify(st); } }, 200);
   const proto = CanvasRenderingContext2D.prototype, native = proto.putImageData;
   proto.putImageData = function (image, dx, dy, ...rest) {
+    const isFresh = !seen.has(image);
     const t0 = performance.now();
-    const out = native.call(this, image, dx, dy, ...rest);
+    const out = (isFresh || !SKIP_STALE) ? native.call(this, image, dx, dy, ...rest) : undefined;
     const dt = performance.now() - t0;
     const bytes = image.width * image.height * 4;
-    if (!seen.has(image)) {
+    if (isFresh) {
       seen.add(image);
       st.c.freshCalls += 1; st.c.freshBytes += bytes; st.c.freshMs += dt;
+      st.fresh.push([Math.round(t0 * 10) / 10, dy, image.height, Math.round(dt * 100) / 100]);
+      if (st.fresh.length > 4000) st.fresh.splice(0, 1000);
     } else {
       st.c.staleCalls += 1; st.c.staleBytes += bytes; st.c.staleMs += dt;
       if (!group) {
@@ -107,7 +117,7 @@ R2_SHIM = """<script>
   };
 })();
 </script>"""
-ptl.PAINT_SHIM = R2_SHIM + s
+ptl.PAINT_SHIM = R2_SHIM.replace("__SKIP_STALE__", "true" if skip_stale else "false") + s
 
 old_read = "blits: JSON.parse(d.blits || '[]'), canvasHeight: c ? c.height : null }; })()"
 assert ptl.READ.count(old_read) == 1
@@ -183,10 +193,12 @@ out = Path(sys.argv[sys.argv.index("--out") + 1])
 report = json.loads(out.read_text())
 report["page"] = hashlib.sha256(served_page).hexdigest()
 report["pageChoice"] = page_choice
+report["skipStale"] = skip_stale
 report["runner"] = (f"DIAGNOSTIC r2-blit-bytes/blit_bytes_probe.py "
                     f"{hashlib.sha256(Path(__file__).read_bytes()).hexdigest()[:16]} over probe {BASE[:16]}"
                     f" (probe's dataset writes coalesced; native putImageData timed and counted; worker adds"
-                    f" diagLokId/diagPayload to document-invalidated; page {page_choice})")
+                    f" diagLokId/diagPayload to document-invalidated; page {page_choice}"
+                    f"{'; STALE RE-BLITS SKIPPED (what-if)' if skip_stale else ''})")
 canvas, keys = per_key(report)
 inv = invalidations(report)
 report["r2Summary"] = {

@@ -52,6 +52,17 @@ R1, read without time windows (backlog makes window attribution meaningless): af
 ### What this says (diagnostic reading; nothing here is a criterion)
 
 - **R2 is the largest main-thread cost per key left on the shipped page**: 20 ms (Chrome) and 42–46 ms (Firefox) of `putImageData` per typed character, ≈ 5/6 of it before the commit is visible. In Firefox at gap 80 that is more than half of the 80 ms between keys.
-- **The Firefox floor rise of A+B is R2 multiplied by the band count**, not the bands' rendering: per-call overhead on re-blits (≈ 0.35 ms × 22 per paint) and, separately, slow first blits of fresh band images (≈ 4.6 ms each).
+- **In Firefox, most of A+B's floor rise is R2 multiplied by the band count**: the same bytes cost ≈ 0.35 ms × 22 calls per paint against one call; five of the six paints sit on the commit path. Separately, and not yet placed on or off the commit path, Firefox's first blit of each fresh band image costs ≈ 4.6 ms (101 ms per key at gap 600, mostly during the background pass).
 - **R1 (A′) is admissible** by fable's criterion on this evidence.
 - **Registration C's premise does not hold during typing**: the engine delivered no `INVALIDATE_TILES` at all; the only rectangle the Worker could forward is the cursor's. Whether id 0 is never emitted in this engine build or only not while typing is not measured here (discovery-era reports, e.g. `../../sdk-e2/discovery/wedge-split/`, do record `invalidate-tiles` as an editor-state source).
+
+## What-if arm: the stale re-blits skipped (predictions written before the runs)
+
+`--skip-stale` (wrapper change after the eight runs; the eight reports above carry the earlier wrapper hash): the shim still counts every stale re-blit but does not pass it to the native call, so the page pays nothing for `paint()`'s whole-canvas re-blit while everything else runs as shipped. The overlay draws over old pixels; only timing is read. It bounds from above what removing R2 could buy, since a real fix would still re-blit the overlay's old and new rectangles (small). Fresh blits are logged per call. Runs: A+B page, owner document, Chrome and Firefox, gap 600 × 10 and gap 80 × 20, each paired with a same-session baseline run (no skip) immediately before it; eight reports `whatif-{base,skip}-{browser}-owner-gap{gap}.json`.
+
+Predictions:
+
+1. Baselines repeat the earlier A+B rows within run-to-run spread (commit median ± 6 ms).
+2. Commit median, skip against its baseline: Chrome gap 600 drops by 12–20 ms (≈ 5/6 of 20.3), gap 80 by 10–20; Firefox gap 600 by 25–40 ms (≈ 5/6 of 46), gap 80 by 20–35.
+3. On screen median drops in both browsers, by less than the commit (the visible band's render is a Worker round trip that the re-blits only delay when they overlap it): Chrome 5–20 ms, Firefox 10–35 ms.
+4. Fresh blits are unchanged in count; in Firefox the per-call time of fresh blits stays ≈ 4–5 ms with or without the skip (i.e. it is not the stale re-blits' doing).
