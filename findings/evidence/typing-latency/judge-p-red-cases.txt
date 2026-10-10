@@ -1,0 +1,190 @@
+=== base: the four shipped reports repaired (PASS)
+== chrome
+        chrome  p1: canvas 725 x 17929 (51994100 bytes)
+  PASS  chrome  p1 every key typed and measured: 10 of 10 (keys seen 10)
+  PASS  chrome  p1 every key's re-blitted bytes <= 2 % of the canvas: max 0.000769%
+        chrome  123b: canvas 1490 x 36847 (219608120 bytes)
+  PASS  chrome  123b every key typed: 3 of 3
+  PASS  chrome  123b no TILE_NOT_PAINTED toast: 0 of 2 toasts
+  PASS  chrome  123b every band current after the last key: 700.0 ms (the time is recorded, not gated)
+  PASS  chrome  123b the last band blitted after the last key: at y 35805, 1042 rows, 700.0 ms after
+== firefox
+        firefox p1: canvas 900 x 22257 (80125200 bytes)
+  PASS  firefox p1 every key typed and measured: 10 of 10 (keys seen 10)
+  PASS  firefox p1 every key's re-blitted bytes <= 2 % of the canvas: max 0.000499%
+        firefox 123b: canvas 1490 x 36847 (219608120 bytes)
+  PASS  firefox 123b every key typed: 3 of 3
+  PASS  firefox 123b no TILE_NOT_PAINTED toast: 0 of 2 toasts
+  PASS  firefox 123b every band current after the last key: 700.0 ms (the time is recorded, not gated)
+  PASS  firefox 123b the last band blitted after the last key: at y 35805, 1042 rows, 700.0 ms after
+PASS: both browsers, every cell
+exit 0
+=== K1 chrome p1, key 4 at 3 % of the canvas (FAIL chrome p1 bytes only)
+== chrome
+        chrome  p1: canvas 725 x 17929 (51994100 bytes)
+  PASS  chrome  p1 every key typed and measured: 10 of 10 (keys seen 10)
+  FAIL  chrome  p1 every key's re-blitted bytes <= 2 % of the canvas: max 3.000000%; keys over: [4]
+        chrome  123b: canvas 1490 x 36847 (219608120 bytes)
+  PASS  chrome  123b every key typed: 3 of 3
+  PASS  chrome  123b no TILE_NOT_PAINTED toast: 0 of 2 toasts
+  PASS  chrome  123b every band current after the last key: 700.0 ms (the time is recorded, not gated)
+  PASS  chrome  123b the last band blitted after the last key: at y 35805, 1042 rows, 700.0 ms after
+== firefox
+        firefox p1: canvas 900 x 22257 (80125200 bytes)
+  PASS  firefox p1 every key typed and measured: 10 of 10 (keys seen 10)
+  PASS  firefox p1 every key's re-blitted bytes <= 2 % of the canvas: max 0.000499%
+        firefox 123b: canvas 1490 x 36847 (219608120 bytes)
+  PASS  firefox 123b every key typed: 3 of 3
+  PASS  firefox 123b no TILE_NOT_PAINTED toast: 0 of 2 toasts
+  PASS  firefox 123b every band current after the last key: 700.0 ms (the time is recorded, not gated)
+  PASS  firefox 123b the last band blitted after the last key: at y 35805, 1042 rows, 700.0 ms after
+FAIL: chrome p1 every key's re-blitted bytes <= 2 % of the canvas
+exit 1
+=== K2 firefox 123b, one TILE_NOT_PAINTED toast added (FAIL firefox 123b toast only)
+== chrome
+        chrome  p1: canvas 725 x 17929 (51994100 bytes)
+  PASS  chrome  p1 every key typed and measured: 10 of 10 (keys seen 10)
+  PASS  chrome  p1 every key's re-blitted bytes <= 2 % of the canvas: max 0.000769%
+        chrome  123b: canvas 1490 x 36847 (219608120 bytes)
+  PASS  chrome  123b every key typed: 3 of 3
+  PASS  chrome  123b no TILE_NOT_PAINTED toast: 0 of 2 toasts
+  PASS  chrome  123b every band current after the last key: 700.0 ms (the time is recorded, not gated)
+  PASS  chrome  123b the last band blitted after the last key: at y 35805, 1042 rows, 700.0 ms after
+== firefox
+        firefox p1: canvas 900 x 22257 (80125200 bytes)
+  PASS  firefox p1 every key typed and measured: 10 of 10 (keys seen 10)
+  PASS  firefox p1 every key's re-blitted bytes <= 2 % of the canvas: max 0.000499%
+        firefox 123b: canvas 1490 x 36847 (219608120 bytes)
+  PASS  firefox 123b every key typed: 3 of 3
+  FAIL  firefox 123b no TILE_NOT_PAINTED toast: 1 of 3 toasts
+  PASS  firefox 123b every band current after the last key: 700.0 ms (the time is recorded, not gated)
+  PASS  firefox 123b the last band blitted after the last key: at y 35805, 1042 rows, 700.0 ms after
+FAIL: firefox 123b no TILE_NOT_PAINTED toast
+exit 1
+=== K3 chrome p1, wrapper hash swapped (REFUSED)
+== chrome
+  REFUSED chrome  p1: case-chrome-p1.json is bound to {'runner': "DIAGNOSTIC r2-blit-bytes/blit_bytes_probe.py 0e3258418e5f55c5 over probe dbad93c0dcf27fbf (probe's"}, not {'page': '18c8afbe29e8a5472a7a5eb0fdfae8f94a3e7a95147972c83e192fc69ebeef1a', 'browser': 'chrome', 'document': 'owner', 'gap': 600, 'chars': 10, 'pageChoice': 'current', 'skipStale': False, 'dprRequested': None, 'windowRequested': None, 'runner': 'DIAGNOSTIC r2-blit-bytes/blit_bytes_probe.py 3dad37cbb03a769c over probe dbad93c0dcf27fbf ...', 'raw.dpr': 1}
+        chrome  p1: canvas 725 x 17929 (51994100 bytes)
+  PASS  chrome  p1 every key typed and measured: 10 of 10 (keys seen 10)
+  PASS  chrome  p1 every key's re-blitted bytes <= 2 % of the canvas: max 0.000769%
+        chrome  123b: canvas 1490 x 36847 (219608120 bytes)
+  PASS  chrome  123b every key typed: 3 of 3
+  PASS  chrome  123b no TILE_NOT_PAINTED toast: 0 of 2 toasts
+  PASS  chrome  123b every band current after the last key: 700.0 ms (the time is recorded, not gated)
+  PASS  chrome  123b the last band blitted after the last key: at y 35805, 1042 rows, 700.0 ms after
+== firefox
+        firefox p1: canvas 900 x 22257 (80125200 bytes)
+  PASS  firefox p1 every key typed and measured: 10 of 10 (keys seen 10)
+  PASS  firefox p1 every key's re-blitted bytes <= 2 % of the canvas: max 0.000499%
+        firefox 123b: canvas 1490 x 36847 (219608120 bytes)
+  PASS  firefox 123b every key typed: 3 of 3
+  PASS  firefox 123b no TILE_NOT_PAINTED toast: 0 of 2 toasts
+  PASS  firefox 123b every band current after the last key: 700.0 ms (the time is recorded, not gated)
+  PASS  firefox 123b the last band blitted after the last key: at y 35805, 1042 rows, 700.0 ms after
+REFUSED: chrome p1
+exit 2
+=== K4 firefox 123b, no toast recorded (FAIL firefox 123b toast only)
+== chrome
+        chrome  p1: canvas 725 x 17929 (51994100 bytes)
+  PASS  chrome  p1 every key typed and measured: 10 of 10 (keys seen 10)
+  PASS  chrome  p1 every key's re-blitted bytes <= 2 % of the canvas: max 0.000769%
+        chrome  123b: canvas 1490 x 36847 (219608120 bytes)
+  PASS  chrome  123b every key typed: 3 of 3
+  PASS  chrome  123b no TILE_NOT_PAINTED toast: 0 of 2 toasts
+  PASS  chrome  123b every band current after the last key: 700.0 ms (the time is recorded, not gated)
+  PASS  chrome  123b the last band blitted after the last key: at y 35805, 1042 rows, 700.0 ms after
+== firefox
+        firefox p1: canvas 900 x 22257 (80125200 bytes)
+  PASS  firefox p1 every key typed and measured: 10 of 10 (keys seen 10)
+  PASS  firefox p1 every key's re-blitted bytes <= 2 % of the canvas: max 0.000499%
+        firefox 123b: canvas 1490 x 36847 (219608120 bytes)
+  PASS  firefox 123b every key typed: 3 of 3
+  FAIL  firefox 123b no TILE_NOT_PAINTED toast: no toast recorded (recorder did not run)
+  PASS  firefox 123b every band current after the last key: 700.0 ms (the time is recorded, not gated)
+  PASS  firefox 123b the last band blitted after the last key: at y 35805, 1042 rows, 700.0 ms after
+FAIL: firefox 123b no TILE_NOT_PAINTED toast
+exit 1
+=== K5 chrome 123b, allCurrentAfterLastKeyMs None (FAIL chrome 123b all-current only)
+== chrome
+        chrome  p1: canvas 725 x 17929 (51994100 bytes)
+  PASS  chrome  p1 every key typed and measured: 10 of 10 (keys seen 10)
+  PASS  chrome  p1 every key's re-blitted bytes <= 2 % of the canvas: max 0.000769%
+        chrome  123b: canvas 1490 x 36847 (219608120 bytes)
+  PASS  chrome  123b every key typed: 3 of 3
+  PASS  chrome  123b no TILE_NOT_PAINTED toast: 0 of 2 toasts
+  FAIL  chrome  123b every band current after the last key: None
+  PASS  chrome  123b the last band blitted after the last key: at y 35805, 1042 rows, 700.0 ms after
+== firefox
+        firefox p1: canvas 900 x 22257 (80125200 bytes)
+  PASS  firefox p1 every key typed and measured: 10 of 10 (keys seen 10)
+  PASS  firefox p1 every key's re-blitted bytes <= 2 % of the canvas: max 0.000499%
+        firefox 123b: canvas 1490 x 36847 (219608120 bytes)
+  PASS  firefox 123b every key typed: 3 of 3
+  PASS  firefox 123b no TILE_NOT_PAINTED toast: 0 of 2 toasts
+  PASS  firefox 123b every band current after the last key: 700.0 ms (the time is recorded, not gated)
+  PASS  firefox 123b the last band blitted after the last key: at y 35805, 1042 rows, 700.0 ms after
+FAIL: chrome 123b every band current after the last key
+exit 1
+=== K6 chrome 123b, last-band blit removed (FAIL chrome 123b last band only)
+== chrome
+        chrome  p1: canvas 725 x 17929 (51994100 bytes)
+  PASS  chrome  p1 every key typed and measured: 10 of 10 (keys seen 10)
+  PASS  chrome  p1 every key's re-blitted bytes <= 2 % of the canvas: max 0.000769%
+        chrome  123b: canvas 1490 x 36847 (219608120 bytes)
+  PASS  chrome  123b every key typed: 3 of 3
+  PASS  chrome  123b no TILE_NOT_PAINTED toast: 0 of 2 toasts
+  PASS  chrome  123b every band current after the last key: 700.0 ms (the time is recorded, not gated)
+  FAIL  chrome  123b the last band blitted after the last key: never
+== firefox
+        firefox p1: canvas 900 x 22257 (80125200 bytes)
+  PASS  firefox p1 every key typed and measured: 10 of 10 (keys seen 10)
+  PASS  firefox p1 every key's re-blitted bytes <= 2 % of the canvas: max 0.000499%
+        firefox 123b: canvas 1490 x 36847 (219608120 bytes)
+  PASS  firefox 123b every key typed: 3 of 3
+  PASS  firefox 123b no TILE_NOT_PAINTED toast: 0 of 2 toasts
+  PASS  firefox 123b every band current after the last key: 700.0 ms (the time is recorded, not gated)
+  PASS  firefox 123b the last band blitted after the last key: at y 35805, 1042 rows, 700.0 ms after
+FAIL: chrome 123b the last band blitted after the last key
+exit 1
+=== K7 firefox p1, key 3's snapshot missing (FAIL firefox p1 typed only)
+== chrome
+        chrome  p1: canvas 725 x 17929 (51994100 bytes)
+  PASS  chrome  p1 every key typed and measured: 10 of 10 (keys seen 10)
+  PASS  chrome  p1 every key's re-blitted bytes <= 2 % of the canvas: max 0.000769%
+        chrome  123b: canvas 1490 x 36847 (219608120 bytes)
+  PASS  chrome  123b every key typed: 3 of 3
+  PASS  chrome  123b no TILE_NOT_PAINTED toast: 0 of 2 toasts
+  PASS  chrome  123b every band current after the last key: 700.0 ms (the time is recorded, not gated)
+  PASS  chrome  123b the last band blitted after the last key: at y 35805, 1042 rows, 700.0 ms after
+== firefox
+        firefox p1: canvas 900 x 22257 (80125200 bytes)
+  FAIL  firefox p1 every key typed and measured: 9 of 10 (keys seen 9)
+  PASS  firefox p1 every key's re-blitted bytes <= 2 % of the canvas: max 0.000998%
+        firefox 123b: canvas 1490 x 36847 (219608120 bytes)
+  PASS  firefox 123b every key typed: 3 of 3
+  PASS  firefox 123b no TILE_NOT_PAINTED toast: 0 of 2 toasts
+  PASS  firefox 123b every band current after the last key: 700.0 ms (the time is recorded, not gated)
+  PASS  firefox 123b the last band blitted after the last key: at y 35805, 1042 rows, 700.0 ms after
+FAIL: firefox p1 every key typed and measured
+exit 1
+=== real: the four shipped reports unchanged (FAIL, 8 cells)
+== chrome
+        chrome  p1: canvas 725 x 17929 (51994100 bytes)
+  PASS  chrome  p1 every key typed and measured: 10 of 10 (keys seen 10)
+  FAIL  chrome  p1 every key's re-blitted bytes <= 2 % of the canvas: max 600.000000%; keys over: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+        chrome  123b: canvas 1490 x 36847 (219608120 bytes)
+  PASS  chrome  123b every key typed: 3 of 3
+  FAIL  chrome  123b no TILE_NOT_PAINTED toast: 2 of 4 toasts
+  FAIL  chrome  123b every band current after the last key: None
+  FAIL  chrome  123b the last band blitted after the last key: never
+== firefox
+        firefox p1: canvas 900 x 22257 (80125200 bytes)
+  PASS  firefox p1 every key typed and measured: 10 of 10 (keys seen 10)
+  FAIL  firefox p1 every key's re-blitted bytes <= 2 % of the canvas: max 1100.000000%; keys over: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+        firefox 123b: canvas 1490 x 36847 (219608120 bytes)
+  PASS  firefox 123b every key typed: 3 of 3
+  FAIL  firefox 123b no TILE_NOT_PAINTED toast: 2 of 4 toasts
+  FAIL  firefox 123b every band current after the last key: None
+  FAIL  firefox 123b the last band blitted after the last key: never
+FAIL: chrome p1 every key's re-blitted bytes <= 2 % of the canvas, chrome 123b no TILE_NOT_PAINTED toast, chrome 123b every band current after the last key, chrome 123b the last band blitted after the last key, firefox p1 every key's re-blitted bytes <= 2 % of the canvas, firefox 123b no TILE_NOT_PAINTED toast, firefox 123b every band current after the last key, firefox 123b the last band blitted after the last key
+exit 1

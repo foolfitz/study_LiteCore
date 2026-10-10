@@ -26,3 +26,9 @@ Against the predictions: P1 both FAIL (hit). Chrome 123-B FAIL (hit), canvas siz
 ### Firefox 123-B at 797x1000 (prediction written before the run)
 
 Canvas 1490 × 36,847, last band 19 rows at y 36,828; at least one `TILE_NOT_PAINTED` toast, `allCurrent` `None`, the last band never blitted → FAIL on all three cells. Script `red-shipped-ff797.sh`, log `red-shipped-ff797-2026-10-10.log`.
+
+Result (2026-10-10 01:13 UTC; `shipped-firefox-123b.json`, exit 0): canvas **1490 × 36,847** (hit), toasts `重繪失敗：TILE_NOT_PAINTED…` at 7,756.2 and 10,261.9 ms, `allCurrent` `None`, lowest band ever blitted new y 35,805 → **FAIL on all three cells (hit)**. `judge_p.py --page 18c8afbe… --prefix shipped` over the four shipped reports: 8 cells FAIL, exit 1 (`judge-shipped.txt`; the reading before the re-run, with the 800-px Firefox report, is `judge-shipped-before-ff797.txt`).
+
+## judge_p.py's own red cases (spec §16.3, last point)
+
+`../judge_p_red_cases.py` → `../judge-p-red-cases.txt`. No report passes before P exists, so the base is the four shipped reports repaired in a temp directory into a pass (P1: every key 400 bytes; 123-B: TILE_NOT_PAINTED toasts removed, `allCurrent` 700, one blit of the merged 1,042-row last band appended). Every case came out as designed: base PASS (0); K1 one key at 3 % → only that P1 cell (1); K2 one TILE_NOT_PAINTED toast → only that 123-B cell (1); K3 wrapper hash swapped → REFUSED (2); K4 no toast recorded → only the toast cell (1); K5 `allCurrent` None → only that cell (1); K6 last-band blit removed → only that cell (1); K7 one key's snapshot missing → only the typed cell (1); the real shipped reports → 8 cells FAIL (1).
