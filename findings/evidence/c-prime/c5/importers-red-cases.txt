@@ -1,0 +1,29 @@
+RED CASE 1: --base HEAD after the port is committed (no tools/ module differs)
+base HEAD  changed []
+counted runners from chain-2026-10-10b.sh: ['check_m3_assets', 'check_m3_host_entry', 'check_m3_locks', 'check_m3_page_honesty', 'check_m3_production_ui', 'check_m3_same_second', 'check_m3_versions', 'run_e2_c_product_path']
+REFUSED: no tools/ module differs from the base
+exit 2
+
+RED CASE 2: a chain script that names no runner
+base HEAD~1  changed ['check_m3_page_honesty', 'run_e2_c_page_smoke', 'run_e2_c_product_path']
+counted runners from empty-chain.sh: []
+REFUSED: the chain script names no counted runner
+exit 2
+
+RED CASE 3: a chain naming a runner that imports nothing ported (check_m3_skeleton_open, probe_canvas_limit)
+base HEAD~1  changed ['check_m3_page_honesty', 'run_e2_c_page_smoke', 'run_e2_c_product_path']
+counted runners from other-chain.sh: ['check_m3_skeleton_open', 'probe_canvas_limit']
+IMPORTS  check_m3_skeleton_open  via check_m3_skeleton_open -> run_e2_c_page_smoke
+IMPORTS  probe_canvas_limit  via probe_canvas_limit -> run_e2_c_page_smoke
+SUMMARY 2 of 2 counted runners reach a changed module
+exit 0
+
+(The two tools RED CASE 3 named both import run_e2_c_page_smoke, so it is not a red case; kept as run. 3b uses modules that import nothing ported.)
+
+RED CASE 3b: a chain naming r7_support and run_browser_probe
+base a0925990~1  changed ['check_m3_page_honesty', 'run_e2_c_page_smoke', 'run_e2_c_product_path']
+counted runners from other-chain.sh: ['r7_support', 'run_browser_probe']
+clear    r7_support
+clear    run_browser_probe
+SUMMARY 0 of 2 counted runners reach a changed module
+exit 0
