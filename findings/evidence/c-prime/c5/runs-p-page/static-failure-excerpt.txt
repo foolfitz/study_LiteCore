@@ -1,0 +1,47 @@
+python3 -m unittest tests/test_e2_corpus.py tests/test_e2_c_shell_bundle.py \
+	tests/test_e2_c_matrix.py tests/test_caret_from_columns.py \
+	tests/test_inline_styles_of.py tests/test_ink_rows_caret.py \
+	tests/test_product_path_mutations.py tests/test_session_liveness.py
+............................................................FFFFFFFFFFFFFFFFFF.....................................
+======================================================================
+FAIL: test_a_bar_that_fell_between_two_columns_is_not_ink_and_not_a_bridge (tests.test_ink_rows_caret.InkRowsCaretTest.test_a_bar_that_fell_between_two_columns_is_not_ink_and_not_a_bridge)
+The other half of the one-pixel-wide problem.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tests/test_ink_rows_caret.py", line 313, in test_a_bar_that_fell_between_two_columns_is_not_ink_and_not_a_bridge
+    scan = _run(pixels, _sink(caret_x=250.5), exclude=True)
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tests/test_ink_rows_caret.py", line 149, in _run
+    assert done.returncode == 0, done.stderr
+           ^^^^^^^^^^^^^^^^^^^^
+AssertionError: file:///tmp/tmppnli6tka.mjs:29
+  const p = (c.dataset.window || '').trim().split(/\s+/).map(Number);
+                       ^
+
+TypeError: Cannot read properties of undefined (reading 'window')
+    at __docWindow (file:///tmp/tmppnli6tka.mjs:29:24)
+    at file:///tmp/tmppnli6tka.mjs:274:13
+    at file:///tmp/tmppnli6tka.mjs:277:3
+    at ModuleJob.run (node:internal/modules/esm/module_job:439:25)
+    at async node:internal/modules/esm/loader:633:26
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)
+
+Node.js v24.16.0
+
+
+======================================================================
+FAIL: test_a_line_of_glyphs_is_not_mistaken_for_a_caret (tests.test_ink_rows_caret.InkRowsCaretTest.test_a_line_of_glyphs_is_not_mistaken_for_a_caret)
+The sink pointed at ordinary text: dense per row, sparse per column.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tests/test_ink_rows_caret.py", line 248, in test_a_line_of_glyphs_is_not_mistaken_for_a_caret
+      1 FAIL: test_a_bar_that_fell_between_two_columns_is_not_ink_and_not_a_bridge
+      1 FAIL: test_a_line_of_glyphs_is_not_mistaken_for_a_caret
+      3 FAIL: test_a_page_border_under_a_stale_sink_is_not_a_caret
+      1 FAIL: test_a_stale_sink_position_excludes_nothing
+      1 FAIL: test_no_sink_at_all_is_reported_rather_than_assumed
+      1 FAIL: test_the_antialiased_ends_do_not_make_it_decline
+      6 FAIL: test_the_bar_is_found_when_the_sink_lands_columns_off
+      1 FAIL: test_the_caret_bridges_the_two_lines_when_it_is_left_in
+      1 FAIL: test_the_caret_is_taken_out_and_the_two_lines_come_apart
+      1 FAIL: test_the_sink_is_converted_from_css_pixels_to_backing_pixels
+      1 FAIL: test_the_text_either_side_survives_the_exclusion
