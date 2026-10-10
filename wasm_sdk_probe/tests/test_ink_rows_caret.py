@@ -127,7 +127,7 @@ for (const [x, y, v] of %(pixels)s) {
 const sink = %(sink)s;
 globalThis.document = { querySelector(selector) {
   if (selector === '#canvas') return {
-    width: WIDTH, height: HEIGHT,
+    width: WIDTH, height: HEIGHT, dataset: {},
     getContext: () => ({ getImageData: () => ({ data }) }),
     getBoundingClientRect: () => ({ left: 0, top: 0,
                                     width: CSS[0], height: CSS[1] }),
