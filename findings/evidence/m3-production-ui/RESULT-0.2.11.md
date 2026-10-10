@@ -59,3 +59,7 @@ Descriptive, the shell-regression question (`old-vs-new-v19.txt`): v19 on the ol
 ## Static
 
 `make test-e2-c-static` exit 0 after the count (node 189 + 5, python 108; `../release-0.2.11/test-e2-c-static-after-count.txt`), as after the freeze and the re-pin.
+
+## Owner hand test (2026-10-10, appended)
+
+Asked to try, in Chrome and Firefox on the host, typing (and at 150 % / 200 % if a machine had it), watching for the toast 「重繪失敗」. Before the test the served page was checked: `engine/files/e2-editor-app.js.gz` and `.zst` in the host app both decompress to `36c2b18b…`, the app's `info.xml` says 0.2.11. The owner's reply, verbatim: "已手動測試，目前看起來正常". Two further observations from the same test, registered as new findings (not regressions of this release; neither code path changed in P): (1) in a long document, moving the caret down with the Down arrow does not scroll the view to follow it; (2) every arrow-key caret move flashes the state pill 「處理中」 although the content does not change.
