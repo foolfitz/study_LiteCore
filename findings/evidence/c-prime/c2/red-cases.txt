@@ -1,0 +1,66 @@
+## red case: wide-base-chrome-owner-gap80.json (window 1400x1000)
+OVERRIDE browsers = ('chrome',) (red-case run; the counted binding is ('chrome', 'firefox'))
+== chrome
+  PASS  chrome  owner-gap80 every key committed: 20 of 20
+  PASS  chrome  owner-gap80 every key on screen: 20 of 20
+  FAIL  chrome  owner-gap80 on-screen median: 368.5 (needs < 70)
+  FAIL  chrome  owner-gap80 on-screen max: 595.8 (needs < 150)
+  FAIL  chrome  owner-gap80 (a) every key's commit < 2 x gap: max 516.9 (needs < 160); keys at or over: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+  FAIL  chrome  owner-gap80 (b) median commit < gap: 425.7 (needs < 80)
+  RECORD  chrome  owner-gap80 (ii) whole canvas current after the last key: 1133.8 ms (C3 gates this on C′)
+        chrome  owner-gap80: canvas rows 44514 (width unrecorded)
+  RECORD  chrome  owner-gap80 backlog b_i: [0.0, 230.9, 262.2, 294.2, 302.4, 284.6, 264.6, 268.4, 272.5, 257.6, 259.4, 279.7, 258.2, 244.6, 245.5, 264.7, 261.9, 257.3, 257.6, 245]
+  RECORD  chrome  owner-gap80 first-five / last-five median commit: 465.2 / 408
+FAIL: chrome owner-gap80 on-screen median, chrome owner-gap80 on-screen max, chrome owner-gap80 (a) every key's commit < 2 x gap, chrome owner-gap80 (b) median commit < gap
+exit 1
+## red case: wide-skip-firefox-owner-gap80.json (window 1400x1000)
+OVERRIDE browsers = ('firefox',) (red-case run; the counted binding is ('chrome', 'firefox'))
+== firefox
+  PASS  firefox owner-gap80 every key committed: 20 of 20
+  PASS  firefox owner-gap80 every key on screen: 20 of 20
+  PASS  firefox owner-gap80 on-screen median: 81.6 (needs < 90)
+  PASS  firefox owner-gap80 on-screen max: 122.5 (needs < 150)
+  FAIL  firefox owner-gap80 (a) every key's commit < 2 x gap: max 214.5 (needs < 160); keys at or over: [2, 3, 5, 6, 7, 9, 11, 12, 14]
+  FAIL  firefox owner-gap80 (b) median commit < gap: 158.8 (needs < 80)
+  RECORD  firefox owner-gap80 (ii) whole canvas current after the last key: 2200.9 ms (C3 gates this on C′)
+        firefox owner-gap80: canvas rows 44514 (width unrecorded)
+  RECORD  firefox owner-gap80 backlog b_i: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 67.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+  RECORD  firefox owner-gap80 first-five / last-five median commit: 158.8 / 142.8
+FAIL: firefox owner-gap80 (a) every key's commit < 2 x gap, firefox owner-gap80 (b) median commit < gap
+exit 1
+## red case: dpr2-base-firefox-owner-gap80.json (window none)
+OVERRIDE window = None (red-case run; the counted binding is [1400, 1000])
+OVERRIDE browsers = ('firefox',) (red-case run; the counted binding is ('chrome', 'firefox'))
+== firefox
+  PASS  firefox owner-gap80 every key committed: 20 of 20
+  PASS  firefox owner-gap80 every key on screen: 20 of 20
+  PASS  firefox owner-gap80 on-screen median: 68.9 (needs < 90)
+  PASS  firefox owner-gap80 on-screen max: 115.9 (needs < 150)
+  FAIL  firefox owner-gap80 (a) every key's commit < 2 x gap: max 171.2 (needs < 160); keys at or over: [6]
+  FAIL  firefox owner-gap80 (b) median commit < gap: 105.6 (needs < 80)
+  RECORD  firefox owner-gap80 (ii) whole canvas current after the last key: 603.5 ms (C3 gates this on C′)
+        firefox owner-gap80: canvas rows 30616 (width unrecorded)
+  RECORD  firefox owner-gap80 backlog b_i: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+  RECORD  firefox owner-gap80 first-five / last-five median commit: 101.8 / 105.6
+FAIL: firefox owner-gap80 (a) every key's commit < 2 x gap, firefox owner-gap80 (b) median commit < gap
+exit 1
+## red case: dpr2-skip-chrome-owner-gap80.json (window none)
+OVERRIDE window = None (red-case run; the counted binding is [1400, 1000])
+OVERRIDE browsers = ('chrome',) (red-case run; the counted binding is ('chrome', 'firefox'))
+== chrome
+  PASS  chrome  owner-gap80 every key committed: 20 of 20
+  PASS  chrome  owner-gap80 every key on screen: 20 of 20
+  PASS  chrome  owner-gap80 on-screen median: 33.3 (needs < 70)
+  PASS  chrome  owner-gap80 on-screen max: 49.0 (needs < 150)
+  PASS  chrome  owner-gap80 (a) every key's commit < 2 x gap: max 50.2 (needs < 160)
+  PASS  chrome  owner-gap80 (b) median commit < gap: 34.5 (needs < 80)
+  RECORD  chrome  owner-gap80 (ii) whole canvas current after the last key: None ms (C3 gates this on C′)
+        chrome  owner-gap80: canvas rows 35858 (width unrecorded)
+  RECORD  chrome  owner-gap80 backlog b_i: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+  RECORD  chrome  owner-gap80 first-five / last-five median commit: 34.1 / 34.5
+PASS: both browsers, every cell
+exit 0
+## counted binding on a P3 report (must be REFUSED: page placeholder, runner differs)
+  RECORD  firefox owner-gap80 first-five / last-five median commit: 85.2 / 86.3
+REFUSED: firefox owner-gap80; also FAIL: firefox owner-gap80 (b) median commit < gap
+exit 2
