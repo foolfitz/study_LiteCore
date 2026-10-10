@@ -32,6 +32,9 @@ d = copy_set("noise"); edit(d, "v19", "firefox", 1, "clear-format-removes-every-
 cases.append(("firefox v19 clear-format NNN->PNN, a noise cell -> 0", (0,), run("--product-path", PP11, d)))
 d = copy_set("missing"); (d / "e2-editor-v8-firefox-r3.json").unlink()
 cases.append(("one report missing -> REFUSED", (2,), run("--product-path", PP11, d)))
+# codex review 2026-10-11: a mistyped candidate directory (0.2.10's set) compared with 0 differences.
+cases.append(("the 0.2.10 set given as the candidate, --cand-runner of the ported runner -> REFUSED", (2,),
+              run("--product-path", PP11, EV / "release-0.2.10/product-path", "--cand-runner", "aa9a22806d10ed71")))
 locks = sorted((EV / "m3-locks/runs").glob("2026-10-10T04*.json"))[-1]
 cases.append(("locks counted report against itself -> 0", (0,), run("--m3", "locks", locks, locks)))
 j = json.loads(locks.read_text()); first = next(iter(j["score"]["tally"])); j["score"]["tally"][first]["pass"] -= 1

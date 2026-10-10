@@ -80,7 +80,8 @@ SHIM = """<script>
       });
     }
     postMessage(message, ...rest) {
-      if (message && message.kind === "request" && message.operation === "render")
+      // DocumentHandle.render() posts operation "paint" (sdk/document-sdk.js render()).
+      if (message && message.kind === "request" && message.operation === "paint")
         asked.set(message.requestId, { t: performance.now(), changes: counter() });
       return super.postMessage(message, ...rest);
     }
@@ -108,8 +109,15 @@ SHIM = """<script>
 })();
 </script>"""
 READ = """(() => { const c = document.querySelector('#canvas'), d = document.documentElement.dataset;
+  // The document rows the desk shows now, as the page's visibleDocRows() measures them.
+  const paper = document.querySelector('#paper').getBoundingClientRect();
+  const desk = document.querySelector('#desk').getBoundingClientRect();
+  const doc = Number((c.dataset.window || '').split(' ')[0]);
+  const rows = paper.height ? doc / paper.height : 0;
+  const view = [Math.floor((Math.max(desk.top, paper.top) - paper.top) * rows),
+                Math.ceil((Math.min(desk.bottom, paper.bottom) - paper.top) * rows)];
   return { window: c.dataset.window ?? null, changes: c.dataset.changes ?? null, bands: c.dataset.bands ?? null,
-           installed: d.cpwInstalled === '1', log: JSON.parse(d.cpw || '[]'), now: performance.now() }; })()"""
+           installed: d.cpwInstalled === '1', log: JSON.parse(d.cpw || '[]'), now: performance.now(), view }; })()"""
 SCROLL = """(() => { const desk = document.querySelector('#desk');
   desk.scrollTop = ARG_F * (desk.scrollHeight - desk.clientHeight);
   return { t: performance.now(), scrollTop: desk.scrollTop }; })()"""
@@ -150,13 +158,18 @@ def judge(read: dict, since: float | None = None) -> dict:
         probe[band[0]] = {"latest": latest,
                           "current": bool(latest and latest[1] == "put" and latest[5] is not None and latest[5] >= last)}
     probe_ok = all(v["current"] for v in probe.values())
+    # The window must hold what the desk shows NOW: right after a scroll the page's scroll handler may not have
+    # run yet, and the old window, still current, is not an answer about the new place (codex review, C4).
+    view = read.get("view") or [win, win]
+    covers = win <= view[0] and view[1] <= win + rows
     # When did the window become current: the latest of the events that made each band current.
     when = None
     if probe_ok:
         when = max(probe[b[0]]["latest"][0] for b in inside)
     return {"judged": True, "docRows": doc, "winTop": win, "rows": rows, "changes": last,
             "inWindow": [b[0] for b in inside], "pageSaysCurrent": page_ok, "probeSeesCurrent": probe_ok,
-            "listedOutsideWindow": stray, "current": page_ok and probe_ok and not stray,
+            "listedOutsideWindow": stray, "view": view, "windowCoversView": covers,
+            "current": page_ok and probe_ok and not stray and covers,
             "currentAtMs": when, "sinceMs": None if (when is None or since is None) else round(when - since, 1),
             "bands": {str(k): v for k, v in probe.items()}, "listed": {str(k): v for k, v in listed.items()}}
 

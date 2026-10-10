@@ -1,5 +1,9 @@
 ## red case: wide-base-chrome-owner-gap80.json (window 1400x1000)
-OVERRIDE browsers = ('chrome',) (red-case run; the counted binding is ('chrome', 'firefox'))
+$ judge_c2.py --report chrome:owner-gap80=/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/typing-latency/r2-blit-bytes/wide-base-chrome-owner-gap80.json --browsers chrome --slots owner-gap80 --window 1400x1000 --page 18c8afbe29e8a5472a7a5eb0fdfae8f94a3e7a95147972c83e192fc69ebeef1a --runner "DIAGNOSTIC r2-blit-bytes/blit_bytes_probe.py 51f23d1333b9d280 over probe dbad93c0dcf27fbf (probe's dataset writes coalesced; native putImageData timed and counted; worker adds diagLokId/diagPayload to document-invalidated; page current; devicePixelRatio 2.0 (Chrome: Emulation.setDeviceMetricsOverride; Firefox: layout.css.devPixelsPerPx); CSS window 1400x1000 (Chrome: Emulation; Firefox: MOZ_HEADLESS_WIDTH/HEIGHT))"
+OVERRIDE page = '18c8afbe29e8a5472a7a5eb0fdfae8f94a3e7a95147972c83e192fc69ebeef1a' (red-case run; the counted binding is 'C-PRIME-PAGE-NOT-YET-BUILT')
+OVERRIDE runner = "DIAGNOSTIC r2-blit-bytes/blit_bytes_probe.py 51f23d1333b9d280 over probe dbad93c0dcf27fbf (probe's dataset writes coalesced; native putImageData timed and counted; worker adds diagLokId/diagPayload to document-invalidated; page current; devicePixelRatio 2.0 (Chrome: Emulation.setDeviceMetricsOverride; Firefox: layout.css.devPixelsPerPx); CSS window 1400x1000 (Chrome: Emulation; Firefox: MOZ_HEADLESS_WIDTH/HEIGHT))" (red-case run; the counted binding is 'probe_typing_latency_view.py 1412e4c863de6fcb over probe dbad93c0dcf27fbf')
+OVERRIDE slots = 'owner-gap80' (red-case run; the counted binding is 'owner-gap80,owner-gap200')
+OVERRIDE browsers = 'chrome' (red-case run; the counted binding is 'chrome,firefox')
 == chrome
   PASS  chrome  owner-gap80 every key committed: 20 of 20
   PASS  chrome  owner-gap80 every key on screen: 20 of 20
@@ -12,9 +16,13 @@ OVERRIDE browsers = ('chrome',) (red-case run; the counted binding is ('chrome',
   RECORD  chrome  owner-gap80 backlog b_i: [0.0, 230.9, 262.2, 294.2, 302.4, 284.6, 264.6, 268.4, 272.5, 257.6, 259.4, 279.7, 258.2, 244.6, 245.5, 264.7, 261.9, 257.3, 257.6, 245]
   RECORD  chrome  owner-gap80 first-five / last-five median commit: 465.2 / 408
 FAIL: chrome owner-gap80 on-screen median, chrome owner-gap80 on-screen max, chrome owner-gap80 (a) every key's commit < 2 x gap, chrome owner-gap80 (b) median commit < gap
-exit 1
+exit 1 (wanted 1) -> as required
 ## red case: wide-skip-firefox-owner-gap80.json (window 1400x1000)
-OVERRIDE browsers = ('firefox',) (red-case run; the counted binding is ('chrome', 'firefox'))
+$ judge_c2.py --report firefox:owner-gap80=/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/typing-latency/r2-blit-bytes/wide-skip-firefox-owner-gap80.json --browsers firefox --slots owner-gap80 --window 1400x1000 --page 18c8afbe29e8a5472a7a5eb0fdfae8f94a3e7a95147972c83e192fc69ebeef1a --runner "DIAGNOSTIC r2-blit-bytes/blit_bytes_probe.py 51f23d1333b9d280 over probe dbad93c0dcf27fbf (probe's dataset writes coalesced; native putImageData timed and counted; worker adds diagLokId/diagPayload to document-invalidated; page current; STALE RE-BLITS SKIPPED (what-if); devicePixelRatio 2.0 (Chrome: Emulation.setDeviceMetricsOverride; Firefox: layout.css.devPixelsPerPx); CSS window 1400x1000 (Chrome: Emulation; Firefox: MOZ_HEADLESS_WIDTH/HEIGHT))"
+OVERRIDE page = '18c8afbe29e8a5472a7a5eb0fdfae8f94a3e7a95147972c83e192fc69ebeef1a' (red-case run; the counted binding is 'C-PRIME-PAGE-NOT-YET-BUILT')
+OVERRIDE runner = "DIAGNOSTIC r2-blit-bytes/blit_bytes_probe.py 51f23d1333b9d280 over probe dbad93c0dcf27fbf (probe's dataset writes coalesced; native putImageData timed and counted; worker adds diagLokId/diagPayload to document-invalidated; page current; STALE RE-BLITS SKIPPED (what-if); devicePixelRatio 2.0 (Chrome: Emulation.setDeviceMetricsOverride; Firefox: layout.css.devPixelsPerPx); CSS window 1400x1000 (Chrome: Emulation; Firefox: MOZ_HEADLESS_WIDTH/HEIGHT))" (red-case run; the counted binding is 'probe_typing_latency_view.py 1412e4c863de6fcb over probe dbad93c0dcf27fbf')
+OVERRIDE slots = 'owner-gap80' (red-case run; the counted binding is 'owner-gap80,owner-gap200')
+OVERRIDE browsers = 'firefox' (red-case run; the counted binding is 'chrome,firefox')
 == firefox
   PASS  firefox owner-gap80 every key committed: 20 of 20
   PASS  firefox owner-gap80 every key on screen: 20 of 20
@@ -27,10 +35,14 @@ OVERRIDE browsers = ('firefox',) (red-case run; the counted binding is ('chrome'
   RECORD  firefox owner-gap80 backlog b_i: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 67.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
   RECORD  firefox owner-gap80 first-five / last-five median commit: 158.8 / 142.8
 FAIL: firefox owner-gap80 (a) every key's commit < 2 x gap, firefox owner-gap80 (b) median commit < gap
-exit 1
+exit 1 (wanted 1) -> as required
 ## red case: dpr2-base-firefox-owner-gap80.json (window none)
+$ judge_c2.py --report firefox:owner-gap80=/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/typing-latency/r2-blit-bytes/dpr2-base-firefox-owner-gap80.json --browsers firefox --slots owner-gap80 --window none --page 18c8afbe29e8a5472a7a5eb0fdfae8f94a3e7a95147972c83e192fc69ebeef1a --runner "DIAGNOSTIC r2-blit-bytes/blit_bytes_probe.py 62ca29469043ad89 over probe dbad93c0dcf27fbf (probe's dataset writes coalesced; native putImageData timed and counted; worker adds diagLokId/diagPayload to document-invalidated; page current; devicePixelRatio 2.0 (Chrome: Emulation.setDeviceMetricsOverride; Firefox: layout.css.devPixelsPerPx))"
+OVERRIDE page = '18c8afbe29e8a5472a7a5eb0fdfae8f94a3e7a95147972c83e192fc69ebeef1a' (red-case run; the counted binding is 'C-PRIME-PAGE-NOT-YET-BUILT')
+OVERRIDE runner = "DIAGNOSTIC r2-blit-bytes/blit_bytes_probe.py 62ca29469043ad89 over probe dbad93c0dcf27fbf (probe's dataset writes coalesced; native putImageData timed and counted; worker adds diagLokId/diagPayload to document-invalidated; page current; devicePixelRatio 2.0 (Chrome: Emulation.setDeviceMetricsOverride; Firefox: layout.css.devPixelsPerPx))" (red-case run; the counted binding is 'probe_typing_latency_view.py 1412e4c863de6fcb over probe dbad93c0dcf27fbf')
 OVERRIDE window = None (red-case run; the counted binding is [1400, 1000])
-OVERRIDE browsers = ('firefox',) (red-case run; the counted binding is ('chrome', 'firefox'))
+OVERRIDE slots = 'owner-gap80' (red-case run; the counted binding is 'owner-gap80,owner-gap200')
+OVERRIDE browsers = 'firefox' (red-case run; the counted binding is 'chrome,firefox')
 == firefox
   PASS  firefox owner-gap80 every key committed: 20 of 20
   PASS  firefox owner-gap80 every key on screen: 20 of 20
@@ -43,10 +55,14 @@ OVERRIDE browsers = ('firefox',) (red-case run; the counted binding is ('chrome'
   RECORD  firefox owner-gap80 backlog b_i: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
   RECORD  firefox owner-gap80 first-five / last-five median commit: 101.8 / 105.6
 FAIL: firefox owner-gap80 (a) every key's commit < 2 x gap, firefox owner-gap80 (b) median commit < gap
-exit 1
+exit 1 (wanted 1) -> as required
 ## red case: dpr2-skip-chrome-owner-gap80.json (window none)
+$ judge_c2.py --report chrome:owner-gap80=/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/typing-latency/r2-blit-bytes/dpr2-skip-chrome-owner-gap80.json --browsers chrome --slots owner-gap80 --window none --page 18c8afbe29e8a5472a7a5eb0fdfae8f94a3e7a95147972c83e192fc69ebeef1a --runner "DIAGNOSTIC r2-blit-bytes/blit_bytes_probe.py 62ca29469043ad89 over probe dbad93c0dcf27fbf (probe's dataset writes coalesced; native putImageData timed and counted; worker adds diagLokId/diagPayload to document-invalidated; page current; STALE RE-BLITS SKIPPED (what-if); devicePixelRatio 2.0 (Chrome: Emulation.setDeviceMetricsOverride; Firefox: layout.css.devPixelsPerPx))"
+OVERRIDE page = '18c8afbe29e8a5472a7a5eb0fdfae8f94a3e7a95147972c83e192fc69ebeef1a' (red-case run; the counted binding is 'C-PRIME-PAGE-NOT-YET-BUILT')
+OVERRIDE runner = "DIAGNOSTIC r2-blit-bytes/blit_bytes_probe.py 62ca29469043ad89 over probe dbad93c0dcf27fbf (probe's dataset writes coalesced; native putImageData timed and counted; worker adds diagLokId/diagPayload to document-invalidated; page current; STALE RE-BLITS SKIPPED (what-if); devicePixelRatio 2.0 (Chrome: Emulation.setDeviceMetricsOverride; Firefox: layout.css.devPixelsPerPx))" (red-case run; the counted binding is 'probe_typing_latency_view.py 1412e4c863de6fcb over probe dbad93c0dcf27fbf')
 OVERRIDE window = None (red-case run; the counted binding is [1400, 1000])
-OVERRIDE browsers = ('chrome',) (red-case run; the counted binding is ('chrome', 'firefox'))
+OVERRIDE slots = 'owner-gap80' (red-case run; the counted binding is 'owner-gap80,owner-gap200')
+OVERRIDE browsers = 'chrome' (red-case run; the counted binding is 'chrome,firefox')
 == chrome
   PASS  chrome  owner-gap80 every key committed: 20 of 20
   PASS  chrome  owner-gap80 every key on screen: 20 of 20
@@ -58,9 +74,25 @@ OVERRIDE browsers = ('chrome',) (red-case run; the counted binding is ('chrome',
         chrome  owner-gap80: canvas rows 35858 (width unrecorded)
   RECORD  chrome  owner-gap80 backlog b_i: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
   RECORD  chrome  owner-gap80 first-five / last-five median commit: 34.1 / 34.5
-PASS: both browsers, every cell
-exit 0
-## counted binding on a P3 report (must be REFUSED: page placeholder, runner differs)
+PASS under OVERRIDE (page, runner, window, slots, browsers): every cell judged passed -- not C2's verdict
+exit 0 (wanted 0, and the words 'under OVERRIDE') -> as required
+## red case: counted binding on a P3 report (REFUSED: page placeholder, runner differs)
+$ judge_c2.py --report firefox:owner-gap80=/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/typing-latency/p-release/p3-dpr2wide-firefox-owner-gap80.json --browsers firefox --slots owner-gap80
+OVERRIDE slots = 'owner-gap80' (red-case run; the counted binding is 'owner-gap80,owner-gap200')
+OVERRIDE browsers = 'firefox' (red-case run; the counted binding is 'chrome,firefox')
+== firefox
+  REFUSED firefox owner-gap80: p3-dpr2wide-firefox-owner-gap80.json is bound to {'page': '36c2b18baa8340c559cc445a5e7ef6f87957356aa94f54b863d0189328591a44', 'runner': "DIAGNOSTIC r2-blit-bytes/blit_bytes_probe.py 3dad37cbb03a769c over probe dbad93c0dcf27fbf (probe's dataset writes coalesced; native putImageData timed and counted; worker adds diagLokId/diagPayload to document-invalidated; page current; devicePixelRatio 2.0 (Chrome: Emulation.setDeviceMetricsOverride; Firefox: layout.css.devPixelsPerPx); CSS window 1400x1000 (Chrome: Emulation; Firefox: MOZ_HEADLESS_WIDTH/HEIGHT))"}, not {'page': 'C-PRIME-PAGE-NOT-YET-BUILT', 'runner': 'probe_typing_latency_view.py 1412e4c863de6fcb over probe dbad93c0dcf27fbf', 'browser': 'firefox', 'document': 'owner', 'gap': 80, 'chars': 20, 'dprRequested': 2.0, 'windowRequested': [1400, 1000]}
+  PASS  firefox owner-gap80 every key committed: 20 of 20
+  PASS  firefox owner-gap80 every key on screen: 20 of 20
+  PASS  firefox owner-gap80 on-screen median: 53.4 (needs < 90)
+  PASS  firefox owner-gap80 on-screen max: 83 (needs < 150)
+  PASS  firefox owner-gap80 (a) every key's commit < 2 x gap: max 108.5 (needs < 160)
+  FAIL  firefox owner-gap80 (b) median commit < gap: 84.5 (needs < 80)
+  RECORD  firefox owner-gap80 (ii) whole canvas current after the last key: 1544.4 ms (C3 gates this on C′)
+        firefox owner-gap80: canvas rows 44514 (width unrecorded)
+  RECORD  firefox owner-gap80 backlog b_i: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
   RECORD  firefox owner-gap80 first-five / last-five median commit: 85.2 / 86.3
 REFUSED: firefox owner-gap80; also FAIL: firefox owner-gap80 (b) median commit < gap
-exit 2
+exit 2 (wanted 2) -> as required
+red cases: all as required
+exit 0

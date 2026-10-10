@@ -21,9 +21,13 @@ back to the top with a real wheel event, waits 2 s, and reads whether the view s
 carries the two verdicts:
   124-B  after every ArrowDown the sink lies wholly inside the desk; after the wheel the scrollTop stays at the
          top for 2 s; after the first letter the sink lies wholly inside the desk again.
-  125-B  `#state-shown` exists and is shown, `#state-pill` is hidden; during the arrows and the letters
-         `#state-shown` never reads 處理中 while `#state-pill` reads 處理中 at least `presses` times
-         (the positive control: the engine was busy).
+  125-B  `#state-shown` exists, is shown, and is inside `#state-pill`; during the arrows and the letters
+         `#state-shown` never reads 處理中 while `#state-pill`'s `data-state` is written `busy` at least
+         `presses` times (the positive control: the engine was busy).
+Corrected after the dual review (codex, 2026-10-11): 125-B is §17.9 (d)'s, not §17.2's -- the machine-read pill
+is observed by its `data-state` ATTRIBUTE, not its text (its text is the shown, possibly delayed, word now),
+and it is not required hidden; the shown pill must be its child.  And both verdicts are given only for the
+cell §17.4 names, 40 presses and 5 letters: any other `--presses` / `--letters` reports `pass: null`.
 """
 from __future__ import annotations
 
@@ -59,9 +63,11 @@ WATCH = """(() => { const root = document.documentElement, pill = document.query
     document.addEventListener('keydown', (e) => {
       const k = JSON.parse(root.dataset.keys124); k.push([e.key, Math.round(performance.now() * 10) / 10]);
       root.dataset.keys124 = JSON.stringify(k); }, true);
-    new MutationObserver(() => { const p = JSON.parse(root.dataset.pill124);
-      p.push([pill.textContent, Math.round(performance.now() * 10) / 10]); root.dataset.pill124 = JSON.stringify(p);
-    }).observe(pill, { childList: true, characterData: true, subtree: true });
+    // The machine-read state: every write of data-state, the same value included (§17.9 (d)).
+    new MutationObserver((records) => { const p = JSON.parse(root.dataset.pill124);
+      for (const r of records) p.push([pill.dataset.state, Math.round(performance.now() * 10) / 10]);
+      root.dataset.pill124 = JSON.stringify(p);
+    }).observe(pill, { attributes: true, attributeFilter: ['data-state'] });
   }
   return true; })()"""
 GEOMETRY = """(() => { const desk = document.querySelector('#desk'), sink = document.querySelector('#sink');
@@ -79,6 +85,7 @@ READ_LOGS = """(() => { const d = document.documentElement.dataset;
 PILLS = """(() => { const pill = document.querySelector('#state-pill'), shown = document.querySelector('#state-shown');
   const seen = (e) => !!e && !e.hidden && e.getClientRects().length > 0;
   return { pillHidden: !!pill && !seen(pill), shownExists: !!shown, shownSeen: seen(shown),
+           shownInsidePill: !!pill && !!shown && pill !== shown && pill.contains(shown),
            shownText: shown ? shown.textContent : null, shownState: shown ? shown.dataset.state : null }; })()"""
 DESK_CENTRE = """(() => { const d = document.querySelector('#desk').getBoundingClientRect();
   return [Math.round(d.left + d.width / 2), Math.round(d.top + d.height / 2)]; })()"""
@@ -175,12 +182,13 @@ def main() -> int:
         report["pills"] = pp.evaluate(session, PILLS)
         report["steps"] = steps
         report["logs"] = logs
-        # Pill flashes: 處理中 runs, each closed by the next non-處理中 label.
+        # Busy runs of the machine-read state (data-state busy, each closed by the next other state;
+        # on the P page the pill's text and its data-state moved together, so these are its flashes).
         flashes, opened = [], None
         for label, t in logs["pill"]:
-            if label == "處理中" and opened is None:
+            if label == "busy" and opened is None:
                 opened = t
-            elif label != "處理中" and opened is not None:
+            elif label != "busy" and opened is not None:
                 flashes.append(round(t - opened, 1))
                 opened = None
         arrows = [t for k, t in logs["keys"] if k == "ArrowDown"]
@@ -191,9 +199,9 @@ def main() -> int:
         for label, t in logs["pill"]:
             if t >= first_letter:
                 break
-            if label == "處理中" and opened is None:
+            if label == "busy" and opened is None:
                 opened = t
-            elif label != "處理中" and opened is not None:
+            elif label != "busy" and opened is not None:
                 arrow_flashes.append(round(t - opened, 1))
                 opened = None
         arrow_steps = [s for s in steps if s["after"].startswith("ArrowDown")]
@@ -228,7 +236,7 @@ def main() -> int:
         if len(arrows) != a.presses:
             why124.append(f"{len(arrows)} ArrowDown seen, {a.presses} sent")
         pills = report["pills"]
-        machine_busy = sum(1 for label, _ in logs["pill"] if label == "處理中")
+        machine_busy = sum(1 for state, _ in logs["pill"] if state == "busy")
         shown_busy = sum(1 for label, _ in logs["shown"] if label == "處理中")
         why125 = []
         if not pills["shownExists"]:
@@ -236,17 +244,21 @@ def main() -> int:
         else:
             if not pills["shownSeen"]:
                 why125.append("#state-shown is not shown")
-            if not pills["pillHidden"]:
-                why125.append("#state-pill is not hidden")
+            if not pills["shownInsidePill"]:
+                why125.append("#state-shown is not inside #state-pill")
             if shown_busy:
                 why125.append(f"#state-shown read 處理中 {shown_busy} times")
         if machine_busy < a.presses:
-            why125.append(f"#state-pill read 處理中 only {machine_busy} times (positive control needs >= {a.presses})")
+            why125.append(f"#state-pill data-state written busy only {machine_busy} times (positive control needs >= {a.presses})")
         report["summary"]["machinePillBusy"] = machine_busy
         report["summary"]["shownPillBusy"] = shown_busy
         report["summary"]["wheel"] = [wheel["before"]["scrollTop"], wheel["afterWheel"]["scrollTop"], wheel["after2s"]["scrollTop"]]
-        report["summary"]["verdict124B"] = {"pass": not why124, "why": why124[:6] + ([f"... {len(why124) - 6} more"] if len(why124) > 6 else [])}
-        report["summary"]["verdict125B"] = {"pass": not why125, "why": why125}
+        cell = a.presses == 40 and a.letters == 5
+        if not cell:
+            why124 = why125 = [f"not the §17.4 cell: {a.presses} presses and {a.letters} letters, the cell is 40 and 5"]
+        report["summary"]["verdict124B"] = {"pass": (not why124) if cell else None,
+                                            "why": why124[:6] + ([f"... {len(why124) - 6} more"] if len(why124) > 6 else [])}
+        report["summary"]["verdict125B"] = {"pass": (not why125) if cell else None, "why": why125}
     finally:
         report["completedAt"] = time.strftime("%Y-%m-%dT%H:%M:%S%z")
         if session is not None:

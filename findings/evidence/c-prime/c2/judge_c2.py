@@ -74,13 +74,16 @@ def main() -> int:
     ap.add_argument("--browsers", default=",".join(BROWSERS), help="red-case runs on one-browser reports only")
     a = ap.parse_args()
     window = WINDOW if a.window is None else (None if a.window == "none" else [int(v) for v in a.window.split("x")])
-    for name, value, default in (("page", a.page, PAGE), ("runner", a.runner, RUNNER), ("window", window, WINDOW)):
+    # Every override is said, and a PASS under one says it is not C2's verdict (codex review 2026-10-11: a
+    # --slots that dropped the gap-80 cells printed "PASS: both browsers, every cell").
+    overridden = []
+    for name, value, default in (("page", a.page, PAGE), ("runner", a.runner, RUNNER), ("window", window, WINDOW),
+                                 ("slots", a.slots, ",".join(SLOTS)), ("browsers", a.browsers, ",".join(BROWSERS))):
         if value != default:
+            overridden.append(name)
             print(f"OVERRIDE {name} = {value!r} (red-case run; the counted binding is {default!r})")
     slots = {s: SLOTS[s] for s in a.slots.split(",")}
     browsers = tuple(a.browsers.split(","))
-    if browsers != BROWSERS:
-        print(f"OVERRIDE browsers = {browsers!r} (red-case run; the counted binding is {BROWSERS!r})")
     paths = {(b, s): a.dir / f"c2-candidate-{b}-{s}.json" for b in BROWSERS for s in slots}
     for override in a.report:
         key, _, path = override.partition("=")
@@ -157,6 +160,9 @@ def main() -> int:
     if failed:
         print(f"FAIL: {', '.join(failed)}")
         return 1
+    if overridden:
+        print(f"PASS under OVERRIDE ({', '.join(overridden)}): every cell judged passed -- not C2's verdict")
+        return 0
     print("PASS: both browsers, every cell")
     return 0
 

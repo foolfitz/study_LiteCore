@@ -18,7 +18,13 @@ M3 runners (`--m3 NAME REF.json CAND.json`, repeatable): each report's `score` i
 path in `score`.  A difference is a different verdict, a cell present on one side only, or a cell whose
 counts differ.
 
-Exit 0: no difference.  1: at least one.  2: REFUSED (a report missing or unreadable, check ids differ).
+Provenance (codex review 2026-10-11: the 0.2.10 set given as the candidate compared with 0 differences): each
+product-path directory's `chain.log` names the runner that wrote it (`PRODUCT-PATH START tools: <sha256[:16]>`);
+both are printed, and `--cand-runner PREFIX` REFUSES a candidate whose chain.log is missing or names another
+runner.  The M3 mode prints each report's runner hash, label and start time beside its verdict.
+
+Exit 0: no difference.  1: at least one.  2: REFUSED (a report missing or unreadable, check ids differ, the
+candidate's runner not the one named).
 The verdict is the SUMMARY line.
 """
 from __future__ import annotations
@@ -155,12 +161,27 @@ def verdict_of(score: dict):
     return None
 
 
+def runner_of(directory: Path) -> str | None:
+    """The runner hash a product-path chain logged in this directory, or None."""
+    try:
+        for line in (directory / "chain.log").read_text(encoding="utf-8").splitlines():
+            if "PRODUCT-PATH START tools:" in line:
+                return line.split("PRODUCT-PATH START tools:")[1].split()[0]
+    except OSError:
+        return None
+    return None
+
+
 def compare_m3(name: str, ref_path: Path, cand_path: Path) -> list[str]:
     try:
-        ref = json.loads(ref_path.read_text(encoding="utf-8"))["score"]
-        cand = json.loads(cand_path.read_text(encoding="utf-8"))["score"]
+        ref_report = json.loads(ref_path.read_text(encoding="utf-8"))
+        cand_report = json.loads(cand_path.read_text(encoding="utf-8"))
+        ref, cand = ref_report["score"], cand_report["score"]
     except (OSError, ValueError, KeyError) as error:
         raise Refused(f"{name}: {error}")
+    for side, rep, path in (("reference", ref_report, ref_path), ("candidate", cand_report, cand_path)):
+        print(f"{name} {side}: {path.name} runner {str(rep.get('runnerSha256') or rep.get('static', {}).get('runnerSha256'))[:16]}"
+              f" label {rep.get('label')} startedAt {rep.get('startedAt')}")
     out = []
     if verdict_of(ref) != verdict_of(cand):
         out.append(f"{name}: verdict {verdict_of(ref)} / {verdict_of(cand)}")
@@ -180,12 +201,18 @@ def main() -> int:
     ap.add_argument("--noise", nargs=2, type=Path, metavar=("A", "B"),
                     default=[EVIDENCE / "release-0.2.10/product-path", EVIDENCE / "release-0.2.11/product-path"])
     ap.add_argument("--m3", nargs=3, action="append", default=[], metavar=("NAME", "REF", "CAND"))
+    ap.add_argument("--cand-runner", default=None, metavar="PREFIX",
+                    help="REFUSE unless the candidate product-path directory's chain.log names this runner")
     a = ap.parse_args()
     if not a.product_path and not a.m3:
         ap.error("nothing to compare")
     differences = []
     try:
         if a.product_path:
+            ref_runner, cand_runner = runner_of(a.product_path[0]), runner_of(a.product_path[1])
+            print(f"product path: reference runner {ref_runner}, candidate runner {cand_runner}")
+            if a.cand_runner and not (cand_runner or "").startswith(a.cand_runner):
+                raise Refused(f"the candidate's chain.log names runner {cand_runner}, not {a.cand_runner}")
             differences += compare_product_path(a.product_path[0], a.product_path[1], tuple(a.noise))
         for name, ref, cand in a.m3:
             differences += compare_m3(name, Path(ref), Path(cand))
