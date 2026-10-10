@@ -17,9 +17,12 @@ tools/probe_typing_latency.py (dbad93c0...) with, in memory only:
   * --skip-stale (what-if, added after the first eight runs): stale re-blits are counted but NOT passed to the native
     call, so the page pays nothing for paint()'s whole-canvas re-blit (the overlay is drawn over old pixels; timing
     only).  Fresh blits are always native, and each one is logged [t, dy, height, ms];
+  * --dpr N (added after the what-if runs): devicePixelRatio N -- Chrome via Emulation.setDeviceMetricsOverride before
+    the first navigation, Firefox via the layout.css.devPixelsPerPx pref; READ also samples, in 120-row strips at the caret line, the middle and the end of the canvas, the transparent pixels (never drawn) and the opaque ones with red < 128 (ink), so a blank
+    canvas is visible (a first version counted transparent black as ink; caught on the smoke run);
   * --page v58 serves the v58 page (537d62d7..., bytes from git 05f46923^) from the mirror instead of dist's.
 
-Usage: blit_bytes_probe.py --page {current,v58} [--skip-stale] + the probe's own arguments (--browser, --document, --gap, --chars,
+Usage: blit_bytes_probe.py --page {current,v58} [--skip-stale] [--dpr N] + the probe's own arguments (--browser, --document, --gap, --chars,
 --out).  The report's `runner` says what ran; its `page` is the hash of the page actually served."""
 import hashlib, json, statistics, subprocess, sys
 from pathlib import Path
@@ -38,6 +41,11 @@ WORKER = "profiles/e2-editor-v19/sdk-worker.js"
 skip_stale = "--skip-stale" in sys.argv
 if skip_stale:
     sys.argv.remove("--skip-stale")
+dpr = None
+if "--dpr" in sys.argv:
+    i = sys.argv.index("--dpr")
+    dpr = float(sys.argv[i + 1])
+    del sys.argv[i:i + 2]
 page_choice = "current"
 if "--page" in sys.argv:
     i = sys.argv.index("--page")
@@ -123,7 +131,14 @@ old_read = "blits: JSON.parse(d.blits || '[]'), canvasHeight: c ? c.height : nul
 assert ptl.READ.count(old_read) == 1
 ptl.READ = ptl.READ.replace(
     old_read, "blits: JSON.parse(d.blits || '[]'), canvasHeight: c ? c.height : null,\n"
-              "           canvasWidth: c ? c.width : null, r2: JSON.parse(d.r2 || 'null') }; })()")
+              "           canvasWidth: c ? c.width : null, r2: JSON.parse(d.r2 || 'null'), dpr: window.devicePixelRatio,\n"
+              "           ink: (() => { const out = {}; try { const x = c.getContext('2d');\n"
+              "             for (const [name, f] of [['caretLine', 0.010373], ['middle', 0.5], ['end', 0.98]]) {\n"
+              "               const y = Math.max(0, Math.min(c.height - 120, Math.round(c.height * f) - 60));\n"
+              "               const px = x.getImageData(0, y, c.width, 120).data; let ink = 0, clear = 0;\n"
+              "               for (let i = 0; i < px.length; i += 4) { if (px[i + 3] === 0) clear += 1;\n"
+              "                 else if (px[i] < 128) ink += 1; }\n"
+              "               out[name] = { ink, transparent: clear, pixels: px.length / 4 }; } } catch (e) { out.error = String(e && e.message || e); } return out; })() }; })()")
 
 # 3. The mirror: worker always patched; the page only for --page v58.
 worker_src = (ROOT / "wasm_sdk_probe" / "dist" / WORKER).read_text(encoding="utf-8")
@@ -141,6 +156,17 @@ if page_choice == "v58":
 served_page = (overrides.get("e2-editor-app.js")
                or (ROOT / "wasm_sdk_probe" / "dist" / "e2-editor-app.js").read_bytes())
 native_build_mirror = pp.build_mirror
+if dpr:
+    native_navigate, NativeFirefox = pp.navigate, pp.FirefoxSession
+
+    def navigate_at_dpr(session, *args, **kwargs):
+        if isinstance(session, pp.ChromeSession) and not getattr(session, "_r2_dpr", False):
+            session.call("Emulation.setDeviceMetricsOverride",
+                         {"width": 0, "height": 0, "deviceScaleFactor": dpr, "mobile": False})
+            session._r2_dpr = True
+        return native_navigate(session, *args, **kwargs)
+    pp.navigate = navigate_at_dpr
+    pp.FirefoxSession = lambda mode: NativeFirefox(mode, extra_prefs={"layout.css.devPixelsPerPx": str(dpr)})
 pp.build_mirror = lambda source, target, extra: native_build_mirror(source, target, {**extra, **overrides})
 
 
@@ -194,11 +220,13 @@ report = json.loads(out.read_text())
 report["page"] = hashlib.sha256(served_page).hexdigest()
 report["pageChoice"] = page_choice
 report["skipStale"] = skip_stale
+report["dprRequested"] = dpr
 report["runner"] = (f"DIAGNOSTIC r2-blit-bytes/blit_bytes_probe.py "
                     f"{hashlib.sha256(Path(__file__).read_bytes()).hexdigest()[:16]} over probe {BASE[:16]}"
                     f" (probe's dataset writes coalesced; native putImageData timed and counted; worker adds"
                     f" diagLokId/diagPayload to document-invalidated; page {page_choice}"
-                    f"{'; STALE RE-BLITS SKIPPED (what-if)' if skip_stale else ''})")
+                    f"{'; STALE RE-BLITS SKIPPED (what-if)' if skip_stale else ''}"
+                    f"{f'; devicePixelRatio {dpr} (Chrome: Emulation.setDeviceMetricsOverride; Firefox: layout.css.devPixelsPerPx)' if dpr else ''})")
 canvas, keys = per_key(report)
 inv = invalidations(report)
 report["r2Summary"] = {

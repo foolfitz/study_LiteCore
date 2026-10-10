@@ -90,3 +90,18 @@ Against the what-if predictions:
 4. Fresh blits unchanged in count and, in Firefox, ≈ 5 ms per call with or without the skip: **hit**. Firefox's first blit of a new `ImageData` costs ≈ 5 ms regardless of its size (one 80 MB canvas on v58: 5.0 ms; one 3.7 MB band: 4.9 ms); Chrome's is 0.18 ms. Most of it falls in the background pass (≈ 22 × 5 ms per pass), not on the commit path.
 
 Scaling not measured here: the canvas backing width is `min(2400, cssWidth × devicePixelRatio)` (`web/e2-editor-app.js` `layoutCanvas`), and its height follows, so on a display with devicePixelRatio 2 each canvas — and every re-blit — carries four times these bytes. The headless runs above are at ratio 1.
+
+## devicePixelRatio 2 (predictions written before the runs)
+
+`--dpr 2` (wrapper change after the what-if runs): Chrome gets `Emulation.setDeviceMetricsOverride` (CSS viewport kept, ratio 2) before the first navigation; Firefox gets `layout.css.devPixelsPerPx = 2`, which halves the CSS viewport of the headless window, so the two browsers' canvases differ more than at ratio 1. READ now samples three 120-row strips (caret line, middle, end) for transparent pixels (never drawn) and opaque ink. The smoke runs (boundaries, scratch) caught the first version counting transparent black as ink — exactly the blank canvas it was meant to see — and it was fixed before any run below. Smoke at ratio 2, boundaries: Chrome canvas 1450 × 4014, Firefox 1238 × 3427, both drawn.
+
+Runs (A+B page, owner document): ratio 2 × {gap 600, gap 80, gap 80 skip} × {Chrome, Firefox}, and a ratio-1 gap-600 control per browser for the new ink sampling — eight reports `dpr{1,2}-{base,skip}-{browser}-owner-gap{gap}.json`.
+
+Predictions:
+
+1. Chrome ratio 2: canvas 1450 × ≈ 35,860 (4.0 × the bytes, ≈ 208 MB); drawn (ink at the caret line; Chrome's canvas limit is 65,535 per finding 062). Firefox ratio 2: canvas ≈ 1238 × ≈ 30,600 (≈ 1.9 × the bytes, ≈ 152 MB), under 32,767, drawn. Whether a Firefox canvas taller than 32,767 draws at all is **not** reached by this configuration.
+2. Stale re-blit time per key at gap 600: Chrome 60–100 ms, Firefox 65–110 ms. Six canvases per key as before.
+3. Commit median at gap 600: Chrome 60–110 ms, Firefox 70–120 ms.
+4. **Gap 80 backlogs again in both browsers on the shipped page**: commit median > 80 ms and the last-five median above the first-five.
+5. Gap 80 with the re-blits skipped: no backlog; commit median < 50 ms in both.
+6. Ratio-1 controls: canvases as in the eight earlier runs, ink > 0 in the caret-line strip, not all transparent.
