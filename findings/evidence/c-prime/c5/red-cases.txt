@@ -1,0 +1,28 @@
+red   the 0.2.11 set against itself -> 0: exit 0
+        SUMMARY  differences 0
+red   chrome v19 r2 product-save-button... PASS->FAIL -> 1 (forward): exit 1
+          DIFF: product path chrome v19 product-save-button-writes-a-real-odt: reference 3 PASS / ported 2 PASS, 1 FAIL (forward red)
+        SUMMARY  differences 1
+red   firefox v19 an-inline-format... FFF->PPP -> 1 (reverse: a port that turns a red check green): exit 1
+          DIFF: product path firefox v19 an-inline-format-reaches-a-selection: reference 3 FAIL / ported 3 PASS (reverse red)
+        SUMMARY  differences 1
+red   firefox v19 clear-format NNN->PNN, a noise cell -> 0: exit 0
+        SUMMARY  differences 0
+red   one report missing -> REFUSED: exit 2
+        REFUSED: /tmp/c5-red-tp1cdg0e/missing/product-path/e2-editor-v8-firefox-r3.json: [Errno 2] No such file or directory: '/tmp/c5-red-tp1cdg0e/missing/product-path/e2-editor-v8-firefox-r3.json'
+        SUMMARY  REFUSED
+red   locks counted report against itself -> 0: exit 0
+        SUMMARY  differences 0
+red   locks chrome:hold one pass fewer -> 1: exit 1
+          DIFF: locks: tally/chrome:hold reference (3, 3) / ported (2, 3)
+        SUMMARY  differences 1
+red   locks verdict changed -> 1: exit 1
+          DIFF: locks: verdict verdict=LOCKS LAND / verdict=LOCKS DO NOT LAND
+        SUMMARY  differences 1
+red   host entry firefox conflict 3/3 -> 2/3 (passed/of shape) -> 1: exit 1
+          DIFF: host_entry: browsers/firefox/conflict reference (3, 3) / ported (2, 3)
+        SUMMARY  differences 1
+red   production UI Kbs/firefox 3/3 -> 2/3 -> 1: exit 1
+          DIFF: production_ui: cells/Kbs/firefox reference (3, 3) / ported (2, 3)
+        SUMMARY  differences 1
+red cases: all as required
