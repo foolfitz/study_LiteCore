@@ -831,3 +831,20 @@ B-ctl／S／P 6/6、B-3x 4/4、突變 40/40；六支 M3 runner 全過、紅案�
 - **§16.6 具名限制的改寫（取代該節第一點）**：Firefox 在**比例 2、寬到 900 px 上限**時，間隔 80 的提交中位數 84.5 ms，過不了 §15.8 (b)（一次量測，包裝程式）；比例 1.5 寬已過。其餘兩點（062 的 65,535 列上限、按住刪除鍵沒量過）不變，仍交 C′。
 - **之後**：照 R⁗——`make test-e2-c-static`、E1-C 完好、凍殼層 v60、宿主 0.2.11、改綁、紅案、計數鏈、產品路徑網。
 - **殼層 generation v60 凍結**（2026-10-10）：`784a1d93fd8e7d18482c92140d5b08ffcdb8a3879c6d882dc4603613e9f657af`，與 v59 只差 `web/e2-editor-app.js`（`36c2b18b…`），排除清單相同（承自 v40）。凍結前 `make test-e2-c-static` 只紅在 generation 守衛（`release-0.2.11/test-e2-c-static-before-freeze.txt`），凍結後結束碼 0（node 189＋5、python 108）、E1-C 完好。v59 沒有被動到。
+
+### 16.11 綁定（R⁗；2026-10-10，寫在任何 0.2.11 計數執行之前，值全由程式從檔案算出）
+
+| 綁定 | 值 |
+| --- | --- |
+| 頁面 `e2-editor-app.js` | `36c2b18baa8340c559cc445a5e7ef6f87957356aa94f54b863d0189328591a44` |
+| session `narrow-editor-v2-session.js` | `62a2a20e4c66f630d77caf5bb75973e28aa58b0d8c7bf4cb0e35fa44b6a6fc5c`（與 v59 相同，pin 不動） |
+| 宿主 | 0.2.11，`6b53c2e` |
+| 引擎包 buildId | `b99f4b138839ff04`（與 0.2.10 的引擎包只差頁面；0.2.10 的封存在 `build/archive/host-0.2.10-engine-bebc7e83f573d1a8/`，逐位元組核對過） |
+| 殼層 generation | v60，`784a1d93fd8e7d18482c92140d5b08ffcdb8a3879c6d882dc4603613e9f657af` |
+| 擁有者的文件 | 同 §11 |
+| `check_m3_production_ui.py` | `d799fa9d6e9632ed6f99bb39dc8b6b1cce22fb7558da240a71c2c164057549a5`（只動了 pin 行） |
+| `run_e2_c_product_path.py` | `a6e318966d50cf141437dd5655bc559dca66b62deb06551e6badc9e6b5450dce`（與 0.2.10 相同，沒動） |
+| P1／123-B 判讀工具 `judge_p.py` | `1461fc0344858a6db29ad544a043f1f046093064acd15786a7a6ce2518d33c41`（§16.9 審核過、§16.10 計數判讀用的就是這一份） |
+| P2 判讀工具 `judge_p2.py` | `1faea9d997f0be9f33ca07ef1070c91ed9bbd8a69ffb035fff9efa72c4997a22` |
+
+六支既有 runner 的 pin 同步改綁（只動 pin 行，共 12 行）；host_entry 沒有 pin。改綁後 `make test-e2-c-static` 結束碼 0（`findings/evidence/release-0.2.11/test-e2-c-static-after-repin.txt`）。產品路徑網：v19 臂＝dist 照原樣（頁面 `36c2b18b…`），v8 臂＝同一份頁面改指 v8，改指後的 sha256 用 runner 自己的 `repointed_page()` 算出＝`bd29eccaeab42ab0dc3bc20d5484b7a07d448e14eb92bb1a63ae43acf17747fe`（同一個方法對 0.2.10 的頁面算得出當時的 `d446cbfd…`）。預測與判讀副本在 `findings/evidence/release-0.2.11/product-path/`；P 移動了錨點所在位置的兩個突變（`caret`、`caret-ignores-x`）在任何計數執行之前各跑一次（Chrome），各自那一格必須紅。

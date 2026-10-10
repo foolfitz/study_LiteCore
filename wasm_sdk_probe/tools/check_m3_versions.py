@@ -56,7 +56,7 @@ PLAN = {"versions": ("R1", ("chrome", "firefox"), 3)}
 # SPEC-M3-page-honesty §7.6/§7.11 re-runs it against 0.2.4 (finding 108), written
 # 2026-09-29 before that run.
 # SPEC-M3-zstd Z3 re-runs it against 0.2.5, written 2026-09-30 before that run.
-HOST_COMMIT = "d87960d"   # SPEC-M3-production-ui §15 R‴ (0.2.10, v59), 2026-10-10 (host 0.2.10), written before that run; was 069de55, 4140e00, 0488586
+HOST_COMMIT = "6b53c2e"   # SPEC-M3-production-ui §16 R⁗ (0.2.11, v60), 2026-10-10 (host 0.2.11), written before that run; was d87960d, 069de55, 4140e00, 0488586
 NS = {"d": "DAV:", "nc": "http://nextcloud.org/ns"}
 LISTING = (b'<?xml version="1.0"?><d:propfind xmlns:d="DAV:" xmlns:nc="http://nextcloud.org/ns">'
            b"<d:prop><d:getlastmodified/><d:getcontentlength/><nc:version-author/></d:prop></d:propfind>")

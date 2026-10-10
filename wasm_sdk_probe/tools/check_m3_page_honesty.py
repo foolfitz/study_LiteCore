@@ -60,13 +60,13 @@ BOTH = ("chrome", "firefox")
 # Bindings for a counted run, written down before it (spec §7.6 style): the page,
 # the session subclass that holds the view-only gate, and the host version.
 # Written 2026-09-29 (spec §7.11), before the re-shakedown and counted runs.
-PAGE_SHA256: str | None = "18c8afbe29e8a5472a7a5eb0fdfae8f94a3e7a95147972c83e192fc69ebeef1a"   # SPEC-M3-production-ui §15 R‴ (0.2.10, v59), 2026-10-10; was 537d62d7 (§14 R′), e00ab76a (§13.5), e97d6e03
+PAGE_SHA256: str | None = "36c2b18baa8340c559cc445a5e7ef6f87957356aa94f54b863d0189328591a44"   # SPEC-M3-production-ui §16 R⁗ (0.2.11, v60), 2026-10-10; was 18c8afbe (§15 R‴), 537d62d7 (§14 R′), e00ab76a (§13.5), e97d6e03
 SESSION_SHA256: str | None = "62a2a20e4c66f630d77caf5bb75973e28aa58b0d8c7bf4cb0e35fa44b6a6fc5c"   # §14 R′; was ee3e53a2, 3f5f754b
 # SPEC-M3-zstd Z3: re-counted on host 0.2.5 (7420418), written 2026-09-30 before that run.
-HOST_VERSION = "0.2.10"   # §15 R‴; was 0.2.9, 0.2.8, 0.2.7
+HOST_VERSION = "0.2.11"   # §16 R⁗; was 0.2.10, 0.2.9, 0.2.8, 0.2.7
 # The host commit too (review 2026-09-29, implementation): a version string alone
 # lets a changed host with an unchanged info.xml through.
-HOST_COMMIT: str | None = "d87960d"   # §15 R‴; was 069de55, 4140e00, 0488586
+HOST_COMMIT: str | None = "6b53c2e"   # §16 R⁗; was d87960d, 069de55, 4140e00, 0488586
 # arm -> (cells, browsers, rounds in a counted run)
 PLAN = {
     "U0": ("U0", BOTH, 3), "U1": ("U1", BOTH, 3), "Uwin": ("U-window", BOTH, 3), "U2": ("U2", BOTH, 3),
