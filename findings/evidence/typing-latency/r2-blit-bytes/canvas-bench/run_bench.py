@@ -12,6 +12,7 @@ import run_e2_c_product_path as pp  # noqa: E402
 ap = argparse.ArgumentParser()
 ap.add_argument("--browser", choices=("chrome", "firefox"), required=True)
 ap.add_argument("--out", type=Path, required=True)
+ap.add_argument("--small", action="store_true", help="64 x 64 sources (fable's fifth ruling, Part 5 item 1)")
 a = ap.parse_args()
 port = pp.free_port()
 server = subprocess.Popen([sys.executable, "-m", "http.server", str(port), "--bind", "127.0.0.1", "--directory", str(HERE)],
@@ -20,9 +21,11 @@ session, report = None, {"bench": "canvas-bench/bench.html", "browser": a.browse
                          "startedAt": time.strftime("%Y-%m-%dT%H:%M:%S%z")}
 try:
     pp.wait_page(f"http://127.0.0.1:{port}/bench.html")
+    query = "?small=1" if a.small else ""
+    report["small"] = a.small
     session = (pp.ChromeSession if a.browser == "chrome" else pp.FirefoxSession)("cold")
     report["version"] = getattr(session, "version", None)
-    pp.navigate(session, f"http://127.0.0.1:{port}/bench.html")
+    pp.navigate(session, f"http://127.0.0.1:{port}/bench.html{query}")
     deadline = time.monotonic() + 600
     while time.monotonic() < deadline:
         raw = pp.evaluate(session, "(() => document.documentElement.dataset.bench || null)()")

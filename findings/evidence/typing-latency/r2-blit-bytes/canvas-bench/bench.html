@@ -61,10 +61,45 @@ async function runOne(w, h) {
   return out;
 }
 
+// ?small=1 (added for fable's fifth ruling, Part 5 item 1): a 64 x 64 source into big destinations, one blit per
+// task, and two in one task (is the cost per call or per task?).
+async function runSmall(w, h) {
+  const desk = document.getElementById("desk");
+  desk.textContent = "";
+  const c = document.createElement("canvas");
+  c.width = w; c.height = h;
+  c.style.width = `${w / (window.devicePixelRatio || 1)}px`;
+  desk.appendChild(c);
+  const ctx = c.getContext("2d");
+  const S = 64, base = new Uint8ClampedArray(S * S * 4).fill(180);
+  const fill = new Uint8ClampedArray(w * BAND * 4).fill(255);
+  ctx.putImageData(new ImageData(fill, w, BAND), 0, 0); await tick();
+  const y = (k) => (k * 997) % Math.max(1, h - S);
+  const out = { canvas: [w, h], source: [S, S] };
+  let t = [], t2 = [], tb = [];
+  for (let k = 0; k < REPS; k++) {
+    const img = new ImageData(new Uint8ClampedArray(base), S, S);
+    let t0 = performance.now(); ctx.putImageData(img, 10, y(k)); t.push(performance.now() - t0);
+    t0 = performance.now(); ctx.putImageData(img, 80, y(k)); t2.push(performance.now() - t0);
+    await tick();
+  }
+  out.smallPutFirstInTask = [med(t), max(t)];
+  out.smallPutSecondInTask = [med(t2), max(t2)];
+  for (let k = 0; k < REPS; k++) {
+    const bm = await createImageBitmap(new ImageData(new Uint8ClampedArray(base), S, S));
+    const t0 = performance.now(); ctx.drawImage(bm, 10, y(k)); tb.push(performance.now() - t0); await tick();
+  }
+  out.smallDrawPerTask = [med(tb), max(tb)];
+  c.width = 0; c.height = 0;
+  return out;
+}
+const SMALL = new URLSearchParams(location.search).has("small");
+const SMALL_CONFIGS = [[1800, 44514], [1350, 33400], [1238, 30616], [900, 22257], [1800, 2000], [900, 1000]];
+
 (async () => {
   await new Promise((r) => setTimeout(r, 300));
   const results = [];
-  try { for (const [w, h] of CONFIGS) results.push(await runOne(w, h)); }
+  try { for (const [w, h] of (SMALL ? SMALL_CONFIGS : CONFIGS)) results.push(await (SMALL ? runSmall : runOne)(w, h)); }
   catch (e) { results.push({ error: String(e && e.message || e) }); }
   document.documentElement.dataset.bench = JSON.stringify({ ua: navigator.userAgent, dpr: window.devicePixelRatio, results });
 })();
