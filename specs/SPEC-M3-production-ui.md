@@ -848,3 +848,7 @@ B-ctl／S／P 6/6、B-3x 4/4、突變 40/40；六支 M3 runner 全過、紅案�
 | P2 判讀工具 `judge_p2.py` | `1faea9d997f0be9f33ca07ef1070c91ed9bbd8a69ffb035fff9efa72c4997a22` |
 
 六支既有 runner 的 pin 同步改綁（只動 pin 行，共 12 行）；host_entry 沒有 pin。改綁後 `make test-e2-c-static` 結束碼 0（`findings/evidence/release-0.2.11/test-e2-c-static-after-repin.txt`）。產品路徑網：v19 臂＝dist 照原樣（頁面 `36c2b18b…`），v8 臂＝同一份頁面改指 v8，改指後的 sha256 用 runner 自己的 `repointed_page()` 算出＝`bd29eccaeab42ab0dc3bc20d5484b7a07d448e14eb92bb1a63ae43acf17747fe`（同一個方法對 0.2.10 的頁面算得出當時的 `d446cbfd…`）。預測與判讀副本在 `findings/evidence/release-0.2.11/product-path/`；P 移動了錨點所在位置的兩個突變（`caret`、`caret-ignores-x`）在任何計數執行之前各跑一次（Chrome），各自那一格必須紅。
+
+### 16.12 結果（2026-10-10；`findings/evidence/m3-production-ui/RESULT-0.2.11.md`）
+
+**R⁗ 在宿主 0.2.11 上成立。**計數前（§16.10）：123-U、P-U 全過且紅案各紅；P1、123-B 由審核過的 `judge_p.py` 判兩個瀏覽器 PASS，123-B 兩個瀏覽器的畫布都是 1490 × 36,847（§16.9 N2 的讀法成立）；P2 由 `judge_p2.py` 判 PASS；P3 已記錄；121-B、120-B 在最終位元組上重跑過。P 移動錨點的兩個突變各跑一次：`caret` 咬到；`caret-ignores-x` 那格是 NE，在出貨 v59 頁面上的對照完全相同，歸給判讀器（登錄，不修）。計數鏈（2026-10-10 01:57 – 06:47 UTC，六支 shakedown 乾淨之後）：本規格的臂 K／R 24/24、B-ctl／S／P 6/6、B-3x 4/4、突變 40/40；六支 M3 runner 全過、紅案全紅（154／99／68／156／23／70，與 0.2.10 相同）；產品路徑網的判讀工具先在 scratch 副本上紅過一次，判定 P1–P3 HIT、0 紅格，兩臂沒有任何一格不同；新舊頁面的 v19 沒有任何退步（只差 Firefox `clear-format-removes-every-inline-format`，舊 1 PASS＋2 NE、新 3 NE，只有 NE 的差別）；計數之後 `make test-e2-c-static` 結束碼 0。finding 123 改標已修。P 頁面的三條具名限制（§16.10 改寫後的 §16.6）照舊，交 C′。因執行而修的檢查 1（§16.8），因審核而修 0；計數鏈本身 0。
