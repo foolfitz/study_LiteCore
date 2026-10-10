@@ -154,3 +154,14 @@ Canvas 1800 × 44,514 (321 MB) in both browsers; ink in all three strips in ever
 Against the predictions: 1 **hit**. 2 Chrome **hit**; Firefox **miss** — it draws a 44,514-row canvas (the lean to "blank" was wrong; there is no finding-062-class defect here). 3 **hit** (112.6; 164.2). 4 median **hit** (425.7), growth **miss** (465.2 → 408.0: saturated with a large lag, not diverging within 20 keys) — on screen the characters arrive 368 ms late at the median and up to 596 ms, finding 122's symptom back on this configuration. 5 **hit** (46.8, no growth). 6 Firefox: stale 155 **hit**; growth **miss** (204.4 / 204.6); "skip brings the commit under 80" **miss** (158.8).
 
 Why Firefox stays slow without the re-blits (key 3 of each run, read from `raw.r2`): in the skip arm at gap 80 the invalidation that marks the insert done arrives **86 ms** after the keydown and the visible band is blitted at +110 (a 30 ms first blit); at gap 600 the background pass after one key is 44 bands, each first blit ≈ 22 ms on the main thread (≈ 5 ms at ratio 1 and 900 px wide). So on this configuration two costs besides R2 dominate: the Worker is busy rendering background bands when the insert arrives, and Firefox's first blit of each new band image is slow at this width. Both come from repainting the whole document after every change; neither is touched by removing the re-blits. Chrome without the re-blits is fine (46.8 / 47.0).
+
+## Canvas micro-bench (for brief 4; predictions written before the runs)
+
+`canvas-bench/bench.html` + `run_bench.py`: no product code. A fresh canvas per configuration inside an 800-px scrolling div, at destination sizes 1800 × 44,514 (the wide ratio-2 whole document), 1800 × 2000 (a viewport-sized canvas at ratio 2), 900 × 22,257 (the ratio-1 whole document), 900 × 1000; bands of width × 1023; 12 repetitions each of: `putImageData` of a new `ImageData` (the page's fresh band), of the same one again (the page's re-blit), `createImageBitmap` (async) + `drawImage` of a new bitmap, and `drawImage` of the same bitmap again — each also with a 1-pixel `getImageData` after it ("+flush") to force deferred work. Times are main-thread time.
+
+Predictions:
+
+1. Firefox reproduces the product: fresh `putImageData` ≈ 15–30 ms into 1800 × 44,514 and ≈ 3–8 ms into 900 × 22,257.
+2. **The cost is the destination's**: into the viewport-sized canvases (1800 × 2000, 900 × 1000) fresh `putImageData` is under a third of its whole-document value in Firefox. (If not, a viewport canvas alone does not remove it.)
+3. `drawImage` of an `ImageBitmap` costs under 2 ms per call in both browsers and both destination sizes, without flush.
+4. Chrome: every call under 2 ms.

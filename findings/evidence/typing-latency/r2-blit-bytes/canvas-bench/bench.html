@@ -1,0 +1,71 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>canvas blit bench</title>
+<!-- DIAGNOSTIC ONLY (R2 / brief 4).  No product code.  Question: is Firefox's ~22 ms first putImageData of a
+     1800 x 1023 band (wide ratio-2 runs) a cost of the DESTINATION canvas (1800 x 44,514, the whole document) or of
+     the source image?  And does the ImageBitmap + drawImage route Collabora uses (BitmapTileManager.ts:369-373,
+     TilesSection.ts:837) cost less on the main thread?  Each configuration is a fresh canvas inside a scrolling
+     div, as on the product page.  Times are main-thread time inside the call; "+flush" adds a 1-pixel
+     getImageData right after, which forces any deferred work to finish. -->
+<style>body { margin: 0; } .desk { height: 800px; overflow: auto; }</style>
+<div id="desk" class="desk"></div>
+<script>
+const CONFIGS = [[1800, 44514], [1800, 2000], [900, 22257], [900, 1000]];
+const BAND = 1023, REPS = 12;
+const tick = () => new Promise((r) => setTimeout(r, 0));
+const med = (xs) => { const s = [...xs].sort((a, b) => a - b); return Math.round(s[s.length >> 1] * 100) / 100; };
+const max = (xs) => Math.round(Math.max(...xs) * 100) / 100;
+
+async function runOne(w, h) {
+  const desk = document.getElementById("desk");
+  desk.textContent = "";
+  const c = document.createElement("canvas");
+  c.width = w; c.height = h;
+  c.style.width = `${w / (window.devicePixelRatio || 1)}px`;
+  desk.appendChild(c);
+  const ctx = c.getContext("2d");
+  const base = new Uint8ClampedArray(w * BAND * 4);
+  for (let i = 0; i < base.length; i += 4) { base[i] = 200; base[i + 1] = 210; base[i + 2] = 220; base[i + 3] = 255; }
+  const y = (k) => (k * BAND) % Math.max(1, h - BAND);
+  const timed = (fn, flush) => { const t0 = performance.now(); fn(); if (flush) ctx.getImageData(0, 0, 1, 1); return performance.now() - t0; };
+  const out = { canvas: [w, h], band: [w, BAND] };
+  for (const flush of [false, true]) {
+    const tag = flush ? "+flush" : "";
+    let t = [];
+    for (let k = 0; k < REPS; k++) {   // fresh ImageData every time (the page's fresh band)
+      const img = new ImageData(new Uint8ClampedArray(base), w, BAND);
+      t.push(timed(() => ctx.putImageData(img, 0, y(k)), flush)); await tick();
+    }
+    out[`freshPut${tag}`] = [med(t), max(t)];
+    const same = new ImageData(new Uint8ClampedArray(base), w, BAND);
+    ctx.putImageData(same, 0, 0); await tick();
+    t = [];
+    for (let k = 0; k < REPS; k++) { t.push(timed(() => ctx.putImageData(same, 0, y(k)), flush)); await tick(); }
+    out[`stalePut${tag}`] = [med(t), max(t)];
+    let tc = []; t = [];
+    for (let k = 0; k < REPS; k++) {   // ImageBitmap route: create (async, off the call) then drawImage
+      const img = new ImageData(new Uint8ClampedArray(base), w, BAND);
+      const t1 = performance.now(); const bm = await createImageBitmap(img, { premultiplyAlpha: "none" });
+      tc.push(performance.now() - t1);
+      t.push(timed(() => ctx.drawImage(bm, 0, y(k)), flush)); await tick();
+    }
+    out[`bitmapCreate${tag}`] = [med(tc), max(tc)];
+    out[`freshDraw${tag}`] = [med(t), max(t)];
+    const bm = await createImageBitmap(new ImageData(new Uint8ClampedArray(base), w, BAND));
+    ctx.drawImage(bm, 0, 0); await tick();
+    t = [];
+    for (let k = 0; k < REPS; k++) { t.push(timed(() => ctx.drawImage(bm, 0, y(k)), flush)); await tick(); }
+    out[`staleDraw${tag}`] = [med(t), max(t)];
+  }
+  c.width = 0; c.height = 0;
+  return out;
+}
+
+(async () => {
+  await new Promise((r) => setTimeout(r, 300));
+  const results = [];
+  try { for (const [w, h] of CONFIGS) results.push(await runOne(w, h)); }
+  catch (e) { results.push({ error: String(e && e.message || e) }); }
+  document.documentElement.dataset.bench = JSON.stringify({ ua: navigator.userAgent, dpr: window.devicePixelRatio, results });
+})();
+</script>
