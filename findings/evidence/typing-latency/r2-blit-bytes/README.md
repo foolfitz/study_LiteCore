@@ -124,3 +124,16 @@ Against the predictions: 1 **hit** (canvases as computed, all drawn). 2 **hit** 
 Read against 122-B's restated commit cell (§15.8; not a criterion here, the window and ratio differ from the counted runs): at ratio 2 and gap 80 the shipped page would fail (b) "median < gap" in both browsers (106.7, 105.6) and (a) "every key < 160" in Firefox (171.2); with the re-blits skipped it would pass both in both. On-screen medians stay under 70 ms at gap 80 — the cost lands on the dispatch and the commit, then on everything queued behind them.
 
 Not reached: a window wide enough for the page's 900-px cap. Then the backing width is 1800, this document's canvas 1800 × ≈ 44,500 (≈ 320 MB), and Firefox's canvas would be taller than 32,767, which has never been measured in Firefox (finding 062's sweep was Chrome, whose limit is 65,535).
+
+## Ratio 2 in a window wide enough for the 900-px cap (predictions written before the runs)
+
+`--window 1400x1000` (wrapper change after the ratio-2 runs): Chrome's Emulation call gets that CSS viewport; Firefox's headless screen is sized by `MOZ_HEADLESS_WIDTH/HEIGHT` = 2800 × 2000 device pixels. Smoke (boundaries, scratch): both canvases 1800 × 4982, drawn. Runs: owner document, ratio 2, window 1400 × 1000, {gap 600, gap 80, gap 80 skip} × {Chrome, Firefox} — `wide-{base,skip}-{browser}-owner-gap{gap}.json`.
+
+Predictions:
+
+1. Both canvases 1800 × ≈ 44,500 (≈ 320 MB per canvas).
+2. Chrome draws it (its limit is 65,535). **Firefox: not known**; I lean (≈ 60 %) to the canvas not drawing at all — every strip transparent, no ink — because I believe Firefox's maximum canvas side is 32,767. If it draws, everything below is about cost; if it does not, that is a defect of finding 062's class on the shipped page (a long document blank on a ratio-2 display in Firefox) and is recorded as a finding candidate before anything else.
+3. Chrome stale re-blit time per key 90–140 ms; commit median at gap 600 130–190 ms.
+4. Chrome gap 80 diverges: commit median > 120 ms and last five above first five.
+5. Chrome gap 80 with the re-blits skipped: commit median < 50, no growth.
+6. If Firefox draws: stale 140–220 ms per key, gap 80 diverges, skip brings the commit median under 80.

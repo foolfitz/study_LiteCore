@@ -20,11 +20,14 @@ tools/probe_typing_latency.py (dbad93c0...) with, in memory only:
   * --dpr N (added after the what-if runs): devicePixelRatio N -- Chrome via Emulation.setDeviceMetricsOverride before
     the first navigation, Firefox via the layout.css.devPixelsPerPx pref; READ also samples, in 120-row strips at the caret line, the middle and the end of the canvas, the transparent pixels (never drawn) and the opaque ones with red < 128 (ink), so a blank
     canvas is visible (a first version counted transparent black as ink; caught on the smoke run);
+  * --window WxH (added after the ratio-2 runs): a CSS viewport of W x H -- Chrome via the same Emulation call,
+    Firefox via MOZ_HEADLESS_WIDTH/HEIGHT (device pixels, W x ratio by H x ratio) -- so the page's 900-px canvas
+    cap is reached;
   * --page v58 serves the v58 page (537d62d7..., bytes from git 05f46923^) from the mirror instead of dist's.
 
-Usage: blit_bytes_probe.py --page {current,v58} [--skip-stale] [--dpr N] + the probe's own arguments (--browser, --document, --gap, --chars,
+Usage: blit_bytes_probe.py --page {current,v58} [--skip-stale] [--dpr N] [--window WxH] + the probe's own arguments (--browser, --document, --gap, --chars,
 --out).  The report's `runner` says what ran; its `page` is the hash of the page actually served."""
-import hashlib, json, statistics, subprocess, sys
+import hashlib, json, os, statistics, subprocess, sys
 from pathlib import Path
 
 ROOT = Path("/home/jiajun/LibreOffice/study_LiteCore")
@@ -45,6 +48,11 @@ dpr = None
 if "--dpr" in sys.argv:
     i = sys.argv.index("--dpr")
     dpr = float(sys.argv[i + 1])
+    del sys.argv[i:i + 2]
+window = None
+if "--window" in sys.argv:
+    i = sys.argv.index("--window")
+    window = tuple(int(v) for v in sys.argv[i + 1].split("x"))
     del sys.argv[i:i + 2]
 page_choice = "current"
 if "--page" in sys.argv:
@@ -156,13 +164,18 @@ if page_choice == "v58":
 served_page = (overrides.get("e2-editor-app.js")
                or (ROOT / "wasm_sdk_probe" / "dist" / "e2-editor-app.js").read_bytes())
 native_build_mirror = pp.build_mirror
-if dpr:
+if dpr or window:
+    dpr = dpr or 1.0
     native_navigate, NativeFirefox = pp.navigate, pp.FirefoxSession
+    if window:  # headless Firefox sizes its screen from these, in device pixels
+        os.environ["MOZ_HEADLESS_WIDTH"] = str(round(window[0] * dpr))
+        os.environ["MOZ_HEADLESS_HEIGHT"] = str(round(window[1] * dpr))
 
     def navigate_at_dpr(session, *args, **kwargs):
         if isinstance(session, pp.ChromeSession) and not getattr(session, "_r2_dpr", False):
             session.call("Emulation.setDeviceMetricsOverride",
-                         {"width": 0, "height": 0, "deviceScaleFactor": dpr, "mobile": False})
+                         {"width": window[0] if window else 0, "height": window[1] if window else 0,
+                          "deviceScaleFactor": dpr, "mobile": False})
             session._r2_dpr = True
         return native_navigate(session, *args, **kwargs)
     pp.navigate = navigate_at_dpr
@@ -221,12 +234,14 @@ report["page"] = hashlib.sha256(served_page).hexdigest()
 report["pageChoice"] = page_choice
 report["skipStale"] = skip_stale
 report["dprRequested"] = dpr
+report["windowRequested"] = window
 report["runner"] = (f"DIAGNOSTIC r2-blit-bytes/blit_bytes_probe.py "
                     f"{hashlib.sha256(Path(__file__).read_bytes()).hexdigest()[:16]} over probe {BASE[:16]}"
                     f" (probe's dataset writes coalesced; native putImageData timed and counted; worker adds"
                     f" diagLokId/diagPayload to document-invalidated; page {page_choice}"
                     f"{'; STALE RE-BLITS SKIPPED (what-if)' if skip_stale else ''}"
-                    f"{f'; devicePixelRatio {dpr} (Chrome: Emulation.setDeviceMetricsOverride; Firefox: layout.css.devPixelsPerPx)' if dpr else ''})")
+                    f"{f'; devicePixelRatio {dpr} (Chrome: Emulation.setDeviceMetricsOverride; Firefox: layout.css.devPixelsPerPx)' if dpr else ''}"
+                    f"{f'; CSS window {window[0]}x{window[1]} (Chrome: Emulation; Firefox: MOZ_HEADLESS_WIDTH/HEIGHT)' if window else ''})")
 canvas, keys = per_key(report)
 inv = invalidations(report)
 report["r2Summary"] = {
