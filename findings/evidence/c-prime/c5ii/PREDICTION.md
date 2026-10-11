@@ -37,3 +37,5 @@ Duration about 5.5 h (51 × about 6.5 min).
 If any ordinary mutation is not red: C5 (ii) does not hold; stop before the release step and diagnose (a mutation
 that no longer bites on C′ is either an anchor that moved without the static suite noticing, or a check C′ made
 unable to fail).
+
+**Correction (before the chain started):** "All 46 ordinary mutations" above is a miscount; 51 − 1 (`caret-ignores-x`) − 2 (declared undetectable) − 1 (`a11y-projection-at-its-static-position`) = **47** ordinary mutations, all predicted red. Nothing else changes.
