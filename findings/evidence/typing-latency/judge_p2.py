@@ -32,7 +32,7 @@ import json
 import sys
 from pathlib import Path
 
-PAGE = "36c2b18baa8340c559cc445a5e7ef6f87957356aa94f54b863d0189328591a44"
+PAGE = "8909564eb2316afa6de7868a08b61d27219fabdf49f37326fee0dda2977bd401"
 RUNNER = "dbad93c0dcf27fbf"   # the probe writes the first 16 hex digits of its own sha256
 BROWSERS = ("chrome", "firefox")
 SLOTS = {  # slot: (document, gap, chars)

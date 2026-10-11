@@ -44,7 +44,7 @@ import json
 import sys
 from pathlib import Path
 
-PAGE = "C-PRIME-PAGE-NOT-YET-BUILT"
+PAGE = "8909564eb2316afa6de7868a08b61d27219fabdf49f37326fee0dda2977bd401"
 RUNNER = "probe_typing_latency_view.py 1412e4c863de6fcb over probe dbad93c0dcf27fbf"
 DPR = 2.0
 WINDOW = [1400, 1000]
