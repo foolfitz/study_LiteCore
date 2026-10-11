@@ -53,7 +53,7 @@ def main() -> int:
                "--seconds", str(seconds), "--idle-seconds", str(idle), "--netlog-dir", str(args.netlog_dir),
                "--out", str(HERE / f"{label}.json")]
         for f in flags:
-            cmd += ["--extra-flag", f]
+            cmd += [f"--extra-flag={f}"]    # the value starts with "--": argparse takes it only in this form
         started = datetime.now(timezone.utc).isoformat(timespec="seconds")
         res = subprocess.run(cmd, capture_output=True, text=True)
         with log.open("a", encoding="utf-8") as fh:
