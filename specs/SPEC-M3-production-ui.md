@@ -1164,3 +1164,4 @@ runner 一個位元組沒動。§34.4 仍是**因執行而修 6、因審核而�
 **`RESULT-0.2.12.md` 要帶的一行**：「C5 (ii)：照已 commit 的規則 44／47、不成立（§17.20）；C5 (ii)′ 46／46 活的全紅＋1 個死的登錄（§17.21）；runner `bd6fc0ca…` 未動；6／5；只有 Chrome」，加上上面三項登錄與起草方帳。
 
 下一步：發佈那一步（交接 10-11c 的 Next 2）。
+- **殼層 generation v61 凍結**（2026-10-11）：`f48df85bb686500529dd4613273f15cf09e50e51920b3110f603b1b10b0b0f7a`，與 v60 只差 `web/e2-editor-app.js`（`8909564e…`＝C′＋124＋125）與凍結日期，排除清單相同（承自 v40）。凍結前 `make test-e2-c-static` 只紅在 manifest 過期（`release-0.2.12/test-e2-c-static-before-freeze.txt`），凍結後結束碼 0、E1-C 完好。v60 沒有被動到。

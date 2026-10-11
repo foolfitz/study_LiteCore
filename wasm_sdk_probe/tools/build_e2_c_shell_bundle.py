@@ -634,7 +634,19 @@ FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
 # reader `findings/evidence/typing-latency/judge_p.py` (§16.9) as PASS in both browsers, P2 by `judge_p2.py`
 # (judge.py with the page constant re-bound) as PASS, 121-B and 120-B re-run on these bytes (§16.10).  The other
 # modules equal v59's.
-MANIFEST = Path("e2/editor-shell-v2-bundle-v60.json")
+#
+# v61, 2026-10-11: C′ WITH FINDINGS 124 AND 125 (fable's fifth ruling Part 5; SPEC-M3-production-ui §17).
+# One file differs from v60, `web/e2-editor-app.js` (8909564e...):
+#   * C′ (57d21411 -> 90242ebc): a canvas about three viewports tall, absolutely positioned inside `#paper` (which
+#     carries the document's height), native scrolling, bands outside the window stale by revision; 062's
+#     65,535-row ceiling (finding 126) no longer applies to the document.
+#   * 124 (bbce5596): the desk scrolls to keep a caret that changed and left the visible range in view.
+#   * 125 (0ad30e73): 「處理中」 is shown to the user only after 700 ms busy (`#state-shown`); `#state-pill` keeps
+#     every state immediately.  Still pins e2-editor-v19 (1aafd4f9...).
+# Frozen AFTER the browser criteria were met on dist/ (finding 091's rule): witness 0 red on the final page
+# (§17.15), C3/C4 6/6, C6 8/8, 124-B/125-B PASS both browsers (§17.16), C2 PASS (§17.17), C1′ (§17.18), C5 (i)
+# (§17.12) and C5 (ii)′ (§17.21; C5 (ii) as written not held, §17.20).  The other modules equal v60's.
+MANIFEST = Path("e2/editor-shell-v2-bundle-v61.json")
 ENTRYPOINT = Path("web/e2-editor-app.js")
 
 # The directories whose *.js files must all be accounted for.  `editor-shell`
