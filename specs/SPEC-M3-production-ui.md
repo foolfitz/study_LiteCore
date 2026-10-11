@@ -1187,3 +1187,43 @@ runner 一個位元組沒動。§34.4 仍是**因執行而修 6、因審核而�
 
 **計數之前**：page-smoke 搬移的 §34.4 證人——production UI `Rdel`、兩個瀏覽器、不計數，用 `08d73cff` 的 `run_e2_c_page_smoke.py` 與 `check_m3_page_honesty.py`（`findings/evidence/c-prime/witness/host-rdel/`，預測在 `witness/PREDICTION.md`：兩個瀏覽器都紅）。第一次嘗試只還原了一支，`check_m3_page_honesty` 在 import 時就死了、沒開瀏覽器（`attempt-1-import-error/`）；第二次兩支都還原。
 - **計數前的 `Rdel` 見證（2026-10-11）**：第二次兩個瀏覽器都紅，照預測、照預測的機制——沒有發生拒絕並重開，伺服器上的文字從第 42 段（共 211 段，約第 4 頁）開始不同，就是未搬移的定位把 `LAST_LINE` 的 0.99 乘在視窗畫布上落到的地方（`findings/evidence/c-prime/witness/host-rdel/README.md`）。**page smoke 的搬移因此有了 §34.4 的證人。**兩支檔案跑完已還原、雜湊與 HEAD 相同。搬過的 runner 在同一個宿主上的 `Rdel` 在計數鏈裡，那是這次的正向對照。
+
+### 17.23 0.2.12 計數鏈停在 locks shakedown；兩輪診斷；啟動器加 5 秒暖機；重跑整條鏈的預測（2026-10-11，只追加；寫在重跑的鏈啟動之前）
+
+**停車。**0.2.12 的計數鏈（`findings/evidence/m3-production-ui/runs-0.2.12/chain-2026-10-11.sh`，樹 `fa8b0ddb`，10:41:28Z 起）在第二支 shakedown 停下：locks 結束碼 1，22 臂過 21，唯一紅的是 `chrome:readonly`（K9′）——Files 頁 `rows: 0`、`OC is not defined`，`filesRowDiagnostic.cdp.loadingFailed` 43 筆全是 `net::ERR_CERT_VERIFIER_CHANGED`，沒有走到編輯器。鏈照自己的規則寫 `STOP` 並退出，**沒有任何計數執行**。事實記在 `runs-0.2.12/stop-1/`（`a3bf2378`）；報告 `findings/evidence/m3-locks/shakedown/2026-10-11T110140+0000.json`。擁有者選「先診斷再重跑」。
+
+**第一輪診斷**（`findings/evidence/112/cert-verifier/`，預測 `567d15b4`、結果 `9f513e44`）：假說 H1「元件更新在開機後安裝憑證元件、重設驗證器」**不被支持**——憑證元件在開機後 62–65 秒安裝，三趟都沒打到任何請求；唯一一次失敗在開機後 2.3 秒。照預先寫好的判讀規則什麼都不改、交回擁有者。擁有者選「第二輪短趟診斷」，交 fable 執行。
+
+**第二輪診斷**（`second-round/`，預測與儀器 `5ea259af`、排程修正 `3f7fc9ce`、結果 `45f0679f`；Chrome 151，64 趟有效，13:14:56Z–13:35:19Z）：儀器改讀 `--log-net-log`，直接看每一次「Cert verifier changed」。照已 commit 的規則判 **D2**：開機後有**兩次**重設——R_a 約 0.17 秒（網路校時推給驗證器；關 `CertVerificationNetworkTime` 就消失）、R_b 約 2.3 秒（最大 2.421 秒；跟著背景連線；`--disable-background-networking` 就消失）。單一旗標只除得掉其中一個，留下的那個仍會收走來源的 HTTP/2 session（E5 留 R_b、有 1 次真的打到頁面請求；E6 留 R_a、2/12 收走來源）。`--disable-component-update` 什麼都不改。**第一個請求延到開機後 5 秒（E3）：12 趟裡 0 次重設落在第一個請求之後、0 次打中**——重設發生時來源的 session 還不存在。主 session 從每趟報告重算核對過（交接 10-11e 附錄）：E1 的 R_b 19/20（fable 寫 20/20，差在窗口邊界），另外 R_a 也會讓來源的 session going away（E1 20/20），不只 R_b；兩點都不改結論。
+
+**擁有者的決定**（2026-10-11）：「A 採用、新 session 執行」＝加暖機、整條鏈從頭重跑。
+
+**改動**（只動 `wasm_sdk_probe/tools/run_browser_probe.py`，一處）：`ChromeSession.__init__` 在最後一個 CDP 呼叫（`Network.setCacheDisabled`）之後 `time.sleep(5)`，再交回控制權（＝任何導覽之前）。雜湊 `663b2ffab8174afc…` → `2f14d9ddec438c50…`。不加旗標（各只除一個，組合沒量過）；不做「輪詢到穩定為止」（新機制，CLAUDE.md §4，要擁有者）。
+
+- **量的是什麼、改的是什麼**：E3 是從**啟動 Chrome 那一刻**算 5 秒才發第一個請求；這裡是 CDP 就緒**之後**再等 5 秒，而 CDP 就緒在啟動後 0.17–0.26 秒（E1／E3 的 `cdpReadyT`），所以第一個請求落在 ≥ 約 5.2 秒，比量過的 E3 晚，不早。
+- **覆蓋範圍**：每一支經 `ChromeSession`（含 `EventChrome`、`LockChrome`）開 Chrome 的工具都會多等 5 秒；鏈上用到的八支（六支 M3 runner、production UI、產品路徑）全都經過它。Firefox 不受影響（`FirefoxSession` 沒動）。
+- **誰綁著這支檔**：沒有絕對 pin、沒有靜態測試（`git grep` 舊雜湊只出現在證據與交接；`tests/` 無引用）。舊雜湊記在 `findings/evidence/m3-install/equivalence.json` 的 `moduleSha256`，`check_m3_install_elsewhere.py` 只在**同一個窗口內**比對它（I3-8）；下一次跑 install-elsewhere 時 equivalence 會在新樹上重算。既有的 `INSTALLS ELSEWHERE`（0.2.5，10-03）是舊位元組上的判定，這裡不重跑。
+- **import 者**：§17.3 的前例要求每一支 import 者都出現在 0 差異重現裡，因為那次搬的是幾何、會改判定。這次只移動「第一次導覽之前」的時間，不碰任何判讀或定位；擁有者選的驗證就是重跑整條鏈，鏈上每一支 import 者都在裡面，產品路徑另照 10-11d 的 Next 2 與 0.2.11 做新舊比較。**不另跑 0 差異重現。**鏈外其他 import `ChromeSession` 的工具也會多等 5 秒，沒有重跑，它們在這次發佈沒有計數角色。
+- **靜態**：改動後 `make test-e2-c-static` 結束碼 0、E1-C `intact: true`（`findings/evidence/release-0.2.12/test-e2-c-static-after-warmup.txt`）。六支 M3 runner 與 §17.22 綁定表的每一個值都沒動。
+
+**§34.4 的帳**：見證＝`findings/evidence/m3-locks/shakedown/2026-10-11T110140+0000.json`（誠實執行、已 commit，它的 K9′ 紅由這個重設造成——時間對得上、形狀對得上，而那份報告的 `loadingFailed` 沒有時間戳，所以它自己的失敗時刻無法直接讀到），加上兩輪診斷的報告。**因執行而修 7、因審核而修 5。**§17.21 預留的「將來那一次改 runner」改記成 **7 → 8**（撞號：第一輪的 PREDICTION 與 §17.21 都寫了「6 → 7」，先落地的是這一次）。
+
+**重跑的鏈**：`runs-0.2.12/chain-2026-10-11b.sh`、`red-cases-2026-10-11b.sh`，由 10-11 那兩支只改日誌目錄（`wasm_sdk_probe/build/m3-count-2026-10-11b`，不續寫 stop-1 那個目錄）與表頭註解。計數產物照舊寫在 `runs-0.2.12/`、產品路徑的 `chain.log` 由鏈自己建立。
+
+**預測**（寫在鏈啟動之前）：
+
+| 項 | 預測 | 讀法 |
+| --- | --- | --- |
+| Q1 | locks shakedown 的 12 個 Chrome 臂全過（K9′ 在內），鏈走過六支 shakedown 進入計數 | `chain.txt` 的 shakedown 行與 locks 報告的 `score` |
+| Q2 | 這條鏈寫出的**每一份**報告都不含 `ERR_CERT_VERIFIER_CHANGED` | `grep -l` 這次鏈寫出的報告＝0 份。正向對照：同一個 grep 對 stop-1 的 locks 報告數得到 86 次（`loadingFailed` 43 筆＋主控台錯誤 43 筆）。**極限**：只有 locks、host entry、same second、versions 會把 CDP 載入失敗寫進報告；page honesty、assets、production UI、產品路徑若撞上，只會以 Files 頁失敗或臂紅的樣子出現在判定裡 |
+| Q3 | 鏈的總時長比 0.2.11 的鏈（01:57:35Z→06:47:12Z，4 時 49 分 37 秒）多出約「5 秒 × Chrome 啟動次數」；次數沒有先數，**這一格是估計，不是判準** | `chain.txt` 首末兩行；照實記 |
+
+**如果重設又出現**：在 shakedown 裡，鏈依自己的規則停下；在計數裡，那一支的計數判定照它自己的規則算（紅就是紅）。兩種都交回擁有者，**不自行加長等待、不自行加旗標**。候選（都沒量成修法）：加長等待；加 `--disable-background-networking`（因果上除掉 R_b）；加 `--disable-component-update`（見殘留 2）。
+
+**殘留風險（登錄，各附「永遠沒做」的結論）：**
+
+1. **R_b 的時刻跟著網路走。**它搭在 Chrome 對 Google 的背景請求上，這台機器、這個網路上 ≤ 2.421 秒；網路明顯變慢時可能晚過 5 秒，而固定的等待看不到這件事。**永遠沒做時**：5 秒照用，紅了再回到上面那一段。
+2. **約 62 秒的元件安裝重設不在暖機的範圍內。**第一輪三次安裝在 62–65 秒、第二輪 70 秒對照組在 61.87 秒都看到它，而且對照組那次讓 `litecore.ddev.site:8443` 的 HTTP/2 session going away；四次都**沒有**打中任何請求（第一輪三次期間有約 0.85 MB 的串流在飛）。一個臂若剛好在開機後約 62 秒對來源排隊請求，仍可能撞上。`--disable-component-update` 讓第一輪 E2 的兩趟都沒有安裝，但它沒有被量成「頁面請求不再被打中」的修法，擁有者選的是只加暖機。**永遠沒做時**：登錄為具名極限；之後若有紅帶著約 60 秒的時刻，先查這一個。
+3. **locks 報告的失敗沒有時間戳**（交接 10-11e Open 3）。要補得改 runner，這裡不提。**永遠沒做時**：下一次撞上時同樣只能用時間與形狀對照。
+
+**永遠沒重跑時**：0.2.12 沒有計數；124／125／126 的狀態維持待定；最後一個計數成立的發佈仍是 0.2.11。

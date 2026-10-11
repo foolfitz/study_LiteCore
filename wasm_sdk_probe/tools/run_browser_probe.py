@@ -241,6 +241,15 @@ class ChromeSession:
         self.call("Runtime.enable")
         self.call("Network.enable")
         self.call("Network.setCacheDisabled", {"cacheDisabled": cache_mode == "cold"})
+        # Warm-up before the first navigation (finding 112, 2026-10-11).  A
+        # fresh headless Chrome resets its certificate verifier twice in its
+        # first seconds (net log: ~0.17 s network time, ~2.3 s background
+        # networking, max 2.421 s over 64 launches), and every request queued
+        # on an HTTP/2 session at that moment fails ERR_CERT_VERIFIER_CHANGED.
+        # Delaying the first request to 5 s missed every reset (0 of 12); no
+        # single flag removed both.  findings/evidence/112/cert-verifier/
+        # second-round/README.md; specs/SPEC-M3-production-ui.md 17.23.
+        time.sleep(5)
 
     def call(self, method: str, params: dict[str, Any] | None = None,
              timeout: float = 180,
