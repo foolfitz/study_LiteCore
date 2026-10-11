@@ -1227,3 +1227,17 @@ runner 一個位元組沒動。§34.4 仍是**因執行而修 6、因審核而�
 3. **locks 報告的失敗沒有時間戳**（交接 10-11e Open 3）。要補得改 runner，這裡不提。**永遠沒做時**：下一次撞上時同樣只能用時間與形狀對照。
 
 **永遠沒重跑時**：0.2.12 沒有計數；124／125／126 的狀態維持待定；最後一個計數成立的發佈仍是 0.2.11。
+
+### 17.24 0.2.12 的結果（2026-10-12，只追加；`findings/evidence/m3-production-ui/RESULT-0.2.12.md`）
+
+**計數在宿主 0.2.12 上成立。**重跑的鏈（`runs-0.2.12/chain-2026-10-11b.sh`，樹 `7fb0ed08`，2026-10-11 14:39–19:41 UTC）六支 shakedown 全乾淨，之後：production UI 24/24、6/6、4/4、合併突變 40/40；page honesty `PAGE HONEST`（154）、locks `LOCKS LAND`（99，`chrome:readonly` 3/3）、versions `VERSIONS CORRECT`（68）、assets `ASSETS DELIVERED`（156）、host entry `HOST_ENTRY LANDS`（23＋基線綠）、same second `SAME-SECOND SAVES KEPT`（70）——紅案數與 0.2.11 相同。計數後 `make test-e2-c-static` 結束碼 0。
+
+**§17.23 的預測**：Q1 成立（locks shakedown 22 臂全過、Chrome 的 Files 列 0.00–0.06 秒就在、擷取一次都沒觸發）；Q2 成立（鏈寫出的 56 個檔 0 個含 `ERR_CERT_VERIFIER_CHANGED`，同一個 grep 對 stop-1 的報告數得到 86）；Q3 照實記：總時長 5 時 01 分 35 秒，比 0.2.11 多 11 分 58 秒（啟動次數沒數，不換算成每次）。**一條乾淨的鏈不是發生率**：舊的發生率本來就低，這條鏈證明的是改動沒弄壞任何 runner、而且這條鏈的每一次 Chrome 啟動都沒有撞上重設。
+
+**產品路徑網**：監看項（§17.15）沒觸發——Chrome 的 `clear-format-removes-every-inline-format` 六輪全 PASS，§17.15 那一次維持「單次出現」的登錄。判讀器先在副本上紅過兩次（`judge-red-offline.txt`），判定＝`P1: HIT  P2: HIT  P3: HIT (red cells 0)  P4: descriptive (differing cells 1)`；不同的那一格是 Firefox `clear-format`（v8 2 PASS＋1 NE、v19 3 NE），屬於 0.2.11 那一種、只差在 NE，照 P4 的預測。**v8 臂第一次在 C′ 頁面上跑**，84 格裡 83 格與 v19 相同。新舊頁面的 v19 比較（對 0.2.11，`old-vs-new-v19.txt`）：兩個瀏覽器各 42 格，**0 格不同**。
+
+**finding 的狀態（各照自己的判準，計數成立才改）**：124 已修（124-U＋紅案、124-B 兩個瀏覽器）；125 已修（125-U＋紅案、125-B 兩個瀏覽器；記錄項：存檔滿 700 ms 的瀏覽器正向對照只在 Chrome 觸發過一次）；126 已修（C6 的 C′ 半，40／50 頁 8/8 畫得出來）；112 的修法在這條鏈上撐住（一條鏈，不是發生率）。
+
+**§34.4**：因執行而修 7、因審核而修 5。§17.21 那一次將來改 runner 記成第 8。
+
+**下一步**：告訴擁有者、請擁有者手測 0.2.12（打字；長文件上的方向鍵——畫面跟著游標、不閃「處理中」；機器有的話，150% 下超過 33 頁的文件）；之後是 finding 127（自動儲存）的規格。
