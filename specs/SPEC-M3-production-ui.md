@@ -1078,3 +1078,9 @@ C′ 那個 commit（`57d21411`）cherry-pick 進主樹成 `90242ebc`，`make e2
 2. **§34.4 照前例各記 +1**：`13f91117`（突變 `gesture-abort-not-wired` 改錨到 `#paper`）與 `e1303987`（`--caret-source-diagnostic`／`--barrier-details-diagnostic` 三個錨點，證人＝`findings/evidence/c-prime/page/static-on-main-*.txt`，見 `STATIC-SUITE.md`）。**因執行而修 6，因審核而修 5**（不得再增加）。
 
 Next 4 已做：`7ffc55e1`、`bbdde806`、`13f91117` cherry-pick 成 `bbce5596`、`0ad30e73`、`3eccb235`，`make e2-c-assets` 之後 `dist/` ＝ `web/` ＝ `8909564e…`；三個診斷錨點重新錨定（`e1303987`，`run_e2_c_product_path.py` 現為 `bd6fc0caf677ee9c`）。靜態檢查只剩 shell manifest（v60）過期一格，凍 v61 時清掉。
+
+### 17.15 最終頁面上的見證（2026-10-11，只追加）
+
+**搬移證人 0、頁面效果 0，預測成立**（`findings/evidence/c-prime/witness/final-page/README.md`）：最終頁面 `8909564e…` 上，未搬移與搬移過的產品路徑 runner 各跑 v19 臂、兩個瀏覽器各一輪，四份報告對 0.2.11 三輪的見證紅全是 0；Firefox 的 exit 1 是已知的 `an-inline-format-reaches-a-selection`。照擁有者的退路：`run_e2_c_product_path.py` 與 `check_m3_page_honesty.py` 的搬移**在兩個頁面上都沒有證人，登錄**（§34.4）；`run_e2_c_page_smoke.py` 的搬移等發佈那一步、計數之前，在帶這個頁面的宿主 build 上用未搬移的版本跑一次 production UI `Rdel`。
+
+**預測之外的一格**：搬移過的 Chrome 那一輪 `clear-format-removes-every-inline-format` 是 NOT_ESTABLISHED（0.2.11 三輪 PASS）。不算紅，但我寫過「沒有其他變動」，所以照實記：前置條件（在收合的游標上累加四種格式）第一步的粗體鍵 3 ms 回應、頁面格式快取 false→true、按鈕有提供，存檔裡接著打的字卻不是粗體——也就是使用者看得到的「按鈕顯示開了、字沒變粗」。這是既有的間歇性類型（finding 077 的機制：工具列是切換，送什麼跟著頁面快取走），Firefox 在已提交的報告裡 68 輪有 59 輪中招，Chrome 這之前 67 輪全過、這是第一次；搬移沒有碰這條路。**登錄為觀察項（不是閘門判準）**：發佈那一步的產品路徑網會在這個頁面上跑 Chrome 六輪，六輪裡 NE ≥ 2（基準率下約 0.4%）就當頁面效果、計數前診斷；0 或 1 維持登錄；那張網若從未跑，維持「單次出現」的登錄。
