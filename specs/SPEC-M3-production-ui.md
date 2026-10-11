@@ -1115,3 +1115,17 @@ Next 5 到此做完。下一步 C5 (ii)。§34.4：因執行而修 6、因審核
 ### 17.19 登錄：混合突變檢驗（2026-10-11，只追加）
 
 擁有者問能不能「部分突變合併成一輪跑、其餘單獨跑」以節省時間，交 fable 想（唯讀；原文與主 session 對引用的核對在 `findings/evidence/c-prime/c5ii/pooling/fable-answer.md`）。擁有者同意 fable 的建議：**現在不採用，登錄**。要點：合併只有在少見的全面普查時才省得到時間（每次發佈平常只跑 1～2 個突變）；可靠的版本要用同一頁面、同一 runner 的單跑結果當校準，而那份校準就是全部單跑，所以第一次普查省不到；跨頁面沿用校準只能當篩檢（附帶的紅會隨頁面漂移）；C′ 上可合併的 20／51、約省三成；只看「B 負責的那格紅了」不夠，連比對失敗細節的特徵都在 6／15 格分不出主人與附帶；要改凍結的 runner 並多一支要雙席審核的判讀工具，而沒有 §34.4 的證人。C5 (ii) 的 51 份報告留作「校準 v0」（頁面 `8909564e…`、runner `bd6fc0ca…`、Chrome）。**重議條件**：真的排了第二次全面普查（例如從未跑過的 Firefox 普查）；屆時只當篩檢、每輪 ≤ 3 個、先跑 fable 列的四個紅案。**從來沒做時**：維持逐個跑。
+
+### 17.20 C5 (ii) 的結果：照規則不成立，三個沒紅的都查到 C′ 之前的成因（2026-10-11，只追加；不含決定）
+
+`findings/evidence/c-prime/c5ii/README.md`（英文）；判讀規則與預測在 `PREDICTION.md`（chain 之前 commit；更正二在重跑之前 commit，`b952e5f6`）。51 趟全部完成（2026-10-11 03:56–09:59 UTC，每趟約 7.1 分鐘），每份報告 `complete: true`，沒有需要「單獨重跑一次」的。
+
+照規則讀（宣告的檢查 FAIL＝紅，不看 runner 的 `ok`）：**一般突變 47 個裡 44 個紅、3 個沒紅**；`caret-ignores-x` 依 §17.10 紅；`checkpoint-write-fails`、`copy-lies` 照宣告偵測不到；`a11y-projection-at-its-static-position` 照預測存活。**預測是 47 個全紅，所以照規則 C5 (ii) 不成立**，發佈那一步停住、先診斷。三個的成因都比 C′ 早，而且都是讀原始碼與既有報告得到的：
+
+1. **`geometry-declared-but-not-delivered`——預測選的旗標讓它變成死突變。**突變把「profile 有沒有宣告每段的幾何」換成「有沒有 contract」；v14 的 manifest **本來就宣告**幾何，所以在 v14 上前後都是 `true`，頁面永遠到不了 `declared-but-missing`（報告：`geometry: "present"`、24／24）。它 09-08 落地時的紅案用的是 v12（有 outline、沒宣告幾何）。v14 那趟記為未判；以 `--candidate-profile e2-editor-v12` 單獨重跑一次：**照預測紅**——擁有者檢查只在 C1 FAIL（`geometry: "declared-but-missing"`、帶到 0 個），runner 自己判「被負責的檢查抓到」（`ok: true`），沒有附帶紅（其餘非 PASS 只有兩格常駐 NE）。
+2. **`inline-format-rollback`——finding 059 在 08-19 修好之後就是死的，而它負責的檢查從那時起在空轉。**突變關掉的分支只在格式動作回 `LOK_COMMAND_FAILED` 時才走得到；08-18 咬到過一次，是因為引擎當時把核心的 `success:false` 報成失敗（059）。08-19 的連結修掉之後，引擎改問文件自己的狀態，只有狀態對不上才回報失敗；v19 上產品路徑沒有任何格式動作失敗（51 份報告裡 `a-format-that-worked-is-not-reported-as-failed` 全 PASS、toast 全空）。08-18 之後這個突變一次都沒被跑過，所以沒人發現。更深一層：`a-failed-format-does-not-block-the-session` 讀的是「兩下粗體之後 session 是 `ready`、沒有回到檢查點的通知」，**沒有確認真的有格式失敗**，所以沒有失敗時照樣 PASS——CLAUDE.md §3 的「有行為而沒有東西守著」（那個處置分支在核心真的拒絕時仍然走得到）。C′ 沒碰這條路；同一顆 v19 引擎上的 P 頁面性質相同（讀原始碼推得，沒有跑）。
+3. **`rollback`——宣告的主人是設計好的哨兵，突變被復原那一格抓到，跟 0.2.9 一模一樣。**`notice-action-recovers-the-session` 是 `recoveryPairing` 的哨兵（bulleting PASS → 棄權，CLAUDE.md §3 點名過）；突變（回到檢查點改接到復原）被 `recovery-returns-what-the-product-promised` FAIL 抓到：產品說「回到檢查點 失敗」，session 停在 `recoverable-error`。與 `release-0.2.9/product-path/mutation-rollback-chrome.json`（10-09）同樣四格非 PASS、復原那一格的觀察值只差兩個計時欄位。0.2.9 當時把這記成「條件點名的是哨兵，這一趟紅的是驅動同一能力的那一格」，runner 的宣告沒改；**這次的預測沒有把這個前例帶進來——錯在預測，不在 C′。**
+
+順帶看到、不判讀：`caret-off-by-one-line` 宣告的附帶紅 bulleting 在 C′ 上 PASS；`inline-format-rollback` 的附帶紅 `bold-can-be-turned-off-again` PASS（同第 2 點）；`save` 宣告的附帶紅 `notice-action-recovers-the-session` 是 NE（哨兵）。
+
+runner 一個位元組沒動。§34.4 仍是**因執行而修 6、因審核而修 5**。C5 (ii) 算不算成立、三個各自怎麼處置（含 runner 要不要動），交擁有者，記在下一節。

@@ -1,0 +1,51 @@
+enter-key-not-bound | RED | the-enter-key-reaches-the-document=FAIL |  | FAIL=the-enter-key-reaches-the-document | ok=True
+focus | RED | the-toolbar-gives-the-keyboard-back=FAIL |  | FAIL=the-toolbar-gives-the-keyboard-back | ok=True
+cut | RED | cut-removes-the-selected-text=FAIL |  | FAIL=cut-removes-the-selected-text | ok=True
+backspace | RED | backspace-and-arrows-reach-the-document=FAIL |  | FAIL=backspace-and-arrows-reach-the-document | ok=True
+edit-arrows-swapped | RED | the-edit-buttons-do-what-they-say=FAIL |  | FAIL=the-edit-buttons-do-what-they-say | ok=True
+open-button-forwards-nowhere | RED | the-open-button-opens-the-file-chooser=FAIL |  | FAIL=the-open-button-opens-the-file-chooser | ok=True
+selection-shape-from-the-wrong-place | RED | the-page-agrees-with-the-engine-about-the-selection=FAIL |  | FAIL=the-page-agrees-with-the-engine-about-the-selection | ok=True
+selection-shape-unreadable | RED | the-page-agrees-with-the-engine-about-the-selection=FAIL |  | FAIL=the-page-agrees-with-the-engine-about-the-selection | ok=True
+gesture-abort-not-wired | RED | an-aborted-gesture-stops-selecting=FAIL |  | FAIL=an-aborted-gesture-stops-selecting | ok=True
+resize-does-not-repaint | RED | the-canvas-follows-a-window-that-changed-size=FAIL |  | FAIL=the-canvas-follows-a-window-that-changed-size | ok=True
+sample-picker-does-nothing | RED | the-sample-picker-opens-a-second-document=FAIL |  | FAIL=the-sample-picker-opens-a-second-document | ok=True
+caret | RED | the-caret-is-drawn-where-it-was-placed=FAIL |  | FAIL=the-caret-is-drawn-where-it-was-placed,the-vertical-arrows-move-the-caret | ok=False
+caret-ignores-x | RED(§17.10) | the-caret-lands-where-the-click-was=NOT_ESTABLISHED | the-caret-is-drawn-where-it-was-placed=FAIL | FAIL=the-caret-is-drawn-where-it-was-placed | ok=False
+inline-format-rollback | NOT-RED | a-failed-format-does-not-block-the-session=PASS | bold-can-be-turned-off-again=PASS | FAIL= | ok=False
+review-disposition | RED | bulleting-a-blank-line-does-not-demand-a-rollback=FAIL |  | FAIL=bulleting-a-blank-line-does-not-demand-a-rollback | ok=True
+paragraph-action-swallowed | RED | format-a-paragraph-changes-that-paragraph=FAIL |  | FAIL=format-a-paragraph-changes-that-paragraph | ok=True
+paragraph-action-misrouted | RED | format-a-paragraph-changes-that-paragraph=FAIL |  | FAIL=format-a-paragraph-changes-that-paragraph | ok=True
+caret-off-by-one-line | RED | format-a-paragraph-changes-that-paragraph=FAIL | bulleting-a-blank-line-does-not-demand-a-rollback=PASS,cut-removes-the-selected-text=FAIL | FAIL=cut-removes-the-selected-text,format-a-paragraph-changes-that-paragraph | ok=False
+checkpoint-before-selection-noop | RED | recovery-returns-what-the-product-promised=FAIL |  | FAIL=a-boundary-arrow-press-does-not-cost-the-work,recovery-returns-what-the-product-promised | ok=False
+checkpoint-write-fails | DECLARED-UNDETECTABLE verdict=not-detected | recovery-returns-what-the-product-promised=PASS |  | FAIL=a-boundary-arrow-press-does-not-cost-the-work | ok=False
+notice-does-not-declare-its-decision | RED | recovery-returns-what-the-product-promised=FAIL |  | FAIL=a-boundary-arrow-press-does-not-cost-the-work,recovery-returns-what-the-product-promised | ok=False
+slow-repaint | RED | editing-a-long-document-stays-responsive=FAIL |  | FAIL=a-boundary-arrow-press-does-not-cost-the-work,an-inline-format-reaches-a-selection,clear-format-removes-every-inline-format,ctrl-c-asks-the-engine,editing-a-long-document-stays-responsive,the-canvas-follows-a-document-that-grew | ok=False
+one-tile-for-the-whole-document | RED | a-long-document-is-drawn-or-the-product-says-it-is-not=FAIL |  | FAIL=a-long-document-is-drawn-or-the-product-says-it-is-not | ok=True
+ignore-a-document-that-grew | RED | the-canvas-follows-a-document-that-grew=FAIL |  | FAIL=the-canvas-follows-a-document-that-grew | ok=True
+keyboard-formats-not-bound | RED | the-keyboard-reaches-the-document=FAIL |  | FAIL=the-keyboard-reaches-the-document | ok=True
+composition-never-shown | RED | the-composition-you-are-typing-is-visible=FAIL |  | FAIL=the-composition-you-are-typing-is-visible | ok=True
+line-movement-keys-unbound | RED | the-vertical-arrows-move-the-caret=FAIL |  | FAIL=the-vertical-arrows-move-the-caret | ok=True
+clear-format-leaves-one-format-on | RED | clear-format-removes-every-inline-format=FAIL |  | FAIL=clear-format-removes-every-inline-format | ok=True
+format-ignores-a-selection | RED | an-inline-format-reaches-a-selection=FAIL | the-keyboard-reaches-the-document=FAIL,bold-can-be-turned-off-again=FAIL | FAIL=an-inline-format-reaches-a-selection,bold-can-be-turned-off-again,the-keyboard-reaches-the-document | ok=True
+projection-not-wired | RED | the-document-region-says-why-it-is-empty=FAIL |  | FAIL=the-document-region-says-why-it-is-empty | ok=True
+structure-names-nothing-while-the-region-defers | RED | the-document-region-says-why-it-is-empty=FAIL |  | FAIL=the-document-region-says-why-it-is-empty | ok=True
+the-region-defers-with-a-reason-it-owed-the-user | RED | the-document-region-says-why-it-is-empty=FAIL |  | FAIL=the-document-region-says-why-it-is-empty | ok=True
+a11y-projection-at-its-static-position | RECORDED survives | the-projection-is-placed-where-the-document-is=PASS |  | FAIL= | ok=False
+geometry-declared-but-not-delivered | NOT-RED | the-projection-is-placed-where-the-document-is=PASS |  | FAIL= | ok=False
+boundary-move-takes-no-checkpoint | RED | a-boundary-arrow-press-does-not-cost-the-work=FAIL |  | FAIL=a-boundary-arrow-press-does-not-cost-the-work | ok=True
+worker-crash-throws-the-checkpoint-away | RED | a-boundary-arrow-press-does-not-cost-the-work=FAIL |  | FAIL=a-boundary-arrow-press-does-not-cost-the-work | ok=True
+worker-crash-is-never-noticed | RED | a-boundary-arrow-press-does-not-cost-the-work=FAIL |  | FAIL=a-boundary-arrow-press-does-not-cost-the-work | ok=True
+cut-swallows-the-refusal | RED | a-refused-action-is-reported-and-changes-nothing=FAIL |  | FAIL=a-refused-action-is-reported-and-changes-nothing | ok=True
+cut-falls-back-to-the-caret-only-delete | RED | cut-removes-the-selected-text=FAIL |  | FAIL=cut-removes-the-selected-text | ok=True
+paste | RED | ctrl-v-reaches-the-document=FAIL |  | FAIL=ctrl-v-reaches-the-document | ok=True
+open-file | RED | product-opens-a-document-the-user-chose=FAIL |  | FAIL=product-opens-a-document-the-user-chose | ok=True
+save | RED | product-save-button-writes-a-real-odt=FAIL | every-ime-commit-reaches-the-document=FAIL,notice-action-recovers-the-session=NOT_ESTABLISHED | FAIL=a-boundary-arrow-press-does-not-cost-the-work,an-inline-format-reaches-a-selection,ctrl-v-reaches-the-document,every-ime-commit-reaches-the-document,product-opens-a-document-the-user-chose,product-save-button-writes-a-real-odt,the-edit-buttons-do-what-they-say,the-keyboard-reaches-the-document | ok=False
+ime | RED | every-ime-commit-reaches-the-document=FAIL |  | FAIL=every-ime-commit-reaches-the-document,the-keyboard-reaches-the-document | ok=False
+copy | RED | ctrl-c-asks-the-engine=FAIL |  | FAIL=an-inline-format-reaches-a-selection,ctrl-c-asks-the-engine | ok=False
+undo | RED | product-undo-button-reverses-the-last-edit=FAIL |  | FAIL=product-undo-button-reverses-the-last-edit | ok=True
+redo | RED | product-redo-button-restores-what-undo-removed=FAIL |  | FAIL=product-redo-button-restores-what-undo-removed | ok=True
+insert-text | RED | product-insert-button-inserts-what-the-field-holds=FAIL |  | FAIL=a-boundary-arrow-press-does-not-cost-the-work,an-inline-format-reaches-a-selection,product-insert-button-inserts-what-the-field-holds,product-redo-button-restores-what-undo-removed,the-edit-buttons-do-what-they-say | ok=False
+rollback | NOT-RED | notice-action-recovers-the-session=NOT_ESTABLISHED |  | FAIL=recovery-returns-what-the-product-promised | ok=False
+undo-twice | RED | product-undo-button-reverses-the-last-edit=FAIL |  | FAIL=product-redo-button-restores-what-undo-removed,product-undo-button-reverses-the-last-edit | ok=False
+toolbar-drops-the-list-action | RED | notice-action-recovers-the-session=FAIL |  | FAIL=bulleting-a-blank-line-does-not-demand-a-rollback,format-a-paragraph-changes-that-paragraph,notice-action-recovers-the-session | ok=False
+copy-lies | DECLARED-UNDETECTABLE verdict=not-detected | ctrl-c-asks-the-engine=PASS |  | FAIL=an-inline-format-reaches-a-selection | ok=False
