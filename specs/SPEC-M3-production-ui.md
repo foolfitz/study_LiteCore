@@ -1129,3 +1129,38 @@ Next 5 到此做完。下一步 C5 (ii)。§34.4：因執行而修 6、因審核
 順帶看到、不判讀：`caret-off-by-one-line` 宣告的附帶紅 bulleting 在 C′ 上 PASS；`inline-format-rollback` 的附帶紅 `bold-can-be-turned-off-again` PASS（同第 2 點）；`save` 宣告的附帶紅 `notice-action-recovers-the-session` 是 NE（哨兵）。
 
 runner 一個位元組沒動。§34.4 仍是**因執行而修 6、因審核而修 5**。C5 (ii) 算不算成立、三個各自怎麼處置（含 runner 要不要動），交擁有者，記在下一節。
+
+### 17.21 C5 (ii) 的裁決：照原文不成立、以 C5 (ii)′ 放行發佈（2026-10-11，只追加；取代 17.4 C5 (ii) 的那一句「每個突變都紅」用於這次放行）
+
+擁有者選「交 fable 裁決」。題目 `findings/evidence/c-prime/c5ii/ruling/brief-c5ii-three-not-red.md`（`e6a83791`），裁決原文與主 session 的逐條核對在同目錄 `fable-ruling.md`。核對結果：裁決引的事實全部成立，只有一個行號引錯（dead session 把 `ok` 壓成 false 在 `run_e2_c_product_path.py:9792-9794`，不是它寫的 `:9775-9781`；內容對）。
+
+**判定。**C5 (ii) 照 17.4 原文**不成立**（44／47），§17.20 原文不動。改以 **C5 (ii)′** 放行：**「在 C′ 頁面上，以該突變自己落地時紅案所用的旗標跑，每個活的突變都紅」＝46／46**（44 個由宣告的檢查抓到、`geometry-declared-but-not-delivered` 在 v12 上、`rollback` 依下面的讀法由復原那一格抓到），**另有一個自 2026-08-19 起在每個頁面上都是死的突變，登錄**。只量 Chrome；結束碼與 runner 的 `ok` 都不是讀法。runner `bd6fc0caf677ee9c` 一個位元組沒動，§34.4 仍是**因執行而修 6、因審核而修 5**。
+
+照實寫：C5 (ii)′ 是**看到結果之後**才寫的判準，CLAUDE.md §9 第 1 條（先於滿足）它不滿足。裁決的依據是 §4——原判準有一個被證偽的前提（「51 個突變在這組旗標下都是活的」），撤回那個前提，不是放寬；三個成因都早於 C′，而且都讀得到原始碼與已 commit 的報告，不是事後解釋。這一筆的代價記在下面的起草方帳上。
+
+**三個的處置（各附「如果永遠沒做」的預設結論）：**
+
+1. **`inline-format-rollback`——登錄：突變是死的，它的檢查是 §3 的「有行為而沒有東西守著」。**被關掉的分支（`editor-shell-v2/paragraph-editor-client.js:309-310`）只在核心真的拒絕一個格式時走得到；同函式另外兩個 `dispatched-unverified`（:257、:283）是 barrier／停滯的分支，突變不碰。不造誘因（§4，而且讓核心拒絕格式是產品／引擎的決定）。**將來改 runner 的那一次**（見下）：突變標 `expectedToBeDetected: False`＋`why`（`rollback` 以前用過的同一種自我回報極限），而且檢查在粗體的 toast 沒有 `LOK_COMMAND_FAILED` 時判 NOT_ESTABLISHED（前提沒達成）。證人：這次的報告，加上 08-18 那份當正向對照（分支走得到時檢查會紅）。預測：改了之後回報「照宣告偵測不到」；哪天核心又拒絕格式，同一趟會說「還是偵測到了——極限過期」。**永遠沒做時**：這個突變一直列為死的，`a-failed-format-does-not-block-the-session` 的 PASS **不算證據**。
+2. **`rollback`——宣告不動，讀法追加（§17.10 的形式）。**紅＝宣告的檢查 NE **且** `recoveryPairing.held == true` **且** `recovery-returns-what-the-product-promised` FAIL **且** `sessionDied.latency == 「回到檢查點 失敗」`。這是看到結果之後才追加給這一趟的讀法，能接受只因為前例（`release-0.2.9/product-path/PREDICTION.md`，10-09 commit）早於這條鏈，漏帶前例記成起草方的錯。改宣告有證人（0.2.9 與這次兩份誠實報告），§34 允許但不要求；0.2.9 當時選擇不改，維持一致。**兩個結構事實**：(i) 這個突變的 runner `ok` 永遠不可能是 true——它依構造會把 session 弄死，而 dead session 強制 `ok=False`（:9792-9794），所以上面的讀法就是它永久的判讀；(ii) 用 `alsoRed` 救不了——`len(reds) == len(must_be_red)`（:9722）不算 NE 的格。真要改，`check` 要換成復原那一格、`alsoNotEstablished: ["notice-action-recovers-the-session"]`。**永遠沒做時**：照這段的讀法判。
+3. **`geometry-declared-but-not-delivered`——v12 那一趟算數。**v14 那趟依構造是空操作（讀 manifest 就知道，不用跑）：空操作兩邊都判不了；旗標是預測選的，不是判準的一部分。時間序已核對：v14 那趟 07:55:28Z 結束、更正二 09:30:39Z commit、重跑 09:59:52Z 開始，預測完全命中。v12 那趟同時是 C5 (ii) 需要的正向對照——它證明這格檢查的 C1 子句在 C′ 上還會紅（同一格檢查的 `a11y-projection-at-its-static-position` 在 C′ 上存活，所以這件事有意義）。登錄：`requiresFlag`（:2162）只說要旗標、沒說要哪個 profile，「旗標給錯」在 §34.2 的威脅模型內，v14 那份報告是證人；修法（寫明 profile，或斷言所選 profile 沒有 `documentOutlineGeometry`）併進同一次改 runner。**永遠沒做時**：這個突變照本節用 v12 跑。
+
+**將來那一次改 runner**（登錄、不排程）：0.2.12 計數之後、下一次依賴這三個的普查或突變執行之前，三項（1 的突變宣告與檢查 NE、2 若要改、3 的 profile）一次打開，因執行而修 6 → 7 一次；因審核而修維持 5。
+
+**其餘登錄：**
+- §17.19 的「校準 v0」（這 51 份）：`inline-format-rollback` 標為**死的**，合併篩檢永遠不得把它當活的單跑對照；`geometry-declared-but-not-delivered` 的校準是 v12 那一份，不是 v14 那一份；`rollback` 的 runner `ok` 結構上是 false。
+- 三個過期的附帶宣告（不動位元組）：`caret-off-by-one-line` 的 bulleting、`inline-format-rollback` 的 `bold-can-be-turned-off-again`、`save` 的 `notice-action-recovers-the-session`。
+- 不跑裁決提的選用量測（把 `dist/` 換成 P 頁面跑一次 `inline-format-rollback`）：要證的「不是 C′ 造成」已由 commit 範圍直接看到（C′ 三個 commit 只動頁面與測試；殼層那支檔最後一次改是 `cdf2ecdc`，08-26；觸發在引擎側），而在發佈前換 `dist/` 會讓發佈要凍的位元組冒險。
+
+**起草方帳（CLAUDE.md §11 的形式；寫在這裡與 `RESULT-0.2.12.md`，不改 CLAUDE.md，要不要進 CLAUDE.md 由擁有者決定）：**
+
+| 項 | 紀錄 |
+| --- | --- |
+| C5 (ii) 的旗標 | 給錯——v14 讓 geometry 突變變成空操作；落地紅案用的是 v12 |
+| 前例 | 沒帶——`rollback` 的讀法 10-09 就寫過，預測仍寫「47 個全紅」 |
+| 死突變 | 沒發現——`inline-format-rollback` 自 08-19 死掉，09-03 的 W-3 普查手上就有資料 |
+| 我給 fable 的宣稱 | 三個要收窄（不只兩份報告、「沒人發現」說過頭、「沒有失敗」→「沒有記錄到失敗」） |
+| fable 的引用 | 一個行號錯（:9775 → :9792），主 session 核對時抓到 |
+
+**`RESULT-0.2.12.md` 要帶的一行**：「C5 (ii)：照已 commit 的規則 44／47、不成立（§17.20）；C5 (ii)′ 46／46 活的全紅＋1 個死的登錄（§17.21）；runner `bd6fc0ca…` 未動；6／5；只有 Chrome」，加上上面三項登錄與起草方帳。
+
+下一步：發佈那一步（交接 10-11c 的 Next 2）。

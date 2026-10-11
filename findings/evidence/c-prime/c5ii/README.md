@@ -87,3 +87,23 @@ then, and this chain's prediction did not carry that precedent forward — the p
 
 Whether C5 (ii) holds with these three diagnoses, and what (if anything) changes in the runner, is put to the owner
 (§17.20). The runner is untouched; §34.4 stays **因執行而修 6, 因審核而修 5**.
+
+## Corrections after fable's ruling (2026-10-11; `ruling/fable-ruling.md`) — appended, the text above stands
+
+- "Two reports exist in the tree" for `inline-format-rollback`: a third JSON names it —
+  `../../w3-inline-format-mutations/census-2026-09-03-can-these-four-go-red.json` — a census over 160 existing reports,
+  not a run. "Never run between 08-18 and this chain" stands. "Which is why nothing noticed" is overstated: W-3
+  (2026-09-03, `RESULT-W3.md:16`) already had the data (the format checks' only FAILs were on 2026-08-18) and its own
+  question — can the check fail? — was never asked of `a-failed-format-does-not-block-the-session`.
+- "On v19 no format action in the product path fails" is bounded to **no recorded failure**: in all 52 reports
+  `LOK_COMMAND_FAILED` appears only in `oracle` text (104 hits); the runner records toasts where it reads them, it does
+  not keep an engine error log.
+- `rollback` vs 0.2.9: `stateAfterDrag` `busy` → `ready` is a timing-dependent state read, not a timing field; the
+  other difference (`caret` 32 → 26 ms) is a timing field.
+
+## Outcome
+
+**C5 (ii) as written: not held (44/47).** **C5 (ii)′ (spec §17.21): holds** — every mutation live on the C′ page
+under the flag its own red case used is red, 46/46 (44 by the declared check, `geometry-declared-but-not-delivered` on
+v12, `rollback` by the recovery cell under the §17.21 reading), plus `inline-format-rollback` dead on every page since
+2026-08-19 and registered. Chrome only. Runner `bd6fc0caf677ee9c` unchanged; §34.4 6 / 5.
