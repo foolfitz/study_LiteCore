@@ -49,3 +49,14 @@ everything below in zh-TW; evidence READMEs are English.
 - **(eee) A chain's gate reads the report's verdict, never the exit code.** Evidence: `findings/evidence/c-prime/final-page/chain.txt` printed "both red cases red" on a Python traceback's exit 1.
 - **(fff) Identical numbers across runs of different configurations are the instrument's floor until shown otherwise.** Evidence: fling "current after last frame" 1,680–1,691 ms in four runs = the probe's 2-s sleep minus the 0.33-s fling.
 - **(ggg) A re-anchoring claim covers only the list it was checked against.** Evidence: "50 of 51 mutation anchors match" was true for `MUTATIONS` and silent about the diagnostic mirrors, three of which broke (`STATIC-SUITE.md`).
+
+## Addendum (main session, 2026-10-11 09:05Z / 17:05 CST): pooling registered; C5 (ii) at 44 of 51; start a fresh session here
+
+- **Pooled mutation runs (owner's question) — registered, not adopted** (owner agreed with fable's recommendation): spec §17.19, fable's answer verbatim + the main session's citation check in `findings/evidence/c-prime/c5ii/pooling/fable-answer.md` (`6fd62564`). Keep the 51 C5 (ii) reports as "calibration v0". Reopen only if a second full census is scheduled.
+- **C5 (ii) progress**: 44 of 51 done at 09:03Z (`copy`); average ~7.1 min per run → `DONE` about **10:00Z (18:00 CST)**. The chain is detached; nothing else is running.
+- **For the C5 (ii) reading (Next 1)** — observations made while it ran, NOT yet judged by the rule:
+  - `inline-format-rollback`: owning check `a-failed-format-does-not-block-the-session` is **not FAIL** (FAIL set empty) → by `PREDICTION.md` it is **not red** → if confirmed, C5 (ii) does not hold → diagnose before the release step (a mutation that stopped biting on C′: anchor moved silently, or a check C′ made unable to fail).
+  - `geometry-declared-but-not-delivered` (run with `--candidate-profile e2-editor-v14`): owning check `the-projection-is-placed-where-the-document-is` **not FAIL** → same consequence if confirmed. Note `a11y-projection-at-its-static-position` (same owning check) was predicted to survive on C′ — check whether the same C′ reason (no in-flow child in `#paper`, §17.9 (g) S5) also makes this one equivalent, before calling it a defect.
+  - `caret-off-by-one-line`: owning check FAIL (red by the rule); its declared alsoRed `bulleting-a-blank-line-does-not-demand-a-rollback` PASS on C′ — a stale declaration (fable's side observation; the runner's own `ok` is false because of it).
+  - Exit codes are not the reading (rule eee): `ime exit 1`, `copy exit 1` etc. mean the runner's strict `ok` was false, not that the owning check missed.
+- Context note: this session passed its context soft limit; continue in a fresh session from this file.
