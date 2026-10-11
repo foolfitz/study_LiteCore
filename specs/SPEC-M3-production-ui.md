@@ -1069,3 +1069,12 @@ C′ 那個 commit（`57d21411`）cherry-pick 進主樹成 `90242ebc`，`make e2
 **靜態檢查（規矩 ddd）在只有 C′ 的樹上 exit 2**（`findings/evidence/c-prime/page/static-on-main-cprime-only.txt`），三類：(1) shell manifest（v60）因頁面改了而過期——頁面改動到下一次凍結之間本來就會這樣（finding 091 的形狀），凍 v61 時清掉；(2) `gesture-abort-not-wired` 錨點對不到——已知，分支上的 `13f91117` 修；(3) **交接沒預料到的**：`--caret-source-diagnostic`（finding 084 的儀器）兩個錨點在 C′ 頁面上對不到（`moveSinkToCaret` 第二行改讀 `#paper`；`onEvent` 的 `if` 變成區塊），三格。儀器插入的程式不讀 `#canvas` 也不讀 `#paper` 的幾何，所以只要重新錨定；它會動 `run_e2_c_product_path.py`，因此放在見證之後、與 Next 4 一起做，這份輸出就是它的證人。未搬移的產品路徑 runner 不看靜態檢查，見證不受影響。
 
 照 `PREDICTION.md` 末節：見證 0 紅，表示 `run_e2_c_product_path.py` 與 `check_m3_page_honesty.py` 的搬移在只有 C′ 的頁面上沒有證人，`run_e2_c_page_smoke.py` 的搬移只有在宿主 build 上才有（預測的）證人（production UI `Rdel`）。怎麼處置交擁有者（或 fable），這一節不做決定。
+
+### 17.14 擁有者對見證的處置、§34.4 的帳、最終頁面進主樹（2026-10-11，只追加）
+
+擁有者看過 §17.13 之後的兩個選擇：
+
+1. **見證處置＝在最終頁面上再量一次**（不是只登錄，也不是退回搬移）。最終頁面帶 124（畫面跟著游標捲動），未搬移的讀取器「畫布頂端＝文件頂端」那個假設最可能在這裡破。做法與逐格預測寫在 `findings/evidence/c-prime/witness/final-page/PREDICTION.md`（任何執行之前 commit）：同一頁面上未搬移與搬移過的產品路徑 runner 各跑 v19 臂、兩個瀏覽器各一輪，用來把「搬移的證人」（未搬移紅、搬移過不紅）和「頁面本身的效果」（搬移過的也紅）分開。預測：搬移證人 0、頁面效果 0（後者是較弱的預測，沒有逐格推導）。另一半——在第一個帶這個頁面的宿主 build（0.2.12）上，用未搬移的 `run_e2_c_page_smoke.py` 跑一次 production UI `Rdel`（預測兩個瀏覽器都紅）——放在發佈那一步、計數之前。仍然 0 的話，退回登錄。
+2. **§34.4 照前例各記 +1**：`13f91117`（突變 `gesture-abort-not-wired` 改錨到 `#paper`）與 `e1303987`（`--caret-source-diagnostic`／`--barrier-details-diagnostic` 三個錨點，證人＝`findings/evidence/c-prime/page/static-on-main-*.txt`，見 `STATIC-SUITE.md`）。**因執行而修 6，因審核而修 5**（不得再增加）。
+
+Next 4 已做：`7ffc55e1`、`bbdde806`、`13f91117` cherry-pick 成 `bbce5596`、`0ad30e73`、`3eccb235`，`make e2-c-assets` 之後 `dist/` ＝ `web/` ＝ `8909564e…`；三個診斷錨點重新錨定（`e1303987`，`run_e2_c_product_path.py` 現為 `bd6fc0caf677ee9c`）。靜態檢查只剩 shell manifest（v60）過期一格，凍 v61 時清掉。
