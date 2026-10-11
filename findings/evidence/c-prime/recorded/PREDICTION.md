@@ -15,3 +15,20 @@ Both browsers. Nothing here is a gate (§17.4: recorded).
 | fling, 20 frames × 500 CSS px | 15–20 of the 21 recorded frames have a band under the view that is not current; current again 100–400 ms after the last frame | the window (~2,050–2,190 CSS px) is left after 2–4 frames; C4 measured 62–151 ms for one move |
 | H9 census | **no `INVALIDATE_TILES` (LOK id 0)** while typing; one id 1 (`INVALIDATE_VISIBLE_CURSOR`) per key | R2 on the P-family page (no id 0 in any run); C′ changes no engine byte |
 | save, owner document (563 KB) | one `busy`, 300–1,500 ms; if ≥ 700 ms, 「處理中」 shown at 700–760 ms after its start; if < 700 ms, never shown | 125's 700 ms; save time not measured before on this document |
+
+## Addendum (2026-10-11 03:5xZ, after the first chain, before the second): the instrument's fling timer, and 125's positive control
+
+The first chain (`chain.txt`, 03:47–03:49Z) read `flingCurrentAfterLastFrameMs` 1,680.1–1,691.0 in all four runs. That is
+the probe's own floor, not the page: it slept 2.0 s after starting the fling before polling, and the fling takes about
+0.33 s, so it could not report anything under about 1.68 s. The value says only "current within 1.68 s". Fixed
+(`probe_c_prime_recorded.py`: poll from the moment the 21st frame is recorded); the probe is a recording instrument,
+not a check, so this is outside §34.4's counts. The same chain's saves were all under 700 ms (517–650), so 125's
+browser positive control (§17.4) was not exercised; `--long-pages N` now also opens an N-page document and saves it.
+
+Predictions for the second chain (`chain-recorded-2.sh`, all four configurations, `--long-pages 80`):
+
+| Item | Prediction |
+|---|---|
+| fling, current after the last frame | 100–400 ms (unchanged; the first chain did not measure it) |
+| 80-page save | one `busy` ≥ 700 ms (0.8–3 s); 「處理中」 shown 700–760 ms after its start, in both browsers |
+| everything else | as the first chain (C1′, bytes, frames not current within ±3, owner save < 700 ms) |

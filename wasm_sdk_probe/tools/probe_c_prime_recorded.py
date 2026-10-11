@@ -57,6 +57,8 @@ FLING = """(() => { const root = document.documentElement, desk = document.query
   requestAnimationFrame(step); return true; })()""".replace("READ_JS", READ)
 STATE_LOG = """(() => { const root = document.documentElement, pill = document.querySelector('#state-pill'),
   shown = document.querySelector('#state-shown'); root.dataset.stateLog = '[]';
+  if (root.dataset.stateLogInstalled) return Boolean(pill && shown);
+  root.dataset.stateLogInstalled = '1';
   const log = (what, value) => { const l = JSON.parse(root.dataset.stateLog); l.push([what, value, performance.now()]);
     root.dataset.stateLog = JSON.stringify(l); };
   new MutationObserver(() => log('pill', pill.dataset.state)).observe(pill, { attributes: true, attributeFilter: ['data-state'] });
@@ -88,11 +90,31 @@ def nbytes(r: dict) -> int:
     return sum(int(b[2]) for b in r["bands"]) * r["canvasWidth"] * 4
 
 
+def save_busy(session, with_log: bool = False):
+    """Press the toolbar's save; every `busy` on #state-pill, its length, and when 「處理中」 was shown in it."""
+    pp.evaluate(session, STATE_LOG)
+    pp.evaluate(session, pp.PRESS.replace("ARG_ACTION", "save"))
+    time.sleep(1.0)
+    p111.quiet(session, 120)
+    time.sleep(1.0)
+    log = json.loads(pp.evaluate(session, "(() => document.documentElement.dataset.stateLog)()") or "[]")
+    busy, start = [], None
+    for what, value, t in log:
+        if what == "pill" and value == "busy" and start is None:
+            start = t
+        elif what == "pill" and value != "busy" and start is not None:
+            shown = [round(u - start, 1) for w, v, u in log if w == "shown" and v == "處理中" and start <= u <= t]
+            busy.append({"ms": round(t - start, 1), "shownBusyAtMs": shown})
+            start = None
+    return (busy, log) if with_log else busy
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--browser", choices=("chrome", "firefox"), required=True)
     ap.add_argument("--dpr", type=float, default=2.0)
     ap.add_argument("--window", default="1400x1000")
+    ap.add_argument("--long-pages", type=int, default=0, help="also save a long document of N pages (125's positive control)")
     ap.add_argument("--out", type=Path, required=True)
     a = ap.parse_args()
     width, height = (int(v) for v in a.window.split("x"))
@@ -137,8 +159,12 @@ def main() -> int:
         pp.evaluate(session, "(() => { document.querySelector('#desk').scrollTop = 0; return true; })()")
         time.sleep(3.0)
         pp.evaluate(session, FLING)
-        time.sleep(2.0)
-        frames = json.loads(pp.evaluate(session, "(() => document.documentElement.dataset.fling)()") or "[]")
+        # Poll from the moment the last frame is recorded, not after a fixed sleep: the first version slept 2 s and
+        # so could not report anything under ~1.68 s (all four of its runs read 1,680-1,691 ms).
+        frames, deadline = [], time.monotonic() + 5.0
+        while len(frames) < 21 and time.monotonic() < deadline:
+            frames = json.loads(pp.evaluate(session, "(() => document.documentElement.dataset.fling)()") or "[]")
+            time.sleep(0.01)
         settled, deadline = None, time.monotonic() + 3.0
         while time.monotonic() < deadline:
             r = pp.evaluate(session, READ)
@@ -150,27 +176,20 @@ def main() -> int:
                                        "view": f["view"], "current": current(f)} for f in frames],
                            "framesNotCurrent": sum(1 for f in frames if not current(f)), "frameCount": len(frames),
                            "currentAfterLastFrameMs": None if settled is None or not frames else round(settled - frames[-1]["t"], 1)}
-        pp.evaluate(session, STATE_LOG)
-        pp.evaluate(session, pp.PRESS.replace("ARG_ACTION", "save"))
-        time.sleep(1.0)
-        p111.quiet(session, 120)
-        time.sleep(1.0)
-        log = json.loads(pp.evaluate(session, "(() => document.documentElement.dataset.stateLog)()") or "[]")
-        busy, start = [], None
-        for what, value, t in log:
-            if what == "pill" and value == "busy" and start is None:
-                start = t
-            elif what == "pill" and value != "busy" and start is not None:
-                shown = [round(u - start, 1) for w, v, u in log if w == "shown" and v == "處理中" and start <= u <= t]
-                busy.append({"ms": round(t - start, 1), "shownBusyAtMs": shown})
-                start = None
+        busy, log = save_busy(session, with_log=True)
         report["save"] = {"log": log, "busy": busy, "toast": pp.evaluate(session, pp.READ_TOAST)}
+        if a.long_pages:
+            # The browser positive control of 125 (§17.4): a save long enough to stay busy past 700 ms.
+            report["longSave"] = {"open": pp.open_long_document(session, a.long_pages, f"long-{a.long_pages}p.odt")}
+            p111.quiet(session, 120)
+            time.sleep(2.0)
+            report["longSave"]["busy"] = save_busy(session)
         report["summary"] = {"c1Holds": report["c1"]["holds"], "canvasRows": top["canvasHeight"], "expected": report["c1"]["expected"],
                              "deskClientHeight": top["deskClientHeight"], "paperIsDocumentHeight": report["c1"]["paperIsDocumentHeight"],
                              "bytesTop": report["bytes"]["top"]["bytes"], "bytesMiddle": report["bytes"]["middle"]["bytes"],
                              "flingFramesNotCurrent": f"{report['fling']['framesNotCurrent']}/{report['fling']['frameCount']}",
                              "flingCurrentAfterLastFrameMs": report["fling"]["currentAfterLastFrameMs"],
-                             "saveBusy": busy}
+                             "saveBusy": busy, "longSaveBusy": (report.get("longSave") or {}).get("busy")}
     finally:
         report["completedAt"] = time.strftime("%Y-%m-%dT%H:%M:%S%z")
         if session is not None:
