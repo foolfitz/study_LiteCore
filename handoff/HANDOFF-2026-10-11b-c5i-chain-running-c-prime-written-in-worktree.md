@@ -106,3 +106,9 @@ The owner: 「做法發給fable裁決，我授權他待我決定」. Brief `find
 - **§34.4 now: 因執行而修 4** (the port 3 + the ink-rows test fixture; witness = the five reports in `runs-p-page/m3/` at `87d57ff6`), **因審核而修 5** (unchanged; may not grow).
 
 **Next, replacing Next 0–1:** wait for `DONE` (do not touch `web/`, `dist/`, any runner, no browsers meanwhile). Check each new report: `static.testStatic` 0, `runnerSha256` and `static.page.dist` and `hostRepo` as the witness reports. If `SUMMARY differences 0`: append the result to `runs-p-page/README.md` (English) and spec §17.12 (zh-TW: C5 (i) holds; both §34.4 numbers; the ruling-2 record), commit, then continue at Next 2 (bring `57d21411` in, the witness). **Any nonzero = STOP and hand back to the owner** (ruling 2, condition 4: it pre-authorizes nothing beyond zero).
+
+## Addendum 3 (main session, 2026-10-11 01:2x UTC): C5 (i) HOLDS
+
+The five-runner re-run finished `DONE` at 01:18:32Z; every new report has `static.testStatic` 0 and the same runner hash, served page `36c2b18baa83` and host `6b53c2e` as its witness report; verdicts PAGE HONEST, LOCKS LAND, VERSIONS CORRECT, ASSETS DELIVERED, SAME-SECOND SAVES KEPT; re-compare **`SUMMARY differences 0`** (`runs-p-page/compare-output-rerun.txt`). Recorded in `runs-p-page/README.md` and spec **§17.12** (commit `e353ac71`). §34.4: 因執行而修 4, 因審核而修 5. Nothing is running now; the main tree is clean; `web/` = `dist/` = the P page.
+
+**Start at Next 2** (bring `57d21411` into main, `make e2-c-assets`, a short uncounted smoke, the witness). Before the witness, run `make test-e2-c-static` on the C′-only tree too (rule ddd) — the unit tests on the branch passed, but the C′ page has not met the main tree's static suite (e.g. `tests/` Python tests that stub the page).
