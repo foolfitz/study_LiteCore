@@ -291,8 +291,11 @@ WORKER_BARRIER_ANCHOR = ("function productFormatBarrier(value = {}) {\n"
 # `editorState.caretParagraph.fingerprint`, beside `text`, `length`, `offset`
 # and `listPrefixLength` -- everything needed to say WHY two of them differ.
 # `updateState` gets them all and renders three of them; this keeps the rest.
-PAGE_STATE_ANCHOR = ("function updateState(snapshot) {\n"
-                     "  el.statePill.dataset.state = snapshot.state;\n")
+# Re-anchored for release C′ (SPEC-M3-production-ui §17.13): finding 125 made the
+# function's first statement a multi-line `showState(...)` call, so the anchor is
+# the opening line alone and both insertions land at entry.  `showState` writes
+# only the pill, so what they read (`snapshot`, `#s-latency`) is unchanged.
+PAGE_STATE_ANCHOR = "function updateState(snapshot) {\n"
 
 # AND WHERE THE CARET CAME FROM, which is finding 084's open question.
 #
@@ -311,9 +314,11 @@ PAGE_STATE_ANCHOR = ("function updateState(snapshot) {\n"
 #     ABSENCE for a commit means `paint()` skipped it.
 #
 # One anchor, two insertions: the probe has to be module scope to see `session`,
-# and the applied log has to be inside the function.
+# and the applied log has to be inside the function.  Re-anchored for release C′
+# (SPEC-M3-production-ui §17.13): the function's second line now reads #paper's
+# box; the inserted code reads neither box, so only the anchor moved.
 CARET_SOURCE_ANCHOR = ("function moveSinkToCaret(caret) {\n"
-                       "  const width = el.canvas.clientWidth;\n")
+                       "  // #paper's size: the document's box (release C′; the canvas is a window).\n")
 
 # AND THE ANNOUNCEMENT ITSELF, BEFORE ANY LAYER HAS NARROWED IT.
 #
@@ -324,8 +329,9 @@ CARET_SOURCE_ANCHOR = ("function moveSinkToCaret(caret) {\n"
 # adoption (`narrow-editor-v2-session.js` copies twelve fields and `source` is
 # not one), which is why "which callback is the extra one on the a11y core" was
 # not answerable from `caretBelieved` alone.
+# Re-anchored for release C′ (§17.13): the `if` now opens a block.
 CARET_ANNOUNCE_ANCHOR = ("    onEvent(event) {\n"
-                         "      if (event.event === \"document-invalidated\")\n")
+                         "      if (event.event === \"document-invalidated\") {\n")
 
 CARET_ENGINE_PROBE_JS = """// --caret-source-diagnostic (harness mirror, not shipped).
 // The ENGINE's caret, asked for rather than waited for: the same
