@@ -1165,3 +1165,24 @@ runner 一個位元組沒動。§34.4 仍是**因執行而修 6、因審核而�
 
 下一步：發佈那一步（交接 10-11c 的 Next 2）。
 - **殼層 generation v61 凍結**（2026-10-11）：`f48df85bb686500529dd4613273f15cf09e50e51920b3110f603b1b10b0b0f7a`，與 v60 只差 `web/e2-editor-app.js`（`8909564e…`＝C′＋124＋125）與凍結日期，排除清單相同（承自 v40）。凍結前 `make test-e2-c-static` 只紅在 manifest 過期（`release-0.2.12/test-e2-c-static-before-freeze.txt`），凍結後結束碼 0、E1-C 完好。v60 沒有被動到。
+
+### 17.22 0.2.12 的綁定（2026-10-11，寫在任何 0.2.12 計數執行之前，值全由程式從檔案算出）
+
+| 綁定 | 值 |
+| --- | --- |
+| 頁面 `e2-editor-app.js` | `8909564eb2316afa6de7868a08b61d27219fabdf49f37326fee0dda2977bd401` |
+| session `narrow-editor-v2-session.js` | `62a2a20e4c66f630d77caf5bb75973e28aa58b0d8c7bf4cb0e35fa44b6a6fc5c`（與 v60 相同，pin 不動） |
+| 宿主 | 0.2.12，litecore `b245ae7`（`occ upgrade` 已跑，`app:list` 顯示 0.2.12） |
+| 引擎包 buildId | `45cdcedfc0fe7e61`（與 0.2.11 的引擎包 22 個檔只差頁面；0.2.11 的封存在 `build/archive/host-0.2.11-engine-b99f4b138839ff04/`，`diff -r` 相同） |
+| 殼層 generation | v61，`f48df85bb686500529dd4613273f15cf09e50e51920b3110f603b1b10b0b0f7a` |
+| 擁有者的文件 | 同 §11 |
+| `check_m3_production_ui.py` | `c9d51781f239c2c395056b02d7ca03a5bc330a99cc1785a8d1058bdfbccef0a6`（只動了 pin 行） |
+| `check_m3_page_honesty.py` | `6540756e8cf051c6d589a9ac50d388dc2c705d0b335530e1a41abcb276da76ca`（§17.3 搬移之後只動 pin 行） |
+| `run_e2_c_product_path.py` | `bd6fc0caf677ee9c…`（C5 (ii) 跑的那一份，沒動） |
+| `run_e2_c_page_smoke.py` | `cc38ee97ca20611d…`（沒動） |
+
+六支 M3 runner 的 pin 同步改綁（只動 pin 行，共 12 行；`check_m3_assets` 的頁面與 buildId、`check_m3_locks` 的頁面、`check_m3_page_honesty` 的頁面／宿主版本／宿主 commit、`check_m3_production_ui` 的頁面／宿主版本／宿主 commit／殼層、`check_m3_same_second` 的宿主版本、`check_m3_versions` 的宿主 commit）；host_entry 沒有 pin。改綁後 `make test-e2-c-static` 結束碼 0（`findings/evidence/release-0.2.12/test-e2-c-static-after-repin.txt`）。
+
+產品路徑網：v19 臂＝dist 照原樣（頁面 `8909564e…`），v8 臂＝同一份頁面改指 v8，用 runner 自己的 `repointed_page()` 算出＝`0660beaf135b5d2e419ae29b63395abaf9a270cd25976b9c840719c9194d5718`（同一個方法對 0.2.11 的頁面算得出當時的 `bd29ecca…`）。預測與判讀副本在 `findings/evidence/release-0.2.12/product-path/`（**v8 臂在 C′ 頁面上從來沒跑過**，見證與 C5 (ii) 都只跑 v19 臂；監看項照 §17.15）。計數鏈與紅案腳本 `findings/evidence/m3-production-ui/runs-0.2.12/`，由 0.2.11 的兩支只改路徑與目錄。鏈上 shakedown 的閘門用結束碼：六支 runner 的結束碼都由報告的判定直接算出（`0 if verdict in (…) else 1`），當掉＝非 0＝STOP，錯的方向是安全的（規則 eee 防的是把當掉讀成想要的結果）。
+
+**計數之前**：page-smoke 搬移的 §34.4 證人——production UI `Rdel`、兩個瀏覽器、不計數，用 `08d73cff` 的 `run_e2_c_page_smoke.py` 與 `check_m3_page_honesty.py`（`findings/evidence/c-prime/witness/host-rdel/`，預測在 `witness/PREDICTION.md`：兩個瀏覽器都紅）。第一次嘗試只還原了一支，`check_m3_page_honesty` 在 import 時就死了、沒開瀏覽器（`attempt-1-import-error/`）；第二次兩支都還原。
