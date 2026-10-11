@@ -1059,3 +1059,13 @@ P 頁面沒有這三個屬性；讀的一方以「沒有 `data-window`」認出 
 §34.4 這一段：**因執行而修 4**（搬移三支 runner＋墨帶測試的假畫布，後者的證人＝`runs-p-page/m3/` 的五份報告），**因審核而修 5**（不得再增加）。新規矩：改 runner 之後先跑 `make test-e2-c-static` 再放計數形狀的鏈（計數判定看它，shakedown 不看）。
 
 下一步照交接 Next 2：把 C′ 那個 commit（`57d21411`）帶進主樹、`make e2-c-assets`、見證（預測在 `findings/evidence/c-prime/witness/PREDICTION.md`）。
+
+### 17.13 C′ 頁面進主樹、見證的結果（2026-10-11，只追加）
+
+C′ 那個 commit（`57d21411`）cherry-pick 進主樹成 `90242ebc`，`make e2-c-assets` 之後 `dist/` 與 `web/` 都是 `f5121fd4…`。不計數的 smoke（HEAD 的 `run_e2_c_page_smoke.py`、Chrome）exit 0、`ok: true`。
+
+**見證＝0 紅，預測成立**（`findings/evidence/c-prime/witness/README.md`、`product-path/judge-output.txt`）：`08d73cff` 的三支未搬移 runner 暫時換回、v19 臂、Chrome／Firefox 各一輪，對 0.2.11 的 v19 三輪，見證紅（見證 FAIL 且 0.2.11 三輪都 PASS）**兩個瀏覽器都是 0**，其他變動也是 0；Firefox 唯一的 FAIL 是已知的 `an-inline-format-reaches-a-selection`。跑完三支 runner 已換回 HEAD（`cc38ee97`、`aa9a2280`、`17a38fe7`，`RESTORE OK`）。判讀工具 `judge_witness.py` 照 `PREDICTION.md` 的規則寫，讀見證之前先跑過對照與紅案（`judge-red-cases.txt`）。**正向對照**：長文件臂記下的畫布高度在 5／20／35 頁與 2× 都是 4,092 列（視窗），P 頁面上是 4,992／19,919／34,847／39,839 列——視窗確實生效，未搬移的讀取器讀的是 `winTop = 0` 的視窗本身，所以判定不變，正是預測給的理由。
+
+**靜態檢查（規矩 ddd）在只有 C′ 的樹上 exit 2**（`findings/evidence/c-prime/page/static-on-main-cprime-only.txt`），三類：(1) shell manifest（v60）因頁面改了而過期——頁面改動到下一次凍結之間本來就會這樣（finding 091 的形狀），凍 v61 時清掉；(2) `gesture-abort-not-wired` 錨點對不到——已知，分支上的 `13f91117` 修；(3) **交接沒預料到的**：`--caret-source-diagnostic`（finding 084 的儀器）兩個錨點在 C′ 頁面上對不到（`moveSinkToCaret` 第二行改讀 `#paper`；`onEvent` 的 `if` 變成區塊），三格。儀器插入的程式不讀 `#canvas` 也不讀 `#paper` 的幾何，所以只要重新錨定；它會動 `run_e2_c_product_path.py`，因此放在見證之後、與 Next 4 一起做，這份輸出就是它的證人。未搬移的產品路徑 runner 不看靜態檢查，見證不受影響。
+
+照 `PREDICTION.md` 末節：見證 0 紅，表示 `run_e2_c_product_path.py` 與 `check_m3_page_honesty.py` 的搬移在只有 C′ 的頁面上沒有證人，`run_e2_c_page_smoke.py` 的搬移只有在宿主 build 上才有（預測的）證人（production UI `Rdel`）。怎麼處置交擁有者（或 fable），這一節不做決定。

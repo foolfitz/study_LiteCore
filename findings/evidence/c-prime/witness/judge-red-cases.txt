@@ -1,0 +1,19 @@
+## control: 0.2.11 chrome r1 as the witness (expect exit 0)
+browser chrome  cells 42  witness ok=True verdict='every product path this covers behaves; 2 not established'
+SUMMARY witness-red 0  other movements 0
+exit 0
+## red: r1 with one all-PASS cell flipped to FAIL (expect exit 1, that cell)
+browser chrome  cells 42  witness ok=True verdict='every product path this covers behaves; 2 not established'
+WITNESS-RED  product-save-button-writes-a-real-odt  witness FAIL  0.2.11 PASS/PASS/PASS
+SUMMARY witness-red 1  other movements 0
+exit 1
+## refused: chrome witness, firefox references (expect exit 2)
+SUMMARY REFUSED browsers differ ['chrome', 'firefox']
+exit 2
+## refused: incomplete witness (expect exit 2)
+SUMMARY REFUSED the witness is not complete (complete=False)
+exit 2
+## control: 0.2.11 firefox r1 as the witness (expect exit 0; known Firefox reds are FAIL in all three, so not red)
+browser firefox  cells 42  witness ok=False verdict='a product path is broken'
+SUMMARY witness-red 0  other movements 0
+exit 0
