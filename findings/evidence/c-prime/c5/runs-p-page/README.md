@@ -28,3 +28,23 @@ cell agrees.
 
 What to do is the owner's decision (asked 2026-10-11, options in the main session's reply); nothing was fixed
 or re-run after the chain.
+
+## After fable's ruling 2 (B): C5 (i) holds — `SUMMARY differences 0`
+
+The owner put A/B/C to fable (`../../ruling/brief-2-c5i-static-suite.md`); ruling **B** with the main session's
+check: `../../ruling/fable-ruling-2.md`. Done as its conditions say:
+
+1. One file changed, `wasm_sdk_probe/tests/test_ink_rows_caret.py` (its synthetic `#canvas` gains `dataset: {}`,
+   commit `d1ae2119`, `--stat` that file alone); the seven runners' hashes unchanged.
+2. `make test-e2-c-static` exit 0, 108 tests OK (`static-after-fix.txt`; `static-failure-excerpt.txt` kept).
+3. Only page honesty, locks, versions, assets, same second re-run counted-shape (`chain-c5i-m3-rerun.sh`,
+   2026-10-10T23:11:46Z – 2026-10-11T01:18:32Z, progress `m3-rerun/chain.txt`, reports in `m3-rerun/`; the five
+   witness reports in `m3/` untouched). Every new report: `static.testStatic` 0, and the same runner hash, served
+   page `36c2b18baa83` and host `6b53c2e` as its witness report. Verdicts: PAGE HONEST, LOCKS LAND, VERSIONS
+   CORRECT, ASSETS DELIVERED, SAME-SECOND SAVES KEPT.
+4. Re-compared with the original product-path dir (`--cand-runner aa9a22806d10ed71`), the original production UI
+   and host entry reports and the five new reports: **`SUMMARY differences 0`** (`compare-output-rerun.txt`).
+
+**C5 (i) holds**: the ported net judges the P page exactly as the 0.2.11 count did. §34.4 for this stretch:
+**因執行而修 4** (the port's three runners + the ink-rows test fixture, whose witness is the five reports in `m3/`),
+**因審核而修 5** (unchanged; may not grow).

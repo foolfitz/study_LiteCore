@@ -1051,3 +1051,11 @@ P 頁面沒有這三個屬性；讀的一方以「沒有 `data-window`」認出 
 **C5 (i) 的組成**：照 0.2.11 的鏈（`findings/evidence/m3-production-ui/runs-0.2.11/chain-2026-10-10b.sh`）——六支 M3 runner 先 shakedown（任一不乾淨就停），production UI 三份計數形狀的報告，六支 M3 runner 的計數形狀，產品路徑十二趟。是否每支 import 者都在裡面，以 import 者清單工具的輸出核對（§17.9 (g) S5）。這些執行是比較用，不是發佈的計數；報告位置寫進鏈的紀錄與之後的結果檔。
 
 **見證預測的提醒**（條件 5 的推導在見證之前另寫並 commit，這裡不先下結論）：C1′ 之下，「變高的文件」那一臂（2 頁、dpr 1、約 2,000 列 < 4,092）整份在一張畫布上；長文件幾臂若在 `winTop = 0` 讀頂端，沒搬的網也可能讀得對。§17.3 與 §17.9 (b) 列的預測紅格要逐格重推，不沿用。
+
+### 17.12 C5 (i) 的結果（2026-10-11，只追加）
+
+**C5 (i) 成立：搬過的網在 P 頁面上的判定與 0.2.11 的計數 0 差異**（`findings/evidence/c-prime/c5/runs-p-page/README.md`、`compare-output-rerun.txt`）。過程照實記：第一次長鏈（2026-10-10 17:08–21:57 UTC）產品路徑 168 格、production UI 三份、host entry 0 差異，另外五支 M3 每一格計數相同、判定行不同（`SUMMARY differences 5`），五支都只因 `make test-e2-c-static exit 2`——搬過的 `INK_ROWS` 讀 `canvas.dataset.window`，`tests/test_ink_rows_caret.py` 的假畫布沒有 `dataset`（18 格失敗）；搬移的恆等證明用的假畫布有 `dataset`，長鏈前也沒跑靜態檢查，是主 session 的疏失。停手後擁有者把 A／B／C 交 fable 代裁決（「做法發給fable裁決，我授權他待我決定」），裁決＝**B**（`findings/evidence/c-prime/ruling/fable-ruling-2.md`，含主 session 的核對：末條「每次讀墨白等約 50 ms」不成立）：只給那支測試的假畫布補 `dataset: {}`（`d1ae2119`，runner 位元組不動）→ 靜態檢查 exit 0 → 只重跑五支 M3 計數形狀 → 重比 `SUMMARY differences 0`。產品路徑、production UI、host entry 照原量沿用。
+
+§34.4 這一段：**因執行而修 4**（搬移三支 runner＋墨帶測試的假畫布，後者的證人＝`runs-p-page/m3/` 的五份報告），**因審核而修 5**（不得再增加）。新規矩：改 runner 之後先跑 `make test-e2-c-static` 再放計數形狀的鏈（計數判定看它，shakedown 不看）。
+
+下一步照交接 Next 2：把 C′ 那個 commit（`57d21411`）帶進主樹、`make e2-c-assets`、見證（預測在 `findings/evidence/c-prime/witness/PREDICTION.md`）。
