@@ -662,3 +662,10 @@ AS-2：開始時間落在 30.6–31.5 秒（30 秒加引擎段）。AS-5：0 掉
 - **宿主**：`appinfo/info.xml` → 0.2.14，`ddev occ upgrade` 成功，`occ app:list` 回報 0.2.14；宿主 commit `237f2cb`（只有版本號）。從 HTTP 讀到宿主送出的 SDK＝`e4c3fe92…`、頁面＝`d761f1ce…`（位址 `eb3f94084995d3f0-90d7bc2c`）。0.2.13 從未出貨。
 - **綁定**（只動 pin 行共 10 行，註解保留舊值）：assets（buildId）、versions（`237f2cb`）、same_second（0.2.14）、page_honesty（0.2.14、`237f2cb`）、production_ui（0.2.14、`237f2cb`、殼層 v63 `318b3bf2…`）、autosave（0.2.14、`237f2cb`）。頁面與 session 雜湊不變，`check_m3_locks.py` 不用動。產品路徑判讀副本的兩個常數不變（`repointed_page()` 重算仍是 `fac708d0…`）。改綁後 `make test-e2-c-static` 結束碼 0。
 - 這份綁定是給**下一次**計數用的（§9.21：本版不計數）；下一批改了宿主或頁面，照常再綁。
+
+### 9.25 133-B 成立（2026-10-12，只追加；`findings/evidence/133/133-b/README.md`）
+
+- 宿主 0.2.14（`237f2cb`、buildId `eb3f9408…`）、Chrome，探針兩組各 6 次。第一組 6/6 過 (a)–(c)、守衛 0 次＝EXTEND（核對過不是 logpoint 失效：6 次的過期計時器都在回覆之後才醒）；第二組 6/6 過、第 3 次守衛燒過。**133-B 成立：12 次、0 次失敗、守衛燒過 1 次**（`judge_133b.py`）。
+- 燒過的那一次就是 133 的情境被救回來：解凍後 +240 ms 過期的計時器批次醒來，+242 ms 存檔期限遲到 150 秒被重新上鏈（修法前這裡是 `TIMEOUT` → `recoverable-error`），+285 ms 回覆到、存檔落地、回到 `ready`，自動與手動兩次存檔都 204。
+- **預測對帳**：守衛燒過「2–5 次／6」失準偏低（12 次 1 次；連同修法前的探針，計時器 15 次贏 3 次）；燒過那次恰 1 次 `rearm`、回覆在解凍後 400 ms 內：成立；auto 412→204 且 `lostBy == "save"`：10/12（另 2 次是解凍時的續租先發現鎖沒了）；manual 204：12/12；計數鏈的 K8：沒跑（§9.21）。
+- **finding 133 的狀態**：在 0.2.14 修好（133-U 31/31、12 個錯修法全紅；133-B 成立）；0.2.14 是未計數候選（§9.21），具名限制 L-133-band／suspend／hidden-verdict（預期）／firefox／grace／engine-deadline／long-task。
