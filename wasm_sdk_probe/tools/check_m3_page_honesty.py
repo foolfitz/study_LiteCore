@@ -63,10 +63,10 @@ BOTH = ("chrome", "firefox")
 PAGE_SHA256: str | None = "d761f1cee9d26c50c0b152348d74c3d05f540e9228927815d93ad6ec161e7dcd"   # SPEC-M3-autosave §9.19 (0.2.13, v62), 2026-10-12; was 8909564e (production-ui §17 C′), 36c2b18b (§16 R⁗), 18c8afbe (§15 R‴), 537d62d7 (§14 R′), e00ab76a (§13.5), e97d6e03
 SESSION_SHA256: str | None = "62a2a20e4c66f630d77caf5bb75973e28aa58b0d8c7bf4cb0e35fa44b6a6fc5c"   # §14 R′; was ee3e53a2, 3f5f754b
 # SPEC-M3-zstd Z3: re-counted on host 0.2.5 (7420418), written 2026-09-30 before that run.
-HOST_VERSION = "0.2.13"   # autosave §9.19; was 0.2.12, 0.2.11, 0.2.10, 0.2.9, 0.2.8, 0.2.7
+HOST_VERSION = "0.2.14"   # autosave §9.24; was 0.2.13, 0.2.12, 0.2.11, 0.2.10, 0.2.9, 0.2.8, 0.2.7
 # The host commit too (review 2026-09-29, implementation): a version string alone
 # lets a changed host with an unchanged info.xml through.
-HOST_COMMIT: str | None = "e028517"   # autosave §9.19; was b245ae7, 6b53c2e, d87960d, 069de55, 4140e00, 0488586
+HOST_COMMIT: str | None = "237f2cb"   # autosave §9.24; was e028517, b245ae7, 6b53c2e, d87960d, 069de55, 4140e00, 0488586
 # arm -> (cells, browsers, rounds in a counted run)
 PLAN = {
     "U0": ("U0", BOTH, 3), "U1": ("U1", BOTH, 3), "Uwin": ("U-window", BOTH, 3), "U2": ("U2", BOTH, 3),

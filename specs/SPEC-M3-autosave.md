@@ -655,3 +655,10 @@ AS-2：開始時間落在 30.6–31.5 秒（30 秒加引擎段）。AS-5：0 掉
 
 - `318b3bf252d585eda43c12577423aeb67995c8487f24688547ec09d2f45839e6`。與 v62 的 manifest 只差 `sdk/document-sdk.js`（`11c0b1c1…` → `e4c3fe92…`）與 digest；凍結日期同為 2026-10-12；排除清單相同（承自 v40）。§9.20 的條件成立：131-B、121-B、129-B、130-U、128-B 與 §9.18 擁有者手測站在 v62 的量測上。
 - 凍結前 `make e2-c-assets` 只複製兩檔（頁面位元組相同、SDK 新版），之後 `make test-e2-c-static` 只紅在 manifest 過期（`findings/evidence/133/test-e2-c-static-before-freeze-v63.txt`），凍結後結束碼 0（`…-after-freeze-v63.txt`）、E1-C intact。v62 沒有被動到。
+
+### 9.24 宿主 0.2.14 與綁定（2026-10-12，只追加）
+
+- **引擎包**：`package_m3_engine.py` → buildId `eb3f94084995d3f0`；與 0.2.13 的包（`59e6a9fe…`）只差 `sdk/document-sdk.js`（解碼後逐檔比對）。封存在 `wasm_sdk_probe/build/archive/host-0.2.14-engine-eb3f94084995d3f0/`（`diff -r` 相同、唯讀、附 `ATTRIBUTION.md`）。`check_engine_decoded.py` 通過（`findings/evidence/133/check-engine-decoded-0.2.14.txt`）；包裡的 SDK 解碼後等於 `dist/`（`e4c3fe92…`）。
+- **宿主**：`appinfo/info.xml` → 0.2.14，`ddev occ upgrade` 成功，`occ app:list` 回報 0.2.14；宿主 commit `237f2cb`（只有版本號）。從 HTTP 讀到宿主送出的 SDK＝`e4c3fe92…`、頁面＝`d761f1ce…`（位址 `eb3f94084995d3f0-90d7bc2c`）。0.2.13 從未出貨。
+- **綁定**（只動 pin 行共 10 行，註解保留舊值）：assets（buildId）、versions（`237f2cb`）、same_second（0.2.14）、page_honesty（0.2.14、`237f2cb`）、production_ui（0.2.14、`237f2cb`、殼層 v63 `318b3bf2…`）、autosave（0.2.14、`237f2cb`）。頁面與 session 雜湊不變，`check_m3_locks.py` 不用動。產品路徑判讀副本的兩個常數不變（`repointed_page()` 重算仍是 `fac708d0…`）。改綁後 `make test-e2-c-static` 結束碼 0。
+- 這份綁定是給**下一次**計數用的（§9.21：本版不計數）；下一批改了宿主或頁面，照常再綁。
