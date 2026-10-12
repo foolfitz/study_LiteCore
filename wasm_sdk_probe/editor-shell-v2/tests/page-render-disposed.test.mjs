@@ -51,7 +51,7 @@ function renderer(render) {
   const renderDocument = new Function(
     "session", "el", "toast", "describeError", "tileWasPainted", "paint", "layoutCanvas",
     "setTimeout", "ImageData", "paintBand",
-    `let rendering = false, renderAgain = false, lastTiles = [];
+    `let rendering = false, renderAgain = false, lastTiles = []; let engineActionsOut = 0, busyLeftToAction = false;
      let docRows = 10, winTop = 0, changes = 0;
      const MAX_TILE_HEIGHT = 32767;
      ${RETRIES_DECL}

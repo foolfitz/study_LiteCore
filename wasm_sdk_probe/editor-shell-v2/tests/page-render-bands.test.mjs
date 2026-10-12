@@ -84,7 +84,7 @@ function page({ height = 22256, width = 10, view = [9000, 11000], onRender = nul
   class FakeImageData { constructor(data, w, h) { this.width = w; this.height = h; } }
   // eslint-disable-next-line no-new-func
   const made = new Function("session", "el", "tileWasPainted", "ImageData", "layoutCanvas", "toast", "describeError",
-    `let rendering = false, renderAgain = false, lastTiles = []; const RENDER_BUSY_RETRIES = 2;
+    `let rendering = false, renderAgain = false, lastTiles = []; let engineActionsOut = 0, busyLeftToAction = false; const RENDER_BUSY_RETRIES = 2;
      let docRows = ${height}, winTop = ${top}, changes = 0;
      const NO_OVERLAY = { key: "", selection: [], caret: null, caretTwips: null };
      let paintedOverlay = NO_OVERLAY;

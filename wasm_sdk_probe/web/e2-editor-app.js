@@ -94,11 +94,11 @@ const AUTOSAVE_CAP_IDLE_MS = 3000;
 const AUTOSAVE_RECHECK_MS = 3000;
 const autosave = { timer: null, firstUnsavedAt: null, revision: null };
 
-// Finding 128: engine actions whose call is out, and whether the document was
-// invalidated meanwhile (editorAction).  Finding 129: click-then-move pairs
+// Finding 128: editor actions out, and whether a repaint gave up on their BUSY
+// and has not been made since (editorAction, renderDocument).  Finding 129: click-then-move pairs
 // queued (moveFromPoint).  Declared here, before anything can fire an event.
 let engineActionsOut = 0;
-let invalidatedWhileOut = false;
+let busyLeftToAction = false;
 let pointMovesInFlight = 0;
 
 // Fail closed: a session without `hasUnsavedEdits` throws here, and the host
@@ -1252,12 +1252,19 @@ async function renderDocument(retriesLeft = RENDER_BUSY_RETRIES) {
       layoutCanvas();
       renderAgain = true;
     }
+    busyLeftToAction = false;   // finding 128: a pass got through
   } catch (error) {
     // A repaint that lands while a barrier is still settling comes back BUSY.
     // The canvas is a frame behind; the document is fine.
     // TILE_NOT_PAINTED is not transient: the same request will come back
     // unpainted every time, so retrying it would only make the user wait
     // longer for the same silence.
+    // FINDING 128: an editor action is out, and `run()` repaints when it
+    // returns (editorAction makes the repaint if it fails).
+    if (error?.code === "BUSY" && engineActionsOut > 0) {
+      busyLeftToAction = true;
+      return;
+    }
     if (error?.code === "BUSY" && retriesLeft > 0) {
       await new Promise((resolve) => setTimeout(resolve, 120));
       rendering = false;
@@ -1856,26 +1863,21 @@ async function editorAction(action) {
     // says it does.
     ? { enabled: formatStateFor(action) !== true }
     : {};
-  // FINDING 128.  While this action's engine call is out, a
-  // `document-invalidated` only marks the canvas stale: painting then met the
-  // barrier's BUSY and waited a fixed 120 ms, and the deleted character stayed
-  // on screen that long.  `run()` repaints after a success; a failure does
-  // not, so a change held back is painted here.  Only while the ENGINE call is
-  // out -- not for all of `run()`, which also covers a save's host part, when
-  // the engine is free and typed text must appear at once (SPEC-M3-autosave
-  // §9.1, review 1 item 3).
+  // FINDING 128.  A repaint that meets this action's barrier (BUSY) gives up
+  // instead of waiting a fixed 120 ms and asking again: `run()` repaints as
+  // soon as the action returns, and the deleted character used to stay on
+  // screen for those 120 ms.  Only while an action is out -- not for a save,
+  // whose host part leaves the engine free (SPEC-M3-autosave §9.1, review 1
+  // item 3).  A failed action is not repainted by `run()`, so a repaint given
+  // up meanwhile is made here.
   engineActionsOut += 1;
-  let failed = true;
   try {
-    await run(label, async () => {
-      try { return await session.action(action, options); }
-      finally { engineActionsOut -= 1; }
-    });
-    failed = false;
+    await run(label, () => session.action(action, options));
   } finally {
-    if (engineActionsOut === 0 && invalidatedWhileOut) {
-      invalidatedWhileOut = false;
-      if (failed) void renderDocument();
+    engineActionsOut -= 1;
+    if (engineActionsOut === 0 && busyLeftToAction) {
+      busyLeftToAction = false;
+      void renderDocument();
     }
   }
 }
@@ -2788,7 +2790,6 @@ async function openDocument(bytes, name, { readOnly = false } = {}) {
       if (event.event === "document-invalidated") {
         changes += 1;   // §17.9 (c): every band asked for before this is stale
         publishWindow();
-        if (engineActionsOut > 0) { invalidatedWhileOut = true; return; }   // finding 128
         queueMicrotask(() => void renderDocument());
       }
     },
