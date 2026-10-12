@@ -1,0 +1,12 @@
+# Finding 128 follow-up: a burst of Backspaces is sometimes refused as delete-selection — 0.2.12 vs 0.2.13 page, same instrument (2026-10-12)
+
+Found by the 128-B run on host 0.2.13 (`../final-0.2.13/`): in 3 of 4 rapid-key arms one Backspace became 「刪除選取 失敗」 with the developer toast `刪除選取：EDITOR_FORMAT_GESTURE_UNSUPPORTED：this action is not offered for this kind of selection…`, and its character stayed in the document. Mechanism read from that run's log and `web/e2-editor-app.js` (the `beforeinput` delete listener, `deleteActionFor`): the key's `beforeinput` came while the previous delete was still out; a delete goes through the selection barrier (select one unit backwards, verify, delete), so the engine's editor state at that moment is a one-unit RANGE; the page reads that shape and sends `delete-selection`; by the time it is dispatched the caret is collapsed again and the gesture gate refuses it.
+
+Instrument: `wasm_sdk_probe/tools/probe_hand_test_0212.py --arms rapid20` (commit `3d45e895`): on the owner's document via Files, caret in the first body paragraph near the top of the view, type 20 letters, then 20 real Backspaces 50 ms apart, count the latency line's rewrites (「⌫ 刪除 N ms」 = a delete done, 「刪除選取 失敗」 = refused); two bursts per browser. Same host, same session file (`62a2a20e…`), only the engine package's page differs: for `page-0.2.12/` the host's `engine/` was swapped for the archived 0.2.12 package (`build/archive/host-0.2.12-engine-45cdcedfc0fe7e61/`) and swapped back afterwards (`../../release-0.2.13/check_engine_decoded.py` passed after the restore). Each report's `static.servedPage` says which page ran.
+
+| Page | Chrome (deleted, refused) per burst | Firefox | Refused, total | Delete action time (latency line), median / p90 / max |
+|---|---|---|---|---|
+| 0.2.12 `8909564e…` | (20, 0), (17, 3) | (19, 1), (20, 0) | **4 / 80** | Chrome 46 / 50 / 64 ms; Firefox 49 / 57 / 68 ms |
+| 0.2.13 `c7f904fa…` | (14, 6), (16, 4) | (18, 2), (13, 7) | **19 / 80** | Chrome 63.5 / 120 / 129 ms; Firefox 67 / 133 / 181 ms |
+
+So the refusal is older than 0.2.13 (0.2.12 shows it too, 5 %), and 0.2.13 makes it about five times as frequent (24 %). In 0.2.13 each delete is out longer under a burst, so the next key falls inside the previous barrier more often. **Inferred, not measured**: the longer time comes from 128's remedy B (the page repaints as soon as an action ends, so paint requests sit in the Worker ahead of the next delete).
