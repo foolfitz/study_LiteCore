@@ -6,7 +6,7 @@
 | **所在** | 我們的頁面 `wasm_sdk_probe/web/e2-editor-app.js`（`8909564e…`）`onInputTrace`（:2600–2607）：只在 `entry.action === "composition-rejected"` 或 `entry.status === "failed"` 時跳提示。而 `input/input-adapter.js` 把事件名寫在 `type`（`composition-rejected`、`commit-rejected`、`commit-error`），`status` 只有 idle／composing／blocked／committing／recoverable-error，**從來沒有 `failed`** |
 | **發現日** | 2026-10-12（寫 0.2.13 自動儲存規格時的存檔路徑普查帶出來；主 session 讀原始碼並重播確認） |
 | **嚴重度** | 一般：**無聲的資料遺失**，但條件窄。輸入 adapter 的佇列上限是 8（`DEFAULT_MAX_QUEUE_DEPTH`），引擎忙的時候（存檔 0.5–0.7 秒、檢查點）打的字會排隊，第 9 個起被 `INPUT_BACKPRESSURE` 拒絕；`beforeinput` 已經 `preventDefault`，字也不會留在輸入框裡——就這樣消失，畫面上什麼都沒有。按住一個鍵（重複約每秒 30 下）或很快的打字在存檔時最容易碰到 |
-| **可重現** | 提示條件不觸發：100%（node 重播，`evidence/130/`）。瀏覽器裡實際打到第 9 個排隊字：**未量** |
+| **可重現** | 提示條件不觸發：100%（node 重播，`evidence/130/`）。瀏覽器裡實際丟字：**已量**（M1，`evidence/130/m1/`）——開檔後第一次存檔（591–717 ms）期間每秒 20 鍵，Chrome 掉 3／3／4、Firefox 掉 5／4／5，頁面無提示；較慢的速度與按住鍵只碰到短存檔（161–309 ms），0 丟，暖機後重量未做 |
 | **是否上游** | 否 |
 
 ## 現象（重播）
@@ -32,3 +32,4 @@
 | 日期 | 內容 |
 |---|---|
 | 2026-10-12 | 初版：存檔路徑普查帶出、主 session 讀 `input-adapter.js` 與頁面並以 node 重播確認提示條件不觸發 |
+| 2026-10-12 | M1：在宿主 0.2.12 的產品路徑上兩個瀏覽器都量到無聲丟字（`evidence/130/m1/`，混淆變因照實記） |
