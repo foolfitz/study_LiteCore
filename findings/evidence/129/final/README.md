@@ -23,3 +23,17 @@ Spec `specs/SPEC-M3-autosave.md` §9.4 129-B. M4 (`../m4/`) measured the fix on 
 Chrome against Firefox: 54/54 cells equal; each browser's round 2 against its round 1: 54/54 equal, wrap offsets the same. Identical to M4's mirror rounds in every landing cell. As in M4, the 7 key arms that do not move the caret take 283–298 ms (the engine's own ~250 ms for a no-move key, M4's control), the moving ones < 200 ms.
 
 **129-B holds on 0.2.13's page.** Not measured here: the toast predicate (130-U, `../../130/replay-output-0.2.13.txt`), 128-B (`../../128/`).
+
+## Round 3 on the 131-fixed page (2026-10-12; page `d761f1ce…`; SPEC-M3-autosave §9.12 re-opened 129-B)
+
+`round-20261012T092119Z` (driver `tools/run_probe_129_final.sh … 3 1`; the probe's `FINAL_PAGE_SHA256` re-pinned to `d761f1ce…` in `d049b534`; `report-*.json` → `preflight.final`: page under test `d761f1ce…`, red control `8909564e…`, both `true`). Analysis `analysis-stdout.txt` (`analyze_129_m4.py round-20261012T092119Z round-20261012T064814Z`). A first attempt passed a non-integer round label and stopped at argparse; its directory held no data and was removed.
+
+| Clause | Chrome | Firefox |
+|---|---|---|
+| 42 brief cells against native `ref` | 12/12 exact; S1–S5 30/30 by rule (28/30 exact, `s1/Down`, `s1/End` by wrap offsets) | same |
+| toolbar shape after the key | `collapsed` 54/54 | `collapsed` 54/54 |
+| no toast; key → move done < 400 ms | 0 toasts; max 285.1 ms (moving keys 81.0–91.3) | 0 toasts; max 307.3 ms (moving keys 83.8–88.5) |
+| Shift+arrow | no move, no toast, revision unchanged | same |
+| red control (0.2.12's page) | refuses with the developer toast | same |
+
+Chrome against Firefox 54/54 equal; each browser against round 2 54/54 equal, wrap offsets the same. **129-B holds on the 131-fixed page.**
