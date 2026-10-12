@@ -1,0 +1,6 @@
+== six-green-no-burn (expect EXTEND): exit 1 :: SUMMARY 133-B: EXTEND  runs 6  failing 0  guard burns 0
+== six-green-one-burn (expect HOLDS): exit 0 :: SUMMARY 133-B: HOLDS  runs 6  failing 0  guard burns 1
+== no-hidden-autosave (expect FAIL (a)): exit 1 :: SUMMARY 133-B: FAIL  runs 6  failing 1  guard burns 5
+== reply-after-10s-not-a-burn (expect EXTEND): exit 0 :: SUMMARY 133-B: HOLDS  runs 6  failing 0  guard burns 1
+-- case 4 above was wrong: run 2 already holds the real `resp save 18` at thaw+271, inside the window; corrected below
+== reply-after-10s-not-a-burn, corrected (expect EXTEND): exit 1 :: SUMMARY 133-B: EXTEND  runs 6  failing 0  guard burns 0
