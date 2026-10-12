@@ -1,0 +1,35 @@
+133-U after the fix: sdk/document-sdk.js 75e0835b32faf5de, tests 27bc9da9cdbe638f
+✔ version handshake and request correlation expose no runtime internals (2.340545ms)
+✔ open makes transfer ownership explicit and close is idempotent (0.588535ms)
+✔ close timeout recycles the owning Worker and keeps the engine reusable (6.396352ms)
+✔ aborted close remains a typed failure and does not claim recovery (0.32763ms)
+✔ timeout rejects and emits a best-effort cancel (5.77721ms)
+✔ 133-U1: a deadline found late after a freeze waits, and the reply in the grace resolves (40.979841ms)
+✔ 133-U2: a deadline found late with no reply in the grace times out once, saying it was extended (26.484008ms)
+✔ AbortSignal rejects and emits cancel (0.739977ms)
+✔ worker crash rejects pending work and restart invalidates old handles (0.667442ms)
+✔ protocol mismatch is treated as a worker crash (0.305879ms)
+✔ R3 semantic review operations propagate monotonic revisions (0.584698ms)
+✔ R3 stale revision is a typed error with current revision details (0.315487ms)
+✔ unsupported profile operations remain typed SDK errors (0.195393ms)
+✔ an empty selection reads back as a success, not a LOK error (0.219378ms)
+✔ a complex selection is never reported as an empty selection (0.167211ms)
+✔ a text selection still carries its text (0.192999ms)
+✔ a typed readback failure stays a typed error (0.202537ms)
+✔ a missing selection type never surfaces as an empty selection (0.131084ms)
+✔ M1-4: a product completion carries keyUndo, named fields only (3.072336ms)
+✔ M1-4: malformed keyUndo fields are dropped to null, not passed through (0.731641ms)
+✔ M1-4: a refusal's mergeKey.keyPosted true reaches the SDK error as true (0.598614ms)
+✔ M1-4: a refusal's mergeKey.keyPosted false reaches the SDK error as false (0.523374ms)
+✔ M1-4: a refusal's mergeKey.keyPosted missing reaches the SDK error as true (1.074228ms)
+✔ M1-4: a refusal's mergeKey.keyPosted not a boolean reaches the SDK error as true (0.518625ms)
+✔ M1-4: a refusal without mergeKey carries none (v8 and v14 engines) (0.503688ms)
+ℹ tests 25
+ℹ suites 0
+ℹ pass 25
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 131.771868
+exit 0

@@ -1,6 +1,14 @@
 export const PROTOCOL_VERSION = 1;
 export const ABI_VERSION = 0x00010001;
 const DEFAULT_CLOSE_RECOVERY_TIMEOUT_MS = 10000;
+// Finding 133 (SPEC-M3-autosave §9.20).  A deadline timer that fires more than
+// this late was not starved by a slow engine: the page -- and the Worker with
+// it -- was stopped (a frozen tab, a sleeping machine), and the time it was
+// stopped is not time the engine had to answer.  Such a deadline is moved on
+// by the grace and looked at again instead of being reported as TIMEOUT, which
+// the session reads as "the engine is dead".
+const DEFAULT_LATE_DEADLINE_MS = 2000;
+const DEFAULT_LATE_DEADLINE_GRACE_MS = 10000;
 
 export class DocumentSdkError extends Error {
   constructor(code, message, details = {}) {
@@ -12,10 +20,14 @@ export class DocumentSdkError extends Error {
 }
 
 export class SdkTimeoutError extends DocumentSdkError {
-  constructor(operation, timeoutMs) {
-    super("TIMEOUT", `${operation} timed out after ${timeoutMs} ms`, {
+  constructor(operation, timeoutMs, extension = null) {
+    const extended = extension
+      ? ` (+${extension.extendedMs} ms in ${extension.extensions} extension(s) after a late deadline)`
+      : "";
+    super("TIMEOUT", `${operation} timed out after ${timeoutMs} ms${extended}`, {
       operation,
       timeoutMs,
+      ...(extension || {}),
     });
     this.name = "SdkTimeoutError";
   }
@@ -94,6 +106,18 @@ export class DocumentEngine {
       ? requestedCloseRecoveryTimeout
       : DEFAULT_CLOSE_RECOVERY_TIMEOUT_MS;
     this._debug = options.debug === true;
+    // Injectable only so the unit tests need not wait (133-U); the page never
+    // passes them.  performance.now() is monotonic: a clock step cannot fake
+    // a late deadline.
+    this._now = typeof options.now === "function"
+      ? options.now
+      : () => globalThis.performance?.now?.() ?? Date.now();
+    const lateDeadline = Number(options.lateDeadlineMs ?? DEFAULT_LATE_DEADLINE_MS);
+    this._lateDeadlineMs = Number.isFinite(lateDeadline) && lateDeadline > 0
+      ? lateDeadline : DEFAULT_LATE_DEADLINE_MS;
+    const lateGrace = Number(options.lateDeadlineGraceMs ?? DEFAULT_LATE_DEADLINE_GRACE_MS);
+    this._lateDeadlineGraceMs = Number.isFinite(lateGrace) && lateGrace > 0
+      ? lateGrace : DEFAULT_LATE_DEADLINE_GRACE_MS;
     this._worker = null;
     this._pending = new Map();
     this._listeners = new Set();
@@ -184,10 +208,27 @@ export class DocumentEngine {
       };
 
       if (Number.isFinite(timeoutMs) && timeoutMs > 0) {
-        entry.timer = setTimeout(
-          () => failAndCancel(new SdkTimeoutError(operation, timeoutMs)),
-          timeoutMs,
-        );
+        // Finding 133: the deadline counts only time the page could run.  On
+        // time (late <= _lateDeadlineMs) it is a TIMEOUT as before; found late,
+        // the page was stopped, so no failure and no cancel -- the deadline is
+        // moved on by the grace and looked at again.
+        let dueAt = this._now() + timeoutMs;
+        let extendedMs = 0;
+        let extensions = 0;
+        const expire = () => {
+          if (!this._pending.has(requestId))
+            return;
+          if (this._now() - dueAt > this._lateDeadlineMs) {
+            extensions += 1;
+            extendedMs += this._lateDeadlineGraceMs;
+            dueAt = this._now() + this._lateDeadlineGraceMs;
+            entry.timer = setTimeout(expire, this._lateDeadlineGraceMs);
+            return;
+          }
+          failAndCancel(new SdkTimeoutError(operation, timeoutMs,
+            extensions ? { extendedMs, extensions } : null));
+        };
+        entry.timer = setTimeout(expire, timeoutMs);
       }
       if (entry.signal) {
         entry.abortListener = () => failAndCancel(new SdkAbortError(operation));
