@@ -45,3 +45,7 @@ All in `findings/evidence/m3-locks/k8-recoverable-2026-10-12/README.md`; finding
 ## Output
 
 Write `findings/evidence/133/ruling/fable-ruling.md` (create it; nothing else). Sections: the ruling per question; plain-language reasons for the owner (zh-TW); any spec text to append to `SPEC-M3-autosave.md` (zh-TW, append-only, as a new §9.20, written so the main session can paste it verbatim); conditions/steps in order with what each needs committed before the next; numbers you rely on with the file they come from. Keep it under ~250 lines. Return a ≤30-line SUMMARY as your final message.
+
+## Addendum (sent to fable after launch, owner's instruction 「跟 fable 說可以參考 collabora」)
+
+You may consult Collabora Online as prior art: read-only checkout `cool-26-04/` (online.mirror `distro/collabora/co-26.04`; COOL client `browser/src`, COWASM host `wasm/`, core `engine/`; earlier notes `RESEARCH-2026-08-01-cowasm-co-26-04-reference.md`). Useful for: visibility/freeze/resume and system-sleep handling of in-flight requests and the socket; save on hide or on leave; how timeouts decide dead versus paused; what the user is shown afterwards. Cite file:line, and state where COOL's architecture (server-side engine over a WebSocket) differs from ours (engine in a Worker in the same page).
