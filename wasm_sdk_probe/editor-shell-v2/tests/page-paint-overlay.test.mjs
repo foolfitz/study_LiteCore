@@ -37,6 +37,11 @@ const PARTS = [
   fn("renderBands"), fn("paint"), fn("overlayAreas"), fn("paintBand"), fn("overlayShapes"), fn("drawOverlay"),
   fn("layoutCanvas"), fn("windowRows"), fn("windowTopFor"), fn("placeCanvas"), fn("publishWindow"),
   fn("visibleDocRows"),
+  // SPEC-M3-held-key §3.3 (H3): the state the overlay draws, and what it keeps.
+  // Taken when the page has them, so that on a page without them U5 fails by
+  // name rather than this whole file failing to load.
+  SOURCE.match(/^let overlayState = .*;$/m)?.[0] ?? "",
+  SOURCE.match(/^function overlayEditorState\([^)]*\) \{[\s\S]*?\n\}$/m)?.[0] ?? "",
 ].join("\n");
 
 /** A canvas whose 2d context records its calls and models its pixels. */
@@ -135,11 +140,13 @@ function page({ width = 24, shape = SHAPES.whole } = {}) {
   const made = new Function("session", "el", "moveSinkToCaret",
     `const MAX_BACKING_WIDTH = 2400; let lastTiles = []; let lastProjectedParagraphs = null;
      let docRows = ${shape.doc}, winTop = ${shape.top}, changes = 0;
+     let deletesInFlight = 0;
      function positionProjection() {}
      ${PARTS}
      return {
        paint, layoutCanvas, renderBands, overlayShapes, RENDER_BAND_HEIGHT,
        tiles: () => lastTiles, window: () => ({ docRows, winTop }),
+       setDeletes(n) { deletesInFlight = n; },
        // What renderDocument does: a slot per band, then each band as its reply arrives.
        allocate() { lastTiles = new Array(renderBands(docRows).length).fill(null); },
        band(index, image) {
@@ -325,6 +332,36 @@ test(`P-U5 (${name}): a restore over a band not painted yet is a clearRect`, () 
   assertCanvasCurrent(p, "back in band 0");
   p.paintBands(1);
   assertCanvasCurrent(p, "band 1 arrived");
+});
+
+
+// SPEC-M3-held-key §5.1 U5 (H3): the blue flash of finding 132 / §9.18 item 2.
+// While a delete the page sent is out, a range in the engine's state is the
+// barrier's one-character selection: the overlay stays the one drawn before it
+// (not the engine's caret of that moment).  With no delete out, the same kind
+// of range is the user's and is drawn as always, without a caret.
+test(`132 U5 (${name}): while a delete is out the engine's range is not drawn; with none out it is`, () => {
+  const p = page({ shape });
+  p.allocate();
+  p.paintBands(0, 1, 2);
+  p.state(p.caretAt(1500, 8));
+  const before = p.overlayShapes();
+  assert.ok(before?.caret, "the caret was not drawn");
+  p.clearOps();
+  p.setDeletes(1);
+  p.state(p.selectionOf([7, 1500, 1, 18]));
+  assert.equal(p.fills().length, 0, "something was drawn for the barrier's range");
+  assert.equal(p.overlayShapes().key, before.key, "the overlay left the caret drawn before the delete");
+  assertCanvasCurrent(p, "a range while a delete is out");
+  p.state(p.caretAt(1500, 7));
+  assert.ok(p.fills().some((op) => op[1] === "#1a1a1a"), "the caret the delete returned was not drawn");
+  assert.ok(!p.fills().some((op) => op[1] === "#b7d3f2"), "a wash was drawn while the delete was out");
+  p.setDeletes(0);
+  p.clearOps();
+  p.state(p.selectionOf([4, 1500, 6, 18]));
+  assert.ok(p.fills().some((op) => op[1] === "#b7d3f2"), "the user's own range was not drawn");
+  assert.equal(p.overlayShapes().caret, null, "a caret drawn inside the user's range");
+  assertCanvasCurrent(p, "the user's range");
 });
 
 }

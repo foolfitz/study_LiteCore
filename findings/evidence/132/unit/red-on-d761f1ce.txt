@@ -1,0 +1,318 @@
+d761f1cee9d26c50c0b152348d74c3d05f540e9228927815d93ad6ec161e7dcd  ../../web/e2-editor-app.js
+✔ it opens on the v2 profile, which the shipped session cannot (5.022056ms)
+✔ all fifteen go through the session's queue (2.375991ms)
+✔ the two families keep their own postconditions (0.664026ms)
+✔ a paragraph action advances the revision by exactly one (0.517573ms)
+✔ a post-dispatch failure blocks the queue and asks for a rollback (0.996845ms)
+✔ rollback reopens from the engine's own bytes with a fresh worker (1.958205ms)
+✔ a DISPATCHED postcondition failure blocks the queue too, not just the codes the base class knows (1.239587ms)
+✔ the base-class seam this depends on is still there (0.33323ms)
+✔ an undispatched failure still leaves the queue running (0.609894ms)
+✔ a pre-dispatch refusal does not ask for a rollback (1.085821ms)
+✔ a bad argument never reaches the engine and never rolls anything back (0.938306ms)
+✔ a boundary rejection still demands a fresh worker (0.468041ms)
+✔ the generation ceiling still fails closed (0.674515ms)
+✔ gestures and limits come from the manifest, for showing not for failing (0.818343ms)
+✔ finding 084: a state write whose sourceSequence went BACKWARDS does not move the caret back (0.406597ms)
+✔ finding 084: the REST of a stale patch still applies (0.306971ms)
+✔ finding 084: an ADVANCING write still lands, and so does an equal one (0.17757ms)
+✔ finding 084: a REOPEN may legitimately move the sequence backwards (0.165728ms)
+✔ finding 084: a write with no sourceSequence is not second-guessed (0.148607ms)
+✔ finding 084: the guard is installed on the machine the writers use (0.173423ms)
+✔ finding 084: the base class builds the machine ONCE, which is what makes wrapping it in the constructor enough (0.289649ms)
+✔ finding 084: after ANY order of arrivals the newest state is the one held (0.678272ms)
+✔ finding 084: a DUPLICATED announcement is idempotent, in any position (0.208498ms)
+✔ finding 084: the sequence the snapshot holds NEVER decreases, whatever arrives (0.207326ms)
+✔ finding 084: TWO announcements per commit -- the a11y core's shape -- still ends on the caret-bearing one (0.233013ms)
+✔ finding 096: a move on a DIRTY document banks a checkpoint first (0.22562ms)
+✔ finding 096: all six key-path moves bank it, and nothing else does (2.61682ms)
+✔ finding 096: a CLEAN document pays nothing (0.168233ms)
+✔ finding 096: holding the key down does not save per keypress (0.333992ms)
+✔ finding 096: a checkpoint that cannot be written does not eat the key (0.23092ms)
+✔ finding 098: moving the caret on a CLEAN document never makes it dirty and never banks anything (1.68715ms)
+✔ finding 098: on a successful answer, `dirty` says the document changed exactly when the engine said it did -- for every action the client offers (0.878845ms)
+✔ finding 099: after a rollback, the new Worker's work is banked however its revision lines up with the old checkpoint's (4.498752ms)
+✔ finding 099: the skip reads the content, never the revision -- at any revision, in any generation (22.165587ms)
+✔ finding 099: WITHIN one Worker, a change that came back unverified is banked by the next arrow key (0.552378ms)
+✔ finding 099: a checkpoint save that failed is retried on the next move (0.191496ms)
+✔ finding 098: shift+arrow on a clean document is not a mutation either (0.16119ms)
+✔ view-only: every mutating entry point is refused before it is queued (0.938937ms)
+✔ view-only: moves still run, and the gate is off by default (0.39274ms)
+✔ actionMutates is fail-closed: only the six moves are not mutations (0.137306ms)
+✔ view-only survives a fresh Worker (a rollback reopens the engine) (0.302253ms)
+✔ finding 107: unsaved edits follow dirty and pending, never the revision (1.406788ms)
+✔ finding 109: a refused boundary delete on a DIRTY document banks the work before the queue blocks, and the restart reopens it (0.378815ms)
+✔ finding 109: a CLEAN document pays nothing and loses nothing (0.130523ms)
+✔ finding 109: content a move already banked is not saved twice (0.141544ms)
+✔ finding 109: a checkpoint that cannot be written says so, and a restart is NOT reported as keeping the content (0.149889ms)
+✔ finding 109: an OLDER checkpoint does not make a restart safe (0.165558ms)
+✔ finding 109: after a save, the saved bytes are what a restart keeps (0.119232ms)
+✔ M1-3: keyPosted refusal (clean, key not applied) keeps every typed change across the restart (0.420883ms)
+✔ M1-3: keyPosted refusal (dirty, nothing banked, key not applied) keeps every typed change across the restart (0.195724ms)
+✔ M1-3: keyPosted refusal (dirty, banked at this stamp, key not applied) keeps every typed change across the restart (0.187018ms)
+✔ M1-3: keyPosted refusal (clean, key applied) keeps every typed change across the restart (0.211975ms)
+✔ M1-3: keyPosted refusal (dirty, nothing banked, key applied) keeps every typed change across the restart (0.182069ms)
+✔ M1-3: keyPosted refusal (dirty, banked at this stamp, key applied) keeps every typed change across the restart (0.185876ms)
+✔ finding 119 U1/U5: a delete the barrier could not verify banks the work, blocks as restart-required, and the restart reopens it (0.287134ms)
+✔ finding 119 U2: a CLEAN document pays nothing and loses nothing (0.135482ms)
+✔ finding 119 U3: a checkpoint that cannot be written says so; the caller still gets the engine's error (0.167381ms)
+✔ finding 119 U4: the same code anywhere else keeps today's disposition (0.207366ms)
+✔ B1: two refusals restart, and the third finds no generation left (0.516831ms)
+✔ B1: at the ceiling the refusal's content is handed out as saved, and the engine is left alone (0.267789ms)
+✔ B1: a checkpoint that could not be written is not handed out (0.141253ms)
+✔ B1: never from a running session, even with a checkpoint in hand (0.103513ms)
+✔ B1 (page): the third refusal does not restart; its content goes to the save path (1.184034ms)
+✔ B1 (page): a failed write stays `failed`, and is not retried into `clean` (0.7416ms)
+✔ B1 (page): nothing unsaved at the ceiling is `clean` and saves nothing (0.52678ms)
+✔ B1 (page): unsaved work that cannot be kept is `lost`, not saved (0.539904ms)
+✔ B1: a session stopped by something else at the ceiling hands out its content too (recoverable-error) (0.266687ms)
+✔ B1 (page): before any attempt the notice tells clean, pending and lost apart (1.532091ms)
+✔ B1 (page): `saved` only once the write has landed; the button is dead while it is in flight (10.01662ms)
+✔ B1 (page): a failed write keeps the host's own sentence (0.915674ms)
+✔ B1 (page): the notice's button -- rollback below the ceiling; at it, save when nothing was attempted, reload after (4.987101ms)
+✔ finding 111: X, Y, then Delete at once -- the Delete waits for Y (45.46237ms)
+✔ finding 111: X, Y, Delete, Z -- Z after the Delete (66.513974ms)
+✔ finding 111: two keys in a row keep their order behind the text (51.413104ms)
+✔ finding 111: nothing typed -- the key goes straight in (5.611662ms)
+✔ finding 111: typed text the adapter cancels does not strand the key (24.946322ms)
+✔ finding 111 U7: a key held behind typed text is not run on the Worker of a restart (200.369424ms)
+✔ finding 111 U8: X in flight, Y in the adapter, then save -- the save holds both (41.079383ms)
+✔ an action with gestures is offered (1.234176ms)
+✔ an action PRESENT with an empty gesture list is NOT offered (0.181798ms)
+✔ an action the profile does not carry is NOT offered (0.16116ms)
+✔ gesturesFor CANNOT distinguish those two, which is why offers exists (0.739877ms)
+✔ a v1-shaped manifest carries a name list and offers what it lists (0.168183ms)
+✔ no contract at all offers everything (0.255336ms)
+✔ offersRedo reads the contract, not the action map (0.196566ms)
+✔ a profile with no contract at all does not claim redo (0.149058ms)
+✔ the product page gates redo and cut on the profile too (1.74145ms)
+✔ the product page gates its arrow keys on offers, not gesturesFor (1.554303ms)
+✔ every dispatchable action has a label, button or not (1.793547ms)
+✔ the session's allowlist covers everything the client offers (1.437615ms)
+✔ M1-5: an engine without B (no mergeKey) keeps the old, true sentence (2.322341ms)
+✔ M1-5: keyPosted true is never told 'not changed', whatever the stage (0.203769ms)
+✔ M1-5: keyPosted missing or not false is never told 'not changed' (0.147695ms)
+✔ M1-5: before-the-key stages say 'not changed'; unknown and restore-mutated do not (0.210211ms)
+✔ M1-5: the page's 'not changed' set holds only stages the engine has (0.21476ms)
+✔ M1-5: 'nothing selected' does not claim a document end (0.152273ms)
+✔ M1-5: every exit of reopenAfterBoundaryRefusal, keyPosted true, never says 'not changed' (0.799338ms)
+✔ M1-5: after a restart with the key's effect uncertain, the user is told to look (0.307432ms)
+✔ M1-5: the same exits for an engine without B still use its sentence (1.152685ms)
+✔ M1-5: the page hands the error to the reopen path (0.244876ms)
+✔ finding 119 U6: the session's restart disposition reaches the reopen path; the code alone does not (0.776596ms)
+✔ finding 119 U6: no exit says 'not changed'; each names the unfinished delete; a restart asks to look (2.327712ms)
+✔ finding 119 U6: the notice's reopen gives the input sink its focus back, after the rollback (8.733052ms)
+✔ finding 121: a range goes out as delete-selection when the profile offers it (1.188441ms)
+✔ finding 121: a caret, an unknown shape, or no offer keeps today's action (0.213588ms)
+✔ finding 121: the handler asks the engine's current selection, the page's belief only as fallback (0.562677ms)
+✔ finding 131: while a delete this page sent is unsettled, the key keeps its collapsed form (0.170968ms)
+✔ finding 131: the handler passes its own unsettled deletes, counted before the call and released in finally (0.418298ms)
+✔ finding 120: the sink follows the new adapter's blocked state (0.149508ms)
+✔ finding 120: openDocument syncs the sink right after attaching it (0.253542ms)
+✖ 132 U3: a repeat is dropped only while two deletes are out; a press, a composition, another key never (1.839342ms)
+✖ 132 U4: the sink's keydown listener prevents exactly the repeats U3 drops, at the page's own count (0.620915ms)
+✖ 132 U6: the delete listener repaints the overlay once its deletes have all settled, not before (10.522982ms)
+✔ 124-U1: a caret that changed and is out of view is scrolled to the middle, once (1.331257ms)
+✔ 124-U2: a caret that changed but is wholly in view does not scroll (0.304427ms)
+✔ 124-U3: an unchanged caret never scrolls -- a user who wheeled away is not pulled back (0.323132ms)
+✔ 124-U4: the scroll is clamped to the desk's range (0.191256ms)
+✔ 124-U5 (§17.9 (e)): not while a pointer drag selects; the first caret after it is followed (0.19897ms)
+✔ P-U1 (whole): an overlay equal to the one on the canvas costs no putImageData and no clearRect (29.082039ms)
+✔ P-U2 (whole): a caret that moves is restored from the bands under its old and new rectangles only (172.137537ms)
+✔ P-U3 (whole): a selection that changes is restored under every old and every new rectangle, washed once (15.076616ms)
+✔ P-U4 (whole): after layoutCanvas the first paint() restores nothing of the overlay drawn before it (75.632252ms)
+✔ P-U5 (whole): a restore over a band not painted yet is a clearRect (22.255565ms)
+✖ 132 U5 (whole): while a delete is out the engine's range is not drawn; with none out it is (1.528665ms)
+✔ P-U1 (window): an overlay equal to the one on the canvas costs no putImageData and no clearRect (7.370797ms)
+✔ P-U2 (window): a caret that moves is restored from the bands under its old and new rectangles only (200.838537ms)
+✔ P-U3 (window): a selection that changes is restored under every old and every new rectangle, washed once (10.847556ms)
+✔ P-U4 (window): after layoutCanvas the first paint() restores nothing of the overlay drawn before it (85.240282ms)
+✔ P-U5 (window): a restore over a band not painted yet is a clearRect (8.369856ms)
+✖ 132 U5 (window): while a delete is out the engine's range is not drawn; with none out it is (1.134561ms)
+✔ 122 B1: the bands cover the canvas exactly, from pixel edges (1.343971ms)
+✔ 123-U: no canvas height up to five bands is cut with a short last band (13.847178ms)
+✔ 122 B2: the bands under the view first, then nearest first (4.009381ms)
+✖ 132 U1: among the bands under the view, the caret's comes first; otherwise B2's order exactly (1.327811ms)
+✖ 132 U2: a pass starts with the band holding the engine's caret; with no caret, with the view's first band (2.476869ms)
+✔ 122 B3: a change between bands ends the pass, and the next pass starts with the view again (8.785078ms)
+✔ 122 B4: each band is blitted when it arrives, before the next band is asked for (1.273029ms)
+✔ 122 B5: a document whose size changed is laid out again and painted in full (1.903362ms)
+✔ 122 B6: a band the engine did not paint still raises TILE_NOT_PAINTED (0.54814ms)
+✔ 122 B7: nothing is cleared; a band keeps its old pixels until its new ones arrive (1.565503ms)
+✔ 122 B8: a key that will reach the engine, mid-pass, ends the pass after the band in flight; the next pass starts with the view (2.490625ms)
+✔ 122 B8-control: a beforeinput while idle sets nothing and starts no pass; a composition update mid-pass ends nothing (1.836247ms)
+✔ C1-U: the window is three views, never under four bands, never more than the document (0.40827ms)
+✔ W-U1: a pass asks only for the stale bands in the window; nothing changed, nothing asked (1.688452ms)
+✔ W-U2: a band stamped when it is ASKED for -- one in flight across a change is asked for again (1.119133ms)
+✔ W-U3: the window follows the scroll; the cache holds the window only (2.641616ms)
+✔ W-U4: a move puts the cached bands back at their new rows and clears the rest; only the uncached are asked for (1.92878ms)
+✔ W-U5 (S1): no move when the whole document is on the canvas, or the window is against the document's end (1.818134ms)
+✔ W-U6 (S2): a band the window left while it was in flight is neither drawn nor kept (1.771928ms)
+✔ W-U7: the window, the counter and the cached bands are on #canvas (0.311599ms)
+✔ a repaint rejected because the page disposed its engine says nothing (2.491266ms)
+✔ any other failed repaint is still reported (3.22417ms)
+✔ BUSY is still retried, and a later success says nothing (0.716303ms)
+✔ a BUSY retry keeps one repaint in flight (9.326345ms)
+✔ 125-U1: busy for 699 ms and then not -- the shown pill never says 處理中 (1.535227ms)
+✔ 125-U2: busy that lasts shows 處理中 at exactly 700 ms (0.528874ms)
+✔ 125-U3: leaving busy shows the new state at once; every other state at once (0.512905ms)
+✔ 125-U4: #state-pill's data-state and data-label are written at once, every write (0.361412ms)
+✔ 125-U5: never blank, and a direct write (已過期, 錯誤) cancels the wait (0.328141ms)
+✔ 125-U6: the class pill is on the child, not on #state-pill; the child is #state-pill's only content (0.870911ms)
+✔ no document: nothing to lose, unless a save is still settling (2.02598ms)
+✔ the session's answer decides, whatever the revision says (1.069019ms)
+✔ a save asked for and not yet settled counts, even when the session is clean (1.043913ms)
+✔ fail closed: a session without hasUnsavedEdits throws (the host asks on a throw) (2.692741ms)
+✔ ../../web/demo-structure-app.js: every client.* call exists on ParagraphEditorClient (2.286946ms)
+✔ ../../web/e2-editor-app.js: every session.* call exists on NarrowEditorV2Session (1.038483ms)
+✔ ../../web/e2-editor-app.js: every client.* call exists on NarrowEditorV2Client (0.925042ms)
+✔ the extractor finds calls and the membership test can say no (0.325796ms)
+✔ every snapshot field a page reads is a field the state machine has (1.996115ms)
+✔ Enter is bound to the paragraph break and Shift+Enter to the line break (0.971328ms)
+ℹ tests 170
+ℹ suites 0
+ℹ pass 163
+ℹ fail 7
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 696.47156
+
+✖ failing tests:
+
+test at page-delete-and-sink.test.mjs:95:1
+✖ 132 U3: a repeat is dropped only while two deletes are out; a press, a composition, another key never (1.839342ms)
+  AssertionError [ERR_ASSERTION]: HELD_DELETE_DEPTH not found in the page
+      at slice (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-delete-and-sink.test.mjs:16:10)
+      at heldRepeatSource (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-delete-and-sink.test.mjs:90:3)
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-delete-and-sink.test.mjs:97:43)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at page-delete-and-sink.test.mjs:114:1
+✖ 132 U4: the sink's keydown listener prevents exactly the repeats U3 drops, at the page's own count (0.620915ms)
+  AssertionError [ERR_ASSERTION]: HELD_DELETE_DEPTH not found in the page
+      at slice (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-delete-and-sink.test.mjs:16:10)
+      at heldRepeatSource (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-delete-and-sink.test.mjs:90:3)
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-delete-and-sink.test.mjs:118:8)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at page-delete-and-sink.test.mjs:138:1
+✖ 132 U6: the delete listener repaints the overlay once its deletes have all settled, not before (10.522982ms)
+  AssertionError [ERR_ASSERTION]: not repainted once every delete had settled
+  
+  0 !== 1
+  
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-delete-and-sink.test.mjs:167:10)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at page-paint-overlay.test.mjs:343:1
+✖ 132 U5 (whole): while a delete is out the engine's range is not drawn; with none out it is (1.528665ms)
+  AssertionError [ERR_ASSERTION]: something was drawn for the barrier's range
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-paint-overlay.test.mjs:353:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at page-paint-overlay.test.mjs:343:1
+✖ 132 U5 (window): while a delete is out the engine's range is not drawn; with none out it is (1.134561ms)
+  AssertionError [ERR_ASSERTION]: something was drawn for the barrier's range
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-paint-overlay.test.mjs:353:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at page-render-bands.test.mjs:186:1
+✖ 132 U1: among the bands under the view, the caret's comes first; otherwise B2's order exactly (1.327811ms)
+  AssertionError [ERR_ASSERTION]: the caret's band is not asked for first
+  
+  8 !== 9
+  
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-render-bands.test.mjs:193:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 8,
+    expected: 9,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at page-render-bands.test.mjs:200:1
+✖ 132 U2: a pass starts with the band holding the engine's caret; with no caret, with the view's first band (2.476869ms)
+  AssertionError [ERR_ASSERTION]: the pass did not start with the caret's band
+  
+  8 !== 9
+  
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-render-bands.test.mjs:210:10)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 8,
+    expected: 9,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

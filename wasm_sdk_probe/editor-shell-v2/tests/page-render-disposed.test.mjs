@@ -35,6 +35,8 @@ const BAND_PARTS = [
   slice(/^const RENDER_BAND_HEIGHT = .*;$/m, "RENDER_BAND_HEIGHT"),
   ...["renderBands", "bandOrder", "visibleDocRows", "bandInWindow", "publishWindow"].map((name) =>
     slice(new RegExp(`^function ${name}\\([^)]*\\) \\{[\\s\\S]*?\\n\\}$`, "m"), `${name}()`)),
+  // SPEC-M3-held-key §3.1: renderDocument asks where the caret is; taken when the page has it.
+  SOURCE.match(/^function caretDocRows\([^)]*\) \{[\s\S]*?\n\}$/m)?.[0] ?? "",
 ].join("\n");
 
 /** The page's renderDocument over a render() stub, with its toasts. */

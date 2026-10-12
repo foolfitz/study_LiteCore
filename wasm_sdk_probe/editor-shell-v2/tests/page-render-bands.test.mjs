@@ -25,10 +25,14 @@ function slice(pattern, what) {
 }
 
 const fn = (name) => slice(new RegExp(`^(async )?function ${name}\\([^)]*\\) \\{[\\s\\S]*?\\n\\}$`, "m"), `${name}()`);
+// SPEC-M3-held-key §5.1: renderDocument asks where the caret is (H1).  Taken
+// when the page has it, so that on a page without it U2 fails by name rather
+// than this whole file failing to load.
+const optional = (name) => SOURCE.match(new RegExp(`^function ${name}\\([^)]*\\) \\{[\\s\\S]*?\\n\\}$`, "m"))?.[0] ?? "";
 const PARTS = [
   slice(/^const MAX_TILE_HEIGHT = .*;$/m, "MAX_TILE_HEIGHT"),
   slice(/^const RENDER_BAND_HEIGHT = .*;$/m, "RENDER_BAND_HEIGHT"),
-  fn("renderBands"), fn("bandOrder"), fn("visibleDocRows"), fn("renderDocument"), fn("paint"), fn("overlayAreas"),
+  fn("renderBands"), fn("bandOrder"), fn("visibleDocRows"), optional("caretDocRows"), fn("renderDocument"), fn("paint"), fn("overlayAreas"),
   fn("paintBand"), fn("bandInWindow"), fn("publishWindow"), fn("windowRows"), fn("windowTopFor"), fn("placeCanvas"),
   fn("moveWindow"), fn("onDeskScroll"),
   slice(/^const DELETE_INPUT_TYPES = \{[\s\S]*?\n\};$/m, "DELETE_INPUT_TYPES"),
@@ -173,6 +177,42 @@ test("122 B2: the bands under the view first, then nearest first", () => {
   for (let i = 1; i < distances.length; i += 1)
     assert.ok(distances[i] >= distances[i - 1], `band ${order[i]} before a nearer one`);
   assert.equal(order.length, bandsIn(22256));
+});
+
+// SPEC-M3-held-key §5.1 U1 (H1, finding 132 / L-128-rapid): among the bands
+// under the view, the one holding the caret is asked for first -- the first
+// band of a pass is the only one a held key lets through.  Without a caret, or
+// with it in the first band under the view or outside the view, B2's order.
+test("132 U1: among the bands under the view, the caret's comes first; otherwise B2's order exactly", () => {
+  const p = page();
+  const bands = p.renderBands(22256);
+  const view = [9000, 11000];
+  const plain = p.bandOrder(bands, view).map((b) => b.index);
+  const caretBand = VISIBLE[1];
+  const order = p.bandOrder(bands, view, [caretBand * H + 70, caretBand * H + 200]).map((b) => b.index);
+  assert.equal(order[0], caretBand, "the caret's band is not asked for first");
+  assert.deepEqual(order.slice(1), plain.filter((i) => i !== caretBand), "the other bands moved");
+  for (const other of [[VISIBLE[0] * H + 900, VISIBLE[0] * H + 1000], [500, 630], null])
+    assert.deepEqual(p.bandOrder(bands, view, other).map((b) => b.index), plain, `caret rows ${JSON.stringify(other)}`);
+});
+
+// U2: and renderDocument passes the engine's caret.
+test("132 U2: a pass starts with the band holding the engine's caret; with no caret, with the view's first band", async () => {
+  const caretBand = VISIBLE[1];
+  const p = page();
+  const twipsPerRow = p.session.document.heightTwips / 22256;
+  p.session.state.snapshot.editorState = {
+    caret: { x: 0, y: Math.round((caretBand * H + 70) * twipsPerRow), width: 0, height: 1800 },
+    selection: { collapsed: true, rectangles: [] },
+  };
+  await p.renderDocument();
+  await quiet(p);
+  assert.equal(bandOf(p.requests[0], p), caretBand, "the pass did not start with the caret's band");
+  assert.deepEqual(new Set(p.requests.map((r) => bandOf(r, p))).size, bandsIn(22256), "a band was not asked for");
+  const q = page();
+  await q.renderDocument();
+  await quiet(q);
+  assert.equal(bandOf(q.requests[0], q), VISIBLE[0], "without a caret the pass did not start at the top of the view");
 });
 
 test("122 B3: a change between bands ends the pass, and the next pass starts with the view again", async () => {
