@@ -668,7 +668,14 @@ FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
 # at again; on-time timeouts unchanged.  The page is v62's (d761f1ce...), so the page criteria and the owner's hand
 # test (§9.18) stand on v62 (§9.20, condition: this manifest differs from v62 only in the SDK).  Frozen AFTER 133-U
 # (unit, 31/31 after review 1; 12 named wrong fixes red) and before 133-B, which needs the packaged SDK on the host.
-MANIFEST = Path("e2/editor-shell-v2-bundle-v63.json")
+#
+# v64, 2026-10-13: FINDING 132 and the blue flash (SPEC-M3-held-key; the owner chose A, §4; host 0.2.15).  One file
+# differs from v63, `web/e2-editor-app.js` (abe93f45...): H1 the band holding the caret is painted first among the
+# visible bands; H2 a held Backspace/Delete repeat is not sent while two of the page's deletes are out (a press always
+# is); H3 while a delete is out, the engine's range (the barrier's one character) is not drawn.  Frozen after 132-U,
+# 132-B on these bytes (12/12 holds) and §5.3 on these bytes: 131-B, 121-B, 128-B (single keys, host segment on a
+# bounded re-run, its red control red), 129-B, 130-U, 122-B / C2.
+MANIFEST = Path("e2/editor-shell-v2-bundle-v64.json")
 ENTRYPOINT = Path("web/e2-editor-app.js")
 
 # The directories whose *.js files must all be accounted for.  `editor-shell`
