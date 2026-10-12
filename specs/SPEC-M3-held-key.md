@@ -229,6 +229,35 @@
 
 量完把數字交給擁有者，再選處方。§9 列過的：**B**（頁面：拒絕之後，同一次按住的 Backspace／Delete 重複丟到放開為止，與 H2 同形）；**C**（引擎在兩端什麼都不做而不是拒絕，連結批次）。若 (ii) 成立，B 也擋得住它——B 擋的是「被拒之後同一次按住的重複」，不分哪個鍵。但 B 擋不住「單按一次就花掉一個世代」（`start-press`），那一半只有 C 或改 SDK 的處置拿得掉。
 
+### 13.5 結果（2026-10-13，只追加；`findings/evidence/132/held-into-refusal/run-1/`）
+
+十輪全跑完（exit 0），量測前後的宿主與頁面相同（0.2.15 `568608c`、頁面 `abe93f45…`）。每一臂、兩個瀏覽器都落在 §13.3 的預測裡，「會改變計畫的結果」一個都沒發生。
+
+| 臂 | Chrome | Firefox |
+|---|---|---|
+| `start-press` | 拒絕 1 次、世代 1→2、文件不變 | 同左 |
+| `start-hold` ×2 | 拒絕 3 次、上限 `saved` 5.19／5.35 s、文件不變 | 拒絕 3 次、`saved` 7.11／7.21 s、文件不變 |
+| `end-hold` ×2 | 拒絕 1 次，之後從第 0 段刪 82／83 字＋併 1 段，存回伺服器 | 拒絕 1 次，之後從第 0 段刪 71／72 字＋併 1 段，存回伺服器 |
+
+(i) 成立；(ii) 成立，改登錄為 finding 134。
+
+**更正 §13.1 (ii) 的「使用者看的是文件末端，開頭少掉的字不在畫面上」**：讀碼的結果相反。`followCaret()`（`e2-editor-app.js:810-825`）在每次狀態更新時經 `updateState`（`:783`；`onState`，`:2884`）執行，只要游標矩形變了而且不在視野裡，就把 `#desk` 捲到游標。所以重開之後畫面很可能跳到開頭、看著開頭被刪。讀碼，未量；裁決條件 3 的探針順便記 `scrollTop`，只回報、不判。
+
+探針自己的缺陷（不是產品）：`deletesSeen` 少算一次。第一下刪除讓 revision 前進時，延遲標籤還是上一個動作的，`summarize()`（`probe_held_into_refusal.py:128-130`）只在標籤是 ⌫／⌦ 時才算。伺服器讀回與 revision 的跨度才是準的。
+
+## 14. 裁決：B＋D 現在、C 進連結批次（fable 代擁有者，2026-10-13，只追加）
+
+擁有者原話：「發給fable，我授權他帶我裁決」。工單 `findings/evidence/132/held-into-refusal/ruling/brief-1.md`，裁決 `ruling-1.md`（條件 1–9 以那份為準，這裡是摘要）。白話理由寫在 finding 134 的「裁決」段。
+
+- **B（頁面）**：頁面送出的刪除被拒之後，同一次按住的 `repeat === true` Backspace／Delete 不再送到引擎。按住的結束以這三種為準：在 window 層 capture 到 Backspace／Delete 的 `keyup`（重開期間 sink 被停用，按鍵落在 `body`）、該鍵 `repeat === false` 的 `keydown`、window `blur`。單按照送（finding 131）。單元判準 U-B 寫在 `page-delete-and-sink.test.mjs`，要先在 `abe93f45…` 上指名紅。
+- **D（頁面）**：`reopenAfterBoundaryRefusal` 在 `session.restart()` **之前**讀引擎回報的游標（`editorState.caret`）；`restart()` 回來之後先照舊 `focus`，再 `placeCaret(x, y + height / 2)`。拿不到或失敗就維持重開後的狀態，提示裡說游標在文件開頭。適用於所有走這個函式的路，包括 119 的 `deleteUnverified`。
+- **驗收（條件 3）**：探針加一臂 `end-press-type`（結尾單按 Delete → 重開 → 打標記 → 存 → 讀回標記在哪一段），`read()` 記 `scrollTop`。判讀工具逐輪、逐臂判，臂的清單取自探針自己的 `ARMS`（工具封閉）：`start-hold`／`end-hold` 拒絕 1 次、世代 `['1','2']`、伺服器與原檔相同；`end-press-type` 標記在最後一段；`start-press` 照 run-1。先紅：判讀工具在 run-1 上恰好紅 `start-hold` 與 `end-hold`；新臂在 0.2.15 上跑一次，預期標記在第 0 段。
+- **不得壞掉（條件 4）**：§11 的 §5.3 鏈原樣在最終位元組上重跑，加單元測試全綠，不加新檢查、不改既有檢查。
+- **出貨（條件 5）**：殼層 v65（新號碼）、宿主 0.2.16＝未計數候選（§9.21）。**沒跑條件 3 的預設結論**：B＋D 不算數，0.2.15 仍是候選，134 開著。
+- **C（條件 8）**：寫成引擎看得到的條件——merge-key barrier 停在 `nothing-selected` 且 `keyPosted === false` 時，動作以「成功、不改任何東西」完成，不回 `EDITOR_BOUNDARY_UNSUPPORTED`。連結之後的驗收：`start-press` 拒絕 0 次、世代 `['1']`；紅案是 run-1 的 `start-press`。連結照舊是擁有者的步驟。
+- **L-132-held-into-refusal 收窄（條件 6）**：只剩 (i)，也就是按住的鍵燒掉世代；(ii) 移到 finding 134。條件 3 成立之後，(i) 由 B1 的具名限制（每次自動重開用掉一個世代，SPEC-M3-production-ui §14.4）取代、關閉。
+- **§34（條件 9）**：擴充後的判讀工具只送一次對抗性審核；交接列出「因執行而修／因審核而修」兩個數字。
+
 ## 修訂紀錄
 
 | 日期 | 內容 |
@@ -239,3 +268,4 @@
 | 2026-10-13 | §11 兩處更正（130-U 在最終位元組上補跑；第二個 PUT 的成因是假說） |
 | 2026-10-13 | §12 擁有者手測 0.2.15 通過（未逐項回報；宿主與送出頁面在回報之後核對） |
 | 2026-10-13 | §13 L-132-held-into-refusal 先量：讀碼機制（新讀出 (ii) 結尾按住 Delete 會從開頭刪）、三臂量測、預測（寫在執行之前） |
+| 2026-10-13 | §13.5 結果（兩個瀏覽器都落在預測內，(i)、(ii) 成立）與 §13.1「不在畫面上」的更正；§14 fable 代擁有者裁決＝B＋D 現在、C 進連結批次，(ii) 登錄為 finding 134，L-132-held-into-refusal 收窄為 (i) |
