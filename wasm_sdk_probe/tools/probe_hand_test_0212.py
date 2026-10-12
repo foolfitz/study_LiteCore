@@ -61,6 +61,9 @@ from run_e2_c_product_path import DRAG  # noqa: E402
 
 PROBE_NAME = "probe-hand-0212.odt"
 ARMS: set[str] = set()
+# Per-run settings from the command line (SPEC-M3-autosave §9.12: 131-B takes 6 bursts; 121's witness takes
+# Backspace and Delete on a selection).  Defaults are what the probe always did.
+OPTIONS: dict[str, Any] = {"rapidRounds": 2, "selectionKeys": ("ArrowLeft", "ArrowDown", "End")}
 MARK8 = "zqxzqxzq"
 ui.CDP_KEYS.update({"ArrowLeft": ("ArrowLeft", "ArrowLeft", 37), "ArrowUp": ("ArrowUp", "ArrowUp", 38),
                     "ArrowRight": ("ArrowRight", "ArrowRight", 39), "ArrowDown": ("ArrowDown", "ArrowDown", 40)})
@@ -430,11 +433,11 @@ def run_browser(kind: str, server: Server, doc: bytes, out: Path) -> dict[str, A
             record["low"] = ghost_arm("low", kind, session, "0.0584", 0.85, out)
         if "selection" in ARMS:
             record["selection"] = [selection_arm(kind, session, ui.IN_TEXT[1], key)
-                               for key in ("ArrowLeft", "ArrowDown", "End")]
+                               for key in OPTIONS["selectionKeys"]]
         if "shift" in ARMS:
             record["shift"] = shift_arm(kind, session, ui.IN_TEXT[1])
         if "rapid20" in ARMS:
-            record["rapid20"] = rapid_arm(kind, session)
+            record["rapid20"] = rapid_arm(kind, session, OPTIONS["rapidRounds"])
         if "hostseg" in ARMS:
             record["hostseg"] = hostseg_arm("hostseg", kind, session, False)
             record["hostseg"]["judged"] = hostseg_verdict(record["hostseg"])
@@ -459,14 +462,19 @@ def main() -> int:
     parser.add_argument("--arms", default="high,low,selection,shift",
                         help="any of high,low,selection,shift,trace,hostseg,hostseg-red (trace: Chrome's Worker "
                              "message log; hostseg: 128-B's host-segment cell, hostseg-red its red control)")
+    parser.add_argument("--rapid-rounds", type=int, default=2, help="bursts in the rapid20 arm")
+    parser.add_argument("--selection-keys", default="ArrowLeft,ArrowDown,End",
+                        help="the key pressed after each fresh drag selection, one arm per key")
     args = parser.parse_args()
     ARMS.update(args.arms.split(","))
+    OPTIONS.update(rapidRounds=args.rapid_rounds, selectionKeys=tuple(args.selection_keys.split(",")))
     args.out.mkdir(parents=True, exist_ok=True)
     doc = ui.DOC.read_bytes()
     instance = Instance(DEFAULT_DDEV)
     server = Server(instance, [])
     report: dict[str, Any] = {"probe": "probe_hand_test_0212.py", "startedAt": utc_now(),
-                              "static": ui.static_facts(DEFAULT_DDEV), "runs": []}
+                              "static": ui.static_facts(DEFAULT_DDEV), "arms": sorted(ARMS),
+                              "options": {**OPTIONS, "selectionKeys": list(OPTIONS["selectionKeys"])}, "runs": []}
     try:
         for kind in args.browsers.split(","):
             run = run_browser(kind, server, doc, args.out)

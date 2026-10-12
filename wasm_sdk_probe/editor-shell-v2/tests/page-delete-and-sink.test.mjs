@@ -49,6 +49,28 @@ test("finding 121: the handler asks the engine's current selection, the page's b
   assert.equal(selectionShapeOf({ state: undefined }), null);
 });
 
+// SPEC-M3-autosave §9.12, rule A.  While a delete this page sent has not
+// settled, the engine's range is the barrier's one-character selection, not the
+// user's: the key keeps its own collapsed form.
+test("finding 131: while a delete this page sent is unsettled, the key keeps its collapsed form", () => {
+  for (const action of ["delete-backward", "delete-forward"]) {
+    assert.equal(deleteActionFor(action, "range-single", true, 1), action, action);
+    assert.equal(deleteActionFor(action, "range-cross", true, 3), action, action);
+    // None out: finding 121's rule stands.
+    assert.equal(deleteActionFor(action, "range-single", true, 0), "delete-selection", action);
+  }
+});
+
+test("finding 131: the handler passes its own unsettled deletes, counted before the call and released in finally", () => {
+  const handler = slice(/^el\.sink\.addEventListener\("beforeinput", \(event\) => \{[\s\S]*?\n\}\);$/m, "the beforeinput handler");
+  assert.match(handler, /deleteActionFor\(action, shape,\s+session\.offers\?\.\("delete-selection"\) === true, deletesInFlight\)/);
+  assert.match(handler, /deletesInFlight \+= 1;\n\s+void editorAction\(/);
+  assert.match(handler, /\.finally\(\(\) => \{ deletesInFlight -= 1; \}\)/);
+  // Its own counter, not every action out: a real range + Ctrl+B + Backspace is still delete-selection.
+  assert.doesNotMatch(handler, /engineActionsOut/);
+  assert.match(SOURCE, /^let deletesInFlight = 0;$/m);
+});
+
 test("finding 120: the sink follows the new adapter's blocked state", () => {
   const sink = { disabled: true };
   syncSinkToInput(sink, { state: { blocked: false } });
