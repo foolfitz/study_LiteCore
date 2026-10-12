@@ -1,0 +1,62 @@
+133-U red case: tests added, SDK pre-fix. tree 641843c9 + uncommitted sdk/tests/document-sdk.test.mjs 27bc9da9cdbe638f; sdk/document-sdk.js 11c0b1c14c30e1d0 (unchanged since HEAD: yes)
+✔ version handshake and request correlation expose no runtime internals (1.880038ms)
+✔ open makes transfer ownership explicit and close is idempotent (0.552799ms)
+✔ close timeout recycles the owning Worker and keeps the engine reusable (7.112003ms)
+✔ aborted close remains a typed failure and does not claim recovery (0.304606ms)
+✔ timeout rejects and emits a best-effort cancel (5.714553ms)
+✖ 133-U1: a deadline found late after a freeze waits, and the reply in the grace resolves (5.914154ms)
+✖ 133-U2: a deadline found late with no reply in the grace times out once, saying it was extended (6.530832ms)
+✔ AbortSignal rejects and emits cancel (0.624241ms)
+✔ worker crash rejects pending work and restart invalidates old handles (0.508646ms)
+✔ protocol mismatch is treated as a worker crash (0.238984ms)
+✔ R3 semantic review operations propagate monotonic revisions (0.482608ms)
+✔ R3 stale revision is a typed error with current revision details (0.319915ms)
+✔ unsupported profile operations remain typed SDK errors (0.201595ms)
+✔ an empty selection reads back as a success, not a LOK error (0.164926ms)
+✔ a complex selection is never reported as an empty selection (0.157443ms)
+✔ a text selection still carries its text (0.15541ms)
+✔ a typed readback failure stays a typed error (0.200473ms)
+✔ a missing selection type never surfaces as an empty selection (0.12338ms)
+(node:576908) PromiseRejectionHandledWarning: Promise rejection was handled asynchronously (rejection id: 3)
+(Use `node --trace-warnings ...` to show where the warning was created)
+ℹ tests 18
+ℹ suites 0
+ℹ pass 16
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 96.491721
+
+✖ failing tests:
+
+test at sdk/tests/document-sdk.test.mjs:279:1
+✖ 133-U1: a deadline found late after a freeze waits, and the reply in the grace resolves (5.914154ms)
+  Error [SdkTimeoutError]: paint timed out after 5 ms
+      at Timeout.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/sdk/document-sdk.js:188:31)
+      at listOnTimeout (node:internal/timers:605:17)
+      at process.processTimers (node:internal/timers:541:7) {
+    code: 'TIMEOUT',
+    details: { operation: 'paint', timeoutMs: 5 }
+  }
+
+test at sdk/tests/document-sdk.test.mjs:297:1
+✖ 133-U2: a deadline found late with no reply in the grace times out once, saying it was extended (6.530832ms)
+  AssertionError [ERR_ASSERTION]: The validation function is expected to return "true". Received false
+  
+  Caught error:
+  
+  SdkTimeoutError: paint timed out after 5 ms
+      at async TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/sdk/tests/document-sdk.test.mjs:306:3)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: SdkTimeoutError: paint timed out after 5 ms
+        at Timeout.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/sdk/document-sdk.js:188:31)
+        at listOnTimeout (node:internal/timers:605:17)
+        at process.processTimers (node:internal/timers:541:7),
+    operator: 'rejects',
+    diff: 'simple'
+  }
+exit 1

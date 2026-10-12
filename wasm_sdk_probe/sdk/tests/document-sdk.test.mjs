@@ -262,6 +262,57 @@ test("timeout rejects and emits a best-effort cancel", async () => {
   engine.dispose();
 });
 
+// Finding 133 (SPEC-M3-autosave §9.20, 133-U).  A deadline timer that fires
+// far later than it was due means the page (and its Worker) was stopped -- a
+// frozen tab, a sleeping machine -- not that the engine stopped answering.
+// The clock is injected so a "330 s freeze" costs the test a few milliseconds.
+function frozenClockSetup() {
+  const held = [];
+  const setup = factoryWith((worker, message, transfer) => {
+    if (message.operation === "paint") held.push(message);
+    else standardHandler(worker, message, transfer);
+  });
+  const clock = { now: 0 };
+  return { setup, held, clock };
+}
+
+test("133-U1: a deadline found late after a freeze waits, and the reply in the grace resolves", async () => {
+  const { setup, held, clock } = frozenClockSetup();
+  const engine = await createDocumentEngine({
+    workerFactory: setup.factory, now: () => clock.now,
+    lateDeadlineMs: 2000, lateDeadlineGraceMs: 200,
+  });
+  const document = await engine.open(new ArrayBuffer(16));
+  const rendering = document.render({}, { timeoutMs: 5 });
+  clock.now += 10000;   // the page was frozen across the 5 ms deadline
+  await new Promise((resolve) => setTimeout(resolve, 40));
+  assert.equal(held.length, 1);
+  setup.workers[0].respond(held[0], { pixels: new ArrayBuffer(16), width: 2, height: 2, revision: 0 });
+  const tile = await rendering;
+  assert.equal(tile.width, 2);
+  assert.equal(setup.workers[0].messages.filter((entry) => entry.message.kind === "cancel").length, 0);
+  engine.dispose();
+});
+
+test("133-U2: a deadline found late with no reply in the grace times out once, saying it was extended", async () => {
+  const { setup, held, clock } = frozenClockSetup();
+  const engine = await createDocumentEngine({
+    workerFactory: setup.factory, now: () => clock.now,
+    lateDeadlineMs: 2000, lateDeadlineGraceMs: 20,
+  });
+  const document = await engine.open(new ArrayBuffer(16));
+  const rendering = document.render({}, { timeoutMs: 5 });
+  clock.now += 10000;
+  await assert.rejects(
+    () => rendering,
+    (error) => error instanceof SdkTimeoutError && error.code === "TIMEOUT"
+      && error.details?.extensions === 1 && error.details?.extendedMs === 20,
+  );
+  assert.equal(held.length, 1);
+  assert.equal(setup.workers[0].messages.filter((entry) => entry.message.kind === "cancel").length, 1);
+  engine.dispose();
+});
+
 test("AbortSignal rejects and emits cancel", async () => {
   const setup = factoryWith((worker, message, transfer) => {
     if (message.operation !== "paint")
