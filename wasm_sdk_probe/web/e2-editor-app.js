@@ -96,10 +96,12 @@ const autosave = { timer: null, firstUnsavedAt: null, revision: null };
 
 // Finding 128: editor actions out, and whether a repaint gave up on their BUSY
 // and has not been made since (editorAction, renderDocument).  Finding 129: click-then-move pairs
-// queued (moveFromPoint).  Declared here, before anything can fire an event.
+// queued (moveFromPoint).  Finding 131: deletes the delete listener sent and has
+// not seen settle.  Declared here, before anything can fire an event.
 let engineActionsOut = 0;
 let busyLeftToAction = false;
 let pointMovesInFlight = 0;
+let deletesInFlight = 0;
 
 // Fail closed: a session without `hasUnsavedEdits` throws here, and the host
 // counts a throw as "ask" -- an optional call answering `false` would switch
@@ -2295,7 +2297,18 @@ el.sink.addEventListener("blur", hideComposition);
 // would still say "range" and the next Backspace would go out as
 // delete-selection on a caret -- refused the other way round.  The belief is
 // the fallback only when the engine has not said.
-function deleteActionFor(action, shape, offersSelectionDelete) {
+//
+// FINDING 131 (SPEC-M3-autosave §9.12, rule A).  Not while a delete this page
+// sent is still out: its barrier selects one character and the engine pushes
+// that as editor state like any other, so a key arriving then read a range
+// that was never the user's, went out as delete-selection, and the gate
+// refused it with the character left in place (one key in four in a 50 ms
+// burst on 0.2.13, one in twenty on 0.2.12).  The delete out can only return
+// to a caret, so the key keeps its own collapsed form.  The page's own count
+// of deletes, not `engineActionsOut`: a real range, Ctrl+B, then Backspace
+// must still go out as delete-selection.
+function deleteActionFor(action, shape, offersSelectionDelete, deletesInFlight = 0) {
+  if (deletesInFlight > 0) return action;
   return shape !== null && shape !== "collapsed" && offersSelectionDelete ? "delete-selection" : action;
 }
 
@@ -2304,8 +2317,12 @@ el.sink.addEventListener("beforeinput", (event) => {
   if (!action || !session?.document) return;
   event.preventDefault();
   const shape = selectionShapeOf({ state: session.state.snapshot.editorState }) ?? lastSelectionShape;
-  void editorAction(deleteActionFor(action, shape,
-                                    session.offers?.("delete-selection") === true)).catch(() => {});
+  const sent = deleteActionFor(action, shape,
+                               session.offers?.("delete-selection") === true, deletesInFlight);
+  // Counted before the call and released however it ends -- an early return,
+  // a refusal swallowed here, a disposed engine.
+  deletesInFlight += 1;
+  void editorAction(sent).catch(() => {}).finally(() => { deletesInFlight -= 1; });
 });
 
 // FINDING 122 (SPEC-M3-production-ui §15.6; fable's third ruling, A).  A key
