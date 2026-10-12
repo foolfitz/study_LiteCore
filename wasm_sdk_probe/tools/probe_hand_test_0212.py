@@ -63,7 +63,8 @@ PROBE_NAME = "probe-hand-0212.odt"
 ARMS: set[str] = set()
 # Per-run settings from the command line (SPEC-M3-autosave §9.12: 131-B takes 6 bursts; 121's witness takes
 # Backspace and Delete on a selection).  Defaults are what the probe always did.
-OPTIONS: dict[str, Any] = {"rapidRounds": 2, "selectionKeys": ("ArrowLeft", "ArrowDown", "End"), "ghostRapidKeys": 4}
+OPTIONS: dict[str, Any] = {"rapidRounds": 2, "selectionKeys": ("ArrowLeft", "ArrowDown", "End"), "ghostRapidKeys": 4,
+                           "holdMs": 2000, "holdDelayMs": 500, "holdIntervalMs": 30, "holdRounds": 1}
 MARK8 = "zqxzqxzq"
 ui.CDP_KEYS.update({"ArrowLeft": ("ArrowLeft", "ArrowLeft", 37), "ArrowUp": ("ArrowUp", "ArrowUp", 38),
                     "ArrowRight": ("ArrowRight", "ArrowRight", 39), "ArrowDown": ("ArrowDown", "ArrowDown", 40)})
@@ -382,6 +383,209 @@ def ghost_arm(name: str, kind: str, session, y: str, caret_at: float, shots: Pat
     return rec
 
 
+# A HELD key (finding 132 / L-128-rapid baseline, 2026-10-12): what the owner does is hold Backspace, not tap
+# it 50 ms apart.  The desk's own repeat settings (GNOME `org.gnome.desktop.peripherals.keyboard`, read into the
+# report) are delay 500 ms and repeat-interval 30 ms, so a 2 s hold is one press and then a repeat every 30 ms
+# from 500 ms on.  Sent the way the OS sends it: keydowns with no keyup between them, the repeats flagged as
+# repeats (Chrome: CDP `autoRepeat`, scheduled on absolute times so one slow dispatch does not stretch the rest;
+# Firefox: one WebDriver action chain with pauses, where a keyDown of a key already down is a repeat by the
+# spec), and one keyup at the end.  The flag each keydown arrived with is read back, not assumed.
+#
+# Read alongside the instrument's log: every delete/backspace keydown, keyup and beforeinput; every write of the
+# latency line (one per finished action, so the k-th 「⌫ 刪除」 is the k-th delete done); every fillRect the canvas
+# gets in the selection's wash colour or the caret's (the blue flash, §9.18 item 2: is the barrier's one-character
+# selection drawn, and for how many frames); and the frames themselves (requestAnimationFrame) while recording.
+HOLD_HOOK = """(() => { if (window.__hold) return true;
+  const t0 = window.__h_t0, now = () => Math.round((performance.now() - t0) * 10) / 10;
+  const sink = document.querySelector('#sink'), lat = document.querySelector('#s-latency');
+  const H = window.__hold = { ev: [], fills: [], frames: [], lat: [], rec: false };
+  for (const type of ['keydown', 'keyup'])
+    sink.addEventListener(type, (e) => { if (e.key === 'Backspace' || e.key === 'Delete')
+      H.ev.push({ t: now(), type, key: e.key, repeat: e.repeat }); }, true);
+  sink.addEventListener('beforeinput', (e) => H.ev.push({ t: now(), type: 'beforeinput', inputType: e.inputType }), true);
+  new MutationObserver(() => H.lat.push({ t: now(), text: lat.textContent }))
+    .observe(lat, { childList: true, characterData: true, subtree: true });
+  const fill = CanvasRenderingContext2D.prototype.fillRect;
+  CanvasRenderingContext2D.prototype.fillRect = function (x, y, w, h) {
+    if (this.canvas && this.canvas.id === 'canvas') { const s = String(this.fillStyle).toLowerCase();
+      if (s === '#b7d3f2' || s === '#1a1a1a')
+        H.fills.push({ t: now(), c: s === '#b7d3f2' ? 'sel' : 'caret', r: [x, y, w, h].map(Math.round) }); }
+    return fill.call(this, x, y, w, h); };
+  const tick = () => { if (H.rec) H.frames.push(now()); requestAnimationFrame(tick); };
+  requestAnimationFrame(tick);
+  return true; })()"""
+HOLD_MARK = "(() => { const H = window.__hold; H.rec = true; return { ev: H.ev.length, fills: H.fills.length, frames: H.frames.length, lat: H.lat.length }; })()"
+HOLD_READ = """(() => { const H = window.__hold, m = ARG_MARK; H.rec = false;
+  return { ev: H.ev.slice(m.ev), fills: H.fills.slice(m.fills), frames: H.frames.slice(m.frames), lat: H.lat.slice(m.lat) }; })()"""
+HOLD_SINGLES = 4
+
+
+def desk_repeat_settings() -> dict[str, Any]:
+    """The owner's desk: what a held key does there (read, not assumed)."""
+    import subprocess
+    out: dict[str, Any] = {}
+    for name in ("delay", "repeat-interval", "repeat"):
+        try:
+            out[name] = subprocess.run(["gsettings", "get", "org.gnome.desktop.peripherals.keyboard", name],
+                                       capture_output=True, text=True, timeout=5).stdout.strip()
+        except Exception as error:  # noqa: BLE001
+            out[name] = f"unreadable: {error}"
+    return out
+
+
+def hold_times() -> list[int]:
+    """Keydown times (ms from the press) of a hold: the press, then a repeat every interval from the delay on."""
+    hold, delay, interval = OPTIONS["holdMs"], OPTIONS["holdDelayMs"], OPTIONS["holdIntervalMs"]
+    return [0] + list(range(delay, hold + 1, interval))
+
+
+def hold_key(session, kind: str, key: str) -> dict[str, Any]:
+    times = hold_times()
+    release = times[-1] + OPTIONS["holdIntervalMs"] // 2
+    if kind == "chrome":
+        name, code, vk = ui.CDP_KEYS[key]
+        base = {"key": name, "code": code, "windowsVirtualKeyCode": vk, "nativeVirtualKeyCode": vk, "modifiers": 0}
+        start, sent = time.monotonic(), []
+        for i, at in enumerate(times):
+            wait = start + at / 1000 - time.monotonic()
+            if wait > 0:
+                time.sleep(wait)
+            sent.append(round((time.monotonic() - start) * 1000, 1))
+            session.call("Input.dispatchKeyEvent", {**base, "type": "rawKeyDown", "autoRepeat": i > 0})
+        wait = start + release / 1000 - time.monotonic()
+        if wait > 0:
+            time.sleep(wait)
+        session.call("Input.dispatchKeyEvent", {**base, "type": "keyUp"})
+        return {"scheduledMs": times, "releaseMs": release, "sentMs": sent}
+    value = ui.WD_KEYS[key]
+    actions: list[dict[str, Any]] = []
+    previous = 0
+    for at in times:
+        if at > previous:
+            actions.append({"type": "pause", "duration": at - previous})
+        actions.append({"type": "keyDown", "value": value})
+        previous = at
+    actions += [{"type": "pause", "duration": release - previous}, {"type": "keyUp", "value": value}]
+    session.command("POST", "/actions", {"actions": [{"type": "key", "id": "keyboard", "actions": actions}]})
+    session.command("DELETE", "/actions")
+    return {"scheduledMs": times, "releaseMs": release}
+
+
+def hold_summary(got: dict[str, Any], log: list[dict[str, Any]]) -> dict[str, Any]:
+    """Numbers from one hold.  Times are ms on the page's clock; `release` is the keyup."""
+    downs = [e for e in got["ev"] if e["type"] == "keydown"]
+    ups = [e for e in got["ev"] if e["type"] == "keyup"]
+    inputs = [e for e in got["ev"] if e["type"] == "beforeinput"]
+    done = [x["t"] for x in got["lat"] if x["text"].startswith("⌫ 刪除 ") or x["text"].startswith("⌦ 刪除 ")]
+    other = sorted({x["text"] for x in got["lat"] if not (x["text"].startswith("⌫ 刪除 ") or x["text"].startswith("⌦ 刪除 "))})
+    if not downs:
+        return {"error": "no keydown recorded"}
+    first, release = downs[0]["t"], (ups[-1]["t"] if ups else downs[-1]["t"])
+    lags = [round(c - b["t"], 1) for b, c in zip(inputs, done)]
+    # The caret's band on the canvas: each time its label (the change counter when it was asked) went up.
+    canvas = [r for r in log if r["what"] == "canvas" and r.get("caretBand")]
+    base_label = canvas[0]["caretBand"]["label"] if canvas else None
+    repaints, last_label = [], base_label
+    for r in canvas:
+        if last_label is not None and r["caretBand"]["label"] > last_label:
+            repaints.append({"t": r["t"], "label": r["caretBand"]["label"], "band": r["caretBand"]["index"]})
+        last_label = r["caretBand"]["label"] if last_label is None else max(last_label, r["caretBand"]["label"])
+    final_changes = max((r["changes"] for r in log), default=None)
+    fresh = next((r["t"] for r in canvas if r["caretBand"]["label"] >= (final_changes or 0)
+                  and (not done or r["t"] >= done[-1])), None)
+    def label_at(t: float) -> int | None:
+        seen = [r["caretBand"]["label"] for r in canvas if r["t"] <= t]
+        return max(seen) if seen else base_label
+    # A label is the counter when the band was ASKED, and the counter moves more than once per delete (run()
+    # and the invalidations), so a label is turned into a time -- the first record whose counter reached it --
+    # and the deletes on screen are the deletes done by then.
+    def asked_at(label: int | None) -> float | None:
+        if label is None:
+            return None
+        return next((r["t"] for r in log if r.get("changes") is not None and r["changes"] >= label), None)
+    asked = asked_at(label_at(release))
+    shown_at_release = None if asked is None else sum(1 for c in done if c <= asked)
+    # The blue flash: a wash drawn, until the next caret drawn.
+    washes = []
+    for i, f in enumerate(got["fills"]):
+        if f["c"] != "sel" or (i and got["fills"][i - 1]["c"] == "sel" and got["fills"][i - 1]["r"] == f["r"]):
+            continue
+        end = next((g["t"] for g in got["fills"][i + 1:] if g["c"] == "caret"), None)
+        frames = None if end is None else sum(1 for fr in got["frames"] if f["t"] < fr < end)
+        washes.append({"t": f["t"], "rect": f["r"], "untilCaretMs": None if end is None else round(end - f["t"], 1),
+                       "framesWithWash": frames})
+    return {
+        "keydowns": len(downs), "repeatsFlagged": sum(1 for e in downs if e["repeat"]),
+        "beforeinputs": len(inputs), "deleted": len(done), "otherLatency": other,
+        "pressSpanMs": round(downs[-1]["t"] - first, 1), "releaseMs": round(release - first, 1),
+        "lagFirstMs": lags[0] if lags else None, "lagLastMs": lags[-1] if lags else None,
+        "lagMaxMs": max(lags) if lags else None,
+        "lastDeleteAfterReleaseMs": round(done[-1] - release, 1) if done else None,
+        "deletesAfterRelease": sum(1 for c in done if c > release),
+        "deletesDoneAtRelease": sum(1 for c in done if c <= release),
+        "deletesShownAtRelease": shown_at_release,
+        "caretBandRepaintsBeforeRelease": sum(1 for r in repaints if first <= r["t"] <= release),
+        "caretBandRepaintsTotal": len(repaints),
+        "caretBandFreshAfterReleaseMs": None if fresh is None else round(fresh - release, 1),
+        "washes": washes, "frames": len(got["frames"]), "lagsMs": lags,
+        "repaints": repaints, "doneMs": [round(c - first, 1) for c in done],
+    }
+
+
+def hold_arm(name: str, kind: str, session, y: str, caret_at: float, shots: Path) -> dict[str, Any]:
+    rec: dict[str, Any] = {"arm": name, "y": y, "caretAt": caret_at, "holdTimesMs": hold_times(), "rounds": []}
+    rec["click"] = ui.click(session, ("0.5", y))
+    rec["scroll"] = evaluate(session, SCROLL_CARET_TO.replace("ARG_F", str(caret_at)))
+    time.sleep(1.5)
+    ui.quiet(session)
+    time.sleep(1.0)
+    evaluate(session, HOLD_HOOK)
+    rec["geometry"] = evaluate(session, GEOMETRY)
+    n_hold = len(hold_times())
+    for n in range(OPTIONS["holdRounds"]):
+        snap = f"{name}{n}"
+        rnd: dict[str, Any] = {"snapBefore": evaluate(session, SNAP.replace("ARG_NAME", snap + "-before"))}
+        typed = [ui.keyed(session, kind, ch) for ch in (MARK8 * 12)[:HOLD_SINGLES + n_hold]]
+        rnd["typedRevisions"] = [t["revAfter"] for t in typed[:1]] + [t["revAfter"] for t in typed[-1:]]
+        rnd["typedGenerations"] = sorted({str(t["genAfter"]) for t in typed})
+        rnd["geometryTyped"] = evaluate(session, GEOMETRY)
+        # Single presses first, each allowed to settle: the blue flash on one key.
+        singles = []
+        for _ in range(HOLD_SINGLES):
+            mark, start = evaluate(session, HOLD_MARK), evaluate(session, MARK_LOG)
+            ui.press(session, kind, "Backspace")
+            time.sleep(1.2)
+            ui.quiet(session)
+            got = evaluate(session, HOLD_READ.replace("ARG_MARK", json.dumps(mark)))
+            singles.append({**hold_summary(got, evaluate(session, READ_LOG.replace("ARG_FROM", str(start)))),
+                            "raw": got})
+        rnd["singles"] = singles
+        # The hold.
+        mark, start = evaluate(session, HOLD_MARK), evaluate(session, MARK_LOG)
+        rnd["sent"] = hold_key(session, kind, "Backspace")
+        time.sleep(1.0)
+        rnd["settled"] = ui.quiet(session, 90)
+        time.sleep(0.5)
+        got = evaluate(session, HOLD_READ.replace("ARG_MARK", json.dumps(mark)))
+        log = evaluate(session, READ_LOG.replace("ARG_FROM", str(start)))
+        rnd["hold"] = hold_summary(got, log)
+        rnd["holdRaw"] = got
+        rnd["holdLog"] = log
+        # Whatever the hold did not delete, one key at a time, so the canvas can be compared with before typing.
+        left = n_hold - rnd["hold"].get("deleted", 0)
+        rnd["leftAfterHold"] = left
+        for _ in range(max(0, left)):
+            ui.keyed(session, kind, "Backspace")
+        time.sleep(1.0)
+        ui.quiet(session)
+        rnd["snapAfter"] = evaluate(session, SNAP.replace("ARG_NAME", snap + "-after"))
+        rnd["persistent"] = evaluate(session, DIFF.replace("ARG_A", snap + "-before").replace("ARG_B", snap + "-after"))
+        rec["rounds"].append(rnd)
+    if kind == "chrome":
+        (shots / f"{kind}-{name}-settled.png").write_bytes(session.screenshot())
+    return rec
+
+
 def selection_arm(kind: str, session, y: str, key: str) -> dict[str, Any]:
     rec: dict[str, Any] = {"arm": "selection+" + key, "y": y}
     rec["click"] = ui.click(session, ("0.5", y))
@@ -441,6 +645,11 @@ def run_browser(kind: str, server: Server, doc: bytes, out: Path) -> dict[str, A
             record["shift"] = shift_arm(kind, session, ui.IN_TEXT[1])
         if "rapid20" in ARMS:
             record["rapid20"] = rapid_arm(kind, session, OPTIONS["rapidRounds"])
+        # The held-key arms, at the same two places as high/low.
+        if "hold-high" in ARMS:
+            record["holdHigh"] = hold_arm("hold-high", kind, session, ui.IN_TEXT[1], 0.15, out)
+        if "hold-low" in ARMS:
+            record["holdLow"] = hold_arm("hold-low", kind, session, "0.0584", 0.85, out)
         if "hostseg" in ARMS:
             record["hostseg"] = hostseg_arm("hostseg", kind, session, False)
             record["hostseg"]["judged"] = hostseg_verdict(record["hostseg"])
@@ -463,23 +672,30 @@ def main() -> int:
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--browsers", default="chrome,firefox")
     parser.add_argument("--arms", default="high,low,selection,shift",
-                        help="any of high,low,selection,shift,trace,hostseg,hostseg-red (trace: Chrome's Worker "
-                             "message log; hostseg: 128-B's host-segment cell, hostseg-red its red control)")
+                        help="any of high,low,selection,shift,trace,hostseg,hostseg-red,hold-high,hold-low (trace: Chrome's "
+                             "Worker message log; hostseg: 128-B's host-segment cell, hostseg-red its red control; "
+                             "hold-*: a held Backspace, finding 132)")
     parser.add_argument("--rapid-rounds", type=int, default=2, help="bursts in the rapid20 arm")
     parser.add_argument("--ghost-rapid-keys", type=int, default=4, help="rapid Backspaces in the high/low arms")
     parser.add_argument("--selection-keys", default="ArrowLeft,ArrowDown,End",
                         help="the key pressed after each fresh drag selection, one arm per key")
+    parser.add_argument("--hold-ms", type=int, default=2000, help="hold-high/hold-low: how long the key is held")
+    parser.add_argument("--hold-delay-ms", type=int, default=500, help="the first repeat (GNOME `delay`)")
+    parser.add_argument("--hold-interval-ms", type=int, default=30, help="between repeats (GNOME `repeat-interval`)")
+    parser.add_argument("--hold-rounds", type=int, default=1, help="holds per hold arm")
     args = parser.parse_args()
     ARMS.update(args.arms.split(","))
     OPTIONS.update(rapidRounds=args.rapid_rounds, selectionKeys=tuple(args.selection_keys.split(",")),
-                   ghostRapidKeys=args.ghost_rapid_keys)
+                   ghostRapidKeys=args.ghost_rapid_keys, holdMs=args.hold_ms, holdDelayMs=args.hold_delay_ms,
+                   holdIntervalMs=args.hold_interval_ms, holdRounds=args.hold_rounds)
     args.out.mkdir(parents=True, exist_ok=True)
     doc = ui.DOC.read_bytes()
     instance = Instance(DEFAULT_DDEV)
     server = Server(instance, [])
     report: dict[str, Any] = {"probe": "probe_hand_test_0212.py", "startedAt": utc_now(),
                               "static": ui.static_facts(DEFAULT_DDEV), "arms": sorted(ARMS),
-                              "options": {**OPTIONS, "selectionKeys": list(OPTIONS["selectionKeys"])}, "runs": []}
+                              "options": {**OPTIONS, "selectionKeys": list(OPTIONS["selectionKeys"])},
+                              "deskRepeat": desk_repeat_settings(), "runs": []}
     try:
         for kind in args.browsers.split(","):
             run = run_browser(kind, server, doc, args.out)
