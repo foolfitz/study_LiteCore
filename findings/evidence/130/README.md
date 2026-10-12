@@ -1,0 +1,7 @@
+# Finding 130 — evidence: the page's input-failure toast matches no trace the adapter writes
+
+`replay-input-trace.mjs` (run with `node`, 2026-10-12) drives the real `HostInputAdapter` (`wasm_sdk_probe/input/input-adapter.js`) and passes every trace it emits through the page's own `onInputTrace` body, extracted from `wasm_sdk_probe/web/e2-editor-app.js` at run time (not copied by hand). Input hashes: `inputs.sha256` (the page is the served `8909564e…`).
+
+The run: ten `commitText` calls while the engine's commit is held (the adapter's queue limit is 8), then one commit the engine rejects. Output (`replay-output.txt`): the 9th and 10th are rejected with `INPUT_BACKPRESSURE`, the last with the engine's code — and the page's predicate produced **zero** toasts. The traces carry `type: "commit-rejected"` / `"commit-error"`, `reason: "queue-full"`, `status: "committing"`; the predicate tests `entry.action === "composition-rejected"` and `entry.status === "failed"`, neither of which the adapter writes (it writes `composition-rejected` as `type`, and its statuses are idle / composing / blocked / committing / recoverable-error).
+
+In the browser, `handleBeforeInput` calls `preventDefault` before `commitText` (`input-adapter.js:257-259`), so a character rejected for backpressure never reaches the sink either: it is gone, with nothing shown. Not measured: real typing in a browser reaching a queue depth of 9 (no measurement of typing during a save exists in the tree).
