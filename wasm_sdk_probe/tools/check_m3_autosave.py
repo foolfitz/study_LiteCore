@@ -518,6 +518,17 @@ def inserted(run: dict[str, Any], key: str) -> list[str]:
         else [f"premise: {key} did not complete ({got.get('latency')!r}, timed out {got.get('timedOut')})"]
 
 
+def last_new_revision(revisions: list[dict[str, Any]]) -> float | None:
+    """When `#s-revision` last took a NEW value.  The page rewrites the same value many times (each one a
+    mutation the recorder logs), and a rewrite during the autosave is not the action's completion
+    (shakedown 2026-10-12T054605, as2-toolbar: the last mutation came 0.3 s after the auto began)."""
+    ref = None
+    for before, after in zip(revisions, revisions[1:]):
+        if after["revision"] != before["revision"]:
+            ref = after["t"]
+    return ref
+
+
 def s_as2(run, report, how: str) -> list[str]:
     host, page, autos = run["host"], run["page"], autos_of(run["host"])
     bad = label_absent(run["snaps"]["open"], "O2-1(a)")
@@ -525,7 +536,7 @@ def s_as2(run, report, how: str) -> list[str]:
         bad += edited(run, "edit1")
         if page["keys"]:
             bad.append("AS-2: the toolbar arm saw keydowns")
-        ref, what = (page["revisions"][-1]["t"] if page["revisions"] else None), "the action's completion"
+        ref, what = last_new_revision(page["revisions"]), "the action's completion"
     else:
         if len(page["keys"]) != 1:
             bad.append(f"AS-2: {len(page['keys'])} keydowns seen, wanted exactly one")
@@ -1093,7 +1104,11 @@ def synth(arm: str, kind: str) -> dict[str, Any]:
         ref, delay = K, 30_800
         if arm == "as2-toolbar":
             r["edit1"] = {"caret": {"revision": "3"}, "acted": {"revision": "4", "latency": "設定標題 12 ms"}}
-            r["page"]["revisions"] = [{"t": K + 300, "revision": "4"}]
+            # The real shape: the same value rewritten before and after the change, one rewrite after the
+            # auto began (shakedown 2026-10-12T054605).
+            r["page"]["revisions"] = [{"t": K, "revision": "3"}, {"t": K + 50, "revision": "3"},
+                                      {"t": K + 300, "revision": "4"}, {"t": K + 600, "revision": "4"},
+                                      {"t": K + 300 + 31_100, "revision": "4"}]
             ref = K + 300
             r["fileAfter"] = {"sha256": "f", "heading": True, "texts": ["E1-MULTI-START alpha"]}
         else:
