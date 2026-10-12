@@ -14,7 +14,10 @@ Arms, each in a fresh browser, the server file reset to the original first:
   open-save also edits again (inserts a marker) and saves a second time by
                               Ctrl+S: the second write must chain on the first's version.
   conflict also waits 5 s (the view must not be reloaded) and presses save again;
-                              both saves must be refused and both land as conflict copies.
+                              the first save is refused and lands as a conflict copy,
+                              the second goes to that copy (SPEC-M3-autosave §9.4
+                              「計數」, O1 = B; until 0.2.12 both were refused and
+                              both landed as copies).
   Every arm ends by going back to Files (so the page releases its token lock
                               at leaving) and polls the server's lock for 10 s
                               -- recorded, not scored.  A lock still there when
@@ -26,8 +29,8 @@ Arms, each in a fresh browser, the server file reset to the original first:
                               principal + its token is a legitimate write (RFC
                               4918 §6.4), not finding 102 (another user).  The
                               arm is pinned to the branch it claims: intruder
-                              2xx with a token, each save one PUT (412, token),
-                              the token still on the server
+                              2xx with a token, the first save one PUT (412,
+                              token), the token still on the server
                               (SPEC-M3-install-elsewhere §3.4, fable's ruling).
   broken, broken-no-save      (1 each, Chrome) `liteCoreHost` forced to `{}` / to
                               a host without save() before any page script runs
@@ -437,26 +440,34 @@ def h3(run: dict[str, Any], report: dict[str, Any]) -> list[str]:
             bad.append(f"intruder {intruded.get('status')}: no conflict was made")
         if not (intruded.get("lock") or {}).get("token"):
             bad.append("intruder: the page held no lock token to write with")
-        for index, save in enumerate((run.get("host") or {}).get("saves") or []):
+        for save in ((run.get("host") or {}).get("saves") or [])[:1]:
             attempts = [(a.get("status"), a.get("withToken")) for a in save.get("attempts") or []]
             if attempts != [(412, True)] or save.get("tokenOnServer") is not True:
-                bad.append(f"save {index + 1}: attempts {attempts}, tokenOnServer {save.get('tokenOnServer')!r}"
+                bad.append(f"save 1: attempts {attempts}, tokenOnServer {save.get('tokenOnServer')!r}"
                            " -- not the live-lock branch")
+    # SPEC-M3-autosave §9.4 「計數」 (O1 = B), registered before 0.2.13 ran; witness
+    # findings/evidence/m3-host-entry/shakedown/2026-10-12T083454Z.json: the first
+    # save is refused and lands as a copy, the second goes to that copy -- one PUT,
+    # 204, no token -- and the page says so; the view keeps the original's name.
     saves = (run.get("host") or {}).get("saves") or []
     after = run.get("serverAfter") or {}
-    for key in ("saved", "savedAgain"):
-        state = run.get(key) or {}
-        if state.get("latency") != "存回 失敗" or "CONFLICT" not in (state.get("toast") or ""):
-            bad.append(f"{key}: page says {state.get('latency')!r} / {state.get('toast')!r}")
-    saved, waited = run.get("saved") or {}, run.get("afterWait") or {}
+    copies = run.get("copiesAfter") or []
+    copy_name = copies[0].get("name") if len(copies) == 1 else None
+    saved, waited, again = run.get("saved") or {}, run.get("afterWait") or {}, run.get("savedAgain") or {}
+    if saved.get("latency") != "存回 失敗" or "CONFLICT" not in (saved.get("toast") or ""):
+        bad.append(f"saved: page says {saved.get('latency')!r} / {saved.get('toast')!r}")
+    if not re.fullmatch(r"存回 \d+ ms", again.get("latency") or "") or not copy_name \
+            or not (again.get("toast") or "").startswith(f"已存回 {copy_name}") or again.get("doc") != NAME:
+        bad.append(f"savedAgain: page says {again.get('latency')!r} / {again.get('toast')!r}, doc {again.get('doc')!r}")
     if waited.get("state") != "ready" or waited.get("doc") != NAME or waited.get("revision") != saved.get("revision"):
         bad.append(f"the view changed after the conflict: {saved.get('revision')!r} -> {waited}")
-    if len(saves) != 2 or [s.get("status") for s in saves] != [412, 412]:
-        bad.append(f"saves {[s.get('status') for s in saves]}")
+    second = [(a.get("status"), a.get("withToken"), a.get("target")) for a in (saves[1].get("attempts") or [])] \
+        if len(saves) == 2 else None
+    if len(saves) != 2 or [s.get("status") for s in saves] != [412, 204] or second != [(204, False, copy_name)]:
+        bad.append(f"saves {[s.get('status') for s in saves]}, second {second}")
     if after.get("sha256") != report["intruder"]["sha256"]:
         bad.append(f"server file after {after.get('sha256', '')[:12]}, intruder {report['intruder']['sha256'][:12]}")
-    copies = run.get("copiesAfter") or []
-    if sorted(c.get("sha256") for c in copies) != sorted(s.get("sha256") for s in saves) or len(copies) != 2:
+    if not copy_name or len(saves) != 2 or copies[0].get("sha256") != saves[1].get("sha256"):
         bad.append(f"conflict copies {[(c.get('name'), c.get('sha256', '')[:12]) for c in copies]}")
     return bad
 
@@ -546,7 +557,13 @@ RED_CASES = [
     ("H3-overwrote", lambda r: _first(r, "chrome", "conflict")["serverAfter"].update(sha256=_first(r, "chrome", "conflict")["host"]["saves"][0]["sha256"])),
     ("H3-said-saved", lambda r: _first(r, "firefox", "conflict")["saved"].update(latency="存回 80 ms")),
     ("H3-view-reloaded", lambda r: _first(r, "chrome", "conflict")["afterWait"].update(revision="0")),
-    ("H3-second-press-overwrote", lambda r: _first(r, "firefox", "conflict")["host"]["saves"][1].update(status=204)),
+    # §9.4 「計數」: the second save now succeeds -- into the copy.  Red when it goes anywhere else, carries the
+    # token, makes another copy, leaves the copy holding the first save, or renames the view.
+    ("H3-second-press-overwrote", lambda r: _first(r, "firefox", "conflict")["host"]["saves"][1]["attempts"][0].update(target="original")),
+    ("H3-second-save-carried-token", lambda r: _first(r, "chrome", "conflict")["host"]["saves"][1]["attempts"][0].update(withToken=True)),
+    ("H3-second-copy", lambda r: _first(r, "firefox", "conflict")["copiesAfter"].append(dict(_first(r, "firefox", "conflict")["copiesAfter"][0], name="x（衝突副本）.odt"))),
+    ("H3-copy-holds-first-save", lambda r: _first(r, "chrome", "conflict")["copiesAfter"][0].update(sha256=_first(r, "chrome", "conflict")["host"]["saves"][0]["sha256"])),
+    ("H3-view-renamed", lambda r: _first(r, "firefox", "conflict")["savedAgain"].update(doc="x（衝突副本）.odt")),
     ("H3-edits-lost", lambda r: _first(r, "chrome", "conflict").update(copiesAfter=[])),
     ("H3-intruder-refused", lambda r: _first(r, "firefox", "conflict")["intruded"].update(status=423)),
     ("H3-lock-died", lambda r: _first(r, "chrome", "conflict")["host"]["saves"][0]["attempts"].append(

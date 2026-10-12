@@ -960,8 +960,19 @@ def score_arm(run: dict[str, Any], report: dict[str, Any]) -> list[str]:
         if run.get("frozen") is not True or (run.get("lockWhileFrozen") or {}).get("lock") != "":
             bad.append(f"frozen {run.get('frozen')}, lock at 320 s {(run.get('lockWhileFrozen') or {}).get('lock')!r}")
         lock = host.get("lock") or {}
-        if len(saves) != 1 or server_after != saves[0].get("sha256") or (saves[0].get("attempts") or [{}])[-1].get("status") != 204:
-            bad.append(f"save {[attempts(s) for s in saves]}, server {server_after and server_after[:12]}")
+        # SPEC-M3-autosave §9.4 「計數」, registered before 0.2.13 ran; witness
+        # findings/evidence/m3-locks/shakedown/2026-10-12T075616+0000.json: the page
+        # comes back from frozen hidden and may save by itself first.  The last record
+        # is the manual save, expectation as before; auto records before it are
+        # allowed, each passing AS-1 (the autosave runner's own rule, imported).
+        from check_m3_autosave import conditions_problems  # noqa: PLC0415 -- it imports this file
+        last = saves[-1] if saves else {}
+        if not saves or last.get("trigger") != "manual" or server_after != last.get("sha256") \
+                or (last.get("attempts") or [{}])[-1].get("status") != 204:
+            bad.append(f"save {[(s.get('trigger'), attempts(s)) for s in saves]}, server {server_after and server_after[:12]}")
+        for index, save in enumerate(saves[:-1]):
+            problems = ["not an auto save"] if save.get("trigger") != "auto" else conditions_problems(save)
+            bad += [f"save {index + 1} before the manual one: {p}" for p in problems]
         if run.get("copiesAfter") or lock.get("state") != "lost" or lock.get("lostBy") not in ("refresh", "save"):
             bad.append(f"copies {run.get('copiesAfter')}, lock {lock.get('state')}/{lock.get('lostBy')}")
         start, end = run.get("freezeAt"), run.get("thawAt")
@@ -1078,6 +1089,9 @@ def _first(report: dict, arm: str, browser: str = "chrome") -> dict:
 # Each mutation must turn its own arm red; the name says what was broken.
 # (label, arm, mutation, browsers it applies to -- None = every browser the arm runs in)
 C = ("chrome",)
+_AS1_HELD = {"viewOnly": False, "state": "ready", "pending": 0, "composing": False, "queueDepth": 0,
+             "dragging": False, "savesUnsettled": 0, "rescue": False, "reason": "hidden"}
+
 RED_CASES = [
     ("opened: the bundled sample was fetched", "hold", lambda r: r.update(fixtureRequests=[{"url": "e1-fixtures/x"}]), C),
     ("opened: other bytes were opened", "hold", lambda r: r["host"]["fetched"].update(sha256="0" * 64), None),
@@ -1113,6 +1127,10 @@ RED_CASES = [
     ("frozen: lock never expired", "frozen", lambda r: r["lockWhileFrozen"].update(lock="1"), None),
     ("frozen: refreshed while frozen", "frozen", lambda r: r["host"]["lock"]["refreshes"].append({"at": r["freezeAt"] + 60000, "status": 200}), None),
     ("frozen: server bytes are not the save's", "frozen", lambda r: r["serverAfter"].update(sha256="0" * 64), None),
+    # §9.4 「計數」: auto records before the manual save are allowed, each passing AS-1.
+    ("frozen: the last save is not the manual one", "frozen", lambda r: r["host"]["saves"][-1].update(trigger="auto"), None),
+    ("frozen: an auto save before it fails AS-1", "frozen",
+     lambda r: r["host"]["saves"].insert(0, {"trigger": "auto", "conditions": dict(_AS1_HELD, composing=True)}), None),
     # §7.4: K9′/K10′ replace the two "sent a LOCK" cases.
     ("readonly: the cut did not take (read back 3)", "readonly", lambda r: r["revoke"].update(permissions=3), None),
     ("readonly: the PUT carried no token", "readonly",
