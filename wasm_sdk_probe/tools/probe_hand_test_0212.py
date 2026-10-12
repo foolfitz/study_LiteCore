@@ -56,6 +56,7 @@ from check_m3_locks import Server, login, open_from_files  # noqa: E402
 from check_m3_skeleton_open import DEFAULT_DDEV, Instance  # noqa: E402
 from probe_m3_gate0_coep import utc_now  # noqa: E402
 from r7_support import evaluate  # noqa: E402
+from run_e2_c_page_smoke import PRESS  # noqa: E402
 from run_e2_c_product_path import DRAG  # noqa: E402
 
 PROBE_NAME = "probe-hand-0212.odt"
@@ -152,6 +153,150 @@ DIFF = """(() => { const a = window.__snap['ARG_A'], b = window.__snap['ARG_B'];
       n += 1; const p = i / 4, x = p % a.width, y = a.top + Math.floor(p / a.width);
       x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); } }
   return { differing: n, box: n ? [x0, y0, x1, y1] : null, pixels: a.data.length / 4 }; })()"""
+
+
+# 128-B's host-segment cell (SPEC-M3-autosave §9.4, review 1 item 3): a key typed while a manual save's host
+# part is out must be drawn before that part ends.  Locally the host part is ~100 ms, too short to type into, so
+# every PUT the page sends is held ARG_MS before it goes out (the host calls the global `fetch` at call time,
+# litecore js/litecore-editor.js `send()`).  ARG_HOLD true also holds every `paint` request to a Worker while a
+# PUT is out and sends them when it is answered: the user-visible effect of the draft's remedy A (defer repaints
+# while `run()` is out) -- the red control, made without changing a page byte.
+SLOW_PUT = """(() => { const t = () => performance.now() - window.__h_t0;
+  if (!window.__origFetch) { window.__origFetch = window.fetch; window.__origPost = Worker.prototype.postMessage; }
+  const F = window.__origFetch, P = window.__origPost, st = window.__put = { holdPaints: ARG_HOLD, out: 0, puts: [], heldPaints: 0 };
+  const queue = [];
+  Worker.prototype.postMessage = function (m, tr) {
+    if (st.holdPaints && st.out > 0 && m && m.operation === 'paint') { st.heldPaints += 1; queue.push([this, m, tr]); return; }
+    return P.call(this, m, tr); };
+  window.fetch = function (input, init) {
+    const method = String((init && init.method) || (input && input.method) || 'GET').toUpperCase();
+    if (method !== 'PUT') return F.apply(this, arguments);
+    const rec = { held: t() }; st.puts.push(rec); st.out += 1;
+    return new Promise((r) => setTimeout(r, ARG_MS)).then(() => { rec.sent = t(); return F.call(window, input, init); })
+      .finally(() => { rec.answered = t(); st.out -= 1;
+        if (st.out === 0) for (const [w, m, tr] of queue.splice(0)) P.call(w, m, tr); }); };
+  return true; })()"""
+UNSLOW_PUT = """(() => { if (window.__origFetch) { window.fetch = window.__origFetch; Worker.prototype.postMessage = window.__origPost; }
+  return window.__put || null; })()"""
+PUT_STATE = "(() => window.__put ? { out: window.__put.out, puts: window.__put.puts.slice(), heldPaints: window.__put.heldPaints } : null)()"
+HOSTSEG_KEY = "q"
+HOSTSEG_HOLD_MS = 3000
+
+
+def hostseg_arm(name: str, kind: str, session, hold_paints: bool) -> dict[str, Any]:
+    """A manual save; while its PUT is held, ONE real key; was the caret's band fresh before the PUT was answered?"""
+    rec: dict[str, Any] = {"arm": name, "holdPaints": hold_paints, "holdMs": HOSTSEG_HOLD_MS}
+    rec["click"] = ui.click(session, ui.IN_TEXT)
+    time.sleep(1.0)
+    rec["quietBefore"] = ui.quiet(session)
+    host_before = evaluate(session, ui.HOST) or {}
+    rec["savesBefore"] = len(host_before.get("saves") or [])
+    evaluate(session, SLOW_PUT.replace("ARG_MS", str(HOSTSEG_HOLD_MS)).replace("ARG_HOLD", "true" if hold_paints else "false"))
+    start = evaluate(session, MARK_LOG)
+    evaluate(session, PRESS.replace("ARG_ACTION", "save"))
+    deadline, seen = time.monotonic() + 30, None
+    while time.monotonic() < deadline:
+        seen = evaluate(session, PUT_STATE)
+        if seen and seen["out"] > 0:
+            break
+        time.sleep(0.02)
+    rec["putSeen"] = seen
+    if not seen or seen["out"] <= 0:
+        rec["error"] = "no PUT was held within 30 s of pressing save"
+        evaluate(session, UNSLOW_PUT)
+        return rec
+    time.sleep(0.3)
+    ui.press(session, kind, HOSTSEG_KEY)
+    deadline = time.monotonic() + 30
+    while time.monotonic() < deadline:
+        seen = evaluate(session, PUT_STATE)
+        host = evaluate(session, ui.HOST) or {}
+        saves = host.get("saves") or []
+        if seen["out"] == 0 and len(saves) > rec["savesBefore"] and saves[-1].get("settled") is True:
+            break
+        time.sleep(0.05)
+    time.sleep(1.0)
+    rec["settled"] = ui.quiet(session)
+    rec["put"] = evaluate(session, UNSLOW_PUT)
+    host = evaluate(session, ui.HOST) or {}
+    rec["save"] = (host.get("saves") or [None])[-1]
+    log = evaluate(session, READ_LOG.replace("ARG_FROM", str(start)))
+    rec["log"] = log
+    rec["lag"] = lag_per_key(log)
+    return rec
+
+
+def hostseg_verdict(rec: dict[str, Any]) -> dict[str, Any]:
+    """PASS: the one key came while the PUT was held, and its band was fresh before the PUT was answered."""
+    puts = ((rec.get("put") or {}).get("puts") or [])
+    lag = rec.get("lag") or []
+    if rec.get("error") or len(puts) != 1 or len(lag) != 1 or (rec.get("save") or {}).get("outcome") != "saved":
+        return {"verdict": "NOT_JUDGED", "why": rec.get("error") or f"{len(puts)} PUTs, {len(lag)} keys, save {(rec.get('save') or {}).get('outcome')}"}
+    put, key = puts[0], lag[0]
+    # The target is the counter after THIS key's own change (its document-invalidated), not the highest value
+    # in the log: `run()` bumps the counter again when the save's host part ends, and lag_per_key's "done"
+    # (the log's maximum) then waits for that -- the first run on 0.2.13 judged both arms FAIL that way.
+    log = rec.get("log") or []
+    down = next((i for i, r in enumerate(log) if r["what"].startswith("keydown:")), None)
+    c0 = log[down]["changes"] if down is not None else None
+    own = next((r["changes"] for r in log[down:] if r["changes"] > c0), None) if down is not None else None
+    moved = key["tKey"] + key["caretMovedMs"] if key["caretMovedMs"] is not None else key["tKey"]
+    first = next((r for r in log[down:] if own is not None and r.get("caretBand")
+                  and r["caretBand"]["label"] >= own and r["t"] >= moved), None) if down is not None else None
+    fresh = None if first is None else first["t"]
+    typed_during = put["held"] < key["tKey"] < put["answered"]
+    if not typed_during:
+        return {"verdict": "NOT_JUDGED", "why": f"key at {key['tKey']} ms, PUT held {put['held']}..{put['answered']}"}
+    drawn_before = fresh is not None and fresh < put["answered"]
+    return {"verdict": "PASS" if drawn_before else "FAIL", "keyMs": key["tKey"], "freshMs": fresh,
+            "putHeldMs": put["held"], "putAnsweredMs": put["answered"], "caretMovedMs": key["caretMovedMs"],
+            "caretBandFreshMs": None if fresh is None else round(fresh - key["tKey"], 1),
+            "ownChange": own, "heldPaints": (rec.get("put") or {}).get("heldPaints")}
+
+
+# A burst of deletes (2026-10-12, found by the 128-B run on 0.2.13): a Backspace whose `beforeinput` comes while
+# the previous delete's selection barrier is out reads the engine's one-unit RANGE and goes out as
+# delete-selection, which the gate then refuses on the collapsed caret.  Counted from the latency line, which
+# `run()` rewrites once per action (「⌫ 刪除 N ms」 or 「刪除選取 失敗」).
+LATENCY_LOG = """(() => { const el = document.querySelector('#s-latency'); const t0 = window.__h_t0;
+  const L = window.__lat = []; new MutationObserver(() => L.push({ t: Math.round((performance.now() - t0) * 10) / 10,
+    text: el.textContent })).observe(el, { childList: true, characterData: true, subtree: true }); return true; })()"""
+READ_LATENCY = "(() => (window.__lat || []).slice(ARG_FROM))()"
+MARK_LATENCY = "(() => (window.__lat || []).length)()"
+RAPID_N, RAPID_GAP = 20, 0.05
+
+
+def rapid_arm(kind: str, session, rounds: int = 2) -> dict[str, Any]:
+    rec: dict[str, Any] = {"arm": "rapid20", "n": RAPID_N, "gapS": RAPID_GAP, "rounds": []}
+    rec["click"] = ui.click(session, ui.IN_TEXT)
+    evaluate(session, SCROLL_CARET_TO.replace("ARG_F", "0.15"))
+    time.sleep(1.5)
+    ui.quiet(session)
+    if evaluate(session, "(() => Array.isArray(window.__lat))()") is not True:
+        evaluate(session, LATENCY_LOG)
+    for n in range(rounds):
+        for ch in (MARK8 * 3)[:RAPID_N]:
+            ui.keyed(session, kind, ch)
+        time.sleep(1.0)
+        ui.quiet(session)
+        snap = f"rapid{n}"
+        evaluate(session, SNAP.replace("ARG_NAME", snap + "-before"))
+        start = evaluate(session, MARK_LATENCY)
+        keys_at(session, kind, "Backspace", RAPID_N, RAPID_GAP)
+        time.sleep(2.0)
+        ui.quiet(session, 60)
+        lat = evaluate(session, READ_LATENCY.replace("ARG_FROM", str(start)))
+        ok = sum(1 for x in lat if x["text"].startswith("⌫ 刪除 "))
+        refused = sum(1 for x in lat if x["text"] == "刪除選取 失敗")
+        rec["rounds"].append({"latency": lat, "deleted": ok, "refusedDeleteSelection": refused,
+                              "other": sorted({x["text"] for x in lat if not x["text"].startswith("⌫ 刪除 ")
+                                               and x["text"] != "刪除選取 失敗"})})
+        # Whatever the burst left, delete it one key at a time so the next round starts where this one did.
+        for _ in range(refused):
+            ui.press(session, kind, "Backspace")
+            time.sleep(0.6)
+        ui.quiet(session)
+    return rec
 
 
 def keys_at(session, kind: str, key: str, count: int, gap: float, shift: bool = False) -> None:
@@ -288,6 +433,14 @@ def run_browser(kind: str, server: Server, doc: bytes, out: Path) -> dict[str, A
                                for key in ("ArrowLeft", "ArrowDown", "End")]
         if "shift" in ARMS:
             record["shift"] = shift_arm(kind, session, ui.IN_TEXT[1])
+        if "rapid20" in ARMS:
+            record["rapid20"] = rapid_arm(kind, session)
+        if "hostseg" in ARMS:
+            record["hostseg"] = hostseg_arm("hostseg", kind, session, False)
+            record["hostseg"]["judged"] = hostseg_verdict(record["hostseg"])
+        if "hostseg-red" in ARMS:
+            record["hostsegRed"] = hostseg_arm("hostseg-red", kind, session, True)
+            record["hostsegRed"]["judged"] = hostseg_verdict(record["hostsegRed"])
     except Exception:  # noqa: BLE001
         record["fatal"] = traceback.format_exc()
     finally:
@@ -304,7 +457,8 @@ def main() -> int:
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--browsers", default="chrome,firefox")
     parser.add_argument("--arms", default="high,low,selection,shift",
-                        help="any of high,low,selection,shift,trace (trace: Chrome's Worker message log)")
+                        help="any of high,low,selection,shift,trace,hostseg,hostseg-red (trace: Chrome's Worker "
+                             "message log; hostseg: 128-B's host-segment cell, hostseg-red its red control)")
     args = parser.parse_args()
     ARMS.update(args.arms.split(","))
     args.out.mkdir(parents=True, exist_ok=True)
