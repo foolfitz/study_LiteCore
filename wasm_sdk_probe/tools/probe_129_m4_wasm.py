@@ -63,7 +63,9 @@ EXPECTED_DIST_SHA256 = "8909564eb2316afa6de7868a08b61d27219fabdf49f37326fee0dda2
 # The two earlier rounds in findings/evidence/129/final/ ran on c7f904fa1d807c63afc0e82522dcb0d8abab71175a9ee5de3c2af276dd24b5ab.
 # Re-pinned 2026-10-13 to the final page of finding 132 (SPEC-M3-held-key §5.3, the "must not break" set; the page after N10).
 # Round 3 in findings/evidence/129/final/ (round-20261012T092119Z) ran on d761f1cee9d26c50c0b152348d74c3d05f540e9228927815d93ad6ec161e7dcd.
-FINAL_PAGE_SHA256 = "abe93f4575c7797db97462f1f0e3a71cf5fc4063205cd6d5877093ca1c248fcf"
+# Re-pinned 2026-10-13 to the page of finding 134 (SPEC-M3-held-key §14, the "must not break" set; B + D on top of the 132 final page).
+# The previous pin, the 132 final page, was abe93f4575c7797db97462f1f0e3a71cf5fc4063205cd6d5877093ca1c248fcf (findings/evidence/129/final/round-20261012T183200Z ran on it).
+FINAL_PAGE_SHA256 = "6470dec0cb0e20db46d33d46bfc565893f542b79f7317fcbc421653a562bb94b"
 OLD_PAGE_GZ = HERE / "build" / "archive" / "host-0.2.12-engine-45cdcedfc0fe7e61" / "files" / "e2-editor-app.js.gz"
 INSTRUMENT_LINE = "\nglobalThis.__m4 = { get session() { return session; } };\n"
 NATIVE_ROUND = TREE / "findings" / "evidence" / "129" / "native" / "point-click-round-20261012T031459Z"
