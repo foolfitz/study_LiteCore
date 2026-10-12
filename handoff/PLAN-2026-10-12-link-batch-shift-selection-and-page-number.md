@@ -29,3 +29,8 @@ Owner's words (2026-10-12): 「新需求：沒關係你再安排開發時程」;
 ## Not in this link
 
 ODS / Calc (separate step, see Order 3). Block identity (long term).
+
+## Addendum, 2026-10-12 (after the native step; append only)
+
+- **Item 2, measured natively** (`findings/evidence/link-batch/page-rectangles/`): `getPartPageRectangles` returns `x, y, w, h; …` in twips (18 rectangles for the owner's document, 60 for the 60-page one, agreeing with `getParts` and `.uno:StatePageNumber`); each call costs under 0.03 ms even on 60 pages; an edit that adds a page adds one rectangle and is followed by `LOK_CALLBACK_DOCUMENT_SIZE_CHANGED` 1.3–1.8 ms later, an edit that does not leaves the string identical and fires none. So "re-read on `documentSizeChanged`" is enough, and cost is no reason to cache. Also seen: core pushes `.uno:StatePageNumber` = `Page N of M` (N = the CURSOR's page) about 322 ms after an edit; Collabora's N is the VIEW's page, so that state does not replace the rectangles. Not covered: mixed page sizes or orientations (neither document has them).
+- **Item 3, now with a reason** (`findings/evidence/129/README.md`, the native point-click section): the page fix of 0.2.13 (click at the visible cursor, then the move) equals Writer in all 42 brief cells, and differs for Down when the selection's point is DISPLAYED at the end of a wrapped line — how a drag to the right of a line's end finishes, and in CJK text any line. Release 0.2.13 ships it with that as a named limit. Granting the six moves the range gestures (Writer handles the key) is the exact remedy; it belongs in this link and needs the engine's move barrier measured from a range.
