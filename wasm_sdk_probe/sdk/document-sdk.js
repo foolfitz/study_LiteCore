@@ -3,10 +3,11 @@ export const ABI_VERSION = 0x00010001;
 const DEFAULT_CLOSE_RECOVERY_TIMEOUT_MS = 10000;
 // Finding 133 (SPEC-M3-autosave §9.20).  A deadline timer that fires more than
 // this late was not starved by a slow engine: the page -- and the Worker with
-// it -- was stopped (a frozen tab, a sleeping machine), and the time it was
-// stopped is not time the engine had to answer.  Such a deadline is moved on
-// by the grace and looked at again instead of being reported as TIMEOUT, which
-// the session reads as "the engine is dead".
+// it -- was stopped (a frozen tab, a sleeping machine).  Such a deadline is not
+// reported as TIMEOUT (which the session reads as "the engine is dead"); it is
+// moved to now + the grace and looked at again.  The grace is a fixed 10 s,
+// not the budget the request had left: a request that still needs more than
+// that after the stop times out after its extension (L-133-grace, §9.22).
 const DEFAULT_LATE_DEADLINE_MS = 2000;
 const DEFAULT_LATE_DEADLINE_GRACE_MS = 10000;
 
@@ -208,10 +209,10 @@ export class DocumentEngine {
       };
 
       if (Number.isFinite(timeoutMs) && timeoutMs > 0) {
-        // Finding 133: the deadline counts only time the page could run.  On
-        // time (late <= _lateDeadlineMs) it is a TIMEOUT as before; found late,
-        // the page was stopped, so no failure and no cancel -- the deadline is
-        // moved on by the grace and looked at again.
+        // Finding 133: on time (late <= _lateDeadlineMs) it is a TIMEOUT as
+        // before; found late, the page was stopped, so no failure and no
+        // cancel -- the deadline becomes now + the grace and is looked at
+        // again (and again, if the page is stopped once more).
         let dueAt = this._now() + timeoutMs;
         let extendedMs = 0;
         let extensions = 0;

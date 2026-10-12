@@ -1,0 +1,35 @@
+SDK under test e4c3fe9203add924, tests accaaf338b6e0483
+unmutated: unmutated: green  pass 24  failing 0
+M0 pre-fix SDK (641843c9): RED  pass 19  failing 5
+    - 133-U X2: a second stop inside the grace is looked at again, and the extensions add up
+    - 133-U X3: the production clock and the production L
+    - 133-U X4: the defaults are L = 2000 ms and a grace of 10 000 ms
+    - 133-U1: a deadline found late after a freeze waits, and the reply in the grace resolves
+    - 133-U2: a deadline found late with no reply in the grace times out once, saying it was extended
+M1 clock () => 0: RED  pass 23  failing 1
+    - 133-U X3: the production clock and the production L
+M1b clock typo performance?.now ?? (NaN): RED  pass 23  failing 1
+    - 133-U X3: the production clock and the production L
+M2 L = Infinity: RED  pass 22  failing 2
+    - 133-U X3: the production clock and the production L
+    - 133-U X4: the defaults are L = 2000 ms and a grace of 10 000 ms
+M3 always extend once: RED  pass 20  failing 4
+    - 133-U X1: a deadline found 0 ms late
+    - 133-U X1: a deadline found 1000 ms late
+    - 133-U X1: a deadline found 2000 ms late
+    - 133-U X2: a second stop inside the grace is looked at again, and the extensions add up
+M4 at most one extension: RED  pass 23  failing 1
+    - 133-U X2: a second stop inside the grace is looked at again, and the extensions add up
+M5 extendedMs not cumulative: RED  pass 23  failing 1
+    - 133-U X2: a second stop inside the grace is looked at again, and the extensions add up
+M9 the grace always times out: RED  pass 23  failing 1
+    - 133-U X2: a second stop inside the grace is looked at again, and the extensions add up
+M10 > becomes >=: RED  pass 23  failing 1
+    - 133-U X1: a deadline found 2000 ms late
+M11 wall clock: RED  pass 23  failing 1
+    - 133-U X3: the production clock and the production L
+M15 grace = 1: RED  pass 23  failing 1
+    - 133-U X4: the defaults are L = 2000 ms and a grace of 10 000 ms
+M19 L hard-coded 50: RED  pass 22  failing 2
+    - 133-U X1: a deadline found 1000 ms late
+    - 133-U X1: a deadline found 2000 ms late

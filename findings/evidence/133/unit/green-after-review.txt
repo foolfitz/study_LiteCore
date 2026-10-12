@@ -1,0 +1,41 @@
+133-U after review 1: sdk/document-sdk.js e4c3fe9203add924, tests accaaf338b6e0483
+✔ version handshake and request correlation expose no runtime internals (1.743264ms)
+✔ open makes transfer ownership explicit and close is idempotent (0.611207ms)
+✔ close timeout recycles the owning Worker and keeps the engine reusable (6.281308ms)
+✔ aborted close remains a typed failure and does not claim recovery (0.327088ms)
+✔ timeout rejects and emits a best-effort cancel (5.767151ms)
+✔ 133-U1: a deadline found late after a freeze waits, and the reply in the grace resolves (40.933555ms)
+✔ 133-U2: a deadline found late with no reply in the grace times out once, saying it was extended (26.075368ms)
+✔ 133-U X1: a deadline found 0 ms late (<= L) is a plain TIMEOUT at once (5.068832ms)
+✔ 133-U X1: a deadline found 1000 ms late (<= L) is a plain TIMEOUT at once (4.77802ms)
+✔ 133-U X1: a deadline found 2000 ms late (<= L) is a plain TIMEOUT at once (5.78801ms)
+✔ 133-U X2: a second stop inside the grace is looked at again, and the extensions add up (66.490399ms)
+✔ 133-U X3: the production clock and the production L (nothing injected but the grace) (41.00105ms)
+✔ 133-U X4: the defaults are L = 2000 ms and a grace of 10 000 ms (0.339792ms)
+✔ AbortSignal rejects and emits cancel (0.40313ms)
+✔ worker crash rejects pending work and restart invalidates old handles (0.477919ms)
+✔ protocol mismatch is treated as a worker crash (0.174945ms)
+✔ R3 semantic review operations propagate monotonic revisions (0.531278ms)
+✔ R3 stale revision is a typed error with current revision details (0.311489ms)
+✔ unsupported profile operations remain typed SDK errors (0.208869ms)
+✔ an empty selection reads back as a success, not a LOK error (0.180225ms)
+✔ a complex selection is never reported as an empty selection (0.142475ms)
+✔ a text selection still carries its text (0.218026ms)
+✔ a typed readback failure stays a typed error (0.229938ms)
+✔ a missing selection type never surfaces as an empty selection (0.138548ms)
+✔ M1-4: a product completion carries keyUndo, named fields only (2.260436ms)
+✔ M1-4: malformed keyUndo fields are dropped to null, not passed through (0.602581ms)
+✔ M1-4: a refusal's mergeKey.keyPosted true reaches the SDK error as true (0.603753ms)
+✔ M1-4: a refusal's mergeKey.keyPosted false reaches the SDK error as false (0.528213ms)
+✔ M1-4: a refusal's mergeKey.keyPosted missing reaches the SDK error as true (0.533833ms)
+✔ M1-4: a refusal's mergeKey.keyPosted not a boolean reaches the SDK error as true (1.291854ms)
+✔ M1-4: a refusal without mergeKey carries none (v8 and v14 engines) (0.452922ms)
+ℹ tests 31
+ℹ suites 0
+ℹ pass 31
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 254.594795
+exit 0

@@ -276,7 +276,7 @@ function frozenClockSetup() {
   return { setup, held, clock };
 }
 
-test("133-U1: a deadline found late after a freeze waits, and the reply in the grace resolves", async () => {
+test("133-U1: a deadline found late after a freeze waits, and the reply in the grace resolves", { timeout: 5000 }, async () => {
   const { setup, held, clock } = frozenClockSetup();
   const engine = await createDocumentEngine({
     workerFactory: setup.factory, now: () => clock.now,
@@ -294,7 +294,7 @@ test("133-U1: a deadline found late after a freeze waits, and the reply in the g
   engine.dispose();
 });
 
-test("133-U2: a deadline found late with no reply in the grace times out once, saying it was extended", async () => {
+test("133-U2: a deadline found late with no reply in the grace times out once, saying it was extended", { timeout: 5000 }, async () => {
   const { setup, held, clock } = frozenClockSetup();
   const engine = await createDocumentEngine({
     workerFactory: setup.factory, now: () => clock.now,
@@ -310,6 +310,84 @@ test("133-U2: a deadline found late with no reply in the grace times out once, s
   );
   assert.equal(held.length, 1);
   assert.equal(setup.workers[0].messages.filter((entry) => entry.message.kind === "cancel").length, 1);
+  engine.dispose();
+});
+
+// 133-U, added after review 1 (findings/evidence/133/review/review-1.md R1-1..R1-3,
+// the reviewer's X1-X4): U1-U3 passed fixes that do nothing (no clock, L = Infinity)
+// and one that delays every real TIMEOUT by a grace (always extend once).  Each test
+// below is red on a named wrong fix (findings/evidence/133/unit/mutants-after-review.txt).
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const cancels = (setup) => setup.workers[0].messages.filter((entry) => entry.message.kind === "cancel").length;
+
+for (const late of [0, 1000, 2000]) {
+  test(`133-U X1: a deadline found ${late} ms late (<= L) is a plain TIMEOUT at once`, { timeout: 5000 }, async () => {
+    const { setup, clock } = frozenClockSetup();
+    const engine = await createDocumentEngine({
+      workerFactory: setup.factory, now: () => clock.now,
+      lateDeadlineMs: 2000, lateDeadlineGraceMs: 5000,
+    });
+    const document = await engine.open(new ArrayBuffer(16));
+    const started = Date.now();
+    const rendering = document.render({}, { timeoutMs: 5 });
+    clock.now += 5 + late;
+    await assert.rejects(
+      () => rendering,
+      (error) => error instanceof SdkTimeoutError && error.details.extensions === undefined
+        && error.details.extendedMs === undefined && error.message === "paint timed out after 5 ms",
+    );
+    assert.ok(Date.now() - started < 1000);
+    assert.equal(cancels(setup), 1);
+    engine.dispose();
+  });
+}
+
+test("133-U X2: a second stop inside the grace is looked at again, and the extensions add up", { timeout: 5000 }, async () => {
+  const { setup, clock } = frozenClockSetup();
+  const engine = await createDocumentEngine({
+    workerFactory: setup.factory, now: () => clock.now,
+    lateDeadlineMs: 2000, lateDeadlineGraceMs: 30,
+  });
+  const document = await engine.open(new ArrayBuffer(16));
+  const rendering = document.render({}, { timeoutMs: 5 });
+  rendering.catch(() => {});
+  clock.now += 10000;
+  await sleep(15);
+  clock.now += 10000;
+  await assert.rejects(
+    () => rendering,
+    (error) => error instanceof SdkTimeoutError && error.details.extensions === 2 && error.details.extendedMs === 60,
+  );
+  assert.equal(cancels(setup), 1);
+  engine.dispose();
+});
+
+test("133-U X3: the production clock and the production L (nothing injected but the grace)", { timeout: 5000 }, async () => {
+  const { setup, held } = frozenClockSetup();
+  const original = Object.getOwnPropertyDescriptor(globalThis, "performance");
+  const realNow = performance.now.bind(performance);
+  let offset = 0;
+  Object.defineProperty(globalThis, "performance", { configurable: true, value: { now: () => realNow() + offset } });
+  try {
+    const engine = await createDocumentEngine({ workerFactory: setup.factory, lateDeadlineGraceMs: 200 });
+    const document = await engine.open(new ArrayBuffer(16));
+    const rendering = document.render({}, { timeoutMs: 5 });
+    offset += 2500;
+    await sleep(40);
+    setup.workers[0].respond(held[0], { pixels: new ArrayBuffer(16), width: 2, height: 2, revision: 0 });
+    assert.equal((await rendering).width, 2);
+    assert.equal(cancels(setup), 0);
+    engine.dispose();
+  } finally {
+    Object.defineProperty(globalThis, "performance", original);
+  }
+});
+
+test("133-U X4: the defaults are L = 2000 ms and a grace of 10 000 ms", async () => {
+  const { setup } = frozenClockSetup();
+  const engine = await createDocumentEngine({ workerFactory: setup.factory });
+  assert.equal(engine._lateDeadlineMs, 2000);
+  assert.equal(engine._lateDeadlineGraceMs, 10000);
   engine.dispose();
 });
 
