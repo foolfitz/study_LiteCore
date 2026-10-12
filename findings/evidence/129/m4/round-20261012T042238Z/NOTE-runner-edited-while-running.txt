@@ -1,0 +1,6 @@
+tools/run_probe_129_m4.sh was edited (one sha256 line removed) while this round's runner was still executing; bash
+reads a script incrementally, so the runner's last lines did not run as written: this folder has no ended-utc.txt and no
+machine-at-end.txt.  What is available instead: ended-chrome-utc.txt (04:35:20Z), ended-firefox-utc.txt (04:49:33Z),
+report-<browser>.json (completedAtUtc, loadavgEnd, memoryEndMb, written by the probe itself).  The round's data are not
+affected: both probe processes had already been started with the file contents recorded in
+probe_129_m4_wasm.as-run.py (sha256 02c7b7c0..., = the first line of inputs.sha256) and ran to completion.
