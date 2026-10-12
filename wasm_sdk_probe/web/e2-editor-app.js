@@ -1666,6 +1666,14 @@ async function reopenAfterBoundaryRefusal(error) {
     return;
   }
   const unsaved = session.state.snapshot.dirty === true;
+  // FINDING 134, D (SPEC-M3-held-key §14).  A reopened engine has its caret at
+  // the document start, and nothing said so: the next key or typed text landed
+  // there, out of the user's sight.  The caret the engine last reported goes
+  // back by a click at its middle -- the reopened document is the checkpoint of
+  // the same content, laid out by the same engine.  Read before `restart()`:
+  // its `ready` writes the new engine's state.  When there is no caret to go
+  // back to or the click is refused, the toast says where the caret is.
+  const caret = session.state.snapshot.editorState?.caret ?? null;
   toast(`${lead}，正在重新載入…`);
   try {
     // The refusal disabled the input sink (input-adapter `setBlocked`), and a
@@ -1681,9 +1689,18 @@ async function reopenAfterBoundaryRefusal(error) {
     // 2026-10-06b item 10 had predicted it).  No scroll: the sink sits at the
     // caret, which a restart puts at the document start (the other two
     // `focus()` calls in this file pass the same; 069's class).
-    await run("重新載入", async () => {
+    const restored = await run("重新載入", async () => {
       await session.restart();
       el.sink.focus({ preventScroll: true });
+      if (!Number.isFinite(caret?.x) || !Number.isFinite(caret?.y) || !Number.isFinite(caret?.height)) return false;
+      const now = session.state.snapshot.editorState?.caret;
+      if (now?.x === caret.x && now?.y === caret.y) return true;
+      try {
+        await session.placeCaret(caret.x, caret.y + caret.height / 2);
+        return true;
+      } catch {
+        return false;
+      }
     });
     // Not "everything is still there": keys typed just around the refused one
     // can be lost.  Typed text waits in the input adapter's own queue while
@@ -1693,11 +1710,13 @@ async function reopenAfterBoundaryRefusal(error) {
     // 2026-10-06 item 2).  Said, rather than claimed away.
     toast(`${lead}，已重新載入${uncertain
       ? "。請看一下那個位置：這一鍵可能生效了，也可能沒有"
-      : unsaved ? "。緊接在這一鍵前後打的字可能沒有打進去，請看一下" : ""}。`);
+      : unsaved ? "。緊接在這一鍵前後打的字可能沒有打進去，請看一下" : ""}${
+      restored ? "" : "。游標現在在文件開頭"}。`);
   } catch {
     // run() has already said why.
   }
 }
+
 
 const LIMIT_LEAD = "這個頁面不能再重新載入編輯引擎了。";
 // The host's own sentence is the one to show on failure: a refused write may
@@ -2363,9 +2382,10 @@ el.sink.addEventListener("beforeinput", (event) => {
   // Counted before the call and released however it ends -- an early return,
   // a refusal swallowed here, a disposed engine.  Once none is out, the overlay
   // is brought up to date: a range that arrived meanwhile was not drawn
-  // (overlayEditorState), and no state write may follow to draw it.
+  // (overlayEditorState), and no state write may follow to draw it.  A refusal
+  // also ends what the rest of this hold sends (finding 134, B).
   deletesInFlight += 1;
-  void editorAction(sent).catch(() => {}).finally(() => { deletesInFlight -= 1; })
+  void editorAction(sent).catch(() => { deleteRefusedThisHold = true; }).finally(() => { deletesInFlight -= 1; })
     .then(() => { if (deletesInFlight === 0) paint(); });
 });
 
@@ -2588,6 +2608,44 @@ function skipHeldRepeat(event) {
 }
 
 el.sink.addEventListener("keydown", skipHeldRepeat);
+
+// FINDING 134, B (SPEC-M3-held-key §14; fable's ruling for the owner).  Once a
+// delete this page sent is refused, the rest of that hold is not sent.  A
+// refusal at a document end reopens the engine (one Worker generation), and
+// the hold's repeats then reached the new engine: at the start each was
+// refused again, up to the ceiling in 5-7 s; at the end the reopened caret was
+// at the start, and the held Delete deleted from there until the key came up
+// (71-83 characters, saved; findings/evidence/132/held-into-refusal/run-1/).
+// The hold ends when its key comes up, when it is pressed anew, or when the
+// window loses focus -- on the window and in capture, because the sink is
+// disabled during the reopen and the key comes up on `body`.  A press always
+// goes out (finding 131).  Like H2, this reads the driver's `repeat` flag; a
+// keyboard path without it gets the behaviour this replaces.
+let deleteRefusedThisHold = false;
+
+function dropsRefusedRepeat(event, refusedThisHold) {
+  return refusedThisHold && event.repeat === true && !event.isComposing
+    && (event.key === "Backspace" || event.key === "Delete");
+}
+
+function endsHeldDelete(event) {
+  if (event.type === "blur") return true;
+  if (event.key !== "Backspace" && event.key !== "Delete") return false;
+  return event.type === "keyup" || (event.type === "keydown" && event.repeat === false);
+}
+
+function skipRefusedRepeat(event) {
+  if (dropsRefusedRepeat(event, deleteRefusedThisHold)) event.preventDefault();
+}
+
+function endHeldDelete(event) {
+  if (endsHeldDelete(event)) deleteRefusedThisHold = false;
+}
+
+el.sink.addEventListener("keydown", skipRefusedRepeat);
+window.addEventListener("keydown", endHeldDelete, true);
+window.addEventListener("keyup", endHeldDelete, true);
+window.addEventListener("blur", endHeldDelete);
 
 async function moveFromPoint(action) {
   const caret = session?.state?.snapshot?.editorState?.caret;

@@ -166,3 +166,93 @@ test("132 U6: the delete listener repaints the overlay once its deletes have all
   assert.equal(made.count(), 0);
   assert.equal(paints.length, 1, "not repainted once every delete had settled");
 });
+
+// Finding 134, B (SPEC-M3-held-key §14; ruling-1 condition 1).  Once a delete
+// this page sent is refused, the rest of that hold is not sent: the reopen
+// would put the caret somewhere the user is not looking, and the next refusal
+// would cost another Worker generation.  Compiled inside each test, as above.
+const refusedHoldSource = () => [
+  slice(/^function dropsRefusedRepeat\([^)]*\) \{[\s\S]*?\n\}$/m, "dropsRefusedRepeat()"),
+  slice(/^function endsHeldDelete\([^)]*\) \{[\s\S]*?\n\}$/m, "endsHeldDelete()"),
+].join("\n");
+
+test("134 U-B1: after a refusal a Backspace/Delete repeat is dropped; a press, a composition, another key never", () => {
+  // eslint-disable-next-line no-new-func
+  const dropsRefusedRepeat = new Function(`${refusedHoldSource()}\nreturn dropsRefusedRepeat;`)();
+  const key = (name, repeat, isComposing = false) => ({ key: name, repeat, isComposing });
+  for (const name of ["Backspace", "Delete"]) {
+    assert.equal(dropsRefusedRepeat(key(name, true), true), true, `${name} repeat after a refusal`);
+    assert.equal(dropsRefusedRepeat(key(name, true), false), false, `${name} repeat with no refusal`);
+    assert.equal(dropsRefusedRepeat(key(name, false), true), false, `a press of ${name} after a refusal`);
+    assert.equal(dropsRefusedRepeat(key(name, true, true), true), false, `a composing ${name} after a refusal`);
+  }
+  for (const other of ["ArrowLeft", "a", "Enter"])
+    assert.equal(dropsRefusedRepeat(key(other, true), true), false, other);
+});
+
+test("134 U-B2: a hold ends on its key coming up, on a new press of it, or on the window losing focus", () => {
+  // eslint-disable-next-line no-new-func
+  const endsHeldDelete = new Function(`${refusedHoldSource()}\nreturn endsHeldDelete;`)();
+  for (const name of ["Backspace", "Delete"]) {
+    assert.equal(endsHeldDelete({ type: "keyup", key: name }), true, `${name} up`);
+    assert.equal(endsHeldDelete({ type: "keydown", key: name, repeat: false }), true, `${name} pressed`);
+    assert.equal(endsHeldDelete({ type: "keydown", key: name, repeat: true }), false, `${name} repeat`);
+  }
+  assert.equal(endsHeldDelete({ type: "blur" }), true, "blur");
+  for (const other of ["ArrowLeft", "a", "Shift"]) {
+    assert.equal(endsHeldDelete({ type: "keyup", key: other }), false, `${other} up`);
+    assert.equal(endsHeldDelete({ type: "keydown", key: other, repeat: false }), false, `${other} pressed`);
+  }
+});
+
+// U-B3: what the page registers does that, at a depth of zero (no delete out,
+// so H2 alone would send every repeat), with the window listeners in capture:
+// the sink is disabled during the reopen and the key comes up on `body`.
+test("134 U-B3: the page's listeners drop the refused hold's repeats until the hold ends, at depth 0", () => {
+  const sink = [];
+  const win = [];
+  // eslint-disable-next-line no-new-func
+  const made = new Function("el", "window", `let deletesInFlight = 0;
+     ${slice(/^let deleteRefusedThisHold = false;$/m, "the refused-hold flag")}
+     ${refusedHoldSource()}
+     ${slice(/^function skipRefusedRepeat\([^)]*\) \{[\s\S]*?\n\}$/m, "skipRefusedRepeat()")}
+     ${slice(/^function endHeldDelete\([^)]*\) \{[\s\S]*?\n\}$/m, "endHeldDelete()")}
+     ${slice(/^el\.sink\.addEventListener\("keydown", skipRefusedRepeat\);$/m, "the sink's keydown registration")}
+     ${slice(/^window\.addEventListener\("keydown", endHeldDelete, true\);$/m, "the window keydown registration")}
+     ${slice(/^window\.addEventListener\("keyup", endHeldDelete, true\);$/m, "the window keyup registration")}
+     ${slice(/^window\.addEventListener\("blur", endHeldDelete\);$/m, "the window blur registration")}
+     return { refuse() { deleteRefusedThisHold = true; }, depth: () => deletesInFlight };`)(
+    { sink: { addEventListener: (type, l, capture) => sink.push([type, l, capture]) } },
+    { addEventListener: (type, l, capture) => win.push([type, l, capture]) });
+  const fire = (type, key, repeat = false) => {
+    let prevented = false;
+    const event = { type, key, repeat, isComposing: false, preventDefault() { prevented = true; } };
+    for (const [t, l] of win) if (t === type) l(event);    // capture: the window first
+    for (const [t, l] of sink) if (t === type) l(event);
+    return prevented;
+  };
+  assert.equal(made.depth(), 0);
+  assert.equal(fire("keydown", "Backspace", true), false, "a repeat with no refusal was dropped");
+  made.refuse();
+  assert.equal(fire("keydown", "Backspace", true), true, "a refused hold's repeat went out");
+  assert.equal(fire("keydown", "Delete", true), true, "a refused hold's Delete repeat went out");
+  assert.equal(fire("keydown", "ArrowLeft", true), false, "another key was taken");
+  assert.equal(fire("keyup", "a"), false);
+  assert.equal(fire("keydown", "Backspace", true), true, "another key coming up ended the hold");
+  assert.equal(fire("keyup", "Backspace"), false);
+  assert.equal(fire("keydown", "Backspace", true), false, "the hold did not end on its key coming up");
+  made.refuse();
+  assert.equal(fire("keydown", "Backspace", false), false, "a new press was taken");
+  assert.equal(fire("keydown", "Backspace", true), false, "the hold did not end on a new press");
+  made.refuse();
+  for (const [t, l] of win) if (t === "blur") l({ type: "blur" });
+  assert.equal(fire("keydown", "Delete", true), false, "the hold did not end on blur");
+  assert.ok(win.every(([t, , capture]) => t === "blur" || capture === true), "a window key listener is not in capture");
+});
+
+// U-B4: the flag is set by the refusal of a delete this page sent, whatever
+// form `deleteActionFor` chose -- the same promise the counter is released on.
+test("134 U-B4: the beforeinput handler marks the hold refused when its delete is rejected", () => {
+  const handler = slice(/^el\.sink\.addEventListener\("beforeinput", \(event\) => \{[\s\S]*?\n\}\);$/m, "the beforeinput handler");
+  assert.match(handler, /void editorAction\(sent\)\.catch\(\(\) => \{ deleteRefusedThisHold = true; \}\)/);
+});

@@ -1,0 +1,32 @@
+static {'hostVersion': '0.2.15', 'hostCommit': '568608c', 'buildId': 'daf70d77b8facb4b', 'servedPage': 'abe93f4575c7797db97462f1f0e3a71cf5fc4063205cd6d5877093ca1c248fcf', 'distPage': 'abe93f4575c7797db97462f1f0e3a71cf5fc4063205cd6d5877093ca1c248fcf'}
+chrome start-press r0 PASS refusals 1 gens ['1', '2'] limit None | server same True marks 1 markParagraphs None paragraphs 211 | scroll []
+firefox start-press r0 PASS refusals 1 gens ['1', '2'] limit None | server same True marks 1 markParagraphs None paragraphs 211 | scroll []
+chrome start-hold r0 FAIL refusals 3 gens ['1', '2', '3'] limit saved | server same True marks 1 markParagraphs None paragraphs 211 | scroll []
+chrome start-hold r1 FAIL refusals 3 gens ['1', '2', '3'] limit saved | server same True marks 1 markParagraphs None paragraphs 211 | scroll []
+firefox start-hold r0 FAIL refusals 3 gens ['1', '2', '3'] limit saved | server same True marks 1 markParagraphs None paragraphs 211 | scroll []
+firefox start-hold r1 FAIL refusals 3 gens ['1', '2', '3'] limit saved | server same True marks 1 markParagraphs None paragraphs 211 | scroll []
+chrome end-hold r0 FAIL refusals 1 gens ['1', '2'] limit None | server same False marks 1 markParagraphs None paragraphs 210 | scroll []
+chrome end-hold r1 FAIL refusals 1 gens ['1', '2'] limit None | server same False marks 1 markParagraphs None paragraphs 210 | scroll []
+firefox end-hold r0 FAIL refusals 1 gens ['1', '2'] limit None | server same False marks 1 markParagraphs None paragraphs 210 | scroll []
+firefox end-hold r1 FAIL refusals 1 gens ['1', '2'] limit None | server same False marks 1 markParagraphs None paragraphs 210 | scroll []
+FAIL chrome start-hold r0: refusals 3 != 1
+FAIL chrome start-hold r0: generations ['1', '2', '3'] != ['1', '2']
+FAIL chrome start-hold r0: limit notice 'saved'
+FAIL chrome start-hold r1: refusals 3 != 1
+FAIL chrome start-hold r1: generations ['1', '2', '3'] != ['1', '2']
+FAIL chrome start-hold r1: limit notice 'saved'
+FAIL firefox start-hold r0: refusals 3 != 1
+FAIL firefox start-hold r0: generations ['1', '2', '3'] != ['1', '2']
+FAIL firefox start-hold r0: limit notice 'saved'
+FAIL firefox start-hold r1: refusals 3 != 1
+FAIL firefox start-hold r1: generations ['1', '2', '3'] != ['1', '2']
+FAIL firefox start-hold r1: limit notice 'saved'
+FAIL chrome end-hold r0: server differs: firstDiff 0 charDelta -82 paragraphs 210/211
+FAIL chrome end-hold r1: server differs: firstDiff 0 charDelta -83 paragraphs 210/211
+FAIL firefox end-hold r0: server differs: firstDiff 0 charDelta -71 paragraphs 210/211
+FAIL firefox end-hold r1: server differs: firstDiff 0 charDelta -72 paragraphs 210/211
+FAIL chrome end-press-type: 0 rounds < 1
+FAIL firefox end-press-type: 0 rounds < 1
+FAIL made-up-arm: no rule for an arm the probe declares
+verdict FAIL (19)
+exit 1

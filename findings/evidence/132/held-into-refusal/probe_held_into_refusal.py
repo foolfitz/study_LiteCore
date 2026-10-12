@@ -13,6 +13,11 @@ Arms (each round a fresh page load, so the generation starts at 1):
   start-press  `zqx` typed mid-text, first line + Home, ONE Backspace (control)
   start-hold   the same, five letters typed at the start, Backspace held
   end-hold     last line + End, `zqx` typed there, Delete held
+  end-press-type  last line + End, ONE Delete; once reopened, `zqx` typed
+               (finding 134, ruling-1 condition 3: where does the next input land)
+
+`#desk.scrollTop` is sampled with every state entry (ruling-1 condition 7):
+reported, not judged.
 
 The report carries no document text: counts, indexes and hashes only.
 
@@ -45,7 +50,7 @@ from r7_support import evaluate  # noqa: E402
 NAME = "probe-held-refusal.odt"
 MARK = ui.MARK                # "zqx": unsaved work at the moment of the key
 START_TEXT = "kjkjk"          # start-hold: what the hold deletes before it reaches the start
-ARMS = ("start-press", "start-hold", "end-hold")
+ARMS = ("start-press", "start-hold", "end-hold", "end-press-type")
 SETTLED_LIMITS = {"saved", "failed", "lost", "clean", "pending"}
 
 # One clock for the page's state and the keys.  `focus` says where a keydown
@@ -58,7 +63,8 @@ INSTRUMENT = """(() => { const t0 = performance.now(); const log = window.__r = 
     rev: document.querySelector('#s-revision').textContent,
     latency: document.querySelector('#s-latency').textContent,
     toast: toastEl.classList.contains('show') ? toastEl.textContent : null,
-    limit: document.querySelector('#notice').dataset.limit ?? null });
+    limit: document.querySelector('#notice').dataset.limit ?? null,
+    scroll: document.querySelector('#desk').scrollTop });
   let last = '';
   const tick = () => { const r = read(); const k = JSON.stringify(r);
     if (k !== last) { last = k; log.push({ t: now(), what: 'state', ...r }); } };
@@ -84,6 +90,7 @@ def server_read(server: Server, original: list[str]) -> dict[str, Any]:
     stripped = [t.replace(MARK, "") for t in texts]
     return {"status": status, "sha256": hashlib.sha256(raw).hexdigest(), "bytes": len(raw),
             "marks": sum(t.count(MARK) for t in texts), "paragraphs": len(texts),
+            "markParagraphs": [i for i, t in enumerate(texts) if MARK in t],
             "paragraphsOriginal": len(original),
             "firstDiffFromOriginal": ui.first_difference_index(stripped, original),
             "charDelta": sum(map(len, stripped)) - sum(map(len, original)),
@@ -168,16 +175,22 @@ def run_round(arm: str, kind: str, server: Server, doc: bytes, original: list[st
             key = "Delete"
             record["placed"] = ui.click(session, ui.LAST_LINE)
             record["moved"] = ui.keyed(session, kind, "End")
-            record["typedMark"] = [ui.keyed(session, kind, ch) for ch in MARK]
+            if arm == "end-hold":
+                record["typedMark"] = [ui.keyed(session, kind, ch) for ch in MARK]
         record["key"] = key
         record["genBeforeKey"] = evaluate(session, ui.GEN)
         start = evaluate(session, LOG_LENGTH)
-        if arm == "start-press":
+        if arm in ("start-press", "end-press-type"):
             ui.press(session, kind, key)
             record["sent"] = {"press": True}
         else:
             record["sent"] = held.hold_key(session, kind, key)
         record["settle"] = settle(session)
+        if arm == "end-press-type":
+            # The next input after the reopen: where the user's typing lands.
+            record["genBeforeMark"] = evaluate(session, ui.GEN)
+            record["typedMark"] = [ui.keyed(session, kind, ch) for ch in MARK]
+            record["settleAfterMark"] = settle(session)
         record["log"] = evaluate(session, READ_LOG.replace("ARG_FROM", str(start)))
         record["limit"] = evaluate(session, ui.LIMIT)
         record["genAfter"] = evaluate(session, ui.GEN)
@@ -205,12 +218,14 @@ def main() -> int:
     parser.add_argument("--arms", default=",".join(ARMS))
     parser.add_argument("--start-hold-rounds", type=int, default=2)
     parser.add_argument("--end-hold-rounds", type=int, default=2)
+    parser.add_argument("--end-press-type-rounds", type=int, default=1)
     parser.add_argument("--hold-ms", type=int, default=8000)
     parser.add_argument("--hold-delay-ms", type=int, default=500, help="the first repeat (GNOME `delay`)")
     parser.add_argument("--hold-interval-ms", type=int, default=30, help="between repeats (GNOME `repeat-interval`)")
     args = parser.parse_args()
     held.OPTIONS.update(holdMs=args.hold_ms, holdDelayMs=args.hold_delay_ms, holdIntervalMs=args.hold_interval_ms)
-    rounds = {"start-press": 1, "start-hold": args.start_hold_rounds, "end-hold": args.end_hold_rounds}
+    rounds = {"start-press": 1, "start-hold": args.start_hold_rounds, "end-hold": args.end_hold_rounds,
+              "end-press-type": args.end_press_type_rounds}
     arms = [a for a in args.arms.split(",") if a]
     unknown = sorted(set(arms) - set(ARMS))
     if unknown:

@@ -1,0 +1,120 @@
+page web/e2-editor-app.js sha256 abe93f4575c7797db97462f1f0e3a71cf5fc4063205cd6d5877093ca1c248fcf
+test file sha256 be9d56763465889790d02a30c31c09e4df949fe9950b09bce684662902377adf
+✔ finding 121: a range goes out as delete-selection when the profile offers it (0.836164ms)
+✔ finding 121: a caret, an unknown shape, or no offer keeps today's action (0.087993ms)
+✔ finding 121: the handler asks the engine's current selection, the page's belief only as fallback (0.223656ms)
+✔ finding 131: while a delete this page sent is unsettled, the key keeps its collapsed form (0.080059ms)
+✔ finding 131: the handler passes its own unsettled deletes, counted before the call and released in finally (0.222263ms)
+✔ finding 120: the sink follows the new adapter's blocked state (0.08029ms)
+✔ finding 120: openDocument syncs the sink right after attaching it (0.139189ms)
+✔ 132 U3: a repeat is dropped only while two deletes are out; a press, a composition, another key never (0.372994ms)
+✔ 132 U4: the sink's keydown listener prevents exactly the repeats U3 drops, at the page's own count (0.497916ms)
+✔ 132 U6: the delete listener repaints the overlay once its deletes have all settled, not before (4.186272ms)
+✖ 134 U-B1: after a refusal a Backspace/Delete repeat is dropped; a press, a composition, another key never (0.48921ms)
+✖ 134 U-B2: a hold ends on its key coming up, on a new press of it, or on the window losing focus (0.186737ms)
+✖ 134 U-B3: the page's listeners drop the refused hold's repeats until the hold ends, at depth 0 (0.270243ms)
+✖ 134 U-B4: the beforeinput handler marks the hold refused when its delete is rejected (0.330093ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 10
+ℹ fail 4
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 55.588256
+
+✖ failing tests:
+
+test at editor-shell-v2/tests/page-delete-and-sink.test.mjs:179:1
+✖ 134 U-B1: after a refusal a Backspace/Delete repeat is dropped; a press, a composition, another key never (0.48921ms)
+  AssertionError [ERR_ASSERTION]: dropsRefusedRepeat() not found in the page
+      at slice (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-delete-and-sink.test.mjs:16:10)
+      at refusedHoldSource (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-delete-and-sink.test.mjs:175:3)
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-delete-and-sink.test.mjs:181:46)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at editor-shell-v2/tests/page-delete-and-sink.test.mjs:193:1
+✖ 134 U-B2: a hold ends on its key coming up, on a new press of it, or on the window losing focus (0.186737ms)
+  AssertionError [ERR_ASSERTION]: dropsRefusedRepeat() not found in the page
+      at slice (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-delete-and-sink.test.mjs:16:10)
+      at refusedHoldSource (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-delete-and-sink.test.mjs:175:3)
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-delete-and-sink.test.mjs:195:42)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at editor-shell-v2/tests/page-delete-and-sink.test.mjs:211:1
+✖ 134 U-B3: the page's listeners drop the refused hold's repeats until the hold ends, at depth 0 (0.270243ms)
+  AssertionError [ERR_ASSERTION]: the refused-hold flag not found in the page
+      at slice (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-delete-and-sink.test.mjs:16:10)
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-delete-and-sink.test.mjs:216:8)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at editor-shell-v2/tests/page-delete-and-sink.test.mjs:255:1
+✖ 134 U-B4: the beforeinput handler marks the hold refused when its delete is rejected (0.330093ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /void editorAction\(sent\)\.catch\(\(\) => \{ deleteRefusedThisHold = true; \}\)/. Input:
+  
+  'el.sink.addEventListener("beforeinput", (event) => {\n' +
+    '  const action = DELETE_INPUT_TYPES[event.inputType];\n' +
+    '  if (!action || !session?.document) return;\n' +
+    '  event.preventDefault();\n' +
+    '  const shape = selectionShapeOf({ state: session.state.snapshot.editorState }) ?? lastSelectionShape;\n' +
+    '  const sent = deleteActionFor(action, shape,\n' +
+    '                               session.offers?.("delete-selection") === true, deletesInFlight);\n' +
+    '  // Counted before the call and released however it ends -- an early return,\n' +
+    '  // a refusal swallowed here, a disposed engine.  Once none is out, the overlay\n' +
+    '  // is brought up to date: a range that arrived meanwhile was not drawn\n' +
+    '  // (overlayEditorState), and no state write may follow to draw it.\n' +
+    '  deletesInFlight += 1;\n' +
+    '  void editorAction(sent).catch(() => {}).finally(() => { deletesInFlight -= 1; })\n' +
+    '    .then(() => { if (deletesInFlight === 0) paint(); });\n' +
+    '});'
+  
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-delete-and-sink.test.mjs:257:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'el.sink.addEventListener("beforeinput", (event) => {\n  const action = DELETE_INPUT_TYPES[event.inputType];\n  if (!action || !session?.document) return;\n  event.preventDefault();\n  const shape = selectionShapeOf({ state: session.state.snapshot.editorState }) ?? lastSelectionShape;\n  const sent = deleteActionFor(action, shape,\n                               session.offers?.("delete-selection") === true, deletesInFlight);\n  // Counted before the call and released however it ends -- an early return,\n  // a refusal swallowed here, a disposed engine.  Once none is out, the overlay\n  // is brought up to date: a range that arrived meanwhile was not drawn\n  // (overlayEditorState), and no state write may follow to draw it.\n  deletesInFlight += 1;\n  void editorAction(sent).catch(() => {}).finally(() => { deletesInFlight -= 1; })\n    .then(() => { if (deletesInFlight === 0) paint(); });\n});',
+    expected: /void editorAction\(sent\)\.catch\(\(\) => \{ deleteRefusedThisHold = true; \}\)/,
+    operator: 'match',
+    diff: 'simple'
+  }
