@@ -38,3 +38,16 @@ Directory `131b-128b/`. Command: `python3 wasm_sdk_probe/tools/probe_hand_test_0
 So on `6470dec0…` the host-segment clause holds (in the rerun) and its red control is red (in both runs). `read_128b-output.txt` in the rerun directory is empty: that reader prints the high/low arms only and this run has none. The rerun is a second sample of one cell, taken because the first sample was `NOT_JUDGED`; I did not run anything else more than once.
 
 Output files: `131b-128b/` — `probe.out`, `report.json`, four screenshots, `judge_131b-output.txt`, `read_128b-output.txt`, `started-utc.txt`, `ended-utc.txt`; `131b-128b-hostseg-rerun/` — `probe.out`, `report.json`, `read_128b-output.txt` (empty), `started-utc.txt`, `ended-utc.txt`.
+
+## G2 — 121-B (selection, then Backspace / Delete): PASS in all four cells
+
+Files: `../../121/0.2.16-134-binding.txt` (before 2026-10-12T23:49:34Z, after 23:50:53Z; both lines carry the page sha256 `6470dec0…`, all four exits 0), `../../121/0.2.16-134-<browser>-<key>.json` and `.stderr` (all four stderr files are empty). Command per cell: `python3 findings/evidence/121/select_delete_probe.py <browser> <Key>` (standalone page built from `dist/`, `boundaries.odt`, a drag inside "M01 plain alpha", one real key; no host involved), run sequentially. Criterion (SPEC-M3-autosave §9.13): shape `range-single` before the key, after the key 「刪除選取 N ms」, `ready`, generation 1 → 1, revision 0 → 1, no toast, first paragraph `M01 alpha`.
+
+| Cell | shape before | latency after | state | generation | revision | `toasts` | first paragraph | Verdict |
+|---|---|---|---|---|---|---|---|---|
+| Chrome Backspace | `range-single` | 「刪除選取 15 ms」 | `ready` | 1 → 1 | 0 → 1 | `[]` | `M01 alpha` | PASS |
+| Chrome Delete | `range-single` | 「刪除選取 16 ms」 | `ready` | 1 → 1 | 0 → 1 | `[]` | `M01 alpha` | PASS |
+| Firefox Backspace | `range-single` | 「刪除選取 9 ms」 | `ready` | 1 → 1 | 0 → 1 | `[]` | `M01 alpha` | PASS |
+| Firefox Delete | `range-single` | 「刪除選取 9 ms」 | `ready` | 1 → 1 | 0 → 1 | `[]` | `M01 alpha` | PASS |
+
+Compared with `0.2.15-132-*.json` and `0.2.13-131fix-*.json`: after masking the `定位游標 N ms` figure of the `before` field, three of the four pairs are byte-identical to both earlier sets (Chrome Backspace, Firefox Backspace, Firefox Delete). **One pair differs in a number**: Chrome Delete reads 「刪除選取 16 ms」 here against 14 ms in both earlier sets (the criterion names no threshold for N; every field the criterion names is as required). The `before` latency of Chrome Backspace reads 「定位游標 5 ms」 here (33 / 36 ms earlier); it is the masked figure and not part of the criterion. The `after.toast` field reads 「已開啟 f.odt」 in all four files (the toolbar's last message, the same in the earlier sets); the criterion's "no toast" is the `toasts` list, empty in all four.
