@@ -424,3 +424,66 @@ AS-2：開始時間落在 30.6–31.5 秒（30 秒加引擎段）。AS-5：0 掉
   - 0.2.13 讓它變多的原因是推論、未量：128 處方 B 讓動作一結束就重畫，paint 排在下一下刪除前面。
 
 **擁有者的決定**：兩題（131 怎麼處置、128-B 連按這一版怎麼算）都選「交 fable 裁決」。工單 `findings/evidence/128/ruling/brief.md`；裁決回來之前，v62 不凍、不改 pin、不開計數鏈。同時在 0.2.13 上對六支既有 M3 runner 各做一次 shakedown，不在紅燈停：這一輪是 §9.4「計數」那兩格的證人，存檔路徑不受裁決影響。
+
+### 9.12 finding 131 的裁決，與修好之後的判準（2026-10-12，只追加；寫在任何執行之前）
+
+**裁決**：fable，`findings/evidence/128/ruling/fable-ruling.md`（擁有者交付兩題）。主 session 從兩份 `rapid-ab` 的 `report.json` 重算數字，成立。
+
+**131 登錄，處置 A：凍結之前修頁面。**登錄為「在 0.2.13 修好」，不是具名限制。理由（給擁有者的白話）：按住 Backspace 是每個人刪幾個字的方式，這一頁大約每四下就有一下被拒絕、跳出開發用的句子、字留在原地；0.2.12 也有，大約每二十下一下。
+
+**機制**（裁決讀碼確認）：
+- 引擎對每一個改變狀態的回呼都送 `editor-state`，包括 barrier 自己那一次一個字的 TEXT_SELECTION（`probe_engine.cpp:2648`，沒有抑制）。
+- session 在 `sourceSequence` 前進時轉送（`narrow-editor-v2-session.js:280-300`），刪除監聽器讀的就是這份即時快照。
+- 動作在頁面那一側序列化（`editor-session.js:290-314`）：第二下要等第一下回來才送出，那時游標已經收起，閘門以 `selectionRectangles.empty()` 拒絕（`probe_engine.cpp:5277-5303`）——就是 log 裡那個 toast。
+
+**規則 A（頁面）**：
+- 頁面計數「自己送出、還沒結算」的刪除（`delete-backward`、`delete-forward`、`delete-selection`）：呼叫 `editorAction(...)` 之前 ＋1，在 `.finally` −1。提早返回、被吞掉的拒絕、`ENGINE_DISPOSED` 都會釋放。
+- 計數 > 0：這一鍵照它自己的收起形式送出（`delete-backward`／`delete-forward`），不看引擎此刻的形狀。理由：在途的那一下刪除回來時，唯一可能的形狀是游標，所以引擎此刻的範圍是 barrier 的，不是使用者的。
+- 計數 = 0：照舊（finding 121：引擎的形狀，頁面的認知只當後備）。
+- 位置：`beforeinput` 的刪除監聽器；計數器宣告在 `engineActionsOut` 旁邊。形式：`deleteActionFor(action, shape, offers, deletesInFlight = 0)`，第 4 個參數 > 0 時回傳 `action`；監聽器把計數器當第 4 個參數傳入。
+- **不放寬成 `engineActionsOut > 0`**：真的選取範圍＋Ctrl+B＋Backspace 仍要以 `delete-selection` 送出。
+- 產品路徑的錨點 `  const action = DELETE_INPUT_TYPES[event.inputType];` 與 `edit-arrows-swapped` 的 `await run(...)` 那一行逐位元組不動。
+
+**登錄的邊界（不是判準）**：真範圍上的第一下刪除本身被拒絕時，它窗口內的下一鍵會以 `delete-backward` 送到範圍上，也被拒絕。閘門在 `startSelectionBarrierDelete` 之前（`probe_engine.cpp:5277-5303`），所以沒有派送、沒有 119 那種重開。兩個 toast，不丟資料。
+
+**工作項（未量）**：段落格式動作的 barrier 也會選文字（`.uno:SelectText`，finding 083），在那個窗口內按 Backspace 可能用同樣的方式讀到範圍。規則 A 刻意只管刪除。
+
+**判準 131-B（逐實例）**：
+- 儀器：`probe_hand_test_0212.py --arms high,low,rapid20 --rapid-rounds 6`，擁有者的文件經 Files 開，兩個瀏覽器。
+- 每個瀏覽器 6 次連按，每次 20 下真的 Backspace、間隔 50 ms。每一次都要：`refusedDeleteSelection == 0`、`deleted == 20`、`other == []`。
+- 同一次執行的 `high`／`low` 臂，四臂 `persistent.differing == 0`（沒有字留在畫面上的證人；0.2.13 修法前讀到 21778／13843／0／13843，0.2.12 是 0 ×4）。
+- 為什麼是 6 次：照 0.2.12 自己的每鍵 5%，一次 20 下全乾淨的機率約 0.36，六次全乾淨約 0.2%；照 0.2.13 的 24%，幾乎是 0。
+- 任何一格紅：發佈停下，回到規則 A，**不改判準**。
+- *若永遠沒做：0.2.13 不凍結。*
+
+**紅案**：同一天、同一個 session 檔，把下面「步驟 0」封存的修法前引擎包換進宿主，每個瀏覽器 1 次連按 → 至少 1 次拒絕（全乾淨的機率約 0.4%）；換回之後 `check_engine_decoded.py` 再過一次。帳上的 19/80（`findings/evidence/128/rapid-ab/`）是第一個紅。
+
+**121 不得壞掉**：
+- 121-U 既有的單元測試照舊全過（紅案：規則無條件回傳 `action` → 第 1 支轉紅）。
+- 新的單元測試，先寫、先紅：第 4 個參數 > 0 時回傳 `action`，= 0 時照 121；監聽器把計數器傳進去、呼叫之前 ＋1、`.finally` −1。
+- 瀏覽器證人，兩個瀏覽器各一次：`selection_arm` 拖 0.3 → 0.5 之後按 Backspace，另一次按 Delete。延遲列是「刪除選取 N ms」、`toasts == []`、之後的形狀是 `collapsed`。儀器加參數 `--selection-keys Backspace,Delete`。
+- *若永遠沒做：0.2.13 不凍結。*
+
+**128-B 的連按（第 2 題，處置 A）**：
+- 規則 A 不改重畫的順序，所以不宣稱它會移動連按的數字。
+- 在修好的頁面重跑 128-B 時重讀連按臂，照 §5 原文判：4 下連按的最大值，四臂、兩個瀏覽器。全部 ≤ 60 ms：條款成立，不寫限制。
+- 否則登錄具名限制 **L-128-rapid**：「按鍵間隔 50 ms 時，被刪掉的字在游標移動之後可能還留在畫面上，最多約 100 ms（0.2.13 修法前：Chrome low 90.5、Firefox high 84.6、Firefox low 96.4 ms；0.2.12：125–283 ms）；單按 ≤ 40 ms 成立。」
+- *若永遠沒改善：限制成立，不是閘門；要拿掉它需要一個量過的設計，不是微調。*
+- 留給之後的觀察：四臂裡有三臂，最慢的是第一下（90.5／76.8／96.4 ms），游標那一條在變化計數 ＋2／＋3 才變新——第一下之後的重畫敗給 BUSY，那一條等到空檔才畫。
+
+**擬登錄 finding 132（不擋發佈）**：
+- 修法前，一次連按裡每一下刪除的時間單調上升（Chrome 70→85→100→113、Firefox 99→…→181 ms），0.2.12 平在 41–50 ms。每次拒絕都把佇列清空，爬升因此歸零。有了規則 A，爬升不再被打斷。
+- **預測（寫在執行之前）**：修好的頁面上，第 20 下的刪除時間超過今天的最大值——Chrome 150–250 ms、Firefox 200–300 ms。受連按長度限制、會自己清掉、不丟資料。擁有者會感覺到的是：按住 Backspace 越久，畫面落後按鍵越多，到零點幾秒。
+- 修法（按鍵排隊時合併重畫，或先畫游標那一條）是新機制 → 發佈之後另寫規格、帶 A/B 儀器，不在這一版。
+
+**被頁面改動重新打開的 §9.4 判準**：瀏覽器那幾條全部——128-B（每一格：單按、宿主段及其紅色對照、連按照上面判）、129-B（每個瀏覽器一輪，`probe_129_m4_wasm.py --final`）、130-U（重播 `findings/evidence/130/replay-input-trace.mjs`）。都在新的 `dist/` 頁面上重跑，並記下 132 第 20 下的數字對照預測。
+
+**對機制的更正（裁決 §3）**：工單寫的「paint 排在下一下刪除前面」從程式碼讀不出來——下一下刪除在前一下回來之前不會進 Worker；`run()` 的 paint 與 drain 的下一個 post 誰先，是 microtask 的順序，靜態定不了。保留為假說。
+
+**步驟 0（已做）**：修法前的 0.2.13 引擎包封存在 `wasm_sdk_probe/build/archive/host-0.2.13-prefix-engine-0574b1b157ce1e1e/`（`diff -r` 相同；`MANIFEST.json` 的 sha256 `355e85b1…`；唯讀；附 `ATTRIBUTION.md`）。它是 131-B 的紅色對照，也是這一版修法之前所有量測跑的那一份。
+
+**儀器的改動（§34：不是檢查的修正）**：`probe_hand_test_0212.py` 加兩個參數，預設值照舊——`--rapid-rounds`（預設 2）與 `--selection-keys`（預設 `ArrowLeft,ArrowDown,End`）。它不是計數 runner，沒有判讀。
+
+**證人報告**：六支 M3 runner 的證人 shakedown 是在修法前的頁面 `c7f904fa…` 上跑的。規則 A 只動刪除監聽器，不碰存檔路徑與鎖；所以若某份報告紅在 §9.4「計數」登錄的那一點，它仍是那一格的證人。紅在別處的，照 §9.4 不算登錄，交擁有者。
+
+**產品路徑的預測**：`findings/evidence/release-0.2.13/product-path/PREDICTION.md` 在第一次執行之前補一行：規則 A 只在頁面自己的刪除還沒結算時起作用。產品路徑網經頁面刪除監聽器送出的 Backspace 只有一下（`backspace-and-arrows-reach-the-document`，`run_e2_c_product_path.py:5826`），之前等的是定位游標、沒有別的刪除在途，所以計數是 0、照 121 送出；預測沒有格子因此改變。
