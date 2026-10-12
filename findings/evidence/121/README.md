@@ -22,3 +22,7 @@ Re-run because A+B changed the page after the run above, and these reports recor
 ## 121-B on the release-P page bytes (2026-10-10; page `36c2b18b…`; spec §16.2 P4)
 
 `p-candidate-{chrome,firefox}-{backspace,delete}.json` (binding `p-candidate-binding.txt`: dist `36c2b18b…` before and after the six 121/120 runs). Identical to the `v59-candidate2-*` reports field by field once the latency strings are removed: `range-single` → 「刪除選取」 (9–18 ms), `ready`, generation 1 → 1, revision 0 → 1, first paragraph `M01 alpha`. 121-B still met in both browsers.
+
+## 121-B on the 0.2.13 page with finding 131's rule A (2026-10-12; page `d761f1ce…`; SPEC-M3-autosave §9.12–9.13)
+
+`0.2.13-131fix-{chrome,firefox}-{backspace,delete}.json` (binding `0.2.13-131fix-binding.txt`: dist `d761f1ce…` before and after the four runs, 09:03:49–09:05:09Z; probe unchanged). All four: `range-single` → 「刪除選取」 (9–15 ms), `ready`, generation 1 → 1, revision 0 → 1, no toast, first paragraph `M01 alpha`. Same as the `p-candidate-*` reports once the latency strings are removed. Rule A leaves 121 intact: with no delete of this page's own out, the engine's range still goes out as `delete-selection`.
