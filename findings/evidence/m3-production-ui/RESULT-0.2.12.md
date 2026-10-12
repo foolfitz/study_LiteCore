@@ -93,3 +93,11 @@ Named limits carried (§17.8, §17.23): fast scrollbar flicks show old pixels or
 ## Static
 
 `make test-e2-c-static` exit 0 after the count (node 213 + 5, python 108; `../release-0.2.12/test-e2-c-static-after-count.txt`), as after the warm-up (`test-e2-c-static-after-warmup.txt`).
+
+## Owner hand test (2026-10-12, appended)
+
+Asked to try, in Chrome and Firefox on the host: typing; on a long document, arrow keys move the view with the caret (124) and the pill does not flash 「處理中」 (125); a document long enough to have gone blank before C′ opens and draws (126). Before the test the litecore ddev project was started (it had been stopped), and the served page was read over HTTP from the editor's own address (`/apps/litecore/r/45cdcedfc0fe7e61-90d7bc2c/e2-editor-app.js`, gzip): `8909564e…`; `occ app:list` says litecore 0.2.12. For 126 a 60-page A4 document from `wasm_sdk_probe/tools/create_long_document.py` was put in admin's Files as `手測-126-60頁.odt` (the longest document there was the owner's 22 pages; on a 1× screen the P page went blank from about 53 pages).
+
+The owner's reply, verbatim: "都通過，幾個小問題：1. delete / backspace 刪去文字的時候會有殘影 2. 將文字反白選取的時候，使用方向鍵會報錯 3. 我需要「shift + 方向鍵 = 選取文字」的功能 D: 長文件 works，不過拖曳捲軸進行捲動的時候，不知道自己捲到第幾頁，我記得collabora好像是，捲軸上會顯示頁碼". A follow-up, verbatim: "捲軸那項我沒寫清楚，但在UX上也很重要".
+
+So the release's own items held in the owner's hands (124, 125, 126 by D). The four further items are not regressions of this release — neither the delete path's BUSY back-off nor the gestures the move actions accept changed in C′ — and are registered separately: (1) → finding 128, (2) → finding 129, (3) and the scrollbar page number → requests in `specs/SPEC-M3-production-ui.md` §17.25. The reproductions are `../128/` and `../129/`.
