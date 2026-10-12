@@ -586,6 +586,26 @@ def hold_arm(name: str, kind: str, session, y: str, caret_at: float, shots: Path
     return rec
 
 
+def wash_control_arm(kind: str, session) -> dict[str, Any]:
+    """SPEC-M3-held-key §5.2's positive control: the user's own range is still washed.  A drag, no key."""
+    rec: dict[str, Any] = {"arm": "wash-control"}
+    rec["click"] = ui.click(session, ui.IN_TEXT)
+    evaluate(session, HOLD_HOOK)
+    time.sleep(1.0)
+    ui.quiet(session)
+    mark = evaluate(session, HOLD_MARK)
+    y = ui.IN_TEXT[1]
+    evaluate(session, DRAG.replace("ARG_X1", "0.3").replace("ARG_Y1", y).replace("ARG_X2", "0.5").replace("ARG_Y2", y))
+    time.sleep(1.5)
+    rec["settled"] = ui.quiet(session)
+    got = evaluate(session, HOLD_READ.replace("ARG_MARK", json.dumps(mark)))
+    rec["shape"] = evaluate(session, "(() => document.querySelector('#toolbar').dataset.selectionShape)()")
+    rec["selFills"] = sum(1 for f in got["fills"] if f["c"] == "sel")
+    rec["raw"] = got
+    rec["collapse"] = ui.click(session, ui.IN_TEXT)
+    return rec
+
+
 def selection_arm(kind: str, session, y: str, key: str) -> dict[str, Any]:
     rec: dict[str, Any] = {"arm": "selection+" + key, "y": y}
     rec["click"] = ui.click(session, ("0.5", y))
@@ -650,6 +670,8 @@ def run_browser(kind: str, server: Server, doc: bytes, out: Path) -> dict[str, A
             record["holdHigh"] = hold_arm("hold-high", kind, session, ui.IN_TEXT[1], 0.15, out)
         if "hold-low" in ARMS:
             record["holdLow"] = hold_arm("hold-low", kind, session, "0.0584", 0.85, out)
+        if "wash-control" in ARMS:
+            record["washControl"] = wash_control_arm(kind, session)
         if "hostseg" in ARMS:
             record["hostseg"] = hostseg_arm("hostseg", kind, session, False)
             record["hostseg"]["judged"] = hostseg_verdict(record["hostseg"])
@@ -674,7 +696,7 @@ def main() -> int:
     parser.add_argument("--arms", default="high,low,selection,shift",
                         help="any of high,low,selection,shift,trace,hostseg,hostseg-red,hold-high,hold-low (trace: Chrome's "
                              "Worker message log; hostseg: 128-B's host-segment cell, hostseg-red its red control; "
-                             "hold-*: a held Backspace, finding 132)")
+                             "hold-*: a held Backspace, finding 132; wash-control: a drag, is the range washed)")
     parser.add_argument("--rapid-rounds", type=int, default=2, help="bursts in the rapid20 arm")
     parser.add_argument("--ghost-rapid-keys", type=int, default=4, help="rapid Backspaces in the high/low arms")
     parser.add_argument("--selection-keys", default="ArrowLeft,ArrowDown,End",
@@ -704,6 +726,11 @@ def main() -> int:
             print(kind, "fatal" if run.get("fatal") else "done", flush=True)
     finally:
         server.clear_locks()
+        # Read again at the end: the page served when the run finished (SPEC-M3-held-key §5.2).
+        try:
+            report["staticAfter"] = ui.static_facts(DEFAULT_DDEV)
+        except Exception:  # noqa: BLE001
+            report["staticAfter"] = {"error": traceback.format_exc()}
         report["completedAt"] = utc_now()
         (args.out / "report.json").write_text(json.dumps(report, ensure_ascii=False, indent=1))
     return 0
