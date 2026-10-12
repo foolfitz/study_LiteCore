@@ -30,6 +30,7 @@ from __future__ import annotations
 
 import argparse
 import base64
+import gzip
 import hashlib
 import io
 import json
@@ -55,6 +56,11 @@ MIRROR_PAGE = HERE / "build" / "m4-mirror" / "e2-editor-app.js"
 PATCH = TREE / "findings" / "evidence" / "129" / "m4" / "page-129.patch"
 FIXTURES = HERE / "test-docs" / "f129"
 EXPECTED_DIST_SHA256 = "8909564eb2316afa6de7868a08b61d27219fabdf49f37326fee0dda2977bd401"
+# --final (129-B on the bytes that ship, SPEC-M3-autosave §9.4): the page under test is dist/ itself once
+# 0.2.13's page is copied there (it carries the 129 fix, with review 2's changes), and the red control is
+# 0.2.12's page from the archived engine package (the same dist/ otherwise: only e2-editor-app.js differs).
+FINAL_PAGE_SHA256 = "c7f904fa1d807c63afc0e82522dcb0d8abab71175a9ee5de3c2af276dd24b5ab"
+OLD_PAGE_GZ = HERE / "build" / "archive" / "host-0.2.12-engine-45cdcedfc0fe7e61" / "files" / "e2-editor-app.js.gz"
 INSTRUMENT_LINE = "\nglobalThis.__m4 = { get session() { return session; } };\n"
 NATIVE_ROUND = TREE / "findings" / "evidence" / "129" / "native" / "point-click-round-20261012T031459Z"
 NATIVE_ARMS = [NATIVE_ROUND / f"arms-r{r}.jsonl" for r in (1, 2, 3)]
@@ -833,19 +839,28 @@ def run_red_arms(env: Env, cal: dict, defs: dict, round_no: int) -> list[dict]:
 
 
 # --------------------------------------------------------------------------- main
-def preflight(docs_dir: Path, out: Path) -> dict:
+def pages(final: bool) -> tuple[bytes, bytes]:
+    """(page under test, red-control page) without the instrument line."""
+    if final:
+        return (DIST / "e2-editor-app.js").read_bytes(), gzip.decompress(OLD_PAGE_GZ.read_bytes())
+    return MIRROR_PAGE.read_bytes(), (DIST / "e2-editor-app.js").read_bytes()
+
+
+def preflight(docs_dir: Path, out: Path, final: bool = False) -> dict:
     """The mirror page = the shipped dist/ page + the 129 patch (web/ is NOT read: the main session has since
     edited it for 0.2.13); documents = the fixtures; hashes of everything.  (The first counted Chrome round
     checked the mirror against web/ + patch, which held then; web/ was equal to dist/ at that time.)"""
     pre: dict = {}
     dist = (DIST / "e2-editor-app.js").read_bytes()
     mirror = MIRROR_PAGE.read_bytes()
-    with tempfile.TemporaryDirectory() as tmp:
-        base = Path(tmp) / "dist-page.js"
-        base.write_bytes(dist)
-        patched = Path(tmp) / "patched.js"
-        subprocess.run(["patch", "-s", "-o", str(patched), str(base), str(PATCH)], check=True)
-        pre["distPlusPatchSha256"] = sha256_bytes(patched.read_bytes())
+    pre["distPlusPatchSha256"] = None   # --final: dist/ already carries the fix, the patch does not apply
+    if not final:
+        with tempfile.TemporaryDirectory() as tmp:
+            base = Path(tmp) / "dist-page.js"
+            base.write_bytes(dist)
+            patched = Path(tmp) / "patched.js"
+            subprocess.run(["patch", "-s", "-o", str(patched), str(base), str(PATCH)], check=True)
+            pre["distPlusPatchSha256"] = sha256_bytes(patched.read_bytes())
     pre.update({"distPageSha256": sha256_bytes(dist), "mirrorPageSha256": sha256_bytes(mirror),
                 "patchSha256": sha256_bytes(PATCH.read_bytes()),
                 "distIsTheExpectedShippedPage": sha256_bytes(dist) == EXPECTED_DIST_SHA256,
@@ -867,6 +882,13 @@ def preflight(docs_dir: Path, out: Path) -> dict:
         pre.setdefault("documents", {})[name] = {"odtSha256": sha256_bytes(odt), "fodtSha256": sha256_bytes(fodt),
                                                  "paragraphsEqualFodt": t_odt == t_fodt, "paragraphs": len(t_odt)}
     pre["runnerSha256"] = sha256_bytes(Path(__file__).read_bytes())
+    if final:
+        under, red = pages(True)
+        pre["final"] = {"pageUnderTestSha256": sha256_bytes(under), "redControlSha256": sha256_bytes(red),
+                        "pageUnderTestIsFinal": sha256_bytes(under) == FINAL_PAGE_SHA256,
+                        "redControlIs0212": sha256_bytes(red) == EXPECTED_DIST_SHA256,
+                        "patchedServedSha256": sha256_bytes(under + INSTRUMENT_LINE.encode()),
+                        "unpatchedServedSha256": sha256_bytes(red + INSTRUMENT_LINE.encode())}
     return pre, texts, docs
 
 
@@ -879,14 +901,20 @@ def main() -> int:
     ap.add_argument("--arms", default=None, help="regex on the arm id m4-<shape>-<key>")
     ap.add_argument("--rounds", type=int, default=1)
     ap.add_argument("--round-label", type=int, default=1)
+    ap.add_argument("--final", action="store_true", help="page under test = dist/ (0.2.13), red control = 0.2.12's page")
     a = ap.parse_args()
     a.out.mkdir(parents=True, exist_ok=True)
     phases = a.phases.split(",")
-    pre, texts, docs = preflight(a.docs, a.out)
+    pre, texts, docs = preflight(a.docs, a.out, a.final)
     report: dict = {"probe": "probe_129_m4_wasm.py", "browser": a.browser, "preflight": pre,
                     "startedAt": time.strftime("%Y-%m-%dT%H:%M:%S%z"), "startedAtUtc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
                     "loadavgStart": loadavg(), "memoryStartMb": memory_mb(), "phases": phases}
-    if not pre["mirrorEqualsDistPlusPatch"] or not pre["distIsTheExpectedShippedPage"]:
+    if a.final and not (pre["final"]["pageUnderTestIsFinal"] and pre["final"]["redControlIs0212"]):
+        report["fatal"] = "--final: dist/ is not the 0.2.13 page, or the archived red control is not 0.2.12's page"
+        (a.out / f"report-{a.browser}.json").write_text(json.dumps(report, indent=1, ensure_ascii=False))
+        print(report["fatal"])
+        return 2
+    if not a.final and (not pre["mirrorEqualsDistPlusPatch"] or not pre["distIsTheExpectedShippedPage"]):
         report["fatal"] = "the mirror page is not dist + patch, or dist is not the expected shipped page"
         (a.out / f"report-{a.browser}.json").write_text(json.dumps(report, indent=1, ensure_ascii=False))
         print(report["fatal"])
@@ -896,8 +924,9 @@ def main() -> int:
     env = Env(a.browser, a.out)
     cal = None
     try:
-        env.serve("patched", MIRROR_PAGE.read_bytes() + INSTRUMENT_LINE.encode(), docs_to_files(docs))
-        env.serve("unpatched", (DIST / "e2-editor-app.js").read_bytes() + INSTRUMENT_LINE.encode(), docs_to_files(docs))
+        under, red = pages(a.final)
+        env.serve("patched", under + INSTRUMENT_LINE.encode(), docs_to_files(docs))
+        env.serve("unpatched", red + INSTRUMENT_LINE.encode(), docs_to_files(docs))
         env.start()
         report["version"] = getattr(env.session, "version", None)
         report["boot"] = env.goto("patched")
