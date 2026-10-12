@@ -60,3 +60,45 @@ Pin commit (its own, before the run): `d2349d03` — `FINAL_PAGE_SHA256` in `was
 | L-129 cells (recorded, not judged) | `s1d`/`m1d` Down follow native `ref` (`dragDownFollowsRef: ["s1d", "m1d"]`) | same | recorded |
 
 Cross-checks printed by the analyzer: Chrome against Firefox landing index equal in 54/54 cells; each browser against `round-20261012T092119Z` (the d761f1ce round): 54 compared, 0 differ, wrap offsets the same.
+
+## G4 — 122-B / C2 typing latency: PASS (both judges exit 0)
+
+Pin commit (its own, before the run): `1fa91903` — in `findings/evidence/c-prime/c2/judge_c2.py` and `findings/evidence/typing-latency/judge_p2.py` only the `PAGE = "…"` line changed, from `8909564e…` (kept in a comment above) to `abe93f45…`. A consequence, not checked further: the reports in `findings/evidence/c-prime/c2/` (page `8909564e…`) are now REFUSED by the default pin of those two judges (they need `--page 8909564e…` or the judges from before `1fa91903`, as `c-prime/c2/README.md` already says for the P-page verdicts after `67b20201`).
+
+Chain: `c2/chain-c2.sh`, a copy of `findings/evidence/c-prime/c2/chain-c2.sh` with two lines changed (`diff` shows exactly these): `E=` (output directory) → `findings/evidence/132/guard/c2`, and `PAGE=` → `abe93f4575c7797d`. The second one is not an output directory; I changed it because the script's first check refuses to run when `dist/e2-editor-app.js` does not hash to its `PAGE` (`REFUSED dist … (want 8909564eb2316afa)`), and the task did not name that line. The header comment of the copy still reads "C2 on the final C′ page (dist 8909564eb2316afa …)" (left as it was). Structure unchanged: ratio 2 wide (`probe_typing_latency_view.py --dpr 2 --window 1400x1000`, owner gap 80 / 20 chars and gap 200 / 10 chars), ratio 1.5 wide (recorded only, owner gap 80), ratio 1 (`probe_typing_latency.py`, owner gap 80, owner gap 200, boundaries gap 200), Chrome first then Firefox, one cell at a time.
+
+Desk at the start (`c2/desk-at-start.txt`, 2026-10-12T18:59:21Z): `pgrep -c chrome` = 1 — the only match is Codex desktop's `chrome_crashpad_handler`, not a Chrome browser; `pgrep -fc '/chrome/chrome( |$)'` = 0 (this is the count the chain script prints as `chrome-procs 0`); `/proc/loadavg` 0.39 0.61 0.62. The owner's Chrome that was open during G0 had been closed by G1. `chain.txt`: `START tree 1fa91903 dist abe93f4575c7797d view 1412e4c863de6fcb probe dbad93c0dcf27fbf`, 12 cells all `exit 0`, `DONE` 2026-10-12T19:03:44Z (started 18:59:22Z). Tool hashes equal the ones both judges bind (`probe_typing_latency_view.py 1412e4c863de6fcb over probe dbad93c0dcf27fbf`).
+
+Judges, run as the C2 README did but with `--dir` pointing at this directory (the copy of `judge_c2.py` defaults to its own directory), output in `c2/judge-output.txt`:
+
+- `python3 findings/evidence/c-prime/c2/judge_c2.py --dir findings/evidence/132/guard/c2` → last line `PASS: both browsers, every cell`, **exit 0** (ratio 2 wide).
+- `python3 findings/evidence/typing-latency/judge_p2.py --dir findings/evidence/132/guard/c2/ratio-1` → last line `PASS: both browsers, every cell`, **exit 0** (ratio 1, P2's cells).
+
+| Cell (judge) | Chrome | Firefox | Verdict |
+|---|---|---|---|
+| ratio 2 wide, owner gap 80: every key committed / on screen | 20 of 20 / 20 of 20 | 20 of 20 / 20 of 20 | PASS |
+| ... on-screen median (needs < 70 / < 90) and max (< 150) | 26.0, max 41.1 | 29.8, max 51.8 | PASS |
+| ... (a) every commit < 2 × gap (< 160) | max 33.8 | max 38.7 | PASS |
+| ... (b) median commit < gap (< 80) | 18.2 | 22.6 | PASS |
+| ratio 2 wide, owner gap 200: every key committed / on screen | 10 of 10 / 10 of 10 | 10 of 10 / 10 of 10 | PASS |
+| ... on-screen median (< 70 / < 90) and max (< 150) | 33.5, max 44.3 | 34.2, max 47.9 | PASS |
+| ratio 2 wide (ii), recorded not gated | gap 80 62.4 ms, gap 200 65.1 ms | gap 80 62.7 ms, gap 200 84.8 ms | recorded |
+| ratio 1 (P2), owner gap 80: committed / on screen | 20 of 20 / 20 of 20 | 20 of 20 / 20 of 20 | PASS |
+| ... on-screen median (< 70 / < 90), max (< 150) | 26.7, max 40.3 | 26.4, max 44.2 | PASS |
+| ... (a) max commit (< 160); (b) median commit (< 80) | 31.5; 19.5 | 31.1; 20.9 | PASS |
+| ratio 1 (P2), owner gap 200: committed / on screen | 10 of 10 / 10 of 10 | 10 of 10 / 10 of 10 | PASS |
+| ... on-screen median (< 70 / < 90), max (< 150) | 31.1, max 43.2 | 32.2, max 48.4 | PASS |
+| ratio 1 (P2), boundaries gap 200: committed / on screen | 10 of 10 / 10 of 10 | 10 of 10 / 10 of 10 | PASS |
+| ... commit median (≤ 10) | 4.1 | 3.7 | PASS |
+| ratio 1.5 wide, owner gap 80 (recorded only, no judge): commit median / max, on-screen median / max | 18.7 / 32.2, 25.5 / 47.7 | 20.9 / 39.0, 26.7 / 44.2 | recorded |
+
+Per-key backlog is 0.0 for all 20 keys in both browsers (ratio 2 and ratio 1, as printed by the judges). Canvas rows recorded: 4380 (Chrome) / 4092 (Firefox) at ratio 2 wide, 4092 at ratio 1 (owner), 2007 / 2491 (boundaries). For comparison, the C′ page's C2 run (`../../c-prime/c2/judge-output.txt`): ratio 2 wide gap 80 commit median 17.6 / 21.4, on-screen median 24.7 / 29.1, max 39.8 / 44.5 — this run reads 18.2 / 22.6, 26.0 / 29.8, 41.1 / 51.8 (not compared against any threshold other than the judges').
+
+## Anything odd, and what was not checked
+
+- G1: the host-segment cell is `NOT_JUDGED` (two PUTs) — see G1. Cause unverified; the step was not repeated.
+- The owner's Chrome was open when G0 started (`pgrep -c chrome` 47) and was gone when G1 started (1, Codex's crashpad handler); G0 ran with it open, as the task allowed. I did not touch it.
+- G3: the docs path given to `run_probe_129_final.sh` is `../findings/…` (see G3).
+- G4: the chain copy changed its `PAGE=` line as well as its output directory (see G4).
+- `static.shellBundle` in the G0/G1 reports is `exit 1` ("manifest is out of date … changed=['web/e2-editor-app.js']", `e2/editor-shell-v2-bundle-v63.json`): the shell generation is not frozen for this page; the probe records it and does not stop on it. Not investigated further.
+- Not run, by instruction: `make`, `package_m3_engine.py`, `ddev occ upgrade`, anything in `~/Projects/Nextcloud_Apps`; nothing was committed or changed there. `wasm_sdk_probe/web` and `dist` untouched (`dist/e2-editor-app.js` hashed `abe93f45…` before G2 (binding file) and after).

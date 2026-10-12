@@ -1,0 +1,85 @@
+## judge_c2.py --dir findings/evidence/132/guard/c2 (ratio 2 wide)
+== chrome
+  PASS  chrome  owner-gap80 every key committed: 20 of 20
+  PASS  chrome  owner-gap80 every key on screen: 20 of 20
+  PASS  chrome  owner-gap80 on-screen median: 26.0 (needs < 70)
+  PASS  chrome  owner-gap80 on-screen max: 41.1 (needs < 150)
+  PASS  chrome  owner-gap80 (a) every key's commit < 2 x gap: max 33.8 (needs < 160)
+  PASS  chrome  owner-gap80 (b) median commit < gap: 18.2 (needs < 80)
+  RECORD  chrome  owner-gap80 (ii) whole canvas current after the last key: 62.4 ms (C3 gates this on C′)
+        chrome  owner-gap80: canvas rows 4380 (width unrecorded)
+  PASS  chrome  owner-gap200 every key committed: 10 of 10
+  PASS  chrome  owner-gap200 every key on screen: 10 of 10
+  PASS  chrome  owner-gap200 on-screen median: 33.5 (needs < 70)
+  PASS  chrome  owner-gap200 on-screen max: 44.3 (needs < 150)
+  RECORD  chrome  owner-gap200 (ii) whole canvas current after the last key: 65.1 ms (C3 gates this on C′)
+        chrome  owner-gap200: canvas rows 4380 (width unrecorded)
+  RECORD  chrome  owner-gap80 backlog b_i: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+  RECORD  chrome  owner-gap80 first-five / last-five median commit: 18.5 / 17.6
+== firefox
+  PASS  firefox owner-gap80 every key committed: 20 of 20
+  PASS  firefox owner-gap80 every key on screen: 20 of 20
+  PASS  firefox owner-gap80 on-screen median: 29.8 (needs < 90)
+  PASS  firefox owner-gap80 on-screen max: 51.8 (needs < 150)
+  PASS  firefox owner-gap80 (a) every key's commit < 2 x gap: max 38.7 (needs < 160)
+  PASS  firefox owner-gap80 (b) median commit < gap: 22.6 (needs < 80)
+  RECORD  firefox owner-gap80 (ii) whole canvas current after the last key: 62.7 ms (C3 gates this on C′)
+        firefox owner-gap80: canvas rows 4092 (width unrecorded)
+  PASS  firefox owner-gap200 every key committed: 10 of 10
+  PASS  firefox owner-gap200 every key on screen: 10 of 10
+  PASS  firefox owner-gap200 on-screen median: 34.2 (needs < 90)
+  PASS  firefox owner-gap200 on-screen max: 47.9 (needs < 150)
+  RECORD  firefox owner-gap200 (ii) whole canvas current after the last key: 84.8 ms (C3 gates this on C′)
+        firefox owner-gap200: canvas rows 4092 (width unrecorded)
+  RECORD  firefox owner-gap80 backlog b_i: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+  RECORD  firefox owner-gap80 first-five / last-five median commit: 23.6 / 19.8
+PASS: both browsers, every cell
+exit 0
+
+## judge_p2.py --dir findings/evidence/132/guard/c2/ratio-1 (ratio 1, P2's cells)
+== chrome
+  PASS  chrome  owner-gap80 every key committed: 20 of 20
+  PASS  chrome  owner-gap80 every key on screen: 20 of 20
+  PASS  chrome  owner-gap80 on-screen median: 26.7 (needs < 70)
+  PASS  chrome  owner-gap80 on-screen max: 40.3 (needs < 150)
+  PASS  chrome  owner-gap80 (a) every key's commit < 2 x gap: max 31.5 (needs < 160)
+  PASS  chrome  owner-gap80 (b) median commit < gap: 19.5 (needs < 80)
+  PASS  chrome  owner-gap80 (ii) every band current after the last key: 40.1 ms (the time is recorded, not gated)
+        chrome  owner-gap80: canvas rows 4092 (width unrecorded)
+  PASS  chrome  owner-gap200 every key committed: 10 of 10
+  PASS  chrome  owner-gap200 every key on screen: 10 of 10
+  PASS  chrome  owner-gap200 on-screen median: 31.1 (needs < 70)
+  PASS  chrome  owner-gap200 on-screen max: 43.2 (needs < 150)
+  PASS  chrome  owner-gap200 (ii) every band current after the last key: 53.3 ms (the time is recorded, not gated)
+        chrome  owner-gap200: canvas rows 4092 (width unrecorded)
+  PASS  chrome  boundaries-gap200 every key committed: 10 of 10
+  PASS  chrome  boundaries-gap200 every key on screen: 10 of 10
+  PASS  chrome  boundaries-gap200 commit median: 4.1 (needs <= 10)
+  PASS  chrome  boundaries-gap200 (ii) every band current after the last key: 16.2 ms (the time is recorded, not gated)
+        chrome  boundaries-gap200: canvas rows 2007 (width unrecorded)
+  RECORD  chrome  owner-gap80 backlog b_i: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+  RECORD  chrome  owner-gap80 first-five / last-five median commit: 19.9 / 13.0
+== firefox
+  PASS  firefox owner-gap80 every key committed: 20 of 20
+  PASS  firefox owner-gap80 every key on screen: 20 of 20
+  PASS  firefox owner-gap80 on-screen median: 26.4 (needs < 90)
+  PASS  firefox owner-gap80 on-screen max: 44.2 (needs < 150)
+  PASS  firefox owner-gap80 (a) every key's commit < 2 x gap: max 31.1 (needs < 160)
+  PASS  firefox owner-gap80 (b) median commit < gap: 20.9 (needs < 80)
+  PASS  firefox owner-gap80 (ii) every band current after the last key: 55.5 ms (the time is recorded, not gated)
+        firefox owner-gap80: canvas rows 4092 (width unrecorded)
+  PASS  firefox owner-gap200 every key committed: 10 of 10
+  PASS  firefox owner-gap200 every key on screen: 10 of 10
+  PASS  firefox owner-gap200 on-screen median: 32.2 (needs < 90)
+  PASS  firefox owner-gap200 on-screen max: 48.4 (needs < 150)
+  PASS  firefox owner-gap200 (ii) every band current after the last key: 58.5 ms (the time is recorded, not gated)
+        firefox owner-gap200: canvas rows 4092 (width unrecorded)
+  PASS  firefox boundaries-gap200 every key committed: 10 of 10
+  PASS  firefox boundaries-gap200 every key on screen: 10 of 10
+  PASS  firefox boundaries-gap200 commit median: 3.7 (needs <= 10)
+  PASS  firefox boundaries-gap200 (ii) every band current after the last key: 18.3 ms (the time is recorded, not gated)
+        firefox boundaries-gap200: canvas rows 2491 (width unrecorded)
+  RECORD  firefox owner-gap80 backlog b_i: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+  RECORD  firefox owner-gap80 first-five / last-five median commit: 24.9 / 18.6
+PASS: both browsers, every cell
+exit 0
