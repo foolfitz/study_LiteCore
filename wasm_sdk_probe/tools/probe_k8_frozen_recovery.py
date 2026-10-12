@@ -220,7 +220,7 @@ def main() -> int:
         report["completedAt"] = utc_now()
         report["httpLog"] = log
         out.write_text(json.dumps(report, indent=1, ensure_ascii=False) + "\n")
-    print(out.relative_to(locks.REPO))
+    print(out.resolve().relative_to(locks.REPO))
     return 0
 
 
