@@ -42,10 +42,16 @@ Why it never happened before 0.2.13: nothing started a request at the moment of 
 
 ## What the user is told
 
-With no checkpoint, the page's recovery notice reads (`e2-editor-app.js` around :749, decided by `recovery-notice.js`): 「引擎需要重新開啟。沒有檢查點，所以自上次儲存以來的內容不會回來。」 The engine itself was not dead (run 2 shows it answers about 270 ms after thaw). Whether the restart actually loses the edit was **not measured**; by the notice's own wording the page says it does.
+With no checkpoint, the page's recovery notice reads (`e2-editor-app.js` around :749, decided by `recovery-notice.js`): 「引擎需要重新開啟。沒有檢查點，所以自上次儲存以來的內容不會回來。」 That the engine was not dead is inferred from run 2 only (it answers about 270 ms after thaw): in runs 1 and 3 a late reply to the cancelled request cannot be seen, because the `resp` logpoint sits at `document-sdk.js:236`, after `:234 if (!entry) return;` (correction from fable's ruling, `../../133/ruling/fable-ruling.md` §4). Whether the restart actually loses the edit was **not measured**; by the notice's own wording the page says it does.
 
 ## Not measured
 
 - How often a real user reaches this. It needs a save in flight when the page is frozen or the machine stops: for example, closing a laptop lid or switching away right before the system sleeps. Chrome's own freezing of background tabs happens minutes after hiding, long after a 0.5–0.7 s save. Whether a 180 s `setTimeout` is overdue after OS suspend depends on the platform clock. **Not measured on any platform.**
 - Firefox: K8 is Chrome-only (CDP).
 - The frequency beyond 2/3 + 1/1 (the chain's run) + 0/1 (the witness) = 3 of 5 on 0.2.13's pages.
+
+## Corrections (2026-10-12, from fable's ruling §4)
+
+- "1–2 ms after `freezeAt`": run 3 is 5 ms (3416 → 3421).
+- The race is not only reply speed: at thaw the overdue timers are released in one batched wake-up (the 30 s idle-autosave timer and the 180 s save deadline fire within 2 ms of each other: 333985/333987, 334014/334016; run 2's batch at 334659, after the reply at 334135), phases +182 / +188 / +795 ms against a reply at about +271 ms. So a green K8 on an unfixed page is the timer losing, not evidence of health.
+- The K8 expectation change is `65e90f62`; `ce758882` holds the witness re-score outputs.

@@ -591,3 +591,41 @@ AS-2：開始時間落在 30.6–31.5 秒（30 秒加引擎段）。AS-5：0 掉
 - **殼層 generation v62 凍結**（2026-10-12）：`75e29eb281797c429dc5e9d8bd1d930c87e1096a254b2e9f4ff692401830a2b0`，與 v61 只差 `web/e2-editor-app.js`（`d761f1ce…`＝127 自動儲存＋128 處方 B＋129＋130＋131 規則 A）與凍結日期，排除清單相同（承自 v40）。凍結前 `make test-e2-c-static` 只紅在 manifest 過期（`release-0.2.13/test-e2-c-static-before-freeze.txt`），凍結後結束碼 0、E1-C 完好（`…-after-freeze.txt`）。v61 沒有被動到。
 - **宿主 0.2.13 commit**（2026-10-12）：`e028517`（宿主程式碼是 `84dc3da`、`f0e3464`，這一筆只是 `info.xml` 的版本）。`engine/` 不進宿主的 git，裝的是 buildId `59e6a9fed026a0ad`（`build/archive/host-0.2.13-engine-59e6a9fed026a0ad/` 的 MANIFEST 與宿主的逐位元組相同），`check_engine_decoded.py` 在 commit 前重跑通過。
 - **綁定**（2026-10-12，寫在任何計數執行之前；只動 pin 行，註解保留舊值）：七支 runner——`check_m3_assets.py`（頁面、buildId `59e6a9fe…`）、`check_m3_versions.py`（宿主 `e028517`）、`check_m3_same_second.py`（0.2.13）、`check_m3_page_honesty.py`（頁面、0.2.13、`e028517`）、`check_m3_locks.py`（頁面）、`check_m3_production_ui.py`（頁面、0.2.13、`e028517`、殼層 v62 `75e29eb2…`）、`check_m3_autosave.py`（從 `None` 綁到頁面 `d761f1ce…`、session `62a2a20e…`、0.2.13、`e028517`）。產品路徑判讀副本 `release-0.2.13/product-path/judge.py` 的兩個常數改成 `d761f1ce…` 與 `fac708d0…`（v8 改指頁面，用 runner 自己的 `repointed_page()` 算；同一個呼叫在 0.2.12 的頁面上得 `0660beaf…`、在修法前的頁面上得 `2609266a…`，兩個舊值都重現），`PREDICTION.md` 同步改值並補上 §9.12 末段答應的規則 A 那一行。改綁後 `make test-e2-c-static` 結束碼 0（`release-0.2.13/test-e2-c-static-after-repin.txt`）。
+
+### 9.20 finding 133 的裁決：修在 SDK、v63／0.2.14、判準 133-U／133-B（fable，2026-10-12，只追加；`findings/evidence/133/ruling/fable-ruling.md`）
+
+**裁決：A′——修了再計數。**0.2.13 的計數鏈停在 locks shakedown K8 `frozen` Chrome 0/1（`m3-locks/shakedown/2026-10-12T113020+0000.json`），沒有任何計數執行開始。修法在 `sdk/document-sdk.js`；殼層 generation **v63**；宿主 **0.2.14**；0.2.13 這個號碼作廢、不出貨。擁有者 §9.18 測的頁面 `d761f1ce…` 位元組不變。
+
+**量到的機制**（`m3-locks/k8-recoverable-2026-10-12/probe-2026-10-12T121440+0000.json`，三次）：CDP 凍結前頁面先 `hidden`，§9.2「切到背景」在 2–5 ms 內送出 `save`（請求 18，期限 180 000 ms）；凍結約 330 秒；解凍時過期的計時器成批在一次喚醒放出（相位 +182／+188／+795 ms），Worker 的回覆約 +271 ms；計時器先到就 `TIMEOUT` → `RECOVERY_ERRORS` → `recoverable-error`（2/3），回覆先到就兩次存檔都落地（1/3）。0.2.13 之前 27 次 K8 全 `ready`。
+
+**修法（行為）**：請求上鏈時記 `dueAt = performance.now() + timeoutMs`。計時器到期時算 `late = performance.now() − dueAt`：`late ≤ 2000 ms` 照舊逾時（`failAndCancel`，cancel 照送）；`late > 2000 ms` 視為頁面曾停住——不判失敗、不送 cancel，以 10 000 ms 重新上鏈、再看一次。所有請求一律適用；`signal` 中止不變。最終的 `SdkTimeoutError.details` 帶 `extendedMs` 與 `extensions`。L、G、`now` 可由 options 注入（只給測試）。不動 `editor-shell/editor-session.js`（E1-C）；不動頁面；不動 Worker。
+
+**判準 133-U（逐實例；單元，`sdk/tests/document-sdk.test.mjs`）**：
+- U1：期限遲到 > L 到期、寬限內回覆 → 請求 resolve，0 個 cancel。
+- U2：期限遲到 > L 到期、寬限內沒有回覆 → 以 `TIMEOUT` reject，恰 1 個 cancel，`details.extensions == 1`。
+- U3（既有 `:249`「timeout rejects and emits a best-effort cancel」）：準時到期 → 行為不變。
+- **紅案**：U1 在修法前的 SDK 上必須 FAIL，輸出 commit 到 `findings/evidence/133/unit/`；U3 在修法後仍 PASS。*若永遠沒做：133 不算修好，v63 不凍。*
+
+**判準 133-B（逐實例＋正向對照；瀏覽器，Chrome）**：儀器 `probe_k8_frozen_recovery.py --repeats 6`，0.2.14 的宿主、頁面 `d761f1ce…`、新 buildId。每一次都要：
+- (a) 正向對照：`diag` 裡 `autosaveNow hidden` 與 `req save` 的時間 < `freezeAt + 1000`（真的有一次存檔跨過凍結）；
+- (b) `save1State.state == "ready"`；`host.saves[-1].trigger == "manual"` 且最後一次 attempt 204；`serverAfter.sha256 == host.saves[-1].sha256`；`copiesAfter == []`；之前每筆 `trigger == "auto"`；
+- (c) `diag` 裡沒有 `blockQueue`、沒有 `fail save`；
+- (d) 若有 `rearm`（新 logpoint，修法的重新上鏈那一行），其後 10 000 ms 內要有 `resp save` → 這一次算「守衛燒過」。
+- 6 次全過 (a)–(c)，且守衛燒過 ≥ 1 → 成立。守衛 0 次 → 再 6 次（最多 12）；12 次仍 0 → 瀏覽器這一格 NOT_ESTABLISHED（登錄「12 次賽跑都是回覆先到」），由 133-U 承載修法，計數照跑。
+- **紅案**：已 commit 的探針 run 1、run 3 與 shakedown `113020Z`（沒修的包上 (b)(c) 都紅），不重跑。*若永遠沒做：133 不算修好，0.2.14 不計數。*
+
+**預測（寫在執行之前）**：守衛燒過 2–5 次／6；燒過的每次恰 1 次 `rearm`，`resp` 在解凍後 400 ms 內；auto 紀錄 412（帶 token）→ 204（不帶），`lock.lostBy == "save"`；manual 204；計數鏈的 K8 1/1；鏈上其他格與 0.2.13 的期望逐格相同。
+
+**重開範圍**：計數鏈全部重跑（本來一格都沒算）。131-B、121-B、129-B、130-U、128-B、§9.18 站在 v62 的量測上，理由：頁面不變，新分支只在期限遲到 > 2 秒時可達，那些量測沒有任何期限到期過；**條件**是 v63 manifest 與 v62 只差 `sdk/document-sdk.js`、digest、`frozenDate`。E1-C 不受影響，凍結後 intact 照查。產品路徑判讀副本常數不變（重算一次確認）。
+
+**具名限制**：
+- **L-133-band**：凍結或睡眠若在期限前不到一次回覆時間、或期限後不到 2 秒內結束，計時器仍可能先到；寬度約 L。
+- **L-133-suspend**：系統睡眠後 `setTimeout` 會不會過期看平台時鐘，任何平台都沒量；修法在它過期時生效，不過期時本來就沒事。
+- **L-133-hidden-verdict**：分頁長時間在背景被節流時，真的死掉的引擎可能要等分頁回到前景才被判死（每次遲到都重新上鏈）。未量。
+- **L-133-firefox**：K8／133-B 只有 Chrome。
+
+**K8 與 §34**：K8 不改；`check_m3_locks.py` 不動；帳不變（因執行而修 11／因審核而修 6）。探針的 `score_arm` `KeyError: 'original'` 與新 logpoint是診斷工具的修改，不記帳、交接列一行。
+
+**宿主**：0.2.14 只是 `appinfo/info.xml` 版本＋新引擎包（buildId 由內容算）；宿主程式碼不動。
+
+**工作項（不是判準）**：COOL 把存檔期限綁到載入時間（`wsd/DocumentBroker.cpp:3889-3892`，4×＋0.5 秒、最少 5 秒）；我們的 180 秒常數沒有量測依據，下一輪可量。探針的 `resp` logpoint 移到 `document-sdk.js:233` 之前，讓被取消請求的遲到回覆也看得到。
