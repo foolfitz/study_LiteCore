@@ -59,7 +59,9 @@ EXPECTED_DIST_SHA256 = "8909564eb2316afa6de7868a08b61d27219fabdf49f37326fee0dda2
 # --final (129-B on the bytes that ship, SPEC-M3-autosave §9.4): the page under test is dist/ itself once
 # 0.2.13's page is copied there (it carries the 129 fix, with review 2's changes), and the red control is
 # 0.2.12's page from the archived engine package (the same dist/ otherwise: only e2-editor-app.js differs).
-FINAL_PAGE_SHA256 = "c7f904fa1d807c63afc0e82522dcb0d8abab71175a9ee5de3c2af276dd24b5ab"
+# Re-pinned 2026-10-12 to the page with finding 131's rule A (SPEC-M3-autosave §9.12; it re-opens 129-B).
+# The two earlier rounds in findings/evidence/129/final/ ran on c7f904fa1d807c63afc0e82522dcb0d8abab71175a9ee5de3c2af276dd24b5ab.
+FINAL_PAGE_SHA256 = "d761f1cee9d26c50c0b152348d74c3d05f540e9228927815d93ad6ec161e7dcd"
 OLD_PAGE_GZ = HERE / "build" / "archive" / "host-0.2.12-engine-45cdcedfc0fe7e61" / "files" / "e2-editor-app.js.gz"
 INSTRUMENT_LINE = "\nglobalThis.__m4 = { get session() { return session; } };\n"
 NATIVE_ROUND = TREE / "findings" / "evidence" / "129" / "native" / "point-click-round-20261012T031459Z"
