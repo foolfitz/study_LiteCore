@@ -1,0 +1,49 @@
+--- web/e2-editor-app.js	2026-10-11 09:48:03.938550794 +0800
++++ web/e2-editor-app.js (M4 mirror)	2026-10-12 11:05:37.094527649 +0800
+@@ -2401,10 +2401,46 @@
+   // taking the key on the second would be the "looks like it worked" trap that
+   // Ctrl+A is unbound to avoid.
+   if (!action || !session.offers(action)) return;
++  // FINDING 129 (SPEC-M3-autosave §3.7).  Shift+move asks to EXTEND the
++  // selection, and no action here extends one until the next link; sending
++  // the plain move did something other than what was asked.  Not taken.
++  if (event.shiftKey) return;
+   event.preventDefault();
++  // FINDING 129.  On a range the six moves are refused (the profile grants
++  // them `collapsed` only) and the refusal reached the user as a developer
++  // sentence.  Writer moves FROM THE POINT -- the end the caret is at -- and
++  // drops the selection (findings/evidence/129/native/).  The page cannot send
++  // a move on a range, but it can click at the point, which collapses the
++  // selection there, and then send the move on the caret.  While one such
++  // pair is queued, further move keys go straight to the queue: they run after
++  // the click, on a caret, and a second click at a point read before the first
++  // move ran would put the caret back.
++  const shape = selectionShapeOf({ state: session.state.snapshot.editorState }) ?? lastSelectionShape;
++  const gestures = session.gesturesFor(action);
++  if (pointMovesInFlight === 0 && shape !== "collapsed"
++      && Array.isArray(gestures) && !gestures.includes(shape)) {
++    void moveFromPoint(action).catch(() => {});
++    return;
++  }
+   void editorAction(action).catch(() => {});
+ });
+ 
++let pointMovesInFlight = 0;
++async function moveFromPoint(action) {
++  if (!SESSION_ACCEPTS.has(session?.state?.snapshot?.state)) return;
++  const caret = session.state.snapshot.editorState?.caret;
++  if (!Number.isFinite(caret?.x) || !Number.isFinite(caret?.y) || !Number.isFinite(caret?.height)) return;
++  pointMovesInFlight += 1;
++  try {
++    lastSelectionShape = "collapsed";
++    await run("定位游標", () => session.placeCaret(caret.x, caret.y + caret.height / 2));
++    updateGestureAffordance();
++    await editorAction(action);
++  } finally {
++    pointMovesInFlight -= 1;
++  }
++}
++
+ // Cut = copy, then delete what was copied.  Two dispatches rather than one
+ // because the contract has no cut action; the ORDER matters, since a failed
+ // copy must not still remove the text.
