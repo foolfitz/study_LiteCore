@@ -1977,7 +1977,11 @@ async function saveOnce(settle = () => {}, take = takeSavedContent, options = {}
                           .finally(settle),
                         { quiet: auto });
     } catch (error) {
-      if (error?.outcome === "copy") autosaveLanded();
+      // A copy is a file written; stranded bytes are taken too (the host keeps
+      // them and guards leaving), so the 5-minute count starts again rather
+      // than turning every 3 s pause of an offline user into a blocking save
+      // (review 2 item 3).
+      if (error?.outcome === "copy" || error?.outcome === "stranded") autosaveLanded();
       throw error;
     }
     autosaveLanded();
@@ -2499,13 +2503,18 @@ el.sink.addEventListener("keydown", (event) => {
 });
 
 async function moveFromPoint(action) {
-  if (!SESSION_ACCEPTS.has(session?.state?.snapshot?.state)) return;
-  const caret = session.state.snapshot.editorState?.caret;
-  if (!Number.isFinite(caret?.x) || !Number.isFinite(caret?.y) || !Number.isFinite(caret?.height)) return;
+  const caret = session?.state?.snapshot?.editorState?.caret;
+  // No point to click at (or no session taking actions): the move goes out as
+  // it is, and whatever refuses it says so -- a key must not do nothing silently.
+  if (!SESSION_ACCEPTS.has(session?.state?.snapshot?.state)
+      || !Number.isFinite(caret?.x) || !Number.isFinite(caret?.y) || !Number.isFinite(caret?.height)) {
+    await editorAction(action);
+    return;
+  }
   pointMovesInFlight += 1;
   try {
-    lastSelectionShape = "collapsed";
     await run("定位游標", () => session.placeCaret(caret.x, caret.y + caret.height / 2));
+    lastSelectionShape = "collapsed";
     updateGestureAffordance();
     await editorAction(action);
   } finally {
