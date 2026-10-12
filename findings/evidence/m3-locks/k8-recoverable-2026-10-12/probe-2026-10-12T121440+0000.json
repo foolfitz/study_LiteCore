@@ -1,0 +1,3419 @@
+{
+ "probe": "probe_k8_frozen_recovery.py",
+ "probeSha256": "606d522be7e34c83c961dc3a006525b4d34664cccc61802b79c4e82bd631c628",
+ "locksRunnerSha256": "d0b5dbdee7da55f09a6545d25dbbba1eb2a7649794baac3debfe80f0d93054d0",
+ "startedAt": "2026-10-12T12:14:40+00:00",
+ "static": {
+  "page": {
+   "dist": "d761f1cee9d26c50c0b152348d74c3d05f540e9228927815d93ad6ec161e7dcd"
+  }
+ },
+ "hostRepo": "e028517d826c977e0ba38126f737d9e23f50bf67 Host 0.2.13: autosave, findings 128-131, and saves after the copy switch go to the copy (shell generation v62)",
+ "hostDirty": "",
+ "hostFiles": {
+  "js/litecore-editor.js": "7bd05a8458a9d50ae6e1e3ee76e259ce2d1dd54e57bef7862b5cad8ccc41677a",
+  "lib/Controller/EditorController.php": "c5d638579d84d00d36ea65e1fedd1a5bb3779c2ca9a5c7a165bff102c304ff12",
+  "templates/editor.php": "8dba8a5a4e2fa5ba0d3d1c0bceb0fb8ed6a6da7623c7ae231ee1e69e55c3e5d7"
+ },
+ "hostBinding": {
+  "appDir": "/home/jiajun/Projects/Nextcloud_Apps/litecore",
+  "sourceRepo": "/home/jiajun/Projects/Nextcloud_Apps/litecore"
+ },
+ "baseUrl": "https://litecore.ddev.site:8443",
+ "logpoints": [
+  [
+   "/editor-shell/editor-session\\.js(\\?.*)?$",
+   343,
+   "console.log('LCDIAG blockQueue', Date.now(), state, reason, JSON.stringify({code: error && error.code, message: error && error.message, details: error && error.details}), new Error().stack), false"
+  ],
+  [
+   "/editor-shell/editor-session\\.js(\\?.*)?$",
+   355,
+   "console.log('LCDIAG enterRecovery', Date.now(), JSON.stringify({code: error && error.code, message: error && error.message}), new Error().stack), false"
+  ],
+  [
+   "/editor-shell/state-machine\\.js(\\?.*)?$",
+   41,
+   "console.log('LCDIAG transition', Date.now(), this._snapshot.state, next), false"
+  ],
+  [
+   "/sdk/document-sdk\\.js(\\?.*)?$",
+   159,
+   "console.log('LCDIAG req', Date.now(), operation, requestId), false"
+  ],
+  [
+   "/sdk/document-sdk\\.js(\\?.*)?$",
+   236,
+   "console.log('LCDIAG resp', Date.now(), entry.operation, message.requestId, message.ok), false"
+  ],
+  [
+   "/sdk/document-sdk\\.js(\\?.*)?$",
+   171,
+   "console.log('LCDIAG fail', Date.now(), entry.operation, requestId, error && error.code, error && error.message), false"
+  ],
+  [
+   "/reader-shell/tile-scheduler\\.js(\\?.*)?$",
+   253,
+   "console.log('LCDIAG tileError', Date.now(), JSON.stringify({code: error && error.code, message: error && error.message, retry: item && item.retry})), false"
+  ],
+  [
+   "/e2-editor-app\\.js(\\?.*)?$",
+   2606,
+   "console.log('LCDIAG autosaveNow', Date.now(), reason, JSON.stringify(autosaveConditions())), false"
+  ]
+ ],
+ "runs": [
+  {
+   "arm": "frozen",
+   "spec": "K8",
+   "browser": "chrome",
+   "startedAt": "2026-10-12T12:14:45+00:00",
+   "file": {
+    "user": "admin",
+    "path": "M3 骨架 測試.odt",
+    "adminPath": "M3 骨架 測試.odt"
+   },
+   "clearedLocks": "0",
+   "reset": {
+    "upload": 204,
+    "fileId": 76
+   },
+   "copiesBefore": [],
+   "serverBefore": {
+    "status": 200,
+    "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+    "bytes": 1343
+   },
+   "downloadVia": "Page.setDownloadBehavior",
+   "version": "Chrome/151.0.7922.169",
+   "login": {
+    "status": 200,
+    "url": "https://litecore.ddev.site:8443/apps/dashboard/"
+   },
+   "filesRow": true,
+   "filesRowSeconds": 0.05,
+   "clickedFrom": "https://litecore.ddev.site:8443/apps/files/files?dir=/",
+   "landed": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/59e6a9fed026a0ad-90d7bc2c/e2-editor.html?fileId=76",
+   "host": {
+    "started": 1791807295796,
+    "done": true,
+    "steps": [
+     {
+      "step": "imported",
+      "at": 265
+     },
+     {
+      "step": "fetched",
+      "at": 335
+     },
+     {
+      "step": "opened",
+      "at": 1866,
+      "state": {
+       "state": "ready",
+       "doc": "M3 骨架 測試.odt",
+       "revision": "0",
+       "toast": null
+      }
+     }
+    ],
+    "saves": [],
+    "lock": {
+     "state": "lost",
+     "status": 200,
+     "at": 288,
+     "refreshes": [
+      {
+       "at": 334215,
+       "status": 400,
+       "seconds": 634
+      }
+     ],
+     "verified": true,
+     "lostBy": "refresh",
+     "lostStatus": 400,
+     "lostAt": 334215
+    },
+    "stranded": null,
+    "notice": "鎖已失效：別人現在可以寫這個檔案；存檔前仍會確認檔案沒被別人改過。",
+    "scope": "scoped",
+    "file": {
+     "id": 76,
+     "name": "M3 骨架 測試.odt",
+     "size": 1343,
+     "etag": "f597000fd3b2cf32906d5f7f0e9d1199",
+     "writable": true
+    },
+    "isolation": {
+     "crossOriginIsolated": true,
+     "sharedArrayBuffer": true
+    },
+    "href": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/59e6a9fed026a0ad-90d7bc2c/e2-editor.html?fileId=76",
+    "watchingPage": true,
+    "fetched": {
+     "status": 200,
+     "contentType": "application/vnd.oasis.opendocument.text",
+     "etag": "\"6acccf4013c17\"",
+     "bytes": 1343,
+     "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+     "at": 335
+    },
+    "handedReadOnly": false,
+    "finished": 1866
+   },
+   "secondsToOpened": 2.23,
+   "pickers": {
+    "fixtureDisabled": true,
+    "openFileDisabled": true,
+    "fileDisabled": true,
+    "fixtureOptions": 0
+   },
+   "bar": {
+    "notice": "",
+    "barHidden": true,
+    "downloadHidden": true
+   },
+   "afterOpen": {
+    "status": 207,
+    "etag": "\"6acccf4013c17\"",
+    "fileid": "76",
+    "lock": "1",
+    "lockOwner": "admin",
+    "lockOwnerType": "2",
+    "token": "opaquelocktoken:e3da1747-b5fe-4ecc-9c9d-f35cd3a4d213"
+   },
+   "smoke": {
+    "before": {
+     "state": "ready",
+     "label": "就緒",
+     "revision": "0",
+     "pending": "0",
+     "checkpoint": "無",
+     "latency": "—",
+     "doc": "M3 骨架 測試.odt",
+     "toast": "已開啟 M3 骨架 測試.odt",
+     "buttons": [
+      {
+       "action": "undo",
+       "disabled": false
+      },
+      {
+       "action": "redo",
+       "disabled": false
+      },
+      {
+       "action": "move-character-left",
+       "disabled": false
+      },
+      {
+       "action": "move-character-right",
+       "disabled": false
+      },
+      {
+       "action": "delete-backward",
+       "disabled": false
+      },
+      {
+       "action": "delete-forward",
+       "disabled": false
+      },
+      {
+       "action": "insert-paragraph-break",
+       "disabled": false
+      },
+      {
+       "action": "insert-line-break",
+       "disabled": false
+      },
+      {
+       "action": "set-bold",
+       "disabled": false
+      },
+      {
+       "action": "set-italic",
+       "disabled": false
+      },
+      {
+       "action": "set-underline",
+       "disabled": false
+      },
+      {
+       "action": "set-strikethrough",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-heading",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-body",
+       "disabled": false
+      },
+      {
+       "action": "set-list-unordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-ordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-none",
+       "disabled": false
+      },
+      {
+       "action": "insert-text",
+       "disabled": false
+      },
+      {
+       "action": "save",
+       "disabled": false
+      }
+     ]
+    },
+    "caret": {
+     "state": "ready",
+     "label": "就緒",
+     "revision": "0",
+     "pending": "0",
+     "checkpoint": "無",
+     "latency": "定位游標 32 ms",
+     "doc": "M3 骨架 測試.odt",
+     "toast": "已開啟 M3 骨架 測試.odt",
+     "buttons": [
+      {
+       "action": "undo",
+       "disabled": false
+      },
+      {
+       "action": "redo",
+       "disabled": false
+      },
+      {
+       "action": "move-character-left",
+       "disabled": false
+      },
+      {
+       "action": "move-character-right",
+       "disabled": false
+      },
+      {
+       "action": "delete-backward",
+       "disabled": false
+      },
+      {
+       "action": "delete-forward",
+       "disabled": false
+      },
+      {
+       "action": "insert-paragraph-break",
+       "disabled": false
+      },
+      {
+       "action": "insert-line-break",
+       "disabled": false
+      },
+      {
+       "action": "set-bold",
+       "disabled": false
+      },
+      {
+       "action": "set-italic",
+       "disabled": false
+      },
+      {
+       "action": "set-underline",
+       "disabled": false
+      },
+      {
+       "action": "set-strikethrough",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-heading",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-body",
+       "disabled": false
+      },
+      {
+       "action": "set-list-unordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-ordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-none",
+       "disabled": false
+      },
+      {
+       "action": "insert-text",
+       "disabled": false
+      },
+      {
+       "action": "save",
+       "disabled": false
+      }
+     ]
+    },
+    "acted": {
+     "state": "ready",
+     "label": "就緒",
+     "revision": "1",
+     "pending": "0",
+     "checkpoint": "無",
+     "latency": "標題 67 ms",
+     "doc": "M3 骨架 測試.odt",
+     "toast": "已開啟 M3 骨架 測試.odt",
+     "buttons": [
+      {
+       "action": "undo",
+       "disabled": false
+      },
+      {
+       "action": "redo",
+       "disabled": false
+      },
+      {
+       "action": "move-character-left",
+       "disabled": false
+      },
+      {
+       "action": "move-character-right",
+       "disabled": false
+      },
+      {
+       "action": "delete-backward",
+       "disabled": false
+      },
+      {
+       "action": "delete-forward",
+       "disabled": false
+      },
+      {
+       "action": "insert-paragraph-break",
+       "disabled": false
+      },
+      {
+       "action": "insert-line-break",
+       "disabled": false
+      },
+      {
+       "action": "set-bold",
+       "disabled": false
+      },
+      {
+       "action": "set-italic",
+       "disabled": false
+      },
+      {
+       "action": "set-underline",
+       "disabled": false
+      },
+      {
+       "action": "set-strikethrough",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-heading",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-body",
+       "disabled": false
+      },
+      {
+       "action": "set-list-unordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-ordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-none",
+       "disabled": false
+      },
+      {
+       "action": "insert-text",
+       "disabled": false
+      },
+      {
+       "action": "save",
+       "disabled": false
+      }
+     ]
+    }
+   },
+   "freezeAt": 3425,
+   "frozen": true,
+   "lockWhileFrozen": {
+    "status": 207,
+    "etag": "\"6acccf4013c17\"",
+    "fileid": "76",
+    "lock": "",
+    "lockOwner": null,
+    "lockOwnerType": null,
+    "token": null
+   },
+   "thawAt": 333805,
+   "save1Seen": {
+    "timedOut": true,
+    "lastError": null
+   },
+   "save1State": {
+    "state": "recoverable-error",
+    "label": "需要回復",
+    "revision": "1",
+    "pending": "0",
+    "checkpoint": "無",
+    "latency": "儲存 失敗",
+    "doc": "M3 骨架 測試.odt",
+    "toast": "儲存：EDITOR_NOT_READY：editor operation save is unavailable in recoverable-error",
+    "buttons": [
+     {
+      "action": "undo",
+      "disabled": true
+     },
+     {
+      "action": "redo",
+      "disabled": true
+     },
+     {
+      "action": "move-character-left",
+      "disabled": true
+     },
+     {
+      "action": "move-character-right",
+      "disabled": true
+     },
+     {
+      "action": "delete-backward",
+      "disabled": true
+     },
+     {
+      "action": "delete-forward",
+      "disabled": true
+     },
+     {
+      "action": "insert-paragraph-break",
+      "disabled": true
+     },
+     {
+      "action": "insert-line-break",
+      "disabled": true
+     },
+     {
+      "action": "set-bold",
+      "disabled": true
+     },
+     {
+      "action": "set-italic",
+      "disabled": true
+     },
+     {
+      "action": "set-underline",
+      "disabled": true
+     },
+     {
+      "action": "set-strikethrough",
+      "disabled": true
+     },
+     {
+      "action": "set-paragraph-heading",
+      "disabled": true
+     },
+     {
+      "action": "set-paragraph-body",
+      "disabled": true
+     },
+     {
+      "action": "set-list-unordered",
+      "disabled": true
+     },
+     {
+      "action": "set-list-ordered",
+      "disabled": true
+     },
+     {
+      "action": "set-list-none",
+      "disabled": true
+     },
+     {
+      "action": "insert-text",
+      "disabled": true
+     },
+     {
+      "action": "save",
+      "disabled": true
+     }
+    ],
+    "timedOut": true
+   },
+   "serverAfter": {
+    "status": 200,
+    "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+    "bytes": 1343
+   },
+   "copiesAfter": [],
+   "cdp": {
+    "documents": [
+     {
+      "url": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/59e6a9fed026a0ad-90d7bc2c/e2-editor.html?fileId=76",
+      "status": 200,
+      "coop": "same-origin",
+      "coep": "require-corp",
+      "dip": null
+     }
+    ],
+    "loadingFailed": [],
+    "errorLogs": [
+     {
+      "source": "network",
+      "text": "Failed to load resource: the server responded with a status of 400 ()",
+      "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt"
+     }
+    ],
+    "exceptions": []
+   },
+   "fixtureRequests": [],
+   "davRequests": [
+    {
+     "method": "LOCK",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": "Second-300"
+    },
+    {
+     "method": "PROPFIND",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "GET",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "LOCK",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": "(<opaquelocktoken:e3da1747-b5fe-4ecc-9c9d-f35cd3a4d213>)",
+     "timeout": "Second-634"
+    }
+   ],
+   "dialogs": [],
+   "locksAtEnd": {
+    "status": 207,
+    "etag": "\"6acccf4013c17\"",
+    "fileid": "76",
+    "lock": "",
+    "lockOwner": null,
+    "lockOwnerType": null,
+    "token": null
+   },
+   "clearedAtEnd": "0",
+   "logpointsInstalled": [
+    {
+     "regex": "/editor-shell/editor-session\\.js(\\?.*)?$",
+     "line": 343,
+     "locations": [
+      {
+       "scriptId": "55",
+       "lineNumber": 342,
+       "columnNumber": 9
+      }
+     ]
+    },
+    {
+     "regex": "/editor-shell/editor-session\\.js(\\?.*)?$",
+     "line": 355,
+     "locations": [
+      {
+       "scriptId": "55",
+       "lineNumber": 354,
+       "columnNumber": 4
+      }
+     ]
+    },
+    {
+     "regex": "/editor-shell/state-machine\\.js(\\?.*)?$",
+     "line": 41,
+     "locations": [
+      {
+       "scriptId": "57",
+       "lineNumber": 40,
+       "columnNumber": 25
+      }
+     ]
+    },
+    {
+     "regex": "/sdk/document-sdk\\.js(\\?.*)?$",
+     "line": 159,
+     "locations": [
+      {
+       "scriptId": "51",
+       "lineNumber": 158,
+       "columnNumber": 22
+      }
+     ]
+    },
+    {
+     "regex": "/sdk/document-sdk\\.js(\\?.*)?$",
+     "line": 236,
+     "locations": [
+      {
+       "scriptId": "51",
+       "lineNumber": 235,
+       "columnNumber": 9
+      }
+     ]
+    },
+    {
+     "regex": "/sdk/document-sdk\\.js(\\?.*)?$",
+     "line": 171,
+     "locations": [
+      {
+       "scriptId": "51",
+       "lineNumber": 170,
+       "columnNumber": 8
+      }
+     ]
+    },
+    {
+     "regex": "/reader-shell/tile-scheduler\\.js(\\?.*)?$",
+     "line": 253,
+     "locations": [
+      {
+       "scriptId": "58",
+       "lineNumber": 252,
+       "columnNumber": 8
+      }
+     ]
+    },
+    {
+     "regex": "/e2-editor-app\\.js(\\?.*)?$",
+     "line": 2606,
+     "locations": [
+      {
+       "scriptId": "48",
+       "lineNumber": 2605,
+       "columnNumber": 2
+      }
+     ]
+    }
+   ],
+   "diag": [
+    [
+     "LCDIAG transition",
+     1791807298212,
+     "ready",
+     "busy"
+    ],
+    [
+     "LCDIAG req",
+     1791807298213,
+     "editorGetStateV2",
+     5
+    ],
+    [
+     "LCDIAG resp",
+     1791807298214,
+     "editorGetStateV2",
+     5,
+     true
+    ],
+    [
+     "LCDIAG req",
+     1791807298214,
+     "click",
+     6
+    ],
+    [
+     "LCDIAG resp",
+     1791807298215,
+     "click",
+     6,
+     true
+    ],
+    [
+     "LCDIAG req",
+     1791807298215,
+     "editorGetStateV2",
+     7
+    ],
+    [
+     "LCDIAG resp",
+     1791807298216,
+     "editorGetStateV2",
+     7,
+     true
+    ],
+    [
+     "LCDIAG req",
+     1791807298221,
+     "editorGetStateV2",
+     8
+    ],
+    [
+     "LCDIAG resp",
+     1791807298222,
+     "editorGetStateV2",
+     8,
+     true
+    ],
+    [
+     "LCDIAG req",
+     1791807298227,
+     "editorGetStateV2",
+     9
+    ],
+    [
+     "LCDIAG resp",
+     1791807298229,
+     "editorGetStateV2",
+     9,
+     true
+    ],
+    [
+     "LCDIAG req",
+     1791807298234,
+     "editorGetStateV2",
+     10
+    ],
+    [
+     "LCDIAG resp",
+     1791807298234,
+     "editorGetStateV2",
+     10,
+     true
+    ],
+    [
+     "LCDIAG req",
+     1791807298237,
+     "paint",
+     11
+    ],
+    [
+     "LCDIAG req",
+     1791807298240,
+     "editorGetStateV2",
+     12
+    ],
+    [
+     "LCDIAG resp",
+     1791807298242,
+     "paint",
+     11,
+     true
+    ],
+    [
+     "LCDIAG resp",
+     1791807298242,
+     "editorGetStateV2",
+     12,
+     true
+    ],
+    [
+     "LCDIAG transition",
+     1791807298243,
+     "busy",
+     "ready"
+    ],
+    [
+     "LCDIAG req",
+     1791807298243,
+     "paint",
+     13
+    ],
+    [
+     "LCDIAG resp",
+     1791807298247,
+     "paint",
+     13,
+     true
+    ],
+    [
+     "LCDIAG transition",
+     1791807298718,
+     "ready",
+     "busy"
+    ],
+    [
+     "LCDIAG req",
+     1791807298718,
+     "editorActionV2",
+     14
+    ],
+    [
+     "LCDIAG req",
+     1791807298730,
+     "paint",
+     15
+    ],
+    [
+     "LCDIAG resp",
+     1791807298757,
+     "paint",
+     15,
+     true
+    ],
+    [
+     "LCDIAG req",
+     1791807298781,
+     "paint",
+     16
+    ],
+    [
+     "LCDIAG resp",
+     1791807298783,
+     "editorActionV2",
+     14,
+     true
+    ],
+    [
+     "LCDIAG transition",
+     1791807298784,
+     "busy",
+     "ready"
+    ],
+    [
+     "LCDIAG resp",
+     1791807298786,
+     "paint",
+     16,
+     true
+    ],
+    [
+     "LCDIAG req",
+     1791807298787,
+     "paint",
+     17
+    ],
+    [
+     "LCDIAG resp",
+     1791807298790,
+     "paint",
+     17,
+     true
+    ],
+    [
+     "LCDIAG autosaveNow",
+     1791807299223,
+     "hidden",
+     "{\"viewOnly\":false,\"state\":\"ready\",\"pending\":0,\"composing\":false,\"queueDepth\":0,\"dragging\":false,\"savesUnsettled\":0,\"rescue\":false}"
+    ],
+    [
+     "LCDIAG transition",
+     1791807299224,
+     "ready",
+     "busy"
+    ],
+    [
+     "LCDIAG req",
+     1791807299224,
+     "save",
+     18
+    ],
+    [
+     "LCDIAG autosaveNow",
+     1791807629781,
+     "idle",
+     "{\"viewOnly\":false,\"state\":\"busy\",\"pending\":1,\"composing\":false,\"queueDepth\":0,\"dragging\":false,\"savesUnsettled\":2,\"rescue\":false}"
+    ],
+    [
+     "LCDIAG fail",
+     1791807629783,
+     "save",
+     18,
+     "TIMEOUT",
+     "save timed out after 180000 ms"
+    ],
+    [
+     "LCDIAG blockQueue",
+     1791807629783,
+     "recoverable-error",
+     "editor-recovery",
+     "{\"code\":\"TIMEOUT\",\"message\":\"save timed out after 180000 ms\",\"details\":{\"operation\":\"save\",\"timeoutMs\":180000}}",
+     "Error\n    at eval (eval at _blockQueue (https://litecore.ddev.site:8443/index.php/apps/litecore/r/59e6a9fed026a0ad-90d7bc2c/editor-shell/editor-session.js:1:1), <anonymous>:1:172)\n    at NarrowEditorV2Session._blockQueue (https://litecore.ddev.site:8443/index.php/apps/litecore/r/59e6a9fed026a0ad-90d7bc2c/editor-shell/editor-session.js:343:10)\n    at NarrowEditorV2Session._drain (https://litecore.ddev.site:8443/index.php/apps/litecore/r/59e6a9fed026a0ad-90d7bc2c/editor-shell/editor-session.js:325:18)"
+    ],
+    [
+     "LCDIAG transition",
+     1791807629784,
+     "busy",
+     "recoverable-error"
+    ],
+    [
+     "LCDIAG autosaveNow",
+     1791807633780,
+     "idle",
+     "{\"viewOnly\":false,\"state\":\"recoverable-error\",\"pending\":0,\"composing\":false,\"queueDepth\":0,\"dragging\":false,\"savesUnsettled\":0,\"rescue\":false}"
+    ]
+   ],
+   "scoreProblems": [
+    "score_arm raised KeyError: 'original'"
+   ]
+  },
+  {
+   "arm": "frozen",
+   "spec": "K8",
+   "browser": "chrome",
+   "startedAt": "2026-10-12T12:24:31+00:00",
+   "file": {
+    "user": "admin",
+    "path": "M3 骨架 測試.odt",
+    "adminPath": "M3 骨架 測試.odt"
+   },
+   "clearedLocks": "0",
+   "reset": {
+    "upload": 204,
+    "fileId": 76
+   },
+   "copiesBefore": [],
+   "serverBefore": {
+    "status": 200,
+    "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+    "bytes": 1343
+   },
+   "downloadVia": "Page.setDownloadBehavior",
+   "version": "Chrome/151.0.7922.169",
+   "login": {
+    "status": 200,
+    "url": "https://litecore.ddev.site:8443/apps/dashboard/"
+   },
+   "filesRow": true,
+   "filesRowSeconds": 0.06,
+   "clickedFrom": "https://litecore.ddev.site:8443/apps/files/files?dir=/",
+   "landed": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/59e6a9fed026a0ad-90d7bc2c/e2-editor.html?fileId=76",
+   "host": {
+    "started": 1791807882122,
+    "done": true,
+    "steps": [
+     {
+      "step": "imported",
+      "at": 239
+     },
+     {
+      "step": "fetched",
+      "at": 303
+     },
+     {
+      "step": "opened",
+      "at": 1840,
+      "state": {
+       "state": "ready",
+       "doc": "M3 骨架 測試.odt",
+       "revision": "0",
+       "toast": null
+      }
+     }
+    ],
+    "saves": [
+     {
+      "at": 334150,
+      "name": "M3 骨架 測試.odt",
+      "bytes": 10215,
+      "attempts": [
+       {
+        "waited": 0,
+        "check": {
+         "at": 334150,
+         "status": 200,
+         "etag": "\"6accd18a5c655\"",
+         "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+         "ms": 188
+        },
+        "ifMatch": "\"6accd18a5c655\"",
+        "withToken": true,
+        "target": "original",
+        "at": 334338,
+        "respondedAt": 334357,
+        "status": 412
+       },
+       {
+        "waited": 1278,
+        "check": {
+         "at": 335657,
+         "status": 200,
+         "etag": "\"6accd18a5c655\"",
+         "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+         "ms": 24
+        },
+        "ifMatch": "\"6accd18a5c655\"",
+        "withToken": false,
+        "target": "original",
+        "at": 335681,
+        "respondedAt": 335746,
+        "status": 204
+       }
+      ],
+      "trigger": "auto",
+      "target": "original",
+      "conditions": {
+       "viewOnly": false,
+       "state": "ready",
+       "pending": 0,
+       "composing": false,
+       "queueDepth": 0,
+       "dragging": false,
+       "savesUnsettled": 0,
+       "rescue": false,
+       "reason": "hidden"
+      },
+      "sha256": "34a9a41366084cd3ecc0ae5e3686af23355587dc3af012d82334333f3245c74c",
+      "ifMatch": "\"6accd18a5c655\"",
+      "tokenOnServer": false,
+      "status": 204,
+      "etag": "\"1ff35e740eae66adeb45f39135657c97\"",
+      "outcome": "saved",
+      "settled": true
+     },
+     {
+      "at": 335839,
+      "name": "M3 骨架 測試.odt",
+      "bytes": 10219,
+      "attempts": [
+       {
+        "waited": 1818,
+        "check": {
+         "at": 337658,
+         "status": 200,
+         "etag": "\"1ff35e740eae66adeb45f39135657c97\"",
+         "sha256": "34a9a41366084cd3ecc0ae5e3686af23355587dc3af012d82334333f3245c74c",
+         "ms": 27
+        },
+        "ifMatch": "\"1ff35e740eae66adeb45f39135657c97\"",
+        "withToken": false,
+        "target": "original",
+        "at": 337685,
+        "respondedAt": 337739,
+        "status": 204
+       }
+      ],
+      "trigger": "manual",
+      "target": "original",
+      "sha256": "ab9de55cc7944d3944b228783d2cef62dbdde4d144bb8215c6d776f2964a1699",
+      "ifMatch": "\"1ff35e740eae66adeb45f39135657c97\"",
+      "status": 204,
+      "etag": "\"f984230966bfb4c7c08d216278cf1ced\"",
+      "outcome": "saved",
+      "settled": true
+     }
+    ],
+    "lock": {
+     "state": "lost",
+     "status": 200,
+     "at": 260,
+     "refreshes": [],
+     "verified": true,
+     "lostBy": "save",
+     "lostStatus": 412,
+     "lostAt": 334379
+    },
+    "stranded": null,
+    "notice": "鎖已失效：別人現在可以寫這個檔案；存檔前仍會確認檔案沒被別人改過。",
+    "scope": "scoped",
+    "file": {
+     "id": 76,
+     "name": "M3 骨架 測試.odt",
+     "size": 1343,
+     "etag": "47841a5b4f209d3280645752be22cdad",
+     "writable": true
+    },
+    "isolation": {
+     "crossOriginIsolated": true,
+     "sharedArrayBuffer": true
+    },
+    "href": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/59e6a9fed026a0ad-90d7bc2c/e2-editor.html?fileId=76",
+    "watchingPage": true,
+    "fetched": {
+     "status": 200,
+     "contentType": "application/vnd.oasis.opendocument.text",
+     "etag": "\"6accd18a5c655\"",
+     "bytes": 1343,
+     "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+     "at": 303
+    },
+    "handedReadOnly": false,
+    "finished": 1840,
+    "lastSaved": {
+     "at": 337739,
+     "trigger": "manual",
+     "target": "original"
+    }
+   },
+   "secondsToOpened": 2.22,
+   "pickers": {
+    "fixtureDisabled": true,
+    "openFileDisabled": true,
+    "fileDisabled": true,
+    "fixtureOptions": 0
+   },
+   "bar": {
+    "notice": "",
+    "barHidden": true,
+    "downloadHidden": true
+   },
+   "afterOpen": {
+    "status": 207,
+    "etag": "\"6accd18a5c655\"",
+    "fileid": "76",
+    "lock": "1",
+    "lockOwner": "admin",
+    "lockOwnerType": "2",
+    "token": "opaquelocktoken:7e1a3b7a-60bb-479f-bc77-1d70d646e686"
+   },
+   "smoke": {
+    "before": {
+     "state": "ready",
+     "label": "就緒",
+     "revision": "0",
+     "pending": "0",
+     "checkpoint": "無",
+     "latency": "—",
+     "doc": "M3 骨架 測試.odt",
+     "toast": "已開啟 M3 骨架 測試.odt",
+     "buttons": [
+      {
+       "action": "undo",
+       "disabled": false
+      },
+      {
+       "action": "redo",
+       "disabled": false
+      },
+      {
+       "action": "move-character-left",
+       "disabled": false
+      },
+      {
+       "action": "move-character-right",
+       "disabled": false
+      },
+      {
+       "action": "delete-backward",
+       "disabled": false
+      },
+      {
+       "action": "delete-forward",
+       "disabled": false
+      },
+      {
+       "action": "insert-paragraph-break",
+       "disabled": false
+      },
+      {
+       "action": "insert-line-break",
+       "disabled": false
+      },
+      {
+       "action": "set-bold",
+       "disabled": false
+      },
+      {
+       "action": "set-italic",
+       "disabled": false
+      },
+      {
+       "action": "set-underline",
+       "disabled": false
+      },
+      {
+       "action": "set-strikethrough",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-heading",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-body",
+       "disabled": false
+      },
+      {
+       "action": "set-list-unordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-ordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-none",
+       "disabled": false
+      },
+      {
+       "action": "insert-text",
+       "disabled": false
+      },
+      {
+       "action": "save",
+       "disabled": false
+      }
+     ]
+    },
+    "caret": {
+     "state": "ready",
+     "label": "就緒",
+     "revision": "0",
+     "pending": "0",
+     "checkpoint": "無",
+     "latency": "定位游標 33 ms",
+     "doc": "M3 骨架 測試.odt",
+     "toast": "已開啟 M3 骨架 測試.odt",
+     "buttons": [
+      {
+       "action": "undo",
+       "disabled": false
+      },
+      {
+       "action": "redo",
+       "disabled": false
+      },
+      {
+       "action": "move-character-left",
+       "disabled": false
+      },
+      {
+       "action": "move-character-right",
+       "disabled": false
+      },
+      {
+       "action": "delete-backward",
+       "disabled": false
+      },
+      {
+       "action": "delete-forward",
+       "disabled": false
+      },
+      {
+       "action": "insert-paragraph-break",
+       "disabled": false
+      },
+      {
+       "action": "insert-line-break",
+       "disabled": false
+      },
+      {
+       "action": "set-bold",
+       "disabled": false
+      },
+      {
+       "action": "set-italic",
+       "disabled": false
+      },
+      {
+       "action": "set-underline",
+       "disabled": false
+      },
+      {
+       "action": "set-strikethrough",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-heading",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-body",
+       "disabled": false
+      },
+      {
+       "action": "set-list-unordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-ordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-none",
+       "disabled": false
+      },
+      {
+       "action": "insert-text",
+       "disabled": false
+      },
+      {
+       "action": "save",
+       "disabled": false
+      }
+     ]
+    },
+    "acted": {
+     "state": "ready",
+     "label": "就緒",
+     "revision": "1",
+     "pending": "0",
+     "checkpoint": "無",
+     "latency": "標題 67 ms",
+     "doc": "M3 骨架 測試.odt",
+     "toast": "已開啟 M3 骨架 測試.odt",
+     "buttons": [
+      {
+       "action": "undo",
+       "disabled": false
+      },
+      {
+       "action": "redo",
+       "disabled": false
+      },
+      {
+       "action": "move-character-left",
+       "disabled": false
+      },
+      {
+       "action": "move-character-right",
+       "disabled": false
+      },
+      {
+       "action": "delete-backward",
+       "disabled": false
+      },
+      {
+       "action": "delete-forward",
+       "disabled": false
+      },
+      {
+       "action": "insert-paragraph-break",
+       "disabled": false
+      },
+      {
+       "action": "insert-line-break",
+       "disabled": false
+      },
+      {
+       "action": "set-bold",
+       "disabled": false
+      },
+      {
+       "action": "set-italic",
+       "disabled": false
+      },
+      {
+       "action": "set-underline",
+       "disabled": false
+      },
+      {
+       "action": "set-strikethrough",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-heading",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-body",
+       "disabled": false
+      },
+      {
+       "action": "set-list-unordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-ordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-none",
+       "disabled": false
+      },
+      {
+       "action": "insert-text",
+       "disabled": false
+      },
+      {
+       "action": "save",
+       "disabled": false
+      }
+     ]
+    }
+   },
+   "freezeAt": 3496,
+   "frozen": true,
+   "lockWhileFrozen": {
+    "status": 207,
+    "etag": "\"6accd18a5c655\"",
+    "fileid": "76",
+    "lock": "",
+    "lockOwner": null,
+    "lockOwnerType": null,
+    "token": null
+   },
+   "thawAt": 333864,
+   "save1Seen": 1,
+   "save1State": {
+    "state": "ready",
+    "label": "就緒",
+    "revision": "1",
+    "pending": "0",
+    "checkpoint": "無",
+    "latency": "存回 1900 ms",
+    "doc": "M3 骨架 測試.odt",
+    "toast": "已存回 M3 骨架 測試.odt（10.0 KB）",
+    "buttons": [
+     {
+      "action": "undo",
+      "disabled": false
+     },
+     {
+      "action": "redo",
+      "disabled": false
+     },
+     {
+      "action": "move-character-left",
+      "disabled": false
+     },
+     {
+      "action": "move-character-right",
+      "disabled": false
+     },
+     {
+      "action": "delete-backward",
+      "disabled": false
+     },
+     {
+      "action": "delete-forward",
+      "disabled": false
+     },
+     {
+      "action": "insert-paragraph-break",
+      "disabled": false
+     },
+     {
+      "action": "insert-line-break",
+      "disabled": false
+     },
+     {
+      "action": "set-bold",
+      "disabled": false
+     },
+     {
+      "action": "set-italic",
+      "disabled": false
+     },
+     {
+      "action": "set-underline",
+      "disabled": false
+     },
+     {
+      "action": "set-strikethrough",
+      "disabled": false
+     },
+     {
+      "action": "set-paragraph-heading",
+      "disabled": false
+     },
+     {
+      "action": "set-paragraph-body",
+      "disabled": false
+     },
+     {
+      "action": "set-list-unordered",
+      "disabled": false
+     },
+     {
+      "action": "set-list-ordered",
+      "disabled": false
+     },
+     {
+      "action": "set-list-none",
+      "disabled": false
+     },
+     {
+      "action": "insert-text",
+      "disabled": false
+     },
+     {
+      "action": "save",
+      "disabled": false
+     }
+    ]
+   },
+   "serverAfter": {
+    "status": 200,
+    "sha256": "ab9de55cc7944d3944b228783d2cef62dbdde4d144bb8215c6d776f2964a1699",
+    "bytes": 10219
+   },
+   "copiesAfter": [],
+   "cdp": {
+    "documents": [
+     {
+      "url": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/59e6a9fed026a0ad-90d7bc2c/e2-editor.html?fileId=76",
+      "status": 200,
+      "coop": "same-origin",
+      "coep": "require-corp",
+      "dip": null
+     }
+    ],
+    "loadingFailed": [
+     {
+      "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt",
+      "type": "Fetch",
+      "errorText": "net::ERR_ABORTED",
+      "blockedReason": null,
+      "corsError": null
+     },
+     {
+      "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt",
+      "type": "Fetch",
+      "errorText": "net::ERR_ABORTED",
+      "blockedReason": null,
+      "corsError": null
+     }
+    ],
+    "errorLogs": [
+     {
+      "source": "network",
+      "text": "Failed to load resource: the server responded with a status of 412 ()",
+      "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt"
+     }
+    ],
+    "exceptions": []
+   },
+   "fixtureRequests": [],
+   "davRequests": [
+    {
+     "method": "PROPFIND",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/Readme.md",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "LOCK",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": "Second-300"
+    },
+    {
+     "method": "PROPFIND",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "GET",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "GET",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "PUT",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": "\"6accd18a5c655\"",
+     "if": "(<opaquelocktoken:7e1a3b7a-60bb-479f-bc77-1d70d646e686>)",
+     "timeout": null
+    },
+    {
+     "method": "PROPFIND",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "GET",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "PUT",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": "\"6accd18a5c655\"",
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "GET",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "PUT",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": "\"1ff35e740eae66adeb45f39135657c97\"",
+     "if": null,
+     "timeout": null
+    }
+   ],
+   "dialogs": [],
+   "locksAtEnd": {
+    "status": 207,
+    "etag": "\"f984230966bfb4c7c08d216278cf1ced\"",
+    "fileid": "76",
+    "lock": "",
+    "lockOwner": null,
+    "lockOwnerType": null,
+    "token": null
+   },
+   "clearedAtEnd": "0",
+   "logpointsInstalled": [
+    {
+     "regex": "/editor-shell/editor-session\\.js(\\?.*)?$",
+     "line": 343,
+     "locations": [
+      {
+       "scriptId": "54",
+       "lineNumber": 342,
+       "columnNumber": 9
+      }
+     ]
+    },
+    {
+     "regex": "/editor-shell/editor-session\\.js(\\?.*)?$",
+     "line": 355,
+     "locations": [
+      {
+       "scriptId": "54",
+       "lineNumber": 354,
+       "columnNumber": 4
+      }
+     ]
+    },
+    {
+     "regex": "/editor-shell/state-machine\\.js(\\?.*)?$",
+     "line": 41,
+     "locations": [
+      {
+       "scriptId": "59",
+       "lineNumber": 40,
+       "columnNumber": 25
+      }
+     ]
+    },
+    {
+     "regex": "/sdk/document-sdk\\.js(\\?.*)?$",
+     "line": 159,
+     "locations": [
+      {
+       "scriptId": "50",
+       "lineNumber": 158,
+       "columnNumber": 22
+      }
+     ]
+    },
+    {
+     "regex": "/sdk/document-sdk\\.js(\\?.*)?$",
+     "line": 236,
+     "locations": [
+      {
+       "scriptId": "50",
+       "lineNumber": 235,
+       "columnNumber": 9
+      }
+     ]
+    },
+    {
+     "regex": "/sdk/document-sdk\\.js(\\?.*)?$",
+     "line": 171,
+     "locations": [
+      {
+       "scriptId": "50",
+       "lineNumber": 170,
+       "columnNumber": 8
+      }
+     ]
+    },
+    {
+     "regex": "/reader-shell/tile-scheduler\\.js(\\?.*)?$",
+     "line": 253,
+     "locations": [
+      {
+       "scriptId": "58",
+       "lineNumber": 252,
+       "columnNumber": 8
+      }
+     ]
+    },
+    {
+     "regex": "/e2-editor-app\\.js(\\?.*)?$",
+     "line": 2606,
+     "locations": [
+      {
+       "scriptId": "48",
+       "lineNumber": 2605,
+       "columnNumber": 2
+      }
+     ]
+    }
+   ],
+   "diag": [
+    [
+     "LCDIAG transition",
+     1791807884610,
+     "ready",
+     "busy"
+    ],
+    [
+     "LCDIAG req",
+     1791807884611,
+     "editorGetStateV2",
+     5
+    ],
+    [
+     "LCDIAG resp",
+     1791807884612,
+     "editorGetStateV2",
+     5,
+     true
+    ],
+    [
+     "LCDIAG req",
+     1791807884612,
+     "click",
+     6
+    ],
+    [
+     "LCDIAG resp",
+     1791807884613,
+     "click",
+     6,
+     true
+    ],
+    [
+     "LCDIAG req",
+     1791807884613,
+     "editorGetStateV2",
+     7
+    ],
+    [
+     "LCDIAG resp",
+     1791807884613,
+     "editorGetStateV2",
+     7,
+     true
+    ],
+    [
+     "LCDIAG req",
+     1791807884619,
+     "editorGetStateV2",
+     8
+    ],
+    [
+     "LCDIAG resp",
+     1791807884619,
+     "editorGetStateV2",
+     8,
+     true
+    ],
+    [
+     "LCDIAG req",
+     1791807884624,
+     "editorGetStateV2",
+     9
+    ],
+    [
+     "LCDIAG resp",
+     1791807884625,
+     "editorGetStateV2",
+     9,
+     true
+    ],
+    [
+     "LCDIAG req",
+     1791807884630,
+     "editorGetStateV2",
+     10
+    ],
+    [
+     "LCDIAG resp",
+     1791807884631,
+     "editorGetStateV2",
+     10,
+     true
+    ],
+    [
+     "LCDIAG req",
+     1791807884635,
+     "paint",
+     11
+    ],
+    [
+     "LCDIAG req",
+     1791807884637,
+     "editorGetStateV2",
+     12
+    ],
+    [
+     "LCDIAG resp",
+     1791807884641,
+     "paint",
+     11,
+     true
+    ],
+    [
+     "LCDIAG resp",
+     1791807884642,
+     "editorGetStateV2",
+     12,
+     true
+    ],
+    [
+     "LCDIAG transition",
+     1791807884642,
+     "busy",
+     "ready"
+    ],
+    [
+     "LCDIAG req",
+     1791807884642,
+     "paint",
+     13
+    ],
+    [
+     "LCDIAG resp",
+     1791807884646,
+     "paint",
+     13,
+     true
+    ],
+    [
+     "LCDIAG transition",
+     1791807885115,
+     "ready",
+     "busy"
+    ],
+    [
+     "LCDIAG req",
+     1791807885116,
+     "editorActionV2",
+     14
+    ],
+    [
+     "LCDIAG req",
+     1791807885128,
+     "paint",
+     15
+    ],
+    [
+     "LCDIAG resp",
+     1791807885157,
+     "paint",
+     15,
+     true
+    ],
+    [
+     "LCDIAG req",
+     1791807885180,
+     "paint",
+     16
+    ],
+    [
+     "LCDIAG resp",
+     1791807885181,
+     "editorActionV2",
+     14,
+     true
+    ],
+    [
+     "LCDIAG transition",
+     1791807885182,
+     "busy",
+     "ready"
+    ],
+    [
+     "LCDIAG resp",
+     1791807885184,
+     "paint",
+     16,
+     true
+    ],
+    [
+     "LCDIAG req",
+     1791807885184,
+     "paint",
+     17
+    ],
+    [
+     "LCDIAG resp",
+     1791807885188,
+     "paint",
+     17,
+     true
+    ],
+    [
+     "LCDIAG autosaveNow",
+     1791807885620,
+     "hidden",
+     "{\"viewOnly\":false,\"state\":\"ready\",\"pending\":0,\"composing\":false,\"queueDepth\":0,\"dragging\":false,\"savesUnsettled\":0,\"rescue\":false}"
+    ],
+    [
+     "LCDIAG transition",
+     1791807885621,
+     "ready",
+     "busy"
+    ],
+    [
+     "LCDIAG req",
+     1791807885622,
+     "save",
+     18
+    ],
+    [
+     "LCDIAG resp",
+     1791808216257,
+     "save",
+     18,
+     true
+    ],
+    [
+     "LCDIAG req",
+     1791808216257,
+     "editorGetStateV2",
+     19
+    ],
+    [
+     "LCDIAG resp",
+     1791808216259,
+     "editorGetStateV2",
+     19,
+     true
+    ],
+    [
+     "LCDIAG transition",
+     1791808216264,
+     "busy",
+     "ready"
+    ],
+    [
+     "LCDIAG req",
+     1791808216264,
+     "paint",
+     20
+    ],
+    [
+     "LCDIAG resp",
+     1791808216271,
+     "paint",
+     20,
+     true
+    ],
+    [
+     "LCDIAG autosaveNow",
+     1791808216781,
+     "idle",
+     "{\"viewOnly\":false,\"state\":\"ready\",\"pending\":0,\"composing\":false,\"queueDepth\":0,\"dragging\":false,\"savesUnsettled\":2,\"rescue\":false}"
+    ],
+    [
+     "LCDIAG req",
+     1791808217869,
+     "paint",
+     21
+    ],
+    [
+     "LCDIAG resp",
+     1791808217873,
+     "paint",
+     21,
+     true
+    ],
+    [
+     "LCDIAG transition",
+     1791808217874,
+     "ready",
+     "busy"
+    ],
+    [
+     "LCDIAG req",
+     1791808217874,
+     "save",
+     22
+    ],
+    [
+     "LCDIAG resp",
+     1791808217955,
+     "save",
+     22,
+     true
+    ],
+    [
+     "LCDIAG req",
+     1791808217955,
+     "editorGetStateV2",
+     23
+    ],
+    [
+     "LCDIAG resp",
+     1791808217956,
+     "editorGetStateV2",
+     23,
+     true
+    ],
+    [
+     "LCDIAG transition",
+     1791808217956,
+     "busy",
+     "ready"
+    ],
+    [
+     "LCDIAG req",
+     1791808217957,
+     "paint",
+     24
+    ],
+    [
+     "LCDIAG resp",
+     1791808217961,
+     "paint",
+     24,
+     true
+    ],
+    [
+     "LCDIAG req",
+     1791808219862,
+     "paint",
+     25
+    ],
+    [
+     "LCDIAG resp",
+     1791808219865,
+     "paint",
+     25,
+     true
+    ]
+   ],
+   "scoreProblems": [
+    "score_arm raised KeyError: 'original'"
+   ]
+  },
+  {
+   "arm": "frozen",
+   "spec": "K8",
+   "browser": "chrome",
+   "startedAt": "2026-10-12T12:30:21+00:00",
+   "file": {
+    "user": "admin",
+    "path": "M3 骨架 測試.odt",
+    "adminPath": "M3 骨架 測試.odt"
+   },
+   "clearedLocks": "0",
+   "reset": {
+    "upload": 204,
+    "fileId": 76
+   },
+   "copiesBefore": [],
+   "serverBefore": {
+    "status": 200,
+    "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+    "bytes": 1343
+   },
+   "downloadVia": "Page.setDownloadBehavior",
+   "version": "Chrome/151.0.7922.169",
+   "login": {
+    "status": 200,
+    "url": "https://litecore.ddev.site:8443/apps/dashboard/"
+   },
+   "filesRow": true,
+   "filesRowSeconds": 0.05,
+   "clickedFrom": "https://litecore.ddev.site:8443/apps/files/files?dir=/",
+   "landed": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/59e6a9fed026a0ad-90d7bc2c/e2-editor.html?fileId=76",
+   "host": {
+    "started": 1791808231767,
+    "done": true,
+    "steps": [
+     {
+      "step": "imported",
+      "at": 248
+     },
+     {
+      "step": "fetched",
+      "at": 311
+     },
+     {
+      "step": "opened",
+      "at": 1849,
+      "state": {
+       "state": "ready",
+       "doc": "M3 骨架 測試.odt",
+       "revision": "0",
+       "toast": null
+      }
+     }
+    ],
+    "saves": [],
+    "lock": {
+     "state": "lost",
+     "status": 200,
+     "at": 271,
+     "refreshes": [
+      {
+       "at": 334237,
+       "status": 400,
+       "seconds": 634
+      }
+     ],
+     "verified": true,
+     "lostBy": "refresh",
+     "lostStatus": 400,
+     "lostAt": 334237
+    },
+    "stranded": null,
+    "notice": "鎖已失效：別人現在可以寫這個檔案；存檔前仍會確認檔案沒被別人改過。",
+    "scope": "scoped",
+    "file": {
+     "id": 76,
+     "name": "M3 骨架 測試.odt",
+     "size": 1343,
+     "etag": "2cce88643250c6cef4cde955f5af8301",
+     "writable": true
+    },
+    "isolation": {
+     "crossOriginIsolated": true,
+     "sharedArrayBuffer": true
+    },
+    "href": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/59e6a9fed026a0ad-90d7bc2c/e2-editor.html?fileId=76",
+    "watchingPage": true,
+    "fetched": {
+     "status": 200,
+     "contentType": "application/vnd.oasis.opendocument.text",
+     "etag": "\"6accd2e80871c\"",
+     "bytes": 1343,
+     "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+     "at": 311
+    },
+    "handedReadOnly": false,
+    "finished": 1850
+   },
+   "secondsToOpened": 2.23,
+   "pickers": {
+    "fixtureDisabled": true,
+    "openFileDisabled": true,
+    "fileDisabled": true,
+    "fixtureOptions": 0
+   },
+   "bar": {
+    "notice": "",
+    "barHidden": true,
+    "downloadHidden": true
+   },
+   "afterOpen": {
+    "status": 207,
+    "etag": "\"6accd2e80871c\"",
+    "fileid": "76",
+    "lock": "1",
+    "lockOwner": "admin",
+    "lockOwnerType": "2",
+    "token": "opaquelocktoken:0b8a2aa1-f643-4366-b4b4-6d603009b1de"
+   },
+   "smoke": {
+    "before": {
+     "state": "ready",
+     "label": "就緒",
+     "revision": "0",
+     "pending": "0",
+     "checkpoint": "無",
+     "latency": "—",
+     "doc": "M3 骨架 測試.odt",
+     "toast": "已開啟 M3 骨架 測試.odt",
+     "buttons": [
+      {
+       "action": "undo",
+       "disabled": false
+      },
+      {
+       "action": "redo",
+       "disabled": false
+      },
+      {
+       "action": "move-character-left",
+       "disabled": false
+      },
+      {
+       "action": "move-character-right",
+       "disabled": false
+      },
+      {
+       "action": "delete-backward",
+       "disabled": false
+      },
+      {
+       "action": "delete-forward",
+       "disabled": false
+      },
+      {
+       "action": "insert-paragraph-break",
+       "disabled": false
+      },
+      {
+       "action": "insert-line-break",
+       "disabled": false
+      },
+      {
+       "action": "set-bold",
+       "disabled": false
+      },
+      {
+       "action": "set-italic",
+       "disabled": false
+      },
+      {
+       "action": "set-underline",
+       "disabled": false
+      },
+      {
+       "action": "set-strikethrough",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-heading",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-body",
+       "disabled": false
+      },
+      {
+       "action": "set-list-unordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-ordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-none",
+       "disabled": false
+      },
+      {
+       "action": "insert-text",
+       "disabled": false
+      },
+      {
+       "action": "save",
+       "disabled": false
+      }
+     ]
+    },
+    "caret": {
+     "state": "ready",
+     "label": "就緒",
+     "revision": "0",
+     "pending": "0",
+     "checkpoint": "無",
+     "latency": "定位游標 32 ms",
+     "doc": "M3 骨架 測試.odt",
+     "toast": "已開啟 M3 骨架 測試.odt",
+     "buttons": [
+      {
+       "action": "undo",
+       "disabled": false
+      },
+      {
+       "action": "redo",
+       "disabled": false
+      },
+      {
+       "action": "move-character-left",
+       "disabled": false
+      },
+      {
+       "action": "move-character-right",
+       "disabled": false
+      },
+      {
+       "action": "delete-backward",
+       "disabled": false
+      },
+      {
+       "action": "delete-forward",
+       "disabled": false
+      },
+      {
+       "action": "insert-paragraph-break",
+       "disabled": false
+      },
+      {
+       "action": "insert-line-break",
+       "disabled": false
+      },
+      {
+       "action": "set-bold",
+       "disabled": false
+      },
+      {
+       "action": "set-italic",
+       "disabled": false
+      },
+      {
+       "action": "set-underline",
+       "disabled": false
+      },
+      {
+       "action": "set-strikethrough",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-heading",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-body",
+       "disabled": false
+      },
+      {
+       "action": "set-list-unordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-ordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-none",
+       "disabled": false
+      },
+      {
+       "action": "insert-text",
+       "disabled": false
+      },
+      {
+       "action": "save",
+       "disabled": false
+      }
+     ]
+    },
+    "acted": {
+     "state": "ready",
+     "label": "就緒",
+     "revision": "1",
+     "pending": "0",
+     "checkpoint": "無",
+     "latency": "標題 69 ms",
+     "doc": "M3 骨架 測試.odt",
+     "toast": "已開啟 M3 骨架 測試.odt",
+     "buttons": [
+      {
+       "action": "undo",
+       "disabled": false
+      },
+      {
+       "action": "redo",
+       "disabled": false
+      },
+      {
+       "action": "move-character-left",
+       "disabled": false
+      },
+      {
+       "action": "move-character-right",
+       "disabled": false
+      },
+      {
+       "action": "delete-backward",
+       "disabled": false
+      },
+      {
+       "action": "delete-forward",
+       "disabled": false
+      },
+      {
+       "action": "insert-paragraph-break",
+       "disabled": false
+      },
+      {
+       "action": "insert-line-break",
+       "disabled": false
+      },
+      {
+       "action": "set-bold",
+       "disabled": false
+      },
+      {
+       "action": "set-italic",
+       "disabled": false
+      },
+      {
+       "action": "set-underline",
+       "disabled": false
+      },
+      {
+       "action": "set-strikethrough",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-heading",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-body",
+       "disabled": false
+      },
+      {
+       "action": "set-list-unordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-ordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-none",
+       "disabled": false
+      },
+      {
+       "action": "insert-text",
+       "disabled": false
+      },
+      {
+       "action": "save",
+       "disabled": false
+      }
+     ]
+    }
+   },
+   "freezeAt": 3416,
+   "frozen": true,
+   "lockWhileFrozen": {
+    "status": 207,
+    "etag": "\"6accd2e80871c\"",
+    "fileid": "76",
+    "lock": "",
+    "lockOwner": null,
+    "lockOwnerType": null,
+    "token": null
+   },
+   "thawAt": 333828,
+   "save1Seen": {
+    "timedOut": true,
+    "lastError": null
+   },
+   "save1State": {
+    "state": "recoverable-error",
+    "label": "需要回復",
+    "revision": "1",
+    "pending": "0",
+    "checkpoint": "無",
+    "latency": "儲存 失敗",
+    "doc": "M3 骨架 測試.odt",
+    "toast": "儲存：EDITOR_NOT_READY：editor operation save is unavailable in recoverable-error",
+    "buttons": [
+     {
+      "action": "undo",
+      "disabled": true
+     },
+     {
+      "action": "redo",
+      "disabled": true
+     },
+     {
+      "action": "move-character-left",
+      "disabled": true
+     },
+     {
+      "action": "move-character-right",
+      "disabled": true
+     },
+     {
+      "action": "delete-backward",
+      "disabled": true
+     },
+     {
+      "action": "delete-forward",
+      "disabled": true
+     },
+     {
+      "action": "insert-paragraph-break",
+      "disabled": true
+     },
+     {
+      "action": "insert-line-break",
+      "disabled": true
+     },
+     {
+      "action": "set-bold",
+      "disabled": true
+     },
+     {
+      "action": "set-italic",
+      "disabled": true
+     },
+     {
+      "action": "set-underline",
+      "disabled": true
+     },
+     {
+      "action": "set-strikethrough",
+      "disabled": true
+     },
+     {
+      "action": "set-paragraph-heading",
+      "disabled": true
+     },
+     {
+      "action": "set-paragraph-body",
+      "disabled": true
+     },
+     {
+      "action": "set-list-unordered",
+      "disabled": true
+     },
+     {
+      "action": "set-list-ordered",
+      "disabled": true
+     },
+     {
+      "action": "set-list-none",
+      "disabled": true
+     },
+     {
+      "action": "insert-text",
+      "disabled": true
+     },
+     {
+      "action": "save",
+      "disabled": true
+     }
+    ],
+    "timedOut": true
+   },
+   "serverAfter": {
+    "status": 200,
+    "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+    "bytes": 1343
+   },
+   "copiesAfter": [],
+   "cdp": {
+    "documents": [
+     {
+      "url": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/59e6a9fed026a0ad-90d7bc2c/e2-editor.html?fileId=76",
+      "status": 200,
+      "coop": "same-origin",
+      "coep": "require-corp",
+      "dip": null
+     }
+    ],
+    "loadingFailed": [],
+    "errorLogs": [
+     {
+      "source": "network",
+      "text": "Failed to load resource: the server responded with a status of 400 ()",
+      "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt"
+     }
+    ],
+    "exceptions": []
+   },
+   "fixtureRequests": [],
+   "davRequests": [
+    {
+     "method": "PROPFIND",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/Readme.md",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "LOCK",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": "Second-300"
+    },
+    {
+     "method": "PROPFIND",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "GET",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "LOCK",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": "(<opaquelocktoken:0b8a2aa1-f643-4366-b4b4-6d603009b1de>)",
+     "timeout": "Second-634"
+    }
+   ],
+   "dialogs": [],
+   "locksAtEnd": {
+    "status": 207,
+    "etag": "\"6accd2e80871c\"",
+    "fileid": "76",
+    "lock": "",
+    "lockOwner": null,
+    "lockOwnerType": null,
+    "token": null
+   },
+   "clearedAtEnd": "0",
+   "logpointsInstalled": [
+    {
+     "regex": "/editor-shell/editor-session\\.js(\\?.*)?$",
+     "line": 343,
+     "locations": [
+      {
+       "scriptId": "53",
+       "lineNumber": 342,
+       "columnNumber": 9
+      }
+     ]
+    },
+    {
+     "regex": "/editor-shell/editor-session\\.js(\\?.*)?$",
+     "line": 355,
+     "locations": [
+      {
+       "scriptId": "53",
+       "lineNumber": 354,
+       "columnNumber": 4
+      }
+     ]
+    },
+    {
+     "regex": "/editor-shell/state-machine\\.js(\\?.*)?$",
+     "line": 41,
+     "locations": [
+      {
+       "scriptId": "60",
+       "lineNumber": 40,
+       "columnNumber": 25
+      }
+     ]
+    },
+    {
+     "regex": "/sdk/document-sdk\\.js(\\?.*)?$",
+     "line": 159,
+     "locations": [
+      {
+       "scriptId": "52",
+       "lineNumber": 158,
+       "columnNumber": 22
+      }
+     ]
+    },
+    {
+     "regex": "/sdk/document-sdk\\.js(\\?.*)?$",
+     "line": 236,
+     "locations": [
+      {
+       "scriptId": "52",
+       "lineNumber": 235,
+       "columnNumber": 9
+      }
+     ]
+    },
+    {
+     "regex": "/sdk/document-sdk\\.js(\\?.*)?$",
+     "line": 171,
+     "locations": [
+      {
+       "scriptId": "52",
+       "lineNumber": 170,
+       "columnNumber": 8
+      }
+     ]
+    },
+    {
+     "regex": "/reader-shell/tile-scheduler\\.js(\\?.*)?$",
+     "line": 253,
+     "locations": [
+      {
+       "scriptId": "58",
+       "lineNumber": 252,
+       "columnNumber": 8
+      }
+     ]
+    },
+    {
+     "regex": "/e2-editor-app\\.js(\\?.*)?$",
+     "line": 2606,
+     "locations": [
+      {
+       "scriptId": "48",
+       "lineNumber": 2605,
+       "columnNumber": 2
+      }
+     ]
+    }
+   ],
+   "diag": [
+    [
+     "LCDIAG transition",
+     1791808234174,
+     "ready",
+     "busy"
+    ],
+    [
+     "LCDIAG req",
+     1791808234175,
+     "editorGetStateV2",
+     5
+    ],
+    [
+     "LCDIAG resp",
+     1791808234177,
+     "editorGetStateV2",
+     5,
+     true
+    ],
+    [
+     "LCDIAG req",
+     1791808234177,
+     "click",
+     6
+    ],
+    [
+     "LCDIAG resp",
+     1791808234178,
+     "click",
+     6,
+     true
+    ],
+    [
+     "LCDIAG req",
+     1791808234178,
+     "editorGetStateV2",
+     7
+    ],
+    [
+     "LCDIAG resp",
+     1791808234178,
+     "editorGetStateV2",
+     7,
+     true
+    ],
+    [
+     "LCDIAG req",
+     1791808234184,
+     "editorGetStateV2",
+     8
+    ],
+    [
+     "LCDIAG resp",
+     1791808234184,
+     "editorGetStateV2",
+     8,
+     true
+    ],
+    [
+     "LCDIAG req",
+     1791808234189,
+     "editorGetStateV2",
+     9
+    ],
+    [
+     "LCDIAG resp",
+     1791808234192,
+     "editorGetStateV2",
+     9,
+     true
+    ],
+    [
+     "LCDIAG req",
+     1791808234198,
+     "editorGetStateV2",
+     10
+    ],
+    [
+     "LCDIAG resp",
+     1791808234199,
+     "editorGetStateV2",
+     10,
+     true
+    ],
+    [
+     "LCDIAG req",
+     1791808234199,
+     "paint",
+     11
+    ],
+    [
+     "LCDIAG resp",
+     1791808234203,
+     "paint",
+     11,
+     true
+    ],
+    [
+     "LCDIAG req",
+     1791808234204,
+     "editorGetStateV2",
+     12
+    ],
+    [
+     "LCDIAG resp",
+     1791808234204,
+     "editorGetStateV2",
+     12,
+     true
+    ],
+    [
+     "LCDIAG transition",
+     1791808234205,
+     "busy",
+     "ready"
+    ],
+    [
+     "LCDIAG req",
+     1791808234206,
+     "paint",
+     13
+    ],
+    [
+     "LCDIAG resp",
+     1791808234209,
+     "paint",
+     13,
+     true
+    ],
+    [
+     "LCDIAG transition",
+     1791808234680,
+     "ready",
+     "busy"
+    ],
+    [
+     "LCDIAG req",
+     1791808234681,
+     "editorActionV2",
+     14
+    ],
+    [
+     "LCDIAG req",
+     1791808234692,
+     "paint",
+     15
+    ],
+    [
+     "LCDIAG resp",
+     1791808234722,
+     "paint",
+     15,
+     true
+    ],
+    [
+     "LCDIAG req",
+     1791808234746,
+     "paint",
+     16
+    ],
+    [
+     "LCDIAG resp",
+     1791808234747,
+     "editorActionV2",
+     14,
+     true
+    ],
+    [
+     "LCDIAG transition",
+     1791808234748,
+     "busy",
+     "ready"
+    ],
+    [
+     "LCDIAG resp",
+     1791808234750,
+     "paint",
+     16,
+     true
+    ],
+    [
+     "LCDIAG req",
+     1791808234751,
+     "paint",
+     17
+    ],
+    [
+     "LCDIAG resp",
+     1791808234755,
+     "paint",
+     17,
+     true
+    ],
+    [
+     "LCDIAG autosaveNow",
+     1791808235188,
+     "hidden",
+     "{\"viewOnly\":false,\"state\":\"ready\",\"pending\":0,\"composing\":false,\"queueDepth\":0,\"dragging\":false,\"savesUnsettled\":0,\"rescue\":false}"
+    ],
+    [
+     "LCDIAG transition",
+     1791808235189,
+     "ready",
+     "busy"
+    ],
+    [
+     "LCDIAG req",
+     1791808235189,
+     "save",
+     18
+    ],
+    [
+     "LCDIAG autosaveNow",
+     1791808565781,
+     "idle",
+     "{\"viewOnly\":false,\"state\":\"busy\",\"pending\":1,\"composing\":false,\"queueDepth\":0,\"dragging\":false,\"savesUnsettled\":2,\"rescue\":false}"
+    ],
+    [
+     "LCDIAG fail",
+     1791808565783,
+     "save",
+     18,
+     "TIMEOUT",
+     "save timed out after 180000 ms"
+    ],
+    [
+     "LCDIAG blockQueue",
+     1791808565783,
+     "recoverable-error",
+     "editor-recovery",
+     "{\"code\":\"TIMEOUT\",\"message\":\"save timed out after 180000 ms\",\"details\":{\"operation\":\"save\",\"timeoutMs\":180000}}",
+     "Error\n    at eval (eval at _blockQueue (https://litecore.ddev.site:8443/index.php/apps/litecore/r/59e6a9fed026a0ad-90d7bc2c/editor-shell/editor-session.js:1:1), <anonymous>:1:172)\n    at NarrowEditorV2Session._blockQueue (https://litecore.ddev.site:8443/index.php/apps/litecore/r/59e6a9fed026a0ad-90d7bc2c/editor-shell/editor-session.js:343:10)\n    at NarrowEditorV2Session._drain (https://litecore.ddev.site:8443/index.php/apps/litecore/r/59e6a9fed026a0ad-90d7bc2c/editor-shell/editor-session.js:325:18)"
+    ],
+    [
+     "LCDIAG transition",
+     1791808565784,
+     "busy",
+     "recoverable-error"
+    ],
+    [
+     "LCDIAG autosaveNow",
+     1791808569780,
+     "idle",
+     "{\"viewOnly\":false,\"state\":\"recoverable-error\",\"pending\":0,\"composing\":false,\"queueDepth\":0,\"dragging\":false,\"savesUnsettled\":0,\"rescue\":false}"
+    ]
+   ],
+   "scoreProblems": [
+    "score_arm raised KeyError: 'original'"
+   ]
+  }
+ ],
+ "setup": {
+  "targets": {
+   "rw": "M3 骨架 測試.odt",
+   "ro": "M3 鎖 唯讀.odt",
+   "folder": "M3 鎖 唯讀資料夾"
+  },
+  "fileIds": {
+   "M3 骨架 測試.odt": 76,
+   "M3 鎖 唯讀.odt": 17650,
+   "M3 鎖 唯讀資料夾/M3 鎖 資料夾內.odt": 17652
+  }
+ },
+ "completedAt": "2026-10-12T12:40:09+00:00",
+ "httpLog": [
+  {
+   "step": "setup",
+   "actor": "admin",
+   "method": "DELETE",
+   "path": "/ocs/v2.php/cloud/users/lcprobe",
+   "sent": {},
+   "status": 404,
+   "headers": {
+    "content-type": "application/json; charset=utf-8"
+   },
+   "body": "{\"ocs\":{\"meta\":{\"status\":\"failure\",\"statuscode\":998,\"message\":\"\"},\"data\":[]}}"
+  },
+  {
+   "step": "setup",
+   "actor": "admin",
+   "method": "POST",
+   "path": "/ocs/v2.php/cloud/users",
+   "sent": {
+    "Content-Type": "application/x-www-form-urlencoded"
+   },
+   "status": 200,
+   "headers": {
+    "content-type": "application/json; charset=utf-8"
+   },
+   "body": "{\"ocs\":{\"meta\":{\"status\":\"ok\",\"statuscode\":200,\"message\":\"OK\"},\"data\":{\"id\":\"lcprobe\"}}}"
+  },
+  {
+   "step": "upload",
+   "actor": "admin",
+   "method": "PUT",
+   "path": "/remote.php/dav/files/admin/M3 骨架 測試.odt",
+   "sent": {
+    "Content-Type": "application/vnd.oasis.opendocument.text"
+   },
+   "status": 204,
+   "headers": {
+    "etag": "\"d2e007813a7d00143f5ee67cc4cb6ca7\"",
+    "oc-etag": "\"d2e007813a7d00143f5ee67cc4cb6ca7\"",
+    "oc-fileid": "00000076oczcndor1sx6"
+   },
+   "body": null
+  },
+  {
+   "step": "upload",
+   "actor": "admin",
+   "method": "PUT",
+   "path": "/remote.php/dav/files/admin/M3 鎖 唯讀.odt",
+   "sent": {
+    "Content-Type": "application/vnd.oasis.opendocument.text"
+   },
+   "status": 201,
+   "headers": {
+    "content-type": "text/html; charset=UTF-8",
+    "etag": "\"2c329d5b2428a464e45782910723c488\"",
+    "oc-etag": "\"2c329d5b2428a464e45782910723c488\"",
+    "oc-fileid": "00017650oczcndor1sx6"
+   },
+   "body": null
+  },
+  {
+   "step": "setup",
+   "actor": "admin",
+   "method": "MKCOL",
+   "path": "/remote.php/dav/files/admin/M3 鎖 唯讀資料夾",
+   "sent": {},
+   "status": 201,
+   "headers": {
+    "content-type": "text/html; charset=UTF-8",
+    "oc-fileid": "00017651oczcndor1sx6"
+   },
+   "body": null
+  },
+  {
+   "step": "upload",
+   "actor": "admin",
+   "method": "PUT",
+   "path": "/remote.php/dav/files/admin/M3 鎖 唯讀資料夾/M3 鎖 資料夾內.odt",
+   "sent": {
+    "Content-Type": "application/vnd.oasis.opendocument.text"
+   },
+   "status": 201,
+   "headers": {
+    "content-type": "text/html; charset=UTF-8",
+    "etag": "\"2b2e13565ac9d8cdc898444bb00e9ccb\"",
+    "oc-etag": "\"2b2e13565ac9d8cdc898444bb00e9ccb\"",
+    "oc-fileid": "00017652oczcndor1sx6"
+   },
+   "body": null
+  },
+  {
+   "step": "setup",
+   "actor": "admin",
+   "method": "POST",
+   "path": "/ocs/v2.php/apps/files_sharing/api/v1/shares",
+   "sent": {
+    "Content-Type": "application/x-www-form-urlencoded"
+   },
+   "status": 200,
+   "headers": {
+    "content-type": "application/json; charset=utf-8"
+   },
+   "body": "{\"ocs\":{\"meta\":{\"status\":\"ok\",\"statuscode\":200,\"message\":\"OK\"},\"data\":{\"id\":\"262\",\"share_type\":0,\"uid_owner\":\"admin\",\"displayname_owner\":\"admin\",\"permissions\":3,\"can_edit\":true,\"can_delete\":true,\"stime\":1791807283,\"parent\":null,\"expiration\":null,\"token\":null,\"uid_file_owner\":\"admin\",\"note\":\"\",\"label\":\"\",\"displayname_file_owner\":\"admin\",\"path\":\"\\/M3 \\u9aa8\\u67b6 \\u6e2c\\u8a66.odt\",\"item_type\":\"file\",\"item_permissions\":27,\"is-mount-root\":false,\"mount-type\":\"\",\"mimetype\":\"application\\/vnd.oasis.opendocument.text\",\"has_preview\":true,\"storage_id\":\"home::admin\",\"storage\":2,\"item_source\":76,\"file_source\":76,\"file_parent\":7,\"file_target\":\"\\/M3 \\u9aa8\\u67b6 \\u6e2c\\u8a66.odt\",\"item_size\":1343,\"item_mtime\":1791807282,\"share_with\":\"lcprobe\",\"share_with_displayname\":\"lcprobe\",\"share_with_displayname_unique\":\"lcprobe\",\"mail_send\":1,\"hide_download\":0,\"attributes\":null}}}"
+  },
+  {
+   "step": "setup",
+   "actor": "admin",
+   "method": "POST",
+   "path": "/ocs/v2.php/apps/files_sharing/api/v1/shares",
+   "sent": {
+    "Content-Type": "application/x-www-form-urlencoded"
+   },
+   "status": 200,
+   "headers": {
+    "content-type": "application/json; charset=utf-8"
+   },
+   "body": "{\"ocs\":{\"meta\":{\"status\":\"ok\",\"statuscode\":200,\"message\":\"OK\"},\"data\":{\"id\":\"263\",\"share_type\":0,\"uid_owner\":\"admin\",\"displayname_owner\":\"admin\",\"permissions\":1,\"can_edit\":true,\"can_delete\":true,\"stime\":1791807284,\"parent\":null,\"expiration\":null,\"token\":null,\"uid_file_owner\":\"admin\",\"note\":\"\",\"label\":\"\",\"displayname_file_owner\":\"admin\",\"path\":\"\\/M3 \\u9396 \\u552f\\u8b80.odt\",\"item_type\":\"file\",\"item_permissions\":27,\"is-mount-root\":false,\"mount-type\":\"\",\"mimetype\":\"application\\/vnd.oasis.opendocument.text\",\"has_preview\":true,\"storage_id\":\"home::admin\",\"storage\":2,\"item_source\":17650,\"file_source\":17650,\"file_parent\":7,\"file_target\":\"\\/M3 \\u9396 \\u552f\\u8b80.odt\",\"item_size\":1343,\"item_mtime\":1791807282,\"share_with\":\"lcprobe\",\"share_with_displayname\":\"lcprobe\",\"share_with_displayname_unique\":\"lcprobe\",\"mail_send\":1,\"hide_download\":0,\"attributes\":null}}}"
+  },
+  {
+   "step": "setup",
+   "actor": "admin",
+   "method": "POST",
+   "path": "/ocs/v2.php/apps/files_sharing/api/v1/shares",
+   "sent": {
+    "Content-Type": "application/x-www-form-urlencoded"
+   },
+   "status": 200,
+   "headers": {
+    "content-type": "application/json; charset=utf-8"
+   },
+   "body": "{\"ocs\":{\"meta\":{\"status\":\"ok\",\"statuscode\":200,\"message\":\"OK\"},\"data\":{\"id\":\"264\",\"share_type\":0,\"uid_owner\":\"admin\",\"displayname_owner\":\"admin\",\"permissions\":1,\"can_edit\":true,\"can_delete\":true,\"stime\":1791807284,\"parent\":null,\"expiration\":null,\"token\":null,\"uid_file_owner\":\"admin\",\"note\":\"\",\"label\":\"\",\"displayname_file_owner\":\"admin\",\"path\":\"\\/M3 \\u9396 \\u552f\\u8b80\\u8cc7\\u6599\\u593e\",\"item_type\":\"folder\",\"item_permissions\":31,\"is-mount-root\":false,\"mount-type\":\"\",\"mimetype\":\"httpd\\/unix-directory\",\"has_preview\":false,\"storage_id\":\"home::admin\",\"storage\":2,\"item_source\":17651,\"file_source\":17651,\"file_parent\":7,\"file_target\":\"\\/M3 \\u9396 \\u552f\\u8b80\\u8cc7\\u6599\\u593e\",\"item_size\":1343,\"item_mtime\":1791807283,\"share_with\":\"lcprobe\",\"share_with_displayname\":\"lcprobe\",\"share_with_displayname_unique\":\"lcprobe\",\"mail_send\":1,\"hide_download\":0,\"attributes\":null}}}"
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 骨架 測試.odt",
+   "status": 207,
+   "bytes": 618
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 鎖 唯讀.odt",
+   "status": 207,
+   "bytes": 612
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 鎖 唯讀資料夾/M3 鎖 資料夾內.odt",
+   "status": 207,
+   "bytes": 693
+  },
+  {
+   "step": "upload",
+   "actor": "admin",
+   "method": "PUT",
+   "path": "/remote.php/dav/files/admin/M3 骨架 測試.odt",
+   "sent": {
+    "Content-Type": "application/vnd.oasis.opendocument.text"
+   },
+   "status": 204,
+   "headers": {
+    "etag": "\"f597000fd3b2cf32906d5f7f0e9d1199\"",
+    "oc-etag": "\"f597000fd3b2cf32906d5f7f0e9d1199\"",
+    "oc-fileid": "00000076oczcndor1sx6"
+   },
+   "body": null
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 骨架 測試.odt",
+   "status": 207,
+   "bytes": 618
+  },
+  {
+   "step": "list",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "",
+   "status": 207,
+   "bytes": 4764
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 骨架 測試.odt",
+   "status": 207,
+   "bytes": 941
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 骨架 測試.odt",
+   "status": 207,
+   "bytes": 599
+  },
+  {
+   "step": "list",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "",
+   "status": 207,
+   "bytes": 4764
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 骨架 測試.odt",
+   "status": 207,
+   "bytes": 599
+  },
+  {
+   "step": "upload",
+   "actor": "admin",
+   "method": "PUT",
+   "path": "/remote.php/dav/files/admin/M3 骨架 測試.odt",
+   "sent": {
+    "Content-Type": "application/vnd.oasis.opendocument.text"
+   },
+   "status": 204,
+   "headers": {
+    "etag": "\"47841a5b4f209d3280645752be22cdad\"",
+    "oc-etag": "\"47841a5b4f209d3280645752be22cdad\"",
+    "oc-fileid": "00000076oczcndor1sx6"
+   },
+   "body": null
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 骨架 測試.odt",
+   "status": 207,
+   "bytes": 618
+  },
+  {
+   "step": "list",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "",
+   "status": 207,
+   "bytes": 4764
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 骨架 測試.odt",
+   "status": 207,
+   "bytes": 941
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 骨架 測試.odt",
+   "status": 207,
+   "bytes": 599
+  },
+  {
+   "step": "list",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "",
+   "status": 207,
+   "bytes": 4764
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 骨架 測試.odt",
+   "status": 207,
+   "bytes": 618
+  },
+  {
+   "step": "upload",
+   "actor": "admin",
+   "method": "PUT",
+   "path": "/remote.php/dav/files/admin/M3 骨架 測試.odt",
+   "sent": {
+    "Content-Type": "application/vnd.oasis.opendocument.text"
+   },
+   "status": 204,
+   "headers": {
+    "etag": "\"2cce88643250c6cef4cde955f5af8301\"",
+    "oc-etag": "\"2cce88643250c6cef4cde955f5af8301\"",
+    "oc-fileid": "00000076oczcndor1sx6"
+   },
+   "body": null
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 骨架 測試.odt",
+   "status": 207,
+   "bytes": 618
+  },
+  {
+   "step": "list",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "",
+   "status": 207,
+   "bytes": 4764
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 骨架 測試.odt",
+   "status": 207,
+   "bytes": 941
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 骨架 測試.odt",
+   "status": 207,
+   "bytes": 599
+  },
+  {
+   "step": "list",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "",
+   "status": 207,
+   "bytes": 4764
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 骨架 測試.odt",
+   "status": 207,
+   "bytes": 599
+  },
+  {
+   "step": "teardown",
+   "actor": "admin",
+   "method": "DELETE",
+   "path": "/ocs/v2.php/cloud/users/lcprobe",
+   "sent": {},
+   "status": 200,
+   "headers": {
+    "content-type": "application/json; charset=utf-8"
+   },
+   "body": "{\"ocs\":{\"meta\":{\"status\":\"ok\",\"statuscode\":200,\"message\":\"OK\"},\"data\":[]}}"
+  },
+  {
+   "step": "teardown",
+   "actor": "admin",
+   "method": "DELETE",
+   "path": "/remote.php/dav/files/admin/M3 鎖 唯讀.odt",
+   "sent": {},
+   "status": 204,
+   "headers": {},
+   "body": null
+  },
+  {
+   "step": "teardown",
+   "actor": "admin",
+   "method": "DELETE",
+   "path": "/remote.php/dav/files/admin/M3 鎖 唯讀資料夾",
+   "sent": {},
+   "status": 204,
+   "headers": {},
+   "body": null
+  },
+  {
+   "step": "upload",
+   "actor": "admin",
+   "method": "PUT",
+   "path": "/remote.php/dav/files/admin/M3 骨架 測試.odt",
+   "sent": {
+    "Content-Type": "application/vnd.oasis.opendocument.text"
+   },
+   "status": 204,
+   "headers": {
+    "etag": "\"6dacc50af74370d1652755a19fef66f4\"",
+    "oc-etag": "\"6dacc50af74370d1652755a19fef66f4\"",
+    "oc-fileid": "00000076oczcndor1sx6"
+   },
+   "body": null
+  }
+ ]
+}
