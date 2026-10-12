@@ -1,0 +1,5 @@
+# 131-B red control (SPEC-M3-autosave §9.12), 2026-10-12
+
+The pre-fix 0.2.13 engine package (`wasm_sdk_probe/build/archive/host-0.2.13-prefix-engine-0574b1b157ce1e1e/`, page `c7f904fa…`) was copied into the host's `engine/`; `check-engine-decoded-swapped-in.txt` shows the package decodes to its own manifest and that its page differs from dist/ and web/ (`d761f1ce…`, the fix) — expected while swapped in. One run, `probe_hand_test_0212.py --arms rapid20 --rapid-rounds 1` (tree `65e90f62`), owner's document via Files, Chrome then Firefox. Then the fixed package (`host-0.2.13-engine-59e6a9fed026a0ad/`) was copied back and `check-engine-decoded-swapped-back.txt` passes (exit 0).
+
+Result (`judge.txt`, `../judge_131b.py --rounds 1`): Chrome 15 deleted / **5 refused**, Firefox 15 / **5 refused**, `other` empty. The criterion asks for at least one refusal per browser: **red, as required**. The reader also fails the missing high/low arms (this run had none), which is the reader's own red case for a report without the state witness.
