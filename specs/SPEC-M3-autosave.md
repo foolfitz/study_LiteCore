@@ -487,3 +487,12 @@ AS-2：開始時間落在 30.6–31.5 秒（30 秒加引擎段）。AS-5：0 掉
 **證人報告**：六支 M3 runner 的證人 shakedown 是在修法前的頁面 `c7f904fa…` 上跑的。規則 A 只動刪除監聽器，不碰存檔路徑與鎖；所以若某份報告紅在 §9.4「計數」登錄的那一點，它仍是那一格的證人。紅在別處的，照 §9.4 不算登錄，交擁有者。
 
 **產品路徑的預測**：`findings/evidence/release-0.2.13/product-path/PREDICTION.md` 在第一次執行之前補一行：規則 A 只在頁面自己的刪除還沒結算時起作用。產品路徑網經頁面刪除監聽器送出的 Backspace 只有一下（`backspace-and-arrows-reach-the-document`，`run_e2_c_product_path.py:5826`），之前等的是定位游標、沒有別的刪除在途，所以計數是 0、照 121 送出；預測沒有格子因此改變。
+
+### 9.13 121 證人的一條改讀法（2026-10-12，只追加；寫在重跑之前）
+
+**取代 §9.12「121 不得壞掉」瀏覽器證人的第三條「之後的形狀是 `collapsed`」的讀法。**
+- 第一次執行（`findings/evidence/128/final-0.2.13-131fix/`）用 `probe_hand_test_0212.py` 的 `selection_arm`，形狀讀的是 `#toolbar[data-selection-shape]`。那是頁面的認知 `lastSelectionShape`，只有拖曳、點擊、129 的移動會寫，鍵盤刪除從來不寫（121 的註解本來就這樣寫）。照這個讀法，任何頁面都過不了：四臂都是 `range-single`。這是判讀者（主 session）的錯讀，不是頁面的缺陷。
+- 引擎的形狀，這個儀器讀不到（頁面沒有把它放進 DOM；sink 拖曳前後都在範圍起點，分不出來）。
+- 改用 121 自己既有的瀏覽器判準 **121-B**（SPEC-M3-production-ui §15.2；儀器 `findings/evidence/121/select_delete_probe.py`，不改）：兩個瀏覽器、Backspace 與 Delete、拖曳後 `range-single` → 延遲列「刪除選取 N ms」、`ready`、世代 1 → 1、revision 0 → 1、沒有 toast、存檔後第一段是 `M01 alpha`（選取的字確實不見了）。這比「形狀」更直接：讀的是文件本身。綁定：跑之前、跑之後各讀一次 `dist/e2-editor-app.js` 的 sha256，都要是 `d761f1ce…`。
+- 第一次執行讀到的另外兩條照樣算：四臂延遲列都是「刪除選取 8–11 ms」、`toasts == []`。
+- 順帶記下（不是新判準）：鍵盤刪掉選取之後，頁面的認知仍是 `range-single`，到下一次點擊或拖曳為止。0.2.10 起就如此，不是這一版帶進來的。
