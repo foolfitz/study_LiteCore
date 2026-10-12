@@ -102,3 +102,16 @@ Per-key backlog is 0.0 for all 20 keys in both browsers (ratio 2 and ratio 1, as
 - G4: the chain copy changed its `PAGE=` line as well as its output directory (see G4).
 - `static.shellBundle` in the G0/G1 reports is `exit 1` ("manifest is out of date … changed=['web/e2-editor-app.js']", `e2/editor-shell-v2-bundle-v63.json`): the shell generation is not frozen for this page; the probe records it and does not stop on it. Not investigated further.
 - Not run, by instruction: `make`, `package_m3_engine.py`, `ddev occ upgrade`, anything in `~/Projects/Nextcloud_Apps`; nothing was committed or changed there. `wasm_sdk_probe/web` and `dist` untouched (`dist/e2-editor-app.js` hashed `abe93f45…` before G2 (binding file) and after).
+
+## Addendum (main session, 2026-10-12): the host-segment cell, one bounded re-run
+
+The G1 run's host-segment cell was `NOT_JUDGED` (two PUTs; the second an autosave, sent about 1.1 s after the first was answered — the host's minimum gap between PUTs). In that run the host-segment arm came after the `high`, `low` and `rapid20` arms in the same session, which typed and deleted throughout; the page change (H1–H3) does not touch the save path (H1 is a no-op with the caret in the view's first band, H2 acts on repeated delete keys only, H3 only while a delete is out). That is a reading of the code, not a measurement, so the cell was run once more on its own, unchanged instrument and verdict function:
+
+`python3 wasm_sdk_probe/tools/probe_hand_test_0212.py --out findings/evidence/132/guard/hostseg-rerun --browsers chrome,firefox --arms hostseg,hostseg-red` → `hostseg-rerun/report.json` (`runs[].hostseg.judged`, `runs[].hostsegRed.judged`; the page served is the report's `static.servedPage`).
+
+| | Chrome | Firefox |
+|---|---|---|
+| host-segment cell | **PASS**: key typed 312 ms into the held PUT, its caret band fresh 39.3 ms after the key, PUT answered 2,754 ms after the key | **PASS**: 40.8 ms, PUT answered 2,746 ms after the key |
+| red control (`hostseg-red`) | FAIL, band fresh 2,768 ms after the key (`heldPaints` 1) | FAIL, 2,830 ms |
+
+So the host-segment clause of 128-B holds on page `abe93f45…`, and its red control is red. `read_128b-output.txt` in that directory is empty: that reader prints the high/low arms only, and this run has none.
