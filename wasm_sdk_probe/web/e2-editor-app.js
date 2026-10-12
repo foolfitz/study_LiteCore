@@ -1460,12 +1460,6 @@ function paintBand(strip) {
 }
 
 /**
- * The caret and the selection as the canvas draws them, in backing pixels, or
- * nothing.  `key` holds everything the drawn pixels depend on -- the canvas
- * and document sizes and every rectangle -- so two overlays with one key draw
- * the same pixels.
- */
-/**
  * FINDING 132's blue flash (SPEC-M3-held-key §3.3; SPEC-M3-autosave §9.18
  * item 2).  The editor state the overlay draws.  While a delete this page sent
  * is out, a range in the engine's state is the barrier's: it selects the one
@@ -1482,6 +1476,12 @@ function overlayEditorState() {
   return overlayState;
 }
 
+/**
+ * The caret and the selection as the canvas draws them, in backing pixels, or
+ * nothing.  `key` holds everything the drawn pixels depend on -- the canvas
+ * and document sizes and every rectangle -- so two overlays with one key draw
+ * the same pixels.
+ */
 function overlayShapes() {
   const editorState = overlayEditorState();
   if (!editorState || !session?.document) return;
