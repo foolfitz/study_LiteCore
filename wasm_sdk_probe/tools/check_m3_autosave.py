@@ -31,9 +31,12 @@ AS-6 (a), 128-B, 129-B, 130-U and the old runners' re-count are other runners.
     python3 wasm_sdk_probe/tools/check_m3_autosave.py --red-cases findings/evidence/m3-autosave/shakedown/<file>.json
     python3 wasm_sdk_probe/tools/check_m3_autosave.py --selftest      # offline: synthetic report, no browser, no server
 
-One clock: the page records `performance.timeOrigin + performance.now()` for
-keydowns, revision changes, visibilitychange and toasts, and the host's records
-are `started + relative ms` of the same page (`Date.now()`), so they compare.
+One clock: the page records `Date.now()` for keydowns, revision changes,
+visibilitychange and toasts, and the host's records are `started + relative ms`
+of the same page, `started` and every relative ms taken with the same
+`Date.now()`, so they compare.  (Was `performance.timeOrigin + performance.now()`
+until the dual review: codex item 3 -- two clocks, and `PILL_NOW` / `SNAP` were
+already `Date.now()`.)
 """
 from __future__ import annotations
 
@@ -109,7 +112,7 @@ BUSY_AFTER_S = 29.0                    # AS-5: the pill goes busy for the auto n
 # ------------------------------------------------------------------ page-side instruments
 
 RECORDER = """(() => {
-  const at = () => performance.timeOrigin + performance.now();
+  const at = () => Date.now();
   const log = window.__as = { keys: [], revisions: [], visibility: [], toasts: [] };
   const sink = document.querySelector('#sink'), rev = document.querySelector('#s-revision'),
         toast = document.querySelector('#toast');
@@ -738,6 +741,12 @@ def s_as5(run, report, held: bool) -> list[str]:
     if key is None or (when(host, autos[0]["at"]) - key) / 1000 < BUSY_AFTER_S:
         bad.append("AS-5: premise: the first auto record did not begin 29 s or more after the key")
     sent, received = run["sent"], (run.get("server") or {}).get("received")
+    # The criterion types DURING the auto's engine part: the first typed key must come before
+    # the host part begins (the host record's `at`).  Otherwise nothing overlapped and the arm
+    # established nothing (dual review, codex item 2).
+    if len(page["keys"]) > 1 and page["keys"][1]["t"] >= when(host, autos[0]["at"]):
+        bad.append(NE_TAG + f"the typing began {(page['keys'][1]['t'] - when(host, autos[0]['at'])) / 1000:.2f} s "
+                   "after the auto's engine part ended: nothing typed during it")
     if len(page["keys"]) - 1 != len(sent):
         bad.append(f"AS-5: the page saw {len(page['keys']) - 1} keydowns after the first, the runner sent {len(sent)}")
     lost = len(sent) - len(received or "")
@@ -855,6 +864,13 @@ def score(report: dict[str, Any], strict: bool) -> dict[str, Any]:
             # The criterion is conditional on a loss; say how often the toast path was exercised.
             lost = len(run.get("sent") or "") - len((run.get("server") or {}).get("received") or "")
             cell["lossRuns"] = cell.get("lossRuns", 0) + (lost > 0)
+    for key, cell in cells.items():
+        # AS-5 held is conditional on a loss: a cell where no run lost a key never ran the toast
+        # path, and green would look the same as a toast path that is not there (dual review,
+        # fable's position on judgement call 1).
+        if key.startswith("as5-held/") and cell.get("lossRuns") == 0 and cell[PASS]:
+            cell[NE], cell[PASS] = cell[NE] + cell[PASS], 0
+            cell["problems"].append([NE_TAG + "no held key was lost in any run: the toast path never ran"])
     status1, bad1, count1 = as1(report)
     problems = binding_problems(report) if strict else []
     if strict:
@@ -993,6 +1009,9 @@ RED_CASES = [
      lambda r: r["server"].update(received=r["server"]["received"][:-1]), "AS-5", "run"),
     ("AS-5: letters out of order", "as5", None,
      lambda r: r["server"].update(received=r["server"]["received"][::-1]), "AS-5", "run"),
+    ("AS-5: the typing began after the auto's engine part (no overlap) is NOT_ESTABLISHED", "as5", None,
+     lambda r: [k.update(t=when(r["host"], autos_of(r["host"])[0]["at"]) + 100 + i * 125)
+                for i, k in enumerate(r["page"]["keys"][1:])], "engine part ended", "ne"),
     ("AS-5 held: letters lost and the page showed no toast", "as5-held", None,
      lambda r: (r["page"].update(toasts=[]), r["server"].update(received="k" * 10)), HELD_TOAST, "run"),
     ("AS-6 (b): leaving after the auto copy is asked about", "as6b", None,
@@ -1251,6 +1270,14 @@ def selftest() -> int:
     result = score(no_hidden, strict=True)
     check("as2h NOT_ESTABLISHED in both browsers: AUTOSAVE NOT ESTABLISHED (not HOLDS, not DOES NOT HOLD)",
           result["verdict"] == "AUTOSAVE NOT ESTABLISHED", result["verdict"])
+    no_loss = copy.deepcopy(report)
+    for run in no_loss["runs"]:
+        if run["arm"] == "as5-held" and run["browser"] == "firefox":
+            run["server"]["received"] = run["sent"]
+    result = score(no_loss, strict=True)
+    check("as5-held lost no key in any Firefox run: that cell NOT_ESTABLISHED, verdict AUTOSAVE NOT ESTABLISHED",
+          result["cells"]["as5-held/firefox"][NE] == 3 and result["verdict"] == "AUTOSAVE NOT ESTABLISHED",
+          (result["cells"]["as5-held/firefox"], result["verdict"]))
     fatal = copy.deepcopy(report)
     fatal["runs"][0]["fatal"] = "Traceback\nRuntimeError: boom"
     check("a fatal run is a failed cell", score(fatal, strict=True)["cells"]["as2-key/chrome"][FAIL] == 1)
