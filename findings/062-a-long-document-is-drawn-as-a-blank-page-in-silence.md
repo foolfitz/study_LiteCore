@@ -323,3 +323,7 @@ Cairo 的常數與註解、`init.cxx:4288` 被丟掉的 `bool`、SVP 的狀態�
 確實走 headless／svp。規則是**不要在沒讀到那一行之前指認層級**，而 040、048 與 062
 自己就是不這樣做的前例。
 
+
+## 追記（2026-10-12）：引用路徑失效
+
+上文引用的 `wasm-lite/build/workdir/UnpackedTarball/cairo/src/cairo-image-surface.c:59` 所在的建置樹 `wasm-lite/build` 已於 2026-10-12 刪除（擁有者為了磁碟空間決定；紀錄見 `wasm-lite/retired-builds/README.md`）。同一行註解與第 62 行的 `#define MAX_IMAGE_SIZE 32767` 仍在 `wasm-lite/build-headless-probe/workdir/UnpackedTarball/cairo/src/cairo-image-surface.c`（出貨核心那一棵），原始 tarball 也在 `libreoffice-26-8/external/tarballs`。結論不受影響。

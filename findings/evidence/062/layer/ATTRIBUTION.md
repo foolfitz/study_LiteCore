@@ -118,3 +118,7 @@ constant and comment, the discarded `bool` at `init.cxx:4288`, the SVP status
 return, and this build's headless config. The rule this was run under was *do
 not name a layer without showing the line* — 040, 048 and 062 itself are the
 precedents for what happens otherwise.
+
+## Note (2026-10-12): the cited path no longer exists
+
+The tree `wasm-lite/build` was deleted on 2026-10-12 (the owner's decision, to free disk space; record in `wasm-lite/retired-builds/README.md`). The same line 59 comment and line 62's `#define MAX_IMAGE_SIZE 32767` are in `wasm-lite/build-headless-probe/workdir/UnpackedTarball/cairo/src/cairo-image-surface.c` (the shipped core's tree), and the cairo tarball is in `libreoffice-26-8/external/tarballs`. The verdict is unaffected.
