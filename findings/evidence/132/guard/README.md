@@ -42,3 +42,21 @@ Files: `../../121/0.2.15-132-binding.txt` (before 2026-10-12T18:29:57Z, after 18
 | Firefox Delete | `range-single` | 「刪除選取 9 ms」 | `ready` | 1 → 1 | 0 → 1 | `[]` | `M01 alpha` | PASS |
 
 Compared with `0.2.13-131fix-*.json` (the d761f1ce page): `diff` of each pair, after masking the `定位游標 N ms` figure of the `before` field, shows no difference (the delete latencies 15 / 14 / 9 / 9 ms are the same as in 0.2.13-131fix). The `after.toast` field reads 「已開啟 f.odt」 in all eight files (the toolbar's last message, the same in both sets); the criterion's "no toast" is the `toasts` list, empty in all four.
+
+## G3 — 129-B (arrow keys after a selection): PASS
+
+Pin commit (its own, before the run): `d2349d03` — `FINAL_PAGE_SHA256` in `wasm_sdk_probe/tools/probe_129_m4_wasm.py` from `d761f1ce…` to `abe93f45…`, the old value kept in the comment above it; nothing else in the file changed. Round directory `../../129/final/round-20261012T183200Z/` (its own commit). Driver `wasm_sdk_probe/tools/run_probe_129_final.sh ../findings/evidence/129/final/round-20261012T092119Z/docs 4 1` run from `wasm_sdk_probe/` (the docs path is `../findings/…` because the script `cd`s into its argument and `findings/` is at the repository root; round label 4, 1 round; exit 0). Chrome 18:32:00–18:44:24Z, Firefox 18:44:25–18:57:56Z, load 0.32 0.32 0.52 at the start (`machine-at-start.txt`), `pgrep -c chrome` = 1. Analysis: `python3 wasm_sdk_probe/tools/analyze_129_m4.py round-20261012T183200Z round-20261012T092119Z` run in `findings/evidence/129/final/`, exit 0, stdout in `analysis-stdout.txt` (the analyzer also wrote `analysis.json` and `summary.md` in the round directory, as in earlier rounds). The page under test is `dist/`; the red control is 0.2.12's page from `build/archive/host-0.2.12-engine-45cdcedfc0fe7e61/`.
+
+`preflight.final` in both `report-chrome.json` and `report-firefox.json`: `pageUnderTestSha256` `abe93f4575c7797d…` (`pageUnderTestIsFinal: true`), `redControlSha256` `8909564eb2316afa…` (`redControlIs0212: true`).
+
+| Clause (§9.4 129-B, as in `../../129/final/README.md`) | Chrome | Firefox | Verdict |
+|---|---|---|---|
+| 42 brief cells land where native `ref` lands | old 12 = native exact 12/12; S1–S5 30/30 by rule, 28/30 exact (`s1/Down` 195 vs native 201, `s1/End` 194 vs 200: WASM wrap offsets, S1 lines start 101/195/292 vs native 101/201, the same two cells as in every earlier round) | same | PASS |
+| toolbar shape after the key is `collapsed` | 54 of 54 m4 arms `collapsed` (before the key: 48 `range-single`, 6 `range-cross`) | 54 of 54 | PASS |
+| 0 toasts | analyzer: `toasts in m4 arms … 0 arms []`; pill `stopped` in none | same | PASS |
+| key → move done < 400 ms | max 285.0 ms (moving keys 81.3–98.1; the 7 arms whose key does not move the caret 282.1–285.0) | max 299.8 ms (moving 83.7–86.8; the 7 non-moving 285.5–299.8) | PASS |
+| Shift+arrow does not move, no toast | `shift` arms: `caretMoved: false`, revision `[0, 0]`, `toasts: []`; range arm `sameCaret`/`sameSelection` true | same | PASS |
+| red control refuses | 3 of 3 `red-*` arms `refused: true` with the `EDITOR_FORMAT_GESTURE_UNSUPPORTED` toast | 3 of 3 | red, as required |
+| L-129 cells (recorded, not judged) | `s1d`/`m1d` Down follow native `ref` (`dragDownFollowsRef: ["s1d", "m1d"]`) | same | recorded |
+
+Cross-checks printed by the analyzer: Chrome against Firefox landing index equal in 54/54 cells; each browser against `round-20261012T092119Z` (the d761f1ce round): 54 compared, 0 differ, wrap offsets the same.
