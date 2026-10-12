@@ -1,0 +1,16 @@
+MUTANT depth Infinity (a repeat is never dropped): 2 failing
+    ✖ 132 U3: a repeat is dropped only while two deletes are out; a press, a composition, another key never
+    ✖ 132 U4: the sink's keydown listener prevents exactly the repeats U3 drops, at the page's own count
+MUTANT no repeat condition (a press is dropped too): 2 failing
+    ✖ 132 U3: a repeat is dropped only while two deletes are out; a press, a composition, another key never
+    ✖ 132 U4: the sink's keydown listener prevents exactly the repeats U3 drops, at the page's own count
+MUTANT caret ignored in bandOrder: 2 failing
+    ✖ 132 U1: among the bands under the view, the caret's comes first; otherwise B2's order exactly
+    ✖ 132 U2: a pass starts with the band holding the engine's caret; with no caret, with the view's first band
+MUTANT renderDocument passes no caret: 1 failing
+    ✖ 132 U2: a pass starts with the band holding the engine's caret; with no caret, with the view's first band
+MUTANT overlay always takes the engine's state: 2 failing
+    ✖ 132 U5
+    ✖ 132 U5
+MUTANT no repaint when deletes settle: 1 failing
+    ✖ 132 U6: the delete listener repaints the overlay once its deletes have all settled, not before

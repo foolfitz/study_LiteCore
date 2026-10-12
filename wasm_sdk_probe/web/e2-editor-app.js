@@ -199,6 +199,8 @@ let changes = 0;
 // `layoutCanvas()`.
 const NO_OVERLAY = Object.freeze({ key: "", selection: [], caret: null, caretTwips: null });
 let paintedOverlay = NO_OVERLAY;
+// The editor state the overlay draws (overlayEditorState, finding 132).
+let overlayState = null;
 
 // Finding 062: the engine will not paint a tile taller than this.  Above it, it
 // returns a correctly sized buffer it never drew into AND reports success --
@@ -1118,16 +1120,38 @@ function renderBands(total) {
  * The bands in the order to paint them: those overlapping the visible rows
  * first, then the rest by their distance from the visible rows, nearest first;
  * ties keep document order.
+ *
+ * FINDING 132 / L-128-rapid (SPEC-M3-held-key §3.1): among the visible bands,
+ * those holding the caret (`caretRows`, document rows) come first.  A pass is
+ * ended by the next key after the band in flight, so under a held key its first
+ * band is the only one ever painted -- and that was always the top of the view:
+ * with the caret in the second band the deleted text stayed on screen until the
+ * key was released and the queue had drained (1.8 s after a 2 s hold).  A caret
+ * outside the view does not jump the queue; the user is looking at the view.
  */
-function bandOrder(bands, [visibleTop, visibleBottom]) {
+function bandOrder(bands, [visibleTop, visibleBottom], caretRows = null) {
   const distance = (band) => {
     const end = band.top + band.rows;
     if (end > visibleTop && band.top < visibleBottom) return 0;
     return band.top >= visibleBottom ? band.top - visibleBottom : visibleTop - end;
   };
-  return bands.map((band) => ({ band, d: distance(band) }))
-    .sort((a, b) => a.d - b.d || a.band.index - b.band.index)
+  const holdsCaret = (band) => caretRows !== null
+    && band.top < caretRows[1] && band.top + band.rows > caretRows[0];
+  return bands.map((band) => {
+    const d = distance(band);
+    return { band, d, caret: d === 0 && holdsCaret(band) ? 0 : 1 };
+  })
+    .sort((a, b) => a.d - b.d || a.caret - b.caret || a.band.index - b.band.index)
     .map((entry) => entry.band);
+}
+
+/** The document rows the engine's caret covers, or null when it has not said. */
+function caretDocRows() {
+  const caret = session?.state?.snapshot?.editorState?.caret;
+  const heightTwips = session?.document?.heightTwips;
+  if (!caret || !heightTwips || !docRows) return null;
+  const scale = docRows / heightTwips;
+  return [Math.floor(caret.y * scale), Math.ceil((caret.y + caret.height) * scale)];
 }
 
 /**
@@ -1196,7 +1220,7 @@ async function renderDocument(retriesLeft = RENDER_BUSY_RETRIES) {
     if (lastTiles.length !== bands.length) lastTiles = new Array(bands.length).fill(null);
     const stale = (band) => !lastTiles[band.index] || lastTiles[band.index].label < changes;
     const wanted = bands.filter((band) => bandInWindow(band) && stale(band));
-    for (const band of bandOrder(wanted, visibleDocRows())) {
+    for (const band of bandOrder(wanted, visibleDocRows(), caretDocRows())) {
       if (renderAgain) break;   // a newer change arrived; the next pass starts with the view
       if (!bandInWindow(band)) continue;   // the window moved; that move asked for a pass
       const label = changes;
@@ -1441,8 +1465,25 @@ function paintBand(strip) {
  * and document sizes and every rectangle -- so two overlays with one key draw
  * the same pixels.
  */
-function overlayShapes() {
+/**
+ * FINDING 132's blue flash (SPEC-M3-held-key §3.3; SPEC-M3-autosave §9.18
+ * item 2).  The editor state the overlay draws.  While a delete this page sent
+ * is out, a range in the engine's state is the barrier's: it selects the one
+ * character before deleting it, and the engine pushes that selection like any
+ * other -- drawn, every delete washed that character blue for 7-11 ms (measured,
+ * findings/evidence/132/baseline/).  Finding 131's reasoning: the delete out can
+ * only come back to a caret, so the range is not the user's.  The overlay keeps
+ * the state it drew before, rather than drawing the engine's caret of that
+ * moment, which may already sit left of the character still on screen.
+ */
+function overlayEditorState() {
   const editorState = session?.state?.snapshot?.editorState;
+  if (!(deletesInFlight > 0 && editorState?.selection?.collapsed === false)) overlayState = editorState;
+  return overlayState;
+}
+
+function overlayShapes() {
+  const editorState = overlayEditorState();
   if (!editorState || !session?.document) return;
 
   // Rectangles are twips in document space; the canvas holds document rows
@@ -2320,9 +2361,12 @@ el.sink.addEventListener("beforeinput", (event) => {
   const sent = deleteActionFor(action, shape,
                                session.offers?.("delete-selection") === true, deletesInFlight);
   // Counted before the call and released however it ends -- an early return,
-  // a refusal swallowed here, a disposed engine.
+  // a refusal swallowed here, a disposed engine.  Once none is out, the overlay
+  // is brought up to date: a range that arrived meanwhile was not drawn
+  // (overlayEditorState), and no state write may follow to draw it.
   deletesInFlight += 1;
-  void editorAction(sent).catch(() => {}).finally(() => { deletesInFlight -= 1; });
+  void editorAction(sent).catch(() => {}).finally(() => { deletesInFlight -= 1; })
+    .then(() => { if (deletesInFlight === 0) paint(); });
 });
 
 // FINDING 122 (SPEC-M3-production-ui §15.6; fable's third ruling, A).  A key
@@ -2518,6 +2562,32 @@ el.sink.addEventListener("keydown", (event) => {
   }
   void editorAction(action).catch(() => {});
 });
+
+// FINDING 132 (SPEC-M3-held-key §3.2; the owner chose this, §4).  A held
+// Backspace or Delete repeats every 30 ms on the owner's desk, and a delete
+// takes the engine about 66 ms with the repaint between two of them, so the
+// repeats queued faster than they were done: a 2 s hold went on deleting for
+// 1.8 s after the key came up (measured, findings/evidence/132/baseline/).  A
+// repeat is not sent while two deletes this page sent are out -- one in the
+// engine and one waiting, so the engine never waits for the next repeat -- and
+// the key stops within those two when it comes up.  How fast a held key
+// deletes is the engine's either way; only the tail goes.  A press (`repeat`
+// false) always goes out: a burst of separate presses is deleted press for
+// press (finding 131).  Finding 106 is the precedent: a held Ctrl+S is one save.
+const HELD_DELETE_DEPTH = 2;
+
+function dropsHeldRepeat(event, deletesInFlight) {
+  return event.repeat === true && !event.isComposing
+    && (event.key === "Backspace" || event.key === "Delete")
+    && deletesInFlight >= HELD_DELETE_DEPTH;
+}
+
+// preventDefault on the keydown: no `beforeinput` follows, so nothing is sent.
+function skipHeldRepeat(event) {
+  if (dropsHeldRepeat(event, deletesInFlight)) event.preventDefault();
+}
+
+el.sink.addEventListener("keydown", skipHeldRepeat);
 
 async function moveFromPoint(action) {
   const caret = session?.state?.snapshot?.editorState?.caret;
