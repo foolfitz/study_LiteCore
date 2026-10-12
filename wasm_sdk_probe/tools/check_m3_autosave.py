@@ -80,10 +80,10 @@ PASS, FAIL, NE = "PASS", "FAIL", "NOT_ESTABLISHED"
 # Bindings for a counted run, written down by the main session after 0.2.13 is
 # packaged and BEFORE the first counted run (spec §9.4).  None = not bound yet: a
 # counted run refuses to start, and a counted report cannot score HOLDS.
-PAGE_SHA256: str | None = None      # web/e2-editor-app.js, dist copy and the copy the host serves
-SESSION_SHA256: str | None = None   # editor-shell-v2/narrow-editor-v2-session.js, same three places
-HOST_VERSION: str | None = None     # appinfo/info.xml <version>
-HOST_COMMIT: str | None = None      # the host repo's HEAD, a prefix is enough
+PAGE_SHA256: str | None = "d761f1cee9d26c50c0b152348d74c3d05f540e9228927815d93ad6ec161e7dcd"      # web/e2-editor-app.js, dist copy and the copy the host serves
+SESSION_SHA256: str | None = "62a2a20e4c66f630d77caf5bb75973e28aa58b0d8c7bf4cb0e35fa44b6a6fc5c"   # editor-shell-v2/narrow-editor-v2-session.js, same three places
+HOST_VERSION: str | None = "0.2.13"     # appinfo/info.xml <version>
+HOST_COMMIT: str | None = "e028517"      # the host repo's HEAD, a prefix is enough
 
 # arm -> (criterion, browsers, counted runs per browser)
 PLAN = {

@@ -5,7 +5,8 @@ paragraph, nothing else (every hard-coded expectation re-read, rule ee: 42 check
 the product-path runner serves dist/ without a host, so the page's autosave -- host only, §9.2 -- never runs in it).
 0.2.12's note follows (its constants then read 8909564e... and 0660beaf...); this copy's read c7f904fa... and
 2609266a... (the v8 repoint computed with the runner's own repointed_page(); the same call on 0.2.12's page gives
-0660beaf..., checked 2026-10-12).
+0660beaf..., checked 2026-10-12).  Re-bound 2026-10-12 after finding 131's rule A (SPEC-M3-autosave §9.19), the
+two constants only: d761f1ce... and fac708d0... (same call; on c7f904fa... it still gives 2609266a..., re-checked).
 (0.2.12's paragraph: copied from ../../release-0.2.11/product-path/judge.py; changed the two page constants only.)
 (0.2.11's paragraph: copied from ../../release-0.2.10/product-path/judge.py; changed the two page constants only.)
 (0.2.10's paragraph: copied from ../../release-0.2.9/product-path/judge.py; changed the two page constants only.)
@@ -34,14 +35,14 @@ ap = argparse.ArgumentParser()
 ap.add_argument("--dir", default=str(Path(__file__).resolve().parent))
 # Self-test only: read another directory's candidate arm under its own label and page.
 ap.add_argument("--candidate", default="v19")
-ap.add_argument("--candidate-page", default="c7f904fa1d807c63afc0e82522dcb0d8abab71175a9ee5de3c2af276dd24b5ab")
+ap.add_argument("--candidate-page", default="d761f1cee9d26c50c0b152348d74c3d05f540e9228927815d93ad6ec161e7dcd")
 args = ap.parse_args()
 D = Path(args.dir)
 
 # ---- values from this directory's PREDICTION.md (spec §17.22) ----------------------------------
 CAND = args.candidate                  # "v19": the PLAIN arm, dist as served
-CAND_PAGE = args.candidate_page        # c7f904fa...: the page dist serves (web = dist, shell v62)
-V8_REPOINTED = "2609266a7d56920f8cb66cb96478e52b038b0d06de8c6e49b52bb55872d0eb06"   # the same source repointed to v8
+CAND_PAGE = args.candidate_page        # d761f1ce...: the page dist serves (web = dist, shell v62); was c7f904fa...
+V8_REPOINTED = "fac708d061d5da508e2aa9838b95112b85f9b1ca93459d64fbfcff8fab82cb42"   # the same source repointed to v8; was 2609266a...
 BEFORE_REPOINT = CAND_PAGE             # the v8 arm's source before repointing is the page dist serves
 EXPECT_CHECKS = 42
 ORDER = [(b, p, n) for b in ("chrome", "firefox") for n in (1, 2, 3) for p in ("v8", CAND)]
