@@ -661,7 +661,14 @@ FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
 # (§9.14), 121-U 215/215 and 121-B 4/4 (§9.13), 130-U replayed (§9.14), 129-B round 3 (d9d696ae), 128-B single
 # keys and host segment with its red control red, the rapid clause withdrawn into L-128-rapid (§9.15, fable's
 # ruling 2).  The other modules equal v61's.
-MANIFEST = Path("e2/editor-shell-v2-bundle-v62.json")
+#
+# v63, 2026-10-12: FINDING 133 (fable's ruling on the owner's request; SPEC-M3-autosave §9.20-§9.22; host 0.2.14).
+# One file differs from v62, `sdk/document-sdk.js` (e4c3fe92...): a request deadline that fires more than 2 s late
+# means the page (and its Worker) was stopped -- no TIMEOUT, no cancel; the deadline becomes now + 10 s and is looked
+# at again; on-time timeouts unchanged.  The page is v62's (d761f1ce...), so the page criteria and the owner's hand
+# test (§9.18) stand on v62 (§9.20, condition: this manifest differs from v62 only in the SDK).  Frozen AFTER 133-U
+# (unit, 31/31 after review 1; 12 named wrong fixes red) and before 133-B, which needs the packaged SDK on the host.
+MANIFEST = Path("e2/editor-shell-v2-bundle-v63.json")
 ENTRYPOINT = Path("web/e2-editor-app.js")
 
 # The directories whose *.js files must all be accounted for.  `editor-shell`

@@ -650,3 +650,8 @@ AS-2：開始時間落在 30.6–31.5 秒（30 秒加引擎段）。AS-5：0 掉
 - **L-133-long-task（新，良性）**：可見的頁面裡主執行緒一個 > 2 秒的長工作跨過期限，也會延一次（Worker 其實沒停）；後果是真的逾時晚一個寬限才判。審核者在 Node 量的。
 - **L-133-hidden-verdict 更正**：重新上鏈是串接的計時器，Chrome 對長時間在背景的分頁做密集節流時，每分鐘再延一次是**預期的結果**，不是「可能」。依 Chrome 公開的規則，未量。
 - 其餘記錄：計時器時鐘與 `performance.now()` 同一個是假設、未驗；延長之後收到回覆在探針之外不留痕跡（發佈後規格的工作項）。
+
+### 9.23 殼層 generation v63 凍結（2026-10-12，只追加）
+
+- `318b3bf252d585eda43c12577423aeb67995c8487f24688547ec09d2f45839e6`。與 v62 的 manifest 只差 `sdk/document-sdk.js`（`11c0b1c1…` → `e4c3fe92…`）與 digest；凍結日期同為 2026-10-12；排除清單相同（承自 v40）。§9.20 的條件成立：131-B、121-B、129-B、130-U、128-B 與 §9.18 擁有者手測站在 v62 的量測上。
+- 凍結前 `make e2-c-assets` 只複製兩檔（頁面位元組相同、SDK 新版），之後 `make test-e2-c-static` 只紅在 manifest 過期（`findings/evidence/133/test-e2-c-static-before-freeze-v63.txt`），凍結後結束碼 0（`…-after-freeze-v63.txt`）、E1-C intact。v62 沒有被動到。
