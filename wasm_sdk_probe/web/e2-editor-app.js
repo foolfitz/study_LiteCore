@@ -78,6 +78,29 @@ let viewOnly = false;
 // same code, and it guards the second kind itself.
 let savesUnsettled = 0;
 
+// FINDING 127 (specs/SPEC-M3-autosave.md §9.2).  Nothing ever saved by itself:
+// a dead session, a crashed tab or a power cut lost everything since the
+// user's last press of save.  Collabora saves after 30 s idle and every 5
+// minutes in a background process; ours blocks input for the engine's part of
+// a save (0.6-0.75 s the first time after open, 0.15-0.3 s after that,
+// findings/evidence/127/m2/), so: 30 s after the last activity; once edits have
+// waited 5 minutes, 3 s; and at once when the tab goes hidden -- the last
+// moment a browser reliably gives a page before it may discard it.  Only with
+// a host: without one a save is a download.  Conditions are read from the
+// sources (the session, the input adapter), never from this page's DOM.
+const AUTOSAVE_IDLE_MS = 30000;
+const AUTOSAVE_CAP_MS = 300000;
+const AUTOSAVE_CAP_IDLE_MS = 3000;
+const AUTOSAVE_RECHECK_MS = 3000;
+const autosave = { timer: null, firstUnsavedAt: null, revision: null };
+
+// Finding 128: engine actions whose call is out, and whether the document was
+// invalidated meanwhile (editorAction).  Finding 129: click-then-move pairs
+// queued (moveFromPoint).  Declared here, before anything can fire an event.
+let engineActionsOut = 0;
+let invalidatedWhileOut = false;
+let pointMovesInFlight = 0;
+
 // Fail closed: a session without `hasUnsavedEdits` throws here, and the host
 // counts a throw as "ask" -- an optional call answering `false` would switch
 // finding 107's fix off without a sign (review 2026-09-29, implementation).
@@ -693,6 +716,7 @@ function showState(state, label) {
 }
 
 function updateState(snapshot) {
+  noteAutosaveState(snapshot);
   showState(snapshot.state, {
     idle: "未開啟", loading: "載入中", ready: "就緒", busy: "處理中",
     "recoverable-error": "需要回復", "restart-required": "需要重新開啟",
@@ -1701,7 +1725,7 @@ async function rescueAtGenerationLimit() {
   updateState(session.state.snapshot);
 }
 
-async function run(label, operation) {
+async function run(label, operation, { quiet = false } = {}) {
   const started = performance.now();
   try {
     const result = await operation();
@@ -1726,6 +1750,10 @@ async function run(label, operation) {
     }
     // The disposition is a field, not a guess from the message (E2-B 5.13).
     const recovery = error?.recovery;
+    // An autosave's host part: the host bar says where the bytes went and
+    // keeps saying it (SPEC-M3-autosave §9.2); a toast nobody asked for would
+    // say it once, in a developer's words.
+    if (quiet) throw error;
     toast(`${label}：${describeError(error)}` +
           (recovery === "rollback"
             // B1: at the ceiling there is no 「回到檢查點」 to press.
@@ -1828,7 +1856,28 @@ async function editorAction(action) {
     // says it does.
     ? { enabled: formatStateFor(action) !== true }
     : {};
-  await run(label, () => session.action(action, options));
+  // FINDING 128.  While this action's engine call is out, a
+  // `document-invalidated` only marks the canvas stale: painting then met the
+  // barrier's BUSY and waited a fixed 120 ms, and the deleted character stayed
+  // on screen that long.  `run()` repaints after a success; a failure does
+  // not, so a change held back is painted here.  Only while the ENGINE call is
+  // out -- not for all of `run()`, which also covers a save's host part, when
+  // the engine is free and typed text must appear at once (SPEC-M3-autosave
+  // §9.1, review 1 item 3).
+  engineActionsOut += 1;
+  let failed = true;
+  try {
+    await run(label, async () => {
+      try { return await session.action(action, options); }
+      finally { engineActionsOut -= 1; }
+    });
+    failed = false;
+  } finally {
+    if (engineActionsOut === 0 && invalidatedWhileOut) {
+      invalidatedWhileOut = false;
+      if (failed) void renderDocument();
+    }
+  }
 }
 
 // Every inline format turned off in one press.  It is honest precisely because
@@ -1864,8 +1913,9 @@ async function insertText() {
 // ceiling (B1) there is no engine to ask, and `rescueAtGenerationLimit` hands
 // in `takeRescueContent` instead -- same queue, same host, same accounting.
 const takeSavedContent = () => run("儲存", () => session.save());
+const takeAutosaveContent = () => run("自動儲存", () => session.save());
 
-function saveDocument(take = takeSavedContent) {
+function saveDocument(take = takeSavedContent, options = {}) {
   // A view-only document has nothing to save, and a save here would be a PUT
   // the server refuses and a copy the user did not ask for.
   if (viewOnly) {
@@ -1890,13 +1940,13 @@ function saveDocument(take = takeSavedContent) {
     once.then(settle, settle);
     return once;
   }
-  const turn = hostSaves.then(() => saveOnce(settle, take));
+  const turn = hostSaves.then(() => saveOnce(settle, take, options));
   hostSaves = turn.catch(() => {});
   turn.then(settle, settle);
   return turn;
 }
 
-async function saveOnce(settle = () => {}, take = takeSavedContent) {
+async function saveOnce(settle = () => {}, take = takeSavedContent, options = {}) {
   // `EditorSession.save()` resolves to {bytes, revision, contentStamp}, not to
   // the bytes.  Taking the whole result made `new Blob([result])` stringify it,
   // so every save from this button wrote 15 bytes of "[object Object]" and the
@@ -1910,8 +1960,27 @@ async function saveOnce(settle = () => {}, take = takeSavedContent) {
     // `session.save()` has already marked the session clean by now -- the same
     // as the download below, which the user can also cancel.  The bytes are
     // still the session's recovery authority, so pressing save again retries.
-    await run("存回", () => HOST.save(bytes, { name: documentName }).finally(settle));
-    toast(`已存回 ${documentName}（${(bytes.byteLength / 1024).toFixed(1)} KB）`);
+    //
+    // SPEC-M3-autosave: the host tells where the bytes went -- after a save
+    // had to go to a copy, every later one goes to that copy (the owner's O1 =
+    // B), so the toast names the file the host wrote, not this page's name.
+    // An autosave says nothing on success, and its host part fails quietly:
+    // the host bar keeps saying where things stand.
+    const auto = options.trigger === "auto";
+    let saved;
+    try {
+      saved = await run(auto ? "自動存回" : "存回",
+                        () => HOST.save(bytes, { name: documentName, trigger: auto ? "auto" : "manual",
+                                                 conditions: options.conditions })
+                          .finally(settle),
+                        { quiet: auto });
+    } catch (error) {
+      if (error?.outcome === "copy") autosaveLanded();
+      throw error;
+    }
+    autosaveLanded();
+    if (!auto)
+      toast(`已存回 ${saved?.name ?? documentName}（${(bytes.byteLength / 1024).toFixed(1)} KB）`);
     return;
   }
   const url = URL.createObjectURL(
@@ -2401,9 +2470,140 @@ el.sink.addEventListener("keydown", (event) => {
   // taking the key on the second would be the "looks like it worked" trap that
   // Ctrl+A is unbound to avoid.
   if (!action || !session.offers(action)) return;
+  // FINDING 129 (SPEC-M3-autosave §3.7).  Shift+move asks to EXTEND the
+  // selection, and no action here extends one until the next link; sending
+  // the plain move did something other than what was asked.  Not taken.
+  if (event.shiftKey) return;
   event.preventDefault();
+  // FINDING 129.  On a range the six moves are refused (the profile grants
+  // them `collapsed` only) and the refusal reached the user as a developer
+  // sentence.  Writer moves FROM THE POINT -- the end the caret is at -- and
+  // drops the selection (findings/evidence/129/native/).  The page cannot send
+  // a move on a range, but it can click at the point, which collapses the
+  // selection there, and then send the move on the caret: the same as Writer
+  // in all 42 cells measured natively, except Down when the point is shown at
+  // the end of a wrapped line (named limit L-129, §9.7).  While one such pair
+  // is queued, further move keys go straight to the queue: they run after the
+  // click, on a caret, and a second click at a point read before the first
+  // move ran would put the caret back.
+  const shape = selectionShapeOf({ state: session.state.snapshot.editorState }) ?? lastSelectionShape;
+  const gestures = session.gesturesFor(action);
+  if (pointMovesInFlight === 0 && shape !== "collapsed"
+      && Array.isArray(gestures) && !gestures.includes(shape)) {
+    void moveFromPoint(action).catch(() => {});
+    return;
+  }
   void editorAction(action).catch(() => {});
 });
+
+async function moveFromPoint(action) {
+  if (!SESSION_ACCEPTS.has(session?.state?.snapshot?.state)) return;
+  const caret = session.state.snapshot.editorState?.caret;
+  if (!Number.isFinite(caret?.x) || !Number.isFinite(caret?.y) || !Number.isFinite(caret?.height)) return;
+  pointMovesInFlight += 1;
+  try {
+    lastSelectionShape = "collapsed";
+    await run("定位游標", () => session.placeCaret(caret.x, caret.y + caret.height / 2));
+    updateGestureAffordance();
+    await editorAction(action);
+  } finally {
+    pointMovesInFlight -= 1;
+  }
+}
+
+// ---------------------------------------------------------------- autosave
+// FINDING 127, the scheduler (§9.2 of specs/SPEC-M3-autosave.md).  Activity is
+// a key into the sink, a composition, a pointer on the paper, and any edit
+// that completes by whatever path (`noteAutosaveState`, below): each one
+// re-arms a one-shot timer.  `setTimeout`, not `setInterval`: a hidden tab
+// throttles chained intervals far harder.
+function autosaveConditions() {
+  const input = session?.input?.state ?? null;
+  const snapshot = session?.state?.snapshot ?? null;
+  return {
+    viewOnly,
+    state: snapshot?.state ?? null,
+    pending: snapshot?.pending ?? null,
+    composing: input ? input.composing === true : null,
+    queueDepth: input ? input.queueDepth : null,
+    dragging: drag.active || drag.inFlight,
+    savesUnsettled,
+    rescue: limit.state === "saving",
+  };
+}
+
+function autosaveAllowed(c) {
+  return !c.viewOnly && c.state === "ready" && c.pending === 0 && c.composing === false
+    && c.queueDepth === 0 && !c.dragging && c.savesUnsettled === 0 && !c.rescue;
+}
+
+function armAutosave(delay) {
+  if (!HOST) return;
+  clearTimeout(autosave.timer);
+  const capped = autosave.firstUnsavedAt !== null
+    && Date.now() - autosave.firstUnsavedAt >= AUTOSAVE_CAP_MS;
+  autosave.timer = setTimeout(() => void autosaveNow("idle"),
+                              delay ?? (capped ? AUTOSAVE_CAP_IDLE_MS : AUTOSAVE_IDLE_MS));
+}
+
+function noteActivity() {
+  if (!HOST || !session?.document) return;
+  if (autosave.firstUnsavedAt === null && session.hasUnsavedEdits?.() === true)
+    autosave.firstUnsavedAt = Date.now();
+  armAutosave();
+}
+
+// A save that reached a file (the original, or a copy it now saves to).  Edits
+// typed after its bytes were taken start the 5-minute count again.
+function autosaveLanded() {
+  autosave.firstUnsavedAt = session?.hasUnsavedEdits?.() === true ? Date.now() : null;
+}
+
+// From updateState: a new revision is an edit that completed, whichever way it
+// came (toolbar, paste, cut, insert field, undo, a merge) -- review 1 item 9.
+// A session back in `ready` with edits and nothing armed is armed again.
+function noteAutosaveState(snapshot) {
+  if (!HOST) return;
+  if (snapshot.revision !== autosave.revision) {
+    const first = autosave.revision === null;
+    autosave.revision = snapshot.revision;
+    if (!first) noteActivity();
+  } else if (snapshot.state === "ready" && autosave.timer === null
+             && session?.hasUnsavedEdits?.() === true) {
+    armAutosave();
+  }
+}
+
+async function autosaveNow(reason) {
+  autosave.timer = null;
+  if (!HOST || !session?.document || session.hasUnsavedEdits?.() !== true) return;
+  const conditions = autosaveConditions();
+  if (!autosaveAllowed(conditions)) {
+    // Again in 3 s while the session may become ready by itself; otherwise
+    // the next activity or the return to `ready` arms it.
+    if (["ready", "busy"].includes(conditions.state)) armAutosave(AUTOSAVE_RECHECK_MS);
+    return;
+  }
+  try {
+    await saveDocument(takeAutosaveContent, { trigger: "auto", conditions: { ...conditions, reason } });
+  } catch {
+    // Shown by run() (the engine's part) or by the host bar (the host's part).
+  }
+}
+
+if (HOST) {
+  el.sink.addEventListener("keydown", noteActivity, true);
+  for (const type of ["compositionstart", "compositionupdate", "compositionend"])
+    el.sink.addEventListener(type, noteActivity);
+  el.paper.addEventListener("pointerdown", noteActivity);
+  el.paper.addEventListener("pointermove", () => { if (drag.active) noteActivity(); });
+  el.paper.addEventListener("pointerup", noteActivity);
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState !== "hidden" || session?.hasUnsavedEdits?.() !== true) return;
+    clearTimeout(autosave.timer);
+    void autosaveNow("hidden");
+  });
+}
 
 // Cut = copy, then delete what was copied.  Two dispatches rather than one
 // because the contract has no cut action; the ORDER matters, since a failed
@@ -2588,6 +2788,7 @@ async function openDocument(bytes, name, { readOnly = false } = {}) {
       if (event.event === "document-invalidated") {
         changes += 1;   // §17.9 (c): every band asked for before this is stale
         publishWindow();
+        if (engineActionsOut > 0) { invalidatedWhileOut = true; return; }   // finding 128
         queueMicrotask(() => void renderDocument());
       }
     },
@@ -2602,8 +2803,20 @@ async function openDocument(bytes, name, { readOnly = false } = {}) {
         toast(VIEW_ONLY_TEXT, true);
         return;
       }
-      if (entry?.action === "composition-rejected" || entry?.status === "failed")
-        toast(`輸入未送出：${entry.reason || entry.code || entry.action}`, true);
+      // FINDING 130.  This compared `entry.action` and `entry.status`; the
+      // adapter writes what happened in `type` and has no `failed` status, so
+      // a refused keystroke was dropped and nothing was said (characters typed
+      // while a save held the engine: findings/evidence/130/m1/).  The
+      // sentence is the user's, not the adapter's code.
+      const why = {
+        "queue-full": "打得比引擎處理得快",
+        "input-too-large": "一次送出的內容太大",
+        blocked: "目前不能輸入",
+        "buffer-mismatch": "輸入法的字沒有對上",
+      }[entry?.reason] ?? "引擎沒有接受";
+      if (entry?.type === "commit-rejected" || entry?.type === "commit-error"
+          || entry?.type === "composition-rejected")
+        toast(`有字沒有輸入：${why}，請檢查最後打的字`, true);
     },
     onClipboardTrace(entry) {
       if (entry?.status === "failed" || entry?.status === "rejected")
