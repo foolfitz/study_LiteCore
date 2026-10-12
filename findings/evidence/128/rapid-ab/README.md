@@ -10,3 +10,7 @@ Instrument: `wasm_sdk_probe/tools/probe_hand_test_0212.py --arms rapid20` (commi
 | 0.2.13 `c7f904fa…` | (14, 6), (16, 4) | (18, 2), (13, 7) | **19 / 80** | Chrome 63.5 / 120 / 129 ms; Firefox 67 / 133 / 181 ms |
 
 So the refusal is older than 0.2.13 (0.2.12 shows it too, 5 %), and 0.2.13 makes it about five times as frequent (24 %). In 0.2.13 each delete is out longer under a burst, so the next key falls inside the previous barrier more often. **Inferred, not measured**: the longer time comes from 128's remedy B (the page repaints as soon as an action ends, so paint requests sit in the Worker ahead of the next delete).
+
+## Correction (2026-10-12, after fable's ruling; the table above is left as written)
+
+The p90 column above was computed with an off-by-one index. By nearest rank: 0.2.12 Chrome 55 ms, Firefox 57 ms; 0.2.13 Chrome 120 ms, Firefox 146 ms. The medians and maxima stand. The medians and p90s also hide what the per-burst sequences show (fable, `../ruling/fable-ruling.md` §3): on 0.2.13 the delete time climbs key by key inside a burst (Chrome 70→85→100→113, Firefox 99→…→181), while on 0.2.12 it stays flat at about 41–50 ms over 20 keys.
