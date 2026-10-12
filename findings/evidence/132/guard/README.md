@@ -29,3 +29,16 @@ Directory `131b-128b/`. Command: `python3 wasm_sdk_probe/tools/probe_hand_test_0
 - **Host-segment cell: the probe's own verdict is `NOT_JUDGED`, not PASS.** The cell's verdict function (`hostseg_verdict`, unchanged) requires exactly one PUT; both browsers recorded two. `report.json` → `runs[].hostseg.put.puts`: the first (the manual save the key was typed into) was held and answered normally (Chrome held 317498 → answered 320561 ms; Firefox 321608 → 324669 ms); a second PUT began about 1.1–1.2 s after the first was answered (Chrome 321689, Firefox 325798 ms; the settled toolbar latency reads 「自動儲存 160 ms」 / 「自動儲存 269 ms」) and was still outstanding when the arm ended (`out: 1`, no `sent`/`answered`). The 128-B run on 0.2.13 (`../../128/final-0.2.13-131fix/report.json`) recorded one PUT per arm. I did not establish why this run has the second one (unverified; it looks like the autosave PUT of the key typed during the save, but I did not check the host or page code), and I did not re-run the step.
 - For information only, **not the judge's verdict**: `hostseg-recompute-unofficial.txt` runs the unchanged `hostseg_verdict` on the same record with the unanswered second PUT removed. It prints `PASS` for both browsers (the key's caret band fresh 21.1 ms (Chrome) / 26.1 ms (Firefox) after the key, against the first PUT answered 3.06 s / 3.06 s after its hold), and the same `FAIL` as above for the red controls. This recompute is mine, made after reading the verdict; it is not a counted result.
 - Output files: `probe.out` (`chrome done`, `firefox done`), `report.json`, the four screenshots, `judge_131b-output.txt`, `read_128b-output.txt`.
+
+## G2 — 121-B (selection, then Backspace / Delete): PASS in all four cells
+
+Files: `../../121/0.2.15-132-binding.txt` (before 2026-10-12T18:29:57Z, after 18:31:16Z; both lines carry the page sha256 `abe93f45…`, all four exits 0), `../../121/0.2.15-132-<browser>-<key>.json` and `.stderr` (all four stderr files are empty). Command per cell: `python3 findings/evidence/121/select_delete_probe.py <browser> <Key>` (standalone page built from `dist/`, `boundaries.odt`, a drag inside "M01 plain alpha", one real key; no host involved). Criterion (SPEC-M3-autosave §9.13): shape `range-single` before the key, after the key 「刪除選取 N ms」, `ready`, generation 1 → 1, revision 0 → 1, no toast, first paragraph `M01 alpha`.
+
+| Cell | shape before | latency after | state | generation | revision | `toasts` | first paragraph | Verdict |
+|---|---|---|---|---|---|---|---|---|
+| Chrome Backspace | `range-single` | 「刪除選取 15 ms」 | `ready` | 1 → 1 | 0 → 1 | `[]` | `M01 alpha` | PASS |
+| Chrome Delete | `range-single` | 「刪除選取 14 ms」 | `ready` | 1 → 1 | 0 → 1 | `[]` | `M01 alpha` | PASS |
+| Firefox Backspace | `range-single` | 「刪除選取 9 ms」 | `ready` | 1 → 1 | 0 → 1 | `[]` | `M01 alpha` | PASS |
+| Firefox Delete | `range-single` | 「刪除選取 9 ms」 | `ready` | 1 → 1 | 0 → 1 | `[]` | `M01 alpha` | PASS |
+
+Compared with `0.2.13-131fix-*.json` (the d761f1ce page): `diff` of each pair, after masking the `定位游標 N ms` figure of the `before` field, shows no difference (the delete latencies 15 / 14 / 9 / 9 ms are the same as in 0.2.13-131fix). The `after.toast` field reads 「已開啟 f.odt」 in all eight files (the toolbar's last message, the same in both sets); the criterion's "no toast" is the `toasts` list, empty in all four.
