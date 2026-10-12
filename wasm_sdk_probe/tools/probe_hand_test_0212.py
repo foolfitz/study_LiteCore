@@ -63,7 +63,7 @@ PROBE_NAME = "probe-hand-0212.odt"
 ARMS: set[str] = set()
 # Per-run settings from the command line (SPEC-M3-autosave §9.12: 131-B takes 6 bursts; 121's witness takes
 # Backspace and Delete on a selection).  Defaults are what the probe always did.
-OPTIONS: dict[str, Any] = {"rapidRounds": 2, "selectionKeys": ("ArrowLeft", "ArrowDown", "End")}
+OPTIONS: dict[str, Any] = {"rapidRounds": 2, "selectionKeys": ("ArrowLeft", "ArrowDown", "End"), "ghostRapidKeys": 4}
 MARK8 = "zqxzqxzq"
 ui.CDP_KEYS.update({"ArrowLeft": ("ArrowLeft", "ArrowLeft", 37), "ArrowUp": ("ArrowUp", "ArrowUp", 38),
                     "ArrowRight": ("ArrowRight", "ArrowRight", 39), "ArrowDown": ("ArrowDown", "ArrowDown", 40)})
@@ -343,7 +343,10 @@ def ghost_arm(name: str, kind: str, session, y: str, caret_at: float, shots: Pat
     time.sleep(1.0)
     rec["geometry"] = evaluate(session, GEOMETRY)
     rec["snapBefore"] = evaluate(session, SNAP.replace("ARG_NAME", name + "-before"))
-    rec["typed"] = [ui.keyed(session, kind, ch) for ch in MARK8]
+    n_rapid = OPTIONS["ghostRapidKeys"]
+    rec["rapidKeys"] = n_rapid
+    # Four single presses and n_rapid rapid ones delete what was typed (n_rapid 4: MARK8, as always).
+    rec["typed"] = [ui.keyed(session, kind, ch) for ch in (MARK8 * 4)[:4 + n_rapid]]
     rec["geometryTyped"] = evaluate(session, GEOMETRY)
     start = evaluate(session, MARK_LOG)
     wm_start = evaluate(session, MARK_WM)
@@ -356,15 +359,15 @@ def ghost_arm(name: str, kind: str, session, y: str, caret_at: float, shots: Pat
     rec["single"] = lag_per_key(single)
     rec["singleLog"] = single
     rec["singleWorker"] = evaluate(session, READ_WM.replace("ARG_FROM", str(wm_start)))
-    # Four rapid presses, 50 ms apart (a held key repeats at about 30 ms).
+    # n_rapid rapid presses (default 4), 50 ms apart (a held key repeats at about 30 ms).
     start = evaluate(session, MARK_LOG)
     if kind == "chrome":
-        keys_at(session, kind, "Backspace", 3, 0.05)
+        keys_at(session, kind, "Backspace", n_rapid - 1, 0.05)
         shot = session.screenshot()
         (shots / f"{kind}-{name}-mid-rapid.png").write_bytes(shot)
         ui.press(session, kind, "Backspace")
     else:
-        keys_at(session, kind, "Backspace", 4, 0.05)
+        keys_at(session, kind, "Backspace", n_rapid, 0.05)
     time.sleep(1.5)
     rec["settledAfterRapid"] = ui.quiet(session)
     rapid = evaluate(session, READ_LOG.replace("ARG_FROM", str(start)))
@@ -463,11 +466,13 @@ def main() -> int:
                         help="any of high,low,selection,shift,trace,hostseg,hostseg-red (trace: Chrome's Worker "
                              "message log; hostseg: 128-B's host-segment cell, hostseg-red its red control)")
     parser.add_argument("--rapid-rounds", type=int, default=2, help="bursts in the rapid20 arm")
+    parser.add_argument("--ghost-rapid-keys", type=int, default=4, help="rapid Backspaces in the high/low arms")
     parser.add_argument("--selection-keys", default="ArrowLeft,ArrowDown,End",
                         help="the key pressed after each fresh drag selection, one arm per key")
     args = parser.parse_args()
     ARMS.update(args.arms.split(","))
-    OPTIONS.update(rapidRounds=args.rapid_rounds, selectionKeys=tuple(args.selection_keys.split(",")))
+    OPTIONS.update(rapidRounds=args.rapid_rounds, selectionKeys=tuple(args.selection_keys.split(",")),
+                   ghostRapidKeys=args.ghost_rapid_keys)
     args.out.mkdir(parents=True, exist_ok=True)
     doc = ui.DOC.read_bytes()
     instance = Instance(DEFAULT_DDEV)
