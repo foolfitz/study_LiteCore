@@ -32,7 +32,9 @@ import json
 import sys
 from pathlib import Path
 
-PAGE = "8909564eb2316afa6de7868a08b61d27219fabdf49f37326fee0dda2977bd401"
+# Re-pinned 2026-10-13 to the final page of finding 132 (SPEC-M3-held-key §5.3).  The previous pin, the C′ page, was
+# 8909564eb2316afa6de7868a08b61d27219fabdf49f37326fee0dda2977bd401 (findings/evidence/c-prime/c2/ ran on it).
+PAGE = "abe93f4575c7797db97462f1f0e3a71cf5fc4063205cd6d5877093ca1c248fcf"
 RUNNER = "dbad93c0dcf27fbf"   # the probe writes the first 16 hex digits of its own sha256
 BROWSERS = ("chrome", "firefox")
 SLOTS = {  # slot: (document, gap, chars)
