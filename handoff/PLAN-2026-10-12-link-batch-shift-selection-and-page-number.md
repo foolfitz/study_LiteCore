@@ -6,7 +6,7 @@ Owner's words (2026-10-12): 「新需求：沒關係你再安排開發時程」;
 
 1. Release 0.2.13 (finding 127 autosave + 128 / 129 page fix / 130) is first; it needs no link (`specs/SPEC-M3-autosave.md`).
 2. This plan's native measurements and spec run in parallel with 0.2.13 (no product bytes).
-3. The link goes on the CURRENT core (writer-only, the v8 line; v19 carries no Calc: `ScDocShell` 0 occurrences in `dist/profiles/e2-editor-v19/probe.wasm`, 18 in v12/v14). One variable per link. Moving the product onto the writer+calc core (the a11y line, needed for ODS reading) is a separate step; the owner was offered A/B/C on 2026-10-12 and had not answered when this was written.
+3. The link goes on the CURRENT core (writer-only, the v8 line; v19 carries no Calc: `ScDocShell` 0 occurrences in `dist/profiles/e2-editor-v19/probe.wasm`, 18 in v12/v14). One variable per link. Moving the product onto the writer+calc core (the a11y line, needed for ODS reading) is a separate step; the owner was offered A/B/C on 2026-10-12 and had not answered when this was written. **Answered later the same day: B** (「03: B」) — this link goes on the current writer-only core; the core switch is a step of its own (`specs/SPEC-M3-autosave.md` §8.2).
 
 ## Item 1 — Shift+Arrow extends the selection (request one)
 
