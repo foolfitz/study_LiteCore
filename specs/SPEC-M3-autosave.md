@@ -398,3 +398,29 @@ AS-2：開始時間落在 30.6–31.5 秒（30 秒加引擎段）。AS-5：0 掉
   - S1–S5 依規則 30/30 相同。WASM 的字型讓換行位置不同（S1 第二、三行起點 195、292，原生 201），所以比的是規則。
   - **L-129 在產品的拖曳路徑上碰不到**：頁面自己的拖曳結束在行尾右側時，`editorState.caret` 就在第二行行首、等於選取終點（48 格拖曳臂全都如此；另外把拖曳終點推到行尾右側 0／100／400／900 twips，32 臂都沒有分開）。所以 Down 也照 Writer。原生那三格（游標顯示在行尾）要靠 Shift＋End 這類選取才做得出來，而這一頁目前做不出那種選取；連結那一批接上 Shift＋方向鍵之後，由 Writer 自己處理，見 PLAN Addendum。L-129 維持登錄，但寫明「本發佈的頁面上沒有可達的路徑」。
   - 預測失準一格：「按鍵到移動完成 < 200 ms」在不會移動游標的 7 種鍵上是 281–299 ms。對照組（沒有修法、收起的游標）同類鍵 252–262 ms，是引擎本身的時間。會移動的鍵 81–121 ms。129-B 的判準是 < 400 ms，不受影響。
+
+### 9.11 打包之後、凍結之前（2026-10-12，只追加）
+
+**打包**：0.2.12 的引擎包封存在 `wasm_sdk_probe/build/archive/host-0.2.12-engine-45cdcedfc0fe7e61/`（`diff -r` 相同）；`make e2-c-assets`（web → dist，頁面 `c7f904fa…`）；`package_m3_engine.py` → buildId `0574b1b1…`，與 0.2.12 只差 `e2-editor-app.js`；宿主 `appinfo/info.xml` 改成 0.2.13（尚未 commit）、`ddev occ upgrade` 成功。綁定時的一次性量測：引擎包每個檔解碼後的雜湊逐一等於 manifest（`findings/evidence/release-0.2.13/check_engine_decoded.py`，紅案已轉紅）。
+
+**`check_m3_autosave.py`**：
+- 第一次 shakedown 與完整 shakedown 各紅在一個判讀錯誤，各有已 commit 的證人，各修一次（`insert()` 的失敗條件、`as2-toolbar` 的參考點）。重判之後 23 格全過、AS-1 29 筆全成立、紅案 76/76（`findings/evidence/m3-autosave/shakedown/README.md`）。
+- §9.6 的預測失準一格：AS-2 預測 30.6–31.5 秒，實測 30.19–30.22 秒。宿主紀錄的 `at` 是宿主段開始的時間，小測試檔的引擎段短。
+- 雙席審核（§34.3）：fable 0 BLOCKING、codex 5 條。主 session 逐條讀碼核對後，採用三項：AS-5 打字要落在引擎段內，否則 NE；頁面紀錄改用 `Date.now()`；`as5-held` 整格沒掉字判 NE。兩項改成流程處理：綁定時解碼比對引擎包；計數鏈頭尾各記一次身分。一項登錄：AS-2c 多要求 `saved`。紅案 78/78（`findings/evidence/m3-autosave/review/DISPOSITION.md`）。
+- §34.4 的帳：因執行而修 7 → 9，因審核而修 5 → 6。這支工具的審核預算已用完。
+
+**頁面判準在 `dist/`（`c7f904fa…`）上**：
+- **129-B 成立**（`findings/evidence/129/final/README.md`）：M4 探針加 `--final` 模式，兩個瀏覽器各兩輪。42 格與原生相同、216/216 臂按鍵後 `collapsed`、0 個提示、按鍵到移動最長 298.3 ms、Shift 不動；紅色對照用封存的 0.2.12 頁面，照舊拒絕。
+- **130-U 成立**：佇列滿兩個提示、commit 失敗一個提示（`findings/evidence/130/replay-output-0.2.13.txt`）。
+- **128-B**（`findings/evidence/128/final-0.2.13/`）：
+  - 單按每一下 ≤ 40 ms，兩個瀏覽器都成立（Chrome 13.8–29.7、Firefox 19.5–34 ms）。
+  - 宿主段那一格成立：PUT 被扣住 3 秒時打一個字，22.9／28.6 ms 就畫上去。紅色對照是「PUT 在途時扣住 paint」（草案 A 的效果，不改頁面位元組），兩個瀏覽器都轉紅。判讀第一次把兩臂都判 FAIL，是儀器錯：它拿整段 log 的最大計數當目標，而 `run("存回")` 結束時也會 +1。改成「這一鍵自己那一次 +1」之後才有鑑別力，原始報告未改。
+  - **連按「最長 ≤ 60 ms」不成立**：Chrome low 90.5、Firefox high 84.6、Firefox low 96.4 ms。0.2.12 是 125–283 ms。
+- **新缺陷（擬登錄 finding 131）**：
+  - 現象：連按 Backspace 時，有一下會被當成「刪除選取」，被閘門拒絕並跳出 `EDITOR_FORMAT_GESTURE_UNSUPPORTED` 的開發用訊息，那個字留在文件裡。不丟資料。
+  - 同一個儀器 A/B（`findings/evidence/128/rapid-ab/README.md`；20 下、間隔 50 ms、每個瀏覽器兩次）：0.2.12 頁面 4/80，0.2.13 頁面 19/80。
+  - 0.2.13 在連按時，每一下刪除在途更久：中位數 46–49 → 63.5–67 ms，p90 50–57 → 120–133 ms。
+  - 機制（讀 log 與原始碼）：下一下的 `beforeinput` 落在前一下刪除的 selection barrier 期間，讀到引擎那一刻的一字範圍。
+  - 0.2.13 讓它變多的原因是推論、未量：128 處方 B 讓動作一結束就重畫，paint 排在下一下刪除前面。
+
+**擁有者的決定**：兩題（131 怎麼處置、128-B 連按這一版怎麼算）都選「交 fable 裁決」。工單 `findings/evidence/128/ruling/brief.md`；裁決回來之前，v62 不凍、不改 pin、不開計數鏈。同時在 0.2.13 上對六支既有 M3 runner 各做一次 shakedown，不在紅燈停：這一輪是 §9.4「計數」那兩格的證人，存檔路徑不受裁決影響。
