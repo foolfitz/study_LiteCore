@@ -646,7 +646,22 @@ FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
 # Frozen AFTER the browser criteria were met on dist/ (finding 091's rule): witness 0 red on the final page
 # (§17.15), C3/C4 6/6, C6 8/8, 124-B/125-B PASS both browsers (§17.16), C2 PASS (§17.17), C1′ (§17.18), C5 (i)
 # (§17.12) and C5 (ii)′ (§17.21; C5 (ii) as written not held, §17.20).  The other modules equal v60's.
-MANIFEST = Path("e2/editor-shell-v2-bundle-v61.json")
+#
+# v62, 2026-10-12: AUTOSAVE AND FINDINGS 128, 129, 130, 131 (host 0.2.13; SPEC-M3-autosave §9).
+# One file differs from v61, `web/e2-editor-app.js` (d761f1ce...):
+#   * 127 (c335f5cb, 7c85ccd6): autosave with a host -- 30 s idle, 3 s once an unsaved change is 5 min old, at
+#     once when the page goes to the background; conditions read from their sources of truth.
+#   * 128 (8c6b831a): finding 128's prescription B -- a repaint that meets BUSY while an editorAction is in flight
+#     is left to the repaint after the action; the flag is cleared by any finished pass.
+#   * 129 (c335f5cb, 7c85ccd6): arrow keys click the visible caret before moving; Shift+arrow is not taken.
+#   * 130 (c335f5cb): the queue-full notice compares the adapter's type.
+#   * 131 (6326d31b): rule A -- while the page's own delete is unsettled (`deletesInFlight`), Backspace/Delete
+#     send the collapsed action; at 0 finding 121's rule applies.  Still pins e2-editor-v19 (1aafd4f9...).
+# Frozen AFTER the browser criteria were met on dist/ (finding 091's rule): 131-B PASS with its red control red
+# (§9.14), 121-U 215/215 and 121-B 4/4 (§9.13), 130-U replayed (§9.14), 129-B round 3 (d9d696ae), 128-B single
+# keys and host segment with its red control red, the rapid clause withdrawn into L-128-rapid (§9.15, fable's
+# ruling 2).  The other modules equal v61's.
+MANIFEST = Path("e2/editor-shell-v2-bundle-v62.json")
 ENTRYPOINT = Path("web/e2-editor-app.js")
 
 # The directories whose *.js files must all be accounted for.  `editor-shell`
