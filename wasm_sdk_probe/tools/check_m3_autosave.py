@@ -179,13 +179,19 @@ def file_facts(server: Server) -> dict[str, Any]:
     return {"sha256": got["sha256"], "heading": got["heading"], "texts": got["texts"]}
 
 
+INSERT_FAILED = "插入文字 失敗"   # the page's run("插入文字") on failure (web/e2-editor-app.js run())
+
+
 def insert(session, record: dict[str, Any], key: str, text: str) -> None:
-    """One edit through the insert field and the toolbar (as check_m3_locks.insert_marker, any text)."""
+    """One edit through the insert field and the toolbar (as check_m3_locks.insert_marker, any text).
+    Only the insert's own failure ends the wait: a save before it leaves 「存回 失敗」 /
+    「自動存回 失敗」 in the same line when it wrote a copy or stranded (shakedown
+    2026-10-12T054150, as4a)."""
     ahead = product_state(session)
     evaluate(session, f"(() => {{ document.querySelector('#text').value = {json.dumps(text)}; return true; }})()")
     evaluate(session, PRESS.replace("ARG_ACTION", "insert-text"))
     record[key] = state_until(session, lambda s: s.get("revision") != ahead.get("revision")
-                              or "失敗" in (s.get("latency") or ""), 60)
+                              or s.get("latency") == INSERT_FAILED, 60)
 
 
 def phase(session, server: Server, record: dict[str, Any], key: str, autos: int, since: float) -> None:
@@ -508,7 +514,7 @@ def label_shows(snapshot: dict[str, Any], auto: bool, tag: str) -> list[str]:
 
 def inserted(run: dict[str, Any], key: str) -> list[str]:
     got = run.get(key) or {}
-    return [] if got and not got.get("timedOut") and "失敗" not in (got.get("latency") or "") \
+    return [] if got and not got.get("timedOut") and got.get("latency") != INSERT_FAILED \
         else [f"premise: {key} did not complete ({got.get('latency')!r}, timed out {got.get('timedOut')})"]
 
 
