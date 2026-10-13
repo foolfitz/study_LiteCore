@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "release": "core-build-capability",
+  "coreBuild": "wasm-lite/build-headless-probe",
+  "capabilities": [
+    {
+      "capability": "writer-lok-accessibility",
+      "why": "getA11yFocusedParagraph() and LOK_CALLBACK_A11Y_FOCUS_CHANGED are the only source of paragraph identity in LOK (measured: LOK has no paragraph index anywhere).  Without this, every caret fingerprint is the hash of an empty string and finding 046's identity gate has no input -- not broken, unfed.",
+      "objectsCompiled": false,
+      "missingObjects": [
+        "workdir/CxxObject/sw/source/core/access/accmap.o",
+        "workdir/CxxObject/sw/source/core/access/accpara.o",
+        "workdir/CxxObject/sw/source/core/access/accdoc.o"
+      ],
+      "macro": "ENABLE_WASM_STRIP_ACCESSIBILITY",
+      "macroValue": 1,
+      "macroRequired": 0,
+      "callersCompiled": false,
+      "provided": false
+    },
+    {
+      "capability": "calc-spreadsheet",
+      "why": "Opening an ODS needs the Calc document shell, the ODS importer, the document model and the LOK part/tile entry points.  A core built with --with-wasm-module=writer has none of them: the module's directories are not even in the build.  This asks whether the objects that ARE that capability exist, are linked, and are registered; it does not claim to have opened a spreadsheet.",
+      "objectsCompiled": false,
+      "missingObjects": [
+        "workdir/CxxObject/sc/source/ui/docshell/docsh.o",
+        "workdir/CxxObject/sc/source/filter/xml/xmlimprt.o",
+        "workdir/CxxObject/sc/source/core/data/document.o",
+        "workdir/CxxObject/sc/source/ui/unoobj/docuno.o",
+        "workdir/CxxObject/sc/source/ui/view/gridwin4.o"
+      ],
+      "makeVariable": "ENABLE_WASM_STRIP_CALC",
+      "makeVariableValue": "TRUE",
+      "makeVariableRequired": "",
+      "makeVariableAllows": false,
+      "disableDynloading": "TRUE",
+      "librariesLinked": false,
+      "missingLibraries": [
+        "instdir/program/libsclo.a: not built",
+        "instdir/program/soffice.js.linkdeps: does not list -lsclo"
+      ],
+      "registered": false,
+      "missingRegistrations": [
+        "instdir/program/services/services.rdb: com.sun.star.comp.Calc.SpreadsheetDocument is not registered as Calc_SpreadsheetDocument_get_implementation in libsclo",
+        "workdir/CustomTarget/static/component_maps.cxx: Calc_SpreadsheetDocument_get_implementation is not in the constructor map, so a static build cannot find it",
+        "instdir/program/services/services.rdb: com.sun.star.comp.Calc.XMLOasisImporter is not registered as Calc_XMLOasisImporter_get_implementation in libsclo",
+        "workdir/CustomTarget/static/component_maps.cxx: Calc_XMLOasisImporter_get_implementation is not in the constructor map, so a static build cannot find it"
+      ],
+      "provided": false
+    }
+  ],
+  "notProvidedByCoreBuild": [
+    "writer-lok-accessibility",
+    "calc-spreadsheet"
+  ],
+  "ok": false
+}

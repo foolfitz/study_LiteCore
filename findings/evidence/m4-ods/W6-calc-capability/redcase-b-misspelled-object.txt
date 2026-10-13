@@ -1,0 +1,25 @@
+  ok    the product's core build is reported as NOT providing a11y
+  ok    ...and names the compiled-out objects
+  ok    ...and names the macro that removes the callers
+  ok    a real core build that provides a11y is reported as providing it
+  ok    the two switches are checked independently
+  ok    calc: the writer-only core build is reported as NOT providing it
+  ok    ...and names what is missing: objects, Make variable, library, registration
+  FAIL  calc: the writer+calc WASM build is reported as providing it  -- [{"capability": "calc-spreadsheet", "objectsCompiled": false, "missingObjects": ["workdir/CxxObject/sc/source/filter/xml/xmlimprt_typo.o"], "makeVariable": "ENABLE_WASM_STRIP_CALC", "makeVariableValue": "", "makeVariableRequired": "", "makeVariableAllows": true, "disableDynloading": "TRUE", "librariesLinked": true, "missingLibraries": [], "registered": true, "missingRegistrations": [], "provided": false}]
+  FAIL  calc: the native build is reported as providing it  -- [{"capability": "calc-spreadsheet", "objectsCompiled": false, "missingObjects": ["workdir/CxxObject/sc/source/filter/xml/xmlimprt_typo.o"], "makeVariable": "ENABLE_WASM_STRIP_CALC", "makeVariableValue": "", "makeVariableRequired": "", "makeVariableAllows": true, "disableDynloading": "", "librariesLinked": true, "missingLibraries": [], "registered": true, "missingRegistrations": [], "provided": false}]
+  ok    calc: the capability consults exactly the intended switches
+  ok    calc: every switch is red on the writer-only build
+  FAIL  calc: ...and green on both controls  -- [{"objects": false, "makeVariable": true, "libraries": true, "registration": true}, {"objects": false, "makeVariable": true, "libraries": true, "registration": true}]
+  ok    calc: relaxing libraries alone does not turn the writer-only verdict green
+  ok    calc: relaxing makeVariable alone does not turn the writer-only verdict green
+  ok    calc: relaxing objects alone does not turn the writer-only verdict green
+  ok    calc: relaxing registration alone does not turn the writer-only verdict green
+  ok    calc: with every other switch relaxed, libraries alone keeps it red
+  ok    calc: with every other switch relaxed, makeVariable alone keeps it red
+  ok    calc: with every other switch relaxed, objects alone keeps it red
+  ok    calc: with every other switch relaxed, registration alone keeps it red
+  ok    --capability judges only the named capability, and no flag judges all
+  ok    a build directory that does not exist provides nothing, for every capability, with every item missing
+
+self-test: 19/22 checks moved the verdict
+exit=1

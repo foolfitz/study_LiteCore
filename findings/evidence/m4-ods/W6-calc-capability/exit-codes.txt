@@ -1,0 +1,22 @@
+Exit codes of wasm_sdk_probe/tools/check_core_build_provides.py, W6 (2026-10-13).
+"before" = the tool as committed at e33686f8, run in place before the edit.
+"after"  = the tool as committed with this change.
+
+build                         before   after(no flag)   after(--capability writer-lok-accessibility)   after(--capability calc-spreadsheet)
+wasm-lite/build-headless-probe    1          1                          1                                        1
+wasm-lite/build-a11y-gate0        0          0                          0                                        0
+build-native-26-8                 0          0                          0                                        0
+(no --build: the product core)    1          1                          -                                        -
+
+Byte identity: for each of the three builds,
+  check_core_build_provides.py --build B --capability writer-lok-accessibility --output X
+produces a file that `cmp` reports identical to before-<build>.json (the whole
+file, not just the accessibility entry).  With no flag the accessibility entry
+inside report-<build>.json is equal to before-<build>.json's, key order included.
+
+The unmodified consumer, run after the change from wasm_sdk_probe/:
+  probe_a11y_gate0.py --check-build-only --core-build ../wasm-lite/build-a11y-gate0   -> exitCode 0, provides True
+  probe_a11y_gate0.py --check-build-only --core-build ../wasm-lite/build-headless-probe -> exitCode 1, provides False
+  probe_a11y_gate0.py --check-build-only --core-build ../build-native-26-8             -> exitCode 0, provides True
+
+Self-test: before 5/5 (exit 0); after 22/22 (exit 0).
