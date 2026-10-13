@@ -1,0 +1,448 @@
+{
+  "schemaVersion": 1,
+  "release": "m4-ods-w9-viewer-draft-smoke",
+  "profile": "e2-editor-v14",
+  "nameSpoofed": true,
+  "evidenceClass": "diagnostic",
+  "why": "diagnostic: the viewer hands the spreadsheet to the engine under a .odt name (finding 013) because W7 does not exist; this is not the product opening an ODS",
+  "preconditions": {
+    "wallet": "b false",
+    "chromeProcessCount": 0,
+    "chromeProcessesSample": [],
+    "load1": 0.09,
+    "ok": true,
+    "reasons": []
+  },
+  "pageFiles": {
+    "ods-viewer.html": "3d8f48fcf23bea5d756df3e33f469c54b0ee5049d7a9426b69af1b5188f07e65",
+    "ods-viewer-app.js": "bb298b39a86de855e8610538679579d634800ca7241fe99145c98918dc1b1182",
+    "viewer-shell/ods-viewer-session.js": "ea4d6bca6cc9ebe38783acbd4c7112b40b6411b08cd1a67fd66cec56fc04d9ed",
+    "viewer-shell/w7-adapter.js": "d4b5206dbf90661fcf1b059e08b07dcda3cd2023e855ca2eac34273aa9be486a",
+    "viewer-shell/viewer-error.js": "237dad413606f1a55a8b7a5dcde9930b3ace14d532bb87edc7c1a7062771765d"
+  },
+  "servedUnmodified": {
+    "reader-shell/tile-scheduler.js": "4c60ab4e5ed11e32155af50a7b6983500cdab47431c8fc494aaf2369f046e722",
+    "sdk/document-sdk.js": "e4c3fe9203add924d6f31615fb34d842da31702acebe35f2a68d777f0151ce3a"
+  },
+  "profileManifestSha256": "9943b064d4e185159cc12f57dddf083b7844672024357d3ec9374fed20b73250",
+  "runs": [
+    {
+      "settled": true,
+      "file": "three-sheets-distinct.ods",
+      "inputBytes": 7537,
+      "inputSha256": "0402e52724cb5bbd3046461a5fb1c40b9431b33f20834136a835a68f3123e750",
+      "opened": {
+        "atMs": 1579,
+        "parts": 3,
+        "documentType": "unknown (pre-W7)",
+        "widthTwips": 26593,
+        "heightTwips": 13005
+      },
+      "refused": null,
+      "error": null,
+      "tileDraws": 12,
+      "engineEvents": [
+        "resource-pack-loaded",
+        "view-ready",
+        "editor-state"
+      ],
+      "firstTile": {
+        "part": 0,
+        "width": 256,
+        "height": 256,
+        "bytes": 262144,
+        "nonPaperPixels": 4817,
+        "sha256": "0a516b644c785eaf6ca28b979713391f1f93cb65dec863a109f485d3827c44e3",
+        "key": "three-sheets-distinct.ods#0:0:0:1.0000:0:0:3840:3840:256:256",
+        "documentWidthTwips": 26775,
+        "documentHeightTwips": 13005,
+        "documentSizeChanged": true
+      },
+      "finalState": {
+        "state": "ready",
+        "evidenceClass": "diagnostic",
+        "adapterFallbacks": [
+          "name-spoofed",
+          "document-type-unknown",
+          "part-names-synthesised",
+          "part-switch-unavailable",
+          "part-readback-unavailable"
+        ],
+        "fileName": "three-sheets-distinct.ods",
+        "openName": "three-sheets-distinct.odt",
+        "nameSpoofed": true,
+        "documentType": "unknown (pre-W7)",
+        "documentTypeKnown": false,
+        "parts": 3,
+        "partNames": [
+          "工作表 1",
+          "工作表 2",
+          "工作表 3"
+        ],
+        "namesFromEngine": false,
+        "partNamesProblem": null,
+        "canSwitchParts": false,
+        "currentPart": 0,
+        "currentPartReadBack": null,
+        "tabs": [
+          {
+            "index": 0,
+            "label": "工作表 1",
+            "current": true,
+            "enabled": true,
+            "disabledReason": null
+          },
+          {
+            "index": 1,
+            "label": "工作表 2",
+            "current": false,
+            "enabled": false,
+            "disabledReason": "引擎尚無分頁切換（W7 的 set_part），目前只能顯示開檔時的那一頁"
+          },
+          {
+            "index": 2,
+            "label": "工作表 3",
+            "current": false,
+            "enabled": false,
+            "disabledReason": "引擎尚無分頁切換（W7 的 set_part），目前只能顯示開檔時的那一頁"
+          }
+        ],
+        "widthTwips": 26775,
+        "heightTwips": 13005,
+        "lastRefusal": null,
+        "tileErrors": 0,
+        "lastTileError": null,
+        "error": null
+      },
+      "timedOut": false,
+      "fixtureSha256": "0402e52724cb5bbd3046461a5fb1c40b9431b33f20834136a835a68f3123e750",
+      "dom": {
+        "tabs": [
+          {
+            "text": "工作表 1",
+            "enabled": true,
+            "part": "0",
+            "selected": true,
+            "title": null
+          },
+          {
+            "text": "工作表 2",
+            "enabled": false,
+            "part": "1",
+            "selected": false,
+            "title": "引擎尚無分頁切換（W7 的 set_part），目前只能顯示開檔時的那一頁"
+          },
+          {
+            "text": "工作表 3",
+            "enabled": false,
+            "part": "2",
+            "selected": false,
+            "title": "引擎尚無分頁切換（W7 的 set_part），目前只能顯示開檔時的那一頁"
+          }
+        ],
+        "fields": {
+          "state": "ready",
+          "documentType": "unknown (pre-W7)",
+          "parts": "3",
+          "currentPart": "1",
+          "currentPartReadBack": "未提供",
+          "nameSpoofed": "是（偽裝）",
+          "evidenceClass": "diagnostic"
+        },
+        "banner": [
+          "name-spoofed",
+          "document-type-unknown",
+          "part-names-synthesised",
+          "part-switch-unavailable",
+          "part-readback-unavailable"
+        ],
+        "bannerHidden": false,
+        "canvases": 12,
+        "message": ""
+      },
+      "showPart1": {
+        "ok": false,
+        "error": {
+          "name": "ViewerError",
+          "code": "PART_SWITCH_UNAVAILABLE",
+          "message": "the engine has no part switch; part 1 cannot be shown",
+          "details": {
+            "requested": 1
+          }
+        },
+        "tilesDrawnBefore": 12,
+        "tilesDrawnAfter": 12,
+        "part": 0
+      }
+    },
+    {
+      "settled": true,
+      "file": "empty-one-sheet.ods",
+      "inputBytes": 6546,
+      "inputSha256": "27c90c9863e758cd81d38a53914391697aa75ccf1d1f82ca4550c67c52b26857",
+      "opened": {
+        "atMs": 1020,
+        "parts": 1,
+        "documentType": "unknown (pre-W7)",
+        "widthTwips": 26593,
+        "heightTwips": 13005
+      },
+      "refused": null,
+      "error": null,
+      "tileDraws": 12,
+      "engineEvents": [
+        "resource-pack-loaded",
+        "view-ready",
+        "editor-state"
+      ],
+      "firstTile": {
+        "part": 0,
+        "width": 256,
+        "height": 256,
+        "bytes": 262144,
+        "nonPaperPixels": 4545,
+        "sha256": "387aac13437d2c7f41c4f53c92e169aa40a01779f66445419c60235345209dad",
+        "key": "empty-one-sheet.ods#0:0:0:1.0000:0:0:3840:3840:256:256",
+        "documentWidthTwips": 26775,
+        "documentHeightTwips": 13005,
+        "documentSizeChanged": true
+      },
+      "finalState": {
+        "state": "ready",
+        "evidenceClass": "diagnostic",
+        "adapterFallbacks": [
+          "name-spoofed",
+          "document-type-unknown",
+          "part-names-synthesised",
+          "part-switch-unavailable",
+          "part-readback-unavailable"
+        ],
+        "fileName": "empty-one-sheet.ods",
+        "openName": "empty-one-sheet.odt",
+        "nameSpoofed": true,
+        "documentType": "unknown (pre-W7)",
+        "documentTypeKnown": false,
+        "parts": 1,
+        "partNames": [
+          "工作表 1"
+        ],
+        "namesFromEngine": false,
+        "partNamesProblem": null,
+        "canSwitchParts": false,
+        "currentPart": 0,
+        "currentPartReadBack": null,
+        "tabs": [
+          {
+            "index": 0,
+            "label": "工作表 1",
+            "current": true,
+            "enabled": true,
+            "disabledReason": null
+          }
+        ],
+        "widthTwips": 26775,
+        "heightTwips": 13005,
+        "lastRefusal": null,
+        "tileErrors": 0,
+        "lastTileError": null,
+        "error": null
+      },
+      "timedOut": false,
+      "fixtureSha256": "27c90c9863e758cd81d38a53914391697aa75ccf1d1f82ca4550c67c52b26857",
+      "dom": {
+        "tabs": [
+          {
+            "text": "工作表 1",
+            "enabled": true,
+            "part": "0",
+            "selected": true,
+            "title": null
+          }
+        ],
+        "fields": {
+          "state": "ready",
+          "documentType": "unknown (pre-W7)",
+          "parts": "1",
+          "currentPart": "1",
+          "currentPartReadBack": "未提供",
+          "nameSpoofed": "是（偽裝）",
+          "evidenceClass": "diagnostic"
+        },
+        "banner": [
+          "name-spoofed",
+          "document-type-unknown",
+          "part-names-synthesised",
+          "part-switch-unavailable",
+          "part-readback-unavailable"
+        ],
+        "bannerHidden": false,
+        "canvases": 12,
+        "message": ""
+      }
+    }
+  ],
+  "chrome": "Chrome/151.0.7922.169",
+  "firstTileComparison": {
+    "gate": false,
+    "expected": "not equal (the three-sheet file has content, the control is empty)",
+    "threeSheetSha256": "0a516b644c785eaf6ca28b979713391f1f93cb65dec863a109f485d3827c44e3",
+    "emptySheetSha256": "387aac13437d2c7f41c4f53c92e169aa40a01779f66445419c60235345209dad",
+    "byteEqual": false,
+    "threeSheetNonPaperPixels": 4817,
+    "emptySheetNonPaperPixels": 4545,
+    "sameTileSize": true
+  },
+  "expectations": [
+    {
+      "id": "both-fixtures-were-run",
+      "ok": true,
+      "detail": [
+        "three-sheets-distinct.ods",
+        "empty-one-sheet.ods"
+      ]
+    },
+    {
+      "id": "opened",
+      "ok": true,
+      "detail": {
+        "three-sheets-distinct.ods": true,
+        "empty-one-sheet.ods": true
+      }
+    },
+    {
+      "id": "parts-3-and-1",
+      "ok": true,
+      "detail": {
+        "three-sheets-distinct": 3,
+        "empty-one-sheet": 1
+      }
+    },
+    {
+      "id": "tab-count-equals-parts",
+      "ok": true,
+      "detail": {
+        "three": 3,
+        "one": 1
+      }
+    },
+    {
+      "id": "tab-text-equals-part-name",
+      "ok": true,
+      "detail": {
+        "three": [
+          "工作表 1",
+          "工作表 2",
+          "工作表 3"
+        ],
+        "one": [
+          "工作表 1"
+        ],
+        "stateNames": [
+          "工作表 1",
+          "工作表 2",
+          "工作表 3"
+        ]
+      }
+    },
+    {
+      "id": "pre-w7-names-are-synthesised-and-say-so",
+      "ok": true,
+      "detail": {
+        "three-sheets-distinct.ods": false,
+        "empty-one-sheet.ods": false
+      }
+    },
+    {
+      "id": "only-the-current-tab-is-enabled-and-disabled-ones-say-why",
+      "ok": true,
+      "detail": {
+        "three": [
+          true,
+          false,
+          false
+        ],
+        "one": [
+          true
+        ]
+      }
+    },
+    {
+      "id": "name-spoofed-true-and-shown",
+      "ok": true,
+      "detail": {
+        "state": [
+          true,
+          true
+        ],
+        "banner": [
+          [
+            "name-spoofed",
+            "document-type-unknown",
+            "part-names-synthesised",
+            "part-switch-unavailable",
+            "part-readback-unavailable"
+          ],
+          [
+            "name-spoofed",
+            "document-type-unknown",
+            "part-names-synthesised",
+            "part-switch-unavailable",
+            "part-readback-unavailable"
+          ]
+        ]
+      }
+    },
+    {
+      "id": "evidence-class-diagnostic",
+      "ok": true,
+      "detail": [
+        "diagnostic",
+        "diagnostic"
+      ]
+    },
+    {
+      "id": "current-part-read-back-is-null-not-echoed",
+      "ok": true,
+      "detail": [
+        null,
+        null
+      ]
+    },
+    {
+      "id": "document-type-is-unknown-pre-w7",
+      "ok": true,
+      "detail": [
+        "unknown (pre-W7)",
+        "unknown (pre-W7)"
+      ]
+    },
+    {
+      "id": "show-part-1-is-refused-and-nothing-repaints",
+      "ok": true,
+      "detail": {
+        "ok": false,
+        "error": {
+          "name": "ViewerError",
+          "code": "PART_SWITCH_UNAVAILABLE",
+          "message": "the engine has no part switch; part 1 cannot be shown",
+          "details": {
+            "requested": 1
+          }
+        },
+        "tilesDrawnBefore": 12,
+        "tilesDrawnAfter": 12,
+        "part": 0
+      }
+    },
+    {
+      "id": "a-first-tile-was-painted-for-each-fixture",
+      "ok": true,
+      "detail": {
+        "three-sheets-distinct.ods": "0a516b644c785eaf",
+        "empty-one-sheet.ods": "387aac13437d2c7f"
+      }
+    }
+  ],
+  "verdict": "DRAFT SMOKE: every expectation met (diagnostic, not gate evidence)",
+  "elapsedSeconds": 9.7
+}
