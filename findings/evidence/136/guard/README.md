@@ -80,3 +80,36 @@ Chrome: `report-chrome.json` → `fatal` ends `TimeoutError: timed out in 180.0s
 | L-129 cells (recorded, not judged) | not run | `s1d`/`m1d` Down follow native `ref` (`dragDownFollowsRef: ["s1d", "m1d"]`) | recorded |
 
 Cross-check printed by the analyzer: Firefox against `round-20261012T092119Z` (the d761f1ce round): 54 compared, 0 differ, wrap offsets the same; against `round-20261012T235136Z` (the 134 page's round): 54 compared, 0 differ, wrap offsets the same. Chrome has no cross-check from this round.
+
+## G4 — 122-B / C2 typing latency: Firefox every cell PASS; Chrome not measured; judge exits 2 (`judge_c2.py`) and 1 (`judge_p2.py`) because of the Chrome cells
+
+Pin commit (its own, before the run): `a0ed713f` — in `findings/evidence/c-prime/c2/judge_c2.py` and `findings/evidence/typing-latency/judge_p2.py` only the `PAGE = "…"` line changed, from `6470dec0…` (kept in a comment above) to `b24d754a…` (`git diff --stat`: 6 insertions, 2 deletions, all comment lines and the two `PAGE` lines). A consequence, not checked further: the reports in `findings/evidence/134/guard/c2/` (page `6470dec0…`) are now REFUSED by the default pin of those two judges.
+
+Chain: `c2/chain-c2.sh`, a copy of `findings/evidence/134/guard/c2/chain-c2.sh` with two lines changed (`diff` shows exactly these): `E=` (output directory) → `findings/evidence/136/guard/c2`, and `PAGE=` → `b24d754a426706bb`. The second one is not an output directory; I changed it for the reason the 134 chain gave: the script's first check refuses to run when `dist/e2-editor-app.js` does not hash to its `PAGE`, and the task did not name that line. The header comment of the copy is unchanged. Structure unchanged (ratio 2 wide `--dpr 2 --window 1400x1000`, owner gap 80 / 20 chars and gap 200 / 10 chars; ratio 1.5 wide recorded only; ratio 1 `probe_typing_latency.py` owner gap 80, owner gap 200, boundaries gap 200; Chrome first, then Firefox, one cell at a time). Started with `nohup` (detached), waited for `DONE`.
+
+Desk at the start (`c2/desk-at-start.txt`, 2026-10-13T04:44:37Z): `pgrep -c chrome` = 0; `pgrep -fc '/chrome/chrome( |$)'` = 0; `/proc/loadavg` 0.18 0.58 0.61; no Firefox process. `chain.txt`: `START tree a0ed713f dist b24d754a426706bb view 1412e4c863de6fcb probe dbad93c0dcf27fbf`, started 04:44:40Z, `DONE` 05:05:49Z. All 12 cells print `exit 0` in `chain.txt` (the script records the `timeout` wrapper's exit and the last output line; for the six Chrome cells that line is `TimeoutError: timed out in 180.0s`, for the Firefox cells the summary JSON). Tool hashes equal the ones both judges bind.
+
+Judges, run as the C2 README did with `--dir` at this directory, output in `c2/judge-output.txt` (it also carries my `$ …` command line and `exit N` line for each judge):
+
+- `python3 findings/evidence/c-prime/c2/judge_c2.py --dir findings/evidence/136/guard/c2` → **exit 2**, last line `REFUSED: chrome owner-gap80, chrome owner-gap200; also FAIL: chrome owner-gap80 every key committed, chrome owner-gap80 every key on screen, chrome owner-gap200 every key committed, chrome owner-gap200 every key on scree…` (the two Chrome files carry only the probe's header — `probe`, `browser`, `document`, `gap`, `chars`, `page`, `runner`, `startedAt`, `version`, `completedAt` — no `rows`, so the judge's binding check refuses them).
+- `python3 findings/evidence/typing-latency/judge_p2.py --dir findings/evidence/136/guard/c2/ratio-1` → **exit 1**, last line `FAIL: chrome owner-gap80 every key committed, chrome owner-gap80 every key on screen, chrome owner-gap80 (ii) every band current after the last key, chrome owner-gap200 every key committed, chrome owner-gap200 every key …` (Chrome: 0 of 20 / 0 of 10 keys, no rows).
+
+| Cell (judge) | Chrome | Firefox | Verdict |
+|---|---|---|---|
+| ratio 2 wide, owner gap 80: every key committed / on screen | 0 of 20 / 0 of 20 (REFUSED, no rows) | 20 of 20 / 20 of 20 | Firefox PASS; Chrome NOT MEASURED |
+| ... on-screen median (needs < 70 / < 90) and max (< 150) | — | 28.4, max 43.1 | Firefox PASS |
+| ... (a) every commit < 2 × gap (< 160) | — | max 35.5 | Firefox PASS |
+| ... (b) median commit < gap (< 80) | — | 22.3 | Firefox PASS |
+| ratio 2 wide, owner gap 200: every key committed / on screen | 0 of 10 / 0 of 10 (REFUSED) | 10 of 10 / 10 of 10 | Firefox PASS; Chrome NOT MEASURED |
+| ... on-screen median (< 70 / < 90) and max (< 150) | — | 34.0, max 51.9 | Firefox PASS |
+| ratio 2 wide (ii), recorded not gated | — | gap 80 60.8 ms, gap 200 65.5 ms | recorded |
+| ratio 1 (P2), owner gap 80: committed / on screen | 0 of 20 / 0 of 20 | 20 of 20 / 20 of 20 | Firefox PASS; Chrome NOT MEASURED |
+| ... on-screen median (< 70 / < 90), max (< 150) | — | 29.3, max 46.2 | Firefox PASS |
+| ... (a) max commit (< 160); (b) median commit (< 80) | — | 38.2; 22.0 | Firefox PASS |
+| ratio 1 (P2), owner gap 200: committed / on screen | 0 of 10 / 0 of 10 | 10 of 10 / 10 of 10 | Firefox PASS; Chrome NOT MEASURED |
+| ... on-screen median (< 70 / < 90), max (< 150) | — | 32.1, max 48.1 | Firefox PASS |
+| ratio 1 (P2), boundaries gap 200: committed / on screen | 0 of 10 / 0 of 10 | 10 of 10 / 10 of 10 | Firefox PASS; Chrome NOT MEASURED |
+| ... commit median (≤ 10) | — | 3.7 | Firefox PASS |
+| ratio 1.5 wide, owner gap 80 (recorded only, no judge): commit median / max, on-screen median / max | no rows | 21.4 / 35.6, 27.3 / 45.1 | recorded |
+
+Per-key backlog `b_i` is 0.0 for all 20 keys in the Firefox ratio-2 gap-80 cell and in the Firefox ratio-1 gap-80 cell. The Chrome ratio-2 gap-80 cell that was a near-miss on the 134 page (finding 135) has **no** measurement on this page from G4; G6 below is the same cell, Chrome only.
