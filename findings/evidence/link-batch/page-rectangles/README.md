@@ -110,3 +110,28 @@ Tens of microseconds on native. The layout was already complete at load (`getPar
 - This tool had no earlier runs (a compile check only); `round-20261012T030439Z` is its first run. The polling arm likewise ran once (3 rounds x 2 documents).
 - The runner scripts and the 60-page generator need `SCRATCH_DIR` outside the repository; the owner's document and the generated 60-page document are not in the tree.
 - No product bytes, no browser, no WASM; nothing was committed.
+
+---
+
+# Mixed-page round (task 2026-10-13m)
+
+Brief: `handoff/tasks/TASK-2026-10-13m-mixed-page-fixture-native.md`. Purpose: the 60-page document and the owner's document have identical A4 pages, so the strings above cannot tell "per-page rectangles" from "equal page heights" (see "What is not covered" above). `specs/SPEC-M3-link-batch.md` section 5 P1 (as written by 10.8) needs a fixture whose pages differ in size and orientation, so that the v20 page-number rule cannot pass by assuming equal heights or one x. This round measures that fixture on native LibreOffice 26.8 only, so that the v20 round has a reference. No browser, no WASM, no product bytes. The results are in `MIXED.md` and `mixed-round-<UTC stamp>/`.
+
+Fixture: `wasm_sdk_probe/tools/create_mixed_page_document.py` (8 pages, one master page each, 2 cm margins): 1 A4 portrait (21 x 29.7 cm), 2 A4 landscape (29.7 x 21), 3 A4 landscape, 4 A5 portrait (14.8 x 21), 5 US Letter portrait (21.59 x 27.94), 6 A4 portrait, 7 A3 landscape (42 x 29.7), 8 A4 portrait. Runner: `wasm_sdk_probe/tools/run_native_mixed_page_rectangles.sh`; the probe is `tools/native_page_rectangles.cpp`, reused unchanged.
+
+## Predictions (main session's brief, written here before the first run of this round; the block below is verbatim from the brief and is not edited afterwards)
+
+- P-M1: 8 rectangles; `getParts()` = 8.
+- P-M2: each rectangle's width x height equals its page style's size in twips (1 cm = 566.93 twips) within 1 %; pages 2, 3, 7 are wider than tall.
+- P-M3: rectangles' `y` strictly increase in string order, with a gap between consecutive pages.
+- P-M4 (open, no expectation): how `x` relates across pages of different widths (left-aligned at one x, or centred on the widest page). Record what native does; the page-number rule intersects both axes, so either is fine, but the v20 runner must know which.
+
+How these will be read (fixed now, before the run, so the reading cannot follow the result):
+
+- Page i of the fixture is rectangle i in string order. The settled string is the first of the ten timed `getPartPageRectangles()` calls; the other nine and the call after 2 s idle must be identical to it, otherwise that is reported. A prediction is judged on all three rounds; one round failing is a failure of the prediction, and rounds that differ from each other are reported as such.
+- P-M1: the count of rectangles in the settled string, `getParts()` right after the load, and `getParts()` after the settle wait are all 8.
+- P-M2: for every page, |w - W_cm x 566.93| / (W_cm x 566.93) <= 0.01 and the same for h; "wider than tall" is judged as w > h and must be true exactly for pages 2, 3, 7.
+- P-M3: y(i+1) > y(i) + h(i) for every consecutive pair (a strictly positive gap).
+- P-M4 is not judged. The raw x values, and whether they are all equal (left-aligned), whether x + w/2 is common (centred), and whether x + w is common (right-aligned), are recorded.
+- Not predicted, recorded as observed: `getDocumentSize()`, `.uno:StatePageNumber`, and what the probe's Edit A (page break at the end of the document) and Edit B (one typed character) do to the eight rectangles. These are the probe's existing phases; they are not part of the fixture's question.
+- If native LibreOffice lays a page out unexpectedly (for example a page overflows onto a ninth sheet), that is reported; the fixture is not tuned until a prediction passes. A changed fixture is a new fixture and gets a new sha256 and a new round.
