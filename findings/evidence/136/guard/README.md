@@ -45,3 +45,18 @@ Directory `131b-128b/`. Command: `python3 wasm_sdk_probe/tools/probe_hand_test_0
 `read_128b-output.txt` in the rerun directory is empty (that reader prints the high/low arms only). The Firefox host-segment cell has been sampled twice; the first sample is not a PASS. Chrome has no sample of any G1 clause on this page.
 
 Output files: `131b-128b/` — `probe.out`, `report.json`, `judge_131b-output.txt`, `read_128b-output.txt`, `started-utc.txt`, `ended-utc.txt`; `131b-128b-hostseg-rerun/` — `probe.out`, `report.json`, `read_128b-output.txt` (empty), `started-utc.txt`, `ended-utc.txt`. (No screenshots were written: the probe writes them from the Chrome half.)
+
+## G2 — 121-B (selection, then Backspace / Delete): Firefox PASS in both cells; Chrome not measured (both cells exit 1, empty JSON)
+
+Files: `../../121/0.2.18-136-binding.txt` (before 2026-10-13T04:18:10Z, after 04:25:08Z; both lines carry the page sha256 `b24d754a…`), `../../121/0.2.18-136-<browser>-<key>.json` and `.stderr`. Command per cell: `python3 findings/evidence/121/select_delete_probe.py <browser> <Key>` (standalone page built from `dist/`, `boundaries.odt`, a drag inside "M01 plain alpha", one real key; no host involved), run sequentially from a small wrapper script that also wrote the binding file (the exact lines of the 134 chain). Criterion (SPEC-M3-autosave §9.13): shape `range-single` before the key, after the key 「刪除選取 N ms」, `ready`, generation 1 → 1, revision 0 → 1, no toast, first paragraph `M01 alpha`.
+
+Exit codes in the binding file: `chrome Backspace exit 1`, `chrome Delete exit 1`, `firefox Backspace exit 0`, `firefox Delete exit 0`.
+
+| Cell | shape before | latency after | state | generation | revision | `toasts` | first paragraph | Verdict |
+|---|---|---|---|---|---|---|---|---|
+| Chrome Backspace | — (JSON empty, 0 bytes) | — | — | — | — | — | — | NOT MEASURED: `.stderr` ends `TimeoutError: timed out in 180.0s` (a CDP call, the same Chrome network hang as in the section above) |
+| Chrome Delete | — (JSON empty) | — | — | — | — | — | — | NOT MEASURED (same) |
+| Firefox Backspace | `range-single` | 「刪除選取 9 ms」 | `ready` | 1 → 1 | 0 → 1 | `[]` | `M01 alpha` | PASS |
+| Firefox Delete | `range-single` | 「刪除選取 9 ms」 | `ready` | 1 → 1 | 0 → 1 | `[]` | `M01 alpha` | PASS |
+
+Compared with `0.2.16-134-firefox-*.json`, `0.2.15-132-firefox-*.json` and `0.2.13-131fix-firefox-*.json`: after masking the `定位游標 N ms` figure of the `before` field (35 and 38 ms here), both Firefox files are byte-identical (as JSON, keys sorted) to all three earlier sets. The `after.toast` field reads 「已開啟 f.odt」 in both files, as in the earlier sets; the criterion's "no toast" is the `toasts` list, empty in both. Chrome: nothing to compare.
