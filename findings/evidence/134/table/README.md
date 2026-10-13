@@ -37,3 +37,9 @@ Both browsers, 1 round per arm.
   - any other change to the document.
 
   Any of these is a defect, registered as a finding. The page is not changed while the owner is away; a fork goes to fable (owner's authorisation, 2026-10-13).
+
+## run-1: the positive control failed — nothing was measured
+
+All eight arms read 0 refusals and an unchanged document. Even the press-type arms ended with `marks == 0`. The log shows why: every key, the Delete and `zqx`, landed on `body-user`, not the sink. Nothing had focused the sink: the owner-document probes click into the text first, and this probe did not. So run-1 says nothing about B + D or about whether these places are refusal shapes. It is kept as the failed control.
+
+Probe fix (an instrument fix caused by a run, not a check): after opening, `#sink` is focused with the caret where the page opened it (the document start), recorded as `focused`. Then the moves follow. Same predictions; run-2 follows.

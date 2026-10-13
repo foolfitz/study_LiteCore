@@ -27,6 +27,7 @@ _spec.loader.exec_module(probe)
 ui, evaluate = probe.ui, probe.evaluate
 
 DOC = ROOT / "wasm_sdk_probe" / "dist" / "e1-fixtures" / "table-boundary.odt"
+FOCUS_SINK = "(() => { document.querySelector('#sink').focus({ preventScroll: true }); return document.activeElement.id; })()"
 ARMS = {"before-table-press-type": ([], "press"), "before-table-hold": ([], "hold"),
         "cell-press-type": (["ArrowDown"], "press"), "cell-hold": (["ArrowDown"], "hold")}
 
@@ -61,6 +62,9 @@ def run_round(arm: str, kind: str, server, doc: bytes, original: list[str]) -> d
         probe.open_from_files(session, base, "", probe.NAME, record)
         record["opened"] = ui.quiet(session, 90)
         evaluate(session, probe.INSTRUMENT)
+        # run-1 sent every key to <body>: nothing had focused the sink (the owner-document probes click
+        # into the text first).  The caret is at the document start after opening; focus the sink there.
+        record["focused"] = evaluate(session, FOCUS_SINK)
         record["moves"] = [nav(session, kind, key) for key in moves] + [ui.keyed(session, kind, "End")]
         record["genBeforeKey"] = evaluate(session, ui.GEN)
         start = evaluate(session, probe.LOG_LENGTH)
