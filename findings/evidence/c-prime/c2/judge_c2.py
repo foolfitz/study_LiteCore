@@ -46,7 +46,9 @@ from pathlib import Path
 
 # Re-pinned 2026-10-13 to the final page of finding 132 (SPEC-M3-held-key §5.3).  The previous pin, the C′ page, was
 # 8909564eb2316afa6de7868a08b61d27219fabdf49f37326fee0dda2977bd401 (findings/evidence/c-prime/c2/ ran on it).
-PAGE = "abe93f4575c7797db97462f1f0e3a71cf5fc4063205cd6d5877093ca1c248fcf"
+# Re-pinned 2026-10-13 to the page of finding 134 (SPEC-M3-held-key §14).  The previous pin, the 132 final page, was
+# abe93f4575c7797db97462f1f0e3a71cf5fc4063205cd6d5877093ca1c248fcf (findings/evidence/132/guard/c2/ ran on it; the C′ page 8909564e… before that).
+PAGE = "6470dec0cb0e20db46d33d46bfc565893f542b79f7317fcbc421653a562bb94b"
 RUNNER = "probe_typing_latency_view.py 1412e4c863de6fcb over probe dbad93c0dcf27fbf"
 DPR = 2.0
 WINDOW = [1400, 1000]
