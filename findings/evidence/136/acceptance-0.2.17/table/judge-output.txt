@@ -1,0 +1,60 @@
+probe probe_table_refusal.py arms ['before-table-press-type', 'before-table-hold', 'cell-press-type', 'cell-hold']
+static {'hostVersion': '0.2.17', 'hostCommit': 'f5b34f0', 'buildId': 'e39447158dba7a3b', 'servedPage': 'aebef52560bce2a3572c4e0f85197366ef544809331ae8b7dd2be55faaa4d2b8', 'distPage': 'aebef52560bce2a3572c4e0f85197366ef544809331ae8b7dd2be55faaa4d2b8'}
+chrome before-table-press-type r0 PASS
+    reopen   refusals 1 gens ['1', '2'] limit None
+    server   same True firstDiff None charDelta 0 paragraphs 6/6
+    counts   marks 1 controls 1 afters 0
+    where    mark [0] control [0] after []
+    bools    controlThenMark True markThenAfter False afterAtStart False afterAtEnd False
+    scroll   series [0] (exempt)
+firefox before-table-press-type r0 PASS
+    reopen   refusals 1 gens ['1', '2'] limit None
+    server   same True firstDiff None charDelta 0 paragraphs 6/6
+    counts   marks 1 controls 1 afters 0
+    where    mark [0] control [0] after []
+    bools    controlThenMark True markThenAfter False afterAtStart False afterAtEnd False
+    scroll   series [0] (exempt)
+chrome before-table-hold r0 PASS
+    reopen   refusals 1 gens ['1', '2'] limit None
+    server   same True firstDiff None charDelta 0 paragraphs 6/6
+    counts   marks 0 controls 0 afters 1
+    where    mark [] control [] after [0]
+    bools    controlThenMark False markThenAfter False afterAtStart False afterAtEnd True
+    scroll   series [0] (exempt)
+firefox before-table-hold r0 PASS
+    reopen   refusals 1 gens ['1', '2'] limit None
+    server   same True firstDiff None charDelta 0 paragraphs 6/6
+    counts   marks 0 controls 0 afters 1
+    where    mark [] control [] after [0]
+    bools    controlThenMark False markThenAfter False afterAtStart False afterAtEnd True
+    scroll   series [0] (exempt)
+chrome cell-press-type r0 PASS
+    reopen   refusals 1 gens ['1', '2'] limit None
+    server   same True firstDiff None charDelta 0 paragraphs 6/6
+    counts   marks 1 controls 1 afters 0
+    where    mark [1] control [1] after []
+    bools    controlThenMark True markThenAfter False afterAtStart False afterAtEnd False
+    scroll   series [0] (exempt)
+firefox cell-press-type r0 PASS
+    reopen   refusals 1 gens ['1', '2'] limit None
+    server   same True firstDiff None charDelta 0 paragraphs 6/6
+    counts   marks 1 controls 1 afters 0
+    where    mark [1] control [1] after []
+    bools    controlThenMark True markThenAfter False afterAtStart False afterAtEnd False
+    scroll   series [0] (exempt)
+chrome cell-hold r0 PASS
+    reopen   refusals 1 gens ['1', '2'] limit None
+    server   same True firstDiff None charDelta 0 paragraphs 6/6
+    counts   marks 0 controls 0 afters 1
+    where    mark [] control [] after [1]
+    bools    controlThenMark False markThenAfter False afterAtStart False afterAtEnd True
+    scroll   series [0] (exempt)
+firefox cell-hold r0 PASS
+    reopen   refusals 1 gens ['1', '2'] limit None
+    server   same True firstDiff None charDelta 0 paragraphs 6/6
+    counts   marks 0 controls 0 afters 1
+    where    mark [] control [] after [1]
+    bools    controlThenMark False markThenAfter False afterAtStart False afterAtEnd True
+    scroll   series [0] (exempt)
+verdict PASS
+exit 0

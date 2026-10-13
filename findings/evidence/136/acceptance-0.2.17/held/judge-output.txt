@@ -1,0 +1,96 @@
+probe probe_held_into_refusal.py arms ['start-press', 'start-hold', 'end-hold', 'end-press-type']
+static {'hostVersion': '0.2.17', 'hostCommit': 'f5b34f0', 'buildId': 'e39447158dba7a3b', 'servedPage': 'aebef52560bce2a3572c4e0f85197366ef544809331ae8b7dd2be55faaa4d2b8', 'distPage': 'aebef52560bce2a3572c4e0f85197366ef544809331ae8b7dd2be55faaa4d2b8'}
+chrome start-press r0 PASS
+    reopen   refusals 1 gens ['1', '2'] limit None
+    server   same True firstDiff None charDelta 0 paragraphs 211/211
+    counts   marks 1 controls 0 afters 1
+    where    mark [1] control [] after [0]
+    bools    controlThenMark False markThenAfter False afterAtStart True afterAtEnd False
+    scroll   series [0]
+firefox start-press r0 PASS
+    reopen   refusals 1 gens ['1', '2'] limit None
+    server   same True firstDiff None charDelta 0 paragraphs 211/211
+    counts   marks 1 controls 0 afters 1
+    where    mark [1] control [] after [0]
+    bools    controlThenMark False markThenAfter False afterAtStart True afterAtEnd False
+    scroll   series [0]
+chrome start-hold r0 FAIL
+    reopen   refusals 1 gens ['1', '2'] limit None
+    server   same True firstDiff None charDelta 0 paragraphs 211/211
+    counts   marks 1 controls 0 afters 1
+    where    mark [1] control [] after [0]
+    bools    controlThenMark False markThenAfter False afterAtStart False afterAtEnd False
+    scroll   series [0]
+    - AFTER not at the start of its paragraph (afterAtStart False)
+chrome start-hold r1 FAIL
+    reopen   refusals 1 gens ['1', '2'] limit None
+    server   same True firstDiff None charDelta 0 paragraphs 211/211
+    counts   marks 1 controls 0 afters 1
+    where    mark [1] control [] after [0]
+    bools    controlThenMark False markThenAfter False afterAtStart False afterAtEnd False
+    scroll   series [0]
+    - AFTER not at the start of its paragraph (afterAtStart False)
+firefox start-hold r0 FAIL
+    reopen   refusals 1 gens ['1', '2'] limit None
+    server   same True firstDiff None charDelta 0 paragraphs 211/211
+    counts   marks 1 controls 0 afters 1
+    where    mark [1] control [] after [0]
+    bools    controlThenMark False markThenAfter False afterAtStart False afterAtEnd False
+    scroll   series [0]
+    - AFTER not at the start of its paragraph (afterAtStart False)
+firefox start-hold r1 FAIL
+    reopen   refusals 1 gens ['1', '2'] limit None
+    server   same True firstDiff None charDelta 0 paragraphs 211/211
+    counts   marks 1 controls 0 afters 1
+    where    mark [1] control [] after [0]
+    bools    controlThenMark False markThenAfter False afterAtStart False afterAtEnd False
+    scroll   series [0]
+    - AFTER not at the start of its paragraph (afterAtStart False)
+chrome end-hold r0 PASS
+    reopen   refusals 1 gens ['1', '2'] limit None
+    server   same True firstDiff None charDelta 0 paragraphs 211/211
+    counts   marks 1 controls 0 afters 1
+    where    mark [210] control [] after [210]
+    bools    controlThenMark False markThenAfter True afterAtStart False afterAtEnd True
+    scroll   series [21477, 21596] | window {'pre': 21477, 'preAt': 8199.7, 'window': [21477, 21477, 21477, 21477, 21477, 21477, 21477], 'from': 9003.2, 'to': 10386.3, 'closed': True}
+chrome end-hold r1 PASS
+    reopen   refusals 1 gens ['1', '2'] limit None
+    server   same True firstDiff None charDelta 0 paragraphs 211/211
+    counts   marks 1 controls 0 afters 1
+    where    mark [210] control [] after [210]
+    bools    controlThenMark False markThenAfter True afterAtStart False afterAtEnd True
+    scroll   series [21477, 21596] | window {'pre': 21477, 'preAt': 8192.2, 'window': [21477, 21477, 21477, 21477, 21477, 21477, 21477], 'from': 8983.2, 'to': 10240.6, 'closed': True}
+firefox end-hold r0 PASS
+    reopen   refusals 1 gens ['1', '2'] limit None
+    server   same True firstDiff None charDelta 0 paragraphs 211/211
+    counts   marks 1 controls 0 afters 1
+    where    mark [210] control [] after [210]
+    bools    controlThenMark False markThenAfter True afterAtStart False afterAtEnd True
+    scroll   series [21463, 21582] | window {'pre': 21463, 'preAt': 8157.3, 'window': [21463, 21463, 21463, 21463, 21463, 21463, 21463], 'from': 9006.3, 'to': 11204.8, 'closed': True}
+firefox end-hold r1 PASS
+    reopen   refusals 1 gens ['1', '2'] limit None
+    server   same True firstDiff None charDelta 0 paragraphs 211/211
+    counts   marks 1 controls 0 afters 1
+    where    mark [210] control [] after [210]
+    bools    controlThenMark False markThenAfter True afterAtStart False afterAtEnd True
+    scroll   series [21463, 21582] | window {'pre': 21463, 'preAt': 8149.4, 'window': [21463, 21463, 21463, 21463, 21463, 21463, 21463], 'from': 8980.6, 'to': 11213.1, 'closed': True}
+chrome end-press-type r0 PASS
+    reopen   refusals 1 gens ['1', '2'] limit None
+    server   same True firstDiff None charDelta 0 paragraphs 211/211
+    counts   marks 1 controls 1 afters 0
+    where    mark [210] control [210] after []
+    bools    controlThenMark True markThenAfter False afterAtStart False afterAtEnd False
+    scroll   series [21477] | window {'pre': 21477, 'preAt': 6377.3, 'window': [21477, 21477, 21477, 21477, 21477, 21477, 21477], 'from': 7177.3, 'to': 8412.7, 'closed': True}
+firefox end-press-type r0 PASS
+    reopen   refusals 1 gens ['1', '2'] limit None
+    server   same True firstDiff None charDelta 0 paragraphs 211/211
+    counts   marks 1 controls 1 afters 0
+    where    mark [210] control [210] after []
+    bools    controlThenMark True markThenAfter False afterAtStart False afterAtEnd False
+    scroll   series [21463] | window {'pre': 21463, 'preAt': 6311.2, 'window': [21463, 21463, 21463, 21463, 21463, 21463, 21463], 'from': 7164.2, 'to': 9361.9, 'closed': True}
+FAIL chrome start-hold r0: AFTER not at the start of its paragraph (afterAtStart False)
+FAIL chrome start-hold r1: AFTER not at the start of its paragraph (afterAtStart False)
+FAIL firefox start-hold r0: AFTER not at the start of its paragraph (afterAtStart False)
+FAIL firefox start-hold r1: AFTER not at the start of its paragraph (afterAtStart False)
+verdict FAIL (4)
+exit 1
