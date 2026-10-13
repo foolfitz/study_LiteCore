@@ -37,6 +37,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 import shutil
 import subprocess
 import sys
@@ -72,6 +73,46 @@ def sha256_of(path: Path) -> str:
         for chunk in iter(lambda: handle.read(1 << 20), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+# FINDING 089's ARMS.  LibreOffice's own pre-js (static/emscripten/
+# environment.js) already sets one variable from a preRun; the arm adds its own
+# next to it, in the scratch mirror's copy of probe.js only.  Nothing under
+# dist/ is written, and the anchor must occur exactly once or nothing runs: a
+# patch that silently missed would label an unmodified engine with an arm.
+ENV_ANCHOR = 'ENV.MAX_CONCURRENCY="4"'
+ENV_ECHO = "[engine-env] "
+ENV_NAME = re.compile(r"^[A-Z_][A-Z0-9_]*$")
+ENV_VALUE = re.compile(r"^[A-Za-z0-9_.-]*$")
+
+
+def patch_engine_env(profile: str, pairs: list[str], overrides: dict):
+    if not pairs:
+        return None
+    parsed = {}
+    for pair in pairs:
+        name, sep, value = pair.partition("=")
+        if not sep or not ENV_NAME.match(name) or not ENV_VALUE.match(value):
+            raise SystemExit(f"--engine-env {pair!r}: want NAME=VALUE, "
+                             f"NAME [A-Z0-9_], VALUE [A-Za-z0-9_.-]")
+        parsed[name] = value
+    source = PROJECT / "dist" / "profiles" / profile / "probe.js"
+    original = source.read_bytes()
+    text = original.decode("utf-8")
+    if text.count(ENV_ANCHOR) != 1:
+        raise SystemExit(f"{source}: {ENV_ANCHOR!r} occurs "
+                         f"{text.count(ENV_ANCHOR)} times, want exactly 1")
+    added = "".join(f';ENV.{k}="{v}"' for k, v in parsed.items())
+    echo = (f';(Module["printErr"]||console.error)('
+            f'"{ENV_ECHO}"+JSON.stringify(ENV))')
+    patched = text.replace(ENV_ANCHOR, ENV_ANCHOR + added + echo).encode()
+    overrides[f"profiles/{profile}/probe.js"] = patched
+    return {
+        "pairs": parsed,
+        "anchor": ENV_ANCHOR,
+        "probeJsSha256": hashlib.sha256(original).hexdigest(),
+        "patchedProbeJsSha256": hashlib.sha256(patched).hexdigest(),
+    }
 
 
 def serve(root: Path):
@@ -112,6 +153,13 @@ def main() -> int:
                              "finish in 180 s' apart from 'does not finish'. "
                              "--timeout must exceed it or the run is cut off "
                              "before the open is")
+    parser.add_argument("--engine-env", action="append", default=[],
+                        metavar="NAME=VALUE",
+                        help="set an environment variable for the engine, "
+                             "in the MIRROR's copy of the profile's probe.js "
+                             "only (finding 089's discriminating arms); "
+                             "repeatable. The report carries both hashes and "
+                             "the engine's own echo of its ENV")
     parser.add_argument("--out", type=Path, default=None)
     args = parser.parse_args()
 
@@ -166,6 +214,7 @@ def main() -> int:
 
     overrides["ods-cases.json"] = json.dumps(
         cases, ensure_ascii=False).encode("utf-8")
+    engine_env = patch_engine_env(args.profile, args.engine_env, overrides)
     build_mirror(PROJECT / "dist", root, overrides)
     # `build_mirror` materialises an override only when it MEETS that path while
     # walking the source, so an override for a file `dist/` does not have is
@@ -195,6 +244,7 @@ def main() -> int:
         # implementation of the ordering and would mislabel every input the day
         # the two drifted.
         "inputs": staged,
+        "engineEnv": engine_env,
     }
     session = None
     server = None
@@ -271,6 +321,23 @@ def main() -> int:
         by_kind.setdefault(case.get("kind"), []).append(case)
     control = (by_kind.get("control-odt") or [{}])[0]
     sheets = by_kind.get("spreadsheet") or []
+    if engine_env is not None:
+        # The ENV a case's engine actually started with, as the engine printed
+        # it from inside its own preRun. A case without it was not run under
+        # the arm the report is labelled with, whatever the flag said.
+        for case in page.get("cases") or []:
+            echoes = [w.get("message", "") for w in case.get("warnings") or []
+                      if str(w.get("message", "")).startswith(ENV_ECHO)]
+            seen = {}
+            for echo in echoes:
+                try:
+                    seen.update(json.loads(echo[len(ENV_ECHO):]))
+                except ValueError:
+                    pass
+            case["engineEnvEchoed"] = bool(echoes) and all(
+                seen.get(k) == v for k, v in engine_env["pairs"].items())
+        engine_env["everyCaseEchoed"] = bool(page.get("cases")) and all(
+            c.get("engineEnvEchoed") for c in page.get("cases") or [])
     record["verdict"] = {
         "controlOdtOpened": bool(control.get("opened")),
         "spreadsheetsOpened": [
@@ -278,6 +345,7 @@ def main() -> int:
              "parts": (c.get("opened") or {}).get("parts"),
              "viewReady": bool(c.get("viewReady")),
              "workerCrashed": bool(c.get("workerCrashed")),
+             "engineEnvEchoed": c.get("engineEnvEchoed"),
              "error": c.get("error")}
             for c in sheets],
         "note": "If the ODT control did not open, NOTHING here is about Calc: "
