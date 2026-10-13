@@ -1366,6 +1366,10 @@ function pageFunction(name) {
   return match[0];
 }
 
+// Named limit of this harness: the page's functions run with a stub for every
+// free name they use, listed in `names`.  A page change that adds a free name to
+// them makes these tests throw until the list follows it (finding 136 and the
+// restore-flash flag did; ruling-3 addendum 3: the stubs only, no assertion changed).
 function page(session, { saveFails = false, hold = false } = {}) {
   const world = {
     limit: { state: null, detail: null }, toasts: [], saved: [], focused: 0, renders: 0,
@@ -1373,7 +1377,9 @@ function page(session, { saveFails = false, hold = false } = {}) {
   };
   const names = ["session", "limit", "toast", "BOUNDARY_TEXT", "run", "el",
                  "updateState", "saveDocument", "LIMIT_TEXT", "HOST", "location",
-                 "renderDocument", "boundaryText", "boundaryKeyUncertain"];
+                 "renderDocument", "boundaryText", "boundaryKeyUncertain",
+                 // Finding 136's FIFO and the restore-flash flag (ruling-3 addenda 1, 3): stubs only.
+                 "pendingDeleteCarets", "reopening", "followCaret"];
   const source = ["reopenAfterBoundaryRefusal", "limitState", "limitNotice",
                   "takeRescueContent", "rescueAtGenerationLimit", "onNoticeAction"]
     .map(pageFunction).join("\n")
@@ -1404,7 +1410,8 @@ function page(session, { saveFails = false, hold = false } = {}) {
     // WITHOUT B (no mergeKey), so the page's sentence is BOUNDARY_TEXT and the
     // key's effect is not in question; page-boundary-text.test.mjs runs the
     // page's own two functions.
-    () => "BOUNDARY", () => false);
+    () => "BOUNDARY", () => false,
+    [], false, () => {});
   return Object.assign(world, compiled);
 }
 
