@@ -1,5 +1,31 @@
 ## SUMMARY
 
+Current state after the Amendment 2 runs (2026-10-13). Task: `handoff/tasks/TASK-2026-10-13f-089-threading-arms.md` (with Amendments 1 and 2). Profile `e2-editor-v12`. Everything below this summary is history and is kept unedited; the first `## SUMMARY` below it is the void E0-r1 result, superseded by E0-r2.
+
+**E0-r2 .. E3 (§5): O-N.** E0-r2 passed the gate (7 of 7 echoed, banked states reproduced). E1 (`SC_NO_THREADED_CALCULATION=1`, 3 runs) and E2 (`SC_FORCE_CALCULATION=core`, 1 run) leave F2 and F4 timing out; E3 (`SC_FORCE_CALCULATION=threads`, 3 runs) the same.
+
+**E4 / E5 (Amendment 2): O-N2.** E4 (`SAX_DISABLE_THREADS=1`) and E5 (`MAX_CONCURRENCY=1`) were each run once at a 60000 ms open cap. Neither opened F2 or F4, so no second or third run of either arm was made (Amendment 2 rule: more runs only if F2 or F4 opened). Echo: 7 of 7 cases in both reports; E5 echoes `{"MAX_CONCURRENCY":"1"}` in every case. Per the task, the next step after O-N2 is a stack of the waiting threads, chosen by the main session.
+
+Recorded alongside (not part of any outcome): F1 and F5 crashed (`workerCrashed: true`) in E0-r2, E4-r1 and E5-r1, and were clean in all E1, E2 and E3 runs. F2 and F4 timed out in every arm.
+
+State per arm (number = `opened.atMs` in ms, for timeout `elapsedMs`; several numbers = runs in order; caps: E0/E1/E2 180000, E3/E4/E5 60000):
+
+| fixture | E0-r2 | E1 x3 | E2 x1 | E3 x3 | E4 x1 | E5 x1 |
+|---|---|---|---|---|---|---|
+| C ODT control | clean 1633 | clean 1587/1604/1505 | clean 1517 | clean 1551/1580/1575 | clean 1432 | clean 1622 |
+| F1 rows35 | crashed 1362 | clean 1180/1258/1217 | clean 1285 | clean 1234/1237/1286 | crashed 1246 | crashed 1223 |
+| F2 rows36 | timeout 180920 | timeout 180839/180839/180830 | timeout 180845 | timeout 60870/60890/60894 | timeout 60844 | timeout 60841 |
+| F3 index30-index236 | clean 1121 | clean 1069/1057/1043 | clean 1103 | clean 1297/1073/1058 | clean 1073 | clean 1052 |
+| F4 index35-index236 | timeout 180851 | timeout 180860/180913/180862 | timeout 180859 | timeout 61056/60853/60829 | timeout 60918 | timeout 60879 |
+| F5 index36-index235 | crashed 1045 | clean 1025/1066/1065 | clean 1059 | clean 1058/1115/1029 | crashed 1072 | crashed 1087 |
+| F6 rows20 | clean 1016 | clean 1040/987/1007 | clean 1064 | clean 1057/1086/1033 | clean 1628 | clean 1639 |
+
+Pre-run checks: kdewallet `Locked` = `b false`, no foreign Chrome, and 1-min load < 1.0 at the start of every run (per-run values in the sections below). Patched `probe.js` sha256 per arm, and the Amendment 2 details, are in the last section. No tool, profile, `dist/`, `web/`, `sdk/` or finding file was edited.
+
+---
+
+## SUMMARY
+
 Task: `handoff/tasks/TASK-2026-10-13f-089-threading-arms.md` (commit 47440469). Profile `e2-editor-v12`. Instrument: `wasm_sdk_probe/tools/probe_ods_on_profile.py`, run from `wasm_sdk_probe`.
 
 **Outcome: VOID (stopped at the E0 gate). E1, E2, E3 were not run. No outcome letter (O-T / O-T-off-only / O-G / O-N) was assigned.**
@@ -109,3 +135,27 @@ Command shape (cwd `wasm_sdk_probe`, absolute fixture paths in the order C, F1..
 Warning counts observed in the reports (grep over the report text): `memory access out of bounds` appears 2 times in E0-r2 (F1, F5) and 0 times in every E1 / E2 / E3 report; `pthread_mutex_unlock failed: EPERM` appears 2 times in E0-r2 (F2, F4) and 0 times in every E1 / E2 / E3 report.
 
 Deviations: none in the run set. The wrapper ran the E1..E3 runs back to back and, per run, waited for 1-min load < 1.0 and no foreign Chrome before starting (E3-r2 waited 15 polls). The chain was not stopped after the O-N outcome became apparent from E1 and E2, because the coordinator's instruction listed E3 x3 as part of the resumed run set. No run was aborted. Nothing under `dist/`, `web/`, `sdk/`, any profile, the tool, or finding 089 was edited. No other check or judge was run.
+
+---
+
+## Details of the Amendment 2 runs (E4, E5)
+
+Applied literally from Amendment 2: E4 (`SAX_DISABLE_THREADS=1`) and E5 (`MAX_CONCURRENCY=1`), `--open-timeout-ms 60000`, `--timeout 540`, same fixtures in the same order (C, F1..F6), same instrument and profile, same wrapper and pre-run checks. One run each; neither first run opened F2 or F4, so the "2 more runs" clause did not trigger. O-S, O-P and O-SP need a 3-of-3 opening of both F2 and F4 and are not met; **outcome: O-N2** ("neither arm opens F2 or F4 in its first run").
+
+Files added: `E4-r1-report.json`, `E4-r1-runlog.txt`, `E5-r1-report.json`, `E5-r1-runlog.txt`. `verdict.spreadsheetsOpened` is in each report under `verdict`.
+
+| run | start (UTC 2026-10-13) | loadavg at start | wallet | other Chrome | wait polls | finished (UTC) |
+|---|---|---|---|---|---|---|
+| E4-r1 | 10:38:12 | 0.20 0.40 0.59 | `b false` | none | 0 | 10:40:28 |
+| E5-r1 | 10:40:28 | 0.29 0.46 0.59 | `b false` | none | 0 | 10:42:44 |
+
+Echo status: `engineEnvEchoed` true for 7 of 7 cases and `everyCaseEchoed` true in both reports. The echoed ENV in each case: E4 `{"MAX_CONCURRENCY":"4","SAX_DISABLE_THREADS":"1"}`; E5 `{"MAX_CONCURRENCY":"1"}` (the E5 value replaces LibreOffice's own `"4"`). `controlOdtOpened` is true in both; `timedOut` false; 7 of 7 cases seen; `openTimeoutMs` 60000.
+
+Patched `probe.js` sha256 (unpatched in both: `96f18d0c1f6b9b11c7d212bc0e176759ce5d4422e272f59e435c93e0e031364b`):
+
+- E4 (`SAX_DISABLE_THREADS=1`): `5c77da71bf3baa6938a8143f292dd7c29382987fb6aedfe51795c97c5e238c8b`
+- E5 (`MAX_CONCURRENCY=1`): `e1fa3327d60f7c6de192687a168ef9636804804258488ae3167c4c55698f1079`
+
+Warning counts in the reports (grep over the report text): `memory access out of bounds` 2 times in each of E4-r1 and E5-r1 (F1, F5), as in E0-r2; `pthread_mutex_unlock failed: EPERM` 2 times in each (F2, F4), as in E0-r2.
+
+Deviations: none. No run was aborted. Nothing under `dist/`, `web/`, `sdk/`, any profile, the tool, or finding 089 was edited. No other check or judge was run.
