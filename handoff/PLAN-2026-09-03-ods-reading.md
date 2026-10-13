@@ -395,3 +395,24 @@ Task: `handoff/tasks/TASK-2026-10-13i-w9-ods-viewer-draft.md`. Evidence:
     fonts".
   - This is not measured here. The final viewer must refit after the first paint, because G4 expects `false`
     on the second paint.
+
+---
+
+# Amendment, 2026-10-13 — 089's switch is the 64 KB pthread stack; W8 must carry a larger one (append-only)
+
+Finding 089 (`4aa84ec2`) records outcome **O-S** under fable ruling 1. The evidence is in
+`findings/evidence/089/stack-arms-2026-10-13/`.
+
+On `e2-editor-v12`, with the default pthread stack patched in the mirror's `probe.js` and no link:
+- `rows36` and `index35×36` open 3/3 at 256 KB, 1 MB and 8 MB, and the neighbouring-size crash disappears;
+- at 32 KB, the fixtures that were clean fail;
+- at 256 KB, the whole rows ladder and the corpus's original `upstream/tdf149752.ods` open.
+
+**Consequence for W8 (a new obligation):** the writer+calc relink must carry a default pthread stack larger
+than 64 KB, or an explicit engine-thread stack size, or `tdf149752.ods` fails G2. The size is the owner's
+decision at that link. The measured floor is "256 KB works, 64 KB does not"; values in between are untested.
+The same question is registered for the Track 1 link batch (`specs/SPEC-M3-link-batch.md` §11). Its default
+is unchanged.
+
+**Not established:** which function overflows, and whether other corpus entries are stack-limited. The
+306-entry sweep was run at 64 KB. Re-running it at the chosen size is W5's job on the new candidate.
