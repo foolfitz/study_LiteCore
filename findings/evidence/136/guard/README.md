@@ -60,3 +60,23 @@ Exit codes in the binding file: `chrome Backspace exit 1`, `chrome Delete exit 1
 | Firefox Delete | `range-single` | 「刪除選取 9 ms」 | `ready` | 1 → 1 | 0 → 1 | `[]` | `M01 alpha` | PASS |
 
 Compared with `0.2.16-134-firefox-*.json`, `0.2.15-132-firefox-*.json` and `0.2.13-131fix-firefox-*.json`: after masking the `定位游標 N ms` figure of the `before` field (35 and 38 ms here), both Firefox files are byte-identical (as JSON, keys sorted) to all three earlier sets. The `after.toast` field reads 「已開啟 f.odt」 in both files, as in the earlier sets; the criterion's "no toast" is the `toasts` list, empty in both. Chrome: nothing to compare.
+
+## G3 — 129-B (arrow keys after a selection): Firefox PASS (all clauses); Chrome not measured (fatal before the first arm)
+
+Pin commit (its own, before the run): `1b5efdbb` — `FINAL_PAGE_SHA256` in `wasm_sdk_probe/tools/probe_129_m4_wasm.py` from `6470dec0…` to `b24d754a…`, the old value kept in the comment above it; nothing else in the file changed (`git diff` was 3 insertions, 1 deletion). Round directory `../../129/final/round-20261013T042552Z/`. Driver `tools/run_probe_129_final.sh ../findings/evidence/129/final/round-20261012T092119Z/docs 4 1` run from `wasm_sdk_probe/` (the precedent's docs directory and arguments: round label 4, 1 round; driver exit 0 — the driver exits 0 although the Chrome half is fatal). Chrome fatal 04:25:52–04:28:58Z, Firefox 04:28:58–04:43:13Z, load 0.22 0.37 0.56 at the start (`machine-at-start.txt`), `pgrep -c chrome` = 0. Analysis: `python3 wasm_sdk_probe/tools/analyze_129_m4.py round-20261013T042552Z round-20261012T092119Z` run in `findings/evidence/129/final/`, exit 0, stdout in `analysis-stdout.txt` (the analyzer also wrote `analysis.json` and `summary.md` in the round directory). One extra invocation, not in the task, as in the 134 chain: the same analyzer against `round-20261012T235136Z` (the previous page's round), stdout in `analysis-vs-235136Z-stdout.txt`, run first and the task's form rerun last so the final `analysis.json`/`summary.md` are the task's form. The page under test is `dist/`; the red control is 0.2.12's page from `build/archive/host-0.2.12-engine-45cdcedfc0fe7e61/`.
+
+`preflight.final` in both `report-chrome.json` and `report-firefox.json`: `pageUnderTestSha256` `b24d754a426706bb5c93dbacb3f7ffadc655e738ee9a0fdd7168069f0f701678` (`pageUnderTestIsFinal: true`), `redControlSha256` `8909564eb2316afa6de7868a08b61d27219fabdf49f37326fee0dda2977bd401` (`redControlIs0212: true`).
+
+Chrome: `report-chrome.json` → `fatal` ends `TimeoutError: timed out in 180.0s` (the first `Page.navigate` to the standalone mirror page); no `arms-chrome.jsonl`, no `calibration-chrome.json`. The analyzer prints a Firefox section only.
+
+| Clause (§9.4 129-B, as in `../../129/final/README.md`) | Chrome | Firefox | Verdict |
+|---|---|---|---|
+| 42 brief cells land where native `ref` lands | not run | old 12 = native exact 12/12; S1–S5 30/30 by rule, 28/30 exact (`s1/Down` 195 vs native 201, `s1/End` 194 vs 200: the same two cells as in every earlier round); the drag cells `s1d`/`m1d` also follow native `ref` by rule | Firefox PASS |
+| toolbar shape after the key is `collapsed` | not run | 54 of 54 m4 arms `afterKey.toolbar.shape` = `collapsed` | Firefox PASS |
+| 0 toasts | not run | analyzer: `toasts in m4 arms … 0 arms []`; pill `stopped` in none | Firefox PASS |
+| key → move done < 400 ms | not run | max 289.2 ms (47 moving keys 84.6–87.4; the 7 arms whose key does not move the caret 286.5–289.2) | Firefox PASS |
+| Shift+arrow does not move, no toast | not run | `shift` arms: `caretMoved: false`, revision `[0, 0]`, `toasts: []`; range arm `sameCaret` true | Firefox PASS |
+| red control refuses | not run | 3 of 3 `red-*` arms `refused: true` with the `EDITOR_FORMAT_GESTURE_UNSUPPORTED` toast | Firefox red, as required |
+| L-129 cells (recorded, not judged) | not run | `s1d`/`m1d` Down follow native `ref` (`dragDownFollowsRef: ["s1d", "m1d"]`) | recorded |
+
+Cross-check printed by the analyzer: Firefox against `round-20261012T092119Z` (the d761f1ce round): 54 compared, 0 differ, wrap offsets the same; against `round-20261012T235136Z` (the 134 page's round): 54 compared, 0 differ, wrap offsets the same. Chrome has no cross-check from this round.

@@ -1,0 +1,80 @@
+{
+ "probe": "probe_129_m4_wasm.py",
+ "browser": "chrome",
+ "preflight": {
+  "distPlusPatchSha256": null,
+  "distPageSha256": "b24d754a426706bb5c93dbacb3f7ffadc655e738ee9a0fdd7168069f0f701678",
+  "mirrorPageSha256": "2ad5b6e56c965af1434b2a19a1a08fdbb919c7696bda13ab0cb8b6f4cfb4b027",
+  "patchSha256": "1b4c5131fa713c10ec290f21e9a1f5afaa412edb6d234f75a49f198e027ccda6",
+  "distIsTheExpectedShippedPage": false,
+  "mirrorEqualsDistPlusPatch": false,
+  "mirrorCheckedAgainst": "dist/e2-editor-app.js + page-129.patch (web/ not read)",
+  "instrumentLine": "\nglobalThis.__m4 = { get session() { return session; } };\n",
+  "patchedServedSha256": "5e6a5cf66d451827b7ddecd072a18c433eee0b7d741115933181ba000b3d725d",
+  "unpatchedServedSha256": "ca44ef2b1b806e87a652facd8081c6cf8932554df2c9d6c5459c1b63ecf7259b",
+  "documents": {
+   "arrow-selection": {
+    "odtSha256": "2ce55effdc236733e5d7757e7e13dcbd95796ded1f7dd06b22a8a4bd81b6ce97",
+    "fodtSha256": "436ce8c3647c9600cec85d1942f27539f4c5dc478e17a7b2de0a3d1c445855b5",
+    "paragraphsEqualFodt": true,
+    "paragraphs": 3
+   },
+   "arrow-selection-shapes": {
+    "odtSha256": "883c48c0790992262e528198ab21a0a6cea98833e188a41951e1e713274f6cd5",
+    "fodtSha256": "34251b523cca6a039c135833b10ca0e125f5fdb6815f27df91a66b5d9435f680",
+    "paragraphsEqualFodt": true,
+    "paragraphs": 10
+   },
+   "arrow-selection-wrap": {
+    "odtSha256": "59ec325d8a4a6de62462d07c8036e6cd4a08ba68f8eedcc4c92b9e0919d4c9f1",
+    "fodtSha256": "9d6e05bb92a9e3b4bb4dd3bb2c245f733f643e44732eb5858b1c271436453234",
+    "paragraphsEqualFodt": true,
+    "paragraphs": 2
+   }
+  },
+  "runnerSha256": "00cd98def495f4c683afeac0853db964be44a0f8fb96f2170c5315118379dfdd",
+  "final": {
+   "pageUnderTestSha256": "b24d754a426706bb5c93dbacb3f7ffadc655e738ee9a0fdd7168069f0f701678",
+   "redControlSha256": "8909564eb2316afa6de7868a08b61d27219fabdf49f37326fee0dda2977bd401",
+   "pageUnderTestIsFinal": true,
+   "redControlIs0212": true,
+   "patchedServedSha256": "ca44ef2b1b806e87a652facd8081c6cf8932554df2c9d6c5459c1b63ecf7259b",
+   "unpatchedServedSha256": "d0454dbb8be5eb3e35a769b2ad1d8b4c6780fd1ce1028c3a3a6f1ee9dc6d6ccd"
+  }
+ },
+ "startedAt": "2026-10-13T12:25:52+0800",
+ "startedAtUtc": "2026-10-13T04:25:52Z",
+ "loadavgStart": [
+  0.22,
+  0.37,
+  0.56
+ ],
+ "memoryStartMb": {
+  "MemTotal": 31729,
+  "MemAvailable": 24924,
+  "SwapTotal": 65535,
+  "SwapFree": 65507
+ },
+ "phases": [
+  "calibrate",
+  "arms",
+  "shift",
+  "reach",
+  "red"
+ ],
+ "version": "Chrome/151.0.7922.169",
+ "fatal": "Traceback (most recent call last):\n  File \"/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/probe_129_m4_wasm.py\", line 940, in main\n    report[\"boot\"] = env.goto(\"patched\")\n                     ~~~~~~~~^^^^^^^^^^^\n  File \"/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/probe_129_m4_wasm.py\", line 319, in goto\n    pp.navigate(self.session, self.bases[name])\n    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/run_e2_c_page_smoke.py\", line 149, in navigate\n    session.call(\"Page.navigate\", {\"url\": url})\n    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/run_browser_probe.py\", line 277, in call\n    response = json.loads(self.websocket.recv(timeout=timeout))\n                          ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3/dist-packages/websockets/sync/connection.py\", line 317, in recv\n    return self.recv_messages.get(timeout, decode)\n           ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3/dist-packages/websockets/sync/messages.py\", line 169, in get\n    frame = self.get_next_frame(deadline.timeout(raise_if_elapsed=False))\n  File \"/usr/lib/python3/dist-packages/websockets/sync/messages.py\", line 89, in get_next_frame\n    raise TimeoutError(f\"timed out in {timeout:.1f}s\") from None\nTimeoutError: timed out in 180.0s\n",
+ "completedAt": "2026-10-13T12:28:58+0800",
+ "completedAtUtc": "2026-10-13T04:28:58Z",
+ "loadavgEnd": [
+  0.3,
+  0.29,
+  0.49
+ ],
+ "memoryEndMb": {
+  "MemTotal": 31729,
+  "MemAvailable": 24529,
+  "SwapTotal": 65535,
+  "SwapFree": 65507
+ }
+}
