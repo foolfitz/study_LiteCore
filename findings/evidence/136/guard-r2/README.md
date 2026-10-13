@@ -138,3 +138,50 @@ Criterion (task G5): every round 1 refusal, generations `['1','2']`, `marks == 1
 - **Caret-back time:** with no scroll excursion there is no scroll-return to time, so there is no measured caret-back time. The nearest analogue, as in run 1 — the first state entry after the last typed key — is at +148.8 to +165.8 ms (Chrome) and +157.9 to +172.5 ms (Firefox) after the new generation's `ready` entry; its label already reads 「重新載入 N ms」 (`summary.readyInNewGenerationMs`: Chrome 1403.9, 1448.2, 1400.0; Firefox 2239.8, 2164.1, 2187.7). I did not verify that this entry is the moment the caret was placed back (the page's caret-restore step is not logged separately); read it as "first state entry after the keys", not as a measured caret-back time.
 - The three letters were typed inside the window (keydowns +6.5 to +132.4 ms after the new generation became `ready`) and all landed at the restored caret in paragraph 210; `marks == 1` and the document with the mark removed equals the original in every round. The prediction in `../../134/restore-window/README.md` (all three letters in the last paragraph, `marks == 1`, rest unchanged, refusals 1, generations `['1','2']`) holds in all six rounds.
 - Run 1's Firefox half (3 rounds): same verdicts; `scrollTop` 21463 throughout; first state entry after the last key +171.6, +170.2, +161.1 ms; `readyInNewGenerationMs` 2203.7, 2193.3, 2220.8. Chrome had no round in run 1.
+
+## G6 — the C2 cell twice more (ruling-3 condition 6): Chrome ratio-2 gap-80, 2 runs, 0 over the gate; report-only
+
+Directory `c2-extra/`. `repeat.sh` there is a copy of run 1's `findings/evidence/136/guard/c2-extra/repeat.sh` (itself a copy of `findings/evidence/134/c2-cell-repeat/repeat.sh` with `E=`, `PAGE=` and the loop count changed) with exactly one line changed (`diff` shows only `E=` → `findings/evidence/136/guard-r2/c2-extra`); the probe command line is unchanged (`probe_typing_latency_view.py --dpr 2 --window 1400x1000 --browser chrome --document owner --gap 80 --chars 20`, files `run-01.json`, `run-02.json`). Run detached with `nohup`. Health check `[before-G6]` OK. Desk at the start (`desk-at-start.txt`, 2026-10-13T07:09:57Z): `pgrep -c chrome` 0, Chrome browsers 0, load 0.32 0.76 0.82 (I waited for the 1-minute load to fall below 0.4 first, because of the G4 start), no Firefox. `chain.txt`: run 01 07:09:57–07:10:14Z (load at its start 0.32), run 02 07:10:14–07:10:32Z (load at its start 0.39), `DONE`; both `exit 0` of the `timeout` wrapper.
+
+Read with `python3 findings/evidence/134/c2-cell-repeat/read_repeat.py findings/evidence/136/guard-r2/c2-extra` (exit 0; output in `read_repeat-output.txt`):
+
+```
+run-01.json page b24d754a rows 20 screen median 29.1 max 43.8 commit median 18.85 max 35.7 slow>=100 []
+run-02.json page b24d754a rows 20 screen median 23.9 max 50.8 commit median 16.75 max 33.7 slow>=100 []
+```
+
+Counts for finding 135 from this chain, the Chrome ratio-2 owner-gap-80 cell on `b24d754a…`: **0 of 2** over the 150 ms on-screen gate in G6; **0 of 1** in G4's restarted chain (max 43.1); and the aborted first start of G4 (not judged, not a sample of the restarted chain, load 1.58 at its start) read max **158.3**, i.e. 1 of 1 over the gate, with the key-9/10 stall. So over every complete run of this cell made in run 2 the count is 1 of 4 (or 0 of 3 if the aborted start is left out); none of these is a judged verdict except G4's restarted chain. No run in this chain shows a slow stretch (`slow>=100 []`) apart from the aborted start. Run 1 had no count (all Chrome runs fatal).
+
+## Run 2 against run 1, per cell (run 2 is the verdict of record)
+
+All times and numbers are in the step sections above. "run 1 Firefox" is `../guard/README.md`; run 1 had no Chrome measurement at all. A Firefox half that is red in run 2 would make the cell red whatever run 1 read; no Firefox half is red.
+
+| Cell | run 2 Chrome | run 2 Firefox | run 1 Firefox (extra sample) |
+|---|---|---|---|
+| G0 132-B (12 holds + 2 wash controls; `judge_132b.py` exit 0) | PASS: 6/6 holds, wash fills 5 | PASS: 6/6 holds, wash fills 9 | PASS: 6/6, wash fills 10 |
+| G1 131-B (6 bursts `deleted 20 refused 0 other []`, `persistent.differing` 0; `judge_131b.py` exit 0) | PASS | PASS | PASS |
+| G1 128-B single presses ≤ 40 ms | PASS (max 21.0 ms) | PASS (max 27.0 ms) | PASS (max 27.0 ms) |
+| G1 128-B host-segment cell | first run NOT_JUDGED (2 PUTs); PASS on the one allowed rerun | first run NOT_JUDGED (2 PUTs); PASS on the one allowed rerun | same pattern |
+| G1 128-B host-segment red control | red (FAIL) in both runs | red in both runs | red in both runs |
+| G2 121-B (Backspace, Delete) | PASS ×2 | PASS ×2 | PASS ×2 |
+| G3 129-B (all clauses; red control refuses 3/3; `analyze_129_m4.py` exit 0) | PASS | PASS | PASS |
+| G4 C2 ratio 2 (`judge_c2.py` exit 0) | PASS (restarted chain; gap-80 on-screen max 43.1) | PASS | PASS |
+| G4 P2 ratio 1 (`judge_p2.py` exit 0) | PASS | PASS | PASS |
+| G5 restore-window (3 rounds per browser) | 3/3 rounds meet the criterion; `scrollTop` never 0 | 3/3; never 0 | 3/3; never 0 |
+| G6 Chrome ratio-2 gap-80, report-only | 0 of 2 over the gate (screen max 43.8, 50.8) | — | — (not measured) |
+
+**Run 2, for every step: Chrome and Firefox both PASS the criterion the task writes.** Judges' and readers' exit codes: `judge_132b.py` 0 (`132-B PASS`), `read_hold.py` 0, `judge_131b.py` 0 (`131-B PASS []`), `read_128b_cells.py` 0 (first run and rerun), `select_delete_probe.py` 0 ×4, `analyze_129_m4.py` 0 (three invocations), `judge_c2.py` 0 and `judge_p2.py` 0 (both `PASS: both browsers, every cell`), `probe_restore_window.py` 0, `read_repeat.py` 0, the probes `probe_hand_test_0212.py` 0 (×3), `probe_129_m4_wasm.py` via the driver 0.
+
+## Anything odd, and what was not checked
+
+- **G4 was started twice** (see G4): the first start, at 1-minute load 1.58, was killed after two Chrome cells; those two cells are kept in `c2-aborted-load-1.58/`, not judged, not the verdict of record. The kill needed two attempts (a `pkill -f` pattern matched my own shell command line); a leftover probe and its headless Chrome were killed by pid and by a pattern that cannot match my own command line. After that, no Chrome browser and no probe was left (checked), and the restarted chain started at load 0.40. This is a deviation from "no reruns beyond G1"; it is disclosed here and in the commit message.
+- G1: the host-segment cell was `NOT_JUDGED` (two PUTs) in the first run in both browsers (same string as in the 132, 134 and run-1 chains); cause unverified. The one allowed rerun of only those two arms gave PASS in both with the red control red. Each host-segment cell has been sampled twice; the first sample is not a PASS.
+- G2: Chrome Delete reads 「刪除選取 15 ms」 against 14 ms (`0.2.15-132`, `0.2.13-131fix`) and 16 ms (`0.2.16-134`); the criterion names no threshold for N. Chrome Backspace and Firefox Backspace/Delete are byte-identical to the earlier sets after masking `定位游標 N ms`.
+- G3: the Firefox half had one arm with 3060 swapped-in pages (`m4-s1d-End`); cause not looked into; the key → move times and all clauses are inside their ranges.
+- G3: the driver exits 0 whatever the halves do, and runs Chrome and Firefox back to back, so the wallet/Chrome health check was done once before it, not between the two halves (the next check, before G4, was OK).
+- G0: the owner's MarkText (`pgrep -c chrome` 1) and Firefox (`pgrep -c firefox` 1) were running at G0's start (05:38Z) and were gone by G1's start (06:14Z); I did not start or stop either.
+- `static.shellBundle` in the G0/G1/G5 reports is `exit 1` (shell generation v65 not frozen for this page), recorded by the probe, not investigated.
+- `started-utc.txt` / `ended-utc.txt`, the trailing `probe exit N` line in `probe.out`, the `$ …` and `exit N` lines in `judge-output.txt` (G0, G4) and the `health-checks.txt` file are mine (wrappers I used to detect the end of detached runs and to record the preconditions); the probes' own output is the rest. The wrapper and health-check scripts live in the session scratchpad and are not kept in the tree.
+- Not run, by instruction: `make`, `package_m3_engine.py`, `ddev occ upgrade`, anything in `~/Projects/Nextcloud_Apps` (checked at the end: host HEAD `f5b34f0`, `git status --short` there is still only ` M appinfo/info.xml`); `wasm_sdk_probe/web` and `dist` untouched (`dist/e2-editor-app.js` and `web/e2-editor-app.js` both hash `b24d754a…` at the end; `git status` shows nothing under `wasm_sdk_probe`). No `--write` mode, no `git push`, no pin commit, no edit of any probe, judge or launcher.
+- Final wallet and Chrome health check after G6: `health-checks.txt` `[after-G6-end-of-chain]`, 07:10:42Z, `Locked` = `b false`, `--dump-dom` rc 0, `Nextcloud` ×328. The wallet stayed unlocked for the whole chain (14 checks, all OK).
+- I did not read the 136 page diff or SPEC-M3-held-key §16; the criteria are the ones the task and the precedents state.
