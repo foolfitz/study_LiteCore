@@ -1369,7 +1369,8 @@ function pageFunction(name) {
 // Named limit of this harness: the page's functions run with a stub for every
 // free name they use, listed in `names`.  A page change that adds a free name to
 // them makes these tests throw until the list follows it (finding 136 and the
-// restore-flash flag did; ruling-3 addendum 3: the stubs only, no assertion changed).
+// restore-flash flag did; ruling-3 addendum 3: the stubs only, no assertion changed;
+// addendum 4 renamed the FIFO stub to `lastCollapsedCaret`, edited a second time).
 function page(session, { saveFails = false, hold = false } = {}) {
   const world = {
     limit: { state: null, detail: null }, toasts: [], saved: [], focused: 0, renders: 0,
@@ -1379,7 +1380,7 @@ function page(session, { saveFails = false, hold = false } = {}) {
                  "updateState", "saveDocument", "LIMIT_TEXT", "HOST", "location",
                  "renderDocument", "boundaryText", "boundaryKeyUncertain",
                  // Finding 136's FIFO and the restore-flash flag (ruling-3 addenda 1, 3): stubs only.
-                 "pendingDeleteCarets", "reopening", "followCaret"];
+                 "lastCollapsedCaret", "reopening", "followCaret"];
   const source = ["reopenAfterBoundaryRefusal", "limitState", "limitNotice",
                   "takeRescueContent", "rescueAtGenerationLimit", "onNoticeAction"]
     .map(pageFunction).join("\n")
@@ -1411,7 +1412,7 @@ function page(session, { saveFails = false, hold = false } = {}) {
     // key's effect is not in question; page-boundary-text.test.mjs runs the
     // page's own two functions.
     () => "BOUNDARY", () => false,
-    [], false, () => {});
+    null, false, () => {});
   return Object.assign(world, compiled);
 }
 

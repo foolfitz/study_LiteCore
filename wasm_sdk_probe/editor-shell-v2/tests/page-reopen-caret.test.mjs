@@ -1,4 +1,4 @@
-// Finding 136 and L-134-restore-flash (SPEC-M3-held-key §16; fable's ruling-3 for the owner).  The
+// Finding 136 and L-134-restore-flash (SPEC-M3-held-key §16; fable's ruling-3 for the owner, addendum 4).  The
 // functions are taken from the page source and run here, so these test the page's own code.  Each
 // test compiles inside itself: on a page without these, it fails by name instead of the whole file
 // failing to load.
@@ -17,50 +17,34 @@ function slice(pattern, what) {
 }
 
 const settle = () => new Promise((resolve) => setTimeout(resolve, 0));
-const EDITOR_ACTION = () => slice(/^async function editorAction\(action\) \{[\s\S]*?\n\}$/m, "editorAction()");
 const REOPEN = () => slice(/^async function reopenAfterBoundaryRefusal\(error\) \{[\s\S]*?\n\}$/m,
                            "reopenAfterBoundaryRefusal()");
-const FOLLOW = () => slice(/^function followCaret\(\) \{[\s\S]*?\n\}$/m, "followCaret()");
-
-/** The page's editorAction with stubs; `out` resolves or rejects each action by hand. */
-function makeEditorAction(session) {
-  const out = [];
-  // eslint-disable-next-line no-new-func
-  const made = new Function("session", "run", "el", "renderDocument", `
-    const SESSION_ACCEPTS = new Set(["ready", "busy"]);
-    const ACTION_LABELS = {}; const FORMAT_ACTIONS = new Set(); const formatStateFor = () => null;
-    let engineActionsOut = 0; let busyLeftToAction = false;
-    ${slice(/^const DELETE_ACTIONS = .*;$/m, "DELETE_ACTIONS")}
-    ${slice(/^const pendingDeleteCarets = \[\];$/m, "the send-time caret FIFO")}
-    ${EDITOR_ACTION()}
-    return { editorAction, fifo: pendingDeleteCarets };`)(
-    session,
-    (_label, operation) => new Promise((resolve, reject) => out.push({ resolve, reject, operation })),
-    { toolbar: { querySelector: () => null } }, async () => {});
-  return { ...made, out };
-}
 
 const caret = (x, y) => ({ x, y, width: 0, height: 276 });
+const collapsed = (c) => ({ caret: c, selection: { collapsed: true } });
+const range = (c) => ({ caret: c, selection: { collapsed: false, rectangles: [{}] } });
 
-test("136 U-136a: a delete's caret is taken when it is sent, and released when it settles", async () => {
-  const session = { state: { snapshot: { state: "ready", editorState: { caret: caret(100, 200) } } } };
-  const { editorAction, fifo, out } = makeEditorAction(session);
-  const first = editorAction("delete-forward").catch(() => {});
-  session.state.snapshot.editorState = { caret: caret(5000, 9000) };   // the barrier moved it
-  const second = editorAction("delete-forward").catch(() => {});
-  assert.deepEqual(fifo.map((c) => c.x), [100, 5000], "not one entry per delete, in send order");
-  void editorAction("set-bold");
-  assert.equal(fifo.length, 2, "a non-delete action entered the FIFO");
-  out[0].reject(new Error("refused"));
-  await first;
-  assert.deepEqual(fifo.map((c) => c.x), [5000], "the settled delete's caret was not released first");
-  out[1].resolve();
-  await second;
-  assert.equal(fifo.length, 0);
+// Ruling-3 addendum 4: the caret D puts back is the last one the engine pushed with no range selected.
+test("136 U-136a: a range push is skipped; a collapsed or a selection-less push is noted", () => {
+  // eslint-disable-next-line no-new-func
+  const made = new Function(`
+    ${slice(/^let lastCollapsedCaret = null;$/m, "the last collapsed caret")}
+    ${slice(/^function noteCollapsedCaret\([^)]*\) \{[\s\S]*?\n\}$/m, "noteCollapsedCaret()")}
+    return { noteCollapsedCaret, last: () => lastCollapsedCaret };`)();
+  made.noteCollapsedCaret(collapsed(caret(100, 200)));
+  made.noteCollapsedCaret(range(caret(5000, 9000)));            // K1's one unit, into the next cell
+  assert.equal(made.last().x, 100, "a range push replaced the caret");
+  made.noteCollapsedCaret({ caret: caret(300, 400) });          // nothing-selected: no range at all
+  assert.equal(made.last().x, 300);
+  made.noteCollapsedCaret(collapsed({ x: NaN, y: 1, height: 1 }));
+  made.noteCollapsedCaret(null);
+  assert.equal(made.last().x, 300, "a push without a finite caret replaced it");
+  const update = slice(/^function updateState\([^)]*\) \{[\s\S]*?\n\}$/m, "updateState()");
+  assert.match(update, /noteCollapsedCaret\(snapshot\.editorState\);/, "updateState does not note the caret");
 });
 
 /** The page's reopenAfterBoundaryRefusal with stubs; returns the click it made and the toasts. */
-async function reopenWith({ fifo, snapshotCaret, restartThrows = false, placeThrows = false, follow = [] }) {
+async function reopenWith({ last, snapshotCaret, restartThrows = false, placeThrows = false, follow = [] }) {
   const clicks = [];
   const toasts = [];
   const session = {
@@ -76,12 +60,12 @@ async function reopenWith({ fifo, snapshotCaret, restartThrows = false, placeThr
   const flags = [];
   // eslint-disable-next-line no-new-func
   const fn = new Function("session", "toast", "run", "rescueAtGenerationLimit", "el", "boundaryText",
-                          "boundaryKeyUncertain", "pendingDeleteCarets", "followCaret", `
+                          "boundaryKeyUncertain", "lastCollapsedCaret", "followCaret", `
     ${slice(/^let reopening = false;$/m, "the reopen flag")}
     ${REOPEN()}
     return { reopenAfterBoundaryRefusal, flag: () => reopening };`)(
     session, (m) => toasts.push(m), async (_label, operation) => operation(), async () => {},
-    { sink: { focus() {} } }, () => "這裡目前還不能這樣刪除", () => false, fifo,
+    { sink: { focus() {} } }, () => "這裡目前還不能這樣刪除", () => false, last,
     () => follow.push("follow"));
   const running = fn.reopenAfterBoundaryRefusal({});
   flags.push(fn.flag());
@@ -90,26 +74,26 @@ async function reopenWith({ fifo, snapshotCaret, restartThrows = false, placeThr
   return { clicks, toasts, flags };
 }
 
-test("136 U-136b: the reopen clicks at the refused delete's send-time caret, not the last pushed one", async () => {
-  const { clicks } = await reopenWith({ fifo: [caret(100, 200), caret(5000, 9000)], snapshotCaret: caret(7000, 9000) });
-  assert.deepEqual(clicks, [[100, 200 + 138]], "not the head of the FIFO");
+test("136 U-136b: the reopen clicks at the last collapsed caret, not the barrier's pushed one", async () => {
+  const { clicks } = await reopenWith({ last: caret(100, 200), snapshotCaret: caret(7000, 9000) });
+  assert.deepEqual(clicks, [[100, 200 + 138]], "not the last collapsed caret");
 });
 
-test("136 U-136c: with no delete of the page's out, the reopen reads today's snapshot caret", async () => {
-  const { clicks } = await reopenWith({ fifo: [], snapshotCaret: caret(300, 400) });
+test("136 U-136c: with none noted, the reopen reads today's snapshot caret", async () => {
+  const { clicks } = await reopenWith({ last: null, snapshotCaret: caret(300, 400) });
   assert.deepEqual(clicks, [[300, 400 + 138]]);
 });
 
 test("flash U-flash-a: the flag is up during the reopen and down after; the explicit follow runs once", async () => {
   const follow = [];
-  const { flags } = await reopenWith({ fifo: [caret(1, 2)], snapshotCaret: caret(1, 2), follow });
+  const { flags } = await reopenWith({ last: caret(1, 2), snapshotCaret: caret(1, 2), follow });
   assert.deepEqual(flags, [true, false]);
   assert.equal(follow.length, 1);
 });
 
 test("flash U-flash-b: a throwing restart() still lowers the flag and follows once", async () => {
   const follow = [];
-  const { flags, clicks } = await reopenWith({ fifo: [caret(1, 2)], snapshotCaret: caret(1, 2), restartThrows: true, follow });
+  const { flags, clicks } = await reopenWith({ last: caret(1, 2), snapshotCaret: caret(1, 2), restartThrows: true, follow });
   assert.deepEqual(flags, [true, false]);
   assert.equal(follow.length, 1);
   assert.equal(clicks.length, 0);

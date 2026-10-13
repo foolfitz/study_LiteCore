@@ -1,0 +1,126 @@
+page aebef52560bce2a3572c4e0f85197366ef544809331ae8b7dd2be55faaa4d2b8
+✖ 136 U-136a: a range push is skipped; a collapsed or a selection-less push is noted (0.791092ms)
+✖ 136 U-136b: the reopen clicks at the last collapsed caret, not the barrier's pushed one (1.60695ms)
+✖ 136 U-136c: with none noted, the reopen reads today's snapshot caret (0.402889ms)
+✖ flash U-flash-a: the flag is up during the reopen and down after; the explicit follow runs once (0.377773ms)
+✖ flash U-flash-b: a throwing restart() still lowers the flag and follows once (0.281604ms)
+✔ flash U-flash-c: a state write during the page's reopen does not reach followCaret (0.253151ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 1
+ℹ fail 5
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 48.449513
+
+✖ failing tests:
+
+test at editor-shell-v2/tests/page-reopen-caret.test.mjs:28:1
+✖ 136 U-136a: a range push is skipped; a collapsed or a selection-less push is noted (0.791092ms)
+  AssertionError [ERR_ASSERTION]: the last collapsed caret not found in the page
+      at slice (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-reopen-caret.test.mjs:15:10)
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-reopen-caret.test.mjs:31:7)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.start (node:internal/test_runner/test:1177:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at editor-shell-v2/tests/page-reopen-caret.test.mjs:77:1
+✖ 136 U-136b: the reopen clicks at the last collapsed caret, not the barrier's pushed one (1.60695ms)
+  AssertionError [ERR_ASSERTION]: not the last collapsed caret
+  + actual - expected
+  
+  + []
+  - [
+  -   [
+  -     100,
+  -     338
+  -   ]
+  - ]
+  
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-reopen-caret.test.mjs:79:10)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [],
+    expected: [ [ 100, 338 ] ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at editor-shell-v2/tests/page-reopen-caret.test.mjs:82:1
+✖ 136 U-136c: with none noted, the reopen reads today's snapshot caret (0.402889ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+  + []
+  - [
+  -   [
+  -     300,
+  -     538
+  -   ]
+  - ]
+  
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-reopen-caret.test.mjs:84:10)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [],
+    expected: [ [ 300, 538 ] ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at editor-shell-v2/tests/page-reopen-caret.test.mjs:87:1
+✖ flash U-flash-a: the flag is up during the reopen and down after; the explicit follow runs once (0.377773ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+  -   true,
+      false,
+  +   false
+    ]
+  
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-reopen-caret.test.mjs:90:10)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ false, false ],
+    expected: [ true, false ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at editor-shell-v2/tests/page-reopen-caret.test.mjs:94:1
+✖ flash U-flash-b: a throwing restart() still lowers the flag and follows once (0.281604ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+  -   true,
+      false,
+  +   false
+    ]
+  
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-reopen-caret.test.mjs:97:10)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ false, false ],
+    expected: [ true, false ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

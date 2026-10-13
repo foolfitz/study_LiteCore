@@ -102,15 +102,6 @@ let engineActionsOut = 0;
 let busyLeftToAction = false;
 let pointMovesInFlight = 0;
 let deletesInFlight = 0;
-// FINDING 136 (SPEC-M3-held-key §16; fable's ruling-3).  The caret each delete
-// this page sends was sent FROM, oldest first: pushed when `editorAction`
-// sends it, released when it settles.  A reopen after a refusal puts the caret
-// back at the head -- the refused delete, since the reopen starts inside that
-// delete's `run()` catch, before its entry is released -- and not at the last
-// state the engine pushed: a refusal at a cell end comes with the barrier's
-// one-unit selection still active, its caret already in the next cell.
-const DELETE_ACTIONS = new Set(["delete-backward", "delete-forward", "delete-selection"]);
-const pendingDeleteCarets = [];
 
 // Fail closed: a session without `hasUnsavedEdits` throws here, and the host
 // counts a throw as "ask" -- an optional call answering `false` would switch
@@ -730,6 +721,7 @@ function showState(state, label) {
 
 function updateState(snapshot) {
   noteAutosaveState(snapshot);
+  noteCollapsedCaret(snapshot.editorState);
   showState(snapshot.state, {
     idle: "未開啟", loading: "載入中", ready: "就緒", busy: "處理中",
     "recoverable-error": "需要回復", "restart-required": "需要重新開啟",
@@ -799,6 +791,23 @@ function updateState(snapshot) {
 }
 
 let reopening = false;
+
+// FINDING 136 (SPEC-M3-held-key §16; fable's ruling-3, addendum 4).  The caret D
+// puts back after a reopen: the last one the engine pushed with no range
+// selected.  A delete's barrier pushes its one-unit range as editor state, and
+// a refusal at a cell end leaves that range in place -- its caret already in
+// the next cell -- so the last pushed state is the barrier's, not the user's.
+// Skipping ranges leaves the caret the last completed edit ended at, whatever
+// the timing of the keys (a caret read when a delete is SENT is one character
+// stale under a hold: the next delete goes out before the last one is done).
+let lastCollapsedCaret = null;
+
+function noteCollapsedCaret(editorState) {
+  const caret = editorState?.caret;
+  if (editorState?.selection?.collapsed === false) return;
+  if (!Number.isFinite(caret?.x) || !Number.isFinite(caret?.y) || !Number.isFinite(caret?.height)) return;
+  lastCollapsedCaret = caret;
+}
 
 /**
  * FINDING 124: the view follows the caret.  The arrow keys' default is
@@ -1692,9 +1701,8 @@ async function reopenAfterBoundaryRefusal(error) {
     // the same content, laid out by the same engine.  Read before `restart()`:
     // its `ready` writes the new engine's state.  When there is no caret to go
     // back to or the click is refused, the toast says where the caret is.
-    // Finding 136: the refused delete's send-time caret, when this page sent it.
-    const caret = pendingDeleteCarets.length > 0 ? pendingDeleteCarets[0]
-      : session.state.snapshot.editorState?.caret ?? null;
+    // Finding 136: the last caret the engine pushed with no range selected.
+    const caret = lastCollapsedCaret ?? session.state.snapshot.editorState?.caret ?? null;
     toast(`${lead}，正在重新載入…`);
     try {
       // The refusal disabled the input sink (input-adapter `setBlocked`), and a
@@ -1957,13 +1965,10 @@ async function editorAction(action) {
   // whose host part leaves the engine free (SPEC-M3-autosave §9.1, review 1
   // item 3).  A failed action is not repainted by `run()`, so a repaint given
   // up meanwhile is made here.
-  const deleting = DELETE_ACTIONS.has(action);
-  if (deleting) pendingDeleteCarets.push(session.state.snapshot.editorState?.caret ?? null);
   engineActionsOut += 1;
   try {
     await run(label, () => session.action(action, options));
   } finally {
-    if (deleting) pendingDeleteCarets.shift();
     engineActionsOut -= 1;
     if (engineActionsOut === 0 && busyLeftToAction) {
       busyLeftToAction = false;
