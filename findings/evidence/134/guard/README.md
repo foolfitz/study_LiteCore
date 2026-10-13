@@ -69,3 +69,49 @@ Pin commit (its own, before the run): `c0d507cc` — `FINAL_PAGE_SHA256` in `was
 | L-129 cells (recorded, not judged) | `s1d`/`m1d` Down follow native `ref` (`dragDownFollowsRef: ["s1d", "m1d"]`) | same | recorded |
 
 Cross-checks printed by the analyzer: Chrome against Firefox landing index equal in 54/54 cells; each browser against `round-20261012T092119Z` (the d761f1ce round): 54 compared, 0 differ, wrap offsets the same; against `round-20261012T183200Z` (the abe93f45 round): 54 compared, 0 differ, wrap offsets the same.
+
+## G4 — 122-B / C2 typing latency: PASS (both judges exit 0), with one transient to read
+
+Pin commit (its own, before the run): `e3b9cbfd` — in `findings/evidence/c-prime/c2/judge_c2.py` and `findings/evidence/typing-latency/judge_p2.py` only the `PAGE = "…"` line changed, from `abe93f45…` (kept in a comment above) to `6470dec0…` (`git diff` before the commit: 6 insertions, 2 deletions, all comment lines and the two `PAGE` lines). A consequence, not checked further: the reports in `findings/evidence/132/guard/c2/` (page `abe93f45…`) are now REFUSED by the default pin of those two judges.
+
+Chain: `c2/chain-c2.sh`, a copy of `findings/evidence/132/guard/c2/chain-c2.sh` with two lines changed (`diff` shows exactly these): `E=` (output directory) → `findings/evidence/134/guard/c2`, and `PAGE=` → `6470dec0cb0e20db`. The second one is not an output directory; I changed it for the same reason as in the precedent: the script's first check refuses to run when `dist/e2-editor-app.js` does not hash to its `PAGE`, and the task did not name that line. The header comment of the copy still reads "C2 on the final C′ page (dist 8909564eb2316afa …)" (left as it was). Structure unchanged: ratio 2 wide (`probe_typing_latency_view.py --dpr 2 --window 1400x1000`, owner gap 80 / 20 chars and gap 200 / 10 chars), ratio 1.5 wide (recorded only, owner gap 80), ratio 1 (`probe_typing_latency.py`, owner gap 80, owner gap 200, boundaries gap 200), Chrome first then Firefox, one cell at a time. Started with `nohup` (detached), waited for `DONE`.
+
+Desk at the start (`c2/desk-at-start.txt`, 2026-10-13T00:18:38Z): `pgrep -c chrome` = 1 — the only match is Codex desktop's `chrome_crashpad_handler`, not a Chrome browser; `pgrep -fc '/chrome/chrome( |$)'` = 0 (this is the count the chain script prints as `chrome-procs 0`); `/proc/loadavg` 0.56 0.58 0.59 (the chain's own START line, 5 s later: 0.68 0.60 0.60); the owner's Firefox was open (it is not Chrome; the precedent's desk had no Firefox note). `chain.txt`: `START tree e3b9cbfd dist 6470dec0cb0e20db view 1412e4c863de6fcb probe dbad93c0dcf27fbf`, 12 cells all `exit 0`, `DONE` 2026-10-13T00:23:05Z (started 00:18:43Z). Tool hashes equal the ones both judges bind.
+
+Judges, run as the C2 README did with `--dir` at this directory, output in `c2/judge-output.txt` (the file also carries my `$ …` command line and `exit N` line for each judge):
+
+- `python3 findings/evidence/c-prime/c2/judge_c2.py --dir findings/evidence/134/guard/c2` → last line `PASS: both browsers, every cell`, **exit 0** (ratio 2 wide).
+- `python3 findings/evidence/typing-latency/judge_p2.py --dir findings/evidence/134/guard/c2/ratio-1` → last line `PASS: both browsers, every cell`, **exit 0** (ratio 1, P2's cells).
+
+| Cell (judge) | Chrome | Firefox | Verdict |
+|---|---|---|---|
+| ratio 2 wide, owner gap 80: every key committed / on screen | 20 of 20 / 20 of 20 | 20 of 20 / 20 of 20 | PASS |
+| ... on-screen median (needs < 70 / < 90) and max (< 150) | 30.5, **max 148.7** | 30.7, max 55.2 | PASS (Chrome max: 1.3 ms under the limit, see below) |
+| ... (a) every commit < 2 × gap (< 160) | max 140.3 | max 35.5 | PASS |
+| ... (b) median commit < gap (< 80) | 19.7 | 23.2 | PASS |
+| ratio 2 wide, owner gap 200: every key committed / on screen | 10 of 10 / 10 of 10 | 10 of 10 / 10 of 10 | PASS |
+| ... on-screen median (< 70 / < 90) and max (< 150) | 32.1, max 42.8 | 33.6, max 42.8 | PASS |
+| ratio 2 wide (ii), recorded not gated | gap 80 76.6 ms, gap 200 68.2 ms | gap 80 60.6 ms, gap 200 74.1 ms | recorded |
+| ratio 1 (P2), owner gap 80: committed / on screen | 20 of 20 / 20 of 20 | 20 of 20 / 20 of 20 | PASS |
+| ... on-screen median (< 70 / < 90), max (< 150) | 25.0, max 45.4 | 26.1, max 48.8 | PASS |
+| ... (a) max commit (< 160); (b) median commit (< 80) | 36.1; 18.3 | 38.9; 20.7 | PASS |
+| ratio 1 (P2), owner gap 200: committed / on screen | 10 of 10 / 10 of 10 | 10 of 10 / 10 of 10 | PASS |
+| ... on-screen median (< 70 / < 90), max (< 150) | 29.9, max 39.3 | 33.5, max 39.5 | PASS |
+| ratio 1 (P2), boundaries gap 200: committed / on screen | 10 of 10 / 10 of 10 | 10 of 10 / 10 of 10 | PASS |
+| ... commit median (≤ 10) | 4.2 | 3.6 | PASS |
+| ratio 1.5 wide, owner gap 80 (recorded only, no judge): commit median / max, on-screen median / max | 19.1 / 31.7, 24.0 / 41.5 | 22.2 / 36.0, 27.3 / 44.2 | recorded |
+
+**The transient (read, not judged).** In Chrome, ratio 2 wide, owner gap 80, the keys with index 9–12 were slow: `rows[]` in `c2/c2-candidate-chrome-owner-gap80.json` has `revisionMs` 140.3, 88.5, 41.8, 37.9 and `onScreenMs` 148.7, 97.1, 50.8, 49.7 for i = 9, 10, 11, 12, and 14.9–31.7 / 22.9–43.4 for the other 16 keys. The judge's backlog line shows `b_i` 55.6 and 7.0 at i = 10, 11 (all other keys 0.0). The judge's clauses hold (a: 140.3 < 160; on-screen max 148.7 < 150), but the on-screen margin is 1.3 ms. The same cell in `../../132/guard/c2/` (page `abe93f45…`) had `onScreenMs` max 41.1 and commit max 33.8, backlog 0.0 for all keys; every other cell here (including the Chrome gap-200, ratio-1.5 and ratio-1 cells, which ran in the minutes right after this one) has medians and maxima within about 5 ms of that run's values. I have no cause (unverified: I did not look at what else the machine was doing at 00:18:50Z; load at the start was 0.56–0.68), and I did not re-run the cell: the task says to run the chain once and report. The Firefox half of the same cell has backlog 0.0 for all 20 keys.
+
+## Anything odd, and what was not checked
+
+- G1: the host-segment cell was `NOT_JUDGED` (two PUTs) in the first run, in both browsers, as on `abe93f45…`; the cause is unverified. The one bounded rerun of only that cell (`hostseg,hostseg-red`) gave PASS in both browsers with the red control red. The cell has therefore been sampled twice; the first sample is not a PASS.
+- G2: Chrome Delete reads 「刪除選取 16 ms」 against 14 ms in `0.2.15-132` and `0.2.13-131fix`; the criterion fixes no threshold for N and every field it names is as required.
+- G4: the Chrome ratio-2 gap-80 cell has a four-key slow stretch (see G4); the judge passes it, with 1.3 ms of margin on the on-screen max. Not re-run, cause not known.
+- G4: the chain copy changed its `PAGE=` line as well as its output directory (see G4).
+- `static.shellBundle` in the G0/G1 reports is `exit 1` ("manifest is out of date … changed=['web/e2-editor-app.js']", `e2/editor-shell-v2-bundle-v64.json`): the shell generation is not frozen for this page; the probe records it and does not stop on it. Not investigated further.
+- G0, G1: `ended-utc.txt` / `started-utc.txt` and the trailing `probe exit N` line in `probe.out` are mine (a wrapper I used to detect the end of a detached run); the probe's own output is the rest of `probe.out`. `judge-output.txt` in `132-b/` ends with an `exit 0` line I appended.
+- G3: the docs path given to `run_probe_129_final.sh` is `../findings/…` (as in the precedent, because the script `cd`s into its argument).
+- At the start of G3 I ran `analyze_129_m4.py --help` by mistake, expecting an argparse usage; the script takes positional arguments, so it tried to write `--help/analysis.json` and failed with `FileNotFoundError` before creating anything (`git status` afterwards showed no stray file).
+- Not run, by instruction: `make`, `package_m3_engine.py`, `ddev occ upgrade`, anything in `~/Projects/Nextcloud_Apps`; nothing was committed or changed there (host HEAD `568608c`, `info.xml` still the uncommitted 0.2.16 edit — checked at the start only, not re-checked at the end). `wasm_sdk_probe/web` and `dist` untouched (`dist/e2-editor-app.js` hashed `6470dec0…` before G0 and in the G2 binding file's two lines and in the G4 chain's START line).
+- I did not read the 134 page diff or SPEC-M3-held-key §14; the criteria are the ones the task and the precedent state.
