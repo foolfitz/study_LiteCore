@@ -1,0 +1,10 @@
+--- head.cpp	2026-10-13 23:15:13.993322997 +0800
++++ m2-order.cpp	2026-10-13 23:15:13.993857151 +0800
+@@ -3544,6 +3544,7 @@
+   {
+     std::lock_guard<std::mutex> merge(gMergeMutex);
+     gMergeTicket = MergeTicket{};
++    finishAsynchronous(transaction.requestId);
+   }
+   const long long waitedMs =
+       std::chrono::duration_cast<std::chrono::milliseconds>(

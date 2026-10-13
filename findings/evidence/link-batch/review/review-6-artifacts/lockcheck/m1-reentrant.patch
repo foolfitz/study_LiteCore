@@ -1,0 +1,10 @@
+--- head.cpp	2026-10-13 23:15:13.993322997 +0800
++++ m1-reentrant.cpp	2026-10-13 23:15:13.993596195 +0800
+@@ -3497,6 +3497,7 @@
+   {
+     std::lock_guard<std::mutex> merge(gMergeMutex);
+     gMergeTicket = MergeTicket{};
++    std::ostringstream probe; appendCaretBefore(probe, transaction);
+   }
+   const std::string message =
+       keyPosted
