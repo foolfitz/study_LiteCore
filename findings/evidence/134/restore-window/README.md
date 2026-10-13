@@ -35,3 +35,20 @@ Rounds: 3 per browser.
 
   Any of these is a defect of D, registered as a finding; the page is not changed while the owner is away.
 - Refusals 1, generations `['1','2']` in every round.
+
+## Result (run-1, 2026-10-13; probe exit 0, static before = after: host 0.2.16, buildId `9352fae3aea68b5e`, served page `6470dec0…`)
+
+| browser | round | caret back after gen 2 ready | keys typed at (after gen 2 ready) | mark | rest of document |
+|---|---|---|---|---|---|
+| chrome | 0 | +765 ms | +10, +62, +114 ms | paragraph 210 | unchanged |
+| chrome | 1 | +741 ms | +13, +66, +117 ms | paragraph 210 | unchanged |
+| chrome | 2 | +754 ms | +20, +72, +124 ms | paragraph 210 | unchanged |
+| firefox | 0 | +759 ms | +18, +74, +129 ms | paragraph 210 | unchanged |
+| firefox | 1 | +768 ms | +9, +66, +121 ms | paragraph 210 | unchanged |
+| firefox | 2 | +724 ms | +8, +64, +120 ms | paragraph 210 | unchanged |
+
+Every round: 1 refusal, generations `['1','2']`, `marks == 1`.
+
+All three letters were typed inside the restore window, well before the caret came back. All of them landed at the restored caret, in the last paragraph, with none lost. **The prediction holds**: review 1's reading is now measured, and ruling-1 F6's sentence ("a key typed between the sink focus and the placeCaret ack lands at the start") does not hold for this path.
+
+What remains of L-134-restore-flash is visual only: the view sits at the document start for about 0.7 s, then returns. Typed text is not misplaced.
