@@ -351,3 +351,47 @@ Evidence: `findings/evidence/m4-ods/W6-calc-capability/`. Commit: `7e3a8d74`.
 - **Still owed at cutover**, beside the existing trap: when `PRODUCT_CORE_BUILD` is repointed, the a11y
   negative control in the self-test needs its own writer-only path, because today it uses that constant. The
   calc controls already have dedicated constants.
+
+---
+
+# Amendment, 2026-10-13 — W9 exists as a draft in source (append-only; nothing above edited)
+
+Task: `handoff/tasks/TASK-2026-10-13i-w9-ods-viewer-draft.md`. Evidence:
+`findings/evidence/m4-ods/W9-viewer-draft/`. Commits: `28daa47e` and `37acc397`, plus `e4d572aa`, which adds
+`viewer-shell/` to the `.gitignore` allowlist.
+
+- **New files only.** They are `viewer-shell/{ods-viewer-session,w7-adapter,viewer-error}.js`,
+  `web/ods-viewer{.html,-app.js}`, a node test, and a smoke runner. Nothing is in the five bundle-scoped
+  directories, nothing is in `dist/`, and `make` was not run.
+- **The bundle is unchanged.** The main session re-ran `build_e2_c_shell_bundle.py --manifest
+  e2/editor-shell-v2-bundle-v66.json` without `--write`. The digest is still `70c34178…`, with `problems: []`
+  and 13 files.
+- **The unit test passes.** The main session re-ran it: 18/18. A red-case harness breaks a scratch copy of the
+  session or adapter 27 ways, and each break turns the test red.
+- **Everything W7 is missing lives in one adapter**, and the session's state says so:
+  - the `.odt` name spoof (`nameSpoofed`);
+  - `documentType` reported as `"unknown (pre-W7)"`;
+  - generated sheet names (`namesFromEngine: false`);
+  - part switching refused with `PART_SWITCH_UNAVAILABLE`, with those tabs disabled;
+  - `currentPartReadBack: null`, never an echo of the request.
+- **Smoke (diagnostic, Chrome only, `e2-editor-v14`), through the page's own file input.**
+  - `three-sheets-distinct` gives parts 3 and three tabs, with only the first enabled.
+  - `empty-one-sheet` gives parts 1.
+  - The two first tiles are not byte-equal.
+- **What W7 must provide for this draft to meet G9.** This is the agent's list. The member names are
+  inferred, and each one is a single line in the adapter.
+  - A `.ods` name accepted at open, with the capability advertised.
+  - `documentType` on `opened` and on the handle. `sdk-worker.js` whitelists reply fields, so it must be added
+    there too.
+  - `partNames`.
+  - `setPart(k)`, ordered with paints in the worker queue.
+  - `currentPart` read back from the engine.
+  - The SDK side of these is in `sdk/document-sdk.js`, inside the bundle, so it needs a new shell generation.
+- **An observation for later, unverified, and possibly tied to the "document width" amendment above.**
+  - Both fixtures report `documentSizeChanged: true` on the first paint: the width at open is 26593 and after
+    the first paint it is 26775, a difference of 182 twips.
+  - The W2 amendment recorded a 182-twip width difference between the candidate and the native oracle. If
+    W2's candidate number was the open-time width, that difference may be "not yet laid out", not "different
+    fonts".
+  - This is not measured here. The final viewer must refit after the first paint, because G4 expects `false`
+    on the second paint.
