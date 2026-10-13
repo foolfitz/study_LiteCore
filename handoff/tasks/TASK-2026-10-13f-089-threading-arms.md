@@ -155,3 +155,39 @@ options, only the order changed. A short instrument check after the fix (control
 **What changes for the remaining runs:** nothing in §4–§5. E0 is re-run as `E0-r2` and gates exactly as §5
 says. A side effect to expect: every case's `warnings` now also holds the stderr emitted during init, which
 earlier reports never captured; states are read from `opened` / `workerCrashed` as before.
+
+---
+
+## Amendment 2 (2026-10-13, main session; append-only) — the next two arms, written before they run
+
+§5 gave **O-N**: H-T is refuted. The finding records this in `abfa4c67`. Two more thread users on the ODS
+import path can be switched off by environment variable, so they can be tested without a link:
+
+- `SAX_DISABLE_THREADS`. `sax/source/fastparser/fastparser.cxx:834` starts a parser thread for any stream
+  longer than 10,000 bytes.
+- `MAX_CONCURRENCY`. This caps `comphelper::ThreadPool`. LibreOffice's pre-js sets it to 4. The arm appends
+  `ENV.MAX_CONCURRENCY="1"` after that assignment, so it overrides it, and the echo must show `"1"`.
+
+Same instrument, same profile, same fixture order (C, F1…F6). Open cap 60000 ms. Pre-run checks as in §4.
+
+| arm | `--engine-env` | runs |
+|---|---|---|
+| E4 | `SAX_DISABLE_THREADS=1` | 1, then 2 more only if F2 or F4 opens in the first |
+| E5 | `MAX_CONCURRENCY=1` | 1, then 2 more only if F2 or F4 opens in the first |
+
+**Outcomes (exactly one; every case must be echoed, or the run is void and is re-run once):**
+
+- **O-S**: E4 opens both F2 and F4 in 3 of 3 runs. The threaded SAX parser path is implicated.
+- **O-P**: E5 opens both F2 and F4 in 3 of 3 runs. The thread pool's concurrency is implicated.
+- **O-SP**: both of the above hold.
+- **O-N2**: neither arm opens F2 or F4 in its first run. Neither switch is implicated.
+- **SPLIT**: anything else, for example only one of F2 and F4 opens, or a 2-of-3 result.
+
+Recorded alongside the outcome, not part of it: whether F1 and F5 crash in each arm (NU-089-3).
+
+**If O-N2:** the next step is a stack of the waiting threads. It is not a further guess at environment
+variables. Two routes: a CDP `Debugger.pause` probe on the hung workers (no link), or an owner-linked
+`--profiling-funcs` diagnostic variant (owner's step). The main session chooses after reading the reports.
+
+**If this is never run, the default conclusion is:** 089 stays unattributed, and the two switches stay
+untested.
