@@ -83,3 +83,38 @@ Cross-checks printed by the analyzer: Chrome against Firefox landing index equal
 Run 1's Firefox half (`round-20261013T042552Z`): same verdicts for every clause (key → move max 289.2 ms there as here; moving keys 84.6–87.4); Chrome had no round in run 1 (fatal before the first arm).
 
 Odd, not a criterion: the analyzer's "swap pages during arms" line for the Firefox half reads `pswpinMax: 3060` (one arm, `m4-s1d-End`; `pswpin` 4 in `m4-m1d-Home`; 49 of 54 arms with no swap activity), where the earlier rounds read 0–4 for Firefox. That arm's key → move time is inside the range above; I did not look into the cause (unverified, the machine's other activity at that moment was not recorded).
+
+## G4 — 122-B / C2 typing latency: PASS in both browsers, every cell (`judge_c2.py` exit 0, `judge_p2.py` exit 0) — after one aborted first start (read the next paragraph)
+
+No pin commit in this run: `PAGE` in `judge_c2.py` line 53 and `judge_p2.py` line 41 already read `b24d754a…` (grep before the run; run 1 commit `a0ed713f`).
+
+**The chain was started twice; the second start is the verdict of record.** The first start (2026-10-13T06:57:56Z, `c2-aborted-load-1.58/`, see its `ABORTED.txt`) began 80 seconds after G3's Firefox half had ended, at `/proc/loadavg` 1.58 1.19 0.88 (a trailing average; nothing else was running and there was no Chrome browser). The C2 README asks for a clean desk; I noticed the load after launching and killed the chain after its first two cells (Chrome ratio-2 owner gap 80 and gap 200) had written JSON. I did not judge those two files. For disclosure, from their JSON: the first start's Chrome gap-80 cell read `onScreenMs` median 25.4 / **max 158.3** (the gate is max < 150) and `revisionMs` max 147.9, with keys i = 9 and 10 slow (147.9, 97.0 ms commit; 158.3, 103.1 ms on screen) and the other 18 keys 13.3–43 ms — the stall at key index 9–10 that finding 135 records for this cell; whether the load had anything to do with it is unknown (finding 135 records the stall on a clean desk too). Its Chrome gap-200 cell had completed too (10 rows, completed 06:58:31Z; `onScreenMs` median 32.4 / max 41.2, `revisionMs` max 23.9; `c2-aborted-load-1.58/c2-candidate-chrome-owner-gap200.json`), but `chain.txt` has no line for it because the chain script was killed before it. I then waited until the 1-minute load average was 0.38 and restarted the whole chain from its first cell with the same script. This is the one deviation from "no reruns" in this chain; it was made because the desk precondition was not met, and the restarted chain, not the first start, is the verdict of record whatever it reads. The two cells of the first start are not counted as samples of the restarted chain; they are reported here so that a reader of finding 135 has them.
+
+Chain: `c2/chain-c2.sh`, a copy of run 1's `findings/evidence/136/guard/c2/chain-c2.sh` with exactly one line changed (`diff` shows only `E=` → `findings/evidence/136/guard-r2/c2`; its `PAGE=b24d754a426706bb` line was already changed in run 1 for the reason run 1 gave: the script refuses to run when `dist/e2-editor-app.js` does not hash to its `PAGE`). Structure unchanged (ratio 2 wide `--dpr 2 --window 1400x1000`, owner gap 80 / 20 chars and gap 200 / 10 chars; ratio 1.5 wide recorded only; ratio 1 `probe_typing_latency.py` owner gap 80, owner gap 200, boundaries gap 200; Chrome first, then Firefox, one cell at a time). Started with `nohup` (detached), waited for `DONE`. Health check just before: `[before-G4]` (06:57:55Z, the first start) and `[before-G4-restart]` (07:00:38Z) both OK.
+
+Desk at the start of the restart (`c2/desk-at-start.txt`, 2026-10-13T07:00:39Z): `pgrep -c chrome` 0, Chrome browsers 0, `/proc/loadavg` 0.40 0.88 0.81, no Firefox, nothing of ours running. `chain.txt`: `START tree 845c2c0b dist b24d754a426706bb view 1412e4c863de6fcb probe dbad93c0dcf27fbf`, started 07:00:39Z, `DONE` 07:05:00Z, all 12 cells `exit 0`. Tool hashes equal the ones both judges bind.
+
+Judges, run as the C2 README did with `--dir` at this directory; output in `c2/judge-output.txt` (it also carries my `$ …` command line and `exit N` line per judge):
+
+- `python3 findings/evidence/c-prime/c2/judge_c2.py --dir findings/evidence/136/guard-r2/c2` → last line `PASS: both browsers, every cell`, **exit 0** (ratio 2 wide).
+- `python3 findings/evidence/typing-latency/judge_p2.py --dir findings/evidence/136/guard-r2/c2/ratio-1` → last line `PASS: both browsers, every cell`, **exit 0** (ratio 1, P2's cells).
+
+| Cell (judge) | Chrome | Firefox | run 1 Firefox | Verdict |
+|---|---|---|---|---|
+| ratio 2 wide, owner gap 80: every key committed / on screen | 20 of 20 / 20 of 20 | 20 of 20 / 20 of 20 | 20 / 20 of 20 | PASS |
+| ... on-screen median (needs < 70 / < 90) and max (< 150) | 23.7, **max 43.1** | 30.0, max 48.8 | 28.4, max 43.1 | PASS |
+| ... (a) every commit < 2 × gap (< 160) | max 36.1 | max 35.0 | max 35.5 | PASS |
+| ... (b) median commit < gap (< 80) | 16.8 | 22.8 | 22.3 | PASS |
+| ratio 2 wide, owner gap 200: every key committed / on screen | 10 of 10 / 10 of 10 | 10 of 10 / 10 of 10 | 10 / 10 of 10 | PASS |
+| ... on-screen median (< 70 / < 90) and max (< 150) | 30.8, max 42.1 | 34.3, max 44.4 | 34.0, max 51.9 | PASS |
+| ratio 2 wide (ii), recorded not gated | gap 80 52.3 ms, gap 200 69.8 ms | gap 80 61.2 ms, gap 200 72.6 ms | 60.8, 65.5 | recorded |
+| ratio 1 (P2), owner gap 80: committed / on screen | 20 of 20 / 20 of 20 | 20 of 20 / 20 of 20 | 20 / 20 of 20 | PASS |
+| ... on-screen median (< 70 / < 90), max (< 150) | 25.6, max 40.9 | 26.6, max 53.5 | 29.3, max 46.2 | PASS |
+| ... (a) max commit (< 160); (b) median commit (< 80) | 32.8; 18.3 | 43.7; 20.7 | 38.2; 22.0 | PASS |
+| ratio 1 (P2), owner gap 200: committed / on screen | 10 of 10 / 10 of 10 | 10 of 10 / 10 of 10 | 10 / 10 of 10 | PASS |
+| ... on-screen median (< 70 / < 90), max (< 150) | 29.4, max 38.0 | 32.0, max 46.3 | 32.1, max 48.1 | PASS |
+| ratio 1 (P2), boundaries gap 200: committed / on screen | 10 of 10 / 10 of 10 | 10 of 10 / 10 of 10 | 10 / 10 of 10 | PASS |
+| ... commit median (≤ 10) | 4.3 | 3.9 | 3.7 | PASS |
+| ratio 1.5 wide, owner gap 80 (recorded only, no judge): commit median / max, on-screen median / max | 19.4 / 36.3, 25.2 / 45.2 | 21.1 / 34.1, 27.6 / 38.8 | 21.4 / 35.6, 27.3 / 45.1 | recorded |
+
+Per-key backlog `b_i` is 0.0 for all 20 keys in the Chrome and Firefox ratio-2 gap-80 cells and in the Chrome and Firefox ratio-1 gap-80 cells. Chrome's ratio-2 gap-80 cell here has no slow stretch (revision max 36.1 ms); on the 134 page that cell read 148.7 ms and finding 135 records it over the gate in 3 of 10 repeats. The restarted chain's single run of it says nothing about the rate (see G6 for two more runs of the same cell).
