@@ -30,12 +30,14 @@ Placement (booleans and indexes computed by the probe's reader, no text):
                             `zqx` in the same paragraph as `kj`)
   before-table-hold         `wvy` in paragraph 0 only, at its end
   cell-hold                 `wvy` in paragraph 1 (cell A1) only, at its end
-  cell-start-hold           (ruling-3 addendum 4) positive control first: the
-                            refusal stage the probe read from the page's toast
-                            is `anchor-mismatch` -- any other stage FAILs as
-                            "measures that stage, not D"; then `wvy` in
-                            paragraph 1 only, at its start; `kjkjk` fully gone
-                            (`kj` count 0 and the document otherwise original)
+  cell-start-hold           (ruling-3 addenda 4 and 6) positive control first:
+                            the refusal stage the probe read from the page's
+                            toast is `nothing-selected` (「這一下沒有取得可刪除的
+                            內容…」; addendum 6 replaced addendum 4's
+                            `anchor-mismatch`, measured 4/4 on aebef525) -- any
+                            other stage FAILs as "measures that stage, not D";
+                            then `wvy` in paragraph 1 only, at its start; `kjkjk`
+                            fully gone (`kj` count 0, document otherwise original)
 scrollTop (ruling-3 condition 4).  Samples: the probe's `stateBeforeKey`, then
 every state entry of the log, in order.
   end-hold, end-press-type  every sample from the first `restart-required` to
@@ -246,11 +248,13 @@ def scroll_start(run: dict[str, Any]) -> list[str]:
     return [f"scrollTop: {len(off)} of {len(ss)} samples not 0 ({sorted({str(s) for s in off})[:5]})"] if off else []
 
 
-def anchor_mismatch(run: dict[str, Any]) -> list[str]:
-    if "refusalStage" not in run:
-        return ["refusalStage not recorded"]
-    stage = (run["refusalStage"] or {}).get("stage")
-    return [] if stage == "anchor-mismatch" else [f"refusal stage {stage!r}: measures that stage, not D"]
+def stage_is(want: str) -> Callable[[dict[str, Any]], list[str]]:
+    def rule(run: dict[str, Any]) -> list[str]:
+        if "refusalStage" not in run:
+            return ["refusalStage not recorded"]
+        stage = (run["refusalStage"] or {}).get("stage")
+        return [] if stage == want else [f"refusal stage {stage!r}: measures that stage, not D"]
+    return rule
 
 
 def all_of(*rules: Callable[[dict[str, Any]], list[str]]) -> Callable[[dict[str, Any]], list[str]]:
@@ -270,7 +274,8 @@ RULES: dict[str, Callable[[dict[str, Any]], list[str]]] = {
     "before-table-hold": all_of(one_reopen, document_kept, counts(0, 0, 1), after_at("end", 0)),
     "cell-press-type": all_of(one_reopen, document_kept, counts(1, 1, 0), control_at(1), contiguous),
     "cell-hold": all_of(one_reopen, document_kept, counts(0, 0, 1), after_at("end", 1)),
-    "cell-start-hold": all_of(one_reopen, anchor_mismatch, document_kept, counts(0, 0, 1), after_at("start", 1)),
+    "cell-start-hold": all_of(one_reopen, stage_is("nothing-selected"), document_kept, counts(0, 0, 1),
+                              after_at("start", 1)),
 }
 MIN_ROUNDS = {"start-press": 1, "start-hold": 2, "end-hold": 2, "end-press-type": 1,
               "before-table-press-type": 1, "before-table-hold": 1, "cell-press-type": 1, "cell-hold": 1,

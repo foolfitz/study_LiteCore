@@ -71,3 +71,18 @@ Notes:
 - `acceptance-0.2.17/table`'s FAIL (2) is `cell-start-hold: 0 rounds < 2` on both browsers. It comes from the new arm (`becd0370`), not from this edit. That report's own `judge-output.txt`, written before the arm existed, reads PASS.
 - `markParagraphs` gets no separate pin on the table press arms. With `kj` and `zqx` each counted once, contiguity puts `zqx` in the paragraph S1 pins. `end-press-type` keeps its explicit `mark_at_end`.
 - §34: 因審核而修 1 (review 1 S1 + N1, one commit). 因執行而修 unchanged.
+
+## Witness: `cell-start-hold`'s positive control → `nothing-selected` (ruling-3 addendum 6)
+
+- **Edit:** the only change is the `cell-start-hold` rule's stage check, `stage_is("nothing-selected")` instead of `anchor-mismatch`. The criterion is unchanged.
+- **Judges and outputs:** pre-edit = `95b0ddf5`, post-edit = this commit. Outputs are in `addendum-6-witness/`.
+
+| report | pre | post | differences |
+|---|---|---|---|
+| `cell-start-hold/red-aebef525` | FAIL (16) | FAIL (12) | the four `refusal stage 'nothing-selected': measures that stage, not D` lines are gone. Each round now FAILs **only on placement** (`AFTER not at the start of its paragraph (afterAtStart False)`), the 8 others are the other arms' `0 rounds < 1` |
+| `acceptance-0.2.17/held` | FAIL (4) | FAIL (4) | none |
+| `acceptance-0.2.17/table` | FAIL (2) | FAIL (2) | none |
+| `baseline-0.2.16/held` | FAIL (6) | FAIL (6) | none |
+| `baseline-0.2.16/table` | FAIL (8) | FAIL (8) | none |
+
+- **The stage rule still reds another stage:** `post-stage-mutant.txt` is the red run with every `refusalStage` set to `anchor-mismatch` (scratch copy, not kept). Each round FAILs `refusal stage 'anchor-mismatch': measures that stage, not D`, verdict FAIL (16).

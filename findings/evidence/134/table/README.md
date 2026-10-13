@@ -91,3 +91,10 @@ Press-type arms only, both browsers, `--control kj`. `kj` is typed at the caret 
 Why, by code (unmeasured inside the engine): `startMergeKeyUndo` (`wasm_sdk_probe/src/probe_engine.cpp:3600-3612`) fails the fence and calls `finishMergeKeyError("anchor-mismatch")` **while K1's one-unit selection is still active**. That selection extends from A1's end into B1. No `.uno:Escape` restores it first. So the last editor state the engine pushed has its caret in B1. D reads exactly that (`session.state.snapshot.editorState.caret` before `restart()`; ruling-1 condition 2 named "the engine's last pushed state"). At the document ends (`nothing-selected`) nothing was selected, so the two coincide; that is why the acceptance run could not see this.
 
 Registered as **finding 136**. It is not a regression against 0.2.15, which put the caret at the document start. It is the place where D's claim ("the caret goes back where it was") fails.
+
+## Coverage note (ruling-3 addendum 6, 2026-10-13)
+
+- **`anchor-mismatch` is covered by:** `cell-hold` under a forward hold (Delete at the end of A1), and `cell-press-type` under a press.
+- **Backward hold into `anchor-mismatch`: no instance on this fixture.** Backspace at the start of a cell is refused `nothing-selected`: Shift+Left there selects nothing (`../../136/cell-start-hold/`, 4/4 on both browsers). That is a property of the fixture, not a gap in the net.
+- **`cell-start-hold`** stays as `start-hold`'s in-table counterpart, with positive control `nothing-selected`.
+- **Named limit:** the probe reads the refusal stage from the page's toast sentence. 「這裡目前還不能這樣刪除」 is the same sentence for `anchor-mismatch` and the other "unchanged" stages (`restore`, `return-mismatch`, `unit-late`, `undo-read`), so the probe cannot separate them. A stage-level positive control needs the page to expose the stage, for example a `data-` attribute on the toast or the pill. That is a page change, the owner's, not a probe change.
