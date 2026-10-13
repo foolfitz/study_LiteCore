@@ -1,0 +1,8 @@
+red case: the literal anchor duplicated in a copy of probe.js (fable ruling 1, condition 14)
+anchor: ',!ENVIRONMENT_IS_WEB,65536,false);'
+count in the real probe.js: 1
+count in the mutated copy: 2
+refusal: /home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/dist/profiles/e2-editor-v12/probe.js: ',!ENVIRONMENT_IS_WEB,65536,false);' occurs 2 times, want exactly 1
+RESULT: RED as required
+control: same call on the unmutated text
+applied, patched sha256 d509274867de0ce619ba7749abccd79cb5f5bf97b806627d65c8c723f299d1fb

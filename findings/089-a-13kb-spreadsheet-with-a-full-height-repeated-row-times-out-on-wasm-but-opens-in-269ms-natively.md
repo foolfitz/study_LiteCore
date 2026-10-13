@@ -623,3 +623,25 @@ RC-1 閘，示範到的是 void→C）。主 session 補做了字面版：用產
 NU-089-3 多了兩個點：E4、E5 都**走預設的計算路徑**，兩者都照樣崩（各 2 次 `memory access out of bounds`）——崩潰跟著「有沒有設 Calc 計算變數」走，不跟 SAX 執行緒或 ThreadPool 上限走。`MAX_CONCURRENCY=1` 也崩，所以崩潰不是 ThreadPool 併發度的問題。
 
 照更正 2：**不再猜環境變數**，下一步是卡住時的堆疊。v12 的 `probe.wasm` 沒有 name section，finding 037 的前例（`probe_wait_primitive_names.py` 的 docstring）已經說明：不重新連結只拿得到 `$funcN`，要命名得請擁有者連結一份 `--profiling-funcs` 版。走哪一條交 fable 代擁有者裁決（擁有者 2026-10-13 授權）。
+
+### 裁決：先跑 pthread 堆疊臂（fable 代擁有者，2026-10-13，只追加）
+
+擁有者原話：「有疑義的發給fable，我授權它代我下決定」；並提示「需要靈感的話可以參考 collabora source code」。工單 `findings/evidence/089/ruling/brief-1-next-step.md`（含之後補送的 F9–F11），裁決 `ruling-1.md`（`c6e10b21`，條件 1–14 以那份為準）。
+
+**新假說 H-S（從 Collabora 原始碼來）**：Collabora 的 LibreOffice 在 WASM 上用 `-sSTACK_SIZE=131072 -sDEFAULT_PTHREAD_STACK_SIZE=65536`（`cool-26-04/engine/solenv/gbuild/platform/EMSCRIPTEN_INTEL_GCC.mk:25`），我們十條連結規則都一樣；我們的引擎在 `std::thread(engineLoop)`（`probe_engine.cpp:6518`）上跑 LOK，LibreOffice 在 Emscripten 上建執行緒也不設堆疊大小（`sal/osl/unx/thread.cxx:258–288`），所以都是 64 KB；這顆 build 沒有溢位檢查。預設值以字面量傳給 `__emscripten_thread_init(…,65536,false)`，所以可以只改鏡像那份 `probe.js`、不連結（`90fed9b7`，每條 pthread 回報自己實際拿到的大小）。
+
+**白話理由（fable 原文）**：
+
+> 這一張單子查了四十天，到今天為止能用環境變數關掉的四種執行緒都證明不是開關，剩下的路本來只有「請你再連結一份帶函式名的診斷版」或「不連結、只看得到編號的堆疊」。但你指到的 Collabora 原始碼點出一個更便宜、也更有力的假說：我們的引擎跑在一條 pthread 上，而每條 pthread 的堆疊只有 64 KB（原生是 8 MB），而且這顆 build 沒有堆疊溢位檢查——溢位會悄悄踩壞旁邊的記憶體，這跟「原生 1.4 秒、WASM 永遠不回來、旁邊幾個尺寸的 worker 死於 memory access out of bounds」的形狀吻合。這個數字是以字面量塞在 probe.js 裡的，所以不用連結、不動產品檔，只改 scratch 鏡像那一份就能把它調大調小，而且每條執行緒會回報自己實際拿到多少，工具已經寫好、等值檢查也過了。所以我的裁決是：先跑這一臂（兩個方向、加上一道尺寸階梯），它若成立，089 的開關就找到了，不需要你連結任何東西；它若不成立，才去跑那支只看編號的暫停探針；只有連那個都說不清，才在你下一次本來就要連結的場次順便加一份帶名字的診斷版。NU-089-3 那個崩潰暫時只登錄不另開臂，因為它只出現在我們自己切出來的 fixture 上，不擋 G2，而且這一臂的預測本來就包含「崩潰會不會消失」。
+
+**裁決順帶更正主 session 的三件事**（主 session 都重新核對過）：
+
+- **「`probe.js` 裡唯一的 65536」是錯的**：實際出現 6 次（`grep -o … | wc -l`）。主 session 用 `grep -c` 數的是行數，`probe.js` 幾乎只有一行。補丁之所以安全，是因為工具要求錨點 `,!ENVIRONMENT_IS_WEB,65536,false);` 恰好出現一次，而不是因為 65536 只有一個。錨點重複時會拒絕，已經用紅案示範過（`stack-arms-2026-10-13/redcase-anchor-count.txt`）。
+- **NU-089-3 的「設定監聽器」讀法在 E1 上不成立**：`ScTokenArray::ResetVectorState()` 無條件呼叫 `isThreadingEnabled()`（`token.cxx:1741–1744`），所以 E1 一樣會建立監聽器，只有 E2 和 E3 跳過。共同因素不是它。NU-089-3 維持「量到、沒有解釋」，監聽器的讀法不得當成成因引用。
+- **「原生 269 ms」是原檔在 m4 oracle 裡的數字**；原生 rows 階梯量到原檔 1,399.59 ms、rows36 1,404 ms。說到這幾個卡住的 fixture 時，要引約 1.4 秒。
+
+**順序**：
+1. 先跑 S（堆疊臂，協定是 `TASK-2026-10-13f` 更正 3，`4fc2673b`）。
+2. 只有在 O-S-N 或 O-S-partial 時，才跑 A（只看編號的暫停探針，另立協定）。
+3. 只有在 A 得到 O-A-WASM 時，才在擁有者下一次本來就要連結的場次，順便加一份帶名稱的診斷版。
+4. 規格審核期間不提這件事。
