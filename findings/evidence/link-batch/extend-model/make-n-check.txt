@@ -1,0 +1,15 @@
+# make -n before and after adding src/extend_completion.hpp and tests/extend_completion_model_test.cpp (Makefile untouched)
+# what-if: make -n -W Makefile (pretend the Makefile were modified; nothing touched)
+dist/profiles/e2-editor-v19/sdk-manifest.json: before=14 lines, after=14 lines, identical; with a modified Makefile: 66 lines
+dist/profiles/e2-editor-v8/sdk-manifest.json: before=35 lines, after=35 lines, identical; with a modified Makefile: not run lines
+dist/profiles/e2-editor-v18/sdk-manifest.json: before=1 lines, after=1 lines, identical; with a modified Makefile: 1 lines
+build/e2/editor-v19/probe.wasm: before=1 lines, after=1 lines, identical; with a modified Makefile: 53 lines
+build/e2/editor-v15/probe.wasm: before=30 lines, after=30 lines, identical; with a modified Makefile: not run lines
+
+# baseline recipe for build/e2/editor-v19/probe.wasm (unchanged):
+test -s build/e2/editor-v19/probe.wasm
+
+# with a modified Makefile the same target would recompile and relink (first 3 lines):
+../wasm-lite/tools/emsdk/upstream/emscripten/em++ -DLOK_USE_UNSTABLE_API -I../libreoffice-26-8/include -I../wasm-lite/build-headless-probe/config_host -I../wasm-lite/build-headless-probe/workdir/UnoAp
+	-DOXSDK_FINDING_016_SELECTION_BARRIER -DOXSDK_E2_FORMAT_BARRIER \
+	-DOXSDK_MERGE_KEY_UNDO \
