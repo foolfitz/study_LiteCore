@@ -44,3 +44,37 @@ The read-back has no text, only these fields:
   - All four rounds at A1's start would contradict the prediction.
 - **Judge exit 1.**
   - It also FAILs the four other table arms on both browsers as `0 rounds < 1`, because only this arm runs. That failure is by construction, not a finding.
+
+## Result of the red run (appended; the prediction above is unchanged)
+
+- **Run:** 2026-10-13 02:18–02:21Z. Probe exit 0, no fatal round.
+- **Static:** before = after: host 0.2.17 (`f5b34f0`, info.xml uncommitted), buildId `e39447158dba7a3b`, served = dist = `aebef525…`.
+- **Judge:** exit 1, `FAIL (16)` (`red-aebef525/judge-output.txt`).
+  - 8 of the lines are the other four table arms × two browsers at `0 rounds < 1`. That is by construction, as predicted.
+
+| round | refusals | gens | stage (toast) | `kjkjk` gone, doc original | `wvy` in | `afterAtStart` | judge |
+|---|---|---|---|---|---|---|---|
+| chrome r0 | 1 | 1→2 | **nothing-selected** | yes | [1] | false | FAIL ×2 |
+| chrome r1 | 1 | 1→2 | **nothing-selected** | yes | [1] | false | FAIL ×2 |
+| firefox r0 | 1 | 1→2 | **nothing-selected** | yes | [1] | false | FAIL ×2 |
+| firefox r1 | 1 | 1→2 | **nothing-selected** | yes | [1] | false | FAIL ×2 |
+
+**The positive control did not hold. This contradicts the prediction and addendum 4's assumption.**
+
+- At the start of cell A1, the engine answers the held Backspace's refusal with `nothing-selected` (「這一下沒有取得可刪除的內容」), not `anchor-mismatch`. It does so on both browsers, every round.
+- So, by the arm's own rule, `cell-start-hold` **measures the `nothing-selected` stage at a cell start, not D at `anchor-mismatch`**. Each round FAILs first on `refusal stage 'nothing-selected': measures that stage, not D`.
+
+**The caret was in A1.** `wvy` landed in paragraph 1 on every round. Had the ArrowDown failed, `kjkjk` would have gone to the document start and the reopened caret into paragraph 0.
+
+**What it did show, outside the arm's intended stage:**
+
+- B holds: 1 refusal per round, `kjkjk` fully deleted, document otherwise original.
+- D misplaces `wvy` on 4 of 4 rounds: `afterAtStart` false. That is stable, not "unstable".
+- A post-hoc read of the server file still on the host after the last round (Firefox r1; its sha256 equals that round's recorded `server.sha256`) puts `wvy` at index 1 of paragraph 1, **one character into A1**. The other three rounds' offsets were not recorded: the reader keeps booleans only.
+- This is the same shape as `start-hold`'s 4/4 FAIL on `aebef525` (also `nothing-selected`), i.e. addendum 4's B1 mechanism.
+
+**For the ruling author (not acted on here):** as specified, the arm cannot serve as the `anchor-mismatch` red/green pair.
+
+- An `anchor-mismatch` hold into a cell exists already: `cell-hold`, a Delete held at A1's end.
+- What `cell-start-hold` adds is a `nothing-selected` refusal **inside a cell**, where D's click must land at A1's start rather than the document start.
+- Whether to keep the arm with its positive control changed to `nothing-selected`, or to drop it, is a decision for the ruling. The judge rule was not changed.
