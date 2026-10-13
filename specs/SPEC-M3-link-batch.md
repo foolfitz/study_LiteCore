@@ -99,8 +99,30 @@ merge-key barrier 停在 `nothing-selected` 且 `keyPosted === false` 時，動�
 - **Q-B（量測決定）**：第 4.1 節的完成條件，等 10-13h。
 - **Q-C**：第 2 項是否這一批就讓頁面直接送（我傾向是：引擎授權本來就要給，頁面多一條分支反而是兩套行為）。若擁有者要保守，頁面可以先維持 0.2.13 的處方，R1 改成只量不擋。
 
+## 9. 4.1 的完成條件定案（2026-10-13，只追加；取代 4.1 最後一點的「待定」）
+
+**原生量測**（已觀察，工單 10-13h，`findings/evidence/link-batch/extend-signatures/run-20261013T095104Z/`，commit `81eaf66d`；主 session 用自己的讀取器從三輪原始 jsonl 重算，數字相同）：
+
+- 111 格（14 種起始形狀 × 6 個 Shift 鍵＝84，加 4 種範圍 × 6 個不帶 Shift 的鍵＝24，加 3 個無按鍵對照），三輪各自獨立的程序，**沒有一格的回呼序列在三輪之間不同**。
+- 有回呼的 98 格（74 格 Shift、24 格範圍上的方向鍵）：**每一格都恰好一個 `TEXT_SELECTION`、恰好一個 `INVALIDATE_VISIBLE_CURSOR`，而且游標回呼永遠在最後**（`SS SE SEL CUR` 71 格、`SEL CUR` 2 格、`SEL0 CUR` 25 格；SEL0＝空酬載）。
+- 完全沒有回呼的 10 格，都是選取沒變的：文件開頭的 Shift＋左／上／Home、結尾的 Shift＋右／下／End、空段落的 Shift＋Home／End、折行行尾的 Shift＋End、儲存格尾端的 Shift＋End。
+- 時間：選取與游標回呼都在按鍵送出後 1.10 ms 之內；300 ms 之後只有 `STATE_CHANGED` 之類，沒有選取或游標回呼。
+- 互動臂（039）27／27 過：Shift 之後產品的點擊、拖曳、文字把手選取都正常。
+- 預測 P-a～P-d 全部成立。
+
+**引擎今天的行為**（讀原始碼，`probe_engine.cpp:2655`）：每個回呼先更新快取、**立刻**判斷完成。所以 (a)「第一個 `TEXT_SELECTION` 就完成」在 74 格 Shift 裡都會把**按鍵之前的游標**放進完成回覆；範圍上的方向鍵今天走 `EditorCaretOrSelectionCallback`，先到的是 SEL0，24 格也一樣。之後的游標回呼會再推一次 editor-state，頁面的序號守衛（084）會收斂，但完成回覆本身是舊的，S2 要的就是它不舊。
+
+**定案**：
+
+- extend（不論起點）以及**起點是範圍**的移動（派送當下 `selectionRectangles` 非空），完成條件改成 `LOK_CALLBACK_INVALIDATE_VISIBLE_CURSOR`。
+- 起點是游標、不帶 Shift 的移動**不變**（已量過的路，一次一個變因）。
+- 沒有回呼的格照舊走 096 的 250 ms 讀回（`verified-move-readback`）。若 WASM 上出現「有選取回呼、沒有游標回呼」的格，它也會在 250 ms 讀回完成，狀態仍是對的、只是慢；S3 的判讀照實記錄這種格。
+
+**S2 在連結之前就能先紅一次**：v19 的 ABI 已經接受兩個字元移動的 extend，完成條件是 (a)；manifest 只給 `collapsed`，所以只有起點是游標的格可達。**預測**：原生清單裡「起點是游標、Shift＋左／右、選取有變」的 18 格（caret-mid ×2、doc-start 的右、doc-end 的左、empty-para ×2、wrap-line-end ×2、cjk-mid ×2、heading-mid ×2、list-mid ×2、cell-end ×2），在 v19 上 S2 **全紅**（完成回覆的游標＝按鍵前的游標）。S2 的判讀工具第一次使用之前，要先在 v19 上跑這 18 格。若有任何一格是綠的，先查 WASM 的回呼順序是不是跟原生不同、還是儀器沒量到，**不往下做**。
+
 ## 修訂紀錄
 
 | 日期 | 內容 |
 |---|---|
 | 2026-10-13 | 草稿：範圍、現況、設計（4.1 的完成條件待 10-13h）、判準 S1–S4／R1／P1–P3／C1／E1–E3／K、連結與計數的形狀、開放問題 Q-A–Q-D。4.3 在 commit 前讀過 Collabora 與 Writer 原始碼後改寫：頁碼是可見頁範圍、編輯模式由核心算（計畫附錄的說法不完整） |
+| 2026-10-13 | §9：4.1 的完成條件依 10-13h 定案（extend 與範圍起點的移動等游標回呼），並寫下 S2 在 v19 上先紅的 18 格預測 |
