@@ -88,6 +88,29 @@ test("a profile with no contract at all does not claim redo", () => {
   assert.equal(client.offersRedo(), false);
 });
 
+test("offersPageRectangles reads the contract, not the action map", () => {
+  // SPEC-M3-link-batch 10.8 (S-11): page-rectangles is a document-level
+  // export declared like redo, never an action, so the action map answers
+  // "absent" on every profile including the ones that carry it.
+  const v20 = clientWith({});
+  v20.document._engine.manifest.editorContract.pageRectangles
+    = "document-sdk-page-rectangles";
+  assert.equal(v20.offersPageRectangles(), true);
+  assert.equal(v20.offers("page-rectangles"), false);
+
+  const v19 = clientWith({ "move-character-left": { id: 1, gestures: ["collapsed"] } });
+  v19.document._engine.manifest.editorContract.redo = "document-sdk-redo";
+  assert.equal(v19.offersPageRectangles(), false);
+});
+
+test("a profile with no contract at all does not claim page rectangles", () => {
+  // Same reason as redo: `oxsdk_document_page_rectangles` is a compiled
+  // export, and a profile whose binary predates it has no symbol to reach.
+  const client = clientWith(undefined);
+  assert.equal(client.offers("move-character-left"), true);
+  assert.equal(client.offersPageRectangles(), false);
+});
+
 test("the product page gates redo and cut on the profile too", () => {
   const source = readFileSync(
     new URL("../../web/e2-editor-app.js", import.meta.url), "utf8");

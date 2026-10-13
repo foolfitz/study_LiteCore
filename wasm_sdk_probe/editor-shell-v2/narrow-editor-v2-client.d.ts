@@ -102,4 +102,10 @@ export class NarrowEditorV2Client {
               options?: AbortableOptions): Promise<unknown>;
   gesturesFor(action: EditorV3Action): EditorV2Gesture[] | null;
   limitsFor(action: EditorV3Action): string[];
+  /**
+   * SPEC-M3-link-batch 10.8: whether the profile declares the page-rectangles
+   * export (`editorContract.pageRectangles === "document-sdk-page-rectangles"`).
+   * Read from the contract like redo, never from the action map.
+   */
+  offersPageRectangles(): boolean;
 }

@@ -93,6 +93,21 @@ const REPLY_MUTATIONS = [
   ["completion verified-key-undo, actionsAfter not an integer",
    (reply) => ({ ...reply, completion: "verified-key-undo",
                  keyUndo: { comment: "Delete paragraph", actionsAfter: "1" } })],
+  // SPEC-M3-link-batch 10.5: C's second exit.  A caret-relative delete at a
+  // document boundary that selected nothing in the window completes with
+  // `changed: false` and the revision unchanged; v2 accepts exactly that shape
+  // for the two deletes (DECLARED_DIVERGENCE below) and the two red cases --
+  // the same completion claiming a change, or an advanced revision -- are
+  // refused by both clients alike.
+  ["completion verified-boundary-noop, nothing changed",
+   (reply, r) => ({ ...reply, completion: "verified-boundary-noop",
+                    changed: false, revision: r, boundaryNoop: { waitedMs: 2251 } })],
+  ["completion verified-boundary-noop, changed true",
+   (reply, r) => ({ ...reply, completion: "verified-boundary-noop",
+                    changed: true, revision: r, boundaryNoop: { waitedMs: 2251 } })],
+  ["completion verified-boundary-noop, revision advanced",
+   (reply, r) => ({ ...reply, completion: "verified-boundary-noop",
+                    changed: false, revision: r + 1, boundaryNoop: { waitedMs: 2251 } })],
   ["completion missing", (reply) => ({ ...reply, completion: undefined })],
   ["empty reply", () => ({})],
   // The asynchronous failure paths.  Testing only resolved replies leaves the
@@ -194,6 +209,18 @@ const KEY_UNDO_DIVERGENCE = {
 const DECLARED_DIVERGENCE = {
   "completion verified-key-undo": KEY_UNDO_DIVERGENCE,
   "completion verified-key-undo, empty comment": KEY_UNDO_DIVERGENCE,
+  // SPEC-M3-link-batch 10.5 (ruling 2 condition 8): the v2 client accepts C's
+  // no-op completion for the two deletes, with `changed === false` and the
+  // revision unchanged; the frozen v1 client rejects it.  Only the
+  // "nothing changed" shape diverges: the two red shapes are refused by both.
+  "completion verified-boundary-noop, nothing changed": {
+    appliesTo: (action) => DELETE.has(action),
+    v1: "EDITOR_RESULT_INVALID",
+    v2: "ok",
+    why: "SPEC-M3-link-batch 10.5: the v2 client accepts verified-boundary-noop "
+       + "for a caret-relative delete that changed nothing; the frozen v1 "
+       + "client rejects it",
+  },
   "completion verified-move-readback": {
     appliesTo: (action) => MOVE.has(action),
     v1: "EDITOR_RESULT_INVALID",

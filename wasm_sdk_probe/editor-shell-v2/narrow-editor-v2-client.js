@@ -262,6 +262,18 @@ export class NarrowEditorV2Client {
     return contract.documentOutline === "accessible-document-outline";
   }
 
+  /**
+   * Whether this profile carries `page-rectangles` (SPEC-M3-link-batch 10.8,
+   * S-11).  Declared exactly like `redo` above and for the same reason: it is
+   * a compiled document-level export, not an action, so the action map can
+   * never answer for it -- `offers("page-rectangles")` is false everywhere.
+   */
+  offersPageRectangles() {
+    const contract = this.document._engine.manifest?.editorContract;
+    if (!contract) return false;
+    return contract.pageRectangles === "document-sdk-page-rectangles";
+  }
+
   limitsFor(action) {
     const spec = this.document._engine.manifest?.editorContract?.actions?.[action];
     return Array.isArray(spec?.limits) ? spec.limits : [];
@@ -290,9 +302,22 @@ export class NarrowEditorV2Client {
           { result });
       }
     } else if (DELETE_ACTIONS.has(action)) {
-      if (!DELETE_COMPLETION(result)
-          || result.changed !== true
-          || result.revision !== expectedRevision + 1) {
+      // SPEC-M3-link-batch 10.5 (ruling 2 condition 8): C's second exit.  A
+      // caret-relative delete at a document boundary whose K1 selected
+      // nothing inside the engine's window completes as
+      // `verified-boundary-noop` with `changed: false` and the revision
+      // UNCHANGED.  Those two are the claims about the document and they are
+      // REQUIRED, not relaxed: the same completion claiming a change, or an
+      // advanced revision, is a malformed reply (boundary-noop.test.mjs, the
+      // red cases).  Engines without OXSDK_E2_V20_LINK_BATCH never send it,
+      // so accepting it changes nothing for them.
+      const boundaryNoop = result.completion === "verified-boundary-noop"
+        && result.changed === false
+        && result.revision === expectedRevision;
+      const verifiedDelete = DELETE_COMPLETION(result)
+        && result.changed === true
+        && result.revision === expectedRevision + 1;
+      if (!boundaryNoop && !verifiedDelete) {
         throw invalidResult(
           "delete did not satisfy the verified-selection postcondition",
           { result });
