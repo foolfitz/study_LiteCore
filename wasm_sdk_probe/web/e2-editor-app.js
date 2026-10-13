@@ -102,6 +102,15 @@ let engineActionsOut = 0;
 let busyLeftToAction = false;
 let pointMovesInFlight = 0;
 let deletesInFlight = 0;
+// FINDING 136 (SPEC-M3-held-key §16; fable's ruling-3).  The caret each delete
+// this page sends was sent FROM, oldest first: pushed when `editorAction`
+// sends it, released when it settles.  A reopen after a refusal puts the caret
+// back at the head -- the refused delete, since the reopen starts inside that
+// delete's `run()` catch, before its entry is released -- and not at the last
+// state the engine pushed: a refusal at a cell end comes with the barrier's
+// one-unit selection still active, its caret already in the next cell.
+const DELETE_ACTIONS = new Set(["delete-backward", "delete-forward", "delete-selection"]);
+const pendingDeleteCarets = [];
 
 // Fail closed: a session without `hasUnsavedEdits` throws here, and the host
 // counts a throw as "ask" -- an optional call answering `false` would switch
@@ -780,8 +789,16 @@ function updateState(snapshot) {
   // Finding 058.  The caret arrives as a state update, not as a document
   // change, so redrawing only on render would leave it a gesture behind.
   paint();
-  followCaret();
+  // L-134-RESTORE-FLASH (SPEC-M3-held-key §16).  Not while the page reopens the
+  // engine after a refusal, until D has put the caret back or failed: the fresh
+  // engine reports its caret at the document start, and following it took the
+  // view there for about 0.7 s and back.  Collabora's Writer reconnect ignores
+  // that caret for the same reason (findings/evidence/134/collabora-prior-art.md).
+  // The skipped calls are not followed at all; the reopen follows once at its end.
+  if (!reopening) followCaret();
 }
+
+let reopening = false;
 
 /**
  * FINDING 124: the view follows the caret.  The arrow keys' default is
@@ -1652,68 +1669,76 @@ async function reopenAfterBoundaryRefusal(error) {
   // rejected with the same error, so this runs once per rejected item; only
   // the first finds the session still waiting for a restart.
   if (session?.state?.snapshot?.state !== "restart-required") return;
-  // B1 (specs/SPEC-M3-production-ui.md §9).  FIRST, before anything that
-  // restarts: `restart()` disposes the engine and only then meets the Worker
-  // generation ceiling, so the third refusal of a page load used to end with
-  // no engine, save refused, and the work alive only in the checkpoint.
-  if (!session.restartAvailable()) {
-    toast(`${lead}。這個頁面不能再重新載入編輯引擎了——請看上方的說明。`, true);
-    await rescueAtGenerationLimit();
-    return;
-  }
-  if (!session.restartKeepsContent()) {
-    toast(`${lead}，但沒能先保住尚未儲存的修改——請看上方的說明。`, true);
-    return;
-  }
-  const unsaved = session.state.snapshot.dirty === true;
-  // FINDING 134, D (SPEC-M3-held-key §14).  A reopened engine has its caret at
-  // the document start, and nothing said so: the next key or typed text landed
-  // there, out of the user's sight.  The caret the engine last reported goes
-  // back by a click at its middle -- the reopened document is the checkpoint of
-  // the same content, laid out by the same engine.  Read before `restart()`:
-  // its `ready` writes the new engine's state.  When there is no caret to go
-  // back to or the click is refused, the toast says where the caret is.
-  const caret = session.state.snapshot.editorState?.caret ?? null;
-  toast(`${lead}，正在重新載入…`);
+  reopening = true;
   try {
-    // The refusal disabled the input sink (input-adapter `setBlocked`), and a
-    // disabled element loses focus; without this the user's next keys went
-    // to the page body (review 2026-10-06, item 3; measured on the pre-fix
-    // page: the next three keys landed nowhere, both browsers).
-    //
-    // INSIDE the operation, the moment `restart()` returns -- the session is
-    // `ready` and the sink enabled by then -- and NOT after `run()`, which
-    // also awaits the repaint.  Focusing after the repaint lost the first key
-    // typed once the pill said 就緒 (shakedown 2026-10-06, B3x Chrome: `z` of
-    // `zqb` and of `zqc` landed nowhere, the next two keys did; review
-    // 2026-10-06b item 10 had predicted it).  No scroll: the sink sits at the
-    // caret, which a restart puts at the document start (the other two
-    // `focus()` calls in this file pass the same; 069's class).
-    const restored = await run("重新載入", async () => {
-      await session.restart();
-      el.sink.focus({ preventScroll: true });
-      if (!Number.isFinite(caret?.x) || !Number.isFinite(caret?.y) || !Number.isFinite(caret?.height)) return false;
-      const now = session.state.snapshot.editorState?.caret;
-      if (now?.x === caret.x && now?.y === caret.y) return true;
-      try {
-        await session.placeCaret(caret.x, caret.y + caret.height / 2);
-        return true;
-      } catch {
-        return false;
-      }
-    });
-    // Not "everything is still there": keys typed just around the refused one
-    // can be lost.  Typed text waits in the input adapter's own queue while
-    // Delete goes straight to the session's, so a key typed BEFORE the refused
-    // delete can still be behind it and be rejected with it (finding 111;
-    // review 2026-10-06b item 4), and keys after it always are (review
-    // 2026-10-06 item 2).  Said, rather than claimed away.
-    toast(`${lead}，已重新載入${uncertain
-      ? "。請看一下那個位置：這一鍵可能生效了，也可能沒有"
-      : unsaved ? "。緊接在這一鍵前後打的字可能沒有打進去，請看一下" : ""}${
-      restored ? "" : "。游標現在在文件開頭"}。`);
-  } catch {
-    // run() has already said why.
+    // B1 (specs/SPEC-M3-production-ui.md §9).  FIRST, before anything that
+    // restarts: `restart()` disposes the engine and only then meets the Worker
+    // generation ceiling, so the third refusal of a page load used to end with
+    // no engine, save refused, and the work alive only in the checkpoint.
+    if (!session.restartAvailable()) {
+      toast(`${lead}。這個頁面不能再重新載入編輯引擎了——請看上方的說明。`, true);
+      await rescueAtGenerationLimit();
+      return;
+    }
+    if (!session.restartKeepsContent()) {
+      toast(`${lead}，但沒能先保住尚未儲存的修改——請看上方的說明。`, true);
+      return;
+    }
+    const unsaved = session.state.snapshot.dirty === true;
+    // FINDING 134, D (SPEC-M3-held-key §14).  A reopened engine has its caret at
+    // the document start, and nothing said so: the next key or typed text landed
+    // there, out of the user's sight.  The caret the engine last reported goes
+    // back by a click at its middle -- the reopened document is the checkpoint of
+    // the same content, laid out by the same engine.  Read before `restart()`:
+    // its `ready` writes the new engine's state.  When there is no caret to go
+    // back to or the click is refused, the toast says where the caret is.
+    // Finding 136: the refused delete's send-time caret, when this page sent it.
+    const caret = pendingDeleteCarets.length > 0 ? pendingDeleteCarets[0]
+      : session.state.snapshot.editorState?.caret ?? null;
+    toast(`${lead}，正在重新載入…`);
+    try {
+      // The refusal disabled the input sink (input-adapter `setBlocked`), and a
+      // disabled element loses focus; without this the user's next keys went
+      // to the page body (review 2026-10-06, item 3; measured on the pre-fix
+      // page: the next three keys landed nowhere, both browsers).
+      //
+      // INSIDE the operation, the moment `restart()` returns -- the session is
+      // `ready` and the sink enabled by then -- and NOT after `run()`, which
+      // also awaits the repaint.  Focusing after the repaint lost the first key
+      // typed once the pill said 就緒 (shakedown 2026-10-06, B3x Chrome: `z` of
+      // `zqb` and of `zqc` landed nowhere, the next two keys did; review
+      // 2026-10-06b item 10 had predicted it).  No scroll: the sink sits at the
+      // caret, which a restart puts at the document start (the other two
+      // `focus()` calls in this file pass the same; 069's class).
+      const restored = await run("重新載入", async () => {
+        await session.restart();
+        el.sink.focus({ preventScroll: true });
+        if (!Number.isFinite(caret?.x) || !Number.isFinite(caret?.y) || !Number.isFinite(caret?.height)) return false;
+        const now = session.state.snapshot.editorState?.caret;
+        if (now?.x === caret.x && now?.y === caret.y) return true;
+        try {
+          await session.placeCaret(caret.x, caret.y + caret.height / 2);
+          return true;
+        } catch {
+          return false;
+        }
+      });
+      // Not "everything is still there": keys typed just around the refused one
+      // can be lost.  Typed text waits in the input adapter's own queue while
+      // Delete goes straight to the session's, so a key typed BEFORE the refused
+      // delete can still be behind it and be rejected with it (finding 111;
+      // review 2026-10-06b item 4), and keys after it always are (review
+      // 2026-10-06 item 2).  Said, rather than claimed away.
+      toast(`${lead}，已重新載入${uncertain
+        ? "。請看一下那個位置：這一鍵可能生效了，也可能沒有"
+        : unsaved ? "。緊接在這一鍵前後打的字可能沒有打進去，請看一下" : ""}${
+        restored ? "" : "。游標現在在文件開頭"}。`);
+    } catch {
+      // run() has already said why.
+    }
+  } finally {
+    reopening = false;
+    followCaret();
   }
 }
 
@@ -1932,10 +1957,13 @@ async function editorAction(action) {
   // whose host part leaves the engine free (SPEC-M3-autosave §9.1, review 1
   // item 3).  A failed action is not repainted by `run()`, so a repaint given
   // up meanwhile is made here.
+  const deleting = DELETE_ACTIONS.has(action);
+  if (deleting) pendingDeleteCarets.push(session.state.snapshot.editorState?.caret ?? null);
   engineActionsOut += 1;
   try {
     await run(label, () => session.action(action, options));
   } finally {
+    if (deleting) pendingDeleteCarets.shift();
     engineActionsOut -= 1;
     if (engineActionsOut === 0 && busyLeftToAction) {
       busyLeftToAction = false;

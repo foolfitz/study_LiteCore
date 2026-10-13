@@ -1,0 +1,135 @@
+page 6470dec0cb0e20db46d33d46bfc565893f542b79f7317fcbc421653a562bb94b
+✖ 136 U-136a: a delete's caret is taken when it is sent, and released when it settles (0.846956ms)
+✖ 136 U-136b: the reopen clicks at the refused delete's send-time caret, not the last pushed one (0.264923ms)
+✖ 136 U-136c: with no delete of the page's out, the reopen reads today's snapshot caret (0.659757ms)
+✖ flash U-flash-a: the flag is up during the reopen and down after; the explicit follow runs once (0.19896ms)
+✖ flash U-flash-b: a throwing restart() still lowers the flag and follows once (0.173863ms)
+✖ flash U-flash-c: while the reopen flag is up, an out-of-view caret neither scrolls nor counts as followed (0.176769ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 0
+ℹ fail 6
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 42.398173
+
+✖ failing tests:
+
+test at editor-shell-v2/tests/page-reopen-caret.test.mjs:45:1
+✖ 136 U-136a: a delete's caret is taken when it is sent, and released when it settles (0.846956ms)
+  AssertionError [ERR_ASSERTION]: DELETE_ACTIONS not found in the page
+      at slice (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-reopen-caret.test.mjs:15:10)
+      at makeEditorAction (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-reopen-caret.test.mjs:33:7)
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-reopen-caret.test.mjs:47:39)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.start (node:internal/test_runner/test:1177:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at editor-shell-v2/tests/page-reopen-caret.test.mjs:93:1
+✖ 136 U-136b: the reopen clicks at the refused delete's send-time caret, not the last pushed one (0.264923ms)
+  AssertionError [ERR_ASSERTION]: the reopen flag not found in the page
+      at slice (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-reopen-caret.test.mjs:15:10)
+      at reopenWith (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-reopen-caret.test.mjs:80:7)
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-reopen-caret.test.mjs:94:28)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at editor-shell-v2/tests/page-reopen-caret.test.mjs:98:1
+✖ 136 U-136c: with no delete of the page's out, the reopen reads today's snapshot caret (0.659757ms)
+  AssertionError [ERR_ASSERTION]: the reopen flag not found in the page
+      at slice (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-reopen-caret.test.mjs:15:10)
+      at reopenWith (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-reopen-caret.test.mjs:80:7)
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-reopen-caret.test.mjs:99:28)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at editor-shell-v2/tests/page-reopen-caret.test.mjs:103:1
+✖ flash U-flash-a: the flag is up during the reopen and down after; the explicit follow runs once (0.19896ms)
+  AssertionError [ERR_ASSERTION]: the reopen flag not found in the page
+      at slice (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-reopen-caret.test.mjs:15:10)
+      at reopenWith (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-reopen-caret.test.mjs:80:7)
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-reopen-caret.test.mjs:105:27)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at editor-shell-v2/tests/page-reopen-caret.test.mjs:110:1
+✖ flash U-flash-b: a throwing restart() still lowers the flag and follows once (0.173863ms)
+  AssertionError [ERR_ASSERTION]: the reopen flag not found in the page
+      at slice (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-reopen-caret.test.mjs:15:10)
+      at reopenWith (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-reopen-caret.test.mjs:80:7)
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-reopen-caret.test.mjs:112:35)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at editor-shell-v2/tests/page-reopen-caret.test.mjs:134:1
+✖ flash U-flash-c: while the reopen flag is up, an out-of-view caret neither scrolls nor counts as followed (0.176769ms)
+  AssertionError [ERR_ASSERTION]: the reopen flag not found in the page
+      at slice (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-reopen-caret.test.mjs:15:10)
+      at makeFollow (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-reopen-caret.test.mjs:127:7)
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-reopen-caret.test.mjs:135:13)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
