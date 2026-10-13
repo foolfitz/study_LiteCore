@@ -1,0 +1,32 @@
+# Chrome headless http hang after the 2026-10-13 reboot: cause = locked KWallet (main session, 2026-10-13T05:32:27Z)
+
+$ dpkg-query -W -f='${Version}' google-chrome-stable
+151.0.7922.169-1
+
+$ busctl --user status org.freedesktop.secrets | grep -E "^(PID|Comm)="
+PID=4709
+Comm=ksecretd
+
+$ busctl --user call org.freedesktop.secrets /org/freedesktop/secrets org.freedesktop.Secret.Service ReadAlias s default
+o "/org/freedesktop/secrets/collection/kdewallet"
+
+$ busctl --user get-property org.freedesktop.secrets /org/freedesktop/secrets/collection/kdewallet org.freedesktop.Secret.Collection Locked
+b true
+
+# the owner's Plasma desktop runs in a TigerVNC session (no PAM wallet unlock at login):
+3430 /bin/sh /etc/X11/Xtigervnc-session /usr/bin/startplasma-x11
+3820 /usr/bin/kwin_x11 --replace
+
+# local server: python3 -m http.server 8132 --bind 127.0.0.1 (serves <p>hello</p>); fresh --user-data-dir each run
+
+$ timeout 15 google-chrome --headless=new --user-data-dir=<fresh>  --dump-dom http://127.0.0.1:8132/
+rc=124
+
+$ timeout 15 google-chrome --headless=new --user-data-dir=<fresh> --password-store=basic --dump-dom http://127.0.0.1:8132/
+<html><head></head><body><p>hello</p>
+</body></html>
+rc=0
+
+# server log (requests received; the two GET / are this run with --password-store=basic and one identical earlier run; the default runs reached the server 0 times):
+      2 127.0.0.1 - - [t] "GET /favicon.ico HTTP/1.1" 404 -
+      2 127.0.0.1 - - [t] "GET / HTTP/1.1" 200 -

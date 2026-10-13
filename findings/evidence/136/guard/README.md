@@ -156,3 +156,15 @@ Both `run-0N.stdout.txt` end in `TimeoutError: timed out in 180.0s`. So **there 
 - `ended-utc.txt` / `started-utc.txt` and the trailing `probe exit N` line in `probe.out` are mine (a wrapper I used to detect the end of a detached run); the probe's own output is the rest. `judge-output.txt` in `132-b/` and `c2/` carries my `$ …` and `exit N` lines.
 - Not run, by instruction: `make`, `package_m3_engine.py`, `ddev occ upgrade`, anything in `~/Projects/Nextcloud_Apps` (checked at the end: `git status --short` there is still only ` M appinfo/info.xml`); `wasm_sdk_probe/web` and `dist` untouched (`dist/e2-editor-app.js` hashed `b24d754a…` at the start of G0, in the G2 binding file's two lines, in the G4 chain's START line, and at the end of the chain). No `--write` mode, no `git push`.
 - I did not read the 136 page diff or SPEC-M3-held-key §16; the criteria are the ones the task and the precedents state.
+
+## Cause of the Chrome hang, found after the chain (main session, appended 2026-10-13T05:35Z; the text above is unchanged)
+
+Raw output: `chrome-wallet-diagnosis.txt`. The cause is a **locked KWallet**, not the page, the host, the probes or Chrome's network stack:
+
+- The Secret Service on this machine is `ksecretd` (KDE); its default collection is `kdewallet`, and that collection reads `Locked: true`.
+- The owner's Plasma desktop runs inside a TigerVNC session (`Xtigervnc-session` → `startplasma-x11`). A VNC login does not pass through the PAM module that unlocks the wallet, so after the 2026-10-13 reboot nothing unlocked it.
+- Headless Chrome with the default password store asks the Secret Service for its cookie-encryption key before a profile's first network request. With the wallet locked, that call waits for an unlock prompt nobody answers. Browser-internal requests (component updater, variations; the system network context) are not affected, which is why the verbose log shows those completing while the navigation request never opens a socket.
+- Paired control, same binary, same fresh-profile shape, same local server, one flag different: default → `rc=124` (timeout 15 s) and **0 requests reached the server**; `--password-store=basic` → the DOM printed, `rc=0`, the request reached the server.
+- Firefox and `curl` do not use the wallet, so they were unaffected.
+
+Consequence: every Chrome half of this chain is **not measured** because of the environment. The probes were not changed (adding `--password-store=basic` to the launcher would change hashed instruments and is not done here). The remedy is environmental: unlock `kdewallet` on the owner's desktop, check `Locked: false` and a default-flag `--dump-dom` of a local page, then run the chain again. What the rerun is and what it counts as is written in its own task, before it runs.
