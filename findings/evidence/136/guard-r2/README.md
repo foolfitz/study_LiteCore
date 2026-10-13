@@ -1,0 +1,23 @@
+# Finding 136 page — the "must not break" set on the final bytes, run 2
+
+Task: `handoff/tasks/TASK-2026-10-13e-136-guard-chain-r2.md`, which is run 2 of `handoff/tasks/TASK-2026-10-13d-136-guard-chain.md` (SPEC-M3-held-key §16; ruling-3 conditions 5–6). Run 1 is in `../guard/` and stays in the tree as "Chrome not measured (environment)": every Chrome half of run 1 died at its first `Page.navigate` because the KDE wallet `kdewallet` was locked after the owner's reboot (`../guard/README.md`, last section; `../guard/chrome-wallet-diagnosis.txt`). Mechanical runs of existing instruments and judges on one page; nothing here changes a check, a judge or an instrument. Facts only; anything not checked is marked unverified. All times UTC.
+
+**Run 2 is the verdict of record for every step** (the task fixed this before the run): each judge reads one report holding both browsers. Run 1's Firefox halves are an extra sample, reported beside run 2's Firefox halves; they do not overrule run 2 (if run 2's Firefox half of a cell is red and run 1's is green, the cell is red).
+
+## Conditions (common)
+
+- Page under test: `wasm_sdk_probe/dist/e2-editor-app.js` sha256 `b24d754a426706bb5c93dbacb3f7ffadc655e738ee9a0fdd7168069f0f701678` (= `wasm_sdk_probe/web/e2-editor-app.js`; `sha256sum` of both checked at 2026-10-13T05:38:18Z before G0).
+- Host `litecore` 0.2.18 (`appinfo/info.xml`, uncommitted on purpose; host HEAD `f5b34f0`, `git status --short` = ` M appinfo/info.xml`), engine package buildId `d6d04880f56e31da` (`engine/MANIFEST.json`: `source.page` = the page above, `source.profile` e2-editor-v19, `packagedAt` 2026-10-13T02:25:55+00:00). Every probe report's `static` and `staticAfter` carry `servedPage` = the page above, `buildId` `d6d04880f56e31da`, `hostVersion` `0.2.18` (checked per step below).
+- Pins (verified with `grep`, no pin commit in this run): `FINAL_PAGE_SHA256` in `wasm_sdk_probe/tools/probe_129_m4_wasm.py` line 70 = `b24d754a…` (run 1 commit `1b5efdbb`); `PAGE` in `findings/evidence/c-prime/c2/judge_c2.py` line 53 and `findings/evidence/typing-latency/judge_p2.py` line 41 = `b24d754a…` (run 1 commit `a0ed713f`).
+- Chrome 151.0.7922.169, Firefox 157.0.1, one browser at a time, one job at a time.
+- Desk notes (2026-10-13T05:38Z, before G0): `pgrep -c chrome` = 1, which is `/opt/marktext/chrome_crashpad_handler` (the owner's MarkText editor, pid 102013, not a Chrome browser); Chrome browsers by `pgrep -fc '/opt/google/chrome/chrome( |$)'` = 0; `pgrep -c firefox` = 1, the owner's own snap Firefox (pid 101463), left alone for the whole chain. `pgrep -af "probe_|check_m3|run_e2_c"` showed only its own `bash -c` wrapper line. Each step directory records its own desk at start.
+- Not done by me, by instruction: no `make`, no edit of `wasm_sdk_probe/web` or `dist`, nothing in `~/Projects/Nextcloud_Apps`, no `--write` mode, no `git push`, no probe/judge/launcher edit.
+- `static.shellBundle` in the probe reports is the same "shell generation v65 not frozen for this page" record as in run 1; the probe records it and does not stop on it. Not investigated.
+
+## Precondition and health checks (new in run 2)
+
+`health-checks.txt` holds every check with a UTC time: the wallet (`busctl --user get-property org.freedesktop.secrets /org/freedesktop/secrets/collection/kdewallet org.freedesktop.Secret.Collection Locked`, must print `b false`) and the default-flag Chrome check (`timeout 30 google-chrome --headless=new --user-data-dir="$(mktemp -d)" --dump-dom https://litecore.ddev.site:8443/login`, no `--password-store`; must exit 0 and print a DOM containing `Nextcloud`). Both ran before G0 and again before every browser step; a failure would have stopped the whole chain. (The helper script lives in the session scratchpad, not in the tree; it writes one line per check.)
+
+## G0 — 132-B on the 136 page: PASS (exit 0) — Chrome 6/6 and Firefox 6/6 holds, both wash controls
+
+`132-b/` (own README). 2026-10-13T05:38:49–06:13:11Z. Command: `probe_hand_test_0212.py --out findings/evidence/136/guard-r2/132-b --browsers chrome,firefox --arms hold-high,hold-low,wash-control --hold-rounds 3` (exit 0). `judge_132b.py --page b24d754a…` **exit 0**, last line `132-B PASS` (`chrome|firefox hold-high|hold-low round 0|1|2: PASS` ×12, wash-control fills Chrome 5 / Firefox 9, both PASS); `read_hold.py` exit 0. Read: deleted per hold 25 (Chrome) / 26 (Firefox), 1–2 deletes after release (last at 58.4–115.8 ms), caret band fresh 73.0–130.4 ms after release, 0 washes, `persistent.differing` 0. Run 1's Firefox half (same arms): 6/6 holds PASS, wash fills 10, last delete after release 70.6–105.3 ms, band fresh 89.6–123.4 ms — same verdict as run 2's Firefox half. Run 1's Chrome half was not measured.
