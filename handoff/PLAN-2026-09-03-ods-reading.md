@@ -325,3 +325,29 @@ interesting.
 **If this is never revisited, the default conclusion is:** the candidate's
 document width differs from the native engine's by under 1% on documents with
 content, cause unmeasured, and no criterion of this milestone depended on it.
+
+---
+
+# Amendment, 2026-10-13 — W6 is done (append-only; nothing above edited)
+
+The owner chose, on 2026-10-13, to run ODS preparation in parallel with the link batch (handoff 10-13d,
+addendum 2: "C"). W6 is the first item to land. Task: `handoff/tasks/TASK-2026-10-13g-w6-calc-capability.md`.
+Evidence: `findings/evidence/m4-ods/W6-calc-capability/`. Commit: `7e3a8d74`.
+
+- `tools/check_core_build_provides.py` now judges a second capability, `calc-spreadsheet`, through four
+  switches. Each one was read from the builds, and none was assumed:
+  - the Make variable `ENABLE_WASM_STRIP_CALC`, which is only `AC_SUBST`ed (there is no C++ macro for Calc);
+  - five objects inside `libsclo.a`;
+  - the library and `-lsclo` in the link deps;
+  - the implementation registration in `services.rdb`, plus the static constructor map.
+- All four switches are red on `build-headless-probe` and green on `build-a11y-gate0` and `build-native-26-8`.
+- The main session re-ran the self-test after the hand-back: **22/22**. Exit codes with no flag are unchanged
+  for every existing build: product core 1, `build-a11y-gate0` 0, `build-native-26-8` 0.
+- `--capability` narrows the judgement. With `--capability writer-lok-accessibility`, the output is
+  byte-identical to the tool before the change.
+- **Latent hazard, named and not fixed:** `tools/probe_a11y_gate0.py` reads exit 0 as "provides
+  accessibility". A future core that has accessibility but no Calc would exit 1 because of Calc. If that core
+  is ever built, the fix is `--capability writer-lok-accessibility` at that call site.
+- **Still owed at cutover**, beside the existing trap: when `PRODUCT_CORE_BUILD` is repointed, the a11y
+  negative control in the self-test needs its own writer-only path, because today it uses that constant. The
+  calc controls already have dedicated constants.
