@@ -12,6 +12,16 @@ Marks (finding 136, ruling-3 condition 3; task 2026-10-13c):
   hold arms        AFTER `wvy` typed after release and settle; judged on the
                    paragraph holding it and `afterAtEnd` (end of paragraph 0 for
                    before-table-hold, end of paragraph 1 = cell A1 for cell-hold).
+  cell-start-hold  (ruling-3 addendum 4) ArrowDown, Home (start of A1), `kjkjk`
+                   typed, Backspace held 8 s, release and settle, `wvy` typed,
+                   save.  Judged: the refusal is `anchor-mismatch` (positive
+                   control), `wvy` starts paragraph 1, `kjkjk` fully gone.
+`refusalStage` is the stage the page's own toast names (STAGE_LEADS).  The
+page shows no stage, only a sentence; 「這裡目前還不能這樣刪除」 is the sentence
+for `anchor-mismatch` AND for the other keyPosted:false stages the page treats
+as "unchanged" (`restore`, `return-mismatch`, `unit-late`, `undo-read`;
+`MERGE_KEY_UNCHANGED_STAGES` in e2-editor-app.js).  Named limit: the probe
+labels that sentence `anchor-mismatch` and cannot tell those apart.
 `scrollTop` is recorded as in the held probe; the table arms are exempt from
 its rule (the fixture fits one screen).
 
@@ -40,7 +50,30 @@ ui, evaluate = probe.ui, probe.evaluate
 DOC = ROOT / "wasm_sdk_probe" / "dist" / "e1-fixtures" / "table-boundary.odt"
 FOCUS_SINK = "(() => { document.querySelector('#sink').focus({ preventScroll: true }); return document.activeElement.id; })()"
 ARMS = {"before-table-press-type": ([], "press"), "before-table-hold": ([], "hold"),
-        "cell-press-type": (["ArrowDown"], "press"), "cell-hold": (["ArrowDown"], "hold")}
+        "cell-press-type": (["ArrowDown"], "press"), "cell-hold": (["ArrowDown"], "hold"),
+        "cell-start-hold": (["ArrowDown"], "start-hold")}
+# The reopen toast's lead -> the refusal stage it names (boundaryText in e2-editor-app.js).
+STAGE_LEADS = (("這一下沒有取得可刪除的內容", "nothing-selected"),
+               ("這裡目前還不能這樣刪除", "anchor-mismatch"),
+               ("這一下刪除送出了，但沒能確認它做了什麼", "key-posted"),
+               ("這一下刪除沒有完成", "delete-unverified"),
+               ("目前還不能在段落交界刪除", "no-merge-key"))
+
+
+def refusal_stage(toasts: list[str]) -> dict[str, Any]:
+    """The first reopen toast, classified by its lead.  Page sentence only, no document text."""
+    reopen = [t for t in toasts if "重新載入" in t]
+    stages = [next((name for lead, name in STAGE_LEADS if t.startswith(lead)), "unknown") for t in reopen]
+    return {"stage": stages[0] if stages else None, "stages": stages}
+
+
+def cell_start_read(server, original: list[str]) -> dict[str, Any]:
+    """cell-start-hold: does paragraph 1 (A1) start with AFTER, and is it AFTER + the original A1
+    (i.e. `kjkjk` fully gone).  Booleans only."""
+    texts = probe.texts_of(server.instance.dav("GET", probe.NAME)[1])
+    a1 = texts[1] if len(texts) > 1 else ""
+    return {"paragraph1StartsWithAfter": a1.startswith(probe.AFTER),
+            "paragraph1IsAfterThenOriginal": a1 == probe.AFTER + original[1]}
 
 
 def nav(session, kind: str, key: str) -> dict[str, Any]:
@@ -76,7 +109,10 @@ def run_round(arm: str, kind: str, server, doc: bytes, original: list[str], inde
         # run-1 sent every key to <body>: nothing had focused the sink (the owner-document probes click
         # into the text first).  The caret is at the document start after opening; focus the sink there.
         record["focused"] = evaluate(session, FOCUS_SINK)
-        record["moves"] = [nav(session, kind, key) for key in moves] + [ui.keyed(session, kind, "End")]
+        record["moves"] = [nav(session, kind, key) for key in moves] + [
+            ui.keyed(session, kind, "Home" if how == "start-hold" else "End")]
+        if how == "start-hold":
+            record["typedStart"] = probe.typed(session, kind, probe.START_TEXT)
         if how == "press":
             # run-3: a second mark typed where the caret is before the key, so the read-back says
             # where the user's caret was, beside where the reopened one put `zqx`.
@@ -88,7 +124,7 @@ def run_round(arm: str, kind: str, server, doc: bytes, original: list[str], inde
             ui.press(session, kind, "Delete")
             record["sent"] = {"press": True}
         else:
-            record["sent"] = probe.held.hold_key(session, kind, "Delete")
+            record["sent"] = probe.held.hold_key(session, kind, "Backspace" if how == "start-hold" else "Delete")
         record["settle"] = probe.settle(session)
         if how == "press":
             record["typedMark"] = probe.typed(session, kind, probe.MARK)
@@ -99,9 +135,12 @@ def run_round(arm: str, kind: str, server, doc: bytes, original: list[str], inde
         record["log"] = evaluate(session, probe.READ_LOG.replace("ARG_FROM", str(start)))
         record["limit"] = evaluate(session, ui.LIMIT)
         record["summary"] = probe.summarize(record["log"])
+        record["refusalStage"] = refusal_stage(record["summary"]["toasts"])
         if record["limit"].get("limit") not in probe.SETTLED_LIMITS:
             record["save"] = ui.save_and_settle(session, 60)
         record["server"] = probe.server_read(server, original)
+        if how == "start-hold":
+            record["cellStart"] = cell_start_read(server, original)
     except Exception:  # noqa: BLE001 -- a round that dies is recorded, not lost
         record["fatal"] = traceback.format_exc()
     finally:
@@ -118,7 +157,9 @@ def main() -> int:
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--browsers", default="chrome,firefox")
     parser.add_argument("--arms", default=",".join(ARMS))
+    parser.add_argument("--cell-start-hold-rounds", type=int, default=2)
     args = parser.parse_args()
+    rounds = {arm: 1 for arm in ARMS} | {"cell-start-hold": args.cell_start_hold_rounds}
     arms = [a for a in args.arms.split(",") if a]
     unknown = sorted(set(arms) - set(ARMS))
     if unknown:
@@ -138,22 +179,25 @@ def main() -> int:
                                            "sha256": hashlib.sha256(doc).hexdigest(),
                                            "paragraphs": len(original), "marksInOriginal": in_original},
                               "hold": {k: probe.held.OPTIONS[k] for k in ("holdMs", "holdDelayMs", "holdIntervalMs")},
+                              "arms": arms, "rounds": {arm: rounds[arm] for arm in arms},
                               "runs": []}
     try:
         for kind in args.browsers.split(","):
             for arm in arms:
-                run = run_round(arm, kind, server, doc, original)
-                report["runs"].append(run)
-                (args.out / "report.json").write_text(json.dumps(report, ensure_ascii=False, indent=1))
-                srv = run.get("server", {})
-                print(kind, arm, "fatal" if run.get("fatal") else json.dumps(
-                    {"refusals": run["summary"]["refusals"], "gens": run["summary"]["generations"],
-                     "limit": (run.get("limit") or {}).get("limit"),
-                     **{k: srv.get(k) for k in ("marks", "controls", "afters", "markParagraphs", "controlParagraphs",
-                                                "afterParagraphs", "controlThenMark", "afterAtEnd", "paragraphs",
-                                                "sameAsOriginal", "firstDiffFromOriginal", "charDelta")}},
-                    ensure_ascii=False),
-                      flush=True)
+                for index in range(rounds[arm]):
+                    run = run_round(arm, kind, server, doc, original, index)
+                    report["runs"].append(run)
+                    (args.out / "report.json").write_text(json.dumps(report, ensure_ascii=False, indent=1))
+                    srv = run.get("server", {})
+                    print(kind, arm, index, "fatal" if run.get("fatal") else json.dumps(
+                        {"refusals": run["summary"]["refusals"], "gens": run["summary"]["generations"],
+                         "limit": (run.get("limit") or {}).get("limit"),
+                         **{k: srv.get(k) for k in ("marks", "controls", "afters", "markParagraphs", "controlParagraphs",
+                                                    "afterParagraphs", "controlThenMark", "afterAtEnd", "paragraphs",
+                                                    "sameAsOriginal", "firstDiffFromOriginal", "charDelta")},
+                         "refusalStage": run.get("refusalStage"), "cellStart": run.get("cellStart")},
+                        ensure_ascii=False),
+                          flush=True)
     finally:
         server.clear_locks()
         try:
