@@ -51,3 +51,21 @@ Files: `../../121/0.2.16-134-binding.txt` (before 2026-10-12T23:49:34Z, after 23
 | Firefox Delete | `range-single` | 「刪除選取 9 ms」 | `ready` | 1 → 1 | 0 → 1 | `[]` | `M01 alpha` | PASS |
 
 Compared with `0.2.15-132-*.json` and `0.2.13-131fix-*.json`: after masking the `定位游標 N ms` figure of the `before` field, three of the four pairs are byte-identical to both earlier sets (Chrome Backspace, Firefox Backspace, Firefox Delete). **One pair differs in a number**: Chrome Delete reads 「刪除選取 16 ms」 here against 14 ms in both earlier sets (the criterion names no threshold for N; every field the criterion names is as required). The `before` latency of Chrome Backspace reads 「定位游標 5 ms」 here (33 / 36 ms earlier); it is the masked figure and not part of the criterion. The `after.toast` field reads 「已開啟 f.odt」 in all four files (the toolbar's last message, the same in the earlier sets); the criterion's "no toast" is the `toasts` list, empty in all four.
+
+## G3 — 129-B (arrow keys after a selection): PASS
+
+Pin commit (its own, before the run): `c0d507cc` — `FINAL_PAGE_SHA256` in `wasm_sdk_probe/tools/probe_129_m4_wasm.py` from `abe93f45…` to `6470dec0…`, the old value kept in the comment above it; nothing else in the file changed (`git diff` was 3 insertions, 1 deletion). Round directory `../../129/final/round-20261012T235136Z/`. Driver `tools/run_probe_129_final.sh ../findings/evidence/129/final/round-20261012T092119Z/docs 4 1` run from `wasm_sdk_probe/` (same docs directory and arguments as the precedent: round label 4, 1 round; exit 0). Chrome 23:51:36–00:04:02Z, Firefox 00:04:02–00:17:35Z (driver ended 00:17:45Z), load 0.65 0.68 0.53 at the start (`machine-at-start.txt`), `pgrep -c chrome` = 1 (Codex's crashpad handler). Analysis: `python3 wasm_sdk_probe/tools/analyze_129_m4.py round-20261012T235136Z round-20261012T092119Z` run in `findings/evidence/129/final/`, exit 0, stdout in `analysis-stdout.txt` (the analyzer also wrote `analysis.json` and `summary.md` in the round directory, as in earlier rounds). One extra invocation, not in the task: the same analyzer against `round-20261012T183200Z` (the previous page's round), stdout in `analysis-vs-183200Z-stdout.txt`, run first so the final `analysis.json`/`summary.md` are the task's form. The page under test is `dist/`; the red control is 0.2.12's page from `build/archive/host-0.2.12-engine-45cdcedfc0fe7e61/`.
+
+`preflight.final` in both `report-chrome.json` and `report-firefox.json`: `pageUnderTestSha256` `6470dec0cb0e20db46d33d46bfc565893f542b79f7317fcbc421653a562bb94b` (`pageUnderTestIsFinal: true`), `redControlSha256` `8909564eb2316afa6de7868a08b61d27219fabdf49f37326fee0dda2977bd401` (`redControlIs0212: true`).
+
+| Clause (§9.4 129-B, as in `../../129/final/README.md`) | Chrome | Firefox | Verdict |
+|---|---|---|---|
+| 42 brief cells land where native `ref` lands | old 12 = native exact 12/12; S1–S5 30/30 by rule, 28/30 exact (`s1/Down` 195 vs native 201, `s1/End` 194 vs 200: WASM wrap offsets, S1 lines start 101/195/292 vs native 101/201, the same two cells as in every earlier round) | same | PASS |
+| toolbar shape after the key is `collapsed` | 54 of 54 m4 arms `collapsed` | 54 of 54 | PASS |
+| 0 toasts | analyzer: `toasts in m4 arms … 0 arms []`; pill `stopped` in none | same | PASS |
+| key → move done < 400 ms | max 284.4 ms (moving keys 81.3–84.8; the 7 arms whose key does not move the caret 282.2–284.4) | max 288.5 ms (moving 83.7–86.8; the 7 non-moving 285.7–288.5) | PASS |
+| Shift+arrow does not move, no toast | `shift` arms: `caretMoved: false`, revision `[0, 0]`, `toasts: []`; range arm `sameCaret`/`sameSelection` true | same | PASS |
+| red control refuses | 3 of 3 `red-*` arms `refused: true` with the `EDITOR_FORMAT_GESTURE_UNSUPPORTED` toast | 3 of 3 | red, as required |
+| L-129 cells (recorded, not judged) | `s1d`/`m1d` Down follow native `ref` (`dragDownFollowsRef: ["s1d", "m1d"]`) | same | recorded |
+
+Cross-checks printed by the analyzer: Chrome against Firefox landing index equal in 54/54 cells; each browser against `round-20261012T092119Z` (the d761f1ce round): 54 compared, 0 differ, wrap offsets the same; against `round-20261012T183200Z` (the abe93f45 round): 54 compared, 0 differ, wrap offsets the same.
