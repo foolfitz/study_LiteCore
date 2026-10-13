@@ -142,6 +142,8 @@ function page({ width = 24, shape = SHAPES.whole } = {}) {
      let docRows = ${shape.doc}, winTop = ${shape.top}, changes = 0;
      let deletesInFlight = 0;
      function positionProjection() {}
+     // SPEC-M3-link-batch §10.8 (task 2026-10-13l): layoutCanvas recomputes the page number.
+     function updatePageStatus() {}
      ${PARTS}
      return {
        paint, layoutCanvas, renderBands, overlayShapes, RENDER_BAND_HEIGHT,

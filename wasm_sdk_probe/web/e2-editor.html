@@ -200,6 +200,12 @@
     font-size: 12px; color: var(--muted);
   }
   .statusbar b { color: var(--ink); font-weight: 600; }
+  /* 頁碼那一行（見 body 裡 #page-status 的註解）。故意不寫 display：寫了就會蓋掉
+     `hidden` 屬性的 UA 樣式，元素會在沒有頁碼可報時仍然佔著一行。 */
+  #page-status {
+    padding: 4px 14px; font-size: 12px; color: var(--muted); text-align: left;
+    background: var(--bar); border-top: 1px solid var(--line);
+  }
 
   #notice {
     display: none; padding: 8px 14px; font-size: 13px;
@@ -314,6 +320,16 @@
          實際的：<code id="actual-hash">—</code></p>
     </div>
   </div>
+
+  <!-- SPEC-M3-link-batch §4.3／§10.10 Q-A：頁碼，「第 N 頁，共 M 頁」或「第 N–L 頁，共 M 頁」，
+       由頁面從 handle.pageRectangles() 算出（e2-editor-app.js，updatePageStatus）。
+
+       自己一個元素，不放進 .statusbar——宿主把整條 .statusbar 藏起來
+       （litecore/templates/editor.php:51），而這一行在宿主裡也要看得到。
+       不是 live region（沒有 aria-live、沒有 role）：捲動不該說話（finding 087／088），
+       報讀軟體用瀏覽的方式就讀得到。
+       沒有 page-rectangles 的 profile（v8、v19）永遠 hidden，頁面也永遠不會去問引擎。 -->
+  <div id="page-status" hidden></div>
 
   <div class="statusbar">
     <span>狀態 <b id="s-state">—</b></span>

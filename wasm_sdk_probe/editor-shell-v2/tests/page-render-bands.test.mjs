@@ -95,6 +95,10 @@ function page({ height = 22256, width = 10, view = [9000, 11000], onRender = nul
      function overlayShapes() {}
      function moveSinkToCaret() {}
      function drawOverlay(c) { c.putOverlay && c.putOverlay(); }
+     // SPEC-M3-link-batch §10.8 (task 2026-10-13l): the page number's recompute
+     // on scroll and its re-read on a resized paint -- stubbed like the rest.
+     function updatePageStatus() {}
+     const pageRectangles = { sizeChangeReported() {} };
      ${PARTS}
      ${LISTENER}
      return { renderDocument, renderBands, bandOrder, paint, RENDER_BAND_HEIGHT, windowRows, onDeskScroll,

@@ -27,7 +27,8 @@
 //     get EDITOR_NOT_READY.  The page offers the rollback explicitly.
 
 import { createDocumentEngine } from "./sdk/document-sdk.js";
-import { NarrowEditorV2Session, selectionShapeOf, selectionShapeEvidence }
+import { NarrowEditorV2Session, PageRectanglesScheduler, pageSpanOf, pageStatusText,
+         selectionShapeEvidence, selectionShapeOf, visibleRegionTwips }
   from "./editor-shell-v2/narrow-editor-v2-session.js";
 // Finding 061: this page used to re-derive the recovery notice from
 // `hasCheckpoint` alone, and that two-way branch told a user whose checkpoint
@@ -147,6 +148,7 @@ const el = {
   actualHash: $("#actual-hash"),
   a11yDoc: $("#a11y-doc"), a11yPara: $("#a11y-para"),
   a11yStructure: $("#a11y-structure"),
+  pageStatus: $("#page-status"),
   s: { state: $("#s-state"), revision: $("#s-revision"), pending: $("#s-pending"),
        generation: $("#s-generation"), checkpoint: $("#s-checkpoint"),
        latency: $("#s-latency"), doc: $("#s-doc") },
@@ -223,6 +225,90 @@ function describeError(error) {
   if (error?.code === "EDITOR_VIEW_ONLY") return VIEW_ONLY_TEXT;
   const code = error?.code ? `${error.code}：` : "";
   return `${code}${error?.message || String(error)}`;
+}
+
+/* ------------------------------------------------------------ page number */
+
+// SPEC-M3-link-batch §4.3, §10.8, §10.10 Q-A, §12.3 (task 2026-10-13l).  The
+// line at the bottom left, 「第 N 頁，共 M 頁」 or 「第 N–L 頁，共 M 頁」, drawn
+// from `handle.pageRectangles()` by Writer's rule computed here: N is the
+// first page intersecting the visible region, L the last, M the number of
+// rectangles.  The rule, the text and the region conversion are
+// `pageSpanOf`, `pageStatusText` and `visibleRegionTwips` in the session
+// module, node-tested; this page only measures the view and sets an element.
+//
+// ITS OWN ELEMENT, `#page-status`, outside `.statusbar`: the host hides the
+// dev status bar whole (`litecore/templates/editor.php:51`,
+// `#litecore-editor-root .statusbar { display: none }`) and this line must be
+// visible there.  Not a live region: scrolling must not speak (087/088).
+//
+// ABSENT UNLESS OFFERED.  On every profile that predates the v20 link
+// (`offersPageRectangles()` false: v8, v19) the element stays `hidden` and
+// `pageRectangles()` is never called -- the scheduler is gated on the same
+// answer -- so this page on v19 behaves exactly as before.
+//
+// WHEN THE ENGINE IS ASKED (`PageRectanglesScheduler`, the decision in one
+// clock-free, node-tested place): after every open of a document -- the first
+// open, the reopen after a refusal, a restart -- keyed on the DOCUMENT object,
+// because a fresh engine's counter starts at 0 again; when
+// `editorState.documentSizeChangedCount` moves; when a paint reply says
+// `documentSizeChanged` (renderDocument).  Never on `documentChangeSequence`
+// (typing sends no INVALIDATE_TILES, spec F2), scroll, resize, zoom or caret
+// movement: those recompute N and L from the last answer (`updatePageStatus`,
+// from onDeskScroll and layoutCanvas; followCaret scrolls the desk, which is
+// a scroll).  At most one read in flight, triggers meanwhile collapse into one
+// follow-up, an answer for a document no longer current is dropped.
+//
+// A read that fails hides the line and says nothing: a page number is not
+// worth a toast.  Named limit L-page-margin: the whole rectangle is used
+// (Writer subtracts the margins first), so a view showing only the previous
+// page's bottom margin counts that page.
+const pageStatus = { document: null, rectangles: null };
+const pageRectangles = new PageRectanglesScheduler({
+  offered: () => session?.offersPageRectangles?.() === true,
+  read: (document) => document.pageRectangles({ timeoutMs: 30000 }),
+  onResult: (document, result) => {
+    if (document !== session?.document || document !== pageStatus.document) return;
+    pageStatus.rectangles = Array.isArray(result?.rectangles) ? result.rectangles : null;
+    updatePageStatus();
+  },
+});
+
+/** Every write of the session's state: a document opened, or its counter may have moved. */
+function notePageRectangles(snapshot) {
+  if (!["ready", "busy"].includes(snapshot?.state)) return;
+  const document = session?.document ?? null;
+  if (document === null) return;
+  if (document !== pageStatus.document) {
+    pageStatus.document = document;
+    pageStatus.rectangles = null;
+    updatePageStatus();   // hidden until this document's read answers
+    pageRectangles.documentOpened(document, snapshot.editorState);
+    return;
+  }
+  pageRectangles.stateObserved(document, snapshot.editorState);
+}
+
+function hidePageStatus() {
+  if (el.pageStatus.hidden && el.pageStatus.textContent === "") return;
+  el.pageStatus.hidden = true;
+  el.pageStatus.textContent = "";
+}
+
+/** Recompute N and L from the last rectangles and the view.  No engine call, ever. */
+function updatePageStatus() {
+  const rectangles = pageStatus.rectangles;
+  const document = session?.document ?? null;
+  if (!rectangles || document === null || document !== pageStatus.document || !docRows) {
+    hidePageStatus();
+    return;
+  }
+  const [top, bottom] = visibleDocRows();
+  const region = visibleRegionTwips(top, bottom, docRows, document.widthTwips, document.heightTwips);
+  const text = pageStatusText(pageSpanOf(rectangles, region));
+  if (text === null) { hidePageStatus(); return; }
+  if (el.pageStatus.textContent !== text) el.pageStatus.textContent = text;
+  el.pageStatus.hidden = false;
 }
 
 /* ------------------------------------------------------------------ state */
@@ -722,6 +808,7 @@ function showState(state, label) {
 function updateState(snapshot) {
   noteAutosaveState(snapshot);
   noteCollapsedCaret(snapshot.editorState);
+  notePageRectangles(snapshot);
   showState(snapshot.state, {
     idle: "未開啟", loading: "載入中", ready: "就緒", busy: "處理中",
     "recoverable-error": "需要回復", "restart-required": "需要重新開啟",
@@ -1040,6 +1127,8 @@ function layoutCanvas() {
   // it is the one place that has to say so -- `projectStructure` runs on state
   // reads, and a resize is not one.
   if (lastProjectedParagraphs) positionProjection(lastProjectedParagraphs);
+  // The view's rows changed too: the page number is recomputed, not re-read.
+  updatePageStatus();
 }
 
 /**
@@ -1055,6 +1144,7 @@ function layoutCanvas() {
  * on the canvas, or the window already against the document's end.
  */
 function onDeskScroll() {
+  updatePageStatus();   // the page number follows the view; no engine call (§10.8)
   if (!session?.document || !docRows) return;
   const rows = el.canvas.height;
   if (rows >= docRows) return;
@@ -1301,6 +1391,9 @@ async function renderDocument(retriesLeft = RENDER_BUSY_RETRIES) {
       // `finally` below is what runs it.  It terminates because the engine
       // reports a CHANGE, so the next reply for an unchanged document says
       // false.
+      // SPEC-M3-link-batch §10.8: the size changed, so the page rectangles may
+      // have too -- the one paint-side trigger for re-reading them.
+      if (session?.document) pageRectangles.sizeChangeReported(session.document);
       layoutCanvas();
       renderAgain = true;
     }
@@ -2960,6 +3053,12 @@ function syncSinkToInput(sink, input) {
 
 async function openDocument(bytes, name, { readOnly = false } = {}) {
   if (session) {
+    // The page number described the document being let go: an answer still in
+    // flight for it is dropped, and the line hides until the next one reads.
+    pageRectangles.closed();
+    pageStatus.document = null;
+    pageStatus.rectangles = null;
+    hidePageStatus();
     try { await session.close(); } catch { /* a dead session must not block */ }
     session = null;
   }
