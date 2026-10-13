@@ -675,7 +675,14 @@ FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
 # is); H3 while a delete is out, the engine's range (the barrier's one character) is not drawn.  Frozen after 132-U,
 # 132-B on these bytes (12/12 holds) and §5.3 on these bytes: 131-B, 121-B, 128-B (single keys, host segment on a
 # bounded re-run, its red control red), 129-B, 130-U, 122-B / C2.
-MANIFEST = Path("e2/editor-shell-v2-bundle-v64.json")
+#
+# v65, 2026-10-13: FINDING 134 (SPEC-M3-held-key §14; fable's ruling for the owner, B + D; host 0.2.16).  One file
+# differs from v64, `web/e2-editor-app.js` (6470dec0...): B once a delete the page sent is refused, the rest of that
+# Backspace/Delete hold is not sent; D after an automatic reopen the caret the engine last reported is put back.
+# Frozen after U-B (red on abe93f45 first), the acceptance run on these bytes (judge exit 0, four arms, both browsers)
+# and ruling-1 condition 4 on these bytes: 132-B, 131-B, 128-B (host segment on a bounded re-run, its red control red),
+# 121-B, 129-B, 130-U, 122-B / C2.
+MANIFEST = Path("e2/editor-shell-v2-bundle-v65.json")
 ENTRYPOINT = Path("web/e2-editor-app.js")
 
 # The directories whose *.js files must all be accounted for.  `editor-shell`
