@@ -682,7 +682,16 @@ FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
 # Frozen after U-B (red on abe93f45 first), the acceptance run on these bytes (judge exit 0, four arms, both browsers)
 # and ruling-1 condition 4 on these bytes: 132-B, 131-B, 128-B (host segment on a bounded re-run, its red control red),
 # 121-B, 129-B, 130-U, 122-B / C2.
-MANIFEST = Path("e2/editor-shell-v2-bundle-v65.json")
+#
+# v66, 2026-10-13: FINDING 136 and L-134-restore-flash (SPEC-M3-held-key §16; fable's ruling-3 for the owner, with
+# addenda 1-6; host 0.2.18).  One file differs from v65, `web/e2-editor-app.js` (b24d754a...): after an automatic
+# reopen the caret is put back at the last caret the engine pushed with no range selected (addendum 4; not the
+# send-time FIFO of the never-released 0.2.17, aebef525...), and while the page reopens `updateState` does not follow
+# the caret (one explicit follow when the reopen ends).  Frozen after U-136 / U-flash (red on 6470dec0 first), the
+# acceptance on these bytes (both judges exit 0, every arm, both browsers) and ruling-3 conditions 5-6 on these bytes
+# (guard chain run 2, both browsers): 132-B, 131-B, 128-B (host segment on a bounded re-run, its red control red),
+# 121-B, 129-B, 130-U, 122-B / C2, restore-window.
+MANIFEST = Path("e2/editor-shell-v2-bundle-v66.json")
 ENTRYPOINT = Path("web/e2-editor-app.js")
 
 # The directories whose *.js files must all be accounted for.  `editor-shell`
