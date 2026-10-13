@@ -608,3 +608,18 @@ RC-1 閘，示範到的是 void→C）。主 session 補做了字面版：用產
 **同時量到、沒有解釋的（NU-089-3）**：**逾時與崩潰分開了。** rows35 與 index36×35 的 worker 崩潰（`memory access out of bounds`）在預設路徑上一再出現（banked 3/3、E0-r1、E0-r2），而只要設了任何一個 Calc 計算變數，不論值是什麼，七趟裡 14 次全不崩；`pthread_mutex_unlock failed: EPERM` 也是同一個分布。讀原始碼的一個線索（**未量**）：E1、E2、E3 三者都繞過 `ScCalcConfig::isThreadingEnabled()` 裡建立設定監聽器（`ConfigurationListenerProperty`，`calcconfig.cxx:87`）的那一步——E1 因為 `formulacell.cxx:5096` 的條件先短路，E2／E3 因為 `SC_FORCE_CALCULATION` 讓它提早 return；預設路徑才會建立它。這是一條可否證的線索，不是成因；本 finding 不指認成因的戒律照舊。
 
 **還沒做、可以不連結就做的**（下一輪要先登錄）：其他能用環境變數關掉的執行緒使用者——`SAX_DISABLE_THREADS`（`sax/source/fastparser/fastparser.cxx:834`，content.xml 超過 10,000 位元組就開解析執行緒）、`MAX_CONCURRENCY=1`（`comphelper::ThreadPool` 的上限）。若這兩個也不翻，要知道「卡住時在等誰」就需要堆疊，而 v12／v14 的 `probe.wasm` 沒有 name section（主 session 2026-10-13 讀過：零個 custom section），要嘛用 CDP 對卡住的 worker 下 `Debugger.pause` 讀 JS 層的框架，要嘛請擁有者連結一份 `--profiling-funcs` 的診斷版（finding 037 有前例）。
+
+### 更正 2 的兩臂：O-N2（2026-10-13，只追加）
+
+協定：`TASK-2026-10-13f` 更正 2（`53044890`，跑之前寫）。證據同一目錄（`831fea32`）。主 session 逐份核對。
+
+| 臂 | 環境變數 | rows36 | index35×36 | rows35 | index36×35 |
+|---|---|---|---|---|---|
+| E4 ×1 | `SAX_DISABLE_THREADS=1`（關掉 FastSaxParser 的解析執行緒） | 逾時 | 逾時 | 崩 | 崩 |
+| E5 ×1 | `MAX_CONCURRENCY=1`（回聲確認 LO 自己的 4 被換成 1） | 逾時 | 逾時 | 崩 | 崩 |
+
+兩臂第一趟都沒翻，照規則不補跑。**ODS 匯入路徑上能用環境變數關掉的四個執行緒使用者（群組多執行緒、群組計算、SAX 解析執行緒、ThreadPool 上限）都不是懸崖的開關。**
+
+NU-089-3 多了兩個點：E4、E5 都**走預設的計算路徑**，兩者都照樣崩（各 2 次 `memory access out of bounds`）——崩潰跟著「有沒有設 Calc 計算變數」走，不跟 SAX 執行緒或 ThreadPool 上限走。`MAX_CONCURRENCY=1` 也崩，所以崩潰不是 ThreadPool 併發度的問題。
+
+照更正 2：**不再猜環境變數**，下一步是卡住時的堆疊。v12 的 `probe.wasm` 沒有 name section，finding 037 的前例（`probe_wait_primitive_names.py` 的 docstring）已經說明：不重新連結只拿得到 `$funcN`，要命名得請擁有者連結一份 `--profiling-funcs` 版。走哪一條交 fable 代擁有者裁決（擁有者 2026-10-13 授權）。
