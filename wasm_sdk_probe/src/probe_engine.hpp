@@ -44,6 +44,12 @@ SubmitStatus search(std::uint32_t requestId, std::uint32_t documentHandle,
                     std::string query, bool backward);
 SubmitStatus getSelection(std::uint32_t requestId,
                           std::uint32_t documentHandle);
+#ifdef OXSDK_E2_V20_LINK_BATCH
+// SPEC-M3-link-batch 10.8: the raw page rectangles, the document size and the
+// part count, as one document-level query.  Never an editor action.
+SubmitStatus pageRectangles(std::uint32_t requestId,
+                            std::uint32_t documentHandle);
+#endif
 SubmitStatus replaceSelection(std::uint32_t requestId,
                               std::uint32_t documentHandle,
                               std::uint32_t expectedRevision,

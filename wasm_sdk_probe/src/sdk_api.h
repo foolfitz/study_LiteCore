@@ -99,6 +99,15 @@ int32_t oxsdk_document_set_track_changes(
     uint32_t expected_revision, uint32_t enabled);
 int32_t oxsdk_document_list_changes(oxsdk_request_id request_id,
                                     oxsdk_document_handle document_handle);
+#ifdef OXSDK_E2_V20_LINK_BATCH
+/*
+ * SPEC-M3-link-batch 10.8: the raw `getPartPageRectangles()` string, the
+ * document size and `getParts()`, in one reply.  A document-level export like
+ * redo, never an editor action.
+ */
+int32_t oxsdk_document_page_rectangles(oxsdk_request_id request_id,
+                                       oxsdk_document_handle document_handle);
+#endif
 
 /* Cancels only a request that has not begun executing on the engine thread. */
 int32_t oxsdk_request_cancel(oxsdk_request_id request_id);

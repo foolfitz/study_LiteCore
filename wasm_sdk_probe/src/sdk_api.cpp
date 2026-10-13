@@ -241,6 +241,24 @@ extern "C" EMSCRIPTEN_KEEPALIVE int32_t oxsdk_document_list_changes(
 }
 #endif
 
+#ifdef OXSDK_E2_V20_LINK_BATCH
+/*
+ * SPEC-M3-link-batch 10.8 (S-11), the redo precedent: a document-level EXPORT
+ * beside get_selection, never an editor action.  No wire id, no gesture; the
+ * editor ABI stays 4.  A COMPILED export like redo, so the SDK gates the call
+ * on the manifest's declaration before reaching for the symbol.  The export
+ * list is the Makefile's per-profile `exports.txt` recipe; part 3 adds
+ * `_oxsdk_document_page_rectangles` to v20's.
+ */
+extern "C" EMSCRIPTEN_KEEPALIVE int32_t oxsdk_document_page_rectangles(
+    oxsdk_request_id requestId, oxsdk_document_handle documentHandle) {
+  if (!validRequest(requestId) || documentHandle == 0)
+    return OXSDK_STATUS_INVALID_ARGUMENT;
+  return safeStatus(
+      [&] { return probe::pageRectangles(requestId, documentHandle); });
+}
+#endif
+
 extern "C" EMSCRIPTEN_KEEPALIVE int32_t
 oxsdk_request_cancel(oxsdk_request_id requestId) {
   if (!validRequest(requestId))
