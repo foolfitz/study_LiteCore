@@ -115,3 +115,7 @@ Judges, run as the C2 README did with `--dir` at this directory, output in `c2/j
 - At the start of G3 I ran `analyze_129_m4.py --help` by mistake, expecting an argparse usage; the script takes positional arguments, so it tried to write `--help/analysis.json` and failed with `FileNotFoundError` before creating anything (`git status` afterwards showed no stray file).
 - Not run, by instruction: `make`, `package_m3_engine.py`, `ddev occ upgrade`, anything in `~/Projects/Nextcloud_Apps`; nothing was committed or changed there (host HEAD `568608c`, `info.xml` still the uncommitted 0.2.16 edit — checked at the start only, not re-checked at the end). `wasm_sdk_probe/web` and `dist` untouched (`dist/e2-editor-app.js` hashed `6470dec0…` before G0 and in the G2 binding file's two lines and in the G4 chain's START line).
 - I did not read the 134 page diff or SPEC-M3-held-key §14; the criteria are the ones the task and the precedent state.
+
+## Note on G4 (main session, 2026-10-13; ruling-2 condition 7)
+
+The verdict of record stays **PASS: 148.7 < 150, a single run, as specified**. The same cell was later repeated on the same page (`../c2-cell-repeat/`). It exceeded the gate in 3 of 10 repeats (158.0 / 179.4 / 180.4 ms, all at key 10) and in 0 of 10 in the paired A/B (`../c2-cell-repeat/ab/`). The same stall also appeared once on the 0.2.15 page. So this cell is **not safely under its gate**, and a single-run PASS at these rates is partly luck. Finding 135.
