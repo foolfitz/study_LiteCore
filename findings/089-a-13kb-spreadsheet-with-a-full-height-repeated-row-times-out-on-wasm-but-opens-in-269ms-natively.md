@@ -583,3 +583,28 @@ RC-1 閘，示範到的是 void→C）。主 session 補做了字面版：用產
 的 C2 子案（它要求 B1／B2 也在內）不一致，`reduce.py` 採了實質的八點讀法；
 以及 RC-3 的字面寫法在 banked 輸入上不可達，已由 RC-3b 補上。兩者都不改變本
 輪結果，但都不假裝沒發生。
+
+---
+
+## 判別臂：不是公式群組計算——outcome O-N（2026-10-13，只追加）
+
+先登錄的協定：`handoff/tasks/TASK-2026-10-13f-089-threading-arms.md`（`47440469`，含更正 1）。證據：`findings/evidence/089/threading-arms-2026-10-13/`（`8d26c32f`）。儀器：`probe_ods_on_profile.py --engine-env`（`b028cbc6`），只改 scratch 鏡像裡那份 `probe.js` 的 ENV，引擎從 preRun 把 ENV 印回報告；沒有回聲的 case 一律作廢。
+
+**假說 H-T（讀原始碼，跑之前寫的）**：懸崖是 Calc 的公式群組多執行緒計算在 WASM 上被走進去（群組權重 ≥ 100 才走，`formulacell.cxx:4897`；權重＝雙參照格數／10 × 群組長度）。**被否證。**
+
+| 臂 | 環境變數 | rows36 | index35×36 | rows35 | index36×35 | 對照組 |
+|---|---|---|---|---|---|---|
+| E0-r2（儀器對照） | `OXSDK_089_ARM=control` | 逾時 | 逾時 | 崩 | 崩 | 全與 banked 同 |
+| E1 ×3 | `SC_NO_THREADED_CALCULATION=1` | 逾時 3/3 | 逾時 3/3 | 乾淨 3/3 | 乾淨 3/3 | 乾淨 |
+| E2 ×1 | `SC_FORCE_CALCULATION=core`（整個停用群組計算） | 逾時 | 逾時 | 乾淨 | 乾淨 | 乾淨 |
+| E3 ×3（60 s 上限） | `SC_FORCE_CALCULATION=threads` | 逾時 3/3 | 逾時 3/3 | 乾淨 3/3 | 乾淨 3/3 | 乾淨（index30×36、rows20 沒有變慢） |
+
+主 session 用自己的讀取器逐份核對十份報告，狀態與回聲（E0-r2 起每份 7/7）都與執行者的表相同。
+
+**儀器先錯了一次，閘門擋下來**：E0-r1 回聲 0/7——探針頁在 `createDocumentEngine()` resolve 之後才掛聽眾，preRun 的回聲發給零個聽眾。是主 session 的設計錯，不是執行者的；修法（初始化之前掛聽眾）與修後 2/2 的儀器檢查在 `88472109`，E0-r1 留著當紅案。
+
+**結論**：逾時**不在** Calc 的公式群組計算——E2 把群組計算整個關掉，rows36 照樣掛 180 秒。H-T 撤回，不留機械去維持它。
+
+**同時量到、沒有解釋的（NU-089-3）**：**逾時與崩潰分開了。** rows35 與 index36×35 的 worker 崩潰（`memory access out of bounds`）在預設路徑上一再出現（banked 3/3、E0-r1、E0-r2），而只要設了任何一個 Calc 計算變數，不論值是什麼，七趟裡 14 次全不崩；`pthread_mutex_unlock failed: EPERM` 也是同一個分布。讀原始碼的一個線索（**未量**）：E1、E2、E3 三者都繞過 `ScCalcConfig::isThreadingEnabled()` 裡建立設定監聽器（`ConfigurationListenerProperty`，`calcconfig.cxx:87`）的那一步——E1 因為 `formulacell.cxx:5096` 的條件先短路，E2／E3 因為 `SC_FORCE_CALCULATION` 讓它提早 return；預設路徑才會建立它。這是一條可否證的線索，不是成因；本 finding 不指認成因的戒律照舊。
+
+**還沒做、可以不連結就做的**（下一輪要先登錄）：其他能用環境變數關掉的執行緒使用者——`SAX_DISABLE_THREADS`（`sax/source/fastparser/fastparser.cxx:834`，content.xml 超過 10,000 位元組就開解析執行緒）、`MAX_CONCURRENCY=1`（`comphelper::ThreadPool` 的上限）。若這兩個也不翻，要知道「卡住時在等誰」就需要堆疊，而 v12／v14 的 `probe.wasm` 沒有 name section（主 session 2026-10-13 讀過：零個 custom section），要嘛用 CDP 對卡住的 worker 下 `Debugger.pause` 讀 JS 層的框架，要嘛請擁有者連結一份 `--profiling-funcs` 的診斷版（finding 037 有前例）。
