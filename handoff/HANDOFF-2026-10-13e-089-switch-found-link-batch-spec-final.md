@@ -139,3 +139,15 @@ One commit landed after `c6edfd37` while this handoff was drafted: `c163fd0a`, t
 - fable (rulings, for the owner): 089 ruling 1 (`c6e10b21`); link-batch ruling 2 (`918c2497`); link-batch ruling 3 (`1b38f6c0`). Their outputs are the `ruling-*.md` files.
 - opus (adversarial reviewers): link-batch review 1 (`cf0e15d2`, the whole draft); review 3 (`6370916e`, §10 only).
 - sonnet (executors): `TASK-2026-10-13f` (089 threading arms, then the stack arms), `10-13g` (W6), `10-13h` (native extend signatures), `10-13i` (W9 draft). Their outputs are the READMEs under `findings/evidence/089/`, `m4-ods/` and `link-batch/extend-signatures/`.
+
+**Addendum (main session).**
+- **Owner's words this session, verbatim:**
+  - 「補充：本session 不受 token 軟上限約束；有疑義的發給fable，我授權它代我下決定」
+  - 「需要靈感的話可以參考 collabora source code」
+
+  The second is what led to H-S (`cool-26-04/engine/solenv/gbuild/platform/EMSCRIPTEN_INTEL_GCC.mk:25`).
+- **The report count is 12, not 14.** Finding 089 now carries an appended correction. The stack-arm reports
+  are S0, S1×3, S2×3, S3×3, S4 and SL.
+- **§34.4 classification.** The spec revisions in §10 and §12 are spec changes, not check fixes. That
+  classification is the main session's, and it stands.
+
