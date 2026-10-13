@@ -81,6 +81,29 @@ from e1_support import write_json  # noqa: E402
 ABI_VERSION = 4
 PROFILE = "e2-editor-v4"
 
+# SPEC-M3-link-batch 10.8 / 13.3: the page-rectangles document query.  Declared
+# the way `redo` is -- a document-level SDK operation, not an action: no wire
+# id, no gesture, the ABI does not move -- and gated by the SDK, the worker and
+# the client on exactly this string (v20 part 1, findings/evidence/link-batch/
+# v20-part1/README.md section 4).
+PAGE_RECTANGLES_DECLARATION = "document-sdk-page-rectangles"
+PAGE_RECTANGLES_EXPORT = "_oxsdk_document_page_rectangles"
+
+
+def page_rectangles_problems(exports: Path) -> list[str]:
+    """Why --page-rectangles may not be declared for this artifact.
+
+    A declaration the artifact cannot honour is the 2026-08-22 defect ("the
+    manifest describes but does not constrain"): the SDK would offer the
+    query, and the worker's ccall would reach a symbol the link never
+    exported.  The export list is the link's own input, so it is the evidence.
+    """
+    if not exports.is_file():
+        return [f"no export inventory at {exports}"]
+    if PAGE_RECTANGLES_EXPORT not in exports.read_text(encoding="utf-8").splitlines():
+        return [f"--page-rectangles needs {PAGE_RECTANGLES_EXPORT} in {exports}"]
+    return []
+
 # The four movements are caret movements, so `collapsed` is the only gesture
 # that has a meaning for them; what happens when one runs with a range already
 # selected is not characterised, and declaring it would be the manifest
@@ -237,6 +260,15 @@ def main() -> int:
                              "in the outline (finding 093, option B). Off by "
                              "default, so every existing invocation is "
                              "unchanged")
+    # SPEC-M3-link-batch 13.3.  TOLD, not guessed, like the three flags above:
+    # only an engine built with OXSDK_E2_V20_LINK_BATCH answers the query, and
+    # the builder refuses the flag unless the export list carries its symbol.
+    parser.add_argument("--page-rectangles", action="store_true",
+                        help="declare editorContract.pageRectangles: the "
+                             "engine being packaged answers the "
+                             "page-rectangles document query (v20). Off by "
+                             "default, so every existing invocation is "
+                             "unchanged")
     # GRANTING A RANGE GESTURE.  The text below was written when nobody had
     # measured one; `all` HAS SHIPPED since, and saying otherwise here would
     # leave the builder describing the product as a diagnostic.
@@ -346,6 +378,11 @@ def main() -> int:
     if problems:
         raise SystemExit("refusing to build a v4 product profile:\n  "
                          + "\n  ".join(problems))
+    if args.page_rectangles:
+        problems = page_rectangles_problems(args.exports)
+        if problems:
+            raise SystemExit("refusing to declare pageRectangles:\n  "
+                             + "\n  ".join(problems))
 
     v2.build_profile(
         source_manifest=args.source_manifest, loader=args.loader,
@@ -519,6 +556,8 @@ def main() -> int:
     # convert every existing artifact into a reported defect.
     if document_outline_geometry:
         contract["documentOutlineGeometry"] = "accessible-paragraph-geometry"
+    if args.page_rectangles:
+        contract["pageRectangles"] = PAGE_RECTANGLES_DECLARATION
     manifest["editorContract"] = contract
     write_json(manifest_path, manifest)
 

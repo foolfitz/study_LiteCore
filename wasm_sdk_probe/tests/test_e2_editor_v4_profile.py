@@ -143,3 +143,70 @@ class TheGuardsFireWhenTheyShould(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class PageRectanglesIsToldNotGuessed(unittest.TestCase):
+    """SPEC-M3-link-batch 13.3: `--page-rectangles` declares
+    `editorContract.pageRectangles`, and only for an artifact whose export list
+    carries the query's symbol.  A declaration the link cannot honour would let
+    the SDK offer a query whose ccall reaches a symbol nobody exported."""
+
+    PRODUCT = ("_oxsdk_editor_action", "_oxsdk_editor_get_state",
+               "_oxsdk_editor_select_range", "_oxsdk_editor_abi_version",
+               "_oxsdk_editor_set_action_gestures")
+
+    def exports(self, *symbols):
+        import tempfile
+        handle = tempfile.NamedTemporaryFile("w", suffix=".txt", delete=False,
+                                             encoding="utf-8")
+        handle.write("\n".join(symbols) + "\n")
+        handle.close()
+        self.addCleanup(Path(handle.name).unlink)
+        return Path(handle.name)
+
+    def run_main(self, exports):
+        argv = ["build_e2_editor_v4_profile.py",
+                "--source-manifest", "unused.json", "--loader", "unused.js",
+                "--wasm", "unused.wasm", "--worker", "unused-worker.js",
+                "--exports", str(exports), "--output", "unused-output",
+                "--profile", "e2-editor-v20", "--page-rectangles"]
+        saved = sys.argv
+        sys.argv = argv
+        try:
+            return v4.main()
+        finally:
+            sys.argv = saved
+
+    def test_refused_without_the_export(self):
+        problems = v4.page_rectangles_problems(self.exports(*self.PRODUCT))
+        self.assertEqual(len(problems), 1)
+        self.assertIn(v4.PAGE_RECTANGLES_EXPORT, problems[0])
+
+    def test_refused_without_an_inventory(self):
+        self.assertEqual(len(v4.page_rectangles_problems(
+            Path("no/such/exports.txt"))), 1)
+
+    def test_accepted_with_the_export(self):
+        self.assertEqual(v4.page_rectangles_problems(self.exports(
+            *self.PRODUCT, v4.PAGE_RECTANGLES_EXPORT)), [])
+
+    def test_main_refuses_before_building_anything(self):
+        # The refusal comes before build_profile reads any input: the dummy
+        # paths above do not exist, so reaching the build would raise
+        # something other than this SystemExit.
+        with self.assertRaises(SystemExit) as raised:
+            self.run_main(self.exports(*self.PRODUCT))
+        self.assertIn("refusing to declare pageRectangles", str(raised.exception))
+
+    def test_the_declaration_is_the_string_the_three_gates_read(self):
+        root = Path(__file__).resolve().parents[1]
+        for relative in ("sdk/sdk-worker.js", "sdk/document-sdk.js",
+                         "editor-shell-v2/narrow-editor-v2-client.js"):
+            with self.subTest(relative):
+                self.assertIn(f'"{v4.PAGE_RECTANGLES_DECLARATION}"',
+                              (root / relative).read_text(encoding="utf-8"))
+
+    def test_the_export_is_the_c_function_sdk_api_defines(self):
+        root = Path(__file__).resolve().parents[1]
+        self.assertIn(f"int32_t {v4.PAGE_RECTANGLES_EXPORT.lstrip('_')}(",
+                      (root / "src/sdk_api.cpp").read_text(encoding="utf-8"))
