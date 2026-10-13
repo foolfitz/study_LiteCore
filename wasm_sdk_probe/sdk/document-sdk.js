@@ -76,6 +76,56 @@ export class DocumentClosedError extends DocumentSdkError {
   }
 }
 
+// SPEC-M3-link-batch 4.3 / 10.8: the engine's raw page-rectangle string did
+// not parse, or its count disagrees with `getParts()`.  TYPED so a page can
+// tell it from every other failure, and so that a document that has pages
+// never comes back as an empty list.
+export class PageRectanglesError extends DocumentSdkError {
+  constructor(message, details = {}) {
+    super("PAGE_RECTANGLES_INVALID", message, details);
+    this.name = "PageRectanglesError";
+  }
+}
+
+const PAGE_RECTANGLES_DECLARATION = "document-sdk-page-rectangles";
+const TWIPS_FIELD = /^(0|[1-9][0-9]*)$/;
+
+/**
+ * Parse `getPartPageRectangles()`'s string: "x, y, w, h; x, y, w, h; ..." in
+ * twips, one rectangle per page in page order, no trailing separator
+ * (sw/source/core/crsr/crsrsh.cxx SwCursorShell::getPageRectangles strips the
+ * last "; "; measured natively in findings/evidence/link-batch/page-rectangles/).
+ *
+ * Strict on purpose: every field a non-negative decimal integer, every page
+ * with positive width and height, and the count equal to `parts` -- two core
+ * sources for the page count (S-10), so a disagreement is an error here and
+ * not a silently shorter list.  Anything else throws PageRectanglesError; an
+ * empty list is never returned, because a page would read it as "no pages",
+ * which is a confident wrong answer about the user's file.
+ */
+export function parsePageRectangles(text, parts) {
+  const invalid = (message, details = {}) =>
+    new PageRectanglesError(`page rectangles: ${message}`, { text, parts, ...details });
+  if (!Number.isInteger(parts) || parts < 1)
+    throw invalid("parts must be a positive integer");
+  if (typeof text !== "string" || text.trim() === "")
+    throw invalid("the engine returned no rectangle string");
+  const rectangles = text.split(";").map((piece, index) => {
+    const fields = piece.split(",").map((field) => field.trim());
+    if (fields.length !== 4 || !fields.every((field) => TWIPS_FIELD.test(field)))
+      throw invalid(`rectangle ${index} is not four non-negative integers`, { piece });
+    const [x, y, width, height] = fields.map(Number);
+    if (width < 1 || height < 1)
+      throw invalid(`rectangle ${index} has no area`, { piece });
+    return { x, y, width, height };
+  });
+  if (rectangles.length !== parts) {
+    throw invalid(`${rectangles.length} rectangles for ${parts} parts`,
+                  { rectangles: rectangles.length });
+  }
+  return rectangles;
+}
+
 function defaultWorkerFactory(url) {
   return new Worker(url, { name: "oxoffice-document-engine" });
 }
@@ -544,6 +594,43 @@ export class DocumentHandle {
     }, options);
     this.revision = result.revision;
     return result;
+  }
+
+  // SPEC-M3-link-batch 4.3 / 10.8 (S-11): the page number's data.  A
+  // document-level export like redo -- no wire id, no gesture -- and GATED
+  // like redo, on the contract's declaration, because the export is compiled:
+  // on a profile whose binary predates it the symbol is simply not there.
+  // Absent means UNSUPPORTED_OPERATION before any request is issued.
+  //
+  // The reply's raw string is parsed HERE, never in the engine (10.8); a
+  // malformed string, or a count that disagrees with getParts(), is a typed
+  // error and never an empty list.  Twips throughout.  The handle's size and
+  // revision follow the reply, as they follow a paint reply.
+  async pageRectangles(options = {}) {
+    this._assertUsable();
+    const contract = this._engine.manifest?.editorContract;
+    if (contract?.pageRectangles !== PAGE_RECTANGLES_DECLARATION) {
+      throw new DocumentSdkError(
+        "UNSUPPORTED_OPERATION",
+        "the active profile does not declare page rectangles",
+      );
+    }
+    const result = await this._engine._request("pageRectangles", {
+      documentHandle: this.handle,
+    }, options);
+    const rectangles = parsePageRectangles(result.rectangles, result.parts);
+    this.revision = result.revision;
+    if (typeof result.documentWidthTwips === "number")
+      this.widthTwips = result.documentWidthTwips;
+    if (typeof result.documentHeightTwips === "number")
+      this.heightTwips = result.documentHeightTwips;
+    return {
+      rectangles,
+      parts: result.parts,
+      widthTwips: result.documentWidthTwips,
+      heightTwips: result.documentHeightTwips,
+      revision: result.revision,
+    };
   }
 
   async addComment(text, options = {}) {

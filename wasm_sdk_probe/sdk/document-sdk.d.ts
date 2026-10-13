@@ -27,6 +27,29 @@ export interface SdkManifest {
   expectedCapabilityBits?: number;
   artifactFiles?: Record<string, string>;
   resourcePacks?: ResourcePackManifest[];
+  /**
+   * The editor profiles' contract.  Only the declarations the SDK itself
+   * reads are typed here; `pageRectangles` is `"document-sdk-page-rectangles"`
+   * on a profile that carries the compiled export (SPEC-M3-link-batch 10.8).
+   */
+  editorContract?: { pageRectangles?: string; redo?: string; [key: string]: unknown };
+}
+
+/** One page, in twips, as `getPartPageRectangles()` reports it. */
+export interface PageRectangle {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+export interface PageRectanglesResult extends RevisionResult {
+  /** One rectangle per page, in page order. */
+  rectangles: PageRectangle[];
+  /** `getParts()`; equal to `rectangles.length`, or the call threw. */
+  parts: number;
+  widthTwips: number;
+  heightTwips: number;
 }
 
 export interface ResourcePackManifest {
@@ -150,6 +173,14 @@ export class WorkerRestartedError extends DocumentSdkError {}
 export class StaleDocumentError extends DocumentSdkError {}
 export class StaleRevisionError extends DocumentSdkError {}
 export class DocumentClosedError extends DocumentSdkError {}
+/** Code `PAGE_RECTANGLES_INVALID`: a malformed rectangle string, or rectangles != parts. */
+export class PageRectanglesError extends DocumentSdkError {}
+
+/**
+ * Parse the engine's raw page-rectangle string against the part count.
+ * Throws PageRectanglesError on any malformed input; never returns [].
+ */
+export function parsePageRectangles(text: unknown, parts: unknown): PageRectangle[];
 
 export class DocumentEngine {
   readonly manifest: SdkManifest | null;
@@ -173,6 +204,14 @@ export class DocumentHandle {
   getSelection(options?: AbortableOptions): Promise<SelectionResult>;
   replaceSelection(text: string, options?: RevisionOptions): Promise<RevisionResult>;
   undo(options?: RevisionOptions): Promise<RevisionResult>;
+  redo(options?: RevisionOptions): Promise<RevisionResult>;
+  /**
+   * SPEC-M3-link-batch 10.8: the page rectangles in twips.  Rejects with
+   * `UNSUPPORTED_OPERATION` unless the manifest's contract declares
+   * `pageRectangles: "document-sdk-page-rectangles"`; with PageRectanglesError
+   * on a malformed string or rectangles != parts.
+   */
+  pageRectangles(options?: AbortableOptions): Promise<PageRectanglesResult>;
   addComment(text: string, options?: CommentOptions): Promise<RevisionResult>;
   listComments(options?: AbortableOptions): Promise<CommentListResult>;
   setTrackChanges(enabled: boolean, options?: RevisionOptions): Promise<RevisionResult>;
