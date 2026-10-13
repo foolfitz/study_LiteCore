@@ -75,3 +75,19 @@ Press-type arms only, both browsers, `--control kj`. `kj` is typed at the caret 
   - `zqx` at the document start (not contiguous) would mean D's click landed at the start.
 
 `sameAsOriginal` is false by construction in run-3, because `kj` stays in the document.
+
+## run-3 result (control `kj`; probe exit 0; host 0.2.16, page `6470dec0…`)
+
+| arm | browser | refusals | `kj` in | `zqx` in | `kjzqx` contiguous |
+|---|---|---|---|---|---|
+| before-table-press-type | chrome | 1 | 0 | 0 | **yes** |
+| before-table-press-type | firefox | 1 | 0 | 0 | **yes** |
+| cell-press-type | chrome | 1 | **1 (A1)** | **2 (B1)** | no |
+| cell-press-type | firefox | 1 | **1 (A1)** | **2 (B1)** | no |
+
+- **Paragraph end before the table** (refusal shape: key posted, not verified): D put the caret back exactly where it was.
+- **Cell end** (refusal shape: `anchor-mismatch`): reading **(b)** holds. The user's caret was at the end of A1, and D put it in **B1**. Text typed after the reopen lands in the next cell. D reported success, so the toast said nothing about it.
+
+Why, by code (unmeasured inside the engine): `startMergeKeyUndo` (`wasm_sdk_probe/src/probe_engine.cpp:3600-3612`) fails the fence and calls `finishMergeKeyError("anchor-mismatch")` **while K1's one-unit selection is still active**. That selection extends from A1's end into B1. No `.uno:Escape` restores it first. So the last editor state the engine pushed has its caret in B1. D reads exactly that (`session.state.snapshot.editorState.caret` before `restart()`; ruling-1 condition 2 named "the engine's last pushed state"). At the document ends (`nothing-selected`) nothing was selected, so the two coincide; that is why the acceptance run could not see this.
+
+Registered as **finding 136**. It is not a regression against 0.2.15, which put the caret at the document start. It is the place where D's claim ("the caret goes back where it was") fails.
