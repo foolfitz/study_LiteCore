@@ -133,3 +133,25 @@ start of each run. All reports as `E<arm>-r<n>-report.json`. Commit only that
 directory (`git commit -- <paths>`; if `index.lock` exists, wait and retry). Do
 not edit finding 089 itself; the main session does that after reading the raw
 reports.
+
+---
+
+## Amendment 1 (2026-10-13, main session; append-only, nothing above edited)
+
+**E0-r1 is void, as §2 and §5 required** (`threading-arms-2026-10-13/E0-r1-report.json`, commit `3b7f1dce`): 0 of 7
+cases echoed. Its states matched the banked ones on all seven fixtures, but that is not read as arm evidence.
+
+**Cause, read in source and then measured:** `web/ods-decisive-probe-app.js` registered its `onEvent` listener
+AFTER `createDocumentEngine()` resolved, and that promise resolves only after the worker's `init` (module load,
+preRun, resource packs) — so the preRun echo was dispatched to zero listeners
+(`sdk/document-sdk.js` `_emitEvent`, `createDocumentEngine`). The instrument defect was the main session's
+design, not the run's.
+
+**Fix:** the page now constructs `DocumentEngine`, registers the listener, then calls `_initialize()` — same
+options, only the order changed. A short instrument check after the fix (control ODT + F3, arm
+`OXSDK_089_ARM=echo-check`, 60 s cap): 2 of 2 echoed with the right ENV
+(`threading-arms-2026-10-13/instrument-echo-check-after-fix.json`). E0-r1 stands as this check's red case.
+
+**What changes for the remaining runs:** nothing in §4–§5. E0 is re-run as `E0-r2` and gates exactly as §5
+says. A side effect to expect: every case's `warnings` now also holds the stderr emitted during init, which
+earlier reports never captured; states are read from `opened` / `workerCrashed` as before.

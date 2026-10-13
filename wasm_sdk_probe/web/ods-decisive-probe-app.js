@@ -27,7 +27,7 @@
 //   * a truncated ODS                -- a typed refusal with the worker still
 //                                       alive; without it, "did not open" and
 //                                       "died" look the same.
-import { createDocumentEngine } from "./sdk/document-sdk.js";
+import { DocumentEngine } from "./sdk/document-sdk.js";
 
 const params = new URLSearchParams(location.search);
 const profile = params.get("profile") || "e2-editor-v12";
@@ -130,11 +130,17 @@ async function runCase(spec) {
   let handle = null;
   const started = performance.now();
   try {
-    engine = await createDocumentEngine({
+    // THE LISTENER GOES ON BEFORE INITIALISATION.  `createDocumentEngine`
+    // resolves only after the worker's `init` -- module load, preRun, resource
+    // packs -- and an event emitted in that window reaches zero listeners.
+    // Measured 2026-10-13 (finding 089 E0, `threading-arms-2026-10-13/`): the
+    // engine's preRun echo of its ENV was absent from 7 of 7 cases because it
+    // was printed there.  Same constructor, same options; only the order of
+    // `onEvent` and `_initialize` changed.
+    const pendingEngine = new DocumentEngine({
       workerUrl: `./profiles/${profile}/sdk-worker.js`,
       debug: true, timeoutMs: 60000,
     });
-    report.manifest ||= engine.manifest;
     // EVERY stage line is kept whole -- they carry `sbrk`, and the milestone's
     // memory question is read from them; a summary here is a number nobody can
     // re-derive. The engine's stderr is DE-DUPLICATED instead: a sweep of three
@@ -145,7 +151,7 @@ async function runCase(spec) {
     // sayable.
     const seenWarnings = new Map();
     entry.warnings = [];
-    engine.onEvent((event) => {
+    pendingEngine.onEvent((event) => {
       if (event?.event === "diagnostic" && event?.level === "stage") {
         entry.stages.push(event);
       } else if (event?.event === "diagnostic" && event?.message) {
@@ -163,6 +169,8 @@ async function runCase(spec) {
       if (String(event?.event || "") === "worker-crashed")
         entry.workerCrashed = true;
     });
+    engine = await pendingEngine._initialize();
+    report.manifest ||= engine.manifest;
 
     const response = await fetch(spec.file);
     if (!response.ok) throw new Error(`fetch ${spec.file}: ${response.status}`);
