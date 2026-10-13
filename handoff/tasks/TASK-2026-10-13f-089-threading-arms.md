@@ -191,3 +191,73 @@ variables. Two routes: a CDP `Debugger.pause` probe on the hung workers (no link
 
 **If this is never run, the default conclusion is:** 089 stays unattributed, and the two switches stay
 untested.
+
+---
+
+## Amendment 3 (2026-10-13, main session; append-only) — the pthread stack arm (H-S), per fable ruling 1
+
+Source: `findings/evidence/089/ruling/ruling-1.md` (`c6e10b21`, fable, on the owner's behalf). Its conditions
+are authoritative; this amendment makes them executable and adds nothing. This amendment is committed
+**before** any run whose size differs from 65536, and every sized report's `startedAt` must be later than this
+commit (condition 1).
+
+**Hypothesis H-S.** Our engine runs LOK on an Emscripten pthread with the linked default 64 KB stack
+(`probe_engine.cpp:6518`; `-sDEFAULT_PTHREAD_STACK_SIZE=65536`). The artifact has no overflow check. An overflow
+corrupts adjacent memory.
+
+**Instrument.** `probe_ods_on_profile.py --pthread-stack-size N` (`90fed9b7`). Every started pthread echoes its
+realised size (`engineStackSizes`, `engineStackEchoed`). Use `--engine-env OXSDK_089_ARM=<arm>` alongside, so the
+ENV echo still proves which arm ran. Profile `e2-editor-v12`. Fixture order C, F1…F6 as in §3. Cap 60000 ms
+unless stated.
+
+**Before the first sized run (condition 14, done by the main session):** the anchor refusal is exhibited
+without a browser, in `stack-arms-2026-10-13/redcase-anchor-count.txt`.
+
+| arm | `--pthread-stack-size` | runs | gate / rule |
+|---|---|---|---|
+| S0 | 65536 | 1 | C, F3, F6 clean; F1, F5 crashed; F2, F4 timeout; every case echoes, and every value is 65536. Any departure: stop. |
+| S1 | 262144 | 1 (+2 if F2 **and** F4 open) | |
+| S2 | 1048576 | 1 (+2 if F2 **and** F4 open) | |
+| S3 | 8388608 | 1 (+2 if F2 **and** F4 open) | mandatory even if S1 already opens them |
+| S4 | 32768 | 1 | boot gate: C opens **and** every case echoes 32768. If C does not open, S4 is void as cliff evidence: record "boot needs more than 32 KB" and run S4′ = 49152 once under the same gate. |
+| L | the smallest size that opened F2 **and** F4 in 3/3, if any | 1 | fixtures `tdf149752-rows37/38/39/40/50.ods` (in `findings/evidence/089/`) and the original `wasm_sdk_probe/test-docs/ods/upstream/tdf149752.ods` (sha `2d6a2c6a…`); record the new n*, or "all open" |
+
+Run order: S0, S1, S2, S3 (with their extra runs), S4, then L.
+
+**Thread-start accounting (condition 4).** Per case, record the number of `[engine-stack]` echoes (the sum of
+counts in `engineStackSizes`) and the `sbrk` stage lines.
+- For every sized run, each fixture's start count must equal S0's count for that fixture.
+- A shortfall voids that run.
+- If the shortfall persists at S3, record S3 as "not allocatable on this profile"; S2 is then the top of the
+  ladder.
+
+**Predictions (condition 5):**
+- (a) At some up-size, F2 and F4 open in 3/3, **and** F1 and F5 do not crash in those same runs.
+- (b) S4 (or S4′) makes at least one of F3 or F6 not clean, or boot fails under the gate.
+- (c) The rows-ladder cliff n* does not decrease as the stack size grows.
+
+**Outcomes, exactly one (condition 8):**
+- **O-S**: (a) and (b) both hold.
+- **O-S-up-only**: (a) holds; the shrink arm is void or has no effect.
+- **O-S-partial**: an up-size changes only one of {the F2/F4 timeout, the F1/F5 crash}; any SPLIT also lands
+  here.
+- **O-S-N**: S3, or the ladder top under condition 4, leaves F2 and F4 timing out with every echo correct.
+- **Void**: anything else.
+
+Recorded alongside the outcome, not part of it:
+- the start counts;
+- for hung cases, whether the count equals 7 (`PTHREAD_POOL_SIZE`). Pool exhaustion must **not** be inferred
+  from that number.
+
+**Hygiene (condition 13):**
+- Before every run: kdewallet `Locked` = `b false`, no foreign Chrome, 1-min load < 1.0; record all three per
+  run.
+- Never abort a started run.
+- The executor edits nothing under `dist/`, `web/`, `sdk/` or any profile, and does not edit finding 089.
+- Evidence goes to `findings/evidence/089/stack-arms-2026-10-13/`: `S<arm>-r<n>-report.json`, `-runlog.txt`,
+  and a README with `## SUMMARY` first.
+- The state table is read from `page.cases[].opened`, `workerCrashed` and `engineStackSizes`, never from
+  stdout.
+
+**What each outcome licenses** is condition 9 of the ruling, verbatim; the main session writes the finding.
+**Default if never run:** 089 unattributed; H-S may not be quoted as a cause.
