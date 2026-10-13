@@ -1,0 +1,1875 @@
+{
+ "probe": "probe_hand_test_0212.py",
+ "startedAt": "2026-10-13T04:13:19+00:00",
+ "static": {
+  "hostCommit": "f5b34f0",
+  "hostDirty": [
+   "M appinfo/info.xml"
+  ],
+  "hostVersion": "0.2.18",
+  "buildId": "d6d04880f56e31da",
+  "servedPage": "b24d754a426706bb5c93dbacb3f7ffadc655e738ee9a0fdd7168069f0f701678",
+  "servedSession": "62a2a20e4c66f630d77caf5bb75973e28aa58b0d8c7bf4cb0e35fa44b6a6fc5c",
+  "distPage": "b24d754a426706bb5c93dbacb3f7ffadc655e738ee9a0fdd7168069f0f701678",
+  "shellBundle": {
+   "exit": 1,
+   "manifest": "e2/editor-shell-v2-bundle-v65.json",
+   "sha256": "70c34178c3a3704ac4b7d4f7ad58739443dc60df9281c1194cfe29b24d027439",
+   "problems": [
+    "manifest is out of date: added=[] removed=[] changed=['web/e2-editor-app.js']",
+    "refusing to rewrite e2/editor-shell-v2-bundle-v65.json -- it exists with digest 3bffb9463e9b4050... and the tree now hashes 70c34178c3a3704a.... A changed shell needs a NEW generation: bump MANIFEST and add this one to FROZEN_MANIFESTS. --force only if you mean to discard the record of what a round actually ran on."
+   ]
+  }
+ },
+ "arms": [
+  "hostseg",
+  "hostseg-red"
+ ],
+ "options": {
+  "rapidRounds": 2,
+  "selectionKeys": [
+   "ArrowLeft",
+   "ArrowDown",
+   "End"
+  ],
+  "ghostRapidKeys": 4,
+  "holdMs": 2000,
+  "holdDelayMs": 500,
+  "holdIntervalMs": 30,
+  "holdRounds": 1
+ },
+ "deskRepeat": {
+  "delay": "uint32 500",
+  "repeat-interval": "uint32 30",
+  "repeat": "true"
+ },
+ "runs": [
+  {
+   "browser": "chrome",
+   "startedAt": "2026-10-13T04:13:19+00:00",
+   "clearedLocks": "0",
+   "upload": 204,
+   "version": "Chrome/151.0.7922.169",
+   "fatal": "Traceback (most recent call last):\n  File \"/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/probe_hand_test_0212.py\", line 648, in run_browser\n    record[\"login\"] = login(session, base, \"admin\", server.instance.password)\n                      ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/check_m3_locks.py\", line 308, in login\n    navigate(session, base + \"/login\", timeout=60)\n    ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/run_e2_c_page_smoke.py\", line 149, in navigate\n    session.call(\"Page.navigate\", {\"url\": url})\n    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/probe_m3_gate0_coep.py\", line 200, in call\n    response = json.loads(self.websocket.recv(timeout=timeout))\n                          ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3/dist-packages/websockets/sync/connection.py\", line 317, in recv\n    return self.recv_messages.get(timeout, decode)\n           ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3/dist-packages/websockets/sync/messages.py\", line 169, in get\n    frame = self.get_next_frame(deadline.timeout(raise_if_elapsed=False))\n  File \"/usr/lib/python3/dist-packages/websockets/sync/messages.py\", line 89, in get_next_frame\n    raise TimeoutError(f\"timed out in {timeout:.1f}s\") from None\nTimeoutError: timed out in 180.0s\n",
+   "completedAt": "2026-10-13T04:16:25+00:00"
+  },
+  {
+   "browser": "firefox",
+   "startedAt": "2026-10-13T04:16:25+00:00",
+   "clearedLocks": "0",
+   "upload": 204,
+   "version": "157.0.1",
+   "login": "https://litecore.ddev.site:8443/apps/dashboard/",
+   "filesRow": true,
+   "filesRowSeconds": 0.23,
+   "clickedFrom": "https://litecore.ddev.site:8443/apps/files/files?dir=/",
+   "landed": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/d6d04880f56e31da-90d7bc2c/e2-editor.html?fileId=16631",
+   "host": {
+    "started": 1791864992447,
+    "done": true,
+    "steps": [
+     {
+      "step": "imported",
+      "at": 257
+     },
+     {
+      "step": "fetched",
+      "at": 325
+     },
+     {
+      "step": "opened",
+      "at": 2281,
+      "state": {
+       "state": "ready",
+       "doc": "probe-hand-0212.odt",
+       "revision": "0",
+       "toast": null
+      }
+     }
+    ],
+    "saves": [],
+    "lock": {
+     "state": "held",
+     "status": 200,
+     "at": 285,
+     "refreshes": [],
+     "verified": true
+    },
+    "stranded": null,
+    "notice": "",
+    "scope": "scoped",
+    "file": {
+     "id": 16631,
+     "name": "probe-hand-0212.odt",
+     "size": 563149,
+     "etag": "66f3db98515e13be6279de861f7f2627",
+     "writable": true
+    },
+    "isolation": {
+     "crossOriginIsolated": true,
+     "sharedArrayBuffer": true
+    },
+    "href": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/d6d04880f56e31da-90d7bc2c/e2-editor.html?fileId=16631",
+    "watchingPage": true,
+    "fetched": {
+     "status": 200,
+     "contentType": "application/vnd.oasis.opendocument.text",
+     "etag": "\"6acdb0a0b219a\"",
+     "bytes": 563149,
+     "sha256": "7b336879547df057ae6d38e907f221b40c90c37cd65d2df5afceceb91941657e",
+     "at": 325
+    },
+    "handedReadOnly": false,
+    "finished": 2281
+   },
+   "secondsToOpened": 2.83,
+   "pickers": {
+    "fixtureDisabled": true,
+    "openFileDisabled": true,
+    "fileDisabled": true,
+    "fixtureOptions": 0
+   },
+   "bar": {
+    "notice": "",
+    "barHidden": true,
+    "downloadHidden": true
+   },
+   "opened": {
+    "state": "ready",
+    "label": "就緒",
+    "revision": "0",
+    "pending": "0",
+    "checkpoint": "無",
+    "latency": "—",
+    "doc": "probe-hand-0212.odt",
+    "toast": "",
+    "buttons": [
+     {
+      "action": "undo",
+      "disabled": false
+     },
+     {
+      "action": "redo",
+      "disabled": false
+     },
+     {
+      "action": "move-character-left",
+      "disabled": false
+     },
+     {
+      "action": "move-character-right",
+      "disabled": false
+     },
+     {
+      "action": "delete-backward",
+      "disabled": false
+     },
+     {
+      "action": "delete-forward",
+      "disabled": false
+     },
+     {
+      "action": "insert-paragraph-break",
+      "disabled": false
+     },
+     {
+      "action": "insert-line-break",
+      "disabled": false
+     },
+     {
+      "action": "set-bold",
+      "disabled": false
+     },
+     {
+      "action": "set-italic",
+      "disabled": false
+     },
+     {
+      "action": "set-underline",
+      "disabled": false
+     },
+     {
+      "action": "set-strikethrough",
+      "disabled": false
+     },
+     {
+      "action": "set-paragraph-heading",
+      "disabled": false
+     },
+     {
+      "action": "set-paragraph-body",
+      "disabled": false
+     },
+     {
+      "action": "set-list-unordered",
+      "disabled": false
+     },
+     {
+      "action": "set-list-ordered",
+      "disabled": false
+     },
+     {
+      "action": "set-list-none",
+      "disabled": false
+     },
+     {
+      "action": "insert-text",
+      "disabled": false
+     },
+     {
+      "action": "save",
+      "disabled": false
+     }
+    ]
+   },
+   "hostseg": {
+    "arm": "hostseg",
+    "holdPaints": false,
+    "holdMs": 3000,
+    "click": {
+     "latency": "定位游標 183 ms",
+     "timedOut": false,
+     "settled": {
+      "state": "ready",
+      "label": "就緒",
+      "revision": "0",
+      "pending": "0",
+      "checkpoint": "無",
+      "latency": "定位游標 183 ms",
+      "doc": "probe-hand-0212.odt",
+      "toast": "已開啟 probe-hand-0212.odt",
+      "buttons": [
+       {
+        "action": "undo",
+        "disabled": false
+       },
+       {
+        "action": "redo",
+        "disabled": false
+       },
+       {
+        "action": "move-character-left",
+        "disabled": false
+       },
+       {
+        "action": "move-character-right",
+        "disabled": false
+       },
+       {
+        "action": "delete-backward",
+        "disabled": false
+       },
+       {
+        "action": "delete-forward",
+        "disabled": false
+       },
+       {
+        "action": "insert-paragraph-break",
+        "disabled": false
+       },
+       {
+        "action": "insert-line-break",
+        "disabled": false
+       },
+       {
+        "action": "set-bold",
+        "disabled": false
+       },
+       {
+        "action": "set-italic",
+        "disabled": false
+       },
+       {
+        "action": "set-underline",
+        "disabled": false
+       },
+       {
+        "action": "set-strikethrough",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-heading",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-body",
+        "disabled": false
+       },
+       {
+        "action": "set-list-unordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-ordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-none",
+        "disabled": false
+       },
+       {
+        "action": "insert-text",
+        "disabled": false
+       },
+       {
+        "action": "save",
+        "disabled": false
+       }
+      ]
+     }
+    },
+    "quietBefore": {
+     "state": "ready",
+     "label": "就緒",
+     "revision": "0",
+     "pending": "0",
+     "checkpoint": "無",
+     "latency": "定位游標 183 ms",
+     "doc": "probe-hand-0212.odt",
+     "toast": "已開啟 probe-hand-0212.odt",
+     "buttons": [
+      {
+       "action": "undo",
+       "disabled": false
+      },
+      {
+       "action": "redo",
+       "disabled": false
+      },
+      {
+       "action": "move-character-left",
+       "disabled": false
+      },
+      {
+       "action": "move-character-right",
+       "disabled": false
+      },
+      {
+       "action": "delete-backward",
+       "disabled": false
+      },
+      {
+       "action": "delete-forward",
+       "disabled": false
+      },
+      {
+       "action": "insert-paragraph-break",
+       "disabled": false
+      },
+      {
+       "action": "insert-line-break",
+       "disabled": false
+      },
+      {
+       "action": "set-bold",
+       "disabled": false
+      },
+      {
+       "action": "set-italic",
+       "disabled": false
+      },
+      {
+       "action": "set-underline",
+       "disabled": false
+      },
+      {
+       "action": "set-strikethrough",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-heading",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-body",
+       "disabled": false
+      },
+      {
+       "action": "set-list-unordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-ordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-none",
+       "disabled": false
+      },
+      {
+       "action": "insert-text",
+       "disabled": false
+      },
+      {
+       "action": "save",
+       "disabled": false
+      }
+     ]
+    },
+    "savesBefore": 0,
+    "putSeen": {
+     "out": 1,
+     "puts": [
+      {
+       "held": 3333.7
+      }
+     ],
+     "heldPaints": 0
+    },
+    "settled": {
+     "state": "ready",
+     "label": "就緒",
+     "revision": "1",
+     "pending": "0",
+     "checkpoint": "無",
+     "latency": "存回 3096 ms",
+     "doc": "probe-hand-0212.odt",
+     "toast": "已存回 probe-hand-0212.odt（553.9 KB）",
+     "buttons": [
+      {
+       "action": "undo",
+       "disabled": false
+      },
+      {
+       "action": "redo",
+       "disabled": false
+      },
+      {
+       "action": "move-character-left",
+       "disabled": false
+      },
+      {
+       "action": "move-character-right",
+       "disabled": false
+      },
+      {
+       "action": "delete-backward",
+       "disabled": false
+      },
+      {
+       "action": "delete-forward",
+       "disabled": false
+      },
+      {
+       "action": "insert-paragraph-break",
+       "disabled": false
+      },
+      {
+       "action": "insert-line-break",
+       "disabled": false
+      },
+      {
+       "action": "set-bold",
+       "disabled": false
+      },
+      {
+       "action": "set-italic",
+       "disabled": false
+      },
+      {
+       "action": "set-underline",
+       "disabled": false
+      },
+      {
+       "action": "set-strikethrough",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-heading",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-body",
+       "disabled": false
+      },
+      {
+       "action": "set-list-unordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-ordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-none",
+       "disabled": false
+      },
+      {
+       "action": "insert-text",
+       "disabled": false
+      },
+      {
+       "action": "save",
+       "disabled": false
+      }
+     ]
+    },
+    "put": {
+     "holdPaints": false,
+     "out": 0,
+     "puts": [
+      {
+       "held": 3333.7,
+       "sent": 6333.9800000000005,
+       "answered": 6397.160000000001
+      }
+     ],
+     "heldPaints": 0
+    },
+    "save": {
+     "at": 6217,
+     "name": "probe-hand-0212.odt",
+     "bytes": 567199,
+     "attempts": [
+      {
+       "waited": 0,
+       "check": {
+        "at": 6218,
+        "status": 200,
+        "etag": "\"6acdb0a0b219a\"",
+        "sha256": "7b336879547df057ae6d38e907f221b40c90c37cd65d2df5afceceb91941657e",
+        "ms": 31
+       },
+       "ifMatch": "\"6acdb0a0b219a\"",
+       "withToken": true,
+       "target": "original",
+       "at": 6249,
+       "respondedAt": 9313,
+       "status": 204
+      }
+     ],
+     "trigger": "manual",
+     "target": "original",
+     "sha256": "09bc3632837a7630d93b25cb1723d3473430a934e197607b8660a2aee357d05d",
+     "ifMatch": "\"6acdb0a0b219a\"",
+     "status": 204,
+     "etag": "\"4ac8d6aa2534ffe9cabb45e032435979\"",
+     "outcome": "saved",
+     "settled": true
+    },
+    "log": [
+     {
+      "t": 2567.7,
+      "what": "shape",
+      "changes": 3,
+      "caretRow": 229,
+      "caretBand": {
+       "index": 0,
+       "label": 3
+      },
+      "bands": "0:0:1023:3 1:1023:1023:3 2:2046:1023:3 3:3069:1023:3",
+      "sink": [
+       "451px",
+       "229px"
+      ],
+      "state": "busy",
+      "shape": "collapsed",
+      "gen": "1",
+      "latency": "定位游標 183 ms",
+      "toast": "已開啟 probe-hand-0212.odt"
+     },
+     {
+      "t": 3238.7,
+      "what": "shape",
+      "changes": 3,
+      "caretRow": 229,
+      "caretBand": {
+       "index": 0,
+       "label": 3
+      },
+      "bands": "0:0:1023:3 1:1023:1023:3 2:2046:1023:3 3:3069:1023:3",
+      "sink": [
+       "451px",
+       "229px"
+      ],
+      "state": "ready",
+      "shape": "collapsed",
+      "gen": "1",
+      "latency": "定位游標 183 ms",
+      "toast": "已開啟 probe-hand-0212.odt"
+     },
+     {
+      "t": 3238.8,
+      "what": "canvas",
+      "changes": 4,
+      "caretRow": 229,
+      "caretBand": {
+       "index": 0,
+       "label": 3
+      },
+      "bands": "0:0:1023:3 1:1023:1023:3 2:2046:1023:3 3:3069:1023:3",
+      "sink": [
+       "451px",
+       "229px"
+      ],
+      "state": "ready",
+      "shape": "collapsed",
+      "gen": "1",
+      "latency": "儲存 672 ms",
+      "toast": "已開啟 probe-hand-0212.odt"
+     },
+     {
+      "t": 3255.9,
+      "what": "canvas",
+      "changes": 4,
+      "caretRow": 229,
+      "caretBand": {
+       "index": 0,
+       "label": 4
+      },
+      "bands": "0:0:1023:4 1:1023:1023:3 2:2046:1023:3 3:3069:1023:3",
+      "sink": [
+       "451px",
+       "229px"
+      ],
+      "state": "ready",
+      "shape": "collapsed",
+      "gen": "1",
+      "latency": "儲存 672 ms",
+      "toast": "已開啟 probe-hand-0212.odt"
+     },
+     {
+      "t": 3274.8,
+      "what": "canvas",
+      "changes": 4,
+      "caretRow": 229,
+      "caretBand": {
+       "index": 0,
+       "label": 4
+      },
+      "bands": "0:0:1023:4 1:1023:1023:4 2:2046:1023:3 3:3069:1023:3",
+      "sink": [
+       "451px",
+       "229px"
+      ],
+      "state": "ready",
+      "shape": "collapsed",
+      "gen": "1",
+      "latency": "儲存 672 ms",
+      "toast": "已開啟 probe-hand-0212.odt"
+     },
+     {
+      "t": 3291.2,
+      "what": "canvas",
+      "changes": 4,
+      "caretRow": 229,
+      "caretBand": {
+       "index": 0,
+       "label": 4
+      },
+      "bands": "0:0:1023:4 1:1023:1023:4 2:2046:1023:4 3:3069:1023:3",
+      "sink": [
+       "451px",
+       "229px"
+      ],
+      "state": "ready",
+      "shape": "collapsed",
+      "gen": "1",
+      "latency": "儲存 672 ms",
+      "toast": "已開啟 probe-hand-0212.odt"
+     },
+     {
+      "t": 3301,
+      "what": "canvas",
+      "changes": 4,
+      "caretRow": 229,
+      "caretBand": {
+       "index": 0,
+       "label": 4
+      },
+      "bands": "0:0:1023:4 1:1023:1023:4 2:2046:1023:4 3:3069:1023:4",
+      "sink": [
+       "451px",
+       "229px"
+      ],
+      "state": "ready",
+      "shape": "collapsed",
+      "gen": "1",
+      "latency": "儲存 672 ms",
+      "toast": "已開啟 probe-hand-0212.odt"
+     },
+     {
+      "t": 3552.6,
+      "what": "shape",
+      "changes": 4,
+      "caretRow": 229,
+      "caretBand": {
+       "index": 0,
+       "label": 4
+      },
+      "bands": "0:0:1023:4 1:1023:1023:4 2:2046:1023:4 3:3069:1023:4",
+      "sink": [
+       "451px",
+       "229px"
+      ],
+      "state": "ready",
+      "shape": "collapsed",
+      "gen": "1",
+      "latency": "儲存 672 ms",
+      "toast": "已開啟 probe-hand-0212.odt"
+     },
+     {
+      "t": 3646.4,
+      "what": "keydown:q",
+      "changes": 4,
+      "caretRow": 229,
+      "caretBand": {
+       "index": 0,
+       "label": 4
+      },
+      "bands": "0:0:1023:4 1:1023:1023:4 2:2046:1023:4 3:3069:1023:4",
+      "sink": [
+       "451px",
+       "229px"
+      ],
+      "state": "ready",
+      "shape": "collapsed",
+      "gen": "1",
+      "latency": "儲存 672 ms",
+      "toast": "已開啟 probe-hand-0212.odt"
+     },
+     {
+      "t": 3647.3,
+      "what": "shape",
+      "changes": 4,
+      "caretRow": 229,
+      "caretBand": {
+       "index": 0,
+       "label": 4
+      },
+      "bands": "0:0:1023:4 1:1023:1023:4 2:2046:1023:4 3:3069:1023:4",
+      "sink": [
+       "451px",
+       "229px"
+      ],
+      "state": "busy",
+      "shape": "collapsed",
+      "gen": "1",
+      "latency": "儲存 672 ms",
+      "toast": "已開啟 probe-hand-0212.odt"
+     },
+     {
+      "t": 3665.8,
+      "what": "canvas",
+      "changes": 5,
+      "caretRow": 229,
+      "caretBand": {
+       "index": 0,
+       "label": 4
+      },
+      "bands": "0:0:1023:4 1:1023:1023:4 2:2046:1023:4 3:3069:1023:4",
+      "sink": [
+       "451px",
+       "229px"
+      ],
+      "state": "busy",
+      "shape": "collapsed",
+      "gen": "1",
+      "latency": "儲存 672 ms",
+      "toast": "已開啟 probe-hand-0212.odt"
+     },
+     {
+      "t": 3667.8,
+      "what": "sink",
+      "changes": 5,
+      "caretRow": 233,
+      "caretBand": {
+       "index": 0,
+       "label": 4
+      },
+      "bands": "0:0:1023:4 1:1023:1023:4 2:2046:1023:4 3:3069:1023:4",
+      "sink": [
+       "468px",
+       "233px"
+      ],
+      "state": "busy",
+      "shape": "collapsed",
+      "gen": "1",
+      "latency": "儲存 672 ms",
+      "toast": "已開啟 probe-hand-0212.odt"
+     },
+     {
+      "t": 3667.8,
+      "what": "shape",
+      "changes": 5,
+      "caretRow": 233,
+      "caretBand": {
+       "index": 0,
+       "label": 4
+      },
+      "bands": "0:0:1023:4 1:1023:1023:4 2:2046:1023:4 3:3069:1023:4",
+      "sink": [
+       "468px",
+       "233px"
+      ],
+      "state": "busy",
+      "shape": "collapsed",
+      "gen": "1",
+      "latency": "儲存 672 ms",
+      "toast": "已開啟 probe-hand-0212.odt"
+     },
+     {
+      "t": 3668.9,
+      "what": "shape",
+      "changes": 5,
+      "caretRow": 233,
+      "caretBand": {
+       "index": 0,
+       "label": 4
+      },
+      "bands": "0:0:1023:4 1:1023:1023:4 2:2046:1023:4 3:3069:1023:4",
+      "sink": [
+       "468px",
+       "233px"
+      ],
+      "state": "ready",
+      "shape": "collapsed",
+      "gen": "1",
+      "latency": "儲存 672 ms",
+      "toast": "已開啟 probe-hand-0212.odt"
+     },
+     {
+      "t": 3683.2,
+      "what": "canvas",
+      "changes": 5,
+      "caretRow": 233,
+      "caretBand": {
+       "index": 0,
+       "label": 5
+      },
+      "bands": "0:0:1023:5 1:1023:1023:4 2:2046:1023:4 3:3069:1023:4",
+      "sink": [
+       "468px",
+       "233px"
+      ],
+      "state": "ready",
+      "shape": "collapsed",
+      "gen": "1",
+      "latency": "儲存 672 ms",
+      "toast": "已開啟 probe-hand-0212.odt"
+     },
+     {
+      "t": 3694.2,
+      "what": "canvas",
+      "changes": 5,
+      "caretRow": 233,
+      "caretBand": {
+       "index": 0,
+       "label": 5
+      },
+      "bands": "0:0:1023:5 1:1023:1023:5 2:2046:1023:4 3:3069:1023:4",
+      "sink": [
+       "468px",
+       "233px"
+      ],
+      "state": "ready",
+      "shape": "collapsed",
+      "gen": "1",
+      "latency": "儲存 672 ms",
+      "toast": "已開啟 probe-hand-0212.odt"
+     },
+     {
+      "t": 3701.8,
+      "what": "canvas",
+      "changes": 5,
+      "caretRow": 233,
+      "caretBand": {
+       "index": 0,
+       "label": 5
+      },
+      "bands": "0:0:1023:5 1:1023:1023:5 2:2046:1023:5 3:3069:1023:4",
+      "sink": [
+       "468px",
+       "233px"
+      ],
+      "state": "ready",
+      "shape": "collapsed",
+      "gen": "1",
+      "latency": "儲存 672 ms",
+      "toast": "已開啟 probe-hand-0212.odt"
+     },
+     {
+      "t": 3711.5,
+      "what": "canvas",
+      "changes": 5,
+      "caretRow": 233,
+      "caretBand": {
+       "index": 0,
+       "label": 5
+      },
+      "bands": "0:0:1023:5 1:1023:1023:5 2:2046:1023:5 3:3069:1023:5",
+      "sink": [
+       "468px",
+       "233px"
+      ],
+      "state": "ready",
+      "shape": "collapsed",
+      "gen": "1",
+      "latency": "儲存 672 ms",
+      "toast": "已開啟 probe-hand-0212.odt"
+     },
+     {
+      "t": 4169.8,
+      "what": "toast",
+      "changes": 5,
+      "caretRow": 233,
+      "caretBand": {
+       "index": 0,
+       "label": 5
+      },
+      "bands": "0:0:1023:5 1:1023:1023:5 2:2046:1023:5 3:3069:1023:5",
+      "sink": [
+       "468px",
+       "233px"
+      ],
+      "state": "ready",
+      "shape": "collapsed",
+      "gen": "1",
+      "latency": "儲存 672 ms",
+      "toast": null
+     },
+     {
+      "t": 6397.9,
+      "what": "canvas",
+      "changes": 6,
+      "caretRow": 233,
+      "caretBand": {
+       "index": 0,
+       "label": 5
+      },
+      "bands": "0:0:1023:5 1:1023:1023:5 2:2046:1023:5 3:3069:1023:5",
+      "sink": [
+       "468px",
+       "233px"
+      ],
+      "state": "ready",
+      "shape": "collapsed",
+      "gen": "1",
+      "latency": "存回 3096 ms",
+      "toast": null
+     },
+     {
+      "t": 6416.8,
+      "what": "canvas",
+      "changes": 6,
+      "caretRow": 233,
+      "caretBand": {
+       "index": 0,
+       "label": 6
+      },
+      "bands": "0:0:1023:6 1:1023:1023:5 2:2046:1023:5 3:3069:1023:5",
+      "sink": [
+       "468px",
+       "233px"
+      ],
+      "state": "ready",
+      "shape": "collapsed",
+      "gen": "1",
+      "latency": "存回 3096 ms",
+      "toast": null
+     },
+     {
+      "t": 6436.6,
+      "what": "canvas",
+      "changes": 6,
+      "caretRow": 233,
+      "caretBand": {
+       "index": 0,
+       "label": 6
+      },
+      "bands": "0:0:1023:6 1:1023:1023:6 2:2046:1023:5 3:3069:1023:5",
+      "sink": [
+       "468px",
+       "233px"
+      ],
+      "state": "ready",
+      "shape": "collapsed",
+      "gen": "1",
+      "latency": "存回 3096 ms",
+      "toast": null
+     },
+     {
+      "t": 6452.7,
+      "what": "canvas",
+      "changes": 6,
+      "caretRow": 233,
+      "caretBand": {
+       "index": 0,
+       "label": 6
+      },
+      "bands": "0:0:1023:6 1:1023:1023:6 2:2046:1023:6 3:3069:1023:5",
+      "sink": [
+       "468px",
+       "233px"
+      ],
+      "state": "ready",
+      "shape": "collapsed",
+      "gen": "1",
+      "latency": "存回 3096 ms",
+      "toast": null
+     },
+     {
+      "t": 6461.8,
+      "what": "canvas",
+      "changes": 6,
+      "caretRow": 233,
+      "caretBand": {
+       "index": 0,
+       "label": 6
+      },
+      "bands": "0:0:1023:6 1:1023:1023:6 2:2046:1023:6 3:3069:1023:6",
+      "sink": [
+       "468px",
+       "233px"
+      ],
+      "state": "ready",
+      "shape": "collapsed",
+      "gen": "1",
+      "latency": "存回 3096 ms",
+      "toast": null
+     },
+     {
+      "t": 6461.9,
+      "what": "toast",
+      "changes": 6,
+      "caretRow": 233,
+      "caretBand": {
+       "index": 0,
+       "label": 6
+      },
+      "bands": "0:0:1023:6 1:1023:1023:6 2:2046:1023:6 3:3069:1023:6",
+      "sink": [
+       "468px",
+       "233px"
+      ],
+      "state": "ready",
+      "shape": "collapsed",
+      "gen": "1",
+      "latency": "存回 3096 ms",
+      "toast": "已存回 probe-hand-0212.odt（553.9 KB）"
+     }
+    ],
+    "lag": [
+     {
+      "key": "keydown:q",
+      "tKey": 3646.4,
+      "caretMovedMs": 21.4,
+      "counterDone": 6,
+      "caretBandFreshMs": 2770.4,
+      "staleAfterCaretMs": 2749.0,
+      "freshBand": {
+       "index": 0,
+       "label": 6
+      }
+     }
+    ],
+    "judged": {
+     "verdict": "PASS",
+     "keyMs": 3646.4,
+     "freshMs": 3683.2,
+     "putHeldMs": 3333.7,
+     "putAnsweredMs": 6397.160000000001,
+     "caretMovedMs": 21.4,
+     "caretBandFreshMs": 36.8,
+     "ownChange": 5,
+     "heldPaints": 0
+    }
+   },
+   "hostsegRed": {
+    "arm": "hostseg-red",
+    "holdPaints": true,
+    "holdMs": 3000,
+    "click": {
+     "latency": "定位游標 39 ms",
+     "timedOut": false,
+     "settled": {
+      "state": "ready",
+      "label": "就緒",
+      "revision": "1",
+      "pending": "0",
+      "checkpoint": "無",
+      "latency": "定位游標 39 ms",
+      "doc": "probe-hand-0212.odt",
+      "toast": "已存回 probe-hand-0212.odt（553.9 KB）",
+      "buttons": [
+       {
+        "action": "undo",
+        "disabled": false
+       },
+       {
+        "action": "redo",
+        "disabled": false
+       },
+       {
+        "action": "move-character-left",
+        "disabled": false
+       },
+       {
+        "action": "move-character-right",
+        "disabled": false
+       },
+       {
+        "action": "delete-backward",
+        "disabled": false
+       },
+       {
+        "action": "delete-forward",
+        "disabled": false
+       },
+       {
+        "action": "insert-paragraph-break",
+        "disabled": false
+       },
+       {
+        "action": "insert-line-break",
+        "disabled": false
+       },
+       {
+        "action": "set-bold",
+        "disabled": false
+       },
+       {
+        "action": "set-italic",
+        "disabled": false
+       },
+       {
+        "action": "set-underline",
+        "disabled": false
+       },
+       {
+        "action": "set-strikethrough",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-heading",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-body",
+        "disabled": false
+       },
+       {
+        "action": "set-list-unordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-ordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-none",
+        "disabled": false
+       },
+       {
+        "action": "insert-text",
+        "disabled": false
+       },
+       {
+        "action": "save",
+        "disabled": false
+       }
+      ]
+     }
+    },
+    "quietBefore": {
+     "state": "ready",
+     "label": "就緒",
+     "revision": "1",
+     "pending": "0",
+     "checkpoint": "無",
+     "latency": "定位游標 39 ms",
+     "doc": "probe-hand-0212.odt",
+     "toast": "已存回 probe-hand-0212.odt（553.9 KB）",
+     "buttons": [
+      {
+       "action": "undo",
+       "disabled": false
+      },
+      {
+       "action": "redo",
+       "disabled": false
+      },
+      {
+       "action": "move-character-left",
+       "disabled": false
+      },
+      {
+       "action": "move-character-right",
+       "disabled": false
+      },
+      {
+       "action": "delete-backward",
+       "disabled": false
+      },
+      {
+       "action": "delete-forward",
+       "disabled": false
+      },
+      {
+       "action": "insert-paragraph-break",
+       "disabled": false
+      },
+      {
+       "action": "insert-line-break",
+       "disabled": false
+      },
+      {
+       "action": "set-bold",
+       "disabled": false
+      },
+      {
+       "action": "set-italic",
+       "disabled": false
+      },
+      {
+       "action": "set-underline",
+       "disabled": false
+      },
+      {
+       "action": "set-strikethrough",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-heading",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-body",
+       "disabled": false
+      },
+      {
+       "action": "set-list-unordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-ordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-none",
+       "disabled": false
+      },
+      {
+       "action": "insert-text",
+       "disabled": false
+      },
+      {
+       "action": "save",
+       "disabled": false
+      }
+     ]
+    },
+    "savesBefore": 1,
+    "putSeen": {
+     "out": 1,
+     "puts": [
+      {
+       "held": 10834.099999999999
+      }
+     ],
+     "heldPaints": 0
+    },
+    "settled": {
+     "state": "ready",
+     "label": "就緒",
+     "revision": "2",
+     "pending": "0",
+     "checkpoint": "無",
+     "latency": "存回 3124 ms",
+     "doc": "probe-hand-0212.odt",
+     "toast": "已存回 probe-hand-0212.odt（553.9 KB）",
+     "buttons": [
+      {
+       "action": "undo",
+       "disabled": false
+      },
+      {
+       "action": "redo",
+       "disabled": false
+      },
+      {
+       "action": "move-character-left",
+       "disabled": false
+      },
+      {
+       "action": "move-character-right",
+       "disabled": false
+      },
+      {
+       "action": "delete-backward",
+       "disabled": false
+      },
+      {
+       "action": "delete-forward",
+       "disabled": false
+      },
+      {
+       "action": "insert-paragraph-break",
+       "disabled": false
+      },
+      {
+       "action": "insert-line-break",
+       "disabled": false
+      },
+      {
+       "action": "set-bold",
+       "disabled": false
+      },
+      {
+       "action": "set-italic",
+       "disabled": false
+      },
+      {
+       "action": "set-underline",
+       "disabled": false
+      },
+      {
+       "action": "set-strikethrough",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-heading",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-body",
+       "disabled": false
+      },
+      {
+       "action": "set-list-unordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-ordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-none",
+       "disabled": false
+      },
+      {
+       "action": "insert-text",
+       "disabled": false
+      },
+      {
+       "action": "save",
+       "disabled": false
+      }
+     ]
+    },
+    "put": {
+     "holdPaints": true,
+     "out": 0,
+     "puts": [
+      {
+       "held": 10834.099999999999,
+       "sent": 13862.98,
+       "answered": 13927.939999999999
+      }
+     ],
+     "heldPaints": 1
+    },
+    "save": {
+     "at": 13720,
+     "name": "probe-hand-0212.odt",
+     "bytes": 567237,
+     "attempts": [
+      {
+       "waited": 0,
+       "check": {
+        "at": 13720,
+        "status": 200,
+        "etag": "\"4ac8d6aa2534ffe9cabb45e032435979\"",
+        "sha256": "09bc3632837a7630d93b25cb1723d3473430a934e197607b8660a2aee357d05d",
+        "ms": 30
+       },
+       "ifMatch": "\"4ac8d6aa2534ffe9cabb45e032435979\"",
+       "withToken": true,
+       "target": "original",
+       "at": 13750,
+       "respondedAt": 16844,
+       "status": 204
+      }
+     ],
+     "trigger": "manual",
+     "target": "original",
+     "sha256": "4f71928a53d1a72e9ae67bf901fbaf749250aee16d1688b491263a2d067c7258",
+     "ifMatch": "\"4ac8d6aa2534ffe9cabb45e032435979\"",
+     "status": 204,
+     "etag": "\"2c5f7b98c331504324441dfd1f5964ac\"",
+     "outcome": "saved",
+     "settled": true
+    },
+    "log": [
+     {
+      "t": 10462.1,
+      "what": "shape",
+      "changes": 8,
+      "caretRow": 229,
+      "caretBand": {
+       "index": 0,
+       "label": 8
+      },
+      "bands": "0:0:1023:8 1:1023:1023:8 2:2046:1023:8 3:3069:1023:8",
+      "sink": [
+       "455px",
+       "229px"
+      ],
+      "state": "busy",
+      "shape": "collapsed",
+      "gen": "1",
+      "latency": "定位游標 39 ms",
+      "toast": "已存回 probe-hand-0212.odt（553.9 KB）"
+     },
+     {
+      "t": 10462.7,
+      "what": "toast",
+      "changes": 8,
+      "caretRow": 229,
+      "caretBand": {
+       "index": 0,
+       "label": 8
+      },
+      "bands": "0:0:1023:8 1:1023:1023:8 2:2046:1023:8 3:3069:1023:8",
+      "sink": [
+       "455px",
+       "229px"
+      ],
+      "state": "busy",
+      "shape": "collapsed",
+      "gen": "1",
+      "latency": "定位游標 39 ms",
+      "toast": null
+     },
+     {
+      "t": 10739.1,
+      "what": "shape",
+      "changes": 8,
+      "caretRow": 229,
+      "caretBand": {
+       "index": 0,
+       "label": 8
+      },
+      "bands": "0:0:1023:8 1:1023:1023:8 2:2046:1023:8 3:3069:1023:8",
+      "sink": [
+       "455px",
+       "229px"
+      ],
+      "state": "ready",
+      "shape": "collapsed",
+      "gen": "1",
+      "latency": "定位游標 39 ms",
+      "toast": null
+     },
+     {
+      "t": 10739.2,
+      "what": "canvas",
+      "changes": 9,
+      "caretRow": 229,
+      "caretBand": {
+       "index": 0,
+       "label": 8
+      },
+      "bands": "0:0:1023:8 1:1023:1023:8 2:2046:1023:8 3:3069:1023:8",
+      "sink": [
+       "455px",
+       "229px"
+      ],
+      "state": "ready",
+      "shape": "collapsed",
+      "gen": "1",
+      "latency": "儲存 278 ms",
+      "toast": null
+     },
+     {
+      "t": 10756.3,
+      "what": "canvas",
+      "changes": 9,
+      "caretRow": 229,
+      "caretBand": {
+       "index": 0,
+       "label": 9
+      },
+      "bands": "0:0:1023:9 1:1023:1023:8 2:2046:1023:8 3:3069:1023:8",
+      "sink": [
+       "455px",
+       "229px"
+      ],
+      "state": "ready",
+      "shape": "collapsed",
+      "gen": "1",
+      "latency": "儲存 278 ms",
+      "toast": null
+     },
+     {
+      "t": 10776,
+      "what": "canvas",
+      "changes": 9,
+      "caretRow": 229,
+      "caretBand": {
+       "index": 0,
+       "label": 9
+      },
+      "bands": "0:0:1023:9 1:1023:1023:9 2:2046:1023:8 3:3069:1023:8",
+      "sink": [
+       "455px",
+       "229px"
+      ],
+      "state": "ready",
+      "shape": "collapsed",
+      "gen": "1",
+      "latency": "儲存 278 ms",
+      "toast": null
+     },
+     {
+      "t": 10786.5,
+      "what": "canvas",
+      "changes": 9,
+      "caretRow": 229,
+      "caretBand": {
+       "index": 0,
+       "label": 9
+      },
+      "bands": "0:0:1023:9 1:1023:1023:9 2:2046:1023:9 3:3069:1023:8",
+      "sink": [
+       "455px",
+       "229px"
+      ],
+      "state": "ready",
+      "shape": "collapsed",
+      "gen": "1",
+      "latency": "儲存 278 ms",
+      "toast": null
+     },
+     {
+      "t": 10803.8,
+      "what": "canvas",
+      "changes": 9,
+      "caretRow": 229,
+      "caretBand": {
+       "index": 0,
+       "label": 9
+      },
+      "bands": "0:0:1023:9 1:1023:1023:9 2:2046:1023:9 3:3069:1023:9",
+      "sink": [
+       "455px",
+       "229px"
+      ],
+      "state": "ready",
+      "shape": "collapsed",
+      "gen": "1",
+      "latency": "儲存 278 ms",
+      "toast": null
+     },
+     {
+      "t": 11151.7,
+      "what": "keydown:q",
+      "changes": 9,
+      "caretRow": 229,
+      "caretBand": {
+       "index": 0,
+       "label": 9
+      },
+      "bands": "0:0:1023:9 1:1023:1023:9 2:2046:1023:9 3:3069:1023:9",
+      "sink": [
+       "455px",
+       "229px"
+      ],
+      "state": "ready",
+      "shape": "collapsed",
+      "gen": "1",
+      "latency": "儲存 278 ms",
+      "toast": null
+     },
+     {
+      "t": 11152.6,
+      "what": "shape",
+      "changes": 9,
+      "caretRow": 229,
+      "caretBand": {
+       "index": 0,
+       "label": 9
+      },
+      "bands": "0:0:1023:9 1:1023:1023:9 2:2046:1023:9 3:3069:1023:9",
+      "sink": [
+       "455px",
+       "229px"
+      ],
+      "state": "busy",
+      "shape": "collapsed",
+      "gen": "1",
+      "latency": "儲存 278 ms",
+      "toast": null
+     },
+     {
+      "t": 11172.7,
+      "what": "canvas",
+      "changes": 10,
+      "caretRow": 229,
+      "caretBand": {
+       "index": 0,
+       "label": 9
+      },
+      "bands": "0:0:1023:9 1:1023:1023:9 2:2046:1023:9 3:3069:1023:9",
+      "sink": [
+       "455px",
+       "229px"
+      ],
+      "state": "busy",
+      "shape": "collapsed",
+      "gen": "1",
+      "latency": "儲存 278 ms",
+      "toast": null
+     },
+     {
+      "t": 11174.3,
+      "what": "sink",
+      "changes": 10,
+      "caretRow": 233,
+      "caretBand": {
+       "index": 0,
+       "label": 9
+      },
+      "bands": "0:0:1023:9 1:1023:1023:9 2:2046:1023:9 3:3069:1023:9",
+      "sink": [
+       "468px",
+       "233px"
+      ],
+      "state": "busy",
+      "shape": "collapsed",
+      "gen": "1",
+      "latency": "儲存 278 ms",
+      "toast": null
+     },
+     {
+      "t": 11174.4,
+      "what": "shape",
+      "changes": 10,
+      "caretRow": 233,
+      "caretBand": {
+       "index": 0,
+       "label": 9
+      },
+      "bands": "0:0:1023:9 1:1023:1023:9 2:2046:1023:9 3:3069:1023:9",
+      "sink": [
+       "468px",
+       "233px"
+      ],
+      "state": "busy",
+      "shape": "collapsed",
+      "gen": "1",
+      "latency": "儲存 278 ms",
+      "toast": null
+     },
+     {
+      "t": 11175.2,
+      "what": "shape",
+      "changes": 10,
+      "caretRow": 233,
+      "caretBand": {
+       "index": 0,
+       "label": 9
+      },
+      "bands": "0:0:1023:9 1:1023:1023:9 2:2046:1023:9 3:3069:1023:9",
+      "sink": [
+       "468px",
+       "233px"
+      ],
+      "state": "ready",
+      "shape": "collapsed",
+      "gen": "1",
+      "latency": "儲存 278 ms",
+      "toast": null
+     },
+     {
+      "t": 13928.3,
+      "what": "canvas",
+      "changes": 11,
+      "caretRow": 233,
+      "caretBand": {
+       "index": 0,
+       "label": 9
+      },
+      "bands": "0:0:1023:9 1:1023:1023:9 2:2046:1023:9 3:3069:1023:9",
+      "sink": [
+       "468px",
+       "233px"
+      ],
+      "state": "ready",
+      "shape": "collapsed",
+      "gen": "1",
+      "latency": "存回 3124 ms",
+      "toast": null
+     },
+     {
+      "t": 13928.5,
+      "what": "toast",
+      "changes": 11,
+      "caretRow": 233,
+      "caretBand": {
+       "index": 0,
+       "label": 9
+      },
+      "bands": "0:0:1023:9 1:1023:1023:9 2:2046:1023:9 3:3069:1023:9",
+      "sink": [
+       "468px",
+       "233px"
+      ],
+      "state": "ready",
+      "shape": "collapsed",
+      "gen": "1",
+      "latency": "存回 3124 ms",
+      "toast": "已存回 probe-hand-0212.odt（553.9 KB）"
+     },
+     {
+      "t": 13957.5,
+      "what": "canvas",
+      "changes": 11,
+      "caretRow": 233,
+      "caretBand": {
+       "index": 0,
+       "label": 10
+      },
+      "bands": "0:0:1023:10 1:1023:1023:9 2:2046:1023:9 3:3069:1023:9",
+      "sink": [
+       "468px",
+       "233px"
+      ],
+      "state": "ready",
+      "shape": "collapsed",
+      "gen": "1",
+      "latency": "存回 3124 ms",
+      "toast": "已存回 probe-hand-0212.odt（553.9 KB）"
+     },
+     {
+      "t": 13975,
+      "what": "canvas",
+      "changes": 11,
+      "caretRow": 233,
+      "caretBand": {
+       "index": 0,
+       "label": 11
+      },
+      "bands": "0:0:1023:11 1:1023:1023:9 2:2046:1023:9 3:3069:1023:9",
+      "sink": [
+       "468px",
+       "233px"
+      ],
+      "state": "ready",
+      "shape": "collapsed",
+      "gen": "1",
+      "latency": "存回 3124 ms",
+      "toast": "已存回 probe-hand-0212.odt（553.9 KB）"
+     },
+     {
+      "t": 13996.9,
+      "what": "canvas",
+      "changes": 11,
+      "caretRow": 233,
+      "caretBand": {
+       "index": 0,
+       "label": 11
+      },
+      "bands": "0:0:1023:11 1:1023:1023:11 2:2046:1023:9 3:3069:1023:9",
+      "sink": [
+       "468px",
+       "233px"
+      ],
+      "state": "ready",
+      "shape": "collapsed",
+      "gen": "1",
+      "latency": "存回 3124 ms",
+      "toast": "已存回 probe-hand-0212.odt（553.9 KB）"
+     },
+     {
+      "t": 14007.6,
+      "what": "canvas",
+      "changes": 11,
+      "caretRow": 233,
+      "caretBand": {
+       "index": 0,
+       "label": 11
+      },
+      "bands": "0:0:1023:11 1:1023:1023:11 2:2046:1023:11 3:3069:1023:9",
+      "sink": [
+       "468px",
+       "233px"
+      ],
+      "state": "ready",
+      "shape": "collapsed",
+      "gen": "1",
+      "latency": "存回 3124 ms",
+      "toast": "已存回 probe-hand-0212.odt（553.9 KB）"
+     },
+     {
+      "t": 14025.9,
+      "what": "canvas",
+      "changes": 11,
+      "caretRow": 233,
+      "caretBand": {
+       "index": 0,
+       "label": 11
+      },
+      "bands": "0:0:1023:11 1:1023:1023:11 2:2046:1023:11 3:3069:1023:11",
+      "sink": [
+       "468px",
+       "233px"
+      ],
+      "state": "ready",
+      "shape": "collapsed",
+      "gen": "1",
+      "latency": "存回 3124 ms",
+      "toast": "已存回 probe-hand-0212.odt（553.9 KB）"
+     }
+    ],
+    "lag": [
+     {
+      "key": "keydown:q",
+      "tKey": 11151.7,
+      "caretMovedMs": 22.6,
+      "counterDone": 11,
+      "caretBandFreshMs": 2823.3,
+      "staleAfterCaretMs": 2800.7,
+      "freshBand": {
+       "index": 0,
+       "label": 11
+      }
+     }
+    ],
+    "judged": {
+     "verdict": "FAIL",
+     "keyMs": 11151.7,
+     "freshMs": 13957.5,
+     "putHeldMs": 10834.099999999999,
+     "putAnsweredMs": 13927.939999999999,
+     "caretMovedMs": 22.6,
+     "caretBandFreshMs": 2805.8,
+     "ownChange": 10,
+     "heldPaints": 1
+    }
+   },
+   "completedAt": "2026-10-13T04:17:01+00:00"
+  }
+ ],
+ "staticAfter": {
+  "hostCommit": "f5b34f0",
+  "hostDirty": [
+   "M appinfo/info.xml"
+  ],
+  "hostVersion": "0.2.18",
+  "buildId": "d6d04880f56e31da",
+  "servedPage": "b24d754a426706bb5c93dbacb3f7ffadc655e738ee9a0fdd7168069f0f701678",
+  "servedSession": "62a2a20e4c66f630d77caf5bb75973e28aa58b0d8c7bf4cb0e35fa44b6a6fc5c",
+  "distPage": "b24d754a426706bb5c93dbacb3f7ffadc655e738ee9a0fdd7168069f0f701678",
+  "shellBundle": {
+   "exit": 1,
+   "manifest": "e2/editor-shell-v2-bundle-v65.json",
+   "sha256": "70c34178c3a3704ac4b7d4f7ad58739443dc60df9281c1194cfe29b24d027439",
+   "problems": [
+    "manifest is out of date: added=[] removed=[] changed=['web/e2-editor-app.js']",
+    "refusing to rewrite e2/editor-shell-v2-bundle-v65.json -- it exists with digest 3bffb9463e9b4050... and the tree now hashes 70c34178c3a3704a.... A changed shell needs a NEW generation: bump MANIFEST and add this one to FROZEN_MANIFESTS. --force only if you mean to discard the record of what a round actually ran on."
+   ]
+  }
+ },
+ "completedAt": "2026-10-13T04:17:01+00:00"
+}

@@ -1,0 +1,47 @@
+# Finding 136 page — the "must not break" set on the final bytes
+
+Task: `handoff/tasks/TASK-2026-10-13d-136-guard-chain.md` (SPEC-M3-held-key §16; ruling-3 conditions 5–6). Precedents: `findings/evidence/134/guard/README.md` (task `TASK-2026-10-13-134-guard-chain.md`) and `findings/evidence/132/guard/README.md`. Mechanical runs of existing instruments and judges on one page; nothing here changes a check, a judge or an instrument except the pin edits the task names (G3, G4), each its own commit. Facts only; anything not checked is marked unverified. All times UTC.
+
+## Conditions (common)
+
+- Page under test: `wasm_sdk_probe/dist/e2-editor-app.js` sha256 `b24d754a426706bb5c93dbacb3f7ffadc655e738ee9a0fdd7168069f0f701678` (= `wasm_sdk_probe/web/e2-editor-app.js`; `sha256sum` of both checked at 2026-10-13T03:35:51Z before G0).
+- Host `litecore` 0.2.18 (`appinfo/info.xml`, uncommitted on purpose; host HEAD `f5b34f0`, `git status --short` = ` M appinfo/info.xml`), engine package buildId `d6d04880f56e31da` (`engine/MANIFEST.json` read before G0: `source.page` = the page above, `source.profile` e2-editor-v19, `packagedAt` 2026-10-13T02:25:55+00:00). Every probe report's `static` and `staticAfter` say `servedPage` = the page above, `buildId` `d6d04880f56e31da`, `hostVersion` `0.2.18`. ddev project `litecore` running.
+- What changed from 0.2.16 (`6470dec0…`), per the task: finding 136 (`updateState` notes the last caret the engine pushed with no range selected; the reopen puts the caret back there) and the restore flash (`updateState` does not follow the caret while the page reopens). I did not read the page diff.
+- Chrome 151.0.7922.169, Firefox 157.0.1, one browser at a time, one job at a time. Before each browser step `pgrep -af "probe_|check_m3|run_e2_c"` showed nothing of ours (apart from the `bash -c` wrapper matching its own command line) and `pgrep -c chrome` was 0 (after the owner's reboot Codex desktop's crashpad handler, which counted as 1 in the 134 run, is not running). No owner Firefox was open at the start.
+- Not done by me, by instruction: no `make`, no edit of `wasm_sdk_probe/web` or `dist`, nothing in `~/Projects/Nextcloud_Apps`, no `--write` mode, no `git push`.
+- `static.shellBundle` in the G0/G1 reports is `exit 1` ("manifest is out of date … changed=['web/e2-editor-app.js']", `e2/editor-shell-v2-bundle-v65.json`): the shell generation is not frozen for this page; the probe records it and does not stop on it. Not investigated.
+
+## Chrome headless could not load any http page during this run (environment, read this first)
+
+Every Chrome run in this chain failed the same way, before any measurement: `report.json` → `runs[chrome].fatal` is a traceback ending `TimeoutError: timed out in 180.0s` in `login()` → `navigate(…/login)` → `Page.navigate`. G0 Chrome fatal at 03:36–03:39Z, G1 Chrome fatal 03:57–04:00Z, G1 hostseg rerun Chrome fatal 04:13–04:16Z; Firefox ran normally each time. The earlier 134-chain run on the same machine (before the owner's reboot) had Chrome working.
+
+A diagnostic outside the chain (Chrome 151.0.7922.169, headless, a fresh temporary profile each time; `CDP Page.navigate` through `run_browser_probe.ChromeSession`, and `google-chrome --headless=new --dump-dom <url>` with a 12–40 s limit) showed: `Page.navigate` to `about:blank` returns at once and `Runtime.evaluate` works; `--dump-dom data:text/html,<p>hello</p>` prints the DOM; but `Page.navigate` / `--dump-dom` to **any** `http(s)` URL never returns — `http://127.0.0.1:<chrome's own debugging port>/json/version`, `https://litecore.ddev.site:8443/login`, a refused local port (`http://127.0.0.1:8123/`), `http://localhost:8123/`, and a `python3 -m http.server` on `127.0.0.1:8124`. `curl https://litecore.ddev.site:8443/login` answers 200 in 0.06 s from the same shell. None of `--no-sandbox`, `--disable-features=NetworkServiceSandbox`, `--disable-features=NetworkServiceInProcess2`, `--enable-features=NetworkServiceInProcess`, `--no-proxy-server`, `--disable-background-networking`, `--headless=old` changed it (each hung to the time limit). `--enable-logging=stderr --v=0` printed only two lines (`No machine level policy manager exists.`, `InitializeSandbox() called with multiple threads in process gpu-process.`). No proxy environment variable is set; `gsettings` proxy mode is `none`. Cause unverified: this looks like Chrome's network service not answering at all on this boot, independent of the page, the host and the probe. I changed nothing to fix it (not in scope). Consequence for this chain: every cell that needs Chrome is **not measured**, which is different from a measured FAIL.
+
+## G0 — 132-B on the 136 page: FAIL (exit 1) — Chrome not run (environment), Firefox 6/6 holds PASS
+
+`132-b/` (own README). 2026-10-13T03:36:01–03:56:10Z. Command: `probe_hand_test_0212.py --out findings/evidence/136/guard/132-b --browsers chrome,firefox --arms hold-high,hold-low,wash-control --hold-rounds 3` (exit 0). `judge_132b.py --page b24d754a…` **exit 1**, last line `132-B FAIL`; its lines: `chrome: fatal in the run  FAIL`, `chrome hold-high: 0 holds < 3  FAIL`, `chrome hold-low: 0 holds < 3  FAIL`, `chrome wash-control: not run  NOT_ESTABLISHED`, `firefox hold-high|hold-low round 0|1|2: PASS` ×6, `firefox wash-control: selection fills [10]  PASS`. Firefox read: deleted per hold 26, 1–2 deletes after release (last at 70.6–105.3 ms), caret band fresh 89.6–123.4 ms after release, 0 washes, `persistent.differing` 0. Commit `b2b4dda2`. Not rerun (task: record, go on).
+
+## G1 — 131-B and 128-B (one probe run, then the host-segment arms once more): 131-B FAIL (Chrome not run; Firefox clauses hold); 128-B Firefox single presses PASS; Firefox host-segment cell NOT_JUDGED in the first run, PASS in the one rerun; red control red in both; Chrome none
+
+Directory `131b-128b/`. Command: `python3 wasm_sdk_probe/tools/probe_hand_test_0212.py --out findings/evidence/136/guard/131b-128b --browsers chrome,firefox --arms high,low,rapid20,hostseg,hostseg-red --rapid-rounds 6` (exit 0, `probe.out` ends `probe exit 0`). Chrome fatal 03:57:05–04:00:11Z, Firefox 04:00:11–04:06:05Z. At the start `pgrep -c chrome` = 0, load 0.78 0.45 0.37 (`started-utc.txt`).
+
+| Clause | Read with | Chrome | Firefox | Verdict |
+|---|---|---|---|---|
+| 131-B: 6 rapid20 bursts, each `deleted 20`, `refused 0`, `other []` | `judge_131b.py report.json --page b24d754a…` → `judge_131b-output.txt`, **exit 1**, last line begins `131-B FAIL ['chrome: fatal …', 'chrome: 0 bursts, wanted 6', 'chrome high persistent None', 'chrome low persistent None']` | not run (fatal) | 6/6 bursts `deleted 20 refused 0 other []` | Chrome NOT MEASURED; Firefox holds |
+| 131-B: `persistent.differing == 0` in the four high/low arms | same | not run | high 0, low 0 | Chrome NOT MEASURED; Firefox holds |
+| 128-B: every single press `staleAfterCaretMs` ≤ 40 ms | `read_128b_cells.py report.json` → `read_128b-output.txt` (exit 0) | not run (no line printed) | high 27.0 20.6 20.7 21.0; low 23.6 24.8 22.0 21.1 | Firefox PASS (max 27.0); Chrome NOT MEASURED |
+| 128-B: host-segment cell holds | `runs[].hostseg.judged`, first run | not run | `NOT_JUDGED`, why `2 PUTs, 1 keys, save saved` | not judged in the first run; Firefox PASS in the rerun (below) |
+| 128-B: host-segment red control (`hostseg-red`) is red | `runs[].hostsegRed.judged` | not run | `FAIL` (band fresh 2754.9 ms after the key, `heldPaints` 1) | Firefox red, as required |
+
+- The rapid keys printed by the reader (Firefox high 79.5 – 78.6 90.3, low 81.6 – 80.9 78.5; `–` = the caret did not move inside that key's own window) are not part of the task's criteria; I did not judge them.
+- **First run, Firefox host-segment cell `NOT_JUDGED`** — the state the 132 and 134 chains also hit. `runs[].hostseg.put.puts` has two PUTs: the first held 322203.7, sent 325204, answered 325262.5 ms; a second PUT held at 326388.5 ms and still outstanding when the arm ended (`out: 1`). Cause unverified.
+- **Rerun, as the task's disposition says** — only the two arms once, instrument and verdict function unchanged: `python3 wasm_sdk_probe/tools/probe_hand_test_0212.py --out findings/evidence/136/guard/131b-128b-hostseg-rerun --browsers chrome,firefox --arms hostseg,hostseg-red` (exit 0; Chrome fatal 04:13:19–04:16:25Z, Firefox 04:16:25–04:17:01Z; served page, buildId and host version as above).
+
+| | Chrome | Firefox |
+|---|---|---|
+| host-segment cell (`runs[].hostseg.judged`) | not run (fatal, same traceback) | **PASS**: PUT held 3333.7 ms, key at 3646.4 ms (inside the hold), caret moved 21.4 ms after the key, caret band fresh 36.8 ms after the key, PUT answered 6397.2 ms (one PUT, `out: 0`), `heldPaints` 0 |
+| red control (`runs[].hostsegRed.judged`) | not run | **FAIL**: band fresh 2805.8 ms after the key, `heldPaints` 1 |
+
+`read_128b-output.txt` in the rerun directory is empty (that reader prints the high/low arms only). The Firefox host-segment cell has been sampled twice; the first sample is not a PASS. Chrome has no sample of any G1 clause on this page.
+
+Output files: `131b-128b/` — `probe.out`, `report.json`, `judge_131b-output.txt`, `read_128b-output.txt`, `started-utc.txt`, `ended-utc.txt`; `131b-128b-hostseg-rerun/` — `probe.out`, `report.json`, `read_128b-output.txt` (empty), `started-utc.txt`, `ended-utc.txt`. (No screenshots were written: the probe writes them from the Chrome half.)
