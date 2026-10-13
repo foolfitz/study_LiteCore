@@ -32,6 +32,17 @@ ARMS = {"before-table-press-type": ([], "press"), "before-table-hold": ([], "hol
         "cell-press-type": (["ArrowDown"], "press"), "cell-hold": (["ArrowDown"], "hold")}
 
 
+CONTROL = ""
+
+
+def control_read(server) -> dict[str, Any]:
+    """Where the control mark is, and whether the reopened `zqx` follows it directly.  No text."""
+    texts = probe.texts_of(server.instance.dav("GET", probe.NAME)[1])
+    return {"controlParagraphs": [i for i, t in enumerate(texts) if CONTROL in t],
+            "markParagraphs": [i for i, t in enumerate(texts) if probe.MARK in t],
+            "controlThenMark": any(CONTROL + probe.MARK in t for t in texts)}
+
+
 def nav(session, kind: str, key: str) -> dict[str, Any]:
     """ArrowDown is not in the shared key tables; the same two drivers, sent here."""
     before = ui.quiet(session)
@@ -66,6 +77,10 @@ def run_round(arm: str, kind: str, server, doc: bytes, original: list[str]) -> d
         # into the text first).  The caret is at the document start after opening; focus the sink there.
         record["focused"] = evaluate(session, FOCUS_SINK)
         record["moves"] = [nav(session, kind, key) for key in moves] + [ui.keyed(session, kind, "End")]
+        if CONTROL and how == "press":
+            # run-3: a second mark typed where the caret is before the key, so the read-back says
+            # where the user's caret was, beside where the reopened one put `zqx`.
+            record["typedControl"] = [ui.keyed(session, kind, ch) for ch in CONTROL]
         record["genBeforeKey"] = evaluate(session, ui.GEN)
         start = evaluate(session, probe.LOG_LENGTH)
         if how == "press":
@@ -83,6 +98,8 @@ def run_round(arm: str, kind: str, server, doc: bytes, original: list[str]) -> d
         if record["limit"].get("limit") not in probe.SETTLED_LIMITS:
             record["save"] = ui.save_and_settle(session, 60)
         record["server"] = probe.server_read(server, original)
+        if CONTROL and how == "press":
+            record["control"] = control_read(server)
     except Exception:  # noqa: BLE001 -- a round that dies is recorded, not lost
         record["fatal"] = traceback.format_exc()
     finally:
@@ -99,13 +116,16 @@ def main() -> int:
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--browsers", default="chrome,firefox")
     parser.add_argument("--arms", default=",".join(ARMS))
+    parser.add_argument("--control", default="", help="run-3: letters typed before the key (e.g. kj)")
     args = parser.parse_args()
+    global CONTROL
+    CONTROL = args.control
     probe.held.OPTIONS.update(holdMs=8000, holdDelayMs=500, holdIntervalMs=30)
     args.out.mkdir(parents=True, exist_ok=True)
     doc = DOC.read_bytes()
     original = probe.texts_of(doc)
     server = probe.Server(probe.Instance(probe.DEFAULT_DDEV), [])
-    report: dict[str, Any] = {"probe": "probe_table_refusal.py", "startedAt": probe.utc_now(),
+    report: dict[str, Any] = {"probe": "probe_table_refusal.py", "startedAt": probe.utc_now(), "control": CONTROL,
                               "static": ui.static_facts(probe.DEFAULT_DDEV),
                               "document": {"path": str(DOC.relative_to(ROOT)),
                                            "sha256": hashlib.sha256(doc).hexdigest(),
@@ -123,7 +143,8 @@ def main() -> int:
                     {"refusals": run["summary"]["refusals"], "gens": run["summary"]["generations"],
                      "limit": (run.get("limit") or {}).get("limit"),
                      **{k: srv.get(k) for k in ("marks", "markParagraphs", "paragraphs", "sameAsOriginal",
-                                                "firstDiffFromOriginal", "charDelta")}}, ensure_ascii=False),
+                                                "firstDiffFromOriginal", "charDelta")},
+                     "control": run.get("control")}, ensure_ascii=False),
                       flush=True)
     finally:
         server.clear_locks()

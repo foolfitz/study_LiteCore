@@ -43,3 +43,35 @@ Both browsers, 1 round per arm.
 All eight arms read 0 refusals and an unchanged document. Even the press-type arms ended with `marks == 0`. The log shows why: every key, the Delete and `zqx`, landed on `body-user`, not the sink. Nothing had focused the sink: the owner-document probes click into the text first, and this probe did not. So run-1 says nothing about B + D or about whether these places are refusal shapes. It is kept as the failed control.
 
 Probe fix (an instrument fix caused by a run, not a check): after opening, `#sink` is focused with the caret where the page opened it (the document start), recorded as `focused`. Then the moves follow. Same predictions; run-2 follows.
+
+## run-2 (focus fixed; probe exit 0; static before = after: host 0.2.16, served page `6470dec0…`)
+
+The positive control passed in every arm: both places are refused on v19, and both browsers read the same.
+
+| arm | refusal (toast) | generations | result |
+|---|---|---|---|
+| before-table-press-type | key posted, not verified (「這一下刪除送出了，但沒能確認它做了什麼」) | 1→2 | mark in paragraph **0**, the rest unchanged |
+| before-table-hold | same | 1→2 | **1 refusal**, document unchanged |
+| cell-press-type | `anchor-mismatch` (「這裡目前還不能這樣刪除」) | 1→2 | mark in paragraph **2** (cell **B1**), the rest unchanged |
+| cell-hold | same | 1→2 | **1 refusal**, document unchanged |
+
+- **B holds at both table shapes.** One refusal per hold; nothing deleted.
+- **D reported success in all four press-type rounds.** No toast said 「游標現在在文件開頭」.
+- **Against the prediction:** the cell arm's mark landed in cell **B1** (2), not A1 (1). The before-table arm cannot tell success from failure: the end of paragraph 0 and the document start are the same paragraph.
+
+Two readings of the cell result:
+
+- **(a) Navigation.** ArrowDown + End had already put the caret in B1, and D was right.
+- **(b) D defect.** The refused Delete's barrier moved the engine's caret into B1 before the refusal, so the "last caret the engine reported" that D reads is not the user's caret.
+
+## run-3: control mark (prediction written before the run)
+
+Press-type arms only, both browsers, `--control kj`. `kj` is typed at the caret just before the Delete. The read-back records three things, all without text: which paragraph holds `kj`, which holds `zqx`, and whether `kjzqx` occurs contiguously.
+
+- **If (a):** `kj` and `zqx` in the same paragraph, contiguous `kjzqx`, in both arms. D put the caret exactly where it was.
+- **If (b):** in the cell arm, `kj` in paragraph 1 (A1) and `zqx` in 2 (B1). D restores to the barrier's caret. That is a defect of D, registered as a finding. The page is not changed while the owner is away; it goes to fable.
+- **Before-table arm:**
+  - `kj` and `zqx` contiguous in paragraph 0 means D restored to the paragraph end.
+  - `zqx` at the document start (not contiguous) would mean D's click landed at the start.
+
+`sameAsOriginal` is false by construction in run-3, because `kj` stays in the document.
