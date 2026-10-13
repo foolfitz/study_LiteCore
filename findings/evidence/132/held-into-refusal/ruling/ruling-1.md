@@ -54,3 +54,13 @@ Legend: **holds** / **wrong** / **unverified**; "by code" = read, not run.
 7. **§13.1 correction appended now, not after the fix.** Replace the claim "開頭少掉的字不在畫面上" with: by code, `followCaret()` (`:810-825`) runs on every snapshot through `updateState` (`:783`, `onState` at `:2884`) and scrolls the desk to the caret whenever its rectangle changes and is out of view, so after the reopen the view most likely jumps to the start and follows the deletion — read-code, unmeasured; condition 3's scrollTop sample reports it. F2 is not a criterion and is not measured on its own.
 8. **C queued for the link batch, expectation written now in terms the engine can observe**, not "the document ends": when the merge-key barrier ends at `nothing-selected` with `keyPosted === false`, the action completes as a success with no mutation — no revision change, editor state unchanged, session stays `ready`, generation unchanged — instead of `EDITOR_BOUNDARY_UNSUPPORTED`. Acceptance when linked: `start-press` → `refusals 0`, `generations ['1']`, server same; its red is run-1's `start-press` (refusals 1). Tables / `anchor-mismatch` and 119's reopen stay on B + D. The link itself is the owner's step, as before.
 9. **§34 accounting.** The extended judge is a 判讀工具: one adversarial pass (opus or codex), once. The handoff for this round states the two numbers "fixed because of a run / fixed because of a review"; the review budget for checks is the one already set, and the red cases in conditions 1 and 3 are produced before any green is claimed. No verification-of-verification beyond this.
+
+## Appended correction to condition 2 (2026-10-13, main session, per ruling-3 condition 8; append-only, the text above is unchanged)
+
+Condition 2 took D's caret from "the engine's last pushed state", read before `restart()`. That source caused **finding 136**. At a table-cell end, the merge-key barrier refuses with `anchor-mismatch` while K1's selection is still active, so the last pushed state already has its caret in the next cell.
+
+Ruling-3 first replaced it with the refused delete's send-time caret (a FIFO). On 0.2.17 (page `aebef525…`, never committed or released) that rule was measured wrong under a hold: `start-hold` failed 4/4, one character off. Ruling-3 addendum 4 then superseded it.
+
+**The rule that shipped:** D restores the caret to the last position the engine pushed **with no range selected**. When none was recorded, it falls back to the snapshot read.
+
+It shipped in page `b24d754a…` (shell v66, host 0.2.18). Evidence: `findings/evidence/136/acceptance-0.2.18/` and `findings/evidence/136/guard-r2/`. Record: SPEC-M3-held-key §16–§17.
