@@ -147,6 +147,197 @@ export function selectionShapeEvidence(result) {
   return state === null ? top : `${top}|state:${state}`;
 }
 
+/* ------------------------------------------------------------------------
+ * SPEC-M3-link-batch §4.3, §10.8, §10.10 Q-A, §12.3: the page number.
+ *
+ * The page draws 「第 N 頁，共 M 頁」 from `handle.pageRectangles()`, Writer's
+ * rule computed on the page: N is the first page that intersects the visible
+ * region, L the last, M the number of rectangles.  The three functions and the
+ * scheduler below are the whole of that decision, kept here -- exported,
+ * DOM-free, clock-free -- for the reason `selectionShapeOf` is: a derivation
+ * the page would otherwise do inline, with no test, on a shape some other
+ * layer assembles.  The page only wires them to an element.
+ *
+ * Named limit L-page-margin: Writer subtracts the page margins before it
+ * tests the overlap (`SwViewShell::GetFirstLastVisPageNumbers`); the
+ * rectangles carry no margins, so the whole rectangle is used and a view that
+ * shows only a previous page's bottom margin counts that page.
+ * ---------------------------------------------------------------------- */
+
+function isRectangle(value) {
+  return value !== null && typeof value === "object"
+    && Number.isFinite(value.x) && Number.isFinite(value.y)
+    && Number.isFinite(value.width) && Number.isFinite(value.height);
+}
+
+/** Strict on both axes: a region that only touches an edge sees nothing. */
+function intersects(a, b) {
+  return a.x < b.x + b.width && b.x < a.x + a.width
+      && a.y < b.y + b.height && b.y < a.y + a.height;
+}
+
+/**
+ * The 1-based span of pages a visible region covers -- `{first, last, count}`
+ * -- or null when nothing intersects or the inputs are not rectangles.
+ *
+ * String order IS page order (core appends page frames in order,
+ * `sw/source/core/crsr/crsrsh.cxx`, `SwCursorShell::getPageRectangles`), so
+ * the list is never sorted and nothing is inferred from equal heights: a
+ * landscape page or a section with its own page size breaks any such guess.
+ * Total: a malformed entry is skipped for N and L and still counted in M, so
+ * that M stays what the engine said (`rectangles.length` == `getParts()`, the
+ * SDK parser's own rule).
+ */
+export function pageSpanOf(rectangles, region) {
+  if (!Array.isArray(rectangles) || rectangles.length === 0 || !isRectangle(region)) return null;
+  let first = 0;
+  let last = 0;
+  for (let index = 0; index < rectangles.length; index += 1) {
+    const page = rectangles[index];
+    if (!isRectangle(page) || !intersects(page, region)) continue;
+    if (first === 0) first = index + 1;
+    last = index + 1;
+  }
+  return first === 0 ? null : { first, last, count: rectangles.length };
+}
+
+/**
+ * The visible region in twips, from what the page already measures: device
+ * rows [top, bottom) of #paper inside #desk (`visibleDocRows()`), the
+ * document's rows (`docRows`) and its size in twips.  The full document width:
+ * the page never scrolls sideways, and Writer's rule is about the vertical
+ * overlap.  Null when there is nothing to scale by or nothing visible.
+ */
+export function visibleRegionTwips(top, bottom, docRows, widthTwips, heightTwips) {
+  if (![top, bottom, docRows, widthTwips, heightTwips].every(Number.isFinite)) return null;
+  if (docRows <= 0 || widthTwips <= 0 || heightTwips <= 0 || bottom <= top) return null;
+  const scale = heightTwips / docRows;
+  return { x: 0, y: top * scale, width: widthTwips, height: (bottom - top) * scale };
+}
+
+/** 「第 N 頁，共 M 頁」, or 「第 N–L 頁，共 M 頁」 (U+2013) across pages; null for anything that is not a span. */
+export function pageStatusText(span) {
+  if (span === null || typeof span !== "object") return null;
+  const { first, last, count } = span;
+  if (![first, last, count].every(Number.isInteger)) return null;
+  return first === last
+    ? `第 ${first} 頁，共 ${count} 頁`
+    : `第 ${first}–${last} 頁，共 ${count} 頁`;
+}
+
+/**
+ * When the page asks the engine for the rectangles, and when it only
+ * recomputes (§10.8).  Clock-free; `read(key)` is injected, so node can drive
+ * it without a DOM or an engine.
+ *
+ * READS (one engine call each): after every open of a document -- the key is
+ * the document, never the counter, because a fresh engine starts its counter
+ * at 0 again; when the observed `documentSizeChangedCount` differs from the
+ * value the last read was issued at; when a paint reply reported
+ * `documentSizeChanged`.  NEVER on `documentChangeSequence` (typing sends no
+ * INVALIDATE_TILES, F2), scroll, resize, zoom or caret movement: those only
+ * recompute N and L on the page from the last answer.
+ *
+ * COALESCED: at most one read in flight; triggers that arrive meanwhile
+ * collapse into exactly one follow-up, issued at the latest observed counter.
+ * A read that fails reports null (the page hides the line, toasts nothing --
+ * a page number is not worth a toast) and consumes its trigger, so a profile
+ * whose read always fails costs one call per trigger, not one per state
+ * write; the next trigger tries again.  An answer for a document that is no
+ * longer current is dropped.  A `read` that throws synchronously is a failed
+ * read, not an exception on the page.
+ *
+ * Counted (reads, failures, dropped) for the reason every counter in this
+ * file is: "it never read" and "it is not wired" are the same green otherwise.
+ */
+export class PageRectanglesScheduler {
+  constructor({ read, offered = () => true, onResult = () => {} } = {}) {
+    if (typeof read !== "function") throw new TypeError("PageRectanglesScheduler needs read(key)");
+    this._read = read;
+    this._offered = offered;
+    this._onResult = onResult;
+    this._key = null;        // the document the line describes
+    this._observed = null;   // the latest documentSizeChangedCount seen for it
+    this._issuedAt = null;   // the counter the last read was issued at
+    this._inFlight = false;
+    this._again = false;
+    this.reads = 0;
+    this.failures = 0;
+    this.dropped = 0;
+  }
+
+  static counterOf(editorState) {
+    const value = editorState?.documentSizeChangedCount;
+    return Number.isInteger(value) ? value : null;
+  }
+
+  /** A document is open: the first open, a reopen after a refusal, a restart. */
+  documentOpened(key, editorState) {
+    if (key === null || key === undefined) return;
+    this._key = key;
+    this._observed = PageRectanglesScheduler.counterOf(editorState);
+    this._issuedAt = null;
+    this._schedule();
+  }
+
+  /** The page's editorState was written for `key`; only the counter matters. */
+  stateObserved(key, editorState) {
+    if (key !== this._key || this._key === null) return;
+    const counter = PageRectanglesScheduler.counterOf(editorState);
+    if (counter === null) return;
+    this._observed = counter;
+    if (this._issuedAt !== null && counter === this._issuedAt) return;
+    if (this._issuedAt === null && this._inFlight) { this._again = true; return; }
+    this._schedule();
+  }
+
+  /** A paint reply for `key` carried `documentSizeChanged: true`. */
+  sizeChangeReported(key) {
+    if (key !== this._key || this._key === null) return;
+    this._schedule();
+  }
+
+  /** The session closed or the page let the document go: answers in flight are dropped. */
+  closed() {
+    this._key = null;
+    this._again = false;
+  }
+
+  _schedule() {
+    if (this._offered() !== true) { this._again = false; return; }
+    if (this._inFlight) { this._again = true; return; }
+    this._issue();
+  }
+
+  _issue() {
+    const key = this._key;
+    this._inFlight = true;
+    this._again = false;
+    this._issuedAt = this._observed;
+    this.reads += 1;
+    let answer;
+    try {
+      answer = Promise.resolve(this._read(key));
+    } catch (error) {
+      answer = Promise.reject(error);
+    }
+    answer.then((result) => this._settle(key, result, null),
+                (error) => this._settle(key, null, error));
+  }
+
+  _settle(key, result, error) {
+    this._inFlight = false;
+    try {
+      if (key !== this._key) this.dropped += 1;
+      else if (error !== null) { this.failures += 1; this._onResult(key, null, error); }
+      else this._onResult(key, result, null);
+    } finally {
+      if (this._again && this._key !== null) this._schedule();
+      else this._again = false;
+    }
+  }
+}
+
 export class NarrowEditorV2Session extends EditorSession {
   constructor(options = {}) {
     super(options);
@@ -297,6 +488,15 @@ export class NarrowEditorV2Session extends EditorSession {
         revision: event.revision,
         sourceSequence: next,
         documentChangeSequence: event.documentChangeSequence,
+        // SPEC-M3-link-batch 12.3: the page number's re-read trigger.  This
+        // object is an allowlist (the third writer of `editorState`; the other
+        // two are the base class's open and drain, which pass the worker's
+        // projections through), and a field not named here never reaches the
+        // page -- the announcement that carries the counter's arrival is the
+        // one with `source: "document-size-changed"`, and it goes through
+        // HERE.  `null` on profiles whose engine emits none.
+        documentSizeChangedCount: Number.isInteger(event.documentSizeChangedCount)
+          ? event.documentSizeChangedCount : null,
         visible: event.visible,
         caret: event.caret,
         selection: event.selection,
@@ -725,6 +925,13 @@ export class NarrowEditorV2Session extends EditorSession {
 
   offersRedo() {
     return this.editor?.offersRedo() ?? false;
+  }
+
+  /** SPEC-M3-link-batch 10.8 (S-11): whether this profile answers
+   * `page-rectangles`.  Read from the contract field, like redo; false before
+   * open and on every profile that predates the v20 link. */
+  offersPageRectangles() {
+    return this.editor?.offersPageRectangles() ?? false;
   }
 
   offersCaretParagraphText() {
