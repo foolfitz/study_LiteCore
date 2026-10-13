@@ -48,3 +48,16 @@ Directory `131b-128b/`. Command: `python3 wasm_sdk_probe/tools/probe_hand_test_0
 Run 1 Firefox half for comparison (`../guard/README.md`, G1): 131-B bursts 6/6, persistent 0/0, single presses max 27.0 ms, host-segment cell NOT_JUDGED then PASS on its rerun (caret band fresh 36.8 ms), red control red (2754.9 / 2805.8 ms) — the same pattern and verdicts as run 2's Firefox half. Chrome had no sample in run 1.
 
 Output files: `131b-128b/` — `probe.out`, `report.json`, four screenshots, `judge_131b-output.txt`, `read_128b-output.txt`, `started-utc.txt`, `ended-utc.txt`; `131b-128b-hostseg-rerun/` — `probe.out`, `report.json`, `read_128b-output.txt` (empty), `started-utc.txt`, `ended-utc.txt`.
+
+## G2 — 121-B (selection, then Backspace / Delete): PASS in all four cells (Chrome and Firefox, both keys)
+
+Files: `../../121/0.2.18-136-r2-binding.txt` (before 2026-10-13T06:28:19Z, after 06:29:40Z; both lines carry the page sha256 `b24d754a…`, all four exits 0), `../../121/0.2.18-136-r2-<browser>-<key>.json` and `.stderr` (all four `.stderr` files are empty). Command per cell: `python3 findings/evidence/121/select_delete_probe.py <browser> <Key>` (standalone page built from `dist/`, `boundaries.odt`, a drag inside "M01 plain alpha", one real key; no host involved), run sequentially from a small wrapper script (session scratchpad, not kept) that wrote the binding file and ran the wallet/Chrome health check before each of the four cells (`health-checks.txt`, `[G2-<browser>-<key>]`, all OK; the wrapper would have stopped the chain on a failure). Desk at the start: `g2-desk-at-start.txt` (`pgrep -c chrome` 0, Chrome browsers 0, `pgrep -c firefox` 0, load 0.43 0.40 0.43). Criterion (SPEC-M3-autosave §9.13): shape `range-single` before the key, after the key 「刪除選取 N ms」, `ready`, generation 1 → 1, revision 0 → 1, no toast, first paragraph `M01 alpha`.
+
+| Cell | shape before | latency after | state | generation | revision | `toasts` | first paragraph | Verdict |
+|---|---|---|---|---|---|---|---|---|
+| Chrome Backspace | `range-single` | 「刪除選取 15 ms」 | `ready` | 1 → 1 | 0 → 1 | `[]` | `M01 alpha` | PASS |
+| Chrome Delete | `range-single` | 「刪除選取 15 ms」 | `ready` | 1 → 1 | 0 → 1 | `[]` | `M01 alpha` | PASS |
+| Firefox Backspace | `range-single` | 「刪除選取 9 ms」 | `ready` | 1 → 1 | 0 → 1 | `[]` | `M01 alpha` | PASS |
+| Firefox Delete | `range-single` | 「刪除選取 9 ms」 | `ready` | 1 → 1 | 0 → 1 | `[]` | `M01 alpha` | PASS |
+
+Compared with `0.2.16-134-*.json`, `0.2.15-132-*.json` and `0.2.13-131fix-*.json`, after masking the `定位游標 N ms` figure of the `before` field (34 / 36 / 38 / 36 ms here): Chrome Backspace, Firefox Backspace and Firefox Delete are byte-identical (as JSON, keys sorted) to all three earlier sets; Firefox Backspace and Delete are also identical to run 1's `0.2.18-136-firefox-*.json`. **One pair differs in a number**: Chrome Delete reads 「刪除選取 15 ms」 here against 14 ms in `0.2.15-132` and `0.2.13-131fix` and 16 ms in `0.2.16-134` (the criterion names no threshold for N; every field it names is as required). The `after.toast` field reads 「已開啟 f.odt」 in all four files, as in the earlier sets; the criterion's "no toast" is the `toasts` list, empty in all four. Run 1's Chrome files `0.2.18-136-chrome-*.json` are empty (not measured), so there is no Chrome comparison with run 1.
