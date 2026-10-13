@@ -53,7 +53,49 @@ This round continues `HANDOFF-2026-10-13e-089-switch-found-link-batch-spec-final
 
 ### Part 1 result (filled by the main session)
 
-TO BE FILLED
+**Done and verified by the main session.** Commits `82af92ca` (engine and C export), `150c1770` (worker),
+`1b8b7c34` (SDK), `44eb15f2` (shell client), `51ad4261` (README `findings/evidence/link-batch/v20-part1/README.md`).
+The executor was a fresh fable.
+
+- **Define `OXSDK_E2_V20_LINK_BATCH`.** Every engine change and the C export sit behind it.
+  `tools/check_merge_key_undo_scope.py --base 5d77dc84`: 100 objects, and only the two existing carriers'
+  `probe_engine.o` differ from base, as at HEAD. v15 and v19 objects rebuilt from this source are unchanged.
+  The main session re-ran it.
+- **Engine.**
+  - C: the window as in §10.5, without the flag clauses (`verified-boundary-noop`, `boundaryNoop.waitedMs`).
+  - `caretBefore {rect, sourceSequence, source}` on both kinds of refusal.
+  - `documentSizeChangedCount`, incremented and pushed on every `DOCUMENT_SIZE_CHANGED`.
+  - `page-rectangles` document query (raw string, size, `getParts()`); new C export
+    `oxsdk_document_page_rectangles`.
+  - ABI stays 4; `kMax*Action` and `editor_api.cpp` are untouched.
+- **Worker.** Built from source. Its tree copy was byte-identical to the v15 archive `00882139…`, so the diff
+  is exactly this part's nine hunks. New sha256 `478d0da1…`. The gate is the manifest field
+  `editorContract.pageRectangles = "document-sdk-page-rectangles"`.
+- **SDK.** `handle.pageRectangles()`, strict: it throws `PAGE_RECTANGLES_INVALID` on a malformed string or when
+  the rectangle count differs from `parts`.
+- **Client.** Accepts `verified-boundary-noop` only with `changed === false` and an unchanged revision. Red cases
+  are in the M1-3 shape. Adds `offersPageRectangles()`.
+- **Checks re-run by the main session:**
+  - `node --test editor-shell-v2/tests/*.test.mjs sdk/tests/*.test.mjs` gives 344/344;
+  - lock scopes: `gState.mutex` 12, `gMergeMutex` 13 (was 11; the executor's README names both new scopes);
+  - both model tests end `ok`.
+
+  The executor also ran `em++ -fsyntax-only` with v19's flags, with and without the define, on two files;
+  both exited 0.
+- **Expected red until part 3's freeze:** `tests/test_e2_c_shell_bundle.py::test_the_real_manifest_matches_the_real_tree`.
+- **Engine paths are compile-checked only.** Their first execution is the v20 shakedown.
+- **Part 3 must:** append `_oxsdk_document_page_rectangles` to v20's `exports.txt` recipe; set the manifest field
+  in the builder; name `documentSizeChangedCount` in `narrow-editor-v2-session.js:293–311`'s allowlist (part 2).
+- **The §6 engine-code review questions are not fixed yet.** Ruling 3's two flag questions are moot now that the
+  flag is withdrawn.
+  - Main-session proposal for the next session to adopt or replace, recorded here rather than in the spec:
+    1. a path where C's window completes `verified-boundary-noop` while a selection is left in the live session,
+       other than L-C-late-K1;
+    2. a lock-order or re-entrancy risk in the two new `gMergeMutex` scopes;
+    3. `page-rectangles` answered with a stale string while a layout is pending;
+    4. the counter's self-push racing finding 084's sequence guard.
+  - Per the spec, the review is one round with fixed questions.
+
 
 ## Named limits and open items added or changed since 10-13e
 
