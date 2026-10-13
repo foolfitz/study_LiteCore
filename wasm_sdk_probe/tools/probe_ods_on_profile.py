@@ -115,6 +115,48 @@ def patch_engine_env(profile: str, pairs: list[str], overrides: dict):
     }
 
 
+# FINDING 089, hypothesis H-S.  The default pthread stack size reaches the
+# runtime as a literal in the JS glue (`__emscripten_thread_init(..., 65536,
+# false)`, copied into musl's `__default_stacksize` by
+# system/lib/pthread/emscripten_thread_init.c) -- so it can be changed in the
+# mirror's copy without a link.  Every pthread then prints the stack size it was
+# actually given, from `establishStackSpace`, which is the evidence that the
+# patch took effect: a behaviour change alone would not tell "the stack grew"
+# from "something else moved".  Both anchors must occur exactly once.
+STACK_LITERAL_ANCHOR = ",!ENVIRONMENT_IS_WEB,65536,false);"
+STACK_ECHO_ANCHOR = "var stackLow=stackHigh-stackSize;"
+STACK_ECHO = "[engine-stack] "
+
+
+def patch_pthread_stack(profile: str, size, overrides: dict):
+    if size is None:
+        return None
+    if not (16384 <= size <= 64 * 1024 * 1024) or size % 16:
+        raise SystemExit(f"--pthread-stack-size {size}: want a multiple of 16 "
+                         f"between 16384 and 64 MiB")
+    key = f"profiles/{profile}/probe.js"
+    source = PROJECT / "dist" / "profiles" / profile / "probe.js"
+    original = source.read_bytes()
+    text = overrides.get(key, original).decode("utf-8")
+    for anchor in (STACK_LITERAL_ANCHOR, STACK_ECHO_ANCHOR):
+        if text.count(anchor) != 1:
+            raise SystemExit(f"{source}: {anchor!r} occurs {text.count(anchor)} "
+                             f"times, want exactly 1")
+    text = text.replace(STACK_LITERAL_ANCHOR,
+                        STACK_LITERAL_ANCHOR.replace("65536", str(size)))
+    text = text.replace(STACK_ECHO_ANCHOR,
+                        STACK_ECHO_ANCHOR + f'err("{STACK_ECHO}"+stackSize);')
+    patched = text.encode()
+    overrides[key] = patched
+    return {
+        "requested": size,
+        "linkedDefault": 65536,
+        "anchors": [STACK_LITERAL_ANCHOR, STACK_ECHO_ANCHOR],
+        "probeJsSha256": hashlib.sha256(original).hexdigest(),
+        "patchedProbeJsSha256": hashlib.sha256(patched).hexdigest(),
+    }
+
+
 def serve(root: Path):
     port = free_port()
     proc = subprocess.Popen(
@@ -160,6 +202,12 @@ def main() -> int:
                              "only (finding 089's discriminating arms); "
                              "repeatable. The report carries both hashes and "
                              "the engine's own echo of its ENV")
+    parser.add_argument("--pthread-stack-size", type=int, default=None,
+                        metavar="BYTES",
+                        help="replace the linked default pthread stack size "
+                             "(65536) in the MIRROR's copy of probe.js only "
+                             "(finding 089, H-S); every pthread then echoes "
+                             "the stack size it was given")
     parser.add_argument("--out", type=Path, default=None)
     args = parser.parse_args()
 
@@ -215,6 +263,8 @@ def main() -> int:
     overrides["ods-cases.json"] = json.dumps(
         cases, ensure_ascii=False).encode("utf-8")
     engine_env = patch_engine_env(args.profile, args.engine_env, overrides)
+    engine_stack = patch_pthread_stack(args.profile, args.pthread_stack_size,
+                                       overrides)
     build_mirror(PROJECT / "dist", root, overrides)
     # `build_mirror` materialises an override only when it MEETS that path while
     # walking the source, so an override for a file `dist/` does not have is
@@ -245,6 +295,7 @@ def main() -> int:
         # the two drifted.
         "inputs": staged,
         "engineEnv": engine_env,
+        "engineStack": engine_stack,
     }
     session = None
     server = None
@@ -338,6 +389,20 @@ def main() -> int:
                 seen.get(k) == v for k, v in engine_env["pairs"].items())
         engine_env["everyCaseEchoed"] = bool(page.get("cases")) and all(
             c.get("engineEnvEchoed") for c in page.get("cases") or [])
+    if engine_stack is not None:
+        # Every distinct stack size the case's pthreads reported, with counts.
+        # Echoed means the requested size is among them: threads created with
+        # an explicit size would report their own, and are kept, not hidden.
+        for case in page.get("cases") or []:
+            sizes = {}
+            for w in case.get("warnings") or []:
+                message = str(w.get("message", ""))
+                if message.startswith(STACK_ECHO):
+                    sizes[message[len(STACK_ECHO):]] = w.get("count", 1)
+            case["engineStackSizes"] = sizes
+            case["engineStackEchoed"] = str(engine_stack["requested"]) in sizes
+        engine_stack["everyCaseEchoed"] = bool(page.get("cases")) and all(
+            c.get("engineStackEchoed") for c in page.get("cases") or [])
     record["verdict"] = {
         "controlOdtOpened": bool(control.get("opened")),
         "spreadsheetsOpened": [
@@ -346,6 +411,8 @@ def main() -> int:
              "viewReady": bool(c.get("viewReady")),
              "workerCrashed": bool(c.get("workerCrashed")),
              "engineEnvEchoed": c.get("engineEnvEchoed"),
+             "engineStackEchoed": c.get("engineStackEchoed"),
+             "engineStackSizes": c.get("engineStackSizes"),
              "error": c.get("error")}
             for c in sheets],
         "note": "If the ODT control did not open, NOTHING here is about Calc: "
