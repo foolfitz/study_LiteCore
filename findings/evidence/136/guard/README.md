@@ -113,3 +113,20 @@ Judges, run as the C2 README did with `--dir` at this directory, output in `c2/j
 | ratio 1.5 wide, owner gap 80 (recorded only, no judge): commit median / max, on-screen median / max | no rows | 21.4 / 35.6, 27.3 / 45.1 | recorded |
 
 Per-key backlog `b_i` is 0.0 for all 20 keys in the Firefox ratio-2 gap-80 cell and in the Firefox ratio-1 gap-80 cell. The Chrome ratio-2 gap-80 cell that was a near-miss on the 134 page (finding 135) has **no** measurement on this page from G4; G6 below is the same cell, Chrome only.
+
+## G5 — restore-window on the new page (ruling-3 condition 5): Firefox 3 of 3 rounds meet the criterion; Chrome not measured (3 of 3 rounds fatal)
+
+Directory `restore-window/`. Command: `python3 findings/evidence/134/restore-window/probe_restore_window.py --out findings/evidence/136/guard/restore-window` (default `--browsers chrome,firefox --rounds 3`; exit 0, `probe.out` ends `probe exit 0`). 2026-10-13T05:06:26Z–05:17:15Z (`started-utc.txt`: `pgrep -c chrome` 0, load 0.57 0.61 0.52). `report.json` → `static` and `staticAfter`: host 0.2.18, buildId `d6d04880f56e31da`, `servedPage` = `distPage` = `b24d754a426706bb5c93dbacb3f7ffadc655e738ee9a0fdd7168069f0f701678`. Chrome rounds 0, 1, 2: `fatal` (the same `Page.navigate` timeout, 05:06:27, 05:09:33, 05:12:39Z). Firefox rounds 0, 1, 2 ran (05:15:44–05:17:15Z).
+
+Criterion (task G5): every round 1 refusal, generations `['1','2']`, `marks == 1`, mark in paragraph 210, rest unchanged; report the caret-back time and whether `scrollTop` ever went to 0.
+
+| browser | round | refusals | generations | keys typed (ms after the gen-2 `ready` log entry) | first state entry after the last key (ms after gen-2 `ready`) | `scrollTop` over the 12 state entries of the round | `marks` / paragraph | rest of document |
+|---|---|---|---|---|---|---|---|---|
+| chrome | 0, 1, 2 | — | — | — | — | — | — | NOT MEASURED (fatal) |
+| firefox | 0 | 1 | `['1','2']` | +17.9, +72.8, +127.6 | +171.6 | 21463 in all (min 21463, max 21463) | 1 / 210 | `sameAsOriginal` true, `charDelta` 0 |
+| firefox | 1 | 1 | `['1','2']` | +15.8, +71.0, +126.3 | +170.2 | 21463 in all | 1 / 210 | `sameAsOriginal` true, `charDelta` 0 |
+| firefox | 2 | 1 | `['1','2']` | +20.9, +75.7, +131.4 | +161.1 | 21463 in all | 1 / 210 | `sameAsOriginal` true, `charDelta` 0 |
+
+- **`scrollTop` never went to 0 in any Firefox round.** `scroll` is sampled with every state entry and every scroll event; here all samples, from before the key through the new generation's `ready` entry and after it, read 21463 (the value before the key). On the 134 page (`../../134/restore-window/run-1/report.json`, Firefox round 0) the entry at the new generation's `ready` read `scroll: 0` and the value 21463 came back 759 ms later (the README of that run: caret back +759, +768, +724 ms in the three Firefox rounds).
+- **Caret-back time:** with no scroll excursion there is no scroll-return to time. The nearest analogue — the first state entry after the last typed key, which on the 134 page is the one that carried the return of `scroll` (+759 ms there) — is at +171.6, +170.2, +161.1 ms after the new generation's `ready` entry here; its label already reads 「重新載入 N ms」 (N 2119–2220 region; `summary.readyInNewGenerationMs` 2203.7, 2193.3, 2220.8). I did not verify that this entry is the moment the caret was placed back (the page's caret-restore step is not logged separately); read it as "first state entry after the keys", not as a measured caret-back time.
+- The three letters were typed inside the window (keydowns at +16 to +131 ms after the new generation became `ready`) and all landed at the restored caret in paragraph 210; `marks == 1` and the document with the mark removed equals the original in every Firefox round (`server.sameAsOriginal` true, `charDelta` 0). The prediction in `../../134/restore-window/README.md` (all three letters in the last paragraph, `marks == 1`, rest unchanged, refusals 1, generations `['1','2']`) holds in the three Firefox rounds. Chrome has no round.
