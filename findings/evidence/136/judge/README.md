@@ -40,3 +40,34 @@ Scratch copies under the session scratchpad mirror the relative layout (`ev/132/
 - **`markThenAfter`** is a reader boolean added for `end-hold`'s "`zqxwvy` closes the last paragraph": `wvy` in the last paragraph only, `afterAtEnd`, and `zqx` immediately before `wvy`.
 - **`scrollTop` non-vacuity:** on the end arms the last sample before the refusal must be > 0, and the window must close at a 「已重新載入」 toast. With the view at 0 before the key, `≥ 0.5 × 0` would hold for any page.
 - **Probe instrument:** `#desk` scroll events also trigger a sample, because a scroll is not a DOM mutation. The last sample before the key is recorded as `stateBeforeKey`. The old reports have neither, and their mutation-driven samples were enough to show the jump to 0.
+
+## Witness per judge edit (ruling-3 addendum 4 continued and addendum 5; no second review)
+
+Pre-edit judge = `adec542a` (it already has the `cell-start-hold` rule from `becd0370`). Post-edit judge = this commit. Every output is in `s1-n1-witness/`, as `pre-*.txt` and `post-*.txt`.
+
+The synthetic reports are built by `build_synthetic_m1_m2.py` from real reports. They are kept here as `synthetic-M1.json` and `synthetic-M2.json`.
+
+| edit | red it was given | pre-edit | post-edit |
+|---|---|---|---|
+| **S1**: `controlParagraphs` pinned on the press-type arms (`end-press-type` [last], `before-table-press-type` [0], `cell-press-type` [1]) | **M1** = `acceptance-0.2.17/table` with `cell-press-type`'s `kj` + `zqx` moved to paragraph 0 | `cell-press-type` PASS ×2 (the hole) | FAIL ×2 `CONTROL in paragraphs [0], expected [1]` |
+| **N1**: `scrollTop` judged from the first `restart-required` to the end of the log; 「已重新載入」 still required | **M2** = `baseline-0.2.16/held` with the window held at `pre`, plus a 0 sample after the closing toast | exit 0, PASS | exit 1, FAIL (6), all six end rounds: `1 of 17–18 samples … < 0.5 x pre` |
+| **Addendum 5, hold arms pin `afterParagraphs`** | no edit needed: `after_at(…)` already pins it since `53f7aff5` (`start-hold` [0], `end-hold` [last], `before-table-hold` [0], `cell-hold` [1], `cell-start-hold` [1]) | | |
+
+The hold-arm pinning has reds already on record:
+- `baseline-0.2.16/table` `cell-hold`: `AFTER in paragraphs [2], expected [1]`, both browsers.
+- `cell-start-hold/red-aebef525`: the `cell-start-hold` arm's red, where the pin holds (`wvy` in [1]) and `afterAtStart` and the stage rule FAIL.
+
+### Real reports whose verdicts the edits left unchanged
+
+| report | `--page` | pre | post | differences |
+|---|---|---|---|---|
+| `acceptance-0.2.17/held` | aebef525 | FAIL (4) | FAIL (4) | only the printed `scroll` window lines. The failures are the same 4 `start-hold` lines. End rounds: every sample after the refusal ≥ `pre` (min = `pre`, 14–15 samples) |
+| `acceptance-0.2.17/table` | aebef525 | FAIL (2) | FAIL (2) | none |
+| `baseline-0.2.16/held` | 6470dec0 | FAIL (6) | FAIL (6) | the same six rounds fail on `scrollTop`. The text changes from `2 of 8 … in the reopen window` to `2 of 15–16 … to the end of the log`. The post-window samples are all ≥ `pre` (21477/21596 and 21463/21582) |
+| `baseline-0.2.16/table` | 6470dec0 | FAIL (8) | FAIL (8) | none. `cell-press-type`'s `kj` is in [1], so S1 passes and the round still fails on contiguity |
+| `cell-start-hold/red-aebef525` | aebef525 | FAIL (16) | FAIL (16) | none |
+
+Notes:
+- `acceptance-0.2.17/table`'s FAIL (2) is `cell-start-hold: 0 rounds < 2` on both browsers. It comes from the new arm (`becd0370`), not from this edit. That report's own `judge-output.txt`, written before the arm existed, reads PASS.
+- `markParagraphs` gets no separate pin on the table press arms. With `kj` and `zqx` each counted once, contiguity puts `zqx` in the paragraph S1 pins. `end-press-type` keeps its explicit `mark_at_end`.
+- §34: 因審核而修 1 (review 1 S1 + N1, one commit). 因執行而修 unchanged.

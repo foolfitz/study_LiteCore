@@ -22,9 +22,12 @@ Placement (booleans and indexes computed by the probe's reader, no text):
   start-press, start-hold   `wvy` in paragraph 0 only, at its start
   end-hold                  `wvy` in the last paragraph only, at its end, right
                             after `zqx` (`zqxwvy` closes the last paragraph)
-  end-press-type            `zqx` in the last paragraph only; `kjzqx` contiguous
-  before-table-press-type,
-  cell-press-type           `kjzqx` contiguous
+  end-press-type            `kj` in the last paragraph only (S1); `zqx` in the last
+                            paragraph only; `kjzqx` contiguous
+  before-table-press-type   `kj` in paragraph 0 only (S1); `kjzqx` contiguous
+  cell-press-type           `kj` in paragraph 1 (cell A1) only (S1); `kjzqx` contiguous
+                            (with `kj` and `zqx` counted once each, contiguity puts
+                            `zqx` in the same paragraph as `kj`)
   before-table-hold         `wvy` in paragraph 0 only, at its end
   cell-hold                 `wvy` in paragraph 1 (cell A1) only, at its end
   cell-start-hold           (ruling-3 addendum 4) positive control first: the
@@ -35,15 +38,22 @@ Placement (booleans and indexes computed by the probe's reader, no text):
                             (`kj` count 0 and the document otherwise original)
 scrollTop (ruling-3 condition 4).  Samples: the probe's `stateBeforeKey`, then
 every state entry of the log, in order.
-  end-hold, end-press-type  every sample from the first `restart-required`
-                            through the first sample whose toast contains
-                            「已重新載入」 (inclusive) is >= 0.5 x the last sample
-                            before that refusal.  The window must exist and
-                            close, and that last sample must be > 0: at 0 the
+  end-hold, end-press-type  every sample from the first `restart-required` to
+                            the END of the log is >= 0.5 x the last sample
+                            before that refusal (N1: until 2026-10-13 the
+                            window stopped at the first 「已重新載入」 sample, and
+                            an excursion after it went unjudged).  A sample
+                            with 「已重新載入」 must still follow the refusal (a
+                            reopen that never completes FAILs), and the last
+                            sample before the refusal must be > 0: at 0 the
                             rule would hold for any page.
   start-press, start-hold   every sample is 0.
   table arms                exempt (the fixture fits one screen); the series is printed.
 Rounds per required browser: 2 for start-hold, end-hold and cell-start-hold, 1 otherwise.
+
+Review 1 (findings/evidence/136/review/review-1.md) S1 and N1, accepted in
+ruling-3 addendum 4 (continued) and addendum 5; the witness per edit is in
+findings/evidence/136/judge/README.md.
 
 A field a report predates is a FAIL "... not recorded", never a pass.  One
 exception, for the red case on table run-3 only: that run's reader put
@@ -167,6 +177,18 @@ def mark_at_end(run: dict[str, Any]) -> list[str]:
     return failed
 
 
+def control_at(index: int | str) -> Callable[[dict[str, Any]], list[str]]:
+    """S1: `kj` only in paragraph `index` ("last" = the last), so contiguity is about that paragraph."""
+    def rule(run: dict[str, Any]) -> list[str]:
+        failed: list[str] = []
+        want = last_index(run) if index == "last" else index
+        paragraphs = need(run, "controlParagraphs", failed)
+        if paragraphs is not MISSING and paragraphs != [want]:
+            failed.append(f"CONTROL in paragraphs {paragraphs}, expected [{want}]")
+        return failed
+    return rule
+
+
 def contiguous(run: dict[str, Any]) -> list[str]:
     failed: list[str] = []
     value = need(run, "controlThenMark", failed)
@@ -185,6 +207,8 @@ def samples(run: dict[str, Any]) -> list[dict[str, Any]]:
 
 
 def scroll_window(run: dict[str, Any]) -> dict[str, Any]:
+    """From the first `restart-required` to the end of the log (N1); `close` is the first
+    「已重新載入」 sample, required to exist but no longer the window's end."""
     ss = samples(run)
     first = next((k for k, e in enumerate(ss) if e.get("state") == "restart-required"), None)
     if first is None:
@@ -193,9 +217,9 @@ def scroll_window(run: dict[str, Any]) -> dict[str, Any]:
         return {"error": "no sample before the refusal"}
     close = next((k for k in range(first, len(ss)) if RELOADED in (ss[k].get("toast") or "")), None)
     return {"pre": ss[first - 1].get("scroll"), "preAt": ss[first - 1].get("t"),
-            "window": [e.get("scroll") for e in ss[first:(close + 1 if close is not None else len(ss))]],
-            "from": ss[first].get("t"), "to": ss[close].get("t") if close is not None else None,
-            "closed": close is not None}
+            "window": [e.get("scroll") for e in ss[first:]],
+            "from": ss[first].get("t"), "reloadedAt": ss[close].get("t") if close is not None else None,
+            "to": ss[-1].get("t"), "closed": close is not None}
 
 
 def scroll_end(run: dict[str, Any]) -> list[str]:
@@ -209,7 +233,7 @@ def scroll_end(run: dict[str, Any]) -> list[str]:
         return [f"scrollTop: last sample before the refusal is {pre!r} (the rule needs the view away from the start)"]
     low = [s for s in window if not isinstance(s, (int, float)) or s < 0.5 * pre]
     if low:
-        return [f"scrollTop: {len(low)} of {len(window)} samples in the reopen window < 0.5 x {pre} "
+        return [f"scrollTop: {len(low)} of {len(window)} samples from the refusal to the end of the log < 0.5 x {pre} "
                 f"(lowest {min((s for s in low if isinstance(s, (int, float))), default=None)})"]
     return []
 
@@ -239,11 +263,12 @@ RULES: dict[str, Callable[[dict[str, Any]], list[str]]] = {
     "start-hold": all_of(one_reopen, document_kept, counts(1, 0, 1), after_at("start", 0), scroll_start),
     "end-hold": all_of(one_reopen, document_kept, counts(1, 0, 1), after_at("end", "last"), mark_then_after,
                        scroll_end),
-    "end-press-type": all_of(one_reopen, document_kept, counts(1, 1, 0), mark_at_end, contiguous, scroll_end),
+    "end-press-type": all_of(one_reopen, document_kept, counts(1, 1, 0), control_at("last"), mark_at_end, contiguous,
+                             scroll_end),
     # table probe (scrollTop exempt)
-    "before-table-press-type": all_of(one_reopen, document_kept, counts(1, 1, 0), contiguous),
+    "before-table-press-type": all_of(one_reopen, document_kept, counts(1, 1, 0), control_at(0), contiguous),
     "before-table-hold": all_of(one_reopen, document_kept, counts(0, 0, 1), after_at("end", 0)),
-    "cell-press-type": all_of(one_reopen, document_kept, counts(1, 1, 0), contiguous),
+    "cell-press-type": all_of(one_reopen, document_kept, counts(1, 1, 0), control_at(1), contiguous),
     "cell-hold": all_of(one_reopen, document_kept, counts(0, 0, 1), after_at("end", 1)),
     "cell-start-hold": all_of(one_reopen, anchor_mismatch, document_kept, counts(0, 0, 1), after_at("start", 1)),
 }
