@@ -58,3 +58,15 @@ Run 2's G4 (C2) was started twice. The first start was at 1-min load 1.58, just 
 - sonnet: guard chain run 1 and run 2. Their outputs are the READMEs in `findings/evidence/136/guard/` and `guard-r2/`.
 
 **Addendum (2026-10-13, owner hand test).** Next 1 is done. The owner reported 「1~9 通過」 for the ten-item list given orally (spec §17's list plus the 0.2.15 items; item 10, the optional copy save, was not reported; browsers not stated). Recorded in `specs/SPEC-M3-held-key.md` §18. Checked after the report: `occ app:list` gives 0.2.18; host `96a87d8` is clean; the served `e2-editor-app.js.gz` and `.zst` both decode to `b24d754a…`. The owner then raised the two requests discussed on 10-12 and still not done (Shift+Arrow selection; a page number while scrolling) and asked when ODS reading will progress. Both requests are the content of the link batch (Next 2 A, `handoff/PLAN-2026-10-12-link-batch-shift-selection-and-page-number.md`). ODS needs the writer+calc core switch after that (`handoff/PLAN-2026-09-03-ods-reading.md` W6–W12; the owner chose Calc = B on 10-12). The order is the owner's call. §34.4 this addendum: 0 / 0.
+
+**Addendum 2 (2026-10-13, owner's decisions; supersedes Next 2 and Next 3 above).**
+
+- **The ddev router is reverted.** It is back on `127.0.0.1:8443`; the LAN IP is refused; `occ` still gives 0.2.18. The "Environment" item above is closed.
+- **Order of what comes next: the owner chose C, run in parallel.**
+  - **Track 1, the link batch, as planned.** Writer-only core (Calc = B). Contents: Shift+Arrow selection; the page number in the status line (Collabora's way); C; the two engine items from 136; possibly 129's moves on a range; the full count of 127–136. The first step is the spec. The native inputs are already measured (`handoff/PLAN-2026-10-12-link-batch-shift-selection-and-page-number.md` and its addendum). Its stated next native step is to measure the barrier's candidate signatures for an extend, before the engine side is written. The link itself is the owner's step.
+  - **Track 2, ODS preparation that touches no product bytes and needs no link** (`handoff/PLAN-2026-09-03-ods-reading.md` §6):
+    - finding 089's cause (a 13 KB ODS that times out on WASM, 269 ms natively);
+    - W6 (`check_core_build_provides.py` gains a `calc` capability, self-tested red on the writer-only build);
+    - a draft of W9's read-only viewer route. The owner chose route B on 09-03. Nothing goes into the five bundle-scoped directories, and nothing is staged to `dist/`.
+  - The core switch (writer+calc) stays its own step after the link batch. Its packaging size is a known issue: v14's wasm is 47.99 MB gzip against the 45 MB limit, K0-5.
+- **Wallet:** unchanged. A is chosen but not urgent. Check `kdewallet` `Locked` before any Chrome probe after a reboot.
