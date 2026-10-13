@@ -1,0 +1,66 @@
+# scratch copy: judge byte-identical to the committed one; probe_table_refusal.py ARMS + "made-up-arm": ([], "press"); report = table/run-3
+probe probe_table_refusal.py arms ['before-table-press-type', 'before-table-hold', 'cell-press-type', 'cell-hold', 'made-up-arm']
+static {'hostVersion': '0.2.16', 'hostCommit': 'f5b34f0', 'buildId': '9352fae3aea68b5e', 'servedPage': '6470dec0cb0e20db46d33d46bfc565893f542b79f7317fcbc421653a562bb94b', 'distPage': '6470dec0cb0e20db46d33d46bfc565893f542b79f7317fcbc421653a562bb94b'}
+chrome before-table-press-type r0 FAIL
+    reopen   refusals 1 gens ['1', '2'] limit None
+    server   same False firstDiff 0 charDelta 2 paragraphs 6/6
+    counts   marks 1 controls - afters -
+    where    mark [0] control - after -
+    bools    controlThenMark True [run.control (table run-3 reader)] markThenAfter - afterAtStart - afterAtEnd -
+    scroll   series [0] (exempt)
+    - server differs after the reader stripped its marks: firstDiff 0 charDelta 2 paragraphs 6/6
+    - controls not recorded
+    - afters not recorded
+firefox before-table-press-type r0 FAIL
+    reopen   refusals 1 gens ['1', '2'] limit None
+    server   same False firstDiff 0 charDelta 2 paragraphs 6/6
+    counts   marks 1 controls - afters -
+    where    mark [0] control - after -
+    bools    controlThenMark True [run.control (table run-3 reader)] markThenAfter - afterAtStart - afterAtEnd -
+    scroll   series [0] (exempt)
+    - server differs after the reader stripped its marks: firstDiff 0 charDelta 2 paragraphs 6/6
+    - controls not recorded
+    - afters not recorded
+chrome cell-press-type r0 FAIL
+    reopen   refusals 1 gens ['1', '2'] limit None
+    server   same False firstDiff 1 charDelta 2 paragraphs 6/6
+    counts   marks 1 controls - afters -
+    where    mark [2] control - after -
+    bools    controlThenMark False [run.control (table run-3 reader)] markThenAfter - afterAtStart - afterAtEnd -
+    scroll   series [0] (exempt)
+    - server differs after the reader stripped its marks: firstDiff 1 charDelta 2 paragraphs 6/6
+    - controls not recorded
+    - afters not recorded
+    - CONTROL then MARK not contiguous (controlThenMark False)
+firefox cell-press-type r0 FAIL
+    reopen   refusals 1 gens ['1', '2'] limit None
+    server   same False firstDiff 1 charDelta 2 paragraphs 6/6
+    counts   marks 1 controls - afters -
+    where    mark [2] control - after -
+    bools    controlThenMark False [run.control (table run-3 reader)] markThenAfter - afterAtStart - afterAtEnd -
+    scroll   series [0] (exempt)
+    - server differs after the reader stripped its marks: firstDiff 1 charDelta 2 paragraphs 6/6
+    - controls not recorded
+    - afters not recorded
+    - CONTROL then MARK not contiguous (controlThenMark False)
+FAIL chrome before-table-press-type r0: server differs after the reader stripped its marks: firstDiff 0 charDelta 2 paragraphs 6/6
+FAIL chrome before-table-press-type r0: controls not recorded
+FAIL chrome before-table-press-type r0: afters not recorded
+FAIL firefox before-table-press-type r0: server differs after the reader stripped its marks: firstDiff 0 charDelta 2 paragraphs 6/6
+FAIL firefox before-table-press-type r0: controls not recorded
+FAIL firefox before-table-press-type r0: afters not recorded
+FAIL chrome before-table-hold: 0 rounds < 1
+FAIL firefox before-table-hold: 0 rounds < 1
+FAIL chrome cell-press-type r0: server differs after the reader stripped its marks: firstDiff 1 charDelta 2 paragraphs 6/6
+FAIL chrome cell-press-type r0: controls not recorded
+FAIL chrome cell-press-type r0: afters not recorded
+FAIL chrome cell-press-type r0: CONTROL then MARK not contiguous (controlThenMark False)
+FAIL firefox cell-press-type r0: server differs after the reader stripped its marks: firstDiff 1 charDelta 2 paragraphs 6/6
+FAIL firefox cell-press-type r0: controls not recorded
+FAIL firefox cell-press-type r0: afters not recorded
+FAIL firefox cell-press-type r0: CONTROL then MARK not contiguous (controlThenMark False)
+FAIL chrome cell-hold: 0 rounds < 1
+FAIL firefox cell-hold: 0 rounds < 1
+FAIL made-up-arm: no rule for an arm the probe declares
+verdict FAIL (19)
+exit 1

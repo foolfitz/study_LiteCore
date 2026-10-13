@@ -1,8 +1,19 @@
 #!/usr/bin/env python3
 """B + D at a table (README.md here).  Measurement only.  The instrument,
-settle, summary, hold and server read are the held-into-refusal probe's own,
-imported from it; the document is the E1 table fixture instead of the owner's.
-The report carries no document text beyond paragraph indexes and counts.
+settle, summary, hold, the three marks and the server read are the
+held-into-refusal probe's own, imported from it; the document is the E1 table
+fixture instead of the owner's.  The report carries no document text beyond
+paragraph indexes, counts and booleans.
+
+Marks (finding 136, ruling-3 condition 3; task 2026-10-13c):
+  press-type arms  CONTROL `kj` typed at the caret just before the Delete (run-3's
+                   `--control kj`, now always), MARK `zqx` typed once reopened;
+                   judged on `controlThenMark` (`kjzqx` contiguous).
+  hold arms        AFTER `wvy` typed after release and settle; judged on the
+                   paragraph holding it and `afterAtEnd` (end of paragraph 0 for
+                   before-table-hold, end of paragraph 1 = cell A1 for cell-hold).
+`scrollTop` is recorded as in the held probe; the table arms are exempt from
+its rule (the fixture fits one screen).
 
   probe_table_refusal.py --out DIR [--browsers chrome,firefox] [--arms ...]
 """
@@ -32,17 +43,6 @@ ARMS = {"before-table-press-type": ([], "press"), "before-table-hold": ([], "hol
         "cell-press-type": (["ArrowDown"], "press"), "cell-hold": (["ArrowDown"], "hold")}
 
 
-CONTROL = ""
-
-
-def control_read(server) -> dict[str, Any]:
-    """Where the control mark is, and whether the reopened `zqx` follows it directly.  No text."""
-    texts = probe.texts_of(server.instance.dav("GET", probe.NAME)[1])
-    return {"controlParagraphs": [i for i, t in enumerate(texts) if CONTROL in t],
-            "markParagraphs": [i for i, t in enumerate(texts) if probe.MARK in t],
-            "controlThenMark": any(CONTROL + probe.MARK in t for t in texts)}
-
-
 def nav(session, kind: str, key: str) -> dict[str, Any]:
     """ArrowDown is not in the shared key tables; the same two drivers, sent here."""
     before = ui.quiet(session)
@@ -60,9 +60,9 @@ def nav(session, kind: str, key: str) -> dict[str, Any]:
             "latency": after.get("latency")}
 
 
-def run_round(arm: str, kind: str, server, doc: bytes, original: list[str]) -> dict[str, Any]:
+def run_round(arm: str, kind: str, server, doc: bytes, original: list[str], index: int = 0) -> dict[str, Any]:
     base = server.instance.base
-    record: dict[str, Any] = {"arm": arm, "browser": kind, "startedAt": probe.utc_now()}
+    record: dict[str, Any] = {"arm": arm, "browser": kind, "round": index, "startedAt": probe.utc_now()}
     record["clearedLocks"] = server.clear_locks()
     record["upload"] = server.upload(server.admin, probe.NAME, doc)
     session = ui.new_session(kind)
@@ -77,11 +77,12 @@ def run_round(arm: str, kind: str, server, doc: bytes, original: list[str]) -> d
         # into the text first).  The caret is at the document start after opening; focus the sink there.
         record["focused"] = evaluate(session, FOCUS_SINK)
         record["moves"] = [nav(session, kind, key) for key in moves] + [ui.keyed(session, kind, "End")]
-        if CONTROL and how == "press":
+        if how == "press":
             # run-3: a second mark typed where the caret is before the key, so the read-back says
             # where the user's caret was, beside where the reopened one put `zqx`.
-            record["typedControl"] = [ui.keyed(session, kind, ch) for ch in CONTROL]
+            record["typedControl"] = probe.typed(session, kind, probe.CONTROL)
         record["genBeforeKey"] = evaluate(session, ui.GEN)
+        record["stateBeforeKey"] = evaluate(session, probe.STATE_NOW)
         start = evaluate(session, probe.LOG_LENGTH)
         if how == "press":
             ui.press(session, kind, "Delete")
@@ -90,16 +91,17 @@ def run_round(arm: str, kind: str, server, doc: bytes, original: list[str]) -> d
             record["sent"] = probe.held.hold_key(session, kind, "Delete")
         record["settle"] = probe.settle(session)
         if how == "press":
-            record["typedMark"] = [ui.keyed(session, kind, ch) for ch in probe.MARK]
+            record["typedMark"] = probe.typed(session, kind, probe.MARK)
             record["settleAfterMark"] = probe.settle(session)
+        else:
+            record["typedAfter"] = probe.typed(session, kind, probe.AFTER)
+            record["settleAfterAfter"] = probe.settle(session)
         record["log"] = evaluate(session, probe.READ_LOG.replace("ARG_FROM", str(start)))
         record["limit"] = evaluate(session, ui.LIMIT)
         record["summary"] = probe.summarize(record["log"])
         if record["limit"].get("limit") not in probe.SETTLED_LIMITS:
             record["save"] = ui.save_and_settle(session, 60)
         record["server"] = probe.server_read(server, original)
-        if CONTROL and how == "press":
-            record["control"] = control_read(server)
     except Exception:  # noqa: BLE001 -- a round that dies is recorded, not lost
         record["fatal"] = traceback.format_exc()
     finally:
@@ -116,25 +118,30 @@ def main() -> int:
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--browsers", default="chrome,firefox")
     parser.add_argument("--arms", default=",".join(ARMS))
-    parser.add_argument("--control", default="", help="run-3: letters typed before the key (e.g. kj)")
     args = parser.parse_args()
-    global CONTROL
-    CONTROL = args.control
+    arms = [a for a in args.arms.split(",") if a]
+    unknown = sorted(set(arms) - set(ARMS))
+    if unknown:
+        parser.error(f"unknown arms {unknown}")
     probe.held.OPTIONS.update(holdMs=8000, holdDelayMs=500, holdIntervalMs=30)
     args.out.mkdir(parents=True, exist_ok=True)
     doc = DOC.read_bytes()
     original = probe.texts_of(doc)
+    in_original = probe.marks_in(original)
+    if any(in_original.values()):
+        raise SystemExit(f"the fixture already holds a mark: {in_original}")
     server = probe.Server(probe.Instance(probe.DEFAULT_DDEV), [])
-    report: dict[str, Any] = {"probe": "probe_table_refusal.py", "startedAt": probe.utc_now(), "control": CONTROL,
+    report: dict[str, Any] = {"probe": "probe_table_refusal.py", "startedAt": probe.utc_now(),
+                              "marks": {"mark": probe.MARK, "control": probe.CONTROL, "after": probe.AFTER},
                               "static": ui.static_facts(probe.DEFAULT_DDEV),
                               "document": {"path": str(DOC.relative_to(ROOT)),
                                            "sha256": hashlib.sha256(doc).hexdigest(),
-                                           "paragraphs": len(original)},
+                                           "paragraphs": len(original), "marksInOriginal": in_original},
                               "hold": {k: probe.held.OPTIONS[k] for k in ("holdMs", "holdDelayMs", "holdIntervalMs")},
                               "runs": []}
     try:
         for kind in args.browsers.split(","):
-            for arm in [a for a in args.arms.split(",") if a]:
+            for arm in arms:
                 run = run_round(arm, kind, server, doc, original)
                 report["runs"].append(run)
                 (args.out / "report.json").write_text(json.dumps(report, ensure_ascii=False, indent=1))
@@ -142,9 +149,10 @@ def main() -> int:
                 print(kind, arm, "fatal" if run.get("fatal") else json.dumps(
                     {"refusals": run["summary"]["refusals"], "gens": run["summary"]["generations"],
                      "limit": (run.get("limit") or {}).get("limit"),
-                     **{k: srv.get(k) for k in ("marks", "markParagraphs", "paragraphs", "sameAsOriginal",
-                                                "firstDiffFromOriginal", "charDelta")},
-                     "control": run.get("control")}, ensure_ascii=False),
+                     **{k: srv.get(k) for k in ("marks", "controls", "afters", "markParagraphs", "controlParagraphs",
+                                                "afterParagraphs", "controlThenMark", "afterAtEnd", "paragraphs",
+                                                "sameAsOriginal", "firstDiffFromOriginal", "charDelta")}},
+                    ensure_ascii=False),
                       flush=True)
     finally:
         server.clear_locks()

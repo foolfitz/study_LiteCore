@@ -10,16 +10,44 @@ from the start until the key comes up.  Measured here; no product byte is
 touched.  Not a counted runner.
 
 Arms (each round a fresh page load, so the generation starts at 1):
-  start-press  `zqx` typed mid-text, first line + Home, ONE Backspace (control)
-  start-hold   the same, five letters typed at the start, Backspace held
-  end-hold     last line + End, `zqx` typed there, Delete held
-  end-press-type  last line + End, ONE Delete; once reopened, `zqx` typed
-               (finding 134, ruling-1 condition 3: where does the next input land)
+  start-press  `zqx` typed mid-text, first line + Home, ONE Backspace;
+               once reopened, `wvy` typed
+  start-hold   the same, five letters typed at the start, Backspace held;
+               after release and settle, `wvy` typed
+  end-hold     last line + End, `zqx` typed there, Delete held;
+               after release and settle, `wvy` typed
+  end-press-type  last line + End, `kj` typed there, ONE Delete; once
+               reopened, `zqx` typed (finding 134, ruling-1 condition 3: where
+               does the next input land)
 
-`#desk.scrollTop` is sampled with every state entry (ruling-1 condition 7):
-reported, not judged.
+Three marks (finding 136, ruling-3 condition 3; task 2026-10-13c).  None of
+them is in the owner's document (checked on every run, `marksInOriginal`).
+  MARK    `zqx`  unchanged: unsaved work typed before the key (start-*,
+                 end-hold), or the first input after the reopen (end-press-type).
+  CONTROL `kj`   typed at the caret just before the key on end-press-type: the
+                 reopened `zqx` must follow it directly (`controlThenMark`), so
+                 the read-back sees placement INSIDE the paragraph.
+  AFTER   `wvy`  typed after the reopen (start-press) or after release and
+                 settle (the hold arms); the read-back says whether its
+                 paragraph starts (`afterAtStart`) or ends (`afterAtEnd`) with it.
 
-The report carries no document text: counts, indexes and hashes only.
+Exception to condition 3's literal text: start-press gets NO control.  Its key
+is Backspace at the document start.  Typing `kj` first would put two characters
+before the caret, so the Backspace would delete the `j` and no longer be
+refused -- the arm would stop measuring a refusal at all.  It types AFTER once
+reopened instead and is judged by the hold rule: AFTER at the start of
+paragraph 0, which is where a control would have put it at the document start.
+
+`kjkjk` (start-hold) contains CONTROL.  The reader strips all three marks
+before comparing with the original, so a residue of `kjkjk` could vanish from
+that comparison; the counts catch every residue (`kjkj`, `kjk`, `kj` leave
+CONTROL ≥ 1 where none was typed; `k` leaves a difference).
+
+`#desk.scrollTop` is sampled with every state entry and on every scroll event
+of `#desk` (a scroll is not a DOM mutation); the last sample before the key is
+recorded as `stateBeforeKey`.  Judged since ruling-3 condition 4.
+
+The report carries no document text: counts, indexes, booleans and hashes only.
 
   probe_held_into_refusal.py --out DIR [--browsers chrome,firefox] [--hold-ms 8000]
 """
@@ -48,7 +76,10 @@ from probe_m3_gate0_coep import utc_now  # noqa: E402
 from r7_support import evaluate  # noqa: E402
 
 NAME = "probe-held-refusal.odt"
-MARK = ui.MARK                # "zqx": unsaved work at the moment of the key
+MARK = ui.MARK                # "zqx": unsaved work at the moment of the key, or end-press-type's first input after the reopen
+CONTROL = "kj"                # ruling-3 condition 3: typed at the caret just before the key (press-type arms, not start-press)
+AFTER = "wvy"                 # typed after the reopen (start-press) or after release and settle (hold arms)
+MARKS = (MARK, CONTROL, AFTER)
 START_TEXT = "kjkjk"          # start-hold: what the hold deletes before it reaches the start
 ARMS = ("start-press", "start-hold", "end-hold", "end-press-type")
 SETTLED_LIMITS = {"saved", "failed", "lost", "clean", "pending"}
@@ -74,8 +105,11 @@ INSTRUMENT = """(() => { const t0 = performance.now(); const log = window.__r = 
       : (document.activeElement ? (document.activeElement.id || document.activeElement.tagName) : null),
     sinkDisabled: sink.disabled }), true);
   sink.addEventListener('beforeinput', (e) => log.push({ t: now(), what: 'beforeinput', type: e.inputType }), true);
+  document.querySelector('#desk').addEventListener('scroll', tick, { passive: true });
+  window.__rread = read;
   tick(); return true; })()"""
 LOG_LENGTH = "(() => window.__r.length)()"
+STATE_NOW = "(() => window.__rread())()"
 READ_LOG = "(() => window.__r.slice(ARG_FROM))()"
 
 
@@ -84,17 +118,44 @@ def texts_of(odt: bytes) -> list[str]:
         return paragraph_texts_from_xml(archive.read("content.xml"))
 
 
+def strip_marks(text: str) -> str:
+    for mark in MARKS:
+        text = text.replace(mark, "")
+    return text
+
+
 def server_read(server: Server, original: list[str]) -> dict[str, Any]:
+    """Counts, paragraph indexes and booleans for the three marks; no text."""
     status, raw = server.instance.dav("GET", NAME)
     texts = texts_of(raw)
-    stripped = [t.replace(MARK, "") for t in texts]
+    stripped = [strip_marks(t) for t in texts]
+    holding = {mark: [i for i, t in enumerate(texts) if mark in t] for mark in MARKS}
+    with_after = [texts[i] for i in holding[AFTER]]
     return {"status": status, "sha256": hashlib.sha256(raw).hexdigest(), "bytes": len(raw),
-            "marks": sum(t.count(MARK) for t in texts), "paragraphs": len(texts),
-            "markParagraphs": [i for i, t in enumerate(texts) if MARK in t],
+            "marks": sum(t.count(MARK) for t in texts),
+            "controls": sum(t.count(CONTROL) for t in texts),
+            "afters": sum(t.count(AFTER) for t in texts),
+            "paragraphs": len(texts),
+            "markParagraphs": holding[MARK], "controlParagraphs": holding[CONTROL],
+            "afterParagraphs": holding[AFTER],
+            # CONTROL immediately followed by the post-reopen mark (`zqx` on every press-type arm).
+            "controlThenMark": any(CONTROL + MARK in t for t in texts),
+            # end-hold: `zqx` typed before the hold, `wvy` after it.
+            "markThenAfter": any(MARK + AFTER in t for t in texts),
+            "afterAtStart": bool(with_after) and all(t.startswith(AFTER) for t in with_after),
+            "afterAtEnd": bool(with_after) and all(t.endswith(AFTER) for t in with_after),
             "paragraphsOriginal": len(original),
             "firstDiffFromOriginal": ui.first_difference_index(stripped, original),
             "charDelta": sum(map(len, stripped)) - sum(map(len, original)),
             "sameAsOriginal": stripped == original}
+
+
+def marks_in(texts: list[str]) -> dict[str, int]:
+    return {mark: sum(t.count(mark) for t in texts) for mark in MARKS}
+
+
+def typed(session, kind: str, text: str) -> list[dict[str, Any]]:
+    return [ui.keyed(session, kind, ch) for ch in text]
 
 
 def settle(session) -> dict[str, Any]:
@@ -166,19 +227,23 @@ def run_round(arm: str, kind: str, server: Server, doc: bytes, original: list[st
         if arm in ("start-press", "start-hold"):
             key = "Backspace"
             record["inText"] = ui.click(session, ui.IN_TEXT)
-            record["typedMark"] = [ui.keyed(session, kind, ch) for ch in MARK]
+            record["typedMark"] = typed(session, kind, MARK)
             record["placed"] = ui.click(session, ui.FIRST_LINE)
             record["moved"] = ui.keyed(session, kind, "Home")
             if arm == "start-hold":
-                record["typedStart"] = [ui.keyed(session, kind, ch) for ch in START_TEXT]
+                record["typedStart"] = typed(session, kind, START_TEXT)
+            # start-press: no CONTROL -- it would turn the refused Backspace into a deleted `j` (docstring).
         else:
             key = "Delete"
             record["placed"] = ui.click(session, ui.LAST_LINE)
             record["moved"] = ui.keyed(session, kind, "End")
             if arm == "end-hold":
-                record["typedMark"] = [ui.keyed(session, kind, ch) for ch in MARK]
+                record["typedMark"] = typed(session, kind, MARK)
+            else:
+                record["typedControl"] = typed(session, kind, CONTROL)
         record["key"] = key
         record["genBeforeKey"] = evaluate(session, ui.GEN)
+        record["stateBeforeKey"] = evaluate(session, STATE_NOW)
         start = evaluate(session, LOG_LENGTH)
         if arm in ("start-press", "end-press-type"):
             ui.press(session, kind, key)
@@ -189,8 +254,13 @@ def run_round(arm: str, kind: str, server: Server, doc: bytes, original: list[st
         if arm == "end-press-type":
             # The next input after the reopen: where the user's typing lands.
             record["genBeforeMark"] = evaluate(session, ui.GEN)
-            record["typedMark"] = [ui.keyed(session, kind, ch) for ch in MARK]
+            record["typedMark"] = typed(session, kind, MARK)
             record["settleAfterMark"] = settle(session)
+        else:
+            # start-press: the first input after the reopen; hold arms: after release and settle.
+            record["genBeforeAfter"] = evaluate(session, ui.GEN)
+            record["typedAfter"] = typed(session, kind, AFTER)
+            record["settleAfterAfter"] = settle(session)
         record["log"] = evaluate(session, READ_LOG.replace("ARG_FROM", str(start)))
         record["limit"] = evaluate(session, ui.LIMIT)
         record["genAfter"] = evaluate(session, ui.GEN)
@@ -233,12 +303,17 @@ def main() -> int:
     args.out.mkdir(parents=True, exist_ok=True)
     doc = ui.DOC.read_bytes()
     original = texts_of(doc)
+    in_original = marks_in(original)
+    if any(in_original.values()):
+        raise SystemExit(f"the document already holds a mark: {in_original}")
     server = Server(Instance(DEFAULT_DDEV), [])
     report: dict[str, Any] = {"probe": "probe_held_into_refusal.py", "startedAt": utc_now(),
                               "static": ui.static_facts(DEFAULT_DDEV), "arms": arms, "rounds": rounds,
                               "hold": {k: held.OPTIONS[k] for k in ("holdMs", "holdDelayMs", "holdIntervalMs")},
                               "deskRepeat": held.desk_repeat_settings(),
-                              "document": {"sha256": hashlib.sha256(doc).hexdigest(), "paragraphs": len(original)},
+                              "document": {"sha256": hashlib.sha256(doc).hexdigest(), "paragraphs": len(original),
+                                           "marksInOriginal": in_original},
+                              "marks": {"mark": MARK, "control": CONTROL, "after": AFTER},
                               "runs": []}
     try:
         for kind in args.browsers.split(","):
@@ -250,7 +325,9 @@ def main() -> int:
                     print(kind, arm, index, "fatal" if run.get("fatal") else json.dumps(
                         {**run.get("summary", {}), "toasts": len(run.get("summary", {}).get("toasts", [])),
                          "server": {k: run.get("server", {}).get(k) for k in
-                                    ("marks", "firstDiffFromOriginal", "charDelta", "sameAsOriginal")}},
+                                    ("marks", "controls", "afters", "markParagraphs", "afterParagraphs",
+                                     "controlThenMark", "markThenAfter", "afterAtStart", "afterAtEnd",
+                                     "firstDiffFromOriginal", "charDelta", "sameAsOriginal")}},
                         ensure_ascii=False), flush=True)
     finally:
         server.clear_locks()
