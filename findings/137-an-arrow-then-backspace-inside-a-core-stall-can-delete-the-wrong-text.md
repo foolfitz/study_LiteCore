@@ -35,7 +35,12 @@ finding 135 在一格裡量到過 196.6–210 ms 的停頓（21 次中 4 次）�
 
 - **不打臨時補丁**：任何「等一下再刪」的規則都是在賭時間。
 - 修法在「有序刪除」規格：刪除改走使用者自己的鍵，排在同一個 FIFO 裡，用 `.uno:Undo` 紀錄證明（併段那條路的作法），或採用 FIFO 標記、單執行緒拓撲。哪一條先由原生量測決定，再由模型把關，最後才接線。
-- 條件 32：模型只用 v20 會提供的鍵重跑（一般的游標起點移動；沒有延伸、沒有範圍起點移動），印出的「與 Writer 不同」母數附到這裡。若出現第 5、6 類以外的種類，連結就停。**（待補）**
+- 條件 32：模型只用 v20 會提供的鍵重跑（一般的游標起點移動；沒有延伸、沒有範圍起點移動），印出的「與 Writer 不同」母數附到這裡。若出現第 5、6 類以外的種類，連結就停。**已跑（2026-10-13，第二次執行；全文在 `findings/evidence/link-batch/extend-model/test-output-2.txt`，母數單獨在同目錄的 `condition-32-population.txt`，README 追加段落有說明）。**
+  - 設定：鍵只有一般的 Left／Right（使用者的移動與前一個以讀回完成的移動都是），任何地方都沒有 Shift；旗標不接線（C 照 §10.5 拿掉旗標條款、barrier 走今天的路、`delete-selection` 不查旗標）；頁面在 `beforeinput` 依快照選刪除形式、規則 A 照舊。引擎在派送時判成「範圍起點」的一般移動在跑完後剔除（v20 的 manifest 只給 `collapsed`；這個判定是該次執行的，不是情境參數）：剔除 351,264 次、保留 274,656 次。0.2.18 在範圍上「先點再移」的路徑沒有模型化。
+  - **與 Writer 不同的母數，依種類**：**第 5 類 27,744**（游標起點的一般移動在前一個操作晚到的 `TEXT_SELECTION` 上以今天的「第一個回呼」規則完成；頁面快照是那個操作的範圍；`delete-selection` 的 `.uno:Delete` 搶在排隊中的移動之前執行）；**第 6 類 2,448**（範圍選取在 RESET 或 START 的 flush 上、或由讀回提早完成，END 的選取還沒到；`delete-selection` 刪到不完整的範圍）；**其他 0——停止條件沒有觸發。**印出 1,792 行（每行＝一個序列扣掉 Backspace 的時序，附 24 種時序裡有幾種會錯）：第 5 類 1,588 行、第 6 類 204 行。每一類的第一個序列：第 5 類 `text=abcd shape=caret0 E=uno:undo U=Left lagReg=0 lagDeadline=0 Backspace(lagReg2=0,lagB1=0,lagV=0)`（引擎刪掉 `z`，Writer 是 `zabcd`）；第 6 類 `text=abcd shape=caret0 E=select3(gapRS=1,gapSE=0,deadline=1) U=Left lagReg=0 lagDeadline=0 Backspace(lagReg2=3,lagB1=0,lagV=0)`（引擎 `ad`，Writer `acd`）。
+  - 同一次執行裡，三條「絕不」在 v20 的鍵上都成立（0、0、0）；拒絕 59,916 次全是 `EDITOR_STATE_UNAVAILABLE`（3,252 次在 barrier 起點、56,664 次是 250 ms 讀回落在 K1 與它的 flush 之間）；`verified-boundary-noop` 43,068 次，沒有一次有鍵還在排隊；活性：範圍接 Backspace 走 `delete-selection` 144/144、排隊中的游標起點移動接 Backspace 與 Writer 相同 80/80。
+  - 測試裡固定的數字改成這兩個（27,744、2,448）；原先釘在 REPORTED 1、4、5 的數字隨旗標撤掉。v20 的鍵上若出現新的種類，測試會以 `STOP CONDITION (ruling 4 condition 32)` 失敗。
+  - 條件 33（只回報，不裁決）同一次執行：在排隊中的鍵後面派送的打字（同步的 `paste`）與行內格式（同步的 `.uno:Bold`）都會插到鍵前面。v20 的鍵上：打字 45,776 次裡 5,474 次與 Writer 不同（打的字落在移動之前的位置，例：`E=none U=Right … Type`，引擎 `xabcd`、Writer `axbcd`；不是刪除）；行內格式 45,776 次裡 3,868 次不同（格式套到使用者剛要收合的選取上，例：`E=uno:undo U=Left … Bold`，引擎 `z*abcd`、Writer 不變）。全部的鍵（下一份規格的範圍）：打字 366,912 次裡 44,902 次不同（23,892 次在排隊中的延伸後面、20,954 次在一般移動後面）；行內格式 366,912 次裡 41,722 次不同（23,886／17,796）。每一次不同都有一個鍵還在排隊；FIFO 空的時候沒有。
 - 若 v20 的計數發佈說明裡沒有更好的處置，必須寫明這是兩個版本都有的已知資料變更類別（條件 36）。
 
 ## 證據

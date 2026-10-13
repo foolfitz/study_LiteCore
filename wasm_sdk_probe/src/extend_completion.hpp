@@ -62,6 +62,13 @@
 // Every refusal here is stage `prior-key-unconfirmed`, keyPosted:false, with
 // the user's key never dispatched.  Named cost: L-flagged-delete-grapheme (a
 // multi-code-point grapheme is refused while the flag is set).
+//
+// Ruling 4 (findings/evidence/link-batch/review/ruling-4.md, spec 13):
+// the model test showed the one-code-point proof says how large K1's
+// selection is, never which key made it, so the flag is WITHDRAWN as a
+// closure and Shift+Arrow and range-start moves leave the link.  The flag's
+// functions below stay as written and are wired by nothing; the delete
+// design that replaces them is the ordered-deletes spec.  Rule (a) stands.
 
 #include "merge_key_undo.hpp"
 

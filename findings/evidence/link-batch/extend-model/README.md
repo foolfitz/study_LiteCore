@@ -73,3 +73,30 @@ Each line is printed by the test as `REPORTED n`; the first sequence of each can
 - `test-output.txt`: the full output of the run reported above (2,932 lines; the population is the 2,714 `L-extend-prior-flush` lines).
 - `make-n-check.txt`: `make -n` before and after the two new files for five profile/link targets (identical), and the what-if with a modified Makefile (v19 would relink).
 - Compiler: g++ 15.2.0 (Ubuntu), `-std=c++17 -O2`; the test also compiles clean with `-Wall -Wextra`.
+
+## 2026-10-13, second run: ruling 4 conditions 32 and 33 (appended; everything above is the first run's record)
+
+Ruling 4 (`findings/evidence/link-batch/review/ruling-4.md`, `5a8d69f1`) withdrew the flag as a closure and took Shift+Arrow and range-start moves out of this link; spec 13 records it; REPORTED 5 and 6 are finding 137 (`57d16143`). The header is unchanged except for a note; its flag functions stay unwired. The test now has three labelled sections after phase 1 and the rule-(a) red cases: A = condition 32, C = condition 33, B = the flag of 12.2 as the superseded record of the six holes (all keys, still exercised, no longer pinned). Same build command; 14 s.
+
+### Condition 32: v20's offered keys only
+
+Knobs: key set V20 = plain Left/Right as the user's move and as the readback-completed earlier move, no Shift key anywhere; the flag unwired (`flagDisabled`: C as 10.5 minus the flag clauses, the barrier on today's path, delete-selection without the flag check); the page's delete form chosen at beforeinput from its snapshot with rule A, as today. A plain move that the engine classifies as range-start at dispatch (the cache holds a range) is excluded after the run, because v20's manifest offers the moves `collapsed`-only and that classification is the run's, not the scenario's: 351,264 runs excluded, 274,656 kept (0.2.18's click-then-move on a range is not modelled).
+
+- Writer-divergent population by kind: **item 5** (a caret-start plain move completed under today's first-callback rule on an earlier operation's late TEXT_SELECTION; the page's snapshot is that operation's range; delete-selection's `.uno:Delete` runs ahead of the queued move) **27,744**; **item 6** (a select-range completed on RESET's or START's flush or by its readback before END's selection; delete-selection on the partial range) **2,448**; **other: 0. The stop condition did not fire.** Printed as 1,792 lines (one per sequence minus the Backspace's timing, with the divergent timings out of 24): `condition-32-population.txt`; 1,588 lines are item 5, 204 are item 6.
+- The three "never"s hold on v20's keys (0, 0, 0); refusals: 59,916, all `EDITOR_STATE_UNAVAILABLE` (3,252 at the barrier's start, 56,664 when the 250 ms read lands between K1 and its flush); verified-boundary-noop 43,068 (every one with no key queued); liveness: range then Backspace is delete-selection 144/144, a queued caret-start plain move then Backspace is Writer-equal 80/80.
+- The pins in the test are now these two counts (27,744 and 2,448); the earlier pins on REPORTED 1, 4 and 5 are gone with the flag. Any new Writer-divergent kind on v20's keys fails the test with `STOP CONDITION (ruling 4 condition 32)`.
+
+### Condition 33: typing and an inline format behind a pending key (reported, not ruled)
+
+Two follow-ups added to the generator beside Backspace: `Type` = paste of one unit, synchronous, replaces the selection; `Bold` = `.uno:Bold` with a listener, synchronous, bolds the selected units (on a caret Writer only arms the insertion attribute, no change). Both run at the next event boundary, ahead of every queued key, exactly as `.uno:Delete` does; the page consults no snapshot for them. Writer's reference applies the move first. The model's rectangles do not change width with bold, so a format's flush carries only its RESULT; natively a bolder line may re-send the selection rectangles (F1 deduplicates on the payload string), which would make an inline format on a range a member of L-extend-prior-flush as the earlier operation -- not modelled, named here.
+
+- v20's keys, typing: 45,776 runs, 5,474 divergent: 5,458 "typing behind the user's queued plain move", 16 "behind the earlier queued plain move". Mechanism (traced, `E=none U=Right … Type(lagReg2=0)`): the Right is answered by the readback with its key queued; the paste runs first, `x` lands at the old caret and the Right then steps over the next unit: engine `xabcd` with the caret after `a`, Writer `axbcd`. Not a deletion; the typed text lands one unit early.
+- v20's keys, inline format: 45,776 runs, 3,868 divergent, all "inline format behind the user's queued plain move". Mechanism (traced, `E=uno:undo U=Left … Bold(lagReg2=0)`): undo restores `z` selected; the Left is queued; `.uno:Bold` runs first on the still-selected `z`: engine `z*abcd`, Writer collapses first and bolds nothing. A format applied to text the user had just deselected.
+- All keys (the next spec's scope): typing 366,912 runs, 44,902 divergent (23,892 behind the user's queued extend, 20,954 behind the user's queued plain move, 28 and 28 behind the earlier queued extend/plain move); inline format 366,912 runs, 41,722 divergent (23,886 behind the user's queued extend, 17,796 behind the user's queued plain move, 28 and 12 behind the earlier one). Behind a queued extend the typed unit replaces nothing where Writer replaces the extension, or the format bolds nothing where Writer bolds it.
+- Every divergence has a key queued at the dispatch; none occurs with the FIFO empty. A select-range completed early with END still to run contributes under "behind … queued" only when a key is queued; with none queued the paste/format waits for nothing and matches Writer.
+
+### Files of the second run
+
+- `test-output-2.txt`: the full output (4,774 lines: phase 1's 2,714 population lines, condition 32's 1,792 lines, the three sections).
+- `condition-32-population.txt`: condition 32's printed population alone, with its header and footer lines.
+- `EXTEND_MODEL_TRACE` now also finds `Type(...)` and `Bold(...)` sequences.

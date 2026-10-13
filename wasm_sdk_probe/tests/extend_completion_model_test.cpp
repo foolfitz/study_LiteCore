@@ -97,6 +97,7 @@ void fail(const std::string &what) {
 struct Unit {
   char id;
   int cps; // code points in this Writer unit (grapheme)
+  bool bold = false; // condition 33: an inline format on the unit, shown as '*' in text()
 };
 
 struct Core {
@@ -122,8 +123,10 @@ struct Core {
   Rect caretRect() const { return Rect{pt * 100L, 0, 0, 276}; }
   std::string text() const {
     std::string s;
-    for (const Unit &u : units)
+    for (const Unit &u : units) {
       s += u.id;
+      if (u.bold) s += '*';
+    }
     return s;
   }
   // An empty mark is not a selection: nothing observable tells it from no
@@ -193,8 +196,9 @@ struct Scenario {
   int u;       // 0 none; 1.. 1 + Key
   int lagReg;  // LOK steps between the earlier completion and U's snapshot
   int lagDeadline; // LOK steps between U's key post and its readback deadline
-  bool backspace;
-  int lagReg2; // LOK steps between U's completion and the Backspace's resolution
+  bool backspace; // follow == 1
+  int follow;     // 0 none; 1 Backspace; 2 typing (paste, synchronous); 3 inline format (.uno:Bold, synchronous)
+  int lagReg2; // LOK steps between U's completion and the follow-up's resolution
   int lagB1;   // LOK steps between K1's post and the 250 ms read
   int lagV;    // LOK steps between K1's TEXT_SELECTION and the verifier
 };
@@ -232,6 +236,10 @@ std::string describe(const Scenario &s) {
   if (s.backspace)
     out += " Backspace(lagReg2=" + std::to_string(s.lagReg2) + ",lagB1=" + std::to_string(s.lagB1) +
            ",lagV=" + std::to_string(s.lagV) + ")";
+  else if (s.follow == 2)
+    out += " Type(lagReg2=" + std::to_string(s.lagReg2) + ")";
+  else if (s.follow == 3)
+    out += " Bold(lagReg2=" + std::to_string(s.lagReg2) + ")";
   return out;
 }
 
@@ -259,6 +267,15 @@ std::string writerText(const Scenario &s) {
   if (s.backspace) {
     if (w.nonEmpty()) w.eraseSelection();
     else if (w.pt > 0) { w.units.erase(w.units.begin() + w.pt - 1); --w.pt; }
+  } else if (s.follow == 2) {
+    const int a = w.lo();
+    if (w.nonEmpty()) w.eraseSelection();
+    w.units.insert(w.units.begin() + a, Unit{'x', 1});
+    w.pt = a + 1; w.hasMark = false;
+  } else if (s.follow == 3) {
+    // bold on a selection marks it; on a caret Writer only arms the insertion attribute (no change)
+    if (w.nonEmpty())
+      for (int i = w.lo(); i < w.hi(); ++i) w.units[i].bold = true;
   }
   return w.text();
 }
@@ -292,7 +309,7 @@ struct Cb {
   int owner;
 };
 
-enum class ActionType { Arrive, PostKey, Deadline, SelectStart, SelectEnd, BarrierStart, BarrierDeadline1, Verify, WindowExpiry, DeleteSelection, FinishDelete };
+enum class ActionType { Arrive, PostKey, Deadline, SelectStart, SelectEnd, BarrierStart, BarrierDeadline1, Verify, WindowExpiry, DeleteSelection, FinishDelete, TypeChar, BoldSelection };
 struct Action {
   ActionType type;
   int readyAt;
@@ -301,7 +318,7 @@ struct Action {
   int owner;
 };
 
-enum class Outcome { None, Refused, Deleted, Noop };
+enum class Outcome { None, Refused, Deleted, Noop, Changed };
 
 struct Run {
   const Scenario &sc;
@@ -467,6 +484,10 @@ struct Run {
         completionName = "uno-command-result";
         outcome = Outcome::Deleted;
         nextItem = 3;
+      } else if (cb.owner == OB && sc.follow == 3) {
+        completionName = "uno-command-result";
+        outcome = Outcome::Changed;
+        nextItem = 3;
       } else if (cb.owner == OB && stage == Stage::AwaitingDelete) {
         ackSeen = true;
         maybeQueueFinish();
@@ -534,9 +555,9 @@ struct Run {
   // ---- the page ----
   void pageNext(bool inLokPhase) {
     ++nextItem;
-    if (nextItem == 1 && sc.u == 0 && !sc.backspace) { nextItem = 3; return; }
-    if (nextItem == 1 && sc.u == 0) ++nextItem; // straight to the Backspace
-    if (nextItem == 2 && !sc.backspace) { nextItem = 3; return; }
+    if (nextItem == 1 && sc.u == 0 && sc.follow == 0) { nextItem = 3; return; }
+    if (nextItem == 1 && sc.u == 0) ++nextItem; // straight to the follow-up
+    if (nextItem == 2 && sc.follow == 0) { nextItem = 3; return; }
     if (nextItem >= 3) return;
     const int lag = nextItem == 1 ? sc.lagReg : sc.lagReg2;
     schedule(ActionType::Arrive, lag, inLokPhase, nextItem == 2 && previousItemCarriesNoState(), false, nextItem == 1 ? OU : OB);
@@ -590,14 +611,18 @@ struct Run {
   }
 
   void execute(const Action &a) {
-    static const char *names[] = {"Arrive", "PostKey", "Deadline", "SelectStart", "SelectEnd", "BarrierStart", "BarrierDeadline1", "Verify", "WindowExpiry", "DeleteSelection", "FinishDelete"};
+    static const char *names[] = {"Arrive", "PostKey", "Deadline", "SelectStart", "SelectEnd", "BarrierStart", "BarrierDeadline1", "Verify", "WindowExpiry", "DeleteSelection", "FinishDelete", "TypeChar", "BoldSelection"};
     tr(std::string("engine ") + names[static_cast<int>(a.type)] + "@" + std::to_string(a.owner));
     switch (a.type) {
     case ActionType::Arrive:
       if (a.owner == OU) {
         registerMove(OU, static_cast<Key>(sc.u - 1));
-      } else {
+      } else if (sc.follow == 1) {
         resolveBackspace();
+      } else {
+        // condition 33: typing and an inline format are synchronous calls that jump the
+        // posted-key FIFO exactly as .uno:Delete does; the page consults no snapshot for them
+        schedule(sc.follow == 2 ? ActionType::TypeChar : ActionType::BoldSelection, 0, false, true, false, OB);
       }
       return;
     case ActionType::PostKey: {
@@ -630,6 +655,8 @@ struct Run {
     case ActionType::WindowExpiry: windowExpiry(); return;
     case ActionType::DeleteSelection: deleteSelection(); return;
     case ActionType::FinishDelete: finishDelete(); return;
+    case ActionType::TypeChar: typeChar(); return;
+    case ActionType::BoldSelection: boldSelection(); return;
     }
   }
 
@@ -697,6 +724,32 @@ struct Run {
     if (kn.resolverRuleA && previousWasDelete) selectionForm = false;
     deleteSelectionForm = selectionForm;
     schedule(selectionForm ? ActionType::DeleteSelection : ActionType::BarrierStart, 0, false, true, false, OB);
+  }
+
+  // condition 33, shape 1: paste, synchronous, answers `inserted` at once (probe_engine.cpp:3186-3221)
+  void typeChar() {
+    pendingMaskAtDelete = pendingKeyMask();
+    flagAtDelete = flag.set();
+    const int a = core.lo();
+    if (core.nonEmpty()) core.eraseSelection();
+    core.units.insert(core.units.begin() + a, Unit{'x', 1});
+    core.pt = a + 1; core.hasMark = false;
+    repaintFrom(OB);
+    outcome = Outcome::Changed;
+    completionName = "inserted";
+    nextItem = 3;
+  }
+
+  // condition 33, shape 2: .uno:Bold with a listener, synchronous (unoctitm.cxx:655-657); the
+  // result is queued and the completion is at that result.  The model's rectangles do not change
+  // width with bold, so the flush carries only the RESULT (natively a bolder line may re-send the
+  // selection rectangles; see the README's limits).
+  void boldSelection() {
+    pendingMaskAtDelete = pendingKeyMask();
+    flagAtDelete = flag.set();
+    if (core.nonEmpty())
+      for (int i = core.lo(); i < core.hi(); ++i) core.units[i].bold = true;
+    queueResult(OB);
   }
 
   void refuse(const char *stageN, const char *site) {
@@ -840,9 +893,19 @@ const std::vector<std::string> kDeclaredClasses = {
 
 // ---- the generator ------------------------------------------------------------------
 
-template <class F> void forEachScenario(bool withBackspace, F &&f) {
+// Ruling 4 condition 32: v20 offers plain caret-start moves only (no extend, no range-start move).
+// The key set here removes the Shift keys; a plain move that the engine would classify as
+// range-start (the cache holds a range at dispatch) is excluded by the sweeps after the run,
+// because that classification is the run's, not the scenario's.
+enum class KeySet { Full, V20 };
+
+template <class F> void forEachScenario(int followMode, KeySet keys, F &&f) {
   static const int lagRegs[] = {0, 1, 2, 3, 4, 5};
   static const int lagDeadlines[] = {0, 1, 2, 3, 4, 6, 9};
+  const std::vector<Key> moveKeys = keys == KeySet::Full ? std::vector<Key>{Key::ShiftLeft, Key::ShiftRight, Key::Left, Key::Right}
+                                                         : std::vector<Key>{Key::Left, Key::Right};
+  const std::vector<int> userKeys = keys == KeySet::Full ? std::vector<int>{0, 1, 2, 3, 4, 5}
+                                                         : std::vector<int>{0, 1 + static_cast<int>(Key::Left), 1 + static_cast<int>(Key::Right)};
   for (int text = 0; text < 2; ++text)
     for (int shape = 0; shape < 8; ++shape)
       for (int e = 0; e < 8; ++e) {
@@ -851,9 +914,9 @@ template <class F> void forEachScenario(bool withBackspace, F &&f) {
         if ((earlier == Earlier::InsertRange || earlier == Earlier::UnoDelete) && !range) continue;
         if ((earlier == Earlier::InsertCaret || earlier == Earlier::UnoUndo) && range) continue;
         std::vector<Scenario> variants;
-        Scenario base{text, shape, earlier, Key::Left, 0, 0, 0, 0, 0, 0, false, 0, 0, 0};
+        Scenario base{text, shape, earlier, Key::Left, 0, 0, 0, 0, 0, 0, false, 0, 0, 0, 0};
         if (earlier == Earlier::RbMove) {
-          for (Key k : {Key::ShiftLeft, Key::ShiftRight, Key::Left, Key::Right})
+          for (Key k : moveKeys)
             for (int d : {0, 1, 2, 3}) { Scenario v = base; v.eKey = k; v.eDeadline = d; variants.push_back(v); }
         } else if (earlier == Earlier::Select3) {
           for (int rs = 0; rs < 2; ++rs)
@@ -863,7 +926,7 @@ template <class F> void forEachScenario(bool withBackspace, F &&f) {
           variants.push_back(base);
         }
         for (Scenario v : variants)
-          for (int u = 0; u < 6; ++u)
+          for (int u : userKeys)
             for (int lagReg : lagRegs) {
               if (earlier == Earlier::None && lagReg) continue; // no earlier completion to lag behind
               if (u == 0 && lagReg) continue;
@@ -871,8 +934,13 @@ template <class F> void forEachScenario(bool withBackspace, F &&f) {
                 if (u == 0 && lagDeadline) continue;
                 Scenario sc = v;
                 sc.u = u; sc.lagReg = lagReg; sc.lagDeadline = lagDeadline;
-                if (!withBackspace) { f(sc); continue; }
-                sc.backspace = true;
+                if (followMode == 0) { f(sc); continue; }
+                sc.follow = followMode;
+                sc.backspace = followMode == 1;
+                if (followMode != 1) {
+                  for (int lagReg2 : {0, 1, 2, 3}) { sc.lagReg2 = lagReg2; f(sc); }
+                  continue;
+                }
                 for (int lagReg2 : {0, 1, 2, 3})
                   for (int lagB1 : {0, 1, 9})
                     for (int lagV : {0, 1}) {
@@ -911,7 +979,7 @@ Phase1 sweep1(const Knobs &kn, bool print, const std::set<std::string> *onlyPrin
       ++t.printedLines;
     }
   };
-  forEachScenario(false, [&](const Scenario &sc) {
+  forEachScenario(0, KeySet::Full, [&](const Scenario &sc) {
     Run r(sc, kn);
     r.go();
     ++t.runs;
@@ -960,7 +1028,7 @@ Phase1 sweep1(const Knobs &kn, bool print, const std::set<std::string> *onlyPrin
 // ---- phase 2: the flag ---------------------------------------------------------------------
 
 struct Phase2 {
-  long runs = 0, refused = 0, deleted = 0, noop = 0, undecided = 0, guard = 0;
+  long runs = 0, refused = 0, deleted = 0, noop = 0, undecided = 0, guard = 0, excludedRangeStart = 0;
   long writerEqual = 0, writerDiffers = 0;
   std::map<std::string, long> refusedBy, refusedSite, deletedBy, writerDiffersBy;
   // the spec's three "never"s
@@ -987,15 +1055,25 @@ struct Phase2 {
   void note(const std::string &k, const Scenario &sc) { if (!first.count(k)) first[k] = describe(sc); }
 };
 
-Phase2 sweep2(const Knobs &kn) {
+// `population` (condition 32): print every Writer-divergent sequence, grouped by the sequence
+// minus the Backspace's timing, with the number of divergent timings out of 24.
+Phase2 sweep2(const Knobs &kn, KeySet keys = KeySet::Full, bool population = false) {
   Phase2 t;
-  forEachScenario(true, [&](const Scenario &sc) {
+  std::vector<std::string> order;
+  std::map<std::string, std::pair<std::string, long>> grouped;
+  forEachScenario(1, keys, [&](const Scenario &sc) {
     Run r(sc, kn);
     r.go();
+    if (keys == KeySet::V20 && ((sc.e == Earlier::RbMove && r.eKind == MoveKind::ExtendOrRangeStart) ||
+                                (sc.u && r.uKind == MoveKind::ExtendOrRangeStart))) {
+      ++t.excludedRangeStart; // not offered on v20: the manifest's moves are collapsed-only
+      return;
+    }
     ++t.runs;
     if (r.guardHit) ++t.guard;
     Scenario noB = sc;
     noB.backspace = false;
+    noB.follow = 0;
     const std::string writerBefore = writerText(noB), writer = writerText(sc);
     const long writerDeleted = static_cast<long>(writerBefore.size()) - static_cast<long>(writer.size());
     const bool equal = r.core.text() == writer;
@@ -1025,6 +1103,7 @@ Phase2 sweep2(const Knobs &kn) {
     case Outcome::Deleted: ++t.deleted; ++t.deletedBy[r.completionName]; break;
     case Outcome::Noop: ++t.noop; break;
     case Outcome::None: ++t.undecided; t.note("undecided", sc); break;
+    case Outcome::Changed: break; // typing and formats are sweep3's; a Backspace never answers Changed
     }
     if (r.refusalSite == "deadline-sees-selection") ++t.deadlineSeesSelection;
     std::string kind;
@@ -1044,7 +1123,17 @@ Phase2 sweep2(const Knobs &kn) {
       else if (selectStale) kind += " / behind a select-range completed before its final selection (ruling 3 Q1 B)";
       else kind += " / no key pending";
     }
-    if (!kind.empty()) { ++t.writerDiffersBy[kind]; t.note("differs: " + kind, sc); }
+    if (!kind.empty()) {
+      ++t.writerDiffersBy[kind];
+      t.note("differs: " + kind, sc);
+      if (population) {
+        Scenario g = sc;
+        g.lagReg2 = g.lagB1 = g.lagV = 0;
+        const std::string key = describe(g);
+        if (!grouped.count(key)) { order.push_back(key); grouped[key] = {kind, 0}; }
+        ++grouped[key].second;
+      }
+    }
     // the spec's three "never"s, outside the residual
     if (!residual) {
       if (r.outcome == Outcome::Deleted && r.completionName == "verified-selection-delete" && r.deletedUnits != 1) {
@@ -1123,7 +1212,55 @@ Phase2 sweep2(const Knobs &kn) {
       if (!r.flag.set()) ++t.flaggedAdmittedCleared;
     }
   });
+  if (population) {
+    std::printf("== condition 32: the Writer-divergent population, v20's keys only; one line per sequence minus the Backspace's timing ==\n");
+    for (const std::string &key : order)
+      std::printf("137 | %s | %s | divergent-timings=%ld/24\n", grouped[key].first.c_str(), key.c_str(), grouped[key].second);
+    std::printf("== end of population (%zu lines) ==\n", order.size());
+  }
   return t;
+}
+
+// ---- condition 33: typing and an inline format behind a pending key (reported, not ruled) ----
+
+struct Phase3 {
+  long runs = 0, equal = 0, differs = 0, excludedRangeStart = 0, guard = 0;
+  std::map<std::string, long> byKind;
+  std::map<std::string, std::string> first;
+};
+
+Phase3 sweep3(const Knobs &kn, KeySet keys, int followMode) {
+  Phase3 t;
+  forEachScenario(followMode, keys, [&](const Scenario &sc) {
+    Run r(sc, kn);
+    r.go();
+    if (keys == KeySet::V20 && ((sc.e == Earlier::RbMove && r.eKind == MoveKind::ExtendOrRangeStart) ||
+                                (sc.u && r.uKind == MoveKind::ExtendOrRangeStart))) {
+      ++t.excludedRangeStart;
+      return;
+    }
+    ++t.runs;
+    if (r.guardHit) ++t.guard;
+    const bool equal = r.core.text() == writerText(sc);
+    if (equal) { ++t.equal; return; }
+    ++t.differs;
+    const Key uKey = static_cast<Key>(sc.u ? sc.u - 1 : 0);
+    std::string kind = followMode == 2 ? "typing" : "inline format";
+    if (r.outcome != Outcome::Changed) kind += " (never answered)";
+    if (r.pendingMaskAtDelete & (1 << OU)) kind += std::string(" behind the user's queued ") + (isExtend(uKey) ? "extend" : "plain move");
+    else if (r.pendingMaskAtDelete & (1 << OE)) kind += std::string(" behind the earlier queued ") + (isExtend(sc.eKey) ? "extend" : "plain move");
+    else kind += " with no key queued";
+    if (sc.e == Earlier::Select3 && r.eSelectStale && !(r.pendingMaskAtDelete)) kind += " (select-range completed early; its END still to run)";
+    ++t.byKind[kind];
+    if (!t.first.count(kind)) t.first[kind] = describe(sc);
+  });
+  return t;
+}
+
+void report3(const char *name, const Phase3 &t) {
+  std::printf("%-44s runs=%ld writerEqual=%ld writerDiffers=%ld excludedRangeStart=%ld guard=%ld\n",
+              name, t.runs, t.equal, t.differs, t.excludedRangeStart, t.guard);
+  for (const auto &[k, n] : t.byKind) std::printf("    differs %7ld  %s\n        first: %s\n", n, k.c_str(), t.first.at(k).c_str());
 }
 
 void report1(const char *name, const Phase1 &t) {
@@ -1138,8 +1275,8 @@ void report1(const char *name, const Phase1 &t) {
 }
 
 void report2(const char *name, const Phase2 &t) {
-  std::printf("%-44s runs=%ld refused=%ld deleted=%ld noop=%ld undecided=%ld writerEqual=%ld writerDiffers=%ld guard=%ld\n",
-              name, t.runs, t.refused, t.deleted, t.noop, t.undecided, t.writerEqual, t.writerDiffers, t.guard);
+  std::printf("%-44s runs=%ld refused=%ld deleted=%ld noop=%ld undecided=%ld writerEqual=%ld writerDiffers=%ld excludedRangeStart=%ld guard=%ld\n",
+              name, t.runs, t.refused, t.deleted, t.noop, t.undecided, t.writerEqual, t.writerDiffers, t.excludedRangeStart, t.guard);
   for (const auto &[k, n] : t.refusedBy) std::printf("    refused %7ld  stage %s\n", n, k.c_str());
   for (const auto &[k, n] : t.refusedSite) std::printf("    refused %7ld  at %s\n", n, k.c_str());
   for (const auto &[k, n] : t.deletedBy) std::printf("    deleted %7ld  %s\n", n, k.c_str());
@@ -1237,7 +1374,7 @@ int main() {
   headerCells();
   if (const char *only = std::getenv("EXTEND_MODEL_TRACE")) {
     // one scenario, traced: EXTEND_MODEL_TRACE='<exact describe() text>' build/extend_completion_model_test
-    forEachScenario(true, [&](const Scenario &sc) {
+    for (int mode : {1, 2, 3}) forEachScenario(mode, KeySet::Full, [&](const Scenario &sc) {
       if (describe(sc) != only) return;
       Knobs kn;
       Run r(sc, kn);
@@ -1267,7 +1404,7 @@ int main() {
   {
     // undisturbed: every non-silent extend completes under rule (a) with the deadline late enough
     long undisturbed = 0, transition = 0, silentReadback = 0, silent = 0;
-    forEachScenario(false, [&](const Scenario &sc) {
+    forEachScenario(0, KeySet::Full, [&](const Scenario &sc) {
       if (sc.e != Earlier::None || !sc.u || sc.lagDeadline != 9) return;
       Run r(sc, faithful);
       r.go();
@@ -1305,7 +1442,44 @@ int main() {
     if (!insertRange) fail(std::string("red case: ") + (red == &r9 ? "9's" : "v19's") + " rule did not fail \"type over a range then Shift+key\"");
   }
 
-  // ---- phase 2: the flag ----
+  // ---- condition 32 (ruling 4, 5a8d69f1): v20's offered keys only, no flag, today's delete routing ----
+  // C ships as 10.5 minus the flag clauses: the flag is left unwired (flagDisabled); the page's
+  // form is chosen at beforeinput from its snapshot with rule A as today (resolverRuleA).
+  std::printf("== SECTION A: ruling 4 condition 32 -- v20's keys (plain caret-start moves), the flag unwired ==\n");
+  Knobs v20; v20.flagDisabled = true; v20.resolverRuleA = true;
+  const Phase2 c32 = sweep2(v20, KeySet::V20, true);
+  report2("condition 32: v20 keys, flag unwired", c32);
+  if (c32.guard) fail("condition 32: a run hit the tick guard");
+  if (c32.undecided) fail("condition 32: a Backspace was never answered: " + c32.first.at("undecided"));
+  if (!c32.runs || !c32.excludedRangeStart) fail("condition 32 is vacuous (no run, or no range-start move was excluded)");
+  {
+    // the stop condition: any Writer-divergent kind outside items 5/6 of finding 137 stops the relink
+    long item5 = 0, item6 = 0;
+    for (const auto &[kind, n] : c32.writerDiffersBy) {
+      if (kind.find("today's rule for caret-start plain moves") != std::string::npos) item5 += n;
+      else if (kind.find("ruling 3 Q1 B") != std::string::npos) item6 += n;
+      else fail("STOP CONDITION (ruling 4 condition 32): a Writer-divergent kind outside finding 137's items 5/6 on v20's keys: " + kind + " | " + c32.first.at("differs: " + kind));
+    }
+    std::printf("condition 32: Writer-divergent by kind: item 5 (stale first-callback completion) %ld, item 6 (select-range completed early) %ld, other 0; runs %ld, range-start moves excluded %ld\n",
+                item5, item6, c32.runs, c32.excludedRangeStart);
+    // pinned by condition 32 (replacing the REPORTED pins of fce084d6): re-rule before changing either
+    const long kPinnedItem5 = 27744, kPinnedItem6 = 2448;
+    if (item5 != kPinnedItem5) fail("condition 32 pin: item 5 count changed (pinned " + std::to_string(kPinnedItem5) + ", now " + std::to_string(item5) + "); re-rule before trusting");
+    if (item6 != kPinnedItem6) fail("condition 32 pin: item 6 count changed (pinned " + std::to_string(kPinnedItem6) + ", now " + std::to_string(item6) + "); re-rule before trusting");
+  }
+
+  // ---- condition 33 (ruling 4): typing and an inline format behind a pending key; reported, not ruled ----
+  std::printf("== SECTION C: ruling 4 condition 33 -- typing and an inline format dispatched behind a pending key (reported) ==\n");
+  report3("typing, v20 keys", sweep3(v20, KeySet::V20, 2));
+  report3("inline format, v20 keys", sweep3(v20, KeySet::V20, 3));
+  report3("typing, all keys (next spec)", sweep3(faithful, KeySet::Full, 2));
+  report3("inline format, all keys (next spec)", sweep3(faithful, KeySet::Full, 3));
+
+  // ---- the flag (SPEC 12.2), SUPERSEDED by ruling 4 (5a8d69f1): kept as the record of the six holes ----
+  // The header's flag functions stay unwired; this section exercises them and prints REPORTED 1-6 as
+  // the ruling read them.  Nothing here is a pin any more; the structural checks that still hold are
+  // kept so that a change in the model is seen.
+  std::printf("== SECTION B: the flag of 12.2, superseded by ruling 4 -- the record of the six holes (all keys) ==\n");
   const Phase2 p2 = sweep2(faithful);
   report2("flag, faithful model", p2);
   if (p2.guard) fail("phase 2: a run hit the tick guard");
@@ -1347,9 +1521,7 @@ int main() {
               p2.plainStale, p2.plainStaleWrongDelete, p2.plainStaleWrongDelete ? p2.first.at("plain-stale-wrong-delete").c_str() : "-");
   std::printf("REPORTED 6 (ruling 3 Q1 B, its effect on a delete): a select-range completed on RESET's or START's flush, or by its readback, before END's selection was delivered; the page's snapshot is the partial range and delete-selection's .uno:Delete runs on what core holds by then: %ld sequences, %ld of them wrong deletions; first: %s\n",
               p2.selectStale, p2.selectStaleWrongDelete, p2.selectStaleWrongDelete ? p2.first.at("select-stale-wrong-delete").c_str() : "-");
-  if (!p2.fpAdmittedShrink) fail("REPORTED 1 vanished: the rule or the model changed; re-rule before trusting");
-  if (!p2.notK1Wedged) fail("REPORTED 4 vanished: the rule or the model changed; re-rule before trusting");
-  if (!p2.plainStaleWrongDelete) fail("REPORTED 5 vanished: the rule or the model changed; re-rule before trusting");
+  // (the pins of fce084d6 on REPORTED 1, 4 and 5 were replaced by condition 32's pins above)
   if (!p2.rangePlainPendingDiffers) fail("REPORTED 2 vanished: the rule or the model changed; re-rule before trusting");
 
   // ---- red cases for the flag ----
