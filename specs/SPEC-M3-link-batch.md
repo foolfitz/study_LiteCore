@@ -120,9 +120,139 @@ merge-key barrier 停在 `nothing-selected` 且 `keyPosted === false` 時，動�
 
 **S2 在連結之前就能先紅一次**：v19 的 ABI 已經接受兩個字元移動的 extend，完成條件是 (a)；manifest 只給 `collapsed`，所以只有起點是游標的格可達。**預測**：原生清單裡「起點是游標、Shift＋左／右、選取有變」的 18 格（caret-mid ×2、doc-start 的右、doc-end 的左、empty-para ×2、wrap-line-end ×2、cjk-mid ×2、heading-mid ×2、list-mid ×2、cell-end ×2），在 v19 上 S2 **全紅**（完成回覆的游標＝按鍵前的游標）。S2 的判讀工具第一次使用之前，要先在 v19 上跑這 18 格。若有任何一格是綠的，先查 WASM 的回呼順序是不是跟原生不同、還是儀器沒量到，**不往下做**。
 
+## 10. 審核 1 的處置（fable 代擁有者裁決 2，2026-10-13，只追加；取代 §9 的「定案」與下列各節裡被點名的句子）
+
+擁有者原話：「有疑義的發給fable，我授權它代我下決定」。審核：`findings/evidence/link-batch/review/review-1-spec.md`（`cf0e15d2`，3 BLOCKING／12 SHOULD／11 NOTE）。工單 `brief-2-disposition.md`，裁決 `ruling-2.md`（`918c2497`）——條件 1–15 以那份為準，這裡寫成規格。主 session 重新核對過裁決依賴的兩個新事實：
+
+- **F1（讀原始碼）**：LOK 對 `TEXT_SELECTION` 與 `INVALIDATE_VISIBLE_CURSOR` 的去重，比對的是上一次**送出**的酬載（`desktop/source/lib/init.cxx:1592–1594`、`2530–2537`）。所以一個從空到空的操作，不會送出任何 `TEXT_SELECTION`。
+- **F2（已觀察＋讀原始碼）**：打字不會送 `INVALIDATE_TILES`。原生的頁面矩形 Edit B 是 0/6，WASM 的 r2-blit-bytes 是 140 下 0 次。而 `documentChangeSequence` 只在 `INVALIDATE_TILES` 時前進（`probe_engine.cpp:2632`）。
+
+### 10.1 延伸與「起點是範圍」的移動，完成條件（B1；**取代 §9 的定案**）
+
+§9 那條「等游標回呼」撤回：它就是 SPEC-M3-paragraph-merge §3.2 已經否決過的規則（審核 B1，主 session 核對過 §3.2、§16.1）。
+
+- **規則 (a)，轉移規則**：適用於任何起點的 extend，以及派送當下引擎快取的 `selectionRectangles` 非空的一般移動。完成要依序看到兩件事：
+  1. 一個 `TEXT_SELECTION`，它解析出的矩形清單與派送當下的快取不同（空對非空也算不同）；
+  2. 之後的下一個 `INVALIDATE_VISIBLE_CURSOR`。
+
+  序列化的是那個游標之後的快取。
+- 250 ms 讀回（`verified-move-readback`）照舊當退路。起點是游標的一般移動**不變**。
+- **規則寫成標頭檔裡的純函式**，與 `merge_key_undo.hpp` 同一種寫法。判準就是它的模型測試，形式一，由工具產生。做法是把 `tests/merge_key_undo_model_test.cpp` 的 LOK 模型，加上兩種情況：
+  - 一個同步完成、但 flush 還在佇列的插入；
+  - 一個以讀回完成、flush 晚到的操作。
+
+  紅案：§9 的規則（第一個游標）與 v19 的規則（第一個 `TEXT_SELECTION`），都必須在「插入之後 Shift＋鍵」與「蓋掉範圍打字之後 Shift＋鍵」上失敗。測試要印出規則 (a) 給出舊狀態的那些序列，那就是下面這個殘留的母數；其餘序列，規則必須完全正確。**這個測試 commit 並做過紅案之前，引擎不接線。**
+- **具名殘留 L-extend-prior-flush**：
+  - 母數（依 F1）：一是對**非空選取**做的 `insert-text`，它同步回報完成，而 paste 會收合選取，所以它的 flush 帶 SEL0；二是以讀回完成、自己的 `TEXT_SELECTION` 卻晚於 250 ms 才到的操作。
+  - **不在母數裡**：合併鍵（它的 flush 是空對空，依 F1 不會送 `TEXT_SELECTION`），以及從游標出發的一般移動（沒有 `TEXT_SELECTION`）。
+  - 效果：一次完成回覆是舊的，下一個 editor-state 推播會帶較高的 `sourceSequence` 收斂（`narrow-editor-v2-session.js:188–200`）。文件不會被改錯。使用者看得到的，最多是接著的刪除被拒、什麼都沒刪；這個由 S5 逐格數。
+- **產品路徑網加三支計次臂**，加在既有的 `run_e2_c_product_path.py`，不另寫 runner：
+  1. 插入後不等待，馬上 Shift＋鍵；
+  2. 會併段的 Backspace 之後 Shift＋鍵；
+  3. Shift＋右按住 1 秒。
+
+  N 在跑之前寫好，過＝N 次全過，並列出舊完成的次數。兩個瀏覽器都要跑，在 v20 上。
+
+### 10.2 S2 與 v19 先紅（S-3、S-4、S-5）
+
+- **S2 的母數**：原生 `arms-r*.jsonl` 的 Table 1 ∪ Table 2，共 84＋24 格。
+- **S2 的參照**：完成後至少 500 ms，用 `editor-get-state` 讀到的引擎快取，再加一個主動交叉檢查：完成回覆的 `selection.collapsed` 與 +500 ms 時 `getTextSelection` 讀到的型別一致。§9 那句「狀態仍是對的、只是慢」刪除。S2 的判讀工具要記錄兩件事：同一個請求是否有多個完成，以及讀回之後是否又到了游標。
+- **v19 先紅**：是 **16 格**，不是 §9 寫的 18 格。從游標出發的 Shift＋左右共 18 格，要扣掉 `shift-Left@doc-start` 與 `shift-Right@doc-end`，這兩格沒有回呼。這 16 格經 SDK client 送出，因為 v19 的頁面會丟掉 Shift。任何一格是綠的就停手。
+
+### 10.3 S1 的逐格判法（S-6）
+
+WASM 上每一格的判法：錨點不變，而移動的那一端，等於「從該形狀的點按不帶 Shift 的同一鍵」到達的游標（另起一臂量）。只有左右，以及單行段落上的 Home／End，才比對原生的逐字文字（其餘受字型影響）。形狀用同一套按鍵走訪重新找出，並和原生一樣檢查按鍵前的文字。
+
+### 10.4 刪除的形式在執行時才決定（B2）＋ S5
+
+- 頁面送出刪除時不再決定 `delete-backward` 或 `delete-selection`。改由 session 的方法帶一個 resolver，在**佇列項目執行時**用 session 自己的快照決定。佇列一次跑一件，到那時前面的移動與延伸都已完成（`editor-shell/editor-session.js:287–311`）。
+- 不用「頁面先等移動的 promise 再排隊」：那樣打字可能插到刪除前面，是 finding 111 的形狀。
+- 131 的規則 A 照舊。131 的各臂在 v20 上必須維持綠，證人是既有的 131-B 跑一次。
+- **S5（形式二，母數取自 S1 的格）**：Table 1 的 84 格 Shift 格，每格之後不等待，分別接 Backspace、Delete、一個打字字元。Writer 的參照由原生工具跑同樣的序列。判法：兩個刪除臂比 `content.xml` 逐位元組；打字臂用 SPEC-M3-paragraph-merge §12 的段落文字序列比較器（rsid 讓打字的位元組跨 session 不同）。**若沒做**：頁面不送 `extendSelection`。
+
+### 10.5 C 的時間窗（B3；**取代 §4.4 的「收回」與 C1 的忙碌臂**）
+
+- 第一次 250 ms 讀到 NONE（`rejectSelectionBarrierAtDeadline`）之後，交易留在 `AwaitingUnitSelection`，再等一個 `MergeStepDeadlineMs`（2000 ms，沿用既有常數，不新增數字）。
+- **窗內到了 K1 的 `TEXT_SELECTION`**：照今天的路走（`handleSelectionBarrierStateCallback` → 單位驗證 → 併段／刪除／那條路自己的拒絕），不拒絕。歸屬的 P 與錨點柵欄在 K1 之前就已設好。
+- **窗到期**：
+  - 第二次 `readSelection()` 仍是 NONE，而且快取的選取仍是收合的：以 `verified-boundary-noop` 完成（`changed: false`、revision 不變、`boundaryNoop: { waitedMs }`），不回 `EDITOR_BOUNDARY_UNSUPPORTED`、不重開。
+  - 另外兩個出口照舊：`unit-late` 與 `EDITOR_STATE_UNAVAILABLE`。
+- **「收回成 barrier 之前的游標」刪除**：它沒有對應的機制。`setTextSelection RESET` 是同步的，會在佇列中的 K1 之前執行。
+- **C1 改成逐次完成的判準（形式一）**：每一個 `verified-boundary-noop` 完成後至少 500 ms，`editor-get-state` 讀到的 `selectionType` 必須是 `none`。每次記下 `waitedMs`。原本的忙碌臂撤回：依構造它不論 C 壞沒壞都會讀到 0。
+- **殼層 client** 的完成白名單接受 `verified-boundary-noop`（`changed === false`、revision 不變），並附紅案。頁面遇到它不跳提示、不重開。132 的節流與 134 的 B 照舊。
+- **具名殘留 L-C-late-K1**：K1 晚於約 2,250 ms 才到，會在活著的 session 裡留下一個選取；文件到下一鍵之前不變，下一個打字字元會取代那個單位。這個殘留關不掉：在真正的文件兩端，K1 不產生任何回呼（原生 P-b），沒有訊號可等，只能靠時間窗。
+- **具名代價**：在文件開頭按 Backspace，約 2.25 秒才回應。`waitedMs` 留作日後追加一節、以量測縮短的依據。窗長對 135 夠用：量到的停頓是 196.6–210 ms。
+
+### 10.6 撤回 §4.5 (1) 與 E1（S-7）
+
+每一種會留下選取的拒絕，都會重開或鎖住佇列（`e2-editor-app.js:1653–1655`；`RECOVERY_ERRORS`，`editor-shell/editor-session.js:319–321`），留下的選取使用者碰不到。而 `kStages` 不涵蓋 `finishSelectionBarrierError` 的出口，所以 E1 原本是手工清單。照 `AGENTS.md` §4，撤回宣稱，不造機械去維持它。唯一還活著的路是 C 的 no-op，由 10.5 的 C1 涵蓋。
+
+**§4.5 (2) 留著，當資料**：
+- `caretBefore`：歸屬的 P 已建立時取 P，否則取快取，並帶 `source` 欄位。
+- E2 的參照：同一筆交易 K1 的錨點矩形。
+- E2 加一臂：「按住跨過一次併段」。
+- E3 留著。
+
+### 10.7 計數前要先改的既有臂（S-9）
+
+在任何計數之前，§7 要先列出：每一支期望寫著 `nothing-selected`、拒絕次數或世代清單的臂，以及它在 C 之下的新期望。清單由 grep 探針的期望得出，不是憑記憶。候選有 `start-press`、`start-hold`、`end-hold`、`end-press-type`、`restore-window`、`cell-start-hold`。新期望：拒絕 0 次、世代 `['1']`、文件與游標不變、打的標記落在游標所在處。
+
+v20 第一次 shakedown 這些臂，就是改它們判讀工具的 §34.4 證人，算在「因執行而修」；「因審核而修」維持 0。
+
+### 10.8 頁碼的機制（S-10、S-11；**取代 §4.3 的觸發條件與 P1–P3 的寫法**）
+
+- **`page-rectangles`** 是文件層級的匯出，由 manifest 欄位與 `offers` 把關（比照 redo 的前例），**永遠不是動作**。`kMaxExternalAction` 與 `kMaxInternalEditorAction` 不動，editor ABI 是 5。回覆帶三樣東西：原字串、文件大小、`getParts()`。
+- **重讀的觸發**：
+  - 引擎把 `LOK_CALLBACK_DOCUMENT_SIZE_CHANGED` 當成計數器，放進 editor state；
+  - 加上 paint 回覆的 `documentSizeChanged`（今天已有）。
+
+  **不用 `documentChangeSequence`**（F2：打字不會送 `INVALIDATE_TILES`）。
+- **重算**：捲動、視窗大小改變、縮放、worker 重開時，頁面重算 N 與 L，都不呼叫引擎。
+- **P1**：60 頁 fixture 上，矩形數＝`getParts()`＝60，由構造決定。頁面中心的參照，由 runner 用矩形與實際使用的視窗大小算出。
+- **P2**：編輯後不再有任何輸入，2 秒時 M 必須正確；另加一個刪掉一頁的案例。
+- **P3**：計算時排除由大小改變觸發的重讀。
+- **更正 §4.3 對 Collabora 唯讀模式的說法**：`Parts.js:307–322` 只服務上一頁／下一頁；Collabora 沒有任何地方是「捲動時在客戶端算頁碼」（審核 N-1）。編輯模式的字串由核心給，這一點 §4.3 寫對了。
+
+### 10.9 其餘 SHOULD
+
+- **S-1**：§2 的範圍要加上以下幾項，並為放寬 extend 加一個證據欄位：
+  - worker：要重新建置；v19 的 worker 是 v15 封存的拷貝，而它的 `EDITOR_V1_MOVE_ACTIONS` 也拒絕行移動的 extend；
+  - profile 建置器：`build_e2_editor_v4_profile.py` 的 `ABI_VERSION` 與 `no-extend-selection`；
+  - 每一個 pin：`tests/test_e2_editor_v4_profile.py`、`src/editor_api.cpp:78–81`、`narrow-editor-v2-client.d.ts:71–74`、`tests/editor_abi_header_test.cpp`。
+- **S-2**：頁面的 129 分支由 manifest 決定。129-B 在 v20 上退休，由 R1 取代。工具列的 ◀ ▶ 在範圍上變成可按，這是刻意的，寫進發佈說明。
+- **S-12**：按住 Shift＋方向鍵套用 132 的深度規則；為此要計算飛行中的移動與延伸，這是計數唯一的用途。判準在實作之前寫：按住 Shift＋右 2 秒，放開之後選取最多再長出「放開時還在飛行中的延伸數」。**若沒做**：按住 Shift＋方向鍵登錄為具名限制。
+- **NOTE**：全部登錄（審核 N-1～N-11；N-2：換 a11y 核心時 S2 要重跑；N-3：同一請求有多個完成，記為 finding 而不是判準）。
+
+### 10.10 擁有者的三題
+
+- **Q-A**：放在畫面底部的狀態列，左側寫「第 N 頁，共 M 頁」或「第 N–L 頁，共 M 頁」。由頁面畫，所以宿主也看得到。在宿主樣式下是否完好（finding 110 的形狀）是擁有者手測項目，不是計數判準。
+- **Q-C**：是，第 2 項這一批出貨。R1 量的是 Writer 自己的移動；若 R1 的折行格過，L-129 依構造關閉。
+- **Q-D**：不改由核心計算。
+
+### 10.11 第二輪審核（條件 14）
+
+寫碼之前，這一節要再交 opus 做**一輪**有界的審核，只審本節，問題先固定：
+
+1. 找一條「flush 之前就完成」的路徑，它晚到的 flush 帶著不同的 `TEXT_SELECTION`，卻不在 L-extend-prior-flush 的母數裡；
+2. 找一條路徑，讓 K1 在 10.5 的時間窗內晚到，走進一般的單位路徑，而它的 P 柵欄攔不住；
+3. 找一種頁數變化，既不送 `DOCUMENT_SIZE_CHANGED`，也不讓 paint 回覆帶 `documentSizeChanged`；
+4. S5 的母數或判法，能不能讓一個壞掉的產品過關；
+5. S-1 的 pin 清單是否完整。
+
+處置只追加一次，沒有第三輪。§6 的引擎碼審核是另一件事，照舊要做。
+
+**預設結論（條件 15）**：
+- 10.1 的規則與模型測試若沒做，第 1 項不出貨，頁面永遠不送 `extendSelection`。
+- 10.5 若沒做，C 不出貨，134 的 (i) 照舊由 B1 的具名限制代表。
+- 10.8 若沒做，第 3 項不出貨。
+- 10.11 若沒做，這一批不寫任何引擎碼。
+
+**白話理由**：裁決原文見 `ruling-2.md` 的「WHY (for the owner)」，九句。
+
 ## 修訂紀錄
 
 | 日期 | 內容 |
 |---|---|
 | 2026-10-13 | 草稿：範圍、現況、設計（4.1 的完成條件待 10-13h）、判準 S1–S4／R1／P1–P3／C1／E1–E3／K、連結與計數的形狀、開放問題 Q-A–Q-D。4.3 在 commit 前讀過 Collabora 與 Writer 原始碼後改寫：頁碼是可見頁範圍、編輯模式由核心算（計畫附錄的說法不完整） |
 | 2026-10-13 | §9：4.1 的完成條件依 10-13h 定案（extend 與範圍起點的移動等游標回呼），並寫下 S2 在 v19 上先紅的 18 格預測 |
+| 2026-10-13 | §10：審核 1 的處置（fable 代擁有者裁決 2）。§9 的完成規則撤回，改成轉移規則＋模型測試；B2 改成執行時決定刪除形式＋S5；C 改成時間窗；§4.5(1)／E1 撤回；頁碼改由 DOCUMENT_SIZE_CHANGED 計數器觸發；Q-A 底部、Q-C 出貨、Q-D 不改；寫碼前再一輪有界審核 |
