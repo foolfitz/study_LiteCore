@@ -201,6 +201,50 @@ function editorContractEnabled(operation) {
     && activeManifest?.editorContract?.version === spec.version;
 }
 
+// SPEC-M3-link-batch 10.8 (S-11), the redo precedent made explicit for the
+// worker.  `page-rectangles` is a document-level export, never an action: no
+// wire id, no gesture, nothing in the action map.  A profile DECLARES it on
+// the contract by name -- `pageRectangles: "document-sdk-page-rectangles"`,
+// the shape of `redo: "document-sdk-redo"` -- and the worker refuses the
+// request before reaching for the symbol otherwise, because the export is
+// COMPILED: on a profile whose binary predates it, ccall throws on a symbol
+// that is not there, and that would surface as WORKER_EXCEPTION rather than
+// as the honest UNSUPPORTED_OPERATION.
+const DOCUMENT_EXPORT_OPERATIONS = new Map([
+  ["pageRectangles", { field: "pageRectangles",
+                       declaration: "document-sdk-page-rectangles" }],
+]);
+
+function documentExportDeclared(operation) {
+  const spec = DOCUMENT_EXPORT_OPERATIONS.get(operation);
+  if (!spec)
+    return true;   // not a declared export; other gates apply
+  return activeManifest?.editorContract?.[spec.field] === spec.declaration;
+}
+
+// SPEC-M3-link-batch 10.5: C's completion record, named field only, like
+// productKeyUndo.  `waitedMs` is C1's per-completion number, measured by the
+// engine from K1's post; a page that does not get it cannot record it.
+function productBoundaryNoop(value = {}) {
+  return {
+    waitedMs: Number.isFinite(value.waitedMs) ? value.waitedMs : null,
+  };
+}
+
+// SPEC-M3-link-batch 10.6: the refusal's `caretBefore`, named fields only.
+// Data in this link: the page reads nothing from it yet.  A rect that is not
+// four integers is null, never a partial rectangle a reopen could aim at.
+function productCaretBefore(value = {}) {
+  const rect = value.rect;
+  const whole = rect !== null && typeof rect === "object"
+    && ["x", "y", "width", "height"].every((key) => Number.isInteger(rect[key]));
+  return {
+    rect: whole ? { x: rect.x, y: rect.y, width: rect.width, height: rect.height } : null,
+    sourceSequence: Number.isInteger(value.sourceSequence) ? value.sourceSequence : null,
+    source: typeof value.source === "string" ? value.source : "",
+  };
+}
+
 // SPEC-M3-paragraph-merge 3.3 / M1-4: the boundary completion of an engine
 // built with OXSDK_MERGE_KEY_UNDO, and the shape of its refusals.  Named fields
 // only, like productFormatBarrier.  `keyPosted` fails toward TRUE: a refusal
@@ -323,6 +367,12 @@ function productEditorState(value = {}) {
   return {
     sourceSequence: value.sourceSequence,
     documentChangeSequence: value.documentChangeSequence,
+    // SPEC-M3-link-batch 12.3: the page number's re-read trigger.  `null`
+    // rather than 0 when the engine emits none (v19 and earlier): "no counter"
+    // and "no size change yet" are different claims.  Named here and in both
+    // raw branches below, because each is an allowlist of its own.
+    documentSizeChangedCount: Number.isInteger(value.documentSizeChangedCount)
+      ? value.documentSizeChangedCount : null,
     visible: value.visible === true,
     caret: value.caret ?? null,
     selection: value.selection ?? {
@@ -837,6 +887,19 @@ function handleCEvent(rawEvent) {
       if (requestId)
         complete(requestId, { revision: event.revision });
       break;
+    // SPEC-M3-link-batch 10.8: the raw string, the part count and the size,
+    // named -- the SDK parses the string, the worker does not.
+    case "page-rectangles":
+      if (requestId) {
+        complete(requestId, {
+          rectangles: event.rectangles,
+          parts: event.parts,
+          documentWidthTwips: event.documentWidthTwips,
+          documentHeightTwips: event.documentHeightTwips,
+          revision: event.revision,
+        });
+      }
+      break;
     case "comments": {
       if (!requestId)
         return;
@@ -891,6 +954,9 @@ function handleCEvent(rawEvent) {
           result.formatBarrier = productFormatBarrier(event.formatBarrier);
         if (event.keyUndo)
           result.keyUndo = productKeyUndo(event.keyUndo);
+        // SPEC-M3-link-batch 10.5: C's completion record.
+        if (event.boundaryNoop)
+          result.boundaryNoop = productBoundaryNoop(event.boundaryNoop);
         complete(requestId, result);
       }
       break;
@@ -940,6 +1006,8 @@ function handleCEvent(rawEvent) {
           revision: event.revision,
           sourceSequence: event.sourceSequence,
           documentChangeSequence: event.documentChangeSequence,
+          // SPEC-M3-link-batch 12.3, see productEditorState.
+          documentSizeChangedCount: event.documentSizeChangedCount,
           visible: event.visible,
           caret: event.caret,
           selection: event.selection,
@@ -1010,6 +1078,9 @@ function handleCEvent(rawEvent) {
           source: event.source,
           sourceSequence: event.sourceSequence,
           documentChangeSequence: event.documentChangeSequence,
+          // SPEC-M3-link-batch 12.3: the counter's arrival is what this
+          // announcement exists to carry (source "document-size-changed").
+          documentSizeChangedCount: event.documentSizeChangedCount,
           visible: event.visible,
           caret: event.caret,
           selection: event.selection,
@@ -1099,6 +1170,8 @@ function handleCEvent(rawEvent) {
           formatBarrier: event.formatBarrier
             ? productFormatBarrier(event.formatBarrier) : undefined,
           mergeKey: event.mergeKey ? productMergeKey(event.mergeKey) : undefined,
+          // SPEC-M3-link-batch 10.6: the caret before the barrier, data only.
+          caretBefore: event.caretBefore ? productCaretBefore(event.caretBefore) : undefined,
         });
       } else {
         postEvent("engine-error", {
@@ -1243,6 +1316,17 @@ function handleRequest(request) {
     });
     return;
   }
+  if (!documentExportDeclared(request.operation)) {
+    const spec = DOCUMENT_EXPORT_OPERATIONS.get(request.operation);
+    postResponse(request.requestId, false, {
+      code: "UNSUPPORTED_OPERATION",
+      message: `${request.operation} requires a profile whose contract declares `
+        + `${spec.field}: "${spec.declaration}"`,
+      operation: request.operation,
+      profile: activeManifest?.profile,
+    });
+    return;
+  }
   switch (request.operation) {
     case "open":
       openStates.set(request.requestId, {});
@@ -1326,6 +1410,16 @@ function handleRequest(request) {
         "oxsdk_document_redo",
         ["number", "number", "number"],
         [request.requestId, payload.documentHandle, payload.expectedRevision],
+      ));
+      break;
+    // SPEC-M3-link-batch 10.8: a document-level query like getSelection -- no
+    // revision argument, nothing is changed -- gated above on the contract's
+    // declaration because the export is compiled.
+    case "pageRectangles":
+      accept(request, () => callStatus(
+        "oxsdk_document_page_rectangles",
+        ["number", "number"],
+        [request.requestId, payload.documentHandle],
       ));
       break;
     case "addComment":
