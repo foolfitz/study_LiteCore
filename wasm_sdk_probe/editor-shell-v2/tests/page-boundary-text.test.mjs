@@ -6,6 +6,12 @@
 // The functions are taken from the page source and run with stubs, so these
 // test the page's own code, not a copy of it: `boundaryText` with its stage
 // set, and `reopenAfterBoundaryRefusal` through every exit.
+//
+// Named limit of this harness: `reopenAfterBoundaryRefusal` runs with a stub for
+// every free name it uses, listed in `names` below.  A page change that adds a
+// free name to that function makes these tests throw until the list follows it
+// (finding 134's D did, then finding 136's FIFO and the restore-flash flag;
+// ruling-3 addendum 1, the stubs only, no assertion changed).
 
 import assert from "node:assert/strict";
 import test from "node:test";
@@ -102,12 +108,12 @@ async function reopen(error, { state = "restart-required", restartAvailable = tr
     async restart() { if (restartThrows) throw new Error("no"); },
   };
   const names = ["session", "toast", "run", "rescueAtGenerationLimit", "el", "boundaryText",
-                 "boundaryKeyUncertain"];
+                 "boundaryKeyUncertain", "pendingDeleteCarets", "reopening", "followCaret"];
   // eslint-disable-next-line no-new-func
   const fn = new Function(...names, `${REOPEN_FN}\nreturn reopenAfterBoundaryRefusal;`)(
     session, (message) => toasts.push(message),
     async (_label, operation) => operation(),
-    async () => {}, { sink: { focus() {} } }, boundaryText, boundaryKeyUncertain);
+    async () => {}, { sink: { focus() {} } }, boundaryText, boundaryKeyUncertain, [], false, () => {});
   await fn(error).catch(() => {});
   return toasts;
 }
