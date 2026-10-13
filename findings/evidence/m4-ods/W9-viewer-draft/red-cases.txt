@@ -1,0 +1,152 @@
+control (unmutated): {'tests': 18, 'pass': 18, 'fail': 0}
+M01-one-tab-short: red=True failed=3 named-test-caught=True
+    - pre-W7 handle: one tab per part, names synthesised and flagg
+        line 173: assert.equal(state.tabs.length, 3);
+        message: Expected values to be strictly equal: / 2 !== 3
+    - W7-shaped handle: tabs carry the engine's names, all enabled
+        line 194: assert.deepEqual(state.tabs.map((tab) => tab.label), ["Alpha", "Beta", "Gamma"]);
+        message: Expected values to be strictly deep-equal: / + actual - expected
+    - partNames that disagree with parts are not used and the disa
+        line 449: assert.equal(state.tabs.length, 3, "still one tab per part");
+        message: still one tab per part / 2 !== 3
+M02-scheduler-always-part-0: red=True failed=2 named-test-caught=True
+    - showPart(k): the engine is switched, read back, and the sche
+        line 220: assert.equal(tile.part, String(k), "the scheduler's tile key carries part k");
+        message: the scheduler's tile key carries part k / '0' !== '1'
+    - a tile of the previous part never reaches onTile
+        line 357: assert.equal(tile.part, "1");
+        message: Expected values to be strictly equal: / '0' !== '1'
+M03-readback-echoes-request: red=True failed=2 named-test-caught=True
+    - an engine that ignores set_part: the state follows the read-
+        line 230: await assert.rejects(session.showPart(1), (error) => {
+        message: Missing expected rejection.
+    - pre-W7: showPart(1) is refused with a typed error and nothin
+        line 279: assert.equal(again.currentPartReadBack, null, "no engine said anything, so nothing is read back");
+        message: no engine said anything, so nothing is read back / 0 !== null
+M04-adapter-readback-cached-request: red=True failed=2 named-test-caught=True
+    - W7-shaped handle: tabs carry the engine's names, all enabled
+        line 200: assert.equal(state.currentPart, 2);
+        message: Expected values to be strictly equal: / 0 !== 2
+    - an engine that ignores set_part: the state follows the read-
+        line 230: await assert.rejects(session.showPart(1), (error) => {
+        message: Missing expected rejection.
+M05-pre-w7-switch-not-refused: red=True failed=1 named-test-caught=True
+    - pre-W7: showPart(1) is refused with a typed error and nothin
+        line 262: await assert.rejects(session.showPart(1), (error) => {
+        message: Missing expected rejection.
+M06-text-document-not-refused: red=True failed=1 named-test-caught=True
+    - a known non-spreadsheet document is refused, released, and p
+        line 296: await assert.rejects(session.open({ bytes: bytesOf(), name: "letter.ods" }), (error) => {
+        message: Missing expected rejection.
+M07-refusal-does-not-release: red=True failed=1 named-test-caught=True
+    - a known non-spreadsheet document is refused, released, and p
+        line 304: assert.equal(handle.closed, true, "the document was handed back");
+        message: the document was handed back / false !== true
+M08-unknown-type-refused: red=True failed=5 named-test-caught=True
+    - pre-W7 handle: one tab per part, names synthesised and flagg
+        line 162: await session.open({ bytes: bytesOf(), name });
+        message: the document is "unknown (pre-W7)", not "spreadsheet
+    - pre-W7: showPart(1) is refused with a typed error and nothin
+        line 162: await session.open({ bytes: bytesOf(), name });
+        message: the document is "unknown (pre-W7)", not "spreadsheet
+    - refusal needs a KNOWN wrong type: spreadsheet and unknown ar
+        line 162: await session.open({ bytes: bytesOf(), name });
+        message: the document is "unknown (pre-W7)", not "spreadsheet
+    - the spoof flag is set only when the adapter rewrote the name
+        line 162: await session.open({ bytes: bytesOf(), name });
+        message: the document is "unknown (pre-W7)", not "spreadsheet
+    - the event listener is attached before initialisation
+        line 162: await session.open({ bytes: bytesOf(), name });
+        message: the document is "unknown (pre-W7)", not "spreadsheet
+M09-spoof-flag-always-true: red=True failed=2 named-test-caught=True
+    - W7-shaped handle: tabs carry the engine's names, all enabled
+        line 203: assert.deepEqual(state.adapterFallbacks, []);
+        message: Expected values to be strictly deep-equal: / + actual - expected
+    - the spoof flag is set only when the adapter rewrote the name
+        line 339: assert.equal(state.nameSpoofed, item.spoofed, item.label);
+        message: W7 engine (lists open-ods), .ods / true !== false
+M10-spoof-not-recorded: red=True failed=1 named-test-caught=True
+    - the spoof flag is set only when the adapter rewrote the name
+        line 339: assert.equal(state.nameSpoofed, item.spoofed, item.label);
+        message: pre-W7 engine, .ods / false !== true
+M11-spoof-ignores-capability: red=True failed=2 named-test-caught=True
+    - W7-shaped handle: tabs carry the engine's names, all enabled
+        line 203: assert.deepEqual(state.adapterFallbacks, []);
+        message: Expected values to be strictly deep-equal: / + actual - expected
+    - the spoof flag is set only when the adapter rewrote the name
+        line 337: assert.equal(engine.openCalls[0].name, item.openedAs, item.label);
+        message: W7 engine (lists open-ods), .ods / + actual - expected
+M12-stale-tile-guard-removed: red=True failed=1 named-test-caught=True
+    - a tile of the previous part never reaches onTile
+        line 351: assert.equal(tiles.length, 0, "no part-0 tile was delivered under part 1");
+        message: no part-0 tile was delivered under part 1 / 2 !== 0
+M13-live-generation-not-reset: red=True failed=1 named-test-caught=True
+    - a tile of the previous part never reaches onTile
+        line 351: assert.equal(tiles.length, 0, "no part-0 tile was delivered under part 1");
+        message: no part-0 tile was delivered under part 1 / 2 !== 0
+M14-listener-attached-after-init: red=True failed=1 named-test-caught=True
+    - the event listener is attached before initialisation
+        line 364: assert.deepEqual(events.map((event) => event.message), ["preRun echo"]);
+        message: Expected values to be strictly deep-equal: / + actual - expected
+M15-render-also-clicks: red=True failed=1 named-test-caught=True
+    - read-only: only render / setPart / close reach the document,
+        line 393: assert.deepEqual([...handleCalls].filter((call) => !allowedHandle.has(call)), []);
+        message: Expected values to be strictly deep-equal: / + actual - expected
+M16-w7-vocabulary-in-session: red=True failed=1 named-test-caught=True
+    - W7 vocabulary appears only in the adapter (the directory is 
+        line 408: assert.ok(!token.test(source), `${file} must not contain ${token}: that knowledge is the adapter's`);
+        message: ods-viewer-session.js must not contain /pre-W7/: that knowledge is the adapter's
+M17-unknown-type-mislabelled: red=True failed=2 named-test-caught=True
+    - pre-W7 handle: one tab per part, names synthesised and flagg
+        line 180: assert.equal(state.documentType, "unknown (pre-W7)");
+        message: Expected values to be strictly equal: / + actual - expected
+    - refusal needs a KNOWN wrong type: spreadsheet and unknown ar
+        line 317: assert.equal(unknown.session.state.documentType, "unknown (pre-W7)");
+        message: Expected values to be strictly equal: / + actual - expected
+M18-synthesised-names-flagged-as-engine: red=True failed=2 named-test-caught=True
+    - pre-W7 handle: one tab per part, names synthesised and flagg
+        line 175: assert.equal(state.namesFromEngine, false);
+        message: Expected values to be strictly equal: / true !== false
+    - partNames that disagree with parts are not used and the disa
+        line 450: assert.equal(state.namesFromEngine, false);
+        message: Expected values to be strictly equal: / true !== false
+M19-names-length-not-checked: red=True failed=1 named-test-caught=True
+    - partNames that disagree with parts are not used and the disa
+        line 449: assert.equal(state.tabs.length, 3, "still one tab per part");
+        message: still one tab per part / 2 !== 3
+M20-switches-not-serialised: red=True failed=1 named-test-caught=True
+    - switches are serialised: the last request is the one the eng
+        line 417: assert.equal(handle.currentPart, 2);
+        message: Expected values to be strictly equal: / 1 !== 2
+M21-crash-ignored: red=True failed=1 named-test-caught=True
+    - a worker crash takes the session to a typed error and stops 
+        line 426: assert.equal(session.state.state, "error");
+        message: Expected values to be strictly equal: / 'ready' !== 'error'
+M22-range-not-checked: red=True failed=1 named-test-caught=True
+    - a part outside 0..parts-1 is refused before the engine is as
+        line 286: await assert.rejects(session.showPart(k), { code: "PART_OUT_OF_RANGE" });
+        message: Missing expected rejection.
+M23-open-failure-not-released: red=True failed=2 named-test-caught=True
+    - an open that fails is typed, and the engine is given back
+        line 442: assert.equal(engine.disposed, true);
+        message: Expected values to be strictly equal: / false !== true
+    - a close() that arrives while the document is opening is not 
+        line 466: assert.equal(engine.disposed, true, "the engine that finished starting was disposed");
+        message: the engine that finished starting was disposed / false !== true
+M25-late-engine-adopted: red=True failed=1 named-test-caught=True
+    - a close() that arrives while the document is opening is not 
+        line 467: assert.equal(engine.openCalls.length, 0, "no document was opened on it");
+        message: no document was opened on it / 1 !== 0
+M26-late-document-adopted: red=True failed=1 named-test-caught=True
+    - a close() that arrives while the document is opening is not 
+        line 480: await assert.rejects(opening, { code: "CLOSED_DURING_OPEN" });
+        message: Missing expected rejection.
+M27-close-does-not-record-itself: red=True failed=1 named-test-caught=True
+    - a close() that arrives while the document is opening is not 
+        line 465: await assert.rejects(opening, { code: "CLOSED_DURING_OPEN" });
+        message: Missing expected rejection.
+M24-initial-part-not-read: red=True failed=1 named-test-caught=True
+    - W7-shaped handle: tabs carry the engine's names, all enabled
+        line 200: assert.equal(state.currentPart, 2);
+        message: Expected values to be strictly equal: / 0 !== 2
+problems: none

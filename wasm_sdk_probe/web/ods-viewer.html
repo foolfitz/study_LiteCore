@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>試算表檢視頁（草稿）</title>
+  <style>
+    :root { color-scheme: light dark; --line: #8886; --warn-bg: #fff3cd; --warn-fg: #5c4400; }
+    @media (prefers-color-scheme: dark) { :root { --warn-bg: #4a3b00; --warn-fg: #ffe9a8; } }
+    body { margin: 0; font: 14px/1.5 system-ui, sans-serif; }
+    header, main { padding: 8px 16px; }
+    h1 { font-size: 18px; margin: 0; }
+    .toolbar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin: 8px 0; }
+    #diagnostic-banner { background: var(--warn-bg); color: var(--warn-fg); border: 1px solid var(--line);
+      border-radius: 4px; padding: 6px 12px; margin: 8px 0; }
+    #diagnostic-banner ul { margin: 4px 0 0; padding-left: 20px; }
+    #tab-strip { display: flex; flex-wrap: wrap; gap: 4px; margin: 8px 0 0; }
+    .ods-tab { font: inherit; padding: 4px 12px; border: 1px solid var(--line); border-bottom: 0;
+      border-radius: 4px 4px 0 0; background: transparent; color: inherit; cursor: pointer; }
+    .ods-tab[aria-selected="true"] { font-weight: 600; background: #8882; }
+    .ods-tab:disabled { opacity: 0.5; cursor: not-allowed; }
+    #status { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 4px 0; font-size: 12px; }
+    #status [data-field] { font-weight: 600; }
+    #viewport { height: 60vh; overflow: auto; border: 1px solid var(--line); position: relative; }
+    #surface { position: relative; }
+    #tiles { position: absolute; inset: 0; }
+    #tiles canvas { position: absolute; }
+    #message { min-height: 1.5em; }
+    #message.error { color: #b00020; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>試算表檢視頁（唯讀・草稿）</h1>
+    <p>只讀取、不編輯、不存檔。這是計畫 W9 的草稿：引擎端的 W7 還不存在，凡是檢視頁自己代答的地方都會標在下方橫幅。</p>
+  </header>
+  <main>
+    <div class="toolbar">
+      <label>開啟試算表（.ods）：<input id="file-input" type="file" accept=".ods,application/vnd.oasis.opendocument.spreadsheet"></label>
+      <button id="close-button" type="button">關閉文件</button>
+    </div>
+    <div id="diagnostic-banner" role="note" hidden></div>
+    <div id="tab-strip" role="tablist" aria-label="工作表"></div>
+    <div id="status" role="status" aria-live="polite">
+      <span>狀態：<span data-field="state">尚未開啟</span></span>
+      <span>文件型別：<span data-field="documentType">—</span></span>
+      <span>工作表數：<span data-field="parts">—</span></span>
+      <span>目前分頁：<span data-field="currentPart">—</span></span>
+      <span>引擎回讀：<span data-field="currentPartReadBack">—</span></span>
+      <span>以 .odt 檔名開啟：<span data-field="nameSpoofed">—</span></span>
+      <span>證據等級：<span data-field="evidenceClass">—</span></span>
+    </div>
+    <div id="viewport" tabindex="0" aria-label="試算表內容（唯讀）">
+      <div id="surface"><div id="tiles" aria-hidden="true"></div></div>
+    </div>
+    <p id="message" role="alert"></p>
+  </main>
+  <script type="module" src="./ods-viewer-app.js"></script>
+</body>
+</html>

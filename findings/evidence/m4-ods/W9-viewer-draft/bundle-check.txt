@@ -1,0 +1,42 @@
+# Bundle check for the W9 viewer draft (read-only; nothing was written to e2/ or dist/)
+# date: 2026-10-13T10:01:12Z
+
+## 1. Shell bundle v66, verify mode (no --write)
+$ python3 tools/build_e2_c_shell_bundle.py --manifest e2/editor-shell-v2-bundle-v66.json
+# run BEFORE the new files existed, and again AFTER; the two outputs were compared with cmp:
+before: bundleSha256=70c34178c3a3704ac4b7d4f7ad58739443dc60df9281c1194cfe29b24d027439 problems=[] included=13 written=None
+after: bundleSha256=70c34178c3a3704ac4b7d4f7ad58739443dc60df9281c1194cfe29b24d027439 problems=[] included=13 written=None
+cmp before after: IDENTICAL (digest, included list, excluded list, problems)
+included list (unchanged):
+  editor-shell-v2/narrow-editor-v2-client.js
+  editor-shell-v2/narrow-editor-v2-session.js
+  editor-shell-v2/paragraph-editor-client.js
+  editor-shell-v2/paragraph-editor-session.js
+  editor-shell/editor-client.js
+  editor-shell/editor-session.js
+  editor-shell/recovery-notice.js
+  editor-shell/state-machine.js
+  input/clipboard-adapter.js
+  input/input-adapter.js
+  reader-shell/tile-scheduler.js
+  sdk/document-sdk.js
+  web/e2-editor-app.js
+
+## 2. E1-C bundle intact check (read-only)
+$ python3 tools/check_e1_c_bundle_intact.py
+{
+  "bundleSha256": "187706b2dcb07d2b",
+  "includedFiles": 5,
+  "availableModules": 6,
+  "intact": true,
+  "divergedAsDeclared": [],
+  "unbinds": null,
+  "problems": []
+}
+
+## 3. Import graphs (build_e2_c_shell_bundle.reachable)
+viewer page reaches: ['reader-shell/tile-scheduler.js', 'sdk/document-sdk.js', 'viewer-shell/ods-viewer-session.js', 'viewer-shell/viewer-error.js', 'viewer-shell/w7-adapter.js']
+product page graph size: 13
+product page reaches a viewer file: none
+viewer files inside the five bundle-scoped dirs: ['reader-shell/tile-scheduler.js', 'sdk/document-sdk.js'] (both are in v66 'included', imported unmodified)
+new files inside the five bundle-scoped dirs: none (viewer-shell/ and web/ods-viewer* are outside SCOPE = ('editor-shell-v2', 'editor-shell', 'input', 'sdk', 'reader-shell') )

@@ -1,0 +1,801 @@
+{
+  "tests": [
+    "pre-W7 handle: one tab per part, names synthesised and flagged, only the current tab enabled",
+    "W7-shaped handle: tabs carry the engine's names, all enabled, the current part is READ at open",
+    "showPart(k): the engine is switched, read back, and the scheduler paints part k",
+    "an engine that ignores set_part: the state follows the read-back, not the request",
+    "pre-W7: showPart(1) is refused with a typed error and nothing repaints; part 0 is not an engine confirmation",
+    "a part outside 0..parts-1 is refused before the engine is asked",
+    "a known non-spreadsheet document is refused, released, and paints nothing",
+    "refusal needs a KNOWN wrong type: spreadsheet and unknown are both accepted",
+    "the spoof flag is set only when the adapter rewrote the name",
+    "a tile of the previous part never reaches onTile",
+    "the event listener is attached before initialisation",
+    "read-only: only render / setPart / close reach the document, only open / onEvent / dispose the engine",
+    "W7 vocabulary appears only in the adapter (the directory is scanned, not listed)",
+    "switches are serialised: the last request is the one the engine and the state end on",
+    "a worker crash takes the session to a typed error and stops scheduling",
+    "an open that fails is typed, and the engine is given back",
+    "partNames that disagree with parts are not used and the disagreement is recorded",
+    "a close() that arrives while the document is opening is not undone: what arrives late is given back"
+  ],
+  "mutations": 27,
+  "uncoveredTests": [],
+  "problems": [],
+  "results": [
+    {
+      "id": "control-unmutated",
+      "applied": true,
+      "exit": 0,
+      "counts": {
+        "tests": 18,
+        "pass": 18,
+        "fail": 0
+      },
+      "failures": [],
+      "stderr": ""
+    },
+    {
+      "id": "M01-one-tab-short",
+      "applied": true,
+      "what": "the tab strip has one tab fewer than parts",
+      "expectedTests": [
+        "pre-W7 handle: one tab per part"
+      ],
+      "red": true,
+      "caughtByExpected": true,
+      "exit": 1,
+      "counts": {
+        "tests": 18,
+        "pass": 15,
+        "fail": 3
+      },
+      "failures": [
+        {
+          "test": "pre-W7 handle: one tab per part, names synthesised and flagged, only the current tab enabled",
+          "message": "Expected values to be strictly equal: / 2 !== 3",
+          "assertionLine": "173",
+          "assertion": "assert.equal(state.tabs.length, 3);"
+        },
+        {
+          "test": "W7-shaped handle: tabs carry the engine's names, all enabled, the current part is READ at open",
+          "message": "Expected values to be strictly deep-equal: / + actual - expected",
+          "assertionLine": "194",
+          "assertion": "assert.deepEqual(state.tabs.map((tab) => tab.label), [\"Alpha\", \"Beta\", \"Gamma\"]);"
+        },
+        {
+          "test": "partNames that disagree with parts are not used and the disagreement is recorded",
+          "message": "still one tab per part / 2 !== 3",
+          "assertionLine": "449",
+          "assertion": "assert.equal(state.tabs.length, 3, \"still one tab per part\");"
+        }
+      ],
+      "stderr": ""
+    },
+    {
+      "id": "M02-scheduler-always-part-0",
+      "applied": true,
+      "what": "the scheduler is reconfigured with part 0 whatever part was switched to",
+      "expectedTests": [
+        "showPart(k): the engine is switched"
+      ],
+      "red": true,
+      "caughtByExpected": true,
+      "exit": 1,
+      "counts": {
+        "tests": 18,
+        "pass": 16,
+        "fail": 2
+      },
+      "failures": [
+        {
+          "test": "showPart(k): the engine is switched, read back, and the scheduler paints part k",
+          "message": "the scheduler's tile key carries part k / '0' !== '1'",
+          "assertionLine": "220",
+          "assertion": "assert.equal(tile.part, String(k), \"the scheduler's tile key carries part k\");"
+        },
+        {
+          "test": "a tile of the previous part never reaches onTile",
+          "message": "Expected values to be strictly equal: / '0' !== '1'",
+          "assertionLine": "357",
+          "assertion": "assert.equal(tile.part, \"1\");"
+        }
+      ],
+      "stderr": ""
+    },
+    {
+      "id": "M03-readback-echoes-request",
+      "applied": true,
+      "what": "the session reports the requested part as the read-back",
+      "expectedTests": [
+        "an engine that ignores set_part",
+        "pre-W7: showPart(1) is refused"
+      ],
+      "red": true,
+      "caughtByExpected": true,
+      "exit": 1,
+      "counts": {
+        "tests": 18,
+        "pass": 16,
+        "fail": 2
+      },
+      "failures": [
+        {
+          "test": "an engine that ignores set_part: the state follows the read-back, not the request",
+          "message": "Missing expected rejection.",
+          "assertionLine": "230",
+          "assertion": "await assert.rejects(session.showPart(1), (error) => {"
+        },
+        {
+          "test": "pre-W7: showPart(1) is refused with a typed error and nothing repaints; part 0 is not an engine confirmation",
+          "message": "no engine said anything, so nothing is read back / 0 !== null",
+          "assertionLine": "279",
+          "assertion": "assert.equal(again.currentPartReadBack, null, \"no engine said anything, so nothing is read back\");"
+        }
+      ],
+      "stderr": ""
+    },
+    {
+      "id": "M04-adapter-readback-cached-request",
+      "applied": true,
+      "what": "the adapter's read-back is the last part asked for, not the engine's current part",
+      "expectedTests": [
+        "an engine that ignores set_part",
+        "W7-shaped handle: tabs carry"
+      ],
+      "red": true,
+      "caughtByExpected": true,
+      "exit": 1,
+      "counts": {
+        "tests": 18,
+        "pass": 16,
+        "fail": 2
+      },
+      "failures": [
+        {
+          "test": "W7-shaped handle: tabs carry the engine's names, all enabled, the current part is READ at open",
+          "message": "Expected values to be strictly equal: / 0 !== 2",
+          "assertionLine": "200",
+          "assertion": "assert.equal(state.currentPart, 2);"
+        },
+        {
+          "test": "an engine that ignores set_part: the state follows the read-back, not the request",
+          "message": "Missing expected rejection.",
+          "assertionLine": "230",
+          "assertion": "await assert.rejects(session.showPart(1), (error) => {"
+        }
+      ],
+      "stderr": ""
+    },
+    {
+      "id": "M05-pre-w7-switch-not-refused",
+      "applied": true,
+      "what": "without a part switch, part k > 0 is accepted and shown",
+      "expectedTests": [
+        "pre-W7: showPart(1) is refused"
+      ],
+      "red": true,
+      "caughtByExpected": true,
+      "exit": 1,
+      "counts": {
+        "tests": 18,
+        "pass": 17,
+        "fail": 1
+      },
+      "failures": [
+        {
+          "test": "pre-W7: showPart(1) is refused with a typed error and nothing repaints; part 0 is not an engine confirmation",
+          "message": "Missing expected rejection.",
+          "assertionLine": "262",
+          "assertion": "await assert.rejects(session.showPart(1), (error) => {"
+        }
+      ],
+      "stderr": ""
+    },
+    {
+      "id": "M06-text-document-not-refused",
+      "applied": true,
+      "what": "a document the engine says is text is shown as a spreadsheet",
+      "expectedTests": [
+        "a known non-spreadsheet document is refused"
+      ],
+      "red": true,
+      "caughtByExpected": true,
+      "exit": 1,
+      "counts": {
+        "tests": 18,
+        "pass": 17,
+        "fail": 1
+      },
+      "failures": [
+        {
+          "test": "a known non-spreadsheet document is refused, released, and paints nothing",
+          "message": "Missing expected rejection.",
+          "assertionLine": "296",
+          "assertion": "await assert.rejects(session.open({ bytes: bytesOf(), name: \"letter.ods\" }), (error) => {"
+        }
+      ],
+      "stderr": ""
+    },
+    {
+      "id": "M07-refusal-does-not-release",
+      "applied": true,
+      "what": "a refused document is left open in the engine",
+      "expectedTests": [
+        "a known non-spreadsheet document is refused"
+      ],
+      "red": true,
+      "caughtByExpected": true,
+      "exit": 1,
+      "counts": {
+        "tests": 18,
+        "pass": 17,
+        "fail": 1
+      },
+      "failures": [
+        {
+          "test": "a known non-spreadsheet document is refused, released, and paints nothing",
+          "message": "the document was handed back / false !== true",
+          "assertionLine": "304",
+          "assertion": "assert.equal(handle.closed, true, \"the document was handed back\");"
+        }
+      ],
+      "stderr": ""
+    },
+    {
+      "id": "M08-unknown-type-refused",
+      "applied": true,
+      "what": "an UNKNOWN document type is refused too (refusal no longer needs a known wrong type)",
+      "expectedTests": [
+        "refusal needs a KNOWN wrong type"
+      ],
+      "red": true,
+      "caughtByExpected": true,
+      "exit": 1,
+      "counts": {
+        "tests": 18,
+        "pass": 13,
+        "fail": 5
+      },
+      "failures": [
+        {
+          "test": "pre-W7 handle: one tab per part, names synthesised and flagged, only the current tab enabled",
+          "message": "the document is \"unknown (pre-W7)\", not \"spreadsheet",
+          "assertionLine": "162",
+          "assertion": "await session.open({ bytes: bytesOf(), name });"
+        },
+        {
+          "test": "pre-W7: showPart(1) is refused with a typed error and nothing repaints; part 0 is not an engine confirmation",
+          "message": "the document is \"unknown (pre-W7)\", not \"spreadsheet",
+          "assertionLine": "162",
+          "assertion": "await session.open({ bytes: bytesOf(), name });"
+        },
+        {
+          "test": "refusal needs a KNOWN wrong type: spreadsheet and unknown are both accepted",
+          "message": "the document is \"unknown (pre-W7)\", not \"spreadsheet",
+          "assertionLine": "162",
+          "assertion": "await session.open({ bytes: bytesOf(), name });"
+        },
+        {
+          "test": "the spoof flag is set only when the adapter rewrote the name",
+          "message": "the document is \"unknown (pre-W7)\", not \"spreadsheet",
+          "assertionLine": "162",
+          "assertion": "await session.open({ bytes: bytesOf(), name });"
+        },
+        {
+          "test": "the event listener is attached before initialisation",
+          "message": "the document is \"unknown (pre-W7)\", not \"spreadsheet",
+          "assertionLine": "162",
+          "assertion": "await session.open({ bytes: bytesOf(), name });"
+        }
+      ],
+      "stderr": ""
+    },
+    {
+      "id": "M09-spoof-flag-always-true",
+      "applied": true,
+      "what": "the spoof flag is set even when the name was passed through unchanged",
+      "expectedTests": [
+        "the spoof flag is set only when the adapter rewrote the name"
+      ],
+      "red": true,
+      "caughtByExpected": true,
+      "exit": 1,
+      "counts": {
+        "tests": 18,
+        "pass": 16,
+        "fail": 2
+      },
+      "failures": [
+        {
+          "test": "W7-shaped handle: tabs carry the engine's names, all enabled, the current part is READ at open",
+          "message": "Expected values to be strictly deep-equal: / + actual - expected",
+          "assertionLine": "203",
+          "assertion": "assert.deepEqual(state.adapterFallbacks, []);"
+        },
+        {
+          "test": "the spoof flag is set only when the adapter rewrote the name",
+          "message": "W7 engine (lists open-ods), .ods / true !== false",
+          "assertionLine": "339",
+          "assertion": "assert.equal(state.nameSpoofed, item.spoofed, item.label);"
+        }
+      ],
+      "stderr": ""
+    },
+    {
+      "id": "M10-spoof-not-recorded",
+      "applied": true,
+      "what": "the name is rewritten to .odt but the flag says it was not",
+      "expectedTests": [
+        "the spoof flag is set only when the adapter rewrote the name"
+      ],
+      "red": true,
+      "caughtByExpected": true,
+      "exit": 1,
+      "counts": {
+        "tests": 18,
+        "pass": 17,
+        "fail": 1
+      },
+      "failures": [
+        {
+          "test": "the spoof flag is set only when the adapter rewrote the name",
+          "message": "pre-W7 engine, .ods / false !== true",
+          "assertionLine": "339",
+          "assertion": "assert.equal(state.nameSpoofed, item.spoofed, item.label);"
+        }
+      ],
+      "stderr": ""
+    },
+    {
+      "id": "M11-spoof-ignores-capability",
+      "applied": true,
+      "what": "an engine that lists the ods capability is spoofed anyway",
+      "expectedTests": [
+        "the spoof flag is set only when the adapter rewrote the name"
+      ],
+      "red": true,
+      "caughtByExpected": true,
+      "exit": 1,
+      "counts": {
+        "tests": 18,
+        "pass": 16,
+        "fail": 2
+      },
+      "failures": [
+        {
+          "test": "W7-shaped handle: tabs carry the engine's names, all enabled, the current part is READ at open",
+          "message": "Expected values to be strictly deep-equal: / + actual - expected",
+          "assertionLine": "203",
+          "assertion": "assert.deepEqual(state.adapterFallbacks, []);"
+        },
+        {
+          "test": "the spoof flag is set only when the adapter rewrote the name",
+          "message": "W7 engine (lists open-ods), .ods / + actual - expected",
+          "assertionLine": "337",
+          "assertion": "assert.equal(engine.openCalls[0].name, item.openedAs, item.label);"
+        }
+      ],
+      "stderr": ""
+    },
+    {
+      "id": "M12-stale-tile-guard-removed",
+      "applied": true,
+      "what": "a late tile of the previous part is delivered under the new one",
+      "expectedTests": [
+        "a tile of the previous part never reaches onTile"
+      ],
+      "red": true,
+      "caughtByExpected": true,
+      "exit": 1,
+      "counts": {
+        "tests": 18,
+        "pass": 17,
+        "fail": 1
+      },
+      "failures": [
+        {
+          "test": "a tile of the previous part never reaches onTile",
+          "message": "no part-0 tile was delivered under part 1 / 2 !== 0",
+          "assertionLine": "351",
+          "assertion": "assert.equal(tiles.length, 0, \"no part-0 tile was delivered under part 1\");"
+        }
+      ],
+      "stderr": ""
+    },
+    {
+      "id": "M13-live-generation-not-reset",
+      "applied": true,
+      "what": "a part switch does not invalidate the previous part's generation",
+      "expectedTests": [
+        "a tile of the previous part never reaches onTile"
+      ],
+      "red": true,
+      "caughtByExpected": true,
+      "exit": 1,
+      "counts": {
+        "tests": 18,
+        "pass": 17,
+        "fail": 1
+      },
+      "failures": [
+        {
+          "test": "a tile of the previous part never reaches onTile",
+          "message": "no part-0 tile was delivered under part 1 / 2 !== 0",
+          "assertionLine": "351",
+          "assertion": "assert.equal(tiles.length, 0, \"no part-0 tile was delivered under part 1\");"
+        }
+      ],
+      "stderr": ""
+    },
+    {
+      "id": "M14-listener-attached-after-init",
+      "applied": true,
+      "what": "the event listener is added after the engine has initialised",
+      "expectedTests": [
+        "the event listener is attached before initialisation"
+      ],
+      "red": true,
+      "caughtByExpected": true,
+      "exit": 1,
+      "counts": {
+        "tests": 18,
+        "pass": 17,
+        "fail": 1
+      },
+      "failures": [
+        {
+          "test": "the event listener is attached before initialisation",
+          "message": "Expected values to be strictly deep-equal: / + actual - expected",
+          "assertionLine": "364",
+          "assertion": "assert.deepEqual(events.map((event) => event.message), [\"preRun echo\"]);"
+        }
+      ],
+      "stderr": ""
+    },
+    {
+      "id": "M15-render-also-clicks",
+      "applied": true,
+      "what": "painting a tile also sends the engine a click",
+      "expectedTests": [
+        "read-only: only render / setPart / close"
+      ],
+      "red": true,
+      "caughtByExpected": true,
+      "exit": 1,
+      "counts": {
+        "tests": 18,
+        "pass": 17,
+        "fail": 1
+      },
+      "failures": [
+        {
+          "test": "read-only: only render / setPart / close reach the document, only open / onEvent / dispose the engine",
+          "message": "Expected values to be strictly deep-equal: / + actual - expected",
+          "assertionLine": "393",
+          "assertion": "assert.deepEqual([...handleCalls].filter((call) => !allowedHandle.has(call)), []);"
+        }
+      ],
+      "stderr": ""
+    },
+    {
+      "id": "M16-w7-vocabulary-in-session",
+      "applied": true,
+      "what": "the word pre-W7 appears outside the adapter",
+      "expectedTests": [
+        "W7 vocabulary appears only in the adapter"
+      ],
+      "red": true,
+      "caughtByExpected": true,
+      "exit": 1,
+      "counts": {
+        "tests": 18,
+        "pass": 17,
+        "fail": 1
+      },
+      "failures": [
+        {
+          "test": "W7 vocabulary appears only in the adapter (the directory is scanned, not listed)",
+          "message": "ods-viewer-session.js must not contain /pre-W7/: that knowledge is the adapter's",
+          "assertionLine": "408",
+          "assertion": "assert.ok(!token.test(source), `${file} must not contain ${token}: that knowledge is the adapter's`);"
+        }
+      ],
+      "stderr": ""
+    },
+    {
+      "id": "M17-unknown-type-mislabelled",
+      "applied": true,
+      "what": "a handle without documentType is reported as a spreadsheet",
+      "expectedTests": [
+        "pre-W7 handle: one tab per part"
+      ],
+      "red": true,
+      "caughtByExpected": true,
+      "exit": 1,
+      "counts": {
+        "tests": 18,
+        "pass": 16,
+        "fail": 2
+      },
+      "failures": [
+        {
+          "test": "pre-W7 handle: one tab per part, names synthesised and flagged, only the current tab enabled",
+          "message": "Expected values to be strictly equal: / + actual - expected",
+          "assertionLine": "180",
+          "assertion": "assert.equal(state.documentType, \"unknown (pre-W7)\");"
+        },
+        {
+          "test": "refusal needs a KNOWN wrong type: spreadsheet and unknown are both accepted",
+          "message": "Expected values to be strictly equal: / + actual - expected",
+          "assertionLine": "317",
+          "assertion": "assert.equal(unknown.session.state.documentType, \"unknown (pre-W7)\");"
+        }
+      ],
+      "stderr": ""
+    },
+    {
+      "id": "M18-synthesised-names-flagged-as-engine",
+      "applied": true,
+      "what": "invented sheet names are reported as the engine's",
+      "expectedTests": [
+        "pre-W7 handle: one tab per part",
+        "partNames that disagree with parts"
+      ],
+      "red": true,
+      "caughtByExpected": true,
+      "exit": 1,
+      "counts": {
+        "tests": 18,
+        "pass": 16,
+        "fail": 2
+      },
+      "failures": [
+        {
+          "test": "pre-W7 handle: one tab per part, names synthesised and flagged, only the current tab enabled",
+          "message": "Expected values to be strictly equal: / true !== false",
+          "assertionLine": "175",
+          "assertion": "assert.equal(state.namesFromEngine, false);"
+        },
+        {
+          "test": "partNames that disagree with parts are not used and the disagreement is recorded",
+          "message": "Expected values to be strictly equal: / true !== false",
+          "assertionLine": "450",
+          "assertion": "assert.equal(state.namesFromEngine, false);"
+        }
+      ],
+      "stderr": ""
+    },
+    {
+      "id": "M19-names-length-not-checked",
+      "applied": true,
+      "what": "a partNames array of the wrong length is used as it is",
+      "expectedTests": [
+        "partNames that disagree with parts"
+      ],
+      "red": true,
+      "caughtByExpected": true,
+      "exit": 1,
+      "counts": {
+        "tests": 18,
+        "pass": 17,
+        "fail": 1
+      },
+      "failures": [
+        {
+          "test": "partNames that disagree with parts are not used and the disagreement is recorded",
+          "message": "still one tab per part / 2 !== 3",
+          "assertionLine": "449",
+          "assertion": "assert.equal(state.tabs.length, 3, \"still one tab per part\");"
+        }
+      ],
+      "stderr": ""
+    },
+    {
+      "id": "M20-switches-not-serialised",
+      "applied": true,
+      "what": "two quick tab clicks run concurrently",
+      "expectedTests": [
+        "switches are serialised"
+      ],
+      "red": true,
+      "caughtByExpected": true,
+      "exit": 1,
+      "counts": {
+        "tests": 18,
+        "pass": 17,
+        "fail": 1
+      },
+      "failures": [
+        {
+          "test": "switches are serialised: the last request is the one the engine and the state end on",
+          "message": "Expected values to be strictly equal: / 1 !== 2",
+          "assertionLine": "417",
+          "assertion": "assert.equal(handle.currentPart, 2);"
+        }
+      ],
+      "stderr": ""
+    },
+    {
+      "id": "M21-crash-ignored",
+      "applied": true,
+      "what": "a worker-crashed event does not change the state",
+      "expectedTests": [
+        "a worker crash takes the session"
+      ],
+      "red": true,
+      "caughtByExpected": true,
+      "exit": 1,
+      "counts": {
+        "tests": 18,
+        "pass": 17,
+        "fail": 1
+      },
+      "failures": [
+        {
+          "test": "a worker crash takes the session to a typed error and stops scheduling",
+          "message": "Expected values to be strictly equal: / 'ready' !== 'error'",
+          "assertionLine": "426",
+          "assertion": "assert.equal(session.state.state, \"error\");"
+        }
+      ],
+      "stderr": ""
+    },
+    {
+      "id": "M22-range-not-checked",
+      "applied": true,
+      "what": "a part outside 0..parts-1 is passed to the engine",
+      "expectedTests": [
+        "a part outside 0..parts-1 is refused"
+      ],
+      "red": true,
+      "caughtByExpected": true,
+      "exit": 1,
+      "counts": {
+        "tests": 18,
+        "pass": 17,
+        "fail": 1
+      },
+      "failures": [
+        {
+          "test": "a part outside 0..parts-1 is refused before the engine is asked",
+          "message": "Missing expected rejection.",
+          "assertionLine": "286",
+          "assertion": "await assert.rejects(session.showPart(k), { code: \"PART_OUT_OF_RANGE\" });"
+        }
+      ],
+      "stderr": ""
+    },
+    {
+      "id": "M23-open-failure-not-released",
+      "applied": true,
+      "what": "a failed open leaves the engine running",
+      "expectedTests": [
+        "an open that fails is typed"
+      ],
+      "red": true,
+      "caughtByExpected": true,
+      "exit": 1,
+      "counts": {
+        "tests": 18,
+        "pass": 16,
+        "fail": 2
+      },
+      "failures": [
+        {
+          "test": "an open that fails is typed, and the engine is given back",
+          "message": "Expected values to be strictly equal: / false !== true",
+          "assertionLine": "442",
+          "assertion": "assert.equal(engine.disposed, true);"
+        },
+        {
+          "test": "a close() that arrives while the document is opening is not undone: what arrives late is given back",
+          "message": "the engine that finished starting was disposed / false !== true",
+          "assertionLine": "466",
+          "assertion": "assert.equal(engine.disposed, true, \"the engine that finished starting was disposed\");"
+        }
+      ],
+      "stderr": ""
+    },
+    {
+      "id": "M25-late-engine-adopted",
+      "applied": true,
+      "what": "an engine that finishes starting after close() is used to open the document",
+      "expectedTests": [
+        "a close() that arrives while the document is opening"
+      ],
+      "red": true,
+      "caughtByExpected": true,
+      "exit": 1,
+      "counts": {
+        "tests": 18,
+        "pass": 17,
+        "fail": 1
+      },
+      "failures": [
+        {
+          "test": "a close() that arrives while the document is opening is not undone: what arrives late is given back",
+          "message": "no document was opened on it / 1 !== 0",
+          "assertionLine": "467",
+          "assertion": "assert.equal(engine.openCalls.length, 0, \"no document was opened on it\");"
+        }
+      ],
+      "stderr": ""
+    },
+    {
+      "id": "M26-late-document-adopted",
+      "applied": true,
+      "what": "a document that opens after close() is adopted and the session comes back to life",
+      "expectedTests": [
+        "a close() that arrives while the document is opening"
+      ],
+      "red": true,
+      "caughtByExpected": true,
+      "exit": 1,
+      "counts": {
+        "tests": 18,
+        "pass": 17,
+        "fail": 1
+      },
+      "failures": [
+        {
+          "test": "a close() that arrives while the document is opening is not undone: what arrives late is given back",
+          "message": "Missing expected rejection.",
+          "assertionLine": "480",
+          "assertion": "await assert.rejects(opening, { code: \"CLOSED_DURING_OPEN\" });"
+        }
+      ],
+      "stderr": ""
+    },
+    {
+      "id": "M27-close-does-not-record-itself",
+      "applied": true,
+      "what": "close() does not tell an in-progress open that it was closed",
+      "expectedTests": [
+        "a close() that arrives while the document is opening"
+      ],
+      "red": true,
+      "caughtByExpected": true,
+      "exit": 1,
+      "counts": {
+        "tests": 18,
+        "pass": 17,
+        "fail": 1
+      },
+      "failures": [
+        {
+          "test": "a close() that arrives while the document is opening is not undone: what arrives late is given back",
+          "message": "Missing expected rejection.",
+          "assertionLine": "465",
+          "assertion": "await assert.rejects(opening, { code: \"CLOSED_DURING_OPEN\" });"
+        }
+      ],
+      "stderr": ""
+    },
+    {
+      "id": "M24-initial-part-not-read",
+      "applied": true,
+      "what": "the part the engine is on at open is not read; part 0 is assumed even when the engine says otherwise",
+      "expectedTests": [
+        "W7-shaped handle: tabs carry"
+      ],
+      "red": true,
+      "caughtByExpected": true,
+      "exit": 1,
+      "counts": {
+        "tests": 18,
+        "pass": 17,
+        "fail": 1
+      },
+      "failures": [
+        {
+          "test": "W7-shaped handle: tabs carry the engine's names, all enabled, the current part is READ at open",
+          "message": "Expected values to be strictly equal: / 0 !== 2",
+          "assertionLine": "200",
+          "assertion": "assert.equal(state.currentPart, 2);"
+        }
+      ],
+      "stderr": ""
+    }
+  ]
+}
