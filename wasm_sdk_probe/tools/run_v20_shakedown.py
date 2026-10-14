@@ -45,6 +45,7 @@ import io
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+import r7_support  # noqa: E402
 import run_e2_c_product_path as pp  # noqa: E402
 import run_merge_wasm_shakedown as mws  # noqa: E402
 import create_mixed_page_document as mixed  # noqa: E402
@@ -438,7 +439,9 @@ def ask_state(session, document_handle, timeout: float = 5.0) -> dict:
     """The engine's own state (`editorGetStateV2`, a fresh readSelection in the engine), asked through
     the product's worker; the reply is read from the trace by its requestId."""
     rq = ASK_BASE + int(time.time() * 10) % 0x00FFFFFF
-    pp.evaluate(session, ASK.replace("ARG_JSON", json.dumps(json.dumps(
+    # Dispatched from the page's OWN global (a <script> element, r7_support.run_in_page's shape), so the
+    # event reaches the observer's listener in Firefox too, where evaluate() runs in a Marionette sandbox.
+    r7_support.run_in_page(session, ASK.replace("ARG_JSON", json.dumps(json.dumps(
         {"requestId": rq, "operation": "editorGetStateV2", "payload": {"documentHandle": document_handle}}))))
     deadline, collected = time.monotonic() + timeout, []
     while time.monotonic() < deadline:
@@ -730,11 +733,13 @@ def place_native(session, browser: str, fixture: str, case: str) -> tuple[dict, 
     return spec, placed
 
 
-def arm_c1(session, browser: str, urls: dict) -> dict:
+def arm_c1(session, browser: str, urls: dict, reload) -> dict:
     out = {"arm": "c1", "rounds": [], "indent": None}
     for round_no in range(1, C1_ROUNDS + 1):
         for case in C1_POSITIONS:
-            rec = {"case": case, "round": round_no}
+            # A fresh page load per round (the held-key probes' shape): the generation starts at 1, and a
+            # refusal in one round cannot bring a later round nearer the page's reopen ceiling.
+            rec = {"case": case, "round": round_no, "reload": reload()}
             rec["open"] = open_fixture(session, urls["boundaries"], f"c1-{case}-r{round_no}.odt")
             handle = mws.obs(session).get("documentHandle")
             spec, placed = place_native(session, browser, "boundaries", case)
@@ -788,7 +793,7 @@ def arm_c1(session, browser: str, urls: dict) -> dict:
     # Recorded, not a criterion: L-C-number-or-indent position (iii), Backspace at the start of an
     # indented first paragraph (ruling 6 §15.1).  Placement by click + Home, no native caret.
     try:
-        rec = {"open": open_fixture(session, urls["indent"], "c1-indent.odt")}
+        rec = {"reload": reload(), "open": open_fixture(session, urls["indent"], "c1-indent.odt")}
         handle = mws.obs(session).get("documentHandle")
         click_fraction(session, 0.3, 0.06)
         pp.wait_for(session, lambda s: "定位游標" in (s.get("latency") or ""), 30)
@@ -845,12 +850,13 @@ def judge_refusal(entries: list, failed: dict) -> dict:
                                                       and cb["sourceSequence"] <= ref["seq"])}}
 
 
-def arm_e2(session, browser: str, urls: dict) -> dict:
+def arm_e2(session, browser: str, urls: dict, reload) -> dict:
     out = {"arm": "e2", "cases": [], "hold": None}
     for case in E2_CASES:
         spec = mws.tool_cases(frame_cell=True)[case]
         rec = {"case": case, "fixture": spec["fixture"], "search": spec["search"], "backward": spec["backward"],
                "expected": spec["expected"], "nativeDecision": spec["decision"]}
+        rec["reload"] = reload()   # every refusal reopens the engine; each case starts at generation 1
         rec["open"] = open_fixture(session, urls[spec["fixture"]], f"e2-{case}.odt")
         _, placed = place_native(session, browser, spec["fixture"], case)
         rec["place"] = {k: placed.get(k) for k in ("ok", "keyed", "engineCaret")}
@@ -890,7 +896,7 @@ def arm_e2(session, browser: str, urls: dict) -> dict:
         out["cases"].append(rec)
     # The hold across a merge: Delete held from I01's native caret (the end of `M12 number one`).
     try:
-        rec = {"start": E2_HOLD_START}
+        rec = {"start": E2_HOLD_START, "reload": reload()}
         rec["open"] = open_fixture(session, urls["boundaries"], "e2-hold.odt")
         spec, placed = place_native(session, browser, "boundaries", E2_HOLD_START)
         rec.update({"search": spec["search"], "nativeCaret": spec["nativeCaret"],
@@ -1107,9 +1113,18 @@ def main() -> int:
             os.environ["MOZ_HEADLESS_HEIGHT"] = str(window[1])
             session = pp.FirefoxSession("cold")
         report["browserVersion"] = getattr(session, "version", None)
-        pp.navigate(session, base)
-        report["boot"] = pp.wait_for(session, lambda s: s.get("state") == "ready", 300)
-        report["shims"] = pp.evaluate(session, pp.INSTALL)
+
+        def reload() -> dict:
+            """A fresh page load: new worker generation 1, new observer nodes, the trace cursor reset."""
+            t0 = time.monotonic()
+            pp.navigate(session, base)
+            boot = pp.wait_for(session, lambda s: s.get("state") == "ready", 300)
+            shims = pp.evaluate(session, pp.INSTALL)
+            TRACE["last"] = -1
+            return {"state": (boot or {}).get("state"), "shims": shims, "seconds": round(time.monotonic() - t0, 1),
+                    "generation": gen(session)}
+
+        report["boot"] = reload()
         for arm in arms:
             t0 = time.monotonic()
             try:
@@ -1122,9 +1137,9 @@ def main() -> int:
                 elif arm == "p3":
                     result = arm_p3(session, args.browser, urls["long60"])
                 elif arm == "c1":
-                    result = arm_c1(session, args.browser, urls)
+                    result = arm_c1(session, args.browser, urls, reload)
                 elif arm == "e2":
-                    result = arm_e2(session, args.browser, urls)
+                    result = arm_e2(session, args.browser, urls, reload)
                 else:
                     result = arm_p2c(session, args.browser, urls)
             except Exception as error:  # noqa: BLE001 -- recorded with the arm, the run goes on
