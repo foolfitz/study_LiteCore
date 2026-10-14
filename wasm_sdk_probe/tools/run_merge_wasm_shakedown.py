@@ -166,16 +166,58 @@ BINDING: dict | None = {"wasmSha256": "1aafd4f9da42fd83d9be4c4e9edfbd818e3c7ea17
                         "eshapeSha256": "c3f9bbed6f21b43592ce4ad91b0d6e52d003d8e784443bb9a045c743f6d589af",
                         "nativeSha256": "2940a8410dc0a44d73e69be61749e4e6e5eae772046bf175bbe61664613b522e"}
 MODES = ("shakedown", "counted", "m2-1b", "m2-4", "m2-1-red")
+# C (SPEC-M3-link-batch 10.5, 10.7; task 2026-10-14i).  Under C a merge key
+# whose barrier finds nothing selected (R0c `nothing-selected`: C29 Backspace at
+# the document start, C30 Delete at its end) completes `verified-boundary-noop`
+# instead of refusing and reopening.  v19 refuses, v20 does not, so the
+# expectation is keyed on the PROFILE UNDER TEST -- on what its own bytes
+# declare, not on its name.  The manifest declares nothing about C: every
+# engine behaviour in `editorContract` is a flag the profile builder is TOLD
+# (`build_e2_editor_v4_profile.py --page-rectangles`, ...), and no flag was
+# added for C; `abiVersion`, `selectionBarrier` and
+# `boundaryRejectionRequiresFreshWorker` read the same on v19 and v20.  What a
+# profile does declare is the completion vocabulary compiled into its engine:
+# `finishSelectionBarrierBoundaryNoop` (probe_engine.cpp, OXSDK_E2_V20_LINK_BATCH)
+# writes the fragment below into its reply, and that fragment is in v20's
+# probe.wasm and in no earlier profile's.  A string a binary emits cannot be a
+# comment (the drift a source-text match is open to), and the bytes read are the
+# ones the run serves and binds (`wasmSha256`).  Fail-closed either way: a
+# profile without the fragment is held to the refusal, one with it to the
+# no-op, and a product that does the other thing is red under both.  The
+# declaration is recorded in the report (`candidate.boundaryNoop`), so a
+# re-judge reads it from there or from the same bytes.  A manifest field for C
+# (TOLD at link time, like `pageRectangles`) would be the better declaration;
+# it needs the builder and a new mint, and is noted for the next link.
+BOUNDARY_NOOP_FRAGMENT = b',"completion":"verified-boundary-noop"'
+BOUNDARY_NOOP = "verified-boundary-noop"
+
+
+def boundary_noop_declared(wasm: Path) -> bool:
+    """Whether the engine in `wasm` carries C's completion (the emitted fragment)."""
+    return BOUNDARY_NOOP_FRAGMENT in wasm.read_bytes()
+
+
+def types_marker(expected: tuple) -> bool:
+    """Arms that type a marker before the key: refusals (it must survive the
+    reopen, 109) and C's no-ops (the document must read original + marker)."""
+    return expected[0] in ("refused", BOUNDARY_NOOP)
+
+
 # R0c's decision -> what v16 must do and which criterion counts it (spec 17,
 # 22.1).  Anything else STOPS the runner: before the review a decision with no
 # entry (G01's `barrier`, any `refused-k2-*`) got no expectation and passed
-# silently.
-def expectation(decision: str | None) -> tuple[str, tuple]:
+# silently.  `boundary_noop` (10.5): the profile under test declares C, so
+# `nothing-selected` expects the no-op; the default is the refusal, which is
+# what the v19-bound reader (`judge_counted_m2.py`, frozen by 34.1) and every
+# caller that passes nothing still mean.
+def expectation(decision: str | None, boundary_noop: bool = False) -> tuple[str, tuple]:
     if decision in ("merge", "typed-merge"):
         return "M2-1", ("verified-key-undo", None, None)
     if decision == "barrier":
         return "barrier", ("verified-selection-delete", None, None)
     if decision == "nothing-selected":
+        if boundary_noop:
+            return "M2-3", (BOUNDARY_NOOP, None, None)
         return "M2-3", ("refused", "nothing-selected", False)
     if decision and decision.startswith("refused-k1-"):
         return "M2-3", ("refused", "anchor-mismatch", False)
@@ -493,9 +535,11 @@ def native_cases(fixture: str) -> dict:
 NOT_PLACEABLE = {"pmpc"}
 
 
-def tool_cases(frame_cell: bool, owner_document: bool = False) -> dict:
+def tool_cases(frame_cell: bool, owner_document: bool = False, boundary_noop: bool = False) -> dict:
     """The M2-1/M2-3 population (spec 22.1 as narrowed by 25), plus the frame
-    cell and the owner's document when asked."""
+    cell and the owner's document when asked.  `boundary_noop`: the profile
+    under test declares C (see `expectation`); the list is the same, only the
+    expectation of the `nothing-selected` cases changes."""
     out = {}
     for fixture, (_, _, round_key, _) in FIXTURES.items():
         if round_key is None and not frame_cell:
@@ -509,9 +553,9 @@ def tool_cases(frame_cell: bool, owner_document: bool = False) -> dict:
                                      f"`merge`, R0c-frame says {spec['decision']!r} (spec 22.2)")
                 out[case] = {**spec, "criterion": "frame", "expected": FRAME_EXPECT}
                 continue
-            criterion, expected = expectation(spec["decision"])
-            if expected[0] == "refused" and fixture not in MARKER_AT:
-                raise SystemExit(f"{case}: a refusal case in {fixture}, which has no marker place")
+            criterion, expected = expectation(spec["decision"], boundary_noop)
+            if types_marker(expected) and fixture not in MARKER_AT:
+                raise SystemExit(f"{case}: a marker-typing case in {fixture}, which has no marker place")
             out[case] = {**spec, "criterion": criterion, "expected": expected}
     return out
 
@@ -759,8 +803,57 @@ def refusal_clauses(out: dict, spec: dict, expected_text: list | None, mine: lis
     return clauses
 
 
+def noop_clauses(out: dict, spec: dict, expected_text: list | None, mine: list | None) -> dict:
+    """C's no-op (SPEC-M3-link-batch 10.5, 10.7), every clause on its own: no
+    refusal, generation unchanged, revision unchanged, no toast, the document
+    saved after the key is the original plus the marker (the marker exactly
+    once, B3), and the caret where the placement left it.
+
+    `caretUnchanged` is None (not established) on a record that has no
+    `caretAfterKey` -- the runner did not read the observer's caret after the
+    key before 2026-10-14, so the eight part-B reports of the v20 shakedown
+    cannot establish it; Part A's C1 arm measured the engine's caret and
+    selection after the same no-op on the same bytes.  A record that HAS the
+    field and whose caret moved, or whose caret came from another worker, is
+    red, not open.  No `checkpointRevision`: the checkpoint the page shows is
+    the placement key's (C30's End sets one, C29's click does not), and a
+    no-op neither takes nor restores one; `revision` is the spec's clause.
+    """
+    before, after = out.get("beforeKey") or {}, out.get("afterKey") or {}
+    placed = out.get("place") or {}
+    if "caretAfterKey" not in out:
+        caret_unchanged = None
+    else:
+        record = out.get("caretAfterKey") or {}
+        caret_unchanged = (caret_tuple(record) is not None
+                           and caret_tuple(record) == placed.get("engineCaret")
+                           and record.get("generation") == placed.get("caretGeneration"))
+    return {"outcome": out.get("outcome") == BOUNDARY_NOOP,
+            "generation": out["generation"][0] == out["generation"][1],
+            "revision": (before.get("revision") is not None
+                         and before.get("revision") == after.get("revision")),
+            "noToast": out.get("toasts") == [],
+            "unchangedText": mine is not None and expected_text is not None and mine == expected_text,
+            "markerSurvived": mine is not None and sum(MARKER in p for p in mine) == 1,
+            "caretUnchanged": caret_unchanged}
+
+
 # What only the full instrument can see (spec 22.2); NE on the paired control.
 INSTRUMENT_ONLY = ("outcome", "stage", "keyPosted", "comment", "restorePresses")
+
+
+def original_plus_marker(spec: dict, marker_at: dict | None) -> list:
+    """The paragraph text a marker-typing case must read back after its key:
+    the fixture's original with the marker at the marker case's native caret.
+    Exactly once, checked before any browser ran (tool_cases, main); an
+    insertion that silently found nothing made "original + marker" read as
+    "original" and passed when the marker was lost (B3)."""
+    expected_text = list(odt_parts(spec["original"].read_bytes())["paragraphs"])
+    if marker_at is not None:
+        i = expected_text.index(marker_at["search"])
+        expected_text[i] = (MARKER + marker_at["search"] if marker_at["backward"]
+                            else marker_at["search"] + MARKER)
+    return expected_text
 
 
 def await_delete(session, responses_before: int, control: bool) -> tuple[dict | None, list, bool]:
@@ -798,8 +891,9 @@ def run_case(session, browser: str, case: str, spec: dict, round_no: int, url: s
                        "cell as a one-time measurement expecting 18.1 N1's anchor-mismatch")
     out["open"] = open_fixture(session, url, f"{case}-r{round_no}.odt")
     refusal = spec["expected"][0] == "refused"
+    noop = spec["expected"][0] == BOUNDARY_NOOP
     marker_at = None
-    if refusal:
+    if types_marker(spec["expected"]):
         marker_case = next(c for c in MARKER_AT[spec["fixture"]] if c != case)
         marker_at = native_cases(spec["fixture"])[marker_case]
         out["markerAt"] = marker_case
@@ -841,21 +935,16 @@ def run_case(session, browser: str, case: str, spec: dict, round_no: int, url: s
     else:
         out["outcome"] = "control" if control else "no-response"
     if refusal or out["outcome"] == "refused":
+        # A refusal that was expected, or one a no-op or merge case got anyway
+        # (on a profile that declares C that is red: `outcome` below).  Only a
+        # refusal reopens, so only here is the reopen's toast window waited for.
         out["toastWindow"] = toast_window(session, gen_before)
         out["afterKey"] = quiet(session, 90)
         out["keyTrace"] = drain(session)
         out["generation"] = [gen_before, pp.evaluate(session, GEN)]
         raw = save(session, f"{case}-r{round_no}-reopened", private)
-        original = odt_parts(spec["original"].read_bytes())["paragraphs"]
         mine = odt_parts(raw)["paragraphs"] if raw else None
-        expected_text = list(original)
-        if marker_at is not None:
-            # Exactly once, checked before any browser ran (tool_cases); an
-            # insertion that silently found nothing made "original + marker"
-            # read as "original" and passed when the marker was lost (B3).
-            i = expected_text.index(marker_at["search"])
-            expected_text[i] = (MARKER + marker_at["search"] if marker_at["backward"]
-                                else marker_at["search"] + MARKER)
+        expected_text = original_plus_marker(spec, marker_at)
         # `sha` (review 2026-10-08, opus NOTE 6): ties the kept document to this record by content, as `mine`
         # does for a merge's documents; the paragraph count alone did not.
         out["reopenedDocument"] = {"saved": raw is not None,
@@ -864,6 +953,24 @@ def run_case(session, browser: str, case: str, spec: dict, round_no: int, url: s
         out["clauses"] = refusal_clauses(out, spec, expected_text if marker_at else None, mine)
         if not refusal:
             out["clauses"]["outcome"] = False
+    elif noop:
+        # C's no-op (10.5): nothing reopens and nothing is shown, so there is
+        # no toast window to wait for -- the 90 s wait of the refusal branch
+        # cost four records times 90 s per report on the v20 shakedown
+        # (part B README).  Quiet, then the caret the observer last saw, the
+        # toasts since the key, and the document saved after the key.
+        time.sleep(0.5)
+        out["afterKey"] = quiet(session, 90)
+        out["caretAfterKey"] = obs(session).get("caret")
+        out["keyTrace"] = drain(session)
+        out["generation"] = [gen_before, pp.evaluate(session, GEN)]
+        out["toasts"] = pp.evaluate(session, pp.READ_TOASTS)
+        raw = save(session, f"{case}-r{round_no}-after-key", private)
+        mine = odt_parts(raw)["paragraphs"] if raw else None
+        out["afterKeyDocument"] = {"saved": raw is not None,
+                                   "paragraphs": None if mine is None else len(mine),
+                                   "sha": odt_parts(raw)["sha"] if raw else None}
+        out["clauses"] = noop_clauses(out, spec, original_plus_marker(spec, marker_at), mine)
     else:
         time.sleep(0.5)
         out["afterKey"] = quiet(session, 90)
@@ -1235,9 +1342,13 @@ def main() -> int:
     mirror = Path(tempfile.mkdtemp(prefix="merge-wasm-")) / "root"
     pp.build_mirror(root, mirror, {"e2-editor-app.js": page.encode("utf-8"),
                                    "e2-editor.html": instrumented.encode("utf-8")})
+    # C's keying (see `expectation`): read from the wasm this run serves, the
+    # same bytes `bound_values` hashes as `wasmSha256`.
+    wasm_path = root / "profiles" / args.candidate_profile / "probe.wasm"
+    boundary_noop = boundary_noop_declared(wasm_path)
     # Before any browser: the list, its fixtures, and every marker target
     # exactly once in its original (B3's offline half).
-    cases = tool_cases(args.frame_cell, args.owner_document)
+    cases = tool_cases(args.frame_cell, args.owner_document, boundary_noop)
     wanted = [c for c in (args.cases.split(",") if args.cases else cases) if c]
     missing = [c for c in wanted if c not in cases]
     if missing:
@@ -1247,7 +1358,7 @@ def main() -> int:
     else:
         rounds = args.rounds
     limit_ref = limit_reference() if args.mode == "m2-4" else None
-    for fixture in {cases[c]["fixture"] for c in wanted if cases[c]["expected"][0] == "refused"}:
+    for fixture in {cases[c]["fixture"] for c in wanted if types_marker(cases[c]["expected"])}:
         original = odt_parts(next(iter(native_cases(fixture).values()))["original"]
                              .read_bytes())["paragraphs"]
         for marker_case in MARKER_AT[fixture]:
@@ -1297,7 +1408,14 @@ def main() -> int:
                             "htmlSha256": hashlib.sha256(instrumented.encode()).hexdigest(),
                             "uninstrumentedHtmlSha256": hashlib.sha256(html.encode()).hexdigest(),
                             "workerSha256": sha256_of(root / "profiles" / args.candidate_profile
-                                                      / "sdk-worker.js")},
+                                                      / "sdk-worker.js"),
+                            # C's keying, as read (see `expectation`): what the served wasm declares,
+                            # and what the `nothing-selected` cases therefore expect.
+                            "boundaryNoop": {"declared": boundary_noop,
+                                             "readFrom": wasm_path.relative_to(root).as_posix(),
+                                             "fragment": BOUNDARY_NOOP_FRAGMENT.decode(),
+                                             "nothingSelectedExpects": expectation("nothing-selected",
+                                                                                   boundary_noop)[1][0]}},
               "restOfShellEqualsSource": True,
               "caseList": "subset" if args.cases else "tool",
               "limit": None if limit_ref is None else {

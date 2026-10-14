@@ -199,6 +199,141 @@ class List(unittest.TestCase):
     def test_an_unknown_decision_stops(self):
         with self.assertRaises(SystemExit):
             m.expectation("something-new")
+        with self.assertRaises(SystemExit):
+            m.expectation("something-new", boundary_noop=True)
+
+
+# C (SPEC-M3-link-batch 10.5, 10.7; task 2026-10-14i): the `nothing-selected` cases expect the no-op on a
+# profile whose engine declares it, and the refusal on every other; nothing else in the list moves.
+CASES_UNDER_C = m.tool_cases(frame_cell=False, boundary_noop=True)
+PROFILES = m.HERE / "dist" / "profiles"
+
+
+class KeyingOnC(unittest.TestCase):
+    def test_the_default_is_the_refusal(self):
+        # What the v19-bound reader and every caller that passes nothing mean (34.1).
+        self.assertEqual(m.expectation("nothing-selected"), ("M2-3", ("refused", "nothing-selected", False)))
+        self.assertEqual(CASES["C29"]["expected"], ("refused", "nothing-selected", False))
+        self.assertEqual(CASES["C30"]["expected"], ("refused", "nothing-selected", False))
+
+    def test_under_c_only_the_nothing_selected_cases_move(self):
+        self.assertEqual(m.expectation("nothing-selected", True), ("M2-3", (m.BOUNDARY_NOOP, None, None)))
+        self.assertEqual({c for c in CASES if CASES[c]["expected"] != CASES_UNDER_C[c]["expected"]},
+                         {"C29", "C30"})
+        self.assertEqual({c: s["criterion"] for c, s in CASES.items()},
+                         {c: s["criterion"] for c, s in CASES_UNDER_C.items()})     # the population is the same
+        for decision in ("merge", "typed-merge", "barrier", "refused-k1-x", "refused-k2-x", "key-noop"):
+            self.assertEqual(m.expectation(decision), m.expectation(decision, True), decision)
+
+    def test_a_no_op_case_types_the_marker(self):
+        self.assertTrue(m.types_marker(CASES_UNDER_C["C29"]["expected"]))
+        self.assertTrue(m.types_marker(CASES["C29"]["expected"]))
+        self.assertFalse(m.types_marker(CASES["C01"]["expected"]))
+
+    def test_the_declaration_is_the_emitted_fragment(self):
+        tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, tmp)
+        (tmp / "with.wasm").write_bytes(b"\0asm" + b"x" * 100 + m.BOUNDARY_NOOP_FRAGMENT + b"y" * 100)
+        (tmp / "without.wasm").write_bytes(b"\0asm" + b"x" * 100 + b"verified-boundary-noop" + b"y" * 100)
+        self.assertTrue(m.boundary_noop_declared(tmp / "with.wasm"))
+        # The bare name is not the declaration: only the fragment the engine emits is.
+        self.assertFalse(m.boundary_noop_declared(tmp / "without.wasm"))
+
+    @unittest.skipUnless((PROFILES / "e2-editor-v19/probe.wasm").is_file()
+                         and (PROFILES / "e2-editor-v20/probe.wasm").is_file(), "the two profiles are not served")
+    def test_red_v19_does_not_declare_and_v20_does(self):
+        self.assertFalse(m.boundary_noop_declared(PROFILES / "e2-editor-v19/probe.wasm"))
+        self.assertTrue(m.boundary_noop_declared(PROFILES / "e2-editor-v20/probe.wasm"))
+
+
+def observed_noop(case: str, *, outcome=m.BOUNDARY_NOOP, generation=("1", "1"), revision=("2", "2"),
+                  toasts=(), caret=None) -> dict:
+    spec = CASES_UNDER_C[case]
+    placed = {"engineCaret": list(spec["nativeCaret"]), "caretGeneration": 17}
+    out = {"outcome": outcome, "generation": list(generation), "toasts": None if toasts is None else list(toasts),
+           "beforeKey": {"revision": revision[0]}, "afterKey": {"revision": revision[1]}, "place": placed}
+    if caret is not None:
+        out["caretAfterKey"] = caret
+    return out
+
+
+class NoopClauses(unittest.TestCase):
+    """C's no-op, every clause with its red case (AGENTS.md 6)."""
+
+    def setUp(self):
+        self.original = m.odt_parts(CASES["C29"]["original"].read_bytes())["paragraphs"]
+        self.expected = m.original_plus_marker(CASES_UNDER_C["C29"], m.native_cases("boundaries")["C01"])
+        target = m.native_cases("boundaries")["C01"]["search"]
+        self.assertEqual(self.expected, [p + m.MARKER if p == target else p for p in self.original])
+        self.caret = {"generation": 17, "caret": dict(zip(("x", "y", "width", "height"), CASES["C29"]["nativeCaret"]))}
+
+    def test_the_no_op_passes(self):
+        clauses = m.noop_clauses(observed_noop("C29", caret=self.caret), CASES_UNDER_C["C29"],
+                                 self.expected, self.expected)
+        self.assertTrue(verdict(clauses), clauses)
+        self.assertEqual([k for k, v in clauses.items() if v is None], [])
+
+    def test_a_record_without_the_caret_leaves_that_clause_open(self):
+        # The eight part-B reports of the v20 shakedown: the runner did not read the caret after the key.
+        clauses = m.noop_clauses(observed_noop("C29"), CASES_UNDER_C["C29"], self.expected, self.expected)
+        self.assertIsNone(clauses["caretUnchanged"])
+        self.assertTrue(verdict(clauses), clauses)
+
+    def test_red_a_refusal_on_a_profile_that_declares_c(self):
+        clauses = m.noop_clauses(observed_noop("C29", outcome="refused", generation=("1", "2"),
+                                              toasts=["x，正在重新載入…", "x，已重新載入。"]),
+                                 CASES_UNDER_C["C29"], self.expected, self.expected)
+        self.assertFalse(clauses["outcome"])
+        self.assertFalse(clauses["generation"])
+        self.assertFalse(clauses["noToast"])
+
+    def test_red_a_merge_at_the_boundary(self):
+        # The product did something: another completion, and a document that is not original + marker.
+        changed = [p for p in self.expected if p != "M29 last"]
+        clauses = m.noop_clauses(observed_noop("C30", outcome="verified-key-undo", revision=("2", "3")),
+                                 CASES_UNDER_C["C30"], self.expected, changed)
+        self.assertFalse(clauses["outcome"])
+        self.assertFalse(clauses["revision"])
+        self.assertFalse(clauses["unchangedText"])
+
+    def test_red_a_lost_marker(self):
+        # B3: original without the marker reads as "original", which is not original + marker.
+        clauses = m.noop_clauses(observed_noop("C29"), CASES_UNDER_C["C29"], self.expected, list(self.original))
+        self.assertFalse(clauses["unchangedText"])
+        self.assertFalse(clauses["markerSurvived"])
+
+    def test_red_a_toast(self):
+        clauses = m.noop_clauses(observed_noop("C29", toasts=["重繪失敗：TILE_NOT_PAINTED"]),
+                                 CASES_UNDER_C["C29"], self.expected, self.expected)
+        self.assertFalse(clauses["noToast"])
+        self.assertFalse(m.noop_clauses(observed_noop("C29", toasts=None), CASES_UNDER_C["C29"],
+                                        self.expected, self.expected)["noToast"])
+
+    def test_red_a_missing_revision(self):
+        out = observed_noop("C29")
+        out["beforeKey"] = {}
+        self.assertFalse(m.noop_clauses(out, CASES_UNDER_C["C29"], self.expected, self.expected)["revision"])
+
+    def test_red_the_caret_moved_or_another_worker(self):
+        moved = {"generation": 17, "caret": {**self.caret["caret"], "x": self.caret["caret"]["x"] + 1}}
+        other = {"generation": 18, "caret": dict(self.caret["caret"])}
+        for caret in (moved, other, {}, {"generation": 17, "caret": None}):
+            clauses = m.noop_clauses(observed_noop("C29", caret=caret), CASES_UNDER_C["C29"],
+                                     self.expected, self.expected)
+            self.assertFalse(clauses["caretUnchanged"], caret)
+            self.assertFalse(verdict(clauses))
+
+    def test_red_the_no_op_on_a_profile_that_does_not_declare_c(self):
+        # The keying's red case: the same recorded no-op, judged as the profile v19 is -- a refusal expected.
+        # It is red on every refusal clause; nothing in the no-op clauses is consulted.
+        out = {**observed_noop("C29", caret=self.caret), "toastWindow": {"closed": False, "generation": "1",
+                                                                         "toasts": []},
+               "afterKey": {"revision": "2", "checkpoint": "無"}}
+        clauses = m.refusal_clauses(out, CASES["C29"], self.expected, self.expected)
+        self.assertFalse(verdict(clauses))
+        self.assertEqual({k for k, v in clauses.items() if v is False},
+                         {"outcome", "stage", "keyPosted", "generation", "toastWindowClosed",
+                          "checkpointRevision", "onlyTheReopenToasts"})
 
 
 class Schedules(unittest.TestCase):
