@@ -24,6 +24,7 @@ rebind every report to it.  The witnesses below (`V19Witness`, `V20Witness`) are
 """
 from __future__ import annotations
 
+import ast
 import copy
 import hashlib
 import json
@@ -686,6 +687,20 @@ def runner_sha_at(commit: str) -> str | None:
     return hashlib.sha256(done.stdout).hexdigest()[:16] if done.returncode == 0 and done.stdout else None
 
 
+def binding_at(commit: str) -> dict | None:
+    """The runner's `BINDING` as of `commit`, read from git as a literal (the file is not imported)."""
+    done = subprocess.run(["git", "-C", str(m.HERE.parent), "show", f"{commit}:{RUNNER_PATH}"],
+                          capture_output=True)
+    if done.returncode != 0 or not done.stdout:
+        return None
+    for node in ast.parse(done.stdout).body:
+        target = node.target if isinstance(node, ast.AnnAssign) else (
+            node.targets[0] if isinstance(node, ast.Assign) and len(node.targets) == 1 else None)
+        if isinstance(target, ast.Name) and target.id == "BINDING" and node.value is not None:
+            return ast.literal_eval(node.value)
+    return None
+
+
 @unittest.skipUnless(V19_X7.is_dir() and m.LIMIT_ROUND.is_dir(), "v19's X7 reports or R0 run 4's documents missing")
 class V19Witness(unittest.TestCase):
     """Spec 34.1 (b), fable's ruling of 2026-10-08 (v19/x7-counted-m2/fable-ruling-control.md): the committed v19
@@ -699,7 +714,10 @@ class V19Witness(unittest.TestCase):
     reports by construction (task 10-15c P2; the two tests below were red from 7e6c9acd to this commit).  Only the
     runner's IDENTITY is materialised here, as of WITNESS_COMMIT via git, and it must be the hash every report
     names, or the class is skipped; the functions the judge borrows from the runner are the live ones.  The judge's
-    rule is not changed: a counted verdict still needs this tree's runner.  C's keying reads the served v19 engine
+    rule is not changed: a counted verdict still needs this tree's runner.  The runner's `BINDING` is materialised
+    the same way (2026-10-15, SPEC-M3-link-batch §17.2): the v20 binding moved the live one off v19, so the
+    `identity` clause read NOT DONE on these reports by construction, the same defect one constant over; it must
+    equal the `binding` every report carries, or the class is skipped.  C's keying reads the served v19 engine
     (`dist/profiles/e2-editor-v19/probe.wasm`, bound as `1aafd4f9...`), which does not carry C, so the expectation
     is the refusal and the verdicts are as recorded (judge-output.txt there)."""
 
@@ -709,11 +727,18 @@ class V19Witness(unittest.TestCase):
         named = {json.loads(p.read_text()).get("runner") for p in V19_X7.glob("*.json")}
         if witness is None or named != {witness}:
             raise unittest.SkipTest(f"the runner at {WITNESS_COMMIT} ({witness}) is not what the reports name {named}")
+        binding = binding_at(WITNESS_COMMIT)
+        carried = {json.dumps(json.loads(p.read_text()).get("binding"), sort_keys=True) for p in V19_X7.glob("*.json")}
+        if binding is None or carried != {json.dumps(binding, sort_keys=True)}:
+            raise unittest.SkipTest(f"the BINDING at {WITNESS_COMMIT} is not the binding the reports carry")
         cls.patch = mock.patch.object(j, "RUNNER_SHA", witness)
         cls.patch.start()
+        cls.binding_patch = mock.patch.object(m, "BINDING", binding)
+        cls.binding_patch.start()
 
     @classmethod
     def tearDownClass(cls):
+        cls.binding_patch.stop()
         cls.patch.stop()
 
     def judge(self, directory: Path) -> tuple[int, str, list]:
