@@ -1,0 +1,30 @@
+[before-G2-firefox] 2026-10-14T16:46:10Z wallet: b false
+[before-G2-firefox] 2026-10-14T16:46:11Z chrome --dump-dom Nextcloud x328
+[before-G2-firefox] pgrep -c chrome=35 chromeBrowsers=31 pgrep -c firefox=1 load=1.73 1.68 1.65 ours-running=0
+=== G2 firefox start 2026-10-14T16:46:11Z
+=== G2 firefox end rc=0 2026-10-14T16:47:25Z
+[before-G2-chrome] 2026-10-14T16:47:25Z wallet: b false
+[before-G2-chrome] 2026-10-14T16:47:26Z chrome --dump-dom Nextcloud x328
+[before-G2-chrome] pgrep -c chrome=37 chromeBrowsers=33 pgrep -c firefox=1 load=4.10 2.44 1.92 ours-running=0
+=== G2 chrome start 2026-10-14T16:47:26Z
+=== G2 chrome end rc=0 2026-10-14T16:48:20Z
+static-check rc=0
+findings/evidence/host-0.2.23/g2-burst1s/report-host-firefox-long60.json: static hostVersion=0.2.23 hostCommit=2ccf1a9 hostDirty=[] buildId=c3c22d9294de068a servedPage=ccb67a52a3fe distPage=ccb67a52a3fe servedSession=f47c80ec9553 shellBundle.exit=0 manifest=e2/editor-shell-v2-bundle-v72.json sha=4dc105075659 problems=[] -> OK
+findings/evidence/host-0.2.23/g2-burst1s/report-host-firefox-long60.json: staticAfter absent (not recorded by this probe)
+findings/evidence/host-0.2.23/g2-burst1s/report-host-chrome-long60.json: static hostVersion=0.2.23 hostCommit=2ccf1a9 hostDirty=[] buildId=c3c22d9294de068a servedPage=ccb67a52a3fe distPage=ccb67a52a3fe servedSession=f47c80ec9553 shellBundle.exit=0 manifest=e2/editor-shell-v2-bundle-v72.json sha=4dc105075659 problems=[] -> OK
+findings/evidence/host-0.2.23/g2-burst1s/report-host-chrome-long60.json: staticAfter absent (not recorded by this probe)
+judge_k exit 0
+$ python3 -I findings/evidence/host-0.2.21/judge_k.py --k2 findings/evidence/host-0.2.23/g2-burst1s --k4 findings/evidence/host-0.2.23/g2-burst1s
+K2 chrome burst-1s: (a) requests 1 responses 1 -> PASS; (b) ready at [2265.8] ms -> PASS; (c) generations ['1'] rev 0->0 toasts [] -> PASS; keydowns 18 beforeinputs 18 completions ['verified-boundary-noop']
+K2 firefox burst-1s: (a) requests 1 responses 1 -> PASS; (b) ready at [2256.5] ms -> PASS; (c) generations ['1'] rev 0->0 toasts [] -> PASS; keydowns 18 beforeinputs 18 completions ['verified-boundary-noop']
+K4 chrome: (d) text bottom 965.8 <= content bottom 972 -> PASS; (e) font 13.0px contrast 15.91 (rgb(34, 34, 34) on rgb(255, 255, 255)) -> PASS; (f) 18 steps, texts ['第 1–2 頁，共 60 頁', '第 2 頁，共 60 頁', '第 2–3 頁，共 60 頁', '第 3 頁，共 60 頁']… -> PASS; (g) bar rect [8, 940, 1834, 32] content [8, 50, 1834, 922] root bottom 972 text left 20 -> PASS
+K4 firefox: (d) text bottom 980.5 <= content bottom 986 -> PASS; (e) font 13.0px contrast 15.91 (rgb(34, 34, 34) on rgb(255, 255, 255)) -> PASS; (f) 18 steps, texts ['第 1–2 頁，共 60 頁', '第 2 頁，共 60 頁', '第 2–3 頁，共 60 頁', '第 3 頁，共 60 頁']… -> PASS; (g) bar rect [8, 954, 1834, 32] content [8, 50, 1834, 936] root bottom 986 text left 20 -> PASS
+VERDICT PASS
+exit 0
+
+VERDICT PASS
+exit 0
+[after-G2] 2026-10-14T16:48:20Z wallet: b false
+[after-G2] 2026-10-14T16:48:21Z chrome --dump-dom Nextcloud x328
+[after-G2] pgrep -c chrome=33 chromeBrowsers=29 pgrep -c firefox=1 load=4.17 2.78 2.07 ours-running=0
+QUEUE-DONE

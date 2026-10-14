@@ -1,0 +1,7 @@
+$ python3 -I findings/evidence/host-0.2.21/judge_k.py --red-check
+RED-CHECK K2 firefox burst-1s: (a) requests 18 responses 18 -> FAIL; (b) ready at [40617.5] ms -> FAIL; (c) generations ['1'] rev 0->0 toasts [] -> PASS; keydowns 18 beforeinputs 18 completions ['verified-boundary-noop']
+RED-CHECK K4 firefox: (d) text bottom 990 <= content bottom 986 -> FAIL; (e) font 12.0px contrast 4.31 (rgb(107, 124, 138) on rgb(255, 255, 255)) -> FAIL; (f) 18 steps, texts ['第 1–2 頁，共 18 頁', '第 2 頁，共 18 頁', '第 2–3 頁，共 18 頁', '第 3 頁，共 18 頁']… -> PASS; (g) bar rect [8, 967, 1834, 27] content [8, 50, 1834, 936] root bottom 994 text left 22 -> FAIL
+RED-CHECK verdict: K2 red=True K4 red=True -> self-test PASS
+
+VERDICT PASS
+exit 0
