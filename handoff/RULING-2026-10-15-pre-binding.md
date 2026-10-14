@@ -151,3 +151,4 @@ Points the owner must confirm are listed in the draft's §7.
 | date | what |
 |---|---|
 | 2026-10-15 | First version (fable, task 10-15c part J). |
+| 2026-10-15 | Append-only correction (main session, opus; the owner authorised opus to confirm the release text's §7 A–H, and E accepts this ruling's §J-b). §J-b.3 "at 0.11, about 1.3 %" recomputes to **1.09 %** (p³ + 3p²(1−p)·(1−(1−p)³)); "at 0.14, about 2 %" recomputes to 2.11 %. The ruling stands. Also recorded with E: the rule's power against a real rate shift is close to the single run's (FAIL 15 % at p = 0.3, 45 % at p = 0.5; single run 30 %, 50 %), which is why the rate is reported on every outcome. |
