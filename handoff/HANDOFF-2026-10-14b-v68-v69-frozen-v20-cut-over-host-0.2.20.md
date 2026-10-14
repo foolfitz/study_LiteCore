@@ -122,3 +122,74 @@ This round continues `HANDOFF-2026-10-14-v20-linked-v67-frozen-new-document-0.2.
   - packaging, install and archive of 0.2.20;
   - finding 140's status;
   - this handoff.
+
+---
+
+## Addendum (2026-10-14 night – 10-15): 0.2.20's hand test → findings 141–144 → hosts 0.2.21, 0.2.22, 0.2.23 (scroll page bubble); all host checks green
+
+Commits `4989a948..bc971fbc`. Host commits `187b36d` (0.2.21), `ba0125e` (0.2.22) and `2ccf1a9` (0.2.23). Every release was the owner's choice: A, then A, then 「OK 照規格走」.
+
+### What happened
+
+- **The owner hand-tested 0.2.20** and reported two problems: no page number while scrolling, and Backspace at the document start busy for about 30 s.
+  - Task 10-14n (fable, `f5090844`) reproduced both on the owner's path, in Firefox, on a copy of the owner's 60-page file.
+  - **141:** at a C boundary, every press, or every unflagged repeat, queues its own silent 2.26 s no-op. The owner held the key 2–3 s. The real-keyboard repeat flag on this Wayland + fcitx5 desktop is still unmeasured.
+  - **142:** Ctrl+Home and Ctrl+End do not move the caret. The page returns on accelerators. The fix is an engine action in the next link batch.
+  - **143:** on the host, the page number was a faint 12 px line, partly under `#content`'s clip.
+- **0.2.21** (v70 `8565d973`, page `2d6c4580…`, task 10-14o) fixed 141 in the page. Same-key presses while the first is unanswered are held, and a standing boundary no-op drops them. It fixed 143 in host CSS, styled after Collabora's bottom status bar at the owner's request. The owner's hand test passed.
+  - **K3c, the 132-B guard added before the run (task 10-14p, `121df038`), was red: finding 144.** The held presses kept `deletesInFlight` at ≤ 1, so 132's depth rule never fired, and a held delete key inside text deleted 27–29 more characters after release. The hand test could not show it.
+- **0.2.22** (v71 `8df98ec6`, page `aa50cd20…`, task 10-14q) fixed 144: the depth counts the held presses. Host H1 (10-14r, `bdfeec61`) gave `132-B PASS` 12/12, K3 unchanged.
+- **The Collabora question.** In Collabora the page number is the leftmost status-bar item, the core's string, clickable to Go to Page. Whether it follows the scroll **cannot be read from the source**: the kit visible area is not what `GetFirstLastVisPageNumbers` reads. The overclaim in `SPEC-M3-link-batch` §4.3 is corrected, append-only, in §16 (`c97de94f`).
+- **The scroll page bubble.** The owner asked for a bubble next to the thumb on any scroll. Spec `SPEC-M3-scroll-page-bubble.md` (`cb1c281c`) was accepted as written.
+  - Unit half `bb30b99f`.
+  - The no-host witness `82ee51fc`. The first finisher was stopped when the owner accidentally closed a Playwright window; the aborted attempt is recorded.
+  - v72 `19c19543`, page `ccb67a52…`, then **0.2.23**. The owner's hand test passed.
+  - Host: H3 and the guards (132-B, burst) passed in 10-15a (`ad5ab7e3`). H1 and H2 first could not run, because the probe had no host mode. After the probe gained `--mode host` and the judge gained H2, with red cases first, both browsers read **ALL PASS** (10-15b, `b1efbe98`). The main session re-ran each judge and got byte-identical output.
+
+### State
+
+- **Installed:** host **0.2.23**: commit `2ccf1a9`, buildId `c3c22d9294de068a`, page `ccb67a52…`, shell v72, engine v20. It is uncounted.
+- **Archives:** `build/archive/host-0.2.{20,21,22,23}-engine-*`.
+- **Findings:** 141, 143 and 144 are fixed and shipped, uncounted. 142 is registered for the next link batch.
+- **Pins to rebind at binding:** the page is now `ccb67a52…`. The `FINAL_PAGE_SHA256` and judge `--page` pins still name older pages.
+
+### §34.4 for this addendum
+
+- **Repaired because of execution: 1.** The product-path mutation `edit-arrows-swapped` was re-anchored after 141 added `.then(...)` to `editorAction`'s call. The witness is `findings/evidence/host-0.2.21/test-e2-c-static-before-reanchor.txt` (`94955b97`).
+- **Repaired because of review: 0.**
+- **New instruments, first use (not repairs):**
+  - `probe_10_14n.py`;
+  - `judge_k.py`;
+  - `judge_n1.py`;
+  - `probe_bubble.py` / `judge_bubble.py`, including their first host use;
+  - the page-held unit tests.
+- **Totals for the whole of 10-14b:** execution 3, review 18.
+
+### Next (replaces 10-14b's list, in order)
+
+1. **Before binding v20.** Every item from 10-14b's Next 2 still stands:
+   - the M2 judge learns C, and the V19Witness 2-red;
+   - the new-document bindings, now `ENGINE_BUILD_ID c3c22d92…` and `PAGE_SHA256 ccb67a52…`;
+   - the nine runners' pins, re-pointed to `ccb67a52…`;
+   - the abort rule;
+   - 135's C2 semantics;
+   - the release text. It adds 141–144: a held boundary key costs one no-op, and a held key inside text stops within 2 characters again. It also adds the bubble and the Collabora-like status bar.
+2. **Bind v20, then run the full count chain overnight.** It counts 0.2.13–0.2.23.
+3. **The next link batch:**
+   - `Language=` with 031's fix;
+   - Markdown paste (A);
+   - D12;
+   - `handleEditorPlaceCaret` completing on `TEXT_SELECTION`;
+   - a manifest field that declares C;
+   - the engine answering a document start or end without the 2 s window;
+   - **142: `move-document-start` / `move-document-end`**.
+4. **Later:**
+   - clicking the page number to go to a page (page-side scroll to the rectangle, no engine needed);
+   - the Writer stack sweep;
+   - the ordered-commands spec;
+   - typing during the no-op window.
+
+### Loose ends
+
+- `judge_bubble.py --self-test` without `--dir` prints `NOT RED WHERE IT MUST BE`. It needs the run directories, as its docstring says; it fails closed.
+- Probes still leave `probe-held-refusal.odt` / `probe-hand-0212.odt` in the admin root. The runners of 10-14p, 10-14r and 10-15a deleted them each time.
