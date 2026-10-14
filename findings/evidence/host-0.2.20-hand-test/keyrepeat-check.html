@@ -1,0 +1,49 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Key repeat check</title>
+<!--
+  Task 10-14n. What does THIS browser, on THIS desktop, deliver for a held key?
+  Open the file in the browser used for the hand test, click into the box, hold
+  Backspace for about two seconds, release. The table lists every keydown with
+  its `repeat` flag and the gap since the previous keydown; the summary line gives
+  the counts. Nothing is sent anywhere; copy the summary line into the report.
+-->
+<style>
+  body { font: 15px/1.5 system-ui, sans-serif; margin: 24px; max-width: 900px; }
+  textarea { width: 100%; height: 80px; font-size: 18px; }
+  #summary { font-weight: 600; margin: 12px 0; white-space: pre-wrap; }
+  table { border-collapse: collapse; font-size: 13px; }
+  td, th { border: 1px solid #ccc; padding: 2px 8px; text-align: right; }
+</style>
+<p>Click into the box, <b>hold Backspace for about two seconds</b>, release. Then read the summary line.</p>
+<textarea id="box" placeholder="click here, then hold Backspace"></textarea>
+<div id="summary">(waiting for keys)</div>
+<table id="t"><thead><tr><th>#</th><th>type</th><th>key</th><th>repeat</th><th>ms since previous keydown</th><th>t (ms)</th></tr></thead><tbody></tbody></table>
+<script>
+  const rows = [];
+  let t0 = null, lastDown = null;
+  const box = document.getElementById('box');
+  const body = document.querySelector('#t tbody');
+  const summary = document.getElementById('summary');
+  function note(e) {
+    const now = performance.now();
+    if (t0 === null) t0 = now;
+    const row = { n: rows.length + 1, type: e.type, key: e.key, repeat: e.repeat, t: Math.round((now - t0) * 10) / 10,
+                  gap: e.type === 'keydown' && lastDown !== null ? Math.round((now - lastDown) * 10) / 10 : null };
+    if (e.type === 'keydown') lastDown = now;
+    rows.push(row);
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${row.n}</td><td>${row.type}</td><td>${row.key}</td><td>${row.repeat}</td><td>${row.gap ?? ''}</td><td>${row.t}</td>`;
+    body.appendChild(tr);
+    const downs = rows.filter((r) => r.type === 'keydown' && r.key === 'Backspace');
+    const ups = rows.filter((r) => r.type === 'keyup' && r.key === 'Backspace');
+    const flagged = downs.filter((r) => r.repeat).length;
+    const gaps = downs.map((r) => r.gap).filter((g) => g !== null);
+    const med = gaps.length ? gaps.slice().sort((a, b) => a - b)[Math.floor(gaps.length / 2)] : null;
+    summary.textContent = `Backspace keydowns: ${downs.length} (repeat=true: ${flagged}, repeat=false: ${downs.length - flagged}); keyups: ${ups.length}; `
+      + `median gap between keydowns: ${med} ms; span: ${downs.length ? Math.round(downs[downs.length - 1].t - downs[0].t) : 0} ms; `
+      + `${navigator.userAgent}`;
+  }
+  box.addEventListener('keydown', (e) => { note(e); if (e.key === 'Backspace') e.preventDefault(); });
+  box.addEventListener('keyup', note);
+</script>

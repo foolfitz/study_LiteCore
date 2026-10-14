@@ -1,0 +1,26 @@
+firefox owner-sequence 0 FATAL {}
+strip()};")
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/run_browser_probe.py", line 161, in execute
+    return self.command(
+           ~~~~~~~~~~~~^
+        "POST", "/execute/sync", {"script": script, "args": arguments or []}
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/run_browser_probe.py", line 153, in command
+    return self.request(
+           ~~~~~~~~~~~~^
+        method, f"/session/{self.session_id}{suffix}", payload
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )["value"]
+    ^
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/run_browser_probe.py", line 149, in request
+    return http_json(method, self.base_url + path, payload, timeout)
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/run_browser_probe.py", line 47, in http_json
+    raise RuntimeError(
+        f"HTTP {error.code} for {method} {url}: {raw.decode(errors='replace')}"
+    ) from error
+RuntimeError: HTTP 500 for POST http://127.0.0.1:51229/session/68dc1fe9-4e81-4fbb-8b11-94be5c3c17d1/execute/sync: {"value":{"error":"javascript error","message":"TypeError: can't access property \"hidden\", p is null","stacktrace":"@http://127.0.0.1:57739/e2-editor.html:2:124\n@http://127.0.0.1:57739/e2-editor.html:2:160\n@http://127.0.0.1:57739/e2-editor.html:3:8\n"}}
+
+firefox burst-1s 0  {"keydowns": 18, "keydownFocus": ["BODY", "sink"], "beforeinputs": 1, "busyFromMs": null, "readyAgainMs": [2280.9], "generations": ["1", "2"], "toasts": ["這一下沒有取得可刪除的內容。文件沒有被改動，正在重新載入…", "這一下沒有取得可刪除的內容。文件沒有被改動，已重新載入。"], "latencyLabels": [{"t": 256.7, "latency": "⌫ 刪除 失敗", "state": "loading"}, {"t": 2281.7, "latency": "重新載入 2026 ms", "state": "ready"}], "editorResponses": [{"t": 258.4, "op": "editorActionV2", "action": "delete-backward", "ok": false, "sinceRq": 257.2, "completion": null, "changed": null, "boundaryNoop": null, "err": {"code": "EDITOR_BOUNDARY_UNSUPPORTED", "message": "paragraph merge refused before the key (nothing-selected); no mutation was dispatched; start a fresh Worker", "mergeKey": {"keyPosted": false, "stage": "nothing-selected", "restorePresses": 0}}, "rev": 0, "beforeRev": null}, {"t": 2281.7, "op": "editorGetStateV2", "action": null, "ok": true, "sinceRq": 3.6, "completion": null, "changed": null, "boundaryNoop": null, "err": null, "rev": 0, "beforeRev": null}], "nonPaintRequests": [{"t": 1.2, "op": "editorActionV2", "action": "delete-backward"}, {"t": 257.1, "op": "init", "action": null}, {"t": 1809.9, "op": "open", "action": null}, {"t": 2278.1, "op": "editorGetStateV2", "action": null}], "stateChanges": [{"t": 1.3, "state": "busy", "pending": "1", "rev": "0", "gen": "1"}, {"t": 255.3, "state": "restart-required", "pending": "0", "rev": "0", "gen": "1"}, {"t": 256.7, "state": "loading", "pending": "0", "rev": "0", "gen": "1"}, {"t": 2278.4, "state":
