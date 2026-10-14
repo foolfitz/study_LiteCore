@@ -3625,7 +3625,12 @@ test-e2-c-static:
 	$(HOST_CXX) -std=c++17 -O2 -Isrc -o build/merge_key_undo_model_test \
 		tests/merge_key_undo_model_test.cpp
 	build/merge_key_undo_model_test > /dev/null
-	python3 tools/check_merge_key_undo_scope.py --base 5d77dc84
+	# Since v20 (ruling 6 condition 50.4'): the carrier list is named, because
+	# the tool's default (E2_V15, E2_V19) is red once E2_V20 exists -- witness
+	# findings/evidence/link-batch/v67-witness/test-e2-c-static-red-default-carriers.txt.
+	python3 tools/check_merge_key_undo_scope.py --base 5d77dc84 \
+		--carrier E2_V15 --carrier E2_V19 \
+		--carrier E2_V20=probe_engine,sdk_api,editor_api
 	# E2-C must never touch what E1-C bound.  Read-only on purpose: a static
 	# target that rewrites verdict-bound evidence has happened here once.
 	python3 tools/check_e1_c_bundle_intact.py > /dev/null
