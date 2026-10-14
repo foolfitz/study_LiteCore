@@ -1,0 +1,149 @@
+$ python3 findings/evidence/132/held-into-refusal/judge_held_into_refusal.py findings/evidence/link-batch/host-0.2.20/held/report.json --page 53019168651b6b4686f1baaba9aa75e0b566d02a3e2cc8a8e8ed4339f360bfd7
+probe probe_held_into_refusal.py arms ['start-press', 'start-hold', 'end-hold', 'end-press-type']
+static {'hostVersion': '0.2.20', 'hostCommit': '2ff30b5', 'buildId': '6cffc5960ebbbd98', 'servedPage': '53019168651b6b4686f1baaba9aa75e0b566d02a3e2cc8a8e8ed4339f360bfd7', 'distPage': '53019168651b6b4686f1baaba9aa75e0b566d02a3e2cc8a8e8ed4339f360bfd7'}
+chrome start-press r0 FAIL
+    reopen   refusals 0 gens ['1'] limit None
+    server   same True firstDiff None charDelta 0 paragraphs 211/211
+    counts   marks 1 controls 0 afters 1
+    where    mark [1] control [] after [0]
+    bools    controlThenMark False markThenAfter False afterAtStart True afterAtEnd False
+    scroll   series [0]
+    - refusals 0 != 1
+    - generations ['1'] != ['1', '2']
+firefox start-press r0 FAIL
+    reopen   refusals 0 gens ['1'] limit None
+    server   same True firstDiff None charDelta 0 paragraphs 211/211
+    counts   marks 1 controls 0 afters 1
+    where    mark [1] control [] after [0]
+    bools    controlThenMark False markThenAfter False afterAtStart True afterAtEnd False
+    scroll   series [0]
+    - refusals 0 != 1
+    - generations ['1'] != ['1', '2']
+chrome start-hold r0 FAIL
+    reopen   refusals 0 gens ['1'] limit None
+    server   same True firstDiff None charDelta 0 paragraphs 211/211
+    counts   marks 1 controls 0 afters 1
+    where    mark [1] control [] after [0]
+    bools    controlThenMark False markThenAfter False afterAtStart True afterAtEnd False
+    scroll   series [0]
+    - refusals 0 != 1
+    - generations ['1'] != ['1', '2']
+chrome start-hold r1 FAIL
+    reopen   refusals 0 gens ['1'] limit None
+    server   same True firstDiff None charDelta 0 paragraphs 211/211
+    counts   marks 1 controls 0 afters 1
+    where    mark [1] control [] after [0]
+    bools    controlThenMark False markThenAfter False afterAtStart True afterAtEnd False
+    scroll   series [0]
+    - refusals 0 != 1
+    - generations ['1'] != ['1', '2']
+firefox start-hold r0 FAIL
+    reopen   refusals 0 gens ['1'] limit None
+    server   same True firstDiff None charDelta 0 paragraphs 211/211
+    counts   marks 1 controls 0 afters 1
+    where    mark [1] control [] after [0]
+    bools    controlThenMark False markThenAfter False afterAtStart True afterAtEnd False
+    scroll   series [0]
+    - refusals 0 != 1
+    - generations ['1'] != ['1', '2']
+firefox start-hold r1 FAIL
+    reopen   refusals 0 gens ['1'] limit None
+    server   same True firstDiff None charDelta 0 paragraphs 211/211
+    counts   marks 1 controls 0 afters 1
+    where    mark [1] control [] after [0]
+    bools    controlThenMark False markThenAfter False afterAtStart True afterAtEnd False
+    scroll   series [0]
+    - refusals 0 != 1
+    - generations ['1'] != ['1', '2']
+chrome end-hold r0 FAIL
+    reopen   refusals 0 gens ['1'] limit None
+    server   same True firstDiff None charDelta 0 paragraphs 211/211
+    counts   marks 1 controls 0 afters 1
+    where    mark [210] control [] after [210]
+    bools    controlThenMark False markThenAfter True afterAtStart False afterAtEnd True
+    scroll   series [21504, 21620] | window {'error': 'no restart-required sample'}
+    - refusals 0 != 1
+    - generations ['1'] != ['1', '2']
+    - scrollTop: no restart-required sample
+chrome end-hold r1 FAIL
+    reopen   refusals 0 gens ['1'] limit None
+    server   same True firstDiff None charDelta 0 paragraphs 211/211
+    counts   marks 1 controls 0 afters 1
+    where    mark [210] control [] after [210]
+    bools    controlThenMark False markThenAfter True afterAtStart False afterAtEnd True
+    scroll   series [21504, 21620] | window {'error': 'no restart-required sample'}
+    - refusals 0 != 1
+    - generations ['1'] != ['1', '2']
+    - scrollTop: no restart-required sample
+firefox end-hold r0 FAIL
+    reopen   refusals 0 gens ['1'] limit None
+    server   same True firstDiff None charDelta 0 paragraphs 211/211
+    counts   marks 1 controls 0 afters 1
+    where    mark [210] control [] after [210]
+    bools    controlThenMark False markThenAfter True afterAtStart False afterAtEnd True
+    scroll   series [21490, 21606] | window {'error': 'no restart-required sample'}
+    - refusals 0 != 1
+    - generations ['1'] != ['1', '2']
+    - scrollTop: no restart-required sample
+firefox end-hold r1 FAIL
+    reopen   refusals 0 gens ['1'] limit None
+    server   same True firstDiff None charDelta 0 paragraphs 211/211
+    counts   marks 1 controls 0 afters 1
+    where    mark [210] control [] after [210]
+    bools    controlThenMark False markThenAfter True afterAtStart False afterAtEnd True
+    scroll   series [21490, 21606] | window {'error': 'no restart-required sample'}
+    - refusals 0 != 1
+    - generations ['1'] != ['1', '2']
+    - scrollTop: no restart-required sample
+chrome end-press-type r0 FAIL
+    reopen   refusals 0 gens ['1'] limit None
+    server   same True firstDiff None charDelta 0 paragraphs 211/211
+    counts   marks 1 controls 1 afters 0
+    where    mark [210] control [210] after []
+    bools    controlThenMark True markThenAfter False afterAtStart False afterAtEnd False
+    scroll   series [21504] | window {'error': 'no restart-required sample'}
+    - refusals 0 != 1
+    - generations ['1'] != ['1', '2']
+    - scrollTop: no restart-required sample
+firefox end-press-type r0 FAIL
+    reopen   refusals 0 gens ['1'] limit None
+    server   same True firstDiff None charDelta 0 paragraphs 211/211
+    counts   marks 1 controls 1 afters 0
+    where    mark [210] control [210] after []
+    bools    controlThenMark True markThenAfter False afterAtStart False afterAtEnd False
+    scroll   series [21490] | window {'error': 'no restart-required sample'}
+    - refusals 0 != 1
+    - generations ['1'] != ['1', '2']
+    - scrollTop: no restart-required sample
+FAIL chrome start-press r0: refusals 0 != 1
+FAIL chrome start-press r0: generations ['1'] != ['1', '2']
+FAIL firefox start-press r0: refusals 0 != 1
+FAIL firefox start-press r0: generations ['1'] != ['1', '2']
+FAIL chrome start-hold r0: refusals 0 != 1
+FAIL chrome start-hold r0: generations ['1'] != ['1', '2']
+FAIL chrome start-hold r1: refusals 0 != 1
+FAIL chrome start-hold r1: generations ['1'] != ['1', '2']
+FAIL firefox start-hold r0: refusals 0 != 1
+FAIL firefox start-hold r0: generations ['1'] != ['1', '2']
+FAIL firefox start-hold r1: refusals 0 != 1
+FAIL firefox start-hold r1: generations ['1'] != ['1', '2']
+FAIL chrome end-hold r0: refusals 0 != 1
+FAIL chrome end-hold r0: generations ['1'] != ['1', '2']
+FAIL chrome end-hold r0: scrollTop: no restart-required sample
+FAIL chrome end-hold r1: refusals 0 != 1
+FAIL chrome end-hold r1: generations ['1'] != ['1', '2']
+FAIL chrome end-hold r1: scrollTop: no restart-required sample
+FAIL firefox end-hold r0: refusals 0 != 1
+FAIL firefox end-hold r0: generations ['1'] != ['1', '2']
+FAIL firefox end-hold r0: scrollTop: no restart-required sample
+FAIL firefox end-hold r1: refusals 0 != 1
+FAIL firefox end-hold r1: generations ['1'] != ['1', '2']
+FAIL firefox end-hold r1: scrollTop: no restart-required sample
+FAIL chrome end-press-type r0: refusals 0 != 1
+FAIL chrome end-press-type r0: generations ['1'] != ['1', '2']
+FAIL chrome end-press-type r0: scrollTop: no restart-required sample
+FAIL firefox end-press-type r0: refusals 0 != 1
+FAIL firefox end-press-type r0: generations ['1'] != ['1', '2']
+FAIL firefox end-press-type r0: scrollTop: no restart-required sample
+verdict FAIL (30)
+exit 1
