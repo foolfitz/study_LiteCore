@@ -287,3 +287,36 @@ study_LiteCore 這一輪的 commit `503263d2`、`b893e7bf` 沒碰任何產品路
 - D12（§3.5）進下一批連結的 `Language=` 討論：`en` 的紙張。
 - `Language=`（分析 1 的 B）在 v20 之後的連結批次；本輪的範本不受它影響（檔案自己寫明）。
 - 測試資料夾 `新文件 測試資料夾` 在 admin 的 Files 裡；runner 每趟結束會刪自己建的檔（鎖還在的那幾個留到鎖失效後再刪）。
+
+### 7.5 追加（2026-10-14，§34.3 審核處置之後、計數之前）：判讀工具的修訂、宣稱更正、計數的規則集
+
+處置表：`findings/evidence/new-document/review/DISPOSITION.md`（兩席審核 `opus-review.md`、`codex-review.md`；fable 代擁有者裁決，任務 10-14j J2）。
+這是這支工具唯一的一次 §34.3 審核；§34.4：因審核而修 1 支工具／10 處，因執行而修 0。五份已 commit 的報告在新舊工具下判定**一字不差**。
+
+**宣稱更正**（原文留著，以下取代對應的句子）：
+
+- 更正 7.1「紅案 29 個全紅」：當時原始碼就是 **30** 個；審核後 **39** 個，而且每個紅案必須紅在它名字開頭的那條判準上（之前只問「不是 WORKS」，刪掉一條判準而紅案順手踩到鄰居，自測仍綠）。
+- 更正 N9「HTTP 讀到的 `e2-editor-app.js` 解碎後 sha256」：工具記的 `servedPage` 是宿主 `engine/MANIFEST.json` **宣告**的 `e2-editor-app.js` sha256，不是 HTTP 讀回來的位元組；
+  「每個檔的雜湊等於 0.2.18 的」只記錄（`engineFiles`）沒有比對；宿主的 `engine/` 在 `.gitignore`，`hostDirty` 與 `changedSinceControl` 都看不到它。
+  0.2.19 的 N9 實際量到的是：manifest 宣告的 buildId 與頁面雜湊等於 0.2.18 的、`git diff 96a87d8..HEAD` 只含允許的路徑、本輪 commit 沒碰產品路徑。
+- 更正 N5 括號「（引擎拿到的就是含標記的那份）」：位元組那半證明的是**宿主**用自己的 WebDAV GET 拿到含標記的位元組並交給頁面（`litecore-editor.js` 在頁面拿到位元組之前就寫了 `fetched`）；
+  引擎重開後實際載入了什麼，只有 a11y 那半（條件式，v19 與 v20 都是 `NOT_OFFERED`）看得到。「重開後再打一鍵、存檔、段落應為 `zqx`＋那一鍵」的引擎側見證列為工作項，本輪不建。
+
+**判準修訂**（取代第 4 節對應的句子；每一條在 DISPOSITION 有舊工具過、新工具紅的案例）：
+
+- N4「`content.xml` 的段落序列（`odt_paragraphs`）含 `zqx` **恰一次**」→「段落序列**等於** `['zqx']`」。理由：原句讓「引擎開到的不是空白文件（存出 `zqxOLD`）」與「序列化多出一段」過關；四格的計數報告本來就是 `['zqx']`，判定不動。
+- N4「`generation` 不變」→ 兩個值都要**讀到**（數字）才算不變；`None == None` 不是不變。
+- N5 加「落地的 `fileId` 等於 N2 的 fileid」（與 N3 對稱）。理由：存檔若換了 fileid（暫存檔＋MOVE），同名列重開會落在新 id，原本不紅。
+- N5 的 `#a11y-doc[data-offers]` 必須是 `"0"` 或 `"1"`；其他值是「沒讀到」，算 N5 紅，不算 `NOT_OFFERED`（第 3 節的三種登錄要分開）。
+- N8 加「lcprobe 看到的分享權限字串不得含 `CK`」。理由：403 若來自允許建立的分享，就不是 Nextcloud 的拒絕；負面測試的前提要被量到。
+- 任何模式下 `runs` 為空或 `stopped`（kwallet 鎖住）都不得印 `WORKS`（原本 shakedown 零格會印 `WORKS -`）。
+- 還原設定（D10）：第一次讀不到 admin 的設定就**拒跑**（exit 2），不再把「讀失敗」當「沒設」然後在還原時把擁有者的 `core/lang` 刪掉並記 `ok: true`；
+  還原的 `ok` 要 occ exit 0、回讀成功、值相等，兩個 key 一律都試；SIGTERM 也會走到還原；讀設定之前先等別的 runner（含這支工具的另一個實例）跑完。
+
+**計數語意（接第 4 節「計數語意」與「綁定」）**：
+
+- N9 的「0.2.19 只改宿主」三條（引擎包與頁面等於 0.2.18 的、宿主 diff 自 `96a87d8` 起只在允許路徑內）**只在 `hostStatic.hostVersion == 0.2.19` 的報告上評**，`CONTROL_*` 三個常數隨之凍結，不得移到之後的宿主（移到 HEAD，diff 就變空的恆真式，「自 0.2.18 起沒變」會悄悄變成「等於裝著的那個」）。
+- 0.2.20 起的計數改綁**候選引擎**：`ENGINE_BUILD_ID`、`PAGE_SHA256`，與 `HOST_COMMIT`、`HOST_VERSION`、`MANIFEST_SHA256` 同一個 commit 寫入。**從來沒做時**：兩者為 `None`，strict 判 `N9 binding … not written`——計數拒絕，不繼承 0.2.19 的引擎值。
+- 「本輪 commit 沒碰產品路徑」照舊在每個宿主上評（已知極限：它沒有終點 commit，混進一個同時碰產品路徑的 commit 就永遠紅，處方是不要混）。
+- N1 的 0.2.18 對照與 N7(b) 的紅案由計數繼承；N7(b) 的繼承條件是 `lib/Listener/`、`lib/Template/`、`blank/` 自該紅案的宿主 commit 起沒改（`--red-corrupt` 從現在起記 `hostCommit`；0.2.19 那份是 `afbaf3c`），改了就先重跑 `--red-corrupt`。這一條沒有程式守，要證人才能加（§34.4）。
+- 0.2.20 上計數用的規則集全文與「從來沒做時」的預設，見 DISPOSITION 的 Q3 段。

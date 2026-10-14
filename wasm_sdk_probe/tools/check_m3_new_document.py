@@ -30,7 +30,9 @@ import copy
 import hashlib
 import io
 import json
+import os
 import re
+import signal
 import subprocess
 import sys
 import time
@@ -90,7 +92,20 @@ def first_line(paper: str | None) -> tuple[str, str]:
 HOST_COMMIT: str | None = "afbaf3c"
 HOST_VERSION: str | None = "0.2.19"
 MANIFEST_SHA256: str | None = "e5cdb8e2f0311cc10ad543f918906144e73015352304385719b5f85bfd97eb04"
-# N9's control values: 0.2.18's engine package (host 96a87d8), which 0.2.19 keeps.
+# The engine the count runs on: the host's engine/MANIFEST.json buildId and its
+# declared e2-editor-app.js sha256.  None until the count binds them (review
+# 2026-10-14, Q3): a strict run on any host but DELTA_HOST_VERSION then reads
+# "binding not written" -- the count never inherits 0.2.19's engine clause.
+ENGINE_BUILD_ID: str | None = None
+PAGE_SHA256: str | None = None
+# N9 as 0.2.19's acceptance: "0.2.19 changed only the host" -- the engine
+# package and page are 0.2.18's (host 96a87d8) and the host diff since 96a87d8
+# is within ALLOWED_CHANGED.  These three clauses are evaluated ONLY on a report
+# whose host is DELTA_HOST_VERSION; they are frozen with it.  Do not move the
+# CONTROL_* values to a later host: with CONTROL_HOST_COMMIT at HEAD the diff is
+# empty by construction and "unchanged since 0.2.18" would silently become
+# "equals whatever is installed" (both review seats, 2026-10-14).
+DELTA_HOST_VERSION = "0.2.19"
 CONTROL_BUILD_ID = "d6d04880f56e31da"
 CONTROL_PAGE_SHA256 = "b24d754a426706bb5c93dbacb3f7ffadc655e738ee9a0fdd7168069f0f701678"
 CONTROL_HOST_COMMIT = "96a87d8"
@@ -134,17 +149,67 @@ def occ(root: Path, *args: str) -> subprocess.CompletedProcess:
     return subprocess.run(["ddev", "occ", *args], cwd=root, capture_output=True, text=True, timeout=300)
 
 
+class SettingReadError(RuntimeError):
+    """occ could not read a user setting.  Never the same as 'not set'."""
+
+
+# `occ user:setting <uid> core <key>` exits 1 both when the key is not set and
+# when anything else fails (core/Command/User/Setting.php).  Read with a default
+# so that "not set" is exit 0 with this text, and any non-zero exit is a failure
+# that raises -- the old reader returned None for both, and a failed FIRST read
+# made the restore delete the owner's core/lang and record ok: true (review
+# 2026-10-14, Q6).
+UNSET = "__litecore_unset__"
+
+
 def user_setting(root: Path, uid: str, key: str) -> str | None:
-    done = occ(root, "user:setting", uid, "core", key)
-    return done.stdout.strip() if done.returncode == 0 else None
+    """The setting's value, or None when it is not set.  Raises when occ fails."""
+    done = occ(root, "user:setting", uid, "core", key, "--default-value", UNSET)
+    if done.returncode != 0:
+        raise SettingReadError(f"occ user:setting {uid} core {key}: exit {done.returncode}: "
+                               f"{(done.stderr or done.stdout).strip()[:300]}")
+    value = done.stdout.strip()
+    return None if value == UNSET else value
 
 
 def set_user_setting(root: Path, uid: str, key: str, value: str | None) -> dict[str, Any]:
+    """Set (or delete, for None) and read back.  `ok` needs occ to have exited 0
+    AND the readback to have succeeded AND to equal the value."""
     if value is None:
         done = occ(root, "user:setting", "--delete", uid, "core", key)
     else:
         done = occ(root, "user:setting", uid, "core", key, value)
-    return {"key": key, "value": value, "exit": done.returncode, "readback": user_setting(root, uid, key)}
+    record: dict[str, Any] = {"key": key, "value": value, "exit": done.returncode}
+    if done.returncode != 0:
+        record["stderr"] = (done.stderr or done.stdout).strip()[:300]
+    try:
+        record["readback"] = user_setting(root, uid, key)
+        record["ok"] = done.returncode == 0 and record["readback"] == value
+    except SettingReadError as error:
+        record["readback"] = None
+        record["readError"] = str(error)
+        record["ok"] = False
+    return record
+
+
+def read_settings(root: Path, uid: str = "admin") -> dict[str, str | None]:
+    """The settings to restore to.  Raises SettingReadError: a run must not
+    start on a value it could not read."""
+    return {"lang": user_setting(root, uid, "lang"), "locale": user_setting(root, uid, "locale")}
+
+
+def restore_settings(root: Path, original: dict[str, str | None], uid: str = "admin") -> dict[str, Any]:
+    """Both keys are always attempted: a timeout or error on one must not skip
+    the other.  `ok` is the conjunction of the per-key `ok`s."""
+    restored: dict[str, Any] = {}
+    for key in ("lang", "locale"):
+        try:
+            restored[key] = set_user_setting(root, uid, key, original[key])
+        except Exception as error:  # noqa: BLE001 -- recorded as not restored
+            restored[key] = {"key": key, "value": original[key], "exit": None, "readback": None, "ok": False,
+                             "error": f"{type(error).__name__}: {error}"}
+    restored["ok"] = all(restored[key].get("ok") is True for key in ("lang", "locale"))
+    return restored
 
 
 def dav_raw(client: Client, method: str, path: str, body: bytes | None = None,
@@ -270,14 +335,35 @@ def validation_and_closure(host: Path) -> dict[str, Any]:
     return {"N10": {k: v for k, v in validated.items() if k != "results"}, "N12": closure_report}
 
 
+def other_runners(pgrep_lines: list[str], own_pids: tuple[int, ...]) -> list[str]:
+    """Runner processes that are not this one.  A second instance of THIS tool
+    counts (the old filter dropped every line naming it, so two instances ran
+    at once and the later one read the earlier one's switched settings as the
+    owner's -- review 2026-10-14, Q6).  Our own pid and parent (a `bash -c` or
+    `timeout` whose command line names this script) are dropped by pid."""
+    own = {str(p) for p in own_pids}
+    return [line for line in pgrep_lines if line.split(" ", 1)[0] not in own and "pgrep" not in line]
+
+
 def preflight() -> dict[str, Any]:
     wallet = subprocess.run(["busctl", "--user", "get-property", "org.freedesktop.secrets",
                              "/org/freedesktop/secrets/collection/kdewallet", "org.freedesktop.Secret.Collection", "Locked"],
                             capture_output=True, text=True)
     ours = subprocess.run(["pgrep", "-af", "probe_|check_m3|run_e2_c|run_merge"], capture_output=True, text=True).stdout
-    ours = [line for line in ours.splitlines() if "check_m3_new_document" not in line and "pgrep" not in line]
+    ours = other_runners(ours.splitlines(), (os.getpid(), os.getppid()))
     chrome = subprocess.run(["pgrep", "-c", "chrome"], capture_output=True, text=True).stdout.strip()
     return {"kwalletLocked": wallet.stdout.strip(), "otherRunners": ours, "chromeProcesses": int(chrome or 0), "at": utc_now()}
+
+
+def wait_for_runners(record: list[dict[str, Any]], **tag: Any) -> dict[str, Any]:
+    flight = preflight()
+    record.append({**tag, **flight})
+    while flight["otherRunners"]:
+        print(f"waiting: other runners {flight['otherRunners']}", file=sys.stderr)
+        time.sleep(150)
+        flight = preflight()
+        record.append({**tag, **flight})
+    return flight
 
 
 # --------------------------------------------------------------------------
@@ -507,25 +593,43 @@ def score_run(run: dict[str, Any], manifest: dict[str, Any]) -> dict[str, list[s
     if len(keys) != len(MARK):
         bad["N4"].append(f"{len(keys)} keys recorded")
     for k in keys:
-        if not (digits(k.get("revBefore"), k.get("revAfter")) and int(k["revAfter"]) == int(k["revBefore"]) + 1
-                and k.get("genBefore") == k.get("genAfter")):
+        # "generation unchanged" needs the generation to have been READ: two
+        # unread values (None == None) are not "unchanged" (review, Q4).
+        if not (digits(k.get("revBefore"), k.get("revAfter"), k.get("genBefore"), k.get("genAfter"))
+                and int(k["revAfter"]) == int(k["revBefore"]) + 1 and k["genBefore"] == k["genAfter"]):
             bad["N4"].append(f"key {k}")
     save = run.get("save") or {}
     if save.get("outcome") != "saved":
         bad["N4"].append(f"save {save.get('outcome')!r} timedOut={save.get('timedOut')}")
     saved = run.get("savedFile") or {}
-    if saved.get("getStatus") != 200 or not saved.get("bytes") or saved.get("markCount") != 1 or "describeError" in saved:
-        bad["N4"].append(f"server file status {saved.get('getStatus')} bytes {saved.get('bytes')} marks {saved.get('markCount')} {saved.get('describeError', '')}")
+    # The saved document is the blank one plus the three keys: its paragraph
+    # sequence is exactly [MARK].  "contains the marker once" also passed a
+    # document that was never blank (`zqxOLD`) or gained a paragraph (review, Q1).
+    if (saved.get("getStatus") != 200 or not saved.get("bytes") or saved.get("markCount") != 1
+            or saved.get("paragraphs") != [MARK] or "describeError" in saved):
+        bad["N4"].append(f"server file status {saved.get('getStatus')} bytes {saved.get('bytes')} marks {saved.get('markCount')}"
+                         f" paragraphs {saved.get('paragraphs')!r} {saved.get('describeError', '')}")
     # N5
     reopen = run.get("reopen") or {}
     re_fetched = (reopen.get("host") or {}).get("fetched") or {}
-    if not isinstance(reopen.get("landed"), str) or re_fetched.get("sha256") != saved.get("sha256"):
-        bad["N5"].append(f"reopen landed {reopen.get('landed')!r}, fetched {re_fetched.get('sha256')} vs saved {saved.get('sha256')}")
+    re_landed = reopen.get("landed")
+    re_query = urllib.parse.parse_qs(urllib.parse.urlsplit(re_landed).query) if isinstance(re_landed, str) else {}
+    # The same row is the same file: the reopen lands on N2's fileid, as N3
+    # does.  A save that replaced the file under a new id passed before (review, Q1).
+    if (not isinstance(re_landed, str) or re_query.get("fileId") != [str(created.get("fileid"))]
+            or re_fetched.get("sha256") != saved.get("sha256")):
+        bad["N5"].append(f"reopen landed {re_landed!r} (want fileId {created.get('fileid')}), fetched {re_fetched.get('sha256')} vs saved {saved.get('sha256')}")
     re_opened = reopen.get("opened") or {}
     if re_opened.get("state") != "ready" or re_opened.get("doc") != run.get("name"):
         bad["N5"].append(f"reopened state {re_opened.get('state')!r} doc {re_opened.get('doc')!r}")
     a11y = reopen.get("a11y") or {}
-    if a11y.get("offers") == "1" and MARK not in (a11y.get("text") or ""):
+    offers = a11y.get("offers")
+    # The offer is "0" or "1" -- anything else is the live region not read
+    # (renamed, or the evaluate failed), which is neither NOT_OFFERED nor OFFERED
+    # (CLAUDE.md section 3; review, Q4).
+    if offers not in ("0", "1"):
+        bad["N5"].append(f"the live region's offer was not read: {offers!r}")
+    elif offers == "1" and MARK not in (a11y.get("text") or ""):
         bad["N5"].append(f"the live region offers text but says {a11y.get('text')!r}")
     # N6
     described = saved.get("described") or {}
@@ -544,11 +648,18 @@ def score(report: dict[str, Any], strict: bool) -> dict[str, Any]:
     wanted = {(a, b) for a in ARMS for b in BOTH}
     if strict and seen != wanted:
         problems.append(f"arms x browsers {sorted(seen)}")
+    # A run that stopped before its cells (kwallet locked) or recorded none is
+    # not WORKS in any mode (review, Q4: `NEW-DOCUMENT WORKS -` was printed).
+    if not runs or report.get("stopped"):
+        problems.append(f"no complete run: {len(runs)} runs, stopped {report.get('stopped')!r}")
     static = report.get("hostStatic") or {}
-    if static.get("buildId") != CONTROL_BUILD_ID or static.get("servedPage") != CONTROL_PAGE_SHA256:
-        problems.append(f"N9 engine package buildId {static.get('buildId')} page {static.get('servedPage')}")
-    if static.get("changedOutsideAllowed"):
-        problems.append(f"N9 host changed outside the allowed paths: {static['changedOutsideAllowed']}")
+    delta_host = static.get("hostVersion") == DELTA_HOST_VERSION
+    if delta_host:
+        # 0.2.19's acceptance only (spec N9: "only the host changed").
+        if static.get("buildId") != CONTROL_BUILD_ID or static.get("servedPage") != CONTROL_PAGE_SHA256:
+            problems.append(f"N9 engine package buildId {static.get('buildId')} page {static.get('servedPage')} is not 0.2.18's")
+        if static.get("changedOutsideAllowed"):
+            problems.append(f"N9 host changed outside the allowed paths: {static['changedOutsideAllowed']}")
     if (report.get("repoStatic") or {}).get("productPathsTouchedSinceStart"):
         problems.append(f"N9 product paths touched: {report['repoStatic']['productPathsTouchedSinceStart']}")
     if not (static.get("blankGeneratorCheck") or {}).get("identical"):
@@ -560,7 +671,10 @@ def score(report: dict[str, Any], strict: bool) -> dict[str, Any]:
     if not (checks.get("N12") or {}).get("passed"):
         problems.append(f"N12 {checks.get('N12')}")
     ro = report.get("readOnly") or {}
-    if ro.get("create", {}).get("status") != 403 or ro.get("adminAfter", {}).get("fileid") or ro.get("otherSees") in (None, ""):
+    # The other user's view of the share must carry no create permission (CK):
+    # a 403 from a share that allows creating is not Nextcloud's refusal (review, Q1).
+    if (ro.get("create", {}).get("status") != 403 or ro.get("adminAfter", {}).get("fileid") or ro.get("otherSees") in (None, "")
+            or "CK" in (ro.get("otherSees") or "")):
         problems.append(f"N8 create {ro.get('create', {}).get('status')} admin sees {ro.get('adminAfter', {}).get('fileid')} other perms {ro.get('otherSees')!r}")
     if strict:
         if report.get("label") != "counted":
@@ -570,18 +684,24 @@ def score(report: dict[str, Any], strict: bool) -> dict[str, Any]:
         repo = report.get("repoStatic") or {}
         if repo.get("roundToolsUncommitted") or not repo.get("roundCommits"):
             problems.append(f"N9 the round's spec/tools/tests are not committed: {repo.get('roundToolsUncommitted')} commits {repo.get('roundCommits')}")
-        for name, want, have in (("hostCommit", HOST_COMMIT, static.get("hostCommit")), ("hostVersion", HOST_VERSION, static.get("hostVersion")),
-                                 ("blankManifestSha256", MANIFEST_SHA256, static.get("blankManifestSha256"))):
+        bound = [("hostCommit", HOST_COMMIT, static.get("hostCommit")), ("hostVersion", HOST_VERSION, static.get("hostVersion")),
+                 ("blankManifestSha256", MANIFEST_SHA256, static.get("blankManifestSha256"))]
+        if not delta_host:
+            # The count's engine identity (N9's recurring half): the bound
+            # candidate, never "unchanged since the previous host".
+            bound += [("engineBuildId", ENGINE_BUILD_ID, static.get("buildId")), ("pageSha256", PAGE_SHA256, static.get("servedPage"))]
+        for name, want, have in bound:
+            tag = "N9 binding" if name in ("engineBuildId", "pageSha256") else "binding"
             if want is None:
-                problems.append(f"binding {name} not written")
+                problems.append(f"{tag} {name} not written")
             elif have != want:
-                problems.append(f"binding {name} {have} != {want}")
+                problems.append(f"{tag} {name} {have} != {want}")
         if not (report.get("controlReport") or {}).get("red"):
             problems.append("N1's red case (the 0.2.18 control) is not recorded as red")
         if not (report.get("redCorruptReport") or {}).get("red"):
             problems.append("N7(b)'s red case is not recorded as red")
         settings = report.get("settingsRestored") or {}
-        if not settings.get("ok"):
+        if not settings.get("ok") or any((settings.get(k) or {}).get("exit") != 0 for k in ("lang", "locale")):
             problems.append(f"admin settings not restored: {settings}")
     per: dict[str, Any] = {}
     a11y_half: dict[str, str] = {}
@@ -616,12 +736,16 @@ RED_CASES = [
     ("N3-wrong-file", lambda r: _run(r, "TW", "firefox")["create"].update(landed=_run(r, "TW", "firefox")["create"]["landed"].replace("fileId=", "fileId=9"))),
     ("N3-page-fetched-other", lambda r: _run(r, "EN")["create"]["host"]["fetched"].update(sha256="1" * 64)),
     ("N4-no-revision", lambda r: _run(r, "TW")["keys"][0].update(revAfter=_run(r, "TW")["keys"][0]["revBefore"])),
+    ("N4-generation-unread", lambda r: [k.update(genBefore=None, genAfter=None) for k in _run(r, "EN", "firefox")["keys"]]),
     ("N4-click-refused", lambda r: _run(r, "EN")["click"].update(latency="定位游標 失敗")),
     ("N4-save-not-saved", lambda r: _run(r, "EN", "firefox")["save"].update(outcome="copied")),
     ("N4-marker-missing", lambda r: _run(r, "TW")["savedFile"].update(markCount=0)),
+    ("N4-extra-paragraph", lambda r: _run(r, "TW", "firefox")["savedFile"].update(paragraphs=[MARK, "UNEXPECTED"], markCount=1)),
     ("N4-zero-bytes", lambda r: _run(r, "EN")["savedFile"].update(bytes=0, getStatus=200)),
     ("N5-reopened-other-bytes", lambda r: _run(r, "TW", "firefox")["reopen"]["host"]["fetched"].update(sha256="2" * 64)),
+    ("N5-reopened-other-file", lambda r: _run(r, "EN")["reopen"].update(landed=_run(r, "EN")["reopen"]["landed"].replace("fileId=", "fileId=9"))),
     ("N5-live-region-lies", lambda r: _run(r, "EN")["reopen"]["a11y"].update(offers="1", text="something else")),
+    ("N5-offer-not-read", lambda r: _run(r, "TW")["reopen"]["a11y"].update(offers=None, text=None)),
     ("N6-asian-zh-CN", lambda r: _run(r, "TW")["savedFile"]["described"].update(asian="zh-CN")),
     ("N6-paper-letter-in-TW", lambda r: _run(r, "TW", "firefox")["savedFile"]["described"].update(paper="Letter")),
     ("N6-paper-a4-in-EN", lambda r: _run(r, "EN")["savedFile"]["described"].update(paper="A4")),
@@ -629,6 +753,7 @@ RED_CASES = [
     ("N6-western-en-GB", lambda r: _run(r, "TW")["savedFile"]["described"].update(western="en-GB")),
     ("N8-created-anyway", lambda r: r["readOnly"]["create"].update(status=200)),
     ("N8-file-appeared", lambda r: r["readOnly"]["adminAfter"].update(fileid="123")),
+    ("N8-share-allows-create", lambda r: r["readOnly"].update(otherSees="SRGDNVCK")),
     ("N9-other-engine", lambda r: r["hostStatic"].update(buildId="0000000000000000")),
     ("N9-page-moved", lambda r: r["hostStatic"].update(servedPage="3" * 64)),
     ("N9-product-touched", lambda r: r["repoStatic"].update(productPathsTouchedSinceStart={"deadbeef": ["wasm_sdk_probe/web/e2-editor-app.js"]})),
@@ -637,12 +762,34 @@ RED_CASES = [
     ("N12-closure-red", lambda r: r["checks"]["N12"].update(passed=False)),
     ("one-browser", lambda r: r.update(runs=[x for x in r["runs"] if x["browser"] != "firefox"])),
     ("one-arm", lambda r: r.update(runs=[x for x in r["runs"] if x["arm"] != "EN"])),
+    ("stopped-before-the-cells", lambda r: r.update(stopped="kwallet locked")),
+    ("binding-host-moved", lambda r: r["hostStatic"].update(hostCommit="0000000")),
     ("control-not-red", lambda r: r["controlReport"].update(red=False)),
+    ("red-corrupt-not-red", lambda r: r["redCorruptReport"].update(red=False)),
     ("settings-not-restored", lambda r: r["settingsRestored"].update(ok=False)),
+    ("settings-restore-failed", lambda r: r["settingsRestored"]["lang"].update(exit=1)),
 ]
 
 
+def rules_fired(result: dict[str, Any]) -> set[str]:
+    """The rule ids a verdict names: per-cell failing keys plus the leading
+    `N<n>` of each static problem."""
+    fired: set[str] = set()
+    for cell in result["runs"].values():
+        if cell != "PASS":
+            fired |= set(cell)
+    for problem in result["problems"]:
+        found = re.match(r"(N\d+)\b", problem)
+        if found:
+            fired.add(found.group(1))
+    return fired
+
+
 def red_cases(path: Path) -> int:
+    """Every case must go red ON THE RULE ITS NAME STARTS WITH (`N<n>-…`); a
+    case with no rule prefix only has to go red.  Before the review a case was
+    satisfied by whatever rule fired first, so deleting a clause whose case
+    also tripped a neighbour left the self-test green (review 2026-10-14, Q5)."""
     base = json.loads(path.read_text())
     baseline = score(base, strict=True)
     print(("GREEN" if baseline["works"] else "RED  ") + " base " + one_line(baseline))
@@ -656,8 +803,11 @@ def red_cases(path: Path) -> int:
             ok = False
             continue
         result = score(mutated, strict=True)
-        ok = ok and not result["works"]
-        print(("RED  " if not result["works"] else "GREEN") + f" {name:26} " + one_line(result))
+        rule = name.split("-", 1)[0]
+        targeted = rule not in rules_fired(result) if re.fullmatch(r"N\d+", rule) else False
+        red = not result["works"] and not targeted
+        ok = ok and red
+        print(("RED  " if red else ("MISS " if targeted else "GREEN")) + f" {name:26} " + one_line(result))
     return 0 if ok else 1
 
 
@@ -701,6 +851,10 @@ def red_corrupt(instance: Instance, admin: Client, out_dir: Path) -> dict[str, A
             hidden.rename(manifest)
         report["manifestRestored"] = manifest.exists() and sha256_file(manifest) == MANIFEST_SHA256
     report["hostDirty"] = subprocess.run(["git", "status", "--porcelain"], cwd=instance.root, capture_output=True, text=True).stdout.splitlines()
+    # Which host this red case was measured on (review 2026-10-14, Q3): the
+    # count inherits it while lib/Listener/, lib/Template/ and blank/ are
+    # unchanged since this commit; a change there re-runs --red-corrupt.
+    report["hostCommit"] = subprocess.run(["git", "rev-parse", "--short", "HEAD"], cwd=instance.root, capture_output=True, text=True).stdout.strip()
     report["red"] = (report.get("create", {}).get("status") == 403 and not report.get("after", {}).get("fileid")
                      and not report.get("listingAfter") and report["manifestRestored"])
     # And the positive control, right after the restore: the same request now creates the file.
@@ -764,45 +918,51 @@ def main() -> int:
     if not args.label:
         parser.error("--label is required for a run")
 
-    original = {"lang": user_setting(args.ddev_root, "admin", "lang"), "locale": user_setting(args.ddev_root, "admin", "locale")}
+    # The owner's settings are read AFTER any other runner has finished (a
+    # second instance of this tool would otherwise read the first's switched
+    # values as the owner's) and a value that cannot be read stops the run
+    # before anything is switched: it could not be restored.
+    early_preflight: list[dict[str, Any]] = []
+    wait_for_runners(early_preflight, phase="before-reading-settings")
+    try:
+        original = read_settings(args.ddev_root)
+    except SettingReadError as error:
+        print(f"refusing to run: the admin's setting could not be read, so it could not be restored: {error}", file=sys.stderr)
+        return 2
     report: dict[str, Any] = {
         "probe": "m3-new-document", "label": args.label, "startedAt": utc_now(), "spec": "specs/SPEC-M3-new-document.md",
         "runner": {"path": str(Path(__file__).relative_to(REPO)), "sha256": sha256_file(Path(__file__))},
         "bindings": {"hostCommit": HOST_COMMIT, "hostVersion": HOST_VERSION, "blankManifestSha256": MANIFEST_SHA256,
-                     "controlBuildId": CONTROL_BUILD_ID, "controlPageSha256": CONTROL_PAGE_SHA256},
+                     "engineBuildId": ENGINE_BUILD_ID, "pageSha256": PAGE_SHA256,
+                     "deltaHostVersion": DELTA_HOST_VERSION, "controlBuildId": CONTROL_BUILD_ID, "controlPageSha256": CONTROL_PAGE_SHA256},
         "instance": instance.describe(), "hostStatic": host_static(args.ddev_root), "repoStatic": repo_static(),
         "blankManifest": json.loads((args.ddev_root / "blank" / "MANIFEST.json").read_text()),
         "checks": validation_and_closure(args.ddev_root),
         "controlReport": latest(EVIDENCE / "control-0.2.18"), "redCorruptReport": latest(EVIDENCE / "red-corrupt"),
-        "adminSettingsBefore": original, "preflight": [], "settingsChanges": [], "runs": [],
+        "adminSettingsBefore": original, "preflight": early_preflight, "settingsChanges": [], "runs": [],
     }
     if args.label == "counted" and report["hostStatic"]["hostDirty"]:
         print("refusing a counted run on a dirty host tree", file=sys.stderr)
         return 2
     SCRATCH.mkdir(parents=True, exist_ok=True)
+    # A SIGTERM (a chain's abort or timeout of a detached run) must reach the
+    # `finally` below: as SystemExit it does; as the default action it skips it
+    # and leaves the owner in the arm's language.
+    signal.signal(signal.SIGTERM, lambda signum, frame: sys.exit(128 + signum))
     try:
         for arm in args.arms.split(","):
             spec = ARMS[arm]
             report["settingsChanges"].append({"arm": arm, "lang": set_user_setting(args.ddev_root, "admin", "lang", spec["lang"]),
                                               "locale": set_user_setting(args.ddev_root, "admin", "locale", spec["locale"])})
             for kind in args.browsers.split(","):
-                flight = preflight()
-                report["preflight"].append({"arm": arm, "browser": kind, **flight})
-                while flight["otherRunners"]:
-                    print(f"waiting: other runners {flight['otherRunners']}", file=sys.stderr)
-                    time.sleep(150)
-                    flight = preflight()
-                    report["preflight"].append({"arm": arm, "browser": kind, **flight})
+                flight = wait_for_runners(report["preflight"], arm=arm, browser=kind)
                 if flight["kwalletLocked"] == "b true":
                     report["stopped"] = "kwallet locked"
                     break
                 report["runs"].append(run_once(arm, kind, instance, admin, SCRATCH / f"{arm}-{kind}"))
                 report["log"] = log
     finally:
-        restored = {"lang": set_user_setting(args.ddev_root, "admin", "lang", original["lang"]),
-                    "locale": set_user_setting(args.ddev_root, "admin", "locale", original["locale"])}
-        restored["ok"] = restored["lang"]["readback"] == original["lang"] and restored["locale"]["readback"] == original["locale"]
-        report["settingsRestored"] = restored
+        report["settingsRestored"] = restore_settings(args.ddev_root, original)
     if not args.skip_readonly:
         report["readOnly"] = run_readonly(instance, admin, SCRATCH / "readonly", with_browser="chrome" in args.browsers)
     # Tidy up what the runs made; a file still under its session's lock answers

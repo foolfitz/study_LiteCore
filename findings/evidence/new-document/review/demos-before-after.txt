@@ -1,0 +1,68 @@
+# Red demos: the tool at 3b818514 (OLD) against this tree's tool (NEW), on mutations of findings/evidence/new-document/runs/2026-10-14T035226Z.json
+
+## f1b-locale-restore-failed (codex Q6: delete and readback failed)
+OLD: NEW-DOCUMENT WORKS EN/chrome=PASS,EN/firefox=PASS,TW/chrome=PASS,TW/firefox=PASS problems=[]
+NEW: NEW-DOCUMENT NOT_ESTABLISHED EN/chrome=PASS,EN/firefox=PASS,TW/chrome=PASS,TW/firefox=PASS problems=["admin settings not restored: {'lang': {'key': 'lang', 'value': 'zh_TW', 'exit': 0, 'readback': 'zh_TW'}, 'locale': {'key': 'locale', 'value': None, 'exit': 1, 'readback': None}, 'ok': True}"]
+
+## f2-offers-not-read
+OLD: NEW-DOCUMENT WORKS EN/chrome=PASS,EN/firefox=PASS,TW/chrome=PASS,TW/firefox=PASS problems=[]
+NEW: NEW-DOCUMENT NOT_ESTABLISHED EN/chrome=N5,EN/firefox=N5,TW/chrome=N5,TW/firefox=N5 problems=["TW/chrome ['N5']", "TW/firefox ['N5']", "EN/chrome ['N5']", "EN/firefox ['N5']"]
+
+## f2b-a11y-block-missing
+OLD: NEW-DOCUMENT WORKS EN/chrome=PASS,EN/firefox=PASS,TW/chrome=PASS,TW/firefox=PASS problems=[]
+NEW: NEW-DOCUMENT NOT_ESTABLISHED EN/chrome=N5,EN/firefox=N5,TW/chrome=N5,TW/firefox=N5 problems=["TW/chrome ['N5']", "TW/firefox ['N5']", "EN/chrome ['N5']", "EN/firefox ['N5']"]
+
+## f3-generation-unread
+OLD: NEW-DOCUMENT WORKS EN/chrome=PASS,EN/firefox=PASS,TW/chrome=PASS,TW/firefox=PASS problems=[]
+NEW: NEW-DOCUMENT NOT_ESTABLISHED EN/chrome=N4,EN/firefox=N4,TW/chrome=N4,TW/firefox=N4 problems=["TW/chrome ['N4']", "TW/firefox ['N4']", "EN/chrome ['N4']", "EN/firefox ['N4']"]
+
+## f4-cached-old-document (codex N3)
+OLD: NEW-DOCUMENT WORKS EN/chrome=PASS,EN/firefox=PASS,TW/chrome=PASS,TW/firefox=PASS problems=[]
+NEW: NEW-DOCUMENT NOT_ESTABLISHED EN/chrome=PASS,EN/firefox=PASS,TW/chrome=N4,TW/firefox=PASS problems=["TW/chrome ['N4']"]
+
+## f4b-extra-paragraph (codex N4)
+OLD: NEW-DOCUMENT WORKS EN/chrome=PASS,EN/firefox=PASS,TW/chrome=PASS,TW/firefox=PASS problems=[]
+NEW: NEW-DOCUMENT NOT_ESTABLISHED EN/chrome=PASS,EN/firefox=N4,TW/chrome=PASS,TW/firefox=PASS problems=["EN/firefox ['N4']"]
+
+## f5-fileid-replaced (opus N4+N5)
+OLD: NEW-DOCUMENT WORKS EN/chrome=PASS,EN/firefox=PASS,TW/chrome=PASS,TW/firefox=PASS problems=[]
+NEW: NEW-DOCUMENT NOT_ESTABLISHED EN/chrome=N5,EN/firefox=N5,TW/chrome=N5,TW/firefox=N5 problems=["TW/chrome ['N5']", "TW/firefox ['N5']", "EN/chrome ['N5']", "EN/firefox ['N5']"]
+
+## f6-share-allows-create (codex N8a)
+OLD: NEW-DOCUMENT WORKS EN/chrome=PASS,EN/firefox=PASS,TW/chrome=PASS,TW/firefox=PASS problems=[]
+NEW: NEW-DOCUMENT NOT_ESTABLISHED EN/chrome=PASS,EN/firefox=PASS,TW/chrome=PASS,TW/firefox=PASS problems=["N8 create 403 admin sees None other perms 'SRGDNVCK'"]
+
+## f7-stopped-no-runs-shakedown
+OLD: NEW-DOCUMENT WORKS - problems=[]
+NEW: NEW-DOCUMENT NOT_ESTABLISHED - problems=["no complete run: 0 runs, stopped 'kwallet locked'"]
+
+## f7b-no-runs-shakedown
+OLD: NEW-DOCUMENT WORKS - problems=[]
+NEW: NEW-DOCUMENT NOT_ESTABLISHED - problems=['no complete run: 0 runs, stopped None']
+
+## q3-next-host (0.2.20-shaped, bindings not moved)
+OLD: NEW-DOCUMENT NOT_ESTABLISHED EN/chrome=PASS,EN/firefox=PASS,TW/chrome=PASS,TW/firefox=PASS problems=['N9 engine package buildId aaaaaaaaaaaaaaaa page 9999999999999999999999999999999999999999999999999999999999999999', "N9 host changed outside the allowed paths: ['js/litecore-editor.js']", 'binding hostCommit 1234567 != afbaf3c', 'binding hostVersion 0.2.20 != 0.2.19']
+NEW: NEW-DOCUMENT NOT_ESTABLISHED EN/chrome=PASS,EN/firefox=PASS,TW/chrome=PASS,TW/firefox=PASS problems=['binding hostCommit 1234567 != afbaf3c', 'binding hostVersion 0.2.20 != 0.2.19', 'N9 binding engineBuildId not written', 'N9 binding pageSha256 not written']
+
+# Committed reports: OLD against NEW (a verdict that moved would be a finding)
+
+SAME  runs/2026-10-14T034231Z.json
+  OLD: NEW-DOCUMENT NOT_ESTABLISHED EN/chrome=N1+N2+N3+N4+N5+N6,EN/firefox=PASS,TW/chrome=N1+N2+N3+N4+N5+N6,TW/firefox=PASS problems=["TW/chrome ['N1', 'N2', 'N3', 'N4', 'N5', 'N6']", "EN/chrome ['N1', 'N2', 'N3', 'N4', 'N5', 'N6']"]
+  NEW: NEW-DOCUMENT NOT_ESTABLISHED EN/chrome=N1+N2+N3+N4+N5+N6,EN/firefox=PASS,TW/chrome=N1+N2+N3+N4+N5+N6,TW/firefox=PASS problems=["TW/chrome ['N1', 'N2', 'N3', 'N4', 'N5', 'N6']", "EN/chrome ['N1', 'N2', 'N3', 'N4', 'N5', 'N6']"]
+
+SAME  runs/2026-10-14T035226Z.json
+  OLD: NEW-DOCUMENT WORKS EN/chrome=PASS,EN/firefox=PASS,TW/chrome=PASS,TW/firefox=PASS problems=[]
+  NEW: NEW-DOCUMENT WORKS EN/chrome=PASS,EN/firefox=PASS,TW/chrome=PASS,TW/firefox=PASS problems=[]
+
+SAME  shakedown/2026-10-14T032036Z.json
+  OLD: NEW-DOCUMENT NOT_ESTABLISHED TW/chrome=PASS problems=["N9 product paths touched: ['wasm_sdk_probe/Makefile']", 'N8 create None admin sees None other perms None']
+  NEW: NEW-DOCUMENT NOT_ESTABLISHED TW/chrome=PASS problems=["N9 product paths touched: ['wasm_sdk_probe/Makefile']", 'N8 create None admin sees None other perms None']
+
+SAME  shakedown/2026-10-14T032312Z.json
+  OLD: NEW-DOCUMENT NOT_ESTABLISHED EN/chrome=N4,EN/firefox=N4,TW/chrome=N1+N2+N3+N4+N5+N6,TW/firefox=PASS problems=["TW/chrome ['N1', 'N2', 'N3', 'N4', 'N5', 'N6']", "EN/chrome ['N4']", "EN/firefox ['N4']"]
+  NEW: NEW-DOCUMENT NOT_ESTABLISHED EN/chrome=N4,EN/firefox=N4,TW/chrome=N1+N2+N3+N4+N5+N6,TW/firefox=PASS problems=["TW/chrome ['N1', 'N2', 'N3', 'N4', 'N5', 'N6']", "EN/chrome ['N4']", "EN/firefox ['N4']"]
+
+SAME  shakedown/2026-10-14T034020Z.json
+  OLD: NEW-DOCUMENT NOT_ESTABLISHED EN/chrome=PASS,TW/chrome=PASS problems=['N8 create None admin sees None other perms None']
+  NEW: NEW-DOCUMENT NOT_ESTABLISHED EN/chrome=PASS,TW/chrome=PASS problems=['N8 create None admin sees None other perms None']
+
