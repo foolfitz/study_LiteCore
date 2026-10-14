@@ -229,4 +229,61 @@
 
 ## 7. 結果
 
-（執行後 append；只准 append，更正寫在後面並指名取代什麼。）
+（只准 append，更正寫在後面並指名取代什麼。）
+
+### 7.1 判定（2026-10-14）
+
+**計數執行 `findings/evidence/new-document/runs/2026-10-14T035226Z.json`：`NEW-DOCUMENT WORKS`**——兩臂 × 兩瀏覽器四格 N1–N6 全 PASS，
+N8／N9／N10／N12 全綠，admin 的語言設定還原成量測前的值（`zh_TW`／沒設 locale）。紅案 29 個全紅、基線綠（`--red-cases` 2026-10-14 ~04:00Z）。
+綁定：宿主 **0.2.19** `afbaf3c`（乾淨）、`blank/MANIFEST.json` `e5cdb8e2…`、引擎包 buildId `d6d04880f56e31da`、頁面 `b24d754a…`——後兩者**等於 0.2.18**。
+study_LiteCore 這一輪的 commit `503263d2`、`b893e7bf` 沒碰任何產品路徑。runner sha256 `f9a46a05…`。
+
+**0.2.19 是未計數候選**（§4 計數語意；五小時計數鏈併到下一個改引擎的批次）。
+
+| 格 | 瀏覽器 | `navigator.language` | 建出的檔 | 點進第一行 | 三鍵 revision | 存檔 | 伺服器 `styles.xml`（W／A／C、字型、紙張） | 重開 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| TW | Chrome 151 | zh-TW | 3,940 B＝`en-US_zh-TW_A4` | 405 ms | 0→1→2→3，世代 1 | saved，7,958 B，`zqx` ×1 | en-US／zh-TW／hi-IN，Serif／**TC**／Sans，**A4** 210.01×297 | ready，拿到存回的位元組 |
+| TW | Firefox 157 | **en-US** | 同上 | 407 ms | 同上 | saved，7,957 B | **同上**（`styles.xml` sha `5addf7dc…` 與 Chrome 逐位元組相同） | ready |
+| EN | Chrome 151 | zh-TW | 3,939 B＝`en-US_zh-TW_Letter` | 406 ms | 同上 | saved，7,995 B | en-US／zh-TW／hi-IN，Serif／TC／Sans，**Letter** 215.9×279.4 | ready |
+| EN | Firefox 157 | en-US | 同上 | 405 ms | 同上 | saved，7,997 B | **同上**（sha `09d2dd95…` 與 Chrome 相同） | ready |
+
+兩個瀏覽器的 UI 語言不同（Chrome zh-TW、Firefox en-US），同一臂的 `styles.xml` 仍逐位元組相同：**瀏覽器語言漏不進新建的文件**（分析 1 的 Q1 在新建文件上已關閉）。
+
+- **N1**：清單恰一個 `litecore` creator，`.odt`，mimetypes 恰 `[odt]`；Files 選單有 `template-new-litecore-1`「新文字文件」（admin 語言 en 時顯示 "New document"）。
+  **紅案**：升級前對真的 0.2.18（`96a87d8`）量到清單只有 `text` 的 creator（`control-0.2.18/2026-10-14T031813Z.json`）。
+- **N2**：四格建出的位元組都等於 MANIFEST 裡該臂的檔；`BlankDocument::choose` 的答案與臂一致（TW：`country TW, from language`；EN：`country US, from locale`）。
+- **N5 的 a11y 半**：四格 `#a11y-doc[data-offers]="0"`→**`NOT_OFFERED`**（出貨 v19 沒有 caret paragraph text；預測 3 成立）。「重開看得到」由位元組那半承載。
+- **N7 (b)**：`red-corrupt/2026-10-14T031918Z.json`——藏起 MANIFEST → OCS **403**「無法從範本建立檔案」、資料夾裡沒有檔、MANIFEST 還原、`git status` 乾淨；
+  還原後同一請求 200 且位元組等於 `en-US_zh-TW_A4`（3,940 B，`7e6221b6…`）。
+- **N8**：`lcprobe` 對唯讀分享（`SGDN`）的資料夾 OCS 建立 → **403** "Failed to create file from template"，admin 看不到檔；（資料）lcprobe 在該資料夾的 Files
+  頁面**沒有渲染「＋ 新增」**（`[data-cy-upload-picker]` 不存在），所以使用者根本按不到。
+- **N10**：30／30 過 `odfvalidator -e`，MANIFEST 雜湊全對；richdocuments 的 `template.odt` 紅（mimetype extra field）。
+- **N11**：原生 8／8（`native-roundtrip/`），對照組亞洲語言 en_US→zh-CN、zh_TW→zh-TW。
+- **N12**：58 個語言 × 3 地區＝174 組輸入，30 個檔，兩個方向封閉；紅案（PHP 表多加 `pl`）轉紅。
+
+### 7.2 預測對帳
+
+1. N1–N6 四格全綠、TW A4、EN Letter、亞洲 zh-TW、TC：**成立**。
+2. 兩瀏覽器同臂 `styles.xml` 逐位元組相同：**成立**（兩臂都是）。
+3. `data-offers` 在 v19 是 "0"：**成立**。
+4. N11 八格全對、對照組分裂：**成立**。
+5. N7 (b) 403 無檔、N8 403 無檔：**成立**；N8 的「按鈕 disabled」實際是**整個 picker 不渲染**（比預測更強）。
+6. 第一次 shakedown 紅在儀器上：**成立，而且不止一次**（§4 修訂 1–5）——三個都是儀器：根目錄的 Readme.md 衝突對話框、Letter 上點進邊界、
+   前一趟的檔還被前一個 session 的鎖抓著（`DELETE` 423）。沒有一個是產品缺陷。
+
+### 7.3 順帶量到的（資料，不是判準）
+
+- **擁有者的 Templates 資料夾有 11 個 `.odt`**（Nextcloud 的範例範本：Calendar、Certificate、Invoice…），所以四格都看到範本選擇器（12 格、「空白」預選），
+  runner 按「建立」。沒有 `.odt` 範本的使用者會直接建立。
+- **關掉瀏覽器之後鎖還在**：counted 執行結束時的 `cleanup`，Chrome 兩格 **423**（session 由 CDP `Browser.close` 收掉，UNLOCK 沒到伺服器）、
+  Firefox 兩格 **204**（WebDriver 關 session 時 UNLOCK 有送到）。鎖 300 秒後自己失效。finding 105 的一族，非本輪範圍。
+- 開新建文件到 `ready`：Chrome 2.8 s、Firefox 3.1–3.4 s（熱快取的引擎）；重開 1.6–2.7 s。
+- `text` app 在根目錄的 `Readme.md` 就地編輯器會跳「檔案已被覆寫。無法自動儲存…」（`shakedown/2026-10-14T032312Z.json` TW/chrome 的 `landedInstead`）；
+  那是 Nextcloud `text` app 的行為，與本輪無關，但它會把同頁的對話框送出吞掉——使用者在根目錄建檔時若正好碰到，要先關掉那個對話框。
+
+### 7.4 之後
+
+- 擁有者手測 0.2.19：Files 任一資料夾「＋ 新增 → 新文字文件」、打字、存、重開；用桌面 LibreOffice 開存出的檔看段落樣式的語言與頁面大小（A4）。
+- D12（§3.5）進下一批連結的 `Language=` 討論：`en` 的紙張。
+- `Language=`（分析 1 的 B）在 v20 之後的連結批次；本輪的範本不受它影響（檔案自己寫明）。
+- 測試資料夾 `新文件 測試資料夾` 在 admin 的 Files 裡；runner 每趟結束會刪自己建的檔（鎖還在的那幾個留到鎖失效後再刪）。
