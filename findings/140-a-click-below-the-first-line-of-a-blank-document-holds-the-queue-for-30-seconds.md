@@ -41,3 +41,21 @@
 | 日期 | 內容 |
 |---|---|
 | 2026-10-14 | 登錄（任務 10-14f 的診斷）。`findings/README.md` 的索引只到 059，沒有可改的索引行（既有缺口）。052 的登錄說「已由 `editorPlaceCaretV2` 解決」，但對產品不成立，這裡記下來，不回頭改 052 的原文 |
+
+## 裁決（2026-10-14，fable 代擁有者；只追加，不改上文）
+
+**選 A：產品的 `placeCaret` 改成問引擎。** 引擎早就有這個入口（`editorPlaceCaretV2`，052 當年的處方）：它自己送滑鼠事件，點擊有造成游標回呼就在回呼時回答，點擊什麼都沒改、也沒有回呼，就在自己的 250 ms 期限到時把當下的游標讀回來回答，並在 `completion` 說明是哪一種。它只會被「可見游標」回呼完成，tile 或文件大小的回呼完成不了它，所以 finding 138 那種無關回呼騙不到它。v19 與 v20 兩個 profile 都有這個匯出，worker 用 `narrow-editor-v2` 把它開著，不用連結。056 那個「指紋那一半在 WASM 上是空的」的保留意見**與這次無關**：出貨的 Writer core 沒有 a11y，回答裡的段落指紋確實是空的，但這個修法一個字都不讀它，只用游標矩形、選取與 completion——這些跟 `getState` 給的是同一批欄位，056 量過的 38／251 ms 就是這一半。
+
+不選 B（「點在最後一行之下或文件只有一個空段落就直接接受」）：session 手上只有游標自己的那一個行框，沒有別的行框可比，「只有一個空段落」又要靠出貨 core 沒有的大綱；而且 B 只救空白頁，文件裡行與行之間、頁邊旁邊那些一樣「點了但沒動」的點擊還是等 30 秒。不選 C（縮短逾時）：那是把一次引擎處理正確的點擊改成 N 秒後拒絕，貼上一樣排在後面，提示一樣會跳。
+
+**引擎的回答不是收到就算數，仍然照 138 的判準判**：序號推進**而且**游標位置或選取跟點擊前讀到的不同，才算證據；只有序號推進不算。有證據就是基底原有的三種結果；沒有證據而游標在被點那一行，就跟今天一樣等滿寬限期後回 `already-at-target`；沒有證據又不在那一行——就是空白頁這一下——先給 core 同一段 400 ms 寬限期（048 的防護：core 還沒處理到這一下點擊時，期限讀回拿到的是舊游標；點擊在寬限期內落地會被重讀看到、照證據判），寬限期過了就回報「引擎回答了，游標留在原位」（`engine-answered-the-caret-stayed`，`caretOnClickedLine: false`），佇列不再被佔住。沒有這個入口的 client、worker 拒絕（`UNSUPPORTED_OPERATION`）、引擎在 barrier 後面忙（`BUSY`），都走 v67 原本的輪詢路徑，逾時與錯誤不變。**具名極限**：core 在寬限期之後才處理到的點擊，會帶著舊游標被當成「留在原位」——這跟「點在原點」那一條本來就有的界限相同；本機 core 處理一次點擊是 22–28 ms（048），要卡到十倍以上才會碰到。
+
+**實作與驗證**：只動 `editor-shell-v2/`（`narrow-editor-v2-session.js` 的 `placeCaret`、`paragraph-editor-client.js` 與 `narrow-editor-v2-client.js` 新增 `placeCaret` 請求、兩個 `.d.ts`）；`editor-shell/` 沒碰，`check_e1_c_bundle_intact.py` 改前改後都 intact。單元測試先紅後綠：`editor-shell-v2/tests/place-caret-blank-page.test.mjs` 13 項，在 v67 位元組上 7 項紅、候選全綠；138 的七條臂與對照原封不動仍綠；全套 412 → 425 全綠。瀏覽器見證用 `tools/probe_paste_latency.py`，界限先寫再跑（`insertText` 要在點擊後 1,500 ms 內送出）：v20 的紅案先量（v67 位元組配 v20 頁面：點擊後 30,007 ms、5,542 次輪詢）；候選在 v19（dist）與 v20（repoint 的頁面，沒有 `--write`）、Chrome 與 Firefox，頁面中間與往下 25% 的點擊都在 **405.9–412.8 ms** 回答（「定位游標 405–407 ms」，沒有拒絕提示，重讀 27–28 次），之後的貼上在 `paste` 事件後 1.3–2.2 ms 送出、revision 1；第一行點擊結果不變。表格與原始紀錄在 `findings/evidence/paste-latency/README.md`（Ruling、Witness 兩節）。
+
+**沒做的事**：沒有凍結殼層 generation（v68 由主 session 核過再凍）、沒有動宿主、沒有打包、沒有連結。`dist/editor-shell-v2/` 經 `make e2-c-assets`（只有三行 `cp`）放進候選位元組供見證，該目錄不在版控內。
+
+## 修訂紀錄（續）
+
+| 日期 | 內容 |
+|---|---|
+| 2026-10-14 | 裁決 A 並實作於 `editor-shell-v2/`，見證通過，狀態改為**已修、待凍結 v68**（上表「狀態」列原文保留） |

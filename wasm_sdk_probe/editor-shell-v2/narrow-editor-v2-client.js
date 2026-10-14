@@ -437,6 +437,9 @@ export class NarrowEditorV2Client {
 
   getState(options = {}) { return this.paragraph.getState(options); }
 
+  /** Finding 140: the engine's own answer to a click (see ParagraphEditorClient). */
+  placeCaret(xTwips, yTwips, options = {}) { return this.paragraph.placeCaret(xTwips, yTwips, options); }
+
   selectRange(start, end, options = {}) {
     return this.paragraph.selectRange(start, end, options);
   }

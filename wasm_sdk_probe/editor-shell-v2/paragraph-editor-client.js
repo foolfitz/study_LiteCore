@@ -177,6 +177,27 @@ export class ParagraphEditorClient {
     }, options);
   }
 
+  /**
+   * FINDING 140 (052's prescription, `queue-verify-caret-by-block-identity`).
+   * Click, and let the ENGINE say where the caret went.  The engine posts the
+   * mouse events itself and answers on the cursor callback the click caused,
+   * or -- a click that changes nothing, which is what every click below the
+   * first line of a blank page is -- at its own 250 ms readback deadline
+   * (`EditorPlaceCaretDeadlineMs`), with `completion` naming which.  Until
+   * now only the harness page `web/e2-c-block-identity-app.js` called this
+   * entry point; the product polled `getState` after `document.click` and, on
+   * a blank page, waited out its 30 s.  Gated like `getState`: the worker
+   * refuses it without `narrow-editor-v2`, which the caller turns into the
+   * polling path.
+   */
+  placeCaret(xTwips, yTwips, options = {}) {
+    this._assertAvailable();
+    return this.document._engine._request("editorPlaceCaretV2", {
+      documentHandle: this.document.handle,
+      xTwips, yTwips,
+    }, options);
+  }
+
   selectRange(start, end, options = {}) {
     this._assertAvailable();
     return this.document._engine._request("editorSelectRangeV2", {

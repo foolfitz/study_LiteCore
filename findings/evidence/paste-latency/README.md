@@ -90,3 +90,74 @@ Every measured wait is 30.0 s, in both browsers, and no phase of roughly ten sec
 | `wasm_sdk_probe/tools/probe_paste_latency.py` (repo root) | the probe; `--summarize raw/*.json` prints one line per run |
 
 Native (26.8, same binary as `new-document/probe-1-native-defaults`): `paste()` of the owner's text **6.7 ms** (40 paragraphs, 537 characters in the saved file, no LOK callback during the call); the same text through `postKeyEvent` one code point at a time **114.9 ms** (41 paragraphs: the trailing newline). The process dies with signal 11 at `destroy` after `saveAs`, after every number above was printed; not investigated.
+
+---
+
+# Ruling and fix (2026-10-14, fable on the owner's behalf; append-only from here)
+
+## The bound, stated before any run
+
+Candidate: `wasm_sdk_probe/editor-shell-v2/` with `placeCaret` asking the engine (`editorPlaceCaretV2`) first and judging its answer with finding 138's predicate; v67's polling kept as the fallback (details in the ruling section below, written after the witness so that it records what was run; the bound here was written first).
+
+Prediction, per arm of `probe_paste_latency.py --mode nohost`, owner text, both browsers, v19 profile (dist/) and v20 profile (a dist mirror with `build_cutover_page.py --profile e2-editor-v20 --out …`, never `--write`):
+
+- `page-middle` and `below-first-line` clicks: `insertText` is sent **within 1,500 ms of the click** (engine readback 250 ms + the 400 ms grace counted from the request + page and worker overheads; the red case on the current v67 bytes is 30,005–30,014 ms, measured above on v19, and is measured below on v20 before the candidate). The toast 「定位游標：EDITOR_CARET_NOT_PLACED…」 must not appear; the pill must return to 就緒 before the paste lands; 40 paragraphs must still be the result (`revision` 1 after the paste).
+- `first-line` click: unchanged in outcome — `#s-latency` 「定位游標 N ms」 with N ≤ 500 (today 322–405 ms by the grace; the engine path may answer earlier on the cursor callback), engine insert within the ranges above (7–25 ms), `insertText` sent within 5 ms of the paste event.
+- Nothing else on the path changes: one `paste` event, one `insertText`, `method: "paste"`, no `beforeinput`.
+
+If any arm misses the bound, the candidate is not frozen and the miss is recorded here as measured.
+
+## Ruling (fable, on the owner's behalf, 2026-10-14): A — the product's `placeCaret` asks the engine
+
+**Chosen: A**, finding 052's own prescription, with finding 138's predicate kept as the judge of the engine's answer and finding 048's grace kept as the guard. Not B, not C.
+
+- **A** (`editorPlaceCaretV2`): the engine posts the mouse events itself and answers on the cursor callback the click caused (`documented-callback-visible-cursor`) or, when the click changed nothing and no callback came, at its own 250 ms readback deadline (`verified-caret-readback`; `src/probe_engine.cpp:5890–5936`, `EditorPlaceCaretDeadlineMs = 250`). It completes only on the visible-cursor callback (`completePendingEditorOperation`), never on a tile or size callback, so 138's lone bump cannot end it. Reachable on the shipped profiles: the worker gates it on `narrow-editor-v2` version 2 (`sdk/sdk-worker.js:48,184,1552`), which v19 and v20 both declare; `_oxsdk_editor_place_caret` is in both `probe.js` export tables (`Module["_oxsdk_editor_place_caret"]`). No relink. **056's caveat**: the answer's `caretParagraph` half (the a11y fingerprint) is empty on the shipped Writer cores (`ENABLE_WASM_STRIP_ACCESSIBILITY` → `refreshCaretParagraph` is a no-op; v19/v20 are not the a11y core) — this fix never reads it; it uses the `caret` rectangle, the `selection` and `completion`, which come from the cursor/selection callbacks and `appendEditorState`, the same fields `getState` already serves. 056 measured the bounded half as 38 ms (callback) / 251 ms (readback) on WASM; that is the half used here.
+- **B** (narrower exit: accept when the click is below the last line box / the document is one empty paragraph) was rejected: the session has no line boxes but the caret's own (v20's page rectangles are pages, not lines, and v19 has none), "one empty paragraph" would need the outline the stripped cores do not carry, and B still leaves every other no-move click — between two lines in a document with text, in a margin beside an unchanged caret — on the 30 s path. It is a special case of a problem the engine already answers generally.
+- **C** (shorter timeout) was rejected: it turns a legitimate click into a refusal after N seconds instead of 30, still holds the paste behind it, and still shows the EDITOR_CARET_NOT_PLACED toast for a click the engine handled correctly.
+
+**What was kept, by test** (`editor-shell-v2/tests/place-caret-blank-page.test.mjs`, red first — 7 of 13 red on the v67 bytes, 13/13 on the candidate; `place-caret-acknowledgement.test.mjs`'s seven 138 arms and controls untouched and green; full suite 412 → 425, all green; `check_e1_c_bundle_intact.py` intact before and after):
+
+- 138: the engine's answer is judged — evidence = the sequence advanced AND the caret position or the selection differs from the pre-click read; never the sequence alone. A lone unrelated callback inside the window does not end the wait; the click's own evidence does.
+- 048: an answer without evidence is not accepted on arrival. The core gets the same `caretAckGraceMs` (400 ms, counted from the request) the identical-point click has always had, re-read every 5 ms; a click landing inside the grace is seen and judged (test: the readback at 250 ms carries the old caret, the click lands at 300 ms on another line → `engine-moved-the-caret-off-the-clicked-line` with the new caret, and the next command sees it).
+- 052: a click the engine answers by moving the caret to another line → the base's `engine-moved-the-caret-off-the-clicked-line`, on the cursor callback, no grace paid.
+- identical point: `already-at-target` after the grace, as before.
+- the new case: no evidence and off the line after the grace → `engine-answered-the-caret-stayed`, `caretOnClickedLine: false`, the engine's caret in `state`, plus `completion`. One new `caretConfirmedBy` value; nothing in `web/` reads the field (grep). The page is unchanged.
+- fallback: a client without `placeCaret`, a worker that refuses it (`UNSUPPORTED_OPERATION`) or an engine `BUSY` behind a barrier take v67's polling loop unchanged, with its timeout and its EDITOR_CARET_NOT_PLACED error and details; any other engine error is the caller's.
+- **named limit** (test): a click the core processes only after the grace (> 400 ms from the request) is accepted as "stayed" with the old caret — the same bound the identical-point click has always had. On this machine the core processes a click in 22–28 ms (048); a stall ten times that would be needed.
+
+**Cost**: a blank-page click now ends at ≈ 400 ms (readback 250 + grace to 400) instead of 30 s; the first-line click, which already paid the grace (`already-at-target`), is unchanged at ≈ 405 ms; a click that moves the caret is answered by the callback (tens of ms) with no grace, as 138's arms require. Polls per click: ≈ 28 `getState` re-reads during the grace instead of 5,300–5,550.
+
+**Touched**: `editor-shell-v2/narrow-editor-v2-session.js` (`placeCaret` override, `PLACE_CARET_FALLBACK_CODES`), `editor-shell-v2/paragraph-editor-client.js` + `narrow-editor-v2-client.js` (`placeCaret` request method, `.d.ts` both), the new test file, and `tools/probe_paste_latency.py` (`--root dir --root-dir`, shell identity in the no-host reports). Not touched: `editor-shell/` (E1-C), `web/`, `sdk/`, `src/`, the Makefile, the host, any profile. `dist/editor-shell-v2/` was refreshed by `make e2-c-assets` (three `cp` lines, checked with `make -n` first) so that the witness served the candidate; that directory is git-ignored, so nothing of dist is committed here and the main session's v68 freeze copies the same bytes from source. **No shell generation was frozen; no host was changed.**
+
+
+## Witness (after the bound above; the probe's rows, `tables.py` output filtered to these runs)
+
+Red first on the v20 profile too: `mirror-v20-red` = dist symlinked + the v20 candidate page (`build_cutover_page.py --profile e2-editor-v20 --out …`, page `53019168…`) + the three `editor-shell-v2` files at HEAD `b05f081b` (session `77841656…` = the v67 bytes), materialised so that `make e2-c-assets` could not touch it. Then `make e2-c-assets` (three `cp` lines) and the candidate: v19 = `dist/` (page `7815e16c…`), v20 = `mirror-v20-candidate` (the same v20 page over dist's symlinks); candidate session `fc5ac883…`.
+
+| report | mode | browser | arm (lines/chars/CJK) | click (ms before key) | click resolved (ms after click) | paste event | insertText sent | engine insert | getState | pill ready | last blit | getState polls before insert | autosave PUT answered | saved paragraphs |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| `nohost-dir-mirror-v20-candidate-chrome-first-line-cand-v20-2026-10-14T073555Z.json` | nohost/dir | chrome | owner (40/577/389) | first-line (waited) | 定位游標 408 ms | 0.4 | 1.8 | 17.0 | 3.0 | 21.7 | 214.4 | 0 | – | – |
+| `nohost-dir-mirror-v20-candidate-chrome-page-middle-cand-v20-2026-10-14T073539Z.json` | nohost/dir | chrome | owner (40/577/389) | page-middle (1,410.6) | 409.2 (定位游標 408 ms) | 0.4 | 1.8 | 17.5 | 1.1 | 20.3 | 244.8 | 29 | – | – |
+| `nohost-dir-mirror-v20-candidate-firefox-below-first-line-cand-v20-2026-10-14T073635Z.json` | nohost/dir | firefox | owner (40/577/389) | below-first-line (1,331.6) | 412.0 (定位游標 406 ms) | 0.3 | 1.6 | 10.0 | 1.1 | 12.7 | 215.1 | 28 | – | – |
+| `nohost-dir-mirror-v20-candidate-firefox-page-middle-cand-v20-2026-10-14T073611Z.json` | nohost/dir | firefox | owner (40/577/389) | page-middle (1,331.9) | 410.6 (定位游標 405 ms) | 0.2 | 1.4 | 7.9 | 0.8 | 10.1 | 201.1 | 28 | – | – |
+| `nohost-dir-mirror-v20-red-chrome-page-middle-red-v20-2026-10-14T073706Z.json` | nohost/dir | chrome | owner (40/577/389) | page-middle (1,411.5) | 30,006.9 (定位游標 失敗) | 0.4 | 28,595.2 | 12.2 | 0.9 | 28,608.2 | 28,819.8 | 5542 | – | – |
+| `nohost-dist-chrome-below-first-line-cand-v19-2026-10-14T073419Z.json` | nohost/dist | chrome | owner (40/577/389) | below-first-line (1,410.9) | 405.9 (定位游標 405 ms) | 0.4 | 1.6 | 14.9 | 1.1 | 17.5 | 238.1 | 28 | – | – |
+| `nohost-dist-chrome-first-line-cand-v19-2026-10-14T073435Z.json` | nohost/dist | chrome | owner (40/577/389) | first-line (waited) | 定位游標 407 ms | 0.4 | 2.0 | 12.8 | 1.0 | 15.7 | 259.2 | 0 | – | – |
+| `nohost-dist-chrome-page-middle-cand-v19-2026-10-14T073404Z.json` | nohost/dist | chrome | owner (40/577/389) | page-middle (1,411.9) | 406.3 (定位游標 405 ms) | 0.7 | 2.2 | 18.0 | 1.1 | 21.3 | 243.2 | 28 | – | – |
+| `nohost-dist-firefox-first-line-cand-v19-2026-10-14T073515Z.json` | nohost/dist | firefox | owner (40/577/389) | first-line (waited) | 定位游標 405 ms | 0.2 | 1.8 | 8.3 | 0.9 | 11.0 | 205.5 | 0 | – | – |
+| `nohost-dist-firefox-page-middle-cand-v19-2026-10-14T073451Z.json` | nohost/dist | firefox | owner (40/577/389) | page-middle (1,331.6) | 412.8 (定位游標 406 ms) | 0.2 | 1.3 | 8.8 | 1.0 | 11.0 | 212.9 | 27 | – | – |
+
+| report | profile | page | shell session | preflight (KWallet / chrome / other runners) |
+| --- | --- | --- | --- | --- |
+| `nohost-dir-mirror-v20-candidate-chrome-first-line-cand-v20-2026-10-14T073555Z.json` | e2-editor-v20 | `53019168…` | `fc5ac883…` | b false / 31 / [] |
+| `nohost-dir-mirror-v20-candidate-chrome-page-middle-cand-v20-2026-10-14T073539Z.json` | e2-editor-v20 | `53019168…` | `fc5ac883…` | b false / 28 / [] |
+| `nohost-dir-mirror-v20-candidate-firefox-below-first-line-cand-v20-2026-10-14T073635Z.json` | e2-editor-v20 | `53019168…` | `fc5ac883…` | b false / 29 / [] |
+| `nohost-dir-mirror-v20-candidate-firefox-page-middle-cand-v20-2026-10-14T073611Z.json` | e2-editor-v20 | `53019168…` | `fc5ac883…` | b false / 31 / [] |
+| `nohost-dir-mirror-v20-red-chrome-page-middle-red-v20-2026-10-14T073706Z.json` | e2-editor-v20 | `53019168…` | `77841656…` | b false / 33 / [] |
+| `nohost-dist-chrome-below-first-line-cand-v19-2026-10-14T073419Z.json` | e2-editor-v19 | `7815e16c…` | `fc5ac883…` | b false / 31 / [] |
+| `nohost-dist-chrome-first-line-cand-v19-2026-10-14T073435Z.json` | e2-editor-v19 | `7815e16c…` | `fc5ac883…` | b false / 31 / [] |
+| `nohost-dist-chrome-page-middle-cand-v19-2026-10-14T073404Z.json` | e2-editor-v19 | `7815e16c…` | `fc5ac883…` | b false / 30 / [] |
+| `nohost-dist-firefox-first-line-cand-v19-2026-10-14T073515Z.json` | e2-editor-v19 | `7815e16c…` | `fc5ac883…` | b false / 31 / [] |
+| `nohost-dist-firefox-page-middle-cand-v19-2026-10-14T073451Z.json` | e2-editor-v19 | `7815e16c…` | `fc5ac883…` | b false / 30 / [] |
+
+**Against the bound**: every `page-middle` and `below-first-line` arm on the candidate resolved the click at **405.9–412.8 ms after the click** (`#s-latency` 「定位游標 405–407 ms」, no EDITOR_CARET_NOT_PLACED toast), 27–28 `getState` re-reads instead of 5,300–5,550, and the paste that followed 1.3–1.4 s later was sent 1.3–2.2 ms after its `paste` event — within the stated 1,500 ms by a factor of three; `revision` 1 after the paste in every arm (the paste landed). Both browsers, both profiles. The red case on the v20 page (`red-v20`, the v67 bytes) is 30,007 ms after the click with 5,542 polls — the same shape as v19's `r2`/`r3`/`r6`/`r7`. The `first-line` arms are unchanged in outcome (「定位游標 405–407 ms」, engine insert 8.3–17.0 ms, `insertText` 1.8–2.0 ms after the paste event; the 322–328 ms the v67 Firefox rows showed for this arm came from the polling loop's grace being counted after `document.click` returned, the engine path counts it from the request). One `paste` event, one `insertText`, `method: "paste"`, no `beforeinput`, in every arm. **The bound holds; the candidate is not frozen here (the main session freezes v68).**

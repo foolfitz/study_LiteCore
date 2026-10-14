@@ -36,6 +36,13 @@ import { NarrowEditorV2Client, EDITOR_V3_ACTIONS }
 import { EDITOR_V2_PARAGRAPH_ACTIONS } from "./paragraph-editor-client.js";
 import { recoveryFor } from "./paragraph-editor-session.js";
 
+// Finding 140: the engine's place-caret answers that send `placeCaret` down
+// v67's polling path instead of failing the click -- a profile whose worker
+// does not carry the entry point, and an engine BUSY behind a barrier (the
+// selection barrier, the format barrier, or another callback-correlated
+// operation still pending).  Everything else is the caller's error.
+const PLACE_CARET_FALLBACK_CODES = new Set(["BUSY", "UNSUPPORTED_OPERATION"]);
+
 const PARAGRAPH = new Set(EDITOR_V2_PARAGRAPH_ACTIONS);
 // EDITOR_V3_ACTIONS, not EDITOR_V2_ACTIONS: this set is the SESSION's own
 // allowlist, a second copy of the client's, and it was the layer the ABI 4
@@ -604,6 +611,42 @@ export class NarrowEditorV2Session extends EditorSession {
    *
    * NOT MEASURED ON WASM whether a lone tile or size callback occurs inside a
    * click's window (finding 138 says so); the harness is the evidence.
+   *
+   * FINDING 140 (ruling, 2026-10-14).  The wait above has two exits, and on a
+   * blank page a click anywhere below the first line closes both: the caret
+   * is not on the clicked line (there is no line there) and the engine clamps
+   * it to the one position it already has, so it never moves.  Measured on
+   * the owner's path: 30.0 s, 5,328-5,550 `getState` polls, then
+   * EDITOR_CARET_NOT_PLACED, with the paste the user made meanwhile queued
+   * behind it (findings/evidence/paste-latency/).  This is 052's named
+   * residual ("the second click outside the text") met on the FIRST click of
+   * every new document.
+   *
+   * THE FIX IS 052'S PRESCRIPTION: ask the engine.  `editorPlaceCaretV2`
+   * posts the mouse events itself and answers on the cursor callback the
+   * click caused, or -- when the click changed nothing and no callback came
+   * -- at its own 250 ms readback deadline, naming which in `completion`.  It
+   * never completes on a tile or size callback (its required callback is the
+   * visible cursor), so 138's lone bump cannot end it.  The answer is still
+   * JUDGED here with 138's predicate, never trusted for having arrived: on
+   * evidence, the three verdicts the base has; without evidence and on the
+   * clicked line, `already-at-target` after the grace, as today; without
+   * evidence and off the line -- the blank-page click -- the same grace is
+   * given first (048: a core that has not processed the click yet answers the
+   * readback with the old caret; a click landing inside the grace is seen by
+   * the re-read and judged as evidence), and then the click is reported
+   * answered with the caret where the engine left it:
+   * `engine-answered-the-caret-stayed`, `caretOnClickedLine: false`.  The
+   * queue is no longer held: the paste behind it goes out at ≈ 0.4 s instead
+   * of 30 s.  A click the core processes only AFTER the grace is accepted with
+   * the old caret -- the same bound the identical-point click has always had,
+   * named in the tests.
+   *
+   * THE POLLING PATH STAYS as the fallback: a client without the entry point,
+   * a profile whose worker refuses it (UNSUPPORTED_OPERATION), or an engine
+   * that is BUSY behind a barrier take v67's loop below, unchanged, with the
+   * same timeout and error.  Any other engine error is the caller's.
+   * `caretConfirmedBy` gains one value; nothing in the page reads it.
    */
   placeCaret(xTwips, yTwips, options = {}) {
     return this._enqueue("place-caret", async ({ document, editor }) => {
@@ -613,28 +656,67 @@ export class NarrowEditorV2Session extends EditorSession {
       const beforeSequence = before?.sourceSequence ?? null;
       const beforeCaret = before?.caret ?? null;
       const beforeSelection = before?.selection ?? null;
-      const started = Date.now();
-      await document.click(xTwips, yTwips, options);
-      let state = before;
-      do {
-        state = await editor.getState(options);
+      const judge = (state) => {
         const sequenceAdvanced = state?.sourceSequence !== beforeSequence;
         const onTarget = caretIsOnLine(state?.caret, yTwips);
         const caretMoved = caretDiffers(state?.caret, beforeCaret);
         const selectionChanged = selectionDiffers(state?.selection ?? null, beforeSelection);
         // The click's own evidence, never the sequence alone.
-        const acknowledged = sequenceAdvanced && (caretMoved || selectionChanged);
-        if ((onTarget && (acknowledged || Date.now() - started >= graceMs))
-            || (acknowledged && caretMoved)) {
-          return {
-            state,
-            revision: document.revision,
-            caretConfirmedBy: onTarget
-              ? (acknowledged ? "engine-acknowledged" : "already-at-target")
-              : "engine-moved-the-caret-off-the-clicked-line",
-            caretOnClickedLine: onTarget,
-            caretWaitedMs: Date.now() - started,
-          };
+        return { sequenceAdvanced, onTarget, caretMoved, selectionChanged,
+                 acknowledged: sequenceAdvanced && (caretMoved || selectionChanged) };
+      };
+      const placed = (state, started, confirmedBy, onTarget, extra = {}) => ({
+        state,
+        revision: document.revision,
+        caretConfirmedBy: confirmedBy,
+        caretOnClickedLine: onTarget,
+        caretWaitedMs: Date.now() - started,
+        ...extra,
+      });
+
+      // Finding 140: the engine's own answer first.
+      if (typeof editor.placeCaret === "function") {
+        const started = Date.now();
+        let answer = null;
+        try {
+          answer = await editor.placeCaret(xTwips, yTwips, {
+            ...options, timeoutMs: options.timeoutMs ?? timeoutMs,
+          });
+        } catch (error) {
+          if (!PLACE_CARET_FALLBACK_CODES.has(error?.code)) throw error;
+          answer = null;   // BUSY or no such entry point: v67's loop below
+        }
+        if (answer !== null) {
+          let state = answer.state ?? await editor.getState(options);
+          let verdict = judge(state);
+          // No evidence yet: the grace the identical-point click already
+          // pays, counted from the request, re-reading the core meanwhile.
+          while (!verdict.acknowledged && Date.now() - started < graceMs) {
+            await new Promise((resolve) => setTimeout(resolve, 5));
+            state = await editor.getState(options);
+            verdict = judge(state);
+          }
+          const extra = { completion: answer.completion ?? null };
+          if (verdict.onTarget)
+            return placed(state, started, verdict.acknowledged ? "engine-acknowledged" : "already-at-target", true, extra);
+          if (verdict.acknowledged)
+            return placed(state, started, "engine-moved-the-caret-off-the-clicked-line", false, extra);
+          return placed(state, started, "engine-answered-the-caret-stayed", false, extra);
+        }
+      }
+
+      // v67's path (finding 138), unchanged: post the click, poll for evidence.
+      const started = Date.now();
+      await document.click(xTwips, yTwips, options);
+      let state = before;
+      do {
+        state = await editor.getState(options);
+        const verdict = judge(state);
+        if ((verdict.onTarget && (verdict.acknowledged || Date.now() - started >= graceMs))
+            || (verdict.acknowledged && verdict.caretMoved)) {
+          return placed(state, started, verdict.onTarget
+            ? (verdict.acknowledged ? "engine-acknowledged" : "already-at-target")
+            : "engine-moved-the-caret-off-the-clicked-line", verdict.onTarget);
         }
         await new Promise((resolve) => setTimeout(resolve, 5));
       } while (Date.now() - started < timeoutMs);

@@ -60,6 +60,9 @@ export class ParagraphEditorClient {
   setParagraphStyle(style: "heading" | "body",
                     options?: RevisionOptions): Promise<EditorV2ActionResult>;
   getState(options?: AbortableOptions): Promise<unknown>;
+  /** Finding 140: the engine's own answer to a click (`editorPlaceCaretV2`):
+   *  `{ revision, completion, callbackSequenceBefore, callbackSequenceAfter, state }`. */
+  placeCaret(xTwips: number, yTwips: number, options?: AbortableOptions): Promise<unknown>;
   selectRange(start: { xTwips: number; yTwips: number },
               end: { xTwips: number; yTwips: number },
               options?: AbortableOptions): Promise<unknown>;

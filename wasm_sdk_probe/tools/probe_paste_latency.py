@@ -415,6 +415,7 @@ def run_nohost_arm(arm: str, kind: str, root_name: str, root: Path, scratch: Pat
     text = arm_text(arm)
     record: dict[str, Any] = {"arm": arm, "browser": kind, "mode": "nohost", "root": root_name, "text": shape(text), "clickWhere": where,
                               "page": sha256_file(root / "e2-editor-app.js"), "profile": pp.product_profile(root),
+                              "shellSession": sha256_file(root / "editor-shell-v2" / "narrow-editor-v2-session.js"),
                               "blank": {"path": str(BLANK), "sha256": sha256_file(BLANK)}, "startedAt": utc_now()}
     shutil.copyfile(BLANK, root / "blank.odt")
     port = free_port()
@@ -598,7 +599,8 @@ def summarize(reports: list[Path]) -> None:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--mode", choices=("host", "nohost"))
-    parser.add_argument("--root", choices=("host-engine", "dist"), default="host-engine")
+    parser.add_argument("--root", choices=("host-engine", "dist", "dir"), default="host-engine")
+    parser.add_argument("--root-dir", type=Path, help="with --root dir: a prepared page tree (e.g. a dist mirror with a repointed page)")
     parser.add_argument("--browser", choices=("chrome", "firefox"))
     parser.add_argument("--arms", default="owner,single,ascii")
     parser.add_argument("--click", choices=sorted(CLICKS), default="first-line")
@@ -673,9 +675,13 @@ def main() -> int:
             if args.root == "host-engine":
                 root = SCRATCH / "mirror-host-engine"
                 report["mirror"] = decompress_host_engine(root)
-            else:
+            elif args.root == "dist":
                 root = PROJECT / "dist"
                 report["mirror"] = {"root": "dist", "page": sha256_file(root / "e2-editor-app.js"), "profile": pp.product_profile(root)}
+            else:
+                root = args.root_dir.resolve()
+                report["mirror"] = {"root": str(root), "page": sha256_file(root / "e2-editor-app.js"), "profile": pp.product_profile(root),
+                                    "shell": {n: sha256_file(root / "editor-shell-v2" / n) for n in ("narrow-editor-v2-session.js", "narrow-editor-v2-client.js", "paragraph-editor-client.js")}}
             for arm in arms:
                 report["runs"].append(run_nohost_arm(arm, args.browser, args.root, root, SCRATCH / f"nohost-{args.browser}", args.click))
     finally:
@@ -683,7 +689,10 @@ def main() -> int:
         for run in report["runs"]:
             run["phases"] = phases(run)
         stamp = report["startedAt"].replace(":", "").replace("+0000", "Z")
-        out = out_dir / f"{args.mode}-{args.root if args.mode == 'nohost' else 'ddev'}-{args.browser}-{args.click}-{args.label}-{stamp}.json"
+        root_name = args.root if args.mode == "nohost" else "ddev"
+        if args.mode == "nohost" and args.root == "dir":
+            root_name = "dir-" + args.root_dir.name
+        out = out_dir / f"{args.mode}-{root_name}-{args.browser}-{args.click}-{args.label}-{stamp}.json"
         out.write_text(json.dumps(report, indent=1, ensure_ascii=False) + "\n")
         print(json.dumps({"report": str(out)}, ensure_ascii=False))
     summarize([out])

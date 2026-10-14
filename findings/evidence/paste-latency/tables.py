@@ -37,11 +37,11 @@ def main() -> int:
                 rows.append((path.name, run, p, None))
                 continue
             rows.append((path.name, run, p, report))
-    print("| report | mode | browser | arm (lines/chars/CJK) | click (ms before key) | paste event | insertText sent | engine insert | getState | pill ready | last blit | getState polls before insert | autosave PUT answered | saved paragraphs |")
-    print("|---|---|---|---|---|---|---|---|---|---|---|---|---|---|")
+    print("| report | mode | browser | arm (lines/chars/CJK) | click (ms before key) | click resolved (ms after click) | paste event | insertText sent | engine insert | getState | pill ready | last blit | getState polls before insert | autosave PUT answered | saved paragraphs |")
+    print("|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|")
     for name, run, p, report in rows:
         if report is None:
-            print(f"| `{name}` | {run.get('mode')} | {run.get('browser')} | {run.get('arm')} | | ERROR {p} | | | | | | | | |")
+            print(f"| `{name}` | {run.get('mode')} | {run.get('browser')} | {run.get('arm')} | | | ERROR {p} | | | | | | | | |")
             continue
         text = run.get("text") or {}
         click = run.get("clickWhere") or ("first-line" if run.get("clickAt") else "none")
@@ -49,8 +49,15 @@ def main() -> int:
         saves = p.get("saves") or []
         put = next((a.get("respondedAt") for s in saves for a in s.get("attempts") or [] if a.get("respondedAt") is not None), None)
         saved = (run.get("savedFile") or {}).get("paragraphs")
+        # The click's own end: the first #s-latency write after the click (「定位游標 N ms」 or 「定位游標 失敗」),
+        # as milliseconds after the click when the click was not waited for; the N the page shows otherwise.
+        latency = next((e for e in p.get("latencyTextAfter") or [] if str(e.get("value", "")).startswith("定位游標")), None)
+        if p.get("clickBeforeKeyMs") is not None and latency is not None:
+            resolved = f"{latency['at'] + p['clickBeforeKeyMs']:,.1f} ({latency['value']})"
+        else:
+            resolved = ((run.get("click") or {}).get("latency") or "–")
         print(f"| `{name}` | {run.get('mode')}{('/' + run['root']) if run.get('root') else ''} | {run.get('browser')} "
-              f"| {run.get('arm')} ({text.get('lines')}/{text.get('chars')}/{text.get('cjk')}) | {click_col} "
+              f"| {run.get('arm')} ({text.get('lines')}/{text.get('chars')}/{text.get('cjk')}) | {click_col} | {resolved} "
               f"| {fmt(p['pasteEvent'])} | {fmt(p['insertTextRequest'])} | {fmt(p['engineInsertMs'])} | {fmt(p['getStateMs'])} "
               f"| {fmt(p['pillReady'])} | {fmt(p['lastBlit'])} | {p['getStateRequestsBeforeInsert']} | {fmt(put)} | {fmt(saved)} |")
     return 0
