@@ -1525,8 +1525,9 @@ $(E2_V19_BUILD) $(E2_V19_DIST):
 # All of it sits behind OXSDK_E2_V20_LINK_BATCH (v20 part 1, 82af92ca), and
 # this is the only rule that defines it.
 # tools/check_merge_key_undo_scope.py checks the define's reach: with --base
-# 82af92ca^ (the tree before part 1) only this rule's probe_engine.o and
-# sdk_api.o may differ.
+# 82af92ca^ (the tree before part 1) only this rule's probe_engine.o, sdk_api.o
+# and editor_api.o (declarations only,
+# v20-part3/m1-1-witness/editor_api-define-diff.txt) may differ.
 # Otherwise v19's compile rule; editor ABI 4, unchanged.
 #
 # Two inputs are NOT v19's.  The worker is the tree's sdk/sdk-worker.js, not

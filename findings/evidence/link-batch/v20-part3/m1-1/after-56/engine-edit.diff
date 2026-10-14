@@ -1,0 +1,20 @@
+diff --git a/wasm_sdk_probe/src/probe_engine.cpp b/wasm_sdk_probe/src/probe_engine.cpp
+index 3fc959c3..c5857c07 100644
+--- a/wasm_sdk_probe/src/probe_engine.cpp
++++ b/wasm_sdk_probe/src/probe_engine.cpp
+@@ -3515,11 +3515,13 @@ void finishMergeKeyError(const char *stage) {
+        << jsonEscape(message.c_str()) << "\",\"where\":\"editor-action\""
+        << ",\"msg\":\"" << jsonEscape(message.c_str()) << "\""
+        << ",\"mergeKey\":{\"keyPosted\":" << (keyPosted ? "true" : "false")
+-       << ",\"stage\":\"" << jsonEscape(stage) << "\",\"restorePresses\":0}";
+ #ifdef OXSDK_E2_V20_LINK_BATCH
++       << ",\"stage\":\"" << jsonEscape(stage) << "\",\"restorePresses\":0}";
+   appendCaretBefore(json, transaction);
+-#endif
+   json << "}";
++#else
++       << ",\"stage\":\"" << jsonEscape(stage) << "\",\"restorePresses\":0}}";
++#endif
+   emitJson(json.str());
+   finishAsynchronous(transaction.requestId);
+ }
