@@ -317,6 +317,144 @@ function updatePageStatus() {
   el.pageStatus.hidden = false;
 }
 
+/* ---------------------------------------------------------- scroll bubble */
+
+// SPEC-M3-scroll-page-bubble (the owner, 2026-10-14: 「拉著卷軸的游標旁邊會有
+// 一個泡泡顯示當前頁數」; ruled the same day: it shows on ANY scroll of the
+// desk -- thumb drag, wheel, keyboard, a caret the page follows -- and fades
+// after scrolling stops, because a native scrollbar cannot tell a thumb drag
+// from a wheel).  A second read-out of the page number, next to the thumb,
+// where the eyes are while scrolling; the status line (finding 143) stays.
+//
+// SAYS the status line's page part only, 「第 4 頁」 or 「第 4–5 頁」 (spec
+// §3.1): the same number the bar shows at the same instant, so the two never
+// disagree and the text criterion is equality.  「共 M 頁」 stays on the bar.
+//
+// PLACED by proportion (spec §3.2).  No API reads a scrollbar thumb's
+// position, so the page models it: f = scrollTop / (scrollHeight -
+// clientHeight), a thumb t = max(clientHeight² / scrollHeight, 20) px, an
+// arrow-button allowance a = 17 px when a classic scrollbar occupies width
+// (offsetWidth - clientWidth > 0; the overlay kind occupies none and has no
+// arrows), centre y = top + a + t/2 + f * (clientHeight - 2a - t), clamped so
+// the bubble stays inside the desk.  Named limit L-bubble-thumb-model: the
+// real thumb's length and the arrows are the browser's; the spec's N2 reads
+// the real thumb from a screenshot and allows 24 px.  The side is the
+// scrollbar's, read from the desk (`clientLeft` carries the bar's width in
+// RTL, MDN) and the desk's direction, never from the locale.  All in CSS px
+// from getBoundingClientRect, so zoom is nothing to it (L-bubble-zoom-untested).
+// Nothing to scroll (scrollHeight <= clientHeight) -> no thumb -> no bubble;
+// "one page" is not the rule, a one-page A4 still scrolls in a 794 px desk.
+//
+// MADE AND STYLED HERE, not in e2-editor.html: the html is bound by nothing
+// (finding 094), and inline CSSOM styles are out of reach of the host's
+// @scope and [hidden] overrides (finding 143's cost).  `position: fixed`, a
+// sibling after #desk: a child of the scroller would scroll with the paper.
+// aria-hidden, no role, no live region, no focus, pointer-events none:
+// scrolling must not speak (findings 087/088) and the bubble must not take
+// the keyboard from the sink.  `prefers-reduced-motion: reduce` -> no fade;
+// the 1 s hold is not motion and stays.
+const SCROLL_BUBBLE_HOLD_MS = 1000;      // after the last scroll event
+const SCROLL_BUBBLE_FADE_MS = 180;       // the toast's .18s
+const SCROLL_BUBBLE_THUMB_MIN_PX = 20;   // the model's shortest thumb
+const SCROLL_BUBBLE_ARROW_PX = 17;       // a classic bar's arrow button, each end
+const SCROLL_BUBBLE_RAIL_MIN_PX = 12;    // an overlay bar occupies 0 px but is drawn at the edge
+const SCROLL_BUBBLE_GAP_PX = 6;          // between the bubble and the rail
+
+/** The page part of the status line: 「第 4–5 頁，共 60 頁」 -> 「第 4–5 頁」; null unless there is one. */
+function scrollBubbleText(statusText) {
+  if (typeof statusText !== "string") return null;
+  const head = statusText.split("，")[0].trim();
+  return /^第 \S+ 頁$/.test(head) ? head : null;
+}
+
+/**
+ * Where the bubble goes, in viewport CSS px, from what the desk measures:
+ * `{ top, bottom, left, right, scrollTop, scrollHeight, clientHeight,
+ * offsetWidth, clientWidth, clientLeft, direction }`.  Returns
+ * `{ centreY, side, edgeX }` -- `edgeX` the bubble's edge nearest the rail,
+ * on `side` -- or null when there is nothing to scroll.
+ */
+function scrollBubblePlace(desk, bubble) {
+  const { top, bottom, left, right, scrollTop, scrollHeight, clientHeight, offsetWidth, clientWidth } = desk ?? {};
+  if (![top, bottom, left, right, scrollTop, scrollHeight, clientHeight, offsetWidth, clientWidth].every(Number.isFinite)) return null;
+  const range = scrollHeight - clientHeight;
+  if (!(range > 0) || !(clientHeight > 0)) return null;
+  const f = Math.max(0, Math.min(1, scrollTop / range));
+  const rail = Math.max(0, offsetWidth - clientWidth);
+  const arrow = rail > 0 ? SCROLL_BUBBLE_ARROW_PX : 0;
+  const thumb = Math.max(clientHeight * clientHeight / scrollHeight, SCROLL_BUBBLE_THUMB_MIN_PX);
+  const track = Math.max(0, clientHeight - 2 * arrow - thumb);
+  const half = (Number.isFinite(bubble?.height) ? bubble.height : 0) / 2;
+  const centreY = Math.max(top + half, Math.min(bottom - half, top + arrow + thumb / 2 + f * track));
+  const gap = Math.max(rail, SCROLL_BUBBLE_RAIL_MIN_PX) + SCROLL_BUBBLE_GAP_PX;
+  const clientLeft = Number.isFinite(desk.clientLeft) ? desk.clientLeft : 0;
+  const side = clientLeft >= SCROLL_BUBBLE_RAIL_MIN_PX || desk.direction === "rtl" ? "left" : "right";
+  return { centreY, side, edgeX: side === "left" ? left + gap : right - gap };
+}
+
+const scrollBubble = { element: null, reduced: false, timer: null, fadeTimer: null };
+
+/** The element, made on the first scroll and styled here (see the section comment). */
+function scrollBubbleElement() {
+  if (scrollBubble.element) return scrollBubble.element;
+  const node = document.createElement("div");
+  node.id = "scroll-bubble";
+  node.setAttribute("aria-hidden", "true");
+  node.dataset.shown = "0";
+  scrollBubble.reduced = typeof matchMedia === "function"
+    && matchMedia("(prefers-reduced-motion: reduce)").matches === true;
+  Object.assign(node.style, {
+    position: "fixed", top: "0px", left: "0px", transform: "translateY(-50%)",
+    background: "#24333f", color: "#fff", padding: "6px 10px", borderRadius: "6px",
+    font: "13px/1.2 system-ui, sans-serif", whiteSpace: "nowrap",
+    boxShadow: "0 1px 6px rgba(20,40,60,.3)", pointerEvents: "none", zIndex: "30",
+    visibility: "hidden", opacity: "0",
+    transition: scrollBubble.reduced ? "none" : `opacity ${SCROLL_BUBBLE_FADE_MS}ms`,
+  });
+  el.desk.insertAdjacentElement("afterend", node);
+  scrollBubble.element = node;
+  return node;
+}
+
+/** The desk scrolled: say the page next to the thumb, and start the hold over. */
+function showScrollBubble() {
+  const text = el.pageStatus.hidden ? null : scrollBubbleText(el.pageStatus.textContent);
+  if (text === null) { hideScrollBubble(); return; }
+  const node = scrollBubbleElement();
+  if (node.textContent !== text) node.textContent = text;
+  const rect = el.desk.getBoundingClientRect();
+  const place = scrollBubblePlace({
+    top: rect.top, bottom: rect.bottom, left: rect.left, right: rect.right,
+    scrollTop: el.desk.scrollTop, scrollHeight: el.desk.scrollHeight, clientHeight: el.desk.clientHeight,
+    offsetWidth: el.desk.offsetWidth, clientWidth: el.desk.clientWidth, clientLeft: el.desk.clientLeft,
+    direction: getComputedStyle(el.desk).direction,
+  }, { height: node.offsetHeight });
+  if (place === null) { hideScrollBubble(); return; }
+  node.style.top = `${Math.round(place.centreY)}px`;
+  node.style.left = `${Math.round(place.side === "left" ? place.edgeX : place.edgeX - node.offsetWidth)}px`;
+  clearTimeout(scrollBubble.timer);
+  clearTimeout(scrollBubble.fadeTimer);
+  scrollBubble.fadeTimer = null;
+  node.style.visibility = "visible";
+  node.style.opacity = "1";
+  node.dataset.shown = "1";
+  scrollBubble.timer = setTimeout(hideScrollBubble, SCROLL_BUBBLE_HOLD_MS);
+}
+
+/** Scrolling stopped (or the view changed under it): fade, then take it out of the way. */
+function hideScrollBubble() {
+  clearTimeout(scrollBubble.timer);
+  scrollBubble.timer = null;
+  const node = scrollBubble.element;
+  if (!node || node.dataset.shown !== "1") return;
+  node.dataset.shown = "0";
+  node.style.opacity = "0";
+  const gone = () => { if (node.dataset.shown === "0") node.style.visibility = "hidden"; };
+  clearTimeout(scrollBubble.fadeTimer);
+  if (scrollBubble.reduced) { scrollBubble.fadeTimer = null; gone(); }
+  else scrollBubble.fadeTimer = setTimeout(gone, SCROLL_BUBBLE_FADE_MS);
+}
+
 /* ------------------------------------------------------------------ state */
 
 /* ------------------------------------------------- roadmap 3.4: the projection
@@ -1151,6 +1289,7 @@ function layoutCanvas() {
  */
 function onDeskScroll() {
   updatePageStatus();   // the page number follows the view; no engine call (§10.8)
+  showScrollBubble();   // SPEC-M3-scroll-page-bubble §3.3: any scroll of the desk, from the line just set
   if (!session?.document || !docRows) return;
   const rows = el.canvas.height;
   if (rows >= docRows) return;
@@ -3073,6 +3212,10 @@ globalThis.addEventListener("resize", () => {
   layoutCanvas();
   void renderDocument();
 });
+// SPEC-M3-scroll-page-bubble §3.3: the thumb the bubble sat next to has moved;
+// the next scroll places it again.  Its own listener, after the one above,
+// whose bytes are a product-path mutation's anchor (resize-does-not-repaint).
+globalThis.addEventListener("resize", hideScrollBubble);
 // Release C′: the window follows the scroll.  Passive -- it never stops one.
 el.desk.addEventListener("scroll", onDeskScroll, { passive: true });
 

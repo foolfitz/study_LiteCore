@@ -1,0 +1,78 @@
+TAP version 13
+# Subtest: U1: the bubble says the status line's page part and nothing else
+ok 1 - U1: the bubble says the status line's page part and nothing else
+  ---
+  duration_ms: 1.373847
+  type: 'test'
+  ...
+# Subtest: U2: the place follows the thumb's proportion and stays inside the desk
+ok 2 - U2: the place follows the thumb's proportion and stays inside the desk
+  ---
+  duration_ms: 0.572706
+  type: 'test'
+  ...
+# Subtest: U2: nothing to scroll -> null; the scrollbar's side is read from the desk, not the locale
+ok 3 - U2: nothing to scroll -> null; the scrollbar's side is read from the desk, not the locale
+  ---
+  duration_ms: 0.298085
+  type: 'test'
+  ...
+# Subtest: U3: a scroll shows the bubble with the page part next to the thumb; the resize hides it
+ok 4 - U3: a scroll shows the bubble with the page part next to the thumb; the resize hides it
+  ---
+  duration_ms: 1.543482
+  type: 'test'
+  ...
+# Subtest: U3: every scroll resets the clock; 1,000 ms after the last one it hides, 180 ms later it is gone
+not ok 5 - U3: every scroll resets the clock; 1,000 ms after the last one it hides, 180 ms later it is gone
+  ---
+  duration_ms: 1.010621
+  type: 'test'
+  location: '/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-scroll-bubble.test.mjs:173:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    the timer is reset by the second scroll
+    
+    '0' !== '1'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '1'
+  actual: '0'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-scroll-bubble.test.mjs:182:12)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1306:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+    Test.postRun (node:internal/test_runner/test:1447:19)
+    Test.run (node:internal/test_runner/test:1372:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:897:7)
+  ...
+# Subtest: U3: reduced motion -> no transition, hidden at once; the 1 s hold is not motion and stays
+ok 6 - U3: reduced motion -> no transition, hidden at once; the 1 s hold is not motion and stays
+  ---
+  duration_ms: 0.323062
+  type: 'test'
+  ...
+# Subtest: U3: no page number, or nothing to scroll -> the bubble never shows
+ok 7 - U3: no page number, or nothing to scroll -> the bubble never shows
+  ---
+  duration_ms: 0.675457
+  type: 'test'
+  ...
+# Subtest: U3: a window resize hides the bubble (its own listener; the canvas's keeps its mutation-anchored bytes)
+ok 8 - U3: a window resize hides the bubble (its own listener; the canvas's keeps its mutation-anchored bytes)
+  ---
+  duration_ms: 0.208688
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 7
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 48.253198

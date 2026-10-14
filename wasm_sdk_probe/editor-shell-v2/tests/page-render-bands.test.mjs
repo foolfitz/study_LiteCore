@@ -98,6 +98,7 @@ function page({ height = 22256, width = 10, view = [9000, 11000], onRender = nul
      // SPEC-M3-link-batch §10.8 (task 2026-10-13l): the page number's recompute
      // on scroll and its re-read on a resized paint -- stubbed like the rest.
      function updatePageStatus() {}
+     function showScrollBubble() {}   // SPEC-M3-scroll-page-bubble: onDeskScroll's second line; the bubble has its own tests
      const pageRectangles = { sizeChangeReported() {} };
      ${PARTS}
      ${LISTENER}

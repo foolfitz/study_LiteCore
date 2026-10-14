@@ -41,6 +41,8 @@
 | 停留時間 | 1,000 ms＋180 ms 淡出 | 擁有者手測後改數字；判準 N4 的 1.5 s 上限隨之改並寫理由 |
 | 打字推動視圖也顯示 | 顯示（任何 `scroll` 事件） | 排除頁面自己寫 `scrollTop` 的捲動——但鍵盤捲動在本頁就是那條路，排除了鍵盤 |
 
+**擁有者 2026-10-14 裁示：「OK 照規格走」。**四列都照這裡的裁定：「第 4–5 頁」與狀態列同；不要「共 M 頁」；1,000 ms＋180 ms 淡出，手測後再調；打字推動視圖也顯示。實作任務同日開始（只追加）。
+
 ## 5. 判準（寫在任何實作與執行之前）
 
 形式照 AGENTS.md「驗收判準的形式」§1；每條附「若永遠沒做」的預設結論。儀器：10-14n／10-14o 的探針（`findings/evidence/host-0.2.21/probe_10_14o.py`）加泡泡欄位——`read()` 多記 `bubble: {shown, text, rect}` 與 `a11y: #a11y-para.textContent`，`GEOMETRY` 多記 `desk.offsetWidth/clientWidth/clientLeft` 與泡泡的 rect／`transition-duration`／`checkVisibility()`；滾輪臂照 `page-number` 的 18 步（14×700、3×3000、回頂），每步後 0.6 s 讀一次並截圖。**真游標讀法**：截圖欄 x ∈ [desk.right − 12, desk.right − 1]、y ∈ [desk.top, desk.bottom]，欄內與眾數色亮度差 > 40 的最長連續直向區段（≥ 12 px；箭頭的三角形 ≤ 8 px）即游標，取其中心；找不到記 `null`。
@@ -86,3 +88,4 @@
 | 日期 | 內容 |
 |---|---|
 | 2026-10-14 | 草稿：為什麼、事實（含 K4 截圖讀到的兩種卷軸）、設計（文字＝狀態列的頁數部分、fixed 定位的比例模型、任何 `scroll` 事件顯示 1 s、reduced-motion、aria-hidden）、擁有者可推翻的四題、判準 U1–U4／N1–N6／D1／K1／Z1／H1–H3 與各自的紅案、預測、觸及範圍。擁有者 2026-10-14 決定「捲動時都出現」寫進 §1 |
+| 2026-10-14 | 擁有者「OK 照規格走」記在 §4 之後；U1–U4 落地：`aa50cd20…` 上 8/8 紅 → 頁面 `ccb67a52…` 8/8 綠、三個突變各紅在指定的那一格、套件 372/372、E1-C intact、41 個產品路徑突變錨各出現一次（resize 的錨差點被移動，改成自己的 listener 保住；見 `findings/evidence/scroll-page-bubble/README.md`）。N／D／K／Z 等 `dist/` 鏡像與瀏覽器可用之後跑 |
