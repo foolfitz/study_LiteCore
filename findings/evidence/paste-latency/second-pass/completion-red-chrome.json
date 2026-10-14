@@ -1,0 +1,446 @@
+{
+ "probe": "probe_140_completion.py (scratchpad)",
+ "browser": "chrome",
+ "pageSha256": "7815e16c2cdfdebe90fbe8bf91d07a8315654bf76cf603fe8392acebb5be0799",
+ "sessionSha256": "fc5ac8830385f0f3e529608d9daa0c489b5625ce51708f115fe9e5beef9fffab",
+ "clientSha256": "aaceb5556b0e326c53b0f8294feb6c8a097d92f1a98f1ca364cf974ab4ff3d35",
+ "profile": "e2-editor-v19",
+ "doc": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/129/final/round-20261012T092119Z/docs/arrow-selection-shapes.odt",
+ "docSha256": "883c48c0790992262e528198ab21a0a6cea98833e188a41951e1e713274f6cd5",
+ "preflight": {
+  "kwalletLocked": "b false",
+  "otherRunners": [],
+  "chromeProcesses": 37,
+  "at": "2026-10-14T08:37:23Z"
+ },
+ "startedAtUtc": "2026-10-14T08:37:23Z",
+ "arms": [
+  {
+   "arm": "A-moving-click-collapsed-selection",
+   "before": {
+    "caret": {
+     "x": 1418,
+     "y": 1418,
+     "width": 0,
+     "height": 276
+    },
+    "selection": {
+     "observed": true,
+     "collapsed": true,
+     "start": null,
+     "end": null,
+     "rectangles": []
+    },
+    "sourceSequence": 2
+   },
+   "calls": [
+    {
+     "op": "editorPlaceCaretV2",
+     "sentAt": 3551.9,
+     "answeredAt": 3576,
+     "ms": 24.1,
+     "ok": true,
+     "err": null,
+     "errMessage": null,
+     "completion": "documented-callback-visible-cursor",
+     "x": 4418,
+     "y": 1556,
+     "caret": {
+      "x": 4369,
+      "y": 1418,
+      "width": 0,
+      "height": 276
+     },
+     "selectionCollapsed": true,
+     "sequenceBefore": 2,
+     "sequenceAfter": 3
+    }
+   ],
+   "latency": [
+    [
+     1750.7,
+     "定位游標 26 ms"
+    ]
+   ],
+   "after": {
+    "caret": {
+     "x": 4369,
+     "y": 1418,
+     "width": 0,
+     "height": 276
+    },
+    "selection": {
+     "observed": true,
+     "collapsed": true,
+     "start": null,
+     "end": null,
+     "rectangles": []
+    },
+    "sourceSequence": 10
+   }
+  },
+  {
+   "arm": "B-left-key-collapses-the-range",
+   "before": {
+    "caret": {
+     "x": 2917,
+     "y": 1418,
+     "width": 0,
+     "height": 276
+    },
+    "selection": {
+     "observed": true,
+     "collapsed": false,
+     "start": {
+      "x": 1904,
+      "y": 1418,
+      "width": 0,
+      "height": 275
+     },
+     "end": {
+      "x": 2917,
+      "y": 1418,
+      "width": 0,
+      "height": 275
+     },
+     "rectangles": [
+      {
+       "x": 1904,
+       "y": 1418,
+       "width": 1013,
+       "height": 275
+      }
+     ]
+    },
+    "sourceSequence": 35
+   },
+   "timing": {
+    "keydownT": 6152.6,
+    "clickDoneMs": 254.5,
+    "moveDoneMs": 300.7,
+    "moveLatencyText": "◀ 41 ms",
+    "clickLatencyText": "定位游標 254 ms",
+    "latencyRecords": [
+     [
+      254.5,
+      "定位游標 254 ms"
+     ],
+     [
+      300.7,
+      "◀ 41 ms"
+     ]
+    ]
+   },
+   "calls": [
+    {
+     "op": "editorPlaceCaretV2",
+     "sentAt": 7980.9,
+     "answeredAt": 8232.3,
+     "ms": 251.4,
+     "ok": true,
+     "err": null,
+     "errMessage": null,
+     "completion": "verified-caret-readback",
+     "x": 2917,
+     "y": 1556,
+     "caret": {
+      "x": 2917,
+      "y": 1418,
+      "width": 0,
+      "height": 276
+     },
+     "selectionCollapsed": true,
+     "sequenceBefore": 35,
+     "sequenceAfter": 36
+    }
+   ],
+   "toasts": [],
+   "after": {
+    "caret": {
+     "x": 2857,
+     "y": 1418,
+     "width": 0,
+     "height": 276
+    },
+    "selection": {
+     "observed": true,
+     "collapsed": true,
+     "start": {
+      "x": 1904,
+      "y": 1418,
+      "width": 0,
+      "height": 275
+     },
+     "end": {
+      "x": 2917,
+      "y": 1418,
+      "width": 0,
+      "height": 275
+     },
+     "rectangles": []
+    },
+    "sourceSequence": 37
+   },
+   "toolbar": {
+    "shape": "collapsed",
+    "evidence": null
+   }
+  },
+  {
+   "arm": "C-identical-point-click-collapsed-selection",
+   "before": {
+    "caret": {
+     "x": 2857,
+     "y": 1418,
+     "width": 0,
+     "height": 276
+    },
+    "selection": {
+     "observed": true,
+     "collapsed": true,
+     "start": {
+      "x": 1904,
+      "y": 1418,
+      "width": 0,
+      "height": 275
+     },
+     "end": {
+      "x": 2917,
+      "y": 1418,
+      "width": 0,
+      "height": 275
+     },
+     "rectangles": []
+    },
+    "sourceSequence": 37
+   },
+   "calls": [
+    {
+     "op": "editorPlaceCaretV2",
+     "sentAt": 9609,
+     "answeredAt": 9859.6,
+     "ms": 250.6,
+     "ok": true,
+     "err": null,
+     "errMessage": null,
+     "completion": "verified-caret-readback",
+     "x": 2857,
+     "y": 1556,
+     "caret": {
+      "x": 2857,
+      "y": 1418,
+      "width": 0,
+      "height": 276
+     },
+     "selectionCollapsed": true,
+     "sequenceBefore": 37,
+     "sequenceAfter": 37
+    }
+   ],
+   "latency": [
+    [
+     8185,
+     "定位游標 403 ms"
+    ]
+   ],
+   "after": {
+    "caret": {
+     "x": 2857,
+     "y": 1418,
+     "width": 0,
+     "height": 276
+    },
+    "selection": {
+     "observed": true,
+     "collapsed": true,
+     "start": {
+      "x": 1904,
+      "y": 1418,
+      "width": 0,
+      "height": 275
+     },
+     "end": {
+      "x": 2917,
+      "y": 1418,
+      "width": 0,
+      "height": 275
+     },
+     "rectangles": []
+    },
+    "sourceSequence": 37
+   }
+  }
+ ],
+ "version": "Chrome/151.0.7922.169",
+ "boot": {
+  "state": "ready",
+  "label": "就緒",
+  "revision": "0",
+  "pending": "0",
+  "checkpoint": "無",
+  "latency": "—",
+  "doc": "list-contexts.odt",
+  "toast": "",
+  "buttons": [
+   {
+    "action": "undo",
+    "disabled": false
+   },
+   {
+    "action": "redo",
+    "disabled": false
+   },
+   {
+    "action": "move-character-left",
+    "disabled": false
+   },
+   {
+    "action": "move-character-right",
+    "disabled": false
+   },
+   {
+    "action": "delete-backward",
+    "disabled": false
+   },
+   {
+    "action": "delete-forward",
+    "disabled": false
+   },
+   {
+    "action": "insert-paragraph-break",
+    "disabled": false
+   },
+   {
+    "action": "insert-line-break",
+    "disabled": false
+   },
+   {
+    "action": "set-bold",
+    "disabled": false
+   },
+   {
+    "action": "set-italic",
+    "disabled": false
+   },
+   {
+    "action": "set-underline",
+    "disabled": false
+   },
+   {
+    "action": "set-strikethrough",
+    "disabled": false
+   },
+   {
+    "action": "set-paragraph-heading",
+    "disabled": false
+   },
+   {
+    "action": "set-paragraph-body",
+    "disabled": false
+   },
+   {
+    "action": "set-list-unordered",
+    "disabled": false
+   },
+   {
+    "action": "set-list-ordered",
+    "disabled": false
+   },
+   {
+    "action": "set-list-none",
+    "disabled": false
+   },
+   {
+    "action": "insert-text",
+    "disabled": false
+   },
+   {
+    "action": "save",
+    "disabled": false
+   }
+  ]
+ },
+ "open": {
+  "name": "arrow-selection-shapes-red-1.odt",
+  "readyState": {
+   "state": "ready",
+   "revision": "0",
+   "pending": "0",
+   "doc": "arrow-selection-shapes-red-1.odt"
+  },
+  "settled": {
+   "state": "ready",
+   "revision": "0",
+   "pending": "0",
+   "timedOut": null
+  },
+  "caret": {
+   "x": 1418,
+   "y": 1418,
+   "width": 0,
+   "height": 276
+  },
+  "revision": 0,
+  "dirty": false,
+  "docW": 12474,
+  "docH": 17406,
+  "selectionCollapsed": true
+ },
+ "docTwips": {
+  "w": 12474,
+  "h": 17406
+ },
+ "range": {
+  "anchor": {
+   "x": 1904,
+   "y": 1418,
+   "width": 0,
+   "height": 276
+  },
+  "far": {
+   "x": 2917,
+   "y": 1418,
+   "width": 0,
+   "height": 276
+  },
+  "selectionText": "pha bravo ",
+  "before": {
+   "caret": {
+    "x": 2917,
+    "y": 1418,
+    "width": 0,
+    "height": 276
+   },
+   "selection": {
+    "observed": true,
+    "collapsed": false,
+    "start": {
+     "x": 1904,
+     "y": 1418,
+     "width": 0,
+     "height": 275
+    },
+    "end": {
+     "x": 2917,
+     "y": 1418,
+     "width": 0,
+     "height": 275
+    },
+    "rectangles": [
+     {
+      "x": 1904,
+      "y": 1418,
+      "width": 1013,
+      "height": 275
+     }
+    ]
+   },
+   "sourceSequence": 35
+  },
+  "toolbar": {
+   "shape": "range-single",
+   "evidence": null
+  }
+ },
+ "completedAtUtc": "2026-10-14T08:37:40Z"
+}

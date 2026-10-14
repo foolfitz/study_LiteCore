@@ -97,7 +97,9 @@ export class NarrowEditorV2Client {
                     options?: RevisionOptions): Promise<EditorV2ActionResult>;
 
   getState(options?: AbortableOptions): Promise<unknown>;
-  /** Finding 140: the engine's own answer to a click (see ParagraphEditorClient). */
+  /** Finding 140: the engine's own answer to a click (see ParagraphEditorClient).
+   *  Integer twips: the worker refuses a non-integer (INVALID_ARGUMENT); the
+   *  session rounds the page's point. */
   placeCaret(xTwips: number, yTwips: number, options?: AbortableOptions): Promise<unknown>;
   selectRange(start: { xTwips: number; yTwips: number },
               end: { xTwips: number; yTwips: number },

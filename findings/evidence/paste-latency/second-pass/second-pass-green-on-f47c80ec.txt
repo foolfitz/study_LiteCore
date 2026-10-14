@@ -1,0 +1,34 @@
+# node --test editor-shell-v2/tests/place-caret-second-pass.test.mjs on the SECOND-PASS bytes
+# session sha256: f47c80ec955397c44d7638da63ed6837a3dea47125f6e279192298c20ed62ba9
+# 2026-10-14T08:46:10Z, node v24.16.0
+✔ defect 1: the reopen path's half-integer y (odd caret height) reaches the engine as integers and is not refused (104.964205ms)
+✔ defect 1, 129-B's s3 shape: a half-integer y while a range is open ends in neither INVALID_ARGUMENT nor a 30 s wait (68.431859ms)
+✔ defect 2: a click that collapses a range (129-B's 48 cells) resolves on the selection evidence before the engine's deadline, with no engine place-caret left pending (66.438058ms)
+✔ control: a moving click with a collapsed selection still asks the engine and is answered on the cursor callback (66.275395ms)
+✔ control: the blank-page click (collapsed selection, caret cannot move) is unchanged from the first pass (442.119235ms)
+✔ a range open and a click in the margin at the caret end's own clamp point: collapsed by the click, caret stayed -- bounded at the grace, not the 30 s timeout (440.447574ms)
+✔ named limit: a range open and a click the core never processes keeps v67's timeout contract (no second click is posted) (103.368104ms)
+ℹ tests 7
+ℹ pass 7
+ℹ fail 0
+
+# node --test editor-shell-v2/tests/place-caret-blank-page.test.mjs editor-shell-v2/tests/place-caret-acknowledgement.test.mjs (unchanged files)
+ℹ tests 30
+ℹ pass 30
+ℹ fail 0
+
+# node --test editor-shell-v2/tests/*.test.mjs (whole suite)
+ℹ tests 352
+ℹ pass 352
+ℹ fail 0
+
+# python3 tools/check_e1_c_bundle_intact.py
+{
+  "bundleSha256": "187706b2dcb07d2b",
+  "includedFiles": 5,
+  "availableModules": 6,
+  "intact": true,
+  "divergedAsDeclared": [],
+  "unbinds": null,
+  "problems": []
+}

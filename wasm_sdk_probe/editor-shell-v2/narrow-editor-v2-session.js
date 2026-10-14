@@ -647,6 +647,49 @@ export class NarrowEditorV2Session extends EditorSession {
    * that is BUSY behind a barrier take v67's loop below, unchanged, with the
    * same timeout and error.  Any other engine error is the caller's.
    * `caretConfirmedBy` gains one value; nothing in the page reads it.
+   *
+   * SECOND PASS (task 10-14h, 2026-10-14).  The pre-v68 129-B witness found
+   * two defects in the paragraph above as first shipped (every click asked
+   * the engine):
+   *
+   *   1. The page sends `caret.y + caret.height / 2` (reopen, moveFromPoint);
+   *      on a line of odd height that is a half-integer, the worker refuses
+   *      it (INVALID_ARGUMENT: "requires non-negative integer twips"), and the
+   *      refusal reached the user as a toast with the range left selected --
+   *      6 of 54 cells in both browsers.  The engine is now asked with the
+   *      ROUNDED point.  (v67's `document.click` took the same value into an
+   *      i32 parameter, where the wasm boundary truncates it toward zero.)
+   *   2. A click that collapses a range at the caret's own point moves no
+   *      caret, so core emits no visible-cursor callback -- the only callback
+   *      the engine's place-caret completes on -- and the engine answers at
+   *      its 250 ms deadline: every 129-B click went from 26-32 ms to
+   *      253-268 ms.  Measured on those bytes with `completion` recorded
+   *      (findings/evidence/paste-latency/second-pass/): a moving click is
+   *      answered on the callback at 24 ms, the collapse click at 251 ms
+   *      (`verified-caret-readback`).  Nothing on this side can make the
+   *      engine complete earlier, and returning before it has answered is
+   *      not an option either: a pending place-caret holds gEditorPending
+   *      and the key queued behind the click would be answered BUSY.
+   *
+   * THE RULE IS THE SELECTION THE CLICK IS MADE ON.  A click made while a
+   * range is open collapses it; that collapse is the click's own evidence
+   * under 138's predicate, pushed by the TEXT_SELECTION callback at the speed
+   * v67 had, so such a click takes v67's polling path.  A click made on a
+   * collapsed selection asks the engine: answered on the cursor callback when
+   * the caret moves, at the readback deadline when it cannot (the blank page,
+   * the identical point) -- the bound the first pass bought, kept.  The page
+   * clicks before an arrow key only when a range is open (finding 129's
+   * moveFromPoint), so every one of those pairs is on the polling path.
+   *
+   * The polling path gains ONE exit, so that the first pass's bound is not
+   * given back there: collapsed by the click and the caret stayed off the
+   * clicked line -- the engine processed the click and left the caret where
+   * its clamp puts it -- is accepted after the grace, as the engine path
+   * accepts it, under the same `engine-answered-the-caret-stayed`.  NAMED
+   * LIMIT: with a range open and a click core never processes (no evidence
+   * at all) the timeout contract is v67's; no second click is posted to ask
+   * the engine.  No instance of that shape is known in a text document: a
+   * plain click on an open range always collapses it.
    */
   placeCaret(xTwips, yTwips, options = {}) {
     return this._enqueue("place-caret", async ({ document, editor }) => {
@@ -674,12 +717,18 @@ export class NarrowEditorV2Session extends EditorSession {
         ...extra,
       });
 
-      // Finding 140: the engine's own answer first.
-      if (typeof editor.placeCaret === "function") {
+      // Finding 140, second pass: the engine's own answer for a click made on
+      // a collapsed selection; a click made on an open range collapses it and
+      // is judged from that evidence on v67's path below (see the comment).
+      const rangeOpen = beforeSelection?.collapsed === false;
+
+      if (!rangeOpen && typeof editor.placeCaret === "function") {
         const started = Date.now();
         let answer = null;
         try {
-          answer = await editor.placeCaret(xTwips, yTwips, {
+          // Integer twips: the worker refuses anything else, and the page's
+          // point is a half-integer on a line of odd height.
+          answer = await editor.placeCaret(Math.round(xTwips), Math.round(yTwips), {
             ...options, timeoutMs: options.timeoutMs ?? timeoutMs,
           });
         } catch (error) {
@@ -699,25 +748,32 @@ export class NarrowEditorV2Session extends EditorSession {
           const extra = { completion: answer.completion ?? null };
           if (verdict.onTarget)
             return placed(state, started, verdict.acknowledged ? "engine-acknowledged" : "already-at-target", true, extra);
-          if (verdict.acknowledged)
+          if (verdict.acknowledged && verdict.caretMoved)
             return placed(state, started, "engine-moved-the-caret-off-the-clicked-line", false, extra);
           return placed(state, started, "engine-answered-the-caret-stayed", false, extra);
         }
       }
 
-      // v67's path (finding 138), unchanged: post the click, poll for evidence.
+      // v67's path (finding 138): post the click, poll for evidence.  The
+      // point goes to `document.click` as the caller gave it, as v67 sent it
+      // (129-B's reference rounds were made with those bytes on the wire).
+      // One exit added by the second pass: collapsed by the click and the
+      // caret stayed off the clicked line, accepted after the grace.
       const started = Date.now();
       await document.click(xTwips, yTwips, options);
       let state = before;
       do {
         state = await editor.getState(options);
         const verdict = judge(state);
-        if ((verdict.onTarget && (verdict.acknowledged || Date.now() - started >= graceMs))
+        const elapsed = Date.now() - started;
+        if ((verdict.onTarget && (verdict.acknowledged || elapsed >= graceMs))
             || (verdict.acknowledged && verdict.caretMoved)) {
           return placed(state, started, verdict.onTarget
             ? (verdict.acknowledged ? "engine-acknowledged" : "already-at-target")
             : "engine-moved-the-caret-off-the-clicked-line", verdict.onTarget);
         }
+        if (verdict.acknowledged && !verdict.onTarget && !verdict.caretMoved && elapsed >= graceMs)
+          return placed(state, started, "engine-answered-the-caret-stayed", false);
         await new Promise((resolve) => setTimeout(resolve, 5));
       } while (Date.now() - started < timeoutMs);
       const error = new Error(

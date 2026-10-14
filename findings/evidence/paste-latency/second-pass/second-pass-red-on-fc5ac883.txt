@@ -1,0 +1,19 @@
+# node --test editor-shell-v2/tests/place-caret-second-pass.test.mjs on the FIRST-PASS bytes
+# session sha256: fc5ac8830385f0f3e529608d9daa0c489b5625ce51708f115fe9e5beef9fffab
+# 2026-10-14T08:43:07Z, node v24.16.0
+✖ defect 1: the reopen path's half-integer y (odd caret height) reaches the engine as integers and is not refused (42.358941ms)
+✖ defect 1, 129-B's s3 shape: a half-integer y while a range is open ends in neither INVALID_ARGUMENT nor a 30 s wait (40.441011ms)
+✖ defect 2: a click that collapses a range (129-B's 48 cells) resolves on the selection evidence before the engine's deadline, with no engine place-caret left pending (291.359293ms)
+✔ control: a moving click with a collapsed selection still asks the engine and is answered on the cursor callback (66.33676ms)
+✔ control: the blank-page click (collapsed selection, caret cannot move) is unchanged from the first pass (440.844272ms)
+✖ a range open and a click in the margin at the caret end's own clamp point: collapsed by the click, caret stayed -- bounded at the grace, not the 30 s timeout (291.069854ms)
+✖ named limit: a range open and a click the core never processes keeps v67's timeout contract (no second click is posted) (291.966934ms)
+ℹ tests 7
+ℹ pass 2
+ℹ fail 5
+✖ failing tests:
+✖ defect 1: the reopen path's half-integer y (odd caret height) reaches the engine as integers and is not refused (42.358941ms)
+✖ defect 1, 129-B's s3 shape: a half-integer y while a range is open ends in neither INVALID_ARGUMENT nor a 30 s wait (40.441011ms)
+✖ defect 2: a click that collapses a range (129-B's 48 cells) resolves on the selection evidence before the engine's deadline, with no engine place-caret left pending (291.359293ms)
+✖ a range open and a click in the margin at the caret end's own clamp point: collapsed by the click, caret stayed -- bounded at the grace, not the 30 s timeout (291.069854ms)
+✖ named limit: a range open and a click the core never processes keeps v67's timeout contract (no second click is posted) (291.966934ms)
