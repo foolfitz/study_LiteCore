@@ -1,0 +1,66 @@
+judge before: 00900fdd:findings/evidence/132/held-into-refusal/judge_held_into_refusal.py sha256 b0ed5fa050a8d5c418fa542ced5f160649ac870b6e5c64043d29a48e192fed64
+judge after:  findings/evidence/132/held-into-refusal/judge_held_into_refusal.py sha256 67c9e763e04225e5cd2fce22a282cea3bc3cc1a88a1f2571fc611ce7625215cf
+
+## keying per archived engine package (the fragment, read as the judge reads it)
+- host-0.2.10-engine-bebc7e83f573d1a8: profile e2-editor-v19 wasm 1aafd4f9da42fd83 declares C: False
+- host-0.2.11-engine-b99f4b138839ff04: profile e2-editor-v19 wasm 1aafd4f9da42fd83 declares C: False
+- host-0.2.12-engine-45cdcedfc0fe7e61: profile e2-editor-v19 wasm 1aafd4f9da42fd83 declares C: False
+- host-0.2.13-engine-59e6a9fed026a0ad: profile e2-editor-v19 wasm 1aafd4f9da42fd83 declares C: False
+- host-0.2.13-prefix-engine-0574b1b157ce1e1e: profile e2-editor-v19 wasm 1aafd4f9da42fd83 declares C: False
+- host-0.2.14-engine-eb3f94084995d3f0: profile e2-editor-v19 wasm 1aafd4f9da42fd83 declares C: False
+- host-0.2.15-engine-daf70d77b8facb4b: profile e2-editor-v19 wasm 1aafd4f9da42fd83 declares C: False
+- host-0.2.16-engine-9352fae3aea68b5e: profile e2-editor-v19 wasm 1aafd4f9da42fd83 declares C: False
+- host-0.2.17-engine-e39447158dba7a3b: profile e2-editor-v19 wasm 1aafd4f9da42fd83 declares C: False
+- host-0.2.18-engine-d6d04880f56e31da: profile e2-editor-v19 wasm 1aafd4f9da42fd83 declares C: False
+- host-0.2.20-engine-6cffc5960ebbbd98: profile e2-editor-v20 wasm 313b08d5cb085897 declares C: True
+- host-0.2.7-engine-fabdb50ecd038802: profile e2-editor-v8 wasm 4a2710bba1ef07d9 declares C: False
+- host-0.2.8-engine-63656ee4aa7e4059: profile e2-editor-v19 wasm 1aafd4f9da42fd83 declares C: False
+- host-0.2.9-engine-7bf6dbd6142388f1: profile e2-editor-v19 wasm 1aafd4f9da42fd83 declares C: False
+
+## every committed report of the two probes, judge before vs after
+| report | host | buildId | declares C | verdict before | verdict after | other lines |
+|---|---|---|---|---|---|---|
+| findings/evidence/132/held-into-refusal/run-1/report.json | 0.2.15 | daf70d77b8facb4b | False | verdict FAIL (72) | verdict FAIL (72) | identical |
+| findings/evidence/134/acceptance-0.2.16/report.json | 0.2.16 | 9352fae3aea68b5e | False | verdict FAIL (58) | verdict FAIL (58) | identical |
+| findings/evidence/134/red-d-on-0.2.15/report.json | 0.2.15 | daf70d77b8facb4b | False | verdict FAIL (18) | verdict FAIL (18) | identical |
+| findings/evidence/134/table/run-1/report.json | 0.2.16 | 9352fae3aea68b5e | False | verdict FAIL (54) | verdict FAIL (54) | identical |
+| findings/evidence/134/table/run-2/report.json | 0.2.16 | 9352fae3aea68b5e | False | verdict FAIL (34) | verdict FAIL (34) | identical |
+| findings/evidence/134/table/run-3/report.json | 0.2.16 | 9352fae3aea68b5e | False | verdict FAIL (24) | verdict FAIL (24) | identical |
+| findings/evidence/136/acceptance-0.2.17/held/report.json | 0.2.17 | e39447158dba7a3b | False | verdict FAIL (4) | verdict FAIL (4) | identical |
+| findings/evidence/136/acceptance-0.2.17/table/report.json | 0.2.17 | e39447158dba7a3b | False | verdict FAIL (2) | verdict FAIL (2) | identical |
+| findings/evidence/136/acceptance-0.2.18/held/report.json | 0.2.18 | d6d04880f56e31da | False | verdict PASS | verdict PASS | identical |
+| findings/evidence/136/acceptance-0.2.18/table/report.json | 0.2.18 | d6d04880f56e31da | False | verdict PASS | verdict PASS | identical |
+| findings/evidence/136/baseline-0.2.16/held/report.json | 0.2.16 | 9352fae3aea68b5e | False | verdict FAIL (6) | verdict FAIL (6) | identical |
+| findings/evidence/136/baseline-0.2.16/table/report.json | 0.2.16 | 9352fae3aea68b5e | False | verdict FAIL (8) | verdict FAIL (8) | identical |
+| findings/evidence/136/cell-start-hold/red-aebef525/report.json | 0.2.17 | e39447158dba7a3b | False | verdict FAIL (12) | verdict FAIL (12) | identical |
+| findings/evidence/link-batch/host-0.2.20/held/report.json | 0.2.20 | 6cffc5960ebbbd98 | True | verdict FAIL (30) | verdict PASS | DIFFER |
+| findings/evidence/link-batch/host-0.2.20/table/report.json | 0.2.20 | 6cffc5960ebbbd98 | True | verdict FAIL (12) | verdict PASS | DIFFER |
+
+- findings/evidence/134/restore-window/run-1/report.json: before `verdict FAIL (1)` exit 1; after `verdict FAIL (1)` exit 1 (`engine buildId 9352fae3aea68b5e package /home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/build/archive/host-0.2.16-engine-9352fae3aea68b5e profile e2-editor-v19 wasm profiles/e2-editor-v19/probe.wasm sha256 1aafd4f9da42fd83 declares C: False (nothing-selected expects refusal)`)
+- findings/evidence/136/guard/restore-window/report.json: before `verdict FAIL (1)` exit 1; after `verdict FAIL (1)` exit 1 (`engine buildId d6d04880f56e31da package /home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/build/archive/host-0.2.18-engine-d6d04880f56e31da profile e2-editor-v19 wasm profiles/e2-editor-v19/probe.wasm sha256 1aafd4f9da42fd83 declares C: False (nothing-selected expects refusal)`)
+- findings/evidence/136/guard-r2/restore-window/report.json: before `verdict FAIL (1)` exit 1; after `verdict FAIL (1)` exit 1 (`engine buildId d6d04880f56e31da package /home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/build/archive/host-0.2.18-engine-d6d04880f56e31da profile e2-editor-v19 wasm profiles/e2-editor-v19/probe.wasm sha256 1aafd4f9da42fd83 declares C: False (nothing-selected expects refusal)`)
+- findings/evidence/link-batch/host-0.2.20/restore-window/report.json: before `verdict FAIL (1)` exit 1; after `verdict FAIL (1)` exit 1 (`engine buildId 6cffc5960ebbbd98 package /home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/build/archive/host-0.2.20-engine-6cffc5960ebbbd98 profile e2-editor-v20 wasm profiles/e2-editor-v20/probe.wasm sha256 313b08d5cb085897 declares C: True (nothing-selected expects verified-boundary-noop)`)
+
+## R1 -- the v20 reports doctored, judged under C (must FAIL on the doctored clause)
+- R1a start-press refused: 3 failure(s): ['chrome start-press r0: refusals 1 != 0 (C: a verified no-op, not a refusal)', "chrome start-press r0: generations ['1', '2'] != ['1'] (C: no reopen)", "chrome start-press r0: reopen toast shown under C: '這一下沒有取得可刪除的內容。文件沒有被改動，正在重新載入…'"]
+- R1b end-hold one scroll sample 0: 1 failure(s): ['firefox end-hold r1: scrollTop: 1 of 14 samples from the key to the end of the log < 0.5 x 21490 (lowest 0)']
+- R1c cell-start-hold stage read: 1 failure(s): ["chrome cell-start-hold r0: refusal stage 'nothing-selected' read (stages ['nothing-selected']): a refusal, not C's no-op"]
+
+## R2 -- 0.2.18's held and table reports judged under C anyway (must FAIL on every 10.7 arm)
+- findings/evidence/136/acceptance-0.2.18/held/report.json: verdict FAIL (36); red arms ['end-hold', 'end-press-type', 'start-hold', 'start-press']; no_reopen lines 12
+- findings/evidence/136/acceptance-0.2.18/table/report.json: verdict FAIL (16); red arms ['cell-start-hold']; no_reopen lines 4
+
+## R3 -- the v20 reports judged under the refusal anyway (what the judge before did): equals the witness
+- held: verdict FAIL (30); failure lines equal the committed witness: True
+- table: verdict FAIL (12); failure lines equal the committed witness: True
+
+## R4 -- the v20 held report keyed on the 0.2.18 engine package (--engine): FAIL, nothing judged
+- exit 1; `FAIL engine: /home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/build/archive/host-0.2.18-engine-d6d04880f56e31da/MANIFEST.json: buildId d6d04880f56e31da != the report's 6cffc5960ebbbd98`; lines 2
+
+## R5 -- a package with 0.2.20's manifest and 0.2.18's wasm bytes: FAIL on the wasm sha256, nothing judged
+- exit 1; `FAIL engine: <scratch>/fake-package/files/profiles/e2-editor-v20/probe.wasm.gz: sha256 1aafd4f9da42fd83 != the manifest's 313b08d5cb085897; the declaration must be read from the bytes that ran`; lines 2
+
+fragment equals run_merge_wasm_shakedown.BOUNDARY_NOOP_FRAGMENT: True
+
+v19-era reports: 13/13 identical (verdict and every line but the two added)
+v20 reports: link-batch-host-0.2.20-held verdict FAIL (30) -> verdict PASS; link-batch-host-0.2.20-table verdict FAIL (12) -> verdict PASS

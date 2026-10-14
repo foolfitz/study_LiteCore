@@ -1,0 +1,50 @@
+engine buildId daf70d77b8facb4b package /home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/build/archive/host-0.2.15-engine-daf70d77b8facb4b profile e2-editor-v19 wasm profiles/e2-editor-v19/probe.wasm sha256 1aafd4f9da42fd83 declares C: False (nothing-selected expects refusal)
+probe probe_held_into_refusal.py arms ['start-press', 'start-hold', 'end-hold', 'end-press-type']
+expectation v19 (RULES, refusal and reopen)
+static {'hostVersion': '0.2.15', 'hostCommit': '568608c', 'buildId': 'daf70d77b8facb4b', 'servedPage': 'abe93f4575c7797db97462f1f0e3a71cf5fc4063205cd6d5877093ca1c248fcf', 'distPage': 'abe93f4575c7797db97462f1f0e3a71cf5fc4063205cd6d5877093ca1c248fcf'}
+chrome end-press-type r0 FAIL
+    reopen   refusals 1 gens ['1', '2'] limit None
+    server   same True firstDiff None charDelta 0 paragraphs 211/211
+    counts   marks 1 controls - afters -
+    where    mark [0] control - after -
+    bools    controlThenMark - markThenAfter - afterAtStart - afterAtEnd -
+    scroll   series [21477, 0] | window {'pre': 21477, 'preAt': 2741.4, 'window': [21477, 21477, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 'from': 3003, 'reloadedAt': 4435.6, 'to': 11055.5, 'closed': True}
+    - controls not recorded
+    - afters not recorded
+    - controlParagraphs not recorded
+    - mark in paragraphs [0], last is 210
+    - controlThenMark not recorded
+    - scrollTop: 10 of 12 samples from the refusal to the end of the log < 0.5 x 21477 (lowest 0)
+firefox end-press-type r0 FAIL
+    reopen   refusals 1 gens ['1', '2'] limit None
+    server   same True firstDiff None charDelta 0 paragraphs 211/211
+    counts   marks 1 controls - afters -
+    where    mark [0] control - after -
+    bools    controlThenMark - markThenAfter - afterAtStart - afterAtEnd -
+    scroll   series [21463, 0] | window {'pre': 21463, 'preAt': 2632.3, 'window': [21463, 21463, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 'from': 2887.3, 'reloadedAt': 5197.2, 'to': 11835.6, 'closed': True}
+    - controls not recorded
+    - afters not recorded
+    - controlParagraphs not recorded
+    - mark in paragraphs [0], last is 210
+    - controlThenMark not recorded
+    - scrollTop: 10 of 12 samples from the refusal to the end of the log < 0.5 x 21463 (lowest 0)
+FAIL chrome start-press: 0 rounds < 1
+FAIL firefox start-press: 0 rounds < 1
+FAIL chrome start-hold: 0 rounds < 2
+FAIL firefox start-hold: 0 rounds < 2
+FAIL chrome end-hold: 0 rounds < 2
+FAIL firefox end-hold: 0 rounds < 2
+FAIL chrome end-press-type r0: controls not recorded
+FAIL chrome end-press-type r0: afters not recorded
+FAIL chrome end-press-type r0: controlParagraphs not recorded
+FAIL chrome end-press-type r0: mark in paragraphs [0], last is 210
+FAIL chrome end-press-type r0: controlThenMark not recorded
+FAIL chrome end-press-type r0: scrollTop: 10 of 12 samples from the refusal to the end of the log < 0.5 x 21477 (lowest 0)
+FAIL firefox end-press-type r0: controls not recorded
+FAIL firefox end-press-type r0: afters not recorded
+FAIL firefox end-press-type r0: controlParagraphs not recorded
+FAIL firefox end-press-type r0: mark in paragraphs [0], last is 210
+FAIL firefox end-press-type r0: controlThenMark not recorded
+FAIL firefox end-press-type r0: scrollTop: 10 of 12 samples from the refusal to the end of the log < 0.5 x 21463 (lowest 0)
+verdict FAIL (18)
+exit 1

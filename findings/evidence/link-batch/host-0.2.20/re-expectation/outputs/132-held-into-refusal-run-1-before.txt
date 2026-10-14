@@ -1,0 +1,216 @@
+probe probe_held_into_refusal.py arms ['start-press', 'start-hold', 'end-hold', 'end-press-type']
+static {'hostVersion': '0.2.15', 'hostCommit': '568608c', 'buildId': 'daf70d77b8facb4b', 'servedPage': 'abe93f4575c7797db97462f1f0e3a71cf5fc4063205cd6d5877093ca1c248fcf', 'distPage': 'abe93f4575c7797db97462f1f0e3a71cf5fc4063205cd6d5877093ca1c248fcf'}
+chrome start-press r0 FAIL
+    reopen   refusals 1 gens ['1', '2'] limit None
+    server   same True firstDiff None charDelta 0 paragraphs 211/211
+    counts   marks 1 controls - afters -
+    where    mark - control - after -
+    bools    controlThenMark - markThenAfter - afterAtStart - afterAtEnd -
+    scroll   series []
+    - controls not recorded
+    - afters not recorded
+    - afterParagraphs not recorded
+    - afterAtStart not recorded
+    - scrollTop: 6 of 6 samples not 0 (['None'])
+firefox start-press r0 FAIL
+    reopen   refusals 1 gens ['1', '2'] limit None
+    server   same True firstDiff None charDelta 0 paragraphs 211/211
+    counts   marks 1 controls - afters -
+    where    mark - control - after -
+    bools    controlThenMark - markThenAfter - afterAtStart - afterAtEnd -
+    scroll   series []
+    - controls not recorded
+    - afters not recorded
+    - afterParagraphs not recorded
+    - afterAtStart not recorded
+    - scrollTop: 6 of 6 samples not 0 (['None'])
+chrome start-hold r0 FAIL
+    reopen   refusals 3 gens ['1', '2', '3'] limit saved
+    server   same True firstDiff None charDelta 0 paragraphs 211/211
+    counts   marks 1 controls - afters -
+    where    mark - control - after -
+    bools    controlThenMark - markThenAfter - afterAtStart - afterAtEnd -
+    scroll   series []
+    - refusals 3 != 1
+    - generations ['1', '2', '3'] != ['1', '2']
+    - limit notice 'saved'
+    - controls not recorded
+    - afters not recorded
+    - afterParagraphs not recorded
+    - afterAtStart not recorded
+    - scrollTop: 30 of 30 samples not 0 (['None'])
+chrome start-hold r1 FAIL
+    reopen   refusals 3 gens ['1', '2', '3'] limit saved
+    server   same True firstDiff None charDelta 0 paragraphs 211/211
+    counts   marks 1 controls - afters -
+    where    mark - control - after -
+    bools    controlThenMark - markThenAfter - afterAtStart - afterAtEnd -
+    scroll   series []
+    - refusals 3 != 1
+    - generations ['1', '2', '3'] != ['1', '2']
+    - limit notice 'saved'
+    - controls not recorded
+    - afters not recorded
+    - afterParagraphs not recorded
+    - afterAtStart not recorded
+    - scrollTop: 31 of 31 samples not 0 (['None'])
+firefox start-hold r0 FAIL
+    reopen   refusals 3 gens ['1', '2', '3'] limit saved
+    server   same True firstDiff None charDelta 0 paragraphs 211/211
+    counts   marks 1 controls - afters -
+    where    mark - control - after -
+    bools    controlThenMark - markThenAfter - afterAtStart - afterAtEnd -
+    scroll   series []
+    - refusals 3 != 1
+    - generations ['1', '2', '3'] != ['1', '2']
+    - limit notice 'saved'
+    - controls not recorded
+    - afters not recorded
+    - afterParagraphs not recorded
+    - afterAtStart not recorded
+    - scrollTop: 31 of 31 samples not 0 (['None'])
+firefox start-hold r1 FAIL
+    reopen   refusals 3 gens ['1', '2', '3'] limit saved
+    server   same True firstDiff None charDelta 0 paragraphs 211/211
+    counts   marks 1 controls - afters -
+    where    mark - control - after -
+    bools    controlThenMark - markThenAfter - afterAtStart - afterAtEnd -
+    scroll   series []
+    - refusals 3 != 1
+    - generations ['1', '2', '3'] != ['1', '2']
+    - limit notice 'saved'
+    - controls not recorded
+    - afters not recorded
+    - afterParagraphs not recorded
+    - afterAtStart not recorded
+    - scrollTop: 30 of 30 samples not 0 (['None'])
+chrome end-hold r0 FAIL
+    reopen   refusals 1 gens ['1', '2'] limit None
+    server   same False firstDiff 0 charDelta -82 paragraphs 210/211
+    counts   marks 1 controls - afters -
+    where    mark - control - after -
+    bools    controlThenMark - markThenAfter - afterAtStart - afterAtEnd -
+    scroll   series [] | window {'pre': None, 'preAt': 8034.5, 'window': [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None], 'from': 8830.4, 'reloadedAt': 10262.5, 'to': 16101.2, 'closed': True}
+    - server differs after the reader stripped its marks: firstDiff 0 charDelta -82 paragraphs 210/211
+    - controls not recorded
+    - afters not recorded
+    - afterParagraphs not recorded
+    - afterAtEnd not recorded
+    - markThenAfter not recorded
+    - scrollTop: last sample before the refusal is None (the rule needs the view away from the start)
+chrome end-hold r1 FAIL
+    reopen   refusals 1 gens ['1', '2'] limit None
+    server   same False firstDiff 0 charDelta -83 paragraphs 210/211
+    counts   marks 1 controls - afters -
+    where    mark - control - after -
+    bools    controlThenMark - markThenAfter - afterAtStart - afterAtEnd -
+    scroll   series [] | window {'pre': None, 'preAt': 8198.4, 'window': [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None], 'from': 8989.8, 'reloadedAt': 10400.6, 'to': 16279.8, 'closed': True}
+    - server differs after the reader stripped its marks: firstDiff 0 charDelta -83 paragraphs 210/211
+    - controls not recorded
+    - afters not recorded
+    - afterParagraphs not recorded
+    - afterAtEnd not recorded
+    - markThenAfter not recorded
+    - scrollTop: last sample before the refusal is None (the rule needs the view away from the start)
+firefox end-hold r0 FAIL
+    reopen   refusals 1 gens ['1', '2'] limit None
+    server   same False firstDiff 0 charDelta -71 paragraphs 210/211
+    counts   marks 1 controls - afters -
+    where    mark - control - after -
+    bools    controlThenMark - markThenAfter - afterAtStart - afterAtEnd -
+    scroll   series [] | window {'pre': None, 'preAt': 8307.9, 'window': [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None], 'from': 9174.5, 'reloadedAt': 11500.7, 'to': 16722.6, 'closed': True}
+    - server differs after the reader stripped its marks: firstDiff 0 charDelta -71 paragraphs 210/211
+    - controls not recorded
+    - afters not recorded
+    - afterParagraphs not recorded
+    - afterAtEnd not recorded
+    - markThenAfter not recorded
+    - scrollTop: last sample before the refusal is None (the rule needs the view away from the start)
+firefox end-hold r1 FAIL
+    reopen   refusals 1 gens ['1', '2'] limit None
+    server   same False firstDiff 0 charDelta -72 paragraphs 210/211
+    counts   marks 1 controls - afters -
+    where    mark - control - after -
+    bools    controlThenMark - markThenAfter - afterAtStart - afterAtEnd -
+    scroll   series [] | window {'pre': None, 'preAt': 8158.2, 'window': [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None], 'from': 8989.1, 'reloadedAt': 11310.1, 'to': 16598.6, 'closed': True}
+    - server differs after the reader stripped its marks: firstDiff 0 charDelta -72 paragraphs 210/211
+    - controls not recorded
+    - afters not recorded
+    - afterParagraphs not recorded
+    - afterAtEnd not recorded
+    - markThenAfter not recorded
+    - scrollTop: last sample before the refusal is None (the rule needs the view away from the start)
+FAIL chrome start-press r0: controls not recorded
+FAIL chrome start-press r0: afters not recorded
+FAIL chrome start-press r0: afterParagraphs not recorded
+FAIL chrome start-press r0: afterAtStart not recorded
+FAIL chrome start-press r0: scrollTop: 6 of 6 samples not 0 (['None'])
+FAIL firefox start-press r0: controls not recorded
+FAIL firefox start-press r0: afters not recorded
+FAIL firefox start-press r0: afterParagraphs not recorded
+FAIL firefox start-press r0: afterAtStart not recorded
+FAIL firefox start-press r0: scrollTop: 6 of 6 samples not 0 (['None'])
+FAIL chrome start-hold r0: refusals 3 != 1
+FAIL chrome start-hold r0: generations ['1', '2', '3'] != ['1', '2']
+FAIL chrome start-hold r0: limit notice 'saved'
+FAIL chrome start-hold r0: controls not recorded
+FAIL chrome start-hold r0: afters not recorded
+FAIL chrome start-hold r0: afterParagraphs not recorded
+FAIL chrome start-hold r0: afterAtStart not recorded
+FAIL chrome start-hold r0: scrollTop: 30 of 30 samples not 0 (['None'])
+FAIL chrome start-hold r1: refusals 3 != 1
+FAIL chrome start-hold r1: generations ['1', '2', '3'] != ['1', '2']
+FAIL chrome start-hold r1: limit notice 'saved'
+FAIL chrome start-hold r1: controls not recorded
+FAIL chrome start-hold r1: afters not recorded
+FAIL chrome start-hold r1: afterParagraphs not recorded
+FAIL chrome start-hold r1: afterAtStart not recorded
+FAIL chrome start-hold r1: scrollTop: 31 of 31 samples not 0 (['None'])
+FAIL firefox start-hold r0: refusals 3 != 1
+FAIL firefox start-hold r0: generations ['1', '2', '3'] != ['1', '2']
+FAIL firefox start-hold r0: limit notice 'saved'
+FAIL firefox start-hold r0: controls not recorded
+FAIL firefox start-hold r0: afters not recorded
+FAIL firefox start-hold r0: afterParagraphs not recorded
+FAIL firefox start-hold r0: afterAtStart not recorded
+FAIL firefox start-hold r0: scrollTop: 31 of 31 samples not 0 (['None'])
+FAIL firefox start-hold r1: refusals 3 != 1
+FAIL firefox start-hold r1: generations ['1', '2', '3'] != ['1', '2']
+FAIL firefox start-hold r1: limit notice 'saved'
+FAIL firefox start-hold r1: controls not recorded
+FAIL firefox start-hold r1: afters not recorded
+FAIL firefox start-hold r1: afterParagraphs not recorded
+FAIL firefox start-hold r1: afterAtStart not recorded
+FAIL firefox start-hold r1: scrollTop: 30 of 30 samples not 0 (['None'])
+FAIL chrome end-hold r0: server differs after the reader stripped its marks: firstDiff 0 charDelta -82 paragraphs 210/211
+FAIL chrome end-hold r0: controls not recorded
+FAIL chrome end-hold r0: afters not recorded
+FAIL chrome end-hold r0: afterParagraphs not recorded
+FAIL chrome end-hold r0: afterAtEnd not recorded
+FAIL chrome end-hold r0: markThenAfter not recorded
+FAIL chrome end-hold r0: scrollTop: last sample before the refusal is None (the rule needs the view away from the start)
+FAIL chrome end-hold r1: server differs after the reader stripped its marks: firstDiff 0 charDelta -83 paragraphs 210/211
+FAIL chrome end-hold r1: controls not recorded
+FAIL chrome end-hold r1: afters not recorded
+FAIL chrome end-hold r1: afterParagraphs not recorded
+FAIL chrome end-hold r1: afterAtEnd not recorded
+FAIL chrome end-hold r1: markThenAfter not recorded
+FAIL chrome end-hold r1: scrollTop: last sample before the refusal is None (the rule needs the view away from the start)
+FAIL firefox end-hold r0: server differs after the reader stripped its marks: firstDiff 0 charDelta -71 paragraphs 210/211
+FAIL firefox end-hold r0: controls not recorded
+FAIL firefox end-hold r0: afters not recorded
+FAIL firefox end-hold r0: afterParagraphs not recorded
+FAIL firefox end-hold r0: afterAtEnd not recorded
+FAIL firefox end-hold r0: markThenAfter not recorded
+FAIL firefox end-hold r0: scrollTop: last sample before the refusal is None (the rule needs the view away from the start)
+FAIL firefox end-hold r1: server differs after the reader stripped its marks: firstDiff 0 charDelta -72 paragraphs 210/211
+FAIL firefox end-hold r1: controls not recorded
+FAIL firefox end-hold r1: afters not recorded
+FAIL firefox end-hold r1: afterParagraphs not recorded
+FAIL firefox end-hold r1: afterAtEnd not recorded
+FAIL firefox end-hold r1: markThenAfter not recorded
+FAIL firefox end-hold r1: scrollTop: last sample before the refusal is None (the rule needs the view away from the start)
+FAIL chrome end-press-type: 0 rounds < 1
+FAIL firefox end-press-type: 0 rounds < 1
+verdict FAIL (72)
+exit 1

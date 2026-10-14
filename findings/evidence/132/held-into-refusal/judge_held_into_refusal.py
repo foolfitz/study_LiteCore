@@ -57,32 +57,150 @@ Review 1 (findings/evidence/136/review/review-1.md) S1 and N1, accepted in
 ruling-3 addendum 4 (continued) and addendum 5; the witness per edit is in
 findings/evidence/136/judge/README.md.
 
+C (SPEC-M3-link-batch 10.5, 10.7; task 2026-10-14m, witness
+findings/evidence/link-batch/host-0.2.20/).  On a profile that ships C, a
+merge key whose barrier finds nothing selected completes
+`verified-boundary-noop` instead of refusing and reopening: v19 refuses, v20
+does not.  The five arms at a document or cell start/end (`start-press`,
+`start-hold`, `end-hold`, `end-press-type`, `cell-start-hold`; the 10.7 list)
+are then held to RULES_C instead of RULES:
+  no reopen       0 refusals, generations ['1'], no limit notice, no reopen
+                  toast (10.5: the page shows nothing and does not reopen);
+  document kept, the mark counts and the placement rules: unchanged, they
+                  mean the same thing under C;
+  cell-start-hold the refusal stage read from the page is None and no reopen
+                  toast was classified (a stage read = a refusal happened);
+  scrollTop       start arms: every sample 0, as before.  End arms: no
+                  refusal anchors a window, so from `stateBeforeKey` (> 0,
+                  same guard) to the end of the log every sample is >= 0.5 x
+                  the pre-key sample -- the same "never near the document
+                  start" the v19 window asserted.
+The other four table arms refuse on v20 as on v19 (`key-posted`,
+`anchor-mismatch` are other exits) and keep RULES under both keyings.
+
+THE KEYING is the one task 2026-10-14i set for the merge runner
+(`run_merge_wasm_shakedown.boundary_noop_declared`): a profile declares C by
+carrying, in its probe.wasm, the fragment the engine emits for that
+completion (`probe_engine.cpp`, `finishSelectionBarrierBoundaryNoop`).  No
+manifest field declares C, and a name is a convention.  These reports do not
+record `wasmSha256`; they record the host engine's `buildId`
+(`static.buildId`), which `package_m3_engine.py` defines as the first 16 hex
+of the sha256 of the canonical JSON {path: sha256} of the packaged closure --
+the page, the worker and the wasm.  So the judge resolves the buildId to the
+engine package the host served (`wasm_sdk_probe/build/archive/
+host-*-engine-<buildId>/`, or `--engine DIR`), recomputes the buildId from
+that manifest, checks the manifest's page hash against the report's
+`servedPage`, decompresses `files/<profile>/probe.wasm.gz`, checks its
+sha256 against the manifest, and only then reads the fragment.  Fail-closed:
+no package, or any mismatch, is a FAIL with nothing judged -- no bytes, no
+expectation; a v19 profile judged under RULES_C is red (refusals 1 != 0), a
+C profile judged under RULES is red (the witness), so a wrong keying in
+either direction cannot pass.  The keying is printed (`engine ...`).
+
 A field a report predates is a FAIL "... not recorded", never a pass.  One
 exception, for the red case on table run-3 only: that run's reader put
 `controlThenMark` under run["control"] (`control_read`, the same definition:
 `kj` + `zqx` in one paragraph); it is read there when the server read lacks
 it, and the printed source says so.
 
-  judge_held_into_refusal.py REPORT --page SHA256 [--browsers chrome,firefox]
+  judge_held_into_refusal.py REPORT --page SHA256 [--browsers chrome,firefox] [--engine DIR]
 """
 
 from __future__ import annotations
 
 import argparse
 import ast
+import gzip
+import hashlib
 import json
 import sys
 from pathlib import Path
 from typing import Any, Callable
 
 HERE = Path(__file__).resolve().parent
+ROOT = HERE.parents[3]
 PROBES = {
     "probe_held_into_refusal.py": HERE / "probe_held_into_refusal.py",
     "probe_table_refusal.py": HERE.parents[1] / "134" / "table" / "probe_table_refusal.py",
 }
 STATIC_KEYS = ("hostVersion", "hostCommit", "buildId", "servedPage", "distPage")
 RELOADED = "已重新載入"
+# Both reopen toasts (「…正在重新載入…」, 「…已重新載入…」) contain this; the table
+# probe's `refusal_stage` classifies a toast as a reopen by the same substring.
+REOPEN_TOAST = "重新載入"
 MISSING = object()
+
+# ------------------------------------------------------------------ keying (C)
+
+# The byte fragment `finishSelectionBarrierBoundaryNoop` (probe_engine.cpp,
+# behind OXSDK_E2_V20_LINK_BATCH) writes into its reply; the same constant as
+# run_merge_wasm_shakedown.BOUNDARY_NOOP_FRAGMENT (task 2026-10-14i).  In
+# v20's probe.wasm and in no earlier profile's; a string a binary emits cannot
+# be a comment.
+BOUNDARY_NOOP_FRAGMENT = b',"completion":"verified-boundary-noop"'
+# Where package_m3_engine.py's output is archived, named by the buildId the
+# reports record (ATTRIBUTION.md in each): the bytes the host served.
+ARCHIVE = ROOT / "wasm_sdk_probe" / "build" / "archive"
+ENGINE_SCHEMA = "litecore-engine/2"
+PAGE_MODULE = "e2-editor-app.js"
+
+
+def build_id(files: dict[str, dict[str, Any]]) -> str:
+    """package_m3_engine.build_id, verbatim: the buildId is a function of the decoded files."""
+    canonical = json.dumps({path: entry["sha256"] for path, entry in files.items()},
+                           sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(canonical.encode()).hexdigest()[:16]
+
+
+def engine_package(build: str | None, engine: Path | None) -> Path | dict[str, str]:
+    if engine is not None:
+        return engine
+    if not build:
+        return {"error": "static.buildId not recorded; the C expectation cannot be keyed"}
+    hits = sorted(p for p in ARCHIVE.glob(f"host-*-engine-{build}") if (p / "MANIFEST.json").is_file())
+    if len(hits) != 1:
+        return {"error": f"buildId {build}: {len(hits)} engine packages under {ARCHIVE} "
+                         f"({[h.name for h in hits]}); pass --engine DIR"}
+    return hits[0]
+
+
+def keying(report: dict[str, Any], engine: Path | None) -> dict[str, Any]:
+    """Whether the engine the report ran through declares C, read from its own bytes.
+    Returns {"error": ...} when that cannot be established -- the caller judges nothing then."""
+    static = report.get("static") or {}
+    build = static.get("buildId")
+    package = engine_package(build, engine)
+    if isinstance(package, dict):
+        return package
+    manifest_path = package / "MANIFEST.json"
+    if not manifest_path.is_file():
+        return {"error": f"{manifest_path} is not a file"}
+    manifest = json.loads(manifest_path.read_text())
+    files = manifest.get("files") or {}
+    if manifest.get("schema") != ENGINE_SCHEMA:
+        return {"error": f"{manifest_path}: schema {manifest.get('schema')!r} != {ENGINE_SCHEMA!r}"}
+    if manifest.get("buildId") != build:
+        return {"error": f"{manifest_path}: buildId {manifest.get('buildId')} != the report's {build}"}
+    if build_id(files) != build:
+        return {"error": f"{manifest_path}: its files hash to buildId {build_id(files)}, not {build}"}
+    page = (files.get(PAGE_MODULE) or {}).get("sha256")
+    if page != static.get("servedPage"):
+        return {"error": f"{manifest_path}: page {page} != the report's servedPage {static.get('servedPage')}"}
+    wasm_path = next((p for p in files if p.endswith("/probe.wasm")), None)
+    if wasm_path is None:
+        return {"error": f"{manifest_path}: no */probe.wasm among its files"}
+    packed = package / "files" / (wasm_path + ".gz")
+    if not packed.is_file():
+        return {"error": f"{packed} is not a file; the declaration must be read from the bytes that ran"}
+    raw = gzip.decompress(packed.read_bytes())
+    sha = hashlib.sha256(raw).hexdigest()
+    if sha != files[wasm_path]["sha256"]:
+        return {"error": f"{packed}: sha256 {sha[:16]} != the manifest's {files[wasm_path]['sha256'][:16]}; "
+                         "the declaration must be read from the bytes that ran"}
+    declared = BOUNDARY_NOOP_FRAGMENT in raw
+    return {"buildId": build, "package": str(package), "profile": (manifest.get("source") or {}).get("profile"),
+            "wasm": wasm_path, "wasmSha256": sha, "declared": declared,
+            "nothingSelectedExpects": "verified-boundary-noop" if declared else "refusal"}
 
 
 def probe_arms(path: Path) -> tuple[str, ...]:
@@ -257,6 +375,64 @@ def stage_is(want: str) -> Callable[[dict[str, Any]], list[str]]:
     return rule
 
 
+# ------------------------------------------------------------------ rules under C (10.5, 10.7)
+
+def no_reopen(run: dict[str, Any]) -> list[str]:
+    """C: the key completed as a verified no-op -- nothing refused, nothing reopened,
+    nothing shown.  The limit clause is one_reopen's, unchanged."""
+    s = run["summary"]
+    failed = []
+    if s["refusals"] != 0:
+        failed.append(f"refusals {s['refusals']} != 0 (C: a verified no-op, not a refusal)")
+    if s["generations"] != ["1"]:
+        failed.append(f"generations {s['generations']} != ['1'] (C: no reopen)")
+    if s["limitSavedMs"] is not None or (run.get("limit") or {}).get("limit") is not None:
+        failed.append(f"limit notice {(run.get('limit') or {}).get('limit')!r}")
+    reopen = [t for t in s.get("toasts") or [] if REOPEN_TOAST in t]
+    if reopen:
+        failed.append(f"reopen toast shown under C: {reopen[0]!r}")
+    return failed
+
+
+def stage_none(run: dict[str, Any]) -> list[str]:
+    """cell-start-hold under C: the positive control inverts.  v19 read the refusal
+    stage from the toast to show the arm measured D (`nothing-selected`) and not
+    `anchor-mismatch`; under C that exit is the no-op and the others still refuse,
+    so the control is that NO stage was read: a stage read means a refusal."""
+    if "refusalStage" not in run:
+        return ["refusalStage not recorded"]
+    stage = run["refusalStage"] or {}
+    if stage.get("stage") is not None or stage.get("stages"):
+        return [f"refusal stage {stage.get('stage')!r} read (stages {stage.get('stages')}): a refusal, not C's no-op"]
+    return []
+
+
+def kept_window(run: dict[str, Any]) -> dict[str, Any]:
+    """C's scroll window for the end arms: no refusal anchors it, so it is the whole
+    log after `stateBeforeKey` (required: the probe's one sample before the key)."""
+    ss = samples(run)
+    if not ss or ss[0].get("t") != "beforeKey":
+        return {"error": "no stateBeforeKey sample"}
+    return {"pre": ss[0].get("scroll"), "window": [e.get("scroll") for e in ss[1:]],
+            "from": ss[1].get("t") if len(ss) > 1 else None, "to": ss[-1].get("t")}
+
+
+def scroll_kept(run: dict[str, Any]) -> list[str]:
+    w = kept_window(run)
+    if "error" in w:
+        return [f"scrollTop: {w['error']}"]
+    pre, window = w["pre"], w["window"]
+    if not isinstance(pre, (int, float)) or pre <= 0:
+        return [f"scrollTop: sample before the key is {pre!r} (the rule needs the view away from the start)"]
+    if not window:
+        return ["scrollTop: no sample after the key"]
+    low = [s for s in window if not isinstance(s, (int, float)) or s < 0.5 * pre]
+    if low:
+        return [f"scrollTop: {len(low)} of {len(window)} samples from the key to the end of the log < 0.5 x {pre} "
+                f"(lowest {min((s for s in low if isinstance(s, (int, float))), default=None)})"]
+    return []
+
+
 def all_of(*rules: Callable[[dict[str, Any]], list[str]]) -> Callable[[dict[str, Any]], list[str]]:
     return lambda run: [f for rule in rules for f in rule(run)]
 
@@ -281,6 +457,22 @@ MIN_ROUNDS = {"start-press": 1, "start-hold": 2, "end-hold": 2, "end-press-type"
               "before-table-press-type": 1, "before-table-hold": 1, "cell-press-type": 1, "cell-hold": 1,
               "cell-start-hold": 2}
 SCROLL = {"start-press": "start", "start-hold": "start", "end-hold": "end", "end-press-type": "end"}
+# 10.7's list: the arms whose key meets a document or cell start/end with
+# nothing selected.  Under C they are judged by these rules; every other arm
+# keeps RULES.  The list is a mirror of 10.7, but it cannot pass wrongly: an
+# arm listed here that still refuses is red on `no_reopen`, and an arm left
+# out that completes as a no-op is red on `one_reopen` (both measured on
+# host 0.2.20: the four other table arms still refuse).
+RULES_C: dict[str, Callable[[dict[str, Any]], list[str]]] = {
+    "start-press": all_of(no_reopen, document_kept, counts(1, 0, 1), after_at("start", 0), scroll_start),
+    "start-hold": all_of(no_reopen, document_kept, counts(1, 0, 1), after_at("start", 0), scroll_start),
+    "end-hold": all_of(no_reopen, document_kept, counts(1, 0, 1), after_at("end", "last"), mark_then_after,
+                       scroll_kept),
+    "end-press-type": all_of(no_reopen, document_kept, counts(1, 1, 0), control_at("last"), mark_at_end, contiguous,
+                             scroll_kept),
+    "cell-start-hold": all_of(no_reopen, stage_none, document_kept, counts(0, 0, 1), after_at("start", 1)),
+}
+assert set(RULES_C) <= set(RULES), "RULES_C names an arm RULES does not"
 
 
 # ------------------------------------------------------------------ printing
@@ -293,7 +485,7 @@ def scroll_series(run: dict[str, Any]) -> list[Any]:
     return out
 
 
-def raw_lines(arm: str, run: dict[str, Any]) -> list[str]:
+def raw_lines(arm: str, run: dict[str, Any], declared: bool = False) -> list[str]:
     s, srv = run["summary"], run.get("server") or {}
     show = lambda name: (lambda v: "-" if v[0] is MISSING else f"{v[0]}" + (  # noqa: E731
         "" if v[1] == "server" else f" [{v[1]}]"))(field(run, name))
@@ -310,35 +502,34 @@ def raw_lines(arm: str, run: dict[str, Any]) -> list[str]:
         lines.append(f"    cell     refusalStage {run.get('refusalStage', '-')} cellStart {run.get('cellStart', '-')}")
     kind = SCROLL.get(arm)
     if kind == "end":
-        w = scroll_window(run)
+        w = kept_window(run) if declared else scroll_window(run)
         lines.append(f"    scroll   series {scroll_series(run)} | window {w}")
     else:
         lines.append(f"    scroll   series {scroll_series(run)}" + ("" if kind else " (exempt)"))
     return lines
 
 
-def main() -> int:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("report", type=Path)
-    parser.add_argument("--page", required=True, help="sha256 the served and dist page must both be")
-    parser.add_argument("--browsers", default="chrome,firefox")
-    args = parser.parse_args()
-    report = json.loads(args.report.read_text())
+def judge_report(report: dict[str, Any], page: str, browsers: str, declared: bool,
+                 out: Callable[[str], None] = print) -> list[str]:
+    """Every failure line of the report under one keying (`declared`: the engine
+    carries C, so 10.7's arms take RULES_C).  main() reads the keying from the
+    engine's bytes; a re-judge may pass it to show a red case.  Returns the
+    failures; the verdict is printed and is `PASS` iff the list is empty."""
     failures: list[str] = []
-
     path = PROBES.get(report.get("probe"))
     if path is None:
-        print(f"FAIL report['probe'] {report.get('probe')!r} is none of {sorted(PROBES)}")
-        print("verdict FAIL (1)")
-        return 1
+        out(f"FAIL report['probe'] {report.get('probe')!r} is none of {sorted(PROBES)}")
+        out("verdict FAIL (1)")
+        return ["report['probe'] unknown"]
     arms = probe_arms(path)
-    print("probe", report["probe"], "arms", list(arms))
+    out(f"probe {report['probe']} arms {list(arms)}")
+    out(f"expectation {'C (RULES_C on ' + str(sorted(RULES_C)) + ')' if declared else 'v19 (RULES, refusal and reopen)'}")
 
     static, after = report.get("static") or {}, report.get("staticAfter") or {}
-    print("static", {k: static.get(k) for k in STATIC_KEYS})
+    out(f"static {({k: static.get(k) for k in STATIC_KEYS})}")
     for key in ("servedPage", "distPage"):
-        if static.get(key) != args.page:
-            failures.append(f"static: {key} {static.get(key)} != {args.page}")
+        if static.get(key) != page:
+            failures.append(f"static: {key} {static.get(key)} != {page}")
     if any(static.get(k) != after.get(k) for k in STATIC_KEYS):
         failures.append(f"static: staticAfter differs {[k for k in STATIC_KEYS if static.get(k) != after.get(k)]}")
 
@@ -346,11 +537,11 @@ def main() -> int:
         if run["arm"] not in arms:
             failures.append(f"{run['browser']} {run['arm']} r{run.get('round', 0)}: arm not in the probe's ARMS")
     for arm in arms:
-        rule = RULES.get(arm)
+        rule = (RULES_C if declared else {}).get(arm) or RULES.get(arm)
         if rule is None or arm not in MIN_ROUNDS:
             failures.append(f"{arm}: no rule for an arm the probe declares")
             continue
-        for browser in args.browsers.split(","):
+        for browser in browsers.split(","):
             runs = [r for r in report["runs"] if r["arm"] == arm and r["browser"] == browser]
             if len(runs) < MIN_ROUNDS[arm]:
                 failures.append(f"{browser} {arm}: {len(runs)} rounds < {MIN_ROUNDS[arm]}")
@@ -358,18 +549,41 @@ def main() -> int:
                 head = f"{browser} {arm} r{run.get('round', 0)}"
                 if run.get("fatal"):
                     failures.append(f"{head}: fatal {run['fatal'].strip().splitlines()[-1]}")
-                    print(head, "FAIL fatal")
+                    out(f"{head} FAIL fatal")
                     continue
                 failed = rule(run)
-                print(head, "FAIL" if failed else "PASS")
-                for line in raw_lines(arm, run):
-                    print(line)
+                out(f"{head} {'FAIL' if failed else 'PASS'}")
+                for line in raw_lines(arm, run, declared and arm in RULES_C):
+                    out(line)
                 for f in failed:
-                    print("    -", f)
+                    out(f"    - {f}")
                 failures.extend(f"{head}: {f}" for f in failed)
     for f in failures:
-        print("FAIL", f)
-    print("verdict", "PASS" if not failures else f"FAIL ({len(failures)})")
+        out(f"FAIL {f}")
+    out(f"verdict {'PASS' if not failures else f'FAIL ({len(failures)})'}")
+    return failures
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("report", type=Path)
+    parser.add_argument("--page", required=True, help="sha256 the served and dist page must both be")
+    parser.add_argument("--browsers", default="chrome,firefox")
+    parser.add_argument("--engine", type=Path, default=None,
+                        help="the engine package (package_m3_engine.py's <app>/engine: MANIFEST.json + files/) the "
+                             "report ran through; default: the archive entry named by the report's buildId")
+    args = parser.parse_args()
+    report = json.loads(args.report.read_text())
+
+    key = keying(report, args.engine)
+    if "error" in key:
+        print(f"FAIL engine: {key['error']}")
+        print("verdict FAIL (1)")
+        return 1
+    print(f"engine buildId {key['buildId']} package {key['package']} profile {key['profile']} "
+          f"wasm {key['wasm']} sha256 {key['wasmSha256'][:16]} declares C: {key['declared']} "
+          f"(nothing-selected expects {key['nothingSelectedExpects']})")
+    failures = judge_report(report, args.page, args.browsers, key["declared"])
     return 0 if not failures else 1
 
 

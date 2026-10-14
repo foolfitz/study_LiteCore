@@ -1,0 +1,76 @@
+engine buildId 9352fae3aea68b5e package /home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/build/archive/host-0.2.16-engine-9352fae3aea68b5e profile e2-editor-v19 wasm profiles/e2-editor-v19/probe.wasm sha256 1aafd4f9da42fd83 declares C: False (nothing-selected expects refusal)
+probe probe_table_refusal.py arms ['before-table-press-type', 'before-table-hold', 'cell-press-type', 'cell-hold', 'cell-start-hold']
+expectation v19 (RULES, refusal and reopen)
+static {'hostVersion': '0.2.16', 'hostCommit': 'f5b34f0', 'buildId': '9352fae3aea68b5e', 'servedPage': '6470dec0cb0e20db46d33d46bfc565893f542b79f7317fcbc421653a562bb94b', 'distPage': '6470dec0cb0e20db46d33d46bfc565893f542b79f7317fcbc421653a562bb94b'}
+chrome before-table-press-type r0 PASS
+    reopen   refusals 1 gens ['1', '2'] limit None
+    server   same True firstDiff None charDelta 0 paragraphs 6/6
+    counts   marks 1 controls 1 afters 0
+    where    mark [0] control [0] after []
+    bools    controlThenMark True markThenAfter False afterAtStart False afterAtEnd False
+    scroll   series [0] (exempt)
+firefox before-table-press-type r0 PASS
+    reopen   refusals 1 gens ['1', '2'] limit None
+    server   same True firstDiff None charDelta 0 paragraphs 6/6
+    counts   marks 1 controls 1 afters 0
+    where    mark [0] control [0] after []
+    bools    controlThenMark True markThenAfter False afterAtStart False afterAtEnd False
+    scroll   series [0] (exempt)
+chrome before-table-hold r0 PASS
+    reopen   refusals 1 gens ['1', '2'] limit None
+    server   same True firstDiff None charDelta 0 paragraphs 6/6
+    counts   marks 0 controls 0 afters 1
+    where    mark [] control [] after [0]
+    bools    controlThenMark False markThenAfter False afterAtStart False afterAtEnd True
+    scroll   series [0] (exempt)
+firefox before-table-hold r0 PASS
+    reopen   refusals 1 gens ['1', '2'] limit None
+    server   same True firstDiff None charDelta 0 paragraphs 6/6
+    counts   marks 0 controls 0 afters 1
+    where    mark [] control [] after [0]
+    bools    controlThenMark False markThenAfter False afterAtStart False afterAtEnd True
+    scroll   series [0] (exempt)
+chrome cell-press-type r0 FAIL
+    reopen   refusals 1 gens ['1', '2'] limit None
+    server   same True firstDiff None charDelta 0 paragraphs 6/6
+    counts   marks 1 controls 1 afters 0
+    where    mark [2] control [1] after []
+    bools    controlThenMark False markThenAfter False afterAtStart False afterAtEnd False
+    scroll   series [0] (exempt)
+    - CONTROL then MARK not contiguous (controlThenMark False)
+firefox cell-press-type r0 FAIL
+    reopen   refusals 1 gens ['1', '2'] limit None
+    server   same True firstDiff None charDelta 0 paragraphs 6/6
+    counts   marks 1 controls 1 afters 0
+    where    mark [2] control [1] after []
+    bools    controlThenMark False markThenAfter False afterAtStart False afterAtEnd False
+    scroll   series [0] (exempt)
+    - CONTROL then MARK not contiguous (controlThenMark False)
+chrome cell-hold r0 FAIL
+    reopen   refusals 1 gens ['1', '2'] limit None
+    server   same True firstDiff None charDelta 0 paragraphs 6/6
+    counts   marks 0 controls 0 afters 1
+    where    mark [] control [] after [2]
+    bools    controlThenMark False markThenAfter False afterAtStart True afterAtEnd False
+    scroll   series [0] (exempt)
+    - AFTER in paragraphs [2], expected [1]
+    - AFTER not at the end of its paragraph (afterAtEnd False)
+firefox cell-hold r0 FAIL
+    reopen   refusals 1 gens ['1', '2'] limit None
+    server   same True firstDiff None charDelta 0 paragraphs 6/6
+    counts   marks 0 controls 0 afters 1
+    where    mark [] control [] after [2]
+    bools    controlThenMark False markThenAfter False afterAtStart True afterAtEnd False
+    scroll   series [0] (exempt)
+    - AFTER in paragraphs [2], expected [1]
+    - AFTER not at the end of its paragraph (afterAtEnd False)
+FAIL chrome cell-press-type r0: CONTROL then MARK not contiguous (controlThenMark False)
+FAIL firefox cell-press-type r0: CONTROL then MARK not contiguous (controlThenMark False)
+FAIL chrome cell-hold r0: AFTER in paragraphs [2], expected [1]
+FAIL chrome cell-hold r0: AFTER not at the end of its paragraph (afterAtEnd False)
+FAIL firefox cell-hold r0: AFTER in paragraphs [2], expected [1]
+FAIL firefox cell-hold r0: AFTER not at the end of its paragraph (afterAtEnd False)
+FAIL chrome cell-start-hold: 0 rounds < 2
+FAIL firefox cell-start-hold: 0 rounds < 2
+verdict FAIL (8)
+exit 1

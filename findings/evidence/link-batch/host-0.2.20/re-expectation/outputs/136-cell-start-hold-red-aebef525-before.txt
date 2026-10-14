@@ -1,0 +1,52 @@
+probe probe_table_refusal.py arms ['before-table-press-type', 'before-table-hold', 'cell-press-type', 'cell-hold', 'cell-start-hold']
+static {'hostVersion': '0.2.17', 'hostCommit': 'f5b34f0', 'buildId': 'e39447158dba7a3b', 'servedPage': 'aebef52560bce2a3572c4e0f85197366ef544809331ae8b7dd2be55faaa4d2b8', 'distPage': 'aebef52560bce2a3572c4e0f85197366ef544809331ae8b7dd2be55faaa4d2b8'}
+chrome cell-start-hold r0 FAIL
+    reopen   refusals 1 gens ['1', '2'] limit None
+    server   same True firstDiff None charDelta 0 paragraphs 6/6
+    counts   marks 0 controls 0 afters 1
+    where    mark [] control [] after [1]
+    bools    controlThenMark False markThenAfter False afterAtStart False afterAtEnd False
+    cell     refusalStage {'stage': 'nothing-selected', 'stages': ['nothing-selected', 'nothing-selected']} cellStart {'paragraph1StartsWithAfter': False, 'paragraph1IsAfterThenOriginal': False}
+    scroll   series [0] (exempt)
+    - AFTER not at the start of its paragraph (afterAtStart False)
+chrome cell-start-hold r1 FAIL
+    reopen   refusals 1 gens ['1', '2'] limit None
+    server   same True firstDiff None charDelta 0 paragraphs 6/6
+    counts   marks 0 controls 0 afters 1
+    where    mark [] control [] after [1]
+    bools    controlThenMark False markThenAfter False afterAtStart False afterAtEnd False
+    cell     refusalStage {'stage': 'nothing-selected', 'stages': ['nothing-selected', 'nothing-selected']} cellStart {'paragraph1StartsWithAfter': False, 'paragraph1IsAfterThenOriginal': False}
+    scroll   series [0] (exempt)
+    - AFTER not at the start of its paragraph (afterAtStart False)
+firefox cell-start-hold r0 FAIL
+    reopen   refusals 1 gens ['1', '2'] limit None
+    server   same True firstDiff None charDelta 0 paragraphs 6/6
+    counts   marks 0 controls 0 afters 1
+    where    mark [] control [] after [1]
+    bools    controlThenMark False markThenAfter False afterAtStart False afterAtEnd False
+    cell     refusalStage {'stage': 'nothing-selected', 'stages': ['nothing-selected', 'nothing-selected']} cellStart {'paragraph1StartsWithAfter': False, 'paragraph1IsAfterThenOriginal': False}
+    scroll   series [0] (exempt)
+    - AFTER not at the start of its paragraph (afterAtStart False)
+firefox cell-start-hold r1 FAIL
+    reopen   refusals 1 gens ['1', '2'] limit None
+    server   same True firstDiff None charDelta 0 paragraphs 6/6
+    counts   marks 0 controls 0 afters 1
+    where    mark [] control [] after [1]
+    bools    controlThenMark False markThenAfter False afterAtStart False afterAtEnd False
+    cell     refusalStage {'stage': 'nothing-selected', 'stages': ['nothing-selected', 'nothing-selected']} cellStart {'paragraph1StartsWithAfter': False, 'paragraph1IsAfterThenOriginal': False}
+    scroll   series [0] (exempt)
+    - AFTER not at the start of its paragraph (afterAtStart False)
+FAIL chrome before-table-press-type: 0 rounds < 1
+FAIL firefox before-table-press-type: 0 rounds < 1
+FAIL chrome before-table-hold: 0 rounds < 1
+FAIL firefox before-table-hold: 0 rounds < 1
+FAIL chrome cell-press-type: 0 rounds < 1
+FAIL firefox cell-press-type: 0 rounds < 1
+FAIL chrome cell-hold: 0 rounds < 1
+FAIL firefox cell-hold: 0 rounds < 1
+FAIL chrome cell-start-hold r0: AFTER not at the start of its paragraph (afterAtStart False)
+FAIL chrome cell-start-hold r1: AFTER not at the start of its paragraph (afterAtStart False)
+FAIL firefox cell-start-hold r0: AFTER not at the start of its paragraph (afterAtStart False)
+FAIL firefox cell-start-hold r1: AFTER not at the start of its paragraph (afterAtStart False)
+verdict FAIL (12)
+exit 1
