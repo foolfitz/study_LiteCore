@@ -1,0 +1,313 @@
+since c0337ae3: 2 unit(s) preprocess identically, 2 changed
+  same     unoembind_stub
+  same     editor_api
+  CHANGED  sdk_api
+      --- sdk_api@c0337ae3
+      +++ sdk_api@tree
+      +
+}
+extern "C" __attribute__((used)) int32_t oxsdk_document_page_rectangles(
+    oxsdk_request_id requestId, oxsdk_document_handle documentHandle) {
+ 
+      +
+  return safeStatus(
+      [&] { return probe::pageRectangles(requestId, documentHandle)
+      + })
+  CHANGED  probe_engine
+      --- probe_engine@c0337ae3
+      +++ probe_engine@tree
+      -
+enum class CommandType {
+  EmitReady,
+  OpenUrl,
+  OpenBytes,
+  PaintTile,
+  Click,
+  InsertText,
+  Search,
+  GetSelection,
+  ReplaceSelection,
+  Un
+      +
+enum class CommandType {
+  EmitReady,
+  OpenUrl,
+  OpenBytes,
+  PaintTile,
+  Click,
+  InsertText,
+  Search,
+  GetSelection,
+  ReplaceSelection,
+  Un
+      +
+  std::uint64_t documentSizeChangedCount = 0
+      +
+  EditorRect caretBefore
+      +
+  std::uint64_t caretBeforeSequence = 0
+      +
+  bool boundaryNoopWindow = false
+      +
+  std::chrono::steady_clock::time_point startedAt
+      -
+}
+void appendEditorState(std::ostringstream &json) {
+  json << "\"sourceSequence\":" << gEditorState.sourceSequence
+       << ",\"documentChangeSequ
+      +
+}
+void appendEditorState(std::ostringstream &json) {
+  json << "\"sourceSequence\":" << gEditorState.sourceSequence
+       << ",\"documentChangeSequ
+      -
+  }
+  default:
+    break
+      +
+  }
+  case LOK_CALLBACK_DOCUMENT_SIZE_CHANGED:
+    ++gEditorState.documentSizeChangedCount
+      +
+    editorStateChanged = true
+      +
+    editorSource = "document-size-changed"
+      +
+    break
+      +
+  default:
+    break
+      +
+}
+void appendCaretBefore(std::ostringstream &json,
+                       const SelectionBarrierTransaction &transaction) {
+  EditorRect rect = tran
+      +
+  bool fromAttribution = false
+      +
+  {
+    std::lock_guard<std::mutex> merge(gMergeMutex)
+      +
+    if (gMergeAttribution.hasP()) {
+      const probe::merge::Rect &p = gMergeAttribution.p()
+      +
+      rect.available = true
+      +
+      rect.x = static_cast<int>(p.x)
+      +
+      rect.y = static_cast<int>(p.y)
+      +
+      rect.width = static_cast<int>(p.w)
+      +
+      rect.height = static_cast<int>(p.h)
+      +
+      fromAttribution = true
+      +
+    }
+  }
+  json << ",\"caretBefore\":{\"rect\":"
+      +
+  if (rect.available)
+    appendEditorRectangle(json, rect)
+      +
+  else
+    json << "null"
+      +
+  json << ",\"sourceSequence\":" << transaction.caretBeforeSequence
+       << ",\"source\":\"" << (fromAttribution ? "attribution-P" : "cache")
+    
+      -
+  emitSdkError(transaction.requestId, transaction.documentHandle,
+               "editor-action", code, finalMessage)
+      +
+  std::ostringstream json
+      +
+  json << "{\"schemaVersion\":" << ProtocolSchemaVersion
+       << ",\"type\":\"error\",\"requestId\":" << transaction.requestId
+       << ",\"docum
+      +
+  appendCaretBefore(json, transaction)
+      +
+  json << "}"
+      +
+  emitJson(json.str())
+      -
+  json << "{\"schemaVersion\":" << ProtocolSchemaVersion
+       << ",\"type\":\"error\",\"requestId\":" << transaction.requestId
+       << ",\"docum
+      +
+  json << "{\"schemaVersion\":" << ProtocolSchemaVersion
+       << ",\"type\":\"error\",\"requestId\":" << transaction.requestId
+       << ",\"docum
+      +
+  appendCaretBefore(json, transaction)
+      +
+  json << "}"
+      +
+  emitJson(json.str())
+      +
+  finishAsynchronous(transaction.requestId)
+      +
+}
+void finishSelectionBarrierBoundaryNoop() {
+  const SelectionBarrierTransaction transaction = gSelectionBarrier
+      +
+  gSelectionBarrier = SelectionBarrierTransaction{}
+      +
+  {
+    std::lock_guard<std::mutex> merge(gMergeMutex)
+      +
+    gMergeTicket = MergeTicket{}
+      +
+  }
+  const long long waitedMs =
+      std::chrono::duration_cast<std::chrono::milliseconds>(
+          std::chrono::steady_clock::now() - transacti
+      +
+  std::ostringstream json
+      +
+  json << "{\"schemaVersion\":" << ProtocolSchemaVersion
+       << ",\"type\":\"editor-action-completed\",\"requestId\":"
+       << transaction.requ
+      +
+  appendEditorState(json)
+      +
+  json << "}}"
+      -
+  if (selected.type == LOK_SELTYPE_NONE && !selected.textMissing &&
+      typedCollapsed) {
+    finishMergeKeyError("nothing-selected")
+      +
+  if (selected.type == LOK_SELTYPE_NONE && !selected.textMissing &&
+      typedCollapsed) {
+    if (!gSelectionBarrier.boundaryNoopWindow) {
+      g
+      +
+      gSelectionBarrier.boundaryDeadline =
+          std::chrono::steady_clock::now() +
+          std::chrono::milliseconds(MergeStepDeadlineMs)
+      +
+      return
+      +
+    }
+    finishSelectionBarrierBoundaryNoop()
+      +
+  gSelectionBarrier.caretBefore = gEditorState.caret
+      +
+  gSelectionBarrier.caretBeforeSequence = gEditorState.sourceSequence
+      +
+  gSelectionBarrier.boundaryNoopWindow = false
+      +
+  gSelectionBarrier.startedAt = std::chrono::steady_clock::now()
+      +
+}
+void handlePageRectangles(const Command &command) {
+  if (!requireDocument(command, "page-rectangles"))
+    return
+      +
+  char *rectangles =
+      gState.document->pClass->getPartPageRectangles(gState.document)
+      +
+  if (!rectangles) {
+    emitCommandError(command, "page-rectangles", "LOK_ERROR", kitError())
+      +
+    return
+      +
+  }
+  long width = 0
+      +
+  long height = 0
+      +
+  gState.document->pClass->getDocumentSize(gState.document, &width, &height)
+      +
+  const int parts = gState.document->pClass->getParts(gState.document)
+      +
+  std::ostringstream json
+      +
+  json << "{\"schemaVersion\":" << ProtocolSchemaVersion
+       << ",\"type\":\"page-rectangles\",\"requestId\":" << command.requestId
+       << ",\
+      +
+  std::free(rectangles)
+      +
+  emitJson(json.str())
+      +
+  case CommandType::PageRectangles:
+    handlePageRectangles(command)
+      +
+    break
+      +
+}
+SubmitStatus pageRectangles(std::uint32_t requestId,
+                            std::uint32_t documentHandle) {
+  Command command{CommandType::Pa
+      +
+  command.sdk = true
+      +
+  command.requestId = requestId
+      +
+  command.documentHandle = documentHandle
+      +
+  return submit(std::move(command))
+  CHANGED  sdk-worker.js 00882139cd0b2e58 -> 478d0da1dbfcf936 (+94/-0 lines, 61 of them code)
+      + }
+      + const DOCUMENT_EXPORT_OPERATIONS = new Map([
+      + ["pageRectangles", { field: "pageRectangles",
+      + declaration: "document-sdk-page-rectangles" }],
+      + ]);
+      + function documentExportDeclared(operation) {
+      + const spec = DOCUMENT_EXPORT_OPERATIONS.get(operation);
+      + if (!spec)
+      + return true;   // not a declared export; other gates apply
+      + return activeManifest?.editorContract?.[spec.field] === spec.declaration;
+      + }
+      + function productBoundaryNoop(value = {}) {
+      + return {
+      + waitedMs: Number.isFinite(value.waitedMs) ? value.waitedMs : null,
+      + };
+      + }
+      + function productCaretBefore(value = {}) {
+      + const rect = value.rect;
+      + const whole = rect !== null && typeof rect === "object"
+      + && ["x", "y", "width", "height"].every((key) => Number.isInteger(rect[key]));
+      + return {
+      + rect: whole ? { x: rect.x, y: rect.y, width: rect.width, height: rect.height } : null,
+      + sourceSequence: Number.isInteger(value.sourceSequence) ? value.sourceSequence : null,
+      + source: typeof value.source === "string" ? value.source : "",
+      + };
+      + documentSizeChangedCount: Number.isInteger(value.documentSizeChangedCount)
+      + ? value.documentSizeChangedCount : null,
+      + case "page-rectangles":
+      + if (requestId) {
+      + complete(requestId, {
+      + rectangles: event.rectangles,
+      + parts: event.parts,
+      + documentWidthTwips: event.documentWidthTwips,
+      + documentHeightTwips: event.documentHeightTwips,
+      + revision: event.revision,
+      + });
+      + }
+      + break;
+      + if (event.boundaryNoop)
+      + result.boundaryNoop = productBoundaryNoop(event.boundaryNoop);
+      + documentSizeChangedCount: event.documentSizeChangedCount,
+      + documentSizeChangedCount: event.documentSizeChangedCount,
+      + caretBefore: event.caretBefore ? productCaretBefore(event.caretBefore) : undefined,
+      + if (!documentExportDeclared(request.operation)) {
+      + const spec = DOCUMENT_EXPORT_OPERATIONS.get(request.operation);
+      + postResponse(request.requestId, false, {
+      + code: "UNSUPPORTED_OPERATION",
+      + message: `${request.operation} requires a profile whose contract declares `
+      + + `${spec.field}: "${spec.declaration}"`,
+      + operation: request.operation,
+      + profile: activeManifest?.profile,
+      + });
+      + return;
+      + }
+      + ));
+      + break;
+      + case "pageRectangles":
+      + accept(request, () => callStatus(
+      + "oxsdk_document_page_rectangles",
+      + ["number", "number"],
+      + [request.requestId, payload.documentHandle],

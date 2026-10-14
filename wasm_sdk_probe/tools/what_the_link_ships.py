@@ -82,6 +82,15 @@ VARIANTS = {
         "defines": MERGE_V15_DEFINES,
         "units": PRODUCT_UNITS,
     },
+    # SPEC-M3-link-batch 13.3 / ruling 6 condition 51: v20 is v15's defines plus
+    # the link batch's one define.  Data only; the worker difference is reported,
+    # not failed, so nothing else in this tool changes for it.
+    "link-batch-v20": {
+        "objectsVar": "E2_V20_OBJECTS",
+        "cppflagsVar": "E1_CPPFLAGS",
+        "defines": MERGE_V15_DEFINES + ["-DOXSDK_E2_V20_LINK_BATCH"],
+        "units": PRODUCT_UNITS,
+    },
     "product": {
         "objectsVar": "E2_V4_OBJECTS",
         "cppflagsVar": "E1_CPPFLAGS",

@@ -1,0 +1,28 @@
+$ git log --format="--- %h %s" --name-only c0337ae3..HEAD -- wasm_sdk_probe/src
+--- 82af92ca v20 part 1, engine: C's window, caretBefore, the DOCUMENT_SIZE_CHANGED counter, page-rectangles (SPEC-M3-li
+
+wasm_sdk_probe/src/probe_engine.cpp
+wasm_sdk_probe/src/probe_engine.hpp
+wasm_sdk_probe/src/sdk_api.cpp
+wasm_sdk_probe/src/sdk_api.h
+--- 19cec698 Link batch, ruling 4 conditions 32 and 33: the model re-run on v20's keys (stop condition did not fire), ty
+
+wasm_sdk_probe/src/extend_completion.hpp
+--- fce084d6 Link batch step 1: rule (a) and extendUnconfirmed as pure functions, with a generated LOK model test (red-c
+
+wasm_sdk_probe/src/extend_completion.hpp
+
+$ grep -rn extend_completion src/*.cpp src/*.hpp src/*.h Makefile
+src/extend_completion.hpp:10:// in the engine, so tests/extend_completion_model_test.cpp can drive this with
+(the one hit is the header's own comment: no unit includes it)
+
+$ diff -U0 dist/profiles/e2-editor-v19/sdk-worker.js sdk/sdk-worker.js   # hunks, added non-blank lines, added lines, removed lines
+hunks: 9
+added non-blank: 90
+added (all): 94
+removed: 0
+
+$ git log --format="%h %s" -3 -- sdk/sdk-worker.js
+150c1770 v20 part 1, worker: page-rectangles passthrough, documentSizeChangedCount, boundaryNoop and caretBefore project
+106eaf1a 併段 M1-3／M1-4：殼層接受 verified-key-undo（結構檢查、不看 Writer 的註解字串）、worker 
+c2a7abad 093 B 的引擎半邊：每一段的矩形一路帶到產品，換算在同一顆 OutputDevice 上

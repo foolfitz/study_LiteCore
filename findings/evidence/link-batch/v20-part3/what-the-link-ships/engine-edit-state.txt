@@ -1,0 +1,28 @@
+taken after the two runs (plain, json); src/probe_engine.cpp carried another executor's UNCOMMITTED edit (ruling 6 amendment 2, condition 56):
+HEAD: c997c27102f42aebce7a6efdf6a9d3452dde7362
+src/probe_engine.cpp sha256: ab2c17a7ca932b6d381e6ebe8d8ef2365c506c9bcb3a25cf10f2c0c017597680
+src/probe_engine.cpp mtime 2026-10-14 10:12:54.278028653 +0800
+../findings/evidence/link-batch/v20-part3/what-the-link-ships/plain.stdout.txt mtime 2026-10-14 10:12:35.771147291 +0800
+../findings/evidence/link-batch/v20-part3/what-the-link-ships/json.stdout.json mtime 2026-10-14 10:12:37.067138984 +0800
+
+$ git diff src/probe_engine.cpp
+diff --git a/wasm_sdk_probe/src/probe_engine.cpp b/wasm_sdk_probe/src/probe_engine.cpp
+index 3fc959c3..c5857c07 100644
+--- a/wasm_sdk_probe/src/probe_engine.cpp
++++ b/wasm_sdk_probe/src/probe_engine.cpp
+@@ -3515,11 +3515,13 @@ void finishMergeKeyError(const char *stage) {
+        << jsonEscape(message.c_str()) << "\",\"where\":\"editor-action\""
+        << ",\"msg\":\"" << jsonEscape(message.c_str()) << "\""
+        << ",\"mergeKey\":{\"keyPosted\":" << (keyPosted ? "true" : "false")
+-       << ",\"stage\":\"" << jsonEscape(stage) << "\",\"restorePresses\":0}";
+ #ifdef OXSDK_E2_V20_LINK_BATCH
++       << ",\"stage\":\"" << jsonEscape(stage) << "\",\"restorePresses\":0}";
+   appendCaretBefore(json, transaction);
+-#endif
+   json << "}";
++#else
++       << ",\"stage\":\"" << jsonEscape(stage) << "\",\"restorePresses\":0}}";
++#endif
+   emitJson(json.str());
+   finishAsynchronous(transaction.requestId);
+ }
