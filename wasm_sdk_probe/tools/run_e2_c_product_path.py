@@ -1450,10 +1450,14 @@ MUTATIONS = {
     "edit-arrows-swapped": {
         "check": "the-edit-buttons-do-what-they-say",
         "path": "e2-editor-app.js",
-        "find": "  await run(label, () => session.action(action, options));",
+        # Re-anchored 2026-10-14 (finding 141, page 2d6c4580…): the call gained
+        # `.then((result) => { … })` for the held-delete listener; only the
+        # anchor's tail moved, the swap is the same.  Witness:
+        # findings/evidence/host-0.2.21/test-e2-c-static-before-reanchor.txt.
+        "find": "  await run(label, () => session.action(action, options).then(",
         "replace": "  await run(label, () => session.action("
                    "action === \"move-character-left\" ? "
-                   "\"move-character-right\" : action, options));",
+                   "\"move-character-right\" : action, options).then(",
         "reintroduces": "arrow buttons that move the caret the wrong way",
         "alsoRed": [],
     },

@@ -717,7 +717,17 @@ FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
 # --write --expect-sha256 53019168…` changed two lines of `web/e2-editor-app.js` (PINNED_WASM_SHA256 1aafd4f9 ->
 # 313b08d5, workerUrl e2-editor-v19 -> e2-editor-v20).  Page 53019168… is the page the first v20 shakedown (task
 # 10-14e, both browsers), finding 140's C1 on v20 and the J1 re-judge measured; the other modules are v68's.
-MANIFEST = Path("e2/editor-shell-v2-bundle-v69.json")
+#
+# v70, 2026-10-14: finding 141 (at a C boundary every press or unflagged repeat queued its own 2.26 s silent no-op;
+# the owner's held Backspace at the document start held the page about 30 s on host 0.2.20).  Differs from v69 in the
+# entrypoint only: `web/e2-editor-app.js` 53019168… -> 2d6c4580… (task 10-14o, `2b647fcb`: a press of a key whose
+# delete the engine has not yet answered is held on the page; a standing `verified-boundary-noop` drops the held
+# presses, anything else re-delivers them one by one -- 131's press-for-press and 132's depth kept, independent of
+# event.repeat).  Frozen after 360/360 editor-shell-v2 unit tests (the new page-held-deletes test red on 53019168…),
+# E1-C intact, and K2 on these bytes without the host on v20 (burst at the document start: 1 engine request, ready
+# 2,260 ms in Firefox and 2,259 ms in Chrome; the in-text control: 18 deletes; findings/evidence/host-0.2.21/).  The
+# host-side K3 (held, table, restore-window, 132-B and the burst/page-number arms on 0.2.21) runs after the install.
+MANIFEST = Path("e2/editor-shell-v2-bundle-v70.json")
 ENTRYPOINT = Path("web/e2-editor-app.js")
 
 # The directories whose *.js files must all be accounted for.  `editor-shell`
