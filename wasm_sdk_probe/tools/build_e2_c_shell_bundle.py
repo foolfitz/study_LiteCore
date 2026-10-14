@@ -711,7 +711,13 @@ FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
 # bytes on v19 (both browsers, 54/54, 0 cells differ from four reference rounds, `定位游標` Chrome 25.9-41.6 ms median
 # 27.5 / Firefox 27.8-34.6 median 29.1; findings/evidence/link-batch/v68-witness-2/).  restore-window needs the host and
 # was not run on these bytes.
-MANIFEST = Path("e2/editor-shell-v2-bundle-v68.json")
+#
+# v69, 2026-10-14: the cutover to engine v20 (owner's approval 2026-10-14, choice A), frozen in the cutover's own commit
+# as v57 was at the v19 cutover.  Differs from v68 in the entrypoint only: `build_cutover_page.py --profile e2-editor-v20
+# --write --expect-sha256 53019168…` changed two lines of `web/e2-editor-app.js` (PINNED_WASM_SHA256 1aafd4f9 ->
+# 313b08d5, workerUrl e2-editor-v19 -> e2-editor-v20).  Page 53019168… is the page the first v20 shakedown (task
+# 10-14e, both browsers), finding 140's C1 on v20 and the J1 re-judge measured; the other modules are v68's.
+MANIFEST = Path("e2/editor-shell-v2-bundle-v69.json")
 ENTRYPOINT = Path("web/e2-editor-app.js")
 
 # The directories whose *.js files must all be accounted for.  `editor-shell`
