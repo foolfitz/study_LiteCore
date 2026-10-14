@@ -1,0 +1,284 @@
+## chrome (Chrome/151.0.7922.169)
+
+started 2026-10-14T07:43:21Z, completed 2026-10-14T07:56:44Z (UTC); loadavg [1.53, 1.44, 1.3] -> [1.63, 1.9, 1.72]; MemAvailable 14744 -> 12470 MB, SwapFree 63316 -> 62994 MB
+
+arms by kind/status: {'m4/counted': 54, 'shift/counted': 2, 'reach/counted': 8, 'red/counted': 3}
+not fresh: []; selection-mismatch: []; other not counted: []
+wrap offsets: S1 [101, 195, 292] (native 101, line 3 starts at 201); token [87, 175, 261] (native 89, 180, 270); S1 lines: 5 (native 5)
+
+### where `#` landed: WASM against native ref / emu (flat index in the whole document text)
+
+| shape | key | WASM | native ref | native emu | = ref (exact) | = emu (exact) | by rule: ref / emu | note |
+|---|---|---|---|---|---|---|---|---|
+| p2-forward | Left | 43 | 43 | 43 | True | True | True / True |  |
+| p2-forward | Right | 45 | 45 | 45 | True | True | True / True |  |
+| p2-forward | Up | 24 | 24 | 24 | True | True | True / True |  |
+| p2-forward | Down | 75 | 75 | 75 | True | True | True / True |  |
+| p2-forward | Home | 25 | 25 | 25 | True | True | True / True |  |
+| p2-forward | End | 50 | 50 | 50 | True | True | True / True |  |
+| p2-backward | Left | 33 | 33 | 33 | True | True | True / True |  |
+| p2-backward | Right | 35 | 35 | 35 | True | True | True / True |  |
+| p2-backward | Up | 13 | 13 | 13 | True | True | True / True |  |
+| p2-backward | Down | 63 | 63 | 63 | True | True | True / True |  |
+| p2-backward | Home | 25 | 25 | 25 | True | True | True / True |  |
+| p2-backward | End | 50 | 50 | 50 | True | True | True / True |  |
+| s1 | Left | 100 | 100 | 100 | True | True | True / True | rule: ref 100, emu 100 |
+| s1 | Right | 102 | 102 | 102 | True | True | True / True | rule: ref 102, emu 102 |
+| s1 | Up | 0 | 0 | 0 | True | True | True / True | rule: ref 0, emu 0 |
+| s1 | Down | 195 | 201 | 201 | False | False | True / True | rule: ref 195, emu 195 |
+| s1 | Home | 101 | 101 | 101 | True | True | True / True | rule: ref 101, emu 101 |
+| s1 | End | 194 | 200 | 200 | False | False | True / True | rule: ref 194, emu 194 |
+| s2 | Left | 483 | 483 | 483 | True | True | True / True |  |
+| s2 | Right | 485 | 485 | 485 | True | True | True / True |  |
+| s2 | Up | 406 | 406 | 406 | True | True | True / True |  |
+| s2 | Down | 503 | 503 | 503 | True | True | True / True |  |
+| s2 | Home | 464 | 464 | 464 | True | True | True / True |  |
+| s2 | End | 484 | 484 | 484 | True | True | True / True |  |
+| s3 | Left | 532 | 541 | 541 | False | False | False / False |  |
+| s3 | Right | 532 | 543 | 543 | False | False | False / False |  |
+| s3 | Up | 532 | 507 | 507 | False | False | False / False |  |
+| s3 | Down | 532 | 543 | 543 | False | False | False / False |  |
+| s3 | Home | 532 | 542 | 542 | False | False | False / False |  |
+| s3 | End | 532 | 542 | 542 | False | False | False / False |  |
+| s4 | Left | 586 | 586 | 586 | True | True | True / True |  |
+| s4 | Right | 588 | 588 | 588 | True | True | True / True |  |
+| s4 | Up | 554 | 554 | 554 | True | True | True / True |  |
+| s4 | Down | 619 | 619 | 619 | True | True | True / True |  |
+| s4 | Home | 577 | 577 | 577 | True | True | True / True |  |
+| s4 | End | 592 | 592 | 592 | True | True | True / True |  |
+| s5 | Left | 592 | 592 | 592 | True | True | True / True |  |
+| s5 | Right | 594 | 594 | 594 | True | True | True / True |  |
+| s5 | Up | 543 | 543 | 543 | True | True | True / True |  |
+| s5 | Down | 625 | 625 | 625 | True | True | True / True |  |
+| s5 | Home | 593 | 593 | 593 | True | True | True / True |  |
+| s5 | End | 608 | 608 | 608 | True | True | True / True |  |
+| s1d | Left | 100 | 100 | 100 | True | True | True / True | rule: ref 100, emu 100 |
+| s1d | Right | 102 | 102 | 102 | True | True | True / True | rule: ref 102, emu 102 |
+| s1d | Up | 0 | 0 | 0 | True | True | True / True | rule: ref 0, emu 0 |
+| s1d | Down | 195 | 201 | 199 | False | False | True / False | rule: ref 195, emu 194 |
+| s1d | Home | 101 | 101 | 101 | True | True | True / True | rule: ref 101, emu 101 |
+| s1d | End | 194 | 200 | 200 | False | False | True / True | rule: ref 194, emu 194 |
+| m1d | Left | 86 | 88 | 88 | False | False | True / True | rule: ref 86, emu 86 |
+| m1d | Right | 88 | 90 | 90 | False | False | True / True | rule: ref 88, emu 88 |
+| m1d | Up | 0 | 0 | 0 | True | True | True / True | rule: ref 0, emu 0 |
+| m1d | Down | 175 | 180 | 270 | False | False | True / False | rule: ref 175, emu 261 |
+| m1d | Home | 87 | 89 | 89 | False | False | True / True | rule: ref 87, emu 87 |
+| m1d | End | 175 | 180 | 180 | False | False | True / True | rule: ref 175, emu 175 |
+
+bottom line: {"oldArmsEqualNativeRef": "12/12", "briefExactRef": "22/30", "briefByRuleRef": "24/30", "briefNotExact": ["s1/Down", "s1/End", "s3/Left", "s3/Right", "s3/Up", "s3/Down", "s3/Home", "s3/End"], "dragKeysNonDownByRule": "10/10", "dragDownFollowsRef": ["s1d", "m1d"], "dragDownFollowsEmu": []}
+
+### timing (keydown -> latency record), m4 arms
+
+split by whether the key moved the caret: {"moved": {"n": 43, "keyToMoveDone": {"n": 43, "min": 297.8, "median": 298.6, "max": 312.6}, "keyToClickDone": {"n": 43, "min": 253.4, "median": 253.8, "max": 268.3}, "clickDoneToMoveDone": {"n": 43, "min": 44.1, "median": 44.8, "max": 45.8}}, "notMoved": {"n": 5, "keyToMoveDone": {"n": 5, "min": 509.3, "median": 510.0, "max": 510.9}, "keyToClickDone": {"n": 5, "min": 253.7, "median": 253.8, "max": 254.2}, "clickDoneToMoveDone": {"n": 5, "min": 255.6, "median": 256.2, "max": 256.7}}}
+move done: {'n': 48, 'min': 297.8, 'median': 298.6, 'max': 510.9}; click done (the 定位游標 record): {'n': 54, 'min': 2.5, 'median': 253.8, 'max': 268.3}
+arms with move >= 200 ms: 48; of those, the key moved the caret: Counter({True: 43, False: 5}); arms < 200 ms by 'moved the caret': {False: 6}
+  - m4-p2-forward-Left: move 298.6 ms, click 253.9 ms
+  - m4-p2-forward-Right: move 298.1 ms, click 254.0 ms
+  - m4-p2-forward-Up: move 298.5 ms, click 253.8 ms
+  - m4-p2-forward-Down: move 298.3 ms, click 253.6 ms
+  - m4-p2-forward-Home: move 312.2 ms, click 266.9 ms
+  - m4-p2-forward-End: move 298.1 ms, click 253.4 ms
+  - m4-p2-backward-Left: move 298.6 ms, click 254.5 ms
+  - m4-p2-backward-Right: move 309.0 ms, click 264.1 ms
+  - m4-p2-backward-Up: move 299.5 ms, click 253.8 ms
+  - m4-p2-backward-Down: move 298.8 ms, click 253.9 ms
+  - m4-p2-backward-Home: move 298.7 ms, click 254.0 ms
+  - m4-p2-backward-End: move 298.3 ms, click 254.1 ms
+  - m4-s1-Left: move 299.7 ms, click 254.0 ms
+  - m4-s1-Right: move 298.5 ms, click 253.7 ms
+  - m4-s1-Up: move 299.4 ms, click 254.0 ms
+  - m4-s1-Down: move 299.2 ms, click 254.2 ms
+  - m4-s1-Home: move 510.9 ms, click 254.2 ms
+  - m4-s1-End: move 298.8 ms, click 254.2 ms
+  - m4-s2-Left: move 298.5 ms, click 253.9 ms
+  - m4-s2-Right: move 299.1 ms, click 254.1 ms
+  - m4-s2-Up: move 299.0 ms, click 253.6 ms
+  - m4-s2-Down: move 298.3 ms, click 253.6 ms
+  - m4-s2-Home: move 298.1 ms, click 253.6 ms
+  - m4-s2-End: move 510.3 ms, click 253.9 ms
+  - m4-s4-Left: move 298.2 ms, click 253.7 ms
+  - m4-s4-Right: move 298.6 ms, click 253.6 ms
+  - m4-s4-Up: move 298.6 ms, click 253.7 ms
+  - m4-s4-Down: move 298.6 ms, click 253.8 ms
+  - m4-s4-Home: move 297.9 ms, click 253.4 ms
+  - m4-s4-End: move 298.3 ms, click 253.6 ms
+  - m4-s5-Left: move 298.6 ms, click 253.9 ms
+  - m4-s5-Right: move 298.5 ms, click 253.7 ms
+  - m4-s5-Up: move 298.6 ms, click 253.4 ms
+  - m4-s5-Down: move 298.7 ms, click 253.6 ms
+  - m4-s5-Home: move 509.7 ms, click 253.8 ms
+  - m4-s5-End: move 299.1 ms, click 254.2 ms
+  - m4-s1d-Left: move 298.8 ms, click 253.7 ms
+  - m4-s1d-Right: move 311.5 ms, click 266.0 ms
+  - m4-s1d-Up: move 298.1 ms, click 253.4 ms
+  - m4-s1d-Down: move 298.6 ms, click 253.7 ms
+  - m4-s1d-Home: move 510.0 ms, click 253.8 ms
+  - m4-s1d-End: move 300.3 ms, click 254.5 ms
+  - m4-m1d-Left: move 298.1 ms, click 253.7 ms
+  - m4-m1d-Right: move 299.2 ms, click 254.3 ms
+  - m4-m1d-Up: move 297.8 ms, click 253.6 ms
+  - m4-m1d-Down: move 298.1 ms, click 253.8 ms
+  - m4-m1d-Home: move 509.3 ms, click 253.7 ms
+  - m4-m1d-End: move 312.6 ms, click 268.3 ms
+toasts in m4 arms (whole arm after the open): 6 arms [('m4-s3-Left', [[346710.6, '定位游標：INVALID_ARGUMENT：editorPlaceCaretV2 requires non-negative integer twips']]), ('m4-s3-Right', [[363888.8, '定位游標：INVALID_ARGUMENT：editorPlaceCaretV2 requires non-negative integer twips']]), ('m4-s3-Up', [[381057.5, '定位游標：INVALID_ARGUMENT：editorPlaceCaretV2 requires non-negative integer twips']])]; pill 'stopped' in: []
+swap pages during arms: {'pswpinMin': 0, 'pswpinMax': 356, 'pswpoutMin': 0, 'pswpoutMax': 23390, 'armsWithNoSwapActivity': 13}
+
+shift arms: {"collapsed": {"caretMoved": false, "revision": [0, 0], "hash": {"flatIndex": 34, "paragraph": 1, "offset": 9}, "toasts": [], "keydowns": [["ArrowRight", true], ["ArrowRight", true], ["ArrowRight", true]], "latencyRecords": [], "collapsedAfter": true}, "range": {"textBefore": "BETA GAMMA", "textAfter": "BETA GAMMA", "sameCaret": true, "sameSelection": true, "revision": [0, 0], "toasts": [], "keydowns": [["ArrowRight", true]], "latencyRecords": [], "toolbar": [{"shape": "range-single", "evidence": null}, {"shape": "range-single", "evidence": null}]}}
+
+red control: [{"arm": "red-p2-forward-Left", "refused": true, "toast": "◀：EDITOR_FORMAT_GESTURE_UNSUPPORTED：this action is not offered for this kind of selection in this profile, so nothing was dispatched and the document is unchanged", "latency": "◀ 失敗", "selectionOk": true}, {"arm": "red-p2-forward-End", "refused": true, "toast": "移到行尾：EDITOR_FORMAT_GESTURE_UNSUPPORTED：this action is not offered for this kind of selection in this profile, so nothing was dispatched and the document is unchanged", "latency": "移到行尾 失敗", "selectionOk": true}, {"arm": "red-p2-backward-Down", "refused": true, "toast": "下移一行：EDITOR_FORMAT_GESTURE_UNSUPPORTED：this action is not offered for this kind of selection in this profile, so nothing was dispatched and the document is unchanged", "latency": "下移一行 失敗", "selectionOk": true}]
+
+reach (the page's own drag; where the visible caret ends): 
+  - {'arm': 'reach-s1d-0', 'farX': 10961, 'lineEndX': 10961, 'caret': [10961, 1418], 'selectionEnd': [10961, 1418], 'text': 'scar papa'}
+  - {'arm': 'reach-s1d-100', 'farX': 11061, 'lineEndX': 10961, 'caret': [1418, 1694], 'selectionEnd': [1418, 1694], 'text': 'scar papa '}
+  - {'arm': 'reach-s1d-400', 'farX': 11361, 'lineEndX': 10961, 'caret': [1418, 1694], 'selectionEnd': [1418, 1694], 'text': 'scar papa '}
+  - {'arm': 'reach-s1d-900', 'farX': 11861, 'lineEndX': 10961, 'caret': [1418, 1694], 'selectionEnd': [1418, 1694], 'text': 'scar papa '}
+  - {'arm': 'reach-m1d-0', 'farX': 11029, 'lineEndX': 11029, 'caret': [1418, 1694], 'selectionEnd': [1418, 1694], 'text': 'xdinsxchmr'}
+  - {'arm': 'reach-m1d-100', 'farX': 11129, 'lineEndX': 11029, 'caret': [1418, 1694], 'selectionEnd': [1418, 1694], 'text': 'xdinsxchmr'}
+  - {'arm': 'reach-m1d-400', 'farX': 11429, 'lineEndX': 11029, 'caret': [1418, 1694], 'selectionEnd': [1418, 1694], 'text': 'xdinsxchmr'}
+  - {'arm': 'reach-m1d-900', 'farX': 11929, 'lineEndX': 11029, 'caret': [1418, 1694], 'selectionEnd': [1418, 1694], 'text': 'xdinsxchmr'}
+
+## firefox (157.0.1)
+
+started 2026-10-14T07:56:44Z, completed 2026-10-14T08:11:45Z (UTC); loadavg [1.63, 1.9, 1.72] -> [1.25, 1.42, 1.72]; MemAvailable 14431 -> 12407 MB, SwapFree 62994 -> 62694 MB
+
+arms by kind/status: {'m4/counted': 54, 'shift/counted': 2, 'reach/counted': 8, 'red/counted': 3}
+not fresh: []; selection-mismatch: []; other not counted: []
+wrap offsets: S1 [101, 195, 292] (native 101, line 3 starts at 201); token [87, 175, 261] (native 89, 180, 270); S1 lines: 5 (native 5)
+
+### where `#` landed: WASM against native ref / emu (flat index in the whole document text)
+
+| shape | key | WASM | native ref | native emu | = ref (exact) | = emu (exact) | by rule: ref / emu | note |
+|---|---|---|---|---|---|---|---|---|
+| p2-forward | Left | 43 | 43 | 43 | True | True | True / True |  |
+| p2-forward | Right | 45 | 45 | 45 | True | True | True / True |  |
+| p2-forward | Up | 24 | 24 | 24 | True | True | True / True |  |
+| p2-forward | Down | 75 | 75 | 75 | True | True | True / True |  |
+| p2-forward | Home | 25 | 25 | 25 | True | True | True / True |  |
+| p2-forward | End | 50 | 50 | 50 | True | True | True / True |  |
+| p2-backward | Left | 33 | 33 | 33 | True | True | True / True |  |
+| p2-backward | Right | 35 | 35 | 35 | True | True | True / True |  |
+| p2-backward | Up | 13 | 13 | 13 | True | True | True / True |  |
+| p2-backward | Down | 63 | 63 | 63 | True | True | True / True |  |
+| p2-backward | Home | 25 | 25 | 25 | True | True | True / True |  |
+| p2-backward | End | 50 | 50 | 50 | True | True | True / True |  |
+| s1 | Left | 100 | 100 | 100 | True | True | True / True | rule: ref 100, emu 100 |
+| s1 | Right | 102 | 102 | 102 | True | True | True / True | rule: ref 102, emu 102 |
+| s1 | Up | 0 | 0 | 0 | True | True | True / True | rule: ref 0, emu 0 |
+| s1 | Down | 195 | 201 | 201 | False | False | True / True | rule: ref 195, emu 195 |
+| s1 | Home | 101 | 101 | 101 | True | True | True / True | rule: ref 101, emu 101 |
+| s1 | End | 194 | 200 | 200 | False | False | True / True | rule: ref 194, emu 194 |
+| s2 | Left | 483 | 483 | 483 | True | True | True / True |  |
+| s2 | Right | 485 | 485 | 485 | True | True | True / True |  |
+| s2 | Up | 406 | 406 | 406 | True | True | True / True |  |
+| s2 | Down | 503 | 503 | 503 | True | True | True / True |  |
+| s2 | Home | 464 | 464 | 464 | True | True | True / True |  |
+| s2 | End | 484 | 484 | 484 | True | True | True / True |  |
+| s3 | Left | 532 | 541 | 541 | False | False | False / False |  |
+| s3 | Right | 532 | 543 | 543 | False | False | False / False |  |
+| s3 | Up | 532 | 507 | 507 | False | False | False / False |  |
+| s3 | Down | 532 | 543 | 543 | False | False | False / False |  |
+| s3 | Home | 532 | 542 | 542 | False | False | False / False |  |
+| s3 | End | 532 | 542 | 542 | False | False | False / False |  |
+| s4 | Left | 586 | 586 | 586 | True | True | True / True |  |
+| s4 | Right | 588 | 588 | 588 | True | True | True / True |  |
+| s4 | Up | 554 | 554 | 554 | True | True | True / True |  |
+| s4 | Down | 619 | 619 | 619 | True | True | True / True |  |
+| s4 | Home | 577 | 577 | 577 | True | True | True / True |  |
+| s4 | End | 592 | 592 | 592 | True | True | True / True |  |
+| s5 | Left | 592 | 592 | 592 | True | True | True / True |  |
+| s5 | Right | 594 | 594 | 594 | True | True | True / True |  |
+| s5 | Up | 543 | 543 | 543 | True | True | True / True |  |
+| s5 | Down | 625 | 625 | 625 | True | True | True / True |  |
+| s5 | Home | 593 | 593 | 593 | True | True | True / True |  |
+| s5 | End | 608 | 608 | 608 | True | True | True / True |  |
+| s1d | Left | 100 | 100 | 100 | True | True | True / True | rule: ref 100, emu 100 |
+| s1d | Right | 102 | 102 | 102 | True | True | True / True | rule: ref 102, emu 102 |
+| s1d | Up | 0 | 0 | 0 | True | True | True / True | rule: ref 0, emu 0 |
+| s1d | Down | 195 | 201 | 199 | False | False | True / False | rule: ref 195, emu 194 |
+| s1d | Home | 101 | 101 | 101 | True | True | True / True | rule: ref 101, emu 101 |
+| s1d | End | 194 | 200 | 200 | False | False | True / True | rule: ref 194, emu 194 |
+| m1d | Left | 86 | 88 | 88 | False | False | True / True | rule: ref 86, emu 86 |
+| m1d | Right | 88 | 90 | 90 | False | False | True / True | rule: ref 88, emu 88 |
+| m1d | Up | 0 | 0 | 0 | True | True | True / True | rule: ref 0, emu 0 |
+| m1d | Down | 175 | 180 | 270 | False | False | True / False | rule: ref 175, emu 261 |
+| m1d | Home | 87 | 89 | 89 | False | False | True / True | rule: ref 87, emu 87 |
+| m1d | End | 175 | 180 | 180 | False | False | True / True | rule: ref 175, emu 175 |
+
+bottom line: {"oldArmsEqualNativeRef": "12/12", "briefExactRef": "22/30", "briefByRuleRef": "24/30", "briefNotExact": ["s1/Down", "s1/End", "s3/Left", "s3/Right", "s3/Up", "s3/Down", "s3/Home", "s3/End"], "dragKeysNonDownByRule": "10/10", "dragDownFollowsRef": ["s1d", "m1d"], "dragDownFollowsEmu": []}
+
+### timing (keydown -> latency record), m4 arms
+
+split by whether the key moved the caret: {"moved": {"n": 43, "keyToMoveDone": {"n": 43, "min": 299.7, "median": 302.5, "max": 310.2}, "keyToClickDone": {"n": 43, "min": 253.9, "median": 254.9, "max": 258.8}, "clickDoneToMoveDone": {"n": 43, "min": 45.5, "median": 47.4, "max": 51.4}}, "notMoved": {"n": 5, "keyToMoveDone": {"n": 5, "min": 512.2, "median": 513.0, "max": 515.4}, "keyToClickDone": {"n": 5, "min": 254.5, "median": 255.0, "max": 255.9}, "clickDoneToMoveDone": {"n": 5, "min": 257.5, "median": 258.3, "max": 259.5}}}
+move done: {'n': 48, 'min': 299.7, 'median': 302.6, 'max': 515.4}; click done (the 定位游標 record): {'n': 54, 'min': 3.6, 'median': 254.85000000000002, 'max': 258.8}
+arms with move >= 200 ms: 48; of those, the key moved the caret: Counter({True: 43, False: 5}); arms < 200 ms by 'moved the caret': {False: 6}
+  - m4-p2-forward-Left: move 299.7 ms, click 254.2 ms
+  - m4-p2-forward-Right: move 301.4 ms, click 254.9 ms
+  - m4-p2-forward-Up: move 300.7 ms, click 254.9 ms
+  - m4-p2-forward-Down: move 302.1 ms, click 255.1 ms
+  - m4-p2-forward-Home: move 302.5 ms, click 255.2 ms
+  - m4-p2-forward-End: move 300.4 ms, click 254.1 ms
+  - m4-p2-backward-Left: move 301.1 ms, click 254.1 ms
+  - m4-p2-backward-Right: move 301.0 ms, click 254.2 ms
+  - m4-p2-backward-Up: move 300.8 ms, click 254.4 ms
+  - m4-p2-backward-Down: move 301.2 ms, click 254.8 ms
+  - m4-p2-backward-Home: move 300.9 ms, click 254.5 ms
+  - m4-p2-backward-End: move 301.3 ms, click 254.9 ms
+  - m4-s1-Left: move 302.4 ms, click 255.5 ms
+  - m4-s1-Right: move 302.7 ms, click 254.7 ms
+  - m4-s1-Up: move 302.6 ms, click 254.9 ms
+  - m4-s1-Down: move 303.5 ms, click 255.3 ms
+  - m4-s1-Home: move 513.0 ms, click 255.5 ms
+  - m4-s1-End: move 304.6 ms, click 255 ms
+  - m4-s2-Left: move 310.2 ms, click 258.8 ms
+  - m4-s2-Right: move 301.3 ms, click 253.9 ms
+  - m4-s2-Up: move 302.7 ms, click 255.3 ms
+  - m4-s2-Down: move 303.6 ms, click 255.2 ms
+  - m4-s2-Home: move 302.9 ms, click 254.6 ms
+  - m4-s2-End: move 514.2 ms, click 255.0 ms
+  - m4-s4-Left: move 302.6 ms, click 255.1 ms
+  - m4-s4-Right: move 303.8 ms, click 255.1 ms
+  - m4-s4-Up: move 303.2 ms, click 254.8 ms
+  - m4-s4-Down: move 301.7 ms, click 254.4 ms
+  - m4-s4-Home: move 303.7 ms, click 255.8 ms
+  - m4-s4-End: move 301.6 ms, click 254.6 ms
+  - m4-s5-Left: move 302.8 ms, click 255.6 ms
+  - m4-s5-Right: move 301.9 ms, click 254.9 ms
+  - m4-s5-Up: move 302.6 ms, click 254.5 ms
+  - m4-s5-Down: move 302.0 ms, click 254.6 ms
+  - m4-s5-Home: move 513.0 ms, click 254.7 ms
+  - m4-s5-End: move 302.2 ms, click 254.7 ms
+  - m4-s1d-Left: move 303.0 ms, click 255.2 ms
+  - m4-s1d-Right: move 303.7 ms, click 255.8 ms
+  - m4-s1d-Up: move 306.3 ms, click 258.8 ms
+  - m4-s1d-Down: move 304.2 ms, click 256.0 ms
+  - m4-s1d-Home: move 515.4 ms, click 255.9 ms
+  - m4-s1d-End: move 303.3 ms, click 255.2 ms
+  - m4-m1d-Left: move 302.5 ms, click 255.0 ms
+  - m4-m1d-Right: move 301.8 ms, click 254.9 ms
+  - m4-m1d-Up: move 302.9 ms, click 254.7 ms
+  - m4-m1d-Down: move 302.3 ms, click 254.8 ms
+  - m4-m1d-Home: move 512.2 ms, click 254.5 ms
+  - m4-m1d-End: move 301.4 ms, click 254.4 ms
+toasts in m4 arms (whole arm after the open): 6 arms [('m4-s3-Left', [[380745, '定位游標：INVALID_ARGUMENT：editorPlaceCaretV2 requires non-negative integer twips']]), ('m4-s3-Right', [[398998, '定位游標：INVALID_ARGUMENT：editorPlaceCaretV2 requires non-negative integer twips']]), ('m4-s3-Up', [[417240.9, '定位游標：INVALID_ARGUMENT：editorPlaceCaretV2 requires non-negative integer twips']])]; pill 'stopped' in: []
+swap pages during arms: {'pswpinMin': 0, 'pswpinMax': 119, 'pswpoutMin': 0, 'pswpoutMax': 26527, 'armsWithNoSwapActivity': 17}
+
+shift arms: {"collapsed": {"caretMoved": false, "revision": [0, 0], "hash": {"flatIndex": 34, "paragraph": 1, "offset": 9}, "toasts": [], "keydowns": [["Shift", true], ["ArrowRight", true], ["Shift", true], ["ArrowRight", true], ["Shift", true], ["ArrowRight", true]], "latencyRecords": [], "collapsedAfter": true}, "range": {"textBefore": "BETA GAMMA", "textAfter": "BETA GAMMA", "sameCaret": true, "sameSelection": true, "revision": [0, 0], "toasts": [], "keydowns": [["Shift", true], ["ArrowRight", true]], "latencyRecords": [], "toolbar": [{"shape": "range-single", "evidence": null}, {"shape": "range-single", "evidence": null}]}}
+
+red control: [{"arm": "red-p2-forward-Left", "refused": true, "toast": "◀：EDITOR_FORMAT_GESTURE_UNSUPPORTED：this action is not offered for this kind of selection in this profile, so nothing was dispatched and the document is unchanged", "latency": "◀ 失敗", "selectionOk": true}, {"arm": "red-p2-forward-End", "refused": true, "toast": "移到行尾：EDITOR_FORMAT_GESTURE_UNSUPPORTED：this action is not offered for this kind of selection in this profile, so nothing was dispatched and the document is unchanged", "latency": "移到行尾 失敗", "selectionOk": true}, {"arm": "red-p2-backward-Down", "refused": true, "toast": "下移一行：EDITOR_FORMAT_GESTURE_UNSUPPORTED：this action is not offered for this kind of selection in this profile, so nothing was dispatched and the document is unchanged", "latency": "下移一行 失敗", "selectionOk": true}]
+
+reach (the page's own drag; where the visible caret ends): 
+  - {'arm': 'reach-s1d-0', 'farX': 10961, 'lineEndX': 10961, 'caret': [10961, 1418], 'selectionEnd': [10961, 1418], 'text': 'scar papa'}
+  - {'arm': 'reach-s1d-100', 'farX': 11061, 'lineEndX': 10961, 'caret': [1418, 1694], 'selectionEnd': [1418, 1694], 'text': 'scar papa '}
+  - {'arm': 'reach-s1d-400', 'farX': 11361, 'lineEndX': 10961, 'caret': [1418, 1694], 'selectionEnd': [1418, 1694], 'text': 'scar papa '}
+  - {'arm': 'reach-s1d-900', 'farX': 11861, 'lineEndX': 10961, 'caret': [1418, 1694], 'selectionEnd': [1418, 1694], 'text': 'scar papa '}
+  - {'arm': 'reach-m1d-0', 'farX': 11029, 'lineEndX': 11029, 'caret': [1418, 1694], 'selectionEnd': [1418, 1694], 'text': 'xdinsxchmr'}
+  - {'arm': 'reach-m1d-100', 'farX': 11129, 'lineEndX': 11029, 'caret': [1418, 1694], 'selectionEnd': [1418, 1694], 'text': 'xdinsxchmr'}
+  - {'arm': 'reach-m1d-400', 'farX': 11429, 'lineEndX': 11029, 'caret': [1418, 1694], 'selectionEnd': [1418, 1694], 'text': 'xdinsxchmr'}
+  - {'arm': 'reach-m1d-900', 'farX': 11929, 'lineEndX': 11029, 'caret': [1418, 1694], 'selectionEnd': [1418, 1694], 'text': 'xdinsxchmr'}
+
+## cross-check: chrome vs firefox landing index equal in 54/54 cells; differ: []
+
+## cross-check: chrome this round against round-20261014T022210Z: {'compared': 54, 'differ': ['s3/Left', 's3/Right', 's3/Up', 's3/Down', 's3/Home', 's3/End'], 'wrapOffsetsSame': True}
+
+## cross-check: firefox this round against round-20261014T022210Z: {'compared': 54, 'differ': ['s3/Left', 's3/Right', 's3/Up', 's3/Down', 's3/Home', 's3/End'], 'wrapOffsetsSame': True}
+
