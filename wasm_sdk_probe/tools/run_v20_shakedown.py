@@ -627,8 +627,10 @@ def wait_action(session, action: str, limit: float = 20.0) -> tuple[dict | None,
 
 
 def presses_until(session, browser: str, key: str, action: str, target_count: int, cap: int,
-                  stop_when) -> dict:
-    """Press `key` one at a time, each one's own answer awaited, until `stop_when(count)` or `cap`."""
+                  stop_when, sink: list | None = None) -> dict:
+    """Press `key` one at a time, each one's own answer awaited, until `stop_when(count)` or `cap`.
+    Every trace entry drained on the way is appended to `sink` when one is given (P2-c reads the lok
+    events of the edit window from it; Chrome p2c run 2 lost them to these drains)."""
     out = {"presses": 0, "answers": [], "firstReplyWithTarget": None, "triggerBeforeIt": None, "count": None}
     last_dsc, pending_triggers = None, []
     for n in range(1, cap + 1):
@@ -640,6 +642,8 @@ def presses_until(session, browser: str, key: str, action: str, target_count: in
                                "code": (answer or {}).get("code"), "ms": round((time.monotonic() - t0) * 1000)})
         mws.quiet(session, 15)
         entries += drain(session)
+        if sink is not None:
+            sink.extend(entries)
         for e in entries:
             if e.get("k") == "rs" and e.get("op") == "paint" and e.get("changed") is True:
                 pending_triggers.append({"kind": "paint.documentSizeChanged", "t": e["t"]})
@@ -1051,16 +1055,22 @@ def arm_p2c(session, browser: str, urls: dict, out: dict) -> dict:
                 edits = []
                 base = len(rects)
                 add = presses_until(session, browser, "Enter", "insert-paragraph-break", base + 1, P2_CAP,
-                                    lambda count: count == base + 1)
+                                    lambda count: count == base + 1, sink=edits)
                 edits += settle_lok(session, 10)
                 remove = presses_until(session, browser, "Backspace", "delete-backward", base, add["presses"],
-                                       lambda count: False)
+                                       lambda count: False, sink=edits)
                 edits += settle_lok(session, 10)
-                # presses_until drained the trace itself; re-read what it saw is not possible, so the
-                # edit window's lok events are those drained after the presses plus the settle slices.
                 phase["edits"] = {"enterPresses": add["presses"], "backspacePresses": remove["presses"],
                                   "countAfterAdd": add["count"], "countAfterRemove": remove["count"],
-                                  "lokDuringSettles": lok_summary(edits)}
+                                  "lokDuringSettles": lok_summary(edits),
+                                  "sizeChangeNeighbours": [
+                                      {"tw": round(e["tw"], 1), "near": sorted(LOK_NAMES.get(n["id"], str(n["id"]))
+                                                                           for n in edits if n.get("k") == "mt"
+                                                                           and n.get("type") == "lok" and n is not e
+                                                                           and n.get("tw") is not None
+                                                                           and abs(n["tw"] - e["tw"]) <= LONE_WINDOW_MS)}
+                                      for e in edits if e.get("k") == "mt" and e.get("type") == "lok"
+                                      and e.get("id") == 13 and e.get("tw") is not None][:12]}
         out["phases"].append(phase)
         FLUSH["fn"]()
     lone = sum(len(p["openAndSettle"]["lone"]) for p in out["phases"]) + sum(

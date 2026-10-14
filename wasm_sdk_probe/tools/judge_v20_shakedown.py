@@ -159,8 +159,10 @@ def judge_p2c(result: dict) -> tuple[str, list[str]]:
                      f"counter at open/settled {phase.get('documentSizeChangedCountAtOpen')}/{phase.get('documentSizeChangedCountSettled')}")
         e = (phase.get("edits") or {}).get("lokDuringSettles")
         if e:
-            lines.append(f"{phase['fixture']} edits: size changes {e.get('sizeChanges')}, lone {len(e.get('lone') or [])}, "
-                         f"flanked {e.get('flanked')}")
+            lines.append(f"{phase['fixture']} edits: lok {e.get('lokEvents')}, size changes {e.get('sizeChanges')}, "
+                         f"lone {len(e.get('lone') or [])}, flanked {e.get('flanked')}")
+            for n in (phase.get("edits") or {}).get("sizeChangeNeighbours") or []:
+                lines.append(f"    size change at {n['tw']} ms, within ±25 ms: {n['near'] or 'nothing'}")
     reading = "ESTABLISHED" if result.get("loneSizeChanges") else NE
     return reading, lines
 
