@@ -5,7 +5,7 @@ Written 2026-10-08, before any counted run exists.  It reads one directory of re
 browser, M2-0, M2-1, M2-1b, M2-2, M2-3, the G01 barrier, M2-4 (with 31.2's per-press latency), the M2-1 red
 case and the paired control.  It writes nothing.
 
-  judge_counted_m2.py --dir DIR [--profile e2-editor-v19] [--browsers chrome firefox] [--uncounted]
+  judge_counted_m2.py --dir DIR [--profile e2-editor-v19] [--browsers chrome firefox] [--uncounted] [--wasm PATH]
 
 Files it reads in DIR, per browser B (the names the counted chain is to write):
   counted-B.json          --mode counted                 (the tool list, 3 rounds)
@@ -51,6 +51,18 @@ Decisions written down here (2026-10-08):
   - The M2-4 control is not read: spec 30.2 pairs a control with the counted run only.
   - M2-2's population is every M2-1 record of the counted run (20 cases x 3 rounds per browser); a record with
     no number (a refusal has no keyUndo) makes M2-2 NOT DONE while M2-1 FAILS on that record.
+
+C (2026-10-15, task 10-15c P1; SPEC-M3-link-batch 10.5 and 10.7).  On a profile whose engine carries C, R0c's
+`nothing-selected` (C29 Backspace at the document start, C30 Delete at its end) expects the no-op
+`verified-boundary-noop` instead of the refusal; everything else in the table is unchanged.  Keyed as the runner
+keys it (7e6c9acd, `m.boundary_noop_declared`): on the bytes of `dist/profiles/<profile>/probe.wasm` (or `--wasm`),
+whose sha256 must equal every non-red report's `bound.wasmSha256`, or nothing is judged -- the expectation cannot
+be read from bytes that did not run.  A no-op record's clauses (`noop_record`) are recomputed from the recorded
+fields and the kept `<case>-r<n>-after-key.odt`; the kept-document counts of the paired control follow the keying.
+34.4, repaired because of execution.  Witness: part B's eight v20 shakedown reports
+(findings/evidence/link-batch/v20-shakedown/merge/, runner 73b2e9ff), red on the four C29/C30 records of every
+shakedown and control report under the refusal table.  v19's X7 reports re-judge unchanged: v19's wasm does not
+carry C.
 """
 from __future__ import annotations
 
@@ -88,8 +100,9 @@ SAVE_TOKEN = "已存出 N KB"                             # 34.1 (b): what every
 LIMIT_REFERENCE_SHA16 = "60087d9401a68bf6"
 RUNNER_SHA = hashlib.sha256(Path(m.__file__).read_bytes()).hexdigest()[:16]
 UNCHANGED = "沒有被改動"                        # 22.1: never said after the key went out
-KEPT = {"after-key": (POPULATION["M2-1"] + POPULATION["barrier"]) * ROUNDS, "follow":
-        (POPULATION["M2-1"] + POPULATION["barrier"]) * ROUNDS, "reopened": POPULATION["M2-3"] * ROUNDS}
+# Where C's keying is read from by default: the served profile's engine, the same bytes the runner hashes as
+# `wasmSha256` (module docstring, C).  A test replaces this directory with one of its own.
+PROFILES = m.HERE / "dist" / "profiles"
 FILES = {"counted": "counted-{}.json", "control": "counted-control-{}.json", "m2-1b": "m2-1b-{}.json",
          "m2-4": "m2-4-{}.json", "red": "red-{}.json"}
 MODES = {"counted": "counted", "control": "counted", "m2-1b": "m2-1b", "m2-4": "m2-4", "red": "m2-1-red"}
@@ -103,13 +116,17 @@ class Stop(Exception):
     """The population or the native side cannot be established: nothing can be judged."""
 
 
-def expectation(decision: str) -> tuple | None:
-    """Spec 17 and 22.1: R0c's decision -> (criterion, outcome, stage, keyPosted).  None = stop."""
+def expectation(decision: str, boundary_noop: bool = False) -> tuple | None:
+    """Spec 17 and 22.1: R0c's decision -> (criterion, outcome, stage, keyPosted).  None = stop.
+    `boundary_noop` (link-batch 10.5): the profile under test carries C, so `nothing-selected` expects the no-op;
+    the default is the refusal, which is what every profile before v20 does."""
     if decision in ("merge", "typed-merge"):
         return "M2-1", "verified-key-undo", None, None
     if decision == "barrier":
         return "barrier", "verified-selection-delete", None, None
     if decision == "nothing-selected":
+        if boundary_noop:
+            return "M2-3", m.BOUNDARY_NOOP, None, None
         return "M2-3", "refused", "nothing-selected", False
     if decision.startswith("refused-k1-"):
         return "M2-3", "refused", "anchor-mismatch", False
@@ -124,7 +141,24 @@ def sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def population() -> tuple[dict, list]:
+def keying(wasm: Path) -> tuple[bool, str]:
+    """C's keying (module docstring): whether the engine in `wasm` carries C, and the sha256 every non-red report
+    must have bound.  Read from the file, never from a report's own word."""
+    if not wasm.is_file():
+        raise Stop(f"{wasm} is not there: C's expectation cannot be read (spec 22.1: stop)")
+    return m.boundary_noop_declared(wasm), sha256(wasm)
+
+
+def kept_expected(cases: dict) -> dict:
+    """Spec 22.3: the documents the counted run and its control keep, by kind.  Merges and the barrier save
+    after the key and after the follow-up Z; a refusal saves after the reopen; C's no-op saves after the key."""
+    noops = sum(c["expected"][0] == m.BOUNDARY_NOOP for c in cases.values())
+    merges = POPULATION["M2-1"] + POPULATION["barrier"]
+    return {"after-key": (merges + noops) * ROUNDS, "follow": merges * ROUNDS,
+            "reopened": (POPULATION["M2-3"] - noops) * ROUNDS}
+
+
+def population(boundary_noop: bool = False) -> tuple[dict, list]:
     table = json.loads(m.ESHAPE.read_text())
     if table.get("kills") or table.get("stops"):
         raise Stop(f"eshape.json: KILL {table.get('kills')} STOP {table.get('stops')}")
@@ -134,7 +168,7 @@ def population() -> tuple[dict, list]:
         round_key, case = key.split(" ", 1)
         if round_key not in rounds:
             continue
-        expected = expectation(decision)
+        expected = expectation(decision, boundary_noop)
         if expected is None:
             raise Stop(f"{case}: R0c decision {decision!r} has no expectation (spec 22.1: stop)")
         try:
@@ -249,9 +283,9 @@ def merge_record(record: dict, case: dict, path: Path) -> dict:
     return clauses
 
 
-def refusal_record(record: dict, case: dict, path: Path) -> dict:
-    """M2-3 as narrowed by 22.1 and 22.2: stage, keyPosted, reopen, original + marker, checkpoint, toasts."""
-    _, stage, posted = case["expected"]
+def original_plus_marker(record: dict, case: dict) -> list:
+    """The paragraph text a marker-typing case (a refusal, C's no-op) must read back: the fixture's original with
+    the marker at the other marker case's native caret, exactly once."""
     fixture = case["fixture"]
     marker_case = next((c for c in m.MARKER_AT.get(fixture, ()) if c != record["case"]), None)
     if marker_case is None:
@@ -260,14 +294,27 @@ def refusal_record(record: dict, case: dict, path: Path) -> dict:
     original = m.odt_parts(case["native"]["original"].read_bytes())["paragraphs"]
     if original.count(target["search"]) != 1:
         raise Stop(f"marker target {target['search']!r} occurs {original.count(target['search'])} times")
-    expected_text = [(m.MARKER + p if target["backward"] else p + m.MARKER) if p == target["search"] else p
-                     for p in original]
-    raw = kept(path, f"{record['case']}-r{record['round']}-reopened")
+    return [(m.MARKER + p if target["backward"] else p + m.MARKER) if p == target["search"] else p
+            for p in original]
+
+
+def kept_by_content(record: dict, path: Path, kind: str, field: str) -> list | None:
+    """The kept `<case>-r<n>-<kind>.odt`'s paragraphs, or None when it is missing or is not the document the
+    record names by content (`<field>.sha`, `<field>.paragraphs`; review 2026-10-08, opus NOTE 6)."""
+    raw = kept(path, f"{record['case']}-r{record['round']}-{kind}")
     parts = m.odt_parts(raw) if raw is not None else None
     mine = parts["paragraphs"] if parts else None
-    recorded = record.get("reopenedDocument") or {}
+    recorded = record.get(field) or {}
     if parts and (recorded.get("paragraphs") != len(mine) or recorded.get("sha") != parts["sha"]):
-        mine = None                             # not the document the report saved (review 2026-10-08: by content)
+        return None
+    return mine
+
+
+def refusal_record(record: dict, case: dict, path: Path) -> dict:
+    """M2-3 as narrowed by 22.1 and 22.2: stage, keyPosted, reopen, original + marker, checkpoint, toasts."""
+    _, stage, posted = case["expected"]
+    expected_text = original_plus_marker(record, case)
+    mine = kept_by_content(record, path, "reopened", "reopenedDocument")
     window = record.get("toastWindow") or {}
     toasts = window.get("toasts")
     before, after = record.get("beforeKey") or {}, record.get("afterKey") or {}
@@ -288,6 +335,36 @@ def refusal_record(record: dict, case: dict, path: Path) -> dict:
     if posted:
         clauses["noUnchanged"] = isinstance(toasts, list) and not any(UNCHANGED in (t or "") for t in toasts)
     return clauses
+
+
+def noop_record(record: dict, case: dict, path: Path) -> dict:
+    """M2-3 under C (link-batch 10.5, 10.7): no refusal, generation and revision unchanged, no toast, the document
+    saved after the key is the original plus the marker (the marker exactly once), and the caret where the
+    placement left it.  `caretUnchanged` is None on a record without `caretAfterKey` (a runner before 7e6c9acd
+    did not read it): not established, never inferred."""
+    expected_text = original_plus_marker(record, case)
+    mine = kept_by_content(record, path, "after-key", "afterKeyDocument")
+    before, after = record.get("beforeKey") or {}, record.get("afterKey") or {}
+    placed = record.get("place") or {}
+    if "caretAfterKey" not in record:
+        caret_unchanged = None
+    else:
+        seen = record.get("caretAfterKey") or {}
+        caret_unchanged = (m.caret_tuple(seen) is not None and m.caret_tuple(seen) == placed.get("engineCaret")
+                           and seen.get("generation") == placed.get("caretGeneration"))
+    return {"markerPlaced": (record.get("markerPlace") or {}).get("ok") is True,
+            "placed": placed.get("ok") is True,
+            "outcome": record.get("outcome") == m.BOUNDARY_NOOP,
+            "generation": same_generation(record),
+            "revision": before.get("revision") is not None and before.get("revision") == after.get("revision"),
+            "noToast": record.get("toasts") == [],
+            "unchangedText": None if mine is None else mine == expected_text,
+            "markerOnce": None if mine is None else sum(m.MARKER in p for p in mine) == 1,
+            "caretUnchanged": caret_unchanged}
+
+
+def m2_3_record(record: dict, case: dict, path: Path) -> dict:
+    return (noop_record if case["expected"][0] == m.BOUNDARY_NOOP else refusal_record)(record, case, path)
 
 
 def latency(record: dict, engine_ms) -> dict:
@@ -364,9 +441,11 @@ def describe(values: list) -> str:
 
 
 class Browser:
-    def __init__(self, directory: Path, browser: str, profile: str, uncounted: bool, cases: dict, order: list):
+    def __init__(self, directory: Path, browser: str, profile: str, uncounted: bool, cases: dict, order: list,
+                 wasm_sha: str):
         self.d, self.b, self.profile, self.uncounted = directory, browser, profile, uncounted
-        self.cases, self.order = cases, order
+        self.cases, self.order, self.wasm_sha = cases, order, wasm_sha
+        self.kept = kept_expected(cases)
         self.lines: list[str] = []
         self.verdicts: dict[str, str] = {}
         self.reports: dict = {}
@@ -427,6 +506,12 @@ class Browser:
                 for name in CARRIES[kind]:
                     self.say(name, "NOT DONE", f"{path.name} is missing or unreadable")
                 continue
+            # C's keying (module docstring): the expectation was read from one file's bytes, and every report
+            # but the red case (v8's own engine) must have run and bound exactly those bytes.
+            bound_wasm = (report.get("bound") or {}).get("wasmSha256")
+            if kind != "red" and bound_wasm != self.wasm_sha:
+                raise Stop(f"{path.name}: bound wasm {str(bound_wasm)[:16]} is not the keyed {self.wasm_sha[:16]}; "
+                           f"C's expectation cannot be read from bytes that did not run")
             reports[kind] = (report, path)
             clauses = self.identity(kind, report, path)
             verdict = status({k: (None if v is False else v) for k, v in clauses.items()})
@@ -466,7 +551,7 @@ class Browser:
             ok, note = False, note + f" decision differs from eshape.json on {decisions[:6]}"
         for criterion in ("M2-1", "M2-3", "barrier"):
             mine = {"cases": [c for c in records if self.cases[c["case"]]["criterion"] == criterion]}
-            judge = refusal_record if criterion == "M2-3" else merge_record
+            judge = m2_3_record if criterion == "M2-3" else merge_record
             verdict, bad = self.records(mine, lambda r: judge(r, self.cases[r["case"]], path))
             n = len(mine["cases"])
             expected = POPULATION[criterion] * ROUNDS
@@ -525,20 +610,20 @@ class Browser:
         for path in (counted_path, control_path):
             docs = path.parent / f"{path.stem}.docs"
             files = {f.name for f in docs.glob("*.odt")} if docs.is_dir() else set()
-            sides[path.name] = {kind: {n for n in files if n.endswith(f"-{kind}.odt")} for kind in KEPT}
+            sides[path.name] = {kind: {n for n in files if n.endswith(f"-{kind}.odt")} for kind in self.kept}
         a, b = sides.values()
-        counts = {kind: [len(a[kind]), len(b[kind])] for kind in KEPT}
+        counts = {kind: [len(a[kind]), len(b[kind])] for kind in self.kept}
         clauses = {"population": ok or None,
                    "pairs": paired["pairs"] == len(wanted) or None,
                    "sameOrder": paired.get("sameOrder") is True,
                    "differ": differ == [],
-                   "kept": all(n == [KEPT[k]] * 2 for k, n in counts.items()) or None,
-                   "sameKept": all(a[k] == b[k] for k in KEPT)}
+                   "kept": all(n == [self.kept[k]] * 2 for k, n in counts.items()) or None,
+                   "sameKept": all(a[k] == b[k] for k in self.kept)}
         self.say("control", status(clauses), f"pairs {paired['pairs']} (expected {len(wanted)}), differ "
                  f"{len(differ)}; {len(forgiven)} pairs equal up to the KB figure (34.1 (b)"
                  + (f": {[(r['case'], r['round']) for r in forgiven]}" if forgiven else "")
                  + f"); documents compared per kind [counted, control] {counts} (expected "
-                 f"{KEPT}){note}" + (f"; differ {differ[:4]}" if differ else ""))
+                 f"{self.kept}){note}" + (f"; differ {differ[:4]}" if differ else ""))
 
     def m2_1b(self, report: dict, path: Path) -> None:
         typed = [c for c in self.order if self.cases[c]["decision"] == "typed-merge"]
@@ -602,16 +687,20 @@ def together(reports: list, uncounted: bool) -> tuple[str, str]:
                      + ("ok" if verdict == "PASS" else f"off: {sorted(k for k, v in clauses.items() if not v)}"))
 
 
-def judge(directory: Path, profile: str, browsers, uncounted: bool) -> tuple[int, list[str]]:
+def judge(directory: Path, profile: str, browsers, uncounted: bool, wasm: Path | None = None) -> tuple[int, list[str]]:
+    wasm = wasm or PROFILES / profile / "probe.wasm"
     try:
-        cases, order = population()
+        boundary_noop, wasm_sha = keying(wasm)
+        cases, order = population(boundary_noop)
     except Stop as error:
         return 3, [f"VERDICT NOT DONE: {error}"]
     lines = [f"population (eshape.json {sha256(m.ESHAPE)[:16]}): "
-             + ", ".join(f"{k} {sorted(c for c in cases if cases[c]['criterion'] == k)}" for k in POPULATION)]
+             + ", ".join(f"{k} {sorted(c for c in cases if cases[c]['criterion'] == k)}" for k in POPULATION),
+             f"keyed on {wasm} ({wasm_sha[:16]}): C {'declared' if boundary_noop else 'not declared'}, "
+             f"nothing-selected expects {expectation('nothing-selected', boundary_noop)[1]}"]
     verdicts, everything = {}, []
     for browser in browsers:
-        one = Browser(directory, browser, profile, uncounted, cases, order)
+        one = Browser(directory, browser, profile, uncounted, cases, order, wasm_sha)
         try:
             verdicts[browser] = one.run()
         except Stop as error:
@@ -647,8 +736,11 @@ def main() -> int:
     ap.add_argument("--uncounted", action="store_true",
                     help="a dry run on reports that are not bound: binding clauses are not judged, and a full "
                          "pass exits 4, never 0")
+    ap.add_argument("--wasm", type=Path,
+                    help="the engine C's keying is read from (default dist/profiles/<profile>/probe.wasm); its "
+                         "sha256 must be what every non-red report bound, e.g. an archived copy for a re-judge")
     args = ap.parse_args()
-    code, lines = judge(args.dir, args.profile, args.browsers, args.uncounted)
+    code, lines = judge(args.dir, args.profile, args.browsers, args.uncounted, args.wasm)
     print("\n".join(lines))
     return code
 

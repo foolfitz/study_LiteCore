@@ -14,17 +14,26 @@ AUTHORITY: nothing is bound in the tree).  Fields the runner gained in the revie
 the copies: `toastsAtEnd` (the save confirmations only) and an empty `<stem>.stderr.txt` per report.
 The real red cases of spec 31.2 are the five v18 M2-4 reports, put in unedited but for identity.
 
+C's keying (2026-10-15, task 10-15c P1) is a second TEST AUTHORITY: the judge reads whether the profile carries C
+from `PROFILES/<profile>/probe.wasm` and requires every non-red report to have bound those bytes, so the green case
+serves a synthetic engine file (`FAKE_WASM`, no C) under a temporary `PROFILES`, and the binding's `wasmSha256` is
+that file's sha256.  The C cases swap in `FAKE_WASM_C` (the same bytes plus the fragment the engine emits) and
+rebind every report to it.  The witnesses below (`V19Witness`, `V20Witness`) are keyed on the real served engines.
+
     python3 -m unittest tests.test_judge_counted_m2
 """
 from __future__ import annotations
 
 import copy
+import hashlib
 import json
 import shutil
+import subprocess
 import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
 import judge_counted_m2 as j  # noqa: E402
@@ -32,8 +41,14 @@ import run_merge_wasm_shakedown as m  # noqa: E402
 
 V18 = m.HERE.parent / "findings/evidence/v18"
 PROFILE = "e2-editor-v18"
+# The synthetic engines (module docstring): without C, and with the fragment the engine emits for C's completion.
+FAKE_WASM = b"\0asm synthetic e2-editor-v18 engine for the judge's tests: no C\n"
+FAKE_WASM_C = FAKE_WASM + m.BOUNDARY_NOOP_FRAGMENT + b"\n"
+assert m.BOUNDARY_NOOP_FRAGMENT not in FAKE_WASM
 BINDING = {key: f"{i:x}" * 64 for i, key in enumerate(m.BOUND_KEYS, start=1)}
 BINDING["eshapeSha256"] = j.sha256(m.ESHAPE)
+BINDING["wasmSha256"] = hashlib.sha256(FAKE_WASM).hexdigest()
+BINDING_C = {**BINDING, "wasmSha256": hashlib.sha256(FAKE_WASM_C).hexdigest()}
 RED_BOUND = {**BINDING, "wasmSha256": "8" * 64, "workerSha256": "9" * 64, "pageSha256": "a" * 64}
 SAVED = "已存出 11.9 KB"
 FRAME = {"F01", "F02"}
@@ -116,15 +131,22 @@ class Reader(unittest.TestCase):
         cls.green.mkdir()
         for browser in j.BROWSERS:
             build(cls.green, browser)
+        # C's keying authority: the synthetic engine the binding names, under a PROFILES of the test's own.
+        cls.profiles, j.PROFILES = j.PROFILES, Path(cls.tmp.name) / "profiles"
+        (j.PROFILES / PROFILE).mkdir(parents=True)
+        cls.wasm = j.PROFILES / PROFILE / "probe.wasm"
 
     @classmethod
     def tearDownClass(cls):
         m.BINDING = cls.binding
+        j.PROFILES = cls.profiles
         cls.tmp.cleanup()
 
     def setUp(self):
         self.dir = Path(tempfile.mkdtemp(dir=self.tmp.name))
         shutil.copytree(self.green, self.dir, dirs_exist_ok=True)
+        self.wasm.write_bytes(FAKE_WASM)
+        m.BINDING = dict(BINDING)
 
     def edit(self, name: str, change) -> None:
         path = self.dir / f"{name}.json"
@@ -163,8 +185,9 @@ class Reader(unittest.TestCase):
         self.assertEqual((code, last), (4, "VERDICT PASS (NOT A COUNTED VERDICT: browsers ['chrome'])"))
 
     def test_red_firefox_ran_another_candidate(self):
-        # codex B2: each browser consistent with itself, the two not with each other.
-        other = {**BINDING, "wasmSha256": "e" * 64, "sessionSha256": "d" * 64}
+        # codex B2: each browser consistent with itself, the two not with each other.  The other candidate's
+        # engine is the same bytes (another wasm stops at C's keying first: test_a_report_bound_to_other_bytes).
+        other = {**BINDING, "workerSha256": "e" * 64, "sessionSha256": "d" * 64}
         for kind in ("counted", "counted-control", "m2-1b", "m2-4", "red"):
             def swap(report):
                 report["binding"] = other
@@ -187,7 +210,9 @@ class Reader(unittest.TestCase):
             self.edit(name, lambda r: r.update(binding={"irrelevant": 1}, bound={"irrelevant": 1}))
         saved, m.BINDING = m.BINDING, {"irrelevant": 1}
         try:
-            self.assertEqual(self.judge(j.BROWSERS)[:2], (3, "VERDICT NOT DONE: ['all identity']"))
+            # A binding of another schema names no engine either, so each browser stops at C's keying as well.
+            self.assertEqual(self.judge(j.BROWSERS)[:2],
+                             (3, "VERDICT NOT DONE: ['chrome reports', 'firefox reports', 'all identity']"))
         finally:
             m.BINDING = saved
 
@@ -484,9 +509,181 @@ class Reader(unittest.TestCase):
         self.edit("counted-chrome", lambda r: r.update(observerAtEnd={"error": "ConnectionClosedError"}))
         self.assertEqual(self.judge()[:2], (3, "VERDICT NOT DONE: ['chrome identity']"))
 
+    # ---- C (2026-10-15, task 10-15c P1): the keying, and the no-op's clauses ----------------------------------
+    def m2_3_line(self, lines: list) -> str:
+        return next(x for x in lines if x.startswith("M2-3 "))
+
+    def test_the_keying_names_the_served_engine(self):
+        _, _, lines = self.judge()
+        self.assertIn(f"keyed on {self.wasm} ({BINDING['wasmSha256'][:16]}): C not declared, "
+                      "nothing-selected expects refused", lines[1])
+
+    def test_a_report_bound_to_other_bytes_is_not_done(self):
+        # The expectation was read from one file; a report that ran other bytes is not judged by it.
+        self.edit("counted-chrome", lambda r: r["bound"].update(wasmSha256="f" * 64))
+        code, last, lines = self.judge()
+        self.assertEqual(code, 3, last)
+        self.assertIn("chrome reports", last)
+        self.assertIn("is not the keyed", "\n".join(lines))
+        self.assertNotIn("M2-3       PASS", "\n".join(lines))        # nothing judged, not "the rest passed"
+
+    def test_no_engine_to_read_is_not_done(self):
+        self.wasm.unlink()
+        code, last, _ = self.judge()
+        self.assertEqual(code, 3)
+        self.assertIn("cannot be read", last)
+
+    def declare_c(self, browsers=("chrome",)) -> None:
+        """The profile under test now carries C: the engine file and every report's binding say so."""
+        self.wasm.write_bytes(FAKE_WASM_C)
+        m.BINDING = dict(BINDING_C)
+        for name in [f"{k}-{b}" for k in ("counted", "counted-control", "m2-1b", "m2-4", "red") for b in browsers]:
+            def rebind(report, red=name.startswith("red")):
+                report["binding"] = BINDING_C
+                report["bound"] = {**RED_BOUND, **{k: v for k, v in BINDING_C.items() if k not in m.PROFILE_BOUND}} \
+                    if red else BINDING_C
+            self.edit(name, rebind)
+
+    def test_red_a_refusal_judged_under_c(self):
+        # R2 of 7e6c9acd: v18's C29/C30 refused and reopened; on a profile that declares C that is red.
+        self.declare_c()
+        _, _, lines = self.judge()
+        self.assertIn("keyed on", lines[1])
+        self.assertIn("C declared, nothing-selected expects verified-boundary-noop", lines[1])
+        line = self.m2_3_line(lines)
+        self.assertTrue(line.split()[1] == "FAIL", line)
+        self.assertEqual(line.count("('FAIL', 'C29 r"), 3, line)
+        self.assertEqual(line.count("('FAIL', 'C30 r"), 3, line)
+        self.assertIn("'outcome'", line)
+
+    def as_noop(self, name: str, browser: str) -> None:
+        """C29/C30 of a v18 report re-recorded as the runner since 7e6c9acd records a no-op (synthetic, like the
+        green M2-4): no reopen, generation and revision unchanged, no toast, the caret where the placement left
+        it, and the document saved after the key -- the same bytes the refusal path kept after its reopen,
+        original + marker -- as `<case>-r<n>-after-key.odt` with its content named in `afterKeyDocument`."""
+        docs = self.dir / f"{name}.docs"
+
+        def convert(report):
+            for record in report["cases"]:
+                if record["case"] not in ("C29", "C30"):
+                    continue
+                placed = record["place"]
+                x, y, w, h = placed["engineCaret"]
+                record.update(outcome=m.BOUNDARY_NOOP, generation=[record["generation"][0]] * 2, toasts=[],
+                              afterKey={**record["afterKey"], "revision": record["beforeKey"]["revision"]},
+                              caretAfterKey={"caret": {"x": x, "y": y, "width": w, "height": h},
+                                             "generation": placed["caretGeneration"]})
+                for key in ("toastWindow", "stage", "reopenedDocument"):
+                    record.pop(key, None)
+                stem = f"{record['case']}-r{record['round']}"
+                (docs / f"{stem}-reopened.odt").rename(docs / f"{stem}-after-key.odt")
+                parts = m.odt_parts((docs / f"{stem}-after-key.odt").read_bytes())
+                record["afterKeyDocument"] = {"saved": True, "paragraphs": len(parts["paragraphs"]),
+                                              "sha": parts["sha"]}
+        self.edit(name, convert)
+
+    def green_under_c(self, browsers=j.BROWSERS) -> None:
+        self.declare_c(browsers)
+        for browser in browsers:
+            self.as_noop(f"counted-{browser}", browser)
+            self.as_noop(f"counted-control-{browser}", browser)
+
+    def test_green_a_no_op_under_c(self):
+        self.green_under_c()
+        code, last, lines = self.judge(j.BROWSERS)
+        self.assertEqual(code, 0, "\n".join(lines))
+        self.assertTrue(last.startswith("VERDICT PASS (chrome, firefox"), last)
+        text = "\n".join(lines)
+        self.assertIn("'after-key': [69, 69], 'follow': [63, 63], 'reopened': [9, 9]", text)   # the kept counts follow C
+        self.assertIn("15 records (expected 15", self.m2_3_line(lines))
+
+    def test_red_a_no_op_whose_caret_moved(self):
+        self.green_under_c(("chrome",))
+        self.edit("counted-chrome", lambda r: self.record(r, "C30", 2)["caretAfterKey"]["caret"].update(x=1))
+        code, last, lines = self.judge()
+        self.assertEqual((code, last), (1, "VERDICT FAIL: ['chrome M2-3']"))
+        self.assertIn("'caretUnchanged'", self.m2_3_line(lines))
+
+    def test_red_a_no_op_from_another_worker(self):
+        self.green_under_c(("chrome",))
+        self.edit("counted-chrome", lambda r: self.record(r, "C29", 3)["caretAfterKey"].update(generation=99))
+        self.assertEqual(self.judge()[:2], (1, "VERDICT FAIL: ['chrome M2-3']"))
+
+    def test_red_a_no_op_that_changed_the_revision(self):
+        self.green_under_c(("chrome",))
+        self.edit("counted-chrome", lambda r: self.record(r, "C29", 1)["afterKey"].update(revision="3"))
+        code, last, lines = self.judge()
+        self.assertEqual((code, last), (1, "VERDICT FAIL: ['chrome M2-3']"))
+        self.assertIn("'revision'", self.m2_3_line(lines))
+
+    def test_red_a_no_op_with_a_toast(self):
+        self.green_under_c(("chrome",))
+        self.edit("counted-chrome", lambda r: self.record(r, "C30", 1).update(toasts=["重繪失敗"]))
+        code, last, _ = self.judge()
+        self.assertEqual(code, 1)
+        self.assertIn("chrome M2-3", last)
+
+    def test_red_a_no_op_that_lost_the_marker(self):
+        original = (m.EVIDENCE / "r0c/round-20261006T144628Z/docs/original.odt").read_bytes()
+        self.green_under_c(("chrome",))
+        (self.dir / "counted-chrome.docs/C29-r2-after-key.odt").write_bytes(original)
+        parts = m.odt_parts(original)
+        self.edit("counted-chrome", lambda r: self.record(r, "C29", 2)["afterKeyDocument"].update(
+            sha=parts["sha"], paragraphs=len(parts["paragraphs"])))   # as the runner would have recorded it
+        code, last, lines = self.judge()
+        self.assertEqual(code, 1)
+        self.assertIn("chrome M2-3", last)
+        self.assertIn("'markerOnce'", self.m2_3_line(lines))
+
+    def test_red_a_refusal_on_a_c_profile(self):
+        # The product refused where C says no-op: red on the no-op's own clauses, as 7e6c9acd's R2.
+        self.green_under_c(("chrome",))
+        self.edit("counted-chrome", lambda r: self.record(r, "C29", 1).update(
+            outcome="refused", generation=["1", "2"]))
+        # The paired control did not reopen, so the pair is red as well (as a refused merge is).
+        self.assertEqual(self.judge()[:2], (1, "VERDICT FAIL: ['chrome M2-3', 'chrome control']"))
+
+    def test_a_no_op_without_the_caret_read_is_not_done(self):
+        # A runner before 7e6c9acd did not read the caret after the key: open, never inferred.
+        self.green_under_c(("chrome",))
+        self.edit("counted-chrome", lambda r: self.record(r, "C30", 3).pop("caretAfterKey"))
+        code, last, lines = self.judge()
+        self.assertEqual((code, last), (3, "VERDICT NOT DONE: ['chrome M2-3']"))
+        self.assertIn("('NOT DONE', 'C30 r3', ['caretUnchanged'])", self.m2_3_line(lines))
+
+    def test_a_no_op_document_the_report_did_not_save_is_not_done(self):
+        original = (m.EVIDENCE / "r0c/round-20261006T144628Z/docs/original.odt").read_bytes()
+        self.green_under_c(("chrome",))
+        for side in ("counted-chrome", "counted-control-chrome"):      # both, so the pair stays equal
+            (self.dir / f"{side}.docs/C29-r2-after-key.odt").write_bytes(original)
+        self.assertEqual(self.judge()[:2], (3, "VERDICT NOT DONE: ['chrome M2-3']"))
+
+    def test_under_c_everything_but_c29_and_c30_is_as_before(self):
+        # The keying moves two cases' expectation and nothing else: the same v18 reports, keyed on C, are red on
+        # exactly the refusal records of C29/C30, the control is open on its kept counts (a refusal keeps a
+        # reopened document where a no-op keeps one after the key), and nothing else moves.
+        self.declare_c(("chrome",))
+        code, last, lines = self.judge()
+        self.assertEqual(code, 1)
+        self.assertEqual(last, "VERDICT FAIL: ['chrome M2-3']; NOT DONE: ['chrome control']", last)
+        for name in ("M2-1", "barrier", "M2-2", "M2-1b", "M2-4", "red", "M2-0"):
+            self.assertEqual(set(self.verdict(lines, name)), {"PASS"}, name)
+        control = next(x for x in lines if x.startswith("control "))
+        self.assertIn("differ 0", control)
+        self.assertIn("'after-key': [63, 63], 'follow': [63, 63], 'reopened': [15, 15]} (expected "
+                      "{'after-key': 69, 'follow': 63, 'reopened': 9})", control)
 
 
 V19_X7 = m.HERE.parent / "findings/evidence/v19/x7-counted-m2"
+WITNESS_COMMIT = "b8324a85"      # the commit that landed v19's X7 reports; the runner they ran is that commit's
+RUNNER_PATH = "wasm_sdk_probe/tools/run_merge_wasm_shakedown.py"
+
+
+def runner_sha_at(commit: str) -> str | None:
+    """The runner file as of `commit`, materialised from git, hashed as the judge hashes the live one."""
+    done = subprocess.run(["git", "-C", str(m.HERE.parent), "show", f"{commit}:{RUNNER_PATH}"],
+                          capture_output=True)
+    return hashlib.sha256(done.stdout).hexdigest()[:16] if done.returncode == 0 and done.stdout else None
 
 
 @unittest.skipUnless(V19_X7.is_dir() and m.LIMIT_ROUND.is_dir(), "v19's X7 reports or R0 run 4's documents missing")
@@ -494,7 +691,30 @@ class V19Witness(unittest.TestCase):
     """Spec 34.1 (b), fable's ruling of 2026-10-08 (v19/x7-counted-m2/fable-ruling-control.md): the committed v19
     X7 reports (b8324a85) are the witness.  Judged with the COMMITTED binding, not the test authority above.  The
     reader before the fix printed `VERDICT FAIL: ['chrome control', 'firefox control']` on them (judge-output.txt
-    there): the only false field was `toastsAtEnd`, `已存出 14.2 KB` against `已存出 14.3 KB`."""
+    there): the only false field was `toastsAtEnd`, `已存出 14.2 KB` against `已存出 14.3 KB`.
+
+    Re-judged at the run's commit (the judge's docstring: "re-judging later means checking out the commit the
+    counted run used").  Since 7e6c9acd the runner file has moved (73b2e9ff -> d185cb50), so the judge's
+    `thisRunner` clause -- the live runner's hash against every report's `runner` -- read NOT DONE on these
+    reports by construction (task 10-15c P2; the two tests below were red from 7e6c9acd to this commit).  Only the
+    runner's IDENTITY is materialised here, as of WITNESS_COMMIT via git, and it must be the hash every report
+    names, or the class is skipped; the functions the judge borrows from the runner are the live ones.  The judge's
+    rule is not changed: a counted verdict still needs this tree's runner.  C's keying reads the served v19 engine
+    (`dist/profiles/e2-editor-v19/probe.wasm`, bound as `1aafd4f9...`), which does not carry C, so the expectation
+    is the refusal and the verdicts are as recorded (judge-output.txt there)."""
+
+    @classmethod
+    def setUpClass(cls):
+        witness = runner_sha_at(WITNESS_COMMIT)
+        named = {json.loads(p.read_text()).get("runner") for p in V19_X7.glob("*.json")}
+        if witness is None or named != {witness}:
+            raise unittest.SkipTest(f"the runner at {WITNESS_COMMIT} ({witness}) is not what the reports name {named}")
+        cls.patch = mock.patch.object(j, "RUNNER_SHA", witness)
+        cls.patch.start()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.patch.stop()
 
     def judge(self, directory: Path) -> tuple[int, str, list]:
         code, lines = j.judge(directory, "e2-editor-v19", list(j.BROWSERS), False)
@@ -547,6 +767,97 @@ class V19Witness(unittest.TestCase):
         self.assertEqual(code, 1)
         self.assertIn("chrome control", last)
         self.assertTrue(self.control_lines(lines)[0].split()[1] == "FAIL", lines)
+
+    def test_e_the_live_runner_is_still_the_rule(self):
+        # P2 fixed the test, not the judge: without the materialised identity the same reports are NOT DONE.
+        with mock.patch.object(j, "RUNNER_SHA", hashlib.sha256(Path(m.__file__).read_bytes()).hexdigest()[:16]):
+            code, last, _ = self.judge(V19_X7)
+        self.assertEqual((code, last), (3, "VERDICT NOT DONE: ['all identity']"))
+
+
+V20_MERGE = m.HERE.parent / "findings/evidence/link-batch/v20-shakedown/merge"
+V20_WASM = m.HERE / "dist/profiles/e2-editor-v20/probe.wasm"
+V19_WASM = m.HERE / "dist/profiles/e2-editor-v19/probe.wasm"
+V20_KINDS = {"counted": "shakedown", "counted-control": "control", "m2-1b": "m2-1b", "m2-4": "m2-4"}
+
+
+def v20_witness_ready() -> bool:
+    if not (V20_MERGE.is_dir() and V20_WASM.is_file() and V19_WASM.is_file() and m.LIMIT_ROUND.is_dir()):
+        return False
+    bound = {json.loads((V20_MERGE / f"{src}-{b}.json").read_text())["bound"]["wasmSha256"]
+             for src in V20_KINDS.values() for b in j.BROWSERS}
+    return bound == {j.sha256(V20_WASM)}
+
+
+@unittest.skipUnless(v20_witness_ready(), "part B's v20 merge reports, or the engines they and v19 bound, missing")
+class V20Witness(unittest.TestCase):
+    """Spec 34.4's witness for C (task 10-15c P1): part B's eight v20 shakedown reports (runner 73b2e9ff, commit
+    83ea8eb8), which recorded `pass: false` on exactly the four C29/C30 records of every shakedown and control
+    report because the expectation table mapped `nothing-selected` to the refusal on a profile that ships C.
+    Staged under the counted file names, `--uncounted` (they are not bound and have two rounds, not three), keyed
+    on the served v20 engine every one of them bound (`313b08d5...`).  Runner 73b2e9ff took the refusal path on a
+    no-op, so what it recorded is mapped onto what the no-op path records -- explicitly, as the committed
+    re-judge (`re-expectation/rejudge.py`) did: `toasts` <- `toastWindow.toasts`, the document saved after the
+    key <- `<case>-r<n>-reopened.odt` kept as `-after-key.odt`, `afterKeyDocument` <- `reopenedDocument`;
+    `caretAfterKey` stays absent, so `caretUnchanged` is not established.  Nothing else is edited."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory(prefix="judge-v20-witness-")
+        cls.dir = Path(cls.tmp.name) / "merge"
+        cls.dir.mkdir()
+        for browser in j.BROWSERS:
+            for target, source in V20_KINDS.items():
+                report = json.loads((V20_MERGE / f"{source}-{browser}.json").read_text())
+                docs = cls.dir / f"{target}-{browser}.docs"
+                shutil.copytree(V20_MERGE / f"{source}-{browser}.docs", docs)
+                for record in report["cases"]:
+                    if record["case"] not in ("C29", "C30") or "toastWindow" not in record:
+                        continue
+                    stem = f"{record['case']}-r{record['round']}"
+                    record["toasts"] = record["toastWindow"]["toasts"]
+                    record["afterKeyDocument"] = record["reopenedDocument"]
+                    shutil.copy(docs / f"{stem}-reopened.odt", docs / f"{stem}-after-key.odt")
+                (cls.dir / f"{target}-{browser}.json").write_text(json.dumps(report, ensure_ascii=False))
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.cleanup()
+
+    def judge(self, wasm: Path = V20_WASM) -> tuple[int, str, list]:
+        code, lines = j.judge(self.dir, "e2-editor-v20", list(j.BROWSERS), True, wasm)
+        return code, lines[-1], lines
+
+    def m2_3_lines(self, lines: list) -> list[str]:
+        return [x for x in lines if x.startswith("M2-3 ")]
+
+    def test_a_the_four_no_op_records_are_no_longer_red(self):
+        code, last, lines = self.judge()
+        self.assertIn("C declared, nothing-selected expects verified-boundary-noop", lines[1])
+        self.assertEqual(code, 3, last)                       # two rounds of three, no red report: not a verdict
+        self.assertTrue(last.startswith("VERDICT NOT DONE"), last)
+        for line in self.m2_3_lines(lines):
+            self.assertNotIn("'FAIL'", line)
+            self.assertEqual(line.count("('NOT DONE', 'C29 r"), 2, line)
+            self.assertEqual(line.count("('NOT DONE', 'C30 r"), 2, line)
+            self.assertEqual(line.count("['caretUnchanged']"), 4, line)     # the one open clause, nothing false
+
+    def test_b_under_the_refusal_table_the_same_records_are_red(self):
+        # What the judge printed before P1 (and runner 73b2e9ff recorded): the same bytes, the old expectation.
+        with mock.patch.object(m, "boundary_noop_declared", lambda wasm: False):
+            code, last, lines = self.judge()
+        self.assertEqual(code, 1, last)
+        self.assertIn("nothing-selected expects refused", lines[1])
+        for line in self.m2_3_lines(lines):
+            self.assertEqual(line.split()[1], "FAIL", line)
+            self.assertEqual(line.count("('FAIL', 'C29 r") + line.count("('FAIL', 'C30 r"), 4, line)
+            self.assertIn("'outcome'", line)
+
+    def test_c_keyed_on_v19s_engine_nothing_is_judged(self):
+        code, last, lines = self.judge(V19_WASM)
+        self.assertEqual(code, 3, last)
+        self.assertIn("is not the keyed", "\n".join(lines))
+        self.assertEqual(self.m2_3_lines(lines), [])
 
 
 if __name__ == "__main__":
