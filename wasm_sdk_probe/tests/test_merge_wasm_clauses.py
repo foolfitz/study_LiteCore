@@ -350,16 +350,17 @@ class Schedules(unittest.TestCase):
         with self.assertRaises(SystemExit):
             m.mode_schedule("m2-1b", without)
 
-    def test_bound_to_v19_after_v56(self):
-        # Spec 7 / 30.1: the binding is written after shell generation v56 is frozen; until then no report could
-        # say "counted": true.  Was `test_nothing_is_bound_before_v56` (BINDING is None) until the commit that set
-        # BINDING, 2026-10-08.  Not compared with the live tree: the cutover rewrites web/e2-editor-app.js.
+    def test_bound_to_v20_after_v72(self):
+        # Spec 7 / 30.1: the binding is written after the shell generation it binds is frozen; until then no report
+        # could say "counted": true.  Was `test_nothing_is_bound_before_v56` (BINDING is None) until 2026-10-08,
+        # then `test_bound_to_v19_after_v56` (wasm 1aafd4f9, worker 00882139) until the v20 binding, 2026-10-15
+        # (SPEC-M3-link-batch §17.2).  Not compared with the live tree: the cutover rewrites web/e2-editor-app.js.
         self.assertIsNotNone(m.BINDING)
         self.assertEqual(tuple(m.BINDING), m.BOUND_KEYS)
         for key, value in m.BINDING.items():
             self.assertRegex(value, r"^[0-9a-f]{64}$", key)
-        self.assertTrue(m.BINDING["wasmSha256"].startswith("1aafd4f9"))        # e2-editor-v19
-        self.assertTrue(m.BINDING["workerSha256"].startswith("00882139"))
+        self.assertTrue(m.BINDING["wasmSha256"].startswith("313b08d5"))        # e2-editor-v20
+        self.assertTrue(m.BINDING["workerSha256"].startswith("478d0da1"))
 
 
 LIMIT = m.limit_reference() if m.LIMIT_ROUND.is_dir() else None

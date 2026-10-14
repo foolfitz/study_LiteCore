@@ -534,6 +534,14 @@ part P（`findings/evidence/link-batch/pre-binding/README.md` P4）只移了頁�
 
 每個新值都有兩個以上的來源：宿主 repo（`git log -1` 是 `2ccf1a9`、`appinfo/info.xml` 是 `0.2.23`、樹是乾淨的）；封存的引擎包 `build/archive/host-0.2.23-engine-c3c22d9294de068a/MANIFEST.json`（`buildId`、session 與頁面的 sha256）與宿主 0.2.23 的證據報告（`findings/evidence/host-0.2.23/`）；session 在樹、`dist/`、封存包三處逐位元組相同；殼層雜湊是 `build_e2_c_shell_bundle.py`（不帶 `--write`，結束碼 0、`problems` 空）自己回答的，與無宿主泡泡見證的報告相同。改綁後 `make test-e2-c-static` 結束碼 0（`findings/evidence/link-batch/binding-v20/test-e2-c-static-after-repin.txt`）。這是綁定，不是修理：§34.4 兩個數字都不加。
 
+### 17.2 merge runner 的 `BINDING` 綁到 v20（手冊 RUNBOOK-relink-v20 §4 第 2 步）
+
+`run_merge_wasm_shakedown.py` 的 `BINDING` 從 v19（`8da777d7`）換成 v20：wasm `313b08d5…`、worker `478d0da1…`、session `f47c80ec…`、殼層（v72 模組）`e7c4eefe…`、html `b1185aaa…`、頁面與頁面原始碼都是 `ccb67a52…`（原始碼本來就指向 v20，不需改指）、eshape 與 native 與 v19 相同。九個值由 runner 自己的 `bound_values()` 不開瀏覽器算出，每一個都有第二個來源（`findings/evidence/link-batch/binding-v20/README.md` 的表）。v8 紅案只差 profile 自己的三個值，仍會被計數。`test_bound_to_v19_after_v56` 改名 `test_bound_to_v20_after_v72`。從這個 commit 到 v20 計數的判讀讀完，runner 不再改（§34.1 的凍結）。
+
+連帶的一件修理（`00903e29`，§34.4 因執行而修 +1）：`V19Witness` 原本只從 git 還原 runner 的身分，`BINDING` 仍向現行模組借；綁到 v20 之後它在 v19 X7 報告上依構造讀成 NOT DONE（修前 2 紅、修後 5/5）。修法是 `BINDING` 也從同一個 commit 還原；判讀器不改。
+
+登錄一件觀察：`test_judge_counted_m2.py` 與 `test_merge_wasm_clauses.py` 不在任何 Makefile 目標裡，綁定後 `make test-e2-c-static` 結束碼 0、同時 V19Witness 是紅的。計數鏈的前置檢查先手跑這兩支；要不要進閘門是擁有者的決定（Makefile 改動）。
+
 ## 修訂紀錄
 
 | 日期 | 內容 |
@@ -549,3 +557,4 @@ part P（`findings/evidence/link-batch/pre-binding/README.md` P4）只移了頁�
 | 2026-10-14 | §15.6：修正 2——part 1 的 `finishMergeKeyError` 有一處沒包進 define，恢復舊文字（`543a5566`），v20 預處理不變；引擎定在 `543a5566` |
 | 2026-10-14 | §16：更正 §4.3 的「依 Collabora 回報的可見區域算」——原始碼看不出 Collabora 的頁碼會跟著捲動；擁有者決定外觀照 Collabora 的底部狀態列 |
 | 2026-10-15 | §17.1：M3 runner 的宿主、session、引擎包、殼層 pin 移到 0.2.23／v72（13 行；綁定，不是修理） |
+| 2026-10-15 | §17.2：merge runner 的 `BINDING` 綁到 v20；V19Witness 連 BINDING 一起還原（因執行而修 +1）；登錄兩支判讀器測試不在任何 Makefile 目標 |
