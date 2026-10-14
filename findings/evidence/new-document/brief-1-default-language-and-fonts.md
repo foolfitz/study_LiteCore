@@ -28,6 +28,8 @@ You are asked to analyse, diagnose and recommend. This is not an owner-delegated
   - Finding 116: there was no Mono family.
   - The shipped resource packs are listed in `wasm_sdk_probe/sdk/v18-writer-review-manifest.json` (`cjk-sub-e10`, `base-r5-no35`, `fallback-fonts-r5`). Core sources are in `libreoffice-26-8/`; the native 26.8 build is in `native-lok-26-8/build/instdir`.
 
+- **R6, how richdocuments gets the language (the owner asked 2026-10-14: 「nextcloud不會把語言設定值傳給richdocuments嗎？」).** The server does not push it. richdocuments' frontend reads the logged-in user's Nextcloud language with `@nextcloud/l10n` `getLanguage()`/`getLocale()` and maps it to BCP47 (`src/helpers/index.js:8–40`, for example `zh_TW` → `zh-TW`, plus regional special cases). It appends the result as `&lang=` to the Collabora iframe URL (`src/helpers/url.js:45`). Collabora turns that into the LOK load option `Language=` (R2). So richdocuments' style-less skeleton gets its defaults from the language passed at load. Our page is also a browser page under Nextcloud and can read the same setting. **Treat this route, candidate (b), as the primary one in Q3.** Establish what `Language=` actually changes in LOK: UI language tag only, or also the default document languages (Western, Asian, CTL), the default fonts and the paper size of a style-less document. Answer from `libreoffice-26-8/desktop/source/lib/init.cxx` (the comment at `probe_engine.cpp:2975–2977` cites `:2843–2866`) and from what it calls.
+
 ## Questions
 
 1. **What does a style-less ODT become in the shipped WASM engine (profile `e2-editor-v19`, the engine behind 0.2.18)?**
