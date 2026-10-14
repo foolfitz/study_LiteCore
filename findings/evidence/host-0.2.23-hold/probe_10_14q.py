@@ -492,6 +492,8 @@ ARMS = {
     "double-press": lambda s, k, r: arm_backspace(s, k, r, "click-home", presses=2, gap_ms=400),
     "triple-press": lambda s, k, r: arm_backspace(s, k, r, "click-home", presses=3, gap_ms=400),
     "hold-3s": lambda s, k, r: arm_backspace(s, k, r, "click-home", hold_ms=3000),
+    # host-0.2.23-hold follow-up: the keyup lands just after the second boundary no-op request has gone out (worst case of "one more window")
+    "hold-2300": lambda s, k, r: arm_backspace(s, k, r, "click-home", hold_ms=2300),
     "press-then-type": lambda s, k, r: arm_backspace(s, k, r, "click-home", type_after_ms=300),
     "press-early-after-open": lambda s, k, r: arm_backspace(s, k, r, "click-home-fast"),
     "burst-1s": lambda s, k, r: arm_backspace(s, k, r, "click-home", burst_ms=1000),

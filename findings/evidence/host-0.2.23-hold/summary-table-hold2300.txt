@@ -1,0 +1,30 @@
+browser | arm | # | keydowns(flagged) | beforeinput | engine req | no-ops | refusals | deleted | rev s->e | keyup ms | 1st ready | final ready | ready<-keyup | req at ms | answers at ms | keyup-2nd req ms
+firefox | owner-sequence | 0 | 1(0) | 1 | 1 | 1 | 0 | 0 | 0->0 | 2.5 | 2256.0 | 2256.0 | 2253.5 | [0.9] | [2256.1] | None
+firefox | hold-2300 | 0 | 62(61) | 4 | 2 | 2 | 0 | 0 | 0->0 | 2387.4 | 2257.4 | 4541.1 | 2153.7 | [1.0, 2277.6] | [2257.7, 4541.3] | 109.8
+firefox | hold-2300 | 1 | 62(61) | 4 | 2 | 2 | 0 | 0 | 0->0 | 2384.7 | 2256.7 | 4536.9 | 2152.2 | [1.2, 2275.0] | [2256.9, 4537.1] | 109.7
+firefox | hold-2300 | 2 | 62(61) | 4 | 2 | 2 | 0 | 0 | 0->0 | 2416.4 | 2257.7 | 4536.7 | 2120.3 | [1.0, 2274.5] | [2257.9, 4536.9] | 141.9
+chrome | owner-sequence | 0 | 1(0) | 1 | 1 | 1 | 0 | 0 | 0->0 | 2.8 | 2261.6 | 2261.6 | 2258.8 | [1.0] | [2261.8] | None
+chrome | hold-2300 | 0 | 62(61) | 4 | 2 | 2 | 0 | 0 | 0->0 | 2315.7 | 2262.6 | 4530.7 | 2215.0 | [0.9, 2271.1] | [2262.8, 4530.8] | 44.6
+chrome | hold-2300 | 1 | 62(61) | 4 | 2 | 2 | 0 | 0 | 0->0 | 2315.5 | 2262.4 | 4531.3 | 2215.8 | [0.9, 2271.2] | [2262.5, 4531.4] | 44.3
+chrome | hold-2300 | 2 | 62(61) | 4 | 2 | 2 | 0 | 0 | 0->0 | 2315.5 | 2262.5 | 4529.9 | 2214.4 | [0.9, 2271.0] | [2262.7, 4530.0] | 44.5
+
+firefox  control   K1 exactly 1 request, answered verified-boundary-noop: PASS (1/1)
+firefox  control   K2 the engine's window is the ~2.25 s one: PASS (1/1)
+firefox  control   K3 page ready after the window (2.2-2.4 s from keydown): PASS (1/1)
+firefox  hold-2300 W1 exactly 2 engine delete requests: PASS (3/3)
+firefox  hold-2300 W2 worst case exercised: the 2nd request was sent before the keyup: PASS (3/3)
+firefox  hold-2300 W3 0 characters deleted: PASS (3/3)
+firefox  hold-2300 W4 0 refusals (no error, one generation, no toast): PASS (3/3)
+firefox  hold-2300 W5 document unchanged (revision start == end): PASS (3/3)
+firefox  hold-2300 W6 ready 2.10-2.30 s after keyup: PASS (3/3)
+firefox  hold-2300 W7 ready <= 2.4 s after keyup: PASS (3/3)
+chrome   control   K1 exactly 1 request, answered verified-boundary-noop: PASS (1/1)
+chrome   control   K2 the engine's window is the ~2.25 s one: PASS (1/1)
+chrome   control   K3 page ready after the window (2.2-2.4 s from keydown): PASS (1/1)
+chrome   hold-2300 W1 exactly 2 engine delete requests: PASS (3/3)
+chrome   hold-2300 W2 worst case exercised: the 2nd request was sent before the keyup: PASS (3/3)
+chrome   hold-2300 W3 0 characters deleted: PASS (3/3)
+chrome   hold-2300 W4 0 refusals (no error, one generation, no toast): PASS (3/3)
+chrome   hold-2300 W5 document unchanged (revision start == end): PASS (3/3)
+chrome   hold-2300 W6 ready 2.10-2.30 s after keyup: PASS (3/3)
+chrome   hold-2300 W7 ready <= 2.4 s after keyup: PASS (3/3)
