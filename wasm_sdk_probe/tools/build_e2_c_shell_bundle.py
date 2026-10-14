@@ -691,7 +691,17 @@ FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
 # acceptance on these bytes (both judges exit 0, every arm, both browsers) and ruling-3 conditions 5-6 on these bytes
 # (guard chain run 2, both browsers): 132-B, 131-B, 128-B (host segment on a bounded re-run, its red control red),
 # 121-B, 129-B, 130-U, 122-B / C2, restore-window.
-MANIFEST = Path("e2/editor-shell-v2-bundle-v66.json")
+#
+# v67, 2026-10-14: the v20 link batch's page and shell (SPEC-M3-link-batch §13.3, §15; fable's ruling 6 for the owner).
+# Differs from v66 in `web/e2-editor-app.js`, `web/e2-editor.html` (part 2: the page number, `#page-status` outside
+# `.statusbar`, gated on offersPageRectangles()), `editor-shell-v2/narrow-editor-v2-client.js` (part 1: accepts
+# verified-boundary-noop; offersPageRectangles()), `editor-shell-v2/narrow-editor-v2-session.js` (part 2's scheduler and
+# pure functions; ruling 6 conditions 45 placeCaret override = finding 138, 47 a noop is not a mutation, 48 re-read
+# after a failed page-rectangles read) and `sdk/document-sdk.js` (part 1: handle.pageRectangles()).  On engine v19 only
+# placeCaret and the queue observer change paths.  Frozen after 412/412 unit tests, E1-C intact, and the pre-freeze
+# witness on these bytes on v19 (129-B, both browsers, 54/54, 0 cells differ from three reference rounds;
+# findings/evidence/link-batch/v67-witness/).  restore-window needs the ddev host and was not run on these bytes.
+MANIFEST = Path("e2/editor-shell-v2-bundle-v67.json")
 ENTRYPOINT = Path("web/e2-editor-app.js")
 
 # The directories whose *.js files must all be accounted for.  `editor-shell`
