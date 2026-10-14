@@ -1,0 +1,13 @@
+2026-10-14T19:21:19Z PREFLIGHT tree f3b543c9 stamp 20261014T192119Z preflight-only=1
+2026-10-14T19:21:19Z P0 output directories empty: ok (findings/evidence/release-0.2.23/merge-m2, findings/evidence/release-0.2.23/c2/r1-r3)
+2026-10-14T19:21:19Z P1 kdewallet Locked = [b false]: ok
+2026-10-14T19:21:20Z P2 headless Chrome --dump-dom https://litecore.ddev.site:8443/login: rc=0 bytes=738274 grep=167: ok
+2026-10-14T19:21:20Z REFUSED P3 pgrep -af 'probe_|judge_|check_m3|run_e2_c|run_merge|run_v20': 1 line(s):
+3151987 /bin/bash -c source /home/jiajun/.claude/shell-snapshots/snapshot-bash-1791966267937-rlcxiy.sh 2>/dev/null || true && shopt -u extglob 2>/dev/null || true && { \builtin unalias -- 'unsetenv'; \builtin unset -f -- 'unsetenv'; } >/dev/null 2>&1 || true && eval 'D=findings/evidence/m3-production-ui/runs-0.2.23 && for f in chain-0.2.23.sh c2-extension.sh read-0.2.23.sh; do bash -n $D/$f && echo "bash -n $f: ok"; done && python3 -m py_compile wasm_sdk_probe/tools/check_m3_production_ui.py && echo "py_compile runner: ok" && t0=$(date +%s); bash $D/chain-0.2.23.sh --preflight-only > $D/preflight-only-2026-10-15b.txt 2>&1; echo "exit=$? secs=$(( $(date +%s) - t0 ))"; cat $D/preflight-only-2026-10-15b.txt; p6=$(grep -o '"'"'P6 outputs in [^ ]*'"'"' $D/preflight-only-2026-10-15b.txt | awk '"'"'{print $4}'"'"'); cp $p6/unittest.txt $D/preflight-only-2026-10-15b-p6-unittest.txt; cp $p6/static.txt $D/preflight-only-2026-10-15b-p6-static.txt; rm -rf $p6; tail -2 $D/preflight-only-2026-10-15b-p6-static.txt | cut -c1-100; cd ~/Projects/Nextcloud_Apps/litecore && timeout 60 ddev mysql -e "SELECT COUNT(*) FROM oc_files_lock; SELECT MAX(FROM_UNIXTIME(creation+ttl)) AS last_expiry FROM oc_files_lock;" 2>&1 | tail -4' < /dev/null && pwd -P >| /tmp/claude-5763-cwd
+2026-10-14T19:21:20Z P4 pages: dist ccb67a52a3fe4b73 web ccb67a52a3fe4b73 archive ccb67a52a3fe4b73 (installed host serves ccb67a52a3fe4b73, recorded); want ccb67a52a3fe4b73; host HEAD 2ccf1a9 version 0.2.23 dirty[]
+2026-10-14T19:21:20Z P4 identity: ok
+2026-10-14T19:21:20Z REFUSED P5 owner agreement not given: pass --owner-window "<window>, agreed by the owner at <time>" (or OWNER_WINDOW=...)
+2026-10-14T19:21:20Z P5 oc_files_lock rows: 0: ok
+2026-10-14T19:21:38Z P6 unittest tests.test_merge_wasm_clauses tests.test_judge_counted_m2: exit 0 :: Ran 134 tests in 17.418s OK 
+2026-10-14T19:21:56Z P6 make test-e2-c-static: exit 0 :: Ran 108 tests in 0.847s OK 
+2026-10-14T19:21:56Z PREFLIGHT-ONLY done: 2 refusal(s); P6 outputs in /tmp/chain-p6-oArSRr (not kept by this script)

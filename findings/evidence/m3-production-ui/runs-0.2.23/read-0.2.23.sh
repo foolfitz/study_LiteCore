@@ -36,7 +36,10 @@ python3 - "$E" "$LOG" <<'PY'
 import json, sys
 from pathlib import Path
 E, LOG = Path(sys.argv[1]), Path(sys.argv[2])
-names = ["counted-KR-x3.json", "counted-ctl-S-P.json", "counted-B3x-x2.json"]
+# No counted-B3x-x2.json: B3x is withdrawn from the 0.2.23 count (SPEC-M3-link-batch 17.3), so the 13 A1-5 mutations
+# find no B3x run and the runner's --red-cases exits 1 by its own rule; the reading is "red cases: N/N" with exactly
+# those 13 "no passing B3x run" notes.
+names = ["counted-KR-x3.json", "counted-ctl-S-P.json"]
 missing = [n for n in names if not (E / n).is_file()]
 if missing:
     print("MISSING counted production UI report(s):", missing); sys.exit(1)
@@ -47,9 +50,10 @@ print("static identical:", all(r["static"] == reports[0]["static"] for r in repo
       "runner:", {r["runnerSha256"][:16] for r in reports}, "cells:", [r.get("score", {}).get("cells") for r in reports])
 PY
 if [ -s "$LOG/pooled-0.2.23.json" ]; then
-  { echo "pooled: counted-KR-x3.json + counted-ctl-S-P.json + counted-B3x-x2.json (runs concatenated under the first report)";
+  { echo "pooled: counted-KR-x3.json + counted-ctl-S-P.json (runs concatenated under the first report; B3x withdrawn, 17.3)";
+    echo "expected: 'red cases: 27/27' (the C keying recorded in the report: declared True), 13 'no passing B3x run' notes, exit 1 by the runner's every-mutation rule";
     python3 $T/check_m3_production_ui.py --red-cases "$LOG/pooled-0.2.23.json"; echo "exit $?"; } > "$E/red-cases-on-counted-pooled.txt" 2>&1
-  tail -3 "$E/red-cases-on-counted-pooled.txt"
+  grep -E '^red cases|^exit|STAYED GREEN|C keying' "$E/red-cases-on-counted-pooled.txt"; echo "no-passing-run notes: $(grep -c 'no passing' "$E/red-cases-on-counted-pooled.txt") (13 expected, all B3x)"
 fi
 
 # 2. the six runners, each on its counted report written during this chain

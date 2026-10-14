@@ -22,8 +22,9 @@
 #               host_entry 2, same_second 4)                                       ~66 min
 #               autosave gate (as2-key, as4a, as5; 1 repeat, both browsers)        ~10 min
 #               new-document (TW, EN; both browsers)                               ~3-14 min
-#   counted production UI (KR x3, ctl/S/P x1, B3x x2): 19 min in 0.2.12, PLUS on v20 the Rbs/Rdel/B3x arms wait
-#               60 s for a reopen that C no longer causes (see README: predicted red)   ~40 min
+#   counted production UI (KR x3, ctl/S/P x1; B3x withdrawn from this count, SPEC-M3-link-batch 17.3):
+#               15 min in 0.2.12, PLUS the Rbs/Rdel arms' 60 s reopen wait x 12 (under C nothing reopens;
+#               the wait ends by its timeout, scoring is keyed on the served engine)             ~27 min
 #   counted six (page_honesty 64, locks 49, versions 4, assets 5, host_entry 6, same_second 12)  ~140 min
 #   counted autosave (first counted run ever; 12 arms, 3 repeats but as2c x1, both browsers;
 #               the 1-repeat shakedown took 34 min)                                ~100 min
@@ -32,7 +33,7 @@
 #   merge count (10 reports; v19's X7 took 50 min)                                 ~50 min
 #   C2 x3 (~4 min each)                                                            ~13 min
 #   desk lines (a 1-5 s headless-Chrome reading before each of ~45 steps)          ~3 min
-#   TOTAL about 8.5 h (7.5-9.5 h).  Started at 23:00 it ends around 07:30.
+#   TOTAL about 8.2 h (7.5-9.5 h).  Started at 23:00 it ends around 07:15.
 set -u
 REPO=/home/jiajun/LibreOffice/study_LiteCore
 HOST=$HOME/Projects/Nextcloud_Apps/litecore
@@ -85,7 +86,14 @@ read_p2() {  # prints "rc=<rc> bytes=<n> grep=<n>"; the positive control the 10-
   echo "rc=$rc bytes=$(wc -c < "$d/dom.txt") grep=$(grep -c Nextcloud "$d/dom.txt")"
   rm -rf "$d"
 }
-read_p3() { pgrep -af "$OURS" | grep -v -F -- "$0" || true; }   # our runners/probes/judges (not this script)
+# Our runners/probes/judges.  Excluded: this script and the shells it was launched from (their command lines can quote
+# a runner's name without running one -- the second --preflight-only run of 2026-10-15 refused on exactly that, its
+# harness's `bash -c` line naming check_m3_production_ui.py from a py_compile in the same command; README).
+read_p3() {
+  local pid=$$ anc=""
+  while [ "$pid" -gt 1 ]; do anc="$anc $pid"; pid=$(ps -o ppid= -p "$pid" 2>/dev/null | tr -d ' '); [ -n "$pid" ] || break; done
+  pgrep -af "$OURS" | awk -v anc=" $anc " 'index(anc, " " $1 " ") == 0' || true
+}
 desk() {  # $1 label
   local load chrome browsers firefox swap p1 p3n p2
   load=$(cut -d' ' -f1-3 /proc/loadavg)
@@ -183,17 +191,20 @@ code=$?
 say "shakedown new_document exit $code :: $(grep -E 'NEW-DOCUMENT|NOT_ESTABLISHED|refusing' "$LOG/shakedown-new_document.log" | tail -1 | cut -c1-200)"
 if [ $code -ne 0 ]; then say "STOP: shakedown new_document not clean; no counted run started"; exit 1; fi
 
-# ---- counted production UI (SPEC-M3-production-ui 13: Kdel, Kbs, Rbs, Rdel, Bctl, S, P, B3x -- the runner's default
-# list; no arm was added since 0.2.13, the runner's only commits since are pin moves).  Same split as 0.2.13.
+# ---- counted production UI (SPEC-M3-production-ui 13: Kdel, Kbs, Rbs, Rdel, Bctl, S, P -- the runner's list; no arm
+# was added since 0.2.13).  Same split as 0.2.13 WITHOUT the B3x step: B3x (A1-5, three boundary refusals to the Worker
+# generation ceiling) is WITHDRAWN from the 0.2.23 count -- its premise, that this document's only refusals are at its
+# ends (spec 13.2), is false under engine v20's C (the two ends are no-ops), so nothing can induce it; the main session
+# decided this 2026-10-15 on the witness findings/evidence/m3-production-ui/witness-c-0.2.23/ (SPEC-M3-link-batch 17.3;
+# the owner confirms in the morning).  Rbs/Rdel run as before; the runner now scores them under C, keyed on the bytes
+# of the wasm the host serves (static.boundaryNoop in the report).
 desk "before counted production_ui KR"
 say "counted production_ui Kdel,Kbs,Rbs,Rdel x3 begin"
 python3 $T/check_m3_production_ui.py --counted --rounds 3 --arms Kdel,Kbs,Rbs,Rdel --out $E/counted-KR-x3.json > $E/counted-KR-x3.stdout.txt 2>&1; say "counted production_ui KR x3 exit $?"
 desk "before counted production_ui ctl/S/P"
 say "counted production_ui Bctl,S,P x1 begin"
 python3 $T/check_m3_production_ui.py --counted --rounds 1 --arms Bctl,S,P --out $E/counted-ctl-S-P.json > $E/counted-ctl-S-P.stdout.txt 2>&1; say "counted production_ui ctl/S/P exit $?"
-desk "before counted production_ui B3x"
-say "counted production_ui B3x x2 begin"
-python3 $T/check_m3_production_ui.py --counted --rounds 2 --arms B3x --out $E/counted-B3x-x2.json > $E/counted-B3x-x2.stdout.txt 2>&1; say "counted production_ui B3x x2 exit $?"
+say "counted production_ui B3x: NOT RUN (withdrawn from the 0.2.23 count, SPEC-M3-link-batch 17.3)"
 
 # ---- the six counted
 for r in $SIX; do
