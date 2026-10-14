@@ -148,3 +148,26 @@ The commits are `defb4686..ab845a12`.
    - new-document's D12.
 
    Separately: the Writer stack sweep and the ordered-commands spec.
+
+## Addendum 2: the v68 witness is RED, so do not freeze v68
+
+Task 10-14g (`df0d86cc`, `findings/evidence/link-batch/v68-witness/README.md`, round `findings/evidence/129/final/round-20261014T074321Z`) ran 129-B on the v68 candidate bytes (session `fc5ac883…`, client `aaceb555…`, page unchanged). It found two defects in finding 140's fix (`6c761117`). The main session checked both against source.
+
+1. **INVALID_ARGUMENT on a half-integer y.**
+   - The page passes `caret.y + caret.height / 2` (`web/e2-editor-app.js:1821`, `:2787`). An odd caret height (the `s3` shape has 277) makes that a half-integer.
+   - The worker's `editorPlaceCaretV2` rejects non-integers (`sdk/sdk-worker.js:1553–1554`), and the new `placeCaret` does not fall back on that code.
+   - Result: **6/54 cells differ in both browsers** (`s3/Left`, `s3/Right`, `s3/Up`, `s3/Down`, `s3/Home`, `s3/End`, landing at 532). Each shows the toast `定位游標：INVALID_ARGUMENT：editorPlaceCaretV2 requires non-negative integer twips`, and a range selection is left (`range-cross`).
+   - The fix's own tests and witness never used a half-integer y.
+2. **Every click is about 227 ms slower.**
+   - The page's `定位游標` went from **26–32 ms on v67 to 253–268 ms**, in both browsers. This matches the engine's `EditorPlaceCaretDeadlineMs = 250` readback rather than the caret callback; that is inferred, because `completion` is not recorded.
+   - `keyToMoveDone` rose by the same amount, and the five non-moving keys per browser now exceed the 400 ms clause.
+   - For a user, a key typed right after a click waits behind it.
+
+The other 48 cells per browser are identical to all four reference rounds, and Chrome agrees with Firefox in 54/54.
+
+**State.** `dist/editor-shell-v2/` holds the red candidate (`make e2-c-assets`). The host (0.2.19, shell v66) is unaffected. Any runner that serves `dist/` runs the red bytes until a fixed candidate replaces them.
+
+**Next 1 (replaces the previous Next 1).** Finding 140's fix goes back for a second pass. The fable that diagnosed and ruled it is not reachable from a new session; a fresh fable gets `findings/140-…md` (its 裁決 section), `paste-latency/README.md` and this addendum.
+- **Requirements:** integer twips (round, or fall back on `INVALID_ARGUMENT`), plus a red test with an odd caret height.
+- **Click latency back to v67's 26–32 ms on ordinary clicks.** For example, keep v67's polling path first and ask the engine only when it has not converged; or find why `editorPlaceCaretV2` answers at its deadline instead of on the visible-cursor callback.
+- **Then re-run 10-14g.** The criterion is unchanged (54/54, 0 differ), and the click time must be back within v67's range. That latency criterion is written before the run.
