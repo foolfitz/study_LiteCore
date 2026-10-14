@@ -35,7 +35,8 @@ step control-$B python3 tools/run_merge_wasm_shakedown.py --browser $B --candida
 if [ -s $V/control-$B.json ]; then
   echo "$(ts) START pair-$B" >> $LOG
   python3 tools/run_merge_wasm_shakedown.py --pair $V/shakedown-$B.json $V/control-$B.json > $V/pair-$B.stdout.txt 2> $V/pair-$B.stderr.txt
-  echo "$(ts) END   pair-$B exit=$?" >> $LOG
+  prc=$?   # captured before ts runs: in v1 of this script `$(ts)` came first and reset $? to 0 (Chrome's pair-chrome END line)
+  echo "$prc" > $V/pair-$B.exit; echo "$(ts) END   pair-$B exit=$prc" >> $LOG
 fi
 step m2-1b-$B python3 tools/run_merge_wasm_shakedown.py --browser $B --mode m2-1b --candidate-profile $P --out $V/m2-1b-$B.json
 step m2-4-$B python3 tools/run_merge_wasm_shakedown.py --browser $B --mode m2-4 --candidate-profile $P --out $V/m2-4-$B.json

@@ -1,0 +1,77 @@
+
+## chrome
+identity
+  shakedown: counted=True mode=counted browser=chrome started=2026-10-08T19:53:09+0800 completed=2026-10-08T20:02:41+0800
+    RED profile e2-editor-v19 (expected e2-editor-v20)
+    RED pageSha256 e00ab76a550dc12f (expected 53019168651b6b46)
+    RED workerSha256 00882139cd0b2e58 (expected 478d0da1dbfcf936)
+    ok  runner 73b2e9ff4b1e6fbe
+    bound values that differ from BINDING (v19's): []
+    restOfShellEqualsSource=True teardownError=None observerAtEnd.error=None
+    runner-error cases: []; toast '重繪失敗' anywhere: False
+  control: counted=False mode=shakedown browser=chrome started=2026-10-14T13:07:51+0800 completed=2026-10-14T13:21:41+0800
+    ok  profile e2-editor-v20
+    ok  pageSha256 53019168651b6b46
+    ok  workerSha256 478d0da1dbfcf936
+    ok  runner 73b2e9ff4b1e6fbe
+    bound values that differ from BINDING (v19's): ['htmlSha256', 'pageSha256', 'pageSourceSha256', 'sessionSha256', 'shellSha256', 'wasmSha256', 'workerSha256']
+    restOfShellEqualsSource=True teardownError=None observerAtEnd.error=None
+    runner-error cases: []; toast '重繪失敗' anywhere: False
+  m2-1b: counted=False mode=m2-1b browser=chrome started=2026-10-14T13:21:42+0800 completed=2026-10-14T13:24:13+0800
+    ok  profile e2-editor-v20
+    ok  pageSha256 53019168651b6b46
+    ok  workerSha256 478d0da1dbfcf936
+    ok  runner 73b2e9ff4b1e6fbe
+    bound values that differ from BINDING (v19's): ['htmlSha256', 'pageSha256', 'pageSourceSha256', 'sessionSha256', 'shellSha256', 'wasmSha256', 'workerSha256']
+    restOfShellEqualsSource=True teardownError=None observerAtEnd.error=None
+    runner-error cases: []; toast '重繪失敗' anywhere: False
+  m2-4: counted=False mode=m2-4 browser=chrome started=2026-10-14T13:24:14+0800 completed=2026-10-14T13:26:04+0800
+    ok  profile e2-editor-v20
+    ok  pageSha256 53019168651b6b46
+    ok  workerSha256 478d0da1dbfcf936
+    ok  runner 73b2e9ff4b1e6fbe
+    bound values that differ from BINDING (v19's): ['htmlSha256', 'pageSha256', 'pageSourceSha256', 'sessionSha256', 'shellSha256', 'wasmSha256', 'workerSha256']
+    restOfShellEqualsSource=True teardownError=None observerAtEnd.error=None
+    runner-error cases: []; toast '重繪失敗' anywhere: False
+shakedown cases against v19's counted run (no frame cell, 3 rounds)
+  v20 78 records (3 rounds) against v19 counted 78 records (3 rounds)
+  cases with the same (outcome, stage, keyPosted) and the same pass value: 26
+shakedown cases against v18's shakedown (frame cell, 2 rounds)
+  v20 78 records (3 rounds) against v18 shakedown 56 records (n/a rounds)
+  cases with the same (outcome, stage, keyPosted) and the same pass value: 26
+  DIFFERS F01: v20 [] pass []  |  v18 shakedown [('refused', 'anchor-mismatch', False)] pass [True, True]
+  DIFFERS F02: v20 [] pass []  |  v18 shakedown [('refused', 'anchor-mismatch', False)] pass [True, True]
+records whose runner pass is False, v20 shakedown / control / v19 counted / v18 shakedown
+  v20 shakedown: Counter()
+  v20 control: Counter({'C29': 2, 'C30': 2})
+  v19 counted: Counter()
+  v18 shakedown: Counter()
+C29 / C30 verbatim (v20 shakedown)
+  C29 r1: outcome 'refused' pass True generation ['1', '2'] keyToResponseMs 254.9 response {'ok': False, 'completion': None, 'code': 'EDITOR_BOUNDARY_UNSUPPORTED', 'changed': None}
+      clauses False: []; not established: ['noUnchanged']; toastWindow {'closed': True, 'generation': '2', 'toasts': ['這一下沒有取得可刪除的內容。文件沒有被改動，正在重新載入…', '這一下沒有取得可刪除的內容。文件沒有被改動，已重新載入。緊接在這一鍵前後打的字可能沒有打進去，請看一下。']}; reopenedDocument {'saved': True, 'paragraphs': 27, 'sha': '0b2940828b2e3c3b'}
+  C30 r1: outcome 'refused' pass True generation ['1', '2'] keyToResponseMs 255.2 response {'ok': False, 'completion': None, 'code': 'EDITOR_BOUNDARY_UNSUPPORTED', 'changed': None}
+      clauses False: []; not established: ['noUnchanged']; toastWindow {'closed': True, 'generation': '2', 'toasts': ['這一下沒有取得可刪除的內容。文件沒有被改動，正在重新載入…', '這一下沒有取得可刪除的內容。文件沒有被改動，已重新載入。緊接在這一鍵前後打的字可能沒有打進去，請看一下。']}; reopenedDocument {'saved': True, 'paragraphs': 27, 'sha': '0b2940828b2e3c3b'}
+  C29 r2: outcome 'refused' pass True generation ['1', '2'] keyToResponseMs 255.1 response {'ok': False, 'completion': None, 'code': 'EDITOR_BOUNDARY_UNSUPPORTED', 'changed': None}
+      clauses False: []; not established: ['noUnchanged']; toastWindow {'closed': True, 'generation': '2', 'toasts': ['這一下沒有取得可刪除的內容。文件沒有被改動，正在重新載入…', '這一下沒有取得可刪除的內容。文件沒有被改動，已重新載入。緊接在這一鍵前後打的字可能沒有打進去，請看一下。']}; reopenedDocument {'saved': True, 'paragraphs': 27, 'sha': '0b2940828b2e3c3b'}
+  C30 r2: outcome 'refused' pass True generation ['1', '2'] keyToResponseMs 255.0 response {'ok': False, 'completion': None, 'code': 'EDITOR_BOUNDARY_UNSUPPORTED', 'changed': None}
+      clauses False: []; not established: ['noUnchanged']; toastWindow {'closed': True, 'generation': '2', 'toasts': ['這一下沒有取得可刪除的內容。文件沒有被改動，正在重新載入…', '這一下沒有取得可刪除的內容。文件沒有被改動，已重新載入。緊接在這一鍵前後打的字可能沒有打進去，請看一下。']}; reopenedDocument {'saved': True, 'paragraphs': 27, 'sha': '0b2940828b2e3c3b'}
+  C29 r3: outcome 'refused' pass True generation ['1', '2'] keyToResponseMs 254.8 response {'ok': False, 'completion': None, 'code': 'EDITOR_BOUNDARY_UNSUPPORTED', 'changed': None}
+      clauses False: []; not established: ['noUnchanged']; toastWindow {'closed': True, 'generation': '2', 'toasts': ['這一下沒有取得可刪除的內容。文件沒有被改動，正在重新載入…', '這一下沒有取得可刪除的內容。文件沒有被改動，已重新載入。緊接在這一鍵前後打的字可能沒有打進去，請看一下。']}; reopenedDocument {'saved': True, 'paragraphs': 27, 'sha': '0b2940828b2e3c3b'}
+  C30 r3: outcome 'refused' pass True generation ['1', '2'] keyToResponseMs 254.8 response {'ok': False, 'completion': None, 'code': 'EDITOR_BOUNDARY_UNSUPPORTED', 'changed': None}
+      clauses False: []; not established: ['noUnchanged']; toastWindow {'closed': True, 'generation': '2', 'toasts': ['這一下沒有取得可刪除的內容。文件沒有被改動，正在重新載入…', '這一下沒有取得可刪除的內容。文件沒有被改動，已重新載入。緊接在這一鍵前後打的字可能沒有打進去，請看一下。']}; reopenedDocument {'saved': True, 'paragraphs': 27, 'sha': '0b2940828b2e3c3b'}
+  pair: 56 pairs, sameOrder True, differ [('C10', 2, ['toastsAtEnd'])]
+latency (listed, not judged)
+  v20 shakedown keyToResponseMs n 78 min 39.4 median 123.6 max 2094.2
+  v18 shakedown keyToResponseMs n 56 min 38.9 median 133.35000000000002 max 2098.1
+  v20 shakedown M2-1 engine keyToUndoMs n 60 min 15 median 30.0 max 45
+  v19 counted   M2-1 engine keyToUndoMs n 60 min 15 median 30.0 max 45
+  M2-1b v20: 20 records, pass 20, outcomes {'verified-key-undo': 20}, engine n 20 min 30 median 30.0 max 31, runner n 20 min 129.3 median 131.95 max 154.7
+  M2-1b v19: 20 records, pass 20, engine n 20 min 30 median 30.0 max 42, runner n 20 min 141.8 median 149.5 max 161.5
+  M2-4 v20: outcome verified-key-undo pass True presses 105, completions {'verified-key-undo': 105}, engine keyToUndoMs n 105 min 30 median 32 max 33, runner n 105 min 122.5 median 125.6 max 130.7, slow(>=1000ms) 0, toastsAtEnd ['已存出 8.3 KB']
+      clauses False: []; not established []
+  M2-4 v19: outcome verified-key-undo pass True presses 105, completions {'verified-key-undo': 105}, engine keyToUndoMs n 105 min 30 median 32 max 36, runner n 105 min 122.9 median 125.6 max 129.3, slow(>=1000ms) 0, toastsAtEnd ['已存出 8.3 KB']
+      clauses False: []; not established []
+kept documents (paragraph text) against v18's shakedown docs
+  v20 shakedown docs 101 vs v18 101: both 101; paragraph text differs in none; only in v20 []; only in v18 []
+  v20 control docs 101 vs v18 101: both 101; paragraph text differs in none; only in v20 []; only in v18 []
+  test-browser listings after each chrome step: 4 files, non-empty []
