@@ -30,7 +30,7 @@
 // in the part of the product where being subtly wrong costs the user's
 // unsaved work.
 
-import { EditorSession } from "../editor-shell/editor-session.js";
+import { EditorSession, caretIsOnLine, caretDiffers } from "../editor-shell/editor-session.js";
 import { NarrowEditorV2Client, EDITOR_V3_ACTIONS }
   from "./narrow-editor-v2-client.js";
 import { EDITOR_V2_PARAGRAPH_ACTIONS } from "./paragraph-editor-client.js";
@@ -145,6 +145,33 @@ export function selectionShapeEvidence(result) {
   const state = result.state && typeof result.state === "object"
     ? Object.keys(result.state).join(",") : null;
   return state === null ? top : `${top}|state:${state}`;
+}
+
+/**
+ * Did the selection change?  (Ruling 6 Q2, finding 138; the companion of the
+ * base class's `caretDiffers`.)
+ *
+ * The v2 state reply carries `selection: {observed, collapsed, start, end,
+ * rectangles}` (the engine's `appendEditorState`, forwarded raw by the
+ * worker's `editorGetStateV2` branch).  `collapsed` and `rectangles` are the
+ * two fields a click can change -- a click on a live selection collapses it
+ * -- so those two are compared: `collapsed`, the rectangle count, and each
+ * rectangle's position.  Position only, for 052's reason: a relayout inside
+ * the click's window can change a rectangle's height, and a relayout must not
+ * stand in for a click.  `observed`, `start` and `end` are not compared --
+ * `observed` is about the readback, not the document, and the end points
+ * follow the rectangles.  Two absent selections do not differ.
+ */
+export function selectionDiffers(selection, previous) {
+  if (!selection || !previous) return Boolean(selection) !== Boolean(previous);
+  if (selection.collapsed !== previous.collapsed) return true;
+  const rectangles = Array.isArray(selection.rectangles) ? selection.rectangles : [];
+  const before = Array.isArray(previous.rectangles) ? previous.rectangles : [];
+  if (rectangles.length !== before.length) return true;
+  for (let index = 0; index < rectangles.length; index += 1) {
+    if (caretDiffers(rectangles[index], before[index])) return true;
+  }
+  return false;
 }
 
 /* ------------------------------------------------------------------------
@@ -531,6 +558,95 @@ export class NarrowEditorV2Session extends EditorSession {
         format: event.format,
         schedulerProbe: event.schedulerProbe,
       },
+    });
+  }
+
+  /**
+   * FINDING 138 (ruling 6 Q2, condition 45).  Click, and return once the
+   * engine has shown it processed THIS click.
+   *
+   * THE BASE'S CONTRACT, KEPT: the same arguments and options (`caretTimeoutMs`,
+   * `caretAckGraceMs`), the same result shape, the same three
+   * `caretConfirmedBy` values, the same EDITOR_CARET_NOT_PLACED error with the
+   * same details.  Read the base's comment first; everything there about
+   * finding 048 (a predicate equally true had the click never happened is not
+   * a confirmation), 051 (the line band) and 052 (the caret moved off the
+   * clicked line) still holds.
+   *
+   * THE DEFECT.  The base returns a same-line click as placed when
+   * `sourceSequence` advanced and the caret is on the clicked line.  The
+   * sequence advances for callbacks the click did not cause: on v19
+   * LOK_CALLBACK_INVALIDATE_TILES sets editorStateChanged unconditionally
+   * (probe_engine.cpp:2593-2596) and the base's own comment says so; v20 adds
+   * DOCUMENT_SIZE_CHANGED.  A lone one inside the click's 22-28 ms window --
+   * the caret already on the clicked line, at the old x -- ends the wait at
+   * 4-6 ms with the OLD caret in the result, and the next synchronous paste or
+   * format lands there.  Measured on the real base against a scripted engine
+   * (ruling 6 §Q2's table): three false acknowledgements in seven arms.
+   *
+   * THE RULE.  Evidence = the sequence advanced AND a field the click can
+   * change differs from the state read before the click: the caret position
+   * (`caretDiffers`, position only, as the base) or the selection
+   * (`selectionDiffers`: `collapsed` or `rectangles`).  Return on evidence when
+   * on target; on `onTarget` after `graceMs` as today (the identical-point
+   * click, where the engine has nothing to say); on evidence with the caret
+   * moved off the line (052).  Never on the sequence alone.  Requiring the
+   * caret to MOVE would be too narrow: a click that collapses a selection at
+   * its caret end changes the selection and not the caret rectangle, and would
+   * wait out the grace for nothing.  No arm pays more than it pays today; the
+   * only arm that waits the grace is the one that waited it before, and the
+   * test keeps it as a control.
+   *
+   * AN OVERRIDE, as 068's `_handleEngineEvent` and 084's guard are: the
+   * natural home is `EditorSession.placeCaret`, and `editor-shell/
+   * editor-session.js` is bound to E1-C's verdict (`check_e1_c_bundle_intact.py`,
+   * shell bundle `187706b2…`).  The page's three callers are unchanged.
+   *
+   * NOT MEASURED ON WASM whether a lone tile or size callback occurs inside a
+   * click's window (finding 138 says so); the harness is the evidence.
+   */
+  placeCaret(xTwips, yTwips, options = {}) {
+    return this._enqueue("place-caret", async ({ document, editor }) => {
+      const timeoutMs = Math.min(options.caretTimeoutMs ?? 30000, 30000);
+      const graceMs = Math.min(options.caretAckGraceMs ?? 400, timeoutMs);
+      const before = await editor.getState(options);
+      const beforeSequence = before?.sourceSequence ?? null;
+      const beforeCaret = before?.caret ?? null;
+      const beforeSelection = before?.selection ?? null;
+      const started = Date.now();
+      await document.click(xTwips, yTwips, options);
+      let state = before;
+      do {
+        state = await editor.getState(options);
+        const sequenceAdvanced = state?.sourceSequence !== beforeSequence;
+        const onTarget = caretIsOnLine(state?.caret, yTwips);
+        const caretMoved = caretDiffers(state?.caret, beforeCaret);
+        const selectionChanged = selectionDiffers(state?.selection ?? null, beforeSelection);
+        // The click's own evidence, never the sequence alone.
+        const acknowledged = sequenceAdvanced && (caretMoved || selectionChanged);
+        if ((onTarget && (acknowledged || Date.now() - started >= graceMs))
+            || (acknowledged && caretMoved)) {
+          return {
+            state,
+            revision: document.revision,
+            caretConfirmedBy: onTarget
+              ? (acknowledged ? "engine-acknowledged" : "already-at-target")
+              : "engine-moved-the-caret-off-the-clicked-line",
+            caretOnClickedLine: onTarget,
+            caretWaitedMs: Date.now() - started,
+          };
+        }
+        await new Promise((resolve) => setTimeout(resolve, 5));
+      } while (Date.now() - started < timeoutMs);
+      const error = new Error(
+        "the caret did not reach the point that was clicked");
+      error.code = "EDITOR_CARET_NOT_PLACED";
+      error.details = {
+        xTwips, yTwips, timeoutMs, graceMs,
+        caret: state?.caret ?? null,
+        sequenceAdvanced: state?.sourceSequence !== beforeSequence,
+      };
+      throw error;
     });
   }
 
