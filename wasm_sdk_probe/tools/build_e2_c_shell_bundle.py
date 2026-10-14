@@ -736,7 +736,16 @@ FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
 # 10/10, and N1 on these bytes without the host on v20 (flagged 2 s hold in text: 2 / 1 deletes after the key-up in
 # Firefox / Chrome; burst at the document start: 1 request, ready 2,258 / 2,260 ms; findings/evidence/host-0.2.22/).
 # 132-B and K3 on the installed 0.2.22 are the binding host check.
-MANIFEST = Path("e2/editor-shell-v2-bundle-v71.json")
+#
+# v72, 2026-10-14: the scroll page bubble (specs/SPEC-M3-scroll-page-bubble.md; the owner's request and decisions,
+# 「OK 照規格走」).  Differs from v71 in the entrypoint only: `web/e2-editor-app.js` aa50cd20… -> ccb67a52… (unit half
+# `bb30b99f`: a `#scroll-bubble` beside the scrollbar thumb on any `#desk` scroll, the status line's page part, hidden
+# 1 s after the last scroll with a 180 ms fade, aria-hidden, no engine request).  Frozen after 372/372 editor-shell-v2
+# unit tests (page-scroll-bubble 0/8 on aa50cd20…), E1-C intact, the product-path mutations 10/10, and the no-host
+# criteria N1-N6, D1, K1, Z1 PASS in both browsers on these bytes on v20 (`82ee51fc`, judge_bubble.py ALL PASS, its
+# self-test red where it must be; Firefox N2/D1 through the host-like CSS bar, L-bubble-ff-headless-thumb).  H1-H3
+# (host) and 132-B run after the 0.2.23 install.
+MANIFEST = Path("e2/editor-shell-v2-bundle-v72.json")
 ENTRYPOINT = Path("web/e2-editor-app.js")
 
 # The directories whose *.js files must all be accounted for.  `editor-shell`
