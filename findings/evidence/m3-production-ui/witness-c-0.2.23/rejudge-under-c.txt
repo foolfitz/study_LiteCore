@@ -1,0 +1,47 @@
+# Re-judge of witness-c-0.2.23.json under C (SPEC-M3-link-batch 17.3; the runner's R arms re-expected, B3x not)
+# before = the unedited runner bd3a15fbd4a9f30d (the one that wrote the report), --score, no --engine (no key recorded)
+# after  = runner 36c66e69e668bca1, --score --engine wasm_sdk_probe/build/archive/host-0.2.23-engine-c3c22d9294de068a (buildId c3c22d9294de068a = the report's)
+# 2026-10-14T19:19:03Z; the two outputs are the runner's own --score JSON, cells only, plus the red cases under C
+
+## before: cells
+Rbs/chrome     0/1 generation 1 -> 1: no refusal-and-reopen happened | A1-3: no sample outside ready/busy
+Rdel/chrome    0/1 generation 1 -> 1: no refusal-and-reopen happened | A1-3: no sample outside ready/busy
+B3x/chrome     0/1 A1-5: generations [('1', '1'), ('1', '1'), ('1', '1')], want 1->2, 2->3, 3->3 | A1-5: after the third refusal the state is 'ready' | A1-5: the notice says None 10 s after the key, not 'saved' | A1-5: the server's file lacks ['zqc'] (no save was pressed) | A1-5: the host still showed unsaved work 3 s after the rescue | A1-5: the recorder saw no beforeunload, so 'not asked' means nothing ([{'what': 'installed', 'at': 166333}]) | A1-5: the reloaded page did not open the server's rescued bytes | A1-3: no sample outside ready/busy
+Rbs/firefox    0/1 generation 1 -> 1: no refusal-and-reopen happened | A1-3: no sample outside ready/busy
+Rdel/firefox   0/1 generation 1 -> 1: no refusal-and-reopen happened | A1-3: no sample outside ready/busy
+B3x/firefox    0/1 A1-5: generations [('1', '1'), ('1', '1'), ('1', '1')], want 1->2, 2->3, 3->3 | A1-5: after the third refusal the state is 'ready' | A1-5: the notice says None 10 s after the key, not 'saved' | A1-5: the server's file lacks ['zqc'] (no save was pressed) | A1-5: the host still showed unsaved work 3 s after the rescue | A1-5: the recorder saw no beforeunload, so 'not asked' means nothing ([{'what': 'installed', 'at': 197011}]) | A1-5: the reloaded page did not open the server's rescued bytes | A1-3: no sample outside ready/busy
+allPass False docClean True | exit 1
+
+## after: cells (R arms under C; B3x's scoring is not re-expected: withdrawn from the count instead)
+Rbs/chrome     1/1 
+Rdel/chrome    1/1 
+B3x/chrome     0/1 A1-5: generations [('1', '1'), ('1', '1'), ('1', '1')], want 1->2, 2->3, 3->3 | A1-5: after the third refusal the state is 'ready' | A1-5: the notice says None 10 s after the key, not 'saved' | A1-5: the server's file lacks ['zqc'] (no save was pressed) | A1-5: the host still showed unsaved work 3 s after the rescue | A1-5: the recorder saw no beforeunload, so 'not asked' means nothing ([{'what': 'installed', 'at': 166333}]) | A1-5: the reloaded page did not open the server's rescued bytes | A1-3: no sample outside ready/busy
+Rbs/firefox    1/1 
+Rdel/firefox   1/1 
+B3x/firefox    0/1 A1-5: generations [('1', '1'), ('1', '1'), ('1', '1')], want 1->2, 2->3, 3->3 | A1-5: after the third refusal the state is 'ready' | A1-5: the notice says None 10 s after the key, not 'saved' | A1-5: the server's file lacks ['zqc'] (no save was pressed) | A1-5: the host still showed unsaved work 3 s after the rescue | A1-5: the recorder saw no beforeunload, so 'not asked' means nothing ([{'what': 'installed', 'at': 197011}]) | A1-5: the reloaded page did not open the server's rescued bytes | A1-3: no sample outside ready/busy
+allPass False docClean True | exit 1 (B3x)
+C keying for this report: declared True (from --engine wasm_sdk_probe/build/archive/host-0.2.23-engine-c3c22d9294de068a)
+
+## after, without --engine (no key recorded in a pre-key report: the refusal expectation, byte-identical to before)
+{'Rbs/chrome': (0, 1), 'Rdel/chrome': (0, 1), 'B3x/chrome': (0, 1), 'Rbs/firefox': (0, 1), 'Rdel/firefox': (0, 1), 'B3x/firefox': (0, 1)}
+
+## red cases under C (--red-cases --engine): the six R-arm mutations; the K/Bctl/S/P/B3x ones have no run here, so exit 1 by the runner's rule
+C keying for this report: declared True (from --engine wasm_sdk_probe/build/archive/host-0.2.23-engine-c3c22d9294de068a)
+red cases: 6/6
+...
+34
+exit 1
+
+## the keying's own refusals
+refusing: the engine at wasm_sdk_probe/build/archive/host-0.2.12-engine-45cdcedfc0fe7e61 is buildId 45cdcedfc0fe7e61, the report names c3c22d9294de068a
+exit 2
+refusing: the engine at /nonexistent could not be keyed: FileNotFoundError: [Errno 2] No such file or directory: '/nonexistent/MANIFEST.json'
+exit 2
+
+## the keying itself, on three archived packages and the installed host (declared / buildId / wasm sha256[:16])
+host-0.2.23-engine-c3c22d9294de068a True c3c22d9294de068a profiles/e2-editor-v20/probe.wasm 313b08d5cb085897
+host-0.2.12-engine-45cdcedfc0fe7e61 False 45cdcedfc0fe7e61 profiles/e2-editor-v19/probe.wasm 1aafd4f9da42fd83
+host-0.2.7-engine-fabdb50ecd038802 False fabdb50ecd038802 profiles/e2-editor-v8/probe.wasm 4a2710bba1ef07d9
+installed host engine/ True c3c22d9294de068a profiles/e2-editor-v20/probe.wasm 313b08d5cb085897
+
+## every other committed production-UI report, --score with the new runner against the old: 34 reports, 30 byte-identical; the 4 no-scope/*.json differ only in a traceback's line numbers (they carry no 'runs' and were never runner reports; KeyError under both); runs-0.2.12 pooled --red-cases: 'red cases: 40/40', exit 0, identical

@@ -19,6 +19,11 @@ refusals, and the refusals left on this document are its two ends:
   Rbs   A1-2' R  type a marker, the first line + Home, Backspace: refused and
                  reopened, the server's text (marker removed) is the original's
   Rdel  A1-2' R  the last line + End, type the marker THERE, Delete: the same
+                 On an engine that carries C (SPEC-M3-link-batch 10.5 / 10.7; read
+                 from the bytes of the wasm the host serves, `static.boundaryNoop`
+                 in the report) both keys are no-ops instead: no reopen, generation
+                 stays 1, the same server text, the session never leaves ready/busy
+                 (witness: ../../findings/evidence/m3-production-ui/witness-c-0.2.23/).
   Bctl  A1-2  positive control: type, Backspace mid-text
   S     A2-1, A2-2  the product stylesheet touches nothing outside its container
   P     A3-1, A3-2, A2-3  what is visible, the keys, the unsaved mark, closing
@@ -41,6 +46,7 @@ from __future__ import annotations
 
 import argparse
 import copy
+import gzip
 import hashlib
 import io
 import json
@@ -62,6 +68,9 @@ from probe_m3_gate0_coep import DIST, firefox_profile, sha256_file, utc_now, wai
 from r7_support import evaluate  # noqa: E402
 from run_browser_probe import FirefoxSession  # noqa: E402
 from run_e2_c_page_smoke import POINT_AT, PRESS, navigate  # noqa: E402
+# C's keying is the merge runner's (7e6c9acd, `boundary_noop_declared`): the fragment the engine EMITS, read from the
+# wasm's bytes, never a profile's name.  Imported, not copied, so the two runners can never key on different strings.
+from run_merge_wasm_shakedown import BOUNDARY_NOOP_FRAGMENT  # noqa: E402
 
 PROJECT = Path(__file__).resolve().parent.parent
 SCRATCH = PROJECT / "build" / "scratch-m3-production-ui"   # snap Firefox cannot see /tmp
@@ -610,7 +619,32 @@ def static_facts(root: Path) -> dict[str, Any]:
             "servedPage": (files.get("e2-editor-app.js") or {}).get("sha256"),
             "servedSession": (files.get("editor-shell-v2/narrow-editor-v2-session.js") or {}).get("sha256"),
             "distPage": sha256_file(DIST / "e2-editor-app.js"),
-            "shellBundle": shell_bundle()}
+            "shellBundle": shell_bundle(),
+            "boundaryNoop": boundary_noop_keying(root / "engine")}
+
+
+def boundary_noop_keying(engine: Path) -> dict[str, Any]:
+    """Whether the engine THE HOST SERVES carries C's no-op completion (SPEC-M3-link-batch 10.5, 10.7), read from
+    the bytes of the packaged wasm (`files/<profile>/probe.wasm.gz`, decoded, its sha256 checked against the
+    manifest's) -- the merge runner's keying.  Fail-closed: no wasm entry, two of them, an undecodable copy or a
+    sha256 that is not the manifest's -> `declared` None with the reason; a run then refuses to start and a score
+    reads the R arms red.  Recorded in the report (`static.boundaryNoop`) so a re-judge reads it from there; a report
+    older than this key is re-judged with `--engine <archived package>` (its buildId must be the report's)."""
+    try:
+        manifest = json.loads((engine / "MANIFEST.json").read_text())
+        wasms = [p for p in (manifest.get("files") or {}) if p.endswith("/probe.wasm")]
+        if len(wasms) != 1:
+            raise ValueError(f"{len(wasms)} probe.wasm entries in the manifest: {wasms}")
+        path = wasms[0]
+        copy_gz = engine / "files" / (path + ".gz")
+        data = gzip.decompress(copy_gz.read_bytes())
+        digest = hashlib.sha256(data).hexdigest()
+        if digest != manifest["files"][path]["sha256"]:
+            raise ValueError(f"decoded {digest[:16]} != manifest {manifest['files'][path]['sha256'][:16]}")
+        return {"declared": BOUNDARY_NOOP_FRAGMENT in data, "buildId": manifest.get("buildId"), "wasm": path,
+                "wasmSha256": digest, "fragment": BOUNDARY_NOOP_FRAGMENT.decode(), "readFrom": str(copy_gz)}
+    except Exception as error:  # noqa: BLE001 -- every failure is the same answer: not keyed, fail closed
+        return {"declared": None, "buildId": None, "error": f"{type(error).__name__}: {error}"}
 
 
 def shell_bundle() -> dict[str, Any]:
@@ -628,10 +662,16 @@ def shell_bundle() -> dict[str, Any]:
 
 # ------------------------------------------------------------------ scoring
 
-def score_run(run: dict[str, Any]) -> list[str]:
+def score_run(run: dict[str, Any], c_declared: bool | str | None = None) -> list[str]:
+    """`c_declared` is C's keying for the report this run belongs to (`keying_of`): None for a report written
+    before the key was recorded (the refusal expectation, as always; every such report ran on v8 or v19), False
+    for an engine without C (the same), True for one with it (the R arms expect the no-op, `score_noop`), a str
+    when the key could not be read (fail-closed: the R arms are red with that reason).  Only the R arms read it."""
     arm, bad = run["arm"], []
     if run.get("fatal"):
         return ["fatal: " + run["fatal"].strip().splitlines()[-1]]
+    if arm in REFUSAL_ARMS and c_declared is not None and c_declared is not False:
+        return score_noop(run, c_declared)
     if arm in ("Bdel", "Bbs", "B3x") + REFUSAL_ARMS:
         if arm == "B3x":
             bad += score_three_refusals(run)
@@ -760,6 +800,65 @@ def score_key(run: dict[str, Any]) -> list[str]:
     return bad
 
 
+def keying_of(report: dict[str, Any]) -> bool | str | None:
+    """C's keying as the report recorded it at run time (`static.boundaryNoop`): None when the report predates the
+    key (such reports ran on v8 or v19, engines without C: the refusal expectation stands), True / False as read
+    from the served engine's bytes, a str (the reason) when the bytes could not be read -- scored fail-closed."""
+    key = (report.get("static") or {}).get("boundaryNoop")
+    if key is None:
+        return None
+    if key.get("declared") in (True, False):
+        return key["declared"]
+    return f"unreadable at run time: {key.get('error')}"
+
+
+def engine_keying(engine: Path | None, report: dict[str, Any]) -> bool | str | None:
+    """--score / --red-cases: the keying from an engine package named on the command line, for a report written
+    before the key was recorded.  The package's buildId must be the report's, and its wasm the one the report
+    recorded if it recorded any; otherwise a str (the refusal's reason).  Without --engine, the report's own key."""
+    if engine is None:
+        return keying_of(report)
+    key = boundary_noop_keying(engine)
+    static = report.get("static") or {}
+    if key["declared"] is None:
+        return f"the engine at {engine} could not be keyed: {key.get('error')}"
+    if key["buildId"] != static.get("buildId"):
+        return f"the engine at {engine} is buildId {key['buildId']}, the report names {static.get('buildId')}"
+    recorded = (static.get("boundaryNoop") or {}).get("wasmSha256")
+    if recorded not in (None, key["wasmSha256"]):
+        return f"the report recorded wasm {recorded[:16]}, the engine at {engine} is {key['wasmSha256'][:16]}"
+    return key["declared"]
+
+
+def score_noop(run: dict[str, Any], c_declared: bool | str) -> list[str]:
+    """A1-2' R under C (SPEC-M3-link-batch 10.7's new expectation; witness findings/evidence/m3-production-ui/
+    witness-c-0.2.23/, host 0.2.23, both browsers): the boundary key is a no-op -- no refusal and no reopen
+    (generation stays '1'), the document unchanged (exactly one marker on the server, the marker-removed text is
+    the original's), and the session never leaves ready/busy (A1-3 inverted: a blocked sample is the red here).
+    The reopen wait (`wait_reopened`, up to 60 s) still runs and ends by its timeout; it changes nothing scored."""
+    if isinstance(c_declared, str):
+        return [f"A1-2' R: C keying {c_declared}"]
+    bad = []
+    if run.get("genOpened") != "1" or run.get("genAfter") != "1":
+        bad.append(f"A1-2' R under C: generation {run.get('genOpened')} -> {run.get('genAfter')}: a refusal-and-reopen "
+                   f"happened; on this engine the boundary key is a no-op")
+    server = run.get("server") or {}
+    if server.get("marks") != 1:
+        bad.append(f"A1-2' R under C: the server's file has {server.get('marks')} markers, one was typed "
+                   f"(saves {run.get('save', {}).get('saves')})")
+    if server.get("seqSha256") != ORIGINAL_SEQ:
+        bad.append(f"A1-2' R under C: the server's text (marker removed) is not the original's: first difference at "
+                   f"paragraph {server.get('firstDiffFromUploaded')}, {server.get('paragraphs')} paragraphs "
+                   f"{server.get('seqError') or ''}")
+    samples = run.get("timeline") or []
+    blocked = [s for s in samples if s.get("state") not in ("ready", "busy")]
+    if not samples:
+        bad.append("A1-2' R under C: no timeline (vacuous)")
+    elif blocked:
+        bad.append(f"A1-2' R under C: the session left ready/busy: {blocked[0].get('state')} at {blocked[0].get('t')} ms")
+    return bad
+
+
 def score_three_refusals(run: dict[str, Any]) -> list[str]:
     """A1-5 (spec §9.3)."""
     bad = []
@@ -802,12 +901,14 @@ def score_three_refusals(run: dict[str, Any]) -> list[str]:
     return bad
 
 
-def score(report: dict[str, Any]) -> dict[str, Any]:
+def score(report: dict[str, Any], c_declared: bool | str | None = None) -> dict[str, Any]:
+    if c_declared is None:
+        c_declared = keying_of(report)
     cells: dict[str, dict[str, Any]] = {}
     for run in report["runs"]:
         cell = cells.setdefault(f"{run['arm']}/{run['browser']}", {"runs": 0, "pass": 0, "failures": []})
         cell["runs"] += 1
-        problems = score_run(run)
+        problems = score_run(run, c_declared)
         cell["pass"] += not problems
         if problems:
             cell["failures"].append(problems)
@@ -844,6 +945,12 @@ MUTATIONS = [
     ("A1-3 a blocked sample with a live button", "Rdel",
      lambda r: r["timeline"].append({"state": "restart-required", "t": 1, "disabled": 0, "buttons": 21})),
     ("A1-3 no blocked sample", "Rbs", lambda r: r.update(timeline=[s for s in r["timeline"] if s.get("state") in ("ready", "busy")])),
+    # Under C (SPEC-M3-link-batch 10.7; MUTATION_KEYING below says which apply when): the R arms' reopen is the
+    # red, and so is any sample outside ready/busy -- even one with every button disabled, which the refusal
+    # expectation accepts.  "marker missing", "two markers" and "the refusal changed the text" are red under both.
+    ("A1-2' R under C: a reopen", "Rbs", lambda r: r.update(genAfter="2")),
+    ("A1-2' R under C: a blocked sample", "Rdel",
+     lambda r: r["timeline"].append({"state": "restart-required", "t": 1, "disabled": 21, "buttons": 21})),
     ("A1-2' K reopened", "Kdel", lambda r: r.update(genAfter="2")),
     ("A1-2' K the second press in a new Worker", "Kbs", lambda r: r["presses"][1].update(genAfter="2")),
     ("A1-2' K stopped", "Kbs",
@@ -885,23 +992,39 @@ MUTATIONS = [
 ]
 
 
-def red_cases(report: dict[str, Any]) -> tuple[int, int, list[str]]:
+# Mutations that are a red case under one expectation only: False = only without C (the refusal), True = only
+# with it (the no-op).  Every other mutation applies under both.
+MUTATION_KEYING = {"A1-2' R no reopen": False, "A1-3 no blocked sample": False,
+                   "A1-2' R under C: a reopen": True, "A1-2' R under C: a blocked sample": True}
+
+
+def applicable_mutations(c_declared: bool | str | None) -> list[tuple]:
+    under_c = c_declared is True
+    return [m for m in MUTATIONS if MUTATION_KEYING.get(m[0]) in (None, under_c)]
+
+
+def red_cases(report: dict[str, Any], c_declared: bool | str | None = None) -> tuple[int, int, list[str], int]:
+    """(red, total, notes, applicable): `total` counts the mutations that found a passing run to mutate, `applicable`
+    the mutations that apply under this report's keying; the caller's rule is red == total == applicable."""
+    if c_declared is None:
+        c_declared = keying_of(report)
     red, total, notes = 0, 0, []
-    for name, arm, mutate in MUTATIONS:
+    mutations = applicable_mutations(c_declared)
+    for name, arm, mutate in mutations:
         for index, run in enumerate(report["runs"]):
-            if run["arm"] != arm or score_run(run):
+            if run["arm"] != arm or score_run(run, c_declared):
                 continue
             total += 1
             mutated = copy.deepcopy(run)
             mutate(mutated)
-            if score_run(mutated):
+            if score_run(mutated, c_declared):
                 red += 1
             else:
                 notes.append(f"STAYED GREEN: {name} on run {index}")
             break
         else:
             notes.append(f"no passing {arm} run to mutate for {name!r}")
-    return red, total, notes
+    return red, total, notes, len(mutations)
 
 
 # ------------------------------------------------------------------ main
@@ -917,21 +1040,40 @@ def main() -> int:
     parser.add_argument("--score", type=Path)
     parser.add_argument("--expect-red", action="store_true")
     parser.add_argument("--red-cases", type=Path)
+    parser.add_argument("--engine", type=Path,
+                        help="with --score / --red-cases on a report written before the C keying was recorded in "
+                             "static.boundaryNoop: the engine package (MANIFEST.json + files/) whose buildId the report "
+                             "names, e.g. build/archive/host-0.2.23-engine-c3c22d9294de068a; its decoded wasm decides "
+                             "the R arms' expectation (refused on a buildId or sha256 mismatch)")
     args = parser.parse_args()
+    if args.score or args.red_cases:
+        report = json.loads((args.score or args.red_cases).read_text())
+        c_declared = engine_keying(args.engine, report)
+        if args.engine is not None and isinstance(c_declared, str):
+            print(f"refusing: {c_declared}")
+            return 2
+        if c_declared is not None:
+            print(f"C keying for this report: declared {c_declared!r}"
+                  + (f" (from --engine {args.engine})" if args.engine is not None else " (recorded in the report)"),
+                  file=sys.stderr)
     if args.score:
-        result = score(json.loads(args.score.read_text()))
+        result = score(report, c_declared)
         print(json.dumps(result, ensure_ascii=False, indent=1))
         return 0 if result["allPass"] != args.expect_red else 1
     if args.red_cases:
-        red, total, notes = red_cases(json.loads(args.red_cases.read_text()))
+        red, total, notes, applicable = red_cases(report, c_declared)
         print(f"red cases: {red}/{total}", *notes, sep="\n")
-        return 0 if red == total == len(MUTATIONS) else 1
+        return 0 if red == total == applicable else 1
     stale = [arm for arm in args.arms.split(",") if arm in ("Bdel", "Bbs")]
     if stale:
         print(f"{stale}: 0.2.7's arms, on v8's layout; spec §13 replaced them (Kdel, Kbs, Rbs, Rdel)")
         return 2
     instance = Instance(DEFAULT_DDEV)
     static = static_facts(DEFAULT_DDEV)
+    if static["boundaryNoop"]["declared"] is None:
+        # Fail-closed: without the served engine's bytes the R arms' expectation is unknown, so nothing runs.
+        print(f"refusing to run: the served engine's C keying could not be read: {static['boundaryNoop'].get('error')}")
+        return 2
     doc = args.doc.read_bytes()
     if args.counted and hashlib.sha256(doc).hexdigest() != DOC_SHA256:
         print(f"refusing a counted run: the document is {hashlib.sha256(doc).hexdigest()}, the spec binds {DOC_SHA256}")
@@ -952,7 +1094,7 @@ def main() -> int:
                 for arm in args.arms.split(","):
                     run = run_arm(arm, kind, server, doc)
                     report["runs"].append(run)
-                    problems = score_run(run)
+                    problems = score_run(run, static["boundaryNoop"]["declared"])
                     print(f"{arm:5s} {kind:8s} {'PASS' if not problems else 'FAIL'} {problems[:2]}", flush=True)
                     args.out.write_text(json.dumps(report, ensure_ascii=False, indent=1))
     finally:
