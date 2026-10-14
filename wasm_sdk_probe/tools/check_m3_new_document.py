@@ -88,16 +88,22 @@ def first_line(paper: str | None) -> tuple[str, str]:
     height = gen.PAPER_MM.get(paper or "A4", gen.PAPER_MM["A4"])[1]
     return (FIRST_LINE_X, f"{FIRST_LINE_MM / height:.4f}")
 
-# Bindings for a counted run (spec section 4), written before it.
-HOST_COMMIT: str | None = "afbaf3c"
-HOST_VERSION: str | None = "0.2.19"
+# Bindings for a counted run (spec section 4), written before it.  Bound
+# 2026-10-15 (task 10-15c P3, spec 7.5's rule set) to host 0.2.23 for the
+# batched count of 0.2.13-0.2.23; was 0.2.19 (afbaf3c), the host the committed
+# reports under findings/evidence/new-document/ ran on.  The blank manifest is
+# unchanged between the two hosts (git diff afbaf3c..2ccf1a9 touches only
+# appinfo/info.xml and templates/editor.php).
+HOST_COMMIT: str | None = "2ccf1a9"      # was afbaf3c (0.2.19)
+HOST_VERSION: str | None = "0.2.23"      # was 0.2.19
 MANIFEST_SHA256: str | None = "e5cdb8e2f0311cc10ad543f918906144e73015352304385719b5f85bfd97eb04"
 # The engine the count runs on: the host's engine/MANIFEST.json buildId and its
 # declared e2-editor-app.js sha256.  None until the count binds them (review
 # 2026-10-14, Q3): a strict run on any host but DELTA_HOST_VERSION then reads
 # "binding not written" -- the count never inherits 0.2.19's engine clause.
-ENGINE_BUILD_ID: str | None = None
-PAGE_SHA256: str | None = None
+# Written 2026-10-15: host 0.2.23's package (engine v20, shell v72); was None.
+ENGINE_BUILD_ID: str | None = "c3c22d9294de068a"
+PAGE_SHA256: str | None = "ccb67a52a3fe4b73139467c67a28522b9a87040921cb1da36448e5ad8dfdb43e"
 # N9 as 0.2.19's acceptance: "0.2.19 changed only the host" -- the engine
 # package and page are 0.2.18's (host 96a87d8) and the host diff since 96a87d8
 # is within ALLOWED_CHANGED.  These three clauses are evaluated ONLY on a report

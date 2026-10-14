@@ -5,7 +5,8 @@ and the owner's settings are never restored from a value that was not read.
 
 The committed report is bound to host 0.2.19 (`afbaf3c`).  The module's bindings are replaced by the report's
 own for the duration of a test (a TEST AUTHORITY, as tests/test_judge_counted_m2.py does with `m.BINDING`), so
-these tests survive the count's rebinding to 0.2.20.  Nothing here talks to ddev, a browser or the host.
+these tests survive the count's rebinding to a later host (0.2.23 since 2026-10-15, task 10-15c P3; the two
+tests of the "not written" default set that state themselves).  Nothing here talks to ddev, a browser or the host.
 
     python3 -m unittest tests.test_check_m3_new_document
 """
@@ -171,7 +172,8 @@ class TheNextHost(unittest.TestCase):
         later = next_host(BASE)
         loose = cm.score(later, strict=False)["problems"]
         self.assertEqual([p for p in loose if "engine package" in p or "outside the allowed" in p], [], loose)
-        with bound_to(later):
+        # The "not written" state (the module's default until the binding step of 2026-10-15 wrote 0.2.23's).
+        with bound_to(later, ENGINE_BUILD_ID=None, PAGE_SHA256=None):
             problems = strict(later)["problems"]
         self.assertEqual(problems, ["N9 binding engineBuildId not written", "N9 binding pageSha256 not written"])
 
@@ -189,7 +191,7 @@ class TheNextHost(unittest.TestCase):
         # constants are not consulted at all: the count still refuses until its own binding is written.
         later = next_host(BASE)
         with bound_to(later, CONTROL_BUILD_ID=NEXT_HOST["buildId"], CONTROL_PAGE_SHA256=NEXT_HOST["servedPage"],
-                      CONTROL_HOST_COMMIT=NEXT_HOST["hostCommit"]):
+                      CONTROL_HOST_COMMIT=NEXT_HOST["hostCommit"], ENGINE_BUILD_ID=None, PAGE_SHA256=None):
             self.assertEqual(strict(later)["problems"], ["N9 binding engineBuildId not written", "N9 binding pageSha256 not written"])
 
     def test_red_cases_hold_on_a_rebound_host(self):
