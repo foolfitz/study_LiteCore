@@ -1,0 +1,91 @@
+$ python3 findings/evidence/132/held-into-refusal/judge_held_into_refusal.py findings/evidence/host-0.2.22/h1/k3a-held/report.json --page aa50cd20e975954adef23534a5bb73b7105d1206c6d67fc7c5f18cfc9cbbad7a
+engine buildId 0c2af1b33aff9ef9 package /home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/build/archive/host-0.2.22-engine-0c2af1b33aff9ef9 profile e2-editor-v20 wasm profiles/e2-editor-v20/probe.wasm sha256 313b08d5cb085897 declares C: True (nothing-selected expects verified-boundary-noop)
+probe probe_held_into_refusal.py arms ['start-press', 'start-hold', 'end-hold', 'end-press-type']
+expectation C (RULES_C on ['cell-start-hold', 'end-hold', 'end-press-type', 'start-hold', 'start-press'])
+static {'hostVersion': '0.2.22', 'hostCommit': 'ba0125e', 'buildId': '0c2af1b33aff9ef9', 'servedPage': 'aa50cd20e975954adef23534a5bb73b7105d1206c6d67fc7c5f18cfc9cbbad7a', 'distPage': 'aa50cd20e975954adef23534a5bb73b7105d1206c6d67fc7c5f18cfc9cbbad7a'}
+chrome start-press r0 PASS
+    reopen   refusals 0 gens ['1'] limit None
+    server   same True firstDiff None charDelta 0 paragraphs 211/211
+    counts   marks 1 controls 0 afters 1
+    where    mark [1] control [] after [0]
+    bools    controlThenMark False markThenAfter False afterAtStart True afterAtEnd False
+    scroll   series [0]
+firefox start-press r0 PASS
+    reopen   refusals 0 gens ['1'] limit None
+    server   same True firstDiff None charDelta 0 paragraphs 211/211
+    counts   marks 1 controls 0 afters 1
+    where    mark [1] control [] after [0]
+    bools    controlThenMark False markThenAfter False afterAtStart True afterAtEnd False
+    scroll   series [0]
+chrome start-hold r0 PASS
+    reopen   refusals 0 gens ['1'] limit None
+    server   same True firstDiff None charDelta 0 paragraphs 211/211
+    counts   marks 1 controls 0 afters 1
+    where    mark [1] control [] after [0]
+    bools    controlThenMark False markThenAfter False afterAtStart True afterAtEnd False
+    scroll   series [0]
+chrome start-hold r1 PASS
+    reopen   refusals 0 gens ['1'] limit None
+    server   same True firstDiff None charDelta 0 paragraphs 211/211
+    counts   marks 1 controls 0 afters 1
+    where    mark [1] control [] after [0]
+    bools    controlThenMark False markThenAfter False afterAtStart True afterAtEnd False
+    scroll   series [0]
+firefox start-hold r0 PASS
+    reopen   refusals 0 gens ['1'] limit None
+    server   same True firstDiff None charDelta 0 paragraphs 211/211
+    counts   marks 1 controls 0 afters 1
+    where    mark [1] control [] after [0]
+    bools    controlThenMark False markThenAfter False afterAtStart True afterAtEnd False
+    scroll   series [0]
+firefox start-hold r1 PASS
+    reopen   refusals 0 gens ['1'] limit None
+    server   same True firstDiff None charDelta 0 paragraphs 211/211
+    counts   marks 1 controls 0 afters 1
+    where    mark [1] control [] after [0]
+    bools    controlThenMark False markThenAfter False afterAtStart True afterAtEnd False
+    scroll   series [0]
+chrome end-hold r0 PASS
+    reopen   refusals 0 gens ['1'] limit None
+    server   same True firstDiff None charDelta 0 paragraphs 211/211
+    counts   marks 1 controls 0 afters 1
+    where    mark [210] control [] after [210]
+    bools    controlThenMark False markThenAfter True afterAtStart False afterAtEnd True
+    scroll   series [21517, 21633] | window {'pre': 21517, 'window': [21517, 21517, 21517, 21517, 21517, 21517, 21517, 21517, 21517, 21517, 21517, 21517, 21517, 21517, 21517, 21517, 21633, 21633, 21633], 'from': 8189.6, 'to': 24201.6}
+chrome end-hold r1 PASS
+    reopen   refusals 0 gens ['1'] limit None
+    server   same True firstDiff None charDelta 0 paragraphs 211/211
+    counts   marks 1 controls 0 afters 1
+    where    mark [210] control [] after [210]
+    bools    controlThenMark False markThenAfter True afterAtStart False afterAtEnd True
+    scroll   series [21517, 21633] | window {'pre': 21517, 'window': [21517, 21517, 21517, 21517, 21517, 21517, 21517, 21517, 21517, 21517, 21517, 21517, 21517, 21517, 21517, 21517, 21633, 21633, 21633], 'from': 8194.7, 'to': 24201.4}
+firefox end-hold r0 PASS
+    reopen   refusals 0 gens ['1'] limit None
+    server   same True firstDiff None charDelta 0 paragraphs 211/211
+    counts   marks 1 controls 0 afters 1
+    where    mark [210] control [] after [210]
+    bools    controlThenMark False markThenAfter True afterAtStart False afterAtEnd True
+    scroll   series [21503, 21619] | window {'pre': 21503, 'window': [21503, 21503, 21503, 21503, 21503, 21503, 21503, 21503, 21503, 21503, 21503, 21503, 21503, 21503, 21503, 21503, 21619, 21619, 21619], 'from': 8183.3, 'to': 24414.8}
+firefox end-hold r1 PASS
+    reopen   refusals 0 gens ['1'] limit None
+    server   same True firstDiff None charDelta 0 paragraphs 211/211
+    counts   marks 1 controls 0 afters 1
+    where    mark [210] control [] after [210]
+    bools    controlThenMark False markThenAfter True afterAtStart False afterAtEnd True
+    scroll   series [21503, 21619] | window {'pre': 21503, 'window': [21503, 21503, 21503, 21503, 21503, 21503, 21503, 21503, 21503, 21503, 21503, 21503, 21503, 21503, 21503, 21503, 21619, 21619, 21619], 'from': 8164.6, 'to': 24490.6}
+chrome end-press-type r0 PASS
+    reopen   refusals 0 gens ['1'] limit None
+    server   same True firstDiff None charDelta 0 paragraphs 211/211
+    counts   marks 1 controls 1 afters 0
+    where    mark [210] control [210] after []
+    bools    controlThenMark True markThenAfter False afterAtStart False afterAtEnd False
+    scroll   series [21517] | window {'pre': 21517, 'window': [21517, 21517, 21517, 21517, 21517, 21517, 21517, 21517, 21517], 'from': 6370.9, 'to': 15586.2}
+firefox end-press-type r0 PASS
+    reopen   refusals 0 gens ['1'] limit None
+    server   same True firstDiff None charDelta 0 paragraphs 211/211
+    counts   marks 1 controls 1 afters 0
+    where    mark [210] control [210] after []
+    bools    controlThenMark True markThenAfter False afterAtStart False afterAtEnd False
+    scroll   series [21503] | window {'pre': 21503, 'window': [21503, 21503, 21503, 21503, 21503, 21503, 21503, 21503, 21503], 'from': 6314.2, 'to': 15652.2}
+verdict PASS
+exit 0
