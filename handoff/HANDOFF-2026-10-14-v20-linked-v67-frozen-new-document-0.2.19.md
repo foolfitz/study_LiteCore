@@ -94,3 +94,57 @@ There are 48 commits, `3ac5045f..d98e57fa`, plus the merge-shakedown commits lis
   - v20 shakedown part A (`1ac40425`..`7df0b995`).
 - **sonnet, executors:** the checks (X1, M1-1 extension, `what_the_link_ships`), the v67 witness, and the merge shakedown (part B).
 - **Main session (opus 5.5):** the briefs, the condition-56 engine edit, the Makefile static fix, the v67 freeze, the runbook, the post-link checks, findings 138 and 139, spec §15, this handoff.
+
+---
+
+## Addendum (after `8bd7e700`): the hand test passed, Markdown is decided, finding 140 is fixed and waits for the v68 freeze
+
+The commits are `defb4686..ab845a12`.
+
+### What happened
+
+- **The owner hand-tested 0.2.19 and it passed** (`defb4686`; `findings/evidence/new-document/hand-test-2026-10-14/`). The owner saved from Firefox and from Chrome. Both saves are A4, en-US / zh-TW / hi-IN, Liberation Serif / Noto Sans CJK TC / Liberation Sans, with `styles.xml` byte-identical (`5addf7dc…`). The documents themselves are not committed, because they are the owner's personal content.
+- **Markdown paste: the owner chose A**, an explicit 「貼上為 Markdown」 command; Ctrl+V stays plain text. This is LibreOffice 26.x's own behaviour: Paste Special → Markdown, with the heuristics removed in tdf#171481, and Collabora follows it in cool#15535.
+  - Our WASM core has md4c and the sw markdown filter compiled in.
+  - The engine hard-codes `text/plain` at `probe_engine.cpp:3239`. A fix therefore needs an engine change, and it goes into the **next link batch**, together with `Language=` and 031's fix.
+  - Notes and a draft scope: `research/RESEARCH-2026-10-14-markdown-paste.md` (`f3999ead`).
+- **The "slow paste" was not the paste** (task 10-14f, `72cd5e41`, `findings/evidence/paste-latency/`).
+  - The owner reported 「大概十幾秒，兩個都慢，處理中一直亮著」.
+  - The paste itself is one engine `paste()`: 7.5–24.8 ms for 40 paragraphs.
+  - The cause is the click before it. On a blank document, a click below the first line makes `placeCaret` wait its full **30.0 s** timeout, because the caret cannot move and the clicked line does not exist. The paste queues behind that wait.
+  - Registered as **finding 140** (`b05f081b`). It is 052's residual, met on the first click. 052's register said `editorPlaceCaretV2` closed it, but only a harness page ever called that.
+- **Finding 140 was ruled A and fixed** (`6c761117`) by the fable that diagnosed it, on the owner's instruction 「給fable」 「可以給同一個fable subagent嗎」.
+  - The product's `placeCaret` (the v2 override) now asks the engine through `editorPlaceCaretV2`. Both v19 and v20 export it, so no link is needed. It judges the answer with 138's predicate, and keeps 048's 400 ms grace before it accepts "the engine answered, the caret stayed". v67's polling stays as the fallback for BUSY and UNSUPPORTED.
+  - Tests: 425/425; the new `place-caret-blank-page.test.mjs` had 7 of 13 cases red on v67 first.
+  - E1-C intact.
+  - Witness: it was red first, at 30,007 ms on v20. The fix resolves in 405.9–412.8 ms on v19 and v20, in both browsers; the paste is sent 1–2 ms after its event.
+  - Named limit: a click that the core processes more than 400 ms after the request is accepted with the old caret. This is the same bound as the existing identical-point grace.
+  - The main session re-ran the tests and the E1-C check.
+- **The pre-v68 witness is running** (task 10-14g, sonnet): 129-B in both browsers on the candidate bytes, which are the session `fc5ac883…`, with the page unchanged at `7815e16c…`. Criterion: 54/54 cells, with 0 differing from the reference rounds and from the v67 witness round `round-20261014T022210Z`. Output: `findings/evidence/link-batch/v68-witness/`.
+- **§34.4 for this addendum.** `probe_paste_latency.py` and `tables.py` were extended with a "click resolved" field. That is a new probe's first use, not a repair. Repaired because of execution: 0. Repaired because of review: 0. The round total stays execution 9, review 0.
+
+### State changes against the table above
+
+- **Shell:** v67 is frozen. The **v68 candidate** is the v67 bytes plus finding 140's change to `editor-shell-v2/narrow-editor-v2-session.js`, `narrow-editor-v2-client.js` and `paragraph-editor-client.js` (and their `.d.ts` files). `dist/` currently holds the candidate session (`make e2-c-assets`), so `make test-e2-c-static` is red on the manifest until v68 is frozen. That is expected.
+- **Uncounted changes since 0.2.12:** 0.2.13–0.2.19, v20 with v68 (page number, C, `caretBefore`, conditions 45, 47 and 48, finding 140).
+
+### Next (replaces the list above, in order)
+
+1. **Read the v68 witness** (`findings/evidence/link-batch/v68-witness/README.md`). If it passes, freeze **v68** as `ac6267c8` froze v67:
+   - in `tools/build_e2_c_shell_bundle.py`, point `MANIFEST` at `e2/editor-shell-v2-bundle-v68.json`, with a comment that names finding 140 and the witness;
+   - run `python3 tools/build_e2_c_shell_bundle.py --write --frozen-date <date>`;
+   - check that `problems` is `[]`, that `make test-e2-c-static` exits 0, and that E1-C is intact.
+
+   If a cell differs, that is a product question for fable, not a check change.
+2. **Merge runner, C29/C30 re-expectation under C**, before binding v20. The witness is the part B reports. This counts as repaired because of execution +1.
+3. **Host 0.2.20** = 0.2.19 + an engine package with the **v20** profile and the **v68** page.
+   - **Ask the owner before installing**, because it replaces the engine they use daily.
+   - Then run §10.7's host arms (`judge_held_into_refusal.py:266–282`, `restore-window`) with the new expectations.
+4. **§34.3 two-seat reviews before first counted use:** `judge_v20_shakedown.py` (its brief is written) and `check_m3_new_document.py`.
+5. **Bind v20, then run the full count chain overnight**, detached from the session. Settle first: the abort rule, 135's C2 semantics, the release text (137's three effects, L-C-late-K1, L-C-number-or-indent, 138 and 140 fixed), and the pin rebinding.
+6. **The next link batch:**
+   - `Language=` with 031's fix and the three fallbacks pinned;
+   - **Markdown paste (A)**;
+   - new-document's D12.
+
+   Separately: the Writer stack sweep and the ordered-commands spec.
