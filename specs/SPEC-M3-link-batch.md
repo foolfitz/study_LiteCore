@@ -509,6 +509,15 @@ M1-1 用 `82af92ca^` 當基準時，第二次本該綠的執行是紅的。原�
 
 **v20 的引擎原始碼定在 `543a5566`**。它對 v20 而言與 `82af92ca` 在預處理後相同。這一條是「M1-1 抓到的產品原始碼衛生缺陷」，§34.4 的數字不變。
 
+## 16. 更正：§4.3「核心依 Collabora 回報的可見區域算」沒有證據（2026-10-14，只追加；取代 §4.3 那半句）
+
+2026-10-14 擁有者問 Collabora 捲動時怎麼顯示頁碼，主 session 重讀 `cool-26-04`：
+
+- **確定的**（與 §4.3 一致）：編輯模式下狀態列的字串是核心推的 `.uno:StatePageNumber`（`browser/src/control/Control.StatusBar.js:681`、`:164`），核心用 `SwViewShell::GetFirstLastVisPageNumbers` 算「可見的第一頁到最後一頁」（`engine/sw/source/uibase/uiview/view2.cxx:1784–1901`）；外觀是底部狀態列最左邊一個可點的徽章（`browser/src/control/jsdialog/Widget.HTMLContent.ts:149–160`，點了開「前往頁面」）。
+- **§4.3 說錯或說過頭的**：「依 Collabora 回報的可見區域算」。客戶端捲動時確實送 `clientvisiblearea`（`browser/src/app/ViewLayout.ts:133`），但核心只把它存成 kit 可見區（`SwXTextDocument::setClientVisibleArea` → `setKitVisibleArea`，`engine/sw/source/uibase/uno/unotxdoc.cxx:3502–3516`）；`GetFirstLastVisPageNumbers` 讀的是 view 自己的 `GetVisArea()`（`engine/sw/source/core/view/viewsh.cxx:3023`），而原始碼自己寫著 COKit 下 `VisArea()` 是整份文件（`engine/sw/source/core/layout/layact.cxx:756`；`engine/sw/source/uibase/uiview/viewport.cxx:201`）。**Collabora 的頁碼在捲動時會不會跟著變，讀原始碼無法確定；可能跟著游標（核心把 view 捲到游標處時）**。未實測。要定案的量測：原生 LOK 送 `setClientVisibleArea` 後讀 `.uno:StatePageNumber`。
+- **不影響**本規格的設計：v20 的頁碼由頁面用頁面矩形算，捲動時 0 個引擎請求、跟著捲動（任務 10-14n 量過）；Q-D 不採核心字串的理由不變。
+- **擁有者 2026-10-14 的決定**：頁碼的**外觀**照 Collabora（底部一條一直看得見的狀態列、頁碼在最左邊、正常字級）；交任務 10-14o 的 finding 143 修法。點了跳頁不在這一版。
+
 ## 修訂紀錄
 
 | 日期 | 內容 |
@@ -522,3 +531,4 @@ M1-1 用 `82af92ca^` 當基準時，第二次本該綠的執行是紅的。原�
 | 2026-10-13 | §14：finding 137 擴大到打字與行內格式（fable 裁決 5，兩版都到得了）；v20 範圍與計數不變、發佈說明要寫三種後果；下一份規格改名「有序指令」（候選 A／A′／B／C） |
 | 2026-10-14 | §15：審核 6 與 part 2 的處置（fable 裁決 6＋修正 1）——L-C-number-or-indent 登錄、引擎定在 82af92ca；placeCaret 確認改要游標或選取作證（finding 138）、noop 不算修改、頁碼讀失敗後重讀；X1 新用法、M1-1 修檢查（E2_V20 三個物件）、what_the_link_ships 資料；Makefile 區塊已套用；連結前順序 |
 | 2026-10-14 | §15.6：修正 2——part 1 的 `finishMergeKeyError` 有一處沒包進 define，恢復舊文字（`543a5566`），v20 預處理不變；引擎定在 `543a5566` |
+| 2026-10-14 | §16：更正 §4.3 的「依 Collabora 回報的可見區域算」——原始碼看不出 Collabora 的頁碼會跟著捲動；擁有者決定外觀照 Collabora 的底部狀態列 |
