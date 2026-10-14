@@ -1,0 +1,43 @@
+=== H1 start 2026-10-14T12:44:16Z: python3 findings/evidence/132/held-into-refusal/probe_held_into_refusal.py --out findings/evidence/host-0.2.21/k3/k3a-held
+=== H1 end rc=0 2026-10-14T12:54:07Z
+static-check findings/evidence/host-0.2.21/k3/k3a-held rc=0
+findings/evidence/host-0.2.21/k3/k3a-held/report.json: static hostVersion=0.2.21 hostCommit=187b36d hostDirty=[] buildId=9bcdb50969ba53e5 servedPage=2d6c4580e8be distPage=2d6c4580e8be servedSession=f47c80ec9553 shellBundle.exit=0 manifest=e2/editor-shell-v2-bundle-v70.json -> OK
+findings/evidence/host-0.2.21/k3/k3a-held/report.json: staticAfter hostVersion=0.2.21 hostCommit=187b36d hostDirty=[] buildId=9bcdb50969ba53e5 servedPage=2d6c4580e8be distPage=2d6c4580e8be servedSession=f47c80ec9553 shellBundle.exit=0 manifest=e2/editor-shell-v2-bundle-v70.json -> OK
+    scroll   series [21503] | window {'pre': 21503, 'window': [21503, 21503, 21503, 21503, 21503, 21503, 21503, 21503, 21503], 'from': 6303.5, 'to': 15647.5}
+verdict PASS
+exit 0
+=== H2 start 2026-10-14T12:54:11Z: python3 findings/evidence/134/table/probe_table_refusal.py --out findings/evidence/host-0.2.21/k3/k3a-table
+=== H2 end rc=0 2026-10-14T13:03:01Z
+static-check findings/evidence/host-0.2.21/k3/k3a-table rc=0
+findings/evidence/host-0.2.21/k3/k3a-table/report.json: static hostVersion=0.2.21 hostCommit=187b36d hostDirty=[] buildId=9bcdb50969ba53e5 servedPage=2d6c4580e8be distPage=2d6c4580e8be servedSession=f47c80ec9553 shellBundle.exit=0 manifest=e2/editor-shell-v2-bundle-v70.json -> OK
+findings/evidence/host-0.2.21/k3/k3a-table/report.json: staticAfter hostVersion=0.2.21 hostCommit=187b36d hostDirty=[] buildId=9bcdb50969ba53e5 servedPage=2d6c4580e8be distPage=2d6c4580e8be servedSession=f47c80ec9553 shellBundle.exit=0 manifest=e2/editor-shell-v2-bundle-v70.json -> OK
+    scroll   series [0] (exempt)
+verdict PASS
+exit 0
+=== H3 start 2026-10-14T13:03:04Z: python3 findings/evidence/134/restore-window/probe_restore_window.py --out findings/evidence/host-0.2.21/k3/k3a-restore-window
+=== H3 end rc=0 2026-10-14T13:07:35Z
+static-check findings/evidence/host-0.2.21/k3/k3a-restore-window rc=0
+findings/evidence/host-0.2.21/k3/k3a-restore-window/report.json: static hostVersion=0.2.21 hostCommit=187b36d hostDirty=[] buildId=9bcdb50969ba53e5 servedPage=2d6c4580e8be distPage=2d6c4580e8be servedSession=f47c80ec9553 shellBundle.exit=0 manifest=e2/editor-shell-v2-bundle-v70.json -> OK
+findings/evidence/host-0.2.21/k3/k3a-restore-window/report.json: staticAfter hostVersion=0.2.21 hostCommit=187b36d hostDirty=[] buildId=9bcdb50969ba53e5 servedPage=2d6c4580e8be distPage=2d6c4580e8be servedSession=f47c80ec9553 shellBundle.exit=0 manifest=e2/editor-shell-v2-bundle-v70.json -> OK
+=== B1 start 2026-10-14T13:07:38Z: python3 findings/evidence/host-0.2.20-hand-test/probe_10_14n.py --out findings/evidence/host-0.2.21/k3/k3b --browser firefox --doc long60 --arms burst-1s,page-number --mode host
+=== B1 end rc=0 2026-10-14T13:08:47Z
+=== B2 start 2026-10-14T13:08:52Z: python3 findings/evidence/host-0.2.20-hand-test/probe_10_14n.py --out findings/evidence/host-0.2.21/k3/k3b --browser chrome --doc long60 --arms burst-1s,page-number --mode host
+=== B2 end rc=0 2026-10-14T13:09:46Z
+static-check findings/evidence/host-0.2.21/k3/k3b rc=0
+findings/evidence/host-0.2.21/k3/k3b/report-host-firefox-long60.json: static hostVersion=0.2.21 hostCommit=187b36d hostDirty=[] buildId=9bcdb50969ba53e5 servedPage=2d6c4580e8be distPage=2d6c4580e8be servedSession=f47c80ec9553 shellBundle.exit=0 manifest=e2/editor-shell-v2-bundle-v70.json -> OK
+findings/evidence/host-0.2.21/k3/k3b/report-host-firefox-long60.json: staticAfter absent (not recorded by this probe)
+findings/evidence/host-0.2.21/k3/k3b/report-host-chrome-long60.json: static hostVersion=0.2.21 hostCommit=187b36d hostDirty=[] buildId=9bcdb50969ba53e5 servedPage=2d6c4580e8be distPage=2d6c4580e8be servedSession=f47c80ec9553 shellBundle.exit=0 manifest=e2/editor-shell-v2-bundle-v70.json -> OK
+findings/evidence/host-0.2.21/k3/k3b/report-host-chrome-long60.json: staticAfter absent (not recorded by this probe)
+K4 firefox: (d) text bottom 980.5 <= content bottom 986 -> PASS; (e) font 13.0px contrast 15.91 (rgb(34, 34, 34) on rgb(255, 255, 255)) -> PASS; (f) 18 steps, texts ['第 1–2 頁，共 60 頁', '第 2 頁，共 60 頁', '第 2–3 頁，共 60 頁', '第 3 頁，共 60 頁']… -> PASS; (g) bar rect [8, 954, 1834, 32] content [8, 50, 1834, 936] root bottom 986 text left 20 -> PASS
+VERDICT PASS
+exit 0
+=== C1 start 2026-10-14T13:09:49Z: python3 wasm_sdk_probe/tools/probe_hand_test_0212.py --out findings/evidence/host-0.2.21/k3/k3c-132b --browsers chrome,firefox --arms hold-high,hold-low,wash-control --hold-rounds 3
+=== C1 end rc=0 2026-10-14T13:34:09Z
+static-check findings/evidence/host-0.2.21/k3/k3c-132b rc=0
+findings/evidence/host-0.2.21/k3/k3c-132b/report.json: static hostVersion=0.2.21 hostCommit=187b36d hostDirty=[] buildId=9bcdb50969ba53e5 servedPage=2d6c4580e8be distPage=2d6c4580e8be servedSession=f47c80ec9553 shellBundle.exit=0 manifest=e2/editor-shell-v2-bundle-v70.json -> OK
+findings/evidence/host-0.2.21/k3/k3c-132b/report.json: staticAfter hostVersion=0.2.21 hostCommit=187b36d hostDirty=[] buildId=9bcdb50969ba53e5 servedPage=2d6c4580e8be distPage=2d6c4580e8be servedSession=f47c80ec9553 shellBundle.exit=0 manifest=e2/editor-shell-v2-bundle-v70.json -> OK
+firefox named numbers: deleted per hold [52, 52, 52, 52, 52, 52]; last delete after release ms [1801.4, 1798.9, 1781.1, 1809.0, 1803.6, 1824.6]; caret band fresh after release ms [1816.7, 1818.6, 1799.2, 1819.6, 1816.0, 1835.9]
+132-B FAIL
+exit 1
+read_hold exit 0
+QUEUE-DONE
