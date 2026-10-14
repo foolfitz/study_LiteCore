@@ -83,7 +83,9 @@ OBSERVER = r"""<script>
   // Summary node: the merge runner's shape (its `place()` reads workers, size, caret, carets), plus
   // the document handle and per-operation request counts.
   const obs = { workers: 0, responses: [], responsesSeen: 0, caret: null, carets: 0, size: null,
-                documentHandle: null, requestCounts: {}, asks: 0, error: null };
+                documentHandle: null, requestCounts: {}, asks: 0, error: null,
+                traceBytes: 0, traceDropped: 0, protocolVersion: null };
+  const TRACE_CAP = 4000;   // entries kept between drains; the CDP frame limit is 1 MiB (run 2 hit it)
   const node = document.createElement("script");
   node.type = "application/json"; node.id = "merge-observer";
   let queued = false;
@@ -98,7 +100,12 @@ OBSERVER = r"""<script>
     tqueued = false;
     const cut = Number(tnode.dataset.cut ?? -1);
     trace.entries = trace.entries.filter((e) => e.s > cut);
+    if (trace.entries.length > TRACE_CAP) {
+      obs.traceDropped += trace.entries.length - TRACE_CAP;
+      trace.entries = trace.entries.slice(trace.entries.length - TRACE_CAP);
+    }
     tnode.textContent = JSON.stringify(trace.entries);
+    obs.traceBytes = Math.max(obs.traceBytes, tnode.textContent.length); later();
   };
   const log = (entry) => {
     entry.s = trace.seq++; entry.t = Math.round(performance.now() * 10) / 10;
@@ -127,8 +134,11 @@ OBSERVER = r"""<script>
         const ask = JSON.parse(document.documentElement.dataset.v20ask || "null");
         if (!ask || !current) { log({ k: "ask", error: ask ? "no worker" : "no request" }); return; }
         current.requests.set(ask.requestId, { operation: ask.operation, ask: true });
-        current.worker.postMessage({ kind: "request", requestId: ask.requestId,
-                                     operation: ask.operation, payload: ask.payload || {} });
+        // The worker refuses a message without the protocol version (PROTOCOL_MISMATCH, sdk-worker.js
+        // onmessage); the version is copied from the page's own requests, never assumed.
+        current.worker.postMessage({ protocolVersion: obs.protocolVersion, kind: "request",
+                                     requestId: ask.requestId, operation: ask.operation,
+                                     payload: ask.payload || {} });
         obs.asks += 1; later();
         log({ k: "ask", rq: ask.requestId, op: ask.operation, g: current.generation });
       } catch (error) { log({ k: "ask", error: String(error) }); }
@@ -171,6 +181,15 @@ OBSERVER = r"""<script>
     const value = data.ok ? data.result : data.error;
     const entry = { k: "rs", g: generation, rq: data.requestId, op: request.operation ?? null,
                     action: request.action ?? null, ok: data.ok };
+    if (!data.ok) entry.err = (value && typeof value === "object")
+      ? { code: value.code ?? null, message: String(value.message ?? "").slice(0, 200) } : String(value).slice(0, 200);
+    if (request.ask) {
+      entry.ask = true;
+      entry.result = (data.ok && value && typeof value === "object")
+        ? { sel: sel(value.selection), selectionType: value.selectionType ?? null, caret: value.caret ?? null,
+            seq: value.sourceSequence ?? null, dsc: value.documentSizeChangedCount ?? null, rev: value.revision ?? null }
+        : entry.err;
+    }
     if (value && typeof value === "object") {
       if (value.documentHandle !== undefined && typeof value.width === "number") {
         obs.documentHandle = value.documentHandle;
@@ -192,11 +211,7 @@ OBSERVER = r"""<script>
         entry.changed = value.documentSizeChanged ?? null;
         if (!data.ok) entry.code = value.code ?? null;
       } else if (request.ask) {
-        entry.ask = true;
-        entry.result = data.ok
-          ? { sel: sel(value.selection), selectionType: value.selectionType ?? null, caret: value.caret ?? null,
-              seq: value.sourceSequence ?? null, dsc: value.documentSizeChangedCount ?? null, rev: value.revision ?? null }
-          : { code: value.code ?? null, message: value.message ?? null };
+        // handled above, before the object test
       } else if (/^editor/.test(request.operation || "")) {
         entry.completion = value.completion ?? null; entry.changed = value.changed ?? null;
         entry.rev = value.revision ?? null; entry.beforeRev = value.beforeRevision ?? null;
@@ -235,7 +250,10 @@ OBSERVER = r"""<script>
       const post = worker.postMessage.bind(worker);
       worker.postMessage = (message, transfer) => {
         if (message && message.kind === "request") {
-          requests.set(message.requestId, { operation: message.operation, action: message.payload?.action,
+          if (message.protocolVersion !== undefined && !requests.get(message.requestId)?.ask)
+            obs.protocolVersion = message.protocolVersion;
+          requests.set(message.requestId, { ...(requests.get(message.requestId) || {}),
+                                            operation: message.operation, action: message.payload?.action,
                                             y: message.payload?.yTwips, h: message.payload?.heightTwips });
           const key = `${generation}:${message.operation}`;
           obs.requestCounts[key] = (obs.requestCounts[key] || 0) + 1; later();
@@ -257,7 +275,10 @@ OBSERVER = r"""<script>
 })();
 </script>
 """
-READ_TRACE = "(() => { const n = document.getElementById('v20-trace'); return n ? n.textContent : null; })()"
+READ_TRACE_LEN = "(() => { const n = document.getElementById('v20-trace'); return n ? n.textContent.length : -1; })()"
+READ_TRACE_SLICE = "(() => { const n = document.getElementById('v20-trace'); return n ? n.textContent.slice(ARG_A, ARG_B) : null; })()"
+TRACE_CHUNK = 400000          # bytes per CDP reply; the websocket client closes on a frame over 1 MiB (run 2)
+STATS = {"maxTraceReadBytes": 0, "traceReads": 0}
 CUT_TRACE = "(() => {{ const n = document.getElementById('v20-trace'); if (n) n.dataset.cut = '{0}'; return true; }})()"
 ASK = ("(() => { document.documentElement.dataset.v20ask = ARG_JSON; "
        "document.documentElement.dispatchEvent(new Event('v20-ask')); return true; })()")
@@ -322,8 +343,20 @@ def pre_run_checks() -> dict:
 
 
 def drain(session) -> list:
-    raw = pp.evaluate(session, READ_TRACE)
-    entries = [e for e in (json.loads(raw) if raw else []) if e.get("s", -1) > TRACE["last"]]
+    length = pp.evaluate(session, READ_TRACE_LEN)
+    if not isinstance(length, int) or length <= 0:
+        return []
+    STATS["traceReads"] += 1
+    STATS["maxTraceReadBytes"] = max(STATS["maxTraceReadBytes"], length)
+    parts = [pp.evaluate(session, READ_TRACE_SLICE.replace("ARG_A", str(a)).replace("ARG_B", str(a + TRACE_CHUNK)))
+             for a in range(0, length, TRACE_CHUNK)]
+    raw = "".join(p for p in parts if isinstance(p, str))
+    try:
+        entries = [e for e in (json.loads(raw) if raw else []) if e.get("s", -1) > TRACE["last"]]
+    except json.JSONDecodeError:
+        # the node was rewritten between the slices; read it again whole on the next drain
+        STATS["tornReads"] = STATS.get("tornReads", 0) + 1
+        return []
     if entries:
         TRACE["last"] = max(e["s"] for e in entries)
         pp.evaluate(session, CUT_TRACE.format(TRACE["last"]))
@@ -1170,6 +1203,7 @@ def main() -> int:
             except Exception as error:  # noqa: BLE001 -- recorded with the arm, the run goes on
                 result["runnerError"] = f"{type(error).__name__}: {error}"
             result["seconds"] = round(time.monotonic() - t0, 1)
+            result["traceStats"] = dict(STATS)
             try:
                 result["stateAfter"] = pp.evaluate(session, pp.READ_STATE)
             except Exception as error:  # noqa: BLE001 -- a silent page: recorded, and the run stops
