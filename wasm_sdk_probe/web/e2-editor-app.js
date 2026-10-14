@@ -103,6 +103,12 @@ let engineActionsOut = 0;
 let busyLeftToAction = false;
 let pointMovesInFlight = 0;
 let deletesInFlight = 0;
+// FINDING 141 (task 2026-10-14o).  Deletes the listener sent that the ENGINE
+// has not answered yet -- `deletesInFlight` also counts the repaint `run()`
+// waits for -- and the presses of the same key held on the page behind them
+// (`holdsDelete`, `settleDelete`).
+let deletesUnanswered = 0;
+const heldDeletes = { action: null, count: 0 };
 
 // Fail closed: a session without `hasUnsavedEdits` throws here, and the host
 // counts a throw as "ask" -- an optional call answering `false` would switch
@@ -2037,7 +2043,7 @@ const ACTION_LABELS = {
   "delete-selection": "刪除選取",
 };
 
-async function editorAction(action) {
+async function editorAction(action, { onResult = null } = {}) {
   // The keyboard still reaches here while the toolbar is off (finding 109's
   // reload, a restart): say nothing, rather than toast EDITOR_NOT_READY at
   // someone waiting for the document to come back.
@@ -2060,7 +2066,14 @@ async function editorAction(action) {
   // up meanwhile is made here.
   engineActionsOut += 1;
   try {
-    await run(label, () => session.action(action, options));
+    // FINDING 141.  `onResult` sees the engine's answer BEFORE the repaint
+    // `run()` waits for: the delete listener decides the fate of the presses it
+    // is holding there, so a real-delete burst keeps the engine as busy as the
+    // queue did (one answered and repainting, the next already out).
+    await run(label, () => session.action(action, options).then((result) => {
+      if (onResult) onResult(result);
+      return result;
+    }));
   } finally {
     engineActionsOut -= 1;
     if (engineActionsOut === 0 && busyLeftToAction) {
@@ -2498,20 +2511,116 @@ function deleteActionFor(action, shape, offersSelectionDelete, deletesInFlight =
   return shape !== null && shape !== "collapsed" && offersSelectionDelete ? "delete-selection" : action;
 }
 
+// FINDING 141 (task 2026-10-14o; the owner chose A).  At a C boundary -- the
+// document's start for Backspace, its end for Delete -- the engine answers a
+// delete only when its 250 + 2,000 ms window expires (SPEC-M3-link-batch
+// §10.5, `verified-boundary-noop`), and this listener sent EVERY press
+// (finding 131's rule): a held key whose repeats arrive unflagged, or a user
+// who presses again because nothing happened, queued one 2.26 s no-op per
+// press, and the editor sat in 「處理中」 for N × 2.26 s with no toast and
+// nothing to do (measured: 18 presses in one second, 40.6 s;
+// findings/evidence/host-0.2.20-hand-test/).  H2 (`dropsHeldRepeat`) could not
+// help: it keys on `event.repeat`, and finding 131 forbids dropping presses.
+//
+// So a press of a key whose delete is out and NOT YET ANSWERED is HELD here --
+// counted, not queued -- and the engine's answer decides it (`settleDelete`):
+//   * `verified-boundary-noop` with the state it came back with equal to the
+//     state the delete was sent from (`boundaryNoopStands`): the held presses
+//     are DROPPED, their answer is known -- nothing to delete here, nothing
+//     moved.  The first press at a boundary still costs the window; the rest
+//     cost nothing.
+//   * anything else -- a real delete, a refusal, an answer whose state moved,
+//     an answer without a state: ONE held press is delivered again
+//     (`releaseHeldDelete`), through this same listener, so a burst of real
+//     deletes is still deleted press for press (131), one answered and
+//     repainting while the next is already out (132's depth).  A refusal drops
+//     them, as 134's B drops the rest of a hold.
+// "Answered" is the engine's reply (`editorAction`'s `onResult`), before the
+// repaint `run()` awaits; `deletesInFlight`, which spans the repaint, keeps
+// its meaning for the overlay and for H2.  Fail closed towards 131: when the
+// answer cannot be read as a standing no-op, the presses go out.  Named
+// limit: a K1 that lands after the reply (L-C-late-K1) is not seen here.
+const DELETE_INPUT_TYPE_OF = Object.fromEntries(
+  Object.entries(DELETE_INPUT_TYPES).map(([inputType, action]) => [action, inputType]));
+
+/** The caret and whether the selection is collapsed, or null when the state cannot say. */
+function deleteStateOf(editorState) {
+  const caret = editorState?.caret;
+  const collapsed = editorState?.selection?.collapsed;
+  if (!caret || typeof collapsed !== "boolean") return null;
+  const { x, y, width, height } = caret;
+  if (![x, y, width, height].every(Number.isFinite)) return null;
+  return { x, y, width, height, collapsed };
+}
+
+/** A boundary no-op whose returned state equals the state it was sent from. */
+function boundaryNoopStands(result, stateAtSend) {
+  if (result?.completion !== "verified-boundary-noop" || result?.changed !== false) return false;
+  if (result.revision !== result.beforeRevision) return false;
+  const after = deleteStateOf(result.state);
+  if (after === null || stateAtSend === null) return false;
+  return after.collapsed && stateAtSend.collapsed
+    && after.x === stateAtSend.x && after.y === stateAtSend.y
+    && after.width === stateAtSend.width && after.height === stateAtSend.height;
+}
+
+/** Hold this press: a delete of the same key is out and the engine has not answered it. */
+function holdsDelete(action, unanswered, inFlightAction) {
+  return unanswered > 0 && inFlightAction === action;
+}
+
+function dropHeldDeletes() {
+  heldDeletes.count = 0;
+  if (deletesUnanswered === 0) heldDeletes.action = null;
+}
+
+/** Deliver one held press again, through the listener below, as the key would. */
+function releaseHeldDelete() {
+  if (heldDeletes.count === 0) {
+    if (deletesUnanswered === 0) heldDeletes.action = null;
+    return;
+  }
+  heldDeletes.count -= 1;
+  const inputType = DELETE_INPUT_TYPE_OF[heldDeletes.action];
+  el.sink.dispatchEvent(new InputEvent("beforeinput", { inputType, bubbles: true, cancelable: true }));
+}
+
+/** Once per sent delete, at the engine's answer (or at its failure, or when it never went out). */
+function settleDelete(send, result, failed) {
+  if (send.settled) return;
+  send.settled = true;
+  if (send.document !== session?.document) return;   // the document it was sent on is gone
+  deletesUnanswered -= 1;
+  if (failed || boundaryNoopStands(result, send.stateAtSend)) dropHeldDeletes();
+  else releaseHeldDelete();
+}
+
 el.sink.addEventListener("beforeinput", (event) => {
   const action = DELETE_INPUT_TYPES[event.inputType];
   if (!action || !session?.document) return;
   event.preventDefault();
+  // FINDING 141: a delete of this key is out and unanswered -- held, not queued.
+  if (holdsDelete(action, deletesUnanswered, heldDeletes.action)) {
+    heldDeletes.count += 1;
+    return;
+  }
   const shape = selectionShapeOf({ state: session.state.snapshot.editorState }) ?? lastSelectionShape;
   const sent = deleteActionFor(action, shape,
                                session.offers?.("delete-selection") === true, deletesInFlight);
+  const send = { document: session.document, stateAtSend: deleteStateOf(session.state.snapshot.editorState), settled: false };
+  heldDeletes.action = action;
+  deletesUnanswered += 1;
   // Counted before the call and released however it ends -- an early return,
   // a refusal swallowed here, a disposed engine.  Once none is out, the overlay
   // is brought up to date: a range that arrived meanwhile was not drawn
   // (overlayEditorState), and no state write may follow to draw it.  A refusal
   // also ends what the rest of this hold sends (finding 134, B).
   deletesInFlight += 1;
-  void editorAction(sent).catch(() => { deleteRefusedThisHold = true; }).finally(() => { deletesInFlight -= 1; })
+  void editorAction(sent, { onResult: (result) => settleDelete(send, result, false) })
+    .catch(() => { deleteRefusedThisHold = true; settleDelete(send, null, true); })
+    // A delete that never went out (the session not accepting) was never answered either.
+    .finally(() => settleDelete(send, null, false))
+    .finally(() => { deletesInFlight -= 1; })
     .then(() => { if (deletesInFlight === 0) paint(); });
 });
 

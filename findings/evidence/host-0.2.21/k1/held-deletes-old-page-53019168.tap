@@ -1,0 +1,122 @@
+TAP version 13
+# Subtest: 141 T1: a held key at a C boundary -- 18 unflagged presses in one second -- is ONE engine request, ready within 2.5 s
+not ok 1 - 141 T1: a held key at a C boundary -- 18 unflagged presses in one second -- is ONE engine request, ready within 2.5 s
+  ---
+  duration_ms: 6.24856
+  type: 'test'
+  location: '/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-held-deletes.test.mjs:135:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    more than one delete went out for presses the first one answers
+    
+    18 !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 18
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-held-deletes.test.mjs:141:12)
+    async Test.run (node:internal/test_runner/test:1313:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3)
+  ...
+# Subtest: 141 T2 (control, finding 131): the same 18 presses inside text are 18 deletes, press for press, each out at the previous answer
+not ok 2 - 141 T2 (control, finding 131): the same 18 presses inside text are 18 deletes, press for press, each out at the previous answer
+  ---
+  duration_ms: 3.746873
+  type: 'test'
+  location: '/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-held-deletes.test.mjs:155:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    null !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: ~
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-held-deletes.test.mjs:164:12)
+    async Test.run (node:internal/test_runner/test:1313:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:897:7)
+  ...
+# Subtest: 141 T3a (control): once the caret has moved, the next press at the old boundary is sent
+not ok 3 - 141 T3a (control): once the caret has moved, the next press at the old boundary is sent
+  ---
+  duration_ms: 3.57287
+  type: 'test'
+  location: '/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-held-deletes.test.mjs:179:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    3 !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 3
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-held-deletes.test.mjs:185:12)
+    async Test.run (node:internal/test_runner/test:1313:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:897:7)
+  ...
+# Subtest: 141 T3b (control): a no-op whose returned state differs from the sent state releases the held presses
+ok 4 - 141 T3b (control): a no-op whose returned state differs from the sent state releases the held presses
+  ---
+  duration_ms: 3.006947
+  type: 'test'
+  ...
+# Subtest: 141 T3c (control): a no-op reply without a readable state releases the held presses (fail closed towards 131)
+ok 5 - 141 T3c (control): a no-op reply without a readable state releases the held presses (fail closed towards 131)
+  ---
+  duration_ms: 2.995545
+  type: 'test'
+  ...
+# Subtest: 141 T3d: a refused delete drops the held presses and marks the hold refused (134 B)
+not ok 6 - 141 T3d: a refused delete drops the held presses and marks the hold refused (134 B)
+  ---
+  duration_ms: 1.464606
+  type: 'test'
+  location: '/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-held-deletes.test.mjs:224:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    3 !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 3
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-held-deletes.test.mjs:231:12)
+    async Test.run (node:internal/test_runner/test:1313:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:897:7)
+  ...
+# Subtest: 141 T3e: a Delete press while a Backspace is unanswered is not held (another key)
+ok 7 - 141 T3e: a Delete press while a Backspace is unanswered is not held (another key)
+  ---
+  duration_ms: 2.261078
+  type: 'test'
+  ...
+# Subtest: 141 T4: flagged repeats still obey H2 at the keydown -- dropped at depth 2, taken at depth 1
+ok 8 - 141 T4: flagged repeats still obey H2 at the keydown -- dropped at depth 2, taken at depth 1
+  ---
+  duration_ms: 0.539544
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 4
+# fail 4
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 66.978617

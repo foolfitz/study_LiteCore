@@ -1,0 +1,58 @@
+TAP version 13
+# Subtest: 141 T1: a held key at a C boundary -- 18 unflagged presses in one second -- is ONE engine request, ready within 2.5 s
+ok 1 - 141 T1: a held key at a C boundary -- 18 unflagged presses in one second -- is ONE engine request, ready within 2.5 s
+  ---
+  duration_ms: 17.976747
+  type: 'test'
+  ...
+# Subtest: 141 T2 (control, finding 131): the same 18 presses inside text are 18 deletes, press for press, each out at the previous answer
+ok 2 - 141 T2 (control, finding 131): the same 18 presses inside text are 18 deletes, press for press, each out at the previous answer
+  ---
+  duration_ms: 2.216475
+  type: 'test'
+  ...
+# Subtest: 141 T3a (control): once the caret has moved, the next press at the old boundary is sent
+ok 3 - 141 T3a (control): once the caret has moved, the next press at the old boundary is sent
+  ---
+  duration_ms: 2.52529
+  type: 'test'
+  ...
+# Subtest: 141 T3b (control): a no-op whose returned state differs from the sent state releases the held presses
+ok 4 - 141 T3b (control): a no-op whose returned state differs from the sent state releases the held presses
+  ---
+  duration_ms: 3.380862
+  type: 'test'
+  ...
+# Subtest: 141 T3c (control): a no-op reply without a readable state releases the held presses (fail closed towards 131)
+ok 5 - 141 T3c (control): a no-op reply without a readable state releases the held presses (fail closed towards 131)
+  ---
+  duration_ms: 2.854703
+  type: 'test'
+  ...
+# Subtest: 141 T3d: a refused delete drops the held presses and marks the hold refused (134 B)
+ok 6 - 141 T3d: a refused delete drops the held presses and marks the hold refused (134 B)
+  ---
+  duration_ms: 1.076784
+  type: 'test'
+  ...
+# Subtest: 141 T3e: a Delete press while a Backspace is unanswered is not held (another key)
+ok 7 - 141 T3e: a Delete press while a Backspace is unanswered is not held (another key)
+  ---
+  duration_ms: 1.137277
+  type: 'test'
+  ...
+# Subtest: 141 T4: flagged repeats still obey H2 at the keydown -- dropped at depth 2, taken at depth 1
+ok 8 - 141 T4: flagged repeats still obey H2 at the keydown -- dropped at depth 2, taken at depth 1
+  ---
+  duration_ms: 0.560123
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 81.534378

@@ -141,24 +141,35 @@ test("132 U6: the delete listener repaints the overlay once its deletes have all
   const pending = [];
   const session = { document: {}, offers: () => true,
                     state: { snapshot: { editorState: { selection: { collapsed: true } } } } };
+  // Finding 141 (task 2026-10-14o): the handler holds a same-key press while
+  // its first delete is unanswered and delivers it again through the sink, so
+  // the harness carries the held-delete state and a sink that can dispatch.
+  const sink = { addEventListener: (type, l) => listeners.push([type, l]),
+                 dispatchEvent(event) { for (const [type, l] of listeners) if (type === event.type) l(event); return true; } };
+  class InputEvent { constructor(type, init) { this.type = type; this.inputType = init.inputType; } preventDefault() {} }
   // eslint-disable-next-line no-new-func
-  const made = new Function("el", "session", "selectionShapeOf", "editorAction", "paint",
+  const made = new Function("el", "session", "selectionShapeOf", "editorAction", "paint", "InputEvent",
     `${slice(/^const DELETE_INPUT_TYPES = \{[\s\S]*?\n\};$/m, "DELETE_INPUT_TYPES")}
-     let lastSelectionShape = "collapsed"; let deletesInFlight = 0;
+     let lastSelectionShape = "collapsed"; let deletesInFlight = 0; let deleteRefusedThisHold = false;
+     ${slice(/^let deletesUnanswered = 0;$/m, "deletesUnanswered")}
+     ${slice(/^const heldDeletes = \{[^\n]*\};$/m, "heldDeletes")}
+     ${slice(/^const DELETE_INPUT_TYPE_OF = [\s\S]*?\]\)\);$/m, "DELETE_INPUT_TYPE_OF")}
      ${slice(/^function deleteActionFor\([^)]*\) \{[\s\S]*?\n\}$/m, "deleteActionFor()")}
+     ${["deleteStateOf", "boundaryNoopStands", "holdsDelete", "dropHeldDeletes", "releaseHeldDelete", "settleDelete"]
+       .map((name) => slice(new RegExp(`^function ${name}\\([^)]*\\) \\{[\\s\\S]*?\\n\\}$`, "m"), `${name}()`)).join("\n")}
      ${slice(/^el\.sink\.addEventListener\("beforeinput", \(event\) => \{[\s\S]*?\n\}\);$/m, "the beforeinput handler")}
-     return { count: () => deletesInFlight };`)(
-    { sink: { addEventListener: (type, l) => listeners.push([type, l]) } }, session, selectionShapeOf,
-    () => new Promise((resolve) => pending.push(resolve)), () => paints.push(1));
-  const input = () => {
-    for (const [type, listener] of listeners)
-      if (type === "beforeinput") listener({ inputType: "deleteContentBackward", preventDefault() {} });
-  };
+     return { count: () => deletesInFlight, held: () => heldDeletes.count };`)(
+    { sink }, session, selectionShapeOf,
+    () => new Promise((resolve) => pending.push(resolve)), () => paints.push(1), InputEvent);
+  const input = () => sink.dispatchEvent(new InputEvent("beforeinput", { inputType: "deleteContentBackward" }));
   input();
   input();
-  assert.equal(made.count(), 2);
+  assert.equal(made.count(), 1, "the second press went out while the first was unanswered (141)");
+  assert.equal(made.held(), 1);
   pending[0]();
   await settle();
+  // The first settled without a readable answer: the held press went out (131 kept), on its own.
+  assert.equal(made.held(), 0);
   assert.equal(made.count(), 1);
   assert.equal(paints.length, 0, "repainted while a delete was still out");
   pending[1]();
@@ -254,5 +265,7 @@ test("134 U-B3: the page's listeners drop the refused hold's repeats until the h
 // form `deleteActionFor` chose -- the same promise the counter is released on.
 test("134 U-B4: the beforeinput handler marks the hold refused when its delete is rejected", () => {
   const handler = slice(/^el\.sink\.addEventListener\("beforeinput", \(event\) => \{[\s\S]*?\n\}\);$/m, "the beforeinput handler");
-  assert.match(handler, /void editorAction\(sent\)\.catch\(\(\) => \{ deleteRefusedThisHold = true; \}\)/);
+  // Finding 141 added `onResult` to the call and the held presses' settle to the catch; the
+  // flag is still set on the rejection of the delete this page sent, on the same promise.
+  assert.match(handler, /void editorAction\(sent, \{ onResult: [^\n]*\}\)\n\s+\.catch\(\(\) => \{ deleteRefusedThisHold = true; /);
 });
