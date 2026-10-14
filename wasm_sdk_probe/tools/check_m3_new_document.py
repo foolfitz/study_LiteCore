@@ -362,13 +362,16 @@ def reopen_from_files(session, base: str, folder: str, name: str, at: tuple[str,
 
 def run_once(arm: str, kind: str, instance: Instance, admin: Client, scratch: Path) -> dict[str, Any]:
     spec = ARMS[arm]
-    name = f"新文件 測試-{arm}-{kind}.odt"
+    # One name per run: a file from a previous run is held by that session's
+    # token lock for up to 300 s after the browser closed (the DELETE below got
+    # 423 in the first counted run) and the name dialog then refuses the name.
+    name = f"新文件 測試-{arm}-{kind}-{time.strftime('%H%M%SZ', time.gmtime())}.odt"
     record: dict[str, Any] = {"arm": arm, "browser": kind, "name": name, "expectedFile": spec["file"],
                               "settings": {"lang": spec["lang"], "locale": spec["locale"]}, "startedAt": utc_now()}
     path = f"{FOLDER}/{name}"
     record["folder"] = FOLDER
     record["mkcol"] = admin.call("mkcol", "MKCOL", admin.dav_path(FOLDER))["status"]   # 405 = already there
-    admin.call("remove old", "DELETE", admin.dav_path(path))
+    record["removeOld"] = admin.call("remove old", "DELETE", admin.dav_path(path))["status"]
     record["creators"] = creators(admin)
     record["choice"] = php_choose(DEFAULT_DDEV, [(spec["lang"], spec["locale"])])[0]
     session = None
@@ -802,6 +805,10 @@ def main() -> int:
         report["settingsRestored"] = restored
     if not args.skip_readonly:
         report["readOnly"] = run_readonly(instance, admin, SCRATCH / "readonly", with_browser="chrome" in args.browsers)
+    # Tidy up what the runs made; a file still under its session's lock answers
+    # 423 and lapses within 300 s -- recorded, not retried.
+    report["cleanup"] = {run["name"]: admin.call("cleanup", "DELETE", admin.dav_path(f"{FOLDER}/{run['name']}"))["status"]
+                         for run in report["runs"] if run.get("name")}
     report["log"] = log
     report["completedAt"] = utc_now()
     result = score(report, strict=args.label == "counted")
