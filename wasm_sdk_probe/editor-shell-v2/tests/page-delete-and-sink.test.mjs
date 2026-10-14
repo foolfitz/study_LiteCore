@@ -40,9 +40,13 @@ test("finding 121: a caret, an unknown shape, or no offer keeps today's action",
 });
 
 test("finding 121: the handler asks the engine's current selection, the page's belief only as fallback", () => {
+  // Finding 144 (task 2026-10-14q): the shape is read where the delete is sent, dispatchDelete(), which the
+  // handler calls for a press nothing held and releaseHeldDelete() for a held one -- at the moment of sending.
   const handler = slice(/^el\.sink\.addEventListener\("beforeinput", \(event\) => \{[\s\S]*?\n\}\);$/m, "the beforeinput handler");
-  assert.match(handler, /selectionShapeOf\(\{ state: session\.state\.snapshot\.editorState \}\) \?\? lastSelectionShape/);
-  assert.match(handler, /deleteActionFor\(action, shape,/);
+  assert.match(handler, /dispatchDelete\(action\);/);
+  const send = slice(/^function dispatchDelete\([^)]*\) \{[\s\S]*?\n\}$/m, "dispatchDelete()");
+  assert.match(send, /selectionShapeOf\(\{ state: session\.state\.snapshot\.editorState \}\) \?\? lastSelectionShape/);
+  assert.match(send, /deleteActionFor\(action, shape,/);
   // The accessor the handler relies on reads the snapshot's shape as the page holds it.
   assert.equal(selectionShapeOf({ state: { selection: { collapsed: true } } }), "collapsed");
   assert.equal(selectionShapeOf({ state: { selection: { collapsed: false, rectangles: [{}] } } }), "range-single");
@@ -62,12 +66,16 @@ test("finding 131: while a delete this page sent is unsettled, the key keeps its
 });
 
 test("finding 131: the handler passes its own unsettled deletes, counted before the call and released in finally", () => {
+  // Finding 144 (task 2026-10-14q): the send lives in dispatchDelete(), which the handler calls for a press
+  // nothing held and releaseHeldDelete() calls for a held one; the clauses are the same, read there.
   const handler = slice(/^el\.sink\.addEventListener\("beforeinput", \(event\) => \{[\s\S]*?\n\}\);$/m, "the beforeinput handler");
-  assert.match(handler, /deleteActionFor\(action, shape,\s+session\.offers\?\.\("delete-selection"\) === true, deletesInFlight\)/);
-  assert.match(handler, /deletesInFlight \+= 1;\n\s+void editorAction\(/);
-  assert.match(handler, /\.finally\(\(\) => \{ deletesInFlight -= 1; \}\)/);
+  assert.match(handler, /dispatchDelete\(action\);/);
+  const send = slice(/^function dispatchDelete\([^)]*\) \{[\s\S]*?\n\}$/m, "dispatchDelete()");
+  assert.match(send, /deleteActionFor\(action, shape,\s+session\.offers\?\.\("delete-selection"\) === true, deletesInFlight\)/);
+  assert.match(send, /deletesInFlight \+= 1;\n\s+void editorAction\(/);
+  assert.match(send, /\.finally\(\(\) => \{ deletesInFlight -= 1; \}\)/);
   // Its own counter, not every action out: a real range + Ctrl+B + Backspace is still delete-selection.
-  assert.doesNotMatch(handler, /engineActionsOut/);
+  assert.doesNotMatch(send, /engineActionsOut/);
   assert.match(SOURCE, /^let deletesInFlight = 0;$/m);
 });
 
@@ -114,7 +122,9 @@ test("132 U3: a repeat is dropped only while two deletes are out; a press, a com
 test("132 U4: the sink's keydown listener prevents exactly the repeats U3 drops, at the page's own count", () => {
   const listeners = [];
   // eslint-disable-next-line no-new-func
+  // Finding 144: the page's count is the sent deletes PLUS the presses 141 holds; here none is held.
   const made = new Function("el", `let deletesInFlight = 0;
+     ${slice(/^const heldDeletes = \{[^\n]*\};$/m, "heldDeletes")}
      ${heldRepeatSource()}
      ${slice(/^function skipHeldRepeat\([^)]*\) \{[\s\S]*?\n\}$/m, "skipHeldRepeat()")}
      ${slice(/^el\.sink\.addEventListener\("keydown", skipHeldRepeat\);$/m, "the keydown registration")}
@@ -144,24 +154,25 @@ test("132 U6: the delete listener repaints the overlay once its deletes have all
   // Finding 141 (task 2026-10-14o): the handler holds a same-key press while
   // its first delete is unanswered and delivers it again through the sink, so
   // the harness carries the held-delete state and a sink that can dispatch.
-  const sink = { addEventListener: (type, l) => listeners.push([type, l]),
-                 dispatchEvent(event) { for (const [type, l] of listeners) if (type === event.type) l(event); return true; } };
-  class InputEvent { constructor(type, init) { this.type = type; this.inputType = init.inputType; } preventDefault() {} }
+  // Finding 144: a held press is released by a direct call (dispatchDelete), no synthetic event.
+  const sink = { addEventListener: (type, l) => listeners.push([type, l]) };
   // eslint-disable-next-line no-new-func
-  const made = new Function("el", "session", "selectionShapeOf", "editorAction", "paint", "InputEvent",
+  const made = new Function("el", "session", "selectionShapeOf", "editorAction", "paint",
     `${slice(/^const DELETE_INPUT_TYPES = \{[\s\S]*?\n\};$/m, "DELETE_INPUT_TYPES")}
      let lastSelectionShape = "collapsed"; let deletesInFlight = 0; let deleteRefusedThisHold = false;
      ${slice(/^let deletesUnanswered = 0;$/m, "deletesUnanswered")}
      ${slice(/^const heldDeletes = \{[^\n]*\};$/m, "heldDeletes")}
-     ${slice(/^const DELETE_INPUT_TYPE_OF = [\s\S]*?\]\)\);$/m, "DELETE_INPUT_TYPE_OF")}
      ${slice(/^function deleteActionFor\([^)]*\) \{[\s\S]*?\n\}$/m, "deleteActionFor()")}
-     ${["deleteStateOf", "boundaryNoopStands", "holdsDelete", "dropHeldDeletes", "releaseHeldDelete", "settleDelete"]
+     ${["deleteStateOf", "boundaryNoopStands", "holdsDelete", "dropHeldDeletes", "releaseHeldDelete", "settleDelete", "dispatchDelete"]
        .map((name) => slice(new RegExp(`^function ${name}\\([^)]*\\) \\{[\\s\\S]*?\\n\\}$`, "m"), `${name}()`)).join("\n")}
      ${slice(/^el\.sink\.addEventListener\("beforeinput", \(event\) => \{[\s\S]*?\n\}\);$/m, "the beforeinput handler")}
      return { count: () => deletesInFlight, held: () => heldDeletes.count };`)(
     { sink }, session, selectionShapeOf,
-    () => new Promise((resolve) => pending.push(resolve)), () => paints.push(1), InputEvent);
-  const input = () => sink.dispatchEvent(new InputEvent("beforeinput", { inputType: "deleteContentBackward" }));
+    () => new Promise((resolve) => pending.push(resolve)), () => paints.push(1));
+  const input = () => {
+    for (const [type, listener] of listeners)
+      if (type === "beforeinput") listener({ inputType: "deleteContentBackward", preventDefault() {} });
+  };
   input();
   input();
   assert.equal(made.count(), 1, "the second press went out while the first was unanswered (141)");
@@ -265,7 +276,10 @@ test("134 U-B3: the page's listeners drop the refused hold's repeats until the h
 // form `deleteActionFor` chose -- the same promise the counter is released on.
 test("134 U-B4: the beforeinput handler marks the hold refused when its delete is rejected", () => {
   const handler = slice(/^el\.sink\.addEventListener\("beforeinput", \(event\) => \{[\s\S]*?\n\}\);$/m, "the beforeinput handler");
-  // Finding 141 added `onResult` to the call and the held presses' settle to the catch; the
-  // flag is still set on the rejection of the delete this page sent, on the same promise.
-  assert.match(handler, /void editorAction\(sent, \{ onResult: [^\n]*\}\)\n\s+\.catch\(\(\) => \{ deleteRefusedThisHold = true; /);
+  // Finding 141 added `onResult` to the call and the held presses' settle to the catch; finding 144
+  // moved the send into dispatchDelete(), which the handler calls.  The flag is still set on the
+  // rejection of the delete this page sent, on the same promise.
+  assert.match(handler, /dispatchDelete\(action\);/);
+  const send = slice(/^function dispatchDelete\([^)]*\) \{[\s\S]*?\n\}$/m, "dispatchDelete()");
+  assert.match(send, /void editorAction\(sent, \{ onResult: [^\n]*\}\)\n\s+\.catch\(\(\) => \{ deleteRefusedThisHold = true; /);
 });

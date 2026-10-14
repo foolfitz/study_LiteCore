@@ -1,0 +1,66 @@
+TAP version 13
+# Subtest: 144 U1: a held Backspace inside text (51 flagged repeats over 2 s) deletes at most 2 characters after the key comes up
+not ok 1 - 144 U1: a held Backspace inside text (51 flagged repeats over 2 s) deletes at most 2 characters after the key comes up
+  ---
+  duration_ms: 10.986788
+  type: 'test'
+  location: '/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-held-depth.test.mjs:150:1'
+  failureType: 'testCodeFailure'
+  error: '23 deletes after release (0.2.21: 27–29); last at +1565 ms'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-held-depth.test.mjs:158:12)
+    async Test.run (node:internal/test_runner/test:1313:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3)
+  ...
+# Subtest: 144 U1b (control): an UNFLAGGED burst inside text is still deleted press for press (finding 131)
+ok 2 - 144 U1b (control): an UNFLAGGED burst inside text is still deleted press for press (finding 131)
+  ---
+  duration_ms: 5.785638
+  type: 'test'
+  ...
+# Subtest: 144 U1c (control, finding 141): a flagged hold at a C boundary is still one engine request per window, nothing deleted
+ok 3 - 144 U1c (control, finding 141): a flagged hold at a C boundary is still one engine request per window, nothing deleted
+  ---
+  duration_ms: 4.952228
+  type: 'test'
+  ...
+# Subtest: 144 U1d: the keydown guard counts a held press -- a flagged repeat is dropped with one delete out and one press held
+not ok 4 - 144 U1d: the keydown guard counts a held press -- a flagged repeat is dropped with one delete out and one press held
+  ---
+  duration_ms: 0.635783
+  type: 'test'
+  location: '/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-held-depth.test.mjs:201:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    one out and one held: the repeat was taken
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-held-depth.test.mjs:217:10)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1306:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+    Test.postRun (node:internal/test_runner/test:1447:19)
+    Test.run (node:internal/test_runner/test:1372:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:897:7)
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 2
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 67.542199

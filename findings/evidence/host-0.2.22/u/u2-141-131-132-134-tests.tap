@@ -1,0 +1,142 @@
+TAP version 13
+# Subtest: finding 121: a range goes out as delete-selection when the profile offers it
+ok 1 - finding 121: a range goes out as delete-selection when the profile offers it
+  ---
+  duration_ms: 1.142556
+  type: 'test'
+  ...
+# Subtest: finding 121: a caret, an unknown shape, or no offer keeps today's action
+ok 2 - finding 121: a caret, an unknown shape, or no offer keeps today's action
+  ---
+  duration_ms: 0.089557
+  type: 'test'
+  ...
+# Subtest: finding 121: the handler asks the engine's current selection, the page's belief only as fallback
+ok 3 - finding 121: the handler asks the engine's current selection, the page's belief only as fallback
+  ---
+  duration_ms: 0.306962
+  type: 'test'
+  ...
+# Subtest: finding 131: while a delete this page sent is unsettled, the key keeps its collapsed form
+ok 4 - finding 131: while a delete this page sent is unsettled, the key keeps its collapsed form
+  ---
+  duration_ms: 0.080269
+  type: 'test'
+  ...
+# Subtest: finding 131: the handler passes its own unsettled deletes, counted before the call and released in finally
+ok 5 - finding 131: the handler passes its own unsettled deletes, counted before the call and released in finally
+  ---
+  duration_ms: 0.250396
+  type: 'test'
+  ...
+# Subtest: finding 120: the sink follows the new adapter's blocked state
+ok 6 - finding 120: the sink follows the new adapter's blocked state
+  ---
+  duration_ms: 0.09162
+  type: 'test'
+  ...
+# Subtest: finding 120: openDocument syncs the sink right after attaching it
+ok 7 - finding 120: openDocument syncs the sink right after attaching it
+  ---
+  duration_ms: 0.149528
+  type: 'test'
+  ...
+# Subtest: 132 U3: a repeat is dropped only while two deletes are out; a press, a composition, another key never
+ok 8 - 132 U3: a repeat is dropped only while two deletes are out; a press, a composition, another key never
+  ---
+  duration_ms: 0.370259
+  type: 'test'
+  ...
+# Subtest: 132 U4: the sink's keydown listener prevents exactly the repeats U3 drops, at the page's own count
+ok 9 - 132 U4: the sink's keydown listener prevents exactly the repeats U3 drops, at the page's own count
+  ---
+  duration_ms: 0.537781
+  type: 'test'
+  ...
+# Subtest: 132 U6: the delete listener repaints the overlay once its deletes have all settled, not before
+ok 10 - 132 U6: the delete listener repaints the overlay once its deletes have all settled, not before
+  ---
+  duration_ms: 8.46254
+  type: 'test'
+  ...
+# Subtest: 134 U-B1: after a refusal a Backspace/Delete repeat is dropped; a press, a composition, another key never
+ok 11 - 134 U-B1: after a refusal a Backspace/Delete repeat is dropped; a press, a composition, another key never
+  ---
+  duration_ms: 0.393492
+  type: 'test'
+  ...
+# Subtest: 134 U-B2: a hold ends on its key coming up, on a new press of it, or on the window losing focus
+ok 12 - 134 U-B2: a hold ends on its key coming up, on a new press of it, or on the window losing focus
+  ---
+  duration_ms: 0.24718
+  type: 'test'
+  ...
+# Subtest: 134 U-B3: the page's listeners drop the refused hold's repeats until the hold ends, at depth 0
+ok 13 - 134 U-B3: the page's listeners drop the refused hold's repeats until the hold ends, at depth 0
+  ---
+  duration_ms: 0.994421
+  type: 'test'
+  ...
+# Subtest: 134 U-B4: the beforeinput handler marks the hold refused when its delete is rejected
+ok 14 - 134 U-B4: the beforeinput handler marks the hold refused when its delete is rejected
+  ---
+  duration_ms: 0.204851
+  type: 'test'
+  ...
+# Subtest: 141 T1: a held key at a C boundary -- 18 unflagged presses in one second -- is ONE engine request, ready within 2.5 s
+ok 15 - 141 T1: a held key at a C boundary -- 18 unflagged presses in one second -- is ONE engine request, ready within 2.5 s
+  ---
+  duration_ms: 21.805784
+  type: 'test'
+  ...
+# Subtest: 141 T2 (control, finding 131): the same 18 presses inside text are 18 deletes, press for press, each out at the previous answer
+ok 16 - 141 T2 (control, finding 131): the same 18 presses inside text are 18 deletes, press for press, each out at the previous answer
+  ---
+  duration_ms: 2.657036
+  type: 'test'
+  ...
+# Subtest: 141 T3a (control): once the caret has moved, the next press at the old boundary is sent
+ok 17 - 141 T3a (control): once the caret has moved, the next press at the old boundary is sent
+  ---
+  duration_ms: 2.247403
+  type: 'test'
+  ...
+# Subtest: 141 T3b (control): a no-op whose returned state differs from the sent state releases the held presses
+ok 18 - 141 T3b (control): a no-op whose returned state differs from the sent state releases the held presses
+  ---
+  duration_ms: 3.500916
+  type: 'test'
+  ...
+# Subtest: 141 T3c (control): a no-op reply without a readable state releases the held presses (fail closed towards 131)
+ok 19 - 141 T3c (control): a no-op reply without a readable state releases the held presses (fail closed towards 131)
+  ---
+  duration_ms: 3.473945
+  type: 'test'
+  ...
+# Subtest: 141 T3d: a refused delete drops the held presses and marks the hold refused (134 B)
+ok 20 - 141 T3d: a refused delete drops the held presses and marks the hold refused (134 B)
+  ---
+  duration_ms: 1.620025
+  type: 'test'
+  ...
+# Subtest: 141 T3e: a Delete press while a Backspace is unanswered is not held (another key)
+ok 21 - 141 T3e: a Delete press while a Backspace is unanswered is not held (another key)
+  ---
+  duration_ms: 1.785714
+  type: 'test'
+  ...
+# Subtest: 141 T4: flagged repeats still obey H2 at the keydown -- dropped at depth 2, taken at depth 1
+ok 22 - 141 T4: flagged repeats still obey H2 at the keydown -- dropped at depth 2, taken at depth 1
+  ---
+  duration_ms: 0.87063
+  type: 'test'
+  ...
+1..22
+# tests 22
+# suites 0
+# pass 22
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 84.494511

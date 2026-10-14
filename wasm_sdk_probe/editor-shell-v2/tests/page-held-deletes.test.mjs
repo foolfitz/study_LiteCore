@@ -12,7 +12,9 @@
 // queue does, on mocked time.  `PAGE_SOURCE=<path>` runs the same tests against
 // another copy of the page: on the page before this change (`53019168…`) T1 is
 // red -- 18 requests, ready after 40.5 s -- which is the witness kept in
-// findings/evidence/host-0.2.21/.
+// findings/evidence/host-0.2.21/.  Task 2026-10-14q (finding 144) moved the
+// send into dispatchDelete() and made the release a direct call; the harness
+// slices it, the clauses are unchanged.
 
 import assert from "node:assert/strict";
 import { mock, test } from "node:test";
@@ -89,7 +91,7 @@ function page({ answer }) {
     ${optional(/^const heldDeletes = \{[^\n]*\};$/m)}
     ${optional(/^const DELETE_INPUT_TYPE_OF = [\s\S]*?\]\)\);$/m)}
     ${slice(fn("deleteActionFor"), "deleteActionFor()")}
-    ${["deleteStateOf", "boundaryNoopStands", "holdsDelete", "dropHeldDeletes", "releaseHeldDelete", "settleDelete"]
+    ${["deleteStateOf", "boundaryNoopStands", "holdsDelete", "dropHeldDeletes", "releaseHeldDelete", "settleDelete", "dispatchDelete"]
       .map((name) => optional(fn(name))).join("\n")}
     ${slice(/^el\.sink\.addEventListener\("beforeinput", \(event\) => \{[\s\S]*?\n\}\);$/m, "the beforeinput handler")}
     return { inFlight: () => deletesInFlight,
@@ -255,7 +257,9 @@ test("141 T3e: a Delete press while a Backspace is unanswered is not held (anoth
 test("141 T4: flagged repeats still obey H2 at the keydown -- dropped at depth 2, taken at depth 1", () => {
   const listeners = [];
   // eslint-disable-next-line no-new-func
+  // Finding 144: the keydown guard reads the sent deletes plus the held presses; none is held here.
   const made = new Function("el", `let deletesInFlight = 0;
+     ${optional(/^const heldDeletes = \{[^\n]*\};$/m)}
      ${slice(/^const HELD_DELETE_DEPTH = \d+;$/m, "HELD_DELETE_DEPTH")}
      ${slice(fn("dropsHeldRepeat"), "dropsHeldRepeat()")}
      ${slice(fn("skipHeldRepeat"), "skipHeldRepeat()")}

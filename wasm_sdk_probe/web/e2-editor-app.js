@@ -2537,11 +2537,16 @@ function deleteActionFor(action, shape, offersSelectionDelete, deletesInFlight =
 //     them, as 134's B drops the rest of a hold.
 // "Answered" is the engine's reply (`editorAction`'s `onResult`), before the
 // repaint `run()` awaits; `deletesInFlight`, which spans the repaint, keeps
-// its meaning for the overlay and for H2.  Fail closed towards 131: when the
-// answer cannot be read as a standing no-op, the presses go out.  Named
+// its meaning for the overlay, and H2's depth counts it together with the
+// held presses (finding 144, `skipHeldRepeat`).  Fail closed towards 131: when
+// the answer cannot be read as a standing no-op, the presses go out.  Named
 // limit: a K1 that lands after the reply (L-C-late-K1) is not seen here.
-const DELETE_INPUT_TYPE_OF = Object.fromEntries(
-  Object.entries(DELETE_INPUT_TYPES).map(([inputType, action]) => [action, inputType]));
+//
+// A held press is released by a direct call (`dispatchDelete`), not by a
+// synthetic `beforeinput` on the sink (0.2.21 did that): a re-dispatched event
+// reaches every `beforeinput` listener, so the frozen adapter traced it and
+// 132-B's instrument counted it -- `beforeinputs` 102 against 52 keys -- and
+// its clause (c) read red for the count alone (finding 144).
 
 /** The caret and whether the selection is collapsed, or null when the state cannot say. */
 function deleteStateOf(editorState) {
@@ -2574,15 +2579,14 @@ function dropHeldDeletes() {
   if (deletesUnanswered === 0) heldDeletes.action = null;
 }
 
-/** Deliver one held press again, through the listener below, as the key would. */
+/** Send one held press now, as the key would have (finding 144: a direct call, no synthetic event). */
 function releaseHeldDelete() {
   if (heldDeletes.count === 0) {
     if (deletesUnanswered === 0) heldDeletes.action = null;
     return;
   }
   heldDeletes.count -= 1;
-  const inputType = DELETE_INPUT_TYPE_OF[heldDeletes.action];
-  el.sink.dispatchEvent(new InputEvent("beforeinput", { inputType, bubbles: true, cancelable: true }));
+  dispatchDelete(heldDeletes.action);
 }
 
 /** Once per sent delete, at the engine's answer (or at its failure, or when it never went out). */
@@ -2595,15 +2599,14 @@ function settleDelete(send, result, failed) {
   else releaseHeldDelete();
 }
 
-el.sink.addEventListener("beforeinput", (event) => {
-  const action = DELETE_INPUT_TYPES[event.inputType];
-  if (!action || !session?.document) return;
-  event.preventDefault();
-  // FINDING 141: a delete of this key is out and unanswered -- held, not queued.
-  if (holdsDelete(action, deletesUnanswered, heldDeletes.action)) {
-    heldDeletes.count += 1;
-    return;
-  }
+/**
+ * One delete of the user's, sent now: a key's `beforeinput` that nothing held,
+ * or a held press being released.  The form it goes out in is decided here,
+ * at the moment of sending (finding 121's shape, finding 131's collapsed form
+ * while a delete is out), and the counters are its.
+ */
+function dispatchDelete(action) {
+  if (!session?.document) return;
   const shape = selectionShapeOf({ state: session.state.snapshot.editorState }) ?? lastSelectionShape;
   const sent = deleteActionFor(action, shape,
                                session.offers?.("delete-selection") === true, deletesInFlight);
@@ -2622,6 +2625,18 @@ el.sink.addEventListener("beforeinput", (event) => {
     .finally(() => settleDelete(send, null, false))
     .finally(() => { deletesInFlight -= 1; })
     .then(() => { if (deletesInFlight === 0) paint(); });
+}
+
+el.sink.addEventListener("beforeinput", (event) => {
+  const action = DELETE_INPUT_TYPES[event.inputType];
+  if (!action || !session?.document) return;
+  event.preventDefault();
+  // FINDING 141: a delete of this key is out and unanswered -- held, not queued.
+  if (holdsDelete(action, deletesUnanswered, heldDeletes.action)) {
+    heldDeletes.count += 1;
+    return;
+  }
+  dispatchDelete(action);
 });
 
 // FINDING 122 (SPEC-M3-production-ui §15.6; fable's third ruling, A).  A key
@@ -2831,15 +2846,25 @@ el.sink.addEventListener("keydown", (event) => {
 // press (finding 131).  Finding 106 is the precedent: a held Ctrl+S is one save.
 const HELD_DELETE_DEPTH = 2;
 
-function dropsHeldRepeat(event, deletesInFlight) {
+// FINDING 144 (task 2026-10-14q).  The depth counts the deletes this page has
+// SENT and not seen settle (`deletesInFlight`) PLUS the presses finding 141
+// holds on the page behind an unanswered one (`heldDeletes.count`).  With the
+// sent ones alone, 141's hold kept the count at one -- the second press is
+// held, not sent -- so this cut never fired, every flagged repeat was held and
+// then released one per engine answer, and a 2 s hold inside text deleted 52
+// characters, 27–29 of them after the key came up (host 0.2.21, 132-B red,
+// findings/evidence/host-0.2.21/k3/).  Counting the held press restores H2's
+// bound: at most one delete unanswered and one press waiting, so at most two
+// more after release.
+function dropsHeldRepeat(event, deletesOutOrHeld) {
   return event.repeat === true && !event.isComposing
     && (event.key === "Backspace" || event.key === "Delete")
-    && deletesInFlight >= HELD_DELETE_DEPTH;
+    && deletesOutOrHeld >= HELD_DELETE_DEPTH;
 }
 
 // preventDefault on the keydown: no `beforeinput` follows, so nothing is sent.
 function skipHeldRepeat(event) {
-  if (dropsHeldRepeat(event, deletesInFlight)) event.preventDefault();
+  if (dropsHeldRepeat(event, deletesInFlight + heldDeletes.count)) event.preventDefault();
 }
 
 el.sink.addEventListener("keydown", skipHeldRepeat);
