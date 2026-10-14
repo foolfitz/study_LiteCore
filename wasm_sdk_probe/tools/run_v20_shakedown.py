@@ -631,7 +631,8 @@ def presses_until(session, browser: str, key: str, action: str, target_count: in
     """Press `key` one at a time, each one's own answer awaited, until `stop_when(count)` or `cap`.
     Every trace entry drained on the way is appended to `sink` when one is given (P2-c reads the lok
     events of the edit window from it; Chrome p2c run 2 lost them to these drains)."""
-    out = {"presses": 0, "answers": [], "firstReplyWithTarget": None, "triggerBeforeIt": None, "count": None}
+    out = {"presses": 0, "answers": [], "firstReplyWithTarget": None, "triggerBeforeIt": None, "count": None,
+           "parts": None}
     last_dsc, pending_triggers = None, []
     for n in range(1, cap + 1):
         t0 = time.monotonic()
@@ -655,6 +656,7 @@ def presses_until(session, browser: str, key: str, action: str, target_count: in
             if e.get("k") == "rs" and e.get("op") == "pageRectangles" and e.get("ok"):
                 rects = parse_rects(e.get("rects"))
                 out["count"] = len(rects) if rects is not None else None
+                out["parts"] = e.get("parts")   # the reply's own parts, kept beside its count (review: codex 1)
                 if out["count"] == target_count and out["firstReplyWithTarget"] is None:
                     out["firstReplyWithTarget"] = {"press": n, "t": e["t"], "parts": e.get("parts")}
                     out["triggerBeforeIt"] = [tr for tr in pending_triggers if tr["t"] <= e["t"]][-3:]
@@ -664,6 +666,22 @@ def presses_until(session, browser: str, key: str, action: str, target_count: in
         if stop_when(out["count"]):
             break
     return out
+
+
+def at_2s(reply_after: dict | None, pressed: dict, g: dict, expected_m: int) -> dict:
+    """ARMS.md P2's +2 s reading: the text, and count/parts from the engine's latest reply -- the one in
+    the final wait when there was one, else the last reply seen during the presses, with ITS parts.
+    Before the §34.3 review the fallback wrote the count into `partsAt2s`, asserting an equality that
+    was never measured (codex 1); `parts` must now equal M, never None."""
+    rects = parse_rects(reply_after.get("rects")) if reply_after else None
+    if rects is not None:
+        count, parts = len(rects), reply_after.get("parts")
+    else:
+        count, parts = pressed.get("count"), pressed.get("parts")
+    return {"textAt2s": g["text"], "hiddenAt2s": g["hidden"], "countAt2s": count, "partsAt2s": parts,
+            "expectedM": expected_m,
+            "pass": (g["hidden"] is False and isinstance(g["text"], str) and f"共 {expected_m} 頁" in g["text"]
+                     and count == expected_m and parts == expected_m)}
 
 
 def arm_p2(session, browser: str, url: str, out: dict) -> dict:
@@ -690,16 +708,7 @@ def arm_p2(session, browser: str, url: str, out: dict) -> dict:
                         lambda count: count == base + 1)
     time.sleep(P2_AFTER_S)
     tail = drain(session)
-    reply_after = latest_rects(tail)
-    g = pp.evaluate(session, GEOMETRY)
-    count_after = (len(parse_rects(reply_after["rects"])) if reply_after and parse_rects(reply_after.get("rects")) is not None
-                   else add["count"])
-    out["add"] = {**add, "textAt2s": g["text"], "hiddenAt2s": g["hidden"],
-                  "countAt2s": count_after, "partsAt2s": (reply_after or {}).get("parts", add.get("count")),
-                  "expectedM": base + 1,
-                  "pass": (g["hidden"] is False and isinstance(g["text"], str) and f"共 {base + 1} 頁" in g["text"]
-                           and count_after == base + 1
-                           and ((reply_after or {}).get("parts") in (None, base + 1)))}
+    out["add"] = {**add, **at_2s(latest_rects(tail), add, pp.evaluate(session, GEOMETRY), base + 1)}
     out["add"]["answers"] = out["add"]["answers"][-5:] + [{"total": add["presses"]}]
     FLUSH["fn"]()
     if not add["presses"]:
@@ -709,14 +718,7 @@ def arm_p2(session, browser: str, url: str, out: dict) -> dict:
                            lambda count: False)   # the same number of presses, whatever the count says
     time.sleep(P2_AFTER_S)
     tail = drain(session)
-    reply_back = latest_rects(tail)
-    g = pp.evaluate(session, GEOMETRY)
-    count_back = (len(parse_rects(reply_back["rects"])) if reply_back and parse_rects(reply_back.get("rects")) is not None
-                  else remove["count"])
-    out["remove"] = {**remove, "textAt2s": g["text"], "hiddenAt2s": g["hidden"], "countAt2s": count_back,
-                     "partsAt2s": (reply_back or {}).get("parts", remove.get("count")), "expectedM": base,
-                     "pass": (g["hidden"] is False and isinstance(g["text"], str) and f"共 {base} 頁" in g["text"]
-                              and count_back == base and ((reply_back or {}).get("parts") in (None, base)))}
+    out["remove"] = {**remove, **at_2s(latest_rects(tail), remove, pp.evaluate(session, GEOMETRY), base)}
     out["remove"]["answers"] = out["remove"]["answers"][-5:] + [{"total": remove["presses"]}]
     out["generation"] = gen(session)
     out["toasts"] = toasts(session)[-6:]
@@ -783,6 +785,32 @@ def place_native(session, browser: str, fixture: str, case: str) -> tuple[dict, 
     return spec, placed
 
 
+def c1_clauses(answer: dict, asked: dict, gen_before: str, gen_after: str, toasts_after_key: list) -> dict:
+    """ARMS.md C1's clauses for one completion.  A pure function so that the PREDICATE has red cases,
+    not only the judge's reading of its booleans (§34.3 review, opus Q7's structural point)."""
+    result = asked.get("result") or {}
+    sel = result.get("sel") or {}
+    rev, before_rev = answer.get("rev"), answer.get("beforeRev")
+    return {
+        "completionIsBoundaryNoop": answer.get("ok") is True and answer.get("completion") == "verified-boundary-noop",
+        "changedFalse": answer.get("changed") is False,
+        # Two absent revisions compared equal before the review (codex 1): both must be present.
+        "revisionUnchanged": isinstance(rev, int) and isinstance(before_rev, int) and rev == before_rev,
+        "waitedMsPresent": isinstance((answer.get("boundaryNoop") or {}).get("waitedMs"), (int, float)),
+        "generationStays1": gen_after == gen_before == "1",
+        "engineReadAnswered": asked.get("answered") is True and asked.get("ok") is True,
+        # §10.5 names `selectionType` none.  That field is the engine's FRESH readSelection() in
+        # handleEditorGetState; `selection.collapsed/rectangles` is appendEditorState's callback cache
+        # (probe_engine.cpp:1263), which a late TEXT_SELECTION leaves collapsed -- the L-C-late-K1 case
+        # this read exists for.  Before the review only the cache was read (opus 1a).
+        "noSelectionAt500ms": (asked.get("ok") is True and result.get("selectionType") == "none"
+                               and sel.get("collapsed") is True and sel.get("n") == 0),
+        # ARMS says "no toast": nothing appended to the page's toasts from the key to the read.  Before
+        # the review this was "no reopen toast among the page's last three" (opus 1b, codex 1).
+        "noToast": not toasts_after_key,
+    }
+
+
 def arm_c1(session, browser: str, urls: dict, reload, out: dict) -> dict:
     out.update({"arm": "c1", "rounds": [], "indent": None})
     for round_no in range(1, C1_ROUNDS + 1):
@@ -801,6 +829,7 @@ def arm_c1(session, browser: str, urls: dict, reload, out: dict) -> dict:
                 continue
             drain(session)
             gen_before = gen(session)
+            toasts_before = len(toasts(session))   # the page's toasts accumulate (pp.INSTALL keeps every one)
             key = "Backspace" if spec["backward"] else "Delete"
             t_key = time.monotonic()
             press(session, browser, key)
@@ -821,20 +850,10 @@ def arm_c1(session, browser: str, urls: dict, reload, out: dict) -> dict:
             rec["selectionPushesAfterKey"] = [{"t": e["t"], "sel": e["sel"], "seq": e.get("seq")} for e in pushes
                                               if (e["sel"] or {}).get("n")]
             rec["generationAfter"] = gen(session)
-            rec["toastsAfterKey"] = [t for t in toasts(session)][-3:]
-            result = (asked.get("result") or {})
-            sel = result.get("sel") or {}
-            rec["clauses"] = {
-                "completionIsBoundaryNoop": answer.get("ok") is True and answer.get("completion") == "verified-boundary-noop",
-                "changedFalse": answer.get("changed") is False,
-                "revisionUnchanged": answer.get("rev") == answer.get("beforeRev"),
-                "waitedMsPresent": isinstance((answer.get("boundaryNoop") or {}).get("waitedMs"), (int, float)),
-                "generationStays1": rec["generationAfter"] == gen_before == "1",
-                "engineReadAnswered": asked.get("answered") is True and asked.get("ok") is True,
-                "noSelectionAt500ms": asked.get("ok") is True and sel.get("collapsed") is True and (sel.get("n") or 0) == 0,
-                "noReopenToast": not any(mws.REOPENED in (t or "") or mws.STARTING in (t or "")
-                                         for t in rec["toastsAfterKey"]),
-            }
+            all_toasts = toasts(session)
+            rec["toastsBeforeKey"] = toasts_before          # > 0 when the channel is alive (the open's toast)
+            rec["toastsAfterKey"] = all_toasts[toasts_before:]
+            rec["clauses"] = c1_clauses(answer, asked, gen_before, rec["generationAfter"], rec["toastsAfterKey"])
             rec["waitedMs"] = (answer.get("boundaryNoop") or {}).get("waitedMs")
             rec["outcome"] = "noop" if rec["clauses"]["completionIsBoundaryNoop"] else (
                 "refused" if answer.get("ok") is False else answer.get("completion"))
@@ -874,9 +893,11 @@ def arm_c1(session, browser: str, urls: dict, reload, out: dict) -> dict:
 
 
 def reference_caret(entries: list, request_entry: dict) -> dict | None:
-    """The last editor-state caret the engine pushed, in the same generation, before the request was posted."""
+    """The last editor-state caret the engine pushed, in the same generation, before the request was posted.
+    "Before" is the observer's own order `s`, not the 0.1 ms-rounded clock `t`: a push logged right after
+    the request can share its `t` and was taken as the reference before the review (codex 1, E2)."""
     before = [e for e in entries if e.get("k") == "ev" and e.get("caret") and e.get("g") == request_entry.get("g")
-              and e["t"] <= request_entry["t"]]
+              and e.get("s", -1) < request_entry.get("s", -1)]
     return before[-1] if before else None
 
 

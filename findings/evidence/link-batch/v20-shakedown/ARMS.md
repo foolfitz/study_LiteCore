@@ -100,3 +100,12 @@ Criterion forms are CLAUDE.md §1's: **form one** = a per-instance property over
 2. Record `pgrep -c chrome`.
 3. `pgrep -af "probe_|check_m3|run_e2_c|run_merge"` must show nothing of ours; another executor runs browsers in this tree (the host's new-document feature). If something of ours is running, wait and re-check every 2–3 minutes; never run in parallel.
 4. Chrome first, then Firefox.
+
+## Appended 2026-10-14 after the §34.3 review of the judge (`review/DISPOSITION.md`; the text above is unchanged)
+
+1. **P2-c, "Reading (fixed now)": "a product-reachable path (open, settle, Enter, Backspace, scroll)"** — the runner's P2-c never scrolls, and the click/End before the edits are drained and discarded. The population measured is open, settle, Enter, Backspace. This replaces the word "scroll" in that sentence.
+2. **P2-c, "every id-13 event with its neighbours within ±25 ms … the count of lone id-13 events (no id 0/1/2/3/4 within ±25 ms)"** — as written and as run. What it is not: a flush detector. Review 6's own counterexample (a lone 13 at +3 ms, the click's cursor callback at +25 ms) reads *flanked*; the same at +26 ms reads *lone*. `NOT_ESTABLISHED` is the literal reading; "no size-only flush occurred" is not what it says. The window is not moved after the run.
+3. **E2, "caretBefore equals the caret before the key"** — on the shipped configuration no instance separates the barrier-start cache, P and the cache at refusal (they coincide in all 12 observed instances). The arm's PASS is narrower than its name; the separating class is E3's.
+4. **C1, "the engine's own state read shows no selection … the projection carries `selection.collapsed` and `selection.rectangles` … on the v2 contract the same fact is `collapsed && rectangles.length === 0`"** — not the same fact. `selection.*` in `editorGetStateV2`'s reply is `appendEditorState`'s callback cache; the fresh `readSelection()` reaches the reply only as `selectionType` (`handleEditorGetState`). The clause now requires `selectionType == "none"` as §10.5 words it, beside the cache's `collapsed` and empty rectangles.
+5. **C1, "no toast"** — implemented as "no reopen toast" until the review; now as written: nothing appended to the page's toasts between the key and the engine read.
+6. **E2, "Instances are the refusals reachable … C17, F01, F02, C15 and C16" and the hold** — the judge now requires all six to be judged (the hold counts only after ≥ 1 merge); a partial run FAILS, as C1's six rounds already did.

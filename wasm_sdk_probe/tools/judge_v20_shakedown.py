@@ -8,11 +8,17 @@ reading (ESTABLISHED / NOT_ESTABLISHED) and never decides the exit code.
 
 Red cases (`--self-test`, also `tests/test_v20_shakedown_judge.py`): synthetic reports that pass,
 then one mutation per red case in ARMS.md; each must turn the targeted verdict red, and a report
-without a measurement must read NOT_ESTABLISHED, never PASS.  §34.3: a first COUNTED use of this
-judge needs the two-seat review (REVIEW-BRIEF.md); this shakedown is not counted.
+without a measurement must read NOT_ESTABLISHED, never PASS.  §34.3: the two-seat review was run
+2026-10-14 (v20-shakedown/review/, DISPOSITION.md); its fixes are the ones marked "review" below
+and in run_v20_shakedown.py.  After it the judge is frozen for its first counted use (§34.4).
 
-  judge_v20_shakedown.py --dir findings/evidence/link-batch/v20-shakedown [--expect-page SHA256]
+  judge_v20_shakedown.py --dir findings/evidence/link-batch/v20-shakedown --expect-page SHA256
   judge_v20_shakedown.py --self-test
+
+`--expect-page` is required: without it no report is bound to the page under test (review, opus Q6).
+One report per (browser, arm): a second one in the directory FAILS the cell whatever its verdict, so a
+re-run left beside the report it supersedes cannot hide a FAIL (review, opus Q6 = codex 6); move the
+superseded report under `witness/`, as README §6 does.
 """
 from __future__ import annotations
 
@@ -27,7 +33,11 @@ CRITERION_ARMS = ("p1-60", "p1-mixed", "p2", "p3", "c1", "e2")
 MEASUREMENT_ARMS = ("p2c",)
 BROWSERS = ("chrome", "firefox")
 C1_REQUIRED_ROUNDS = 6
+E2_REQUIRED_INSTANCES = 6       # ARMS.md E2: C15, C16, C17, F01, F02 and the hold across a merge
 PASS, FAIL, NE = "PASS", "FAIL", "NOT_ESTABLISHED"
+# The page the synthetic reports claim to be about (ARMS.md's repointed v67 page); the self-test's
+# expected page, so that the self-test exercises the binding too.
+SYNTHETIC_PAGE = "53019168651b6b4686f1baaba9aa75e0b566d02a3e2cc8a8e8ed4339f360bfd7"
 
 
 def m_of(text) -> int | None:
@@ -75,7 +85,9 @@ def judge_p2(result: dict) -> tuple[str, list[str]]:
             lines.append(f"{label}: the engine's latest reply has {part.get('countAt2s')} rectangles, expected {part.get('expectedM')}")
         if text_m is not None and part.get("countAt2s") is not None and text_m != part.get("countAt2s"):
             lines.append(f"{label}: text M {text_m} and reply count {part.get('countAt2s')} disagree")
-        if part.get("partsAt2s") not in (None, part.get("expectedM")):
+        # ARMS: count = parts = M.  `None` was accepted before the review (codex 1): the runner's fallback
+        # wrote the count into parts, so a missing parts was never seen; now it is a missing measurement.
+        if part.get("partsAt2s") != part.get("expectedM"):
             lines.append(f"{label}: parts {part.get('partsAt2s')} != expected {part.get('expectedM')}")
     return (FAIL if lines else PASS), lines
 
@@ -128,11 +140,15 @@ def judge_e2(result: dict) -> tuple[str, list[str]]:
         return NE, [f"runner error: {result['runnerError']}"]
     cases = result.get("cases") or []
     hold = result.get("hold") or {}
-    judged = [c for c in cases if "judge" in c] + ([hold] if "judge" in hold else [])
+    # The hold is §10.6's "held across a merge": its refusal is an instance only after >= 1 merge.
+    hold_judged = "judge" in hold and isinstance(hold.get("merges"), int) and hold["merges"] >= 1
+    judged = [c for c in cases if "judge" in c] + ([hold] if hold_judged else [])
     notes = [f"{c['case']}: {c['outcome']} -- {c.get('note')}" for c in cases if c.get("note")]
     notes += [f"{c['case']}: {c['outcome']}" for c in cases if c.get("outcome") in ("placement-mismatch", "no-answer")]
     if hold and "judge" not in hold:
         notes.append(f"hold: {hold.get('outcome') or hold.get('error')} (merges {hold.get('merges')})")
+    elif hold and not hold_judged:
+        notes.append(f"hold: refused before any merge (merges {hold.get('merges')}); not an instance of the hold across a merge")
     if not judged:
         return NE, ["no refusal was observed: caretBefore could not be judged"] + notes
     lines = []
@@ -142,6 +158,10 @@ def judge_e2(result: dict) -> tuple[str, list[str]]:
             if held is not True:
                 lines.append(f"{label}: {clause} failed (caretBefore {json.dumps(c['judge'].get('caretBefore'))}, "
                              f"reference {json.dumps((c['judge'].get('referenceCaret') or {}).get('caret'))})")
+    # A partial run is not a PASS (§34.2 "只跑一部分"): C1's `< 6` had this, E2 did not, so a hold that
+    # raised, a runner killed after two cases, or four placement mismatches read PASS (review, opus Q3).
+    if len(judged) < E2_REQUIRED_INSTANCES:
+        lines.append(f"instances judged {len(judged)} < {E2_REQUIRED_INSTANCES} (ARMS.md E2: five cases and the hold)")
     return (FAIL if lines else PASS), lines + notes
 
 
@@ -171,19 +191,28 @@ JUDGES = {"p1-60": judge_p1, "p1-mixed": judge_p1, "p2": judge_p2, "p3": judge_p
           "p2c": judge_p2c}
 
 
-def judge_reports(reports: list[dict], expect_page: str | None = None) -> tuple[int, list[str]]:
+def judge_reports(reports: list[dict], expect_page: str | None) -> tuple[int, list[str]]:
     out: list[str] = []
     verdicts: dict[tuple[str, str], str] = {}
+    if not expect_page:
+        return 1, ["VERDICT NOT GIVEN: no expected page (--expect-page SHA256); without it no report is bound "
+                   "to the page under test and nothing is judged"]
     for report in reports:
         browser = report.get("browser")
         ident = report.get("identity") or {}
-        if expect_page and ident.get("pageServedSha256") != expect_page:
+        if ident.get("pageServedSha256") != expect_page:
             out.append(f"[{browser}] REPORT page {ident.get('pageServedSha256')} != expected {expect_page}: "
                        "this report is about another page and is not read")
             continue
         if report.get("counted") is not False:
             out.append(f"[{browser}] REPORT says counted={report.get('counted')}; a shakedown must say false")
         for arm, result in (report.get("results") or {}).items():
+            if (browser, arm) in verdicts:
+                # Order-independent: whichever of the two is read first, the cell is FAIL.
+                out.append(f"[{browser}] {arm}: DUPLICATE -- a second report for this cell (the first read "
+                           f"{verdicts[(browser, arm)]}); one report per (browser, arm), move the superseded one out")
+                verdicts[(browser, arm)] = FAIL
+                continue
             judge = JUDGES.get(arm)
             if judge is None:
                 out.append(f"[{browser}] {arm}: no rule for an arm the runner declares")
@@ -228,11 +257,12 @@ def synthetic_report(browser: str, instrumented: bool = False) -> dict:
                           "text": f"第 {i + 1}–{i + 2} 頁，共 60 頁", "hidden": False, "pass": True})
     c1_round = {"case": "C29", "round": 1, "answer": {"ok": True, "completion": "verified-boundary-noop", "changed": False,
                                                        "rev": 0, "beforeRev": 0, "boundaryNoop": {"waitedMs": 2251}},
-                "engineRead": {"answered": True, "ok": True, "result": {"sel": {"collapsed": True, "n": 0}}},
-                "generationAfter": "1", "outcome": "noop",
+                "engineRead": {"answered": True, "ok": True,
+                               "result": {"sel": {"collapsed": True, "n": 0, "observed": True}, "selectionType": "none"}},
+                "generationAfter": "1", "outcome": "noop", "toastsBeforeKey": 3, "toastsAfterKey": [],
                 "clauses": {"completionIsBoundaryNoop": True, "changedFalse": True, "revisionUnchanged": True,
                             "waitedMsPresent": True, "generationStays1": True, "engineReadAnswered": True,
-                            "noSelectionAt500ms": True, "noReopenToast": True}, "pass": True}
+                            "noSelectionAt500ms": True, "noToast": True}, "pass": True}
     rounds = []
     for r in (1, 2, 3):
         for case in ("C29", "C30"):
@@ -243,9 +273,9 @@ def synthetic_report(browser: str, instrumented: bool = False) -> dict:
                          "referenceCaret": {"caret": dict(caret), "seq": 41},
                          "clauses": {"caretBeforePresent": True, "rectNotNull": True, "rectEqualsReference": True,
                                      "sequenceNotAfterReference": True}}, "pass": True}
+    e2_cases = [{**copy.deepcopy(e2_case), "case": case} for case in ("C15", "C16", "C17", "F01", "F02")]
     return {"browser": browser, "counted": False,
-            "identity": {"pageServedSha256": "53019168651b6b4686f1baaba9aa75e0b566d02a3e2cc8a8e8ed4339f360bfd7",
-                         "instrumentedWorker": instrumented},
+            "identity": {"pageServedSha256": SYNTHETIC_PAGE, "instrumentedWorker": instrumented},
             "results": {
                 "p1-60": {"arm": "p1-60", "reply": {"parts": 60, "count": 60}, "positions": positions,
                           "partsEqualsCount": True, "ok": True},
@@ -260,9 +290,9 @@ def synthetic_report(browser: str, instrumented: bool = False) -> dict:
                 "p3": {"arm": "p3", "nonVacuous": True, "paintsInWindow": 40, "reachedBottom": True,
                        "pageRectanglesRequestsInWindow": 0, "untriggeredRequests": 0, "triggersInWindow": 0, "ok": True},
                 "c1": {"arm": "c1", "rounds": rounds, "placementMismatches": 0, "ok": True},
-                "e2": {"arm": "e2", "cases": [e2_case], "hold": {"outcome": "refused", "merges": 2,
-                                                                  "judge": copy.deepcopy(e2_case["judge"]), "pass": True},
-                       "refusalsObserved": 2, "ok": True},
+                "e2": {"arm": "e2", "cases": e2_cases, "hold": {"outcome": "refused", "merges": 2,
+                                                                 "judge": copy.deepcopy(e2_case["judge"]), "pass": True},
+                       "refusalsObserved": 6, "ok": True},
             }}
 
 
@@ -330,6 +360,20 @@ def mutations() -> list[tuple[str, str, str, callable]]:
     def e2_no_refusal(r):
         r["results"]["e2"]["cases"] = [{"case": "C17", "outcome": "verified-key-undo", "note": "verbatim"}]
         r["results"]["e2"]["hold"] = {"outcome": "hold-reached-no-refusal", "merges": 2}
+    # --- review 2026-10-14 (opus Q3 D2-D5, Q6.2; codex 1): what the committed runner writes on a partial run.
+    def e2_hold_raised(r):      # arm_e2 catches the hold's exception: out["hold"] = {"error": ...}; 5 cases judged
+        r["results"]["e2"]["hold"] = {"error": "TimeoutError: CDP Input.dispatchKeyEvent"}
+    def e2_killed_after_two(r):  # the runner killed after case 2's FLUSH: two cases, no hold
+        r["results"]["e2"]["cases"] = r["results"]["e2"]["cases"][:2]
+        r["results"]["e2"]["hold"] = None
+    def e2_four_mismatches(r):  # placement failed on four of five cases; the hold reached no refusal
+        for c in r["results"]["e2"]["cases"][1:]:
+            c.pop("judge"); c.pop("pass"); c["outcome"] = "placement-mismatch"
+        r["results"]["e2"]["hold"] = {"outcome": "hold-reached-no-refusal", "merges": 2}
+    def e2_hold_no_merge(r):    # the hold's first press was the refusal: not "held across a merge"
+        r["results"]["e2"]["hold"]["merges"] = 0
+    def p2_parts_missing(r):    # no reply in the final wait and no parts carried from the presses
+        r["results"]["p2"]["add"]["partsAt2s"] = None
     def criterion_on_trace_worker(r):
         r["identity"]["instrumentedWorker"] = True
     return [
@@ -352,6 +396,11 @@ def mutations() -> list[tuple[str, str, str, callable]]:
         ("e2: caretBefore absent", "e2", FAIL, e2_absent),
         ("e2: caretBefore.rect null", "e2", FAIL, e2_null_rect),
         ("e2: no refusal observed", "e2", NE, e2_no_refusal),
+        ("e2: the hold raised, five cases judged (review D2)", "e2", FAIL, e2_hold_raised),
+        ("e2: runner killed after two cases (review D3)", "e2", FAIL, e2_killed_after_two),
+        ("e2: four placement mismatches, hold without refusal (review D4)", "e2", FAIL, e2_four_mismatches),
+        ("e2: the hold refused before any merge (review D5)", "e2", FAIL, e2_hold_no_merge),
+        ("p2: parts missing at +2 s (review codex 1)", "p2", FAIL, p2_parts_missing),
         ("identity: a criterion arm on the trace worker", "p1-60", FAIL, criterion_on_trace_worker),
     ]
 
@@ -367,16 +416,71 @@ def p2c_red_cases() -> list[tuple[str, str, dict]]:
             ("p2c: no lok events at all", NE, result(0, False))]
 
 
+def exit_rule_red_cases(base: list[dict]) -> list[tuple[str, bool]]:
+    """The exit rule's own red cases (review, opus Q6 = codex 6): a duplicate cell in either order, and no
+    expected page.  Each must exit 1; the duplicate must be named whichever file sorts first."""
+    bad = copy.deepcopy(base[0])
+    bad["results"]["p1-60"]["positions"][5]["text"] = "第 7 頁，共 60 頁"       # the FAIL of the first run
+    rerun = copy.deepcopy(base[0])
+    rerun["results"] = {"p1-60": rerun["results"]["p1-60"]}                   # the green re-run of that arm
+    fail_first = judge_reports([bad, rerun, base[1]], SYNTHETIC_PAGE)
+    pass_first = judge_reports([rerun, bad, base[1]], SYNTHETIC_PAGE)
+    no_page = judge_reports(copy.deepcopy(base), None)
+    dup = lambda lines: any(l.startswith("[chrome] p1-60: DUPLICATE") for l in lines)   # noqa: E731
+    return [("exit: a FAIL then a green re-run of the same cell exits 1", fail_first[0] == 1 and dup(fail_first[1])),
+            ("exit: the green re-run sorted first still exits 1", pass_first[0] == 1 and dup(pass_first[1])),
+            ("exit: no expected page is not a verdict", no_page[0] == 1 and no_page[1][0].startswith("VERDICT NOT GIVEN"))]
+
+
+def runner_predicate_red_cases(rv) -> list[tuple[str, bool]]:
+    """The runner predicates the judge reads as booleans, made red at the predicate (review Q7: before,
+    every C1/E2 red case set the boolean by hand, so the predicate itself was never exercised)."""
+    answer = {"ok": True, "completion": "verified-boundary-noop", "changed": False, "rev": 0, "beforeRev": 0,
+              "boundaryNoop": {"waitedMs": 2251}}
+    asked = {"answered": True, "ok": True, "result": {"sel": {"collapsed": True, "n": 0, "observed": True},
+                                                      "selectionType": "none"}}
+    green = rv.c1_clauses(answer, asked, "1", "1", [])
+    fresh_text = rv.c1_clauses(answer, {**asked, "result": {**asked["result"], "selectionType": "text"}}, "1", "1", [])
+    n_absent = rv.c1_clauses(answer, {**asked, "result": {"sel": {"collapsed": True, "n": None}, "selectionType": "none"}},
+                             "1", "1", [])
+    rev_absent = rv.c1_clauses({**answer, "rev": None, "beforeRev": None}, asked, "1", "1", [])
+    toast = rv.c1_clauses(answer, asked, "1", "1", ["EDITOR_BOUNDARY_UNSUPPORTED：游標已在文件開頭"])
+    # E2's reference: a push logged right after the request shares its 0.1 ms `t`; `s` orders them.
+    a, b = {"x": 2684, "y": 7266, "width": 0, "height": 276}, {"x": 3000, "y": 7266, "width": 0, "height": 276}
+    trace = [{"k": "ev", "s": 0, "g": 1, "t": 100.0, "caret": a, "seq": 10},
+             {"k": "rq", "s": 1, "g": 1, "t": 101.0, "rq": 5},
+             {"k": "ev", "s": 2, "g": 1, "t": 101.0, "caret": b, "seq": 11}]
+    ref = rv.reference_caret(trace, trace[1])
+    # P2's +2 s reading with no reply in the final wait: the presses' last reply, with ITS parts.
+    g = {"text": "第 60 頁，共 61 頁", "hidden": False}
+    fallback = rv.at_2s(None, {"count": 61, "parts": 60}, g, 61)
+    direct = rv.at_2s({"rects": "; ".join(["284, 284, 11906, 16838"] * 61), "parts": 61}, {"count": 1, "parts": 1}, g, 61)
+    return [("c1 predicate: the green round holds every clause", all(green.values())),
+            ("c1 predicate: fresh read says text, cache collapsed -> noSelectionAt500ms false (review 1a)",
+             fresh_text["noSelectionAt500ms"] is False),
+            ("c1 predicate: rectangle count absent -> noSelectionAt500ms false (review codex 1)",
+             n_absent["noSelectionAt500ms"] is False),
+            ("c1 predicate: both revisions absent -> revisionUnchanged false (review codex 1)",
+             rev_absent["revisionUnchanged"] is False),
+            ("c1 predicate: any toast after the key -> noToast false (review 1b)", toast["noToast"] is False),
+            ("e2 reference: the push logged after the request at the same t is not the reference (review codex 1)",
+             ref is not None and ref["caret"] == a),
+            ("p2 +2 s: no reply in the wait -> parts is the last reply's parts, not its count", fallback["partsAt2s"] == 60
+             and fallback["pass"] is False),
+            ("p2 +2 s: a reply in the wait is read directly", direct["countAt2s"] == 61 and direct["partsAt2s"] == 61
+             and direct["pass"] is True)]
+
+
 def self_test(verbose: bool = True) -> int:
     failures = []
     base = [synthetic_report("chrome"), synthetic_report("firefox")]
-    code, lines = judge_reports(copy.deepcopy(base))
+    code, lines = judge_reports(copy.deepcopy(base), SYNTHETIC_PAGE)
     if code != 0 or not lines[-1].startswith("VERDICT PASS"):
         failures.append(f"the synthetic PASS set does not pass: {lines[-1]}")
     for name, arm, expected, mutate in mutations():
         reports = copy.deepcopy(base)
         mutate(reports[0])
-        code, lines = judge_reports(reports)
+        code, lines = judge_reports(reports, SYNTHETIC_PAGE)
         cell = next((l for l in lines if l.startswith(f"[chrome] {arm}:")), "")
         got = cell.split(": ", 1)[1].split(" ")[0] if ": " in cell else "?"
         ok = got == expected and code == 1
@@ -394,9 +498,19 @@ def self_test(verbose: bool = True) -> int:
             print(f"{'ok ' if ok else 'RED-CASE FAILED'} {name}: {reading} (expected {expected})")
         if not ok:
             failures.append(name)
+    for name, ok in exit_rule_red_cases(base):
+        if verbose:
+            print(f"{'ok ' if ok else 'RED-CASE FAILED'} {name}")
+        if not ok:
+            failures.append(name)
     # The lone-flush detector itself, on a synthetic trace (the runner's function, imported here).
     try:
         import run_v20_shakedown as rv
+        for name, ok in runner_predicate_red_cases(rv):
+            if verbose:
+                print(f"{'ok ' if ok else 'RED-CASE FAILED'} {name}")
+            if not ok:
+                failures.append(name)
         lone = rv.lok_summary([{"k": "mt", "type": "lok", "id": 13, "tw": 100.0}])
         flanked = rv.lok_summary([{"k": "mt", "type": "lok", "id": 13, "tw": 100.0},
                                   {"k": "mt", "type": "lok", "id": 0, "tw": 103.0}])
@@ -430,7 +544,8 @@ def self_test(verbose: bool = True) -> int:
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--dir", type=Path)
-    ap.add_argument("--expect-page", default=None, help="the served page's sha256 every report must carry")
+    ap.add_argument("--expect-page", default=None,
+                    help="the served page's sha256 every report must carry (required with --dir)")
     ap.add_argument("--self-test", action="store_true")
     args = ap.parse_args()
     if args.self_test:
