@@ -69,7 +69,11 @@ EXPECTED_DIST_SHA256 = "8909564eb2316afa6de7868a08b61d27219fabdf49f37326fee0dda2
 # The previous pin, the 134 page, was 6470dec0cb0e20db46d33d46bfc565893f542b79f7317fcbc421653a562bb94b (findings/evidence/129/final/round-20261012T235136Z ran on it).
 # Re-pinned 2026-10-14 to the v67 candidate page (task 2026-10-14c: v20 part 1/2 page+shell bytes and ruling 6 conditions 45, 47, 48, before the shell freeze; the shipped engine is still v19).
 # The previous pin, the 136 page, was b24d754a426706bb5c93dbacb3f7ffadc655e738ee9a0fdd7168069f0f701678 (findings/evidence/129/final/round-20261013T063013Z ran on it).
-FINAL_PAGE_SHA256 = "7815e16c2cdfdebe90fbe8bf91d07a8315654bf76cf603fe8392acebb5be0799"
+# Re-pinned 2026-10-15 (task 10-15c P4, before binding v20) to host 0.2.23's page (shell v72, engine v20).  129-B is NOT retired on v20:
+# SPEC-M3-link-batch §10.9 S-2 retires it in favour of R1, and R1 is deferred to the ordered-commands batch (§13.3; handoff 10-13f), so
+# L-129 stands and this instrument stays live -- it last ran as finding 140's C2 witness (task 10-14k, round-20261014T085633Z).
+# The previous pin, the v67/v68 candidate page, was 7815e16c2cdfdebe90fbe8bf91d07a8315654bf76cf603fe8392acebb5be0799 (that round ran on it).
+FINAL_PAGE_SHA256 = "ccb67a52a3fe4b73139467c67a28522b9a87040921cb1da36448e5ad8dfdb43e"
 OLD_PAGE_GZ = HERE / "build" / "archive" / "host-0.2.12-engine-45cdcedfc0fe7e61" / "files" / "e2-editor-app.js.gz"
 INSTRUMENT_LINE = "\nglobalThis.__m4 = { get session() { return session; } };\n"
 NATIVE_ROUND = TREE / "findings" / "evidence" / "129" / "native" / "point-click-round-20261012T031459Z"
