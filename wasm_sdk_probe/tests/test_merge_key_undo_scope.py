@@ -3,10 +3,9 @@ committed green run (findings/evidence/v19/pre-link/m1-1/green.json) and mutatio
 per-carrier object sets (ruling 6 condition 50, 2026-10-14), on the rows of the committed v20 runs under
 findings/evidence/link-batch/v20-part3/m1-1/ (green-1 and red cases 1-4) and the witness's.
 
-green-2 (`--base 82af92ca^`) is NOT here: it is red (E2_V15 and E2_V19 probe_engine differ from that base), see
-that directory's README.  Nothing below asserts it as expected.
-
-    python3 -m unittest tests.test_merge_key_undo_scope
+green-2 (`--base 82af92ca^`) and red-5 are the after-56 runs (m1-1/after-56/, ruling 6 amendment 2 conditions 56
+and 57): green-2 exit 0 and red-5 red on exactly one line.  The pre-56 runs (m1-1/, green-2 red because of part 1's
+unguarded finishMergeKeyError hunk) are kept as negative controls: the judge must still call them red.
 """
 from __future__ import annotations
 
@@ -138,6 +137,58 @@ class PerCarrierObjectSets(unittest.TestCase):
         self.assertEqual(failures, doc["failures"])
         self.assertEqual([f.split(":")[0] for f in failures],
                          ["E2_V19 build/e2/editor-v19/sdk_api.o", "E2_V19 build/e2/editor-v19/editor_api.o"])
+
+    # ruling 6 amendment 2, conditions 56 and 57: the runs after the engine edit (543a5566)
+    def test_green_2_base_82af92ca_up_after_56(self):
+        doc = committed("m1-1/after-56", "green-2-base-82af92ca-up")
+        self.assertEqual(doc["failures"], [])
+        self.assertEqual(self.judged(doc, {"E2_V20": V20_SET}, "82af92ca^"), [])
+        # only the three declared E2_V20 objects differ from the tree before part 1
+        differing = sorted((r["rule"], r["object"].rsplit("/", 1)[1]) for r in doc["rows"] if not r["same"])
+        self.assertEqual(differing, sorted(("E2_V20", f"{n}.o") for n in V20_SET))
+
+    def test_green_1_after_56_is_the_same_verdict(self):
+        doc = committed("m1-1/after-56", "green-1-base-5d77dc84")
+        self.assertEqual(doc["failures"], [])
+        self.assertEqual(self.judged(doc, V20_CARRIERS, "5d77dc84"), [])
+
+    def test_red_5_after_56_is_red_on_exactly_one_line(self):
+        # Condition 57: the same command as green-2 plus --carrier E2_V19; a valid red case only when its output is
+        # exactly this FAIL line and no other.
+        expected = "E2_V19: its probe_engine object does not differ from 82af92ca^ (B is not in it)"
+        doc = committed("m1-1/after-56", "red-5-base-82af92ca-up-with-v19")
+        failures = self.judged(doc, {"E2_V20": V20_SET, "E2_V19": ("probe_engine",)}, "82af92ca^")
+        self.assertEqual(failures, [expected])
+        self.assertEqual(doc["failures"], [expected])
+        stdout = (V20_DIR / "m1-1/after-56/red-5-base-82af92ca-up-with-v19.stdout.txt").read_text().splitlines()
+        self.assertEqual([line for line in stdout if line.startswith("FAIL ")], ["FAIL " + expected])
+        self.assertEqual((V20_DIR / "m1-1/after-56/red-5-base-82af92ca-up-with-v19.exit.txt").read_text().strip(),
+                         "exit 1")
+
+    def test_after_56_green_2_rows_go_red_when_a_frozen_carrier_moves(self):
+        doc = committed("m1-1/after-56", "green-2-base-82af92ca-up")
+        for rule in ("E2_V15", "E2_V19"):
+            with self.subTest(rule):
+                rows = copy.deepcopy(doc["rows"])
+                row(rows, rule, "probe_engine").update(same=False)
+                failures = c.judge_rows(rows, {"E2_V20": V20_SET}, rules_of(doc), "82af92ca^")
+                self.assertEqual(len(failures), 1)
+                self.assertIn(f"{rule} build/e2/editor-{rule[3:].lower()}/probe_engine.o", failures[0])
+
+    # negative controls: the pre-56 runs, kept as records, must still be judged red
+    def test_the_pre_56_green_2_is_red_on_v15_and_v19_probe_engine(self):
+        doc = committed("m1-1", "green-2-base-82af92ca-up")
+        failures = self.judged(doc, {"E2_V20": V20_SET}, "82af92ca^")
+        self.assertEqual(failures, doc["failures"])
+        self.assertEqual([f.split(":")[0] for f in failures],
+                         ["E2_V15 build/e2/editor-v15/probe_engine.o", "E2_V19 build/e2/editor-v19/probe_engine.o"])
+
+    def test_the_pre_56_red_5_was_not_a_red_case(self):
+        doc = committed("m1-1", "red-5-base-82af92ca-up-with-v19")
+        failures = self.judged(doc, {"E2_V20": V20_SET, "E2_V19": ("probe_engine",)}, "82af92ca^")
+        self.assertEqual(failures, doc["failures"])
+        self.assertEqual([f.split(":")[0] for f in failures], ["E2_V15 build/e2/editor-v15/probe_engine.o"])
+        self.assertNotIn("E2_V19: its probe_engine object does not differ", " ".join(failures))
 
     def test_mutations_of_the_green_rows(self):
         doc = committed("m1-1", "green-1-base-5d77dc84")

@@ -1,12 +1,24 @@
 #!/usr/bin/env bash
 # M1-1 extended (ruling 6 condition 50.4'/50.5'): the two green runs, the five red cases, and the default
-# invocation after the change.  Run from wasm_sdk_probe/.  No make target builds anything: the tool preprocesses
+# invocation after the change.  Run from wasm_sdk_probe/.  OUT=DIR writes somewhere else (the default is the
+# directory that holds this script; the pre-56 outputs there are kept as the record of green-2's red).  No make target builds anything: the tool preprocesses
 # src/ from `git archive BASE` and from the working tree, and reads the compile commands from `make -n -B`.
 #
 #   bash ../findings/evidence/link-batch/v20-part3/m1-1/run.sh
 set -u
-OUT=../findings/evidence/link-batch/v20-part3/m1-1
+OUT=${OUT:-../findings/evidence/link-batch/v20-part3/m1-1}
 V20=E2_V20=probe_engine,sdk_api,editor_api
+
+# Condition 57 (ruling 6 amendment 2): red-5 is a red case only when its stdout has exactly one FAIL line and it is
+# this one.  Before the engine edit of 543a5566 it was red on E2_V15's undeclared difference instead, so it was not.
+RED5_LINE='FAIL E2_V19: its probe_engine object does not differ from 82af92ca^ (B is not in it)'
+red5_clean() {  # stdout file of the red-5 run
+  [ "$(grep -c '^FAIL ' "$1")" = 1 ] && grep -qxF "$RED5_LINE" "$1"
+}
+if [ "${1:-}" = "--check-red5" ]; then  # bash run.sh --check-red5 FILE : judge an existing red-5 stdout, run nothing
+  if red5_clean "$2"; then echo "red-5 CLEAN: $2"; else echo "red-5 NOT A RED CASE (condition 57): $2"; exit 1; fi
+  exit 0
+fi
 
 {
   echo "HEAD (parent of the commit that carries this evidence): $(git rev-parse HEAD)"
@@ -35,3 +47,8 @@ run red-2-v20-engine-sdk-api  --base 5d77dc84 --carrier E2_V15 --carrier E2_V19 
 run red-3-v20-declared-unmoved --base 5d77dc84 --carrier E2_V15 --carrier E2_V19 --carrier E2_V20=probe_engine,sdk_api,editor_api,unoembind_stub
 run red-4-inject-v19-define   --base 5d77dc84 --carrier E2_V15 --carrier E2_V19 --carrier $V20 --inject E2_V19=-DOXSDK_E2_V20_LINK_BATCH
 run red-5-base-82af92ca-up-with-v19 --base '82af92ca^' --carrier $V20 --carrier E2_V19
+if red5_clean "$OUT/red-5-base-82af92ca-up-with-v19.stdout.txt"; then
+  echo "red-5: clean red case"
+else
+  echo "red-5: NOT A RED CASE (condition 57): its stdout is not exactly the one FAIL line"
+fi
