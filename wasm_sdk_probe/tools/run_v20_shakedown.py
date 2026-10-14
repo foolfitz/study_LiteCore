@@ -1119,7 +1119,11 @@ def main() -> int:
         worker = worker_path.read_text(encoding="utf-8")
         if worker.count(TRACE_ANCHOR) != 1:
             raise SystemExit("the worker's handleCEvent anchor is not there exactly once")
-        patched = worker.replace(TRACE_ANCHOR, TRACE_ANCHOR + TRACE_PATCH, 1).encode("utf-8")
+        # The builder's placement (build_merge_trace_profile.py:77): BEFORE the switch, after the requestId
+        # line.  Chrome p2c run 1 put it after the anchor, inside `case "ready"`, and logged nothing.
+        patched = worker.replace(TRACE_ANCHOR, TRACE_ANCHOR.replace("  switch (event.type) {",
+                                                                    TRACE_PATCH + "  switch (event.type) {"),
+                                 1).encode("utf-8")
         overrides[f"profiles/{args.profile}/sdk-worker.js"] = patched
         worker_served_sha = sha256_bytes(patched)
     mirror = Path(tempfile.mkdtemp(prefix="v20-shakedown-")) / "root"
