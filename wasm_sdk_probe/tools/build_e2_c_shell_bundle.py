@@ -701,7 +701,17 @@ FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
 # placeCaret and the queue observer change paths.  Frozen after 412/412 unit tests, E1-C intact, and the pre-freeze
 # witness on these bytes on v19 (129-B, both browsers, 54/54, 0 cells differ from three reference rounds;
 # findings/evidence/link-batch/v67-witness/).  restore-window needs the ddev host and was not run on these bytes.
-MANIFEST = Path("e2/editor-shell-v2-bundle-v67.json")
+#
+# v68, 2026-10-14: finding 140 (a click below the first line of a blank document held the queue for 30 s).  Differs
+# from v67 in `editor-shell-v2/narrow-editor-v2-session.js` only (`placeCaret`: a click made while a range is open takes
+# v67's polling path, a click on a collapsed selection asks the engine through editorPlaceCaretV2 with rounded twips;
+# first pass 6c761117, second pass a60456a6 after the first candidate's 129-B witness was red) plus declarations in
+# `narrow-editor-v2-client.js` / `paragraph-editor-client.js`.  Frozen after 352/352 editor-shell-v2 unit tests, E1-C
+# intact, C1 (paste-latency, blank-page click, v19 and v20, both browsers) and the pre-freeze 129-B witness on these
+# bytes on v19 (both browsers, 54/54, 0 cells differ from four reference rounds, `定位游標` Chrome 25.9-41.6 ms median
+# 27.5 / Firefox 27.8-34.6 median 29.1; findings/evidence/link-batch/v68-witness-2/).  restore-window needs the host and
+# was not run on these bytes.
+MANIFEST = Path("e2/editor-shell-v2-bundle-v68.json")
 ENTRYPOINT = Path("web/e2-editor-app.js")
 
 # The directories whose *.js files must all be accounted for.  `editor-shell`
