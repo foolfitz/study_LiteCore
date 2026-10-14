@@ -1515,6 +1515,95 @@ $(E2_V19_DIST)/sdk-manifest.json: $(E2_V19_BUILD)/probe.js $(E2_V19_BUILD)/probe
 $(E2_V19_BUILD) $(E2_V19_DIST):
 	mkdir -p $@
 
+# --------- v20, the link batch: page number, C, caretBefore (NEW LINK)
+#
+# Spec SPEC-M3-link-batch 13.3 (the scope after fable's ruling 4; Shift+Arrow
+# and arrows on a range are NOT in it): the page-rectangles document query and
+# the DOCUMENT_SIZE_CHANGED counter (the page number), C (a Backspace/Delete at
+# a document end completes as verified-boundary-noop after a 2000 ms window
+# instead of a refusal that reopens the engine) and caretBefore on refusals.
+# All of it sits behind OXSDK_E2_V20_LINK_BATCH (v20 part 1, 82af92ca), and
+# this is the only rule that defines it.
+# tools/check_merge_key_undo_scope.py checks the define's reach: with --base
+# 82af92ca^ (the tree before part 1) only this rule's probe_engine.o and
+# sdk_api.o may differ.
+# Otherwise v19's compile rule; editor ABI 4, unchanged.
+#
+# Two inputs are NOT v19's.  The worker is the tree's sdk/sdk-worker.js, not
+# v15's archive copy: v20's forwards page-rectangles, the counter, boundaryNoop
+# and caretBefore (9 hunks against the archive, part 1 README section 3), and
+# the recipe refuses any other bytes than the reviewed ones.  The export list
+# is v19's recipe plus _oxsdk_document_page_rectangles.  Packing is v19's
+# (v18's source manifest and its two --check preludes) plus --page-rectangles,
+# which declares editorContract.pageRectangles.
+#
+# Never pass ALLOW_FROZEN_RELINK=1 for v8, v15 or v19.
+E2_V20_BUILD := build/e2/editor-v20
+E2_V20_DIST := dist/profiles/e2-editor-v20
+E2_V20_SOURCES := $(E2_C_SOURCES)
+E2_V20_OBJECTS := $(patsubst src/%.cpp,$(E2_V20_BUILD)/%.o,$(E2_V20_SOURCES))
+E2_V20_WORKER_SHA256 := 478d0da1dbfcf93615a00025c3c2f9b72c3cfa486d04746f03dea5fcf757b099
+
+$(E2_V20_BUILD)/%.o: src/%.cpp $(HEADERS) src/editor_api.h \
+		src/format_readback_text.hpp src/a11y_paragraph_identity.hpp \
+		src/merge_key_undo.hpp Makefile | $(E2_V20_BUILD)
+	$(CXX) $(E1_CPPFLAGS) $(R5_CXXFLAGS) -DOXSDK_EDITOR_DISCOVERY \
+		-DOXSDK_FINDING_016_SELECTION_BARRIER -DOXSDK_E2_FORMAT_BARRIER \
+		-DOXSDK_MERGE_KEY_UNDO -DOXSDK_E2_V20_LINK_BATCH \
+		$(EXTRA_DEFINES) -c $< -o $@
+
+# v19's recipe plus the one new document export.
+$(E2_V20_BUILD)/exports.txt: $(R5_BUILD)/writer-review/exports.txt Makefile \
+		| $(E2_V20_BUILD)
+	cp $< $@
+	printf '%s\n' \
+		_oxsdk_editor_action \
+		_oxsdk_editor_get_state \
+		_oxsdk_editor_select_range \
+		_oxsdk_editor_place_caret \
+		_oxsdk_editor_abi_version \
+		_oxsdk_editor_set_action_gestures \
+		_oxsdk_document_redo \
+		_oxsdk_document_page_rectangles >> $@
+	@if grep -q editor_discovery $@; then \
+		echo "product export list contains a discovery symbol"; exit 1; fi
+
+# Guarded from the first link, like every product artifact before it.
+$(E2_V20_BUILD)/probe.js: $(E2_V20_OBJECTS) $(EXTRA_OBJECTS) \
+		$(E2_V20_BUILD)/exports.txt $(LINKDEPS) $(FS_PRE_JS) Makefile
+	$(call refuse_unasked_relink,the link batch (v20: page number, C, caretBefore) -- every link mints a new hash)
+	$(call link_r5_product,$(E2_V20_OBJECTS) $(EXTRA_OBJECTS),$(E2_V20_BUILD)/exports.txt,$@)
+
+$(E2_V20_BUILD)/probe.wasm: $(E2_V20_BUILD)/probe.js
+	@test -s $@
+
+# v19's packing with v20's loader, wasm, export list and the tree's worker.
+$(E2_V20_DIST)/sdk-manifest.json: $(E2_V20_BUILD)/probe.js $(E2_V20_BUILD)/probe.wasm \
+		$(E2_V20_BUILD)/exports.txt sdk/sdk-worker.js \
+		sdk/v18-writer-review-manifest.json \
+		tools/build_base_no35_pack.py tools/build_r5_profiles.py \
+		tools/build_cjk_subset.py tools/build_cjk_subset_ttc_pack.py \
+		tools/build_cjk_subset_mono_pack.py \
+		tools/build_e2_editor_v4_profile.py tools/build_e2_c_profile.py \
+		tools/build_e2_b_profile.py tools/e1_support.py | $(E2_V20_DIST)
+	echo "$(E2_V20_WORKER_SHA256)  sdk/sdk-worker.js" | sha256sum -c --quiet
+	python3 tools/build_base_no35_pack.py --check
+	python3 tools/build_cjk_subset_mono_pack.py --check
+	python3 tools/build_e2_editor_v4_profile.py \
+		--source-manifest sdk/v18-writer-review-manifest.json \
+		--loader $(E2_V20_BUILD)/probe.js --wasm $(E2_V20_BUILD)/probe.wasm \
+		--worker sdk/sdk-worker.js \
+		--exports $(E2_V20_BUILD)/exports.txt \
+		--profile e2-editor-v20 --inline-range-gestures all \
+		--page-rectangles \
+		--output $(E2_V20_DIST)
+	@test -s $(E2_V20_DIST)/probe.js
+	@test -s $(E2_V20_DIST)/probe.wasm
+	@test -s $(E2_V20_DIST)/sdk-worker.js
+
+$(E2_V20_BUILD) $(E2_V20_DIST):
+	mkdir -p $@
+
 # ---------------------------------------------------------------- v5, a11y
 #
 # Everything below names $(E2_V5_CORE) explicitly instead of $(LOBUILD).  The
