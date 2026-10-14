@@ -542,6 +542,24 @@ part P（`findings/evidence/link-batch/pre-binding/README.md` P4）只移了頁�
 
 登錄一件觀察：`test_judge_counted_m2.py` 與 `test_merge_wasm_clauses.py` 不在任何 Makefile 目標裡，綁定後 `make test-e2-c-static` 結束碼 0、同時 V19Witness 是紅的。計數鏈的前置檢查先手跑這兩支；要不要進閘門是擁有者的決定（Makefile 改動）。
 
+### 17.3 §10.7 的清單漏了 production UI 的三臂：Rbs／Rdel 改期望、B3x 自本次計數撤出（2026-10-15，只追加；寫在計數鏈啟動之前）
+
+§10.7 要求在任何計數之前列出「每一支期望寫著 `nothing-selected`、拒絕次數或世代清單的臂」及其在 C 之下的新期望；當時的清單由 held-into-refusal 探針的期望 grep 出來（`start-press`、`start-hold`、…，`269cbc6d` 已改）。**漏了 `check_m3_production_ui.py`（SPEC-M3-production-ui §13.2–13.3）的三支臂**，它們的期望也是拒絕：
+
+- **Rbs、Rdel**（A1-2′ R）：`score_run` 要世代 `1 → 2`（拒絕＋重開），A1-3′ 要至少一筆停下的樣本且每顆按鈕停用；
+- **B3x**（A1-5）：三次拒絕到 Worker generation 上限 `1→2→3→3`、`data-limit` 為 `saved`、通知按鈕重載；
+- **Bdel、Bbs**（0.2.7 的臂，§13 起不再跑、不計數）：同一個拒絕期望（世代 `1 → 2`）。若有人在 v20 上跑它們，會因同樣的理由紅在 `no refusal-and-reopen happened`——那是期望過期，不是產品缺陷；它們的位置是 v8 的版面，本來就不該在 v19 之後跑。
+
+這一段是在準備 0.2.23 的計數鏈時讀原始碼發現的（`check_m3_production_ui.py` 自 `3a6603de` 起只有 pin 的 commit），不是跑出來的；證人另外跑。
+
+**證人**（§34.4「因執行而修」的證人）：`findings/evidence/m3-production-ui/witness-c-0.2.23/`（`f3b543c9`；非計數、runner 未改 `bd3a15fb…`、宿主 0.2.23、兩個瀏覧器各一輪）。Rbs／Rdel：世代 `1 → 1`，邊界鍵 busy→ready 2,257–2,261 ms、修訂不變，伺服器檔案恰一個標記、拿掉標記後的序列＝原文，重開等待跑滿 60 s；紅在 `generation 1 -> 1: no refusal-and-reopen happened` 與 `A1-3: no sample outside ready/busy`（第二行在主 session 的預測之外：A1-3′ 預設有一個停下的狀態，同一類，記下）。B3x：三下都沒有世代變化、沒有 `data-limit`，八行紅全在「上限從未到達」的下游；另有一則 toast 「回到檢查點：editor cannot restart from ready」，**只有 harness 到得了**——`#notice` 沒有 `data-show="1"` 就是隱藏的（`web/e2-editor.html:214`），runner 的 `NOTICE_ACTION` 用 JS 直接 `.click()` `#notice-action`（`check_m3_production_ui.py:191`）；ready 狀態下沒有使用者按得到它。不是產品 finding。
+
+**處置**（主 session 代擁有者，擁有者早上確認 B3x 那一項）：
+
+1. **Rbs、Rdel 改期望，鍵在宿主實際送出的引擎位元組上。** 新期望照 §10.7：拒絕 0 次、世代維持 `'1'`、文件不變（伺服器恰一個標記、拿掉標記後的序列＝`ORIGINAL_SEQ`）、沒有停下的樣本（A1-3′ 反過來：離開 ready/busy 的樣本才是紅）。鍵（`boundary_noop_keying`）照 merge runner 的前例 `boundary_noop_declared`（`7e6c9acd`）：讀宿主 `engine/files/<profile>/probe.wasm.gz` **解碼後的位元組**，找引擎**發出**的字串 `,"completion":"verified-boundary-noop"`（常數從 merge runner import，兩支 runner 不可能鍵在不同字串上；不是 profile 名字），解碼後的 sha256 要等於 manifest 宣告的。**讀不到就拒跑**（run），**或該臂判紅**（score 讀到記錄的鍵是 `None`）——不回落到任何一邊的期望。鍵記在報告 `static.boundaryNoop`；沒有這個鍵的舊報告照舊期望判（它們全在 v8／v19 上跑），要用 C 判就給 `--score … --engine <封存的引擎包>`，其 buildId 必須等於報告記的、wasm 必須等於報告記的（若有記）。**沒有 C 的引擎上期望一字不改**：34 份已 commit 的 production UI 報告以新舊 runner `--score` 比對，30 份逐位元組相同，4 份 `no-scope/*.json` 只差 traceback 的行號（它們沒有 `runs`、不是 runner 報告，兩版都丟 KeyError）；0.2.12 三份合併後 `--red-cases` 仍是 `40/40`、結束碼 0。證人報告：改前 Rbs／Rdel 四格 0/1（上述兩行），改後 `--engine build/archive/host-0.2.23-engine-c3c22d9294de068a` 下 4/4 綠（`witness-c-0.2.23/rejudge-under-c.txt`）；C 分支的紅案 6/6 紅：重開（世代 1→2）、停下的樣本（即使所有按鈕都停用）、停下且按鈕未停用、標記 0 個、標記 2 個、序列變成 `MERGED_SEQ`。`wait_reopened` 的 60 s 等待保留：它靠超時結束，只影響時間不影響判分（每個 R 臂每輪多約 60 s）。**§34.4：因執行而修 +1**（證人 `f3b543c9`）；因審核而修 0。
+2. **B3x 自 0.2.23 的計數撤出**（AGENTS.md §4：前提被證偽就撤回宣稱，不造機械維持它）。它的前提——這份文件只在兩端拒絕（SPEC-M3-production-ui §13.2）——在 C 之下為假，v20 上這份文件沒有東西能誘發三次拒絕與 generation 上限。**判分不改，只是不跑**：`runs-0.2.23/chain-0.2.23.sh` 不排 B3x，`read-0.2.23.sh` 的合併紅案少它一份——A1-5 的 13 個突變因此找不到 B3x 的執行，runner 的 `--red-cases` 依「每個突變都要找到執行」的規則結束碼 1，讀的時候照這一句解讀（期望 `red cases: 27/27`、13 則 `no passing B3x run`）。
+3. **登錄（AGENTS.md §3：「有行為而沒有東西守著」）**：A1-5（Worker generation 上限之後的救援、通知與重載）與 A1-2′ R「跨拒絕的救援」這兩種**行為在 v20 上仍然存在**——拒絕還在（例：表格儲存格尾的 Delete，finding 136），只是這份文件上沒有計數臂能誘發。工作項：在一個有真拒絕的 fixture 上寫一支臂（新機制，所以只登錄、不在本輪做）。**從來沒做時**：這兩種行為自 v20 起**沒有東西守著**；發佈說明 §5「不會證明的」列入。
+
 ## 修訂紀錄
 
 | 日期 | 內容 |
@@ -558,3 +576,4 @@ part P（`findings/evidence/link-batch/pre-binding/README.md` P4）只移了頁�
 | 2026-10-14 | §16：更正 §4.3 的「依 Collabora 回報的可見區域算」——原始碼看不出 Collabora 的頁碼會跟著捲動；擁有者決定外觀照 Collabora 的底部狀態列 |
 | 2026-10-15 | §17.1：M3 runner 的宿主、session、引擎包、殼層 pin 移到 0.2.23／v72（13 行；綁定，不是修理） |
 | 2026-10-15 | §17.2：merge runner 的 `BINDING` 綁到 v20；V19Witness 連 BINDING 一起還原（因執行而修 +1）；登錄兩支判讀器測試不在任何 Makefile 目標 |
+| 2026-10-15 | §17.3：§10.7 的清單漏了 production UI 的 Rbs／Rdel／B3x（Bdel／Bbs 同一期望、不計數）；證人 `witness-c-0.2.23`；Rbs／Rdel 改期望、鍵在宿主送出的 wasm 位元組（因執行而修 +1）；B3x 自 0.2.23 計數撤出（§4）；登錄 A1-5 與跨拒絕救援在 v20 上無計數臂守著（§3）。fable，計數鏈準備工單 |
