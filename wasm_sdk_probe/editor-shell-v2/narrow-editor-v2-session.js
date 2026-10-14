@@ -241,11 +241,13 @@ export function pageStatusText(span) {
  * COALESCED: at most one read in flight; triggers that arrive meanwhile
  * collapse into exactly one follow-up, issued at the latest observed counter.
  * A read that fails reports null (the page hides the line, toasts nothing --
- * a page number is not worth a toast) and consumes its trigger, so a profile
- * whose read always fails costs one call per trigger, not one per state
- * write; the next trigger tries again.  An answer for a document that is no
- * longer current is dropped.  A `read` that throws synchronously is a failed
- * read, not an exception on the page.
+ * a page number is not worth a toast) and puts the scheduler back in its
+ * "no read issued for this document" state, so the next state write of any
+ * kind re-reads (ruling 6 Q4: a BUSY during a merge must not hide the line
+ * until the next size change).  A read that always fails therefore costs one
+ * read per state write while it fails, not one per trigger.  An answer for a
+ * document that is no longer current is dropped.  A `read` that throws
+ * synchronously is a failed read, not an exception on the page.
  *
  * Counted (reads, failures, dropped) for the reason every counter in this
  * file is: "it never read" and "it is not wired" are the same green otherwise.
@@ -329,7 +331,23 @@ export class PageRectanglesScheduler {
     this._inFlight = false;
     try {
       if (key !== this._key) this.dropped += 1;
-      else if (error !== null) { this.failures += 1; this._onResult(key, null, error); }
+      else if (error !== null) {
+        this.failures += 1;
+        // Ruling 6 Q4 (condition 48).  Back to "no read issued for this
+        // document", so the next state write of any kind re-reads.  Without
+        // this a read that failed BUSY (every command is BUSY while a barrier
+        // is in flight, probe_engine.cpp:6100-6106) had recorded its counter
+        // as issued, and the drain's state write after the merge -- the same
+        // counter -- was ignored at stateObserved's early return; the line
+        // stayed hidden until the next counter change, reopen or paint-reported
+        // size change.  Retries are bounded by state writes, and the action
+        // that caused the BUSY always ends with one.  One branch, no code
+        // string: a torn reply is followed by its own counter push anyway, a
+        // timeout means the session is dying, UNSUPPORTED_OPERATION is gated
+        // off by offered().
+        this._issuedAt = null;
+        this._onResult(key, null, error);
+      }
       else this._onResult(key, result, null);
     } finally {
       if (this._again && this._key !== null) this._schedule();

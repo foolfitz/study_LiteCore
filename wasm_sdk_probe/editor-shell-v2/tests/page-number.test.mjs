@@ -340,10 +340,17 @@ test("scheduler: a failed read reports null (the line hides) and the next trigge
   await settle();
   assert.deepEqual(results, [{ key: "doc-1", result: null, error: failure }]);
   assert.equal(scheduler.failures, 1);
-  // Same counter again: the failure consumed its trigger, no storm.
+  // Ruling 6 Q4 (condition 48): a failure no longer consumes its trigger.
+  // This section used to assert the opposite ("same counter again -> no
+  // read"); the three tests that follow this one carry the ruled contract.
+  // Here: a second write with the same counter while the retry is in flight
+  // adds nothing -- one read per state write while it fails, never a storm.
   scheduler.stateObserved("doc-1", state(0));
   scheduler.stateObserved("doc-1", state(0));
-  assert.equal(pending.length, 0);
+  assert.equal(pending.length, 1);
+  pending.shift().reject(failure);
+  await settle();
+  assert.equal(scheduler.failures, 2);
   // The next trigger tries again.
   scheduler.stateObserved("doc-1", state(1));
   assert.equal(pending.length, 1);
@@ -358,6 +365,51 @@ test("scheduler: a failed read reports null (the line hides) and the next trigge
   assert.equal(results.at(-1).result, null);
   scheduler.documentOpened("doc-1b", state(0));
   assert.equal(pending.length, 1);
+});
+
+// Ruling 6 Q4, condition 48.  Every command is BUSY while a barrier is in
+// flight (probe_engine.cpp:6100-6106), so a size-change push during a merge
+// issues a read that fails; the drain's state write after the merge carries
+// the SAME counter.  Before the fix that write was ignored (the failure had
+// recorded the counter as issued) and the line stayed hidden until the next
+// counter change, reopen or paint-reported size change.
+test("scheduler (48a): a failed read, then a state write with the same counter -> re-reads", async () => {
+  const { scheduler, pending, results, settle } = scheduled();
+  scheduler.documentOpened("doc-1", state(3));
+  assert.equal(scheduler.reads, 1);
+  pending.shift().reject(Object.assign(new Error("busy"), { code: "EDITOR_BUSY" }));
+  await settle();
+  assert.equal(scheduler.failures, 1);
+  assert.equal(results.at(-1).result, null);
+  // The drain's write after the merge: same document, same counter.
+  scheduler.stateObserved("doc-1", state(3));
+  assert.equal(pending.length, 1, "a state write after a failed read must re-read");
+  assert.equal(scheduler.reads, 2);
+  pending.shift().resolve(ANSWER);
+  await settle();
+  assert.equal(results.at(-1).result, ANSWER, "the retry's answer reaches the page");
+});
+
+test("scheduler (48b) control: a successful read, then the same counter -> no re-read", async () => {
+  const { scheduler, pending, results, settle } = scheduled();
+  scheduler.documentOpened("doc-1", state(3));
+  pending.shift().resolve(ANSWER);
+  await settle();
+  assert.equal(results.at(-1).result, ANSWER);
+  for (let i = 0; i < 5; i += 1) scheduler.stateObserved("doc-1", state(3, i));
+  assert.equal(pending.length, 0, "an answered counter is not re-read");
+  assert.equal(scheduler.reads, 1);
+});
+
+test("scheduler (48c): a failed read followed by no state write issues nothing", async () => {
+  const { scheduler, pending, settle } = scheduled();
+  scheduler.documentOpened("doc-1", state(3));
+  pending.shift().reject(Object.assign(new Error("busy"), { code: "EDITOR_BUSY" }));
+  await settle();
+  await settle();
+  assert.equal(scheduler.reads, 1, "a retry is bounded by state writes; none came, none issued");
+  assert.equal(pending.length, 0);
+  assert.equal(scheduler.failures, 1);
 });
 
 test("scheduler: a read that throws synchronously is a failure, not an exception", async () => {
