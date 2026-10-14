@@ -170,3 +170,8 @@ For part 2 (page) and part 3 (plumbing), found while reading and not done here: 
 | `1b8b7c34` | SDK + `.d.ts` + `sdk/tests/page-rectangles.test.mjs` |
 | `44eb15f2` | shell client + `.d.ts` + the three client test files |
 | (this commit) | this README |
+
+## 11. Corrections (appended 2026-10-14; ruling 6 conditions 43 and 50)
+
+- **§2.1, "later, never different", is not exact.** Review 6 §1.4 found the gap. If the window is already open, the `textSafe && !geometrySafe` re-entry waits until the window's deadline. A single-rectangle `TEXT_SELECTION` that arrives in that time completes the delete normally, while v19 would have answered at once with `EDITOR_STATE_UNAVAILABLE`, or earlier with `nothing-selected`. So the difference points toward the ordinary path and does no harm. The sentence should read: "later, and in one case completed instead of refused". Nothing in the engine changes.
+- **§1 and the SUMMARY, "v15 and v19 objects rebuilt from this source are unchanged", was not established by the run cited.** That run used `--base 5d77dc84`, which predates the merge work. It shows only that the two existing carriers differ from that older base. What establishes "unchanged by part 1" is a run with `--base 82af92ca^`, ruling 6 condition 50.4. Its result is recorded under `findings/evidence/link-batch/v20-part3/` when it exists. The v20 Makefile block's comment no longer repeats the claim (`d7d62039`).
