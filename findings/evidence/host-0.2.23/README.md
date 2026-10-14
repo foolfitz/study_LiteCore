@@ -151,3 +151,52 @@ The 132-B probe uploads `probe-hand-0212.odt` to the admin root and deletes it n
 - That `servedPage` matches under gzip and zstd over HTTP; that no host file differs from `engine/MANIFEST.json` (I read the manifest, not every file).
 - No `make`, link, freeze, `--write`, package, `occ upgrade`, host change; no edit of any tool, judge, probe, check, `web/`, `editor-shell*/`, `sdk/` or `src/`. No `git push`. The file `test-e2-c-static-after-freeze-v72.txt` in this directory is not mine.
 - Files here: `h3/` (`h3-result.txt`, `editor.php.diff`), `g1-132b/` (`report.json`, `probe.out`, `queue-log.txt`, `judge-output.txt`, `read_hold-output.txt`, `hold-table.txt`, `static-check.txt`, `started/ended-utc-G1.txt`, two settled screenshots), `g2-burst1s/` (two reports, `probe-<browser>.out`, `queue-log.txt`, `facts.txt`, `judge-k-output.txt`, `judge-k-red-check-output.txt`, `static-check.txt`, `started/ended-utc-G2-<browser>.txt`, six screenshots), `h1-h2/` (`judge-self-test.txt`, `judge-on-host-report-dir.txt`), `health-checks.txt`, `admin-root-before.txt`, `cleanup.txt`, `wrappers/`. `facts.txt`, `hold-table.txt` and `static-check.txt` are output of one-off readers over the reports, not of any tool in the tree.
+
+---
+
+## H1 and H2 measured (task 10-15b, appended 2026-10-15; supersedes the two "NOT RUN" rows above)
+
+The instrument gap recorded above was closed in `findings/evidence/scroll-page-bubble/` (commit after `82ee51fc`): `probe_bubble.py` gained `--mode host` and `judge_bubble.py` gained host reports and the H2 clauses. Then H1 and H2 ran on host 0.2.23, both browsers, headless, from `h1-h2/`. This is the instrument's first host use, not a §34.4 repair. **Result: H1 PASS and H2 PASS in both browsers (`h1-h2/judge.txt`, `ALL PASS`, exit 0)**; the spec's "宿主不出這一版" default no longer applies to H1/H2 — with H3 above, all three host criteria are measured green on 0.2.23.
+
+**The tool changes** (both files under `findings/evidence/scroll-page-bubble/`, their README has the detail):
+
+- `probe_bubble.py --mode host`: the owner's path as `probe_10_14n/o` walk it — `login`, a folder the probe creates (`probe-bubble-<stamp>`, MKCOL), **one uploaded copy of the fixture per arm** (`probe-bubble-long60-<arm>.odt`; a fresh session reopening the same file finds the previous session's lock still held, the 423 and the notice bar G2 saw, so the copies keep every arm on the plain path), Files → the row → the editor route (`open_from_files`), the same arms as the no-host run, `static` at the start and `staticAfter` at the end (host version, commit, dirty, buildId, served page/session from the host's `engine/MANIFEST.json`, the shell-bundle check), the folder deleted after (`deletedFolder`). Reports are `report-host-<browser>-<doc>.json`. Every step read (and the drag's after-release read) now records the host's `#content` box and the `#page-status` box at full precision, beside the bubble rect and the desk box.
+- `judge_bubble.py`: reads `report-*.json` (no-host and host), the page pin from `nohost`/`host` (`servedPage` at the start, `servedPageAtEnd` from `staticAfter`), and refuses a host report whose `static`/`staticAfter` differ in version, commit, buildId, page or session or whose tree is dirty. Verdicts are kept per (mode, browser, criterion). Required on the host: N1–N5 (= H1) and **H2**: on every wheel step and after the drag, bubble rect ⊆ desk rect ⊆ `#content` rect, and bubble rect ∩ `#page-status` rect = ∅ (edges touching is not an intersection; a hidden bar or a missing box is FAIL, not vacuous). N6/D1/K1/Z1 on the host are judged when present but not required.
+
+**Red first** (`h1-h2/judge-self-test-before-host-run.txt`, run before any host report existed, exit 0, 41 cases): K4's bubble-less host reports (0.2.21) read N1 FAIL, N2 red, N4 FAIL and **H2 FAIL ("no boxes")** in both browsers; on the three no-host runs with synthetic host boxes (the bar 32 px high right under the desk, `#content` 8 px above and 40 px below it), the H2 control reads PASS and each of the three mutations reads FAIL: the bubble's rect bottom moved beyond `#content`'s bottom, the bubble moved onto the status bar (5 px into it), the desk's bottom beyond `#content`'s bottom. After the host run the same cases ran on the host runs' own boxes (`judge-self-test-after-host-run.txt`, 65 cases, exit 0): control PASS, the three H2 mutations FAIL, and every earlier case (rect +40 → N2 FAIL on all four runs with a readable thumb, over the rail, whole text, never hides, a11y spoke, keys no scroll, Z1 shown, drag still → NOT_ESTABLISHED) red on its named clause. The 10-15a self-test file `judge-self-test.txt` is untouched. Thumb reader self-test: `thumb-self-test.txt` (Firefox 230.0, Chrome 234.5 on K4's screenshots, flat column → None).
+
+**The run** (`queue_h1h2.sh`, one browser job at a time, `health_h1h2.sh` before each step and after the last → `health-checks.txt`; `started-utc.txt`; all four `probe-*.err` empty):
+
+| step | window (UTC) | exit | folder | lock in every arm |
+|---|---|---|---|---|
+| Firefox long60 (wheel, reduce, drag, keys) | 17:00:02–17:02:21 | 0 | `probe-bubble-20261014T170002`, MKCOL 201, 4 PUT 201, DELETE 204 | `held`, no notice |
+| Firefox blank (short) | 17:02:22–17:03:24 | 0 | `…T170222`, deleted 204 | `held` |
+| Chrome long60 | 17:03:25–17:05:12 | 0 | `…T170325`, 4 PUT 201, deleted 204 | `held` |
+| Chrome blank | 17:05:13–17:06:08 | 0 | `…T170513`, deleted 204 | `held` |
+
+Health blocks: KWallet `b false` at all five reads, the Chrome login check `Nextcloud x328` every time, `pgrep -c chrome` 32–37 (`chromeBrowsers` 28–33, the owner's own Chrome; ours is `--headless=new`), `pgrep -c firefox` 1 (the owner's snap Firefox; ours is `-headless` under geckodriver), ours running 0 before every step, load 2.15 → 4.17 (1-min). Firefox 157.0.1, Chrome 151.0.7922.169. Files row found in ≤ 0.09 s, editor opened 3.37–3.44 s (Firefox) / 2.87–2.91 s (Chrome) after the click.
+
+**Static** (both long60 reports and both blank reports, `static` = `staticAfter`): `hostVersion` 0.2.23, `hostCommit` `2ccf1a9`, `hostDirty` `[]`, `buildId` `c3c22d9294de068a`, `servedPage` `ccb67a52a3fe4b73…`, `servedSession` `f47c80ec…`, shell bundle exit 0 on `e2/editor-shell-v2-bundle-v72.json` (`4dc10507…`), problems `[]`.
+
+**Geometry on the host** (every wheel step, both browsers): `#content` `[8, 50, 1842, 986]` Firefox / `[8, 50, 1842, 972]` Chrome; desk top 160, bottom 954 / 940, which is exactly the status bar's top (`#page-status` `[8, 954, 1842, 986]` / `[8, 940, 1842, 972]`, 32 px high, not hidden); the bar occupies width in both browsers (`offsetWidth − clientWidth` 12 in Firefox, 15 in Chrome). The bubble is created under `#litecore-editor-root` (the page inserts it after `#desk`), `position: fixed`, rect at step 6 `[1751, 222.2, 73.2, 27.6]` Firefox / `[1748, 221.2, 73.2, 27.6]` Chrome, its right edge 17.8 / 20.8 px left of the desk's right edge; the smallest gap from the bubble's bottom to the bar's top over the 18 steps is 563.2 / 553.2 px. The host's Firefox thumb is readable without the no-host run's `--css-bar` accommodation (the host colours its bars by CSS, as that README predicted): 17/17 steps.
+
+**Verdicts** (`h1-h2/judge.txt`; thumb centres are read from the screenshots):
+
+| criterion | Firefox 157.0.1 | Chrome 151 |
+|---|---|---|
+| **H1** N1 shown with the bar's page part at every step, bar not hidden | 18/18 (+ 4/4 reduce) — PASS | 18/18 (+ 4/4) — PASS |
+| **H1** N2 \|bubble − thumb\| ≤ 24 px, inside the desk, right edge 16–60 px from it | 17/17 read, max 7.0 px (4–7), inside, 17.8 px — PASS | 17/17, max 1.5 px (0.5–1.5), 20.8 px — PASS |
+| **H1** N3 no non-paint request over the wheel arm | 0 (21 paints, 102 log entries); reduce 0 — PASS | 0 (21 paints, 101); reduce 0 — PASS |
+| **H1** N4 shown ≤ 100 ms after each of 18 scroll events; hidden ≤ 1.5 s after the last; not visible at +2 s | none late, hidden 998.6 ms (reduce 1000.3) — PASS | none late, 1000.2 ms (reduce 1000.4) — PASS |
+| **H1** N5 focus, live regions, toast, `#a11y-para` unchanged | active `body-user` → `body-user`, 1 a11y value, 0 toasts, 4 live regions equal before/after — PASS | same — PASS |
+| **H2** bubble ⊆ desk ⊆ `#content`; bubble ∩ `#page-status` = ∅ | 18 wheel instances + 1 after the drag: no boxes missing, 0 outside, 0 over the bar — PASS | same, 19 instances — PASS |
+| N6 (not required on the host) | plain `0.18s`, reduce `0s` with `matchMedia` true — PASS | same — PASS |
+| D1 (not required) | pressed (1836, 180) on the thumb read at 163–197, scrollTop 0 → 9733, 13 shown states with the bar's page part, hidden 999.2 ms after the last scroll — PASS | (1834.5, 186.5) on 178–195, 0 → 10046, 10 states, 999.1 ms — PASS |
+| K1 (not required) | 3 scroll events over 60 ArrowDowns (60 caret requests), hidden 1053.3 ms — PASS | 3 events, 1000.2 ms — PASS |
+| Z1 (not required) | tall desk 1514 ≤ 1514, 0 scroll events, never shown, 「第 1 頁，共 1 頁」; back 1296 > 794, control 「第 1 頁」 — PASS | 1500 ≤ 1500; back 1296 > 780 — PASS |
+
+Bubble attributes in every host run: `aria-hidden="true"`, no `role`, no `aria-live`, no `tabindex`, `pointer-events: none`, `position: fixed`, parent `litecore-editor-root`.
+
+**The owner's files.** `h1-h2/admin-root-before.txt` and `admin-root-after.txt` (the 10-15a `wrappers/admin_root.py`, a read-only PROPFIND depth 1) are identical apart from the root's own timestamp; `手測-126-60頁.odt` reads 16:04:30Z in both; no `probe-bubble` entry remains. The probes' four folders were created and deleted by the probe (204 each). Nothing else on the instance was touched; the owner's Chrome and Firefox were running throughout and were not touched.
+
+**Not done / limits.** No `make`, package, `occ upgrade`, `--write`, host change or edit outside `findings/evidence/scroll-page-bubble/` and this directory. The spec's `L-bubble-thumb-model` stands (the model's 4–7 px error in Firefox is the arrow allowance Firefox's bar does not have). The H2 clause reads `#content` by id (`#content`, else `#content-vue, main`); the bare page has none, so H2 is a host-only criterion by construction. `h1-h2/` files from this task: `firefox/` and `chrome/` (reports, 26 screenshots each), `probe-<browser>-<doc>.out/.err`, `queue_h1h2.sh`, `health_h1h2.sh`, `queue-log.txt`, `health-checks.txt`, `started-utc.txt`, `admin-root-before/after.txt`, `judge.txt`, `judge-self-test-before-host-run.txt`, `judge-self-test-after-host-run.txt`, `thumb-self-test.txt`.

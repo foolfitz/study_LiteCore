@@ -17,6 +17,16 @@ bubble_geometry.py), and five arms:
   probe_bubble.py --out DIR --browser firefox --doc long60 --arms bubble-wheel,bubble-reduce,bubble-drag,bubble-keys
   probe_bubble.py --out DIR --browser firefox --doc blank --arms bubble-short
   probe_bubble.py --out DIR2 --browser firefox --doc long60 --arms bubble-wheel,bubble-drag --css-bar '#7d7d7d transparent'
+  probe_bubble.py --out DIR3 --browser chrome --doc long60 --mode host          (H1/H2: the owner's path on the host)
+
+--mode host (added 2026-10-15 for H1/H2) walks the owner's path the way probe_10_14n/o do:
+login, a folder this probe creates (`probe-bubble-<stamp>`), one uploaded copy of the
+fixture PER ARM (so no arm reopens a file whose lock the previous arm's session still
+holds), Files -> the row -> the editor route, the same arms, `static` (host version,
+commit, buildId, served page from the host's engine MANIFEST) at the start and
+`staticAfter` at the end, the folder deleted after.  Every step read also records the
+host's `#content` box and the `#page-status` box at full precision (H2).  Reports are
+`report-host-<browser>-<doc>.json`.  Nothing of the owner's is touched.
 
 --css-bar (Firefox only) is an instrument accommodation, recorded in the report as `cssBar`:
 headless Firefox 157 paints NO thumb for its default (GTK-themed) bar in a WebDriver
@@ -52,7 +62,8 @@ import probe_10_14o as base  # noqa: E402
 import check_m3_production_ui as ui  # noqa: E402
 import run_e2_c_product_path as pp  # noqa: E402
 from bubble_geometry import thumb_centre  # noqa: E402
-from check_m3_skeleton_open import DEFAULT_DDEV  # noqa: E402
+from check_m3_locks import login, open_from_files  # noqa: E402
+from check_m3_skeleton_open import DEFAULT_DDEV, Instance  # noqa: E402
 from create_long_document import build as build_long_document  # noqa: E402
 from probe_m3_gate0_coep import DIST, firefox_profile, sha256_file, utc_now  # noqa: E402
 from r7_support import evaluate  # noqa: E402
@@ -102,7 +113,11 @@ EXTRA = """(() => { const desk = document.querySelector('#desk'); const d = desk
            live: [...document.querySelectorAll('[aria-live], [role="status"], [role="alert"]')].map((e) => [e.id || e.tagName, e.textContent]),
            active: document.activeElement ? (document.activeElement.id || document.activeElement.tagName) : null,
            reducedMotion: matchMedia('(prefers-reduced-motion: reduce)').matches,
-           pageStatus: (() => { const p = document.querySelector('#page-status'); return p ? { hidden: p.hidden, text: p.textContent } : null; })() }; })()""".replace("BUBBLE_READ", BUBBLE_READ)
+           pageStatus: (() => { const p = document.querySelector('#page-status'); return p ? { hidden: p.hidden, text: p.textContent } : null; })(),
+           contentBox: (() => { const c = document.getElementById('content') || document.querySelector('#content-vue, main'); if (!c) return null;
+                                const r = c.getBoundingClientRect(); return { id: c.id || c.tagName, left: r.left, top: r.top, right: r.right, bottom: r.bottom }; })(),
+           pageStatusBox: (() => { const p = document.querySelector('#page-status'); if (!p) return null; const r = p.getBoundingClientRect();
+                                   return { hidden: p.hidden, left: r.left, top: r.top, right: r.right, bottom: r.bottom }; })() }; })()""".replace("BUBBLE_READ", BUBBLE_READ)
 
 CSS_BAR = """(() => { const d = document.querySelector('#desk'); const before = { offsetWidth: d.offsetWidth, clientWidth: d.clientWidth };
   d.style.scrollbarColor = 'ARG_COLOR'; const cs = getComputedStyle(d);
@@ -178,7 +193,7 @@ def centre_of_desk(g: dict[str, Any]) -> tuple[int, int]:
 def step_read(session, i, dy, record, shot: bool) -> dict[str, Any]:
     g = geometry(session)
     step = {"i": i, "dy": dy, "scrollTop": g["deskBox"]["scrollTop"], "pageStatus": g["pageStatus"], "bubble": g["bubble"],
-            "deskBox": g["deskBox"], "active": g["active"]}
+            "deskBox": g["deskBox"], "active": g["active"], "content": g.get("contentBox"), "pageStatusBox": g.get("pageStatusBox")}
     if shot:
         png = session.screenshot()
         label = f"step{i}"
@@ -258,7 +273,8 @@ def arm_drag(session, kind: str, record: dict[str, Any]) -> None:
     record["during"] = during
     time.sleep(0.3)
     g = geometry(session)
-    record["afterRelease"] = {"scrollTop": g["deskBox"]["scrollTop"], "bubble": g["bubble"], "pageStatus": g["pageStatus"]}
+    record["afterRelease"] = {"scrollTop": g["deskBox"]["scrollTop"], "bubble": g["bubble"], "pageStatus": g["pageStatus"],
+                              "deskBox": g["deskBox"], "content": g.get("contentBox"), "pageStatusBox": g.get("pageStatusBox")}
     png = session.screenshot()
     record["_shots"].append(("after-drag", png))
     record["thumbAfter"] = thumb_centre(png, {"top": desk["top"], "bottom": desk["bottom"], "right": desk["right"]})
@@ -319,17 +335,24 @@ def arm_short(session, kind: str, record: dict[str, Any]) -> None:
 ARMS = {"bubble-wheel": arm_wheel, "bubble-reduce": arm_reduce, "bubble-drag": arm_drag, "bubble-keys": arm_keys, "bubble-short": arm_short}
 
 
-def run_arm(arm: str, kind: str, name: str, out_dir: Path, nohost: dict[str, Any], css_bar: str | None = None) -> dict[str, Any]:
-    record: dict[str, Any] = {"arm": arm, "browser": kind, "doc": name, "startedAt": utc_now(), "mode": "nohost", "preflight": preflight()}
+def run_arm(arm: str, kind: str, name: str, out_dir: Path, nohost: dict[str, Any] | None, css_bar: str | None = None,
+            instance: Instance | None = None, folder: str | None = None) -> dict[str, Any]:
+    mode = "nohost" if nohost else "host"
+    record: dict[str, Any] = {"arm": arm, "browser": kind, "doc": name, "startedAt": utc_now(), "mode": mode, "preflight": preflight()}
     session = new_session(kind, reduce=(arm == "bubble-reduce"))
     record["version"] = getattr(session, "version", None)
     try:
-        t_open = time.monotonic()
-        smoke_navigate(session, nohost["url"])
-        pp.wait_for(session, lambda s: s.get("state") == "ready", 300)
-        evaluate(session, pp.OPEN_FILE.replace("ARG_URL", "./fixture.odt").replace("ARG_NAME", name))
-        record["landed"] = pp.wait_for(session, lambda s: (s.get("doc") or "") == name and s.get("state") == "ready", 300)
-        record["secondsToOpened"] = round(time.monotonic() - t_open, 2)
+        if nohost:
+            t_open = time.monotonic()
+            smoke_navigate(session, nohost["url"])
+            pp.wait_for(session, lambda s: s.get("state") == "ready", 300)
+            evaluate(session, pp.OPEN_FILE.replace("ARG_URL", "./fixture.odt").replace("ARG_NAME", name))
+            record["landed"] = pp.wait_for(session, lambda s: (s.get("doc") or "") == name and s.get("state") == "ready", 300)
+            record["secondsToOpened"] = round(time.monotonic() - t_open, 2)
+        else:
+            # the owner's path, as probe_10_14n/o walk it: login, Files, the row, the editor route
+            record["login"] = login(session, instance.base, "admin", instance.password)
+            open_from_files(session, instance.base, folder, name, record)
         record["opened"] = ui.quiet(session, 180)
         record["instrument"] = evaluate(session, INSTRUMENT)
         if css_bar:
@@ -381,6 +404,9 @@ def main() -> int:
     parser.add_argument("--css-bar", default=None, metavar="SCROLLBAR_COLOR",
                         help="Firefox only: set scrollbar-color on #desk after the page is open so headless Firefox paints a thumb "
                              "the screenshot can read (see the module docstring); recorded in the report as cssBar")
+    parser.add_argument("--mode", default="nohost", choices=["nohost", "host"],
+                        help="host: the owner's path on the ddev instance (login, Files, the editor route), one uploaded copy per arm")
+    parser.add_argument("--keep-folder", action="store_true", help="host: leave the probe's folder on the instance")
     args = parser.parse_args()
     base.DOC_KIND["value"] = args.doc
     arms = [a for a in args.arms.split(",") if a]
@@ -399,40 +425,69 @@ def main() -> int:
         static = ui.static_facts(DEFAULT_DDEV)
     except Exception:  # noqa: BLE001
         static = {"error": traceback.format_exc()[-800:]}
-    report: dict[str, Any] = {"probe": "probe_bubble.py", "startedAt": utc_now(), "static": static, "mode": "nohost",
+    report: dict[str, Any] = {"probe": "probe_bubble.py", "startedAt": utc_now(), "static": static, "mode": args.mode,
                               "browser": args.browser, "doc": {"name": name, "sha256": hashlib.sha256(doc).hexdigest(), "bytes": len(doc)},
                               "arms": arms, "cssBar": args.css_bar, "runs": []}
-    report_name = f"report-nohost-{args.browser}-{args.doc}.json"
-    mirror = SCRATCH / f"mirror-bubble-{stamp}"
-    shutil.rmtree(mirror, ignore_errors=True)
-    pp.build_mirror(DIST, mirror, {})
-    (mirror / "fixture.odt").write_bytes(doc)
-    with socket.socket() as sock:
-        sock.bind(("127.0.0.1", 0))
-        port = sock.getsockname()[1]
-    server = subprocess.Popen([sys.executable, str(TOOLS.parent / "web" / "serve.py"), "--port", str(port), "--root", str(mirror)],
-                              cwd=TOOLS.parent, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    time.sleep(1.5)
-    nohost = {"url": f"http://127.0.0.1:{port}/e2-editor.html", "mirror": str(mirror)}
-    report["nohost"] = {**nohost, "servedPage": sha256_file(mirror / "e2-editor-app.js"),
-                        "servedSession": sha256_file(mirror / "editor-shell-v2" / "narrow-editor-v2-session.js"),
-                        "profile": pp.product_profile(mirror)}
+    report_name = f"report-{args.mode}-{args.browser}-{args.doc}.json"
+    nohost = server = instance = folder = None
+    names = {arm: name for arm in arms}
+    if args.mode == "nohost":
+        mirror = SCRATCH / f"mirror-bubble-{stamp}"
+        shutil.rmtree(mirror, ignore_errors=True)
+        pp.build_mirror(DIST, mirror, {})
+        (mirror / "fixture.odt").write_bytes(doc)
+        with socket.socket() as sock:
+            sock.bind(("127.0.0.1", 0))
+            port = sock.getsockname()[1]
+        server = subprocess.Popen([sys.executable, str(TOOLS.parent / "web" / "serve.py"), "--port", str(port), "--root", str(mirror)],
+                                  cwd=TOOLS.parent, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        time.sleep(1.5)
+        nohost = {"url": f"http://127.0.0.1:{port}/e2-editor.html", "mirror": str(mirror)}
+        report["nohost"] = {**nohost, "servedPage": sha256_file(mirror / "e2-editor-app.js"),
+                            "servedSession": sha256_file(mirror / "editor-shell-v2" / "narrow-editor-v2-session.js"),
+                            "profile": pp.product_profile(mirror)}
+    else:
+        instance = Instance(DEFAULT_DDEV)
+        folder = f"probe-bubble-{stamp}"
+        status, _ = instance.dav("MKCOL", folder)
+        uploads = {}
+        for arm in arms:
+            # one copy per arm: a fresh session reopening the SAME file finds the previous session's lock still
+            # held (423, the host's notice bar); the copies keep every arm on the owner's plain path
+            names[arm] = f"probe-bubble-{args.doc}-{arm}.odt"
+            put, _ = instance.dav("PUT", f"{folder}/{names[arm]}", doc, {"Content-Type": "application/vnd.oasis.opendocument.text"})
+            uploads[names[arm]] = put
+        report["host"] = {"base": instance.base, "folder": folder, "mkcol": status, "uploads": uploads,
+                          "hostVersion": static.get("hostVersion"), "hostCommit": static.get("hostCommit"), "buildId": static.get("buildId"),
+                          "servedPage": static.get("servedPage"), "servedSession": static.get("servedSession")}
     try:
         for arm in arms:
-            run = run_arm(arm, args.browser, name, args.out, nohost, css_bar=args.css_bar)
+            run = run_arm(arm, args.browser, names[arm], args.out, nohost, css_bar=args.css_bar, instance=instance, folder=folder)
             report["runs"].append(run)
             (args.out / report_name).write_text(json.dumps(report, ensure_ascii=False, indent=1))
-            brief = {k: run.get(k) for k in ("afterRelease", "notEstablished", "pressed", "cssBar") if k in run}
+            brief = {k: run.get(k) for k in ("afterRelease", "notEstablished", "pressed", "cssBar", "secondsToOpened") if k in run}
+            if run.get("host"):
+                brief["lock"] = (run["host"].get("lock") or {}).get("state")
             if "steps" in run:
                 brief["steps"] = [(s["i"], s["scrollTop"], (s["bubble"] or {}).get("shown"), (s["bubble"] or {}).get("text"),
                                    (s.get("thumb") or {}).get("centre")) for s in run["steps"]]
-            print(args.browser, arm, "FATAL" if run.get("fatal") else "", json.dumps(brief, ensure_ascii=False)[:1500], flush=True)
+            print(args.browser, args.mode, arm, "FATAL" if run.get("fatal") else "", json.dumps(brief, ensure_ascii=False)[:1500], flush=True)
             if run.get("fatal"):
                 print(run["fatal"][-1500:], flush=True)
     finally:
-        report["nohost"]["servedPageAtEnd"] = sha256_file(mirror / "e2-editor-app.js")
-        server.terminate()
-        server.wait(timeout=10)
+        if nohost:
+            report["nohost"]["servedPageAtEnd"] = sha256_file(mirror / "e2-editor-app.js")
+            server.terminate()
+            server.wait(timeout=10)
+        else:
+            if not args.keep_folder:
+                status, _ = instance.dav("DELETE", folder)
+                report["host"]["deletedFolder"] = status
+            try:
+                report["staticAfter"] = ui.static_facts(DEFAULT_DDEV)
+            except Exception:  # noqa: BLE001
+                report["staticAfter"] = {"error": traceback.format_exc()[-800:]}
+            report["host"]["servedPageAtEnd"] = report["staticAfter"].get("servedPage")
         report["endedAt"] = utc_now()
         (args.out / report_name).write_text(json.dumps(report, ensure_ascii=False, indent=1))
     return 0
