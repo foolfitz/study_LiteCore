@@ -83,9 +83,9 @@ PASS, FAIL, NE = "PASS", "FAIL", "NOT_ESTABLISHED"
 # Re-pointed 2026-10-15 (task 10-15c P4, before binding v20) to host 0.2.23's page (shell v72, engine v20).  The previous pin was
 # d761f1cee9d26c50c0b152348d74c3d05f540e9228927815d93ad6ec161e7dcd (autosave §9.19, 0.2.13/v62; the 0.2.13 and 0.2.14 counts ran on it).
 PAGE_SHA256: str | None = "ccb67a52a3fe4b73139467c67a28522b9a87040921cb1da36448e5ad8dfdb43e"      # web/e2-editor-app.js, dist copy and the copy the host serves; was d761f1ce
-SESSION_SHA256: str | None = "62a2a20e4c66f630d77caf5bb75973e28aa58b0d8c7bf4cb0e35fa44b6a6fc5c"   # editor-shell-v2/narrow-editor-v2-session.js, same three places
-HOST_VERSION: str | None = "0.2.14"     # appinfo/info.xml <version>
-HOST_COMMIT: str | None = "237f2cb"      # the host repo's HEAD, a prefix is enough
+SESSION_SHA256: str | None = "f47c80ec955397c44d7638da63ed6837a3dea47125f6e279192298c20ed62ba9"   # editor-shell-v2/narrow-editor-v2-session.js, same three places; link-batch §17 (0.2.23); was 62a2a20e
+HOST_VERSION: str | None = "0.2.23"     # appinfo/info.xml <version>; link-batch §17; was 0.2.14
+HOST_COMMIT: str | None = "2ccf1a9"      # the host repo's HEAD, a prefix is enough; link-batch §17; was 237f2cb
 
 # arm -> (criterion, browsers, counted runs per browser)
 PLAN = {

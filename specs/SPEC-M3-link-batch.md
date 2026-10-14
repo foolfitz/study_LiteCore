@@ -518,6 +518,22 @@ M1-1 用 `82af92ca^` 當基準時，第二次本該綠的執行是紅的。原�
 - **不影響**本規格的設計：v20 的頁碼由頁面用頁面矩形算，捲動時 0 個引擎請求、跟著捲動（任務 10-14n 量過）；Q-D 不採核心字串的理由不變。
 - **擁有者 2026-10-14 的決定**：頁碼的**外觀**照 Collabora（底部一條一直看得見的狀態列、頁碼在最左邊、正常字級）；交任務 10-14o 的 finding 143 修法。點了跳頁不在這一版。
 
+## 17. 綁定 v20／宿主 0.2.23（交接 10-15 Next 2；2026-10-15，只追加）
+
+### 17.1 M3 runner 的宿主、session、引擎包、殼層 pin 移到 0.2.23／v72
+
+part P（`findings/evidence/link-batch/pre-binding/README.md` P4）只移了頁面 pin（`ccb67a52…`），其餘還指著 0.2.14／v63。這一步把它們一次移完，前例 `fb839ec1`、`3a6603de`、`05aa0c75`：只動 pin 行，共 13 行，舊值留在註解。
+
+| 常數 | 新值 | 舊值 | 檔案 |
+|---|---|---|---|
+| `BUILD_ID` | `c3c22d9294de068a` | `eb3f9408…`（0.2.14） | assets |
+| `HOST_COMMIT` | `2ccf1a9` | `237f2cb` | versions、page_honesty、production_ui、autosave |
+| `HOST_VERSION` | `0.2.23` | `0.2.14` | same_second、page_honesty、production_ui、autosave |
+| `SESSION_SHA256` | `f47c80ec955397c4…` | `62a2a20e…` | page_honesty、production_ui、autosave |
+| `SHELL_BUNDLE_SHA256` | `4dc10507565992d5…`（v72） | `318b3bf2…`（v63） | production_ui |
+
+每個新值都有兩個以上的來源：宿主 repo（`git log -1` 是 `2ccf1a9`、`appinfo/info.xml` 是 `0.2.23`、樹是乾淨的）；封存的引擎包 `build/archive/host-0.2.23-engine-c3c22d9294de068a/MANIFEST.json`（`buildId`、session 與頁面的 sha256）與宿主 0.2.23 的證據報告（`findings/evidence/host-0.2.23/`）；session 在樹、`dist/`、封存包三處逐位元組相同；殼層雜湊是 `build_e2_c_shell_bundle.py`（不帶 `--write`，結束碼 0、`problems` 空）自己回答的，與無宿主泡泡見證的報告相同。改綁後 `make test-e2-c-static` 結束碼 0（`findings/evidence/link-batch/binding-v20/test-e2-c-static-after-repin.txt`）。這是綁定，不是修理：§34.4 兩個數字都不加。
+
 ## 修訂紀錄
 
 | 日期 | 內容 |
@@ -532,3 +548,4 @@ M1-1 用 `82af92ca^` 當基準時，第二次本該綠的執行是紅的。原�
 | 2026-10-14 | §15：審核 6 與 part 2 的處置（fable 裁決 6＋修正 1）——L-C-number-or-indent 登錄、引擎定在 82af92ca；placeCaret 確認改要游標或選取作證（finding 138）、noop 不算修改、頁碼讀失敗後重讀；X1 新用法、M1-1 修檢查（E2_V20 三個物件）、what_the_link_ships 資料；Makefile 區塊已套用；連結前順序 |
 | 2026-10-14 | §15.6：修正 2——part 1 的 `finishMergeKeyError` 有一處沒包進 define，恢復舊文字（`543a5566`），v20 預處理不變；引擎定在 `543a5566` |
 | 2026-10-14 | §16：更正 §4.3 的「依 Collabora 回報的可見區域算」——原始碼看不出 Collabora 的頁碼會跟著捲動；擁有者決定外觀照 Collabora 的底部狀態列 |
+| 2026-10-15 | §17.1：M3 runner 的宿主、session、引擎包、殼層 pin 移到 0.2.23／v72（13 行；綁定，不是修理） |

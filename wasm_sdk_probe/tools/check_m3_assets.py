@@ -98,7 +98,7 @@ TYPES = {".js": "text/javascript", ".json": "application/json", ".wasm": "applic
 # SPEC-M3-zstd §4, written 2026-09-30 before the code: the engine's decoded
 # content did not change, only its codings.
 ENGINE_SCHEMA = "litecore-engine/2"
-BUILD_ID = "eb3f94084995d3f0"   # host 0.2.14's engine package (v19, page d761f1ce, shell v63), autosave §9.24; was 59e6a9fe (0.2.13), 45cdcedf (0.2.12), b99f4b13 (0.2.11), bebc7e83 (0.2.10), 7bf6dbd6 (0.2.9), 63656ee4 (0.2.8), fabdb50e (0.2.7)
+BUILD_ID = "c3c22d9294de068a"   # host 0.2.23's engine package (v20, page ccb67a52, shell v72), link-batch §17; was eb3f9408 (0.2.14), 59e6a9fe (0.2.13), 45cdcedf (0.2.12), b99f4b13 (0.2.11), bebc7e83 (0.2.10), 7bf6dbd6 (0.2.9), 63656ee4 (0.2.8), fabdb50e (0.2.7)
 # What Chrome 151 and Firefox 156 are predicted to send over HTTPS (spec §2, P1).
 BROWSER_AE = "gzip, deflate, br, zstd"
 # Z1-2: Accept-Encoding -> the coding the host must pick.
