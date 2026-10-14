@@ -289,6 +289,9 @@ CDP_KEYS = {"Enter": ("Enter", "Enter", 13), "ArrowDown": ("ArrowDown", "ArrowDo
             "ArrowUp": ("ArrowUp", "ArrowUp", 38), "ArrowLeft": ("ArrowLeft", "ArrowLeft", 37),
             "ArrowRight": ("ArrowRight", "ArrowRight", 39), **mws.CDP_KEYS}
 TRACE = {"last": -1}
+# Set by main(): writes the report as it stands.  Called after every round, case and phase, so a
+# hung page (the first Chrome run lost its C1 data to a 180 s CDP silence) leaves what was measured.
+FLUSH = {"fn": lambda: None}
 
 
 # ------------------------------------------------------------------ small helpers
@@ -533,8 +536,8 @@ def settle_rects(session, limit: float = 30.0) -> tuple[dict | None, list]:
     return latest_rects(entries) or reply, entries
 
 
-def arm_p1(session, browser: str, url: str, name: str, native_pages: int) -> dict:
-    out = {"arm": name, "fixture": url, "nativePages": native_pages, "positions": [], "ok": None}
+def arm_p1(session, browser: str, url: str, name: str, native_pages: int, out: dict) -> dict:
+    out.update({"arm": name, "fixture": url, "nativePages": native_pages, "positions": [], "ok": None})
     out["open"] = open_fixture(session, url, f"{name}.odt")
     reply, entries = settle_rects(session)
     out["pageRectanglesRequestsAtOpen"] = sum(1 for e in entries if e.get("k") == "rq" and e.get("op") == "pageRectangles")
@@ -571,6 +574,8 @@ def arm_p1(session, browser: str, url: str, name: str, native_pages: int) -> dic
             "expected": expected, "text": g["text"], "hidden": g["hidden"],
             "viewTallerThanPage": bool(view_twips and view_twips >= rects[k - 1]["height"]),
             "pass": (expected is not None and g["hidden"] is False and g["text"] == expected)})
+        if len(out["positions"]) % 20 == 0:
+            FLUSH["fn"]()
     time.sleep(0.5)
     tail = drain(session)
     out["pageRectanglesRequestsDuringPositions"] = sum(1 for e in tail if e.get("k") == "rq" and e.get("op") == "pageRectangles")
@@ -624,8 +629,8 @@ def presses_until(session, browser: str, key: str, action: str, target_count: in
     return out
 
 
-def arm_p2(session, browser: str, url: str) -> dict:
-    out = {"arm": "p2", "fixture": url}
+def arm_p2(session, browser: str, url: str, out: dict) -> dict:
+    out.update({"arm": "p2", "fixture": url})
     out["open"] = open_fixture(session, url, "p2-long60.odt")
     reply, _ = settle_rects(session)
     if reply is None:
@@ -659,6 +664,7 @@ def arm_p2(session, browser: str, url: str) -> dict:
                            and count_after == base + 1
                            and ((reply_after or {}).get("parts") in (None, base + 1)))}
     out["add"]["answers"] = out["add"]["answers"][-5:] + [{"total": add["presses"]}]
+    FLUSH["fn"]()
     if not add["presses"]:
         out["verdictNote"] = "no Enter press was sent"
         return out
@@ -681,13 +687,17 @@ def arm_p2(session, browser: str, url: str) -> dict:
     return out
 
 
-def arm_p3(session, browser: str, url: str) -> dict:
-    out = {"arm": "p3", "fixture": url}
+def arm_p3(session, browser: str, url: str, out: dict) -> dict:
+    out.update({"arm": "p3", "fixture": url})
     out["open"] = open_fixture(session, url, "p3-long60.odt")
     reply, _ = settle_rects(session)
     if reply is None:
         out["verdictNote"] = "no pageRectangles reply after the open"
         return out
+    pp.evaluate(session, SCROLL_BY.replace("ARG_DY", "-1e9"))   # from the TOP: the first run started where P1 left the desk
+    time.sleep(1.0)
+    mws.quiet(session)
+    start_top = pp.evaluate(session, GEOMETRY)["scrollTop"]
     counts_before = dict(mws.obs(session).get("requestCounts") or {})
     drain(session)
     t_start = pp.evaluate(session, mws.NOW)
@@ -699,8 +709,10 @@ def arm_p3(session, browser: str, url: str) -> dict:
         if g["scrollTop"] + g["clientHeight"] >= g["scrollHeight"] - 1:
             reached_bottom = True
             break
+    up_steps = 0
     for _ in range(400):
         g = pp.evaluate(session, SCROLL_BY.replace("ARG_DY", "-document.querySelector('#desk').clientHeight"))
+        up_steps += 1
         time.sleep(0.15)
         if g["scrollTop"] <= 0:
             break
@@ -717,7 +729,8 @@ def arm_p3(session, browser: str, url: str) -> dict:
                 triggers.append(e)
             last_dsc = e["dsc"]
     untriggered = [r for r in requests if not any(0 <= r["t"] - tr["t"] <= 2000 for tr in triggers)]
-    out.update({"windowMs": [t_start, t_end], "steps": len(steps), "reachedBottom": reached_bottom,
+    out.update({"windowMs": [t_start, t_end], "steps": len(steps), "stepsUp": up_steps, "scrollTopAtStart": start_top,
+                "reachedBottom": reached_bottom,
                 "maxScrollTop": max(steps) if steps else None,
                 "pageRectanglesRequestsInWindow": len(requests), "untriggeredRequests": len(untriggered),
                 "triggersInWindow": len(triggers), "paintsInWindow": len(paints),
@@ -733,13 +746,13 @@ def place_native(session, browser: str, fixture: str, case: str) -> tuple[dict, 
     return spec, placed
 
 
-def arm_c1(session, browser: str, urls: dict, reload) -> dict:
-    out = {"arm": "c1", "rounds": [], "indent": None}
+def arm_c1(session, browser: str, urls: dict, reload, out: dict) -> dict:
+    out.update({"arm": "c1", "rounds": [], "indent": None})
     for round_no in range(1, C1_ROUNDS + 1):
         for case in C1_POSITIONS:
-            # A fresh page load per round (the held-key probes' shape): the generation starts at 1, and a
-            # refusal in one round cannot bring a later round nearer the page's reopen ceiling.
-            rec = {"case": case, "round": round_no, "reload": reload()}
+            # A fresh page load only after a reopen: a noop consumes no generation, and the first Chrome
+            # run went silent after seven reloads in a row (cause unknown, recorded in the README).
+            rec = {"case": case, "round": round_no, "reload": reload() if gen(session) != "1" else None}
             rec["open"] = open_fixture(session, urls["boundaries"], f"c1-{case}-r{round_no}.odt")
             handle = mws.obs(session).get("documentHandle")
             spec, placed = place_native(session, browser, "boundaries", case)
@@ -790,10 +803,13 @@ def arm_c1(session, browser: str, urls: dict, reload) -> dict:
                 "refused" if answer.get("ok") is False else answer.get("completion"))
             rec["pass"] = all(rec["clauses"].values())
             out["rounds"].append(rec)
+            FLUSH["fn"]()
     # Recorded, not a criterion: L-C-number-or-indent position (iii), Backspace at the start of an
     # indented first paragraph (ruling 6 §15.1).  Placement by click + Home, no native caret.
     try:
-        rec = {"reload": reload(), "open": open_fixture(session, urls["indent"], "c1-indent.odt")}
+        rec = {"reload": reload() if gen(session) != "1" else None,
+               "open": open_fixture(session, urls["indent"], "c1-indent.odt")}
+        out["indent"] = rec
         handle = mws.obs(session).get("documentHandle")
         click_fraction(session, 0.3, 0.06)
         pp.wait_for(session, lambda s: "定位游標" in (s.get("latency") or ""), 30)
@@ -810,9 +826,10 @@ def arm_c1(session, browser: str, urls: dict, reload) -> dict:
         rec["engineRead"] = {k: asked.get(k) for k in ("answered", "ok", "result")}
         rec["caretAfter"] = mws.caret_tuple(mws.obs(session).get("caret"))
         rec["generationAfter"] = gen(session)
-        out["indent"] = rec
     except Exception as error:  # noqa: BLE001 -- recorded; the arm's verdict does not depend on it
-        out["indent"] = {"error": f"{type(error).__name__}: {error}"}
+        (out["indent"] if isinstance(out.get("indent"), dict) else out.setdefault("indent", {}))["error"] = \
+            f"{type(error).__name__}: {error}"
+    FLUSH["fn"]()
     judged = [r for r in out["rounds"] if "pass" in r]
     out["placementMismatches"] = sum(1 for r in out["rounds"] if r.get("outcome") == "placement-mismatch")
     out["ok"] = bool(judged) and all(r["pass"] for r in judged) and len(judged) == C1_ROUNDS * len(C1_POSITIONS)
@@ -850,8 +867,8 @@ def judge_refusal(entries: list, failed: dict) -> dict:
                                                       and cb["sourceSequence"] <= ref["seq"])}}
 
 
-def arm_e2(session, browser: str, urls: dict, reload) -> dict:
-    out = {"arm": "e2", "cases": [], "hold": None}
+def arm_e2(session, browser: str, urls: dict, reload, out: dict) -> dict:
+    out.update({"arm": "e2", "cases": [], "hold": None})
     for case in E2_CASES:
         spec = mws.tool_cases(frame_cell=True)[case]
         rec = {"case": case, "fixture": spec["fixture"], "search": spec["search"], "backward": spec["backward"],
@@ -894,6 +911,7 @@ def arm_e2(session, browser: str, urls: dict, reload) -> dict:
                                "newGenerationPushes": len(new_gen_carets),
                                "stage": ((answer.get("mergeKey") or {}).get("stage"))}
         out["cases"].append(rec)
+        FLUSH["fn"]()
     # The hold across a merge: Delete held from I01's native caret (the end of `M12 number one`).
     try:
         rec = {"start": E2_HOLD_START, "reload": reload()}
@@ -969,8 +987,8 @@ def settle_lok(session, limit: float = 30.0, quiet_s: float = 1.5) -> list:
     return collected
 
 
-def arm_p2c(session, browser: str, urls: dict) -> dict:
-    out = {"arm": "p2c", "instrumentedWorker": True, "phases": []}
+def arm_p2c(session, browser: str, urls: dict, out: dict) -> dict:
+    out.update({"arm": "p2c", "instrumentedWorker": True, "phases": []})
     for label, url in (("long60", urls["long60"]), ("mixed8", urls["mixed8"])):
         phase = {"fixture": label}
         phase["open"] = open_fixture(session, url, f"p2c-{label}.odt")
@@ -1011,6 +1029,7 @@ def arm_p2c(session, browser: str, urls: dict) -> dict:
                                   "countAfterAdd": add["count"], "countAfterRemove": remove["count"],
                                   "lokDuringSettles": lok_summary(edits)}
         out["phases"].append(phase)
+        FLUSH["fn"]()
     lone = sum(len(p["openAndSettle"]["lone"]) for p in out["phases"]) + sum(
         len(p.get("edits", {}).get("lokDuringSettles", {}).get("lone", [])) for p in out["phases"])
     seen_any = any(p["openAndSettle"]["lokEvents"] for p in out["phases"])
@@ -1124,30 +1143,41 @@ def main() -> int:
             return {"state": (boot or {}).get("state"), "shims": shims, "seconds": round(time.monotonic() - t0, 1),
                     "generation": gen(session)}
 
+        def flush() -> None:
+            args.out.write_text(json.dumps(report, indent=1, ensure_ascii=False, default=str))
+
+        FLUSH["fn"] = flush
         report["boot"] = reload()
         for arm in arms:
             t0 = time.monotonic()
+            result = report["results"][arm] = {"arm": arm}
+            flush()
             try:
                 if arm == "p1-60":
-                    result = arm_p1(session, args.browser, urls["long60"], "p1-60", LONG_PAGES)
+                    arm_p1(session, args.browser, urls["long60"], "p1-60", LONG_PAGES, result)
                 elif arm == "p1-mixed":
-                    result = arm_p1(session, args.browser, urls["mixed8"], "p1-mixed", 8)
+                    arm_p1(session, args.browser, urls["mixed8"], "p1-mixed", 8, result)
                 elif arm == "p2":
-                    result = arm_p2(session, args.browser, urls["long60"])
+                    arm_p2(session, args.browser, urls["long60"], result)
                 elif arm == "p3":
-                    result = arm_p3(session, args.browser, urls["long60"])
+                    arm_p3(session, args.browser, urls["long60"], result)
                 elif arm == "c1":
-                    result = arm_c1(session, args.browser, urls, reload)
+                    arm_c1(session, args.browser, urls, reload, result)
                 elif arm == "e2":
-                    result = arm_e2(session, args.browser, urls, reload)
+                    arm_e2(session, args.browser, urls, reload, result)
                 else:
-                    result = arm_p2c(session, args.browser, urls)
+                    arm_p2c(session, args.browser, urls, result)
             except Exception as error:  # noqa: BLE001 -- recorded with the arm, the run goes on
-                result = {"arm": arm, "runnerError": f"{type(error).__name__}: {error}"}
+                result["runnerError"] = f"{type(error).__name__}: {error}"
             result["seconds"] = round(time.monotonic() - t0, 1)
-            result["stateAfter"] = pp.evaluate(session, pp.READ_STATE)
-            report["results"][arm] = result
-            args.out.write_text(json.dumps(report, indent=1, ensure_ascii=False, default=str))
+            try:
+                result["stateAfter"] = pp.evaluate(session, pp.READ_STATE)
+            except Exception as error:  # noqa: BLE001 -- a silent page: recorded, and the run stops
+                result["stateAfterError"] = f"{type(error).__name__}: {error}"
+                report["abortedAfter"] = arm
+                flush()
+                break
+            flush()
     finally:
         report["completedAt"] = now_iso()
         if session is not None:
@@ -1159,6 +1189,10 @@ def main() -> int:
                 session.close()
             except Exception as error:  # noqa: BLE001
                 report["closeError"] = str(error)
+            process = getattr(session, "process", None)
+            if process is not None and process.poll() is None:   # a browser that would not close
+                process.kill()
+                report["browserKilled"] = True
         server.terminate()
         server.wait(timeout=10)
         args.out.parent.mkdir(parents=True, exist_ok=True)
