@@ -727,7 +727,16 @@ FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
 # E1-C intact, and K2 on these bytes without the host on v20 (burst at the document start: 1 engine request, ready
 # 2,260 ms in Firefox and 2,259 ms in Chrome; the in-text control: 18 deletes; findings/evidence/host-0.2.21/).  The
 # host-side K3 (held, table, restore-window, 132-B and the burst/page-number arms on 0.2.21) runs after the install.
-MANIFEST = Path("e2/editor-shell-v2-bundle-v70.json")
+#
+# v71, 2026-10-14: finding 144 (v70's held presses kept deletesInFlight <= 1, so 132's depth cut never fired and a held
+# delete key inside text deleted 27-29 characters after release on host 0.2.21 -- K3c, 132-B FAIL).  Differs from v70
+# in the entrypoint only: `web/e2-editor-app.js` 2d6c4580… -> aa50cd20… (task 10-14q, `54dafccd`: the depth counts the
+# held presses too; a held press is released by a direct `dispatchDelete` call, not a synthetic beforeinput).  Frozen
+# after 364/364 editor-shell-v2 unit tests (page-held-depth red on 2d6c4580…), E1-C intact, the product-path mutations
+# 10/10, and N1 on these bytes without the host on v20 (flagged 2 s hold in text: 2 / 1 deletes after the key-up in
+# Firefox / Chrome; burst at the document start: 1 request, ready 2,258 / 2,260 ms; findings/evidence/host-0.2.22/).
+# 132-B and K3 on the installed 0.2.22 are the binding host check.
+MANIFEST = Path("e2/editor-shell-v2-bundle-v71.json")
 ENTRYPOINT = Path("web/e2-editor-app.js")
 
 # The directories whose *.js files must all be accounted for.  `editor-shell`
