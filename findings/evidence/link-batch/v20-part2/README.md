@@ -143,3 +143,70 @@ Not executed anywhere: the page's wiring has run in node sandboxes only (`update
 | `69ac9381` | `editor-shell-v2/narrow-editor-v2-session.js`: `pageSpanOf`, `visibleRegionTwips`, `pageStatusText`, `PageRectanglesScheduler`, `documentSizeChangedCount` in the allowlist, `offersPageRectangles()` |
 | `abb442c5` | `web/e2-editor-app.js`, `web/e2-editor.html`, `tests/page-number.test.mjs`, `tests/page-boundary-noop.test.mjs`, sandbox stubs in `tests/page-paint-overlay.test.mjs` and `tests/page-render-bands.test.mjs` |
 | (this commit) | this README |
+
+## 9. Ruling 6 fixes (2026-10-14, task `TASK-2026-10-14a`, conditions 45, 47, 48)
+
+Append-only. Ruling: `findings/evidence/link-batch/review/ruling-6.md` §Q2, §Q3, §Q4. All three fixes are in `editor-shell-v2/narrow-editor-v2-session.js`; `editor-shell/` untouched (`check_e1_c_bundle_intact.py` → `intact: true`, bundle `187706b2…`, before the first change and after the last commit). No build, no link, no freeze; `web/`, `sdk/`, `src/`, `dist/`, tools, profiles, pins untouched. Line numbers are of the tree at the last commit below. Full suite `node --test editor-shell-v2/tests/*.test.mjs sdk/tests/*.test.mjs`: 386 → 389 (48) → 395 (47) → **412 pass, 0 fail** (45); `node --check` OK after each.
+
+### 9.1 Condition 48 — the scheduler after a failed read (`aeaf92c0`)
+
+- `narrow-editor-v2-session.js:375`: `this._issuedAt = null` in `PageRectanglesScheduler._settle`'s error branch, before `_onResult` (so a synchronous re-entry from `onResult` already sees the reset). The `dropped` branch is untouched: `documentOpened` clears `_issuedAt` for the new document anyway. Class comment corrected in place (`:243-252`).
+- **§3's cost sentence is corrected here, superseding its last sentence and §7 call 2:** a read that always fails costs **one read per state write while it fails**, not one per trigger. A failure puts the scheduler back in its "no read issued for this document" state; retries are bounded by state writes, and the action that caused the BUSY always ends with one (the drain writes `editorState` after every item). A second write with the same counter while the retry is in flight still adds nothing (`stateObserved`'s early return on `_issuedAt`).
+- Tests, `page-number.test.mjs:376` (a), `:393` (b, control), `:404` (c). Red first on the unmodified module:
+
+  ```
+  ✖ scheduler (48a): a failed read, then a state write with the same counter -> re-reads
+    AssertionError: a state write after a failed read must re-read   actual: 0, expected: 1
+  ℹ tests 39  ℹ pass 37  ℹ fail 2
+  ```
+
+  The second red is the existing test at `:335`, which pinned the behaviour the ruling reverses ("Same counter again: the failure consumed its trigger, no storm", `pending.length === 0`) and is rewritten to the ruled contract (one re-read on the first same-counter write, none on the second while that retry is in flight). (b) and (c) pass before and after, as controls should. After: 39/39.
+
+### 9.2 Condition 47 — a `verified-boundary-noop` delete is not a mutation (`a6ecb7fd`)
+
+- `narrow-editor-v2-session.js:1036` `_enqueueOwned(label, operation, options)`: wraps the operation as `operation(runtime, tools)` with `tools.completedUnchanged()` clearing the item's `mutation`; `:995` the subclass's `_enqueue` and `:1089` `_releaseHeld` go through it (the only two places `super._enqueue` was reached). `:858` in `action()`: the call happens only when `result?.completion === "verified-boundary-noop" && result?.changed === false`. The view-only gate reads `options.mutation` before the operation and is unchanged.
+- **Not README §4's sketch verbatim (judgement call).** The sketch takes the item as `this._queue[before]` after `super._enqueue` returns. `EditorSession._drain()` is `async` and runs synchronously up to its first `await`: when no drain is active it `shift()`s the new item and starts the operation *inside* `super._enqueue`, so the queue is empty again when that returns. Measured on the fixture with the sketch applied literally (scratch script, not committed):
+
+  ```
+  {"queue":"idle at enqueue","sketchFoundItem":false,"queueLengthAfterSuperEnqueue":0,"dirtyAfter":true}
+  {"queue":"busy at enqueue (second item)","sketchFoundItem":true,"queueLengthAfterSuperEnqueue":1}
+  ```
+
+  The user's lone Backspace is the idle case, and the README measurement test stayed red under the sketch (same assertion as below). The item is therefore taken at the push, the only moment it is reachable: `_watchQueue()` (`:1054`, installed in the constructor at `:422`, the shape of 084's `state.update` wrapper) observes `this._queue.push`, counts pushes (`queuePushesSeen`) and remembers the newest item; `_enqueueOwned` claims it by the identity of the wrapped operation. `EDITOR_NOT_READY` pushes nothing and claims nothing. This adds one dependency beyond the ruling's two: the base keeps one array for the session's life (`_queue` is assigned in its constructor only, `_blockQueue` splices in place) — pinned below.
+- Seam pins, `narrow-editor-v2-session.test.mjs:229` (the shape of `:211`): through the **base's** `_enqueue` directly, exactly one item is pushed synchronously carrying `mutation: true`; an operation that sets `item.mutation = false` after an `await` leaves `dirty` false and the stamp unchanged, the same item left alone marks dirty (control). `:265`: the observer survives a rollback (same array, one enqueue → one push seen afterwards). A first draft asserted "open() pushes" — it does not (test-side error, fixed before commit).
+- README §4's measurement as the red-first test, `page-boundary-noop.test.mjs:208`:
+
+  ```
+  ✖ 47: a clean document and one verified-boundary-noop delete: not dirty, stamp unchanged, ...
+    AssertionError: changed: false is not a mutation   actual: true, expected: false
+  ```
+
+  After: `dirty` false, `_contentSequence` and `_currentContentStamp` unchanged, `hasUnsavedEdits()` false, the following `move-character-left` banks no checkpoint (`boundaryCheckpointsTaken` 0, zero `save()` calls). Control `:229`: a verified delete sets `dirty`, bumps the stamp, and the following move banks one checkpoint (one save). Scope `:246`: a paragraph action's `verified-format-readback` with `changed: null` stays a mutation. View-only `:268`: both deletes refused with `EDITOR_VIEW_ONLY`, nothing reaches the engine, moves still allowed.
+- **Judgement call on the scope test.** My first two scope cases (`verified-selection-delete` with `changed: false`; `verified-boundary-noop` with `changed: null`) came out `dirty: false` — not the flip firing but the client refusing the reply (`narrow-editor-v2-client.js:311-322` admits exactly the noop pair or a verified change; a rejected action is never a mutation). The accepted completion nearest the noop is a paragraph action's `changed: null`, so that is the committed case.
+- The fixture gained `{ noop }` and answers moves like moves (`changed: false`, revision unchanged, `documented-callback-visible-cursor`), because the client's inherited postcondition refuses a move reply that advances the revision — the previous fixture never drove a move.
+
+### 9.3 Condition 45 — the `placeCaret` acknowledgement, finding 138 (`bcf3f747`)
+
+- Selection shape read from source before writing the predicate: `NarrowEditorV2Client.getState()` → `ParagraphEditorClient.getState()` → `editorGetStateV2` → `sdk-worker.js` `editor-state-result` branch forwards `selection: event.selection` raw → `probe_engine.cpp` `appendEditorState` emits `{observed, collapsed, start, end, rectangles:[{x,y,width,height}|null]}`. `collapsed` and `rectangles` are in the reply; nothing was invented.
+- `narrow-editor-v2-session.js:608` `placeCaret(xTwips, yTwips, options)`, an own override with the base's contract: same options (`caretTimeoutMs`, `caretAckGraceMs`), result shape, the three `caretConfirmedBy` strings, `EDITOR_CARET_NOT_PLACED` with identical `details`. `:626`: `acknowledged = sequenceAdvanced && (caretMoved || selectionChanged)`; return on `(onTarget && (acknowledged || elapsed >= graceMs)) || (acknowledged && caretMoved)` — the 052 path is literally the base's (`caretMoved` implies the evidence). `:165` `selectionDiffers(selection, previous)`: `collapsed`, the rectangle count, and each rectangle's position via `caretDiffers`.
+- **Judgement call: rectangles compared by position only** (x, y; not width/height), for 052's reason — a relayout inside the click's window can change a rectangle's height, and a relayout must not stand in for a click (that is the 138 class). A plain click on a live selection flips `collapsed` and empties `rectangles`, so nothing a plain click does is missed. `observed`, `start`, `end` are not compared (`observed` is about the readback; the end points follow the rectangles).
+- Test, `place-caret-acknowledgement.test.mjs`: review 6's harness with ruling 6's four added arms; `Object.create(Class.prototype)` with `_enqueue` stubbed, the product's `placeCaret` against a scripted engine in which only the timing of state changes is scripted (lone push at 3 ms, click processed at 25 ms, the measured 22–28 ms). Seven arms on the subclass (`:174`), the same seven on the frozen base as controls (`:184`: its three false acknowledgements are pinned, which is what shows the lone bump lands inside the window and a sequence-only predicate would be caught), the own-override structural check (`:190`), the error-shape contract (`:196`, both classes time out on a never-processed click with the caret on another line; `details` deep-equal) and the `caretConfirmedBy` contract (`:212`). Red first on the un-overridden subclass — exactly the three arms, plus the structural check:
+
+  ```
+  ✖ override: same-line click, lone DOCUMENT_SIZE_CHANGED at 3 ms (v20)
+    AssertionError: the state returned carries the clicked point   actual: 1000, expected: 5000
+  ✖ override: same-line click, lone INVALIDATE_TILES at 3 ms (F5, v19)   actual: 1000, expected: 5000
+  ✖ override: lone size bump, the click is never processed (image-click shape)
+    actual: 'engine-acknowledged', expected: 'already-at-target'
+  ✖ the override is the subclass's own, and the base is untouched   actual: false, expected: true
+  ℹ tests 17  ℹ pass 13  ℹ fail 4
+  ```
+
+  The four equal arms (plain, identical point at ~440 ms, selection collapse, off-line) were green before and after; all seven base controls green before and after. With the override: 17/17; ten consecutive runs of the file, 0 failures. `product-page-calls.test.mjs` passes (`has()` walks the prototype chain). The 400 ms grace arms are kept at the default (two per class, ~1.8 s of the file's run) for fidelity with §Q2's table.
+- Not measured on WASM whether a lone tile or size callback occurs inside a click's window — as finding 138 and the ruling state; the harness is the evidence.
+
+### 9.4 Checks changed, and what was not done
+
+- Changed because of a ruling (not §34: product code and its unit tests): `page-number.test.mjs:335` (the reversed pin, §9.1); `page-boundary-noop.test.mjs` header gained a paragraph pointing at the new tests and its fixture gained the `noop` switch, move replies and a save counter; `narrow-editor-v2-session.test.mjs` imports `EditorSession` for the seam pin. Assertions of existing tests otherwise untouched.
+- Nothing stopped on. No contradiction found between the task and the ruling; the one departure from the README §4 sketch is §9.2's, with its witness.
+- Not run here: Python readers, the browser, any `tools/run_*.py`. Nothing in this section has executed in a browser; shell generation v67 is not frozen.
