@@ -1,0 +1,11 @@
+object build/e2/editor-v15/probe_engine.o; base 82af92ca^; exit base 0 cur 0; lines base 87200 cur 87201
+--- 82af92ca^
++++ working tree
+@@ -84951,5 +84951,6 @@
+        << ",\"msg\":\"" << jsonEscape(message.c_str()) << "\""
+        << ",\"mergeKey\":{\"keyPosted\":" << (keyPosted ? "true" : "false")
+-       << ",\"stage\":\"" << jsonEscape(stage) << "\",\"restorePresses\":0}}";
++       << ",\"stage\":\"" << jsonEscape(stage) << "\",\"restorePresses\":0}";
++  json << "}";
+   emitJson(json.str());
+   finishAsynchronous(transaction.requestId);

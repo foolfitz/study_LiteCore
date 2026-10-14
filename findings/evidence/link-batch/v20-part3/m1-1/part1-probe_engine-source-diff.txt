@@ -1,0 +1,363 @@
+diff --git a/wasm_sdk_probe/src/probe_engine.cpp b/wasm_sdk_probe/src/probe_engine.cpp
+index b69d4386..3fc959c3 100644
+--- a/wasm_sdk_probe/src/probe_engine.cpp
++++ b/wasm_sdk_probe/src/probe_engine.cpp
+@@ -183,6 +183,12 @@ enum class CommandType {
+   ListComments,
+   SetTrackChanges,
+   ListChanges,
++#ifdef OXSDK_E2_V20_LINK_BATCH
++  // SPEC-M3-link-batch 10.8 (S-11): a document-level QUERY, the sibling of
++  // GetSelection, never an editor action -- no wire id, no gesture, so
++  // kMaxExternalAction and kMaxInternalEditorAction do not move.
++  PageRectangles,
++#endif
+ #ifdef OXSDK_EDITOR_DISCOVERY
+   EditorAction,
+   // FINDING 096.  The key path's own deadline step, and it is a THIRD kind
+@@ -304,6 +310,17 @@ struct EditorRect {
+ struct EditorState {
+   std::uint64_t sourceSequence = 0;
+   std::uint64_t documentChangeSequence = 0;
++#ifdef OXSDK_E2_V20_LINK_BATCH
++  // SPEC-M3-link-batch 10.8 / 12.3 (ruling 3 condition 21).  Every
++  // LOK_CALLBACK_DOCUMENT_SIZE_CHANGED, counted on ARRIVAL -- not on a payload
++  // change, and not only when the parsed size differs from the last one.  It
++  // is the page number's re-read trigger: typing emits no INVALIDATE_TILES on
++  // this engine (ruling 2 F2), so `documentChangeSequence` would never move
++  // for a page added by typing, while this callback was measured 1.2-1.8 ms
++  // after the edit with the rectangles already current
++  // (findings/evidence/link-batch/page-rectangles/).
++  std::uint64_t documentSizeChangedCount = 0;
++#endif
+   bool cursorVisible = true;
+   EditorRect caret;
+   EditorRect selectionStart;
+@@ -527,6 +544,19 @@ struct SelectionBarrierTransaction {
+   bool stageDeadlineArmed = false;
+   std::chrono::steady_clock::time_point stageDeadline;
+ #endif
++#ifdef OXSDK_E2_V20_LINK_BATCH
++  // SPEC-M3-link-batch 4.5(2) as refined by 10.6: the engine's cached caret
++  // and its sourceSequence at the moment the barrier started, carried on
++  // every refusal as `caretBefore`.  DATA ONLY in this link: nothing in the
++  // engine reads it back.
++  EditorRect caretBefore;
++  std::uint64_t caretBeforeSequence = 0;
++  // 10.5, C's window.  False until the first 250 ms NONE; true while the
++  // transaction waits one more MergeStepDeadlineMs for K1's TEXT_SELECTION.
++  bool boundaryNoopWindow = false;
++  // When K1 was posted; `boundaryNoop.waitedMs` is measured from here.
++  std::chrono::steady_clock::time_point startedAt;
++#endif
+ };
+ 
+ SelectionBarrierTransaction gSelectionBarrier;
+@@ -1221,6 +1251,12 @@ void appendEditorState(std::ostringstream &json) {
+   json << "\"sourceSequence\":" << gEditorState.sourceSequence
+        << ",\"documentChangeSequence\":"
+        << gEditorState.documentChangeSequence
++#ifdef OXSDK_E2_V20_LINK_BATCH
++       // Top level, beside the sequence it replaces as the page number's
++       // trigger; the worker names it in every editor-state projection.
++       << ",\"documentSizeChangedCount\":"
++       << gEditorState.documentSizeChangedCount
++#endif
+        << ",\"visible\":" << (gEditorState.cursorVisible ? "true" : "false")
+        << ",\"caret\":";
+   appendEditorRectangle(json, gEditorState.caret);
+@@ -2624,6 +2660,18 @@ void onLokCallback(int type, const char *payload, void *) {
+     }
+     break;
+   }
++#ifdef OXSDK_E2_V20_LINK_BATCH
++  case LOK_CALLBACK_DOCUMENT_SIZE_CHANGED:
++    // SPEC-M3-link-batch 12.3: counted on every arrival, and the arrival
++    // PUSHES editor-state by itself -- until this case the switch pushed
++    // seven callback types and this was not one of them, so a page added by
++    // typing announced nothing the page could re-read on.  The payload is
++    // not parsed and not forwarded; the page re-reads `page-rectangles`.
++    ++gEditorState.documentSizeChangedCount;
++    editorStateChanged = true;
++    editorSource = "document-size-changed";
++    break;
++#endif
+   default:
+     break;
+   }
+@@ -3321,6 +3369,52 @@ bool selectionBarrierContainsBoundary(
+   return false;
+ }
+ 
++#ifdef OXSDK_E2_V20_LINK_BATCH
++// SPEC-M3-link-batch 4.5(2) / 10.6 (ruling 2 S-8): every refusal of the
++// barrier carries `caretBefore: { rect, sourceSequence, source }`.
++//
++// `source` is "attribution-P" when the merge attribution has established P --
++// the last caret callback before K1's own selection, i.e. where the caret was
++// when K1 RAN -- and "cache" otherwise, meaning the engine's cached caret at
++// the moment the barrier started.  `sourceSequence` is the cache's
++// sourceSequence at barrier start in both cases: the attribution records no
++// sequence for P (merge_key_undo.hpp keeps rectangles only), and widening
++// that header is the merge model's business, not this link's.  `rect` is
++// null when neither exists (a barrier that started before any caret callback
++// was ever observed), never a zero rectangle dressed as a position.
++//
++// Data only: the engine reads none of this back.  The page's reopen may read
++// it in a later part; E2's oracle is K1's anchor rectangle of the same
++// transaction (10.6).
++void appendCaretBefore(std::ostringstream &json,
++                       const SelectionBarrierTransaction &transaction) {
++  EditorRect rect = transaction.caretBefore;
++  bool fromAttribution = false;
++#ifdef OXSDK_MERGE_KEY_UNDO
++  {
++    std::lock_guard<std::mutex> merge(gMergeMutex);
++    if (gMergeAttribution.hasP()) {
++      const probe::merge::Rect &p = gMergeAttribution.p();
++      rect.available = true;
++      rect.x = static_cast<int>(p.x);
++      rect.y = static_cast<int>(p.y);
++      rect.width = static_cast<int>(p.w);
++      rect.height = static_cast<int>(p.h);
++      fromAttribution = true;
++    }
++  }
++#endif
++  json << ",\"caretBefore\":{\"rect\":";
++  if (rect.available)
++    appendEditorRectangle(json, rect);
++  else
++    json << "null";
++  json << ",\"sourceSequence\":" << transaction.caretBeforeSequence
++       << ",\"source\":\"" << (fromAttribution ? "attribution-P" : "cache")
++       << "\"}";
++}
++#endif
++
+ void finishSelectionBarrierError(const char *code, const char *message,
+                                  bool viewRecoveryRequired) {
+   const SelectionBarrierTransaction transaction = gSelectionBarrier;
+@@ -3328,8 +3422,27 @@ void finishSelectionBarrierError(const char *code, const char *message,
+   std::string finalMessage = message ? message : "selection barrier failed";
+   if (viewRecoveryRequired)
+     finalMessage += "; no mutation was dispatched; start a fresh Worker";
++#ifdef OXSDK_E2_V20_LINK_BATCH
++  // emitSdkError's exact shape plus `caretBefore` (10.6); the value is as
++  // well defined here as in finishMergeKeyError, because every call site of
++  // this function runs inside a transaction that startSelectionBarrierDelete
++  // opened, and that is where the cache was captured.
++  std::ostringstream json;
++  json << "{\"schemaVersion\":" << ProtocolSchemaVersion
++       << ",\"type\":\"error\",\"requestId\":" << transaction.requestId
++       << ",\"documentHandle\":" << transaction.documentHandle
++       << ",\"revision\":" << gCallbackRevision.load(std::memory_order_acquire)
++       << ",\"operation\":\"editor-action\",\"code\":\"" << jsonEscape(code)
++       << "\",\"message\":\"" << jsonEscape(finalMessage.c_str())
++       << "\",\"where\":\"editor-action\",\"msg\":\""
++       << jsonEscape(finalMessage.c_str()) << "\"";
++  appendCaretBefore(json, transaction);
++  json << "}";
++  emitJson(json.str());
++#else
+   emitSdkError(transaction.requestId, transaction.documentHandle,
+                "editor-action", code, finalMessage);
++#endif
+   finishAsynchronous(transaction.requestId);
+ }
+ 
+@@ -3402,11 +3515,60 @@ void finishMergeKeyError(const char *stage) {
+        << jsonEscape(message.c_str()) << "\",\"where\":\"editor-action\""
+        << ",\"msg\":\"" << jsonEscape(message.c_str()) << "\""
+        << ",\"mergeKey\":{\"keyPosted\":" << (keyPosted ? "true" : "false")
+-       << ",\"stage\":\"" << jsonEscape(stage) << "\",\"restorePresses\":0}}";
++       << ",\"stage\":\"" << jsonEscape(stage) << "\",\"restorePresses\":0}";
++#ifdef OXSDK_E2_V20_LINK_BATCH
++  appendCaretBefore(json, transaction);
++#endif
++  json << "}";
++  emitJson(json.str());
++  finishAsynchronous(transaction.requestId);
++}
++
++#ifdef OXSDK_E2_V20_LINK_BATCH
++// SPEC-M3-link-batch 10.5 (ruling 2 condition 8; ruling 4 condition 35, no
++// flag clauses): C's second exit.  The window expired with a second
++// readSelection() still NONE and the typed selection still collapsed, so the
++// press changed nothing: `editor-action-completed`, `changed: false`, the
++// revision unchanged, completion `verified-boundary-noop`, and
++// `boundaryNoop.waitedMs` measured from K1's post -- the number L-C-late-K1
++// and "about 2.25 s at the start of the document" are stated in, kept so a
++// later section can shorten the window from a measurement.
++//
++// No EDITOR_BOUNDARY_UNSUPPORTED, no reopen.  The residual is named in the
++// spec (L-C-late-K1): a K1 that runs after this reply leaves a selection in a
++// live session, and nothing here can wait for a signal that a key which
++// changes nothing never sends (ruling 2 F1).
++void finishSelectionBarrierBoundaryNoop() {
++  const SelectionBarrierTransaction transaction = gSelectionBarrier;
++  gSelectionBarrier = SelectionBarrierTransaction{};
++  {
++    std::lock_guard<std::mutex> merge(gMergeMutex);
++    gMergeTicket = MergeTicket{};
++  }
++  const long long waitedMs =
++      std::chrono::duration_cast<std::chrono::milliseconds>(
++          std::chrono::steady_clock::now() - transaction.startedAt)
++          .count();
++  std::ostringstream json;
++  json << "{\"schemaVersion\":" << ProtocolSchemaVersion
++       << ",\"type\":\"editor-action-completed\",\"requestId\":"
++       << transaction.requestId << ",\"documentHandle\":"
++       << transaction.documentHandle << ",\"beforeRevision\":"
++       << transaction.beforeRevision << ",\"revision\":" << gState.revision
++       << ",\"action\":\"" << jsonEscape(transaction.action.c_str())
++       << "\",\"option\":false,\"changed\":false"
++       << ",\"completion\":\"verified-boundary-noop\""
++       << ",\"callbackSequenceBefore\":" << transaction.beforeSequence
++       << ",\"callbackSequenceAfter\":" << gEditorState.sourceSequence
++       << ",\"boundaryNoop\":{\"waitedMs\":" << waitedMs << "}"
++       << ",\"state\":{";
++  appendEditorState(json);
++  json << "}}";
+   emitJson(json.str());
+   finishAsynchronous(transaction.requestId);
+ }
+ #endif
++#endif
+ 
+ void maybeFinishSelectionBarrier() {
+   if (!selectionBarrierActive() ||
+@@ -3858,9 +4020,30 @@ void rejectSelectionBarrierAtDeadline(const Command &command) {
+   if (selected.type == LOK_SELTYPE_NONE && !selected.textMissing &&
+       typedCollapsed) {
+ #ifdef OXSDK_MERGE_KEY_UNDO
++#ifdef OXSDK_E2_V20_LINK_BATCH
++    // SPEC-M3-link-batch 10.5 (C): the first 250 ms NONE is no longer a
++    // refusal.  The transaction stays in AwaitingUnitSelection for one
++    // MergeStepDeadlineMs more, driven by the SAME deadline the engine loop
++    // already waits on for this stage (`boundaryDeadline`, read at the three
++    // wait sites) -- so a TEXT_SELECTION inside the window takes the ordinary
++    // path through handleSelectionBarrierStateCallback, with the attribution's
++    // P and anchor fence set up before K1 as today, and the loop synthesises
++    // this step again at expiry.  "Pull the caret back" was dropped by the
++    // ruling: there is no mechanism for it.
++    if (!gSelectionBarrier.boundaryNoopWindow) {
++      gSelectionBarrier.boundaryNoopWindow = true;
++      gSelectionBarrier.boundaryDeadline =
++          std::chrono::steady_clock::now() +
++          std::chrono::milliseconds(MergeStepDeadlineMs);
++      return;
++    }
++    // Expiry, second read still NONE, typed selection still collapsed.
++    finishSelectionBarrierBoundaryNoop();
++#else
+     // 10.1(h): the page says "nothing deletable was obtained", not "the end
+     // of the document" -- 250 ms of NONE can also be a Shift press not run yet.
+     finishMergeKeyError("nothing-selected");
++#endif
+ #else
+     finishSelectionBarrierError(
+         "EDITOR_BOUNDARY_UNSUPPORTED",
+@@ -4023,6 +4206,12 @@ void startSelectionBarrierDelete(const Command &command, const char *action,
+   gSelectionBarrier.boundaryDeadline =
+       std::chrono::steady_clock::now() +
+       std::chrono::milliseconds(SelectionBarrierBoundaryDeadlineMs);
++#ifdef OXSDK_E2_V20_LINK_BATCH
++  // 10.6: the cache as it stands the moment the barrier starts, before K1.
++  gSelectionBarrier.caretBefore = gEditorState.caret;
++  gSelectionBarrier.caretBeforeSequence = gEditorState.sourceSequence;
++  gSelectionBarrier.boundaryNoopWindow = false;
++#endif
+   markAsynchronous(command.requestId);
+ #ifdef OXSDK_MERGE_KEY_UNDO
+   // P_start (10.1(f)), then the attribution's transaction, both before K1.
+@@ -4045,6 +4234,10 @@ void startSelectionBarrierDelete(const Command &command, const char *action,
+   int keyCode = backward ? com::sun::star::awt::Key::LEFT
+                          : com::sun::star::awt::Key::RIGHT;
+   keyCode |= EditorShiftModifier;
++#ifdef OXSDK_E2_V20_LINK_BATCH
++  // `boundaryNoop.waitedMs` counts from K1's post, not from the request.
++  gSelectionBarrier.startedAt = std::chrono::steady_clock::now();
++#endif
+   gState.document->pClass->postKeyEvent(gState.document,
+                                         LOK_KEYEVENT_KEYINPUT, 0, keyCode);
+   gState.document->pClass->postKeyEvent(gState.document, LOK_KEYEVENT_KEYUP, 0,
+@@ -4052,6 +4245,47 @@ void startSelectionBarrierDelete(const Command &command, const char *action,
+ }
+ #endif
+ 
++#ifdef OXSDK_E2_V20_LINK_BATCH
++// SPEC-M3-link-batch 4.3 / 10.8 (S-10, S-11; ruling 2 conditions 11 and 13):
++// the page number's data, as a document-level query like GetSelection.
++//
++// The reply carries three things and the engine PARSES NONE OF THEM: the raw
++// `getPartPageRectangles()` string ("x, y, w, h; x, y, w, h; ..." in twips,
++// measured natively in findings/evidence/link-batch/page-rectangles/), the
++// document size, and `getParts()` -- two core sources for the page count, so
++// P1 can assert rectangles = parts without self-reference.  Parsing lives in
++// the SDK, where a malformed string is a typed error and never an empty list.
++//
++// It does NOT refresh gState.documentWidthTwips/HeightTwips: those are what
++// the paint reply's `documentSizeChanged` compares against ("as of the last
++// paint", finding 062), and 10.8 keeps that trigger exactly as it is today
++// beside the new counter.
++void handlePageRectangles(const Command &command) {
++  if (!requireDocument(command, "page-rectangles"))
++    return;
++  char *rectangles =
++      gState.document->pClass->getPartPageRectangles(gState.document);
++  if (!rectangles) {
++    emitCommandError(command, "page-rectangles", "LOK_ERROR", kitError());
++    return;
++  }
++  long width = 0;
++  long height = 0;
++  gState.document->pClass->getDocumentSize(gState.document, &width, &height);
++  const int parts = gState.document->pClass->getParts(gState.document);
++  std::ostringstream json;
++  json << "{\"schemaVersion\":" << ProtocolSchemaVersion
++       << ",\"type\":\"page-rectangles\",\"requestId\":" << command.requestId
++       << ",\"documentHandle\":" << gState.documentHandle
++       << ",\"revision\":" << gState.revision << ",\"rectangles\":\""
++       << jsonEscape(rectangles) << "\",\"parts\":" << parts
++       << ",\"documentWidthTwips\":" << width
++       << ",\"documentHeightTwips\":" << height << "}";
++  std::free(rectangles);
++  emitJson(json.str());
++}
++#endif
++
+ void handleGetSelection(const Command &command) {
+   if (!requireDocument(command, "get-selection"))
+     return;
+@@ -5916,6 +6150,11 @@ void dispatch(const Command &command) {
+   case CommandType::ListChanges:
+     handleListChanges(command);
+     break;
++#ifdef OXSDK_E2_V20_LINK_BATCH
++  case CommandType::PageRectangles:
++    handlePageRectangles(command);
++    break;
++#endif
+ #ifdef OXSDK_EDITOR_DISCOVERY
+ #ifdef OXSDK_E2_FORMAT_BARRIER
+   case CommandType::EditorFormatBarrierStep:
+@@ -6679,6 +6918,17 @@ SubmitStatus getSelection(std::uint32_t requestId,
+   return submit(std::move(command));
+ }
+ 
++#ifdef OXSDK_E2_V20_LINK_BATCH
++SubmitStatus pageRectangles(std::uint32_t requestId,
++                            std::uint32_t documentHandle) {
++  Command command{CommandType::PageRectangles};
++  command.sdk = true;
++  command.requestId = requestId;
++  command.documentHandle = documentHandle;
++  return submit(std::move(command));
++}
++#endif
++
+ SubmitStatus replaceSelection(std::uint32_t requestId,
+                               std::uint32_t documentHandle,
+                               std::uint32_t expectedRevision,

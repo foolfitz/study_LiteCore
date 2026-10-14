@@ -11,13 +11,22 @@ preprocessing run (`-E -P`).  Each run happens twice, from two scratch trees
 holding `src/` at BASE (a git ref before B's engine code) and `src/` as it is
 in the working tree, with the same relative paths, so `__FILE__` and the
 include chain are identical.  Every object of every rule must preprocess to
-the same bytes, except the probe_engine object of each rule named by
---carrier (default E2_V15 and E2_V19), which must differ (otherwise B is not
-in it); a carrier's other objects must be the same as well (since the review
-of 2026-10-08: before, one differing object let any number of others pass).
-Before 2026-10-08 there was one such rule (--v15); with one carrier named, the
-other carrier's objects differ from BASE and the run is red -- the red case
-below that shows the checker sees v19.
+the same bytes, except the declared objects of each rule named by --carrier
+(default E2_V15 and E2_V19, declared object: probe_engine), which must differ
+(otherwise B is not in it); a carrier's other objects must be the same as well
+(since the review of 2026-10-08: before, one differing object let any number of
+others pass).  Before 2026-10-08 there was one such rule (--v15); with one
+carrier named, the other carrier's objects differ from BASE and the run is red
+-- the red case below that shows the checker sees v19.
+
+Per-carrier object sets (2026-10-14, ruling 6 condition 50 as amended): `--carrier
+RULE=obj,obj,...` declares which objects of RULE differ (object names without
+`.o`; no `=` means `probe_engine`, as before).  E2_V20 carries the v20 define
+into probe_engine, sdk_api and editor_api (the last by two declarations only:
+v20-part3/m1-1-witness/editor_api-define-diff.txt), so its set is
+`E2_V20=probe_engine,sdk_api,editor_api`.  The declared set is an exception list
+over a tool-closed population (every object of every rule): an undeclared object
+that differs is red, and a declared object that does not differ is red.
 
 Also, for each carrier's probe_engine object (3.1 item 10): adding
 -DOXSDK_MAINLOOP_ENGINE, or removing -DOXSDK_FINDING_016_SELECTION_BARRIER,
@@ -29,9 +38,10 @@ found, and at least 20 rules in all; a rule without objects is an error.
 Red cases (test only): --inject RULE=FLAG adds FLAG to that rule's commands
 (injecting -DOXSDK_MERGE_KEY_UNDO into E2_V8 must turn it red); --carrier
 E2_V15 alone must be red (v19 carries B unlisted); naming E2_V8 as a carrier
-must be red (it carries no B).
+must be red (it carries no B); a carrier's declared set one object short, or
+one object over (declared, did not move), must be red.
 
-Usage: check_merge_key_undo_scope.py --base REF [--carrier NAME ...] [--inject RULE=FLAG] [--json OUT]
+Usage: check_merge_key_undo_scope.py --base REF [--carrier RULE[=obj,...] ...] [--inject RULE=FLAG] [--json OUT]
 """
 from __future__ import annotations
 
@@ -51,6 +61,7 @@ HERE = Path(__file__).resolve().parent.parent
 RULE = re.compile(r"^\$\(([A-Z0-9_]+)_BUILD\)/%\.o: src/%\.cpp")
 REQUIRED = ("E2_V8", "E2_V14")
 CARRIERS = ("E2_V15", "E2_V19")
+ENGINE = "probe_engine"
 
 
 def make(*args: str) -> str:
@@ -103,34 +114,64 @@ def run(args: list[str], tree: Path) -> tuple[int, str, str]:
     return p.returncode, hashlib.sha256(tokens).hexdigest(), p.stderr.decode(errors="replace")[-400:]
 
 
-def judge_rows(rows: list[dict], carriers: tuple, rules: list[str], base: str) -> list[str]:
-    """Per object: only a carrier's probe_engine.o may differ from BASE, and it must.  Before the review of
-    2026-10-08 (codex B7, opus S3) a carrier passed with ANY one differing object and any number of others."""
+def carrier_map(carriers) -> dict[str, tuple[str, ...]]:
+    """RULE -> the names of its objects that must differ from BASE.  A plain sequence of rule names (the shape
+    before 2026-10-14) means probe_engine only."""
+    if isinstance(carriers, dict):
+        return {rule: tuple(objs) for rule, objs in carriers.items()}
+    return {rule: (ENGINE,) for rule in carriers}
+
+
+def parse_carrier(item: str) -> tuple[str, tuple[str, ...]]:
+    rule, sep, objs = item.partition("=")
+    names = tuple(objs.split(",")) if sep else (ENGINE,)
+    if not rule or any(not n or n.endswith(".o") or "/" in n for n in names):
+        raise SystemExit(f"--carrier {item!r}: expected RULE or RULE=obj,obj,... (object names without .o)")
+    return rule, names
+
+
+def object_name(row: dict) -> str:
+    return row["object"].rsplit("/", 1)[-1].removesuffix(".o")
+
+
+def judge_rows(rows: list[dict], carriers, rules: list[str], base: str) -> list[str]:
+    """Per object: only a carrier's declared objects may differ from BASE, and each must.  Before the review of
+    2026-10-08 (codex B7, opus S3) a carrier passed with ANY one differing object and any number of others;
+    before 2026-10-14 the declared object was always probe_engine."""
+    declared = carrier_map(carriers)
     failures = []
     for row in rows:
-        engine = row["rule"] in carriers and row["object"].endswith("/probe_engine.o")
-        if not row["same"] and not engine:
+        expected = object_name(row) in declared.get(row["rule"], ())
+        if not row["same"] and not expected:
             failures.append(f"{row['rule']} {row['object']}: preprocessed output differs from {base}")
-    for carrier in carriers:
+    for carrier, names in declared.items():
         if carrier not in rules:
             continue
         mine = [r for r in rows if r["rule"] == carrier]
         if any(r["unbuildable"] for r in mine):
             failures.append(f"{carrier}: an object does not preprocess")
-        if not any(not r["same"] for r in mine if r["object"].endswith("/probe_engine.o")):
-            failures.append(f"{carrier}: its probe_engine object does not differ from {base} (B is not in it)")
+        for name in names:
+            if not any(not r["same"] for r in mine if object_name(r) == name):
+                tail = "B is not in it" if name == ENGINE else "declared to differ, did not move"
+                failures.append(f"{carrier}: its {name} object does not differ from {base} ({tail})")
     return failures
 
 
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--base", required=True)
-    ap.add_argument("--carrier", action="append", default=None,
-                    help="a rule that must carry B (repeatable); default E2_V15 and E2_V19")
+    ap.add_argument("--carrier", action="append", default=None, metavar="RULE[=obj,...]",
+                    help="a rule that must carry B (repeatable), with the objects that must differ from BASE "
+                         "(names without .o; default probe_engine); default carriers E2_V15 and E2_V19")
     ap.add_argument("--inject", action="append", default=[])
     ap.add_argument("--json")
     a = ap.parse_args()
-    carriers = tuple(a.carrier or CARRIERS)
+    carriers: dict[str, tuple[str, ...]] = {}
+    for item in a.carrier or CARRIERS:
+        rule, names = parse_carrier(item)
+        if rule in carriers:
+            raise SystemExit(f"--carrier {rule} named twice")
+        carriers[rule] = names
     inject: dict[str, list[str]] = {}
     for item in a.inject:
         rule, flag = item.split("=", 1)
@@ -202,6 +243,10 @@ def main() -> int:
                "different": sum(1 for r in rows if not r["same"]),
                "unbuildable": sorted({f"{r['rule']} {r['object']}" for r in rows if r["unbuildable"]}),
                "guards": guards}
+    if any(names != (ENGINE,) for names in carriers.values()):
+        # Printed only when a carrier declares more than the default, so a default run's line is unchanged.
+        summary = {"carriers": summary["carriers"], "declared": {r: list(n) for r, n in carriers.items()},
+                   **{k: v for k, v in summary.items() if k != "carriers"}}
     if a.json:
         Path(a.json).write_text(json.dumps({"summary": summary, "rows": rows,
                                             "failures": failures}, indent=1) + "\n")
