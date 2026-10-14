@@ -11,6 +11,7 @@ import { fileURLToPath } from "node:url";
 
 import { NarrowEditorV2Session } from "../narrow-editor-v2-session.js";
 import { EDITOR_V3_ACTIONS, NarrowEditorV2Client } from "../narrow-editor-v2-client.js";
+import { EditorSession } from "../../editor-shell/editor-session.js";
 import { EditorStateMachine } from "../../editor-shell/state-machine.js";
 
 const manifestOf = (profile) => JSON.parse(readFileSync(
@@ -217,6 +218,69 @@ test("the base-class seam this depends on is still there", async () => {
   assert.equal(typeof session._blockQueue, "function");
   assert.equal(typeof session._blockQueueIfDispatched, "function");
 });
+
+// Ruling 6 Q3 (condition 47).  The SECOND private seam this subclass depends
+// on, pinned the same way as the first: `_enqueueOwned` lets an operation flip
+// its own queue item's `mutation`, which only works because (1) the base pushes
+// the item onto `this._queue` synchronously, inside `super._enqueue`, with
+// `.push`, and (2) the drain reads `item.mutation` only AFTER the operation
+// returns (editor-session.js:304, :309).  Driven through the BASE's `_enqueue`
+// directly, so the pin does not depend on the subclass's own plumbing.
+test("the second base-class seam this depends on is still there: the item is pushed "
+     + "synchronously and its mutation flag is read after the operation", async () => {
+       const { session } = await opened();
+       assert.ok(Array.isArray(session._queue), "the queue is an array on the session");
+       const pushed = [];
+       const priorPush = session._queue.push;
+       session._queue.push = function (...items) { pushed.push(...items); return priorPush.apply(this, items); };
+       const baseEnqueue = EditorSession.prototype._enqueue;
+       // An operation that flips its own item after an await: if the drain had
+       // read `mutation` before (or at) the call, this could not clear `dirty`.
+       let flipped = null;
+       const done = baseEnqueue.call(session, "pin", async () => {
+         await new Promise((resolve) => setTimeout(resolve, 0));
+         flipped = pushed[0];
+         flipped.mutation = false;
+         return { state: null };
+       }, { mutation: true });
+       assert.equal(pushed.length, 1, "super._enqueue pushes exactly one item, synchronously");
+       assert.equal(pushed[0].mutation, true, "the item carries the flag it was enqueued with");
+       assert.equal(typeof pushed[0].operation, "function");
+       const stampBefore = session._currentContentStamp;
+       await done;
+       assert.equal(flipped, pushed[0]);
+       assert.equal(session.state.snapshot.dirty, false, "the drain read item.mutation after the operation");
+       assert.equal(session._currentContentStamp, stampBefore, "and bumped no content stamp");
+       // Control: the same item left alone is a mutation.
+       await baseEnqueue.call(session, "pin-control", async () => ({ state: null }), { mutation: true });
+       assert.equal(session.state.snapshot.dirty, true);
+       assert.equal(session._currentContentStamp, stampBefore + 1);
+     });
+
+// The subclass finds the item by observing the queue's own `push` (the README
+// §4 sketch, `this._queue[before]`, misses it whenever no drain is active --
+// `_drain()` shifts the item synchronously inside `super._enqueue`).  That
+// observer lives on ONE array for the session's life, so the base must never
+// replace `_queue`; a rollback is the place it plausibly would.
+test("the queue observer survives a rollback: one array for the session's life, pushes still seen",
+     async () => {
+       const failure = Object.assign(new Error("unverifiable"), {
+         code: "MUTATION_OUTCOME_UNKNOWN",
+         details: { formatBarrier: { dispatched: true } },
+       });
+       const { session } = await opened({ failing: "set-list-ordered", failure });
+       const queue = session._queue;
+       assert.equal(session.queuePushesSeen, 0, "open() enqueues nothing");
+       await session.action("set-italic", { enabled: true });
+       assert.equal(session.queuePushesSeen, 1, "the observer is installed: one enqueue, one push seen");
+       await session.setList("ordered").catch(() => {});
+       assert.equal(session.state.snapshot.state, "recoverable-error");
+       await session.rollback();
+       assert.equal(session._queue, queue, "the base replaced _queue; the observer is on the old one");
+       const seenAfter = session.queuePushesSeen;
+       await session.action("set-bold", { enabled: true });
+       assert.equal(session.queuePushesSeen, seenAfter + 1, "one enqueue after the rollback -> one push seen");
+     });
 
 test("an undispatched failure still leaves the queue running", async () => {
   // The other side of the same branch: `_blockQueueIfDispatched` must not turn

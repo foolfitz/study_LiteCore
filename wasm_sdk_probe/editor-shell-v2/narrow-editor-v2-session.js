@@ -391,6 +391,8 @@ export class NarrowEditorV2Session extends EditorSession {
     // Finding 109: refusals that reached the checkpoint call (banked or not).
     this.boundaryRefusalCheckpoints = 0;
     this._guardEditorStateAgainstStaleWrites();
+    // Ruling 6 Q3 (condition 47): see _enqueueOwned.
+    this._watchQueue();
   }
 
   /**
@@ -731,11 +733,14 @@ export class NarrowEditorV2Session extends EditorSession {
     }
     return this._enqueue(
       `action:${action}`,
-      async ({ document, editor }) => {
+      async ({ document, editor }, tools) => {
         if (BOUNDARY_CAPABLE_MOVES.has(action))
           await this._checkpointBeforeBoundaryMove(document);
         try {
-          return await editor.action(action, options);
+          const result = await editor.action(action, options);
+          if (result?.completion === "verified-boundary-noop" && result?.changed === false)
+            tools.completedUnchanged();
+          return result;
         } catch (error) {
           // FINDING 119.  A delete the selection barrier could not verify in
           // time comes back as EDITOR_STATE_UNAVAILABLE with no barrier detail;
@@ -871,7 +876,75 @@ export class NarrowEditorV2Session extends EditorSession {
     if (label !== "commit-text"
         && ((this.input?.state?.queueDepth ?? 0) > 0 || this._afterTyped.length > 0))
       return this._holdBehindTyped(label, operation, options);
-    return super._enqueue(label, operation, options);
+    return this._enqueueOwned(label, operation, options);
+  }
+
+  /**
+   * Ruling 6 Q3 (condition 47).  Enqueue so that the operation can flip its
+   * own queue item's `mutation` -- the one place `super._enqueue` is reached
+   * (this class's `_enqueue` and `_releaseHeld`).
+   *
+   * WHY.  C's second exit (`verified-boundary-noop`, `changed: false`, the
+   * revision unchanged) is a delete that changed nothing, and the engine says
+   * so.  `action()` decides `mutation` at enqueue time from the action name
+   * alone, so the frozen drain then marked the document dirty, bumped the
+   * content stamp, banked one ODT checkpoint on the next boundary move and,
+   * with a host, armed an autosave of unchanged bytes -- 098 (a non-mutation
+   * marked as a mutation) and 099 (a stand-in for content) again.
+   *
+   * THE SEAM, pinned in narrow-editor-v2-session.test.mjs beside the first
+   * one: the base pushes the item onto `this._queue` synchronously inside
+   * `super._enqueue` (editor-session.js:263) and reads `item.mutation` only
+   * AFTER the operation returns (:304, :309).  So the operation may clear the
+   * flag on the item it is running as, and the drain honours it.
+   *
+   * HOW THE ITEM IS FOUND, and why not by looking at the queue afterwards.
+   * `_drain()` is async and runs synchronously up to its first `await`: when
+   * no drain is active it shifts the new item off the queue and starts the
+   * operation INSIDE `super._enqueue`, so by the time that returns the queue
+   * is empty again.  Measured on the fixture (part-2 README, "Ruling 6
+   * fixes"): the README §4 sketch (`this._queue[before]`) finds the item only
+   * when a drain is already busy, and never for the user's lone Backspace.
+   * The push itself is the only moment the item is reachable, so the queue's
+   * `push` is observed (`_watchQueue`, installed in the constructor the way
+   * 084's guard wraps `state.update`), and the item is claimed by the identity
+   * of the operation it carries.  EDITOR_NOT_READY pushes nothing and claims
+   * nothing.
+   *
+   * Compensating afterwards (restoring the stamp and `dirty` in a `.then`)
+   * would be wrong: the drain starts the next queued operation synchronously
+   * after resolving, and `_checkpointBeforeBoundaryMove` reads `dirty` at its
+   * top before any `.then` runs.  The view-only gate is unaffected: it reads
+   * `options.mutation` before the operation; the flip is after.
+   */
+  _enqueueOwned(label, operation, options = {}) {
+    let item = null;
+    const tools = {
+      completedUnchanged: () => { if (item !== null) item.mutation = false; },
+    };
+    const owned = (runtime) => operation(runtime, tools);
+    const promise = super._enqueue(label, owned, options);
+    if (this._lastQueued?.operation === owned) item = this._lastQueued;
+    return promise;
+  }
+
+  /**
+   * See `_enqueueOwned`.  Remembers the newest item the base pushed onto
+   * `this._queue`; counted, because "the observer never saw a push" and "the
+   * observer is not installed" are the same green otherwise.  Depends on the
+   * base keeping ONE array for the session's life (it does: `_queue` is
+   * assigned in its constructor only; `_blockQueue` splices in place) -- pinned.
+   */
+  _watchQueue() {
+    const queue = this._queue;
+    const push = queue.push.bind(queue);
+    this._lastQueued = null;
+    this.queuePushesSeen = 0;
+    queue.push = (...items) => {
+      this.queuePushesSeen += items.length;
+      if (items.length) this._lastQueued = items[items.length - 1];
+      return push(...items);
+    };
   }
 
   _holdBehindTyped(label, operation, options) {
@@ -897,7 +970,7 @@ export class NarrowEditorV2Session extends EditorSession {
         held.reject(error);
         continue;
       }
-      super._enqueue(held.label, held.operation, held.options).then(held.resolve, held.reject);
+      this._enqueueOwned(held.label, held.operation, held.options).then(held.resolve, held.reject);
     }
   }
 

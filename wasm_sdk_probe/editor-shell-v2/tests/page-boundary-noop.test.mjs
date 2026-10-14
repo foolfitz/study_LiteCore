@@ -16,6 +16,12 @@
 // disposition is attached.  What the session does with the completion's
 // `changed: false` beyond that (dirty, content stamp) is REPORTED in the
 // part-2 README, not asserted here: changing it is a ruling, not this task's.
+//
+// Ruling 6 Q3 (condition 47) then ruled it: README §4's measurement is the
+// red-first test at the end of this file -- a clean document and one noop
+// delete leave `dirty` false, the content stamp unchanged and no checkpoint
+// banked by the following boundary move; a verified delete still marks dirty
+// (control); the view-only gate still refuses deletes.
 
 import assert from "node:assert/strict";
 import test from "node:test";
@@ -110,8 +116,18 @@ test("the assertion has teeth: a run() that toasts on changed === false fails it
 const manifestOf = (profile) => JSON.parse(readFileSync(
   here(`../../dist/profiles/${profile}/sdk-manifest.json`), "utf8"));
 
-function fixture() {
+/**
+ * `noop: true` (the default) answers both deletes with C's second exit;
+ * `noop: false` answers them as a verified, changing delete -- the control
+ * for condition 47.  Moves answer like moves (a posted key: `changed: false`,
+ * revision unchanged), so the boundary move after a delete goes through the
+ * client's inherited postcondition.  Saves are counted: a banked checkpoint is
+ * one `save()`.
+ */
+function fixture({ noop = true } = {}) {
   let revision = 0;
+  const requests = [];
+  const saves = [];
   const editorState = () => ({
     documentHandle: 1, revision, sourceSequence: 1, documentChangeSequence: 0,
     documentSizeChangedCount: 0, caret: null,
@@ -123,7 +139,7 @@ function fixture() {
     handle: 1, revision: 0, widthTwips: 12474, heightTwips: 1027604,
     _assertUsable() {},
     async render() { return { pixels: new ArrayBuffer(4), revision }; },
-    async save() { return new ArrayBuffer(16); },
+    async save() { saves.push(revision); return new ArrayBuffer(16); },
     async close() {},
   };
   const engine = {
@@ -131,13 +147,23 @@ function fixture() {
     onEvent() { return () => {}; },
     async open() { revision = 0; document.revision = 0; return document; },
     async _request(operation, payload) {
+      requests.push(`${operation}:${payload.action || "state"}`);
       if (operation === "editorGetStateV2") return editorState();
       if (operation === "editorSelectRangeV2") return { revision };
       if (payload.action === "delete-backward" || payload.action === "delete-forward") {
-        // C's second exit: the engine waited out the window and nothing was selected.
+        if (noop) {
+          // C's second exit: the engine waited out the window and nothing was selected.
+          return { action: payload.action, beforeRevision: payload.expectedRevision, revision,
+                   changed: false, completion: "verified-boundary-noop",
+                   boundaryNoop: { waitedMs: 2251 }, state: editorState() };
+        }
+        document.revision = ++revision;
         return { action: payload.action, beforeRevision: payload.expectedRevision, revision,
-                 changed: false, completion: "verified-boundary-noop",
-                 boundaryNoop: { waitedMs: 2251 }, state: editorState() };
+                 changed: true, completion: "verified-selection-delete", state: editorState() };
+      }
+      if (payload.action.startsWith("move-")) {
+        return { action: payload.action, beforeRevision: payload.expectedRevision, revision,
+                 changed: false, completion: "documented-callback-visible-cursor", state: editorState() };
       }
       document.revision = ++revision;
       return { action: payload.action, beforeRevision: payload.expectedRevision, revision,
@@ -150,7 +176,7 @@ function fixture() {
     engineFactory: async () => engine, secureContext: true,
     clipboard: { async writeText() {}, async readText() { return ""; } },
   });
-  return { session, document };
+  return { session, document, requests, saves };
 }
 
 for (const action of ["delete-backward", "delete-forward"]) {
@@ -172,3 +198,86 @@ for (const action of ["delete-backward", "delete-forward"]) {
          assert.equal(session.state.snapshot.revision, 1);
        });
 }
+
+/* ------------------------- ruling 6 Q3 (condition 47): a noop delete is not a mutation */
+
+// README §4's measurement, as the red-first test.  Before the fix the frozen
+// drain read the item's enqueue-time flag (`mutation: true` for every
+// non-move) and this gave `dirty false->true`, `_contentSequence 0->1`,
+// `hasUnsavedEdits() true`, then one ODT save on the following move.
+test("47: a clean document and one verified-boundary-noop delete: not dirty, stamp unchanged, "
+     + "no unsaved edits, and the following boundary move banks no checkpoint", async () => {
+       const { session, saves } = fixture();
+       await session.open({ bytes: new ArrayBuffer(8), name: "d.odt" });
+       const sequenceBefore = session._contentSequence;
+       const stampBefore = session._currentContentStamp;
+       assert.equal(session.state.snapshot.dirty, false, "precondition: a clean document");
+       const result = await session.action("delete-backward", {});
+       assert.equal(result.completion, "verified-boundary-noop");
+       assert.equal(result.changed, false);
+       assert.equal(session.state.snapshot.dirty, false, "changed: false is not a mutation");
+       assert.equal(session._contentSequence, sequenceBefore, "_contentSequence unchanged");
+       assert.equal(session._currentContentStamp, stampBefore, "_currentContentStamp unchanged");
+       assert.equal(session.hasUnsavedEdits(), false);
+       await session.action("move-character-left", {});
+       assert.equal(session.boundaryCheckpointsTaken, 0, "the move after a noop banks nothing");
+       assert.deepEqual(saves, [], "no ODT save");
+       assert.equal(session.state.snapshot.hasCheckpoint, false);
+       assert.equal(session.state.snapshot.state, "ready");
+     });
+
+test("47 control: a verified (changing) delete still sets dirty, bumps the stamp, and the "
+     + "following boundary move banks a checkpoint", async () => {
+       const { session, saves } = fixture({ noop: false });
+       await session.open({ bytes: new ArrayBuffer(8), name: "d.odt" });
+       const stampBefore = session._currentContentStamp;
+       const result = await session.action("delete-backward", {});
+       assert.equal(result.completion, "verified-selection-delete");
+       assert.equal(result.changed, true);
+       assert.equal(session.state.snapshot.dirty, true);
+       assert.equal(session._currentContentStamp, stampBefore + 1);
+       assert.equal(session.hasUnsavedEdits(), true);
+       await session.action("move-character-left", {});
+       assert.equal(session.boundaryCheckpointsTaken, 1);
+       assert.equal(saves.length, 1, "one ODT save: the checkpoint");
+       assert.equal(session.state.snapshot.hasCheckpoint, true);
+     });
+
+test("47: the flip is keyed on the exact pair -- an accepted completion whose changed is null "
+     + "(a paragraph action's verified-format-readback) stays a mutation", async () => {
+       // The client admits no other `changed: false` delete reply (its
+       // postcondition refuses anything that is neither the noop pair nor a
+       // verified change, narrow-editor-v2-client.js), so the accepted shape
+       // nearest the noop is a paragraph action: `changed: null`, revision
+       // advanced.  It must still mark the document dirty.
+       const { session, document } = fixture();
+       const request = document._engine._request.bind(document._engine);
+       document._engine._request = async (operation, payload) => {
+         const answer = await request(operation, payload);
+         return operation === "editorActionV2" && payload.action === "set-paragraph-heading"
+           ? { ...answer, changed: null, completion: "verified-format-readback" } : answer;
+       };
+       await session.open({ bytes: new ArrayBuffer(8), name: "d.odt" });
+       const result = await session.action("set-paragraph-heading", {});
+       assert.equal(result.changed, null);
+       assert.equal(result.completion, "verified-format-readback");
+       assert.equal(session.state.snapshot.dirty, true, "changed: null is not changed: false");
+       assert.equal(session._currentContentStamp, 1);
+     });
+
+test("47: the view-only gate still refuses deletes before anything is queued", async () => {
+  const { session, requests } = fixture();
+  await session.open({ bytes: new ArrayBuffer(8), name: "d.odt" });
+  session.setViewOnly(true);
+  const before = requests.length;
+  for (const action of ["delete-backward", "delete-forward"]) {
+    const error = await session.action(action, {}).then(() => null, (e) => e);
+    assert.equal(error?.code, "EDITOR_VIEW_ONLY", action);
+    assert.equal(error.recovery, "none");
+  }
+  assert.equal(requests.length, before, "nothing reached the engine");
+  assert.equal(session.state.snapshot.dirty, false);
+  // Moves stay allowed: reading a document is moving through it.
+  await session.action("move-character-left", {});
+  assert.equal(session.state.snapshot.state, "ready");
+});
