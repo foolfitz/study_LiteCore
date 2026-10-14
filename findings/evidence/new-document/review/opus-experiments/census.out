@@ -1,0 +1,113 @@
+checker-mutant census (a clause is GUARDED if neutralizing it turns >=1 red case GREEN, with the baseline still GREEN)
+C1 fatal                       baseline=GREEN UNGUARDED
+C2a N1 no lite                 baseline=GREEN UNGUARDED
+C2b N1 len!=1                  baseline=GREEN UNGUARDED
+C2c N1 extension               baseline=GREEN UNGUARDED
+C2d N1 mimetypes               baseline=GREEN GUARDED by N1-ott-offered
+C3 N1 entrySeen                baseline=GREEN UNGUARDED
+C4 N2 choice                   baseline=GREEN GUARDED by N2-php-chose-other
+C5a N2 sha                     baseline=GREEN UNGUARDED
+C5b N2 bytes                   baseline=GREEN UNGUARDED
+C6 N2 fileid                   baseline=GREEN UNGUARDED
+C7 N3 landed fileId            baseline=GREEN GUARDED by N3-wrong-file
+C8 N3 clickedFrom              baseline=GREEN UNGUARDED
+C9a N3 fetched sha             baseline=GREEN GUARDED by N3-page-fetched-other
+C9b N3 fetched status          baseline=GREEN UNGUARDED
+C10 N3 opened                  baseline=GREEN UNGUARDED
+C11 N4 click                   baseline=GREEN GUARDED by N4-click-refused
+C11c N4 click 失敗               baseline=GREEN GUARDED by N4-click-refused
+C12 N4 len keys                baseline=GREEN UNGUARDED
+C13a N4 rev                    baseline=GREEN GUARDED by N4-no-revision
+C13b N4 gen                    baseline=GREEN UNGUARDED
+C14 N4 save                    baseline=GREEN GUARDED by N4-save-not-saved
+C15a N4 getStatus              baseline=GREEN UNGUARDED
+C15b N4 bytes                  baseline=GREEN GUARDED by N4-zero-bytes
+C15c N4 markCount              baseline=GREEN GUARDED by N4-marker-missing
+C15d N4 describeError          baseline=GREEN UNGUARDED
+C16 N5 fetched                 baseline=GREEN GUARDED by N5-reopened-other-bytes
+C17 N5 reopened                baseline=GREEN UNGUARDED
+C18 N5 a11y                    baseline=GREEN GUARDED by N5-live-region-lies
+C19 N6 no record               baseline=GREEN UNGUARDED
+C20 N6 compare                 baseline=GREEN GUARDED by N6-asian-zh-CN,N6-paper-letter-in-TW,N6-paper-a4-in-EN,N6-font-KR,N6-western-en-GB
+S1 arms x browsers             baseline=GREEN GUARDED by one-browser,one-arm
+S2a N9 buildId                 baseline=GREEN GUARDED by N9-other-engine
+S2b N9 page                    baseline=GREEN GUARDED by N9-page-moved
+S3 N9 changedOutsideAllowed    baseline=GREEN UNGUARDED
+S4 N9 product touched          baseline=GREEN GUARDED by N9-product-touched
+S5 generator check             baseline=GREEN UNGUARDED
+S6a N10 passed                 baseline=GREEN GUARDED by N10-validator-red
+S6b N10 hashes                 baseline=GREEN UNGUARDED
+S6c N10 validated>0            baseline=GREEN UNGUARDED
+S7 N12                         baseline=GREEN GUARDED by N12-closure-red
+S8a N8 403                     baseline=GREEN GUARDED by N8-created-anyway
+S8b N8 adminAfter              baseline=GREEN GUARDED by N8-file-appeared
+S8c N8 otherSees               baseline=GREEN UNGUARDED
+S9 label                       baseline=GREEN UNGUARDED
+S10 hostDirty                  baseline=GREEN UNGUARDED
+S11a tools uncommitted         baseline=GREEN GUARDED by N9-tools-uncommitted
+S11b roundCommits              baseline=GREEN UNGUARDED
+S12 bindings                   baseline=GREEN UNGUARDED
+S13 control red                baseline=GREEN GUARDED by control-not-red
+S14 redCorrupt red             baseline=GREEN UNGUARDED
+S15 settings                   baseline=GREEN GUARDED by settings-not-restored
+
+UNGUARDED: 27 of 51
+   C1 fatal
+   C2a N1 no lite
+   C2b N1 len!=1
+   C2c N1 extension
+   C3 N1 entrySeen
+   C5a N2 sha
+   C5b N2 bytes
+   C6 N2 fileid
+   C8 N3 clickedFrom
+   C9b N3 fetched status
+   C10 N3 opened
+   C12 N4 len keys
+   C13b N4 gen
+   C15a N4 getStatus
+   C15d N4 describeError
+   C17 N5 reopened
+   C19 N6 no record
+   S3 N9 changedOutsideAllowed
+   S5 generator check
+   S6b N10 hashes
+   S6c N10 validated>0
+   S8c N8 otherSees
+   S9 label
+   S10 hostDirty
+   S11b roundCommits
+   S12 bindings
+   S14 redCorrupt red
+
+per red case: which rules fired (name prefix vs fired)
+  N1-no-creator              fired=['N1']
+  N1-ott-offered             fired=['N1']
+  N2-other-bytes             fired=['N2', 'N3']
+  N2-php-chose-other         fired=['N2']
+  N3-wrong-file              fired=['N3']
+  N3-page-fetched-other      fired=['N3']
+  N4-no-revision             fired=['N4']
+  N4-click-refused           fired=['N4']
+  N4-save-not-saved          fired=['N4']
+  N4-marker-missing          fired=['N4']
+  N4-zero-bytes              fired=['N4']
+  N5-reopened-other-bytes    fired=['N5']
+  N5-live-region-lies        fired=['N5']
+  N6-asian-zh-CN             fired=['N6']
+  N6-paper-letter-in-TW      fired=['N6']
+  N6-paper-a4-in-EN          fired=['N6']
+  N6-font-KR                 fired=['N6']
+  N6-western-en-GB           fired=['N6']
+  N8-created-anyway          fired=['N8']
+  N8-file-appeared           fired=['N8']
+  N9-other-engine            fired=['N9']
+  N9-page-moved              fired=['N9']
+  N9-product-touched         fired=['N9']
+  N9-tools-uncommitted       fired=['N9']
+  N10-validator-red          fired=['N10']
+  N12-closure-red            fired=['N12']
+  one-browser                fired=['arms']
+  one-arm                    fired=['arms']
+  control-not-red            fired=['N1']
+  settings-not-restored      fired=['settings']
