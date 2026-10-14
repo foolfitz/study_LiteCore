@@ -1,0 +1,45 @@
+== judge_v20_shakedown.py rules
+   SURVIVES (no red case)  p1 runnerError -> NE
+   killed                 p1 no reply/no positions -> NE
+   SURVIVES (no red case)  p1 expected None -> line
+   killed                 p1 hidden -> line
+   killed                 p1 text != expected -> line
+   killed                 p1 partsEqualsCount -> line
+   killed                 p2 no press -> NE
+   SURVIVES (no red case)  p2 remove missing -> line
+   SURVIVES (no red case)  p2 hiddenAt2s -> line
+   SURVIVES (no red case)  p2 text M != expected -> line
+   SURVIVES (no red case)  p2 count != expected -> line
+   SURVIVES (no red case)  p2 text M != count -> line
+   SURVIVES (no red case)  p2 parts != expected -> line
+   killed                 p3 nonVacuous -> NE
+   killed                 p3 untriggered -> line
+   killed                 c1 nothing judged -> NE
+   killed                 c1 clause not True -> line
+   killed                 c1 fewer than 6 judged -> line
+   killed                 e2 nothing judged -> NE
+   killed                 e2 clause not True -> line
+   killed                 e2 the hold is judged
+   SURVIVES (no red case)  p2c no lok events -> NE (reading)
+   killed                 p2c lone -> ESTABLISHED
+   killed                 exit: page sha refused
+   killed                 exit: no rule -> FAIL
+   killed                 exit: criterion arm on trace worker -> FAIL
+   killed                 exit: missing cell -> FAIL
+   SURVIVES (no red case)  exit: runnerError in any arm -> not PASS (via c1)
+   10/28 rules have no red case
+== run_v20_shakedown.py predicates the judge relies on
+   killed                 span_of strict < (y)
+   SURVIVES (no red case)  span_of first/last in string order
+   killed                 region_of uses paperHeight scale
+   SURVIVES (no red case)  parse_rects refuses a torn piece
+   SURVIVES (no red case)  caret_equal compares all four fields
+   SURVIVES (no red case)  reference_caret same generation
+   SURVIVES (no red case)  reference_caret before the request
+   SURVIVES (no red case)  judge_refusal sequence <=
+   SURVIVES (no red case)  lok_summary window 25 -> 39
+   SURVIVES (no red case)  lok_summary window 25 -> 3
+   SURVIVES (no red case)  NOT_LONE_IDS -> (0,)
+   SURVIVES (no red case)  P3 untriggered window 2000 -> 60000
+   SURVIVES (no red case)  P3 nonVacuous needs reached_bottom
+   11/13 rules have no red case
