@@ -206,7 +206,7 @@
 ## 5. 這次計數會證明什麼、不會證明什麼
 
 - **會跑的**（`RUNBOOK-relink-v20` §4.3；形狀照 `findings/evidence/m3-production-ui/runs-0.2.13/chain-2026-10-12.sh`，綁定 v20 之後夜間脫離 session）：六支 M3 runner（page honesty、locks、versions、assets、host entry、same second）、production UI 的各臂、**自動儲存 runner（AS-* 第一次正式計數）**、新增文件 runner（`check_m3_new_document.py --label counted`，SPEC-M3-new-document §4「計數語意」、§7.5；part P3 已綁 0.2.23 的引擎）、產品路徵網（**v8 與 v20 臂**、3 輪 × 2 瀏覽器——自 0.2.20 的 cutover 起 `dist/` 的素頁面就指向 `e2-editor-v20`，所以沒加參數的那一臂是 v20，不是 v19；判讀副本 `findings/evidence/release-0.2.23/product-path/judge.py`）、併段那條的計數（M2 判讀器，part P 已讓它認得 C；`--profile e2-editor-v20`）、以及 C2 三次（4.8、裁決 §J-b）。帶的帳：127、128 處方 B、129、130、131 規則 A、132 的頁面修法、133、134、136、138、140、141、143、144，加 v20 本身（`SPEC-M3-link-batch` §7）。
-- **不會證明的**：137（沒有 runner 能誘發核心停頓）；Shift＋方向鍵（不出）；142（未修）；擁有者真鍵盤的重複旗標；2.25 秒窗內打字；138 在 WASM 上的頻率；泡泡在瀏覽器縮放下的位置。
+- **不會證明的**：137（沒有 runner 能誘發核心停頓）；Shift＋方向鍵（不出）；142（未修）；擁有者真鍵盤的重複旗標；2.25 秒窗內打字；138 在 WASM 上的頻率；泡泡在瀏覽器縮放下的位置；**A1-5（Worker 世代上限之後的救援、通知與重載）與 A1-2′ R 跨拒絕的救援**——v20 上拒絕仍在（例：表格儲存格尾的 Delete，finding 136），但這份計數文件的兩端在 C 之下是 no-op，沒有計數臂能誘發它們；B3x 自這次計數撤出，Rbs／Rdel 改量「邊界鍵是 no-op、文件不變」（`SPEC-M3-link-batch` §17.3）。
 - **計數鏈的中止規則**：開跑前先過五項前置檢查（錢包、Chrome 連得到宿主、沒有我們的程序在跑、位元組身分一致、擁有者同意期間不用 litecore.ddev.site），**開跑之後絕不中止**；負載只記錄、不當門檻（裁決 §J-a）。
 - 計數紅了：先對上面那張帳歸因（§7）；判讀器要改得有證人（SPEC-M3-paragraph-merge §34.4）。
 
@@ -287,5 +287,6 @@
 | 2026-10-15 | 初版（fable，任務 10-15c part J）。計數跑完後要對 RESULT 再核一次數字。 |
 | 2026-10-15 | §7 A–H 由 opus 代擁有者決定（擁有者授權）；本文照決定改：§1 表 0.2.13 列註明內容由 0.2.14 帶出（H）；§4.1「哪些版本」從「推論」改成讀原始碼＋模型、範圍寫成 0.2.12–0.2.23（A）；§4.3 的 `keyrepeat-check.html` 註明不是前置條件（D）；§4.8 註明比率也進發佈說明（B、E）。 |
 | 2026-10-15 | §4.3、§4.5、§6：邊界按住在 0.2.23 上量過（`host-0.2.23-hold/`，sonnet 量、主 session 用自己的讀取器從原始 log 重算，差 ≤ 1 ms）：2 個請求、刪 0、放開後 1.44–1.53 秒。 |
+| 2026-10-15 | §5「不會證明的」：加 A1-5（Worker 世代上限之後的救援）與 A1-2′ R 跨拒絕的救援——C 之下這份文件沒有拒絕可誘發，B3x 自 0.2.23 計數撤出、Rbs／Rdel 改期望（`SPEC-M3-link-batch` §17.3；證人 `m3-production-ui/witness-c-0.2.23/`）。fable，計數鏈準備工單。 |
 | 2026-10-15 | §5「會跑的」：產品路徑網的兩臂更正為 **v8 與 v20**（原寫 v19；`dist/e2-editor-app.js` 自 0.2.20 cutover 起指向 `e2-editor-v20`，runner 的素臂服務的就是它——計數鏈準備時以 runner 自己的 `repointed_page()` 重算 v8 改指頁面 `49d1fd5f…` 時發現）；同一句補上新增文件 runner（計數鏈 `runs-0.2.23/chain-0.2.23.sh` 有跑它，依 SPEC-M3-new-document §4、§7.5）。fable，計數鏈準備工單。 |
 | 2026-10-15 | §4.3、§4.5、§6：邊界按住的最壞情況也量了（`hold-2300`，`af58cbf0`；主 session 從原始 log 重算）：放開後 2.12–2.22 秒，「最多一個窗」成立。 |
