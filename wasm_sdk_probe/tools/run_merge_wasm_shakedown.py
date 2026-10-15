@@ -161,13 +161,17 @@ LATENCY_BOUND_MS = 1000                 # spec 30.2 M2-2 and 31.2 M2-4: runner a
 # Was e2-editor-v19 (2026-10-08, 8da777d7): wasm 1aafd4f9, worker 00882139, session ee3e53a2, shell c28578b7,
 # html f7e47799, page e00ab76a, page source a7d8ffa1; eshape and native unchanged.
 # Spec 34.1: from this commit until the v20 count's verdict is read, this file is not edited.
+# Re-bound 2026-10-15 to host 0.2.24's page 901dd6a6… (finding 145).  The v20 count's verdict was read first: merge
+# FAIL, explained by finding 145 (findings/evidence/145/).  Only pageSha256 and pageSourceSha256 moved, as N1's recorded
+# `bound` shows (findings/evidence/145/n1/); both were ccb67a52….  Spec 34.1 again: from this re-binding until the
+# 0.2.24 count's verdict is read, this file is not edited.
 BINDING: dict | None = {"wasmSha256": "313b08d5cb08589783a3e4d4d03eaee02d26f705ff5da96396ce9010680c5264",
                         "workerSha256": "478d0da1dbfcf93615a00025c3c2f9b72c3cfa486d04746f03dea5fcf757b099",
                         "sessionSha256": "f47c80ec955397c44d7638da63ed6837a3dea47125f6e279192298c20ed62ba9",
                         "shellSha256": "e7c4eefea59803599ce074dac97783f2c334a4a2a8d4571088a27bea9820f152",
                         "htmlSha256": "b1185aaa4f77b892a82edb8d892aadff6f7f025369bb700f316b884661ad9512",
-                        "pageSha256": "ccb67a52a3fe4b73139467c67a28522b9a87040921cb1da36448e5ad8dfdb43e",
-                        "pageSourceSha256": "ccb67a52a3fe4b73139467c67a28522b9a87040921cb1da36448e5ad8dfdb43e",
+                        "pageSha256": "901dd6a6dbff6ad6f5252814fb4dc09230446a11d75387fb447e8a6a398a68c2",
+                        "pageSourceSha256": "901dd6a6dbff6ad6f5252814fb4dc09230446a11d75387fb447e8a6a398a68c2",
                         "eshapeSha256": "c3f9bbed6f21b43592ce4ad91b0d6e52d003d8e784443bb9a045c743f6d589af",
                         "nativeSha256": "2940a8410dc0a44d73e69be61749e4e6e5eae772046bf175bbe61664613b522e"}
 MODES = ("shakedown", "counted", "m2-1b", "m2-4", "m2-1-red")

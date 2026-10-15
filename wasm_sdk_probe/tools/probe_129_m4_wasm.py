@@ -73,7 +73,9 @@ EXPECTED_DIST_SHA256 = "8909564eb2316afa6de7868a08b61d27219fabdf49f37326fee0dda2
 # SPEC-M3-link-batch §10.9 S-2 retires it in favour of R1, and R1 is deferred to the ordered-commands batch (§13.3; handoff 10-13f), so
 # L-129 stands and this instrument stays live -- it last ran as finding 140's C2 witness (task 10-14k, round-20261014T085633Z).
 # The previous pin, the v67/v68 candidate page, was 7815e16c2cdfdebe90fbe8bf91d07a8315654bf76cf603fe8392acebb5be0799 (that round ran on it).
-FINAL_PAGE_SHA256 = "ccb67a52a3fe4b73139467c67a28522b9a87040921cb1da36448e5ad8dfdb43e"
+# Re-pinned 2026-10-15 to host 0.2.24's page (finding 145; shell v73).  The previous pin, host 0.2.23's page, was
+# ccb67a52a3fe4b73139467c67a28522b9a87040921cb1da36448e5ad8dfdb43e (no round of this probe ran on it; the last, round-20261014T085633Z, ran on 7815e16c…).
+FINAL_PAGE_SHA256 = "901dd6a6dbff6ad6f5252814fb4dc09230446a11d75387fb447e8a6a398a68c2"
 OLD_PAGE_GZ = HERE / "build" / "archive" / "host-0.2.12-engine-45cdcedfc0fe7e61" / "files" / "e2-editor-app.js.gz"
 INSTRUMENT_LINE = "\nglobalThis.__m4 = { get session() { return session; } };\n"
 NATIVE_ROUND = TREE / "findings" / "evidence" / "129" / "native" / "point-click-round-20261012T031459Z"

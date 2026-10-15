@@ -94,16 +94,18 @@ def first_line(paper: str | None) -> tuple[str, str]:
 # reports under findings/evidence/new-document/ ran on.  The blank manifest is
 # unchanged between the two hosts (git diff afbaf3c..2ccf1a9 touches only
 # appinfo/info.xml and templates/editor.php).
-HOST_COMMIT: str | None = "2ccf1a9"      # was afbaf3c (0.2.19)
-HOST_VERSION: str | None = "0.2.23"      # was 0.2.19
+# Re-bound 2026-10-15 to host 0.2.24 (finding 145): git diff 2ccf1a9..1479e56 touches only appinfo/info.xml, so
+# the blank manifest is unchanged; the engine package and the page moved (shell v73).
+HOST_COMMIT: str | None = "1479e56"      # 0.2.24; was 2ccf1a9 (0.2.23), afbaf3c (0.2.19)
+HOST_VERSION: str | None = "0.2.24"      # was 0.2.23, 0.2.19
 MANIFEST_SHA256: str | None = "e5cdb8e2f0311cc10ad543f918906144e73015352304385719b5f85bfd97eb04"
 # The engine the count runs on: the host's engine/MANIFEST.json buildId and its
 # declared e2-editor-app.js sha256.  None until the count binds them (review
 # 2026-10-14, Q3): a strict run on any host but DELTA_HOST_VERSION then reads
 # "binding not written" -- the count never inherits 0.2.19's engine clause.
 # Written 2026-10-15: host 0.2.23's package (engine v20, shell v72); was None.
-ENGINE_BUILD_ID: str | None = "c3c22d9294de068a"
-PAGE_SHA256: str | None = "ccb67a52a3fe4b73139467c67a28522b9a87040921cb1da36448e5ad8dfdb43e"
+ENGINE_BUILD_ID: str | None = "d3cd39bbc71ec311"   # 0.2.24 (finding 145, shell v73); was c3c22d92 (0.2.23)
+PAGE_SHA256: str | None = "901dd6a6dbff6ad6f5252814fb4dc09230446a11d75387fb447e8a6a398a68c2"   # 0.2.24; was ccb67a52 (0.2.23)
 # N9 as 0.2.19's acceptance: "0.2.19 changed only the host" -- the engine
 # package and page are 0.2.18's (host 96a87d8) and the host diff since 96a87d8
 # is within ALLOWED_CHANGED.  These three clauses are evaluated ONLY on a report

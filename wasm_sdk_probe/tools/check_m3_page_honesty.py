@@ -62,13 +62,13 @@ BOTH = ("chrome", "firefox")
 # Written 2026-09-29 (spec §7.11), before the re-shakedown and counted runs.
 # Re-pointed 2026-10-15 (task 10-15c P4, before binding v20) to host 0.2.23's page (shell v72, engine v20).  The previous pin was
 # d761f1cee9d26c50c0b152348d74c3d05f540e9228927815d93ad6ec161e7dcd (SPEC-M3-autosave §9.19, 0.2.13/v62; the 0.2.13 and 0.2.14 counts ran on it).
-PAGE_SHA256: str | None = "ccb67a52a3fe4b73139467c67a28522b9a87040921cb1da36448e5ad8dfdb43e"   # host 0.2.23 (v72), 2026-10-15; was d761f1ce (autosave §9.19, 0.2.13), 8909564e (production-ui §17 C′), 36c2b18b (§16 R⁗), 18c8afbe (§15 R‴), 537d62d7 (§14 R′), e00ab76a (§13.5), e97d6e03
+PAGE_SHA256: str | None = "901dd6a6dbff6ad6f5252814fb4dc09230446a11d75387fb447e8a6a398a68c2"   # host 0.2.24 (v73, finding 145), 2026-10-15; was ccb67a52 (0.2.23, v72), d761f1ce (autosave §9.19, 0.2.13), 8909564e (production-ui §17 C′), 36c2b18b (§16 R⁗), 18c8afbe (§15 R‴), 537d62d7 (§14 R′), e00ab76a (§13.5), e97d6e03
 SESSION_SHA256: str | None = "f47c80ec955397c44d7638da63ed6837a3dea47125f6e279192298c20ed62ba9"   # link-batch §17 (0.2.23); was 62a2a20e (§14 R′), ee3e53a2, 3f5f754b
 # SPEC-M3-zstd Z3: re-counted on host 0.2.5 (7420418), written 2026-09-30 before that run.
-HOST_VERSION = "0.2.23"   # link-batch §17; was 0.2.14, 0.2.13, 0.2.12, 0.2.11, 0.2.10, 0.2.9, 0.2.8, 0.2.7
+HOST_VERSION = "0.2.24"   # finding 145; was 0.2.23 (link-batch §17), 0.2.14, 0.2.13, 0.2.12, 0.2.11, 0.2.10, 0.2.9, 0.2.8, 0.2.7
 # The host commit too (review 2026-09-29, implementation): a version string alone
 # lets a changed host with an unchanged info.xml through.
-HOST_COMMIT: str | None = "2ccf1a9"   # link-batch §17; was 237f2cb, e028517, b245ae7, 6b53c2e, d87960d, 069de55, 4140e00, 0488586
+HOST_COMMIT: str | None = "1479e56"   # finding 145; was 2ccf1a9 (link-batch §17), 237f2cb, e028517, b245ae7, 6b53c2e, d87960d, 069de55, 4140e00, 0488586
 # arm -> (cells, browsers, rounds in a counted run)
 PLAN = {
     "U0": ("U0", BOTH, 3), "U1": ("U1", BOTH, 3), "Uwin": ("U-window", BOTH, 3), "U2": ("U2", BOTH, 3),

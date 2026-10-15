@@ -40,8 +40,10 @@ from pathlib import Path
 # 6470dec0cb0e20db46d33d46bfc565893f542b79f7317fcbc421653a562bb94b (findings/evidence/134/guard/c2/ ran on it; the 132 final page abe93f45… before that).
 # Re-pinned 2026-10-15 (task 10-15c P4, before binding v20) to host 0.2.23's page (shell v72, engine v20).  The previous pin, the 136 page, was
 # b24d754a426706bb5c93dbacb3f7ffadc655e738ee9a0fdd7168069f0f701678 (findings/evidence/136/guard/c2/ ran on it; the 134 page 6470dec0… before that).
+# Re-pinned 2026-10-15 to host 0.2.24's page (finding 145; shell v73, engine v20).  The previous pin, host 0.2.23's page, was
+# ccb67a52a3fe4b73139467c67a28522b9a87040921cb1da36448e5ad8dfdb43e (findings/evidence/release-0.2.23/c2/r*/ratio-1/ ran on it; the 136 page b24d754a… before that).
 # Every committed P2 report ran on an earlier page: re-judge them with --page, or with this file from git history.
-PAGE = "ccb67a52a3fe4b73139467c67a28522b9a87040921cb1da36448e5ad8dfdb43e"
+PAGE = "901dd6a6dbff6ad6f5252814fb4dc09230446a11d75387fb447e8a6a398a68c2"
 RUNNER = "dbad93c0dcf27fbf"   # the probe writes the first 16 hex digits of its own sha256
 BROWSERS = ("chrome", "firefox")
 SLOTS = {  # slot: (document, gap, chars)

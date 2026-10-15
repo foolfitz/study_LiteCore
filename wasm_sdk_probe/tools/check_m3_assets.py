@@ -76,7 +76,7 @@ EVIDENCE = REPO / "findings" / "evidence" / "m3-assets"
 # the re-shakedown and counted runs on host 0.2.4 (369e6ed); was fbfb59a4….
 # Re-pointed 2026-10-15 (task 10-15c P4, before binding v20) to host 0.2.23's page (shell v72, engine v20).  The previous pin was
 # d761f1cee9d26c50c0b152348d74c3d05f540e9228927815d93ad6ec161e7dcd (SPEC-M3-autosave §9.19, 0.2.13/v62; the 0.2.13 and 0.2.14 counts ran on it).
-PAGE_SHA256 = "ccb67a52a3fe4b73139467c67a28522b9a87040921cb1da36448e5ad8dfdb43e"   # host 0.2.23 (v72), 2026-10-15; was d761f1ce (autosave §9.19, 0.2.13), 8909564e (production-ui §17 C′), 36c2b18b (§16 R⁗), 18c8afbe (§15 R‴), 537d62d7 (§14 R′), e00ab76a (§13.5), e97d6e03
+PAGE_SHA256 = "901dd6a6dbff6ad6f5252814fb4dc09230446a11d75387fb447e8a6a398a68c2"   # host 0.2.24 (v73, finding 145), 2026-10-15; was ccb67a52 (host 0.2.23, v72), d761f1ce (autosave §9.19, 0.2.13), 8909564e (production-ui §17 C′), 36c2b18b (§16 R⁗), 18c8afbe (§15 R‴), 537d62d7 (§14 R′), e00ab76a (§13.5), e97d6e03
 PLAN = {"chrome": 3, "firefox": 3, "firefox-nozstd": 3}
 # A report is scored against the criteria its runner wrote into it (SPEC-M3-zstd
 # §7, review item 3): reports from before the zstd step keep their own verdicts.
@@ -98,7 +98,7 @@ TYPES = {".js": "text/javascript", ".json": "application/json", ".wasm": "applic
 # SPEC-M3-zstd §4, written 2026-09-30 before the code: the engine's decoded
 # content did not change, only its codings.
 ENGINE_SCHEMA = "litecore-engine/2"
-BUILD_ID = "c3c22d9294de068a"   # host 0.2.23's engine package (v20, page ccb67a52, shell v72), link-batch §17; was eb3f9408 (0.2.14), 59e6a9fe (0.2.13), 45cdcedf (0.2.12), b99f4b13 (0.2.11), bebc7e83 (0.2.10), 7bf6dbd6 (0.2.9), 63656ee4 (0.2.8), fabdb50e (0.2.7)
+BUILD_ID = "d3cd39bbc71ec311"   # host 0.2.24's engine package (v20, page 901dd6a6, shell v73; finding 145); was c3c22d92 (0.2.23, link-batch §17), eb3f9408 (0.2.14), 59e6a9fe (0.2.13), 45cdcedf (0.2.12), b99f4b13 (0.2.11), bebc7e83 (0.2.10), 7bf6dbd6 (0.2.9), 63656ee4 (0.2.8), fabdb50e (0.2.7)
 # What Chrome 151 and Firefox 156 are predicted to send over HTTPS (spec §2, P1).
 BROWSER_AE = "gzip, deflate, br, zstd"
 # Z1-2: Accept-Encoding -> the coding the host must pick.
