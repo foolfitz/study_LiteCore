@@ -840,6 +840,11 @@ def _wasm_path(m: dict) -> str:
     return next(p for p in m["files"] if p.endswith("probe.wasm"))
 
 
+def _manifest_path(m: dict) -> str:
+    # The served profile's manifest, next to its wasm (K1-6 named e2-editor-v19's literally until the v20 count).
+    return _wasm_path(m).rsplit("/", 1)[0] + "/sdk-manifest.json"
+
+
 def _second_rows(run: dict, c: dict, rows: list[dict]) -> None:
     run["second"]["log"].extend(rows)
 
@@ -904,7 +909,7 @@ WIRE_CASES = [
     ("K1-3", "dot-dot is served", lambda w, m: w["negatives"]["dot-dot"].update(status=200)),
     ("K1-6", "no ETag", lambda w, m: w["files"][_wasm_path(m)]["gzip"]["headers"].pop("etag")),
     ("K1-6", "a conditional request answered with the body",
-     lambda w, m: w["files"]["profiles/e2-editor-v19/sdk-manifest.json"]["conditional"].update(status=200, bodyBytes=2082)),
+     lambda w, m: w["files"][_manifest_path(m)]["conditional"].update(status=200, bodyBytes=2082)),
     ("K1-4", "the entry is not a redirect", lambda w, m: w["entry"].update(status=200)),
     ("K1-4", "the entry redirects to a scheme-relative URL",
      lambda w, m: w["entry"]["headers"].update(location=f"//index.php/apps/litecore/r/{w['address']}/{DOC}?fileId={w['entry']['fileId']}")),

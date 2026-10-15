@@ -1,0 +1,50 @@
+  red   K0-1 the manifest lists a file the closure does not
+  red   K0-1 the closure has a file the manifest does not
+  red   K0-2 a .gz decodes to other bytes
+  red   K0-2 a .gz is not the manifest's
+  red   K0-2 dist changed since packaging
+  red   K0-3 the build id is not the files'
+  red   K0-4 dist is still in the app tree
+  red   K0-4 dist is still tracked
+  red   K0-5 the wasm grew past Firefox's measured cache room
+  red   K0-6 a host script changed after the last version bump
+  red   K0-6 no version bump found
+  red   Z0-1 a .zst is not the manifest's
+  red   Z0-1 a .zst decodes to other bytes
+  red   Z0-1 a .zst is missing
+  red   Z0-2 a 16 MiB window, read from a real frame (level 1, window_log 24)
+  red   Z0-2 trailing bytes after the frame
+  red   Z0-3 a .zst over Firefox's measured cache room
+  red   Z0-4 a schema-1 manifest
+  red   Z0-4 another engine
+  red   K1-1 gzip request answered without Content-Encoding
+  red   K1-1 gzip body is not the packaged bytes
+  red   K1-1 not immutable
+  red   K1-1 max-age under a year
+  red   K1-1 no Vary
+  red   K1-1 wasm not application/wasm
+  red   K1-1 a script without COEP
+  red   K1-2 identity request answered with gzip
+  red   K1-2 identity body is not the file
+  red   K1-3 an unlisted pack is served
+  red   K1-3 the old static dist is served
+  red   K1-3 a wrong address redirects
+  red   K1-3 the build id alone still serves files
+  red   K1-3 the engine directory is served statically
+  red   K1-3 dot-dot is served
+  red   K1-6 no ETag
+Traceback (most recent call last):
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/check_m3_assets.py", line 1178, in <module>
+    sys.exit(main())
+             ~~~~^^
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/check_m3_assets.py", line 1127, in main
+    return 1 if red_cases(args.red_cases) else 0
+                ~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/check_m3_assets.py", line 1081, in red_cases
+    mutate(w, manifest)
+    ~~~~~~^^^^^^^^^^^^^
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/check_m3_assets.py", line 907, in <lambda>
+    lambda w, m: w["files"]["profiles/e2-editor-v19/sdk-manifest.json"]["conditional"].update(status=200, bodyBytes=2082)),
+                 ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+KeyError: 'profiles/e2-editor-v19/sdk-manifest.json'
+exit 1

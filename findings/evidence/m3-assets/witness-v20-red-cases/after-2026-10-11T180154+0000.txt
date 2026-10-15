@@ -1,0 +1,139 @@
+  MISSING package cases: the package record is not clean
+  red   K1-1 gzip request answered without Content-Encoding
+  red   K1-1 gzip body is not the packaged bytes
+  red   K1-1 not immutable
+  red   K1-1 max-age under a year
+  red   K1-1 no Vary
+  red   K1-1 wasm not application/wasm
+  red   K1-1 a script without COEP
+  red   K1-2 identity request answered with gzip
+  red   K1-2 identity body is not the file
+  red   K1-3 an unlisted pack is served
+  red   K1-3 the old static dist is served
+  red   K1-3 a wrong address redirects
+  red   K1-3 the build id alone still serves files
+  red   K1-3 the engine directory is served statically
+  red   K1-3 dot-dot is served
+  red   K1-6 no ETag
+  red   K1-6 a conditional request answered with the body
+  red   K1-4 the entry is not a redirect
+  red   K1-4 the entry redirects to a scheme-relative URL
+  red   K1-4 the address has no serving-policy hash (review item 1)
+  red   K1-4 an old address's document is a 404 (review item 11)
+  red   K1-5 the document is immutable
+  red   K1-5 the document has no COEP
+  red   K1-5 the document re-wrapped some other page (review item 10)
+  red   Z1-1 a browser request answered with gzip
+  red   Z1-1 zstd body is not the packaged bytes
+  red   Z1-1 Content-Length is the gzip's
+  red   Z1-1 the zstd ETag is the gzip's
+  red   Z1-1 zstd without Vary
+  red   Z1-1 zstd script without COEP
+  red   Z1-1 a looser CSP on the zstd representation (review item 2)
+  red   Z1-1 a header only the zstd representation carries
+  red   Z1-2 zstd;q=0 ignored
+  red   Z1-2 a zstd-less browser gets identity
+  red   Z1-2 the token is matched case-sensitively
+  red   Z1-2 only the wasm ignores zstd;q=0 (review item 4)
+  red   Z1-5 the address did not move (review item 9)
+  red   Z1-3 the gzip ETag revalidates the zstd representation
+  red   Z1-3 zstd's own ETag answered with the body
+  red   Z1-3 a gzip request with the zstd ETag got 304
+  red   Z1-4 one ETag for every coding
+  red   Z4-1 the release carries no .zst (review item 1)
+  red   Z4-1 one .zst missing
+  red   Z4-1 a .zst that is not the manifest's
+  red   Z4-1 an extra engine member
+  red   K2-1 a packaged file was never requested [chrome]
+  red   K2-1 a packaged file was never requested [firefox]
+  red   K2-1 a packaged file was never requested [firefox-nozstd]
+  red   K2-1 a request off the manifest [chrome]
+  red   K2-1 a request off the manifest [firefox]
+  red   K2-1 a request off the manifest [firefox-nozstd]
+  red   K2-1 a 404 under the app [chrome]
+  red   K2-1 a 404 under the app [firefox]
+  red   K2-1 a 404 under the app [firefox-nozstd]
+  red   K2-1 an asset answered 206 [chrome]
+  red   K2-1 an asset answered 206 [firefox]
+  red   K2-1 an asset answered 206 [firefox-nozstd]
+  red   K2-1 a 404 on the second open (review item 5 D) [chrome]
+  red   K2-1 a 404 on the second open (review item 5 D) [firefox]
+  red   K2-1 a 404 on the second open (review item 5 D) [firefox-nozstd]
+  red   K2-1 the wasm again under another address on the second open (review item 5 E) [chrome]
+  red   K2-1 the wasm again under another address on the second open (review item 5 E) [firefox]
+  red   K2-1 the wasm again under another address on the second open (review item 5 E) [firefox-nozstd]
+  red   K2-2 the wasm went over the wire uncompressed [chrome]
+  red   K2-2 the wasm went over the wire uncompressed [firefox]
+  red   K2-2 the wasm went over the wire uncompressed [firefox-nozstd]
+  red   K2-3 the second open fetched the wasm again [chrome]
+  red   K2-3 the second open fetched the wasm again [firefox]
+  red   K2-3 the second open fetched the wasm again [firefox-nozstd]
+  red   K2-3 the second open fetched one small script again [chrome]
+  red   K2-3 the second open fetched one small script again [firefox]
+  red   K2-3 the second open fetched one small script again [firefox-nozstd]
+  red   K2-3 the manifest revalidation came back with a body (shakedown 164501) [chrome]
+  red   K2-3 the manifest revalidation came back with a body (shakedown 164501) [firefox]
+  red   K2-3 the manifest revalidation came back with a body (shakedown 164501) [firefox-nozstd]
+  red   K2-3 every asset revalidated with a 304 (review item 5 A) [chrome]
+  red   K2-3 every asset revalidated with a 304 (review item 5 A) [firefox]
+  red   K2-3 every asset revalidated with a 304 (review item 5 A) [firefox-nozstd]
+  red   K2-1 the second open never loaded the document [chrome]
+  red   K2-1 the second open never loaded the document [firefox]
+  red   K2-1 the second open never loaded the document [firefox-nozstd]
+  red   K2-4 the host never finished the second open [chrome]
+  red   K2-4 the host never finished the second open [firefox]
+  red   K2-4 the host never finished the second open [firefox-nozstd]
+  red   K2-4 the host stranded the first open [chrome]
+  red   K2-4 the host stranded the first open [firefox]
+  red   K2-4 the host stranded the first open [firefox-nozstd]
+  red   K2-4 the caret was never placed [chrome]
+  red   K2-4 the caret was never placed [firefox]
+  red   K2-4 the caret was never placed [firefox-nozstd]
+  red   K2-4 the action did not land [chrome]
+  red   K2-4 the action did not land [firefox]
+  red   K2-4 the action did not land [firefox-nozstd]
+  red   K2-5 the second open was refused the lock (finding 105) [chrome]
+  red   K2-5 the second open was refused the lock (finding 105) [firefox]
+  red   K2-5 the second open was refused the lock (finding 105) [firefox-nozstd]
+  red   K2-5 no lock on the server after the open [chrome]
+  red   K2-5 no lock on the server after the open [firefox]
+  red   K2-5 no lock on the server after the open [firefox-nozstd]
+  red   K2-5 the host never verified its token (review item 6) [chrome]
+  red   K2-5 the host never verified its token (review item 6) [firefox]
+  red   K2-5 the host never verified its token (review item 6) [firefox-nozstd]
+  red   K2-5 leaving kept the lock [chrome]
+  red   K2-5 leaving kept the lock [firefox]
+  red   K2-5 leaving kept the lock [firefox-nozstd]
+  red   K2-5 the lock property never answered after leaving (review item 6) [chrome]
+  red   K2-5 the lock property never answered after leaving (review item 6) [firefox]
+  red   K2-5 the lock property never answered after leaving (review item 6) [firefox-nozstd]
+  red   K2-5 no watch after leaving [chrome]
+  red   K2-5 no watch after leaving [firefox]
+  red   K2-5 no watch after leaving [firefox-nozstd]
+  red   K2 instrument an unparsed access-log line (review item 13) [chrome]
+  red   K2 instrument an unparsed access-log line (review item 13) [firefox]
+  red   K2 instrument an unparsed access-log line (review item 13) [firefox-nozstd]
+  red   K2 instrument another client in the window [chrome]
+  red   K2 instrument another client in the window [firefox]
+  red   K2 instrument another client in the window [firefox-nozstd]
+  red   K2 instrument the pre-leave save was refused (412) [chrome]
+  red   K2 instrument the pre-leave save was refused (412) [firefox]
+  red   K2 instrument the pre-leave save was refused (412) [firefox-nozstd]
+  red   K2 instrument the leave was guarded (reason page) [chrome]
+  red   K2 instrument the leave was guarded (reason page) [firefox]
+  red   K2 instrument the leave was guarded (reason page) [firefox-nozstd]
+  red   K2 instrument no fired record [chrome]
+  red   K2 instrument no fired record [firefox]
+  red   K2 instrument no fired record [firefox-nozstd]
+  red   Z2-1 the wasm came as gzip [chrome]
+  red   Z2-1 the wasm came as gzip [firefox]
+  red   Z2-1 the page module came as gzip [chrome]
+  red   Z2-1 the page module came as gzip [firefox]
+  red   Z2-2 the fallback arm got zstd [firefox-nozstd]
+  red   Z2-2 the fallback arm got identity [firefox-nozstd]
+  red   Z2 D D lost the wasm (zstd no smaller than gzip) [chrome]
+  red   Z2 D D lost the wasm (zstd no smaller than gzip) [firefox]
+  red   Z2 D D lost the wasm (zstd no smaller than gzip) [firefox-nozstd]
+  red   Z2 D D' lost the cjk pack (gzip saves under 1500; review item 8) [firefox-nozstd]
+  red   static: page the served page is not the spec's
+exit 1

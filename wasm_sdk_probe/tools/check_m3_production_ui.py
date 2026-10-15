@@ -121,6 +121,15 @@ KEEP_ACTIONS = ["undo", "redo", "set-bold", "set-italic", "set-underline", "set-
                 "set-list-none", "save"]
 KEEP_IDS = ["clear-format", "litecore-host-close", "litecore-host-download", "notice-action"]
 TEXT_PLACES = "#litecore-host-title, #litecore-host-unsaved, #state-pill, #notice, #litecore-host-bar"
+# The page-number line (SPEC-M3-link-batch 4.3, 10.10 Q-A: shown in the host too) is product text, not developer
+# text.  Allowed at scoring time, and only in that format, so the inventory still records it and a 0.2.20+ report
+# written before this line re-scores (the 0.2.23 count's P arm read it as developer text).
+PAGE_STATUS_TEXT = re.compile(r"第 \d+(–\d+)? 頁，共 \d+ 頁")
+
+
+def developer_text(inventory: dict) -> list:
+    return [t for t in inventory.get("badText") or []
+            if not (t.get("in") == "div#page-status" and PAGE_STATUS_TEXT.fullmatch(t.get("text") or ""))]
 
 # Every change of the page's state, as the DOM shows it, with the toolbar's
 # disabled count -- A1-3 is asked of each sample.
@@ -720,8 +729,8 @@ def score_run(run: dict[str, Any], c_declared: bool | str | None = None) -> list
             bad.append(f"A2-2: body {run.get('editorBody')} != Files {run.get('filesBody')}")
     elif arm == "P":
         inventory = run.get("inventory") or {}
-        if inventory.get("error") or inventory.get("badControls") or inventory.get("badText"):
-            bad.append(f"A3-1: controls {inventory.get('badControls')} text {(inventory.get('badText') or [])[:4]} {inventory.get('error') or ''}")
+        if inventory.get("error") or inventory.get("badControls") or developer_text(inventory):
+            bad.append(f"A3-1: controls {inventory.get('badControls')} text {developer_text(inventory)[:4]} {inventory.get('error') or ''}")
         for key in run.get("keys") or []:
             ok = (str(key.get("revBefore", "")).isdigit() and str(key.get("revAfter", "")).isdigit()
                   and int(key["revAfter"]) == int(key["revBefore"]) + 1 and key.get("genAfter") == key.get("genBefore"))
@@ -969,6 +978,8 @@ MUTATIONS = [
     ("A2-2 body differs", "S", lambda r: r.update(editorBody={"color": "rgb(244, 246, 248)", "image": "none"})),
     ("A3-1 a developer control shows", "P", lambda r: r["inventory"]["badControls"].append("button[delete-forward]")),
     ("A3-1 developer text shows", "P", lambda r: r["inventory"]["badText"].append({"text": "修訂", "in": "span"})),
+    ("A3-1 the page-number line shows other text", "P",
+     lambda r: r["inventory"]["badText"].append({"text": "修訂 3", "in": "div#page-status"})),
     ("A3-2 Enter did nothing", "P", lambda r: r["keys"][3].update(revAfter=r["keys"][3]["revBefore"])),
     ("A3-2 unsaved mark never shown", "P", lambda r: r.update(unsavedShownAfter=None)),
     ("A2-3 close reopened the file", "P", lambda r: r["closeClean"].update(path=r["closeClean"]["path"] + "&openfile=true")),
