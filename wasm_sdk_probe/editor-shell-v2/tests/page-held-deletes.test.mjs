@@ -276,3 +276,61 @@ test("141 T4: flagged repeats still obey H2 at the keydown -- dropped at depth 2
   made.set(1);
   assert.equal(keydown(true), false, "a flagged repeat at depth 1 was dropped at the keydown");
 });
+
+// Finding 145 (2026-10-15).  A refused delete reopens the document (a new
+// DOCUMENT object), and `settleDelete` used to return on "the document it was
+// sent on is gone" BEFORE counting the answer -- so `deletesUnanswered` stayed
+// above 0 for the rest of the page: every later press of the last-sent key was
+// held, and the held presses were replayed as the OTHER key's action at its
+// answer (the 0.2.23 count's merge step, findings/evidence/145/).  The fake
+// engine swaps `session.document` when it takes the refused request, which is
+// the order the page meets: the reopen's document is in place before the
+// refusal settles.  On the page before this change (`ccb67a52…`) both are red.
+
+const REFUSAL_145 = () => Object.assign(new Error("refused"), { code: "EDITOR_BOUNDARY_UNSUPPORTED" });
+
+test("145 U1: after a refusal reopens the document, each later press is sent as its own key -- none held, none replayed as the other key", async () => {
+  mock.timers.enable({ apis: ["setTimeout", "Date"] });
+  try {
+    let p = null;
+    p = page({ answer: (sent, state, n) => {
+      if (n !== 1) return REAL();
+      p.session.document = { id: 2 };
+      return { duration: 250, reject: REFUSAL_145(), result: () => null };
+    } });
+    p.press("deleteContentForward");             // refused; the document is reopened
+    await advance(1000);
+    await pressAt(p, [0, 200, 400], "deleteContentForward");
+    await advance(200);
+    p.press("deleteContentBackward");
+    await advance(1000);
+    assert.deepEqual(p.requests.map((r) => r.sent),
+      ["delete-forward", "delete-forward", "delete-forward", "delete-forward", "delete-backward"],
+      "a press after the refusal was held, or replayed as another key");
+    assert.equal(p.api.held(), 0);
+    assert.equal(p.api.inFlight(), 0);
+  } finally {
+    mock.timers.reset();
+  }
+});
+
+test("145 U2: presses held behind the refused delete are not carried into the reopened document", async () => {
+  mock.timers.enable({ apis: ["setTimeout", "Date"] });
+  try {
+    let p = null;
+    p = page({ answer: (sent, state, n) => {
+      if (n !== 1) return REAL();
+      p.session.document = { id: 2 };
+      return { duration: 250, reject: REFUSAL_145(), result: () => null };
+    } });
+    await pressAt(p, [0, 100, 200], "deleteContentForward");   // the second and third are held behind the first
+    await advance(1000);
+    assert.equal(p.api.held(), 0, "the presses held for the old document survived its reopen");
+    p.press("deleteContentBackward");
+    await advance(1000);
+    assert.deepEqual(p.requests.map((r) => r.sent), ["delete-forward", "delete-backward"],
+      "presses held for the old document reached the reopened one");
+  } finally {
+    mock.timers.reset();
+  }
+});

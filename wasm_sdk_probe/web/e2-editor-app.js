@@ -2732,9 +2732,17 @@ function releaseHeldDelete() {
 function settleDelete(send, result, failed) {
   if (send.settled) return;
   send.settled = true;
-  if (send.document !== session?.document) return;   // the document it was sent on is gone
+  // Counted out in dispatchDelete, so counted back here whatever became of its
+  // document.  FINDING 145: this used to return first when the document it was
+  // sent on was gone -- and a refusal's reopen always makes a new one -- which
+  // left `deletesUnanswered` above 0 for the rest of the page: every later
+  // press of that key was held, and the held presses went out as the other
+  // key's action at its answer.  The presses held behind a delete to a document
+  // that is gone were aimed at that document, so they go with it, as at a
+  // refusal (finding 134, B).
   deletesUnanswered -= 1;
-  if (failed || boundaryNoopStands(result, send.stateAtSend)) dropHeldDeletes();
+  const documentGone = send.document !== session?.document;
+  if (failed || documentGone || boundaryNoopStands(result, send.stateAtSend)) dropHeldDeletes();
   else releaseHeldDelete();
 }
 
