@@ -1,0 +1,46 @@
+population (eshape.json c3f9bbed6f21b435): M2-1 ['C01', 'C02', 'C03', 'C08', 'C09', 'C10', 'C11', 'C12', 'C13', 'C14', 'C27', 'D01', 'D04', 'D08', 'D12', 'I01', 'I02', 'I03', 'Y01', 'Y02'], M2-3 ['C15', 'C16', 'C17', 'C29', 'C30'], barrier ['G01']
+keyed on /home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/dist/profiles/e2-editor-v20/probe.wasm (313b08d5cb085897): C declared, nothing-selected expects verified-boundary-noop
+
+## chrome
+identity   NOT DONE counted-chrome.json: runner 365ceef64d45d59c page 901dd6a6dbff6ad6 off: ['counted']
+reports    NOT DONE counted-control-chrome.json: [Errno 2] No such file or directory: 'findings/evidence/145/n1/counted-control-chrome.json'
+control    NOT DONE counted-control-chrome.json is missing or unreadable
+reports    NOT DONE m2-1b-chrome.json: [Errno 2] No such file or directory: 'findings/evidence/145/n1/m2-1b-chrome.json'
+M2-0       NOT DONE m2-1b-chrome.json is missing or unreadable
+M2-1b      NOT DONE m2-1b-chrome.json is missing or unreadable
+M2-2       NOT DONE m2-1b-chrome.json is missing or unreadable
+reports    NOT DONE m2-4-chrome.json: [Errno 2] No such file or directory: 'findings/evidence/145/n1/m2-4-chrome.json'
+M2-0       NOT DONE m2-4-chrome.json is missing or unreadable
+M2-4       NOT DONE m2-4-chrome.json is missing or unreadable
+identity   NOT DONE red-chrome.json: runner 365ceef64d45d59c page daa868d334d7bc6e off: ['counted']
+M2-1       PASS     60 records (expected 60: 20 cases x 3 rounds); not passing: none
+M2-3       PASS     15 records (expected 15: 5 cases x 3 rounds); not passing: none
+barrier    PASS     3 records (expected 3: 1 cases x 3 rounds); not passing: none
+M2-2       PASS     counted: 60 completions (expected 60); runner n=60 min=106.3 median=122.8 max=149.8; engine n=60 min=15 median=30.0 max=45; not under 1000 ms or missing: none
+red        PASS     ['C01', 'C02', 'C03'] (expected ['C01', 'C02', 'C03'], on e2-editor-v8, each placed, refused and reopened); not red: none
+M2-0       PASS     counted-chrome.json: boundaries PASS, boundaries-indent PASS
+
+## firefox
+identity   NOT DONE counted-firefox.json: runner 365ceef64d45d59c page 901dd6a6dbff6ad6 off: ['counted']
+reports    NOT DONE counted-control-firefox.json: [Errno 2] No such file or directory: 'findings/evidence/145/n1/counted-control-firefox.json'
+control    NOT DONE counted-control-firefox.json is missing or unreadable
+reports    NOT DONE m2-1b-firefox.json: [Errno 2] No such file or directory: 'findings/evidence/145/n1/m2-1b-firefox.json'
+M2-0       NOT DONE m2-1b-firefox.json is missing or unreadable
+M2-1b      NOT DONE m2-1b-firefox.json is missing or unreadable
+M2-2       NOT DONE m2-1b-firefox.json is missing or unreadable
+reports    NOT DONE m2-4-firefox.json: [Errno 2] No such file or directory: 'findings/evidence/145/n1/m2-4-firefox.json'
+M2-0       NOT DONE m2-4-firefox.json is missing or unreadable
+M2-4       NOT DONE m2-4-firefox.json is missing or unreadable
+identity   NOT DONE red-firefox.json: runner 365ceef64d45d59c page daa868d334d7bc6e off: ['counted']
+M2-1       PASS     60 records (expected 60: 20 cases x 3 rounds); not passing: none
+M2-3       PASS     15 records (expected 15: 5 cases x 3 rounds); not passing: none
+barrier    PASS     3 records (expected 3: 1 cases x 3 rounds); not passing: none
+M2-2       PASS     counted: 60 completions (expected 60); runner n=60 min=110.3 median=126.9 max=145.1; engine n=60 min=15 median=30.0 max=45; not under 1000 ms or missing: none
+red        PASS     ['C01', 'C02', 'C03'] (expected ['C01', 'C02', 'C03'], on e2-editor-v8, each placed, refused and reopened); not red: none
+M2-0       PASS     counted-firefox.json: boundaries PASS, boundaries-indent PASS
+
+## all
+identity   NOT DONE runners ['365ceef64d45d59c'] (this runner 365ceef64d45d59c) pages ['901dd6a6dbff6ad6'] off: ['bound:chrome:counted', 'bound:chrome:red', 'bound:firefox:counted', 'bound:firefox:red', 'pageIsBound']
+
+VERDICT NOT DONE: ['chrome identity', 'chrome reports', 'chrome control', 'chrome M2-0', 'chrome M2-1b', 'chrome M2-2', 'chrome M2-4', 'firefox identity', 'firefox reports', 'firefox control', 'firefox M2-0', 'firefox M2-1b', 'firefox M2-2', 'firefox M2-4', 'all identity']
+exit 3
