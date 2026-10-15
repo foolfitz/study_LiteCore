@@ -745,7 +745,16 @@ FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
 # criteria N1-N6, D1, K1, Z1 PASS in both browsers on these bytes on v20 (`82ee51fc`, judge_bubble.py ALL PASS, its
 # self-test red where it must be; Firefox N2/D1 through the host-like CSS bar, L-bubble-ff-headless-thumb).  H1-H3
 # (host) and 132-B run after the 0.2.23 install.
-MANIFEST = Path("e2/editor-shell-v2-bundle-v72.json")
+#
+# v73, 2026-10-15: finding 145 (the 0.2.23 count's merge step read FAIL: a refused delete's reopen makes a new document,
+# and `settleDelete` returned before counting the answer, so every later press of the last-sent key was held and the
+# held presses went out as the other key's action).  Differs from v72 in the entrypoint only: `web/e2-editor-app.js`
+# ccb67a52… -> 901dd6a6… (`f7887ced`: the answer is counted back whatever became of its document, and the presses held
+# for a document that is gone are dropped, as at a refusal).  Frozen after 374/374 editor-shell-v2 unit tests (145 U1
+# and U2 red on ccb67a52…), E1-C intact, the product-path mutations 10/10, and N1 on these bytes without the host on
+# v20 (the merge runner's counted and red modes, both browsers; findings/evidence/145/n1/).  The full count chain on
+# the installed 0.2.24 is the binding check.
+MANIFEST = Path("e2/editor-shell-v2-bundle-v73.json")
 ENTRYPOINT = Path("web/e2-editor-app.js")
 
 # The directories whose *.js files must all be accounted for.  `editor-shell`
