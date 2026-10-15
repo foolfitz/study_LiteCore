@@ -1,0 +1,11 @@
+# The owner chose A at 2026-10-16 00:39:51 +0800: delete the two expired runner locks (ids 4426, 4430) left by 0.2.23's counted new-document run.
+## before
+id	user_id	file_id	created	ttl	path
+4426	admin	20494	2026-10-15 16:34:46	300	files/新文件 測試資料夾/新文件 測試-TW-chrome-083420Z.odt
+4430	admin	20498	2026-10-15 16:35:56	300	files/新文件 測試資料夾/新文件 測試-EN-chrome-083530Z.odt
+## DELETE FROM oc_files_lock WHERE id IN (4426, 4430) AND user_id = 'admin' AND ttl = 300 AND creation < UNIX_TIMESTAMP() - 300
+deleted
+2
+## after
+rows_left
+0
