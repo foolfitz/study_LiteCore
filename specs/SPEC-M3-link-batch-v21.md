@@ -291,6 +291,108 @@
 - **M9（後置條件在 WASM 上的紅案）**：游標在受保護的區段裡貼上。原生是 `paste()` 回 true、沒有 Undo 動作、payload 逐位元組相同（3/3）。v21 上期望：`MUTATION_OUTCOME_UNKNOWN` → session 回到檢查點，文件不變。N=3、兩個瀏覽器、N/N。**若紅**：第 2 項頁面沒有入口。具名 **L-md-protected**：在受保護的內容裡貼上會觸發一次回復重開，不會掉資料。
 - **finding 147（text input 欄位）**：在 `text:text-input` 欄位裡貼上，原生會弄亂文字，而且一次 Undo 還原不回來；**用 `text/plain` 貼（今天的 Ctrl+V）也一樣**。v21 不修（引擎看不出游標在欄位裡），具名 **L-md-input-field**，發佈說明與 Ctrl+V 一起列。WASM 上是否相同：未量，列在後續工作。
 
+## 10. 審核 2 的處置（2026-10-16，只追加；最後一輪）
+
+兩席：`handoff/link-batch-v21/review-2-{opus,codex}.md`。第一輪各項的判定：codex 26 項解決、7 項部分解決；opus 17 項解決、10 項部分解決；兩席都沒有「沒處置」的項目。部分解決的項目在本節收尾。擁有者對「Writer 處理不好的寫法」選 B（照貼，登錄成限制）。
+
+### 10.1 派送前先存檢查點（opus B1、codex B1；兩席都列 BLOCKING）
+
+- **取代** §9.4「走回到檢查點」與 §9.14 L-md-protected 的「不會掉資料」。前提錯了：session 在 `MUTATION_OUTCOME_UNKNOWN` 時只封住佇列（`editor-session.js:320-325`），回到檢查點是重開「比上次存檔新的檢查點，否則上次存檔」（`:163-167`），而貼上之前沒有人存檢查點。所以髒文件上會丟掉上次存檔之後打的字（finding 119 的形狀）。
+- **處置**：`pasteMarkdown` 的佇列操作在派送前呼叫 `_checkpointBeforeBoundaryMove(document)`，乾淨或已存過時它什麼都不做。**檢查點存失敗就拒絕派送**（`MARKDOWN_CHECKPOINT_FAILED`，`dispatched: false`）——不能沿用會吞掉失敗的那個方法照樣派送（`editor-session.js:493`）。
+- L-md-protected 改寫成：在受保護的內容裡貼上會觸發一次回復重開，內容回到貼上前那一刻（檢查點）。
+
+### 10.2 「收合」的來源（opus A2、codex B2）
+
+- 引擎在派送那一刻判定：`readSelection().type == NONE` 且不是 `textMissing`，且（從沒觀察過選取，或快取的選取矩形是空的）。其他一律 `MARKDOWN_NEEDS_CARET`。這與 C 用的條件同形（`probe_engine.cpp:4020-4023`）。
+- 理由：只看快取，在剛開檔、還沒有任何選取回報時會一律拒絕；只看 `readSelection()`，只選了一張圖片的選取會讀成 NONE。
+
+### 10.3 扣住的刪除按壓（opus A4、codex B3）
+
+- **取代** §9.8 的「第一下尚未回答之後」。新規則：
+  1. 一個刪除按壓被扣住，**若且唯若** session 最近一次入列的是一個還沒回答、同一個鍵的刪除。由 session 端的入列計數器讀：v2 session 的 `_enqueue` 是所有入列路徑的唯一入口（`narrow-editor-v2-session.js:1112`），所以打字、點擊、選取、undo／redo、存檔都算到。
+  2. 被扣住的按壓屬於它所等的那一次送出，**逐筆記方向**，不再用共用欄位（`heldDeletes.action` 會被後來的送出覆寫，`e2-editor-app.js:2761`）。
+  3. 那一次送出結算時：是站得住的邊界 no-op → 丟掉屬於它的按壓；否則依序放行。
+  4. 有任何別的東西要入列、而還有被扣住的按壓時，**先把它們依序、照原方向放行，再讓新的東西入列**。代價：在文件邊界上被扣住的按壓（144 的深度規則限制在 2 個以內）各要再付一個 C 的窗，最多約 4.5 秒，具名 **L-hold-release-cost**。
+- 144 的深度規則與 145 的無條件結算照舊。
+
+### 10.4 其餘
+
+- **NUL 與編碼（opus A1、codex S2）**：
+  - 輸入含 0x00 → 拒絕（Writer 會剝掉尾端的 NUL，掃描不會，兩邊解析的位元組就不同了；opus 舉了一個「參照定義後面接 `\0`」會被抓網路的例子）；
+  - 引擎讀 `osl_getThreadTextEncoding()`，不是 UTF-8 就拒絕（`MARKDOWN_ENCODING_UNSUPPORTED`）；
+  - `md_parse` 回非零 → 拒絕。
+  
+  這三條都在派送前。
+- **派送前拒絕的處置（opus A6、codex B2）**：所有派送前的拒絕碼都放進 `PRE_DISPATCH_CODES`（或帶 `dispatched: false`），讓 `recovery` 是 `none`。清單由 `markdown_paste.hpp` 產生並做單元測試，避免頁面對一份沒被動過的文件說「請回到檢查點」（finding 063 那一類）。
+- **md4c 的接法（opus A5、codex N2）**：`-I…/UnpackedTarball/md4c/src` 只加在 v21 的規則；`#include <md4c.h>` 放在 `OXSDK_E2_V21_LINK_BATCH` 之內；`markdown_paste.hpp` 只當 v21 物件的前置檔。**絕不把 `md4c.c` 編進我們的引擎**，否則就是兩個解析器、不再封閉；`what_the_link_ships` 要斷言我們的物件裡沒有 md4c。
+- **擁有者選 B 的兩項**：
+  - **L-md-entities**：`&amp;`、`&lt;`、數字參照等實體被 Writer 丟掉（**finding 149**，原生已確認）；
+  - **L-md-task-checkbox**：`- [ ]` 變成核取方塊內容控制項，點一下會在 Writer 裡切換並產生 Undo（`wrtsh3.cxx:135-160`），而產品的點擊是不改文件的 `placeCaret`，所以 `dirty` 與自動儲存可能看不到這個改動（推論）。加一個記錄臂，在 v21 上點一下貼進來的核取方塊，記下文件、revision、`dirty` 有沒有變。若改了而 `dirty` 沒變，另立 finding——開啟既有的 DOCX／ODT 裡的核取方塊也會有同一件事。
+- **同時具名**：
+  - **L-md-softbreak**：軟換行變成 U+00A0，與 L-md-merge 並列；
+  - **L-md-no-html 擴寫**：任何在程式碼之外的 `<字>`（例如 `List<T>`）都算原始 HTML，整段拒絕，提示「請用反引號把它包起來」。
+- **判準的預設、母數、取樣時點（codex S3–S6、opus C1–C7）**：全部在 §11 總表落定。
+
+## 11. 定稿的判準總表（2026-10-16；取代第 5 節與 §9 中各判準的寫法）
+
+這張表是實作與判讀唯一要看的判準清單。凡是 §5、§9、§10 寫法與這裡不同的，以這裡為準。
+
+### 11.0 通則
+
+- **兩個瀏覽器**（Chrome、Firefox）；**每一臂每個瀏覽器 N=3**，過＝N/N。標為「記錄」的臂沒有通過條件。
+- **缺報、缺回、NE 一律等於「沒做」**，套用該條的預設。附帶臂（取消、記帳、拒絕臂）一樣適用。
+- **證據的身分**：每份 D／M 報告都帶受測的 wasm、worker、頁面、殼層、輸入與參照的雜湊。與最終候選不符就作廢，等於沒做。
+- **第 1 項沒出貨時**：頁面不綁 Ctrl+Home／End（範圍上也不攔，回到今天的行為）；SDK 仍能送 22／23，具名 **L-142-sdk-callable**。
+- **第 2 項沒出貨時**：頁面沒有入口，具名 **L-md-sdk-callable**。
+
+### 11.1 第 1 項：Ctrl+Home／End
+
+| # | 判準 | 形式 | 若沒做或紅 |
+|---|---|---|---|
+| D1 | `d1-marker/tool/d1_population.py` 產生的 38 臂：產品頁送同一串步驟，用產品的打字路徑打 `Z`，存成 ODT。`read_marker.py`（加上 ODT 轉接，先做跨容器相等、標記位移、重複標記、缺 XML 四個紅案）讀到的落點等於原生 | 工具封閉 | 第 1 項不出貨 |
+| D2 | `press-after-ctrl-home`（宿主）：Backspace 以 `verified-boundary-noop` 完成，revision 不變，存檔文字不變。0.2.24 上照舊是紅的 | 逐實例 | 同上 |
+| D2′ | 真鍵連送 Ctrl+Home、Backspace，不等待，起點是 `b2b-home-bksp-at-num` 的 fixture：第二段的編號與文字都不變。只在名目時序下成立，照 `CLAUDE.md`「有行為而沒有東西守著」登錄 | 逐實例 | 同上 |
+| D3 | 由 D7 取代，保留為說明 | — | — |
+| D4 | `r-*` 臂（含反向）：頁面走 `moveFromPoint` 再移動，標記落點等於原生 | 工具封閉（`r-*`） | 頁面在範圍上攔下按鍵、提示「範圍上尚不支援」，**不讓它落到輸入框** |
+| D5 | 按鍵綁定表 ×（宣告缺席、扣住、只扣一個、宣告）的矩陣，用真的 v20 manifest：只有提供的動作才攔鍵；Shift 與 `isComposing` 一律不攔 | 工具封閉 | 最終殼層不得與 v20 搭配 |
+| D6 | **記錄**：貼 64 KiB → Ctrl+End → 打標記，不等待；記完成種類與落點 | 記錄 | 未量，不做任何排序宣稱 |
+| D7 | D1 母數的每一下：原生有游標回呼 → `documented-callback-*`；原生無聲 → `verified-move-readback`，< 500 ms；回覆裡的游標等於回覆後 **500±50 ms** 的單次 `editor-get-state` | 工具封閉 | 第 1 項不出貨 |
+| D8 | 序列 a–e：(a) 開頭 Backspace → Ctrl+End → Backspace，結尾刪一字；(b) 開頭 Backspace → Ctrl+Home → 1 秒內 18 個無旗標的 Backspace，引擎收到的刪除 ≤ 2；(c) 開頭 Backspace → Ctrl+End → 兩下 Backspace，結尾刪兩字；(d) 開頭 Backspace → 點文件中間 → Backspace，刪在點擊處；(e) 文字中 Backspace、Backspace → Ctrl+End → Delete，前兩下刪在原處、Delete 在結尾是 no-op。(c)(d)(e) 先在 0.2.24 上做紅。141／144／145 的頁面測試全部重跑 | 逐實例 | 頁面保留今天的扣住規則，具名 **L-142-held-after-move** |
+| D9 | 按住 Ctrl+Home、Ctrl+End 各 1 秒，帶旗標的重複與 30 ms 一下的無旗標按壓各一組：放開後 ≤ 500 ms 回到就緒（同鍵的移動尚未回答時，按下去就丟掉） | 逐實例 | 具名「按住時每個尚未回答的窗會排一個 250 ms 的移動」 |
+| D10 | 60 頁 fixture 按 Ctrl+End：在回覆時讀一次、靜止 1 秒後再讀一次，兩次引擎游標都在可視區內、`#page-status` 都是最後一頁；外加 D7 的新鮮度條款 | 逐實例 | 第 1 項不出貨 |
+| D11 | 記帳：唯讀文件按 Ctrl+End，游標動、`dirty` 不變；乾淨與髒文件依 096／098 斷言；經 SDK 送過時的 `expectedRevision`，照移動處理 | 逐實例 | 第 1 項不出貨 |
+| D12 | SDK 在範圍上送 22／23 → `EDITOR_FORMAT_GESTURE_UNSUPPORTED`、文件不變。worker 在遮罩回傳非 OK 時初始化失敗（單元測試，注入非 OK） | 逐實例 | 第 1 項不出貨 |
+| D13 | 封閉清單：每個 ABI 5 追加的動作恰好屬於一個後置條件類別；`BOUNDARY_CAPABLE_MOVES` 等於移動完成類別；未知動作被拒絕 | 形式二 | 第 1 項不出貨 |
+| — | **記錄**：x-lc（Ctrl+Home 之後在有編號、項目符號、縮排的第一段按 Backspace）；表格裡 Ctrl+Home 再 Backspace（136 的儲存格邊界） | 記錄 | 列進發佈說明 |
+
+### 11.2 第 2 項：貼上為 Markdown
+
+| # | 判準 | 形式 | 若沒做或紅 |
+|---|---|---|---|
+| M0 | 掃描模型測試：`markdown_paste.hpp` 以原生編譯的 md4c 0.5.3，跑兩輪原生語料加新語料（NUL、無效 UTF-8、`List<T>`、待辦清單、實體、解析失敗）。每一項的預期判定（PASS／REMOTE／HTML／NO_BLOCK／NUL／PARSE_FAIL）在實作前 commit。紅案：規則 1 改成分大小寫、拿掉規則 2、換回舊的「沒有文字」規則，各自都要紅 | 形式二 | 第 2 項不出貨 |
+| M1 | M0 判 PASS 的每一項：在 v21 上經產品對話框貼到釘住的空文件開頭，正規化後的結構等於原生 | 工具封閉（依掃描判定分流） | 同上 |
+| M2 | M8（中日韓）的存檔文字等於原生 `zh_TW.UTF-8` 的 | 逐實例 | 同上，另立 finding |
+| M3 | 拒絕：M0 判非 PASS 的每一項，經對話框與直接 SDK 兩條路，回預期的碼，`dispatched: false`、`recovery: none`，revision、Undo、內容都不變。大小：SDK 在生效上限 L 與 L+1 各一臂；引擎直接在 65,536／65,537 各一臂（語料是重複的中日韓字元加明定的 ASCII 尾碼，附長度與雜湊）；斷言是哪一層拒絕的 | 工具封閉 | 同上 |
+| M4 | 原生位置臂依規則分流：收合的游標 → 貼上之後一次 Undo 還原正規化結構（含原有格式）；範圍 → `MARKDOWN_NEEDS_CARET`；受保護 → M9 | 工具封閉 | 同上 |
+| M5 | M3 裡 REMOTE 與 HTML 那幾項（含 NUL 尾碼的參照）：瀏覽器網路紀錄對目標主機 0 個請求。正向對照：同一份紀錄裡有 worker 抓 `probe.wasm` 的請求 | 工具封閉 | 同上 |
+| M6 | 64 KiB 的決定性語料：頁面從忙碌到就緒 ≤ 10 秒，一次 Undo 還原，並記下 `CORE_LOG` 的數量。紅 → SDK 上限改 16 KiB 重跑；再紅 → 頁面沒有入口 | 逐實例 | 頁面沒有入口 |
+| M7 | Ctrl+V 照舊：`ctrl-v-reaches-the-document` 恰好一個標記；C1 用 Ctrl+V 貼，結構等於原生 `text/plain` 的 | 逐實例 | v21 不出貨 |
+| M8 | 宣告狀態 ×（頁面入口、SDK、直接對 worker）的矩陣：只有宣告了才可用 | 工具封閉 | 最終殼層不得與 v20 搭配 |
+| M9 | 受保護區段（先確認游標確實在區段內）：乾淨文件 → `MUTATION_OUTCOME_UNKNOWN` → 回復之後文件不變；**髒文件**：打一個不存檔的標記，再到受保護區段貼上，回復之後存檔，標記要在（照 §9 的寫法這一臂會紅）；檢查點存失敗（注入）→ `MARKDOWN_CHECKPOINT_FAILED`，不派送 | 逐實例 | 頁面沒有入口 |
+| M10 | 「收合」的來源：開檔後不點直接貼 → 接受；只選一張圖片 → 拒絕；選取一個外框 → 拒絕；跨儲存格的選取（select-range）→ 拒絕 | 逐實例 | 同上 |
+| M11 | 記帳：貼上之後 `dirty` 為 true、自動儲存會觸發；對話框打字後取消 → 文件不變、沒有入列 | 逐實例 | 同上 |
+| — | **記錄**：在 v21 上點一下貼進來的核取方塊，記文件、revision、`dirty` | 記錄 | 視結果另立 finding |
+
+### 11.3 身分與計數
+
+| # | 判準 | 若沒做或紅 |
+|---|---|---|
+| I1 | X1 對 v20 印 `VERDICT PASS`，差異**恰好**是：wasm／loader／worker 雜湊；`.editorContract.abiVersion` 4→5（changed-leaf）；兩個動作的六個新葉；`pasteMarkdown` 的宣告葉。匯出表多出 `_oxsdk_document_paste_markdown`。**凍結集合**：連結前後對 `wasm_sdk_probe/dist/profiles/` 與 `wasm_sdk_probe/build/archive/` 底下每一個檔算雜湊，除了 `dist/profiles/e2-editor-v21/` 之外全部相同。`ScDocShell` 0 次。M1-1：base A `5d77dc84`，載體 `E2_V15 E2_V19 E2_V20 E2_V21`；base B＝本節落地的那個 commit，載體 `E2_V21=probe_engine,sdk_api,editor_api`。`what_the_link_ships` 列不出 md4c 物件。E1-C `intact: true` | v21 不綁定 |
+| X1-cl | X1 的 `--declared-changed-leaf PATH OLD NEW`：六個紅案（沒宣告的改變、宣告了卻沒變、OLD 錯、NEW 錯、葉不存在、型別不符）先紅 | 不得用來判 I1 |
+| K | 計數鏈在最終位元組上成立（J-a.2）。§17.4 的人工讀法照舊，是承襲下來的具名限制 | 本批是未計數候選，名義出貨版本停在 0.2.24 |
+
+釘選清單：`handoff/link-batch-v21/pin-list-grep.txt`（指令在檔頭；88 行、26 個檔）。實作要逐檔處理，或寫明為什麼不動。
+
 ## 修訂紀錄
 
 | 日期 | 內容 |
@@ -301,3 +403,4 @@
 | 2026-10-16 | §9 審核 1 的處置（主 session）：引擎不是 unipoll 的更正與 L-142-readback-overtaken、D2′／D6–D10、Markdown 的出貨開關移到殼層、引擎用 md4c 先掃遠端圖片與空內容、後置條件的失敗語意走 MUTATION_OUTCOME_UNKNOWN、D1／M1 的母數由規則產生、跨層負向矩陣、X1 changed-leaf 的契約；OD1、OD3 與 Q1 待擁有者。 |
 | 2026-10-16 | §9.13：擁有者三題都選 A（對話框入口；讀回期限照 250 ms；C 的宣告撤出 v21）。 |
 | 2026-10-16 | §9.14：第二輪原生量測的處置——D1 母數更正（頁首臂排除）、預先掃描改成三條（圖片、原始 HTML、沒有區塊）、Markdown 只在收合的游標上貼（finding 148）、M9＝受保護區段、finding 147 具名。 |
+| 2026-10-16 | §10 審核 2 的處置（最後一輪；檢查點、收合來源、逐次扣住、NUL／編碼、派送前碼、md4c 接法、擁有者選 B 的兩個具名限制）；§11 定稿判準總表，取代 §5 與 §9 中各判準的寫法。釘選清單 grep 產物 commit。 |

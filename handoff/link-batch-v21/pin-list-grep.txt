@@ -1,0 +1,88 @@
+# Pin list for link v21 (spec v21 §10.10), generated 2026-10-16T10:19:48Z at 1327c11a, from wasm_sdk_probe/:
+# grep -rnE "OXSDK_EDITOR_ABI_VERSION|ABI_VERSION *= *4|== *4u|abiVersion\"?\s*[:=]\s*4|range\(1, *22\)|kMaxExternalAction|kMaxInternalEditorAction|EDITOR_V3_ACTION|EDITOR_V3_APPENDED|\"select-all\": *21|SELECT_ALL *= *21|BOUNDARY_CAPABLE_MOVES|LINE_MOVE_ACTIONS|expected-gesture-offers|e2-editor-v20" src sdk editor-shell-v2 web tools tests e2 Makefile --include=*.cpp --include=*.hpp --include=*.h --include=*.js --include=*.mjs --include=*.ts --include=*.py --include=*.json --include=Makefile
+# (excludes dist/ and build/ by construction: they are not in the path list)
+src/editor_api.cpp:65:constexpr std::uint32_t kMaxExternalAction = 21;
+src/editor_api.cpp:170:  return OXSDK_EDITOR_ABI_VERSION;
+src/editor_api.cpp:175:  if (action == 0 || action > kMaxExternalAction || internalAction(action) == 0)
+src/editor_api.h:43:#define OXSDK_EDITOR_ABI_VERSION 4u
+src/editor_api.h:121:  OXSDK_EDITOR_V3_SELECT_ALL = 21
+sdk/tests/sdk-worker-v20.test.mjs:131:  w.initialised({ profile: "e2-editor-v20", capabilities: ["open-odt", "narrow-editor-v2"],
+editor-shell-v2/narrow-editor-v2-client.d.ts:44:export const EDITOR_V3_APPENDED_ACTIONS: readonly EditorV3AppendedAction[];
+editor-shell-v2/narrow-editor-v2-client.d.ts:45:export const EDITOR_V3_ACTIONS: readonly EditorV3Action[];
+editor-shell-v2/narrow-editor-v2-client.js:59:export const EDITOR_V3_APPENDED_ACTIONS = Object.freeze([
+editor-shell-v2/narrow-editor-v2-client.js:72:export const EDITOR_V3_ACTIONS = Object.freeze([
+editor-shell-v2/narrow-editor-v2-client.js:74:  ...EDITOR_V3_APPENDED_ACTIONS,
+editor-shell-v2/narrow-editor-v2-client.js:78:const APPENDED = new Set(EDITOR_V3_APPENDED_ACTIONS);
+editor-shell-v2/narrow-editor-v2-client.js:93:const LINE_MOVE_ACTIONS = new Set([
+editor-shell-v2/narrow-editor-v2-client.js:297:    if (MOVE_ACTIONS.has(action) || LINE_MOVE_ACTIONS.has(action)) {
+editor-shell-v2/narrow-editor-v2-client.js:383:    if (!LINE_MOVE_ACTIONS.has(`move-line-${direction}`)) {
+editor-shell-v2/narrow-editor-v2-session.js:34:import { NarrowEditorV2Client, EDITOR_V3_ACTIONS }
+editor-shell-v2/narrow-editor-v2-session.js:47:// EDITOR_V3_ACTIONS, not EDITOR_V2_ACTIONS: this set is the SESSION's own
+editor-shell-v2/narrow-editor-v2-session.js:59:const ACTIONS = new Set(EDITOR_V3_ACTIONS);
+editor-shell-v2/narrow-editor-v2-session.js:81:const BOUNDARY_CAPABLE_MOVES = new Set([
+editor-shell-v2/narrow-editor-v2-session.js:991:        if (BOUNDARY_CAPABLE_MOVES.has(action))
+editor-shell-v2/narrow-editor-v2-session.js:1046:      // opened from.  A move changes nothing -- see BOUNDARY_CAPABLE_MOVES.
+editor-shell-v2/narrow-editor-v2-session.js:1047:      { mutation: !BOUNDARY_CAPABLE_MOVES.has(action) },
+editor-shell-v2/narrow-editor-v2-session.js:1064:   * undo, and this class's action() (all but BOUNDARY_CAPABLE_MOVES) and
+editor-shell-v2/narrow-editor-v2-session.js:1092:    return !BOUNDARY_CAPABLE_MOVES.has(name);
+editor-shell-v2/tests/declaration-drift.test.mjs:15:         EDITOR_V3_ACTIONS, EDITOR_V3_APPENDED_ACTIONS }
+editor-shell-v2/tests/declaration-drift.test.mjs:93:                   EDITOR_V3_APPENDED_ACTIONS.slice().sort());
+editor-shell-v2/tests/declaration-drift.test.mjs:97:  assert.equal(EDITOR_V3_ACTIONS.length, 20);
+editor-shell-v2/tests/declaration-drift.test.mjs:98:  assert.deepEqual(EDITOR_V3_ACTIONS.slice(0, EDITOR_V2_ACTIONS.length),
+editor-shell-v2/tests/declaration-drift.test.mjs:114:  assert.equal(EDITOR_V3_ACTIONS.includes(withheld), false);
+editor-shell-v2/tests/declaration-drift.test.mjs:160:  assert.equal(EDITOR_V3_ACTIONS.length, workerIds.size - 1,
+editor-shell-v2/tests/declaration-drift.test.mjs:168:  for (const action of EDITOR_V3_ACTIONS)
+web/e2-editor-app.js:3305:    workerUrl: "./profiles/e2-editor-v20/sdk-worker.js",
+editor-shell-v2/tests/narrow-editor-v2-session.test.mjs:13:import { EDITOR_V3_ACTIONS, NarrowEditorV2Client } from "../narrow-editor-v2-client.js";
+editor-shell-v2/tests/narrow-editor-v2-session.test.mjs:711:  // Iterates the client's own list, so an action appended to EDITOR_V3_ACTIONS
+editor-shell-v2/tests/narrow-editor-v2-session.test.mjs:718:  //     session's BOUNDARY_CAPABLE_MOVES and the client's move sets.
+editor-shell-v2/tests/narrow-editor-v2-session.test.mjs:725:  const { EDITOR_V3_ACTIONS } = await import("../narrow-editor-v2-client.js");
+editor-shell-v2/tests/narrow-editor-v2-session.test.mjs:728:  for (const action of EDITOR_V3_ACTIONS) {
+editor-shell-v2/tests/narrow-editor-v2-session.test.mjs:985:       for (const action of EDITOR_V3_ACTIONS) {
+src/probe_engine.cpp:189:  // kMaxExternalAction and kMaxInternalEditorAction do not move.
+src/probe_engine.cpp:7069:constexpr std::uint32_t kMaxInternalEditorAction = 23;
+src/probe_engine.cpp:7070:std::uint32_t gEditorActionGestures[kMaxInternalEditorAction + 1] = {};
+src/probe_engine.cpp:7075:  if (internalAction == 0 || internalAction > kMaxInternalEditorAction)
+src/probe_engine.cpp:7078:    for (std::uint32_t index = 0; index <= kMaxInternalEditorAction; ++index)
+src/probe_engine.cpp:7087:  if (internalAction == 0 || internalAction > kMaxInternalEditorAction)
+tools/build_e2_editor_v4_profile.py:81:ABI_VERSION = 4
+tools/build_e2_editor_v4_profile.py:198:    if ids != list(range(1, 22)):
+tools/build_e2_editor_v4_profile.py:296:    # minted profiles to find (e2/expected-gesture-offers.json).
+tools/build_e2_c_shell_bundle.py:716:# as v57 was at the v19 cutover.  Differs from v68 in the entrypoint only: `build_cutover_page.py --profile e2-editor-v20
+tools/build_e2_c_shell_bundle.py:718:# 313b08d5, workerUrl e2-editor-v19 -> e2-editor-v20).  Page 53019168… is the page the first v20 shakedown (task
+tools/check_relink_queue.py:270:            declared, "#define OXSDK_EDITOR_ABI_VERSION 2u"), encoding="utf-8")
+tests/test_e2_editor_v4_profile.py:34:                         list(range(1, 22)))
+tests/test_e2_editor_v4_profile.py:172:                "--profile", "e2-editor-v20", "--page-rectangles"]
+sdk/sdk-worker.js:87:const EDITOR_V3_ACTION_IDS = Object.freeze({
+sdk/sdk-worker.js:94:  "select-all": 21,
+sdk/sdk-worker.js:1488:      const actionId = EDITOR_V3_ACTION_IDS[payload.action];
+tests/editor_abi_header_test.cpp:20:static_assert(OXSDK_EDITOR_ABI_VERSION == 4u);
+tests/editor_abi_header_test.cpp:71:static_assert(OXSDK_EDITOR_GESTURE_RANGE_CROSS == 4u);
+tools/run_v20_shakedown.py:57:DEFAULT_PROFILE = "e2-editor-v20"
+tests/test_profile_identity.py:7:`DeclaredDeltas` is the v20 use (ruling 6 condition 49): a SYNTHETIC e2-editor-v20 (v18's directory, a stand-in worker
+tests/test_profile_identity.py:155:        self.v20 = self.tmp / "e2-editor-v20"
+tests/test_profile_identity.py:161:        manifest["profile"] = "e2-editor-v20"
+tests/test_profile_identity.py:162:        manifest["sdkVersion"] = manifest["sdkVersion"].replace("e2-editor-v18", "e2-editor-v20")
+editor-shell-v2/tests/offers.test.mjs:182:  assert.match(source, /const ACTIONS = new Set\(EDITOR_V3_ACTIONS\)/,
+editor-shell-v2/tests/offers.test.mjs:185:  assert.match(source, /import \{ NarrowEditorV2Client, EDITOR_V3_ACTIONS \}/);
+tools/run_merge_wasm_shakedown.py:153:# Bound 2026-10-15 to e2-editor-v20 (linked by the owner 2026-10-14; archive build/archive/e2-editor-v20-313b08d5-worker-478d0da1/)
+tools/run_merge_wasm_shakedown.py:158:# `build_cutover_page.py --profile e2-editor-v20` (no --write) for the page; the v72 manifest's own module hashes
+tools/check_gesture_offers.py:15:So the expectation lives OUTSIDE the manifest, in `e2/expected-gesture-offers.json`,
+tools/check_gesture_offers.py:39:DEFAULT_EXPECTED = PROJECT / "e2" / "expected-gesture-offers.json"
+Makefile:1543:E2_V20_DIST := dist/profiles/e2-editor-v20
+Makefile:1598:		--profile e2-editor-v20 --inline-range-gestures all \
+Makefile:3694:	python3 -m json.tool e2/expected-gesture-offers.json > /dev/null
+tests/test_merge_wasm_clauses.py:243:                         and (PROFILES / "e2-editor-v20/probe.wasm").is_file(), "the two profiles are not served")
+tests/test_merge_wasm_clauses.py:246:        self.assertTrue(m.boundary_noop_declared(PROFILES / "e2-editor-v20/probe.wasm"))
+tests/test_merge_wasm_clauses.py:362:        self.assertTrue(m.BINDING["wasmSha256"].startswith("313b08d5"))        # e2-editor-v20
+tests/test_judge_counted_m2.py:804:V20_WASM = m.HERE / "dist/profiles/e2-editor-v20/probe.wasm"
+tests/test_judge_counted_m2.py:853:        code, lines = j.judge(self.dir, "e2-editor-v20", list(j.BROWSERS), True, wasm)
+tools/run_e2_c_product_path.py:2207:        "find": "        if (BOUNDARY_CAPABLE_MOVES.has(action))\n"
+e2/relink-queue-v3.json:109:          "text": "#define OXSDK_EDITOR_ABI_VERSION 4u",
+e2/relink-queue-v3.json:114:      "supersedes": "`#define OXSDK_EDITOR_ABI_VERSION 3u`, this row's value for the v3 link. Bumped 2026-08-22 for the v4 successor identity. The row is the same requirement -- a version is an identity -- at a new value; it is not a relaxation, and it drifted loudly when the header moved before this file did."
+e2/relink-queue-v3.json:171:          "text": "static_assert(OXSDK_EDITOR_ABI_VERSION == 4u);",
+e2/relink-queue-v3.json:1130:      "note": "RESOLVED AND SHIPPED as e2-editor-v7 (2026-08-23, commit be8291a). The characterisation is done -- all four inline formats, both range shapes, formatted text equal to selected text, on the minted identity itself, with a native-LibreOffice comparison showing the paragraph-level shape on a fully selected paragraph is what native writes too. BOTH range bits are granted because the engine requires both for an unclassified range; granting one alone admits nothing, measured three ways (single-only refused, cross-only refused, both accepted). That AND-semantics limit is recorded in e2/expected-gesture-offers.json. The regression net now has `an-inline-format-reaches-a-selection` with a mutation that turns it red. The operator's real-mouse pass on all four buttons passed, which is what this project treats as closure, and the product page was pointed at v7 the same day.",
+e2/relink-queue-v3.json:1134:          "file": "e2/expected-gesture-offers.json",
+e2/relink-queue-v3.json:1139:          "file": "e2/expected-gesture-offers.json",
+e2/relink-queue-v3.json:1345:      "note": "The reason to wait before pointing the product page at e2-editor-v11 had no exit condition -- 'the defect discovery rate has not levelled off' can only be refuted by more waiting -- so the criteria were fixed in writing BEFORE the runs that would satisfy them. Four conditions, all in the plan: TWELVE clean runs against the CANDIDATE page across at least three calendar days with at least two per day, where clean means ok:true, the checklist reconciling as a candidate-cutover, and a composition of exactly 38 PASS / 2 NE with the NE set being {notice-action-recovers-the-session, a-refused-action-is-reported-and-changes-nothing}; THREE additional diagnostic runs with --caret-rounds 12 requiring 0 dropped commits in 36 and staleWritesRefusedTotal > 0 in at least one; ONE manual round by a human in a real browser; and the BENEFIT measured -- an actual screen reader consuming caretParagraphText and documentOutline on v11's five bound identities, which nothing has yet shown and which is the condition most likely to embarrass us in front of the buyer the schedule was rearranged for. Any FAIL, any additional NE, or any different id in the NE set restarts the count at zero and is written up as a finding first. Already satisfied and not to be re-litigated: the extra callback is characterised (LOK_CALLBACK_A11Y_FOCUS_CHANGED, deterministically one extra, carrying the STALE caret), the 084 guard is proven order-independent over every permutation, the post-fix drop rate is re-measured at 60 commits against a pre-fix 48, and the NE delta is closed. REVERT CONDITION 2 SATISFIED 2026-08-28: the saved ODT is the only cross-version artifact (no localStorage, no sessionStorage, no indexedDB, checkpoint in memory) and it round-trips BOTH ways through the product's own file input and save button -- v11 -> v8 and v8 -> v11, sentinel text surviving, structure intact, a re-save from the other core a valid ODT. The first run of that probe said the opposite and was a HARNESS defect: it waited for `state == ready` after handing the file over, and the page was already ready, so both directions reported on the boot fixture (`doc` was still list-contexts.odt). Reporting it would have been a false cross-version incompatibility finding -- the most expensive kind, because it argues against a cutover with evidence that is not about the cutover. What caught it was recording WHICH document is in front of you beside whether the page is ready. Both runs kept. The candidate page is c8c71ac530c4815aa431c04e2f2e001c34bd025f9b77744bb8fbe6881240a472 as of 2026-08-28.\n\nCORRECTION 2026-09-03, two items. (a) The CANDIDATE IS NO LONGER e2-editor-v11. Since the 2026-08-29 amendment it is `e2-editor-v12`, the same artifact with its data image split into base/cjk/fallback packs, page sha 3dfdcfef4abfe6b723b573f35e8ec8f885dcc42a8ed4d8338ad2381eb386f50f, and the startup cost is +24.5 MiB rather than +71.4. The soak count restarted at zero; the five clean v11 runs are retained in place as incumbent-lineage evidence and are void for the count. The item id and its evidence directory keep the v11 name because evidence in this tree is not renamed to reflect a later verdict; the bank now lives in `findings/evidence/queue-v12-cutover-soak/`. (b) THIS ITEM'S OWN CHECK WAS PINNED TO THE SUPERSEDED CANDIDATE. It asserted that `web/e2-editor-app.js` does not contain `profiles/e2-editor-v11/sdk-worker.js` -- which is still true after a cutover to v12, so the check would have passed through the very event it exists to detect. Measured 2026-09-03 by building the v12 candidate page and testing both strings. Replaced by the INCUMBENT-ANCHORED form: the page must still CONTAIN `profiles/e2-editor-v8/sdk-worker.js`. That goes false on a cutover to any candidate, named or not, which is what the item is registering. Two judges now read the gate's own evidence rather than a narration: `tools/check_soak_bank.py` for condition 1 and `tools/check_caret_diagnostics.py` for condition 2.\n\nCORRECTION 2026-10-08: THE INCUMBENT MOVED, THIS GATE DID NOT CLOSE. The owner approved the cutover of the product page from e2-editor-v8 to `e2-editor-v19` (paragraph merge B plus finding 117's fix, on v8's line: v15's Makefile block says \"the v14 a11y line has no B\", and v19's manifest carries no `documentOutline`; validated by spec SPEC-M3-paragraph-merge §31.4 X1-X7, findings/evidence/v19/RESULT.md; shell generation v57). That is not the a11y cutover this item registers, so the expectation stays `absent`. The incumbent-anchored check is re-anchored to the new incumbent, `profiles/e2-editor-v19/sdk-worker.js`: it goes false again on a cutover to any other profile, the a11y candidate included, which is what the 2026-09-03 form was for. This drift was caught the moment the v19 page was written (`make test-e2-c-static`), as the checkNote says it should be.\n\nCORRECTION 2026-10-14: THE INCUMBENT MOVED AGAIN, THIS GATE STILL DID NOT CLOSE. The owner approved (2026-10-14, choice A) the cutover of the product page from e2-editor-v19 to `e2-editor-v20` (the link batch: page number, C, caretBefore; ABI 4; linked by the owner, archive build/archive/e2-editor-v20-313b08d5-worker-478d0da1/; shell generation v69, frozen in the cutover commit). v20 is on the same line as v19: its manifest differs from v19's only in the three artifact hashes and `pageRectangles`, and carries no `documentOutline`. That is not the a11y cutover this item registers, so the expectation stays `absent`. The incumbent-anchored check is re-anchored to `profiles/e2-editor-v20/sdk-worker.js`. Caught, as in 2026-10-08, the moment the v20 page was written (`make test-e2-c-static`, exit 2 on this item alone; evidence findings/evidence/link-batch/cutover-v20/).",
+e2/relink-queue-v3.json:1359:          "text": "profiles/e2-editor-v20/sdk-worker.js"
