@@ -1,0 +1,69 @@
+a M1 vs C1 (red control)                           DIFFERENT (expected DIFFERENT) ok
+b M1 run1 vs M1 run2                               SAME (expected SAME) ok
+c M2 vs M2 without bold attributes                 DIFFERENT (expected DIFFERENT) ok
+d M1 vs M1 with headings as plain paragraphs       DIFFERENT (expected DIFFERENT) ok
+e P5-M4 vs P5-M4 without list-item overrides       DIFFERENT (expected DIFFERENT) ok
+
+--- M1 run1 after ---
+paragraphs: 4  tables: 0  links: 0  images: 0
+  [0] Heading_20_1           h1                           'Heading one'  runs: [bold:WAC]'Heading one'
+  [1] Heading_20_2           h2                           'Heading two'  runs: [bold:WAC]'Heading two'
+  [2] Heading_20_3           h3                           'Heading three'  runs: [bold:WAC]'Heading three'
+  [3] Text_20_body                                        ''
+--- C1 run1 after ---
+paragraphs: 6  tables: 0  links: 0  images: 0
+  [0] Standard                                            '# Heading one'
+  [1] Standard                                            ''
+  [2] Standard                                            '## Heading two'
+  [3] Standard                                            ''
+  [4] Standard                                            '### Heading three'
+  [5] Standard                                            'Plain **bold** and *italic* and `inline code` end.'
+--- M2 run1 after ---
+paragraphs: 2  tables: 0  links: 0  images: 0
+  [0] Standard                                            'Plain bold and italic and inline code end.'  runs: [bold:W]'bold' [italic:W]'italic' [mono]'inline code'
+  [1] Standard                                            ''
+--- M2 run1 after, bold attributes removed ---
+paragraphs: 2  tables: 0  links: 0  images: 0
+  [0] Standard                                            'Plain bold and italic and inline code end.'  runs: [italic:W]'italic' [mono]'inline code'
+  [1] Standard                                            ''
+--- M1 run1 after, headings as plain paragraphs ---
+paragraphs: 4  tables: 0  links: 0  images: 0
+  [0] Standard                                            'Heading one'
+  [1] Standard                                            'Heading two'
+  [2] Standard                                            'Heading three'
+  [3] Text_20_body                                        ''
+--- P5-M4 run1 after ---
+paragraphs: 14  tables: 0  links: 0  images: 0
+  [0] Standard                                            'Start'
+  [1] Text_20_body                                        'Alpha Beta Gamma'
+  [2] Text_20_body                                        'Delta Epsilon'
+  [3] Standard               list d1 bullet               'apple'
+  [4] Standard               list d1 bullet               'banana'
+  [5] Standard               list d2 bullet               'nested one'
+  [6] Standard               list d2 bullet               'nested two'
+  [7] Standard               list d1 bullet               'cherry'
+  [8] Standard               list d1 number               'first'
+  [9] Standard               list d1 number               'second'
+  [10] Standard               list d1 number               'third'
+  [11] Standard               list d1 bullet               'Item one'
+  [12] Standard               list d1 bullet               'Item two'
+  [13] Standard                                            'End'
+--- P5-M4 run1 after, list-item overrides removed ---
+paragraphs: 14  tables: 0  links: 0  images: 0
+  [0] Standard                                            'Start'
+  [1] Text_20_body                                        'Alpha Beta Gamma'
+  [2] Text_20_body                                        'Delta Epsilon'
+  [3] Standard               list d1 bullet               'apple'
+  [4] Standard               list d1 bullet               'banana'
+  [5] Standard               list d2 bullet               'nested one'
+  [6] Standard               list d2 bullet               'nested two'
+  [7] Standard               list d1 bullet               'cherry'
+  [8] Standard               list d1 bullet               'first'
+  [9] Standard               list d1 bullet               'second'
+  [10] Standard               list d1 bullet               'third'
+  [11] Standard               list d1 bullet               'Item one'
+  [12] Standard               list d1 bullet               'Item two'
+  [13] Standard                                            'End'
+--- P1 before ---
+paragraphs: 1  tables: 0  links: 0  images: 0
+  [0] Standard                                            ''

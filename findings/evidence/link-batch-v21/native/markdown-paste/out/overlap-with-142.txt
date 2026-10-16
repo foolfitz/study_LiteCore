@@ -1,0 +1,32 @@
+Time overlap between this folder's probe processes and the 142 arms' processes
+(142's run-log.jsonl start times have 1 s resolution; ours: stdout.jsonl mtime minus process seconds).
+Our runner waits while another LOK probe runs; the 142 runner does not wait, so it started its next
+process while ours ran. Structure results are unaffected; the listed paste times are within each arm's range.
+
+10:45:27  ours P1-M1 run1             paste    1.6 ms  | 142: place-numbered round 1       overlap 5.0 s
+10:48:28  ours P1-M1 run2             paste    1.7 ms  | 142: t-home-A1-n2 round 2         overlap 5.0 s
+10:52:44  ours P1-M1 run3             paste    1.7 ms  | 142: tl-end-n3 round 2            overlap 5.1 s
+10:53:05  ours P1-M2 run1             paste    1.7 ms  | 142: r-one-home round 2           overlap 4.9 s
+10:54:59  ours P1-M2 run2             paste    1.7 ms  | 142: r-bwd-home round 2           overlap 0.2 s
+10:54:59  ours P1-M2 run2             paste    1.7 ms  | 142: r-bwd-end round 2            overlap 5.0 s
+10:58:57  ours P1-M2 run3             paste    1.6 ms  | 142: sec-home-n3 round 2          overlap 4.9 s
+11:02:34  ours P1-M3 run1             paste    1.6 ms  | 142: ctl-k1r round 2              overlap 5.1 s
+11:03:50  ours P1-M3 run2             paste    1.5 ms  | 142: place-plain3-mid round 2     overlap 5.1 s
+11:04:19  ours P1-M3 run3             paste    1.3 ms  | 142: place-table-A1 round 2       overlap 4.9 s
+11:06:41  ours P1-M4 run1             paste    2.2 ms  | 142: a1-home-mid round 3          overlap 5.0 s
+11:06:56  ours P1-M4 run2             paste    2.3 ms  | 142: a2-end-mid round 3           overlap 5.0 s
+11:07:23  ours P1-M4 run3             paste    2.2 ms  | 142: a3-home-after-load round 3   overlap 4.8 s
+11:08:24  ours P1-M5 run1             paste    1.6 ms  | 142: t-home-A1-n1 round 3         overlap 5.0 s
+11:09:59  ours P1-M5 run2             paste    1.7 ms  | 142: t-end-A1-n2 round 3          overlap 5.0 s
+11:11:43  ours P1-M5 run3             paste    1.7 ms  | 142: t-end-B2-n3 round 3          overlap 4.9 s
+11:16:47  ours P1-M6 run1             paste    1.2 ms  | 142: hf-home-hdr-n2 round 3       overlap 4.8 s
+11:21:35  ours P1-M6 run2             paste    1.1 ms  | 142: red-end-k1r round 3          overlap 5.0 s
+11:22:26  ours P1-M6 run3             paste    1.1 ms  | 142: ctl-home round 3             overlap 4.9 s
+11:23:43  ours P1-M7 run1             paste    1.5 ms  | 142: x-bullet-home-bksp round 3   overlap 5.0 s
+11:25:32  ours P1-M7 run2             paste    1.2 ms  | 142: place-tf-body round 3        overlap 5.1 s
+11:27:44  ours P1-M8 run2             paste    5.0 ms  | 142: x-indent-home round 1        overlap 2.0 s
+11:30:01  ours P1-M8 run3             paste    6.4 ms  | 142: q-home-bksp round 3          overlap 4.8 s
+11:32:49  ours P1-M14b run3           paste 3108.0 ms  | 142: place-numsecond round 1      overlap 2.9 s
+11:33:06  ours P1-C1-plain run1       paste    1.7 ms  | 142: ctl-bksp-at-num round 1      overlap 5.0 s
+
+overlapping pairs: 25; distinct runs of ours: 24 of 152

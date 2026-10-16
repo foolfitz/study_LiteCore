@@ -1,0 +1,27 @@
+Predictions written before the first full run (2026-10-16, after one smoke run of M1 at P1 only).
+Basis: source reading of libreoffice-26-8 671c848b. These are what the source predicts, not results.
+
+1. M1-M7 convert at P1: headings -> Heading_20_1..3; **/* -> bold/italic; `x` -> a monospace
+   character style; fenced code -> a preformatted paragraph style; lists -> bullet/number with
+   nesting; table -> 3x2; [x](url) -> hyperlink; > -> a quotation paragraph style; --- -> a
+   horizontal-line paragraph style.
+2. One paste = one undo action ("Paste clipboard", SwTrnsfrActionAndUndo in swdtflvr.cxx:1850)
+   and one .uno:Undo restores the document.
+3. M8 decodes right under zh_TW.UTF-8 and C.UTF-8; under LANG=C the thread encoding is
+   ISO-8859-1 (nlsupport.cxx:293 "ANSI_X3.4-1968" -> RTL_TEXTENCODING_ISO_8859_1, id 12) and the
+   CJK comes out as mojibake (each UTF-8 byte read as one Latin-1 character).
+4. ENC-C-M8-plain (text/plain under LANG=C) decodes right: LOKTransferable turns text/plain into
+   an OUString from UTF-8 itself (lokclipboard.cxx:186-200), no thread encoding involved.
+5. MIME-nocharset-M8 = P1-M8 (the charset parameter is never read for text/markdown).
+   MIME-utf16-M8: UTF-16LE bytes decoded as UTF-8 -> garbage with NULs, not the CJK text.
+6. M9 (CTL) decodes right under UTF-8 locales; mojibake under C.
+7. M13 (empty): paste() returns true (init.cxx:6165-6192); ReadMarkdown returns
+   ERRCODE_IO_INVALIDCHAR (swmd.cxx:931-934); swdtflvr.cxx:2310-2316 runs a modal MessageDialog
+   because bMsg is true (no Batch mode) -> the call BLOCKS (watchdog fires).
+8. M11: a connect() to 127.0.0.1:9 during the paste (GraphicDescriptor::Detect, swmd.cxx:690-695),
+   refused; the image is kept as a linked graphic with the URL.
+9. M11b: the local listener receives a GET /x.png during the paste.
+10. M12: hyperlink https://en.wikipedia.org/wiki/Page (LOK UI language en-US).
+11. P4 (middle): "Alpha " + first pasted block ... last pasted block + "Beta Gamma" (split/join).
+12. P6/P7: the selection is replaced by the pasted content.
+13. C1 (text/plain): every line stays literal ('#', '**' visible), no heading styles, no bold.

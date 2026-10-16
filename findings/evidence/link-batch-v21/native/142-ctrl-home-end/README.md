@@ -361,3 +361,10 @@ python3 -I tool/read_results.py out fixtures > out/reader-output.txt
 ```
 
 The arm table, each arm's script and a one-line note are in `tool/run_arms.py`, and in `out/arms.json` as the reader reads it.
+
+## Note added by the main session (2026-10-16, after the run)
+
+The Markdown native arms ran on the same machine during this run. Their runner waited for idle, but this runner did not wait, so 24 of the Markdown processes overlapped processes of this run. The list is in `../markdown-paste/out/overlap-with-142.txt`. The language arms (10:15–10:23) overlapped too.
+
+- **Not affected:** what this README states about **which** callbacks arrive and in **what order**, where the caret lands, and whether Undo or the saved text changed. These are behaviour, and every arm agreed 3/3.
+- **To be read with this caveat:** the millisecond columns (first and last callback, quiet time). No criterion in `specs/SPEC-M3-link-batch-v21.md` uses them.
