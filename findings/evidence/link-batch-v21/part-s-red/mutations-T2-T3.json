@@ -1,0 +1,33 @@
+[
+ {
+  "id": "T2",
+  "file": "sdk/document-sdk.d.ts",
+  "what": "the SDK .d.ts does not declare pasteMarkdown",
+  "test": "editor-shell-v2/tests/declaration-drift.test.mjs",
+  "exit": 1,
+  "summary": {
+   "tests": 15,
+   "pass": 13,
+   "fail": 2
+  },
+  "red": [
+   "document-sdk.d.ts declares every public method of DocumentHandle and DocumentEngine",
+   "document-sdk.d.ts names the runtime's Markdown limit and the paste's signature"
+  ]
+ },
+ {
+  "id": "T3",
+  "file": "sdk/document-sdk.d.ts",
+  "what": "the declared limit drifts from the runtime's",
+  "test": "editor-shell-v2/tests/declaration-drift.test.mjs",
+  "exit": 1,
+  "summary": {
+   "tests": 15,
+   "pass": 14,
+   "fail": 1
+  },
+  "red": [
+   "document-sdk.d.ts names the runtime's Markdown limit and the paste's signature"
+  ]
+ }
+]
