@@ -368,3 +368,19 @@ The Markdown native arms ran on the same machine during this run. Their runner w
 
 - **Not affected:** what this README states about **which** callbacks arrive and in **what order**, where the caret lands, and whether Undo or the saved text changed. These are behaviour, and every arm agreed 3/3.
 - **To be read with this caveat:** the millisecond columns (first and last callback, quiet time). No criterion in `specs/SPEC-M3-link-batch-v21.md` uses them.
+
+## Correction (2026-10-16, after review 1; appended, the text above is unchanged)
+
+**The text above (lines ~49 and ~237–239) says the native ordering result does not transfer to WASM because the engine runs unipoll. That is wrong for the product.** Both review seats found it independently (`handoff/link-batch-v21/review-1-opus.md` B1, `review-1-codex.md` R1), and the main session re-read the source:
+
+- `SAL_LOK_OPTIONS=unipoll` is set only in `mainLoopEngineThreadMain`, which exists only under `OXSDK_MAINLOOP_ENGINE` (`wasm_sdk_probe/src/probe_engine.cpp:6656-6683`, `:6756-6760`).
+- The product rules do not define it. v20 is at `wasm_sdk_probe/Makefile:1548-1554`, and its define set cannot carry it: `probe_engine.cpp:15-17` has an `#error` if `OXSDK_MERGE_KEY_UNDO` is combined with it. The product runs `engineLoop` on a `std::thread` (`:6237-6242`, `:6759`), so LOK runs threaded, as in this harness.
+
+**So this run's ordering result describes the product's topology.** It is not a harness artefact:
+
+- Ctrl+Home is a KeyInput user event, followed by an `AsyncAccelExec` hop (`svtools/source/misc/acceleratorexecute.cxx:213-226`).
+- That makes it FIFO only with other accelerator keys.
+
+**How the product could reach the reorder:** it posts nothing behind a move until the move completes. A reorder in the product therefore needs an early completion, such as the 250 ms readback during a core stall. Spec v21 §9 handles this as a named limit in finding 137's class.
+
+Timings still do not transfer as numbers, because WASM is slower. Their shape does transfer.
