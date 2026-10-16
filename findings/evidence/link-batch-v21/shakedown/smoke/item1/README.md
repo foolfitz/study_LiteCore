@@ -45,4 +45,4 @@ Page served `3d5112161b23b060…` (= `build_cutover_page.py --profile e2-editor-
 
 ## Runner errors (§34.4)
 
-Two development runs lost d11a/d12/d11c to the page's leave prompt; witnesses in `../witness-item1/` (committed before the fix). The smoke itself lost nothing to the runner. Tally: modified because of execution 1 (the leave-prompt fix, after one ineffective attempt); modified because of review 0.
+Two development runs lost d11a/d12/d11c to the page's leave prompt; witnesses in `../witness-item1/` (committed before the fix). The item-1 runner lost nothing in the smoke. The D2 wrapper misjudged its first smoke (it read Ctrl+Home's move from the probe's Backspace-only summary window); witness in `../witness-item1/`, fixed in `29219561`, re-run in `../item1-d2/`. Tally: modified because of execution 2 (the leave-prompt fix, after one ineffective attempt; the D2 wrapper's log window); modified because of review 0.
