@@ -1,0 +1,26 @@
+# python3 -m unittest discover -s tests -p 'test_v21_*.py'   (HEAD 8b9b1b59 + this change's working tree)
+# 2026-10-17T05:33:00+08:00
+......................................................../usr/lib/python3.14/tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 404: 'Not Found'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+..../usr/lib/python3.14/tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 502: 'Bad Gateway'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+.........../usr/lib/python3.14/subprocess.py:1139: ResourceWarning: subprocess 472317 is still running
+  _warn("subprocess %s is still running" % self.pid,
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+.....F...........
+======================================================================
+FAIL: test_the_real_mirror_reproduces_the_round_identity (test_v21_shakedown_common.MirrorTest.test_the_real_mirror_reproduces_the_round_identity)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tests/test_v21_shakedown_common.py", line 97, in test_the_real_mirror_reproduces_the_round_identity
+    self.assertTrue(identity["identityOk"], identity["identityChecks"])
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : {'probe.wasm': True, 'probe.js': True, 'sdk-worker.js': True, 'sdk-manifest.json': True, 'pageServed': False, 'shellDigest': False}
+
+----------------------------------------------------------------------
+Ran 88 tests in 8.737s
+
+FAILED (failures=1)
+self-test: 8/8 red as required
+<sys>:0: ResourceWarning: unclosed <socket.socket fd=3, family=2, type=1, proto=0, laddr=('127.0.0.1', 38627)>
+# exit 1

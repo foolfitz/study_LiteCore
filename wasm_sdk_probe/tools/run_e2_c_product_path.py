@@ -2204,7 +2204,7 @@ MUTATIONS = {
     "boundary-move-takes-no-checkpoint": {
         "check": "a-boundary-arrow-press-does-not-cost-the-work",
         "path": "editor-shell-v2/narrow-editor-v2-session.js",
-        "find": "        if (BOUNDARY_CAPABLE_MOVES.has(action))\n"
+        "find": "        if (CHECKPOINTED_MOVES.has(action))\n"
                 "          await this._checkpointBeforeBoundaryMove(document);\n",
         "replace": "",
         "reintroduces": "finding 096's loss half -- an arrow key at a document "

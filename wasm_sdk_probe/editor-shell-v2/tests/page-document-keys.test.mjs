@@ -33,6 +33,9 @@ function slice(pattern, what) {
   return match[0];
 }
 const fn = (name) => slice(new RegExp(`^(async )?function ${name}\\([^)]*\\) \\{[\\s\\S]*?\\n\\}$`, "m"), `${name}()`);
+// The predicate the move paths share since finding 150; absent on a page from before it
+// (`PAGE_SOURCE=`), whose `sendDocumentMove` does not call it.
+const optionalFn = (name) => (SOURCE.match(new RegExp(`^function ${name}\\([^)]*\\) \\{[\\s\\S]*?\\n\\}$`, "m")) || [""])[0];
 
 /** v20's contract with the two moves as `state` says: absent, withheld ([]) or declared (collapsed). */
 function manifest(start, end) {
@@ -83,7 +86,8 @@ function keys({ m = manifest("declared", "declared"), editorState = { selection:
   };
   // eslint-disable-next-line no-new-func
   const api = new Function("session", "editorAction", "moveFromPoint", "selectionShapeOf", "pointMovesInFlight", `
-    let lastSelectionShape = "collapsed";
+    let lastSelectionShape = "collapsed"; let deletesInFlight = 0;
+    ${optionalFn("clicksBeforeMove")}
     ${slice(/^const DOCUMENT_KEY_ACTIONS = \{[^\n]*\};$/m, "DOCUMENT_KEY_ACTIONS")}
     ${slice(/^const documentMovesUnanswered = new Map\(\);$/m, "documentMovesUnanswered")}
     ${fn("documentKeyAction")}

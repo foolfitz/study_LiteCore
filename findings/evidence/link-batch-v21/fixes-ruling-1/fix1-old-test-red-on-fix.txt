@@ -1,0 +1,111 @@
+# the session test as it stands at HEAD 8b9b1b59 (git show), run against the session WITH fix 1
+# editor-shell-v2/narrow-editor-v2-session.js sha256 f1509ff22e6e2d8d945cfd803d293fd4cf102cece27618f54825571a2e1ef3a8
+# 2026-10-17T05:28:25+08:00, node v24.16.0
+✔ it opens on the v2 profile, which the shipped session cannot (1.605479ms)
+✔ all fifteen go through the session's queue (1.070583ms)
+✔ the two families keep their own postconditions (0.337418ms)
+✔ a paragraph action advances the revision by exactly one (0.2153ms)
+✔ a post-dispatch failure blocks the queue and asks for a rollback (0.49422ms)
+✔ rollback reopens from the engine's own bytes with a fresh worker (0.520699ms)
+✔ a DISPATCHED postcondition failure blocks the queue too, not just the codes the base class knows (0.295611ms)
+✔ the base-class seam this depends on is still there (0.164967ms)
+✔ the second base-class seam this depends on is still there: the item is pushed synchronously and its mutation flag is read after the operation (5.440378ms)
+✔ the queue observer survives a rollback: one array for the session's life, pushes still seen (0.486576ms)
+✔ an undispatched failure still leaves the queue running (0.285922ms)
+✔ a pre-dispatch refusal does not ask for a rollback (0.195554ms)
+✔ a bad argument never reaches the engine and never rolls anything back (0.186427ms)
+✔ a boundary rejection still demands a fresh worker (0.233185ms)
+✔ the generation ceiling still fails closed (0.398512ms)
+✔ gestures and limits come from the manifest, for showing not for failing (0.519797ms)
+✔ finding 084: a state write whose sourceSequence went BACKWARDS does not move the caret back (0.235679ms)
+✔ finding 084: the REST of a stale patch still applies (0.090108ms)
+✔ finding 084: an ADVANCING write still lands, and so does an equal one (0.076563ms)
+✔ finding 084: a REOPEN may legitimately move the sequence backwards (0.072865ms)
+✔ finding 084: a write with no sourceSequence is not second-guessed (0.068157ms)
+✔ finding 084: the guard is installed on the machine the writers use (0.076974ms)
+✔ finding 084: the base class builds the machine ONCE, which is what makes wrapping it in the constructor enough (0.170527ms)
+✔ finding 084: after ANY order of arrivals the newest state is the one held (0.436813ms)
+✔ finding 084: a DUPLICATED announcement is idempotent, in any position (0.685196ms)
+✔ finding 084: the sequence the snapshot holds NEVER decreases, whatever arrives (0.113291ms)
+✔ finding 084: TWO announcements per commit -- the a11y core's shape -- still ends on the caret-bearing one (0.098153ms)
+✔ finding 096: a move on a DIRTY document banks a checkpoint first (0.129351ms)
+✖ finding 096: all eight key-path moves bank it, and nothing else does (0.808004ms)
+✔ finding 096: a CLEAN document pays nothing (0.093113ms)
+✔ finding 096: holding the key down does not save per keypress (0.20976ms)
+✔ finding 096: a checkpoint that cannot be written does not eat the key (0.146723ms)
+✔ finding 098: moving the caret on a CLEAN document never makes it dirty and never banks anything (0.898633ms)
+✔ finding 098: on a successful answer, `dirty` says the document changed exactly when the engine said it did -- for every action the client offers (1.496396ms)
+✔ finding 099: after a rollback, the new Worker's work is banked however its revision lines up with the old checkpoint's (3.019501ms)
+✔ finding 099: the skip reads the content, never the revision -- at any revision, in any generation (19.453726ms)
+✔ finding 099: WITHIN one Worker, a change that came back unverified is banked by the next arrow key (0.443285ms)
+✔ finding 099: a checkpoint save that failed is retried on the next move (0.157303ms)
+✔ finding 098: shift+arrow on a clean document is not a mutation either (0.121807ms)
+✔ view-only: every mutating entry point is refused before it is queued (0.831198ms)
+✔ view-only: moves still run, and the gate is off by default (0.324594ms)
+✔ actionMutates is fail-closed: only the six moves are not mutations (0.099676ms)
+✔ view-only survives a fresh Worker (a rollback reopens the engine) (0.222023ms)
+✔ finding 107: unsaved edits follow dirty and pending, never the revision (0.335244ms)
+✔ finding 109: a refused boundary delete on a DIRTY document banks the work before the queue blocks, and the restart reopens it (0.323913ms)
+✔ finding 109: a CLEAN document pays nothing and loses nothing (0.119422ms)
+✔ finding 109: content a move already banked is not saved twice (0.131004ms)
+✔ finding 109: a checkpoint that cannot be written says so, and a restart is NOT reported as keeping the content (0.151803ms)
+✔ finding 109: an OLDER checkpoint does not make a restart safe (0.160218ms)
+✔ finding 109: after a save, the saved bytes are what a restart keeps (0.109223ms)
+✔ M1-3: keyPosted refusal (clean, key not applied) keeps every typed change across the restart (0.403842ms)
+✔ M1-3: keyPosted refusal (dirty, nothing banked, key not applied) keeps every typed change across the restart (0.272067ms)
+✔ M1-3: keyPosted refusal (dirty, banked at this stamp, key not applied) keeps every typed change across the restart (0.184433ms)
+✔ M1-3: keyPosted refusal (clean, key applied) keeps every typed change across the restart (0.190965ms)
+✔ M1-3: keyPosted refusal (dirty, nothing banked, key applied) keeps every typed change across the restart (0.172781ms)
+✔ M1-3: keyPosted refusal (dirty, banked at this stamp, key applied) keeps every typed change across the restart (0.19871ms)
+✔ finding 119 U1/U5: a delete the barrier could not verify banks the work, blocks as restart-required, and the restart reopens it (0.279901ms)
+✔ finding 119 U2: a CLEAN document pays nothing and loses nothing (0.119132ms)
+✔ finding 119 U3: a checkpoint that cannot be written says so; the caller still gets the engine's error (0.160148ms)
+✔ finding 119 U4: the same code anywhere else keeps today's disposition (0.186968ms)
+✔ B1: two refusals restart, and the third finds no generation left (0.240457ms)
+✔ B1: at the ceiling the refusal's content is handed out as saved, and the engine is left alone (0.256587ms)
+✔ B1: a checkpoint that could not be written is not handed out (0.132276ms)
+✔ B1: never from a running session, even with a checkpoint in hand (0.097431ms)
+✔ B1 (page): the third refusal does not restart; its content goes to the save path (1.073508ms)
+✔ B1 (page): a failed write stays `failed`, and is not retried into `clean` (1.834536ms)
+✔ B1 (page): nothing unsaved at the ceiling is `clean` and saves nothing (0.571494ms)
+✔ B1 (page): unsaved work that cannot be kept is `lost`, not saved (0.603483ms)
+✔ B1: a session stopped by something else at the ceiling hands out its content too (recoverable-error) (0.297594ms)
+✔ B1 (page): before any attempt the notice tells clean, pending and lost apart (1.632539ms)
+✔ B1 (page): `saved` only once the write has landed; the button is dead while it is in flight (9.873692ms)
+✔ B1 (page): a failed write keeps the host's own sentence (1.044214ms)
+✔ B1 (page): the notice's button -- rollback below the ceiling; at it, save when nothing was attempted, reload after (4.026576ms)
+✔ finding 111: X, Y, then Delete at once -- the Delete waits for Y (46.965603ms)
+✔ finding 111: X, Y, Delete, Z -- Z after the Delete (64.68479ms)
+✔ finding 111: two keys in a row keep their order behind the text (51.129856ms)
+✔ finding 111: nothing typed -- the key goes straight in (5.521599ms)
+✔ finding 111: typed text the adapter cancels does not strand the key (25.683273ms)
+✔ finding 111 U7: a key held behind typed text is not run on the Worker of a restart (201.05898ms)
+✔ finding 111 U8: X in flight, Y in the adapter, then save -- the save holds both (40.80249ms)
+ℹ tests 80
+ℹ suites 0
+ℹ pass 79
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 554.441693
+
+✖ failing tests:
+
+test at editor-shell-v2/tests/zz-old-session-test-tmp.test.mjs:615:1
+✖ finding 096: all eight key-path moves bank it, and nothing else does (0.808004ms)
+  AssertionError [ERR_ASSERTION]: move-document-start banked nothing
+  
+  0 !== 1
+  
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/zz-old-session-test-tmp.test.mjs:626:17)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+# exit 1

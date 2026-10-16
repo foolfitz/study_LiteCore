@@ -59,6 +59,18 @@ const PINNED_WASM_SHA256 = "313b08d5cb085897";
 const HOST = globalThis.liteCoreHost ?? null;
 let hostSaves = Promise.resolve();
 
+// FINDING 153 (SPEC-M3-link-batch-v21 §12.3 (e); fable ruling 1, Q4).  Item 2,
+// paste as Markdown, does not ship in v21: M3 is red on the linked engine --
+// one long paragraph overflows the engine thread's 64 KiB stack -- and M3's
+// pinned default is taken.  So the shell offers NO entry: no 「貼上為
+// Markdown…」 button and no way into `openMarkdownDialog`, WHETHER OR NOT the
+// profile declares the paste (the v21 manifest does).  This is the shell's
+// switch for the feature (9.2); the SDK stays callable (L-md-sdk-callable).
+// The dialog and its code are kept as they are for the batch that ships item 2
+// with the relink that fixes 153 (and finding 152's refocus); that batch turns
+// this on under its own criteria.
+const PASTE_MARKDOWN_ENTRY_SHIPS = false;
+
 // SPEC-M3-page-honesty: a file the user may not write opens view-only (the
 // owner's ruling A, 2026-09-29).  The SESSION refuses -- its queue turns away
 // every mutation before it is queued (NarrowEditorV2Session._enqueue) -- and
@@ -1203,12 +1215,18 @@ function updateRedoAffordance() {
  * reason above: on v20 there is no such operation at all, and a disabled
  * button would promise one.  This entry IS the product's switch for the
  * feature (9.2): if M1-M6 do not hold, the entry goes and the SDK path stays
- * callable (L-md-sdk-callable).
+ * callable (L-md-sdk-callable).  In v21 it has gone: PASTE_MARKDOWN_ENTRY_SHIPS
+ * (finding 153, §12.3 (e)).
+ *
+ * The session is asked first and every time, whatever the switch says: the
+ * shakedown's page hook (tools/v21_page_hook.py) captures the page's session
+ * through this call on every state update.
  */
 function updatePasteMarkdownAffordance() {
   const button = el.toolbar.querySelector('[data-action="paste-markdown"]');
   if (!button) return;
-  button.hidden = session?.offersPasteMarkdown?.() !== true;
+  const offered = session?.offersPasteMarkdown?.() === true;
+  button.hidden = !(PASTE_MARKDOWN_ENTRY_SHIPS && offered);
 }
 
 /* ----------------------------------------------------------------- canvas */
@@ -2325,6 +2343,8 @@ function showMarkdownMessage(text) {
 }
 
 function openMarkdownDialog() {
+  // Every route in -- today the toolbar's -- ends here while the entry is off.
+  if (!PASTE_MARKDOWN_ENTRY_SHIPS) return;
   if (session?.offersPasteMarkdown?.() !== true) return;
   el.markdownMessage.hidden = true;
   el.markdownMessage.textContent = "";
@@ -2351,6 +2371,7 @@ function cancelMarkdownDialog() {
 /** 「插入」: the dialog's text, at the caret, through the session's queue. */
 async function insertMarkdownFromDialog() {
   const markdown = el.markdownText.value;
+  if (!PASTE_MARKDOWN_ENTRY_SHIPS) return;
   if (!session?.document || session.offersPasteMarkdown?.() !== true) return;
   // What the text may be (empty, too long, an image, HTML ...) is judged by
   // the SDK and the engine, not here: one judge, and the same codes on both
@@ -3189,10 +3210,12 @@ el.sink.addEventListener("keydown", (event) => {
   // is queued, further move keys go straight to the queue: they run after the
   // click, on a caret, and a second click at a point read before the first
   // move ran would put the caret back.
+  //
+  // Decided by `clicksBeforeMove`, the predicate `sendDocumentMove` uses too
+  // (finding 150: neither path checked for a delete out).
   const shape = selectionShapeOf({ state: session.state.snapshot.editorState }) ?? lastSelectionShape;
   const gestures = session.gesturesFor(action);
-  if (pointMovesInFlight === 0 && shape !== "collapsed"
-      && Array.isArray(gestures) && !gestures.includes(shape)) {
+  if (clicksBeforeMove(shape, gestures, pointMovesInFlight, deletesInFlight)) {
     void moveFromPoint(action).catch(() => {});
     return;
   }
@@ -3273,6 +3296,33 @@ window.addEventListener("keydown", endHeldDelete, true);
 window.addEventListener("keyup", endHeldDelete, true);
 window.addEventListener("blur", endHeldDelete);
 
+// FINDING 150 (SPEC-M3-link-batch-v21 §12.3 (a); fable ruling 1, Q1).  Whether
+// a move key goes through `moveFromPoint` (click at the point, then move) or
+// straight out -- ONE predicate for the arrows' path and `sendDocumentMove`, so
+// the two cannot drift apart again.  The point path is for a range the profile
+// does not offer the move on (finding 129), and not while a point move is
+// already queued: the moves behind it run on its caret.
+//
+// Nor while a delete this page sent is out: finding 131's rule A
+// (`deleteActionFor`, above), applied where it was missing.  The delete's
+// barrier selects one character and the engine pushes that as editor state, so
+// a move key pressed then read a range that was never the user's, clicked at a
+// caret read before the delete answered, and the Delete pressed next ran at
+// the click, before the move.  The delete out can only return to a caret, so
+// the move goes straight out on it.  Measured
+// (findings/evidence/link-batch-v21/shakedown/diag-dirty-move/): V6e (Backspace,
+// Backspace, ArrowRight, Delete) saved the wrong text 6/6 on this page and 6/6
+// on 0.2.24's -- the arrows' path is older than Ctrl+End, which reuses it --
+// and D8 (e), the same with Ctrl+End, the same text; with this rule V6e kept
+// the key order 6/6, D8 (e) matched its expectation 6/6, and a real range
+// (a drag, then ArrowRight) still clicked first, 6/6.  Not a timing rule: a
+// count the page already keeps.
+function clicksBeforeMove(shape, gestures, pointMovesInFlight, deletesInFlight) {
+  if (deletesInFlight > 0) return false;
+  return pointMovesInFlight === 0 && shape !== "collapsed"
+    && Array.isArray(gestures) && !gestures.includes(shape);
+}
+
 async function moveFromPoint(action, actionOptions = {}) {
   const caret = session?.state?.snapshot?.editorState?.caret;
   // No point to click at (or no session taking actions): the move goes out as
@@ -3317,7 +3367,9 @@ function dropsDocumentMove(event, unanswered) {
  * Send one document move.  On a range the profile does not offer it for (both
  * are `collapsed` only), the page clicks at the point first and then moves --
  * finding 129's `moveFromPoint`, the arrows' path, so the caret ends where
- * Writer's does after collapsing the range (11.1 D4).
+ * Writer's does after collapsing the range (11.1 D4).  The decision is the
+ * arrows' own predicate, `clicksBeforeMove`: not while a delete is out
+ * (finding 150).
  */
 function sendDocumentMove(action) {
   documentMovesUnanswered.set(action, (documentMovesUnanswered.get(action) ?? 0) + 1);
@@ -3329,8 +3381,7 @@ function sendDocumentMove(action) {
   };
   const shape = selectionShapeOf({ state: session.state.snapshot.editorState }) ?? lastSelectionShape;
   const gestures = session.gesturesFor(action);
-  const fromPoint = pointMovesInFlight === 0 && shape !== "collapsed"
-    && Array.isArray(gestures) && !gestures.includes(shape);
+  const fromPoint = clicksBeforeMove(shape, gestures, pointMovesInFlight, deletesInFlight);
   const sending = fromPoint ? moveFromPoint(action, { onResult: answered })
                             : editorAction(action, { onResult: answered });
   void Promise.resolve(sending).catch(() => {}).finally(answered);

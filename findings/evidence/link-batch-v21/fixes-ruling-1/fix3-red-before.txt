@@ -1,0 +1,100 @@
+# node --test editor-shell-v2/tests/page-markdown-dialog.test.mjs   (the new and rewritten tests, on the page BEFORE the entry switch: fixes 1 and 2 applied, fix 3 not)
+# web/e2-editor-app.js sha256 78bc20282a9d304bae19d6b13d3cff7459f27436a86f1b010207f1a97c12bf57
+# 2026-10-17T05:30:35+08:00, node v24.16.0
+✔ M8 (page): the button is in the markup HIDDEN, before anything has said the profile has it (0.582385ms)
+✖ §12.3 (e): the v21 profile offers the paste, and the shell shows no entry and no route to the dialog (1.732987ms)
+✔ M8 (page, the real v20 manifest): §12.3 (e) -- the entry is hidden and the dialog does not open (0.88636ms)
+✔ M8 (page, the field with another value): §12.3 (e) -- the entry is hidden and the dialog does not open (0.781695ms)
+✔ M8 (page, the field as a boolean): §12.3 (e) -- the entry is hidden and the dialog does not open (0.907359ms)
+✖ M8 (page, declared): §12.3 (e) -- the entry is hidden and the dialog does not open (0.940971ms)
+✖ M8 (page, the real v21 manifest): §12.3 (e) -- the entry is hidden and the dialog does not open (0.787286ms)
+✔ M8 (page, the real v20 manifest, switch on): the entry is hidden and the dialog does not open (0.760075ms)
+✔ M8 (page, the field with another value, switch on): the entry is hidden and the dialog does not open (0.774962ms)
+✔ M8 (page, the field as a boolean, switch on): the entry is hidden and the dialog does not open (0.722114ms)
+✔ M8 (page, declared, switch on): the entry is shown and the dialog opens (0.729548ms)
+✔ M8 (page, the real v21 manifest, switch on): the entry is shown and the dialog opens (0.66637ms)
+✔ M8 (page): no session is no entry, with the switch on too (1.719851ms)
+✔ M8 (page): the toolbar routes the button to the dialog, and only there (0.130513ms)
+✔ M11: typing in the dialog and pressing 取消 enqueues nothing, and the text is gone (6.085839ms)
+✔ M11: Escape is 取消 too -- nothing enqueued, and the browser's own close is replaced by the page's (0.856014ms)
+✔ 9.14: 插入 with a range selected says 請先取消選取 and sends nothing; the text is kept (1.548873ms)
+✔ 插入 on a caret sends the box's text once, closes the dialog and says so (0.90223ms)
+✔ MARKDOWN_REMOTE_IMAGE: said in the dialog as the spec words it, the text kept for fixing (0.868957ms)
+✔ MARKDOWN_NEEDS_CARET: said in the dialog as the spec words it, the text kept for fixing (0.826679ms)
+✔ MARKDOWN_HTML_UNSUPPORTED: the sentence tells the user to wrap it in backticks (10.4) (0.955619ms)
+✔ every pre-dispatch code the page can meet has its own sentence, never a raw code (0.888214ms)
+✔ a post-dispatch failure closes the dialog and advises the checkpoint (the notice bar does the rest) (0.944218ms)
+ℹ tests 23
+ℹ suites 0
+ℹ pass 20
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 70.98047
+
+✖ failing tests:
+
+test at editor-shell-v2/tests/page-markdown-dialog.test.mjs:146:1
+✖ §12.3 (e): the v21 profile offers the paste, and the shell shows no entry and no route to the dialog (1.732987ms)
+  AssertionError [ERR_ASSERTION]: the shell shows 「貼上為 Markdown…」 on v21
+  
+  false !== true
+  
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-markdown-dialog.test.mjs:155:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at editor-shell-v2/tests/page-markdown-dialog.test.mjs:179:3
+✖ M8 (page, declared): §12.3 (e) -- the entry is hidden and the dialog does not open (0.940971ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  false !== true
+  
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-markdown-dialog.test.mjs:183:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at editor-shell-v2/tests/page-markdown-dialog.test.mjs:179:3
+✖ M8 (page, the real v21 manifest): §12.3 (e) -- the entry is hidden and the dialog does not open (0.787286ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  false !== true
+  
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-markdown-dialog.test.mjs:183:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+# exit 1

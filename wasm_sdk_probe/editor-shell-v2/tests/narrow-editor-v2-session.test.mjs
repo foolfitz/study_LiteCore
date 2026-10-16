@@ -612,32 +612,72 @@ test("finding 096: a move on a DIRTY document banks a checkpoint first",
        assert.equal(session.boundaryCheckpointsTaken, 1);
      });
 
-test("finding 096: all eight key-path moves bank it, and nothing else does",
-     async () => {
-       // Eight since ABI 5: finding 142's two document moves are posted keys
-       // too, silent at the boundary natively (SPEC-M3-link-batch-v21 4.1, D11).
-       const moves = ["move-character-left", "move-character-right",
-                      "move-line-up", "move-line-down", "move-line-home",
-                      "move-line-end", "move-document-start", "move-document-end"];
-       for (const action of moves) {
+// The six arrow, Home and End moves; finding 142's two document moves are the
+// other two of the eight key-path moves (MOVE, above).
+const ARROW_MOVES = ["move-character-left", "move-character-right",
+                     "move-line-up", "move-line-down", "move-line-home",
+                     "move-line-end"];
+const DOCUMENT_MOVES = ["move-document-start", "move-document-end"];
+
+test("finding 096 / 151: the six arrow moves bank it, the two document moves "
+     + "and everything else do not", async () => {
+       // Until SPEC-M3-link-batch-v21 §12.3 (b) all eight key-path moves
+       // banked it.  Finding 151: on this engine Ctrl+Home/End answer by their
+       // readback within 251 ms (D7), so finding 096's premise -- a press that
+       // never gets its callback -- is false for them, and their checkpoint's
+       // save is what made the next typed character land at the old caret
+       // (18/18).  The six keep it because the counted check
+       // `a-boundary-arrow-press-does-not-cost-the-work` pins it (fable
+       // ruling 1, Q2).
+       for (const action of ARROW_MOVES) {
          const { session, saves } = await opened();
          await session.action("set-bold", { enabled: true });
          await session.action(action);
          assert.equal(saves.length, 1, `${action} banked nothing`);
        }
-       // The other nine reach the engine as UNO commands or through the
-       // barrier; none of them posts a key, so none of them can wedge on a
-       // broadcast that never comes.  A checkpoint there would be a cost with
-       // no defect behind it.
-       for (const action of ["delete-backward", "insert-line-break",
-                             "set-italic", "set-list-ordered"]) {
+       for (const action of DOCUMENT_MOVES) {
          const { session, saves } = await opened();
          await session.action("set-bold", { enabled: true });
-         const options = action === "set-italic" ? { enabled: true } : {};
+         await session.action(action);
+         assert.equal(saves.length, 0, `${action} banked a checkpoint (finding 151)`);
+       }
+       // Everything else the client sends -- read from the client's own list,
+       // so an action appended tomorrow is covered -- reaches the engine as a
+       // UNO command or through the barrier; none of them posts a key, so none
+       // of them can wedge on a broadcast that never comes.  A checkpoint there
+       // would be a cost with no defect behind it.
+       const others = EDITOR_V4_ACTIONS.filter((action) => !MOVE.has(action));
+       assert.equal(others.length + ARROW_MOVES.length + DOCUMENT_MOVES.length,
+                    EDITOR_V4_ACTIONS.length, "a key-path move is missing from MOVE");
+       assert.ok(others.length >= 14, `${others.length} other actions`);
+       for (const action of others) {
+         const { session, saves } = await opened();
+         await session.action("set-bold", { enabled: true });
+         const options = /^set-(bold|italic|underline|strikethrough)$/.test(action)
+           ? { enabled: true } : {};
          await session.action(action, options);
          assert.equal(saves.length, 0, `${action} banked a checkpoint it does not need`);
        }
      });
+
+test("finding 151: a DIRTY document's Ctrl+Home/End sends no save, stays "
+     + "dirty, and banks no checkpoint", async () => {
+  // SPEC-M3-link-batch-v21 §12.3 (b), D11 for 22/23: no `save` before the
+  // move, `dirty` stays true, `#s-checkpoint` reads 「無」 (hasCheckpoint false).
+  for (const action of DOCUMENT_MOVES) {
+    const { session, saves, calls } = await opened();
+    await session.action("set-bold", { enabled: true });
+    assert.equal(session.state.snapshot.dirty, true);
+    const result = await session.action(action);
+    assert.equal(result.action, action);
+    assert.ok(calls.includes(`editorActionV2:${action}`), `${action} never dispatched`);
+    assert.equal(saves.length, 0, `${action} sent a save`);
+    assert.equal(session.state.snapshot.dirty, true, `${action} made the document clean`);
+    assert.equal(session.state.snapshot.hasCheckpoint, false, `${action} banked a checkpoint`);
+    assert.equal(session.boundaryCheckpointsTaken, 0);
+    assert.equal(session.boundaryCheckpointsSkipped, 0);
+  }
+});
 
 test("finding 096: a CLEAN document pays nothing", async () => {
   const { session, saves } = await opened();

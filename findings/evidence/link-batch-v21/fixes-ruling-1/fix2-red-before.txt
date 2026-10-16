@@ -1,0 +1,129 @@
+# node --test editor-shell-v2/tests/page-move-during-delete.test.mjs
+# tree: HEAD 193143b8, web/e2-editor-app.js sha256 bd15e7efbc66d4cc3a3010195c38c38b01e92aedb24dcf9e69581ee924bc1496 (unchanged since e25ccc15)
+# 2026-10-17T05:26:25+08:00, node v24.16.0
+✖ finding 150: one predicate, and both move paths decide by it (1.506475ms)
+✖ finding 150 (an arrow): the barrier's range with a delete out -- no click, the move goes straight out (38.056528ms)
+✔ finding 150 (an arrow): a real range with no delete out -- click at the point, then move (finding 129 kept) (25.892212ms)
+✔ finding 150 (an arrow): a caret -- straight out (26.228758ms)
+✖ finding 150 (Ctrl+End): the barrier's range with a delete out -- no click, the move goes straight out (24.79498ms)
+✔ finding 150 (Ctrl+End): a real range with no delete out -- click at the point, then move (finding 129 kept) (24.142084ms)
+✔ finding 150 (Ctrl+End): a caret -- straight out (22.589474ms)
+✖ finding 150, D8 (e): Backspace, Backspace in text, Ctrl+End, Delete -- in key order, the Delete at the end a no-op (23.942572ms)
+✖ finding 150, V6e: Backspace, Backspace in text, ArrowRight, Delete -- in key order (24.225109ms)
+✔ finding 150, range control: a drag, then ArrowRight and Delete -- still click, move, delete (24.636194ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 5
+ℹ fail 5
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 284.658513
+
+✖ failing tests:
+
+test at editor-shell-v2/tests/page-move-during-delete.test.mjs:277:1
+✖ finding 150: one predicate, and both move paths decide by it (1.506475ms)
+  AssertionError [ERR_ASSERTION]: clicksBeforeMove() not found in the page
+      at slice (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-move-during-delete.test.mjs:47:10)
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-move-during-delete.test.mjs:278:21)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.start (node:internal/test_runner/test:1177:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at editor-shell-v2/tests/page-move-during-delete.test.mjs:306:3
+✖ finding 150 (an arrow): the barrier's range with a delete out -- no click, the move goes straight out (38.056528ms)
+  AssertionError [ERR_ASSERTION]: requests: delete-backward, place-caret, move-character-right
+  + actual - expected
+  
+  + [
+  +   'place-caret'
+  + ]
+  - []
+  
+      at file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-move-during-delete.test.mjs:313:14
+      at async withTimers (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-move-during-delete.test.mjs:269:5)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [ 'place-caret' ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at editor-shell-v2/tests/page-move-during-delete.test.mjs:306:3
+✖ finding 150 (Ctrl+End): the barrier's range with a delete out -- no click, the move goes straight out (24.79498ms)
+  AssertionError [ERR_ASSERTION]: requests: delete-backward, place-caret, move-document-end
+  + actual - expected
+  
+  + [
+  +   'place-caret'
+  + ]
+  - []
+  
+      at file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-move-during-delete.test.mjs:313:14
+      at async withTimers (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-move-during-delete.test.mjs:269:5)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [ 'place-caret' ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at editor-shell-v2/tests/page-move-during-delete.test.mjs:334:1
+✖ finding 150, D8 (e): Backspace, Backspace in text, Ctrl+End, Delete -- in key order, the Delete at the end a no-op (23.942572ms)
+  AssertionError [ERR_ASSERTION]: requests: delete-backward, delete-backward, place-caret, delete-forward, move-document-end; text: ABCFGIJ
+  + actual - expected
+  
+  + [
+  +   'place-caret'
+  + ]
+  - []
+  
+      at file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-move-during-delete.test.mjs:337:12
+      at async withTimers (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-move-during-delete.test.mjs:269:5)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [ 'place-caret' ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at editor-shell-v2/tests/page-move-during-delete.test.mjs:342:1
+✖ finding 150, V6e: Backspace, Backspace in text, ArrowRight, Delete -- in key order (24.225109ms)
+  AssertionError [ERR_ASSERTION]: requests: delete-backward, delete-backward, place-caret, delete-forward, move-character-right; text: ABCFGIJ
+  + actual - expected
+  
+  + [
+  +   'place-caret'
+  + ]
+  - []
+  
+      at file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-move-during-delete.test.mjs:345:12
+      at async withTimers (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-move-during-delete.test.mjs:269:5)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [ 'place-caret' ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+# exit 1

@@ -86,11 +86,44 @@ const ACTIONS = new Set(EDITOR_V4_ACTIONS);
 // when the caret is already at the start or the end -- which is exactly the
 // shape this set exists for.  So eight.  `postconditionClassOf` in the client
 // is the other statement of the same fact, and a test holds the two equal
-// (11.1 D13).
+// (11.1 D13).  Which of the eight bank a dirty document before they go out is
+// a second set, CHECKPOINTED_MOVES, below (finding 151).
 const BOUNDARY_CAPABLE_MOVES = new Set([
   "move-character-left", "move-character-right",
   "move-line-up", "move-line-down", "move-line-home", "move-line-end",
   "move-document-start", "move-document-end",
+]);
+
+// FINDING 151 (SPEC-M3-link-batch-v21 §12.3 (b); fable ruling 1, Q2).  The
+// moves that still take finding 096's checkpoint before they go out: the six
+// arrow, Home and End moves, NOT finding 142's two document moves.
+// BOUNDARY_CAPABLE_MOVES stays eight -- it names the posted keys, which are
+// non-mutations (098) and D13's closed list; this set names which of them pay
+// for a save first.
+//
+// Why Ctrl+Home/End do not.  The checkpoint answers a posted key that, at a
+// boundary, never gets the callback it waits for.  On this engine the two
+// document moves answer by their readback within 251 ms (D7's silent presses,
+// 250.6-251.2 ms), so that premise is false for them, and the claim is
+// withdrawn rather than kept up by machinery (CLAUDE.md, criteria §4).  The
+// checkpoint was also the trigger of finding 151: right after its save the
+// move answers by that readback with the OLD caret, before Writer's
+// GoToEndOfDoc has run, and the character typed next landed at the pre-move
+// caret on a dirty document 18/18 (V1, V2, V4, both browsers); without it,
+// at the document end 18/18 (V9, findings/evidence/link-batch-v21/shakedown/
+// diag-dirty-move/).  What is given up: a dirty document's Ctrl+Home/End no
+// longer banks the work, so after an engine death it rests on the next arrow
+// move, the autosave or a save.
+//
+// Why the six still do.  Not because this engine needs it -- it answers their
+// press too, and the same overtaking follows an arrow's checkpoint (V8d, 6/6,
+// and on 0.2.24) -- but because the counted check
+// `a-boundary-arrow-press-does-not-cost-the-work` pins their checkpoint, and
+// taking it out goes through §34.  Their fix is the ordered-commands batch
+// (finding 151's residual (b)).
+const CHECKPOINTED_MOVES = new Set([
+  "move-character-left", "move-character-right",
+  "move-line-up", "move-line-down", "move-line-home", "move-line-end",
 ]);
 
 // FINDING 119 (spec SPEC-M3-production-ui §14.1): the two deletes go through
@@ -1002,7 +1035,7 @@ export class NarrowEditorV2Session extends EditorSession {
     return this._enqueue(
       `action:${action}`,
       async ({ document, editor }, tools) => {
-        if (BOUNDARY_CAPABLE_MOVES.has(action))
+        if (CHECKPOINTED_MOVES.has(action))
           await this._checkpointBeforeBoundaryMove(document);
         try {
           const result = await editor.action(action, options);
