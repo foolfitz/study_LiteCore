@@ -1,0 +1,101 @@
+✖ D8 (a): Backspace at the start, Ctrl+End, Backspace -- the third deletes one character at the end (32.684151ms)
+✔ D8 (b): Backspace at the start, Ctrl+Home, then 18 unflagged Backspaces in one second -- at most 2 deletes reach the engine (33.841014ms)
+✖ D8 (c): Backspace at the start, Ctrl+End, two Backspaces -- two characters deleted at the end (26.766175ms)
+✖ D8 (d): Backspace at the start, a click in the middle, Backspace -- the delete is at the click (24.671926ms)
+✖ D8 (e): Backspace, Backspace in text, Ctrl+End, Delete -- the two delete in place, the Delete at the end is a no-op (25.223954ms)
+✔ D8 control (141 T1 kept): a held key at the start with nothing else enqueued is still ONE engine request (25.827678ms)
+✔ D8 control (131 kept): presses held inside text are each delivered, in place, one per answer (24.083792ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 3
+ℹ fail 4
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 242.679704
+
+✖ failing tests:
+
+test at editor-shell-v2/tests/page-held-after-move.test.mjs:220:1
+✖ D8 (a): Backspace at the start, Ctrl+End, Backspace -- the third deletes one character at the end (32.684151ms)
+  AssertionError [ERR_ASSERTION]: requests: delete-backward, move-document-end
+  + actual - expected
+  
+  + 'ABCDEFGHIJ'
+  - 'ABCDEFGHI'
+              ^
+  
+      at Object.run (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-held-after-move.test.mjs:223:12)
+      at async withTimers (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-held-after-move.test.mjs:214:5)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'ABCDEFGHIJ',
+    expected: 'ABCDEFGHI',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at editor-shell-v2/tests/page-held-after-move.test.mjs:235:1
+✖ D8 (c): Backspace at the start, Ctrl+End, two Backspaces -- two characters deleted at the end (26.766175ms)
+  AssertionError [ERR_ASSERTION]: requests: delete-backward, move-document-end
+  + actual - expected
+  
+  + 'ABCDEFGHIJ'
+  - 'ABCDEFGH'
+             ^
+  
+      at Object.run (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-held-after-move.test.mjs:238:12)
+      at async withTimers (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-held-after-move.test.mjs:214:5)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'ABCDEFGHIJ',
+    expected: 'ABCDEFGH',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at editor-shell-v2/tests/page-held-after-move.test.mjs:241:1
+✖ D8 (d): Backspace at the start, a click in the middle, Backspace -- the delete is at the click (24.671926ms)
+  AssertionError [ERR_ASSERTION]: requests: delete-backward, place-caret
+  + actual - expected
+  
+  + 'ABCDEFGHIJ'
+  - 'ABCDFGHIJ'
+         ^
+  
+      at Object.run (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-held-after-move.test.mjs:244:12)
+      at async withTimers (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-held-after-move.test.mjs:214:5)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'ABCDEFGHIJ',
+    expected: 'ABCDFGHIJ',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at editor-shell-v2/tests/page-held-after-move.test.mjs:247:1
+✖ D8 (e): Backspace, Backspace in text, Ctrl+End, Delete -- the two delete in place, the Delete at the end is a no-op (25.223954ms)
+  AssertionError [ERR_ASSERTION]: requests: delete-backward, move-document-end, delete-forward, delete-forward
+  + actual - expected
+  
+  + 'ABCDFGHIJ'
+  - 'ABCFGHIJ'
+        ^
+  
+      at Object.run (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-held-after-move.test.mjs:250:12)
+      at async withTimers (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-held-after-move.test.mjs:214:5)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'ABCDFGHIJ',
+    expected: 'ABCFGHIJ',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

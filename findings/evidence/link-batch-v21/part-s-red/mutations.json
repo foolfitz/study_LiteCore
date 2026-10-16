@@ -1,0 +1,473 @@
+[
+ {
+  "id": "W1",
+  "file": "sdk/sdk-worker.js",
+  "what": "init ignores the mask status again (pre-9.7)",
+  "test": "sdk/tests/sdk-worker-v21.test.mjs",
+  "exit": 1,
+  "summary": {
+   "tests": 17,
+   "pass": 15,
+   "fail": 2
+  },
+  "red": [
+   "D12: any non-OK status fails init, not only INVALID_ARGUMENT",
+   "D12: init FAILS when the binary refuses a mask (an engine whose bound did not move), and never starts the engine"
+  ]
+ },
+ {
+  "id": "W2",
+  "file": "sdk/sdk-worker.js",
+  "what": "editorActionV2 reads the ABI 4 table: no ids 22/23",
+  "test": "sdk/tests/sdk-worker-v21.test.mjs",
+  "exit": 1,
+  "summary": {
+   "tests": 17,
+   "pass": 11,
+   "fail": 6
+  },
+  "red": [
+   "move-document-end goes out as wire id 23 on a profile that offers it",
+   "move-document-end is refused on the real v20 manifest, before any id reaches the binary",
+   "move-document-end withheld (present, gestures []) is refused like an absent one",
+   "move-document-start goes out as wire id 22 on a profile that offers it",
+   "move-document-start is refused on the real v20 manifest, before any id reaches the binary",
+   "move-document-start withheld (present, gestures []) is refused like an absent one"
+  ]
+ },
+ {
+  "id": "W3",
+  "file": "sdk/sdk-worker.js",
+  "what": "pasteMarkdown not gated on the declaration",
+  "test": "sdk/tests/sdk-worker-v21.test.mjs",
+  "exit": 1,
+  "summary": {
+   "tests": 17,
+   "pass": 16,
+   "fail": 1
+  },
+  "red": [
+   "M8 (worker): pasteMarkdown is refused unless the contract declares it -- the real v20 manifest, and wrong spellings"
+  ]
+ },
+ {
+  "id": "W4",
+  "file": "sdk/sdk-worker.js",
+  "what": "the error branch drops `dispatched`",
+  "test": "sdk/tests/sdk-worker-v21.test.mjs",
+  "exit": 1,
+  "summary": {
+   "tests": 17,
+   "pass": 16,
+   "fail": 1
+  },
+  "red": [
+   "10.4: an engine refusal's dispatched:false reaches the SDK error; absent stays absent; non-boolean is dropped"
+  ]
+ },
+ {
+  "id": "W5",
+  "file": "sdk/sdk-worker.js",
+  "what": "markdown-pasted forwarded whole, not named fields",
+  "test": "sdk/tests/sdk-worker-v21.test.mjs",
+  "exit": 1,
+  "summary": {
+   "tests": 17,
+   "pass": 16,
+   "fail": 1
+  },
+  "red": [
+   "markdown-pasted completes with the new revision, named fields only"
+  ]
+ },
+ {
+  "id": "S1",
+  "file": "sdk/document-sdk.js",
+  "what": "SDK does not gate on the declaration",
+  "test": "sdk/tests/paste-markdown.test.mjs",
+  "exit": 1,
+  "summary": {
+   "tests": 14,
+   "pass": 8,
+   "fail": 6
+  },
+  "red": [
+   "M8 (SDK) absent (no contract): UNSUPPORTED_OPERATION and no request is issued",
+   "M8 (SDK) absent (no manifest): UNSUPPORTED_OPERATION and no request is issued",
+   "M8 (SDK) absent (the field as a boolean): UNSUPPORTED_OPERATION and no request is issued",
+   "M8 (SDK) absent (the field with another value): UNSUPPORTED_OPERATION and no request is issued",
+   "M8 (SDK) absent (the page-rectangles declaration in its place): UNSUPPORTED_OPERATION and no request is issued",
+   "M8 (SDK) absent (the real v20 manifest): UNSUPPORTED_OPERATION and no request is issued"
+  ]
+ },
+ {
+  "id": "S2",
+  "file": "sdk/document-sdk.js",
+  "what": "limit counted in UTF-16 units, not UTF-8 bytes",
+  "test": "sdk/tests/paste-markdown.test.mjs",
+  "exit": 1,
+  "summary": {
+   "tests": 14,
+   "pass": 12,
+   "fail": 2
+  },
+  "red": [
+   "M3 (SDK): exactly the limit goes out; one byte over is INVALID_ARGUMENT, nothing sent, the layer named",
+   "M3 (SDK): the limit counts UTF-8 bytes, not UTF-16 units -- 21,846 CJK characters are over it"
+  ]
+ },
+ {
+  "id": "S3",
+  "file": "sdk/document-sdk.js",
+  "what": "exactly the limit refused (off by one)",
+  "test": "sdk/tests/paste-markdown.test.mjs",
+  "exit": 1,
+  "summary": {
+   "tests": 14,
+   "pass": 13,
+   "fail": 1
+  },
+  "red": [
+   "M3 (SDK): exactly the limit goes out; one byte over is INVALID_ARGUMENT, nothing sent, the layer named"
+  ]
+ },
+ {
+  "id": "C1",
+  "file": "editor-shell-v2/narrow-editor-v2-session.js",
+  "what": "BOUNDARY_CAPABLE_MOVES loses move-document-end",
+  "test": "editor-shell-v2/tests/closed-lists.test.mjs",
+  "exit": 1,
+  "summary": {
+   "tests": 12,
+   "pass": 10,
+   "fail": 2
+  },
+  "red": [
+   "D13: BOUNDARY_CAPABLE_MOVES equals the move class over the client's list",
+   "D13: the session's own mutation flag agrees, action by action"
+  ]
+ },
+ {
+  "id": "C2",
+  "file": "editor-shell-v2/narrow-editor-v2-client.js",
+  "what": "_validateInherited's final branch removed (falls through)",
+  "test": "editor-shell-v2/tests/closed-lists.test.mjs",
+  "exit": 1,
+  "summary": {
+   "tests": 12,
+   "pass": 11,
+   "fail": 1
+  },
+  "red": [
+   "D13: an action in no class is refused, not accepted by falling through"
+  ]
+ },
+ {
+  "id": "C3",
+  "file": "editor-shell-v2/narrow-editor-v2-client.js",
+  "what": "the ABI 5 moves are in no postcondition class",
+  "test": "editor-shell-v2/tests/closed-lists.test.mjs",
+  "exit": 1,
+  "summary": {
+   "tests": 12,
+   "pass": 6,
+   "fail": 6
+  },
+  "red": [
+   "D13: BOUNDARY_CAPABLE_MOVES equals the move class over the client's list",
+   "D13: each ABI 5 action is in the move class, and only there",
+   "D13: every action the client sends has exactly one postcondition class",
+   "D13: the session's own mutation flag agrees, action by action",
+   "move-document-end: the moves' postcondition -- a callback or the boundary's readback, revision held, changed false",
+   "move-document-start: the moves' postcondition -- a callback or the boundary's readback, revision held, changed false"
+  ]
+ },
+ {
+  "id": "P1",
+  "file": "editor-shell-v2/paragraph-editor-client.js",
+  "what": "a header pre-dispatch code missing from the JS list",
+  "test": "editor-shell-v2/tests/markdown-paste-session.test.mjs",
+  "exit": 1,
+  "summary": {
+   "tests": 18,
+   "pass": 17,
+   "fail": 1
+  },
+  "red": [
+   "10.4: every code in the engine's kPreDispatchCodes disposes as none, by the code alone"
+  ]
+ },
+ {
+  "id": "P2",
+  "file": "editor-shell-v2/narrow-editor-v2-session.js",
+  "what": "the paste goes out over a failed checkpoint",
+  "test": "editor-shell-v2/tests/markdown-paste-session.test.mjs",
+  "exit": 1,
+  "summary": {
+   "tests": 18,
+   "pass": 17,
+   "fail": 1
+  },
+  "red": [
+   "10.1 / M9: a checkpoint that cannot be written refuses the paste -- MARKDOWN_CHECKPOINT_FAILED, nothing sent"
+  ]
+ },
+ {
+  "id": "P3",
+  "file": "editor-shell-v2/narrow-editor-v2-session.js",
+  "what": "no checkpoint before the paste (the pre-10.1 design)",
+  "test": "editor-shell-v2/tests/markdown-paste-session.test.mjs",
+  "exit": 1,
+  "summary": {
+   "tests": 18,
+   "pass": 15,
+   "fail": 3
+  },
+  "red": [
+   "10.1 / M9: a checkpoint that cannot be written refuses the paste -- MARKDOWN_CHECKPOINT_FAILED, nothing sent",
+   "10.1: on a dirty document the work is banked BEFORE the paste is dispatched",
+   "M9 (dirty arm): a paste the engine cannot verify rolls back to the checkpoint taken just before it -- the unsaved marker survives"
+  ]
+ },
+ {
+  "id": "P4",
+  "file": "editor-shell-v2/paragraph-editor-client.js",
+  "what": "`dispatched: false` alone no longer gives none",
+  "test": "editor-shell-v2/tests/markdown-paste-session.test.mjs",
+  "exit": 1,
+  "summary": {
+   "tests": 18,
+   "pass": 17,
+   "fail": 1
+  },
+  "red": [
+   "10.4: `dispatched: false` alone says none, whatever the code; a barrier's own answer still wins"
+  ]
+ },
+ {
+  "id": "P5",
+  "file": "editor-shell-v2/narrow-editor-v2-session.js",
+  "what": "the beforeEnqueue hook is never called",
+  "test": "editor-shell-v2/tests/markdown-paste-session.test.mjs",
+  "exit": 1,
+  "summary": {
+   "tests": 18,
+   "pass": 16,
+   "fail": 2
+  },
+  "red": [
+   "10.3 rule 4: what beforeEnqueue enqueues goes into the queue AHEAD of the item that called it",
+   "10.3: enqueueCount counts every enqueue path, and beforeEnqueue sees each label first"
+  ]
+ },
+ {
+  "id": "P6",
+  "file": "editor-shell-v2/narrow-editor-v2-session.js",
+  "what": "enqueueCount never counts",
+  "test": "editor-shell-v2/tests/markdown-paste-session.test.mjs",
+  "exit": 1,
+  "summary": {
+   "tests": 18,
+   "pass": 16,
+   "fail": 2
+  },
+  "red": [
+   "10.3 rule 4: what beforeEnqueue enqueues goes into the queue AHEAD of the item that called it",
+   "10.3: enqueueCount counts every enqueue path, and beforeEnqueue sees each label first"
+  ]
+ },
+ {
+  "id": "K1",
+  "file": "web/e2-editor-app.js",
+  "what": "the page takes Ctrl+Home/End whether or not the profile offers the move",
+  "test": "editor-shell-v2/tests/page-document-keys.test.mjs",
+  "exit": 1,
+  "summary": {
+   "tests": 18,
+   "pass": 14,
+   "fail": 4
+  },
+  "red": [
+   "D5 (absent (the real v20 manifest)): only an offered move takes its key",
+   "D5 (both withheld): only an offered move takes its key",
+   "D5 (only end withheld): only an offered move takes its key",
+   "D5 (only start withheld): only an offered move takes its key"
+  ]
+ },
+ {
+  "id": "K2",
+  "file": "web/e2-editor-app.js",
+  "what": "Shift+Ctrl+Home taken",
+  "test": "editor-shell-v2/tests/page-document-keys.test.mjs",
+  "exit": 1,
+  "summary": {
+   "tests": 18,
+   "pass": 17,
+   "fail": 1
+  },
+  "red": [
+   "D5: Shift, Alt and an IME composition are never taken, even when the move is offered"
+  ]
+ },
+ {
+  "id": "K3",
+  "file": "web/e2-editor-app.js",
+  "what": "repeats and same-key presses are not dropped (D9)",
+  "test": "editor-shell-v2/tests/page-document-keys.test.mjs",
+  "exit": 1,
+  "summary": {
+   "tests": 18,
+   "pass": 14,
+   "fail": 4
+  },
+  "red": [
+   "D9 (Ctrl+End): held 1 s with flagged repeats -- one move, ready within 500 ms of release",
+   "D9 (Ctrl+End): unflagged presses every 30 ms for 1 s -- a move only when the last one is answered, ready within 500 ms",
+   "D9 (Ctrl+Home): held 1 s with flagged repeats -- one move, ready within 500 ms of release",
+   "D9 (Ctrl+Home): unflagged presses every 30 ms for 1 s -- a move only when the last one is answered, ready within 500 ms"
+  ]
+ },
+ {
+  "id": "K4",
+  "file": "web/e2-editor-app.js",
+  "what": "on a range the move is sent as is (no moveFromPoint, D4)",
+  "test": "editor-shell-v2/tests/page-document-keys.test.mjs",
+  "exit": 1,
+  "summary": {
+   "tests": 18,
+   "pass": 17,
+   "fail": 1
+  },
+  "red": [
+   "D4: on a range the move goes through moveFromPoint (click at the point, then move)"
+  ]
+ },
+ {
+  "id": "K5",
+  "file": "web/e2-editor-app.js",
+  "what": "the binding sits after the accel bail-out (finding 142 as shipped)",
+  "test": "editor-shell-v2/tests/page-document-keys.test.mjs",
+  "exit": 1,
+  "summary": {
+   "tests": 18,
+   "pass": 17,
+   "fail": 1
+  },
+  "red": [
+   "wiring: the keydown handler takes the document keys BEFORE `if (accel) return;`"
+  ]
+ },
+ {
+  "id": "D1",
+  "file": "web/e2-editor-app.js",
+  "what": "the Markdown entry shown on every profile (M8)",
+  "test": "editor-shell-v2/tests/page-markdown-dialog.test.mjs",
+  "exit": 1,
+  "summary": {
+   "tests": 16,
+   "pass": 12,
+   "fail": 4
+  },
+  "red": [
+   "M8 (page): no session is no entry",
+   "M8 (page, the field as a boolean): the entry is hidden and the dialog does not open",
+   "M8 (page, the field with another value): the entry is hidden and the dialog does not open",
+   "M8 (page, the real v20 manifest): the entry is hidden and the dialog does not open"
+  ]
+ },
+ {
+  "id": "D2",
+  "file": "web/e2-editor-app.js",
+  "what": "取消 sends the text (M11)",
+  "test": "editor-shell-v2/tests/page-markdown-dialog.test.mjs",
+  "exit": 1,
+  "summary": {
+   "tests": 16,
+   "pass": 14,
+   "fail": 2
+  },
+  "red": [
+   "M11: Escape is 取消 too -- nothing enqueued, and the browser's own close is replaced by the page's",
+   "M11: typing in the dialog and pressing 取消 enqueues nothing, and the text is gone"
+  ]
+ },
+ {
+  "id": "D3",
+  "file": "web/e2-editor-app.js",
+  "what": "插入 with a range selected sends (9.14)",
+  "test": "editor-shell-v2/tests/page-markdown-dialog.test.mjs",
+  "exit": 1,
+  "summary": {
+   "tests": 16,
+   "pass": 15,
+   "fail": 1
+  },
+  "red": [
+   "9.14: 插入 with a range selected says 請先取消選取 and sends nothing; the text is kept"
+  ]
+ },
+ {
+  "id": "H1",
+  "file": "web/e2-editor-app.js",
+  "what": "§10.3 rule 1 without the enqueue counter",
+  "test": "editor-shell-v2/tests/page-held-after-move.test.mjs",
+  "exit": 1,
+  "summary": {
+   "tests": 7,
+   "pass": 4,
+   "fail": 3
+  },
+  "red": [
+   "D8 (a): Backspace at the start, Ctrl+End, Backspace -- the third deletes one character at the end",
+   "D8 (c): Backspace at the start, Ctrl+End, two Backspaces -- two characters deleted at the end",
+   "D8 (d): Backspace at the start, a click in the middle, Backspace -- the delete is at the click"
+  ]
+ },
+ {
+  "id": "H2",
+  "file": "web/e2-editor-app.js",
+  "what": "§10.3 rule 4 off: held presses not released before other items",
+  "test": "editor-shell-v2/tests/page-held-after-move.test.mjs",
+  "exit": 1,
+  "summary": {
+   "tests": 7,
+   "pass": 6,
+   "fail": 1
+  },
+  "red": [
+   "D8 (e): Backspace, Backspace in text, Ctrl+End, Delete -- the two delete in place, the Delete at the end is a no-op"
+  ]
+ },
+ {
+  "id": "H3",
+  "file": "web/e2-editor-app.js",
+  "what": "§10.3 rule 2 off: a held press loses its own key",
+  "test": "editor-shell-v2/tests/page-held-after-move.test.mjs",
+  "exit": 1,
+  "summary": {
+   "tests": 7,
+   "pass": 4,
+   "fail": 3
+  },
+  "red": [
+   "D8 (c): Backspace at the start, Ctrl+End, two Backspaces -- two characters deleted at the end",
+   "D8 (e): Backspace, Backspace in text, Ctrl+End, Delete -- the two delete in place, the Delete at the end is a no-op",
+   "D8 control"
+  ]
+ },
+ {
+  "id": "T1",
+  "file": "editor-shell-v2/narrow-editor-v2-client.d.ts",
+  "what": "the .d.ts drifts from the runtime's ABI 5 list",
+  "test": "editor-shell-v2/tests/declaration-drift.test.mjs",
+  "exit": 1,
+  "summary": {
+   "tests": 13,
+   "pass": 12,
+   "fail": 1
+  },
+  "red": [
+   "EditorV4AppendedAction declares exactly the runtime's two"
+  ]
+ }
+]
