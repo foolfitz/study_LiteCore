@@ -1,0 +1,36 @@
+# Format check of the runner -> judge interface (four arms only, so the other criteria read missing). NOT a verdict; the smoke is never judged.
+refusals (expected: smoke): ['a smoke report is never judged']
+M1: NOT_ESTABLISHED passed=0
+    - zero instances
+M2: NOT_ESTABLISHED passed=0
+    - zero instances
+M3: FAIL passed=56
+    - r1 SDK-L: missing
+    - r1 SDK-L+1: missing
+    - r1 ENG-65536: missing
+    - r1 ENG-65537: missing
+M4: NOT_ESTABLISHED passed=0
+    - zero instances
+M5: FAIL passed=32
+    - r1 sdk round-1/M11.md: requests outside the mirror: [{"method": "CONNECT", "host": "mtalk.google.com", "port": 5228, "path": null, "t": 1792175674.3937035, "connected": true}]
+    - r1 dialog round-1/M11c.md: requests outside the mirror: [{"method": "CONNECT", "host": "android.clients.google.com", "port": 443, "path": null, "t": 1792175694.2890606, "connected": true}]
+    - r1 dialog round-2/H3-inline-html-img.md: requests outside the mirror: [{"method": "CONNECT", "host": "mtalk.google.com", "port": 5228, "path": null, "t": 1792175734.6227093, "connected": true}]
+    - r1 dialog round-2/S02-https-hostname.md: requests outside the mirror: [{"method": "CONNECT", "host": "android.clients.google.com", "port": 443, "path": null, "t": 1792175811.5347843, "connected": true}]
+    - r1 dialog round-2/S03-reference.md: requests outside the mirror: [{"method": "CONNECT", "host": "mtalk.google.com", "port": 5228, "path": null, "t": 1792175824.9465754, "connected": true}]
+    - r1 dialog round-2/S05-data-and-remote.md: requests outside the mirror: [{"method": "CONNECT", "host": "mtalk.google.com", "port": 5228, "path": null, "t": 1792175855.0616379, "connected": true}]
+M6: PASS passed=1
+M7: FAIL passed=0
+    - r1 m7a: missing
+    - r1 m7b: missing
+M8: FAIL passed=0
+    - r1: v20 missing
+M9: FAIL passed=0
+    - r1 clean: missing
+    - r1 dirty: missing
+    - r1 inject: missing
+M10: FAIL passed=0
+    - r1 M10b: missing
+    - r1 M10c: missing
+    - r1 M10d: missing
+M11: PASS passed=2
+records: {"coreLog": [], "taskCheckbox": []}
