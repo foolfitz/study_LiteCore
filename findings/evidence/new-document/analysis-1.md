@@ -314,3 +314,11 @@ Nextcloud 的語言設定完全沒有參與。你自己剛好落在幸運的那�
 - Collabora turns it into `Language=`: **confirmed** (R2).
 - "richdocuments' style-less skeleton gets its defaults from the language passed at load": **partly true**. Languages and paper, yes. The default fonts come from the server's en-US pool default, not from the tag (D2, D3).
 - Our page can read the same attribute: **confirmed**. The host renders the editor as a `TemplateResponse` in Nextcloud's layout (`EditorController.php:173`). The value uses an underscore, for example `zh_TW`.
+
+## Correction (2026-10-16; appended, the text above is unchanged)
+
+- **Line 116 and the risks row (line 208) do not hold.** "A de-DE browser with `Language=zh-TW` would give Western de-DE" was an inference. It was measured natively on 2026-10-16: `LANG=de_DE.UTF-8` with `Language=zh-TW` saves Western **en-US** (Asian zh-TW, page A4). The bytes are identical to `LANG=en_US.UTF-8` with `Language=zh-TW`.
+  - The instrument can show de-DE: a control that forces the Western fallback to de-DE saves de-DE.
+  - Evidence: `findings/evidence/link-batch-v21/native/language/` (arms Q1 and M1, 2 runs each). The main session re-read the saved `styles.xml` with its own reader.
+  - The reason, by source reading: `desktop/source/app/langselect.cxx:139-141` sets the Western fallback from the system locale after startup. LOK has forced that to en-US (`init.cxx:8347`), so only the Asian and Complex slots follow the environment.
+- **The hash recorded for `libsofficeapp.so`** (here and in `probe-1-native-defaults/README.md`) identifies nothing. In this build the file is a 21-byte placeholder. The new evidence records `libmergedlo.so` and the install's buildid `671c848b` instead. Likewise, the git HEAD `96dd0fce` cited for the engine is not the install's buildid.
