@@ -1,0 +1,27 @@
+# Format check of the runner -> judge interface on the smoke report: the judge's per-criterion reading, printed to see that every field it reads is there. NOT a verdict; the smoke is never judged (the judge refuses it, first line).
+refusals (expected: smoke): ['a smoke report is never judged']
+M1: PASS passed=29
+M2: PASS passed=1
+M3: FAIL passed=63
+    - r1 dialog round-1/M13.md: no session outcome: {'kind': 'page-refusal', 'message': {'hidden': False, 'text': '這段 Markdown 沒有可以貼上的內容、無法解析、含有 NUL 字元，或太長'}}
+    - r1 SDK-L: wrong layer or outcome: {"route": "sdk", "answer": {"answered": true, "ok": false, "error": {"code": "WORKER_CRASHED", "name": "WorkerCrashedError", "message": "Uncaught [object ErrorEvent]", "recovery": null, "dispatche
+    - r1 ENG-65536: wrong layer or outcome: {"route": "worker", "operation": "pasteMarkdown", "answered": false, "posted": true, "response": {"ok": null, "code": null, "dispatched": null, "operation": null, "revision": null, "limitBytes
+M4: NOT_ESTABLISHED passed=56
+    - r1 M4-T2-ccplain-M2: placement [2157, 1694, 276] != native [2140, 1694, 276]
+M5: FAIL passed=30
+    - r1 sdk round-1/M11.md: requests outside the mirror: [{"method": "GET", "host": "edgedl.me.gvt1.com", "port": 80, "path": "/edgedl/release2/chrome_component/cril5mdxwsh2l5x4h26abn3kqq_761/lmelglejhemejginpboagddgdfbepgmp_761_all_ZZ
+    - r1 dialog round-1/M11b.md: requests outside the mirror: [{"method": "GET", "host": "edgedl.me.gvt1.com", "port": 80, "path": "/edgedl/release2/chrome_component/j2hxfei2occ5siitujtlwgp6xi_3/ojhpjlocmbogdgmfpkhlaaeamibhnphh_3_all_gp
+    - r1 sdk round-1/M11b.md: requests outside the mirror: [{"method": "GET", "host": "edgedl.me.gvt1.com", "port": 80, "path": "/edgedl/release2/chrome_component/ac55zopqc7vere3bm2pinwvz3d6q_4/hajigopbbjhghbfimgkfmpenfkclmohk_4_all_gjb
+    - r1 dialog round-1/M11c.md: requests outside the mirror: [{"method": "CONNECT", "host": "android.clients.google.com", "port": 443, "path": null, "t": 1792174660.7403743, "connected": true}]
+    - r1 dialog round-2/H1-comment-only.md: requests outside the mirror: [{"method": "CONNECT", "host": "mtalk.google.com", "port": 5228, "path": null, "t": 1792174672.8174672, "connected": true}]
+    - r1 sdk round-2/H2-html-block-img.md: requests outside the mirror: [{"method": "CONNECT", "host": "safebrowsing.googleapis.com", "port": 443, "path": null, "t": 1792174694.1847045, "connected": true}]
+    - r1 dialog round-2/S03-reference.md: requests outside the mirror: [{"method": "CONNECT", "host": "mtalk.google.com", "port": 5228, "path": null, "t": 1792174793.2297897, "connected": true}]
+    - r1 dialog round-2/S05-data-and-remote.md: requests outside the mirror: [{"method": "CONNECT", "host": "mtalk.google.com", "port": 5228, "path": null, "t": 1792174823.3004813, "connected": true}]
+M6: NOT_ESTABLISHED passed=0
+    - r1: the paste did not complete (TIMEOUT): a refusal is fast
+M7: PASS passed=2
+M8: PASS passed=1
+M9: PASS passed=3
+M10: PASS passed=32
+M11: PASS passed=2
+records: {"coreLog": [0], "taskCheckbox": [{"S1Checked": ["true"], "S2Checked": ["true"], "rBefore": 1, "rAfter": 1, "afterClick": {"dirty": false, "hasUnsavedEdits": false, "revision": 1}}]}
