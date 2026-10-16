@@ -242,7 +242,7 @@ def inject(html: str, snippets: list[str] | tuple[str, ...]) -> str:
 
 def build_mirror(target: Path, *, page_profile: str = DEFAULT_PROFILE, snippets=(),
                  extra_files: dict[str, bytes] | None = None, worker_override: bytes | None = None,
-                 source_page: str | None = None) -> dict:
+                 source_page: str | None = None, shell_from_tree: bool = True) -> dict:
     """ARMS.md S-1.  `target` must not exist.  Returns the identity block (ARMS-item1.md §1).
 
     page_profile     the profile the page is repointed to (S-5 uses "e2-editor-v20")
@@ -252,6 +252,8 @@ def build_mirror(target: Path, *, page_profile: str = DEFAULT_PROFILE, snippets=
                      the identity then says instrumentedWorker: true
     source_page      the page source to repoint (default: the tree's web/e2-editor-app.js);
                      the 0.2.24 red cases pass dist/e2-editor-app.js
+    shell_from_tree  True (the round's shell): the lagging shell files and the HTML from the tree.
+                     False (the 0.2.24 red cases): dist/'s shell and HTML as they are
     """
     target = Path(target)
     if target.exists():
@@ -261,8 +263,8 @@ def build_mirror(target: Path, *, page_profile: str = DEFAULT_PROFILE, snippets=
         raise SystemExit(f"no profile {page_profile} in dist/")
     source = source_page if source_page is not None else PAGE_SOURCE.read_text(encoding="utf-8")
     page, pin_before, wasm = pp.repointed_page(source, page_profile, manifest)
-    lagging = pp.shell_lagging_source(DIST)
-    html_source = HTML_SOURCE.read_text(encoding="utf-8")
+    lagging = pp.shell_lagging_source(DIST) if shell_from_tree else []
+    html_source = (HTML_SOURCE if shell_from_tree else DIST / "e2-editor.html").read_text(encoding="utf-8")
     html_served = inject(html_source, list(snippets))
     overrides: dict[str, bytes] = {"e2-editor-app.js": page.encode("utf-8"),
                                    "e2-editor.html": html_served.encode("utf-8")}
@@ -307,13 +309,13 @@ def build_mirror(target: Path, *, page_profile: str = DEFAULT_PROFILE, snippets=
         "laggingServedFromTree": served_lagging,
         "shellDigest": mws.shell_digest(target),
         "extraFiles": extras,
-        "dist": str(DIST), "mirror": str(target),
+        "shellFromTree": shell_from_tree, "dist": str(DIST), "mirror": str(target),
     }
     expected = EXPECTED.get(page_profile, {})
     checks = {name: profile_hashes.get(name) == value for name, value in expected.items() if name != "pageServed"}
     if "pageServed" in expected and source_page is None:
         checks["pageServed"] = identity["pageServedSha256"] == expected["pageServed"]
-    if source_page is None:
+    if source_page is None and shell_from_tree:
         checks["shellDigest"] = identity["shellDigest"] == EXPECTED_SHELL_DIGEST
     identity["identityChecks"] = checks
     identity["identityOk"] = all(checks.values()) and not identity["instrumentedWorker"]
