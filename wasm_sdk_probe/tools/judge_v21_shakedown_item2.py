@@ -310,6 +310,7 @@ def judge_m4(results: dict, pop: dict, rounds: int) -> Cell:
     cell = Cell()
     got = {(i.get("round"), i.get("id")): i for i in (results.get("m4") or {}).get("instances") or []}
     population_ids = {i["id"] for i in pop["M4"]["instances"]}
+    corpus_sha = {i["path"]: i["sha256"] for i in pop["M1"]}
     if not got:
         cell.ne("zero instances")
         return cell
@@ -340,6 +341,9 @@ def judge_m4(results: dict, pop: dict, rounds: int) -> Cell:
                     continue
                 if (dialog.get("outcome") or {}).get("kind") != "page-refusal" or requested(dialog):
                     cell.fail(f"{label}: the page did not refuse the range itself: {dialog.get('outcome')}")
+                    continue
+                if (dialog.get("readbackAfter") or {}).get("sha256") != corpus_sha.get(inst_spec["corpus"]):
+                    cell.fail(f"{label}: the page's refusal did not keep the text (spec 12.2 (d))")
                     continue
                 error = ((inst.get("sdk") or {}).get("answer") or {}).get("error") or {}
                 if error.get("code") != NEEDS_CARET or error.get("dispatched") is not False:
@@ -542,10 +546,13 @@ def judge_m9(results: dict, rounds: int) -> Cell:
                         or error.get("recovery") != "none"):
                     cell.fail(f"{label}: {error.get('code')} dispatched {error.get('dispatched')} recovery {error.get('recovery')}")
                     continue
+                if not isinstance(inst.get("r0"), int) or inst.get("rev") != inst["r0"]:
+                    cell.fail(f"{label}: the engine revision moved ({inst.get('r0')} -> {inst.get('rev')})")
+                    continue
                 cell.ok()
                 continue
-            if error.get("code") != UNKNOWN or error.get("recovery") != "rollback":
-                cell.fail(f"{label}: {error.get('code')} recovery {error.get('recovery')}")
+            if error.get("code") != UNKNOWN or error.get("recovery") != "rollback" or error.get("dispatched") is not True:
+                cell.fail(f"{label}: {error.get('code')} recovery {error.get('recovery')} dispatched {error.get('dispatched')}")
                 continue
             if sub == "clean":
                 if same(inst.get("sEqualsR")) is True:
@@ -564,7 +571,7 @@ def judge_m9(results: dict, rounds: int) -> Cell:
     return cell
 
 
-def judge_m10(results: dict, trace: dict | None, m10a: Cell, rounds: int) -> Cell:
+def judge_m10(results: dict, trace: dict | None, m10a: Cell, rounds: int, pop: dict) -> Cell:
     cell = Cell()
     cell.fails += m10a.fails
     cell.nes += m10a.nes
@@ -601,6 +608,9 @@ def judge_m10(results: dict, trace: dict | None, m10a: Cell, rounds: int) -> Cel
                     continue
                 if requested(dialog) or (dialog.get("outcome") or {}).get("kind") != "page-refusal":
                     cell.fail(f"{label}: the dialog sent the paste on a range")
+                    continue
+                if (dialog.get("readbackAfter") or {}).get("sha256") != pop["M3"]["positiveControl"]["sha256"]:
+                    cell.fail(f"{label}: the page's refusal did not keep the text (spec 12.2 (d))")
                     continue
                 error = ((inst.get("sdk") or {}).get("answer") or {}).get("error") or {}
                 if error.get("code") != NEEDS_CARET or error.get("dispatched") is not False:
@@ -700,7 +710,7 @@ def judge_report(report: dict, pop: dict, rounds: int = ROUNDS) -> dict:
         "M7": judge_m7(results, rounds),
         "M8": judge_m8(results.get("m8-v20"), results.get("m8-main"), rounds),
         "M9": judge_m9(results, rounds),
-        "M10": judge_m10(results, results.get("trace"), m10a, rounds),
+        "M10": judge_m10(results, results.get("trace"), m10a, rounds, pop),
         "M11": judge_m11(results, rounds),
     }
     out = {}
@@ -815,6 +825,7 @@ def synthetic(pop: dict, rounds: int = ROUNDS, browser: str = "chrome") -> dict:
                                                     "s1EqualsS0": dict(same_), "attempt": {"response": {
                                                         "ok": False, "code": item["expectedCode"], "dispatched": False}}})
     res["m4"] = {"instances": []}
+    sha_of = {i["path"]: i["sha256"] for i in pop["M1"]}
     for k in range(1, rounds + 1):
         for spec in pop["M4"]["instances"]:
             inst = {"round": k, "id": spec["id"], "class": spec["class"], "loadEqualsNative": dict(same_)}
@@ -822,7 +833,8 @@ def synthetic(pop: dict, rounds: int = ROUNDS, browser: str = "chrome") -> dict:
             if "caret" in confirm:
                 inst["caret"] = {"x": confirm["caret"][0], "y": confirm["caret"][1], "height": confirm["caret"][3]}
             if spec["class"] == "range":
-                inst.update({"selectionText": confirm["selectionText"], "dialog": copy.deepcopy(page_refusal),
+                kept = dict(copy.deepcopy(page_refusal), readbackAfter={"sha256": sha_of[spec["corpus"]]})
+                inst.update({"selectionText": confirm["selectionText"], "dialog": kept,
                              "sdk": {"answer": {"ok": False, "error": {"code": NEEDS_CARET, "dispatched": False}}},
                              "r0": 0, "r1": 0, "s1EqualsR": dict(same_)})
             elif spec["class"] == "protected":
@@ -861,13 +873,15 @@ def synthetic(pop: dict, rounds: int = ROUNDS, browser: str = "chrome") -> dict:
         "dirty": [{"round": k, "caret": dict(caret), "dialog": refused_dialog(UNKNOWN, "rollback", True),
                    "requestsToPaste": [{"op": "save"}, {"op": "pasteMarkdown"}], "markerCount": 1, "m2Present": False}
                   for k in range(1, rounds + 1)],
-        "inject": [{"round": k, "caret": dict(caret), "dialog": refused_dialog("MARKDOWN_CHECKPOINT_FAILED", "none", False, False),
+        "inject": [{"round": k, "caret": dict(caret), "r0": 9, "rev": 9,
+                    "dialog": refused_dialog("MARKDOWN_CHECKPOINT_FAILED", "none", False, False),
                     "requests": [{"op": "save", "rewritten": True}], "saveResponses": [{"ok": False, "code": "INVALID_ARGUMENT"}]}
                    for k in range(1, rounds + 1)]}
     res["m10"] = {
         "b": [{"round": k, "dialog": refused_dialog(NEEDS_CARET), "r0": 0, "r1": 0, "sEqualsR": dict(same_)} for k in range(1, rounds + 1)],
         "c": [{"round": k, "dialog": refused_dialog(NEEDS_CARET), "r0": 0, "r1": 0, "sEqualsR": dict(same_)} for k in range(1, rounds + 1)],
-        "d": [{"round": k, "selectionText": "A1 text\tB1 text\n", "dialog": copy.deepcopy(page_refusal),
+        "d": [{"round": k, "selectionText": "A1 text\tB1 text\n",
+               "dialog": dict(copy.deepcopy(page_refusal), readbackAfter={"sha256": pop["M3"]["positiveControl"]["sha256"]}),
                "sdk": {"answer": {"ok": False, "error": {"code": NEEDS_CARET, "dispatched": False}}},
                "r0": 0, "r1": 0, "sEqualsR": dict(same_)} for k in range(1, rounds + 1)]}
     res["trace"] = {"m10Precondition": [{"round": k, "target": t, "graphicSelection": 1}
@@ -919,6 +933,7 @@ def red_cases() -> list[tuple[str, str, str, callable]]:
         ("M4 bold dropped after Undo", "M4", FAIL, lambda rep: first(r(rep)["m4"]["instances"], lambda i: i["class"] == "collapsed").update(s2EqualsR={"compared": True, "same": False, "firstDifference": "flags"})),
         ("M4 placement not confirmed", "M4", NE, lambda rep: first(r(rep)["m4"]["instances"], lambda i: "caret" in i and i["class"] == "collapsed").update(caret={"x": 1, "y": 1, "height": 1})),
         ("M4 range selection differs", "M4", NE, lambda rep: first(r(rep)["m4"]["instances"], lambda i: i["class"] == "range").update(selectionText="Bet")),
+        ("M4 range: the page's refusal lost the text", "M4", FAIL, lambda rep: first(r(rep)["m4"]["instances"], lambda i: i["class"] == "range")["dialog"].update(readbackAfter={"sha256": "0" * 64})),
         ("M4 range pasted", "M4", FAIL, lambda rep: first(r(rep)["m4"]["instances"], lambda i: i["class"] == "range").update(dialog={"outcome": {"kind": "session", "entry": {"ok": True}}})),
         ("M4 instance outside the population", "M4", FAIL, lambda rep: r(rep)["m4"]["instances"].append({"round": 1, "id": "M4-T2-input-M2", "class": "collapsed"})),
         ("M4 zero instances", "M4", NE, lambda rep: r(rep)["m4"].update(instances=[])),
@@ -940,6 +955,8 @@ def red_cases() -> list[tuple[str, str, str, callable]]:
         ("M8 v20 worker accepted", "M8", FAIL, lambda rep: first(r(rep)["m8-v20"]["instances"]).update(worker={"response": {"ok": True}})),
         ("M8 no v21 positive control", "M8", NE, lambda rep: r(rep).pop("m8-main")),
         ("M9 clean document changed", "M9", FAIL, lambda rep: r(rep)["m9"]["clean"][0].update(sEqualsR={"compared": True, "same": False})),
+        ("M9 clean outcome unknown but not dispatched", "M9", FAIL, lambda rep: r(rep)["m9"]["clean"][0]["dialog"]["outcome"]["entry"]["error"].update(dispatched=False)),
+        ("M9 inject moved the revision", "M9", FAIL, lambda rep: r(rep)["m9"]["inject"][0].update(rev=10)),
         ("M9 dirty marker lost", "M9", FAIL, lambda rep: r(rep)["m9"]["dirty"][0].update(markerCount=0)),
         ("M9 dirty not banked", "M9", FAIL, lambda rep: r(rep)["m9"]["dirty"][0].update(requestsToPaste=[{"op": "pasteMarkdown"}])),
         ("M9 inject sent the paste", "M9", FAIL, lambda rep: r(rep)["m9"]["inject"][0]["requests"].append({"op": "pasteMarkdown"})),
@@ -948,6 +965,7 @@ def red_cases() -> list[tuple[str, str, str, callable]]:
         ("M10b pasted on an image", "M10", FAIL, lambda rep: r(rep)["m10"]["b"][0].update(dialog={"outcome": {"kind": "session", "entry": {"ok": True}}})),
         ("M10b precondition missing", "M10", NE, lambda rep: r(rep)["trace"].update(m10Precondition=[])),
         ("M10d dialog sent the paste", "M10", FAIL, lambda rep: r(rep)["m10"]["d"][0]["dialog"].update(requests=[{"op": "pasteMarkdown"}])),
+        ("M10d: the page's refusal lost the text", "M10", FAIL, lambda rep: r(rep)["m10"]["d"][0]["dialog"].pop("readbackAfter")),
         ("M10a click before the paste", "M10", NE, lambda rep: first(r(rep)["m1"]["instances"]).update(paperEventsBeforePaste=[{"op": "editorPlaceCaretV2"}])),
         ("M11 dirty stayed false", "M11", FAIL, lambda rep: r(rep)["m11"]["dirty"][0].update(after={"dirty": False})),
         ("M11 insertText while the dialog was open", "M11", FAIL, lambda rep: r(rep)["m11"]["cancel"][0]["episodes"][0]["requests"].append({"op": "insertText"})),

@@ -134,6 +134,9 @@ def m1_m2_m3_m5(expected: dict, limit: int) -> dict:
             m1.append({**base, "reference": reference(item["path"])})
             continue
         if item.get("inject"):
+            if item.get("verdictWithoutInjection") != "PASS":
+                raise PopulationError(f"{item['path']}: non-PASS by injection, but without it {item.get('verdictWithoutInjection')}: "
+                                      "spec 12.2 (b) excludes only an item whose bytes are PASS on WASM")
             excluded.append({**base, "criterion": "M3", "rule": "spec 12.2 (b): non-PASS only by injection "
                              f"({item['inject']}); on WASM its bytes are {item.get('verdictWithoutInjection')}"})
             continue
@@ -257,8 +260,7 @@ def m4() -> dict:
             instances.append({**base, "class": "range", "startKeys": start, "endKeys": start + extend,
                               "confirm": {"selectionText": summary["positionReadback"]}})
         else:
-            if summary.get("undoStepsToRestore") != 1:
-                raise PopulationError(f"{arm}: native one Undo did not restore")
+            round1_collapsed(arm, summary)
             instances.append({**base, "class": "collapsed", "keys": ROUND1_KEYS[position],
                               "confirm": {"afterEqualsNative": base["nativeAfter"]}})
     # Round 2: T1 and T2.
@@ -268,57 +270,86 @@ def m4() -> dict:
         spec = summary["positionSpec"]
         corpus_name = summary["arm"]["corpus"]
         corpus = f"round-1/{corpus_name}.md" if (CORPUS / f"round-1/{corpus_name}.md").exists() else None
-        rule = None
-        undo = summary.get("undo", {})
-        flags = spec.get("flags") or "-"
-        if "typekey" in flags:
-            rule = "a control without a paste (typekey)"
-        elif "viewro" in flags:
-            rule = "LOK setViewReadOnly, which the product never calls"
-        elif spec.get("chmod"):
-            rule = "a file mode 0444: the product's read-only open is the host's view-only, refused before queueing"
-        elif summary["arm"].get("mime") != cmp_md():
-            rule = "not a Markdown paste (text/plain control)"
-        elif corpus is None or not _is_pass(corpus):
-            rule = "the item is not M0-PASS (M3's)"
-        elif arm == "T2-ctl-normal-M2":
-            rule = "a duplicate of round 1's P4-M2"
-        elif summary.get("afterSameAsBefore") is False and summary.get("undoStepsToRestore") is None:
-            rule = "native one Undo does not restore: finding 147, L-md-input-field (spec 9.14)"
+        rule = round2_exclusion(arm, summary, corpus)
         if rule:
             excluded.append({"native": rel(folder), "rule": rule})
             continue
         keys, extend, clicks = native_script_to_product(spec["place"])
-        points = {s["step"][1:]: rect(s["rect"]) for s in summary.get("setupSteps", []) if "rect" in s}
-        click_rects = []
-        for c in clicks:
-            if isinstance(c, dict):
-                click_rects.append({"x": c["x"], "y": c["y"], "absolute": True})
-            else:
-                if c not in points:
-                    raise PopulationError(f"{arm}: click on an unrecorded point {c}")
-                x, y, _w, h = points[c]
-                click_rects.append({"x": x, "y": y + h // 2, "absolute": False, "point": c})
+        click_rects = click_points(arm, clicks, summary)
         base = {"id": "M4-" + arm, "native": rel(folder), "corpus": corpus,
                 "fixture": fixture(REPO / spec["document"]),
                 "nativeBefore": rel(folder / "run1/before.fodt.gz"), "nativeAfter": rel(folder / "run1/after.fodt.gz"),
                 "clicks": click_rects}
-        selection = summary.get("selectionAtPaste") or ""
-        if spec["readback"] == "sel" and selection:
+        cls = round2_class(arm, summary)
+        if cls == "range":
             instances.append({**base, "class": "range", "startKeys": keys, "endKeys": keys + extend,
                               "confirm": {"selectionText": summary["positionReadback"]}})
-        elif undo.get("countAfter") == undo.get("countBefore") and undo.get("payloadChanged") is False:
-            instances.append({**base, "class": "protected", "keys": keys,
-                              "confirm": {"caret": rect(summary["cursorAtPaste"])}})
-        elif summary.get("undoStepsToRestore") == 1:
-            instances.append({**base, "class": "collapsed", "keys": keys,
-                              "confirm": {"caret": rect(summary["cursorAtPaste"])}})
         else:
-            raise PopulationError(f"{arm}: no rule places it")
+            instances.append({**base, "class": cls, "keys": keys, "confirm": {"caret": rect(summary["cursorAtPaste"])}})
+    classes = class_counts(instances)
+    return {"instances": instances, "excluded": excluded, "fixtures": fixtures, "classCounts": classes}
+
+
+# The M4 rules, one function each so that each has its red case (tests/test_v21_item2_population.py).
+
+def round1_collapsed(arm: str, summary: dict) -> None:
+    """A round-1 collapsed arm is M4's "one Undo restores" only if one Undo restored it natively."""
+    if summary.get("undoStepsToRestore") != 1:
+        raise PopulationError(f"{arm}: native one Undo did not restore")
+
+
+def round2_exclusion(arm: str, summary: dict, corpus: str | None) -> str | None:
+    """The named rule that excludes a round-2 arm (ARMS-item2 M4), or None."""
+    spec = summary["positionSpec"]
+    flags = spec.get("flags") or "-"
+    if "typekey" in flags:
+        return "a control without a paste (typekey)"
+    if "viewro" in flags:
+        return "LOK setViewReadOnly, which the product never calls"
+    if spec.get("chmod"):
+        return "a file mode 0444: the product's read-only open is the host's view-only, refused before queueing"
+    if summary["arm"].get("mime") != cmp_md():
+        return "not a Markdown paste (text/plain control)"
+    if corpus is None or not _is_pass(corpus):
+        return "the item is not M0-PASS (M3's)"
+    if arm == "T2-ctl-normal-M2":
+        return "a duplicate of round 1's P4-M2"
+    if summary.get("afterSameAsBefore") is False and summary.get("undoStepsToRestore") is None:
+        return "native one Undo does not restore: finding 147, L-md-input-field (spec 9.14)"
+    return None
+
+
+def round2_class(arm: str, summary: dict) -> str:
+    """range / protected / collapsed by the native outcome; anything else is an error, never dropped."""
+    undo = summary.get("undo", {})
+    if summary["positionSpec"]["readback"] == "sel" and (summary.get("selectionAtPaste") or ""):
+        return "range"
+    if undo.get("countAfter") == undo.get("countBefore") and undo.get("payloadChanged") is False:
+        return "protected"
+    if summary.get("undoStepsToRestore") == 1:
+        return "collapsed"
+    raise PopulationError(f"{arm}: no rule places it")
+
+
+def click_points(arm: str, clicks: list, summary: dict) -> list[dict]:
+    points = {s["step"][1:]: rect(s["rect"]) for s in summary.get("setupSteps", []) if "rect" in s}
+    out = []
+    for c in clicks:
+        if isinstance(c, dict):
+            out.append({"x": c["x"], "y": c["y"], "absolute": True})
+        else:
+            if c not in points:
+                raise PopulationError(f"{arm}: click on an unrecorded point {c}")
+            x, y, _w, h = points[c]
+            out.append({"x": x, "y": y + h // 2, "absolute": False, "point": c})
+    return out
+
+
+def class_counts(instances: list[dict]) -> dict:
     classes = {c: sum(1 for i in instances if i["class"] == c) for c in ("collapsed", "range", "protected")}
     if not all(classes.values()):
         raise PopulationError(f"an empty M4 class: {classes}")
-    return {"instances": instances, "excluded": excluded, "fixtures": fixtures, "classCounts": classes}
+    return classes
 
 
 def cmp_md() -> str:

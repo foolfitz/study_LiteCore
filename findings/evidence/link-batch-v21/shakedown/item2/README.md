@@ -1,0 +1,50 @@
+# v21 shakedown, item 2 (paste as Markdown): phase B artifacts
+
+Arms: `../ARMS-item2.md` (draft + rulings §9), `../ARMS.md` (S-1..S-11). Task: `handoff/tasks/TASK-2026-10-16d-v21-shakedown-phase-b.md`. Nothing here is evidence of a criterion: the evidence runs (N=3, both browsers) have not started.
+
+Labels: **[source] file:line**, **[observed] path**, **[inferred]**.
+
+## What is here
+
+- `population.json`: M1, M2, M3, M4, M5 as `wasm_sdk_probe/tools/v21_item2_population.py` generates them from their sources (the M0 fixture, the three native rounds, the served SDK's limit, the fixture generator). The runner refuses to start unless regenerating gives the same JSON. Counts [observed]: M1 29 items, every one with a native P1 reference (round 3 supplied the five that had none); M3 35 items (28 on R-dialog and R-sdk, 7 on R-bytes) and X14 excluded by spec §12.2 (b); size arms SDK-L, SDK-L+1, ENG-65536, ENG-65537 with L = 65,536; M4 38 collapsed, 14 range, 5 protected, 9 excluded by named rules; M5 19 items.
+- `population-census/`: `census.py` blanks each `raise PopulationError` of the population tool in turn and runs its test file against the mutant; `census.txt` is the output [observed]: 24 tests green on the real tool, 19 of the 20 raises turn a named test red when removed. The one that turns nothing red is "the M0 fixture has no items": with it removed, the same empty fixture still raises "an empty population" (one case, guarded twice).
+- `reader-checks/`: round 2's reader checks re-run unchanged on 2026-10-17 (ARMS-item2.md I-7: "round 2's existing red cases re-run unchanged"), output only (the scripts are round 2's, `-I -B`, nothing written into round 2's folder): `reader-compat.txt` (150 runs recomputed, 0 field mismatches, round 1's aggregate byte-identical, PASS) and `reader-red2.txt` (every case as expected, exit 0) [observed].
+
+## The instruments (wasm_sdk_probe/tools/, each with its test in wasm_sdk_probe/tests/)
+
+| file | instrument | test (red cases) |
+|---|---|---|
+| `v21_page_hook.py` | S-3, the page's own session / DocumentHandle / client through a module hook | `test_v21_page_hook.py`, 9 (nothing captured before the page calls; a hook that wraps nothing; a missing method; invalid UTF-8 at the URL) |
+| `v21_workers.py` | S-10, the trace worker and the raw-bytes carrier, mirror only | `test_v21_workers.py`, 8 (missing anchor; double patch; a carrier that TextEncodes) |
+| `v21_network.py` | S-11, the logging proxy, the target listeners, Firefox prefs, a proxied Chrome | `test_v21_network.py`, 8 (no probe.wasm GET; a target request in a window; a refused upstream still logged) |
+| `v21_clipboard.py` | S-4's clipboard half: real clipboard, trusted Ctrl+V, read-back | exercised in the runs (the read-back is the per-instance control) |
+| `v21_item2_observer.py` | the item-2 observer snippet (requests, responses with `dispatched`, the URL-fed ask, the save rewrite, `#state-pill`, UI transitions; on the trace worker only, the payload heads of LOK ids 2, 6, 55 and of id 8 when it sets `.uno:Undo`/`.uno:ModifiedStatus`, as I-8 says) | exercised in the runs |
+| `v21_item2_compare.py` | the comparator on S-7: round 2's reader, images by data hash, the fingerprint per paragraph | `test_v21_item2_compare.py`, 7 (missing styles; a broken picture; a missing picture; a changed paragraph) |
+| `v21_item2_fixtures.py` | the size corpora, M6's corpus, the M10 fixture | `test_v21_item2_fixtures.py`, 7 (a moved pin; a changed tail; a short corpus; the frame after the paragraphs) |
+| `v21_item2_population.py` | the populations | `test_v21_item2_population.py`, 24: the 10 first ones plus 14 for the population clauses of ARMS-item2 (native runs that disagree, M2 texts that disagree, bytes that are not the fixture's, an injection-only item that is not PASS without the injection, an M5 item only R-bytes can carry, no M3/M5 item, a round-1 arm whose one Undo did not restore, a round-2 arm no rule places, a click on an unrecorded point, an empty M4 class, the excluded arms and their rules) and for the tool's own guards (L not stated once, not three native runs, a converted fixture that fails S-6's proof or the comparator) |
+| `judge_v21_shakedown_item2.py` | the judge, `--self-test` | `test_v21_item2_judge.py`, 4; the self-test: 60 red cases, 6 refusals, 1 short report |
+| `run_v21_shakedown_item2.py` | the runner | the smoke (`../smoke/item2/`) |
+
+Fixed before any use, because a red case went red on the real tool (declared): the comparator's first draft compared the whole region's text, so whitespace between and inside drawing objects of a pretty-printed flat file made an ODT and its FODT "different"; the judge's first self-test found a missing M8 text read as FAIL instead of NOT_ESTABLISHED and a short report judged as FAIL instead of NOT_ESTABLISHED. No evidence run existed, so no §34.4 witness applies.
+
+## The successor's audit of the runner against ARMS-item2 §4 and §9 (2026-10-17, before the smoke)
+
+The first item-2 agent ran out of context with the runner uncommitted. Its two development runs are committed as §34.4 witnesses in `../smoke/witness-item2/` (commit `de261a0c`), before the fixes below. Each change, and why:
+
+| arm | change | why |
+|---|---|---|
+| every load | navigation answers the page's beforeunload prompt (Chrome: `Page.navigate` without waiting, `Page.handleJavaScriptDialog {accept: true}`); `leaveDialogAccepted` per load; the `stopImmediatePropagation` attempt removed | witness #3: the prompt lost arms in both development runs, and the attempted fix did not stop it; item 1's runner answers it the same way |
+| R-dialog (every arm) | the outcome loop re-reads the hook before calling a visible `#markdown-message` the page's own refusal | the page shows a session refusal's text too; read in the wrong order, a session refusal would have been recorded as a page refusal [inferred from `web/e2-editor-app.js:2352-2374`: the message is shown after `session.pasteMarkdown` rejects] |
+| R-dialog | records `readbackAfter` (the textarea's length and sha256 before the runner closes a dialog that stayed open), `notice`, the UI transitions (`#notice`, the dialog, `#markdown-message`, `#s-checkpoint`), the response times and the index of the 插入 click | spec §12.2 (d) requires the page's refusal to keep the text; M9-inject reads 「寫入失敗」 and the dialog staying open; M6 times from the click |
+| M1 | the paper-event window starts before the open; `lastSelectionObserved` is read before the dialog; caret and `selectionType` recorded before the paste | M10a: "no `editorPlaceCaretV2`/select request between the open and the paste"; the last editor-state push **before** the paste; M1 step (2) |
+| M4, M10d | a drag starts and ends 20 twips right of the engine carets read at the two ends | witness #4: ending 1 twip left of B1's start selected inside A1 only. Correction to that witness README: it says "1 px" for both the cause and the fix; the runner's unit is twips, the cause was 1 twip, and the fix is 20 twips (about 1.3 px, more than the pointer's pixel rounding, less than half a glyph) |
+| M6 | busy → ready counted from the 插入 click; `clickToReadyMs`, `replyMs`; S1 saved and compared with R | ARMS M6: "the first `busy` after the click", "also recorded: click → ready, and the reply time", "save → S1" |
+| M7b | engine revision before and after the trusted Ctrl+V | ARMS M7b: "wait revision +1" |
+| M9 | the request window starts right after the marker is typed (before the placement), the inject rewrite is armed there; `r0` before the paste; the marker is `M9MARK` | ARMS M9-dirty: the bank "may come from … an earlier checkpoint-taking step"; M9-inject: "revision unchanged"; the marker as the arm writes it (the draft runner typed `MNINEMARK`) |
+| M10b/c, trace | clicks at round 3's native points, the image's centre (1985, 1985) and the frame's **left border** (2002, 6803), not the frame's centre; the precondition counts only `GRAPHIC_SELECTION` events whose rectangle is round 3's object rectangle | ARMS M10c "on the frame's left border"; "GRAPHIC_SELECTION (id 6) with the object's rectangle" (an id-6 "EMPTY" would otherwise count) |
+| record, trace | the trace pass keeps the heads of `CONTENT_CONTROL` and of `STATE_CHANGED` `.uno:Undo`/`.uno:ModifiedStatus` | ARMS record arm |
+| M11-cancel | types `# 打字 ABC` (the draft runner typed `typed ABC`) | ARMS M11 verbatim. The positive control types one `x` (one `insertText`, revision +1) because the judge reads "revision +1"; the arm's "the same keystrokes" would move the revision more than once [inferred] |
+| M5 | the M3 entry of an M5 item is looked up in the full population | witness #5 (`--limit` only) |
+| main | `--wait-lock SECONDS` (default: refuse, as item 1); the pre-run checks run after the lock is taken; the identity keeps every served corpus/fixture file's sha256 and L as parsed from the **served** `sdk/document-sdk.js` | ARMS-item2 §1 |
+
+The judge gained four checks, each red first (a mutation of the synthetic report that the committed judge `2e740237` passes and the new one fails [observed]): a range's dialog refusal must keep the text (M4 ranges and M10d, spec §12.2 (d)); M9 clean and dirty need `dispatched: true`; M9-inject needs the engine revision unchanged. The population tool's rules were split into one function each (output unchanged: `build()` equals the committed `population.json` byte for byte [observed]), and one rule was added: an injection-only item is excluded only if its bytes are PASS without the injection (spec §12.2 (b)); X14 is.

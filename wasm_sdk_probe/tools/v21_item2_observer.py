@@ -15,6 +15,9 @@ Entries (`k`):
   ui      #notice data-show, #markdown-dialog open, #markdown-message text and hidden, #s-checkpoint text
   ask     an ask this snippet posted (URL-fed text or bytes), and `askError` when it could not
   rewrite the save-rewrite window opened or closed
+  lok     on S-10's trace worker only (ARMS-item2 I-8): the payload head (96 chars, the patch's own cut) of
+          TEXT_SELECTION (2), GRAPHIC_SELECTION (6), CONTENT_CONTROL (55), and of STATE_CHANGED (8) when it
+          sets .uno:Undo or .uno:ModifiedStatus; v20's observer counts every event, without payloads
 
 The ask channel (`ask()` below): a raw worker message {operation, payload} with requestIds from ASK_BASE
 (the SDK drops replies it has no entry for, sdk/document-sdk.js:334-336).  `textUrl`: the page realm
@@ -83,6 +86,15 @@ SNIPPET = r"""<script>
     };
     worker.addEventListener("message", (event) => {
       const data = event.data;
+      if (data && data.kind === "event" && data.event === "merge-trace" && data.type === "lok") {
+        // Only S-10's trace worker posts these (ARMS-item2 I-8): keep the heads the arms read, count nothing.
+        const head = typeof data.head === "string" ? data.head : null;
+        if (data.id === 2 || data.id === 6 || data.id === 55
+            || (data.id === 8 && head !== null && /\.uno:(Undo|ModifiedStatus)=/.test(head))) {
+          push({ k: "lok", id: data.id, head, len: data.len ?? null });
+        }
+        return;
+      }
       if (!data || data.kind !== "response") return;
       const known = requests.get(data.requestId) ?? {};
       requests.delete(data.requestId);
