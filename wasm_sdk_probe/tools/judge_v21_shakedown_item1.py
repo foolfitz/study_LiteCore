@@ -41,6 +41,8 @@ CRITERIA = ("D1", "D2p", "D4", "D5w", "D7", "D8", "D9", "D10", "D11a", "D11b", "
 RECORDS = ("D6", "R-xlc", "R-table")
 ARM_OF = {"D1": "d1", "D4": "d1", "D7": "d1", "D2p": "d2p", "D5w": "d5w", "D8": "d8", "D9": "d9", "D10": "d10",
           "D11a": "d11a", "D11b": "d11b", "D11c": "d11c", "D12": "d12"}
+D14_FIXTURES = ("plain3", "long60")
+D6_NOT_RUNNABLE = "not runnable: item 2 not shipped (spec §12.3 (e))"
 ASK7_WINDOW = (450.0, 550.0)
 SILENT_LIMIT_MS = 500.0
 D9_READY_MS = 500.0
@@ -992,9 +994,10 @@ def synthetic() -> tuple[list[dict], Docs]:
         d11b = {"arm": "d11b", "rounds": [
             {"round": 1, "kind": "clean", "outcome": "done", "requests": [{"op": "editorActionV2"}, {"op": "editorActionV2"}],
              "presses": [{"response": {"ok": True}, "unsavedAfter": "false", "checkpoint": "無"}] * 2},
+            # Spec §12.3 (b): in a dirty document 22/23 take no checkpoint (no save, dirty stays, 「無」).
             {"round": 1, "kind": "dirty", "outcome": "done", "unsavedAfterTyping": "true",
-             "requests": [{"op": "insertText"}, {"op": "save"}, {"op": "editorActionV2"}, {"op": "editorActionV2"}],
-             "presses": [{"response": {"ok": True}, "unsavedAfter": "true", "checkpoint": "有（r1）"}] * 2}]}
+             "requests": [{"op": "insertText"}, {"op": "editorActionV2"}, {"op": "editorActionV2"}],
+             "presses": [{"response": {"ok": True}, "unsavedAfter": "true", "checkpoint": "無"}] * 2}]}
         engine_move = {"ok": True, "completion": "documented-callback-visible-cursor", "rev": 1}
         d11c = {"arm": "d11c", "rounds": [{"round": 1, "outcome": "done", "calls": [
             {"action": "move-document-end", "sdk": {"ok": False, "error": {"code": "EDITOR_RESULT_INVALID"}},
@@ -1020,12 +1023,66 @@ def synthetic() -> tuple[list[dict], Docs]:
             {"round": 1, "page": "v21", "outcome": "done",
              "chords": [{"chord": c, "log": chord_log(True, 1)} for c in ("ctrl+Home", "ctrl+End", "meta+Home", "meta+End")]
              + [{"chord": "ctrl+shift+Home", "log": chord_log(False, 0)}]}]}
+        # D14 (spec §12.3 (c)): Z at the start, Ctrl+End, Q 21 ms after its keydown, Q at the document end.
+        d14 = {"arm": "d14", "rounds": [
+            {"round": 1, "fixture": fixture, "outcome": "done", "typed": {"response": {"op": "insertText", "ok": True}},
+             "unsavedAfterTyping": "true", "log": d14_log(),
+             "save": doc(f"{browser}-d14-{fixture}.odt",
+                         _plain3_odt(D14_PLAIN3_END) if fixture == "plain3" else _long60_odt("Z", "Q"))}
+            for fixture in D14_FIXTURES]}
+        results = {"d1": d1, "d2p": d2p, "d8": d8, "d8red": d8red, "d9": d9, "d10": d10, "d11a": d11a,
+                   "d11b": d11b, "d11c": d11c, "d12": d12, "d5w": d5w, "d14": d14}
+        if browser == "chrome":   # D6 skipped by the runner in one browser, absent in the other: 未量 both ways
+            results["d6"] = {"arm": "d6", "rounds": [], "notRun": D6_NOT_RUNNABLE}
+        # E0 (spec §12.3 (e)): every arm's start state carries the entry read, as the runner's start_state does.
+        for arm, result in results.items():
+            for rec in result.get("rounds", []):
+                variant = {"d8red": "dist0224", "d11a": "v21host", "d11c": "v21hook", "d12": "v21hook"}.get(arm, "v21")
+                variant = rec.get("page", variant) if arm == "d5w" else variant
+                rec.setdefault("start", {})["entry"] = dict(ENTRY_HIDDEN, variant=variant)
         reports.append({"browser": browser, "smoke": False,
                         "pages": {"v21": {"pageServedSha256": PAGE_V21, "profile": "e2-editor-v21"},
                                   "v20": {"profile": "e2-editor-v20"}},
-                        "results": {"d1": d1, "d2p": d2p, "d8": d8, "d8red": d8red, "d9": d9, "d10": d10, "d11a": d11a,
-                                    "d11b": d11b, "d11c": d11c, "d12": d12, "d5w": d5w}})
+                        "results": results})
     return reports, Docs(None, memory)
+
+
+# The synthetic pieces D14 and E0 need (module level: the red cases rebuild documents with them).
+D14_PLAIN3_END = ["ZAlpha first paragraph", "Bravo second paragraph", "Charlie third paragraphQ"]
+D14_PLAIN3_PRE_MOVE = ["ZQAlpha first paragraph", "Bravo second paragraph", "Charlie third paragraph"]
+ENTRY_HIDDEN = {"exists": True, "hidden": True, "hiddenAttr": True, "visibleOpeners": [], "candidates": 1,
+                "controlVisible": True, "dialogExists": True, "dialogOpen": False}
+
+
+def _plain3_odt(texts: list[str]) -> bytes:
+    raw = (marker.FIXTURES / "plain3.fodt").read_bytes()
+    for old, new in zip(PLAIN3, texts):
+        raw = raw.replace(old.encode(), new.encode(), 1)
+    return fodt_to_odt.convert(raw)
+
+
+def _long60_odt(start: str, end: str) -> bytes:
+    """The runner's long60 (create_long_document.build(60)) with `start` before its first paragraph's text
+    and `end` after its last paragraph's text."""
+    from create_long_document import build
+
+    def change(members):
+        content = members["content.xml"].replace(b">LD-PAGE-01<", b">" + start.encode() + b"LD-PAGE-01<", 1)
+        head, sep, tail = content.rpartition(b"</text:p>")
+        members["content.xml"] = head + end.encode() + sep + tail
+    return marker._rezip(build(60), change)
+
+
+def d14_log(gap_ms: float = 21.0) -> list[dict]:
+    """A D14 round's observer log: Ctrl+End's keydown, the move, Q's keydown `gap_ms` later, the insert."""
+    return [{"k": "kd", "key": "Control", "ctrl": True, "t": 1000.0, "s": 1},
+            {"k": "kd", "key": "End", "ctrl": True, "t": 1000.4, "s": 2},
+            {"k": "rq", "op": "editorActionV2", "action": "move-document-end", "rq": 9, "s": 3},
+            {"k": "kd", "key": "Q", "ctrl": False, "t": 1000.4 + gap_ms, "s": 4},
+            {"k": "rs", "op": "editorActionV2", "action": "move-document-end", "rq": 9, "ok": True,
+             "completion": "documented-callback-visible-cursor", "tRq": 1001.0, "t": 1041.0, "s": 5},
+            {"k": "rq", "op": "insertText", "rq": 10, "s": 6},
+            {"k": "rs", "op": "insertText", "rq": 10, "ok": True, "t": 1060.0, "s": 7}]
 
 
 def _rezip(odt: bytes, change) -> bytes:
@@ -1198,8 +1255,65 @@ def mutations(docs: Docs) -> list[tuple[str, str, str, object]]:
     def m_d11b_clean_save(r):
         r[0]["results"]["d11b"]["rounds"][0]["requests"].insert(0, {"op": "save"})
 
-    def m_d11b_dirty_nosave(r):
-        r[0]["results"]["d11b"]["rounds"][1]["requests"] = [q for q in r[0]["results"]["d11b"]["rounds"][1]["requests"] if q["op"] != "save"]
+    def dirty(r):
+        return r[0]["results"]["d11b"]["rounds"][1]
+
+    def m_d11b_dirty_save_before_end(r):     # the withdrawn checkpoint (spec §12.3 (b)), before Ctrl+End
+        dirty(r)["requests"].insert(1, {"op": "save"})
+
+    def m_d11b_dirty_save_before_home(r):    # ... or before Ctrl+Home
+        dirty(r)["requests"].insert(2, {"op": "save"})
+
+    def m_d11b_dirty_checkpoint_shown(r):
+        dirty(r)["presses"] = [dict(p, checkpoint="有（r1）") for p in dirty(r)["presses"]]
+
+    def m_d11b_dirty_lost(r):
+        dirty(r)["presses"] = [dirty(r)["presses"][0], dict(dirty(r)["presses"][1], unsavedAfter="false")]
+
+    def d14r(r, fixture):
+        return next(x for x in r[0]["results"]["d14"]["rounds"] if x["fixture"] == fixture)
+
+    def m_d14_pre_move(r):
+        docs.memory[d14r(r, "plain3")["save"]["file"]] = _plain3_odt(D14_PLAIN3_PRE_MOVE)
+
+    def m_d14_pre_move_long(r):
+        docs.memory[d14r(r, "long60")["save"]["file"]] = _long60_odt("ZQ", "")
+
+    def m_d14_nosave(r):
+        d14r(r, "plain3")["save"] = {"saved": False}
+
+    def m_d14_zero(r):
+        r[0]["results"]["d14"]["rounds"] = []
+
+    def m_d14_fixture_missing(r):
+        r[0]["results"]["d14"]["rounds"] = [x for x in r[0]["results"]["d14"]["rounds"] if x["fixture"] != "long60"]
+
+    def m_d14_late(r):
+        d14r(r, "plain3")["log"] = d14_log(30.5)
+
+    def m_d14_before(r):
+        d14r(r, "long60")["log"] = d14_log(-2.0)
+
+    def m_d14_clean(r):
+        d14r(r, "plain3")["unsavedAfterTyping"] = "false"
+
+    def entries(r, arm):
+        return [x["start"]["entry"] for x in r[0]["results"][arm]["rounds"]]
+
+    def m_e0_visible(r):
+        entries(r, "d10")[0].update(hidden=False, hiddenAttr=False,
+                                    visibleOpeners=[{"tag": "button", "action": "paste-markdown", "text": "貼上為 Markdown…"}])
+
+    def m_e0_other_opener(r):
+        entries(r, "d11b")[1]["visibleOpeners"] = [{"tag": "button", "id": "md", "action": None, "text": "Markdown"}]
+
+    def m_e0_no_read(r):
+        for result in r[0]["results"].values():
+            for x in result.get("rounds", []):
+                x.get("start", {}).pop("entry", None)
+
+    def m_e0_blind(r):
+        entries(r, "d9")[0]["controlVisible"] = False
 
     def m_d11b_blind(r):
         r[0]["results"]["d11b"]["rounds"][1]["unsavedAfterTyping"] = "false"
@@ -1262,7 +1376,11 @@ def mutations(docs: Docs) -> list[tuple[str, str, str, object]]:
         ("D10 no rectangles", "D10", NE, m_d10_norects),
         ("D11a a save request", "D11a", FAIL, m_d11a_save), ("D11a the caret did not move", "D11a", FAIL, m_d11a_still),
         ("D11a not view-only", "D11a", NE, m_d11a_notview),
-        ("D11b clean took a save", "D11b", FAIL, m_d11b_clean_save), ("D11b dirty took no checkpoint", "D11b", FAIL, m_d11b_dirty_nosave),
+        ("D11b clean took a save", "D11b", FAIL, m_d11b_clean_save),
+        ("D11b dirty: a checkpoint save before Ctrl+End", "D11b", FAIL, m_d11b_dirty_save_before_end),
+        ("D11b dirty: a checkpoint save before Ctrl+Home", "D11b", FAIL, m_d11b_dirty_save_before_home),
+        ("D11b dirty: #s-checkpoint not 無", "D11b", FAIL, m_d11b_dirty_checkpoint_shown),
+        ("D11b dirty: dirty lost after a move", "D11b", FAIL, m_d11b_dirty_lost),
         ("D11b dirty read blind", "D11b", NE, m_d11b_blind),
         ("D11c move refused as stale", "D11c", FAIL, m_d11c_stale), ("D11c the two moves differ", "D11c", FAIL, m_d11c_differ),
         ("D11c mutating control not stale", "D11c", NE, m_d11c_control),
@@ -1270,6 +1388,17 @@ def mutations(docs: Docs) -> list[tuple[str, str, str, object]]:
         ("D12 no range before the call", "D12", NE, m_d12_collapsed), ("D12 collapsed control refused", "D12", NE, m_d12_control),
         ("D5w v20 chord taken", "D5w", FAIL, m_d5w_taken), ("D5w Shift taken on v21", "D5w", FAIL, m_d5w_shift),
         ("D5w v21 positive control not taken", "D5w", NE, m_d5w_control), ("D5w keys not reaching the sink", "D5w", NE, m_d5w_nokeys),
+        ("D14 marker at the pre-move caret (plain3)", "D14", FAIL, m_d14_pre_move),
+        ("D14 marker at the pre-move caret (long60)", "D14", FAIL, m_d14_pre_move_long),
+        ("D14 a missing save", "D14", NE, m_d14_nosave), ("D14 zero rounds", "D14", NE, m_d14_zero),
+        ("D14 a fixture's rounds missing", "D14", NE, m_d14_fixture_missing),
+        ("D14 marker 30.5 ms after Ctrl+End", "D14", NE, m_d14_late),
+        ("D14 marker keydown before Ctrl+End's", "D14", NE, m_d14_before),
+        ("D14 the document not dirty", "D14", NE, m_d14_clean),
+        ("E0 the entry visible in a report", "E0", FAIL, m_e0_visible),
+        ("E0 another visible control opens the dialog", "E0", FAIL, m_e0_other_opener),
+        ("E0 a report with no entry read", "E0", NE, m_e0_no_read),
+        ("E0 the visibility read blind", "E0", NE, m_e0_blind),
     ]
 
 
@@ -1287,8 +1416,8 @@ def self_test(verbose: bool = True) -> int:
             if m_name == name:
                 m_mutate(base)
         _, out = judge_reports(base, base_docs, PAGE_V21, rounds=1)
-        row = next(line for line in out if line.startswith(f"{criterion:5s} chrome"))
-        got = row.split()[-1]
+        row = next((line for line in out if line.startswith(f"{criterion:5s} chrome")), None)
+        got = row.split()[-1] if row else "MISSING"
         ok = got == expected
         results.append((name, ok))
         if verbose:
@@ -1314,6 +1443,9 @@ def self_test(verbose: bool = True) -> int:
     rules.append(("one round of three -> NOT_ESTABLISHED", code != 0 and any("D1    chrome   NOT_ESTABLISHED" in l for l in out)))
     code, out = judge_reports(reports[:1], docs, PAGE_V21, rounds=1)
     rules.append(("a browser missing -> not PASS", code != 0))
+    _, out = judge_reports(reports, docs, PAGE_V21, rounds=1)
+    rules.append(("D6 skipped (chrome) or absent (firefox) -> printed 未量 for both browsers",
+                  all(any(l.startswith(f"record {b}: D6 未量") for l in out) for b in BROWSERS)))
     for name, ok in rules:
         results.append((name, ok))
         if verbose:
