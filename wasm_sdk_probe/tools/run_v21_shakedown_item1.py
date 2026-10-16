@@ -2,8 +2,12 @@
 """The v21 WASM shakedown, item 1 (Ctrl+Home/End): the runner.
 
 Arms: findings/evidence/link-batch-v21/shakedown/ARMS-item1.md (draft + rulings §8), ARMS.md (shared
-rules S-1..S-11), spec §11.1 and §12.2.  Written after the arms were committed (8f1dbf0a).  Never a count:
-every report says `"counted": false`.  Every browser run holds the S-9 lock.
+rules S-1..S-11), spec §11.1, §12.2 and §12.3.  Written after the arms were committed (8f1dbf0a).  Never a
+count: every report says `"counted": false`.  Every browser run holds the S-9 lock.
+
+Spec §12.3 (fable ruling 1, 2026-10-17), before any evidence run (README "Runner and judge changes for
+spec §12.3"): the new arm d14; every arm's start state also records the item-2 entry read (E0); d6 is
+not runnable (item 2 is not shipped, so the Markdown dialog has no entry).
 
 Arms (`--arms`, comma-separated):
   d1      D1's 38 arms + its 2 controls; each Ctrl press also feeds D7 (the +500 ms ask) and the
@@ -21,7 +25,9 @@ Arms (`--arms`, comma-separated):
   d5w     D5-w: real chords on the final page repointed to v20, and on v21     (pages v20, v21)
   xlc     R-xlc (record)                                                      (page v21)
   table   R-table (record)                                                    (page v21)
-  d6      D6 (record): needs item 2's dialog instrument and M6 corpus         (page v21)
+  d14     D14: dirty plain3 and long60 (Z at the start), real Ctrl+End, real Q <= 30 ms after its
+          keydown, quiet, save; diag-dirty-move V1/V4's procedure, imported (page v21)
+  d6      D6 (record): NOT RUNNABLE in v21 -- recorded as notRun, never driven (spec §12.3 (e))
 
   run_v21_shakedown_item1.py --browser chrome --arms d1,d2p --rounds 1 --out DIR [--smoke] [--only a1-home-mid,...]
 
@@ -57,7 +63,9 @@ from create_long_document import build as build_long_document  # noqa: E402
 PROJECT = common.PROJECT
 REPO = common.REPO
 FIXTURE_DIR = REPO / "findings/evidence/link-batch-v21/shakedown/fixtures"
-ARMS = ("d1", "d2p", "d8", "d8red", "d9", "d10", "d11a", "d11b", "d11c", "d12", "d5w", "xlc", "table", "d6")
+ARMS = ("d1", "d2p", "d8", "d8red", "d9", "d10", "d11a", "d11b", "d11c", "d12", "d5w", "xlc", "table", "d14", "d6")
+# Arms that are kept selectable (so a report says why they are absent) but are never driven.
+NOT_RUNNABLE = {"d6": "not runnable: item 2 not shipped (spec §12.3 (e))"}
 PAGE_OF = {"d8red": "dist0224", "d11a": "v21host"}
 KEY_ACTION = {"ArrowDown": "move-line-down", "ArrowUp": "move-line-up", "ArrowRight": "move-character-right",
               "ArrowLeft": "move-character-left", "Home": "move-line-home", "End": "move-line-end"}
@@ -106,6 +114,47 @@ def navigate(session, browser: str, url: str, timeout: float = 180) -> bool:
     raise RuntimeError("the page did not finish loading")
 OBSERVE_CAP_S = 10.0
 FLUSH = {"fn": lambda: None}
+
+# Spec §12.3 (e), the judge's clause E0: is item 2's entry on the page?  Read at every arm's start state.
+#  - `exists`/`hidden`: `#toolbar [data-action="paste-markdown"]` (the button `updatePasteMarkdownAffordance`
+#    shows or hides) and whether it renders;
+#  - `visibleOpeners`: every rendered control outside the dialog that names the dialog or Markdown: the
+#    page's own route (`data-action="paste-markdown"`, the toolbar click handler's only way to
+#    `openMarkdownDialog`) anywhere in the document, the HTML ways to target a dialog (`aria-controls`,
+#    `commandfor`, `popovertarget`), and any button, link or menu item whose text says "Markdown";
+#  - `controlVisible`: the same visibility read on `#toolbar [data-action="undo"]`, which is always rendered
+#    (disabled, not hidden, on a view-only page): false means the read is blind.
+# A static read: nothing is clicked, so the arm's start state is not changed.
+ENTRY_READ = r"""(() => {
+  const shown = (e) => {
+    if (!e || !e.isConnected) return false;
+    if (typeof e.checkVisibility === "function") {
+      if (!e.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true })) return false;
+    } else {
+      for (let n = e; n && n.nodeType === 1; n = n.parentElement) {
+        const s = getComputedStyle(n);
+        if (s.display === "none" || s.visibility === "hidden" || s.opacity === "0") return false;
+      }
+    }
+    const r = e.getBoundingClientRect();
+    return r.width > 0 && r.height > 0;
+  };
+  const describe = (e) => ({ tag: e.tagName.toLowerCase(), id: e.id || null, action: e.getAttribute("data-action"),
+    text: (e.textContent || e.value || "").trim().slice(0, 40) });
+  const dialog = document.querySelector("#markdown-dialog");
+  const button = document.querySelector('#toolbar [data-action="paste-markdown"]');
+  const found = Array.from(document.querySelectorAll('[data-action="paste-markdown"], [aria-controls="markdown-dialog"],'
+    + ' [commandfor="markdown-dialog"], [popovertarget="markdown-dialog"]'));
+  for (const e of Array.from(document.querySelectorAll('button, a[href], [role="button"], [role="menuitem"], summary,'
+      + ' input[type="button"], input[type="submit"]'))) {
+    if (!found.includes(e) && /markdown/i.test(e.textContent || e.value || "")) found.push(e);
+  }
+  const outside = found.filter((e) => !(dialog && dialog.contains(e)));
+  return { exists: !!button, hidden: button ? !shown(button) : null, hiddenAttr: button ? button.hidden : null,
+           candidates: outside.length, visibleOpeners: outside.filter(shown).map(describe),
+           controlVisible: shown(document.querySelector('#toolbar [data-action="undo"]')),
+           dialogExists: !!dialog, dialogOpen: dialog ? !!dialog.open : null };
+})()"""
 
 
 def sha256_bytes(raw: bytes) -> str:
@@ -236,10 +285,22 @@ class Ctx:
         time.sleep(0.1)
         focused = self.ev("(() => document.activeElement && document.activeElement.id)()")
         out = {"observed": observed, "observedAfterMs": round((time.monotonic() - t0) * 1000), "focus": "sink.focus()",
-               "activeElement": focused, "caret": (asked or {}).get("full", {}).get("caret") if asked else None}
+               "activeElement": focused, "caret": (asked or {}).get("full", {}).get("caret") if asked else None,
+               "entry": self.entry()}
         if not observed:
             raise StepError(f"not-observed: no selection reported within {OBSERVE_CAP_S} s")
         return out
+
+    def entry(self) -> dict:
+        """The item-2 entry read (ENTRY_READ; the judge's E0), tagged with the page variant."""
+        try:
+            read = self.ev(ENTRY_READ)
+        except Exception as error:  # noqa: BLE001 -- a failed read is recorded; the judge reads it as blind
+            read = {"error": f"{type(error).__name__}: {error}"}
+        if not isinstance(read, dict):
+            read = {"error": f"unexpected read: {read!r}"[:200]}
+        read["variant"] = self.variant
+        return read
 
     def quiet(self, limit: float = 30) -> dict:
         state = mws.quiet(self.session, limit)
@@ -801,9 +862,6 @@ def arm_d5w(ctx: Ctx, rounds: int) -> dict:
     return out
 
 
-D6_MARKER_OK = "Z"
-
-
 def element_center(ctx: Ctx, selector: str) -> tuple[float, float] | None:
     box = pp.evaluate(ctx.session, "(() => { const e = document.querySelector(%s); if (!e) return null;"
                       " const r = e.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2,"
@@ -813,61 +871,51 @@ def element_center(ctx: Ctx, selector: str) -> tuple[float, float] | None:
     return box["x"], box["y"]
 
 
-def arm_d6(ctx: Ctx, rounds: int) -> dict:
-    """D6 (record; rulings D-14 (i) B, (ii) B; spec §12.2 (g)): paste the M6 corpus through the dialog
-    at plain3's start; the moment the modal dialog closes, real Ctrl+End, then real `Z`, no wait."""
-    import v21_clipboard as clip
-    out = {"arm": "d6", "corpus": "v21-m6-65536.md", "rounds": []}
+D14_FIXTURES = ("plain3", "long60")
+D14_PLAN_MS = 20
+
+
+def arm_d14(ctx: Ctx, rounds: int) -> dict:
+    """D14 (spec §12.3 (c), forced by finding 151): per round and fixture, a fresh load and open, real `Z` at
+    the document start (reply awaited: the document is dirty), real Ctrl+End, real `Q` planned D14_PLAN_MS
+    after it, then the move's reply, the insert, quiet, an ask, and the save.
+
+    The procedure is diag-dirty-move V1 (plain3) / V4 (long60), imported from `diag_v21_dirty_move`, not
+    copied: its long60 settle, its timed keys (Chrome: CDP presses on the monotonic clock; Firefox: one
+    WebDriver chain with a pause) and its `move_tail` (reply, insert, +500 ms ask, quiet, final ask, log,
+    save, saved texts, summary).  Two differences, both recorded in the README section for §12.3:
+      * the plan is 20 ms, not V1/V4's 30 ms: planned 30 ms reached the page as 30.0-31.0 ms (Chrome) and
+        32.7-34.6 ms (Firefox) between the keydowns, past the criterion's 30 ms on most rounds;
+      * the dirty read (the page's `beforeunload` guard, D11b's instrument) after typing, before the keys.
+    The judge reads the gap on the page's own keydown times and the landing in the saved document."""
+    import diag_v21_dirty_move as diag   # it imports this module back; main() has aliased it by then
+    out = {"arm": "d14", "planMs": D14_PLAN_MS, "dirtyChar": "Z", "marker": "Q",
+           "procedure": "diag_v21_dirty_move V1/V4 (settle_long, timed_keys, move_tail)",
+           "diagSha256": common.sha256_file(Path(diag.__file__)), "rounds": []}
     for round_no in range(1, rounds + 1):
-        rec = {"round": round_no}
-        out["rounds"].append(rec)
-        try:
-            rec["load"] = ctx.load("v21")
-            rec["open"] = ctx.open("plain3")
-            rec["start"] = ctx.start_state()
-            origin = pp.evaluate(ctx.session, "(() => location.origin)()")
-            rec["grant"] = clip.grant(ctx.session, ctx.browser, origin)
-            rec["clipboard"] = clip.write_from_url(ctx.session, "./v21-m6-65536.md")
-            entry = element_center(ctx, '#toolbar [data-action="paste-markdown"]')
-            if entry is None:
-                raise StepError("no-entry: the paste-markdown button is hidden or missing")
-            inp.click(ctx.session, ctx.browser, *entry)
-            time.sleep(0.5)
-            rec["dialogOpen"] = pp.evaluate(ctx.session, "(() => document.querySelector('#markdown-dialog').open)()")
-            clip.press_ctrl_v(ctx.session, ctx.browser)
-            time.sleep(0.8)
-            rec["readback"] = clip.readback(ctx.session, "#markdown-text")
-            if rec["readback"].get("sha256") != (rec["clipboard"] or {}).get("sha256"):
-                raise StepError(f"input-mismatch: the textarea holds {rec['readback']}")
-            insert = element_center(ctx, "#markdown-insert")
-            mark = len(ctx.log.all)
-            inp.click(ctx.session, ctx.browser, *insert)
-            t0 = time.monotonic()
-            closed_after = None
-            while time.monotonic() - t0 < 60:
-                if not pp.evaluate(ctx.session, "(() => document.querySelector('#markdown-dialog').open)()"):
-                    closed_after = round((time.monotonic() - t0) * 1000)
-                    break
-                time.sleep(0.02)
-            rec["dialogClosedAfterMs"] = closed_after
-            if closed_after is None:
-                raise StepError("the dialog did not close within 60 s")
-            inp.key(ctx.session, ctx.browser, "End", ("ctrl",))
-            inp.key(ctx.session, ctx.browser, D6_MARKER_OK)
-            time.sleep(1.0)
-            ctx.quiet(limit=120)
-            time.sleep(1.0)
-            ctx.quiet(limit=60)
-            ctx.drain()
-            rec["log"] = [e for e in ctx.log.all[mark:] if e.get("k") in ("rq", "rs", "kd", "kdp", "bi")]
-            rec["save"] = ctx.save(f"d6-r{round_no}")
-            rec["outcome"] = "done"
-        except StepError as error:
-            rec["outcome"], rec["error"] = str(error).split(":", 1)[0], str(error)
-        except Exception as error:  # noqa: BLE001
-            rec["outcome"], rec["error"] = "runner-error", f"{type(error).__name__}: {error}"
-            rec["trace"] = traceback.format_exc()[-1500:]
-        FLUSH["fn"]()
+        for fixture in D14_FIXTURES:
+            rec = {"round": round_no, "fixture": fixture}
+            out["rounds"].append(rec)
+            try:
+                rec["foreign"] = ctx.foreign()
+                rec["load"] = ctx.load("v21")
+                rec["open"] = ctx.open(fixture)
+                if fixture == "long60":
+                    rec["rects"] = diag.settle_long(ctx)
+                rec["start"] = ctx.start_state()
+                rec["typed"] = ctx.type_marker()                 # Z at the start, reply awaited
+                rec["unsavedAfterTyping"] = unsaved_noh(ctx)
+                ctx.ev_quiet()
+                mark = len(ctx.log.all)
+                rec["sent"] = diag.timed_keys(ctx, [(0, "End", ("ctrl",)), (D14_PLAN_MS, "Q", ())])
+                diag.move_tail(ctx, rec, mark, f"d14-{fixture}-r{round_no}", True)
+                rec["outcome"] = "done"
+            except StepError as error:
+                rec["outcome"], rec["error"] = "step-error", str(error)
+            except Exception as error:  # noqa: BLE001
+                rec["outcome"], rec["error"] = "runner-error", f"{type(error).__name__}: {error}"
+                rec["trace"] = traceback.format_exc()[-1500:]
+            FLUSH["fn"]()
     return out
 
 
@@ -876,6 +924,40 @@ def not_available(name: str, why: str) -> dict:
 
 
 # ------------------------------------------------------------------ main
+
+def run_arm(ctx: Ctx | None, arm: str, args, page_hook: str | None) -> dict:
+    """One arm's result.  A NOT_RUNNABLE arm is recorded with its reason and never touches the browser."""
+    if arm in NOT_RUNNABLE:
+        return not_available(arm, NOT_RUNNABLE[arm])
+    if arm == "d1":
+        return arm_d1(ctx, args.rounds, set(filter(None, args.only.split(","))) or None)
+    if arm == "d2p":
+        return arm_d2p(ctx, args.rounds)
+    if arm == "d8":
+        return run_d8(ctx, args.rounds, "v21", args.d8.split(","))
+    if arm == "d8red":
+        return run_d8(ctx, args.rounds, "dist0224", ["d"])
+    if arm == "d9":
+        return arm_d9(ctx, args.rounds)
+    if arm == "d10":
+        return arm_d10(ctx, args.rounds)
+    if arm == "d11a":
+        return arm_d11a(ctx, args.rounds)
+    if arm == "d11b":
+        return arm_d11b(ctx, args.rounds)
+    if arm in ("d11c", "d12"):
+        if page_hook is None:
+            return not_available(arm, "S-3 (tools/v21_page_hook.py, Agent M) is not there yet")
+        import v21_item1_sdk_arms as sdk_arms
+        return sdk_arms.run(ctx, arm, args.rounds)
+    if arm == "d5w":
+        return arm_d5w(ctx, args.rounds)
+    if arm in ("xlc", "table"):
+        return arm_record(ctx, args.rounds, arm)
+    if arm == "d14":
+        return arm_d14(ctx, args.rounds)
+    raise SystemExit(f"no dispatch for arm {arm!r}")
+
 
 def main() -> int:
     # One module object whether run as a script or imported (v21_item1_sdk_arms imports this file).
@@ -931,50 +1013,18 @@ def main() -> int:
 
     FLUSH["fn"] = flush
     scratch = Path(tempfile.mkdtemp(prefix="v21-item1-"))
-    import v21_item2_fixtures
-    m6, _sections = v21_item2_fixtures.m6_corpus(65536)
-    report["inputs"]["m6-65536.md"] = sha256_bytes(m6)
-    pages = Pages(scratch, fixtures, page_hook, {"v21-m6-65536.md": m6})
+    pages = Pages(scratch, fixtures, page_hook)
     session = None
     with common.browser_lock(f"run_v21_shakedown_item1 {args.browser} {','.join(arms)}", wait_s=args.wait_lock) as holder:
         report["lock"] = holder
         try:
-            import v21_clipboard
-            session = common.open_browser(args.browser, window,
-                                          firefox_prefs=v21_clipboard.FIREFOX_PREFS if "d6" in arms else None)
+            session = common.open_browser(args.browser, window)
             report["browserVersion"] = getattr(session, "version", None)
             ctx = Ctx(session, args.browser, pages, report, docs)
             for arm in arms:
                 t0 = time.monotonic()
                 try:
-                    if arm == "d1":
-                        result = arm_d1(ctx, args.rounds, set(filter(None, args.only.split(","))) or None)
-                    elif arm == "d2p":
-                        result = arm_d2p(ctx, args.rounds)
-                    elif arm == "d8":
-                        result = run_d8(ctx, args.rounds, "v21", args.d8.split(","))
-                    elif arm == "d8red":
-                        result = run_d8(ctx, args.rounds, "dist0224", ["d"])
-                    elif arm == "d9":
-                        result = arm_d9(ctx, args.rounds)
-                    elif arm == "d10":
-                        result = arm_d10(ctx, args.rounds)
-                    elif arm == "d11a":
-                        result = arm_d11a(ctx, args.rounds)
-                    elif arm == "d11b":
-                        result = arm_d11b(ctx, args.rounds)
-                    elif arm in ("d11c", "d12"):
-                        if page_hook is None:
-                            result = not_available(arm, "S-3 (tools/v21_page_hook.py, Agent M) is not there yet")
-                        else:
-                            import v21_item1_sdk_arms as sdk_arms
-                            result = sdk_arms.run(ctx, arm, args.rounds)
-                    elif arm == "d5w":
-                        result = arm_d5w(ctx, args.rounds)
-                    elif arm in ("xlc", "table"):
-                        result = arm_record(ctx, args.rounds, arm)
-                    else:
-                        result = arm_d6(ctx, args.rounds)
+                    result = run_arm(ctx, arm, args, page_hook)
                 except Exception as error:  # noqa: BLE001
                     result = {"arm": arm, "runnerError": f"{type(error).__name__}: {error}",
                               "trace": traceback.format_exc()[-2000:]}

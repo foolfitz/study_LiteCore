@@ -1,11 +1,20 @@
 #!/usr/bin/env python3
-"""The judge of the v21 shakedown, item 1 (ARMS-item1.md, rulings §8; ARMS.md §2; spec §11.1, §12.2).
+"""The judge of the v21 shakedown, item 1 (ARMS-item1.md, rulings §8; ARMS.md §2; spec §11.1, §12.2, §12.3).
 
 Reads every `report-*.json` in a directory (what `run_v21_shakedown_item1.py` wrote) and the saved
 documents beside them, and prints one verdict per criterion per browser: PASS, FAIL or NOT_ESTABLISHED,
 with every failing line named.  Exit 0 only when every judged criterion PASSes on both browsers and none
-is missing.  Records (D6, R-xlc, R-table) are printed, never judged.  D2 (host), D5's unit half, D12's unit
-half and D13 are not judged here (they are other tools' or other runs').
+is missing.  Records (D6, R-xlc, R-table) are printed, never judged; D6 is printed 「未量」 when no round of
+it was measured (spec §12.3 (e): item 2 is not shipped, so the dialog D6 needs has no entry).  D2 (host),
+D5's unit half, D12's unit half and D13 are not judged here (they are other tools' or other runs').
+
+Spec §12.3 (2026-10-17, before any evidence run):
+  * D11b dirty, (b): 22/23 take no checkpoint -- no `save` before Ctrl+End or Ctrl+Home, `dirty` stays
+    true, `#s-checkpoint` reads 「無」.  Replaces ARMS-item1.md D11b's "exactly one checkpoint save".
+  * D14, (c): dirty plain3 and long60, Ctrl+End, Q typed <= 30 ms after its keydown lands at the
+    document end (the S-7 adapter's last body paragraph's end); N/N per fixture.
+  * E0, (e): the item-2 entry is hidden at every arm's start state in every report (the 0.2.24 page of
+    D8's red case is not the final shell and is not read).
 
 Rules the judge enforces before reading a cell:
   * `--expect-page` is required; a report whose served v21 page differs is refused (the declared
@@ -37,11 +46,14 @@ import v21_item1_population as population  # noqa: E402
 PASS, FAIL, NE = "PASS", "FAIL", "NOT_ESTABLISHED"
 BROWSERS = ("chrome", "firefox")
 PAGE_V21 = "3d5112161b23b060b2057a25bbbeb7cbc96628cde67e3e5c3c0dab92b435b5c5"
-CRITERIA = ("D1", "D2p", "D4", "D5w", "D7", "D8", "D9", "D10", "D11a", "D11b", "D11c", "D12")
+CRITERIA = ("D1", "D2p", "D4", "D5w", "D7", "D8", "D9", "D10", "D11a", "D11b", "D11c", "D12", "D14", "E0")
 RECORDS = ("D6", "R-xlc", "R-table")
 ARM_OF = {"D1": "d1", "D4": "d1", "D7": "d1", "D2p": "d2p", "D5w": "d5w", "D8": "d8", "D9": "d9", "D10": "d10",
-          "D11a": "d11a", "D11b": "d11b", "D11c": "d11c", "D12": "d12"}
+          "D11a": "d11a", "D11b": "d11b", "D11c": "d11c", "D12": "d12", "D14": "d14"}   # E0 reads every arm
 D14_FIXTURES = ("plain3", "long60")
+D14_DIRTY, D14_MARKER = "Z", "Q"     # diag-dirty-move V1/V4's characters; neither occurs in either fixture
+D14_WINDOW_MS = 30.0                 # spec §12.3 (c) 「30 ms 內」, read on the page's own keydown times
+E0_NOT_FINAL_SHELL = ("dist0224",)   # D8's 0.2.24 red-case page
 D6_NOT_RUNNABLE = "not runnable: item 2 not shipped (spec §12.3 (e))"
 ASK7_WINDOW = (450.0, 550.0)
 SILENT_LIMIT_MS = 500.0
@@ -595,17 +607,26 @@ def judge_d11b(result: dict, rounds: int) -> tuple[str, list[str]]:
             else:
                 verdicts.append(PASS)
         else:
+            # Spec §12.3 (b), replacing ARMS-item1.md D11b's "exactly one save before the first move":
+            # 22/23 take no checkpoint, so no `save` before Ctrl+End or Ctrl+Home, `dirty` stays true and
+            # `#s-checkpoint` stays 「無」.
             if rec.get("unsavedAfterTyping") != "true":
                 verdicts.append(NE)
                 lines.append(f"{tag}: dirty read false after typing: the read is blind")
                 continue
             moves = [i for i, op in enumerate(ops) if op == "editorActionV2"]
-            saves = [i for i, op in enumerate(ops) if op == "save"]
-            before_first = [i for i in saves if moves and i < moves[0]]
-            between = [i for i in saves if len(moves) > 1 and moves[0] < i < moves[1]]
-            if len(before_first) != 1 or between or not presses[0].get("checkpoint", "").startswith("有（r1"):
+            if len(moves) < 2:
+                verdicts.append(NE)
+                lines.append(f"{tag}: {len(moves)} move request(s) in the log: 'no save before a move' would be vacuous")
+                continue
+            saves = [i for i, op in enumerate(ops) if op == "save" and i < moves[1]]
+            if saves:
                 verdicts.append(FAIL)
-                lines.append(f"{tag}: requests {ops}, checkpoint {[p.get('checkpoint') for p in presses]}")
+                which = "Ctrl+End" if saves[0] < moves[0] else "Ctrl+Home"
+                lines.append(f"{tag}: a checkpoint save before {which} (spec §12.3 (b)): requests {ops}")
+            elif any(p.get("checkpoint") != "無" for p in presses):
+                verdicts.append(FAIL)
+                lines.append(f"{tag}: #s-checkpoint {[p.get('checkpoint') for p in presses]}, not 「無」")
             elif any(p.get("unsavedAfter") != "true" for p in presses):
                 verdicts.append(FAIL)
                 lines.append(f"{tag}: dirty lost after a move")
@@ -741,6 +762,131 @@ def judge_d5w(result: dict, rounds: int) -> tuple[str, list[str]]:
 
 # ------------------------------------------------------------------ records (printed, never judged)
 
+def d14_class(raw: bytes) -> str:
+    """Where D14's marker landed, read through the S-7 adapter (`marker.paragraphs_of`): the document end
+    (the last body paragraph's end), the pre-move caret (right after the dirtying character at the
+    start), or elsewhere.  The class words are the ones diag-dirty-move's `q_class` printed for V1/V4."""
+    try:
+        paras = marker.paragraphs_of(raw)
+    except Exception as error:  # noqa: BLE001 -- the parser's own message is the payload
+        return f"unreadable: {type(error).__name__}: {error}"
+    body = [t for p, _, t in paras if p == "body"]
+    hits = [(p, i, off) for p, i, t in paras for off, c in enumerate(t) if c == D14_MARKER]
+    if len(hits) != 1:
+        return f"{len(hits)} markers in the saved document"
+    part, _, _ = hits[0]
+    if part != "body":
+        return f"elsewhere: in the {part} part"
+    index, offset = next((i, off) for i, t in enumerate(body) for off, c in enumerate(t) if c == D14_MARKER)
+    if index == len(body) - 1 and offset == len(body[-1]) - 1:
+        return "document end"
+    if index == 0 and body[0][:offset] == D14_DIRTY:
+        return "pre-move caret"
+    return f"elsewhere: body {index} offset {offset} {body[index][:40]!r}"
+
+
+def _d14_recorded(log: list[dict], end_kd: dict | None) -> str:
+    """Recorded, not judged (spec §12.3 (c) judges only the landing): the move's completion and time,
+    and the request order."""
+    move = next((e for e in log if e.get("k") == "rs" and e.get("action") == "move-document-end"), None)
+    order = [e.get("action") or e.get("op") for e in log if e.get("k") == "rq" and not e.get("ask")]
+    if move is None:
+        return f"move: no reply; order {order}"
+    round_trip = round(move["t"] - move["tRq"], 1) if "t" in move and "tRq" in move else None
+    after_key = round(move["t"] - end_kd["t"], 1) if end_kd and "t" in move else None
+    return (f"move {move.get('completion') or move.get('code')} round trip {round_trip} ms, reply {after_key} ms "
+            f"after Ctrl+End's keydown; order {' > '.join(map(str, order))}")
+
+
+def judge_d14_round(rec: dict, docs: Docs) -> tuple[str, str]:
+    if rec.get("outcome") != "done":
+        return NE, f"{rec.get('outcome')}: {str(rec.get('error'))[:100]}"
+    typed = ((rec.get("typed") or {}).get("response") or {})
+    if not typed.get("ok") or rec.get("unsavedAfterTyping") != "true":
+        return NE, (f"the document was not dirty before the move (typed {typed.get('ok')}, "
+                    f"unsaved {rec.get('unsavedAfterTyping')!r})")
+    log = rec.get("log", [])
+    end_kd = next((e for e in log if e.get("k") == "kd" and e.get("key") == "End" and e.get("ctrl")), None)
+    mark_kd = next((e for e in log if e.get("k") == "kd" and e.get("key") == D14_MARKER), None)
+    recorded = _d14_recorded(log, end_kd)
+    if end_kd is None or mark_kd is None:
+        return NE, f"no keydown for {'Ctrl+End' if end_kd is None else D14_MARKER} on the page; {recorded}"
+    gap = round(mark_kd["t"] - end_kd["t"], 1)
+    if not 0 < gap <= D14_WINDOW_MS:
+        return NE, (f"{D14_MARKER} {gap} ms after Ctrl+End's keydown: the arm did not test the "
+                    f"<= {D14_WINDOW_MS:g} ms window; {recorded}")
+    raw = docs.read(rec.get("save"))
+    if raw is None:
+        return NE, f"no saved document; {recorded}"
+    where = d14_class(raw)
+    if where.startswith("unreadable"):
+        return FAIL, f"{where}; {recorded}"
+    texts = [t for _, _, t in marker.paragraphs_of(raw)]
+    body0 = next((t for p, _, t in marker.paragraphs_of(raw) if p == "body"), "")
+    if sum(t.count(D14_DIRTY) for t in texts) != 1 or not body0.startswith(D14_DIRTY):
+        return NE, f"the dirtying {D14_DIRTY} is not (only) at the document start: {body0[:40]!r}; {recorded}"
+    if where != "document end":
+        return FAIL, f"{D14_MARKER} at the {where} ({gap} ms after Ctrl+End); {recorded}"
+    return PASS, f"{D14_MARKER} at the document end, {gap} ms after Ctrl+End; {recorded}"
+
+
+def judge_d14(result: dict, docs: Docs, rounds: int) -> tuple[str, list[str]]:
+    lines, verdicts = [], []
+    for fixture in D14_FIXTURES:
+        cell = []
+        for rec in [r for r in result.get("rounds", []) if r.get("fixture") == fixture]:
+            verdict, why = judge_d14_round(rec, docs)
+            cell.append(verdict)
+            lines.append(f"{fixture} r{rec.get('round')}: {verdict}: {why}")
+        established = len([v for v in cell if v != NE])
+        if established < rounds and FAIL not in cell:
+            cell.append(NE)
+            lines.append(f"{fixture}: {established} of {rounds} round(s) established")
+        verdicts.append(worst(cell))
+    return worst(verdicts), lines
+
+
+def judge_e0(reports: list[dict]) -> tuple[str, list[str]]:
+    """Spec §12.3 (e): the item-2 entry is hidden at every arm's start state, in every report."""
+    if not reports:
+        return NE, ["no report"]
+    lines, verdicts = [], []
+    for report in reports:
+        name = ",".join(report.get("arms") or sorted((report.get("results") or {}).keys()))
+        reads, missing = [], 0
+        for arm, result in (report.get("results") or {}).items():
+            for rec in (result or {}).get("rounds", []) or []:
+                start = rec.get("start") if isinstance(rec, dict) else None
+                if not isinstance(start, dict):
+                    continue
+                entry = start.get("entry")
+                if entry is None:
+                    missing += rec.get("outcome") == "done"
+                    continue
+                if entry.get("variant") not in E0_NOT_FINAL_SHELL:
+                    reads.append((f"{arm} r{rec.get('round')}", entry))
+        if not reads:
+            verdicts.append(NE)
+            lines.append(f"[{name}]: no entry read on the final shell")
+            continue
+        shown = [(w, e) for w, e in reads if (e.get("exists") and e.get("hidden") is not True) or e.get("visibleOpeners")]
+        blind = [w for w, e in reads if e.get("controlVisible") is not True]
+        if shown:
+            verdicts.append(FAIL)
+            lines += [f"[{name}] {w}: entry exists {e.get('exists')} hidden {e.get('hidden')}, visible openers "
+                      f"{e.get('visibleOpeners')}" for w, e in shown[:6]]
+        elif blind or missing:
+            verdicts.append(NE)
+            lines.append(f"[{name}]: {len(blind)} read(s) where the control button reads not visible (the read is "
+                         f"blind), {missing} done round(s) without the read")
+        else:
+            verdicts.append(PASS)
+            variants = sorted({e.get("variant") for _, e in reads})
+            exists = sorted({bool(e.get("exists")) for _, e in reads})
+            lines.append(f"[{name}]: hidden in {len(reads)} read(s) on {variants}; the button exists {exists}")
+    return worst(verdicts), lines
+
+
 def d6_class(raw: bytes) -> str:
     """Where D6's marker landed: the document end (plain3's last paragraph end), the paste end (the
     start of the original first paragraph, after the pasted blocks), or elsewhere."""
@@ -811,6 +957,7 @@ def judge_reports(reports: list[dict], docs: Docs, expect_page: str | None, roun
     if smoke and not smoke_preview:
         return 2, [f"refused: {len(smoke)} report(s) are smokes (development runs), never judged as evidence"]
     cells: dict[tuple[str, str], list] = {}
+    accepted = []
     for report in reports:
         browser = report.get("browser")
         pages = report.get("pages") or {}
@@ -818,6 +965,7 @@ def judge_reports(reports: list[dict], docs: Docs, expect_page: str | None, roun
         if v21 is not None and v21 != expect_page:
             out.append(f"refused report ({browser}, {report.get('arms')}): served page {v21[:16]} is not {expect_page[:16]}")
             continue
+        accepted.append(report)
         for variant, identity in pages.items():
             if variant == "v20" and identity.get("profile") != "e2-editor-v20":
                 out.append(f"refused report ({browser}): the v20 page is not on e2-editor-v20")
@@ -831,6 +979,9 @@ def judge_reports(reports: list[dict], docs: Docs, expect_page: str | None, roun
                 return "DUPLICATE"
             return got[0] if got else None
         for criterion in CRITERIA:
+            if criterion == "E0":
+                verdicts[(criterion, browser)] = judge_e0([r for r in accepted if r.get("browser") == browser])
+                continue
             result = one(ARM_OF[criterion])
             if result == "DUPLICATE":
                 verdicts[(criterion, browser)] = (FAIL, ["two reports for one (browser, arm)"])
@@ -864,10 +1015,19 @@ def judge_reports(reports: list[dict], docs: Docs, expect_page: str | None, roun
                 verdicts[(criterion, browser)] = judge_d12(result, docs, rounds)
             elif criterion == "D5w":
                 verdicts[(criterion, browser)] = judge_d5w(result, rounds)
+            elif criterion == "D14":
+                verdicts[(criterion, browser)] = judge_d14(result, docs, rounds)
     label = "SMOKE (not evidence) " if smoke else ""
     for report in reports:
         for line in records(report.get("results") or {}, docs):
             out.append(f"{label}record {report.get('browser')}: {line}")
+    for browser in BROWSERS:
+        # D6's pinned default for a record: 「未量，不做任何排序宣稱」.  Spec §12.3 (e): no entry, so no D6.
+        d6 = cells.get((browser, "d6"), [])
+        if not any(x.get("outcome") == "done" for r in d6 for x in r.get("rounds", [])):
+            why = next((r.get("notRun") or r.get("runnerError") for r in d6 if r.get("notRun") or r.get("runnerError")),
+                       None) or "no D6 report"
+            out.append(f"{label}record {browser}: D6 未量 ({why}); default 「未量，不做任何排序宣稱」")
     failing = 0
     for criterion in CRITERIA:
         for browser in BROWSERS:
@@ -1270,6 +1430,9 @@ def mutations(docs: Docs) -> list[tuple[str, str, str, object]]:
     def m_d11b_dirty_lost(r):
         dirty(r)["presses"] = [dirty(r)["presses"][0], dict(dirty(r)["presses"][1], unsavedAfter="false")]
 
+    def m_d11b_dirty_no_moves(r):
+        dirty(r)["requests"] = [q for q in dirty(r)["requests"] if q["op"] != "editorActionV2"]
+
     def d14r(r, fixture):
         return next(x for x in r[0]["results"]["d14"]["rounds"] if x["fixture"] == fixture)
 
@@ -1296,6 +1459,17 @@ def mutations(docs: Docs) -> list[tuple[str, str, str, object]]:
 
     def m_d14_clean(r):
         d14r(r, "plain3")["unsavedAfterTyping"] = "false"
+
+    def m_d14_unreadable(r):
+        f = d14r(r, "plain3")["save"]["file"]
+        docs.memory[f] = _rezip(docs.memory[f], lambda m: m.pop("content.xml"))
+
+    def m_d14_no_dirty_char(r):
+        docs.memory[d14r(r, "plain3")["save"]["file"]] = _plain3_odt(["Alpha first paragraph", "Bravo second paragraph",
+                                                                       "Charlie third paragraphQ"])
+
+    def m_d14_no_keydown(r):
+        d14r(r, "long60")["log"] = [e for e in d14r(r, "long60")["log"] if e.get("k") != "kd"]
 
     def entries(r, arm):
         return [x["start"]["entry"] for x in r[0]["results"][arm]["rounds"]]
@@ -1382,6 +1556,7 @@ def mutations(docs: Docs) -> list[tuple[str, str, str, object]]:
         ("D11b dirty: #s-checkpoint not 無", "D11b", FAIL, m_d11b_dirty_checkpoint_shown),
         ("D11b dirty: dirty lost after a move", "D11b", FAIL, m_d11b_dirty_lost),
         ("D11b dirty read blind", "D11b", NE, m_d11b_blind),
+        ("D11b dirty: no move request in the log", "D11b", NE, m_d11b_dirty_no_moves),
         ("D11c move refused as stale", "D11c", FAIL, m_d11c_stale), ("D11c the two moves differ", "D11c", FAIL, m_d11c_differ),
         ("D11c mutating control not stale", "D11c", NE, m_d11c_control),
         ("D12 a range call completes", "D12", FAIL, m_d12_completes), ("D12 selection changed", "D12", FAIL, m_d12_selection),
@@ -1395,6 +1570,9 @@ def mutations(docs: Docs) -> list[tuple[str, str, str, object]]:
         ("D14 marker 30.5 ms after Ctrl+End", "D14", NE, m_d14_late),
         ("D14 marker keydown before Ctrl+End's", "D14", NE, m_d14_before),
         ("D14 the document not dirty", "D14", NE, m_d14_clean),
+        ("D14 the saved document unreadable (no content.xml)", "D14", FAIL, m_d14_unreadable),
+        ("D14 the dirtying Z not in the saved document", "D14", NE, m_d14_no_dirty_char),
+        ("D14 no keydown on the page", "D14", NE, m_d14_no_keydown),
         ("E0 the entry visible in a report", "E0", FAIL, m_e0_visible),
         ("E0 another visible control opens the dialog", "E0", FAIL, m_e0_other_opener),
         ("E0 a report with no entry read", "E0", NE, m_e0_no_read),
