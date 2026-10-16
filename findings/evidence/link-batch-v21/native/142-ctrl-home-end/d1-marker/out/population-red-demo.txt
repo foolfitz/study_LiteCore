@@ -1,0 +1,37 @@
+## 1. unknown step X9 in a1-home-mid
+exit 1 (want 1); line containing "unknown step kind 'X9'": ["- a1-home-mid: unknown step kind 'X9'"]
+tail:
+  - q-home-bksp-at-num: Q (Qch+bksp=9220+1283@1024); bksp (Qch+bksp=9220+1283@1024); no-ctrl (no M…=9220|9221 press; Ctrl codes inside B/Q pairs do not count)
+  
+  RED:
+  - a1-home-mid: unknown step kind 'X9'
+-> as stated
+
+## 2. only the OUT arms kept
+exit 1 (want 1); line containing 'zero arms IN': ['- zero arms IN']
+tail:
+  - q-home-bksp-at-num: Q (Qch+bksp=9220+1283@1024); bksp (Qch+bksp=9220+1283@1024); no-ctrl (no M…=9220|9221 press; Ctrl codes inside B/Q pairs do not count)
+  
+  RED:
+  - zero arms IN
+-> as stated
+
+## 3. fictional arm with only product steps appended
+exit 0 (want 0); line containing '- fictional-new-arm [plain3]': ['- fictional-new-arm [plain3]: k1024,k1027x3,Mce=9221,L  ->  D1 script k1024,k1027x3,Mce=9221,T,S,L']
+tail:
+  - b2b-home-bksp-at-num: B (Bch+bksp=9220+1283); bksp (Bch+bksp=9220+1283); no-ctrl (no M…=9220|9221 press; Ctrl codes inside B/Q pairs do not count)
+  - q-home-bksp-at-num: Q (Qch+bksp=9220+1283@1024); bksp (Qch+bksp=9220+1283@1024); no-ctrl (no M…=9220|9221 press; Ctrl codes inside B/Q pairs do not count)
+  
+  GREEN: 39 IN, 43 OUT, 82 total; no unknown step
+-> as stated
+
+## 4. fictional arm with a u. step appended
+exit 0 (want 0); line containing '- fictional-uno-arm: u. (u.uno:GoDown)': ['- fictional-uno-arm: u. (u.uno:GoDown)']
+tail:
+  - q-home-bksp-at-num: Q (Qch+bksp=9220+1283@1024); bksp (Qch+bksp=9220+1283@1024); no-ctrl (no M…=9220|9221 press; Ctrl codes inside B/Q pairs do not count)
+  - fictional-uno-arm: u. (u.uno:GoDown)
+  
+  GREEN: 38 IN, 44 OUT, 82 total; no unknown step
+-> as stated
+
+ALL AS STATED

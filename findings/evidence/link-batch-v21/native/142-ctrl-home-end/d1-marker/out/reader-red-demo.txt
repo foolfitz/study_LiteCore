@@ -1,0 +1,24 @@
+## 0. unbroken copy
+change: none
+reader exit 0 (want 0)
+  GREEN: 38 D1 arms + 2 controls x 3 rounds; every run 3/3; exactly one marker per saved document; in-process locator and the 142 locator agree; controls differ
+-> as stated
+
+## 1. marker moved by one character
+change: a1-home-mid/r2.fodt.gz: 'ZAlpha' -> 'AZlpha' (one byte pair swapped, XML still valid)
+reader exit 1 (want 1)
+  RED:
+  - a1-home-mid r2: in-process locator ('Z', 'Alpha first paragraph') does not split 'AZlpha first paragraph' right after the marker
+  - a1-home-mid: rounds disagree or incomplete (2/3, 3 complete)
+  - a1-home-mid: marker landing differs from the 142 locator: DIFFERS: 142 [('', 'Alpha first paragraph')] vs D1 [('', 'Alpha first paragraph'), ('A', 'lpha first paragraph')]
+-> as stated
+
+## 2. saved XML truncated
+change: t-home-B2-n1/r3.fodt.gz: last 200 of 33511 bytes removed
+reader exit 1 (want 1)
+  RED:
+  - t-home-B2-n1 r3: saved file unreadable: ParseError: unclosed token: line 351, column 6
+  - t-home-B2-n1: rounds disagree or incomplete (2/3, 2 complete)
+-> as stated
+
+ALL AS STATED
