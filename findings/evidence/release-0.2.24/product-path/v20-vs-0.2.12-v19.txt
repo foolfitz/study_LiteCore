@@ -1,0 +1,29 @@
+Descriptive: old = v19 reports in findings/evidence/release-0.2.12/product-path, new = v20 reports in findings/evidence/release-0.2.24/product-path; 3 rounds per arm
+
+chrome: old entrypoints ['8909564eb2316afa'], new entrypoints ['901dd6a6dbff6ad6']
+  42 cells, 0 differ, 0 where the old page passed every round and the new did not
+
+firefox: old entrypoints ['8909564eb2316afa'], new entrypoints ['901dd6a6dbff6ad6']
+  42 cells, 1 differ, 1 where the old page passed every round and the new did not
+    DIFF recovery-returns-what-the-product-promised: old v19 3 PASS | new v20 2 PASS, 1 NE
+    WORSE recovery-returns-what-the-product-promised: old v19 3 PASS | new v20 2 PASS, 1 NE
+
+cells where old passed every round and new did not: 1
+
+## the same comparison on 0.2.23's committed v20 reports (5793ff2d), for reference
+chrome: old entrypoints ['8909564eb2316afa'], new entrypoints ['ccb67a52a3fe4b73']
+  42 cells, 0 differ, 0 where the old page passed every round and the new did not
+
+firefox: old entrypoints ['8909564eb2316afa'], new entrypoints ['ccb67a52a3fe4b73']
+  42 cells, 1 differ, 0 where the old page passed every round and the new did not
+    DIFF clear-format-removes-every-inline-format: old v19 3 NE | new v20 1 PASS, 2 NE
+
+cells where old passed every round and new did not: 0
+
+## the cell across the committed nets (firefox recovery-returns-what-the-product-promised, rounds r1 r2 r3)
+0.2.12 v8 PASS(038:True) PASS(038:True) PASS(038:True) 
+0.2.12 v19 PASS(038:True) PASS(038:True) PASS(038:True) 
+0.2.23 v8 NOT_ESTABLISHED(038:False) PASS(038:True) PASS(038:True) 
+0.2.23 v20 PASS(038:True) PASS(038:True) PASS(038:True) 
+0.2.24 v8 PASS(038:True) PASS(038:True) NOT_ESTABLISHED(038:False) 
+0.2.24 v20 PASS(038:True) PASS(038:True) NOT_ESTABLISHED(038:False) 

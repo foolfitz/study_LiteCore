@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **狀態** | **已修（未計數候選）**（2026-10-15）：頁面 `901dd6a6…`、殼層 v73、宿主 0.2.24（`1479e56`，引擎包 `d3cd39bbc71ec311`）；U1／U2、N1 通過。完整計數鏈已備妥、等擁有者同意時段。**使用者的路尚未量**（手測待擁有者）。 |
+| **狀態** | **已修、已計數**（2026-10-16）：頁面 `901dd6a6…`、殼層 v73、宿主 0.2.24（`1479e56`，引擎包 `d3cd39bbc71ec311`）；U1／U2、N1 通過；**H1：0.2.24 的完整計數鏈成立**，merge 計數兩個瀏覽器全 PASS（`findings/evidence/m3-production-ui/RESULT-0.2.24.md`）。**使用者的路尚未量**（手測待擁有者）。 |
 | **影響版本** | 宿主 0.2.21、0.2.22、0.2.23（頁面自 `2b647fcb`，finding 141 的修法起）。0.2.20 以前沒有。 |
 | **所在** | `web/e2-editor-app.js` `settleDelete`（`:2732–2739`）：`if (send.document !== session?.document) return;` 在 `deletesUnanswered -= 1` **之前** return。被拒絕的刪除會觸發重新開檔（`reopenAfterBoundaryRefusal`，`:1912`），重新開檔產生新的 DOCUMENT 物件，於是那筆「未回答」永遠扣不掉。 |
 | **發現日** | 2026-10-15，0.2.23 計數鏈的 merge 計數（`judge_counted_m2.py` `VERDICT FAIL`）。 |
@@ -40,6 +40,7 @@ merge 計數的 M2-1、M2-3（chrome C17 r3）、red（C03 被扣住所以沒有
   - `--mode m2-1-red`（v8）：C01、C02、C03 三案都被拒絕並重新開檔；
   - `evidence/145/leak_model.py` 在 N1 的 counted 報告上**不吻合**，反例模型 `leak_model_counter.py` **78/78 吻合**。
 - **H1**：裝上 0.2.24 之後的完整計數鏈，就是有約束力的那一道。
+  - **結果（2026-10-16）**：鏈 `20261015T164456Z` 跑到 `DONE`、身分前後一致；`judge_counted_m2.py --profile e2-editor-v20` `VERDICT PASS`——兩個瀏覽器的 M2-1 60/60、M2-3 15/15、barrier 3/3、M2-2 60 筆、control 78 對 differ 0、M2-1b 20/20、M2-4、red C01–C03、M2-0 全 PASS（`findings/evidence/release-0.2.24/merge-m2/judge-output.txt`）。在 0.2.23 判 FAIL 的那一組子句，在宿主服務的頁面上、計數的桌面上轉綠。
 
 **N1 結果（`evidence/145/n1/README.md`）**：兩個瀏覽器的 M2-1、M2-2、M2-3、barrier、red 全 PASS；漏帳模型 36 筆不吻合、反例模型 78/78——判準全部滿足。
 
@@ -53,3 +54,4 @@ merge 計數的 M2-1、M2-3（chrome C17 r3）、red（C03 被扣住所以沒有
 |---|---|
 | 2026-10-15 | 登錄。主 session（opus）讀原始碼、寫模型、對報告逐筆驗證。 |
 | 2026-10-15 | 修法 `f7887ced`；U1／U2 在舊頁面紅、新頁面綠；N1 通過（`3ee2bf60`；過程中三個 run 被主 session 自己改工具弄壞，已重跑並保留）；凍結 v73（`2c3c6ed5`）；宿主 0.2.24 安裝、存檔、換 pin（`a8b5ff33`）；0.2.24 計數鏈備妥（`1ecdf6c5`）。 |
+| 2026-10-16 | 狀態改為「已修、已計數」：0.2.24 計數成立（H1，`RESULT-0.2.24.md`）。使用者的路仍未量。 |
