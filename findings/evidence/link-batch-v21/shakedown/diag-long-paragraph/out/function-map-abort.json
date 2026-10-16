@@ -1,0 +1,1168 @@
+{
+ "argv": [
+  "wasm_sdk_probe/dist/profiles/e2-editor-v21/probe.wasm",
+  "--ref",
+  "wasm_sdk_probe/build/e2/preguard-profiling/probe.wasm",
+  "--ref",
+  "wasm_sdk_probe/build/e2/wait-diagnostic/probe.wasm",
+  "--out",
+  "findings/evidence/link-batch-v21/shakedown/diag-long-paragraph/out/function-map-abort.json",
+  "117863@52435002",
+  "114@547242",
+  "3710@1627508",
+  "120772@53282227",
+  "21388@10015922",
+  "83@537837",
+  "5551@2619358",
+  "91105@45526970",
+  "90443@45474046"
+ ],
+ "tool_sha256": "57cd7fda4fd593d1d23eccf04083d8439dc4881b80066990ba372043f88070b4",
+ "target": {
+  "path": "wasm_sdk_probe/dist/profiles/e2-editor-v21/probe.wasm",
+  "sha256": "db3408f55316bf67345258ce9f7cb58a1cb3777c9aabb9f7790bee69e1599f30",
+  "size": 115314060,
+  "functions": 149556,
+  "imported": 82,
+  "custom_sections": [],
+  "has_name_section": false
+ },
+ "frames": [
+  {
+   "index": 117863,
+   "offset": 52435002,
+   "body": [
+    52435002,
+    52435004
+   ],
+   "offset_in_body": true,
+   "instruction_boundary": true,
+   "ordinal": 0,
+   "instruction": {
+    "opcode": "0x00",
+    "loose_immediates": "()",
+    "strict_extra": "None"
+   }
+  },
+  {
+   "index": 114,
+   "offset": 547242,
+   "body": [
+    547242,
+    547246
+   ],
+   "offset_in_body": true,
+   "instruction_boundary": true,
+   "ordinal": 0,
+   "instruction": {
+    "op": "call",
+    "callee": 78,
+    "sig": ">"
+   },
+   "calls_inner_frame": false
+  },
+  {
+   "index": 3710,
+   "offset": 1627508,
+   "body": [
+    1627508,
+    1627512
+   ],
+   "offset_in_body": true,
+   "instruction_boundary": true,
+   "ordinal": 0,
+   "instruction": {
+    "op": "call",
+    "callee": 114,
+    "sig": ">"
+   },
+   "calls_inner_frame": true
+  },
+  {
+   "index": 120772,
+   "offset": 53282227,
+   "body": [
+    53282044,
+    53282317
+   ],
+   "offset_in_body": true,
+   "instruction_boundary": true,
+   "ordinal": 77,
+   "instruction": {
+    "op": "call",
+    "callee": 3710,
+    "sig": "ii>"
+   },
+   "calls_inner_frame": true
+  },
+  {
+   "index": 21388,
+   "offset": 10015922,
+   "body": [
+    10015912,
+    10015965
+   ],
+   "offset_in_body": true,
+   "instruction_boundary": true,
+   "ordinal": 5,
+   "instruction": {
+    "op": "call_indirect",
+    "callee": null,
+    "sig": ">"
+   },
+   "calls_inner_frame": "indirect",
+   "inner_frame_sig_matches": true
+  },
+  {
+   "index": 83,
+   "offset": 537837,
+   "body": [
+    537776,
+    537854
+   ],
+   "offset_in_body": true,
+   "instruction_boundary": true,
+   "ordinal": 30,
+   "instruction": {
+    "op": "call",
+    "callee": 21388,
+    "sig": "i>"
+   },
+   "calls_inner_frame": true
+  },
+  {
+   "index": 5551,
+   "offset": 2619358,
+   "body": [
+    2619296,
+    2619368
+   ],
+   "offset_in_body": true,
+   "instruction_boundary": true,
+   "ordinal": 28,
+   "instruction": {
+    "op": "call",
+    "callee": 83,
+    "sig": ">"
+   },
+   "calls_inner_frame": true
+  },
+  {
+   "index": 91105,
+   "offset": 45526970,
+   "body": [
+    45525887,
+    45528235
+   ],
+   "offset_in_body": true,
+   "instruction_boundary": true,
+   "ordinal": 443,
+   "instruction": {
+    "op": "call",
+    "callee": 5551,
+    "sig": "ii>"
+   },
+   "calls_inner_frame": true
+  },
+  {
+   "index": 90443,
+   "offset": 45474046,
+   "body": [
+    45473874,
+    45474106
+   ],
+   "offset_in_body": true,
+   "instruction_boundary": true,
+   "ordinal": 70,
+   "instruction": {
+    "op": "call_indirect",
+    "callee": null,
+    "sig": "i>"
+   },
+   "calls_inner_frame": "indirect",
+   "inner_frame_sig_matches": true
+  }
+ ],
+ "references": [
+  {
+   "path": "wasm_sdk_probe/build/e2/preguard-profiling/probe.wasm",
+   "sha256": "e05fd156180e205037990591bab4d94b4199b8d378a970795d0a0aa8ff7365ca",
+   "size": 130124466,
+   "functions": 149507,
+   "imported": 82,
+   "named_functions": 146987,
+   "map": {
+    "117863": {
+     "shortlist": 103,
+     "confidence": "exact-unique",
+     "ref": [
+      {
+       "index": 77913,
+       "name": "undefined_weak:thread-local initialization routine for pNoteURL",
+       "demangled": "undefined_weak:thread-local initialization routine for pNoteURL"
+      }
+     ],
+     "by": "loose",
+     "strict_agrees": true,
+     "deep_agrees": true,
+     "reverse": {
+      "level": "loose",
+      "target_hits": [
+       117863
+      ],
+      "unique": true
+     }
+    },
+    "114": {
+     "shortlist": 104,
+     "loose_hits": [
+      {
+       "index": 114,
+       "name": "abort"
+      },
+      {
+       "index": 55287,
+       "name": "__throw_bad_alloc_shim()"
+      }
+     ],
+     "confidence": "exact-ambiguous",
+     "ref": [
+      {
+       "index": 114,
+       "name": "abort",
+       "demangled": "abort"
+      },
+      {
+       "index": 55287,
+       "name": "__throw_bad_alloc_shim()",
+       "demangled": "__throw_bad_alloc_shim()"
+      }
+     ],
+     "by": "strict"
+    },
+    "3710": {
+     "shortlist": 15900,
+     "confidence": "exact-unique",
+     "ref": [
+      {
+       "index": 3650,
+       "name": "icu_78::number::impl::MutablePatternModifier::getParameters(icu_78::number::impl::Modifier::Parameters&) const",
+       "demangled": "icu_78::number::impl::MutablePatternModifier::getParameters(icu_78::number::impl::Modifier::Parameters&) const"
+      }
+     ],
+     "by": "loose",
+     "strict_agrees": true,
+     "deep_agrees": true,
+     "reverse": {
+      "level": "loose",
+      "target_hits": [
+       3710
+      ],
+      "unique": true
+     }
+    },
+    "120772": {
+     "shortlist": 13,
+     "confidence": "exact-unique",
+     "ref": [
+      {
+       "index": 117842,
+       "name": "demangling_terminate_handler()",
+       "demangled": "demangling_terminate_handler()"
+      }
+     ],
+     "by": "loose",
+     "strict_agrees": true,
+     "deep_agrees": true,
+     "reverse": {
+      "level": "loose",
+      "target_hits": [
+       120772
+      ],
+      "unique": true
+     }
+    },
+    "21388": {
+     "shortlist": 2772,
+     "confidence": "exact-unique",
+     "ref": [
+      {
+       "index": 19285,
+       "name": "std::__terminate(void (*)())",
+       "demangled": "std::__terminate(void (*)())"
+      }
+     ],
+     "by": "loose",
+     "strict_agrees": true,
+     "deep_agrees": true,
+     "reverse": {
+      "level": "loose",
+      "target_hits": [
+       21388
+      ],
+      "unique": true
+     }
+    },
+    "83": {
+     "shortlist": 26,
+     "confidence": "exact-unique",
+     "ref": [
+      {
+       "index": 83,
+       "name": "std::terminate()",
+       "demangled": "std::terminate()"
+      }
+     ],
+     "by": "loose",
+     "strict_agrees": true,
+     "deep_agrees": true,
+     "reverse": {
+      "level": "loose",
+      "target_hits": [
+       83
+      ],
+      "unique": true
+     }
+    },
+    "5551": {
+     "shortlist": 2394,
+     "confidence": "exact-unique",
+     "ref": [
+      {
+       "index": 5412,
+       "name": "std::__2::condition_variable::wait(std::__2::unique_lock<std::__2::mutex>&)",
+       "demangled": "std::__2::condition_variable::wait(std::__2::unique_lock<std::__2::mutex>&)"
+      }
+     ],
+     "by": "loose",
+     "strict_agrees": true,
+     "deep_agrees": true,
+     "reverse": {
+      "level": "loose",
+      "target_hits": [
+       5551
+      ],
+      "unique": true
+     }
+    },
+    "91105": {
+     "shortlist": 0,
+     "confidence": "none",
+     "ref": [],
+     "near": {
+      "shortlist": 499,
+      "best": [
+       {
+        "ref": 88117,
+        "ratio": 0.9311,
+        "name": "probe::(anonymous namespace)::engineLoop(probe::(anonymous namespace)::Command)",
+        "demangled": "probe::(anonymous namespace)::engineLoop(probe::(anonymous namespace)::Command)"
+       },
+       {
+        "ref": 121561,
+        "ratio": 0.3256,
+        "name": "chart::VDiagram::createShapes_2d()",
+        "demangled": "chart::VDiagram::createShapes_2d()"
+       },
+       {
+        "ref": 60436,
+        "ratio": 0.3172,
+        "name": "SwXMLTextBlocks::ReadInfo()",
+        "demangled": "SwXMLTextBlocks::ReadInfo()"
+       }
+      ]
+     }
+    },
+    "90443": {
+     "shortlist": 553,
+     "confidence": "exact-unique",
+     "ref": [
+      {
+       "index": 74498,
+       "name": "void* std::__2::__thread_proxy[abi:ne200100]<std::__2::tuple<std::__2::unique_ptr<std::__2::__thread_struct, std::__2::default_delete<std::__2::__thread_struct>>, void (*)(probe::(anonymous namespace)::Command), probe::(anonymous namespace)::Command>>(void*)",
+       "demangled": "void* std::__2::__thread_proxy[abi:ne200100]<std::__2::tuple<std::__2::unique_ptr<std::__2::__thread_struct, std::__2::default_delete<std::__2::__thread_struct>>, void (*)(probe::(anonymous namespace)::Command), probe::(anonymous namespace)::Command>>(void*)"
+      }
+     ],
+     "by": "loose",
+     "strict_agrees": true,
+     "deep_agrees": true,
+     "reverse": {
+      "level": "loose",
+      "target_hits": [
+       90443
+      ],
+      "unique": true
+     }
+    }
+   },
+   "edges": [
+    {
+     "caller": 114,
+     "callee": 117863,
+     "offset": 547242,
+     "ref_caller": null,
+     "ref_callee": 77913,
+     "result": "unmapped"
+    },
+    {
+     "caller": 3710,
+     "callee": 114,
+     "offset": 1627508,
+     "ref_caller": 3650,
+     "ref_callee": null,
+     "target_instruction": {
+      "op": "call",
+      "callee": 114,
+      "sig": ">"
+     },
+     "ref_instruction": {
+      "op": "call",
+      "callee": 114,
+      "sig": ">"
+     },
+     "result": "ref-calls-unmapped-callee",
+     "ref_callee_from_call": {
+      "index": 114,
+      "name": "abort",
+      "demangled": "abort"
+     }
+    },
+    {
+     "caller": 120772,
+     "callee": 3710,
+     "offset": 53282227,
+     "ref_caller": 117842,
+     "ref_callee": 3650,
+     "target_instruction": {
+      "op": "call",
+      "callee": 3710,
+      "sig": "ii>"
+     },
+     "ref_instruction": {
+      "op": "call",
+      "callee": 3650,
+      "sig": "ii>"
+     },
+     "result": "confirmed-direct"
+    },
+    {
+     "caller": 21388,
+     "callee": 120772,
+     "offset": 10015922,
+     "ref_caller": 19285,
+     "ref_callee": 117842,
+     "target_instruction": {
+      "op": "call_indirect",
+      "callee": null,
+      "sig": ">"
+     },
+     "ref_instruction": {
+      "op": "call_indirect",
+      "callee": null,
+      "sig": ">"
+     },
+     "callee_in_table": {
+      "target": true,
+      "ref": true
+     },
+     "result": "indirect-both"
+    },
+    {
+     "caller": 83,
+     "callee": 21388,
+     "offset": 537837,
+     "ref_caller": 83,
+     "ref_callee": 19285,
+     "target_instruction": {
+      "op": "call",
+      "callee": 21388,
+      "sig": "i>"
+     },
+     "ref_instruction": {
+      "op": "call",
+      "callee": 19285,
+      "sig": "i>"
+     },
+     "result": "confirmed-direct"
+    },
+    {
+     "caller": 5551,
+     "callee": 83,
+     "offset": 2619358,
+     "ref_caller": 5412,
+     "ref_callee": 83,
+     "target_instruction": {
+      "op": "call",
+      "callee": 83,
+      "sig": ">"
+     },
+     "ref_instruction": {
+      "op": "call",
+      "callee": 83,
+      "sig": ">"
+     },
+     "result": "confirmed-direct"
+    },
+    {
+     "caller": 91105,
+     "callee": 5551,
+     "offset": 45526970,
+     "ref_caller": null,
+     "ref_callee": 5412,
+     "result": "unmapped"
+    },
+    {
+     "caller": 90443,
+     "callee": 91105,
+     "offset": 45474046,
+     "ref_caller": 74498,
+     "ref_callee": null,
+     "target_instruction": {
+      "op": "call_indirect",
+      "callee": null,
+      "sig": "i>"
+     },
+     "ref_instruction": {
+      "op": "call_indirect",
+      "callee": null,
+      "sig": "i>"
+     },
+     "callee_in_table": {
+      "target": true,
+      "ref": null
+     },
+     "result": "indirect-both"
+    }
+   ]
+  },
+  {
+   "path": "wasm_sdk_probe/build/e2/wait-diagnostic/probe.wasm",
+   "sha256": "150de122810c44bdcc7e2c8049709af16e78b15d085a00d86aebaf120fed6a30",
+   "size": 131728578,
+   "functions": 149525,
+   "imported": 84,
+   "named_functions": 147005,
+   "map": {
+    "117863": {
+     "shortlist": 103,
+     "confidence": "exact-unique",
+     "ref": [
+      {
+       "index": 86,
+       "name": "undefined_weak:thread-local initialization routine for pNoteURL",
+       "demangled": "undefined_weak:thread-local initialization routine for pNoteURL"
+      }
+     ],
+     "by": "loose",
+     "strict_agrees": true,
+     "deep_agrees": true,
+     "reverse": {
+      "level": "loose",
+      "target_hits": [
+       117863
+      ],
+      "unique": true
+     }
+    },
+    "114": {
+     "shortlist": 103,
+     "loose_hits": [
+      {
+       "index": 145234,
+       "name": "abort"
+      },
+      {
+       "index": 146504,
+       "name": "__throw_bad_alloc_shim()"
+      }
+     ],
+     "confidence": "exact-ambiguous",
+     "ref": [
+      {
+       "index": 145234,
+       "name": "abort",
+       "demangled": "abort"
+      },
+      {
+       "index": 146504,
+       "name": "__throw_bad_alloc_shim()",
+       "demangled": "__throw_bad_alloc_shim()"
+      }
+     ],
+     "by": "strict"
+    },
+    "3710": {
+     "shortlist": 15883,
+     "confidence": "exact-unique",
+     "ref": [
+      {
+       "index": 125570,
+       "name": "icu_78::number::impl::MutablePatternModifier::getParameters(icu_78::number::impl::Modifier::Parameters&) const",
+       "demangled": "icu_78::number::impl::MutablePatternModifier::getParameters(icu_78::number::impl::Modifier::Parameters&) const"
+      }
+     ],
+     "by": "loose",
+     "strict_agrees": true,
+     "deep_agrees": true,
+     "reverse": {
+      "level": "loose",
+      "target_hits": [
+       3710
+      ],
+      "unique": true
+     }
+    },
+    "120772": {
+     "shortlist": 13,
+     "confidence": "exact-unique",
+     "ref": [
+      {
+       "index": 146929,
+       "name": "demangling_terminate_handler()",
+       "demangled": "demangling_terminate_handler()"
+      }
+     ],
+     "by": "loose",
+     "strict_agrees": true,
+     "deep_agrees": false,
+     "reverse": {
+      "level": "loose",
+      "target_hits": [
+       120772
+      ],
+      "unique": true
+     }
+    },
+    "21388": {
+     "shortlist": 2732,
+     "confidence": "exact-unique",
+     "ref": [
+      {
+       "index": 146932,
+       "name": "std::__terminate(void (*)())",
+       "demangled": "std::__terminate(void (*)())"
+      }
+     ],
+     "by": "loose",
+     "strict_agrees": true,
+     "deep_agrees": false,
+     "reverse": {
+      "level": "loose",
+      "target_hits": [
+       21388
+      ],
+      "unique": true
+     }
+    },
+    "83": {
+     "shortlist": 24,
+     "confidence": "exact-unique",
+     "ref": [
+      {
+       "index": 146931,
+       "name": "std::terminate()",
+       "demangled": "std::terminate()"
+      }
+     ],
+     "by": "loose",
+     "strict_agrees": true,
+     "deep_agrees": true,
+     "reverse": {
+      "level": "loose",
+      "target_hits": [
+       83
+      ],
+      "unique": true
+     }
+    },
+    "5551": {
+     "shortlist": 2358,
+     "confidence": "exact-unique",
+     "ref": [
+      {
+       "index": 145756,
+       "name": "std::__2::condition_variable::wait(std::__2::unique_lock<std::__2::mutex>&)",
+       "demangled": "std::__2::condition_variable::wait(std::__2::unique_lock<std::__2::mutex>&)"
+      }
+     ],
+     "by": "loose",
+     "strict_agrees": true,
+     "deep_agrees": true,
+     "reverse": {
+      "level": "loose",
+      "target_hits": [
+       5551
+      ],
+      "unique": true
+     }
+    },
+    "91105": {
+     "shortlist": 0,
+     "confidence": "none",
+     "ref": [],
+     "near": {
+      "shortlist": 525,
+      "best": [
+       {
+        "ref": 146,
+        "ratio": 0.9311,
+        "name": "probe::(anonymous namespace)::engineLoop(probe::(anonymous namespace)::Command)",
+        "demangled": "probe::(anonymous namespace)::engineLoop(probe::(anonymous namespace)::Command)"
+       },
+       {
+        "ref": 117154,
+        "ratio": 0.3403,
+        "name": "binaryurp::Writer::execute()",
+        "demangled": "binaryurp::Writer::execute()"
+       },
+       {
+        "ref": 65308,
+        "ratio": 0.3256,
+        "name": "chart::VDiagram::createShapes_2d()",
+        "demangled": "chart::VDiagram::createShapes_2d()"
+       }
+      ]
+     }
+    },
+    "90443": {
+     "shortlist": 572,
+     "confidence": "exact-unique",
+     "ref": [
+      {
+       "index": 147,
+       "name": "void* std::__2::__thread_proxy[abi:ne200100]<std::__2::tuple<std::__2::unique_ptr<std::__2::__thread_struct, std::__2::default_delete<std::__2::__thread_struct>>, void (*)(probe::(anonymous namespace)::Command), probe::(anonymous namespace)::Command>>(void*)",
+       "demangled": "void* std::__2::__thread_proxy[abi:ne200100]<std::__2::tuple<std::__2::unique_ptr<std::__2::__thread_struct, std::__2::default_delete<std::__2::__thread_struct>>, void (*)(probe::(anonymous namespace)::Command), probe::(anonymous namespace)::Command>>(void*)"
+      }
+     ],
+     "by": "loose",
+     "strict_agrees": true,
+     "deep_agrees": true,
+     "reverse": {
+      "level": "loose",
+      "target_hits": [
+       90443
+      ],
+      "unique": true
+     }
+    }
+   },
+   "edges": [
+    {
+     "caller": 114,
+     "callee": 117863,
+     "offset": 547242,
+     "ref_caller": null,
+     "ref_callee": 86,
+     "result": "unmapped"
+    },
+    {
+     "caller": 3710,
+     "callee": 114,
+     "offset": 1627508,
+     "ref_caller": 125570,
+     "ref_callee": null,
+     "target_instruction": {
+      "op": "call",
+      "callee": 114,
+      "sig": ">"
+     },
+     "ref_instruction": {
+      "op": "call",
+      "callee": 145234,
+      "sig": ">"
+     },
+     "result": "ref-calls-unmapped-callee",
+     "ref_callee_from_call": {
+      "index": 145234,
+      "name": "abort",
+      "demangled": "abort"
+     }
+    },
+    {
+     "caller": 120772,
+     "callee": 3710,
+     "offset": 53282227,
+     "ref_caller": 146929,
+     "ref_callee": 125570,
+     "target_instruction": {
+      "op": "call",
+      "callee": 3710,
+      "sig": "ii>"
+     },
+     "ref_instruction": {
+      "op": "call",
+      "callee": 146663,
+      "sig": "ii>"
+     },
+     "result": "mismatch"
+    },
+    {
+     "caller": 21388,
+     "callee": 120772,
+     "offset": 10015922,
+     "ref_caller": 146932,
+     "ref_callee": 146929,
+     "target_instruction": {
+      "op": "call_indirect",
+      "callee": null,
+      "sig": ">"
+     },
+     "ref_instruction": {
+      "op": "call_indirect",
+      "callee": null,
+      "sig": ">"
+     },
+     "callee_in_table": {
+      "target": true,
+      "ref": true
+     },
+     "result": "indirect-both"
+    },
+    {
+     "caller": 83,
+     "callee": 21388,
+     "offset": 537837,
+     "ref_caller": 146931,
+     "ref_callee": 146932,
+     "target_instruction": {
+      "op": "call",
+      "callee": 21388,
+      "sig": "i>"
+     },
+     "ref_instruction": {
+      "op": "call",
+      "callee": 146932,
+      "sig": "i>"
+     },
+     "result": "confirmed-direct"
+    },
+    {
+     "caller": 5551,
+     "callee": 83,
+     "offset": 2619358,
+     "ref_caller": 145756,
+     "ref_callee": 146931,
+     "target_instruction": {
+      "op": "call",
+      "callee": 83,
+      "sig": ">"
+     },
+     "ref_instruction": {
+      "op": "call",
+      "callee": 146931,
+      "sig": ">"
+     },
+     "result": "confirmed-direct"
+    },
+    {
+     "caller": 91105,
+     "callee": 5551,
+     "offset": 45526970,
+     "ref_caller": null,
+     "ref_callee": 145756,
+     "result": "unmapped"
+    },
+    {
+     "caller": 90443,
+     "callee": 91105,
+     "offset": 45474046,
+     "ref_caller": 147,
+     "ref_callee": null,
+     "target_instruction": {
+      "op": "call_indirect",
+      "callee": null,
+      "sig": "i>"
+     },
+     "ref_instruction": {
+      "op": "call_indirect",
+      "callee": null,
+      "sig": "i>"
+     },
+     "callee_in_table": {
+      "target": true,
+      "ref": null
+     },
+     "result": "indirect-both"
+    }
+   ]
+  }
+ ],
+ "summary": {
+  "117863": [
+   {
+    "ref": "preguard-profiling",
+    "confidence": "exact-unique",
+    "by": "loose",
+    "ref_index": [
+     77913
+    ],
+    "strict_agrees": true,
+    "deep_agrees": true,
+    "reverse_unique": true,
+    "names": [
+     "undefined_weak:thread-local initialization routine for pNoteURL"
+    ]
+   },
+   {
+    "ref": "wait-diagnostic",
+    "confidence": "exact-unique",
+    "by": "loose",
+    "ref_index": [
+     86
+    ],
+    "strict_agrees": true,
+    "deep_agrees": true,
+    "reverse_unique": true,
+    "names": [
+     "undefined_weak:thread-local initialization routine for pNoteURL"
+    ]
+   }
+  ],
+  "114": [
+   {
+    "ref": "preguard-profiling",
+    "confidence": "exact-ambiguous",
+    "by": "strict",
+    "ref_index": [
+     114,
+     55287
+    ],
+    "strict_agrees": null,
+    "deep_agrees": null,
+    "reverse_unique": null,
+    "names": [
+     "abort",
+     "__throw_bad_alloc_shim()"
+    ]
+   },
+   {
+    "ref": "wait-diagnostic",
+    "confidence": "exact-ambiguous",
+    "by": "strict",
+    "ref_index": [
+     145234,
+     146504
+    ],
+    "strict_agrees": null,
+    "deep_agrees": null,
+    "reverse_unique": null,
+    "names": [
+     "abort",
+     "__throw_bad_alloc_shim()"
+    ]
+   }
+  ],
+  "3710": [
+   {
+    "ref": "preguard-profiling",
+    "confidence": "exact-unique",
+    "by": "loose",
+    "ref_index": [
+     3650
+    ],
+    "strict_agrees": true,
+    "deep_agrees": true,
+    "reverse_unique": true,
+    "names": [
+     "icu_78::number::impl::MutablePatternModifier::getParameters(icu_78::number::impl::Modifier::Parameters&) const"
+    ]
+   },
+   {
+    "ref": "wait-diagnostic",
+    "confidence": "exact-unique",
+    "by": "loose",
+    "ref_index": [
+     125570
+    ],
+    "strict_agrees": true,
+    "deep_agrees": true,
+    "reverse_unique": true,
+    "names": [
+     "icu_78::number::impl::MutablePatternModifier::getParameters(icu_78::number::impl::Modifier::Parameters&) const"
+    ]
+   }
+  ],
+  "120772": [
+   {
+    "ref": "preguard-profiling",
+    "confidence": "exact-unique",
+    "by": "loose",
+    "ref_index": [
+     117842
+    ],
+    "strict_agrees": true,
+    "deep_agrees": true,
+    "reverse_unique": true,
+    "names": [
+     "demangling_terminate_handler()"
+    ]
+   },
+   {
+    "ref": "wait-diagnostic",
+    "confidence": "exact-unique",
+    "by": "loose",
+    "ref_index": [
+     146929
+    ],
+    "strict_agrees": true,
+    "deep_agrees": false,
+    "reverse_unique": true,
+    "names": [
+     "demangling_terminate_handler()"
+    ]
+   }
+  ],
+  "21388": [
+   {
+    "ref": "preguard-profiling",
+    "confidence": "exact-unique",
+    "by": "loose",
+    "ref_index": [
+     19285
+    ],
+    "strict_agrees": true,
+    "deep_agrees": true,
+    "reverse_unique": true,
+    "names": [
+     "std::__terminate(void (*)())"
+    ]
+   },
+   {
+    "ref": "wait-diagnostic",
+    "confidence": "exact-unique",
+    "by": "loose",
+    "ref_index": [
+     146932
+    ],
+    "strict_agrees": true,
+    "deep_agrees": false,
+    "reverse_unique": true,
+    "names": [
+     "std::__terminate(void (*)())"
+    ]
+   }
+  ],
+  "83": [
+   {
+    "ref": "preguard-profiling",
+    "confidence": "exact-unique",
+    "by": "loose",
+    "ref_index": [
+     83
+    ],
+    "strict_agrees": true,
+    "deep_agrees": true,
+    "reverse_unique": true,
+    "names": [
+     "std::terminate()"
+    ]
+   },
+   {
+    "ref": "wait-diagnostic",
+    "confidence": "exact-unique",
+    "by": "loose",
+    "ref_index": [
+     146931
+    ],
+    "strict_agrees": true,
+    "deep_agrees": true,
+    "reverse_unique": true,
+    "names": [
+     "std::terminate()"
+    ]
+   }
+  ],
+  "5551": [
+   {
+    "ref": "preguard-profiling",
+    "confidence": "exact-unique",
+    "by": "loose",
+    "ref_index": [
+     5412
+    ],
+    "strict_agrees": true,
+    "deep_agrees": true,
+    "reverse_unique": true,
+    "names": [
+     "std::__2::condition_variable::wait(std::__2::unique_lock<std::__2::mutex>&)"
+    ]
+   },
+   {
+    "ref": "wait-diagnostic",
+    "confidence": "exact-unique",
+    "by": "loose",
+    "ref_index": [
+     145756
+    ],
+    "strict_agrees": true,
+    "deep_agrees": true,
+    "reverse_unique": true,
+    "names": [
+     "std::__2::condition_variable::wait(std::__2::unique_lock<std::__2::mutex>&)"
+    ]
+   }
+  ],
+  "91105": [
+   {
+    "ref": "preguard-profiling",
+    "confidence": "none",
+    "by": null,
+    "ref_index": [],
+    "strict_agrees": null,
+    "deep_agrees": null,
+    "reverse_unique": null,
+    "names": []
+   },
+   {
+    "ref": "wait-diagnostic",
+    "confidence": "none",
+    "by": null,
+    "ref_index": [],
+    "strict_agrees": null,
+    "deep_agrees": null,
+    "reverse_unique": null,
+    "names": []
+   }
+  ],
+  "90443": [
+   {
+    "ref": "preguard-profiling",
+    "confidence": "exact-unique",
+    "by": "loose",
+    "ref_index": [
+     74498
+    ],
+    "strict_agrees": true,
+    "deep_agrees": true,
+    "reverse_unique": true,
+    "names": [
+     "void* std::__2::__thread_proxy[abi:ne200100]<std::__2::tuple<std::__2::unique_ptr<std::__2::__thread_struct, std::__2::default_delete<std::__2::__thread_struct>>, void (*)(probe::(anonymous namespace)::Command), probe::(anonymous namespace)::Command>>(void*)"
+    ]
+   },
+   {
+    "ref": "wait-diagnostic",
+    "confidence": "exact-unique",
+    "by": "loose",
+    "ref_index": [
+     147
+    ],
+    "strict_agrees": true,
+    "deep_agrees": true,
+    "reverse_unique": true,
+    "names": [
+     "void* std::__2::__thread_proxy[abi:ne200100]<std::__2::tuple<std::__2::unique_ptr<std::__2::__thread_struct, std::__2::default_delete<std::__2::__thread_struct>>, void (*)(probe::(anonymous namespace)::Command), probe::(anonymous namespace)::Command>>(void*)"
+    ]
+   }
+  ]
+ },
+ "checks": {
+  "failures": [
+   "frame 1: 114@547242 calls 78, not the inner frame 117863"
+  ],
+  "edge_mismatches": [
+   "wait-diagnostic: 120772 -> 3710"
+  ],
+  "any_exact_unique": true
+ },
+ "exit_status": 2
+}

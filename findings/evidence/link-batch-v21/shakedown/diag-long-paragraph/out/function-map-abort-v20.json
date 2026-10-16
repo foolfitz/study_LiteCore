@@ -1,0 +1,626 @@
+{
+ "argv": [
+  "wasm_sdk_probe/dist/profiles/e2-editor-v20/probe.wasm",
+  "--ref",
+  "wasm_sdk_probe/build/e2/preguard-profiling/probe.wasm",
+  "--out",
+  "findings/evidence/link-batch-v21/shakedown/diag-long-paragraph/out/function-map-abort-v20.json",
+  "114@547213",
+  "3710@1627478",
+  "120770@53280499",
+  "21387@10015460",
+  "83@537808",
+  "5551@2619328",
+  "91563@45841070",
+  "91095@45520211"
+ ],
+ "tool_sha256": "57cd7fda4fd593d1d23eccf04083d8439dc4881b80066990ba372043f88070b4",
+ "target": {
+  "path": "wasm_sdk_probe/dist/profiles/e2-editor-v20/probe.wasm",
+  "sha256": "313b08d5cb08589783a3e4d4d03eaee02d26f705ff5da96396ce9010680c5264",
+  "size": 115309902,
+  "functions": 149548,
+  "imported": 82,
+  "custom_sections": [],
+  "has_name_section": false
+ },
+ "frames": [
+  {
+   "index": 114,
+   "offset": 547213,
+   "body": [
+    547213,
+    547217
+   ],
+   "offset_in_body": true,
+   "instruction_boundary": true,
+   "ordinal": 0,
+   "instruction": {
+    "opcode": "0x10",
+    "loose_immediates": "('>',)",
+    "strict_extra": "None",
+    "callee": 78,
+    "sig": ">"
+   }
+  },
+  {
+   "index": 3710,
+   "offset": 1627478,
+   "body": [
+    1627478,
+    1627482
+   ],
+   "offset_in_body": true,
+   "instruction_boundary": true,
+   "ordinal": 0,
+   "instruction": {
+    "op": "call",
+    "callee": 114,
+    "sig": ">"
+   },
+   "calls_inner_frame": true
+  },
+  {
+   "index": 120770,
+   "offset": 53280499,
+   "body": [
+    53280316,
+    53280589
+   ],
+   "offset_in_body": true,
+   "instruction_boundary": true,
+   "ordinal": 77,
+   "instruction": {
+    "op": "call",
+    "callee": 3710,
+    "sig": "ii>"
+   },
+   "calls_inner_frame": true
+  },
+  {
+   "index": 21387,
+   "offset": 10015460,
+   "body": [
+    10015450,
+    10015503
+   ],
+   "offset_in_body": true,
+   "instruction_boundary": true,
+   "ordinal": 5,
+   "instruction": {
+    "op": "call_indirect",
+    "callee": null,
+    "sig": ">"
+   },
+   "calls_inner_frame": "indirect",
+   "inner_frame_sig_matches": true
+  },
+  {
+   "index": 83,
+   "offset": 537808,
+   "body": [
+    537747,
+    537825
+   ],
+   "offset_in_body": true,
+   "instruction_boundary": true,
+   "ordinal": 30,
+   "instruction": {
+    "op": "call",
+    "callee": 21387,
+    "sig": "i>"
+   },
+   "calls_inner_frame": true
+  },
+  {
+   "index": 5551,
+   "offset": 2619328,
+   "body": [
+    2619266,
+    2619338
+   ],
+   "offset_in_body": true,
+   "instruction_boundary": true,
+   "ordinal": 28,
+   "instruction": {
+    "op": "call",
+    "callee": 83,
+    "sig": ">"
+   },
+   "calls_inner_frame": true
+  },
+  {
+   "index": 91563,
+   "offset": 45841070,
+   "body": [
+    45839987,
+    45842335
+   ],
+   "offset_in_body": true,
+   "instruction_boundary": true,
+   "ordinal": 443,
+   "instruction": {
+    "op": "call",
+    "callee": 5551,
+    "sig": "ii>"
+   },
+   "calls_inner_frame": true
+  },
+  {
+   "index": 91095,
+   "offset": 45520211,
+   "body": [
+    45520039,
+    45520271
+   ],
+   "offset_in_body": true,
+   "instruction_boundary": true,
+   "ordinal": 70,
+   "instruction": {
+    "op": "call_indirect",
+    "callee": null,
+    "sig": "i>"
+   },
+   "calls_inner_frame": "indirect",
+   "inner_frame_sig_matches": true
+  }
+ ],
+ "references": [
+  {
+   "path": "wasm_sdk_probe/build/e2/preguard-profiling/probe.wasm",
+   "sha256": "e05fd156180e205037990591bab4d94b4199b8d378a970795d0a0aa8ff7365ca",
+   "size": 130124466,
+   "functions": 149507,
+   "imported": 82,
+   "named_functions": 146987,
+   "map": {
+    "114": {
+     "shortlist": 104,
+     "loose_hits": [
+      {
+       "index": 114,
+       "name": "abort"
+      },
+      {
+       "index": 55287,
+       "name": "__throw_bad_alloc_shim()"
+      }
+     ],
+     "confidence": "exact-ambiguous",
+     "ref": [
+      {
+       "index": 114,
+       "name": "abort",
+       "demangled": "abort"
+      },
+      {
+       "index": 55287,
+       "name": "__throw_bad_alloc_shim()",
+       "demangled": "__throw_bad_alloc_shim()"
+      }
+     ],
+     "by": "strict"
+    },
+    "3710": {
+     "shortlist": 15900,
+     "confidence": "exact-unique",
+     "ref": [
+      {
+       "index": 3650,
+       "name": "icu_78::number::impl::MutablePatternModifier::getParameters(icu_78::number::impl::Modifier::Parameters&) const",
+       "demangled": "icu_78::number::impl::MutablePatternModifier::getParameters(icu_78::number::impl::Modifier::Parameters&) const"
+      }
+     ],
+     "by": "loose",
+     "strict_agrees": true,
+     "deep_agrees": true,
+     "reverse": {
+      "level": "loose",
+      "target_hits": [
+       3710
+      ],
+      "unique": true
+     }
+    },
+    "120770": {
+     "shortlist": 13,
+     "confidence": "exact-unique",
+     "ref": [
+      {
+       "index": 117842,
+       "name": "demangling_terminate_handler()",
+       "demangled": "demangling_terminate_handler()"
+      }
+     ],
+     "by": "loose",
+     "strict_agrees": true,
+     "deep_agrees": true,
+     "reverse": {
+      "level": "loose",
+      "target_hits": [
+       120770
+      ],
+      "unique": true
+     }
+    },
+    "21387": {
+     "shortlist": 2772,
+     "confidence": "exact-unique",
+     "ref": [
+      {
+       "index": 19285,
+       "name": "std::__terminate(void (*)())",
+       "demangled": "std::__terminate(void (*)())"
+      }
+     ],
+     "by": "loose",
+     "strict_agrees": true,
+     "deep_agrees": true,
+     "reverse": {
+      "level": "loose",
+      "target_hits": [
+       21387
+      ],
+      "unique": true
+     }
+    },
+    "83": {
+     "shortlist": 26,
+     "confidence": "exact-unique",
+     "ref": [
+      {
+       "index": 83,
+       "name": "std::terminate()",
+       "demangled": "std::terminate()"
+      }
+     ],
+     "by": "loose",
+     "strict_agrees": true,
+     "deep_agrees": true,
+     "reverse": {
+      "level": "loose",
+      "target_hits": [
+       83
+      ],
+      "unique": true
+     }
+    },
+    "5551": {
+     "shortlist": 2394,
+     "confidence": "exact-unique",
+     "ref": [
+      {
+       "index": 5412,
+       "name": "std::__2::condition_variable::wait(std::__2::unique_lock<std::__2::mutex>&)",
+       "demangled": "std::__2::condition_variable::wait(std::__2::unique_lock<std::__2::mutex>&)"
+      }
+     ],
+     "by": "loose",
+     "strict_agrees": true,
+     "deep_agrees": true,
+     "reverse": {
+      "level": "loose",
+      "target_hits": [
+       5551
+      ],
+      "unique": true
+     }
+    },
+    "91563": {
+     "shortlist": 0,
+     "confidence": "none",
+     "ref": [],
+     "near": {
+      "shortlist": 499,
+      "best": [
+       {
+        "ref": 88117,
+        "ratio": 0.9311,
+        "name": "probe::(anonymous namespace)::engineLoop(probe::(anonymous namespace)::Command)",
+        "demangled": "probe::(anonymous namespace)::engineLoop(probe::(anonymous namespace)::Command)"
+       },
+       {
+        "ref": 121561,
+        "ratio": 0.3256,
+        "name": "chart::VDiagram::createShapes_2d()",
+        "demangled": "chart::VDiagram::createShapes_2d()"
+       },
+       {
+        "ref": 60436,
+        "ratio": 0.3172,
+        "name": "SwXMLTextBlocks::ReadInfo()",
+        "demangled": "SwXMLTextBlocks::ReadInfo()"
+       }
+      ]
+     }
+    },
+    "91095": {
+     "shortlist": 553,
+     "confidence": "exact-unique",
+     "ref": [
+      {
+       "index": 74498,
+       "name": "void* std::__2::__thread_proxy[abi:ne200100]<std::__2::tuple<std::__2::unique_ptr<std::__2::__thread_struct, std::__2::default_delete<std::__2::__thread_struct>>, void (*)(probe::(anonymous namespace)::Command), probe::(anonymous namespace)::Command>>(void*)",
+       "demangled": "void* std::__2::__thread_proxy[abi:ne200100]<std::__2::tuple<std::__2::unique_ptr<std::__2::__thread_struct, std::__2::default_delete<std::__2::__thread_struct>>, void (*)(probe::(anonymous namespace)::Command), probe::(anonymous namespace)::Command>>(void*)"
+      }
+     ],
+     "by": "loose",
+     "strict_agrees": true,
+     "deep_agrees": true,
+     "reverse": {
+      "level": "loose",
+      "target_hits": [
+       91095
+      ],
+      "unique": true
+     }
+    }
+   },
+   "edges": [
+    {
+     "caller": 3710,
+     "callee": 114,
+     "offset": 1627478,
+     "ref_caller": 3650,
+     "ref_callee": null,
+     "target_instruction": {
+      "op": "call",
+      "callee": 114,
+      "sig": ">"
+     },
+     "ref_instruction": {
+      "op": "call",
+      "callee": 114,
+      "sig": ">"
+     },
+     "result": "ref-calls-unmapped-callee",
+     "ref_callee_from_call": {
+      "index": 114,
+      "name": "abort",
+      "demangled": "abort"
+     }
+    },
+    {
+     "caller": 120770,
+     "callee": 3710,
+     "offset": 53280499,
+     "ref_caller": 117842,
+     "ref_callee": 3650,
+     "target_instruction": {
+      "op": "call",
+      "callee": 3710,
+      "sig": "ii>"
+     },
+     "ref_instruction": {
+      "op": "call",
+      "callee": 3650,
+      "sig": "ii>"
+     },
+     "result": "confirmed-direct"
+    },
+    {
+     "caller": 21387,
+     "callee": 120770,
+     "offset": 10015460,
+     "ref_caller": 19285,
+     "ref_callee": 117842,
+     "target_instruction": {
+      "op": "call_indirect",
+      "callee": null,
+      "sig": ">"
+     },
+     "ref_instruction": {
+      "op": "call_indirect",
+      "callee": null,
+      "sig": ">"
+     },
+     "callee_in_table": {
+      "target": true,
+      "ref": true
+     },
+     "result": "indirect-both"
+    },
+    {
+     "caller": 83,
+     "callee": 21387,
+     "offset": 537808,
+     "ref_caller": 83,
+     "ref_callee": 19285,
+     "target_instruction": {
+      "op": "call",
+      "callee": 21387,
+      "sig": "i>"
+     },
+     "ref_instruction": {
+      "op": "call",
+      "callee": 19285,
+      "sig": "i>"
+     },
+     "result": "confirmed-direct"
+    },
+    {
+     "caller": 5551,
+     "callee": 83,
+     "offset": 2619328,
+     "ref_caller": 5412,
+     "ref_callee": 83,
+     "target_instruction": {
+      "op": "call",
+      "callee": 83,
+      "sig": ">"
+     },
+     "ref_instruction": {
+      "op": "call",
+      "callee": 83,
+      "sig": ">"
+     },
+     "result": "confirmed-direct"
+    },
+    {
+     "caller": 91563,
+     "callee": 5551,
+     "offset": 45841070,
+     "ref_caller": null,
+     "ref_callee": 5412,
+     "result": "unmapped"
+    },
+    {
+     "caller": 91095,
+     "callee": 91563,
+     "offset": 45520211,
+     "ref_caller": 74498,
+     "ref_callee": null,
+     "target_instruction": {
+      "op": "call_indirect",
+      "callee": null,
+      "sig": "i>"
+     },
+     "ref_instruction": {
+      "op": "call_indirect",
+      "callee": null,
+      "sig": "i>"
+     },
+     "callee_in_table": {
+      "target": true,
+      "ref": null
+     },
+     "result": "indirect-both"
+    }
+   ]
+  }
+ ],
+ "summary": {
+  "114": [
+   {
+    "ref": "preguard-profiling",
+    "confidence": "exact-ambiguous",
+    "by": "strict",
+    "ref_index": [
+     114,
+     55287
+    ],
+    "strict_agrees": null,
+    "deep_agrees": null,
+    "reverse_unique": null,
+    "names": [
+     "abort",
+     "__throw_bad_alloc_shim()"
+    ]
+   }
+  ],
+  "3710": [
+   {
+    "ref": "preguard-profiling",
+    "confidence": "exact-unique",
+    "by": "loose",
+    "ref_index": [
+     3650
+    ],
+    "strict_agrees": true,
+    "deep_agrees": true,
+    "reverse_unique": true,
+    "names": [
+     "icu_78::number::impl::MutablePatternModifier::getParameters(icu_78::number::impl::Modifier::Parameters&) const"
+    ]
+   }
+  ],
+  "120770": [
+   {
+    "ref": "preguard-profiling",
+    "confidence": "exact-unique",
+    "by": "loose",
+    "ref_index": [
+     117842
+    ],
+    "strict_agrees": true,
+    "deep_agrees": true,
+    "reverse_unique": true,
+    "names": [
+     "demangling_terminate_handler()"
+    ]
+   }
+  ],
+  "21387": [
+   {
+    "ref": "preguard-profiling",
+    "confidence": "exact-unique",
+    "by": "loose",
+    "ref_index": [
+     19285
+    ],
+    "strict_agrees": true,
+    "deep_agrees": true,
+    "reverse_unique": true,
+    "names": [
+     "std::__terminate(void (*)())"
+    ]
+   }
+  ],
+  "83": [
+   {
+    "ref": "preguard-profiling",
+    "confidence": "exact-unique",
+    "by": "loose",
+    "ref_index": [
+     83
+    ],
+    "strict_agrees": true,
+    "deep_agrees": true,
+    "reverse_unique": true,
+    "names": [
+     "std::terminate()"
+    ]
+   }
+  ],
+  "5551": [
+   {
+    "ref": "preguard-profiling",
+    "confidence": "exact-unique",
+    "by": "loose",
+    "ref_index": [
+     5412
+    ],
+    "strict_agrees": true,
+    "deep_agrees": true,
+    "reverse_unique": true,
+    "names": [
+     "std::__2::condition_variable::wait(std::__2::unique_lock<std::__2::mutex>&)"
+    ]
+   }
+  ],
+  "91563": [
+   {
+    "ref": "preguard-profiling",
+    "confidence": "none",
+    "by": null,
+    "ref_index": [],
+    "strict_agrees": null,
+    "deep_agrees": null,
+    "reverse_unique": null,
+    "names": []
+   }
+  ],
+  "91095": [
+   {
+    "ref": "preguard-profiling",
+    "confidence": "exact-unique",
+    "by": "loose",
+    "ref_index": [
+     74498
+    ],
+    "strict_agrees": true,
+    "deep_agrees": true,
+    "reverse_unique": true,
+    "names": [
+     "void* std::__2::__thread_proxy[abi:ne200100]<std::__2::tuple<std::__2::unique_ptr<std::__2::__thread_struct, std::__2::default_delete<std::__2::__thread_struct>>, void (*)(probe::(anonymous namespace)::Command), probe::(anonymous namespace)::Command>>(void*)"
+    ]
+   }
+  ]
+ },
+ "checks": {
+  "failures": [],
+  "edge_mismatches": [],
+  "any_exact_unique": true
+ },
+ "exit_status": 0
+}
