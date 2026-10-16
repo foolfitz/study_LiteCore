@@ -46,3 +46,20 @@ The judge changes that S3 and S5 need are execution-driven (§34.4): the witness
    - Zen at 60 %.
    
    These made 6 D7 presses, one D9 sub-arm and D10 NOT_ESTABLISHED. [observed: the samples in the item-1 smoke report] The evidence runs need a quiet desk.
+
+## 3. Identity after the fixes (2026-10-17, before any evidence run)
+
+Fable ruling 1 (`review/ruling-fable-1.md`) and spec §12.3 (`e25ccc15`) moved the page and the session. The fixes were committed at `712f955a`; their red-first evidence is in `../fixes-ruling-1/`.
+
+The evidence runs measure the new identity. Everything recorded before it — the smokes and the two diagnostics — ran on the old pins of `ARMS.md` §1. That record stays as it is, and none of it is evidence.
+
+| item | before (ARMS.md §1) | after `712f955a` |
+|---|---|---|
+| page served (`build_cutover_page.py --profile e2-editor-v21`, no `--write`) | `3d5112161b23b060…` | `605cf24b3dff5a2de1d219ee59e79adc92048e46436d098b7c7a3d837761fa0f` |
+| `web/e2-editor-app.js` | `bd15e7ef…` | `59553850b3383e4fe6e48bbb8eaf82c5aeebe380bde4e8d9e9e35430b3176a1c` |
+| `editor-shell-v2/narrow-editor-v2-session.js` | `443e0f1e…` | `f1509ff22e6e2d8d945cfd803d293fd4cf102cece27618f54825571a2e1ef3a8` |
+| `web/e2-editor.html` | `1d158149…` | unchanged |
+| shell digest over the tree sources (v73 bundle's module list) | `e0252c0b…` | `e35923a08107662d600d874f6986ef31aa8e8583955386929c26ebec62d82b06` |
+| profile `e2-editor-v21` | wasm `db3408f5…`, worker `0d55bcfa…` | unchanged (no relink) |
+
+The main session recomputed both pins: the page by `build_cutover_page.py`, the shell digest by `run_merge_wasm_shakedown.digest` over the bundle's modules. It re-pinned `tools/v21_shakedown_common.py` (`EXPECTED`, `EXPECTED_SHELL_DIGEST`); `test_v21_shakedown_common.py` gives 9 OK. The node suite at `712f955a` gives 596/596 and E1-C reads `"intact": true`; both were re-run by the main session.

@@ -46,13 +46,16 @@ DEFAULT_PROFILE = "e2-editor-v21"
 
 # ARMS.md §1 (measured 2026-10-16).  A mirror that does not reproduce these is not the round's
 # page or shell; the builder reports `identityOk` and the judges refuse on the page hash.
+# Re-pinned 2026-10-17 after the tree fixes of fable ruling 1 (commit 712f955a; spec §12.3):
+# page 3d5112161b23b060... -> 605cf24b3dff5a2d..., shell digest e0252c0b... -> e35923a0...
+# (results README, "Identity after the fixes").  The smokes and diagnostics ran on the old pins.
 EXPECTED = {
     "e2-editor-v21": {
         "probe.wasm": "db3408f55316bf67345258ce9f7cb58a1cb3777c9aabb9f7790bee69e1599f30",
         "probe.js": "0b6cf02a51aba353d880824ab32254e551a389c58d3c219439c7641f7ce76587",
         "sdk-worker.js": "0d55bcfa2ee0e4ddc6239e25282001c13410b152a5a08ebac9903cc65c3fd350",
         "sdk-manifest.json": "72067d5a14a3a271137a17aea24317fc6f42380327ec4962ebff475589268f13",
-        "pageServed": "3d5112161b23b060b2057a25bbbeb7cbc96628cde67e3e5c3c0dab92b435b5c5",
+        "pageServed": "605cf24b3dff5a2de1d219ee59e79adc92048e46436d098b7c7a3d837761fa0f",
     },
     "e2-editor-v20": {
         "probe.wasm": "313b08d5cb08589783a3e4d4d03eaee02d26f705ff5da96396ce9010680c5264",
@@ -60,7 +63,7 @@ EXPECTED = {
         "sdk-manifest.json": "50aade86f7996ba66c7ca9a3784d9b1074c8d98c05cbe9788902e89cc5a522a0",
     },
 }
-EXPECTED_SHELL_DIGEST = "e0252c0b22d37a201a3476b0d32d597af5d707523cb78946c2e73ff04247bfe3"
+EXPECTED_SHELL_DIGEST = "e35923a08107662d600d874f6986ef31aa8e8583955386929c26ebec62d82b06"
 OURS_PATTERN = "probe_|check_m3|run_e2_c|run_merge|run_v20|run_v21|judge_v21|v21_"
 FOREIGN_CPU_LIMIT = 50.0        # % of one core (ARMS.md §2, item 1 §8 D-18 A')
 FOREIGN_CPU_SECONDS = 2.0
