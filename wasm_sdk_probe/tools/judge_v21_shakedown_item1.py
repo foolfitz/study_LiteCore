@@ -737,6 +737,63 @@ def judge_d5w(result: dict, rounds: int) -> tuple[str, list[str]]:
     return worst(verdicts), lines
 
 
+# ------------------------------------------------------------------ records (printed, never judged)
+
+def d6_class(raw: bytes) -> str:
+    """Where D6's marker landed: the document end (plain3's last paragraph end), the paste end (the
+    start of the original first paragraph, after the pasted blocks), or elsewhere."""
+    try:
+        part, index, text, offset = marker.landing(raw)
+    except marker.LandingError as error:
+        return f"unreadable: {error}"
+    paras = marker.paragraphs_of(raw)
+    body = [t for p, _, t in paras if p == "body"]
+    if text == "Charlie third paragraphZ" and index == len(body) - 1:
+        return "document end"
+    if text == "ZAlpha first paragraph":
+        return "paste end"
+    return f"elsewhere: body {index} offset {offset} {text[:40]!r}"
+
+
+def _mm(shape: str) -> str:
+    """A para_shapes row with its text-indent in millimetres (Writer re-exports 1cm as 0.3937in)."""
+    import re
+    m = re.search(r"text-indent (-?[\d.]+)(cm|mm|in|pt)$", shape)
+    if not m:
+        return shape
+    factor = {"cm": 10.0, "mm": 1.0, "in": 25.4, "pt": 25.4 / 72}[m.group(2)]
+    return shape[:m.start(1)] + f"{round(float(m.group(1)) * factor, 1)}mm"
+
+
+def records(results: dict, docs: Docs) -> list[str]:
+    lines = []
+    for rec in (results.get("d6") or {}).get("rounds", []):
+        raw = docs.read(rec.get("save"))
+        log = rec.get("log", [])
+        paste = next((e for e in log if e.get("k") == "rs" and e.get("op") == "pasteMarkdown"), None)
+        move = next((e for e in log if e.get("k") == "rs" and e.get("action") == "move-document-end"), None)
+        saves = [e for e in log if e.get("k") == "rq" and e.get("op") == "save"]
+        lines.append(f"D6 r{rec.get('round')}: {rec.get('outcome')} paste {paste and (paste.get('ok'), paste.get('rev'))} "
+                     f"checkpoint saves {len(saves)} move {move and move.get('completion')} "
+                     f"marker {d6_class(raw) if raw else 'no document'} dialog closed after {rec.get('dialogClosedAfterMs')} ms")
+    for name in ("xlc", "table"):
+        for rec in (results.get(name) or {}).get("rounds", []):
+            raw = docs.read(rec.get("save"))
+            shapes = marker.shapes_of(raw) if raw else None
+            delete = rec.get("delete") or {}
+            fixture = rec.get("fixture")
+            same = None
+            if raw and fixture:
+                base = fixture_read(fixture)
+                same = ([_mm(x) for x in shapes] == [_mm(x) for x in base[0]]
+                        and [t for _, _, t in marker.paragraphs_of(raw)] == base[1])
+            lines.append(f"R-{name} {rec.get('arm')} r{rec.get('round')}: {rec.get('outcome')} Ctrl+Home "
+                         f"{((rec.get('press') or {}).get('response') or {}).get('completion')} Backspace "
+                         f"{delete.get('completion') or delete.get('code')} waited {delete.get('waitedMs')} "
+                         f"gen {rec.get('generationAfter')} document as fixture: {same}")
+    return lines
+
+
 # ------------------------------------------------------------------ reports
 
 def load(directory: Path) -> list[dict]:
@@ -806,6 +863,9 @@ def judge_reports(reports: list[dict], docs: Docs, expect_page: str | None, roun
             elif criterion == "D5w":
                 verdicts[(criterion, browser)] = judge_d5w(result, rounds)
     label = "SMOKE (not evidence) " if smoke else ""
+    for report in reports:
+        for line in records(report.get("results") or {}, docs):
+            out.append(f"{label}record {report.get('browser')}: {line}")
     failing = 0
     for criterion in CRITERIA:
         for browser in BROWSERS:
