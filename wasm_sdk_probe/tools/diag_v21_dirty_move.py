@@ -479,6 +479,17 @@ def _cell(v) -> str:
     return "" if v is None else str(v).replace("|", "\\|")
 
 
+def _order(ops) -> str:
+    """Request order with runs of one op collapsed (`editorGetStateV2 ×27`): rendering only."""
+    out = []
+    for op in map(str, ops or []):
+        if out and out[-1][0] == op:
+            out[-1][1] += 1
+        else:
+            out.append([op, 1])
+    return " → ".join(op if n == 1 else f"{op} ×{n}" for op, n in out)
+
+
 def tables(directory: Path) -> str:
     lines = []
     for path in sorted(directory.glob("report-*.json")):
@@ -490,7 +501,7 @@ def tables(directory: Path) -> str:
             lines.append(f"\n**{variant.upper()}** ({block.get('what')})\n")
             if variant in ("v1", "v2", "v3", "v4"):
                 lines.append("| round | Q lands | Q kd − Ctrl+End kd (ms) | Q kd − move reply (ms) | move completion (round trip ms) "
-                             "| reply caret | +500 ms ask caret | insertText | request order |")
+                             "| reply caret | +500 ms ask caret | final ask caret (after quiet) | request order |")
                 lines.append("|---|---|---|---|---|---|---|---|---|")
                 for r in rounds:
                     s = r.get("summary") or {}
@@ -500,7 +511,7 @@ def tables(directory: Path) -> str:
                     lines.append("| " + " | ".join(_cell(x) for x in (
                         r.get("round"), s.get("qClass"), s.get("gapEndKdToQKdMs"), s.get("gapMoveReplyToQKdMs"),
                         f"{s.get('moveCompletion')} ({s.get('moveRoundTripMs')})", s.get("moveReplyCaret"), s.get("ask7Caret"),
-                        f"{s.get('insertTextCompletion')} caret {s.get('insertTextCaret')}", " → ".join(map(str, s.get("order") or [])))) + " |")
+                        caret_str((r.get("finalAsk") or {}).get("caret")), _order(s.get("order")))) + " |")
             elif variant == "v5":
                 lines.append("| round | delay | dialog close → Z kd (ms) | Z kd target / active | sink disabled at Z | keypress (prevented) "
                              "| beforeinput / input anywhere after Z | insertText | Z in saved doc | then Y (no click), X (after click) "
@@ -519,7 +530,7 @@ def tables(directory: Path) -> str:
                         f"{s.get('anyBeforeinputAfterZ')} / {s.get('anyInputAfterZ')}", s.get("insertTextAfterZ"),
                         "; ".join(f"para {h['para']} off {h['offset']} {h['text'][:28]!r}" for h in z) or "absent",
                         f"Y {'in' if s.get('yHits') else 'absent'}, X after click {'in' if s.get('xHits') else 'absent'}",
-                        " → ".join(map(str, s.get("order") or [])))) + " |")
+                        _order(s.get("order")))) + " |")
             else:
                 lines.append("| page | round | key gaps (ms) | saved P2 | in order would be | place-caret between delete and move "
                              "| a delete between that click and the move | request order |")
@@ -531,8 +542,7 @@ def tables(directory: Path) -> str:
                         continue
                     lines.append("| " + " | ".join(_cell(x) for x in (
                         r.get("page"), r.get("round"), s.get("keyGapsMs"), repr(s.get("p2")), repr(s.get("expectedInOrder")),
-                        s.get("placeCaretBeforeMove"), s.get("deleteBetweenClickAndMove"),
-                        " → ".join(map(str, s.get("order") or [])))) + " |")
+                        s.get("placeCaretBeforeMove"), s.get("deleteBetweenClickAndMove"), _order(s.get("order")))) + " |")
     return "\n".join(lines)
 
 
