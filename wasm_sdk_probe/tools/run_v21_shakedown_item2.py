@@ -121,6 +121,18 @@ def type_char(session, browser: str, ch: str) -> None:
     inp.key(session, browser, ch)
 
 
+def press_in_textarea(session, browser: str, name: str) -> None:
+    """A named key typed into a textarea.  Chrome: S-4 sends Enter as a raw keydown without its character,
+    and a textarea inserts the line break only with the character (rerun-2): Enter goes as `keyDown`
+    with text "\r", as a real Enter does.  Every other key, and Firefox, keep `v21_input.key`."""
+    if browser == "chrome" and name == "Enter":
+        params = {"key": "Enter", "code": "Enter", "windowsVirtualKeyCode": 13, "nativeVirtualKeyCode": 13}
+        session.call("Input.dispatchKeyEvent", {**params, "type": "keyDown", "text": "\r", "unmodifiedText": "\r"})
+        session.call("Input.dispatchKeyEvent", {**params, "type": "keyUp"})
+        return
+    inp.key(session, browser, name)
+
+
 def sha256_bytes(raw: bytes) -> str:
     return hashlib.sha256(raw).hexdigest()
 
@@ -1015,10 +1027,11 @@ def arm_m11(ctx: Ctx, pop: dict, rounds: int, out: dict) -> None:
                 for ch in M11_TYPED:
                     type_char(ctx.session, ctx.browser, ch)
                 for name in ("Backspace", "ArrowLeft", "Enter"):
-                    inp.key(ctx.session, ctx.browser, name)
+                    press_in_textarea(ctx.session, ctx.browser, name)
                 time.sleep(0.3)
                 ep["textareaBefore"] = clip.readback(ctx.session, "#markdown-text")
                 ep["typedAsArm"] = ep["textareaBefore"].get("sha256") == sha256_bytes(M11_EXPECTED.encode("utf-8"))
+                ep["textareaValue"] = ctx.ev("document.querySelector('#markdown-text').value")   # the runner's own keys
                 if how == "cancel":
                     ep["close"] = ctx.real_click("#markdown-cancel")
                 else:
