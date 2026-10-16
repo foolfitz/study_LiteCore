@@ -272,6 +272,25 @@
 - **OD1＝A**：Ctrl+Home／End 的讀回期限照 250 ms。L-142-readback-overtaken 照 §9.1 登錄，根治留給「有序指令」。
 - **OD3＝A**：第 3 項（宣告 C）**撤出 v21**。§2 的範圍只剩第 1、2、4 項。§4.3 與 C1 不適用；I1 的宣告差異裡沒有 `boundaryNoop`；產生器不加 `--boundary-noop`。四支工具照舊用位元組判斷，宣告留給「有序指令」那一批，跟它的第一個讀者一起做。
 
+### 9.14 第二輪原生量測的處置（2026-10-16，只追加）
+
+依據：`findings/evidence/link-batch-v21/native/142-ctrl-home-end/d1-marker/` 與 `…/markdown-paste/round-2/`。兩份的判讀工具主 session 都重跑過，輸出逐位元組相同。
+
+- **D1 的母數（更正 §9.5 一句）**：`hf-home-hdr-click` 用 `.uno:JumpToHeader` 進頁首，照 §9.5 自己的規則是**排除**，不是納入。§9.5 說它「在母數裡」是錯的。結果是 D1 沒有頁首頁尾的臂：WASM 上頁首裡的 Ctrl+Home 列為未量，併入 L-142-steps。量測工具另外補了兩條規則，照收：
+  - 沒有任何 `M…=9220|9221` 按壓的臂排除（`no-ctrl`）；
+  - 最後一次 Ctrl 按壓之後還有產品步驟的臂，工具拒絕。
+  
+  母數 38 臂納入、43 臂排除，由 `tool/d1_population.py` 產生；原生參照是「最後一次 Ctrl 之後打一個 `Z`、存檔、讀落點」，38 臂都 3/3。WASM 端用產品的打字路徑打同一個 `Z`。
+- **預先掃描改成三條規則（取代 §9.3 的兩條；理由：原始 HTML 會被 Writer 的 HTML 匯入處理並抓網路，`swmd.cxx:591-603`，原生 H4／H7 臂 3/3 有 OPTIONS＋GET）**：
+  1. 任何 `MD_SPAN_IMG` 的 src 不是 `data:`（**不分大小寫**；原生 S15：`DATA:` 會被嵌入）→ `MARKDOWN_REMOTE_IMAGE`；
+  2. 任何 `MD_BLOCK_HTML` 或 `MD_TEXT_HTML`（原始 HTML）→ `MARKDOWN_HTML_UNSUPPORTED`，具名 **L-md-no-html**（含 `<br>` 的 Markdown 也會整段拒絕）；
+  3. 除了 `MD_BLOCK_DOC` 之外沒有任何區塊 → `INVALID_ARGUMENT`。這條取代「掃不出任何文字」：原生 N1（只有 `---`）與 S14（空 alt 的 `data:` 圖片）會被舊規則誤拒，而 Writer 其實會貼上。
+  
+  三條都在派送前，都不動文件。md4c 版本：三棵核心樹都是 0.5.3，與 `download.lst` 指名的 tarball 逐位元組相同，沒有 patch（原生 T3）。
+- **只在收合的游標上貼（新增）**：引擎在選取不是收合時拒絕（`MARKDOWN_NEEDS_CARET`，不派送），頁面的對話框在「插入」時若有選取，就提示「請先取消選取」。理由：跨兩個儲存格的選取上，原生把內容附加到每一格，第二格是原文加亂碼（**finding 148**）。單段與跨段的範圍原生雖然正常，但引擎分不出跨儲存格，收合是能封閉的規則。具名 **L-md-collapsed-only**。M4 的位置改成 P1、P3、P4、P8（儲存格中）、P9（空儲存格）、P10（頁首）；P6、P7、P11 改成拒絕臂。
+- **M9（後置條件在 WASM 上的紅案）**：游標在受保護的區段裡貼上。原生是 `paste()` 回 true、沒有 Undo 動作、payload 逐位元組相同（3/3）。v21 上期望：`MUTATION_OUTCOME_UNKNOWN` → session 回到檢查點，文件不變。N=3、兩個瀏覽器、N/N。**若紅**：第 2 項頁面沒有入口。具名 **L-md-protected**：在受保護的內容裡貼上會觸發一次回復重開，不會掉資料。
+- **finding 147（text input 欄位）**：在 `text:text-input` 欄位裡貼上，原生會弄亂文字，而且一次 Undo 還原不回來；**用 `text/plain` 貼（今天的 Ctrl+V）也一樣**。v21 不修（引擎看不出游標在欄位裡），具名 **L-md-input-field**，發佈說明與 Ctrl+V 一起列。WASM 上是否相同：未量，列在後續工作。
+
 ## 修訂紀錄
 
 | 日期 | 內容 |
@@ -281,3 +300,4 @@
 | 2026-10-16 | 4.2 加 L-md-137（貼上與打字同屬 finding 137 那一類；送審前主 session 自查補上）。 |
 | 2026-10-16 | §9 審核 1 的處置（主 session）：引擎不是 unipoll 的更正與 L-142-readback-overtaken、D2′／D6–D10、Markdown 的出貨開關移到殼層、引擎用 md4c 先掃遠端圖片與空內容、後置條件的失敗語意走 MUTATION_OUTCOME_UNKNOWN、D1／M1 的母數由規則產生、跨層負向矩陣、X1 changed-leaf 的契約；OD1、OD3 與 Q1 待擁有者。 |
 | 2026-10-16 | §9.13：擁有者三題都選 A（對話框入口；讀回期限照 250 ms；C 的宣告撤出 v21）。 |
+| 2026-10-16 | §9.14：第二輪原生量測的處置——D1 母數更正（頁首臂排除）、預先掃描改成三條（圖片、原始 HTML、沒有區塊）、Markdown 只在收合的游標上貼（finding 148）、M9＝受保護區段、finding 147 具名。 |
