@@ -700,3 +700,176 @@ Not run: the 0.2.24 page (dist/e2-editor.html, dist/e2-editor-app.js) has no <di
 | 2 | keydown Z | sink / False / False / False / None / none / False / True | [] / [] | False | absent | absent | Y absent, X after click absent |  |
 | 3 | keydown Z | sink / False / False / False / None / none / False / True | [] / [] | False | absent | absent | Y absent, X after click absent |  |
 
+
+
+---
+
+# Third round (2026-10-17, 04:54–05:05): V8d on 0.2.24, fix1′, fix3
+
+The main session asked for these so that every option going to fable carries numbers. Same rules and labels as above.
+
+## What ran
+
+- **Tool:** `75750e470d9e9c98…` (this commit). It adds:
+  - the fixes `fix1p`, `fix3` and `fix3b`;
+  - the variants `v8d0224` (V8d on the 0.2.24 page and v20 profile, built as V6's `dist0224`) and `bup` (fix1′'s boundary control);
+  - `arrow_then_q`, the old `round_v8` tail moved into a function, so V8, V8d and `bup` share it.
+- **Reports** [observed: outcomes, `v21PageCheck`, `preRun`, `foreign`]:
+  - `report-{chrome,firefox}-third-*.json` (V8d on 0.2.24, 3 rounds each);
+  - `report-{chrome,firefox}-fix1p-*.json` (9 each);
+  - `report-chrome-fix3-20261017T050140.json` (6);
+  - `report-chrome-fix3-headed-20261017T050323.json` (1);
+  - `report-firefox-fix3-20261017T050402.json` (1).
+
+  All 32 rounds are `done`; all took a foreign-CPU sample and none was over the limit. KWallet was `b false`, and each run held the S-9 lock.
+- **Candidate fixes**, applied to the served copy in the mirror only [observed: `candidateFix`]:
+  - **fix1′**: serves the session as `d68c1cfd4271a250…` (unpatched served and tree `443e0f1e…`). `if (BOUNDARY_CAPABLE_MOVES.has(action))` before `_checkpointBeforeBoundaryMove` becomes `if (false && …)`.
+  - **fix3**: serves the page as `7c894933924262f4…` (`patchOnly: true` against `3d5112161b23b060…`). In `closeMarkdownDialog`, `if (session) el.sink.focus({ preventScroll: true });` becomes `if (session) { el.sink.blur(); el.sink.focus({ preventScroll: true }); }`. The anchor includes the line before it, because the same focus line also ends the toolbar's `mousedown` handler (`web/e2-editor-app.js:2511`) [source].
+  - **fix3b** (`requestAnimationFrame(() => el.sink.focus(…))`) was **not run**: fix3 repaired typing, and fix3b was asked for only if it did not. It is defined in the tool, and its mirror was built offline only: the page would be served as `88c346a5…`.
+- **A window appeared on the owner's desktop again**, between 05:03:24 and 05:04:02 (+0800): fix3's headed V5 round, closed by the tool (`close: {}`). The session was locked before and after (`LockedHint=yes` at 05:03:23 and 05:04:02) [observed].
+
+## Readings
+
+### 1. V8d on the shipped 0.2.24: the same as on v21
+
+- [observed] `save` → `move-line-down`, which answers `verified-move-readback` after 250.5–251.6 ms with the old caret `2151,1694`. `Q` lands on P2 right after the Z (`BravoZQ second paragraph`), 6/6 (3 Chrome, 3 Firefox). These are the same numbers as V8d on v21.
+- [inferred] The arrow form of L-142-readback-overtaken is already in the version users have. It is not a v21 regression.
+
+### 2. fix1′: no checkpoint before any of the eight moves
+
+- **V8d** [observed]: no `save`. `move-line-down` answers `documented-callback-visible-cursor` in 34.7–48.6 ms, and `Q` lands on P3, the line moved to (`CharlieQ third paragraph`), 6/6.
+- **V1** [observed]: no `save`; `documented-callback-visible-cursor` in 34.3–41.9 ms; `Q` at the document end, 6/6.
+- **Boundary control** (dirty, Home to the document start, ArrowUp, `Q` 30 ms later) [observed]:
+  - ArrowUp answers `verified-move-readback` after 250.9–251.9 ms, with `changed: false` and the caret unchanged at `1418,1418`. There is no 2.25 s boundary window and no wedge.
+  - `Q` goes out about 1 ms after that reply and lands at P1 offset 0 (`QZAlpha first paragraph`), where the caret is, 6/6.
+- **What it costs** [source]: with fix1′ the only remaining caller of `_checkpointBeforeBoundaryMove` is `pasteMarkdown` (`narrow-editor-v2-session.js:1340`). No move banks a dirty document any more. The checkpoint line was not recorded in these variants.
+- [inferred] A move that cannot move still costs one 250 ms readback before the next key goes out. The text then lands correctly.
+
+### 3. fix3: blur, then focus, when the Markdown dialog closes
+
+- **Headless Chrome** [observed]: V5 (300 ms) types `Z`, `Y` and `X` 3/3, and V11c (取消 only) types them 3/3. In every round there is `beforeinput insertText@sink` and an `insertText` request. Without the fix both were lost 3/3.
+- **Headed Chrome**, V5 1/1, and **Firefox**, V5 1/1 (no regression) [observed]: `ZYXAlpha…`.
+- [inferred] The defect is the focus hand-off in `closeMarkdownDialog`, as V11 (b) suggested. A blur before the focus in the same task is enough; deferring to a frame (fix3b) was not needed. A hand test with a real keyboard is still the one check that is not CDP.
+
+## Changes during development (third round)
+
+- **Modified because of execution: 0.**
+- **Modified because of review: 0.**
+- No development rounds; the fix mirrors were checked offline: each edit applies once, `patchOnly`, nothing written through a symlink.
+- No addition of mine beyond the shared `arrow_then_q` helper.
+
+## Third-round tables (generated by `--table` with `--table-glob`)
+
+### chrome (Chrome/151.0.7922.169), candidateFix: none, `report-chrome-third-20261017T045437.json`
+
+
+**V8D0224** (V8d on the 0.2.24 page and v20 profile: «Bravo|», Z there, then ArrowDown and Q 30 ms later)
+
+| round | caret before | Q lands | Q kd − arrow kd (ms) | arrow completion (round trip ms) | reply caret | final caret | request order |
+|---|---|---|---|---|---|---|---|
+| 1 | 2151,1694 | P2 (the line before the move): para 1 off 6 'BravoZQ second paragraph' | 30.2 | verified-move-readback (251.6) | 2151,1694 | 2371,1970 | save → move-line-down → insertText → editorGetStateV2 |
+| 2 | 2151,1694 | P2 (the line before the move): para 1 off 6 'BravoZQ second paragraph' | 30.3 | verified-move-readback (250.9) | 2151,1694 | 2371,1970 | save → move-line-down → insertText → editorGetStateV2 |
+| 3 | 2151,1694 | P2 (the line before the move): para 1 off 6 'BravoZQ second paragraph' | 30.3 | verified-move-readback (250.5) | 2151,1694 | 2371,1970 | save → move-line-down → insertText → editorGetStateV2 |
+
+### firefox (157.0.1), candidateFix: none, `report-firefox-third-20261017T045605.json`
+
+
+**V8D0224** (V8d on the 0.2.24 page and v20 profile: «Bravo|», Z there, then ArrowDown and Q 30 ms later)
+
+| round | caret before | Q lands | Q kd − arrow kd (ms) | arrow completion (round trip ms) | reply caret | final caret | request order |
+|---|---|---|---|---|---|---|---|
+| 1 | 2151,1694 | P2 (the line before the move): para 1 off 6 'BravoZQ second paragraph' | 32.9 | verified-move-readback (251.1) | 2151,1694 | 2371,1970 | save → move-line-down → insertText → editorGetStateV2 |
+| 2 | 2151,1694 | P2 (the line before the move): para 1 off 6 'BravoZQ second paragraph' | 32.5 | verified-move-readback (251.1) | 2151,1694 | 2371,1970 | save → move-line-down → insertText → editorGetStateV2 |
+| 3 | 2151,1694 | P2 (the line before the move): para 1 off 6 'BravoZQ second paragraph' | 32.7 | verified-move-readback (251.1) | 2151,1694 | 2371,1970 | save → move-line-down → insertText → editorGetStateV2 |
+
+### chrome (Chrome/151.0.7922.169), candidateFix: fix1p (`editor-shell-v2/narrow-editor-v2-session.js` d68c1cfd4271a250…), `report-chrome-fix1p-20261017T045705.json`
+
+
+**V8D** ((added) plain3: «Bravo|», then Z there, then ArrowDown and Q 30 ms later (the arrow is the first move after the change))
+
+| round | caret before | Q lands | Q kd − arrow kd (ms) | arrow completion (round trip ms) | reply caret | final caret | request order |
+|---|---|---|---|---|---|---|---|
+| 1 | 2151,1694 | P3 (the line moved to): para 2 off 7 'CharlieQ third paragraph' | 30.9 | documented-callback-visible-cursor (48.6) | 2124,1970 | 2297,1970 | move-line-down → insertText → editorGetStateV2 |
+| 2 | 2151,1694 | P3 (the line moved to): para 2 off 7 'CharlieQ third paragraph' | 30.4 | documented-callback-visible-cursor (45.2) | 2124,1970 | 2297,1970 | move-line-down → insertText → editorGetStateV2 |
+| 3 | 2151,1694 | P3 (the line moved to): para 2 off 7 'CharlieQ third paragraph' | 30.8 | documented-callback-visible-cursor (34.7) | 2124,1970 | 2297,1970 | move-line-down → insertText → editorGetStateV2 |
+
+**V1** (plain3, dirty, Q 30 ms after Ctrl+End's keydown)
+
+| round | Q lands | Q kd − Ctrl+End kd (ms) | Q kd − move reply (ms) | move completion (round trip ms) | reply caret | +500 ms ask caret | final ask caret (after quiet) | request order |
+|---|---|---|---|---|---|---|---|---|
+| 1 | document end | 30.5 | -10.8 | documented-callback-visible-cursor (40.3) | 3657,1970 | 3830,1970 | 3830,1970 | move-document-end → insertText → editorGetStateV2 |
+| 2 | document end | 30.8 | -4.3 | documented-callback-visible-cursor (34.3) | 3657,1970 | 3830,1970 | 3830,1970 | move-document-end → insertText → editorGetStateV2 |
+| 3 | document end | 30.4 | -8.5 | documented-callback-visible-cursor (37.9) | 3657,1970 | 3830,1970 | 3830,1970 | move-document-end → insertText → editorGetStateV2 |
+
+**BUP** (boundary control: dirty plain3 (Z at the start), Home, then ArrowUp and Q 30 ms later)
+
+| round | caret before | Q lands | Q kd − arrow kd (ms) | arrow completion (round trip ms) | reply caret | final caret | request order |
+|---|---|---|---|---|---|---|---|
+| 1 | 1418,1418 | P1: para 0 off 0 'QZAlpha first paragraph' | 30.7 | verified-move-readback (251.2) | 1418,1418 | 1591,1418 | move-line-up → insertText → editorGetStateV2 |
+| 2 | 1418,1418 | P1: para 0 off 0 'QZAlpha first paragraph' | 30.5 | verified-move-readback (250.9) | 1418,1418 | 1591,1418 | move-line-up → insertText → editorGetStateV2 |
+| 3 | 1418,1418 | P1: para 0 off 0 'QZAlpha first paragraph' | 30.6 | verified-move-readback (250.9) | 1418,1418 | 1591,1418 | move-line-up → insertText → editorGetStateV2 |
+
+### firefox (157.0.1), candidateFix: fix1p (`editor-shell-v2/narrow-editor-v2-session.js` d68c1cfd4271a250…), `report-firefox-fix1p-20261017T045912.json`
+
+
+**V8D** ((added) plain3: «Bravo|», then Z there, then ArrowDown and Q 30 ms later (the arrow is the first move after the change))
+
+| round | caret before | Q lands | Q kd − arrow kd (ms) | arrow completion (round trip ms) | reply caret | final caret | request order |
+|---|---|---|---|---|---|---|---|
+| 1 | 2151,1694 | P3 (the line moved to): para 2 off 7 'CharlieQ third paragraph' | 33.3 | documented-callback-visible-cursor (36.1) | 2124,1970 | 2297,1970 | move-line-down → insertText → editorGetStateV2 |
+| 2 | 2151,1694 | P3 (the line moved to): para 2 off 7 'CharlieQ third paragraph' | 33.2 | documented-callback-visible-cursor (35.9) | 2124,1970 | 2297,1970 | move-line-down → insertText → editorGetStateV2 |
+| 3 | 2151,1694 | P3 (the line moved to): para 2 off 7 'CharlieQ third paragraph' | 33.4 | documented-callback-visible-cursor (35.8) | 2124,1970 | 2297,1970 | move-line-down → insertText → editorGetStateV2 |
+
+**V1** (plain3, dirty, Q 30 ms after Ctrl+End's keydown)
+
+| round | Q lands | Q kd − Ctrl+End kd (ms) | Q kd − move reply (ms) | move completion (round trip ms) | reply caret | +500 ms ask caret | final ask caret (after quiet) | request order |
+|---|---|---|---|---|---|---|---|---|
+| 1 | document end | 34.0 | -5.3 | documented-callback-visible-cursor (37.8) | 3657,1970 | 3830,1970 | 3830,1970 | move-document-end → insertText → editorGetStateV2 |
+| 2 | document end | 33.7 | -9.1 | documented-callback-visible-cursor (41.9) | 3657,1970 | 3830,1970 | 3830,1970 | move-document-end → insertText → editorGetStateV2 |
+| 3 | document end | 33.5 | -7.6 | documented-callback-visible-cursor (40.2) | 3657,1970 | 3830,1970 | 3830,1970 | move-document-end → insertText → editorGetStateV2 |
+
+**BUP** (boundary control: dirty plain3 (Z at the start), Home, then ArrowUp and Q 30 ms later)
+
+| round | caret before | Q lands | Q kd − arrow kd (ms) | arrow completion (round trip ms) | reply caret | final caret | request order |
+|---|---|---|---|---|---|---|---|
+| 1 | 1418,1418 | P1: para 0 off 0 'QZAlpha first paragraph' | 34.2 | verified-move-readback (251.6) | 1418,1418 | 1591,1418 | move-line-up → insertText → editorGetStateV2 |
+| 2 | 1418,1418 | P1: para 0 off 0 'QZAlpha first paragraph' | 33.5 | verified-move-readback (251.9) | 1418,1418 | 1591,1418 | move-line-up → insertText → editorGetStateV2 |
+| 3 | 1418,1418 | P1: para 0 off 0 'QZAlpha first paragraph' | 34.2 | verified-move-readback (251.5) | 1418,1418 | 1591,1418 | move-line-up → insertText → editorGetStateV2 |
+
+### chrome (Chrome/151.0.7922.169), candidateFix: fix3 (`e2-editor-app.js` 7c894933924262f4…), `report-chrome-fix3-20261017T050140.json`
+
+
+**V5** (Markdown dialog `# a`, Z 0 / 300 ms after it closes (+ added controls late, no-dialog))
+
+| round | delay | dialog close → Z kd (ms) | Z kd target / active | sink disabled at Z | keypress (prevented) | beforeinput / input anywhere after Z | insertText | Z in saved doc | then Y (no click), X (after click) | request order |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | 300 | 300.8 | sink / sink | False | True (False) | ['insertText@sink'] / [] | True | para 1 off 0 'ZYXAlpha first paragraph' | Y in, X after click in | pasteMarkdown → editorGetStateV2 → insertText → editorGetStateV2 |
+| 2 | 300 | 301.1 | sink / sink | False | True (False) | ['insertText@sink'] / [] | True | para 1 off 0 'ZYXAlpha first paragraph' | Y in, X after click in | pasteMarkdown → editorGetStateV2 → insertText → editorGetStateV2 |
+| 3 | 300 | 301.2 | sink / sink | False | True (False) | ['insertText@sink'] / [] | True | para 1 off 0 'ZYXAlpha first paragraph' | Y in, X after click in | pasteMarkdown → editorGetStateV2 → insertText → editorGetStateV2 |
+
+**V11C** (open the dialog, 取消 (no paste), then a real Z)
+
+| round | first input | at that moment: active / disabled / readOnly / inert / closest [inert] / pointer-events / dialog open / hasFocus | beforeinput / input anywhere | insertText | Z | W (pasted) | then Y (no click), X (after click) | request order |
+|---|---|---|---|---|---|---|---|---|
+| 1 | keydown Z | sink / False / False / False / None / none / False / True | ['insertText@sink'] / [] | True | para 0 off 0 'ZYXAlpha first paragraph' | absent | Y in, X after click in | insertText → editorGetStateV2 |
+| 2 | keydown Z | sink / False / False / False / None / none / False / True | ['insertText@sink'] / [] | True | para 0 off 0 'ZYXAlpha first paragraph' | absent | Y in, X after click in | insertText → editorGetStateV2 |
+| 3 | keydown Z | sink / False / False / False / None / none / False / True | ['insertText@sink'] / [] | True | para 0 off 0 'ZYXAlpha first paragraph' | absent | Y in, X after click in | insertText → editorGetStateV2 |
+
+### chrome (Chrome/151.0.7922.169), candidateFix: fix3 (`e2-editor-app.js` 7c894933924262f4…), `report-chrome-fix3-headed-20261017T050323.json`
+
+
+**V5** (Markdown dialog `# a`, Z 0 / 300 ms after it closes (+ added controls late, no-dialog))
+
+| round | delay | dialog close → Z kd (ms) | Z kd target / active | sink disabled at Z | keypress (prevented) | beforeinput / input anywhere after Z | insertText | Z in saved doc | then Y (no click), X (after click) | request order |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | 300 | 301.5 | sink / sink | False | True (False) | ['insertText@sink'] / [] | True | para 1 off 0 'ZYXAlpha first paragraph' | Y in, X after click in | pasteMarkdown → editorGetStateV2 → insertText → editorGetStateV2 |
+
+### firefox (157.0.1), candidateFix: fix3 (`e2-editor-app.js` 7c894933924262f4…), `report-firefox-fix3-20261017T050402.json`
+
+
+**V5** (Markdown dialog `# a`, Z 0 / 300 ms after it closes (+ added controls late, no-dialog))
+
+| round | delay | dialog close → Z kd (ms) | Z kd target / active | sink disabled at Z | keypress (prevented) | beforeinput / input anywhere after Z | insertText | Z in saved doc | then Y (no click), X (after click) | request order |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | 300 | 305.3 | sink / sink | False | True (False) | ['insertText@sink'] / [] | True | para 1 off 0 'ZYXAlpha first paragraph' | Y in, X after click in | pasteMarkdown → editorGetStateV2 → insertText → editorGetStateV2 |
+

@@ -44,6 +44,11 @@ Candidate fixes (`--fix`), applied to the SERVED files in the mirror only, never
   fix2   the page (web/e2-editor-app.js, repointed to v21): `deletesInFlight === 0 &&` in front of the arrow
          path's and sendDocumentMove's range decision (finding 131's rule A)
   fix12  both
+  fix1p  (fix 1') no checkpoint before any of the eight moves (`if (false && BOUNDARY_CAPABLE_MOVES...`)
+  fix3   closeMarkdownDialog: `el.sink.blur(); el.sink.focus(...)` in place of the focus alone
+  fix3b  closeMarkdownDialog: `requestAnimationFrame(() => el.sink.focus(...))`
+Third round (2026-10-17): v8d0224 (V8d on the 0.2.24 page), bup (fix1' boundary control: dirty, Home,
+ArrowUp, Q 30 ms later).
 The report states `candidateFix` with each patched file's sha256 and edits.
 
 Reused, not copied: the item-1 runner's `Pages` (S-1 mirrors), `Ctx` (load/open/start/ask/quiet/save,
@@ -85,7 +90,8 @@ import v21_shakedown_common as common  # noqa: E402
 from create_long_document import build as build_long_document  # noqa: E402
 
 VARIANTS = ("v1", "v2", "v3", "v4", "v5", "v6", "v6e",
-            "v7", "v8", "v8d", "d11b", "d8e", "range", "v11a", "v11b", "v11c", "v11d", "v11e", "v11f")
+            "v7", "v8", "v8d", "d11b", "d8e", "range", "v11a", "v11b", "v11c", "v11d", "v11e", "v11f",
+            "v8d0224", "bup")
 CHROME_ONLY = ("v11a", "v11b", "v11c", "v11d", "v11e", "v11f")
 V7_WAITS = ((0, None), (300, 1), (1000, None), (3000, 1))   # (X ms, rounds; None = --rounds)
 RANGE_SECOND = "k1024,k1027x6,ra,k1027x6,rb,sa:b"           # «Bravo |second|» in P2, dragged a -> b
@@ -103,11 +109,28 @@ PAGE_EDITS = [
     ("  const fromPoint = pointMovesInFlight === 0 && shape !== \"collapsed\"",
      "  const fromPoint = deletesInFlight === 0 && pointMovesInFlight === 0 && shape !== \"collapsed\""),
 ]
-FIXES = {"none": (), "fix1": ("session",), "fix2": ("page",), "fix12": ("session", "page")}
+# fix1': no checkpoint before any of the eight moves.
+SESSION_EDITS_ALL = [(
+    "        if (BOUNDARY_CAPABLE_MOVES.has(action))\n          await this._checkpointBeforeBoundaryMove(document);",
+    "        if (false && BOUNDARY_CAPABLE_MOVES.has(action))\n          await this._checkpointBeforeBoundaryMove(document);")]
+# fix3 / fix3b: closeMarkdownDialog's focus (the anchor carries the line before it: the same focus line also
+# ends the toolbar's mousedown handler).
+FOCUS_ANCHOR = "  el.markdownInsert.disabled = false;\n  if (session) el.sink.focus({ preventScroll: true });\n}"
+FOCUS_EDITS = [(FOCUS_ANCHOR, "  el.markdownInsert.disabled = false;\n"
+                              "  if (session) { el.sink.blur(); el.sink.focus({ preventScroll: true }); }\n}")]
+FOCUS_RAF_EDITS = [(FOCUS_ANCHOR, "  el.markdownInsert.disabled = false;\n"
+                                  "  if (session) requestAnimationFrame(() => el.sink.focus({ preventScroll: true }));\n}")]
+EDITS_OF = {"session": ("session", SESSION_EDITS), "session_all": ("session", SESSION_EDITS_ALL),
+            "page": ("page", PAGE_EDITS), "focus": ("page", FOCUS_EDITS), "focus_raf": ("page", FOCUS_RAF_EDITS)}
+FIXES = {"none": (), "fix1": ("session",), "fix2": ("page",), "fix12": ("session", "page"),
+         "fix1p": ("session_all",), "fix3": ("focus",), "fix3b": ("focus_raf",)}
 FIX_WHAT = {"none": "no candidate fix",
             "fix1": "fix 1: Ctrl+Home/End take no checkpoint (session action())",
             "fix2": "fix 2: finding 131's rule A (deletesInFlight === 0) in the arrow path and sendDocumentMove (page)",
-            "fix12": "fix 1 and fix 2 together"}
+            "fix12": "fix 1 and fix 2 together",
+            "fix1p": "fix 1': no checkpoint before any of the eight moves (session action(), `false &&`)",
+            "fix3": "fix 3: closeMarkdownDialog blurs the sink, then focuses it (page)",
+            "fix3b": "fix 3b: closeMarkdownDialog focuses the sink in requestAnimationFrame (page)"}
 V21_PAGE_PREFIX = "3d5112161b23b060"
 LOG_KINDS = ("kd", "kdp", "rq", "rs", "bi", "ask7post", "ask7", "askx")
 PLACEMENT_BRAVO = "k1024,k1027x5"
@@ -265,29 +288,31 @@ class FixPages(item1.Pages):
         if variant != "v21" or self.fix == "none" or variant in self.servers:
             return super().base(variant)
         parts = FIXES[self.fix]
+        page_edits = [e for p in parts if EDITS_OF[p][0] == "page" for e in EDITS_OF[p][1]]
+        session_edits = [e for p in parts if EDITS_OF[p][0] == "session" for e in EDITS_OF[p][1]]
         extra = {f"v21-fx-{name}.odt": raw for name, raw in self.fixtures.items()}
         extra.update(self.extra)
         source = common.PAGE_SOURCE.read_text(encoding="utf-8")
         manifest = common.DIST / "profiles" / common.DEFAULT_PROFILE / "sdk-manifest.json"
         kwargs = {}
-        if "page" in parts:
-            patched = apply_edits(source, PAGE_EDITS, "web/e2-editor-app.js")
+        if page_edits:
+            patched = apply_edits(source, page_edits, "web/e2-editor-app.js")
             unpatched_served = pp.repointed_page(source, common.DEFAULT_PROFILE, manifest)[0]
             patched_served = pp.repointed_page(patched, common.DEFAULT_PROFILE, manifest)[0]
             undone = patched_served
-            for old, new in PAGE_EDITS:
+            for old, new in page_edits:
                 undone = undone.replace(new, old)
             self.candidate["files"]["e2-editor-app.js"] = {
                 "path": "e2-editor-app.js (served; source web/e2-editor-app.js repointed to e2-editor-v21)",
                 "unpatchedServedSha256": common.sha256_bytes(unpatched_served.encode("utf-8")),
                 "patchedServedSha256": common.sha256_bytes(patched_served.encode("utf-8")),
-                "patchOnly": undone == unpatched_served, "edits": PAGE_EDITS}
+                "patchOnly": undone == unpatched_served, "edits": page_edits}
             kwargs["source_page"] = patched
         mirror = self.scratch / f"mirror-v21-{self.fix}"
         identity = common.build_mirror(mirror, snippets=[v20.OBSERVER, obs1.SNIPPET], extra_files=extra, **kwargs)
-        if "session" in parts:
-            self.candidate["files"][SESSION_FILE] = patch_served_file(mirror, SESSION_FILE, SESSION_EDITS)
-        if "page" in parts:
+        if session_edits:
+            self.candidate["files"][SESSION_FILE] = patch_served_file(mirror, SESSION_FILE, session_edits)
+        if page_edits:
             served = identity["pageServedSha256"]
             if served != self.candidate["files"]["e2-editor-app.js"]["patchedServedSha256"]:
                 raise SystemExit("candidate fix: the mirror serves a page other than the patched one")
@@ -622,8 +647,9 @@ def round_v7(ctx: item1.Ctx, wait_ms: int, label: str) -> dict:
 def round_v8(ctx: item1.Ctx, variant: str, label: str) -> dict:
     """V8 (as asked): Z at the start, then «Bravo|», then ArrowDown and Q 30 ms later.  V8d (added): «Bravo|»
     first, then Z there, so the ArrowDown is the first move after the change (it takes the checkpoint)."""
-    rec = {"fixture": "plain3", "foreign": ctx.foreign()}
-    rec["load"] = ctx.load("v21")
+    page = "dist0224" if variant == "v8d0224" else "v21"
+    rec = {"fixture": "plain3", "page": page, "foreign": ctx.foreign()}
+    rec["load"] = ctx.load(page)
     rec["open"] = ctx.open("plain3")
     rec["start"] = ctx.start_state()
     if variant == "v8":
@@ -632,27 +658,46 @@ def round_v8(ctx: item1.Ctx, variant: str, label: str) -> dict:
     else:
         rec["placement"] = item1.run_script(ctx, PLACEMENT_BRAVO, "placement", None)["steps"]
         rec["typedZ"] = ctx.type_marker()
+    return arrow_then_q(ctx, rec, label, "ArrowDown", "move-line-down",
+                        {1: "P2 (the line before the move)", 2: "P3 (the line moved to)"})
+
+
+def round_bup(ctx: item1.Ctx, label: str) -> dict:
+    """fix1' boundary control: dirty plain3 (Z at the start), Home back to the document start, then a real
+    ArrowUp (a boundary: there is no line above) and a real Q 30 ms later."""
+    rec = {"fixture": "plain3", "page": "v21", "foreign": ctx.foreign()}
+    rec["load"] = ctx.load("v21")
+    rec["open"] = ctx.open("plain3")
+    rec["start"] = ctx.start_state()
+    rec["typedZ"] = ctx.type_marker()
+    rec["home"] = ctx.move_key("Home")
+    ctx.quiet()
+    return arrow_then_q(ctx, rec, label, "ArrowUp", "move-line-up", {0: "P1"})
+
+
+def arrow_then_q(ctx: item1.Ctx, rec: dict, label: str, key: str, action: str, lines: dict) -> dict:
+    """A real arrow, a real Q 30 ms after its keydown; the arrow's reply, Q's landing, a final ask, save."""
     rec["beforeCaret"] = (ctx.ask().get("full") or {}).get("caret")
     ctx.ev_quiet()
     mark = len(ctx.log.all)
-    rec["sent"] = timed_keys(ctx, [(0, "ArrowDown", ()), (30, "Q", ())])
-    rec["move"] = ctx.wait_rs(mark, lambda e: e.get("op") == "editorActionV2" and e.get("action") == "move-line-down", 30)
+    rec["sent"] = timed_keys(ctx, [(0, key, ()), (30, "Q", ())])
+    rec["move"] = ctx.wait_rs(mark, lambda e: e.get("op") == "editorActionV2" and e.get("action") == action, 30)
     rec["insert"] = ctx.wait_rs(mark, lambda e: e.get("op") == "insertText", 30)
     settle_after(ctx)
     rec["finalAsk"] = (ctx.ask().get("full") or {})
     keep(ctx, rec, mark, label)
     log = rec["log"]
-    down = first(log, lambda e: e.get("k") == "kd" and e.get("key") == "ArrowDown")
+    down = first(log, lambda e: e.get("k") == "kd" and e.get("key") == key)
     q_kd = first(log, lambda e: e.get("k") == "kd" and e.get("key") == "Q")
-    move = first(log, lambda e: e.get("k") == "rs" and e.get("action") == "move-line-down")
+    move = first(log, lambda e: e.get("k") == "rs" and e.get("action") == action)
     texts = rec.get("savedTexts") or []
     q = hits(texts, "Q")
-    line = {1: "P2 (the line before the move)", 2: "P3 (the line moved to)"}
     rec["summary"] = {
         "qHits": q, "zHits": hits(texts, "Z"),
-        "qLine": (line.get(q[0]["para"], f"para {q[0]['para']}") if len(q) == 1 else f"{len(q)} Q"),
+        "qLine": (lines.get(q[0]["para"], f"para {q[0]['para']}") if len(q) == 1 else f"{len(q)} Q"),
         "gapDownKdToQKdMs": round(q_kd["t"] - down["t"], 1) if down and q_kd else None,
         "moveCompletion": move and move.get("completion"), "moveRoundTripMs": move and round(move["t"] - move["tRq"], 1),
+        "moveWaitedMs": move and move.get("waitedMs"), "moveChanged": move and move.get("changed"),
         "moveReplyCaret": caret_str(move and move.get("caret")), "finalCaret": caret_str(rec["finalAsk"].get("caret")),
         "beforeCaret": caret_str(rec.get("beforeCaret")),
         "order": [e.get("action") or e.get("op") for e in log if e.get("k") == "rq" and not e.get("ask")],
@@ -927,8 +972,8 @@ def tables(directory: Path, pattern: str = "report-*.json") -> str:
                         r.get("waitMs"), r.get("round"), s.get("waitActualMs"), s.get("checkpointSaveAfterKey"), s.get("qClass"),
                         f"{s.get('moveCompletion')} ({s.get('moveRoundTripMs')})", s.get("moveReplyCaret"), s.get("ask7Caret"),
                         caret_str((r.get("finalAsk") or {}).get("caret")), _order(s.get("order")))) + " |")
-            elif variant in ("v8", "v8d"):
-                lines.append("| round | caret before | Q lands | Q kd − ArrowDown kd (ms) | arrow completion (round trip ms) "
+            elif variant in ("v8", "v8d", "v8d0224", "bup"):
+                lines.append("| round | caret before | Q lands | Q kd − arrow kd (ms) | arrow completion (round trip ms) "
                              "| reply caret | final caret | request order |")
                 lines.append("|---|---|---|---|---|---|---|---|")
                 for r in rounds:
@@ -1049,7 +1094,9 @@ WHAT = {"v1": "plain3, dirty, Q 30 ms after Ctrl+End's keydown", "v2": "plain3, 
         "v11c": "open the dialog, 取消 (no paste), then a real Z",
         "v11d": "a range (`second`), open the dialog, paste, 「插入」 refused (dialog stays open), 取消, then a real Z",
         "v11e": "after 「插入」 closes the dialog: a real Ctrl+V of plain text `W` into the sink",
-        "v11f": "the V5 step on the 0.2.24 page with another <dialog>"}
+        "v11f": "the V5 step on the 0.2.24 page with another <dialog>",
+        "v8d0224": "V8d on the 0.2.24 page and v20 profile: «Bravo|», Z there, then ArrowDown and Q 30 ms later",
+        "bup": "boundary control: dirty plain3 (Z at the start), Home, then ArrowUp and Q 30 ms later"}
 
 
 def main() -> int:
@@ -1148,9 +1195,14 @@ def main() -> int:
                             rec = guarded(round_v7, ctx, wait_ms, f"v7-{wait_ms}-r{n}")
                             block["rounds"].append({"round": n, "waitMs": wait_ms, **rec})
                             flush()
-                elif variant in ("v8", "v8d"):
+                elif variant in ("v8", "v8d", "v8d0224"):
                     for n in range(1, args.rounds + 1):
                         rec = guarded(round_v8, ctx, variant, f"{variant}-r{n}")
+                        block["rounds"].append({"round": n, **rec})
+                        flush()
+                elif variant == "bup":
+                    for n in range(1, args.rounds + 1):
+                        rec = guarded(round_bup, ctx, f"bup-r{n}")
                         block["rounds"].append({"round": n, **rec})
                         flush()
                 elif variant == "range":
