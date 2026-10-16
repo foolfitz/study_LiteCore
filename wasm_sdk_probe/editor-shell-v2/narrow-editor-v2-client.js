@@ -64,6 +64,18 @@ export const EDITOR_V3_APPENDED_ACTIONS = Object.freeze([
   "delete-selection",
 ]);
 
+// ABI 5 (SPEC-M3-link-batch-v21 4.1) appends two under the e2-editor-v21
+// successor identity: finding 142's document moves, wire ids 22 and 23.  The
+// fourth append, so V4 -- the enums in src/editor_api.h count appends, not ABI
+// versions (V3 is ABI 4's).  Posted as Ctrl+Home / Ctrl+End by the engine with
+// `mutation = false`, the six moves' route, so they take the six moves'
+// postcondition below.  Both are offered for `collapsed` only; on a range the
+// page clicks at the point first (finding 129's moveFromPoint).
+export const EDITOR_V4_APPENDED_ACTIONS = Object.freeze([
+  "move-document-start",
+  "move-document-end",
+]);
+
 export const EDITOR_V2_ACTIONS = Object.freeze([
   ...EDITOR_V2_INHERITED_ACTIONS,
   ...EDITOR_V2_PARAGRAPH_ACTIONS,
@@ -74,8 +86,13 @@ export const EDITOR_V3_ACTIONS = Object.freeze([
   ...EDITOR_V3_APPENDED_ACTIONS,
 ]);
 
+export const EDITOR_V4_ACTIONS = Object.freeze([
+  ...EDITOR_V3_ACTIONS,
+  ...EDITOR_V4_APPENDED_ACTIONS,
+]);
+
 const INHERITED = new Set(EDITOR_V2_INHERITED_ACTIONS);
-const APPENDED = new Set(EDITOR_V3_APPENDED_ACTIONS);
+const APPENDED = new Set([...EDITOR_V3_APPENDED_ACTIONS, ...EDITOR_V4_APPENDED_ACTIONS]);
 const PARAGRAPH = new Set(EDITOR_V2_PARAGRAPH_ACTIONS);
 const MOVE_ACTIONS = new Set(["move-character-left", "move-character-right"]);
 // Movement by line takes the SAME postcondition as movement by character --
@@ -93,6 +110,13 @@ const MOVE_ACTIONS = new Set(["move-character-left", "move-character-right"]);
 const LINE_MOVE_ACTIONS = new Set([
   "move-line-up", "move-line-down", "move-line-home", "move-line-end",
 ]);
+// SPEC-M3-link-batch-v21 4.1: the same route again -- a posted key,
+// `mutation = false`, the 250 ms readback always armed -- so the same
+// postcondition, and at a document boundary (where Ctrl+Home is silent,
+// measured natively) the same `verified-move-readback` completion.  Not in
+// MOVE_ACTIONS, for the reason LINE_MOVE_ACTIONS is not: that set also permits
+// `extendSelection`, which the ABI refuses for anything but the character moves.
+const DOCUMENT_MOVE_ACTIONS = new Set(["move-document-start", "move-document-end"]);
 // FINDING 096.  The two completions a movement is allowed to come back with,
 // and the SECOND one is why this is a function rather than a prefix test.
 //
@@ -153,6 +177,27 @@ const MUTATION_ACTIONS = new Set([
   ...DELETE_ACTIONS, "insert-paragraph-break", "insert-line-break",
   ...FORMAT_ACTIONS, "delete-selection",
 ]);
+
+/**
+ * Which postcondition an action's reply is judged by, or null when it has none.
+ *
+ * SPEC-M3-link-batch-v21 9.7 / 11.1 D13: a CLOSED classification.  Every action
+ * this client sends has exactly one class -- "move" (revision unchanged,
+ * `changed: false`, a documented callback or the readback), "delete" (the
+ * barrier deletes and C's no-op), "mutation" (a UNO command, revision + 1) or
+ * "paragraph" (route C, judged by ParagraphEditorClient) -- and
+ * `_validateInherited` refuses a reply for anything that has none, instead of
+ * accepting it by falling off the end of its branches.  Exported so a test can
+ * hold the session's BOUNDARY_CAPABLE_MOVES to the "move" class.
+ */
+export function postconditionClassOf(action) {
+  if (MOVE_ACTIONS.has(action) || LINE_MOVE_ACTIONS.has(action)
+      || DOCUMENT_MOVE_ACTIONS.has(action)) return "move";
+  if (DELETE_ACTIONS.has(action)) return "delete";
+  if (MUTATION_ACTIONS.has(action)) return "mutation";
+  if (PARAGRAPH.has(action)) return "paragraph";
+  return null;
+}
 
 function unsignedRevision(value, label = "expectedRevision") {
   if (!Number.isInteger(value) || value < 0 || value > 0xffffffff) {
@@ -274,6 +319,18 @@ export class NarrowEditorV2Client {
     return contract.pageRectangles === "document-sdk-page-rectangles";
   }
 
+  /**
+   * Whether this profile carries the Markdown paste (SPEC-M3-link-batch-v21
+   * 4.2).  Read from the contract like page rectangles: a compiled
+   * document-level export, never an action -- `offers("paste-markdown")` is
+   * false everywhere.
+   */
+  offersPasteMarkdown() {
+    const contract = this.document._engine.manifest?.editorContract;
+    if (!contract) return false;
+    return contract.pasteMarkdown === "document-sdk-paste-markdown";
+  }
+
   limitsFor(action) {
     const spec = this.document._engine.manifest?.editorContract?.actions?.[action];
     return Array.isArray(spec?.limits) ? spec.limits : [];
@@ -294,14 +351,15 @@ export class NarrowEditorV2Client {
         "editor action returned a malformed or mismatched result",
         { action, expectedRevision, result });
     }
-    if (MOVE_ACTIONS.has(action) || LINE_MOVE_ACTIONS.has(action)) {
+    const postcondition = postconditionClassOf(action);
+    if (postcondition === "move") {
       if (result.revision !== expectedRevision || result.changed !== false
           || !MOVE_COMPLETIONS(result.completion)) {
         throw invalidResult(
           "character movement did not satisfy its typed postcondition",
           { result });
       }
-    } else if (DELETE_ACTIONS.has(action)) {
+    } else if (postcondition === "delete") {
       // SPEC-M3-link-batch 10.5 (ruling 2 condition 8): C's second exit.  A
       // caret-relative delete at a document boundary whose K1 selected
       // nothing inside the engine's window completes as
@@ -322,7 +380,7 @@ export class NarrowEditorV2Client {
           "delete did not satisfy the verified-selection postcondition",
           { result });
       }
-    } else if (MUTATION_ACTIONS.has(action)) {
+    } else if (postcondition === "mutation") {
       const validChange = result.changed === true
         && result.revision === expectedRevision + 1
         && result.completion === "uno-command-result";
@@ -331,6 +389,13 @@ export class NarrowEditorV2Client {
           "editor mutation did not satisfy its revision postcondition",
           { result });
       }
+    } else {
+      // SPEC-M3-link-batch-v21 9.7 (opus S3): no class, no acceptance.  Until
+      // now an action in none of the sets above fell off the end and its reply
+      // was accepted unjudged -- so an action appended to the accepted list and
+      // forgotten here would have been believed whatever it said.
+      throw invalidResult(
+        `no inherited postcondition applies to ${String(action)}`, { action, result });
     }
   }
 

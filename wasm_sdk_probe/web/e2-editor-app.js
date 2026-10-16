@@ -107,8 +107,16 @@ let deletesInFlight = 0;
 // has not answered yet -- `deletesInFlight` also counts the repaint `run()`
 // waits for -- and the presses of the same key held on the page behind them
 // (`holdsDelete`, `settleDelete`).
+//
+// SPEC-M3-link-batch-v21 §10.3: held presses BELONG TO THE SEND THEY WAIT ON
+// (`send.held`, each press with its own key), never to a shared field -- the
+// old `heldDeletes.action` was overwritten by whatever was sent next, so a
+// Backspace held behind a Backspace could be released as a Delete.  `count` is
+// every press held anywhere (finding 144's depth reads it), `last` the newest
+// delete this page sent, and `sending` is true only while that send is being
+// put into the session's queue (see `releaseHeldDeletesBeforeEnqueue`).
 let deletesUnanswered = 0;
-const heldDeletes = { action: null, count: 0 };
+const heldDeletes = { count: 0, last: null, sending: false };
 
 // Fail closed: a session without `hasUnsavedEdits` throws here, and the host
 // counts a throw as "ask" -- an optional call answering `false` would switch
@@ -155,6 +163,10 @@ const el = {
   a11yDoc: $("#a11y-doc"), a11yPara: $("#a11y-para"),
   a11yStructure: $("#a11y-structure"),
   pageStatus: $("#page-status"),
+  // SPEC-M3-link-batch-v21 4.2 / 9.13 Q1 = A: the Markdown dialog.
+  markdownDialog: $("#markdown-dialog"), markdownText: $("#markdown-text"),
+  markdownMessage: $("#markdown-message"), markdownInsert: $("#markdown-insert"),
+  markdownCancel: $("#markdown-cancel"),
   s: { state: $("#s-state"), revision: $("#s-revision"), pending: $("#s-pending"),
        generation: $("#s-generation"), checkpoint: $("#s-checkpoint"),
        latency: $("#s-latency"), doc: $("#s-doc") },
@@ -1008,6 +1020,7 @@ function updateState(snapshot) {
   }
   updateGestureAffordance();
   updateRedoAffordance();
+  updatePasteMarkdownAffordance();
   applySessionAvailability(snapshot);
   // Finding 058.  The caret arrives as a state update, not as a document
   // change, so redrawing only on render would leave it a gesture behind.
@@ -1182,6 +1195,20 @@ function updateRedoAffordance() {
   const button = el.toolbar.querySelector('[data-action="redo"]');
   if (!button) return;
   button.hidden = !session?.offersRedo?.();
+}
+
+/**
+ * Show 「貼上為 Markdown…」 only on a profile that declares the paste
+ * (SPEC-M3-link-batch-v21 4.2, 11.2 M8).  Hidden, not disabled, for redo's
+ * reason above: on v20 there is no such operation at all, and a disabled
+ * button would promise one.  This entry IS the product's switch for the
+ * feature (9.2): if M1-M6 do not hold, the entry goes and the SDK path stays
+ * callable (L-md-sdk-callable).
+ */
+function updatePasteMarkdownAffordance() {
+  const button = el.toolbar.querySelector('[data-action="paste-markdown"]');
+  if (!button) return;
+  button.hidden = session?.offersPasteMarkdown?.() !== true;
 }
 
 /* ----------------------------------------------------------------- canvas */
@@ -2180,6 +2207,9 @@ const ACTION_LABELS = {
   "move-line-home": "移到行首",
   "move-line-end": "移到行尾",
   "delete-selection": "刪除選取",
+  // SPEC-M3-link-batch-v21 4.1: Ctrl/Cmd+Home and Ctrl/Cmd+End, no button.
+  "move-document-start": "移到文件開頭",
+  "move-document-end": "移到文件結尾",
 };
 
 async function editorAction(action, { onResult = null } = {}) {
@@ -2243,6 +2273,114 @@ async function insertText() {
   if (!text) { toast("先在欄位裡輸入要插入的文字", true); return; }
   await run("插入文字", () => session.commitText(text));
 }
+
+/* --------------------------------------------------------- Markdown paste */
+
+// SPEC-M3-link-batch-v21 4.2, 9.13 (Q1 = A), 11.2 M8/M11.  「貼上為 Markdown…」
+// opens a dialog with a text box: the user pastes into it with an ordinary
+// Ctrl+V (no clipboard permission, the same in both browsers), sees what will
+// be converted, and presses 「插入」.  Ctrl+V into the document stays plain
+// text (M7).  The box is the dialog's own element, so nothing typed into it
+// passes through the input adapter (E1-C's) or the sink's listeners; 「取消」
+// (or Escape) closes it and enqueues NOTHING (M11).
+//
+// Only on a collapsed caret (9.14, finding 148): 「插入」 with a range selected
+// says 「請先取消選取」 and sends nothing; the engine refuses the cases this
+// page cannot see (an image or a frame selected) with MARKDOWN_NEEDS_CARET.
+// The dialog stays open while the paste is out, and a refusal that changed
+// nothing (`recovery: "none"`) is said IN the dialog with the text kept, so
+// the user can remove the image or wrap the HTML and try again.
+const MARKDOWN_REFUSAL_TEXT = {
+  // 9.3, L-md-no-remote-images.
+  MARKDOWN_REMOTE_IMAGE: "Markdown 裡有網路圖片，尚不支援；請先移除圖片",
+  // 9.14 and 10.4, L-md-no-html: any `<word>` outside code is raw HTML.
+  MARKDOWN_HTML_UNSUPPORTED: "Markdown 裡有 HTML（程式碼以外的 <字>，例如 <br> 或 List<T>），"
+    + "尚不支援；請用反引號把它包起來",
+  // 9.14, L-md-collapsed-only.
+  MARKDOWN_NEEDS_CARET: "請先取消選取",
+  MARKDOWN_ENCODING_UNSUPPORTED: "引擎的文字編碼不是 UTF-8，這裡無法貼上 Markdown",
+  // The `.uno:Undo` read the engine verifies the paste with failed before it.
+  MARKDOWN_UNDO_UNREADABLE: "引擎讀不到復原紀錄，無法核對貼上的結果，所以沒有貼上；文件沒有變",
+  // 10.1: the work is banked before every paste, and that save failed.
+  MARKDOWN_CHECKPOINT_FAILED: "貼上前要先保住你的工作，那次存檔失敗了，所以沒有貼上",
+};
+
+/** The sentence for a failed Markdown paste. */
+function markdownRefusalText(error) {
+  const known = MARKDOWN_REFUSAL_TEXT[error?.code];
+  if (known) return known;
+  if (error?.code === "INVALID_ARGUMENT") {
+    // The SDK's operative limit says which limit and how far over (9.2).
+    if (Number.isInteger(error?.details?.limitBytes))
+      return `Markdown 太長：${error.details.utf8Bytes} 位元組，上限 ${error.details.limitBytes}`;
+    return "這段 Markdown 沒有可以貼上的內容、無法解析、含有 NUL 字元，或太長";
+  }
+  return `貼上為 Markdown：${describeError(error)}`
+    + (error?.recovery === "rollback" ? "（可能已經改到文件：請回到檢查點）" : "");
+}
+
+function showMarkdownMessage(text) {
+  el.markdownMessage.textContent = text;
+  el.markdownMessage.hidden = false;
+}
+
+function openMarkdownDialog() {
+  if (session?.offersPasteMarkdown?.() !== true) return;
+  el.markdownMessage.hidden = true;
+  el.markdownMessage.textContent = "";
+  el.markdownInsert.disabled = false;
+  if (!el.markdownDialog.open) el.markdownDialog.showModal();
+  el.markdownText.focus();
+}
+
+/** Close the dialog and forget its text; the caret's sink gets the focus back. */
+function closeMarkdownDialog() {
+  if (el.markdownDialog.open) el.markdownDialog.close();
+  el.markdownText.value = "";
+  el.markdownMessage.hidden = true;
+  el.markdownMessage.textContent = "";
+  el.markdownInsert.disabled = false;
+  if (session) el.sink.focus({ preventScroll: true });
+}
+
+/** 「取消」 and Escape: nothing is enqueued, the document is not touched (11.2 M11). */
+function cancelMarkdownDialog() {
+  closeMarkdownDialog();
+}
+
+/** 「插入」: the dialog's text, at the caret, through the session's queue. */
+async function insertMarkdownFromDialog() {
+  const markdown = el.markdownText.value;
+  if (!session?.document || session.offersPasteMarkdown?.() !== true) return;
+  // What the text may be (empty, too long, an image, HTML ...) is judged by
+  // the SDK and the engine, not here: one judge, and the same codes on both
+  // routes (11.2 M3).  The selection is the one rule the page checks itself.
+  const shape = selectionShapeOf({ state: session.state.snapshot.editorState }) ?? lastSelectionShape;
+  if (shape !== "collapsed") { showMarkdownMessage("請先取消選取"); return; }
+  el.markdownInsert.disabled = true;
+  try {
+    await run("貼上為 Markdown", () => session.pasteMarkdown(markdown), { quiet: true });
+    closeMarkdownDialog();
+    toast("已貼上 Markdown");
+  } catch (error) {
+    // run() has already said this one (EDITOR_VIEW_ONLY).
+    if (error?.code === "EDITOR_VIEW_ONLY") { closeMarkdownDialog(); return; }
+    if (error?.recovery === "none") {
+      el.markdownInsert.disabled = false;
+      showMarkdownMessage(markdownRefusalText(error));
+      return;
+    }
+    closeMarkdownDialog();
+    toast(markdownRefusalText(error), true);
+  }
+}
+
+el.markdownCancel.addEventListener("click", cancelMarkdownDialog);
+el.markdownDialog.addEventListener("cancel", (event) => {
+  event.preventDefault();
+  cancelMarkdownDialog();
+});
+el.markdownInsert.addEventListener("click", () => void insertMarkdownFromDialog());
 
 // With a host, one save at a time, end to end: the session's bytes AND the
 // host's write.  Two quick presses (or a held Ctrl+S) otherwise send two writes
@@ -2380,6 +2518,7 @@ el.toolbar.addEventListener("click", (event) => {
     action === "undo" ? () => run("復原", () => session.undo())
     : action === "redo" ? () => run("重做", () => session.redo())
     : action === "insert-text" ? () => insertText()
+    : action === "paste-markdown" ? () => openMarkdownDialog()
     : action === "save" ? () => saveDocument()
     : EDITOR_V2_ACTIONS.includes(action) ? () => editorAction(action)
     : null;
@@ -2681,6 +2820,20 @@ function deleteActionFor(action, shape, offersSelectionDelete, deletesInFlight =
 // the answer cannot be read as a standing no-op, the presses go out.  Named
 // limit: a K1 that lands after the reply (L-C-late-K1) is not seen here.
 //
+// SPEC-M3-link-batch-v21 §10.3 (the hold rewritten, items 1-4).  With
+// Ctrl+Home/End bound, "a delete of this key is out" stopped meaning "this
+// press is at the same place": Backspace at the start, Ctrl+End, Backspace held
+// the second press behind the first and DROPPED it with the first's no-op, so
+// nothing was deleted at the end (D8 (a)).  Now (1) a press is held only while
+// the session's most recent enqueue is an unanswered delete of the same key
+// (`holdsDelete`, the session's `enqueueCount`); (2) each held press belongs to
+// the send it waits on, with its own key (`send.held`); (3) that send's answer
+// decides them -- a standing no-op drops them, anything else releases them in
+// order; (4) anything else about to be enqueued while presses are held sends
+// them first (`releaseHeldDeletesBeforeEnqueue`, the session's
+// `beforeEnqueue`).  Finding 144's depth and finding 145's unconditional
+// settle are unchanged.
+//
 // A held press is released by a direct call (`dispatchDelete`), not by a
 // synthetic `beforeinput` on the sink (0.2.21 did that): a re-dispatched event
 // reaches every `beforeinput` listener, so the frozen adapter traced it and
@@ -2708,24 +2861,59 @@ function boundaryNoopStands(result, stateAtSend) {
     && after.width === stateAtSend.width && after.height === stateAtSend.height;
 }
 
-/** Hold this press: a delete of the same key is out and the engine has not answered it. */
-function holdsDelete(action, unanswered, inFlightAction) {
-  return unanswered > 0 && inFlightAction === action;
+/**
+ * Hold this press?  SPEC-M3-link-batch-v21 §10.3 rule 1: IF AND ONLY IF the
+ * session's most recent enqueue is a delete of the SAME key that the engine has
+ * not answered.  `last` is the newest delete this page sent, `enqueueCount` the
+ * session's count of everything enqueued (`NarrowEditorV2Session._enqueue`, the
+ * one entry every path takes), compared with the count right after `last` went
+ * in.  So a move, a click, a typed character, an undo or a save sent since
+ * means the press is SENT: finding 141's hold existed for a key pressed again
+ * at the same boundary, and after Ctrl+End the same Backspace is at another
+ * place (D8 (a), (c), (d)).
+ */
+function holdsDelete(action, last, enqueueCount) {
+  return last !== null && last.settled === false && last.action === action
+    && enqueueCount === last.enqueueMark;
 }
 
-function dropHeldDeletes() {
-  heldDeletes.count = 0;
-  if (deletesUnanswered === 0) heldDeletes.action = null;
+/** §10.3 rule 3: the presses held behind `send` are dropped -- their answer is known, or their document is gone. */
+function dropHeldDeletes(send) {
+  heldDeletes.count -= send.held.length;
+  send.held = [];
 }
 
-/** Send one held press now, as the key would have (finding 144: a direct call, no synthetic event). */
-function releaseHeldDelete() {
-  if (heldDeletes.count === 0) {
-    if (deletesUnanswered === 0) heldDeletes.action = null;
-    return;
-  }
+/**
+ * §10.3 rule 3: `send` was answered with something other than a standing
+ * no-op, so its held presses go out in order -- the first now, the rest held
+ * behind it, so a burst of real deletes keeps one answered and repainting and
+ * the next already out (131's press-for-press, 132's depth).  A direct call
+ * (finding 144: no synthetic event).
+ */
+function releaseHeldDelete(send) {
+  if (send.held.length === 0) return;
+  const [next, ...rest] = send.held;
+  send.held = [];
   heldDeletes.count -= 1;
-  dispatchDelete(heldDeletes.action);
+  dispatchDelete(next, rest);
+}
+
+/**
+ * §10.3 rule 4: something else is about to be enqueued while presses are held
+ * -- they go FIRST, in order, each as its own key, and only then the new item.
+ * Installed as the session's `beforeEnqueue`, which runs synchronously at the
+ * top of every enqueue, so "first" is the queue's own order.  Not for this
+ * page's own delete sends (`heldDeletes.sending`): those are the presses.
+ * Named cost L-hold-release-cost: at a document boundary each released press
+ * pays its own C window (at most two, by 144's depth).
+ */
+function releaseHeldDeletesBeforeEnqueue() {
+  const send = heldDeletes.last;
+  if (heldDeletes.sending || send === null || send.held.length === 0) return;
+  const presses = send.held;
+  send.held = [];
+  heldDeletes.count -= presses.length;
+  for (const action of presses) dispatchDelete(action);
 }
 
 /** Once per sent delete, at the engine's answer (or at its failure, or when it never went out). */
@@ -2742,8 +2930,8 @@ function settleDelete(send, result, failed) {
   // refusal (finding 134, B).
   deletesUnanswered -= 1;
   const documentGone = send.document !== session?.document;
-  if (failed || documentGone || boundaryNoopStands(result, send.stateAtSend)) dropHeldDeletes();
-  else releaseHeldDelete();
+  if (failed || documentGone || boundaryNoopStands(result, send.stateAtSend)) dropHeldDeletes(send);
+  else releaseHeldDelete(send);
 }
 
 /**
@@ -2752,14 +2940,27 @@ function settleDelete(send, result, failed) {
  * at the moment of sending (finding 121's shape, finding 131's collapsed form
  * while a delete is out), and the counters are its.
  */
-function dispatchDelete(action) {
-  if (!session?.document) return;
+function dispatchDelete(action, held = []) {
+  // Presses handed over with this one (`releaseHeldDelete`) were aimed at the
+  // document that is gone, so they go with it.
+  if (!session?.document) { heldDeletes.count -= held.length; return; }
   const shape = selectionShapeOf({ state: session.state.snapshot.editorState }) ?? lastSelectionShape;
   const sent = deleteActionFor(action, shape,
                                session.offers?.("delete-selection") === true, deletesInFlight);
-  const send = { document: session.document, stateAtSend: deleteStateOf(session.state.snapshot.editorState), settled: false };
-  heldDeletes.action = action;
+  // `action` is the KEY (its original direction, §10.3 rule 2), `sent` the
+  // form it went out in; `held` the presses that now wait on this one.
+  const send = { action, document: session.document, stateAtSend: deleteStateOf(session.state.snapshot.editorState),
+                 settled: false, held, enqueueMark: null };
+  heldDeletes.last = send;
   deletesUnanswered += 1;
+  // §10.3: this send is going into the session's queue -- not "something
+  // else" for rule 4.  The session enqueues synchronously inside
+  // `editorAction` (an async function: it cannot throw before the flag is
+  // cleared below), so the count read right after it is this send's own, and
+  // "nothing was enqueued since" is the count still being this one (rule 1).
+  // A session without the counter reads undefined twice, which is the hold as
+  // it was before §10.3.
+  heldDeletes.sending = true;
   // Counted before the call and released however it ends -- an early return,
   // a refusal swallowed here, a disposed engine.  Once none is out, the overlay
   // is brought up to date: a range that arrived meanwhile was not drawn
@@ -2772,14 +2973,19 @@ function dispatchDelete(action) {
     .finally(() => settleDelete(send, null, false))
     .finally(() => { deletesInFlight -= 1; })
     .then(() => { if (deletesInFlight === 0) paint(); });
+  heldDeletes.sending = false;
+  send.enqueueMark = session?.enqueueCount;
 }
 
 el.sink.addEventListener("beforeinput", (event) => {
   const action = DELETE_INPUT_TYPES[event.inputType];
   if (!action || !session?.document) return;
   event.preventDefault();
-  // FINDING 141: a delete of this key is out and unanswered -- held, not queued.
-  if (holdsDelete(action, deletesUnanswered, heldDeletes.action)) {
+  // FINDING 141, as SPEC-M3-link-batch-v21 §10.3 rule 1 narrows it: the
+  // session's last enqueue is an unanswered delete of this key -- held behind
+  // that send, with this key's direction, not queued.
+  if (holdsDelete(action, heldDeletes.last, session.enqueueCount)) {
+    heldDeletes.last.held.push(action);
     heldDeletes.count += 1;
     return;
   }
@@ -2840,6 +3046,17 @@ const KEY_ACTIONS = {
   Home: "move-line-home",
   End: "move-line-end",
 };
+
+// FINDING 142 (SPEC-M3-link-batch-v21 4.1, 9.8, 11.1 D4, D5, D9).  Ctrl+Home
+// and Ctrl+End (Cmd on a Mac) went to the hidden input, the document's caret
+// did not move, and the next Backspace deleted where the caret really was.
+// They are engine actions now, taken BEFORE `if (accel) return;` -- and only
+// when the profile offers the action, the rule above: on v20, which has no
+// such action, the key is left alone exactly as before (D5).  Never with
+// Shift (extending a selection is the ordered-commands batch) or during an IME
+// composition; not with Alt either, which is not the chord Writer binds
+// (HOME_MOD1 / END_MOD1).  macOS's Cmd+Up/Down are not bound (L-142-mac-arrows).
+const DOCUMENT_KEY_ACTIONS = { Home: "move-document-start", End: "move-document-end" };
 
 el.sink.addEventListener("keydown", (event) => {
   if (!session?.document) return;
@@ -2947,6 +3164,8 @@ el.sink.addEventListener("keydown", (event) => {
     }
     return;
   }
+  // Finding 142: Ctrl/Cmd+Home/End, when offered (see DOCUMENT_KEY_ACTIONS).
+  if (takeDocumentKey(event)) return;
   if (accel) return;
   const action = KEY_ACTIONS[event.key];
   // `offers()`, not `gesturesFor()`: the latter answers null both for a
@@ -3054,13 +3273,13 @@ window.addEventListener("keydown", endHeldDelete, true);
 window.addEventListener("keyup", endHeldDelete, true);
 window.addEventListener("blur", endHeldDelete);
 
-async function moveFromPoint(action) {
+async function moveFromPoint(action, actionOptions = {}) {
   const caret = session?.state?.snapshot?.editorState?.caret;
   // No point to click at (or no session taking actions): the move goes out as
   // it is, and whatever refuses it says so -- a key must not do nothing silently.
   if (!SESSION_ACCEPTS.has(session?.state?.snapshot?.state)
       || !Number.isFinite(caret?.x) || !Number.isFinite(caret?.y) || !Number.isFinite(caret?.height)) {
-    await editorAction(action);
+    await editorAction(action, actionOptions);
     return;
   }
   pointMovesInFlight += 1;
@@ -3068,10 +3287,62 @@ async function moveFromPoint(action) {
     await run("定位游標", () => session.placeCaret(caret.x, caret.y + caret.height / 2));
     lastSelectionShape = "collapsed";
     updateGestureAffordance();
-    await editorAction(action);
+    await editorAction(action, actionOptions);
   } finally {
     pointMovesInFlight -= 1;
   }
+}
+
+// FINDING 142, the keys (see DOCUMENT_KEY_ACTIONS).  `documentMovesUnanswered`
+// counts, per action, the document moves this page sent that the engine has
+// not answered: a press of the same key meanwhile is dropped, and so is every
+// flagged repeat (11.1 D9) -- a held Ctrl+End must not queue one 250 ms move
+// per repeat, and in a table a repeat would only walk one more level (Writer's
+// steps, L-142-steps; L-142-no-repeat).
+const documentMovesUnanswered = new Map();
+
+/** The document move this keydown asks for, or null when the page must not take the key. */
+function documentKeyAction(event, offered) {
+  if (!(event.ctrlKey || event.metaKey) || event.shiftKey || event.altKey || event.isComposing) return null;
+  const action = DOCUMENT_KEY_ACTIONS[event.key];
+  return action !== undefined && offered(action) === true ? action : null;
+}
+
+/** 11.1 D9: a flagged repeat, or a press while this key's move is unanswered, is dropped. */
+function dropsDocumentMove(event, unanswered) {
+  return event.repeat === true || unanswered > 0;
+}
+
+/**
+ * Send one document move.  On a range the profile does not offer it for (both
+ * are `collapsed` only), the page clicks at the point first and then moves --
+ * finding 129's `moveFromPoint`, the arrows' path, so the caret ends where
+ * Writer's does after collapsing the range (11.1 D4).
+ */
+function sendDocumentMove(action) {
+  documentMovesUnanswered.set(action, (documentMovesUnanswered.get(action) ?? 0) + 1);
+  let open = true;
+  const answered = () => {
+    if (!open) return;
+    open = false;
+    documentMovesUnanswered.set(action, documentMovesUnanswered.get(action) - 1);
+  };
+  const shape = selectionShapeOf({ state: session.state.snapshot.editorState }) ?? lastSelectionShape;
+  const gestures = session.gesturesFor(action);
+  const fromPoint = pointMovesInFlight === 0 && shape !== "collapsed"
+    && Array.isArray(gestures) && !gestures.includes(shape);
+  const sending = fromPoint ? moveFromPoint(action, { onResult: answered })
+                            : editorAction(action, { onResult: answered });
+  void Promise.resolve(sending).catch(() => {}).finally(answered);
+}
+
+/** Take Ctrl/Cmd+Home/End when the profile offers the move; true when the key was taken. */
+function takeDocumentKey(event) {
+  const action = documentKeyAction(event, (name) => session.offers(name));
+  if (action === null) return false;
+  event.preventDefault();
+  if (!dropsDocumentMove(event, documentMovesUnanswered.get(action) ?? 0)) sendDocumentMove(action);
+  return true;
 }
 
 // ---------------------------------------------------------------- autosave
@@ -3356,6 +3627,8 @@ async function openDocument(bytes, name, { readOnly = false } = {}) {
     engineFactory,
     clipboard: navigator.clipboard,
     secureContext: globalThis.isSecureContext,
+    // SPEC-M3-link-batch-v21 §10.3 rule 4: held deletes go before anything else.
+    beforeEnqueue: releaseHeldDeletesBeforeEnqueue,
     onState: updateState,
     onEvent(event) {
       if (event.event === "document-invalidated") {

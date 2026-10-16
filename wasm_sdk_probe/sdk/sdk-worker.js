@@ -93,6 +93,19 @@ const EDITOR_V3_ACTION_IDS = Object.freeze({
   "delete-selection": 20,
   "select-all": 21,
 });
+// SPEC-M3-link-batch-v21 4.1 / 11.1: ABI 5 appends two under the e2-editor-v21
+// successor identity, the same way ABI 4 appended six: ids 1-21 spread in
+// verbatim, the new ones after them.  Finding 142's two moves, posted as keys
+// (Ctrl+Home / Ctrl+End) by the engine, `mutation = false`.
+//
+// The intersection below still decides what a profile can dispatch: v20's
+// manifest does not list these names, so on v20 they are refused here as
+// UNSUPPORTED_OPERATION before any id reaches the binary.
+const EDITOR_V4_ACTION_IDS = Object.freeze({
+  ...EDITOR_V3_ACTION_IDS,
+  "move-document-start": 22,
+  "move-document-end": 23,
+});
 
 // Neither option flag is accepted by the five paragraph actions (N7).
 const EDITOR_V2_PARAGRAPH_ACTIONS = new Set([
@@ -210,9 +223,17 @@ function editorContractEnabled(operation) {
 // COMPILED: on a profile whose binary predates it, ccall throws on a symbol
 // that is not there, and that would surface as WORKER_EXCEPTION rather than
 // as the honest UNSUPPORTED_OPERATION.
+//
+// SPEC-M3-link-batch-v21 4.2 / 11.2 M8: `pasteMarkdown` is the second such
+// export, gated the same way and for the same reason -- a profile whose
+// binary predates `oxsdk_document_paste_markdown` must answer
+// UNSUPPORTED_OPERATION, not WORKER_EXCEPTION.  The MIME type is the engine's
+// (`text/markdown;charset=utf-8`, hard-coded there); nothing here chooses it.
 const DOCUMENT_EXPORT_OPERATIONS = new Map([
   ["pageRectangles", { field: "pageRectangles",
                        declaration: "document-sdk-page-rectangles" }],
+  ["pasteMarkdown", { field: "pasteMarkdown",
+                      declaration: "document-sdk-paste-markdown" }],
 ]);
 
 function documentExportDeclared(operation) {
@@ -900,6 +921,13 @@ function handleCEvent(rawEvent) {
         });
       }
       break;
+    // SPEC-M3-link-batch-v21 4.2: the reply's shape is insert-text's -- the
+    // new revision, named.  Nothing else the engine may add crosses here until
+    // it is named, the allowlist rule every branch in this switch follows.
+    case "markdown-pasted":
+      if (requestId)
+        complete(requestId, { revision: event.revision });
+      break;
     case "comments": {
       if (!requestId)
         return;
@@ -1172,6 +1200,11 @@ function handleCEvent(rawEvent) {
           mergeKey: event.mergeKey ? productMergeKey(event.mergeKey) : undefined,
           // SPEC-M3-link-batch 10.6: the caret before the barrier, data only.
           caretBefore: event.caretBefore ? productCaretBefore(event.caretBefore) : undefined,
+          // SPEC-M3-link-batch-v21 10.4: every pre-dispatch refusal of the
+          // Markdown paste says `dispatched: false`, so a host can tell "the
+          // document was not touched" without knowing the code.  A boolean or
+          // nothing: an engine that does not send it has not said.
+          dispatched: typeof event.dispatched === "boolean" ? event.dispatched : undefined,
         });
       } else {
         postEvent("engine-error", {
@@ -1241,6 +1274,15 @@ async function handleInit(request) {
     // this call the `gestures` field is decorative: it would describe a
     // narrowing that nothing enforces, which is the defect 5.7 exists to
     // remove.  Narrowing only -- the engine intersects.
+    //
+    // SPEC-M3-link-batch-v21 9.7 / 11.1 D12: the call's STATUS is read, and
+    // anything but OK fails the init.  It used to be ignored, and the engine
+    // refuses an id above its `kMaxExternalAction` with INVALID_ARGUMENT: a
+    // binary whose bound did not move with the action list would have stored
+    // no mask for the new ids, so the engine's gate would refuse them every
+    // time while the manifest said they were granted -- the silent, total
+    // failure CLAUDE.md's "the bound follows the list" names.  A manifest the
+    // binary cannot narrow is a manifest that does not describe this binary.
     const actions = contract?.actions;
     const bits = contract?.gestureBits;
     if (actions && bits && !Array.isArray(actions)) {
@@ -1250,8 +1292,17 @@ async function handleInit(request) {
         let mask = 0;
         for (const gesture of spec.gestures)
           mask |= Number(bits[gesture]) || 0;
-        callStatus("oxsdk_editor_set_action_gestures", ["number", "number"],
-                   [spec.id, mask]);
+        const maskStatus = callStatus("oxsdk_editor_set_action_gestures",
+                                      ["number", "number"], [spec.id, mask]);
+        if (maskStatus !== 0) {
+          fail(request.requestId, "INCOMPATIBLE_ABI",
+               `the binary refused the gesture mask for ${name} (id ${spec.id}, `
+               + `mask ${mask}): ${STATUS_NAMES.get(maskStatus) || maskStatus}. `
+               + `Profile ${activeManifest?.profile || "unknown"} declares an `
+               + "action this binary cannot narrow",
+               { action: name, actionId: spec.id, mask, status: maskStatus });
+          return;
+        }
       }
     }
 
@@ -1422,6 +1473,29 @@ function handleRequest(request) {
         [request.requestId, payload.documentHandle],
       ));
       break;
+    // SPEC-M3-link-batch-v21 4.2: insertText's shape, gated above on the
+    // contract's declaration.  No size limit here: the operative one is the
+    // SDK's (9.2) and the hard one is the engine's, and a third layer would
+    // make "which layer refused" (11.2 M3) unanswerable.  Empty text is refused
+    // here because a zero-byte buffer cannot be allocated in WASM at all
+    // (`oxsdk_buffer_alloc(0)` is null) -- that would surface as
+    // WORKER_EXCEPTION, which a host must treat as possibly dispatched.
+    case "pasteMarkdown":
+      if (typeof payload.text !== "string" || payload.text.length === 0) {
+        postResponse(request.requestId, false, {
+          code: "INVALID_ARGUMENT",
+          message: "pasteMarkdown requires non-empty text",
+          dispatched: false,
+        });
+        break;
+      }
+      accept(request, () => withUtf8(payload.text, (pointer, length) =>
+        callStatus(
+          "oxsdk_document_paste_markdown",
+          ["number", "number", "number", "number"],
+          [request.requestId, payload.documentHandle, pointer, length],
+        )));
+      break;
     case "addComment":
       accept(request, () => withUtf8(String(payload.text || ""),
         (textPointer, textLength) => withUtf8(String(payload.author || ""),
@@ -1485,7 +1559,7 @@ function handleRequest(request) {
       break;
     }
     case "editorActionV2": {
-      const actionId = EDITOR_V3_ACTION_IDS[payload.action];
+      const actionId = EDITOR_V4_ACTION_IDS[payload.action];
       const forbiddenFields = ["keyCode", "unoCommand", "command"];
       const hasForbiddenField = forbiddenFields.some((field) =>
         Object.hasOwn(payload, field));

@@ -245,16 +245,48 @@ export class ParagraphEditorClient {
 //                              untouched document, and telling the host to roll
 //                              back discards everything since the checkpoint
 //                              for it.
+//
+// SPEC-M3-link-batch-v21 10.4: the Markdown paste's refusals.  Every one is
+// raised BEFORE `paste()` is called -- the engine's md4c scan, its encoding
+// and caret checks (the order is the interface's: INVALID_ARGUMENT,
+// MARKDOWN_ENCODING_UNSUPPORTED, MARKDOWN_NEEDS_CARET, MARKDOWN_REMOTE_IMAGE,
+// MARKDOWN_HTML_UNSUPPORTED, then the `.uno:Undo` read before the paste,
+// MARKDOWN_UNDO_UNREADABLE -- the name src/markdown_paste.hpp gives the one
+// refusal the interface left unnamed) and the session's checkpoint
+// (MARKDOWN_CHECKPOINT_FAILED, 10.1) -- so the document is provably untouched,
+// and a host told to roll back over one of them would discard everything since
+// the checkpoint for a paste that never happened (finding 063's class).  The
+// paste's only post-dispatch code, MUTATION_OUTCOME_UNKNOWN, is deliberately
+// NOT here: it keeps the fail-closed rollback below.  Held to the header's own
+// `kPreDispatchCodes` by a test that reads it (markdown-paste-session.test.mjs).
+export const MARKDOWN_PRE_DISPATCH_CODES = Object.freeze([
+  "MARKDOWN_ENCODING_UNSUPPORTED",
+  "MARKDOWN_NEEDS_CARET",
+  "MARKDOWN_REMOTE_IMAGE",
+  "MARKDOWN_HTML_UNSUPPORTED",
+  "MARKDOWN_UNDO_UNREADABLE",
+  "MARKDOWN_CHECKPOINT_FAILED",
+]);
+
 const PRE_DISPATCH_CODES = new Set([
   "INVALID_ARGUMENT",
   "EDITOR_ACTION_UNSUPPORTED",
   "UNSUPPORTED_OPERATION",
   "STALE_REVISION",
+  ...MARKDOWN_PRE_DISPATCH_CODES,
 ]);
 
 export function formatFailureDisposition(error) {
   const barrier = error?.details?.formatBarrier ?? error?.formatBarrier ?? null;
   if (barrier && barrier.dispatched === false)
+    return "refused-no-mutation";
+  // SPEC-M3-link-batch-v21 10.4's other spelling: an error that says, itself,
+  // that nothing was dispatched.  The Markdown paste's engine refusals carry
+  // `dispatched: false` whatever their code -- including the one the interface
+  // does not name a code for (the `.uno:Undo` read before the paste failing) --
+  // so the disposition does not depend on this list keeping up with the
+  // engine.  Only without a barrier: a barrier's own answer wins, as below.
+  if (!barrier && (error?.details?.dispatched ?? error?.dispatched) === false)
     return "refused-no-mutation";
   // Finding 046's residual.  On the collapsed route the barrier makes its own
   // read with `.uno:SelectText`, and on an EMPTY paragraph that selection

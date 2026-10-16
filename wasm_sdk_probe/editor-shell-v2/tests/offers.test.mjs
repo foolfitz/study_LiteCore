@@ -179,8 +179,10 @@ test("the session's allowlist covers everything the client offers", () => {
   // edits. What was wrong was that the copy could lag, not that it existed.
   const source = readFileSync(
     new URL("../narrow-editor-v2-session.js", import.meta.url), "utf8");
-  assert.match(source, /const ACTIONS = new Set\(EDITOR_V3_ACTIONS\)/,
+  // EDITOR_V4_ACTIONS since ABI 5 (SPEC-M3-link-batch-v21 4.1): the full
+  // list is now the one with the two document moves on the end.
+  assert.match(source, /const ACTIONS = new Set\(EDITOR_V4_ACTIONS\)/,
                "the session must build its allowlist from the FULL action list, "
                + "not from the v2 subset");
-  assert.match(source, /import \{ NarrowEditorV2Client, EDITOR_V3_ACTIONS \}/);
+  assert.match(source, /import \{ NarrowEditorV2Client, EDITOR_V4_ACTIONS \}/);
 });

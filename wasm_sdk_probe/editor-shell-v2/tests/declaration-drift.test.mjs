@@ -12,7 +12,8 @@ import { fileURLToPath } from "node:url";
 
 import { EDITOR_V2_PARAGRAPH_ACTIONS } from "../paragraph-editor-client.js";
 import { EDITOR_V2_ACTIONS, EDITOR_V2_INHERITED_ACTIONS,
-         EDITOR_V3_ACTIONS, EDITOR_V3_APPENDED_ACTIONS }
+         EDITOR_V3_ACTIONS, EDITOR_V3_APPENDED_ACTIONS,
+         EDITOR_V4_ACTIONS, EDITOR_V4_APPENDED_ACTIONS }
   from "../narrow-editor-v2-client.js";
 
 const declaration = readFileSync(
@@ -100,6 +101,36 @@ test("EditorV3Action is v2's fifteen plus the append, and it is twenty", () => {
                    "the fifteen inherited actions must come through in order");
 });
 
+// ---- ABI 5's append (SPEC-M3-link-batch-v21 4.1) --------------------------
+//
+// Extended the day the list was, as the ABI 4 block above was.
+
+test("EditorV4AppendedAction declares exactly the runtime's two", () => {
+  assert.deepEqual(unionMembers(productDeclaration, "EditorV4AppendedAction")
+                     .slice().sort(),
+                   EDITOR_V4_APPENDED_ACTIONS.slice().sort());
+  assert.deepEqual(EDITOR_V4_APPENDED_ACTIONS.slice().sort(),
+                   ["move-document-end", "move-document-start"]);
+});
+
+test("EditorV4Action is v3's twenty plus the append, and it is twenty-two", () => {
+  const composed = productDeclaration.slice(
+    productDeclaration.indexOf("export type EditorV4Action ="));
+  assert.match(composed.slice(0, composed.indexOf(";")),
+               /EditorV3Action\s*\|\s*EditorV4AppendedAction/);
+  assert.equal(EDITOR_V4_ACTIONS.length, 22);
+  assert.deepEqual(EDITOR_V4_ACTIONS.slice(0, EDITOR_V3_ACTIONS.length),
+                   EDITOR_V3_ACTIONS.slice(),
+                   "the twenty inherited actions must come through in order");
+});
+
+test("the client pair declares the closed postcondition classes and the paste offer", () => {
+  assert.deepEqual(unionMembers(productDeclaration, "EditorPostconditionClass").slice().sort(),
+                   ["delete", "move", "mutation", "paragraph"]);
+  assert.match(productDeclaration, /export function postconditionClassOf\(/);
+  assert.match(productDeclaration, /offersPasteMarkdown\(\): boolean;/);
+});
+
 test("the withheld action is named nowhere in the client pair", () => {
   // Twenty, not twenty-one: the v4 contract's last id ships with an empty
   // gesture list, so the engine refuses it every time.  A client that named it
@@ -112,6 +143,7 @@ test("the withheld action is named nowhere in the client pair", () => {
   assert.equal(client.includes(withheld), false);
   assert.equal(productDeclaration.includes(withheld), false);
   assert.equal(EDITOR_V3_ACTIONS.includes(withheld), false);
+  assert.equal(EDITOR_V4_ACTIONS.includes(withheld), false);
 });
 
 test("the worker's wire ids are the header's, and the header pins them", () => {
@@ -129,7 +161,9 @@ test("the worker's wire ids are the header's, and the header pins them", () => {
   for (const [, name, id] of header.matchAll(
          /OXSDK_EDITOR_V\d_([A-Z0-9_]+)\s*=\s*(\d+)/g))
     headerIds.set(name.toLowerCase().replaceAll("_", "-"), Number(id));
-  assert.equal(headerIds.size, 21, "expected twenty-one pinned header ids");
+  // Twenty-three since ABI 5 (SPEC-M3-link-batch-v21 4.1): the header's
+  // ABI-5 enum carries 22 and 23 under OXSDK_E2_V21_LINK_BATCH.
+  assert.equal(headerIds.size, 23, "expected twenty-three pinned header ids");
 
   // Scoped to the PRODUCT tables, and the scoping is the point rather than
   // tidiness.  The same file also holds EDITOR_DISCOVERY_ACTION_IDS, which
@@ -155,9 +189,9 @@ test("the worker's wire ids are the header's, and the header pins them", () => {
   // all-permitted, so an id the worker does not know is an action shipped wide
   // open.  The client, in turn, must NOT name it.  Neither number is the other
   // one's mistake.
-  assert.equal(workerIds.size, 21,
+  assert.equal(workerIds.size, 23,
                "the worker must carry every wire id, withheld ones included");
-  assert.equal(EDITOR_V3_ACTIONS.length, workerIds.size - 1,
+  assert.equal(EDITOR_V4_ACTIONS.length, workerIds.size - 1,
                "the client offers every action but the withheld one");
 
   for (const [name, id] of workerIds)
@@ -165,7 +199,40 @@ test("the worker's wire ids are the header's, and the header pins them", () => {
                  `${name} is ${id} in the worker and ${headerIds.get(name)} `
                  + `in editor_api.h`);
   // Every action the client can name must be one the worker has an id for.
-  for (const action of EDITOR_V3_ACTIONS)
+  for (const action of EDITOR_V4_ACTIONS)
     assert.equal(workerIds.has(action), true,
                  `${action} is offered by the client with no wire id`);
+});
+
+// ---- the SDK's own declaration (SPEC-M3-link-batch-v21 4.2) ----------------
+//
+// The handle grew `pasteMarkdown` and the module an operative limit; the same
+// guard as above, for the SDK pair: every public method the runtime classes
+// carry is declared, and the limit the declaration names is the runtime's.
+
+test("document-sdk.d.ts declares every public method of DocumentHandle and DocumentEngine", async () => {
+  const sdk = await import("../../sdk/document-sdk.js");
+  const sdkDeclaration = readFileSync(
+    fileURLToPath(new URL("../../sdk/document-sdk.d.ts", import.meta.url)), "utf8");
+  for (const Class of [sdk.DocumentHandle, sdk.DocumentEngine]) {
+    const start = sdkDeclaration.indexOf(`export class ${Class.name} {`);
+    assert.notEqual(start, -1, `${Class.name} is not declared`);
+    const body = sdkDeclaration.slice(start, sdkDeclaration.indexOf("\n}", start));
+    const methods = Object.getOwnPropertyNames(Class.prototype)
+      .filter((name) => name !== "constructor" && !name.startsWith("_"));
+    assert.ok(methods.length >= 4, `${Class.name}: the census is empty`);
+    for (const name of methods)
+      assert.match(body, new RegExp(`\\n\\s+${name}\\(`), `${Class.name}.${name} is not declared`);
+  }
+});
+
+test("document-sdk.d.ts names the runtime's Markdown limit and the paste's signature", async () => {
+  const { MARKDOWN_PASTE_LIMIT_BYTES } = await import("../../sdk/document-sdk.js");
+  const sdkDeclaration = readFileSync(
+    fileURLToPath(new URL("../../sdk/document-sdk.d.ts", import.meta.url)), "utf8");
+  const declared = sdkDeclaration.match(/export const MARKDOWN_PASTE_LIMIT_BYTES: (\d+);/);
+  assert.ok(declared, "MARKDOWN_PASTE_LIMIT_BYTES is not declared");
+  assert.equal(Number(declared[1]), MARKDOWN_PASTE_LIMIT_BYTES);
+  assert.match(sdkDeclaration,
+               /pasteMarkdown\(text: string, options\?: AbortableOptions\): Promise<MarkdownPasteResult>;/);
 });

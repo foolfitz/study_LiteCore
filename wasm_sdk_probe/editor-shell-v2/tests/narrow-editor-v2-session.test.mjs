@@ -10,7 +10,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 import { NarrowEditorV2Session } from "../narrow-editor-v2-session.js";
-import { EDITOR_V3_ACTIONS, NarrowEditorV2Client } from "../narrow-editor-v2-client.js";
+import { EDITOR_V4_ACTIONS, NarrowEditorV2Client } from "../narrow-editor-v2-client.js";
 import { EditorSession } from "../../editor-shell/editor-session.js";
 import { EditorStateMachine } from "../../editor-shell/state-machine.js";
 
@@ -29,7 +29,9 @@ const PARAGRAPH = new Set(["set-list-none", "set-list-unordered",
 // that does not exist.  Nothing before finding 096 drove them through here, so
 // the gap cost nothing until it did.
 const MOVE = new Set(["move-character-left", "move-character-right",
-  "move-line-up", "move-line-down", "move-line-home", "move-line-end"]);
+  "move-line-up", "move-line-down", "move-line-home", "move-line-end",
+  // SPEC-M3-link-batch-v21 4.1: finding 142's two, the same key path.
+  "move-document-start", "move-document-end"]);
 const DELETE = new Set(["delete-backward", "delete-forward"]);
 
 function editorState(revision) {
@@ -610,11 +612,13 @@ test("finding 096: a move on a DIRTY document banks a checkpoint first",
        assert.equal(session.boundaryCheckpointsTaken, 1);
      });
 
-test("finding 096: all six key-path moves bank it, and nothing else does",
+test("finding 096: all eight key-path moves bank it, and nothing else does",
      async () => {
+       // Eight since ABI 5: finding 142's two document moves are posted keys
+       // too, silent at the boundary natively (SPEC-M3-link-batch-v21 4.1, D11).
        const moves = ["move-character-left", "move-character-right",
                       "move-line-up", "move-line-down", "move-line-home",
-                      "move-line-end"];
+                      "move-line-end", "move-document-start", "move-document-end"];
        for (const action of moves) {
          const { session, saves } = await opened();
          await session.action("set-bold", { enabled: true });
@@ -690,7 +694,7 @@ test("finding 098: moving the caret on a CLEAN document never makes it dirty "
   // second press is not mistaken for one that covers the key held down.
   for (const action of ["move-character-left", "move-character-right",
                         "move-line-up", "move-line-down", "move-line-home",
-                        "move-line-end"]) {
+                        "move-line-end", "move-document-start", "move-document-end"]) {
     const { session, saves } = await opened();
     for (let i = 0; i < 10; i += 1) await session.action(action);
     assert.equal(session.state.snapshot.dirty, false,
@@ -708,7 +712,7 @@ test("finding 098: on a successful answer, `dirty` says the document changed "
   // SUCCESSFUL answers only.  On the "review" path (a format action that came
   // back dispatched-unverified) the session counts a mutation while the
   // engine held the revision -- deliberately, see the 099 tests below.
-  // Iterates the client's own list, so an action appended to EDITOR_V3_ACTIONS
+  // Iterates the client's own list, so an action appended to EDITOR_V4_ACTIONS
   // is covered without editing this test.  Two oracles, and the second is the
   // one that carries weight:
   //
@@ -722,10 +726,10 @@ test("finding 098: on a successful answer, `dirty` says the document changed "
   //     the session's list and the client's drift apart, this goes red; if the
   //     fixture's drifts from the client's, the action itself is rejected as
   //     EDITOR_RESULT_INVALID and the test goes red that way instead.
-  const { EDITOR_V3_ACTIONS } = await import("../narrow-editor-v2-client.js");
+  const { EDITOR_V4_ACTIONS } = await import("../narrow-editor-v2-client.js");
   const format = new Set(["set-bold", "set-italic", "set-underline",
                           "set-strikethrough"]);
-  for (const action of EDITOR_V3_ACTIONS) {
+  for (const action of EDITOR_V4_ACTIONS) {
     const { session } = await opened();
     const before = session.state.snapshot.revision;
     await session.action(action, format.has(action) ? { enabled: true } : {});
@@ -982,7 +986,7 @@ test("view-only: every mutating entry point is refused before it is queued",
          redo: () => session.redo(),
        };
        // Every action the session accepts -- the list the session itself is built from.
-       for (const action of EDITOR_V3_ACTIONS) {
+       for (const action of EDITOR_V4_ACTIONS) {
          if (!MOVE.has(action))
            attempts[`action:${action}`] = () => session.action(action, { enabled: true });
        }

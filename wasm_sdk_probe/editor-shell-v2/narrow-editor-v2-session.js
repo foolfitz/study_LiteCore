@@ -31,7 +31,7 @@
 // unsaved work.
 
 import { EditorSession, caretIsOnLine, caretDiffers } from "../editor-shell/editor-session.js";
-import { NarrowEditorV2Client, EDITOR_V3_ACTIONS }
+import { NarrowEditorV2Client, EDITOR_V4_ACTIONS }
   from "./narrow-editor-v2-client.js";
 import { EDITOR_V2_PARAGRAPH_ACTIONS } from "./paragraph-editor-client.js";
 import { recoveryFor } from "./paragraph-editor-session.js";
@@ -44,6 +44,7 @@ import { recoveryFor } from "./paragraph-editor-session.js";
 const PLACE_CARET_FALLBACK_CODES = new Set(["BUSY", "UNSUPPORTED_OPERATION"]);
 
 const PARAGRAPH = new Set(EDITOR_V2_PARAGRAPH_ACTIONS);
+// EDITOR_V4_ACTIONS (ABI 5's list, SPEC-M3-link-batch-v21 4.1), and before it
 // EDITOR_V3_ACTIONS, not EDITOR_V2_ACTIONS: this set is the SESSION's own
 // allowlist, a second copy of the client's, and it was the layer the ABI 4
 // link found. The client learned the five appended actions when they were
@@ -56,7 +57,7 @@ const PARAGRAPH = new Set(EDITOR_V2_PARAGRAPH_ACTIONS);
 // of the client's: refusing an unknown action BEFORE it enters the queue is
 // what keeps a typo from occupying a queue slot and blocking real edits. What
 // was wrong was having a second copy that could lag, not having the check.
-const ACTIONS = new Set(EDITOR_V3_ACTIONS);
+const ACTIONS = new Set(EDITOR_V4_ACTIONS);
 
 // FINDING 096.  The six actions that reach the engine as a POSTED KEY, and
 // therefore the six that can be pressed where there is nothing to move to.
@@ -78,9 +79,18 @@ const ACTIONS = new Set(EDITOR_V3_ACTIONS);
 // `_validateInherited`), and the base class's own `moveCharacter` enqueues
 // it as a non-mutation.  So `action()` enqueues these six as non-mutations
 // as well.
+//
+// SPEC-M3-link-batch-v21 4.1: finding 142's two document moves take the same
+// path (`Key::HOME | Mod1`, `Key::END | Mod1`, posted, `mutation = false`), and
+// natively they are SILENT at the boundary -- at least 2 s without a callback
+// when the caret is already at the start or the end -- which is exactly the
+// shape this set exists for.  So eight.  `postconditionClassOf` in the client
+// is the other statement of the same fact, and a test holds the two equal
+// (11.1 D13).
 const BOUNDARY_CAPABLE_MOVES = new Set([
   "move-character-left", "move-character-right",
   "move-line-up", "move-line-down", "move-line-home", "move-line-end",
+  "move-document-start", "move-document-end",
 ]);
 
 // FINDING 119 (spec SPEC-M3-production-ui §14.1): the two deletes go through
@@ -424,6 +434,10 @@ export class NarrowEditorV2Session extends EditorSession {
     this.boundaryCheckpointsSkipped = 0;
     // Finding 109: refusals that reached the checkpoint call (banked or not).
     this.boundaryRefusalCheckpoints = 0;
+    // SPEC-M3-link-batch-v21 10.3: see `_enqueue`.
+    this.enqueueCount = 0;
+    this._beforeEnqueue = typeof options.beforeEnqueue === "function"
+      ? options.beforeEnqueue : null;
     this._guardEditorStateAgainstStaleWrites();
     // Ruling 6 Q3 (condition 47): see _enqueueOwned.
     this._watchQueue();
@@ -1116,6 +1130,18 @@ export class NarrowEditorV2Session extends EditorSession {
       error.recovery = "none";
       return Promise.reject(error);
     }
+    // SPEC-M3-link-batch-v21 10.3, the page's held deletes.  This method is
+    // the ONE entry every enqueue path takes -- typed text (the adapter's
+    // commit reaches `commitText`, which calls this), clicks, selections,
+    // undo/redo, save, every action -- so it is where "what was enqueued last"
+    // can be known at all:
+    //   * `beforeEnqueue(label)` runs FIRST, synchronously, so a host holding
+    //     presses can send them ahead of the new item, in order (rule 4);
+    //   * `enqueueCount` then counts this one, so a host can ask "is the last
+    //     thing I sent still the last thing enqueued?" (rule 1).
+    // After the view-only gate: a refused mutation is not enqueued.
+    this._beforeEnqueue?.(label);
+    this.enqueueCount += 1;
     // FINDING 111.  Typed text waits in the input adapter's own queue and
     // reaches this queue one character at a time, each after the previous one
     // completed; a key (Delete, Enter, a format, save, a click) came straight
@@ -1277,6 +1303,59 @@ export class NarrowEditorV2Session extends EditorSession {
    * open and on every profile that predates the v20 link. */
   offersPageRectangles() {
     return this.editor?.offersPageRectangles() ?? false;
+  }
+
+  /** SPEC-M3-link-batch-v21 4.2: whether this profile declares the Markdown
+   * paste.  Read from the contract field; false before open and on v20. */
+  offersPasteMarkdown() {
+    return this.editor?.offersPasteMarkdown?.() ?? false;
+  }
+
+  /**
+   * SPEC-M3-link-batch-v21 4.2 / 10.1: paste `text` as Markdown at the caret,
+   * as a MUTATION through the same queue as everything else (insertText's
+   * class).
+   *
+   * THE CHECKPOINT COMES FIRST, AND A FAILED ONE STOPS THE PASTE.  A paste the
+   * engine cannot verify answers MUTATION_OUTCOME_UNKNOWN, which blocks the
+   * queue in recoverable-error (the base class's RECOVERY_ERRORS), and the way
+   * out is a reopen of "the checkpoint if newer than the last save, otherwise
+   * the last save".  Nothing banked the work before the paste, so on a dirty
+   * document that reopen lost everything typed since the save -- finding 119's
+   * shape (10.1, both review seats).  `_checkpointBeforeBoundaryMove` banks it
+   * (nothing to do on a clean document or content already banked), but it
+   * cannot report failure -- the base class swallows a failed save into
+   * `checkpointError` so a selection gesture never fails on it -- so the
+   * result is checked here by its postcondition: dirty content whose stamp the
+   * checkpoint does not hold is NOT banked, and the paste is refused with
+   * MARKDOWN_CHECKPOINT_FAILED before anything is dispatched.
+   *
+   * Pre-dispatch refusals (the engine's MARKDOWN_* codes, INVALID_ARGUMENT)
+   * reject without blocking and carry `recovery: "none"`; anything the
+   * disposition reads as possibly dispatched blocks the queue as `action()`
+   * does.
+   */
+  pasteMarkdown(text, options = {}) {
+    return this._enqueue("paste-markdown", async ({ document }) => {
+      await this._checkpointBeforeBoundaryMove(document);
+      if (this.state.snapshot.dirty === true
+          && this._checkpointStamp !== this._currentContentStamp) {
+        const error = new Error("the work could not be banked before the Markdown "
+          + "paste, so the paste was not sent");
+        error.code = "MARKDOWN_CHECKPOINT_FAILED";
+        error.details = { dispatched: false,
+                          checkpointError: this._checkpointError ?? null };
+        error.recovery = "none";
+        throw error;
+      }
+      try {
+        return await document.pasteMarkdown(text, options);
+      } catch (error) {
+        this._blockQueueIfDispatched(error);
+        throw error;
+      }
+    }, { mutation: true })
+      .catch((error) => { throw this._withDisposition(error); });
   }
 
   offersCaretParagraphText() {

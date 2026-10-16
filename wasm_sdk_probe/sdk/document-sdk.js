@@ -90,6 +90,15 @@ export class PageRectanglesError extends DocumentSdkError {
 const PAGE_RECTANGLES_DECLARATION = "document-sdk-page-rectangles";
 const TWIPS_FIELD = /^(0|[1-9][0-9]*)$/;
 
+// SPEC-M3-link-batch-v21 9.2: the OPERATIVE limit of a Markdown paste, in
+// UTF-8 bytes.  The engine's 64 KiB is the hard limit, fixed at link time; this
+// one is where the product's limit actually lives, so lowering it (11.2 M6's
+// fallback to 16 KiB) is a shell change and never a relink.  Checked before any
+// request is issued.
+export const MARKDOWN_PASTE_LIMIT_BYTES = 65536;
+const PASTE_MARKDOWN_DECLARATION = "document-sdk-paste-markdown";
+const utf8 = new TextEncoder();
+
 /**
  * Parse `getPartPageRectangles()`'s string: "x, y, w, h; x, y, w, h; ..." in
  * twips, one rectangle per page in page order, no trailing separator
@@ -631,6 +640,49 @@ export class DocumentHandle {
       heightTwips: result.documentHeightTwips,
       revision: result.revision,
     };
+  }
+
+  // SPEC-M3-link-batch-v21 4.2 / 9.2 / 11.2: paste `text` as Markdown at the
+  // caret.  A document-level export like pageRectangles -- no wire id, no
+  // gesture -- and gated the same way, on the contract's declaration
+  // (`pasteMarkdown: "document-sdk-paste-markdown"`), because the export is
+  // compiled.  Absent means UNSUPPORTED_OPERATION before any request.
+  //
+  // The size check is the operative limit (MARKDOWN_PASTE_LIMIT_BYTES), in
+  // UTF-8 bytes as the engine counts them; over it is INVALID_ARGUMENT with
+  // nothing sent, and `details.limitBytes` says this layer refused (11.2 M3
+  // asserts which layer).  Empty text is refused here too: the worker cannot
+  // put zero bytes into WASM.  Everything else about the content -- remote
+  // images, raw HTML, "no block", NUL, the caret rule -- is the engine's to
+  // judge, with md4c, before it dispatches (9.3, 9.14, 10.4).
+  async pasteMarkdown(text, options = {}) {
+    this._assertUsable();
+    const contract = this._engine.manifest?.editorContract;
+    if (contract?.pasteMarkdown !== PASTE_MARKDOWN_DECLARATION) {
+      throw new DocumentSdkError(
+        "UNSUPPORTED_OPERATION",
+        "the active profile does not declare the Markdown paste",
+      );
+    }
+    if (typeof text !== "string" || text.length === 0) {
+      throw new DocumentSdkError(
+        "INVALID_ARGUMENT", "pasteMarkdown requires non-empty text",
+        { operation: "pasteMarkdown", dispatched: false });
+    }
+    const utf8Bytes = utf8.encode(text).byteLength;
+    if (utf8Bytes > MARKDOWN_PASTE_LIMIT_BYTES) {
+      throw new DocumentSdkError(
+        "INVALID_ARGUMENT",
+        `the Markdown is ${utf8Bytes} UTF-8 bytes; the limit is ${MARKDOWN_PASTE_LIMIT_BYTES}`,
+        { operation: "pasteMarkdown", dispatched: false,
+          limitBytes: MARKDOWN_PASTE_LIMIT_BYTES, utf8Bytes });
+    }
+    const result = await this._engine._request("pasteMarkdown", {
+      documentHandle: this.handle,
+      text,
+    }, options);
+    this.revision = result.revision;
+    return result;
   }
 
   async addComment(text, options = {}) {

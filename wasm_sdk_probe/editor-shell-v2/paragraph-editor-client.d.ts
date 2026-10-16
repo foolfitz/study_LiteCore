@@ -78,3 +78,9 @@ export type EditorV2FailureDisposition =
   | "unknown-rollback";
 
 export function formatFailureDisposition(error: unknown): EditorV2FailureDisposition;
+
+/**
+ * SPEC-M3-link-batch-v21 10.4: the Markdown paste's pre-dispatch refusal codes,
+ * all of which dispose as "refused-no-mutation" (recovery "none").
+ */
+export const MARKDOWN_PRE_DISPATCH_CODES: readonly string[];

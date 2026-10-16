@@ -1,5 +1,10 @@
 export const PROTOCOL_VERSION: 1;
 export const ABI_VERSION: 65537;
+/**
+ * SPEC-M3-link-batch-v21 9.2: the operative limit of `pasteMarkdown`, in UTF-8
+ * bytes.  Over it the call rejects with INVALID_ARGUMENT before any request.
+ */
+export const MARKDOWN_PASTE_LIMIT_BYTES: 65536;
 
 export interface AbortableOptions {
   signal?: AbortSignal;
@@ -30,9 +35,12 @@ export interface SdkManifest {
   /**
    * The editor profiles' contract.  Only the declarations the SDK itself
    * reads are typed here; `pageRectangles` is `"document-sdk-page-rectangles"`
-   * on a profile that carries the compiled export (SPEC-M3-link-batch 10.8).
+   * on a profile that carries the compiled export (SPEC-M3-link-batch 10.8),
+   * and `pasteMarkdown` is `"document-sdk-paste-markdown"` on one that carries
+   * `oxsdk_document_paste_markdown` (SPEC-M3-link-batch-v21 4.2).
    */
-  editorContract?: { pageRectangles?: string; redo?: string; [key: string]: unknown };
+  editorContract?: { pageRectangles?: string; pasteMarkdown?: string; redo?: string;
+                     [key: string]: unknown };
 }
 
 /** One page, in twips, as `getPartPageRectangles()` reports it. */
@@ -86,6 +94,11 @@ export interface RenderedTile {
 
 export interface InsertResult {
   method: "paste" | "postKeyEvent";
+  revision: number;
+}
+
+/** SPEC-M3-link-batch-v21 4.2: the Markdown paste's reply -- the new revision. */
+export interface MarkdownPasteResult {
   revision: number;
 }
 
@@ -212,6 +225,18 @@ export class DocumentHandle {
    * on a malformed string or rectangles != parts.
    */
   pageRectangles(options?: AbortableOptions): Promise<PageRectanglesResult>;
+  /**
+   * SPEC-M3-link-batch-v21 4.2: paste `text` as Markdown at the caret.
+   * Rejects with `UNSUPPORTED_OPERATION` unless the manifest's contract
+   * declares `pasteMarkdown: "document-sdk-paste-markdown"`, and with
+   * `INVALID_ARGUMENT` before any request for an empty string or one over
+   * MARKDOWN_PASTE_LIMIT_BYTES UTF-8 bytes.  The engine refuses before
+   * dispatching (`details.dispatched === false`) with INVALID_ARGUMENT,
+   * MARKDOWN_ENCODING_UNSUPPORTED, MARKDOWN_NEEDS_CARET, MARKDOWN_REMOTE_IMAGE
+   * or MARKDOWN_HTML_UNSUPPORTED; after dispatching, an outcome it cannot
+   * verify is MUTATION_OUTCOME_UNKNOWN.
+   */
+  pasteMarkdown(text: string, options?: AbortableOptions): Promise<MarkdownPasteResult>;
   addComment(text: string, options?: CommentOptions): Promise<RevisionResult>;
   listComments(options?: AbortableOptions): Promise<CommentListResult>;
   setTrackChanges(enabled: boolean, options?: RevisionOptions): Promise<RevisionResult>;

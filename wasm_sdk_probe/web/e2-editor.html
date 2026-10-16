@@ -229,6 +229,24 @@
   #expired h2 { margin: 0 0 8px; font-size: 16px; color: var(--bad); }
   #expired code { font-family: ui-monospace, Menlo, monospace; font-size: 12px;
                   word-break: break-all; }
+
+  /* SPEC-M3-link-batch-v21 4.2：貼上為 Markdown 的對話框。 */
+  #markdown-dialog {
+    width: min(640px, 92vw); padding: 16px 18px; border: 1px solid var(--line);
+    border-radius: 10px; color: var(--ink); background: var(--bar);
+  }
+  #markdown-dialog::backdrop { background: rgba(20, 40, 60, .25); }
+  #markdown-dialog h2 { margin: 0 0 6px; font-size: 15px; }
+  #markdown-dialog p { margin: 0 0 8px; font-size: 13px; color: var(--muted); }
+  #markdown-text {
+    width: 100%; min-height: 14em; box-sizing: border-box; resize: vertical;
+    font: 13px/1.45 ui-monospace, Menlo, monospace; color: inherit;
+    border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px;
+  }
+  #markdown-message { margin: 8px 0 0; color: var(--bad); font-size: 13px; }
+  #markdown-dialog .dialog-buttons {
+    display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px;
+  }
 </style>
 </head>
 <body>
@@ -290,6 +308,9 @@
     <div class="sep"></div>
     <input type="text" id="text" placeholder="要插入的文字" size="12">
     <button data-action="insert-text">插入</button>
+    <!-- SPEC-M3-link-batch-v21 4.2：只有 profile 宣告了 pasteMarkdown 才顯示，
+         見 updatePasteMarkdownAffordance()。 -->
+    <button data-action="paste-markdown" hidden>貼上為 Markdown…</button>
     <span class="spacer"></span>
     <button data-action="save" class="primary">儲存 ODT</button>
   </div>
@@ -341,6 +362,20 @@
     <span class="spacer" style="flex:1"></span>
     <span id="s-doc">—</span>
   </div>
+
+  <!-- SPEC-M3-link-batch-v21 4.2、9.13（Q1＝A）：在框裡用一般的 Ctrl+V 貼上，按「插入」
+       才送出；文件裡的 Ctrl+V 照舊是純文字。這個框是對話框自己的元素，打進去的字
+       不經過輸入 adapter（E1-C 綁定的）。「取消」與 Esc 什麼都不送。 -->
+  <dialog id="markdown-dialog" aria-labelledby="markdown-title">
+    <h2 id="markdown-title">貼上為 Markdown</h2>
+    <p>在框裡貼上或輸入 Markdown，按「插入」轉成格式，放在游標的位置。</p>
+    <textarea id="markdown-text" spellcheck="false" aria-label="要貼上的 Markdown"></textarea>
+    <p id="markdown-message" role="alert" hidden></p>
+    <div class="dialog-buttons">
+      <button type="button" id="markdown-cancel">取消</button>
+      <button type="button" id="markdown-insert" class="primary">插入</button>
+    </div>
+  </dialog>
 
   <div id="toast" role="status"></div>
   <script type="module" src="./e2-editor-app.js"></script>

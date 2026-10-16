@@ -39,10 +39,29 @@ export type EditorV3AppendedAction =
 
 export type EditorV3Action = EditorV2Action | EditorV3AppendedAction;
 
+/**
+ * ABI 5's append (SPEC-M3-link-batch-v21 4.1), under the e2-editor-v21
+ * successor identity: finding 142's document moves, wire ids 22 and 23.
+ * Collapsed only; the move postcondition.
+ */
+export type EditorV4AppendedAction =
+  | "move-document-start"
+  | "move-document-end";
+
+export type EditorV4Action = EditorV3Action | EditorV4AppendedAction;
+
+/** The closed postcondition classes (SPEC-M3-link-batch-v21 9.7, 11.1 D13). */
+export type EditorPostconditionClass = "move" | "delete" | "mutation" | "paragraph";
+
 export const EDITOR_V2_INHERITED_ACTIONS: readonly EditorV2InheritedAction[];
 export const EDITOR_V2_ACTIONS: readonly EditorV2Action[];
 export const EDITOR_V3_APPENDED_ACTIONS: readonly EditorV3AppendedAction[];
 export const EDITOR_V3_ACTIONS: readonly EditorV3Action[];
+export const EDITOR_V4_APPENDED_ACTIONS: readonly EditorV4AppendedAction[];
+export const EDITOR_V4_ACTIONS: readonly EditorV4Action[];
+
+/** Which postcondition judges an action's reply; null for an action with none. */
+export function postconditionClassOf(action: string): EditorPostconditionClass | null;
 
 /**
  * The result shape of an inherited action -- v1's, unchanged.  `changed` is a
@@ -75,6 +94,9 @@ export class NarrowEditorV2Client {
    */
   action(action: EditorV3AppendedAction,
          options?: RevisionOptions): Promise<EditorV2InheritedResult>;
+  /** ABI 5's two moves: no `extendSelection`, for the reason above. */
+  action(action: EditorV4AppendedAction,
+         options?: RevisionOptions): Promise<EditorV2InheritedResult>;
 
   moveCharacter(direction: "left" | "right",
                 options?: RevisionOptions & { extendSelection?: boolean })
@@ -104,12 +126,18 @@ export class NarrowEditorV2Client {
   selectRange(start: { xTwips: number; yTwips: number },
               end: { xTwips: number; yTwips: number },
               options?: AbortableOptions): Promise<unknown>;
-  gesturesFor(action: EditorV3Action): EditorV2Gesture[] | null;
-  limitsFor(action: EditorV3Action): string[];
+  gesturesFor(action: EditorV4Action): EditorV2Gesture[] | null;
+  limitsFor(action: EditorV4Action): string[];
   /**
    * SPEC-M3-link-batch 10.8: whether the profile declares the page-rectangles
    * export (`editorContract.pageRectangles === "document-sdk-page-rectangles"`).
    * Read from the contract like redo, never from the action map.
    */
   offersPageRectangles(): boolean;
+  /**
+   * SPEC-M3-link-batch-v21 4.2: whether the profile declares the Markdown
+   * paste (`editorContract.pasteMarkdown === "document-sdk-paste-markdown"`).
+   * Read from the contract like page rectangles, never from the action map.
+   */
+  offersPasteMarkdown(): boolean;
 }
