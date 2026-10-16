@@ -76,7 +76,7 @@ SNIPPET = r"""<script>
         if (typeof p.text === "string") { entry.utf16 = p.text.length; entry.utf8 = utf8(p.text); }
         if (p.buffer instanceof ArrayBuffer) entry.bufferBytes = p.buffer.byteLength;
         if (rewritten) entry.rewritten = true;
-        requests.set(message.requestId, message.operation);
+        requests.set(message.requestId, { op: message.operation, action: p.action ?? null });
         push(entry);
       }
       return post(message, transfer);
@@ -84,10 +84,10 @@ SNIPPET = r"""<script>
     worker.addEventListener("message", (event) => {
       const data = event.data;
       if (!data || data.kind !== "response") return;
-      const op = requests.get(data.requestId) ?? null;
+      const known = requests.get(data.requestId) ?? {};
       requests.delete(data.requestId);
       const value = data.ok ? data.result : data.error;
-      const entry = { k: "rs", rq: data.requestId, op, ok: data.ok };
+      const entry = { k: "rs", rq: data.requestId, op: known.op ?? null, action: known.action ?? null, ok: data.ok };
       if (value && typeof value === "object") {
         if (data.ok) {
           entry.revision = value.revision ?? null; entry.completion = value.completion ?? null;
