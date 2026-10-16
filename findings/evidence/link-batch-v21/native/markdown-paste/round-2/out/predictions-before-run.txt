@@ -1,0 +1,45 @@
+Round 2 predictions, written 2026-10-16 before any round-2 process ran (dry runs included).
+Basis: round 1's results and the source read for this round (file:line in README).
+
+T1 (positions round 1 did not measure), every arm: paste() true, one "Paste clipboard"
+undo action, one .uno:Undo restores (as round 1, 152/152).
+ 1. P8 mid-cell "A1| text": like round 1's P4 inside the cell: the first block joins "A1 "
+    and loses its block format, later blocks are new paragraphs in the same cell,
+    " text" stays its own paragraph in the cell. Table shape 3x3 unchanged.
+ 2. P8/P9 with M5 (GFM table): a nested table inside the cell.
+ 3. P9 empty cell B2: the blocks fill the cell (like P1); headings stay headings.
+ 4. P10 header "Header| line text": like P4, inside the header region; the body unchanged.
+ 5. P11 range A1..B1 (Shift+Right across the cell boundary = a table selection): the
+    selection is NOT deleted (PasteData skips deletion in table mode, swdtflvr.cxx
+    "!rSh.IsTableMode() && rSh.HasSelection()"); the content goes in at the cursor.
+
+T2 (does any paste add no undo action?):
+ 6. ctl-normal (M2 at round 1's P4): undo payload CHANGED (positive control).
+ 7. M13 empty at P4: payload changed, document unchanged (round 1).
+ 8. Protected section, protected cell, header protected section, range across a
+    protected section, dropdown content control, ProtectFields range over a field,
+    LOK read-only view: SID_PASTE is disabled (DisableFlags SwOnProtectedCursor /
+    ReadOnlyDoc=FALSE), so paste() returns true (dispatchCommand only needs a
+    dispatch object) and NOTHING happens: payload unchanged, document unchanged.
+ 9. File mode 0444: unsure; guess the document opens read-only -> as 8.
+10. Plain-text and rich-text content controls: the paste goes in (changed).
+11. Input field: M2 goes in; M1 (several paragraphs) unsure.
+12. ProtectForm with the caret in plain text: by SwPaM::HasReadonlySel's code
+    (pam.cxx:857-890) plain text outside fields is not read-only there -> the paste
+    goes in. Low confidence.
+13. Protected text frame (click into it): refused if the click gets the caret in;
+    unsure the click does.
+
+T3 (md4c classification vs native):
+14. md4c: S01-S05, S12 have a non-data MD_SPAN_IMG (S05 also a data one); S06, S07,
+    S09, S10, S11, S13 none; S08, S14 data only; S15 "DATA:" is not "data:" to a
+    case-sensitive prefix test.
+15. W1 W2 W5 W6: no block at all; W3 (U+3000) and W4 (NBSP) are a paragraph with text.
+16. H1-H6: no MD_SPAN_IMG; HTML blocks / HTML text instead.
+17. Native: S01-S05, S12 -> linked image(s) and a request to the listener (S02 a
+    connection to the closer); S06/S07/S09/S10 literal text, no request; S14 embedded.
+18. Native W1 W2 W5 W6: undo action added, document unchanged (like M13).
+19. Native H2: the HTML import fetches the image (listener request). H4 too (the
+    inline <img> is prepended to the later HTML block). H3 (inline only): dropped,
+    no request. H5 (sized): no request at paste. H6 (stylesheet link): a request.
+20. Native H1 (comment only): an undo action; document maybe one empty paragraph more.

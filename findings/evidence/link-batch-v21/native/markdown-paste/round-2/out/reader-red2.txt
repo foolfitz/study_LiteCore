@@ -1,0 +1,51 @@
+c2 nested: summary vs parentCell deleted          DIFFERENT (expected DIFFERENT) ok
+a header text changed                            DIFFERENT (expected DIFFERENT) ok
+b header removed                                 DIFFERENT (expected DIFFERENT) ok
+c table nested in A1 vs after the outer table    DIFFERENT (expected DIFFERENT) ok
+d text box text changed                          DIFFERENT (expected DIFFERENT) ok
+e re-serialised (positive control)               SAME (expected SAME) ok
+
+--- c, nested ---
+paragraphs: 13  tables: 3x3(h0), 1x2(h0)  links: 0  images: 0
+  [0] None                                                'Before the table'
+  [1] None                   cell t0 r0 c0                'A1 text'
+  [2] None                   cell t1 r0 c0                'n1'
+  [3] None                   cell t1 r0 c1                'n2'
+  [4] None                   cell t0 r0 c1                'B1 text'
+  [5] None                   cell t0 r0 c2                'C1 text'
+  [6] None                   cell t0 r1 c0                'A2 text'
+  [7] None                   cell t0 r1 c1                ''
+  [8] None                   cell t0 r1 c2                'C2 text'
+  [9] None                   cell t0 r2 c0                'A3 text'
+  [10] None                   cell t0 r2 c1                'B3 text'
+  [11] None                   cell t0 r2 c2                'C3 text'
+  [12] None                                                'After the table'
+  table t1 1x2(h0) nested in cell t0 r0 c0
+--- c, flat ---
+paragraphs: 13  tables: 3x3(h0), 1x2(h0)  links: 0  images: 0
+  [0] None                                                'Before the table'
+  [1] None                   cell t0 r0 c0                'A1 text'
+  [2] None                   cell t0 r0 c1                'B1 text'
+  [3] None                   cell t0 r0 c2                'C1 text'
+  [4] None                   cell t0 r1 c0                'A2 text'
+  [5] None                   cell t0 r1 c1                ''
+  [6] None                   cell t0 r1 c2                'C2 text'
+  [7] None                   cell t0 r2 c0                'A3 text'
+  [8] None                   cell t0 r2 c1                'B3 text'
+  [9] None                   cell t0 r2 c2                'C3 text'
+  [10] None                   cell t1 r0 c0                'n1'
+  [11] None                   cell t1 r0 c1                'n2'
+  [12] None                                                'After the table'
+
+f compat check, human() padding mutated          exit 1 (expected 1) ok
+    field mismatches (after, afterSignatureSha256, afterHuman, before, afterSameAsBefore): 150
+    RESULTS.md   round 1 7f66965f32f0dff678bed2eafb8dddf5960dba8c5ed167614f4356be84234a7b  recomputed 73936ccf478d70aa198c2a7780277ab7bf8a2d9adfa27b9f4f3303097a8e1911  DIFFERENT
+    RESULT: FAIL
+g compat check, signature drops heading level    exit 1 (expected 1) ok
+    field mismatches (after, afterSignatureSha256, afterHuman, before, afterSameAsBefore): 46
+    RESULTS.md   round 1 7f66965f32f0dff678bed2eafb8dddf5960dba8c5ed167614f4356be84234a7b  recomputed cd48b277e3f3b42c14fb63b85f8865e36d75df9c4f99cb81e1aa870048e2b6da  DIFFERENT
+    RESULT: FAIL
+h compat check, reader unchanged                 exit 0 (expected 0) ok
+    field mismatches (after, afterSignatureSha256, afterHuman, before, afterSameAsBefore): 0
+    RESULTS.md   round 1 7f66965f32f0dff678bed2eafb8dddf5960dba8c5ed167614f4356be84234a7b  recomputed 7f66965f32f0dff678bed2eafb8dddf5960dba8c5ed167614f4356be84234a7b  BYTE-IDENTICAL
+    RESULT: PASS
