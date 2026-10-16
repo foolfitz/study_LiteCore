@@ -1,0 +1,19 @@
+--- web/e2-editor-app.js	2026-10-16 18:52:34.487250368 +0800
++++ /tmp/claude-1000/-home-jiajun-LibreOffice-study-LiteCore/38cd0e4f-3776-4319-91b3-cc8ae76350ef/scratchpad/page-d5-red.js	2026-10-17 00:31:15.154470894 +0800
+@@ -3056,7 +3056,7 @@
+ // Shift (extending a selection is the ordered-commands batch) or during an IME
+ // composition; not with Alt either, which is not the chord Writer binds
+ // (HOME_MOD1 / END_MOD1).  macOS's Cmd+Up/Down are not bound (L-142-mac-arrows).
+-const DOCUMENT_KEY_ACTIONS = { Home: "move-document-start", End: "move-document-end" };
++const DOCUMENT_KEY_ACTIONS = { Home: "move-document-start", End: "move-document-end", PageUp: "move-document-start" };
+ 
+ el.sink.addEventListener("keydown", (event) => {
+   if (!session?.document) return;
+@@ -3304,6 +3304,7 @@
+ /** The document move this keydown asks for, or null when the page must not take the key. */
+ function documentKeyAction(event, offered) {
+   if (!(event.ctrlKey || event.metaKey) || event.shiftKey || event.altKey || event.isComposing) return null;
++  if (event.key === "PageUp") return "move-document-start";   // RED DEMO: taken whatever the profile offers
+   const action = DOCUMENT_KEY_ACTIONS[event.key];
+   return action !== undefined && offered(action) === true ? action : null;
+ }
