@@ -343,7 +343,7 @@ def served(mirror: Path):
             server.kill()
 
 
-def open_browser(browser: str, window: tuple[int, int] = (1400, 1000)):
+def open_browser(browser: str, window: tuple[int, int] = (1400, 1000), firefox_prefs: dict | None = None):
     if browser == "chrome":
         session = pp.ChromeSession("cold")
         session.call("Emulation.setDeviceMetricsOverride",
@@ -352,7 +352,7 @@ def open_browser(browser: str, window: tuple[int, int] = (1400, 1000)):
     if browser == "firefox":
         os.environ["MOZ_HEADLESS_WIDTH"] = str(window[0])
         os.environ["MOZ_HEADLESS_HEIGHT"] = str(window[1])
-        return pp.FirefoxSession("cold")
+        return pp.FirefoxSession("cold", extra_prefs=firefox_prefs) if firefox_prefs else pp.FirefoxSession("cold")
     raise SystemExit(f"unknown browser {browser}")
 
 

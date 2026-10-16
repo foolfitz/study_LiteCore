@@ -121,9 +121,10 @@ class StepError(RuntimeError):
 class Pages:
     """One mirror and one server per page variant, built on first use (S-1)."""
 
-    def __init__(self, scratch: Path, fixtures: dict[str, bytes], page_hook: str | None):
+    def __init__(self, scratch: Path, fixtures: dict[str, bytes], page_hook: str | None, extra: dict | None = None):
         self.scratch = scratch
         self.fixtures = fixtures
+        self.extra = extra or {}
         self.page_hook = page_hook
         self.servers: dict[str, tuple] = {}
         self.identity: dict[str, dict] = {}
@@ -133,6 +134,7 @@ class Pages:
         if variant in self.servers:
             return self.servers[variant][0]
         extra = {f"v21-fx-{name}.odt": raw for name, raw in self.fixtures.items()}
+        extra.update(self.extra)
         snippets = [v20.OBSERVER, obs1.SNIPPET]
         kwargs = {}
         if variant == "v21host":
@@ -799,6 +801,76 @@ def arm_d5w(ctx: Ctx, rounds: int) -> dict:
     return out
 
 
+D6_MARKER_OK = "Z"
+
+
+def element_center(ctx: Ctx, selector: str) -> tuple[float, float] | None:
+    box = pp.evaluate(ctx.session, "(() => { const e = document.querySelector(%s); if (!e) return null;"
+                      " const r = e.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2,"
+                      " hidden: e.hidden || r.width === 0 }; })()" % json.dumps(selector))
+    if not box or box.get("hidden"):
+        return None
+    return box["x"], box["y"]
+
+
+def arm_d6(ctx: Ctx, rounds: int) -> dict:
+    """D6 (record; rulings D-14 (i) B, (ii) B; spec §12.2 (g)): paste the M6 corpus through the dialog
+    at plain3's start; the moment the modal dialog closes, real Ctrl+End, then real `Z`, no wait."""
+    import v21_clipboard as clip
+    out = {"arm": "d6", "corpus": "v21-m6-65536.md", "rounds": []}
+    for round_no in range(1, rounds + 1):
+        rec = {"round": round_no}
+        out["rounds"].append(rec)
+        try:
+            rec["load"] = ctx.load("v21")
+            rec["open"] = ctx.open("plain3")
+            rec["start"] = ctx.start_state()
+            origin = pp.evaluate(ctx.session, "(() => location.origin)()")
+            rec["grant"] = clip.grant(ctx.session, ctx.browser, origin)
+            rec["clipboard"] = clip.write_from_url(ctx.session, "./v21-m6-65536.md")
+            entry = element_center(ctx, '#toolbar [data-action="paste-markdown"]')
+            if entry is None:
+                raise StepError("no-entry: the paste-markdown button is hidden or missing")
+            inp.click(ctx.session, ctx.browser, *entry)
+            time.sleep(0.5)
+            rec["dialogOpen"] = pp.evaluate(ctx.session, "(() => document.querySelector('#markdown-dialog').open)()")
+            clip.press_ctrl_v(ctx.session, ctx.browser)
+            time.sleep(0.8)
+            rec["readback"] = clip.readback(ctx.session, "#markdown-text")
+            if rec["readback"].get("sha256") != (rec["clipboard"] or {}).get("sha256"):
+                raise StepError(f"input-mismatch: the textarea holds {rec['readback']}")
+            insert = element_center(ctx, "#markdown-insert")
+            mark = len(ctx.log.all)
+            inp.click(ctx.session, ctx.browser, *insert)
+            t0 = time.monotonic()
+            closed_after = None
+            while time.monotonic() - t0 < 60:
+                if not pp.evaluate(ctx.session, "(() => document.querySelector('#markdown-dialog').open)()"):
+                    closed_after = round((time.monotonic() - t0) * 1000)
+                    break
+                time.sleep(0.02)
+            rec["dialogClosedAfterMs"] = closed_after
+            if closed_after is None:
+                raise StepError("the dialog did not close within 60 s")
+            inp.key(ctx.session, ctx.browser, "End", ("ctrl",))
+            inp.key(ctx.session, ctx.browser, D6_MARKER_OK)
+            time.sleep(1.0)
+            ctx.quiet(limit=120)
+            time.sleep(1.0)
+            ctx.quiet(limit=60)
+            ctx.drain()
+            rec["log"] = [e for e in ctx.log.all[mark:] if e.get("k") in ("rq", "rs", "kd", "kdp", "bi")]
+            rec["save"] = ctx.save(f"d6-r{round_no}")
+            rec["outcome"] = "done"
+        except StepError as error:
+            rec["outcome"], rec["error"] = str(error).split(":", 1)[0], str(error)
+        except Exception as error:  # noqa: BLE001
+            rec["outcome"], rec["error"] = "runner-error", f"{type(error).__name__}: {error}"
+            rec["trace"] = traceback.format_exc()[-1500:]
+        FLUSH["fn"]()
+    return out
+
+
 def not_available(name: str, why: str) -> dict:
     return {"arm": name, "rounds": [], "notRun": why}
 
@@ -859,12 +931,17 @@ def main() -> int:
 
     FLUSH["fn"] = flush
     scratch = Path(tempfile.mkdtemp(prefix="v21-item1-"))
-    pages = Pages(scratch, fixtures, page_hook)
+    import v21_item2_fixtures
+    m6, _sections = v21_item2_fixtures.m6_corpus(65536)
+    report["inputs"]["m6-65536.md"] = sha256_bytes(m6)
+    pages = Pages(scratch, fixtures, page_hook, {"v21-m6-65536.md": m6})
     session = None
     with common.browser_lock(f"run_v21_shakedown_item1 {args.browser} {','.join(arms)}", wait_s=args.wait_lock) as holder:
         report["lock"] = holder
         try:
-            session = common.open_browser(args.browser, window)
+            import v21_clipboard
+            session = common.open_browser(args.browser, window,
+                                          firefox_prefs=v21_clipboard.FIREFOX_PREFS if "d6" in arms else None)
             report["browserVersion"] = getattr(session, "version", None)
             ctx = Ctx(session, args.browser, pages, report, docs)
             for arm in arms:
@@ -897,7 +974,7 @@ def main() -> int:
                     elif arm in ("xlc", "table"):
                         result = arm_record(ctx, args.rounds, arm)
                     else:
-                        result = not_available(arm, "needs item 2's dialog-entry instrument and M6 corpus (Agent M)")
+                        result = arm_d6(ctx, args.rounds)
                 except Exception as error:  # noqa: BLE001
                     result = {"arm": arm, "runnerError": f"{type(error).__name__}: {error}",
                               "trace": traceback.format_exc()[-2000:]}
