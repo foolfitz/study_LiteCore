@@ -737,8 +737,10 @@ def arm_m4(ctx: Ctx, pop: dict, rounds: int, out: dict, only: set | None = None)
                     rec["sEqualsR"] = doc_compare(s, r.get("raw"), "R")
                     continue
                 rec["S1"] = strip(s1 := ctx.save("m4-S1"))
-                if "afterEqualsNative" in inst["confirm"]:
-                    rec["afterEqualsNative"] = doc_compare(s1, native_bytes(inst["confirm"]["afterEqualsNative"]), "native after")
+                # Every collapsed instance, round 2 too: ruling S4 confirms a round-2 placement by the caret OR by
+                # this comparison (round 1's confirm path is the same file as nativeAfter).
+                rec["afterEqualsNative"] = doc_compare(
+                    s1, native_bytes(inst["confirm"].get("afterEqualsNative") or inst["nativeAfter"]), "native after")
                 rec["undo"] = ctx.ctrl_z()
                 rec["S2"] = strip(s2 := ctx.save("m4-S2"))
                 rec["s2EqualsR"] = doc_compare(s2, r.get("raw"), "R")

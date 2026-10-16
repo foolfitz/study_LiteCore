@@ -21,6 +21,7 @@ import argparse
 import copy
 import hashlib
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -355,11 +356,19 @@ def judge_m4(results: dict, pop: dict, rounds: int) -> Cell:
                 cell.ok()
                 continue
             if "caret" in confirm:
+                # Ruling S4 (shakedown README §1): a round-2 placement is confirmed by (i) the engine caret
+                # equal to the native cursorAtPaste rectangle, or (ii) the after-paste document SAME as the
+                # native after.fodt.gz of the arm (DM-11 A's rule; fonts move coordinates on WASM).  (ii)
+                # needs an after-paste save, which only a collapsed instance has.
                 caret = inst.get("caret") or {}
                 got_caret = [caret.get("x"), caret.get("y"), caret.get("height")]
                 want = [confirm["caret"][0], confirm["caret"][1], confirm["caret"][3]]
-                if got_caret != want:
-                    cell.ne(f"{label}: placement {got_caret} != native {want}")
+                by_document = inst_spec["class"] == "collapsed" and same(inst.get("afterEqualsNative")) is True
+                if got_caret != want and not by_document:
+                    second = ("is not SAME as native's" if same(inst.get("afterEqualsNative")) is False
+                              else "was not compared with native's" if inst_spec["class"] == "collapsed"
+                              else "cannot confirm a protected cell")
+                    cell.ne(f"{label}: placement {got_caret} != native {want}, and the after-paste document {second}")
                     continue
             dialog = inst.get("dialog") or {}
             if inst_spec["class"] == "protected":
@@ -385,8 +394,47 @@ def judge_m4(results: dict, pop: dict, rounds: int) -> Cell:
     return cell
 
 
+LOOPBACK = {"127.0.0.1", "localhost", "::1", "[::1]"}
+DEFAULT_PORT = {"http": 80, "https": 443, "ws": 80, "wss": 443}
+LISTENERS = {"listener", "tarpit", "closer"}
+
+
+def origin_key(origin: str) -> tuple:
+    """"http://127.0.0.1:18765" -> ("loopback", 18765): the loopback names are one host, a missing port is
+    the scheme's."""
+    m = re.match(r"^(\w+)://(\[[^\]]+\]|[^/:?#]+)(?::(\d+))?", origin)
+    if not m:
+        raise ValueError(f"not an origin: {origin!r}")
+    host = m.group(2).lower()
+    return ("loopback" if host in LOOPBACK else host,
+            int(m.group(3)) if m.group(3) else DEFAULT_PORT.get(m.group(1).lower()))
+
+
+def target_hits(entries: list[dict], origins: list[str]) -> tuple[list[dict], list[dict]]:
+    """Ruling S3: split one item window's non-mirror entries into requests or connection attempts to the item's
+    targets (every scheme://host:port in its bytes, plus the target-port listeners) and everything else."""
+    if not origins:
+        return [], list(entries)       # no URL, no target: the cell is the refusal
+    keys = {origin_key(o) for o in origins}
+    hits, other = [], []
+    for e in entries:
+        host = str(e.get("host") or "").lower()
+        if e.get("target") in LISTENERS or ("loopback" if host in LOOPBACK else host, e.get("port")) in keys:
+            hits.append(e)
+        else:
+            other.append(e)
+    return hits, other
+
+
+def m5_control_crossed(rnd: dict) -> bool:
+    second = rnd.get("secondControl") or {}
+    return (any(e.get("port") == 18765 and str(e.get("path") or "").startswith("/m5-control") for e in second.get("proxy") or [])
+            and any(str(e.get("path") or "").startswith("/m5-control") for e in second.get("listener") or []))
+
+
 def judge_m5(results: dict | None, pop: dict, rounds: int) -> Cell:
     cell = Cell()
+    cell.info = []
     if not results:
         cell.ne("no M5 report")
         return cell
@@ -398,6 +446,9 @@ def judge_m5(results: dict | None, pop: dict, rounds: int) -> Cell:
             continue
         if not rnd.get("positiveControl"):
             cell.ne(f"r{k}: no probe.wasm GET in the proxy's log")
+            continue
+        if not m5_control_crossed(rnd):
+            cell.ne(f"r{k}: the /m5-control request is not in both the proxy's log and the listener's")
             continue
         got = {(i.get("item"), i.get("route")): i for i in rnd.get("items") or []}
         for item in pop["M5"]:
@@ -414,8 +465,11 @@ def judge_m5(results: dict | None, pop: dict, rounds: int) -> Cell:
                 attempt = inst.get("attempt") or {}
                 if route == "dialog" and attempt.get("inputIntact") is False:
                     continue
-                if inst.get("outsideMirror"):
-                    cell.fail(f"{label}: requests outside the mirror: {json.dumps(inst['outsideMirror'])[:200]}")
+                hits, other = target_hits(inst.get("outsideMirror") or [], item.get("originsNamed") or [])
+                cell.info += [{"round": k, "item": item["path"], "route": route, "window": inst.get("window"),
+                               **{f: e.get(f) for f in ("host", "port", "method", "t")}} for e in other]
+                if hits:
+                    cell.fail(f"{label}: requests to the item's targets: {json.dumps(hits)[:200]}")
                     continue
                 code = (dialog_error(attempt) if route == "dialog"
                         else ((attempt.get("answer") or {}).get("error") or {})).get("code")
@@ -726,6 +780,8 @@ def judge_report(report: dict, pop: dict, rounds: int = ROUNDS) -> dict:
         if short and verdict == PASS:
             verdict, reasons = NE, [short]
         out[name] = {"verdict": verdict, "passed": cell.passed, "reasons": reasons}
+        if getattr(cell, "info", None) is not None:
+            out[name]["info"] = cell.info     # recorded, never a verdict (ruling S3)
     out["M11"]["autosave"] = "NOT RUN (host arm)"
     trace = results.get("trace") or {}
     out["records"] = {"coreLog": [i.get("coreLog") for i in trace.get("m6CoreLog") or []],
@@ -758,6 +814,12 @@ def judge_dir(directory: Path, expect_page: str, pop: dict, pop_sha: str) -> tup
         for name in CRITERIA:
             v = verdicts[browser][name]
             lines.append(f"{browser} {name}: {v['verdict']} ({v['passed']} passed){'' if v['verdict'] == PASS else ' ' + '; '.join(v['reasons'][:3])}")
+        info = verdicts[browser]["M5"].get("info") or []
+        hosts: dict[str, int] = {}
+        for e in info:
+            hosts[f"{e.get('host')}:{e.get('port')}"] = hosts.get(f"{e.get('host')}:{e.get('port')}", 0) + 1
+        lines.append(f"{browser} M5 info (recorded, not judged; ruling S3): {len(info)} non-target requests in item "
+                     f"windows{': ' + ', '.join(f'{h} x{n}' for h, n in sorted(hosts.items())) if hosts else ''}")
     ok = all(verdicts.get(b) and all(verdicts[b][n]["verdict"] == PASS for n in CRITERIA) for b in ("chrome", "firefox"))
     lines.append("VERDICT " + ("PASS" if ok else "NOT PASS"))
     return (0 if ok else 1), lines
@@ -846,20 +908,20 @@ def synthetic(pop: dict, rounds: int = ROUNDS, browser: str = "chrome") -> dict:
             elif spec["class"] == "protected":
                 inst.update({"dialog": refused_dialog(UNKNOWN, recovery="rollback", dispatched=True), "sEqualsR": dict(same_)})
             else:
-                inst.update({"dialog": ok_dialog(), "s2EqualsR": dict(same_)})
-                if "afterEqualsNative" in confirm:
-                    inst["afterEqualsNative"] = dict(same_)
+                inst.update({"dialog": ok_dialog(), "s2EqualsR": dict(same_), "afterEqualsNative": dict(same_)})
             res["m4"]["instances"].append(inst)
     res["m5"] = {"identity": dict(ident), "rounds": []}
     for k in range(1, rounds + 1):
         items = []
         for item in pop["M5"]:
             m3 = next(i for i in pop["M3"]["items"] if i["path"] == item["path"])
-            items.append({"item": item["path"], "route": "dialog", "outsideMirror": [],
+            items.append({"item": item["path"], "route": "dialog", "outsideMirror": [], "window": [0.0, 2.0],
                           "attempt": refused_dialog(m3["expectedCode"])})
-            items.append({"item": item["path"], "route": "sdk", "outsideMirror": [],
+            items.append({"item": item["path"], "route": "sdk", "outsideMirror": [], "window": [0.0, 2.0],
                           "attempt": {"answer": {"ok": False, "error": {"code": m3["expectedCode"]}}}})
-        res["m5"]["rounds"].append({"round": k, "positiveControl": {"method": "GET"}, "items": items})
+        res["m5"]["rounds"].append({"round": k, "positiveControl": {"method": "GET"}, "items": items, "secondControl": {
+            "proxy": [{"method": "GET", "host": "127.0.0.1", "port": 18765, "path": "/m5-control"}],
+            "listener": [{"target": "listener", "port": 18765, "method": "GET", "path": "/m5-control"}]}})
     res["m6"] = {"instances": [{"round": k, "foreignCpu": {"ok": True}, "dialog": ok_dialog(), "busyToReadyMs": 3000.0,
                                 "busySpanMs": 3000.0, "busyEndState": "ready",
                                 "s2EqualsR": dict(same_)} for k in range(1, rounds + 1)]}
@@ -938,14 +1000,22 @@ def red_cases() -> list[tuple[str, str, str, callable]]:
         ("M3 zero instances", "M3", NE, lambda rep: [r(rep)["m3"].update(instances=[]), r(rep)["m3size"].update(instances=[]), r(rep)["m3bytes"].update(instances=[])]),
         ("M3 raw-byte item completed", "M3", FAIL, lambda rep: first(r(rep)["m3bytes"]["instances"]).update(attempt={"response": {"ok": True}})),
         ("M4 bold dropped after Undo", "M4", FAIL, lambda rep: first(r(rep)["m4"]["instances"], lambda i: i["class"] == "collapsed").update(s2EqualsR={"compared": True, "same": False, "firstDifference": "flags"})),
-        ("M4 placement not confirmed", "M4", NE, lambda rep: first(r(rep)["m4"]["instances"], lambda i: "caret" in i and i["class"] == "collapsed").update(caret={"x": 1, "y": 1, "height": 1})),
+        ("M4 placement not confirmed (caret off, after-paste DIFFERENT)", "M4", NE, lambda rep: first(r(rep)["m4"]["instances"], lambda i: "caret" in i and i["class"] == "collapsed").update(caret={"x": 1, "y": 1, "height": 1}, afterEqualsNative={"compared": True, "same": False})),
+        ("M4 S4: round-2 caret 17 twips off, after-paste SAME as native (smoke ccplain)", "M4", PASS, lambda rep: first(r(rep)["m4"]["instances"], lambda i: i["id"] == "M4-T2-ccplain-M2").update(caret={"x": 2157, "y": 1694, "height": 276})),
+        ("M4 S4: round-2 caret off and no after-paste comparison", "M4", NE, lambda rep: [i.pop("afterEqualsNative") for i in r(rep)["m4"]["instances"] if i["id"] == "M4-T2-ccplain-M2"] and first(r(rep)["m4"]["instances"], lambda i: i["id"] == "M4-T2-ccplain-M2").update(caret={"x": 2157, "y": 1694, "height": 276})),
+        ("M4 S4: a protected cell's caret off is not rescued", "M4", NE, lambda rep: first(r(rep)["m4"]["instances"], lambda i: i["class"] == "protected").update(caret={"x": 1, "y": 1, "height": 1}, afterEqualsNative={"compared": True, "same": True})),
         ("M4 range selection differs", "M4", NE, lambda rep: first(r(rep)["m4"]["instances"], lambda i: i["class"] == "range").update(selectionText="Bet")),
         ("M4 range: the page's refusal lost the text", "M4", FAIL, lambda rep: first(r(rep)["m4"]["instances"], lambda i: i["class"] == "range")["dialog"].update(readbackAfter={"sha256": "0" * 64})),
         ("M4 range pasted", "M4", FAIL, lambda rep: first(r(rep)["m4"]["instances"], lambda i: i["class"] == "range").update(dialog={"outcome": {"kind": "session", "entry": {"ok": True}}})),
         ("M4 instance outside the population", "M4", FAIL, lambda rep: r(rep)["m4"]["instances"].append({"round": 1, "id": "M4-T2-input-M2", "class": "collapsed"})),
         ("M4 zero instances", "M4", NE, lambda rep: r(rep)["m4"].update(instances=[])),
-        ("M5 GET to the target", "M5", FAIL, lambda rep: first(r(rep)["m5"]["rounds"][0]["items"]).update(outsideMirror=[{"method": "GET", "port": 18765, "path": "/h4.png"}])),
-        ("M5 WebSocket to port 9", "M5", FAIL, lambda rep: first(r(rep)["m5"]["rounds"][0]["items"]).update(outsideMirror=[{"method": "CONNECT", "port": 9}])),
+        ("M5 GET to the target", "M5", FAIL, lambda rep: first(r(rep)["m5"]["rounds"][0]["items"], lambda i: i["item"] == "round-2/H4-inline-img-then-block.md").update(outsideMirror=[{"method": "GET", "host": "127.0.0.1", "port": 18765, "path": "/h4.png"}])),
+        ("M5 WebSocket to port 9", "M5", FAIL, lambda rep: first(r(rep)["m5"]["rounds"][0]["items"], lambda i: i["item"] == "round-1/M11.md").update(outsideMirror=[{"method": "CONNECT", "host": "127.0.0.1", "port": 9}])),
+        ("M5 a listener connection in a target item's window", "M5", FAIL, lambda rep: first(r(rep)["m5"]["rounds"][0]["items"], lambda i: i["item"] == "round-2/H4-inline-img-then-block.md").update(outsideMirror=[{"target": "listener", "port": 18765, "method": "GET", "path": "/h4.png"}])),
+        ("M5 the target by its loopback alias (localhost:18768 asked as 127.0.0.1)", "M5", FAIL, lambda rep: first(r(rep)["m5"]["rounds"][0]["items"], lambda i: i["item"] == "round-2/S02-https-hostname.md").update(outsideMirror=[{"method": "CONNECT", "host": "127.0.0.1", "port": 18768}])),
+        ("M5 S3: Chrome's own GCM in a target item's window (smoke)", "M5", PASS, lambda rep: first(r(rep)["m5"]["rounds"][0]["items"], lambda i: i["item"] == "round-2/H3-inline-html-img.md").update(outsideMirror=[{"method": "CONNECT", "host": "mtalk.google.com", "port": 5228}])),
+        ("M5 S3: a no-URL item's cell is its refusal", "M5", PASS, lambda rep: first(r(rep)["m5"]["rounds"][0]["items"], lambda i: i["item"] == "m0/X08-angle-generic.md").update(outsideMirror=[{"method": "GET", "host": "127.0.0.1", "port": 18765, "path": "/x"}])),
+        ("M5 S3: /m5-control not in the proxy's log", "M5", NE, lambda rep: r(rep)["m5"]["rounds"][0]["secondControl"].update(proxy=[])),
         ("M5 no probe.wasm in the proxy log", "M5", NE, lambda rep: r(rep)["m5"]["rounds"][0].update(positiveControl=None)),
         ("M5 empty log", "M5", NE, lambda rep: r(rep).pop("m5")),
         ("M5 item not refused", "M5", FAIL, lambda rep: first(r(rep)["m5"]["rounds"][0]["items"], lambda i: i["route"] == "sdk").update(attempt={"answer": {"ok": True}})),
@@ -1003,6 +1073,15 @@ def self_test(verbose: bool = True) -> int:
             problems.append(f"{name}: also moved {others}")
         if verbose:
             print(f"  red {'ok ' if got[criterion]['verdict'] == want else 'BAD'} {name}: {criterion} {got[criterion]['verdict']}")
+    # Ruling S3: a non-target request is recorded in M5's info list, with its host and window.
+    gcm = next(c for c in red_cases() if c[0].startswith("M5 S3: Chrome's own GCM"))
+    report = synthetic(pop)
+    gcm[3](report)
+    info = judge_report(report, pop)["M5"].get("info") or []
+    if [(e.get("host"), e.get("port"), e.get("window")) for e in info] != [("mtalk.google.com", 5228, [0.0, 2.0])]:
+        problems.append(f"M5 info list: {info}")
+    elif verbose:
+        print("  info ok M5 non-target request recorded:", info)
     # Short reports and refusals.
     two = synthetic(pop, rounds=2)
     if judge_report(two, pop)["M1"]["verdict"] != NE:
