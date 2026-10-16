@@ -160,3 +160,11 @@ So the batch should carry everything that is ready. But **an item whose design i
 - ODS and Calc (a separate core step).
 - Shift+Arrow and moves on a range: the ordered-commands spec.
 - Block identity.
+
+## 6. Decision (2026-10-16; append only)
+
+- The owner was asked to choose A, B or C. The answer was 「好，請開始」. It is taken as **A, the recommended scope**: 142, Markdown paste and the C field. If the owner meant otherwise, the correction goes here.
+- **The release text is corrected in place, with a revision-log row.** Its two "next link" promises now say "not in v21":
+  - `Language=` waits for native arms and a decision;
+  - the boundary answer moves to the ordered-commands batch.
+- **§4 step 1 starts now.** The native arms are 1a (142), 1b (Markdown) and 1c (`Language=`). Step 1d (a diagnostic profile, which needs the owner's `make`) is not started; it is offered after 1b reads.
