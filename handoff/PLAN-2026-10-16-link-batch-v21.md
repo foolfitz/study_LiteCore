@@ -168,3 +168,9 @@ So the batch should carry everything that is ready. But **an item whose design i
   - `Language=` waits for native arms and a decision;
   - the boundary answer moves to the ordered-commands batch.
 - **§4 step 1 starts now.** The native arms are 1a (142), 1b (Markdown) and 1c (`Language=`). Step 1d (a diagnostic profile, which needs the owner's `make`) is not started; it is offered after 1b reads.
+- **Later the same day: review 1 and three owner answers.** Review 1 had two seats (`handoff/link-batch-v21/review-1-*.md`), and the dispositions are in spec §9. The owner then chose A three times (spec §9.13):
+  - the Markdown entry is a dialog with a text box;
+  - the Ctrl+Home/End readback stays at 250 ms;
+  - **the C declaration is withdrawn from v21**. Nothing in this batch reads it, so it ships with its first reader in the ordered-commands batch.
+  
+  v21 is now 142 plus Markdown paste.
