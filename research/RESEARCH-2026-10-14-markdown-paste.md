@@ -29,7 +29,9 @@
 2. 頁面：「貼上為 Markdown」的入口（工具列按鈕或快捷鍵），讀剪貼簿文字，送給上面那個指令。讀剪貼簿要考慮瀏覽器權限（`navigator.clipboard.readText` 需要使用者手勢，Firefox 另有限制），要先量。
 3. 判準至少要有：標題、粗體、斜體、清單、程式碼、表格各轉成對應的 Writer 格式；貼進既有段落的行為和桌面版 LibreOffice 26.8 逐項一致（原生先量）；Ctrl+V 的行為不變（紅案：一般貼上不轉換）。
 4. 原生先量：同一段 Markdown 在 native 26.8 用 `paste("text/markdown")` 貼上的結果，作為參照。
-EOF
-cd /home/jiajun/LibreOffice/study_LiteCore && git add research/RESEARCH-2026-10-14-markdown-paste.md && git commit -q -m "Research: Markdown paste -- LibreOffice 26.x converts only via Paste Special > Markdown (heuristics removed in tdf#171481, Collabora follows cool#15535); our engine hard-codes text/plain at probe_engine.cpp:3239 though md4c and the sw markdown filter are in the WASM core; owner chose A (explicit 'paste as Markdown') for the next link batch
 
-Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>" -- research/RESEARCH-2026-10-14-markdown-paste.md && git log --oneline -1
+## 修訂紀錄
+
+| 日期 | 內容 |
+|---|---|
+| 2026-10-16 | 刪掉檔尾誤寫進來的三行（`EOF` 與一條 `git commit` 指令，是當初 heredoc 的殘渣，不是內容）。內文未動。 |
