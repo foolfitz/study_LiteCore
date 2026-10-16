@@ -163,6 +163,107 @@
 - **Q2**：D1 的「本文可達」由誰判——建議由 `arms.json` 的 fixture 種類機械地決定（`hf-*`、`sec-*` 不可達），不逐臂人判。
 - **Q3**：Ctrl+Home 之後緊接 Backspace，在 WASM 上是否依序（unipoll 推論是）。D2 直接量它；若不依序，是 finding 137 的同一類，不是本批的新類。
 
+## 9. 審核 1 的處置（2026-10-16，只追加；取代下列被點名的句子）
+
+兩席：`handoff/link-batch-v21/review-1-opus.md`（B1–B4、S1–S17、N1–N12）、`review-1-codex.md`（R1–R12）。主 session 對每一項讀了引用的原始碼才處置。三題擁有者的決定標為 **OD**，答覆之前照「推薦」寫、標「待擁有者」。
+
+### 9.1 產品引擎不是 unipoll（opus B1、codex R1；兩席獨立指出，主 session 讀原始碼確認）
+
+- **撤回** §3.1 最後一點的「這不轉移到 WASM……一律不拿來當 WASM 的證據」與 §8 Q3 的「unipoll 推論是」。正確（讀原始碼）：設 unipoll 的程式只在 `OXSDK_MAINLOOP_ENGINE` 之下（`probe_engine.cpp:6656-6683`、`:6756-6760`），產品規則不帶、也不能帶（`:15-17` 的 `#error`）；產品是 `std::thread` 上的 `engineLoop`，LOK 走多執行緒。原生的排序結果描述的就是產品的拓撲。原生 README 已追加英文更正。
+- **Ctrl+Home 是兩跳**：KeyInput 使用者事件 → `AsyncAccelExec`（`svtools/source/misc/acceleratorexecute.cxx:213-226`），只與其他加速鍵 FIFO。產品在移動完成之前不送下一個指令，所以重排要靠**提早完成**：核心停頓超過 250 ms 時，`verified-move-readback` 以快取完成（它序列化的是快取，不讀核心，opus N5），接著送出的同步指令（打字的 `paste`、Markdown 的 `paste`、`.uno:` 格式、`.uno:Delete`）搶在 `GoToStartOfDoc` 之前執行。具名 **L-142-readback-overtaken**：後果是文字落在移動前的游標處，可能在文件任何地方。finding 137 那一類，發佈說明與 137 並列。
+- **OD1（待擁有者）**：A（推薦）讀回期限照 250 ms，與六個移動相同；根治在「有序指令」。B：24／25 用較長期限，代價是每次在邊界上按都要等那麼久，而且停頓更長時一樣會發生。
+- **新判準 D2′（取代 D2 只在完成後才按的寫法；D2 保留）**：產品頁以真鍵（CDP）連送 Ctrl+Home、Backspace，不等待；起點是原生 `b2b-home-bksp-at-num` 的 fixture（游標在有編號的第二段開頭，第一段是普通段落）。期望：Ctrl+Home 先生效，Backspace 落在文件開頭，以 `verified-boundary-noop` 完成，存檔文字與編號都不變。紅：第二段的編號被關掉，或文字被併段。N=3、兩個瀏覽器、N/N。**若紅或沒做**：第 1 項不出貨。
+- **新臂 D6（記錄，不判）**：N=3、兩個瀏覽器：貼上 M6 的語料之後立刻 Ctrl+End、打一個標記，不等待；記下完成種類與標記落點。
+
+### 9.2 Markdown 的出貨開關放在殼層（opus B2、codex R6）
+
+- **取代** M1–M4 的「若沒做：manifest 不宣告」與 M6 的「降成 16 KiB」。manifest 照樣宣告 `pasteMarkdown`：它說的是這個 artifact 有這個匯出，是事實。**產品提供不提供，由頁面入口決定**（殼層 generation，不用連結）。
+- **兩層上限**：引擎 64 KiB 是硬上限（連結時定死）；**實際生效的上限在 SDK**（`DocumentHandle.pasteMarkdown` 先檢查 UTF-8 位元組數），初值 64 KiB。M6 紅 → SDK 上限降到 16 KiB（新殼層，不連結），重跑 M6；16 KiB 也紅，或量不出來 → 頁面沒有入口。
+- **新的預設**：M1–M6 任一條紅或沒做 → 頁面沒有入口；SDK 路徑仍可被直接呼叫，具名 **L-md-sdk-callable**。所有後備修改都在凍殼層、做宿主、綁定、計數之前完成。I1 依實際的後備狀態列出宣告差異。
+
+### 9.3 遠端圖片：引擎先用 md4c 掃（opus S6、codex R5；取代 §4.2「遠端圖片」一點與 M5 的「若紅」改寫）
+
+- 引擎在 `paste` 之前，用核心同一個 `md_parse`、同一組旗標（`MD_DIALECT_GITHUB | MD_FLAG_WIKILINKS`，`swmd.cxx:951`）掃一次輸入：
+  - 任何 `MD_SPAN_IMG` 的 src 不是 `data:` → 拒絕、不派送，錯誤碼 `MARKDOWN_REMOTE_IMAGE`；
+  - 掃不出任何區塊文字 → 拒絕、不派送（`INVALID_ARGUMENT`）。這同時**關掉 L-md-noop-input**，並把「空白」定義交給解析器本身（codex 與 opus S5 指出原本的「空白」沒有定義）。
+- 「什麼算圖片」由解析器定義（工具封閉）：參照式圖片（`![a][r]`＋`[r]: url`）、多張圖片都涵蓋。直接呼叫 SDK 也一定經過引擎，所以也涵蓋。
+- 標頭 `md4c.h` 取自核心的 `workdir/UnpackedTarball/md4c/src/`（與連結的 `libmd4c.a` 同一份 tarball）；`md_parse` 本來就在連結裡（`swmd.cxx:960` 用它）。掃描寫成純函式，另以原生編譯的 md4c 做模型測試，逐項跑原生語料與第 9.3 節的新語料。
+- 具名 **L-md-no-remote-images**：含遠端圖片的 Markdown 整段拒絕，頁面顯示「Markdown 裡有網路圖片，尚不支援；請先移除圖片」。
+- **M5 改寫**：行內 http、https 主機名、參照式、多張圖片、程式碼區塊裡「看起來像」圖片的文字（應該**不**拒絕：解析器知道那不是圖片）。前四項 → `MARKDOWN_REMOTE_IMAGE`，revision 不變，Undo 不變，瀏覽器網路紀錄裡對那個主機 0 個請求；最後一項 → 正常貼上。N=3、兩個瀏覽器、N/N。**若紅或沒做**：頁面沒有入口。
+
+### 9.4 Markdown 的後置條件與失敗語意（opus S4、codex R4）
+
+- 判定寫成純標頭函式（`src/markdown_paste.hpp`）加模型測試：
+  - 派送前讀 `.uno:Undo` 失敗 → 拒絕、不派送；
+  - 派送後讀失敗，或內容沒變，或變了卻解析出 0 個動作 → **派送後未確認**，錯誤碼 `MUTATION_OUTCOME_UNKNOWN`。它已經在 session 的復原清單裡（`narrow-editor-v2-session.js:1022`），走 manifest 的 `postDispatchFailureDisposition: "rollback-to-checkpoint"`。**不得宣稱文件沒變**；
+  - 變了且至少一個動作 → 完成，revision +1。
+- **撤回**「Undo 數量到上限時也成立」的無條件說法（codex R4）。payload 每項有 `index`、`comment`、`viewId`、`dateTime`（`svl/source/undo/undo.cxx:1310-1335`）；到上限時舊項被移除、整串位移。理論上的碰撞會被判成「未確認」而走回復，**方向是安全的**（只會誤判失敗，不會誤判成功）。具名 **L-md-undo-collision**。
+- 反向的誤判（內容因為別的東西變了）：`handleInsertText` 的 `postKeyEvent` 退路排進去的鍵，可能在兩次讀取之間加入一個「Typing」動作（opus N11）。屬 finding 137 那一類，罕見，具名 **L-md-undo-foreign**。
+- **WASM 上的紅案**：原生先找一個「paste 不產生 Undo 動作」的輸入或位置（候選：游標在受保護的區段裡）。找到就成為 M9：v21 上它回 `MUTATION_OUTCOME_UNKNOWN` 並回復。找不到就照 `CLAUDE.md`「有行為而沒有東西守著」登錄：判定只有模型測試守著。
+
+### 9.5 D 的母數由腳本文法產生（opus B3、codex R2；取代 D1 的「本文可達」與 §8 Q2）
+
+- 一臂進 D1，若且唯若它每一步都是產品送得出的：`k1024|1025|1027|1028|1029`、經 select-range 的 `r…`／`s…` 範圍、經 place-caret 的 `c…` 點擊、`M…=9220|9221`。含 `bksp`、`del`、`K`、`J`、`B`、`Q`、`u.` 步驟的臂不進 D1。每一個被排除的臂與排除它的規則一起列出；未知步驟或零臂 → 工具紅。
+- 所以 `sec-*` 與 `hf-home-hdr-click` **在**母數裡（產品到得了），`ctl-*`、`red-*-k1*`、`b2b-*`、`q-*`、`place-*` 不在。
+- D1 只比落點；**不擴張成**對已登錄 C 殘留的「與 Writer 完全相同」（codex R2）。
+
+### 9.6 M1 的母數由規則產生（opus B4、codex R3）
+
+- 由原生臂的 metadata 產生角色：Markdown 正向構造 → M1；`text/plain` 控制（C1）→ M7；非文字（`*.bin`）→ 不是字串輸入，排除；超過生效上限 → M3／M6；遠端圖片 → M5；空輸入 → M3。未分類的語料或零項 → 工具紅。分類在任何 v21 執行之前 commit。
+- 輸入文件以 sha 釘住（`tool/inputs/empty-template.odt`，`a3354bae…`）。
+
+### 9.7 完成回覆、遮罩與記帳（opus S1–S3、codex R7、R9）
+
+- **新判準 D7（取代 D3 只挑兩個位置的寫法；D3 保留）**：由 `arms.json` 產生，對 D1 母數裡每一下按壓：
+  - 原生有游標回呼的那一下 → 以 `documented-callback-*` 完成；
+  - 原生無聲的那一下 → 以 `verified-move-readback` 完成，在 1000 ms 之內；
+  - 每一下，回覆裡的游標等於 ≥500 ms 之後 `editor-get-state` 讀到的引擎游標（SPEC-M3-link-batch §10.2 S2 的參照）。
+- **worker 初始化時檢查遮罩的回傳狀態**（`sdk/sdk-worker.js:1253-1254` 今天忽略它）：不是 OK 就初始化失敗。這樣 `kMaxExternalAction` 沒動、22／23 的遮罩寫不進去時會當場紅。另加 SDK 臂：在範圍上直接呼叫 `move-document-*` → `EDITOR_FORMAT_GESTURE_UNSUPPORTED`、文件不變。`e2/expected-gesture-offers.json` 改指 v21，兩個動作都是 `["collapsed"]`。
+- **封閉清單的單元測試（形式二）**：每一個 ABI 5 追加的動作恰好屬於一個後置條件類別；`BOUNDARY_CAPABLE_MOVES` 等於後置條件是移動完成的那個集合。`_validateInherited` 加最後一個分支：不屬於任何類別的動作一律拒絕（opus S3）。
+- **記帳臂**：在唯讀（view-only）文件按 Ctrl+End，游標會動、`dirty` 仍是 false；在乾淨文件與髒文件各按一次，`dirty`、內容 stamp、檢查點的斷言照 096／098。`editorActionMutates` 排除 24／25 照做，另經 SDK 送一個過時的 `expectedRevision`，驗證它照移動的語意處理（codex R7；opus N1 指出一般路徑看不出差別）。
+
+### 9.8 刪除暫存帳與按住（codex R8、opus S7、N3）
+
+- **頁面修法**：`holdsDelete` 只在「第一下尚未回答之後，**沒有送過任何其他動作**」時才扣住同方向的刪除；中間送過移動，就不扣，照常送出。新判準 D8：文件開頭 Backspace（進入 C 的窗）→ Ctrl+End → Backspace：第三下在文件結尾刪掉一個字。N=3、兩個瀏覽器、N/N。另外把 141／144／145 的頁面測試全部重跑。
+- **按住 Ctrl+Home／End**：22、23 丟掉 `event.repeat`，具名 **L-142-no-repeat**（在表格裡按住只會走一層）。判準 D9：按住 1 秒 → 引擎恰好收到 1 個移動。
+- 範圍上 Ctrl+Home 之後很快按 Backspace：送出時讀到的形狀還是範圍，所以送出 `delete-selection`，在收合的游標上被拒絕並跳提示；不會掉資料。具名 **L-142-shape-at-send**（opus N3）。
+
+### 9.9 範圍與長文件（opus S11、S12）
+
+- **D4 的預設改寫**：若紅，頁面在範圍上仍然**攔下** Ctrl+Home／End，提示「範圍上尚不支援」，不送出。**絕不讓隱藏輸入框吃掉這個鍵**（那會把 142 帶回來）。
+- **新判準 D10**：60 頁 fixture（`tools/create_long_document.py --pages 60`）按 Ctrl+End 之後，引擎游標的矩形落在畫面的可視區內，`#page-status` 顯示最後一頁。判狀態，不數像素。N=3、兩個瀏覽器。
+
+### 9.10 跨層閘控、釘選清單、身分（opus S8、S9、N2、N12；codex R9、R11）
+
+- **釘選清單由 grep 產生**（照 SPEC-M3-link-batch §12.5），指令與輸出 commit。已知的：`tests/editor_abi_header_test.cpp:20`（`== 4u`）、`e2/relink-queue-v3.json` 的兩列、`e2/expected-gesture-offers.json`、`tools/check_e2_b_inventory.py`、`editor-shell-v2/tests/manifest-reachability.test.mjs`、三個 `.d.ts` 與 `declaration-drift.test.mjs`、`tests/test_e2_editor_v4_profile.py`、session 的 `ACTIONS`。
+- **放在 `OXSDK_E2_V21_LINK_BATCH` 之下**：ABI 常數、新的 wire enum、discovery enum、`sdk_api.h` 的新宣告。M1-1 的兩個 base 與預期的載體（`probe_engine`、`sdk_api`、`editor_api`）在實作前寫下。
+- **v5 產生器的機制**（opus S9）：import v4 → 換掉 `v4.ABI_VERSION` 與 `v4.action_map` → 從 `argv` 拿掉自己的旗標再呼叫 `v4.main()` → 加上自己的葉、重寫 manifest、重印摘要。v21 的 manifest 規則把兩個產生器都列為前置檔。
+- **X1 的 `--declared-changed-leaf`**：寫成三個參數（`PATH OLD NEW`），避開值裡含 `->` 的解析問題；路徑是 `.editorContract.abiVersion`（頂層的 `abiVersion` 是 SDK ABI）。紅案：沒宣告的改變、宣告了卻沒變、OLD 錯、NEW 錯、葉不存在、型別不符。兩個新動作是六個新葉（各自的 `id`、`gestures[0]`、`limits[0]`），六個 `--declared-new-leaf` 在 runbook 裡先寫好。
+- **跨層負向矩陣**（codex R9）：由實際的按鍵綁定表、動作表、文件匯出表產生，涵蓋宣告缺席、扣住（`gestures: []`）、宣告值錯誤、直接對 worker 送請求。兩個動作與 `pasteMarkdown` 都要。頁面綁定排除 Shift 與 `isComposing`（opus N2）；D5 改用**真的** v20 manifest。D5 與 M8 的限制對象改成「最終候選殼層」，不寫死 v74。
+- **證據的身分**（codex R11）：每份 D／M 報告都帶受測的 wasm、worker、頁面、殼層、輸入與參照的雜湊；與最終候選不符的報告作廢。merge 的第十個 `BOUND_KEY` 不需要。
+
+### 9.11 C 的宣告（opus S10、N10；codex R12）
+
+- **OD3（待擁有者）**：A（推薦）第 3 項**撤出 v21**。理由：
+  - 這一批沒有任何東西讀它（工具不改、產品不讀），所以宣稱的價值（工具誠實）並沒有交付；
+  - 位元組閘門證明不了窗長（codex R12：把窗從 2000 改成 3000 ms，C1 照樣綠）；
+  - C 的語意在「有序指令」那一批本來就會變，到時候工具也要重新期望。
+  
+  宣告跟著它的第一個讀者一起做。B：照留，登錄為「沒有東西可守」（`CLAUDE.md` §3），閘門的承諾縮成「這個字串存在」，具名 **L-C-decl-variant**。
+
+### 9.12 其餘
+
+- **N（執行次數，opus S13）**：D、M 的每一臂在每個瀏覽器跑 N=3，過＝N/N。
+- **Markdown 沒量過的位置（opus S14）**：表格儲存格（含把 GFM 表格貼進儲存格）、頁首頁尾、跨儲存格的範圍。在實作之前先跑原生臂；跑之前具名 **L-md-unmeasured-positions**。
+- **Q1 在釘死判準之前定案（opus S15、codex）**：A 加一臂「在對話框裡打標記、取消、存檔 → 沒有標記」，並寫明對話框的輸入不經過 E1-C 的 adapter；B 加每個瀏覽器在宿主路由上的權限臂。
+- **貼上的記帳（opus S16）**：貼上之後 `dirty` 是 true，自動儲存會觸發（`editor-session.js:299-310`）。
+- **一個鍵就到的既有殘留（opus S17）**：在 v21 上記錄（不判）兩臂：x-lc（Ctrl+Home 之後在有項目符號、編號、縮排的第一段按 Backspace）、表格裡（Ctrl+Home 到儲存格開頭再按 Backspace＝finding 136 的儲存格邊界拒絕與重開）。發佈說明與 L-142-steps 一起列。
+- **比較器（codex R10、opus N8）**：在首次使用之前固定 ODT／FODT 的正規化：合併 ODT 的樣式與圖片資源；圖片比資料雜湊，不只比「有沒有嵌入」。紅案：跨容器相等、缺樣式、圖片壞掉。M4 改比還原後的正規化結構（含原有格式與跨段選取），位置由原生的位置臂產生；M7 比純文字控制的結構。這是比較器的新用途，綁定之前完成。
+- **M3／M6 的邊界（opus S5、codex R6）**：語料產生器產生**恰好** 65,536 與 65,537 個 UTF-8 位元組，由 3 位元組的中日韓字元組成，附長度斷言與雜湊。M3 驅動的是 SDK（生效上限所在的那一層），另一臂直接對引擎送 65,537 驗硬上限。M6 計時的是頁面從忙碌到就緒的時間；10 秒是給擁有者的等待上限，SDK 自己的逾時是 30 秒（`document-sdk.js:151`）。另外記下 `CORE_LOG` 回呼的數量（opus N9：64 KiB 約一萬個）。
+- **opus N6**：v20 的 manifest 規則釘的是樹裡的 worker，改了 worker 它就會拒絕——這是預期的，在 runbook 裡註明。
+- **opus N7**：SPEC-M3-link-batch §10.8／§12.5 寫的「extend 用 ABI 5」被這一批用掉了，extend 現在要 ABI 6；在那份規格追加一行更正。
+- **opus N4**（C 的窗開著時按 Ctrl+Home 會排在刪除後面）：同意，屬既有行為，不另立判準。
+
 ## 修訂紀錄
 
 | 日期 | 內容 |
@@ -170,3 +271,4 @@
 | 2026-10-16 | 草稿（opus，主 session）：第 1、3（Markdown 除外）、4.1、4.3、4.4、5 的 D／C1／I1／K。Markdown（3.2、4.2、M 判準）待原生量測。 |
 | 2026-10-16 | 補 Markdown（主 session）：3.2 寫入原生量測；4.2 定形狀（文件層匯出＋宣告閘控、送出前拒絕空白與超過 64 KiB、以 `.uno:Undo` 整份內容改變當後置條件、四個具名限制）；M1–M8；Q1 改成擁有者的入口選擇、加 Q4。 |
 | 2026-10-16 | 4.2 加 L-md-137（貼上與打字同屬 finding 137 那一類；送審前主 session 自查補上）。 |
+| 2026-10-16 | §9 審核 1 的處置（主 session）：引擎不是 unipoll 的更正與 L-142-readback-overtaken、D2′／D6–D10、Markdown 的出貨開關移到殼層、引擎用 md4c 先掃遠端圖片與空內容、後置條件的失敗語意走 MUTATION_OUTCOME_UNKNOWN、D1／M1 的母數由規則產生、跨層負向矩陣、X1 changed-leaf 的契約；OD1、OD3 與 Q1 待擁有者。 |

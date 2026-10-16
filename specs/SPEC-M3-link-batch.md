@@ -566,6 +566,10 @@ part P（`findings/evidence/link-batch/pre-binding/README.md` P4）只移了頁�
 
 **不改程式**：§34.4 要求一份誠實執行、已 commit、判錯了的報告才能改檢查，現在沒有（§34.3 的審核預算也不適用：這是既有 runner 的一個分支，不是改寫過半的新工具）。處置是讀的那一側：計數後寫 RESULT 時，讀的人逐次確認每個計數的 Rbs／Rdel 都有一段 ≥ 2,000 ms、`rev` 前後相同的 busy，把每次的長度寫進 RESULT；沒有的那一次，該臂讀成 NOT_ESTABLISHED，不是 PASS。**從來沒做時**：Rbs／Rdel 的綠只證明「沒有拒絕、文件沒變」，不證明邊界鍵到過引擎。§34.4 兩個數字都不加。
 
+## 18. 更正：extend 的 ABI 編號（2026-10-16，只追加；取代 §10.8、§12.5 裡「extend 用 ABI 5」的說法）
+
+ABI 5 由連結批次 v21 用掉（`specs/SPEC-M3-link-batch-v21.md` §4.1：`move-document-start`／`end` 追加 wire id 22、23）。之後「有序指令」那一批若再動 extend，是 ABI 6 或更後面。
+
 ## 修訂紀錄
 
 | 日期 | 內容 |
@@ -586,3 +590,4 @@ part P（`findings/evidence/link-batch/pre-binding/README.md` P4）只移了頁�
 | 2026-10-15 | §17.4：C 之下 Rbs／Rdel 沒有正向對照，登錄成具名極限；RESULT 時由讀的人手動確認 2.26 秒的 busy（不改程式，§34.4 無證人） |
 | 2026-10-16 | §17.2 登錄的觀察已處理（擁有者 10-15 的決定 A，0.2.24 計數鏈跑完之後才做）：`test-e2-c-static` 加跑 `tests/test_merge_wasm_clauses.py`、`tests/test_judge_counted_m2.py`；改後閘門 exit 0，多出 134 個測試（`findings/evidence/release-0.2.24/test-e2-c-static-after-makefile-a.txt`）。finding 042：改前改後 `make -n e2-c-assets` 都不編譯；v20 的 `.o` 在這次編輯之前就已舊於 Makefile（`61e38c83`），連結仍被凍結守衛擋下 |
 | 2026-10-16 | §17.4 的人工判讀做了：0.2.24 計數的 Rbs／Rdel 12 次都有 2,257–2,262 ms、`rev` 不變的 busy（`findings/evidence/m3-production-ui/RESULT-0.2.24.md`） |
+| 2026-10-16 | §18：extend 的 ABI 編號更正（v21 用掉 5；審核 opus N7）。 |
