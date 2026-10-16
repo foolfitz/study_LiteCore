@@ -1,0 +1,147 @@
+| arm | runs agree | placed at | press | callbacks after the post (STATE_CHANGED omitted; +S = some came) | first cb ms (min-max) | last cb ms (max) | caret moved | caret after | lands at | selection after | Undo changed / top | saved text |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| a1-home-mid | 3/3 | «Bravo\| second paragraph» | ch (9220) | INVALIDATE_VISIBLE_CURSOR | 0.5-0.9 | 1 | yes | 1418, 1418, 0, 276 | «\|Alpha first paragraph» | - | no |  |
+| a2-end-mid | 3/3 | «Bravo\| second paragraph» | ce (9221) | INVALIDATE_VISIBLE_CURSOR | 0.3-0.4 | 0 | yes | 3657, 1970, 0, 276 | «Charlie third paragraph\|» | - | no |  |
+| a3-home-at-start | 3/3 | «\|Alpha first paragraph» | ch (9220) | **none** (silent >= 2008 ms) | none | none | no | 1418, 1418, 0, 276 | «\|Alpha first paragraph» | - | no |  |
+| a3-home-after-load | 3/3 | «\|Alpha first paragraph» | ch (9220) | **none** (silent >= 2009 ms) | none | none | no | 1418, 1418, 0, 276 | «\|Alpha first paragraph» | - | no |  |
+| a3-end-at-end | 3/3 | «Charlie third paragraph\|» | ce (9221) | **none** (silent >= 2009 ms) | none | none | no | 3657, 1970, 0, 276 | «Charlie third paragraph\|» | - | no |  |
+| a3-home-twice | 3/3 | «Bravo\| second paragraph» | ch1 (9220) | INVALIDATE_VISIBLE_CURSOR | 0.5-0.6 | 1 | yes | 1418, 1418, 0, 276 | «\|Alpha first paragraph» | - | no |  |
+|  |  |  | ch2 (9220) | **none** (silent >= 2008 ms) | none | none | no | 1418, 1418, 0, 276 | «\|Alpha first paragraph» | - | no |  |
+| a3-end-twice | 3/3 | «Bravo\| second paragraph» | ce1 (9221) | INVALIDATE_VISIBLE_CURSOR | 0.4-0.5 | 0 | yes | 3657, 1970, 0, 276 | «Charlie third paragraph\|» | - | no |  |
+|  |  |  | ce2 (9221) | **none** (silent >= 2006 ms) | none | none | no | 3657, 1970, 0, 276 | «Charlie third paragraph\|» | - | no |  |
+| t-home-A1-n1 | 3/3 | «A1\| text» | ch1 (9220) | INVALIDATE_VISIBLE_CURSOR | 0.4-0.7 | 1 | yes | 1418, 1694, 0, 276 | «\|A1 text» | - | no |  |
+| t-home-B2-n1 | 3/3 | «B2\| text» | ch1 (9220) | INVALIDATE_VISIBLE_CURSOR | 0.4-0.6 | 1 | yes | 4630, 1970, 0, 276 | «\|B2 text» | - | no |  |
+| t-end-A1-n1 | 3/3 | «A1\| text» | ce1 (9221) | INVALIDATE_VISIBLE_CURSOR | 0.4-0.4 | 0 | yes | 2131, 1694, 0, 276 | «A1 text\|» | - | no |  |
+| t-end-B2-n1 | 3/3 | «B2\| text» | ce1 (9221) | INVALIDATE_VISIBLE_CURSOR | 0.3-0.6 | 1 | yes | 5329, 1970, 0, 276 | «B2 text\|» | - | no |  |
+| t-home-A1-n2 | 3/3 | «A1\| text» | ch1 (9220) | INVALIDATE_VISIBLE_CURSOR | 0.4-0.4 | 0 | yes | 1418, 1694, 0, 276 | «\|A1 text» | - | no |  |
+|  |  |  | ch2 (9220) | TABLE_SELECTED, CONTEXT_CHANGED, INVALIDATE_VISIBLE_CURSOR, VERTICAL_RULER_UPDATE, RULER_UPDATE +S | 0.6-0.7 | 764 | yes | 1418, 1418, 0, 276 | «\|Before the table» | - | no |  |
+| t-home-B2-n2 | 3/3 | «B2\| text» | ch1 (9220) | INVALIDATE_VISIBLE_CURSOR | 0.4-0.4 | 0 | yes | 4630, 1970, 0, 276 | «\|B2 text» | - | no |  |
+|  |  |  | ch2 (9220) | INVALIDATE_VISIBLE_CURSOR, RULER_UPDATE +S | 0.5-0.7 | 423 | yes | 1418, 1694, 0, 276 | «\|A1 text» | - | no |  |
+| t-end-A1-n2 | 3/3 | «A1\| text» | ce1 (9221) | INVALIDATE_VISIBLE_CURSOR | 0.4-0.6 | 1 | yes | 2131, 1694, 0, 276 | «A1 text\|» | - | no |  |
+|  |  |  | ce2 (9221) | INVALIDATE_VISIBLE_CURSOR, RULER_UPDATE +S | 0.4-0.4 | 422 | yes | 8542, 2246, 0, 276 | «C3 text\|» | - | no |  |
+| t-end-B2-n2 | 3/3 | «B2\| text» | ce1 (9221) | INVALIDATE_VISIBLE_CURSOR | 0.4-0.7 | 1 | yes | 5329, 1970, 0, 276 | «B2 text\|» | - | no |  |
+|  |  |  | ce2 (9221) | INVALIDATE_VISIBLE_CURSOR, RULER_UPDATE +S | 0.4-0.4 | 423 | yes | 8542, 2246, 0, 276 | «C3 text\|» | - | no |  |
+| t-home-A1-n3 | 3/3 | «A1\| text» | ch1 (9220) | INVALIDATE_VISIBLE_CURSOR | 0.4-0.7 | 1 | yes | 1418, 1694, 0, 276 | «\|A1 text» | - | no |  |
+|  |  |  | ch2 (9220) | TABLE_SELECTED, CONTEXT_CHANGED, INVALIDATE_VISIBLE_CURSOR, VERTICAL_RULER_UPDATE, RULER_UPDATE +S | 0.6-0.9 | 763 | yes | 1418, 1418, 0, 276 | «\|Before the table» | - | no |  |
+|  |  |  | ch3 (9220) | **none** (silent >= 2009 ms) | none | none | no | 1418, 1418, 0, 276 | «\|Before the table» | - | no |  |
+| t-home-B2-n3 | 3/3 | «B2\| text» | ch1 (9220) | INVALIDATE_VISIBLE_CURSOR | 0.4-0.8 | 1 | yes | 4630, 1970, 0, 276 | «\|B2 text» | - | no |  |
+|  |  |  | ch2 (9220) | INVALIDATE_VISIBLE_CURSOR, RULER_UPDATE +S | 0.5-0.8 | 422 | yes | 1418, 1694, 0, 276 | «\|A1 text» | - | no |  |
+|  |  |  | ch3 (9220) | TABLE_SELECTED, CONTEXT_CHANGED, INVALIDATE_VISIBLE_CURSOR, VERTICAL_RULER_UPDATE, RULER_UPDATE +S | 0.6-1.0 | 764 | yes | 1418, 1418, 0, 276 | «\|Before the table» | - | no |  |
+| t-end-A1-n3 | 3/3 | «A1\| text» | ce1 (9221) | INVALIDATE_VISIBLE_CURSOR | 0.4-0.4 | 0 | yes | 2131, 1694, 0, 276 | «A1 text\|» | - | no |  |
+|  |  |  | ce2 (9221) | INVALIDATE_VISIBLE_CURSOR, RULER_UPDATE +S | 0.4-0.7 | 423 | yes | 8542, 2246, 0, 276 | «C3 text\|» | - | no |  |
+|  |  |  | ce3 (9221) | TABLE_SELECTED, CONTEXT_CHANGED, INVALIDATE_VISIBLE_CURSOR, VERTICAL_RULER_UPDATE, RULER_UPDATE +S | 0.5-0.5 | 764 | yes | 2803, 2522, 0, 276 | «After the table\|» | - | no |  |
+| t-end-B2-n3 | 3/3 | «B2\| text» | ce1 (9221) | INVALIDATE_VISIBLE_CURSOR | 0.3-0.5 | 0 | yes | 5329, 1970, 0, 276 | «B2 text\|» | - | no |  |
+|  |  |  | ce2 (9221) | INVALIDATE_VISIBLE_CURSOR, RULER_UPDATE +S | 0.3-0.7 | 423 | yes | 8542, 2246, 0, 276 | «C3 text\|» | - | no |  |
+|  |  |  | ce3 (9221) | TABLE_SELECTED, CONTEXT_CHANGED, INVALIDATE_VISIBLE_CURSOR, VERTICAL_RULER_UPDATE, RULER_UPDATE +S | 0.4-0.8 | 763 | yes | 2803, 2522, 0, 276 | «After the table\|» | - | no |  |
+| tf-home-n1 | 3/3 | «Body\| after table» | ch1 (9220) | TABLE_SELECTED, CONTEXT_CHANGED, INVALIDATE_VISIBLE_CURSOR, VERTICAL_RULER_UPDATE, RULER_UPDATE +S | 0.6-0.8 | 724 | yes | 1418, 1418, 0, 276 | «\|A1 first» | - | no |  |
+| tl-end-n1 | 3/3 | «Body\| before table» | ce1 (9221) | INVALIDATE_VISIBLE_CURSOR | 0.3-0.6 | 1 | yes | 1418, 2522, 0, 277 | «(empty paragraph)» | - | no | DIFFERS: paragraph '' inserted after 'B2 last'; shape: 6 -> 7 paragraphs |
+| tf-home-n2 | 3/3 | «Body\| after table» | ch1 (9220) | TABLE_SELECTED, CONTEXT_CHANGED, INVALIDATE_VISIBLE_CURSOR, VERTICAL_RULER_UPDATE, RULER_UPDATE +S | 0.6-0.8 | 723 | yes | 1418, 1418, 0, 276 | «\|A1 first» | - | no |  |
+|  |  |  | ch2 (9220) | **none** (silent >= 2008 ms) | none | none | no | 1418, 1418, 0, 276 | «\|A1 first» | - | no |  |
+| tl-end-n2 | 3/3 | «Body\| before table» | ce1 (9221) | INVALIDATE_VISIBLE_CURSOR | 0.4-0.6 | 1 | yes | 1418, 2522, 0, 277 | «(empty paragraph)» | - | no |  |
+|  |  |  | ce2 (9221) | **none** (silent >= 2007 ms) | none | none | no | 1418, 2522, 0, 277 | «(empty paragraph)» | - | no | DIFFERS: paragraph '' inserted after 'B2 last'; shape: 6 -> 7 paragraphs |
+| tf-home-n3 | 3/3 | «Body\| after table» | ch1 (9220) | TABLE_SELECTED, CONTEXT_CHANGED, INVALIDATE_VISIBLE_CURSOR, VERTICAL_RULER_UPDATE, RULER_UPDATE +S | 0.6-0.9 | 724 | yes | 1418, 1418, 0, 276 | «\|A1 first» | - | no |  |
+|  |  |  | ch2 (9220) | **none** (silent >= 2007 ms) | none | none | no | 1418, 1418, 0, 276 | «\|A1 first» | - | no |  |
+|  |  |  | ch3 (9220) | **none** (silent >= 2006 ms) | none | none | no | 1418, 1418, 0, 276 | «\|A1 first» | - | no |  |
+| tl-end-n3 | 3/3 | «Body\| before table» | ce1 (9221) | INVALIDATE_VISIBLE_CURSOR | 0.4-0.7 | 1 | yes | 1418, 2522, 0, 277 | «(empty paragraph)» | - | no |  |
+|  |  |  | ce2 (9221) | **none** (silent >= 2007 ms) | none | none | no | 1418, 2522, 0, 277 | «(empty paragraph)» | - | no |  |
+|  |  |  | ce3 (9221) | **none** (silent >= 2007 ms) | none | none | no | 1418, 2522, 0, 277 | «(empty paragraph)» | - | no | DIFFERS: paragraph '' inserted after 'B2 last'; shape: 6 -> 7 paragraphs |
+| r-one-home | 3/3 | range 'second' | ch (9220) | TEXT_SELECTION, INVALIDATE_VISIBLE_CURSOR +S | 0.5-0.7 | 301 | yes | 1418, 1418, 0, 276 | «\|Alpha first paragraph» | - | no |  |
+| r-one-end | 3/3 | range 'second' | ce (9221) | TEXT_SELECTION, INVALIDATE_VISIBLE_CURSOR +S | 0.5-0.6 | 301 | yes | 3657, 1970, 0, 276 | «Charlie third paragraph\|» | - | no |  |
+| r-cross-home | 3/3 | range 'second paragraph\nCharlie' | ch (9220) | TEXT_SELECTION, INVALIDATE_VISIBLE_CURSOR +S | 0.5-0.6 | 301 | yes | 1418, 1418, 0, 276 | «\|Alpha first paragraph» | - | no |  |
+| r-cross-end | 3/3 | range 'second paragraph\nCharlie' | ce (9221) | TEXT_SELECTION, INVALIDATE_VISIBLE_CURSOR +S | 0.4-0.5 | 301 | yes | 3657, 1970, 0, 276 | «Charlie third paragraph\|» | - | no |  |
+| r-bwd-home | 3/3 | range 'second paragraph\nCharlie' | ch (9220) | TEXT_SELECTION, INVALIDATE_VISIBLE_CURSOR +S | 0.5-0.6 | 301 | yes | 1418, 1418, 0, 276 | «\|Alpha first paragraph» | - | no |  |
+| r-bwd-end | 3/3 | range 'second paragraph\nCharlie' | ce (9221) | TEXT_SELECTION, INVALIDATE_VISIBLE_CURSOR +S | 0.5-0.6 | 301 | yes | 3657, 1970, 0, 276 | «Charlie third paragraph\|» | - | no |  |
+| hf-home-hdr-n1 | 3/3 | «Header\| line text» | ch1 (9220) | INVALIDATE_VISIBLE_CURSOR | 0.5-0.5 | 0 | yes | 1418, 1418, 0, 276 | «\|Header line text» | - | no |  |
+| hf-end-ftr-n1 | 3/3 | «Footer\| line text» | ce1 (9221) | INVALIDATE_VISIBLE_CURSOR | 0.4-0.5 | 0 | yes | 2884, 15712, 0, 276 | «Footer line text\|» | - | no |  |
+| hf-home-hdr-n2 | 3/3 | «Header\| line text» | ch1 (9220) | INVALIDATE_VISIBLE_CURSOR | 0.5-0.5 | 1 | yes | 1418, 1418, 0, 276 | «\|Header line text» | - | no |  |
+|  |  |  | ch2 (9220) | INVALIDATE_VISIBLE_CURSOR, TAB_STOP_LIST, VERTICAL_RULER_UPDATE, RULER_UPDATE +S | 0.5-0.5 | 463 | yes | 1418, 1921, 0, 276 | «\|Alpha first paragraph» | - | no |  |
+| hf-end-ftr-n2 | 3/3 | «Footer\| line text» | ce1 (9221) | INVALIDATE_VISIBLE_CURSOR | 0.4-0.5 | 0 | yes | 2884, 15712, 0, 276 | «Footer line text\|» | - | no |  |
+|  |  |  | ce2 (9221) | INVALIDATE_VISIBLE_CURSOR, TAB_STOP_LIST, VERTICAL_RULER_UPDATE, RULER_UPDATE +S | 0.3-0.4 | 463 | yes | 3657, 2473, 0, 276 | «Charlie third paragraph\|» | - | no |  |
+| hf-home-hdr-n3 | 3/3 | «Header\| line text» | ch1 (9220) | INVALIDATE_VISIBLE_CURSOR | 0.4-0.5 | 0 | yes | 1418, 1418, 0, 276 | «\|Header line text» | - | no |  |
+|  |  |  | ch2 (9220) | INVALIDATE_VISIBLE_CURSOR, TAB_STOP_LIST, VERTICAL_RULER_UPDATE, RULER_UPDATE +S | 0.5-0.5 | 463 | yes | 1418, 1921, 0, 276 | «\|Alpha first paragraph» | - | no |  |
+|  |  |  | ch3 (9220) | **none** (silent >= 2006 ms) | none | none | no | 1418, 1921, 0, 276 | «\|Alpha first paragraph» | - | no |  |
+| hf-end-ftr-n3 | 3/3 | «Footer\| line text» | ce1 (9221) | INVALIDATE_VISIBLE_CURSOR | 0.4-0.5 | 0 | yes | 2884, 15712, 0, 276 | «Footer line text\|» | - | no |  |
+|  |  |  | ce2 (9221) | INVALIDATE_VISIBLE_CURSOR, TAB_STOP_LIST, VERTICAL_RULER_UPDATE, RULER_UPDATE +S | 0.3-0.6 | 463 | yes | 3657, 2473, 0, 276 | «Charlie third paragraph\|» | - | no |  |
+|  |  |  | ce3 (9221) | **none** (silent >= 2007 ms) | none | none | no | 3657, 2473, 0, 276 | «Charlie third paragraph\|» | - | no |  |
+| hf-home-hdr-click | 3/3 | «Header\| line text» | ch (9220) | INVALIDATE_VISIBLE_CURSOR | 0.5-0.9 | 1 | yes | 1418, 1418, 0, 276 | «\|Header line text» | - | no |  |
+| sec-home-n1 | 3/3 | «Inside\| section two» | ch1 (9220) | INVALIDATE_VISIBLE_CURSOR | 0.5-0.7 | 1 | yes | 1418, 1694, 0, 276 | «\|Inside section one» | - | no |  |
+| sec-end-n1 | 3/3 | «Inside\| section one» | ce1 (9221) | INVALIDATE_VISIBLE_CURSOR | 0.4-0.7 | 1 | yes | 3164, 1970, 0, 276 | «Inside section two\|» | - | no |  |
+| sec-home-n2 | 3/3 | «Inside\| section two» | ch1 (9220) | INVALIDATE_VISIBLE_CURSOR | 0.5-0.8 | 1 | yes | 1418, 1694, 0, 276 | «\|Inside section one» | - | no |  |
+|  |  |  | ch2 (9220) | INVALIDATE_VISIBLE_CURSOR +S | 0.5-0.6 | 322 | yes | 1418, 1418, 0, 276 | «\|Before the section» | - | no |  |
+| sec-end-n2 | 3/3 | «Inside\| section one» | ce1 (9221) | INVALIDATE_VISIBLE_CURSOR | 0.4-0.7 | 1 | yes | 3164, 1970, 0, 276 | «Inside section two\|» | - | no |  |
+|  |  |  | ce2 (9221) | INVALIDATE_VISIBLE_CURSOR +S | 0.4-0.4 | 322 | yes | 3017, 2246, 0, 276 | «After the section\|» | - | no |  |
+| sec-home-n3 | 3/3 | «Inside\| section two» | ch1 (9220) | INVALIDATE_VISIBLE_CURSOR | 0.5-1.1 | 1 | yes | 1418, 1694, 0, 276 | «\|Inside section one» | - | no |  |
+|  |  |  | ch2 (9220) | INVALIDATE_VISIBLE_CURSOR +S | 0.5-0.8 | 322 | yes | 1418, 1418, 0, 276 | «\|Before the section» | - | no |  |
+|  |  |  | ch3 (9220) | **none** (silent >= 2009 ms) | none | none | no | 1418, 1418, 0, 276 | «\|Before the section» | - | no |  |
+| sec-end-n3 | 3/3 | «Inside\| section one» | ce1 (9221) | INVALIDATE_VISIBLE_CURSOR | 0.4-0.6 | 1 | yes | 3164, 1970, 0, 276 | «Inside section two\|» | - | no |  |
+|  |  |  | ce2 (9221) | INVALIDATE_VISIBLE_CURSOR +S | 0.3-0.4 | 322 | yes | 3017, 2246, 0, 276 | «After the section\|» | - | no |  |
+|  |  |  | ce3 (9221) | **none** (silent >= 2010 ms) | none | none | no | 3017, 2246, 0, 276 | «After the section\|» | - | no |  |
+| red-home-bksp | 3/3 | «Bravo\| second paragraph» | ch (9220) | INVALIDATE_VISIBLE_CURSOR | 0.5-0.5 | 1 | yes | 1418, 1418, 0, 276 | «\|Alpha first paragraph» | - | no |  |
+|  |  |  | bksp (1283) | **none** (silent >= 2009 ms) | none | none | no | 1418, 1418, 0, 276 | «\|Alpha first paragraph» | - | no | same; shape: as fixture |
+| red-end-del | 3/3 | «Bravo\| second paragraph» | ce (9221) | INVALIDATE_VISIBLE_CURSOR | 0.4-0.4 | 0 | yes | 3657, 1970, 0, 276 | «Charlie third paragraph\|» | - | no |  |
+|  |  |  | del (1286) | **none** (silent >= 2007 ms) | none | none | no | 3657, 1970, 0, 276 | «Charlie third paragraph\|» | - | no | same; shape: as fixture |
+| red-home-k1 | 3/3 | «Bravo\| second paragraph» | ch (9220) | INVALIDATE_VISIBLE_CURSOR | 0.5-0.6 | 1 | yes | 1418, 1418, 0, 276 | «\|Alpha first paragraph» | - | no |  |
+|  |  |  | k1 (5122) | **none** (silent >= 4261 ms) | none | none | no | 1418, 1418, 0, 276 | «\|Alpha first paragraph» | +250: ''; +2250: '' | no |  |
+| red-end-k1r | 3/3 | «Bravo\| second paragraph» | ce (9221) | INVALIDATE_VISIBLE_CURSOR | 0.4-0.7 | 1 | yes | 3657, 1970, 0, 276 | «Charlie third paragraph\|» | - | no |  |
+|  |  |  | k1r (5123) | **none** (silent >= 4259 ms) | none | none | no | 3657, 1970, 0, 276 | «Charlie third paragraph\|» | +250: ''; +2250: '' | no |  |
+| b2b-home-bksp | 3/3 | «Bravo\| second paragraph» | ch+bksp (9220+1283) | INVALIDATE_VISIBLE_CURSOR | 0.6-0.8 | 1 | yes | 1418, 1418, 0, 276 | «\|Alpha first paragraph» | - | no | same; shape: as fixture |
+| b2b-end-del | 3/3 | «Bravo\| second paragraph» | ce+del (9221+1286) | INVALIDATE_VISIBLE_CURSOR | 0.5-0.5 | 1 | yes | 3657, 1970, 0, 276 | «Charlie third paragraph\|» | - | no | same; shape: as fixture |
+| ctl-home | 3/3 | «Bravo\| second paragraph» | home (1028) | INVALIDATE_VISIBLE_CURSOR | 0.4-0.7 | 1 | yes | 1418, 1694, 0, 276 | «\|Bravo second paragraph» | - | no |  |
+| ctl-down | 3/3 | «Bravo\| second paragraph» | down (1024) | INVALIDATE_VISIBLE_CURSOR | 0.5-0.5 | 0 | yes | 2017, 1970, 0, 276 | «Charli\|e third paragraph» | - | no |  |
+| ctl-bksp | 3/3 | «Bravo\| second paragraph» | bksp (1283) | INVALIDATE_VISIBLE_CURSOR +S | 0.8-0.8 | 623 | yes | 1884, 1694, 0, 276 | «Brav\| second paragraph» | - | yes / Delete “o” | DIFFERS: 'Bravo second paragraph' -> 'Brav second paragraph'; shape: as fixture |
+| ctl-k1 | 3/3 | «Bravo\| second paragraph» | k1 (5122) | TEXT_SELECTION_START, TEXT_SELECTION_END, TEXT_SELECTION, INVALIDATE_VISIBLE_CURSOR +S | 0.5-0.7 | 322 | yes | 1884, 1694, 0, 276 | (range) | +250: 'o'; +2250: 'o' | no |  |
+| ctl-k1r | 3/3 | «Bravo\| second paragraph» | k1r (5123) | TEXT_SELECTION_START, TEXT_SELECTION_END, TEXT_SELECTION, INVALIDATE_VISIBLE_CURSOR +S | 0.5-0.8 | 322 | yes | 2064, 1694, 0, 276 | (range) | +250: ' '; +2250: ' ' | no |  |
+| x-bullet-home-bksp | 3/3 | «Be\|ta two» | ch (9220) | CONTEXT_CHANGED, INVALIDATE_VISIBLE_CURSOR, RULER_UPDATE +S | 0.6-0.6 | 765 | yes | 2138, 1418, 0, 276 | «\|Alpha one» | - | no |  |
+|  |  |  | bksp (1283) | (none) +S | 0.7-1.0 | 302 | no | 2138, 1418, 0, 276 | «\|Alpha one» | - | yes / Number On/Off | same; shape: P1 list-item, text-indent none -> list-header, text-indent none |
+| x-numbered-home-bksp | 3/3 | «Pla\|in second» | ch (9220) | CONTEXT_CHANGED, INVALIDATE_VISIBLE_CURSOR, RULER_UPDATE +S | 0.5-1.1 | 764 | yes | 2138, 1418, 0, 276 | «\|Numbered first» | - | no |  |
+|  |  |  | bksp (1283) | (none) +S | 0.6-0.6 | 322 | no | 2138, 1418, 0, 276 | «\|Numbered first» | - | yes / Number On/Off | same; shape: P1 list-item, text-indent none -> list-header, text-indent none |
+| x-indent-home-bksp | 3/3 | «Sec\|ond» | ch (9220) | INVALIDATE_VISIBLE_CURSOR +S | 0.5-0.8 | 322 | yes | 1985, 1418, 0, 276 | «\|Indented first» | - | no |  |
+|  |  |  | bksp (1283) | INVALIDATE_VISIBLE_CURSOR +S | 0.6-0.7 | 322 | yes | 1418, 1418, 0, 276 | «\|Indented first» | - | yes / Apply attributes | same; shape: P1 none, text-indent 1cm -> none, text-indent 0in |
+| x-indent-home | 3/3 | «Sec\|ond» | ch (9220) | INVALIDATE_VISIBLE_CURSOR +S | 0.5-0.8 | 322 | yes | 1985, 1418, 0, 276 | «\|Indented first» | - | no |  |
+| q-home-bksp | 3/3 | «Brav\| second paragraph» | ch+bksp (9220+1283) | INVALIDATE_VISIBLE_CURSOR | 0.3-0.4 | 0 | yes | 1418, 1418, 0, 276 | «\|Alpha first paragraph» | - | no | same; shape: as fixture |
+| q-end-del | 3/3 | «Brav\| second paragraph» | ce+del (9221+1286) | INVALIDATE_VISIBLE_CURSOR | 0.2-0.3 | 0 | yes | 3657, 1970, 0, 276 | «Charlie third paragraph\|» | - | no | same; shape: as fixture |
+| q-ctl-home-bksp | 3/3 | «Brav\| second paragraph» | home+bksp (1028+1283) | INVALIDATE_VISIBLE_CURSOR +S | 0.6-0.8 | 623 | yes | 3470, 1418, 0, 276 | «Alpha first paragraph\|Bravo second paragraph» | - | yes / Delete paragraph | DIFFERS: 'Alpha first paragraph' / 'Bravo second paragraph' -> 'Alpha first paragraphBravo second paragraph'; shape: 3 -> 2 paragraphs |
+| ctl-bksp-at-num | 3/3 | «\|Numbered second» | bksp (1283) | (none) +S | 0.6-0.7 | 322 | no | 2138, 1694, 0, 276 | «\|Numbered second» | - | yes / Number On/Off | same; shape: P2 list-item, text-indent none -> list-header, text-indent none |
+| b2b-home-bksp-at-num | 3/3 | «\|Numbered second» | ch+bksp (9220+1283) | CONTEXT_CHANGED, INVALIDATE_VISIBLE_CURSOR, RULER_UPDATE +S | 1.1-1.2 | 764 | yes | 1418, 1418, 0, 276 | «\|Plain first» | - | yes / Number On/Off | same; shape: P2 list-item, text-indent none -> list-header, text-indent none |
+| q-home-bksp-at-num | 3/3 | «\|Plain first» | ch+bksp (9220+1283) | CONTEXT_CHANGED, INVALIDATE_VISIBLE_CURSOR +S | 1.2-1.6 | 603 | no | 1418, 1418, 0, 276 | «\|Plain first» | - | yes / Number On/Off | same; shape: P2 list-item, text-indent none -> list-header, text-indent none |
+
+Placement checks (group P): caret after placement, and the locator there
+
+- `place-plain3-mid` (3/3): caret ['2004, 1694, 0, 276'], locator ['Bravo| second paragraph']
+- `place-plain3-start` (3/3): caret ['1418, 1418, 0, 276'], locator ['|Alpha first paragraph']
+- `place-plain3-end` (3/3): caret ['3657, 1970, 0, 276'], locator ['Charlie third paragraph|']
+- `place-table-A1` (3/3): caret ['1711, 1694, 0, 276'], locator ['A1| text']
+- `place-table-B2` (3/3): caret ['4910, 1970, 0, 276'], locator ['B2| text']
+- `place-tf-body` (3/3): caret ['1938, 1970, 0, 276'], locator ['Body| after table']
+- `place-tl-body` (3/3): caret ['1938, 1694, 0, 276'], locator ['Body| before table']
+- `place-hdr` (3/3): caret ['2110, 1418, 0, 276'], locator ['Header| line text']
+- `place-ftr` (3/3): caret ['2044, 15712, 0, 276'], locator ['Footer| line text']
+- `place-hdr-click` (3/3): caret ['2110, 1418, 0, 276'], locator ['Header| line text']
+- `place-sec-two` (3/3): caret ['2004, 1970, 0, 276'], locator ['Inside| section two']
+- `place-sec-one` (3/3): caret ['2004, 1694, 0, 276'], locator ['Inside| section one']
+- `place-bullet` (3/3): caret ['1684, 1694, 0, 276'], locator ['Be|ta two']
+- `place-numbered` (3/3): caret ['1724, 1694, 0, 276'], locator ['Pla|in second']
+- `place-indent` (3/3): caret ['1764, 1694, 0, 276'], locator ['Sec|ond']
+- `place-numsecond` (3/3): caret ['2138, 1694, 0, 276'], locator ['|Numbered second']
+
+Checks
+
+- positive control `ctl-home`: plain Home moved the caret with INVALIDATE_VISIBLE_CURSOR: OK
+- positive control `ctl-down`: plain Down moved the caret with INVALIDATE_VISIBLE_CURSOR: OK
+- positive control `ctl-bksp`: plain Backspace from mid-text changed the saved text (the comparison can go red): OK
+- positive control `ctl-k1`: K1 Shift+Left from mid-text selected something: OK
+- positive control `ctl-k1r`: K1 Shift+Right from mid-text selected something: OK
+- positive control `ctl-bksp-at-num`: Writer's own Backspace at the start of the numbered P2 changed P2 (the discriminator can tell): OK
+- result `red-home-bksp`: saved text vs fixture: ['same; shape: as fixture']
+- result `red-end-del`: saved text vs fixture: ['same; shape: as fixture']
+- result `b2b-home-bksp`: saved text vs fixture: ['same; shape: as fixture']
+- result `b2b-end-del`: saved text vs fixture: ['same; shape: as fixture']
+- result `b2b-home-bksp-at-num`: saved text vs fixture: ['same; shape: P2 list-item, text-indent none -> list-header, text-indent none']
+- result `q-home-bksp`: pair posted from inside the callback: [True]; saved text vs fixture: ['same; shape: as fixture']
+- result `q-end-del`: pair posted from inside the callback: [True]; saved text vs fixture: ['same; shape: as fixture']
+- result `q-ctl-home-bksp`: pair posted from inside the callback: [True]; saved text vs fixture: ["DIFFERS: 'Alpha first paragraph' / 'Bravo second paragraph' -> 'Alpha first paragraphBravo second paragraph'; shape: 3 -> 2 paragraphs"]
+- result `q-home-bksp-at-num`: pair posted from inside the callback: [True]; saved text vs fixture: ['same; shape: P2 list-item, text-indent none -> list-header, text-indent none']
+- result `red-home-k1`: K1 selection at +250 / +2250 ms: [('', '')]
+- result `red-end-k1r`: K1 selection at +250 / +2250 ms: [('', '')]
+
+GREEN: 81 arms x 3 runs complete, every arm 3/3, no window capped, every press preceded by >= 1500 ms of quiet, n-families consistent, positive controls met

@@ -1,0 +1,13 @@
+$ cp -r out <scratch>/broken-out
+$ python3 -I tool/break_one_for_red_demo.py <scratch>/broken-out   # a1-home-mid/r2.jsonl: the press lands at 1418,1694 instead of 1418,1418
+broke <scratch>/broken-out/a1-home-mid/r2.jsonl
+$ python3 -I tool/read_results.py <scratch>/broken-out fixtures
+exit status: 1
+| a1-home-mid | 2/3 | «Bravo\| second paragraph» | ch (9220) | INVALIDATE_VISIBLE_CURSOR | 0.5-0.9 | 1 | yes | 1418, 1418, 0, 276 | «\|Alpha first paragraph» | - | no |  |
+RED:
+- locator disagreement at ('plain3', '1418, 1694, 0, 276'): ['|Alpha first paragraph', '|Bravo second paragraph']
+- a1-home-mid: runs disagree (2/3)
+
+$ python3 -I tool/read_results.py out fixtures   # the unbroken files
+GREEN: 81 arms x 3 runs complete, every arm 3/3, no window capped, every press preceded by >= 1500 ms of quiet, n-families consistent, positive controls met
+exit status: 0
