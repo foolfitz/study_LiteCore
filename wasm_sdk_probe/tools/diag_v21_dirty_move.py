@@ -36,6 +36,8 @@ Follow-up variants (2026-10-17, the coordinator's list; "(added)" = mine):
   v11a-e (Chrome) after the Markdown dialog: (a) Input.insertText, (b) blur+focus then a key, (c) 取消 with no
        paste, (d) 插入 refused on a range then 取消, (e) Ctrl+V of plain text into the sink
   v11f the V5 step on the 0.2.24 page: recorded as not run (that page has no <dialog>)
+  V11g (--headed, Chrome): v5 (with --v5-delays) and v11c in a headed Chrome on the owner's display; the shared
+       launcher's flags minus `--headless=new` (HeadedChromeSession)
 
 Candidate fixes (`--fix`), applied to the SERVED files in the mirror only, never the tree (FixPages):
   fix1   editor-shell-v2/narrow-editor-v2-session.js action(): Ctrl+Home/End take no checkpoint
@@ -60,6 +62,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 import tempfile
 import time
@@ -68,6 +71,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import r7_support  # noqa: E402
+import run_browser_probe as rbp  # noqa: E402
 import run_e2_c_product_path as pp  # noqa: E402
 import judge_v21_shakedown_item1 as judge1  # noqa: E402
 import run_merge_wasm_shakedown as mws  # noqa: E402
@@ -168,6 +172,55 @@ def key_after_move_reply(ctx: item1.Ctx, last_seq: int, name: str, after_ms: flo
     """V2: press `name` `after_ms` after the move-document-end reply (page clock)."""
     return after_reply(ctx, last_seq, "editorActionV2", "move-document-end", after_ms,
                        lambda: inp.key(ctx.session, ctx.browser, name), limit)
+
+
+# ------------------------------------------------------------------ V11g: a headed Chrome
+
+class HeadedChromeSession(rbp.ChromeSession):
+    """V11g: the shared launcher's Chrome without `--headless=new`, on the display this process has
+    (DISPLAY / WAYLAND_DISPLAY).  run_browser_probe.ChromeSession hardcodes that flag and is a shared file, so
+    this drops that ONE argument while the shared __init__ runs; every other flag and step (profile dir,
+    warm-up, CDP enables) is the shared one.  Refuses if the flag was not there to drop (it would be headless)."""
+
+    def __init__(self, cache_mode: str):
+        real = rbp.subprocess.Popen
+        seen: dict = {}
+
+        def popen(args, *rest, **kwargs):
+            if isinstance(args, list) and "--headless=new" in args:
+                args = [a for a in args if a != "--headless=new"]
+                seen["argv"] = list(args)
+            return real(args, *rest, **kwargs)
+
+        rbp.subprocess.Popen = popen
+        try:
+            super().__init__(cache_mode)
+        finally:
+            rbp.subprocess.Popen = real
+        if "argv" not in seen:
+            self.close()
+            raise SystemExit("headed launch: the shared launcher had no --headless=new to drop; refusing")
+        self.argv = seen["argv"]
+        self.display = {k: os.environ.get(k) for k in ("DISPLAY", "WAYLAND_DISPLAY", "XDG_SESSION_TYPE")}
+
+
+def open_headed(window: tuple[int, int]):
+    """common.open_browser's Chrome branch, headed."""
+    session = HeadedChromeSession("cold")
+    session.call("Emulation.setDeviceMetricsOverride",
+                 {"width": window[0], "height": window[1], "deviceScaleFactor": 1, "mobile": False})
+    return session
+
+
+def v5_jobs(spec: str, rounds: int) -> list[tuple[int, int]]:
+    """`--v5-delays`: comma-separated delay[:rounds]; delay is ms, `late` or `no-dialog`."""
+    jobs = []
+    for token in [t for t in spec.split(",") if t]:
+        name, _, count = token.partition(":")
+        delay = {"late": LATE, "no-dialog": NO_DIALOG}.get(name)
+        delay = int(name) if delay is None else delay
+        jobs += [(delay, n) for n in range(1, int(count or rounds) + 1)]
+    return jobs
 
 
 # ------------------------------------------------------------------ candidate fixes (mirror only)
@@ -1014,7 +1067,13 @@ def main() -> int:
     ap.add_argument("--fix", choices=tuple(FIXES), default="none",
                     help="candidate fix applied to the v21 mirror only (never the tree)")
     ap.add_argument("--tag", default="", help="a word in the report's file name (default: the fix, or none)")
+    ap.add_argument("--headed", action="store_true",
+                    help="V11g: Chrome without --headless=new, on this process's DISPLAY / WAYLAND_DISPLAY")
+    ap.add_argument("--v5-delays", default="0,300,late,no-dialog",
+                    help="v5's sub-rounds: comma-separated delay[:rounds]; delay is ms, late or no-dialog")
     args = ap.parse_args()
+    if args.headed and args.browser != "chrome":
+        raise SystemExit("--headed is Chrome-only")
     if args.table:
         print(tables(args.table, args.table_glob))
         return 0
@@ -1071,8 +1130,12 @@ def main() -> int:
                 raise SystemExit(f"the v21 page (before any fix) is {served[:16]}, not {V21_PAGE_PREFIX}, or the patch is not alone")
             if ("v6" in variants or "v6e" in variants) and "dist0224" in v6_pages:
                 pages.base("dist0224")
-            session = common.open_browser(args.browser, window,
-                                          firefox_prefs=clip.FIREFOX_PREFS if "v5" in variants else None)
+            if args.headed:
+                session = open_headed(window)
+                report["headed"] = {"argv": session.argv, "display": session.display}
+            else:
+                session = common.open_browser(args.browser, window,
+                                              firefox_prefs=clip.FIREFOX_PREFS if "v5" in variants else None)
             report["browserVersion"] = getattr(session, "version", None)
             ctx = item1.Ctx(session, args.browser, pages, report, docs)
             for variant in variants:
@@ -1118,8 +1181,7 @@ def main() -> int:
                         block["rounds"].append({"round": n, **rec})
                         flush()
                 elif variant == "v5":
-                    jobs = [(delay, n) for delay in (0, 300, LATE, NO_DIALOG) for n in range(1, args.rounds + 1)]
-                    for delay, n in jobs:
+                    for delay, n in v5_jobs(args.v5_delays, args.rounds):
                         rec = guarded(round_v5, ctx, delay, f"v5-{DELAY_LABEL.get(delay, delay)}-r{n}")
                         block["rounds"].append({"round": n, "delayMs": delay, **rec})
                         flush()
