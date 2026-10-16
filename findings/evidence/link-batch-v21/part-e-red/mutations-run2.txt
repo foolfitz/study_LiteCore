@@ -1,0 +1,40 @@
+control: exit 0, ok 478 checks
+rule-1-case-sensitive: exit 1, FAILED 1 of 478 checks; fixture items flipped: 1
+    round-2/S15-uppercase-DATA.md: PASS -> REMOTE
+rule-2-removed: exit 1, FAILED 8 of 478 checks; fixture items flipped: 8
+    m0/X08-angle-generic.md: HTML -> PASS
+    round-2/H1-comment-only.md: HTML -> PASS
+    round-2/H2-html-block-img.md: HTML -> PASS
+    round-2/H3-inline-html-img.md: HTML -> PASS
+    round-2/H4-inline-img-then-block.md: HTML -> PASS
+    round-2/H5-html-block-img-sized.md: HTML -> PASS
+    round-2/H6-html-link-stylesheet.md: HTML -> PASS
+    round-2/H7-text-then-html-block-img.md: HTML -> PASS
+rule-3-replaced-by-old-no-text: exit 1, FAILED 8 of 478 checks; fixture items flipped: 8
+    round-2/H1-comment-only.md: HTML -> NO_BLOCK
+    round-2/H2-html-block-img.md: HTML -> NO_BLOCK
+    round-2/H5-html-block-img-sized.md: HTML -> NO_BLOCK
+    round-2/H6-html-link-stylesheet.md: HTML -> NO_BLOCK
+    round-2/N1-rule-only.md: PASS -> NO_BLOCK
+    round-2/S12-image-in-link.md: REMOTE -> NO_BLOCK
+    round-2/S14-empty-alt-data.md: PASS -> NO_BLOCK
+    round-2/S15-uppercase-DATA.md: PASS -> NO_BLOCK
+utf8-rule-removed: exit 1, FAILED 7 of 478 checks; fixture items flipped: 6
+    m0/X05-invalid-utf8-latin1-byte.md: INVALID_UTF8 -> PASS
+    m0/X06-invalid-utf8-truncated.md: INVALID_UTF8 -> PASS
+    m0/X07-invalid-utf8-label-mismatch.md: INVALID_UTF8 -> PASS
+    m0/X15-invalid-utf8-overlong.md: INVALID_UTF8 -> PASS
+    m0/X16-invalid-utf8-surrogate.md: INVALID_UTF8 -> PASS
+    m0/X17-invalid-utf8-above-10ffff.md: INVALID_UTF8 -> PASS
+nul-rule-removed: exit 1, FAILED 7 of 478 checks; fixture items flipped: 5
+    m0/X01-nul-middle.md: NUL -> PASS
+    m0/X02-nul-trailing.md: NUL -> PASS
+    m0/X03-nul-suffixed-reference.md: NUL -> PASS
+    m0/X04-nul-only.md: NUL -> PASS
+    round-1/M8-utf16le.bin: NUL -> INVALID_UTF8
+order-caret-before-encoding: exit 1, FAILED 4 of 478 checks; fixture items flipped: 0
+    preDispatchRefusal: encoding before the caret, and the caret not read (got MARKDOWN_NEEDS_CARET, reads 0/1)
+    preDispatchRefusal: encoding before REMOTE (got MARKDOWN_ENCODING_UNSUPPORTED, reads 1/1)
+    preDispatchRefusal: the caret before REMOTE (got MARKDOWN_NEEDS_CARET, reads 0/1)
+    preDispatchRefusal: the caret before HTML (got MARKDOWN_NEEDS_CARET, reads 0/1)
+ok

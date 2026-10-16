@@ -17,7 +17,18 @@
 // first when the header moved, before anything was built.  Ids 1-15 below are
 // untouched, which is the whole claim v4 makes -- a successor identity that
 // inherits verbatim rather than an edit to what v3 callers were told.
+//
+// 5 since 2026-10-16, in the v21 link batch only (SPEC-M3-link-batch-v21
+// 4.1): the header gives 5 under OXSDK_E2_V21_LINK_BATCH and 4 without it.
+// This file is checked both ways -- `-fsyntax-only` as test-e1-b-static runs
+// it (4), and again with -DOXSDK_E2_V21_LINK_BATCH (5) -- and the 4 branch
+// below is the ORIGINAL assertion, untouched.  First red: with the define and
+// this file unedited, `(5 == 4)` failed at this line before anything else.
+#ifdef OXSDK_E2_V21_LINK_BATCH
+static_assert(OXSDK_EDITOR_ABI_VERSION == 5u);
+#else
 static_assert(OXSDK_EDITOR_ABI_VERSION == 4u);
+#endif
 static_assert(OXSDK_EDITOR_V1_MOVE_CHARACTER_LEFT == 1);
 static_assert(OXSDK_EDITOR_V1_MOVE_CHARACTER_RIGHT == 2);
 static_assert(OXSDK_EDITOR_V1_DELETE_BACKWARD == 3);
@@ -65,6 +76,18 @@ static_assert(OXSDK_EDITOR_V3_DELETE_SELECTION == 20);
  * arrives.  An unpinned dark id is one that can be quietly reused.
  */
 static_assert(OXSDK_EDITOR_V3_SELECT_ALL == 21);
+#ifdef OXSDK_E2_V21_LINK_BATCH
+/* v4 (ABI 5) appends two, pinned the same way (finding 142). */
+static_assert(OXSDK_EDITOR_V4_MOVE_DOCUMENT_START == 22);
+static_assert(OXSDK_EDITOR_V4_MOVE_DOCUMENT_END == 23);
+/* The new document export (SPEC-M3-link-batch-v21 4.2): insert_text's shape. */
+using DocumentPasteMarkdown = std::int32_t (*)(
+    oxsdk_request_id, oxsdk_document_handle, const char *, std::uint32_t);
+static_assert(std::is_same_v<decltype(&oxsdk_document_paste_markdown),
+                             DocumentPasteMarkdown>);
+static_assert(std::is_same_v<decltype(&oxsdk_document_paste_markdown),
+                             decltype(&oxsdk_document_insert_text)>);
+#endif
 /* The gesture mask bits are ABI too -- the worker writes them from the manifest. */
 static_assert(OXSDK_EDITOR_GESTURE_COLLAPSED == 1u);
 static_assert(OXSDK_EDITOR_GESTURE_RANGE_SINGLE == 2u);

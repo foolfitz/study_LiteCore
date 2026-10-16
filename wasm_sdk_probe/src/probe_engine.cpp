@@ -21,6 +21,25 @@
 #include "merge_key_undo.hpp"
 #endif
 #endif
+#ifdef OXSDK_E2_V21_LINK_BATCH
+// SPEC-M3-link-batch-v21: everything this batch adds -- move-document-start/
+// -end (finding 142) and the Markdown paste -- sits on v20's machinery (the
+// key path, the merge's `.uno:Undo` reader, the barriers' busy gates), so the
+// define is meaningless without v20's.  Fail here rather than link a v21 that
+// silently lacks a piece.
+#if !defined(OXSDK_E2_V20_LINK_BATCH) || !defined(OXSDK_MERGE_KEY_UNDO) ||     \
+    !defined(OXSDK_E2_FORMAT_BARRIER) || !defined(OXSDK_EDITOR_DISCOVERY)
+#error "OXSDK_E2_V21_LINK_BATCH requires v20's defines (OXSDK_E2_V20_LINK_BATCH, OXSDK_MERGE_KEY_UNDO, OXSDK_E2_FORMAT_BARRIER, OXSDK_EDITOR_DISCOVERY)"
+#endif
+// The pure half of the paste: md4c's scan, the byte rules, the collapsed rule
+// and the post-dispatch judge (tests/markdown_paste_model_test.cpp).  It
+// includes <md4c.h> from the core's unpacked tarball (-I on the v21 rule
+// only); md_parse itself is the core's, from libmd4c.a in the link.
+#include "markdown_paste.hpp"
+// osl_getThreadTextEncoding(): the pasted bytes are decoded with the thread's
+// encoding (vcl transfer.cxx:1517), so a non-UTF-8 one is refused (10.4).
+#include <osl/thread.h>
+#endif
 #include "sdk_api.h"
 #ifdef OXSDK_EDITOR_DISCOVERY
 #include "editor_discovery_api.h"
@@ -188,6 +207,11 @@ enum class CommandType {
   // GetSelection, never an editor action -- no wire id, no gesture, so
   // kMaxExternalAction and kMaxInternalEditorAction do not move.
   PageRectangles,
+#endif
+#ifdef OXSDK_E2_V21_LINK_BATCH
+  // SPEC-M3-link-batch-v21 4.2: paste as Markdown, a document-level export
+  // like PageRectangles and insert-text -- no wire id, no gesture.
+  PasteMarkdown,
 #endif
 #ifdef OXSDK_EDITOR_DISCOVERY
   EditorAction,
@@ -4461,12 +4485,26 @@ const char *editorActionName(std::uint32_t action) {
     return "set-list-unordered";
   case OXSDK_EDITOR_SET_LIST_ORDERED:
     return "set-list-ordered";
+#ifdef OXSDK_E2_V21_LINK_BATCH
+  case OXSDK_EDITOR_MOVE_DOCUMENT_START:
+    return "move-document-start";
+  case OXSDK_EDITOR_MOVE_DOCUMENT_END:
+    return "move-document-end";
+#endif
   default:
     return "unsupported";
   }
 }
 
 bool editorActionMutates(std::uint32_t action) {
+#ifdef OXSDK_E2_V21_LINK_BATCH
+  // SPEC-M3-link-batch-v21 4.1: `action >= 7` would class the two document
+  // moves (24, 25) as mutations that demand a revision.  They change nothing,
+  // like 1-6.  Select-all (23) keeps its class.
+  if (action == OXSDK_EDITOR_MOVE_DOCUMENT_START ||
+      action == OXSDK_EDITOR_MOVE_DOCUMENT_END)
+    return false;
+#endif
   return action >= OXSDK_EDITOR_DELETE_BACKWARD;
 }
 
@@ -5690,6 +5728,24 @@ void handleEditorAction(const Command &command) {
     // characterised -- that measurement is the precondition for granting it.
     keyCode = com::sun::star::awt::Key::A | EditorMod1Modifier;
     break;
+#ifdef OXSDK_E2_V21_LINK_BATCH
+  // SPEC-M3-link-batch-v21 4.1 (finding 142): Ctrl+Home / Ctrl+End, posted
+  // the way select-all posts its key -- and on this path for select-all's
+  // reason: it changes the caret, not the document, so `mutation = false`,
+  // completion on EditorCaretOrSelectionCallback, the 250 ms readback always
+  // armed (a press at the boundary is silent natively, finding 096's shape),
+  // and the completion strings of the six moves.  NOT .uno:GoToStartOfDoc
+  // through startEditorUnoAction: that is the mutation route and would
+  // advance the revision for an edit that never happened (finding 067).
+  // Writer runs the same command either way (Accelerators.xcu HOME_MOD1).
+  // Inside a table or a header one press goes up one level (L-142-steps).
+  case OXSDK_EDITOR_MOVE_DOCUMENT_START:
+    keyCode = com::sun::star::awt::Key::HOME | EditorMod1Modifier;
+    break;
+  case OXSDK_EDITOR_MOVE_DOCUMENT_END:
+    keyCode = com::sun::star::awt::Key::END | EditorMod1Modifier;
+    break;
+#endif
   default:
     emitCommandError(command, "editor-action", "EDITOR_ACTION_UNSUPPORTED",
                      "closed editor action has no diagnostic mapping");
@@ -5742,6 +5798,133 @@ void handleEditorAction(const Command &command) {
   gState.document->pClass->postKeyEvent(gState.document, LOK_KEYEVENT_KEYUP, 0,
                                         keyCode);
 }
+
+#ifdef OXSDK_E2_V21_LINK_BATCH
+// SPEC-M3-link-batch-v21 4.2 / 9.3 / 9.4 / 9.14 / 10.2 / 10.4 / 12.1: paste as
+// Markdown.
+//
+// emitSdkError's shape plus `dispatched`.  false on every refusal before
+// paste() is called -- the document is provably untouched, so the session
+// gives it `recovery: "none"` whatever the code (10.4) -- and true on the one
+// error after it, MUTATION_OUTCOME_UNKNOWN, where nothing may be claimed.
+void emitPasteMarkdownError(const Command &command, const char *code,
+                            const std::string &message, bool dispatched) {
+  std::ostringstream json;
+  json << "{\"schemaVersion\":" << ProtocolSchemaVersion
+       << ",\"type\":\"error\",\"requestId\":" << command.requestId
+       << ",\"documentHandle\":" << command.documentHandle
+       << ",\"revision\":" << gCallbackRevision.load(std::memory_order_acquire)
+       << ",\"operation\":\"paste-markdown\",\"code\":\"" << jsonEscape(code)
+       << "\",\"message\":\"" << jsonEscape(message.c_str())
+       << "\",\"where\":\"paste-markdown\",\"msg\":\""
+       << jsonEscape(message.c_str())
+       << "\",\"dispatched\":" << (dispatched ? "true" : "false") << "}";
+  emitJson(json.str());
+}
+
+// Synchronous on the engine thread, like insert-text: paste() returns after
+// `.uno:Paste` has run (doc_paste dispatches under the SolarMutex), so the
+// after-read below sees its undo action.  Every check before paste() is in
+// the interface's order (task brief, "Engine reply"); the byte rules and the
+// scan are markdown_paste.hpp's, the reads are the engine's.
+void handlePasteMarkdown(const Command &command) {
+  namespace md = probe::markdown;
+  if (!gState.document) {
+    emitPasteMarkdownError(command, "NO_DOCUMENT", "no document is open",
+                           false);
+    return;
+  }
+  if (command.documentHandle != gState.documentHandle) {
+    emitPasteMarkdownError(
+        command, "INVALID_HANDLE",
+        "document handle is closed or does not belong to this engine", false);
+    return;
+  }
+  // The same gates insert-text's neighbours keep: a barrier, a pending key
+  // or a UNO mutation in flight owns the caret and the undo stack, and the
+  // payload comparison below would attribute its action to this paste.
+  if (selectionBarrierActive() || formatBarrierActive() ||
+      gEditorPending.requestId != 0 ||
+      gUnoRequestId.load(std::memory_order_acquire) != 0 ||
+      gSearchRequestId.load(std::memory_order_acquire) != 0) {
+    emitPasteMarkdownError(command, "BUSY",
+                           "another editor operation is still in flight",
+                           false);
+    return;
+  }
+
+  const char *data = command.text.data();
+  const std::size_t size = command.text.size();
+  // Codes 1-5, in the interface's order (markdown_paste.hpp, model-tested):
+  //   1. NUL, invalid UTF-8 (12.1), the hard size limit, md_parse failing, no
+  //      block other than MD_BLOCK_DOC -- INVALID_ARGUMENT;
+  //   2. the thread encoding (10.4);
+  //   3. 10.2's collapsed rule, read here at the dispatch from both sources.
+  //      A paste over two table cells fills each cell, the second with source
+  //      text or mojibake (finding 148), and the engine cannot tell that range
+  //      from any other, so only a caret is accepted (L-md-collapsed-only);
+  //   4, 5. 9.14 rules 1 and 2: Writer fetches a non-data: image while
+  //      pasting, and hands raw HTML to its HTML import, which fetches too.
+  // The two reads run only when the earlier codes have not refused.
+  const md::Verdict verdict = md::judgeBytes(data, size);
+  const md::Refusal refusal = md::preDispatchRefusal(
+      verdict,
+      [] { return osl_getThreadTextEncoding() == RTL_TEXTENCODING_UTF8; },
+      [] {
+        const SelectionReadback selection = readSelection();
+        return md::collapsedForPaste(selection.type == LOK_SELTYPE_NONE,
+                                     selection.textMissing,
+                                     gEditorState.selectionObserved,
+                                     gEditorState.selectionRectangles.size());
+      });
+  if (refusal.code) {
+    emitPasteMarkdownError(command, refusal.code, refusal.message, false);
+    return;
+  }
+  // 6. The payload the after-read is compared with.
+  std::string before;
+  if (!readMergeUndoPayload(before)) {
+    emitPasteMarkdownError(command, md::kCodeUndoUnreadable,
+                           "the undo stack could not be read before the "
+                           "paste, so its outcome could not be verified; "
+                           "nothing was pasted",
+                           false);
+    return;
+  }
+
+  const std::uint32_t beforeRevision = gState.revision;
+  // The MIME type is the engine's (4.2).  The return value is recorded and
+  // not trusted: natively it is true whatever happened (9.4).
+  const bool pasteReturned = gState.document->pClass->paste(
+      gState.document, md::kMimeType, data, size);
+  std::string after;
+  const bool afterRead = readMergeUndoPayload(after);
+  const md::PasteJudgement judgement =
+      md::judgeAfterPaste(before, afterRead, after);
+  if (!judgement.completed) {
+    emitPasteMarkdownError(
+        command, md::kCodeOutcomeUnknown,
+        std::string("the paste was dispatched and its outcome could not be "
+                    "verified (") +
+            judgement.reason + (pasteReturned ? "" : "; paste() returned false") +
+            ")",
+        true);
+    return;
+  }
+  advanceRevision();
+  std::ostringstream json;
+  json << "{\"schemaVersion\":" << ProtocolSchemaVersion
+       << ",\"type\":\"markdown-pasted\",\"requestId\":" << command.requestId
+       << ",\"documentHandle\":" << gState.documentHandle
+       << ",\"beforeRevision\":" << beforeRevision
+       << ",\"revision\":" << gState.revision
+       << ",\"undoActionsBefore\":" << judgement.before.actions
+       << ",\"undoActionsAfter\":" << judgement.after.actions
+       << ",\"undoTopComment\":\""
+       << jsonEscape(judgement.after.topComment.c_str()) << "\"}";
+  emitJson(json.str());
+}
+#endif
 
 void handleEditorSelect(const Command &command) {
   if (!requireDocument(command, "editor-select"))
@@ -6103,6 +6286,15 @@ void dispatch(const Command &command) {
 #ifdef OXSDK_FINDING_016_SELECTION_BARRIER
   if (selectionBarrierActive() &&
       command.type != CommandType::EditorSelectionBarrierStep) {
+#ifdef OXSDK_E2_V21_LINK_BATCH
+    // 10.4: every refusal of the paste before paste() says so itself.
+    if (command.type == CommandType::PasteMarkdown) {
+      emitPasteMarkdownError(command, "BUSY",
+                             "a verified selection delete is still in flight",
+                             false);
+      return;
+    }
+#endif
     emitCommandError(command, "selection-barrier", "BUSY",
                      "a verified selection delete is still in flight");
     return;
@@ -6155,6 +6347,11 @@ void dispatch(const Command &command) {
 #ifdef OXSDK_E2_V20_LINK_BATCH
   case CommandType::PageRectangles:
     handlePageRectangles(command);
+    break;
+#endif
+#ifdef OXSDK_E2_V21_LINK_BATCH
+  case CommandType::PasteMarkdown:
+    handlePasteMarkdown(command);
     break;
 #endif
 #ifdef OXSDK_EDITOR_DISCOVERY
@@ -6931,6 +7128,18 @@ SubmitStatus pageRectangles(std::uint32_t requestId,
 }
 #endif
 
+#ifdef OXSDK_E2_V21_LINK_BATCH
+SubmitStatus pasteMarkdown(std::uint32_t requestId,
+                           std::uint32_t documentHandle, std::string utf8) {
+  Command command{CommandType::PasteMarkdown};
+  command.sdk = true;
+  command.requestId = requestId;
+  command.documentHandle = documentHandle;
+  command.text = std::move(utf8);
+  return submit(std::move(command));
+}
+#endif
+
 SubmitStatus replaceSelection(std::uint32_t requestId,
                               std::uint32_t documentHandle,
                               std::uint32_t expectedRevision,
@@ -7066,7 +7275,15 @@ constexpr std::uint32_t kAllEditorGestures =
 // refused unconditionally while the manifest says it is granted.  Caught here
 // on 2026-08-22 by reading the bound before building, one commit after adding
 // internal action 22.
+#ifdef OXSDK_E2_V21_LINK_BATCH
+// 25 as of ABI 5 (SPEC-M3-link-batch-v21 4.1): the two document moves are
+// internal 24 and 25, and this bound moved with them for the reason above.
+constexpr std::uint32_t kMaxInternalEditorAction = 25;
+static_assert(kMaxInternalEditorAction == OXSDK_EDITOR_MOVE_DOCUMENT_END,
+              "the gesture table's bound must follow the action list");
+#else
 constexpr std::uint32_t kMaxInternalEditorAction = 23;
+#endif
 std::uint32_t gEditorActionGestures[kMaxInternalEditorAction + 1] = {};
 bool gEditorActionGesturesInitialised = false;
 

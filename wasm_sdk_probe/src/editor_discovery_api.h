@@ -48,6 +48,16 @@ typedef enum oxsdk_editor_action {
   OXSDK_EDITOR_DELETE_SELECTION = 22,
   /* Ships in the v4 binary and is withheld by the manifest; see the dispatch. */
   OXSDK_EDITOR_SELECT_ALL = 23
+#ifdef OXSDK_E2_V21_LINK_BATCH
+  /*
+   * Added with the product ABI's version 5 (SPEC-M3-link-batch-v21 4.1), the
+   * engine's internal numbers for the product's 22 and 23.  The leading comma
+   * keeps the token stream of every other build exactly what it was.
+   */
+  ,
+  OXSDK_EDITOR_MOVE_DOCUMENT_START = 24,
+  OXSDK_EDITOR_MOVE_DOCUMENT_END = 25
+#endif
 } oxsdk_editor_action;
 
 typedef enum oxsdk_editor_selection_method {

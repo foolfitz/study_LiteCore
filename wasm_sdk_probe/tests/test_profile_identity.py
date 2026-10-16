@@ -296,5 +296,137 @@ class DeclaredDeltas(unittest.TestCase):
         self.assertEqual(none.returncode, 1)
 
 
+V20 = HERE / "dist/profiles/e2-editor-v20"
+V20_EXPORTS = HERE / "build/archive/e2-editor-v20-313b08d5-worker-478d0da1/exports.txt"
+ABI = ".editorContract.abiVersion"
+PASTE_LEAF = ".editorContract.pasteMarkdown"
+PASTE_VALUE = "document-sdk-paste-markdown"
+PASTE_EXPORT = "_oxsdk_document_paste_markdown"
+NEW_ACTIONS = {"move-document-start": 22, "move-document-end": 23}
+
+
+@unittest.skipUnless(V20.is_dir() and V20_EXPORTS.is_file(), "v20 profile or v20 archive absent")
+class DeclaredChangedLeaf(unittest.TestCase):
+    """SPEC-M3-link-batch-v21 11.3 X1-cl: `--declared-changed-leaf PATH OLD NEW`, and the I1 shape it exists for.
+
+    A SYNTHETIC e2-editor-v21 from the real v20 profile: a stand-in wasm, loader and worker, `abiVersion` 4 -> 5,
+    the two new actions (six new leaves), `pasteMarkdown`, and the v20 export list plus the paste export.  Green
+    with every delta declared; the six red cases of X1-cl each change one thing."""
+
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp(prefix="x1-v21-"))
+        self.v21 = self.tmp / "e2-editor-v21"
+        self.v21.mkdir()
+        (self.v21 / "sdk-worker.js").write_bytes((V20 / "sdk-worker.js").read_bytes() + b"\n// v21 stand-in\n")
+        (self.v21 / "probe.wasm").write_bytes(b"\0asm stand-in for the v21 link")
+        (self.v21 / "probe.js").write_bytes(b"// stand-in loader")
+        manifest = json.loads((V20 / "sdk-manifest.json").read_text())
+        manifest["profile"] = "e2-editor-v21"
+        manifest["sdkVersion"] = manifest["sdkVersion"].replace("e2-editor-v20", "e2-editor-v21")
+        contract = manifest["editorContract"]
+        contract["wasmSha256"] = self.sha("probe.wasm")
+        contract["loaderSha256"] = self.sha("probe.js")
+        contract["workerSha256"] = self.sha("sdk-worker.js")
+        contract["abiVersion"] = 5
+        for name, wire in NEW_ACTIONS.items():
+            contract["actions"][name] = {"id": wire, "gestures": ["collapsed"], "limits": ["no-extend-selection"]}
+        contract["pasteMarkdown"] = PASTE_VALUE
+        self.write(manifest)
+        self.exports = self.tmp / "exports.txt"
+        self.exports.write_bytes(V20_EXPORTS.read_bytes() + f"{PASTE_EXPORT}\n".encode())
+        self.worker = self.sha("sdk-worker.js")
+        self.new_leaves = [(PASTE_LEAF, PASTE_VALUE)]
+        for name, wire in NEW_ACTIONS.items():
+            self.new_leaves += [(f".editorContract.actions.{name}.id", wire),
+                                (f".editorContract.actions.{name}.gestures[0]", "collapsed"),
+                                (f".editorContract.actions.{name}.limits[0]", "no-extend-selection")]
+
+    def tearDown(self):
+        shutil.rmtree(self.tmp)
+
+    def sha(self, name):
+        return hashlib.sha256((self.v21 / name).read_bytes()).hexdigest()
+
+    def write(self, manifest):
+        (self.v21 / "sdk-manifest.json").write_text(json.dumps(manifest, indent=1))
+
+    def manifest(self):
+        return json.loads((self.v21 / "sdk-manifest.json").read_text())
+
+    def run_check(self, changes=((ABI, 4, 5),)):
+        return x.check(self.v21, V20, self.exports, V20_EXPORTS, (self.worker,), tuple(self.new_leaves),
+                       (PASTE_EXPORT,), tuple(changes))
+
+    def verdict(self, **kwargs):
+        return self.run_check(**kwargs)[1][-1]
+
+    def test_green_every_delta_declared(self):
+        code, lines = self.run_check()
+        self.assertEqual((code, lines[-1]), (0, "VERDICT PASS"), "\n".join(lines))
+        self.assertIn("declared changed leaf .editorContract.abiVersion: 4 -> 5: reference has 4, candidate 5",
+                      "\n".join(lines))
+        self.assertIn("declared-changed-leaf: ok", lines)
+
+    # X1-cl, the six red cases
+    def test_red_1_an_undeclared_change(self):
+        self.assertEqual(self.verdict(changes=()), "VERDICT FAIL: ['manifest']")
+
+    def test_red_2_declared_but_not_changed(self):
+        manifest = self.manifest()
+        manifest["editorContract"]["abiVersion"] = 4
+        self.write(manifest)
+        self.assertEqual(self.verdict(), "VERDICT FAIL: ['declared-changed-leaf']")
+        # Declaring OLD == NEW is the same claim and is refused the same way.
+        self.assertEqual(self.verdict(changes=((ABI, 4, 4),)), "VERDICT FAIL: ['declared-changed-leaf']")
+
+    def test_red_3_old_wrong(self):
+        self.assertEqual(self.verdict(changes=((ABI, 3, 5),)), "VERDICT FAIL: ['declared-changed-leaf']")
+
+    def test_red_4_new_wrong(self):
+        self.assertEqual(self.verdict(changes=((ABI, 4, 6),)), "VERDICT FAIL: ['declared-changed-leaf']")
+
+    def test_red_5_a_leaf_that_does_not_exist(self):
+        code, lines = self.run_check(changes=((ABI, 4, 5), (".editorContract.noSuchLeaf", 4, 5)))
+        self.assertEqual(lines[-1], "VERDICT FAIL: ['declared-changed-leaf']")
+        # Present only in the candidate is a NEW leaf, not a changed one.
+        self.assertEqual(self.verdict(changes=((ABI, 4, 5), (PASTE_LEAF, "x", PASTE_VALUE))),
+                         "VERDICT FAIL: ['declared-changed-leaf']")
+
+    def test_red_6_a_value_of_another_json_type(self):
+        self.assertEqual(self.verdict(changes=((ABI, "4", 5),)), "VERDICT FAIL: ['declared-changed-leaf']")
+        self.assertEqual(self.verdict(changes=((ABI, 4, "5"),)), "VERDICT FAIL: ['declared-changed-leaf']")
+        self.assertEqual(self.verdict(changes=((ABI, 4, 5.0),)), "VERDICT FAIL: ['declared-changed-leaf']")
+
+    # what else the I1 shape must still catch
+    def test_red_one_new_action_leaf_undeclared(self):
+        self.new_leaves = [leaf for leaf in self.new_leaves if not leaf[0].endswith("move-document-end.limits[0]")]
+        self.assertEqual(self.verdict(), "VERDICT FAIL: ['manifest']")
+
+    def test_red_an_inherited_action_changed_beside_the_declared_ones(self):
+        manifest = self.manifest()
+        manifest["editorContract"]["actions"]["select-all"]["gestures"] = ["collapsed"]
+        self.write(manifest)
+        self.assertEqual(self.verdict(), "VERDICT FAIL: ['manifest']")
+
+    def test_flag_parsing(self):
+        self.assertEqual(x.parse_change([ABI, "4", "5"]), (ABI, 4, 5))
+        self.assertEqual(x.parse_change([".a", '"4"', "x->y"]), (".a", "4", "x->y"))
+        for bad in (["a", "4", "5"], [".a", "", "5"], [".a", "4", ""]):
+            with self.assertRaises(SystemExit):
+                x.parse_change(bad)
+
+    def test_the_command_line(self):
+        base = [sys.executable, str(HERE / "tools/check_profile_identity.py"), "--candidate", str(self.v21),
+                "--reference", str(V20), "--candidate-exports", str(self.exports),
+                "--reference-exports", str(V20_EXPORTS), "--declared-worker", self.worker,
+                "--declared-export", PASTE_EXPORT]
+        for path, value in self.new_leaves:
+            base += ["--declared-new-leaf", f"{path}={value}"]
+        green = subprocess.run(base + ["--declared-changed-leaf", ABI, "4", "5"], capture_output=True, text=True)
+        self.assertEqual((green.returncode, green.stdout.splitlines()[-1]), (0, "VERDICT PASS"), green.stdout)
+        red = subprocess.run(base, capture_output=True, text=True)
+        self.assertEqual((red.returncode, red.stdout.splitlines()[-1]), (1, "VERDICT FAIL: ['manifest']"))
+
+
 if __name__ == "__main__":
     unittest.main()

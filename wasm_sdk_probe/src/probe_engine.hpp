@@ -50,6 +50,13 @@ SubmitStatus getSelection(std::uint32_t requestId,
 SubmitStatus pageRectangles(std::uint32_t requestId,
                             std::uint32_t documentHandle);
 #endif
+#ifdef OXSDK_E2_V21_LINK_BATCH
+// SPEC-M3-link-batch-v21 4.2: paste the UTF-8 bytes as Markdown at the caret
+// (`text/markdown;charset=utf-8`, fixed in the engine).  A document-level
+// export like insertText, never an editor action.
+SubmitStatus pasteMarkdown(std::uint32_t requestId,
+                           std::uint32_t documentHandle, std::string utf8);
+#endif
 SubmitStatus replaceSelection(std::uint32_t requestId,
                               std::uint32_t documentHandle,
                               std::uint32_t expectedRevision,

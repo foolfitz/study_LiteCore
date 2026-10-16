@@ -1605,6 +1605,113 @@ $(E2_V20_DIST)/sdk-manifest.json: $(E2_V20_BUILD)/probe.js $(E2_V20_BUILD)/probe
 $(E2_V20_BUILD) $(E2_V20_DIST):
 	mkdir -p $@
 
+# --------- v21, link batch v21: Ctrl+Home/End (finding 142), paste as Markdown (NEW LINK)
+#
+# SPEC-M3-link-batch-v21 (criteria pinned 523871fa; 12.1 appended 3d9ca3a4):
+# move-document-start/-end (wire 22/23, internal 24/25, editor ABI 5) and the
+# document export oxsdk_document_paste_markdown, both behind
+# OXSDK_E2_V21_LINK_BATCH, which only this rule defines.  Otherwise v20's
+# compile rule: v20's defines are all still here, the define rides on top.
+#
+# md4c (spec 9.3, 10.4): the engine scans the pasted bytes with the core's own
+# md_parse, the one libmd4c.a already brings into $(LINKDEPS) (swmd.cxx:960
+# calls it).  So this rule adds the core's md4c HEADER to the include path --
+# here only, no other rule sees it -- and src/markdown_paste.hpp is a
+# prerequisite of v21 objects only.  md4c.c is never compiled for the engine:
+# two parsers would no longer be one closed rule.  The native model test
+# (tests/markdown_paste_model_test.cpp) is the only thing that compiles it.
+#
+# tools/check_merge_key_undo_scope.py: with --base 523871fa (the tree before
+# v21's code) only this rule's probe_engine.o, sdk_api.o and editor_api.o may
+# differ; with --base 5d77dc84 the carriers are E2_V15 E2_V19
+# E2_V20=probe_engine,sdk_api,editor_api E2_V21=probe_engine,sdk_api,editor_api.
+#
+# Two inputs are not v20's.  The worker is the tree's sdk/sdk-worker.js after
+# part S (ids 22/23, the mask status check, pasteMarkdown); the main session
+# writes its reviewed sha256 into E2_V21_WORKER_SHA256 below, and until then
+# the placeholder makes the manifest recipe refuse.  The export list is v20's
+# recipe plus _oxsdk_document_paste_markdown, appended LAST so X1's
+# --declared-export sees v20's bytes followed by exactly that line.  Packing is
+# v20's with the v5 builder (ABI 5, the two actions) and --paste-markdown,
+# which declares editorContract.pasteMarkdown and is refused unless the export
+# list carries the symbol.
+#
+# Never pass ALLOW_FROZEN_RELINK=1 for v8, v15, v19 or v20.
+E2_V21_BUILD := build/e2/editor-v21
+E2_V21_DIST := dist/profiles/e2-editor-v21
+E2_V21_SOURCES := $(E2_C_SOURCES)
+E2_V21_OBJECTS := $(patsubst src/%.cpp,$(E2_V21_BUILD)/%.o,$(E2_V21_SOURCES))
+E2_V21_MD4C_INCLUDE := $(LOBUILD)/workdir/UnpackedTarball/md4c/src
+# PLACEHOLDER, filled by the main session after part S's worker is reviewed.
+E2_V21_WORKER_SHA256 := PENDING-PART-S-WORKER-SHA256
+
+$(E2_V21_BUILD)/%.o: src/%.cpp $(HEADERS) src/editor_api.h \
+		src/editor_discovery_api.h src/format_readback_text.hpp \
+		src/a11y_paragraph_identity.hpp src/merge_key_undo.hpp \
+		src/markdown_paste.hpp $(E2_V21_MD4C_INCLUDE)/md4c.h Makefile \
+		| $(E2_V21_BUILD)
+	$(CXX) $(E1_CPPFLAGS) $(R5_CXXFLAGS) -I$(E2_V21_MD4C_INCLUDE) \
+		-DOXSDK_EDITOR_DISCOVERY \
+		-DOXSDK_FINDING_016_SELECTION_BARRIER -DOXSDK_E2_FORMAT_BARRIER \
+		-DOXSDK_MERGE_KEY_UNDO -DOXSDK_E2_V20_LINK_BATCH \
+		-DOXSDK_E2_V21_LINK_BATCH \
+		$(EXTRA_DEFINES) -c $< -o $@
+
+# v20's recipe plus the Markdown paste export, last.
+$(E2_V21_BUILD)/exports.txt: $(R5_BUILD)/writer-review/exports.txt Makefile \
+		| $(E2_V21_BUILD)
+	cp $< $@
+	printf '%s\n' \
+		_oxsdk_editor_action \
+		_oxsdk_editor_get_state \
+		_oxsdk_editor_select_range \
+		_oxsdk_editor_place_caret \
+		_oxsdk_editor_abi_version \
+		_oxsdk_editor_set_action_gestures \
+		_oxsdk_document_redo \
+		_oxsdk_document_page_rectangles \
+		_oxsdk_document_paste_markdown >> $@
+	@if grep -q editor_discovery $@; then \
+		echo "product export list contains a discovery symbol"; exit 1; fi
+
+# Guarded from the first link, like every product artifact before it.
+$(E2_V21_BUILD)/probe.js: $(E2_V21_OBJECTS) $(EXTRA_OBJECTS) \
+		$(E2_V21_BUILD)/exports.txt $(LINKDEPS) $(FS_PRE_JS) Makefile
+	$(call refuse_unasked_relink,the link batch v21 (Ctrl+Home/End and paste as Markdown; editor ABI 5) -- every link mints a new hash)
+	$(call link_r5_product,$(E2_V21_OBJECTS) $(EXTRA_OBJECTS),$(E2_V21_BUILD)/exports.txt,$@)
+
+$(E2_V21_BUILD)/probe.wasm: $(E2_V21_BUILD)/probe.js
+	@test -s $@
+
+# v20's packing with v21's loader, wasm, export list and the tree's worker,
+# through the v5 builder (which imports the v4 one; both are prerequisites).
+$(E2_V21_DIST)/sdk-manifest.json: $(E2_V21_BUILD)/probe.js $(E2_V21_BUILD)/probe.wasm \
+		$(E2_V21_BUILD)/exports.txt sdk/sdk-worker.js \
+		sdk/v18-writer-review-manifest.json \
+		tools/build_base_no35_pack.py tools/build_r5_profiles.py \
+		tools/build_cjk_subset.py tools/build_cjk_subset_ttc_pack.py \
+		tools/build_cjk_subset_mono_pack.py \
+		tools/build_e2_editor_v5_profile.py \
+		tools/build_e2_editor_v4_profile.py tools/build_e2_c_profile.py \
+		tools/build_e2_b_profile.py tools/e1_support.py | $(E2_V21_DIST)
+	echo "$(E2_V21_WORKER_SHA256)  sdk/sdk-worker.js" | sha256sum -c --quiet
+	python3 tools/build_base_no35_pack.py --check
+	python3 tools/build_cjk_subset_mono_pack.py --check
+	python3 tools/build_e2_editor_v5_profile.py \
+		--source-manifest sdk/v18-writer-review-manifest.json \
+		--loader $(E2_V21_BUILD)/probe.js --wasm $(E2_V21_BUILD)/probe.wasm \
+		--worker sdk/sdk-worker.js \
+		--exports $(E2_V21_BUILD)/exports.txt \
+		--profile e2-editor-v21 --inline-range-gestures all \
+		--page-rectangles --paste-markdown \
+		--output $(E2_V21_DIST)
+	@test -s $(E2_V21_DIST)/probe.js
+	@test -s $(E2_V21_DIST)/probe.wasm
+	@test -s $(E2_V21_DIST)/sdk-worker.js
+
+$(E2_V21_BUILD) $(E2_V21_DIST):
+	mkdir -p $@
+
 # ---------------------------------------------------------------- v5, a11y
 #
 # Everything below names $(E2_V5_CORE) explicitly instead of $(LOBUILD).  The

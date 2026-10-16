@@ -259,6 +259,28 @@ extern "C" EMSCRIPTEN_KEEPALIVE int32_t oxsdk_document_page_rectangles(
 }
 #endif
 
+#ifdef OXSDK_E2_V21_LINK_BATCH
+/*
+ * SPEC-M3-link-batch-v21 4.2: insert_text's shape and boundary checks.  The
+ * content is judged on the engine thread (size included: the engine's reply
+ * for over 65,536 bytes is INVALID_ARGUMENT with `dispatched: false`, so
+ * 11.2 M3 can tell which layer refused); this boundary refuses only what
+ * cannot be a request at all.  The Makefile's v21 export list adds
+ * `_oxsdk_document_paste_markdown`.
+ */
+extern "C" EMSCRIPTEN_KEEPALIVE int32_t oxsdk_document_paste_markdown(
+    oxsdk_request_id requestId, oxsdk_document_handle documentHandle,
+    const char *utf8, std::uint32_t utf8Length) {
+  if (!validRequest(requestId) || documentHandle == 0 || !utf8 ||
+      utf8Length == 0)
+    return OXSDK_STATUS_INVALID_ARGUMENT;
+  return safeStatus([&] {
+    return probe::pasteMarkdown(requestId, documentHandle,
+                                std::string(utf8, utf8Length));
+  });
+}
+#endif
+
 extern "C" EMSCRIPTEN_KEEPALIVE int32_t
 oxsdk_request_cancel(oxsdk_request_id requestId) {
   if (!validRequest(requestId))

@@ -108,9 +108,16 @@
           "file": "src/editor_api.h",
           "text": "#define OXSDK_EDITOR_ABI_VERSION 4u",
           "atLeast": 1
+        },
+        {
+          "kind": "contains",
+          "file": "src/editor_api.h",
+          "text": "#define OXSDK_EDITOR_ABI_VERSION 5u",
+          "atLeast": 1
         }
       ],
       "blocksRelink": true,
+      "note": "2026-10-16, link batch v21 (SPEC-M3-link-batch-v21 4.1, 9.10 pin list): the header now says 5u under OXSDK_E2_V21_LINK_BATCH and 4u otherwise, because v8-v20 compile the same header and must keep their bytes. So the row requires BOTH lines: the first check is still the one tools/check_relink_queue.py's self-test mutates (checks[0]), and the second is v21's identity. Same requirement, a version is an identity, at the new value; nothing relaxed.",
       "supersedes": "`#define OXSDK_EDITOR_ABI_VERSION 3u`, this row's value for the v3 link. Bumped 2026-08-22 for the v4 successor identity. The row is the same requirement -- a version is an identity -- at a new value; it is not a relaxation, and it drifted loudly when the header moved before this file did."
     },
     {
@@ -170,9 +177,16 @@
           "file": "tests/editor_abi_header_test.cpp",
           "text": "static_assert(OXSDK_EDITOR_ABI_VERSION == 4u);",
           "atLeast": 1
+        },
+        {
+          "kind": "contains",
+          "file": "tests/editor_abi_header_test.cpp",
+          "text": "static_assert(OXSDK_EDITOR_ABI_VERSION == 5u);",
+          "atLeast": 1
         }
       ],
       "blocksRelink": true,
+      "note": "2026-10-16, link batch v21: the test pins 5u under OXSDK_E2_V21_LINK_BATCH and keeps the original 4u assertion in the other branch, and is compiled both ways. It failed first again: with the define and the file unedited, `(5 == 4)` at line 20.",
       "supersedes": "the same assertion against `3u`. The compile-time pin is what failed FIRST when the header went to 4, before anything was built -- which is the deliberate two-place edit the header's own comment asks for."
     },
     {

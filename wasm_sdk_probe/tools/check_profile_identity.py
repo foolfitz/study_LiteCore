@@ -39,6 +39,21 @@ delta must have moved EXACTLY as declared, an undeclared move still fails, and e
                                 already in the reference's list.
 
 A declared delta that did not move fails its clause, like an undeclared one.
+
+A changed leaf (2026-10-16, SPEC-M3-link-batch-v21 4.4 / 9.10; a NEW USE again, not a repair): v21's
+`.editorContract.abiVersion` goes 4 -> 5, a leaf that exists in both manifests with different values, and none of
+the flags above can declare that.  One more repeatable flag, three arguments rather than `PATH=OLD->NEW` so a value
+holding `->` or `=` needs no escaping:
+
+  --declared-changed-leaf PATH OLD NEW
+                                manifest leaf PATH is in the reference with exactly OLD and in the candidate with
+                                exactly NEW (each parsed as --declared-new-leaf's VALUE is, so `4` is a number and
+                                `'"4"'` a string, and the JSON type must match too); OLD and NEW must differ;
+                                clause `declared-changed-leaf`; the leaf is exempt from the manifest clause.
+
+Its six red cases (spec 11.3 X1-cl): a change nobody declared (the manifest clause), declared but not changed, OLD
+wrong, NEW wrong, a leaf that does not exist, and a value of another JSON type.  With the flag absent the tool
+behaves and prints exactly as before.
 """
 from __future__ import annotations
 
@@ -83,7 +98,8 @@ def same_leaf(a, b) -> bool:
 
 
 def check(candidate: Path, reference: Path, candidate_exports: Path, reference_exports: Path,
-          declared_workers: tuple = (), declared_leaves: tuple = (), declared_exports: tuple = ()) -> tuple[int, list]:
+          declared_workers: tuple = (), declared_leaves: tuple = (), declared_exports: tuple = (),
+          declared_changes: tuple = ()) -> tuple[int, list]:
     missing = [str(p) for p in [*(d / f for d in (candidate, reference) for f in FILES),
                                 candidate_exports, reference_exports] if not p.is_file()]
     if missing:
@@ -92,7 +108,7 @@ def check(candidate: Path, reference: Path, candidate_exports: Path, reference_e
     theirs = dict(leaves(json.loads((reference / "sdk-manifest.json").read_text())))
     moved = sorted(k for k in set(mine) | set(theirs) if mine.get(k, KeyError) != theirs.get(k, KeyError))
     licensed = (*LINK_OUTPUTS, *NAMING, *([WORKER_LEAF] if declared_workers else []),
-                *(path for path, _ in declared_leaves))
+                *(path for path, _ in declared_leaves), *(path for path, _, _ in declared_changes))
     other = [k for k in moved if k not in licensed]
     name, their_name = candidate.name, theirs.get(".profile")
     wasm, loader = sha256(candidate / "probe.wasm"), sha256(candidate / "probe.js")
@@ -129,29 +145,49 @@ def check(candidate: Path, reference: Path, candidate_exports: Path, reference_e
              f"loader {loader[:16]} (reference {str(theirs.get('.editorContract.loaderSha256'))[:16]}): "
              + ("equal" if loader == theirs.get(".editorContract.loaderSha256") else "differs (recorded, 32.1)"),
              f"worker {worker[:16]}; files {names[0]}; exports {sha256(candidate_exports)[:16]}"]
-    if declared_workers or declared_leaves or declared_exports:
+    if declared_workers or declared_leaves or declared_exports or declared_changes:
         lines.append(f"declared: workers {[w[:16] for w in declared_workers]} (candidate {worker[:16]}, "
                      f"reference {their_worker[:16]}); exports {list(declared_exports)}")
         for path, value in declared_leaves:
             lines.append(f"declared leaf {path} = {json.dumps(value)}: reference "
                          + (f"has {json.dumps(theirs[path])}" if path in theirs else "absent")
                          + f", candidate {json.dumps(mine[path]) if path in mine else 'absent'}")
+        for path, old, new in declared_changes:
+            lines.append(f"declared changed leaf {path}: {json.dumps(old)} -> {json.dumps(new)}: reference "
+                         + (f"has {json.dumps(theirs[path])}" if path in theirs else "absent")
+                         + f", candidate {json.dumps(mine[path]) if path in mine else 'absent'}")
     if declared_leaves:
         clauses["declared-leaf"] = all(path not in theirs and path in mine and same_leaf(mine[path], value)
                                        for path, value in declared_leaves)
+    if declared_changes:
+        clauses["declared-changed-leaf"] = all(
+            not same_leaf(old, new) and path in theirs and path in mine
+            and same_leaf(theirs[path], old) and same_leaf(mine[path], new)
+            for path, old, new in declared_changes)
     lines += [f"{k}: {'ok' if v else 'FAIL'}" for k, v in clauses.items()]
     failing = [k for k, v in clauses.items() if not v]
     return (1, lines + [f"VERDICT FAIL: {failing}"]) if failing else (0, lines + ["VERDICT PASS"])
+
+
+def parse_value(value: str) -> object:
+    try:
+        return json.loads(value)
+    except ValueError:
+        return value
 
 
 def parse_leaf(item: str) -> tuple[str, object]:
     path, sep, value = item.partition("=")
     if not sep or not path.startswith(".") or not value:
         raise SystemExit(f"--declared-new-leaf {item!r}: expected .path.to.leaf=VALUE")
-    try:
-        return path, json.loads(value)
-    except ValueError:
-        return path, value
+    return path, parse_value(value)
+
+
+def parse_change(item: list) -> tuple[str, object, object]:
+    path, old, new = item
+    if not path.startswith(".") or not old or not new:
+        raise SystemExit(f"--declared-changed-leaf {item!r}: expected .path.to.leaf OLD NEW")
+    return path, parse_value(old), parse_value(new)
 
 
 def main() -> int:
@@ -166,6 +202,9 @@ def main() -> int:
                     help="a manifest leaf absent from the reference and present with exactly VALUE (repeatable)")
     ap.add_argument("--declared-export", action="append", default=[], metavar="SYMBOL",
                     help="an export appended to the reference's list (repeatable, in order)")
+    ap.add_argument("--declared-changed-leaf", action="append", default=[], nargs=3,
+                    metavar=("PATH", "OLD", "NEW"),
+                    help="a manifest leaf the reference has as OLD and the candidate as NEW (repeatable)")
     a = ap.parse_args()
     for w in a.declared_worker:
         if len(w) != 64 or any(ch not in "0123456789abcdefABCDEF" for ch in w):
@@ -175,7 +214,7 @@ def main() -> int:
             raise SystemExit(f"--declared-export {sym!r}: expected one symbol with no whitespace")
     code, lines = check(a.candidate, a.reference, a.candidate_exports, a.reference_exports,
                         tuple(a.declared_worker), tuple(parse_leaf(i) for i in a.declared_new_leaf),
-                        tuple(a.declared_export))
+                        tuple(a.declared_export), tuple(parse_change(i) for i in a.declared_changed_leaf))
     print("\n".join(lines))
     return code
 

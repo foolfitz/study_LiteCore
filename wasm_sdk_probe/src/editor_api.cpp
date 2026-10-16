@@ -39,6 +39,12 @@ enum InternalEditorAction : std::uint32_t {
   // The one new behaviour.  22 because the discovery ABI's own list ends at 21.
   InternalDeleteSelection = 22,
   InternalSelectAll = 23,
+#ifdef OXSDK_E2_V21_LINK_BATCH
+  // v4 (ABI 5): Ctrl+Home / Ctrl+End, finding 142.  New internal ids after
+  // select-all; the engine posts them on the key path (probe_engine.cpp).
+  InternalMoveDocumentStart = 24,
+  InternalMoveDocumentEnd = 25,
+#endif
 };
 
 // The mask itself lives in the engine (probe::editorSetActionGestures): the
@@ -62,7 +68,16 @@ static_assert(OXSDK_EDITOR_GESTURE_RANGE_CROSS == probe::kGestureRangeCross);
 // all -- and a gesture a manifest cannot restrict is one the binary grants
 // unconditionally, which is the "manifest describes but does not constrain"
 // defect the mask exists to remove.
+#ifdef OXSDK_E2_V21_LINK_BATCH
+// 23 as of ABI 5 (SPEC-M3-link-batch-v21 4.1), for the same reason: left at
+// 21, the worker's mask call for 22/23 would be refused and the two moves
+// would keep every gesture whatever the manifest says.
+constexpr std::uint32_t kMaxExternalAction = 23;
+static_assert(kMaxExternalAction == OXSDK_EDITOR_V4_MOVE_DOCUMENT_END,
+              "the mask's bound must follow the action list");
+#else
 constexpr std::uint32_t kMaxExternalAction = 21;
+#endif
 
 // The engine's selection methods, of which the narrow ABI exposes exactly one.
 // Mirrors oxsdk_editor_selection_method in editor_discovery_api.h; that header
@@ -131,6 +146,12 @@ std::uint32_t internalAction(std::uint32_t action) {
     return InternalDeleteSelection;
   case OXSDK_EDITOR_V3_SELECT_ALL:
     return InternalSelectAll;
+#ifdef OXSDK_E2_V21_LINK_BATCH
+  case OXSDK_EDITOR_V4_MOVE_DOCUMENT_START:
+    return InternalMoveDocumentStart;
+  case OXSDK_EDITOR_V4_MOVE_DOCUMENT_END:
+    return InternalMoveDocumentEnd;
+#endif
   default:
     return 0;
   }

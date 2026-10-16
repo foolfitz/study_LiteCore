@@ -39,8 +39,17 @@ extern "C" {
  * ABI drove it, and the product ABI simply never named it -- `internalAction()`
  * returned 0 and the boundary refused. So 16-19 open a door the engine was
  * already standing behind. 20 is the exception and is genuinely new.
+ *
+ * 5 as of 2026-10-16, in the v21 link batch only (SPEC-M3-link-batch-v21
+ * 4.1): a successor identity again.  Ids 1-21 inherited verbatim, 22 and 23
+ * appended (move-document-start / -end, finding 142).  v8-v20 stay at 4: the
+ * define keeps their preprocessed output what it was.
  */
+#ifdef OXSDK_E2_V21_LINK_BATCH
+#define OXSDK_EDITOR_ABI_VERSION 5u
+#else
 #define OXSDK_EDITOR_ABI_VERSION 4u
+#endif
 
 typedef enum oxsdk_editor_v1_action {
   OXSDK_EDITOR_V1_MOVE_CHARACTER_LEFT = 1,
@@ -120,6 +129,24 @@ typedef enum oxsdk_editor_v3_action {
    */
   OXSDK_EDITOR_V3_SELECT_ALL = 21
 } oxsdk_editor_v3_action;
+
+#ifdef OXSDK_E2_V21_LINK_BATCH
+/*
+ * v4 (ABI 5) appends two, in a separate enum for the reason v2 and v3 gave:
+ * the enums above are pinned verbatim by tests/editor_abi_header_test.cpp.
+ *
+ * Ctrl+Home / Ctrl+End (finding 142).  Caret moves like 1-2 and 16-19 --
+ * revision unchanged, `changed: false`, completed by a caret callback or by
+ * `verified-move-readback` -- and, like 16-19, they take NO extend_selection:
+ * Ctrl+Shift+Home/End is a selection this build has never classified.  Inside
+ * a table, a header or a section Writer goes up one level per press
+ * (L-142-steps); nothing here merges the presses.
+ */
+typedef enum oxsdk_editor_v4_action {
+  OXSDK_EDITOR_V4_MOVE_DOCUMENT_START = 22,
+  OXSDK_EDITOR_V4_MOVE_DOCUMENT_END = 23
+} oxsdk_editor_v4_action;
+#endif
 
 /*
  * Which selection shapes an action may be dispatched on.  The classes are the

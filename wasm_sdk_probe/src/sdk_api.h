@@ -108,6 +108,22 @@ int32_t oxsdk_document_list_changes(oxsdk_request_id request_id,
 int32_t oxsdk_document_page_rectangles(oxsdk_request_id request_id,
                                        oxsdk_document_handle document_handle);
 #endif
+#ifdef OXSDK_E2_V21_LINK_BATCH
+/*
+ * SPEC-M3-link-batch-v21 4.2: paste `utf8` as Markdown at the caret.  The
+ * shape of oxsdk_document_insert_text; the MIME type is fixed in the engine.
+ * The bytes are judged before anything is dispatched (md4c's scan, NUL, UTF-8,
+ * 65,536 bytes, the thread encoding, a collapsed caret, the undo read): every
+ * such refusal is an error event with `dispatched: false`.  Completion is
+ * `markdown-pasted` with the revision advanced by one, or
+ * MUTATION_OUTCOME_UNKNOWN (`dispatched: true`) when the undo stack does not
+ * prove the paste.  A document-level export like page_rectangles: no wire id,
+ * no gesture, the editor ABI does not move for it.
+ */
+int32_t oxsdk_document_paste_markdown(oxsdk_request_id request_id,
+                                      oxsdk_document_handle document_handle,
+                                      const char *utf8, uint32_t utf8_length);
+#endif
 
 /* Cancels only a request that has not begun executing on the engine thread. */
 int32_t oxsdk_request_cancel(oxsdk_request_id request_id);
