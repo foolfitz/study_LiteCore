@@ -440,6 +440,12 @@ def judge_m6(results: dict, rounds: int) -> Cell:
         if (inst.get("foreignCpu") or {}).get("ok") is False:
             cell.ne(f"r{k}: foreign CPU load")
             continue
+        span = inst.get("busySpanMs")
+        if isinstance(span, (int, float)) and span > 10000:
+            # Busy longer than the bound, whatever ended it (smoke J1: the SDK gave up after 30 s busy, which
+            # is no fast refusal).
+            cell.fail(f"r{k}: busy for {span} ms (ended in {inst.get('busyEndState')}) > 10,000")
+            continue
         if not session_outcome(inst.get("dialog")).get("ok"):
             cell.ne(f"r{k}: the paste did not complete ({dialog_error(inst.get('dialog')).get('code')}): a refusal is fast")
             continue
@@ -678,12 +684,12 @@ def refuse(report: dict, pop_sha: str, expect_page: str) -> list[str]:
         why.append("the report's population is not the committed one")
     for page, ident in (report.get("identity") or {}).items():
         hashes = ident.get("profileHashes") or {}
-        if page in ("main", "proxy", "bytes", "trace"):
+        if page in ("main", "m6", "proxy", "bytes", "trace"):
             if ident.get("pageServedSha256") != expect_page:
                 why.append(f"{page}: served page {str(ident.get('pageServedSha256'))[:16]} != {expect_page[:16]}")
             if hashes.get("probe.wasm") != WASM:
                 why.append(f"{page}: wasm {str(hashes.get('probe.wasm'))[:16]}")
-        if page in ("main", "proxy") and ident.get("instrumentedWorker"):
+        if page in ("main", "m6", "proxy") and ident.get("instrumentedWorker"):
             why.append(f"{page}: an instrumented worker where the shipped one must be")
         if page in ("bytes", "trace") and not ident.get("instrumentedWorker"):
             why.append(f"{page}: the diagnostic page does not say instrumentedWorker")
@@ -855,6 +861,7 @@ def synthetic(pop: dict, rounds: int = ROUNDS, browser: str = "chrome") -> dict:
                           "attempt": {"answer": {"ok": False, "error": {"code": m3["expectedCode"]}}}})
         res["m5"]["rounds"].append({"round": k, "positiveControl": {"method": "GET"}, "items": items})
     res["m6"] = {"instances": [{"round": k, "foreignCpu": {"ok": True}, "dialog": ok_dialog(), "busyToReadyMs": 3000.0,
+                                "busySpanMs": 3000.0, "busyEndState": "ready",
                                 "s2EqualsR": dict(same_)} for k in range(1, rounds + 1)]}
     res["m7a"] = {"instances": [{"round": k, "payloadSurvived": True, "markOccurrences": 1, "isAnOdt": True,
                                  "revisionBefore": 0, "revisionAfter": 1} for k in range(1, rounds + 1)]}
@@ -894,7 +901,7 @@ def synthetic(pop: dict, rounds: int = ROUNDS, browser: str = "chrome") -> dict:
                   "cancel": [{"round": k, "e0": 3, "r0": 0, "r1": 0, "r2": 1, "s1EqualsS0": dict(same_),
                               "controlRequests": [{"op": "insertText"}], "episodes": [ep("cancel"), ep("escape")]}
                              for k in range(1, rounds + 1)]}
-    identity = {"main": dict(ident), "v20": {"pageServedSha256": "v20", "profileHashes": {}, "instrumentedWorker": False},
+    identity = {"main": dict(ident), "m6": dict(ident), "v20": {"pageServedSha256": "v20", "profileHashes": {}, "instrumentedWorker": False},
                 "bytes": {**ident, "instrumentedWorker": True}, "trace": {**ident, "instrumentedWorker": True}}
     return {"browser": browser, "smoke": False, "development": None, "rounds": rounds, "counted": False,
             "populationSha256": hashlib.sha256(POPULATION.read_bytes()).hexdigest(), "identity": identity,
@@ -943,6 +950,9 @@ def red_cases() -> list[tuple[str, str, str, callable]]:
         ("M5 empty log", "M5", NE, lambda rep: r(rep).pop("m5")),
         ("M5 item not refused", "M5", FAIL, lambda rep: first(r(rep)["m5"]["rounds"][0]["items"], lambda i: i["route"] == "sdk").update(attempt={"answer": {"ok": True}})),
         ("M6 10,001 ms", "M6", FAIL, lambda rep: first(r(rep)["m6"]["instances"]).update(busyToReadyMs=10001)),
+        ("M6 the SDK gave up after 30 s busy", "M6", FAIL, lambda rep: first(r(rep)["m6"]["instances"]).update(
+            busyToReadyMs=None, busySpanMs=30001.6, busyEndState="recoverable-error",
+            dialog={"outcome": {"kind": "session", "entry": {"ok": False, "error": {"code": "TIMEOUT", "recovery": "rollback"}}}})),
         ("M6 Undo did not restore", "M6", FAIL, lambda rep: first(r(rep)["m6"]["instances"]).update(s2EqualsR={"compared": True, "same": False})),
         ("M6 refused by the SDK", "M6", NE, lambda rep: first(r(rep)["m6"]["instances"]).update(dialog={"outcome": {"kind": "session", "entry": {"ok": False, "error": {"code": "INVALID_ARGUMENT"}}}})),
         ("M6 no busy logged", "M6", NE, lambda rep: first(r(rep)["m6"]["instances"]).update(busyToReadyMs=None)),
@@ -997,12 +1007,15 @@ def self_test(verbose: bool = True) -> int:
     two = synthetic(pop, rounds=2)
     if judge_report(two, pop)["M1"]["verdict"] != NE:
         problems.append("two rounds judged as more than NE")
-    for label, mutate in (("smoke", lambda rep: rep.update(smoke=True)),
+    refusal_cases = (("smoke", lambda rep: rep.update(smoke=True)),
                           ("development", lambda rep: rep.update(development={"limit": 2})),
                           ("page", lambda rep: rep["identity"]["main"].update(pageServedSha256="0" * 64)),
                           ("instrumented main", lambda rep: rep["identity"]["main"].update(instrumentedWorker=True)),
+                          ("instrumented m6", lambda rep: rep["identity"]["m6"].update(instrumentedWorker=True)),
+                          ("m6 page", lambda rep: rep["identity"]["m6"].update(pageServedSha256="0" * 64)),
                           ("trace not instrumented", lambda rep: rep["identity"]["trace"].update(instrumentedWorker=False)),
-                          ("population", lambda rep: rep.update(populationSha256="0" * 64))):
+                          ("population", lambda rep: rep.update(populationSha256="0" * 64)))
+    for label, mutate in refusal_cases:
         report = synthetic(pop)
         mutate(report)
         if not refuse(report, pop_sha, EXPECT_PAGE):
@@ -1013,7 +1026,7 @@ def self_test(verbose: bool = True) -> int:
         problems.append(f"the all-pass report is refused: {refuse(synthetic(pop), pop_sha, EXPECT_PAGE)}")
     for line in problems:
         print("PROBLEM", line)
-    print(f"self-test: {len(red_cases())} red cases, 6 refusals, 1 short report, {len(problems)} problem(s)")
+    print(f"self-test: {len(red_cases())} red cases, {len(refusal_cases)} refusals, 1 short report, {len(problems)} problem(s)")
     return 0 if not problems else 1
 
 

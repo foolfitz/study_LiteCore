@@ -12,7 +12,7 @@ Arms (`--arms`, comma-separated) and the page each runs on:
   m3        M3 refusals on R-dialog and R-sdk, each with DM-9 C's undo reader; per-route positive control (main)
   m3size    M3's four size arms (SDK-L, SDK-L+1 on R-sdk; ENG-65536, ENG-65537 on R-worker)           (main)
   m4        M4, every population instance                                                            (main)
-  m6        M6: the 64 KiB corpus through the dialog, busy -> ready, one Undo                          (main)
+  m6        M6: the 64 KiB corpus through the dialog, busy -> ready, one Undo   (main page, its own browser)
   m7a, m7b  M7: the existing check re-armed (DM-15 A); C1 by a real Ctrl+V                             (main)
   m8        M8-v20 (DM-19 A) on the final page repointed to v20, with the v21 positive control  (v20 + main)
   m9        M9 clean, dirty, inject (DM-16 A)                                                           (main)
@@ -79,6 +79,7 @@ EMPTY = "v21-i2-empty.odt"
 DIALOG_BUTTON = '#toolbar [data-action="paste-markdown"]'
 MARKER = "Q"
 M11_TYPED = "# 打字 ABC"                # ARMS-item2 M11-cancel, verbatim, then Backspace, ArrowLeft, Enter
+M11_EXPECTED = "# 打字 A\nB"            # what those keys leave in the textarea
 M9_MARKER = "M9MARK"                 # ARMS-item2 M9-dirty, verbatim
 # Round 3's native click points (native/markdown-paste/round-3/README.md): the image's centre, and the frame's
 # LEFT BORDER's middle line (ARMS-item2 M10c: "on the frame's left border"), not the frame's centre.
@@ -173,6 +174,7 @@ class RecordingChrome(pp.ChromeSession):
 
 
 DIALOGS: list[dict] = []
+ASK_MISSES: list[dict] = []       # engine-state asks that went unanswered once (then asked again)
 CONSOLE: list[dict] = []          # console errors and uncaught exceptions the page reports (Chrome)
 
 
@@ -302,6 +304,10 @@ class Ctx:
 
     def ask(self) -> dict:
         asked = er.ask_state(self.trace, self.handle())
+        if not asked.get("answered"):
+            # One unanswered ask lost an M3 instance in the smoke (R2): ask once more, and keep the miss.
+            ASK_MISSES.append({"at": common.now_iso(), "asked": asked.get("asked")})
+            asked = er.ask_state(self.trace, self.handle())
         return (asked.get("result") or {}) if asked.get("answered") and asked.get("ok") else {"unanswered": asked}
 
     def rev(self):
@@ -464,10 +470,14 @@ class Ctx:
             if paste is None:
                 message = self.ev(MESSAGE) or {}
                 if message and not message.get("hidden") and message.get("text"):
-                    # The page shows a session refusal's text too, after the hook logged it: read the hook
-                    # again before calling this the page's own refusal.
-                    self.drain()
-                    paste = next((e for e in self.hlog.all[hmark:] if e.get("k") == "paste"), None)
+                    # The page shows a session refusal's text too, and the hook writes its log into the DOM on
+                    # a timer, so the message can be visible before the hook's entry is (smoke R1): give the
+                    # hook 1.5 s before calling this the page's own refusal.
+                    settle = time.monotonic() + 1.5
+                    while paste is None and time.monotonic() < settle:
+                        time.sleep(0.1)
+                        self.drain()
+                        paste = next((e for e in self.hlog.all[hmark:] if e.get("k") == "paste"), None)
                     if paste is None:
                         outcome = {"kind": "page-refusal", "message": message}
                         break
@@ -740,6 +750,9 @@ def arm_m6(ctx: Ctx, pop: dict, rounds: int, out: dict) -> None:
             busy = next((e for e in pills if e.get("state") == "busy"), None)
             ready = next((e for e in pills if busy and e.get("s", 0) > busy["s"] and e.get("state") == "ready"), None)
             rec["busyToReadyMs"] = round(ready["t"] - busy["t"], 1) if busy and ready else None
+            ended = next((e for e in pills if busy and e.get("s", 0) > busy["s"] and e.get("state") != "busy"), None)
+            rec["busySpanMs"] = round(ended["t"] - busy["t"], 1) if busy and ended else None
+            rec["busyEndState"] = ended.get("state") if ended else None
             click_t = rec["dialog"].get("insertClickPageT")
             rec["clickToReadyMs"] = round(ready["t"] - click_t, 1) if ready and isinstance(click_t, (int, float)) else None
             rq = next((e for e in after_click if e.get("k") == "rq" and e.get("op") == "pasteMarkdown"), None)
@@ -982,14 +995,18 @@ def arm_m11(ctx: Ctx, pop: dict, rounds: int, out: dict) -> None:
                 ep = {"how": how}
                 mark = ctx.mark()
                 ep["button"] = ctx.real_click(DIALOG_BUTTON)
-                time.sleep(0.4)
+                deadline = time.monotonic() + 3
+                while time.monotonic() < deadline and not (ctx.ev(DIALOG_OPEN) and ctx.ev(ACTIVE) == "markdown-text"):
+                    time.sleep(0.1)
                 ep["dialogOpen"] = bool(ctx.ev(DIALOG_OPEN))
+                ep["focusBeforeTyping"] = ctx.ev(ACTIVE)      # smoke R3: keys sent before the focus were lost
                 for ch in M11_TYPED:
                     inp.key(ctx.session, ctx.browser, ch)
                 for name in ("Backspace", "ArrowLeft", "Enter"):
                     inp.key(ctx.session, ctx.browser, name)
                 time.sleep(0.3)
                 ep["textareaBefore"] = clip.readback(ctx.session, "#markdown-text")
+                ep["typedAsArm"] = ep["textareaBefore"].get("sha256") == sha256_bytes(M11_EXPECTED.encode("utf-8"))
                 if how == "cancel":
                     ep["close"] = ctx.real_click("#markdown-cancel")
                 else:
@@ -1286,7 +1303,8 @@ def main() -> int:
                               ("v21_page_hook.py", "v21_item2_observer.py", "v21_clipboard.py", "v21_network.py",
                                "v21_workers.py", "v21_item2_compare.py", "v21_shakedown_common.py",
                                "v21_engine_read.py", "v21_input.py")},
-              "identity": {}, "results": {}, "javascriptDialogs": DIALOGS, "consoleErrors": CONSOLE}
+              "identity": {}, "results": {}, "javascriptDialogs": DIALOGS, "consoleErrors": CONSOLE,
+              "askMisses": ASK_MISSES}
 
     def flush() -> None:
         report_path.write_text(json.dumps(report, indent=1, ensure_ascii=False, default=str))
@@ -1302,7 +1320,32 @@ def main() -> int:
         flush()
         if pre["refuse"]:
             raise SystemExit(f"pre-run checks refuse: {pre['refuse']}")
-        page_arms = [a for a in arms if a not in ("m5", "m8")]
+        if "m6" in arms:
+            # ARMS-item2 M6: "Run alone, with the desk checked".  Its own fresh browser, first, nothing else in
+            # it (smoke R4: run after M4's 57 loads in the same browser, the paste took 32 s; on a fresh page
+            # the same corpus took 0.66 s).
+            out = report["results"].setdefault("m6", {"arm": "m6", "page": "m6"})
+            t0 = time.monotonic()
+            session = None
+            try:
+                identity = common.build_mirror(scratch / "mirror-m6", snippets=[v20.OBSERVER, obs2.SNIPPET, hook.SNIPPET],
+                                               extra_files=files)
+                report["identity"]["m6"] = dict(identity)
+                report["identity"]["m6"]["limitLServed"] = served_limit(Path(identity["mirror"]))
+                with common.served(Path(identity["mirror"])) as base:
+                    session = open_browser(args.browser)
+                    out["browserVersion"] = getattr(session, "version", None)
+                    out["clipboardGrant"] = clip.grant(session, args.browser, base.rsplit("/", 1)[0])
+                    arm_m6(Ctx(session, args.browser, base, docs, identity), pop, args.rounds, out)
+            except Exception as error:  # noqa: BLE001
+                out["runnerError"] = f"{type(error).__name__}: {error}"
+                out["traceback"] = traceback.format_exc()[-2000:]
+            finally:
+                if session is not None:
+                    out["close"] = common.close_browser(session)
+            out["seconds"] = round(time.monotonic() - t0, 1)
+            flush()
+        page_arms = [a for a in arms if a not in ("m5", "m8", "m6")]
         pages = {}
         for arm in page_arms:
             pages.setdefault(PAGE_OF.get(arm, "main"), []).append(arm)

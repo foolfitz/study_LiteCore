@@ -48,3 +48,14 @@ The first item-2 agent ran out of context with the runner uncommitted. Its two d
 | main | `--wait-lock SECONDS` (default: refuse, as item 1); the pre-run checks run after the lock is taken; the identity keeps every served corpus/fixture file's sha256 and L as parsed from the **served** `sdk/document-sdk.js` | ARMS-item2 §1 |
 
 The judge gained four checks, each red first (a mutation of the synthetic report that the committed judge `2e740237` passes and the new one fails [observed]): a range's dialog refusal must keep the text (M4 ranges and M10d, spec §12.2 (d)); M9 clean and dirty need `dispatched: true`; M9-inject needs the engine revision unchanged. The population tool's rules were split into one function each (output unchanged: `build()` equals the committed `population.json` byte for byte [observed]), and one rule was added: an injection-only item is excluded only if its bytes are PASS without the injection (spec §12.2 (b)); X14 is.
+
+## Fixes after the Chrome smoke (2026-10-17; the smoke and its witness are `../smoke/item2/`, commit `bc959cbe`)
+
+| fault (smoke README) | fix |
+|---|---|
+| R1, the dialog outcome read before the hook's timed DOM write | a visible `#markdown-message` is called the page's own refusal only after the hook has had 1.5 s to show a session entry |
+| R2, one unanswered engine-state ask | an unanswered ask is asked once more; every miss is kept in the report's `askMisses` |
+| R3, M11's first keys lost | the episode types only once `#markdown-text` has focus (`focusBeforeTyping`), and records `typedAsArm`: the textarea equals `# 打字 A\nB`, what the arm's keys leave |
+| R4, M6 not run alone | M6 runs first, in its own fresh browser with its own mirror (identity `m6`, checked by the judge as `main` is) |
+| R5, the browser's background traffic in M5's windows | the proxied Chrome runs with its background networking off (`v21_network.QUIET_CHROME`); Firefox gets the matching prefs (`QUIET_FIREFOX`, not exercised before the Firefox evidence run); a test checks both and that no such pref points at a target port |
+| J1, M6's 30 s timeout read as a refusal | the runner records `busySpanMs` (first busy after the 插入 click to the next state that is not busy, whatever it is) and the judge fails a span over 10,000 ms before it asks whether the paste completed; red first (the previous judge reads that report NOT_ESTABLISHED, this one FAIL); self-test 61 red cases, 8 refusals |

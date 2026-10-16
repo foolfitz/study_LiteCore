@@ -101,6 +101,18 @@ class Network(unittest.TestCase):
         self.assertEqual(prefs["network.proxy.no_proxies_on"], "")
 
     # ---- red cases ----
+    def test_quiet_browsers(self):
+        # smoke/item2/ R5: the browser's own background traffic fell into M5's windows.
+        self.assertIn("--disable-background-networking", net.QUIET_CHROME)
+        self.assertIn("--disable-component-update", net.QUIET_CHROME)
+        prefs = net.firefox_prefs(4321)
+        for key, value in net.QUIET_FIREFOX.items():
+            self.assertEqual(prefs[key], value)
+        # No quieting pref may point at a target port (it would show up as a target request).
+        for value in prefs.values():
+            for port in net.FORBIDDEN_MIRROR_PORTS:
+                self.assertNotIn(f":{port}/", str(value))
+
     def test_red_no_probe_wasm_means_no_positive_control(self):
         entries = [{"method": "GET", "host": "127.0.0.1", "port": 5555, "path": "/e2-editor.html", "t": 1.0}]
         self.assertIsNone(net.positive_control(entries, 5555))

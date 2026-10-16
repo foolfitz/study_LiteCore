@@ -249,8 +249,32 @@ class TargetListeners:
                 pass
 
 
+# The browser's own background traffic (updaters, safe browsing, push, prefetch) goes through the proxy too
+# and lands in M5's item windows as "an origin other than the mirror's": the item-2 smoke saw Chrome's
+# component updater, GCM and safe browsing in 8 of 38 windows (smoke/item2/ R5).  These switch it off; a
+# page's own requests are not affected.  The Firefox set was not exercised before the Firefox evidence run.
+QUIET_CHROME = ("--disable-background-networking", "--disable-component-update", "--disable-sync",
+                "--disable-default-apps", "--disable-domain-reliability", "--disable-client-side-phishing-detection",
+                "--no-pings", "--metrics-recording-only",
+                "--disable-features=OptimizationHints,OptimizationGuideModelDownloading,OptimizationHintsFetching,"
+                "OptimizationTargetPrediction,MediaRouter,Translate,AutofillServerCommunication,"
+                "CertificateTransparencyComponentUpdater")
+QUIET_FIREFOX: dict[str, Any] = {
+    "network.captive-portal-service.enabled": False, "network.connectivity-service.enabled": False,
+    "browser.safebrowsing.malware.enabled": False, "browser.safebrowsing.phishing.enabled": False,
+    "browser.safebrowsing.downloads.enabled": False, "browser.safebrowsing.blockedURIs.enabled": False,
+    "app.update.disabledForTesting": True, "datareporting.policy.dataSubmissionEnabled": False,
+    "datareporting.healthreport.uploadEnabled": False, "toolkit.telemetry.enabled": False,
+    "dom.push.connection.enabled": False, "network.dns.disablePrefetch": True, "network.prefetch-next": False,
+    "network.http.speculative-parallel-limit": 0, "browser.newtabpage.enabled": False,
+    "extensions.update.enabled": False, "extensions.getAddons.cache.enabled": False,
+    "media.gmp-manager.updateEnabled": False, "browser.region.network.url": "", "browser.search.update": False,
+}
+
+
 def firefox_prefs(port: int) -> dict[str, Any]:
-    return {"network.proxy.type": 1, "network.proxy.http": "127.0.0.1", "network.proxy.http_port": port,
+    return {**QUIET_FIREFOX,
+            "network.proxy.type": 1, "network.proxy.http": "127.0.0.1", "network.proxy.http_port": port,
             "network.proxy.ssl": "127.0.0.1", "network.proxy.ssl_port": port,
             "network.proxy.no_proxies_on": "", "network.proxy.allow_hijacking_localhost": True,
             "network.proxy.share_proxy_settings": True}
@@ -278,7 +302,7 @@ class ProxiedChrome(rbp.ChromeSession):
             [chrome, "--headless=new", f"--remote-debugging-port={self.port}", "--remote-allow-origins=*",
              f"--user-data-dir={self.profile_dir}", "--no-first-run", "--no-default-browser-check",
              f"--proxy-server=http://127.0.0.1:{proxy_port}", "--proxy-bypass-list=<-loopback>",
-             "about:blank"],
+             *QUIET_CHROME, "about:blank"],
             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, text=True)
         self.base_url = f"http://127.0.0.1:{self.port}"
         version = rbp.wait_http(f"{self.base_url}/json/version")
