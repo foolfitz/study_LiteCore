@@ -131,7 +131,10 @@ FIX_WHAT = {"none": "no candidate fix",
             "fix1p": "fix 1': no checkpoint before any of the eight moves (session action(), `false &&`)",
             "fix3": "fix 3: closeMarkdownDialog blurs the sink, then focuses it (page)",
             "fix3b": "fix 3b: closeMarkdownDialog focuses the sink in requestAnimationFrame (page)"}
-V21_PAGE_PREFIX = "3d5112161b23b060"
+# The tree's page after 712f955a (fixes 1 and 2, item 2's entry off), as v21_shakedown_common.EXPECTED
+# (re-pinned at f5f60ac1).  Was 3d5112161b23b060 (ARMS.md §1); §34.4 witness:
+# findings/evidence/link-batch-v21/shakedown/evidence/witness/diag-v6e-stale-pin/.
+V21_PAGE_PREFIX = "605cf24b3dff5a2d"
 LOG_KINDS = ("kd", "kdp", "rq", "rs", "bi", "ask7post", "ask7", "askx")
 PLACEMENT_BRAVO = "k1024,k1027x5"
 V6_KEYS = [(0, "Backspace", ()), (20, "ArrowRight", ()), (40, "Delete", ())]
