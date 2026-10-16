@@ -3654,6 +3654,11 @@ test-e2-c-static:
 		tests/test_e2_c_matrix.py tests/test_caret_from_columns.py \
 		tests/test_inline_styles_of.py tests/test_ink_rows_caret.py \
 		tests/test_product_path_mutations.py tests/test_session_liveness.py
+	# The merge runner's and the counted-M2 reader's tests were in no target:
+	# this gate exited 0 while V19Witness was red (SPEC-M3-link-batch 17.2).
+	# The 0.2.23 and 0.2.24 count chains ran them by hand as preflight P6.
+	# Owner's decision A, 2026-10-15; added after the 0.2.24 chain.
+	python3 -m unittest tests/test_merge_wasm_clauses.py tests/test_judge_counted_m2.py
 	python3 -m py_compile tools/create_e2_corpus.py tools/run_e2_c_page_smoke.py \
 		tools/build_e2_c_shell_bundle.py tools/run_e2_c_d0.py \
 		tools/analyze_e2_c_d0.py tools/analyze_e2_c_d1.py \

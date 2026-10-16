@@ -584,3 +584,5 @@ part P（`findings/evidence/link-batch/pre-binding/README.md` P4）只移了頁�
 | 2026-10-15 | §17.2：merge runner 的 `BINDING` 綁到 v20；V19Witness 連 BINDING 一起還原（因執行而修 +1）；登錄兩支判讀器測試不在任何 Makefile 目標 |
 | 2026-10-15 | §17.3：§10.7 的清單漏了 production UI 的 Rbs／Rdel／B3x（Bdel／Bbs 同一期望、不計數）；證人 `witness-c-0.2.23`；Rbs／Rdel 改期望、鍵在宿主送出的 wasm 位元組（因執行而修 +1）；B3x 自 0.2.23 計數撤出（§4）；登錄 A1-5 與跨拒絕救援在 v20 上無計數臂守著（§3）。fable，計數鏈準備工單 |
 | 2026-10-15 | §17.4：C 之下 Rbs／Rdel 沒有正向對照，登錄成具名極限；RESULT 時由讀的人手動確認 2.26 秒的 busy（不改程式，§34.4 無證人） |
+| 2026-10-16 | §17.2 登錄的觀察已處理（擁有者 10-15 的決定 A，0.2.24 計數鏈跑完之後才做）：`test-e2-c-static` 加跑 `tests/test_merge_wasm_clauses.py`、`tests/test_judge_counted_m2.py`；改後閘門 exit 0，多出 134 個測試（`findings/evidence/release-0.2.24/test-e2-c-static-after-makefile-a.txt`）。finding 042：改前改後 `make -n e2-c-assets` 都不編譯；v20 的 `.o` 在這次編輯之前就已舊於 Makefile（`61e38c83`），連結仍被凍結守衛擋下 |
+| 2026-10-16 | §17.4 的人工判讀做了：0.2.24 計數的 Rbs／Rdel 12 次都有 2,257–2,262 ms、`rev` 不變的 busy（`findings/evidence/m3-production-ui/RESULT-0.2.24.md`） |
