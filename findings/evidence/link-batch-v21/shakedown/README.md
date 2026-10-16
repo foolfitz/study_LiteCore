@@ -63,3 +63,79 @@ The evidence runs measure the new identity. Everything recorded before it — th
 | profile `e2-editor-v21` | wasm `db3408f5…`, worker `0d55bcfa…` | unchanged (no relink) |
 
 The main session recomputed both pins: the page by `build_cutover_page.py`, the shell digest by `run_merge_wasm_shakedown.digest` over the bundle's modules. It re-pinned `tools/v21_shakedown_common.py` (`EXPECTED`, `EXPECTED_SHELL_DIGEST`); `test_v21_shakedown_common.py` gives 9 OK. The node suite at `712f955a` gives 596/596 and E1-C reads `"intact": true`; both were re-run by the main session.
+
+## 4. Runner and judge changes for spec §12.3 (before any evidence run)
+
+Spec §12.3 (b), (c) and (e) (`e25ccc15`, fable ruling 1) change what the item-1 runner drives and what its judge reads. The changes were made and committed before any evidence run, and no browser was started while making them. The judge was committed red first (`8b9b1b59`), then made green. These are spec-driven changes, not runner-error fixes, so the §34.4 tally does not move: no run was misjudged and no witness is needed.
+
+Tools: `wasm_sdk_probe/tools/run_v21_shakedown_item1.py`, `wasm_sdk_probe/tools/judge_v21_shakedown_item1.py`, and the new unit test `wasm_sdk_probe/tests/test_v21_item1_judge.py` (the item-1 judge had none).
+
+### 4.1 What changed
+
+| # | spec | runner | judge | replaces |
+|---|---|---|---|---|
+| 1 | §12.3 (c), new criterion D14 | new arm `d14` | new clause D14 | — |
+| 2 | §12.3 (b), D11 withdrawn for 22/23 | unchanged (it already records the requests, `#s-checkpoint` and the `beforeunload` read per press) | D11b's dirty half rewritten | `ARMS-item1.md` D11b dirty: "exactly one `save` request before the first move's request, and `#s-checkpoint` becomes 「有（r1）」", and its red case "no checkpoint `save`, or a second one: FAIL" |
+| 3 | §12.3 (e) and §11.0 「第 2 項沒出貨時：頁面沒有入口」 | every arm's start state records the item-2 entry read | new clause E0 | — |
+| 4 | §12.3 (e), the entry is gone | `d6` stays selectable but is recorded as `notRun: "not runnable: item 2 not shipped (spec §12.3 (e))"` and never driven | D6 printed 「未量」 per browser | `ARMS-item1.md` D6's steps (they need the dialog) |
+
+**1. D14.**
+- **Procedure.** Per round, plain3 then long60, each on a fresh load and open: real `Z` at the document start, with its reply awaited (the document is now dirty); the dirty read; real Ctrl+End; real `Q`; then the move's reply, the insert, quiet, an ask, and the product's save.
+- **Reused, not copied.** This is `diag-dirty-move` V1 (plain3) and V4 (long60). The arm imports `diag_v21_dirty_move` and uses its `settle_long` (long60 waits for 60 page rectangles), `timed_keys` (Chrome: CDP presses on the monotonic clock; Firefox: one WebDriver chain with a pause) and `move_tail` (reply, insert, +500 ms ask, quiet, final ask, log, save, saved texts, summary). The report binds the diag tool's sha256.
+- **Departure 1: `Q` is planned 20 ms after Ctrl+End, not 30 ms.** V1/V4 planned 30 ms, and the page saw 30.0–31.0 ms between the keydowns in Chrome and 32.7–34.6 ms in Firefox (every V1/V4 round in `diag-dirty-move/report-*.json`, fixed or not). Against §12.3 (c)'s 「30 ms 內」 most of those rounds would read NOT_ESTABLISHED. The judge reads the gap on the page's own keydown times, so the plan only has to land inside the window.
+- **Departure 2: one added read.** After `Z`, the page's `beforeunload` guard is read (D11b's instrument). A document that does not read dirty has not set up the arm.
+- **Pass, per round:** `Q` is the last character of the last body paragraph, read through the S-7 adapter (`v21_item1_marker.paragraphs_of`). Per fixture this must hold N/N, in both browsers.
+- **The judge's own landing read.** The classes are the words diag's `q_class` printed for V1/V4 ("document end", "pre-move caret", "elsewhere"). The judge does not import the diag tool, which imports the runner and the browser stack.
+- **Recorded, not judged:** the move's completion, its round trip, its reply time after Ctrl+End's keydown, and the request order. After fix 1 no `save` is expected before the move, but D14 judges only the landing.
+- **Foreign CPU:** sampled per round and recorded, not gated. The window is established by the page's own keydown times, and the landing is an ordering property, not a time bound. D-18 A′ named D7, D9 and D10 as the timing-bound arms.
+- **NOT_ESTABLISHED when:** the round is not done; the document did not read dirty, or `Z` was not answered; a keydown is missing; `Q` came ≤ 0 ms or > 30 ms after Ctrl+End; there is no saved document; `Z` is missing from the document start; or a fixture has fewer than N established rounds.
+- **FAIL when:** `Q` is anywhere but the document end, there are 0 or 2+ markers, or the saved document is unreadable (the parser's message is the payload, as in D1).
+
+**2. D11b dirty** (22/23 only; the clean half is unchanged).
+- **Pass:** no `save` request before the second move's request, which covers both before Ctrl+End and before Ctrl+Home; `#s-checkpoint` reads 「無」 after both presses; `dirty` reads true after both.
+- **NOT_ESTABLISHED** when `dirty` reads false after typing (the read is blind, unchanged). Also when fewer than two move requests are in the log, because "no save before a move" would then hold vacuously. That second NE clause is new.
+
+**3. E0.**
+- **What is read.** `Ctx.start_state()` (every arm calls it, including `v21_item1_sdk_arms` and `d14`) reads `ENTRY_READ` once the sink has focus:
+  - `exists`/`hidden` for `#toolbar [data-action="paste-markdown"]` (`checkVisibility`, then a non-zero box);
+  - `visibleOpeners`: every rendered control outside `#markdown-dialog` that names the dialog or Markdown. These are any `[data-action="paste-markdown"]` (the toolbar click handler's only route to `openMarkdownDialog`), `aria-controls`/`commandfor`/`popovertarget` on the dialog, and any button, link or menu item whose text matches `/markdown/i`;
+  - `controlVisible`: the same read on `#toolbar [data-action="undo"]`;
+  - the page variant.
+- **A static read.** Nothing is clicked, so the start state is unchanged.
+- **The judge, per browser:** every report must carry at least one read on the final shell (`v21`, `v21host`, `v21hook`, `v20`). The 0.2.24 page of D8's red case is not the final shell and is skipped.
+  - Any read with the button rendered, or with a visible opener → FAIL.
+  - A read whose control reads not visible (the read is blind), or a done round without the read → NOT_ESTABLISHED.
+  - Otherwise PASS.
+- **Not a new criterion.** It is §12.3 (e)'s 「殼層不提供入口」 read on the evidence runs' own start states. It is in the judge's criterion list, so a FAIL makes the item-1 verdict NOT PASS.
+- **Checked without a browser.** The read was exercised only against a DOM stub in node (hidden, absent, visible, another opener, blind), a scratch check that is not committed. On the tree at `712f955a` the button stays in the DOM with `hidden` forced (`PASTE_MARKDOWN_ENTRY_SHIPS`), which is the `exists: true, hidden: true` shape.
+
+**4. D6.**
+- **Runner.** `arm_d6` and its inputs (the M6 corpus in the mirror, the Firefox clipboard prefs) are removed from the runner. They are in git at `e25ccc15` for the batch that ships item 2.
+- **Judge.** For each browser with no done D6 round, the judge prints `D6 未量 (<why>); default 「未量，不做任何排序宣稱」`, where `<why>` is the report's `notRun` or "no D6 report".
+
+### 4.2 Red first
+
+| step | self-test | what it shows |
+|---|---|---|
+| before (`e25ccc15`) | 63/63 | — |
+| cases added, clauses unchanged (`8b9b1b59`, the witness commit) | 66/79, green baseline **False** | D11b FAILs the §12.3 (b) shape under the withdrawn clause; 12 D14/E0 cases MISSING; the D6 rule NOT RED |
+| the final case list against the `e25ccc15` clauses (scratch rerun) | 59/76, green baseline False (the 7 exit rules not rerun) | adds: the D11b "no move request" case reads FAIL where NE is required; the three later D14 cases MISSING |
+| after | **83/83** | every case reads as required, each on its intended branch (checked by printing each case's verdict line) |
+
+The four new D11b dirty FAIL cases (a save before Ctrl+End, a save before Ctrl+Home, `#s-checkpoint` not 「無」, dirty lost after a move) read FAIL at `8b9b1b59` only because that baseline already FAILs. They are vacuous there and meaningful after.
+
+Red cases added (20 plus one rule):
+- **D11b:** the four above; `NE` for no move request in the log.
+- **D14:** `FAIL` for the marker at the pre-move caret on plain3 and on long60, and for an unreadable saved document. `NE` for a missing save, zero rounds, a fixture's rounds missing, the marker 30.5 ms after Ctrl+End, the marker keydown before Ctrl+End's, the document not dirty, the dirtying `Z` absent, and no keydown on the page.
+- **E0:** `FAIL` for the entry visible in a report and for another visible opener. `NE` for a report with no entry read and for the read being blind.
+- **Rule:** D6 skipped (chrome) or absent (firefox) is printed 「未量」 for both browsers.
+
+`python3 -m unittest discover -s tests -p 'test_v21_*.py'` in `wasm_sdk_probe/`: 94 tests, OK.
+- The new `test_v21_item1_judge.py` runs the self-test and checks that every criterion has a red case, and that D14, E0 and D11b-dirty each have a FAIL case and an NE case.
+- It also checks that the runner and the judge agree: D6's `notRun` text, D14's fixtures, and the 20 ms plan inside the 30 ms window.
+- One run during this work went red on `test_v21_shakedown_common` (`pageServed`/`shellDigest` false). `712f955a` had moved the page before `f5f60ac1` re-pinned it. It does not import these tools, and it gives 9 OK after the re-pin.
+
+### 4.3 For the evidence run
+
+- **The page to pass.** The judge's `--expect-page` is `605cf24b3dff5a2de1d219ee59e79adc92048e46436d098b7c7a3d837761fa0f` (§3). The judge's own `PAGE_V21` constant is the old pin and is used only by its self-test's synthetic reports.
+- **The arm list.** It now includes `d14` (`--rounds 3` gives 3 rounds per fixture, 6 per browser). `d6` may be listed or left out; either way the judge prints 「未量」.
