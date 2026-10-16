@@ -63,7 +63,10 @@ def judge_d2(record: dict, red: bool = False) -> tuple[str, str]:
         return NE, f"no arm record: {str(record.get('fatal'))[:120]}"
     resp = responses(record)
     backspace = next((r for r in resp if str(r.get("action") or "").startswith("delete")), None)
-    move = next((r for r in resp if str(r.get("action") or "").startswith("move-document-")), None)
+    # The probe summarises only from the Backspace on (probe_10_14n.py:397, :400), so Ctrl+Home's move is
+    # read from the probe's whole instrument log (§34.4 witness: smoke/witness-item1/).
+    full = record.get("fullLog") or []
+    move = next((e for e in full if e.get("k") == "rs" and str(e.get("action") or "").startswith("move-document-")), None)
     if backspace is None:
         return NE, "no Backspace response"
     if red:
@@ -138,6 +141,7 @@ def run_nohost(args, probe) -> dict:
                 time.sleep(0.6)
                 record["nudgeSettled"] = probe.settle(session, 1.0, 30)
                 probe.arm_backspace(session, args.browser, record, "ctrl-home")
+                record["fullLog"] = [e for e in probe.log_from(session, 0) if e.get("k") in ("rq", "rs", "kd")]
                 saved = er.save(session)
                 record["compare"] = {"saved": saved is not None}
                 if saved is not None:
@@ -173,8 +177,8 @@ def run_host(args, probe) -> dict:
 
 def self_test() -> int:
     good = {"summary": {"editorResponses": [
-        {"action": "move-document-start", "completion": "documented-callback-visible-cursor"},
         {"action": "delete-backward", "completion": "verified-boundary-noop", "changed": False, "rev": 0, "beforeRev": 0}]},
+        "fullLog": [{"k": "rs", "action": "move-document-start", "completion": "documented-callback-visible-cursor"}],
         "compare": {"savedEqualsOpened": True, "controlDiffers": True}}
     red_good = {"summary": {"editorResponses": [
         {"action": "delete-backward", "completion": "verified-selection-delete", "changed": True, "rev": 1, "beforeRev": 0}]}}
@@ -190,13 +194,14 @@ def self_test() -> int:
         return record
     cases.append(("green", judge_d2(good)[0] == PASS))
     cases.append(("Backspace answered verified-selection-delete -> FAIL",
-                  judge_d2(mutate(good, ["summary", "editorResponses", 1, "completion"], "verified-selection-delete"))[0] == FAIL))
-    cases.append(("revision advanced -> FAIL", judge_d2(mutate(good, ["summary", "editorResponses", 1, "rev"], 1))[0] == FAIL))
+                  judge_d2(mutate(good, ["summary", "editorResponses", 0, "completion"], "verified-selection-delete"))[0] == FAIL))
+    cases.append(("revision advanced -> FAIL", judge_d2(mutate(good, ["summary", "editorResponses", 0, "rev"], 1))[0] == FAIL))
     cases.append(("saved text differs -> FAIL", judge_d2(mutate(good, ["compare", "savedEqualsOpened"], False))[0] == FAIL))
-    cases.append(("no Backspace response -> NE",
-                  judge_d2(mutate(good, ["summary", "editorResponses"], good["summary"]["editorResponses"][:1]))[0] == NE))
-    cases.append(("no move-document-start on v21 -> FAIL",
-                  judge_d2(mutate(good, ["summary", "editorResponses"], good["summary"]["editorResponses"][1:]))[0] == FAIL))
+    cases.append(("no Backspace response -> NE", judge_d2(mutate(good, ["summary", "editorResponses"], []))[0] == NE))
+    cases.append(("no move-document-start on v21 -> FAIL", judge_d2(mutate(good, ["fullLog"], []))[0] == FAIL))
+    cases.append(("the move only in the Backspace summary (the witness's shape) is not enough -> FAIL",
+                  judge_d2(mutate(mutate(good, ["fullLog"], []), ["summary", "editorResponses"],
+                                  [{"action": "move-document-start"}] + good["summary"]["editorResponses"]))[0] == FAIL))
     cases.append(("positive control not different -> NE", judge_d2(mutate(good, ["compare", "controlDiffers"], False))[0] == NE))
     cases.append(("0.2.24 red present -> red", judge_d2(red_good, red=True)[0] == FAIL))
     cases.append(("0.2.24 not red -> NE", judge_d2(good, red=True)[0] == NE))
