@@ -44,7 +44,18 @@
 
 ### 3.2 Markdown
 
-（**待原生量測回來後補**：`findings/evidence/link-batch-v21/native/markdown-paste/`。本節寫完之前，第 4.2 節與 M 判準不定稿。）
+原生量測（**已觀察**，`findings/evidence/link-batch-v21/native/markdown-paste/`，152 個 process，每臂 3/3；安裝與 WASM 核心同一個 commit `671c848b`）：
+
+- **每一種構造都會轉**：標題 1–3、粗體、斜體、行內程式碼、程式碼區塊、巢狀與編號清單、3×2 GFM 表格、連結、引言、水平線、中日韓、複雜文字、`data:` 圖片（嵌入）、遠端圖片（保留為連結圖片）。紅案 C1（同一段文字用 `text/plain` 貼）照字面留著。
+- **一次貼上＝一個 Undo 動作**（`Paste clipboard`），一次 `.uno:Undo` 還原，152/152，範圍也一樣。
+- **`paste()` 152/152 回 true，空輸入也一樣**：空輸入不改文件，但仍然多一個 Undo 動作、送 `.uno:ModifiedStatus=true`。
+- **位置**（Writer 的行為，也是 cool#15535 上游測試的意圖）：段首貼上→變成前面的新段落，原段落不動；段中貼上→原段落被切開，**第一個區塊併進左半、失去自己的格式**（標題變本文、清單項不再是清單）；選取上貼上→先取代選取，再照段中；項目符號段首→併進那個清單。
+- **編碼**：位元組旗標用執行緒的 codeset 解碼：`zh_TW.UTF-8` 與 `C.UTF-8` 正確，`LANG=C` 變成亂碼（ISO-8859-1）；`charset=` 參數被忽略。**WASM 上推論是 UTF-8**（讀原始碼，未量）：Emscripten 把 `LANG` 設成 `<navigator.language>.UTF-8`（v20 的 `probe.js` 帶這個預設，位元組搜尋），LibreOffice 從不呼叫 `setlocale`，musl 的 `nl_langinfo(CODESET)` 除了剛好是 `C`／`POSIX` 之外都回 `UTF-8`。
+- **遠端圖片在 `paste()` 裡面就去抓**：OPTIONS 再 GET；對一個接受連線卻不回應的伺服器，`paste()` 卡 5,003 ms（UcbLockBytes 的 5 秒逾時）。核心的開關 `BlockUntrustedRefererLinks`（`unotools/source/config/securityoptions.cxx:162-167`、`swmd.cxx:71-80`）是全域的，連開啟文件裡的連結圖片也會擋。WASM 上會怎樣：未量（`probe.wasm` 帶 WebDAV／curl 的路徑，位元組搜尋）。
+- **空輸入原生不會卡**：Writer 建了錯誤對話框，但沒有 LOK notifier，`Dialog::ImplStartExecute` 回 0。Collabora 在大小 0 時直接跳過（`ChildSession.cpp:1887`）。
+- **`[[頁面]]`** 變成 `https://zxx.wikipedia.org/…`（沒有 `Language=`，LOK 的語言標籤是空的）。
+- **`**粗體中文**` 只有西文字重是粗的**：存檔只有 `fo:font-weight`，沒有 `style:font-weight-asian`。讀原始碼確認：`mdcallbcks.cxx` 的 `MD_SPAN_STRONG` 只放 `RES_CHRATR_WEIGHT`、`MD_SPAN_EM` 只放 `RES_CHRATR_POSTURE`，整個 `sw/source/filter/md/` 沒有任何 CJK／CTL 的字重或斜體。所以中文的粗體、斜體不會顯示（顯示未量）。**上游缺陷**，登錄成 finding。
+- **大小與時間**：145 位元組以內 1–8 ms；16.6 KB 81–111 ms；262 KB 3.0–3.1 s，外加 40,268 個 a11y 的 `CORE_LOG` 回呼。
 
 讀原始碼已知的部分（事實整理 markdown-cfield ITEM 1）：
 
@@ -82,7 +93,22 @@
 
 ### 4.2 貼上為 Markdown（第 2 項）
 
-（**待原生量測回來後補**。草案方向，未定：文件層匯出 `oxsdk_document_paste_markdown`，以 manifest 宣告閘控，比照 `redo`、`pageRectangles`——不佔 wire id、編輯器 ABI 不因它而動；頁面入口與剪貼簿讀法依原生與瀏覽器量測決定。）
+- **形狀：文件層匯出**，不是編輯動作。`oxsdk_document_paste_markdown(requestId, documentHandle, utf8, utf8Length)`，回覆形狀比照 `insert-text`。以 manifest 的 `editorContract.pasteMarkdown = "document-sdk-paste-markdown"` 閘控，比照 `pageRectangles`：產生器旗標 `--paste-markdown`，除非匯出表有這個符號否則拒絕；worker 照 `documentExportDeclared` 擋；SDK 的 `DocumentHandle.pasteMarkdown(text)` 沒宣告就丟 `UNSUPPORTED_OPERATION`。不佔 wire id，不需要 gesture（範圍上原生就是先取代、一個 Undo）。
+- **引擎**：
+  - **送出前拒絕**：去掉空白後是空字串 → `INVALID_ARGUMENT`，不派送（原生：空輸入會多一個什麼都不還原的 Undo，而且 `paste()` 照樣回 true）。超過 **64 KiB**（UTF-8）→ `INVALID_ARGUMENT`。
+  - 呼叫 `paste(document, "text/markdown;charset=utf-8", …)`；mimetype 寫死在引擎裡，JS 不能選。
+  - **後置條件（不信 `paste()` 的回傳）**：派送前後各讀一次 `.uno:Undo`（`readMergeUndoPayload`），**整份內容不同**且之後至少一個動作（`summarizeUndoPayload`）才算完成，revision +1；否則回錯，revision 不動。沿用 merge 的判法（`merge_key_undo.hpp:391-421`），Undo 數量到上限時也成立。
+  - 不 fallback 成逐字打字（`handleInsertText` 的 `postKeyEvent` 退路不適用：那會把 Markdown 原文打進去）。
+- **遠端圖片**：不改核心設定（全域、也會擋開啟文件裡的連結圖片）。WASM 上先量（M5）；量出來會卡就照 M5 的預設處理。
+- **SDK／client／session**：`NarrowEditorV2Session.pasteMarkdown(text)` 以**變更**排進同一個佇列（與 `insertText` 同類）；`editor-shell/`（E1-C）不動。頁面的刪除帳（141／144／145）不計它。
+- **頁面入口（第 8 節 Q1，擁有者決定；草案用 A）**：
+  - **A（推薦）**：工具列按鈕「貼上為 Markdown…」開一個對話框，裡面一個文字框；使用者在框裡按 Ctrl+V（一般的貼上，不需要剪貼簿權限）、按「插入」送出。兩個瀏覽器行為一樣，送出前看得到要轉的文字。
+  - **B**：按鈕直接 `navigator.clipboard.readText()` 讀剪貼簿送出。Chrome 第一次會跳權限詢問；Firefox 每次都要再按一下它的「貼上」浮鈕。少一步，但兩個瀏覽器不一樣，而且要量宿主路由上的權限行為。
+- **具名限制**：
+  - **L-md-merge**：段中或選取上貼上時，第一個區塊併進原段落、失去自己的格式（Writer 的行為，原生已觀察）。
+  - **L-md-cjk-bold**：`**中文**`／`*中文*` 的中日韓與複雜文字不會變粗／斜（上游缺陷，見 3.2）。
+  - **L-md-wikilink**：`[[頁面]]` 連到 `zxx.wikipedia.org`。
+  - **L-md-noop-input**：非空白、但 md4c 什麼都不產生的輸入（例如只有 HTML 註解）仍算一次貼上：revision +1、一個什麼都不還原的 Undo。
 
 ### 4.3 宣告 C（第 3 項）
 
@@ -109,7 +135,14 @@
 - **D3（邊界上不卡，逐瀏覽器）**：游標已在文件開頭按 Ctrl+Home、已在結尾按 Ctrl+End：以 `verified-move-readback` 完成，`changed: false`，回覆在 1000 ms 之內，session 不進 `recoverable-error`。**若沒做**：同 D1。
 - **D4（範圍）**：單段與跨段選取上按 Ctrl+Home／End：頁面走 `moveFromPoint`，最終標記位置等於原生的 `r-*` 臂。**若沒做**：範圍上不綁（頁面在範圍上不攔這兩個鍵），登錄。
 - **D5（沒有這個動作的 profile 不攔鍵）**：殼層 v74 的頁面載 v20 的 profile 時，Ctrl+Home 不被 `preventDefault`（單元測試，假 manifest）。**若沒做**：v74 不得與 v20 搭配出貨。
-- **M1–Mn（貼上為 Markdown）**：待 4.2 定稿後寫。**若沒做**：第 2 項不出貨，manifest 不宣告、頁面沒有入口；引擎可以帶著匯出出貨（比照「出貨但扣住」）。
+- **M1（構造＝原生，逐構造，工具封閉）**：Markdown 原生回合 P1 的每一個語料項（清單由工具從 `tool/corpus/` 產生；M11 系列由 M5 管、M13 由 M3 管），在 v21 上由產品頁的入口貼到空文件開頭、存檔，`md_structure.py` 的結構摘要等於原生同一項（`--compare` 印 SAME）。**若沒做**：第 2 項不出貨——manifest 不宣告 `pasteMarkdown`、頁面沒有入口；引擎帶著匯出出貨（等於扣住）。
+- **M2（中日韓在 WASM 上不亂碼，逐瀏覽器）**：M8 在 v21 上的存檔文字等於原生 `zh_TW.UTF-8` 的（`標題 粗體中文 第一項 第二項 第三項`）。這一條直接驗 3.2 的 UTF-8 推論。**若沒做或紅**：同 M1，另立 finding。
+- **M3（拒絕不派送）**：空字串、只有空白、超過 64 KiB：回 `INVALID_ARGUMENT`、revision 不變、Undo 內容不變（引擎讀回）。**若沒做**：同 M1。
+- **M4（一次 Undo 還原，逐位置）**：P1、P3、P4、P6 各一臂：貼上之後一次 Undo，存檔文字等於貼上前。**若沒做**：同 M1。
+- **M5（遠端圖片不卡）**：在 v21 上貼 M11（連線被拒）與 M11c（接受連線、永不回應的本機伺服器）：回覆在 **6,000 ms** 之內、session 不進 `recoverable-error`。**若紅**：頁面在送出前把非 `data:` 的圖片語法改寫成連結（`![alt](url)` → `[alt](url)`，保守比對，程式碼區塊裡的也會被改，登錄為 L-md-image-rewrite），然後重跑 M5 與 M1 的圖片項。
+- **M6（大小）**：64 KiB 的決定性語料（工具產生）在 v21 上完成、一次 Undo 還原，記下時間。**若超過 10 s**：上限照預先寫好的規則降成 16 KiB，M6 重跑。
+- **M7（Ctrl+V 不變）**：產品路徑網的 `ctrl-v-reaches-the-document` 照舊恰好一個標記；另加一臂：Ctrl+V 貼 C1 的文字，存檔照字面（有 `#`、有 `**`）。**若沒做**：v21 不出貨（這是既有功能的回歸）。
+- **M8（沒宣告的 profile 沒有入口）**：載 v20 的 profile 時頁面沒有「貼上為 Markdown」按鈕（單元測試，假 manifest）；SDK 呼叫丟 `UNSUPPORTED_OPERATION`。**若沒做**：v74 不得與 v20 搭配出貨。
 - **C1（產生器）**：v19 的 wasm（`1aafd4f9…`，沒有那個字串）加 `--boundary-noop` → 拒絕；v20 的 wasm 加旗標 → 欄位寫入；不加旗標 → 沒有欄位。三個都在單元測試裡。**若沒做**：v21 不宣告 C，四支工具照舊。
 - **I1（身分）**：X1 對 v20 印 `VERDICT PASS`，差異**恰好**是宣告的那些（wasm、loader、worker 雜湊；`abiVersion` 4→5；兩個新動作；`boundaryNoop`；4.2 的宣告與匯出），沒有沒宣告的差異。v8、v15、v18、v19、v20 的十六＋四個雜湊與連結前相同。`ScDocShell` 0 次。M1-1 兩次都 exit 0。E1-C `intact: true`。**若沒做**：v21 不綁定。
 - **K（計數）**：計數鏈在最終位元組上成立（J-a.2 的讀法）。**若沒做**：本批是未計數候選，名義出貨版本停在 0.2.24。
@@ -124,7 +157,8 @@
 
 ## 8. 開放問題
 
-- **Q1**：4.2 的形狀與頁面入口（待 Markdown 量測）。
+- **Q1（擁有者）**：貼上為 Markdown 的入口用 4.2 的 A（對話框＋文字框）還是 B（直接讀剪貼簿）。草案用 A。
+- **Q4**：64 KiB 的上限是估的（原生 16.6 KB 約 0.1 s、262 KB 約 3 s；WASM 未量），M6 量了才知道夠不夠寬。
 - **Q2**：D1 的「本文可達」由誰判——建議由 `arms.json` 的 fixture 種類機械地決定（`hf-*`、`sec-*` 不可達），不逐臂人判。
 - **Q3**：Ctrl+Home 之後緊接 Backspace，在 WASM 上是否依序（unipoll 推論是）。D2 直接量它；若不依序，是 finding 137 的同一類，不是本批的新類。
 
@@ -133,3 +167,4 @@
 | 日期 | 內容 |
 |---|---|
 | 2026-10-16 | 草稿（opus，主 session）：第 1、3（Markdown 除外）、4.1、4.3、4.4、5 的 D／C1／I1／K。Markdown（3.2、4.2、M 判準）待原生量測。 |
+| 2026-10-16 | 補 Markdown（主 session）：3.2 寫入原生量測；4.2 定形狀（文件層匯出＋宣告閘控、送出前拒絕空白與超過 64 KiB、以 `.uno:Undo` 整份內容改變當後置條件、四個具名限制）；M1–M8；Q1 改成擁有者的入口選擇、加 Q4。 |

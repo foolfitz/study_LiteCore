@@ -1,0 +1,36 @@
+        case MD_BLOCK_THEAD:
+        case MD_BLOCK_TBODY:
+            break;
+        case MD_BLOCK_TR:
+        case MD_BLOCK_TH:
+            break;
+        case MD_BLOCK_TD:
+            break;
+    }
+    return 0;
+}
+
+int SwMarkdownParser::enter_span_callback(MD_SPANTYPE type, void* detail, void* userdata)
+{
+    SwMarkdownParser* parser = static_cast<SwMarkdownParser*>(userdata);
+    std::unique_ptr<SfxPoolItem> pItem;
+    switch (type)
+    {
+        case MD_SPAN_EM:
+            pItem.reset(new SvxPostureItem(ITALIC_NORMAL, RES_CHRATR_POSTURE));
+            break;
+        case MD_SPAN_STRONG:
+            pItem.reset(new SvxWeightItem(WEIGHT_BOLD, RES_CHRATR_WEIGHT));
+            break;
+        case MD_SPAN_A:
+        {
+            const MD_SPAN_A_DETAIL* pHyperlinkDetail = static_cast<const MD_SPAN_A_DETAIL*>(detail);
+            const MD_ATTRIBUTE& rHref = pHyperlinkDetail->href;
+            OUString aURL = rtl::OStringToOUString(std::string_view(rHref.text, rHref.size),
+                                                   RTL_TEXTENCODING_UTF8);
+            aURL = INetURLObject::GetAbsURL(parser->m_sBaseURL, aURL);
+            pItem.reset(new SwFormatINetFormat(aURL, OUString()));
+            break;
+        }
+        case MD_SPAN_IMG:
+        {
