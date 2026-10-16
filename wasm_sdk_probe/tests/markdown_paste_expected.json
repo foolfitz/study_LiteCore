@@ -1,0 +1,672 @@
+{
+  "fixture": "M0 of specs/SPEC-M3-link-batch-v21.md section 11.2 (pinned at 523871fa), as amended by section 12.1 (3d9ca3a4): the expected pre-dispatch verdict of every corpus item, written before any scanner code exists.",
+  "corpus": "tests/markdown_paste_corpus/ -- round-1/ and round-2/ are byte copies of the two native rounds' corpora (copiedFrom; both rounds' SHA256SUMS verify); m0/ holds the items spec 11 M0 adds (NUL, invalid UTF-8, List<T>, task list, entities, parse failure), X13 (rule order), and X15-X17 (the RFC 3629 classes spec 12.1 names). Every file has exactly one item below, and every item one file. 'content' (m0 items only) is the file's bytes as a Python bytes literal.",
+  "rules": {
+    "source": "spec 9.14 (three scan rules), 10.4 (NUL, encoding, md_parse failure), 12.1 (valid UTF-8; labels TOO_LARGE and INVALID_UTF8; PARSE_FAIL by injection), and the task brief's 'Engine reply' (handoff/tasks/TASK-2026-10-16-v21-implementation.md), which fixes the order.",
+    "order": [
+      "NUL",
+      "INVALID_UTF8",
+      "TOO_LARGE",
+      "PARSE_FAIL",
+      "NO_BLOCK",
+      "REMOTE",
+      "HTML",
+      "PASS"
+    ],
+    "orderNote": "First rule that fires gives the verdict. NUL, INVALID_UTF8, TOO_LARGE, PARSE_FAIL and NO_BLOCK are all INVALID_ARGUMENT (code 1). Codes 2 (MARKDOWN_ENCODING_UNSUPPORTED) and 3 (MARKDOWN_NEEDS_CARET) come between code 1 and REMOTE in the engine but are not properties of the bytes: every verdict here assumes a UTF-8 thread encoding and a collapsed caret. NO_BLOCK and REMOTE/HTML can never both hold (an image span or HTML needs a block), so only REMOTE-before-HTML is an observable order; X13 pins it.",
+    "verdicts": {
+      "NUL": {
+        "code": "INVALID_ARGUMENT",
+        "when": "a byte 0x00 anywhere in the input"
+      },
+      "INVALID_UTF8": {
+        "code": "INVALID_ARGUMENT",
+        "when": "the input is not valid UTF-8 by RFC 3629: an overlong form, a surrogate (U+D800-U+DFFF), a value above U+10FFFF, a byte that cannot start a sequence, or a truncated sequence"
+      },
+      "TOO_LARGE": {
+        "code": "INVALID_ARGUMENT",
+        "when": "more than 65,536 bytes (the engine's hard limit)"
+      },
+      "PARSE_FAIL": {
+        "code": "INVALID_ARGUMENT",
+        "when": "md_parse returns non-zero; no input bytes cause it in md4c 0.5.3, so it is produced by allocation-failure injection in the native model test only (item field 'inject')"
+      },
+      "NO_BLOCK": {
+        "code": "INVALID_ARGUMENT",
+        "when": "md4c enters no block other than MD_BLOCK_DOC"
+      },
+      "REMOTE": {
+        "code": "MARKDOWN_REMOTE_IMAGE",
+        "when": "any MD_SPAN_IMG whose src does not start with \"data:\", compared case-insensitively"
+      },
+      "HTML": {
+        "code": "MARKDOWN_HTML_UNSUPPORTED",
+        "when": "any MD_BLOCK_HTML or MD_TEXT_HTML"
+      },
+      "PASS": {
+        "code": null,
+        "when": "no rule fires; the engine dispatches"
+      }
+    },
+    "dispatched": "false for every verdict except PASS"
+  },
+  "parser": {
+    "md4c": "0.5.3, wasm-lite/build-headless-probe/workdir/UnpackedTarball/md4c/src (md4c.c sha256 f12907817a17ae7d0f6c8d18770df839f187cad5649dd36a475dba0675c5c1f8, md4c.h 4efd19bf7ec270691d5b4189f496886e421768a814b5e817eb945aa85e859f18), byte-identical in all three core trees (round 2 T3)",
+    "flags": "MD_DIALECT_GITHUB | MD_FLAG_WIKILINKS = 0x2f0c (libreoffice-26-8 sw/source/filter/md/swmd.cxx:950-958)",
+    "facts": "Each item's 'rule' text states the deciding fact as round 2's harness reports it (findings/evidence/link-batch-v21/native/markdown-paste/round-2/tool/md4c_scan.c, rebuilt in scratch with the README's command; binary sha256 49495bc0e2d12dad944283caa42deb2c0316d2a0a4c84a2dcc010630d9e65cff, the same as round 2 recorded). The verdicts were written by hand from the rules and cross-checked against a mechanical reading of those facts: 0 disagreements."
+  },
+  "mutations": {
+    "note": "Informative, computed from the same facts: the items whose verdict each of M0's four red mutations (spec 11.2's three plus 12.1's 'UTF-8 rule removed') changes, the mutated rule keeping its own verdict label (rule 3 replaced by the old 9.3 no-text rule still answers NO_BLOCK). The model test must show each mutation red.",
+    "rule-1-case-sensitive": [
+      "round-2/S15-uppercase-DATA.md: PASS -> REMOTE"
+    ],
+    "rule-2-removed": [
+      "m0/X08-angle-generic.md: HTML -> PASS",
+      "round-2/H1-comment-only.md: HTML -> PASS",
+      "round-2/H2-html-block-img.md: HTML -> PASS",
+      "round-2/H3-inline-html-img.md: HTML -> PASS",
+      "round-2/H4-inline-img-then-block.md: HTML -> PASS",
+      "round-2/H5-html-block-img-sized.md: HTML -> PASS",
+      "round-2/H6-html-link-stylesheet.md: HTML -> PASS",
+      "round-2/H7-text-then-html-block-img.md: HTML -> PASS"
+    ],
+    "rule-3-replaced-by-old-no-text": [
+      "round-2/H1-comment-only.md: HTML -> NO_BLOCK",
+      "round-2/H2-html-block-img.md: HTML -> NO_BLOCK",
+      "round-2/H5-html-block-img-sized.md: HTML -> NO_BLOCK",
+      "round-2/H6-html-link-stylesheet.md: HTML -> NO_BLOCK",
+      "round-2/N1-rule-only.md: PASS -> NO_BLOCK",
+      "round-2/S12-image-in-link.md: REMOTE -> NO_BLOCK",
+      "round-2/S14-empty-alt-data.md: PASS -> NO_BLOCK",
+      "round-2/S15-uppercase-DATA.md: PASS -> NO_BLOCK"
+    ],
+    "utf8-rule-removed": [
+      "m0/X05-invalid-utf8-latin1-byte.md: INVALID_UTF8 -> PASS",
+      "m0/X06-invalid-utf8-truncated.md: INVALID_UTF8 -> PASS",
+      "m0/X07-invalid-utf8-label-mismatch.md: INVALID_UTF8 -> PASS",
+      "m0/X15-invalid-utf8-overlong.md: INVALID_UTF8 -> PASS",
+      "m0/X16-invalid-utf8-surrogate.md: INVALID_UTF8 -> PASS",
+      "m0/X17-invalid-utf8-above-10ffff.md: INVALID_UTF8 -> PASS"
+    ]
+  },
+  "items": [
+    {
+      "path": "m0/X01-nul-middle.md",
+      "bytes": 14,
+      "sha256": "4904f3169be6014f027a68c92417386ba0e62de450365f71d16f8ef29d3c0b9d",
+      "content": "b'Before\\x00after.\\n'",
+      "verdict": "NUL",
+      "rule": "0x00 at byte offset 6 (1 in all)",
+      "note": "Spec 10.4: a 0x00 anywhere is refused."
+    },
+    {
+      "path": "m0/X02-nul-trailing.md",
+      "bytes": 11,
+      "sha256": "85f4a39aa4f0a7363f99244fee62c71350b180e48fe5c08158cbc0cf0b814fef",
+      "content": "b'# Heading\\n\\x00'",
+      "verdict": "NUL",
+      "rule": "0x00 at byte offset 10 (1 in all)",
+      "note": "Writer strips trailing 0x00 (vcl transfer.cxx:1510-1515) and would paste the heading; the rule refuses any 0x00."
+    },
+    {
+      "path": "m0/X03-nul-suffixed-reference.md",
+      "bytes": 45,
+      "sha256": "93faf2addc881892f87b6ac190684812ce90aae025493f103472b2beb5962028",
+      "content": "b'![a][r]\\n\\n[r]: http://127.0.0.1:18765/x03.png\\x00'",
+      "verdict": "NUL",
+      "rule": "0x00 at byte offset 44 (1 in all)",
+      "note": "Review 2 opus A1; M5's NUL-suffixed reference. On these bytes md4c ends the destination at the control character, so there is no definition and no image: without the NUL rule the scan would PASS it. On the NUL-stripped bytes Writer parses, md4c reports one non-data MD_SPAN_IMG [OBS, md4c harness]; that Writer then fetches is [INF] (S03's path), not run."
+    },
+    {
+      "path": "m0/X04-nul-only.md",
+      "bytes": 1,
+      "sha256": "6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d",
+      "content": "b'\\x00'",
+      "verdict": "NUL",
+      "rule": "0x00 at byte offset 0 (1 in all)",
+      "note": "Review 2 codex's minimal case: the scan sees a paragraph (MD_TEXT_NULLCHAR); Writer sees empty input."
+    },
+    {
+      "path": "m0/X05-invalid-utf8-latin1-byte.md",
+      "bytes": 14,
+      "sha256": "7e5d0c397c75859c7d85fb19323a46693af9125add39f47d2c3f385f4762e9bc",
+      "content": "b'Caf\\xe9 au lait.\\n'",
+      "verdict": "INVALID_UTF8",
+      "rule": "not valid UTF-8 (RFC 3629): invalid continuation byte at byte offset 3",
+      "note": "0xE9 (a Latin-1 e-acute) followed by a space: a 3-byte lead cut short. Spec 12.1. Without the rule md4c reports a paragraph (PASS); Writer would parse U+FFFD in its place [SRC]."
+    },
+    {
+      "path": "m0/X06-invalid-utf8-truncated.md",
+      "bytes": 8,
+      "sha256": "b5f1b3724c0e35780f4fba463980cd82c53cbe3cfc559c4df3e70d01165cc81c",
+      "content": "b'\\xe4\\xb8\\xad\\xe6\\x96\\x87\\xe4\\xb8'",
+      "verdict": "INVALID_UTF8",
+      "rule": "not valid UTF-8 (RFC 3629): unexpected end of data at byte offset 6",
+      "note": "UTF-8 for two CJK characters, then a 3-byte sequence truncated at the end of the input. Spec 12.1."
+    },
+    {
+      "path": "m0/X07-invalid-utf8-label-mismatch.md",
+      "bytes": 45,
+      "sha256": "54212710a02b12799ee7cce4a7a5e6f412930571d9b4afa61e782c2cb5b562d1",
+      "content": "b'![a][\\xff]\\n\\n[\\xfe]: http://127.0.0.1:18765/x07.png\\n'",
+      "verdict": "INVALID_UTF8",
+      "rule": "not valid UTF-8 (RFC 3629): invalid start byte at byte offset 5",
+      "note": "The item that forced spec 12.1. Without the UTF-8 rule the raw-byte scan PASSes it: md4c reads the labels [0xFF] and [0xFE] as U+00FF and U+00FE, which differ, so there is no image. Writer decodes invalid UTF-8 to U+FFFD (rtl_string2UString with OSTRING_TO_OUSTRING_CVTFLAGS, sal/textenc/converter.cxx:66-74), so both labels become [U+FFFD] and match; on those bytes md4c reports one MD_SPAN_IMG with src http://127.0.0.1:18765/x07.png [OBS, md4c harness]. The native fetch is [INF], not run."
+    },
+    {
+      "path": "m0/X08-angle-generic.md",
+      "bytes": 18,
+      "sha256": "3fc3ed5dc90369a71c4f1488b4b85910d182027af5d6f490cce0b9c37b7f8924",
+      "content": "b'Use List<T> here.\\n'",
+      "verdict": "HTML",
+      "rule": "MD_BLOCK_HTML x0, MD_TEXT_HTML x1",
+      "note": "List<T> outside code is raw inline HTML to md4c (spec 10.4, L-md-no-html extended)."
+    },
+    {
+      "path": "m0/X09-angle-generic-inline-code.md",
+      "bytes": 20,
+      "sha256": "78c03b1922ce674447fd2ebc28f6eff9b84b5784d7784f92d5d1467621e5bd73",
+      "content": "b'Use `List<T>` here.\\n'",
+      "verdict": "PASS",
+      "rule": "no rule fires: blocks P x1; no MD_SPAN_IMG; no raw HTML",
+      "note": "Control for X08: the same inside inline code is not HTML."
+    },
+    {
+      "path": "m0/X10-angle-generic-fenced.md",
+      "bytes": 23,
+      "sha256": "97f110185d9fe48387210e95f368b82f5bac320ad020eba4010a84f17d0fa6ec",
+      "content": "b'```\\nList<T> items;\\n```\\n'",
+      "verdict": "PASS",
+      "rule": "no rule fires: blocks CODE x1; no MD_SPAN_IMG; no raw HTML",
+      "note": "Control for X08: the same inside a fenced code block is not HTML."
+    },
+    {
+      "path": "m0/X11-task-list.md",
+      "bytes": 22,
+      "sha256": "f6b1e242c13e478640b0c41428426568188f879a1a1eccaaeca060b529c1fa07",
+      "content": "b'- [ ] todo\\n- [x] done\\n'",
+      "verdict": "PASS",
+      "rule": "no rule fires: blocks UL x1, LI x2; no MD_SPAN_IMG; no raw HTML",
+      "note": "GFM task list (MD_FLAG_TASKLISTS is in MD_DIALECT_GITHUB); pasted, L-md-task-checkbox."
+    },
+    {
+      "path": "m0/X12-entities.md",
+      "bytes": 37,
+      "sha256": "54ce70ac26c0710015d7158541597ab302bd3646c82339a7fe6231f5ee7a6284",
+      "content": "b'AT&amp;T &lt;tag&gt; &#169; &#x4E2D;\\n'",
+      "verdict": "PASS",
+      "rule": "no rule fires: blocks P x1; no MD_SPAN_IMG; no raw HTML",
+      "note": "Entities are MD_TEXT_ENTITY, not raw HTML (&lt;tag&gt; included); pasted, L-md-entities (finding 149)."
+    },
+    {
+      "path": "m0/X13-remote-image-and-inline-html.md",
+      "bytes": 53,
+      "sha256": "10ca22a4dfe9e4f2eedd17d4d8a7d23a982d14cb15e9b94568e0bca5a06c25f6",
+      "content": "b'![r](http://127.0.0.1:18765/x13.png) and <b>bold</b>\\n'",
+      "verdict": "REMOTE",
+      "rule": "MD_SPAN_IMG x1, 1 with a src not starting with data: (case-insensitive): http://127.0.0.1:18765/x13.png",
+      "note": "Added beyond spec 11 M0's list: pins the task brief's order, MARKDOWN_REMOTE_IMAGE (4) before MARKDOWN_HTML_UNSUPPORTED (5). md4c reports both an MD_SPAN_IMG and MD_TEXT_HTML."
+    },
+    {
+      "path": "m0/X14-parse-fail-injected.md",
+      "bytes": 17,
+      "sha256": "3f468ef0dde323a1504435da3aa02d387fc1e9f4f1475b5b3323112017806714",
+      "content": "b'# Heading\\n\\nText.\\n'",
+      "verdict": "PARSE_FAIL",
+      "inject": "allocation-failure",
+      "verdictWithoutInjection": "PASS",
+      "rule": "md_parse returns non-zero (injected: allocation-failure)",
+      "note": "md4c 0.5.3's md_parse returns non-zero only when malloc/realloc fails or a callback returns non-zero (md4c.c:418-495, :1039-1043, :5009-5011); the reference-definition output cap (:2333-2340) only stops resolving. No input bytes make it fail, so the model test fails every allocation inside md_parse for this item. Feasibility checked natively: md4c.c linked with -Wl,--wrap=malloc,--wrap=realloc returns -1 for these bytes and 0 without the injection."
+    },
+    {
+      "path": "m0/X15-invalid-utf8-overlong.md",
+      "bytes": 13,
+      "sha256": "d458c5c67c1d0c4722eecf6d863d50d004d88ae5b2fc32a9b3c97d6e7029a682",
+      "content": "b'Slash\\xc0\\xafhere.\\n'",
+      "verdict": "INVALID_UTF8",
+      "rule": "not valid UTF-8 (RFC 3629): invalid start byte at byte offset 5",
+      "note": "Overlong 0xC0 0xAF ('/' in two bytes). Spec 12.1. md4c's own decoder would read it as U+002F; RFC 3629 forbids it."
+    },
+    {
+      "path": "m0/X16-invalid-utf8-surrogate.md",
+      "bytes": 15,
+      "sha256": "4b3700c9750ce3a46c9f12978868756f55358700b1e3373c2aab0afe5cd3d229",
+      "content": "b'Half \\xed\\xa0\\x80 pair.\\n'",
+      "verdict": "INVALID_UTF8",
+      "rule": "not valid UTF-8 (RFC 3629): invalid continuation byte at byte offset 5",
+      "note": "0xED 0xA0 0x80 encodes the surrogate U+D800. Spec 12.1."
+    },
+    {
+      "path": "m0/X17-invalid-utf8-above-10ffff.md",
+      "bytes": 19,
+      "sha256": "e346b0ac210ce67c085c6819d4e707894dc2ecd5af71714ab048c01b0b83fb0e",
+      "content": "b'Beyond \\xf4\\x90\\x80\\x80 range.\\n'",
+      "verdict": "INVALID_UTF8",
+      "rule": "not valid UTF-8 (RFC 3629): invalid continuation byte at byte offset 7",
+      "note": "0xF4 0x90 0x80 0x80 would be U+110000, above U+10FFFF. Spec 12.1."
+    },
+    {
+      "path": "round-1/C1.md",
+      "bytes": 100,
+      "sha256": "61bc4369694ba8f7f0bc7500b9a7eee79eb37744399e338da01bd01c58312428",
+      "copiedFrom": "findings/evidence/link-batch-v21/native/markdown-paste/tool/corpus/C1.md",
+      "verdict": "PASS",
+      "rule": "no rule fires: blocks H x3, P x1; no MD_SPAN_IMG; no raw HTML",
+      "note": "Role elsewhere: the text/plain control of M7 (spec 9.6); natively it was only sent as text/plain. As Markdown bytes it is M1 + M2."
+    },
+    {
+      "path": "round-1/M1.md",
+      "bytes": 49,
+      "sha256": "41f409f24f883548d52b11db7be7e6a475a46c44e6b53e0e964297b561d6210e",
+      "copiedFrom": "findings/evidence/link-batch-v21/native/markdown-paste/tool/corpus/M1.md",
+      "verdict": "PASS",
+      "rule": "no rule fires: blocks H x3; no MD_SPAN_IMG; no raw HTML"
+    },
+    {
+      "path": "round-1/M10.md",
+      "bytes": 145,
+      "sha256": "a80ccd67d92d11b4c6cdc775093c36eec9be6514ce33fda2e0123329c94b5830",
+      "copiedFrom": "findings/evidence/link-batch-v21/native/markdown-paste/tool/corpus/M10.md",
+      "verdict": "PASS",
+      "rule": "no rule fires: blocks P x1; MD_SPAN_IMG x1, all data:; no raw HTML",
+      "note": "data: image; natively embedded, no request."
+    },
+    {
+      "path": "round-1/M11.md",
+      "bytes": 50,
+      "sha256": "3b27085a80dccdee86b528cdd059267c157d49e0260aba8532f8fbf1430e3a7e",
+      "copiedFrom": "findings/evidence/link-batch-v21/native/markdown-paste/tool/corpus/M11.md",
+      "verdict": "REMOTE",
+      "rule": "MD_SPAN_IMG x1, 1 with a src not starting with data: (case-insensitive): http://127.0.0.1:9/x.png",
+      "note": "Natively a linked image; connect attempted (round 1 strace)."
+    },
+    {
+      "path": "round-1/M11b.md",
+      "bytes": 54,
+      "sha256": "60cc808b9b835d49da6bba951fa93b2ffb711b71e1f40e4181c89a7bc29fa788",
+      "copiedFrom": "findings/evidence/link-batch-v21/native/markdown-paste/tool/corpus/M11b.md",
+      "verdict": "REMOTE",
+      "rule": "MD_SPAN_IMG x1, 1 with a src not starting with data: (case-insensitive): http://127.0.0.1:18765/x.png",
+      "note": "Natively a linked image; GET to the listener."
+    },
+    {
+      "path": "round-1/M11c.md",
+      "bytes": 52,
+      "sha256": "494d2877b9e319d128446cfcc1883cecc1eadb765e4e2bf2265e7818bb20706c",
+      "copiedFrom": "findings/evidence/link-batch-v21/native/markdown-paste/tool/corpus/M11c.md",
+      "verdict": "REMOTE",
+      "rule": "MD_SPAN_IMG x1, 1 with a src not starting with data: (case-insensitive): http://127.0.0.1:18766/x.png",
+      "note": "Natively a linked image; paste() blocked 5,003 ms on a silent server."
+    },
+    {
+      "path": "round-1/M12.md",
+      "bytes": 19,
+      "sha256": "65a50339562109c8dc3477a86e6cd2175ca5b109d82bcc6395f77ab1552bcb32",
+      "copiedFrom": "findings/evidence/link-batch-v21/native/markdown-paste/tool/corpus/M12.md",
+      "verdict": "PASS",
+      "rule": "no rule fires: blocks P x1; no MD_SPAN_IMG; no raw HTML",
+      "note": "L-md-wikilink."
+    },
+    {
+      "path": "round-1/M13.md",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "copiedFrom": "findings/evidence/link-batch-v21/native/markdown-paste/tool/corpus/M13.md",
+      "verdict": "NO_BLOCK",
+      "rule": "md4c enters no block other than MD_BLOCK_DOC",
+      "note": "Empty. Natively paste() true, one undo action, document unchanged."
+    },
+    {
+      "path": "round-1/M14a.md",
+      "bytes": 16594,
+      "sha256": "dab7a359237491c90a79f994095e5fe7ae65451e3d7c23d0acbbd1025aa8b914",
+      "copiedFrom": "findings/evidence/link-batch-v21/native/markdown-paste/tool/corpus/M14a.md",
+      "verdict": "PASS",
+      "rule": "no rule fires: blocks UL x152, OL x76, LI x380, H x76, CODE x76, P x76, TABLE x76, THEAD x76, TBODY x76, TR x152, TH x152, TD x152; no MD_SPAN_IMG; no raw HTML",
+      "note": "16,594 bytes, under the limit."
+    },
+    {
+      "path": "round-1/M14b.md",
+      "bytes": 262262,
+      "sha256": "7b366c64db29a0a7ab8ab2dccb1427e2783e7eb9993a99621d1b79ff7ee78d69",
+      "copiedFrom": "findings/evidence/link-batch-v21/native/markdown-paste/tool/corpus/M14b.md",
+      "verdict": "TOO_LARGE",
+      "rule": "262262 bytes > 65536",
+      "note": "TOO_LARGE is not in spec 11 M0's verdict list (PASS/REMOTE/HTML/NO_BLOCK/NUL/PARSE_FAIL); the task brief's INVALID_ARGUMENT list does name the size. Raised in the step-1 report."
+    },
+    {
+      "path": "round-1/M2.md",
+      "bytes": 51,
+      "sha256": "a43f1287790a4a1798b82da23898e07b689767aaa50dee19359f4164cf61bff4",
+      "copiedFrom": "findings/evidence/link-batch-v21/native/markdown-paste/tool/corpus/M2.md",
+      "verdict": "PASS",
+      "rule": "no rule fires: blocks P x1; no MD_SPAN_IMG; no raw HTML"
+    },
+    {
+      "path": "round-1/M3.md",
+      "bytes": 38,
+      "sha256": "20e92a45d17abc321c0e84f3b66a4772a92b4c248f18d43510bc5a5f08244bef",
+      "copiedFrom": "findings/evidence/link-batch-v21/native/markdown-paste/tool/corpus/M3.md",
+      "verdict": "PASS",
+      "rule": "no rule fires: blocks CODE x1; no MD_SPAN_IMG; no raw HTML"
+    },
+    {
+      "path": "round-1/M4.md",
+      "bytes": 85,
+      "sha256": "43d3d7d6d9e787b224173eb1767f013b2ecda7f8ff429dd29f7038eb63eb7336",
+      "copiedFrom": "findings/evidence/link-batch-v21/native/markdown-paste/tool/corpus/M4.md",
+      "verdict": "PASS",
+      "rule": "no rule fires: blocks UL x2, OL x1, LI x8; no MD_SPAN_IMG; no raw HTML"
+    },
+    {
+      "path": "round-1/M5.md",
+      "bytes": 51,
+      "sha256": "7e1d12ca9b3add2ea8afe296232fbd5aa6fbfbb069ea2cc00936ae97c5aeeab2",
+      "copiedFrom": "findings/evidence/link-batch-v21/native/markdown-paste/tool/corpus/M5.md",
+      "verdict": "PASS",
+      "rule": "no rule fires: blocks TABLE x1, THEAD x1, TBODY x1, TR x3, TH x2, TD x4; no MD_SPAN_IMG; no raw HTML"
+    },
+    {
+      "path": "round-1/M6.md",
+      "bytes": 41,
+      "sha256": "b3913b62bf87eca0db6d57a7a628b3fa2ea55c6c2634dbf8bf64c7f1f16c9119",
+      "copiedFrom": "findings/evidence/link-batch-v21/native/markdown-paste/tool/corpus/M6.md",
+      "verdict": "PASS",
+      "rule": "no rule fires: blocks P x1; no MD_SPAN_IMG; no raw HTML"
+    },
+    {
+      "path": "round-1/M7.md",
+      "bytes": 53,
+      "sha256": "4a984c693b502f74fc710179eea4ff6c4598d6079a266361d789e76b567fc2f6",
+      "copiedFrom": "findings/evidence/link-batch-v21/native/markdown-paste/tool/corpus/M7.md",
+      "verdict": "PASS",
+      "rule": "no rule fires: blocks QUOTE x1, HR x1, P x2; no MD_SPAN_IMG; no raw HTML"
+    },
+    {
+      "path": "round-1/M8-utf16le.bin",
+      "bytes": 68,
+      "sha256": "a6d33edeedff1130e45f57e96263351b9df327e45c9a26422db78ed98842f932",
+      "copiedFrom": "findings/evidence/link-batch-v21/native/markdown-paste/tool/corpus/M8-utf16le.bin",
+      "verdict": "NUL",
+      "rule": "0x00 at byte offset 1 (20 in all)",
+      "note": "M8 as UTF-16LE (round 1's MIME-utf16 arm): every ASCII character carries a 0x00 byte. Spec 9.6 excludes it from M1 as a non-string input."
+    },
+    {
+      "path": "round-1/M8.md",
+      "bytes": 64,
+      "sha256": "ade645a7da95985d9a8ec2053fa04f6c238b511dbfb59fe6c6c980023a3bdd57",
+      "copiedFrom": "findings/evidence/link-batch-v21/native/markdown-paste/tool/corpus/M8.md",
+      "verdict": "PASS",
+      "rule": "no rule fires: blocks UL x1, LI x3, H x1, P x1; no MD_SPAN_IMG; no raw HTML"
+    },
+    {
+      "path": "round-1/M9.md",
+      "bytes": 8,
+      "sha256": "b7ac0398ef74193ab738b21df0912329303df10d868c2bac37a84a59d12c0e2f",
+      "copiedFrom": "findings/evidence/link-batch-v21/native/markdown-paste/tool/corpus/M9.md",
+      "verdict": "PASS",
+      "rule": "no rule fires: blocks P x1; no MD_SPAN_IMG; no raw HTML"
+    },
+    {
+      "path": "round-2/H1-comment-only.md",
+      "bytes": 24,
+      "sha256": "30d16e2b3b20ace01250d1e1f5099c1dfd36e98f979608ba3c431a9225cc77ed",
+      "copiedFrom": "findings/evidence/link-batch-v21/native/markdown-paste/round-2/tool/corpus/H1-comment-only.md",
+      "verdict": "HTML",
+      "rule": "MD_BLOCK_HTML x1, MD_TEXT_HTML x2",
+      "note": "Natively undo +1, document unchanged, no request."
+    },
+    {
+      "path": "round-2/H2-html-block-img.md",
+      "bytes": 42,
+      "sha256": "1c70ae9525d8d1d47f566c73cc3f10884d9dc53440e973cae772e1aa23ae80f6",
+      "copiedFrom": "findings/evidence/link-batch-v21/native/markdown-paste/round-2/tool/corpus/H2-html-block-img.md",
+      "verdict": "HTML",
+      "rule": "MD_BLOCK_HTML x1, MD_TEXT_HTML x2",
+      "note": "Natively a linked image; OPTIONS+GET+GET."
+    },
+    {
+      "path": "round-2/H3-inline-html-img.md",
+      "bytes": 56,
+      "sha256": "ef23f98ed09eb5a34e4a2abca7bb990268d61fd8a7454b0e3367dd1e834f30c4",
+      "copiedFrom": "findings/evidence/link-batch-v21/native/markdown-paste/round-2/tool/corpus/H3-inline-html-img.md",
+      "verdict": "HTML",
+      "rule": "MD_BLOCK_HTML x0, MD_TEXT_HTML x1",
+      "note": "Natively the inline HTML is dropped and nothing is fetched; rule 2 refuses all raw HTML (L-md-no-html)."
+    },
+    {
+      "path": "round-2/H4-inline-img-then-block.md",
+      "bytes": 74,
+      "sha256": "e4081647f480e9e8ee894c0d2bf3bc2cfb7547996dcb5e2bcb94509636cd309a",
+      "copiedFrom": "findings/evidence/link-batch-v21/native/markdown-paste/round-2/tool/corpus/H4-inline-img-then-block.md",
+      "verdict": "HTML",
+      "rule": "MD_BLOCK_HTML x1, MD_TEXT_HTML x3",
+      "note": "Passed the old 9.3 rules; natively fetched (OPTIONS+GET+GET)."
+    },
+    {
+      "path": "round-2/H5-html-block-img-sized.md",
+      "bytes": 65,
+      "sha256": "22998649ec6c80241d7bd144103f6ce82ad86166d7fb61f9b33c0fff6fa76efb",
+      "copiedFrom": "findings/evidence/link-batch-v21/native/markdown-paste/round-2/tool/corpus/H5-html-block-img-sized.md",
+      "verdict": "HTML",
+      "rule": "MD_BLOCK_HTML x1, MD_TEXT_HTML x2",
+      "note": "Natively fetched (OPTIONS+GET) although the size is given."
+    },
+    {
+      "path": "round-2/H6-html-link-stylesheet.md",
+      "bytes": 61,
+      "sha256": "4a80db287b3414a3d16dcb2f2ee01f45703e727dfd81df7471d847cf5c76aa5e",
+      "copiedFrom": "findings/evidence/link-batch-v21/native/markdown-paste/round-2/tool/corpus/H6-html-link-stylesheet.md",
+      "verdict": "HTML",
+      "rule": "MD_BLOCK_HTML x1, MD_TEXT_HTML x2",
+      "note": "Natively OPTIONS+HEAD+GET, document unchanged."
+    },
+    {
+      "path": "round-2/H7-text-then-html-block-img.md",
+      "bytes": 55,
+      "sha256": "0a718b86b4f43efe8938542c4f99f7b0538bc30fb3b8581d1cd5b883552a0221",
+      "copiedFrom": "findings/evidence/link-batch-v21/native/markdown-paste/round-2/tool/corpus/H7-text-then-html-block-img.md",
+      "verdict": "HTML",
+      "rule": "MD_BLOCK_HTML x1, MD_TEXT_HTML x2",
+      "note": "Passed the old 9.3 rules; natively fetched (OPTIONS+GET+GET)."
+    },
+    {
+      "path": "round-2/N1-rule-only.md",
+      "bytes": 4,
+      "sha256": "f52d711103d50a437830c6fbcd04fb4bab49a0f82f6d26d1c791c6e8488dd090",
+      "copiedFrom": "findings/evidence/link-batch-v21/native/markdown-paste/round-2/tool/corpus/N1-rule-only.md",
+      "verdict": "PASS",
+      "rule": "no rule fires: blocks HR x1; no MD_SPAN_IMG; no raw HTML",
+      "note": "A lone rule; natively a horizontal-line paragraph. The old no-text rule refused it."
+    },
+    {
+      "path": "round-2/S01-inline-http.md",
+      "bytes": 56,
+      "sha256": "f1690fe1ad5e4c5ce59dca42be765c7b5103a7aee0e427d618d5045ca63ab4f6",
+      "copiedFrom": "findings/evidence/link-batch-v21/native/markdown-paste/round-2/tool/corpus/S01-inline-http.md",
+      "verdict": "REMOTE",
+      "rule": "MD_SPAN_IMG x1, 1 with a src not starting with data: (case-insensitive): http://127.0.0.1:18765/s01.png",
+      "note": "Natively a linked image; OPTIONS+GET."
+    },
+    {
+      "path": "round-2/S02-https-hostname.md",
+      "bytes": 57,
+      "sha256": "d776b8411eb12f2dff231ccde44bc347a5b3fe6b3c5e8a1dde349eb09c93eb9b",
+      "copiedFrom": "findings/evidence/link-batch-v21/native/markdown-paste/round-2/tool/corpus/S02-https-hostname.md",
+      "verdict": "REMOTE",
+      "rule": "MD_SPAN_IMG x1, 1 with a src not starting with data: (case-insensitive): https://localhost:18768/s02.png",
+      "note": "Natively a linked image; a TLS ClientHello to the closer."
+    },
+    {
+      "path": "round-2/S03-reference.md",
+      "bytes": 61,
+      "sha256": "6ceeb460ff4ceffc9c9298f72576ba91b86b96d4bdac0b58c9f790e6250aab82",
+      "copiedFrom": "findings/evidence/link-batch-v21/native/markdown-paste/round-2/tool/corpus/S03-reference.md",
+      "verdict": "REMOTE",
+      "rule": "MD_SPAN_IMG x1, 1 with a src not starting with data: (case-insensitive): http://127.0.0.1:18765/s03.png",
+      "note": "Reference-style; natively a linked image; OPTIONS+GET."
+    },
+    {
+      "path": "round-2/S04-two-images.md",
+      "bytes": 84,
+      "sha256": "fe352c07df8fcede52f22c2759c68904e4596ee7e4bb161181b9d10896ccdfa6",
+      "copiedFrom": "findings/evidence/link-batch-v21/native/markdown-paste/round-2/tool/corpus/S04-two-images.md",
+      "verdict": "REMOTE",
+      "rule": "MD_SPAN_IMG x2, 2 with a src not starting with data: (case-insensitive): http://127.0.0.1:18765/s04a.png, http://127.0.0.1:18765/s04b.png",
+      "note": "Natively two linked images; 2x(OPTIONS+GET)."
+    },
+    {
+      "path": "round-2/S05-data-and-remote.md",
+      "bytes": 170,
+      "sha256": "d21c4e01849e6f29cba9988492a1a2d914f3bdf1ca1a97de8cea34c695bd503a",
+      "copiedFrom": "findings/evidence/link-batch-v21/native/markdown-paste/round-2/tool/corpus/S05-data-and-remote.md",
+      "verdict": "REMOTE",
+      "rule": "MD_SPAN_IMG x2, 1 with a src not starting with data: (case-insensitive): http://127.0.0.1:18765/s05.png",
+      "note": "One data: and one remote image."
+    },
+    {
+      "path": "round-2/S06-fenced-lookalike.md",
+      "bytes": 45,
+      "sha256": "cae5d92a2d11c10c9b9236aef99ebfd8ff388e78d724f8a7b0deacf148a83a85",
+      "copiedFrom": "findings/evidence/link-batch-v21/native/markdown-paste/round-2/tool/corpus/S06-fenced-lookalike.md",
+      "verdict": "PASS",
+      "rule": "no rule fires: blocks CODE x1; no MD_SPAN_IMG; no raw HTML",
+      "note": "Look-alike in a fenced code block; natively literal, no request."
+    },
+    {
+      "path": "round-2/S07-inline-code-lookalike.md",
+      "bytes": 49,
+      "sha256": "b09979f7ccf94c3328b3d033580cf9cb66730204c323b01b1a44facc5d4ca601",
+      "copiedFrom": "findings/evidence/link-batch-v21/native/markdown-paste/round-2/tool/corpus/S07-inline-code-lookalike.md",
+      "verdict": "PASS",
+      "rule": "no rule fires: blocks P x1; no MD_SPAN_IMG; no raw HTML",
+      "note": "Look-alike in inline code; natively literal, no request."
+    },
+    {
+      "path": "round-2/S08-data-only.md",
+      "bytes": 145,
+      "sha256": "a80ccd67d92d11b4c6cdc775093c36eec9be6514ce33fda2e0123329c94b5830",
+      "copiedFrom": "findings/evidence/link-batch-v21/native/markdown-paste/round-2/tool/corpus/S08-data-only.md",
+      "verdict": "PASS",
+      "rule": "no rule fires: blocks P x1; MD_SPAN_IMG x1, all data:; no raw HTML",
+      "note": "data: image; natively embedded, no request."
+    },
+    {
+      "path": "round-2/S09-indented-code-lookalike.md",
+      "bytes": 41,
+      "sha256": "666f44ae5ce2bb9208b3f761a958784e0d6046ee60c36f16dc19bcdbeb659513",
+      "copiedFrom": "findings/evidence/link-batch-v21/native/markdown-paste/round-2/tool/corpus/S09-indented-code-lookalike.md",
+      "verdict": "PASS",
+      "rule": "no rule fires: blocks CODE x1; no MD_SPAN_IMG; no raw HTML",
+      "note": "Look-alike in an indented code block; natively literal, no request."
+    },
+    {
+      "path": "round-2/S10-escaped-lookalike.md",
+      "bytes": 38,
+      "sha256": "d68e76af529db2d19c9e7359439014cf3e7ddb8de0b960ef76295ff88e8ec5ce",
+      "copiedFrom": "findings/evidence/link-batch-v21/native/markdown-paste/round-2/tool/corpus/S10-escaped-lookalike.md",
+      "verdict": "PASS",
+      "rule": "no rule fires: blocks P x1; no MD_SPAN_IMG; no raw HTML",
+      "note": "Escaped; natively '!' and a hyperlink, no request."
+    },
+    {
+      "path": "round-2/S11-autolink-png.md",
+      "bytes": 33,
+      "sha256": "4dc4b583624564fc1d984c7e27f007360a49e78fcdad823bbb8fdd8039587fa7",
+      "copiedFrom": "findings/evidence/link-batch-v21/native/markdown-paste/round-2/tool/corpus/S11-autolink-png.md",
+      "verdict": "PASS",
+      "rule": "no rule fires: blocks P x1; no MD_SPAN_IMG; no raw HTML",
+      "note": "Autolink; natively a hyperlink, no request."
+    },
+    {
+      "path": "round-2/S12-image-in-link.md",
+      "bytes": 60,
+      "sha256": "13005bfa4678b17021e8317235e96dc3e0a1582c6ff9553a4851ec687079aa6c",
+      "copiedFrom": "findings/evidence/link-batch-v21/native/markdown-paste/round-2/tool/corpus/S12-image-in-link.md",
+      "verdict": "REMOTE",
+      "rule": "MD_SPAN_IMG x1, 1 with a src not starting with data: (case-insensitive): http://127.0.0.1:18765/s12.png",
+      "note": "Image inside a link, no text outside the image; natively a linked image, OPTIONS+GET."
+    },
+    {
+      "path": "round-2/S13-bang-wikilink.md",
+      "bytes": 13,
+      "sha256": "602c55499380ced46c016d3a39eb1c66585473d0ed84cd460d1071235dc54248",
+      "copiedFrom": "findings/evidence/link-batch-v21/native/markdown-paste/round-2/tool/corpus/S13-bang-wikilink.md",
+      "verdict": "PASS",
+      "rule": "no rule fires: blocks P x1; no MD_SPAN_IMG; no raw HTML",
+      "note": "Natively literal, no request."
+    },
+    {
+      "path": "round-2/S14-empty-alt-data.md",
+      "bytes": 128,
+      "sha256": "ee098a297012993a05178c014525e846382bee87798d5ec2ce0d21c9cbb50903",
+      "copiedFrom": "findings/evidence/link-batch-v21/native/markdown-paste/round-2/tool/corpus/S14-empty-alt-data.md",
+      "verdict": "PASS",
+      "rule": "no rule fires: blocks P x1; MD_SPAN_IMG x1, all data:; no raw HTML",
+      "note": "Empty-alt data: image; natively embedded. The old no-text rule refused it."
+    },
+    {
+      "path": "round-2/S15-uppercase-DATA.md",
+      "bytes": 129,
+      "sha256": "45d9a6a8c190198c2ff046e832ebd20301bb52028743aaed7bff85affa0558b1",
+      "copiedFrom": "findings/evidence/link-batch-v21/native/markdown-paste/round-2/tool/corpus/S15-uppercase-DATA.md",
+      "verdict": "PASS",
+      "rule": "no rule fires: blocks P x1; MD_SPAN_IMG x1, all data:; no raw HTML",
+      "note": "Upper-case DATA:; natively embedded, no request. A case-sensitive rule 1 calls it REMOTE."
+    },
+    {
+      "path": "round-2/W1-spaces.md",
+      "bytes": 3,
+      "sha256": "0aad7da77d2ed59c396c99a74e49f3a4524dcdbcb5163251b1433d640247aeb4",
+      "copiedFrom": "findings/evidence/link-batch-v21/native/markdown-paste/round-2/tool/corpus/W1-spaces.md",
+      "verdict": "NO_BLOCK",
+      "rule": "md4c enters no block other than MD_BLOCK_DOC",
+      "note": "ASCII whitespace only; natively undo +1, document unchanged."
+    },
+    {
+      "path": "round-2/W2-tabs.md",
+      "bytes": 2,
+      "sha256": "31609426297325bdb28c86ab3ceeed4a3c438966733fd61b8aea00ee8b23b7bc",
+      "copiedFrom": "findings/evidence/link-batch-v21/native/markdown-paste/round-2/tool/corpus/W2-tabs.md",
+      "verdict": "NO_BLOCK",
+      "rule": "md4c enters no block other than MD_BLOCK_DOC",
+      "note": "ASCII whitespace only; natively undo +1, document unchanged."
+    },
+    {
+      "path": "round-2/W3-ideographic-space.md",
+      "bytes": 6,
+      "sha256": "aa27d7046d6d04aa2d8cc218a991dfc4f044e9f53334e16884a530d05326c4b3",
+      "copiedFrom": "findings/evidence/link-batch-v21/native/markdown-paste/round-2/tool/corpus/W3-ideographic-space.md",
+      "verdict": "PASS",
+      "rule": "no rule fires: blocks P x1; no MD_SPAN_IMG; no raw HTML",
+      "note": "U+3000 is text to md4c; natively a paragraph holding it."
+    },
+    {
+      "path": "round-2/W4-nbsp.md",
+      "bytes": 2,
+      "sha256": "abfbd10daf8965c8860b3582af942d7a7cac972b31d1c50f382b67d9b6c07365",
+      "copiedFrom": "findings/evidence/link-batch-v21/native/markdown-paste/round-2/tool/corpus/W4-nbsp.md",
+      "verdict": "PASS",
+      "rule": "no rule fires: blocks P x1; no MD_SPAN_IMG; no raw HTML",
+      "note": "U+00A0 is text to md4c; natively a paragraph holding it."
+    },
+    {
+      "path": "round-2/W5-newlines.md",
+      "bytes": 3,
+      "sha256": "6a3cf5192354f71615ac51034b3e97c20eda99643fcaf5bbe6d41ad59bd12167",
+      "copiedFrom": "findings/evidence/link-batch-v21/native/markdown-paste/round-2/tool/corpus/W5-newlines.md",
+      "verdict": "NO_BLOCK",
+      "rule": "md4c enters no block other than MD_BLOCK_DOC",
+      "note": "ASCII whitespace only; natively undo +1, document unchanged."
+    },
+    {
+      "path": "round-2/W6-mixed-ascii-ws.md",
+      "bytes": 8,
+      "sha256": "94dab508f14e393f179173498492a31ff6f4b327cb50c0151234fc7223d43c85",
+      "copiedFrom": "findings/evidence/link-batch-v21/native/markdown-paste/round-2/tool/corpus/W6-mixed-ascii-ws.md",
+      "verdict": "NO_BLOCK",
+      "rule": "md4c enters no block other than MD_BLOCK_DOC",
+      "note": "ASCII whitespace only; natively undo +1, document unchanged."
+    }
+  ]
+}
