@@ -91,6 +91,18 @@ VARIANTS = {
         "defines": MERGE_V15_DEFINES + ["-DOXSDK_E2_V20_LINK_BATCH"],
         "units": PRODUCT_UNITS,
     },
+    # SPEC-M3-link-batch-v21 11.3 I1: v20's defines plus the v21 define, and the
+    # md4c include the v21 rule alone adds (10.4).  "No md4c object among ours"
+    # is the objectsVar assertion below: E2_V21_OBJECTS must be exactly the four
+    # product units, so a compiled md4c.c would show up as configurationDrift.
+    "link-batch-v21": {
+        "objectsVar": "E2_V21_OBJECTS",
+        "cppflagsVar": "E1_CPPFLAGS",
+        "defines": MERGE_V15_DEFINES + ["-DOXSDK_E2_V20_LINK_BATCH",
+                                        "-DOXSDK_E2_V21_LINK_BATCH"],
+        "includeVars": ["E2_V21_MD4C_INCLUDE"],
+        "units": PRODUCT_UNITS,
+    },
     "product": {
         "objectsVar": "E2_V4_OBJECTS",
         "cppflagsVar": "E1_CPPFLAGS",
@@ -158,7 +170,8 @@ def main() -> int:
     cxx = make_var("CXX")
     flags = (make_var(variant["cppflagsVar"]).split()
              + make_var("R5_CXXFLAGS").split()
-             + variant["defines"] + ["-Isrc"])
+             + variant["defines"] + ["-Isrc"]
+             + [f"-I{make_var(v)}" for v in variant.get("includeVars", [])])
     units = variant["units"]
 
     # THE PRODUCT'S OWN LISTS, asserted rather than assumed.  If the Makefile

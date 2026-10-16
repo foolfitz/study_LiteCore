@@ -1642,8 +1642,9 @@ E2_V21_DIST := dist/profiles/e2-editor-v21
 E2_V21_SOURCES := $(E2_C_SOURCES)
 E2_V21_OBJECTS := $(patsubst src/%.cpp,$(E2_V21_BUILD)/%.o,$(E2_V21_SOURCES))
 E2_V21_MD4C_INCLUDE := $(LOBUILD)/workdir/UnpackedTarball/md4c/src
-# PLACEHOLDER, filled by the main session after part S's worker is reviewed.
-E2_V21_WORKER_SHA256 := PENDING-PART-S-WORKER-SHA256
+# Part S's worker (commit bc6534e0), reviewed by the main session 2026-10-16:
+# node tests 561/561, E1-C intact.
+E2_V21_WORKER_SHA256 := 0d55bcfa2ee0e4ddc6239e25282001c13410b152a5a08ebac9903cc65c3fd350
 
 $(E2_V21_BUILD)/%.o: src/%.cpp $(HEADERS) src/editor_api.h \
 		src/editor_discovery_api.h src/format_readback_text.hpp \
@@ -3737,7 +3738,8 @@ test-e2-c-static:
 	# findings/evidence/link-batch/v67-witness/test-e2-c-static-red-default-carriers.txt.
 	python3 tools/check_merge_key_undo_scope.py --base 5d77dc84 \
 		--carrier E2_V15 --carrier E2_V19 \
-		--carrier E2_V20=probe_engine,sdk_api,editor_api
+		--carrier E2_V20=probe_engine,sdk_api,editor_api \
+		--carrier E2_V21=probe_engine,sdk_api,editor_api
 	# E2-C must never touch what E1-C bound.  Read-only on purpose: a static
 	# target that rewrites verdict-bound evidence has happened here once.
 	python3 tools/check_e1_c_bundle_intact.py > /dev/null
