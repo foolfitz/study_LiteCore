@@ -109,6 +109,18 @@ FOCUS_SINK = "document.querySelector('#sink').focus({ preventScroll: true });"
 ACTIVE = "(() => document.activeElement && document.activeElement.id)()"
 
 
+def type_char(session, browser: str, ch: str) -> None:
+    """One trusted key for one character.  Chrome: S-4's `v21_input.key` sends a character that is not a
+    letter or digit with the Windows key code of its code point, and `#` is 35, End: the keydown runs as
+    End and the character is dropped (smoke R3, diag: `#` never reached the textarea).  Such a character
+    goes as CDP `keyDown` with `text` and no key code instead, still a trusted key event."""
+    if browser == "chrome" and not (ch.isascii() and ch.isalnum()) and ch not in inp.KEYS:
+        session.call("Input.dispatchKeyEvent", {"type": "keyDown", "key": ch, "text": ch, "unmodifiedText": ch})
+        session.call("Input.dispatchKeyEvent", {"type": "keyUp", "key": ch})
+        return
+    inp.key(session, browser, ch)
+
+
 def sha256_bytes(raw: bytes) -> str:
     return hashlib.sha256(raw).hexdigest()
 
@@ -382,7 +394,7 @@ class Ctx:
         self.focus_sink()
         mark = self.mark()
         for ch in text:
-            self.key(ch)
+            type_char(self.session, self.browser, ch)
             time.sleep(0.05)
         deadline = time.monotonic() + 20
         while time.monotonic() < deadline:
@@ -1001,7 +1013,7 @@ def arm_m11(ctx: Ctx, pop: dict, rounds: int, out: dict) -> None:
                 ep["dialogOpen"] = bool(ctx.ev(DIALOG_OPEN))
                 ep["focusBeforeTyping"] = ctx.ev(ACTIVE)      # smoke R3: keys sent before the focus were lost
                 for ch in M11_TYPED:
-                    inp.key(ctx.session, ctx.browser, ch)
+                    type_char(ctx.session, ctx.browser, ch)
                 for name in ("Backspace", "ArrowLeft", "Enter"):
                     inp.key(ctx.session, ctx.browser, name)
                 time.sleep(0.3)
