@@ -1,0 +1,13 @@
+            parser->m_xDoc->getIDocumentContentOperations().InsertString(*parser->m_pPam,
+                                                                         u"\n"_ustr);
+            break;
+        case MD_TEXT_SOFTBR:
+            parser->m_xDoc->getIDocumentContentOperations().InsertString(*parser->m_pPam,
+                                                                         OUString(CHAR_HARDBLANK));
+            break;
+        case MD_TEXT_ENTITY:
+        case MD_TEXT_NULLCHAR:
+        case MD_TEXT_LATEXMATH:
+            break;
+    }
+
