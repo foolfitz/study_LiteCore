@@ -22,11 +22,16 @@ Prepared 2026-10-17 by the main session, **not run**. 0.2.24's chain ran to `DON
 
 - **The chain's shakedown phase, run as the chain runs it** (`shakedown-phase.sh`, 11:20–12:37Z): page honesty, locks, versions, assets, host entry, same second, the autosave gate and new-document all exit 0 and read clean.
 - **The merge runner's shakedown on v21** (Chrome, 1 round): its recorded `bound` equals `BINDING`. All 26 cases' outcomes occur among v20's counted rounds.
-- **The product-path net on v21** (plain arm, Chrome and Firefox, 1 round each): see below.
+- **The product-path net on v21** (plain arm, Chrome and Firefox, 1 round each): the same shape as 0.2.24's v20 runs (see Preflight only).
 
 ## Preflight only
 
-See `preflight-only-2026-10-17.txt` and the note appended below once it has run.
+`preflight-only-2026-10-17.txt` (12:51Z, tree `b7997423`), exit 2:
+- P0–P4 ok. P4 reads `605cf24b…` for dist, web and the archive, and the installed host serves the same; host `3c01876` 0.2.26, clean.
+- P6 ok: 134 unit tests; `make test-e2-c-static` exit 0.
+- **P5 refused twice, both by design:** no owner window; `oc_files_lock` rows 2 (below).
+
+The first-contact product path (Chrome and Firefox, plain v21) has the same shape as the 0.2.24 count's v20 runs: Chrome 40 PASS + the same 2 NE; Firefox the same NE set plus the known FAIL `an-inline-format-reaches-a-selection`, read under row 1′ as in 0.2.24.
 
 ## Before the start: two lock rows (the owner's call)
 
