@@ -103,7 +103,7 @@ SNIPPET = r"""<script>
           put({ k: "ask7post", g, rq: id, forRq });
           post.call(worker, { protocolVersion: protocol, kind: "request", requestId: id, operation: "editorGetStateV2",
                               payload: { documentHandle: handle } });
-        }, 500);
+        }, 455);
       }
     });
     return worker;
