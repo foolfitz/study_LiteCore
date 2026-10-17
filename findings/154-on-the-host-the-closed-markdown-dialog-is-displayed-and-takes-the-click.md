@@ -37,3 +37,20 @@ v21 的證據執行全部在 mirror 上跑（無宿主），包括 `v21host` 變
 
 - **宿主那一側**：`templates/editor.php` 加 `#litecore-editor-root dialog:not([open]) { display: none }`，出 0.2.26。engine 封包、頁面、HTML、殼層都不動。
 - **頁面那一側**：`e2-editor.html` 加 `#markdown-dialog:not([open]) { display: none }`。engine 封包會變（新的 buildId），宿主出 0.2.26。
+
+## 裁決（fable 裁決 3，2026-10-17，擁有者交裁；原文 `findings/evidence/link-batch-v21/shakedown/review/ruling-fable-3.md`）
+
+**選 A：修在宿主**，出 0.2.26：`templates/editor.php` 宿主自己的 `<style>` 加 `#litecore-editor-root dialog:not([open]) { display: none; }`。engine 封包、頁面、HTML、殼層都不動。
+
+白話理由（fable 寫給擁有者）：這是 Nextcloud 的全域樣式蓋過了瀏覽器內建的「關著的對話框不顯示」，問題在宿主這一層，而宿主本來就在同一個檔案裡用同樣的方式藏頁面的其他部件。改頁面會換掉 HTML 和 engine 封包，已經跑完的第 1 項十二份報告記的 HTML 就對不上要出貨的那一份。
+
+**修法的驗收（本 finding 自己的判準）**：
+- 紅案：0.2.25 上的兩次讀數（`diag-154-chrome-20261017T170402.json`、`diag-154-firefox-20261017T170449.json`）。
+- 綠：用同一支診斷工具（不改）在 0.2.26 上讀 `asShipped`。規則要出現在設定 display 的清單裡；對話框 `display: none`；點擊點底下是 `CANVAS#canvas`；送出 `editorPlaceCaretV2`；兩個瀏覽器都要過。
+- 若沒做：D2 不跑，第 1 項不出貨。
+
+**下一批（v22）的工作項**：
+1. 頁面那一側也補一條 `#markdown-dialog:not([open]) { display: none }`。第 2 項真的出貨時，它的宿主判準要量對話框**關著**（不顯示、點擊點底下沒有它）與**打開**兩種狀態。server.css 的 reset 也把 `dialog` 的 `margin` 設成 0，打開時可能不在畫面中央，而是貼在左上〔由 CSS 推論，未量〕。
+2. 宿主 production-UI 臂加一份由 DOM 列舉的檢查：讀所有隱藏部件計算後的 display（判準形式二）。第一次計入之前，先依 §34.3 審核一次。
+
+**只登錄、不寫程式**：D2 的 NE 原因（「no Backspace response」）沒有帶點擊點的酬載，所以才另外需要一支診斷工具；`HOST_EXPECT` 沒有釘 buildId。

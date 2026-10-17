@@ -517,6 +517,36 @@ JS 字串經 TextEncoder 一定是合法 UTF-8（孤立代理會被換成 U+FFFD
   - **晚響仍在，只是變少**：晚 15 ms 以上的有 6 筆，最晚 +50.4 ms（t-home-A1-n2 r3 ch2）。常數若仍是 500，這一筆會落在 550.4。
   - 游標 192/192 相等；外部 CPU 超標 0 格。
 
+### 12.5 finding 154：D2 在宿主 0.2.25 上 NE，修在宿主（0.2.26），D2 重跑一次（2026-10-17 追加）
+
+出處：`findings/evidence/link-batch-v21/shakedown/review/ruling-fable-3.md`。擁有者把這題交給 fable（選項 D）。這一節寫在修法動手之前，也寫在任何瀏覽器啟動之前。**D2 的判準文字、judge、預設都不動。**
+
+- **(a) 逼出這一節的量測。** D2 在宿主 0.2.25 上 6/6 NE（「no Backspace response」）：點第一行之後 40 秒內沒有定位游標，Ctrl+Home 與 Backspace 都沒有送出請求。成因是 finding 154：v21 頁面的 `<dialog id="markdown-dialog">` 關著，但 Nextcloud `core/css/server.css` 的 reset（`dialog { display: block }`）讓它一直顯示，蓋住點擊點（`TEXTAREA#markdown-text`）。同一頁只加一條 `#markdown-dialog:not([open]) { display: none }`，點擊點就回到 `CANVAS#canvas`，也會送出 `editorPlaceCaretV2`（兩個瀏覽器，`findings/evidence/154/`）。
+- **(b) 修法（A，宿主那一側）。** 在 `templates/editor.php` 宿主自己的 `<style>`（放 production-UI 隱藏規則與 `#page-status[hidden]` 的那一段）加這一條：`#litecore-editor-root dialog:not([open]) { display: none; }`。不加 `!important`，`dialog[open]` 不加任何規則。版本升到 **0.2.26**，和規則放在同一個宿主 commit 裡。engine 封包、頁面、HTML、殼層一個位元組都不動：`engine/MANIFEST.json` 的 sha256 仍是 `54bebc4d…`，buildId 仍是 `f5f0df762e1855f2`，HTTP 送的位址不變。從改模板到 `ddev occ upgrade` 完成之間，不做任何量測。
+- **(c) 修法的驗收（先紅後綠，診斷工具不改，sha `757c4476…`）。** 紅案是 0.2.25 上的兩次讀數，已 commit。在 0.2.26 上，兩個瀏覽器的 `asShipped` 都要讀到：
+  - `dialog.open` false、`display` "none"、`box` [0,0,0,0]；
+  - `rulesSettingDisplay` 裡有一條 inline 規則 `#litecore-editor-root dialog:not([open])` → none（這一條就是「改動生效」的讀數）；
+  - 點擊點底下是 `CANVAS#canvas`，`insideDialog` false；
+  - 送出 `editorPlaceCaretV2`，標籤出現「定位游標」；
+  - 入口按鈕 `hidden`、`display: none`；
+  - `hostIdentity.hostVersion` 是 0.2.26。
+
+  任何一項不符就停手：不改工具，也不跑 D2。
+- **(d) 宿主身分的釘子。** D2 的判準寫的是「宿主」，沒寫版號；§1 寫的是「0.2.25 起」。改工具前，先在 0.2.26 上跑 `run_v21_d2.py --identity-only --page v21`，結果必須恰好只有一條 `hostVersion` 不符。接著把 `HOST_EXPECT["v21"]["hostVersion"]` 從 0.2.25 改成 0.2.26，其他什麼都不改（對 `1fe9588d` 的 diff 只有一行）。改完 `--self-test` 要 19/19，`--identity-only` 要 v21 `[]`、0224 四個欄位都拒絕。這是跟著產品版本走的綁定，不是修理。
+- **(e) 停止規則（D2 在宿主修好之後只准重跑這一次）。** Chrome N=3，然後 Firefox N=3。用同一個 judge，桌面條件同 §12.4。
+  1. 6/6 PASS → D2 PASS。
+  2. 任何一輪 FAIL → D2 FAIL，開產品 finding，第 1 項不出貨。不重跑，本批也不出 0.2.27。
+  3. 任何一輪 NE → 第 1 項不出貨，v21 不出第三個宿主版本。例外只有兩種，各准該瀏覽器重跑一次：(i) 程式真的崩潰（報告有 `fatal` traceback）；(ii) 報告記下的外部原因（`preRun`、鎖的持有者、別的 ddev 專案讓 router 回 404）。`clickState` 為 null 又沒有外部原因的 NE，不算例外。
+  4. 第 1 項若不出貨，就跟 v22 一起走；宿主那條規則保留。
+- **(f) 預測（寫在跑之前；ARMS-item1 D2）。** 收到 `move-document-start` 的回覆。Backspace 以 `verified-boundary-noop` 完成，`waitedMs` 約 2,252–2,255，revision 0→0，存檔文字不變，正向對照有差異。
+- **(g) 不重跑、不新增的東西。**
+  - 0.2.24 的紅案照舊成立（README §5.8）：工具只差那一行，0.2.24 的 HTML 也沒有 `<dialog`。
+  - 第 1 項的證據照舊成立：12 份報告的 `htmlSourceSha256` 都是 `1d158149…`，等於封包裡的 `e2-editor.html`。
+  - 154 不新增 v21 判準。登錄兩個 v22 工作項：頁面那一側補 `#markdown-dialog:not([open])` 的規則，量對話框關著與打開兩種狀態；宿主 production-UI 臂加一份由 DOM 列舉、讀隱藏部件計算後 display 的檢查。另登錄兩行、不寫程式：NE 的原因沒有帶點擊點的酬載；`HOST_EXPECT` 沒有釘 buildId。
+- **(h) §34.4：** 因執行而修 0、因審核而修 0（累計仍是 28／18）。`HOST_EXPECT` 的版號是綁定，診斷工具不是檢查，宿主規則是產品改動，都不計入。
+- **若這件事永遠沒做：第 1 項不出貨（§11.0 預設）。**
+- 結果以追加的方式寫在本節末尾，不改上文。
+
 ## 修訂紀錄
 
 | 日期 | 內容 |
@@ -534,3 +564,4 @@ JS 字串經 TextEncoder 一定是合法 UTF-8（孤立代理會被換成 U+FFFD
 | 2026-10-17 | §12.3：shakedown 之後的更正與追加（fable 裁決 1，擁有者授權）：D8 (e) 的成因與修法、撤回 D11 對 22／23 的髒文件檢查點條款（§4）、新判準 D14（§9 四條件）、§9.1 頻率更正、第 2 項不在 v21 出貨（M3 紅，finding 153）。不移動任何既有門檻。 |
 | 2026-10-17 | §12.4：D7 在 Firefox 的儀器校準與停止規則（fable 裁決 2，擁有者交裁）：先做 A0（哨兵計時器 +440／+455／+470，加上 paint 時間），常數依事先釘死的規則選 470、455 或不選；只改觀察器一個常數；Firefox D1 只准重跑一次，任何一次讀取落在窗外就讓第 1 項不在 v21 出貨。不動 D7 的文字、窗、judge。 |
 | 2026-10-17 | §12.4 結果（追加）：A0 沒有鑑別力，常數取 455；Firefox D1 重跑一次，judge 沒改，D7 Firefox PASS，整體 VERDICT PASS。走 (e) 1。 |
+| 2026-10-17 | §12.5：finding 154（宿主上關著的 Markdown 對話框被 Nextcloud 的 reset 顯示出來，D2 在 0.2.25 上 6/6 NE）；fable 裁決 3，擁有者交裁：修在宿主（0.2.26，一條 `dialog:not([open])` 規則，封包不動），先用診斷工具驗收，`HOST_EXPECT` 只改版號，D2 只准重跑一次。不動 D2 的文字、judge、預設。 |

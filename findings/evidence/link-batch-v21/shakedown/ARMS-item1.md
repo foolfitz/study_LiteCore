@@ -731,3 +731,9 @@ The draft above is Agent D's, kept as written. These rulings decide its DECISION
 | D-19 | **A** | §11 governs (spec line 338). |
 
 §7's two evidence oddities are the main session's to handle, outside this file: the 29-versus-31 mutation count in `part-s-red/`, and `N142/SHA256SUMS` not verifying the appended README (the reference digest in phase B covers data files only).
+
+## 9. Correction after ruling 3 (2026-10-17; append-only)
+
+- **D2 "Where"** (`:189` stays as written): D2 runs on **host 0.2.26** (fable ruling 3, `review/ruling-fable-3.md`; spec §12.5). Host 0.2.25 displayed the closed Markdown dialog over the editor (finding 154), and D2 read NE 6/6 there. The 0.2.25 reports (`evidence/d2/d2-host-v21-*`) are finding 154's witness and are void as D2 evidence (§11.0).
+- **`:607`** is D-1 option A's text; the ruling was B (`:713`). Its "another shell generation" does not apply: the fix is a host CSS rule, no JS changes, and v74 stays frozen.
+- **The tool:** `HOST_EXPECT["v21"]["hostVersion"]` 0.2.25 → 0.2.26 and nothing else, with the before/after `--identity-only` outputs as witnesses. The criterion's text, `judge_d2` and the default are unchanged. D2 gets one re-run, under the stop rule in spec §12.5 (e).
