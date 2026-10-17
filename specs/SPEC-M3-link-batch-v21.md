@@ -564,6 +564,13 @@ JS 字串經 TextEncoder 一定是合法 UTF-8（孤立代理會被換成 U+FFFD
   - 同一點的第二次點擊，沒有任何 v21 判準量過、也沒有任何判準宣稱它。D2 自己的點擊用的是同一個標籤判斷，但頁面上那時還沒有「定位游標」，所以是乾淨的。
   - §34.4：0／0（有證人，但這一句是撤回，不是修理）。預設（`asShipped` 任一項沒讀到就停手）沒有觸發。
 
+- **D2 的結果（2026-10-17 18:27 追加）：走 (e) 1，D2 PASS。**
+  - 釘子改綁（`090da6b6`）：對 `1fe9588d` 的 diff 只有版號那一行，`--self-test` 19/19，身分檢查 v21 `[]`、0224 四個欄位都拒絕。
+  - Chrome N=3、Firefox N=3（`evidence/d2/d2-host-v21-{chrome-20261017T182415,firefox-20261017T182550}.json`）。judge 沒改，**6/6 PASS**：每一輪 `move-document-start` 都完成；Backspace 以 `verified-boundary-noop` 完成，revision 0→0；存檔文字等於原檔；正向對照有差異。
+  - 和預測不同的只有 `waitedMs`：Chrome 2,258–2,259（預測約 2,252–2,255），Firefox 2,253。judge 不判讀這個欄位。
+  - 12 份第 1 項報告的 HTML 原始碼（15 個頁面條目）全部是 `1d158149…`，等於宿主 0.2.26 封包裡的 `e2-editor.html`（`evidence/d2/html-source-equality-0226.txt`）。
+  - §34.4：0／0。
+
 ## 修訂紀錄
 
 | 日期 | 內容 |
@@ -583,3 +590,4 @@ JS 字串經 TextEncoder 一定是合法 UTF-8（孤立代理會被換成 U+FFFD
 | 2026-10-17 | §12.4 結果（追加）：A0 沒有鑑別力，常數取 455；Firefox D1 重跑一次，judge 沒改，D7 Firefox PASS，整體 VERDICT PASS。走 (e) 1。 |
 | 2026-10-17 | §12.5：finding 154（宿主上關著的 Markdown 對話框被 Nextcloud 的 reset 顯示出來，D2 在 0.2.25 上 6/6 NE）；fable 裁決 3，擁有者交裁：修在宿主（0.2.26，一條 `dialog:not([open])` 規則，封包不動），先用診斷工具驗收，`HOST_EXPECT` 只改版號，D2 只准重跑一次。不動 D2 的文字、judge、預設。 |
 | 2026-10-17 | §12.5 (c′)（追加，fable 裁決 3 補充 1）：0.2.26 上修法驗收通過（兩個瀏覽器的 `asShipped` 全符合）；撤回「`withRule` 也要讀到一樣」（前提不成立，§4），具名 L-154-diag-second-click；工具不改、不重跑。 |
+| 2026-10-17 | §12.5 D2 結果（追加）：宿主 0.2.26 上 D2 6/6 PASS（judge 沒改，走 (e) 1）；第 1 項的判準在兩個瀏覽器全部 PASS。 |

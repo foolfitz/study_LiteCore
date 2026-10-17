@@ -19,3 +19,5 @@ Rollback: copy `build/archive/host-0.2.24-engine-d3cd39bbc71ec311/` (without `AT
 **Between 15:40 and 16:36** the package was in place while `info.xml` still said 0.2.24 (the version bump waited for the owner). No measurement ran against the host in that window except the HTTP red case above.
 
 The files `check-relink-queue-red-before-reanchor.txt` and `test-e2-c-static-after-freeze-v74*.txt` are the v74 freeze's witnesses (`4628c9d3`), filed here earlier.
+
+**Superseded by 0.2.26 (2026-10-17; finding 154).** 0.2.25 displayed the closed Markdown dialog over the editor, so D2 read NE there. 0.2.26 adds one host CSS rule; the engine package is unchanged (`findings/evidence/host-0.2.26/README.md`).
