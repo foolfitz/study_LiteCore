@@ -60,7 +60,7 @@ NAME = "probe-10-14n-long60.odt"
 # What the host must package for each host run (full hashes; the v21 values are the evidence runs' identity,
 # README §5.2; the 0.2.24 values are the installed host's, the same as the dist0224 reports').
 HOST_EXPECT = {
-    "v21": {"hostVersion": "0.2.25",
+    "v21": {"hostVersion": "0.2.26",
             "servedPage": "605cf24b3dff5a2de1d219ee59e79adc92048e46436d098b7c7a3d837761fa0f",
             "hostShellDigest": common.EXPECTED_SHELL_DIGEST,
             "hostWasm": "db3408f55316bf67345258ce9f7cb58a1cb3777c9aabb9f7790bee69e1599f30"},
