@@ -726,6 +726,9 @@ def judge_d12(result: dict, docs: Docs, rounds: int) -> tuple[str, list[str]]:
     return worst(verdicts), lines
 
 
+MODIFIER_KEYS = ("Control", "Meta", "Shift", "Alt")
+
+
 def judge_d5w(result: dict, rounds: int) -> tuple[str, list[str]]:
     lines, verdicts = [], []
     for rec in result.get("rounds", []):
@@ -735,7 +738,10 @@ def judge_d5w(result: dict, rounds: int) -> tuple[str, list[str]]:
             continue
         for chord in rec.get("chords", []):
             log = chord.get("log", [])
-            kd = next((e for e in log if e.get("k") == "kd"), None)
+            # The chord's own key, not a modifier's keydown: Firefox's WebDriver chain sends Control/Meta
+            # (and Shift) as keydowns of their own before Home/End; Chrome's CDP chord does not
+            # (§34.4 witness: findings/evidence/link-batch-v21/shakedown/evidence/witness/judge-d5w-modifier-keydown/).
+            kd = next((e for e in log if e.get("k") == "kd" and e.get("key") not in MODIFIER_KEYS), None)
             kdp = next((e for e in log if e.get("k") == "kdp" and kd and e.get("of") == kd.get("s")), None)
             moves = [e for e in log if e.get("k") == "rq" and str(e.get("action") or "").startswith("move-document-")]
             if kd is None or kdp is None or kd.get("focus") != "sink":
@@ -1525,6 +1531,24 @@ def mutations(docs: Docs) -> list[tuple[str, str, str, object]]:
     def m_d5w_nokeys(r):
         r[0]["results"]["d5w"]["rounds"][0]["chords"][0]["log"] = []
 
+    def firefox_shaped(r):
+        """Firefox's WebDriver chain: each modifier's own keydown (never prevented) comes before Home/End."""
+        for rec in r[0]["results"]["d5w"]["rounds"]:
+            for chord in rec["chords"]:
+                mods = [{"ctrl": "Control", "meta": "Meta", "shift": "Shift"}[m] for m in chord["chord"].split("+")[:-1]]
+                head = []
+                for i, key in enumerate(mods):
+                    head += [{"k": "kd", "key": key, "s": 100 + i, "focus": "sink"},
+                             {"k": "kdp", "of": 100 + i, "key": key, "prevented": False}]
+                chord["log"] = head + chord["log"]
+
+    def m_d5w_firefox_taken(r):
+        firefox_shaped(r)
+
+    def m_d5w_firefox_v20_taken(r):
+        firefox_shaped(r)
+        r[0]["results"]["d5w"]["rounds"][0]["chords"][0]["log"][-1]["prevented"] = True
+
     return [
         ("D1 marker shift", "D1", FAIL, m_shift), ("D1 duplicate marker", "D1", FAIL, m_dup),
         ("D1 missing XML", "D1", FAIL, m_noxml), ("D1 landing one paragraph off", "D1", FAIL, m_paragraph),
@@ -1563,6 +1587,8 @@ def mutations(docs: Docs) -> list[tuple[str, str, str, object]]:
         ("D12 no range before the call", "D12", NE, m_d12_collapsed), ("D12 collapsed control refused", "D12", NE, m_d12_control),
         ("D5w v20 chord taken", "D5w", FAIL, m_d5w_taken), ("D5w Shift taken on v21", "D5w", FAIL, m_d5w_shift),
         ("D5w v21 positive control not taken", "D5w", NE, m_d5w_control), ("D5w keys not reaching the sink", "D5w", NE, m_d5w_nokeys),
+        ("D5w Firefox-shaped log (modifier keydowns first), taken on v21 only", "D5w", PASS, m_d5w_firefox_taken),
+        ("D5w Firefox-shaped log, Home prevented on v20", "D5w", FAIL, m_d5w_firefox_v20_taken),
         ("D14 marker at the pre-move caret (plain3)", "D14", FAIL, m_d14_pre_move),
         ("D14 marker at the pre-move caret (long60)", "D14", FAIL, m_d14_pre_move_long),
         ("D14 a missing save", "D14", NE, m_d14_nosave), ("D14 zero rounds", "D14", NE, m_d14_zero),
