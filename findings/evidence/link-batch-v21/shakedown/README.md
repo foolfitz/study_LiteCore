@@ -235,8 +235,11 @@ None. No criterion FAILs, and the 0.2.24 red cases are red as required.
 | J1 | `diag_v21_dirty_move.py` refused V6e: its `V21_PAGE_PREFIX` was still the pre-fix pin `3d511216`. It builds from the tree, so the served page is `605cf24b…` (`identityOk: true`). | `witness/diag-v6e-stale-pin/` (`55331af1`) | `6aa8e184`: the pin only |
 | W2 | One Firefox session lost d5w rounds 2–3, xlc and table. After 44 good loads across five origins (v21, dist0224, v21host, v21hook, v20), every init failed `WORKER_INIT_FAILED` (abort in `instantiateArrayBuffer`). This is the shape of finding 024 [inferred]. The same page loaded 120 times in its own Firefox session without a failure. | `witness/firefox-rest-worker-init-failed/` (`43ec5333`) | procedural, no tool edited: the arms were re-run in three fresh sessions (§5.4 item 3) |
 | J2 | The item-1 judge's D5-w took the chord's first keydown. In Firefox that is the modifier's (`Control`/`Meta`, never prevented), so all 12 v21 chords read "not taken" (NE). | `witness/judge-d5w-modifier-keydown/` (`4bf78a3d`) | `c32fc13d`: the first keydown that is not a modifier's. Two Firefox-shaped self-test cases, red first: 83/85 on the old clause, 85/85 after. `test_v21_*.py` 94 OK. |
+| J3 | D7 in Firefox read NE twice: the observer's `setTimeout(500)` posted 2/192, then 6/192, reads after +550 ms (max 560.3), all carets equal. An instrument miss, not a product one (fable ruling 2). | the first Firefox D1 report and `judge-item1.txt` (`a46b9267`); the re-run report and `judge-item1-after-d7-rerun.txt` (`fd2f854a`). The first report now lives in `superseded/item1/` | pending: one constant in `v21_item1_observer.py`, chosen by spec §12.4 (c) after A0 (`review/diag-d7-timer/`); runner and judge unchanged |
 
 **Tally (this round):** modified because of execution **2** (J1, J2); modified because of review **0**; runs lost to the harness and re-run **1** (W2). The phase-B tally (2/0, smoke README) and ruling 1's (1/0) stand beside it.
+
+**Tally after fable ruling 2 (appended 2026-10-17; the line above stands as written):** modified because of execution **3** (J1, J2, J3); modified because of review **0**; runs lost to the harness and re-run **1** (W2), plus one more if spec §12.4 (e) 3 (a foreign-CPU re-run) is spent.
 
 ### 5.6 Not covered here
 
@@ -244,3 +247,23 @@ None. No criterion FAILs, and the 0.2.24 red cases are red as required.
 - M11-autosave, I1, K.
 - **Ruling 1's `open` cell** (Q4 condition 4) was not in this task and was not run.
 - **The judgement this round leaves to the main session:** D7 in Firefox (§5.4 item 2).
+
+### 5.7 D7 in Firefox: the re-run, fable ruling 2, and corrections (appended 2026-10-17)
+
+**The re-run** (`fd2f854a`, 09:24–09:57, under the lock, desk load 0.18 at the start). `ARMS-item1.md` D7 says a missed window "reads NOT_ESTABLISHED and is re-run", so Firefox D1/D4/D7 was re-run. The first Firefox report and its docs moved to `superseded/item1/`; the re-judged output is `evidence/judge-item1-after-d7-rerun.txt`, beside the first `judge-item1.txt`.
+- D1 and D4 PASS. D7 NOT_ESTABLISHED again: 6 of 192 +500 ms reads were posted at 554.7–560.3 ms, all on `t-*` fixtures, all "cursor" presses, all caret-equal.
+- One more cell was voided by foreign CPU (sec-home-n1 r2: the owner's desktop Chrome extension renderer at 79 %). With Chrome's first D1 run (§5.4 item 1), the desktop Chrome has voided three D7 cells today.
+
+**Ruling 2** (`review/ruling-fable-2.md`, `7a5cc0e9`; the request is `review/brief-fable-2-d7.md`, `269e1f9b`; the owner sent it to fable). The rules are pinned in spec §12.4, written before any browser run that follows:
+- A0 first, a diagnostic and not evidence: sentinel timers at +440/+455/+470 and paint-reply stamps, on a copy of the observer, Firefox `t-*` arms, N=3.
+- Then one constant in the observer, chosen by §12.4 (c): 470, 455, or none.
+- Then exactly one Firefox D1 evidence re-run, judged by the unchanged judge; any read outside [450, 550] means item 1 does not ship in v21 (§12.4 (e)).
+- Chrome's D7, and D10 and D11a in both browsers, stand on their constant-500 reports: every read there is inside the window (Chrome D7 500.1–500.9; D10 500.2–501.0; D11a 500.2–500.6).
+
+**Corrections to the instrument's description** (ruling 2 Q5; they replace the sentences named, which stay where they are):
+- **Our own main-thread work inside the window.** The brief said nothing of ours lies between the reply and the read. That holds for input, not for the main thread: while it waits for the ask, the runner drains the page every ~50 ms (`run_v21_shakedown_item1.py:373-377`; each drain is one to three script evaluations: the length, the whole JSON log, the cut), and the observer's `flush` (`JSON.stringify(log)`) runs as a 0 ms timer after every `put`. Chrome shows no lateness under the same polling, so this is not shown to be the cause; A0 keeps it by using the same runner.
+- **The shape of the lateness** (both Firefox runs, 384 reads): a ceiling of 60.3 ms; bimodal (about +10–20 and +40–60); repeatable on the same cells (`t-home-B2-n1` ch1, `t-end-B2-n1` ce1, `t-home-B2-n3` ch1); the ask's round trip after a late post equals the on-time one (about 1 ms), so the stretch ends when the timer fires. The reports carry no page time that says when the stretch starts. "Most likely the repaint" is a hypothesis that A0's paint stamps test.
+- **"Mostly an arm's first press"** holds for the tail beyond +550 (8/8 are `ch1`/`ce1`), not for lateness in general: reads later than +505 by press index are 12/114, 11/54, 4/24 (run 1) and 14/114, 10/54, 2/24 (run 2).
+- **Where a changed constant shows.** The handoff 10-17 says Chrome's runner "differs only in the … timer constant". The runner's hash (`4fba3d19…`) does not change with the observer; `pages.v21.snippetSha256[1]` (today `52c08695…`) does.
+- **Ask ids.** `ARMS-item1.md` §2.2 (c) says D7's ask ids are ≥ `0x7F000000`; the observer uses `0x7E000000` (`v21_item1_observer.py:48`). The judge matches on `k == "ask7"` and `forRq`, so no verdict depends on it.
+- **The silent presses' readback times** quoted from spec §12.3 (250.6–251.2 ms) are the diagnostic's. In the D1 reports they are 250.5–251.5 ms (Chrome) and 250.9–254.0 ms (Firefox).
