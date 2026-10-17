@@ -547,6 +547,23 @@ JS 字串經 TextEncoder 一定是合法 UTF-8（孤立代理會被換成 U+FFFD
 - **若這件事永遠沒做：第 1 項不出貨（§11.0 預設）。**
 - 結果以追加的方式寫在本節末尾，不改上文。
 
+- **(c′) 修法驗收的結果（2026-10-17 追加；fable 裁決 3 補充 1）：通過。**
+  - 宿主 0.2.26（宿主 commit `3c01876`；封包 MANIFEST `54bebc4d…` 不變）。工具沒有改（`757c4476…`）。報告放在 `findings/evidence/154/0226/diag-154-{chrome-20261017T181633,firefox-20261017T181647}.json`：另開子目錄，是為了保留 0.2.25 的截圖；裁決 3 Q1 條件 5 寫的檔名形式由這一條取代。
+  - 兩個瀏覽器的 `asShipped` 每一項都讀到：
+    - `dialog.open` false、`display` "none"、`box` [0,0,0,0]；
+    - 清單裡有 inline 規則 `#litecore-editor-root dialog:not([open])` → none；
+    - 點擊點底下是 `CANVAS#canvas`，`insideDialog` false；
+    - 送出 `editorPlaceCaretV2`，狀態 `ready`，標籤「定位游標 45 ms」（Chrome）／「28 ms」（Firefox）；
+    - 入口按鈕 `hidden`、`display: none`；`hostVersion` 0.2.26、buildId `f5f0df762e1855f2`。
+  - **撤回「`withRule` 也要讀到一樣」這一句**（CLAUDE.md 判準形式 §4：前提不成立）。
+    - 前提是「第二次點擊能讀乾淨」，但它只在第一次點擊沒寫過標籤時才成立，也就是只在修法不存在時。
+    - 機制：延遲標籤只在動作完成時才寫（`e2-editor-app.js:2121`）。工具的 `until` 一看到「定位游標」就成立（`check_m3_production_ui.py:265-272`），接著立刻讀紀錄（`diag_markdown_dialog_on_host.py:79-81`）。而 `placeCaret` 先 `await getState`，之後才送出 `editorPlaceCaretV2`（`narrow-editor-v2-session.js:743`、`:772-778`）。
+    - 0.2.26 上兩個瀏覽器的 `withRule` 都讀到 `busy`、待處理 1：Chrome 讀的時候請求還沒送出，Firefox 剛好已經送出。
+    - `withRule` 照記錄、不判讀。工具不改，也不重跑。
+  - 具名極限 **L-154-diag-second-click**：第一次點擊已經寫過標籤時，工具的第二次點擊會在請求送出之前就讀紀錄，所以只有第一次點擊的讀數是乾淨的。
+  - 同一點的第二次點擊，沒有任何 v21 判準量過、也沒有任何判準宣稱它。D2 自己的點擊用的是同一個標籤判斷，但頁面上那時還沒有「定位游標」，所以是乾淨的。
+  - §34.4：0／0（有證人，但這一句是撤回，不是修理）。預設（`asShipped` 任一項沒讀到就停手）沒有觸發。
+
 ## 修訂紀錄
 
 | 日期 | 內容 |
@@ -565,3 +582,4 @@ JS 字串經 TextEncoder 一定是合法 UTF-8（孤立代理會被換成 U+FFFD
 | 2026-10-17 | §12.4：D7 在 Firefox 的儀器校準與停止規則（fable 裁決 2，擁有者交裁）：先做 A0（哨兵計時器 +440／+455／+470，加上 paint 時間），常數依事先釘死的規則選 470、455 或不選；只改觀察器一個常數；Firefox D1 只准重跑一次，任何一次讀取落在窗外就讓第 1 項不在 v21 出貨。不動 D7 的文字、窗、judge。 |
 | 2026-10-17 | §12.4 結果（追加）：A0 沒有鑑別力，常數取 455；Firefox D1 重跑一次，judge 沒改，D7 Firefox PASS，整體 VERDICT PASS。走 (e) 1。 |
 | 2026-10-17 | §12.5：finding 154（宿主上關著的 Markdown 對話框被 Nextcloud 的 reset 顯示出來，D2 在 0.2.25 上 6/6 NE）；fable 裁決 3，擁有者交裁：修在宿主（0.2.26，一條 `dialog:not([open])` 規則，封包不動），先用診斷工具驗收，`HOST_EXPECT` 只改版號，D2 只准重跑一次。不動 D2 的文字、judge、預設。 |
+| 2026-10-17 | §12.5 (c′)（追加，fable 裁決 3 補充 1）：0.2.26 上修法驗收通過（兩個瀏覽器的 `asShipped` 全符合）；撤回「`withRule` 也要讀到一樣」（前提不成立，§4），具名 L-154-diag-second-click；工具不改、不重跑。 |

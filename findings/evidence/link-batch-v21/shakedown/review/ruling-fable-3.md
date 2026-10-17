@@ -156,3 +156,54 @@ Recomputed with `python3 -I` over the files before adopting:
 - the six `d2-host-v21-*` rounds: 14 requests each, all `paint`/`pageRectangles`; `save1` and `save2` `timedOut` in all six;
 - the diag tool's sha256 is `757c44766d44445b…`; `git show 3ff15b0c:wasm_sdk_probe/web/e2-editor.html` has 0 `<dialog`.
 - One small difference: counting page entries, `htmlServedSha256` reads `9d2e18da…` 10 times, `08e08ec4…` and `f57e8534…` twice each (the v21host and v21hook variants), and `ae70c494…` once. The ruling's "9d2e18da… (11 reports)" does not match that count. Its point, that the served hashes are the source plus the observer snippets, stands, and nothing in the ruling depends on the count.
+
+---
+
+**Ruling 3, addendum 1 (fix acceptance on host 0.2.26: the `withRule` Chrome read), fable, 2026-10-17, read-only.**
+
+Basis. Read: `findings/evidence/154/diag_markdown_dialog_on_host.py` (sha `757c4476…`, whole file; `measure()` `:69-83`, `main()` `:86-130`); `wasm_sdk_probe/tools/check_m3_production_ui.py:261-272` (`state`, `until`); `findings/evidence/host-0.2.20-hand-test/probe_10_14n.py:39-100` (`INSTRUMENT`), `:236-246` (`LOG_LENGTH`, `log_from`); `wasm_sdk_probe/web/e2-editor-app.js:2112-2131` (`run()`), `:2673-2688` (the `pointerdown` handler), `:958`, `:987` (state pill and pending writers); `wasm_sdk_probe/editor-shell-v2/narrow-editor-v2-session.js:741-800` (`placeCaret`); `narrow-editor-v2-client.js:503-506`. Ran `python3 -I` over the four diag reports (`154/0226/diag-154-{chrome-20261017T181633,firefox-20261017T181647}.json`, `154/diag-154-{chrome-20261017T170402,firefox-20261017T170449}.json`). `git log` to `fd72505b`. No browser, no ddev, no edits.
+
+---
+
+### 裁決（給擁有者）
+
+**修法的驗收算過了。** 兩個瀏覽器在 0.2.26 上「照出貨的頁面」那一臂每一項都讀到預期值：關著的對話框不顯示、宿主那條規則在清單裡、點擊點底下是畫布、點下去真的送出 `editorPlaceCaretV2`。Chrome 第二臂少掉的那一筆，是**量具自己的問題**，不是產品：第二次點擊時，狀態列上還留著第一次點擊的「定位游標 45 ms」，量具一看到這四個字就以為完成了，立刻去讀紀錄，而頁面這時才剛開始處理第二次點擊（報告自己寫著 `busy`、待處理 1）——Firefox 只是跑得剛好快一點。這一臂在 0.2.25 上之所以乾淨，是因為那時第一次點擊打在對話框上、根本沒寫過這四個字。我當初寫「第二臂也要讀到一樣」時沒看量具的這個前提，是我寫錯，主 session 停下來是對的。處置：**撤掉那一句**（前提不成立），登錄成量具的具名極限；**不改量具、不重跑**——沒改的量具再跑一次只是擲銅板，改了量具才跑等於為一個在 0.2.26 上已經沒東西可量的臂造機械。接下來照裁決 3 走：改那一個版號、自測、身分檢查、commit，然後跑 D2。
+
+---
+
+### Q1. Met, not met, or not established
+
+**RULING: The acceptance (spec §12.5 (c) / ruling 3 Q1 condition 5) is MET, on the branch that measures it.** The `withRule` Chrome `placeCaretRequests []` is **not a product red and not a failed acceptance read**: it is a read taken before the request existed, by an instrument whose completion predicate is satisfied by the previous click's label. The clause "the `withRule` branch … must read the same" is **withdrawn for 0.2.26** under CLAUDE.md §4 (its premise is false by construction), with the reason below; it is not moved, weakened or re-interpreted.
+
+**FACT CHECK (the mechanism, from source, not from the brief's inference).**
+
+1. The label is never cleared at the start of an action. `run()` writes `#s-latency` only on completion (`e2-editor-app.js:2121`, `${label} ${ms} ms`) or on failure (`:2127`, `:2131`). After the first click it reads `定位游標 45 ms` (Chrome) / `28 ms` (Firefox) until the second click's `run()` completes. [verified]
+2. `ui.until` returns the first polled state the predicate accepts; it has no "changed since the click" clause (`check_m3_production_ui.py:265-272`). With the label already containing `定位游標`, the first poll after `real_click` returns at once. [verified]
+3. `measure()` then reads the log immediately (`diag_markdown_dialog_on_host.py:79-81`: `until(...)`, then `log_from(start)` filtered to `k == "rq"` with `"PlaceCaret" in op`). No settle, no second read. [verified]
+4. The page's click path posts two requests in sequence: `session.placeCaret` (`pointerdown`, `e2-editor-app.js:2685`) is `_enqueue("place-caret", …)` whose body first `await editor.getState(options)` (`narrow-editor-v2-session.js:743`) and only then calls `editor.placeCaret(...)` (`:772-778`). The instrument logs `rq` at `Worker.prototype.postMessage` (`probe_10_14n.py:67-75`), so the `editorPlaceCaretV2` entry exists only after the `editorGetStateV2` round trip has returned. An immediate read sees at most the getState request, which the filter drops. [verified]
+5. The reports carry the payload that says so: both browsers' `withRule.clickState` read `state "busy"`, `pending "1"` — the queued place-caret in flight at the read — against `ready` / `0` in every `asShipped` read and in both 0.2.25 `withRule` reads. Firefox's read happened to fall after its getState round trip (`['editorPlaceCaretV2']` logged); Chrome's fell before. [verified from the four JSONs]
+6. Why 0.2.25's `withRule` was clean: its `asShipped` click landed on `TEXTAREA#markdown-text` and never wrote the label (`asShipped.clickState null`), so the second click's `until` waited for the real completion (`state ready`, `pending 0`, `latency 定位游標 37/36 ms`). The branch was clean there **because the fix was absent**, not because the predicate is sound. [verified]
+7. The falsified premise of my clause: "the `withRule` branch reads a second click cleanly". From 1–4 it reads cleanly only when the first click set no label, i.e. only when the fix is absent. On a fixed host the branch is a race by construction; it is not a threshold that can be tuned. §4 applies: delete the clause, do not build machinery to keep it true. My condition 5 was written without reading the tool's predicate; that is the drafter's error (CLAUDE.md §11), and the main session's stop under §12.5 (c) was correct.
+8. The acceptance's substance is measured by the first-click branch, which is exactly the branch whose red case is committed (0.2.25 `asShipped`: `display block`, `TEXTAREA#markdown-text`, `placeCaretRequests []`, `clickState null`). On 0.2.26 that branch reads, in **both** browsers: `dialog.open false`, `display "none"`, `box [0,0,0,0]`, `rulesSettingDisplay` containing `inline` / `#litecore-editor-root dialog:not([open])` / `none`, `elementAtPoint CANVAS#canvas` `insideDialog false`, `placeCaretRequests ['editorPlaceCaretV2']`, `clickState.state "ready"`, `latency 定位游標 45 ms` / `28 ms`, `button.hidden true` / `display "none"`, `hostIdentity.hostVersion "0.2.26"`, `buildId f5f0df762e1855f2`, tool `757c4476…`. Every pre-registered read holds. [verified from `154/0226/*.json`]
+9. No v21 criterion claims anything about a **second** click at the same point on a collapsed selection: D1's 38 arms, D4's `r-*`, D2's host arm each click once on a fresh page. D2's own click predicate (`probe_10_14n.py:364`) is the same label predicate, but runs on a page where no `定位游標` label exists yet, so it is clean by construction. The second-click behaviour is **not measured and not claimed**; register it as such.
+
+### Q2. What may be done
+
+- **Re-run the unchanged tool: REFUSED.** The second branch is a race on any fixed host (fact 7); a passing re-run would be a coin flip presented as a measurement, the "re-run until green" that rulings 2 and 3 forbid. It would also not test the fix: the first branch already did.
+- **Accept the `asShipped` branch as the acceptance: YES — this is the ruling.** With the clause withdrawn under §4 and the premise written down. The `withRule` branch on 0.2.26 is **recorded, not judged** (both reports kept as they are; nothing moved to `superseded/`).
+- **Change the tool: NOT NOW.** §34.4's witness exists (the committed Chrome 0226 report shows the read taken at `busy`/`pending 1`), so a repair would be *permitted*; it is not *ordered*, because on 0.2.26 the branch has no counterfactual left to measure (the page rule is redundant to the host rule) — fixing a predicate so that a redundant branch turns green is machinery for a claim already withdrawn (§4 self-check). If v22's host criteria reuse the counterfactual shape, fix `measure()` then (wait for `state == "ready"` and `pending == "0"` after the click, or for the label to change, before reading the log), count it then as "repaired because of execution +1", with `154/0226/diag-154-chrome-20261017T181633.json` as its red case. Named limit now: **L-154-diag-second-click** — "the diag tool's second click reads the log as soon as the latency label contains 定位游標; when the first click already set that label the read precedes the request, so only the first click's read is clean".
+- **§34.4 this step: 0 / 0**, totals unchanged (28 / 18). One registered line, no code (L-154-diag-second-click).
+
+### Q3. What is appended before proceeding (append-only, §10; before the re-pin and before any D2 round)
+
+1. **spec v21 §12.5 (c′)** (zh-TW): the 0.2.26 reads of fact 8 for both browsers, verbatim, with the report paths `findings/evidence/154/0226/diag-154-{chrome-20261017T181633,firefox-20261017T181647}.json` (the `0226/` subdirectory, chosen so the 0.2.25 screenshots are kept — this supersedes the file-name pattern in ruling 3 Q1 condition 5); the withdrawal of the `withRule` clause with the falsified premise (fact 7) and the mechanism (facts 1–5, with the file:line); L-154-diag-second-click; the sentence "the second-click behaviour is not measured and not claimed by any v21 criterion"; the acceptance verdict **met**; the default unchanged (「若 asShipped 任一項未讀到：停，不改工具，不跑 D2」, which did not trigger). Revision-log row.
+2. **README §5.10** (English): the same facts and paths; the §34.4 line (0 / 0; "a witness exists, the tool is not changed because the clause is withdrawn, not repaired"); the one registered line; the note that D2's own click predicate is clean by construction (fact 9).
+3. **finding 154 「裁決」 addendum** (zh-TW): fix accepted on host 0.2.26, both browsers; the instrument limit and the v22 note on `measure()`.
+4. Commit 1–3 together with this addendum appended verbatim to `review/ruling-fable-3.md`.
+5. Then ruling 3 Q2 conditions **2 → 6** unchanged: the one-value re-pin (`git diff 1fe9588d` exactly one line), `--self-test` 19/19, `--identity-only` v21 `[]` and 0224 refused on four fields, commit; D2 Chrome N=3, Firefox N=3 under the lock and §12.4 desktop conditions; the stop rule of ruling 3 Q2 condition 5 governs the outcome.
+
+**Default if 1–4 are not done:** the acceptance is not on record as met; do not re-pin, do not run D2; 「第 1 項不出貨」 stands. **Default if D2 is never run:** the same.
+
+---
+
+Main session's check of addendum 1 (not part of the ruling): recomputed from the four reports — 0.2.26 `withRule.clickState` is `busy` / pending `1` in both browsers, `asShipped` `ready` / `0`; 0.2.25 `withRule` `ready` / `0`. `e2-editor-app.js:2121` writes the latency label at completion; `narrow-editor-v2-session.js:743` awaits `getState` before `placeCaret` (`:772-778`). Agrees.

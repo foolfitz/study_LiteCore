@@ -54,3 +54,12 @@ v21 的證據執行全部在 mirror 上跑（無宿主），包括 `v21host` 變
 2. 宿主 production-UI 臂加一份由 DOM 列舉的檢查：讀所有隱藏部件計算後的 display（判準形式二）。第一次計入之前，先依 §34.3 審核一次。
 
 **只登錄、不寫程式**：D2 的 NE 原因（「no Backspace response」）沒有帶點擊點的酬載，所以才另外需要一支診斷工具；`HOST_EXPECT` 沒有釘 buildId。
+
+**修法驗收：通過（2026-10-17 追加；fable 裁決 3 補充 1）。** 宿主 0.2.26（`3c01876`）上，兩個瀏覽器用同一支診斷工具讀到：
+- 關著的對話框 `display: none`，宿主那條規則在清單裡；
+- 點擊點底下是 `CANVAS#canvas`；
+- 點下去送出 `editorPlaceCaretV2`。
+
+報告在 `findings/evidence/154/0226/`。
+
+工具的第二臂（`withRule`）在 Chrome 讀早了，原因是延遲標籤還留著第一次點擊的「定位游標」。這一句判準撤回，具名 L-154-diag-second-click。v22 若要再用這個反事實的形狀，`measure()` 要改成點完之後等 `state == "ready"` 且 `pending == "0"`（或等標籤改變）才讀紀錄，並把 `0226/diag-154-chrome-20261017T181633.json` 當成紅案。
