@@ -351,10 +351,28 @@ stranded；宿主裡沒有任何東西保證這件事。
 shakedown `…154412`）：`firefox:warm:edit` 12/12 在 10 秒內放鎖，每次都被宿主以理由 `page` 攔下；`firefox:warm:none` 12/12，都沒被攔；儀器失敗 0。
 數字已寫進 finding 105，取代「約有一半」（外插，不成立）。
 
+### 7.14 V2 可寫對照：普查時帶 `hidden` 的按鈕不在「必須前進」之列（2026-10-17，宿主 0.2.26／v21，計數鏈之前）
+
+**逼出這一節的量測**（`findings/evidence/m3-page-honesty/shakedown/2026-10-17T105421+0000.json`，`1e2bb146`）：宿主 0.2.26 上 Vrw 一輪，判讀只有一條問題 `V2 control: paste-markdown did not advance`。普查時工具列 22 顆按鈕，只有 `paste-markdown` 一顆是 `hidden: true`。v21 頁面把第 2 項（Markdown 貼上）扣住，殼層不提供入口（SPEC-M3-link-batch-v21 §12.3 (e)），所以按下去會直接 return。`applyControlMutability` 把它標成 `mutates="1"`，因為非移動的動作一律標 mutation。runner 會先拿掉 `hidden` 再按，於是它被算進「每一項都要讓 revision 前進」。
+
+**更正**（取代 §7 V2 列「可寫對照」的例外清單，原文留著）：例外再加一條，**普查當下（`controlsAtCensus`）帶 `hidden` 屬性的那一顆按鈕**，理由是頁面沒有給使用者任何到達它的路。範圍只到這裡：
+
+- 只豁免**同一顆**按鈕的「必須前進」。別顆是不是 hidden 不影響其他按鈕的判讀。
+- 「前進了，卻沒標成 mutation」那一條對 hidden 的按鈕照舊適用。
+- 唯讀臂照舊拿掉 `hidden` 與 `disabled` 再按 hidden 的按鈕，而且一樣要求 revision 不變。
+- 用的是頁面在普查當下自己的 `hidden` 屬性，由工具封閉讀出，不是手寫的名單（CLAUDE.md 判準形式 §1 形式二）。宿主用 CSS 藏起來的開發用控制項不帶 `hidden` 屬性，照舊要前進。
+
+**紅案**（實作時一起加，先跑紅）：
+1. 另一顆按鈕（`set-bold`）標成 hidden，`set-italic` 不前進 → 仍是 `V2 control: set-italic did not advance`。
+2. `set-bold` 標成 hidden 且 `mutates="0"`，它前進了 → 仍是 `set-bold advanced but is labelled`。
+
+**帳**：§34.4 因執行而修 +1，證人是上面那份報告。v21 的第 2 項若在 v22 出貨，按鈕不再 hidden，就回到「必須前進」之列，這一條不需要再改。
+
 ## 6. 修訂紀錄
 
 | 日期 | 內容 |
 |---|---|
+| 2026-10-17 | **加 §7.14：V2 可寫對照不再要求普查時帶 `hidden` 的按鈕前進。**宿主 0.2.26 的 Vrw 只紅在 v21 扣住的 `paste-markdown`（`1e2bb146`）；只豁免同一顆按鈕的「必須前進」，另一方向與唯讀臂不變；加兩條紅案。§34.4 因執行而修 +1。 |
 | 2026-09-29 | **加 §7.13：§7.8 條件 9 的一次性量測已做。**照最終版宿主 0.2.4 跑（條件寫 0.2.3，當時以為那是最終版）：被攔的離頁 12/12 放鎖、正向對照 12/12；finding 105 的「約有一半」改成實測。 |
 | 2026-09-29 | **加 §7.12：re-shakedown 逼出的 runner 修正。**K-sep 讀回 save #1 時逐一讀檔案的 1,645 個版本，CDP 閒置到 keepalive 斷線、整支 runner 崩掉；改成只讀本格開始之後的版本（錯了只會紅），`finally` 的 `drain()` 失敗記成該格 `fatal`。判準沒改。 |
 | 2026-09-29 | **加 §7.11：實作審核的處置與 BLOCKING 1 的量測。**審核（opus）2 BLOCKING／4 SHOULD／11 NOTE 的處置摘要（`b61e9fd9`）；BLOCKING 1＝§7.1 前提的反例（refresh 在 PUT 途中判鎖失效 → `tokenOnServer(null)` 丟例外 → 存檔無處可去），三步量測照預測（LOST → KEPT stranded → KEPT 原檔），宿主 0.2.4（`369e6ed`）以 catch-all 讓前提由構造成立＋問送出去的 token，登錄 finding 108；超出 §7.1 宿主範圍的紀錄；§7.5 的 `.text()` 那一項關閉（構造推得、未量）。判準文字沒改。 |

@@ -946,8 +946,12 @@ def score_view(run: dict[str, Any], re) -> list[str]:
     if not wanted or missing or "insert-text" not in wanted:
         bad.append(f"V2 census: {len(wanted)} controls listed, missing {missing}")
     if writable:
+        # §7.14: a button the page itself hid at census offers the user no way to it (v21's withheld
+        # paste-markdown), so it is not asked to advance; the other direction below still applies to it.
+        hidden = {(c["action"] or c["id"]): c.get("hidden") is True for c in (run.get("controlsAtCensus") or [])}
         for row in buttons:
-            if mutates.get(row["item"]) == "1" and row["item"] != "save" and row["revisionAfter"] == row["revisionBefore"]:
+            if (mutates.get(row["item"]) == "1" and row["item"] != "save" and not hidden.get(row["item"])
+                    and row["revisionAfter"] == row["revisionBefore"]):
                 bad.append(f"V2 control: {row['item']} did not advance ({row['latency']!r})")
             # The other direction: a control that changed the document must be
             # labelled as one, or view-only leaves it enabled and exempt here.
@@ -1195,6 +1199,14 @@ RED_CASES = [
     ("V2 writable control", None, "V2 control: a control that changed the document is labelled a mutation",
      "V2 control: set-bold advanced but is labelled",
      lambda r: next(c for c in r["controlsAtCensus"] if c.get("action") == "set-bold").update(mutates="0")),
+    # §7.14: the exemption for a button hidden at census is that button's own, and only for "must advance".
+    ("V2 writable control", None, "V2 control: another button's hidden does not exempt this one",
+     "V2 control: set-italic did not advance",
+     lambda r: (next(c for c in r["controlsAtCensus"] if c.get("action") == "set-bold").update(hidden=True),
+                _row(r, "set-italic").update(revisionAfter=_row(r, "set-italic")["revisionBefore"]))),
+    ("V2 writable control", None, "V2 control: a hidden button that changed the document is labelled a mutation",
+     "V2 control: set-bold advanced but is labelled",
+     lambda r: next(c for c in r["controlsAtCensus"] if c.get("action") == "set-bold").update(hidden=True, mutates="0")),
     # Clauses the implementation review found with no red case.
     ("U1", CHROME, "U1 Chrome showed the dialog on leave1", "leave1: no dialog in Chrome",
      lambda r: r["leaves"]["leave1"].update(dialog=None)),
