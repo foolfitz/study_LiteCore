@@ -172,6 +172,7 @@ Only the item-1 judge's verdict decides. Its last line is `VERDICT NOT PASS (1 c
 | D5, unit | PASS | — | `unit/unit-halves.txt` | `page-document-keys.test.mjs` 18/18, `page-document-keys-generated.test.mjs` (D5-gen) 17/17 |
 | D5-w | PASS | PASS | judge, `d5w` | Firefox PASS after judge fix J2 (§5.5). Before it, the judge read NE. |
 | D7 | PASS | **NOT_ESTABLISHED** | judge, `d1` | Firefox: 2 of 192 +500 ms reads were posted at **550.1** and **553.5 ms** after the reply. Foreign CPU was clean, so the arm was **not re-run** (§5.4). |
+| D7 (after ruling 2, appended) | PASS | **PASS** | judge, `d1` (`judge-item1-after-d7-rerun-2.txt`) | Firefox re-run once at the observer's constant 455 (spec §12.4, §5.7 below); Chrome stands on its constant-500 report. The row above stays as written. |
 | D8 | PASS | PASS | judge, `d8` + `d8red` | (a)–(e) 3/3 each; 0.2.24 red case below |
 | D9 | PASS | PASS | judge, `d9` | flagged hold: 1 move, ready 0 ms. Unflagged: Chrome 3 moves, ready 28–29 ms; Firefox 4 moves, ready 236–238 ms (≤ 500). |
 | D10 | PASS | PASS | judge, `d10` | `第 60 頁，共 60 頁` at both reads, 3/3 |
@@ -267,3 +268,33 @@ None. No criterion FAILs, and the 0.2.24 red cases are red as required.
 - **Where a changed constant shows.** The handoff 10-17 says Chrome's runner "differs only in the … timer constant". The runner's hash (`4fba3d19…`) does not change with the observer; `pages.v21.snippetSha256[1]` (today `52c08695…`) does.
 - **Ask ids.** `ARMS-item1.md` §2.2 (c) says D7's ask ids are ≥ `0x7F000000`; the observer uses `0x7E000000` (`v21_item1_observer.py:48`). The judge matches on `k == "ask7"` and `forRq`, so no verdict depends on it.
 - **The silent presses' readback times** quoted from spec §12.3 (250.6–251.2 ms) are the diagnostic's. In the D1 reports they are 250.5–251.5 ms (Chrome) and 250.9–254.0 ms (Firefox).
+
+**Outcome (appended 2026-10-17 12:10): spec §12.4 (e) 1, D7 Firefox PASS.**
+- **A0** (`review/diag-d7-timer/`, diagnostic): uninformative. 0 of 72 `t-*` +500 reads were late (500.1–501.5) with the desktop Chrome closed, so by §12.4 (c) the constant is 455, 「premise unmeasured, maximum slack chosen」 (`303e6296`, the one token).
+- **The single Firefox D1 evidence re-run** (`item1/report-firefox-d1-20261017T113643.json`, 11:36–12:09):
+  - under the lock; desktop Chrome closed (0 processes; `item1/desk-firefox-d1-rerun2-20261017T113643.txt`); load 0.80 at the start; foreign CPU over the limit in 0 of 120 rounds;
+  - the previous Firefox D1 report (`092410`), its run log and docs moved to `superseded/item1/`, not deleted.
+- **The unchanged judge** (at `c32fc13d`; `judge-item1-after-d7-rerun-2.txt`, beside the earlier two) reads **D7 Firefox PASS** and `VERDICT PASS (0 criterion cell(s) not PASS)`. Against `judge-item1-after-d7-rerun.txt`, D7 Firefox is the only verdict line that changed.
+- **The edit took effect** (§12.4 (e) 5): all 192 reads lie in the window, at a median of 455.2 ms and a minimum of 455.1 ms.
+- **Near an edge** (ruling 2 Q5 item 7): 179 of 192 reads lie within 10 ms of the lower edge (455.1–459.9 ms). That follows from the constant, because a timer never posts early (ruling 2 Q1, F5). None lies within 10 ms of the upper edge.
+- **The lateness is still there, but there is less of it.** Six reads were 15 ms or more late:
+  - t-end-B2-n3 ce1 +26.6;
+  - r-cross-end ce +17.5 and +30.9;
+  - t-end-A1-n3 ce3 +33.9;
+  - sec-home-n3 ch3 +15.9;
+  - t-home-A1-n2 ch2 **+50.4**. At the old constant, this read would have posted at 550.4 and read NE.
+  
+  The two earlier runs had 15 and 13 reads later than +20. This run alone cannot tell whether the closed desktop Chrome made the difference.
+- **Carets** equal 192/192. Completions: as the judge reports, no FAIL.
+
+**Which observer each judged report used** (ruling 2 Q2 condition 1; `pages.*.snippetSha256[1]`, the item-1 SNIPPET):
+
+| report | item-1 snippet | D7 ask at |
+|---|---|---|
+| Chrome `d1-064131`, `d9`, `d10`, `d14`, rest (`d2p-…-d6`) | `52c08695…` | +500 |
+| Firefox `d9`, `d10`, `d14`, `d2p-d8-d8red-d11b`, `d11a-d11c-d12`, `d5w-xlc-table-d6` | `52c08695…` | +500 |
+| Firefox `d1-113643` | `9063835a…` | +455 |
+
+D7's criterion is the window (500±50 ms, a single read), not the aim. Chrome D7, and D10 and D11a in both browsers, stand on their +500 reports without a re-run or re-judge (ruling 2 Q2). Their reads are all inside the window: Chrome D7 500.1–500.9 ms, D10 500.2–501.0 ms, D11a 500.2–500.6 ms.
+
+**Tally** (unchanged from the line after ruling 2): execution **3** (J1, J2, J3), review **0**, runs lost and re-run **1** (W2). The §12.4 (e) 3 allowance was not spent.
