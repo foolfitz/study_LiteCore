@@ -754,7 +754,20 @@ FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
 # and U2 red on ccb67a52…), E1-C intact, the product-path mutations 10/10, and N1 on these bytes without the host on
 # v20 (the merge runner's counted and red modes, both browsers; findings/evidence/145/n1/).  The full count chain on
 # the installed 0.2.24 is the binding check.
-MANIFEST = Path("e2/editor-shell-v2-bundle-v73.json")
+#
+# v74, 2026-10-17: link batch v21 (specs/SPEC-M3-link-batch-v21.md), shipping item 1 only, Ctrl/Cmd+Home/End
+# (finding 142; fable ruling 1: item 2, paste as Markdown, withheld, its entry hidden by the shell, finding 153), with
+# findings 150 and 151 fixed in the page (`712f955a`).  Differs from v73 in five files: the entrypoint
+# `web/e2-editor-app.js` 901dd6a6… -> 605cf24b… (repointed to `e2-editor-v21`, `build_cutover_page.py --profile
+# e2-editor-v21 --write --expect-sha256 605cf24b…`), `editor-shell-v2/narrow-editor-v2-client.js` aaceb555… ->
+# c5ab9d17…, `editor-shell-v2/narrow-editor-v2-session.js` f47c80ec… -> f1509ff2…,
+# `editor-shell-v2/paragraph-editor-client.js` 38a46f4b… -> 4616ae17…, `sdk/document-sdk.js` 6898b795… -> 9dcb8312…;
+# the included set is v73's 13 paths.  Frozen after the shakedown's evidence runs on exactly these bytes (served
+# through the mirror, shell digest e35923a0…, page 605cf24b…; findings/evidence/link-batch-v21/shakedown/README.md §5):
+# item 1's judge VERDICT PASS in Chrome and Firefox, N=3 (D7 Firefox after the observer calibration of spec §12.4,
+# fable ruling 2), M7 PASS, D2's no-host predictor PASS, the 0.2.24 red cases red; node 596/596 and E1-C intact at
+# `712f955a`.  D2 on the host, the 0.2.25 install and the count chain K are the binding checks.
+MANIFEST = Path("e2/editor-shell-v2-bundle-v74.json")
 ENTRYPOINT = Path("web/e2-editor-app.js")
 
 # The directories whose *.js files must all be accounted for.  `editor-shell`

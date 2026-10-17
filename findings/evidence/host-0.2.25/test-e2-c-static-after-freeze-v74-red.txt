@@ -1,0 +1,611 @@
+node --test editor-shell-v2/tests/*.test.mjs
+✔ delete-backward: verified-boundary-noop with changed false and the revision unchanged is accepted (2.38595ms)
+✔ delete-backward: verified-boundary-noop with changed true is EDITOR_RESULT_INVALID (0.652103ms)
+✔ delete-backward: verified-boundary-noop with revision advanced is EDITOR_RESULT_INVALID (0.208758ms)
+✔ delete-backward: verified-boundary-noop with changed true and revision advanced is EDITOR_RESULT_INVALID (0.168894ms)
+✔ delete-backward: verified-boundary-noop with changed null is EDITOR_RESULT_INVALID (0.491555ms)
+✔ delete-backward: verified-boundary-noop with changed missing is EDITOR_RESULT_INVALID (0.769782ms)
+✔ delete-backward: verified-boundary-noop with revision regressed is EDITOR_RESULT_INVALID (0.255446ms)
+✔ delete-backward: verified-boundary-noop with beforeRevision wrong is EDITOR_RESULT_INVALID (2.478773ms)
+✔ delete-forward: verified-boundary-noop with changed false and the revision unchanged is accepted (0.837178ms)
+✔ delete-forward: verified-boundary-noop with changed true is EDITOR_RESULT_INVALID (0.869538ms)
+✔ delete-forward: verified-boundary-noop with revision advanced is EDITOR_RESULT_INVALID (0.191957ms)
+✔ delete-forward: verified-boundary-noop with changed true and revision advanced is EDITOR_RESULT_INVALID (0.298515ms)
+✔ delete-forward: verified-boundary-noop with changed null is EDITOR_RESULT_INVALID (0.10763ms)
+✔ delete-forward: verified-boundary-noop with changed missing is EDITOR_RESULT_INVALID (0.088785ms)
+✔ delete-forward: verified-boundary-noop with revision regressed is EDITOR_RESULT_INVALID (0.081793ms)
+✔ delete-forward: verified-boundary-noop with beforeRevision wrong is EDITOR_RESULT_INVALID (0.069881ms)
+✔ move-character-left: verified-boundary-noop is not a completion of this action (0.180145ms)
+✔ move-character-right: verified-boundary-noop is not a completion of this action (0.08607ms)
+✔ move-line-up: verified-boundary-noop is not a completion of this action (0.075521ms)
+✔ move-line-end: verified-boundary-noop is not a completion of this action (0.073817ms)
+✔ insert-paragraph-break: verified-boundary-noop is not a completion of this action (0.085619ms)
+✔ insert-line-break: verified-boundary-noop is not a completion of this action (0.100477ms)
+✔ set-bold: verified-boundary-noop is not a completion of this action (0.116446ms)
+✔ delete-selection: verified-boundary-noop is not a completion of this action (0.086541ms)
+✔ the existing delete completions are still accepted beside the new one (0.837188ms)
+✔ offersPageRectangles reads the contract field, not the action map (0.20423ms)
+✔ offersPageRectangles is false for a v19-shaped contract (0.103121ms)
+✔ offersPageRectangles is false for the field with another value (0.398231ms)
+✔ offersPageRectangles is false for the field as a boolean (0.06967ms)
+✔ offersPageRectangles is false for no contract at all (0.048099ms)
+✔ D13: every action the client sends has exactly one postcondition class (3.135975ms)
+✔ D13: each ABI 5 action is in the move class, and only there (0.838621ms)
+✔ D13: BOUNDARY_CAPABLE_MOVES equals the move class over the client's list (1.470317ms)
+✔ D13: the session's own mutation flag agrees, action by action (0.843951ms)
+✔ D13: an action in no class is refused, not accepted by falling through (0.920212ms)
+✔ D13: the client refuses an unknown action before any request; the session before it is queued (1.005812ms)
+✔ move-document-start: the moves' postcondition -- a callback or the boundary's readback, revision held, changed false (0.762379ms)
+✔ move-document-start: a reply that claims a change is rejected (1.18181ms)
+✔ move-document-start: extendSelection is refused by the client (0.391398ms)
+✔ move-document-end: the moves' postcondition -- a callback or the boundary's readback, revision held, changed false (1.661522ms)
+✔ move-document-end: a reply that claims a change is rejected (0.601029ms)
+✔ move-document-end: extendSelection is refused by the client (0.565362ms)
+✔ EditorV2ParagraphAction declares exactly the runtime's actions (2.347308ms)
+✔ the gesture union matches the engine's routing classes (2.600439ms)
+✔ EditorV2InheritedAction declares exactly the runtime's ten (0.366712ms)
+✔ EditorV2Action is the union of the two lists, and it is fifteen (0.306501ms)
+✔ the inherited result keeps a boolean `changed` (0.342657ms)
+✔ the declared completion is route C's, not v1's (0.165068ms)
+✔ EditorV3AppendedAction declares exactly the runtime's five (0.274842ms)
+✔ EditorV3Action is v2's fifteen plus the append, and it is twenty (0.298826ms)
+✔ EditorV4AppendedAction declares exactly the runtime's two (0.485934ms)
+✔ EditorV4Action is v3's twenty plus the append, and it is twenty-two (0.527782ms)
+✔ the client pair declares the closed postcondition classes and the paste offer (0.251979ms)
+✔ the withheld action is named nowhere in the client pair (1.674036ms)
+✔ the worker's wire ids are the header's, and the header pins them (1.914883ms)
+✔ document-sdk.d.ts declares every public method of DocumentHandle and DocumentEngine (0.874046ms)
+✔ document-sdk.d.ts names the runtime's Markdown limit and the paste's signature (0.437885ms)
+✔ every action the v2 profile declares is reachable by a shipped shell (3.711507ms)
+✔ control: the v1 shell reaches all ten on the v1 profile (0.936443ms)
+✔ control: an action no manifest declares is reachable by nobody (0.309736ms)
+✔ the shipped session cannot open a document on the v2 profile (1.278489ms)
+✔ control: the shipped session opens on the v1 profile (0.333641ms)
+✔ 10.4: every code in the engine's kPreDispatchCodes disposes as none, by the code alone (2.361354ms)
+✔ 10.4: the interface's five named codes and the session's own are pre-dispatch (0.244085ms)
+✔ 10.4: `dispatched: false` alone says none, whatever the code; a barrier's own answer still wins (0.167482ms)
+✔ M11: a paste is a mutation -- dirty afterwards (autosave's trigger), the revision up by one (3.104967ms)
+✔ M8 (session): offersPasteMarkdown reads the contract -- false on the real v20 manifest, true when declared (1.063319ms)
+✔ 10.1: on a dirty document the work is banked BEFORE the paste is dispatched (1.014368ms)
+✔ 10.1 / M9: a checkpoint that cannot be written refuses the paste -- MARKDOWN_CHECKPOINT_FAILED, nothing sent (1.091792ms)
+✔ M9 (dirty arm): a paste the engine cannot verify rolls back to the checkpoint taken just before it -- the unsaved marker survives (1.2359ms)
+✔ M9 (clean arm): with nothing typed, the rollback reopens the opened bytes and nothing is banked (0.661351ms)
+✔ M3 (session): the engine's pre-dispatch INVALID_ARGUMENT -- recovery none, the queue open, nothing marked dirty (0.665318ms)
+✔ M3 (session): the engine's pre-dispatch MARKDOWN_ENCODING_UNSUPPORTED -- recovery none, the queue open, nothing marked dirty (0.334132ms)
+✔ M3 (session): the engine's pre-dispatch MARKDOWN_NEEDS_CARET -- recovery none, the queue open, nothing marked dirty (0.216363ms)
+✔ M3 (session): the engine's pre-dispatch MARKDOWN_REMOTE_IMAGE -- recovery none, the queue open, nothing marked dirty (0.215821ms)
+✔ M3 (session): the engine's pre-dispatch MARKDOWN_HTML_UNSUPPORTED -- recovery none, the queue open, nothing marked dirty (0.21495ms)
+✔ M3 (session): the engine's pre-dispatch MARKDOWN_UNDO_UNREADABLE -- recovery none, the queue open, nothing marked dirty (0.231951ms)
+✔ view-only: the paste is refused before it is queued, and not counted as enqueued (0.533423ms)
+✔ 10.3: enqueueCount counts every enqueue path, and beforeEnqueue sees each label first (2.645934ms)
+✔ 10.3 rule 4: what beforeEnqueue enqueues goes into the queue AHEAD of the item that called it (22.338981ms)
+✔ the ten inherited actions decide identically in both clients (151.322428ms)
+✔ the comparison can fail (1.766738ms)
+✔ the paragraph five are not revalidated here, they are delegated (0.296362ms)
+✔ a paragraph reply shape is still rejected for an inherited action (0.390186ms)
+✔ the fifteen are the manifest's fifteen (0.190624ms)
+✔ the convenience methods reach the same actions as v1's (1.258962ms)
+✔ the client refuses a profile that is not v2 (0.310248ms)
+✔ it opens on the v2 profile, which the shipped session cannot (4.028467ms)
+✔ all fifteen go through the session's queue (2.017624ms)
+✔ the two families keep their own postconditions (0.541929ms)
+✔ a paragraph action advances the revision by exactly one (0.377763ms)
+✔ a post-dispatch failure blocks the queue and asks for a rollback (0.676749ms)
+✔ rollback reopens from the engine's own bytes with a fresh worker (0.683652ms)
+✔ a DISPATCHED postcondition failure blocks the queue too, not just the codes the base class knows (0.90851ms)
+✔ the base-class seam this depends on is still there (0.393933ms)
+✔ the second base-class seam this depends on is still there: the item is pushed synchronously and its mutation flag is read after the operation (14.80442ms)
+✔ the queue observer survives a rollback: one array for the session's life, pushes still seen (0.770885ms)
+✔ an undispatched failure still leaves the queue running (0.377753ms)
+✔ a pre-dispatch refusal does not ask for a rollback (0.283157ms)
+✔ a bad argument never reaches the engine and never rolls anything back (0.267908ms)
+✔ a boundary rejection still demands a fresh worker (2.572628ms)
+✔ the generation ceiling still fails closed (1.858989ms)
+✔ gestures and limits come from the manifest, for showing not for failing (1.029195ms)
+✔ finding 084: a state write whose sourceSequence went BACKWARDS does not move the caret back (0.510219ms)
+✔ finding 084: the REST of a stale patch still applies (0.173883ms)
+✔ finding 084: an ADVANCING write still lands, and so does an equal one (0.135222ms)
+✔ finding 084: a REOPEN may legitimately move the sequence backwards (0.116066ms)
+✔ finding 084: a write with no sourceSequence is not second-guessed (0.119963ms)
+✔ finding 084: the guard is installed on the machine the writers use (0.149118ms)
+✔ finding 084: the base class builds the machine ONCE, which is what makes wrapping it in the constructor enough (0.273889ms)
+✔ finding 084: after ANY order of arrivals the newest state is the one held (1.059031ms)
+✔ finding 084: a DUPLICATED announcement is idempotent, in any position (0.227083ms)
+✔ finding 084: the sequence the snapshot holds NEVER decreases, whatever arrives (0.212245ms)
+✔ finding 084: TWO announcements per commit -- the a11y core's shape -- still ends on the caret-bearing one (1.848991ms)
+✔ finding 096: a move on a DIRTY document banks a checkpoint first (0.341155ms)
+✔ finding 096 / 151: the six arrow moves bank it, the two document moves and everything else do not (2.512235ms)
+✔ finding 151: a DIRTY document's Ctrl+Home/End sends no save, stays dirty, and banks no checkpoint (0.347065ms)
+✔ finding 096: a CLEAN document pays nothing (0.164346ms)
+✔ finding 096: holding the key down does not save per keypress (0.437594ms)
+✔ finding 096: a checkpoint that cannot be written does not eat the key (0.280132ms)
+✔ finding 098: moving the caret on a CLEAN document never makes it dirty and never banks anything (4.96582ms)
+✔ finding 098: on a successful answer, `dirty` says the document changed exactly when the engine said it did -- for every action the client offers (1.908722ms)
+✔ finding 099: after a rollback, the new Worker's work is banked however its revision lines up with the old checkpoint's (10.830815ms)
+✔ finding 099: the skip reads the content, never the revision -- at any revision, in any generation (78.750107ms)
+✔ finding 099: WITHIN one Worker, a change that came back unverified is banked by the next arrow key (0.705092ms)
+✔ finding 099: a checkpoint save that failed is retried on the next move (0.917708ms)
+✔ finding 098: shift+arrow on a clean document is not a mutation either (0.293346ms)
+✔ view-only: every mutating entry point is refused before it is queued (1.963965ms)
+✔ view-only: moves still run, and the gate is off by default (0.737643ms)
+✔ actionMutates is fail-closed: only the six moves are not mutations (0.175997ms)
+✔ view-only survives a fresh Worker (a rollback reopens the engine) (0.459024ms)
+✔ finding 107: unsaved edits follow dirty and pending, never the revision (0.716764ms)
+✔ finding 109: a refused boundary delete on a DIRTY document banks the work before the queue blocks, and the restart reopens it (0.882913ms)
+✔ finding 109: a CLEAN document pays nothing and loses nothing (0.255094ms)
+✔ finding 109: content a move already banked is not saved twice (0.318974ms)
+✔ finding 109: a checkpoint that cannot be written says so, and a restart is NOT reported as keeping the content (0.301141ms)
+✔ finding 109: an OLDER checkpoint does not make a restart safe (0.330846ms)
+✔ finding 109: after a save, the saved bytes are what a restart keeps (0.263851ms)
+✔ M1-3: keyPosted refusal (clean, key not applied) keeps every typed change across the restart (0.866132ms)
+✔ M1-3: keyPosted refusal (dirty, nothing banked, key not applied) keeps every typed change across the restart (0.393993ms)
+✔ M1-3: keyPosted refusal (dirty, banked at this stamp, key not applied) keeps every typed change across the restart (0.90235ms)
+✔ M1-3: keyPosted refusal (clean, key applied) keeps every typed change across the restart (0.423839ms)
+✔ M1-3: keyPosted refusal (dirty, nothing banked, key applied) keeps every typed change across the restart (0.733295ms)
+✔ M1-3: keyPosted refusal (dirty, banked at this stamp, key applied) keeps every typed change across the restart (0.433226ms)
+✔ finding 119 U1/U5: a delete the barrier could not verify banks the work, blocks as restart-required, and the restart reopens it (0.629622ms)
+✔ finding 119 U2: a CLEAN document pays nothing and loses nothing (0.239045ms)
+✔ finding 119 U3: a checkpoint that cannot be written says so; the caller still gets the engine's error (0.350862ms)
+✔ finding 119 U4: the same code anywhere else keeps today's disposition (0.396438ms)
+✔ B1: two refusals restart, and the third finds no generation left (0.469183ms)
+✔ B1: at the ceiling the refusal's content is handed out as saved, and the engine is left alone (0.439037ms)
+✔ B1: a checkpoint that could not be written is not handed out (0.206534ms)
+✔ B1: never from a running session, even with a checkpoint in hand (0.149498ms)
+✔ B1 (page): the third refusal does not restart; its content goes to the save path (3.443989ms)
+✔ B1 (page): a failed write stays `failed`, and is not retried into `clean` (1.340835ms)
+✔ B1 (page): nothing unsaved at the ceiling is `clean` and saves nothing (1.301853ms)
+✔ B1 (page): unsaved work that cannot be kept is `lost`, not saved (1.177821ms)
+✔ B1: a session stopped by something else at the ceiling hands out its content too (recoverable-error) (0.529325ms)
+✔ B1 (page): before any attempt the notice tells clean, pending and lost apart (3.441314ms)
+✔ B1 (page): `saved` only once the write has landed; the button is dead while it is in flight (13.000422ms)
+✔ B1 (page): a failed write keeps the host's own sentence (1.444588ms)
+✔ B1 (page): the notice's button -- rollback below the ceiling; at it, save when nothing was attempted, reload after (8.228212ms)
+✔ finding 111: X, Y, then Delete at once -- the Delete waits for Y (48.085513ms)
+✔ finding 111: X, Y, Delete, Z -- Z after the Delete (70.723811ms)
+✔ finding 111: two keys in a row keep their order behind the text (50.381766ms)
+✔ finding 111: nothing typed -- the key goes straight in (5.803179ms)
+✔ finding 111: typed text the adapter cancels does not strand the key (26.171533ms)
+✔ finding 111 U7: a key held behind typed text is not run on the Worker of a restart (200.496437ms)
+✔ finding 111 U8: X in flight, Y in the adapter, then save -- the save holds both (41.088833ms)
+✔ an action with gestures is offered (1.326539ms)
+✔ an action PRESENT with an empty gesture list is NOT offered (0.199241ms)
+✔ an action the profile does not carry is NOT offered (0.156311ms)
+✔ gesturesFor CANNOT distinguish those two, which is why offers exists (0.745948ms)
+✔ a v1-shaped manifest carries a name list and offers what it lists (0.352947ms)
+✔ no contract at all offers everything (0.162402ms)
+✔ offersRedo reads the contract, not the action map (0.301571ms)
+✔ a profile with no contract at all does not claim redo (0.323772ms)
+✔ offersPageRectangles reads the contract, not the action map (0.744927ms)
+✔ a profile with no contract at all does not claim page rectangles (0.48365ms)
+✔ the product page gates redo and cut on the profile too (1.689233ms)
+✔ the product page gates its arrow keys on offers, not gesturesFor (1.295521ms)
+✔ every dispatchable action has a label, button or not (4.302496ms)
+✔ the session's allowlist covers everything the client offers (0.588866ms)
+✔ verified-boundary-noop resolves through run(): no toast, no reopen, one repaint, the result returned (5.531634ms)
+✔ reopensAfterRefusal() is asked about errors, and a noop result is not one (0.61293ms)
+✔ control: the catch path still reopens on EDITOR_BOUNDARY_UNSUPPORTED and toasts on anything else (1.365811ms)
+✔ the assertion has teeth: a run() that toasts on changed === false fails it (0.824404ms)
+✔ session: delete-backward answered verified-boundary-noop resolves, the queue stays open, no disposition (3.235091ms)
+✔ session: delete-forward answered verified-boundary-noop resolves, the queue stays open, no disposition (0.655429ms)
+✔ 47: a clean document and one verified-boundary-noop delete: not dirty, stamp unchanged, no unsaved edits, and the following boundary move banks no checkpoint (0.872835ms)
+✔ 47 control: a verified (changing) delete still sets dirty, bumps the stamp, and the following boundary move banks a checkpoint (0.721363ms)
+✔ 47: the flip is keyed on the exact pair -- an accepted completion whose changed is null (a paragraph action's verified-format-readback) stays a mutation (0.721883ms)
+✔ 47: the view-only gate still refuses deletes before anything is queued (3.041139ms)
+✔ M1-5: an engine without B (no mergeKey) keeps the old, true sentence (6.030382ms)
+✔ M1-5: keyPosted true is never told 'not changed', whatever the stage (0.195835ms)
+✔ M1-5: keyPosted missing or not false is never told 'not changed' (0.126957ms)
+✔ M1-5: before-the-key stages say 'not changed'; unknown and restore-mutated do not (0.185064ms)
+✔ M1-5: the page's 'not changed' set holds only stages the engine has (0.206545ms)
+✔ M1-5: 'nothing selected' does not claim a document end (0.133448ms)
+✔ M1-5: every exit of reopenAfterBoundaryRefusal, keyPosted true, never says 'not changed' (0.88102ms)
+✔ M1-5: after a restart with the key's effect uncertain, the user is told to look (0.235428ms)
+✔ M1-5: the same exits for an engine without B still use its sentence (0.422667ms)
+✔ M1-5: the page hands the error to the reopen path (0.259203ms)
+✔ finding 119 U6: the session's restart disposition reaches the reopen path; the code alone does not (2.182451ms)
+✔ finding 119 U6: no exit says 'not changed'; each names the unfinished delete; a restart asks to look (0.710312ms)
+✔ finding 119 U6: the notice's reopen gives the input sink its focus back, after the rollback (8.910922ms)
+✔ finding 121: a range goes out as delete-selection when the profile offers it (1.017394ms)
+✔ finding 121: a caret, an unknown shape, or no offer keeps today's action (1.869078ms)
+✔ finding 121: the handler asks the engine's current selection, the page's belief only as fallback (0.647404ms)
+✔ finding 131: while a delete this page sent is unsettled, the key keeps its collapsed form (0.171679ms)
+✔ finding 131: the handler passes its own unsettled deletes, counted before the call and released in finally (0.479352ms)
+✔ finding 120: the sink follows the new adapter's blocked state (0.148236ms)
+✔ finding 120: openDocument syncs the sink right after attaching it (0.282836ms)
+✔ 132 U3: a repeat is dropped only while two deletes are out; a press, a composition, another key never (1.420263ms)
+✔ 132 U4: the sink's keydown listener prevents exactly the repeats U3 drops, at the page's own count (1.156402ms)
+✔ 132 U6: the delete listener repaints the overlay once its deletes have all settled, not before (11.394254ms)
+✔ 134 U-B1: after a refusal a Backspace/Delete repeat is dropped; a press, a composition, another key never (0.792565ms)
+✔ 134 U-B2: a hold ends on its key coming up, on a new press of it, or on the window losing focus (0.491715ms)
+✔ 134 U-B3: the page's listeners drop the refused hold's repeats until the hold ends, at depth 0 (1.744636ms)
+✔ 134 U-B4: the beforeinput handler marks the hold refused when its delete is rejected (0.379747ms)
+✔ D5-gen: the matrix is generated from the page's own table, and the table is not empty (0.883584ms)
+✔ D5-gen Ctrl+Home (move-document-start absent): taken exactly when declared (2.114925ms)
+✔ D5-gen Ctrl+Home (move-document-start withheld): taken exactly when declared (1.051838ms)
+✔ D5-gen Ctrl+Home (move-document-start declared): taken exactly when declared (1.145532ms)
+✔ D5-gen Ctrl+Home: Shift, Alt and an IME composition are never taken, even when declared (2.828094ms)
+✔ D5-gen Cmd+Home (move-document-start absent): taken exactly when declared (1.024406ms)
+✔ D5-gen Cmd+Home (move-document-start withheld): taken exactly when declared (1.137047ms)
+✔ D5-gen Cmd+Home (move-document-start declared): taken exactly when declared (1.105527ms)
+✔ D5-gen Cmd+Home: Shift, Alt and an IME composition are never taken, even when declared (6.828207ms)
+✔ D5-gen Ctrl+End (move-document-end absent): taken exactly when declared (1.288598ms)
+✔ D5-gen Ctrl+End (move-document-end withheld): taken exactly when declared (0.984683ms)
+✔ D5-gen Ctrl+End (move-document-end declared): taken exactly when declared (1.426225ms)
+✔ D5-gen Ctrl+End: Shift, Alt and an IME composition are never taken, even when declared (2.318424ms)
+✔ D5-gen Cmd+End (move-document-end absent): taken exactly when declared (0.997466ms)
+✔ D5-gen Cmd+End (move-document-end withheld): taken exactly when declared (1.070742ms)
+✔ D5-gen Cmd+End (move-document-end declared): taken exactly when declared (1.212206ms)
+✔ D5-gen Cmd+End: Shift, Alt and an IME composition are never taken, even when declared (2.507346ms)
+✔ D5: the absent state really is v20's manifest, with neither move in it (0.960377ms)
+✔ D5 (absent (the real v20 manifest)): only an offered move takes its key (4.940945ms)
+✔ D5 (both withheld): only an offered move takes its key (3.513077ms)
+✔ D5 (only start withheld): only an offered move takes its key (10.353096ms)
+✔ D5 (only end withheld): only an offered move takes its key (10.386829ms)
+✔ D5 (declared): only an offered move takes its key (4.389959ms)
+✔ D5: Shift, Alt and an IME composition are never taken, even when the move is offered (14.723219ms)
+✔ D5: plain Home/End and other Ctrl keys are not this binding's (4.682864ms)
+✔ D9 (Ctrl+Home): held 1 s with flagged repeats -- one move, ready within 500 ms of release (21.154987ms)
+✔ D9 (Ctrl+Home): unflagged presses every 30 ms for 1 s -- a move only when the last one is answered, ready within 500 ms (5.188325ms)
+✔ D9 (Ctrl+End): held 1 s with flagged repeats -- one move, ready within 500 ms of release (5.247615ms)
+✔ D9 (Ctrl+End): unflagged presses every 30 ms for 1 s -- a move only when the last one is answered, ready within 500 ms (3.321421ms)
+✔ D9: the two keys do not drop each other -- Ctrl+End while Ctrl+Home is unanswered goes out (1.27388ms)
+✔ D4: on a range the move goes through moveFromPoint (click at the point, then move) (2.156143ms)
+✔ D4: on a caret, or while a point move is already queued, the move goes straight out (1.933217ms)
+✔ wiring: the keydown handler takes the document keys BEFORE `if (accel) return;` (0.258351ms)
+✔ wiring: both moves have a label (editorAction names a failure by it) (0.691818ms)
+✔ wiring: the page builds its session with the held deletes' beforeEnqueue (§10.3 rule 4) (0.991324ms)
+✔ 124-U1: a caret that changed and is out of view is scrolled to the middle, once (1.105006ms)
+✔ 124-U2: a caret that changed but is wholly in view does not scroll (0.313793ms)
+✔ 124-U3: an unchanged caret never scrolls -- a user who wheeled away is not pulled back (0.174485ms)
+✔ 124-U4: the scroll is clamped to the desk's range (0.339342ms)
+✔ 124-U5 (§17.9 (e)): not while a pointer drag selects; the first caret after it is followed (0.18835ms)
+✔ D8 (a): Backspace at the start, Ctrl+End, Backspace -- the third deletes one character at the end (101.227145ms)
+✔ D8 (b): Backspace at the start, Ctrl+Home, then 18 unflagged Backspaces in one second -- at most 2 deletes reach the engine (59.127862ms)
+✔ D8 (c): Backspace at the start, Ctrl+End, two Backspaces -- two characters deleted at the end (44.722876ms)
+✔ D8 (d): Backspace at the start, a click in the middle, Backspace -- the delete is at the click (31.305968ms)
+✔ D8 (e): Backspace, Backspace in text, Ctrl+End, Delete -- the two delete in place, the Delete at the end is a no-op (37.42241ms)
+✔ D8 control (141 T1 kept): a held key at the start with nothing else enqueued is still ONE engine request (32.233213ms)
+✔ D8 control (131 kept): presses held inside text are each delivered, in place, one per answer (24.256709ms)
+✔ 141 T1: a held key at a C boundary -- 18 unflagged presses in one second -- is ONE engine request, ready within 2.5 s (48.758535ms)
+✔ 141 T2 (control, finding 131): the same 18 presses inside text are 18 deletes, press for press, each out at the previous answer (6.949713ms)
+✔ 141 T3a (control): once the caret has moved, the next press at the old boundary is sent (10.791973ms)
+✔ 141 T3b (control): a no-op whose returned state differs from the sent state releases the held presses (10.098873ms)
+✔ 141 T3c (control): a no-op reply without a readable state releases the held presses (fail closed towards 131) (8.018612ms)
+✔ 141 T3d: a refused delete drops the held presses and marks the hold refused (134 B) (5.107945ms)
+✔ 141 T3e: a Delete press while a Backspace is unanswered is not held (another key) (2.169547ms)
+✔ 141 T4: flagged repeats still obey H2 at the keydown -- dropped at depth 2, taken at depth 1 (0.823693ms)
+✔ 145 U1: after a refusal reopens the document, each later press is sent as its own key -- none held, none replayed as the other key (2.919373ms)
+✔ 145 U2: presses held behind the refused delete are not carried into the reopened document (3.423141ms)
+✔ 144 U1: a held Backspace inside text (51 flagged repeats over 2 s) deletes at most 2 characters after the key comes up (24.85338ms)
+✔ 144 U1b (control): an UNFLAGGED burst inside text is still deleted press for press (finding 131) (17.266061ms)
+✔ 144 U1c (control, finding 141): a flagged hold at a C boundary is still one engine request per window, nothing deleted (13.510021ms)
+✔ 144 U1d: the keydown guard counts a held press -- a flagged repeat is dropped with one delete out and one press held (1.015049ms)
+✔ M8 (page): the button is in the markup HIDDEN, before anything has said the profile has it (1.512605ms)
+✔ §12.3 (e): the v21 profile offers the paste, and the shell shows no entry and no route to the dialog (11.822ms)
+✔ M8 (page, the real v20 manifest): §12.3 (e) -- the entry is hidden and the dialog does not open (1.49922ms)
+✔ M8 (page, the field with another value): §12.3 (e) -- the entry is hidden and the dialog does not open (1.188692ms)
+✔ M8 (page, the field as a boolean): §12.3 (e) -- the entry is hidden and the dialog does not open (1.380288ms)
+✔ M8 (page, declared): §12.3 (e) -- the entry is hidden and the dialog does not open (1.760206ms)
+✔ M8 (page, the real v21 manifest): §12.3 (e) -- the entry is hidden and the dialog does not open (1.219238ms)
+✔ M8 (page, the real v20 manifest, switch on): the entry is hidden and the dialog does not open (1.409673ms)
+✔ M8 (page, the field with another value, switch on): the entry is hidden and the dialog does not open (1.855032ms)
+✔ M8 (page, the field as a boolean, switch on): the entry is hidden and the dialog does not open (1.486015ms)
+✔ M8 (page, declared, switch on): the entry is shown and the dialog opens (1.237673ms)
+✔ M8 (page, the real v21 manifest, switch on): the entry is shown and the dialog opens (1.132488ms)
+✔ M8 (page): no session is no entry, with the switch on too (2.860474ms)
+✔ M8 (page): the toolbar routes the button to the dialog, and only there (0.203889ms)
+✔ M11: typing in the dialog and pressing 取消 enqueues nothing, and the text is gone (11.490172ms)
+✔ M11: Escape is 取消 too -- nothing enqueued, and the browser's own close is replaced by the page's (1.705504ms)
+✔ 9.14: 插入 with a range selected says 請先取消選取 and sends nothing; the text is kept (4.119717ms)
+✔ 插入 on a caret sends the box's text once, closes the dialog and says so (1.857667ms)
+✔ MARKDOWN_REMOTE_IMAGE: said in the dialog as the spec words it, the text kept for fixing (3.283901ms)
+✔ MARKDOWN_NEEDS_CARET: said in the dialog as the spec words it, the text kept for fixing (5.823818ms)
+✔ MARKDOWN_HTML_UNSUPPORTED: the sentence tells the user to wrap it in backticks (10.4) (1.514178ms)
+✔ every pre-dispatch code the page can meet has its own sentence, never a raw code (1.236381ms)
+✔ a post-dispatch failure closes the dialog and advises the checkpoint (the notice bar does the rest) (2.617641ms)
+✔ finding 150: one predicate, and both move paths decide by it (3.703622ms)
+✔ finding 150 (an arrow): the barrier's range with a delete out -- no click, the move goes straight out (80.1812ms)
+✔ finding 150 (an arrow): a real range with no delete out -- click at the point, then move (finding 129 kept) (59.389218ms)
+✔ finding 150 (an arrow): a caret -- straight out (43.555563ms)
+✔ finding 150 (Ctrl+End): the barrier's range with a delete out -- no click, the move goes straight out (31.888272ms)
+✔ finding 150 (Ctrl+End): a real range with no delete out -- click at the point, then move (finding 129 kept) (25.669709ms)
+✔ finding 150 (Ctrl+End): a caret -- straight out (25.458045ms)
+✔ finding 150, D8 (e): Backspace, Backspace in text, Ctrl+End, Delete -- in key order, the Delete at the end a no-op (31.443213ms)
+✔ finding 150, V6e: Backspace, Backspace in text, ArrowRight, Delete -- in key order (25.180829ms)
+✔ finding 150, range control: a drag, then ArrowRight and Delete -- still click, move, delete (25.388276ms)
+✔ span: one page -- a region inside page 1 of 3 (2.688132ms)
+✔ span: two pages -- a region across the gap between pages 1 and 2 (0.221241ms)
+✔ span: touching an edge is not crossing it -- strict on both ends (0.358146ms)
+✔ span: mixed portrait and landscape pages with different x (0.353368ms)
+✔ span: no intersection is null, not a guess (0.873846ms)
+✔ span: string order is the page order, even when a later y is smaller (0.186878ms)
+✔ span: never inferred from equal page heights -- a short page is still one page (0.144319ms)
+✔ span: the function is total -- garbage in, null out (0.375018ms)
+✔ span: 60 pages of the native shape, from the evidence file through the SDK parser (1.927507ms)
+✔ text: one page and a span, in the owner's wording with an en dash (0.632797ms)
+✔ text: null for anything that is not a span (0.709831ms)
+✔ region: device rows of #paper scaled by heightTwips / docRows, at the full document width (0.245306ms)
+✔ region: null when there is nothing to scale by or nothing visible (0.122698ms)
+✔ scheduler: open -> exactly one read (15.321632ms)
+✔ scheduler: a counter change -> one read; the same counter again -> none (3.03611ms)
+✔ scheduler: documentChangeSequence alone is never a trigger (typing sends no INVALIDATE_TILES) (2.954728ms)
+✔ scheduler: a state without the counter is not a trigger either (1.839392ms)
+✔ scheduler: three triggers during one in-flight read -> exactly one more read after it (1.71424ms)
+✔ scheduler: a paint reply's documentSizeChanged -> one read, coalesced like the rest (4.035119ms)
+✔ scheduler: a new document whose counter is back at 0 -> one read, keyed on the document (1.822371ms)
+✔ scheduler: a read that resolves for a document no longer current is dropped (5.401632ms)
+✔ scheduler: not offered -> zero reads, ever (1.738164ms)
+✔ scheduler: a failed read reports null (the line hides) and the next trigger reads again (4.435164ms)
+✔ scheduler (48a): a failed read, then a state write with the same counter -> re-reads (2.80538ms)
+✔ scheduler (48b) control: a successful read, then the same counter -> no re-read (3.466721ms)
+✔ scheduler (48c): a failed read followed by no state write issues nothing (1.570132ms)
+✔ scheduler: a read that throws synchronously is a failure, not an exception (2.702649ms)
+✔ scheduler: closed -> the in-flight answer is dropped and nothing reads again (1.508077ms)
+✔ writer 1 (open's getState) carries documentSizeChangedCount into snapshot.editorState (1.179505ms)
+✔ writer 2 (the drain's action reply state) carries documentSizeChangedCount (0.96193ms)
+✔ writer 3 (the engine's editor-state announcement, the subclass allowlist) carries it (0.372053ms)
+✔ writer 3: the stale-sequence guard still applies (a counter on an older sequence is dropped) (0.252309ms)
+✔ session.offersPageRectangles(): false before open, false on v2, true only with the contract field (0.641043ms)
+✔ html: #page-status is its own element after #desk and before .statusbar, hidden, not a live region (0.343108ms)
+✔ page: pageRectangles() is called in exactly one place, the scheduler's read (0.786293ms)
+✔ page: open and state writes go through notePageRectangles; scroll, layout and a resized paint recompute or re-read (0.663635ms)
+✔ page: fifty recomputes cost zero engine calls and give the right line (1.415043ms)
+✔ page: no rectangles yet, or no intersection -> the line is hidden and says nothing (0.441762ms)
+✔ page: the line follows the view -- the same rectangles, a different scroll, a different page (0.216834ms)
+✔ P-U1 (whole): an overlay equal to the one on the canvas costs no putImageData and no clearRect (48.913223ms)
+✔ P-U2 (whole): a caret that moves is restored from the bands under its old and new rectangles only (290.435535ms)
+✔ P-U3 (whole): a selection that changes is restored under every old and every new rectangle, washed once (48.311494ms)
+✔ P-U4 (whole): after layoutCanvas the first paint() restores nothing of the overlay drawn before it (79.614065ms)
+✔ P-U5 (whole): a restore over a band not painted yet is a clearRect (33.610917ms)
+✔ 132 U5 (whole): while a delete is out the engine's range is not drawn; with none out it is (12.825357ms)
+✔ P-U1 (window): an overlay equal to the one on the canvas costs no putImageData and no clearRect (6.105382ms)
+✔ P-U2 (window): a caret that moves is restored from the bands under its old and new rectangles only (200.96029ms)
+✔ P-U3 (window): a selection that changes is restored under every old and every new rectangle, washed once (11.262558ms)
+✔ P-U4 (window): after layoutCanvas the first paint() restores nothing of the overlay drawn before it (87.432875ms)
+✔ P-U5 (window): a restore over a band not painted yet is a clearRect (10.638508ms)
+✔ 132 U5 (window): while a delete is out the engine's range is not drawn; with none out it is (6.376797ms)
+✔ 122 B1: the bands cover the canvas exactly, from pixel edges (1.672542ms)
+✔ 123-U: no canvas height up to five bands is cut with a short last band (16.118495ms)
+✔ 122 B2: the bands under the view first, then nearest first (0.432876ms)
+✔ 132 U1: among the bands under the view, the caret's comes first; otherwise B2's order exactly (0.334253ms)
+✔ 132 U2: a pass starts with the band holding the engine's caret; with no caret, with the view's first band (2.816251ms)
+✔ 122 B3: a change between bands ends the pass, and the next pass starts with the view again (10.750866ms)
+✔ 122 B4: each band is blitted when it arrives, before the next band is asked for (0.846616ms)
+✔ 122 B5: a document whose size changed is laid out again and painted in full (1.712437ms)
+✔ 122 B6: a band the engine did not paint still raises TILE_NOT_PAINTED (0.340844ms)
+✔ 122 B7: nothing is cleared; a band keeps its old pixels until its new ones arrive (2.212267ms)
+✔ 122 B8: a key that will reach the engine, mid-pass, ends the pass after the band in flight; the next pass starts with the view (2.842189ms)
+✔ 122 B8-control: a beforeinput while idle sets nothing and starts no pass; a composition update mid-pass ends nothing (1.850153ms)
+✔ C1-U: the window is three views, never under four bands, never more than the document (0.343529ms)
+✔ W-U1: a pass asks only for the stale bands in the window; nothing changed, nothing asked (1.11216ms)
+✔ W-U2: a band stamped when it is ASKED for -- one in flight across a change is asked for again (0.811851ms)
+✔ W-U3: the window follows the scroll; the cache holds the window only (3.012115ms)
+✔ W-U4: a move puts the cached bands back at their new rows and clears the rest; only the uncached are asked for (1.024056ms)
+✔ W-U5 (S1): no move when the whole document is on the canvas, or the window is against the document's end (1.390547ms)
+✔ W-U6 (S2): a band the window left while it was in flight is neither drawn nor kept (2.016513ms)
+✔ W-U7: the window, the counter and the cached bands are on #canvas (0.232343ms)
+✔ a repaint rejected because the page disposed its engine says nothing (2.219159ms)
+✔ any other failed repaint is still reported (2.742784ms)
+✔ BUSY is still retried, and a later success says nothing (0.475304ms)
+✔ a BUSY retry keeps one repaint in flight (9.606047ms)
+✔ 136 U-136a: a range push is skipped; a collapsed or a selection-less push is noted (1.519628ms)
+✔ 136 U-136b: the reopen clicks at the last collapsed caret, not the barrier's pushed one (3.338993ms)
+✔ 136 U-136c: with none noted, the reopen reads today's snapshot caret (0.779811ms)
+✔ flash U-flash-a: the flag is up during the reopen and down after; the explicit follow runs once (0.453013ms)
+✔ flash U-flash-b: a throwing restart() still lowers the flag and follows once (0.907138ms)
+✔ flash U-flash-c: a state write during the page's reopen does not reach followCaret (0.34907ms)
+✔ U1: the bubble says the status line's page part and nothing else (1.997577ms)
+✔ U2: the place follows the thumb's proportion and stays inside the desk (0.573257ms)
+✔ U2: nothing to scroll -> null; the scrollbar's side is read from the desk, not the locale (0.253412ms)
+✔ U3: a scroll shows the bubble with the page part next to the thumb; the resize hides it (1.765175ms)
+✔ U3: every scroll resets the clock; 1,000 ms after the last one it hides, 180 ms later it is gone (0.975566ms)
+✔ U3: reduced motion -> no transition, hidden at once; the 1 s hold is not motion and stays (0.511893ms)
+✔ U3: no page number, or nothing to scroll -> the bubble never shows (1.200765ms)
+✔ U3: a window resize hides the bubble (its own listener; the canvas's keeps its mutation-anchored bytes) (0.332599ms)
+✔ 125-U1: busy for 699 ms and then not -- the shown pill never says 處理中 (1.485394ms)
+✔ 125-U2: busy that lasts shows 處理中 at exactly 700 ms (0.316098ms)
+✔ 125-U3: leaving busy shows the new state at once; every other state at once (0.420943ms)
+✔ 125-U4: #state-pill's data-state and data-label are written at once, every write (0.255416ms)
+✔ 125-U5: never blank, and a direct write (已過期, 錯誤) cancels the wait (0.227574ms)
+✔ 125-U6: the class pill is on the child, not on #state-pill; the child is #state-pill's only content (1.110657ms)
+✔ no document: nothing to lose, unless a save is still settling (1.282376ms)
+✔ the session's answer decides, whatever the revision says (0.803105ms)
+✔ a save asked for and not yet settled counts, even when the session is clean (1.374798ms)
+✔ fail closed: a session without hasUnsavedEdits throws (the host asks on a throw) (0.77953ms)
+✔ a v1 profile is refused (1.833081ms)
+✔ contract version 1 is refused even with the v2 capability (0.287014ms)
+✔ the five paragraph actions dispatch on editorActionV2 (0.476217ms)
+✔ a v1 action name is refused (0.232803ms)
+✔ neither option flag may be supplied (0.915864ms)
+✔ revision advances by exactly one and changed stays null (0.191286ms)
+✔ a v1-shaped success is rejected, not silently accepted (0.337578ms)
+✔ a revision that does not advance is rejected (0.272127ms)
+✔ gestures and limits are read from the manifest (0.923879ms)
+✔ failure disposition turns on whether anything was dispatched (0.329162ms)
+✔ a select command that came back empty is an answer, not a stall (0.294357ms)
+✔ a failure that never reached the engine does not roll the document back (0.465957ms)
+✔ a barrier saying it was dispatched still wins over the code (0.303455ms)
+✔ setList and setParagraphStyle reject anything outside the closed set (0.426334ms)
+✔ a pre-dispatch refusal needs no recovery (1.514238ms)
+✔ anything dispatched rolls back (0.140091ms)
+✔ a barrier that was not forwarded rolls back, not continues (0.095067ms)
+✔ a boundary rejection still demands a fresh worker (0.099225ms)
+✔ undo is NOT the prescribed recovery for a dispatched failure (0.168784ms)
+✔ the disposition is attached to the error the caller receives (0.560694ms)
+✔ override: same-line click, no unrelated callback (v19) (68.817935ms)
+✔ override: same-line click, lone DOCUMENT_SIZE_CHANGED at 3 ms (v20) (66.124381ms)
+✔ override: same-line click, lone INVALIDATE_TILES at 3 ms (F5, v19) (65.783237ms)
+✔ override: identical-point click, engine says nothing (441.298158ms)
+✔ override: click collapses a selection at its caret end, caret rect unchanged (66.635152ms)
+✔ override: click lands on another line (052 shape) (66.359258ms)
+✔ override: lone size bump, the click is never processed (image-click shape) (444.575203ms)
+✔ control, frozen base (E1-C-bound): same-line click, no unrelated callback (v19) (66.747241ms)
+✔ control, frozen base (E1-C-bound): same-line click, lone DOCUMENT_SIZE_CHANGED at 3 ms (v20) (46.199223ms)
+✔ control, frozen base (E1-C-bound): same-line click, lone INVALIDATE_TILES at 3 ms (F5, v19) (45.31649ms)
+✔ control, frozen base (E1-C-bound): identical-point click, engine says nothing (440.766428ms)
+✔ control, frozen base (E1-C-bound): click collapses a selection at its caret end, caret rect unchanged (66.69793ms)
+✔ control, frozen base (E1-C-bound): click lands on another line (052 shape) (66.680997ms)
+✔ control, frozen base (E1-C-bound): lone size bump, the click is never processed (image-click shape) (45.861825ms)
+✔ the override is the subclass's own, and the base is untouched (0.256206ms)
+✔ contract: the timeout error keeps the base's code and details shape (204.626272ms)
+✔ contract: the three caretConfirmedBy values are the base's three (234.818597ms)
+✔ 140: a click below the only line of a blank page returns promptly with the engine's caret (442.05155ms)
+✔ 140: the same with the engine saying nothing at all (no callback, no sequence change) (444.869303ms)
+✔ 048 guard: a readback answer that precedes a late click is not accepted -- the moved caret is returned (342.775875ms)
+✔ named limit: a click the core processes only after the grace is accepted as 'stayed' with the old caret (the identical-point bound) (440.237344ms)
+✔ 138: a lone unrelated callback inside the window does not end the wait; the click's own evidence does (65.21002ms)
+✔ 138: a lone bump and a click the core never processes (image-click shape) is already-at-target after the grace, never acknowledged (440.50463ms)
+✔ 052: the engine moved the caret to another line -- answered on the cursor callback, no grace paid (65.329272ms)
+✔ a click that collapses a selection at its caret end is acknowledged by the selection evidence (66.8059ms)
+✔ BUSY from the engine's place-caret falls back to the polling path (document.click + getState) (66.491015ms)
+✔ an engine without the entry point (UNSUPPORTED_OPERATION) falls back to polling and keeps the timeout contract (103.310523ms)
+✔ any other engine error is the caller's (not swallowed into polling) (41.285038ms)
+✔ a client without placeCaret (an old client) takes the polling path unchanged (66.121667ms)
+✔ contract: the engine path yields the base's three values plus the one 140 adds, and nothing else (714.145653ms)
+✔ defect 1: the reopen path's half-integer y (odd caret height) reaches the engine as integers and is not refused (104.04586ms)
+✔ defect 1, 129-B's s3 shape: a half-integer y while a range is open ends in neither INVALID_ARGUMENT nor a 30 s wait (66.307483ms)
+✔ defect 2: a click that collapses a range (129-B's 48 cells) resolves on the selection evidence before the engine's deadline, with no engine place-caret left pending (66.622479ms)
+✔ control: a moving click with a collapsed selection still asks the engine and is answered on the cursor callback (64.850311ms)
+✔ control: the blank-page click (collapsed selection, caret cannot move) is unchanged from the first pass (444.040481ms)
+✔ a range open and a click in the margin at the caret end's own clamp point: collapsed by the click, caret stayed -- bounded at the grace, not the 30 s timeout (443.935113ms)
+✔ named limit: a range open and a click the core never processes keeps v67's timeout contract (no second click is posted) (101.014409ms)
+✔ ../../web/demo-structure-app.js: every client.* call exists on ParagraphEditorClient (2.367265ms)
+✔ ../../web/e2-editor-app.js: every session.* call exists on NarrowEditorV2Session (1.234367ms)
+✔ ../../web/e2-editor-app.js: every client.* call exists on NarrowEditorV2Client (0.922808ms)
+✔ the extractor finds calls and the membership test can say no (0.266225ms)
+✔ every snapshot field a page reads is a field the state machine has (1.688291ms)
+✔ Enter is bound to the paragraph break and Shift+Enter to the line break (0.799758ms)
+✔ a real within-line envelope is a range-single (0.712706ms)
+✔ a real cross-line envelope is a range-cross (0.108763ms)
+✔ a collapsed selection is collapsed (0.09142ms)
+✔ THE DEFECT: the v1 field names at the top level are NOT read as an answer (0.105016ms)
+✔ an envelope with no selection at all is unknown, not collapsed (0.835364ms)
+✔ a non-boolean collapsed is unknown, not a shape (0.153956ms)
+✔ null, undefined and primitives are unknown rather than throwing (0.105536ms)
+✔ a range with no rectangles array is range-single, not a crash (0.099755ms)
+✔ the evidence names the keys and carries no document text (0.276886ms)
+✔ the evidence survives the shapes that produce it (0.185465ms)
+ℹ tests 485
+ℹ suites 0
+ℹ pass 485
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3715.682431
+node --check editor-shell-v2/narrow-editor-v2-client.js
+node --check editor-shell-v2/narrow-editor-v2-session.js
+node --check web/e2-editor-app.js
+node --check web/e2-c-d0-app.js
+node --check web/e2-c-d1-probe-app.js
+node --check web/e2-c-d1-app.js
+node --check web/e2-c-d2-app.js
+node --check web/e2-c-d3-app.js
+node --check web/e2-c-d3-corpus-app.js
+node --check web/e2-c-d4-app.js
+node --check web/e2-c-d4-heap-app.js
+node --check web/e2-c-046-empty-app.js
+node --check web/e2-c-046-overshoot-app.js
+node --check web/e2-c-046-overshoot-app.js
+node --check web/e2-c-048-boundary-app.js
+node --check web/e2-c-d5-app.js
+node --check web/e2-c-search-wedge-app.js
+# SPEC E2-C 2.2: the manifest declares fifteen actions, so fifteen must be
+# reachable by a shipped shell.  The four-way inventory check cannot see
+# this -- its client side is the UNION of two shells and one of them
+# refuses to attach to the v2 profile at all.
+node --test editor-shell-v2/tests/manifest-reachability.test.mjs
+✔ every action the v2 profile declares is reachable by a shipped shell (2.4184ms)
+✔ control: the v1 shell reaches all ten on the v1 profile (0.555504ms)
+✔ control: an action no manifest declares is reachable by nobody (0.167171ms)
+✔ the shipped session cannot open a document on the v2 profile (0.858097ms)
+✔ control: the shipped session opens on the v1 profile (0.197318ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 47.913112
+# SPEC-M3-paragraph-merge.  13.2: no LOK call or emit under the engine's
+# mutexes.  M1-2: option B's attribution against a generated LOK model.
+# M1-1: B reaches only the v15 objects; the base is the last commit
+# before B's engine code (5d77dc84).
+python3 tools/check_engine_lock_scopes.py
+probe_engine.cpp: lock scopes checked (gState.mutex 12, gMergeMutex 13), 101 tainted functions
+mkdir -p build
+g++ -std=c++17 -O2 -Isrc -o build/merge_key_undo_model_test \
+	tests/merge_key_undo_model_test.cpp
+build/merge_key_undo_model_test > /dev/null
+# Since v20 (ruling 6 condition 50.4'): the carrier list is named, because
+# the tool's default (E2_V15, E2_V19) is red once E2_V20 exists -- witness
+# findings/evidence/link-batch/v67-witness/test-e2-c-static-red-default-carriers.txt.
+python3 tools/check_merge_key_undo_scope.py --base 5d77dc84 \
+	--carrier E2_V15 --carrier E2_V19 \
+	--carrier E2_V20=probe_engine,sdk_api,editor_api \
+	--carrier E2_V21=probe_engine,sdk_api,editor_api
+{"carriers": ["E2_V15", "E2_V19", "E2_V20", "E2_V21"], "declared": {"E2_V15": ["probe_engine"], "E2_V19": ["probe_engine"], "E2_V20": ["probe_engine", "sdk_api", "editor_api"], "E2_V21": ["probe_engine", "sdk_api", "editor_api"]}, "rules": 27, "objects": 108, "different": 8, "unbuildable": ["FINDING_012_DIAGNOSTIC build/finding-012/diagnostic/probe_engine.o"], "guards": [{"rule": "E2_V15", "variant": "with OXSDK_MAINLOOP_ENGINE", "exit": 1}, {"rule": "E2_V15", "variant": "without OXSDK_FINDING_016_SELECTION_BARRIER", "exit": 1}, {"rule": "E2_V19", "variant": "with OXSDK_MAINLOOP_ENGINE", "exit": 1}, {"rule": "E2_V19", "variant": "without OXSDK_FINDING_016_SELECTION_BARRIER", "exit": 1}, {"rule": "E2_V20", "variant": "with OXSDK_MAINLOOP_ENGINE", "exit": 1}, {"rule": "E2_V20", "variant": "without OXSDK_FINDING_016_SELECTION_BARRIER", "exit": 1}, {"rule": "E2_V21", "variant": "with OXSDK_MAINLOOP_ENGINE", "exit": 1}, {"rule": "E2_V21", "variant": "without OXSDK_FINDING_016_SELECTION_BARRIER", "exit": 1}]}
+# E2-C must never touch what E1-C bound.  Read-only on purpose: a static
+# target that rewrites verdict-bound evidence has happened here once.
+python3 tools/check_e1_c_bundle_intact.py > /dev/null
+python3 -m json.tool e2/content-axis-suites.json > /dev/null
+# SPEC E2-C 8.1: D3's corpus must carry the axes the spec claims it does.
+# --suites and --output are both explicit: the tool's default output is
+# E1's baseline evidence, and E1-C's verdict records this tool's stdout
+# verbatim, so a defaulted run here would write into E1's evidence.  The
+# copy that becomes E2-C's evidence is produced by the judging run, not by
+# a syntax check.
+mkdir -p build/e2c
+# Three corpora, all named: the tool defaults to e1 + r7-compat, and D3's
+# L7 fixture lives in test-docs/e2 because E2-C may not regenerate the E1
+# corpus (its sha256s are in E1-A's frozen list and in every E1 run's
+# evidence).
+python3 tools/inventory_corpus_axes.py \
+	--corpus test-docs/e1 --corpus test-docs/r7-compat --corpus test-docs/e2 \
+	--suites e2/content-axis-suites.json \
+	--output build/e2c/content-axes.json --check > /dev/null
+python3 -m unittest tests/test_e2_corpus.py tests/test_e2_c_shell_bundle.py \
+	tests/test_e2_c_matrix.py tests/test_caret_from_columns.py \
+	tests/test_inline_styles_of.py tests/test_ink_rows_caret.py \
+	tests/test_product_path_mutations.py tests/test_session_liveness.py
+............................................................................................................
+----------------------------------------------------------------------
+Ran 108 tests in 0.843s
+
+OK
+# The merge runner's and the counted-M2 reader's tests were in no target:
+# this gate exited 0 while V19Witness was red (SPEC-M3-link-batch 17.2).
+# The 0.2.23 and 0.2.24 count chains ran them by hand as preflight P6.
+# Owner's decision A, 2026-10-15; added after the 0.2.24 chain.
+python3 -m unittest tests/test_merge_wasm_clauses.py tests/test_judge_counted_m2.py
+......................................................................................................................................
+----------------------------------------------------------------------
+Ran 134 tests in 17.503s
+
+OK
+python3 -m py_compile tools/create_e2_corpus.py tools/run_e2_c_page_smoke.py \
+	tools/build_e2_c_shell_bundle.py tools/run_e2_c_d0.py \
+	tools/analyze_e2_c_d0.py tools/analyze_e2_c_d1.py \
+	tools/analyze_e2_c_d3_corpus.py tools/run_e2_c_d4.py \
+	tools/analyze_e2_c_d4.py tools/run_e2_c_d4_regression.py \
+	tools/analyze_e2_c_d5.py tools/run_e2_c_d5.py \
+	tools/analyze_e2_c_d4_heap.py tools/check_relink_queue.py \
+	tools/e2_c_matrix_entry.py tools/analyze_f046_browser.py \
+	tools/analyze_f048_boundary.py tools/analyze_f046_diagnostic.py \
+	tools/analyze_f046_overshoot.py \
+	tools/run_e2_c_product_path.py \
+	tools/probe_second_recovery_inducer.py \
+	tools/probe_a11y_gate0.py \
+	tools/probe_064_format_reaches_typing.py \
+	tools/audit_product_path_coverage.py \
+	tools/validate_e2_c.py
+python3 -m json.tool e2/relink-queue-v3.json > /dev/null
+# The relink queue, run instead of read.  It lied twice while it was prose
+# with checkboxes (3b recorded as written with zero hits; item 8's "both
+# places fixed" when one was), and both times a human audit caught it --
+# which is not a thing that happens on its own on the day of the link.
+# Fail closed, and both directions: an item APPEARING without its
+# expectation being flipped fails too.
+python3 tools/check_relink_queue.py > /dev/null
+make: *** [Makefile:3769: test-e2-c-static] Error 1
+make test exit 2
