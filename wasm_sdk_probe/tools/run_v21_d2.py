@@ -12,9 +12,25 @@ comparison must then say "differs").
 
   run_v21_d2.py --browser chrome --mode nohost --page v21      the predictor (page 3d511216, profile v21)
   run_v21_d2.py --browser chrome --mode nohost --page dist0224 the 0.2.24 red case without the host
-  run_v21_d2.py --browser chrome --mode host ...               NOT RUN in phase B: needs ddev, host 0.2.25
-                                                               (or 0.2.24 for the red case), and the owner's yes
-  run_v21_d2.py --self-test                                    D2's verdict red cases
+  run_v21_d2.py --browser chrome --mode host --page 0224       the 0.2.24 red case ON THE HOST (before 0.2.25)
+  run_v21_d2.py --browser chrome --mode host --page v21        criterion D2 as pinned: host 0.2.25, after v74
+  run_v21_d2.py --mode host --page v21 --identity-only         the host identity check alone (reads files, no ddev)
+  run_v21_d2.py --self-test                                    D2's verdict red cases and the host identity's
+
+The host arm (added 2026-10-17, after the v74 freeze; ARMS-item1.md D2 "Steps" and "Identity"): the probe's own
+host route (login, Files -> open; `probe_10_14n.py` `run_arm`'s host branch, re-composed here because that function
+closes the browser before a save), the same arm, then a REAL Ctrl+S (the page binds accel+S,
+`web/e2-editor-app.js` "FINDING 106") settled through the host's `data-litecore` save log (`outcome == "saved"`),
+then a WebDAV GET of the file and the paragraph-text comparison; the positive control types `Z` and saves again.
+Each round opens its own copy (`d2-long60-r<N>.odt`) in a folder this tool creates and deletes, so no round meets
+another's lock or ETag.  A host save that did not land leaves the server's bytes as uploaded; that case is caught
+by `serverChanged` and never reads as "text unchanged".
+
+Before any browser starts, the host's identity is read from the host checkout's files (`engine/MANIFEST.json`,
+`appinfo/info.xml`; no ddev command) and checked against `HOST_EXPECT[page]`: the host version, the page and the
+engine the host packages, and the shell digest over the frozen bundle's paths as the host packages them (the same
+digest S-1 binds, `run_merge_wasm_shakedown.shell_digest`, computed from the package manifest's hashes).  A
+mismatch refuses the run.
 """
 from __future__ import annotations
 
@@ -30,6 +46,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import run_e2_c_product_path as pp  # noqa: E402
+import run_merge_wasm_shakedown as mws  # noqa: E402
 import v21_engine_read as er  # noqa: E402
 import v21_input as inp  # noqa: E402
 import v21_item1_marker as marker  # noqa: E402
@@ -39,6 +56,20 @@ from create_long_document import build as build_long_document  # noqa: E402
 P14N_PATH = common.REPO / "findings/evidence/host-0.2.20-hand-test/probe_10_14n.py"
 PASS, FAIL, NE = "PASS", "FAIL", "NOT_ESTABLISHED"
 NAME = "probe-10-14n-long60.odt"
+
+# What the host must package for each host run (full hashes; the v21 values are the evidence runs' identity,
+# README §5.2; the 0.2.24 values are the installed host's, the same as the dist0224 reports').
+HOST_EXPECT = {
+    "v21": {"hostVersion": "0.2.25",
+            "servedPage": "605cf24b3dff5a2de1d219ee59e79adc92048e46436d098b7c7a3d837761fa0f",
+            "hostShellDigest": common.EXPECTED_SHELL_DIGEST,
+            "hostWasm": "db3408f55316bf67345258ce9f7cb58a1cb3777c9aabb9f7790bee69e1599f30"},
+    "0224": {"hostVersion": "0.2.24",
+             "servedPage": "901dd6a6dbff6ad6f5252814fb4dc09230446a11d75387fb447e8a6a398a68c2",
+             "hostShellDigest": "e7c4eefea59803599ce074dac97783f2c334a4a2a8d4571088a27bea9820f152",
+             "hostWasm": "313b08d5cb08589783a3e4d4d03eaee02d26f705ff5da96396ce9010680c5264"},
+}
+SAVE_LIMIT_S = 90
 
 
 def load_probe():
@@ -168,11 +199,143 @@ def run_nohost(args, probe) -> dict:
     return report
 
 
+def host_identity(root: Path) -> dict:
+    """What the host packages, read from its checkout's files only (no ddev command)."""
+    manifest = json.loads((root / "engine" / "MANIFEST.json").read_text(encoding="utf-8"))
+    files = manifest.get("files") or {}
+    info = (root / "appinfo" / "info.xml").read_text(encoding="utf-8")
+    version = info.split("<version>", 1)[1].split("</version>", 1)[0] if "<version>" in info else None
+    bundle = json.loads(pp.SHELL_BUNDLE_V2.read_text(encoding="utf-8"))
+    paths = [e["path"] for e in bundle["included"] if e["path"] != bundle.get("entrypoint")]
+    missing = [p for p in paths if pp.served_in_dist(p) not in files]
+    wasms = {k: (v or {}).get("sha256") for k, v in files.items() if k.endswith("/probe.wasm")}
+    return {"root": str(root), "hostVersion": version, "buildId": manifest.get("buildId"),
+            "profile": (manifest.get("source") or {}).get("profile"),
+            "servedPage": (files.get("e2-editor-app.js") or {}).get("sha256"),
+            "hostShellDigest": None if missing else mws.digest(
+                [f"{p}={files[pp.served_in_dist(p)]['sha256']}" for p in paths]),
+            "hostShellPaths": len(paths), "hostShellMissing": missing, "bundleManifest": pp.SHELL_BUNDLE_V2.name,
+            "hostWasms": wasms, "hostWasm": next(iter(wasms.values())) if len(wasms) == 1 else None}
+
+
+def identity_problems(identity: dict, expect: dict) -> list[str]:
+    out = [f"{key}: the host packages {str(identity.get(key))[:16]}, the run needs {str(want)[:16]}"
+           for key, want in expect.items() if identity.get(key) != want]
+    if identity.get("hostShellMissing"):
+        out.append(f"shell files missing from the package: {identity['hostShellMissing']}")
+    if not identity.get("hostShellPaths"):
+        out.append("no shell paths: the frozen bundle manifest names none, so the digest would bind nothing")
+    if len(identity.get("hostWasms") or {}) != 1:
+        out.append(f"{len(identity.get('hostWasms') or {})} probe.wasm entries in the package")
+    return out
+
+
+def host_save(session, browser: str, probe) -> dict:
+    """A real Ctrl+S, settled through the host's own save log (`data-litecore`, `saves[-1].settled`)."""
+    before = len((pp.evaluate(session, probe.ui.HOST) or {}).get("saves") or [])
+    inp.key(session, browser, "s", ("ctrl",))
+    deadline = time.monotonic() + SAVE_LIMIT_S
+    while time.monotonic() < deadline:
+        saves = (pp.evaluate(session, probe.ui.HOST) or {}).get("saves") or []
+        if len(saves) > before and saves[-1].get("settled") is True:
+            time.sleep(0.5)
+            return {"saves": len(saves), "outcome": saves[-1].get("outcome"), "last": saves[-1]}
+        time.sleep(0.3)
+    return {"saves": before, "timedOut": True}
+
+
 def run_host(args, probe) -> dict:
-    """The host arm (criterion D2 as pinned).  NOT RUN in phase B (ARMS.md §2: host 0.2.25 after the v74
-    freeze; the 0.2.24 red case before 0.2.25 is installed; each asked of the owner before ddev is touched).
-    The same probe arm; the save is the host's Ctrl+S and the comparison reads the file back over WebDAV."""
-    raise SystemExit("the host arm is not run in phase B (ARMS.md §2); it needs ddev and the owner's yes")
+    """Criterion D2 as pinned (`--page v21`, host 0.2.25) or its 0.2.24 red case (`--page 0224`)."""
+    if args.page not in HOST_EXPECT:
+        raise SystemExit(f"--mode host takes --page {' or '.join(HOST_EXPECT)}")
+    identity = host_identity(probe.DEFAULT_DDEV)
+    problems = identity_problems(identity, HOST_EXPECT[args.page])
+    if args.identity_only:
+        print(json.dumps({"page": args.page, "identity": identity, "problems": problems}, indent=1))
+        return {"problems": problems}
+    if problems:
+        raise SystemExit(f"the host is not the one this run needs ({args.page}): {problems}")
+    doc = build_long_document(60)
+    report = {"tool": "run_v21_d2.py", "mode": "host", "page": args.page, "browser": args.browser, "counted": False,
+              "smoke": args.smoke, "doc": {"kind": "long60", "sha256": hashlib.sha256(doc).hexdigest(), "bytes": len(doc)},
+              "probeSha256": common.sha256_file(P14N_PATH), "toolSha256": common.sha256_file(Path(__file__)),
+              "preRun": common.pre_run_checks(), "hostIdentity": identity, "identityProblems": problems,
+              "static": probe.ui.static_facts(probe.DEFAULT_DDEV), "startedAt": common.now_iso(), "rounds": []}
+    if report["preRun"]["refuse"]:
+        raise SystemExit(f"pre-run checks refuse: {report['preRun']['refuse']}")
+    out = Path(args.out)
+    out.mkdir(parents=True, exist_ok=True)
+    stamp = time.strftime("%Y%m%dT%H%M%S")
+    path = out / f"d2-host-{args.page}-{args.browser}-{stamp}.json"
+    instance = probe.Instance(probe.DEFAULT_DDEV)
+    folder = f"v21-d2-host-{args.page}-{args.browser}-{stamp}"
+    report["folder"] = folder
+
+    def flush():
+        path.write_text(json.dumps(report, indent=1, ensure_ascii=False, default=str))
+
+    with common.browser_lock(f"run_v21_d2 host {args.browser} {args.page}", wait_s=args.wait_lock) as holder:
+        report["lock"] = holder
+        report["mkcol"] = instance.dav("MKCOL", folder)[0]
+        try:
+            for index in range(args.rounds):
+                name = f"d2-long60-r{index + 1}.odt"
+                record = {"round": index + 1, "arm": "press-after-ctrl-home", "name": name, "startedAt": common.now_iso()}
+                report["rounds"].append(record)
+                session = None
+                try:
+                    record["upload"] = instance.dav("PUT", f"{folder}/{name}", doc,
+                                                    {"Content-Type": "application/vnd.oasis.opendocument.text"})[0]
+                    session = probe.ui.new_session(args.browser)
+                    record["version"] = getattr(session, "version", None)
+                    record["login"] = probe.login(session, instance.base, "admin", instance.password)
+                    probe.open_from_files(session, instance.base, folder, name, record)
+                    record["opened"] = probe.ui.quiet(session, 180)
+                    record["instrument"] = pp.evaluate(session, probe.INSTRUMENT)
+                    g = pp.evaluate(session, probe.GEOMETRY)
+                    cx, cy = g["inner"][0] // 2, (g["desk"]["top"] + g["desk"]["bottom"]) // 2
+                    for _ in range(3):
+                        probe.wheel(session, args.browser, cx, cy, 1200)
+                        time.sleep(0.25)
+                    time.sleep(0.6)
+                    probe.wheel(session, args.browser, cx, cy, -40000)
+                    time.sleep(0.6)
+                    record["nudgeSettled"] = probe.settle(session, 1.0, 30)
+                    probe.arm_backspace(session, args.browser, record, "ctrl-home")
+                    record["fullLog"] = [e for e in probe.log_from(session, 0) if e.get("k") in ("rq", "rs", "kd")]
+                    record["save1"] = host_save(session, args.browser, probe)
+                    status, raw = instance.dav("GET", f"{folder}/{name}")
+                    landed = record["save1"].get("outcome") == "saved" and raw != doc
+                    record["compare"] = {"saved": landed, "getStatus": status, "serverChanged": raw != doc,
+                                         "savedSha256": hashlib.sha256(raw).hexdigest()}
+                    if landed:
+                        record["compare"]["savedEqualsOpened"] = texts_of(raw) == texts_of(doc)
+                        record["compare"]["firstParagraphs"] = texts_of(raw)[:2]
+                    # The positive control.  More than a second after the first write (findings 103/104: two writes in
+                    # one second keep the ETag).
+                    inp.key(session, args.browser, "Z")
+                    time.sleep(1.2)
+                    probe.ui.quiet(session, 30)
+                    record["save2"] = host_save(session, args.browser, probe)
+                    status2, raw2 = instance.dav("GET", f"{folder}/{name}")
+                    record["compare"]["controlGetStatus"] = status2
+                    record["compare"]["controlDiffers"] = (record["save2"].get("outcome") == "saved"
+                                                           and texts_of(raw2) != texts_of(doc))
+                    record["verdict"] = judge_d2(record, red=args.page == "0224")
+                except Exception:  # noqa: BLE001
+                    record["fatal"] = traceback.format_exc()[-2000:]
+                finally:
+                    if session is not None:
+                        record["close"] = common.close_browser(session)
+                    record["completedAt"] = common.now_iso()
+                    flush()
+        finally:
+            if not args.keep_folder:
+                report["deletedFolder"] = instance.dav("DELETE", folder)[0]
+            report["completedAt"] = common.now_iso()
+            flush()
+    print(json.dumps({"report": str(path), "verdicts": [r.get("verdict") for r in report["rounds"]]}, ensure_ascii=False))
+    return report
 
 
 def self_test() -> int:
@@ -206,6 +369,19 @@ def self_test() -> int:
     cases.append(("0.2.24 red present -> red", judge_d2(red_good, red=True)[0] == FAIL))
     cases.append(("0.2.24 not red -> NE", judge_d2(good, red=True)[0] == NE))
     cases.append(("zero rounds (no record) -> NE", judge_d2({})[0] == NE))
+    # The host identity (refuses the run when not empty).
+    want = HOST_EXPECT["v21"]
+    ident = {**want, "hostShellPaths": 12, "hostShellMissing": [], "hostWasms": {"profiles/x/probe.wasm": want["hostWasm"]}}
+    cases.append(("host identity as expected -> no problem", identity_problems(ident, want) == []))
+    cases.append(("host 0.2.24 where 0.2.25 is needed -> refused", bool(identity_problems({**ident, "hostVersion": "0.2.24"}, want))))
+    cases.append(("another page packaged -> refused", bool(identity_problems({**ident, "servedPage": "901dd6a6"}, want))))
+    cases.append(("another shell packaged -> refused", bool(identity_problems({**ident, "hostShellDigest": "e7c4eefe"}, want))))
+    cases.append(("a shell file missing from the package -> refused",
+                  bool(identity_problems({**ident, "hostShellDigest": None, "hostShellMissing": ["sdk/document-sdk.js"]}, want))))
+    cases.append(("another engine packaged -> refused", bool(identity_problems({**ident, "hostWasm": "313b08d5"}, want))))
+    cases.append(("two engines packaged -> refused",
+                  bool(identity_problems({**ident, "hostWasms": {"a/probe.wasm": want["hostWasm"], "b/probe.wasm": "x"}}, want))))
+    cases.append(("an empty bundle manifest -> refused", bool(identity_problems({**ident, "hostShellPaths": 0}, want))))
     for name, ok in cases:
         print(f"{'ok ' if ok else 'NOT'}  {name}")
     bad = [n for n, ok in cases if not ok]
@@ -217,7 +393,10 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--browser", choices=("chrome", "firefox"))
     ap.add_argument("--mode", choices=("nohost", "host"), default="nohost")
-    ap.add_argument("--page", choices=("v21", "dist0224"), default="v21")
+    ap.add_argument("--page", choices=("v21", "dist0224", "0224"), default="v21",
+                    help="nohost: v21 or dist0224; host: v21 (0.2.25) or 0224 (the red case on host 0.2.24)")
+    ap.add_argument("--identity-only", action="store_true", help="host: check the host identity and stop")
+    ap.add_argument("--keep-folder", action="store_true", help="host: keep the uploaded folder")
     ap.add_argument("--rounds", type=int, default=1)
     ap.add_argument("--out", default="")
     ap.add_argument("--smoke", action="store_true")
@@ -226,12 +405,16 @@ def main() -> int:
     args = ap.parse_args()
     if args.self_test:
         return self_test()
+    probe = load_probe()
+    if args.mode == "host" and args.identity_only:
+        return 1 if run_host(args, probe)["problems"] else 0
     if not args.browser or not args.out:
         ap.error("--browser and --out are required")
-    probe = load_probe()
     if args.mode == "host":
         run_host(args, probe)
-        return 1
+        return 0
+    if args.page not in ("v21", "dist0224"):
+        ap.error("--mode nohost takes --page v21 or dist0224")
     run_nohost(args, probe)
     return 0
 
