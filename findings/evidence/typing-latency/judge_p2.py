@@ -43,7 +43,9 @@ from pathlib import Path
 # Re-pinned 2026-10-15 to host 0.2.24's page (finding 145; shell v73, engine v20).  The previous pin, host 0.2.23's page, was
 # ccb67a52a3fe4b73139467c67a28522b9a87040921cb1da36448e5ad8dfdb43e (findings/evidence/release-0.2.23/c2/r*/ratio-1/ ran on it; the 136 page b24d754a… before that).
 # Every committed P2 report ran on an earlier page: re-judge them with --page, or with this file from git history.
-PAGE = "901dd6a6dbff6ad6f5252814fb4dc09230446a11d75387fb447e8a6a398a68c2"
+# Re-pinned 2026-10-17 to host 0.2.26 (engine v21, shell v74, finding 154's host rule), 2026-10-17.  The previous pin, host 0.2.24's page, was
+# 901dd6a6dbff6ad6f5252814fb4dc09230446a11d75387fb447e8a6a398a68c2 (the 0.2.24 count's P2 ran on it).
+PAGE = "605cf24b3dff5a2de1d219ee59e79adc92048e46436d098b7c7a3d837761fa0f"
 RUNNER = "dbad93c0dcf27fbf"   # the probe writes the first 16 hex digits of its own sha256
 BROWSERS = ("chrome", "firefox")
 SLOTS = {  # slot: (document, gap, chars)

@@ -57,7 +57,7 @@ EVIDENCE = REPO / "findings" / "evidence" / "m3-locks"
 # Re-pointed 2026-10-15 (task 10-15c P4, before binding v20) to host 0.2.23's page (shell v72, engine v20).  The previous pin was
 # d761f1cee9d26c50c0b152348d74c3d05f540e9228927815d93ad6ec161e7dcd (SPEC-M3-autosave §9.19, 0.2.13/v62; the 0.2.13 and 0.2.14 counts ran on it).
 # check_m3_versions.py and check_m3_same_second.py import this pin; they have none of their own.
-PAGE_SHA256 = "901dd6a6dbff6ad6f5252814fb4dc09230446a11d75387fb447e8a6a398a68c2"   # host 0.2.24 (v73, finding 145), 2026-10-15; was ccb67a52 (host 0.2.23, v72), d761f1ce (autosave §9.19, host 0.2.13), 8909564e (production-ui §17 C′, host 0.2.12), 36c2b18b (§16 R⁗), 18c8afbe (§15 R‴, host 0.2.10), 537d62d7 (§14 R′, host 0.2.9), e00ab76a (§13.5, host 0.2.8)
+PAGE_SHA256 = "605cf24b3dff5a2de1d219ee59e79adc92048e46436d098b7c7a3d837761fa0f"   # host 0.2.26 (engine v21, shell v74, finding 154's host rule), 2026-10-17; was 901dd6a6 (host 0.2.24, v73, finding 145), ccb67a52 (host 0.2.23, v72), d761f1ce (autosave §9.19, host 0.2.13), 8909564e (production-ui §17 C′, host 0.2.12), 36c2b18b (§16 R⁗), 18c8afbe (§15 R‴, host 0.2.10), 537d62d7 (§14 R′, host 0.2.9), e00ab76a (§13.5, host 0.2.8)
 ODT = "application/vnd.oasis.opendocument.text"
 OTHER = "lcprobe"
 RO_NAME = "M3 鎖 唯讀.odt"

@@ -75,7 +75,9 @@ EXPECTED_DIST_SHA256 = "8909564eb2316afa6de7868a08b61d27219fabdf49f37326fee0dda2
 # The previous pin, the v67/v68 candidate page, was 7815e16c2cdfdebe90fbe8bf91d07a8315654bf76cf603fe8392acebb5be0799 (that round ran on it).
 # Re-pinned 2026-10-15 to host 0.2.24's page (finding 145; shell v73).  The previous pin, host 0.2.23's page, was
 # ccb67a52a3fe4b73139467c67a28522b9a87040921cb1da36448e5ad8dfdb43e (no round of this probe ran on it; the last, round-20261014T085633Z, ran on 7815e16c…).
-FINAL_PAGE_SHA256 = "901dd6a6dbff6ad6f5252814fb4dc09230446a11d75387fb447e8a6a398a68c2"
+# Re-pinned 2026-10-17 to host 0.2.26 (engine v21, shell v74, finding 154's host rule), 2026-10-17.  The previous pin, host 0.2.24's page, was
+# 901dd6a6dbff6ad6f5252814fb4dc09230446a11d75387fb447e8a6a398a68c2 (no round of this probe ran on it).
+FINAL_PAGE_SHA256 = "605cf24b3dff5a2de1d219ee59e79adc92048e46436d098b7c7a3d837761fa0f"
 OLD_PAGE_GZ = HERE / "build" / "archive" / "host-0.2.12-engine-45cdcedfc0fe7e61" / "files" / "e2-editor-app.js.gz"
 INSTRUMENT_LINE = "\nglobalThis.__m4 = { get session() { return session; } };\n"
 NATIVE_ROUND = TREE / "findings" / "evidence" / "129" / "native" / "point-click-round-20261012T031459Z"

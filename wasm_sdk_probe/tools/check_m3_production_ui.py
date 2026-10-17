@@ -87,11 +87,11 @@ BOTH = ("chrome", "firefox")
 # 0.2.7 values (spec §11) were page e97d6e03, session 3f5f754b, 0488586, v55 2470765a.
 # Re-pointed 2026-10-15 (task 10-15c P4, before binding v20) to host 0.2.23's page (shell v72, engine v20).  The previous pin was
 # d761f1cee9d26c50c0b152348d74c3d05f540e9228927815d93ad6ec161e7dcd (autosave §9.19, 0.2.13/v62; the 0.2.13 and 0.2.14 counts ran on it).
-PAGE_SHA256: str | None = "901dd6a6dbff6ad6f5252814fb4dc09230446a11d75387fb447e8a6a398a68c2"   # host 0.2.24 (v73, finding 145), 2026-10-15; was ccb67a52 (0.2.23, v72), d761f1ce (autosave §9.19, 0.2.13), 8909564e (§17 C′), 36c2b18b (§16 R⁗), 18c8afbe (§15 R‴), 537d62d7 (§14 R′), e00ab76a (§13.5)
-SESSION_SHA256: str | None = "f47c80ec955397c44d7638da63ed6837a3dea47125f6e279192298c20ed62ba9"   # link-batch §17 (0.2.23); was 62a2a20e (§14 R′), ee3e53a2
-HOST_VERSION: str | None = "0.2.24"   # finding 145; was 0.2.23 (link-batch §17), 0.2.14, 0.2.13, 0.2.12
-HOST_COMMIT: str | None = "1479e56"   # finding 145; was 2ccf1a9 (link-batch §17), 237f2cb, e028517, b245ae7
-SHELL_BUNDLE_SHA256: str | None = "6ab20f684bb1b331c473e2cb7823b4d424c7818b68661133a5a4ec0ecfa346c2"   # v73; was v72 4dc10507, v63 318b3bf2, v62 75e29eb2, v61 f48df85b, v60 784a1d93, v59 ad65480a, v58 a6f9331a, v57 1aed21b1
+PAGE_SHA256: str | None = "605cf24b3dff5a2de1d219ee59e79adc92048e46436d098b7c7a3d837761fa0f"   # host 0.2.26 (engine v21, shell v74, finding 154's host rule), 2026-10-17; was 901dd6a6 (0.2.24, v73, finding 145), ccb67a52 (0.2.23, v72), d761f1ce (autosave §9.19, 0.2.13), 8909564e (§17 C′), 36c2b18b (§16 R⁗), 18c8afbe (§15 R‴), 537d62d7 (§14 R′), e00ab76a (§13.5)
+SESSION_SHA256: str | None = "f1509ff22e6e2d8d945cfd803d293fd4cf102cece27618f54825571a2e1ef3a8"   # shell v74 (0.2.26); was f47c80ec (link-batch §17, 0.2.23), 62a2a20e (§14 R′), ee3e53a2
+HOST_VERSION: str | None = "0.2.26"   # engine v21 + finding 154; was 0.2.24 (finding 145), 0.2.23 (link-batch §17), 0.2.14, 0.2.13, 0.2.12
+HOST_COMMIT: str | None = "3c01876"   # 0.2.26; was 1479e56 (finding 145), 2ccf1a9 (link-batch §17), 237f2cb, e028517, b245ae7
+SHELL_BUNDLE_SHA256: str | None = "27f33a13d604720232b02d5cb3a318e94278379923d3522a1de4c0689978673f"   # v74; was v73 6ab20f68, v72 4dc10507, v63 318b3bf2, v62 75e29eb2, v61 f48df85b, v60 784a1d93, v59 ad65480a, v58 a6f9331a, v57 1aed21b1
 DOC_SHA256: str | None = "7b336879547df057ae6d38e907f221b40c90c37cd65d2df5afceceb91941657e"
 # 0.2.7's places, calibrated on v8's layout (findings/evidence/109/README.md):
 # inside the first body paragraph; the blank right of the heading 「一、序言」;
