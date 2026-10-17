@@ -165,13 +165,21 @@ LATENCY_BOUND_MS = 1000                 # spec 30.2 M2-2 and 31.2 M2-4: runner a
 # FAIL, explained by finding 145 (findings/evidence/145/).  Only pageSha256 and pageSourceSha256 moved, as N1's recorded
 # `bound` shows (findings/evidence/145/n1/); both were ccb67a52….  Spec 34.1 again: from this re-binding until the
 # 0.2.24 count's verdict is read, this file is not edited.
-BINDING: dict | None = {"wasmSha256": "313b08d5cb08589783a3e4d4d03eaee02d26f705ff5da96396ce9010680c5264",
-                        "workerSha256": "478d0da1dbfcf93615a00025c3c2f9b72c3cfa486d04746f03dea5fcf757b099",
-                        "sessionSha256": "f47c80ec955397c44d7638da63ed6837a3dea47125f6e279192298c20ed62ba9",
-                        "shellSha256": "e7c4eefea59803599ce074dac97783f2c334a4a2a8d4571088a27bea9820f152",
-                        "htmlSha256": "b1185aaa4f77b892a82edb8d892aadff6f7f025369bb700f316b884661ad9512",
-                        "pageSha256": "901dd6a6dbff6ad6f5252814fb4dc09230446a11d75387fb447e8a6a398a68c2",
-                        "pageSourceSha256": "901dd6a6dbff6ad6f5252814fb4dc09230446a11d75387fb447e8a6a398a68c2",
+# Re-bound 2026-10-17 to e2-editor-v21 (linked by the session at the owner's request 2026-10-16; archive
+# build/archive/e2-editor-v21-db3408f5-worker-0d55bcfa/) on shell generation v74 and host 0.2.26 (page 605cf24b, the
+# cutover source already points at v21).  The 0.2.24 count's verdict was read first (RESULT-0.2.24.md: merge VERDICT
+# PASS).  Computed by bound_values() as main() calls it, with no browser (compute_binding.py e2-editor-v21), and
+# checked against independent sources (findings/evidence/link-batch-v21/binding-v21/README.md).  Seven values moved:
+# wasm 313b08d5, worker 478d0da1, session f47c80ec, shell e7c4eefe, html b1185aaa, page = page source 901dd6a6;
+# eshape and native unchanged.  Spec 34.1 again: from this re-binding until the 0.2.26 count's verdict is read, this
+# file is not edited.
+BINDING: dict | None = {"wasmSha256": "db3408f55316bf67345258ce9f7cb58a1cb3777c9aabb9f7790bee69e1599f30",
+                        "workerSha256": "0d55bcfa2ee0e4ddc6239e25282001c13410b152a5a08ebac9903cc65c3fd350",
+                        "sessionSha256": "f1509ff22e6e2d8d945cfd803d293fd4cf102cece27618f54825571a2e1ef3a8",
+                        "shellSha256": "e35923a08107662d600d874f6986ef31aa8e8583955386929c26ebec62d82b06",
+                        "htmlSha256": "1d15814949c633ce43cb1240c30dd48cf982aca008f4ca25d401f4088c67764e",
+                        "pageSha256": "605cf24b3dff5a2de1d219ee59e79adc92048e46436d098b7c7a3d837761fa0f",
+                        "pageSourceSha256": "605cf24b3dff5a2de1d219ee59e79adc92048e46436d098b7c7a3d837761fa0f",
                         "eshapeSha256": "c3f9bbed6f21b43592ce4ad91b0d6e52d003d8e784443bb9a045c743f6d589af",
                         "nativeSha256": "2940a8410dc0a44d73e69be61749e4e6e5eae772046bf175bbe61664613b522e"}
 MODES = ("shakedown", "counted", "m2-1b", "m2-4", "m2-1-red")

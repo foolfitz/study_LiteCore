@@ -571,6 +571,15 @@ JS 字串經 TextEncoder 一定是合法 UTF-8（孤立代理會被換成 U+FFFD
   - 12 份第 1 項報告的 HTML 原始碼（15 個頁面條目）全部是 `1d158149…`，等於宿主 0.2.26 封包裡的 `e2-editor.html`（`evidence/d2/html-source-equality-0226.txt`）。
   - §34.4：0／0。
 
+### 12.6 計數綁到宿主 0.2.26 與 v21（2026-10-17 追加）
+
+D2 PASS 之後，照 §1「連結、凍殼層、宿主新版本、pin 改綁、`BINDING` 之後，整條計數鏈」，分兩個 commit 做綁定。前例：SPEC-M3-link-batch §17.1、§17.2。
+
+- **pin 改綁**（`a643de39`，`findings/evidence/host-0.2.26/repin_0226.py`）：11 個檔、25 行，只動 pin 行，舊值留在註解。頁面 `605cf24b…`、session `f1509ff2…`（v74 改了 session，這次也要移）、buildId `f5f0df762e1855f2`、宿主 `3c01876`、版本 0.2.26、殼層 bundle v74 `27f33a13…`。new-document 的空白文件 manifest 不動（`1479e56..3c01876` 只碰 `info.xml` 與 `templates/editor.php`）。每個新值都有兩個以上的來源。改綁之後：py_compile 通過，`test_check_m3_new_document` 19 OK，autosave selftest 0 失敗，`make test-e2-c-static` 結束碼 0。
+- **merge runner 的 `BINDING`**（`findings/evidence/link-batch-v21/binding-v21/`）：九個值由 `bound_values()` 不開瀏覽器算出，七個移動（wasm `db3408f5…`、worker `0d55bcfa…`、session `f1509ff2…`、殼層 `e35923a0…`、html `1d158149…`、頁面＝頁面原始碼 `605cf24b…`），eshape 與 native 不變。v8 紅案仍會被計數。紅案先行：只改 `BINDING` 時恰好 1 個測試紅；`test_bound_to_v20_after_v72` 改名為 `test_bound_to_v21_after_v74` 之後 134 OK。從這個 commit 到 0.2.26 計數的判讀讀完，runner 不再改（§34.1）。
+- 這是綁定，不是修理：§34.4 兩個數字都不加。
+- **計數鏈之前要處理的事**（尚未做，見交接）：page honesty Vrw 依原始碼預測會紅，因為普查會把 v21 隱藏的 `paste-markdown` 按鈕取消隱藏再點，而它不會推進 revision。merge runner、product-path 網、C2 都還沒在 v21 上跑過。
+
 ## 修訂紀錄
 
 | 日期 | 內容 |
@@ -591,3 +600,4 @@ JS 字串經 TextEncoder 一定是合法 UTF-8（孤立代理會被換成 U+FFFD
 | 2026-10-17 | §12.5：finding 154（宿主上關著的 Markdown 對話框被 Nextcloud 的 reset 顯示出來，D2 在 0.2.25 上 6/6 NE）；fable 裁決 3，擁有者交裁：修在宿主（0.2.26，一條 `dialog:not([open])` 規則，封包不動），先用診斷工具驗收，`HOST_EXPECT` 只改版號，D2 只准重跑一次。不動 D2 的文字、judge、預設。 |
 | 2026-10-17 | §12.5 (c′)（追加，fable 裁決 3 補充 1）：0.2.26 上修法驗收通過（兩個瀏覽器的 `asShipped` 全符合）；撤回「`withRule` 也要讀到一樣」（前提不成立，§4），具名 L-154-diag-second-click；工具不改、不重跑。 |
 | 2026-10-17 | §12.5 D2 結果（追加）：宿主 0.2.26 上 D2 6/6 PASS（judge 沒改，走 (e) 1）；第 1 項的判準在兩個瀏覽器全部 PASS。 |
+| 2026-10-17 | §12.6：計數綁到宿主 0.2.26 與 v21：pin 改綁（11 檔 25 行）與 merge `BINDING`（七個值移動），各一個 commit；登錄 page honesty Vrw 依原始碼預測會紅。 |
