@@ -139,3 +139,108 @@ Red cases added (20 plus one rule):
 
 - **The page to pass.** The judge's `--expect-page` is `605cf24b3dff5a2de1d219ee59e79adc92048e46436d098b7c7a3d837761fa0f` (§3). The judge's own `PAGE_V21` constant is the old pin and is used only by its self-test's synthetic reports.
 - **The arm list.** It now includes `d14` (`--rounds 3` gives 3 rounds per fixture, 6 per browser). `d6` may be listed or left out; either way the judge prints 「未量」.
+
+## 5. Evidence runs (N=3, Chrome and Firefox)
+
+Run 2026-10-17 05:43–09:12 by a subagent of the main session. This is fable ruling 1, "Overall" step (6). The tree was `1b247bdb`, plus the two tool fixes in §5.5. Chrome ran first, then Firefox, with one browser at a time under the S-9 lock. KWallet read `b false` before every run.
+
+The desk was recorded before each run (`evidence/desk.log`). The load average was 0.15–1.45, and nothing of ours ran beside the runner. No `make`, no `--write`, nothing under `dist/`, no ddev, no host run. Every report says `"counted": false`.
+
+Files, all under `evidence/`:
+
+| dir | what |
+|---|---|
+| `item1/` | the item-1 reports judged (12: 5 Chrome, 7 Firefox), their `docs/`, and run logs |
+| `judge-item1.txt` | `judge_v21_shakedown_item1.py --dir evidence/item1 --expect-page 605cf24b… --rounds 3`, with the judge at `c32fc13d` |
+| `d2/` | D2's no-host predictor and its 0.2.24 red case, per browser (reports and run logs; the logs carry the tool's own verdicts) |
+| `m7/` | M7 (`m7a`, `m7b`) reports and `docs-*` |
+| `judge-m7.txt` | `judge_v21_shakedown_item2.py --dir evidence/m7 --expect-page 605cf24b…` |
+| `v6e/` | the V6e record (`diag_v21_dirty_move.py --variants v6e --fix none --rounds 3`), per browser |
+| `unit/` | the unit halves: D5 (`page-document-keys`, D5-gen), D12 (`sdk-worker-v21`), D13 (`closed-lists`), with file hashes; and `test_v21_*.py` after the judge fix |
+| `superseded/item1/` | Chrome's first d1 run (D7 NE from foreign CPU; §5.4) |
+| `witness/` | the three §34.4 witnesses (§5.5) |
+
+### 5.1 Verdicts
+
+Only the item-1 judge's verdict decides. Its last line is `VERDICT NOT PASS (1 criterion cell(s) not PASS)`; the one cell is D7 in Firefox.
+
+| criterion | Chrome | Firefox | read from | note |
+|---|---|---|---|---|
+| D1 | PASS | PASS | judge, `d1` | 38 arms + 2 controls × 3. Chrome is the re-run report (§5.4). |
+| D2′ | PASS | PASS | judge, `d2p` | move `documented-callback-visible-cursor`, Backspace `verified-boundary-noop`, P2 unchanged |
+| D4 | PASS | PASS | judge, `d1` | 18/18 per browser carry `DEVIATION-D4-op` (`click`), accepted by ruling S1 |
+| D5, unit | PASS | — | `unit/unit-halves.txt` | `page-document-keys.test.mjs` 18/18, `page-document-keys-generated.test.mjs` (D5-gen) 17/17 |
+| D5-w | PASS | PASS | judge, `d5w` | Firefox PASS after judge fix J2 (§5.5). Before it, the judge read NE. |
+| D7 | PASS | **NOT_ESTABLISHED** | judge, `d1` | Firefox: 2 of 192 +500 ms reads were posted at **550.1** and **553.5 ms** after the reply. Foreign CPU was clean, so the arm was **not re-run** (§5.4). |
+| D8 | PASS | PASS | judge, `d8` + `d8red` | (a)–(e) 3/3 each; 0.2.24 red case below |
+| D9 | PASS | PASS | judge, `d9` | flagged hold: 1 move, ready 0 ms. Unflagged: Chrome 3 moves, ready 28–29 ms; Firefox 4 moves, ready 236–238 ms (≤ 500). |
+| D10 | PASS | PASS | judge, `d10` | `第 60 頁，共 60 頁` at both reads, 3/3 |
+| D11 | PASS (a, b, c) | PASS (a, b, c) | judge | D11b dirty read under §12.3 (b). D11c: the SDK reports `EDITOR_RESULT_INVALID` for both stale moves, the §12.2 (f) observation. |
+| D12 | PASS | PASS | judge, `d12` | unit half `sdk-worker-v21.test.mjs` 17/17; `sdk/sdk-worker.js` = the profile's worker `0d55bcfa…` |
+| D13, unit | PASS | — | `unit/unit-halves.txt` | `closed-lists.test.mjs` 12/12 |
+| D14 | PASS | PASS | judge, `d14` | 6/6 per browser: `Q` at the document end. Ctrl+End→`Q` keydown gap 20.2–20.9 ms (Chrome), 22.9–24.8 ms (Firefox). The move completed `documented-callback-visible-cursor` in 34.9–43.1 ms, with no `save` before it. |
+| E0 | PASS | PASS | judge | every start-state read: the button exists, is hidden, and has no other opener. 198 reads per browser, on v21, v21host, v21hook, v20. |
+| M7 | PASS | PASS | `judge-m7.txt` | `m7a` + `m7b` 3/3 each. The judge prints every other M criterion as NE or FAIL (`missing`) because none was run; their defaults are taken by §12.3 (e). |
+| D2 no-host predictor (v21) | PASS 3/3 | PASS 3/3 | `run_v21_d2.py`'s own verdicts | D2 itself is the host run after the freeze; not run (§5.6). |
+| 0.2.24 red cases | red 3/3, as required | red 3/3, as required | | D8 (d) on 0.2.24 FAILs 3/3. D2 no-host on 0.2.24: `verified-selection-delete`, revision +1, 3/3. |
+| R-xlc (record) | 9/9 recorded | 9/9 recorded | judge records | Backspace `verified-boundary-noop`, waited 2252–2257 ms, document as the fixture (L-C-number-or-indent) |
+| R-table (record) | 3/3 recorded | 3/3 recorded | judge records | Backspace `EDITOR_BOUNDARY_UNSUPPORTED`, generation 2, document as the fixture |
+| V6e (record) | see below | see below | `v6e/` | recorded, not judged |
+| D6 | 未量 | 未量 | judge | `not runnable: item 2 not shipped (spec §12.3 (e))`; default 「未量，不做任何排序宣稱」 |
+
+**V6e.** From «Bravo|»: Backspace @0, Backspace @20, ArrowRight @40, Delete @60. Key order expects P2 «Bra econd paragraph».
+
+| page | Chrome P2 (r1, r2, r3) | Firefox P2 (r1, r2, r3) |
+|---|---|---|
+| v21 `605cf24b…` | «Bra econd paragraph» ×3 | «Bra econd paragraph» ×3 |
+| 0.2.24 (`dist/`, v20) | «Brasecond paragraph» ×3 | «Bra econd paragraph», «Brasecond paragraph», «Brasecond paragraph» |
+
+- **v21:** no place-caret request before the move in any round. The request order was `delete-backward, delete-backward, save, move-character-right, delete-forward`. The arrows keep their checkpoint, by §12.3 (b).
+- **0.2.24, the rounds that went wrong:** `delete-backward, editorPlaceCaretV2, delete-backward, delete-forward, save, move-character-right`. The second Backspace and the Delete ran at the click point, as finding 150 describes.
+- **0.2.24, Firefox r1:** the key order held. Firefox's keydowns landed at 0/23/45–50/68–73 ms, against Chrome's 0/20/40/60.
+
+### 5.2 Identity each report carried
+
+| reports | page served | shell digest | profile (wasm, worker) | `identityOk` |
+|---|---|---|---|---|
+| item 1 v21, v21host, v21hook; D2 v21; M7 `main`; V6e v21 | `605cf24b3dff5a2d…` | `e35923a08107662d…` | `e2-editor-v21` (`db3408f5…`, `0d55bcfa…`) | true in every one |
+| D5-w's v20 page (S-5) | `59553850…` (the tree source, already pinned to v20's wasm) | `e35923a0…` | `e2-editor-v20` (`313b08d5…`, `478d0da1…`) | true |
+| 0.2.24 page (D8 red, D2 red, V6e) | `901dd6a6…` | `e7c4eefe…` (`dist/`) | `e2-editor-v20` (`313b08d5…`, `478d0da1…`) | true |
+
+- **Tools.** Every report has `instrumentedWorker: false`. Browsers: Chrome 151.0.7922.169 (headless) and Firefox 157.0.1.
+- **Runner hashes.** Item-1 runner `4fba3d19…` (all 12 reports), item-2 runner `fca737b2…`, D2 tool `1f2155fc…`.
+- **The diag tool d14 imports.** It is bound as `diagSha256`: Chrome d14 has `75750e47…` (before fix J1), Firefox d14 and both V6e reports have `55867050…`. J1 changed only the `V21_PAGE_PREFIX` constant and its comment, not the functions d14 imports (`settle_long`, `timed_keys`, `move_tail`).
+
+### 5.3 Product reds
+
+None. No criterion FAILs, and the 0.2.24 red cases are red as required.
+
+### 5.4 Runs repeated, and departures
+
+1. **Chrome d1 was re-run (the rule for NE from foreign CPU).**
+   - **First run** (`superseded/item1/report-chrome-d1-20261017T054335.json`): D7 read NE. Two arms' foreign-CPU samples were over the limit: sec-home-n2 r1 at 74.5 % and sec-end-n1 r3 at 75.6 %. Both came from the owner's desktop Chrome: an `--extension-process` renderer of that Chrome, which runs an extension relay page (`connect.html?mcpRelayUrl=…`). A new such renderer appeared every few minutes during the runs [observed: `ps` start times], and each one used about 75 % of a core for a moment.
+   - **The re-run counts** (`item1/report-chrome-d1-20261017T064131.json`): 0 samples over the limit, and D1, D4 and D7 PASS.
+   - **The first run's D1 was NE for another reason.** One start state (t-end-A1-n1 r3, table-mid) saw no selection within 10 s: `not-observed`, foreign CPU clean. D1 counts from the re-run only because D1, D4 and D7 share one arm and the judge takes one report per (browser, arm). That NE is recorded here as an observation (1/120 start states).
+2. **Firefox D7 was not re-run.**
+   - **What happened.** Foreign CPU was clean in every d1 round. The two reads outside 500±50 were posted by the page-side timer 550.1 ms and 553.5 ms after the reply, on t-end-B2-n1 r3 and t-home-B2-n2 r1. The reply caret equalled the read caret in both. Over all 192 Firefox reads, 15 were posted later than 520 ms: 11 on `t-*`, 3 on `tl-*`, 1 on `sec-*`. In Chrome all 192 were posted at 500.1–500.9 ms.
+   - **Why no re-run.** The brief allows a re-run only for NE caused by foreign CPU. **Per §11.0, D7 Firefox is "not done", and its default is 「第 1 項不出貨」.** Whether a late-posted read in Firefox earns a re-run, or a change to the instrument, is the main session's call.
+3. **Firefox's "rest" arms were re-run in three fresh sessions** (§34.4 witness W2). The run itself is described in §5.5. The re-run reports count: `report-firefox-d2p-d8-d8red-d11b-20261017T085102.json`, `report-firefox-d11a-d11c-d12-20261017T085811.json`, `report-firefox-d5w-xlc-table-d6-20261017T090001.json`.
+4. **D8's 0.2.24 red case is sequence (d) only.** The runner's `d8red` is (d), as the brief says. Spec §11.1 names (c)(d)(e) on 0.2.24; (c) and (e) are covered by the node witness of `bc6534e0`, not re-run here.
+5. **The item-2 judge prints missing criteria as FAIL.** M6 and M8–M11 read `FAIL (… missing)`, and M1–M5 read NE (zero instances or no report). None of them was run, by §12.3 (e), so neither verdict is a product result. The judge was not changed.
+
+### 5.5 §34.4
+
+| # | what | witness (committed before the change) | change |
+|---|---|---|---|
+| J1 | `diag_v21_dirty_move.py` refused V6e: its `V21_PAGE_PREFIX` was still the pre-fix pin `3d511216`. It builds from the tree, so the served page is `605cf24b…` (`identityOk: true`). | `witness/diag-v6e-stale-pin/` (`55331af1`) | `6aa8e184`: the pin only |
+| W2 | One Firefox session lost d5w rounds 2–3, xlc and table. After 44 good loads across five origins (v21, dist0224, v21host, v21hook, v20), every init failed `WORKER_INIT_FAILED` (abort in `instantiateArrayBuffer`). This is the shape of finding 024 [inferred]. The same page loaded 120 times in its own Firefox session without a failure. | `witness/firefox-rest-worker-init-failed/` (`43ec5333`) | procedural, no tool edited: the arms were re-run in three fresh sessions (§5.4 item 3) |
+| J2 | The item-1 judge's D5-w took the chord's first keydown. In Firefox that is the modifier's (`Control`/`Meta`, never prevented), so all 12 v21 chords read "not taken" (NE). | `witness/judge-d5w-modifier-keydown/` (`4bf78a3d`) | `c32fc13d`: the first keydown that is not a modifier's. Two Firefox-shaped self-test cases, red first: 83/85 on the old clause, 85/85 after. `test_v21_*.py` 94 OK. |
+
+**Tally (this round):** modified because of execution **2** (J1, J2); modified because of review **0**; runs lost to the harness and re-run **1** (W2). The phase-B tally (2/0, smoke README) and ruling 1's (1/0) stand beside it.
+
+### 5.6 Not covered here
+
+- **D2 on the host** after the v74 freeze, and its 0.2.24 host red case: ddev is needed and the owner must be asked; both are refused in this phase.
+- M11-autosave, I1, K.
+- **Ruling 1's `open` cell** (Q4 condition 4) was not in this task and was not run.
+- **The judgement this round leaves to the main session:** D7 in Firefox (§5.4 item 2).
