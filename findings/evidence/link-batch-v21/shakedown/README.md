@@ -317,3 +317,12 @@ The owner said ddev was free for this session. The `litecore` ddev project was s
 | folder MKCOL / DELETE | 201 / 204 | 201 / 204 |
 
 **Reading.** On 0.2.24 the Ctrl+Home does not move the caret, so the Backspace deletes the character before the first-line click (the `P` of `LD-PAGE-01`), and the host saves that loss. This is the red the judge expects, measured through the shipped host, not inferred from the no-host case. The comparison is not blind: the control's save differs 6/6.
+
+### 5.9 D2 on host 0.2.25: NOT_ESTABLISHED 6/6, a product defect (finding 154) (appended 2026-10-17 16:38–17:03)
+
+Host 0.2.25 installed (`findings/evidence/host-0.2.25/README.md`; identity `problems: []`). `run_v21_d2.py --mode host --page v21 --rounds 3`, tool `ce169ef8…`, Chrome then Firefox (`evidence/d2/d2-host-v21-{chrome-20261017T163844,firefox-20261017T165106}.json`, `run-host-*-v21.log`).
+
+- **Verdict 6/6 `NOT_ESTABLISHED` ("no Backspace response").** In every round the first-line click got no place-caret within 40 s (`clickState` null). After it, Ctrl+Home and Backspace were seen as keydowns and sent no request, and both saves timed out (no save was made, so `serverChanged` false). Folders 201 / 204.
+- **Cause, measured** (`findings/evidence/154/`, diagnostic, both browsers): the closed `<dialog id="markdown-dialog">` that v21 part S added to `e2-editor.html` has computed `display: block` on the host. The rule is Nextcloud's `core/css/server.css` reset `article, aside, dialog, … { display: block }`, which overrides the user agent's `dialog:not([open]) { display: none }`. The dialog sits over the editor's top left, and the click point lands on `TEXTAREA#markdown-text`. With one added rule (`#markdown-dialog:not([open]) { display: none }`) on the same page, the point lands on `CANVAS#canvas` and the click sends `editorPlaceCaretV2`.
+- **Why nothing earlier saw it:** every v21 evidence run was no-host, `v21host` included (a fake `liteCoreHost`, no Nextcloud page or CSS); E0 read the entry button, not the dialog.
+- **By the pinned rule** D2 is not done, and its default is 「第 1 項不出貨」. ARMS-item1.md D2 (`:607`) foresaw that a red D2 means another host version (spec §1: 「新宿主版本（0.2.25 起）」). The fix and whether D2 re-runs on it are the owner's call; nothing is changed yet.
