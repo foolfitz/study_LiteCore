@@ -298,3 +298,22 @@ None. No criterion FAILs, and the 0.2.24 red cases are red as required.
 D7's criterion is the window (500±50 ms, a single read), not the aim. Chrome D7, and D10 and D11a in both browsers, stand on their +500 reports without a re-run or re-judge (ruling 2 Q2). Their reads are all inside the window: Chrome D7 500.1–500.9 ms, D10 500.2–501.0 ms, D11a 500.2–500.6 ms.
 
 **Tally** (unchanged from the line after ruling 2): execution **3** (J1, J2, J3), review **0**, runs lost and re-run **1** (W2). The §12.4 (e) 3 allowance was not spent.
+
+### 5.8 D2's 0.2.24 red case on the host (appended 2026-10-17 15:31–15:37)
+
+The owner said ddev was free for this session. The `litecore` ddev project was started (it was paused); nothing else of the owner's was touched. The host was **0.2.24** (`1479e56`, buildId `d3cd39bbc71ec311`, `hostDirty: []`), debug false.
+
+- **Identity first** (`run_v21_d2.py --mode host --page 0224 --identity-only`): `problems: []`; page `901dd6a6…`, shell `e7c4eefe…` (12 paths, none missing), profile `e2-editor-v20`, wasm `313b08d5…`. As in `evidence/d2/host-identity/`.
+- **Smoke, one round per browser** (`smoke/item1-d2-host/`). This arm had never run against the host. Both rounds completed on the first try; no tool was changed.
+- **Evidence, N=3 per browser** (`evidence/d2/d2-host-0224-{chrome-20261017T153333,firefox-20261017T153501}.json`, with `run-host-*-0224.log`). Tool `ce169ef8…` (= `1fe9588d`), probe `4e92e920…`. Under the lock; pre-run refuse list empty; load 0.84 / 0.87. Chrome 151.0.7922.169 (headless), Firefox 157.0.1.
+
+| | Chrome | Firefox |
+|---|---|---|
+| tool verdict (red mode) | red 3/3: `verified-selection-delete`, revision +1, no `move-document-*` | red 3/3, same |
+| save 1 (real Ctrl+S, host save log) | `saved` 3/3 | `saved` 3/3 |
+| server bytes changed / saved text equals opened | true / **false** 3/3 | true / **false** 3/3 |
+| first paragraph on the server after save 1 | `LD-AGE-01` (opened: `LD-PAGE-01`) 3/3 | `LD-AGE-01` 3/3 |
+| positive control (`Z`, save 2 > 1 s later) differs | true 3/3 | true 3/3 |
+| folder MKCOL / DELETE | 201 / 204 | 201 / 204 |
+
+**Reading.** On 0.2.24 the Ctrl+Home does not move the caret, so the Backspace deletes the character before the first-line click (the `P` of `LD-PAGE-01`), and the host saves that loss. This is the red the judge expects, measured through the shipped host, not inferred from the no-host case. The comparison is not blind: the control's save differs 6/6.
