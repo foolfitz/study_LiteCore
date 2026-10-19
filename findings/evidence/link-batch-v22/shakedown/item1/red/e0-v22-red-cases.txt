@@ -1,0 +1,21 @@
+ok   control: every v22 read shown with one opener, v20 hidden: expected PASS, got PASS
+       [chrome d2p,d8,d8red,d11a,d11b,d11c,d12,d5w,xlc,table,d6] PASS: 57 read(s) as required, 0 red, 0 blind
+ok   a v22-profile read with hidden true (the v21 shape): expected FAIL, got FAIL
+         FAIL d2p r1 [v21]: exists True hidden True hiddenAttr True dialog True/False openers []
+       [chrome d2p,d8,d8red,d11a,d11b,d11c,d12,d5w,xlc,table,d6] FAIL: 56 read(s) as required, 1 red, 0 blind
+ok   a v22-profile read with two openers: expected FAIL, got FAIL
+         FAIL d2p r1 [v21]: exists True hidden False hiddenAttr False dialog True/False openers [{'tag': 'button', 'id': None, 'action': 'paste-markdown', 'text': '貼上為 Markdown…'}, {'tag'
+       [chrome d2p,d8,d8red,d11a,d11b,d11c,d12,d5w,xlc,table,d6] FAIL: 56 read(s) as required, 1 red, 0 blind
+ok   a v20 read with hidden false: expected FAIL, got FAIL
+         FAIL d5w r1 [v20]: exists True hidden False openers []
+       [chrome d2p,d8,d8red,d11a,d11b,d11c,d12,d5w,xlc,table,d6] FAIL: 56 read(s) as required, 1 red, 0 blind
+ok   a read with controlVisible false: expected NOT_ESTABLISHED, got NOT_ESTABLISHED
+         NOT_ESTABLISHED d11a r1 [v21host]: blind read (error None, controlVisible False)
+       [chrome d2p,d8,d8red,d11a,d11b,d11c,d12,d5w,xlc,table,d6] NOT_ESTABLISHED: 56 read(s) as required, 0 red, 1 blind
+ok   no read at all: expected NOT_ESTABLISHED, got NOT_ESTABLISHED
+       [chrome d2p,d8,d8red,d11a,d11b,d11c,d12,d5w,xlc,table,d6] NOT_ESTABLISHED: 0 read(s) as required, 0 red, 0 blind
+ok   the unchanged v21 report (every v22-page read hidden): expected FAIL, got FAIL
+         FAIL table r3 [v21]: exists True hidden True hiddenAttr True dialog True/False openers []
+       [chrome d2p,d8,d8red,d11a,d11b,d11c,d12,d5w,xlc,table,d6] FAIL: 3 read(s) as required, 54 red, 0 blind
+red cases: 7/7 as required
+exit 0
