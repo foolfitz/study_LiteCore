@@ -103,6 +103,17 @@ VARIANTS = {
         "includeVars": ["E2_V21_MD4C_INCLUDE"],
         "units": PRODUCT_UNITS,
     },
+    # SPEC-M3-link-batch-v22 4.2 / S3 (b): v21's compile line under v22's names, no
+    # v22 define (the one variable is the link's stack size, which -E cannot see).
+    # Against --since 5f5bf11c (v21's link) all four units must preprocess the same.
+    "link-batch-v22": {
+        "objectsVar": "E2_V22_OBJECTS",
+        "cppflagsVar": "E1_CPPFLAGS",
+        "defines": MERGE_V15_DEFINES + ["-DOXSDK_E2_V20_LINK_BATCH",
+                                        "-DOXSDK_E2_V21_LINK_BATCH"],
+        "includeVars": ["E2_V22_MD4C_INCLUDE"],
+        "units": PRODUCT_UNITS,
+    },
     "product": {
         "objectsVar": "E2_V4_OBJECTS",
         "cppflagsVar": "E1_CPPFLAGS",

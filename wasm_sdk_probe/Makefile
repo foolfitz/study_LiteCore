@@ -855,6 +855,32 @@ define link_r5_product
 		-o $(3)
 endef
 
+# From v22 (specs/SPEC-M3-link-batch-v22.md 3.1, fable ruling 4): link_r5_product
+# with ONE token changed, -sDEFAULT_PTHREAD_STACK_SIZE=65536 -> 1048576.  Finding
+# 153: one long paragraph overflows the engine thread's 64 KiB stack.  Every
+# product link from v22 calls this macro.  link_r5_product stays, byte-unchanged,
+# for the frozen and diagnostic rules that already call it (spec 4.1: a new macro
+# rather than a parameter, so nothing about those 22 callers needs proving).  That
+# this is otherwise a faithful copy is criterion S3: make -n against v21's differs
+# in the link line by that one token.  STACK_OVERFLOW_CHECK stays 0 at ASSERTIONS=0
+# (L-153-no-overflow-check, spec 3.3).
+define link_product_stack_1m
+	$(CXX) $(1) \
+		-L$(LOBUILD)/instdir/program $$(cat $(LINKDEPS)) \
+		-pthread -fwasm-exceptions -sSUPPORT_LONGJMP=wasm --no-entry -Oz \
+		-sMODULARIZE -sEXPORT_NAME=createProbeModule \
+		-sTOTAL_MEMORY=1GB -sPTHREAD_POOL_SIZE=7 -sPTHREAD_POOL_SIZE_STRICT=0 \
+		-sSTACK_SIZE=131072 -sDEFAULT_PTHREAD_STACK_SIZE=1048576 \
+		-sFORCE_FILESYSTEM=1 -sWASM_BIGINT=1 -sERROR_ON_UNDEFINED_SYMBOLS=1 -sFETCH=1 \
+		-sASSERTIONS=0 -sEXIT_RUNTIME=0 \
+		-sEXPORTED_RUNTIME_METHODS=ccall,FS,HEAPU8 \
+		-sEXPORTED_FUNCTIONS=@$(2) \
+		-Wl,--wrap=_Z18initJsUnoScriptingv \
+		--pre-js $(LOSRC)/static/emscripten/environment.js \
+		--pre-js $(FS_PRE_JS) \
+		-o $(3)
+endef
+
 # Finding 037 / 032.  The stuck thread is parked, not spinning (measured: a CPU
 # profile during the hang is identical to one taken before it), so profiling is
 # exhausted and the question is what it is waiting for.  Emscripten already
@@ -1711,6 +1737,99 @@ $(E2_V21_DIST)/sdk-manifest.json: $(E2_V21_BUILD)/probe.js $(E2_V21_BUILD)/probe
 	@test -s $(E2_V21_DIST)/sdk-worker.js
 
 $(E2_V21_BUILD) $(E2_V21_DIST):
+	mkdir -p $@
+
+# --------- v22, link batch v22: the engine thread's default pthread stack, 1 MiB (finding 153) (NEW LINK)
+#
+# specs/SPEC-M3-link-batch-v22.md (criteria pinned 937bc684), fable ruling 4: ONE
+# engine variable.  Everything below is v21's block with v22's names -- the compile
+# rule verbatim (v21's defines, OXSDK_E2_V21_LINK_BATCH included, and the md4c -I),
+# the export recipe verbatim, v21's worker pin, v21's packing -- except the link,
+# which calls link_product_stack_1m instead of link_r5_product.  No v22 define: the
+# source is the tree v21 was linked from (5f5bf11c), and a define would be a second
+# variable.
+#
+# Criterion S3: make -n of this manifest target, with editor-v22 read as editor-v21,
+# differs from findings/evidence/link-batch-v21/part-e-red/make-n-v21.txt in exactly
+# three lines: the link line's one token, the worker pin (that witness predates the
+# pin) and this rule's guard text.
+#
+# tools/check_merge_key_undo_scope.py: these objects carry v21's defines, so at base
+# 5d77dc84 the carrier is E2_V22=probe_engine,sdk_api,editor_api (test-e2-c-static).
+#
+# Never pass ALLOW_FROZEN_RELINK=1 for v8, v15, v19, v20 or v21.
+E2_V22_BUILD := build/e2/editor-v22
+E2_V22_DIST := dist/profiles/e2-editor-v22
+E2_V22_SOURCES := $(E2_C_SOURCES)
+E2_V22_OBJECTS := $(patsubst src/%.cpp,$(E2_V22_BUILD)/%.o,$(E2_V22_SOURCES))
+E2_V22_MD4C_INCLUDE := $(LOBUILD)/workdir/UnpackedTarball/md4c/src
+# v21's worker, unchanged (spec 2).
+E2_V22_WORKER_SHA256 := 0d55bcfa2ee0e4ddc6239e25282001c13410b152a5a08ebac9903cc65c3fd350
+
+$(E2_V22_BUILD)/%.o: src/%.cpp $(HEADERS) src/editor_api.h \
+		src/editor_discovery_api.h src/format_readback_text.hpp \
+		src/a11y_paragraph_identity.hpp src/merge_key_undo.hpp \
+		src/markdown_paste.hpp $(E2_V22_MD4C_INCLUDE)/md4c.h Makefile \
+		| $(E2_V22_BUILD)
+	$(CXX) $(E1_CPPFLAGS) $(R5_CXXFLAGS) -I$(E2_V22_MD4C_INCLUDE) \
+		-DOXSDK_EDITOR_DISCOVERY \
+		-DOXSDK_FINDING_016_SELECTION_BARRIER -DOXSDK_E2_FORMAT_BARRIER \
+		-DOXSDK_MERGE_KEY_UNDO -DOXSDK_E2_V20_LINK_BATCH \
+		-DOXSDK_E2_V21_LINK_BATCH \
+		$(EXTRA_DEFINES) -c $< -o $@
+
+# v21's recipe, verbatim.
+$(E2_V22_BUILD)/exports.txt: $(R5_BUILD)/writer-review/exports.txt Makefile \
+		| $(E2_V22_BUILD)
+	cp $< $@
+	printf '%s\n' \
+		_oxsdk_editor_action \
+		_oxsdk_editor_get_state \
+		_oxsdk_editor_select_range \
+		_oxsdk_editor_place_caret \
+		_oxsdk_editor_abi_version \
+		_oxsdk_editor_set_action_gestures \
+		_oxsdk_document_redo \
+		_oxsdk_document_page_rectangles \
+		_oxsdk_document_paste_markdown >> $@
+	@if grep -q editor_discovery $@; then \
+		echo "product export list contains a discovery symbol"; exit 1; fi
+
+# Guarded from the first link, like every product artifact before it.
+$(E2_V22_BUILD)/probe.js: $(E2_V22_OBJECTS) $(EXTRA_OBJECTS) \
+		$(E2_V22_BUILD)/exports.txt $(LINKDEPS) $(FS_PRE_JS) Makefile
+	$(call refuse_unasked_relink,the link batch v22 (default pthread stack 1 MiB for the engine thread; finding 153) -- every link mints a new hash)
+	$(call link_product_stack_1m,$(E2_V22_OBJECTS) $(EXTRA_OBJECTS),$(E2_V22_BUILD)/exports.txt,$@)
+
+$(E2_V22_BUILD)/probe.wasm: $(E2_V22_BUILD)/probe.js
+	@test -s $@
+
+# v21's packing with v22's loader, wasm and export list; the worker is v21's.
+$(E2_V22_DIST)/sdk-manifest.json: $(E2_V22_BUILD)/probe.js $(E2_V22_BUILD)/probe.wasm \
+		$(E2_V22_BUILD)/exports.txt sdk/sdk-worker.js \
+		sdk/v18-writer-review-manifest.json \
+		tools/build_base_no35_pack.py tools/build_r5_profiles.py \
+		tools/build_cjk_subset.py tools/build_cjk_subset_ttc_pack.py \
+		tools/build_cjk_subset_mono_pack.py \
+		tools/build_e2_editor_v5_profile.py \
+		tools/build_e2_editor_v4_profile.py tools/build_e2_c_profile.py \
+		tools/build_e2_b_profile.py tools/e1_support.py | $(E2_V22_DIST)
+	echo "$(E2_V22_WORKER_SHA256)  sdk/sdk-worker.js" | sha256sum -c --quiet
+	python3 tools/build_base_no35_pack.py --check
+	python3 tools/build_cjk_subset_mono_pack.py --check
+	python3 tools/build_e2_editor_v5_profile.py \
+		--source-manifest sdk/v18-writer-review-manifest.json \
+		--loader $(E2_V22_BUILD)/probe.js --wasm $(E2_V22_BUILD)/probe.wasm \
+		--worker sdk/sdk-worker.js \
+		--exports $(E2_V22_BUILD)/exports.txt \
+		--profile e2-editor-v22 --inline-range-gestures all \
+		--page-rectangles --paste-markdown \
+		--output $(E2_V22_DIST)
+	@test -s $(E2_V22_DIST)/probe.js
+	@test -s $(E2_V22_DIST)/probe.wasm
+	@test -s $(E2_V22_DIST)/sdk-worker.js
+
+$(E2_V22_BUILD) $(E2_V22_DIST):
 	mkdir -p $@
 
 # ---------------------------------------------------------------- v5, a11y
@@ -3736,10 +3855,14 @@ test-e2-c-static:
 	# Since v20 (ruling 6 condition 50.4'): the carrier list is named, because
 	# the tool's default (E2_V15, E2_V19) is red once E2_V20 exists -- witness
 	# findings/evidence/link-batch/v67-witness/test-e2-c-static-red-default-carriers.txt.
+	# E2_V22 (SPEC-M3-link-batch-v22 4.2) carries v21's defines; without it this
+	# line is red on exactly its three objects --
+	# findings/evidence/link-batch-v22/pre-link/m1-1-red-without-e2-v22.txt.
 	python3 tools/check_merge_key_undo_scope.py --base 5d77dc84 \
 		--carrier E2_V15 --carrier E2_V19 \
 		--carrier E2_V20=probe_engine,sdk_api,editor_api \
-		--carrier E2_V21=probe_engine,sdk_api,editor_api
+		--carrier E2_V21=probe_engine,sdk_api,editor_api \
+		--carrier E2_V22=probe_engine,sdk_api,editor_api
 	# E2-C must never touch what E1-C bound.  Read-only on purpose: a static
 	# target that rewrites verdict-bound evidence has happened here once.
 	python3 tools/check_e1_c_bundle_intact.py > /dev/null

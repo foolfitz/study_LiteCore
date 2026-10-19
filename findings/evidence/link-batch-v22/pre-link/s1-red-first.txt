@@ -1,0 +1,15 @@
+$ python3 tools/check_pthread_stack_literal.py dist/profiles/e2-editor-v21/probe.js
+FAIL dist/profiles/e2-editor-v21/probe.js sha256 0b6cf02a51aba353d880824ab32254e551a389c58d3c219439c7641f7ce76587 1048576-anchor 0 (want 1) 65536-anchor 1 (want 0)
+VERDICT FAIL (1 of 1)
+exit 1
+
+$ python3 tools/check_pthread_stack_literal.py <scratch>/anchor-twice-probe.js
+FAIL <scratch>/anchor-twice-probe.js sha256 633531c38d6030385fd73499222904e9a15eccc1102a5b93264c124beff29b1a 1048576-anchor 2 (want 1) 65536-anchor 0 (want 0)
+VERDICT FAIL (1 of 1)
+exit 1
+
+$ python3 tools/check_pthread_stack_literal.py <scratch>/v21-literal-1048576-probe.js
+ok   <scratch>/v21-literal-1048576-probe.js sha256 dc4c2c84657e350668fbfc0048e2ded9c49ca5076610a6389944cf71ea4ba9af 1048576-anchor 1 (want 1) 65536-anchor 0 (want 0)
+VERDICT PASS
+exit 0
+
