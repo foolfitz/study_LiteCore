@@ -64,6 +64,11 @@ HOST_EXPECT = {
             "servedPage": "605cf24b3dff5a2de1d219ee59e79adc92048e46436d098b7c7a3d837761fa0f",
             "hostShellDigest": common.EXPECTED_SHELL_DIGEST,
             "hostWasm": "db3408f55316bf67345258ce9f7cb58a1cb3777c9aabb9f7790bee69e1599f30"},
+    # v22 (SPEC-M3-link-batch-v22 §11.4 D2-v22; §13.1 step 8): host 0.2.27, engine v22 with shell generation v75.
+    "v22": {"hostVersion": "0.2.27",
+            "servedPage": "3b96cb1661aba6de6add989c98c80ab393cd394307763bc6dc28c9440fba82e2",
+            "hostShellDigest": common.EXPECTED_SHELL_DIGEST,
+            "hostWasm": "f7a40bcce073d913e562245b96f32a1051766dda23da0da3911741f03934d49e"},
     "0224": {"hostVersion": "0.2.24",
              "servedPage": "901dd6a6dbff6ad6f5252814fb4dc09230446a11d75387fb447e8a6a398a68c2",
              "hostShellDigest": "e7c4eefea59803599ce074dac97783f2c334a4a2a8d4571088a27bea9820f152",
@@ -393,8 +398,8 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--browser", choices=("chrome", "firefox"))
     ap.add_argument("--mode", choices=("nohost", "host"), default="nohost")
-    ap.add_argument("--page", choices=("v21", "dist0224", "0224"), default="v21",
-                    help="nohost: v21 or dist0224; host: v21 (0.2.25) or 0224 (the red case on host 0.2.24)")
+    ap.add_argument("--page", choices=("v21", "v22", "dist0224", "0224"), default="v21",
+                    help="nohost: v21 or dist0224; host: v21 (0.2.26), v22 (0.2.27) or 0224 (the red case on host 0.2.24)")
     ap.add_argument("--identity-only", action="store_true", help="host: check the host identity and stop")
     ap.add_argument("--keep-folder", action="store_true", help="host: keep the uploaded folder")
     ap.add_argument("--rounds", type=int, default=1)
