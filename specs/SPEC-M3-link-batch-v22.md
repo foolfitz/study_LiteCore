@@ -348,6 +348,7 @@ finding 153 判準 2 要求「附理由」：量到的深度，或原生的設�
 - **(a) 殼層 digest 不動**：`shell_digest` 不含 entrypoint（`run_merge_wasm_shakedown.py:1162-1167`），§11.1 沒有動任何殼層模組。會動的是 generation（bundle 雜湊，v75）與頁面、HTML、引擎的 pin。本檔 §2、§7 說「殼層項目」時，指的是 entrypoint 與 HTML。
 - **(b) judge 的 pin**：`judge_v21_shakedown_item2.py` 的 `EXPECT_PAGE` 常數只給自我測試用，判讀用的是 `--expect-page`；要動的常數是 `WASM`（`:32`）。`judge_v21_shakedown_item1.py` 沒有 wasm 常數，它對 wasm 的綁定是 runner 經 `common.EXPECTED` 算出的 `identityOk`。
 - **(c) 本檔 §2 的「其餘全部等於 v21」與 §7 的「殼層項目搭車」都對；但 §2 隱含的「第 1 項不必再量」不成立**，由 §11.4 取代。
+- **(d) M11-autosave 的「存檔裡有貼上的標題」對 M2 不成立（2026-10-19，任何宿主執行之前）**。ARMS-item2 M11-autosave 寫「the file's structure contains the pasted heading」，裁決 5 第 20 項照抄成「含 M2 的標題」。但 `round-1/M2.md` 沒有標題，只有一行 `Plain **bold** and *italic* and `inline code` end.`（51 位元組，已觀察）。所以讀成：**存下的檔案有一個段落是 `Plain bold and italic and inline code end.`**。CLAUDE.md §4：前提錯的那句換成可觀察的那一句，不改語料、不改門檻。寫在 runner `findings/evidence/link-batch-v22/host/m11_autosave.py` 的 docstring 裡。
 
 ## 修訂紀錄
 
@@ -359,3 +360,4 @@ finding 153 判準 2 要求「附理由」：量到的深度，或原生的設�
 | 2026-10-19 | §11、§12（追加，fable 裁決 5，任何殼層改動與執行之前）：殼層項目的範圍、第 2 項照搬判準 E2 與五個讀法、I2-v22、F3／F3-hand、第 1 項的 I1-rerun 與 D2-v22（「K 蓋得到第 1 項」更正為不成立）、宿主 0.2.27 的八個條件、H-154c／H-154o／M11-autosave、page honesty 前提、順序與交接點；殼層 digest 不動、judge pin 的更正。 |
 | 2026-10-19 | §11.4.1（追加，fable 裁決 5 附錄 1，任何第 1 項的 v22 執行之前）：E0 在 v22 上撤回（依構造必紅），改讀 E0-v22（同一份 `start.entry` 資料，四個紅案先行）；I1-rerun 的過關讀法；D6 不跑、預設照舊。 |
 | 2026-10-19 | §11.3.1（追加）：F3 PASS（兩個瀏覽器 8 格 3/3）；工具新增的兩個錯由第一次執行抓到，因執行而修 +2。 |
+| 2026-10-19 | §12 (d)（追加，任何宿主執行之前）：M11-autosave 對 M2 讀「存檔有 M2 那一行的文字」，因為 M2 沒有標題。 |
