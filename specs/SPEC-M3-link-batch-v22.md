@@ -191,6 +191,126 @@ finding 153 判準 2 要求「附理由」：量到的深度，或原生的設�
 
 下一步照 §7：第 3 步，殼層項目（第 2 項的入口、152、154 的頁面規則、154 的宿主判準），判準先追加再執行。
 
+## 11. 殼層項目（2026-10-19，fable 裁決 5，只追加；任何殼層改動與執行之前）
+
+出處：`findings/evidence/link-batch-v22/review/ruling-fable-5.md`（簡報 `9751c0a8`；採用前的核對附在檔尾）。擁有者 2026-10-19 授權：「請繼續並且自主執行，直到需要交接。若遇到需要裁決的地方，則發給fable，我授權他帶我決定」，並要求「fable的決策要白話跟我講」——白話在裁決 §1。下文「第 N 項」指裁決 §2 的編號；兩者不同時以裁決為準。**這一節寫在任何殼層改動、任何綁定移動、任何瀏覽器執行之前。**
+
+### 11.1 範圍（第 1–3 項）
+
+- **進 v22**，都改頁面這一層：
+  - `PASTE_MARKDOWN_ENTRY_SHIPS = true`（`web/e2-editor-app.js:72`）；
+  - finding 152 的修法 3：`closeMarkdownDialog` 先 `el.sink.blur()` 再 `focus`；
+  - finding 154 頁面那一側：`web/e2-editor.html` 的 `#markdown-dialog` 區塊加 `#markdown-dialog:not([open]) { display: none; }`。
+- **另外進 v22 的判準**：154 的宿主判準 H-154c、H-154o（§11.5）；第 1 項的 I1-rerun 與 D2-v22（§11.4），由本次審核逼出。
+- **不進 v22 的閘門：154 的工作項 2**（宿主 production-UI 臂由 DOM 列舉隱藏部件）。它是新機械，第一次計入前要 §34.3 審核，而 v22 沒有量測逼它。**登錄**（今天是形式三）：宿主的隱藏部件清單是 `templates/editor.php:36-51` 手寫的 16 個 selector，只靠 production-UI 臂逐元素讀著。**若永遠沒做**：清單維持手寫；發佈說明不得說開發者控制項「經普查驗證」已隱藏。
+
+### 11.2 第 2 項（貼上為 Markdown）：照搬的判準 E2（第 4–8 項）
+
+- **照搬原文**：`SPEC-M3-link-batch-v21.md` §11.0、§11.2 的 M0–M11 與記錄臂、§12.1、§12.2 (a)–(d)、(g)；`findings/evidence/link-batch-v21/shakedown/ARMS-item2.md` §4 與裁決 §9（DM-1…DM-19）；smoke 的裁決 S3–S6（`shakedown/README.md` §1）。
+- **只移動身分**：wasm `f7a40bcc…`、loader `dc4c2c84…`、manifest `000921c1…`、worker `0d55bcfa…`（不變）；頁面＝樹裡的頁面套上 §11.1 之後用 `build_cutover_page.py --profile e2-editor-v22`（不加 `--write`）印出的雜湊，下稱 **pageServed**；HTML＝樹裡的 HTML 加上 154 那條規則。殼層 digest `e35923a0…` **不動**（§12 (a)）。
+- **五個讀法**（不是移動門檻，寫在任何執行之前）：
+  - (a) 判準文字裡每個「v21」讀成「v22」（M1「在 v21 上」、M7 的預設「v21 不出貨」→「v22 不出貨」、記錄臂「在 v21 上」）。
+  - (b) §12.3 (e) 把 M8 的頁面格讀成「被殼層隱藏」，那是 v21 的讀法。v22 回到 §11.2 的原文：**宣告了才顯示**。`editor-shell-v2/tests/page-markdown-dialog.test.mjs` 裡標 §12.3 (e) 的那個測試要翻成這個讀法，先在今天的頁面上紅。L-md-sdk-callable 只在走預設那條分支時才是限制。
+  - (c) **M11 的「自動儲存會觸發」那一格是宿主臂**（ARMS-item2 M11-autosave，DM-18 A）。judge 印 `"autosave": "NOT RUN (host arm)"`（`judge_v21_shakedown_item2.py:785`），這不算過。它目前沒有 runner，要新寫一支（§11.5 的 M11-autosave），用它自己的讀法與紅案判；第 2 項 judge 的 `VERDICT` 單獨不能成立 M11。形式一。預設：M11 沒做 → 頁面沒有入口。
+  - (d) M3 的大小臂照原文（ENG-65536 預期 `markdown-pasted`）。C1 是它現在預期會過的原因，不是判準改了。
+  - (e) **M0 成立，不重跑**：`src/markdown_paste.hpp`、`tests/markdown_paste_model_test.cpp`、`tests/markdown_paste_expected.json` 自 `516e53e4`／`975343c2` 沒有動過（`git log`），v22 用同一行編譯同一份原始碼（S3），證據在 `part-e-red/`。形式二。
+- **I2-v22（形式一）**：第 2 項每份報告的 wasm、loader、worker、manifest、頁面都等於最終候選（judge 對頁面與 wasm 會拒絕），**而且** `htmlSourceSha256` 等於封包裡的 `e2-editor.html`（同 v21 §12.5 (g) 對第 1 項的檢查）。預設：不符的報告作廢＝沒做。
+- **預設**：第 2 項沒做或紅 → 凍結之前把 `PASTE_MARKDOWN_ENTRY_SHIPS` 改回 `false`（§9.2 的開關，一個 token），L-md-sdk-callable 留著；修法 3 與 154 的規則照樣出（兩者都在入口打開時量過：F3 與 H-154c）；那條分支上 H-154o 讀 NE（沒有打開狀態可量），這是對的，不是紅。
+- **母數**：由 `tools/v21_item2_population.py` 重新產生，必須等於已 commit 的 `population.json`（M1 29、M3 35 項＋4 個大小臂、M4 57 個實例＝38 收合＋14 範圍＋5 受保護、M5 19）；runner 本來就會拒絕不等的（`run_v21_shakedown_item2.py:1301`）。形式二。
+
+### 11.3 finding 152（第 9–12 項）
+
+- **用修法 3，不用 3b**：修法 3 有量測（headless Chrome V5@300 ms 3/3、V11c 3/3，有視窗 Chrome V5 1/1，Firefox V5 1/1），3b 從沒跑過。記錄：修法 3 到目前只量過 300 ms，0 ms 那格沒量過，F3 會量。
+- **F3（形式一，逐格）**：在最終頁面位元組上（§11.1 套用、指向 v22），`diag_v21_dirty_move.py --variants v5,v11c,v11d --v5-delays 0,300 --rounds 3`，Chrome 然後 Firefox。每格過＝3/3 回 `outcome: done`、`insertTextAfterZ: true`、存檔裡有 Z（`zHits` 非空）。
+  - **工具新增**：`v11c`、`v11d` 在 `CHROME_ONLY`（`:95`），Firefox 會被拒（`:1135-1136`）；它們的步驟用的是共用儀器，所以把這兩個從 `CHROME_ONLY` 拿掉，跑一次證人。Firefox 是不退化的對照（它從來沒有這個缺陷）。
+  - 紅案：10-17 沒修時的 Chrome 報告（V5 3/3 打不進、V11c 3/3 打不進）。§34.4：新增，0／0。
+  - **預設**：沒做或紅 → 試修法 3b 再跑 F3；仍紅 → 入口不出貨（裁決 1「若沒做：不提供入口」）。
+- **F3-hand（152 判準 2，人的殘餘）**：擁有者在真的 Chrome、宿主 0.2.27 上，按「插入」之後打一次字、按「取消」之後打一次字，打的字要出現在文件裡。**若永遠沒做**：0.2.27 不稱為可出貨；下一個宿主版本撤掉入口。它管的是「可出貨」，不管量測。
+- **blur 的副作用：讀原始碼，不另量**：輸入框唯一的 blur 監聽器是 `hideComposition`（`web/e2-editor-app.js:2783`），沒有組字時什麼都不做；`:3297`、`:3540` 是 window 的 blur；受綁定的殼層模組（`input/*.js`、`editor-shell*/*.js`）沒有 blur／focusout 監聽器。不加新臂；量測是頁面的 node 測試加 F3 的打字格。
+
+### 11.4 第 1 項在 v22 上（第 13–16 項）
+
+- **更正簡報與本檔 §2**：「K 是產品路徑的回歸網」對第 1 項不成立。計數鏈跑的 runner 沒有任何一格按 Ctrl+Home／End（裁決第 13 項；主 session 核對：12 支工具 grep 都是 0）。第 1 項的 D1–D14 是在 wasm `db3408f5…` 上成立的，v22 的 wasm 不同；v21 §11.0 讓 wasm 不是最終候選的報告作廢。所以今天第 1 項在 v22 上是「有行為而沒有東西守著」（CLAUDE.md §3）。
+- **I1-rerun（形式一，逐實例，由 judge 的工具封閉集合判）**：`run_v21_shakedown_item1.py` 全部臂（`d1,d2p,d8,d8red,d9,d10,d11a,d11b,d11c,d12,d5w,xlc,table,d14,d6`），Chrome 然後 Firefox，N=3，在最終頁面位元組上；`judge_v21_shakedown_item1.py --expect-page <pageServed>` 兩個瀏覽器都 `VERDICT PASS`。成本每個瀏覽器約 1 小時。
+  - **先修一個綁定**：紅案頁面 `dist0224` 讀的是 `dist/e2-editor-app.js` 與 `dist/` 的殼層（`run_v21_shakedown_item1.py:197-199`）。`dist/` 今天是 v74，切換後是 v75，「0.2.24 紅案」已經不是 0.2.24。改成從 `build/archive/host-0.2.24-engine-d3cd39bbc71ec311/files/` 取（解壓，同 `probe_paste_latency --root host-engine` 的作法）。證人：送出的頁面 `901dd6a6…`、殼層 digest `e7c4eefe…`（`HOST_EXPECT` 的 0224 值）重現，否則停手。§34.4：綁定，0／0。
+  - **預設**：沒做或紅 → v22 不可出貨，0.2.26 維持名義出貨版本。
+- **D2-v22（形式一）**：`run_v21_d2.py --mode host --page v22`，N=3，Chrome 然後 Firefox，同一個 judge，在宿主 0.2.27 上。`HOST_EXPECT["v22"]`＝版本 0.2.27、servedPage＝pageServed、hostShellDigest＝`common.EXPECTED_SHELL_DIGEST`（不變）、hostWasm `f7a40bcc…`。0.2.27 上 `--identity-only --page v21` 必須恰好紅在版本、頁面、wasm 三欄；`--self-test` 仍 19/19。預設：v22 不可出貨。
+- **§9 的四個條件**：先於滿足（還沒有任何 v22 殼層執行）；被逼出來且指名（第 13 項的 grep，以及 §11.0 的身分規則套在 v22 的 wasm 上）；形式一；截止＝v75 凍結（I1-rerun）／0.2.27 的宿主臂（D2-v22）。
+- **工作項（不是閘門）**：產品路徑網加一格 Ctrl+Home／End（形式二），第一次計入前（v22 之後那次計數）先 §34.3 審核。
+
+### 11.5 宿主 0.2.27 與對話框（第 17–20 項）
+
+- **主 session 可以在這一輪打包 0.2.27 並裝到擁有者的 ddev**，條件八條：
+  1. 只在 §11.7 第 1–8 步都綠之後；
+  2. 只碰 `litecore` 這個專案：任何專案都不 `ddev start/stop/restart`，`~/Projects/ddev-nextcloud-app` 底下什麼都不碰；
+  3. 這一輪只裝一個宿主版本，第二個要擁有者；
+  4. 照 0.2.25／0.2.26 的步驟與工具一字不改（`package_m3_engine.py`、`info.xml` 升版、`ddev occ upgrade`、`http_served_page.py` 與它的紅案、封存＋`ATTRIBUTION.md`）；
+  5. 還原方法（宿主 `3c01876`、`engine/` 取自 `build/archive/host-0.2.25-engine-f5f0df762e1855f2/`、`ddev occ upgrade`）在安裝**之前**寫進 `findings/evidence/host-0.2.27/README.md`；
+  6. 任何錯誤、任何權限系統的拒絕 → 停手、還原、交接；不排錯 ddev，不繞；
+  7. 封包落地到 `occ upgrade` 完成之間不做任何宿主量測；
+  8. 交接的第一行寫明 ddev 現在跑 0.2.27（未計數候選）以及怎麼回去。
+- **預設**（沒裝）：凍結之後交接，0.2.27 打包好、沒安裝、安裝指令備好；宿主臂留給下一個 session。
+- **擁有者還沒做的 0.2.26 手測改成手測 0.2.27**：第 1 項的位元組（session `f1509ff2…`、殼層檔、digest `e35923a0…`）沒變，只有頁面、HTML、引擎不同。
+- **H-154c，關著的對話框（形式一；兩個瀏覽器、N=3）**：工具 `findings/evidence/154/diag_markdown_dialog_on_host.py` 擴充（新增）：(i) 入口按鈕的條款；(ii) `openState` 臂；(iii) 每一次點擊之後的讀取都等 `state == "ready"` 且 `pending == "0"`（L-154-diag-second-click；紅案 `0226/diag-154-chrome-20261017T181633.json`）。
+  - 每一回在頁面就緒、還沒用過對話框時讀一次，**打開→取消之後再讀一次**，都要：`dialog.open` false、計算後 `display` "none"、`box` [0,0,0,0]；`rulesSettingDisplay` **同時**有頁面的 `#markdown-dialog:not([open])` 與宿主的 `#litecore-editor-root dialog:not([open])`；D2 第一行點擊點的 `elementFromPoint` 是 `CANVAS#canvas`、`insideDialog` false；在那裡真的點一下會送出 `editorPlaceCaretV2`；**入口按鈕 `hidden` false、`display` 不是 "none"、框非空**；`hostIdentity.hostVersion` 0.2.27、buildId＝新封包的。
+  - 紅案：0.2.25 的讀數（關著的條款）；**0.2.26 的讀數必須在新條款上 FAIL**（按鈕藏著、頁面規則不在），同時仍通過 154 自己的驗收；一份按鈕藏著的合成報告 → FAIL。
+  - 預設：0.2.27 不可出貨；下一個宿主版本撤掉入口。
+- **H-154o，打開的對話框（形式一；兩個瀏覽器、N=3）**：真的點入口按鈕之後：`dialog.open` true、計算後 `display` 不是 "none"、`box` 寬高 > 0 且整個框在 `[0, 0, innerWidth, innerHeight]` 之內；`document.activeElement.id === "markdown-text"`；`#markdown-insert` 與 `#markdown-cancel` 中心點的 `elementFromPoint` 就是那兩顆按鈕；然後按取消 → H-154c 的第二次讀取。
+  - **記錄、不當閘門**：框離視窗中心的位移、`getComputedStyle(dialog).margin`。
+  - **事先寫下的讀法**：Nextcloud 的 `core/css/server.css` 把 `dialog` 放在 reset 清單裡（`margin:0; padding:0; border:0; …`，也有 `display:block`），所以打開的對話框預期會在視窗左上角（`dialog:modal` 是 `position: fixed; inset: 0`，瀏覽器內建的 `margin: auto` 被蓋掉）。finding 154 的「由 CSS 推論，未量」現在是讀原始碼。
+  - **不盲修**（沒有紅案）：若 H-154o 記到框在左上角，登錄一個 finding，在**下一個宿主版本**加宿主規則 `#litecore-editor-root dialog[open] { margin: auto; }`——只動宿主（同 0.2.26）：封包不動、不重新凍結、第 2 項不重跑；它的判準就是這一臂的框讀數。
+  - 讀法的紅案：`activeElement` 不是文字框的合成報告 → FAIL；框有一部分在視窗外 → FAIL。預設（從沒量）：對話框在宿主上的位置未量，發佈說明照實寫。
+- **M11-autosave（0.2.27；形式一；兩個瀏覽器、N=3）**：照 ARMS-item2 M11-autosave：從 Files 開一份文件（`probe_paste_latency.py --mode host` 的路與 `wait_autosave`），經對話框貼上 `round-1/M2.md`（剪貼簿儀器＋真的點擊），之後不再輸入。
+  - 過＝閒置 30 s＋15 s 之內記到一次 `trigger: "auto"` 的宿主存檔，而且存下的檔案段落含 M2 的標題；貼上必須完成（revision +1），否則 NE。
+  - 新的小 runner（新增）。紅案：沒有自動存檔的合成報告 → FAIL；非空洞性：0 回 → NE。
+  - 預設：M11 沒做 → 頁面沒有入口。
+
+### 11.6 page honesty：計數鏈的前提（第 25 項）
+
+`check_m3_page_honesty.py` 的 Vrw 普查會去點頁面列出的每一個控制項；一個 `data-mutates="1"` 而且沒藏起來的控制項，必須讓 revision 前進（`:949-953`）。入口按鈕會拿到 `mutates="1"`（`actionMutates` 是 `!BOUNDARY_CAPABLE_MOVES.has(name)`，`narrow-editor-v2-session.js:1138-1140`），在 0.2.27 上它看得到，所以普查會點它、開出一個 modal 對話框、revision 不動、讀 **FAIL**——這正是 v21 §12.6 在按鈕藏起來之前預測的紅（§7.14 只處理藏起來的情況）。留著沒關的 modal 也可能擋住普查之後的步驟。
+
+- **處置**：先做證人（在 0.2.27 上跑一次不計數的 Vrw）；再照 `open-file` 的前例，按名字豁免這個入口（SPEC-M3-page-honesty §7.3「driver 關不掉的 modal」，`check_m3_page_honesty.py:605, 944`）；自我測試綠；追加 SPEC-M3-page-honesty §7.3。
+- §34.4 記**因執行而修 +1**（有證人的檢查改動）。V7（唯讀時停用）照舊蓋著這顆按鈕。
+- **預設**：沒處理 → 不得啟動 K。
+
+### 11.7 順序與交接點（第 21–23 項；裁決 §4）
+
+1. 本節 commit。
+2. 樹上改動，測試先紅，各一個 commit：(a) 入口打開，§12.3 (e) 那個測試翻成 v22 的讀法；(b) 修法 3：`if (session) { el.sink.blur(); el.sink.focus({ preventScroll: true }); }`，測試的假 sink 記錄呼叫順序、斷言 `["blur","focus"]`；(c) HTML 規則，標記測試斷言它在。然後全部 node 測試、E1-C `intact: true`、`make test-e2-c-static` exit 0；記下 pageServed。
+3. 綁定（§34.4 0／0，各附證人）：`v21_shakedown_common.DEFAULT_PROFILE = "e2-editor-v22"` 與 `EXPECTED["e2-editor-v22"]`（四個雜湊＋`pageServed`）；`judge_v21_shakedown_item2.WASM` → `f7a40bcc…`；第 1 項 runner 的 `dist0224` 改取 0.2.24 封存；`diag_v21_dirty_move` 的 `CHROME_ONLY` 拿掉 `v11c`、`v11d`（新增）；母數重新產生＝已 commit；兩個 judge 的 `--self-test` 綠。
+4. F3：Chrome 然後 Firefox。全過 → 繼續；紅 → 修法 3b 回第 2 (b) 步；仍紅 → 入口關掉，走預設分支繼續。
+5. 第 2 項證據，脫離 session（`setsid nohup`），S-9 鎖，照 ARMS §5 的 pre-run：Chrome 然後 Firefox，全部臂，M6 單獨開新瀏覽器，M5 自己一趟 proxy，N=3。`judge_v21_shakedown_item2.py --dir … --expect-page <pageServed>` 兩個瀏覽器都 exit 0；檢查各報告 `htmlSourceSha256` 相同（I2-v22）。任何 M 紅 → 它的預設（入口關掉），重記 pageServed，凍結只帶修法 3 與規則。
+6. I1-rerun：同一份頁面位元組，Chrome 然後 Firefox。紅 → 停手交接（v22 不可出貨）。
+7. 凍結 v75 並切換（同 v74 的作法）：`build_cutover_page.py --profile e2-editor-v22 --write --expect-sha256 <pageServed>`；`build_e2_c_shell_bundle.py --write …` → `e2/editor-shell-v2-bundle-v75.json`；`dist/` 的 v74 複本先備份到 `build/archive/dist-shell-v74-before-v75-<date>/` 附 `SHA256SUMS`；`make e2-c-assets`（只有 cp；被擋 → 把那一行交給擁有者）；`e2/expected-gesture-offers.json` 的 `profile` → `e2-editor-v22`（只動這個欄位）；relink queue 改錨到 `profiles/e2-editor-v22/sdk-worker.js`，附 DRIFT 證人；`make test-e2-c-static` 0；E1-C intact；`dist/` 上的殼層 digest 仍是 `e35923a0…`（記錄）。
+8. 宿主 0.2.27（§11.5 的條件）：先寫還原；`package_m3_engine.py` → buildId；封存；`info.xml` 0.2.26 → 0.2.27 並 commit（宿主 repo 在 `~/OSSII` 之外，照常加 Co-Authored-By；不寫 Claude-Session）；`ddev occ upgrade`；`app:list` 0.2.27；`http_served_page.py` 與對 0.2.26 manifest 的紅案；`HOST_EXPECT["v22"]`，`--identity-only --page v22` → `[]`、`--page v21` 恰好紅三欄。
+9. 0.2.27 上的宿主臂，Chrome 然後 Firefox，各 N=3：H-154c、H-154o（先跑紅案，含 0.2.26 的讀數在新條款上 FAIL）；D2-v22；M11-autosave（紅案先）。任何紅 → 該判準的預設，帶報告交接。
+10. 改綁：`repin_0227.py`（`repin_0226.py` 的 11 個檔的作法：頁面、HTML、buildId、宿主 commit、版本、bundle v75 雜湊；session 不變）；merge runner 的 `BINDING`（wasm、html、頁面移動；測試先紅再改名）；`chain-0.2.27.sh`（`--candidate-profile e2-editor-v22`、`judge_counted_m2 --profile e2-editor-v22`）；`py_compile`、autosave selftest、new-document 測試、`test-e2-c-static` 0。
+11. page honesty（§11.6）。
+12. **交接**：K 在擁有者的時段（脫離 session）；擁有者在 0.2.27 上的手測：Ctrl/Cmd+Home/End（第 1 項）、插入與取消之後打字（F3-hand）、對話框關著與打開的樣子（白話寫 H-154o 的位置讀數）；發佈說明（§8：拿掉 §4.1 那句，加 L-153-no-overflow-check 與記憶體那句；位置在左上角就寫明）；§34.4 總數；兩個工作項（K 的 Ctrl+Home／End 格、154 的工作項 2）。
+
+**較早的交接點**，各有各的觸發：權限系統擋下 ddev 或 `make e2-c-assets` 的某一步（帶著那一行交接）；3b 之後 F3 仍紅；第 2 項或第 1 項紅（帶著採用的預設與報告交接）。估計凍結之前的瀏覽器時間約 7 小時，不需要人在場。
+
+### 11.8 本節的判準總表
+
+| # | 判準 | 形式 | 若沒做或紅 |
+|---|---|---|---|
+| E2 | v21 §11.2 M0–M11 與記錄臂照搬，身分移到 v22，加 §11.2 的五個讀法；兩個瀏覽器 N=3，`judge_v21_shakedown_item2.py --expect-page <pageServed>` exit 0 | 照原文各條 | 入口關掉（`PASTE_MARKDOWN_ENTRY_SHIPS = false`），L-md-sdk-callable |
+| I2-v22 | 第 2 項每份報告的身分等於最終候選，含 `htmlSourceSha256` | 逐實例 | 該報告作廢＝沒做 |
+| F3 | V5@0／300 ms、V11c、V11d，3/3，兩個瀏覽器 | 逐實例 | 試 3b；仍紅 → 入口不出貨 |
+| F3-hand | 擁有者在真的 Chrome、0.2.27 上，插入與取消之後打字 | 人的殘餘 | 0.2.27 不稱可出貨；下一版撤入口 |
+| I1-rerun | 第 1 項 judge 在最終頁面上兩個瀏覽器 `VERDICT PASS` | 逐實例（工具封閉集合） | v22 不可出貨 |
+| D2-v22 | 0.2.27 上 `run_v21_d2.py --page v22` 6/6 | 逐實例 | v22 不可出貨 |
+| H-154c | 關著的對話框，就緒時與取消之後各讀一次，含入口按鈕看得到 | 逐實例 | 0.2.27 不可出貨；下一版撤入口 |
+| H-154o | 打開的對話框在視窗內、焦點在文字框、兩顆按鈕點得到；位置記錄 | 逐實例 | 位置未量，照實寫 |
+| M11-autosave | 0.2.27 上貼上之後 45 s 內有一次自動存檔、含 M2 標題 | 逐實例 | 頁面沒有入口 |
+| PH | page honesty 豁免入口，證人與自我測試先行 | — | 不得啟動 K |
+
+## 12. 更正（2026-10-19，fable 裁決 5 第 26–27 項，只追加）
+
+- **(a) 殼層 digest 不動**：`shell_digest` 不含 entrypoint（`run_merge_wasm_shakedown.py:1162-1167`），§11.1 沒有動任何殼層模組。會動的是 generation（bundle 雜湊，v75）與頁面、HTML、引擎的 pin。本檔 §2、§7 說「殼層項目」時，指的是 entrypoint 與 HTML。
+- **(b) judge 的 pin**：`judge_v21_shakedown_item2.py` 的 `EXPECT_PAGE` 常數只給自我測試用，判讀用的是 `--expect-page`；要動的常數是 `WASM`（`:32`）。`judge_v21_shakedown_item1.py` 沒有 wasm 常數，它對 wasm 的綁定是 runner 經 `common.EXPECTED` 算出的 `identityOk`。
+- **(c) 本檔 §2 的「其餘全部等於 v21」與 §7 的「殼層項目搭車」都對；但 §2 隱含的「第 1 項不必再量」不成立**，由 §11.4 取代。
+
 ## 修訂紀錄
 
 | 日期 | 內容 |
@@ -198,3 +318,4 @@ finding 153 判準 2 要求「附理由」：量到的深度，或原生的設�
 | 2026-10-19 | 初稿即定稿（opus，主 session），照裁決 4 §4.2：範圍（一個變因）、決定紀錄（裁決第 1–11 項）、撤回與關閉（089、`SPEC-M3-link-batch` §11／§12.6／§15.4）、機械（新 macro 的理由、M1-1 載體、v21 封存沿用）、判準 S3／S1-red／S1／S2／I1-v22／C1（加正向對照）／H1／K。同一個 commit 追加 `SPEC-M3-link-batch` §11、§12.6、§15.4 與 finding 089、153。判準自此釘死。 |
 | 2026-10-19 | §10（追加）：連結之後的結果——凍結集合相同、S1 PASS、S2 0、I1-v22 PASS、v22 已封存；wasm 只差一個函式（`probe_engine.o` 重編，finding 036 的形狀），stack 的值不在差異裡。 |
 | 2026-10-19 | §10.1（追加）：診斷工具 `v22` 頁面族與身分證人（含紅案）；C1 PASS（兩個瀏覽器 24/24，正向對照兩個瀏覽器都 crash）；H1 六格 ok；S1 的送出條款成立。 |
+| 2026-10-19 | §11、§12（追加，fable 裁決 5，任何殼層改動與執行之前）：殼層項目的範圍、第 2 項照搬判準 E2 與五個讀法、I2-v22、F3／F3-hand、第 1 項的 I1-rerun 與 D2-v22（「K 蓋得到第 1 項」更正為不成立）、宿主 0.2.27 的八個條件、H-154c／H-154o／M11-autosave、page honesty 前提、順序與交接點；殼層 digest 不動、judge pin 的更正。 |
