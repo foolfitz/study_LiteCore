@@ -767,7 +767,17 @@ FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
 # item 1's judge VERDICT PASS in Chrome and Firefox, N=3 (D7 Firefox after the observer calibration of spec §12.4,
 # fable ruling 2), M7 PASS, D2's no-host predictor PASS, the 0.2.24 red cases red; node 596/596 and E1-C intact at
 # `712f955a`.  D2 on the host, the 0.2.25 install and the count chain K are the binding checks.
-MANIFEST = Path("e2/editor-shell-v2-bundle-v74.json")
+#
+# v75, 2026-10-20: link batch v22 (specs/SPEC-M3-link-batch-v22.md), the engine pthread stack at 1 MiB (finding 153)
+# and the shell items of §11 (fable ruling 5): item 2's entry on, finding 152's fix 3, finding 154's page rule
+# (`01dd9921`).  Differs from v74 in one file: the entrypoint `web/e2-editor-app.js` 605cf24b… -> 3b96cb16…
+# (repointed to `e2-editor-v22`, `build_cutover_page.py --profile e2-editor-v22 --write --expect-sha256 3b96cb16…`);
+# the included set is v74's 13 paths, the exclusions v74's (= v40's) three.  The HTML (not in the bundle) is
+# b9c2b975….  Frozen after the evidence on exactly these bytes, served through the mirror (shell digest e35923a0…,
+# page 3b96cb16…; findings/evidence/link-batch-v22/shakedown/): F3 PASS, E2 PASS (item 2, both browsers, composed
+# per §11.2.1, fable ruling 6), I1-rerun PASS with E0-v22 (§11.4.1, §11.4.2, ruling 6 addendum 1), I2-v22 PASS.
+# The host arms on 0.2.27 (H-154c, H-154o, D2-v22, M11-autosave) are the checks still ahead; K is deferred (§13).
+MANIFEST = Path("e2/editor-shell-v2-bundle-v75.json")
 ENTRYPOINT = Path("web/e2-editor-app.js")
 
 # The directories whose *.js files must all be accounted for.  `editor-shell`
