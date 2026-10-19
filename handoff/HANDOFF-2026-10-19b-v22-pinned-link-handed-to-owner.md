@@ -100,3 +100,18 @@ Owner-paced, carried:
   - Then run C1: four cells, `--repeat 3`, Chrome and Firefox, plus `sdk-md:cjk:65536:v21` once per browser as the positive control.
   - Then H1.
 - **v22 is unbound.** `dist/`'s page still points at v21.
+
+## Addendum 2, 2026-10-19 (C1 PASS)
+
+- **Spec §7 step 2 is done** (`7973c427`, `473918f1`; `findings/evidence/link-batch-v22/shakedown/README.md`; spec §10.1).
+  - The diag tool's `v22` page family has an identity witness and a red case.
+  - **C1 PASS**: Chrome 12/12 and Firefox 12/12 `ok`. Every saved ODT holds the whole input. The positive control (`sdk-md:cjk:65536:v21`) crashes in both browsers.
+  - **H1**: six of six `ok`.
+  - S1's served clause holds: the loader fetched from the server is `dc4c2c84…`.
+  - Finding 153 is appended. Its status row stays until v22 ships.
+- **Next: spec §7 step 3, the shell items.** Each gets its criteria appended to the v22 spec (or its own spec) before it runs:
+  - item 2's entry re-enabled (the v21 spec §11.2 M criteria were written for v21; read them first);
+  - finding 152's fix (focus lost after `<dialog>` close in Chrome; `closeMarkdownDialog`);
+  - finding 154's page-side `dialog:not([open])` rule and its host criteria (closed and open dialog).
+  - Then freeze the shell, the host version (ask first), `BINDING`, and the count chain.
+- §34.4 for this stretch: 0 / 0. The `v22` page family is an addition.
