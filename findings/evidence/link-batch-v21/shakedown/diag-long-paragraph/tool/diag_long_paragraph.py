@@ -29,6 +29,8 @@ Cell spec:  ROUTE:CORPUS:BYTES[:PAGE]
           v21big (v21 with ONE change in the mirror's probe.js: the DEFAULT_PTHREAD_STACK_SIZE value
                   handed to _emscripten_thread_init, 65536 -> 1048576; a non-shipped loader, the
                   counterfactual for the stack hypothesis; probe.wasm untouched)
+          v21stack<N> (added 2026-10-19 for v22's stack size, finding 153 criterion 2: v21big with the value N
+                  bytes instead of 1048576; v21big = v21stack1048576)
 
 Chrome cells also record, through CDP auto-attach (recursive, flatten), every Runtime.exceptionThrown and
 console error of the page AND of every worker target (the document worker and its pthreads), with the
@@ -79,6 +81,7 @@ PASTE_TIMEOUT = 240.0
 WORKER_TIMEOUT = 90.0       # the raw routes have no SDK timeout; 240 s in chrome-s1-worker, 90 s after it
 STACK_CALL = "__emscripten_thread_init(tb,!ENVIRONMENT_IS_WORKER,1,!ENVIRONMENT_IS_WEB,65536,false)"
 STACK_BIG = "__emscripten_thread_init(tb,!ENVIRONMENT_IS_WORKER,1,!ENVIRONMENT_IS_WEB,1048576,false)"
+STACK_CALL_N = "__emscripten_thread_init(tb,!ENVIRONMENT_IS_WORKER,1,!ENVIRONMENT_IS_WEB,{},false)"
 
 
 def sha(raw: bytes) -> str:
@@ -235,7 +238,8 @@ def build_page(page: str, scratch: Path, extra: dict[str, bytes]) -> dict:
         return common.build_mirror(target, page_profile="e2-editor-v20", shell_from_tree=False,
                                    source_page=(common.DIST / "e2-editor-app.js").read_text(encoding="utf-8"),
                                    snippets=[v20.OBSERVER, obs2.SNIPPET], extra_files=extra)
-    if page == "v21big":
+    stack_bytes = 1048576 if page == "v21big" else (int(page[len("v21stack"):]) if page.startswith("v21stack") else None)
+    if stack_bytes is not None:
         shipped_worker = (common.DIST / "profiles/e2-editor-v21/sdk-worker.js").read_bytes()
         # The shipped worker as an "override" only so that profiles/e2-editor-v21/ is a REAL directory in the
         # mirror (pp.build_mirror symlinks everything else into dist/); its bytes are the shipped ones.
@@ -250,12 +254,12 @@ def build_page(page: str, scratch: Path, extra: dict[str, bytes]) -> dict:
         text = source.read_text(encoding="utf-8")
         if text.count(STACK_CALL) != 1:
             raise SystemExit("the loader's thread-init call is not where the counterfactual expects it")
-        patched = text.replace(STACK_CALL, STACK_BIG, 1)
+        patched = text.replace(STACK_CALL, STACK_CALL_N.format(stack_bytes), 1)
         loader.unlink()                       # removes the symlink only; dist/ is never opened for writing
         loader.write_text(patched, encoding="utf-8")
         identity["counterfactual"] = {
             "file": "profiles/e2-editor-v21/probe.js", "shippedSha256": sha(text.encode("utf-8")),
-            "servedSha256": sha(patched.encode("utf-8")), "replaced": STACK_CALL, "with": STACK_BIG,
+            "servedSha256": sha(patched.encode("utf-8")), "replaced": STACK_CALL, "with": STACK_CALL_N.format(stack_bytes), "stackBytes": stack_bytes,
             "probeWasmUntouched": (target / "profiles/e2-editor-v21/probe.wasm").is_symlink()}
         return identity
     raise SystemExit(f"unknown page {page}")
