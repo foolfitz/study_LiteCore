@@ -1,0 +1,15 @@
+# desk_gate.py self-check, 2026-10-20 (main session). Control on the quiet desk, then two red cases.
+## control
+{"gate": "clean", "reasons": [], "at": "2026-10-20T01:38:53+0800", "load": ["0.08", "0.80", "0.94"], "chrome": "0", "firefox": "0", "kwallet": "b false", "foreignTop": [[3590251, "claude", 4.0], [3809, "kwin_wayland", 1.0], [4262, "konsole", 1.0]]}
+exit 0
+## red 1: a process named make (a copy of /bin/sleep)
+coreutils: unknown program 'make'
+{"gate": "clean", "reasons": [], "at": "2026-10-20T01:38:56+0800", "load": ["0.08", "0.80", "0.94"], "chrome": "0", "firefox": "0", "kwallet": "b false", "foreignTop": [[3590251, "claude", 6.5], [4262, "konsole", 2.0], [3809, "kwin_wayland", 1.5]]}
+exit 0
+## red 2: a busy loop at one full core
+{"gate": "dirty", "reasons": ["foreign CPU over the limit: [[3624804, \"python3\", 100.1, \"python3 -c import time; t=time.time()\\nwhile time.time()-t<8: pass \"]]"], "at": "2026-10-20T01:38:59+0800", "load": ["0.08", "0.79", "0.94"], "chrome": "0", "firefox": "0", "kwallet": "b false", "foreignTop": [[3624804, "python3", 100.1], [3590251, "claude", 3.5], [3809, "kwin_wayland", 1.5]]}
+exit 1
+## red 1, rebuilt: the copy of /bin/sleep above is a coreutils multi-call binary and exited at once ('unknown program'), so red 1 never had a make process; the gate's clean was right. Now a shell script named make that sleeps:
+pgrep -x make: 1
+{"gate": "dirty", "reasons": ["make running (1)"], "at": "2026-10-20T01:39:18+0800", "load": ["0.13", "0.77", "0.93"], "chrome": "0", "firefox": "0", "kwallet": "b false", "foreignTop": [[3590251, "claude", 3.0], [3809, "kwin_wayland", 1.5], [4262, "konsole", 1.0]]}
+exit 1
