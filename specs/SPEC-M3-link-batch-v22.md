@@ -161,8 +161,23 @@ finding 153 判準 2 要求「附理由」：量到的深度，或原生的設�
 
 本批連結前的工具改動都是**新增**，不是修理（裁決 §4.4）：S1 檢查器、`what_the_link_ships` 的 variant（資料）、M1-1 的載體行、新的連結 macro；連結後的診斷工具 `v22` 頁面族同。因執行而修 0、因審核而修 0，除非之後有一份被誤判的已 commit 報告。
 
+## 10. 連結之後的結果（2026-10-19，只追加）
+
+擁有者 10:39–10:42 連結（手冊 §2；`wasm_sdk_probe/build/link-v22.log` 沒有錯誤）。主 session 當天照手冊 §3 的順序做完 §5.2，證人在 `findings/evidence/link-batch-v22/post-link/`（README 是總表）。
+
+- **凍結集合**：1,370 個檔全部相同；新的一般檔只有 `dist/profiles/e2-editor-v22/` 的四個（已觀察，封存 v22 之前量）。
+- **S1：PASS。** `dist/` 與 `build/` 的 `probe.js` 都是 `dc4c2c84…`，錨點 1／0。
+- **S2：0。** 字面量換回 65536 之後與 v21 的 `probe.js` 逐位元相同（`0b6cf02a…`）。發佈說明「loader 只差堆疊那個值」可以寫。
+- **I1-v22：PASS。** X1 預設模式 `VERDICT PASS`：動到的葉恰好是 `loaderSha256`、`wasmSha256`、`profile`、`sdkVersion`；wasm `f7a40bcc…`（v21 `db3408f5…`）；worker、匯出表逐位元相同。§5.2 事先寫好的「wasm 相同」讀法沒有用到。`ScDocShell` 0 次。E1-C `intact: true`。
+- **封存**：`wasm_sdk_probe/build/archive/e2-editor-v22-f7a40bcc-worker-0d55bcfa/`，七個檔，四個 profile 檔與 `dist/` `cmp` 相同。
+- **wasm 與 v21 差在哪（記錄，不是判準；已觀察）**：12 個 section 裡只有 code section 不同；149,474 個函式裡只有第 77040 號不同（25,122 → 25,123 位元組：兩個 local 編號 2→3、一個 `try` 區塊換了位置）；不同的位元組裡沒有 stack 的值。四個物件裡只有 `probe_engine.o` 與 v21 的不同——同一份原始碼、同一行編譯（S3）編了兩次，finding 036 的形狀。把那個函式歸給 `probe_engine.o` 是推論（它是唯一不同的物件；沒有 name section）。所以 §5.2 I1-v22 那句「這個設定只出現在 emscripten 的 JS 模板」在這次的位元組上成立。
+- **推論**：v22 的 loader 就是 10-19 診斷工具以 `v21stack1048576` 送出的那一份（同為 `dc4c2c84…`），所以裁決第 17 項的歸因組態（封存的 v21＋那份 loader）與 v22 只差 wasm 的那一個函式。
+
+下一步照 §7：第 2 步（診斷工具的 `v22` 頁面族，然後 C1 與 H1）。
+
 ## 修訂紀錄
 
 | 日期 | 內容 |
 |---|---|
 | 2026-10-19 | 初稿即定稿（opus，主 session），照裁決 4 §4.2：範圍（一個變因）、決定紀錄（裁決第 1–11 項）、撤回與關閉（089、`SPEC-M3-link-batch` §11／§12.6／§15.4）、機械（新 macro 的理由、M1-1 載體、v21 封存沿用）、判準 S3／S1-red／S1／S2／I1-v22／C1（加正向對照）／H1／K。同一個 commit 追加 `SPEC-M3-link-batch` §11、§12.6、§15.4 與 finding 089、153。判準自此釘死。 |
+| 2026-10-19 | §10（追加）：連結之後的結果——凍結集合相同、S1 PASS、S2 0、I1-v22 PASS、v22 已封存；wasm 只差一個函式（`probe_engine.o` 重編，finding 036 的形狀），stack 的值不在差異裡。 |
