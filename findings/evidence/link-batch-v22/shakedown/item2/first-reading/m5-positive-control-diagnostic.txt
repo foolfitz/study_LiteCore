@@ -1,0 +1,13 @@
+# DIAGNOSTIC, not a verdict (main session, 2026-10-19). Per round: the runner's positive_control call as it ran
+# (profile default e2-editor-v21) and the same call with profile e2-editor-v22, over the recorded proxyLog (the last
+# 3000 entries only, run_v21_shakedown_item2.py:1263-1264). Rounds whose start the kept log does not cover find a later
+# round's GET under v22, which is NOT that round's control; only r3 is a valid lookup. Last line per browser: judge_m5
+# with every round's positiveControl assumed present.
+chrome r1: log starts 1792389341.1, previous round ended 0.0, log covers round start: False; v21 lookup -> None; v22 lookup -> GET t=1792389342.4 status 200
+chrome r2: log starts 1792389341.1, previous round ended 1792389320.9, log covers round start: False; v21 lookup -> None; v22 lookup -> GET t=1792389342.4 status 200
+chrome r3: log starts 1792389341.1, previous round ended 1792389601.2, log covers round start: True; v21 lookup -> None; v22 lookup -> GET t=1792389601.5 status 200
+chrome M5 with controls assumed present (DIAGNOSTIC): PASS passed=114 reasons=[] info=11
+firefox r1: log starts 1792396175.9, previous round ended 0.0, log covers round start: False; v21 lookup -> None; v22 lookup -> GET t=1792396175.9 status 200
+firefox r2: log starts 1792396175.9, previous round ended 1792396045.4, log covers round start: False; v21 lookup -> None; v22 lookup -> GET t=1792396175.9 status 200
+firefox r3: log starts 1792396175.9, previous round ended 1792396359.2, log covers round start: True; v21 lookup -> None; v22 lookup -> GET t=1792396359.5 status 200
+firefox M5 with controls assumed present (DIAGNOSTIC): PASS passed=111 reasons=[] info=0

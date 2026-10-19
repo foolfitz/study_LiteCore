@@ -1,0 +1,30 @@
+# SYNTHETIC, not evidence (main session, 2026-10-19): how the UNCHANGED item-2 judge reads reports that carry only
+# the re-run arms. Built from the chain's reports: chrome keeps results.m5 only, firefox keeps m6 and m5; every M5 round's
+# positiveControl set to a placeholder (as a fixed runner would record one); firefox M6 r2's foreignCpu.ok set true.
+# Purpose: show that the judge prints the re-run cells and FAIL/NE 'missing' for the rest (exit 1).
+chrome M1: NOT_ESTABLISHED (0 passed) zero instances
+chrome M2: NOT_ESTABLISHED (0 passed) zero instances
+chrome M3: NOT_ESTABLISHED (0 passed) zero instances
+chrome M4: NOT_ESTABLISHED (0 passed) zero instances
+chrome M5: PASS (114 passed)
+chrome M6: FAIL (0 passed) r1: missing; r2: missing; r3: missing
+chrome M7: FAIL (0 passed) r1 m7a: missing; r1 m7b: missing; r2 m7a: missing
+chrome M8: FAIL (0 passed) r1: v20 missing; r2: v20 missing; r3: v20 missing
+chrome M9: FAIL (0 passed) r1 clean: missing; r2 clean: missing; r3 clean: missing
+chrome M10: FAIL (0 passed) r1 M10b: missing; r2 M10b: missing; r3 M10b: missing
+chrome M11: FAIL (0 passed) r1 dirty: missing; r1 cancel: missing; r2 dirty: missing
+chrome M5 info (recorded, not judged; ruling S3): 11 non-target requests in item windows: android.clients.google.com:443 x2, mtalk.google.com:5228 x9
+firefox M1: NOT_ESTABLISHED (0 passed) zero instances
+firefox M2: NOT_ESTABLISHED (0 passed) zero instances
+firefox M3: NOT_ESTABLISHED (0 passed) zero instances
+firefox M4: NOT_ESTABLISHED (0 passed) zero instances
+firefox M5: PASS (111 passed)
+firefox M6: PASS (3 passed)
+firefox M7: FAIL (0 passed) r1 m7a: missing; r1 m7b: missing; r2 m7a: missing
+firefox M8: FAIL (0 passed) r1: v20 missing; r2: v20 missing; r3: v20 missing
+firefox M9: FAIL (0 passed) r1 clean: missing; r2 clean: missing; r3 clean: missing
+firefox M10: FAIL (0 passed) r1 M10b: missing; r2 M10b: missing; r3 M10b: missing
+firefox M11: FAIL (0 passed) r1 dirty: missing; r1 cancel: missing; r2 dirty: missing
+firefox M5 info (recorded, not judged; ruling S3): 0 non-target requests in item windows
+VERDICT NOT PASS
+# exit 1
