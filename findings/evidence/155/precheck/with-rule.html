@@ -1,0 +1,262 @@
+<!doctype html><meta charset=utf-8><style>html,body,div,span,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,code,del,dfn,em,img,q,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td,article,aside,dialog,figure,footer,header,hgroup,nav,section,main{margin:0;padding:0;border:0;font-weight:inherit;font-size:100%;font-family:inherit;vertical-align:baseline;cursor:default;scrollbar-color:var(--color-scrollbar)}
+article,aside,dialog,figure,footer,header,hgroup,nav,section{display:block}</style><body><style>@scope (#litecore-editor-root) {
+
+  :root {
+    --bg: #f4f6f8; --bar: #fff; --line: #dbe3ea; --ink: #1d2b36; --muted: #6b7c8a;
+    --accent: #3178c6; --warn: #8a6d1c; --bad: #a8342a; --ok: #2b7a4b;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 14px/1.5 system-ui, "Noto Sans CJK TC", sans-serif;
+    display: flex; flex-direction: column; height: 100vh;
+  }
+  .titlebar {
+    display: flex; align-items: center; gap: 10px; padding: 8px 14px;
+    background: var(--bar); border-bottom: 1px solid var(--line);
+  }
+  .brand { font-weight: 650; }
+  .brand small { font-weight: 400; color: var(--muted); margin-left: 8px; }
+  .spacer { flex: 1; }
+  .pill {
+    padding: 3px 9px; border-radius: 999px; font-size: 12px;
+    background: #eef2f6; color: var(--muted); border: 1px solid var(--line);
+  }
+  .pill[data-state="ready"] { background: #e7f4ec; color: var(--ok); border-color: #bfe0cc; }
+  .pill[data-state="busy"], .pill[data-state="loading"] {
+    background: #fdf3e3; color: var(--warn); border-color: #ecd6ac;
+  }
+  .pill[data-state="recoverable-error"], .pill[data-state="restart-required"],
+  .pill[data-state="expired"], .pill[data-state="stopped"] {
+    background: #fbeae9; color: var(--bad); border-color: #eec4c1;
+  }
+
+  .provenance {
+    padding: 8px 14px; font-size: 12.5px; line-height: 1.6;
+    background: #fdf3e3; color: #6b551c; border-bottom: 1px solid #ecd6ac;
+  }
+  .provenance code {
+    font-family: ui-monospace, Menlo, monospace; font-size: 11.5px;
+    background: #fff8e8; padding: 1px 5px; border-radius: 4px; word-break: break-all;
+  }
+  .provenance b { font-weight: 650; }
+
+  .toolbar {
+    display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+    padding: 6px 14px; background: var(--bar); border-bottom: 1px solid var(--line);
+  }
+  .toolbar .sep { width: 1px; height: 22px; background: var(--line); margin: 0 4px; }
+  button, select, input[type=text] {
+    font: inherit; color: inherit; background: #fff;
+    border: 1px solid var(--line); border-radius: 6px; padding: 5px 10px;
+  }
+  button { cursor: pointer; }
+  button:hover:not(:disabled) { border-color: #a9bccd; background: #f6f9fc; }
+  button:disabled { opacity: .4; cursor: default; }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  /* Only ever rendered when the engine gave an answer -- see
+     updateGestureAffordance; the attribute is removed when the state is null. */
+  button[aria-pressed="true"] { background: #dbe7f3; border-color: var(--accent); }
+  /* 看不見，但**留在 accessibility tree 上**。display:none 與
+     visibility:hidden 會把節點拿掉，1px clip 不會。
+
+     TWO ELEMENTS USE THIS CLASS AND BOTH HAVE NEEDED THEIR OWN `top`/`left`:
+     `#sink` (finding 069, 2026-08-22) and `#a11y-doc` (finding 093,
+     2026-09-08). This rule deliberately still supplies neither -- see
+     `#a11y-doc`'s own rule below for why widening the class is not the repair
+     -- so a THIRD user of it inherits the same trap. If you are adding one,
+     that is what you are inheriting. */
+  .a11y-only {
+    position: absolute; width: 1px; height: 1px;
+    margin: -1px; padding: 0; border: 0;
+    clip: rect(0 0 0 0); clip-path: inset(50%);
+    overflow: hidden; white-space: nowrap;
+  }
+  button.danger { border-color: #eec4c1; color: var(--bad); }
+  button.b { font-weight: 700; min-width: 34px; }
+  button.i { font-style: italic; font-family: Georgia, serif; min-width: 34px; }
+  button.u { text-decoration: underline; min-width: 34px; }
+  button.s { text-decoration: line-through; min-width: 34px; }
+
+  .desk { flex: 1; overflow: auto; display: flex; align-items: flex-start;
+          justify-content: center; padding: 20px; }
+  .paper { position: relative; background: #fff; box-shadow: 0 1px 6px rgba(20,40,60,.14); }
+  canvas { display: block; touch-action: none; }
+  /*
+   * `top`/`left` are not decoration.  Without them an absolutely positioned
+   * element sits at its STATIC position -- which for this one is directly
+   * after the canvas, and the canvas is the whole document's height.  The
+   * input sink was therefore lying at the bottom of the page, and every time
+   * an IME began composing, the browser scrolled the focused element into
+   * view and took the whole desk with it.  Reported by an operator typing
+   * Chinese with 新酷音, 2026-08-22.
+   *
+   * `paint()` keeps it on the caret from here on; 0,0 is only where it starts.
+   *
+   * `pointer-events: none` because moving it over the canvas puts a 1px
+   * transparent target on top of the drawing surface, and the canvas's own
+   * pointerdown is what places the caret.  The sink is only ever focused
+   * programmatically -- it is never clicked -- so nothing loses a click.
+   */
+  #sink {
+    position: absolute; top: 0; left: 0;
+    width: 1px; height: 1px; opacity: 0; border: 0;
+    padding: 0; margin: 0; outline: none;
+    pointer-events: none;
+    resize: none; overflow: hidden; white-space: pre; line-height: 1;
+  }
+
+  /*
+   * FINDING 093, AND IT IS THE COMMENT DIRECTLY ABOVE, ON THE ELEMENT BESIDE
+   * THE ONE IT WAS WRITTEN FOR.
+   *
+   * `#a11y-doc` also uses `.a11y-only`, also had `position: absolute` and no
+   * `top`/`left`, and so also sat at its STATIC position at the bottom of the
+   * paper -- for four months, about a hundred and forty lines below the
+   * paragraph explaining why that is fatal.  Every time a screen reader
+   * brought a projected node into view, the browser took the whole desk to the
+   * end of the document.  Reported by the owner walking the page with Orca,
+   * 2026-09-08, and measured the same day: `offsetTop` 928 against a 929px
+   * canvas on the shipped profile AND on the candidate, 27,197 against 27,198
+   * on a 133-paragraph document.
+   *
+   * FIXED HERE AND NOT ON `.a11y-only`, which is the OTHER half of 069's
+   * lesson.  069 fixed one element and left the class producing the same
+   * defect for the next element that used it -- but widening the class rule is
+   * not the repair, it is the same mistake pointed the other way: a census of
+   * all 62 stylesheets and pages under `web/` on 2026-09-08 found 28 other
+   * rules that position absolutely, and NONE of them in this shape.  Changing
+   * the class would move 28 elements to fix one.  One element, one fix, and
+   * the class comment above now names both of its instances.
+   *
+   * WHY IT SPANS THE PAPER AND STOPS CLIPPING.  A clipping ancestor makes
+   * `scrollIntoView` on a child meaningless -- the child has nowhere to be --
+   * and the projection's whole job is now to put each paragraph's node where
+   * that paragraph is drawn.  So the container becomes the coordinate space
+   * (`height: 100%` of `.paper`, which is the canvas's height) and every
+   * DESCENDANT carries the clip instead: `#a11y-para` below, and each
+   * projected node inline from `projectStructure()`.  Nothing inside is
+   * visible; everything inside is still in the accessibility tree, which is
+   * the property `.a11y-only` exists for and the reason it clips rather than
+   * using `display: none`.
+   *
+   * `pointer-events: none` for exactly the reason `#sink` has it, and it
+   * matters MORE here: this box now covers the whole drawing surface, and the
+   * canvas's own pointerdown is what places the caret.  Measured on the
+   * candidate shapes 2026-09-08 that `clip-path: inset(50%)` alone already
+   * kept `elementFromPoint` returning the canvas
+   * (`findings/evidence/093/phase3-s2-hit-test.json`); this is the same
+   * property asserted rather than relied upon.
+   */
+  #a11y-doc {
+    top: 0; left: 0; width: 1px; height: 100%;
+    margin: 0; overflow: visible;
+    clip: auto; clip-path: none;
+    pointer-events: none;
+  }
+  /* The clip `#a11y-doc` gave up, on the child that still needs it: the live
+     region holds the focused paragraph's TEXT, and an unclipped copy of it
+     would be painted across the document. */
+  #a11y-para {
+    position: absolute; top: 0; left: 0;
+    width: 1px; height: 1px; margin: 0; padding: 0;
+    overflow: hidden; white-space: nowrap;
+    clip: rect(0 0 0 0); clip-path: inset(50%);
+  }
+
+  /*
+   * FINDING 073.  While an IME is composing, the sink has to be SEEN.
+   *
+   * Everything above this rule is written for an element nobody looks at: one
+   * transparent pixel that collects keystrokes.  That is right until an input
+   * method starts composing, because the PREEDIT -- the bopomofo or pinyin the
+   * user is part way through, before it becomes a character -- is drawn by the
+   * browser INSIDE this element.
+   * At `opacity: 0` and one pixel wide it cannot be seen, so a user typing
+   * Chinese watches an empty page and finds out what they typed only when it
+   * commits.  Reported by an operator using 新酷音, 2026-08-22.
+   *
+   * Visible only while composing, and back to one transparent pixel after: a
+   * sink left visible would sit on top of the document forever.
+   *
+   * `z-index` because it has to be above the canvas it overlaps; the border and
+   * the background because preedit over glyphs is unreadable without them.
+   */
+  #sink[data-composing] {
+    opacity: 1;
+    z-index: 5;
+    background: var(--bar, #eef3f8);
+    color: var(--ink, #16202b);
+    border: 1px solid #7aa7d8;
+    border-radius: 2px;
+  }
+
+  .statusbar {
+    display: flex; gap: 18px; align-items: center; padding: 5px 14px;
+    background: var(--bar); border-top: 1px solid var(--line);
+    font-size: 12px; color: var(--muted);
+  }
+  .statusbar b { color: var(--ink); font-weight: 600; }
+  /* 頁碼那一行（見 body 裡 #page-status 的註解）。故意不寫 display：寫了就會蓋掉
+     `hidden` 屬性的 UA 樣式，元素會在沒有頁碼可報時仍然佔著一行。 */
+  #page-status {
+    padding: 4px 14px; font-size: 12px; color: var(--muted); text-align: left;
+    background: var(--bar); border-top: 1px solid var(--line);
+  }
+
+  #notice {
+    display: none; padding: 8px 14px; font-size: 13px;
+    background: #fbeae9; color: #6b1f19; border-bottom: 1px solid #eec4c1;
+  }
+  #notice[data-show="1"] { display: flex; gap: 10px; align-items: center; }
+
+  #toast {
+    position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%);
+    background: #24333f; color: #fff; padding: 8px 14px; border-radius: 8px;
+    font-size: 13px; opacity: 0; transition: opacity .18s; pointer-events: none;
+    max-width: 80vw;
+  }
+  #toast.show { opacity: 1; }
+  #toast.bad { background: #8c2f26; }
+
+  #expired {
+    margin: 40px auto; max-width: 640px; padding: 20px 24px; background: #fff;
+    border: 1px solid #eec4c1; border-radius: 10px; display: none;
+  }
+  #expired h2 { margin: 0 0 8px; font-size: 16px; color: var(--bad); }
+  #expired code { font-family: ui-monospace, Menlo, monospace; font-size: 12px;
+                  word-break: break-all; }
+
+  /* SPEC-M3-link-batch-v21 4.2：貼上為 Markdown 的對話框。 */
+  #markdown-dialog {
+    width: min(640px, 92vw); padding: 16px 18px; border: 1px solid var(--line);
+    border-radius: 10px; color: var(--ink); background: var(--bar);
+  }
+  /* SPEC-M3-link-batch-v22 11.1（finding 154）：關著的對話框由頁面自己藏起來。宿主的
+     reset（Nextcloud core/css/server.css 的 `dialog { display: block }`）蓋得過瀏覽器
+     內建的 `dialog:not([open])`，蓋不過這個 id 選擇器。 */
+  #markdown-dialog:not([open]) { display: none; }
+  #markdown-dialog::backdrop { background: rgba(20, 40, 60, .25); }
+  #markdown-dialog h2 { margin: 0 0 6px; font-size: 15px; }
+  #markdown-dialog p { margin: 0 0 8px; font-size: 13px; color: var(--muted); }
+  #markdown-text {
+    width: 100%; min-height: 14em; box-sizing: border-box; resize: vertical;
+    font: 13px/1.45 ui-monospace, Menlo, monospace; color: inherit;
+    border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px;
+  }
+  #markdown-message { margin: 8px 0 0; color: var(--bad); font-size: 13px; }
+  #markdown-dialog .dialog-buttons {
+    display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px;
+  }
+
+}</style><style>#litecore-editor-root dialog:not([open]) { display: none; }
+#litecore-editor-root dialog[open] { margin: auto; }</style><div id="litecore-editor-root"><dialog id="markdown-dialog" aria-labelledby="markdown-title">
+    <h2 id="markdown-title">貼上為 Markdown</h2>
+    <p>在框裡貼上或輸入 Markdown，按「插入」轉成格式，放在游標的位置。</p>
+    <textarea id="markdown-text" spellcheck="false" aria-label="要貼上的 Markdown"></textarea>
+    <p id="markdown-message" role="alert" hidden></p>
+    <div class="dialog-buttons">
+      <button type="button" id="markdown-cancel">取消</button>
+      <button type="button" id="markdown-insert" class="primary">插入</button>
+    </div>
+  </dialog></div><script>globalThis.__probe_metrics = {};</script>

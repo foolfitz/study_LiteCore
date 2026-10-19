@@ -25,6 +25,10 @@ the diagnostic path above is unchanged.
       place-caret read also waits for the request itself.  Writes h154-<browser>-<stamp>.json with its verdict.
   --judge REPORT [--expect-version V --expect-build-id ID]   the H-154c / H-154o verdicts of a report: an --h154
       report, or the closed reading (`asShipped`) of a diagnostic report, read as closedBefore only.
+
+H-155 (SPEC-M3-link-batch-v22 §14.3; finding 155, host 0.2.28), added 2026-10-20 -- an addition: one more verdict
+key on the same open reading, H-154o's clauses unchanged.  The box's centre within CENTRED_PX of the viewport's on
+both axes.  `--judge ... --require-h155` also needs H-155 PASS for exit 0.
   --self-test   the red cases: 0.2.25's and 0.2.26's committed readings, and synthetic reports.
 """
 import argparse
@@ -216,6 +220,25 @@ def judge_open(rec: dict | None) -> list[str]:
     return out
 
 
+# SPEC-M3-link-batch-v22 §14.3: the box is rounded (1 px) and innerWidth/innerHeight include a classic scrollbar
+# (<= 17 px) that the fixed box's centring leaves out; the top-left box of 0.2.27 is 605 px / 322-326 px off.
+CENTRED_PX = 16
+
+
+def judge_centred(rec: dict | None) -> list[str]:
+    """H-155 on one open reading; the failing clauses (empty = pass)."""
+    if not rec or rec.get("error"):
+        return [f"no open reading: {(rec or {}).get('error')}"]
+    r = rec.get("read") or {}
+    box, (vw, vh) = r.get("box") or [0, 0, 0, 0], r.get("viewport") or [0, 0]
+    if not (box[2] > 0 and box[3] > 0 and vw > 0 and vh > 0):
+        return [f"no box {box} or viewport {[vw, vh]} to centre"]
+    dx, dy = box[0] + box[2] / 2 - vw / 2, box[1] + box[3] / 2 - vh / 2
+    if abs(dx) > CENTRED_PX or abs(dy) > CENTRED_PX:
+        return [f"centre offset [{dx:+.1f}, {dy:+.1f}] over {CENTRED_PX} px (box {box} in {[vw, vh]})"]
+    return []
+
+
 def judge_h154(report: dict, version: str | None, build_id: str | None) -> dict:
     ident = report.get("hostIdentity") or {}
     pinned = []
@@ -226,17 +249,19 @@ def judge_h154(report: dict, version: str | None, build_id: str | None) -> dict:
     rounds = report.get("rounds")
     if rounds is None:                     # a diagnostic report: its closed reading as shipped, closedBefore only
         rounds = [{"round": 1, "closedBefore": report.get("asShipped")}]
-    c, o = [], []
+    c, o, z = [], [], []
     for rnd in rounds:
         for which in ("closedBefore", "closedAfter"):
             if which in rnd or which == "closedBefore":
                 c += [f"r{rnd.get('round')} {which}: {why}" for why in judge_closed(rnd.get(which))]
         if "open" in rnd:
             o += [f"r{rnd.get('round')} open: {why}" for why in judge_open(rnd.get("open"))]
+            z += [f"r{rnd.get('round')} open: {why}" for why in judge_centred(rnd.get("open"))]
     has_open = any("open" in rnd for rnd in rounds)
     return {"H-154c": "FAIL" if (c or pinned) else ("PASS" if rounds else "NOT_ESTABLISHED"),
             "H-154o": ("FAIL" if (o or pinned) else "PASS") if has_open else "NOT_ESTABLISHED",
-            "pinned": pinned, "closedFails": c, "openFails": o, "rounds": len(rounds)}
+            "H-155": ("FAIL" if (z or pinned) else "PASS") if has_open else "NOT_ESTABLISHED",
+            "pinned": pinned, "closedFails": c, "openFails": o, "centredFails": z, "rounds": len(rounds)}
 
 
 def self_test() -> int:
@@ -255,8 +280,13 @@ def self_test() -> int:
             "rounds": [{"round": k, "closedBefore": json.loads(json.dumps(good_closed)), "open": json.loads(json.dumps(good_open)),
                         "closedAfter": json.loads(json.dumps(good_closed))} for k in (1, 2, 3)]}
 
-    def mutated(fn):
-        rep = json.loads(json.dumps(good)); fn(rep); return rep
+    def mutated(fn, base=None):
+        rep = json.loads(json.dumps(good if base is None else base)); fn(rep); return rep
+    # A centred box in 1850x980: centre (925, 489.5); H-155's own cases (v22 §14.3).
+    centred = mutated(lambda r: [r["hostIdentity"].update(hostVersion="0.2.28")]
+                      + [x["open"]["read"].update(box=[605, 322, 640, 335]) for x in r["rounds"]])
+    shift = lambda dx: lambda r: r["rounds"][1]["open"]["read"].update(box=[605 + dx, 322, 640, 335])  # noqa: E731
+    host = "../host-0.2.27/h154/"
     cases = [
         ("control: a synthetic passing report", good, "0.2.27", "B", {"H-154c": "PASS", "H-154o": "PASS"}, None),
         ("0.2.25 Chrome (displayed dialog)", load("diag-154-chrome-20261017T170402.json"), None, None, {"H-154c": "FAIL"},
@@ -277,13 +307,23 @@ def self_test() -> int:
         ("the wrong host version", good, "0.2.28", "B", {"H-154c": "FAIL", "H-154o": "FAIL"}, ["host version"]),
         ("no open arm: H-154o is not established", mutated(lambda r: [x.pop("open") for x in r["rounds"]]), "0.2.27", "B",
          {"H-154o": "NOT_ESTABLISHED"}, None),
+        ("H-155: 0.2.27 Chrome on the host, top left (finding 155)", load(host + "h154-chrome-20261020T032507.json"),
+         "0.2.27", "817413d5ad5bd502", {"H-154c": "PASS", "H-154o": "PASS", "H-155": "FAIL"}, ["centre offset [-605.0, -322.5]"]),
+        ("H-155: 0.2.27 Firefox on the host, top left", load(host + "h154-firefox-20261020T032550.json"),
+         "0.2.27", "817413d5ad5bd502", {"H-154c": "PASS", "H-154o": "PASS", "H-155": "FAIL"}, ["centre offset [-605.0, -326.0]"]),
+        ("H-155: a synthetic centred report", centred, "0.2.28", "B", {"H-154c": "PASS", "H-154o": "PASS", "H-155": "PASS"}, None),
+        ("H-155: 16 px off centre in one round passes", mutated(shift(16), centred), "0.2.28", "B", {"H-155": "PASS"}, None),
+        ("H-155: 17 px off centre in one round fails", mutated(shift(17), centred), "0.2.28", "B", {"H-155": "FAIL"},
+         ["r2 open: centre offset [+17.0, -0.5] over 16 px"]),
+        ("H-155: no open arm is not established", mutated(lambda r: [x.pop("open") for x in r["rounds"]], centred), "0.2.28", "B",
+         {"H-155": "NOT_ESTABLISHED"}, None),
     ]
     # 154's own acceptance (v21 §12.5 (c)) on 0.2.26: none of these may fail there.
     acceptance = ["dialog shown", "host rule absent", "the first-line point", "no place-caret"]
     bad = 0
     for label, report, version, build, expect, clauses in cases:
         got = judge_h154(report, version, build)
-        fails = " | ".join(got["closedFails"] + got["openFails"] + got["pinned"])
+        fails = " | ".join(got["closedFails"] + got["openFails"] + got["centredFails"] + got["pinned"])
         ok = all(got[k] == v for k, v in expect.items()) and all(c in fails for c in (clauses or []))
         if label.startswith("0.2.26"):
             ok = ok and not any(a in fails for a in acceptance)
@@ -353,13 +393,15 @@ def main() -> int:
     ap.add_argument("--expect-build-id")
     ap.add_argument("--judge", type=Path)
     ap.add_argument("--self-test", action="store_true")
+    ap.add_argument("--require-h155", action="store_true")
     args = ap.parse_args()
     if args.self_test:
         return self_test()
     if args.judge:
         verdict = judge_h154(json.loads(args.judge.read_text(encoding="utf-8")), args.expect_version, args.expect_build_id)
         print(json.dumps(verdict, ensure_ascii=False, indent=1))
-        return 0 if verdict["H-154c"] == "PASS" and verdict["H-154o"] == "PASS" else 1
+        passed = verdict["H-154c"] == "PASS" and verdict["H-154o"] == "PASS"
+        return 0 if passed and (verdict["H-155"] == "PASS" or not args.require_h155) else 1
     if not args.out:
         raise SystemExit("--out is required")
     if args.h154:

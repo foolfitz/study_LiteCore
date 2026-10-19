@@ -508,6 +508,68 @@ finding 153 判準 2 要求「附理由」：量到的深度，或原生的設�
 - 本節沒有在第一個 ddev 步驟之前追加 → 時段不成立 → 照 §13 的停止點交接。
 - 還原來源與裝著的不同 → 在打包前停手。
 
+## 14. 宿主 0.2.28：finding 155 的宿主規則（2026-10-20，只追加；任何 0.2.28 的宿主步驟之前）
+
+出處：擁有者 2026-10-20 早上選「A＋B」，其中 B＝**先把 0.2.28 準備好**：判準追加、patch 寫成檔案、不動 ddev 上的宿主 repo，安裝等擁有者給時段。§11.5 第 3 條（這一輪第二個宿主版本要擁有者）的「要擁有者」由這次選擇滿足到**準備**為止；**安裝**另需擁有者依 §13 指定的時段。
+
+### 14.1 範圍
+
+- 宿主 repo 只改兩處：`templates/editor.php` 在 0.2.26 那條 `dialog:not([open])` 之後加 `#litecore-editor-root dialog[open] { margin: auto; }`（附註解），`appinfo/info.xml` 0.2.27 → 0.2.28。patch 是 `findings/evidence/host-0.2.28/host-0.2.28.patch`，對 `d7c0a5e` 的 `git apply --check` 通過。〔已觀察〕
+- engine 封包不動（buildId `817413d5ad5bd502`），殼層不重新凍結，第 2 項不重跑（finding 155、裁決 5 第 19 項）。
+- **時段之前不套用 patch。**`templates/editor.php` 是 ddev 上正在送出的檔案；模板在每次請求時由 PHP 讀取，改檔就生效，不等 `occ upgrade`。〔推論：讀原始碼，未量〕
+
+### 14.2 事前的縮小重現（不是判準，不算任何執行）
+
+`findings/evidence/155/precheck/`：從磁碟上的 `nextcloud/core/css/server.css` 抽出點名 `dialog` 的兩條 reset（原文）、`web/e2-editor.html` 的 `<style>` 與對話框標記（照 `editor.php` 包進 `@scope (#litecore-editor-root)`），在 headless Chrome（1850×980）與 Firefox（1850×994）用 `showModal()` 讀框。〔已觀察〕
+
+| 變體 | Chrome 框 | Firefox 框 | 中心偏移（兩者） |
+|---|---|---|---|
+| mirror（沒有 Nextcloud CSS，正向對照） | `[605, 329, 640, 322]` | `[605, 339, 640, 317]` | `[0, 0]` |
+| as-0227（reset＋0.2.26 的規則） | `[0, 0, 640, 318]` | `[0, 0, 640, 317]` | 水平 −605，垂直 −331／−338 |
+| with-rule（再加 0.2.28 的規則） | `[605, 331, 640, 318]` | `[605, 339, 640, 317]` | `[0, 0]` |
+
+- as-0227 重現了宿主上 H-154o 的左上角讀數（宿主 `[0, 0, 640, 335]`／`[0, 0, 640, 342]`；高度差在宿主的字型繼承，不影響位置）。
+- `getComputedStyle(dialog).margin`：Chrome 回報計算後的值（`331px 605px`），Firefox 回報 `auto`。**字串在兩個瀏覽器不同，所以只記錄，不當條款。**
+
+### 14.3 判準 H-155，打開的對話框置中（形式一；兩個瀏覽器、N=3）
+
+- **工具**：H-154 那一支（`findings/evidence/154/diag_markdown_dialog_on_host.py --h154`），同一份打開讀數，不加新的量測。
+- **條款**：每一輪的打開讀數，框中心（`x + w/2`, `y + h/2`）與視窗中心（`innerWidth/2`, `innerHeight/2`）的距離，**水平與垂直都 ≤ 16 CSS px**。H-154c、H-154o 的條款照舊，同一份報告一起判，兩者也都要 PASS。
+- **門檻的理由（事先寫下）**：
+  - 框的讀數取整，誤差 ≤ 1 px；
+  - `innerWidth/innerHeight` 含傳統捲軸，`position: fixed` 的置中區不含；捲軸 ≤ 17 px，中心最多偏約 9 px；
+  - 左上角的偏移在 0.2.27 的報告裡是水平 605、垂直 322.5／326，比門檻大一個數量級以上；縮小重現在兩個瀏覽器都讀到 0。
+- **判讀工具的改動（新增，不是修理）**：`judge_h154` 多一個判定鍵 `H-155`。**H-154o 的條款不改**，所以 0.2.27 已 commit 的 H-154o PASS 不變。`--judge` 加 `--require-h155`：結束碼也要 H-155 PASS。這條是 finding 155 逼出來的。
+- **紅案（先於任何 0.2.28 的執行，寫進 `--self-test`）**：
+  - 0.2.27 兩份已 commit 的報告（`host-0.2.27/h154/h154-chrome-20261020T032507.json`、`h154-firefox-20261020T032550.json`）：H-155 必須 FAIL，H-154c、H-154o 仍 PASS；
+  - 合成的置中報告 → PASS；偏 16 px → PASS（門檻含等號）；偏 17 px → FAIL；
+  - 沒有打開讀數 → NOT_ESTABLISHED。
+- **預設**（從沒量）：finding 155 維持開著，發佈說明照 0.2.27 那句（左上角）寫。
+- **截止**：0.2.28 在兩個瀏覽器的 N=3 報告落地，這條判準就封閉。
+
+### 14.4 安裝（在擁有者指定的時段；§11.5 第 17 項的八個條件照適用處沿用）
+
+1. 桌面閘門乾淨，唯讀的 `ddev list` 只有 `litecore` 是 OK。
+2. 先寫 `findings/evidence/host-0.2.28/README.md` 的還原方式並 commit，再碰宿主 repo：
+   - `occ upgrade` 還沒跑之前被拒或出錯：`git -C ~/Projects/Nextcloud_Apps/litecore revert --no-edit HEAD`（只在 0.2.28 的 commit 已做時），不需要 ddev 指令；
+   - `occ upgrade` 成功之後：同一個 revert，再跑一次 `ddev occ upgrade`。Nextcloud 不降版，`app:list` 會留在 0.2.28，送出的是 0.2.27 的位元組；
+   - `engine/` 不動，所以兩種都不需要複製檔案。
+3. 套用前核對：宿主 HEAD `d7c0a5e`、樹乾淨；`engine/` 與 `build/archive/host-0.2.27-engine-817413d5ad5bd502/` 用 `diff -rq` 比，只差 `ATTRIBUTION.md`；`engine/MANIFEST.json` 的 buildId 是 `817413d5ad5bd502`。不符就在套用前停手。
+4. `git apply` patch，commit（加 Co-Authored-By，不寫 Claude-Session，不 push）。
+5. `ddev occ upgrade`；`app:list` 0.2.28，maintenance false。
+6. HTTP：`host-0.2.27/http_served_page.py` 原樣重跑，要與 0.2.27 的 `http-served.txt` 一樣綠（封包沒變，位址仍以 `817413d5ad5bd502` 開頭）。
+7. H-155：`--h154 --expect-version 0.2.28 --expect-build-id 817413d5ad5bd502`，Chrome 然後 Firefox，各 N=3，每支之前都過桌面閘門；以 `--judge … --require-h155` 判讀。
+8. **不重跑**：D2-v22、M11-autosave。新規則只在對話框打開時套用，打開狀態的互動（焦點在文字框、兩顆按鈕點得到）由同一份報告的 H-154o 判讀。
+
+**結果與安裝**：
+- H-154c、H-154o、H-155 任一 **FAIL** → 照第 2 步還原；交接第一行寫明標籤與位元組的狀態。
+- 只有 **NE**、沒有 FAIL → 0.2.28 留著，狀態是未成立，由擁有者決定。
+- 全部 PASS → 0.2.28 取代 0.2.27，作為日常使用的未計數候選；finding 155 在宿主上修好；發佈說明（`handoff/RELEASE-TEXT-DRAFT-0.2.27.md` 的後繼）改寫對話框那一句。
+
+**停止條件**：同 §13.1（錯誤或權限拒絕不重試、別的專案在跑、桌面閘門等 10 分鐘仍髒、時段結束），都在手上那一支臂跑完之後。
+
+**§34.4**：因執行而修 0，因審核而修 0。H-155 的判定鍵與旗標是新增；縮小重現是診斷。
+
 ## 修訂紀錄
 
 | 日期 | 內容 |
@@ -523,3 +585,4 @@ finding 153 判準 2 要求「附理由」：量到的深度，或原生的設�
 | 2026-10-19 | §13（追加）：擁有者的兩個決定——計數鏈延後併批（K 的預設：未計數候選，名義出貨版本停在 0.2.26；page honesty 前提、re-pin、BINDING、chain 腳本跟著延後）；ddev 用 A（宿主臂在擁有者指定的時段跑，時段等鏡像長跑結束後定）。 |
 | 2026-10-20 | §11.4.2 與 §11.8 下的一行（追加，fable 裁決 6 附錄 1，任何第 1 項的重跑之前）：I1-rerun 第一次判讀的四格 NE（W2、桌面 Chrome、別的建置與 zen、裁決 6 自己的搜尋）沒有 FAIL；重跑那四份報告的臂（Firefox 剩下的臂拆三段）、舊報告移到 `superseded/`、陪跑格規則、停止規則、桌面閘門與計時時不做吃 CPU 的事。 |
 | 2026-10-20 | §13.1（追加，fable 裁決 7，任何 ddev 步驟之前）：今晚的 ddev 時段由受託者依擁有者 01:40 的授權指定（只限這一次，到 07:00 或擁有者醒來為止）；安裝順序、HTTP 工具的綁定（紅案在沒動過的 0.2.26 上先跑）、兩種還原、停止條件、FAIL 與 NE 對安裝的處置、交接第一行的四種形狀。 |
+| 2026-10-20 | §14（追加，擁有者選 A＋B 的 B，任何 0.2.28 的宿主步驟之前）：宿主 0.2.28 只加 `dialog[open] { margin: auto; }`（finding 155），patch 預先寫成檔案、時段前不套用；縮小重現（兩個瀏覽器：沒有規則時在左上角，加上規則後偏移 0）；判準 H-155（中心偏移 ≤ 16 px，H-154o 條款不改）與它的紅案；安裝順序、還原、FAIL 與 NE 的處置。 |
