@@ -121,5 +121,5 @@ Read or measured before adopting. Each check is on a claim the ruling makes agai
 - **Item 10 (V11c/V11d Chrome-only):** `tools/diag_v21_dirty_move.py:95` `CHROME_ONLY = ("v11a", "v11b", "v11c", "v11d", "v11e", "v11f")`. **Agrees.**
 - **Item 14 (`dist0224`):** `tools/run_v21_shakedown_item1.py:197-199` sources the page from `common.DIST / "e2-editor-app.js"` with `shell_from_tree=False`. `dist/` has been v74 since `4628c9d3` (10-17 evening), after item 1's evidence ran (10-17 06:14–09:10). **Agrees.**
 - **Item 19 (the margin reset):**
-  - `~/Projects/Nextcloud_Server_master/core/css/server.css` has `html,body,…,article,aside,dialog,figure,…{margin:0;padding:0;border:0;…}` and `article,aside,dialog,figure,footer,header,hgroup,nav,section{display:block}`.
+  - `~/Projects/Nextcloud_server_master/core/css/server.css` has `html,body,…,article,aside,dialog,figure,…{margin:0;padding:0;border:0;…}` and `article,aside,dialog,figure,footer,header,hgroup,nav,section{display:block}`.
   - That is a Nextcloud server checkout, not the core inside the owner's ddev project; the ruling cites the latter, which this check did not open. **Agrees** as a source reading; the position stays to be measured (H-154o).
