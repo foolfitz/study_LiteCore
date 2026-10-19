@@ -42,7 +42,10 @@ BROWSER_LOCK = PROJECT / "build" / "v21-shakedown-browser.lock"
 PAGE_SOURCE = pp.CUTOVER_PAGE_SOURCE                    # web/e2-editor-app.js (the tree's page)
 HTML_SOURCE = PROJECT / "web" / "e2-editor.html"        # the tree's HTML (lags dist/ until v74)
 MODULE_ANCHOR = '<script type="module" src="./e2-editor-app.js"></script>'
-DEFAULT_PROFILE = "e2-editor-v21"
+# SPEC-M3-link-batch-v22 §11.7 step 3 (fable ruling 5): the runners' default profile moves to v22, so a
+# mirror built without `page_profile` is v22's.  A binding, not a repair (§34.4 0 / 0).  Tools that mean
+# v21 now say so (diag_long_paragraph's v21 pages pass page_profile="e2-editor-v21").
+DEFAULT_PROFILE = "e2-editor-v22"
 
 # ARMS.md §1 (measured 2026-10-16).  A mirror that does not reproduce these is not the round's
 # page or shell; the builder reports `identityOk` and the judges refuse on the page hash.
@@ -56,6 +59,15 @@ EXPECTED = {
         "sdk-worker.js": "0d55bcfa2ee0e4ddc6239e25282001c13410b152a5a08ebac9903cc65c3fd350",
         "sdk-manifest.json": "72067d5a14a3a271137a17aea24317fc6f42380327ec4962ebff475589268f13",
         "pageServed": "605cf24b3dff5a2de1d219ee59e79adc92048e46436d098b7c7a3d837761fa0f",
+    },
+    # v22 (2026-10-19): the archived link outputs (build/archive/e2-editor-v22-f7a40bcc-worker-0d55bcfa/) and
+    # the tree's page after the v22 shell edits (01dd9921) repointed to v22 (build_cutover_page.py, no --write).
+    "e2-editor-v22": {
+        "probe.wasm": "f7a40bcce073d913e562245b96f32a1051766dda23da0da3911741f03934d49e",
+        "probe.js": "dc4c2c84657e350668fbfc0048e2ded9c49ca5076610a6389944cf71ea4ba9af",
+        "sdk-worker.js": "0d55bcfa2ee0e4ddc6239e25282001c13410b152a5a08ebac9903cc65c3fd350",
+        "sdk-manifest.json": "000921c176b57174cc1680825c73f878564b3a216e6849dd0d50c8078a9516d5",
+        "pageServed": "3b96cb1661aba6de6add989c98c80ab393cd394307763bc6dc28c9440fba82e2",
     },
     "e2-editor-v20": {
         "probe.wasm": "313b08d5cb08589783a3e4d4d03eaee02d26f705ff5da96396ce9010680c5264",
@@ -245,7 +257,8 @@ def inject(html: str, snippets: list[str] | tuple[str, ...]) -> str:
 
 def build_mirror(target: Path, *, page_profile: str = DEFAULT_PROFILE, snippets=(),
                  extra_files: dict[str, bytes] | None = None, worker_override: bytes | None = None,
-                 source_page: str | None = None, shell_from_tree: bool = True) -> dict:
+                 source_page: str | None = None, shell_from_tree: bool = True,
+                 root: Path | None = None) -> dict:
     """ARMS.md S-1.  `target` must not exist.  Returns the identity block (ARMS-item1.md §1).
 
     page_profile     the profile the page is repointed to (S-5 uses "e2-editor-v20")
@@ -256,18 +269,21 @@ def build_mirror(target: Path, *, page_profile: str = DEFAULT_PROFILE, snippets=
     source_page      the page source to repoint (default: the tree's web/e2-editor-app.js);
                      the 0.2.24 red cases pass dist/e2-editor-app.js
     shell_from_tree  True (the round's shell): the lagging shell files and the HTML from the tree.
-                     False (the 0.2.24 red cases): dist/'s shell and HTML as they are
+                     False (the 0.2.24 red cases): the root's shell and HTML as they are
+    root             what the mirror links to (default dist/).  v22 §11.4: the 0.2.24 red case is the
+                     0.2.24 host package decompressed, because dist/ has moved on (v74, then v75)
     """
     target = Path(target)
     if target.exists():
         raise SystemExit(f"refusing to build a mirror over an existing path: {target}")
-    manifest = DIST / "profiles" / page_profile / "sdk-manifest.json"
+    base = Path(root) if root is not None else DIST
+    manifest = base / "profiles" / page_profile / "sdk-manifest.json"
     if not manifest.is_file():
-        raise SystemExit(f"no profile {page_profile} in dist/")
+        raise SystemExit(f"no profile {page_profile} in {base}")
     source = source_page if source_page is not None else PAGE_SOURCE.read_text(encoding="utf-8")
     page, pin_before, wasm = pp.repointed_page(source, page_profile, manifest)
-    lagging = pp.shell_lagging_source(DIST) if shell_from_tree else []
-    html_source = (HTML_SOURCE if shell_from_tree else DIST / "e2-editor.html").read_text(encoding="utf-8")
+    lagging = pp.shell_lagging_source(base) if shell_from_tree else []
+    html_source = (HTML_SOURCE if shell_from_tree else base / "e2-editor.html").read_text(encoding="utf-8")
     html_served = inject(html_source, list(snippets))
     overrides: dict[str, bytes] = {"e2-editor-app.js": page.encode("utf-8"),
                                    "e2-editor.html": html_served.encode("utf-8")}
@@ -279,10 +295,10 @@ def build_mirror(target: Path, *, page_profile: str = DEFAULT_PROFILE, snippets=
         raw = (PROJECT / relative).read_bytes()
         overrides[pp.served_in_dist(relative)] = raw
         served_lagging[relative] = sha256_bytes(raw)
-    worker_path = DIST / "profiles" / page_profile / "sdk-worker.js"
+    worker_path = base / "profiles" / page_profile / "sdk-worker.js"
     if worker_override is not None:
         overrides[f"profiles/{page_profile}/sdk-worker.js"] = worker_override
-    pp.build_mirror(DIST, target, overrides)
+    pp.build_mirror(base, target, overrides)
     extras = {}
     for relative, raw in (extra_files or {}).items():
         path = target / relative
@@ -295,7 +311,7 @@ def build_mirror(target: Path, *, page_profile: str = DEFAULT_PROFILE, snippets=
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes(raw)
         extras[relative] = sha256_bytes(raw)
-    profile_hashes = {name: sha256_file(DIST / "profiles" / page_profile / name)
+    profile_hashes = {name: sha256_file(base / "profiles" / page_profile / name)
                       for name in ("probe.wasm", "probe.js", "sdk-worker.js", "sdk-manifest.json")}
     worker_served = sha256_file(target / "profiles" / page_profile / "sdk-worker.js")
     identity = {
@@ -312,7 +328,7 @@ def build_mirror(target: Path, *, page_profile: str = DEFAULT_PROFILE, snippets=
         "laggingServedFromTree": served_lagging,
         "shellDigest": mws.shell_digest(target),
         "extraFiles": extras,
-        "shellFromTree": shell_from_tree, "dist": str(DIST), "mirror": str(target),
+        "shellFromTree": shell_from_tree, "dist": str(base), "mirror": str(target),
     }
     expected = EXPECTED.get(page_profile, {})
     checks = {name: profile_hashes.get(name) == value for name, value in expected.items() if name != "pageServed"}

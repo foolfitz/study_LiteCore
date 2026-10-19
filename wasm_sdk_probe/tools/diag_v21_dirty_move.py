@@ -92,7 +92,9 @@ from create_long_document import build as build_long_document  # noqa: E402
 VARIANTS = ("v1", "v2", "v3", "v4", "v5", "v6", "v6e",
             "v7", "v8", "v8d", "d11b", "d8e", "range", "v11a", "v11b", "v11c", "v11d", "v11e", "v11f",
             "v8d0224", "bup")
-CHROME_ONLY = ("v11a", "v11b", "v11c", "v11d", "v11e", "v11f")
+# v11c and v11d left this list for v22 §11.3 (F3 needs them in Firefox as the no-regression control; their
+# steps use only the shared instruments).  An addition, §34.4 0 / 0.
+CHROME_ONLY = ("v11a", "v11b", "v11e", "v11f")
 V7_WAITS = ((0, None), (300, 1), (1000, None), (3000, 1))   # (X ms, rounds; None = --rounds)
 RANGE_SECOND = "k1024,k1027x6,ra,k1027x6,rb,sa:b"           # «Bravo |second|» in P2, dragged a -> b
 
@@ -134,7 +136,10 @@ FIX_WHAT = {"none": "no candidate fix",
 # The tree's page after 712f955a (fixes 1 and 2, item 2's entry off), as v21_shakedown_common.EXPECTED
 # (re-pinned at f5f60ac1).  Was 3d5112161b23b060 (ARMS.md §1); §34.4 witness:
 # findings/evidence/link-batch-v21/shakedown/evidence/witness/diag-v6e-stale-pin/.
-V21_PAGE_PREFIX = "605cf24b3dff5a2d"
+# SPEC-M3-link-batch-v22 §11.3 (F3): the page F3 measures is the tree's page after the v22 shell edits
+# (01dd9921) repointed to v22 (common.DEFAULT_PROFILE), pageServed 3b96cb1661aba6de...; was 605cf24b3dff5a2d
+# (v21).  The name is kept: it is the round's page, whatever the profile (a binding, §34.4 0 / 0).
+V21_PAGE_PREFIX = "3b96cb1661aba6de"
 LOG_KINDS = ("kd", "kdp", "rq", "rs", "bi", "ask7post", "ask7", "askx")
 PLACEMENT_BRAVO = "k1024,k1027x5"
 V6_KEYS = [(0, "Backspace", ()), (20, "ArrowRight", ()), (40, "Delete", ())]
@@ -306,7 +311,7 @@ class FixPages(item1.Pages):
             for old, new in page_edits:
                 undone = undone.replace(new, old)
             self.candidate["files"]["e2-editor-app.js"] = {
-                "path": "e2-editor-app.js (served; source web/e2-editor-app.js repointed to e2-editor-v21)",
+                "path": f"e2-editor-app.js (served; source web/e2-editor-app.js repointed to {common.DEFAULT_PROFILE})",
                 "unpatchedServedSha256": common.sha256_bytes(unpatched_served.encode("utf-8")),
                 "patchedServedSha256": common.sha256_bytes(patched_served.encode("utf-8")),
                 "patchOnly": undone == unpatched_served, "edits": page_edits}

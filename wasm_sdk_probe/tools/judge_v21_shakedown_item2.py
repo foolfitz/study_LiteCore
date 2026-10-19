@@ -29,7 +29,9 @@ PROJECT = Path(__file__).resolve().parent.parent
 REPO = PROJECT.parent
 POPULATION = REPO / "findings/evidence/link-batch-v21/shakedown/item2/population.json"
 SHIPPED_WORKER = "0d55bcfa2ee0e4ddc6239e25282001c13410b152a5a08ebac9903cc65c3fd350"
-WASM = "db3408f55316bf67345258ce9f7cb58a1cb3777c9aabb9f7790bee69e1599f30"
+# SPEC-M3-link-batch-v22 §11.2 / §12 (b): the wasm the item-2 evidence must carry moves to v22 (a binding,
+# §34.4 0 / 0).  v21 was db3408f55316bf67345258ce9f7cb58a1cb3777c9aabb9f7790bee69e1599f30.
+WASM = "f7a40bcce073d913e562245b96f32a1051766dda23da0da3911741f03934d49e"
 EXPECT_PAGE = "3d5112161b23b060b2057a25bbbeb7cbc96628cde67e3e5c3c0dab92b435b5c5"
 PASS, FAIL, NE = "PASS", "FAIL", "NOT_ESTABLISHED"
 ROUNDS = 3

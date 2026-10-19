@@ -244,8 +244,10 @@ def open_browser(browser: str):
 
 def build_page(page: str, scratch: Path, extra: dict[str, bytes]) -> dict:
     target = scratch / f"mirror-{page}"
+    # v21's pages say so since v22 moved common.DEFAULT_PROFILE (v22 §11.7 step 3); before, they took the default.
     if page == "v21":
-        return common.build_mirror(target, snippets=[v20.OBSERVER, obs2.SNIPPET, hook.SNIPPET], extra_files=extra)
+        return common.build_mirror(target, page_profile="e2-editor-v21",
+                                   snippets=[v20.OBSERVER, obs2.SNIPPET, hook.SNIPPET], extra_files=extra)
     if page == "v22":
         identity = common.build_mirror(target, page_profile=V22_PROFILE,
                                        snippets=[v20.OBSERVER, obs2.SNIPPET, hook.SNIPPET], extra_files=extra)
@@ -265,7 +267,8 @@ def build_page(page: str, scratch: Path, extra: dict[str, bytes]) -> dict:
         shipped_worker = (common.DIST / "profiles/e2-editor-v21/sdk-worker.js").read_bytes()
         # The shipped worker as an "override" only so that profiles/e2-editor-v21/ is a REAL directory in the
         # mirror (pp.build_mirror symlinks everything else into dist/); its bytes are the shipped ones.
-        identity = common.build_mirror(target, snippets=[v20.OBSERVER, obs2.SNIPPET, hook.SNIPPET],
+        identity = common.build_mirror(target, page_profile="e2-editor-v21",
+                                       snippets=[v20.OBSERVER, obs2.SNIPPET, hook.SNIPPET],
                                        extra_files=extra, worker_override=shipped_worker)
         loader = target / "profiles/e2-editor-v21/probe.js"
         if loader.parent.is_symlink() or not loader.is_symlink():

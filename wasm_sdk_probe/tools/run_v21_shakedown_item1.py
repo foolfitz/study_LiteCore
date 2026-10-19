@@ -41,6 +41,7 @@ import argparse
 import hashlib
 import json
 import os
+import subprocess
 import sys
 import tempfile
 import time
@@ -167,6 +168,30 @@ class StepError(RuntimeError):
 
 # ------------------------------------------------------------------ pages and the browser
 
+# SPEC-M3-link-batch-v22 §11.4 (fable ruling 5, item 14): the 0.2.24 red case (`dist0224`, D8's d8red) is
+# the 0.2.24 host package, decompressed.  It used to be dist/'s page and shell, which WAS 0.2.24's when
+# item 1 ran (10-17 morning); dist/ became v74 that evening and becomes v75 at the v22 freeze.  A binding,
+# §34.4 0 / 0; its witness is the served page 901dd6a6... and shell digest e7c4eefe...
+# (run_v21_d2.HOST_EXPECT["0224"]).
+HOST_0224_ARCHIVE = common.PROJECT / "build/archive/host-0.2.24-engine-d3cd39bbc71ec311"
+
+
+def host_0224_root(target: Path) -> Path:
+    """The archived 0.2.24 package (zst and gz on disk), decompressed and checked against its MANIFEST.json."""
+    source = HOST_0224_ARCHIVE / "files"
+    manifest = json.loads((HOST_0224_ARCHIVE / "MANIFEST.json").read_text(encoding="utf-8"))["files"]
+    for compressed in sorted(source.rglob("*.zst")):
+        out = target / compressed.relative_to(source).with_suffix("")
+        out.parent.mkdir(parents=True, exist_ok=True)
+        subprocess.run(["zstd", "-d", "-q", "-f", str(compressed), "-o", str(out)], check=True)
+    files = {str(path.relative_to(target)): sha256_bytes(path.read_bytes()) for path in target.rglob("*") if path.is_file()}
+    wrong = sorted(name for name, entry in manifest.items() if files.get(name) != entry["sha256"])
+    if wrong or set(files) != set(manifest):
+        raise SystemExit(f"the 0.2.24 archive does not decompress to its MANIFEST.json: {wrong[:5]} "
+                         f"{sorted(set(files) ^ set(manifest))[:5]}")
+    return target
+
+
 class Pages:
     """One mirror and one server per page variant, built on first use (S-1)."""
 
@@ -195,8 +220,9 @@ class Pages:
         if variant == "v20":
             kwargs["page_profile"] = "e2-editor-v20"
         if variant == "dist0224":
-            kwargs.update(page_profile="e2-editor-v20", shell_from_tree=False,
-                          source_page=(common.DIST / "e2-editor-app.js").read_text(encoding="utf-8"))
+            root = host_0224_root(self.scratch / "host-0.2.24")
+            kwargs.update(page_profile="e2-editor-v20", shell_from_tree=False, root=root,
+                          source_page=(root / "e2-editor-app.js").read_text(encoding="utf-8"))
         identity = common.build_mirror(self.scratch / f"mirror-{variant}", snippets=snippets, extra_files=extra,
                                        **kwargs)
         ctx = common.served(Path(identity["mirror"]))

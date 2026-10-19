@@ -95,7 +95,9 @@ class MirrorTest(unittest.TestCase):
             identity = c.build_mirror(Path(tmp) / "m", snippets=["<script>/*x*/</script>"],
                                       extra_files={"v21-a.odt": b"a", "deep/dir/b.txt": b"b"})
             self.assertTrue(identity["identityOk"], identity["identityChecks"])
-            self.assertEqual(identity["pageServedSha256"], c.EXPECTED["e2-editor-v21"]["pageServed"])
+            # The default profile's round page (v22 since SPEC-M3-link-batch-v22 §11.7 step 3; was v21).
+            self.assertEqual(identity["profile"], c.DEFAULT_PROFILE)
+            self.assertEqual(identity["pageServedSha256"], c.EXPECTED[c.DEFAULT_PROFILE]["pageServed"])
             self.assertEqual(identity["shellDigest"], c.EXPECTED_SHELL_DIGEST)
             self.assertEqual((Path(tmp) / "m" / "deep/dir/b.txt").read_bytes(), b"b")
 
