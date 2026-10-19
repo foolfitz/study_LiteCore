@@ -312,6 +312,62 @@ finding 153 判準 2 要求「附理由」：量到的深度，或原生的設�
 - **其餘查過**：第 1 項的 judge、runner 與 runner 注入的三支共用儀器裡，寫死 v21 §12.3 (e) 或 v21 頁面的只有 E0、D6 與已處理的 `dist0224` 來源；其餘的「v21」都是頁面變體的名字，不綁位元組。第 1 項報告裡的 `start.entry` 讀數，是同一份頁面位元組上 M8 頁面格的獨立旁證，記在第 2 項 README 當交叉引用，不當 M8 的判定。
 - **§9 的四個條件**：先於滿足（還沒有任何第 1 項的 v22 執行）；被逼出來且指名（上面的讀數）；形式一；截止＝v75 凍結。
 
+#### 11.4.2 I1-rerun 的第一次判讀：四格 NE、重跑那四份報告的臂（2026-10-20，fable 裁決 6 附錄 1，只追加；任何第 1 項的重跑之前）
+
+出處：`findings/evidence/link-batch-v22/review/ruling-fable-6-addendum-1.md`（簡報 `24e1f64f`，裁決 `6ff1faf0`；採用前的核對附在檔尾）。擁有者在本 session 選「A 交 fable 當裁決 6 附錄」。
+
+- **第一次判讀**（`shakedown/item1/first-reading/`，證人 `f56ccddc`）：`VERDICT NOT PASS (6 criterion cell(s) not PASS)`。
+  - 兩格 E0 FAIL 是 §11.4.1 預期的；E0-v22 PASS（379 次讀數，0 紅、0 盲）。
+  - 另外四格 NE，**沒有任何 FAIL**：
+    - **D5w Firefox**：v21 W2 的形狀。同一個 Firefox session 前 43 次載入正常，第 44 次起每次 init 都在 `instantiateArrayBuffer` abort（`WORKER_INIT_FAILED`），d5w、R-xlc、R-table 全丟。鏈的腳本沒有照 W2 的處方把 Firefox 剩下的臂拆成三段。
+    - **D7 Chrome**：擁有者桌面 Chrome 的 `--extension-process` 渲染程序，80 %、78 %。
+    - **D7 Firefox**：OxOffice 的 `make -j 4` 與 `cc1plus`、zen，以及裁決 6 自己的整個 repo 檔案搜尋（172.5 %）。
+    - **D9 Firefox**：桌面 Chrome 的渲染程序，78.4 %。
+- **重跑，不走預設**（形式一）。重跑的就是那四份報告的臂，每一步都是新的 invocation、`--rounds 3`：
+  - Chrome `d1`；
+  - Firefox `d1`；
+  - Firefox `d9,d10,d14`；
+  - Firefox 剩下的臂照 W2 拆成三個新 session：A `d2p,d8,d8red,d11b`；B `d11a,d11c,d12`；C `d5w,xlc,table,d6`。
+
+  Chrome 的 `d9,d10,d14` 與 Chrome 的其餘臂不動。
+- **搬移**：被取代的四份報告連同 `docs/` 子目錄與 step log 一起 `git mv` 到 `shakedown/item1/superseded/`，每份附一行 README 寫明原因。judge 只讀 `--dir` 那一層的 `report-*.json`（`:954`），同一個（瀏覽器, 臂）有兩份會判 FAIL（`:992-994`）。搬移只在步驟之間做，而且要在判讀之前。
+- **讀法**：judge 照原樣讀 `item1/`（八份報告）。I1-rerun PASS 的條件是：
+  - `VERDICT NOT PASS (2 criterion cell(s) not PASS)`，恰好是 `E0 chrome FAIL` 與 `E0 firefox FAIL`，其餘每一行 PASS；
+  - **而且**同一組八份報告的 E0-v22 PASS（`e0_v22.py item1/report-*.json`）。
+  - D6 照舊印過時的理由。
+- **陪跑格的規則**（先釘死）：
+  - 陪跑格＝只因為和作廢格同一份報告才重跑的格：兩個瀏覽器 d1 的 D1、D4；Firefox 的 D10、D14；A／B 的 D2p、D8、D11a、D11b、D11c、D12。
+  - 它們以重跑的讀數為準。例外：重跑時因報告裡記下的原因（外部 CPU、W2 狀態、`runnerError`）讀 NE，而第一次是程序跑對的 PASS。這時那一格取第一次的讀數，兩段 judge 輸出都原文引用。
+  - **任何一次 FAIL 就是 FAIL**。這條規則不救作廢的那四格本身。
+- **停止規則**：
+  - 任何 FAIL（作廢格或陪跑格，任何一次）→ I1-rerun 紅 → v22 不可出貨，停手交接，開產品 finding。
+  - 作廢格在鏈查過桌面安靜之後又因外部 CPU 讀 NE → 記下程序，停手交接，本 session 不跑第三次。
+  - A／B／C 裡又出現 W2 → 這是新情況，停手交接；那份報告成為第二份 W2 證人。
+  - 作廢格的其他 NE → 停手交接。
+  - 陪跑格沒有記下原因的 NE → 停手交接。
+  - E0 不是恰好那兩格 FAIL → 照附錄 1 第 5 項讀。
+- **桌面閘門**（新增，程序，0／0）：每一步之前檢查，全部成立才放行：
+  - KWallet 沒鎖；
+  - `pgrep -c chrome` 為 0，而且沒有 zen、make、cc1plus、ninja；
+  - 1 分鐘負載 < 1.5；
+  - `python3 -B tools/v21_shakedown_common.py` 的 `foreignCpu.ok` 為 true。
+
+  任一不成立就記 `DESK DIRTY <原因>` 並停下整條鏈，桌面乾淨後再啟動。**計時步驟執行時，主 session 與任何 subagent 都不做吃 CPU 的事**：不做整個 repo 的搜尋、不跑測試、不讀大報告，只看 log 尾巴。
+- **§34.4**：工具因執行而修 0、因審核而修 0；因 harness 損失而重跑 +1（W2，第二次）；因桌面而重跑 +3。本段落累計 +3／0，總計 32／18。
+- **登錄的程序項**：
+  - 下一支鏈腳本照交接文件的清單寫：Firefox 剩下的臂拆三段、`--rounds 3`、每步之前過桌面閘門；
+  - 交接文件的 Hazards 加上「計時步驟執行時不做吃 CPU 的事」；
+  - 桌面 Chrome 的擴充程序已經第四次打掉計時格，「桌面 Chrome 關閉」是每一個計時步驟的常設條件。
+- **預設**：
+  - 本節沒有在重跑之前追加 → 重跑不算。
+  - 重跑沒做 → I1-rerun 沒做 → v22 不可出貨，0.2.26 維持名義出貨版。
+  - 報告沒搬 → judge 的重複 FAIL 是拒絕、不是判定，I1-rerun 沒有讀數。
+- **§9 的四個條件**：
+  - 先於滿足：還沒有任何重跑。
+  - 被逼出來且指名：`f56ccddc` 的六份報告與 `judge-item1-first.txt`。
+  - 形式一。
+  - 截止＝重跑的報告落地。
+
 ### 11.5 宿主 0.2.27 與對話框（第 17–20 項）
 
 - **主 session 可以在這一輪打包 0.2.27 並裝到擁有者的 ddev**，條件八條：
@@ -381,6 +437,8 @@ finding 153 判準 2 要求「附理由」：量到的深度，或原生的設�
 
 （追加，2026-10-19）E2 這一列的讀法由 §11.2.1 取代 §11.7 第 5 步：M5 與 Firefox M6 取重跑的報告，其餘九格取第一次判讀，逐格組合。
 
+（追加，2026-10-20）I1-rerun 這一列的重跑範圍、搬移、陪跑格規則與桌面閘門見 §11.4.2。
+
 ## 12. 更正（2026-10-19，fable 裁決 5 第 26–27 項，只追加）
 
 - **(a) 殼層 digest 不動**：`shell_digest` 不含 entrypoint（`run_merge_wasm_shakedown.py:1162-1167`），§11.1 沒有動任何殼層模組。會動的是 generation（bundle 雜湊，v75）與頁面、HTML、引擎的 pin。本檔 §2、§7 說「殼層項目」時，指的是 entrypoint 與 HTML。
@@ -413,3 +471,4 @@ finding 153 判準 2 要求「附理由」：量到的深度，或原生的設�
 | 2026-10-19 | §12 (d)（追加，任何宿主執行之前）：M11-autosave 對 M2 讀「存檔有 M2 那一行的文字」，因為 M2 沒有標題。 |
 | 2026-10-19 | §11.2.1 與 §11.8 下的一行（追加，fable 裁決 6，任何重跑之前）：E2 第一次判讀 M5 兩個瀏覽器 NE（positive control 的 profile 預設 v21）、Firefox M6 NE（桌面 Chrome 81 %）；修成必填參數，因執行而修 +1；只重跑 Chrome M5 與 Firefox M6＋M5；逐格組合的讀法；停止規則與預設。 |
 | 2026-10-19 | §13（追加）：擁有者的兩個決定——計數鏈延後併批（K 的預設：未計數候選，名義出貨版本停在 0.2.26；page honesty 前提、re-pin、BINDING、chain 腳本跟著延後）；ddev 用 A（宿主臂在擁有者指定的時段跑，時段等鏡像長跑結束後定）。 |
+| 2026-10-20 | §11.4.2 與 §11.8 下的一行（追加，fable 裁決 6 附錄 1，任何第 1 項的重跑之前）：I1-rerun 第一次判讀的四格 NE（W2、桌面 Chrome、別的建置與 zen、裁決 6 自己的搜尋）沒有 FAIL；重跑那四份報告的臂（Firefox 剩下的臂拆三段）、舊報告移到 `superseded/`、陪跑格規則、停止規則、桌面閘門與計時時不做吃 CPU 的事。 |
