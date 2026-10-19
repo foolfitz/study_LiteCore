@@ -113,3 +113,20 @@ This continues `HANDOFF-2026-10-17b-d7-pass-v74-frozen-d2-host-arm-ready.md` and
 
 - **Fable**, ruling 3 and its addendum 1, read-only. The main session recomputed the cited numbers before adopting each. One count in ruling 3 (served-HTML hashes, "11 reports") did not match; nothing depended on it.
 - **Opus**, the binding and count-prep inventory, read-only. Every value was recomputed by the main session before applying. Its source-level prediction of the page-honesty red was confirmed by a live witness before any change.
+
+## Addendum, 2026-10-19: the count holds; 0.2.26 is the nominal shipped version
+
+- **The owner started the chain** at 00:06 on 10-19, after deleting the two lock rows. The window string is 「2026-10-19 00:10-09:30, owner 00:05; B3x withdrawn as 0.2.24」. It ran to `DONE` at 07:55 (7 h 48 m 40 s), and `IDENTITY-END` equals `IDENTITY-START`.
+- **The main session read it in this session, at the owner's request.** The verdict is in `findings/evidence/m3-production-ui/RESULT-0.2.26.md`: **the count holds.**
+  - Every counted runner is exit 0 and green, and every red-case set is all red (page honesty 158).
+  - Merge `VERDICT PASS`, the first count on v21. C2 PASS in all 3 runs.
+  - §17.4: 12/12 R spans of 2,258–2,263 ms.
+  - The product-path reader was made red once offline (P3 MISS, P2 MISS), then read `SUMMARY` P1–P3 HIT with 0 differing cells. Against 0.2.24's v20 reports, 0 cells are worse.
+- **0.2.26 replaces 0.2.24 as the nominal shipped version** (spec §12.6 K result).
+- **Recorded, not attributed:** Firefox C2's early keys are back inside the pre-v20 record (first-five median commit 22–26 ms against 0.2.24's 37–53).
+- **§34.4 for the reading:** 0 / 0. Totals stay 29 / 18.
+- **Next:**
+  1. the owner's hand test of 0.2.26 on the user path: Ctrl/Cmd+Home/End on a real document, then Backspace; and that no Markdown box covers the editor;
+  2. the 0.2.26 release text, with the named limits listed in "Next" 3 above;
+  3. v22, order C.
+- The merge runner's §34.1 freeze is lifted: its verdict has been read.
