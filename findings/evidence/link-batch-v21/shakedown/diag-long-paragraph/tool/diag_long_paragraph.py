@@ -31,6 +31,10 @@ Cell spec:  ROUTE:CORPUS:BYTES[:PAGE]
                   counterfactual for the stack hypothesis; probe.wasm untouched)
           v21stack<N> (added 2026-10-19 for v22's stack size, finding 153 criterion 2: v21big with the value N
                   bytes instead of 1048576; v21big = v21stack1048576)
+          v22 (added 2026-10-19 after the v22 link, specs/SPEC-M3-link-batch-v22.md 5.3 C1/H1: the round's page
+               and shell repointed to e2-editor-v22 with pp.repointed_page, the transformation the cutover uses,
+               and v21's instruments.  The identity checks the four profile files against the archived v22
+               bytes, and the loader the server actually sends is fetched and hashed: S1's served clause)
 
 Chrome cells also record, through CDP auto-attach (recursive, flatten), every Runtime.exceptionThrown and
 console error of the page AND of every worker target (the document worker and its pthreads), with the
@@ -82,6 +86,14 @@ WORKER_TIMEOUT = 90.0       # the raw routes have no SDK timeout; 240 s in chrom
 STACK_CALL = "__emscripten_thread_init(tb,!ENVIRONMENT_IS_WORKER,1,!ENVIRONMENT_IS_WEB,65536,false)"
 STACK_BIG = "__emscripten_thread_init(tb,!ENVIRONMENT_IS_WORKER,1,!ENVIRONMENT_IS_WEB,1048576,false)"
 STACK_CALL_N = "__emscripten_thread_init(tb,!ENVIRONMENT_IS_WORKER,1,!ENVIRONMENT_IS_WEB,{},false)"
+# The v22 link's outputs, as archived (wasm_sdk_probe/build/archive/e2-editor-v22-f7a40bcc-worker-0d55bcfa/).
+V22_PROFILE = "e2-editor-v22"
+V22_EXPECTED = {
+    "probe.wasm": "f7a40bcce073d913e562245b96f32a1051766dda23da0da3911741f03934d49e",
+    "probe.js": "dc4c2c84657e350668fbfc0048e2ded9c49ca5076610a6389944cf71ea4ba9af",
+    "sdk-worker.js": "0d55bcfa2ee0e4ddc6239e25282001c13410b152a5a08ebac9903cc65c3fd350",
+    "sdk-manifest.json": "000921c176b57174cc1680825c73f878564b3a216e6849dd0d50c8078a9516d5",
+}
 
 
 def sha(raw: bytes) -> str:
@@ -234,6 +246,16 @@ def build_page(page: str, scratch: Path, extra: dict[str, bytes]) -> dict:
     target = scratch / f"mirror-{page}"
     if page == "v21":
         return common.build_mirror(target, snippets=[v20.OBSERVER, obs2.SNIPPET, hook.SNIPPET], extra_files=extra)
+    if page == "v22":
+        identity = common.build_mirror(target, page_profile=V22_PROFILE,
+                                       snippets=[v20.OBSERVER, obs2.SNIPPET, hook.SNIPPET], extra_files=extra)
+        # build_mirror's EXPECTED table has no v22 entry (it is shared with the v21 runners and is not edited
+        # for this), so the v22 checks live here and are folded into identityOk.
+        checks = identity["identityChecks"]
+        checks.update({f"v22:{name}": identity["profileHashes"].get(name) == value
+                       for name, value in V22_EXPECTED.items()})
+        identity["identityOk"] = all(checks.values()) and not identity["instrumentedWorker"]
+        return identity
     if page == "v0224":
         return common.build_mirror(target, page_profile="e2-editor-v20", shell_from_tree=False,
                                    source_page=(common.DIST / "e2-editor-app.js").read_text(encoding="utf-8"),
@@ -615,6 +637,19 @@ def main() -> int:
             served = common.served(Path(identity["mirror"]))
             bases[page] = served.__enter__()
             stack.append(served)
+            if page == "v22":
+                # S1's served clause: the bytes the server sends, not the file the mirror links to.
+                import urllib.request
+                url = bases[page].rsplit("/", 1)[0] + f"/profiles/{V22_PROFILE}/probe.js"
+                with urllib.request.urlopen(url, timeout=30) as response:
+                    fetched = sha(response.read())
+                ident = report["identity"][page]
+                ident["loaderFetched"] = {"url": url, "sha256": fetched}
+                ident["identityChecks"]["v22:loaderServed"] = fetched == V22_EXPECTED["probe.js"]
+                ident["identityOk"] = all(ident["identityChecks"].values()) and not ident["instrumentedWorker"]
+                if not ident["identityOk"]:
+                    flush()
+                    raise SystemExit(f"v22 identity does not hold: {ident['identityChecks']}")
         flush()
         for spec in specs:
             public = {k: v for k, v in spec.items() if k != "raw"}
