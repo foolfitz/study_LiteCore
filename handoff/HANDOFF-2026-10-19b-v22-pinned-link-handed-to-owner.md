@@ -79,3 +79,24 @@ Owner-paced, carried:
   - the M1-1 carrier line;
   - the new link macro.
 - Running total since 10-14b: execution 29, review 18 (unchanged).
+
+## Addendum, 2026-10-19 (after the link)
+
+- **The owner linked v22** at 10:39–10:42 (runbook §2, no error). The main session did runbook §3 the same day (`3ba23e05`; `findings/evidence/link-batch-v22/post-link/README.md`; spec §10):
+  - the frozen set holds;
+  - S1 PASS;
+  - S2 0: the loader is v21's with the one literal changed;
+  - I1-v22 PASS (X1 default mode; the equal-wasm reading was not needed);
+  - `ScDocShell` 0; E1-C intact.
+- **Archived** at `wasm_sdk_probe/build/archive/e2-editor-v22-f7a40bcc-worker-0d55bcfa/`. Hashes:
+  - wasm `f7a40bcc…`;
+  - loader `dc4c2c84…`;
+  - manifest `000921c1…`;
+  - worker `0d55bcfa…`.
+- **Recorded:** the wasm differs from v21's in one function of 149,474, and only `probe_engine.o` differs among the objects (finding 036's shape). The stack value is in no differing byte.
+- **Next:** spec §7 step 2.
+  - Add the diag tool's `v22` page family (an addition): v21's page-family mirror with the page pointed at `e2-editor-v22`, and an identity block that records the served `probe.js` hash.
+  - Commit the identity witness.
+  - Then run C1: four cells, `--repeat 3`, Chrome and Firefox, plus `sdk-md:cjk:65536:v21` once per browser as the positive control.
+  - Then H1.
+- **v22 is unbound.** `dist/`'s page still points at v21.
