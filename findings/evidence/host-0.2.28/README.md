@@ -44,7 +44,7 @@ Do not apply the patch before the window. `templates/editor.php` is the file dde
 4. `git -C ~/Projects/Nextcloud_Apps/litecore apply <this dir>/host-0.2.28.patch`, then commit locally: Co-Authored-By, no Claude-Session, no push.
 5. `ddev occ upgrade`. `app:list` should show 0.2.28, with maintenance false.
 6. HTTP: rerun `../host-0.2.27/http_served_page.py` unchanged. It should be as green as `../host-0.2.27/http-served.txt`, with an address that still starts with `817413d5ad5bd502`.
-7. H-155: `diag_markdown_dialog_on_host.py --h154 --rounds 3 --expect-version 0.2.28 --expect-build-id 817413d5ad5bd502`, Chrome then Firefox, with the desk gate before each. Read each report with `--judge <report> --expect-version 0.2.28 --expect-build-id 817413d5ad5bd502 --require-h155`.
+7. H-155: `diag_markdown_dialog_on_host.py --h154 --rounds 3 --expect-version 0.2.28 --expect-build-id 817413d5ad5bd502`, Chrome then Firefox, with the desk gate before each. Read each report with `--judge <report> --expect-version 0.2.28 --expect-build-id 817413d5ad5bd502 --require-h155`. `chain-h155.sh` does this step: `WINDOW_END='YYYY-MM-DD HH:MM' setsid nohup bash chain-h155.sh &`. Its guards are the same as 0.2.27's chain (window, `ddev list`, desk gate), and the window's end is absolute, so a window that crosses midnight works. Without `WINDOW_END`, or with an unparsable value, it exits 1 before doing anything (checked).
 8. Not re-run: D2-v22 and M11-autosave (§14.4 item 8).
 
 Outcome rules:
