@@ -1,0 +1,4109 @@
+{
+ "tool": "diag_long_paragraph.py",
+ "toolSha256": "e3d7fcd9130fbf97f97d8c5bd2c6ccad502eb68caf27341d02a10b1ec7353976",
+ "corporaSha256": "7919870a3a3e89daf42628d1fd8e3b26f9df49dcdf064415c2eb78227e30d50a",
+ "counted": false,
+ "judged": false,
+ "browser": "chrome",
+ "label": "c1-chrome",
+ "argv": [
+  "--browser",
+  "chrome",
+  "--out",
+  "findings/evidence/link-batch-v22/shakedown",
+  "--label",
+  "c1-chrome",
+  "--repeat",
+  "3",
+  "--odt",
+  "long14=findings/evidence/link-batch-v21/shakedown/diag-long-paragraph/out/docs-chrome-s8-bigstack/001-sdk-md_cjk_65536_v21big.odt",
+  "sdk-md:cjk:65536:v22",
+  "sdk-md:cjk:43520:v22",
+  "sdk-md:ascii:65536:v22",
+  "opentype:long14:0:v22"
+ ],
+ "startedAt": "2026-10-19T10:52:50+0800",
+ "instruments": {
+  "v21_shakedown_common.py": "135adaa0b4e15e1100d34107cf612595d850876f6d08c357f8beac046d726fbf",
+  "run_v21_shakedown_item2.py": "fca737b24f6389dc3576216dd94a60434bb2cdfa50dfd2c8127de8c83497e2fc",
+  "v21_page_hook.py": "77a98cbdd297cc2365210cf02b45d67276c3787c18767ed80adf899b4eaa478f",
+  "v21_item2_observer.py": "1d59595641e22783540728477e3f247a7755da4e260bc578534d5bfff9e512d1",
+  "v21_clipboard.py": "d6fbc8a338e8ae49c83985e889a14106a295d3fe40a2cc4efd1f88f10ddef45a",
+  "v21_engine_read.py": "43a797767c8ccca8fa308b5afed77f985db204043a3d05e1c9d6449bc3822ad6"
+ },
+ "identity": {
+  "v22": {
+   "treeHead": "7973c427",
+   "profile": "e2-editor-v22",
+   "profileHashes": {
+    "probe.wasm": "f7a40bcce073d913e562245b96f32a1051766dda23da0da3911741f03934d49e",
+    "probe.js": "dc4c2c84657e350668fbfc0048e2ded9c49ca5076610a6389944cf71ea4ba9af",
+    "sdk-worker.js": "0d55bcfa2ee0e4ddc6239e25282001c13410b152a5a08ebac9903cc65c3fd350",
+    "sdk-manifest.json": "000921c176b57174cc1680825c73f878564b3a216e6849dd0d50c8078a9516d5"
+   },
+   "workerServedSha256": "0d55bcfa2ee0e4ddc6239e25282001c13410b152a5a08ebac9903cc65c3fd350",
+   "instrumentedWorker": false,
+   "pageSourceSha256": "605cf24b3dff5a2de1d219ee59e79adc92048e46436d098b7c7a3d837761fa0f",
+   "pageServedSha256": "3ee97fd869dd317b5b54c52a26b58589ab4f588d0cdb5e83f9f8591ef9e18bc8",
+   "pinBefore": "db3408f55316bf67",
+   "pinAfter": "f7a40bcce073d913",
+   "htmlSourceSha256": "1d15814949c633ce43cb1240c30dd48cf982aca008f4ca25d401f4088c67764e",
+   "htmlServedSha256": "738992a175a10dd4b994275bef9fc965b1755385575cbd7bcb737caa46c9168d",
+   "snippetSha256": [
+    "00d2d295ca282eb2c7ee95485f3786c6d2c32db87b30e98fbb53c45eaf40b07a",
+    "1026694494d949667f77a13f1738f74a78bb7406d8c1a946101916bc6ef80ddb",
+    "9711003f51e0ddc762ce61ea2b26fc52a475f8e4417d563b46ae2141c8d925e9"
+   ],
+   "laggingServedFromTree": {},
+   "shellDigest": "e35923a08107662d600d874f6986ef31aa8e8583955386929c26ebec62d82b06",
+   "shellFromTree": true,
+   "dist": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/dist",
+   "mirror": "/tmp/diag-long-para-ml964rpd/mirror-v22",
+   "identityChecks": {
+    "shellDigest": true,
+    "v22:probe.wasm": true,
+    "v22:probe.js": true,
+    "v22:sdk-worker.js": true,
+    "v22:sdk-manifest.json": true,
+    "v22:loaderServed": true
+   },
+   "identityOk": true,
+   "extraFiles": {
+    "v21-i2-empty.odt": "a3354bae8409302103faf1b15876de7faa22576187169e9052bb91a24df14a89",
+    "diag/cjk-65536.md": "9ecdb239209da768f29a61418a5488f8878ead671ee967a705f80b3fe46d0460",
+    "diag/cjk-43520.md": "5d72e3d803bd36cc1e2ae9928c8cab8eb1816deba5c124ed7627aced46acbec8",
+    "diag/ascii-65536.md": "bf718b6f653bebc184e1479f1935b8da974d701b893afcf49e701f3e2f9f9c5a",
+    "v21-diag-long14.odt": "150d28f5cebd0c95043d62d01d44749ba9a3e5d865f204561c589284a3ca431b"
+   },
+   "loaderFetched": {
+    "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+    "sha256": "dc4c2c84657e350668fbfc0048e2ded9c49ca5076610a6389944cf71ea4ba9af"
+   }
+  }
+ },
+ "cells": [
+  {
+   "spec": {
+    "cell": "sdk-md:cjk:65536:v22",
+    "n": 1,
+    "route": "sdk-md",
+    "corpus": "cjk",
+    "bytes": 65536,
+    "page": "v22",
+    "file": "diag/cjk-65536.md",
+    "sha256": "9ecdb239209da768f29a61418a5488f8878ead671ee967a705f80b3fe46d0460",
+    "describe": {
+     "bytes": 65536,
+     "sha256": "9ecdb239209da768f29a61418a5488f8878ead671ee967a705f80b3fe46d0460",
+     "utf16": 21846,
+     "paragraphs": 1,
+     "longestParagraphChars": 21846,
+     "spaces": 0
+    }
+   },
+   "startedAt": "2026-10-19T10:52:51+0800",
+   "lock": {
+    "since": "2026-10-19T10:52:51+0800"
+   },
+   "preRun": {
+    "kwalletLocked": "b false",
+    "chromeProcesses": "37",
+    "firefoxProcesses": "0",
+    "oursRunning": [],
+    "loadavg": [
+     "0.31",
+     "0.82",
+     "1.12"
+    ],
+    "refuse": []
+   },
+   "foreignCpu": {
+    "ok": true,
+    "overLimit": [],
+    "loadavg": [
+     "0.28",
+     "0.81",
+     "1.12"
+    ]
+   },
+   "browserVersion": "Chrome/151.0.7922.169",
+   "load": {
+    "state": "ready",
+    "seconds": 1.8,
+    "leaveDialogAccepted": false
+   },
+   "open": {
+    "opened": true,
+    "observed": {
+     "observed": true,
+     "afterMs": 3
+    },
+    "captureOk": true
+   },
+   "before": {
+    "answered": true,
+    "ok": true,
+    "roundTripMs": 1,
+    "rev": 0
+   },
+   "attempt": {
+    "route": "sdk-md",
+    "method": "pasteMarkdown",
+    "answered": true,
+    "ok": true,
+    "error": null,
+    "ms": 68.8,
+    "waitedS": 0.108,
+    "value": {
+     "revision": 1,
+     "completion": null,
+     "ok": null
+    }
+   },
+   "attemptSeconds": 0.108,
+   "browserCpu": {
+    "sampled": true,
+    "seconds": 2.01,
+    "processes": 16,
+    "top": [
+     {
+      "pid": 2808102,
+      "comm": "chrome",
+      "pct": 0.5
+     },
+     {
+      "pid": 2808368,
+      "comm": "chrome",
+      "pct": 0.5
+     },
+     {
+      "pid": 2808384,
+      "comm": "chrome",
+      "pct": 0.0
+     },
+     {
+      "pid": 2808162,
+      "comm": "chrome",
+      "pct": 0.0
+     }
+    ]
+   },
+   "after": {
+    "obs": {
+     "state": null,
+     "workers": 2,
+     "documentHandle": 1,
+     "doc": null
+    },
+    "pageState": {
+     "state": "ready",
+     "label": "就緒",
+     "revision": "0",
+     "pending": "0",
+     "checkpoint": "無",
+     "doc": "v21-i2-empty.odt",
+     "toast": "已開啟 v21-i2-empty.odt"
+    },
+    "session": {
+     "state": "ready",
+     "revision": 0,
+     "dirty": false,
+     "pending": 0,
+     "generation": 1,
+     "checkpointError": null,
+     "documentRevision": 1
+    },
+    "notice": {
+     "show": "0",
+     "label": "回到檢查點"
+    }
+   },
+   "alive": {
+    "answered": true,
+    "ok": true,
+    "roundTripMs": 104,
+    "rev": 1
+   },
+   "saved": {
+    "file": "001-sdk-md_cjk_65536_v22.odt",
+    "sha256": "d3260c58960a5a0ac04197921958e0ca098c059adcf9243bd513c14a13435684",
+    "bytes": 15219,
+    "paragraphs": 2,
+    "lengths": [
+     21846,
+     0
+    ],
+    "longest": 21846,
+    "totalChars": 21846,
+    "cjkChars": 21845
+   },
+   "cdp": {
+    "exceptions": [],
+    "consoleErrors": [
+     {
+      "at": "2026-10-19T10:53:02+0800",
+      "target": "page",
+      "type": "log-error",
+      "source": "network",
+      "text": "Failed to load resource: the server responded with a status of 404 (File not found)"
+     }
+    ],
+    "detached": [
+     {
+      "at": "2026-10-19T10:53:04+0800",
+      "session": "D4B31E30",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:53:04+0800",
+      "session": "C4A6F1E5",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:53:04+0800",
+      "session": "D790D6A4",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:53:04+0800",
+      "session": "45CFA131",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:53:04+0800",
+      "session": "0FB1CD33",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:53:06+0800",
+      "session": "87F7CCDD",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:53:06+0800",
+      "session": "04A89DBB",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:53:06+0800",
+      "session": "7567DFED",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/sdk-worker.js"
+     }
+    ],
+    "attached": [
+     {
+      "at": "2026-10-19T10:53:02+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/sdk-worker.js",
+      "session": "7567DFED",
+      "via": "page"
+     },
+     {
+      "at": "2026-10-19T10:53:03+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "D790D6A4",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:53:03+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "04A89DBB",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:53:03+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "87F7CCDD",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:53:03+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "C4A6F1E5",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:53:03+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "D4B31E30",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:53:03+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "0FB1CD33",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:53:03+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "45CFA131",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:53:04+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/sdk-worker.js",
+      "session": "21991132",
+      "via": "page"
+     },
+     {
+      "at": "2026-10-19T10:53:05+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "8C2ECD88",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:53:05+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "C38BB0DD",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:53:05+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "FC5AEAD6",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:53:05+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "892034E9",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:53:05+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "D4070134",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:53:05+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "909B1CD6",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:53:05+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "CA8C0B4C",
+      "via": "worker"
+     }
+    ],
+    "consoleCounts": {
+     "worker:log": 4
+    },
+    "crashedPage": []
+   },
+   "javascriptDialogs": [],
+   "close": {},
+   "outcome": "ok",
+   "cellSeconds": 22.7
+  },
+  {
+   "spec": {
+    "cell": "sdk-md:cjk:43520:v22",
+    "n": 2,
+    "route": "sdk-md",
+    "corpus": "cjk",
+    "bytes": 43520,
+    "page": "v22",
+    "file": "diag/cjk-43520.md",
+    "sha256": "5d72e3d803bd36cc1e2ae9928c8cab8eb1816deba5c124ed7627aced46acbec8",
+    "describe": {
+     "bytes": 43520,
+     "sha256": "5d72e3d803bd36cc1e2ae9928c8cab8eb1816deba5c124ed7627aced46acbec8",
+     "utf16": 14508,
+     "paragraphs": 1,
+     "longestParagraphChars": 14508,
+     "spaces": 0
+    }
+   },
+   "startedAt": "2026-10-19T10:53:13+0800",
+   "lock": {
+    "since": "2026-10-19T10:53:13+0800"
+   },
+   "preRun": {
+    "kwalletLocked": "b false",
+    "chromeProcesses": "35",
+    "firefoxProcesses": "0",
+    "oursRunning": [],
+    "loadavg": [
+     "0.56",
+     "0.84",
+     "1.12"
+    ],
+    "refuse": []
+   },
+   "foreignCpu": {
+    "ok": true,
+    "overLimit": [],
+    "loadavg": [
+     "0.52",
+     "0.82",
+     "1.11"
+    ]
+   },
+   "browserVersion": "Chrome/151.0.7922.169",
+   "load": {
+    "state": "ready",
+    "seconds": 1.5,
+    "leaveDialogAccepted": false
+   },
+   "open": {
+    "opened": true,
+    "observed": {
+     "observed": true,
+     "afterMs": 3
+    },
+    "captureOk": true
+   },
+   "before": {
+    "answered": true,
+    "ok": true,
+    "roundTripMs": 1,
+    "rev": 0
+   },
+   "attempt": {
+    "route": "sdk-md",
+    "method": "pasteMarkdown",
+    "answered": true,
+    "ok": true,
+    "error": null,
+    "ms": 53.8,
+    "waitedS": 0.103,
+    "value": {
+     "revision": 1,
+     "completion": null,
+     "ok": null
+    }
+   },
+   "attemptSeconds": 0.103,
+   "browserCpu": {
+    "sampled": true,
+    "seconds": 2.01,
+    "processes": 16,
+    "top": [
+     {
+      "pid": 2808739,
+      "comm": "chrome",
+      "pct": 13.9
+     },
+     {
+      "pid": 2808781,
+      "comm": "chrome",
+      "pct": 6.5
+     },
+     {
+      "pid": 2809001,
+      "comm": "chrome",
+      "pct": 0.5
+     },
+     {
+      "pid": 2808757,
+      "comm": "chrome",
+      "pct": 0.5
+     }
+    ]
+   },
+   "after": {
+    "obs": {
+     "state": null,
+     "workers": 2,
+     "documentHandle": 1,
+     "doc": null
+    },
+    "pageState": {
+     "state": "ready",
+     "label": "就緒",
+     "revision": "0",
+     "pending": "0",
+     "checkpoint": "無",
+     "doc": "v21-i2-empty.odt",
+     "toast": "已開啟 v21-i2-empty.odt"
+    },
+    "session": {
+     "state": "ready",
+     "revision": 0,
+     "dirty": false,
+     "pending": 0,
+     "generation": 1,
+     "checkpointError": null,
+     "documentRevision": 1
+    },
+    "notice": {
+     "show": "0",
+     "label": "回到檢查點"
+    }
+   },
+   "alive": {
+    "answered": true,
+    "ok": true,
+    "roundTripMs": 104,
+    "rev": 1
+   },
+   "saved": {
+    "file": "002-sdk-md_cjk_43520_v22.odt",
+    "sha256": "cee51bd6bcf75c92ff1fe9fd90078d07d62f1ebec742e6a6cd3522bdc72402dd",
+    "bytes": 15173,
+    "paragraphs": 2,
+    "lengths": [
+     14508,
+     0
+    ],
+    "longest": 14508,
+    "totalChars": 14508,
+    "cjkChars": 14506
+   },
+   "cdp": {
+    "exceptions": [],
+    "consoleErrors": [
+     {
+      "at": "2026-10-19T10:53:25+0800",
+      "target": "page",
+      "type": "log-error",
+      "source": "network",
+      "text": "Failed to load resource: the server responded with a status of 404 (File not found)"
+     }
+    ],
+    "detached": [
+     {
+      "at": "2026-10-19T10:53:26+0800",
+      "session": "F84F9192",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:53:26+0800",
+      "session": "B9690634",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:53:26+0800",
+      "session": "1BC02423",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:53:26+0800",
+      "session": "3FDD2F51",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:53:26+0800",
+      "session": "09FB94E3",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:53:28+0800",
+      "session": "EB5AF9CD",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:53:28+0800",
+      "session": "B46D9907",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:53:28+0800",
+      "session": "3F4B478E",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/sdk-worker.js"
+     }
+    ],
+    "attached": [
+     {
+      "at": "2026-10-19T10:53:25+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/sdk-worker.js",
+      "session": "3F4B478E",
+      "via": "page"
+     },
+     {
+      "at": "2026-10-19T10:53:25+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "F84F9192",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:53:25+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "EB5AF9CD",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:53:25+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "B46D9907",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:53:25+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "09FB94E3",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:53:25+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "3FDD2F51",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:53:25+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "1BC02423",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:53:25+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "B9690634",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:53:26+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/sdk-worker.js",
+      "session": "F583CD95",
+      "via": "page"
+     },
+     {
+      "at": "2026-10-19T10:53:27+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "85C6D9BF",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:53:27+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "A1CBDFF4",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:53:27+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "75D07AD8",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:53:27+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "83191B62",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:53:27+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "B08B5099",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:53:27+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "49FF6746",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:53:27+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "3EEA46D5",
+      "via": "worker"
+     }
+    ],
+    "consoleCounts": {
+     "worker:log": 4
+    },
+    "crashedPage": []
+   },
+   "javascriptDialogs": [],
+   "close": {},
+   "outcome": "ok",
+   "cellSeconds": 22.3
+  },
+  {
+   "spec": {
+    "cell": "sdk-md:ascii:65536:v22",
+    "n": 3,
+    "route": "sdk-md",
+    "corpus": "ascii",
+    "bytes": 65536,
+    "page": "v22",
+    "file": "diag/ascii-65536.md",
+    "sha256": "bf718b6f653bebc184e1479f1935b8da974d701b893afcf49e701f3e2f9f9c5a",
+    "describe": {
+     "bytes": 65536,
+     "sha256": "bf718b6f653bebc184e1479f1935b8da974d701b893afcf49e701f3e2f9f9c5a",
+     "utf16": 65536,
+     "paragraphs": 1,
+     "longestParagraphChars": 65536,
+     "spaces": 0
+    }
+   },
+   "startedAt": "2026-10-19T10:53:36+0800",
+   "lock": {
+    "since": "2026-10-19T10:53:36+0800"
+   },
+   "preRun": {
+    "kwalletLocked": "b false",
+    "chromeProcesses": "38",
+    "firefoxProcesses": "0",
+    "oursRunning": [],
+    "loadavg": [
+     "0.48",
+     "0.80",
+     "1.10"
+    ],
+    "refuse": []
+   },
+   "foreignCpu": {
+    "ok": true,
+    "overLimit": [],
+    "loadavg": [
+     "0.45",
+     "0.79",
+     "1.09"
+    ]
+   },
+   "browserVersion": "Chrome/151.0.7922.169",
+   "load": {
+    "state": "ready",
+    "seconds": 1.5,
+    "leaveDialogAccepted": false
+   },
+   "open": {
+    "opened": true,
+    "observed": {
+     "observed": true,
+     "afterMs": 103
+    },
+    "captureOk": true
+   },
+   "before": {
+    "answered": true,
+    "ok": true,
+    "roundTripMs": 1,
+    "rev": 0
+   },
+   "attempt": {
+    "route": "sdk-md",
+    "method": "pasteMarkdown",
+    "answered": true,
+    "ok": true,
+    "error": null,
+    "ms": 94.2,
+    "waitedS": 0.104,
+    "value": {
+     "revision": 1,
+     "completion": null,
+     "ok": null
+    }
+   },
+   "attemptSeconds": 0.104,
+   "browserCpu": {
+    "sampled": true,
+    "seconds": 2.01,
+    "processes": 16,
+    "top": [
+     {
+      "pid": 2809306,
+      "comm": "chrome",
+      "pct": 3.0
+     },
+     {
+      "pid": 2809348,
+      "comm": "chrome",
+      "pct": 1.0
+     },
+     {
+      "pid": 2809346,
+      "comm": "chrome",
+      "pct": 0.0
+     },
+     {
+      "pid": 2809310,
+      "comm": "cat",
+      "pct": 0.0
+     }
+    ]
+   },
+   "after": {
+    "obs": {
+     "state": null,
+     "workers": 2,
+     "documentHandle": 1,
+     "doc": null
+    },
+    "pageState": {
+     "state": "ready",
+     "label": "就緒",
+     "revision": "0",
+     "pending": "0",
+     "checkpoint": "無",
+     "doc": "v21-i2-empty.odt",
+     "toast": "已開啟 v21-i2-empty.odt"
+    },
+    "session": {
+     "state": "ready",
+     "revision": 0,
+     "dirty": false,
+     "pending": 0,
+     "generation": 1,
+     "checkpointError": null,
+     "documentRevision": 1
+    },
+    "notice": {
+     "show": "0",
+     "label": "回到檢查點"
+    }
+   },
+   "alive": {
+    "answered": true,
+    "ok": true,
+    "roundTripMs": 2,
+    "rev": 1
+   },
+   "saved": {
+    "file": "003-sdk-md_ascii_65536_v22.odt",
+    "sha256": "cfb6111e0d373b443358efbb1f4578f1899f5a0ab9c13e7fcba99b57a6e9beec",
+    "bytes": 27474,
+    "paragraphs": 2,
+    "lengths": [
+     65536,
+     0
+    ],
+    "longest": 65536,
+    "totalChars": 65536,
+    "cjkChars": 0
+   },
+   "cdp": {
+    "exceptions": [],
+    "consoleErrors": [
+     {
+      "at": "2026-10-19T10:53:47+0800",
+      "target": "page",
+      "type": "log-error",
+      "source": "network",
+      "text": "Failed to load resource: the server responded with a status of 404 (File not found)"
+     }
+    ],
+    "detached": [
+     {
+      "at": "2026-10-19T10:53:49+0800",
+      "session": "EF453EDA",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:53:49+0800",
+      "session": "72E6AB76",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:53:49+0800",
+      "session": "203AC953",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:53:49+0800",
+      "session": "F0A022D3",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:53:49+0800",
+      "session": "9FA46773",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:53:51+0800",
+      "session": "CA751D67",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:53:51+0800",
+      "session": "BB0A771E",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:53:51+0800",
+      "session": "2F2E6C16",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/sdk-worker.js"
+     }
+    ],
+    "attached": [
+     {
+      "at": "2026-10-19T10:53:47+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/sdk-worker.js",
+      "session": "2F2E6C16",
+      "via": "page"
+     },
+     {
+      "at": "2026-10-19T10:53:48+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "CA751D67",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:53:48+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "72E6AB76",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:53:48+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "BB0A771E",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:53:48+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "9FA46773",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:53:48+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "EF453EDA",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:53:48+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "F0A022D3",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:53:48+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "203AC953",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:53:49+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/sdk-worker.js",
+      "session": "55F7FDF7",
+      "via": "page"
+     },
+     {
+      "at": "2026-10-19T10:53:49+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "0A007924",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:53:49+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "120E9FB1",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:53:49+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "2994C311",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:53:49+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "B240D7DE",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:53:49+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "DD70689F",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:53:49+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "C67CCF6E",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:53:49+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "8ACC9274",
+      "via": "worker"
+     }
+    ],
+    "consoleCounts": {
+     "worker:log": 4
+    },
+    "crashedPage": []
+   },
+   "javascriptDialogs": [],
+   "close": {},
+   "outcome": "ok",
+   "cellSeconds": 22.3
+  },
+  {
+   "spec": {
+    "cell": "opentype:long14:0:v22",
+    "n": 4,
+    "route": "opentype",
+    "corpus": "long14",
+    "bytes": 15221,
+    "page": "v22",
+    "file": "v21-diag-long14.odt",
+    "sha256": "150d28f5cebd0c95043d62d01d44749ba9a3e5d865f204561c589284a3ca431b",
+    "source": "findings/evidence/link-batch-v21/shakedown/diag-long-paragraph/out/docs-chrome-s8-bigstack/001-sdk-md_cjk_65536_v21big.odt"
+   },
+   "startedAt": "2026-10-19T10:53:58+0800",
+   "lock": {
+    "since": "2026-10-19T10:53:58+0800"
+   },
+   "preRun": {
+    "kwalletLocked": "b false",
+    "chromeProcesses": "38",
+    "firefoxProcesses": "0",
+    "oursRunning": [],
+    "loadavg": [
+     "0.67",
+     "0.82",
+     "1.10"
+    ],
+    "refuse": []
+   },
+   "foreignCpu": {
+    "ok": true,
+    "overLimit": [],
+    "loadavg": [
+     "0.70",
+     "0.82",
+     "1.10"
+    ]
+   },
+   "browserVersion": "Chrome/151.0.7922.169",
+   "load": {
+    "state": "ready",
+    "seconds": 1.8,
+    "leaveDialogAccepted": false
+   },
+   "attempt": {
+    "route": "opentype",
+    "opened": true,
+    "seconds": 1.922,
+    "typed": {
+     "answered": true,
+     "seconds": 0.103,
+     "ok": true,
+     "code": null,
+     "revision": 1,
+     "message": null
+    }
+   },
+   "attemptSeconds": 0.0,
+   "browserCpu": {
+    "sampled": true,
+    "seconds": 2.01,
+    "processes": 16,
+    "top": [
+     {
+      "pid": 2809985,
+      "comm": "chrome",
+      "pct": 0.0
+     },
+     {
+      "pid": 2810184,
+      "comm": "chrome",
+      "pct": 0.0
+     },
+     {
+      "pid": 2810092,
+      "comm": "chrome",
+      "pct": 0.0
+     },
+     {
+      "pid": 2810190,
+      "comm": "chrome",
+      "pct": 0.0
+     }
+    ]
+   },
+   "after": {
+    "obs": {
+     "state": null,
+     "workers": 2,
+     "documentHandle": 1,
+     "doc": null
+    },
+    "pageState": {
+     "state": "ready",
+     "label": "就緒",
+     "revision": "0",
+     "pending": "0",
+     "checkpoint": "無",
+     "doc": "v21-diag-long14.odt",
+     "toast": "已開啟 v21-diag-long14.odt"
+    },
+    "session": {
+     "state": "ready",
+     "revision": 0,
+     "dirty": false,
+     "pending": 0,
+     "generation": 1,
+     "checkpointError": null,
+     "documentRevision": 1
+    },
+    "notice": {
+     "show": "0",
+     "label": "回到檢查點"
+    }
+   },
+   "alive": {
+    "answered": true,
+    "ok": true,
+    "roundTripMs": 103,
+    "rev": 1
+   },
+   "saved": {
+    "file": "004-opentype_long14_0_v22.odt",
+    "sha256": "4131b304404e2a6b72653a5e8e75adebe39d07e3f030ee47d70318426d63dd98",
+    "bytes": 16359,
+    "paragraphs": 2,
+    "lengths": [
+     21847,
+     0
+    ],
+    "longest": 21847,
+    "totalChars": 21847,
+    "cjkChars": 21845
+   },
+   "cdp": {
+    "exceptions": [],
+    "consoleErrors": [
+     {
+      "at": "2026-10-19T10:54:09+0800",
+      "target": "page",
+      "type": "log-error",
+      "source": "network",
+      "text": "Failed to load resource: the server responded with a status of 404 (File not found)"
+     }
+    ],
+    "detached": [
+     {
+      "at": "2026-10-19T10:54:11+0800",
+      "session": "1445E4D5",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:54:11+0800",
+      "session": "39F6FEFE",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:54:11+0800",
+      "session": "799599F9",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:54:11+0800",
+      "session": "884F9762",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:54:11+0800",
+      "session": "E14BEED9",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:54:13+0800",
+      "session": "4C7C444A",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:54:13+0800",
+      "session": "8FF7D57E",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:54:13+0800",
+      "session": "98556AE8",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/sdk-worker.js"
+     }
+    ],
+    "attached": [
+     {
+      "at": "2026-10-19T10:54:09+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/sdk-worker.js",
+      "session": "98556AE8",
+      "via": "page"
+     },
+     {
+      "at": "2026-10-19T10:54:10+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "E14BEED9",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:54:10+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "884F9762",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:54:10+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "39F6FEFE",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:54:10+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "8FF7D57E",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:54:10+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "1445E4D5",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:54:10+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "4C7C444A",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:54:10+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "799599F9",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:54:11+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/sdk-worker.js",
+      "session": "9C23B410",
+      "via": "page"
+     },
+     {
+      "at": "2026-10-19T10:54:12+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "A9659ED7",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:54:12+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "F451F618",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:54:12+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "D27C1837",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:54:12+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "F7CD7944",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:54:12+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "8BA35DD2",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:54:12+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "178A9C8C",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:54:12+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "509E6A2D",
+      "via": "worker"
+     }
+    ],
+    "consoleCounts": {
+     "worker:log": 4
+    },
+    "crashedPage": []
+   },
+   "javascriptDialogs": [],
+   "close": {},
+   "outcome": "ok",
+   "cellSeconds": 22.8
+  },
+  {
+   "spec": {
+    "cell": "sdk-md:cjk:65536:v22",
+    "n": 5,
+    "route": "sdk-md",
+    "corpus": "cjk",
+    "bytes": 65536,
+    "page": "v22",
+    "file": "diag/cjk-65536.md",
+    "sha256": "9ecdb239209da768f29a61418a5488f8878ead671ee967a705f80b3fe46d0460",
+    "describe": {
+     "bytes": 65536,
+     "sha256": "9ecdb239209da768f29a61418a5488f8878ead671ee967a705f80b3fe46d0460",
+     "utf16": 21846,
+     "paragraphs": 1,
+     "longestParagraphChars": 21846,
+     "spaces": 0
+    }
+   },
+   "startedAt": "2026-10-19T10:54:21+0800",
+   "lock": {
+    "since": "2026-10-19T10:54:21+0800"
+   },
+   "preRun": {
+    "kwalletLocked": "b false",
+    "chromeProcesses": "35",
+    "firefoxProcesses": "0",
+    "oursRunning": [],
+    "loadavg": [
+     "0.86",
+     "0.85",
+     "1.10"
+    ],
+    "refuse": []
+   },
+   "foreignCpu": {
+    "ok": true,
+    "overLimit": [],
+    "loadavg": [
+     "1.03",
+     "0.88",
+     "1.11"
+    ]
+   },
+   "browserVersion": "Chrome/151.0.7922.169",
+   "load": {
+    "state": "ready",
+    "seconds": 1.4,
+    "leaveDialogAccepted": false
+   },
+   "open": {
+    "opened": true,
+    "observed": {
+     "observed": true,
+     "afterMs": 2
+    },
+    "captureOk": true
+   },
+   "before": {
+    "answered": true,
+    "ok": true,
+    "roundTripMs": 1,
+    "rev": 0
+   },
+   "attempt": {
+    "route": "sdk-md",
+    "method": "pasteMarkdown",
+    "answered": true,
+    "ok": true,
+    "error": null,
+    "ms": 65.5,
+    "waitedS": 0.114,
+    "value": {
+     "revision": 1,
+     "completion": null,
+     "ok": null
+    }
+   },
+   "attemptSeconds": 0.114,
+   "browserCpu": {
+    "sampled": true,
+    "seconds": 2.01,
+    "processes": 16,
+    "top": [
+     {
+      "pid": 2810620,
+      "comm": "chrome",
+      "pct": 5.5
+     },
+     {
+      "pid": 2810577,
+      "comm": "chrome",
+      "pct": 4.0
+     },
+     {
+      "pid": 2810624,
+      "comm": "chrome",
+      "pct": 0.0
+     },
+     {
+      "pid": 2810593,
+      "comm": "chrome",
+      "pct": 0.0
+     }
+    ]
+   },
+   "after": {
+    "obs": {
+     "state": null,
+     "workers": 2,
+     "documentHandle": 1,
+     "doc": null
+    },
+    "pageState": {
+     "state": "ready",
+     "label": "就緒",
+     "revision": "0",
+     "pending": "0",
+     "checkpoint": "無",
+     "doc": "v21-i2-empty.odt",
+     "toast": "已開啟 v21-i2-empty.odt"
+    },
+    "session": {
+     "state": "ready",
+     "revision": 0,
+     "dirty": false,
+     "pending": 0,
+     "generation": 1,
+     "checkpointError": null,
+     "documentRevision": 1
+    },
+    "notice": {
+     "show": "0",
+     "label": "回到檢查點"
+    }
+   },
+   "alive": {
+    "answered": true,
+    "ok": true,
+    "roundTripMs": 105,
+    "rev": 1
+   },
+   "saved": {
+    "file": "005-sdk-md_cjk_65536_v22.odt",
+    "sha256": "c5b56b0a57de9c2603066a2a2c58f2e9745c490d03bd4b055160d14987eeecaf",
+    "bytes": 15221,
+    "paragraphs": 2,
+    "lengths": [
+     21846,
+     0
+    ],
+    "longest": 21846,
+    "totalChars": 21846,
+    "cjkChars": 21845
+   },
+   "cdp": {
+    "exceptions": [],
+    "consoleErrors": [
+     {
+      "at": "2026-10-19T10:54:32+0800",
+      "target": "page",
+      "type": "log-error",
+      "source": "network",
+      "text": "Failed to load resource: the server responded with a status of 404 (File not found)"
+     }
+    ],
+    "detached": [
+     {
+      "at": "2026-10-19T10:54:34+0800",
+      "session": "A1606182",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:54:34+0800",
+      "session": "4B966954",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:54:34+0800",
+      "session": "C7F2C7DD",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:54:34+0800",
+      "session": "036DF954",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:54:34+0800",
+      "session": "9BE64D71",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:54:36+0800",
+      "session": "BAEF96A1",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:54:36+0800",
+      "session": "CB10AEDF",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:54:36+0800",
+      "session": "7BE59D8A",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/sdk-worker.js"
+     }
+    ],
+    "attached": [
+     {
+      "at": "2026-10-19T10:54:32+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/sdk-worker.js",
+      "session": "7BE59D8A",
+      "via": "page"
+     },
+     {
+      "at": "2026-10-19T10:54:33+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "BAEF96A1",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:54:33+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "C7F2C7DD",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:54:33+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "036DF954",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:54:33+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "CB10AEDF",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:54:33+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "9BE64D71",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:54:33+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "A1606182",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:54:33+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "4B966954",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:54:34+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/sdk-worker.js",
+      "session": "FD4D69B1",
+      "via": "page"
+     },
+     {
+      "at": "2026-10-19T10:54:34+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "789224F9",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:54:34+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "B4B16E88",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:54:34+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "F4147B63",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:54:34+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "EED5F489",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:54:34+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "ACBEBA75",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:54:34+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "581B47D8",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:54:34+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "62CE4FF1",
+      "via": "worker"
+     }
+    ],
+    "consoleCounts": {
+     "worker:log": 4
+    },
+    "crashedPage": []
+   },
+   "javascriptDialogs": [],
+   "close": {},
+   "outcome": "ok",
+   "cellSeconds": 22.3
+  },
+  {
+   "spec": {
+    "cell": "sdk-md:cjk:43520:v22",
+    "n": 6,
+    "route": "sdk-md",
+    "corpus": "cjk",
+    "bytes": 43520,
+    "page": "v22",
+    "file": "diag/cjk-43520.md",
+    "sha256": "5d72e3d803bd36cc1e2ae9928c8cab8eb1816deba5c124ed7627aced46acbec8",
+    "describe": {
+     "bytes": 43520,
+     "sha256": "5d72e3d803bd36cc1e2ae9928c8cab8eb1816deba5c124ed7627aced46acbec8",
+     "utf16": 14508,
+     "paragraphs": 1,
+     "longestParagraphChars": 14508,
+     "spaces": 0
+    }
+   },
+   "startedAt": "2026-10-19T10:54:43+0800",
+   "lock": {
+    "since": "2026-10-19T10:54:43+0800"
+   },
+   "preRun": {
+    "kwalletLocked": "b false",
+    "chromeProcesses": "38",
+    "firefoxProcesses": "0",
+    "oursRunning": [],
+    "loadavg": [
+     "1.11",
+     "0.91",
+     "1.11"
+    ],
+    "refuse": []
+   },
+   "foreignCpu": {
+    "ok": true,
+    "overLimit": [
+     {
+      "pid": 2808008,
+      "comm": "Isolated Web Co",
+      "pct": 55.6,
+      "own": false,
+      "cmd": "/home/jiajun/.tarball-installations/zen/zen -contentproc -isForBrowser -prefsHandle 0:55466 -prefMapHandle 1:311674 -jsInitHandle 2:162336 -parentBuildID 20261016101044 -sandboxReporter 3 -chrootClien"
+     }
+    ],
+    "loadavg": [
+     "1.02",
+     "0.89",
+     "1.11"
+    ]
+   },
+   "browserVersion": "Chrome/151.0.7922.169",
+   "load": {
+    "state": "ready",
+    "seconds": 1.9,
+    "leaveDialogAccepted": false
+   },
+   "open": {
+    "opened": true,
+    "observed": {
+     "observed": true,
+     "afterMs": 104
+    },
+    "captureOk": true
+   },
+   "before": {
+    "answered": true,
+    "ok": true,
+    "roundTripMs": 1,
+    "rev": 0
+   },
+   "attempt": {
+    "route": "sdk-md",
+    "method": "pasteMarkdown",
+    "answered": true,
+    "ok": true,
+    "error": null,
+    "ms": 45.9,
+    "waitedS": 0.123,
+    "value": {
+     "revision": 1,
+     "completion": null,
+     "ok": null
+    }
+   },
+   "attemptSeconds": 0.123,
+   "browserCpu": {
+    "sampled": true,
+    "seconds": 2.01,
+    "processes": 16,
+    "top": [
+     {
+      "pid": 2811404,
+      "comm": "chrome",
+      "pct": 0.5
+     },
+     {
+      "pid": 2811153,
+      "comm": "chrome",
+      "pct": 0.5
+     },
+     {
+      "pid": 2811192,
+      "comm": "chrome",
+      "pct": 0.5
+     },
+     {
+      "pid": 2811168,
+      "comm": "chrome",
+      "pct": 0.0
+     }
+    ]
+   },
+   "after": {
+    "obs": {
+     "state": null,
+     "workers": 2,
+     "documentHandle": 1,
+     "doc": null
+    },
+    "pageState": {
+     "state": "ready",
+     "label": "就緒",
+     "revision": "0",
+     "pending": "0",
+     "checkpoint": "無",
+     "doc": "v21-i2-empty.odt",
+     "toast": "已開啟 v21-i2-empty.odt"
+    },
+    "session": {
+     "state": "ready",
+     "revision": 0,
+     "dirty": false,
+     "pending": 0,
+     "generation": 1,
+     "checkpointError": null,
+     "documentRevision": 1
+    },
+    "notice": {
+     "show": "0",
+     "label": "回到檢查點"
+    }
+   },
+   "alive": {
+    "answered": true,
+    "ok": true,
+    "roundTripMs": 104,
+    "rev": 1
+   },
+   "saved": {
+    "file": "006-sdk-md_cjk_43520_v22.odt",
+    "sha256": "656e56f1cf552fd06db9a2bb23fcbe8db017935f693000318073948af1fc6383",
+    "bytes": 15174,
+    "paragraphs": 2,
+    "lengths": [
+     14508,
+     0
+    ],
+    "longest": 14508,
+    "totalChars": 14508,
+    "cjkChars": 14506
+   },
+   "cdp": {
+    "exceptions": [],
+    "consoleErrors": [
+     {
+      "at": "2026-10-19T10:54:55+0800",
+      "target": "page",
+      "type": "log-error",
+      "source": "network",
+      "text": "Failed to load resource: the server responded with a status of 404 (File not found)"
+     }
+    ],
+    "detached": [
+     {
+      "at": "2026-10-19T10:54:57+0800",
+      "session": "16AEC3C7",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:54:57+0800",
+      "session": "AC9ABCC9",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:54:57+0800",
+      "session": "89966898",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:54:57+0800",
+      "session": "C56EAA9D",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:54:57+0800",
+      "session": "6D833D84",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:54:58+0800",
+      "session": "A09F6BCB",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:54:58+0800",
+      "session": "F5E1F6AA",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:54:58+0800",
+      "session": "385D1350",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/sdk-worker.js"
+     }
+    ],
+    "attached": [
+     {
+      "at": "2026-10-19T10:54:55+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/sdk-worker.js",
+      "session": "385D1350",
+      "via": "page"
+     },
+     {
+      "at": "2026-10-19T10:54:55+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "AC9ABCC9",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:54:55+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "A09F6BCB",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:54:55+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "C56EAA9D",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:54:55+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "6D833D84",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:54:55+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "89966898",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:54:55+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "F5E1F6AA",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:54:55+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "16AEC3C7",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:54:57+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/sdk-worker.js",
+      "session": "4EDA5E5D",
+      "via": "page"
+     },
+     {
+      "at": "2026-10-19T10:54:57+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "90555CDF",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:54:57+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "F11832B7",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:54:57+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "9E2C6F67",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:54:57+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "4B87546B",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:54:57+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "63FF9569",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:54:57+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "585E8754",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:54:57+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "94781AED",
+      "via": "worker"
+     }
+    ],
+    "consoleCounts": {
+     "worker:log": 4
+    },
+    "crashedPage": []
+   },
+   "javascriptDialogs": [],
+   "close": {},
+   "outcome": "ok",
+   "cellSeconds": 22.9
+  },
+  {
+   "spec": {
+    "cell": "sdk-md:ascii:65536:v22",
+    "n": 7,
+    "route": "sdk-md",
+    "corpus": "ascii",
+    "bytes": 65536,
+    "page": "v22",
+    "file": "diag/ascii-65536.md",
+    "sha256": "bf718b6f653bebc184e1479f1935b8da974d701b893afcf49e701f3e2f9f9c5a",
+    "describe": {
+     "bytes": 65536,
+     "sha256": "bf718b6f653bebc184e1479f1935b8da974d701b893afcf49e701f3e2f9f9c5a",
+     "utf16": 65536,
+     "paragraphs": 1,
+     "longestParagraphChars": 65536,
+     "spaces": 0
+    }
+   },
+   "startedAt": "2026-10-19T10:55:06+0800",
+   "lock": {
+    "since": "2026-10-19T10:55:06+0800"
+   },
+   "preRun": {
+    "kwalletLocked": "b false",
+    "chromeProcesses": "37",
+    "firefoxProcesses": "0",
+    "oursRunning": [],
+    "loadavg": [
+     "0.88",
+     "0.86",
+     "1.09"
+    ],
+    "refuse": []
+   },
+   "foreignCpu": {
+    "ok": true,
+    "overLimit": [],
+    "loadavg": [
+     "0.81",
+     "0.85",
+     "1.09"
+    ]
+   },
+   "browserVersion": "Chrome/151.0.7922.169",
+   "load": {
+    "state": "ready",
+    "seconds": 1.9,
+    "leaveDialogAccepted": false
+   },
+   "open": {
+    "opened": true,
+    "observed": {
+     "observed": true,
+     "afterMs": 104
+    },
+    "captureOk": true
+   },
+   "before": {
+    "answered": true,
+    "ok": true,
+    "roundTripMs": 102,
+    "rev": 0
+   },
+   "attempt": {
+    "route": "sdk-md",
+    "method": "pasteMarkdown",
+    "answered": true,
+    "ok": true,
+    "error": null,
+    "ms": 111.6,
+    "waitedS": 0.205,
+    "value": {
+     "revision": 1,
+     "completion": null,
+     "ok": null
+    }
+   },
+   "attemptSeconds": 0.205,
+   "browserCpu": {
+    "sampled": true,
+    "seconds": 2.01,
+    "processes": 15,
+    "top": [
+     {
+      "pid": 2811808,
+      "comm": "chrome",
+      "pct": 0.0
+     },
+     {
+      "pid": 2811809,
+      "comm": "chrome",
+      "pct": 0.0
+     },
+     {
+      "pid": 2811811,
+      "comm": "chrome",
+      "pct": 0.0
+     },
+     {
+      "pid": 2811909,
+      "comm": "chrome",
+      "pct": 0.0
+     }
+    ]
+   },
+   "after": {
+    "obs": {
+     "state": null,
+     "workers": 2,
+     "documentHandle": 1,
+     "doc": null
+    },
+    "pageState": {
+     "state": "ready",
+     "label": "就緒",
+     "revision": "0",
+     "pending": "0",
+     "checkpoint": "無",
+     "doc": "v21-i2-empty.odt",
+     "toast": "已開啟 v21-i2-empty.odt"
+    },
+    "session": {
+     "state": "ready",
+     "revision": 0,
+     "dirty": false,
+     "pending": 0,
+     "generation": 1,
+     "checkpointError": null,
+     "documentRevision": 1
+    },
+    "notice": {
+     "show": "0",
+     "label": "回到檢查點"
+    }
+   },
+   "alive": {
+    "answered": true,
+    "ok": true,
+    "roundTripMs": 105,
+    "rev": 1
+   },
+   "saved": {
+    "file": "007-sdk-md_ascii_65536_v22.odt",
+    "sha256": "db1927646f161c6f8b4d3e22ab96b9436308a1a95d2ac12bfe8c88ea18c8fb85",
+    "bytes": 27472,
+    "paragraphs": 2,
+    "lengths": [
+     65536,
+     0
+    ],
+    "longest": 65536,
+    "totalChars": 65536,
+    "cjkChars": 0
+   },
+   "cdp": {
+    "exceptions": [],
+    "consoleErrors": [
+     {
+      "at": "2026-10-19T10:55:17+0800",
+      "target": "page",
+      "type": "log-error",
+      "source": "network",
+      "text": "Failed to load resource: the server responded with a status of 404 (File not found)"
+     }
+    ],
+    "detached": [
+     {
+      "at": "2026-10-19T10:55:19+0800",
+      "session": "C790B18A",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:55:19+0800",
+      "session": "C158039E",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:55:19+0800",
+      "session": "C53F8ABE",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:55:19+0800",
+      "session": "F5AB089B",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:55:19+0800",
+      "session": "73527F08",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:55:21+0800",
+      "session": "0D3BCC85",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:55:21+0800",
+      "session": "D5EB4B88",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:55:21+0800",
+      "session": "0E50E10C",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/sdk-worker.js"
+     }
+    ],
+    "attached": [
+     {
+      "at": "2026-10-19T10:55:17+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/sdk-worker.js",
+      "session": "0E50E10C",
+      "via": "page"
+     },
+     {
+      "at": "2026-10-19T10:55:18+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "73527F08",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:55:18+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "D5EB4B88",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:55:18+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "C790B18A",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:55:18+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "C158039E",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:55:18+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "C53F8ABE",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:55:18+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "F5AB089B",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:55:18+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "0D3BCC85",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:55:19+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/sdk-worker.js",
+      "session": "8648333B",
+      "via": "page"
+     },
+     {
+      "at": "2026-10-19T10:55:20+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "8F0180DE",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:55:20+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "3AB7BE23",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:55:20+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "2834C605",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:55:20+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "E3558D0C",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:55:20+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "066E66AC",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:55:20+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "2D47449F",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:55:20+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "42C5B7B5",
+      "via": "worker"
+     }
+    ],
+    "consoleCounts": {
+     "worker:log": 4
+    },
+    "crashedPage": []
+   },
+   "javascriptDialogs": [],
+   "close": {},
+   "outcome": "ok",
+   "cellSeconds": 23.0
+  },
+  {
+   "spec": {
+    "cell": "opentype:long14:0:v22",
+    "n": 8,
+    "route": "opentype",
+    "corpus": "long14",
+    "bytes": 15221,
+    "page": "v22",
+    "file": "v21-diag-long14.odt",
+    "sha256": "150d28f5cebd0c95043d62d01d44749ba9a3e5d865f204561c589284a3ca431b",
+    "source": "findings/evidence/link-batch-v21/shakedown/diag-long-paragraph/out/docs-chrome-s8-bigstack/001-sdk-md_cjk_65536_v21big.odt"
+   },
+   "startedAt": "2026-10-19T10:55:29+0800",
+   "lock": {
+    "since": "2026-10-19T10:55:29+0800"
+   },
+   "preRun": {
+    "kwalletLocked": "b false",
+    "chromeProcesses": "38",
+    "firefoxProcesses": "0",
+    "oursRunning": [],
+    "loadavg": [
+     "0.79",
+     "0.84",
+     "1.08"
+    ],
+    "refuse": []
+   },
+   "foreignCpu": {
+    "ok": true,
+    "overLimit": [],
+    "loadavg": [
+     "0.73",
+     "0.83",
+     "1.07"
+    ]
+   },
+   "browserVersion": "Chrome/151.0.7922.169",
+   "load": {
+    "state": "ready",
+    "seconds": 1.5,
+    "leaveDialogAccepted": false
+   },
+   "attempt": {
+    "route": "opentype",
+    "opened": true,
+    "seconds": 1.922,
+    "typed": {
+     "answered": true,
+     "seconds": 0.104,
+     "ok": true,
+     "code": null,
+     "revision": 1,
+     "message": null
+    }
+   },
+   "attemptSeconds": 0.0,
+   "browserCpu": {
+    "sampled": true,
+    "seconds": 2.01,
+    "processes": 16,
+    "top": [
+     {
+      "pid": 2812439,
+      "comm": "chrome",
+      "pct": 3.0
+     },
+     {
+      "pid": 2812480,
+      "comm": "chrome",
+      "pct": 2.5
+     },
+     {
+      "pid": 2812647,
+      "comm": "chrome",
+      "pct": 0.5
+     },
+     {
+      "pid": 2812482,
+      "comm": "chrome",
+      "pct": 0.0
+     }
+    ]
+   },
+   "after": {
+    "obs": {
+     "state": null,
+     "workers": 2,
+     "documentHandle": 1,
+     "doc": null
+    },
+    "pageState": {
+     "state": "ready",
+     "label": "就緒",
+     "revision": "0",
+     "pending": "0",
+     "checkpoint": "無",
+     "doc": "v21-diag-long14.odt",
+     "toast": "已開啟 v21-diag-long14.odt"
+    },
+    "session": {
+     "state": "ready",
+     "revision": 0,
+     "dirty": false,
+     "pending": 0,
+     "generation": 1,
+     "checkpointError": null,
+     "documentRevision": 1
+    },
+    "notice": {
+     "show": "0",
+     "label": "回到檢查點"
+    }
+   },
+   "alive": {
+    "answered": true,
+    "ok": true,
+    "roundTripMs": 103,
+    "rev": 1
+   },
+   "saved": {
+    "file": "008-opentype_long14_0_v22.odt",
+    "sha256": "539c01b7fddc747673bc3583c2e7c1ccd9402aa2c7f9f4cb1c16134c43638fb0",
+    "bytes": 16359,
+    "paragraphs": 2,
+    "lengths": [
+     21847,
+     0
+    ],
+    "longest": 21847,
+    "totalChars": 21847,
+    "cjkChars": 21845
+   },
+   "cdp": {
+    "exceptions": [],
+    "consoleErrors": [
+     {
+      "at": "2026-10-19T10:55:40+0800",
+      "target": "page",
+      "type": "log-error",
+      "source": "network",
+      "text": "Failed to load resource: the server responded with a status of 404 (File not found)"
+     }
+    ],
+    "detached": [
+     {
+      "at": "2026-10-19T10:55:42+0800",
+      "session": "DF442905",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:55:42+0800",
+      "session": "08811D83",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:55:42+0800",
+      "session": "61535254",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:55:42+0800",
+      "session": "218D30BE",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:55:42+0800",
+      "session": "CB378F46",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:55:44+0800",
+      "session": "6CCABD00",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:55:44+0800",
+      "session": "50289DFD",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:55:44+0800",
+      "session": "7CAF8F34",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/sdk-worker.js"
+     }
+    ],
+    "attached": [
+     {
+      "at": "2026-10-19T10:55:40+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/sdk-worker.js",
+      "session": "7CAF8F34",
+      "via": "page"
+     },
+     {
+      "at": "2026-10-19T10:55:41+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "61535254",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:55:41+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "CB378F46",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:55:41+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "50289DFD",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:55:41+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "08811D83",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:55:41+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "6CCABD00",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:55:41+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "DF442905",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:55:41+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "218D30BE",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:55:42+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/sdk-worker.js",
+      "session": "BB6CA112",
+      "via": "page"
+     },
+     {
+      "at": "2026-10-19T10:55:42+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "B1BF7675",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:55:42+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "D5A9C8B0",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:55:42+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "E493D3BA",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:55:42+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "E92AEF6E",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:55:42+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "AB9E4D4B",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:55:42+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "5F5BA0A7",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:55:42+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "FC5F24D3",
+      "via": "worker"
+     }
+    ],
+    "consoleCounts": {
+     "worker:log": 4
+    },
+    "crashedPage": []
+   },
+   "javascriptDialogs": [],
+   "close": {},
+   "outcome": "ok",
+   "cellSeconds": 22.4
+  },
+  {
+   "spec": {
+    "cell": "sdk-md:cjk:65536:v22",
+    "n": 9,
+    "route": "sdk-md",
+    "corpus": "cjk",
+    "bytes": 65536,
+    "page": "v22",
+    "file": "diag/cjk-65536.md",
+    "sha256": "9ecdb239209da768f29a61418a5488f8878ead671ee967a705f80b3fe46d0460",
+    "describe": {
+     "bytes": 65536,
+     "sha256": "9ecdb239209da768f29a61418a5488f8878ead671ee967a705f80b3fe46d0460",
+     "utf16": 21846,
+     "paragraphs": 1,
+     "longestParagraphChars": 21846,
+     "spaces": 0
+    }
+   },
+   "startedAt": "2026-10-19T10:55:51+0800",
+   "lock": {
+    "since": "2026-10-19T10:55:51+0800"
+   },
+   "preRun": {
+    "kwalletLocked": "b false",
+    "chromeProcesses": "38",
+    "firefoxProcesses": "0",
+    "oursRunning": [],
+    "loadavg": [
+     "0.64",
+     "0.80",
+     "1.06"
+    ],
+    "refuse": []
+   },
+   "foreignCpu": {
+    "ok": true,
+    "overLimit": [],
+    "loadavg": [
+     "0.59",
+     "0.79",
+     "1.06"
+    ]
+   },
+   "browserVersion": "Chrome/151.0.7922.169",
+   "load": {
+    "state": "ready",
+    "seconds": 1.9,
+    "leaveDialogAccepted": false
+   },
+   "open": {
+    "opened": true,
+    "observed": {
+     "observed": true,
+     "afterMs": 3
+    },
+    "captureOk": true
+   },
+   "before": {
+    "answered": true,
+    "ok": true,
+    "roundTripMs": 1,
+    "rev": 0
+   },
+   "attempt": {
+    "route": "sdk-md",
+    "method": "pasteMarkdown",
+    "answered": true,
+    "ok": true,
+    "error": null,
+    "ms": 64.3,
+    "waitedS": 0.104,
+    "value": {
+     "revision": 1,
+     "completion": null,
+     "ok": null
+    }
+   },
+   "attemptSeconds": 0.104,
+   "browserCpu": {
+    "sampled": true,
+    "seconds": 2.01,
+    "processes": 16,
+    "top": [
+     {
+      "pid": 2813323,
+      "comm": "chrome",
+      "pct": 1.0
+     },
+     {
+      "pid": 2813123,
+      "comm": "chrome",
+      "pct": 0.5
+     },
+     {
+      "pid": 2813152,
+      "comm": "chrome",
+      "pct": 0.0
+     },
+     {
+      "pid": 2813088,
+      "comm": "cat",
+      "pct": 0.0
+     }
+    ]
+   },
+   "after": {
+    "obs": {
+     "state": null,
+     "workers": 2,
+     "documentHandle": 1,
+     "doc": null
+    },
+    "pageState": {
+     "state": "ready",
+     "label": "就緒",
+     "revision": "0",
+     "pending": "0",
+     "checkpoint": "無",
+     "doc": "v21-i2-empty.odt",
+     "toast": "已開啟 v21-i2-empty.odt"
+    },
+    "session": {
+     "state": "ready",
+     "revision": 0,
+     "dirty": false,
+     "pending": 0,
+     "generation": 1,
+     "checkpointError": null,
+     "documentRevision": 1
+    },
+    "notice": {
+     "show": "0",
+     "label": "回到檢查點"
+    }
+   },
+   "alive": {
+    "answered": true,
+    "ok": true,
+    "roundTripMs": 105,
+    "rev": 1
+   },
+   "saved": {
+    "file": "009-sdk-md_cjk_65536_v22.odt",
+    "sha256": "0c624e3fcccd1f9f6fea70fede0f249da520ac327106e6cfc95da4094b91ce5d",
+    "bytes": 15222,
+    "paragraphs": 2,
+    "lengths": [
+     21846,
+     0
+    ],
+    "longest": 21846,
+    "totalChars": 21846,
+    "cjkChars": 21845
+   },
+   "cdp": {
+    "exceptions": [],
+    "consoleErrors": [
+     {
+      "at": "2026-10-19T10:56:03+0800",
+      "target": "page",
+      "type": "log-error",
+      "source": "network",
+      "text": "Failed to load resource: the server responded with a status of 404 (File not found)"
+     }
+    ],
+    "detached": [
+     {
+      "at": "2026-10-19T10:56:05+0800",
+      "session": "0FC36912",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:56:05+0800",
+      "session": "1A313731",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:56:05+0800",
+      "session": "72C77B26",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:56:05+0800",
+      "session": "A7D83B52",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:56:05+0800",
+      "session": "7F1C5B6B",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:56:07+0800",
+      "session": "9E450B39",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:56:07+0800",
+      "session": "EADEF0D9",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:56:07+0800",
+      "session": "5889A672",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/sdk-worker.js"
+     }
+    ],
+    "attached": [
+     {
+      "at": "2026-10-19T10:56:03+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/sdk-worker.js",
+      "session": "5889A672",
+      "via": "page"
+     },
+     {
+      "at": "2026-10-19T10:56:03+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "A7D83B52",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:56:03+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "7F1C5B6B",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:56:03+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "0FC36912",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:56:03+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "1A313731",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:56:03+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "9E450B39",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:56:03+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "72C77B26",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:56:03+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "EADEF0D9",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:56:05+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/sdk-worker.js",
+      "session": "98BBA4CC",
+      "via": "page"
+     },
+     {
+      "at": "2026-10-19T10:56:05+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "FBD1BDAC",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:56:05+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "C6BB05E4",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:56:05+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "702AECFA",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:56:05+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "DA2A8BDF",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:56:05+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "BA6740B4",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:56:05+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "7F04821C",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:56:05+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "A96DBC67",
+      "via": "worker"
+     }
+    ],
+    "consoleCounts": {
+     "worker:log": 4
+    },
+    "crashedPage": []
+   },
+   "javascriptDialogs": [],
+   "close": {},
+   "outcome": "ok",
+   "cellSeconds": 22.7
+  },
+  {
+   "spec": {
+    "cell": "sdk-md:cjk:43520:v22",
+    "n": 10,
+    "route": "sdk-md",
+    "corpus": "cjk",
+    "bytes": 43520,
+    "page": "v22",
+    "file": "diag/cjk-43520.md",
+    "sha256": "5d72e3d803bd36cc1e2ae9928c8cab8eb1816deba5c124ed7627aced46acbec8",
+    "describe": {
+     "bytes": 43520,
+     "sha256": "5d72e3d803bd36cc1e2ae9928c8cab8eb1816deba5c124ed7627aced46acbec8",
+     "utf16": 14508,
+     "paragraphs": 1,
+     "longestParagraphChars": 14508,
+     "spaces": 0
+    }
+   },
+   "startedAt": "2026-10-19T10:56:14+0800",
+   "lock": {
+    "since": "2026-10-19T10:56:14+0800"
+   },
+   "preRun": {
+    "kwalletLocked": "b false",
+    "chromeProcesses": "38",
+    "firefoxProcesses": "0",
+    "oursRunning": [],
+    "loadavg": [
+     "1.42",
+     "0.99",
+     "1.12"
+    ],
+    "refuse": []
+   },
+   "foreignCpu": {
+    "ok": true,
+    "overLimit": [],
+    "loadavg": [
+     "1.31",
+     "0.97",
+     "1.11"
+    ]
+   },
+   "browserVersion": "Chrome/151.0.7922.169",
+   "load": {
+    "state": "ready",
+    "seconds": 1.8,
+    "leaveDialogAccepted": false
+   },
+   "open": {
+    "opened": true,
+    "observed": {
+     "observed": true,
+     "afterMs": 2
+    },
+    "captureOk": true
+   },
+   "before": {
+    "answered": true,
+    "ok": true,
+    "roundTripMs": 1,
+    "rev": 0
+   },
+   "attempt": {
+    "route": "sdk-md",
+    "method": "pasteMarkdown",
+    "answered": true,
+    "ok": true,
+    "error": null,
+    "ms": 40.4,
+    "waitedS": 0.102,
+    "value": {
+     "revision": 1,
+     "completion": null,
+     "ok": null
+    }
+   },
+   "attemptSeconds": 0.102,
+   "browserCpu": {
+    "sampled": true,
+    "seconds": 2.01,
+    "processes": 16,
+    "top": [
+     {
+      "pid": 2813705,
+      "comm": "chrome",
+      "pct": 0.5
+     },
+     {
+      "pid": 2813967,
+      "comm": "chrome",
+      "pct": 0.5
+     },
+     {
+      "pid": 2813825,
+      "comm": "chrome",
+      "pct": 0.0
+     },
+     {
+      "pid": 2813797,
+      "comm": "chrome",
+      "pct": 0.0
+     }
+    ]
+   },
+   "after": {
+    "obs": {
+     "state": null,
+     "workers": 2,
+     "documentHandle": 1,
+     "doc": null
+    },
+    "pageState": {
+     "state": "ready",
+     "label": "就緒",
+     "revision": "0",
+     "pending": "0",
+     "checkpoint": "無",
+     "doc": "v21-i2-empty.odt",
+     "toast": "已開啟 v21-i2-empty.odt"
+    },
+    "session": {
+     "state": "ready",
+     "revision": 0,
+     "dirty": false,
+     "pending": 0,
+     "generation": 1,
+     "checkpointError": null,
+     "documentRevision": 1
+    },
+    "notice": {
+     "show": "0",
+     "label": "回到檢查點"
+    }
+   },
+   "alive": {
+    "answered": true,
+    "ok": true,
+    "roundTripMs": 104,
+    "rev": 1
+   },
+   "saved": {
+    "file": "010-sdk-md_cjk_43520_v22.odt",
+    "sha256": "d67142e667ec426ac364687ead698347406e44208cf05520652a768e905f0f85",
+    "bytes": 15172,
+    "paragraphs": 2,
+    "lengths": [
+     14508,
+     0
+    ],
+    "longest": 14508,
+    "totalChars": 14508,
+    "cjkChars": 14506
+   },
+   "cdp": {
+    "exceptions": [],
+    "consoleErrors": [
+     {
+      "at": "2026-10-19T10:56:26+0800",
+      "target": "page",
+      "type": "log-error",
+      "source": "network",
+      "text": "Failed to load resource: the server responded with a status of 404 (File not found)"
+     }
+    ],
+    "detached": [
+     {
+      "at": "2026-10-19T10:56:28+0800",
+      "session": "AC962063",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:56:28+0800",
+      "session": "FACC0C46",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:56:28+0800",
+      "session": "9D1BBF5D",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:56:28+0800",
+      "session": "0882A86E",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:56:28+0800",
+      "session": "2C913D9F",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:56:29+0800",
+      "session": "24909400",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:56:29+0800",
+      "session": "9C5C415C",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:56:29+0800",
+      "session": "4CF2502D",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/sdk-worker.js"
+     }
+    ],
+    "attached": [
+     {
+      "at": "2026-10-19T10:56:26+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/sdk-worker.js",
+      "session": "4CF2502D",
+      "via": "page"
+     },
+     {
+      "at": "2026-10-19T10:56:26+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "AC962063",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:56:26+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "2C913D9F",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:56:26+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "FACC0C46",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:56:26+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "24909400",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:56:26+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "9C5C415C",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:56:26+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "9D1BBF5D",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:56:26+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "0882A86E",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:56:28+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/sdk-worker.js",
+      "session": "1C9370E1",
+      "via": "page"
+     },
+     {
+      "at": "2026-10-19T10:56:28+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "3AA440E7",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:56:28+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "8B644E4B",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:56:28+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "41AB5F58",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:56:28+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "25F73C71",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:56:28+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "79ECC537",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:56:28+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "D8A87C6F",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:56:28+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "9E2C2BCC",
+      "via": "worker"
+     }
+    ],
+    "consoleCounts": {
+     "worker:log": 4
+    },
+    "crashedPage": []
+   },
+   "javascriptDialogs": [],
+   "close": {},
+   "outcome": "ok",
+   "cellSeconds": 22.7
+  },
+  {
+   "spec": {
+    "cell": "sdk-md:ascii:65536:v22",
+    "n": 11,
+    "route": "sdk-md",
+    "corpus": "ascii",
+    "bytes": 65536,
+    "page": "v22",
+    "file": "diag/ascii-65536.md",
+    "sha256": "bf718b6f653bebc184e1479f1935b8da974d701b893afcf49e701f3e2f9f9c5a",
+    "describe": {
+     "bytes": 65536,
+     "sha256": "bf718b6f653bebc184e1479f1935b8da974d701b893afcf49e701f3e2f9f9c5a",
+     "utf16": 65536,
+     "paragraphs": 1,
+     "longestParagraphChars": 65536,
+     "spaces": 0
+    }
+   },
+   "startedAt": "2026-10-19T10:56:37+0800",
+   "lock": {
+    "since": "2026-10-19T10:56:37+0800"
+   },
+   "preRun": {
+    "kwalletLocked": "b false",
+    "chromeProcesses": "38",
+    "firefoxProcesses": "0",
+    "oursRunning": [],
+    "loadavg": [
+     "1.47",
+     "1.03",
+     "1.12"
+    ],
+    "refuse": []
+   },
+   "foreignCpu": {
+    "ok": true,
+    "overLimit": [],
+    "loadavg": [
+     "1.31",
+     "1.01",
+     "1.12"
+    ]
+   },
+   "browserVersion": "Chrome/151.0.7922.169",
+   "load": {
+    "state": "ready",
+    "seconds": 1.5,
+    "leaveDialogAccepted": false
+   },
+   "open": {
+    "opened": true,
+    "observed": {
+     "observed": true,
+     "afterMs": 104
+    },
+    "captureOk": true
+   },
+   "before": {
+    "answered": true,
+    "ok": true,
+    "roundTripMs": 103,
+    "rev": 0
+   },
+   "attempt": {
+    "route": "sdk-md",
+    "method": "pasteMarkdown",
+    "answered": true,
+    "ok": true,
+    "error": null,
+    "ms": 95.4,
+    "waitedS": 0.121,
+    "value": {
+     "revision": 1,
+     "completion": null,
+     "ok": null
+    }
+   },
+   "attemptSeconds": 0.121,
+   "browserCpu": {
+    "sampled": true,
+    "seconds": 2.01,
+    "processes": 16,
+    "top": [
+     {
+      "pid": 2814251,
+      "comm": "chrome",
+      "pct": 2.5
+     },
+     {
+      "pid": 2814294,
+      "comm": "chrome",
+      "pct": 1.0
+     },
+     {
+      "pid": 2814488,
+      "comm": "chrome",
+      "pct": 0.5
+     },
+     {
+      "pid": 2814269,
+      "comm": "chrome",
+      "pct": 0.5
+     }
+    ]
+   },
+   "after": {
+    "obs": {
+     "state": null,
+     "workers": 2,
+     "documentHandle": 1,
+     "doc": null
+    },
+    "pageState": {
+     "state": "ready",
+     "label": "就緒",
+     "revision": "0",
+     "pending": "0",
+     "checkpoint": "無",
+     "doc": "v21-i2-empty.odt",
+     "toast": "已開啟 v21-i2-empty.odt"
+    },
+    "session": {
+     "state": "ready",
+     "revision": 0,
+     "dirty": false,
+     "pending": 0,
+     "generation": 1,
+     "checkpointError": null,
+     "documentRevision": 1
+    },
+    "notice": {
+     "show": "0",
+     "label": "回到檢查點"
+    }
+   },
+   "alive": {
+    "answered": true,
+    "ok": true,
+    "roundTripMs": 105,
+    "rev": 1
+   },
+   "saved": {
+    "file": "011-sdk-md_ascii_65536_v22.odt",
+    "sha256": "98bac5224f5f8ccd42bcf6ce9fcfc9a143c9515d45edda47fe7796ef6aa34258",
+    "bytes": 27474,
+    "paragraphs": 2,
+    "lengths": [
+     65536,
+     0
+    ],
+    "longest": 65536,
+    "totalChars": 65536,
+    "cjkChars": 0
+   },
+   "cdp": {
+    "exceptions": [],
+    "consoleErrors": [
+     {
+      "at": "2026-10-19T10:56:48+0800",
+      "target": "page",
+      "type": "log-error",
+      "source": "network",
+      "text": "Failed to load resource: the server responded with a status of 404 (File not found)"
+     }
+    ],
+    "detached": [
+     {
+      "at": "2026-10-19T10:56:50+0800",
+      "session": "E460EA7A",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:56:50+0800",
+      "session": "D317039E",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:56:50+0800",
+      "session": "593FEAB7",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:56:50+0800",
+      "session": "21458738",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:56:50+0800",
+      "session": "8B00A8C3",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:56:52+0800",
+      "session": "AFE0CFF9",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:56:52+0800",
+      "session": "4253A940",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:56:52+0800",
+      "session": "785FE55D",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/sdk-worker.js"
+     }
+    ],
+    "attached": [
+     {
+      "at": "2026-10-19T10:56:48+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/sdk-worker.js",
+      "session": "785FE55D",
+      "via": "page"
+     },
+     {
+      "at": "2026-10-19T10:56:49+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "D317039E",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:56:49+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "4253A940",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:56:49+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "593FEAB7",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:56:49+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "21458738",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:56:49+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "8B00A8C3",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:56:49+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "E460EA7A",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:56:49+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "AFE0CFF9",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:56:50+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/sdk-worker.js",
+      "session": "9615D750",
+      "via": "page"
+     },
+     {
+      "at": "2026-10-19T10:56:50+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "8CE89C1D",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:56:50+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "955CE948",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:56:50+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "47FEAC19",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:56:50+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "97A98833",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:56:50+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "8103BB85",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:56:50+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "94F50927",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:56:50+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "A67A79AA",
+      "via": "worker"
+     }
+    ],
+    "consoleCounts": {
+     "worker:log": 4
+    },
+    "crashedPage": []
+   },
+   "javascriptDialogs": [],
+   "close": {},
+   "outcome": "ok",
+   "cellSeconds": 22.5
+  },
+  {
+   "spec": {
+    "cell": "opentype:long14:0:v22",
+    "n": 12,
+    "route": "opentype",
+    "corpus": "long14",
+    "bytes": 15221,
+    "page": "v22",
+    "file": "v21-diag-long14.odt",
+    "sha256": "150d28f5cebd0c95043d62d01d44749ba9a3e5d865f204561c589284a3ca431b",
+    "source": "findings/evidence/link-batch-v21/shakedown/diag-long-paragraph/out/docs-chrome-s8-bigstack/001-sdk-md_cjk_65536_v21big.odt"
+   },
+   "startedAt": "2026-10-19T10:56:59+0800",
+   "lock": {
+    "since": "2026-10-19T10:56:59+0800"
+   },
+   "preRun": {
+    "kwalletLocked": "b false",
+    "chromeProcesses": "38",
+    "firefoxProcesses": "0",
+    "oursRunning": [],
+    "loadavg": [
+     "1.09",
+     "0.97",
+     "1.10"
+    ],
+    "refuse": []
+   },
+   "foreignCpu": {
+    "ok": true,
+    "overLimit": [],
+    "loadavg": [
+     "1.01",
+     "0.96",
+     "1.10"
+    ]
+   },
+   "browserVersion": "Chrome/151.0.7922.169",
+   "load": {
+    "state": "ready",
+    "seconds": 1.4,
+    "leaveDialogAccepted": false
+   },
+   "attempt": {
+    "route": "opentype",
+    "opened": true,
+    "seconds": 1.922,
+    "typed": {
+     "answered": true,
+     "seconds": 0.103,
+     "ok": true,
+     "code": null,
+     "revision": 1,
+     "message": null
+    }
+   },
+   "attemptSeconds": 0.0,
+   "browserCpu": {
+    "sampled": true,
+    "seconds": 2.01,
+    "processes": 16,
+    "top": [
+     {
+      "pid": 2814965,
+      "comm": "chrome",
+      "pct": 4.0
+     },
+     {
+      "pid": 2814923,
+      "comm": "chrome",
+      "pct": 3.5
+     },
+     {
+      "pid": 2815133,
+      "comm": "chrome",
+      "pct": 0.5
+     },
+     {
+      "pid": 2815042,
+      "comm": "chrome",
+      "pct": 0.0
+     }
+    ]
+   },
+   "after": {
+    "obs": {
+     "state": null,
+     "workers": 2,
+     "documentHandle": 1,
+     "doc": null
+    },
+    "pageState": {
+     "state": "ready",
+     "label": "就緒",
+     "revision": "0",
+     "pending": "0",
+     "checkpoint": "無",
+     "doc": "v21-diag-long14.odt",
+     "toast": "已開啟 v21-diag-long14.odt"
+    },
+    "session": {
+     "state": "ready",
+     "revision": 0,
+     "dirty": false,
+     "pending": 0,
+     "generation": 1,
+     "checkpointError": null,
+     "documentRevision": 1
+    },
+    "notice": {
+     "show": "0",
+     "label": "回到檢查點"
+    }
+   },
+   "alive": {
+    "answered": true,
+    "ok": true,
+    "roundTripMs": 103,
+    "rev": 1
+   },
+   "saved": {
+    "file": "012-opentype_long14_0_v22.odt",
+    "sha256": "dcf6e65fb381797248681854ef85c99f93c330824905743b810543e1457de424",
+    "bytes": 16359,
+    "paragraphs": 2,
+    "lengths": [
+     21847,
+     0
+    ],
+    "longest": 21847,
+    "totalChars": 21847,
+    "cjkChars": 21845
+   },
+   "cdp": {
+    "exceptions": [],
+    "consoleErrors": [
+     {
+      "at": "2026-10-19T10:57:11+0800",
+      "target": "page",
+      "type": "log-error",
+      "source": "network",
+      "text": "Failed to load resource: the server responded with a status of 404 (File not found)"
+     }
+    ],
+    "detached": [
+     {
+      "at": "2026-10-19T10:57:12+0800",
+      "session": "8DBC26AE",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:57:12+0800",
+      "session": "6B3BE3DF",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:57:12+0800",
+      "session": "0494080C",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:57:12+0800",
+      "session": "B816DA5A",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:57:12+0800",
+      "session": "40BE384B",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:57:14+0800",
+      "session": "9842236A",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:57:14+0800",
+      "session": "30560371",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js"
+     },
+     {
+      "at": "2026-10-19T10:57:14+0800",
+      "session": "7579E85C",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/sdk-worker.js"
+     }
+    ],
+    "attached": [
+     {
+      "at": "2026-10-19T10:57:11+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/sdk-worker.js",
+      "session": "7579E85C",
+      "via": "page"
+     },
+     {
+      "at": "2026-10-19T10:57:11+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "30560371",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:57:11+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "6B3BE3DF",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:57:11+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "40BE384B",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:57:11+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "9842236A",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:57:11+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "8DBC26AE",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:57:11+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "0494080C",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:57:11+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "B816DA5A",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:57:12+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/sdk-worker.js",
+      "session": "1BDBB61D",
+      "via": "page"
+     },
+     {
+      "at": "2026-10-19T10:57:13+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "6E4A59F8",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:57:13+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "BB1864D3",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:57:13+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "798BC989",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:57:13+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "8FB153FD",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:57:13+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "4B38AA58",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:57:13+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "98972542",
+      "via": "worker"
+     },
+     {
+      "at": "2026-10-19T10:57:13+0800",
+      "type": "worker",
+      "url": "http://127.0.0.1:33571/profiles/e2-editor-v22/probe.js",
+      "session": "DA46C67C",
+      "via": "worker"
+     }
+    ],
+    "consoleCounts": {
+     "worker:log": 4
+    },
+    "crashedPage": []
+   },
+   "javascriptDialogs": [],
+   "close": {},
+   "outcome": "ok",
+   "cellSeconds": 22.4
+  }
+ ],
+ "completedAt": "2026-10-19T10:57:22+0800"
+}

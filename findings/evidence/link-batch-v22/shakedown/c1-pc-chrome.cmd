@@ -1,0 +1,1 @@
+python3 -B findings/evidence/link-batch-v21/shakedown/diag-long-paragraph/tool/diag_long_paragraph.py --browser chrome --out findings/evidence/link-batch-v22/shakedown --label c1-pc-chrome sdk-md:cjk:65536:v21
