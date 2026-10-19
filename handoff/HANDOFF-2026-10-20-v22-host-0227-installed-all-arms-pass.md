@@ -86,7 +86,7 @@ This continues `HANDOFF-2026-10-19c-v22-shell-items-evidence-chain-running.md` a
    - **F3-hand:** in a real Chrome, type once after 插入 and once after 取消; the typed text must land in the document. **If never done, 0.2.27 is never called shippable and the next host version withdraws the entry** (§11.3);
    - Ctrl/Cmd+Home/End (item 1);
    - how the dialog looks, closed and open. Plain words for H-154o: **when opened, the box appears at the top-left corner of the window, not centred**. Typing and both buttons work. Finding 155 is the fix for the next host version.
-3. **Release text for the version that ships v22** (spec §8; addendum 1 item 7). Not written yet:
+3. **Release text for the version that ships v22** (spec §8; addendum 1 item 7). **Drafted**: `handoff/RELEASE-TEXT-DRAFT-0.2.27.md` (`acbd973b`, zh-TW for the owner). It stays a draft until K and the owner's hand tests. It covers:
    - remove §4.1's long-paragraph sentence (`handoff/RELEASE-TEXT-0.2.25-0.2.26.md:55-58`);
    - add L-153-no-overflow-check and the 1 MiB stack / memory sentence (spec §8);
    - make no ordering claim for "large paste, then Ctrl+End, then typing" (D6 unmeasured);
