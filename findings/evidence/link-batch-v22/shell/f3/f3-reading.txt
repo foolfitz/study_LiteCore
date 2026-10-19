@@ -1,0 +1,19 @@
+F3 reading (SPEC-M3-link-batch-v22 §11.3): per cell 3/3 rounds outcome done, insertTextAfterZ true, zHits non-empty;
+each cell from the report in which its variant ran its own procedure (README).  python3 -I.
+
+run1/report-chrome-20261019T115719.json [chrome Chrome/151.0.7922.169] page 3b96cb1661aba6de matches True identityOk True profile e2-editor-v22 wasm f7a40bcce073d913 html b9c2b9751f579625 fix none -- run 1: v5 ran its own procedure (v11c/v11d were misrouted)
+run1/report-firefox-20261019T120022.json [firefox 157.0.1] page 3b96cb1661aba6de matches True identityOk True profile e2-editor-v22 wasm f7a40bcce073d913 html b9c2b9751f579625 fix none -- run 1, as above
+report-chrome-20261019T120543.json [chrome Chrome/151.0.7922.169] page 3b96cb1661aba6de matches True identityOk True profile e2-editor-v22 wasm f7a40bcce073d913 html b9c2b9751f579625 fix none -- run 2, after the dispatch fix
+run2-firefox-v11d-no-clipboard-prefs/report-firefox-20261019T120748.json [firefox 157.0.1] page 3b96cb1661aba6de matches True identityOk True profile e2-editor-v22 wasm f7a40bcce073d913 html b9c2b9751f579625 fix none -- run 2: v11c does not paste, so the missing clipboard prefs do not touch it
+report-firefox-20261019T121100.json [firefox 157.0.1] page 3b96cb1661aba6de matches True identityOk True profile e2-editor-v22 wasm f7a40bcce073d913 html b9c2b9751f579625 fix none -- run 3, after the clipboard-prefs fix
+
+  chrome  v11c     3/3  r1 done afterZ=True saved='ZYXAlpha first paragraph'; r2 done afterZ=True saved='ZYXAlpha first paragraph'; r3 done afterZ=True saved='ZYXAlpha first paragraph'
+  chrome  v11d     3/3  r1 done afterZ=True saved='Bravo ZYX paragraph'; r2 done afterZ=True saved='Bravo ZYX paragraph'; r3 done afterZ=True saved='Bravo ZYX paragraph'
+  chrome  v5@0     3/3  r1 done afterZ=True saved='ZYXAlpha first paragraph'; r2 done afterZ=True saved='ZYXAlpha first paragraph'; r3 done afterZ=True saved='ZYXAlpha first paragraph'
+  chrome  v5@300   3/3  r1 done afterZ=True saved='ZYXAlpha first paragraph'; r2 done afterZ=True saved='ZYXAlpha first paragraph'; r3 done afterZ=True saved='ZYXAlpha first paragraph'
+  firefox v11c     3/3  r1 done afterZ=True saved='ZYXAlpha first paragraph'; r2 done afterZ=True saved='ZYXAlpha first paragraph'; r3 done afterZ=True saved='ZYXAlpha first paragraph'
+  firefox v11d     3/3  r1 done afterZ=True saved='Bravo ZYX paragraph'; r2 done afterZ=True saved='Bravo ZYX paragraph'; r3 done afterZ=True saved='Bravo ZYX paragraph'
+  firefox v5@0     3/3  r1 done afterZ=True saved='ZYXAlpha first paragraph'; r2 done afterZ=True saved='ZYXAlpha first paragraph'; r3 done afterZ=True saved='ZYXAlpha first paragraph'
+  firefox v5@300   3/3  r1 done afterZ=True saved='ZYXAlpha first paragraph'; r2 done afterZ=True saved='ZYXAlpha first paragraph'; r3 done afterZ=True saved='ZYXAlpha first paragraph'
+
+F3: PASS (8 cells)

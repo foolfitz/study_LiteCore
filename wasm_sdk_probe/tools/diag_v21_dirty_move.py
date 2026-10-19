@@ -95,6 +95,11 @@ VARIANTS = ("v1", "v2", "v3", "v4", "v5", "v6", "v6e",
 # v11c and v11d left this list for v22 §11.3 (F3 needs them in Firefox as the no-regression control; their
 # steps use only the shared instruments).  An addition, §34.4 0 / 0.
 CHROME_ONLY = ("v11a", "v11b", "v11e", "v11f")
+# The variants round_v11 runs.  Until 2026-10-19 the dispatch below read CHROME_ONLY for this, so taking v11c and
+# v11d out of CHROME_ONLY sent them to round_move (the v1-v4 path): F3's first run measured no V11 cell
+# (findings/evidence/link-batch-v22/shell/f3/report-*-20261019T1157*/1200*.json, the witness).  §34.4: repaired
+# because of execution, +1.
+V11_ROUNDS = ("v11a", "v11b", "v11c", "v11d", "v11e")
 V7_WAITS = ((0, None), (300, 1), (1000, None), (3000, 1))   # (X ms, rounds; None = --rounds)
 RANGE_SECOND = "k1024,k1027x6,ra,k1027x6,rb,sa:b"           # «Bravo |second|» in P2, dragged a -> b
 
@@ -1018,7 +1023,7 @@ def tables(directory: Path, pattern: str = "report-*.json") -> str:
                     lines.append("| " + " | ".join(_cell(x) for x in (
                         r.get("round"), repr(s.get("selectionText")), s.get("placeCaretBeforeMove"), s.get("moveCompletion"),
                         s.get("finalCaret"), repr(s.get("p2")), _order(s.get("order")))) + " |")
-            elif variant in CHROME_ONLY:
+            elif variant in V11_ROUNDS:
                 lines.append("| round | first input | at that moment: active / disabled / readOnly / inert / closest [inert] / pointer-events "
                              "/ dialog open / hasFocus | beforeinput / input anywhere | insertText | Z | W (pasted) "
                              "| then Y (no click), X (after click) | request order |")
@@ -1189,8 +1194,13 @@ def main() -> int:
                 session = open_headed(window)
                 report["headed"] = {"argv": session.argv, "display": session.display}
             else:
+                # The clipboard prefs for every variant that pastes into the dialog.  Until 2026-10-19 only v5 got
+                # them; v11d (Chrome-only until then) ran without them in Firefox and the paste left the textarea
+                # empty (f3/report-firefox-20261019T120748.json, the witness).  §34.4: repaired because of
+                # execution, +1.
+                clipboard = "v5" in variants or any(v in V11_ROUNDS for v in variants)
                 session = common.open_browser(args.browser, window,
-                                              firefox_prefs=clip.FIREFOX_PREFS if "v5" in variants else None)
+                                              firefox_prefs=clip.FIREFOX_PREFS if clipboard else None)
             report["browserVersion"] = getattr(session, "version", None)
             ctx = item1.Ctx(session, args.browser, pages, report, docs)
             for variant in variants:
@@ -1235,7 +1245,7 @@ def main() -> int:
                 elif variant == "v11f":
                     block["notRun"] = ("the 0.2.24 page (dist/e2-editor.html, dist/e2-editor-app.js) has no <dialog> "
                                        "element and no showModal call, so there is no dialog to open and close")
-                elif variant in CHROME_ONLY:
+                elif variant in V11_ROUNDS:
                     for n in range(1, args.rounds + 1):
                         rec = guarded(round_v11, ctx, variant[-1], f"{variant}-r{n}")
                         block["rounds"].append({"round": n, **rec})
