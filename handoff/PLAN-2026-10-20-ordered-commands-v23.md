@@ -111,3 +111,25 @@ The default if nothing is chosen: the facts sheet and the candidate analysis pro
 - `handoff/HANDOFF-2026-10-13f-shift-arrow-deferred-137-registered-v20-part1.md`:33-40, 51 and 103-107.
 - `findings/evidence/link-batch/extend-signatures/run-20261013T095104Z/`: native extend signatures (111 cells).
 - `findings/evidence/link-batch/extend-model/README.md`, `wasm_sdk_probe/tests/extend_completion_model_test.cpp` and `wasm_sdk_probe/src/extend_completion.hpp`: the model.
+
+## 7. Ruling 1 (fable, on the owner's delegation, 2026-10-20; append only)
+
+`findings/evidence/link-batch-v23/review/ruling-fable-1.md`. Brief `9613bfea`. The owner's words were 「我不在座位，請自主執行任務，另外我授權給fable 代我做決策」. The main session's source check is appended to the ruling.
+
+- **Scope: §4 A (tiers 1 and 2).** Tier 3 (items 10, 11 and 13) enters only as a consequence the chosen candidate demonstrates; item 12 stays out. The spec carries one disposition line per census item, from {in, consequence, out, re-registered} (form 1).
+- **Candidate: C (unipoll) is measured first, natively, with no link.** The decision arms D1–D8 run at N = 5, with threaded controls that must reorder N/N, and the reader's four red cases are made first (ruling §2.6).
+- **Withdrawn:**
+  - A′ (the two-hop key, F1–F3);
+  - B as stated (a fixed-depth marker is unsound).
+  
+  B″ (no synchronous command while the user-event list is non-empty: `ReportWhenIdle`, or `HasUserEvents()`) is the fallback, measured only if C fails.
+- **A is not this batch's fallback.** The undo proof makes completion hop-agnostic, not order (ruling §2.4). It was the main session's lean, and the ruling says it is wrong.
+- **Ruling 4's "C is constrained by finding 040" is struck.** 040's wait is taken only off the main thread, and under unipoll the engine thread is the main thread. Rulings 4 and 5 are not edited; the spec cites this ruling.
+- **The model runs after the native arms, in two modes** (ruling §2.7).
+- **Spec consequences to record** (ruling §2.8):
+  - the three fixed questions under C, with no Yield, `ProcessEventsToIdle` or `Reschedule` inside a command;
+  - L-C-number-or-indent closes when the engine sends the user's own key;
+  - the 2.25 s window is replaced by the answer at return, which needs a §34 ruling for the counted 096 check;
+  - ABI 6;
+  - the post-link arms, with a diagnostic profile linked first.
+- **0.2.28 is not installed now.** The owner's 「安裝等你給時段」 binds, and a general delegation does not reach it. It waits for a window the owner names in his own words.
