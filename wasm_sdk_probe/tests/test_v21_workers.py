@@ -18,6 +18,7 @@ from pathlib import Path
 
 sys.dont_write_bytecode = True
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "tools"))
+import v21_shakedown_common as common  # noqa: E402
 import v21_workers as workers  # noqa: E402
 
 HARNESS = r"""
@@ -93,7 +94,7 @@ def run_worker(source: bytes) -> dict:
 class Workers(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.text = workers.shipped_worker_text()
+        cls.text = workers.shipped_worker_text(common.DEFAULT_PROFILE)
         cls.carrier = run_worker(workers.raw_bytes_carrier(cls.text))
         cls.trace = run_worker(workers.trace_worker(workers.raw_bytes_carrier(cls.text).decode("utf-8")))
 

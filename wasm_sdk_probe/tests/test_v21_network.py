@@ -58,7 +58,7 @@ class Network(unittest.TestCase):
             coep = response.headers.get("Cross-Origin-Embedder-Policy")
         self.assertEqual(hashlib.sha256(body).hexdigest(), hashlib.sha256(BODY).hexdigest())
         self.assertEqual(coep, "require-corp")
-        hit = net.positive_control(self.proxy.entries(), self.mirror_port)
+        hit = net.positive_control(self.proxy.entries(), self.mirror_port, "e2-editor-v21")
         self.assertIsNotNone(hit)
         self.assertEqual((hit["status"], hit["bytes"]), (200, len(BODY)))
 
@@ -115,10 +115,24 @@ class Network(unittest.TestCase):
 
     def test_red_no_probe_wasm_means_no_positive_control(self):
         entries = [{"method": "GET", "host": "127.0.0.1", "port": 5555, "path": "/e2-editor.html", "t": 1.0}]
-        self.assertIsNone(net.positive_control(entries, 5555))
+        self.assertIsNone(net.positive_control(entries, 5555, "e2-editor-v21"))
         entries.append({"method": "GET", "host": "127.0.0.1", "port": 6666,
                         "path": "/profiles/e2-editor-v21/probe.wasm", "t": 2.0})
-        self.assertIsNone(net.positive_control(entries, 5555), "probe.wasm from another origin is not the control")
+        self.assertIsNone(net.positive_control(entries, 5555, "e2-editor-v21"),
+                          "probe.wasm from another origin is not the control")
+
+    def test_profile_is_required(self):
+        # Ruling 6 (v22): a default profile went stale when the mirror moved to v22 and voided M5 in both browsers.
+        with self.assertRaises(TypeError):
+            net.positive_control([], 5555)
+
+    def test_red_the_control_is_the_served_profiles_wasm(self):
+        # The first v22 item-2 run's shape: the mirror served e2-editor-v22, so only v22 GETs are in the log.
+        entries = [{"method": "GET", "host": "127.0.0.1", "port": 5555, "path": "/e2-editor.html", "t": 1.0},
+                   {"method": "GET", "host": "127.0.0.1", "port": 5555,
+                    "path": "/profiles/e2-editor-v22/probe.wasm", "t": 2.0, "status": 200}]
+        self.assertIsNone(net.positive_control(entries, 5555, "e2-editor-v21"))
+        self.assertIs(net.positive_control(entries, 5555, "e2-editor-v22"), entries[1])
 
     def test_red_target_request_inside_a_window_is_reported(self):
         entries = [{"method": "GET", "host": "127.0.0.1", "port": 5555, "path": "/x", "t": 10.0},

@@ -1231,7 +1231,7 @@ def arm_m5(browser: str, pop: dict, rounds: int, out: dict, scratch: Path, files
                 rnd["load"] = ctx.load()
                 ctx.open(EMPTY)
                 rnd["positiveControl"] = net.positive_control([e for e in proxy.entries() if e["t"] >= t_start - 1],
-                                                              mirror_port)
+                                                              mirror_port, identity["profile"])
                 t0 = time.time()
                 r7_support.run_in_page(session, "fetch('http://127.0.0.1:18765/m5-control', { mode: 'no-cors' }).catch(() => {});")
                 time.sleep(1.5)
@@ -1337,7 +1337,7 @@ def main() -> int:
         report_path.write_text(json.dumps(report, indent=1, ensure_ascii=False, default=str))
     FLUSH["fn"] = flush
     files = mirror_files(pop)
-    shipped = workers.shipped_worker_text()
+    shipped = workers.shipped_worker_text(common.DEFAULT_PROFILE)    # the profile build_mirror serves bytes/trace on
     with common.browser_lock(f"run_v21_shakedown_item2 {args.browser} {','.join(arms)}", wait_s=args.wait_lock) as holder:
         report["lockTakenAt"] = common.now_iso()
         report["lock"] = holder

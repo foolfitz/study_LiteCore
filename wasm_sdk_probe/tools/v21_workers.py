@@ -59,7 +59,7 @@ class PatchError(RuntimeError):
     """The anchor a patch needs is not in the worker exactly once."""
 
 
-def shipped_worker_text(profile: str = "e2-editor-v21") -> str:
+def shipped_worker_text(profile: str) -> str:
     return (PROJECT / "dist" / "profiles" / profile / "sdk-worker.js").read_text(encoding="utf-8")
 
 

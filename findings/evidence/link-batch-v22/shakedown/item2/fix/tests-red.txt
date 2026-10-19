@@ -1,0 +1,21 @@
+# red: the new tests on the unfixed tools (tree 7475d52d + test edits only), 2026-10-19
+.../usr/lib/python3.14/tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 404: 'Not Found'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+.F..../usr/lib/python3.14/tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 502: 'Bad Gateway'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+..........
+======================================================================
+FAIL: test_profile_is_required (tests.test_v21_network.Network.test_profile_is_required)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tests/test_v21_network.py", line 126, in test_profile_is_required
+    with self.assertRaises(TypeError):
+         ~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+AssertionError: TypeError not raised
+
+----------------------------------------------------------------------
+Ran 19 tests in 2.089s
+
+FAILED (failures=1)
+<sys>:0: ResourceWarning: unclosed <socket.socket fd=3, family=2, type=1, proto=0, laddr=('127.0.0.1', 33835)>
+# exit 1

@@ -376,8 +376,9 @@ def cdp_requests(events: list[dict]) -> list[dict]:
     return out
 
 
-def positive_control(entries: list[dict], mirror_port: int, profile: str = "e2-editor-v21") -> dict | None:
-    """The worker's probe.wasm GET, in the proxy's log, to the mirror server."""
+def positive_control(entries: list[dict], mirror_port: int, profile: str) -> dict | None:
+    """The worker's probe.wasm GET, in the proxy's log, to the mirror server.  `profile` has no default: it is
+    the profile the mirror was built with (ruling 6, v22: a v21 default voided M5 when the mirror moved)."""
     for e in entries:
         if (e.get("method") == "GET" and e.get("port") == mirror_port
                 and e.get("host") in ("127.0.0.1", "localhost")
