@@ -238,6 +238,30 @@ finding 153 判準 2 要求「附理由」：量到的深度，或原生的設�
 - **§9 的四個條件**：先於滿足（還沒有任何 v22 殼層執行）；被逼出來且指名（第 13 項的 grep，以及 §11.0 的身分規則套在 v22 的 wasm 上）；形式一；截止＝v75 凍結（I1-rerun）／0.2.27 的宿主臂（D2-v22）。
 - **工作項（不是閘門）**：產品路徑網加一格 Ctrl+Home／End（形式二），第一次計入前（v22 之後那次計數）先 §34.3 審核。
 
+#### 11.4.1 E0 在 v22 上撤回，改讀 E0-v22（2026-10-19，fable 裁決 5 附錄 1，只追加；任何第 1 項的 v22 執行之前）
+
+出處：`findings/evidence/link-batch-v22/review/ruling-fable-5-addendum-1.md`（採用前的核對附在檔尾）。取代上面 I1-rerun 的「兩個瀏覽器都 `VERDICT PASS`」那一句。
+
+- **被逼出來的量測**：主 session 在任何執行之前讀 `judge_e0`（`judge_v21_shakedown_item1.py:855-893`）。它要求入口在每一臂開始時都藏著，那是 v21 §12.3 (e) 的讀法。在 pageServed `3b96cb16…` 上，入口在每一個 v22 profile 的臂上都看得到，所以 E0 依構造必紅。
+- **E0 撤回**（CLAUDE.md §4：它的前提被本批自己撤銷）。judge 不改，§34.4 不計，自我測試不動。
+- **E0-v22**：形式一，逐次讀取；`python3 -I` 讀報告，不另寫工具。讀的是每份報告每一臂每一回的 `start.entry`：
+  - `variant` 不是 `v20`、也不是 `dist0224` 的讀數（`v21`、`v21host`、`v21hook` 是頁面變體的名字，profile 是 `e2-editor-v22`）：`exists` true、`hidden` false、`hiddenAttr` false、`controlVisible` true、`dialogExists` true、`dialogOpen` false，而且 `visibleOpeners` **恰好一個**，`action == "paste-markdown"`、`tag "button"`；
+  - `variant` 是 `v20` 的讀數（D5w 的 v20 頁）：`exists` true、`hidden` true、`visibleOpeners == []`、`controlVisible` true；
+  - `dist0224` 不判（0.2.24 沒有對話框）；
+  - 有 `error` 或 `controlVisible` 不是 true 的讀數是盲的，該回 NE；零個讀數 → NE。
+  - **紅案**（第一次讀之前，對一份 item-1 報告的合成副本，commit 在 `findings/evidence/link-batch-v22/shakedown/item1/red/`）：v22 profile 的讀數 `hidden` true → FAIL；兩個 opener → FAIL；`v20` 讀數 `hidden` false → FAIL；`controlVisible` false → NE。
+- **judge 輸出的讀法**：`judge_v21_shakedown_item1.py --expect-page 3b96cb16…` 照原樣跑。
+  - 每個瀏覽器的 **I1-rerun PASS**＝judge 對該瀏覽器的格印 `VERDICT NOT PASS (1 criterion cell(s) not PASS)`，那一格是 `E0 <browser> FAIL`，其餘每一條判準（D1 D2p D4 D5w D7 D8 D9 D10 D11a D11b D11c D12 D14）都 PASS；**而且** E0-v22 在同一批報告上成立。
+  - 兩個瀏覽器一次判時讀到 `VERDICT NOT PASS (2 criterion cell(s) not PASS)`，恰好是兩個 E0 格。任何其他不是 PASS 的格照該判準讀。
+  - 證據 README 原文引用 VERDICT 那一行，並寫明為什麼 v22 上 NOT PASS 才是預期且正確的那一行。
+- **預設**：
+  - E0-v22 沒讀 → I1-rerun 沒做 → v22 不可出貨；
+  - v22 profile 的讀數紅＝入口沒有跟著最終頁面出去：套用第 2 項的預設（入口關掉），本批回到 §11.7 第 2 (a) 步；
+  - `v20` 讀數紅 → M8 的預設「最終殼層不得與 v20 搭配」。
+- **D6：不跑，預設照舊。** 它是記錄臂，runner 沒有實作（`NOT_RUNNABLE`）。v22 不寫它。0.2.27 的發佈說明對「大段貼上之後接著 Ctrl+End 再打字」的先後次序**不做任何宣稱**。judge 會印「D6 未量 (not runnable: item 2 not shipped (spec §12.3 (e)))」；這個理由在 v22 上是過時的，真正的理由是「這一臂沒有實作」，證據 README 寫在引用的那一行旁邊，工具不為一個字串改。**工作項（不是閘門）**：下一次在有入口的頁面上跑第 1 項之前實作 D6。
+- **其餘查過**：第 1 項的 judge、runner 與 runner 注入的三支共用儀器裡，寫死 v21 §12.3 (e) 或 v21 頁面的只有 E0、D6 與已處理的 `dist0224` 來源；其餘的「v21」都是頁面變體的名字，不綁位元組。第 1 項報告裡的 `start.entry` 讀數，是同一份頁面位元組上 M8 頁面格的獨立旁證，記在第 2 項 README 當交叉引用，不當 M8 的判定。
+- **§9 的四個條件**：先於滿足（還沒有任何第 1 項的 v22 執行）；被逼出來且指名（上面的讀數）；形式一；截止＝v75 凍結。
+
 ### 11.5 宿主 0.2.27 與對話框（第 17–20 項）
 
 - **主 session 可以在這一輪打包 0.2.27 並裝到擁有者的 ddev**，條件八條：
@@ -319,3 +343,4 @@ finding 153 判準 2 要求「附理由」：量到的深度，或原生的設�
 | 2026-10-19 | §10（追加）：連結之後的結果——凍結集合相同、S1 PASS、S2 0、I1-v22 PASS、v22 已封存；wasm 只差一個函式（`probe_engine.o` 重編，finding 036 的形狀），stack 的值不在差異裡。 |
 | 2026-10-19 | §10.1（追加）：診斷工具 `v22` 頁面族與身分證人（含紅案）；C1 PASS（兩個瀏覽器 24/24，正向對照兩個瀏覽器都 crash）；H1 六格 ok；S1 的送出條款成立。 |
 | 2026-10-19 | §11、§12（追加，fable 裁決 5，任何殼層改動與執行之前）：殼層項目的範圍、第 2 項照搬判準 E2 與五個讀法、I2-v22、F3／F3-hand、第 1 項的 I1-rerun 與 D2-v22（「K 蓋得到第 1 項」更正為不成立）、宿主 0.2.27 的八個條件、H-154c／H-154o／M11-autosave、page honesty 前提、順序與交接點；殼層 digest 不動、judge pin 的更正。 |
+| 2026-10-19 | §11.4.1（追加，fable 裁決 5 附錄 1，任何第 1 項的 v22 執行之前）：E0 在 v22 上撤回（依構造必紅），改讀 E0-v22（同一份 `start.entry` 資料，四個紅案先行）；I1-rerun 的過關讀法；D6 不跑、預設照舊。 |
