@@ -59,17 +59,16 @@ const PINNED_WASM_SHA256 = "db3408f55316bf67";
 const HOST = globalThis.liteCoreHost ?? null;
 let hostSaves = Promise.resolve();
 
-// FINDING 153 (SPEC-M3-link-batch-v21 §12.3 (e); fable ruling 1, Q4).  Item 2,
-// paste as Markdown, does not ship in v21: M3 is red on the linked engine --
-// one long paragraph overflows the engine thread's 64 KiB stack -- and M3's
-// pinned default is taken.  So the shell offers NO entry: no 「貼上為
-// Markdown…」 button and no way into `openMarkdownDialog`, WHETHER OR NOT the
-// profile declares the paste (the v21 manifest does).  This is the shell's
-// switch for the feature (9.2); the SDK stays callable (L-md-sdk-callable).
-// The dialog and its code are kept as they are for the batch that ships item 2
-// with the relink that fixes 153 (and finding 152's refocus); that batch turns
-// this on under its own criteria.
-const PASTE_MARKDOWN_ENTRY_SHIPS = false;
+// ITEM 2, paste as Markdown (SPEC-M3-link-batch-v22 §11; fable ruling 5).  It
+// ships from v22: the v22 link gives the engine thread a 1 MiB stack, and
+// finding 153's inputs complete in both browsers there (v22 criterion C1).  In
+// v21 this was false (v21 §12.3 (e)): one long paragraph overflowed the engine
+// thread's 64 KiB stack, so the shell offered no entry whatever the profile
+// declared.  This is still the shell's switch for the feature (v21 9.2): if
+// item 2's criteria on v22 (v22 §11.2, E2) do not hold, it goes back to false
+// before the shell is frozen, and the SDK stays callable (L-md-sdk-callable).
+// With it on, the entry is shown only on a profile that declares the paste.
+const PASTE_MARKDOWN_ENTRY_SHIPS = true;
 
 // SPEC-M3-page-honesty: a file the user may not write opens view-only (the
 // owner's ruling A, 2026-09-29).  The SESSION refuses -- its queue turns away
@@ -1215,8 +1214,8 @@ function updateRedoAffordance() {
  * reason above: on v20 there is no such operation at all, and a disabled
  * button would promise one.  This entry IS the product's switch for the
  * feature (9.2): if M1-M6 do not hold, the entry goes and the SDK path stays
- * callable (L-md-sdk-callable).  In v21 it has gone: PASTE_MARKDOWN_ENTRY_SHIPS
- * (finding 153, §12.3 (e)).
+ * callable (L-md-sdk-callable).  In v21 it was off (PASTE_MARKDOWN_ENTRY_SHIPS,
+ * finding 153, v21 §12.3 (e)); v22 turns it on (v22 §11.2).
  *
  * The session is asked first and every time, whatever the switch says: the
  * shakedown's page hook (tools/v21_page_hook.py) captures the page's session
@@ -2360,7 +2359,10 @@ function closeMarkdownDialog() {
   el.markdownMessage.hidden = true;
   el.markdownMessage.textContent = "";
   el.markdownInsert.disabled = false;
-  if (session) el.sink.focus({ preventScroll: true });
+  // FINDING 152 (v22 §11.3, fix 3).  After a modal <dialog> closes, Chrome
+  // leaves the sink focused but produces no beforeinput for the keys that
+  // follow, until the sink is blurred and focused again.  So: blur, then focus.
+  if (session) { el.sink.blur(); el.sink.focus({ preventScroll: true }); }
 }
 
 /** 「取消」 and Escape: nothing is enqueued, the document is not touched (11.2 M11). */

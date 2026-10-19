@@ -1,0 +1,14 @@
++ python3 -m unittest tests/test_merge_wasm_clauses.py tests/test_judge_counted_m2.py
+......................................................................................................................................
+----------------------------------------------------------------------
+Ran 134 tests in 17.344s
+
+OK
++ python3 -m py_compile tools/create_e2_corpus.py tools/run_e2_c_page_smoke.py tools/build_e2_c_shell_bundle.py tools/run_e2_c_d0.py tools/analyze_e2_c_d0.py tools/analyze_e2_c_d1.py tools/analyze_e2_c_d3_corpus.py tools/run_e2_c_d4.py tools/analyze_e2_c_d4.py tools/run_e2_c_d4_regression.py tools/analyze_e2_c_d5.py tools/run_e2_c_d5.py tools/analyze_e2_c_d4_heap.py tools/check_relink_queue.py tools/e2_c_matrix_entry.py tools/analyze_f046_browser.py tools/analyze_f048_boundary.py tools/analyze_f046_diagnostic.py tools/analyze_f046_overshoot.py tools/run_e2_c_product_path.py tools/probe_second_recovery_inducer.py tools/probe_a11y_gate0.py tools/probe_064_format_reaches_typing.py tools/audit_product_path_coverage.py tools/validate_e2_c.py
++ python3 -m json.tool e2/relink-queue-v3.json
++ python3 tools/check_relink_queue.py
++ python3 tools/check_relink_queue.py --self-test
++ python3 -m json.tool e2/expected-gesture-offers.json
++ python3 tools/check_gesture_offers.py
++ python3 tools/check_gesture_offers.py --self-test
+rest exit 0

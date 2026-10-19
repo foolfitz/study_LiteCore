@@ -1,0 +1,396 @@
+✔ M8 (page): the button is in the markup HIDDEN, before anything has said the profile has it (0.581382ms)
+✖ v22 §11.2 (b): the v22 profile offers the paste, and the shipped shell shows the entry and routes it to the dialog (1.60674ms)
+✔ M8 (page, the real v20 manifest, as shipped): the entry is hidden and the dialog does not open (0.78468ms)
+✔ M8 (page, the field with another value, as shipped): the entry is hidden and the dialog does not open (0.677812ms)
+✔ M8 (page, the field as a boolean, as shipped): the entry is hidden and the dialog does not open (0.654187ms)
+✖ M8 (page, declared, as shipped): the entry is shown and the dialog opens (0.699352ms)
+✖ M8 (page, the real v21 manifest, as shipped): the entry is shown and the dialog opens (0.710172ms)
+✖ M8 (page, the real v22 manifest, as shipped): the entry is shown and the dialog opens (0.659257ms)
+✔ M8 (page, the real v20 manifest, switch on): the entry is hidden and the dialog does not open (0.795961ms)
+✔ M8 (page, the field with another value, switch on): the entry is hidden and the dialog does not open (0.874979ms)
+✔ M8 (page, the field as a boolean, switch on): the entry is hidden and the dialog does not open (0.737172ms)
+✔ M8 (page, declared, switch on): the entry is shown and the dialog opens (0.652394ms)
+✔ M8 (page, the real v21 manifest, switch on): the entry is shown and the dialog opens (0.624773ms)
+✔ M8 (page, the real v22 manifest, switch on): the entry is shown and the dialog opens (0.627959ms)
+✔ M8 (page): no session is no entry, with the switch on too (1.382704ms)
+✔ M8 (page): the toolbar routes the button to the dialog, and only there (0.136414ms)
+✔ M11: typing in the dialog and pressing 取消 enqueues nothing, and the text is gone (6.40518ms)
+✖ finding 152 fix 3: closing the dialog by 取消 blurs the sink, then focuses it (1.142626ms)
+✖ finding 152 fix 3: closing the dialog by 插入 on a caret blurs the sink, then focuses it (1.107011ms)
+✖ finding 154: the page hides a closed dialog with its own rule, which a host's reset cannot undo (0.599696ms)
+✔ M11: Escape is 取消 too -- nothing enqueued, and the browser's own close is replaced by the page's (1.827592ms)
+✔ 9.14: 插入 with a range selected says 請先取消選取 and sends nothing; the text is kept (1.533614ms)
+✔ 插入 on a caret sends the box's text once, closes the dialog and says so (0.901127ms)
+✔ MARKDOWN_REMOTE_IMAGE: said in the dialog as the spec words it, the text kept for fixing (1.378175ms)
+✔ MARKDOWN_NEEDS_CARET: said in the dialog as the spec words it, the text kept for fixing (0.770685ms)
+✔ MARKDOWN_HTML_UNSUPPORTED: the sentence tells the user to wrap it in backticks (10.4) (0.702378ms)
+✔ every pre-dispatch code the page can meet has its own sentence, never a raw code (0.664005ms)
+✔ a post-dispatch failure closes the dialog and advises the checkpoint (the notice bar does the rest) (0.925352ms)
+ℹ tests 28
+ℹ suites 0
+ℹ pass 21
+ℹ fail 7
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 77.301225
+
+✖ failing tests:
+
+test at editor-shell-v2/tests/page-markdown-dialog.test.mjs:153:1
+✖ v22 §11.2 (b): the v22 profile offers the paste, and the shipped shell shows the entry and routes it to the dialog (1.60674ms)
+  AssertionError [ERR_ASSERTION]: the shipped shell hides 「貼上為 Markdown…」 on v22
+  
+  true !== false
+  
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-markdown-dialog.test.mjs:161:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at editor-shell-v2/tests/page-markdown-dialog.test.mjs:185:3
+✖ M8 (page, declared, as shipped): the entry is shown and the dialog opens (0.699352ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  true !== false
+  
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-markdown-dialog.test.mjs:189:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at editor-shell-v2/tests/page-markdown-dialog.test.mjs:185:3
+✖ M8 (page, the real v21 manifest, as shipped): the entry is shown and the dialog opens (0.710172ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  true !== false
+  
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-markdown-dialog.test.mjs:189:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at editor-shell-v2/tests/page-markdown-dialog.test.mjs:185:3
+✖ M8 (page, the real v22 manifest, as shipped): the entry is shown and the dialog opens (0.659257ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  true !== false
+  
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-markdown-dialog.test.mjs:189:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at editor-shell-v2/tests/page-markdown-dialog.test.mjs:253:3
+✖ finding 152 fix 3: closing the dialog by 取消 blurs the sink, then focuses it (1.142626ms)
+  AssertionError [ERR_ASSERTION]: the sink is not blurred before it is focused
+  + actual - expected
+  
+    [
+  -   'blur',
+      'focus'
+    ]
+  
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-markdown-dialog.test.mjs:259:12)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [ 'focus' ],
+    expected: [ 'blur', 'focus' ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at editor-shell-v2/tests/page-markdown-dialog.test.mjs:253:3
+✖ finding 152 fix 3: closing the dialog by 插入 on a caret blurs the sink, then focuses it (1.107011ms)
+  AssertionError [ERR_ASSERTION]: the sink is not blurred before it is focused
+  + actual - expected
+  
+    [
+  -   'blur',
+      'focus'
+    ]
+  
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-markdown-dialog.test.mjs:259:12)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [ 'focus' ],
+    expected: [ 'blur', 'focus' ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at editor-shell-v2/tests/page-markdown-dialog.test.mjs:265:1
+✖ finding 154: the page hides a closed dialog with its own rule, which a host's reset cannot undo (0.599696ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /\n  #markdown-dialog:not\(\[open\]\) \{ display: none; \}\n/. Input:
+  
+  '<!doctype html>\n' +
+    '<html lang="zh-TW">\n' +
+    '<head>\n' +
+    '<meta charset="utf-8">\n' +
+    '<title>LiteCore 編輯器 — 產品 v2（十五個動作）</title>\n' +
+    '<style>\n' +
+    '  :root {\n' +
+    '    --bg: #f4f6f8; --bar: #fff; --line: #dbe3ea; --ink: #1d2b36; --muted: #6b7c8a;\n' +
+    '    --accent: #3178c6; --warn: #8a6d1c; --bad: #a8342a; --ok: #2b7a4b;\n' +
+    '  }\n' +
+    '  * { box-sizing: border-box; }\n' +
+    '  body {\n' +
+    '    margin: 0; background: var(--bg); color: var(--ink);\n' +
+    '    font: 14px/1.5 system-ui, "Noto Sans CJK TC", sans-serif;\n' +
+    '    display: flex; flex-direction: column; height: 100vh;\n' +
+    '  }\n' +
+    '  .titlebar {\n' +
+    '    display: flex; align-items: center; gap: 10px; padding: 8px 14px;\n' +
+    '    background: var(--bar); border-bottom: 1px solid var(--line);\n' +
+    '  }\n' +
+    '  .brand { font-weight: 650; }\n' +
+    '  .brand small { font-weight: 400; color: var(--muted); margin-left: 8px; }\n' +
+    '  .spacer { flex: 1; }\n' +
+    '  .pill {\n' +
+    '    padding: 3px 9px; border-radius: 999px; font-size: 12px;\n' +
+    '    background: #eef2f6; color: var(--muted); border: 1px solid var(--line);\n' +
+    '  }\n' +
+    '  .pill[data-state="ready"] { background: #e7f4ec; color: var(--ok); border-color: #bfe0cc; }\n' +
+    '  .pill[data-state="busy"], .pill[data-state="loading"] {\n' +
+    '    background: #fdf3e3; color: var(--warn); border-color: #ecd6ac;\n' +
+    '  }\n' +
+    '  .pill[data-state="recoverable-error"], .pill[data-state="restart-required"],\n' +
+    '  .pill[data-state="expired"], .pill[data-state="stopped"] {\n' +
+    '    background: #fbeae9; color: var(--bad); border-color: #eec4c1;\n' +
+    '  }\n' +
+    '\n' +
+    '  .provenance {\n' +
+    '    padding: 8px 14px; font-size: 12.5px; line-height: 1.6;\n' +
+    '    background: #fdf3e3; color: #6b551c; border-bottom: 1px solid #ecd6ac;\n' +
+    '  }\n' +
+    '  .provenance code {\n' +
+    '    font-family: ui-monospace, Menlo, monospace; font-size: 11.5px;\n' +
+    '    background: #fff8e8; padding: 1px 5px; border-radius: 4px; word-break: break-all;\n' +
+    '  }\n' +
+    '  .provenance b { font-weight: 650; }\n' +
+    '\n' +
+    '  .toolbar {\n' +
+    '    display: flex; align-items: center; gap: 6px; flex-wrap: wrap;\n' +
+    '    padding: 6px 14px; background: var(--bar); border-bottom: 1px solid var(--line);\n' +
+    '  }\n' +
+    '  .toolbar .sep { width: 1px; height: 22px; background: var(--line); margin: 0 4px; }\n' +
+    '  button, select, input[type=text] {\n' +
+    '    font: inherit; color: inherit; background: #fff;\n' +
+    '    border: 1px solid var(--line); border-radius: 6px; padding: 5px 10px;\n' +
+    '  }\n' +
+    '  button { cursor: pointer; }\n' +
+    '  button:hover:not(:disabled) { border-color: #a9bccd; background: #f6f9fc; }\n' +
+    '  button:disabled { opacity: .4; cursor: default; }\n' +
+    '  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }\n' +
+    '  /* Only ever rendered when the engine gave an answer -- see\n' +
+    '     updateGestureAffordance; the attribute is removed when the state is null. */\n' +
+    '  button[aria-pressed="true"] { background: #dbe7f3; border-color: var(--accent); }\n' +
+    '  /* 看不見，但**留在 accessibility tree 上**。display:none 與\n' +
+    '     visibility:hidden 會把節點拿掉，1px clip 不會。\n' +
+    '\n' +
+    '     TWO ELEMENTS USE THIS CLASS AND BOTH HAVE NEEDED THEIR OWN `top`/`left`:\n' +
+    '     `#sink` (finding 069, 2026-08-22) and `#a11y-doc` (finding 093,\n' +
+    '     2026-09-08). This rule deliberately still supplies neither -- see\n' +
+    "     `#a11y-doc`'s own rule below for why widening the class is not the repair\n" +
+    '     -- so a THIRD user of it inherits the same trap. If you are adding one,\n' +
+    '     that is what you are inheriting. */\n' +
+    '  .a11y-only {\n' +
+    '    position: absolute; width: 1px; height: 1px;\n' +
+    '    margin: -1px; padding: 0; border: 0;\n' +
+    '    clip: rect(0 0 0 0); clip-path: inset(50%);\n' +
+    '    overflow: hidden; white-space: nowrap;\n' +
+    '  }\n' +
+    '  button.danger { border-color: #eec4c1; color: var(--bad); }\n' +
+    '  button.b { font-weight: 700; min-width: 34px; }\n' +
+    '  button.i { font-style: italic; font-family: Georgia, serif; min-width: 34px; }\n' +
+    '  button.u { text-decoration: underline; min-width: 34px; }\n' +
+    '  button.s { text-decoration: line-through; min-width: 34px; }\n' +
+    '\n' +
+    '  .desk { flex: 1; overflow: auto; display: flex; align-items: flex-start;\n' +
+    '          justify-content: center; padding: 20px; }\n' +
+    '  .paper { position: relative; background: #fff; box-shadow: 0 1px 6px rgba(20,40,60,.14); }\n' +
+    '  canvas { display: block; touch-action: none; }\n' +
+    '  /*\n' +
+    '   * `top`/`left` are not decoration.  Without them an absolutely positioned\n' +
+    '   * element sits at its STATIC position -- which for this one is directly\n' +
+    "   * after the canvas, and the canvas is the whole document's height.  The\n" +
+    '   * input sink was therefore lying at the bottom of the page, and every time\n' +
+    '   * an IME began composing, the browser scrolled the focused element into\n' +
+    '   * view and took the whole desk with it.  Reported by an operator typing\n' +
+    '   * Chinese with 新酷音, 2026-08-22.\n' +
+    '   *\n' +
+    '   * `paint()` keeps it on the caret from here on; 0,0 is only where it starts.\n' +
+    '   *\n' +
+    '   * `pointer-events: none` because moving it over the canvas puts a 1px\n' +
+    "   * transparent target on top of the drawing surface, and the canvas's own\n" +
+    '   * pointerdown is what places the caret.  The sink is only ever focused\n' +
+    '   * programmatically -- it is never clicked -- so nothing loses a click.\n' +
+    '   */\n' +
+    '  #sink {\n' +
+    '    position: absolute; top: 0; left: 0;\n' +
+    '    width: 1px; height: 1px; opacity: 0; border: 0;\n' +
+    '    padding: 0; margin: 0; outline: none;\n' +
+    '    pointer-events: none;\n' +
+    '    resize: none; overflow: hidden; white-space: pre; line-height: 1;\n' +
+    '  }\n' +
+    '\n' +
+    '  /*\n' +
+    '   * FINDING 093, AND IT IS THE COMMENT DIRECTLY ABOVE, ON THE ELEMENT BESIDE\n' +
+    '   * THE ONE IT WAS WRITTEN FOR.\n' +
+    '   *\n' +
+    '   * `#a11y-doc` also uses `.a11y-only`, also had `position: absolute` and no\n' +
+    '   * `top`/`left`, and so also sat at its STATIC position at the bottom of the\n' +
+    '   * paper -- for four months, about a hundred and forty lines below the\n' +
+    '   * paragraph explaining why that is fatal.  Every time a screen reader\n' +
+    '   * brought a projected node into view, the browser took the whole desk to the\n' +
+    '   * end of the document.  Reported by the owner walking the page with Orca,\n' +
+    '   * 2026-09-08, and measured the same day: `offsetTop` 928 against a 929px\n' +
+    '   * canvas on the shipped profile AND on the candidate, 27,197 against 27,198\n' +
+    '   * on a 133-paragraph document.\n' +
+    '   *\n' +
+    "   * FIXED HERE AND NOT ON `.a11y-only`, which is the OTHER half of 069's\n" +
+    '   * lesson.  069 fixed one element and left the class producing the same\n' +
+    '   * defect for the next element that used it -- but widening the class rule is\n' +
+    '   * not the repair, it is the same mistake pointed the other way: a census of\n' +
+    '   * all 62 stylesheets and pages under `web/` on 2026-09-08 found 28 other\n' +
+    '   * rules that position absolutely, and NONE of them in this shape.  Changing\n' +
+    '   * the class would move 28 elements to fix one.  One element, one fix, and\n' +
+    '   * the class comment above now names both of its instances.\n' +
+    '   *\n' +
+    '   * WHY IT SPANS THE PAPER AND STOPS CLIPPING.  A clipping ancestor makes\n' +
+    '   * `scrollIntoView` on a child meaningless -- the child has nowhere to be --\n' +
+    "   * and the projection's whole job is now to put each paragraph's node where\n" +
+    '   * that paragraph is drawn.  So the container becomes the coordinate space\n' +
+    "   * (`height: 100%` of `.paper`, which is the canvas's height) and every\n" +
+    '   * DESCENDANT carries the clip instead: `#a11y-para` below, and each\n' +
+    '   * projected node inline from `projectStructure()`.  Nothing inside is\n' +
+    '   * visible; everything inside is still in the accessibility tree, which is\n' +
+    '   * the property `.a11y-only` exists for and the reason it clips rather than\n' +
+    '   * using `display: none`.\n' +
+    '   *\n' +
+    '   * `pointer-events: none` for exactly the reason `#sink` has it, and it\n' +
+    '   * matters MORE here: this box now covers the whole drawing surface, and the\n' +
+    "   * canvas's own pointerdown is what places the caret.  Measured on the\n" +
+    '   * candidate shapes 2026-09-08 that `clip-path: inset(50%)` alone already\n' +
+    '   * kept `elementFromPoint` returning the canvas\n' +
+    '   * (`findings/evidence/093/phase3-s2-hit-test.json`); this is the same\n' +
+    '   * property asserted rather than relied upon.\n' +
+    '   */\n' +
+    '  #a11y-doc {\n' +
+    '    top: 0; left: 0; width: 1px; height: 100%;\n' +
+    '    margin: 0; overflow: visible;\n' +
+    '    clip: auto; clip-path: none;\n' +
+    '    pointer-events: none;\n' +
+    '  }\n' +
+    '  /* The clip `#a11y-doc` gave up, on the child that still needs it: the live\n' +
+    "     region holds the focused paragraph's TEXT, and an unclipped copy of it\n" +
+    '     would be painted across the document. */\n' +
+    '  #a11y-para {\n' +
+    '    position: absolute; top: 0; left: 0;\n' +
+    '    width: 1px; height: 1px; margin: 0; padding: 0;\n' +
+    '    overflow: hidden; white-space: nowrap;\n' +
+    '    clip: rect(0 0 0 0); clip-path: inset(50%);\n' +
+    '  }\n' +
+    '\n' +
+    '  /*\n' +
+    '   * FINDING 073.  While an IME is composing, the sink has to be SEEN.\n' +
+    '   *\n' +
+    '   * Everything above this rule is written for an element nobody looks at: one\n' +
+    '   * transparent pixel that collects keystrokes.  That is right until an input\n' +
+    '   * method starts composing, because the PREEDIT -- the bopomofo or pinyin the\n' +
+    '   * user is part way through, before it becomes a character -- is drawn by the\n' +
+    '   * browser INSIDE this element.\n' +
+    '   * At `opacity: 0` and one pixel wide it cannot be seen, so a user typing\n' +
+    '   * Chinese watches an empty page and finds out what they typed only when it\n' +
+    '   * commits.  Reported by an operator using 新酷音, 2026-08-22.\n' +
+    '   *\n' +
+    '   * Visible only while composing, and back to one transparent pixel after: a\n' +
+    '   * sink left visible would sit on top of the document forever.\n' +
+    '   *\n' +
+    '   * `z-index` because it has to be above the canvas it overlaps; the border and\n' +
+    '   * the background because preedit over glyphs is unreadable without them.\n' +
+    '   */\n' +
+    '  #sink[data-composing] {\n' +
+    '    opacity: 1;\n' +
+    '    z-index: 5;\n' +
+    '    background: var(--bar, #eef3f8);\n' +
+    '    color: var(--ink, #16202b);\n' +
+    '    border: 1px solid #7aa7d8;\n' +
+    '    border-radius: 2px;\n' +
+    '  }\n' +
+    '\n' +
+    '  .statusbar {\n' +
+    '    display: flex; gap: 18px; align-items: center; padding: 5px 14px;\n' +
+    '    background: var(--bar); border-top: 1px solid var(--line);\n' +
+    '    font-size: 12px; color: var(--muted);\n' +
+    '  }\n' +
+    '  .statusbar b { color: var(--ink); font-weight: 600; }\n' +
+    '  /* 頁碼那一行（見 body 裡 #page-status 的註解）。故意不寫 display：寫了就會蓋掉\n' +
+    '     `hidden` 屬性的 UA 樣式，元素會在沒有頁碼可報時仍然佔著一行。 */\n' +
+    '  #page-status {\n' +
+    '    padding: 4px 14px; font-size: 12px; color: var(--muted); text-align: left;\n' +
+    '    background: var(--bar); border-top: 1px solid var(--line);\n' +
+    '  }\n' +
+    '\n' +
+    '  #notice {\n' +
+    '    display: none; padding: 8px 14px; font-size: 13px;\n' +
+    '    background: #fbeae9; color: #6b1f19; '... 7251 more characters
+  
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-markdown-dialog.test.mjs:268:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '<!doctype html>\n<html lang="zh-TW">\n<head>\n<meta charset="utf-8">\n<title>LiteCore 編輯器 — 產品 v2（十五個動作）</title>\n<style>\n  :root {\n    --bg: #f4f6f8; --bar: #fff; --line: #dbe3ea; --ink: #1d2b36; --muted: #6b7c8a;\n    --accent: #3178c6; --warn: #8a6d1c; --bad: #a8342a; --ok: #2b7a4b;\n  }\n  * { box-sizing: border-box; }\n  body {\n    margin: 0; background: var(--bg); color: var(--ink);\n    font: 14px/1.5 system-ui, "Noto Sans CJK TC", sans-serif;\n    display: flex; flex-direction: column; height: 100vh;\n  }\n  .titlebar {\n    display: flex; align-items: center; gap: 10px; padding: 8px 14px;\n    background: var(--bar); border-bottom: 1px solid var(--line);\n  }\n  .brand { font-weight: 650; }\n  .brand small { font-weight: 400; color: var(--muted); margin-left: 8px; }\n  .spacer { flex: 1; }\n  .pill {\n    padding: 3px 9px; border-radius: 999px; font-size: 12px;\n    background: #eef2f6; color: var(--muted); border: 1px solid var(--line);\n  }\n  .pill[data-state="ready"] { background: #e7f4ec; color: var(--ok); border-color: #bfe0cc; }\n  .pill[data-state="busy"], .pill[data-state="loading"] {\n    background: #fdf3e3; color: var(--warn); border-color: #ecd6ac;\n  }\n  .pill[data-state="recoverable-error"], .pill[data-state="restart-required"],\n  .pill[data-state="expired"], .pill[data-state="stopped"] {\n    background: #fbeae9; color: var(--bad); border-color: #eec4c1;\n  }\n\n  .provenance {\n    padding: 8px 14px; font-size: 12.5px; line-height: 1.6;\n    background: #fdf3e3; color: #6b551c; border-bottom: 1px solid #ecd6ac;\n  }\n  .provenance code {\n    font-family: ui-monospace, Menlo, monospace; font-size: 11.5px;\n    background: #fff8e8; padding: 1px 5px; border-radius: 4px; word-break: break-all;\n  }\n  .provenance b { font-weight: 650; }\n\n  .toolbar {\n    display: flex; align-items: center; gap: 6px; flex-wrap: wrap;\n    padding: 6px 14px; background: var(--bar); border-bottom: 1px solid var(--line);\n  }\n  .toolbar .sep { width: 1px; height: 22px; background: var(--line); margin: 0 4px; }\n  button, select, input[type=text] {\n    font: inherit; color: inherit; background: #fff;\n    border: 1px solid var(--line); border-radius: 6px; padding: 5px 10px;\n  }\n  button { cursor: pointer; }\n  button:hover:not(:disabled) { border-color: #a9bccd; background: #f6f9fc; }\n  button:disabled { opacity: .4; cursor: default; }\n  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }\n  /* Only ever rendered when the engine gave an answer -- see\n     updateGestureAffordance; the attribute is removed when the state is null. */\n  button[aria-pressed="true"] { background: #dbe7f3; border-color: var(--accent); }\n  /* 看不見，但**留在 accessibility tree 上**。display:none 與\n     visibility:hidden 會把節點拿掉，1px clip 不會。\n\n     TWO ELEMENTS USE THIS CLASS AND BOTH HAVE NEEDED THEIR OWN `top`/`left`:\n     `#sink` (finding 069, 2026-08-22) and `#a11y-doc` (finding 093,\n     2026-09-08). This rule deliberately still supplies neither -- see\n     `#a11y-doc`\'s own rule below for why widening the class is not the repair\n     -- so a THIRD user of it inherits the same trap. If you are adding one,\n     that is what you are inheriting. */\n  .a11y-only {\n    position: absolute; width: 1px; height: 1px;\n    margin: -1px; padding: 0; border: 0;\n    clip: rect(0 0 0 0); clip-path: inset(50%);\n    overflow: hidden; white-space: nowrap;\n  }\n  button.danger { border-color: #eec4c1; color: var(--bad); }\n  button.b { font-weight: 700; min-width: 34px; }\n  button.i { font-style: italic; font-family: Georgia, serif; min-width: 34px; }\n  button.u { text-decoration: underline; min-width: 34px; }\n  button.s { text-decoration: line-through; min-width: 34px; }\n\n  .desk { flex: 1; overflow: auto; display: flex; align-items: flex-start;\n          justify-content: center; padding: 20px; }\n  .paper { position: relative; background: #fff; box-shadow: 0 1px 6px rgba(20,40,60,.14); }\n  canvas { display: block; touch-action: none; }\n  /*\n   * `top`/`left` are not decoration.  Without them an absolutely positioned\n   * element sits at its STATIC position -- which for this one is directly\n   * after the canvas, and the canvas is the whole document\'s height.  The\n   * input sink was therefore lying at the bottom of the page, and every time\n   * an IME began composing, the browser scrolled the focused element into\n   * view and took the whole desk with it.  Reported by an operator typing\n   * Chinese with 新酷音, 2026-08-22.\n   *\n   * `paint()` keeps it on the caret from here on; 0,0 is only where it starts.\n   *\n   * `pointer-events: none` because moving it over the canvas puts a 1px\n   * transparent target on top of the drawing surface, and the canvas\'s own\n   * pointerdown is what places the caret.  The sink is only ever focused\n   * programmatically -- it is never clicked -- so nothing loses a click.\n   */\n  #sink {\n    position: absolute; top: 0; left: 0;\n    width: 1px; height: 1px; opacity: 0; border: 0;\n    padding: 0; margin: 0; outline: none;\n    pointer-events: none;\n    resize: none; overflow: hidden; white-space: pre; line-height: 1;\n  }\n\n  /*\n   * FINDING 093, AND IT IS THE COMMENT DIRECTLY ABOVE, ON THE ELEMENT BESIDE\n   * THE ONE IT WAS WRITTEN FOR.\n   *\n   * `#a11y-doc` also uses `.a11y-only`, also had `position: absolute` and no\n   * `top`/`left`, and so also sat at its STATIC position at the bottom of the\n   * paper -- for four months, about a hundred and forty lines below the\n   * paragraph explaining why that is fatal.  Every time a screen reader\n   * brought a projected node into view, the browser took the whole desk to the\n   * end of the document.  Reported by the owner walking the page with Orca,\n   * 2026-09-08, and measured the same day: `offsetTop` 928 against a 929px\n   * canvas on the shipped profile AND on the candidate, 27,197 against 27,198\n   * on a 133-paragraph document.\n   *\n   * FIXED HERE AND NOT ON `.a11y-only`, which is the OTHER half of 069\'s\n   * lesson.  069 fixed one element and left the class producing the same\n   * defect for the next element that used it -- but widening the class rule is\n   * not the repair, it is the same mistake pointed the other way: a census of\n   * all 62 stylesheets and pages under `web/` on 2026-09-08 found 28 other\n   * rules that position absolutely, and NONE of them in this shape.  Changing\n   * the class would move 28 elements to fix one.  One element, one fix, and\n   * the class comment above now names both of its instances.\n   *\n   * WHY IT SPANS THE PAPER AND STOPS CLIPPING.  A clipping ancestor makes\n   * `scrollIntoView` on a child meaningless -- the child has nowhere to be --\n   * and the projection\'s whole job is now to put each paragraph\'s node where\n   * that paragraph is drawn.  So the container becomes the coordinate space\n   * (`height: 100%` of `.paper`, which is the canvas\'s height) and every\n   * DESCENDANT carries the clip instead: `#a11y-para` below, and each\n   * projected node inline from `projectStructure()`.  Nothing inside is\n   * visible; everything inside is still in the accessibility tree, which is\n   * the property `.a11y-only` exists for and the reason it clips rather than\n   * using `display: none`.\n   *\n   * `pointer-events: none` for exactly the reason `#sink` has it, and it\n   * matters MORE here: this box now covers the whole drawing surface, and the\n   * canvas\'s own pointerdown is what places the caret.  Measured on the\n   * candidate shapes 2026-09-08 that `clip-path: inset(50%)` alone already\n   * kept `elementFromPoint` returning the canvas\n   * (`findings/evidence/093/phase3-s2-hit-test.json`); this is the same\n   * property asserted rather than relied upon.\n   */\n  #a11y-doc {\n    top: 0; left: 0; width: 1px; height: 100%;\n    margin: 0; overflow: visible;\n    clip: auto; clip-path: none;\n    pointer-events: none;\n  }\n  /* The clip `#a11y-doc` gave up, on the child that still needs it: the live\n     region holds the focused paragraph\'s TEXT, and an unclipped copy of it\n     would be painted across the document. */\n  #a11y-para {\n    position: absolute; top: 0; left: 0;\n    width: 1px; height: 1px; margin: 0; padding: 0;\n    overflow: hidden; white-space: nowrap;\n    clip: rect(0 0 0 0); clip-path: inset(50%);\n  }\n\n  /*\n   * FINDING 073.  While an IME is composing, the sink has to be SEEN.\n   *\n   * Everything above this rule is written for an element nobody looks at: one\n   * transparent pixel that collects keystrokes.  That is right until an input\n   * method starts composing, because the PREEDIT -- the bopomofo or pinyin the\n   * user is part way through, before it becomes a character -- is drawn by the\n   * browser INSIDE this element.\n   * At `opacity: 0` and one pixel wide it cannot be seen, so a user typing\n   * Chinese watches an empty page and finds out what they typed only when it\n   * commits.  Reported by an operator using 新酷音, 2026-08-22.\n   *\n   * Visible only while composing, and back to one transparent pixel after: a\n   * sink left visible would sit on top of the document forever.\n   *\n   * `z-index` because it has to be above the canvas it overlaps; the border and\n   * the background because preedit over glyphs is unreadable without them.\n   */\n  #sink[data-composing] {\n    opacity: 1;\n    z-index: 5;\n    background: var(--bar, #eef3f8);\n    color: var(--ink, #16202b);\n    border: 1px solid #7aa7d8;\n    border-radius: 2px;\n  }\n\n  .statusbar {\n    display: flex; gap: 18px; align-items: center; padding: 5px 14px;\n    background: var(--bar); border-top: 1px solid var(--line);\n    font-size: 12px; color: var(--muted);\n  }\n  .statusbar b { color: var(--ink); font-weight: 600; }\n  /* 頁碼那一行（見 body 裡 #page-status 的註解）。故意不寫 display：寫了就會蓋掉\n     `hidden` 屬性的 UA 樣式，元素會在沒有頁碼可報時仍然佔著一行。 */\n  #page-status {\n    padding: 4px 14px; font-size: 12px; color: var(--muted); text-align: left;\n    background: var(--bar); border-top: 1px solid var(--line);\n  }\n\n  #notice {\n    display: none; padding: 8px 14px; font-size: 13px;\n    background: #fbeae9; color: #6b1f19; '... 7251 more characters,
+    expected: /\n  #markdown-dialog:not\(\[open\]\) \{ display: none; \}\n/,
+    operator: 'match',
+    diff: 'simple'
+  }

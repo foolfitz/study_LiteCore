@@ -2,17 +2,23 @@
 // 10.4; 11.2 M8 and M11), entry A: a toolbar button, a dialog with a text box,
 // 「插入」 and 「取消」.
 //
-//   * M8 (page layer) -- SPEC-M3-link-batch-v21 §12.3 (e) (finding 153; fable
-//     ruling 1, Q4): item 2 does not ship in v21, so the shell shows NO entry
-//     and the dialog does not open, WHETHER OR NOT the profile declares the
-//     paste -- the v21 manifest does, and the SDK stays callable
-//     (L-md-sdk-callable).  The dialog's code is kept for the batch that ships
-//     item 2, behind the page's `PASTE_MARKDOWN_ENTRY_SHIPS`; the tests that
-//     drive the dialog itself (M8's "switch on" half, M11, 9.14, the refusal
-//     sentences) turn that switch on, as that batch will, and say so.  Before
-//     §12.3 (e) M8 read "declared -> shown"; that reading is now the "switch
-//     on" half.  The SDK and worker layers of the same matrix are in
-//     sdk/tests/paste-markdown.test.mjs and sdk/tests/sdk-worker-v21.test.mjs;
+//   * M8 (page layer) -- SPEC-M3-link-batch-v22 §11.2 (b) (fable ruling 5):
+//     v22 ships item 2, so M8 reads as SPEC-M3-link-batch-v21 §11.2 writes it
+//     again -- the entry is shown, and the dialog opens, exactly when the
+//     profile declares the paste.  In v21 §12.3 (e) (finding 153) the shell
+//     showed no entry whatever the profile said; that reading was v21's only.
+//     The page's `PASTE_MARKDOWN_ENTRY_SHIPS` is the switch (v21 §9.2): the
+//     "as shipped" tests compile the page's own value, the "switch on" tests
+//     replace it, and the dialog's own tests (M11, 9.14, the refusal
+//     sentences) keep turning it on explicitly so they test the dialog
+//     whichever way the switch is set.  The SDK and worker layers of the same
+//     matrix are in sdk/tests/paste-markdown.test.mjs and
+//     sdk/tests/sdk-worker-v21.test.mjs;
+//   * finding 152, fix 3 (v22 §11.3) -- closing the dialog blurs the sink and
+//     then focuses it (Chrome otherwise drops the next typed key);
+//   * finding 154, the page's half (v22 §11.1) -- a closed dialog is hidden by
+//     the page's own rule, not only by the browser's built-in one, which a
+//     host's reset stylesheet overrides;
 //   * M11 -- 「取消」 (and Escape) after typing enqueues nothing and leaves the
 //     document alone;
 //   * 9.14 -- 「插入」 with a range selected says 「請先取消選取」 and sends
@@ -37,6 +43,7 @@ const HTML = readFileSync(here("../../web/e2-editor.html"), "utf8");
 const V20 = JSON.parse(readFileSync(here("../../dist/profiles/e2-editor-v20/sdk-manifest.json"), "utf8"));
 const DECLARED = { ...V20, editorContract: { ...V20.editorContract, pasteMarkdown: "document-sdk-paste-markdown" } };
 const V21 = JSON.parse(readFileSync(here("../../dist/profiles/e2-editor-v21/sdk-manifest.json"), "utf8"));
+const V22 = JSON.parse(readFileSync(here("../../dist/profiles/e2-editor-v22/sdk-manifest.json"), "utf8"));
 // The shell's switch for the entry (§12.3 (e)); absent on a page from before it.
 const ENTRY_SWITCH = /^const PASTE_MARKDOWN_ENTRY_SHIPS = (?:true|false);$/m;
 
@@ -68,7 +75,7 @@ function dialog({ manifest = DECLARED, editorState = { selection: { collapsed: t
     markdownMessage: { textContent: "", hidden: true },
     markdownInsert: element({ id: "insert", disabled: false }),
     markdownCancel: element({ id: "cancel" }),
-    sink: { focused: 0, focus() { this.focused += 1; } },
+    sink: { focused: 0, calls: [], focus() { this.calls.push("focus"); this.focused += 1; }, blur() { this.calls.push("blur"); } },
   };
   const offered = offersFor(manifest);
   const pasted = [];
@@ -143,27 +150,24 @@ test("M8 (page): the button is in the markup HIDDEN, before anything has said th
   assert.match(HTML, /<dialog id="markdown-dialog"/);
 });
 
-test("§12.3 (e): the v21 profile offers the paste, and the shell shows no entry and no route to the dialog", async () => {
-  // Finding 153: M3 is red on the linked engine, so item 2 does not ship in v21
-  // (fable ruling 1, Q4).  The profile still declares it and the SDK still
-  // offers it (L-md-sdk-callable) -- the shell is what withholds it.
-  assert.equal(V21.editorContract.pasteMarkdown, "document-sdk-paste-markdown", "the v21 manifest no longer declares it");
-  assert.equal(offersFor(V21), true, "the client no longer offers the paste on v21: the SDK side moved");
-  const d = dialog({ manifest: V21 });
-  d.el.button.hidden = false;   // the opposite of what is expected: the update must set it
+test("v22 §11.2 (b): the v22 profile offers the paste, and the shipped shell shows the entry and routes it to the dialog", async () => {
+  // Finding 153 is fixed in the v22 link (C1), so v22 ships item 2: the switch
+  // is on in the page as it stands, and M8 reads "declared -> shown" again.
+  assert.equal(V22.editorContract.pasteMarkdown, "document-sdk-paste-markdown", "the v22 manifest no longer declares it");
+  assert.equal(offersFor(V22), true, "the client no longer offers the paste on v22: the SDK side moved");
+  const d = dialog({ manifest: V22 });
+  d.el.button.hidden = true;   // the opposite of what is expected: the update must set it
   d.api.updatePasteMarkdownAffordance();
-  assert.equal(d.el.button.hidden, true, "the shell shows 「貼上為 Markdown…」 on v21");
+  assert.equal(d.el.button.hidden, false, "the shipped shell hides 「貼上為 Markdown…」 on v22");
   // The page asks the session on every state update; v21_page_hook.py captures
-  // the page's session through that call, so the switch must not skip it.
+  // the page's session through that call.
   assert.ok(d.asked.offers > 0, "updatePasteMarkdownAffordance no longer asks the session");
-  // The route any entry would take, and the toolbar's own route to it.
-  d.api.openMarkdownDialog();
-  assert.equal(d.el.markdownDialog.open, false, "openMarkdownDialog opened the dialog on v21");
+  // The toolbar's route to the dialog, and nothing pasted by opening it.
   const t = toolbar(d);
   t.click("paste-markdown");
   await d.settle();
-  assert.equal(d.el.markdownDialog.open, false, "the toolbar's paste-markdown route opened the dialog");
-  assert.deepEqual(d.pasted, [], "the page pasted Markdown");
+  assert.equal(d.el.markdownDialog.open, true, "the toolbar's paste-markdown route did not open the dialog");
+  assert.deepEqual(d.pasted, [], "opening the dialog pasted Markdown");
   assert.equal(d.session.enqueueCount, 0);
 });
 
@@ -173,21 +177,22 @@ const M8_PROFILES = [
   ["the field as a boolean", { ...V20, editorContract: { ...V20.editorContract, pasteMarkdown: true } }, false],
   ["declared", DECLARED, true],
   ["the real v21 manifest", V21, true],
+  ["the real v22 manifest", V22, true],
 ];
 
-for (const [label, manifest] of M8_PROFILES) {
-  test(`M8 (page, ${label}): §12.3 (e) -- the entry is hidden and the dialog does not open`, () => {
+// v22 §11.2 (b): the page's own switch, as shipped -- shown exactly when declared.
+for (const [label, manifest, declared] of M8_PROFILES) {
+  test(`M8 (page, ${label}, as shipped): the entry is ${declared ? "shown" : "hidden"} and the dialog ${declared ? "opens" : "does not open"}`, () => {
     const d = dialog({ manifest });
-    d.el.button.hidden = false;   // the opposite of what is expected: the update must set it
+    d.el.button.hidden = declared;   // the opposite of what is expected: the update must set it
     d.api.updatePasteMarkdownAffordance();
-    assert.equal(d.el.button.hidden, true);
+    assert.equal(d.el.button.hidden, !declared);
     d.api.openMarkdownDialog();
-    assert.equal(d.el.markdownDialog.open, false);
+    assert.equal(d.el.markdownDialog.open, declared);
   });
 }
 
-// The kept code, with the switch on as the batch that ships item 2 will turn
-// it: the reading M8 had before §12.3 (e) -- shown exactly when declared.
+// The same with the switch replaced by `true`: the code path, whatever the page sets.
 for (const [label, manifest, declared] of M8_PROFILES) {
   test(`M8 (page, ${label}, switch on): the entry is ${declared ? "shown" : "hidden"} and the dialog ${declared ? "opens" : "does not open"}`, () => {
     const d = dialog({ manifest, entryShips: true });
@@ -217,8 +222,9 @@ test("M8 (page): the toolbar routes the button to the dialog, and only there", (
 
 // ------------------------------------------------------------------ M11
 //
-// From here on, the kept dialog: each test turns the shell's switch on
-// (`entryShips: true`), as the batch that ships item 2 will (§12.3 (e)).
+// From here on, the dialog itself: each test turns the shell's switch on
+// explicitly (`entryShips: true`), so it tests the dialog whichever way the
+// page sets the switch (v22 ships it on, v22 §11.2 (b)).
 
 test("M11: typing in the dialog and pressing 取消 enqueues nothing, and the text is gone", async () => {
   const d = dialog({ entryShips: true });
@@ -233,6 +239,33 @@ test("M11: typing in the dialog and pressing 取消 enqueues nothing, and the te
   assert.equal(d.el.markdownDialog.open, false);
   assert.equal(d.el.markdownText.value, "");
   assert.equal(d.el.sink.focused, 1, "the document's sink did not get the focus back");
+});
+
+// ------------------------------------------------------------------ finding 152, fix 3 (v22 §11.3)
+//
+// Chrome drops the first typed key after a modal <dialog> closes if the sink is
+// only focused (finding 152, diag-dirty-move V5 / V11c); blur first, then focus.
+
+for (const [label, close] of [
+  ["取消", async (d) => { d.fire("cancel", "click"); await d.settle(); }],
+  ["插入 on a caret", async (d) => { d.el.markdownText.value = "# a"; d.fire("insert", "click"); await d.settle(); }],
+]) {
+  test(`finding 152 fix 3: closing the dialog by ${label} blurs the sink, then focuses it`, async () => {
+    const d = dialog({ entryShips: true });
+    d.api.openMarkdownDialog();
+    assert.equal(d.el.markdownDialog.open, true);
+    await close(d);
+    assert.equal(d.el.markdownDialog.open, false);
+    assert.deepEqual(d.el.sink.calls, ["blur", "focus"], "the sink is not blurred before it is focused");
+  });
+}
+
+// ------------------------------------------------------------------ finding 154, the page's half (v22 §11.1)
+
+test("finding 154: the page hides a closed dialog with its own rule, which a host's reset cannot undo", () => {
+  // Nextcloud's core/css/server.css resets `dialog { display: block }`, which beats the
+  // browser's built-in `dialog:not([open]) { display: none }`; an id selector beats both.
+  assert.match(HTML, /\n  #markdown-dialog:not\(\[open\]\) \{ display: none; \}\n/);
 });
 
 test("M11: Escape is 取消 too -- nothing enqueued, and the browser's own close is replaced by the page's", async () => {
