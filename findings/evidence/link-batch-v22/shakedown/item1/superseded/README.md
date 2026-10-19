@@ -1,0 +1,12 @@
+# Superseded item-1 reports (I1-rerun's first execution)
+
+These four reports, with their saved documents and step logs, were moved here by `git mv` before the re-run that SPEC-M3-link-batch-v22 §11.4.2 orders (fable ruling 6 addendum 1, items 3–4). They were committed in place first, as the witness (`f56ccddc`).
+
+The item-1 judge reads only `report-*.json` directly under its `--dir` (`judge_v21_shakedown_item1.py:954`). It also refuses two reports for one (browser, arm) (`:992-994`). So the re-run's reports can be read only once these have left `item1/`. Nothing here is judged again, with one exception: the companion-cell rule (§11.4.2) may take a cell's clean first reading from one of these reports, and the item-1 README then quotes `../first-reading/judge-item1-first.txt` beside the new output.
+
+| report | step log | why it is replaced |
+|---|---|---|
+| `report-chrome-d1-20261019T155807.json` | `item1-chrome-d1.log` | D7 Chrome NE. `t-home-A1-n1` r2 and `t-end-B2-n1` r3 were over the foreign-CPU limit, from the owner's desktop Chrome `--extension-process` renderer at 80.0 % and 78.0 % (`--crashpad-handler-pid=2745205`). v21's Chrome D7 was replaced the same way (`link-batch-v21/shakedown/README.md:221-222`). |
+| `report-firefox-d1-20261019T164633.json` | `item1-firefox-d1.log` | D7 Firefox NE. Eight presses were over the limit. The processes were: <br>• an OxOffice `make -j 4` (`Library_merged`, `CppunitTest_ossii_extension_documentcontext`) at 96.8–99.3 %, and its `cc1plus` at 99.0 %; <br>• the owner's zen at 81.5–101.3 %; <br>• ruling 6's own repo-wide search (`bfs … -name chain-item2-item1.sh`) at 172.5 %, on `sec-end-n2` r3. |
+| `report-firefox-d9-d10-d14-20261019T171939.json` | `item1-firefox-d9-d10-d14.log` | D9 Firefox NE. `Ctrl+End flagged` r2 was over the limit, from the desktop Chrome renderer at 78.4 % (pid 3212733). D10 and D14 were clean PASS here, and they are companions in the re-run. |
+| `report-firefox-d2p-…-d6-20261019T172740.json` | `item1-firefox-rest.log` | D5w Firefox NE, the v21 W2 shape. In one Firefox session, loads 1–43 were good. From load 44 on (d5w `v21` r1), every init aborted with `WORKER_INIT_FAILED` (`instantiateArrayBuffer`), so d5w r1–r3, R-xlc and R-table were lost. The chain script ran Firefox's rest as one session instead of W2's three (`link-batch-v21/shakedown/evidence/witness/firefox-rest-worker-init-failed/`). d2p–d12 were clean PASS here, and they are companions in the re-run. |
