@@ -1,0 +1,19 @@
+# FIRST VERSION OF THE I2-v22 READER, WRONG (kept on purpose): it looked EXPECTED up by 'wasm'/'loader'/'worker'/'manifest', but the keys are the file names ('probe.wasm', ...), so every expected value was None and every hash read MISMATCH. The corrected reading is i2-v22.txt.
+# expected: {"pageServed": "3b96cb1661aba6de6add989c98c80ab393cd394307763bc6dc28c9440fba82e2", "probe.js": "dc4c2c84657e350668fbfc0048e2ded9c49ca5076610a6389944cf71ea4ba9af", "probe.wasm": "f7a40bcce073d913e562245b96f32a1051766dda23da0da3911741f03934d49e", "sdk-manifest.json": "000921c176b57174cc1680825c73f878564b3a216e6849dd0d50c8078a9516d5", "sdk-worker.js": "0d55bcfa2ee0e4ddc6239e25282001c13410b152a5a08ebac9903cc65c3fd350"}
+# tree web/e2-editor.html b9c2b9751f57962585bb9788255e2aa42a228c0a8b9983755191d2004bab545a
+item2/report-chrome.json identity.m6: MISMATCH ['probe.wasm', 'probe.js', 'sdk-worker.js', 'sdk-manifest.json', 'workerServed'] profile=e2-editor-v22 instrumented=False treeHead=0da3cc33
+item2/report-chrome.json identity.main: MISMATCH ['probe.wasm', 'probe.js', 'sdk-worker.js', 'sdk-manifest.json', 'workerServed'] profile=e2-editor-v22 instrumented=False treeHead=0da3cc33
+item2/report-chrome.json identity.bytes: MISMATCH ['probe.wasm', 'probe.js', 'sdk-worker.js', 'sdk-manifest.json'] profile=e2-editor-v22 instrumented=True treeHead=ad1bc0e7
+item2/report-chrome.json identity.trace: MISMATCH ['probe.wasm', 'probe.js', 'sdk-worker.js', 'sdk-manifest.json'] profile=e2-editor-v22 instrumented=True treeHead=ad1bc0e7
+item2/report-chrome.json identity.v20: not judged by I2-v22 (M8's v20 page, profile e2-editor-v20, html b9c2b9751f57)
+item2/report-chrome.json results.m5.identity: MISMATCH ['probe.wasm', 'probe.js', 'sdk-worker.js', 'sdk-manifest.json', 'workerServed'] profile=e2-editor-v22 instrumented=False treeHead=ad1bc0e7
+item2/report-firefox.json identity.m6: MISMATCH ['probe.wasm', 'probe.js', 'sdk-worker.js', 'sdk-manifest.json', 'workerServed'] profile=e2-editor-v22 instrumented=False treeHead=09855075
+item2/report-firefox.json identity.main: MISMATCH ['probe.wasm', 'probe.js', 'sdk-worker.js', 'sdk-manifest.json', 'workerServed'] profile=e2-editor-v22 instrumented=False treeHead=09855075
+item2/report-firefox.json identity.bytes: MISMATCH ['probe.wasm', 'probe.js', 'sdk-worker.js', 'sdk-manifest.json'] profile=e2-editor-v22 instrumented=True treeHead=09855075
+item2/report-firefox.json identity.trace: MISMATCH ['probe.wasm', 'probe.js', 'sdk-worker.js', 'sdk-manifest.json'] profile=e2-editor-v22 instrumented=True treeHead=09855075
+item2/report-firefox.json identity.v20: not judged by I2-v22 (M8's v20 page, profile e2-editor-v20, html b9c2b9751f57)
+item2/report-firefox.json results.m5.identity: MISMATCH ['probe.wasm', 'probe.js', 'sdk-worker.js', 'sdk-manifest.json', 'workerServed'] profile=e2-editor-v22 instrumented=False treeHead=09855075
+item2-rerun/report-chrome.json results.m5.identity: MISMATCH ['probe.wasm', 'probe.js', 'sdk-worker.js', 'sdk-manifest.json', 'workerServed'] profile=e2-editor-v22 instrumented=False treeHead=1b393f8f
+item2-rerun/report-firefox.json identity.m6: MISMATCH ['probe.wasm', 'probe.js', 'sdk-worker.js', 'sdk-manifest.json', 'workerServed'] profile=e2-editor-v22 instrumented=False treeHead=1b393f8f
+item2-rerun/report-firefox.json results.m5.identity: MISMATCH ['probe.wasm', 'probe.js', 'sdk-worker.js', 'sdk-manifest.json', 'workerServed'] profile=e2-editor-v22 instrumented=False treeHead=1b393f8f
+I2-v22 FAIL
