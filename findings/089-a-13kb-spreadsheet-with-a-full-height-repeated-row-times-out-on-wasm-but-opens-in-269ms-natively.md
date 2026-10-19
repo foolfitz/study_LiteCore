@@ -685,3 +685,11 @@ S3 的啟動數與 S0 相同，沒有出現 1 GB 固定記憶體下「配置失�
 **089 的狀態**：成因的**開關**已找到，修法是連結旗標，是擁有者的步驟。「懸崖的成因未指認」這句話撤回，改為「開關＝64 KB pthread 堆疊；溢位的函式未指認」。ODS 閘門 G2 對 `tdf149752.ods` 的阻擋，在一個帶較大堆疊的 writer+calc 連結落地之前仍然成立。
 
 **更正（2026-10-13，只追加）**：上一節寫「14 份報告的堆疊回聲與 ENV 回聲全部到齊」，報告其實是 **12 份**——S0、S1×3、S2×3、S3×3、S4、SL（`ls findings/evidence/089/stack-arms-2026-10-13/S*-report.json | wc -l`＝12）。主 session 自己的讀取器當時列出的也是 12 份，卻照抄了執行者摘要裡的數字。這一處由交接起草者發現。結論不受影響：12 份都有回聲，回報值都等於要求值。
+
+## 堆疊的值已定：從 v22 起每一個產品連結 1 MiB（2026-10-19，只追加）
+
+finding 153（Writer 的一段長段落讓引擎執行緒 64 KiB 的 stack 溢位）讓上面「登錄問題，不改旗標」那一題有了答案。fable 裁決 4（`findings/evidence/link-batch-v22/review/ruling-fable-4.md`）把 `-sDEFAULT_PTHREAD_STACK_SIZE` 定為 **1,048,576**，從 v22 起每一個產品連結都用它（`specs/SPEC-M3-link-batch-v22.md` §3）。本 finding 的階梯是三條理由之一：089 的需要在 (64 KiB, 256 KiB]（128 KiB 沒試），1 MiB 有 4 倍。
+
+- **089 的狀態不變**：開關＝64 KB pthread 堆疊；溢位的函式未指認。修法仍跟著 W8（writer+calc 的連結），只是值已經定了，W8 不必為堆疊另外決定。
+- **G2 對 `tdf149752.ods` 的阻擋照舊**，直到一個帶這個值的 writer+calc 連結落地、並在它上面量過。v22 是 writer-only，不量 089。
+- 上面「真正的上限要看所有執行緒的總數，這次沒量」更正：啟動數這次其實數了，開 ODT 3 條、開 ODS 7 條（`findings/evidence/089/stack-arms-2026-10-13/README.md:29-45`）。沒量的是同時活著的數目。

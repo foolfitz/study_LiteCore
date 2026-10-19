@@ -258,6 +258,10 @@ finding 089 的堆疊臂判定 O-S（`4aa84ec2`）。在 writer+calc 的 v12 上
 - 記憶體帳（推論）：開檔時大約 7 條 pthread；每條 256 KB 只多約 1.3 MiB，每條 8 MB 多約 55 MiB，都在 1 GB 固定記憶體之內。總執行緒數沒量。
 - 一次一個變因：若這一批要調，它就是本批的第二個引擎層變因。發佈說明要寫明，回歸網紅了也要先對它歸因。
 
+**由 v22 回答（2026-10-19，fable 裁決 4，只追加；取代上面「若沒決定，預設：不變」）**：從 v22 起，每一個產品連結的 `-sDEFAULT_PTHREAD_STACK_SIZE` 都是 **1,048,576**。理由有三條：finding 153 的 Writer 路徑、本節的 finding 089 Calc 路徑、`sal/osl/unx/thread.cxx` 的 1 MiB（`specs/SPEC-M3-link-batch-v22.md` §3.1）。這個值也蓋住 W8（089 的需要在 (64 KiB, 256 KiB]），所以 089 的修法照舊跟著 W8，只是值已經定了。
+- 「總執行緒數沒量」更正：089 在 v12 上數過啟動數，開 ODT 3 條、開 ODS 7 條（`findings/evidence/089/stack-arms-2026-10-13/README.md:29-45`）。同時活著的數目沒量。
+- 「一次一個變因」照舊：v22 只有這一個引擎變因。
+
 ## 12. 第二輪審核的處置（fable 代擁有者裁決 3，2026-10-13，只追加；**不再有第三輪**）
 
 審核：`review-3-focused.md`（`6370916e`）。結論是 Q1、Q2、Q4、Q5 各有反例，Q3 是 SHOULD。裁決：`ruling-3.md`（`1b38f6c0`），條件 16–28 以那份為準，這裡寫成規格。白話理由見該檔的「WHY (for the owner)」。
@@ -340,6 +344,11 @@ finding 089 的堆疊臂判定 O-S（`4aa84ec2`）。在 writer+calc 的 v12 上
 
 - pthread 預設堆疊**這一批不變**：沒有量到 Writer 失敗，而且一次連結一個變因。
 - **W8 之前、不連結**：在出貨的 Writer profile 上，用鏡像補丁（`90fed9b7`），分別在 64 KB 與 256 KB 下跑產品路徑網與併段 shakedown。兩個瀏覽器都跑，並記錄回聲。有差異就是 finding；沒有差異就登錄 **L-writer-stack-64k**。若真找到 Writer 的失敗，可能只要重新打包、不必連結，那時由擁有者決定。
+
+**撤回（2026-10-19，fable 裁決 4 第 17 項，只追加）**：上面第二點的 Writer 堆疊掃描撤回，不跑（CLAUDE.md §4）。
+- 它要找的 Writer 失敗就是 finding 153（`findings/153-one-long-paragraph-overflows-the-engine-thread-stack.md`）。所以「沒有差異就登錄 L-writer-stack-64k」那條分支已經不可能走到，**L-writer-stack-64k 不再能登錄**。
+- 「可能只要重新打包、不必連結」由裁決 1 Q4 的「修法是重新連結」與擁有者的連結順序 C 取代：v22 走連結，出貨的 `probe.js` 由連結產生。
+- 第一點「這一批不變」對 v20 成立；從 v22 起由 §11 的追加取代。
 
 ### 12.7 程序與預設
 
@@ -481,6 +490,8 @@ finding 089 的堆疊臂判定 O-S（`4aa84ec2`）。在 writer+calc 的 v12 上
 - 補丁有沒有生效，靠雜湊把回聲那一趟和受測的那一份綁在一起。
 - 跑完就刪目錄。
 
+**撤回（2026-10-19，只追加）**：這個作法隨 §12.6 的掃描一起撤回，見該節的追加。不跑；那兩個目錄今天不存在。
+
 ### 15.5 Makefile 區塊與連結前的順序（Q7，條件 53–54）
 
 - 區塊已套用（`d7d62039`），只改一句註解：原本沒有證據的「v15／v19 物件不變」改成指向檢查。修正 1 之後，那句註解要在 M1-1 擴充的同一個 commit 再改一次，點名三個物件。
@@ -591,3 +602,4 @@ ABI 5 由連結批次 v21 用掉（`specs/SPEC-M3-link-batch-v21.md` §4.1：`mo
 | 2026-10-16 | §17.2 登錄的觀察已處理（擁有者 10-15 的決定 A，0.2.24 計數鏈跑完之後才做）：`test-e2-c-static` 加跑 `tests/test_merge_wasm_clauses.py`、`tests/test_judge_counted_m2.py`；改後閘門 exit 0，多出 134 個測試（`findings/evidence/release-0.2.24/test-e2-c-static-after-makefile-a.txt`）。finding 042：改前改後 `make -n e2-c-assets` 都不編譯；v20 的 `.o` 在這次編輯之前就已舊於 Makefile（`61e38c83`），連結仍被凍結守衛擋下 |
 | 2026-10-16 | §17.4 的人工判讀做了：0.2.24 計數的 Rbs／Rdel 12 次都有 2,257–2,262 ms、`rev` 不變的 busy（`findings/evidence/m3-production-ui/RESULT-0.2.24.md`） |
 | 2026-10-16 | §18：extend 的 ABI 編號更正（v21 用掉 5；審核 opus N7）。 |
+| 2026-10-19 | §11、§12.6、§15.4 的追加（fable 裁決 4）：pthread 預設堆疊由 v22 回答，從 v22 起每一個產品連結都是 1,048,576（`SPEC-M3-link-batch-v22.md`）；Writer 堆疊掃描撤回，L-writer-stack-64k 不再能登錄；「總執行緒數沒量」更正為「啟動數 v12 上數過、同時活著的沒量」。 |
