@@ -218,6 +218,42 @@ finding 153 判準 2 要求「附理由」：量到的深度，或原生的設�
 - **預設**：第 2 項沒做或紅 → 凍結之前把 `PASTE_MARKDOWN_ENTRY_SHIPS` 改回 `false`（§9.2 的開關，一個 token），L-md-sdk-callable 留著；修法 3 與 154 的規則照樣出（兩者都在入口打開時量過：F3 與 H-154c）；那條分支上 H-154o 讀 NE（沒有打開狀態可量），這是對的，不是紅。
 - **母數**：由 `tools/v21_item2_population.py` 重新產生，必須等於已 commit 的 `population.json`（M1 29、M3 35 項＋4 個大小臂、M4 57 個實例＝38 收合＋14 範圍＋5 受保護、M5 19）；runner 本來就會拒絕不等的（`run_v21_shakedown_item2.py:1301`）。形式二。
 
+#### 11.2.1 E2 的第一次判讀：兩格 NE、修綁定、只重跑那三格（2026-10-19，fable 裁決 6，只追加；任何重跑之前）
+
+出處：`findings/evidence/link-batch-v22/review/ruling-fable-6.md`（簡報 `4d78b111`，裁決與證人 `22bc3df4`；採用前的核對附在檔尾）。擁有者在本 session 被問「第 2 項的 M5 與 Firefox M6 要怎麼處置」，選「A 送 fable 裁決」。
+
+- **第一次判讀**（`shakedown/item2/first-reading/judge-item2-first.txt`）：judge 照原樣跑，`VERDICT NOT PASS`。兩個瀏覽器十一格裡只有兩處不是 PASS：
+  - **M5 兩個瀏覽器都 NOT_ESTABLISHED**：三輪都「proxy 的 log 裡沒有 probe.wasm 的 GET」。原因是 `v21_network.positive_control` 的 `profile` 預設寫死 `"e2-editor-v21"`（`:379`），runner 沒傳（`run_v21_shakedown_item2.py:1233`），而 M5 的鏡像服務的是 `e2-editor-v22`。§11.7 第 3 步的綁定清單是手寫的（形式三），沒列到它。`v21_workers.shipped_worker_text`（`:62`）同形，但沒有影響：兩個 profile 的 `sdk-worker.js` 都是 `0d55bcfa…`。
+  - **Firefox M6 NOT_ESTABLISHED（2 過）**：第 2 輪的 2 秒前置取樣抓到擁有者桌面 Chrome 的擴充程序 81 %（pid 3010325）。那一輪自己的讀數是 558.6 ms，Undo 有還原。
+- **修法**（形式一）：兩個函式的 `profile` 改成必填。`arm_m5` 傳 `identity["profile"]`，也就是它自己建的鏡像的 profile；`:1340` 傳 `common.DEFAULT_PROFILE`。judge 不改，自我測試維持 69/8/1/0。測試：不帶 profile 呼叫 → `TypeError`（先紅）；只有 v22 GET 的 log，用 v21 查 → `None`，用 v22 查 → 那一筆。§34.4：**因執行而修 +1**（證人是兩份已 commit 的報告，先於修法 commit）；worker 那一處是綁定，0／0。
+- **只重跑三格**：Chrome `--arms m5`，Firefox `--arms m6,m5`，N=3，同一份頁面位元組（`3b96cb16…`），新的 `--out …/shakedown/item2-rerun`，S-9 鎖，`CHAIN DONE` 之後。第 2 項的其餘部分不重跑，第 1 項不受這一類錯誤影響。
+- **E2 的組合讀法**（本批取代 §11.7 第 5 步「一個呼叫、兩個瀏覽器都 exit 0」，同附錄 1 第 4 項的作法）：每個瀏覽器的 E2 PASS＝十一個 M 格各自在「程序跑對的那份報告」上是 PASS。M5（兩個瀏覽器）與 Firefox M6 取 `item2-rerun/` 的 judge 那幾行，其餘取 `judge-item2-first.txt`。重跑那次的 judge 依構造會印 `VERDICT NOT PASS`，沒跑的格會印 missing／zero instances，那不是結論。重跑的報告不得被 `refuse()` 拒絕，並且要符合 I2-v22：`identity.m6` 與 `results.m5.identity` 的頁面、wasm、loader、worker、manifest 都要等於最終候選，`htmlSourceSha256` 要是 `b9c2b975…`。`refuse()` 不讀 M5 的 wasm，所以要另外明讀 `profileHashes`。**這個准許只涵蓋這三格。**
+- **停止規則**（形式一，先釘死）：
+  - **M5**：
+    - judge 那一行 PASS → 過。Chrome 會是 114；Firefox 會是 114 或 111，若 X03 的對話框格又因讀回被撤（§12.2 (c)）就是 111。兩種都是 PASS，111 不是短少。
+    - 任何 FAIL → FAIL，開產品 finding，入口關掉，不重跑。
+    - 再一次 NE（不論原因）→ 停手交接，預設照舊，本 session 不跑第三次。若修好之後仍讀到「沒有 probe.wasm GET」，那是擷取的錯，另立 finding，不重跑。
+    - 報告被 `refuse()` 拒絕 → 作廢＝沒做，處置同上一條。
+  - **Firefox M6**：
+    - 3/3 過 → 過。Chrome 的 3/3 沿用第一次判讀。
+    - 任何 FAIL → 停手交接。M6 自己寫的下一步是「SDK 上限改 16 KiB 重跑」，那會改殼層，要另外裁決；在那之前，入口關掉是現行結論。
+    - 又因外部 CPU 而 NE：若那次桌面 Chrome 已經關掉，記下是哪個程序，停手；若擁有者沒辦法關，准再跑一次，僅此一次。
+    - 其他原因的 NE → 停手交接。
+- **桌面**：Firefox M6 之前先問擁有者能不能關掉桌面 Chrome 約兩分鐘（A／B）。這不是硬性前提，選 B 就照跑，由守衛記錄。
+- **預設**：
+  - 本節沒有在重跑之前追加 → 重跑不算進 E2。
+  - 重跑沒做 → M5 與 Firefox M6 沒做 → 入口關掉。
+  - 停止規則沒套用 → 第一次判讀成立 → 入口關掉。
+- **登錄的工作項**（不是閘門）：
+  - `bytes`／`trace` 的身分沒記下 patch 是套在哪一份 worker 文字上；
+  - 一支「`tools/v21_*` 不得有 profile 預設值」的形式二守衛；
+  - 留下的 proxy log 要涵蓋每一輪的開頭。今天的報告就是它的證人：第 1 輪在兩個瀏覽器都掉出去了。
+- **§9 的四個條件**：
+  - 先於滿足：還沒有任何重跑。
+  - 被逼出來且指名：兩份鏈的報告，以及 `m5-positive-control-diagnostic.txt`。
+  - 形式一。
+  - 截止＝重跑的報告落地。
+
 ### 11.3 finding 152（第 9–12 項）
 
 - **用修法 3，不用 3b**：修法 3 有量測（headless Chrome V5@300 ms 3/3、V11c 3/3，有視窗 Chrome V5 1/1，Firefox V5 1/1），3b 從沒跑過。記錄：修法 3 到目前只量過 300 ms，0 ms 那格沒量過，F3 會量。
@@ -343,6 +379,8 @@ finding 153 判準 2 要求「附理由」：量到的深度，或原生的設�
 | M11-autosave | 0.2.27 上貼上之後 45 s 內有一次自動存檔、含 M2 標題 | 逐實例 | 頁面沒有入口 |
 | PH | page honesty 豁免入口，證人與自我測試先行 | — | 不得啟動 K |
 
+（追加，2026-10-19）E2 這一列的讀法由 §11.2.1 取代 §11.7 第 5 步：M5 與 Firefox M6 取重跑的報告，其餘九格取第一次判讀，逐格組合。
+
 ## 12. 更正（2026-10-19，fable 裁決 5 第 26–27 項，只追加）
 
 - **(a) 殼層 digest 不動**：`shell_digest` 不含 entrypoint（`run_merge_wasm_shakedown.py:1162-1167`），§11.1 沒有動任何殼層模組。會動的是 generation（bundle 雜湊，v75）與頁面、HTML、引擎的 pin。本檔 §2、§7 說「殼層項目」時，指的是 entrypoint 與 HTML。
@@ -373,4 +411,5 @@ finding 153 判準 2 要求「附理由」：量到的深度，或原生的設�
 | 2026-10-19 | §11.4.1（追加，fable 裁決 5 附錄 1，任何第 1 項的 v22 執行之前）：E0 在 v22 上撤回（依構造必紅），改讀 E0-v22（同一份 `start.entry` 資料，四個紅案先行）；I1-rerun 的過關讀法；D6 不跑、預設照舊。 |
 | 2026-10-19 | §11.3.1（追加）：F3 PASS（兩個瀏覽器 8 格 3/3）；工具新增的兩個錯由第一次執行抓到，因執行而修 +2。 |
 | 2026-10-19 | §12 (d)（追加，任何宿主執行之前）：M11-autosave 對 M2 讀「存檔有 M2 那一行的文字」，因為 M2 沒有標題。 |
+| 2026-10-19 | §11.2.1 與 §11.8 下的一行（追加，fable 裁決 6，任何重跑之前）：E2 第一次判讀 M5 兩個瀏覽器 NE（positive control 的 profile 預設 v21）、Firefox M6 NE（桌面 Chrome 81 %）；修成必填參數，因執行而修 +1；只重跑 Chrome M5 與 Firefox M6＋M5；逐格組合的讀法；停止規則與預設。 |
 | 2026-10-19 | §13（追加）：擁有者的兩個決定——計數鏈延後併批（K 的預設：未計數候選，名義出貨版本停在 0.2.26；page honesty 前提、re-pin、BINDING、chain 腳本跟著延後）；ddev 用 A（宿主臂在擁有者指定的時段跑，時段等鏡像長跑結束後定）。 |
