@@ -20,7 +20,8 @@
 //   X2 order       switch, select all, read, deselect, switch back
 //   X3 no switch   part k already current: no setPart at all
 //   X4 timeout     a SelectAll that did not land: deselect and restore anyway
-//   X5 no text     core returned nothing: deselect and restore anyway
+//   X5 no text     core returned nothing (an empty sheet): the empty text,
+//                  flagged, not an error; deselect and restore as always
 //   X6 read back   partAfter is what the document says, not what was asked for
 
 namespace {
@@ -158,9 +159,15 @@ int main() {
     FakeDocument document;
     document.hasText = false;
     const auto result = ov::readPartText(document, 2);
-    check(result.status == ov::PartTextStatus::NoText, "X5 no text");
+    check(result.status == ov::PartTextStatus::Ok, "X5 an empty sheet is not an error");
+    check(result.text.empty() && result.textNull, "X5 the empty text, flagged");
     check(contains(document.calls, "resetSelection"), "X5 deselected anyway: " + joined(document.calls));
     check(document.current == 0 && result.partAfter == 0, "X5 restored anyway");
+  }
+  {
+    FakeDocument document;
+    const auto result = ov::readPartText(document, 1);
+    check(!result.textNull, "X5 a sheet with text is not flagged");
   }
   // X6
   {

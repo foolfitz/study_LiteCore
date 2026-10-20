@@ -2785,8 +2785,9 @@ void handlePartText(const Command &command) {
   }
   std::ostringstream fields;
   fields << ",\"part\":" << command.values[0] << ",\"text\":\""
-         << jsonEscape(result.text.c_str())
-         << "\",\"partBefore\":" << result.partBefore
+         << jsonEscape(result.text.c_str()) << "\",\"textNull\":"
+         << (result.textNull ? "true" : "false")
+         << ",\"partBefore\":" << result.partBefore
          << ",\"partAfter\":" << result.partAfter;
   emitPartReply(command, "part-text", fields.str());
 }

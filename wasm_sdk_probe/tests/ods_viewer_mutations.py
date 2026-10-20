@@ -15,6 +15,8 @@ check.  Each edit must match exactly once.
   reset-only-on-success   a timed-out SelectAll is left selected         -> X4 fails
   not-restored            the part is not switched back                  -> X2 fails
   part-after-assumed      partAfter is the part asked for, not read      -> X6 fails
+  empty-sheet-is-an-error an empty sheet's null text becomes an error    -> X5 fails
+  empty-sheet-not-flagged the empty text is not flagged                  -> X5 fails
 
 Usage: python3 -I tests/ods_viewer_mutations.py [--cxx g++]
 Exit 0 only when the control passes and every mutation is red as required.
@@ -69,6 +71,13 @@ MUTATIONS = {
         '  if (document.part() != result.partBefore)\n    document.setPart(result.partBefore);\n',
         '',
         'FAIL X2 the order'),
+    'empty-sheet-is-an-error': (
+        '  } else if (!document.text(result.text)) {\n    result.text.clear();\n    result.textNull = true;\n  }\n',
+        '  } else if (!document.text(result.text)) {\n    result.status = PartTextStatus::SelectAllTimedOut;\n  }\n',
+        'FAIL X5 an empty sheet is not an error'),
+    'empty-sheet-not-flagged': (
+        '    result.textNull = true;\n', '',
+        'FAIL X5 the empty text, flagged'),
     'part-after-assumed': (
         '  result.partAfter = document.part();\n',
         '  result.partAfter = result.partBefore;\n',

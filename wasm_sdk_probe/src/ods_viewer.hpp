@@ -57,7 +57,7 @@ inline bool partInRange(int part, int parts) {
   return part >= 0 && part < parts;
 }
 
-enum class PartTextStatus { Ok, OutOfRange, SelectAllTimedOut, NoText };
+enum class PartTextStatus { Ok, OutOfRange, SelectAllTimedOut };
 
 inline const char *partTextStatusCode(PartTextStatus status) {
   switch (status) {
@@ -67,8 +67,6 @@ inline const char *partTextStatusCode(PartTextStatus status) {
     return "INVALID_ARGUMENT";
   case PartTextStatus::SelectAllTimedOut:
     return "PART_TEXT_TIMEOUT";
-  case PartTextStatus::NoText:
-    return "LOK_ERROR";
   }
   return "LOK_ERROR";
 }
@@ -76,6 +74,11 @@ inline const char *partTextStatusCode(PartTextStatus status) {
 struct PartTextResult {
   PartTextStatus status = PartTextStatus::Ok;
   std::string text;
+  // Core returned no text at all -- what an EMPTY sheet gives after SelectAll
+  // (the native oracle reads `text: null` there, and the corpus expects "").
+  // Reported as the empty text, flagged, never as an error: E3 compares the
+  // text, so a sheet with content that came back empty is red there anyway.
+  bool textNull = false;
   int partBefore = -1;
   int partAfter = -1;
 };
@@ -85,6 +88,7 @@ struct PartTextResult {
 //   bool selectAll();             true when core confirmed the selection
 //                                 before the caller's deadline
 //   bool text(std::string &out);  false when core returned no text at all
+//                                 (an empty sheet: the text is "", flagged)
 //   void resetSelection();
 //
 // The rules, each a red case in the test:
@@ -104,10 +108,12 @@ PartTextResult readPartText(Document &document, int part) {
   result.partBefore = document.part();
   if (part != result.partBefore)
     document.setPart(part);
-  if (!document.selectAll())
+  if (!document.selectAll()) {
     result.status = PartTextStatus::SelectAllTimedOut;
-  else if (!document.text(result.text))
-    result.status = PartTextStatus::NoText;
+  } else if (!document.text(result.text)) {
+    result.text.clear();
+    result.textNull = true;
+  }
   document.resetSelection();
   if (document.part() != result.partBefore)
     document.setPart(result.partBefore);

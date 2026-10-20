@@ -60,3 +60,10 @@ selection barrier). The viewer's rule entered that population with the Makefile 
    is green.
 
 §34: one check changed because of execution, with the witness above; nothing because of review.
+
+## Re-run after part_text's empty-sheet change (same evening, before the owner's link)
+
+The native oracle reads `text: null` for an empty sheet after SelectAll (`01-native-oracle/oracle.jsonl`,
+`empty-one-sheet.ods`), and the corpus expects `""`. part_text had reported that null as `LOK_ERROR`; it now
+replies the empty text with `textNull: true` (spec A4.6). `syntax-checks.txt`, `test-e2-c-static-green.txt`
+(exit 0) and `undefined-symbols.txt` (the same three libc++ / libc symbols) were re-run on this source.

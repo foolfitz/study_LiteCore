@@ -537,3 +537,11 @@ make ALLOW_FROZEN_RELINK=1 dist/profiles/ods-viewer-v1/sdk-manifest.json 2>&1 | 
 | 日期 | 改了什麼 |
 | --- | --- |
 | 2026-10-20 晚 | 追加 4：O3 落地；base 包 zstd 實量 5.6 MB；M1-1 的守衛按 carrier 是否帶 B 分開（有證人）；連結交給擁有者 |
+
+## A4.6（同晚，交出連結之後、擁有者執行之前）空白工作表的 `part_text`
+
+讀原生 oracle 的資料（`findings/evidence/m4-ods/01-native-oracle/oracle.jsonl`）時發現：空白表全選之後 `getTextSelection` 回
+**null**（`empty-one-sheet.ods` 的 `text: null`），而語料期望 `""`。原本的 `part_text` 把 null 當錯誤（`LOK_ERROR`），E3 會紅在每一張
+空表上。改成：null → 空字串，回覆帶 `textNull: true`（worker 只轉具名欄位，不轉它；worker 與 pin 不變）。有內容的表若被讀成空，E3
+比文字時照樣紅，所以這不會遮住錯誤。模型測試加兩條、突變加兩個（12 個全紅）；語法、`test-e2-c-static`、未定義符號都重跑過。
+**另記**：十萬格那份的期望文字在 manifest 裡是 `null`，E3 要從 oracle 的 jsonl 取（588,890 字元）。
