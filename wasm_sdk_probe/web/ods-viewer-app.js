@@ -33,6 +33,15 @@ const OPEN_TIMEOUT_MS = Number.parseInt(params.get("openTimeoutMs") || "180000",
 const DIAGNOSTICS = params.get("diagnostics") === "1";
 const DISTINCT_MESSAGES_KEPT = 300;
 
+// SPEC-M4 §3.4: a host (the Nextcloud app's js/litecore-viewer.js) puts
+// `globalThis.liteCoreViewerHost = { load }` in place BEFORE importing this
+// module -- read once, here; a host that appears later is not a host.  With
+// one, the document comes from `load()` instead of the file input.  The
+// contract is `{ load }` and nothing that writes: a host carrying `save` or a
+// lock is the editor's contract under the viewer's name and is refused rather
+// than used (openFromHost) -- this page never writes anything back.
+const HOST = globalThis.liteCoreViewerHost ?? null;
+
 const $ = (selector) => document.querySelector(selector);
 const el = {
   file: $("#file-input"),
@@ -70,6 +79,9 @@ const record = {
   session: null,
   state: null,
   tileDraws: 0,
+  // The host contract in use, and why it was refused if it was (SPEC-M4 §3.4).
+  host: null,
+  hostError: null,
 };
 window.__odsViewer = record;
 
@@ -311,9 +323,15 @@ async function closeCurrent() {
 }
 
 async function openFile(file) {
+  return openBytes(await file.arrayBuffer(), file.name, "file-input");
+}
+
+// One door for the page's own file input and for a host's load() (SPEC-M4 §3.4):
+// the same session, the same record, whichever handed the bytes over.
+async function openBytes(bytes, name, source) {
   await closeCurrent();
   const run = {
-    file: file.name, startedAtMs: Math.round(performance.now()),
+    file: name, source, startedAtMs: Math.round(performance.now()),
     settled: false, opened: null, refused: null, error: null, tileDraws: 0,
     engineEvents: [], firstTile: null, firstTilePromise: null,
     engineCreated: false, viewReadyAtMs: null, stages: [], messages: [],
@@ -321,7 +339,6 @@ async function openFile(file) {
   };
   record.runs.push(run);
   record.current = run;
-  const bytes = await file.arrayBuffer();
   run.inputBytes = bytes.byteLength;
   // BEFORE open: `open` transfers the buffer, which detaches it.
   run.inputSha256 = await sha256Hex(new Uint8Array(bytes.slice(0)));
@@ -343,7 +360,7 @@ async function openFile(file) {
   });
   record.session = session;
   try {
-    const state = await session.open({ bytes, name: file.name });
+    const state = await session.open({ bytes, name });
     run.opened = {
       atMs: Math.round(performance.now() - run.startedAtMs),
       parts: state.parts, documentType: state.documentType,
@@ -388,3 +405,29 @@ el.viewport.addEventListener("scroll", () => {
 // Best effort: leaving the page should not leave an engine worker behind
 // (finding 024 is about exactly that on Firefox).
 window.addEventListener("pagehide", () => { closeCurrent(); });
+
+// SPEC-M4 §3.4: with a host, the document comes from `HOST.load()`.  The shape
+// is checked before anything is asked of it: `load` must be a function, and
+// nothing that writes may be there -- `save` or a lock would mean the editor's
+// host was put under the viewer's name, and a viewer must not have a way to
+// write.  Refused, not ignored: nothing opens, and the record says why.
+async function openFromHost() {
+  el.file.disabled = true;
+  if (typeof HOST.load !== "function" || "save" in HOST || "takeLock" in HOST)
+    throw Object.assign(new Error("宿主入口不是檢視頁的形狀：需要 load()，不得有 save 或鎖"),
+                        { code: "HOST_ENTRY_INVALID" });
+  const { bytes, name } = await HOST.load();
+  if (!(bytes instanceof ArrayBuffer) || typeof name !== "string" || !name)
+    throw Object.assign(new Error("宿主給的文件不是 { bytes: ArrayBuffer, name }"),
+                        { code: "HOST_ENTRY_INVALID" });
+  await openBytes(bytes, name, "host");
+}
+
+if (HOST) {
+  record.host = "liteCoreViewerHost";
+  openFromHost().catch((error) => {
+    record.hostError = errorValue(error);
+    el.message.textContent = `宿主入口錯誤（${error?.code || "HOST_ENTRY_FAILED"}）：${error?.message || error}`;
+    el.message.classList.add("error");
+  });
+}

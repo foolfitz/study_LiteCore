@@ -3379,6 +3379,27 @@ dist/e2-editor.html: web/e2-editor.html | dist
 dist/e2-editor-app.js: web/e2-editor-app.js | dist
 	cp $< $@
 
+# SPEC-M4-ods-in-nextcloud §3.5 (review C3): the read-only spreadsheet viewer's
+# page and shell, staged as NEW files only.  served_shell_identity() hashes the
+# editor's 13 bundle paths and none of these is one of them (E7); the viewer's
+# engine profile is staged by its own link rule (ods-viewer-v1).
+dist/ods-viewer.html: web/ods-viewer.html | dist
+	cp $< $@
+
+dist/ods-viewer-app.js: web/ods-viewer-app.js | dist
+	cp $< $@
+
+dist/viewer-shell:
+	mkdir -p $@
+
+dist/viewer-shell/%.js: viewer-shell/%.js | dist/viewer-shell
+	cp $< $@
+
+ODS_VIEWER_SHELL_FILES := odf-package-probe.js ods-document-sdk.js ods-viewer-session.js viewer-error.js w7-adapter.js
+ods-viewer-assets: dist/ods-viewer.html dist/ods-viewer-app.js \
+	$(addprefix dist/viewer-shell/,$(ODS_VIEWER_SHELL_FILES))
+.PHONY: ods-viewer-assets
+
 # The D0 harness.  A harness, not the product: it publishes __e2c_d0 so a
 # runner can read it, which is exactly the convention the product page must
 # NOT have.

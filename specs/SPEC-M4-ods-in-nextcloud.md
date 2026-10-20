@@ -785,3 +785,14 @@ scaddins 的介面在它自己的 `InternalUnoApi`，`getSeriessum` 的 `didddd`
 virtual function with signature …")` → `ScUnoAddInCall` 收成 `FormulaError::NoValue` = `#VALUE!`。修法是核心重建（`CustomTarget_gcc3_wasm.mk`
 多餵 scaddins 的 rdb），併進 v2 的核心批次；在那之前 E3 對這 2 份保持紅、登錄為 v1 的具名限制 `L-addin-functions-value-error`（擁有者裁示：
 159 先診斷，已診斷）。
+
+## A8.9 §8 的登錄（append；擁有者不在座位，依已裁示的處方登錄，不新增判準）
+
+- **L-addin-functions-value-error**：Analysis／Date／Pricing add-in 函數（YEARFRAC、SERIESSUM、MULTINOMIAL、財務函數…）在檢視引擎一律
+  `#VALUE!`；檔開得了、畫得出來，只有那些格錯。成因 A8.8，修法是核心重建（v2 批）。語料 2／298 份受影響。
+- **L-mixed-form-control-sheets-unmeasured**：含 `<draw:control` 的檔整份拒絕（A8.2）；控制項只在某一張表時其餘的表能不能畫，未量。
+- **L-no-basic-udf**：檢視核心沒有 Basic，Basic 的使用者函數讀到 `#NAME?`（桌面是函數自己的結果）。語料 1 份。
+- **L-volatile-sheets-not-compared**：`TODAY()`／`NOW()`／`RAND()`／`text:date` 的表，E3 只記錄不判（A7.3）；482 張裡 10 張（7 張在第一輪
+  實際不同）。保真度在這些表上沒有逐位元證據。
+- **L-hidden-sheet-tabs-enabled**（finding 157）：隱藏表的 tab 在 v1 可點、點了得到 `PART_READBACK_MISMATCH`；v2 加 `part_info`。
+- **L-part-text-selectall-unconfirmed**（finding 160）：`part_text` 的 SelectAll 間歇沒在 3 秒內確認（2／482 一次、0／464 兩次）；v2 改等待。

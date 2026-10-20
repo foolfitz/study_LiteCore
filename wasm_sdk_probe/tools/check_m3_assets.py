@@ -61,7 +61,7 @@ from check_m3_page_honesty import READ_RECORD, RECORDER  # noqa: E402
 from check_m3_skeleton_open import (  # noqa: E402
     ACTION, DEFAULT_DDEV, FILES, FIXTURE, NAME, Instance, binding_fields, host_binding, installed_app, product_state,
     state_until)
-from package_m3_engine import MAX_GZ_BYTES, MAX_ZST_BYTES, MAX_ZSTD_WINDOW, build_id, zstd_frame  # noqa: E402
+from package_m3_engine import MAX_GZ_BYTES, MAX_ZST_BYTES, MAX_ZSTD_WINDOW, build_id, validate_manifest, zstd_frame  # noqa: E402
 from probe_m3_assets import AccessLog, closure  # noqa: E402
 from probe_m3_gate0_coep import (  # noqa: E402
     DIST, EventChrome, Wire, browser_login, firefox_profile, sha256_file, utc_now, wait_until)
@@ -80,7 +80,7 @@ PAGE_SHA256 = "605cf24b3dff5a2de1d219ee59e79adc92048e46436d098b7c7a3d837761fa0f"
 PLAN = {"chrome": 3, "firefox": 3, "firefox-nozstd": 3}
 # A report is scored against the criteria its runner wrote into it (SPEC-M3-zstd
 # §7, review item 3): reports from before the zstd step keep their own verdicts.
-CRITERIA = ["SPEC-M3-asset-delivery", "SPEC-M3-zstd"]
+CRITERIA = ["SPEC-M3-asset-delivery", "SPEC-M3-zstd", "SPEC-M4-ods-in-nextcloud H5"]
 LEGACY_PLAN = {"chrome": 3, "firefox": 3}
 DOC = "e2-editor.html"
 ENTRY = "/apps/litecore/r/e2-editor.html"
@@ -97,8 +97,12 @@ TYPES = {".js": "text/javascript", ".json": "application/json", ".wasm": "applic
          ".data": "application/octet-stream", ".metadata": "application/octet-stream"}
 # SPEC-M3-zstd §4, written 2026-09-30 before the code: the engine's decoded
 # content did not change, only its codings.
-ENGINE_SCHEMA = "litecore-engine/2"
-BUILD_ID = "f5f0df762e1855f2"   # host 0.2.26's engine package (v21, page 605cf24b, shell v74; the same package as 0.2.25); was d3cd39bb (0.2.24, finding 145), c3c22d92 (0.2.23, link-batch §17), eb3f9408 (0.2.14), 59e6a9fe (0.2.13), 45cdcedf (0.2.12), b99f4b13 (0.2.11), bebc7e83 (0.2.10), 7bf6dbd6 (0.2.9), 63656ee4 (0.2.8), fabdb50e (0.2.7)
+# Schema 3 (SPEC-M4-ods-in-nextcloud §3.5, host 0.2.29): the page table
+# `source.pages` -- the editor and the read-only spreadsheet viewer, each with
+# its own engine.  H5-1 (score_package) judges the table through the packager's
+# own validate_manifest(); the files are the union of both closures (K0-1).
+ENGINE_SCHEMA = "litecore-engine/3"
+BUILD_ID = "1b4d6a1fc905fb8a"   # host 0.2.29's engine package (schema 3: editor v22 + ods-viewer-v1, 35 files, 2026-10-20); was f5f0df76 (0.2.26-0.2.28: v21/v22 editor only), d3cd39bb (0.2.24, finding 145), c3c22d92 (0.2.23, link-batch §17), eb3f9408 (0.2.14), 59e6a9fe (0.2.13), 45cdcedf (0.2.12), b99f4b13 (0.2.11), bebc7e83 (0.2.10), 7bf6dbd6 (0.2.9), 63656ee4 (0.2.8), fabdb50e (0.2.7)
 # What Chrome 151 and Firefox 156 are predicted to send over HTTPS (spec §2, P1).
 BROWSER_AE = "gzip, deflate, br, zstd"
 # Z1-2: Accept-Encoding -> the coding the host must pick.
@@ -203,6 +207,8 @@ def score_package(pkg: dict[str, Any], zstd_step: bool = True) -> list[str]:
     js, version = pkg.get("lastJsCommit") or "", pkg.get("lastVersionCommit") or ""
     if not (js.isdigit() and version.isdigit() and int(js) <= int(version)):
         bad.append(f"K0-6 host scripts changed after the last version bump (js {js!r}, version {version!r})")
+    # SPEC-M4 H5-1: the page table names both pages, each module and wasm packaged.
+    bad += [f"H5-1 {problem}" for problem in validate_manifest(manifest, only_pages=True)]
     return bad + (score_zstd_package(pkg) if zstd_step else [])
 
 
@@ -878,6 +884,10 @@ PACKAGE_CASES = [
     ("Z0-3", "a .zst over Firefox's measured cache room",
      lambda p: p["manifest"]["files"][_wasm_path(p["manifest"])].update(zstBytes=MAX_ZST_BYTES + 1)),
     ("Z0-4", "a schema-1 manifest", lambda p: p["manifest"].update(schema="litecore-engine/1")),
+    ("Z0-4", "a schema-2 manifest (before the page table)", lambda p: p["manifest"].update(schema="litecore-engine/2")),
+    ("H5-1", "a one-page manifest under schema 3", lambda p: p["manifest"]["source"]["pages"].pop("ods-viewer.html")),
+    ("H5-1", "the viewer page's wasm is not packaged",
+     lambda p: p["manifest"]["source"]["pages"]["ods-viewer.html"].update(wasmSha256="0" * 64)),
     ("Z0-4", "another engine", lambda p: p["manifest"].update(
         buildId=build_id(dict(p["manifest"]["files"], **{"x.js": {"sha256": "0" * 64}})))),
 ]

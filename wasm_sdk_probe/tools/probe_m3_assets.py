@@ -54,6 +54,11 @@ PROJECT = Path(__file__).resolve().parent.parent
 REPO = PROJECT.parent
 EVIDENCE = REPO / "findings" / "evidence" / "m3-assets"
 PAGE_MODULE = "e2-editor-app.js"
+# SPEC-M4-ods-in-nextcloud §3.5 (review C3): the package is the UNION of each
+# page's closure -- that page's static import graph, its one hard-coded
+# workerUrl, and that worker's manifest closure.  The editor and the read-only
+# spreadsheet viewer share the SDK and the CJK pack; each has its own engine.
+PAGES = {"e2-editor.html": "e2-editor-app.js", "ods-viewer.html": "ods-viewer-app.js"}
 APP_ROUTE = "/apps/litecore/r/"
 IMPORT = re.compile(r'^\s*(?:import|export)\b[^;]*?\bfrom\s*"(\.{1,2}/[^"]+)"', re.M | re.S)
 WORKER_URL = re.compile(r'workerUrl:\s*"(\./[^"]+)"')
@@ -124,17 +129,31 @@ def worker_closure(root: Path, worker: str) -> dict[str, Any]:
             "manifest": manifest_path.as_posix(), "profile": manifest.get("profile")}
 
 
-def closure(root: Path = DIST) -> dict[str, Any]:
-    page = page_graph(root, PAGE_MODULE)
-    source = (root / PAGE_MODULE).read_text()
+def page_closure(root: Path, html: str, module: str) -> dict[str, Any]:
+    """One page's closure: its static import graph, its ONE hard-coded workerUrl
+    (comments included -- a second literal anywhere is refused), that worker's
+    manifest closure, and the page itself."""
+    page = page_graph(root, module)
+    source = (root / module).read_text()
     workers = WORKER_URL.findall(source)
     if len(workers) != 1:
-        raise RuntimeError(f"expected one hard-coded workerUrl in {PAGE_MODULE}, found {workers}")
+        raise RuntimeError(f"expected one hard-coded workerUrl in {module}, found {workers}")
     worker = worker_closure(root, workers[0][2:])
-    files = sorted(set(page) | set(worker["files"]) | {"e2-editor.html"})
+    return {"html": html, "module": module, "pageGraph": page,
+            "dynamicImports": dynamic_imports(root, page), "worker": worker,
+            "files": sorted(set(page) | set(worker["files"]) | {html})}
+
+
+def closure(root: Path = DIST, pages: dict[str, str] = PAGES) -> dict[str, Any]:
+    per_page = {html: page_closure(root, html, module) for html, module in pages.items()}
+    files = sorted(set().union(*(set(p["files"]) for p in per_page.values())))
+    # The editor page's own graph and worker stay at the top level: every older
+    # reader of this record (the packager's `source.page`, K0's scorers) reads them there.
+    editor = per_page.get("e2-editor.html") or next(iter(per_page.values()))
     return {
-        "pageGraph": page, "dynamicImports": dynamic_imports(root, page),
-        "worker": worker,
+        "pages": per_page,
+        "pageGraph": editor["pageGraph"], "dynamicImports": editor["dynamicImports"],
+        "worker": editor["worker"],
         "files": [{"path": f, "bytes": (root / f).stat().st_size, "sha256": sha256_file(root / f)}
                   for f in files],
         "totalBytes": sum((root / f).stat().st_size for f in files),
