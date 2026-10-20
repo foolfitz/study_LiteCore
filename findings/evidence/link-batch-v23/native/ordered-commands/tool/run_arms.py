@@ -29,7 +29,7 @@ BKSP, DEL = 1283, 1286
 SH, MOD1 = 0x1000, 0x2000
 BOLD_TRUE = '{"Bold":{"type":"boolean"`"value":true}}'   # ` = comma (oc_native.cpp)
 
-MODES = ('seq', 'q', 'unipoll', 'uni1', 'uni1ai')
+MODES = ('seq', 'q', 'unipoll', 'uni1', 'uni1ai', 'uni1f')
 ARMS = []
 
 
@@ -74,6 +74,13 @@ N1_ARMS = [
      'note': 'N1c: trigger Down (P1.0 -> P2 start); Backspace joins P2 into P1 near the top of 200 paragraphs',
      'decides': False},
 ]
+# SPEC-M3-ordered-commands §15.2 (ruling 2 §2.2): the other three inline formats, d4's shape, for the next N1
+# run; each with the engine's explicit-true argument (probe_engine.cpp inlineFormatArgument, finding 045).
+for _suffix, _cmd in (('i', 'Italic'), ('u', 'Underline'), ('s', 'Strikeout')):
+    N1_ARMS.append({'name': f'd4{_suffix}', 'fixture': 'abcd',
+                    'script': f'Xd4{_suffix}@{RIGHT | SH}=K{LEFT};U.uno:{_cmd}|' + '{"' + _cmd + '":{"type":"boolean"`"value":true}}' + ',S,L',
+                    'note': f"d4's shape with .uno:{_cmd}: trigger Shift+Right; Left; .uno:{_cmd} at the collapsed caret",
+                    'decides': False})
 
 
 # G (SPEC-M3-ordered-commands §15.1; fable ruling 2 §2.1 item 5): the caret-delete witness. Run with
@@ -98,6 +105,18 @@ G_ARMS = [
 ]
 
 
+# O (SPEC-M3-ordered-commands §15.3, L-object-click-shell-switch; fable ruling 2 §2.3): a click that selects
+# an as-char image, then one command, at the page's cadence (uni1f: the next op at the next poll) and after a
+# 150 ms idle (the shell switch is a 120 ms timer, sw view.cxx:844), each against seq. Run with --arms-set o
+# --modes seq,uni1f. The point: the cursor rect at the image's left edge (after "ab"), 567 twips (1 cm) right.
+O_ARMS = []
+for _name, _op in (('bold', f'U.uno:Bold|{BOLD_TRUE}'), ('del', f'K{DEL}'), ('bksp', f'K{BKSP}'), ('left', f'K{LEFT}')):
+    for _idle in ('', 'I150;'):
+        O_ARMS.append({'name': f'ob-{_name}' + ('-i' if _idle else ''), 'fixture': 'image-aschar',
+                       'script': f'k{RIGHT}x2,rimg,k{HOME},Xob@{RIGHT}=Cimg+567;{_idle}{_op},S,L',
+                       'note': f'click the image, {"idle 150 ms, " if _idle else ""}then {_op}', 'decides': False})
+
+
 def utc():
     return datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
 
@@ -112,12 +131,12 @@ def main():
     ap.add_argument('--runs', type=int, default=5)
     ap.add_argument('--only', default='')
     ap.add_argument('--modes', default='seq,q,unipoll')
-    ap.add_argument('--arms-set', choices=('d', 'n1', 'g'), default='d')
+    ap.add_argument('--arms-set', choices=('d', 'n1', 'g', 'o'), default='d')
     a = ap.parse_args()
     out = pathlib.Path(a.out)
     work = pathlib.Path(a.work)
     out.mkdir(parents=True, exist_ok=True)
-    table = {'d': ARMS, 'n1': ARMS + N1_ARMS, 'g': G_ARMS}[a.arms_set]
+    table = {'d': ARMS, 'n1': ARMS + N1_ARMS, 'g': G_ARMS, 'o': O_ARMS}[a.arms_set]
     (out / 'arms.json').write_text(json.dumps(table, indent=1) + '\n')
     only = set(filter(None, a.only.split(',')))
     modes = [m for m in a.modes.split(',') if m]
@@ -133,7 +152,7 @@ def main():
                 env.pop('OC_A11Y', None)
                 if a.arms_set == 'g':
                     env['OC_A11Y'] = '1'
-                if mode in ('unipoll', 'uni1', 'uni1ai'):
+                if mode in ('unipoll', 'uni1', 'uni1ai', 'uni1f'):
                     env['SAL_LOK_OPTIONS'] = 'unipoll'
                 d = work / f"{x['name']}-{mode}-r{r}"
                 if d.exists():

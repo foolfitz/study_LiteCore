@@ -12,8 +12,11 @@ review/review-6-artifacts/native/make_fixtures.py) for positions (i)-(iii) of
 L-C-number-or-indent (SPEC-M3-link-batch.md §15.1), under this file's page
 layout.
 """
+import base64
 import pathlib
+import struct
 import sys
+import zlib
 
 NS = (
     ' xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0"'
@@ -67,6 +70,20 @@ def p(text):
     return f'<text:p>{text}</text:p>\n'
 
 
+DRAW_NS = (' xmlns:draw="urn:oasis:names:tc:opendocument:xmlns:drawing:1.0"'
+           ' xmlns:svg="urn:oasis:names:tc:opendocument:xmlns:svg-compatible:1.0"'
+           ' xmlns:xlink="http://www.w3.org/1999/xlink"')
+
+
+def png_8x8():
+    """An 8x8 opaque grey PNG, built here so the fixture carries no external file."""
+    def chunk(kind, data):
+        return struct.pack('>I', len(data)) + kind + data + struct.pack('>I', zlib.crc32(kind + data) & 0xffffffff)
+    raw = b''.join(b'\x00' + b'\x80\x80\x80' * 8 for _ in range(8))
+    return (b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', struct.pack('>IIBBBBB', 8, 8, 8, 2, 0, 0, 0))
+            + chunk(b'IDAT', zlib.compress(raw, 9)) + chunk(b'IEND', b''))
+
+
 FIXTURES = {
     # D2-D6: one paragraph, four letters (137's model traces use `abcd`)
     'abcd': doc(p('abcd')),
@@ -98,6 +115,12 @@ FIXTURES = {
     # and a run of 25 CJK characters (no spaces: the user's path), each deleted one key at a time.
     'underscores': doc(p('Name: ' + '_' * 30)),
     'cjk25': doc(p('中文沒有空格所以一句二十幾個字的長句子其實很平常啊')),
+    # SPEC-M3-ordered-commands §15.3 (ruling 2 §2.3): an as-char image (2 cm x 2 cm) between "ab" and "cd",
+    # for L-object-click-shell-switch's native arm
+    'image-aschar': doc('<text:p>ab<draw:frame draw:name="img1" text:anchor-type="as-char" svg:width="2cm" '
+                        'svg:height="2cm" draw:z-index="0"><draw:image><office:binary-data>'
+                        + base64.b64encode(png_8x8()).decode('ascii')
+                        + '</office:binary-data></draw:image></draw:frame>cd</text:p>\n', extra_ns=DRAW_NS),
     # N1c: 200 paragraphs of about 300 characters each, so a join near the top re-lays-out the rest
     'long200': doc(''.join(p(f'Paragraph {i:03d}. ' + ' '.join(['lorem ipsum dolor sit amet consectetur'] * 8))
                            for i in range(1, 201))),

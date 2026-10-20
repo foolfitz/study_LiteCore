@@ -58,6 +58,17 @@ REPLY_TYPES = {'LOK_CALLBACK_INVALIDATE_VISIBLE_CURSOR', 'LOK_CALLBACK_TEXT_SELE
                'LOK_CALLBACK_TEXT_SELECTION_START', 'LOK_CALLBACK_TEXT_SELECTION_END',
                'LOK_CALLBACK_UNO_COMMAND_RESULT'}
 COUNTED_ROUNDS = 5  # spec §9.1
+# Ruling 2 §2.2 (spec §15.2), from the N1 run after b9080313's (not the committed one): for an inline-format
+# command, its own state item is reply-dependent; a late one is an N1a violation.
+FORMAT_STATE = ('.uno:Bold', '.uno:Italic', '.uno:Underline', '.uno:Strikeout')
+
+
+def format_state_of(op):
+    """'U.uno:Bold|{...}' -> '.uno:Bold' when the op is an inline-format command, else None."""
+    if not op.startswith('U'):
+        return None
+    cmd = op[1:].split('|', 1)[0]
+    return cmd if cmd in FORMAT_STATE else None
 
 
 def run_log(out):
@@ -128,10 +139,13 @@ def judge(out, rounds):
             if c['problems']:
                 continue  # F3: an unclean cell is not judged
             for o in c['ops']:
+                own = format_state_of(o['op'])
                 for cb in o.get('lateCallbacks', []):
                     late.setdefault(cb['type'], []).append((arm, cb['t']))
                     if cb['type'] in REPLY_TYPES:
                         n1a.append(f"{arm} r{r} {o['op']}: {cb['type']} {cb['t']:.1f} ms after the first poll")
+                    elif own and cb['type'] == 'LOK_CALLBACK_STATE_CHANGED' and state_key(cb['payload']) == own:
+                        n1a.append(f"{arm} r{r} {o['op']}: its own {own} state {cb['t']:.1f} ms after the first poll")
     # N1b and its control
     lines.append('N1b (record): late callbacks after the first poll, uni1ai cells')
     for t, v in sorted(late.items()):
@@ -320,6 +334,26 @@ def self_test(smoke):
     for kind in sorted(REPLY_TYPES - {'LOK_CALLBACK_INVALIDATE_VISIBLE_CURSOR'}):
         case(f'N1a: a late {kind[13:]}', late_type(kind), 'N1-FAILS', f'{kind} 7.5')
     case('N1a: a late INVALIDATE_TILES is no longer a reply type', late_type('LOK_CALLBACK_INVALIDATE_TILES'), 'N1-HOLDS')
+    def bold_state_late(out):   # ruling 2 §2.2: the Bold op's own state item after the first poll
+        def fn(r):
+            if r['rec'] == 'measured':
+                for o in r['ops']:
+                    if o['op'].startswith('U.uno:Bold'):
+                        o['lateCallbacks'].append({'t': 4.0, 'type': 'LOK_CALLBACK_STATE_CHANGED', 'payload': '.uno:Bold=true'})
+            return r
+        rewrite(out / 'd4' / 'uni1ai-r1.jsonl', fn)
+
+    def other_state_late(out):  # a late state item that is not the command's own stays a record
+        def fn(r):
+            if r['rec'] == 'measured':
+                for o in r['ops']:
+                    if o['op'].startswith('U.uno:Bold'):
+                        o['lateCallbacks'].append({'t': 4.0, 'type': 'LOK_CALLBACK_STATE_CHANGED', 'payload': '.uno:Italic=false'})
+            return r
+        rewrite(out / 'd4' / 'uni1ai-r1.jsonl', fn)
+
+    case("N1a: the Bold op's own state late", bold_state_late, 'N1-FAILS', 'its own .uno:Bold state 4.0')
+    case("N1a: another state item late is a record, not a violation", other_state_late, 'N1-HOLDS')
     case('F2: a cell with two run-log entries', runlog_dup, 'NOT-ESTABLISHED', '2 run-log entries')
     case('F2: a child exit -6 after its records', runlog_exit, 'NOT-ESTABLISHED', 'child exit -6')
     case('F3: a late cursor in an unclean cell', unclean_late, 'NOT-ESTABLISHED', 'no done record')

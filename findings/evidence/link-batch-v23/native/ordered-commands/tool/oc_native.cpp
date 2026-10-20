@@ -52,6 +52,9 @@
 //            pending" from an op's return until its first poll (the spec's
 //            §5.2 rule without the queued-command term: the page sends one
 //            command at a time). N1c compares uni1 and uni1ai.
+//   uni1f    unipoll, ONE op per poll and the next op at the next poll, with no idle and no late-callback
+//            window: the page's cadence (SPEC-M3-ordered-commands §15.3, the object-click arm of
+//            L-object-click-shell-switch; fable ruling 2 §2.3).
 //
 // KEY SHAPE: as the engine posts a key-path action (probe_engine.cpp
 // handleEditorAction): KEYINPUT then KEYUP, charCode 0, keyCode = awt Key code
@@ -70,7 +73,9 @@
 //                                      the engine's form, synchronous
 //                                      (a result listener forces SYNCHRON)
 //                     P<text>          paste("text/plain;charset=utf-8")
-//                     C<point>         click DOWN+UP at a recorded point
+//                     C<point>[+<dx>]  click DOWN+UP at a recorded point, dx twips to its right
+//                     I<ms>            idle: seq settles as after any op; uni1f polls doing nothing for
+//                                      <ms> (VCL timers run); not a LOK call, no record
 //                   After every op returns: the selection type and text and the
 //                   whole .uno:Undo payload, read at once ("atReturn").
 //   S               saveAs(OUT_URL, "fodt")
@@ -119,7 +124,7 @@ constexpr int kPreMeasureQuietMs = 1500;
 constexpr int kMeasureQuietMs = 2000;
 constexpr int kMeasureCapMs = 15000;
 
-enum class Mode { Seq, Queued, Unipoll, Uni1, Uni1Ai };
+enum class Mode { Seq, Queued, Unipoll, Uni1, Uni1Ai, Uni1F };
 Mode gMode = Mode::Seq;
 const char *modeName() {
   switch (gMode) {
@@ -128,10 +133,13 @@ const char *modeName() {
   case Mode::Unipoll: return "unipoll";
   case Mode::Uni1: return "uni1";
   case Mode::Uni1Ai: return "uni1ai";
+  case Mode::Uni1F: return "uni1f";
   }
   return "?";
 }
-bool unipollMode() { return gMode == Mode::Unipoll || gMode == Mode::Uni1 || gMode == Mode::Uni1Ai; }
+bool unipollMode() {
+  return gMode == Mode::Unipoll || gMode == Mode::Uni1 || gMode == Mode::Uni1Ai || gMode == Mode::Uni1F;
+}
 bool onePerPoll() { return gMode == Mode::Uni1 || gMode == Mode::Uni1Ai; }
 bool gReplyPending = false;  // uni1ai's anyInput answer
 bool anyInputCallback(void *, int) { return gReplyPending; }
@@ -264,12 +272,15 @@ std::string callbacksSince(size_t from, double t0Ms, int *n) {
 }
 
 std::map<std::string, std::string> gPoints;
-bool pointOf(const std::string &name, long &px, long &py) {
+bool pointOf(const std::string &spec, long &px, long &py) {
+  const auto plus = spec.find('+');
+  const std::string name = spec.substr(0, plus);
+  const long dx = plus == std::string::npos ? 0 : std::atol(spec.substr(plus + 1).c_str());
   auto it = gPoints.find(name);
   if (it == gPoints.end()) return false;
   long x, y, w, h;
   if (std::sscanf(it->second.c_str(), "%ld, %ld, %ld, %ld", &x, &y, &w, &h) != 4) return false;
-  px = x;
+  px = x + dx;
   py = y + h / 2;
   return true;
 }
@@ -296,7 +307,7 @@ std::vector<Op> parseOps(const std::string &s) {
           if (c == '`') c = ',';
       }
     }
-    if (std::string("KUPC").find(op.kind) == std::string::npos) fatal("unknown op", ",\"op\":" + q(one));
+    if (std::string("KUPCI").find(op.kind) == std::string::npos) fatal("unknown op", ",\"op\":" + q(one));
     ops.push_back(op);
   }
   return ops;
@@ -313,6 +324,8 @@ std::string runOp(const Op &op, double t0) {
     gDoc->pClass->postUnoCommand(gDoc, op.arg.c_str(), op.json.empty() ? nullptr : op.json.c_str(), true);
   } else if (op.kind == 'P') {
     gDoc->pClass->paste(gDoc, "text/plain;charset=utf-8", op.arg.c_str(), op.arg.size());
+  } else if (op.kind == 'I') {
+    // idle: only seq and uni1f give it a meaning (a settle); elsewhere it is a no-op
   } else if (op.kind == 'C') {
     long x, y;
     if (!pointOf(op.arg, x, y)) fatal("no point", ",\"name\":" + q(op.arg));
@@ -477,7 +490,7 @@ void addSteps(const std::string &script) {
                             return Settle{kMeasureQuietMs, kMeasureCapMs};
                           }
                           post(m->trigger);
-                          if (onePerPoll()) return Settle{kSetupQuietMs, 5000};
+                          if (onePerPoll() || gMode == Mode::Uni1F) return Settle{kSetupQuietMs, 5000};
                           if (gMode == Mode::Unipoll) {
                             for (const Op &op : m->ops) m->opRecords.push_back(runOp(op, m->t0));
                             return Settle{kMeasureQuietMs, kMeasureCapMs};
@@ -489,6 +502,9 @@ void addSteps(const std::string &script) {
         for (size_t i = 0; i < m->ops.size(); ++i)
           gSteps.push_back({step, [m, i] {
                               if (gMode != Mode::Seq) return Settle{};
+                              if (m->ops[i].kind == 'I')  // seq: an idle is one more settle
+                                return i + 1 == m->ops.size() ? Settle{kMeasureQuietMs, kMeasureCapMs}
+                                                              : Settle{kSetupQuietMs, 5000};
                               m->opRecords.push_back(runOp(m->ops[i], m->t0));
                               return i + 1 == m->ops.size() ? Settle{kMeasureQuietMs, kMeasureCapMs}
                                                             : Settle{kSetupQuietMs, 5000};
@@ -526,6 +542,20 @@ void addSteps(const std::string &script) {
                               return i + 1 == m->ops.size() ? Settle{kMeasureQuietMs, kMeasureCapMs} : Settle{};
                             }});
         }
+        // uni1f: the op in its own poll, the next op at the next poll; I<ms> polls doing nothing.
+        for (size_t i = 0; i < m->ops.size(); ++i)
+          gSteps.push_back({step, [m, i] {
+                              if (gMode != Mode::Uni1F) return Settle{};
+                              const bool last = i + 1 == m->ops.size();
+                              if (m->ops[i].kind == 'I') {
+                                if (last) return Settle{kMeasureQuietMs, kMeasureCapMs};
+                                Settle s;
+                                s.fixedMs = std::atoi(m->ops[i].arg.c_str());
+                                return s;
+                              }
+                              m->opRecords.push_back(runOp(m->ops[i], m->t0));
+                              return last ? Settle{kMeasureQuietMs, kMeasureCapMs} : Settle{};
+                            }});
       }
       gSteps.push_back({step, [m] {
                           const double windowMs = nowMs() - m->t0;
@@ -651,6 +681,7 @@ int main(int argc, char **argv) {
   else if (mode == "unipoll") gMode = Mode::Unipoll;
   else if (mode == "uni1") gMode = Mode::Uni1;
   else if (mode == "uni1ai") gMode = Mode::Uni1Ai;
+  else if (mode == "uni1f") gMode = Mode::Uni1F;
   else {
     std::cerr << "unknown mode " << mode << "\n";
     return 64;
