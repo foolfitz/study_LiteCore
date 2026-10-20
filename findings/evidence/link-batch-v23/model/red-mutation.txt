@@ -1,0 +1,29 @@
+# The mutation (a scratch copy; the committed test is unchanged):
+1631c1631
+<   if (c33type.differs != 5474) fail("threaded mode pin (SPEC-M3-ordered-commands §8): typing, v20 keys, Writer-divergent " + std::to_string(c33type.differs) + ", pinned 5474; stop");
+---
+>   if (c33type.differs != 5475) fail("threaded mode pin (SPEC-M3-ordered-commands §8): typing, v20 keys, Writer-divergent " + std::to_string(c33type.differs) + ", pinned 5474; stop");
+1639c1639
+<     Knobs c; c.sync = true; c.flagDisabled = true;
+---
+>     Knobs c; c.sync = true; c.flagDisabled = true; c.syncReplySamePoll = true;
+# exit of the mutated build's run: 1
+FAIL threaded mode pin (SPEC-M3-ordered-commands §8): typing, v20 keys, Writer-divergent 5474, pinned 5474; stop
+FAIL C, v20 keys, moves only: a forged reply; first: text=abcd shape=caret0 E=none U=Right lagReg=0 lagDeadline=0
+FAIL C, v20 keys, moves only: a stale U completion; first: text=abcd shape=caret0 E=none U=Right lagReg=0 lagDeadline=0
+FAIL C, v20 keys, Backspace: a forged reply; first: text=abcd shape=caret0 E=none U=Right lagReg=0 lagDeadline=0 Backspace(lagReg2=0,lagB1=0,lagV=0)
+FAIL C, v20 keys, Backspace: a stale U completion; first: text=abcd shape=caret0 E=none U=Right lagReg=0 lagDeadline=0 Backspace(lagReg2=0,lagB1=0,lagV=0)
+FAIL C, v20 keys, typing (condition 33): a forged reply; first: text=abcd shape=caret0 E=none U=none lagReg=0 lagDeadline=0 Type(lagReg2=0)
+FAIL C, v20 keys, typing (condition 33): a stale U completion; first: text=abcd shape=caret0 E=none U=Right lagReg=0 lagDeadline=0 Type(lagReg2=0)
+FAIL C, v20 keys, inline format (condition 33): a forged reply; first: text=abcd shape=caret0 E=none U=Right lagReg=0 lagDeadline=0 Bold(lagReg2=0)
+FAIL C, v20 keys, inline format (condition 33): a stale U completion; first: text=abcd shape=caret0 E=none U=Right lagReg=0 lagDeadline=0 Bold(lagReg2=0)
+FAIL C, all keys, moves only: a forged reply; first: text=abcd shape=caret0 E=none U=Shift+Right lagReg=0 lagDeadline=0
+FAIL C, all keys, moves only: a stale U completion; first: text=abcd shape=caret0 E=none U=Shift+Right lagReg=0 lagDeadline=0
+FAIL C, all keys, Backspace: Writer-divergent 557568; first: text=abcd shape=caret0 E=readback-move(Shift+Right,deadline=0) U=Right lagReg=0 lagDeadline=0 Backspace(lagReg2=0,lagB1=0,lagV=0)
+FAIL C, all keys, Backspace: a forged reply; first: text=abcd shape=caret0 E=none U=Shift+Right lagReg=0 lagDeadline=0 Backspace(lagReg2=0,lagB1=0,lagV=0)
+FAIL C, all keys, Backspace: a stale U completion; first: text=abcd shape=caret0 E=none U=Shift+Right lagReg=0 lagDeadline=0 Backspace(lagReg2=0,lagB1=0,lagV=0)
+FAIL C, all keys, typing (condition 33): a forged reply; first: text=abcd shape=caret0 E=none U=none lagReg=0 lagDeadline=0 Type(lagReg2=0)
+FAIL C, all keys, typing (condition 33): a stale U completion; first: text=abcd shape=caret0 E=none U=Shift+Right lagReg=0 lagDeadline=0 Type(lagReg2=0)
+FAIL C, all keys, inline format (condition 33): a forged reply; first: text=abcd shape=caret0 E=none U=Shift+Right lagReg=0 lagDeadline=0 Bold(lagReg2=0)
+FAIL C, all keys, inline format (condition 33): a stale U completion; first: text=abcd shape=caret0 E=none U=Shift+Right lagReg=0 lagDeadline=0 Bold(lagReg2=0)
+18 failure(s)

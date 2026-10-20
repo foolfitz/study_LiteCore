@@ -76,6 +76,19 @@
 // mid-paragraph no-op; the one-code-point rule applied unflagged must refuse a
 // multi-code-point grapheme in an undisturbed sequence.
 //
+// SPEC-M3-ordered-commands §8 (ruling 1 §2.7, addendum 1): SECTION D runs the same generator in a
+// synchronous-key mode, C (unipoll).  A key or a command applies inside its call; the flush is still a
+// posted user event; the poll, where every engine decision lands, runs only on a tick with no user event
+// pending (svpinst.cxx:440-444) and does one thing; a command's reply goes at the next poll and carries the
+// engine's cache as it is then; a caret delete is the user's own Backspace (no barrier).  Property: every
+// shape, condition 33's two included, ends as Writer ends (text, caret and mark), and no reply carries a
+// state other than core's (the forged-completion class is empty).  Red cases: the reply in the same poll
+// as its command (before its flush), and a poll between two callbacks of one flush; each must print a
+// forged reply.  The threaded mode stays the red case that the generator is alive (27,744 / 2,448 /
+// 5,474 / 3,868, pinned).  Limits: a key is one event with no hops (only the withdrawn FIFO candidates
+// depended on hops); bold does not change a rectangle's width (condition 40); the page sends one item at
+// a time, so "one command per poll" is never contested here and is not discriminated by this model.
+//
 // What the model reports but the spec's rule does not cover is printed under
 // its own name and counted (REPORTED 1-5 at the end of main()).  One sequence
 // can be traced: EXTEND_MODEL_TRACE='<its describe() line>' <binary>.
@@ -260,7 +273,7 @@ void writerEarlier(Core &w, const Scenario &s) {
   case Earlier::Select3: w.hasMark = true; w.mk = 1; w.pt = 3; break;
   }
 }
-std::string writerText(const Scenario &s) {
+Core writerCore(const Scenario &s) {
   Core w = makeCore(s);
   writerEarlier(w, s);
   if (s.u) applyKey(w, static_cast<Key>(s.u - 1));
@@ -277,8 +290,9 @@ std::string writerText(const Scenario &s) {
     if (w.nonEmpty())
       for (int i = w.lo(); i < w.hi(); ++i) w.units[i].bold = true;
   }
-  return w.text();
+  return w;
 }
+std::string writerText(const Scenario &s) { return writerCore(s).text(); }
 
 // ---- the rules under test ---------------------------------------------------------
 
@@ -289,6 +303,10 @@ struct Knobs {
   bool flagDisabled = false;     // red case: remove the flag
   bool alwaysOneCodePoint = false; // red case: the one-code-point rule unflagged
   bool resolverRuleA = true;     // 12.4 rule A in the run-time resolver
+  // SPEC-M3-ordered-commands §8: the synchronous-key mode (C), and its two red cases
+  bool sync = false;
+  bool syncReplySamePoll = false; // red case: the reply in the same poll as its command, before its flush
+  bool syncPollMidFlush = false;  // red case: a poll between two callbacks of one flush
 };
 
 // ---- the run ------------------------------------------------------------------------
@@ -309,7 +327,7 @@ struct Cb {
   int owner;
 };
 
-enum class ActionType { Arrive, PostKey, Deadline, SelectStart, SelectEnd, BarrierStart, BarrierDeadline1, Verify, WindowExpiry, DeleteSelection, FinishDelete, TypeChar, BoldSelection };
+enum class ActionType { Arrive, PostKey, Deadline, SelectStart, SelectEnd, BarrierStart, BarrierDeadline1, Verify, WindowExpiry, DeleteSelection, FinishDelete, TypeChar, BoldSelection, Reply };
 struct Action {
   ActionType type;
   int readyAt;
@@ -377,6 +395,12 @@ struct Run {
   bool deleteSelOnOtherRange = false;
   bool noopWithKeyPending = false;
   bool guardHit = false;
+  // C (SPEC-M3-ordered-commands §8): what the next reply answers, the page's snapshot (the state the
+  // previous reply carried), and the replies whose state was not core's
+  enum class ReplyFor { None, Item, Move, DeleteSelection, KeyDelete, Type, Format } replyFor = ReplyFor::None;
+  bool keyChanged = false;
+  std::vector<Rect> snapSel;
+  int forgedReplies = 0;
   bool trace = false;
   void tr(const std::string &what) const { if (trace) std::printf("  t=%d %s | core=%s pt=%d mk=%s cache=%s fifo=%s\n", tick, what.c_str(), core.text().c_str(), core.pt, core.hasMark ? std::to_string(core.mk).c_str() : "-", cacheSel.empty() ? "collapsed" : "range", fifoText().c_str()); }
   std::string fifoText() const { std::string o; for (const Ev &e : fifo) o += e.isKey ? std::string(keyName(e.key)) + "@" + std::to_string(e.owner) + " " : "Flush "; if (midFlush) o += "(mid-flush)"; return o; }
@@ -387,6 +411,7 @@ struct Run {
     lastCaret = core.caretRect();
     cacheSel = core.selRects();
     cacheCaret = lastCaret;
+    snapSel = cacheSel;
   }
 
   std::string selPayload() const {
@@ -476,6 +501,7 @@ struct Run {
     tr(std::string("LOK delivered ") + names[cb.t] + (cb.t == SEL ? (cb.rects.empty() ? "0" : "") : ""));
     switch (cb.t) {
     case RESULT:
+      if (kn.sync) break; // C: every completion is at the poll after the flush (syncAnswer)
       if (cb.owner == OE && nextItem == 0 && !pendingActive) {
         // the earlier uno operation: completes at its result (probe_engine.cpp:2742-2797)
         eCompletion = Completion::FirstCallback;
@@ -510,7 +536,7 @@ struct Run {
   }
 
   void feedPending(const Cb &cb) {
-    if (!pendingActive) return;
+    if (!pendingActive || kn.sync) return;
     Completion c = Completion::Pending;
     if (pendingIsSelect) {
       if (cb.t == SEL) c = Completion::FirstCallback;
@@ -580,6 +606,18 @@ struct Run {
   bool lokIdle() const { return fifo.empty() && !midFlush; }
 
   void enginePhase() {
+    if (kn.sync) {
+      // C: the poll runs only on a tick with no user event pending, and does one thing
+      if (!(kn.syncPollMidFlush ? fifo.empty() : lokIdle())) return;
+      for (std::size_t i = 0; i < actions.size(); ++i) {
+        if (actions[i].readyAt > tick) continue;
+        const Action a = actions[i];
+        actions.erase(actions.begin() + static_cast<long>(i));
+        execute(a);
+        return;
+      }
+      return;
+    }
     for (bool progress = true; progress;) {
       progress = false;
       for (std::size_t i = 0; i < actions.size(); ++i) {
@@ -602,7 +640,59 @@ struct Run {
     pending = beginMove(isExtend(k), cacheSel);
     (owner == OU ? uKind : eKind) = pending.kind;
     if (owner == OU) uRegistered = true;
+    if (kn.sync) { syncKey(owner, k); syncReply(owner, ReplyFor::Move); return; }
     schedule(ActionType::PostKey, 0, false, true, false, owner);
+  }
+
+  // ---- C (SPEC-M3-ordered-commands §8) ----
+  // A key inside its call (postEventAsync runs LOKPostAsyncEvent inline under unipoll, lokhelper.cxx:1283-1288).
+  void syncKey(int owner, Key k) {
+    keyPosted[owner] = keyRan[owner] = true;
+    keyChanged = applyKey(core, k);
+    if (keyChanged) repaintFrom(owner);
+    tr(std::string("C ran key ") + keyName(k) + "@" + std::to_string(owner));
+    if (owner == OU) { uKeyRan = true; coreAfterU = core; }
+  }
+  void syncReply(int owner, ReplyFor what) {
+    replyFor = what;
+    if (kn.syncReplySamePoll) { syncAnswer(owner); return; }
+    schedule(ActionType::Reply, 0, false, false, false, owner);
+  }
+  void syncAnswer(int owner) {
+    (void)owner;
+    const ReplyFor what = replyFor;
+    replyFor = ReplyFor::None;
+    if (cacheSel != core.selRects() || cacheCaret != core.caretRect()) {
+      ++forgedReplies;
+      tr("FORGED reply: the cache is not core");
+    }
+    snapSel = cacheSel;
+    switch (what) {
+    case ReplyFor::Move:
+      completeMove(pendingIsSelect ? Completion::FirstCallback : keyChanged ? Completion::Transition : Completion::Readback, false);
+      return;
+    case ReplyFor::Item: eCompletion = Completion::FirstCallback; pageNext(false); return;
+    case ReplyFor::DeleteSelection: completionName = "uno-command-result"; outcome = Outcome::Deleted; nextItem = 3; return;
+    case ReplyFor::KeyDelete:
+      completionName = keyChanged ? "verified-key-undo" : "verified-boundary-noop";
+      outcome = keyChanged ? Outcome::Deleted : Outcome::Noop;
+      nextItem = 3;
+      return;
+    case ReplyFor::Type: completionName = "inserted"; outcome = Outcome::Changed; nextItem = 3; return;
+    case ReplyFor::Format: completionName = "uno-command-result"; outcome = Outcome::Changed; nextItem = 3; return;
+    case ReplyFor::None: fail("C: a reply with nothing to answer"); return;
+    }
+  }
+  // The user's own Backspace inside its call: Writer deletes the selection, else the unit before the caret.
+  void syncKeyBackspace() {
+    pendingMaskAtDelete = pendingKeyMask();
+    const int before = core.n();
+    if (core.nonEmpty()) core.eraseSelection();
+    else if (core.pt > 0) { core.units.erase(core.units.begin() + core.pt - 1); --core.pt; }
+    deletedUnits = before - core.n();
+    keyChanged = deletedUnits > 0;
+    if (keyChanged) repaintFrom(OB);
+    syncReply(OB, ReplyFor::KeyDelete);
   }
 
   void postKey(int owner, Key k) {
@@ -611,7 +701,7 @@ struct Run {
   }
 
   void execute(const Action &a) {
-    static const char *names[] = {"Arrive", "PostKey", "Deadline", "SelectStart", "SelectEnd", "BarrierStart", "BarrierDeadline1", "Verify", "WindowExpiry", "DeleteSelection", "FinishDelete", "TypeChar", "BoldSelection"};
+    static const char *names[] = {"Arrive", "PostKey", "Deadline", "SelectStart", "SelectEnd", "BarrierStart", "BarrierDeadline1", "Verify", "WindowExpiry", "DeleteSelection", "FinishDelete", "TypeChar", "BoldSelection", "Reply"};
     tr(std::string("engine ") + names[static_cast<int>(a.type)] + "@" + std::to_string(a.owner));
     switch (a.type) {
     case ActionType::Arrive:
@@ -619,6 +709,8 @@ struct Run {
         registerMove(OU, static_cast<Key>(sc.u - 1));
       } else if (sc.follow == 1) {
         resolveBackspace();
+      } else if (kn.sync) {
+        sc.follow == 2 ? typeChar() : boldSelection();
       } else {
         // condition 33: typing and an inline format are synchronous calls that jump the
         // posted-key FIFO exactly as .uno:Delete does; the page consults no snapshot for them
@@ -657,6 +749,7 @@ struct Run {
     case ActionType::FinishDelete: finishDelete(); return;
     case ActionType::TypeChar: typeChar(); return;
     case ActionType::BoldSelection: boldSelection(); return;
+    case ActionType::Reply: syncAnswer(a.owner); return;
     }
   }
 
@@ -673,6 +766,7 @@ struct Run {
       core.units.insert(core.units.begin() + a, Unit{'x', 1});
       core.pt = a + 1; core.hasMark = false;
       repaintFrom(OE);
+      if (kn.sync) { syncReply(OE, ReplyFor::Item); return; }
       eCompletion = Completion::FirstCallback;
       pageNext(false);
       return;
@@ -694,12 +788,22 @@ struct Run {
       if (changed) repaintFrom(OE);
       queueResult(OE);
       previousWasDelete = sc.e == Earlier::UnoDelete;
+      if (kn.sync) syncReply(OE, ReplyFor::Item);
       return;
     }
     case Earlier::Select3:
       // the product's select-range: pending on TEXT_SELECTION, readback armed;
       // RESET, START, END as three LOK calls (probe_engine.cpp:5555-5625)
       pendingActive = true; pendingOwner = OE; pendingIsSelect = true;
+      if (kn.sync) {
+        // C: RESET, START, END inside one command; no flush can run between them (§5.7 rule 1)
+        core.hasMark = false; core.pt = 2; repaintFrom(OE);
+        core.hasMark = true; core.mk = 1; core.normalize(); repaintFrom(OE);
+        core.pt = 3; core.normalize(); repaintFrom(OE);
+        selectEndRan = true;
+        syncReply(OE, ReplyFor::Move);
+        return;
+      }
       busy = true;
       schedule(ActionType::Deadline, sc.eDeadline, false, false, false, OE);
       core.hasMark = false; core.pt = 2;
@@ -719,10 +823,11 @@ struct Run {
     return sc.u == 0 && (sc.e == Earlier::InsertCaret || sc.e == Earlier::InsertRange);
   }
   void resolveBackspace() {
-    const bool snapshotRange = previousItemCarriesNoState() ? core.nonEmpty() : !cacheSel.empty();
+    const bool snapshotRange = previousItemCarriesNoState() ? core.nonEmpty() : !(kn.sync ? snapSel : cacheSel).empty();
     bool selectionForm = snapshotRange;
     if (kn.resolverRuleA && previousWasDelete) selectionForm = false;
     deleteSelectionForm = selectionForm;
+    if (kn.sync) { selectionForm ? deleteSelection() : syncKeyBackspace(); return; }
     schedule(selectionForm ? ActionType::DeleteSelection : ActionType::BarrierStart, 0, false, true, false, OB);
   }
 
@@ -735,6 +840,7 @@ struct Run {
     core.units.insert(core.units.begin() + a, Unit{'x', 1});
     core.pt = a + 1; core.hasMark = false;
     repaintFrom(OB);
+    if (kn.sync) { syncReply(OB, ReplyFor::Type); return; }
     outcome = Outcome::Changed;
     completionName = "inserted";
     nextItem = 3;
@@ -750,6 +856,7 @@ struct Run {
     if (core.nonEmpty())
       for (int i = core.lo(); i < core.hi(); ++i) core.units[i].bold = true;
     queueResult(OB);
+    if (kn.sync) syncReply(OB, ReplyFor::Format);
   }
 
   void refuse(const char *stageN, const char *site) {
@@ -773,6 +880,7 @@ struct Run {
     else if (core.pt < core.n()) { core.units.erase(core.units.begin() + core.pt); deletedUnits = 1; }
     repaintFrom(OB);
     queueResult(OB);
+    if (kn.sync) syncReply(OB, ReplyFor::DeleteSelection);
   }
 
   void barrierStart() {
@@ -1257,6 +1365,52 @@ Phase3 sweep3(const Knobs &kn, KeySet keys, int followMode) {
   return t;
 }
 
+// ---- SPEC-M3-ordered-commands §8: the synchronous-key mode (C) ----
+// Writer-divergent here is the whole end state (text, caret and mark), not the text alone.
+
+struct PhaseC {
+  long runs = 0, excludedRangeStart = 0, guard = 0, differs = 0, forged = 0, stale = 0, undecided = 0, refused = 0;
+  std::map<std::string, long> byCompletion;
+  std::map<Earlier, long> runsByEarlier;
+  std::map<std::string, std::string> first;
+};
+
+PhaseC sweepC(const Knobs &kn, KeySet keys, int followMode) {
+  PhaseC t;
+  forEachScenario(followMode, keys, [&](const Scenario &sc) {
+    Run r(sc, kn);
+    r.go();
+    if (keys == KeySet::V20 && ((sc.e == Earlier::RbMove && r.eKind == MoveKind::ExtendOrRangeStart) ||
+                                (sc.u && r.uKind == MoveKind::ExtendOrRangeStart))) {
+      ++t.excludedRangeStart;
+      return;
+    }
+    ++t.runs;
+    ++t.runsByEarlier[sc.e];
+    if (r.guardHit) ++t.guard;
+    const auto note = [&](const char *k) { if (!t.first.count(k)) t.first[k] = describe(sc); };
+    if (r.forgedReplies) { ++t.forged; note("forged reply"); }
+    if (r.uStale) { ++t.stale; note("stale U completion"); }
+    if (followMode && r.outcome == Outcome::None) { ++t.undecided; note("never answered"); }
+    if (r.outcome == Outcome::Refused) { ++t.refused; note("refused"); }
+    if (!(r.core == writerCore(sc))) { ++t.differs; note("Writer-divergent"); }
+    if (followMode) ++t.byCompletion[r.completionName.empty() ? std::string("(none)") : r.completionName];
+    else if (sc.u) ++t.byCompletion[std::string("move: ") + probe::extend::completionName(r.uCompletion)];
+  });
+  return t;
+}
+
+void reportC(const char *name, const PhaseC &t) {
+  std::printf("%-44s runs=%ld writerDiffers=%ld forged=%ld staleU=%ld refused=%ld undecided=%ld excludedRangeStart=%ld guard=%ld\n",
+              name, t.runs, t.differs, t.forged, t.stale, t.refused, t.undecided, t.excludedRangeStart, t.guard);
+  std::printf("    by earlier operation:");
+  for (const auto &[e, n] : t.runsByEarlier) std::printf(" %s=%ld", earlierName(e), n);
+  std::printf("\n    completions:");
+  for (const auto &[c, n] : t.byCompletion) std::printf(" %s=%ld", c.c_str(), n);
+  std::printf("\n");
+  for (const auto &[k, v] : t.first) std::printf("    first %-20s %s\n", k.c_str(), v.c_str());
+}
+
 void report3(const char *name, const Phase3 &t) {
   std::printf("%-44s runs=%ld writerEqual=%ld writerDiffers=%ld excludedRangeStart=%ld guard=%ld\n",
               name, t.runs, t.equal, t.differs, t.excludedRangeStart, t.guard);
@@ -1470,10 +1624,58 @@ int main() {
 
   // ---- condition 33 (ruling 4): typing and an inline format behind a pending key; reported, not ruled ----
   std::printf("== SECTION C: ruling 4 condition 33 -- typing and an inline format dispatched behind a pending key (reported) ==\n");
-  report3("typing, v20 keys", sweep3(v20, KeySet::V20, 2));
-  report3("inline format, v20 keys", sweep3(v20, KeySet::V20, 3));
+  const Phase3 c33type = sweep3(v20, KeySet::V20, 2), c33format = sweep3(v20, KeySet::V20, 3);
+  report3("typing, v20 keys", c33type);
+  report3("inline format, v20 keys", c33format);
+  // SPEC-M3-ordered-commands §8: the threaded mode is the red case that the generator is alive
+  if (c33type.differs != 5474) fail("threaded mode pin (SPEC-M3-ordered-commands §8): typing, v20 keys, Writer-divergent " + std::to_string(c33type.differs) + ", pinned 5474; stop");
+  if (c33format.differs != 3868) fail("threaded mode pin (SPEC-M3-ordered-commands §8): inline format, v20 keys, Writer-divergent " + std::to_string(c33format.differs) + ", pinned 3868; stop");
   report3("typing, all keys (next spec)", sweep3(faithful, KeySet::Full, 2));
   report3("inline format, all keys (next spec)", sweep3(faithful, KeySet::Full, 3));
+
+  // ---- SPEC-M3-ordered-commands §8: the synchronous-key mode (C, unipoll) ----
+  std::printf("== SECTION D: SPEC-M3-ordered-commands §8 -- the synchronous-key mode (C): every shape, its red cases ==\n");
+  {
+    Knobs c; c.sync = true; c.flagDisabled = true;
+    static const char *follows[] = {"moves only", "Backspace", "typing (condition 33)", "inline format (condition 33)"};
+    std::map<std::string, long> completions;
+    for (KeySet keys : {KeySet::V20, KeySet::Full})
+      for (int mode : {0, 1, 2, 3}) {
+        const std::string name = std::string("C, ") + (keys == KeySet::V20 ? "v20 keys, " : "all keys, ") + follows[mode];
+        const PhaseC t = sweepC(c, keys, mode);
+        reportC(name.c_str(), t);
+        for (const auto &[k, n] : t.byCompletion) completions[k] += n;
+        if (!t.runs) fail(name + ": vacuous (no run)");
+        if (t.guard) fail(name + ": a run hit the tick guard");
+        if (t.differs) fail(name + ": Writer-divergent " + std::to_string(t.differs) + "; first: " + t.first.at("Writer-divergent"));
+        if (t.forged) fail(name + ": a forged reply; first: " + t.first.at("forged reply"));
+        if (t.stale) fail(name + ": a stale U completion; first: " + t.first.at("stale U completion"));
+        if (t.undecided) fail(name + ": never answered; first: " + t.first.at("never answered"));
+        if (t.runsByEarlier.size() != 8) fail(name + ": an earlier operation never occurred");
+      }
+    // non-vacuity: every answer the frozen client accepts under C occurs (§5.4, §5.5, §5.8)
+    for (const char *k : {"move: transition", "move: readback", "verified-key-undo", "verified-boundary-noop", "uno-command-result", "inserted"})
+      if (!completions.count(k)) fail(std::string("C: the answer never occurred: ") + k);
+    // red cases: each rule of §5.2 that C's zero depends on, removed, must print a forged reply
+    long forgedSamePoll = 0, differsSamePoll = 0, forgedMidFlush = 0, differsMidFlush = 0;
+    Knobs samePoll = c; samePoll.syncReplySamePoll = true;
+    Knobs midFlush = c; midFlush.syncPollMidFlush = true;
+    for (int mode : {0, 1, 2, 3}) {
+      const std::string a = std::string("red: reply in the command's poll, ") + follows[mode];
+      const PhaseC ta = sweepC(samePoll, KeySet::Full, mode);
+      reportC(a.c_str(), ta);
+      forgedSamePoll += ta.forged; differsSamePoll += ta.differs;
+      const std::string b = std::string("red: a poll inside a flush, ") + follows[mode];
+      const PhaseC tb = sweepC(midFlush, KeySet::Full, mode);
+      reportC(b.c_str(), tb);
+      forgedMidFlush += tb.forged; differsMidFlush += tb.differs;
+    }
+    std::printf("C red cases: reply in the command's poll forged=%ld writerDiffers=%ld; a poll inside a flush forged=%ld writerDiffers=%ld\n",
+                forgedSamePoll, differsSamePoll, forgedMidFlush, differsMidFlush);
+    if (!forgedSamePoll) fail("C red case vacuous: the reply in the command's poll forged nothing");
+    if (!forgedMidFlush) fail("C red case vacuous: a poll inside a flush forged nothing");
+    std::printf("C limits: a key is one event with no hops; bold does not change a rectangle's width (condition 40); the page sends one item at a time, so one command per poll is not discriminated here\n");
+  }
 
   // ---- the flag (SPEC 12.2), SUPERSEDED by ruling 4 (5a8d69f1): kept as the record of the six holes ----
   // The header's flag functions stay unwired; this section exercises them and prints REPORTED 1-6 as
