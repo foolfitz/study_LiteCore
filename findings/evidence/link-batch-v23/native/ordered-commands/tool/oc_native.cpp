@@ -79,6 +79,12 @@
 // Output: JSON lines on stdout ("env", "init", "load", "setup", "point",
 // "measured", "saved", "locate", "done"; "fatal" on any failure).
 //
+// OC_A11Y=1 (SPEC-M3-ordered-commands §15.1, fable ruling 2 §2.1 item 5; opt-in, so the earlier arms'
+// output is unchanged when it is unset): after load, setAccessibilityState(view, true), as the engine does
+// (probe_engine.cpp ~2205); every op then also reads .uno:Undo and getA11yFocusedParagraph immediately
+// before its call ("atStart") and adds the a11y read to "atReturn" -- the caret-delete decider's inputs,
+// read in the same poll as the key with no yield between; snapshots and the env/load records carry it too.
+//
 // Build: g++ -std=c++17 -O2 -Wall -I<libreoffice-26-8>/include oc_native.cpp -ldl -lpthread -o oc-native
 
 #include <dlfcn.h>
@@ -208,6 +214,13 @@ std::string undoValues() {
   std::free(v);
   return s;
 }
+bool gA11y = false;
+std::string a11yRead() {
+  char *v = gDoc->pClass->getA11yFocusedParagraph(gDoc);
+  std::string s = v ? v : "<null>";
+  std::free(v);
+  return s;
+}
 std::string lastOf(int type) {
   std::lock_guard<std::mutex> lock(gMutex);
   auto it = gLast.find(type);
@@ -220,13 +233,17 @@ size_t cbCount() {
 
 struct Snap {
   Sel sel;
-  std::string cursor, undo;
+  std::string cursor, undo, a11y;
 };
-Snap snap() { return {readSel(), lastOf(LOK_CALLBACK_INVALIDATE_VISIBLE_CURSOR), undoValues()}; }
+Snap snap() {
+  return {readSel(), lastOf(LOK_CALLBACK_INVALIDATE_VISIBLE_CURSOR), undoValues(), gA11y ? a11yRead() : ""};
+}
 std::string snapJson(const Snap &s) {
   std::ostringstream o;
   o << "{\"selType\":" << s.sel.type << ",\"selText\":" << q(s.sel.text) << ",\"cursor\":" << q(s.cursor)
-    << ",\"undo\":" << q(s.undo) << "}";
+    << ",\"undo\":" << q(s.undo);
+  if (gA11y) o << ",\"a11y\":" << q(s.a11y);
+  o << "}";
   return o.str();
 }
 
@@ -287,6 +304,8 @@ std::vector<Op> parseOps(const std::string &s) {
 
 // Runs one op and returns its record, with the state read the moment the call returned.
 std::string runOp(const Op &op, double t0) {
+  // OC_A11Y: the decider's "before" inputs, read just before the call, nothing in between
+  const std::string undoAtStart = gA11y ? undoValues() : "", a11yAtStart = gA11y ? a11yRead() : "";
   const double tStart = nowMs();
   if (op.kind == 'K') {
     post(std::atoi(op.arg.c_str()));
@@ -303,10 +322,14 @@ std::string runOp(const Op &op, double t0) {
   const double tReturned = nowMs();
   const Sel s = readSel();
   const std::string undo = undoValues();
+  const std::string a11y = gA11y ? a11yRead() : "";
   std::ostringstream o;
   o << "{\"op\":" << q(std::string(1, op.kind) + op.arg) << ",\"startMs\":" << (tStart - t0)
-    << ",\"returnedMs\":" << (tReturned - t0) << ",\"atReturn\":{\"selType\":" << s.type
-    << ",\"selText\":" << q(s.text) << ",\"undo\":" << q(undo) << "}}";
+    << ",\"returnedMs\":" << (tReturned - t0);
+  if (gA11y) o << ",\"atStart\":{\"undo\":" << q(undoAtStart) << ",\"a11y\":" << q(a11yAtStart) << "}";
+  o << ",\"atReturn\":{\"selType\":" << s.type << ",\"selText\":" << q(s.text) << ",\"undo\":" << q(undo);
+  if (gA11y) o << ",\"a11y\":" << q(a11y);
+  o << "}}";
   return o.str();
 }
 
@@ -559,10 +582,12 @@ void loadDocument() {
   if (!gDoc) fatal("documentLoad");
   gDoc->pClass->initializeForRendering(gDoc, "{}");
   gDoc->pClass->registerCallback(gDoc, onCallback, nullptr);
+  if (gA11y) gDoc->pClass->setAccessibilityState(gDoc, gDoc->pClass->getView(gDoc), true);
   std::string px(256 * 256 * 4, '\0');
   gDoc->pClass->paintTile(gDoc, reinterpret_cast<unsigned char *>(px.data()), 256, 256, 0, 0, 3840, 3840);
-  std::cout << "{\"rec\":\"load\",\"loadMs\":" << (nowMs() - tLoad) << ",\"undo\":" << q(undoValues()) << "}"
-            << std::endl;
+  std::cout << "{\"rec\":\"load\",\"loadMs\":" << (nowMs() - tLoad) << ",\"undo\":" << q(undoValues());
+  if (gA11y) std::cout << ",\"a11y\":" << q(a11yRead());
+  std::cout << "}" << std::endl;
 }
 
 // ---- unipoll executor: one micro-step per poll call ---------------------------------
@@ -639,6 +664,8 @@ int main(int argc, char **argv) {
     const char *v = std::getenv(e);
     std::cout << ",\"" << e << "\":" << (v ? q(v) : std::string("null"));
   }
+  gA11y = std::getenv("OC_A11Y") && std::string(std::getenv("OC_A11Y")) == "1";
+  if (gA11y) std::cout << ",\"OC_A11Y\":\"1\"";
   std::cout << "}" << std::endl;
   addSteps(argv[5]);
 

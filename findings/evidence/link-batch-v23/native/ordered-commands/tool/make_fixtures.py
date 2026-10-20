@@ -94,6 +94,10 @@ FIXTURES = {
                        '</table:table-cell><table:table-cell office:value-type="string"><text:p>B1 text</text:p>'
                        '</table:table-cell></table:table-row></table:table>\n' + p('After the table'),
                        extra_ns=TABLE_NS),
+    # SPEC-M3-ordered-commands §15.1 (ruling 2 §2.1 item 5): undo grouping. A run of 30 equal characters,
+    # and a run of 25 CJK characters (no spaces: the user's path), each deleted one key at a time.
+    'underscores': doc(p('Name: ' + '_' * 30)),
+    'cjk25': doc(p('中文沒有空格所以一句二十幾個字的長句子其實很平常啊')),
     # N1c: 200 paragraphs of about 300 characters each, so a join near the top re-lays-out the rest
     'long200': doc(''.join(p(f'Paragraph {i:03d}. ' + ' '.join(['lorem ipsum dolor sit amet consectetur'] * 8))
                            for i in range(1, 201))),

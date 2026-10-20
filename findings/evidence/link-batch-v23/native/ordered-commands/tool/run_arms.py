@@ -76,6 +76,28 @@ N1_ARMS = [
 ]
 
 
+# G (SPEC-M3-ordered-commands §15.1; fable ruling 2 §2.1 item 5): the caret-delete witness. Run with
+# --arms-set g --modes uni1,seq; the runner sets OC_A11Y=1, so every op records .uno:Undo and the focused
+# paragraph immediately before its call and at its return. g1/g2/cjk delete through a run the undo stack
+# groups; t1 and e1 are no-op controls (Writer restores at a paragraph start after a table; Delete at the
+# document end).
+BKSP25 = ';'.join([f'K{BKSP}'] * 25)
+G_ARMS = [
+    {'name': 'g1', 'fixture': 'underscores', 'script': f'Xg1@{END}={BKSP25},S',
+     'note': 'trigger End (caret to the end of Name: + 30 _); 25 x Backspace', 'decides': False},
+    {'name': 'g2', 'fixture': 'underscores', 'script': f'k{RIGHT}x5,Xg2@{RIGHT}=' + ';'.join([f'K{DEL}'] * 25) + ',S',
+     'note': 'Right x5, trigger Right (caret after "Name: "); 25 x Delete', 'decides': False},
+    {'name': 'cjk', 'fixture': 'cjk25', 'script': f'Xcjk@{END}={BKSP25},S',
+     'note': 'trigger End (caret after 25 CJK characters); 25 x Backspace', 'decides': False},
+    {'name': 't1', 'fixture': 'table-leave', 'script': f'k{DOWN},k{END},Xt1@{HOME}=' + ';'.join([f'K{BKSP}'] * 3) + ',S',
+     'note': 'control: Down leaves the table, End; trigger Home (start of "After the table"); 3 x Backspace (Writer restores)',
+     'decides': False},
+    {'name': 'e1', 'fixture': 'abcd', 'script': f'k{END | MOD1},k{LEFT},Xe1@{RIGHT}=' + ';'.join([f'K{DEL}'] * 3) + ',S',
+     'note': 'control: Ctrl+End, Left; trigger Right (the document end); 3 x Delete (nothing to delete)',
+     'decides': False},
+]
+
+
 def utc():
     return datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
 
@@ -90,12 +112,12 @@ def main():
     ap.add_argument('--runs', type=int, default=5)
     ap.add_argument('--only', default='')
     ap.add_argument('--modes', default='seq,q,unipoll')
-    ap.add_argument('--arms-set', choices=('d', 'n1'), default='d')
+    ap.add_argument('--arms-set', choices=('d', 'n1', 'g'), default='d')
     a = ap.parse_args()
     out = pathlib.Path(a.out)
     work = pathlib.Path(a.work)
     out.mkdir(parents=True, exist_ok=True)
-    table = ARMS + N1_ARMS if a.arms_set == 'n1' else ARMS
+    table = {'d': ARMS, 'n1': ARMS + N1_ARMS, 'g': G_ARMS}[a.arms_set]
     (out / 'arms.json').write_text(json.dumps(table, indent=1) + '\n')
     only = set(filter(None, a.only.split(',')))
     modes = [m for m in a.modes.split(',') if m]
@@ -108,6 +130,9 @@ def main():
                 env = dict(os.environ)
                 env['SAL_USE_VCLPLUGIN'] = 'svp'
                 env.pop('SAL_LOK_OPTIONS', None)
+                env.pop('OC_A11Y', None)
+                if a.arms_set == 'g':
+                    env['OC_A11Y'] = '1'
                 if mode in ('unipoll', 'uni1', 'uni1ai'):
                     env['SAL_LOK_OPTIONS'] = 'unipoll'
                 d = work / f"{x['name']}-{mode}-r{r}"
