@@ -132,3 +132,34 @@ Each op records the delay from its return to the first poll, and every callback 
   - N1a no longer counts `INVALIDATE_TILES`.
 - **Re-judged with the fixed readers, the verdicts did not move:** C-HOLDS and N1-HOLDS (`../../review/disposition-1/rejudge-*.txt`).
 - **N1a is a bounded observation:** within 1500 ms after each op's first poll, and through the step's quiet window for the last op. The committed run has 0 reply-type callbacks beyond it (`../../review/disposition-1/n1-outside-window.txt`).
+
+## N1, second run (`out-n1b/`, criteria `ARMS-n1b.md`, pinned at `ed7666e4`): `VERDICT N1-HOLDS` (2026-10-20, appended)
+
+Run 2026-10-20 09:51:32–10:10:46Z (17:51–18:10 local): 85 processes, all exit 0 (80 `uni1ai`, 5 `uni1`), load1 ≤ 0.95. Binary `cdda2f0f…`, rebuilt in this session from `../object-click/build.txt` with its sha reproduced. Reader `tool/read_n1.py` as committed at `1085726b`; its output is `out-n1b/reader-output.txt`, exit 0, N = 5.
+
+- **N1a PASS.** 15 arms × 5 rounds, the three new `d4i`, `d4u` and `d4s` included. No reply-type callback arrived after an op's first poll. This run applies two rules the first did not: the format command's own state item counts as reply-dependent, and there is no tile clause.
+- **N1b (record).** These callbacks arrived late:
+
+  | type | n | delay after the first poll (min / median / max) |
+  |---|---|---|
+  | `STATE_CHANGED` | 314 | 0.3 / 320 / 622 ms |
+  | `RULER_UPDATE` | 14 | 459 / 461 / 762 ms |
+  | `VERTICAL_RULER_UPDATE` | 5 | 459 / 460 / 461 ms |
+
+  Control: `tleave` records a late `STATE_CHANGED` in every round.
+- **N1c PASS.** join200's first-poll delay:
+  - `uni1`: 1.109, 1.681, 1.263, 1.314 and 1.190 ms;
+  - `uni1ai`: 0.116, 0.099, 0.093, 0.094 and 0.093 ms.
+
+  Every `uni1` round is longer than every `uni1ai` round. The label is the corrected one: some scheduler task ran before the poll, and which one is not identified.
+
+**The on-time list** (`out-n1b/on-time-list.json`, from `read_n1.py out-n1b --on-time-list`; ruling 2 §2.2, form 2) has 14 on-time and 50 late-or-mixed `(op, state key)` pairs.
+- **Each of the four inline formats has its own state item on time in 5 of 5 rounds:** `.uno:Bold`, `.uno:Italic`, `.uno:Underline` and `.uno:Strikeout`. So does `.uno:ModifiedStatus` for every mutating op.
+- Late in every round:
+  - `.uno:Undo` and `.uno:DocumentRepair` after every mutation;
+  - the table states after leaving the table;
+  - `.uno:Copy` and `.uno:Cut`;
+  - `.uno:LeftRightParaMargin`;
+  - the list and indent states after `K9220`.
+- `.uno:StateWordCount` is on time after `K1026` and late after the others, so it is mixed across ops.
+- The engine's table of what a reply may read, `wasm_sdk_probe/src/reply_state_reads.hpp`, lists exactly the four inline-format items. `wasm_sdk_probe/tests/test_reply_state_reads.py` holds it against this list. It passes, and its three red cases are red: Bold made late, an unlisted key, and an empty list.
