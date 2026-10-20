@@ -1,6 +1,6 @@
 # Handoff, 2026-10-20b: v23 ordered commands — native C-HOLDS and N1-HOLDS, spec pinned; host 0.2.28 prepared, not installed
 
-**First line: ddev still runs host 0.2.27 (unchanged). Host 0.2.28 (finding 155) is prepared but not installed: it waits for a window the owner names in his own words. For v23, candidate C (unipoll) holds natively, the spec is pinned (`b9080313`), and N1 holds. Nothing is linked yet.**
+**First line: ddev still runs host 0.2.27 (unchanged). Host 0.2.28 (finding 155) is prepared but not installed: it waits for a window the owner names in their own words. For v23, candidate C (unipoll) holds natively, the spec is pinned (`b9080313`), and N1 holds. Nothing is linked yet.**
 
 This continues `HANDOFF-2026-10-20-v22-host-0227-installed-all-arms-pass.md`. That handoff stays valid for the v22 and 0.2.27 items: the owner's hand tests, the release text and K. This one covers `b26b230d..0ecec9a0`. The main session was opus.
 
