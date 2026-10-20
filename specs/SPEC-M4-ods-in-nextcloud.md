@@ -384,3 +384,32 @@ Firefox 會不會把一個 **47,987,197 B 的 gzip 編碼回應**（v14 的 `pro
 | 日期 | 改了什麼 |
 | --- | --- |
 | 2026-10-20 晚 | 追加 1：第 1 步四項預測全中；E6 取代為「要有 `document-destroy-enter`」，`OXSDK_ODS_VIEWER` 打開關檔 stage |
+
+---
+
+# 追加 2（2026-10-20 晚）：D5-A 量到了，gzip 上限＝52,428,800
+
+只 append；上面一字不改。
+
+證據：`findings/evidence/m4-ods/d5-gzip-retention/`（`report-2026-10-20T114325Z.json`、README）。工具
+`tools/probe_gzip_retention_firefox.py`，判讀器自測 11/11 在跑之前。Firefox 157.0.1（snap），兩輪各一個全新 profile。
+
+- **兩輪都有效、逐檔一致**：正對照（1 k／5 M／20 M／45 M）都留、負對照 60 M 不留、受測檔第一次解碼正好 135,237,060 B。
+- **受測檔（v14 的 wasm，gzip 47,987,215 B）會留。**定位檔：52,428,800（＝51,200 KiB）留、53,000,000 不留。
+- **依 §6.3：gzip 上限＝52,428,800。**與 Firefox 文件上的預設 `browser.cache.disk.max_entry_size`＝51,200 KiB 一致——
+  **一致，不是讀到的**：在 chrome context 讀 pref 要 `-remote-allow-system-access`，這一輪讀失敗，錯誤原樣留在報告裡。
+- 與 09-28 X1（Firefox 156、ddev 的 HTTPS）重疊的兩點一致，所以換伺服器與協定沒有移動共同的那兩點。
+
+**對 §3.5 與 H5 的效果**（取代 §3.5「gzip 上限照 §6 量到的數字定」與 H5「gzip ≤ §6 定的上限」的未定值）：
+- 打包工具的 gzip 上限由 45,000,000 改成 **52,428,800**；zstd 上限維持 45,000,000。理由寫進打包工具的常數旁邊，
+  引用這份報告——這是 K0-5「換了處方就重判並寫理由」（SPEC-M3-zstd §5），不是放寬。
+- H5 的紅案多一個：gzip 52,428,801 的合成檔要被拒。
+- D5-B 的 `L-ods-gzip-fallback-uncached-in-firefox-nozstd` **不登錄**：不收 zstd 的 Firefox 也會留住檢視引擎的 gzip。
+- **會讓它失效的事**（登錄）：Firefox 改預設的 `max_entry_size`；使用者自己調小它；換大版本。發佈前的檢查清單要重跑這支工具一次
+  （一分鐘內跑完，不用 ddev）。
+
+## A2.1 修訂紀錄（續）
+
+| 日期 | 改了什麼 |
+| --- | --- |
+| 2026-10-20 晚 | 追加 2：D5-A 成立，gzip 上限 52,428,800；D5-B 的登錄不需要 |
