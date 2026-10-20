@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **狀態** | **已確認**（Phase E 全語料，2026-10-20；core 原始碼與建置組態讀過）；未修 |
+| **狀態** | **已確認**（Phase E 全語料，2026-10-20；core 原始碼與建置組態讀過）；**158-A 已落地**（擁有者裁示，同晚）：session 在引擎之前以 `<draw:control` 型別化拒絕 `FORM_CONTROLS_UNSUPPORTED`（規格追加 8；全語料 5 拒／298 開，`report-2026-10-20T144351Z.json`）。核心層的缺口（B）未修 |
 | **Bugzilla** | 無（上游送出擱置）。**可能是上游 wasm 建置的通病**：上游的 WASM 組態同樣關 DB connectivity；未在上游 build 上重現 |
 | **發現日** | 2026-10-20（`findings/evidence/m4-ods/phase-e/report-2026-10-20T133240Z.json`） |
 | **嚴重度** | **高**（對使用者）：這類檔開得了、名字讀得到、但畫布空白，每一次畫圖都丟例外。語料 303 份可開的裡有 5 份（1.7%） |
@@ -39,3 +39,7 @@ E3（`part_text` 也走同一條路）與 E4a 對這 5 份全紅；其餘 298 �
 - B. v1 先登錄為具名限制，session 在引擎之前用 C6 的 package probe 偵測 `<office:forms>` 給**型別化拒絕**（`FORM_CONTROLS_UNSUPPORTED`），
   不要讓使用者看到空白畫布；不用連結。
 - 無論 A／B，E3／E4a 對這 5 份保持紅到處置落地；不改判準。
+
+## 處置結果（2026-10-20 深夜）
+
+擁有者選的是**型別化拒絕**（上一節編為 B；handoff 10-20i 與當晚的回覆裡編為 A——以選項內容為準，不以字母為準）。判別子是 `<draw:control`（不是 `<office:forms`——LO 對 49／306 份都寫空元素；也不是 `<form:form`——`tdf138507.ods` 有表單沒控制項、畫得出來）。`viewer-shell/odf-package-probe.js` 串流解壓 content.xml 找到就停；單元測試 4 條新紅案（`findings/evidence/m4-ods/phase-e/158-a/`）；全語料 5 份拒絕、298 份照開。B（核心開 DB connectivity）留在 v2 的核心重建批次；混合文件（控制項只在某一張表）能不能畫其餘的表**未量**（`L-mixed-form-control-sheets-unmeasured`）。

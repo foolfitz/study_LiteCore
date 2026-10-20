@@ -50,6 +50,7 @@ HARNESS = {"ods-viewer-e-harness.html": PROJECT / "web" / "ods-viewer-e-harness.
            "ods-viewer-e-harness-app.js": PROJECT / "web" / "ods-viewer-e-harness-app.js"}
 EMPTY_CONTROL = "ladder/empty-one-sheet.ods"
 HIDDEN_CASE = "upstream/synthetic-hidden.ods"          # selftest only: a file with a hidden third sheet
+CONTROLS_CASE = "upstream/synthetic-controls.ods"      # selftest only: a file with a form control (addendum 8)
 DISTINCT = "ladder/three-sheets-distinct.ods"
 IDENTICAL = "ladder/three-sheets-identical.ods"
 VIEW_READY_MS = 60_000
@@ -118,7 +119,9 @@ def sheet_properties(path: Path) -> dict:
         if any(VOLATILE_RE.search(f) for f in formulas) or "<text:date" in chunk or "<text:time" in chunk:
             volatile.append(k)
     return {"hiddenParts": hidden, "volatileParts": volatile, "tables": len(chunks),
-            "externalCacheTables": len(starts) - len(chunks)}
+            "externalCacheTables": len(starts) - len(chunks),
+            # Addendum 8 (finding 158, 158-A): a control shape; the session refuses such a file.
+            "formControls": "<draw:control" in content}
 
 
 def expected_sheets(entry: dict, oracle: dict) -> list[dict]:
@@ -195,6 +198,14 @@ def judge_e2(report: dict) -> list[dict]:
             out.append(verdict(f"E2 {name}", ok, {"refused": case.get("refused"),
                                                   "engineCreated": case.get("engineCreated")}))
             continue
+        if staged.get("formControls"):
+            # Addendum 8 A8.3: derived from the file, this overrides the manifest's `opens` (which
+            # says the native oracle opened it): the viewer must refuse it, typed, with no engine.
+            ok = ((case.get("refused") or {}).get("code") == "FORM_CONTROLS_UNSUPPORTED"
+                  and case.get("engineCreated") is False)
+            out.append(verdict(f"E2 {name}", ok, {"formControls": True, "refused": case.get("refused"),
+                                                  "engineCreated": case.get("engineCreated")}))
+            continue
         ok = (bool(case.get("opened")) and not case.get("error") and not case.get("refused")
               and not case.get("workerCrashed")
               and isinstance(case.get("viewReadyAtMs"), int) and case["viewReadyAtMs"] <= VIEW_READY_MS
@@ -218,7 +229,7 @@ def judge_e2(report: dict) -> list[dict]:
 
 def opened_cases(report: dict):
     for case, staged in corpus_cases(report):
-        if staged and staged["expect"] == "opens" and case.get("opened"):
+        if staged and staged["expect"] == "opens" and not staged.get("formControls") and case.get("opened"):
             yield case, staged
 
 
@@ -380,24 +391,27 @@ def synthetic() -> dict:
                 "sessionRefusal": {"code": "PART_OUT_OF_RANGE"}, "engineRefusal": {"code": "INVALID_ARGUMENT"},
                 "stages": [{"name": "open.begin", "sbrk": 293_000_000},
                            {"name": "document-destroy-enter", "sbrk": 300_000_000}]}
-    def staged(path, names, texts, expect="opens", cells=1):
+    def staged(path, names, texts, expect="opens", cells=1, form_controls=False):
         return {"path": path, "sha256": "sha-" + path, "sheets": len(names), "sheetNames": names,
                 "expect": expect, "expectedFrom": "generator", "cells": cells,
-                "hiddenParts": [], "volatileParts": [],
+                "hiddenParts": [], "volatileParts": [], "formControls": form_controls,
                 "expectedSheets": [{"name": n, "textSha256": t, "textLength": 1, "empty": t == "E"}
                                    for n, t in zip(names, texts)]}
     report = {
         "fullCorpus": False,
         "corpusFiles": {"ladder/empty-one-sheet.ods": "sha-ladder/empty-one-sheet.ods",
                         DISTINCT: "sha-" + DISTINCT, IDENTICAL: "sha-" + IDENTICAL,
-                        HIDDEN_CASE: "sha-" + HIDDEN_CASE,
+                        HIDDEN_CASE: "sha-" + HIDDEN_CASE, CONTROLS_CASE: "sha-" + CONTROLS_CASE,
                         "upstream/password.ods": "sha-upstream/password.ods"},
         "manifestEntries": [{"path": p, "sha256": "sha-" + p} for p in
-                            ("ladder/empty-one-sheet.ods", DISTINCT, IDENTICAL, HIDDEN_CASE, "upstream/password.ods")],
+                            ("ladder/empty-one-sheet.ods", DISTINCT, IDENTICAL, HIDDEN_CASE, CONTROLS_CASE,
+                             "upstream/password.ods")],
         "staged": [staged(EMPTY_CONTROL, ["Sheet1"], ["E"], cells=0),
                    staged(DISTINCT, ["Alpha", "Beta", "Gamma"], ["a", "b", "c"]),
                    staged(IDENTICAL, ["One", "Two", "Three"], ["s", "s", "s"]),
                    staged(HIDDEN_CASE, ["Jan", "Feb", "Table"], ["j", "f", "x"]),
+                   # The manifest says `opens` (the native oracle did); the file carries a control.
+                   staged(CONTROLS_CASE, ["Form"], ["c"], form_controls=True),
                    staged("upstream/password.ods", [], [], expect="refused")],
         "cases": [opened(EMPTY_CONTROL, ["Sheet1"], [sheet(0, "E", "empty")]),
                   opened(DISTINCT, ["Alpha", "Beta", "Gamma"],
@@ -406,6 +420,8 @@ def synthetic() -> dict:
                          [sheet(0, "s", "same"), sheet(1, "s", "same"), sheet(2, "s", "same")]),
                   opened(HIDDEN_CASE, ["Jan", "Feb", "Table"],
                          [sheet(0, "j", "h0"), sheet(1, "f", "h1"), sheet(2, "x", "h2")]),
+                  {"kind": "corpus", "name": "controls.ods", "inputSha256": "sha-" + CONTROLS_CASE,
+                   "engineCreated": False, "opened": None, "refused": {"code": "FORM_CONTROLS_UNSUPPORTED"}},
                   {"kind": "corpus", "name": "password.ods", "inputSha256": "sha-upstream/password.ods",
                    "engineCreated": False, "refused": {"code": "ENCRYPTED_DOCUMENT"}},
                   {"kind": "control-odt", "refused": {"code": "DOCUMENT_TYPE_REFUSED"},
@@ -433,6 +449,14 @@ def selftest() -> int:
 
     mutations = [
         ("E5", "a hidden part was shown (no refusal, read back is it)", lambda b: hide_part_2(b, refused=False)),
+        ("E2", "a file with a form control was opened (A8.3)",
+         lambda b: case(b, CONTROLS_CASE).update(refused=None, engineCreated=True, opened={"atMs": 1},
+                                                 state={"documentType": "spreadsheet", "parts": 1},
+                                                 handleFields={"documentType": "spreadsheet", "inputSuffix": ".ods"})),
+        ("E2", "a file with a form control was refused generically (A8.3)",
+         lambda b: case(b, CONTROLS_CASE).update(refused={"code": "LOK_ERROR"})),
+        ("E2", "a file with a form control reached an engine before the refusal (A8.3)",
+         lambda b: case(b, CONTROLS_CASE).update(engineCreated=True)),
         ("E1", "a corpus file without a manifest entry",
          lambda b: b["corpusFiles"].update({"ladder/zzz.ods": "sha-z"})),
         ("E1", "an empty corpus directory", lambda b: b.update(corpusFiles={})),

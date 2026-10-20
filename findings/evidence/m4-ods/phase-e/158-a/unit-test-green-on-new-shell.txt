@@ -1,0 +1,37 @@
+✔ pre-W7 handle: one tab per part, names synthesised and flagged, only the current tab enabled (2.760557ms)
+✔ W7-shaped handle: tabs carry the engine's names, all enabled, the current part is READ at open (0.273579ms)
+✔ showPart(k): the engine is switched, read back, and the scheduler paints part k (8.466183ms)
+✔ an engine that ignores set_part: the state follows the read-back, not the request (2.792335ms)
+✔ pre-W7: showPart(1) is refused with a typed error and nothing repaints; part 0 is not an engine confirmation (21.931157ms)
+✔ a part outside 0..parts-1 is refused before the engine is asked (0.979572ms)
+✔ a known non-spreadsheet document is refused, released, and paints nothing (0.376922ms)
+✔ refusal needs a KNOWN wrong type: spreadsheet and unknown are both accepted (0.270323ms)
+✔ the spoof flag is set only when the adapter rewrote the name (0.501162ms)
+✔ a tile of the previous part never reaches onTile (233.844997ms)
+✔ the event listener is attached before initialisation (0.514858ms)
+✔ read-only: only render / setPart / close reach the document, only open / onEvent / dispose the engine (4.699745ms)
+✔ W7 vocabulary appears only in the adapter (the directory is scanned, not listed) (0.61806ms)
+✔ switches are serialised: the last request is the one the engine and the state end on (27.58166ms)
+✔ a worker crash takes the session to a typed error and stops scheduling (0.613712ms)
+✔ an open that fails is typed, and the engine is given back (0.220159ms)
+✔ partNames that disagree with parts are not used and the disagreement is recorded (0.195193ms)
+✔ a close() that arrives while the document is opening is not undone: what arrives late is given back (41.594334ms)
+✔ an encrypted package is refused before any engine is asked (19.753414ms)
+✔ the probe reads a STORED manifest as well as a deflated one (1.487047ms)
+✔ a package with a form control is refused before any engine is asked (STORED and deflated) (1.759514ms)
+✔ a form without a control shape opens: the discriminator is <draw:control, not <form:form (0.691477ms)
+✔ the content scan finds the marker across a chunk boundary and stops at the first match (0.382051ms)
+✔ a package without content.xml goes to the engine, formControls unknown (0.168544ms)
+✔ a plain package opens, and the state says what the probe saw (2.696367ms)
+✔ a package the probe cannot read goes to the engine: the probe is not a second format check (0.4623ms)
+✔ refit: a paint that widened the sheet reconfigures the scheduler once, for the same part (0.377252ms)
+✔ refit does nothing when no paint moved the size, and nothing once closed (0.321919ms)
+ℹ tests 28
+ℹ suites 0
+ℹ pass 28
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 425.709263
+exit=0

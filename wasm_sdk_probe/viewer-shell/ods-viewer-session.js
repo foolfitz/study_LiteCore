@@ -56,6 +56,7 @@ export class OdsViewerSession {
     this._openName = null;
     this._nameSpoofed = false;
     this._packageProbe = null;
+    this._packageProbeMs = null;
     this._engineRequested = false;
     this._currentPart = null;
     this._readBack = null;
@@ -93,6 +94,8 @@ export class OdsViewerSession {
       // What the package said before any engine was asked (C6), and whether one
       // was asked at all: an encrypted file is refused with this still false.
       packageProbe: this._packageProbe ? { ...this._packageProbe } : null,
+      // How long the probe took (it streams content.xml, addendum 8); null until it ran.
+      packageProbeMs: this._packageProbeMs,
       engineRequested: this._engineRequested,
       documentType: view ? view.documentType : null,
       documentTypeKnown: view ? view.documentTypeKnown : false,
@@ -147,12 +150,23 @@ export class OdsViewerSession {
     // BEFORE the engine queue (SPEC-M4 E2, 09-03's G2): an encrypted package is
     // a typed refusal and no engine is started for it.  A package the probe
     // cannot read goes on to the engine, which says what it says.
+    const probeStarted = performance.now();
     this._packageProbe = await probeOdfPackage(bytes);
+    this._packageProbeMs = Math.round(performance.now() - probeStarted);
     this._assertNotClosedDuringOpen();
     if (this._packageProbe.encrypted === true) {
       const refusal = new ViewerError("ENCRYPTED_DOCUMENT",
         "the document is password-protected; this viewer cannot open encrypted files");
       this._fail("refused", refusal, "ENCRYPTED_DOCUMENT");
+      throw refusal;
+    }
+    // SPEC-M4 addendum 8 (finding 158, the owner's 158-A): a form control shape
+    // cannot be drawn on this core (no com.sun.star.form.Forms), so the file is
+    // refused here, typed, rather than opened onto a canvas that stays blank.
+    if (this._packageProbe.formControls === true) {
+      const refusal = new ViewerError("FORM_CONTROLS_UNSUPPORTED",
+        "the document contains form controls, which this viewer cannot draw");
+      this._fail("refused", refusal, "FORM_CONTROLS_UNSUPPORTED");
       throw refusal;
     }
 

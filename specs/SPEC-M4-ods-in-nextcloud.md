@@ -721,3 +721,67 @@ E3 的 11 處文字差異中 **7 處**是 `TODAY()`／`NOW()`／`RAND()`／文�
 | 日期 | 內容 |
 | --- | --- |
 | 2026-10-20 夜 | 追加 7：B = 0；E6 洩漏半句撤回改寫（高水位）；隱藏表與揮發表的讀法（runner 從檔案推）；finding 157–160 與兩條 L 的登錄；runner 的三處修 |
+
+---
+
+# 追加 8（2026-10-20 深夜，擁有者裁示 158-A 之後、任何算數的執行之前）：含表單控制項的檔在引擎之前型別化拒絕
+
+只 append。擁有者 2026-10-20 深夜：「三件事照你建議」——158 走 A（引擎之前拒絕，不連結）、159 先診斷、157＋160 併進 v2。
+
+## A8.1 偵測條件（從語料量出來的，不是想出來的）
+
+306 份裡 49 份 content.xml 有 `<office:forms`（LO 一律寫空元素）、6 份有 `<form:form`、**5 份有 `<draw:control`**——而且畫不出來的
+**正好是這 5 份**（`tdf138507.ods` 有 `<form:form` 沒有 `<draw:control`，畫得出來）。所以判別子是 **`<draw:control`**（控制項圖形，
+`SdrUnoObj`，它才會逼 `FmFormPageImpl::getForms(true)` 去建 `Forms`），不是 `<office:forms`、不是 `<form:form`。
+
+## A8.2 處方
+
+- `viewer-shell/odf-package-probe.js` 多回答一題：`formControls`——把 content.xml **串流**解壓、逐塊找 `<draw:control`，找到就停；
+  找不到要讀完（`numeric-1m.ods` 的 content.xml 解開是 192,781,261 B，這是最貴的一份，成本記在 `packageProbe.probeMs`，
+  E2 的 `view-ready` 從該筆開始算、本來就包含它）。讀不了的照舊 `formControls: null`、交給引擎。
+- session：加密之後、引擎之前，`formControls === true` → `ViewerError("FORM_CONTROLS_UNSUPPORTED")`，state `refused`，
+  `engineRequested` 維持 false。整份文件拒絕，不分哪張表（混合文件裡沒有控制項的表能不能畫**未量**，登錄 `L-mixed-form-control-sheets-unmeasured`）。
+- 頁面照舊顯示 `已拒絕（FORM_CONTROLS_UNSUPPORTED）：…`。
+
+## A8.3 E2 的讀法（取代 §4 E2 對這 5 筆的期望）
+
+runner 從檔案推 `staged[].formControls`（content.xml 含 `<draw:control`，形式二，與 A7.2 的 `hiddenParts` 同一條路）。
+`formControls` 的筆：E2 期望**拒絕** `FORM_CONTROLS_UNSUPPORTED` 且 `engineCreated == false`（manifest 的 `expect: "opens"` 被這個推導
+蓋過，因為 manifest 的 `opens` 說的是原生 oracle 開得了）；E3–E6 對沒開的筆本來就不判。
+
+## A8.4 紅案（先紅再綠）
+
+1. 單元測試（`tests/ods-viewer-session.test.mjs`）：記憶體裡組一個 content.xml 含 `<draw:control` 的包 → 拒絕、`engineRequested false`、
+   `packageProbe.formControls true`；只含 `<form:form` 的包 → 照開（`formControls false`）；既有的加密／STORED／截短案照過。
+2. runner selftest：`formControls` 的筆若開了 → E2 紅；拒絕碼不對 → E2 紅。
+3. 全語料：5 份拒絕、298 份照開（就是負對照；少一份都紅）。
+
+## A8.5 計數語意
+
+E2 對這 5 筆的「乾淨」定義改了；全語料要再跑一次，那一份才是 E2 的算數執行。E3／E4a 因此少 5 筆紅（它們不再是「開了但畫不出來」），
+殘餘的紅只剩 finding 159 的 2 份與 UDF 1 份。
+
+## A8.6 修訂紀錄（續）
+
+| 日期 | 內容 |
+| --- | --- |
+| 2026-10-20 深夜 | 追加 8：158-A——`<draw:control` 為判別子、串流 probe、`FORM_CONTROLS_UNSUPPORTED`、E2 讀法、三層紅案、L-mixed-form-control-sheets-unmeasured |
+
+## A8.7 結果（同晚，158-A 落地後的全語料執行）
+
+`findings/evidence/m4-ods/phase-e/report-2026-10-20T144351Z.json`（598 秒）：**E1、E2、E4a、E5、E6 全綠**——5 份 `<draw:control` 的檔
+`FORM_CONTROLS_UNSUPPORTED`、`engineCreated false`，3 份加密照舊，298 份開得了。E3 紅 3／298：`date-time-functions.ods`、`functions.ods`
+p2／p6（finding 159）、`user-defined-function.ods`（`L-no-basic-udf`）。probe 的串流掃描：中位數 1 ms，最貴 `numeric-1m.ods` 341 ms
+（content.xml 解開 192 MB；該筆 `view-ready` 4.7 s），298 份合計 787 ms。單元測試紅案證人：`phase-e/158-a/`（舊 shell 7 紅／21 綠，新 shell
+28／28；第一次紅是 import 路徑的意外，錯誤訊息帶酬載所以當場抓到、重做）。`selectAllConfirmed` 464 true、0 false。
+
+**這一輪之後 Phase E 的狀態**：E1、E2、E4a、E4b、E5、E6、E9 綠；E3 只剩 finding 159 的 2 份與 UDF 1 份紅。E7、E8 本輪未重跑（連結沒變）。
+
+## A8.8 finding 159 的成因（同晚，診斷不連結）
+
+探針檔（`findings/evidence/m4-ods/phase-e/159-diagnosis/`）：核心函數全對、Analysis add-in 的 5 格全 `#VALUE!`、快取值改成 3 的副本仍顯示 2
+（載入時重算）。**成因（靜態讀出）**：`gcc3_wasm` bridge 的呼叫簽章表由 `wasmbridgegen` 只從 udkapi＋offapi 產生（本核心 55 個），
+scaddins 的介面在它自己的 `InternalUnoApi`，`getSeriessum` 的 `didddd` 不在表裡 → bridge 丟 `RuntimeException("Wasm bridge cannot call
+virtual function with signature …")` → `ScUnoAddInCall` 收成 `FormulaError::NoValue` = `#VALUE!`。修法是核心重建（`CustomTarget_gcc3_wasm.mk`
+多餵 scaddins 的 rdb），併進 v2 的核心批次；在那之前 E3 對這 2 份保持紅、登錄為 v1 的具名限制 `L-addin-functions-value-error`（擁有者裁示：
+159 先診斷，已診斷）。

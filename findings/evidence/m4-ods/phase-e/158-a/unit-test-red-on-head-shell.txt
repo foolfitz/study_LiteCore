@@ -1,0 +1,183 @@
+✔ pre-W7 handle: one tab per part, names synthesised and flagged, only the current tab enabled (2.258732ms)
+✔ W7-shaped handle: tabs carry the engine's names, all enabled, the current part is READ at open (0.277005ms)
+✔ showPart(k): the engine is switched, read back, and the scheduler paints part k (6.933411ms)
+✔ an engine that ignores set_part: the state follows the read-back, not the request (2.654499ms)
+✔ pre-W7: showPart(1) is refused with a typed error and nothing repaints; part 0 is not an engine confirmation (20.596713ms)
+✔ a part outside 0..parts-1 is refused before the engine is asked (0.426664ms)
+✔ a known non-spreadsheet document is refused, released, and paints nothing (0.270524ms)
+✔ refusal needs a KNOWN wrong type: spreadsheet and unknown are both accepted (0.180346ms)
+✔ the spoof flag is set only when the adapter rewrote the name (0.352917ms)
+✔ a tile of the previous part never reaches onTile (233.909278ms)
+✔ the event listener is attached before initialisation (0.547078ms)
+✔ read-only: only render / setPart / close reach the document, only open / onEvent / dispose the engine (2.834494ms)
+✔ W7 vocabulary appears only in the adapter (the directory is scanned, not listed) (0.527221ms)
+✔ switches are serialised: the last request is the one the engine and the state end on (25.995489ms)
+✔ a worker crash takes the session to a typed error and stops scheduling (0.368545ms)
+✔ an open that fails is typed, and the engine is given back (0.206595ms)
+✔ partNames that disagree with parts are not used and the disagreement is recorded (0.185185ms)
+✔ a close() that arrives while the document is opening is not undone: what arrives late is given back (40.849638ms)
+✖ an encrypted package is refused before any engine is asked (24.819642ms)
+✖ the probe reads a STORED manifest as well as a deflated one (0.75262ms)
+✖ a package with a form control is refused before any engine is asked (STORED and deflated) (0.206474ms)
+✖ a form without a control shape opens: the discriminator is <draw:control, not <form:form (0.273509ms)
+✖ the content scan finds the marker across a chunk boundary and stops at the first match (0.170898ms)
+✖ a package without content.xml goes to the engine, formControls unknown (0.245717ms)
+✖ a plain package opens, and the state says what the probe saw (3.90222ms)
+✔ a package the probe cannot read goes to the engine: the probe is not a second format check (1.068128ms)
+✔ refit: a paint that widened the sheet reconfigures the scheduler once, for the same part (0.610216ms)
+✔ refit does nothing when no paint moved the size, and nothing once closed (0.626506ms)
+ℹ tests 28
+ℹ suites 0
+ℹ pass 21
+ℹ fail 7
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 429.700029
+
+✖ failing tests:
+
+test at ../../tests/ods-viewer-session.test.mjs:620:1
+✖ an encrypted package is refused before any engine is asked (24.819642ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+      encrypted: true,
+  -   formControls: null,
+      readable: true,
+      reason: null
+    }
+  
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tests/ods-viewer-session.test.mjs:629:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { readable: true, encrypted: true, reason: null },
+    expected: { readable: true, encrypted: true, formControls: null, reason: null },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at ../../tests/ods-viewer-session.test.mjs:633:1
+✖ the probe reads a STORED manifest as well as a deflated one (0.75262ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+      encrypted: false,
+  -   formControls: false,
+      readable: true,
+      reason: null
+    }
+  
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tests/ods-viewer-session.test.mjs:642:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { readable: true, encrypted: false, reason: null },
+    expected: { readable: true, encrypted: false, formControls: false, reason: null },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at ../../tests/ods-viewer-session.test.mjs:648:1
+✖ a package with a form control is refused before any engine is asked (STORED and deflated) (0.206474ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tests/ods-viewer-session.test.mjs:650:3)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: { code: 'FORM_CONTROLS_UNSUPPORTED' },
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at ../../tests/ods-viewer-session.test.mjs:666:1
+✖ a form without a control shape opens: the discriminator is <draw:control, not <form:form (0.273509ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + undefined
+  - false
+  
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tests/ods-viewer-session.test.mjs:671:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at ../../tests/ods-viewer-session.test.mjs:674:1
+✖ the content scan finds the marker across a chunk boundary and stops at the first match (0.170898ms)
+  TypeError: streamContains is not a function
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tests/ods-viewer-session.test.mjs:679:22)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7)
+
+test at ../../tests/ods-viewer-session.test.mjs:685:1
+✖ a package without content.xml goes to the engine, formControls unknown (0.245717ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+      encrypted: false,
+  -   formControls: null,
+      readable: true,
+  +   reason: null
+  -   reason: 'no content.xml'
+    }
+  
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tests/ods-viewer-session.test.mjs:690:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { readable: true, encrypted: false, reason: null },
+    expected: { readable: true, encrypted: false, formControls: null, reason: 'no content.xml' },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at ../../tests/ods-viewer-session.test.mjs:693:1
+✖ a plain package opens, and the state says what the probe saw (3.90222ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+      encrypted: false,
+  -   formControls: false,
+      readable: true,
+      reason: null
+    }
+  
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tests/ods-viewer-session.test.mjs:699:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { readable: true, encrypted: false, reason: null },
+    expected: { readable: true, encrypted: false, formControls: false, reason: null },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+exit=1

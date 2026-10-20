@@ -22,6 +22,8 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const shellDir = path.resolve(process.env.VIEWER_SHELL_DIR || path.join(here, "..", "viewer-shell"));
 const { OdsViewerSession } = await import(
   pathToFileURL(path.join(shellDir, "ods-viewer-session.js")).href);
+const { streamContains, FORM_CONTROL_MARKER } = await import(
+  pathToFileURL(path.join(shellDir, "odf-package-probe.js")).href);
 
 const VIEWPORT = { scrollLeft: 0, scrollTop: 0, width: 256, height: 256 };
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -588,6 +590,23 @@ const PLAIN_MANIFEST = ["META-INF/manifest.xml",
   '<manifest:manifest xmlns:manifest="urn:oasis:names:tc:opendocument:xmlns:manifest:1.0">'
   + '<manifest:file-entry manifest:full-path="content.xml" manifest:media-type="text/xml"/>'
   + "</manifest:manifest>"];
+const CONTENT_HEAD = '<?xml version="1.0" encoding="UTF-8"?><office:document-content'
+  + ' xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0"'
+  + ' xmlns:table="urn:oasis:names:tc:opendocument:xmlns:table:1.0"'
+  + ' xmlns:draw="urn:oasis:names:tc:opendocument:xmlns:drawing:1.0"'
+  + ' xmlns:form="urn:oasis:names:tc:opendocument:xmlns:form:1.0"><office:body><office:spreadsheet>';
+const CONTENT_TAIL = "</office:spreadsheet></office:body></office:document-content>";
+const PLAIN_CONTENT = ["content.xml", CONTENT_HEAD
+  + '<table:table table:name="S"><table:table-row><table:table-cell/></table:table-row></table:table>' + CONTENT_TAIL];
+// The shape every one of finding 158's five files carries: a control shape bound to a form.
+const CONTROL_CONTENT = ["content.xml", CONTENT_HEAD
+  + '<office:forms><form:form form:name="F"><form:button form:name="b" form:id="control1"/></form:form></office:forms>'
+  + '<table:table table:name="S"><table:shapes><draw:control draw:control="control1"/></table:shapes>'
+  + "<table:table-row><table:table-cell/></table:table-row></table:table>" + CONTENT_TAIL];
+// tdf138507.ods's shape: a form, no control shape -- it paints, and must open.
+const FORM_ONLY_CONTENT = ["content.xml", CONTENT_HEAD
+  + '<office:forms><form:form form:name="F"/></office:forms>'
+  + '<table:table table:name="S"><table:table-row><table:table-cell/></table:table-row></table:table>' + CONTENT_TAIL];
 
 function countingViewer(handle = new FakeW7Handle({ parts: 1 })) {
   const engine = new FakeEngine(handle, W7_ENGINE);
@@ -607,7 +626,7 @@ test("an encrypted package is refused before any engine is asked", async () => {
   assert.equal(state.error.code, "ENCRYPTED_DOCUMENT");
   assert.equal(calls.factory, 0, "no engine was started for an encrypted file");
   assert.equal(state.engineRequested, false);
-  assert.deepEqual(state.packageProbe, { readable: true, encrypted: true, reason: null });
+  assert.deepEqual(state.packageProbe, { readable: true, encrypted: true, formControls: null, reason: null });
   assert.equal(engine.openCalls.length, 0);
 });
 
@@ -618,9 +637,57 @@ test("the probe reads a STORED manifest as well as a deflated one", async () => 
   assert.equal(refused.calls.factory, 0);
 
   const plain = countingViewer();
-  await plain.session.open({ bytes: storedZip([MIMETYPE, PLAIN_MANIFEST]), name: "book.ods" });
+  await plain.session.open({ bytes: storedZip([MIMETYPE, PLAIN_MANIFEST, PLAIN_CONTENT]), name: "book.ods" });
   assert.equal(plain.session.state.state, "ready");
-  assert.deepEqual(plain.session.state.packageProbe, { readable: true, encrypted: false, reason: null });
+  assert.deepEqual(plain.session.state.packageProbe, { readable: true, encrypted: false, formControls: false, reason: null });
+});
+
+// SPEC-M4 addendum 8 (finding 158, 158-A): a control shape is refused before any
+// engine; a form without controls is not; the marker is found across a chunk
+// boundary; a package without content.xml goes to the engine with formControls null.
+test("a package with a form control is refused before any engine is asked (STORED and deflated)", async () => {
+  const stored = countingViewer();
+  await assert.rejects(stored.session.open({ bytes: storedZip([MIMETYPE, PLAIN_MANIFEST, CONTROL_CONTENT]), name: "book.ods" }),
+    { code: "FORM_CONTROLS_UNSUPPORTED" });
+  assert.equal(stored.session.state.state, "refused");
+  assert.equal(stored.calls.factory, 0, "no engine was started for a file with a control");
+  assert.equal(stored.session.state.engineRequested, false);
+  assert.deepEqual(stored.session.state.packageProbe, { readable: true, encrypted: false, formControls: true, reason: null });
+  assert.equal(typeof stored.session.state.packageProbeMs, "number");
+
+  // The corpus file with one control (deflated content.xml), finding 158's smallest case.
+  const deflated = countingViewer();
+  await assert.rejects(deflated.session.open({ bytes: fixtureBuffer("upstream/tdf154005.ods"), name: "book.ods" }),
+    { code: "FORM_CONTROLS_UNSUPPORTED" });
+  assert.equal(deflated.calls.factory, 0);
+  assert.equal(deflated.session.state.packageProbe.formControls, true);
+});
+
+test("a form without a control shape opens: the discriminator is <draw:control, not <form:form", async () => {
+  const { session, calls } = countingViewer();
+  await session.open({ bytes: storedZip([MIMETYPE, PLAIN_MANIFEST, FORM_ONLY_CONTENT]), name: "book.ods" });
+  assert.equal(session.state.state, "ready");
+  assert.equal(calls.factory, 1);
+  assert.equal(session.state.packageProbe.formControls, false);
+});
+
+test("the content scan finds the marker across a chunk boundary and stops at the first match", async () => {
+  const encoder = new TextEncoder();
+  const split = (...texts) => new ReadableStream({
+    start(controller) { for (const t of texts) controller.enqueue(encoder.encode(t)); controller.close(); },
+  });
+  assert.equal(await streamContains(split("<table:shapes><draw:con", "trol draw:control=\"c\"/>"), FORM_CONTROL_MARKER), true);
+  assert.equal(await streamContains(split("<draw:custom-shape/>", "<draw:frame/>"), FORM_CONTROL_MARKER), false);
+  assert.equal(await streamContains(split("", "<draw:control/>"), FORM_CONTROL_MARKER), true);
+  assert.equal(await streamContains(split("<draw:contro", "", "l/>"), FORM_CONTROL_MARKER), true);
+});
+
+test("a package without content.xml goes to the engine, formControls unknown", async () => {
+  const { session, calls } = countingViewer();
+  await session.open({ bytes: storedZip([MIMETYPE, PLAIN_MANIFEST]), name: "book.ods" });
+  assert.equal(session.state.state, "ready");
+  assert.equal(calls.factory, 1);
+  assert.deepEqual(session.state.packageProbe, { readable: true, encrypted: false, formControls: null, reason: "no content.xml" });
 });
 
 test("a plain package opens, and the state says what the probe saw", async () => {
@@ -629,7 +696,7 @@ test("a plain package opens, and the state says what the probe saw", async () =>
   assert.equal(session.state.state, "ready");
   assert.equal(calls.factory, 1);
   assert.equal(session.state.engineRequested, true);
-  assert.deepEqual(session.state.packageProbe, { readable: true, encrypted: false, reason: null });
+  assert.deepEqual(session.state.packageProbe, { readable: true, encrypted: false, formControls: false, reason: null });
 });
 
 test("a package the probe cannot read goes to the engine: the probe is not a second format check", async () => {
