@@ -61,6 +61,10 @@ EDITOR_ROUTE = "/e2-editor.html"
 WRITES = {"LOCK", "PUT", "MOVE", "PROPPATCH", "DELETE", "MKCOL", "COPY"}
 ARMS = ("plain", "lock-taking-host")
 CLICK_ORDER = [1, 2, 0]
+# The fixtures live in their own folder: the Files list is a virtual scroller that renders only the rows
+# near the viewport, and in run 2 the plain arm found its ODS row and then none of its other three in the
+# root folder (the lock arm found all four).  Eight rows in one folder are always rendered.
+FOLDER = "M4 phase-h"
 # Injected before any page script (the red case): the first GET of the file's bytes is preceded
 # by a LOCK of the same URL -- what a viewer host must never do.
 LOCK_TAKING_FETCH = """(() => { const native = globalThis.fetch; let armed = true;
@@ -133,9 +137,21 @@ def dav_raw(instance: Instance, method: str, url: str, body: bytes | None = None
         return error.code, error.read()
 
 
+def ensure_folder(instance: Instance, folder: str) -> int:
+    """MKCOL, idempotent: 201 made it, 405 it was there."""
+    try:
+        status, _ = instance.dav("MKCOL", folder)
+        return status
+    except urllib.error.HTTPError as error:
+        if error.code == 405:
+            return 405
+        raise
+
+
 def put_file(instance: Instance, name: str, data: bytes, mime: str) -> dict[str, Any]:
     status, _ = instance.dav("PUT", name, data, {"Content-Type": mime})
-    return {"putStatus": status, "name": name, "mime": mime, "bytes": len(data), **server_file(instance, name)}
+    return {"putStatus": status, "name": name, "basename": name.rsplit("/", 1)[-1], "mime": mime, "bytes": len(data),
+            **server_file(instance, name)}
 
 
 def server_file(instance: Instance, name: str) -> dict[str, Any]:
@@ -165,31 +181,63 @@ def log_window(log: AccessLog, start: int, end: int) -> list[dict[str, Any]]:
 
 
 # -------------------------------------------------------------- the browser --
+MENU_TOGGLE = '[data-cy-files-list-row-actions] button[aria-haspopup="menu"]'
+NEW_ITEMS = "[...document.querySelectorAll('[data-cy-files-list-row-action]')].filter((e) => !e.dataset.h1Seen)"
+
+
 def row_actions(session, name: str) -> dict[str, Any]:
-    """Open the row's action menu and read every action id offered, then close it."""
+    """The actions a row offers: its inline ones plus what its own `…` menu renders, then the menu closed.
+
+    Written from the DOM read on 2026-10-20 after run 1 (phase-h/shakedown/2026-10-20T154120+0000.json) --
+    the first version clicked the cell's first button, which is an INLINE action (sharing-status) that
+    opens the sidebar, and read every `[data-cy-files-list-row-action]` in the document: inline buttons
+    carry that attribute too, and Nextcloud keeps every opened menu's popper in the DOM after it closes,
+    so the lists accumulated row by row.  Now: the toggle is the button with aria-haspopup=menu; the
+    menu's items are the elements that were NOT in the document before the toggle was clicked (tagged
+    before, waited for after); the menu is closed through the toggle, aria-expanded read back."""
     row = f'[data-cy-files-list-row-name={json.dumps(name, ensure_ascii=False)}]'
     present = wait_until(session, f"(() => document.querySelector({json.dumps(row)}) !== null)()", 60)
     opened = evaluate(session, f"""(() => {{ const r = document.querySelector({json.dumps(row)}); if (!r) return 'no row';
-      const b = r.querySelector('[data-cy-files-list-row-actions] button'); if (!b) return 'no menu button';
-      b.click(); return 'clicked'; }})()""")
-    time.sleep(0.8)
-    actions = evaluate(session, "(() => [...document.querySelectorAll('[data-cy-files-list-row-action]')]"
-                                ".map((e) => e.getAttribute('data-cy-files-list-row-action')))()") or []
-    evaluate(session, "(() => { document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); "
-                      "document.body.click(); return true; })()")
-    time.sleep(0.3)
-    return {"rowPresent": present is True or isinstance(present, bool), "menu": opened, "actions": actions,
-            "offered": ACTION_ID in actions}
+      for (const e of document.querySelectorAll('[data-cy-files-list-row-action]')) e.dataset.h1Seen = '1';
+      const t = r.querySelector({json.dumps(MENU_TOGGLE)}); if (!t) return 'no menu toggle';
+      t.click(); return 'clicked'; }})()""")
+    appeared = wait_until(session, f"(() => {NEW_ITEMS}.length > 0)()", 15) if opened == "clicked" else None
+    read = json.loads(evaluate(session, f"""(() => {{ const r = document.querySelector({json.dumps(row)});
+      const inline = r ? [...r.querySelectorAll('[data-cy-files-list-row-actions] [data-cy-files-list-row-action]')]
+        .map((e) => e.getAttribute('data-cy-files-list-row-action')) : [];
+      const menu = {NEW_ITEMS}.map((e) => e.getAttribute('data-cy-files-list-row-action'));
+      const t = r && r.querySelector({json.dumps(MENU_TOGGLE)});
+      return JSON.stringify({{ inline, menu, expanded: t ? t.getAttribute('aria-expanded') : null }}); }})()"""))
+    closed = evaluate(session, f"""(() => {{ const r = document.querySelector({json.dumps(row)});
+      const t = r && r.querySelector({json.dumps(MENU_TOGGLE)});
+      if (t && t.getAttribute('aria-expanded') === 'true') t.click();
+      for (const e of {NEW_ITEMS}) e.dataset.h1Seen = '1';
+      return t ? 'toggled' : null; }})()""")
+    time.sleep(0.5)
+    if closed == "toggled":
+        closed = evaluate(session, f"""(() => {{ const r = document.querySelector({json.dumps(row)});
+          const t = r && r.querySelector({json.dumps(MENU_TOGGLE)}); return t ? t.getAttribute('aria-expanded') : 'row gone'; }})()""")
+    actions = list(read["inline"]) + list(read["menu"])
+    return {"rowPresent": present is True, "menu": opened, "menuAppeared": appeared is True, "inline": read["inline"],
+            "menuActions": read["menu"], "expandedWhenRead": read["expanded"], "expandedAfterClose": closed,
+            "actions": actions, "offered": ACTION_ID in actions}
 
 
 def open_by_click(session, name: str, route: str) -> dict[str, Any]:
+    """The row's name link (Files' default action), found and clicked in ONE evaluation: the list is a
+    virtual scroller that re-renders its rows, and run 1 had the link present at the wait and null at the
+    click ("Cannot read properties of null (reading 'click')")."""
     selector = (f'[data-cy-files-list-row-name={json.dumps(name, ensure_ascii=False)}]'
                 ' [data-cy-files-list-row-name-link]')
-    record: dict[str, Any] = {"filesRow": wait_until(session, f"(() => document.querySelector({json.dumps(selector)}) !== null)()", 60)}
+    record: dict[str, Any] = {}
     if isinstance(session, EventChrome):
         session.drain()
     record["clickedFrom"] = evaluate(session, "(() => location.href)()")
-    session.click(selector)
+    clicked = wait_until(session, f"(() => {{ const e = document.querySelector({json.dumps(selector)});"
+                                  f" if (!e) return false; e.click(); return true; }})()", 60)
+    record["filesRow"] = clicked is True
+    if clicked is not True:
+        record["clickFailed"] = clicked
     record["landed"] = wait_until(session, f"(() => location.pathname.endsWith({json.dumps(route)}) && location.href)()", 60)
     return record
 
@@ -208,20 +256,24 @@ def run_arm(arm: str, instance: Instance, log: AccessLog, files: dict[str, dict[
         if arm == "lock-taking-host":
             session.call("Page.addScriptToEvaluateOnNewDocument", {"source": LOCK_TAKING_FETCH})
         record["login"] = browser_login(session, instance.base, instance.password)
-        navigate(session, instance.base + FILES, timeout=120)
+        files_url = instance.base + FILES.split("?")[0] + "?dir=/" + urllib.parse.quote(FOLDER)
+        navigate(session, files_url, timeout=120)
         # H1: every row's menu, the ODS row first (the positive control of "offered").
-        record["h1"] = {kind: row_actions(session, files[kind]["name"]) for kind in ("ods", "odt", "xlsx", "pdf")}
+        record["h1"] = {kind: row_actions(session, files[kind]["basename"]) for kind in ("ods", "odt", "xlsx", "pdf")}
         # H2 / H3: the ODS through its row.
         ods = files["ods"]
         record["odsBefore"] = server_file(instance, ods["name"])
         record["logStart"] = log.offset()
-        record["open"] = open_by_click(session, ods["name"], VIEWER_ROUTE)
+        record["open"] = open_by_click(session, ods["basename"], VIEWER_ROUTE)
         raw = wait_until(session, "(() => { const v = document.documentElement.getAttribute('data-litecore-viewer');"
                                   " return v && JSON.parse(v).done && v; })()", 300)
         record["host"] = json.loads(raw) if isinstance(raw, str) else {"notReported": raw}
         record["page"] = json.loads(evaluate(session, VIEWER_STATE))
+        record["document"] = evaluate(session, "(() => ({ title: document.title, status: document.body ? document.body.innerText.slice(0, 300) : null }))()")
         record["clicks"] = []
-        for k in CLICK_ORDER:
+        # The tab clicks only on a page that got there (run 2: a 500 document has no tabs, and the click
+        # on a null raised out of the arm before the log window and the positive control were taken).
+        for k in CLICK_ORDER if record["page"].get("state") == "ready" else []:
             session.click(f'.ods-tab[data-part="{k}"]')
             state = wait_until(session, f"(() => {{ const s = window.__odsViewer && window.__odsViewer.state;"
                                         f" return s && (s.currentPartReadBack === {k} || s.lastRefusal) && JSON.stringify(s); }})()", 60)
@@ -230,7 +282,7 @@ def run_arm(arm: str, instance: Instance, log: AccessLog, files: dict[str, dict[
                                      "currentPartReadBack": page["currentPartReadBack"], "lastRefusal": page["lastRefusal"],
                                      "timedOut": isinstance(state, dict) and state.get("timedOut")})
         record["browserDav"] = dav_requests(session.drain(), ods["encodedName"]) if isinstance(session, EventChrome) else None
-        navigate(session, instance.base + FILES, timeout=120)
+        navigate(session, files_url, timeout=120)
         time.sleep(2)
         record["logEnd"] = log.offset()
         record["odsAfter"] = server_file(instance, ods["name"])
@@ -238,12 +290,12 @@ def run_arm(arm: str, instance: Instance, log: AccessLog, files: dict[str, dict[
         # The positive control: the ODT through the editor route, in the same log.
         odt = files["odt"]
         record["controlLogStart"] = log.offset()
-        record["controlOpen"] = open_by_click(session, odt["name"], EDITOR_ROUTE)
+        record["controlOpen"] = open_by_click(session, odt["basename"], EDITOR_ROUTE)
         raw = wait_until(session, "(() => { const v = document.documentElement.getAttribute('data-litecore');"
                                   " return v && JSON.parse(v).done && v; })()", 300)
         record["controlHost"] = {"lock": (json.loads(raw).get("lock") if isinstance(raw, str) else None),
                                  "reported": isinstance(raw, str)}
-        navigate(session, instance.base + FILES, timeout=120)
+        navigate(session, files_url, timeout=120)
         time.sleep(2)
         record["controlLogEnd"] = log.offset()
         record["odtLog"] = [r for r in log.since(record["controlLogStart"]) if odt["encodedName"] in r.get("target", "")]
@@ -288,8 +340,8 @@ def h1(run: dict[str, Any]) -> list[str]:
     rows = run.get("h1") or {}
     for kind, want in OFFERED.items():
         row = rows.get(kind) or {}
-        if not isinstance(row.get("actions"), list) or row.get("menu") != "clicked":
-            bad.append(f"H1 {kind}: the row's menu was not read ({row.get('menu')})")
+        if not isinstance(row.get("actions"), list) or row.get("menu") != "clicked" or row.get("menuAppeared") is False:
+            bad.append(f"H1 {kind}: the row's menu was not read ({row.get('menu')}, appeared {row.get('menuAppeared')})")
         elif row.get("offered") != want:
             bad.append(f"H1 {kind}: action {'offered' if row.get('offered') else 'not offered'}, want {'offered' if want else 'not offered'}"
                        f" (menu: {row.get('actions')})")
@@ -384,8 +436,8 @@ def score(report: dict[str, Any]) -> dict[str, Any]:
 def synthetic() -> dict[str, Any]:
     def arm(name, lock_in_ods_window=False):
         return {"arm": name, "error": None,
-                "h1": {k: {"menu": "clicked", "actions": ["litecore-open", "details"] if v else ["details"], "offered": v}
-                       for k, v in OFFERED.items()},
+                "h1": {k: {"menu": "clicked", "menuAppeared": True, "actions": ["litecore-open", "details"] if v else ["details"],
+                           "offered": v} for k, v in OFFERED.items()},
                 "open": {"landed": f"https://x/index.php/apps/litecore/r/abc-def/ods-viewer.html?fileId=42"},
                 "odsBefore": {"fileId": 42, "etag": "e1", "versions": 0, "encodedName": "x.ods"},
                 "odsAfter": {"fileId": 42, "etag": "e1", "versions": 0, "encodedName": "x.ods"},
@@ -412,7 +464,8 @@ def selftest() -> int:
     mutations = [
         ("H1", "the ODS row does not offer the action", lambda b: plain(b)["h1"]["ods"].update(offered=False, actions=["details"])),
         ("H1", "the XLSX row offers the action", lambda b: plain(b)["h1"]["xlsx"].update(offered=True, actions=["litecore-open"])),
-        ("H1", "a row's menu was not read", lambda b: plain(b)["h1"]["pdf"].update(menu="no menu button", actions=None)),
+        ("H1", "a row's menu was not read", lambda b: plain(b)["h1"]["pdf"].update(menu="no menu toggle", actions=None)),
+        ("H1", "the menu's items never rendered", lambda b: plain(b)["h1"]["odt"].update(menuAppeared=False, actions=[])),
         ("H2", "a PUT in the ODS log window", lambda b: plain(b)["odsLog"].append({"method": "PUT", "target": "x.ods", "status": 204})),
         ("H2", "a PROPPATCH in the ODS log window", lambda b: plain(b)["odsLog"].append({"method": "PROPPATCH", "target": "x.ods", "status": 207})),
         ("H2", "the browser sent a LOCK", lambda b: plain(b)["browserDav"].append({"method": "LOCK", "url": "x.ods"})),
@@ -473,10 +526,11 @@ def main() -> int:
     out.parent.mkdir(parents=True, exist_ok=True)
     try:
         data = fixtures()
+        report["folder"] = {"name": FOLDER, "mkcol": ensure_folder(instance, FOLDER)}
         for arm in args.arms.split(","):
             files = {}
             for kind, mime in MIMES.items():
-                name = f"M4 檢視 測試 {arm}.{kind}"
+                name = f"{FOLDER}/M4 檢視 測試 {arm}.{kind}"
                 files[kind] = put_file(instance, name, data[kind], mime)
                 files[kind]["sha256"] = __import__("hashlib").sha256(data[kind]).hexdigest()
             report["fixtures"][arm] = files

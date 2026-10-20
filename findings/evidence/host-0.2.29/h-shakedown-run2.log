@@ -1,0 +1,20 @@
+arm plain
+arm lock-taking-host
+findings/evidence/m4-ods/phase-h/shakedown/2026-10-20T161522+0000.json
+RED
+  plain arm errored: RuntimeError: CDP evaluation failed: {'type': 'object', 'subtype': 'error', 'className': 'TypeError', 'description': "TypeError: Cannot read properties of null (reading 'click')\n    at <anonymous>:1:52", 'objectId': '5237188078447715286.6.1'}
+  H1 odt: the row's menu was not read (no row, appeared False)
+  H1 xlsx: the row's menu was not read (no row, appeared False)
+  H1 pdf: the row's menu was not read (no row, appeared False)
+  H2 page parts None documentType None state None
+  H2 ETag moved: 617c47c6aa72f5e26f767e686543429f -> None
+  H2 version count moved: 2 -> None
+  H2 no log window
+  H2 positive control: no LOCK for the ODT in the same log -- the window cannot be trusted
+  H3 tabs [] / partNames None, want ['Alpha', 'Beta', 'Gamma']
+  H3 namesFromEngine None
+  H3 adapterFallbacks None
+  H3 clicked [], want [1, 2, 0]
+  H6 documents not fetched: viewer 500, editor 200
+  red case: a lock-taking host did not turn H2 red (lock seen False; ['H2 page parts None documentType None state None', 'H2 ETag moved: 7fec7f9297c3ef100b02d3bbdcf46cfc -> None'])
+exit 1

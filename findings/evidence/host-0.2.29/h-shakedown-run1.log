@@ -1,0 +1,20 @@
+arm plain
+arm lock-taking-host
+findings/evidence/m4-ods/phase-h/shakedown/2026-10-20T154120+0000.json
+RED
+  plain arm errored: RuntimeError: CDP evaluation failed: {'type': 'object', 'subtype': 'error', 'className': 'TypeError', 'description': "TypeError: Cannot read properties of null (reading 'click')\n    at <anonymous>:1:52", 'objectId': '1185921156284519140.7.1'}
+  H1 ods: action not offered, want offered (menu: [])
+  H1 xlsx: action offered, want not offered (menu: ['favorite', 'details', 'litecore-open', 'sharing-status', 'systemtags:bulk', 'rename', 'move-copy', 'set-reminder-menu', 'edit-locally', 'lock', 'download', 'delete', 'favorite', 'details', 'sharing-status', 'systemtags:bulk', 'rename', 'move-copy', 'set-reminder-menu', 'edit-locally', 'lock', 'download', 'delete'])
+  H1 pdf: action offered, want not offered (menu: ['favorite', 'details', 'litecore-open', 'sharing-status', 'systemtags:bulk', 'rename', 'move-copy', 'set-reminder-menu', 'edit-locally', 'lock', 'download', 'delete', 'favorite', 'details', 'sharing-status', 'systemtags:bulk', 'rename', 'move-copy', 'set-reminder-menu', 'edit-locally', 'lock', 'download', 'delete', 'favorite', 'details', 'sharing-status', 'systemtags:bulk', 'view', 'rename', 'move-copy', 'set-reminder-menu', 'edit-locally', 'lock', 'download', 'delete'])
+  H2 page parts None documentType None state None
+  H2 ETag moved: 8978aa1d7e2d4404cfffd3f9282d3f23 -> None
+  H2 version count moved: 1 -> None
+  H2 no log window
+  H2 positive control: no LOCK for the ODT in the same log -- the window cannot be trusted
+  H3 tabs [] / partNames None, want ['Alpha', 'Beta', 'Gamma']
+  H3 namesFromEngine None
+  H3 adapterFallbacks None
+  H3 clicked [], want [1, 2, 0]
+  H6 documents not fetched: viewer 500, editor 500
+  red case: a lock-taking host did not turn H2 red (lock seen False; ['H2 page parts None documentType None state None', 'H2 ETag moved: b4a672c145d9bbd2e782eb2c0b7cc514 -> None'])
+exit 1

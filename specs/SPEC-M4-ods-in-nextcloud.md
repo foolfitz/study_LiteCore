@@ -883,3 +883,79 @@ virtual function with signature …")` → `ScUnoAddInCall` 收成 `FormulaError
 | 日期 | 內容 |
 | --- | --- |
 | 2026-10-20 深夜 | 追加 9：fable 裁決 Q1=A（8 條件）、Q2=A（5 條件）、Q3 五項；sha 三筆核對；H4 讀法；§34 +2 |
+
+---
+
+# 追加 10（2026-10-21 早）：O7 完成——0.2.29 裝上後被 H 抓到兩個宿主 bug（finding 161、162）；0.2.31 上 H1–H4、H6 全過；H7 交擁有者
+
+只 append。證據：`findings/evidence/host-0.2.29/README.md`（時序、三次 H 的判讀、H4）、`m4-ods/phase-h/shakedown/`（三份報告）。
+
+## A10.1 時序與授權（追加 9 的條件怎麼用掉的）
+
+- 23:29:57 第一個 ddev 指令（唯讀 `ddev list`）：集合 **{litecore}**；KWallet `b false`；`occ app:list` 記錄（`office 1.0.0` 是 Nextcloud 的 Office overview，
+  不搶 ODS 的點擊，Q1-7 的風險沒發生）；前置檢查重做（活的 `engine/` 與 0.2.27 封存只差 ATTRIBUTION.md）。
+- 23:3x 主 session 的安裝指令（runbook 1–4 一次下）被 auto mode 的分類器擋下（「Production Deploy」），什麼都沒跑（核對過）。同一時間擁有者在 session 打字
+  （Q1-2：受託時段結束），說「需要的話我可以手動執行」，於是 23:39 親手跑 `install-0.2.29.sh`（runbook 1–4＋Q1-3 前置檢查，舊 package 搬到 git-ignored 的
+  `engine.old`）。之後 0.2.30（00:13）、0.2.31（06:19）同樣由擁有者跑一行；06:3x 擁有者裁示「這種很短的指令你就自己跑」（記憶 `short-commands-run-them-yourself`）。
+- 碰 ddev 的指令：`ddev list` 四次（每個 H 項目前，集合始終 {litecore}）、`occ app:list`、`occ log:tail` 兩次、`occ upgrade` 三次（擁有者）、H runner 三次、
+  H-155 chain 一次、host-entry 一次。沒有 `ddev start/stop/restart`。
+
+## A10.2 結果（0.2.31，package `1b4d6a1fc905fb8a` 從 0.2.29 起沒變）
+
+| 判準 | 結果 | 證據 |
+| --- | --- | --- |
+| H1 | PASS：ODS、ODT 的列選單有 `litecore-open`；XLSX、PDF 沒有 | `phase-h/shakedown/2026-10-20T222047+0000.json`（plain 臂；紅案臂讀到同四份清單） |
+| H2 | PASS：落在 `…/1b4d6a1fc905fb8a-90d7bc2c/ods-viewer.html?fileId=…`；`ready`／3 parts／`spreadsheet`；log 窗只有 GET 200、PROPFIND 207；瀏覽器只送 GET；ETag、版本數不動。正對照 ODT 有 LOCK 200。紅案（偷拿鎖的宿主）H2 紅，LOCK 進 log、ETag 也動 | 同上 |
+| H3 | PASS：Alpha／Beta／Gamma 來自引擎；點 1、2、0 讀回 1、2、0 | 同上 |
+| H4 | PASS：H-154c／H-154o／H-155 兩個瀏覽器各 3 輪（框 Chrome `[605,323,640,335]`／1850×980、Firefox `[605,326,640,342]`／1850×994，與 0.2.28 相同）；`check_m3_host_entry.py --label shakedown` HOST_ENTRY LANDS（Chrome open-save 3/3、conflict 3/3、broken 1/1、broken-no-save 1/1；Firefox open-save 3/3、conflict 3/3） | `host-0.2.29/judge-h155.txt`、`m3-host-entry/shakedown/2026-10-20T222436Z.json` |
+| H5 | 離線已過（打包工具 selftest 13/13、K0／Z0／H5-1 clean、22 紅案），本輪沒變 | `host-0.2.29/README.md` |
+| H6 | PASS：兩份文件 200，COOP `same-origin`、COEP `require-corp`、CSP 去 nonce 相同 | `2026-10-20T222047+0000.json` `wire` |
+| H7 | **交擁有者**（A10.6） | — |
+
+依追加 9 條件 6：沒有 H2／H4 FAIL → 0.2.31 留著當**未計數候選**，取代 0.2.28 日常使用；名義出貨版仍 0.2.26。
+
+## A10.3 兩個宿主 bug，與離線閘門為什麼看不到
+
+- **finding 161（0.2.29）**：`engine()` 拿 `PAGES[*]['module']`（`./e2-editor-app.js`）比 manifest 的 `source.pages[*].module`（`e2-editor-app.js`，`files` 的鍵），
+  拒絕自己的 package，**每條路由 500**——編輯器在 ddev 上從 23:39 到 00:13 不能用。修：0.2.30（`e6e325a`，一行）。
+- **finding 162（0.2.30）**：`scopedStyle()` 的改寫錨只准 `}` 與 `:root {` 之間是空白；檢視頁依 §5.1 在唯一的 `:root` 規則上方寫了說明註解，**檢視文件 500**。
+  修：0.2.31（`421f4b8`）：計數用去註解副本、改寫允許夾註解；對 package 裡兩份頁面重放——編輯器輸出逐位元相同、兩條 `:root` 與「只在註解裡」仍拒絕。
+- **為什麼 H5 看不到**：H5-1 用打包工具自己的頁面表判打包工具自己的 manifest；控制器的 `PAGES` 與 `scopedStyle()` 是第二份、手寫的檢查（§1 形式三），在 H 之前
+  沒對真的 package／頁面跑過。能抓到的檢查就是宿主上的 H6／H2——追加 9「第一個紅就是量測」成立了兩次。**不為「兩份表要一致」造新機制**（§4）；登錄在這裡。
+- 兩次修法都只動 PHP、不動 package、不動頁面；0.2.29→0.2.31 的 buildId 相同，所以 `L-ods-editor-redownload-once` 只發生一次（10-20 深夜的那次）。
+
+## A10.4 runner 因執行而修（§34；證人在括號內）
+
+- 第一次跑（證人 `2026-10-20T154120+0000.json`）：`row_actions()` 點到的是列的第一顆按鈕＝inline 的 `sharing-status`（開了側欄），而且全域查
+  `[data-cy-files-list-row-action]`——inline 按鈕也帶這個屬性、關掉的選單 popper 留在 DOM——清單逐列累積（ODS 0、ODT 12、XLSX 23、PDF 35）。改成：
+  toggle 用 `button[aria-haspopup="menu"]`、選單項＝點擊前不存在的元素（打標籤）、inline 與選單分開記、經 toggle 關閉並讀回 `aria-expanded`；判讀多一條
+  「選單項沒出現」（新紅案）。`open_by_click()` 等到元素後點擊時 null（虛擬捲動重繪）→ 找到即點、同一次 evaluate。
+- 第二次跑（證人 `2026-10-20T161522+0000.json`）：plain 臂在根目錄讀到 ODS 列後其餘三列 60 s 找不到（紅案臂四列都讀到）→ 測試檔放進 `M4 phase-h/`
+  資料夾（MKCOL，冪等），八列永遠在畫面內。頁面 500 時 `.ods-tab` 為 null 讓臂在 log 窗與正對照之前炸掉 → 只在 `state === 'ready'` 才點分頁，並記錄文件標題
+  與前 300 字。
+- selftest 22/22。**計數**：因執行而修 **+2**（每一次逼出改動的執行算一筆），因審核而修 +0。**自 10-14b 累計 44 / 27。**
+
+## A10.5 登錄（append 到 §8）
+
+- **觀察（finding 163 候選）**：編輯器宿主離開頁面時送四次 UNLOCK，第一次 204、其餘三次 500——Nextcloud 的 log 是 `files_lock` 的
+  `LockNotFoundException` 未捕捉。`js/litecore-editor.js` 與 0.2.28 逐位元相同（設計上在 `beforeunload` 與 `pagehide` 各送一次），這是本 runner 第一次
+  把 Apache log 對準編輯器開關才看見。不是 H 判準，今晚不追。
+- Phase H 的測試檔留在 ddev：`M4 phase-h/`（8 個）與根目錄（第一、二次跑的 8 個）。刪除是寫入，本時段不做。
+- `engine.old`（0.2.28 的 package，99 MB）留在 app 目錄；還原配方改用它或 0.2.27 封存都行。
+- 累積未計數清單加：檢視路由、ODS 的 Files 動作、`litecore-engine/3` 頁面表、gzip 上限 52,428,800、161 與 162 的修法。K 維持併批。
+
+## A10.6 H7（擁有者）
+
+1. 把 `wasm_sdk_probe/test-docs/ods/ladder/three-sheets-distinct.ods` 上傳到 Files，點它：開在檢視頁，標題列有檔名與「唯讀」，下方三個分頁 Alpha／Beta／Gamma，
+   點 Beta 畫面換成第二張。第一次會多下載約 42 MB（檢視引擎）。
+2. 注意事項（都是 §8／A8.9 登錄過的限制，不是新 bug）：
+   - `upstream/date-time-functions.ods`、`upstream/functions.ods`：開得了，但 add-in 函數的格是 `#VALUE!`（`L-addin-functions-value-error`，v2 核心重建才修）。
+   - `upstream/fdo67682-2.ods`：有隱藏表，它的分頁可點、點了顯示拒絕（`L-hidden-sheet-tabs-enabled`，v2）。
+   - `upstream/tdf134161.ods`：整份拒絕 `FORM_CONTROLS_UNSUPPORTED`（158-A 的處方；158-B 在 v2）。
+3. 發佈說明草稿：`handoff/RELEASE-TEXT-DRAFT-0.2.29.md`（可 grep 的五個限制名在第 4 節）。
+
+## A10.7 修訂紀錄（續）
+
+| 日期 | 內容 |
+| --- | --- |
+| 2026-10-21 早 | 追加 10：O7 完成；161、162；H1–H4、H6 在 0.2.31 全過；runner 兩輪因執行而修 +2（44/27）；163 候選；H7 交擁有者 |

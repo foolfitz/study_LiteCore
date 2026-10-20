@@ -1,5 +1,11 @@
 # Runbook: install host 0.2.29 (the ODS viewer) on the owner's ddev instance
 
+> **What happened (2026-10-20/21):** steps 1–4 ran as `findings/evidence/host-0.2.29/install-0.2.29.sh`
+> (the old package went to `engine.old`, which is git-ignored, not `engine.0.2.28`). 0.2.29 answered 500 on
+> every route (finding 161) and 0.2.30 on the viewer document (finding 162); `install-0.2.30.sh` and
+> `install-0.2.31.sh` in the same directory moved the code only. ddev runs **0.2.31** (`421f4b8`) on this
+> package. The way back is `findings/evidence/host-0.2.29/README.md`. The rest of this file is as written.
+
 Written 2026-10-20 night, before any install. Whoever runs this (the owner, or a session in a slot
 the owner or fable's ruling allows) follows it line by line; nothing here compiles.
 
