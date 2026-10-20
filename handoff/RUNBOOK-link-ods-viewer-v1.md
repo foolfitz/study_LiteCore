@@ -13,7 +13,7 @@ Written 2026-10-20. It rests on:
 - **Engine:** today's `src/` compiled in the reader shape (`-DOXSDK_READER_PROFILE`, no editor define) plus `-DOXSDK_ODS_VIEWER`, against the **a11y+calc core** `wasm-lite/build-a11y-gate0` (every core path in the rule names `$(E2_V5_CORE)`). Objects: `sdk_api`, `probe_engine`, `unoembind_stub` (no `probe_api`, no `editor_api`, no a11y bridge).
 - **Link line:** `e2-editor-v14`'s (the last link on this core) with one token changed, `-sDEFAULT_PTHREAD_STACK_SIZE=65536` → `1048576` (finding 089), and its own objects and export list.
 - **Export list:** the reader's without save, plus `set_part`, `current_part`, `part_name`, `part_text`. The recipe refuses save or any editor symbol.
-- **Worker:** `sdk/sdk-worker.js` at `762296f8`, sha256 `d1de2dfd369343eb16a8290741e84a7fb7b8be6524296f93e548a67cb862ab07`. The recipe refuses any other bytes.
+- **Worker:** `sdk/sdk-worker.js` with the viewer's operations (`762296f8`) and part_text's two reply fields (spec A4.7), sha256 `cc2d6514cde27b63ac4f9ce3ae3ba286e3a894cc99d879f3983f5e33ee8c1b5b`. The recipe refuses any other bytes.
 - **Packs:** base `base-a11y-no35.6f7424a1c1427ad7.data` (e2-editor-v14's `9901e9be` minus `35-lang-normalize.conf`, finding 114) in the profile's own directory; the shipping `cjk-sub-e10` and `fallback-fonts-r5` by path under `../resources/`.
 - **Not in the profile:** anything of the host. The viewer page is staged by the mirror runs (O5) and the packager (O6), later.
 
@@ -62,7 +62,7 @@ make ALLOW_FROZEN_RELINK=1 dist/profiles/ods-viewer-v1/sdk-manifest.json 2>&1 | 
 2. **The stack:** `python3 tools/check_pthread_stack_literal.py dist/profiles/ods-viewer-v1/probe.js` prints `VERDICT PASS`.
 3. **Calc is in the bytes:** `grep -a -c ScDocShell dist/profiles/ods-viewer-v1/probe.wasm` is not 0 (v22's is 0).
 4. **E1-C:** `python3 tools/check_e1_c_bundle_intact.py` gives `"intact": true`.
-5. **Archive at once** into `build/archive/ods-viewer-v1-<wasm sha8>-worker-d1de2dfd/`: `probe.wasm`, `probe.js`, `sdk-worker.js`, `sdk-manifest.json`, the base pack and its metadata, `exports.txt`, `SHA256SUMS`, `ATTRIBUTION.md`. Finding 036: the wasm is not a function of the source.
+5. **Archive at once** into `build/archive/ods-viewer-v1-<wasm sha8>-worker-cc2d6514/`: `probe.wasm`, `probe.js`, `sdk-worker.js`, `sdk-manifest.json`, the base pack and its metadata, `exports.txt`, `SHA256SUMS`, `ATTRIBUTION.md`. Finding 036: the wasm is not a function of the source.
 6. Commit the witnesses under `findings/evidence/m4-ods/o4-post-link/`.
 
 ## 4. After that (the main session)

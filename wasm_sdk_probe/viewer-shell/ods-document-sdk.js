@@ -101,7 +101,8 @@ export class OdsViewerEngine extends DocumentEngine {
                                            callOptions);
       if (Number.isInteger(result.partAfter) && "currentPart" in handle)
         handle.currentPart = result.partAfter;
-      return { part: result.part, text: result.text,
+      return { part: result.part, text: result.text, textNull: result.textNull === true,
+               selectAllConfirmed: result.selectAllConfirmed === true,
                partBefore: result.partBefore, partAfter: result.partAfter };
     };
   }

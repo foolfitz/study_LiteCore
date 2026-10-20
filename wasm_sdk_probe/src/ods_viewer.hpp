@@ -57,7 +57,7 @@ inline bool partInRange(int part, int parts) {
   return part >= 0 && part < parts;
 }
 
-enum class PartTextStatus { Ok, OutOfRange, SelectAllTimedOut };
+enum class PartTextStatus { Ok, OutOfRange };
 
 inline const char *partTextStatusCode(PartTextStatus status) {
   switch (status) {
@@ -65,8 +65,6 @@ inline const char *partTextStatusCode(PartTextStatus status) {
     return "OK";
   case PartTextStatus::OutOfRange:
     return "INVALID_ARGUMENT";
-  case PartTextStatus::SelectAllTimedOut:
-    return "PART_TEXT_TIMEOUT";
   }
   return "LOK_ERROR";
 }
@@ -79,6 +77,10 @@ struct PartTextResult {
   // Reported as the empty text, flagged, never as an error: E3 compares the
   // text, so a sheet with content that came back empty is red there anyway.
   bool textNull = false;
+  // Core confirmed the SelectAll before the caller's deadline.  When it did
+  // not, the text is read anyway and this says so: a read of a selection that
+  // had not landed is a wrong text, which E3 sees, and this tells it why.
+  bool selectAllConfirmed = false;
   int partBefore = -1;
   int partAfter = -1;
 };
@@ -86,15 +88,19 @@ struct PartTextResult {
 // `Document` provides:
 //   int parts();  int part();  void setPart(int);
 //   bool selectAll();             true when core confirmed the selection
-//                                 before the caller's deadline
+//                                 before the caller's deadline; the text is
+//                                 read either way, and the result says which
 //   bool text(std::string &out);  false when core returned no text at all
 //                                 (an empty sheet: the text is "", flagged)
 //   void resetSelection();
 //
 // The rules, each a red case in the test:
 //   * a part out of range is refused before anything but parts() is asked;
-//   * the selection is reset on EVERY path past selectAll, the timed-out one
-//     included: a SelectAll that lands late must not stay on screen;
+//   * the text is read whether or not the SelectAll was confirmed, and the
+//     result records which (one missing notification must not need a relink
+//     to see past);
+//   * the selection is reset on EVERY path past selectAll, the unconfirmed
+//     one included;
 //   * the part is put back to the one that was current before, on every path,
 //     and what is reported as partAfter is READ, not assumed;
 //   * no switch is made when part k is already the current one.
@@ -108,9 +114,8 @@ PartTextResult readPartText(Document &document, int part) {
   result.partBefore = document.part();
   if (part != result.partBefore)
     document.setPart(part);
-  if (!document.selectAll()) {
-    result.status = PartTextStatus::SelectAllTimedOut;
-  } else if (!document.text(result.text)) {
+  result.selectAllConfirmed = document.selectAll();
+  if (!document.text(result.text)) {
     result.text.clear();
     result.textNull = true;
   }

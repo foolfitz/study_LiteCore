@@ -66,6 +66,7 @@ class FakeWorker {
                                              height: 500, revision: 0 });
       case "partText":
         return this.reply(requestId, true, { part: payload.part, text: `${this.names[payload.part]}\n`,
+                                             textNull: false, selectAllConfirmed: true,
                                              partBefore: this.part, partAfter: this.part, revision: 0 });
       case "close":
         return this.reply(requestId, true, {});
@@ -137,7 +138,8 @@ test("partText exists only with part-text, and says which part the engine ended 
     const handle = await engine.open(new ArrayBuffer(8), { name: "book.ods" });
     const result = await handle.partText(1);
     assert.deepEqual(worker.payloads.at(-1), { operation: "partText", payload: { documentHandle: 9, part: 1 } });
-    assert.deepEqual(result, { part: 1, text: "Beta\n", partBefore: 0, partAfter: 0 });
+    assert.deepEqual(result, { part: 1, text: "Beta\n", textNull: false, selectAllConfirmed: true,
+                               partBefore: 0, partAfter: 0 });
     assert.equal(handle.currentPart, 0);
   }
 });

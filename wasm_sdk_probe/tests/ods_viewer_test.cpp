@@ -19,7 +19,8 @@
 //   X1 refused     a part out of range is refused before anything but parts()
 //   X2 order       switch, select all, read, deselect, switch back
 //   X3 no switch   part k already current: no setPart at all
-//   X4 timeout     a SelectAll that did not land: deselect and restore anyway
+//   X4 unconfirmed a SelectAll core did not confirm: read anyway, say so,
+//                  deselect and restore
 //   X5 no text     core returned nothing (an empty sheet): the empty text,
 //                  flagged, not an error; deselect and restore as always
 //   X6 read back   partAfter is what the document says, not what was asked for
@@ -148,11 +149,15 @@ int main() {
     FakeDocument document;
     document.selectAllLands = false;
     const auto result = ov::readPartText(document, 1);
-    check(result.status == ov::PartTextStatus::SelectAllTimedOut, "X4 timed out");
-    check(std::string(ov::partTextStatusCode(result.status)) == "PART_TEXT_TIMEOUT", "X4 the code");
+    check(result.status == ov::PartTextStatus::Ok, "X4 an unconfirmed SelectAll is not an error");
+    check(!result.selectAllConfirmed, "X4 the result says the SelectAll was not confirmed");
+    check(contains(document.calls, "text") && result.text == "sheet 1\n", "X4 the text is read anyway");
     check(contains(document.calls, "resetSelection"), "X4 deselected anyway: " + joined(document.calls));
-    check(!contains(document.calls, "text"), "X4 no text read from a selection that did not land");
     check(document.current == 0 && result.partAfter == 0, "X4 restored anyway");
+  }
+  {
+    FakeDocument document;
+    check(ov::readPartText(document, 1).selectAllConfirmed, "X4 a confirmed SelectAll says so");
   }
   // X5
   {

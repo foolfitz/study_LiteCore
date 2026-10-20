@@ -67,3 +67,11 @@ The native oracle reads `text: null` for an empty sheet after SelectAll (`01-nat
 `empty-one-sheet.ods`), and the corpus expects `""`. part_text had reported that null as `LOK_ERROR`; it now
 replies the empty text with `textNull: true` (spec A4.6). `syntax-checks.txt`, `test-e2-c-static-green.txt`
 (exit 0) and `undefined-symbols.txt` (the same three libc++ / libc symbols) were re-run on this source.
+
+## Re-run on the source handed to the link (spec A4.7)
+
+part_text now reads the text even when SelectAll's command result did not come within 3 s, and says so
+(`selectAllConfirmed`); the worker forwards `textNull` and `selectAllConfirmed`, so the pin is
+`cc2d6514cde27b63ac4f9ce3ae3ba286e3a894cc99d879f3983f5e33ee8c1b5b` (was `d1de2dfd…`). `syntax-checks.txt`,
+`test-e2-c-static-green.txt` (exit 0), `make-n-ods-viewer-v1.txt` (carries the new pin) and
+`undefined-symbols.txt` (the same three libc++ / libc symbols) are from this source.

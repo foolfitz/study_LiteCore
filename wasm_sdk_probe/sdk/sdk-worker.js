@@ -938,8 +938,10 @@ function handleCEvent(rawEvent) {
       break;
     case "part-text":
       if (requestId) {
-        complete(requestId, { part: event.part, text: event.text, partBefore: event.partBefore,
-                              partAfter: event.partAfter, revision: event.revision });
+        complete(requestId, { part: event.part, text: event.text, textNull: event.textNull,
+                              selectAllConfirmed: event.selectAllConfirmed,
+                              partBefore: event.partBefore, partAfter: event.partAfter,
+                              revision: event.revision });
       }
       break;
     case "page-rectangles":

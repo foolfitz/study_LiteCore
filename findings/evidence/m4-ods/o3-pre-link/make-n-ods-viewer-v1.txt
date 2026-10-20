@@ -43,13 +43,13 @@ if [ "" != "1" ]; then echo ""; echo "refusing to relink a frozen profile: build
 	-o build/ods/viewer-v1/probe.js
 test -s build/ods/viewer-v1/probe.wasm
 mkdir -p dist/profiles/ods-viewer-v1
-echo "d1de2dfd369343eb16a8290741e84a7fb7b8be6524296f93e548a67cb862ab07  sdk/sdk-worker.js" | sha256sum -c --quiet
+echo "cc2d6514cde27b63ac4f9ce3ae3ba286e3a894cc99d879f3983f5e33ee8c1b5b  sdk/sdk-worker.js" | sha256sum -c --quiet
 python3 tools/build_ods_viewer_profile.py --check
 python3 tools/build_ods_viewer_profile.py \
 	--loader build/ods/viewer-v1/probe.js \
 	--wasm build/ods/viewer-v1/probe.wasm \
 	--worker sdk/sdk-worker.js \
-	--worker-sha256 d1de2dfd369343eb16a8290741e84a7fb7b8be6524296f93e548a67cb862ab07 \
+	--worker-sha256 cc2d6514cde27b63ac4f9ce3ae3ba286e3a894cc99d879f3983f5e33ee8c1b5b \
 	--exports build/ods/viewer-v1/exports.txt \
 	--output dist/profiles/ods-viewer-v1
 test -s dist/profiles/ods-viewer-v1/probe.js

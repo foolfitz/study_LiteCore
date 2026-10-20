@@ -545,3 +545,11 @@ make ALLOW_FROZEN_RELINK=1 dist/profiles/ods-viewer-v1/sdk-manifest.json 2>&1 | 
 空表上。改成：null → 空字串，回覆帶 `textNull: true`（worker 只轉具名欄位，不轉它；worker 與 pin 不變）。有內容的表若被讀成空，E3
 比文字時照樣紅，所以這不會遮住錯誤。模型測試加兩條、突變加兩個（12 個全紅）；語法、`test-e2-c-static`、未定義符號都重跑過。
 **另記**：十萬格那份的期望文字在 manifest 裡是 `null`，E3 要從 oracle 的 jsonl 取（588,890 字元）。
+
+## A4.7（同晚，擁有者執行之前）`part_text` 不再因為沒等到 SelectAll 的通知而失敗
+
+連結前把第一次執行最可能出事的地方再讀一遍：`part_text` 只靠 `.uno:SelectAll` 的 `UNO_COMMAND_RESULT` 當屏障。萬一 Calc 在 LOK 下
+不回這個通知，每次呼叫都會等滿期限再失敗，而**修它要再連結一次**。改成：最多等 **3 秒**；等不到也照樣讀、照樣取消選取、照樣切回，
+回覆帶 `selectAllConfirmed: false`。不會遮住錯誤：讀到還沒落地的選取就是錯的文字，E3 比文字會紅，這個旗標說明原因。`PART_TEXT_TIMEOUT`
+這個錯誤碼因此撤掉。`textNull` 與 `selectAllConfirmed` 由 worker 具名轉給頁面——**worker pin 改成 `cc2d6514…`**（取代 A4.1 與手冊
+原本寫的 `d1de2dfd…`；擁有者尚未連結）。模型 15 個突變、worker 7 個、SDK 6 個全紅；JS 704/704；連結前的閘門在這份原始碼上重跑過。

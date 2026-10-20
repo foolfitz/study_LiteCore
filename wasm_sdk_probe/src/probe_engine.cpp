@@ -2635,11 +2635,13 @@ static_assert(LOK_DOCTYPE_TEXT == 0 && LOK_DOCTYPE_SPREADSHEET == 1 &&
 // barrier is LOK_CALLBACK_UNO_COMMAND_RESULT: postUnoCommand(..., true) queues
 // it on the view's callback flush handler (desktop/source/lib/init.cxx,
 // DispatchResultListener::dispatchFinished), and it arrives from LOK's own
-// thread.  Its own mutex, never gState.mutex.  A SelectAll that lands after the
-// deadline finds `active` false and is ignored; readPartText has reset the
-// selection and put the part back by then (registered: that late selection
-// stays, SPEC-M4 §8).
-constexpr int kPartTextSelectAllDeadlineMs = 10000;
+// thread.  Its own mutex, never gState.mutex.  If it has not come by the
+// deadline the text is read anyway and the reply says `selectAllConfirmed:
+// false` (SPEC-M4 addendum 4): a notification that never comes must not need a
+// relink to see past.  A SelectAll that lands after the deadline finds `active`
+// false and is ignored; readPartText has reset the selection and put the part
+// back by then (registered: that late selection stays, SPEC-M4 §8).
+constexpr int kPartTextSelectAllDeadlineMs = 3000;
 
 struct PartTextAwait {
   std::mutex mutex;
@@ -2777,16 +2779,15 @@ void handlePartText(const Command &command) {
   if (result.status != probe::odsviewer::PartTextStatus::Ok) {
     emitCommandError(command, "part-text",
                      probe::odsviewer::partTextStatusCode(result.status),
-                     "part_text(" + std::to_string(command.values[0]) +
-                         ") did not complete; partBefore " +
-                         std::to_string(result.partBefore) + ", partAfter " +
-                         std::to_string(result.partAfter));
+                     "part " + std::to_string(command.values[0]) +
+                         " is not a part of this document");
     return;
   }
   std::ostringstream fields;
   fields << ",\"part\":" << command.values[0] << ",\"text\":\""
          << jsonEscape(result.text.c_str()) << "\",\"textNull\":"
-         << (result.textNull ? "true" : "false")
+         << (result.textNull ? "true" : "false") << ",\"selectAllConfirmed\":"
+         << (result.selectAllConfirmed ? "true" : "false")
          << ",\"partBefore\":" << result.partBefore
          << ",\"partAfter\":" << result.partAfter;
   emitPartReply(command, "part-text", fields.str());

@@ -2630,9 +2630,9 @@ $(E2_V14_DIST):
 # probe_click / probe_insert_text / probe_save would export a dark save (review
 # M2); no a11y bridge object -- the viewer switches no accessibility on.
 #
-# THE WORKER IS PINNED: sdk/sdk-worker.js as of O2 (762296f8), the commit that
-# adds the viewer's four operations.  A later change to that file must not ride
-# into this profile unasked.
+# THE WORKER IS PINNED: sdk/sdk-worker.js with the viewer's four operations
+# (O2, 762296f8) and part_text's textNull / selectAllConfirmed (spec A4.7).  A
+# later change to that file must not ride into this profile unasked.
 #
 # Guarded from the first link, like every product artifact.  Runbook:
 # handoff/RUNBOOK-link-ods-viewer-v1.md.
@@ -2640,7 +2640,7 @@ ODS_VIEWER_V1_BUILD := build/ods/viewer-v1
 ODS_VIEWER_V1_DIST := dist/profiles/ods-viewer-v1
 ODS_VIEWER_V1_SOURCES := src/sdk_api.cpp src/probe_engine.cpp src/unoembind_stub.cpp
 ODS_VIEWER_V1_OBJECTS := $(patsubst src/%.cpp,$(ODS_VIEWER_V1_BUILD)/%.o,$(ODS_VIEWER_V1_SOURCES))
-ODS_VIEWER_V1_WORKER_SHA256 := d1de2dfd369343eb16a8290741e84a7fb7b8be6524296f93e548a67cb862ab07
+ODS_VIEWER_V1_WORKER_SHA256 := cc2d6514cde27b63ac4f9ce3ae3ba286e3a894cc99d879f3983f5e33ee8c1b5b
 
 $(ODS_VIEWER_V1_BUILD)/%.o: src/%.cpp $(HEADERS) src/ods_viewer.hpp Makefile \
 		| $(ODS_VIEWER_V1_BUILD)

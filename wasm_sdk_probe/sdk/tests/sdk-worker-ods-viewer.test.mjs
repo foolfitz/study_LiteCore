@@ -107,9 +107,11 @@ test("the four replies pass through with named fields only", () => {
                                               part: 0, name: "Alpha", ...extra }).result,
                    { part: 0, name: "Alpha", revision: 0 });
   assert.deepEqual(w.deliver(14, "partText", { type: "part-text", requestId: 14, revision: 0,
-                                              part: 1, text: "Beta\n", partBefore: 0, partAfter: 0,
+                                              part: 1, text: "Beta\n", textNull: false,
+                                              selectAllConfirmed: true, partBefore: 0, partAfter: 0,
                                               ...extra }).result,
-                   { part: 1, text: "Beta\n", partBefore: 0, partAfter: 0, revision: 0 });
+                   { part: 1, text: "Beta\n", textNull: false, selectAllConfirmed: true,
+                     partBefore: 0, partAfter: 0, revision: 0 });
 });
 
 test("on an editor profile every viewer operation is refused and no symbol is reached for", () => {

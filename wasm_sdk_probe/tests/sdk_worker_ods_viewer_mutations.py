@@ -39,8 +39,10 @@ MUTATIONS = {
         'accept(request, () => (true ? callStatus(',
         'a part that is not an integer is refused before the engine'),
     'reply-forwarded-whole': (
-        '        complete(requestId, { part: event.part, text: event.text, partBefore: event.partBefore,\n'
-        '                              partAfter: event.partAfter, revision: event.revision });\n',
+        '        complete(requestId, { part: event.part, text: event.text, textNull: event.textNull,\n'
+        '                              selectAllConfirmed: event.selectAllConfirmed,\n'
+        '                              partBefore: event.partBefore, partAfter: event.partAfter,\n'
+        '                              revision: event.revision });\n',
         '        complete(requestId, event);\n',
         'the four replies pass through with named fields only'),
     'open-type-dropped': (

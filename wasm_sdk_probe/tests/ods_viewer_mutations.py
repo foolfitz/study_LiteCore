@@ -12,7 +12,9 @@ check.  Each edit must match exactly once.
   range-off-by-one        part == parts is in range                      -> R1 fails
   queried-before-range    the current part is asked before the range     -> X1 fails
   always-switch           a switch is made to the part already current   -> X3 fails
-  reset-only-on-success   a timed-out SelectAll is left selected         -> X4 fails
+  reset-only-when-confirmed  an unconfirmed SelectAll is left selected  -> X4 fails
+  confirmation-assumed    an unconfirmed SelectAll is reported confirmed -> X4 fails
+  unconfirmed-not-read    an unconfirmed SelectAll's text is not read    -> X4 fails
   not-restored            the part is not switched back                  -> X2 fails
   part-after-assumed      partAfter is the part asked for, not read      -> X6 fails
   empty-sheet-is-an-error an empty sheet's null text becomes an error    -> X5 fails
@@ -63,17 +65,26 @@ MUTATIONS = {
         '  if (part != result.partBefore)\n    document.setPart(part);\n',
         '  document.setPart(part);\n',
         'FAIL X3 no switch'),
-    'reset-only-on-success': (
+    'reset-only-when-confirmed': (
         '  document.resetSelection();\n',
-        '  if (result.status == PartTextStatus::Ok)\n    document.resetSelection();\n',
+        '  if (result.selectAllConfirmed)\n    document.resetSelection();\n',
         'FAIL X4 deselected anyway'),
+    'confirmation-assumed': (
+        '  result.selectAllConfirmed = document.selectAll();\n',
+        '  document.selectAll();\n  result.selectAllConfirmed = true;\n',
+        'FAIL X4 the result says the SelectAll was not confirmed'),
+    'unconfirmed-not-read': (
+        '  result.selectAllConfirmed = document.selectAll();\n  if (!document.text(result.text)) {\n',
+        '  result.selectAllConfirmed = document.selectAll();\n'
+        '  if (!result.selectAllConfirmed || !document.text(result.text)) {\n',
+        'FAIL X4 the text is read anyway'),
     'not-restored': (
         '  if (document.part() != result.partBefore)\n    document.setPart(result.partBefore);\n',
         '',
         'FAIL X2 the order'),
     'empty-sheet-is-an-error': (
-        '  } else if (!document.text(result.text)) {\n    result.text.clear();\n    result.textNull = true;\n  }\n',
-        '  } else if (!document.text(result.text)) {\n    result.status = PartTextStatus::SelectAllTimedOut;\n  }\n',
+        '    result.text.clear();\n    result.textNull = true;\n',
+        '    result.status = PartTextStatus::OutOfRange;\n',
         'FAIL X5 an empty sheet is not an error'),
     'empty-sheet-not-flagged': (
         '    result.textNull = true;\n', '',
