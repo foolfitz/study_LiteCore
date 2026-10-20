@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **狀態** | **已量測**（H-154o，兩個瀏覽器各 3 輪），**登錄、不擋出貨**；修法排在下一個宿主版本 |
+| **狀態** | **宿主 0.2.28 已修**（2026-10-20 14:33 裝上；H-155 兩個瀏覽器各 3 輪 PASS）。0.2.27 上的量測見下 |
 | **影響版本** | **宿主 0.2.27**：頁面 `3b96cb16…`、`e2-editor.html` `b9c2b975…`、engine 封包 `817413d5ad5bd502`。無宿主的 mirror 沒有這個問題，因為那裡沒有 Nextcloud 的 CSS |
 | **所在** | Nextcloud 34 的 `core/css/server.css` 把 `dialog` 放在 reset 清單裡（`margin: 0` 等）。這是作者樣式，蓋過瀏覽器內建 `dialog:modal` 的 `margin: auto`。modal 對話框是 `position: fixed; inset: 0`，少了 `margin: auto` 就貼到左上角 |
 | **發現日** | 2026-10-20：H-154o 宿主臂（`findings/evidence/host-0.2.27/h154/`）。這個結果在 2026-10-19 就由讀原始碼預先寫下（SPEC-M3-link-batch-v22 §11.5，fable 裁決 5 第 19 項） |
@@ -34,3 +34,9 @@
 - patch：`findings/evidence/host-0.2.28/host-0.2.28.patch`（就是上面那一條規則＋版本號），對宿主 `d7c0a5e` 的 `git apply --check` 通過。
 - 縮小重現（`findings/evidence/155/precheck/`，診斷，不算判準）：用 Nextcloud 自己的 reset 原文＋頁面樣式，沒有規則時框在 `[0, 0, …]`（與宿主讀數同），加上規則後兩個瀏覽器的中心偏移都是 `[0, 0]`。〔已觀察〕
 - 判準改寫成可判的形式：**H-155**＝框中心離視窗中心水平、垂直都 ≤ 16 px（規格 §14.3）。紅案：0.2.27 的兩份宿主報告讀 H-155 FAIL（偏移 −605／−322.5、−605／−326），H-154o 仍 PASS。
+
+## 0.2.28 安裝與驗收（2026-10-20，追加）
+
+- 擁有者 14:00 指定時段到 14:45（規格 §14.5）。宿主 commit `0870695`，`occ upgrade` 後 `app:list` 是 0.2.28，maintenance false。engine 封包沒動，HTTP 送出的引擎檔案與 0.2.27 逐位元組相同。〔已觀察：`findings/evidence/host-0.2.28/install.txt`、`http-served.txt`〕
+- **H-155 PASS**：打開的對話框框 `[605, 323, 640, 335]`／視窗 1850×980（Chrome），`[605, 326, 640, 342]`／1850×994（Firefox）。中心偏移 Chrome `[0, +0.5]`、Firefox `[0, 0]`，各 3 輪都一樣；0.2.27 是 `[−605, −322.5]`。H-154c、H-154o 也都 PASS。〔已觀察：`findings/evidence/host-0.2.28/judge-h155.txt`〕
+- 桌面閘門在這一步撤除，因為它守的是計時格（規格 §14.5）。

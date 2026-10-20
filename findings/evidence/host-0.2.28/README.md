@@ -2,7 +2,9 @@
 
 What it is: SPEC-M3-link-batch-v22 §14. The owner chose "A+B" on 2026-10-20; B is "prepare 0.2.28": the criterion, the patch as a file, no change to the host repo that ddev serves. **Installing needs a window the owner names (§13).**
 
-**State: prepared. ddev still runs 0.2.27** (host `d7c0a5e`, buildId `817413d5ad5bd502`). Nothing in this directory has touched `~/Projects/Nextcloud_Apps/litecore`.
+**State (2026-10-20 14:35): installed, all PASS.** ddev runs 0.2.28 (host `0870695`, buildId `817413d5ad5bd502`); it replaces 0.2.27 as the uncounted candidate for daily use. The 'prepared' text below is kept as written.
+
+**State before the window: prepared. ddev still runs 0.2.27** (host `d7c0a5e`, buildId `817413d5ad5bd502`). Nothing in this directory has touched `~/Projects/Nextcloud_Apps/litecore`.
 
 ## What changes
 
@@ -57,3 +59,16 @@ Outcome rules:
 - **Window:** at 14:00 the owner wrote 「現在可以裝 0.2.28」 and chose 14:45 as its end (`WINDOW_END='2026-10-20 14:45'`). This is the window ruling 1 §2.9 form 1 asks for.
 - **The desk gate is withdrawn for 0.2.28** (spec §14.5; the owner chose A). It guards timing cells (ruling 6 addendum 1 item 9), and H-155 is a geometry reading. At 14:02 it read dirty for two reasons: desktop Chrome (28 processes), and two containers whose main process is `make run` (`oxool-dev`, `modaodfweb-rhtest`). Those are services, not builds; the 1-minute load was 0.49.
 - `chain-h155.sh` now guards each step on three things: the window, `ddev list`, and KWallet (`pre_run_checks()["refuse"]`, the runners' own refusal). It records the full `pre_run_checks` reading in `guard.log`. Red cases are in `chain-guard-red.txt`. `desk_gate.py` is unchanged.
+
+## The window's run (2026-10-20 14:31–14:35)
+
+| step | result | record |
+|---|---|---|
+| 1 | `ddev start` (litecore had been paused since the reboot); only litecore running | this README |
+| 3 | host HEAD `d7c0a5e`, tree clean; `engine/` differs from the archive only in `ATTRIBUTION.md`; buildId `817413d5ad5bd502`; `git apply --check` passed | session log |
+| 4 | patch applied, host commit `0870695` (local, not pushed) | `git -C ~/Projects/Nextcloud_Apps/litecore log` |
+| 5 | `occ upgrade` exit 0; `app:list` 0.2.28; maintenance false | `install.txt` |
+| 6 | HTTP green, the same address `817413d5ad5bd502-90d7bc2c` and the same decoded sha256s as 0.2.27 | `http-served.txt` |
+| 7 | **H-154c PASS, H-154o PASS, H-155 PASS** in both browsers, 3 rounds each. Centre offsets: Chrome `[0, +0.5]`, Firefox `[0, 0]` in every round | `judge-h155.txt`, `h155/`, `chain.log`, `guard.log` |
+
+`guard.log` records each step's `pre_run_checks`: Chrome 27–28 processes, load 1.48 before Firefox, and no refusal.
