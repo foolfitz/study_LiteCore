@@ -163,3 +163,82 @@
 5. §3: each criterion's form and default. Which can be satisfied without meaning anything (vacuous), which lack a positive control, and where is "X did not happen" claimed without a control? H2's "no write" needs a positive control, a session that does write, seen in the same log.
 6. Anything this plan assumes about the host (`liteCoreHost`, the file action API, the template wrapping) that the host's source contradicts.
 7. The order: is there a cheaper first step that would falsify the plan before the owner's link, as W2 did on 09-03?
+
+---
+
+# Amendment, 2026-10-20 ~19:10: fable's adversarial review, disposed (append-only; nothing above is edited)
+
+Review: `handoff/REVIEW-2026-10-20-fable-ods-in-nextcloud.md`. Verdict: **the plan holds, with changes before the link.** The main session spot-checked B1, B2, C2 and C3 against the source; all four are as stated. The other findings are carried as the review states them, and each is re-read when its work item is done.
+
+## What changes (all accepted)
+
+- **D2 is replaced:** the viewer's define adds three things.
+  - W7;
+  - **a per-part text read-back**, e.g. `oxsdk_document_part_text(handle, k)`. On the engine thread it does setPart(k), `.uno:SelectAll`, `getTextSelection("text/plain")` and a deselect, and replies with the text. Capability string `part-text`. (B1: the reader base has no selection export, so E3 could never be measured);
+  - **the tile reply's three size fields** under `OXSDK_E2_FORMAT_BARRIER || OXSDK_ODS_VIEWER` (B2).
+  - The viewer **drops save** from its exports and capability bits (M2).
+  - W7's worker half also needs `OPERATION_CAPABILITIES` entries and reply cases for the three part calls (M2).
+  - The input file's suffix follows the accepted name, so `documentLoad` sees `.ods` (M1).
+  - **Each addition gets a red case first.** The accessibility switch at open is registered, not gated (M2).
+- **E2:**
+  - the refused clause returns to 09-03's G2: "a typed refusal before the engine queue". Encryption is detected in the viewer session from the zip's `META-INF/manifest.xml` (`manifest:encryption-data`) and refused as `ENCRYPTED_DOCUMENT` (C6);
+  - new negative control: an ODT through the viewer is refused on `documentType`;
+  - "under its real name" holds only after M1's fix.
+- **E3** runs on the part-text read-back.
+- **E4 is split:**
+  - engine half as written;
+  - page half: after the first paint the surface's CSS size equals the post-paint width, and a tile covering `x = widthPx − 1` was drawn. The current draft is the red case: it reproduces the 12 px gap (B2).
+- **E5** adds: asking for the current part again reads back unchanged, and an out-of-range part is refused.
+- **E6:** the leak bound's noise floor is re-measured on the viewer link (5 boots) before any E6 run counts (M8).
+- **E8 is replaced:**
+  - the base pack is the one sliced from `build-a11y-gate0` (`9901e9be…`);
+  - the CJK pack is the shipping `cjk-sub-e10` bytes, one file shared with the editor;
+  - `fallback-fonts` stays as today (C1).
+- **O3 names the builder.** No existing tool does "reader shape + a11y-core slice" (C1, inference). A builder step is written, red case first.
+- **L-ods-second-engine-download** becomes about 43 MB zstd with the CJK pack shared, about 55 MB without (C1).
+  - Registered as well: adding files moves the package address, so every warm browser re-downloads the editor once (M6).
+- **O6 grows.**
+  - **The host:**
+    - a page table in `asset()` (page → script constant, resolver mime, template);
+    - `templates/viewer.php`;
+    - the viewer page keeps one `:root` rule, and its draft chrome is hidden in production;
+    - red case: two `:root` give a 500 (C2).
+  - **The Files action:**
+    - one action whose `enabled` accepts both mimes and whose `exec` picks the route by mime (a duplicate id is silently dropped);
+    - `js/litecore-files.mjs` rebuilt and committed (M3).
+  - **The packager:**
+    - `PAGES` with a page table;
+    - manifest schema `litecore-engine/3` with `source.pages`;
+    - the viewer hard-codes `workerUrl: "./profiles/ods-viewer-v1/sdk-worker.js"` and drops `?profile=`;
+    - red cases for zero or two worker literals, and for a one-page manifest under schema 3;
+    - the controller, `check_m3_assets.py` and the release tools follow;
+    - staging into `dist/`: `web/ods-viewer*`, `viewer-shell/` and the profile (C3).
+  - **The host contract** is named: the viewer's host script provides `{ load }` only, under a name the page shape-checks, `liteCoreViewerHost` (review §3 item 6).
+- **H1** reads: offered for ODS and ODT, not offered for the two sampled other mimes. The ODS row is the positive control.
+- **H2's positive control:** in the same run, an ODT editor session that does write (LOCK at open), read from the container's Apache `access.log`. Red case: a viewer host script that takes a lock (M4).
+- **H4:** the assets arm's K0 closure is re-judged, with the reason written (C3). The other host arms are as written.
+- **H6** reads: the viewer page's COOP, COEP and CSP equal the editor page's in the same run, modulo nonce (M5).
+- **The 089 register** reads: measured through the loader literal on this core (v12). The unmeasured residual is the reader object set on this core (M7).
+
+## Owner decisions, open at the time of writing
+
+- **D3** (review C5):
+  - **A (fable recommends):** subclass the shipped `DocumentEngine` from `viewer-shell/`. Zero bytes change under `sdk/`, no shell generation is minted, and the coupling to `_request`/`_initialize` is registered;
+  - B: the separate module as drafted;
+  - C: extend `document-sdk.js`, which mints shell v76 and re-binds the editor.
+  - Default if not decided: A.
+- **D5** (review C4). "× 1.4" is withdrawn.
+  - **A (fable leans):** measure once whether Firefox keeps a 48 MB gzip file in its cache (the X1 instrument, one browser, no ddev), and set the gzip cap to what is measured;
+  - B: no gzip cap; register `L-ods-gzip-fallback-uncached-in-firefox-nozstd`, and state that Z2-2 is not run on the viewer page.
+  - Default if not decided: B. It claims less, and the measurement can still replace it.
+
+## The order, revised (review §4)
+
+0. **Step 0, by reading, now.** Fold the changes above into the spec (O1) and the draft page.
+1. **Step 1, a mirror run with no link and no ddev.** The W9 page on `e2-editor-v14` (the same calc core) with 089's loader literal at 1,048,576, through the page's own file input, on `tdf149752.ods`, `three-sheets-distinct.ods`, `numeric-100k.ods` and `password.ods`. It gives E2-like opens, peak `sbrk` and 089 at 1 MiB via the page's path. **It cannot measure the reader object set on this core;** only the link can, so E2 is the link's first run.
+2. **Step 2:** D5 decided, by measurement or by registration, before the packager is touched.
+3. Then O1–O8 as amended.
+
+**The owner's first visible result:**
+- after O4 and E2: the viewer on a mirror page, with real sheet names and tabs;
+- second: the host integration (H), where clicking an `.ods` in Nextcloud opens it.
