@@ -1,0 +1,52 @@
+mkdir -p build/ods/viewer-v1
+../wasm-lite/tools/emsdk/upstream/emscripten/em++ -DLOK_USE_UNSTABLE_API -I../libreoffice-26-8/include -I../wasm-lite/build-a11y-gate0/config_host -I../wasm-lite/build-a11y-gate0/workdir/UnoApiHeadersTarget/udkapi/comprehensive -I../wasm-lite/build-a11y-gate0/workdir/UnoApiHeadersTarget/offapi/comprehensive -I../wasm-lite/build-a11y-gate0/workdir/UnpackedTarball/boost -Oz -pthread -fwasm-exceptions -sSUPPORT_LONGJMP=wasm -DOXSDK_READER_PROFILE \
+	-DOXSDK_ODS_VIEWER -c src/sdk_api.cpp -o build/ods/viewer-v1/sdk_api.o
+../wasm-lite/tools/emsdk/upstream/emscripten/em++ -DLOK_USE_UNSTABLE_API -I../libreoffice-26-8/include -I../wasm-lite/build-a11y-gate0/config_host -I../wasm-lite/build-a11y-gate0/workdir/UnoApiHeadersTarget/udkapi/comprehensive -I../wasm-lite/build-a11y-gate0/workdir/UnoApiHeadersTarget/offapi/comprehensive -I../wasm-lite/build-a11y-gate0/workdir/UnpackedTarball/boost -Oz -pthread -fwasm-exceptions -sSUPPORT_LONGJMP=wasm -DOXSDK_READER_PROFILE \
+	-DOXSDK_ODS_VIEWER -c src/probe_engine.cpp -o build/ods/viewer-v1/probe_engine.o
+../wasm-lite/tools/emsdk/upstream/emscripten/em++ -DLOK_USE_UNSTABLE_API -I../libreoffice-26-8/include -I../wasm-lite/build-a11y-gate0/config_host -I../wasm-lite/build-a11y-gate0/workdir/UnoApiHeadersTarget/udkapi/comprehensive -I../wasm-lite/build-a11y-gate0/workdir/UnoApiHeadersTarget/offapi/comprehensive -I../wasm-lite/build-a11y-gate0/workdir/UnpackedTarball/boost -Oz -pthread -fwasm-exceptions -sSUPPORT_LONGJMP=wasm -DOXSDK_READER_PROFILE \
+	-DOXSDK_ODS_VIEWER -c src/unoembind_stub.cpp -o build/ods/viewer-v1/unoembind_stub.o
+grep -v -e '^__ZTI' -e '^_main$' ../wasm-lite/build-a11y-gate0/workdir/CustomTarget/desktop/soffice_bin-emscripten-exports/exports > build/ods/viewer-v1/exports.txt
+printf '%s\n' __ZTIN3com3sun4star3ucb31InteractiveAugmentedIOExceptionE >> build/ods/viewer-v1/exports.txt
+printf '%s\n' \
+	_oxsdk_abi_version \
+	_oxsdk_capabilities \
+	_oxsdk_engine_start \
+	_oxsdk_document_open \
+	_oxsdk_document_paint \
+	_oxsdk_document_close \
+	_oxsdk_document_search \
+	_oxsdk_document_set_part \
+	_oxsdk_document_current_part \
+	_oxsdk_document_part_name \
+	_oxsdk_document_part_text \
+	_oxsdk_request_cancel \
+	_oxsdk_buffer_alloc \
+	_oxsdk_buffer_free >> build/ods/viewer-v1/exports.txt
+../wasm-lite/tools/emsdk/upstream/emscripten/em++ build/ods/viewer-v1/sdk_api.o build/ods/viewer-v1/probe_engine.o build/ods/viewer-v1/unoembind_stub.o \
+	-L../wasm-lite/build-a11y-gate0/instdir/program \
+	$(cat ../wasm-lite/build-a11y-gate0/instdir/program/soffice.js.linkdeps) \
+	-pthread -fwasm-exceptions -sSUPPORT_LONGJMP=wasm --no-entry -Oz \
+	-sMODULARIZE -sEXPORT_NAME=createProbeModule \
+	-sTOTAL_MEMORY=1GB -sPTHREAD_POOL_SIZE=7 -sPTHREAD_POOL_SIZE_STRICT=0 \
+	-sSTACK_SIZE=131072 -sDEFAULT_PTHREAD_STACK_SIZE=1048576 \
+	-sFORCE_FILESYSTEM=1 -sWASM_BIGINT=1 -sERROR_ON_UNDEFINED_SYMBOLS=1 -sFETCH=1 \
+	-sASSERTIONS=0 -sEXIT_RUNTIME=0 \
+	-sEXPORTED_RUNTIME_METHODS=ccall,FS,HEAPU8 \
+	-sEXPORTED_FUNCTIONS=@build/ods/viewer-v1/exports.txt \
+	-Wl,--wrap=_Z18initJsUnoScriptingv \
+	--pre-js ../libreoffice-26-8/static/emscripten/environment.js \
+	--pre-js ../wasm-lite/build-a11y-gate0/workdir/CustomTarget/static/emscripten_fs_image/soffice.data.js.link \
+	-o build/ods/viewer-v1/probe.js
+mkdir -p dist/profiles/ods-viewer-v1
+echo "cc2d6514cde27b63ac4f9ce3ae3ba286e3a894cc99d879f3983f5e33ee8c1b5b  sdk/sdk-worker.js" | sha256sum -c --quiet
+python3 tools/build_ods_viewer_profile.py --check
+ok: base-a11y-no35.6f7424a1c1427ad7.data (39892028 bytes, 1488 files, sha256 6f7424a1c1427ad7); E8 reconciles; same sha from the a11y core's original image
+python3 tools/build_ods_viewer_profile.py \
+	--loader build/ods/viewer-v1/probe.js \
+	--wasm build/ods/viewer-v1/probe.wasm \
+	--worker sdk/sdk-worker.js \
+	--worker-sha256 cc2d6514cde27b63ac4f9ce3ae3ba286e3a894cc99d879f3983f5e33ee8c1b5b \
+	--exports build/ods/viewer-v1/exports.txt \
+	--output dist/profiles/ods-viewer-v1
+wrote dist/profiles/ods-viewer-v1: probe.js, probe.wasm, sdk-worker.js, base-a11y-no35.6f7424a1c1427ad7.data, base-a11y-no35.8aae00e7cef956a0.metadata, sdk-manifest.json
+ok: base-a11y-no35.6f7424a1c1427ad7.data (39892028 bytes, 1488 files, sha256 6f7424a1c1427ad7); E8 reconciles; same sha from the a11y core's original image
