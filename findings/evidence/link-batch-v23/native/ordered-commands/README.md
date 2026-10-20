@@ -91,3 +91,31 @@ Neither path runs `Desktop::Main`. The arms measure the dispatch topology: inlin
 - finding 040's two entries under C, with the JS-thread positive control.
 
 Also not measured: IME and ext-text input under unipoll, Calc and Impress, mouse hops after `MouseButtonUp` (ruling §2.10 item 13), and any table or inline-object position (fixed question 3; the spec's arms).
+
+## N1 (SPEC-M3-ordered-commands §9.1, pinned at `b9080313`): `VERDICT N1-HOLDS`
+
+Run 2026-10-20 09:04–09:20 local, 70 processes, all exit 0, load1 ≤ 0.44. Output in `out-n1/`, reader `tool/read_n1.py`, verdict in `out-n1/reader-output.txt`. Smoke and self-test (6/6) are in `smoke-n1/`.
+
+The cells:
+- **N1a** and **N1b**: every D arm plus `tleave`, in mode `uni1ai`. One op per poll, with anyInput answering "a reply is pending".
+- **N1c**: `join200`, in `uni1` and `uni1ai`.
+
+Each op records the delay from its return to the first poll, and every callback that arrives after that poll within a fixed 1500 ms idle.
+
+- **N1a PASS.** 12 arms × 5 rounds. No `INVALIDATE_VISIBLE_CURSOR`, `TEXT_SELECTION(_START/_END)`, `UNO_COMMAND_RESULT` or `INVALIDATE_TILES` arrived after an op's first poll.
+- **N1b (record).** These late callbacks arrived after the first poll:
+
+  | type | n | delay after the first poll (min / median / max) |
+  |---|---|---|
+  | `STATE_CHANGED` | 253 | 0.5 / 359 / 622 ms |
+  | `RULER_UPDATE` | 13 | 459 / 460 / 762 ms |
+  | `VERTICAL_RULER_UPDATE` | 5 | 459 / 459 / 460 ms |
+
+  Positive control: `tleave` recorded a late `STATE_CHANGED` in every round. This is the timer class the spec keeps out of reply fields (§5.2, L-timer-class-callbacks).
+- **N1c PASS.** join200's first-poll delay:
+  - `uni1` (no anyInput): 1.261, 1.203, 1.204, 1.180, 1.216 ms;
+  - `uni1ai`: 0.114, 0.098, 0.101, 0.077, 0.102 ms.
+  
+  The two ranges are strictly separated.
+  - **Natively the effect is about 1 ms**, because a native `Yield` loops at once.
+  - On WASM every yield is one 10 ms tick of `emscripten_set_main_loop`, so each scheduler task the poll waits behind costs a tick there. That is inferred and not measured; the diagnostic link's tick record measures it.
