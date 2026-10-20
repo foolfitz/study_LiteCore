@@ -157,3 +157,13 @@ Re-read by the main session before acting:
 - `lo/vcl/headless/svpinst.cxx:549-554`: `AnyInput` answers only for `TIMER`, via `CheckTimeout(false)`.
   - `layact.cxx:2176`, `:2184` and `:2207` mask TIMER out, so they read false.
   - **Correction to §2.4's "always false":** `layact.cxx:2192` calls `Application::AnyInput()` with the default flags, which include TIMER. That one check can read true when a timer is due. It changes latency only, not the ruling.
+
+## Correction to the main session's source check above (appended 2026-10-20 ~18:12; the text above is kept as written)
+
+**"So the ruling's chain holds on the product core" is wrong for the shipping line.** The source check took `E2_V5_CORE` (`wasm_sdk_probe/Makefile:113-127`) for the product core. Only the v5 accessibility line links it. The shipping line v8–v22 compiles with `$(E1_CPPFLAGS)`, i.e. `-I$(LOBUILD)/config_host`, and `LOBUILD` defaults to `../wasm-lite/build-headless-probe` (`Makefile:2`, `:7-12`, `:1774`), whose `config_wasm_strip.h:5` is `ENABLE_WASM_STRIP_ACCESSIBILITY 1`. Four facts:
+1. the v22 runbook unsets `LOBUILD` (`handoff/RUNBOOK-relink-v22.md:44`), and `wasm_sdk_probe/build/link-v22.log` names `build-headless-probe` and never `build-a11y-gate0`;
+2. the two cores' `config_wasm_strip.h:5` read 1 (headless-probe) and 0 (a11y-gate0);
+3. the shipped `dist/profiles/e2-editor-v22/probe.wasm` holds `core-built-without-accessibility` and neither `lok-lacks-*` string, which sit on opposite sides of `#if ENABLE_WASM_STRIP_ACCESSIBILITY` (`probe_engine.cpp:2168-2211`);
+4. the v22 Firefox shakedown report measured `"enabled": false, "unavailable": "core-built-without-accessibility"` (`findings/evidence/link-batch-v22/shakedown/item1/report-firefox-d11a-d11c-d12-20261020T025943.json`).
+
+So §2.1 item 3's "already enables a11y on its view (`pe:2200-2210`)" cites the `#else` branch, which the shipping core does not compile, and the G run (native, accessibility compiled in) says nothing about the shipping core. The consequence is ruled in ruling 3 §5 (`ruling-fable-3.md`): on the shipping core the caret delete is the barrier in C's shape; the paired decider is compiled only on a core with accessibility.

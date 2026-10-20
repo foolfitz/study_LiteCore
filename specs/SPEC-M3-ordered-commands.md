@@ -356,6 +356,67 @@ K：v22 累積的未計數改動（交接 10-20 的清單）加上 v23，在擁�
   - 所以破洞是「填空線」，不是「中文句子」。
   - §15.1 的產品路徑判準（裁決 2 §2.1 寫成「25 次 Backspace 刪 25 個中文字」）照原樣**到不了**這個洞，要加一段相同字元串，例如 25 個全形底線 `＿`。這條判準仍在任何產品路徑執行之前，所以這是追加，不是事後移動（CLAUDE.md §9）。
 
+## 16. 裁決 3：診斷 profile 的引擎碼裝什麼（2026-10-20，只追加；更正寫在這裡，原文不動）
+
+來源：工單 `findings/evidence/link-batch-v23/review/brief-fable-3-diagnostic-scope.md`（`b86c8277`，擁有者選「送 fable 裁決」）；裁決 `review/ruling-fable-3.md`（§§1–4 與 §5 補充，後附主 session 的原始碼核對）。下文「裁決 3 §N」指該檔。
+
+### 16.1 診斷 profile 的游標刪除與 §9.3 的更正（裁決 3 §2.1，A）
+
+- 選 A：診斷 profile 的游標刪除就是 v23 要出貨的路；不把選項 B 的期限與輪詢接進 poll 迴圈（那是為撤回的宣稱造機械，而且多一個沒有原生對照的變數）。
+- **§9.3（`:202`）「§5.4 的刪除」更正為「§5.4 的殼層與判讀那半」**：client 的期望、§15.7 要求的相同字元串產品路徑臂、L-C-number-or-indent 三個位置經產品路徑。引擎那半屬 §9.2（§9.2 接 §5.3，A3 的替代就是 §5.4 的鍵路徑；「不加任何功能」讀作「不加新動作、不改殼層」）。
+- **`#error`（`probe_engine.cpp:15-17`）的替代**：兩道靜態閘——(i) `OXSDK_E2_V23_LINK_BATCH` 必須搭 `OXSDK_MAINLOOP_ENGINE`，並遞移地要求 v21 的 define；(ii) `OXSDK_MAINLOOP_ENGINE` 配 `OXSDK_MERGE_KEY_UNDO` 仍是錯，除非定義 `OXSDK_E2_V23_LINK_BATCH`——v23 只 include `merge_key_undo.hpp` 的純函式（`classifyUnit`、`judgeBeforeKey`、`judgeAfterKey`、`summarizeUndoPayload`），不編選項 B 的階段、期限與輪詢。紅案（引擎單元測試）：v23 上沒有動作到得了 `startSelectionBarrierDelete` 的舊階段機或 `startMergeKeyUndo`；阻塞式 `engineLoop` 不編譯。
+
+### 16.2 出貨 core 沒有 a11y：§15.1 的前提更正（裁決 3 §5）
+
+- **事實（已觀察）**：出貨線 v8–v22 連 `wasm-lite/build-headless-probe`（`ENABLE_WASM_STRIP_ACCESSIBILITY 1`），不是 `build-a11y-gate0`（只有 v5 a11y 線用）。證據：v22 的連結紀錄、兩顆 core 的 `config_wasm_strip.h:5`、v22 `probe.wasm` 含 `core-built-without-accessibility` 而不含 `lok-lacks-*`、v22 Firefox shakedown 實量 `a11y.enabled:false`。
+- **更正 §15.1（`:276`）的前提句**「產品 core `build-a11y-gate0` 有把 a11y 編進去」：那句描述的是 v5 a11y 線。裁決 2 檔尾的主 session 核對同錯，已在該檔追加更正。G-HOLDS 是原生量的，對出貨 core 什麼都沒說。
+- **§15.1 的引擎碼只在有 a11y 的 core 上編譯**（`#if !ENABLE_WASM_STRIP_ACCESSIBILITY`），只隨「產品線換到 a11y core」那次連結出貨；診斷 profile 在現行 core 上不會跑到它。§15.7「§15.1 的引擎碼可以寫」限定在 a11y core。
+- **現行 core 上的游標刪除＝柵欄的 C 形狀（§15.1 預設的 C 版本）**，一個指令做完、不分階段、沒有期限：K1（Shift＋方向鍵，呼叫裡跑完）→ 返回時 `readSelection()`：
+  - NONE → `verified-boundary-noop`（`changed:false`，`boundaryNoop.waitedMs`＝K1 送出到回覆的 poll）；2.25 秒的窗不存在；
+  - TEXT、非空、≤ 128 bytes、無分隔符 → `.uno:Delete`／`.uno:SwBackspace`（帶 listener，同步）→ 返回時 `readSelection()` 必須是 NONE，否則 `MUTATION_OUTCOME_UNKNOWN` → `verified-selection-delete`；結果回呼與收合回呼是 poll 時的證據，不是閘門；
+  - TEXT 含分隔符（合併）→ 同步 `setTextSelection(RESET, caretBefore)` 還原、確認 NONE、P0、送使用者自己的鍵、返回時讀復原、`judgeAfterKey`：變了且 ≥ 1 筆 → `verified-key-undo`；沒變 → `verified-boundary-noop`；`key-deadline` 不再出現。不需要 a11y（段落邊界只看復原）。
+  - 非 TEXT → `EDITOR_BOUNDARY_UNSUPPORTED`，照舊。
+- **RESET 還原先原生量再寫**（CLAUDE.md §7）：N=5，P2 段首（一般、編號、首行縮排）K1 Shift+Left、RESET 回 K1 前的游標矩形、NONE、再 Backspace；復原頂端與存檔要等於該位置不經 K1 的使用者 Backspace（D7 的方法）；紅案：RESET 偏一行要讀到不同落點。**量不出來的預設**：在指令裡送 `.uno:Escape`（Asynchron，下一次 poll 之前完成），鍵在下一次 poll 當成一個無條件的步驟送出（前提：`readSelection()` NONE 且快取游標等於 `caretBefore`），沒有期限。
+- **L-C-number-or-indent 在出貨 core 上重新登錄為未關閉**（§4 第 13 列改為「出貨 core 上未關閉；原生（§15.7）與 a11y core 上關閉」）。
+- **A3（只給功能連結）**：K1 為 NONE 時改送使用者自己的鍵、只看復原，可不靠 a11y 關掉 L-C；先要原生臂（D7 四個位置、G 的 t1 對照、找「K1 為 NONE 但鍵會刪字」的位置），N=5。沒跑的預設：NONE 回答「沒作用」，限制維持未關閉。
+- **產品線要不要換到 a11y core 是擁有者的裁示**，記憶裡 08-20 的「產品 core 定為 writer calc」與出貨線實際的 core 不一致，這裡只登錄、不裁。要換就是獨立一次連結、自己的判準。
+
+### 16.3 「staging 撤回」＝一個指令（裁決 3 §2.2，(a)；更正 §5.3 A7）
+
+- 格式柵欄在一個指令裡做完：派送（帶 listener）→ 還原到派送前 → `.uno:SelectText` → `readSelection()` → 046 指紋 → 037 型別防護 → html 讀回 → 還原 → **以 `readSelection()` 為 NONE 確認還原**。不排 `EditorFormatBarrierStep`、沒有 `stageDeadline`。
+- **包含檢查撤回**（它讀回呼餵的矩形，一個指令裡沒有；前提「柵欄進行中有別的指令搬動游標」在一個指令裡不存在）。具名限制 **L-format-read-identity-by-content**（§11）。
+- 034 的空末段：`.uno:SelectText` 返回後 NONE → 在回覆的 poll 以 `MUTATION_OUTCOME_UNKNOWN` 拒絕，不等 5 秒。
+- 同一讀法管所有還活著的階段機。註解路徑：`.uno:Escape` 從指令裡、在 `InsertAnnotation` 返回後送出（不帶 listener，Asynchron，排在 `InsertAnnotation` post 的事件之後、下一次 poll 之前）；不再從回呼裡呼叫 LOK（§5.7 規則 2）。
+- 紅案（引擎單元測試）：`.uno:SelectText` 什麼都沒選到 → 在那次 poll 拒絕；舊的等待式階段機要紅。
+
+### 16.4 回覆在 poll 組；證明不在＝當場型別化拒絕（裁決 3 §2.3）
+
+- **§5.7 規則 5（硬規則，形式一）：`onLokCallback` 不組回覆；每一個回覆都在指令返回後的第一次 poll 組出來送出。**回呼只更新快取、記證據（相符回呼的型別與序號、UNO 結果、搜尋與註解的 payload）。`editor-state` 事件與原始 `lok` 事件照舊從回呼送。紅案：一個「游標然後選取」的合成 flush，回覆要兩者都帶；舊的發法要紅。
+- 移動／放游標／選取：有記到相符回呼 → `documented-callback-<型別>`；沒有 → `verified-*-readback`、`changed:false`。UNO 動作：在 poll 時對 flush 之後的快取跑 059 的檢查。
+- **回覆依賴的證明在那次 poll 不在 → 在那次 poll 以型別化拒絕回答，寫明少了哪個證明；不等、不開計時器、不分指令種類。**編輯動作：`postUnoCommand` 返回時就失敗 → `LOK_COMMAND_FAILED`（文件未變）；派送了卻沒有結果 → `MUTATION_OUTCOME_UNKNOWN`，`failureShape: "proof-absent-at-poll:<回呼名>"`。SDK 操作（搜尋、加註解）用既有的不重送代碼。
+- **更正工單**：`.uno:ExecuteSearch` 不是 Asynchron（`sfx.sdi:1181-1196`），unipoll 下不帶 listener 也同步，不會排到 poll 之後。
+
+### 16.5 §9.2 追加的格與前提（CLAUDE.md §9 的四個條件：寫在任何診斷執行之前；被裁決 3 點名；形式寫在各條；第一次乾淨的診斷執行之後封閉）
+
+- **證明不在的拒絕**（形式一，工具產生的計數）：診斷 profile 上零筆；**正向對照**：一個診斷專用、故意不給證明的測試指令要剛好算到 1，否則 NE。
+- **a11y 狀態**（取代裁決 3 §2.1 第 3 項「零筆 undo-only」那格，該格連同 `witness:"undo-only"` 路徑撤回）：(i) 形式一，每次開檔：診斷 profile 的狀態回報 `a11y.unavailable == "core-built-without-accessibility"`；(ii) 形式二，位元組讀：`probe.wasm` 含 `core-built-without-accessibility`、不含 `lok-lacks-setAccessibilityState`，由 `tools/check_v23_diagnostic_build.py` 讀，紅案先行。
+- **W-D 的出處（更正版）**：d2／d2′ 走柵欄的 C 形狀（K1＋`.uno:Delete`／`.uno:SwBackspace`），d5 是延伸移動＋`delete-selection`；另加兩格：P2 段首的合併（`verified-key-undo`）與 D7 的四個位置（立刻回答「沒作用」，限制已登錄）。N=5，形式一。
+- **功能連結的建置前提**（形式二，同一支腳本）：診斷專用 define 不存在。
+- 診斷專用的儀器（每次 poll 的深度與排空數、永不返回的測試指令、故意不給證明的測試指令、從 JS 端執行緒呼叫 LOK）全在一個診斷專用 define 之下，只能經診斷入口觸發，不在 SDK 的公開介面。
+
+### 16.6 ABI（裁決 3 §2.4；附註 §5.8 與 §13）
+
+- 診斷 profile 維持編輯器 ABI 5（ABI 跟動作清單走）；6 留給功能連結的新動作。附錄 §2.2「`abiVersion ≥ 6` 就是返回時語意」只對綁定的 profile 成立；§9.2 的判讀工具認 profile 身分（manifest 的 `profile`＋wasm 雜湊），不認 `abiVersion`，餵 v22 的 manifest 要拒絕（紅案）。
+
+### 16.7 §11 追加的具名限制
+
+- **L-format-read-identity-by-content**：v23 上格式讀回的段落身分只靠 046 的內容指紋；重排把派送前的游標移出段落、而鄰段文字完全相同時分不出；074 的放棄照舊。
+- **L-barrier-unit-geometry-post-hoc**：柵欄的派送前單位檢查只剩型別、大小、分隔符；單一矩形的幾何檢查變成 poll 時的證據。它在 v20–v22 是否單獨擋過，可從那幾版的 shakedown 證據讀（形式三，一次性）；§9.3 的表格／frame 臂是它的測試。
+
+### 16.8 §34.4
+
+本節沒有動任何計數檢查或原生判讀工具：因執行而修 0，因審核而修 0。
+
 ## 修訂紀錄
 
 | 日期 | 內容 |
@@ -365,3 +426,4 @@ K：v22 累積的未計數改動（交接 10-20 的清單）加上 v23，在擁�
 | 2026-10-20 | §14（追加）：模型兩種模式的結果——多執行緒照舊印出四個母數（後兩個新釘）；C 在每一種形狀都是 0 與 0；兩個紅案都印出偽造回覆；新限制：一次 poll 一個指令在模型裡分辨不出。 |
 | 2026-10-20 | §15（追加）：兩席審核 1 與裁決 2——游標刪除的證人改成復原＋焦點段落（先量才寫碼，預設柵欄）；撤回「`postUnoCommand` 同步」「一個 flush tick」「`STATE_CHANGED` 是計時器類」「N1a 的 tile」「0 個偽造回覆（意義）」；新限制三條；§9.2 新格與前提；判讀工具修正清單；順序。 |
 | 2026-10-20 | §15.7（追加）：游標刪除證人原生計數 G-HOLDS（uni1 配對 25/25、只看復原 19、對照 0）；更正裁決 2「中文句子」的說法：破洞是相同字元串；產品路徑判準要加相同字元串。 |
+| 2026-10-20 | §16（追加）：裁決 3 與其 §5 補充——診斷 profile 帶 v23 的刪除路徑、§9.3 更正、`#error` 的替代；**出貨 core 沒有 a11y**：§15.1 的前提更正，現行 core 上游標刪除是柵欄的 C 形狀（RESET 還原先原生量），L-C 在出貨 core 上重新登錄為未關閉，判定器只在 a11y core 編譯；staging 撤回＝一個指令、包含檢查撤回；§5.7 規則 5（回覆只在 poll 組）、證明不在當場拒絕；§9.2 新格與前提；ABI 5；兩條新限制。 |
