@@ -53,3 +53,19 @@ Disposed in the spec's first addendum: the viewer define turns those two stages 
 - Firefox: this run is Chrome only.
 - Other Chrome processes were running (29, the owner's desktop Chrome); recorded, not refused:
   nothing here is a timing criterion.
+
+## Second run, after O2 (`report-2026-10-20T120926Z.json`)
+
+Same runner, same profile and fixtures; the page now builds its engine from `viewer-shell/ods-document-sdk.js`
+(D3 = A; on v14, which declares no `part-switch`, it hands back the plain handle) and refits after the first
+paint (E4b's page half). The runner's projection now carries `fit` and `refits`. All four predictions met again.
+
+| file | width at open (twips) | after the first paint | refits | surface CSS width |
+| --- | ---: | ---: | ---: | ---: |
+| `three-sheets-distinct.ods` | 26593 | 26775 | 1 | 1785 (= 26775 / 15) |
+| `numeric-100k.ods` | 26593 | 26775 | 1 | 1785 |
+| `tdf149752.ods` | 27658 | 27555 (narrower) | 1 | 1837 (= 27555 / 15) |
+
+`rightmostDrawnPx` is 1024 in all three: the headless window's viewport does not reach the right edge, so
+"a tile covering x = width − 1 was drawn" (E4b) needs a runner that scrolls there (O5). An earlier run of
+the same minute (`…120856Z`) was discarded before commit: its projection lacked `fit` and `refits`.

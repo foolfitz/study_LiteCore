@@ -1,0 +1,24 @@
+# em++ -fsyntax-only, 2026-10-20 (a syntax check: no make, no object written)
+# flags: $(E2_V5_CPPFLAGS) $(R5_CXXFLAGS) as the Makefile expands them, -I made absolute
+viewer probe_engine (-DOXSDK_READER_PROFILE -DOXSDK_ODS_VIEWER): exit 0, 0 errors, 0 warnings
+viewer sdk_api (-DOXSDK_READER_PROFILE -DOXSDK_ODS_VIEWER): exit 0, 0 errors, 0 warnings
+reader-shape probe_engine (-DOXSDK_READER_PROFILE): exit 0, 0 errors, 0 warnings
+reader-shape sdk_api (-DOXSDK_READER_PROFILE): exit 0, 0 errors, 0 warnings
+red copy (an undeclared call injected at the top of handlePartText), viewer defines: exit 1, 2 mention(s) of the injected name
+HEAD fe8722df probe_engine.cpp, reader shape: exit 1, 16 errors (the pre-existing breakage, listed below)
+  src/probe_engine.cpp:3066:3: error: use of undeclared identifier 'refreshEditorAccessibility'
+  src/probe_engine.cpp:3344:1: error: unknown type name 'SelectionReadback'
+  src/probe_engine.cpp:3345:3: error: unknown type name 'SelectionReadback'
+  src/probe_engine.cpp:4318:9: error: unknown type name 'SelectionReadback'
+  src/probe_engine.cpp:6455:13: error: use of undeclared identifier 'gEditorPending'
+  src/probe_engine.cpp:6456:13: error: use of undeclared identifier 'gEditorPending'
+  src/probe_engine.cpp:6457:33: error: use of undeclared identifier 'gEditorPending'
+  src/probe_engine.cpp:6461:15: error: use of undeclared identifier 'gEditorPending'
+  src/probe_engine.cpp:6462:15: error: use of undeclared identifier 'gEditorPending'
+  src/probe_engine.cpp:6464:31: error: use of undeclared identifier 'gEditorPending'
+  src/probe_engine.cpp:6465:50: error: no member named 'EditorPlaceCaretReadback' in 'probe::(anonymous namespace)::CommandType'
+  src/probe_engine.cpp:6466:33: error: use of undeclared identifier 'gEditorPending'
+  src/probe_engine.cpp:6467:50: error: no member named 'EditorSelectReadback' in 'probe::(anonymous namespace)::CommandType'
+  src/probe_engine.cpp:6468:50: error: no member named 'EditorActionReadback' in 'probe::(anonymous namespace)::CommandType'
+  src/probe_engine.cpp:6469:33: error: use of undeclared identifier 'gEditorPending'
+  src/probe_engine.cpp:6470:38: error: use of undeclared identifier 'gEditorPending'

@@ -70,7 +70,7 @@ RUN_EXPR = """(() => {
     tileDraws: r.tileDraws, engineEvents: r.engineEvents, firstTile: r.firstTile,
     finalState: r.finalState ?? null, engineCreated: r.engineCreated,
     viewReadyAtMs: r.viewReadyAtMs, stages: r.stages, messages: r.messages,
-    messagesDropped: r.messagesDropped });
+    messagesDropped: r.messagesDropped, fit: r.fit ?? null, refits: r.refits ?? 0 });
 })()"""
 
 

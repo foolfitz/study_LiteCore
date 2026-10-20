@@ -211,6 +211,21 @@ MUTATIONS = [
        "  return { readable: false, encrypted: null, reason: null };")],
      "the probe gives up without saying why",
      ["a package the probe cannot read goes to the engine"]),
+    # ---- 2026-10-20: the refit (SPEC-M4 E4b, review B2) ----
+    ("M36-refit-never", SESSION,
+     [("    if (widthTwips === this._fitted.widthTwips && heightTwips === this._fitted.heightTwips)\n      return false;",
+       "    if (true)\n      return false;")],
+     "the page never refits, so the widened sheet's last columns stay unpainted",
+     ["refit: a paint that widened the sheet"]),
+    ("M37-refit-always", SESSION,
+     [("    if (widthTwips === this._fitted.widthTwips && heightTwips === this._fitted.heightTwips)\n      return false;",
+       "    if (false)\n      return false;")],
+     "the page refits after every paint whether or not anything moved",
+     ["refit: a paint that widened the sheet", "refit does nothing when no paint moved the size"]),
+    ("M38-fitted-size-not-recorded", SESSION,
+     [("    this._fitted = { widthTwips: dimensions.widthTwips, heightTwips: dimensions.heightTwips };\n", "")],
+     "the size the scheduler was configured with is not remembered",
+     ["refit: a paint that widened the sheet"]),
 ]
 
 

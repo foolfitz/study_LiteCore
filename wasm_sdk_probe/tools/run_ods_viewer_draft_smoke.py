@@ -50,6 +50,8 @@ PAGE_FILES = {
     "viewer-shell/viewer-error.js": PROJECT / "viewer-shell" / "viewer-error.js",
     # 2026-10-20 (SPEC-M4 §5.2): the session reads the package before the engine.
     "viewer-shell/odf-package-probe.js": PROJECT / "viewer-shell" / "odf-package-probe.js",
+    # 2026-10-20 (SPEC-M4 §3.3, D3 = A): the shipped DocumentEngine, subclassed.
+    "viewer-shell/ods-document-sdk.js": PROJECT / "viewer-shell" / "ods-document-sdk.js",
 }
 # SPEC-M4 §5.1: the page hard-codes the engine it is for.  A mirror run on
 # another, already linked profile rewrites that ONE literal in the MIRROR's copy

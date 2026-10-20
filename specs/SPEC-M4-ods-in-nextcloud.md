@@ -413,3 +413,71 @@ Firefox 會不會把一個 **47,987,197 B 的 gzip 編碼回應**（v14 的 `pro
 | 日期 | 改了什麼 |
 | --- | --- |
 | 2026-10-20 晚 | 追加 2：D5-A 成立，gzip 上限 52,428,800；D5-B 的登錄不需要 |
+
+---
+
+# 追加 3（2026-10-20 晚）：O2 落地——引擎原始碼、worker、SDK；以及 reader 形狀本來就編不過
+
+只 append；上面一字不改。證據：`findings/evidence/m4-ods/o2-engine-source/`。**沒有連結、沒有跑 make；引擎路徑只做了語法檢查，
+第一次執行是擁有者的 O4 連結之後的 E2。**
+
+## A3.1 被逼出來的事實：reader 形狀在今天的原始碼上編不過
+
+`em++ -fsyntax-only`，a11y 核心的旗標、只帶 `-DOXSDK_READER_PROFILE`：HEAD `fe8722df` 的 `probe_engine.cpp` **16 個錯**，與本輪
+改動無關（**已觀察**，`syntax-checks.txt`）。reader profile 是八月連的；之後有三處只在 `OXSDK_EDITOR_DISCOVERY` 底下宣告的名字
+被無條件使用：開檔時的 `refreshEditorAccessibility()`（08-17 起）、`readSelection()`／`handleGetSelection()`、引擎迴圈的
+`gEditorPending` 期限分支。計畫 D2 與審查都把 reader 形狀當成可建的底座（審查查了 `view-ready` 的前處理深度，沒有編譯）。
+
+**處置**：三處的**使用端**包進 `#ifdef OXSDK_EDITOR_DISCOVERY`（`GetSelection` 在沒有編輯器的建置回 `UNSUPPORTED_OPERATION`）。
+- **編輯器那邊不動**：28 條 rule、112 個物件，前處理後 111 個逐 token 相同、1 個兩邊都編不了、**0 個不同**；另三條舊 `CPPFLAGS`
+  的 rule 手動補量，同樣沒有可編的物件改變（`preprocess-identity-base-fe8722df.json`、README）。
+- **檢視引擎開檔時不打開 a11y。**這是計畫 D2 原文寫的「no a11y refresh」；審查 M2 以為它會照跑而要求登錄——現在它不跑，M2 的
+  登錄改成：**W2、W5、第 1 步都是在 a11y 開著的編輯器 profile 上量的，檢視連結不開——這是診斷與連結之間的一個變因，由連結自己的
+  E2／E6 量。**
+
+## A3.2 釘下的名字（取代 §3.2 表中「工作名稱」的部分）
+
+- 匯出：`_oxsdk_document_set_part(req, handle, part)`、`_oxsdk_document_current_part(req, handle)`、
+  `_oxsdk_document_part_name(req, handle, part)`、`_oxsdk_document_part_text(req, handle, part)`。負的 part 在 ABI 邊界回
+  `INVALID_ARGUMENT`（同步）；`part >= parts` 由引擎執行緒回錯誤事件 `INVALID_ARGUMENT`。
+- 回覆事件：`part-set {part, width, height}`、`current-part {part}`、`part-name {part, name}`、
+  `part-text {part, text, partBefore, partAfter}`；`opened` 加 `documentType`、`inputSuffix`。
+- 能力：字串 `open-ods`／`part-switch`／`part-text`，位元 `1u << 11`／`12`／`13`；檢視 profile 的位元**不含** `SAVE_ODT`，
+  `oxsdk_document_save` 在 define 下**不編譯**（`EMSCRIPTEN_KEEPALIVE` 不管匯出清單都會匯出）。
+- worker 操作：`setPart`／`currentPart`／`partName` 掛 `part-switch`，`partText` 掛 `part-text`；不是整數的 part 在 worker 就拒絕
+  （交給 ccall 會變成 0，默默切到第一張表）。
+- 編譯期守衛：`OXSDK_ODS_VIEWER` 必須配 `OXSDK_READER_PROFILE`，且不得與任何編輯器 define 或 `OXSDK_MAINLOOP_ENGINE` 同時出現
+  （`#error`）。
+- `part_text` 在引擎執行緒上**同步等** `.uno:SelectAll` 的 `UNO_COMMAND_RESULT`（期限 10 秒），等的期間佇列不前進，所以不會有
+  畫圖插在切換、選取、切回之間。逾時照樣取消選取、切回原本的表，回 `PART_TEXT_TIMEOUT`。**登錄**：逾時之後才到的 SelectAll 會留下
+  選取（那時等待已關）。
+- E3 的讀法與原生 oracle 相同：`getTextSelection("text/plain;charset=utf-8")`，不是選取型別讀回。
+
+## A3.3 SDK（D3＝A）與頁面
+
+- `viewer-shell/ods-document-sdk.js`：`OdsViewerEngine extends DocumentEngine`；`sdk/document-sdk.js` 零位元組改動，殼層 bundle v75
+  digest 仍是 `5b14038e…`。
+- **`L-viewer-sdk-private-surface` 的實際內容**：`_request`（另外**覆寫**它，在 `open` 那一次讀回覆的 `documentType`／`inputSuffix`，
+  因為出貨的 `DocumentHandle` 只留它認得的欄位）、`_initialize`、`DocumentHandle.handle` 與 `_assertUsable`。
+- 沒宣告 `part-switch` 的 profile 拿到原本的 handle，adapter 照舊標出它代答了什麼——所以第 1 步那種 v14 鏡像量測照樣能跑。
+- 頁面接上子類別，並做了 **E4b 的頁面那一半**：`session.refit()` 在第一次畫完之後依 handle 的尺寸重設 scheduler（同一張表），頁面
+  重排 surface 再畫一次。v14 上重跑第 1 步（`report-2026-10-20T120926Z.json`）：三份都重設一次，surface 寬＝畫完後的
+  `documentWidthTwips`／15（1785、1785、1837；`tdf149752.ods` 是**變窄**，27658 → 27555）。**E4b 的「畫到 x＝寬−1」要捲到右緣
+  才量得到**——headless 視窗只畫到 1024 px；O5 的 runner 要捲過去。
+
+## A3.4 紅案與回歸
+
+- 原生模型測試＋10 個突變、worker 7 個測試＋7 個突變、SDK 7 個測試＋6 個突變、session 24 個測試＋W9 harness 38 個突變，全部紅在
+  點名的檢查上。worker 那一組第一次跑有一個**沒紅**：「key 一模一樣」那條在 JSON 來回轉之後比，看不到值為 undefined 的 key；改成看
+  原始訊息。
+- 既有：JS 673/673；Python 測試除 `test_e1_corpus.py`（E1 語料產生器，不讀 `src/`／`sdk/`，本輪未查）外全過；E1-C `intact: true`。
+- **§34 的帳**：因執行而修 **+3**——`tests/test_e2_profile.py` 兩條原始碼字串測試被新程式碼誤判（固定 6000 字元的窗口只剩 26 字元
+  餘裕、`getTextSelection` 呼叫點普查），各在測試裡寫明理由；W9 的關檔測試把固定延遲改成「等 factory／open 被呼叫」，因為新的
+  package 讀取讓延遲落在別處。因審核而修 **+0**。新判讀工具（第 1 步 runner、D5 工具）都是診斷用、沒有被計數使用；若之後要拿來計數，
+  照 §34 先做一次雙席審核。
+
+## A3.5 修訂紀錄（續）
+
+| 日期 | 改了什麼 |
+| --- | --- |
+| 2026-10-20 晚 | 追加 3：O2 落地；reader 形狀編不過的處置（檢視引擎不開 a11y）；釘下匯出、事件、能力的名字；E4b 頁面那一半已實作 |

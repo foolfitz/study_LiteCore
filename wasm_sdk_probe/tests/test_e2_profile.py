@@ -48,6 +48,29 @@ def sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+
+def split_viewer_regions(source):
+    """(source outside every `#ifdef OXSDK_ODS_VIEWER` block, the blocks' text).
+
+    Nesting-aware: an inner #if/#endif inside a viewer block stays inside it.
+    """
+    outside, inside, depth = [], [], 0
+    for line in source.splitlines(keepends=True):
+        stripped = line.strip()
+        if depth == 0 and stripped == "#ifdef OXSDK_ODS_VIEWER":
+            depth = 1
+            inside.append(line)
+            continue
+        if depth:
+            inside.append(line)
+            if stripped.startswith("#if"):
+                depth += 1
+            elif stripped.startswith("#endif"):
+                depth -= 1
+            continue
+        outside.append(line)
+    return "".join(outside), "".join(inside)
+
 class TestSharedWorkerUntouched(unittest.TestCase):
     """E2 must diverge on its own copy, never on the file others build from."""
 
@@ -627,7 +650,19 @@ class TestFormatBarrierRefusesWhatItCannotJudge(unittest.TestCase):
                             signature)
         # readFormatBarrierPostcondition() carries no guard of its own; its
         # single caller does, and that pairing is asserted whole above.
-        self.assertEqual(self.source.count("pClass->getTextSelection("),
+        #
+        # Counted outside the read-only spreadsheet viewer's region (2026-10-20,
+        # SPEC-M4 3.2): its part_text reads text/plain after a SelectAll, the
+        # way the native oracle reads its expected text, and that region cannot
+        # be compiled into a build with the format barrier -- the #error below
+        # is asserted whole, and the region's own count is pinned to one.
+        self.assertIn(
+            "#if !defined(OXSDK_READER_PROFILE) || defined(OXSDK_EDITOR_DISCOVERY) ||       \\\n"
+            "    defined(OXSDK_E2_FORMAT_BARRIER) || defined(OXSDK_E2_V20_LINK_BATCH) ||    \\\n",
+            self.source)
+        editor_source, viewer_source = split_viewer_regions(self.source)
+        self.assertEqual(viewer_source.count("pClass->getTextSelection("), 1)
+        self.assertEqual(editor_source.count("pClass->getTextSelection("),
                          len(guarded_call_sites) + 1)
 
     def test_the_guard_accepts_only_a_plain_text_selection(self):
@@ -818,7 +853,12 @@ class TestFormatBarrierDeadline(unittest.TestCase):
         ):
             with self.subTest(loop=loop):
                 start = self.source.index(loop)
-                body = self.source[start:start + 6000]
+                # The whole function (2026-10-20): a fixed 6000-character window
+                # held this guard with 26 characters to spare, and the three
+                # lines that keep the editor's own deadline arm out of the
+                # read-only viewer (SPEC-M4 addendum 3) pushed it out -- the
+                # guard had not moved, the window had stopped reaching it.
+                body = self.source[start:self.source.index("\n}\n", start)]
                 self.assertIn(guard, body)
                 self.assertIn("command.values[0] = 1;", body)
 

@@ -10,7 +10,9 @@
 // every page in this directory; the page is not staged to dist/ by this draft.
 // It is NOT in the product page's import graph, and the product page does not
 // reach it.
-import { DocumentEngine } from "./sdk/document-sdk.js";
+// The shipped DocumentEngine, subclassed (SPEC-M4 §3.3, D3 = A): the viewer's
+// four queries ride on it; nothing under sdk/ changes.
+import { OdsViewerEngine } from "./viewer-shell/ods-document-sdk.js";
 import { OdsViewerSession } from "./viewer-shell/ods-viewer-session.js";
 
 const params = new URLSearchParams(location.search);
@@ -91,7 +93,7 @@ async function sha256Hex(bytes) {
 // resolves only after it.  `_initialize` is what `createDocumentEngine` calls;
 // splitting it is the only way to put the listener first.
 async function engineFactory({ onEvent }) {
-  const engine = new DocumentEngine({ ...ENGINE_OPTIONS, debug: DIAGNOSTICS });
+  const engine = new OdsViewerEngine({ ...ENGINE_OPTIONS, debug: DIAGNOSTICS });
   engine.onEvent(onEvent);
   return engine._initialize();
 }
@@ -203,6 +205,23 @@ function fitSurface(session) {
   el.surface.style.height = `${Math.ceil(size.height)}px`;
 }
 
+// Paint what is in view, then -- once, if the paints moved the document's size
+// (E4b) -- refit the surface to the size the engine reported and paint again.
+// Without the second pass the last ~12 px of the first sheet stayed blank.
+async function paintViewport(session) {
+  scheduleViewport();
+  await session.drain();
+  if (session.refit()) {
+    el.tiles.replaceChildren();
+    fitSurface(session);
+    scheduleViewport();
+    await session.drain();
+    const run = record.current;
+    if (run)
+      run.refits = (run.refits || 0) + 1;
+  }
+}
+
 function drawTile(entry) {
   const run = record.current;
   record.tileDraws += 1;
@@ -273,8 +292,7 @@ async function switchPart(k) {
     fitSurface(session);
     el.viewport.scrollTop = 0;
     el.viewport.scrollLeft = 0;
-    scheduleViewport();
-    await session.drain();
+    await paintViewport(session);
   }
   outcome.tilesDrawnBefore = before.tileDraws;
   outcome.tilesDrawnAfter = record.tileDraws;
@@ -332,9 +350,16 @@ async function openFile(file) {
       widthTwips: state.widthTwips, heightTwips: state.heightTwips,
     };
     fitSurface(session);
-    scheduleViewport();
-    await session.drain();
+    await paintViewport(session);
     if (run.firstTilePromise) await run.firstTilePromise;
+    // E4b's page half, as the page ended up: the surface's CSS width and the
+    // right-most tile edge actually drawn, for a runner to compare.
+    run.fit = {
+      surfaceCssWidth: el.surface.getBoundingClientRect().width,
+      documentWidthTwips: session.state.widthTwips,
+      rightmostDrawnPx: Math.max(0, ...[...el.tiles.querySelectorAll("canvas")]
+        .map((c) => Number.parseFloat(c.style.left) + Number.parseFloat(c.style.width))),
+    };
   } catch (error) {
     if (session.state.state === "refused") run.refused = errorValue(error);
     else run.error = errorValue(error);

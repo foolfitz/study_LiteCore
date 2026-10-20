@@ -1,0 +1,1109 @@
+{
+  "schemaVersion": 1,
+  "release": "m4-ods-step1-mirror-v14-1mib",
+  "spec": "specs/SPEC-M4-ods-in-nextcloud.md §7",
+  "evidenceClass": "diagnostic",
+  "why": "the viewer page on the a11y+calc core it will be linked on, with the 1 MiB stack, through its own file input; W7 does not exist, so the name is spoofed and the reader object set on this core is not measured",
+  "startedAt": "2026-10-20T120926Z",
+  "profile": "e2-editor-v14",
+  "probeWasmSha256": "5847a1407d3af58fc8cae76d151b7d8d865b75b11beace5d8413ea823eca23ca",
+  "engineStack": {
+    "requested": 1048576,
+    "linkedDefault": 65536,
+    "anchors": [
+      ",!ENVIRONMENT_IS_WEB,65536,false);",
+      "var stackLow=stackHigh-stackSize;"
+    ],
+    "probeJsSha256": "6581cc948dd183f39c2c4c6be6eb2e8ec300c0a5598ab362efeb7db7daa9bc24",
+    "patchedProbeJsSha256": "5df6798796a5d871a81423cff2a0199348d7c29bd006f4a99f3b3fd39732d94a"
+  },
+  "preconditions": {
+    "wallet": "b false",
+    "chromeProcessCount": 28,
+    "chromeProcessesSample": [
+      "19765 /opt/google/chrome/chrome",
+      "19937 /opt/google/chrome/chrome_crashpad_handler --monitor-self --monitor-self-annotation=ptype=crashpad-handler --database=/home/jiajun/.co",
+      "19941 /opt/google/chrome/chrome_crashpad_handler --no-periodic-tasks --monitor-self-annotation=ptype=crashpad-handler --database=/home/jiaju"
+    ],
+    "load1": 0.96,
+    "ok": false,
+    "reasons": [
+      "28 Chrome process(es) already running"
+    ]
+  },
+  "pageSourceSha256": {
+    "ods-viewer-app.js": "d3df4ff2b8c9704841fa257741b096da21615690ab6cd6130b10791a29e68577",
+    "retargetedTo": "e2-editor-v14"
+  },
+  "pageFiles": {
+    "ods-viewer.html": "5fc8f96889b2d47caca94fbc1bd6f909590f161180a59c50ad6e07f2abd65085",
+    "ods-viewer-app.js": "89b5b36399c122cf13731673c0ed7d99716bfd1fc6b10618a8cabff34717e1cc",
+    "viewer-shell/ods-viewer-session.js": "7f734c0d0d90cbc93fced4c94dadeeafc5e55ef01e5bdd87bb063d0cd8b88602",
+    "viewer-shell/w7-adapter.js": "d4b5206dbf90661fcf1b059e08b07dcda3cd2023e855ca2eac34273aa9be486a",
+    "viewer-shell/viewer-error.js": "237dad413606f1a55a8b7a5dcde9930b3ace14d532bb87edc7c1a7062771765d",
+    "viewer-shell/odf-package-probe.js": "3baa064cfa06a98903bb6a413ebb6301e3e48808cb5817639adb4b1d8bc44aeb",
+    "viewer-shell/ods-document-sdk.js": "0d6664d3d11c8c42f394c19fbe02beb1261a26d005bd7088ed7b39eeadf26940",
+    "profiles/e2-editor-v14/probe.js": "5df6798796a5d871a81423cff2a0199348d7c29bd006f4a99f3b3fd39732d94a"
+  },
+  "fixtures": [
+    {
+      "file": "three-sheets-distinct.ods",
+      "path": "test-docs/ods/ladder/three-sheets-distinct.ods",
+      "sha256": "0402e52724cb5bbd3046461a5fb1c40b9431b33f20834136a835a68f3123e750"
+    },
+    {
+      "file": "numeric-100k.ods",
+      "path": "test-docs/ods/ladder/numeric-100k.ods",
+      "sha256": "13b5b572b82cfbb15adcb77271b7f604160da5d5433265f1fdc0e77798dc26b2"
+    },
+    {
+      "file": "tdf149752.ods",
+      "path": "test-docs/ods/upstream/tdf149752.ods",
+      "sha256": "2d6a2c6aa63c33b0971ef7e3e67b7fc5727639387e5a6eb8c73ae86194f0052e"
+    },
+    {
+      "file": "password.ods",
+      "path": "test-docs/ods/upstream/password.ods",
+      "sha256": "93a2f2109b3e195decbd02d1dfc4c8e8035688aefe8473764ce3ad76b78b19ad"
+    }
+  ],
+  "runs": [
+    {
+      "settled": true,
+      "file": "three-sheets-distinct.ods",
+      "inputBytes": 7537,
+      "inputSha256": "0402e52724cb5bbd3046461a5fb1c40b9431b33f20834136a835a68f3123e750",
+      "opened": {
+        "atMs": 1673,
+        "parts": 3,
+        "documentType": "unknown (pre-W7)",
+        "widthTwips": 26593,
+        "heightTwips": 13005
+      },
+      "refused": null,
+      "error": null,
+      "tileDraws": 24,
+      "engineEvents": [
+        "resource-pack-loaded",
+        "view-ready",
+        "editor-state"
+      ],
+      "firstTile": {
+        "part": 0,
+        "width": 256,
+        "height": 256,
+        "bytes": 262144,
+        "nonPaperPixels": 4817,
+        "sha256": "0a516b644c785eaf6ca28b979713391f1f93cb65dec863a109f485d3827c44e3",
+        "key": "three-sheets-distinct.ods#0:0:0:1.0000:0:0:3840:3840:256:256",
+        "documentWidthTwips": 26775,
+        "documentHeightTwips": 13005,
+        "documentSizeChanged": true
+      },
+      "finalState": {
+        "state": "ready",
+        "evidenceClass": "diagnostic",
+        "adapterFallbacks": [
+          "name-spoofed",
+          "document-type-unknown",
+          "part-names-synthesised",
+          "part-switch-unavailable",
+          "part-readback-unavailable"
+        ],
+        "fileName": "three-sheets-distinct.ods",
+        "openName": "three-sheets-distinct.odt",
+        "nameSpoofed": true,
+        "packageProbe": {
+          "readable": true,
+          "encrypted": false,
+          "reason": null
+        },
+        "engineRequested": true,
+        "documentType": "unknown (pre-W7)",
+        "documentTypeKnown": false,
+        "parts": 3,
+        "partNames": [
+          "工作表 1",
+          "工作表 2",
+          "工作表 3"
+        ],
+        "namesFromEngine": false,
+        "partNamesProblem": null,
+        "canSwitchParts": false,
+        "currentPart": 0,
+        "currentPartReadBack": null,
+        "tabs": [
+          {
+            "index": 0,
+            "label": "工作表 1",
+            "current": true,
+            "enabled": true,
+            "disabledReason": null
+          },
+          {
+            "index": 1,
+            "label": "工作表 2",
+            "current": false,
+            "enabled": false,
+            "disabledReason": "引擎尚無分頁切換（W7 的 set_part），目前只能顯示開檔時的那一頁"
+          },
+          {
+            "index": 2,
+            "label": "工作表 3",
+            "current": false,
+            "enabled": false,
+            "disabledReason": "引擎尚無分頁切換（W7 的 set_part），目前只能顯示開檔時的那一頁"
+          }
+        ],
+        "widthTwips": 26775,
+        "heightTwips": 13005,
+        "lastRefusal": null,
+        "tileErrors": 0,
+        "lastTileError": null,
+        "error": null
+      },
+      "engineCreated": true,
+      "viewReadyAtMs": 1678,
+      "stages": [
+        {
+          "type": "stage",
+          "name": "open.begin",
+          "heapBytes": 1073741824,
+          "sbrk": 293015552,
+          "atMs": 1108
+        },
+        {
+          "type": "stage",
+          "name": "open.documentLoad",
+          "heapBytes": 1073741824,
+          "sbrk": 293015552,
+          "atMs": 1108
+        },
+        {
+          "type": "stage",
+          "name": "open.documentLoad-returned",
+          "heapBytes": 1073741824,
+          "sbrk": 298328064,
+          "atMs": 1588
+        },
+        {
+          "type": "stage",
+          "name": "open.initializeForRendering",
+          "heapBytes": 1073741824,
+          "sbrk": 298328064,
+          "atMs": 1589
+        },
+        {
+          "type": "stage",
+          "name": "open.registerCallback",
+          "heapBytes": 1073741824,
+          "sbrk": 298328064,
+          "atMs": 1591
+        },
+        {
+          "type": "stage",
+          "name": "open.query-metadata",
+          "heapBytes": 1073741824,
+          "sbrk": 298328064,
+          "atMs": 1599
+        }
+      ],
+      "messages": [
+        {
+          "level": "stderr",
+          "message": "[engine-stack] 1048576",
+          "count": 3
+        },
+        {
+          "level": "stderr",
+          "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"m5\" in \"file:///instdir/program/../share/registry/res/registry_qtz.xcd\"",
+          "count": 1
+        },
+        {
+          "level": "stderr",
+          "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"m14\" in \"file:///instdir/program/../share/registry/res/registry_qtz.xcd\"",
+          "count": 1
+        },
+        {
+          "level": "stderr",
+          "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"private:resource/toolbar/addon_LibreLogo.OfficeToolBar\" in \"file:///instdir/program/../share/registr",
+          "count": 2
+        },
+        {
+          "level": "stderr",
+          "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"com.sun.star.sdb.RelationDesign\" in \"file:///instdir/program/../share/registry/res/registry_qtz.xcd\"",
+          "count": 1
+        },
+        {
+          "level": "stderr",
+          "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"com.sun.star.sdb.QueryDesign\" in \"file:///instdir/program/../share/registry/res/registry_qtz.xcd\"",
+          "count": 1
+        },
+        {
+          "level": "stderr",
+          "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"com.sun.star.sdb.ViewDesign\" in \"file:///instdir/program/../share/registry/res/registry_qtz.xcd\"",
+          "count": 1
+        },
+        {
+          "level": "stderr",
+          "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"com.sun.star.sdb.TableDesign\" in \"file:///instdir/program/../share/registry/res/registry_qtz.xcd\"",
+          "count": 1
+        },
+        {
+          "level": "stderr",
+          "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"com.sun.star.sdb.DataSourceBrowser\" in \"file:///instdir/program/../share/registry/res/registry_qtz.x",
+          "count": 1
+        },
+        {
+          "level": "stderr",
+          "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"com.sun.star.sdb.TableDataView\" in \"file:///instdir/program/../share/registry/res/registry_qtz.xcd\"",
+          "count": 1
+        },
+        {
+          "level": "stderr",
+          "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"m5\" in \"file:///instdir/program/../share/registry/res/registry_zh-TW.xcd\"",
+          "count": 1
+        },
+        {
+          "level": "stderr",
+          "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"m14\" in \"file:///instdir/program/../share/registry/res/registry_zh-TW.xcd\"",
+          "count": 1
+        },
+        {
+          "level": "stderr",
+          "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"com.sun.star.sdb.RelationDesign\" in \"file:///instdir/program/../share/registry/res/registry_zh-TW.xc",
+          "count": 1
+        },
+        {
+          "level": "stderr",
+          "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"com.sun.star.sdb.QueryDesign\" in \"file:///instdir/program/../share/registry/res/registry_zh-TW.xcd\"",
+          "count": 1
+        },
+        {
+          "level": "stderr",
+          "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"com.sun.star.sdb.ViewDesign\" in \"file:///instdir/program/../share/registry/res/registry_zh-TW.xcd\"",
+          "count": 1
+        },
+        {
+          "level": "stderr",
+          "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"com.sun.star.sdb.TableDesign\" in \"file:///instdir/program/../share/registry/res/registry_zh-TW.xcd\"",
+          "count": 1
+        },
+        {
+          "level": "stderr",
+          "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"com.sun.star.sdb.DataSourceBrowser\" in \"file:///instdir/program/../share/registry/res/registry_zh-TW",
+          "count": 1
+        },
+        {
+          "level": "stderr",
+          "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"com.sun.star.sdb.TableDataView\" in \"file:///instdir/program/../share/registry/res/registry_zh-TW.xcd",
+          "count": 1
+        },
+        {
+          "level": "stderr",
+          "message": "warn:i18nlangtag:42:1:i18nlangtag/source/isolang/mslangid.cxx:105: MsLangId::getConfiguredSystemLanguage() - not configured yet",
+          "count": 1
+        },
+        {
+          "level": "stderr",
+          "message": "warn:i18nlangtag:42:1:i18nlangtag/source/isolang/mslangid.cxx:115: MsLangId::getConfiguredSystemUILanguage() - not configured yet",
+          "count": 1
+        },
+        {
+          "level": "stderr",
+          "message": "warn:vcl:42:3:vcl/source/app/svmain.cxx:209: no OpenSSL CA certificate bundle found",
+          "count": 1
+        },
+        {
+          "level": "stderr",
+          "message": "warn:desktop.app:42:3:desktop/source/app/app.cxx:2080: Could not disable AutoRecovery. com.sun.star.uno.DeploymentException message: \"component context fails to supply singleton com.sun.star.frame.the",
+          "count": 1
+        },
+        {
+          "level": "stderr",
+          "message": "warn:sc:42:1:sc/source/filter/orcus/orcusfiltersimpl.cxx:111: Unable to load styles from xml file! filesystem error: in file_size: No such file or directory [\"/instdir/program/../share/calc/styles.xml",
+          "count": 1
+        },
+        {
+          "level": "stderr",
+          "message": "warn:sfx.doc:42:1:sfx2/source/doc/objserv.cxx:2002: Failed to get document signature information com.sun.star.uno.DeploymentException message: \"component context fails to supply service com.sun.star.s",
+          "count": 2
+        },
+        {
+          "level": "stderr",
+          "message": "warn:legacy.osl:42:1:sc/source/ui/view/tabvwshh.cxx:237: no accessibility broadcaster?",
+          "count": 3
+        }
+      ],
+      "messagesDropped": 0,
+      "fit": {
+        "surfaceCssWidth": 1785,
+        "documentWidthTwips": 26775,
+        "rightmostDrawnPx": 1024
+      },
+      "refits": 1,
+      "timedOut": false,
+      "runnerSeconds": 2.0
+    },
+    {
+      "settled": true,
+      "file": "numeric-100k.ods",
+      "inputBytes": 615493,
+      "inputSha256": "13b5b572b82cfbb15adcb77271b7f604160da5d5433265f1fdc0e77798dc26b2",
+      "opened": {
+        "atMs": 1403,
+        "parts": 1,
+        "documentType": "unknown (pre-W7)",
+        "widthTwips": 26593,
+        "heightTwips": 25500000
+      },
+      "refused": null,
+      "error": null,
+      "tileDraws": 24,
+      "engineEvents": [
+        "resource-pack-loaded",
+        "view-ready",
+        "editor-state"
+      ],
+      "firstTile": {
+        "part": 0,
+        "width": 256,
+        "height": 256,
+        "bytes": 262144,
+        "nonPaperPixels": 5280,
+        "sha256": "7da1badeda529bf09ada7e97c9ad255ee1feff8de18e2318cf64e9413be6b35c",
+        "key": "numeric-100k.ods#0:0:0:1.0000:0:0:3840:3840:256:256",
+        "documentWidthTwips": 26775,
+        "documentHeightTwips": 25500000,
+        "documentSizeChanged": true
+      },
+      "finalState": {
+        "state": "ready",
+        "evidenceClass": "diagnostic",
+        "adapterFallbacks": [
+          "name-spoofed",
+          "document-type-unknown",
+          "part-names-synthesised",
+          "part-switch-unavailable",
+          "part-readback-unavailable"
+        ],
+        "fileName": "numeric-100k.ods",
+        "openName": "numeric-100k.odt",
+        "nameSpoofed": true,
+        "packageProbe": {
+          "readable": true,
+          "encrypted": false,
+          "reason": null
+        },
+        "engineRequested": true,
+        "documentType": "unknown (pre-W7)",
+        "documentTypeKnown": false,
+        "parts": 1,
+        "partNames": [
+          "工作表 1"
+        ],
+        "namesFromEngine": false,
+        "partNamesProblem": null,
+        "canSwitchParts": false,
+        "currentPart": 0,
+        "currentPartReadBack": null,
+        "tabs": [
+          {
+            "index": 0,
+            "label": "工作表 1",
+            "current": true,
+            "enabled": true,
+            "disabledReason": null
+          }
+        ],
+        "widthTwips": 26775,
+        "heightTwips": 25500000,
+        "lastRefusal": null,
+        "tileErrors": 0,
+        "lastTileError": null,
+        "error": null
+      },
+      "engineCreated": true,
+      "viewReadyAtMs": 1404,
+      "stages": [
+        {
+          "type": "stage",
+          "name": "open.begin",
+          "heapBytes": 1073741824,
+          "sbrk": 294244352,
+          "atMs": 846
+        },
+        {
+          "type": "stage",
+          "name": "open.documentLoad",
+          "heapBytes": 1073741824,
+          "sbrk": 294244352,
+          "atMs": 846
+        },
+        {
+          "type": "stage",
+          "name": "open.documentLoad-returned",
+          "heapBytes": 1073741824,
+          "sbrk": 317763584,
+          "atMs": 1319
+        },
+        {
+          "type": "stage",
+          "name": "open.initializeForRendering",
+          "heapBytes": 1073741824,
+          "sbrk": 317763584,
+          "atMs": 1319
+        },
+        {
+          "type": "stage",
+          "name": "open.registerCallback",
+          "heapBytes": 1073741824,
+          "sbrk": 317763584,
+          "atMs": 1321
+        },
+        {
+          "type": "stage",
+          "name": "open.query-metadata",
+          "heapBytes": 1073741824,
+          "sbrk": 317763584,
+          "atMs": 1322
+        }
+      ],
+      "messages": [
+        {
+          "level": "stderr",
+          "message": "[engine-stack] 1048576",
+          "count": 3
+        },
+        {
+          "level": "stderr",
+          "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"m5\" in \"file:///instdir/program/../share/registry/res/registry_qtz.xcd\"",
+          "count": 1
+        },
+        {
+          "level": "stderr",
+          "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"m14\" in \"file:///instdir/program/../share/registry/res/registry_qtz.xcd\"",
+          "count": 1
+        },
+        {
+          "level": "stderr",
+          "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"private:resource/toolbar/addon_LibreLogo.OfficeToolBar\" in \"file:///instdir/program/../share/registr",
+          "count": 2
+        },
+        {
+          "level": "stderr",
+          "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"com.sun.star.sdb.RelationDesign\" in \"file:///instdir/program/../share/registry/res/registry_qtz.xcd\"",
+          "count": 1
+        },
+        {
+          "level": "stderr",
+          "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"com.sun.star.sdb.QueryDesign\" in \"file:///instdir/program/../share/registry/res/registry_qtz.xcd\"",
+          "count": 1
+        },
+        {
+          "level": "stderr",
+          "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"com.sun.star.sdb.ViewDesign\" in \"file:///instdir/program/../share/registry/res/registry_qtz.xcd\"",
+          "count": 1
+        },
+        {
+          "level": "stderr",
+          "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"com.sun.star.sdb.TableDesign\" in \"file:///instdir/program/../share/registry/res/registry_qtz.xcd\"",
+          "count": 1
+        },
+        {
+          "level": "stderr",
+          "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"com.sun.star.sdb.DataSourceBrowser\" in \"file:///instdir/program/../share/registry/res/registry_qtz.x",
+          "count": 1
+        },
+        {
+          "level": "stderr",
+          "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"com.sun.star.sdb.TableDataView\" in \"file:///instdir/program/../share/registry/res/registry_qtz.xcd\"",
+          "count": 1
+        },
+        {
+          "level": "stderr",
+          "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"m5\" in \"file:///instdir/program/../share/registry/res/registry_zh-TW.xcd\"",
+          "count": 1
+        },
+        {
+          "level": "stderr",
+          "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"m14\" in \"file:///instdir/program/../share/registry/res/registry_zh-TW.xcd\"",
+          "count": 1
+        },
+        {
+          "level": "stderr",
+          "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"com.sun.star.sdb.RelationDesign\" in \"file:///instdir/program/../share/registry/res/registry_zh-TW.xc",
+          "count": 1
+        },
+        {
+          "level": "stderr",
+          "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"com.sun.star.sdb.QueryDesign\" in \"file:///instdir/program/../share/registry/res/registry_zh-TW.xcd\"",
+          "count": 1
+        },
+        {
+          "level": "stderr",
+          "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"com.sun.star.sdb.ViewDesign\" in \"file:///instdir/program/../share/registry/res/registry_zh-TW.xcd\"",
+          "count": 1
+        },
+        {
+          "level": "stderr",
+          "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"com.sun.star.sdb.TableDesign\" in \"file:///instdir/program/../share/registry/res/registry_zh-TW.xcd\"",
+          "count": 1
+        },
+        {
+          "level": "stderr",
+          "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"com.sun.star.sdb.DataSourceBrowser\" in \"file:///instdir/program/../share/registry/res/registry_zh-TW",
+          "count": 1
+        },
+        {
+          "level": "stderr",
+          "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"com.sun.star.sdb.TableDataView\" in \"file:///instdir/program/../share/registry/res/registry_zh-TW.xcd",
+          "count": 1
+        },
+        {
+          "level": "stderr",
+          "message": "warn:i18nlangtag:42:1:i18nlangtag/source/isolang/mslangid.cxx:105: MsLangId::getConfiguredSystemLanguage() - not configured yet",
+          "count": 1
+        },
+        {
+          "level": "stderr",
+          "message": "warn:i18nlangtag:42:1:i18nlangtag/source/isolang/mslangid.cxx:115: MsLangId::getConfiguredSystemUILanguage() - not configured yet",
+          "count": 1
+        },
+        {
+          "level": "stderr",
+          "message": "warn:vcl:42:3:vcl/source/app/svmain.cxx:209: no OpenSSL CA certificate bundle found",
+          "count": 1
+        },
+        {
+          "level": "stderr",
+          "message": "warn:desktop.app:42:3:desktop/source/app/app.cxx:2080: Could not disable AutoRecovery. com.sun.star.uno.DeploymentException message: \"component context fails to supply singleton com.sun.star.frame.the",
+          "count": 1
+        },
+        {
+          "level": "stderr",
+          "message": "warn:sc:42:1:sc/source/filter/orcus/orcusfiltersimpl.cxx:111: Unable to load styles from xml file! filesystem error: in file_size: No such file or directory [\"/instdir/program/../share/calc/styles.xml",
+          "count": 1
+        },
+        {
+          "level": "stderr",
+          "message": "warn:sfx.doc:42:1:sfx2/source/doc/objserv.cxx:2002: Failed to get document signature information com.sun.star.uno.DeploymentException message: \"component context fails to supply service com.sun.star.s",
+          "count": 2
+        },
+        {
+          "level": "stderr",
+          "message": "warn:legacy.osl:42:1:sc/source/ui/view/tabvwshh.cxx:237: no accessibility broadcaster?",
+          "count": 3
+        }
+      ],
+      "messagesDropped": 0,
+      "fit": {
+        "surfaceCssWidth": 1785,
+        "documentWidthTwips": 26775,
+        "rightmostDrawnPx": 1024
+      },
+      "refits": 1,
+      "timedOut": false,
+      "runnerSeconds": 2.0
+    },
+    {
+      "settled": true,
+      "file": "tdf149752.ods",
+      "inputBytes": 13463,
+      "inputSha256": "2d6a2c6aa63c33b0971ef7e3e67b7fc5727639387e5a6eb8c73ae86194f0052e",
+      "opened": {
+        "atMs": 1124,
+        "parts": 2,
+        "documentType": "unknown (pre-W7)",
+        "widthTwips": 27658,
+        "heightTwips": 25500
+      },
+      "refused": null,
+      "error": null,
+      "tileDraws": 24,
+      "engineEvents": [
+        "resource-pack-loaded",
+        "view-ready",
+        "editor-state"
+      ],
+      "firstTile": {
+        "part": 0,
+        "width": 256,
+        "height": 256,
+        "bytes": 262144,
+        "nonPaperPixels": 11328,
+        "sha256": "6e604f62d7ba5e04fa6bbe446687057e0e3c47796802f4965467c0838560b023",
+        "key": "tdf149752.ods#0:0:0:1.0000:0:0:3840:3840:256:256",
+        "documentWidthTwips": 27555,
+        "documentHeightTwips": 25500,
+        "documentSizeChanged": true
+      },
+      "finalState": {
+        "state": "ready",
+        "evidenceClass": "diagnostic",
+        "adapterFallbacks": [
+          "name-spoofed",
+          "document-type-unknown",
+          "part-names-synthesised",
+          "part-switch-unavailable",
+          "part-readback-unavailable"
+        ],
+        "fileName": "tdf149752.ods",
+        "openName": "tdf149752.odt",
+        "nameSpoofed": true,
+        "packageProbe": {
+          "readable": true,
+          "encrypted": false,
+          "reason": null
+        },
+        "engineRequested": true,
+        "documentType": "unknown (pre-W7)",
+        "documentTypeKnown": false,
+        "parts": 2,
+        "partNames": [
+          "工作表 1",
+          "工作表 2"
+        ],
+        "namesFromEngine": false,
+        "partNamesProblem": null,
+        "canSwitchParts": false,
+        "currentPart": 0,
+        "currentPartReadBack": null,
+        "tabs": [
+          {
+            "index": 0,
+            "label": "工作表 1",
+            "current": true,
+            "enabled": true,
+            "disabledReason": null
+          },
+          {
+            "index": 1,
+            "label": "工作表 2",
+            "current": false,
+            "enabled": false,
+            "disabledReason": "引擎尚無分頁切換（W7 的 set_part），目前只能顯示開檔時的那一頁"
+          }
+        ],
+        "widthTwips": 27555,
+        "heightTwips": 25500,
+        "lastRefusal": null,
+        "tileErrors": 0,
+        "lastTileError": null,
+        "error": null
+      },
+      "engineCreated": true,
+      "viewReadyAtMs": 1125,
+      "stages": [
+        {
+          "type": "stage",
+          "name": "open.begin",
+          "heapBytes": 1073741824,
+          "sbrk": 293015552,
+          "atMs": 862
+        },
+        {
+          "type": "stage",
+          "name": "open.documentLoad",
+          "heapBytes": 1073741824,
+          "sbrk": 293015552,
+          "atMs": 862
+        },
+        {
+          "type": "stage",
+          "name": "open.documentLoad-returned",
+          "heapBytes": 1073741824,
+          "sbrk": 305033216,
+          "atMs": 1022
+        },
+        {
+          "type": "stage",
+          "name": "open.initializeForRendering",
+          "heapBytes": 1073741824,
+          "sbrk": 305033216,
+          "atMs": 1022
+        },
+        {
+          "type": "stage",
+          "name": "open.registerCallback",
+          "heapBytes": 1073741824,
+          "sbrk": 305033216,
+          "atMs": 1024
+        },
+        {
+          "type": "stage",
+          "name": "open.query-metadata",
+          "heapBytes": 1073741824,
+          "sbrk": 305033216,
+          "atMs": 1025
+        }
+      ],
+      "messages": [
+        {
+          "level": "stderr",
+          "message": "[engine-stack] 1048576",
+          "count": 7
+        },
+        {
+          "level": "stderr",
+          "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"m5\" in \"file:///instdir/program/../share/registry/res/registry_qtz.xcd\"",
+          "count": 1
+        },
+        {
+          "level": "stderr",
+          "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"m14\" in \"file:///instdir/program/../share/registry/res/registry_qtz.xcd\"",
+          "count": 1
+        },
+        {
+          "level": "stderr",
+          "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"private:resource/toolbar/addon_LibreLogo.OfficeToolBar\" in \"file:///instdir/program/../share/registr",
+          "count": 2
+        },
+        {
+          "level": "stderr",
+          "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"com.sun.star.sdb.RelationDesign\" in \"file:///instdir/program/../share/registry/res/registry_qtz.xcd\"",
+          "count": 1
+        },
+        {
+          "level": "stderr",
+          "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"com.sun.star.sdb.QueryDesign\" in \"file:///instdir/program/../share/registry/res/registry_qtz.xcd\"",
+          "count": 1
+        },
+        {
+          "level": "stderr",
+          "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"com.sun.star.sdb.ViewDesign\" in \"file:///instdir/program/../share/registry/res/registry_qtz.xcd\"",
+          "count": 1
+        },
+        {
+          "level": "stderr",
+          "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"com.sun.star.sdb.TableDesign\" in \"file:///instdir/program/../share/registry/res/registry_qtz.xcd\"",
+          "count": 1
+        },
+        {
+          "level": "stderr",
+          "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"com.sun.star.sdb.DataSourceBrowser\" in \"file:///instdir/program/../share/registry/res/registry_qtz.x",
+          "count": 1
+        },
+        {
+          "level": "stderr",
+          "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"com.sun.star.sdb.TableDataView\" in \"file:///instdir/program/../share/registry/res/registry_qtz.xcd\"",
+          "count": 1
+        },
+        {
+          "level": "stderr",
+          "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"m5\" in \"file:///instdir/program/../share/registry/res/registry_zh-TW.xcd\"",
+          "count": 1
+        },
+        {
+          "level": "stderr",
+          "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"m14\" in \"file:///instdir/program/../share/registry/res/registry_zh-TW.xcd\"",
+          "count": 1
+        },
+        {
+          "level": "stderr",
+          "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"com.sun.star.sdb.RelationDesign\" in \"file:///instdir/program/../share/registry/res/registry_zh-TW.xc",
+          "count": 1
+        },
+        {
+          "level": "stderr",
+          "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"com.sun.star.sdb.QueryDesign\" in \"file:///instdir/program/../share/registry/res/registry_zh-TW.xcd\"",
+          "count": 1
+        },
+        {
+          "level": "stderr",
+          "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"com.sun.star.sdb.ViewDesign\" in \"file:///instdir/program/../share/registry/res/registry_zh-TW.xcd\"",
+          "count": 1
+        },
+        {
+          "level": "stderr",
+          "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"com.sun.star.sdb.TableDesign\" in \"file:///instdir/program/../share/registry/res/registry_zh-TW.xcd\"",
+          "count": 1
+        },
+        {
+          "level": "stderr",
+          "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"com.sun.star.sdb.DataSourceBrowser\" in \"file:///instdir/program/../share/registry/res/registry_zh-TW",
+          "count": 1
+        },
+        {
+          "level": "stderr",
+          "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"com.sun.star.sdb.TableDataView\" in \"file:///instdir/program/../share/registry/res/registry_zh-TW.xcd",
+          "count": 1
+        },
+        {
+          "level": "stderr",
+          "message": "warn:i18nlangtag:42:1:i18nlangtag/source/isolang/mslangid.cxx:105: MsLangId::getConfiguredSystemLanguage() - not configured yet",
+          "count": 1
+        },
+        {
+          "level": "stderr",
+          "message": "warn:i18nlangtag:42:1:i18nlangtag/source/isolang/mslangid.cxx:115: MsLangId::getConfiguredSystemUILanguage() - not configured yet",
+          "count": 1
+        },
+        {
+          "level": "stderr",
+          "message": "warn:vcl:42:3:vcl/source/app/svmain.cxx:209: no OpenSSL CA certificate bundle found",
+          "count": 1
+        },
+        {
+          "level": "stderr",
+          "message": "warn:desktop.app:42:3:desktop/source/app/app.cxx:2080: Could not disable AutoRecovery. com.sun.star.uno.DeploymentException message: \"component context fails to supply singleton com.sun.star.frame.the",
+          "count": 1
+        },
+        {
+          "level": "stderr",
+          "message": "warn:sc:42:1:sc/source/filter/orcus/orcusfiltersimpl.cxx:111: Unable to load styles from xml file! filesystem error: in file_size: No such file or directory [\"/instdir/program/../share/calc/styles.xml",
+          "count": 1
+        },
+        {
+          "level": "stderr",
+          "message": "warn:sfx.doc:42:1:sfx2/source/doc/objserv.cxx:2002: Failed to get document signature information com.sun.star.uno.DeploymentException message: \"component context fails to supply service com.sun.star.s",
+          "count": 2
+        },
+        {
+          "level": "stderr",
+          "message": "warn:svx:42:1:svx/source/form/fmvwimp.cxx:177: DBG_UNHANDLED_EXCEPTION in FormViewPageWindowAdapter exception: com.sun.star.uno.DeploymentException message: \"component context fails to supply service ",
+          "count": 2
+        },
+        {
+          "level": "stderr",
+          "message": "warn:svx:42:1:svx/source/form/fmvwimp.cxx:177: DBG_UNHANDLED_EXCEPTION in FormViewPageWindowAdapter exception: com.sun.star.uno.RuntimeException message: \"unsatisfied query for interface of type com.s",
+          "count": 3
+        },
+        {
+          "level": "stderr",
+          "message": "warn:legacy.osl:42:1:sc/source/ui/view/tabvwshh.cxx:237: no accessibility broadcaster?",
+          "count": 3
+        },
+        {
+          "level": "stderr",
+          "message": "warn:legacy.tools:42:1:svx/source/form/fmvwimp.cxx:437: FmXFormView::~FmXFormView: Window list not empty!",
+          "count": 1
+        }
+      ],
+      "messagesDropped": 0,
+      "fit": {
+        "surfaceCssWidth": 1837,
+        "documentWidthTwips": 27555,
+        "rightmostDrawnPx": 1024
+      },
+      "refits": 1,
+      "timedOut": false,
+      "runnerSeconds": 2.0
+    },
+    {
+      "settled": true,
+      "file": "password.ods",
+      "inputBytes": 10042,
+      "inputSha256": "93a2f2109b3e195decbd02d1dfc4c8e8035688aefe8473764ce3ad76b78b19ad",
+      "opened": null,
+      "refused": {
+        "name": "ViewerError",
+        "code": "ENCRYPTED_DOCUMENT",
+        "message": "the document is password-protected; this viewer cannot open encrypted files",
+        "details": {}
+      },
+      "error": null,
+      "tileDraws": 0,
+      "engineEvents": [],
+      "firstTile": null,
+      "finalState": {
+        "state": "refused",
+        "evidenceClass": "unbound",
+        "adapterFallbacks": [],
+        "fileName": "password.ods",
+        "openName": null,
+        "nameSpoofed": false,
+        "packageProbe": {
+          "readable": true,
+          "encrypted": true,
+          "reason": null
+        },
+        "engineRequested": false,
+        "documentType": null,
+        "documentTypeKnown": false,
+        "parts": 0,
+        "partNames": [],
+        "namesFromEngine": false,
+        "partNamesProblem": null,
+        "canSwitchParts": false,
+        "currentPart": null,
+        "currentPartReadBack": null,
+        "tabs": [],
+        "widthTwips": null,
+        "heightTwips": null,
+        "lastRefusal": null,
+        "tileErrors": 0,
+        "lastTileError": null,
+        "error": {
+          "code": "ENCRYPTED_DOCUMENT",
+          "message": "the document is password-protected; this viewer cannot open encrypted files",
+          "details": {}
+        }
+      },
+      "engineCreated": false,
+      "viewReadyAtMs": null,
+      "stages": [],
+      "messages": [],
+      "messagesDropped": 0,
+      "fit": null,
+      "refits": 0,
+      "timedOut": false,
+      "runnerSeconds": 1.0
+    }
+  ],
+  "chrome": "Chrome/151.0.7922.169",
+  "pageWorkerUrl": "./profiles/e2-editor-v14/sdk-worker.js",
+  "distProbeJsUnchanged": true,
+  "sbrk": {
+    "three-sheets-distinct.ods": {
+      "stageCount": 6,
+      "openBegin": 293015552,
+      "lastOpenStage": "open.query-metadata",
+      "lastOpenSbrk": 298328064,
+      "documentCost": 5312512,
+      "maxOverStages": 298328064,
+      "destroyStagesSeen": []
+    },
+    "numeric-100k.ods": {
+      "stageCount": 6,
+      "openBegin": 294244352,
+      "lastOpenStage": "open.query-metadata",
+      "lastOpenSbrk": 317763584,
+      "documentCost": 23519232,
+      "maxOverStages": 317763584,
+      "destroyStagesSeen": []
+    },
+    "tdf149752.ods": {
+      "stageCount": 6,
+      "openBegin": 293015552,
+      "lastOpenStage": "open.query-metadata",
+      "lastOpenSbrk": 305033216,
+      "documentCost": 12017664,
+      "maxOverStages": 305033216,
+      "destroyStagesSeen": []
+    },
+    "password.ods": {
+      "stageCount": 0,
+      "openBegin": null,
+      "lastOpenStage": null,
+      "lastOpenSbrk": null,
+      "documentCost": null,
+      "maxOverStages": null,
+      "destroyStagesSeen": []
+    }
+  },
+  "stackSizes": {
+    "three-sheets-distinct.ods": {
+      "1048576": 3
+    },
+    "numeric-100k.ods": {
+      "1048576": 3
+    },
+    "tdf149752.ods": {
+      "1048576": 7
+    },
+    "password.ods": {}
+  },
+  "predictions": [
+    {
+      "id": "every-fixture-was-run",
+      "ok": true,
+      "detail": {
+        "missing": [],
+        "seen": [
+          "three-sheets-distinct.ods",
+          "numeric-100k.ods",
+          "tdf149752.ods",
+          "password.ods"
+        ]
+      }
+    },
+    {
+      "id": "three-sheets-distinct.ods-opens-with-3-parts",
+      "ok": true,
+      "detail": {
+        "parts": 3,
+        "error": null,
+        "refused": null,
+        "timedOut": false,
+        "viewReadyAtMs": 1678
+      }
+    },
+    {
+      "id": "numeric-100k.ods-opens-with-1-parts",
+      "ok": true,
+      "detail": {
+        "parts": 1,
+        "error": null,
+        "refused": null,
+        "timedOut": false,
+        "viewReadyAtMs": 1404
+      }
+    },
+    {
+      "id": "tdf149752.ods-opens-with-2-parts",
+      "ok": true,
+      "detail": {
+        "parts": 2,
+        "error": null,
+        "refused": null,
+        "timedOut": false,
+        "viewReadyAtMs": 1125
+      }
+    },
+    {
+      "id": "password.ods-refused-encrypted-before-any-engine",
+      "ok": true,
+      "detail": {
+        "refused": "ENCRYPTED_DOCUMENT",
+        "engineCreated": false,
+        "stages": 0,
+        "engineEvents": []
+      }
+    },
+    {
+      "id": "every-engine-run-echoed-the-1-mib-stack",
+      "ok": true,
+      "detail": {
+        "three-sheets-distinct.ods": {
+          "1048576": 3
+        },
+        "numeric-100k.ods": {
+          "1048576": 3
+        },
+        "tdf149752.ods": {
+          "1048576": 7
+        }
+      }
+    },
+    {
+      "id": "numeric-100k-last-open-sbrk-within-w5-plus-stack-delta",
+      "ok": true,
+      "detail": {
+        "stageCount": 6,
+        "openBegin": 294244352,
+        "lastOpenStage": "open.query-metadata",
+        "lastOpenSbrk": 317763584,
+        "documentCost": 23519232,
+        "maxOverStages": 317763584,
+        "destroyStagesSeen": [],
+        "predictedRange": [
+          314814464,
+          321695744
+        ]
+      }
+    },
+    {
+      "id": "every-engine-run-stays-under-the-kill-line",
+      "ok": true,
+      "detail": {
+        "three-sheets-distinct.ods": 298328064,
+        "numeric-100k.ods": 317763584,
+        "tdf149752.ods": 305033216
+      }
+    }
+  ],
+  "verdict": "STEP 1 (diagnostic): every prediction met",
+  "elapsedSeconds": 17.8,
+  "completedAt": "2026-10-20T120944Z"
+}

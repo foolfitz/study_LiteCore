@@ -1,5 +1,8 @@
 #include "sdk_api.h"
 #include "probe_engine.hpp"
+#ifdef OXSDK_ODS_VIEWER
+#include "ods_viewer.hpp"
+#endif
 
 #include <emscripten/emscripten.h>
 
@@ -41,7 +44,14 @@ extern "C" EMSCRIPTEN_KEEPALIVE std::uint32_t oxsdk_abi_version(void) {
 }
 
 extern "C" EMSCRIPTEN_KEEPALIVE std::uint32_t oxsdk_capabilities(void) {
-#ifdef OXSDK_READER_PROFILE
+#if defined(OXSDK_ODS_VIEWER)
+  // SPEC-M4-ods-in-nextcloud 3.2: the reader's bits without save, plus the
+  // viewer's three.  The manifest's expectedCapabilityBits must equal this.
+  return OXSDK_CAPABILITY_OPEN_ODT | OXSDK_CAPABILITY_RGBA_TILE |
+         OXSDK_CAPABILITY_CANCEL_QUEUED | OXSDK_CAPABILITY_SEARCH |
+         OXSDK_CAPABILITY_OPEN_ODS | OXSDK_CAPABILITY_PART_SWITCH |
+         OXSDK_CAPABILITY_PART_TEXT;
+#elif defined(OXSDK_READER_PROFILE)
   return OXSDK_CAPABILITY_OPEN_ODT | OXSDK_CAPABILITY_RGBA_TILE |
          OXSDK_CAPABILITY_SAVE_ODT | OXSDK_CAPABILITY_CANCEL_QUEUED |
          OXSDK_CAPABILITY_SEARCH;
@@ -74,8 +84,15 @@ extern "C" EMSCRIPTEN_KEEPALIVE int32_t oxsdk_document_open(
 
   return safeStatus([&] {
     std::string name(nameUtf8, nameLength);
+#ifdef OXSDK_ODS_VIEWER
+    // W7a (finding 013's allowlist): `.ods` beside `.odt`, either case.
+    // Content detection still reads the zip's own `mimetype`.
+    if (probe::odsviewer::acceptedSuffix(name).empty())
+      return probe::SubmitStatus::InvalidArgument;
+#else
     if (name.size() < 4 || name.substr(name.size() - 4) != ".odt")
       return probe::SubmitStatus::InvalidArgument;
+#endif
     return probe::openBytes(
         requestId, std::vector<std::uint8_t>(bytes, bytes + byteLength),
         std::move(name));
@@ -123,6 +140,10 @@ extern "C" EMSCRIPTEN_KEEPALIVE int32_t oxsdk_document_insert_text(
 }
 #endif
 
+// The viewer has no save (SPEC-M4 3.2, review M2): not in its export list and
+// not compiled, because EMSCRIPTEN_KEEPALIVE exports a function whatever the
+// list says -- the reader's click is kept out the same way.
+#ifndef OXSDK_ODS_VIEWER
 extern "C" EMSCRIPTEN_KEEPALIVE int32_t oxsdk_document_save(
     oxsdk_request_id requestId, oxsdk_document_handle documentHandle,
     const char *formatUtf8, std::uint32_t formatLength) {
@@ -136,6 +157,7 @@ extern "C" EMSCRIPTEN_KEEPALIVE int32_t oxsdk_document_save(
     return probe::save(requestId, documentHandle, format);
   });
 }
+#endif
 
 extern "C" EMSCRIPTEN_KEEPALIVE int32_t oxsdk_document_close(
     oxsdk_request_id requestId, oxsdk_document_handle documentHandle) {
@@ -278,6 +300,45 @@ extern "C" EMSCRIPTEN_KEEPALIVE int32_t oxsdk_document_paste_markdown(
     return probe::pasteMarkdown(requestId, documentHandle,
                                 std::string(utf8, utf8Length));
   });
+}
+#endif
+
+#ifdef OXSDK_ODS_VIEWER
+// SPEC-M4-ods-in-nextcloud 3.2.  A negative part cannot be a request; the
+// upper bound needs the part count, which only the engine thread may read.
+extern "C" EMSCRIPTEN_KEEPALIVE int32_t oxsdk_document_set_part(
+    oxsdk_request_id requestId, oxsdk_document_handle documentHandle,
+    std::int32_t part) {
+  if (!validRequest(requestId) || documentHandle == 0 || part < 0)
+    return OXSDK_STATUS_INVALID_ARGUMENT;
+  return safeStatus(
+      [&] { return probe::setPart(requestId, documentHandle, part); });
+}
+
+extern "C" EMSCRIPTEN_KEEPALIVE int32_t oxsdk_document_current_part(
+    oxsdk_request_id requestId, oxsdk_document_handle documentHandle) {
+  if (!validRequest(requestId) || documentHandle == 0)
+    return OXSDK_STATUS_INVALID_ARGUMENT;
+  return safeStatus(
+      [&] { return probe::currentPart(requestId, documentHandle); });
+}
+
+extern "C" EMSCRIPTEN_KEEPALIVE int32_t oxsdk_document_part_name(
+    oxsdk_request_id requestId, oxsdk_document_handle documentHandle,
+    std::int32_t part) {
+  if (!validRequest(requestId) || documentHandle == 0 || part < 0)
+    return OXSDK_STATUS_INVALID_ARGUMENT;
+  return safeStatus(
+      [&] { return probe::partName(requestId, documentHandle, part); });
+}
+
+extern "C" EMSCRIPTEN_KEEPALIVE int32_t oxsdk_document_part_text(
+    oxsdk_request_id requestId, oxsdk_document_handle documentHandle,
+    std::int32_t part) {
+  if (!validRequest(requestId) || documentHandle == 0 || part < 0)
+    return OXSDK_STATUS_INVALID_ARGUMENT;
+  return safeStatus(
+      [&] { return probe::partText(requestId, documentHandle, part); });
 }
 #endif
 

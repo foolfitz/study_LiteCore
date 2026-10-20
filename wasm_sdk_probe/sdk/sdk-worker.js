@@ -52,6 +52,13 @@ const OPERATION_CAPABILITIES = new Map([
   ["finding016DrainScheduler", "finding-016-scheduler-probe"],
   ["save", "save-odt"],
   ["close", "open-odt"],
+  // SPEC-M4-ods-in-nextcloud 3.2: the read-only spreadsheet viewer's queries.
+  // Only the viewer's engine has the exports; a profile that does not declare
+  // the capability never reaches for the symbol.
+  ["setPart", "part-switch"],
+  ["currentPart", "part-switch"],
+  ["partName", "part-switch"],
+  ["partText", "part-text"],
 ]);
 const EDITOR_V1_ACTION_IDS = Object.freeze({
   "move-character-left": 1,
@@ -629,6 +636,10 @@ function maybeCompleteOpen(requestId) {
     height: event.height,
     tileMode: event.tileMode,
     viewReady: true,
+    // SPEC-M4 3.2 (W7b, M1): named, and only when the engine sent them, so
+    // an editor engine's reply keeps exactly the shape it had.
+    ...(typeof event.documentType === "string" ? { documentType: event.documentType } : {}),
+    ...(typeof event.inputSuffix === "string" ? { inputSuffix: event.inputSuffix } : {}),
   });
   postEvent("view-ready", {
     documentHandle: event.documentHandle,
@@ -910,6 +921,27 @@ function handleCEvent(rawEvent) {
       break;
     // SPEC-M3-link-batch 10.8: the raw string, the part count and the size,
     // named -- the SDK parses the string, the worker does not.
+    // SPEC-M4-ods-in-nextcloud 3.2: the viewer's replies, named fields only.
+    case "part-set":
+      if (requestId) {
+        complete(requestId, { part: event.part, width: event.width, height: event.height,
+                              revision: event.revision });
+      }
+      break;
+    case "current-part":
+      if (requestId)
+        complete(requestId, { part: event.part, revision: event.revision });
+      break;
+    case "part-name":
+      if (requestId)
+        complete(requestId, { part: event.part, name: event.name, revision: event.revision });
+      break;
+    case "part-text":
+      if (requestId) {
+        complete(requestId, { part: event.part, text: event.text, partBefore: event.partBefore,
+                              partAfter: event.partAfter, revision: event.revision });
+      }
+      break;
     case "page-rectangles":
       if (requestId) {
         complete(requestId, {
@@ -1469,6 +1501,28 @@ function handleRequest(request) {
     case "pageRectangles":
       accept(request, () => callStatus(
         "oxsdk_document_page_rectangles",
+        ["number", "number"],
+        [request.requestId, payload.documentHandle],
+      ));
+      break;
+    // SPEC-M4-ods-in-nextcloud 3.2, gated above on part-switch / part-text.
+    // A part that is not an integer is refused here (status 1): handed to
+    // ccall it would arrive as 0 and switch to the first sheet without a word.
+    case "setPart":
+    case "partName":
+    case "partText": {
+      const exports = { setPart: "oxsdk_document_set_part", partName: "oxsdk_document_part_name",
+                        partText: "oxsdk_document_part_text" };
+      accept(request, () => (Number.isInteger(payload.part) ? callStatus(
+        exports[request.operation],
+        ["number", "number", "number"],
+        [request.requestId, payload.documentHandle, payload.part],
+      ) : 1));
+      break;
+    }
+    case "currentPart":
+      accept(request, () => callStatus(
+        "oxsdk_document_current_part",
         ["number", "number"],
         [request.requestId, payload.documentHandle],
       ));

@@ -59,6 +59,7 @@ export class OdsViewerSession {
     this._engineRequested = false;
     this._currentPart = null;
     this._readBack = null;
+    this._fitted = null;
     this._lastRefusal = null;
     this._error = null;
     this._liveGeneration = null;
@@ -223,6 +224,7 @@ export class OdsViewerSession {
   _applyPart(part, readBack, dimensions) {
     this._currentPart = part;
     this._readBack = readBack;
+    this._fitted = { widthTwips: dimensions.widthTwips, heightTwips: dimensions.heightTwips };
     this._liveGeneration = null;
     this._scheduler.configureDocument({
       documentVersion: this._documentVersion,
@@ -256,6 +258,25 @@ export class OdsViewerSession {
 
   drain() {
     return this._scheduler ? this._scheduler.drain() : Promise.resolve();
+  }
+
+  // SPEC-M4 E4b (review B2).  A paint can lay the sheet out wider than the open
+  // or the switch said -- the W9 smoke saw 26593 twips at open and 26775 after
+  // the first paint, and the page left the difference unpainted.  The handle's
+  // size follows every paint reply (DocumentHandle.render), so this compares
+  // what the scheduler was configured with against what the engine says NOW
+  // and, if either differs, reconfigures for the same part.  True when it did;
+  // the caller then sizes its surface and asks for its viewport again.
+  refit() {
+    if (this._state !== "ready" || !this._scheduler || !this._fitted)
+      return false;
+    const widthTwips = this._view.widthTwips;
+    const heightTwips = this._view.heightTwips;
+    if (widthTwips === this._fitted.widthTwips && heightTwips === this._fitted.heightTwips)
+      return false;
+    this._applyPart(this._currentPart, this._readBack, { widthTwips, heightTwips });
+    this._emit();
+    return true;
   }
 
   // Show part k.  Switches are serialised: two clicks in quick succession run

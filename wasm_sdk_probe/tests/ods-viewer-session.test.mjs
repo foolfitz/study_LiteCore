@@ -40,11 +40,16 @@ class FakeHandle {
     this.tileMode = "rgba";
     this._enginePart = options.initialPart ?? 0;
     this._renderDelay = options.renderDelay ?? 0;
+    // Like the engine and DocumentHandle.render: the first paint can lay the
+    // sheet out wider than the open said (W9: 26593 -> 26775 twips).
+    this._growOnFirstRender = options.growOnFirstRender ?? 0;
     this.renders = [];
     this.closed = false;
   }
 
   async render(region) {
+    if (this._growOnFirstRender && this.renders.length === 0)
+      this.widthTwips += this._growOnFirstRender;
     this.renders.push({ enginePart: this._enginePart, region });
     if (this._renderDelay)
       await wait(this._renderDelay);                 // deliberately ignores the abort signal
@@ -639,4 +644,29 @@ test("a package the probe cannot read goes to the engine: the probe is not a sec
     assert.equal(session.state.packageProbe.encrypted, null);
     assert.ok(session.state.packageProbe.reason, "the reason the probe gave up is recorded");
   }
+});
+
+// ---------------------------------------------------------------------------
+// E4b (SPEC-M4 §4; review B2): the page refits to the size the engine reported
+// after a paint, once, for the same part.
+test("refit: a paint that widened the sheet reconfigures the scheduler once, for the same part", async () => {
+  const handle = new FakeW7Handle({ parts: 3, initialPart: 1, growOnFirstRender: 182 });
+  const { session } = await openViewer({ handle, engineOptions: W7_ENGINE });
+  assert.equal(session.scheduler.documentCssSize.width, 15360 / 15);
+  session.scheduleViewport(VIEWPORT);
+  await session.drain();
+  assert.equal(handle.widthTwips, 15360 + 182, "the fake did widen");
+  assert.equal(session.refit(), true, "the paint moved the size: refit");
+  assert.equal(session.scheduler.documentCssSize.width, (15360 + 182) / 15);
+  assert.equal(session.state.currentPart, 1, "the same part");
+  assert.equal(session.refit(), false, "nothing moved since: no second refit");
+});
+
+test("refit does nothing when no paint moved the size, and nothing once closed", async () => {
+  const { session } = await openViewer({ handle: new FakeW7Handle({ parts: 2 }), engineOptions: W7_ENGINE });
+  session.scheduleViewport(VIEWPORT);
+  await session.drain();
+  assert.equal(session.refit(), false);
+  await session.close();
+  assert.equal(session.refit(), false);
 });

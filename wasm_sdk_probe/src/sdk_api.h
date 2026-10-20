@@ -38,6 +38,13 @@ typedef enum oxsdk_capability {
   OXSDK_CAPABILITY_UNDO = 1u << 8,
   OXSDK_CAPABILITY_COMMENTS = 1u << 9,
   OXSDK_CAPABILITY_TRACKED_CHANGES = 1u << 10
+#ifdef OXSDK_ODS_VIEWER
+  ,
+  /* SPEC-M4-ods-in-nextcloud 3.2: the read-only spreadsheet viewer only. */
+  OXSDK_CAPABILITY_OPEN_ODS = 1u << 11,
+  OXSDK_CAPABILITY_PART_SWITCH = 1u << 12,
+  OXSDK_CAPABILITY_PART_TEXT = 1u << 13
+#endif
 } oxsdk_capability;
 
 uint32_t oxsdk_abi_version(void);
@@ -123,6 +130,36 @@ int32_t oxsdk_document_page_rectangles(oxsdk_request_id request_id,
 int32_t oxsdk_document_paste_markdown(oxsdk_request_id request_id,
                                       oxsdk_document_handle document_handle,
                                       const char *utf8, uint32_t utf8_length);
+#endif
+
+#ifdef OXSDK_ODS_VIEWER
+/*
+ * SPEC-M4-ods-in-nextcloud 3.2, the read-only spreadsheet viewer.  Document-
+ * level queries like get_selection: no wire id, no gesture.  A part outside
+ * 0..parts-1 is an error event with INVALID_ARGUMENT from the engine thread.
+ *
+ *   set_part      switch the view to `part`; replies `part-set` with the part
+ *                 READ BACK and the new part's document size
+ *   current_part  replies `current-part` with the view's part
+ *   part_name     replies `part-name` with the sheet's name
+ *   part_text     replies `part-text` with the part's text as text/plain:
+ *                 switch, select all, read, deselect, switch back, all on the
+ *                 engine thread; `partAfter` is read, not assumed
+ *
+ * `oxsdk_document_open` accepts `.ods` beside `.odt` (either case), and the
+ * viewer has no save.
+ */
+int32_t oxsdk_document_set_part(oxsdk_request_id request_id,
+                                oxsdk_document_handle document_handle,
+                                int32_t part);
+int32_t oxsdk_document_current_part(oxsdk_request_id request_id,
+                                    oxsdk_document_handle document_handle);
+int32_t oxsdk_document_part_name(oxsdk_request_id request_id,
+                                 oxsdk_document_handle document_handle,
+                                 int32_t part);
+int32_t oxsdk_document_part_text(oxsdk_request_id request_id,
+                                 oxsdk_document_handle document_handle,
+                                 int32_t part);
 #endif
 
 /* Cancels only a request that has not begun executing on the engine thread. */

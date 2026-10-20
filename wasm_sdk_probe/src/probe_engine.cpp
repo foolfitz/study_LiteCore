@@ -40,6 +40,19 @@
 // encoding (vcl transfer.cxx:1517), so a non-UTF-8 one is refused (10.4).
 #include <osl/thread.h>
 #endif
+#ifdef OXSDK_ODS_VIEWER
+// SPEC-M4-ods-in-nextcloud §3.2: the read-only spreadsheet viewer.  The reader
+// rule's shape plus this define, and nothing of the editor's -- no actions, no
+// barriers, no v20/v21 batch -- so the shape is a compile error to get wrong.
+#if !defined(OXSDK_READER_PROFILE) || defined(OXSDK_EDITOR_DISCOVERY) ||       \
+    defined(OXSDK_E2_FORMAT_BARRIER) || defined(OXSDK_E2_V20_LINK_BATCH) ||    \
+    defined(OXSDK_E2_V21_LINK_BATCH) || defined(OXSDK_MAINLOOP_ENGINE)
+#error "OXSDK_ODS_VIEWER is the reader rule's shape: OXSDK_READER_PROFILE and none of the editor's defines"
+#endif
+// The pure half: which names are accepted, the document type's spelling, the
+// part range and part_text's order (tests/ods_viewer_test.cpp).
+#include "ods_viewer.hpp"
+#endif
 #include "sdk_api.h"
 #ifdef OXSDK_EDITOR_DISCOVERY
 #include "editor_discovery_api.h"
@@ -202,6 +215,14 @@ enum class CommandType {
   ListComments,
   SetTrackChanges,
   ListChanges,
+#ifdef OXSDK_ODS_VIEWER
+  // SPEC-M4-ods-in-nextcloud §3.2: the viewer's document-level queries,
+  // siblings of GetSelection -- no wire id, no gesture.
+  SetPart,
+  CurrentPart,
+  PartName,
+  PartText,
+#endif
 #ifdef OXSDK_E2_V20_LINK_BATCH
   // SPEC-M3-link-batch 10.8 (S-11): a document-level QUERY, the sibling of
   // GetSelection, never an editor action -- no wire id, no gesture, so
@@ -2545,11 +2566,13 @@ void closeDocument(const Command *command) {
   gOpenRequestId.store(0, std::memory_order_release);
   gCallbackDocumentHandle.store(0, std::memory_order_release);
   if (gState.document) {
-#ifdef OXSDK_DIAGNOSTIC_CLOSE_STAGES
+// The viewer emits them too (SPEC-M4 addendum 1): its memory criterion E6 is
+// read from the stage lines, and without these it sees none after the open.
+#if defined(OXSDK_DIAGNOSTIC_CLOSE_STAGES) || defined(OXSDK_ODS_VIEWER)
     emitStage("document-destroy-enter");
 #endif
     gState.document->pClass->destroy(gState.document);
-#ifdef OXSDK_DIAGNOSTIC_CLOSE_STAGES
+#if defined(OXSDK_DIAGNOSTIC_CLOSE_STAGES) || defined(OXSDK_ODS_VIEWER)
     emitStage("document-destroy-return");
 #endif
     gState.document = nullptr;
@@ -2595,6 +2618,178 @@ void closeDocument(const Command *command) {
        << ",\"documentHandle\":" << closedHandle << ",\"revision\":0}";
   emitJson(json.str());
 }
+
+#ifdef OXSDK_ODS_VIEWER
+// SPEC-M4-ods-in-nextcloud §3.2 (W7c-e, B1): the viewer's document-level
+// queries.  Each runs whole on the engine thread and replies once.
+
+static_assert(LOK_DOCTYPE_TEXT == 0 && LOK_DOCTYPE_SPREADSHEET == 1 &&
+                  LOK_DOCTYPE_PRESENTATION == 2 && LOK_DOCTYPE_DRAWING == 3 &&
+                  LOK_DOCTYPE_OTHER == 4,
+              "probe::odsviewer::documentTypeName numbers LOK's document types");
+
+// part_text's SelectAll is waited for ON THE ENGINE THREAD.  While it waits,
+// nothing else in the queue runs, so no paint lands between the switch, the
+// selection and the switch back -- the viewer never shows a selection.  The
+// barrier is LOK_CALLBACK_UNO_COMMAND_RESULT: postUnoCommand(..., true) queues
+// it on the view's callback flush handler (desktop/source/lib/init.cxx,
+// DispatchResultListener::dispatchFinished), and it arrives from LOK's own
+// thread.  Its own mutex, never gState.mutex.  A SelectAll that lands after the
+// deadline finds `active` false and is ignored; readPartText has reset the
+// selection and put the part back by then (registered: that late selection
+// stays, SPEC-M4 §8).
+constexpr int kPartTextSelectAllDeadlineMs = 10000;
+
+struct PartTextAwait {
+  std::mutex mutex;
+  std::condition_variable condition;
+  bool active = false;
+  bool done = false;
+};
+PartTextAwait gPartTextAwait;
+
+void notePartTextUnoResult(const char *payload) {
+  if (!payload || std::strstr(payload, "\".uno:SelectAll\"") == nullptr)
+    return;
+  {
+    std::lock_guard<std::mutex> lock(gPartTextAwait.mutex);
+    if (!gPartTextAwait.active)
+      return;
+    gPartTextAwait.done = true;
+  }
+  gPartTextAwait.condition.notify_all();
+}
+
+// readPartText's document, on LOK.  The text is read the way the native
+// oracle reads its expected text (tools/ods_native_oracle.cpp): getTextSelection
+// as text/plain;charset=utf-8, not the selection-type readback.
+struct LokPartTextDocument {
+  LibreOfficeKitDocument *document;
+
+  int parts() { return document->pClass->getParts(document); }
+  int part() { return document->pClass->getPart(document); }
+  void setPart(int k) { document->pClass->setPart(document, k); }
+  bool selectAll() {
+    {
+      std::lock_guard<std::mutex> lock(gPartTextAwait.mutex);
+      gPartTextAwait.active = true;
+      gPartTextAwait.done = false;
+    }
+    document->pClass->postUnoCommand(document, ".uno:SelectAll", nullptr, true);
+    std::unique_lock<std::mutex> lock(gPartTextAwait.mutex);
+    const bool landed = gPartTextAwait.condition.wait_for(
+        lock, std::chrono::milliseconds(kPartTextSelectAllDeadlineMs),
+        [] { return gPartTextAwait.done; });
+    gPartTextAwait.active = false;
+    return landed;
+  }
+  bool text(std::string &out) {
+    char *used = nullptr;
+    char *value = document->pClass->getTextSelection(
+        document, "text/plain;charset=utf-8", &used);
+    std::free(used);
+    if (!value)
+      return false;
+    out = value;
+    std::free(value);
+    return true;
+  }
+  void resetSelection() { document->pClass->resetSelection(document); }
+};
+
+void emitPartReply(const Command &command, const char *type,
+                   const std::string &fields) {
+  std::ostringstream json;
+  json << "{\"schemaVersion\":" << ProtocolSchemaVersion << ",\"type\":\""
+       << type << "\",\"requestId\":" << command.requestId
+       << ",\"documentHandle\":" << gState.documentHandle
+       << ",\"revision\":" << gState.revision << fields << "}";
+  emitJson(json.str());
+}
+
+bool requirePartInRange(const Command &command, const char *operation,
+                        int part) {
+  const int parts = gState.document->pClass->getParts(gState.document);
+  if (probe::odsviewer::partInRange(part, parts))
+    return true;
+  emitCommandError(command, operation, "INVALID_ARGUMENT",
+                   "part " + std::to_string(part) + " is not in 0.." +
+                       std::to_string(parts - 1));
+  return false;
+}
+
+// W7c.  The reply's part is READ after the switch, and the size is the new
+// part's.  It is also what the next paint's documentSizeChanged compares
+// against: the client has just been told this size (finding 062's "as of the
+// last time the client looked").
+void handleSetPart(const Command &command) {
+  if (!requireDocument(command, "part-set") ||
+      !requirePartInRange(command, "part-set", command.values[0]))
+    return;
+  if (gState.document->pClass->getPart(gState.document) != command.values[0])
+    gState.document->pClass->setPart(gState.document, command.values[0]);
+  long width = 0;
+  long height = 0;
+  gState.document->pClass->getDocumentSize(gState.document, &width, &height);
+  gState.documentWidthTwips = width;
+  gState.documentHeightTwips = height;
+  std::ostringstream fields;
+  fields << ",\"part\":" << gState.document->pClass->getPart(gState.document)
+         << ",\"width\":" << width << ",\"height\":" << height;
+  emitPartReply(command, "part-set", fields.str());
+}
+
+// W7d.
+void handleCurrentPart(const Command &command) {
+  if (!requireDocument(command, "current-part"))
+    return;
+  std::ostringstream fields;
+  fields << ",\"part\":" << gState.document->pClass->getPart(gState.document);
+  emitPartReply(command, "current-part", fields.str());
+}
+
+// W7e.
+void handlePartName(const Command &command) {
+  if (!requireDocument(command, "part-name") ||
+      !requirePartInRange(command, "part-name", command.values[0]))
+    return;
+  char *name =
+      gState.document->pClass->getPartName(gState.document, command.values[0]);
+  if (!name) {
+    emitCommandError(command, "part-name", "LOK_ERROR", kitError());
+    return;
+  }
+  std::ostringstream fields;
+  fields << ",\"part\":" << command.values[0] << ",\"name\":\""
+         << jsonEscape(name) << "\"";
+  std::free(name);
+  emitPartReply(command, "part-name", fields.str());
+}
+
+// B1.  The order and what is restored on every exit are readPartText's.
+void handlePartText(const Command &command) {
+  if (!requireDocument(command, "part-text"))
+    return;
+  LokPartTextDocument document{gState.document};
+  const probe::odsviewer::PartTextResult result =
+      probe::odsviewer::readPartText(document, command.values[0]);
+  if (result.status != probe::odsviewer::PartTextStatus::Ok) {
+    emitCommandError(command, "part-text",
+                     probe::odsviewer::partTextStatusCode(result.status),
+                     "part_text(" + std::to_string(command.values[0]) +
+                         ") did not complete; partBefore " +
+                         std::to_string(result.partBefore) + ", partAfter " +
+                         std::to_string(result.partAfter));
+    return;
+  }
+  std::ostringstream fields;
+  fields << ",\"part\":" << command.values[0] << ",\"text\":\""
+         << jsonEscape(result.text.c_str())
+         << "\",\"partBefore\":" << result.partBefore
+         << ",\"partAfter\":" << result.partAfter;
+  emitPartReply(command, "part-text", fields.str());
+}
+#endif
 
 void onLokCallback(int type, const char *payload, void *) {
   const std::uint32_t documentHandle =
@@ -2800,6 +2995,9 @@ void onLokCallback(int type, const char *payload, void *) {
   }
 
   if (type == LOK_CALLBACK_UNO_COMMAND_RESULT) {
+#ifdef OXSDK_ODS_VIEWER
+    notePartTextUnoResult(payload);
+#endif
 #ifdef OXSDK_FINDING_016_SELECTION_BARRIER
     if (handleSelectionBarrierUnoResult(payload))
       return;
@@ -2949,9 +3147,25 @@ std::uint32_t allocateDocumentHandle() {
   return handle;
 }
 
+#ifdef OXSDK_ODS_VIEWER
+// Review M1: the file core loads carries the suffix the name was accepted
+// under, so documentLoad sees `.ods` for a spreadsheet.  sdk_api.cpp refuses
+// every other name before the queue; `.odt` is what a non-SDK open gets.
+std::string inputSuffixFor(const Command &command) {
+  const std::string suffix = probe::odsviewer::acceptedSuffix(command.name);
+  return suffix.empty() ? ".odt" : suffix;
+}
+#endif
+
 bool writeInputFile(const Command &command, std::string &fileUrl) {
+#ifdef OXSDK_ODS_VIEWER
+  const std::string path = "/tmp/oxsdk-input-" +
+                           std::to_string(command.requestId) +
+                           inputSuffixFor(command);
+#else
   const std::string path =
       "/tmp/oxsdk-input-" + std::to_string(command.requestId) + ".odt";
+#endif
   std::ofstream output(path, std::ios::binary | std::ios::trunc);
   if (!output)
     return false;
@@ -3063,7 +3277,15 @@ void handleOpen(const Command &command) {
   // "what the product does" again.
   //
   // At open, because that is the one moment every profile reaches.
+  //
+  // Every profile WITH THE EDITOR, since 2026-10-20 (SPEC-M4 addendum 3): the
+  // function is the editor's, and a profile without OXSDK_EDITOR_DISCOVERY had
+  // stopped compiling at this line.  The read-only spreadsheet viewer is such a
+  // profile and switches no accessibility on.  The editor rules all define it,
+  // so they preprocess to the same tokens as before.
+#ifdef OXSDK_EDITOR_DISCOVERY
   refreshEditorAccessibility();
+#endif
   emitStage("open.query-metadata");
   long width = 0;
   long height = 0;
@@ -3079,6 +3301,14 @@ void handleOpen(const Command &command) {
   std::ostringstream json;
   json << "{\"type\":\"opened\",\"parts\":" << parts << ",\"width\":" << width
        << ",\"height\":" << height << ",\"tileMode\":" << tileMode;
+#ifdef OXSDK_ODS_VIEWER
+  // W7b and M1, both read rather than assumed: what core says the document
+  // is, and the suffix of the file it was loaded from.
+  json << ",\"documentType\":\""
+       << probe::odsviewer::documentTypeName(
+              gState.document->pClass->getDocumentType(gState.document))
+       << "\",\"inputSuffix\":\"" << inputSuffixFor(command) << "\"";
+#endif
   if (command.sdk) {
     json << ",\"schemaVersion\":" << ProtocolSchemaVersion
          << ",\"requestId\":" << command.requestId
@@ -3208,7 +3438,9 @@ void handlePaintTile(const Command &command) {
   json << "{\"type\":\"tile\",\"ptr\":"
        << reinterpret_cast<std::uintptr_t>(pixels) << ",\"size\":" << byteCount
        << ",\"w\":" << canvasWidth << ",\"h\":" << canvasHeight;
-#ifdef OXSDK_E2_FORMAT_BARRIER
+// The viewer gets them as well (SPEC-M4 §3.2, review B2): its page refits the
+// surface to the post-paint width, and E4 reads documentSizeChanged.
+#if defined(OXSDK_E2_FORMAT_BARRIER) || defined(OXSDK_ODS_VIEWER)
   // Guarded, and the guard is about blast radius rather than about formatting:
   // every profile shares this function, and the frozen e1-editor profiles were
   // validated at a specific WASM hash with a specific reply shape.  Adding
@@ -3341,6 +3573,9 @@ void handleSearch(const Command &command) {
 // collapsed caret against the LOK_CALLBACK_TEXT_SELECTION path as well. And
 // never consult kitError() after a NONE result: getFromTransferable() leaves
 // its "Flavor ... is not supported" message set even when the call succeeds.
+// SelectionReadback is the editor's type (2026-10-20, SPEC-M4 addendum 3: a
+// profile without the editor had stopped compiling here).
+#ifdef OXSDK_EDITOR_DISCOVERY
 SelectionReadback readSelection() {
   SelectionReadback readback;
   char *text = nullptr;
@@ -3363,6 +3598,7 @@ SelectionReadback readSelection() {
     std::free(text);
   return readback;
 }
+#endif
 
 const char *selectionTypeName(int type) {
   switch (type) {
@@ -4312,6 +4548,7 @@ void handlePageRectangles(const Command &command) {
 }
 #endif
 
+#ifdef OXSDK_EDITOR_DISCOVERY
 void handleGetSelection(const Command &command) {
   if (!requireDocument(command, "get-selection"))
     return;
@@ -4332,6 +4569,7 @@ void handleGetSelection(const Command &command) {
        << jsonEscape(readback.text.c_str()) << "\"}";
   emitJson(json.str());
 }
+#endif
 
 void handleReplaceSelection(const Command &command) {
   if (!requireDocument(command, "replace-selection") ||
@@ -6321,7 +6559,14 @@ void dispatch(const Command &command) {
     handleSearch(command);
     break;
   case CommandType::GetSelection:
+#ifdef OXSDK_EDITOR_DISCOVERY
     handleGetSelection(command);
+#else
+    // No profile without the editor exports get_selection (sdk_api.cpp); a
+    // command that got here anyway is answered rather than left pending.
+    emitCommandError(command, "get-selection", "UNSUPPORTED_OPERATION",
+                     "this engine has no selection readback");
+#endif
     break;
   case CommandType::ReplaceSelection:
     handleReplaceSelection(command);
@@ -6344,6 +6589,20 @@ void dispatch(const Command &command) {
   case CommandType::ListChanges:
     handleListChanges(command);
     break;
+#ifdef OXSDK_ODS_VIEWER
+  case CommandType::SetPart:
+    handleSetPart(command);
+    break;
+  case CommandType::CurrentPart:
+    handleCurrentPart(command);
+    break;
+  case CommandType::PartName:
+    handlePartName(command);
+    break;
+  case CommandType::PartText:
+    handlePartText(command);
+    break;
+#endif
 #ifdef OXSDK_E2_V20_LINK_BATCH
   case CommandType::PageRectangles:
     handlePageRectangles(command);
@@ -6452,6 +6711,8 @@ void engineLoop(Command initialReady) {
         // FINDING 096 added the third arm below.  The three kinds are told
         // apart by the flags the pending operation already carries, so there
         // is no fourth place that has to agree about which kind this is.
+        // The editor's (2026-10-20, SPEC-M4 addendum 3).
+#ifdef OXSDK_EDITOR_DISCOVERY
         if (gEditorPending.requestId != 0 &&
             gEditorPending.readbackDeadlineArmed) {
           const auto deadline = gEditorPending.readbackDeadline;
@@ -6473,6 +6734,7 @@ void engineLoop(Command initialReady) {
           }
           continue;
         }
+#endif
 #ifdef OXSDK_FINDING_016_SELECTION_BARRIER
         if (gSelectionBarrier.stage ==
             SelectionBarrierStage::AwaitingUnitSelection) {
@@ -7116,6 +7378,40 @@ SubmitStatus getSelection(std::uint32_t requestId,
   command.documentHandle = documentHandle;
   return submit(std::move(command));
 }
+
+#ifdef OXSDK_ODS_VIEWER
+namespace {
+SubmitStatus submitPartQuery(CommandType type, std::uint32_t requestId,
+                             std::uint32_t documentHandle, int part) {
+  Command command{type};
+  command.sdk = true;
+  command.requestId = requestId;
+  command.documentHandle = documentHandle;
+  command.values[0] = part;
+  return submit(std::move(command));
+}
+} // namespace
+
+SubmitStatus setPart(std::uint32_t requestId, std::uint32_t documentHandle,
+                     int part) {
+  return submitPartQuery(CommandType::SetPart, requestId, documentHandle, part);
+}
+
+SubmitStatus currentPart(std::uint32_t requestId,
+                         std::uint32_t documentHandle) {
+  return submitPartQuery(CommandType::CurrentPart, requestId, documentHandle, 0);
+}
+
+SubmitStatus partName(std::uint32_t requestId, std::uint32_t documentHandle,
+                      int part) {
+  return submitPartQuery(CommandType::PartName, requestId, documentHandle, part);
+}
+
+SubmitStatus partText(std::uint32_t requestId, std::uint32_t documentHandle,
+                      int part) {
+  return submitPartQuery(CommandType::PartText, requestId, documentHandle, part);
+}
+#endif
 
 #ifdef OXSDK_E2_V20_LINK_BATCH
 SubmitStatus pageRectangles(std::uint32_t requestId,

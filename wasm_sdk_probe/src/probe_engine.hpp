@@ -44,6 +44,19 @@ SubmitStatus search(std::uint32_t requestId, std::uint32_t documentHandle,
                     std::string query, bool backward);
 SubmitStatus getSelection(std::uint32_t requestId,
                           std::uint32_t documentHandle);
+#ifdef OXSDK_ODS_VIEWER
+// SPEC-M4-ods-in-nextcloud §3.2: the spreadsheet viewer's document-level
+// queries (W7c-e, B1).  A part out of range is refused on the engine thread,
+// where the part count is known.
+SubmitStatus setPart(std::uint32_t requestId, std::uint32_t documentHandle,
+                     int part);
+SubmitStatus currentPart(std::uint32_t requestId,
+                         std::uint32_t documentHandle);
+SubmitStatus partName(std::uint32_t requestId, std::uint32_t documentHandle,
+                      int part);
+SubmitStatus partText(std::uint32_t requestId, std::uint32_t documentHandle,
+                      int part);
+#endif
 #ifdef OXSDK_E2_V20_LINK_BATCH
 // SPEC-M3-link-batch 10.8: the raw page rectangles, the document size and the
 // part count, as one document-level query.  Never an editor action.
