@@ -28,6 +28,22 @@ SAL_LOK_OPTIONS=unipoll, the init record, and `anyInputRegistered` as its mode n
 
 VERDICT N1-HOLDS: N1a PASS, N1b's control present, N1c PASS. N1-FAILS: an N1a violation or
 N1c FAIL. Otherwise NOT-ESTABLISHED.
+
+Two-seat review 1 (ev/review/opus-review-1.md, codex-review-1.md):
+- F2: a cell must have exactly one run-log.jsonl entry, with exit 0 (a reused directory, a re-run cell or
+  a child that crashed after its records is unclean).
+- F3: N1a and N1c are judged on clean cells only; a violation in an unclean cell makes the reading
+  NOT-ESTABLISHED, never N1-FAILS.
+- The window is bounded: lateCallbacks holds what arrived within 1500 ms after the first poll (oc_native.cpp
+  uni1 steps). N1a says nothing about later callbacks; the committed run has none in the whole measured step
+  (ev/review/disposition-1/n1-outside-window.txt).
+- The residual blind spot: a reply-type callback that lands between op N+1's start and N+1's first poll
+  reads as on time for N+1 (a window of a few ms).
+- N1c's NE label: some scheduler task ran before the poll; which one is not identified (ruling 2 §2.6;
+  the spec's first wording named the layout idle).
+- Exit: 0 iff a verdict was reached (N1-HOLDS or N1-FAILS) on N >= 5 rounds; 2 when --rounds < 5.
+- --on-time-list (ruling 2 §2.2, form 2): the (op, STATE_CHANGED key) pairs that arrived before the first
+  poll in every clean uni1ai round where the op ran, and the late or mixed ones; generated from the records.
 """
 import argparse
 import json
@@ -37,14 +53,34 @@ import statistics
 import sys
 import tempfile
 
+# Ruling 2 §2.5: INVALIDATE_TILES withdrawn (no reply reads a tile; 0 tile callbacks in 282 native processes).
 REPLY_TYPES = {'LOK_CALLBACK_INVALIDATE_VISIBLE_CURSOR', 'LOK_CALLBACK_TEXT_SELECTION',
                'LOK_CALLBACK_TEXT_SELECTION_START', 'LOK_CALLBACK_TEXT_SELECTION_END',
-               'LOK_CALLBACK_UNO_COMMAND_RESULT', 'LOK_CALLBACK_INVALIDATE_TILES'}
+               'LOK_CALLBACK_UNO_COMMAND_RESULT'}
+COUNTED_ROUNDS = 5  # spec §9.1
 
 
-def read_cell(out, arm, mode, r):
+def run_log(out):
+    """(arm, mode, round) -> the run-log entries of that cell (review 1, F2)."""
+    entries = {}
+    path = out / 'run-log.jsonl'
+    if path.exists():
+        for line in path.read_text().splitlines():
+            if line.strip():
+                x = json.loads(line)
+                entries.setdefault((x.get('arm'), x.get('mode'), x.get('round')), []).append(x)
+    return entries
+
+
+def read_cell(out, arm, mode, r, log=None):
     path = out / arm / f'{mode}-r{r}.jsonl'
     cell = {'problems': [], 'ops': []}
+    if log is not None:
+        mine = log.get((arm, mode, r), [])
+        if len(mine) != 1:
+            cell['problems'].append(f'{len(mine)} run-log entries (exactly one is required)')
+        elif mine[0].get('exit') != 0:
+            cell['problems'].append(f"child exit {mine[0].get('exit')!r}")
     if not path.exists():
         cell['problems'].append('no output')
         return cell
@@ -83,11 +119,14 @@ def judge(out, rounds):
     arms = [a['name'] for a in json.loads((out / 'arms.json').read_text())]
     lines, problems, n1a = [], [], []
     late = {}
+    log = run_log(out)
     ai_arms = [a for a in arms if a != 'join200']
     for arm in ai_arms:
         for r in range(1, rounds + 1):
-            c = read_cell(out, arm, 'uni1ai', r)
+            c = read_cell(out, arm, 'uni1ai', r, log)
             problems += [f'{arm} uni1ai r{r}: {p}' for p in c['problems']]
+            if c['problems']:
+                continue  # F3: an unclean cell is not judged
             for o in c['ops']:
                 for cb in o.get('lateCallbacks', []):
                     late.setdefault(cb['type'], []).append((arm, cb['t']))
@@ -100,7 +139,7 @@ def judge(out, rounds):
         lines.append(f"  {t:40} n={len(ds):4}  min {min(ds):8.1f}  median {statistics.median(ds):8.1f}  max {max(ds):8.1f} ms")
     control_ok = True
     for r in range(1, rounds + 1):
-        c = read_cell(out, 'tleave', 'uni1ai', r)
+        c = read_cell(out, 'tleave', 'uni1ai', r, log)
         sc = [cb['t'] for o in c['ops'] for cb in o.get('lateCallbacks', []) if cb['type'] == 'LOK_CALLBACK_STATE_CHANGED']
         if not sc or max(sc) <= 0:
             control_ok = False
@@ -111,9 +150,9 @@ def judge(out, rounds):
     for mode in ('uni1', 'uni1ai'):
         delays[mode] = []
         for r in range(1, rounds + 1):
-            c = read_cell(out, 'join200', mode, r)
+            c = read_cell(out, 'join200', mode, r, log)
             problems += [f'join200 {mode} r{r}: {p}' for p in c['problems']]
-            if c['ops']:
+            if c['ops'] and not c['problems']:  # F3
                 delays[mode].append(c['ops'][0].get('firstPollAfterReturnMs'))
     d0, d1 = delays['uni1'], delays['uni1ai']
     if len(d0) < rounds or len(d1) < rounds or None in d0 + d1:
@@ -140,6 +179,50 @@ def judge(out, rounds):
         verdict = 'NOT-ESTABLISHED'
     lines.append(f'VERDICT {verdict}')
     return verdict, lines
+
+
+def state_key(payload):
+    """'.uno:Bold=true' -> '.uno:Bold'; a JSON payload -> its commandName."""
+    text = (payload or '').strip()
+    if text.startswith('{'):
+        try:
+            return json.loads(text).get('commandName') or '<json>'
+        except ValueError:
+            return '<unparsed json>'
+    return text.split('=', 1)[0]
+
+
+def on_time_list(out, rounds):
+    """Ruling 2 §2.2 (form 2): per (op, state key), on time in every clean uni1ai round, or late/mixed.
+
+    An op's own items are the STATE_CHANGED callbacks of its step window (its start to the next op's start, or
+    the step's end); the late ones are those in its index-based lateCallbacks; the rest arrived before its
+    first poll.  Only clean cells count.
+    """
+    arms = [a['name'] for a in json.loads((out / 'arms.json').read_text()) if a['name'] != 'join200']
+    log = run_log(out)
+    seen = {}
+    for arm in arms:
+        for r in range(1, rounds + 1):
+            c = read_cell(out, arm, 'uni1ai', r, log)
+            if c['problems']:
+                continue
+            recs = [json.loads(x) for x in (out / arm / f'uni1ai-r{r}.jsonl').read_text().splitlines() if x.strip()]
+            m = next(x for x in recs if x['rec'] == 'measured')
+            ops = m['ops']
+            for i, op in enumerate(ops):
+                end = ops[i + 1]['startMs'] if i + 1 < len(ops) else float('inf')
+                late = {state_key(cb['payload']) for cb in op.get('lateCallbacks', [])
+                        if cb['type'] == 'LOK_CALLBACK_STATE_CHANGED'}
+                mine = {state_key(cb['payload']) for cb in m['callbacks']
+                        if cb['type'] == 'LOK_CALLBACK_STATE_CHANGED' and op['startMs'] <= cb['t'] < end}
+                for key in mine | late:
+                    seen.setdefault((op['op'], key), []).append('late' if key in late else 'on time')
+    result = {'onTime': [], 'lateOrMixed': []}
+    for (op, key), v in sorted(seen.items()):
+        entry = {'op': op, 'key': key, 'rounds': len(v), 'late': v.count('late')}
+        (result['onTime'] if entry['late'] == 0 else result['lateOrMixed']).append(entry)
+    return result
 
 
 def self_test(smoke):
@@ -204,6 +287,65 @@ def self_test(smoke):
     case('N1c: equal delays', equal, 'NOT-ESTABLISHED', 'overlap')
     case('N1c: the pending-reply term makes it later', reversed_, 'N1-FAILS', 'N1c     FAIL')
     case('a uni1ai cell without anyInput registered', no_anyinput, 'NOT-ESTABLISHED', 'anyInputRegistered')
+
+    def runlog_dup(out):        # F2: a cell executed twice
+        with open(out / 'run-log.jsonl', 'a') as f:
+            f.write(json.dumps({'arm': 'd1', 'mode': 'uni1ai', 'round': 1, 'exit': 0}) + '\n')
+
+    def runlog_exit(out):       # F2: a child that wrote its records and then exited non-zero
+        path = out / 'run-log.jsonl'
+        xs = [json.loads(line) for line in path.read_text().splitlines() if line.strip()]
+        for x in xs:
+            if (x['arm'], x['mode']) == ('d3', 'uni1ai'):
+                x['exit'] = -6
+        path.write_text(''.join(json.dumps(x) + '\n' for x in xs))
+
+    def unclean_late(out):      # F3: a late cursor in a cell whose child crashed
+        late_cursor(out)
+        rewrite(out / 'd2' / 'uni1ai-r1.jsonl', lambda r: {**r, 'rec': 'done-not'} if r['rec'] == 'done' else r)
+
+    def unclean_reversed(out):  # F3: N1c reversed, the uni1ai join200 cell unclean
+        reversed_(out)
+        rewrite(out / 'join200' / 'uni1ai-r1.jsonl', lambda r: {**r, 'capped': True} if r['rec'] == 'measured' else r)
+
+    def late_type(kind):        # ruling 2 §2.6: one synthetic late callback per reply type name
+        def mutate(out):
+            def fn(r):
+                if r['rec'] == 'measured':
+                    r['ops'][0]['lateCallbacks'].append({'t': 7.5, 'type': kind, 'payload': 'synthetic'})
+                return r
+            rewrite(out / 'd3' / 'uni1ai-r1.jsonl', fn)
+        return mutate
+
+    for kind in sorted(REPLY_TYPES - {'LOK_CALLBACK_INVALIDATE_VISIBLE_CURSOR'}):
+        case(f'N1a: a late {kind[13:]}', late_type(kind), 'N1-FAILS', f'{kind} 7.5')
+    case('N1a: a late INVALIDATE_TILES is no longer a reply type', late_type('LOK_CALLBACK_INVALIDATE_TILES'), 'N1-HOLDS')
+    case('F2: a cell with two run-log entries', runlog_dup, 'NOT-ESTABLISHED', '2 run-log entries')
+    case('F2: a child exit -6 after its records', runlog_exit, 'NOT-ESTABLISHED', 'child exit -6')
+    case('F3: a late cursor in an unclean cell', unclean_late, 'NOT-ESTABLISHED', 'no done record')
+    case('F3: N1c reversed on an unclean cell', unclean_reversed, 'NOT-ESTABLISHED', 'settle capped')
+    # the on-time list (ruling 2 §2.2): Bold on time in d4 as recorded; a late copy of it moves Bold out
+    def bold_late(out):
+        def fn(r):
+            if r['rec'] == 'measured':
+                for o in r['ops']:
+                    if o['op'].startswith('U.uno:Bold'):
+                        o['lateCallbacks'].append({'t': 3.0, 'type': 'LOK_CALLBACK_STATE_CHANGED', 'payload': '.uno:Bold=true'})
+            return r
+        rewrite(out / 'd4' / 'uni1ai-r1.jsonl', fn)
+
+    for label, mutate, want in (('on-time list: Bold on time as recorded', lambda out: None, 'onTime'),
+                                ('on-time list: Bold made late moves it out', bold_late, 'lateOrMixed')):
+        with tempfile.TemporaryDirectory() as tmp:
+            out = pathlib.Path(tmp) / 'out'
+            shutil.copytree(smoke, out)
+            mutate(out)
+            lst = on_time_list(out, 1)
+            where = [k for k in ('onTime', 'lateOrMixed')
+                     if any(e['key'] == '.uno:Bold' and e['op'].startswith('U.uno:Bold') for e in lst[k])]
+            ok = where == [want]
+            results.append(ok)
+            print(f"{'ok  ' if ok else 'BAD '} {label}: .uno:Bold in {where} (expected [{want!r}])")
     print(f"self-test: {sum(results)}/{len(results)} as required")
     return 0 if all(results) else 1
 
@@ -213,11 +355,19 @@ def main():
     ap.add_argument('out', nargs='?')
     ap.add_argument('--rounds', type=int, default=5)
     ap.add_argument('--self-test', metavar='SMOKE_DIR')
+    ap.add_argument('--on-time-list', action='store_true')
     a = ap.parse_args()
     if a.self_test:
         return self_test(pathlib.Path(a.self_test))
+    if a.on_time_list:
+        print(json.dumps(on_time_list(pathlib.Path(a.out), a.rounds), indent=1, ensure_ascii=False))
+        return 0
     verdict, lines = judge(pathlib.Path(a.out), a.rounds)
     print('\n'.join(lines))
+    print(f'N = {a.rounds} rounds' + ('' if a.rounds >= COUNTED_ROUNDS else
+                                       f' < {COUNTED_ROUNDS}: NOT a counted reading (spec §9.1)'))
+    if a.rounds < COUNTED_ROUNDS:
+        return 2
     return 0 if verdict in ('N1-HOLDS', 'N1-FAILS') else 1
 
 

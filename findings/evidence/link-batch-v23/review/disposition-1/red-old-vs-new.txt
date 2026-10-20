@@ -1,0 +1,18 @@
+case                                                 HEAD               fixed
+baseline (the smoke as recorded)                     C-HOLDS            C-HOLDS
+(e) F1 a records-only D7 cell missing                C-HOLDS            NOT-ESTABLISHED
+(f) F1 D7 q trigger never fired                      C-HOLDS            NOT-ESTABLISHED
+(g) F2 a cell with two run-log entries               C-HOLDS            NOT-ESTABLISHED
+(h) F2 a child exit -11 after its records            C-HOLDS            NOT-ESTABLISHED
+(i) F3 an unclean unipoll cell that would fail D8    C-FAILS            NOT-ESTABLISHED
+(j) ruling 2: d4's Bold left no presence witness     C-HOLDS            NOT-ESTABLISHED
+two-round control (round 1 copied as round 2)        C-HOLDS            C-HOLDS
+(b') ruling 1 §2.6 (b): unipoll rounds disagree      C-FAILS            C-FAILS
+
+case                                         HEAD               fixed
+baseline (the smoke as recorded)             N1-HOLDS           N1-HOLDS
+F2 a cell with two run-log entries           N1-HOLDS           NOT-ESTABLISHED
+F2 a child exit -6 after its records         N1-HOLDS           NOT-ESTABLISHED
+F3 a late cursor in an unclean cell          N1-FAILS           NOT-ESTABLISHED
+F3 N1c reversed on an unclean cell           N1-FAILS           NOT-ESTABLISHED
+ruling 2 §2.5: a late INVALIDATE_TILES (withdrawn) N1-FAILS           N1-HOLDS

@@ -119,3 +119,16 @@ Each op records the delay from its return to the first poll, and every callback 
   The two ranges are strictly separated.
   - **Natively the effect is about 1 ms**, because a native `Yield` loops at once.
   - On WASM every yield is one 10 ms tick of `emscripten_set_main_loop`, so each scheduler task the poll waits behind costs a tick there. That is inferred and not measured; the diagnostic link's tick record measures it.
+
+## Corrections after two-seat review 1 (2026-10-20, appended; the text above is kept)
+
+- **"The X step fired" is a q-mode fact.** `oc_native.cpp:371` initialises `fired = true`, and only the q executor can leave it `false`. For `seq` and `unipoll` the record says nothing.
+- **The readers were fixed in their one review** (`../../review/DISPOSITION-two-seat-1.md`):
+  - the records-only D7 cells now gate the verdict, and D8 needs all its observations;
+  - each cell needs exactly one run-log entry, with exit 0;
+  - an unclean cell gives NE, never a FAIL;
+  - d4 needs its `.uno:Bold=true` presence witness;
+  - fewer than 5 rounds is not a counted reading;
+  - N1a no longer counts `INVALIDATE_TILES`.
+- **Re-judged with the fixed readers, the verdicts did not move:** C-HOLDS and N1-HOLDS (`../../review/disposition-1/rejudge-*.txt`).
+- **N1a is a bounded observation:** within 1500 ms after each op's first poll, and through the step's quiet window for the last op. The committed run has 0 reply-type callbacks beyond it (`../../review/disposition-1/n1-outside-window.txt`).

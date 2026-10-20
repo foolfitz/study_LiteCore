@@ -55,3 +55,9 @@ The second red case forges replies but changes no end state in this model. The m
 - A key is one event, with no hops. Only the withdrawn FIFO candidates depended on hops.
 - Bold does not change a rectangle's width (condition 40).
 - The page sends one item at a time (`editor-session.js:287-311`), so "one command per poll" is never contested here. **This model does not discriminate that rule.** It is kept by spec §5.2 and must be checked in the engine (§9.2).
+
+## Corrections after two-seat review 1 (2026-10-20, appended; the text above is kept)
+
+- **"Forged" compares geometry only.** It checks whether the reply's selection rectangles and caret differ from core's. In mode C the model chooses each completion string from its own oracle (`keyChanged`), so it cannot test a completion's meaning. The opus seat mislabelled 174,672 deletions as `verified-boundary-noop`, and the test still ended `ok` (`../review/opus-experiments-1/model/E6_lying_noop.summary.txt`). Testing meaning is the job of the native arms and the engine unit test (spec §15.1). The model gets no new mode.
+- **"One command per poll … must be checked in the engine (§9.2)" pointed at nothing.** It now points at an engine unit red case in the diagnostic code, and at the §9.2 cell with its depth ≥ 2 non-vacuity rule (spec §15.4).
+- **The printed run counts include duplicates.** They are 22–135× the distinct C scenarios (opus E5). The zero holds on the distinct set too.
