@@ -553,3 +553,25 @@ make ALLOW_FROZEN_RELINK=1 dist/profiles/ods-viewer-v1/sdk-manifest.json 2>&1 | 
 回覆帶 `selectAllConfirmed: false`。不會遮住錯誤：讀到還沒落地的選取就是錯的文字，E3 比文字會紅，這個旗標說明原因。`PART_TEXT_TIMEOUT`
 這個錯誤碼因此撤掉。`textNull` 與 `selectAllConfirmed` 由 worker 具名轉給頁面——**worker pin 改成 `cc2d6514…`**（取代 A4.1 與手冊
 原本寫的 `d1de2dfd…`；擁有者尚未連結）。模型 15 個突變、worker 7 個、SDK 6 個全紅；JS 704/704；連結前的閘門在這份原始碼上重跑過。
+
+---
+
+# 追加 5（2026-10-20 晚，任何 Phase E 執行之前）：Phase E 的 runner，以及三處讀法先釘死
+
+只 append。runner `tools/run_ods_viewer_phase_e.py`＋harness 頁 `web/ods-viewer-e-harness{.html,-app.js}`；判讀器是報告的純函式，
+`--selftest` 25/25（每條判準至少一個紅案，含 E1 的「空目錄」與「少一筆紀錄」）。harness 經由產品自己的 `OdsViewerSession`＋
+`OdsViewerEngine` 開每一筆，攔下 handle 做 E3 的 `partText`、E4a 的兩次畫圖、E5 引擎層的越界拒絕；大文字只回正規化（CRLF→LF）後
+的 sha256 與長度，期望文字由 runner 用同樣的正規化算 sha。E4b 與 E9 走真的檢視頁，另做。
+
+**三處讀法**（不是新判準；是把 §4 已經寫的話落成可判的條件，寫在能滿足它的執行之前）：
+
+1. **E4a「manifest 說那一區有內容／是空的」**：manifest 不記錄儲存格的位置。所以——生成的（`ladder/`，`expectedFrom: generator`）
+   一律從 A1 寫起，`cells > 0` 就是第一塊 tile 裡有內容，必須與同輪的空表對照**不同**；期望文字是 `""` 的表必須**相同**。
+   上游檔（`expectedFrom: native-oracle`）的 manifest 對位置沒有宣稱，所以只套 E4a 的「畫圖 OK、尺寸欄位的型別、第二次
+   `documentSizeChanged == false`」三項。**永遠沒做的預設**照 §4。
+2. **E2 的 `view-ready ≤ 60 s`**：從該筆開始（取檔、建引擎、開檔）算起，比只算開檔嚴。
+3. **E3 的期望文字**：manifest 的 `expectedText` 是 `null` 的（十萬格之類），取原生 oracle 的 `oracle.jsonl` 同一份檔、同一個 part 的
+   文字；oracle 那裡是 `null` 的（空表），期望是 `""`（A4.6）。
+
+**E6 的洩漏界限 B 還沒定**：要先在檢視連結上開機 5 次量雜訊底（§4 E6），量完寫進本檔，之後的 E6 才算數。這一輪的 runner 判的是
+峰值與 `document-destroy-enter`；B 那一半另做。
