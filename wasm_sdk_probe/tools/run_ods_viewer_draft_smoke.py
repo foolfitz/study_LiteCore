@@ -48,7 +48,23 @@ PAGE_FILES = {
     "viewer-shell/ods-viewer-session.js": PROJECT / "viewer-shell" / "ods-viewer-session.js",
     "viewer-shell/w7-adapter.js": PROJECT / "viewer-shell" / "w7-adapter.js",
     "viewer-shell/viewer-error.js": PROJECT / "viewer-shell" / "viewer-error.js",
+    # 2026-10-20 (SPEC-M4 §5.2): the session reads the package before the engine.
+    "viewer-shell/odf-package-probe.js": PROJECT / "viewer-shell" / "odf-package-probe.js",
 }
+# SPEC-M4 §5.1: the page hard-codes the engine it is for.  A mirror run on
+# another, already linked profile rewrites that ONE literal in the MIRROR's copy
+# of the page -- never in web/ -- and records both hashes.
+WORKER_LITERAL = 'workerUrl: "./profiles/ods-viewer-v1/sdk-worker.js"'
+
+
+def retarget_page(payload: bytes, profile: str) -> bytes:
+    text = payload.decode("utf-8")
+    if text.count(WORKER_LITERAL) != 1:
+        raise SystemExit(f"ods-viewer-app.js: {WORKER_LITERAL!r} occurs "
+                         f"{text.count(WORKER_LITERAL)} times, want exactly 1")
+    return text.replace(WORKER_LITERAL,
+                        f'workerUrl: "./profiles/{profile}/sdk-worker.js"').encode("utf-8")
+
 FIXTURES = [
     PROJECT / "test-docs" / "ods" / "ladder" / "three-sheets-distinct.ods",
     PROJECT / "test-docs" / "ods" / "ladder" / "empty-one-sheet.ods",
@@ -329,6 +345,8 @@ def main() -> int:
             raise SystemExit(f"missing fixture {fixture}")
 
     overrides = {path: source.read_bytes() for path, source in PAGE_FILES.items()}
+    page_source_sha256 = sha256_of(overrides["ods-viewer-app.js"])
+    overrides["ods-viewer-app.js"] = retarget_page(overrides["ods-viewer-app.js"], args.profile)
     scratch = Path(tempfile.mkdtemp(prefix="ods-viewer-draft-"))
     root = scratch / "root"
     build_mirror(PROJECT / "dist", root, overrides)
@@ -355,6 +373,8 @@ def main() -> int:
                "product opening an ODS",
         "preconditions": gate,
         "pageFiles": {path: sha256_of(payload) for path, payload in overrides.items()},
+        "pageSourceSha256": {"ods-viewer-app.js": page_source_sha256,
+                             "retargetedTo": args.profile},
         "servedUnmodified": {
             # The two files the plan says must be imported UNMODIFIED, as served.
             "reader-shell/tile-scheduler.js":
@@ -378,7 +398,7 @@ def main() -> int:
         session = ChromeSession("cold")
         record["chrome"] = session.version
         navigate(session, f"http://127.0.0.1:{port}/ods-viewer.html"
-                          f"?profile={args.profile}&openTimeoutMs=120000")
+                          f"?openTimeoutMs=120000")
         for index, fixture in enumerate(FIXTURES):
             session.set_file("#file-input", fixture)
             deadline = time.monotonic() + args.per_file_timeout

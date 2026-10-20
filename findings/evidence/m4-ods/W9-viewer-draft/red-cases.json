@@ -17,9 +17,13 @@
     "a worker crash takes the session to a typed error and stops scheduling",
     "an open that fails is typed, and the engine is given back",
     "partNames that disagree with parts are not used and the disagreement is recorded",
-    "a close() that arrives while the document is opening is not undone: what arrives late is given back"
+    "a close() that arrives while the document is opening is not undone: what arrives late is given back",
+    "an encrypted package is refused before any engine is asked",
+    "the probe reads a STORED manifest as well as a deflated one",
+    "a plain package opens, and the state says what the probe saw",
+    "a package the probe cannot read goes to the engine: the probe is not a second format check"
   ],
-  "mutations": 27,
+  "mutations": 35,
   "uncoveredTests": [],
   "problems": [],
   "results": [
@@ -28,8 +32,8 @@
       "applied": true,
       "exit": 0,
       "counts": {
-        "tests": 18,
-        "pass": 18,
+        "tests": 22,
+        "pass": 22,
         "fail": 0
       },
       "failures": [],
@@ -46,8 +50,8 @@
       "caughtByExpected": true,
       "exit": 1,
       "counts": {
-        "tests": 18,
-        "pass": 15,
+        "tests": 22,
+        "pass": 19,
         "fail": 3
       },
       "failures": [
@@ -83,8 +87,8 @@
       "caughtByExpected": true,
       "exit": 1,
       "counts": {
-        "tests": 18,
-        "pass": 16,
+        "tests": 22,
+        "pass": 20,
         "fail": 2
       },
       "failures": [
@@ -115,8 +119,8 @@
       "caughtByExpected": true,
       "exit": 1,
       "counts": {
-        "tests": 18,
-        "pass": 16,
+        "tests": 22,
+        "pass": 20,
         "fail": 2
       },
       "failures": [
@@ -147,8 +151,8 @@
       "caughtByExpected": true,
       "exit": 1,
       "counts": {
-        "tests": 18,
-        "pass": 16,
+        "tests": 22,
+        "pass": 20,
         "fail": 2
       },
       "failures": [
@@ -178,8 +182,8 @@
       "caughtByExpected": true,
       "exit": 1,
       "counts": {
-        "tests": 18,
-        "pass": 17,
+        "tests": 22,
+        "pass": 21,
         "fail": 1
       },
       "failures": [
@@ -203,8 +207,8 @@
       "caughtByExpected": true,
       "exit": 1,
       "counts": {
-        "tests": 18,
-        "pass": 17,
+        "tests": 22,
+        "pass": 21,
         "fail": 1
       },
       "failures": [
@@ -228,8 +232,8 @@
       "caughtByExpected": true,
       "exit": 1,
       "counts": {
-        "tests": 18,
-        "pass": 17,
+        "tests": 22,
+        "pass": 21,
         "fail": 1
       },
       "failures": [
@@ -253,8 +257,8 @@
       "caughtByExpected": true,
       "exit": 1,
       "counts": {
-        "tests": 18,
-        "pass": 13,
+        "tests": 22,
+        "pass": 17,
         "fail": 5
       },
       "failures": [
@@ -302,8 +306,8 @@
       "caughtByExpected": true,
       "exit": 1,
       "counts": {
-        "tests": 18,
-        "pass": 16,
+        "tests": 22,
+        "pass": 20,
         "fail": 2
       },
       "failures": [
@@ -333,8 +337,8 @@
       "caughtByExpected": true,
       "exit": 1,
       "counts": {
-        "tests": 18,
-        "pass": 17,
+        "tests": 22,
+        "pass": 21,
         "fail": 1
       },
       "failures": [
@@ -358,8 +362,8 @@
       "caughtByExpected": true,
       "exit": 1,
       "counts": {
-        "tests": 18,
-        "pass": 16,
+        "tests": 22,
+        "pass": 20,
         "fail": 2
       },
       "failures": [
@@ -389,8 +393,8 @@
       "caughtByExpected": true,
       "exit": 1,
       "counts": {
-        "tests": 18,
-        "pass": 17,
+        "tests": 22,
+        "pass": 21,
         "fail": 1
       },
       "failures": [
@@ -414,8 +418,8 @@
       "caughtByExpected": true,
       "exit": 1,
       "counts": {
-        "tests": 18,
-        "pass": 17,
+        "tests": 22,
+        "pass": 21,
         "fail": 1
       },
       "failures": [
@@ -439,8 +443,8 @@
       "caughtByExpected": true,
       "exit": 1,
       "counts": {
-        "tests": 18,
-        "pass": 17,
+        "tests": 22,
+        "pass": 21,
         "fail": 1
       },
       "failures": [
@@ -464,8 +468,8 @@
       "caughtByExpected": true,
       "exit": 1,
       "counts": {
-        "tests": 18,
-        "pass": 17,
+        "tests": 22,
+        "pass": 21,
         "fail": 1
       },
       "failures": [
@@ -489,8 +493,8 @@
       "caughtByExpected": true,
       "exit": 1,
       "counts": {
-        "tests": 18,
-        "pass": 17,
+        "tests": 22,
+        "pass": 21,
         "fail": 1
       },
       "failures": [
@@ -514,8 +518,8 @@
       "caughtByExpected": true,
       "exit": 1,
       "counts": {
-        "tests": 18,
-        "pass": 16,
+        "tests": 22,
+        "pass": 20,
         "fail": 2
       },
       "failures": [
@@ -546,8 +550,8 @@
       "caughtByExpected": true,
       "exit": 1,
       "counts": {
-        "tests": 18,
-        "pass": 16,
+        "tests": 22,
+        "pass": 20,
         "fail": 2
       },
       "failures": [
@@ -577,8 +581,8 @@
       "caughtByExpected": true,
       "exit": 1,
       "counts": {
-        "tests": 18,
-        "pass": 17,
+        "tests": 22,
+        "pass": 21,
         "fail": 1
       },
       "failures": [
@@ -602,8 +606,8 @@
       "caughtByExpected": true,
       "exit": 1,
       "counts": {
-        "tests": 18,
-        "pass": 17,
+        "tests": 22,
+        "pass": 21,
         "fail": 1
       },
       "failures": [
@@ -627,8 +631,8 @@
       "caughtByExpected": true,
       "exit": 1,
       "counts": {
-        "tests": 18,
-        "pass": 17,
+        "tests": 22,
+        "pass": 21,
         "fail": 1
       },
       "failures": [
@@ -652,8 +656,8 @@
       "caughtByExpected": true,
       "exit": 1,
       "counts": {
-        "tests": 18,
-        "pass": 17,
+        "tests": 22,
+        "pass": 21,
         "fail": 1
       },
       "failures": [
@@ -677,8 +681,8 @@
       "caughtByExpected": true,
       "exit": 1,
       "counts": {
-        "tests": 18,
-        "pass": 16,
+        "tests": 22,
+        "pass": 20,
         "fail": 2
       },
       "failures": [
@@ -691,7 +695,7 @@
         {
           "test": "a close() that arrives while the document is opening is not undone: what arrives late is given back",
           "message": "the engine that finished starting was disposed / false !== true",
-          "assertionLine": "466",
+          "assertionLine": "484",
           "assertion": "assert.equal(engine.disposed, true, \"the engine that finished starting was disposed\");"
         }
       ],
@@ -708,15 +712,15 @@
       "caughtByExpected": true,
       "exit": 1,
       "counts": {
-        "tests": 18,
-        "pass": 17,
+        "tests": 22,
+        "pass": 21,
         "fail": 1
       },
       "failures": [
         {
           "test": "a close() that arrives while the document is opening is not undone: what arrives late is given back",
           "message": "no document was opened on it / 1 !== 0",
-          "assertionLine": "467",
+          "assertionLine": "485",
           "assertion": "assert.equal(engine.openCalls.length, 0, \"no document was opened on it\");"
         }
       ],
@@ -733,15 +737,15 @@
       "caughtByExpected": true,
       "exit": 1,
       "counts": {
-        "tests": 18,
-        "pass": 17,
+        "tests": 22,
+        "pass": 21,
         "fail": 1
       },
       "failures": [
         {
           "test": "a close() that arrives while the document is opening is not undone: what arrives late is given back",
           "message": "Missing expected rejection.",
-          "assertionLine": "480",
+          "assertionLine": "506",
           "assertion": "await assert.rejects(opening, { code: \"CLOSED_DURING_OPEN\" });"
         }
       ],
@@ -758,15 +762,15 @@
       "caughtByExpected": true,
       "exit": 1,
       "counts": {
-        "tests": 18,
-        "pass": 17,
+        "tests": 22,
+        "pass": 21,
         "fail": 1
       },
       "failures": [
         {
           "test": "a close() that arrives while the document is opening is not undone: what arrives late is given back",
           "message": "Missing expected rejection.",
-          "assertionLine": "465",
+          "assertionLine": "464",
           "assertion": "await assert.rejects(opening, { code: \"CLOSED_DURING_OPEN\" });"
         }
       ],
@@ -783,8 +787,8 @@
       "caughtByExpected": true,
       "exit": 1,
       "counts": {
-        "tests": 18,
-        "pass": 17,
+        "tests": 22,
+        "pass": 21,
         "fail": 1
       },
       "failures": [
@@ -793,6 +797,336 @@
           "message": "Expected values to be strictly equal: / 0 !== 2",
           "assertionLine": "200",
           "assertion": "assert.equal(state.currentPart, 2);"
+        }
+      ],
+      "stderr": ""
+    },
+    {
+      "id": "M28-encrypted-not-refused",
+      "applied": true,
+      "what": "an encrypted package goes on to the engine",
+      "expectedTests": [
+        "an encrypted package is refused before any engine is asked",
+        "the probe reads a STORED manifest"
+      ],
+      "red": true,
+      "caughtByExpected": true,
+      "exit": 1,
+      "counts": {
+        "tests": 22,
+        "pass": 20,
+        "fail": 2
+      },
+      "failures": [
+        {
+          "test": "an encrypted package is refused before any engine is asked",
+          "message": "Missing expected rejection.",
+          "assertionLine": "598",
+          "assertion": "await assert.rejects(session.open({ bytes: fixtureBuffer(\"upstream/password.ods\"), name: \"book.ods\" }),"
+        },
+        {
+          "test": "the probe reads a STORED manifest as well as a deflated one",
+          "message": "Missing expected rejection.",
+          "assertionLine": "611",
+          "assertion": "await assert.rejects(refused.session.open({ bytes: storedZip([MIMETYPE, ENCRYPTED_MANIFEST]), name: \"book.ods\" }),"
+        }
+      ],
+      "stderr": ""
+    },
+    {
+      "id": "M29-unreadable-refused",
+      "applied": true,
+      "what": "a package the probe cannot read is refused as if it were encrypted",
+      "expectedTests": [
+        "a package the probe cannot read goes to the engine"
+      ],
+      "red": true,
+      "caughtByExpected": true,
+      "exit": 1,
+      "counts": {
+        "tests": 22,
+        "pass": 4,
+        "fail": 18
+      },
+      "failures": [
+        {
+          "test": "pre-W7 handle: one tab per part, names synthesised and flagged, only the current tab enabled",
+          "message": "the document is password-protected; this viewer cannot open encrypted files",
+          "assertionLine": "162",
+          "assertion": "await session.open({ bytes: bytesOf(), name });"
+        },
+        {
+          "test": "W7-shaped handle: tabs carry the engine's names, all enabled, the current part is READ at open",
+          "message": "the document is password-protected; this viewer cannot open encrypted files",
+          "assertionLine": "162",
+          "assertion": "await session.open({ bytes: bytesOf(), name });"
+        },
+        {
+          "test": "showPart(k): the engine is switched, read back, and the scheduler paints part k",
+          "message": "the document is password-protected; this viewer cannot open encrypted files",
+          "assertionLine": "162",
+          "assertion": "await session.open({ bytes: bytesOf(), name });"
+        },
+        {
+          "test": "an engine that ignores set_part: the state follows the read-back, not the request",
+          "message": "the document is password-protected; this viewer cannot open encrypted files",
+          "assertionLine": "162",
+          "assertion": "await session.open({ bytes: bytesOf(), name });"
+        },
+        {
+          "test": "pre-W7: showPart(1) is refused with a typed error and nothing repaints; part 0 is not an engine confirmation",
+          "message": "the document is password-protected; this viewer cannot open encrypted files",
+          "assertionLine": "162",
+          "assertion": "await session.open({ bytes: bytesOf(), name });"
+        },
+        {
+          "test": "a part outside 0..parts-1 is refused before the engine is asked",
+          "message": "the document is password-protected; this viewer cannot open encrypted files",
+          "assertionLine": "162",
+          "assertion": "await session.open({ bytes: bytesOf(), name });"
+        },
+        {
+          "test": "a known non-spreadsheet document is refused, released, and paints nothing",
+          "message": "Expected values to be strictly equal: / + actual - expected",
+          "assertionLine": "297",
+          "assertion": "assert.equal(error.code, \"DOCUMENT_TYPE_REFUSED\");"
+        },
+        {
+          "test": "refusal needs a KNOWN wrong type: spreadsheet and unknown are both accepted",
+          "message": "the document is password-protected; this viewer cannot open encrypted files",
+          "assertionLine": "162",
+          "assertion": "await session.open({ bytes: bytesOf(), name });"
+        },
+        {
+          "test": "the spoof flag is set only when the adapter rewrote the name",
+          "message": "the document is password-protected; this viewer cannot open encrypted files",
+          "assertionLine": "162",
+          "assertion": "await session.open({ bytes: bytesOf(), name });"
+        },
+        {
+          "test": "a tile of the previous part never reaches onTile",
+          "message": "the document is password-protected; this viewer cannot open encrypted files",
+          "assertionLine": "162",
+          "assertion": "await session.open({ bytes: bytesOf(), name });"
+        },
+        {
+          "test": "the event listener is attached before initialisation",
+          "message": "the document is password-protected; this viewer cannot open encrypted files",
+          "assertionLine": "162",
+          "assertion": "await session.open({ bytes: bytesOf(), name });"
+        },
+        {
+          "test": "read-only: only render / setPart / close reach the document, only open / onEvent / dispose the engine",
+          "message": "the document is password-protected; this viewer cannot open encrypted files",
+          "assertionLine": "376",
+          "assertion": "await session.open({ bytes: bytesOf(), name: \"book.ods\" });"
+        },
+        {
+          "test": "switches are serialised: the last request is the one the engine and the state end on",
+          "message": "the document is password-protected; this viewer cannot open encrypted files",
+          "assertionLine": "162",
+          "assertion": "await session.open({ bytes: bytesOf(), name });"
+        },
+        {
+          "test": "a worker crash takes the session to a typed error and stops scheduling",
+          "message": "the document is password-protected; this viewer cannot open encrypted files",
+          "assertionLine": "162",
+          "assertion": "await session.open({ bytes: bytesOf(), name });"
+        },
+        {
+          "test": "an open that fails is typed, and the engine is given back",
+          "message": "Expected \"actual\" to be reference-equal to \"expected\": / + actual - expected",
+          "assertionLine": "437",
+          "assertion": "assert.equal(error, failure);"
+        },
+        {
+          "test": "partNames that disagree with parts are not used and the disagreement is recorded",
+          "message": "the document is password-protected; this viewer cannot open encrypted files",
+          "assertionLine": "162",
+          "assertion": "await session.open({ bytes: bytesOf(), name });"
+        },
+        {
+          "test": "a close() that arrives while the document is opening is not undone: what arrives late is given back",
+          "message": "the document is password-protected; this viewer cannot open encrypted files",
+          "assertionLine": "",
+          "assertion": ""
+        },
+        {
+          "test": "a package the probe cannot read goes to the engine: the probe is not a second format check",
+          "message": "the document is password-protected; this viewer cannot open encrypted files",
+          "assertionLine": "635",
+          "assertion": "await session.open({ bytes, name: \"book.ods\" });"
+        }
+      ],
+      "stderr": ""
+    },
+    {
+      "id": "M30-engine-requested-from-the-start",
+      "applied": true,
+      "what": "the state says an engine was asked for before any was",
+      "expectedTests": [
+        "an encrypted package is refused before any engine is asked",
+        "a close() that arrives while the document is opening"
+      ],
+      "red": true,
+      "caughtByExpected": true,
+      "exit": 1,
+      "counts": {
+        "tests": 22,
+        "pass": 20,
+        "fail": 2
+      },
+      "failures": [
+        {
+          "test": "a close() that arrives while the document is opening is not undone: what arrives late is given back",
+          "message": "Expected values to be strictly equal: / true !== false",
+          "assertionLine": "466",
+          "assertion": "assert.equal(session.state.engineRequested, false);"
+        },
+        {
+          "test": "an encrypted package is refused before any engine is asked",
+          "message": "Expected values to be strictly equal: / true !== false",
+          "assertionLine": "604",
+          "assertion": "assert.equal(state.engineRequested, false);"
+        }
+      ],
+      "stderr": ""
+    },
+    {
+      "id": "M31-close-during-probe-ignored",
+      "applied": true,
+      "what": "a close() during the package read does not stop the engine from being started",
+      "expectedTests": [
+        "a close() that arrives while the document is opening"
+      ],
+      "red": true,
+      "caughtByExpected": true,
+      "exit": 1,
+      "counts": {
+        "tests": 22,
+        "pass": 21,
+        "fail": 1
+      },
+      "failures": [
+        {
+          "test": "a close() that arrives while the document is opening is not undone: what arrives late is given back",
+          "message": "no engine was started after the close / 1 !== 0",
+          "assertionLine": "465",
+          "assertion": "assert.equal(factoryCalls, 0, \"no engine was started after the close\");"
+        }
+      ],
+      "stderr": ""
+    },
+    {
+      "id": "M32-deflate-not-read",
+      "applied": true,
+      "what": "a deflated manifest (every corpus file's) is not read",
+      "expectedTests": [
+        "an encrypted package is refused before any engine is asked",
+        "a plain package opens, and the state says what the probe saw"
+      ],
+      "red": true,
+      "caughtByExpected": true,
+      "exit": 1,
+      "counts": {
+        "tests": 22,
+        "pass": 20,
+        "fail": 2
+      },
+      "failures": [
+        {
+          "test": "an encrypted package is refused before any engine is asked",
+          "message": "Missing expected rejection.",
+          "assertionLine": "598",
+          "assertion": "await assert.rejects(session.open({ bytes: fixtureBuffer(\"upstream/password.ods\"), name: \"book.ods\" }),"
+        },
+        {
+          "test": "a plain package opens, and the state says what the probe saw",
+          "message": "Expected values to be strictly deep-equal: / + actual - expected",
+          "assertionLine": "627",
+          "assertion": "assert.deepEqual(session.state.packageProbe, { readable: true, encrypted: false, reason: null });"
+        }
+      ],
+      "stderr": ""
+    },
+    {
+      "id": "M33-stored-not-read",
+      "applied": true,
+      "what": "a stored manifest is read as empty",
+      "expectedTests": [
+        "the probe reads a STORED manifest"
+      ],
+      "red": true,
+      "caughtByExpected": true,
+      "exit": 1,
+      "counts": {
+        "tests": 22,
+        "pass": 21,
+        "fail": 1
+      },
+      "failures": [
+        {
+          "test": "the probe reads a STORED manifest as well as a deflated one",
+          "message": "Missing expected rejection.",
+          "assertionLine": "611",
+          "assertion": "await assert.rejects(refused.session.open({ bytes: storedZip([MIMETYPE, ENCRYPTED_MANIFEST]), name: \"book.ods\" }),"
+        }
+      ],
+      "stderr": ""
+    },
+    {
+      "id": "M34-prefixed-element-missed",
+      "applied": true,
+      "what": "only an unprefixed encryption-data element counts; ODF's is manifest:encryption-data",
+      "expectedTests": [
+        "an encrypted package is refused before any engine is asked",
+        "the probe reads a STORED manifest"
+      ],
+      "red": true,
+      "caughtByExpected": true,
+      "exit": 1,
+      "counts": {
+        "tests": 22,
+        "pass": 20,
+        "fail": 2
+      },
+      "failures": [
+        {
+          "test": "an encrypted package is refused before any engine is asked",
+          "message": "Missing expected rejection.",
+          "assertionLine": "598",
+          "assertion": "await assert.rejects(session.open({ bytes: fixtureBuffer(\"upstream/password.ods\"), name: \"book.ods\" }),"
+        },
+        {
+          "test": "the probe reads a STORED manifest as well as a deflated one",
+          "message": "Missing expected rejection.",
+          "assertionLine": "611",
+          "assertion": "await assert.rejects(refused.session.open({ bytes: storedZip([MIMETYPE, ENCRYPTED_MANIFEST]), name: \"book.ods\" }),"
+        }
+      ],
+      "stderr": ""
+    },
+    {
+      "id": "M35-unreadable-reason-dropped",
+      "applied": true,
+      "what": "the probe gives up without saying why",
+      "expectedTests": [
+        "a package the probe cannot read goes to the engine"
+      ],
+      "red": true,
+      "caughtByExpected": true,
+      "exit": 1,
+      "counts": {
+        "tests": 22,
+        "pass": 21,
+        "fail": 1
+      },
+      "failures": [
+        {
+          "test": "a package the probe cannot read goes to the engine: the probe is not a second format check",
+          "message": "the reason the probe gave up is recorded",
+          "assertionLine": "640",
+          "assertion": "assert.ok(session.state.packageProbe.reason, \"the reason the probe gave up is recorded\");"
         }
       ],
       "stderr": ""

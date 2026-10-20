@@ -32,6 +32,8 @@ TEST = PROJECT / "tests" / "ods-viewer-session.test.mjs"
 
 SESSION = "ods-viewer-session.js"
 ADAPTER = "w7-adapter.js"
+# Added 2026-10-20 with the package probe (specs/SPEC-M4-ods-in-nextcloud.md §5.2).
+PROBE = "odf-package-probe.js"
 
 # id, file, [(old, new), ...], what is broken, tests that must go red
 MUTATIONS = [
@@ -168,6 +170,47 @@ MUTATIONS = [
      [("    const initial = this._view.readBackPart();", "    const initial = null;")],
      "the part the engine is on at open is not read; part 0 is assumed even when the engine says otherwise",
      ["W7-shaped handle: tabs carry"]),
+    # ---- 2026-10-20: the package probe (SPEC-M4 §5.2, review C6) ----
+    ("M28-encrypted-not-refused", SESSION,
+     [("    if (this._packageProbe.encrypted === true) {", "    if (false) {")],
+     "an encrypted package goes on to the engine",
+     ["an encrypted package is refused before any engine is asked",
+      "the probe reads a STORED manifest"]),
+    ("M29-unreadable-refused", SESSION,
+     [("    if (this._packageProbe.encrypted === true) {",
+       "    if (this._packageProbe.encrypted !== false) {")],
+     "a package the probe cannot read is refused as if it were encrypted",
+     ["a package the probe cannot read goes to the engine"]),
+    ("M30-engine-requested-from-the-start", SESSION,
+     [("    this._engineRequested = false;\n", "    this._engineRequested = true;\n")],
+     "the state says an engine was asked for before any was",
+     ["an encrypted package is refused before any engine is asked",
+      "a close() that arrives while the document is opening"]),
+    ("M31-close-during-probe-ignored", SESSION,
+     [("    this._packageProbe = await probeOdfPackage(bytes);\n    this._assertNotClosedDuringOpen();\n",
+       "    this._packageProbe = await probeOdfPackage(bytes);\n")],
+     "a close() during the package read does not stop the engine from being started",
+     ["a close() that arrives while the document is opening"]),
+    ("M32-deflate-not-read", PROBE,
+     [("  else if (entry.method === 8)", "  else if (entry.method === 9)")],
+     "a deflated manifest (every corpus file's) is not read",
+     ["an encrypted package is refused before any engine is asked",
+      "a plain package opens, and the state says what the probe saw"]),
+    ("M33-stored-not-read", PROBE,
+     [("  if (entry.method === 0)\n    raw = compressed;", "  if (entry.method === 0)\n    raw = new Uint8Array(0);")],
+     "a stored manifest is read as empty",
+     ["the probe reads a STORED manifest"]),
+    ("M34-prefixed-element-missed", PROBE,
+     [("const ENCRYPTION_DATA = /<(?:[A-Za-z_][\\w.-]*:)?encryption-data\\b/;",
+       "const ENCRYPTION_DATA = /<encryption-data\\b/;")],
+     "only an unprefixed encryption-data element counts; ODF's is manifest:encryption-data",
+     ["an encrypted package is refused before any engine is asked",
+      "the probe reads a STORED manifest"]),
+    ("M35-unreadable-reason-dropped", PROBE,
+     [("  return { readable: false, encrypted: null, reason };",
+       "  return { readable: false, encrypted: null, reason: null };")],
+     "the probe gives up without saying why",
+     ["a package the probe cannot read goes to the engine"]),
 ]
 
 

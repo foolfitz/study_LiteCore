@@ -97,3 +97,14 @@ python3 wasm_sdk_probe/tools/run_ods_viewer_draft_smoke.py --check-only   # exit
 python3 wasm_sdk_probe/tools/run_ods_viewer_draft_smoke.py                # guarded; one browser run
 cd wasm_sdk_probe && python3 tools/build_e2_c_shell_bundle.py --manifest e2/editor-shell-v2-bundle-v66.json   # no --write
 ```
+
+## Addendum, 2026-10-20: step 0 of SPEC-M4 (the package probe and the page fixes)
+
+Spec: `specs/SPEC-M4-ods-in-nextcloud.md` §5 (pinned in `d7ab2815`).
+
+- **New module `viewer-shell/odf-package-probe.js`.** It reads `META-INF/manifest.xml` from the zip's central directory (stored or deflate) and reports `encryption-data`. The session asks it **before** `engineFactory`: encrypted → `ENCRYPTED_DOCUMENT`, state `refused`, no engine. A package it cannot read goes to the engine as before, with the reason in the state. Checked over the 306-file corpus with the module itself (node, 2026-10-20): 3 encrypted (exactly the three `expect: "refused"`), 303 plain, 0 unreadable, 0 mismatches.
+- **Unit test: 22 tests** (18 + 4 for the probe). The close-during-open test now waits for the factory (phase 1) and the document open (phase 2) to be *called* before closing; a fixed delay landed in the new package read instead, so phase 1 no longer tested the window it names. Phase 0 (closed during the package read) is new.
+- **Red cases: 35 mutations** (27 + M28–M35 for the probe and the refusal path). `red-cases.txt`: control 22/22, every mutation red in a test it names, `problems: none`.
+- **Page:** one `:root` rule (`light-dark()`); the worker URL hard-coded to `./profiles/ods-viewer-v1/sdk-worker.js` as the only `workerUrl: "./…"` literal in the file (the packager's pattern; a comment containing it would count); `?profile=` dropped; `data-dev-only` on the header, the toolbar and the status line; `?diagnostics=1` records stage lines and de-duplicated engine messages per run; `record.close`.
+- **Smoke runner:** `PAGE_FILES` carries the new module, and the mirror's copy of the page is retargeted to `--profile` (anchor exactly once; both hashes in the report). Self-test 20/20.
+- **Shell bundle v75 unchanged:** `build_e2_c_shell_bundle.py --manifest e2/editor-shell-v2-bundle-v75.json` (no `--write`) gives `5b14038e…`, `problems: []`.

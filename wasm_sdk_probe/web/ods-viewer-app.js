@@ -14,10 +14,22 @@ import { DocumentEngine } from "./sdk/document-sdk.js";
 import { OdsViewerSession } from "./viewer-shell/ods-viewer-session.js";
 
 const params = new URLSearchParams(location.search);
-const requestedProfile = params.get("profile") || "e2-editor-v14";
-// The profile becomes a path segment; refuse anything that is not a plain name.
-const profile = /^[A-Za-z0-9._-]+$/.test(requestedProfile) ? requestedProfile : "e2-editor-v14";
+// The engine this page is for, hard-coded as ONE double-quoted relative worker
+// URL literal (SPEC-M4 §3.5, §5.1; review C3) -- the packager's pattern must
+// match exactly once in this file, comments included: it derives the page's
+// closure from exactly that, and a profile picked from the URL would be a path
+// the host serves whatever its evidence.  Before `ods-viewer-v1` is linked, a
+// mirror run rewrites this literal in its OWN copy of the page, never here.
+const ENGINE_OPTIONS = Object.freeze({
+  workerUrl: "./profiles/ods-viewer-v1/sdk-worker.js",
+  timeoutMs: 60000,
+});
 const OPEN_TIMEOUT_MS = Number.parseInt(params.get("openTimeoutMs") || "180000", 10);
+// `?diagnostics=1`: the engine speaks (`debug: true`) and each run keeps the
+// stage lines -- they carry `sbrk`, which E6 is read from -- and the engine's
+// stderr, de-duplicated.  It changes what is recorded, never what is opened.
+const DIAGNOSTICS = params.get("diagnostics") === "1";
+const DISTINCT_MESSAGES_KEPT = 300;
 
 const $ = (selector) => document.querySelector(selector);
 const el = {
@@ -48,7 +60,8 @@ const FALLBACK_TEXT = {
 const record = {
   schemaVersion: 1,
   release: "m4-ods-viewer-draft",
-  profile,
+  workerUrl: ENGINE_OPTIONS.workerUrl,
+  diagnostics: DIAGNOSTICS,
   openTimeoutMs: OPEN_TIMEOUT_MS,
   runs: [],
   current: null,
@@ -78,12 +91,41 @@ async function sha256Hex(bytes) {
 // resolves only after it.  `_initialize` is what `createDocumentEngine` calls;
 // splitting it is the only way to put the listener first.
 async function engineFactory({ onEvent }) {
-  const engine = new DocumentEngine({
-    workerUrl: `./profiles/${profile}/sdk-worker.js`,
-    timeoutMs: 60000,
-  });
+  const engine = new DocumentEngine({ ...ENGINE_OPTIONS, debug: DIAGNOSTICS });
   engine.onEvent(onEvent);
   return engine._initialize();
+}
+
+// What one run heard from its engine.  Stage lines are kept whole (each is one
+// `sbrk` sample); every other message is counted once per distinct text, or a
+// sweep's repeated warnings outgrow what CDP will carry (measured 2026-09-03).
+function recordEngineEvent(run, event) {
+  if (!event?.event)
+    return;
+  if (event.event === "view-ready" && run.viewReadyAtMs === null)
+    run.viewReadyAtMs = Math.round(performance.now() - run.startedAtMs);
+  if (event.event !== "diagnostic") {
+    run.engineEvents.push(event.event);
+    return;
+  }
+  if (event.level === "stage" && event.detail) {
+    run.stages.push({ ...event.detail, atMs: Math.round(performance.now() - run.startedAtMs) });
+    return;
+  }
+  const text = event.message ?? (event.detail ? JSON.stringify(event.detail) : null);
+  if (text === null)
+    return;
+  const key = `${event.level}:${String(text).slice(0, 200)}`;
+  const row = run.messageIndex.get(key);
+  if (row) {
+    row.count += 1;
+  } else if (run.messages.length < DISTINCT_MESSAGES_KEPT) {
+    const added = { level: event.level, message: String(text).slice(0, 200), count: 1 };
+    run.messageIndex.set(key, added);
+    run.messages.push(added);
+  } else {
+    run.messagesDropped += 1;
+  }
 }
 
 function setField(name, value) {
@@ -256,6 +298,8 @@ async function openFile(file) {
     file: file.name, startedAtMs: Math.round(performance.now()),
     settled: false, opened: null, refused: null, error: null, tileDraws: 0,
     engineEvents: [], firstTile: null, firstTilePromise: null,
+    engineCreated: false, viewReadyAtMs: null, stages: [], messages: [],
+    messagesDropped: 0, messageIndex: new Map(),
   };
   record.runs.push(run);
   record.current = run;
@@ -271,14 +315,13 @@ async function openFile(file) {
     return;
   }
   const session = new OdsViewerSession({
-    engineFactory,
+    // Counted per run: an encrypted file must be refused with this still false.
+    engineFactory: (options) => { run.engineCreated = true; return engineFactory(options); },
     openTimeoutMs: OPEN_TIMEOUT_MS,
     tileOptions: { tileSizePx: 256, prefetchTiles: 1, maxInFlight: 2 },
     onState: render,
     onTile: drawTile,
-    onEvent: (event) => {
-      if (event?.event && event.event !== "diagnostic") run.engineEvents.push(event.event);
-    },
+    onEvent: (event) => recordEngineEvent(run, event),
   });
   record.session = session;
   try {
@@ -310,6 +353,9 @@ el.file.addEventListener("change", () => {
   });
 });
 el.close.addEventListener("click", () => { closeCurrent(); });
+// The same door for a runner: the last document's close is where its
+// `document-destroy-*` stage lines come from.
+record.close = closeCurrent;
 el.viewport.addEventListener("scroll", () => {
   clearTimeout(record.scrollTimer);
   record.scrollTimer = setTimeout(scheduleViewport, 30);

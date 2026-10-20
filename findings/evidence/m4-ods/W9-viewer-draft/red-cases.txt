@@ -1,4 +1,4 @@
-control (unmutated): {'tests': 18, 'pass': 18, 'fail': 0}
+control (unmutated): {'tests': 22, 'pass': 22, 'fail': 0}
 M01-one-tab-short: red=True failed=3 named-test-caught=True
     - pre-W7 handle: one tab per part, names synthesised and flagg
         line 173: assert.equal(state.tabs.length, 3);
@@ -131,22 +131,117 @@ M23-open-failure-not-released: red=True failed=2 named-test-caught=True
         line 442: assert.equal(engine.disposed, true);
         message: Expected values to be strictly equal: / false !== true
     - a close() that arrives while the document is opening is not 
-        line 466: assert.equal(engine.disposed, true, "the engine that finished starting was disposed");
+        line 484: assert.equal(engine.disposed, true, "the engine that finished starting was disposed");
         message: the engine that finished starting was disposed / false !== true
 M25-late-engine-adopted: red=True failed=1 named-test-caught=True
     - a close() that arrives while the document is opening is not 
-        line 467: assert.equal(engine.openCalls.length, 0, "no document was opened on it");
+        line 485: assert.equal(engine.openCalls.length, 0, "no document was opened on it");
         message: no document was opened on it / 1 !== 0
 M26-late-document-adopted: red=True failed=1 named-test-caught=True
     - a close() that arrives while the document is opening is not 
-        line 480: await assert.rejects(opening, { code: "CLOSED_DURING_OPEN" });
+        line 506: await assert.rejects(opening, { code: "CLOSED_DURING_OPEN" });
         message: Missing expected rejection.
 M27-close-does-not-record-itself: red=True failed=1 named-test-caught=True
     - a close() that arrives while the document is opening is not 
-        line 465: await assert.rejects(opening, { code: "CLOSED_DURING_OPEN" });
+        line 464: await assert.rejects(opening, { code: "CLOSED_DURING_OPEN" });
         message: Missing expected rejection.
 M24-initial-part-not-read: red=True failed=1 named-test-caught=True
     - W7-shaped handle: tabs carry the engine's names, all enabled
         line 200: assert.equal(state.currentPart, 2);
         message: Expected values to be strictly equal: / 0 !== 2
+M28-encrypted-not-refused: red=True failed=2 named-test-caught=True
+    - an encrypted package is refused before any engine is asked
+        line 598: await assert.rejects(session.open({ bytes: fixtureBuffer("upstream/password.ods"), name: "book.ods" }),
+        message: Missing expected rejection.
+    - the probe reads a STORED manifest as well as a deflated one
+        line 611: await assert.rejects(refused.session.open({ bytes: storedZip([MIMETYPE, ENCRYPTED_MANIFEST]), name: "book.ods"
+        message: Missing expected rejection.
+M29-unreadable-refused: red=True failed=18 named-test-caught=True
+    - pre-W7 handle: one tab per part, names synthesised and flagg
+        line 162: await session.open({ bytes: bytesOf(), name });
+        message: the document is password-protected; this viewer cannot open encrypted files
+    - W7-shaped handle: tabs carry the engine's names, all enabled
+        line 162: await session.open({ bytes: bytesOf(), name });
+        message: the document is password-protected; this viewer cannot open encrypted files
+    - showPart(k): the engine is switched, read back, and the sche
+        line 162: await session.open({ bytes: bytesOf(), name });
+        message: the document is password-protected; this viewer cannot open encrypted files
+    - an engine that ignores set_part: the state follows the read-
+        line 162: await session.open({ bytes: bytesOf(), name });
+        message: the document is password-protected; this viewer cannot open encrypted files
+    - pre-W7: showPart(1) is refused with a typed error and nothin
+        line 162: await session.open({ bytes: bytesOf(), name });
+        message: the document is password-protected; this viewer cannot open encrypted files
+    - a part outside 0..parts-1 is refused before the engine is as
+        line 162: await session.open({ bytes: bytesOf(), name });
+        message: the document is password-protected; this viewer cannot open encrypted files
+    - a known non-spreadsheet document is refused, released, and p
+        line 297: assert.equal(error.code, "DOCUMENT_TYPE_REFUSED");
+        message: Expected values to be strictly equal: / + actual - expected
+    - refusal needs a KNOWN wrong type: spreadsheet and unknown ar
+        line 162: await session.open({ bytes: bytesOf(), name });
+        message: the document is password-protected; this viewer cannot open encrypted files
+    - the spoof flag is set only when the adapter rewrote the name
+        line 162: await session.open({ bytes: bytesOf(), name });
+        message: the document is password-protected; this viewer cannot open encrypted files
+    - a tile of the previous part never reaches onTile
+        line 162: await session.open({ bytes: bytesOf(), name });
+        message: the document is password-protected; this viewer cannot open encrypted files
+    - the event listener is attached before initialisation
+        line 162: await session.open({ bytes: bytesOf(), name });
+        message: the document is password-protected; this viewer cannot open encrypted files
+    - read-only: only render / setPart / close reach the document,
+        line 376: await session.open({ bytes: bytesOf(), name: "book.ods" });
+        message: the document is password-protected; this viewer cannot open encrypted files
+    - switches are serialised: the last request is the one the eng
+        line 162: await session.open({ bytes: bytesOf(), name });
+        message: the document is password-protected; this viewer cannot open encrypted files
+    - a worker crash takes the session to a typed error and stops 
+        line 162: await session.open({ bytes: bytesOf(), name });
+        message: the document is password-protected; this viewer cannot open encrypted files
+    - an open that fails is typed, and the engine is given back
+        line 437: assert.equal(error, failure);
+        message: Expected "actual" to be reference-equal to "expected": / + actual - expected
+    - partNames that disagree with parts are not used and the disa
+        line 162: await session.open({ bytes: bytesOf(), name });
+        message: the document is password-protected; this viewer cannot open encrypted files
+    - a close() that arrives while the document is opening is not 
+        line : 
+        message: the document is password-protected; this viewer cannot open encrypted files
+    - a package the probe cannot read goes to the engine: the prob
+        line 635: await session.open({ bytes, name: "book.ods" });
+        message: the document is password-protected; this viewer cannot open encrypted files
+M30-engine-requested-from-the-start: red=True failed=2 named-test-caught=True
+    - a close() that arrives while the document is opening is not 
+        line 466: assert.equal(session.state.engineRequested, false);
+        message: Expected values to be strictly equal: / true !== false
+    - an encrypted package is refused before any engine is asked
+        line 604: assert.equal(state.engineRequested, false);
+        message: Expected values to be strictly equal: / true !== false
+M31-close-during-probe-ignored: red=True failed=1 named-test-caught=True
+    - a close() that arrives while the document is opening is not 
+        line 465: assert.equal(factoryCalls, 0, "no engine was started after the close");
+        message: no engine was started after the close / 1 !== 0
+M32-deflate-not-read: red=True failed=2 named-test-caught=True
+    - an encrypted package is refused before any engine is asked
+        line 598: await assert.rejects(session.open({ bytes: fixtureBuffer("upstream/password.ods"), name: "book.ods" }),
+        message: Missing expected rejection.
+    - a plain package opens, and the state says what the probe saw
+        line 627: assert.deepEqual(session.state.packageProbe, { readable: true, encrypted: false, reason: null });
+        message: Expected values to be strictly deep-equal: / + actual - expected
+M33-stored-not-read: red=True failed=1 named-test-caught=True
+    - the probe reads a STORED manifest as well as a deflated one
+        line 611: await assert.rejects(refused.session.open({ bytes: storedZip([MIMETYPE, ENCRYPTED_MANIFEST]), name: "book.ods"
+        message: Missing expected rejection.
+M34-prefixed-element-missed: red=True failed=2 named-test-caught=True
+    - an encrypted package is refused before any engine is asked
+        line 598: await assert.rejects(session.open({ bytes: fixtureBuffer("upstream/password.ods"), name: "book.ods" }),
+        message: Missing expected rejection.
+    - the probe reads a STORED manifest as well as a deflated one
+        line 611: await assert.rejects(refused.session.open({ bytes: storedZip([MIMETYPE, ENCRYPTED_MANIFEST]), name: "book.ods"
+        message: Missing expected rejection.
+M35-unreadable-reason-dropped: red=True failed=1 named-test-caught=True
+    - a package the probe cannot read goes to the engine: the prob
+        line 640: assert.ok(session.state.packageProbe.reason, "the reason the probe gave up is recorded");
+        message: the reason the probe gave up is recorded
 problems: none

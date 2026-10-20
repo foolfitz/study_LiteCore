@@ -14,6 +14,7 @@
 // Imports `reader-shell/tile-scheduler.js` UNMODIFIED, and sits outside the five
 // bundle-scoped directories, so the product page's import graph cannot reach it.
 import { TileScheduler } from "../reader-shell/tile-scheduler.js";
+import { probeOdfPackage } from "./odf-package-probe.js";
 import { ViewerError } from "./viewer-error.js";
 import { adaptHandle, engineOpenName, SPREADSHEET } from "./w7-adapter.js";
 
@@ -54,6 +55,8 @@ export class OdsViewerSession {
     this._fileName = null;
     this._openName = null;
     this._nameSpoofed = false;
+    this._packageProbe = null;
+    this._engineRequested = false;
     this._currentPart = null;
     this._readBack = null;
     this._lastRefusal = null;
@@ -86,6 +89,10 @@ export class OdsViewerSession {
       fileName: this._fileName,
       openName: this._openName,
       nameSpoofed: this._nameSpoofed,
+      // What the package said before any engine was asked (C6), and whether one
+      // was asked at all: an encrypted file is refused with this still false.
+      packageProbe: this._packageProbe ? { ...this._packageProbe } : null,
+      engineRequested: this._engineRequested,
       documentType: view ? view.documentType : null,
       documentTypeKnown: view ? view.documentTypeKnown : false,
       parts: view ? view.parts : 0,
@@ -135,7 +142,21 @@ export class OdsViewerSession {
     this._fileName = String(name || "");
     this._state = "opening";
     this._emit();
+
+    // BEFORE the engine queue (SPEC-M4 E2, 09-03's G2): an encrypted package is
+    // a typed refusal and no engine is started for it.  A package the probe
+    // cannot read goes on to the engine, which says what it says.
+    this._packageProbe = await probeOdfPackage(bytes);
+    this._assertNotClosedDuringOpen();
+    if (this._packageProbe.encrypted === true) {
+      const refusal = new ViewerError("ENCRYPTED_DOCUMENT",
+        "the document is password-protected; this viewer cannot open encrypted files");
+      this._fail("refused", refusal, "ENCRYPTED_DOCUMENT");
+      throw refusal;
+    }
+
     try {
+      this._engineRequested = true;
       this._engine = await this._engineFactory({ onEvent: this._eventSink });
       this._assertNotClosedDuringOpen();
       const { openName, nameSpoofed } = engineOpenName(this._fileName, this._engine.manifest);

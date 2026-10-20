@@ -334,3 +334,53 @@ Firefox 會不會把一個 **47,987,197 B 的 gzip 編碼回應**（v14 的 `pro
 | 日期 | 改了什麼 |
 | --- | --- |
 | 2026-10-20 | 立。折入審查 B1、B2、C1–C6、M1–M8 與修正段；D3＝A、D5＝A（擁有者：依 fable 建議）；E8 依 §2 的 metadata 比對改成「`9901e9be` 減掉 `35-lang-normalize.conf`」（審查與修正段都釘 `9901e9be`，會帶回 finding 114） |
+
+---
+
+# 追加 1（2026-10-20 晚）：第 1 步的結果，與 E6 的更正
+
+只 append；上面一字不改。
+
+## A1.1 第 1 步：四項預測全中（診斷）
+
+證據：`findings/evidence/m4-ods/step1-mirror-v14-1mib/`（`report-2026-10-20T113849Z.json`、README）。Chrome 151，headless，
+快取關。runner `tools/run_ods_viewer_step1.py`，判讀器自測 12/12 在跑之前。
+
+| 檔 | 結果 | parts | `open.begin` sbrk | 最後一個 open stage | 回報 1 MiB 的 pthread |
+| --- | --- | ---: | ---: | ---: | ---: |
+| `three-sheets-distinct.ods` | 開 | 3 | 293,015,552 | 298,328,064 | 3 |
+| `numeric-100k.ods` | 開 | 1 | 294,244,352 | 317,792,256 | 3 |
+| `tdf149752.ods`（089） | 開 | 2 | 293,015,552 | 305,037,312 | 7 |
+| `password.ods` | `ENCRYPTED_DOCUMENT`，**沒有建立引擎**、沒有任何 stage 與引擎事件 | — | — | — | — |
+
+- **089**：1 MiB 下經**頁面的路**開得了。§2 的「沒量」縮成：reader 物件集在這顆核心上、以連結帶 1 MiB（只有連結能答）。
+- **開機差異全是堆疊**：v14 的 `open.begin` 減 W1 的 v12 開機＝2,949,120＝3 ×（1,048,576 − 65,536），那一輪正好三條 pthread
+  回報 1 MiB（**已觀察**）。§7 的預測寫「約 +7 MiB」是七條全起的上界；實際只起三條（`tdf149752.ods` 起了七條，但都在
+  `open.begin` 之後）。
+- `dist/profiles/e2-editor-v14/probe.js` 跑完 sha 不變。
+
+## A1.2 E6 的更正：關檔的 stage 行在檢視連結上不存在
+
+**被逼出來的量測**：上面那一輪，三顆引擎、四次關檔，**收到 0 行** `document-destroy-*`。原因（**讀原始碼**）：那兩個 stage
+只在 `#ifdef OXSDK_DIAGNOSTIC_CLOSE_STAGES` 底下發（`probe_engine.cpp:2548-2553`），沒有任何產品或編輯器的 rule 定義它。
+§4 的 E6 寫「所有 stage 行（含 `document-destroy-enter`）的最大值」，在檢視連結上只會看到開檔的 stage——E6 說它涵蓋畫圖
+階段，其實不涵蓋。
+
+**處置**（CLAUDE.md §9 的四個條件：先於滿足——還沒有任何 E6 執行；被逼出來且指名——上面那份報告；形式 1；截止——E6 第一次
+算數的執行）：
+
+1. §3.2 的表**加一列**：`OXSDK_ODS_VIEWER` 也打開那兩行 stage——
+   `#if defined(OXSDK_DIAGNOSTIC_CLOSE_STAGES) || defined(OXSDK_ODS_VIEWER)`。只多兩行 JSON，只在 `debug` 時轉給頁面。
+2. **E6 取代為**：每筆：開檔＋每張表一塊 tile＋關檔期間，所有 stage 行的 `sbrk` 最大值 < 939,524,096，**而且該筆的 stage 行裡
+   要有 `document-destroy-enter`**；沒有它的那一筆，E6 對它不成立（不是「沒看到超過」）。洩漏界限 B 的寫法不變。
+3. **紅案**（O2）：E6 的判讀器拿到沒有 `document-destroy-enter` 的報告要紅。
+4. §4 E6 底下「`document-destroy-enter` 在每張表畫完之後……上界」那段的前提，改成在第 1 點落地之後才成立；dlmalloc 中途
+   還回頂端會漏掉短暫峰值，仍是**推論**、登錄。
+
+**計數語意**：E／H 都還沒有任何執行，沒有東西歸零。
+
+## A1.3 修訂紀錄（續）
+
+| 日期 | 改了什麼 |
+| --- | --- |
+| 2026-10-20 晚 | 追加 1：第 1 步四項預測全中；E6 取代為「要有 `document-destroy-enter`」，`OXSDK_ODS_VIEWER` 打開關檔 stage |

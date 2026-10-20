@@ -453,14 +453,32 @@ test("partNames that disagree with parts are not used and the disagreement is re
 });
 
 test("a close() that arrives while the document is opening is not undone: what arrives late is given back", async () => {
-  // Phase 1: closed while the engine is still starting.
+  // Phase 0: closed while the package is still being read -- no engine is asked for.
+  {
+    let factoryCalls = 0;
+    const session = new OdsViewerSession({
+      engineFactory: async () => { factoryCalls += 1; return new FakeEngine(new FakeHandle()); },
+    });
+    const opening = session.open({ bytes: bytesOf(), name: "slow.ods" });
+    await session.close();
+    await assert.rejects(opening, { code: "CLOSED_DURING_OPEN" });
+    assert.equal(factoryCalls, 0, "no engine was started after the close");
+    assert.equal(session.state.engineRequested, false);
+    assert.equal(session.state.state, "closed");
+  }
+  // Phase 1: closed while the engine is still starting.  The close waits for the
+  // factory to be CALLED, so it lands in the engine's start and not in the
+  // package read before it.
   {
     const handle = new FakeHandle({ parts: 1 });
     const engine = new FakeEngine(handle);
+    let factoryCalled;
+    const called = new Promise((resolve) => { factoryCalled = resolve; });
     const session = new OdsViewerSession({
-      engineFactory: async () => { await wait(20); return engine; },
+      engineFactory: async () => { factoryCalled(); await wait(20); return engine; },
     });
     const opening = session.open({ bytes: bytesOf(), name: "slow.ods" });
+    await called;
     await session.close();
     await assert.rejects(opening, { code: "CLOSED_DURING_OPEN" });
     assert.equal(engine.disposed, true, "the engine that finished starting was disposed");
@@ -472,15 +490,153 @@ test("a close() that arrives while the document is opening is not undone: what a
     const handle = new FakeHandle({ parts: 1 });
     const engine = new FakeEngine(handle);
     const realOpen = engine.open.bind(engine);
-    engine.open = async (bytes, options) => { await wait(20); return realOpen(bytes, options); };
+    // The close waits for the document open to be ASKED, as phase 1 waits for
+    // the factory: a fixed delay would land in whatever came before it.
+    let openCalled;
+    const called = new Promise((resolve) => { openCalled = resolve; });
+    engine.open = async (bytes, options) => {
+      openCalled();
+      await wait(20);
+      return realOpen(bytes, options);
+    };
     const session = new OdsViewerSession({ engineFactory: factoryFor(engine) });
     const opening = session.open({ bytes: bytesOf(), name: "slow.ods" });
-    await wait(5);
+    await called;
     await session.close();
     await assert.rejects(opening, { code: "CLOSED_DURING_OPEN" });
     assert.equal(handle.closed, true, "the document that opened late was closed");
     assert.equal(engine.disposed, true);
     assert.equal(session.state.state, "closed");
     assert.equal(session.scheduler, null, "no scheduler was built for a closed session");
+  }
+});
+
+// ---------------------------------------------------------------------------
+// The package probe (SPEC-M4-ods-in-nextcloud §5.2; review C6): an encrypted
+// file is refused BEFORE the engine queue, and a package the probe cannot read
+// is the engine's to judge.
+const CORPUS = path.join(here, "..", "test-docs", "ods");
+
+function fixtureBuffer(relative) {
+  const buffer = readFileSync(path.join(CORPUS, relative));
+  return buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
+}
+
+// A zip whose entries are all STORED (method 0), so the probe's other path is
+// exercised: the corpus manifests are all deflated.  CRCs stay 0 -- the probe
+// does not read them.
+function storedZip(entries) {
+  const encoder = new TextEncoder();
+  const parts = [];
+  const centrals = [];
+  let offset = 0;
+  for (const [name, text] of entries) {
+    const nameBytes = encoder.encode(name);
+    const data = encoder.encode(text);
+    const local = new Uint8Array(30 + nameBytes.length + data.length);
+    const lv = new DataView(local.buffer);
+    lv.setUint32(0, 0x04034b50, true);
+    lv.setUint16(4, 20, true);
+    lv.setUint32(18, data.length, true);
+    lv.setUint32(22, data.length, true);
+    lv.setUint16(26, nameBytes.length, true);
+    local.set(nameBytes, 30);
+    local.set(data, 30 + nameBytes.length);
+    const central = new Uint8Array(46 + nameBytes.length);
+    const cv = new DataView(central.buffer);
+    cv.setUint32(0, 0x02014b50, true);
+    cv.setUint16(4, 20, true);
+    cv.setUint16(6, 20, true);
+    cv.setUint32(20, data.length, true);
+    cv.setUint32(24, data.length, true);
+    cv.setUint16(28, nameBytes.length, true);
+    cv.setUint32(42, offset, true);
+    central.set(nameBytes, 46);
+    parts.push(local);
+    centrals.push(central);
+    offset += local.length;
+  }
+  const directorySize = centrals.reduce((sum, entry) => sum + entry.length, 0);
+  const end = new Uint8Array(22);
+  const ev = new DataView(end.buffer);
+  ev.setUint32(0, 0x06054b50, true);
+  ev.setUint16(8, entries.length, true);
+  ev.setUint16(10, entries.length, true);
+  ev.setUint32(12, directorySize, true);
+  ev.setUint32(16, offset, true);
+  const all = new Uint8Array(offset + directorySize + end.length);
+  let at = 0;
+  for (const piece of [...parts, ...centrals, end]) {
+    all.set(piece, at);
+    at += piece.length;
+  }
+  return all.buffer;
+}
+
+const MIMETYPE = ["mimetype", "application/vnd.oasis.opendocument.spreadsheet"];
+const ENCRYPTED_MANIFEST = ["META-INF/manifest.xml",
+  '<manifest:manifest xmlns:manifest="urn:oasis:names:tc:opendocument:xmlns:manifest:1.0">'
+  + '<manifest:file-entry manifest:full-path="content.xml" manifest:media-type="text/xml">'
+  + '<manifest:encryption-data manifest:checksum-type="SHA1" manifest:checksum="AA=="/>'
+  + "</manifest:file-entry></manifest:manifest>"];
+const PLAIN_MANIFEST = ["META-INF/manifest.xml",
+  '<manifest:manifest xmlns:manifest="urn:oasis:names:tc:opendocument:xmlns:manifest:1.0">'
+  + '<manifest:file-entry manifest:full-path="content.xml" manifest:media-type="text/xml"/>'
+  + "</manifest:manifest>"];
+
+function countingViewer(handle = new FakeW7Handle({ parts: 1 })) {
+  const engine = new FakeEngine(handle, W7_ENGINE);
+  const calls = { factory: 0 };
+  const session = new OdsViewerSession({
+    engineFactory: async (options) => { calls.factory += 1; return factoryFor(engine)(options); },
+  });
+  return { session, engine, calls };
+}
+
+test("an encrypted package is refused before any engine is asked", async () => {
+  const { session, engine, calls } = countingViewer();
+  await assert.rejects(session.open({ bytes: fixtureBuffer("upstream/password.ods"), name: "book.ods" }),
+    { code: "ENCRYPTED_DOCUMENT" });
+  const state = session.state;
+  assert.equal(state.state, "refused");
+  assert.equal(state.error.code, "ENCRYPTED_DOCUMENT");
+  assert.equal(calls.factory, 0, "no engine was started for an encrypted file");
+  assert.equal(state.engineRequested, false);
+  assert.deepEqual(state.packageProbe, { readable: true, encrypted: true, reason: null });
+  assert.equal(engine.openCalls.length, 0);
+});
+
+test("the probe reads a STORED manifest as well as a deflated one", async () => {
+  const refused = countingViewer();
+  await assert.rejects(refused.session.open({ bytes: storedZip([MIMETYPE, ENCRYPTED_MANIFEST]), name: "book.ods" }),
+    { code: "ENCRYPTED_DOCUMENT" });
+  assert.equal(refused.calls.factory, 0);
+
+  const plain = countingViewer();
+  await plain.session.open({ bytes: storedZip([MIMETYPE, PLAIN_MANIFEST]), name: "book.ods" });
+  assert.equal(plain.session.state.state, "ready");
+  assert.deepEqual(plain.session.state.packageProbe, { readable: true, encrypted: false, reason: null });
+});
+
+test("a plain package opens, and the state says what the probe saw", async () => {
+  const { session, calls } = countingViewer(new FakeW7Handle({ parts: 3 }));
+  await session.open({ bytes: fixtureBuffer("ladder/three-sheets-distinct.ods"), name: "book.ods" });
+  assert.equal(session.state.state, "ready");
+  assert.equal(calls.factory, 1);
+  assert.equal(session.state.engineRequested, true);
+  assert.deepEqual(session.state.packageProbe, { readable: true, encrypted: false, reason: null });
+});
+
+test("a package the probe cannot read goes to the engine: the probe is not a second format check", async () => {
+  // Zero bytes of zip, and an encrypted file cut short (its end record gone).
+  const cut = fixtureBuffer("upstream/password.ods");
+  for (const bytes of [bytesOf(), cut.slice(0, cut.byteLength - 100)]) {
+    const { session, calls } = countingViewer();
+    await session.open({ bytes, name: "book.ods" });
+    assert.equal(session.state.state, "ready", "the fake engine opened what the probe could not read");
+    assert.equal(calls.factory, 1);
+    assert.equal(session.state.packageProbe.readable, false);
+    assert.equal(session.state.packageProbe.encrypted, null);
+    assert.ok(session.state.packageProbe.reason, "the reason the probe gave up is recorded");
   }
 });

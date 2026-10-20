@@ -5,8 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>試算表檢視頁（草稿）</title>
   <style>
-    :root { color-scheme: light dark; --line: #8886; --warn-bg: #fff3cd; --warn-fg: #5c4400; }
-    @media (prefers-color-scheme: dark) { :root { --warn-bg: #4a3b00; --warn-fg: #ffe9a8; } }
+    /* ONE document-level colour rule (SPEC-M4 §5.1; review C2): the host scopes this stylesheet and
+       refuses a page with a second one, which the dark-mode override used to be. */
+    :root { color-scheme: light dark; --line: #8886;
+      --warn-bg: light-dark(#fff3cd, #4a3b00); --warn-fg: light-dark(#5c4400, #ffe9a8); }
     body { margin: 0; font: 14px/1.5 system-ui, sans-serif; }
     header, main { padding: 8px 16px; }
     h1 { font-size: 18px; margin: 0; }
@@ -30,18 +32,18 @@
   </style>
 </head>
 <body>
-  <header>
+  <header data-dev-only>
     <h1>試算表檢視頁（唯讀・草稿）</h1>
     <p>只讀取、不編輯、不存檔。這是計畫 W9 的草稿：引擎端的 W7 還不存在，凡是檢視頁自己代答的地方都會標在下方橫幅。</p>
   </header>
   <main>
-    <div class="toolbar">
+    <div class="toolbar" data-dev-only>
       <label>開啟試算表（.ods）：<input id="file-input" type="file" accept=".ods,application/vnd.oasis.opendocument.spreadsheet"></label>
       <button id="close-button" type="button">關閉文件</button>
     </div>
     <div id="diagnostic-banner" role="note" hidden></div>
     <div id="tab-strip" role="tablist" aria-label="工作表"></div>
-    <div id="status" role="status" aria-live="polite">
+    <div id="status" role="status" aria-live="polite" data-dev-only>
       <span>狀態：<span data-field="state">尚未開啟</span></span>
       <span>文件型別：<span data-field="documentType">—</span></span>
       <span>工作表數：<span data-field="parts">—</span></span>
