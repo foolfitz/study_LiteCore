@@ -51,3 +51,9 @@ Outcome rules:
 - **Any FAIL** (H-154c, H-154o or H-155): restore as in step 2.
 - **NE only:** 0.2.28 stays installed but not established, and the owner decides.
 - **All PASS:** 0.2.28 replaces 0.2.27 as the uncounted candidate for daily use.
+
+## The window and the desk gate (2026-10-20, before the H-155 chain)
+
+- **Window:** at 14:00 the owner wrote 「現在可以裝 0.2.28」 and chose 14:45 as its end (`WINDOW_END='2026-10-20 14:45'`). This is the window ruling 1 §2.9 form 1 asks for.
+- **The desk gate is withdrawn for 0.2.28** (spec §14.5; the owner chose A). It guards timing cells (ruling 6 addendum 1 item 9), and H-155 is a geometry reading. At 14:02 it read dirty for two reasons: desktop Chrome (28 processes), and two containers whose main process is `make run` (`oxool-dev`, `modaodfweb-rhtest`). Those are services, not builds; the 1-minute load was 0.49.
+- `chain-h155.sh` now guards each step on three things: the window, `ddev list`, and KWallet (`pre_run_checks()["refuse"]`, the runners' own refusal). It records the full `pre_run_checks` reading in `guard.log`. Red cases are in `chain-guard-red.txt`. `desk_gate.py` is unchanged.

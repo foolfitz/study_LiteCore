@@ -1,0 +1,13 @@
+# red case 1: WINDOW_END in the past, OUT=scratch
+# exit 3
+2026-10-20 14:31:58 CHAIN START h155 tree d6407a95 buildId 817413d5ad5bd502 window-end 2026-10-20 14:00
+2026-10-20 14:31:58 WINDOW CLOSED before h155-chrome (2026-10-20 14:00); chain stopped
+chain.log
+# red case 2: WINDOW_END unset
+findings/evidence/host-0.2.28/chain-h155.sh: line 11: WINDOW_END: set WINDOW_END=YYYY-MM-DD HH:MM, the end of the window the owner named
+# exit 1
+# red case 3: WINDOW_END unparsable
+date: invalid date 'not a date'
+# exit 1
+# the guard's KWallet read now:
+b false []
