@@ -1,10 +1,10 @@
 # SPEC M3：有序指令（引擎 v23）——引擎改成 unipoll 單執行緒拓撲（候選 C）
 
-狀態：**草稿，判準未釘死。**本檔在 fable 裁決 1 附錄 1（§13 的四題）之後改定，**改定後的第一個 commit 才是釘死**；在那之前任何 v23 的執行（原生臂 N1、模型、實作、連結）都不得開始（CLAUDE.md「驗收判準的形式」§9.1「先於滿足」）。釘死之後只准追加（§10）。
+狀態：**判準釘死（2026-10-20，含 fable 裁決 1 附錄 1 的答案；本檔「釘死」的第一個 commit）。**草稿是 `b943adb4`（檔頭寫明未釘死）。任何 v23 的執行——原生臂 N1、模型、實作、連結——都在本 commit 之後（CLAUDE.md「驗收判準的形式」§9.1「先於滿足」）。之後只准追加更正（同 §10）。
 
 依據：
 
-- **fable 裁決 1**（`findings/evidence/link-batch-v23/review/ruling-fable-1.md`，`cca06f7a`；簡報 `9613bfea`）。下文「裁決 §2.N」指它的第 2 節。兩者不同時以裁決為準。
+- **fable 裁決 1**（`findings/evidence/link-batch-v23/review/ruling-fable-1.md`，`cca06f7a`）與**附錄 1**（`ruling-fable-1-addendum-1.md`，`3b93c7e2`）。下文「裁決 §2.N」指裁決 1 的第 2 節，「附錄 §2.N」指附錄 1 的。兩者與本檔不同時以裁決為準。
 - 計畫 `handoff/PLAN-2026-10-20-ordered-commands-v23.md`（普查 18 項，§2；裁決紀錄，§7）。
 - 事實表：`handoff/link-batch-v23/facts-lok-command-ordering.md`（LOK 的佇列與跳數）、`handoff/link-batch-v23/facts-async-key-machinery.md`（`ee0f167e`，引擎裡為非同步鍵而蓋的機制與完成詞彙的消費者）。
 - 原生量測：`findings/evidence/link-batch-v23/native/ordered-commands/`（`24c5b635`，**VERDICT C-HOLDS**）。
@@ -23,7 +23,7 @@
 
 Shift＋方向鍵（擁有者點名要的）與範圍上的方向鍵，只有在這個性質成立之後才安全（裁決 4、5），所以跟著這一批出。
 
-## 2. 決定紀錄（裁決 1 與原生結果）
+## 2. 決定紀錄
 
 | 項 | 決定 | 出處 |
 |---|---|---|
@@ -32,7 +32,13 @@ Shift＋方向鍵（擁有者點名要的）與範圍上的方向鍵，只有在
 | A′、原樣的 B | 撤回（兩跳鍵；跳數由文件狀態決定） | 裁決 §2.2、§2.3 |
 | A | 不是本批的退路（復原證明只讓「完成」與跳數無關，「順序」仍有關） | 裁決 §2.4 |
 | 退路 | B″（佇列非空時不送同步指令）；C 不可行時才量 | 裁決 §2.3 |
-| 裁決 4「C 受 040 限制」 | 撤回（040 的等待只在非主執行緒；C 之下引擎就是主執行緒） | 裁決 §2.5 |
+| 裁決 4「C 受 040 限制」 | 撤回 | 裁決 §2.5 |
+| 096 的計數檢查 | **不改**；v23 上 B2 必須被執行到（§9.3） | 附錄 §2.1 |
+| 柵欄 K1 | 撤回；游標處的刪除送使用者自己的鍵 | 附錄 §2.2 |
+| 完成字串 | **全部留名字**，含 `verified-move-readback`；ABI 6 寫的是時間 | 附錄 §2.2 |
+| 排空與完成 | 一次 poll 一個指令；回覆在下一次 poll；`anyInput` 算進待送的回覆；WASM 上 poll 不阻塞 | 附錄 §2.3 |
+| 看門狗 | 不新增；沿用 SDK 的 30 秒逾時與復原路徑 | 附錄 §2.3 |
+| `STACK_OVERFLOW_CHECK=2` | 搭診斷 profile；產品照舊不開 | 附錄 §2.4 |
 | 0.2.28 | 不在本批；等擁有者的時段 | 裁決 §2.9 |
 
 ## 3. 原生量測的結果（已觀察，`24c5b635`）
@@ -50,48 +56,46 @@ Shift＋方向鍵（擁有者點名要的）與範圍上的方向鍵，只有在
   | (iii) 文件開頭，P1 有首行縮排 | Backspace | `Apply attributes` | 同 |
   | 一般 P1，文件開頭 | Backspace | 無 | 無 |
 
-- 具名限制 **L-native-harness-init**：原生 harness 的初始化不是產品的（不呼叫 `runLoop`，自己做三個註冊，補 `SfxApplication::GetOrCreate()`；finding 156）。量的是派送拓撲，由原始碼看與 Application 物件無關；這一點**未量**。
-
-## 4. 範圍：普查 18 項逐項處置（裁決 §2.1 的形式一：每一項一行）
+## 4. 範圍：普查 18 項逐項處置（裁決 §2.1：每一項一行，形式一）
 
 | # | 項 | 處置 | 怎麼成立 |
 |---|---|---|---|
-| 1 | finding 137 的根治（刪錯、字提早、格式套錯） | **in** | 由構造；WASM 臂 W-D（§9.3） |
-| 2 | L-142-readback-overtaken | **in** | 250 ms 讀回撤除（§5.3）；WASM 臂「存檔後馬上移動再打字」N/N 正確（§9.3） |
-| 3 | finding 151 的方向鍵那半 | **in** | 需 096 的 §34 裁決（§13 Q1） |
+| 1 | finding 137 的根治（刪錯、字提早、格式套錯） | **in** | 由構造；WASM 臂 W-D（§9.2） |
+| 2 | L-142-readback-overtaken | **in** | 250 ms 讀回撤除（§5.3 A1）；WASM 臂「存檔後馬上移動再打字」N/N 正確（§9.3） |
+| 3 | finding 151 的方向鍵那半 | **consequence**（由構造關閉；096 的檢查不改） | 成因是 250 ms 讀回帶舊游標，C 之下撤除；檢查點留著（附錄 §2.1） |
 | 4 | L-md-137（Markdown 貼上屬 137 一類） | **consequence** | 貼上本來就同步；C 之下排在前面的鍵已跑完 |
 | 5 | Shift＋方向鍵 | **in** | §6 |
 | 6 | 範圍上的方向鍵（finding 129）＋ R1 | **in** | §6 |
 | 7 | 延伸套件：格子（R1 的 42＋L-129 的 wrap、S1–S5、S2 的 16 格 v19 預紅、S-12）帶過來當臂與紅案；機制（resolver、規則 (a)、旗標、K1 柵欄、`AwaitingDeleteCompletion` 的等待、§12.5 的放寬）**不帶**，在 C 之下重新推導 | **in**（格子）／**out**（機制） | 裁決 §2.1 |
 | 8 | v20 撤掉的三支產品路徑臂（insert 後 Shift、合併 Backspace 後 Shift、Shift+Right 按住 1 秒） | **in** | §6 |
-| 9 | 偽造完成的殘留與 L-extend-prior-flush | **consequence**（由構造關閉） | 模型同步鍵模式印 0（§8）；完成＝返回＋閒置 poll（§5.2），沒有「晚到的 flush」可以偽造 |
-| 10 | 邊界鍵的即時回答 | **consequence** | 返回時就知道（復原與游標都沒變）；2.25 秒的窗撤除（§5.5） |
+| 9 | 偽造完成的殘留與 L-extend-prior-flush | **consequence**（由構造關閉，**前提是一次 poll 一個指令**） | 模型同步鍵模式印 0（§8）；完成＝返回＋下一次 poll（§5.2） |
+| 10 | 邊界鍵的即時回答 | **consequence** | 返回時就知道；2.25 秒的窗撤除（§5.5） |
 | 11 | 點擊的完成條件（finding 140 第二輪） | **consequence** | 滑鼠事件在呼叫裡執行（D6 5/5）；完成同 §5.2 |
-| 12 | C 的 manifest 宣告 | **out** | 沒有讀者 |
+| 12 | C 的 manifest 宣告 | **out** | 沒有讀者；v23 的讀者看 `editorContract.abiVersion ≥ 6`（附錄 §2.2） |
 | 13 | L-C-number-or-indent | **consequence**（關閉） | 刪除改送使用者自己的鍵（§5.4）；D7 是 Writer 的答案 |
 | 14 | 固定三題 | 必備內容 | §7 |
 | 15 | 模型的粗體寬度限制 | 必備內容 | §8 |
 | 16 | ABI 6 | 必備內容 | §5.8 |
-| 17 | 096 那支計數檢查的 §34 裁決 | 必備內容 | §13 Q1（裁決附錄 1，**在任何會滿足它的執行之前**） |
+| 17 | 096 那支計數檢查的 §34 裁決 | 必備內容，**已裁**：不改（附錄 §2.1） | §9.3 的 B2 讀法 |
 | 18 | 「2.25 秒空窗期間打字」（工單 10-14m） | **consequence**（關閉） | 窗撤除 |
 
-相鄰、不在本規格：`STACK_OVERFLOW_CHECK` 第 2 級（v22 §3.3 登錄在「擁有者下一次診斷連結」，§13 Q4）；第 1 項的 D6 臂（下一次在有入口的頁面跑第 1 項之前實作）。
+相鄰、不在本規格：第 1 項的 D6 臂（下一次在有入口的頁面跑第 1 項之前實作）。`STACK_OVERFLOW_CHECK=2` 搭診斷 profile（附錄 §2.4，§9.2）。
 
 ## 5. 設計（C）
 
 ### 5.1 拓撲與初始化
 
-- WASM 引擎以 `SAL_LOK_OPTIONS=unipoll` 初始化 LOK；引擎執行緒成為 VCL 主執行緒。`runLoop` 註冊 poll 回呼；之後引擎自己呼叫 `Application::Execute()`（現行 `OXSDK_MAINLOOP_ENGINE` profile 的作法，finding 021）。
-- **finding 156**：`runLoop` 在本 core 上不會跑 `Desktop::Main`（上游 `caa4036188ed`）。WASM 上 Desktop 被刻意洩漏所以不當，但 `Desktop::Main` 的初始化不會發生。SfxApplication 由 SfxModule 建立時的 `GetOrCreate()` 產生（`sfx2/source/appl/module.cxx:83`，讀原始碼）；**WASM 上它在第一次開檔前由誰觸發，未讀**——由診斷連結的 smoke（§9.2 S-open）驗。
-- 引擎的阻塞式 `engineLoop` 退役；指令改由 poll 回呼排空。`#error`（`probe_engine.cpp:15-17`）由新的接線取代，不是刪掉。
+- WASM 引擎以 `SAL_LOK_OPTIONS=unipoll` 初始化 LOK；引擎執行緒成為 VCL 主執行緒。`runLoop` 註冊 poll 回呼；之後引擎自己呼叫 `Application::Execute()`（現行 `OXSDK_MAINLOOP_ENGINE` profile 的作法，finding 021）。引擎的阻塞式 `engineLoop` 退役，指令改由 poll 回呼排空。`#error`（`probe_engine.cpp:15-17`）由新的接線取代，不是刪掉。
+- **finding 156 的後果（附錄 §2.5 第 6 項）**：今天的多執行緒產品**有**跑 `Desktop::Main`（`lo_startmain` → `soffice_main` → `ImplSVMain` → `ImplSVMainRun` → `mpApp->Main()`，`svmain.cxx:224-235`）；C 之下**不會跑**（`ImplSVMain` 早退，`svmain.cxx:196-197`；WASM 上洩漏的 Desktop 被裝成 `mpApp` 但沒有 `Main()`）。上游自己的 unipoll 用戶端各補一點：iOS 補 `SfxApplication::GetOrCreate()`（`init.cxx:8294`），Android 補擴充套件的註冊「讓字典能用」（`:8296-8300`）；Collabora 的 core 留著 `Main()`。SfxApplication 由 SfxModule 建立時的 `GetOrCreate()` 產生（`sfx2/source/appl/module.cxx:83`，讀原始碼）；WASM 上第一次開檔前由誰觸發，**未讀**。→ §9.2 的 S-init 臂逐項點名。具名限制 **L-no-desktop-main**（§11）。
 
 ### 5.2 完成的定義（取代 250 ms 讀回與第一個回呼規則）
 
-- **一次 poll 只排空一個指令。**（現行 `mainLoopDrainCommands` 會一路排空，`probe_engine.cpp:6688-6750`；**改掉**——否則兩個排隊的指令之間沒有 flush，回覆會讀到前一個指令之前的狀態快取。）
-- poll 回呼只在核心閒置時被呼叫：沒有待處理的使用者事件，也沒有到期的計時器（`vcl/headless/svpinst.cxx:442-455`，讀原始碼）。LOK 的回呼 flush 是排隊的使用者事件（`init.cxx:2578-2582`）。
-- **所以：指令 N 的 LOK 呼叫返回之後的第一次 poll，N 產生的回呼都已送達。**這是推論；由原生臂 **N1**（§9.1）在實作之前量。
-- **指令的完成＝它的 LOK 呼叫返回，且下一次 poll 已到；回覆在那次 poll 送出**，狀態取自那時的快取（已被 N 的 flush 更新）。不再有 250 ms 讀回、不再以「第一個回呼」當證據、不再有等回呼的期限。
-- 「什麼都沒變」在同一點就知道：復原紀錄、選取、游標都與送出前相同 → 立即回答（§5.5）。
+- **一次 poll 只排空一個指令。**（現行 `mainLoopDrainCommands` 一路排空，`probe_engine.cpp:6688-6750`；**改掉**。）頁面的佇列本來就一次送一個（`editor-session.js:287-311`），實務上沒有代價。
+- **poll 什麼時候被呼叫**（附錄 §2.3 更正了草稿）：`ImplYield` 一個 tick 先派一個使用者事件、有就返回（`svpinst.cxx:440-444`）；否則 `CheckTimeout()` 跑一個排程工作（`:446-447`）；然後 `if (!bMustSleep && !anyInput()) return`（`:453-455`）；之後才 poll（`:471-481`）。所以 poll 出現在**沒有使用者事件**、而且（**這個 tick 沒跑別的工作**，或**用戶端的 `anyInput` 為真**）的 tick。LOK 的回呼 flush 是排隊的使用者事件（`init.cxx:2577-2580`），所以指令 N 返回後的第一次 poll 之前，N 的 flush 已經派送。
+- **硬規則（每個 tick，形式一）：`anyInput` ＝ 有指令排隊 ∨ 有回覆待送。**（今天的 `mainLoopAnyInputCallback` 只看指令，`probe_engine.cpp:6845-6851`；不改的話，長文件上每個回覆都要等版面整理的閒置工作做完。）
+- **硬規則：WASM 上 poll 不阻塞。**一次 poll 最多排空一個指令或送一個回覆，然後立刻返回；節奏由 100 fps 的 tick 決定。（今天 mainloop 在 poll 裡最多等 1 秒，`:6795-6819`；改掉。重入保護 `:6822-6835` 留著。）
+- **指令的完成＝它的 LOK 呼叫已返回，且之後的第一次 poll 已到；回覆在那次 poll 送出。**不再有 250 ms 讀回、不再以「第一個回呼」當證據、不再有等回呼的期限。
+- **回覆的欄位不得取自走計時器的回呼**（`STATE_CHANGED`、尺規）的快取：那類回呼本來就晚到（附錄 §2.3；N1b 記錄）。格式狀態直接讀，或沿用 html 讀回（§5.3 A7）。具名限制 **L-timer-class-callbacks**（§11）。
 
 ### 5.3 既有機制逐項處置（裁決 §2.5：每一項寫它還守什麼，或撤回）
 
@@ -99,46 +103,52 @@ Shift＋方向鍵（擁有者點名要的）與範圍上的方向鍵，只有在
 
 | # | 機制 | 處置 | 理由 |
 |---|---|---|---|
-| A1 | 250 ms 移動讀回（096 的修法） | **撤回** | 前提（沒變的鍵不發回呼、等回呼會卡死）不在；返回＋閒置 poll 就知道 |
-| A2 | 第一個回呼就完成（規則 (a)） | **撤回** | 效果在返回時就在；回呼只更新快取 |
-| A3 | 選取柵欄刪除（K1、`AwaitingDeleteCompletion`） | **撤回**，改送使用者自己的鍵（§5.4） | 前提（finding 016：前刪沒有可歸屬的回呼）不在；D2、D2′、D5、D7 |
-| A4 | C 的窗／`verified-boundary-noop` 的 2.25 秒 | **撤回窗**（§5.5）；完成名稱見 §5.8 | 返回時就知道；L-C-late-K1 在 K1 不存在時不會發生 |
-| A5 | 合併鍵的復原路徑（Esc、K2、柵欄、15 ms 輪詢、2000 ms `key-deadline`） | **撤回時間與柵欄**；`judgeAfterKey` 的整份比較**留下**當返回時的證明 | Esc／K2／歸屬只因 K1 是排隊鍵而存在 |
-| A6 | 各階段期限（七個常數、1 秒閒置上限） | **撤回**等回呼的期限；保留一個**卡死看門狗**（§5.6） | 等的東西在返回時就有 |
-| A7 | 格式柵欄 | staging 與 5 秒期限**撤回**；**事後讀回（html）留下** | 讀回沒有非同步前提 |
-| A8 | 定位游標（finding 138 的雙條件、400 ms grace、250 ms 讀回） | 完成改 §5.2；**138 的「位置或選取與點擊前不同」條款留下**（它判的是「核心有沒有接受點擊」，不是時間） | D6 |
-| A9 | `extend_completion.hpp`（規則 (a)、旗標） | **撤回**（沒有引擎檔案引用它；只剩模型） | 裁決 4 已撤旗標 |
+| A1 | 250 ms 移動讀回（096 的修法） | **撤回等待**；名字 `verified-move-readback` 留給「沒有移動的鍵」（§5.8） | 前提（沒變的鍵不發回呼、等回呼會卡死）不在 |
+| A2 | 第一個回呼就完成（規則 (a)） | **撤回**；有移動的鍵在 flush 的 tick 以 `documented-callback-visible-cursor` 回答（那個回呼確實到了，而且只可能是這個鍵的） | 效果在返回時就在 |
+| A3 | 選取柵欄刪除（K1、`AwaitingDeleteCompletion`） | **撤回**，改送使用者自己的鍵（§5.4） | 前提（finding 016）不在；D2、D2′、D5、D7；附錄 §2.2 |
+| A4 | C 的窗（2.25 秒） | **撤回窗**（§5.5）；名字 `verified-boundary-noop` 留著 | 返回時就知道 |
+| A5 | 合併鍵的復原路徑（Esc、K2、柵欄、15 ms 輪詢、2000 ms `key-deadline`） | **撤回時間與柵欄**；`judgeAfterKey` 的整份比較**留下**當返回時的證明；`key-deadline` 不再出現 | Esc／K2／歸屬只因 K1 是排隊鍵而存在 |
+| A6 | 各階段期限（七個常數、1 秒閒置上限） | **撤回**；**不新增看門狗**，沿用 SDK 的 30 秒（附錄 §2.3） | 等的東西在返回時就有；同步呼叫能跑多久是另一個量 |
+| A7 | 格式柵欄 | staging 與 5 秒期限**撤回**；**事後讀回（html）留下**；059 的狀態檢查不得讀走計時器的回呼快取 | 讀回沒有非同步前提 |
+| A8 | 定位游標（138 的雙條件、400 ms grace、250 ms 讀回） | 完成改 §5.2（`documented-callback-*`／`verified-caret-readback`）；**138 的「位置或選取與點擊前不同」條款留下** | D6 |
+| A9 | `extend_completion.hpp`（規則 (a)、旗標） | **撤回**（沒有引擎檔案引用它；只剩模型）；L-extend-prior-flush 的關閉依賴一次 poll 一個指令 | 裁決 4 已撤旗標 |
 | A10 | 打字退路（`paste()` 失敗時逐字送鍵） | **留下**，回覆改在 §5.2 的點 | C 之下回覆不再先於效果 |
 | A11 | 引擎迴圈的等待（`values[0]` 1／2／3、三個讀回指令） | **撤回** | 只為喚醒等回呼的引擎 |
 | A12 | 跨執行緒機械（`gMergeMutex`、「在回呼裡不動作、排一步」） | 互斥鎖**撤回**；「回呼裡不呼叫 LOK」**變成硬規則**（§5.7） | 跨執行緒前提不在；重入前提還在 |
 | A13 | 037／040 的保護 | **留下**，直到連結後臂 040-W 過（§9.2） | 裁決 §2.8(e) |
 
+096 的檢查點（`CHECKPOINTED_MOVES`，`narrow-editor-v2-session.js:124-127`）**留著**，理由改寫成「在髒文件第一次移動之前先存起來」（「按鍵可能弄死 session」的前提在 C 之下不成立，撤回的是那句宣稱，不是守衛；附錄 §2.1）。它在 C 之下唯一的代價是延遲，§9.2 記錄。
+
 ### 5.4 刪除
 
-- 游標處的 Backspace／Delete：送**使用者自己的鍵**（KEYINPUT＋KEYUP，在呼叫裡執行）。證明：返回時的 `.uno:Undo` 整份與送出前比（`judgeAfterKey` 的比較）；變了＝`verified-key-undo`；沒變而且游標、選取都沒變＝邊界的無作用（§5.5）。
-- 範圍上的刪除：照今天送 `.uno:Delete`（同步）；C 之下它前面不會有排隊中的鍵。
+- 游標處的 Backspace／Delete：送**使用者自己的鍵**（KEYINPUT＋KEYUP，在呼叫裡執行）。證明：返回時的 `.uno:Undo` 整份與送出前比（`judgeAfterKey`）；變了＝`verified-key-undo`（`keyUndo.actionsAfter ≥ 1`，凍結的 client 要求，`narrow-editor-v2-client.js:161-166`）；沒變而且游標、選取都沒變＝`verified-boundary-noop`，`changed:false`，版本不變（client `:372-374`）。
+- 範圍上的刪除：照今天送 `.uno:Delete`（同步）→ `uno-command-result`。
+- **後果**（附錄 §2.2）：文字中間的游標刪除不再以 `verified-selection-delete` 完成；client 兩者都收（`DELETE_COMPLETION`）；綁 v21 的判讀工具（`run_v21_d2.py:111-121`）不在 v23 上重跑；v23 自己的判讀工具對每一次游標刪除期望 `verified-key-undo`。
 - **L-C-number-or-indent 因此關閉**：(i)–(iii) 的答案是 Writer 自己的 `Number On/Off`／`Apply attributes`（§3 D7），在返回時讀到。
-- 柵欄（K1）在 C 之下守的東西：**主 session 找不到**。依裁決 §2.8(b) 的預設：撤回。（§13 Q2 請裁決確認。）
 
 ### 5.5 邊界鍵與「沒有作用的鍵」
 
-- 返回時復原紀錄、選取、游標都與送出前相同 → 立即回答「沒有作用」，`waitedMs` 是實際的毫秒數（預期 < 一個 tick）。2.25 秒的窗撤除。
-- 頁面的「保留按鍵」（finding 141／144 的 `holdsDelete`／`settleDelete`）的前提是窗；窗撤除後它守什麼，由殼層的判準在實作前寫（§9.3 的頁面臂）。
+- 返回時復原紀錄、選取、游標都與送出前相同 → 在下一次 poll 立即回答「沒有作用」（移動：`verified-move-readback`；刪除：`verified-boundary-noop`），`boundaryNoop.waitedMs`／`keyUndo.keyToUndoMs` 是實際的毫秒數（預期約一個 tick）。2.25 秒的窗撤除。
+- 頁面的「保留按鍵」（finding 141／144 的 `holdsDelete`／`settleDelete`）的前提是窗；窗撤除後它守什麼，由殼層的判準在實作前寫（§9.3）。
 
-### 5.6 卡死看門狗
+### 5.6 卡死
 
-等回呼的期限都撤除之後，一個 LOK 呼叫若真的不返回（例：finding 037 的 as-char frame 卡死），poll 不會再被呼叫，引擎就停在那裡。保留一個**由 worker 側量的看門狗**：一個指令送出後 N 秒沒有回覆 → 照今天的「引擎沒有回應」路徑（新的 worker）。N 照今天最長的期限（5 秒）不變，不是新的數字。〔推論；§13 Q3〕
+不新增看門狗（附錄 §2.3）。一個同步 LOK 呼叫若真的不返回（例：finding 037），由 SDK 既有的 30 秒請求逾時（`document-sdk.js:160`、`:243`）與復原路徑接手。§9.2 記錄最慢的誠實指令要多久；要縮短這個界限是之後另一個裁決，帶著記下的數字。
 
-### 5.7 硬規則（形式一：每一個指令、每一個回呼）
+### 5.7 硬規則（形式一：每一個指令、每一個回呼、每一個 tick）
 
 1. **指令內不得 `Application::Yield`、`Scheduler::ProcessEventsToIdle`、`Application::Reschedule`**（裁決 §2.8(a)1）。紅案：一個在鍵與讀取之間排空另一個指令的測試 build，證明讀到的是另一個變更。
-2. **回呼裡不得呼叫 LOK**：今天的 `probe_engine.cpp:2875-2880`（註解送 `.uno:Escape`）改成排到下一次 poll。紅案：源碼檢查 `onLokCallback` 的呼叫圖裡沒有 `pClass->` 呼叫（形式二：工具從原始碼生成清單）。
+2. **回呼裡不得呼叫 LOK**：今天的 `probe_engine.cpp:2875-2880`（註解送 `.uno:Escape`）改成排到下一次 poll。紅案是引擎單元測試裡的源碼檢查（不是計數檢查，§34.8）。
 3. **所有 LOK 呼叫都在引擎執行緒**（040 的前提）：正向對照見 §9.2 的 040-W。
+4. **`anyInput` 算進待送的回覆；WASM 上 poll 不阻塞**（§5.2）。
 
 ### 5.8 ABI 與完成詞彙
 
-- 編輯器 ABI **6**：新的動作（延伸、範圍上的移動）加在 `kMaxInternalEditorAction`（25）之後，**加之前先讀界限**（CLAUDE.md「工作結論」：界限要跟著清單走）。
-- **完成字串的名字留著，語意寫進 ABI 6**：`verified-key-undo`（返回時證明）、`verified-boundary-noop`（返回時知道；`waitedMs` 很小）。理由：消費者遍布 client、session、page、worker、tools，而 `editor-shell/editor-client.js:70-86` 與 `editor-session.js` 綁著 **E1-C 的判定**——改名就要動綁定的檔案。`key-deadline` 與 `verified-move-readback` 在 v23 profile 上不再出現。（§13 Q2 請裁決確認「留名字、改語意」與 wasm 位元組偵測 `run_merge_wasm_shakedown.py:208` 的處置。）
+- 編輯器 ABI **6**：新的動作（延伸、範圍上的移動）加在 `kMaxInternalEditorAction`（25，`probe_engine.cpp:7281`）之後，**加之前先讀界限**（CLAUDE.md「工作結論」）。
+- **完成字串全部留名字**（附錄 §2.2）：`documented-callback-*`、`verified-move-readback`、`verified-caret-readback`、`verified-key-undo`、`verified-boundary-noop`、`uno-command-result` 都照字面意思用。理由：凍結的 E2-C client 只認這些（`MOVE_COMPLETIONS`，`narrow-editor-v2-client.js:146-148`）；換名字會讓回答被當成壞掉、進入復原、session 死掉——而 096 的檢查看不出來（「死了但有檢查點」那一支也算過）。`editor-shell/editor-client.js`、`editor-session.js` 綁著 E1-C 的判定，也不動。
+- **ABI 6 寫的是時間**：每一個完成都在返回後一個 flush tick 之內，沒有偽造的情況。`key-deadline` 不再出現。
+- **形式一**：每一個回覆的 `completion` 都是凍結 client 對該後置條件類別接受的字串之一——引擎單元測試裡的靜態表，不是計數檢查。
+- **wasm 位元組偵測**（`run_merge_wasm_shakedown.py:208`，`check_m3_production_ui.py:653` 引用）**不改**（§34.1 凍結）：字串照字面意思還在 `probe.wasm` 裡，`declared: true`，R 臂被要求「無作用」——那正是 v23 的行為。v23 的讀者看 manifest 的 `editorContract.abiVersion ≥ 6`。若 v23 的 shakedown 報告被綁 v20 的條款誤判，那份報告就是 §34.1(b) 的證人：修判讀工具、不修 runner、重判，因執行而修 1。
 
 ## 6. 第 2 層：延伸與範圍上的移動
 
@@ -149,38 +159,49 @@ Shift＋方向鍵（擁有者點名要的）與範圍上的方向鍵，只有在
 ## 7. 固定三題（第一輪審核；`SPEC-M3-link-batch.md` §13.4）在 C 之下
 
 1. **FIFO 鍵的復原證明能不能被另一個變更滿足**：C 之下引擎是唯一改文件的執行緒，指令之間不讓出（§5.7 規則 1）；證明在返回時讀，同一個呼叫裡沒有別的變更能插進來。紅案見 §5.7。
-2. **一個什麼都沒做的鍵，頁面怎麼知道**：返回時復原與游標都沒變，並由閒置 poll 確認沒有晚到的回呼。測試位置：§3 D7 的 (i)–(iii) 與一般 P1，附原生的 `.uno:Undo` 頂端。
-3. **表格或行內物件裡，鍵的行為和今天的拒絕不同**：格子開頭／結尾的鍵、跨格的選取、as-char frame——臂在 §9.3 追加；「今天的拒絕」與「Writer 的順序」衝突時，**預設照 Writer**（裁決 §2.8(a)3），這就是性質本身。
+2. **一個什麼都沒做的鍵，頁面怎麼知道**：返回時復原與游標都沒變，在下一次 poll 回答，並確認沒有晚到的、回覆所依賴的回呼（N1a）。測試位置：§3 D7 的 (i)–(iii) 與一般 P1，附原生的 `.uno:Undo` 頂端。
+3. **表格或行內物件裡，鍵的行為和今天的拒絕不同**：格子開頭／結尾的鍵、跨格的選取、as-char frame——臂在 §9.3 追加；「今天的拒絕」與「Writer 的順序」衝突時，**預設照 Writer**（裁決 §2.8(a)3）。
 
 ## 8. 模型（`wasm_sdk_probe/tests/extend_completion_model_test.cpp`）
 
 在本規格釘死之後、實作之前，跑兩種模式（裁決 §2.7）：
 
 - **多執行緒模式**（紅案，證明產生器還活著）：照舊印出條件 32／33 的母數——27,744、2,448、5,474、3,868（`findings/137-…md:40-43`）。印不出來就停。
-- **同步鍵模式**（C）：每一種形狀（含條件 33 的兩種）印 **0** 個與 Writer 不同；完成定義為「返回＋閒置 poll」時，偽造完成那一類為**空**。
-- 模型一節要寫的兩個限制：條件 40 的（粗體不改模型裡的矩形寬度）；新的一個——**模型的鍵是單一事件、沒有跳數**（只對 FIFO 類候選有關，那些已撤回）。
+- **同步鍵模式**（C）：每一種形狀（含條件 33 的兩種）印 **0** 個與 Writer 不同；完成定義為「返回＋下一次 poll」、一次 poll 一個指令時，偽造完成那一類為**空**。
+- 模型一節要寫的兩個限制：條件 40 的（粗體不改模型裡的矩形寬度）；新的——**模型的鍵是單一事件、沒有跳數**（只對已撤回的 FIFO 類候選有關）。
 - 形式：每一種形狀（形式一）。預設：模型沒跑 → 不寫引擎碼。
 
 ## 9. 判準總表
 
-### 9.1 實作之前（原生，不連結）
+### 9.1 實作之前（原生，不連結；附錄 §2.3）
 
-- **N1（新，被 §5.2 的推論逼出）**：原生 unipoll，對 §3 的每一支臂與每一種指令（鍵、`postUnoCommand`、`paste`、點擊）：指令返回後的**第一次 poll** 時，該指令的回呼已全部送達——之後 2000 ms 的窗裡沒有屬於它的回呼。N=5。形式一。紅案：一份把一個回呼的時間挪到第一次 poll 之後的合成報告 → 紅。**預設**：N1 不過 → §5.2 的完成定義不成立，回到裁決（不寫引擎碼）。
+- **N1a（硬，形式一）**：原生 unipoll，對 §3 的每一支臂與每一種指令（鍵、`postUnoCommand`、`paste`、點擊），**回覆所依賴的回呼**——`INVALIDATE_VISIBLE_CURSOR`、`TEXT_SELECTION`（含 `_START`／`_END`）、`UNO_COMMAND_RESULT`、`INVALIDATE_TILES`——在指令返回後的**第一次 poll 之前**全部送達。N=5。紅案：一份把一個這類回呼挪到第一次 poll 之後的合成報告 → 紅。
+- **N1b（記錄，不是判準）**：走計時器的回呼（`STATE_CHANGED`、尺規等）每一種相對第一次 poll 的延遲。**正向對照**：離開表格那一格必須記到非零的 `STATE_CHANGED` 延遲；為零代表 harness 看不到晚到的回呼，N1 整組不成立。
+- **N1c（硬，形式一）**：`anyInput` 兩種模式（含／不含「有回覆待送」），在 200 段的文件上做一次合段之後，「不含」那種的第一次 poll 延遲必須比「含」長。延遲相同＝沒有版面整理的閒置工作跑起來＝這一臂沒量到東西（NE）。
 - **M1／M2**：§8 的兩種模式。
+- **預設**：N1 沒跑 → 不寫引擎碼；N1a 不過 → §5.2 的完成定義不成立，回到裁決。
 
-### 9.2 第一次連結＝診斷 profile（擁有者的 make；裁決 §2.8(e)）
+### 9.2 第一次連結＝診斷 profile（擁有者的 make；裁決 §2.8(e)、附錄 §2.4、§2.5）
 
-先只接線 §5.1–§5.3 與 §5.7，**不加任何功能**，連成診斷 profile。判準（兩個瀏覽器，N=3，除非另寫）：
+先只接線 §5.1–§5.3 與 §5.7，**不加任何功能**，帶 `-sSTACK_OVERFLOW_CHECK=2`（同時開著 `CHECK_NULL_WRITES`，記錄），連成診斷 profile。判準（兩個瀏覽器，N=3，除非另寫）：
 
 - **S-open／S-type／S-move／S-save**：開檔、打字、移動、存檔的 smoke。
+- **S-init（附錄 §2.5 第 6 項）**：點名產品用到、而依賴 `Desktop::Main` 層初始化的功能，逐項對 v22 比：內建字典／擴充套件（拼字、斷字——若產品有用到）、自動校正、`OpenClients` 做的復原掃描、依賴 `RequestHandler` 的路徑；或記下「產品一個都沒用到」。
 - **W-D**：§3 的 D1–D6 經引擎的線上動作在 WASM 上跑，落點等於原生 seq 的落點，N=5。
 - **040-W**：finding 040 的兩個入口（`doc_destroy`、在帶 frame 的 SwDoc 上 `doc_getTextSelection`）在 C 之下**返回**；正向對照：從 JS 側執行緒呼叫一個 LOK 入口**要卡住**（逾時之內）。
-- **記錄、不當閘門**：tick 間隔、回呼延遲、`keyToUndoMs`（對 v20 的 [30, 32, 33] ms）、finding 122 的延遲。
+- **溢位**：任何一格若以無法歸因的中止失敗，先由擁有者連一份不帶旗標的診斷 profile 再下結論（附錄 §2.4）。
+- **記錄、不當閘門**：
+  - tick 間隔、回呼延遲、`keyToUndoMs`（對 v20 的 [30, 32, 33] ms）、finding 122 的延遲；
+  - **最慢的誠實指令**：開最大的 fixture、64 KiB 的 Markdown 貼上、存 `long60`——形式一：每一個都在 SDK 的界限（30 秒）之內完成；紅案是一個永遠不返回的測試指令，必須在界限內進到復原路徑；
+  - **S-move-dirty**：檢查點「第一次移動前先存」在 `long60` 上的延遲；
+  - `STACK_OVERFLOW_CHECK=2` 的三個數字：`probe.wasm` 大小、開檔時間、C2 打字時間（對 v22 只是上界；乾淨的差值等 §9.3）。
 - 預設：診斷 profile 的任何一格不過 → 不做功能接線。
 
 ### 9.3 第二次連結＝功能 profile
 
-§6 的動作、§5.4 的刪除、殼層的對應改動。逐格的協定**在實作之前追加**（§9 的四個條件）：R1、S1–S5、S2 預紅、S-12、三支產品路徑臂、L-142 的「存檔後移動再打字」、L-C-number-or-indent 的三個位置經產品路徑、固定題 3 的表格／frame 臂、頁面「保留按鍵」的新判準。
+§6 的動作、§5.4 的刪除、殼層的對應改動。逐格的協定**在實作之前追加**（CLAUDE.md §9 的四個條件）：R1、S1–S5、S2 預紅、S-12、三支產品路徑臂、L-142 的「存檔後移動再打字」、L-C-number-or-indent 的三個位置經產品路徑、固定題 3 的表格／frame 臂、頁面「保留按鍵」的新判準。
+
+**096 的讀法（附錄 §2.1 第 4 項；形式二，工具生成）**：v23 上每一次跑產品路徑 runner，`a-boundary-arrow-press-does-not-cost-the-work` 的報告 `clausesExercised` 必須含 **B2**。沒有 B2、或 B2 為假 → **產品紅**（C 退化成有排隊中的鍵），不是改檢查。檢查本身、它的突變、`check_soak_bank.py`、`tests/test_product_path_mutations.py` 都不改。截止：v23 第一次乾淨的計數執行。
 
 ### 9.4 計數
 
@@ -188,35 +209,38 @@ K：v22 累積的未計數改動（交接 10-20 的清單）加上 v23，在擁�
 
 ## 10. 連結順序
 
-1. 釘死本規格（§13 的附錄之後）。
-2. N1、模型兩種模式。
-3. 兩席審核（opus＋`codex exec -s read-only < /dev/null`），固定三題在內。
+1. 釘死本規格（本 commit）。
+2. N1a／N1b／N1c、模型兩種模式。
+3. 兩席審核（opus＋`codex exec -s read-only < /dev/null`）：固定三題，加上附錄 §2.2 的詞彙表與 §2.3 的 `anyInput` 規則各一題。
 4. 診斷 profile 的引擎碼（紅案先行），**擁有者連結**，§9.2。
 5. 功能的引擎碼與殼層，**擁有者連結**，§9.3。
 6. 宿主、綁定、K。
 
-## 11. 具名限制（現在就登錄）
+## 11. 具名限制
 
-- **L-native-harness-init**（§3）。
+- **L-native-harness-init**：原生 harness 的初始化不是產品的（不呼叫 `runLoop`、自己做三個註冊、補 `SfxApplication::GetOrCreate()`；finding 156）。量的是派送拓撲，由原始碼看與 Application 物件無關；**未量**。
+- **L-no-desktop-main**：C 之下 `Desktop::Main` 不跑（finding 156）；§9.2 S-init 點名受影響的功能。
+- **L-timer-class-callbacks**：`STATE_CHANGED`、尺規等走計時器的回呼在第一次 poll 之後才到；回覆的欄位不得取自它們（§5.2）。
 - **L-no-ime-arm**：IME／ext-text 在 unipoll 下沒有臂（今天打字走 `paste`）。
 - **L-writer-only**：Calc、Impress 沒有跳數分析。
 - **L-mouse-hops**：`MouseButtonUp` 之後的跳數沒讀（D6 的落點正確，但沒追到每一跳）。
-- **L-flush-order**：同一次 flush 裡 `UNO_COMMAND_RESULT`、`STATE_CHANGED`、`TEXT_SELECTION`、游標的順序在 unipoll 下沒量（059 的狀態檢查與格式讀回依賴它）——N1 的紀錄順帶記下順序。
+- **L-flush-order**：同一次 flush 裡 `UNO_COMMAND_RESULT`、`TEXT_SELECTION`、游標的順序在 unipoll 下沒量；N1a 的紀錄順帶記下順序。
 
 ## 12. §34.4
 
-- 本規格之前的原生工具（`oc_native.cpp`、`read_results.py`）是新增；判讀工具在第一次計數使用前要做一次雙席審核（§34），併在 §10 第 3 步。
-- 因執行而修：本批到目前 0（d7i 的位置是在任何計數執行之前改的，記在 smoke/NOTES.md）。因審核而修：0。
+- 原生工具（`oc_native.cpp`、`read_results.py`）是新增；判讀工具在第一次計數使用前做一次雙席審核（§34），併在 §10 第 3 步。
+- 本批到目前：因執行而修 0（d7i 的位置是在任何計數執行之前改的，記在 smoke/NOTES.md），因審核而修 0。附錄 1 沒有改任何計數檢查。
 
-## 13. 交給裁決的四題（fable 裁決 1 附錄 1；答案寫回本檔後才釘死）
+## 13. 已裁的四題（附錄 1）
 
-- **Q1**：096 的計數檢查 `a-boundary-arrow-press-does-not-cost-the-work`（`run_e2_c_product_path.py:2205-2262`、`:9550-9575`）在 C 之下的 §34 裁決——它釘住的是「邊界方向鍵不建檢查點」與 2.25 秒窗下的行為；finding 151 的方向鍵那半要改它。
-- **Q2**：§5.4 撤回柵欄、§5.8「完成字串留名字、改語意」與 wasm 位元組偵測的處置。
-- **Q3**：§5.2「一次 poll 一個指令、回覆在下一次 poll」與 §5.6 的看門狗（5 秒沿用）——形式與預設對不對。
-- **Q4**：`STACK_OVERFLOW_CHECK` 第 2 級要不要搭診斷 profile 的連結（v22 §3.3 登錄的「擁有者下一次診斷連結」）。
+- Q1 → 附錄 §2.1：096 的檢查不改；B2 的讀法（§9.3）。
+- Q2 → 附錄 §2.2：柵欄撤回；完成字串全部留名字（含 `verified-move-readback`）；位元組偵測不改；ABI 6 是宣告。
+- Q3 → 附錄 §2.3：一次 poll 一個指令；`anyInput` 與不阻塞的 poll；不新增看門狗；N1 拆成 N1a／N1b／N1c。
+- Q4 → 附錄 §2.4：`STACK_OVERFLOW_CHECK=2` 搭診斷 profile。
 
 ## 修訂紀錄
 
 | 日期 | 內容 |
 |---|---|
-| 2026-10-20 | 草稿（opus，主 session），依裁決 1 §4 第 3 步。未釘死。 |
+| 2026-10-20 | 草稿（opus，主 session），依裁決 1 §4 第 3 步，`b943adb4`。未釘死。 |
+| 2026-10-20 | 依附錄 1（`3b93c7e2`）改定並**釘死**：§2 決定紀錄、§4 第 3／9／12／17 列、§5.1（156 的後果）、§5.2（poll 的條件、`anyInput`、不阻塞、回覆不讀計時器類快取）、§5.3（A1／A2 的名字、A6 不新增看門狗、096 的檢查點留著）、§5.4（刪除完成字串的後果）、§5.6、§5.7 規則 2 與 4、§5.8（名字全部留著）、§9.1 N1a／b／c、§9.2 的 S-init、溢位、記錄、§9.3 的 B2 讀法、§11 兩條新限制。草稿 §5.8「`verified-move-readback` 在 v23 不再出現」是主 session 的錯（附錄 §2.2）。 |
