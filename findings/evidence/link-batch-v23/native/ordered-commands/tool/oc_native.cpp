@@ -42,6 +42,16 @@
 //            the poll callback, which ImplYield calls only when no user event
 //            is pending (vcl/headless/svpinst.cxx:442-481); the trigger and the
 //            ops of an X step run back to back inside one poll call.
+//   uni1     unipoll, ONE op per poll (SPEC-M3-ordered-commands §5.2), for N1
+//            (§9.1). After each op returns, the next poll call is "the first poll
+//            after return": its time and the callback count are recorded, then
+//            the harness idles for 1500 ms (polls that do nothing) and records
+//            every callback that arrived after the first poll (N1a/N1b). No
+//            anyInput callback is registered.
+//   uni1ai   as uni1, with an anyInput callback that answers "a reply is
+//            pending" from an op's return until its first poll (the spec's
+//            §5.2 rule without the queued-command term: the page sends one
+//            command at a time). N1c compares uni1 and uni1ai.
 //
 // KEY SHAPE: as the engine posts a key-path action (probe_engine.cpp
 // handleEditorAction): KEYINPUT then KEYUP, charCode 0, keyCode = awt Key code
@@ -103,9 +113,22 @@ constexpr int kPreMeasureQuietMs = 1500;
 constexpr int kMeasureQuietMs = 2000;
 constexpr int kMeasureCapMs = 15000;
 
-enum class Mode { Seq, Queued, Unipoll };
+enum class Mode { Seq, Queued, Unipoll, Uni1, Uni1Ai };
 Mode gMode = Mode::Seq;
-const char *modeName() { return gMode == Mode::Seq ? "seq" : gMode == Mode::Queued ? "q" : "unipoll"; }
+const char *modeName() {
+  switch (gMode) {
+  case Mode::Seq: return "seq";
+  case Mode::Queued: return "q";
+  case Mode::Unipoll: return "unipoll";
+  case Mode::Uni1: return "uni1";
+  case Mode::Uni1Ai: return "uni1ai";
+  }
+  return "?";
+}
+bool unipollMode() { return gMode == Mode::Unipoll || gMode == Mode::Uni1 || gMode == Mode::Uni1Ai; }
+bool onePerPoll() { return gMode == Mode::Uni1 || gMode == Mode::Uni1Ai; }
+bool gReplyPending = false;  // uni1ai's anyInput answer
+bool anyInputCallback(void *, int) { return gReplyPending; }
 
 const Clock::time_point gEpoch = Clock::now();
 std::mutex gMutex;
@@ -322,6 +345,7 @@ void onCallback(int type, const char *payload, void *) {
 // A step does its LOK calls and then asks for a quiet window (0 = none).
 struct Settle {
   int quietMs = 0, capMs = 0;
+  int fixedMs = 0;  // uni1/uni1ai: wait this long whatever arrives
 };
 struct Step {
   std::string text;
@@ -345,6 +369,10 @@ struct Measured {
   double t0 = 0, preQuietMs = 0;
   std::vector<std::string> opRecords;
   bool fired = true;
+  // uni1/uni1ai, per op being measured
+  double opReturnedMs = 0, firstPollMs = 0;
+  size_t firstPollIndex = 0;
+  std::string pendingOp;
 };
 
 void settleBlocking(const Settle &s) {
@@ -426,6 +454,7 @@ void addSteps(const std::string &script) {
                             return Settle{kMeasureQuietMs, kMeasureCapMs};
                           }
                           post(m->trigger);
+                          if (onePerPoll()) return Settle{kSetupQuietMs, 5000};
                           if (gMode == Mode::Unipoll) {
                             for (const Op &op : m->ops) m->opRecords.push_back(runOp(op, m->t0));
                             return Settle{kMeasureQuietMs, kMeasureCapMs};
@@ -441,6 +470,39 @@ void addSteps(const std::string &script) {
                               return i + 1 == m->ops.size() ? Settle{kMeasureQuietMs, kMeasureCapMs}
                                                             : Settle{kSetupQuietMs, 5000};
                             }});
+        // uni1/uni1ai: the op in its own poll; the next poll is its first poll after
+        // return; then a fixed 1500 ms idle; then its late callbacks are recorded.
+        for (size_t i = 0; i < m->ops.size(); ++i) {
+          gSteps.push_back({step, [m, i] {
+                              if (!onePerPoll()) return Settle{};
+                              m->pendingOp = runOp(m->ops[i], m->t0);
+                              m->opReturnedMs = nowMs();
+                              if (gMode == Mode::Uni1Ai) gReplyPending = true;
+                              return Settle{};
+                            }});
+          gSteps.push_back({step, [m] {
+                              if (!onePerPoll()) return Settle{};
+                              m->firstPollMs = nowMs();
+                              m->firstPollIndex = cbCount();
+                              gReplyPending = false;
+                              Settle s;
+                              s.fixedMs = 1500;
+                              return s;
+                            }});
+          gSteps.push_back({step, [m, i] {
+                              if (!onePerPoll()) return Settle{};
+                              int nLate = 0;
+                              const std::string late = callbacksSince(m->firstPollIndex, m->firstPollMs, &nLate);
+                              std::string rec = m->pendingOp;
+                              rec.pop_back();
+                              std::ostringstream o;
+                              o << rec << ",\"firstPollAfterReturnMs\":" << (m->firstPollMs - m->opReturnedMs)
+                                << ",\"cbIndexAtFirstPoll\":" << m->firstPollIndex
+                                << ",\"lateCallbacks\":" << late << "}";
+                              m->opRecords.push_back(o.str());
+                              return i + 1 == m->ops.size() ? Settle{kMeasureQuietMs, kMeasureCapMs} : Settle{};
+                            }});
+        }
       }
       gSteps.push_back({step, [m] {
                           const double windowMs = nowMs() - m->t0;
@@ -529,8 +591,9 @@ int pollCallback(void *, int timeoutUs) {
     }
     const auto now = Clock::now();
     const double waited = msBetween(gWaitStart, now);
-    const bool quiet = msBetween(last, now) >= gWait.quietMs && waited >= gWait.quietMs;
-    if (!quiet && waited <= gWait.capMs) {
+    const bool quiet = gWait.fixedMs > 0 ? waited >= gWait.fixedMs
+                                         : msBetween(last, now) >= gWait.quietMs && waited >= gWait.quietMs;
+    if (!quiet && (gWait.fixedMs > 0 || waited <= gWait.capMs)) {
       int sleep = 5;
       if (timeoutUs >= 0 && timeoutUs / 1000 < sleep) sleep = timeoutUs / 1000;
       if (sleep > 0) sleepMs(sleep);
@@ -541,7 +604,7 @@ int pollCallback(void *, int timeoutUs) {
   }
   if (gNext >= gSteps.size()) finish();
   const Settle s = gSteps[gNext++].run();
-  if (s.quietMs > 0) {
+  if (s.quietMs > 0 || s.fixedMs > 0) {
     gWaiting = true;
     gWait = s;
     gWaitStart = Clock::now();
@@ -554,13 +617,15 @@ void wakeCallback(void *) {}
 
 int main(int argc, char **argv) {
   if (argc != 7) {
-    std::cerr << "usage: oc-native seq|q|unipoll INSTALL PROFILE_URL DOC_URL SCRIPT OUT_URL\n";
+    std::cerr << "usage: oc-native seq|q|unipoll|uni1|uni1ai INSTALL PROFILE_URL DOC_URL SCRIPT OUT_URL\n";
     return 64;
   }
   const std::string mode = argv[1];
   if (mode == "seq") gMode = Mode::Seq;
   else if (mode == "q") gMode = Mode::Queued;
   else if (mode == "unipoll") gMode = Mode::Unipoll;
+  else if (mode == "uni1") gMode = Mode::Uni1;
+  else if (mode == "uni1ai") gMode = Mode::Uni1Ai;
   else {
     std::cerr << "unknown mode " << mode << "\n";
     return 64;
@@ -580,7 +645,7 @@ int main(int argc, char **argv) {
   gKit = lok_init_2(argv[2], argv[3]);
   if (!gKit) fatal("lok_init_2");
 
-  if (gMode != Mode::Unipoll) {
+  if (!unipollMode()) {
     loadDocument();
     settleBlocking({kPreMeasureQuietMs, 10000});
     for (Step &s : gSteps) {
@@ -607,9 +672,11 @@ int main(int argc, char **argv) {
             << ",\"registerViewCallbacks\":" << (views ? "true" : "false") << ",\"updateMainThread\":"
             << (mainThread ? "true" : "false") << ",\"execute\":" << (execute ? "true" : "false")
             << ",\"sfxApplicationGetOrCreate\":" << (sfxApp ? "true" : "false")
+            << ",\"anyInputRegistered\":" << (gMode == Mode::Uni1Ai ? "true" : "false")
             << ",\"sofficeMainSkipped\":true}" << std::endl;
   if (!reg || !views || !mainThread || !execute || !sfxApp) fatal("a registration symbol is missing");
   reg(pollCallback, wakeCallback, &gPolls);
+  if (gMode == Mode::Uni1Ai) gKit->pClass->registerAnyInputCallback(gKit, anyInputCallback, &gPolls);
   views();
   mainThread();
   sfxApp();

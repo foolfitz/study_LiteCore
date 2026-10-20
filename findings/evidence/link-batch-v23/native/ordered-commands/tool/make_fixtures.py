@@ -45,10 +45,15 @@ BULLET_LIST_STYLE = '''<text:list-style style:name="L1">
 INDENT_STYLE = '<style:style style:name="PI" style:family="paragraph"><style:paragraph-properties fo:text-indent="1cm"/></style:style>'
 
 
-def doc(body, extra_auto=''):
+# The table namespace only where a table is used, so the fixtures of the counted run (24c5b635)
+# keep their bytes.
+TABLE_NS = ' xmlns:table="urn:oasis:names:tc:opendocument:xmlns:table:1.0"'
+
+
+def doc(body, extra_auto='', extra_ns=''):
     return (
         '<?xml version="1.0" encoding="UTF-8"?>\n'
-        f'<office:document{NS}\n office:version="1.3" office:mimetype="application/vnd.oasis.opendocument.text">\n'
+        f'<office:document{NS}{extra_ns}\n office:version="1.3" office:mimetype="application/vnd.oasis.opendocument.text">\n'
         '<office:automatic-styles>\n ' + PAGE + '\n ' + extra_auto + '\n'
         '</office:automatic-styles>\n'
         '<office:master-styles>\n'
@@ -82,6 +87,16 @@ FIXTURES = {
                   extra_auto=INDENT_STYLE),
     # D7 plain: Backspace at the start of a plain first paragraph
     'plain3': doc(p('Alpha first paragraph') + p('Bravo second paragraph') + p('Charlie third paragraph')),
+    # N1b's positive control (SPEC-M3-ordered-commands §9.1): a one-row table, then a paragraph;
+    # the caret opens in A1, and Down leaves the table (STATE_CHANGED arrives late, 142 README:20)
+    'table-leave': doc('<table:table table:name="T1"><table:table-column table:number-columns-repeated="2"/>'
+                       '<table:table-row><table:table-cell office:value-type="string"><text:p>A1 text</text:p>'
+                       '</table:table-cell><table:table-cell office:value-type="string"><text:p>B1 text</text:p>'
+                       '</table:table-cell></table:table-row></table:table>\n' + p('After the table'),
+                       extra_ns=TABLE_NS),
+    # N1c: 200 paragraphs of about 300 characters each, so a join near the top re-lays-out the rest
+    'long200': doc(''.join(p(f'Paragraph {i:03d}. ' + ' '.join(['lorem ipsum dolor sit amet consectetur'] * 8))
+                           for i in range(1, 201))),
 }
 
 

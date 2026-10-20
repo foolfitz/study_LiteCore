@@ -1,0 +1,93 @@
+[
+ {
+  "name": "d1",
+  "fixture": "numbered-second",
+  "script": "Xd1@1024=K9220;K1283,S,L",
+  "note": "142's pair: trigger Down (P1.0 -> start of the numbered P2); Ctrl+Home; Backspace",
+  "decides": true
+ },
+ {
+  "name": "d2",
+  "fixture": "abcd",
+  "script": "k1027x3,Xd2@1027=K1026;U.uno:Delete,S,L",
+  "note": "137 delete: trigger Right (3 -> 4, the end); Left; .uno:Delete (sync)",
+  "decides": true
+ },
+ {
+  "name": "d2p",
+  "fixture": "abcd",
+  "script": "k1027x1,Xd2p@1027=K1027;U.uno:SwBackspace,S,L",
+  "note": "137 delete, backward: trigger Right (1 -> 2, after b); Right; .uno:SwBackspace (sync)",
+  "decides": true
+ },
+ {
+  "name": "d3",
+  "fixture": "abcd",
+  "script": "k1027x1,Xd3@1026=K1027;Px,S,L",
+  "note": "137 typing: trigger Left (1 -> 0); Right; paste \"x\" (sync)",
+  "decides": true
+ },
+ {
+  "name": "d4",
+  "fixture": "abcd",
+  "script": "Xd4@5123=K1026;U.uno:Bold|{\"Bold\":{\"type\":\"boolean\"`\"value\":true}},S,L",
+  "note": "137 format: trigger Shift+Right (selects a); Left; .uno:Bold with the engine's explicit true (sync)",
+  "decides": true
+ },
+ {
+  "name": "d5",
+  "fixture": "abcd",
+  "script": "k1027x3,Xd5@1027=K5122;U.uno:Delete,S,L",
+  "note": "extend + delete: trigger Right (3 -> 4); Shift+Left; .uno:Delete (sync)",
+  "decides": true
+ },
+ {
+  "name": "d6",
+  "fixture": "abcd",
+  "script": "k1027x3,rpc,k1026x2,Xd6@1026=Cpc;Px,S,L",
+  "note": "mouse: point pc recorded at offset 3; trigger Left (1 -> 0); click at pc; paste \"x\" (sync)",
+  "decides": true
+ },
+ {
+  "name": "d7i",
+  "fixture": "bullet",
+  "script": "Xd7i@1026=K1286,S,L",
+  "note": "(i) trigger an unshifted Left at the document start, which puts the caret in front of P1's label (review 6: x 2138 -> 1778, review-6-engine-code.md:23); Delete",
+  "decides": false
+ },
+ {
+  "name": "d7ii",
+  "fixture": "bullet",
+  "script": "k1027,Xd7ii@1026=K1283,S,L",
+  "note": "(ii) trigger Left (1 -> 0, a bulleted first paragraph); Backspace",
+  "decides": false
+ },
+ {
+  "name": "d7iii",
+  "fixture": "indent",
+  "script": "k1027,Xd7iii@1026=K1283,S,L",
+  "note": "(iii) trigger Left (1 -> 0, a first-line indent); Backspace",
+  "decides": false
+ },
+ {
+  "name": "d7plain",
+  "fixture": "plain3",
+  "script": "k1027,Xd7plain@1026=K1283,S,L",
+  "note": "plain first paragraph: trigger Left (1 -> 0); Backspace",
+  "decides": false
+ },
+ {
+  "name": "tleave",
+  "fixture": "table-leave",
+  "script": "Xtleave@1027=K1024,S,L",
+  "note": "N1b positive control: caret in A1, trigger Right; Down leaves the table",
+  "decides": false
+ },
+ {
+  "name": "join200",
+  "fixture": "long200",
+  "script": "Xjoin200@1024=K1283,S",
+  "note": "N1c: trigger Down (P1.0 -> P2 start); Backspace joins P2 into P1 near the top of 200 paragraphs",
+  "decides": false
+ }
+]

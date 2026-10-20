@@ -29,7 +29,7 @@ BKSP, DEL = 1283, 1286
 SH, MOD1 = 0x1000, 0x2000
 BOLD_TRUE = '{"Bold":{"type":"boolean"`"value":true}}'   # ` = comma (oc_native.cpp)
 
-MODES = ('seq', 'q', 'unipoll')
+MODES = ('seq', 'q', 'unipoll', 'uni1', 'uni1ai')
 ARMS = []
 
 
@@ -65,6 +65,17 @@ arm('d7plain', 'plain3', f'k{RIGHT},Xd7plain@{LEFT}=K{BKSP},S,L',
     'plain first paragraph: trigger Left (1 -> 0); Backspace', decides=False)
 
 
+# N1 (SPEC-M3-ordered-commands §9.1, pinned at b9080313): run with --arms-set n1. The D arms above
+# in uni1ai give N1a and N1b; tleave is N1b's positive control (uni1ai); join200 is N1c (uni1 and uni1ai).
+N1_ARMS = [
+    {'name': 'tleave', 'fixture': 'table-leave', 'script': f'Xtleave@{RIGHT}=K{DOWN},S,L',
+     'note': 'N1b positive control: caret in A1, trigger Right; Down leaves the table', 'decides': False},
+    {'name': 'join200', 'fixture': 'long200', 'script': f'Xjoin200@{DOWN}=K{BKSP},S',
+     'note': 'N1c: trigger Down (P1.0 -> P2 start); Backspace joins P2 into P1 near the top of 200 paragraphs',
+     'decides': False},
+]
+
+
 def utc():
     return datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
 
@@ -78,16 +89,18 @@ def main():
     ap.add_argument('--work', required=True)
     ap.add_argument('--runs', type=int, default=5)
     ap.add_argument('--only', default='')
-    ap.add_argument('--modes', default=','.join(MODES))
+    ap.add_argument('--modes', default='seq,q,unipoll')
+    ap.add_argument('--arms-set', choices=('d', 'n1'), default='d')
     a = ap.parse_args()
     out = pathlib.Path(a.out)
     work = pathlib.Path(a.work)
     out.mkdir(parents=True, exist_ok=True)
-    (out / 'arms.json').write_text(json.dumps(ARMS, indent=1) + '\n')
+    table = ARMS + N1_ARMS if a.arms_set == 'n1' else ARMS
+    (out / 'arms.json').write_text(json.dumps(table, indent=1) + '\n')
     only = set(filter(None, a.only.split(',')))
     modes = [m for m in a.modes.split(',') if m]
     assert all(m in MODES for m in modes), modes
-    arms = [x for x in ARMS if not only or x['name'] in only]
+    arms = [x for x in table if not only or x['name'] in only]
     log = (out / 'run-log.jsonl').open('a')
     for r in range(1, a.runs + 1):
         for x in arms:
@@ -95,7 +108,7 @@ def main():
                 env = dict(os.environ)
                 env['SAL_USE_VCLPLUGIN'] = 'svp'
                 env.pop('SAL_LOK_OPTIONS', None)
-                if mode == 'unipoll':
+                if mode in ('unipoll', 'uni1', 'uni1ai'):
                     env['SAL_LOK_OPTIONS'] = 'unipoll'
                 d = work / f"{x['name']}-{mode}-r{r}"
                 if d.exists():
