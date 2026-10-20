@@ -1,0 +1,68 @@
+== A2: d4, unipoll, ops removed from every round (the trigger only) ==
+exit 0
+d4       PASS 5/5 as seq; q reorders 5/5
+D8      holds
+VERDICT C-HOLDS
+  recorded seq r1 locate: {'rec': 'locate', 'selBefore': '', 'suffix': 'abcd', 'prefix': ''}
+  recorded unipoll r1 locate: {'rec': 'locate', 'selBefore': '', 'suffix': 'abcd', 'prefix': ''}
+  NOTE the A2 caret is the recorded unipoll locator (which ran after Left+Bold); a trigger-only run
+  would start the locator from the selection a (anchor 0, point 1): Shift+End -> "abcd", Shift+Home -> ""
+  = ["", "abcd"], the same pair seq records.  That last step is inferred, not run.
+
+== A3: D7, the .uno:Undo top per round (reader prints round 1 only) ==
+  d7i      seq      5 rounds identical=True  (None, 'Number On/Off')
+  d7i      q        5 rounds identical=True  (None, 'Number On/Off')
+  d7i      unipoll  5 rounds identical=True  ('Number On/Off', 'Number On/Off')
+  d7ii     seq      5 rounds identical=True  (None, 'Number On/Off')
+  d7ii     q        5 rounds identical=True  (None, 'Number On/Off')
+  d7ii     unipoll  5 rounds identical=True  ('Number On/Off', 'Number On/Off')
+  d7iii    seq      5 rounds identical=True  (None, 'Apply attributes')
+  d7iii    q        5 rounds identical=True  (None, 'Apply attributes')
+  d7iii    unipoll  5 rounds identical=True  ('Apply attributes', 'Apply attributes')
+  d7plain  seq      5 rounds identical=True  (None, None)
+  d7plain  q        5 rounds identical=True  (None, None)
+  d7plain  unipoll  5 rounds identical=True  (None, None)
+
+== A4: q relabelled as unipoll on d5 only, env left threaded (SAL_LOK_OPTIONS absent) ==
+exit 0
+d5       NE   unipoll r1: env SAL_LOK_OPTIONS None, not 'unipoll'
+D8      FAILS: d5 unipoll r1: selText at return unchanged (expected changed); d5 unipoll r1: the last op's state at return differs from the settled state
+VERDICT C-FAILS
+
+== A5: REPLY_TYPES names against the callback types recorded in out-n1 ==
+  LOK_CALLBACK_INVALIDATE_TILES              recorded 0 times in measured callbacks
+  LOK_CALLBACK_INVALIDATE_VISIBLE_CURSOR     recorded 145 times in measured callbacks
+  LOK_CALLBACK_TEXT_SELECTION                recorded 20 times in measured callbacks
+  LOK_CALLBACK_TEXT_SELECTION_END            recorded 10 times in measured callbacks
+  LOK_CALLBACK_TEXT_SELECTION_START          recorded 10 times in measured callbacks
+  LOK_CALLBACK_UNO_COMMAND_RESULT            recorded 20 times in measured callbacks
+  all types seen: {'LOK_CALLBACK_CONTEXT_CHANGED': 15, 'LOK_CALLBACK_INVALIDATE_VISIBLE_CURSOR': 145, 'LOK_CALLBACK_MOUSE_POINTER': 15, 'LOK_CALLBACK_RULER_UPDATE': 20, 'LOK_CALLBACK_STATE_CHANGED': 385, 'LOK_CALLBACK_TABLE_SELECTED': 5, 'LOK_CALLBACK_TEXT_SELECTION': 20, 'LOK_CALLBACK_TEXT_SELECTION_END': 10, 'LOK_CALLBACK_TEXT_SELECTION_START': 10, 'LOK_CALLBACK_UNO_COMMAND_RESULT': 20, 'LOK_CALLBACK_VERTICAL_RULER_UPDATE': 5}
+
+== A6: per op, reply-type callbacks between its return and its first poll (uni1ai) ==
+  ops: 100; ops with NO reply-type callback before their first poll: 15
+    d1/uni1ai-r1.jsonl K1283
+    d1/uni1ai-r2.jsonl K1283
+    d1/uni1ai-r3.jsonl K1283
+    d1/uni1ai-r4.jsonl K1283
+    d1/uni1ai-r5.jsonl K1283
+    d7ii/uni1ai-r1.jsonl K1283
+    d7ii/uni1ai-r2.jsonl K1283
+    d7ii/uni1ai-r3.jsonl K1283
+    d7ii/uni1ai-r4.jsonl K1283
+    d7ii/uni1ai-r5.jsonl K1283
+    d7plain/uni1ai-r1.jsonl K1283
+    d7plain/uni1ai-r2.jsonl K1283
+    d7plain/uni1ai-r3.jsonl K1283
+    d7plain/uni1ai-r4.jsonl K1283
+    d7plain/uni1ai-r5.jsonl K1283
+
+== A7: D8 evaluated on an unclean cell (d5 unipoll r1: saved=false and selText "" at return) ==
+exit 0
+d5       NE   unipoll r1: not saved
+D8      FAILS: d5 unipoll r1: selText at return unchanged (expected changed)
+VERDICT C-FAILS
+
+== A8: D4 under unipoll, the evidence that .uno:Bold ran ==
+  d4 seq r1: UNO_COMMAND_RESULT ['{ "commandName": ".uno:Bold", "success": false, "result": { "type": "void"}, "wasModified": false, "startUnixTimeMics": 291012090453, "saveDurationMics": 692}']; STATE_CHANGED with Bold ['.uno:Bold=true']
+  d4 unipoll r1: UNO_COMMAND_RESULT ['{ "commandName": ".uno:Bold", "success": false, "result": { "type": "void"}, "wasModified": false, "startUnixTimeMics": 291035285472, "saveDurationMics": 441}']; STATE_CHANGED with Bold ['.uno:Bold=true']
+  read_results.py reads neither (its landing is the saved shape and the locator).

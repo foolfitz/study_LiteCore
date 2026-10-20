@@ -1,0 +1,7 @@
+# committed N1 run
+cells 65, ops 100; reply-type callbacks later than the estimated first poll + 1500 ms: 0 (those within it, 115, are the reader's domain: its index-based lateCallbacks)
+# exit 0
+# positive control: a mutated copy of d1/uni1ai-r1 with one INVALIDATE_VISIBLE_CURSOR appended at the last op's estimated first poll + 1700 ms
+OUTSIDE d1/uni1ai-r1.jsonl op 1 LOK_CALLBACK_INVALIDATE_VISIBLE_CURSOR +1700.0 ms
+cells 1, ops 2; reply-type callbacks later than the estimated first poll + 1500 ms: 1 (those within it, 1, are the reader's domain: its index-based lateCallbacks)
+# exit 0
