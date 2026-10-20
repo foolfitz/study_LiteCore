@@ -26,11 +26,13 @@ import argparse
 import copy
 import hashlib
 import json
+import re
 import shutil
 import subprocess
 import sys
 import tempfile
 import time
+import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -47,6 +49,7 @@ DEFAULT_OUT = PROJECT.parent / "findings" / "evidence" / "m4-ods" / "phase-e"
 HARNESS = {"ods-viewer-e-harness.html": PROJECT / "web" / "ods-viewer-e-harness.html",
            "ods-viewer-e-harness-app.js": PROJECT / "web" / "ods-viewer-e-harness-app.js"}
 EMPTY_CONTROL = "ladder/empty-one-sheet.ods"
+HIDDEN_CASE = "upstream/synthetic-hidden.ods"          # selftest only: a file with a hidden third sheet
 DISTINCT = "ladder/three-sheets-distinct.ods"
 IDENTICAL = "ladder/three-sheets-identical.ods"
 VIEW_READY_MS = 60_000
@@ -75,6 +78,47 @@ def oracle_texts() -> dict[str, list]:
             rel = str(Path(record["file"]).resolve().relative_to(CORPUS.resolve()))
             out[rel] = record.get("sheets") or []
     return out
+
+
+# Spec addendum 7 (A7.2, A7.3): two properties of a sheet that the manifest does not carry, derived
+# from the file itself.  Hidden: its table style says table:display="false" (Calc cannot switch to
+# it, so E3/E4a skip it and E5 expects a refusal).  Volatile: a formula in it calls a function whose
+# value depends on the day or on chance, or it holds a date/time text field (the oracle's text is
+# then a function of its run date, so E3 records the comparison instead of judging it).
+VOLATILE_RE = re.compile(r"\b(?:TODAY|NOW|RAND|RANDBETWEEN|RAND\.NV|RANDBETWEEN\.NV)\s*\(", re.IGNORECASE)
+STYLE_RE = re.compile(r"<style:style\b([^>]*)>(.*?)</style:style>", re.DOTALL)
+TABLE_START_RE = re.compile(r"<table:table\s")
+
+
+def sheet_properties(path: Path) -> dict:
+    """{'hiddenParts': [...], 'volatileParts': [...], 'tables': n} from content.xml, in part order."""
+    try:
+        with zipfile.ZipFile(path) as package:
+            content = package.read("content.xml").decode("utf-8", "replace")
+    except Exception as error:  # noqa: BLE001 - an unreadable package (encrypted) has no parts to classify
+        return {"hiddenParts": [], "volatileParts": [], "tables": None, "sheetPropertiesError": str(error)[:120]}
+    hidden_styles = {re.search(r'style:name="([^"]+)"', attrs).group(1)
+                     for attrs, body in STYLE_RE.findall(content)
+                     if 'style:family="table"' in attrs and 'table:display="false"' in body
+                     and re.search(r'style:name="([^"]+)"', attrs)}
+    starts = [m.start() for m in TABLE_START_RE.finditer(content)]
+    end = content.find("</office:spreadsheet>")
+    chunks = [content[start:(starts[i + 1] if i + 1 < len(starts) else (end if end > start else len(content)))]
+              for i, start in enumerate(starts)]
+    # A cached external-link sheet is stored as a <table:table> with a <table:table-source> child and
+    # is not a part of the document (10 corpus files carry one); only the real tables are numbered.
+    chunks = [c for c in chunks if "<table:table-source" not in c]
+    hidden, volatile = [], []
+    for k, chunk in enumerate(chunks):
+        tag = chunk[:chunk.find(">") + 1]
+        style = re.search(r'table:style-name="([^"]+)"', tag)
+        if style and style.group(1) in hidden_styles:
+            hidden.append(k)
+        formulas = re.findall(r'table:formula="([^"]*)"', chunk)
+        if any(VOLATILE_RE.search(f) for f in formulas) or "<text:date" in chunk or "<text:time" in chunk:
+            volatile.append(k)
+    return {"hiddenParts": hidden, "volatileParts": volatile, "tables": len(chunks),
+            "externalCacheTables": len(starts) - len(chunks)}
 
 
 def expected_sheets(entry: dict, oracle: dict) -> list[dict]:
@@ -178,27 +222,43 @@ def opened_cases(report: dict):
             yield case, staged
 
 
+def hidden_parts(staged: dict) -> set:
+    return set(staged.get("hiddenParts") or [])
+
+
 def judge_e3(report: dict) -> list[dict]:
     out = []
     for case, staged in opened_cases(report):
         sheets = case.get("sheets") or []
         want = staged["expectedSheets"]
-        problems = []
+        hidden = hidden_parts(staged)
+        volatile = set(staged.get("volatileParts") or [])
+        problems, recorded = [], []
         if len(sheets) != len(want):
             problems.append(f"{len(sheets)} sheets read, {len(want)} expected")
         for got, exp in zip(sheets, want):
+            k = got["part"]
+            if k in hidden:                                   # A7.2: Calc cannot show it
+                continue
             t = got.get("text") or {}
+            problem = None
             if got.get("error"):
-                problems.append(f"part {got['part']}: {got['error']}")
+                problem = f"part {k}: {got['error']}"
             elif exp["textSha256"] is None:
-                problems.append(f"part {got['part']}: no expected text")
+                problem = f"part {k}: no expected text"
             elif t.get("sha256") != exp["textSha256"]:
-                problems.append(f"part {got['part']}: text differs ({t.get('length')} chars, "
-                                f"expected {exp['textLength']}; selectAllConfirmed {t.get('selectAllConfirmed')})")
+                problem = (f"part {k}: text differs ({t.get('length')} chars, "
+                           f"expected {exp['textLength']}; selectAllConfirmed {t.get('selectAllConfirmed')})")
             elif t.get("partAfter") != t.get("currentPartBefore"):
-                problems.append(f"part {got['part']}: part_text left the view on {t.get('partAfter')}, "
-                                f"not {t.get('currentPartBefore')}")
-        out.append(verdict(f"E3 {staged['path']}", not problems and bool(sheets), problems[:5]))
+                problem = f"part {k}: part_text left the view on {t.get('partAfter')}, not {t.get('currentPartBefore')}"
+            if problem is None:
+                continue
+            if k in volatile and not got.get("error"):         # A7.3: recorded, not judged
+                recorded.append(problem)
+            else:
+                problems.append(problem)
+        out.append(verdict(f"E3 {staged['path']}", not problems and bool(sheets),
+                           problems[:5] if problems else ({"recorded": recorded[:5]} if recorded else [])))
     return out
 
 
@@ -221,6 +281,8 @@ def judge_e4a(report: dict) -> list[dict]:
     for case, staged in opened_cases(report):
         problems = []
         for sheet, exp in zip(case.get("sheets") or [], staged["expectedSheets"]):
+            if sheet["part"] in hidden_parts(staged):            # A7.2
+                continue
             tiles = sheet.get("tiles") or []
             if len(tiles) != 2:
                 problems.append(f"part {sheet['part']}: {len(tiles)} paints, want 2 ({sheet.get('error')})")
@@ -252,6 +314,11 @@ def judge_e5(report: dict) -> list[dict]:
             problems.append(f"part names {names} != {staged['sheetNames']}")
         for sheet in case.get("sheets") or []:
             sw = sheet.get("switch") or {}
+            if sheet["part"] in hidden_parts(staged):
+                # A7.2: a hidden sheet is never shown -- the session refuses and the engine is not on it.
+                if not sheet.get("error") or sw.get("readBack") == sheet["part"] or sheet.get("readBack") == sheet["part"]:
+                    problems.append(f"hidden part {sheet['part']} was shown or not refused: {sheet.get('error')}")
+                continue
             if sw.get("readBack") != sheet["part"] or sheet.get("readBack") != sheet["part"]:
                 problems.append(f"switch to {sheet['part']}: read back {sw.get('readBack')}/{sheet.get('readBack')}")
         reselect = case.get("reselect") or {}
@@ -316,24 +383,29 @@ def synthetic() -> dict:
     def staged(path, names, texts, expect="opens", cells=1):
         return {"path": path, "sha256": "sha-" + path, "sheets": len(names), "sheetNames": names,
                 "expect": expect, "expectedFrom": "generator", "cells": cells,
+                "hiddenParts": [], "volatileParts": [],
                 "expectedSheets": [{"name": n, "textSha256": t, "textLength": 1, "empty": t == "E"}
                                    for n, t in zip(names, texts)]}
     report = {
         "fullCorpus": False,
         "corpusFiles": {"ladder/empty-one-sheet.ods": "sha-ladder/empty-one-sheet.ods",
                         DISTINCT: "sha-" + DISTINCT, IDENTICAL: "sha-" + IDENTICAL,
+                        HIDDEN_CASE: "sha-" + HIDDEN_CASE,
                         "upstream/password.ods": "sha-upstream/password.ods"},
         "manifestEntries": [{"path": p, "sha256": "sha-" + p} for p in
-                            ("ladder/empty-one-sheet.ods", DISTINCT, IDENTICAL, "upstream/password.ods")],
+                            ("ladder/empty-one-sheet.ods", DISTINCT, IDENTICAL, HIDDEN_CASE, "upstream/password.ods")],
         "staged": [staged(EMPTY_CONTROL, ["Sheet1"], ["E"], cells=0),
                    staged(DISTINCT, ["Alpha", "Beta", "Gamma"], ["a", "b", "c"]),
                    staged(IDENTICAL, ["One", "Two", "Three"], ["s", "s", "s"]),
+                   staged(HIDDEN_CASE, ["Jan", "Feb", "Table"], ["j", "f", "x"]),
                    staged("upstream/password.ods", [], [], expect="refused")],
         "cases": [opened(EMPTY_CONTROL, ["Sheet1"], [sheet(0, "E", "empty")]),
                   opened(DISTINCT, ["Alpha", "Beta", "Gamma"],
                          [sheet(0, "a", "t0"), sheet(1, "b", "t1"), sheet(2, "c", "t2")]),
                   opened(IDENTICAL, ["One", "Two", "Three"],
                          [sheet(0, "s", "same"), sheet(1, "s", "same"), sheet(2, "s", "same")]),
+                  opened(HIDDEN_CASE, ["Jan", "Feb", "Table"],
+                         [sheet(0, "j", "h0"), sheet(1, "f", "h1"), sheet(2, "x", "h2")]),
                   {"kind": "corpus", "name": "password.ods", "inputSha256": "sha-upstream/password.ods",
                    "engineCreated": False, "refused": {"code": "ENCRYPTED_DOCUMENT"}},
                   {"kind": "control-odt", "refused": {"code": "DOCUMENT_TYPE_REFUSED"},
@@ -349,7 +421,18 @@ def selftest() -> int:
     def case(b, path):
         return next(c for c in b["cases"] if c.get("inputSha256") == "sha-" + path)
 
+    def stg(b, path):
+        return next(s for s in b["staged"] if s["path"] == path)
+
+    def hide_part_2(b, refused=True):
+        # A7.2's measured shape: the session refused the switch and the engine stayed where it was.
+        stg(b, HIDDEN_CASE)["hiddenParts"] = [2]
+        if refused:
+            case(b, HIDDEN_CASE)["sheets"][2] = {"part": 2, "switch": None, "readBack": None, "text": None,
+                                                 "tiles": [], "error": {"code": "PART_READBACK_MISMATCH"}}
+
     mutations = [
+        ("E5", "a hidden part was shown (no refusal, read back is it)", lambda b: hide_part_2(b, refused=False)),
         ("E1", "a corpus file without a manifest entry",
          lambda b: b["corpusFiles"].update({"ladder/zzz.ods": "sha-z"})),
         ("E1", "an empty corpus directory", lambda b: b.update(corpusFiles={})),
@@ -394,6 +477,20 @@ def selftest() -> int:
     control = judge(base)
     results = [("control (every criterion met)", all(v["pass"] for v in control.values()),
                 [k for k, v in control.items() if not v["pass"]])]
+    # A7.2 / A7.3 controls: a hidden part that was refused and a volatile part whose text differs
+    # must NOT turn E3/E4a/E5 red (the second is recorded in E3's detail).
+    hidden_ok = copy.deepcopy(base)
+    hide_part_2(hidden_ok)
+    v = judge(hidden_ok)
+    results.append(("control: a hidden part refused passes E3/E4a/E5", all(x["pass"] for x in v.values()),
+                    [k for k, x in v.items() if not x["pass"]]))
+    volatile_ok = copy.deepcopy(base)
+    stg(volatile_ok, DISTINCT)["volatileParts"] = [1]
+    case(volatile_ok, DISTINCT)["sheets"][1]["text"]["sha256"] = "today"
+    e3 = judge_e3(volatile_ok)
+    recorded = next((x["detail"] for x in e3 if x["id"] == f"E3 {DISTINCT}"), None)
+    results.append(("control: a volatile part's differing text is recorded, not red",
+                    all(x["ok"] for x in e3) and isinstance(recorded, dict) and bool(recorded.get("recorded")), []))
     for criterion, label, edit in mutations:
         broken = copy.deepcopy(base)
         edit(broken)
@@ -411,7 +508,10 @@ def selftest() -> int:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--selftest", action="store_true")
-    parser.add_argument("--only", default=None, help="stage only corpus entries whose path starts with this")
+    parser.add_argument("--only", action="append", default=None,
+                        help="stage only corpus entries whose path starts with this (repeatable)")
+    parser.add_argument("--record-text", action="store_true",
+                        help="diagnostic: the harness keeps each sheet's text (<= 20000 chars), not only its sha")
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
     parser.add_argument("--timeout", type=float, default=7200)
     args = parser.parse_args()
@@ -433,9 +533,14 @@ def main() -> int:
     oracle = oracle_texts()
     corpus_files = {str(p.relative_to(CORPUS)): sha256_bytes(p.read_bytes())
                     for p in sorted(CORPUS.rglob("*.ods"))}
-    picked = [e for e in manifest["entries"] if args.only is None or e["path"].startswith(args.only)]
-    if args.only and not any(e["path"] == EMPTY_CONTROL for e in picked):
-        picked.insert(0, next(e for e in manifest["entries"] if e["path"] == EMPTY_CONTROL))
+    picked = [e for e in manifest["entries"]
+              if args.only is None or any(e["path"].startswith(prefix) for prefix in args.only)]
+    if args.only:
+        # The three ladder controls ride along on every partial run: the empty control for E4a, the
+        # distinct and identical pair for E5 (A7.5: without them E5 was red with an empty detail).
+        for control in (IDENTICAL, DISTINCT, EMPTY_CONTROL):
+            if not any(e["path"] == control for e in picked):
+                picked.insert(0, next(e for e in manifest["entries"] if e["path"] == control))
     if not picked:
         raise SystemExit("nothing staged: a run over zero entries must be red, not empty")
 
@@ -449,6 +554,7 @@ def main() -> int:
         specs.append({"name": Path(entry["path"]).name, "file": "./" + rel, "kind": "corpus"})
         staged.append({**{k: entry[k] for k in ("path", "sha256", "sheets", "sheetNames", "expect",
                                                 "expectedFrom", "cells")},
+                       **sheet_properties(source),
                        "expectedSheets": expected_sheets(entry, oracle) if entry["expect"] == "opens" else []})
     overrides["ods-e-cases/control.odt"] = CONTROL_ODT.read_bytes()
     specs.append({"name": CONTROL_ODT.name, "file": "./ods-e-cases/control.odt", "kind": "control-odt"})
@@ -472,7 +578,8 @@ def main() -> int:
               "probeWasmSha256": sha256_bytes((profile_manifest.parent / "probe.wasm").read_bytes()),
               "workerSha256": sha256_bytes((profile_manifest.parent / "sdk-worker.js").read_bytes()),
               "pageFiles": {p: sha256_bytes(b) for p, b in overrides.items() if not p.startswith("ods-e-cases")},
-              "fullCorpus": args.only is None, "only": args.only, "corpusFiles": corpus_files,
+              "fullCorpus": args.only is None, "only": args.only, "recordText": args.record_text,
+              "evidenceClass": "diagnostic" if args.record_text else "gate", "corpusFiles": corpus_files,
               "manifestEntries": [{"path": e["path"], "sha256": e["sha256"]} for e in manifest["entries"]],
               "staged": staged, "controlOdt": {"path": str(CONTROL_ODT.relative_to(PROJECT)),
                                                "sha256": sha256_bytes(CONTROL_ODT.read_bytes())},
@@ -487,7 +594,8 @@ def main() -> int:
         wait_page(f"http://127.0.0.1:{port}/ods-viewer-e-harness.html")
         session = ChromeSession("cold")
         report["chrome"] = session.version
-        navigate(session, f"http://127.0.0.1:{port}/ods-viewer-e-harness.html?openTimeoutMs=180000")
+        navigate(session, f"http://127.0.0.1:{port}/ods-viewer-e-harness.html?openTimeoutMs=180000"
+                          + ("&recordText=1" if args.record_text else ""))
         deadline = time.monotonic() + args.timeout
         head = {}
         while time.monotonic() < deadline:

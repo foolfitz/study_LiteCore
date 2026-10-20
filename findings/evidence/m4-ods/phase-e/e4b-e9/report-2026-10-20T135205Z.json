@@ -1,0 +1,382 @@
+{
+ "schemaVersion": 1,
+ "release": "m4-ods-e4b-e9",
+ "spec": "specs/SPEC-M4-ods-in-nextcloud.md §4 E4b, E9; A6.3-A6.4",
+ "evidenceClass": "gate",
+ "redCase": null,
+ "startedAt": "2026-10-20T135205Z",
+ "profile": "ods-viewer-v1",
+ "preconditions": {
+  "wallet": "b false",
+  "chromeProcessCount": 0,
+  "chromeProcessesSample": [],
+  "load1": 0.23,
+  "ok": true,
+  "reasons": []
+ },
+ "profileManifestSha256": "8f37d00a07b5d60953143b1aa4ab0bec96173cfffbc16d0ac3a7bd1c27299a2f",
+ "probeWasmSha256": "f6ab3cdb9fa506927858a72815e71a76b3788eacdb2e4c04b38f489ca9c4b7ef",
+ "workerSha256": "cc2d6514cde27b63ac4f9ce3ae3ba286e3a894cc99d879f3983f5e33ee8c1b5b",
+ "pageSourceSha256": {
+  "ods-viewer-app.js": "d3df4ff2b8c9704841fa257741b096da21615690ab6cd6130b10791a29e68577",
+  "served": "d3df4ff2b8c9704841fa257741b096da21615690ab6cd6130b10791a29e68577"
+ },
+ "pageFiles": {
+  "ods-viewer.html": "5fc8f96889b2d47caca94fbc1bd6f909590f161180a59c50ad6e07f2abd65085",
+  "ods-viewer-app.js": "d3df4ff2b8c9704841fa257741b096da21615690ab6cd6130b10791a29e68577",
+  "viewer-shell/ods-viewer-session.js": "7f734c0d0d90cbc93fced4c94dadeeafc5e55ef01e5bdd87bb063d0cd8b88602",
+  "viewer-shell/w7-adapter.js": "d4b5206dbf90661fcf1b059e08b07dcda3cd2023e855ca2eac34273aa9be486a",
+  "viewer-shell/viewer-error.js": "237dad413606f1a55a8b7a5dcde9930b3ace14d532bb87edc7c1a7062771765d",
+  "viewer-shell/odf-package-probe.js": "3baa064cfa06a98903bb6a413ebb6301e3e48808cb5817639adb4b1d8bc44aeb",
+  "viewer-shell/ods-document-sdk.js": "f1bb6caca31f750747a280de786daf3d46d0dad2103bee50363e37cf4fb2d756"
+ },
+ "fixtures": [
+  {
+   "path": "ladder/three-sheets-distinct.ods",
+   "sha256": "0402e52724cb5bbd3046461a5fb1c40b9431b33f20834136a835a68f3123e750"
+  },
+  {
+   "path": "upstream/tdf149752.ods",
+   "sha256": "2d6a2c6aa63c33b0971ef7e3e67b7fc5727639387e5a6eb8c73ae86194f0052e"
+  }
+ ],
+ "runs": [
+  {
+   "path": "ladder/three-sheets-distinct.ods",
+   "file": "three-sheets-distinct.ods",
+   "sha256": "0402e52724cb5bbd3046461a5fb1c40b9431b33f20834136a835a68f3123e750",
+   "manifestSheetNames": [
+    "Alpha",
+    "Beta",
+    "Gamma"
+   ],
+   "opened": {
+    "atMs": 1506,
+    "parts": 3,
+    "documentType": "spreadsheet",
+    "widthTwips": 26593,
+    "heightTwips": 13005
+   },
+   "error": null,
+   "refused": null,
+   "inputSha256": "0402e52724cb5bbd3046461a5fb1c40b9431b33f20834136a835a68f3123e750",
+   "tileDraws": 24,
+   "viewReadyAtMs": 1504,
+   "refits": 1,
+   "fit": {
+    "surfaceCssWidth": 1785,
+    "documentWidthTwips": 26775,
+    "rightmostDrawnPx": 1024
+   },
+   "engineCreated": true,
+   "timedOut": false,
+   "afterOpen": {
+    "surfaceCssWidth": 1785,
+    "surfaceStyleWidth": "1785px",
+    "widthTwips": 26775,
+    "heightTwips": 13005,
+    "rightmostDrawnPx": 1024,
+    "canvases": 12,
+    "scrollLeft": 0,
+    "scrollWidth": 1785,
+    "clientWidth": 716,
+    "state": {
+     "state": "ready",
+     "parts": 3,
+     "currentPart": 0,
+     "currentPartReadBack": 0,
+     "partNames": [
+      "Alpha",
+      "Beta",
+      "Gamma"
+     ],
+     "namesFromEngine": true,
+     "adapterFallbacks": [],
+     "documentType": "spreadsheet",
+     "lastRefusal": null
+    },
+    "tileDraws": 24
+   },
+   "afterScroll": {
+    "surfaceCssWidth": 1785,
+    "surfaceStyleWidth": "1785px",
+    "widthTwips": 26775,
+    "heightTwips": 13005,
+    "rightmostDrawnPx": 1785,
+    "canvases": 21,
+    "scrollLeft": 1069,
+    "scrollWidth": 1785,
+    "clientWidth": 716,
+    "state": {
+     "state": "ready",
+     "parts": 3,
+     "currentPart": 0,
+     "currentPartReadBack": 0,
+     "partNames": [
+      "Alpha",
+      "Beta",
+      "Gamma"
+     ],
+     "namesFromEngine": true,
+     "adapterFallbacks": [],
+     "documentType": "spreadsheet",
+     "lastRefusal": null
+    },
+    "tileDraws": 36
+   },
+   "tabs": [
+    {
+     "part": 0,
+     "text": "Alpha",
+     "selected": "true",
+     "disabled": false
+    },
+    {
+     "part": 1,
+     "text": "Beta",
+     "selected": "false",
+     "disabled": false
+    },
+    {
+     "part": 2,
+     "text": "Gamma",
+     "selected": "false",
+     "disabled": false
+    }
+   ],
+   "e5Reference": {
+    "report": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/m4-ods/phase-e/report-2026-10-20T133240Z.json",
+    "reportSha256": "2c722d484a765d41d4f86441a7c35114d946d3ea5e6d43e0cd64d83fbdcd3359",
+    "probeWasmSha256": "f6ab3cdb9fa506927858a72815e71a76b3788eacdb2e4c04b38f489ca9c4b7ef",
+    "tiles": [
+     "1b932354af41ca3087eab130a0bd084279c9e2dd3eb27013c22b74c18b0759c9",
+     "3635871d0cd83d37e36fe23998b6c7f665e0bf185aee7ff6f35c75633e777902",
+     "66d2499b7211e4e6fcf4f56788814ce2eaabf89410f4e3741493918cde9cc66a"
+    ]
+   },
+   "clicks": [
+    {
+     "requested": 1,
+     "clickedAtMs": 7869,
+     "currentPart": 1,
+     "currentPartReadBack": 1,
+     "lastRefusal": null,
+     "tile1024": {
+      "sha256": "3635871d0cd83d37e36fe23998b6c7f665e0bf185aee7ff6f35c75633e777902",
+      "nonPaperPixels": 73191,
+      "width": 1024,
+      "height": 1024,
+      "documentWidthTwips": 26775
+     },
+     "pageTile": {
+      "sha256": "6a84277c2152ab174da9621c943f58dcb9b5518145b820da1c905aceac83521a",
+      "nonPaperPixels": 4800,
+      "width": 256,
+      "height": 256,
+      "cssWidth": "256px"
+     },
+     "tabs": [
+      {
+       "part": 0,
+       "text": "Alpha",
+       "selected": "false",
+       "disabled": false
+      },
+      {
+       "part": 1,
+       "text": "Beta",
+       "selected": "true",
+       "disabled": false
+      },
+      {
+       "part": 2,
+       "text": "Gamma",
+       "selected": "false",
+       "disabled": false
+      }
+     ]
+    },
+    {
+     "requested": 2,
+     "clickedAtMs": 8140,
+     "currentPart": 2,
+     "currentPartReadBack": 2,
+     "lastRefusal": null,
+     "tile1024": {
+      "sha256": "66d2499b7211e4e6fcf4f56788814ce2eaabf89410f4e3741493918cde9cc66a",
+      "nonPaperPixels": 73201,
+      "width": 1024,
+      "height": 1024,
+      "documentWidthTwips": 26775
+     },
+     "pageTile": {
+      "sha256": "4b0ae6b9daa53d459af741e8a1f17b2a3dff6c9f76d57ed4272cb566a4b2efd7",
+      "nonPaperPixels": 4810,
+      "width": 256,
+      "height": 256,
+      "cssWidth": "256px"
+     },
+     "tabs": [
+      {
+       "part": 0,
+       "text": "Alpha",
+       "selected": "false",
+       "disabled": false
+      },
+      {
+       "part": 1,
+       "text": "Beta",
+       "selected": "false",
+       "disabled": false
+      },
+      {
+       "part": 2,
+       "text": "Gamma",
+       "selected": "true",
+       "disabled": false
+      }
+     ]
+    },
+    {
+     "requested": 0,
+     "clickedAtMs": 8409,
+     "currentPart": 0,
+     "currentPartReadBack": 0,
+     "lastRefusal": null,
+     "tile1024": {
+      "sha256": "1b932354af41ca3087eab130a0bd084279c9e2dd3eb27013c22b74c18b0759c9",
+      "nonPaperPixels": 73208,
+      "width": 1024,
+      "height": 1024,
+      "documentWidthTwips": 26775
+     },
+     "pageTile": {
+      "sha256": "0a516b644c785eaf6ca28b979713391f1f93cb65dec863a109f485d3827c44e3",
+      "nonPaperPixels": 4817,
+      "width": 256,
+      "height": 256,
+      "cssWidth": "256px"
+     },
+     "tabs": [
+      {
+       "part": 0,
+       "text": "Alpha",
+       "selected": "true",
+       "disabled": false
+      },
+      {
+       "part": 1,
+       "text": "Beta",
+       "selected": "false",
+       "disabled": false
+      },
+      {
+       "part": 2,
+       "text": "Gamma",
+       "selected": "false",
+       "disabled": false
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "path": "upstream/tdf149752.ods",
+   "file": "tdf149752.ods",
+   "sha256": "2d6a2c6aa63c33b0971ef7e3e67b7fc5727639387e5a6eb8c73ae86194f0052e",
+   "manifestSheetNames": [
+    "Liste",
+    "Auswertung"
+   ],
+   "opened": {
+    "atMs": 1063,
+    "parts": 2,
+    "documentType": "spreadsheet",
+    "widthTwips": 27658,
+    "heightTwips": 25500
+   },
+   "error": null,
+   "refused": null,
+   "inputSha256": "2d6a2c6aa63c33b0971ef7e3e67b7fc5727639387e5a6eb8c73ae86194f0052e",
+   "tileDraws": 24,
+   "viewReadyAtMs": 1062,
+   "refits": 1,
+   "fit": {
+    "surfaceCssWidth": 1837,
+    "documentWidthTwips": 27555,
+    "rightmostDrawnPx": 1024
+   },
+   "engineCreated": true,
+   "timedOut": false,
+   "afterOpen": {
+    "surfaceCssWidth": 1837,
+    "surfaceStyleWidth": "1837px",
+    "widthTwips": 27555,
+    "heightTwips": 25500,
+    "rightmostDrawnPx": 1024,
+    "canvases": 12,
+    "scrollLeft": 0,
+    "scrollWidth": 1837,
+    "clientWidth": 716,
+    "state": {
+     "state": "ready",
+     "parts": 2,
+     "currentPart": 1,
+     "currentPartReadBack": 1,
+     "partNames": [
+      "Liste",
+      "Auswertung"
+     ],
+     "namesFromEngine": true,
+     "adapterFallbacks": [],
+     "documentType": "spreadsheet",
+     "lastRefusal": null
+    },
+    "tileDraws": 108
+   },
+   "afterScroll": {
+    "surfaceCssWidth": 1837,
+    "surfaceStyleWidth": "1837px",
+    "widthTwips": 27555,
+    "heightTwips": 25500,
+    "rightmostDrawnPx": 1837,
+    "canvases": 24,
+    "scrollLeft": 1121,
+    "scrollWidth": 1837,
+    "clientWidth": 716,
+    "state": {
+     "state": "ready",
+     "parts": 2,
+     "currentPart": 1,
+     "currentPartReadBack": 1,
+     "partNames": [
+      "Liste",
+      "Auswertung"
+     ],
+     "namesFromEngine": true,
+     "adapterFallbacks": [],
+     "documentType": "spreadsheet",
+     "lastRefusal": null
+    },
+    "tileDraws": 123
+   }
+  }
+ ],
+ "chrome": "Chrome/151.0.7922.169",
+ "pageWorkerUrl": "./profiles/ods-viewer-v1/sdk-worker.js",
+ "window": "{\"innerWidth\":780,\"innerHeight\":493,\"devicePixelRatio\":1}",
+ "elapsedSeconds": 10.5,
+ "verdicts": {
+  "E4b": {
+   "pass": true,
+   "failed": [],
+   "count": 2
+  },
+  "E9": {
+   "pass": true,
+   "failed": [],
+   "count": 1
+  }
+ },
+ "completedAt": "2026-10-20T135215Z"
+}

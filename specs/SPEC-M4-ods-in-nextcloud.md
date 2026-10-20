@@ -575,3 +575,149 @@ make ALLOW_FROZEN_RELINK=1 dist/profiles/ods-viewer-v1/sdk-manifest.json 2>&1 | 
 
 **E6 的洩漏界限 B 還沒定**：要先在檢視連結上開機 5 次量雜訊底（§4 E6），量完寫進本檔，之後的 E6 才算數。這一輪的 runner 判的是
 峰值與 `document-destroy-enter`；B 那一半另做。
+
+---
+
+# 追加 6（2026-10-20 夜，ladder 全綠之後、E6 的 B、E4b、E9 任何執行之前）：四處讀法先釘死
+
+只 append。Phase E 的 ladder（10 筆＋ODT 負對照）在 `ods-viewer-v1`（wasm `f6ab3cdb…`）上第一次執行 E1–E6 全綠（`findings/evidence/
+m4-ods/phase-e/report-2026-10-20T133003Z.json`，28 秒）；全語料的執行在寫本段時還在跑。下面四處是把 §4 已經寫的話落成可判的條件，
+寫在能滿足它的執行之前；**不是新判準**，形式照舊。
+
+## A6.1 E6 的 B（M8）怎麼量
+
+- **一份檔、五顆引擎**：`ladder/one-cell-a1.ods` 的位元組，在同一個頁面上開 5 顆新的 `OdsViewerEngine`（5 個 worker＝檢視連結開機
+  5 次），每顆 open → `handle.close()` → `dispose()`。**B := max |open.begin[n+1] − open.begin[n]|**，n = 1..4。
+- 為什麼要同一份檔（**讀原始碼**）：`open.begin` 在引擎把輸入位元組寫進 MEMFS **之後**才發（`probe_engine.cpp:3190-3197`），所以
+  ladder 那一輪不同大小的檔給出不同的 `open.begin`（236,523,520 到 248,664,064），那是檔的大小，不是雜訊；只有同一份檔的
+  `open.begin` 可比。
+- 工具：`tools/run_ods_viewer_e6_leak.py`＋harness 頁 `web/ods-viewer-e6-harness{.html,-app.js}`（只寫進鏡像）。量到的 B 寫進
+  追加 7；之後的 E6 才算數（§4 計數語意）。
+
+## A6.2 E6「同一筆開 5 次」的形狀
+
+- **一顆引擎、五次 (open → 每張表一塊 1024×1024 tile → `handle.close()`)**，Δ_n := open.begin[n+1] − open.begin[n]，n = 1..4，
+  每個 Δ_n ≤ B。這是 **SDK 層**驅動並如此宣告：產品的 session 在 close 時 dispose 引擎（`OdsViewerSession._release`），產品路徑開
+  不出第二次；`e2-c-d4-heap` 的 shared 臂用的是同一個宣告。SDK 的 open 沒有 `open.close-previous`（只在 `!command.sdk` 時發，
+  `probe_engine.cpp:3205`），所以每次重開之前要先 `close()`，關檔的 `document-destroy-*` 行就在每一輪裡。
+- **先登錄的事實**（d4 heap，編輯器核心 `e2-editor-v2`，shared-nosearch 臂，Firefox）：同形序列的 `open.begin` 是
+  287,248,384 → 330,088,448 → 338,935,808 → 之後五輪不變；fresh 臂八輪逐位元相同。也就是說重開在那顆核心上前兩輪各漲
+  43 MB、9 MB 然後持平。若檢視連結是同一個形狀而 B = 0，E6 的洩漏半照字面是**紅**。**紅就是量測**：不預先改判準；要改要寫理由
+  （CLAUDE.md §4），而且 E6 已有的執行歸零（§4 計數語意）。
+
+## A6.3 E4b 的頁面半
+
+- runner 自己從 DOM 讀，不用頁面的 `run.fit`（紅案那一版沒有它）：surface 的 CSS 寬＝`#surface.getBoundingClientRect().width`、
+  最右邊畫到的 x＝所有 tile canvas 的 max(left + width)。開檔後讀一次；再把 viewport 捲到最右（`scrollLeft = scrollWidth`），
+  等頁面自己的 scroll handler 排完、`session.drain()` 回來，讀第二次。
+- **判**：`surfaceCssWidth == ceil(widthTwips_after_first_paint / 15)`，且捲到最右之後 `rightmostDrawnPx ≥ surfaceCssWidth`
+  （「畫過一塊涵蓋 x = 寬 − 1 的 tile」）。捲動後引擎若再報更寬的尺寸，記錄，不判（那是另一張 finding，不是 E4b）。
+- **紅案**（§4 注入 7，「今天的草稿（不重新量尺寸）」）：鏡像裡的頁面把 `if (session.refit()) {` 改成 `if (false && session.refit()) {`
+  （錨點恰一次），其餘逐位元相同；它要在 E4b 紅，報告放 `red-cases/`，`evidenceClass: "red-case"`。
+- 兩筆：`ladder/three-sheets-distinct.ods`（W9 smoke 看到 26,593 → 26,775 twips 的那一份）與 `upstream/tdf149752.ods`（089）。
+
+## A6.4 E9 的「各自的第一塊 tile 是 E5 的那塊」與 read-back
+
+- 頁面自己的 tile 是 256 px，E5 的是 1024×1024，位元組不可能相等。**讀法**：點 tab k、頁面畫完之後，runner 經頁面的 live
+  session（`window.__odsViewer.session._view.render`——私有面，只給 runner 用）向**同一顆引擎**要 E5 那一塊
+  （(0,0)、1024×1024、15 twips/px），其 sha256 要等於指定的 Phase E 報告裡該筆 part k 的第一次畫圖；報告以路徑＋sha256 記進
+  E9 的報告。頁面自己 (0,0) 的 256 px canvas 的 sha 與 non-paper 像素數另外記錄，不判。
+- read-back：點 tab k 之後 `state.currentPartReadBack == k`。這個值是 session 由 `setPart` 的回覆設的，回覆的 `part` 是引擎在
+  切換後讀回的（`ods-document-sdk.js` `handle.setPart`），不是請求的 k；上面那塊 tile 相等是第二個、獨立的證人。
+- 其餘照 §4：`parts == 3`、三個 `.ods-tab` 的文字＝`state.partNames`＝manifest 的 `sheetNames`、`namesFromEngine == true`、
+  `adapterFallbacks == []`。點 tab 走 DOM 的 click（使用者的路），不直接呼叫 `switchPart`。
+- 工具：`tools/run_ods_viewer_e4b_e9.py`，`--selftest` 先紅。E5 的參照報告找不到或少那一筆時要**紅**，不是空洞的綠。
+
+## A6.5 修訂紀錄（續）
+
+| 日期 | 內容 |
+| --- | --- |
+| 2026-10-20 夜 | 追加 6：A6.1 B 的量法（同一份檔、五顆引擎）；A6.2 重開序列的形狀與先登錄的 d4 事實；A6.3 E4b 的 DOM 讀法與 no-refit 紅案；A6.4 E9 的 1024 tile 讀法與 read-back 的來源 |
+
+---
+
+# 追加 7（2026-10-20 夜，全語料第一次執行與 E6 兩臂之後）：B = 0、重開序列的更正、兩類工作表的讀法、全語料逼出的四張 finding
+
+只 append。全語料（306 筆＋ODT 負對照）第一次執行：`findings/evidence/m4-ods/phase-e/report-2026-10-20T133240Z.json`（598 秒，
+Chrome 151）——E1、E2、E6 全綠（303 筆開檔、3 筆加密拒絕且沒有引擎；`view-ready` p50 0.93 s、最大 31.0 s（`tdf37341.ods`）；
+峰值最大 553,447,424（`many_charts.ods`））；**E3 紅 17／303、E4a 紅 6／304、E5 紅 1／305**。第一次紅是量測：每一條都先判是紅在
+產品還是紅在判讀器，判法寫在下面，引擎的實際文字用 harness 的 `?recordText=1`（診斷開關，`diagnostic-text/report-2026-10-20T134644Z.json`）
+讀出來比對過。
+
+## A7.1 E6 的 B，與洩漏半句的更正
+
+**量到的**（`e6-leak/report-2026-10-20T134946Z.json`，工具 `run_ods_viewer_e6_leak.py`，A6.1／A6.2 的形狀）：
+
+| 檔 | boots 臂 `open.begin` ×5 | reopen 臂 `open.begin` ×5 | Δ_1..Δ_4 |
+| --- | --- | --- | --- |
+| `one-cell-a1.ods` | 236,523,520 ×5 | 236,523,520 → 246,259,712 → 250,454,016 → 250,454,016 → 250,454,016 | +9,736,192、+4,194,304、0、0 |
+| `three-sheets-distinct.ods` | 236,523,520 ×5 | 236,523,520 → 246,288,384 → 250,478,592 → 同 → 同 | +9,764,864、+4,190,208、0、0 |
+| `numeric-100k.ods` | 237,752,320 ×5 | 237,752,320 → 261,304,320 → 279,339,008 → 同 → 同 | +23,552,000、+18,034,688、0、0 |
+
+- **B = 0**（五次開機逐位元相同；三份檔都是）。
+- **洩漏半句的前提被證偽**：§4 寫「第 n+1 次的 `open.begin` 減第 n 次 ≤ B」，前提是關檔後 break 會回到關檔前。量到的是
+  **`open.begin[n+1] == 第 n 輪的峰值`**（每一列都成立）：break 是高水位、只升不降（dlmalloc 不把頂端還回去），所以 Δ_1、Δ_2 是
+  第一、二輪把高水位推上去的量，不是洩漏；A6.2 先登錄的 d4 事實（編輯器核心）是同一個形狀。**撤回原句、改寫如下**（CLAUDE.md §4；
+  理由就是上表）：
+  - **E6 洩漏半句（取代）**：一顆引擎、同一份檔 5 輪（open → 每張表一塊 tile → close），`open.begin` 的序列在第 3 輪起**不再
+    上升**：Δ_n ≤ B（= 0）對 n = 3、4 成立；Δ_1、Δ_2 **記錄不判**（它們是高水位的建立）。每輪都要有 `document-destroy-enter`，
+    每輪峰值 < 939,524,096。
+  - 工具的判讀器照這句改（尾段判、頭段記錄），紅案：尾段任一步 > B 要紅、頭段的步**不**讓它紅。改在這一輪算數的執行之前；
+    這一輪（上表）是逼出改法的執行，本身不算數。
+- **計數語意**：E6 峰值半句的執行（Phase E 的兩次）不受影響；洩漏半句之前沒有算數的執行，沒有東西歸零。
+
+## A7.2 隱藏工作表（E3／E4a／E5 的讀法；finding 157）
+
+`fdo67682-2.ods` 31 張，`Table`…`Table_12`（part 12–23）的表樣式是 `table:display="false"`。引擎對 `set_part(12..23)` 全部讀回 11
+（**讀原始碼**：`ScModelObj::setPart` → `ScTabView::SelectTabPage(nPart+1)`，而 `ScTabControl` 只為 `IsVisible()` 的表插頁，
+`tabcont.cxx:60`；切到沒有頁的 id 什麼都不做）。session 因此丟 `PART_READBACK_MISMATCH`，E3／E4a／E5 對那 12 張紅。
+
+- **紅在判準的前提**：「每張表」假設每張表都能被顯示。隱藏表在桌面 Calc 也不能切過去。
+- **讀法**（runner 自己從檔案推：content.xml 的表樣式 `table:display="false"`，記進 `staged[].hiddenParts`，形式二）：E3、E4a
+  **略過**隱藏的 part；E5 對隱藏的 part 要求**拒絕**（session 的 `showPart` 丟錯）且引擎讀回**不是它**；E2 的 `parts == manifest.sheets`
+  不變（計數含隱藏）。原生 oracle 對隱藏表讀到的是前一張可見表的文字（同一個機制），它給的期望本來就不是那張表的。
+- **產品缺口登錄為 finding 157**：檢視頁把隱藏表畫成可點的 tab，點了只得到 `PART_READBACK_MISMATCH`。修法要引擎多一個查詢
+  （LOK `getPartInfo` 的 `visible`）→ 下一個檢視連結；頁面已有 `tabs[].enabled/disabledReason` 的位子。
+- **計數語意**：E3／E4a／E5 的「乾淨」定義改了（略過隱藏表）；全語料要**重跑**一次，重跑那份才是這三條的執行。
+
+## A7.3 揮發性工作表（E3 的讀法）
+
+E3 的 11 處文字差異中 **7 處**是 `TODAY()`／`NOW()`／`RAND()`／文字欄位 `text:date` 的結果：oracle 是 2026-09-03 跑的，期望裡是
+`09/03/26`，引擎今天讀到 `10/20/26`（`cachedValue` p1、`dependencyTree`、`tdf149484`、`tdf160003` p1、`rich-text-cells`、
+`tdf36038_ExtendedLCID`、`tdf118624`（RAND））。
+
+- **紅在 oracle 的前提**：「期望文字是檔案的函數」對揮發性儲存格不成立。
+- **讀法**（runner 從 content.xml 推：該表的 `table:formula` 含 `TODAY(`、`NOW(`、`RAND(`、`RANDBETWEEN(`，或表內有 `text:date`／
+  `text:time` 欄位，記進 `staged[].volatileParts`）：這些 part 的 E3 **記錄不判**（sha 與長度照記，差異列在 verdict 的 `recorded`），
+  其餘 part 照舊逐位元。登錄 `L-volatile-sheets-not-compared`：482 張裡 7 張的保真度沒有逐位元證據。
+- **計數語意**：同 A7.2，隨全語料重跑。
+
+## A7.4 全語料殘餘的紅（產品側；不改判準）
+
+1. **finding 158 — 表單控制項的檔畫不出來**：`move-cell-anchored-shapes`、`tdf106181`、`tdf121963`、`tdf134161`、`tdf154005`
+   （都含 `<form:form>`／`<draw:control>`）每一塊 tile 都 `UNO_EXCEPTION: component context fails to supply service
+   com.sun.star.form.Forms`。**讀原始碼**：`FmFormPageImpl::getForms` 呼叫 `css::form::Forms::create`；其實作
+   `com_sun_star_form_OFormsCollection_get_implementation` 在 `native-code.py:186` 被 `HAVE_FEATURE_DBCONNECTIVITY` 閘住，
+   而 `build-a11y-gate0/config_host/config_features.h:27` 是 `0`（原生 oracle 的 build 是 `1`）。核心層的缺口，不是連結層；
+   編輯器 profile 同一顆核心，ODT 含控制項**未量**。
+2. **finding 159 — 載入時重算的函數給 `#VALUE!`**：`date-time-functions`（`TIMEVALUE("6:45 PM")` 一類 5 格）、`functions.ods`
+   p2（`MULTINOMIAL`、`SERIESSUM`、`CONVERT`…）與 p6（整欄財務函數 `ACCRINT`…）在引擎讀到 `#VALUE!`，桌面 oracle 是數值；
+   檔內有快取值（`office:value`）。`scaddins` 三個 add-in **在**核心的 `services_constructors.list`（查過），所以不是少 add-in；
+   成因未定（候選：字串→數值轉換設定、locale 資料被 `ENABLE_WASM_STRIP_LOCALES` 砍掉、載入時重算而非用快取）。E3 對這 3 張保持紅。
+3. **`user-defined-function.ods`**：引擎 `#NAME?`、oracle `#VALUE!`——檢視核心沒有 Basic（`ENABLE_WASM_STRIP_BASIC_DRAW_MATH_IMPRESS`），
+   登錄 `L-no-basic-udf`，E3 對它保持紅（1 張）。
+4. **finding 160 — `part_text` 的 SelectAll 間歇沒確認**：全語料那一輪 482 次讀取中 2 次 `selectAllConfirmed: false`
+   （`tdf160329_sortWithHiddenRows` 讀到 1 個字、`tdf139258_rotated_image` 讀到空），診斷重跑同兩筆都 `true`、文字正確。
+   A4.7 的設計如實說明了原因，但使用者路徑上會是錯的文字。E3 對未確認的讀取**保持紅**（不重試、不放寬），次數記在 handoff。
+
+## A7.5 runner 因執行而修（§34，證人在括號內）
+
+- `--only` 的執行一律加入三個 ladder 對照（empty、distinct、identical）；之前只加 empty，E5 的兩條對照在局部執行上紅且 detail 是空的
+  （證人：`diagnostic-text/report-2026-10-20T134644Z.json`，E5 「tiles pairwise distinct: []」）。
+- `hiddenParts`／`volatileParts` 的推導與 A7.2／A7.3 的判讀；`--record-text`／`recordText=1` 診斷開關；E6 工具的尾段判讀。
+
+## A7.6 修訂紀錄（續）
+
+| 日期 | 內容 |
+| --- | --- |
+| 2026-10-20 夜 | 追加 7：B = 0；E6 洩漏半句撤回改寫（高水位）；隱藏表與揮發表的讀法（runner 從檔案推）；finding 157–160 與兩條 L 的登錄；runner 的三處修 |

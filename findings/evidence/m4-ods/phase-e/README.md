@@ -1,0 +1,22 @@
+# Phase E on `ods-viewer-v1` (wasm `f6ab3cdb…`, worker `cc2d6514…`), 2026-10-20
+
+Spec: `specs/SPEC-M4-ods-in-nextcloud.md` §4 E1–E6, E4b, E9; addenda 5, 6, 7 pin how each
+criterion is read. Every report here records the profile's `probe.wasm`, `sdk-worker.js` and
+`sdk-manifest.json` sha256, the sha256 of every page/shell file the mirror served, the machine
+preconditions (KDE wallet, other Chrome processes, 1-minute load) and the Chrome version. All runs
+are on a scratch mirror of `dist/` (symlinks; the viewer's own session and SDK; nothing retargeted,
+nothing patched) in headless Chrome 151.
+
+| file | what | counts? |
+| --- | --- | --- |
+| `report-2026-10-20T133003Z.json` | E1–E6 on the ladder (9 generated entries + the ODT negative control), the first run on the link. 28 s. **All green.** | gate (ladder subset) |
+| `report-2026-10-20T133240Z.json` | E1–E6 on the full corpus (306 entries + ODT control), 598 s. E1, E2, E6 green; **E3 red 17/303, E4a red 6/304, E5 red 1/305** — the first reds, classified in addendum 7 (hidden sheets, volatile cells, form controls, recalculated functions, an unconfirmed SelectAll). | the forcing run: its judges predate addendum 7 |
+| `diagnostic-text/report-2026-10-20T134644Z.json` | the 14 entries whose text or parts differed, re-run with `--record-text` (the harness keeps the sheet text itself, ≤ 20,000 chars) so the engine's text could be read against the oracle's. Also the witness for A7.5's `--only` fix (E5's two tile controls red with an empty detail because they were not staged). | diagnostic |
+| `e6-leak/report-2026-10-20T134946Z.json` | E6's two SDK-level arms (A6.1/A6.2), no bound given: five boots of the link are byte-identical (**B = 0**); one engine reopening the same file five times gives `open.begin` +9.7 MB, +4.2 MB, 0, 0 — the break is a high-water mark (`open.begin[n+1]` equals the previous cycle's peak). This run forced the rewording of E6's leak clause (A7.1). | the forcing run |
+| `e6-leak/report-2026-10-20T135556Z.json` | the same two arms with `--bound 0` under A7.1's reading (the first two steps recorded, Δ₃ and Δ₄ judged ≤ 0). **All green**, numbers identical to the run above to the byte. | **E6 leak clause** |
+| `e4b-e9/report-2026-10-20T135205Z.json` | E4b and E9 on the real page `web/ods-viewer.html` through its file input and its tab buttons (A6.3/A6.4): surface width 1785 = ceil(26775/15) and 1837 = ceil(27555/15); after scrolling to the right edge the right-most drawn tile reaches the surface width (1785, 1837); the three tabs read `Alpha/Beta/Gamma` from the engine, clicks 1, 2, 0 read back 1, 2, 0, and the page's live engine paints E5's 1024-px tile with the same sha256 as the full-corpus report's first paint of that part. **All green.** Window 780×493, dpr 1. | **E4b, E9** |
+| `e4b-e9/red-cases/report-2026-10-20T135215Z.json` | the same runner on the page with `if (session.refit())` turned into `if (false && session.refit())` in the mirror's copy (spec §4 injection 7): E4b red on both fixtures — surface 1773 vs 1785 (the 12 px) and 1844 vs 1837 — while E9 stays green. `redCaseReproduced: true`. | red case |
+
+Later runs are appended below by the session that produced them.
+
+| `report-2026-10-20T135954Z.json` | the full corpus again (594 s) with the runner reading hidden and volatile parts from the files (addendum 7 A7.2/A7.3) and staging the three ladder controls on partial runs (A7.5). **E1, E2, E5, E6 green.** E3 red 8/303 and E4a red 5/304, all product-side: the five form-control files (finding 158: E3 and E4a), `date-time-functions.ods` and `functions.ods` p2/p6 recalculated to `#VALUE!` (finding 159), `user-defined-function.ods` `#NAME?` (no Basic in the viewer core, `L-no-basic-udf`). E3 recorded (not judged) 7 volatile sheets whose text is a function of the day. `selectAllConfirmed`: 464 true, 0 false this run (2 false of 482 in the first run, finding 160). | **E1–E6** (the counted run for E3/E4a/E5 under addendum 7) |

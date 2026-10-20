@@ -15,6 +15,10 @@ import { OdsViewerSession } from "./viewer-shell/ods-viewer-session.js";
 
 const params = new URLSearchParams(location.search);
 const OPEN_TIMEOUT_MS = Number.parseInt(params.get("openTimeoutMs") || "180000", 10);
+// `?recordText=1` (diagnostic, after the first full run): keep a sheet's text itself, not only
+// its sha, when it is small enough for a CDP slice, so a differing text can be read.
+const RECORD_TEXT = params.get("recordText") === "1";
+const RECORD_TEXT_MAX = 20000;
 const TILE_PX = 1024;
 const TWIPS_PER_PX = 15;
 const NS = "__odsPhaseE";
@@ -141,6 +145,8 @@ async function runCase(spec) {
         sheet.text = { ...(await textDigest(text.text)), textNull: text.textNull,
                        selectAllConfirmed: text.selectAllConfirmed, partBefore: text.partBefore,
                        partAfter: text.partAfter, currentPartBefore: partBefore };
+        if (RECORD_TEXT && typeof text.text === "string" && text.text.length <= RECORD_TEXT_MAX)
+          sheet.text.sample = text.text;
         for (let n = 0; n < 2; n += 1)
           sheet.tiles.push(await tileRecord(await handle.render(TILE_REGION, { timeoutMs: 60000 })));
       } catch (error) {
