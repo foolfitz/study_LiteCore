@@ -17,7 +17,7 @@ This continues `HANDOFF-2026-10-20-v22-host-0227-installed-all-arms-pass.md`. Th
   - addendum 1 (`ruling-fable-1-addendum-1.md`, `3b93c7e2`).
 
   Both were committed verbatim, with the main session's source check appended.
-- **Not yet relayed to the owner:** ruling 1 §1 and addendum 1 §1, the plain-language sections. Next 1.
+- **Relayed in summary form** at the end of the session: ruling 1 §1 and addendum 1 §1, in the closing message, while the owner was away. The owner has not answered yet. Point to both §1 sections again, and ask for 0.2.28's window (Next 1).
 
 ## State
 
@@ -97,7 +97,7 @@ This continues `HANDOFF-2026-10-20-v22-host-0227-installed-all-arms-pass.md`. Th
 
 ## Next (spec §10)
 
-1. **Tell the owner, in zh-TW, ruling 1 §1 and addendum 1 §1.** Ask the owner for 0.2.28's window. The chain is ready, and only the owner can name the window.
+1. **Check that the owner read ruling 1 §1 and addendum 1 §1** (relayed in summary at the end of the session). Ask the owner for 0.2.28's window. The chain is ready, and only the owner can name the window.
 2. **The model in two modes** (spec §8; `wasm_sdk_probe/tests/extend_completion_model_test.cpp`). It is a host g++ build of about 12 s and reads no files, so this absolute-path form is equivalent to `cd wasm_sdk_probe && …`:
    ```
    W=/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe
