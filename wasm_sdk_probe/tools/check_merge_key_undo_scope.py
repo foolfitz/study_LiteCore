@@ -130,6 +130,25 @@ def parse_carrier(item: str) -> tuple[str, tuple[str, ...]]:
     return rule, names
 
 
+def guard_variants(args: list[str]) -> list[tuple[str, list[str]]]:
+    """3.1 item 10, per carrier's probe_engine object: the preprocessing runs that must FAIL.
+
+    A carrier of B (its compile command defines OXSDK_MERGE_KEY_UNDO): adding OXSDK_MAINLOOP_ENGINE, or
+    removing OXSDK_FINDING_016_SELECTION_BARRIER.  A carrier WITHOUT B -- since 2026-10-20 ODS_VIEWER_V1,
+    whose objects differ from BASE for its own define (SPEC-M4-ods-in-nextcloud addendum 3) -- gets the
+    guard that means something for it: adding OXSDK_MERGE_KEY_UNDO must fail, i.e. B cannot be compiled
+    into it.  Before, both B guards were applied to every carrier, so a carrier without B was red on the
+    second one whatever its objects were.  Witness: findings/evidence/m4-ods/o3-pre-link/
+    test-e2-c-static-red-viewer-not-declared.txt (the viewer's rule undeclared) and the run declaring it.
+    A B carrier that lost its define now falls in the second branch and is red there: B compiles into it.
+    """
+    if "-DOXSDK_MERGE_KEY_UNDO" in args:
+        return [("with OXSDK_MAINLOOP_ENGINE", args[:1] + ["-DOXSDK_MAINLOOP_ENGINE"] + args[1:]),
+                ("without OXSDK_FINDING_016_SELECTION_BARRIER",
+                 [x for x in args if x != "-DOXSDK_FINDING_016_SELECTION_BARRIER"])]
+    return [("with OXSDK_MERGE_KEY_UNDO", args[:1] + ["-DOXSDK_MERGE_KEY_UNDO"] + args[1:])]
+
+
 def object_name(row: dict) -> str:
     return row["object"].rsplit("/", 1)[-1].removesuffix(".o")
 
@@ -227,10 +246,7 @@ def main() -> int:
         guards = []
         engine = [j for j in jobs if j[0] in carriers and j[1].endswith("/probe_engine.o")]
         for rule, obj, args in engine:
-            with_mainloop = args[:1] + ["-DOXSDK_MAINLOOP_ENGINE"] + args[1:]
-            without_barrier = [x for x in args if x != "-DOXSDK_FINDING_016_SELECTION_BARRIER"]
-            for name, variant in (("with OXSDK_MAINLOOP_ENGINE", with_mainloop),
-                                  ("without OXSDK_FINDING_016_SELECTION_BARRIER", without_barrier)):
+            for name, variant in guard_variants(args):
                 code = run(variant, cur)[0]
                 guards.append({"rule": rule, "variant": name, "exit": code})
                 if code == 0:

@@ -1,0 +1,70 @@
+mkdir -p build/ods/viewer-v1
+../wasm-lite/tools/emsdk/upstream/emscripten/em++ -DLOK_USE_UNSTABLE_API -I../libreoffice-26-8/include -I../wasm-lite/build-a11y-gate0/config_host -I../wasm-lite/build-a11y-gate0/workdir/UnoApiHeadersTarget/udkapi/comprehensive -I../wasm-lite/build-a11y-gate0/workdir/UnoApiHeadersTarget/offapi/comprehensive -I../wasm-lite/build-a11y-gate0/workdir/UnpackedTarball/boost -Oz -pthread -fwasm-exceptions -sSUPPORT_LONGJMP=wasm -DOXSDK_READER_PROFILE \
+	-DOXSDK_ODS_VIEWER -c src/sdk_api.cpp -o build/ods/viewer-v1/sdk_api.o
+../wasm-lite/tools/emsdk/upstream/emscripten/em++ -DLOK_USE_UNSTABLE_API -I../libreoffice-26-8/include -I../wasm-lite/build-a11y-gate0/config_host -I../wasm-lite/build-a11y-gate0/workdir/UnoApiHeadersTarget/udkapi/comprehensive -I../wasm-lite/build-a11y-gate0/workdir/UnoApiHeadersTarget/offapi/comprehensive -I../wasm-lite/build-a11y-gate0/workdir/UnpackedTarball/boost -Oz -pthread -fwasm-exceptions -sSUPPORT_LONGJMP=wasm -DOXSDK_READER_PROFILE \
+	-DOXSDK_ODS_VIEWER -c src/probe_engine.cpp -o build/ods/viewer-v1/probe_engine.o
+../wasm-lite/tools/emsdk/upstream/emscripten/em++ -DLOK_USE_UNSTABLE_API -I../libreoffice-26-8/include -I../wasm-lite/build-a11y-gate0/config_host -I../wasm-lite/build-a11y-gate0/workdir/UnoApiHeadersTarget/udkapi/comprehensive -I../wasm-lite/build-a11y-gate0/workdir/UnoApiHeadersTarget/offapi/comprehensive -I../wasm-lite/build-a11y-gate0/workdir/UnpackedTarball/boost -Oz -pthread -fwasm-exceptions -sSUPPORT_LONGJMP=wasm -DOXSDK_READER_PROFILE \
+	-DOXSDK_ODS_VIEWER -c src/unoembind_stub.cpp -o build/ods/viewer-v1/unoembind_stub.o
+grep -v -e '^__ZTI' -e '^_main$' ../wasm-lite/build-a11y-gate0/workdir/CustomTarget/desktop/soffice_bin-emscripten-exports/exports > build/ods/viewer-v1/exports.txt
+printf '%s\n' __ZTIN3com3sun4star3ucb31InteractiveAugmentedIOExceptionE >> build/ods/viewer-v1/exports.txt
+printf '%s\n' \
+	_oxsdk_abi_version \
+	_oxsdk_capabilities \
+	_oxsdk_engine_start \
+	_oxsdk_document_open \
+	_oxsdk_document_paint \
+	_oxsdk_document_close \
+	_oxsdk_document_search \
+	_oxsdk_document_set_part \
+	_oxsdk_document_current_part \
+	_oxsdk_document_part_name \
+	_oxsdk_document_part_text \
+	_oxsdk_request_cancel \
+	_oxsdk_buffer_alloc \
+	_oxsdk_buffer_free >> build/ods/viewer-v1/exports.txt
+if grep -q -e '^_oxsdk_document_save$' -e '^_oxsdk_editor' build/ods/viewer-v1/exports.txt; then \
+	echo "the viewer's export list carries save or an editor symbol"; \
+	rm -f build/ods/viewer-v1/exports.txt; exit 1; fi
+if [ "" != "1" ]; then echo ""; echo "refusing to relink a frozen profile: build/ods/viewer-v1/probe.js"; echo "it carries: ods-viewer-v1 -- the read-only spreadsheet viewer's first engine; every link mints a new hash and E1-E9 bind to one"; echo "a new link mints a new artifact and unbinds that (findings 027, 036)."; echo "if that is really what you want:  make ALLOW_FROZEN_RELINK=1 build/ods/viewer-v1/probe.js"; echo ""; exit 1; fi
+../wasm-lite/tools/emsdk/upstream/emscripten/em++ build/ods/viewer-v1/sdk_api.o build/ods/viewer-v1/probe_engine.o build/ods/viewer-v1/unoembind_stub.o \
+	-L../wasm-lite/build-a11y-gate0/instdir/program \
+	$(cat ../wasm-lite/build-a11y-gate0/instdir/program/soffice.js.linkdeps) \
+	-pthread -fwasm-exceptions -sSUPPORT_LONGJMP=wasm --no-entry -Oz \
+	-sMODULARIZE -sEXPORT_NAME=createProbeModule \
+	-sTOTAL_MEMORY=1GB -sPTHREAD_POOL_SIZE=7 -sPTHREAD_POOL_SIZE_STRICT=0 \
+	-sSTACK_SIZE=131072 -sDEFAULT_PTHREAD_STACK_SIZE=1048576 \
+	-sFORCE_FILESYSTEM=1 -sWASM_BIGINT=1 -sERROR_ON_UNDEFINED_SYMBOLS=1 -sFETCH=1 \
+	-sASSERTIONS=0 -sEXIT_RUNTIME=0 \
+	-sEXPORTED_RUNTIME_METHODS=ccall,FS,HEAPU8 \
+	-sEXPORTED_FUNCTIONS=@build/ods/viewer-v1/exports.txt \
+	-Wl,--wrap=_Z18initJsUnoScriptingv \
+	--pre-js ../libreoffice-26-8/static/emscripten/environment.js \
+	--pre-js ../wasm-lite/build-a11y-gate0/workdir/CustomTarget/static/emscripten_fs_image/soffice.data.js.link \
+	-o build/ods/viewer-v1/probe.js
+test -s build/ods/viewer-v1/probe.wasm
+mkdir -p dist/profiles/ods-viewer-v1
+echo "d1de2dfd369343eb16a8290741e84a7fb7b8be6524296f93e548a67cb862ab07  sdk/sdk-worker.js" | sha256sum -c --quiet
+python3 tools/build_ods_viewer_profile.py --check
+python3 tools/build_ods_viewer_profile.py \
+	--loader build/ods/viewer-v1/probe.js \
+	--wasm build/ods/viewer-v1/probe.wasm \
+	--worker sdk/sdk-worker.js \
+	--worker-sha256 d1de2dfd369343eb16a8290741e84a7fb7b8be6524296f93e548a67cb862ab07 \
+	--exports build/ods/viewer-v1/exports.txt \
+	--output dist/profiles/ods-viewer-v1
+test -s dist/profiles/ods-viewer-v1/probe.js
+test -s dist/profiles/ods-viewer-v1/probe.wasm
+test -s dist/profiles/ods-viewer-v1/sdk-worker.js
+grep -qaF -- 'search-result' dist/profiles/ods-viewer-v1/probe.wasm \
+	|| { echo "positive control FAILED: 'search-result' is absent from"; \
+	     echo "  dist/profiles/ods-viewer-v1/probe.wasm -- the CHECK is broken, not the engine."; \
+	     rm -f dist/profiles/ods-viewer-v1/sdk-manifest.json; exit 1; }
+grep -qaF -- 'partBefore' dist/profiles/ods-viewer-v1/probe.wasm \
+	|| { echo "dist/profiles/ods-viewer-v1/probe.wasm does not carry the viewer's"; \
+	     echo "  part_text ('partBefore' absent): these objects were not built"; \
+	     echo "  with -DOXSDK_ODS_VIEWER."; \
+	     rm -f dist/profiles/ods-viewer-v1/sdk-manifest.json; exit 1; }
+if grep -qaF -- 'verified-caret-readback' dist/profiles/ods-viewer-v1/probe.wasm; then \
+	echo "dist/profiles/ods-viewer-v1/probe.wasm carries the editor's completion"; \
+	echo "  'verified-caret-readback': an editor engine was packed as the viewer."; \
+	rm -f dist/profiles/ods-viewer-v1/sdk-manifest.json; exit 1; fi

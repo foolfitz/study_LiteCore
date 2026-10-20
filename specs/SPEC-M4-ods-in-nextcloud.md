@@ -481,3 +481,59 @@ Firefox 會不會把一個 **47,987,197 B 的 gzip 編碼回應**（v14 的 `pro
 | 日期 | 改了什麼 |
 | --- | --- |
 | 2026-10-20 晚 | 追加 3：O2 落地；reader 形狀編不過的處置（檢視引擎不開 a11y）；釘下匯出、事件、能力的名字；E4b 頁面那一半已實作 |
+
+---
+
+# 追加 4（2026-10-20 晚）：O3 落地——Makefile rule、profile 建構工具、連結前的閘門；連結交給擁有者
+
+只 append。證據：`findings/evidence/m4-ods/o3-pre-link/`；手冊：`handoff/RUNBOOK-link-ods-viewer-v1.md`。**沒有連結**；只跑了
+`make -n`（乾跑）與不編譯的 `make -k test-e2-c-static`。
+
+## A4.1 落地的東西
+
+- **Makefile `ods-viewer-v1`**：物件 `sdk_api`／`probe_engine`／`unoembind_stub`（**不帶 `probe_api`**——它的 `KEEPALIVE`
+  `probe_save` 等於暗的 save；也不帶 `editor_api` 與 a11y bridge），`E2_V5_CPPFLAGS`＋reader 形狀＋`OXSDK_ODS_VIEWER`；匯出清單從
+  a11y 核心自己的核心匯出清單來（與寫作核心逐位元相同，`e9b54133`），有 save 或編輯器符號就拒絕；link line＝v14 的，只換堆疊那個
+  token；從第一次連結就有守衛；打包時核 worker pin（`d1de2dfd…`）、跑建構工具的 `--check`，並在 wasm 上做三個 grep（正對照
+  `search-result` 要在、`partBefore` 要在、編輯器的 `verified-caret-readback` 要不在）。
+- **`tools/build_ods_viewer_profile.py`**：E8 的 base 包（兩條路、同 sha，`base-a11y-no35.6f7424a1c1427ad7.data`，39,892,028 B、
+  1,488 個檔），放在檢視 profile 自己的目錄；CJK 與 fallback 走 `../resources/` 共用；reader 形狀的 manifest。
+- **檢視引擎的 `#error`** 多擋 `OXSDK_MERGE_KEY_UNDO` 與 `OXSDK_FINDING_016_SELECTION_BARRIER`（理由見 A4.3）。
+
+## A4.2 量到的數字（取代 §8 L-ods-second-engine-download 的推估）
+
+- base 包 zstd -19：**5,649,371 B**（審查 C1 推估約 6.5 MB）；gzip -9 7,567,047 B。
+- 所以第一次開 `.ods` 的新增下載約 **wasm zstd（v14 是 36,078,637 B；檢視 wasm 連結後才知道）＋5.6 MB**，`cjk-sub-e10` 與編輯器
+  共用。
+
+## A4.3 M1-1 被改了一處（因執行而修，有證人）
+
+`test-e2-c-static` 的 M1-1 母數是每一條 `$(X_BUILD)/%.o` rule，檢視 rule 加進來之後：
+1. 沒宣告 → 紅在它的兩個物件上（證人 `test-e2-c-static-red-viewer-not-declared.txt`）；照 v20–v22 的前例宣告成 carrier。
+2. 宣告之後紅在 B 的第二道守衛：對從來沒有 selection barrier 的 rule「拿掉 barrier」什麼都不會變。**B 的兩道守衛只對帶 B 的
+   carrier 有意義。**
+3. 改法（`guard_variants`）：編譯指令帶 `-DOXSDK_MERGE_KEY_UNDO` 的 carrier 照舊兩道；不帶的改成「注入 B 必須失敗」（B 編不進它）。
+   帶 B 的 carrier 若掉了 define，會落到第二種並紅在那裡。離線測試 22/22。
+4. 新守衛第一次就紅在誠實的檢視 rule 上：B 自己的 `#error` 包在編輯器 `#ifdef` 裡，reader 形狀下注入 B 只是惰性、不是被拒。
+   於是檢視引擎的 `#error` 把 B 與 barrier 列進去，之後綠：29 條 rule、115 個物件、13 個宣告的差異，exit 0。
+
+§34 的帳（這一段）：因執行而修 **+1**（M1-1）；因審核而修 **+0**。本輪合計：因執行 +4（追加 3 的 +3 與這裡的 +1），因審核 +0。
+
+## A4.4 連結（擁有者的 make）
+
+`handoff/RUNBOOK-link-ods-viewer-v1.md` §2：
+
+```
+cd ~/LibreOffice/study_LiteCore/wasm_sdk_probe
+unset LOSRC LOBUILD EMSDK_ROOT EXTRA_DEFINES EXTRA_OBJECTS HOST_CXX
+make ALLOW_FROZEN_RELINK=1 dist/profiles/ods-viewer-v1/sdk-manifest.json 2>&1 | tee build/link-ods-viewer-v1.log
+```
+
+預計 3 分鐘左右，給 10 分鐘。連結之後主 session 先核凍結集（1,430 個檔）、堆疊字面量、`ScDocShell` 在不在、E1-C，再封存，
+**然後 E2 是連結的第一次執行**。
+
+## A4.5 修訂紀錄（續）
+
+| 日期 | 改了什麼 |
+| --- | --- |
+| 2026-10-20 晚 | 追加 4：O3 落地；base 包 zstd 實量 5.6 MB；M1-1 的守衛按 carrier 是否帶 B 分開（有證人）；連結交給擁有者 |

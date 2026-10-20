@@ -2608,6 +2608,137 @@ $(E2_V14_BUILD):
 $(E2_V14_DIST):
 	mkdir -p $@
 
+# ------------------------------- ods-viewer-v1, the read-only spreadsheet viewer
+#
+# specs/SPEC-M4-ods-in-nextcloud.md (section 3.2, addenda 1-3), work item O3.  A
+# SECOND ENGINE beside the ODT editor, touching none of its rules: the reader
+# rule's shape (-DOXSDK_READER_PROFILE, no OXSDK_EDITOR_DISCOVERY) plus
+# -DOXSDK_ODS_VIEWER, compiled against the a11y+calc core and linked with the
+# 1 MiB default pthread stack (finding 089).  The engine refuses the define in
+# any other shape (#error in probe_engine.cpp).
+#
+# EVERY CORE PATH NAMES $(E2_V5_CORE).  LOBUILD defaults to the writer-only core
+# (line 2), which has no Calc: a rule that followed it would link a viewer that
+# cannot open a spreadsheet -- the 09-03 trap.  The core's export list is
+# $(E2_V5_CORE)'s own (byte-identical to the writer core's, e9b54133, but named
+# here so the rule does not lean on that).
+#
+# THE LINK LINE IS e2-editor-v14's (the last link on this core) with ONE token
+# changed, -sDEFAULT_PTHREAD_STACK_SIZE=65536 -> 1048576, and its own objects and
+# export list.  The objects are the editor lineage's set without editor_api
+# (sdk_api, probe_engine, unoembind_stub): no probe_api, whose KEEPALIVE
+# probe_click / probe_insert_text / probe_save would export a dark save (review
+# M2); no a11y bridge object -- the viewer switches no accessibility on.
+#
+# THE WORKER IS PINNED: sdk/sdk-worker.js as of O2 (762296f8), the commit that
+# adds the viewer's four operations.  A later change to that file must not ride
+# into this profile unasked.
+#
+# Guarded from the first link, like every product artifact.  Runbook:
+# handoff/RUNBOOK-link-ods-viewer-v1.md.
+ODS_VIEWER_V1_BUILD := build/ods/viewer-v1
+ODS_VIEWER_V1_DIST := dist/profiles/ods-viewer-v1
+ODS_VIEWER_V1_SOURCES := src/sdk_api.cpp src/probe_engine.cpp src/unoembind_stub.cpp
+ODS_VIEWER_V1_OBJECTS := $(patsubst src/%.cpp,$(ODS_VIEWER_V1_BUILD)/%.o,$(ODS_VIEWER_V1_SOURCES))
+ODS_VIEWER_V1_WORKER_SHA256 := d1de2dfd369343eb16a8290741e84a7fb7b8be6524296f93e548a67cb862ab07
+
+$(ODS_VIEWER_V1_BUILD)/%.o: src/%.cpp $(HEADERS) src/ods_viewer.hpp Makefile \
+		| $(ODS_VIEWER_V1_BUILD)
+	$(CXX) $(E2_V5_CPPFLAGS) $(R5_CXXFLAGS) -DOXSDK_READER_PROFILE \
+		-DOXSDK_ODS_VIEWER -c $< -o $@
+
+# The reader's list (open, paint, close, search, cancel, buffers) without save,
+# plus the viewer's four.  Refused if save or any editor symbol is in it.
+$(ODS_VIEWER_V1_BUILD)/exports.txt: \
+		$(E2_V5_CORE)/workdir/CustomTarget/desktop/soffice_bin-emscripten-exports/exports \
+		Makefile | $(ODS_VIEWER_V1_BUILD)
+	grep -v -e '^__ZTI' -e '^_main$$' $< > $@
+	printf '%s\n' __ZTIN3com3sun4star3ucb31InteractiveAugmentedIOExceptionE >> $@
+	printf '%s\n' \
+		_oxsdk_abi_version \
+		_oxsdk_capabilities \
+		_oxsdk_engine_start \
+		_oxsdk_document_open \
+		_oxsdk_document_paint \
+		_oxsdk_document_close \
+		_oxsdk_document_search \
+		_oxsdk_document_set_part \
+		_oxsdk_document_current_part \
+		_oxsdk_document_part_name \
+		_oxsdk_document_part_text \
+		_oxsdk_request_cancel \
+		_oxsdk_buffer_alloc \
+		_oxsdk_buffer_free >> $@
+	@if grep -q -e '^_oxsdk_document_save$$' -e '^_oxsdk_editor' $@; then \
+		echo "the viewer's export list carries save or an editor symbol"; \
+		rm -f $@; exit 1; fi
+
+$(ODS_VIEWER_V1_BUILD)/probe.js: $(ODS_VIEWER_V1_OBJECTS) \
+		$(ODS_VIEWER_V1_BUILD)/exports.txt \
+		$(E2_V5_CORE)/instdir/program/soffice.js.linkdeps Makefile
+	$(call refuse_unasked_relink,ods-viewer-v1 -- the read-only spreadsheet viewer's first engine; every link mints a new hash and E1-E9 bind to one)
+	$(CXX) $(ODS_VIEWER_V1_OBJECTS) \
+		-L$(E2_V5_CORE)/instdir/program \
+		$$(cat $(E2_V5_CORE)/instdir/program/soffice.js.linkdeps) \
+		-pthread -fwasm-exceptions -sSUPPORT_LONGJMP=wasm --no-entry -Oz \
+		-sMODULARIZE -sEXPORT_NAME=createProbeModule \
+		-sTOTAL_MEMORY=1GB -sPTHREAD_POOL_SIZE=7 -sPTHREAD_POOL_SIZE_STRICT=0 \
+		-sSTACK_SIZE=131072 -sDEFAULT_PTHREAD_STACK_SIZE=1048576 \
+		-sFORCE_FILESYSTEM=1 -sWASM_BIGINT=1 -sERROR_ON_UNDEFINED_SYMBOLS=1 -sFETCH=1 \
+		-sASSERTIONS=0 -sEXIT_RUNTIME=0 \
+		-sEXPORTED_RUNTIME_METHODS=ccall,FS,HEAPU8 \
+		-sEXPORTED_FUNCTIONS=@$(ODS_VIEWER_V1_BUILD)/exports.txt \
+		-Wl,--wrap=_Z18initJsUnoScriptingv \
+		--pre-js $(LOSRC)/static/emscripten/environment.js \
+		--pre-js $(E2_V5_CORE)/workdir/CustomTarget/static/emscripten_fs_image/soffice.data.js.link \
+		-o $@
+
+$(ODS_VIEWER_V1_BUILD)/probe.wasm: $(ODS_VIEWER_V1_BUILD)/probe.js
+	@test -s $@
+
+# Packing: tools/build_ods_viewer_profile.py (the base pack 9901e9be minus
+# 35-lang-normalize.conf, built twice and reconciled -- E8; the shipping
+# cjk-sub-e10 and fallback-fonts-r5 by path; the reader-shaped manifest).
+#
+# DID THE VIEWER'S ENGINE GET INTO THESE BYTES?  The manifest says only what the
+# builder was told.  `search-result` is the positive control: the reader's
+# search reply, in every engine of this lineage.  `partBefore` is part_text's
+# reply field, in no other engine.  `verified-caret-readback` is the editor's
+# completion, and must NOT be here.  The manifest is removed on failure, as
+# v14's is, so a retry is real.
+$(ODS_VIEWER_V1_DIST)/sdk-manifest.json: $(ODS_VIEWER_V1_BUILD)/probe.js \
+		$(ODS_VIEWER_V1_BUILD)/probe.wasm $(ODS_VIEWER_V1_BUILD)/exports.txt \
+		sdk/sdk-worker.js tools/build_ods_viewer_profile.py \
+		tools/build_r5_profiles.py | $(ODS_VIEWER_V1_DIST)
+	echo "$(ODS_VIEWER_V1_WORKER_SHA256)  sdk/sdk-worker.js" | sha256sum -c --quiet
+	python3 tools/build_ods_viewer_profile.py --check
+	python3 tools/build_ods_viewer_profile.py \
+		--loader $(ODS_VIEWER_V1_BUILD)/probe.js \
+		--wasm $(ODS_VIEWER_V1_BUILD)/probe.wasm \
+		--worker sdk/sdk-worker.js \
+		--worker-sha256 $(ODS_VIEWER_V1_WORKER_SHA256) \
+		--exports $(ODS_VIEWER_V1_BUILD)/exports.txt \
+		--output $(ODS_VIEWER_V1_DIST)
+	@test -s $(ODS_VIEWER_V1_DIST)/probe.js
+	@test -s $(ODS_VIEWER_V1_DIST)/probe.wasm
+	@test -s $(ODS_VIEWER_V1_DIST)/sdk-worker.js
+	@grep -qaF -- 'search-result' $(ODS_VIEWER_V1_DIST)/probe.wasm \
+		|| { echo "positive control FAILED: 'search-result' is absent from"; \
+		     echo "  $(ODS_VIEWER_V1_DIST)/probe.wasm -- the CHECK is broken, not the engine."; \
+		     rm -f $(ODS_VIEWER_V1_DIST)/sdk-manifest.json; exit 1; }
+	@grep -qaF -- 'partBefore' $(ODS_VIEWER_V1_DIST)/probe.wasm \
+		|| { echo "$(ODS_VIEWER_V1_DIST)/probe.wasm does not carry the viewer's"; \
+		     echo "  part_text ('partBefore' absent): these objects were not built"; \
+		     echo "  with -DOXSDK_ODS_VIEWER."; \
+		     rm -f $(ODS_VIEWER_V1_DIST)/sdk-manifest.json; exit 1; }
+	@if grep -qaF -- 'verified-caret-readback' $(ODS_VIEWER_V1_DIST)/probe.wasm; then \
+		echo "$(ODS_VIEWER_V1_DIST)/probe.wasm carries the editor's completion"; \
+		echo "  'verified-caret-readback': an editor engine was packed as the viewer."; \
+		rm -f $(ODS_VIEWER_V1_DIST)/sdk-manifest.json; exit 1; fi
+
+$(ODS_VIEWER_V1_BUILD) $(ODS_VIEWER_V1_DIST):
+	mkdir -p $@
+
 # --------------------------------------------- v9, the a11y product candidate
 #
 # `a11y-calloc` answered finding 076 and is deliberately NOT a product profile:
@@ -3858,11 +3989,17 @@ test-e2-c-static:
 	# E2_V22 (SPEC-M3-link-batch-v22 4.2) carries v21's defines; without it this
 	# line is red on exactly its three objects --
 	# findings/evidence/link-batch-v22/pre-link/m1-1-red-without-e2-v22.txt.
+	# ODS_VIEWER_V1 (SPEC-M4-ods-in-nextcloud addendum 3) carries no B: its two
+	# objects differ from the base for its own define, and its guard is that B
+	# cannot be compiled into it (guard_variants).  Without it this line is red
+	# on exactly those two objects --
+	# findings/evidence/m4-ods/o3-pre-link/test-e2-c-static-red-viewer-not-declared.txt.
 	python3 tools/check_merge_key_undo_scope.py --base 5d77dc84 \
 		--carrier E2_V15 --carrier E2_V19 \
 		--carrier E2_V20=probe_engine,sdk_api,editor_api \
 		--carrier E2_V21=probe_engine,sdk_api,editor_api \
-		--carrier E2_V22=probe_engine,sdk_api,editor_api
+		--carrier E2_V22=probe_engine,sdk_api,editor_api \
+		--carrier ODS_VIEWER_V1=probe_engine,sdk_api
 	# E2-C must never touch what E1-C bound.  Read-only on purpose: a static
 	# target that rewrites verdict-bound evidence has happened here once.
 	python3 tools/check_e1_c_bundle_intact.py > /dev/null

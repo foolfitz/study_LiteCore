@@ -1,0 +1,16 @@
+# em++ -fsyntax-only after the viewer #error gained OXSDK_MERGE_KEY_UNDO and OXSDK_FINDING_016_SELECTION_BARRIER (2026-10-20)
+viewer probe_engine (-DOXSDK_READER_PROFILE -DOXSDK_ODS_VIEWER): exit 0, 0 errors, 0 warnings
+viewer sdk_api (-DOXSDK_READER_PROFILE -DOXSDK_ODS_VIEWER): exit 0, 0 errors, 0 warnings
+viewer unoembind_stub (-DOXSDK_READER_PROFILE -DOXSDK_ODS_VIEWER): exit 0, 0 errors, 0 warnings
+viewer+B probe_engine (-DOXSDK_READER_PROFILE -DOXSDK_ODS_VIEWER -DOXSDK_MERGE_KEY_UNDO): exit 1, 1 errors, 0 warnings, the viewer #error
+viewer+B sdk_api (-DOXSDK_READER_PROFILE -DOXSDK_ODS_VIEWER -DOXSDK_MERGE_KEY_UNDO): exit 0, 0 errors, 0 warnings
+viewer+B unoembind_stub (-DOXSDK_READER_PROFILE -DOXSDK_ODS_VIEWER -DOXSDK_MERGE_KEY_UNDO): exit 0, 0 errors, 0 warnings
+viewer+barrier probe_engine (-DOXSDK_READER_PROFILE -DOXSDK_ODS_VIEWER -DOXSDK_FINDING_016_SELECTION_BARRIER): exit 1, 20 errors, 0 warnings, the viewer #error
+viewer+barrier sdk_api (-DOXSDK_READER_PROFILE -DOXSDK_ODS_VIEWER -DOXSDK_FINDING_016_SELECTION_BARRIER): exit 0, 0 errors, 0 warnings
+viewer+barrier unoembind_stub (-DOXSDK_READER_PROFILE -DOXSDK_ODS_VIEWER -DOXSDK_FINDING_016_SELECTION_BARRIER): exit 0, 0 errors, 0 warnings
+viewer-without-reader probe_engine (-DOXSDK_ODS_VIEWER): exit 1, 1 errors, 0 warnings, the viewer #error
+viewer-without-reader sdk_api (-DOXSDK_ODS_VIEWER): exit 0, 0 errors, 0 warnings
+viewer-without-reader unoembind_stub (-DOXSDK_ODS_VIEWER): exit 0, 0 errors, 0 warnings
+reader-shape probe_engine (-DOXSDK_READER_PROFILE): exit 0, 0 errors, 0 warnings
+reader-shape sdk_api (-DOXSDK_READER_PROFILE): exit 0, 0 errors, 0 warnings
+reader-shape unoembind_stub (-DOXSDK_READER_PROFILE): exit 0, 0 errors, 0 warnings

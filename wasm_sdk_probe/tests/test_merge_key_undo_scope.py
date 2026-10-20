@@ -221,3 +221,30 @@ class PerCarrierObjectSets(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class GuardVariants(unittest.TestCase):
+    """3.1 item 10 per carrier (2026-10-20, SPEC-M4 addendum 3): B's two guards for a carrier of B, the
+    "B cannot be compiled in" guard for a carrier without it."""
+
+    B_ARGS = ["em++", "-DOXSDK_EDITOR_DISCOVERY", "-DOXSDK_FINDING_016_SELECTION_BARRIER",
+              "-DOXSDK_MERGE_KEY_UNDO", "-E", "-P", "src/probe_engine.cpp"]
+    VIEWER_ARGS = ["em++", "-DOXSDK_READER_PROFILE", "-DOXSDK_ODS_VIEWER", "-E", "-P", "src/probe_engine.cpp"]
+
+    def test_a_carrier_of_b_keeps_both_b_guards(self):
+        variants = dict(c.guard_variants(self.B_ARGS))
+        self.assertEqual(sorted(variants), ["with OXSDK_MAINLOOP_ENGINE",
+                                            "without OXSDK_FINDING_016_SELECTION_BARRIER"])
+        self.assertIn("-DOXSDK_MAINLOOP_ENGINE", variants["with OXSDK_MAINLOOP_ENGINE"])
+        self.assertNotIn("-DOXSDK_FINDING_016_SELECTION_BARRIER",
+                         variants["without OXSDK_FINDING_016_SELECTION_BARRIER"])
+
+    def test_a_carrier_without_b_must_refuse_b(self):
+        variants = c.guard_variants(self.VIEWER_ARGS)
+        self.assertEqual([name for name, _ in variants], ["with OXSDK_MERGE_KEY_UNDO"])
+        self.assertIn("-DOXSDK_MERGE_KEY_UNDO", variants[0][1])
+        self.assertEqual([x for x in variants[0][1] if x != "-DOXSDK_MERGE_KEY_UNDO"], self.VIEWER_ARGS)
+
+    def test_a_b_carrier_that_lost_its_define_gets_the_without_b_guard(self):
+        lost = [x for x in self.B_ARGS if x != "-DOXSDK_MERGE_KEY_UNDO"]
+        self.assertEqual([name for name, _ in c.guard_variants(lost)], ["with OXSDK_MERGE_KEY_UNDO"])

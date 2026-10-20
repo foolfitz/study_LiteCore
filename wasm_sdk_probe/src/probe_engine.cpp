@@ -46,7 +46,8 @@
 // barriers, no v20/v21 batch -- so the shape is a compile error to get wrong.
 #if !defined(OXSDK_READER_PROFILE) || defined(OXSDK_EDITOR_DISCOVERY) ||       \
     defined(OXSDK_E2_FORMAT_BARRIER) || defined(OXSDK_E2_V20_LINK_BATCH) ||    \
-    defined(OXSDK_E2_V21_LINK_BATCH) || defined(OXSDK_MAINLOOP_ENGINE)
+    defined(OXSDK_E2_V21_LINK_BATCH) || defined(OXSDK_MAINLOOP_ENGINE) ||      \
+    defined(OXSDK_MERGE_KEY_UNDO) || defined(OXSDK_FINDING_016_SELECTION_BARRIER)
 #error "OXSDK_ODS_VIEWER is the reader rule's shape: OXSDK_READER_PROFILE and none of the editor's defines"
 #endif
 // The pure half: which names are accepted, the document type's spelling, the
