@@ -796,3 +796,90 @@ virtual function with signature …")` → `ScUnoAddInCall` 收成 `FormulaError
   實際不同）。保真度在這些表上沒有逐位元證據。
 - **L-hidden-sheet-tabs-enabled**（finding 157）：隱藏表的 tab 在 v1 可點、點了得到 `PART_READBACK_MISMATCH`；v2 加 `part_info`。
 - **L-part-text-selectall-unconfirmed**（finding 160）：`part_text` 的 SelectAll 間歇沒在 3 秒內確認（2／482 一次、0／464 兩次）；v2 改等待。
+
+---
+
+# 追加 9（2026-10-20 深夜）：fable 裁決——今晚安裝 0.2.29 並跑 H1–H6；Phase H 在 E3 紅 3 筆的登錄限制下開始
+
+只 append。擁有者不在座位，留言「有問題就發給fable，我授權他帶我決定」；主 session 把兩題交給 fable（brief 在 handoff 10-20j），
+裁決 2026-10-20 23:30 CST。原文（英文）存在 handoff 10-20j 的裁決段；本段是它對本檔的效力。
+
+## A9.1 Q1 ＝ A：今晚裝 0.2.29、跑 H1–H6、留著當未計數候選（一次性的受託時段）
+
+條件（任一不成立 → 走 C：ddev 什麼都不碰，交接時附上安裝指令）：
+
+1. **順序**：離線閘門綠（打包工具 selftest；K0／H5 評分，H5 的三個紅案先紅；單元測試）→ 分支 `host-0.2.29` 與 study 樹的六個檔
+   先 commit（署名規則照舊）→ 本追加 commit → 之後才第一個 ddev 指令。〔已成立：selftest 13/13、K0/Z0/H5-1 clean、22 紅案、
+   單元測試 28/28、`9a349f6`、`b70c12b2`；本追加即是。〕
+2. **時段**：從本追加的 commit 起，到「10-21 07:00 CST」「擁有者在 session 裡打任何字」「第一個 ddev 指令之後 3 小時」三者最早者。
+   時段內只做 O7：不跑 K／計數鏈、不裝第二個宿主版本、不對任何專案 `ddev start/stop/restart`。v22 規格 item 17 的八個條件照 §14.4
+   的用法套用，其中 #1 換成下面第 4 條、#4 讀成「0.2.28 的工具在編輯器那一半不變（`http_served_page.py` 照舊，餵 H4）；檢視那一半
+   由 H5／H6 自己的檢查判；打包工具的改動就是受測的產品改動」。
+3. **碰活的目錄之前**：`findings/evidence/host-0.2.29/README.md` 要先寫好還原配方（`git checkout 0870695 -- .` 或 revert、把
+   `build/archive/host-0.2.27-engine-817413d5ad5bd502/` 複製回 `engine/`、`ddev occ upgrade`；標籤留 0.2.29、位元組是 0.2.28 的）。
+   前置檢查：活的 `engine/` 與該封存 `diff -rq` 只差 `ATTRIBUTION.md`，否則停。新 package 先封存到
+   `build/archive/host-0.2.29-engine-<buildId>/`＋`ATTRIBUTION.md`。〔已成立：README 寫好、前置檢查只差 ATTRIBUTION.md、
+   封存 `host-0.2.29-engine-1b4d6a1fc905fb8a/` 192 MB。〕
+4. **ddev 守衛**（取代 v22 §13.1 第 1 步的「只有 litecore」）：安裝前與每個 H 項目前唯讀 `ddev list`；第一次讀到的「正在跑的專案集合」
+   記下來；之後集合一變（有專案被啟動或停掉＝擁有者在用 ddev）→ 做完手上那一項、不再開新項、交接。第一次讀到就在跑的專案不算停止理由。
+   KWallet 照 §14.5 查；不設桌面閘門（H1–H6 不量時間）。
+5. **錯誤或權限拒絕**：item 17 #6 原文——停、還原、交接；不排錯 ddev、不改寫指令。若紅的 detail 是連線失敗／router 404 且與第 4 條的
+   集合變化同時發生，不算產品紅：集合穩定後該項重跑一次，兩份報告都留。
+6. **H 紅**：H2 FAIL（時段窗內對檢視測試檔的路徑有任何 LOCK／PUT／MOVE／PROPPATCH）或 H4 FAIL（0.2.28 的臂、或裝好的 package 裡
+   編輯器的五個身分）→ 今晚照第 3 條還原。H1／H3／H5／H6 FAIL → 0.2.29 留著、記錄、H7 之前停。只有 NE 沒有 FAIL → 留著、
+   狀態「not established」、擁有者決定。
+7. H2 的判讀鍵在測試檔的路徑／fileId 與時段窗，擁有者自己的流量翻不動它；正對照是同一份 log 裡另一個測試檔的 ODT 開檔。H1 之前記
+   `occ app:list`；若別的 office app 擁有 ODS 的預設點擊，H2 改走 LiteCore 自己的動作入口，並把 §8 的風險記為「已發生」，不算 H 紅。
+8. 給擁有者的下一則回覆（zh-TW）開頭要寫時段結束時間，以及「若你需要 ddev start/stop 別的專案，不用等我；我的執行會斷，我重跑」。
+   交接第一行照 v22 §13.1 的四種形狀 (a)–(d)；累積的未計數清單加上 0.2.29（檢視路由、ODS 的 Files 動作、`litecore-engine/3`
+   頁面表、gzip 上限 52,428,800）；K 維持併批。
+
+**理由（白話，給擁有者）**：ddev 規則是為了不讓量測把你的其他專案鎖住幾小時；今晚的 H 不到一小時、不量時間、你不在，而第 4 條用
+「集合有沒有變」偵測你回來，不用猜容器狀態。把未計數候選裝起來日常用是你已經選過的模式；回頭路是三條指令，碰之前就寫好。
+這次覆寫了裁決 7 的「只此一次」：那句是擋舊句子變成常設時段，今晚是一次新的、明確的授權；這次仍是一次性，之後的時段仍由你定。
+
+## A9.2 Q2 ＝ A：Phase H 在 E3 紅 3 筆（登錄限制）下開始
+
+條件：
+
+1. H 立在具名報告上：`phase-e/report-2026-10-20T144351Z.json`（E1／E2／E4a／E5／E6）、`e6-leak/report-2026-10-20T135556Z.json`
+   （B = 0 的算數執行；逼出改法的是 `134946Z`）、`e4b-e9/report-2026-10-20T135205Z.json`（E4b／E9），以及 E7／E8 的證人：
+   `findings/evidence/m4-ods/o4-post-link/README.md` 的凍結集合 1,430 檔不變、E1-C `intact: true`、建構工具配方內的 E8 檢查
+   （fable 的 F2：E7／E8 在 `f6ab3cdb` 上不是「從未做」）。
+2. `144351Z` 裡 E3 紅的 sha256 集合**恰好**是這三個（已核對，相等）：
+   - `upstream/date-time-functions.ods` `e0b2b652459bcaf96db5fb9a83d8b28ba3be1abfd87028ed92fdbf3c06464e89`
+   - `upstream/functions.ods` `45b1403f99f1ac6e10cda4c68ddd0b005a19fbfbd07fbd358ceb7e809302d569`
+   - `upstream/user-defined-function.ods` `5af67ed3e257ddcc9912aff138ce378c28f297914b5bd054f1cade73c557bbc3`
+   且 `selectAllConfirmed` false ＝ 0（已核對：464 true、0 false）。其他任何 E3 紅 → H 不開始。
+3. 今晚不為 159 造新機制（probe 不做 add-in 函數偵測——那是手工枚舉，CLAUDE.md §1 形式三／§4）；它是 v2 的工作項。E3 對這三筆保持紅
+   到 v2——不重讀、不重試。
+4. H7 之前，0.2.29 的發佈說明草稿（`RELEASE-TEXT-DRAFT-0.2.27-0.2.28.md` 的後繼）要點名 `L-addin-functions-value-error`、
+   `L-no-basic-udf`、`L-hidden-sheet-tabs-enabled`、`FORM_CONTROLS_UNSUPPORTED` 的拒絕、`L-ods-read-only`（可 grep），
+   H7 的訊息要把 `#VALUE!` 的注意事項連同那兩份檔告訴擁有者。
+5. 0.2.29 維持未計數候選；名義出貨版維持 0.2.26。
+
+**理由（白話）**：E3 的「停」是為了不讓空白畫布過關；這裡 E3 量了 298 份裡 295 份逐位元相同，剩下三份追到 bridge 的簽章表，
+只有重建核心能改——你已經決定把那次重建併進 v2。等下去要花你幾小時的 make，對「點 .ods 就能開」什麼都買不到；限制寫在你和
+發佈說明看得到的地方。
+
+## A9.3 Q3（沒問的）
+
+1. **H4 的讀法**：「0.2.28 的宿主臂」＝ H-154c／H-154o／H-155（兩個瀏覽器、N=3、依 §14.5 不設桌面閘門）。D2-v22 與 M11-autosave 不重跑，
+   理由是 H4 裡編輯器在裝好的 package 中位元組相同，不是推論。
+2. **§34 計數**：`check_m3_assets.py` 與 `probe_m3_assets.py` 是檢查的改動——因執行而修 **+2**，證人是「舊工具對 schema-3 package 必紅」
+   （`findings/evidence/host-0.2.29/README.md` 的證人段：舊工具釘 `litecore-engine/2` 與單頁 closure；本 session 未實跑舊工具，靜態陳述）。
+3. **登錄**：`L-ods-editor-redownload-once` 今晚實現（新 buildId）；交接第一行要說。
+4. 鏡像上的第一次親眼看（10-20i 第 3 步）仍未做；0.2.29 上的 H7 涵蓋它——H7 訊息保留 `fdo67682-2.ods`（隱藏表）與 `tdf134161.ods`
+   （控制項，現在會拒絕）的注意事項。
+5. 擁有者未決的兩件（一顆 Calc 核心的引擎；L-C 的 A3）不動；其他沒有東西擋 O6／O7。
+
+## A9.4 本 session 的處置
+
+條件 1、3 已成立（見上）；第一個 ddev 指令**沒有**在本 session 發出：context 已超軟上限，安裝與 H1–H6 由下一個 session 依
+`handoff/HANDOFF-2026-10-20j-…`＋`RUNBOOK-install-host-0.2.29.md` 執行，時段從它的第一個 ddev 指令起算（條件 2）。
+
+## A9.5 修訂紀錄（續）
+
+| 日期 | 內容 |
+| --- | --- |
+| 2026-10-20 深夜 | 追加 9：fable 裁決 Q1=A（8 條件）、Q2=A（5 條件）、Q3 五項；sha 三筆核對；H4 讀法；§34 +2 |

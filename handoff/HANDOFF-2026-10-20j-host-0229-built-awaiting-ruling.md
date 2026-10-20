@@ -47,3 +47,51 @@
 ## Fable brief (sent 2026-10-20 night; resend verbatim if no ruling section follows)
 
 Q1 — ddev tonight: A install 0.2.29 now and run H1–H6; B install only; C nothing until the owner names a slot. Main session's inclination A. Q2 — Phase H with E3 red on 3 files (159 ×2, UDF): A start now with the limitations registered; B wait for the v2 core. Inclination A. Q3 — anything else needing a decision tonight. Conditions requested: what makes the install allowed (offline K0/H5 green, branch committed — both hold), what to do on a red H criterion (stop and record, or roll back).
+
+---
+
+## Fable's ruling (2026-10-20 23:30 CST) — Q1 = A, Q2 = A; the next session executes O7 under it
+
+The ruling in full is in spec addendum 9 (zh-TW rendering of fable's English text; the conditions are
+binding as written there). Facts fable corrected in the brief: E7/E8 are not "never done" on
+`f6ab3cdb` (`o4-post-link/README.md` rows: frozen set 1,430 unchanged, E1-C intact, E8 in the
+builder); the restore source is `build/archive/host-0.2.27-engine-817413d5ad5bd502/` (the live
+`engine/` differs from it only by ATTRIBUTION.md — checked); ruling 7's "only once" is overridden for
+tonight as a fresh explicit delegation.
+
+**First line, in §13.1's terms (as far as this session read them): (a) nothing is installed yet —
+the live app is 0.2.28 / engine `817413d5`; (b) 0.2.29 is built and archived, uncounted; (c) nothing is
+bound or counted this round; (d) the accumulated-uncounted list gains 0.2.29 (viewer route, ODS Files
+action, `litecore-engine/3` page table, gzip cap 52,428,800); K stays batched; `L-ods-editor-redownload-once`
+is realised by the new buildId.**
+
+### What the next session does, in this order (each item cites its condition)
+
+0. Read `ddev list` (read-only) and record the set of running projects (Q1-4); `ddev occ app:list`
+   recorded (Q1-7); KWallet unlocked (§14.5); no desk gate. The slot starts at the first ddev command
+   and ends at the earliest of 07:00 CST 10-21, the owner typing in the session, or +3 h (Q1-2).
+1. Runbook steps 1–4 (`handoff/RUNBOOK-install-host-0.2.29.md`): merge `host-0.2.29` (`9a349f6`),
+   copy the archived package (or the worktree's `engine/`) in, `ddev occ upgrade`, curl smoke.
+   Conditions Q1-1 and Q1-3 already hold (offline gates green; branch and study tree committed;
+   `findings/evidence/host-0.2.29/README.md` with the restore recipe; archive
+   `host-0.2.29-engine-1b4d6a1fc905fb8a/`).
+2. `python3 wasm_sdk_probe/tools/check_m4_host_viewer.py --label shakedown` (H1, H2 + control +
+   lock-taking red arm, H3, H6). Re-read `ddev list` before it (Q1-4). The first red is the measurement
+   (H1's menu selectors are unrun).
+3. H4 = H-154c / H-154o / H-155 as 10-20c ran them (two browsers, N=3), plus
+   `check_m3_host_entry.py --label shakedown` for the editor half (Q3-1).
+4. Reds: H2 or H4 FAIL → restore tonight per the README's three commands (Q1-6); H1/H3/H5/H6 FAIL →
+   leave installed, record, stop before H7; only NE → leave, "not established", the owner decides.
+   Errors/permission refusals → stop, restore, hand off (Q1-5).
+5. Before H7: `handoff/RELEASE-TEXT-DRAFT-0.2.29.md` naming `L-addin-functions-value-error`,
+   `L-no-basic-udf`, `L-hidden-sheet-tabs-enabled`, `FORM_CONTROLS_UNSUPPORTED`, `L-ods-read-only`
+   (Q2-4); the H7 message carries the `#VALUE!` caveat (the two files), the hidden-sheet caveat
+   (`fdo67682-2.ods`) and the form-control refusal (`tdf134161.ods`) (Q3-4).
+6. Append the H results to the spec (A10), the evidence READMEs, and hand off in §13.1's shapes.
+
+### §34.4 (corrected per Q3-2)
+
+- `check_m3_assets.py` and `probe_m3_assets.py` are check changes: because of execution **+2**
+  (witness: `findings/evidence/host-0.2.29/README.md`, the pre-change tools' Z0-4 and K0-1 clauses
+  against the schema-3 package — stated statically; the run of the old tools was refused by the
+  session's permission mode). **Running total since 10-14b: 42 / 27.**
