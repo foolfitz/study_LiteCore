@@ -245,3 +245,46 @@ SPEC-M4 §4 的 E1–E9 照舊，在 v2 的連結上全部重跑（連結換了�
 | 日期 | 變更 |
 | --- | --- |
 | 2026-10-22 | 追加 §2.7：F-1 觸發與擁有者覆寫、第三個核心 patch、下一次的讀法 |
+
+## 5. 核心建好之後、連結之前（2026-10-22 追加）
+
+### 5.1 K-2
+
+`build-ods-viewer-v2` 第四次 `make`（§2.7 的 patch 之後）45 分鐘，exit 0；K-1、K-2 全綠（`findings/evidence/m4-ods/viewer-v2/core/k2-built.json`）：
+
+- K-2a／K-2b：bridge 簽章 **80 個，與離線輸出的集合完全相同**（K-2b 原本只登錄不判，結果也相等）。
+- K-2c／K-2d：元件建構子 700 → **783**，含 `OFormsCollection` 與 scaddins 三個；沒有任何 `com_sun_star_comp_dba_`。
+- K-2f（登錄）：`soffice.wasm` 149,208,138 → 153,330,836（+4.12 MB）；`soffice.data` 108,527,803 → 108,568,339（+40 KB）。樹 6.0 GB。
+
+### 5.2 E8′ 的差異讀過了（3.5 要求連結前讀）
+
+`build_ods_viewer_v2_profile.py --check`：正向對照成立（9901e9be），base `07ef15cd857a404b`（1,488 檔），對 v1 的 base：0 新增、0 移除、**9 變動**、1,479 相同
+（`…/viewer-v2/pre-link/base-pack-check.json`）。逐個判讀：
+
+| 檔 | 大小 | 讀法 |
+| --- | --- | --- |
+| `program/services/services.rdb` | +22,903 | 新元件的登錄（forms、connectivity）〔由此推論〕 |
+| `share/registry/main.xcd` | +11,045 | postprocess 在 DBCONNECTIVITY 下加入的 `Drivers-dbase/flat/odbc.xcu`（`CustomTarget_registry.mk:444-449`）〔由原始碼推論〕 |
+| `share/registry/calc.xcd`、`writer.xcd` | +1,216、+1,217 | 同上的 `Drivers-calc.xcu`、`Drivers-writer.xcu`（`:453-460`） |
+| `share/registry/res/registry_{en-US,qtz,zh-TW}.xcd` | +715、+1,736、+1,704 | 上面那些驅動設定的語系字串 |
+| `presets/autotext/mytexts.bau`、`share/config/images_colibre.zip` | ±0 | **zip 內容逐項相同**（檔名、CRC、大小），只有建置時間戳不同〔已觀察〕 |
+
+字型、fontconfig、其他設定都沒有變。判讀：差異全部是 DB connectivity 本身帶來的或時間戳，沒有意外。
+
+### 5.3 F-2 的推估（判定在連結後）
+
+兩顆核心的 `soffice.wasm` 以 packager 的量法（gzip 9、mtime 0）：48,418,550 → 49,572,266（+1,153,716）。加到 v1 檢視引擎實測的 47,987,215 上，
+**推估 v2 約 49,140,931，離 52,428,800 還有約 3.3 MB**〔推論：檢視引擎的 wasm 不是核心的 `soffice.wasm`，增量假設相近〕。連結規則會印出實際值。
+
+### 5.4 連結前閘門的其餘結果
+
+- `make -k test-e2-c-static` exit 0（`…/pre-link/test-e2-c-static-green-v2-core-built.txt`）：490＋5 條過，carrier 檢查對 ODS_VIEWER_V2 可判，v2 加 merge-key-undo 被拒。
+- `check_core_build_provides --capability calc-spreadsheet` 對 v2 核心 exit 0。
+- `make -n` 兩條連結指令逐 token：只差物件、核心路徑、匯出清單路徑、輸出路徑（`…/pre-link/link-token-diff-v1-v2.txt`）。
+- 以 v2 核心的標頭 `em++ -fsyntax-only` 三個單元 0 錯誤；`HAVE_FEATURE_DBCONNECTIVITY 1` 進到 `sdk_api.cpp`。
+- 凍結集合快照 1,517 檔（`…/pre-link/frozen-set-before.sha256`）。
+- **我的工具的 bug，第一次用 `--report` 就露出來**：`build_ods_viewer_v2_profile.py` 的報告寫入對 `Path` 序列化失敗（`TypeError`）；打包時也會走這條路，所以若沒在這裡抓到，連結會死在打包。修法：`json.dumps(..., default=str)`。這支工具還沒判過任何東西，不算 §34 的計數。
+
+| 日期 | 變更 |
+| --- | --- |
+| 2026-10-22 | 追加 §5：K-2、E8′ 差異的判讀、F-2 推估、連結前閘門 |

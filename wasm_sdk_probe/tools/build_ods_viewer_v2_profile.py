@@ -151,7 +151,8 @@ def check_exports(path: Path) -> list[str]:
 def write_report(path: Path | None, body: dict) -> None:
     if path:
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(json.dumps(body, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        # default=str: create_pack() hands back the data file as a Path (`dataPath`).
+        path.write_text(json.dumps(body, indent=2, sort_keys=True, default=str) + "\n", encoding="utf-8")
 
 
 def summary(core: Path, pack: dict, diff: dict, problems: list[str]) -> dict:

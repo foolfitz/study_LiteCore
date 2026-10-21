@@ -1,4 +1,4 @@
-# Runbook: the first link of `ods-viewer-v2` (**the link command is the owner's to run**) — DRAFT until §0 is all ✅
+# Runbook: the first link of `ods-viewer-v2` (**the link command is the owner's to run**)
 
 Written 2026-10-21, before the v2 core exists. It rests on `specs/SPEC-M4-viewer-v2.md` §2 (the core, K-1/K-2/F), §3 (engine, shell, profile, static checks) and §4 (the v2 criteria), all pinned before any v2 link or run; and on the core build of [`RUNBOOK-ods-viewer-v2-core-build.md`](RUNBOOK-ods-viewer-v2-core-build.md).
 
@@ -19,12 +19,12 @@ Written 2026-10-21, before the v2 core exists. It rests on `specs/SPEC-M4-viewer
 2. ✅ Syntax: `em++ -fsyntax-only` on `probe_engine.cpp` and `sdk_api.cpp` with v1's and with v2's defines, exit 0; V2 alone → `#error`.
 3. ✅ v1's tokens unchanged (`findings/evidence/m4-ods/viewer-v2/pre-link/v1-preprocessed-against-17c5d50b.txt`).
 4. ✅ Unit tests and red cases (spec §3.7, §3.8); Phase E selftest 43/43; the new shell and harness exercised on v1 (`pre-link/v1-shakedown-new-shell/`).
-5. ☐ **K-1 and K-2 green** on `wasm-lite/build-ods-viewer-v2` (`findings/evidence/m4-ods/viewer-v2/core/k1-configure.json`, `k2-built.json`) — or fallback F taken and recorded.
-6. ☐ **`make -k test-e2-c-static` exit 0** with the v2 core configured (red until then: `pre-link/test-e2-c-static-red-v2-not-declared-core-not-configured.txt`).
-7. ☐ **The builder's check on the v2 core:** `python3 tools/build_ods_viewer_v2_profile.py --check --report …/pre-link/base-pack-check.json` ok (positive control 9901e9be), and the diff against v1's base **read and written into spec §5** before §2 is handed over.
-8. ☐ **The core provides Calc:** `check_core_build_provides.py --build ../wasm-lite/build-ods-viewer-v2 --capability calc-spreadsheet` exit 0.
-9. ☐ **Link line vs v1's** (`make -n` of both rules, diffed): only the core paths, the define, the object/export paths and the one export differ.
-10. ☐ **The frozen set before the link:** sha256 of every file under `dist/profiles/` and `build/archive/`, taken right before §2 is handed over.
+5. ✅ **K-1 and K-2 green** (2026-10-22 01:19; spec §5.1) on `wasm-lite/build-ods-viewer-v2` (`findings/evidence/m4-ods/viewer-v2/core/k1-configure.json`, `k2-built.json`) — or fallback F taken and recorded.
+6. ✅ **`make -k test-e2-c-static` exit 0** (`pre-link/test-e2-c-static-green-v2-core-built.txt`) with the v2 core configured (red until then: `pre-link/test-e2-c-static-red-v2-not-declared-core-not-configured.txt`).
+7. ✅ **The builder's check on the v2 core** (base `07ef15cd`, 9 changed files read in spec §5.2; a report-writing bug fixed first, §5.4): `python3 tools/build_ods_viewer_v2_profile.py --check --report …/pre-link/base-pack-check.json` ok (positive control 9901e9be), and the diff against v1's base **read and written into spec §5** before §2 is handed over.
+8. ✅ **The core provides Calc:** `check_core_build_provides.py --build ../wasm-lite/build-ods-viewer-v2 --capability calc-spreadsheet` exit 0.
+9. ✅ **Link line vs v1's** (`pre-link/link-token-diff-v1-v2.txt`) (`make -n` of both rules, diffed): only the core paths, the define, the object/export paths and the one export differ.
+10. ✅ **The frozen set before the link:** `pre-link/frozen-set-before.sha256`, 1,517 files, taken 2026-10-22 right before §2 was handed over.
 
 ## 1. Do not run any other make target
 
@@ -39,7 +39,7 @@ make ALLOW_FROZEN_RELINK=1 dist/profiles/ods-viewer-v2/sdk-manifest.json 2>&1 | 
 ```
 
 - Expected: about as long as v1's (a few minutes). One job at a time.
-- The last line it prints is the wasm's gzip size against 52,428,800. **`OVER -- fallback F-2`** there means stop and tell the main session.
+- The last line it prints is the wasm's gzip size against 52,428,800 (estimated about 49.1 MB, spec §5.3). **`OVER -- fallback F-2`** there means stop and tell the main session.
 - If it stops with an error, stop there; do not re-run with other flags.
 
 ## 3. Right after the link (the main session, the same day)
