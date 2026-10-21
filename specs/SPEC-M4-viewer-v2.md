@@ -288,3 +288,19 @@ SPEC-M4 §4 的 E1–E9 照舊，在 v2 的連結上全部重跑（連結換了�
 | 日期 | 變更 |
 | --- | --- |
 | 2026-10-22 | 追加 §5：K-2、E8′ 差異的判讀、F-2 推估、連結前閘門 |
+
+## 6. 連結（2026-10-22 追加）
+
+擁有者連結完成。**`ods-viewer-v2` 的身分：probe.wasm `a6390eef…`**、worker `9c85043a…`、manifest `0bfa28f7…`、base `07ef15cd…`；當下封存於
+`wasm_sdk_probe/build/archive/ods-viewer-v2-a6390eef-worker-9c85043a/`。連結後核對全部成立（`findings/evidence/m4-ods/viewer-v2/post-link/`）：凍結集合不變、
+堆疊常數、v2 的三個特徵字串在而編輯器的不在、Calc 與 forms 進了 wasm、manifest 宣告 `part-info`＋`form-controls`（63539）、E1-C 完好。
+
+- **F-2 不成立**：gzip 49,153,029（上限內 3,275,771；§5.3 的推估差 12 KB）。
+- make 最後以 `Error 1` 結束，是規則**最後一行**印 gzip 大小的 Python 引號錯誤（我寫的）；它在所有檢查之後、只印資訊。已修 Makefile，修好的那一行對這顆 wasm 手動實跑過。
+  因為改了 Makefile，v2 的目標此後都「過期」，再連結會被凍結守衛擋下——那正是要的。
+
+接下來：§4 的 Phase E 在這顆連結上跑（計數從這裡開始）。
+
+| 日期 | 變更 |
+| --- | --- |
+| 2026-10-22 | 追加 §6：連結、身分、封存、F-2 不成立、Makefile 印 gzip 那行的修正 |

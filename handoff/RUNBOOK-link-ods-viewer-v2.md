@@ -53,3 +53,8 @@ make ALLOW_FROZEN_RELINK=1 dist/profiles/ods-viewer-v2/sdk-manifest.json 2>&1 | 
 ## 4. After that
 
 Phase E on v2 on the mirror (`run_ods_viewer_phase_e.py --profile ods-viewer-v2`): first the ladder plus finding 157/158/159's files, then the full corpus ×3 for V2-160; E6's B measured again on v2 first. Then a new package and Phase H in an ddev slot the owner names.
+
+## Done (2026-10-22)
+
+Linked by the owner; §3 items 1–5 done the same night (spec §6, `findings/evidence/m4-ods/viewer-v2/post-link/`): probe.wasm `a6390eef…`, archived at `build/archive/ods-viewer-v2-a6390eef-worker-9c85043a/`, gzip 49,153,029. The make's closing `Error 1` was the gzip print line's quoting bug, after every check; fixed in the Makefile.
+

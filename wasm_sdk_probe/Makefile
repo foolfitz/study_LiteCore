@@ -2856,7 +2856,7 @@ $(ODS_VIEWER_V2_DIST)/sdk-manifest.json: $(ODS_VIEWER_V2_BUILD)/probe.js \
 	@if grep -qaF -- 'verified-caret-readback' $(ODS_VIEWER_V2_DIST)/probe.wasm; then \
 		echo "$(ODS_VIEWER_V2_DIST)/probe.wasm carries the editor's completion"; \
 		rm -f $(ODS_VIEWER_V2_DIST)/sdk-manifest.json; exit 1; fi
-	@python3 -c 'import gzip,sys; n=len(gzip.compress(open(sys.argv[1],"rb").read(),9,mtime=0)); print(f"probe.wasm gzip: {n} bytes (cap 52428800: {\"within\" if n <= 52428800 else \"OVER -- fallback F-2\"})")' $(ODS_VIEWER_V2_DIST)/probe.wasm
+	@python3 -c 'import gzip,sys; n=len(gzip.compress(open(sys.argv[1],"rb").read(),9,mtime=0)); v="within" if n <= 52428800 else "OVER -- fallback F-2"; print(f"probe.wasm gzip: {n} bytes (cap 52428800: {v})")' $(ODS_VIEWER_V2_DIST)/probe.wasm
 
 $(ODS_VIEWER_V2_BUILD) $(ODS_VIEWER_V2_DIST):
 	mkdir -p $@

@@ -1,0 +1,59 @@
+mkdir -p build/ods/viewer-v2
+../wasm-lite/tools/emsdk/upstream/emscripten/em++ -DLOK_USE_UNSTABLE_API -I../libreoffice-26-8/include -I../wasm-lite/build-ods-viewer-v2/config_host -I../wasm-lite/build-ods-viewer-v2/workdir/UnoApiHeadersTarget/udkapi/comprehensive -I../wasm-lite/build-ods-viewer-v2/workdir/UnoApiHeadersTarget/offapi/comprehensive -I../wasm-lite/build-ods-viewer-v2/workdir/UnpackedTarball/boost -Oz -pthread -fwasm-exceptions -sSUPPORT_LONGJMP=wasm -DOXSDK_READER_PROFILE \
+	-DOXSDK_ODS_VIEWER -DOXSDK_ODS_VIEWER_V2 -c src/sdk_api.cpp -o build/ods/viewer-v2/sdk_api.o
+../wasm-lite/tools/emsdk/upstream/emscripten/em++ -DLOK_USE_UNSTABLE_API -I../libreoffice-26-8/include -I../wasm-lite/build-ods-viewer-v2/config_host -I../wasm-lite/build-ods-viewer-v2/workdir/UnoApiHeadersTarget/udkapi/comprehensive -I../wasm-lite/build-ods-viewer-v2/workdir/UnoApiHeadersTarget/offapi/comprehensive -I../wasm-lite/build-ods-viewer-v2/workdir/UnpackedTarball/boost -Oz -pthread -fwasm-exceptions -sSUPPORT_LONGJMP=wasm -DOXSDK_READER_PROFILE \
+	-DOXSDK_ODS_VIEWER -DOXSDK_ODS_VIEWER_V2 -c src/probe_engine.cpp -o build/ods/viewer-v2/probe_engine.o
+../wasm-lite/tools/emsdk/upstream/emscripten/em++ -DLOK_USE_UNSTABLE_API -I../libreoffice-26-8/include -I../wasm-lite/build-ods-viewer-v2/config_host -I../wasm-lite/build-ods-viewer-v2/workdir/UnoApiHeadersTarget/udkapi/comprehensive -I../wasm-lite/build-ods-viewer-v2/workdir/UnoApiHeadersTarget/offapi/comprehensive -I../wasm-lite/build-ods-viewer-v2/workdir/UnpackedTarball/boost -Oz -pthread -fwasm-exceptions -sSUPPORT_LONGJMP=wasm -DOXSDK_READER_PROFILE \
+	-DOXSDK_ODS_VIEWER -DOXSDK_ODS_VIEWER_V2 -c src/unoembind_stub.cpp -o build/ods/viewer-v2/unoembind_stub.o
+grep -v -e '^__ZTI' -e '^_main$' ../wasm-lite/build-ods-viewer-v2/workdir/CustomTarget/desktop/soffice_bin-emscripten-exports/exports > build/ods/viewer-v2/exports.txt
+printf '%s\n' __ZTIN3com3sun4star3ucb31InteractiveAugmentedIOExceptionE >> build/ods/viewer-v2/exports.txt
+printf '%s\n' \
+	_oxsdk_abi_version \
+	_oxsdk_capabilities \
+	_oxsdk_engine_start \
+	_oxsdk_document_open \
+	_oxsdk_document_paint \
+	_oxsdk_document_close \
+	_oxsdk_document_search \
+	_oxsdk_document_set_part \
+	_oxsdk_document_current_part \
+	_oxsdk_document_part_name \
+	_oxsdk_document_part_text \
+	_oxsdk_document_part_info \
+	_oxsdk_request_cancel \
+	_oxsdk_buffer_alloc \
+	_oxsdk_buffer_free >> build/ods/viewer-v2/exports.txt
+../wasm-lite/tools/emsdk/upstream/emscripten/em++ build/ods/viewer-v2/sdk_api.o build/ods/viewer-v2/probe_engine.o build/ods/viewer-v2/unoembind_stub.o \
+	-L../wasm-lite/build-ods-viewer-v2/instdir/program \
+	$(cat ../wasm-lite/build-ods-viewer-v2/instdir/program/soffice.js.linkdeps) \
+	-pthread -fwasm-exceptions -sSUPPORT_LONGJMP=wasm --no-entry -Oz \
+	-sMODULARIZE -sEXPORT_NAME=createProbeModule \
+	-sTOTAL_MEMORY=1GB -sPTHREAD_POOL_SIZE=7 -sPTHREAD_POOL_SIZE_STRICT=0 \
+	-sSTACK_SIZE=131072 -sDEFAULT_PTHREAD_STACK_SIZE=1048576 \
+	-sFORCE_FILESYSTEM=1 -sWASM_BIGINT=1 -sERROR_ON_UNDEFINED_SYMBOLS=1 -sFETCH=1 \
+	-sASSERTIONS=0 -sEXIT_RUNTIME=0 \
+	-sEXPORTED_RUNTIME_METHODS=ccall,FS,HEAPU8 \
+	-sEXPORTED_FUNCTIONS=@build/ods/viewer-v2/exports.txt \
+	-Wl,--wrap=_Z18initJsUnoScriptingv \
+	--pre-js ../libreoffice-26-8/static/emscripten/environment.js \
+	--pre-js ../wasm-lite/build-ods-viewer-v2/workdir/CustomTarget/static/emscripten_fs_image/soffice.data.js.link \
+	-o build/ods/viewer-v2/probe.js
+mkdir -p dist/profiles/ods-viewer-v2
+echo "9c85043ac7618e38062c1d0168a982708a16c930bdf8a422a67190222a888d84  sdk/sdk-worker.js" | sha256sum -c --quiet
+python3 tools/build_ods_viewer_v2_profile.py \
+	--core ../wasm-lite/build-ods-viewer-v2 \
+	--loader build/ods/viewer-v2/probe.js \
+	--wasm build/ods/viewer-v2/probe.wasm \
+	--worker sdk/sdk-worker.js \
+	--worker-sha256 9c85043ac7618e38062c1d0168a982708a16c930bdf8a422a67190222a888d84 \
+	--exports build/ods/viewer-v2/exports.txt \
+	--report build/ods/viewer-v2/base-pack-report.json \
+	--output dist/profiles/ods-viewer-v2
+wrote dist/profiles/ods-viewer-v2: probe.js, probe.wasm, sdk-worker.js, base-viewer-v2-no35.07ef15cd857a404b.data, base-viewer-v2-no35.1679ce67dd403010.metadata, sdk-manifest.json
+ok: base-viewer-v2-no35.07ef15cd857a404b.data (39932564 bytes, 1488 files, sha256 07ef15cd857a404b); the procedure reproduces 9901e9be on build-a11y-gate0
+against v1's base: 0 added, 0 removed, 9 changed, 1479 unchanged (recorded, not judged)
+  File "<string>", line 1
+    import gzip,sys; n=len(gzip.compress(open(sys.argv[1],"rb").read(),9,mtime=0)); print(f"probe.wasm gzip: {n} bytes (cap 52428800: {\"within\" if n <= 52428800 else \"OVER -- fallback F-2\"})")
+                                                                                                                                        ^
+SyntaxError: unexpected character after line continuation character
+make: *** [Makefile:2845: dist/profiles/ods-viewer-v2/sdk-manifest.json] Error 1
