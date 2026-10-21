@@ -37,7 +37,7 @@
    `workdir/CustomTarget/bridges/gcc3_wasm/generated-cxx.cxx` 共 **55 個簽章**；沒對上的簽章在第 284 行
    `throw css::uno::RuntimeException("Wasm bridge cannot call virtual function with signature " + …)`。
 4. Analysis／Date／Pricing add-in 的介面**不在 offapi**：`scaddins/idl/com/sun/star/sheet/addin/XAnalysis.idl` 等，由
-   `scaddins/InternalUnoApi_scaddins.mk` 自己編。`getSeriessum(double×4) → double` 的簽章 `didddd` 在產物裡 **0 次**；YEARFRAC、COUPDAYS、
+   `scaddins/InternalUnoApi_scaddins.mk` 自己編。`getSeriessum(double×3, sequence) → double` 的簽章 `didddi`（**2026-10-21 更正**：原寫 `getSeriessum(double×4)`／`didddd`，第四個參數是 sequence、以指標傳）在產物裡 **0 次**；YEARFRAC、COUPDAYS、
    ACCRINT 的簽章同理。
 5. 反證查過：`scaddins_AnalysisAddIn`／`ScaDateAddIn`／`ScaPricingAddIn` 的 constructor 都在 `services_constructors.list`；
    `Introspection`、`CoreReflection`、`InvocationService`、`TypeConverter` 也都在——所以不是少元件、不是少反射，是 bridge 的簽章表。
@@ -48,7 +48,8 @@
 ## 修法（核心重建，擁有者的 make；併進 v2 的核心批次）
 
 - `bridges/CustomTarget_gcc3_wasm.mk` 的 `wasmbridgegen` 輸入加上 `scaddins` 的 `InternalUnoApi`（`+$(call gb_UnoApi_get_target,scaddins)`
-  或等價的 rdb），讓 `didddd` 一類的簽章進表。要驗：重建後 `generated-cxx.cxx` 裡出現 `callVirtualFunction_didddd`；探針檔 20 格全對。
+  或等價的 rdb），讓 `didddi` 一類的簽章進表。~~要驗：重建後 `generated-cxx.cxx` 裡出現 `callVirtualFunction_didddd`~~（2026-10-21 撤回：簽章寫錯，而且子字串搜尋會被另一個方法的 `didddddd` 滿足——錯的理由也會過）。要驗的是**完整符號**集合含 `didddi`／`diiii`／`diiiii`／`diiiiii`（SERIESSUM／MULTINOMIAL／YEARFRAC／COUPDAYS），規格 `SPEC-M4-viewer-v2` §2.4 K-2a；探針檔 20 格全對。
+- **2026-10-21 補充：修法已離線量過一半。**用 `build-a11y-gate0` 已建好的 build-side `wasmbridgegen` 手動跑：不加 scaddins 時輸出與核心現有的三個檔逐位元相同（正向對照）；加了之後簽章 55 → 80，上面四個都在（`findings/evidence/m4-ods/phase-e/159-diagnosis/bridgegen-offline/`）。patch 在 `wasm-lite/patches/libreoffice-26.8-wasm-bridge-scaddins-signatures.patch`（只在有建 Calc 的組態生效）。瀏覽器裡 `#VALUE!` 會不會消失仍要等新核心。
 - 載入時重算是另一件事（`ODFRecalcMode`／`ScDocShell::...`）：**不是**這張的修法，先登錄；即使不重算，使用者按 F9 也會回到 `#VALUE!`，
   bridge 才是根。
 

@@ -1,0 +1,26 @@
+--- a/configure.ac
++++ b/configure.ac
+@@ -3460,7 +3460,11 @@
+     enable_libcmis=no
+     enable_coinmp=no
+     enable_cups=no
+-    enable_database_connectivity=no
++    dnl An explicit --enable-database-connectivity is kept: the forms
++    dnl components (com.sun.star.form.Forms, which a page with form controls
++    dnl needs to paint) are only built with it.  dbaccess stays stripped by
++    dnl ENABLE_WASM_STRIP_DBACCESS.
++    test "${enable_database_connectivity+set}" = set || enable_database_connectivity=no
+     enable_dbus=no
+     enable_dconf=no
+     test "${enable_dynamic_loading+set}" = set -o "$_os" != Emscripten || enable_dynamic_loading=no
+@@ -3558,7 +3562,9 @@
+ else
+     DISABLE_DYNLOADING='TRUE'
+     if test $_os != iOS -a $_os != Darwin -a $_os != Android -a $_os != WINNT; then
+-        enable_database_connectivity=no
++        dnl Static builds link DB connectivity on iOS and Android already; an
++        dnl explicit --enable-database-connectivity is kept here too.
++        test "${enable_database_connectivity+set}" = set || enable_database_connectivity=no
+         enable_nss=no
+         enable_odk=no
+         enable_python=no

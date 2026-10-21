@@ -5,7 +5,7 @@
 | **狀態** | **已觀察、間歇**（2026-10-20）；未修 |
 | **Bugzilla** | 無 |
 | **發現日** | 2026-10-20（`phase-e/report-2026-10-20T133240Z.json`） |
-| **嚴重度** | 一般：E3 會抓到（`selectAllConfirmed: false` 加文字不等），但在產品路徑上就是讀到錯的文字 |
+| **嚴重度** | 一般：E3 會抓到（`selectAllConfirmed: false` 加文字不等）。~~但在產品路徑上就是讀到錯的文字~~（2026-10-21 更正：產品頁面、session、adapter 沒有任何地方呼叫 `partText`，呼叫它的只有 E3；所以這是 E3 的量測儀器與 SDK 能力 `part-text` 的正確性問題，使用者看不到。`SPEC-M4-viewer-v2` §0） |
 | **可重現** | **2／482**（全語料那一輪：`tdf160329_sortWithHiddenRows.ods` 讀到 1 個字、`tdf139258_rotated_image.ods` 讀到空）；診斷重跑同兩筆 **0／2**（都 `true`、文字正確）。次數就是量測，別拿單次下結論 |
 | **是否上游** | 否（我們的引擎，`probe_engine.cpp:2632-2690`） |
 

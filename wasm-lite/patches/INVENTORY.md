@@ -20,6 +20,8 @@
 | `libreoffice-26.8-emscripten-jspi-stale-eventlistener-export.patch` | `desktop/CustomTarget_soffice_bin-emscripten-exports.mk` + `solenv/gbuild/platform/EMSCRIPTEN_INTEL_GCC.mk` | **僅 Qt6+JSPI 線**（移除 Qt 6.10.2 已不存在的 `qstdweb::EventListener` 匯出；probe 不用 JSPI，不需要） | [006](../../findings/006-qt6-wasm-stale-eventlistener-export.md) | 候選，未送 |
 | `libreoffice-26.8-wasm-strip-accessibility-single-input.patch` | `configure.ac` | **僅 headless probe 線的 a11y 閘門 0 建置**（套上之後才有東西可量；其他建置樹不受影響，見下方說明） | [057](../../findings/057-one-build-switch-two-halves-that-answer-to-different-inputs.md) | 候選，未送（送出暫緩中；重啟時這份就是要提的修法） |
 | `libreoffice-26.8-qt-wasm-inputcontext-main-thread.patch` | `vcl/qt5/QtFrame.cxx` | **僅 Qt6 線**（input context 同步代理回瀏覽器主執行緒） | [008](../../findings/008-qt6-wasm-inputcontext-invalid-emval-value.md) | Bugzilla draft，依 008 驗證計畫送 master |
+| `libreoffice-26.8-wasm-bridge-scaddins-signatures.patch` | `bridges/CustomTarget_gcc3_wasm.mk` | **含 Calc 的 WASM 建置**（`ENABLE_WASM_STRIP_CALC` 為空時把 scaddins 的 internal API 以 primary 餵給 `wasmbridgegen`；writer-only 的 `build-headless-probe` 條件不成立、產物不變） | [159](../../findings/159-functions-recalculated-at-load-give-value-errors-on-the-viewer-core.md) | 候選，未送（上游 master 的同一檔與 26.8 相同，2026-10-21 查） |
+| `libreoffice-26.8-wasm-explicit-database-connectivity.patch` | `configure.ac`（兩處） | **只影響明確下 `--enable-database-connectivity` 的 Emscripten 建置**（現行兩棵樹都沒下，configure 結果不變） | [158](../../findings/158-an-ods-with-form-controls-cannot-be-painted-on-the-wasm-core-forms-service-absent.md) | 不送（本地組態選擇；上游 2021 年 `dc9ccf3d8f29` 為了 Linux 靜態建置一律關掉，iOS／Android 照開） |
 
 注意：兩份 fs-image patch 拆自同一檔案的同一份 diff。在乾淨樹上套用時先套
 `multilang-registry` 再套 `extra-fonts`（hunk 行號以此順序計算；`git apply` 對位移有容忍度，
@@ -44,6 +46,27 @@ C++ 巨集（`configure.ac:3498`，原本由 `--enable-wasm-strip` 決定，而�
   `_os = Emscripten` 的區塊裡），所以巨集不再被定義。那個組態原本正是「物件編進來、
   呼叫端被拿掉」的同一個缺陷，修法讓兩半一致。
 
+### 2026-10-21 加入的兩份（檢視引擎 v2 的核心批次）
+
+**`wasm-bridge-scaddins-signatures`**：`wasmbridgegen` 只為 **primary** registry 產生 `callVirtualFunction_*` 呼叫簽章；上游只餵 udkapi＋offapi，
+Calc 的 Analysis／Date／Pricing add-in 介面在 `scaddins/idl`（`InternalUnoApi_scaddins.mk`）裡，所以經 `XIdlMethod::invoke` 呼叫它們時
+bridge 找不到簽章、丟 RuntimeException，Calc 顯示 `#VALUE!`（finding 159）。patch 在有建 scaddins 的組態下把
+`$(WORKDIR)/UnoApiTarget/scaddins.rdb` 加成相依與 `+` 參數。離線用既有的 build-side 產生器實跑過：不加時輸出與核心現有的三個檔逐位元相同，
+加了之後簽章 55 → 80 個（`findings/evidence/m4-ods/phase-e/159-diagnosis/bridgegen-offline/`）。
+
+注意：在**已經建好**的樹上只套 patch 不會觸發重產——`scaddins.rdb` 比三個產物舊，gbuild 也不追蹤指令列的變化。要在既有樹上生效，
+得先刪掉 `workdir/CustomTarget/bridges/gcc3_wasm/` 的三個檔。
+
+**`wasm-explicit-database-connectivity`**：Emscripten 上 DB connectivity 被**兩處**無條件關掉（`enable_wasm_strip` 區塊、`DISABLE_DYNLOADING`
+區塊），所以 `--enable-database-connectivity` 原本沒有作用。patch 把兩處都改成「沒有明確指定才關」。開了之後要自己再下
+`--disable-firebird-sdbc --disable-mariadb-sdbc --disable-postgresql-sdbc`（`disable_database_connectivity_dependencies` 不會被呼叫，
+三個驅動在 Emscripten 上的預設是開）。dbaccess 仍由 `ENABLE_WASM_STRIP_DBACCESS`（＝`ENABLE_WASM_STRIP`）拿掉，進來的是 `forms`、
+connectivity 的 `dbtools` 等。
+
+**兩份都改的是共用原始碼樹**，而 `Makefile.in` 讓 `config_host.mk` 相依於 `configure.ac`：之後在 `build-headless-probe` 或
+`build-a11y-gate0` 跑任何 `make`，都會先自動重跑一次 autogen。兩棵樹都沒下 `--enable-database-connectivity`，結果應該不變；
+重跑之後比一下 `config_host.mk` 與 `config_host/*.h` 再往下。
+
 ## Qt 6.10.2 patches（既有，列入盤點）
 
 | Patch | 分類 | Finding |
@@ -57,6 +80,8 @@ C++ 巨集（`configure.ac:3498`，原本由 `--enable-wasm-strip` 決定，而�
 - **headless `wasm_sdk_probe`**（`--disable-gui`，無 Qt、無 JSPI）：
   只需要 `emdwp-partial-symbols`（若開 symbols）、`fs-image-multilang-registry`、
   `fs-image-extra-fonts`（若要 CJK 字型）。
+  檢視引擎 v2 的核心（`build-ods-viewer-v2`）另外需要 `wasm-strip-accessibility-single-input`、
+  `wasm-bridge-scaddins-signatures` 與 `wasm-explicit-database-connectivity`。
 - **Qt6-WASM QA 線**：需要全部五份 LibreOffice patch 加三份 qtbase patch。
 
 ## worktree 未追蹤檔案
@@ -74,3 +99,5 @@ done
 
 全部 OK 表示 patch 集與 worktree 現狀一致；任何一份失敗代表 worktree 又有新修改，
 需重新產生對應 patch 並更新本文件。
+
+2026-10-21：加入兩份（bridge 簽章、DB connectivity），八份 LibreOffice patch 全部 `git apply --check --reverse` 通過。

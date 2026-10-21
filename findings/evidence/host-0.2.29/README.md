@@ -207,3 +207,10 @@ still 0.2.26. H7 is the owner's.
 Left on the instance: the Phase H fixtures — `M4 phase-h/` (8 files, run 3) and 8 files in the root folder
 from runs 1–2 (`M4 檢視 測試 {plain,lock-taking-host}.{ods,odt,xlsx,pdf}`), plus the older runners' own
 files. Deleting is a write; not done in this slot.
+
+**Clean-up, 2026-10-21 ~10:00 CST (the owner chose "A, now").** `ddev list`: running {litecore}, paused
+{fgp-nc, nc-bridge}; no start/stop. A WebDAV PROPFIND of `admin/` and `admin/M4 phase-h/` listed exactly the
+sixteen fixtures above and nothing else matching `M4 `. Nine DELETEs (the eight root-folder files, then the
+folder `M4 phase-h` with its eight) all answered 204; a second PROPFIND found no `M4 ` entry left. They are in
+admin's trash bin (recoverable). The runner recreates the folder on its next run. `engine.old` stays in the
+app dir until H7 keeps 0.2.31.

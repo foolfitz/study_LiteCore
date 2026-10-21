@@ -959,3 +959,28 @@ virtual function with signature …")` → `ScUnoAddInCall` 收成 `FormulaError
 | 日期 | 內容 |
 | --- | --- |
 | 2026-10-21 早 | 追加 10：O7 完成；161、162；H1–H4、H6 在 0.2.31 全過；runner 兩輪因執行而修 +2（44/27）；163 候選；H7 交擁有者 |
+
+---
+
+# 追加 11（2026-10-21）：v2 另立規格；兩處更正
+
+只 append。
+
+## A11.1 v2 在哪裡
+
+檢視引擎 v2（核心批次 159＋158-B、檢視連結 157＋160）寫在 **`specs/SPEC-M4-viewer-v2.md`**。擁有者 2026-10-21 對「158-B 要不要拆出 v2」
+答「重編其實無所謂」，所以 158-B 留在 v2；核心建在新樹 `wasm-lite/build-ods-viewer-v2`，判準 K-1／K-2 與退路 F 在建置之前釘死（該檔 §2）。
+本檔的 E1–E9 照舊是 v2 Phase E 的判準，v2 改了哪幾處讀法寫在該檔 §3 以後（連結前追加）。
+
+## A11.2 更正
+
+1. **A8.8 的 `didddd`**（取代該段「`getSeriessum` 的 `didddd` 不在表裡」的簽章）：`getSeriessum(double, double, double, sequence)` 的簽章是
+   `didddi`。結論（scaddins 的介面不在 bridge 的表裡）不變；離線實跑 `wasmbridgegen` 量過（`findings/evidence/m4-ods/phase-e/159-diagnosis/bridgegen-offline/`）。
+2. **finding 160 的嚴重度**：產品頁面沒有任何地方呼叫 `partText`，只有 E3 用它。160 是量測儀器與 SDK 能力的問題，不是使用者看得到的錯字
+   （`SPEC-M4-viewer-v2` §0）。
+
+## A11.3 修訂紀錄（續）
+
+| 日期 | 內容 |
+| --- | --- |
+| 2026-10-21 | 追加 11：v2 另立 `SPEC-M4-viewer-v2`；A8.8 簽章更正；160 嚴重度更正 |
