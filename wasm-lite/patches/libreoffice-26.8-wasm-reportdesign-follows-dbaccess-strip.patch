@@ -1,0 +1,25 @@
+diff --git a/RepositoryModule_host.mk b/RepositoryModule_host.mk
+index 8070c7612367..8381d3c54a11 100644
+--- a/RepositoryModule_host.mk
++++ b/RepositoryModule_host.mk
+@@ -39,6 +39,12 @@ ifneq ($(ENABLE_WASM_STRIP_DBACCESS),TRUE)
+ $(eval $(call gb_Module_add_moduledirs,libreoffice,\
+ 	dbaccess \
+ ))
++# reportdesign links dbaccess's dbu, so it goes wherever dbaccess goes: with
++# DB connectivity on and dbaccess stripped, it fails as "used LinkTarget
++# Library/libdbulo.a not defined".
++$(eval $(call gb_Module_add_moduledirs,libreoffice,\
++	$(call gb_Helper_optional,DBCONNECTIVITY,reportdesign) \
++))
+ endif
+ 
+ ifneq ($(ENABLE_WASM_STRIP_ACCESSIBILITY),TRUE)
+@@ -125,7 +131,6 @@ $(eval $(call gb_Module_add_moduledirs,libreoffice,\
+ 	registry \
+ 	remotebridges \
+ 	reportbuilder \
+-	$(call gb_Helper_optional,DBCONNECTIVITY,reportdesign) \
+ 	ridljar \
+ 	rust_uno \
+ 	sal \

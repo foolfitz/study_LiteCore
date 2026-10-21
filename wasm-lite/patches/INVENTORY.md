@@ -22,6 +22,7 @@
 | `libreoffice-26.8-qt-wasm-inputcontext-main-thread.patch` | `vcl/qt5/QtFrame.cxx` | **僅 Qt6 線**（input context 同步代理回瀏覽器主執行緒） | [008](../../findings/008-qt6-wasm-inputcontext-invalid-emval-value.md) | Bugzilla draft，依 008 驗證計畫送 master |
 | `libreoffice-26.8-wasm-bridge-scaddins-signatures.patch` | `bridges/CustomTarget_gcc3_wasm.mk` | **含 Calc 的 WASM 建置**（`ENABLE_WASM_STRIP_CALC` 為空時把 scaddins 的 internal API 以 primary 餵給 `wasmbridgegen`；writer-only 的 `build-headless-probe` 條件不成立、產物不變） | [159](../../findings/159-functions-recalculated-at-load-give-value-errors-on-the-viewer-core.md) | 候選，未送（上游 master 的同一檔與 26.8 相同，2026-10-21 查） |
 | `libreoffice-26.8-wasm-explicit-database-connectivity.patch` | `configure.ac`（兩處） | **只影響明確下 `--enable-database-connectivity` 的 Emscripten 建置**（現行兩棵樹都沒下，configure 結果不變） | [158](../../findings/158-an-ods-with-form-controls-cannot-be-painted-on-the-wasm-core-forms-service-absent.md) | 不送（本地組態選擇；上游 2021 年 `dc9ccf3d8f29` 為了 Linux 靜態建置一律關掉，iOS／Android 照開） |
+| `libreoffice-26.8-wasm-reportdesign-follows-dbaccess-strip.patch` | `RepositoryModule_host.mk` | **只影響開了 DB connectivity 的 wasm 建置**（reportdesign 搬進 `ENABLE_WASM_STRIP_DBACCESS` 的同一個區塊；非 wasm 建置照舊建它，現行兩棵 wasm 樹本來就沒有它） | [158](../../findings/158-an-ods-with-form-controls-cannot-be-painted-on-the-wasm-core-forms-service-absent.md) | 候選，未送（上游組合 DBCONNECTIVITY＋WASM_STRIP_DBACCESS 本身不一致） |
 
 注意：兩份 fs-image patch 拆自同一檔案的同一份 diff。在乾淨樹上套用時先套
 `multilang-registry` 再套 `extra-fonts`（hunk 行號以此順序計算；`git apply` 對位移有容忍度，
@@ -63,6 +64,12 @@ bridge 找不到簽章、丟 RuntimeException，Calc 顯示 `#VALUE!`（finding 
 三個驅動在 Emscripten 上的預設是開）。dbaccess 仍由 `ENABLE_WASM_STRIP_DBACCESS`（＝`ENABLE_WASM_STRIP`）拿掉，進來的是 `forms`、
 connectivity 的 `dbtools` 等。
 
+**`wasm-reportdesign-follows-dbaccess-strip`（2026-10-22 加入）**：`build-ods-viewer-v2` 第一次 `make`（finding 003 重試之後）停在
+`LinkTarget.mk: *** used LinkTarget Library/libdbulo.a not defined`。reportdesign 在 DB connectivity 打開時被加進模組清單，而它的
+`Library_rpt`／`Library_rptui` 連 dbaccess 的 `dbu`；dbaccess 卻被 `ENABLE_WASM_STRIP_DBACCESS` 拿掉了。普查：dbaccess 的五個函式庫
+（dba、dbahsql、dbaxml、dbu、sdbt）在 dbaccess 以外只有 reportdesign 用到（另一處是只在動態連結時生效的序列化清單）。patch 讓 reportdesign
+跟 dbaccess 同進退。擁有者 2026-10-22 選 A（補這一行再建），覆寫規格 §2.5 的 F-1 預設。
+
 **兩份都改的是共用原始碼樹**，而 `Makefile.in` 讓 `config_host.mk` 相依於 `configure.ac`：之後在 `build-headless-probe` 或
 `build-a11y-gate0` 跑任何 `make`，都會先自動重跑一次 autogen。兩棵樹都沒下 `--enable-database-connectivity`，結果應該不變；
 重跑之後比一下 `config_host.mk` 與 `config_host/*.h` 再往下。
@@ -81,7 +88,7 @@ connectivity 的 `dbtools` 等。
   只需要 `emdwp-partial-symbols`（若開 symbols）、`fs-image-multilang-registry`、
   `fs-image-extra-fonts`（若要 CJK 字型）。
   檢視引擎 v2 的核心（`build-ods-viewer-v2`）另外需要 `wasm-strip-accessibility-single-input`、
-  `wasm-bridge-scaddins-signatures` 與 `wasm-explicit-database-connectivity`。
+  `wasm-bridge-scaddins-signatures`、`wasm-explicit-database-connectivity` 與 `wasm-reportdesign-follows-dbaccess-strip`。
 - **Qt6-WASM QA 線**：需要全部五份 LibreOffice patch 加三份 qtbase patch。
 
 ## worktree 未追蹤檔案
@@ -101,3 +108,4 @@ done
 需重新產生對應 patch 並更新本文件。
 
 2026-10-21：加入兩份（bridge 簽章、DB connectivity），八份 LibreOffice patch 全部 `git apply --check --reverse` 通過。
+2026-10-22：加入第九份（reportdesign 跟著 dbaccess strip），九份全部 `git apply --check --reverse` 通過。

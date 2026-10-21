@@ -226,3 +226,22 @@ SPEC-M4 §4 的 E1–E9 照舊，在 v2 的連結上全部重跑（連結換了�
   新殼層配 v1 引擎報 `part-visibility-unknown`；隱藏表照 v1 的路被引擎讀回 11（`setPartCalls 1`），含控制項的檔 `formControlsDrawable: false`。
 - §34：這是把 §4 釘好的讀法落地，**不是**因執行或因審核而修（沒有被誤判的報告）。runner 曾審過一次；這次的增量是否需要審，交下一個
   session 或審核席決定（登錄在交接）。
+
+## 2.7 第一次建置：F-1 被觸發，擁有者覆寫（2026-10-22 追加）
+
+- 10-21 10:43 第一次 `make`：0 分鐘死在 `workdir_for_build/UnpackedTarball/dragonbox.version`，與 finding 003 逐字相同（同檔、同行）。K-1 全綠
+  （`findings/evidence/m4-ods/viewer-v2/core/k1-configure.json`）。
+- 10-21 10:53 `--make-only`（003 允許的那一次重試）：2 分鐘後失敗；**它的 log 被下一次執行覆寫，已遺失**。腳本已改成每次一份 log、失敗時自動存最後 200 行。
+- 10-22 00:26 再一次 `--make-only`：`LinkTarget.mk: *** used LinkTarget Library/libdbulo.a not defined`（`…/core/build-20261022T002600-dbu-tail200.txt`）。
+  成因（讀原始碼）：reportdesign 在 DB connectivity 打開時被加進模組清單，它的 `Library_rpt`／`Library_rptui` 連 dbaccess 的 `dbu`，而 dbaccess 被
+  `ENABLE_WASM_STRIP_DBACCESS` 拿掉——**上游 DBCONNECTIVITY＋WASM_STRIP_DBACCESS 的組合本身不一致**。普查：dbaccess 的五個函式庫在 dbaccess 以外只有
+  reportdesign 用到。
+- 這是 §2.5 的 **F-1**（DB connectivity 那組在 003 重試之後仍建不過）。擁有者選 **A：補一行再建**（覆寫預設）。patch
+  `wasm-lite/patches/libreoffice-26.8-wasm-reportdesign-follows-dbaccess-strip.patch`：reportdesign 與 dbaccess 同進退（只影響開了 DB connectivity 的 wasm 建置）。
+  不是 configure 的輸入，K-1 仍成立。
+- **下一次的讀法（先寫好）**：再失敗、且失敗點在 DB connectivity 帶進來的模組（forms、connectivity、dbtools、reportdesign 以外任何因 DBCONNECTIVITY
+  才進來的）→ 直接走 F-1，**不再逐一補洞**，除非擁有者當場另說；失敗點在別處（例如 159 的 bridge）→ 先讀 log 再判。
+
+| 日期 | 變更 |
+| --- | --- |
+| 2026-10-22 | 追加 §2.7：F-1 觸發與擁有者覆寫、第三個核心 patch、下一次的讀法 |

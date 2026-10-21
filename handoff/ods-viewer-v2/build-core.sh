@@ -38,17 +38,21 @@ if [ "${1:-}" != --make-only ]; then
   echo "K-1 green"
 fi
 
-echo "== make -j$JOBS (40-80 min or more); the log is $BUILD/build.log"
+# One log per run (2026-10-22: a single build.log lost the second run's), build.log -> the latest.
+log=build-$(date +%Y%m%dT%H%M%S).log
+echo "== make -j$JOBS (40-80 min or more); the log is $BUILD/$log"
 start=$(date +%s)
-make -j"$JOBS" 2>&1 | tee build.log
+make -j"$JOBS" 2>&1 | tee "$log"
 status=${PIPESTATUS[0]}
+ln -sf "$log" build.log
 minutes=$(( ($(date +%s) - start) / 60 ))
-echo "$(date -Is) make exit $status after $minutes min (${1:-full})" >> "$EVIDENCE/timing.txt"
+echo "$(date -Is) make exit $status after $minutes min (${1:-full}) $log" >> "$EVIDENCE/timing.txt"
 if [ "$status" -ne 0 ]; then
-  echo "STOP: make failed after $minutes min."
+  tail -200 "$log" > "$EVIDENCE/${log%.log}-tail200.txt"
+  echo "STOP: make failed after $minutes min; its last 200 lines are in $EVIDENCE/${log%.log}-tail200.txt"
   echo "If it died within seconds inside workdir/UnpackedTarball, that is finding 003:"
   echo "  bash handoff/ods-viewer-v2/build-core.sh --make-only   (once)"
-  echo "Otherwise send me the end of $BUILD/build.log."
+  echo "Otherwise just tell Claude; it reads the log itself."
   exit 5
 fi
 
