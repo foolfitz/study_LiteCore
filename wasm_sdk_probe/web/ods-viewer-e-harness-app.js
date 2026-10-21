@@ -24,6 +24,10 @@ const TWIPS_PER_PX = 15;
 const NS = "__odsPhaseE";
 const DISTINCT_MESSAGES_KEPT = 200;
 
+// The page's one worker literal; the runner rewrites it in its mirror copy for another profile.
+const WORKER_URL = "./profiles/ods-viewer-v1/sdk-worker.js";
+const WORKER_ABSOLUTE = new URL(WORKER_URL, location.href);
+
 const report = { schemaVersion: 1, release: "m4-ods-phase-e-harness", openTimeoutMs: OPEN_TIMEOUT_MS,
                  workerUrl: null, cases: [], done: false, fatal: null };
 window[NS] = report;
@@ -62,6 +66,15 @@ async function tileRecord(result) {
   };
 }
 
+// SPEC-M4-viewer-v2 3.4: what the product page does -- the manifest beside the
+// worker, asked only for a file with form controls (the session decides when).
+async function formControlsSupported() {
+  const response = await fetch(new URL("./sdk-manifest.json", WORKER_ABSOLUTE), { cache: "no-cache" });
+  if (!response.ok) return false;
+  const manifest = await response.json();
+  return Array.isArray(manifest?.capabilities) && manifest.capabilities.includes("form-controls");
+}
+
 const TILE_REGION = { xTwips: 0, yTwips: 0, widthTwips: TILE_PX * TWIPS_PER_PX,
                       heightTwips: TILE_PX * TWIPS_PER_PX, canvasWidthPx: TILE_PX, canvasHeightPx: TILE_PX };
 
@@ -95,6 +108,9 @@ async function runCase(spec) {
   report.cases.push(entry);
   const started = performance.now();
   let handle = null;
+  // SPEC-M4-viewer-v2 4 (V2-157): how many switches reached the handle -- a hidden
+  // sheet must be refused by the session with none.
+  let setPartCalls = 0;
   const response = await fetch(spec.file);
   if (!response.ok) throw new Error(`fetch ${spec.file}: ${response.status}`);
   const bytes = await response.arrayBuffer();
@@ -103,16 +119,23 @@ async function runCase(spec) {
 
   const session = new OdsViewerSession({
     openTimeoutMs: OPEN_TIMEOUT_MS,
+    formControlsSupported,
     tileOptions: { tileSizePx: 256, prefetchTiles: 0, maxInFlight: 1 },
     onEvent: (event) => recordEvent(entry, started, event),
     engineFactory: async ({ onEvent }) => {
       entry.engineCreated = true;
-      const engine = new OdsViewerEngine({ workerUrl: "./profiles/ods-viewer-v1/sdk-worker.js",
-                                           timeoutMs: 120000, debug: true });
+      const engine = new OdsViewerEngine({ workerUrl: WORKER_URL, timeoutMs: 120000, debug: true });
       report.workerUrl = String(engine._workerUrl);
       engine.onEvent(onEvent);
       const open = engine.open.bind(engine);
-      engine.open = async (...args) => (handle = await open(...args));
+      engine.open = async (...args) => {
+        handle = await open(...args);
+        if (typeof handle.setPart === "function") {
+          const setPart = handle.setPart;
+          handle.setPart = (...setArgs) => { setPartCalls += 1; return setPart(...setArgs); };
+        }
+        return handle;
+      };
       return engine._initialize();
     },
   });
@@ -132,25 +155,37 @@ async function runCase(spec) {
   if (entry.opened && handle) {
     const parts = handle.parts;
     for (let k = 0; k < parts; k += 1) {
-      const sheet = { part: k, switch: null, readBack: null, text: null, tiles: [], error: null };
+      const sheet = { part: k, switch: null, readBack: null, text: null, tiles: [], error: null,
+                      setPartCalls: null, readBackAfterError: null };
       entry.sheets.push(sheet);
+      const callsBefore = setPartCalls;
       try {
         // E5 through the session (its read-back is the engine's), then E3 and E4a on the handle.
         const before = session.state.currentPart;
-        await session.showPart(k);
+        try {
+          await session.showPart(k);
+        } finally {
+          sheet.setPartCalls = setPartCalls - callsBefore;
+        }
         sheet.switch = { before, after: session.state.currentPart, readBack: session.state.currentPartReadBack };
         sheet.readBack = await handle.readCurrentPart();
         const partBefore = handle.currentPart;
         const text = await handle.partText(k);
         sheet.text = { ...(await textDigest(text.text)), textNull: text.textNull,
                        selectAllConfirmed: text.selectAllConfirmed, partBefore: text.partBefore,
-                       partAfter: text.partAfter, currentPartBefore: partBefore };
+                       partAfter: text.partAfter, currentPartBefore: partBefore,
+                       // SPEC-M4-viewer-v2 3.3: present only from v2's engine.
+                       selectAllWaitMs: text.selectAllWaitMs ?? null,
+                       selectAllDeadlineMs: text.selectAllDeadlineMs ?? null,
+                       lateSelectAllResults: text.lateSelectAllResults ?? null };
         if (RECORD_TEXT && typeof text.text === "string" && text.text.length <= RECORD_TEXT_MAX)
           sheet.text.sample = text.text;
         for (let n = 0; n < 2; n += 1)
           sheet.tiles.push(await tileRecord(await handle.render(TILE_REGION, { timeoutMs: 60000 })));
       } catch (error) {
         sheet.error = errorValue(error);
+        // Where the engine is after a refused or failed switch (V2-157: unchanged).
+        try { sheet.readBackAfterError = await handle.readCurrentPart(); } catch { /* recorded as null */ }
       }
     }
     // E5: the current part again reads back unchanged; part `parts` is refused,

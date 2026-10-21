@@ -33,6 +33,8 @@ class FakeWorker {
     // part-info: LOK's string for each part, or a function (part) -> reply / error body.
     this.visible = options.visible ?? this.names.map(() => true);
     this.partInfo = options.partInfo ?? null;
+    // part-text's v2 fields, sent only when given (v1's engine sends none).
+    this.waitFields = options.waitFields ?? null;
     this.operations = [];
     this.payloads = [];
     this.listeners = new Set();
@@ -72,7 +74,8 @@ class FakeWorker {
       case "partText":
         return this.reply(requestId, true, { part: payload.part, text: `${this.names[payload.part]}\n`,
                                              textNull: false, selectAllConfirmed: true,
-                                             partBefore: this.part, partAfter: this.part, revision: 0 });
+                                             partBefore: this.part, partAfter: this.part, revision: 0,
+                                             ...(this.waitFields || {}) });
       case "partInfo": {
         if (this.partInfo) {
           const { ok, body } = this.partInfo(payload.part);
@@ -245,4 +248,23 @@ test("v2: the string form of visible is read too (\"0\"/\"1\"), nothing else is 
     partInfo: (part) => ({ ok: true, body: { part, info: `{ "visible": "${part === 1 ? 0 : 1}" }`, revision: 0 } }) });
   const handle = await engine.open(new ArrayBuffer(8), { name: "book.ods" });
   assert.deepEqual(handle.partVisible, [true, false, true]);
+});
+
+test("v2: partText passes the engine's wait fields through when it sends them, and only then", async () => {
+  {
+    const { engine } = await started({ capabilities: VIEWER_V2_CAPABILITIES,
+                                       waitFields: { selectAllWaitMs: 37, selectAllDeadlineMs: 10000,
+                                                     lateSelectAllResults: 0 } });
+    const handle = await engine.open(new ArrayBuffer(8), { name: "book.ods" });
+    const result = await handle.partText(2);
+    assert.equal(result.selectAllWaitMs, 37);
+    assert.equal(result.selectAllDeadlineMs, 10000);
+    assert.equal(result.lateSelectAllResults, 0);
+  }
+  {
+    const { engine } = await started();
+    const handle = await engine.open(new ArrayBuffer(8), { name: "book.ods" });
+    assert.deepEqual(Object.keys(await handle.partText(0)).sort(),
+                     ["part", "partAfter", "partBefore", "selectAllConfirmed", "text", "textNull"]);
+  }
 });

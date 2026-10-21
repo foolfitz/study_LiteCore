@@ -136,7 +136,12 @@ export class OdsViewerEngine extends DocumentEngine {
         handle.currentPart = result.partAfter;
       return { part: result.part, text: result.text, textNull: result.textNull === true,
                selectAllConfirmed: result.selectAllConfirmed === true,
-               partBefore: result.partBefore, partAfter: result.partAfter };
+               partBefore: result.partBefore, partAfter: result.partAfter,
+               // SPEC-M4-viewer-v2 3.3: v2's engine only, so v1's result keeps its keys.
+               ...(Number.isInteger(result.selectAllWaitMs)
+                 ? { selectAllWaitMs: result.selectAllWaitMs, selectAllDeadlineMs: result.selectAllDeadlineMs,
+                     lateSelectAllResults: result.lateSelectAllResults }
+                 : {}) };
     };
   }
 }

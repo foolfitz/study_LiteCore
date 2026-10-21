@@ -211,3 +211,18 @@ SPEC-M4 §4 的 E1–E9 照舊，在 v2 的連結上全部重跑（連結換了�
 | 日期 | 變更 |
 | --- | --- |
 | 2026-10-21 | 追加 §3（引擎、殼層、profile、靜態檢查、測試）與 §4（V2-157／159／158B／160、E8′、F-2），任何 v2 連結與執行之前 |
+
+## 3.8 Phase E 的 runner 與 harness（2026-10-21 追加；任何 v2 執行之前）
+
+- SDK 的 `partText()` 也要轉出三個等待欄位（引擎有送才轉），否則 V2-160 在 SDK 這一層就讀不到；測試 46／46，新的一條在 HEAD 殼層上紅。
+- harness 頁面（`web/ods-viewer-e-harness-app.js`）：worker 字面值抽成單一常數（仍是 v1 的；runner 對別的 profile 只改**鏡像副本**，且要求恰好
+  一個）；給 session `formControlsSupported`（同產品頁的讀法）；每次 `showPart` 記 `setPartCalls`（實際打到 handle 的切換數）；切換失敗時記
+  `readBackAfterError`；`part-text` 的三個等待欄位。
+- runner（`tools/run_ods_viewer_phase_e.py`）：`--profile`，報告記 `profileCapabilities`；**讀法跟著 profile 宣告的能力走**——有 `part-info`：
+  E5 對隱藏表要 `PART_HIDDEN`＋`setPartCalls 0`＋讀回不是它，並跑 V2-157、V2-160；有 `form-controls`：含控制項的檔照一般檔判（E2–E6），
+  並跑 V2-158B 列出它們。沒宣告的 profile 不跑任何 V2 判準（空的判準清單在 `judge()` 是 FAIL，所以不能讓它空跑）。
+  selftest 31 → **43**：v2 控制組全綠、10 個 v2 紅案各紅在該紅的判準。
+- **在 v1 上實跑過一次**（鏡像，不碰 ddev；證據 `findings/evidence/m4-ods/viewer-v2/pre-link/v1-shakedown-new-shell/`）：E1–E6 PASS；
+  新殼層配 v1 引擎報 `part-visibility-unknown`；隱藏表照 v1 的路被引擎讀回 11（`setPartCalls 1`），含控制項的檔 `formControlsDrawable: false`。
+- §34：這是把 §4 釘好的讀法落地，**不是**因執行或因審核而修（沒有被誤判的報告）。runner 曾審過一次；這次的增量是否需要審，交下一個
+  session 或審核席決定（登錄在交接）。
