@@ -43,3 +43,17 @@ E3（`part_text` 也走同一條路）與 E4a 對這 5 份全紅；其餘 298 �
 ## 處置結果（2026-10-20 深夜）
 
 擁有者選的是**型別化拒絕**（上一節編為 B；handoff 10-20i 與當晚的回覆裡編為 A——以選項內容為準，不以字母為準）。判別子是 `<draw:control`（不是 `<office:forms`——LO 對 49／306 份都寫空元素；也不是 `<form:form`——`tdf138507.ods` 有表單沒控制項、畫得出來）。`viewer-shell/odf-package-probe.js` 串流解壓 content.xml 找到就停；單元測試 4 條新紅案（`findings/evidence/m4-ods/phase-e/158-a/`）；全語料 5 份拒絕、298 份照開。B（核心開 DB connectivity）留在 v2 的核心重建批次；混合文件（控制項只在某一張表）能不能畫其餘的表**未量**（`L-mixed-form-control-sheets-unmeasured`）。
+
+## 158-B 的結果（2026-10-22）：forms 編得進來，但沒有 dbaccess 就連開檔都會失敗
+
+v2 的核心（`build-ods-viewer-v2`）開了 DB connectivity，`OFormsCollection` 等 forms 元件都在（元件 700 → 783），但 dbaccess 仍被 wasm strip 拿掉。
+在這顆核心上連結的 `ods-viewer-v2`（`a6390eef`）：
+
+- 5 份含控制項的檔**開不了**（`loadComponentFromURL returned an empty reference`），比 v1（開得了、畫不出來）還糟。
+- **回歸**：`tdf138507.ods`（有表單、沒有控制項；v1 開得了也畫得出來）也開不了。
+- 成因（讀原始碼）〔已觀察〕：`forms/source/component/DatabaseForm.cxx:358` 的 `ODatabaseForm` 建構時以 `UNO_QUERY_THROW` 聚合 `com.sun.star.sdb.RowSet`，
+  那是 **dbaccess** 的服務（`dba.component`）；引擎 stderr 正是 `unsatisfied query for interface of type com.sun.star.uno.XAggregation!`。每個 `<form:form>`
+  都會在匯入時丟例外。v1 的核心連 forms 服務都沒有，匯入時直接略過表單，所以反而開得了。
+- 推論：要讓表單畫得出來，核心必須**也有 dbaccess**（至少 `dba` 函式庫的 RowSet）。dbaccess 含整套資料庫 UI，體積未量；v2 的 gzip 餘裕只剩 3.28 MB。
+
+證據：`findings/evidence/m4-ods/viewer-v2/phase-e/`；規格 `SPEC-M4-viewer-v2` §7。

@@ -304,3 +304,22 @@ SPEC-M4 §4 的 E1–E9 照舊，在 v2 的連結上全部重跑（連結換了�
 | 日期 | 變更 |
 | --- | --- |
 | 2026-10-22 | 追加 §6：連結、身分、封存、F-2 不成立、Makefile 印 gzip 那行的修正 |
+
+## 7. v2 `a6390eef` 上的第一次 Phase E：157／159／160 過，158-B 觸發 F-3（2026-10-22 追加）
+
+兩次鏡像執行（`findings/evidence/m4-ods/viewer-v2/phase-e/`，README 有逐項）：
+
+- **V2-157 PASS**、E5 PASS：`fdo67682-2.ods` 的 12 張隱藏表 `partVisible: false`、tab 停用、`PART_HIDDEN`、0 次切換打到 handle。
+- **V2-159 的硬性那半 PASS**：E3 對 `date-time-functions.ods`、`functions.ods` 綠。
+- **V2-160 PASS**（這兩輪只 49 次讀取；N＝3 的全語料還沒跑）：0 未確認，等待最大 122 ms。
+- **V2-158B FAIL，而且有回歸**：5 份含控制項的檔＋`tdf138507.ods`（有表單無控制項，v1 正常）都**開不了**。成因：`ODatabaseForm` 要 dbaccess 的
+  `com.sun.star.sdb.RowSet`（`forms/source/component/DatabaseForm.cxx:358`，`UNO_QUERY_THROW`），dbaccess 被 strip 了（finding 158 的 158-B 段）。
+
+這是 §2.5 的 **F-3**（核心有 forms，控制項畫不出來——實際上是連檔都開不了）。依 §2.5 的原則，**這顆核心不能出貨**：它讓 v1 開得了的檔變成開不了。
+預設退路：v2 只帶 159（`build-a11y-gate0` 增量）、重新連結、Phase E 從頭；158-B 另立工作項，帶著這次學到的前提（要 dbaccess 的 RowSet）。
+擁有者可改；另一條路是讓 dbaccess 也進核心（`ENABLE_WASM_STRIP_DBACCESS` 只有 Make 變數、沒有 C++ 巨集，可只改組態），代價是再建一次與體積
+（gzip 餘裕 3.28 MB，dbaccess 含整套資料庫 UI）。`a6390eef` 已封存，作為 158-B 的診斷件保留。
+
+| 日期 | 變更 |
+| --- | --- |
+| 2026-10-22 | 追加 §7：v2 第一次 Phase E 的結果、F-3、退路與另一條路 |
