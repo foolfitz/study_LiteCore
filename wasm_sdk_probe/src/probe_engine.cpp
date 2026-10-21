@@ -54,6 +54,9 @@
 // part range and part_text's order (tests/ods_viewer_test.cpp).
 #include "ods_viewer.hpp"
 #endif
+#if defined(OXSDK_ODS_VIEWER_V2) && !defined(OXSDK_ODS_VIEWER)
+#error "OXSDK_ODS_VIEWER_V2 is added to the viewer's shape, never used alone"
+#endif
 #include "sdk_api.h"
 #ifdef OXSDK_EDITOR_DISCOVERY
 #include "editor_discovery_api.h"
@@ -223,6 +226,10 @@ enum class CommandType {
   CurrentPart,
   PartName,
   PartText,
+#ifdef OXSDK_ODS_VIEWER_V2
+  // SPEC-M4-viewer-v2 3.1 (finding 157).
+  PartInfo,
+#endif
 #endif
 #ifdef OXSDK_E2_V20_LINK_BATCH
   // SPEC-M3-link-batch 10.8 (S-11): a document-level QUERY, the sibling of
@@ -2641,13 +2648,27 @@ static_assert(LOK_DOCTYPE_TEXT == 0 && LOK_DOCTYPE_SPREADSHEET == 1 &&
 // relink to see past.  A SelectAll that lands after the deadline finds `active`
 // false and is ignored; readPartText has reset the selection and put the part
 // back by then (registered: that late selection stays, SPEC-M4 §8).
+#ifdef OXSDK_ODS_VIEWER_V2
+// SPEC-M4-viewer-v2 3.3 (finding 160): 3 s was not always enough under a
+// corpus sweep (2 of 482 reads once, 0 of 464 twice).  Each reply now says how
+// long the wait took and how many SelectAll results came while nobody was
+// waiting, so a read that is still unconfirmed says whether its result was
+// late or never came.
+constexpr int kPartTextSelectAllDeadlineMs = 10000;
+#else
 constexpr int kPartTextSelectAllDeadlineMs = 3000;
+#endif
 
 struct PartTextAwait {
   std::mutex mutex;
   std::condition_variable condition;
   bool active = false;
   bool done = false;
+#ifdef OXSDK_ODS_VIEWER_V2
+  // Arrived with `active` false: after its deadline, or unasked.  Read and
+  // reset by the next part-text reply, so a late one is counted there.
+  int lateResults = 0;
+#endif
 };
 PartTextAwait gPartTextAwait;
 
@@ -2656,6 +2677,10 @@ void notePartTextUnoResult(const char *payload) {
     return;
   {
     std::lock_guard<std::mutex> lock(gPartTextAwait.mutex);
+#ifdef OXSDK_ODS_VIEWER_V2
+    if (!gPartTextAwait.active)
+      ++gPartTextAwait.lateResults;
+#endif
     if (!gPartTextAwait.active)
       return;
     gPartTextAwait.done = true;
@@ -2663,11 +2688,23 @@ void notePartTextUnoResult(const char *payload) {
   gPartTextAwait.condition.notify_all();
 }
 
+#ifdef OXSDK_ODS_VIEWER_V2
+int takeLatePartTextResults() {
+  std::lock_guard<std::mutex> lock(gPartTextAwait.mutex);
+  const int late = gPartTextAwait.lateResults;
+  gPartTextAwait.lateResults = 0;
+  return late;
+}
+#endif
+
 // readPartText's document, on LOK.  The text is read the way the native
 // oracle reads its expected text (tools/ods_native_oracle.cpp): getTextSelection
 // as text/plain;charset=utf-8, not the selection-type readback.
 struct LokPartTextDocument {
   LibreOfficeKitDocument *document;
+#ifdef OXSDK_ODS_VIEWER_V2
+  int selectAllWaitMs = -1; // -1: selectAll() was not reached
+#endif
 
   int parts() { return document->pClass->getParts(document); }
   int part() { return document->pClass->getPart(document); }
@@ -2678,12 +2715,21 @@ struct LokPartTextDocument {
       gPartTextAwait.active = true;
       gPartTextAwait.done = false;
     }
+#ifdef OXSDK_ODS_VIEWER_V2
+    const auto started = std::chrono::steady_clock::now();
+#endif
     document->pClass->postUnoCommand(document, ".uno:SelectAll", nullptr, true);
     std::unique_lock<std::mutex> lock(gPartTextAwait.mutex);
     const bool landed = gPartTextAwait.condition.wait_for(
         lock, std::chrono::milliseconds(kPartTextSelectAllDeadlineMs),
         [] { return gPartTextAwait.done; });
     gPartTextAwait.active = false;
+#ifdef OXSDK_ODS_VIEWER_V2
+    selectAllWaitMs = static_cast<int>(
+        std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::steady_clock::now() - started)
+            .count());
+#endif
     return landed;
   }
   bool text(std::string &out) {
@@ -2790,8 +2836,41 @@ void handlePartText(const Command &command) {
          << (result.selectAllConfirmed ? "true" : "false")
          << ",\"partBefore\":" << result.partBefore
          << ",\"partAfter\":" << result.partAfter;
+#ifdef OXSDK_ODS_VIEWER_V2
+  fields << ",\"selectAllWaitMs\":" << document.selectAllWaitMs
+         << ",\"selectAllDeadlineMs\":" << kPartTextSelectAllDeadlineMs
+         << ",\"lateSelectAllResults\":" << takeLatePartTextResults();
+#endif
   emitPartReply(command, "part-text", fields.str());
 }
+
+#ifdef OXSDK_ODS_VIEWER_V2
+// SPEC-M4-viewer-v2 3.1 (finding 157).  ScTabControl inserts a page only for a
+// visible sheet, so setPart to a hidden one does nothing and the read-back
+// stays on the previous sheet; the page has to know before it offers the tab.
+// LOK's JSON goes through as a string, parsed by the SDK, as page-rectangles'
+// does.  Core answers "" without a view (ScDocShell::GetViewData()): that is
+// an error here, not a visible sheet.
+void handlePartInfo(const Command &command) {
+  if (!requireDocument(command, "part-info") ||
+      !requirePartInRange(command, "part-info", command.values[0]))
+    return;
+  char *info =
+      gState.document->pClass->getPartInfo(gState.document, command.values[0]);
+  if (!info || info[0] == '\0') {
+    const std::string message =
+        info ? "getPartInfo returned an empty string" : kitError();
+    std::free(info);
+    emitCommandError(command, "part-info", "LOK_ERROR", message);
+    return;
+  }
+  std::ostringstream fields;
+  fields << ",\"part\":" << command.values[0] << ",\"info\":\""
+         << jsonEscape(info) << "\"";
+  std::free(info);
+  emitPartReply(command, "part-info", fields.str());
+}
+#endif
 #endif
 
 void onLokCallback(int type, const char *payload, void *) {
@@ -6605,6 +6684,11 @@ void dispatch(const Command &command) {
   case CommandType::PartText:
     handlePartText(command);
     break;
+#ifdef OXSDK_ODS_VIEWER_V2
+  case CommandType::PartInfo:
+    handlePartInfo(command);
+    break;
+#endif
 #endif
 #ifdef OXSDK_E2_V20_LINK_BATCH
   case CommandType::PageRectangles:
@@ -7414,6 +7498,13 @@ SubmitStatus partText(std::uint32_t requestId, std::uint32_t documentHandle,
                       int part) {
   return submitPartQuery(CommandType::PartText, requestId, documentHandle, part);
 }
+
+#ifdef OXSDK_ODS_VIEWER_V2
+SubmitStatus partInfo(std::uint32_t requestId, std::uint32_t documentHandle,
+                      int part) {
+  return submitPartQuery(CommandType::PartInfo, requestId, documentHandle, part);
+}
+#endif
 #endif
 
 #ifdef OXSDK_E2_V20_LINK_BATCH

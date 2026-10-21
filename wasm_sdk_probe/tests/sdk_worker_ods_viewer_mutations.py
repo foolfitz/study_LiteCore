@@ -38,12 +38,16 @@ MUTATIONS = {
         'accept(request, () => (Number.isInteger(payload.part) ? callStatus(',
         'accept(request, () => (true ? callStatus(',
         'a part that is not an integer is refused before the engine'),
+    # 2026-10-21 (SPEC-M4-viewer-v2 3.3): the literal gained v2's three wait fields, so the anchor is
+    # its first four lines, replaced by `{ ...event,` so the rest still parses and the event goes
+    # through whole.  Witness of the drift:
+    # findings/evidence/m4-ods/viewer-v2/pre-link/sdk-worker-mutations-red-anchor-drift.txt.
     'reply-forwarded-whole': (
         '        complete(requestId, { part: event.part, text: event.text, textNull: event.textNull,\n'
         '                              selectAllConfirmed: event.selectAllConfirmed,\n'
         '                              partBefore: event.partBefore, partAfter: event.partAfter,\n'
-        '                              revision: event.revision });\n',
-        '        complete(requestId, event);\n',
+        '                              revision: event.revision,\n',
+        '        complete(requestId, { ...event,\n',
         'the four replies pass through with named fields only'),
     'open-type-dropped': (
         '    ...(typeof event.documentType === "string" ? { documentType: event.documentType } : {}),\n', '',

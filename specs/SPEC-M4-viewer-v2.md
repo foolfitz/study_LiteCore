@@ -110,3 +110,104 @@ COUPDAYS 的 `didddi`／`diiii`／`diiiii`／`diiiiii` 都進表。**順帶更�
 | 日期 | 變更 |
 | --- | --- |
 | 2026-10-21 | 建立 §0–§2（核心）；§3 起在連結前追加 |
+
+---
+
+## 3. 引擎與殼層（2026-10-21 追加；任何 v2 連結之前）
+
+### 3.1 引擎介面
+
+- 新 define **`OXSDK_ODS_VIEWER_V2`**，疊在 v1 的 `OXSDK_READER_PROFILE`＋`OXSDK_ODS_VIEWER` 之上；單獨使用是編譯錯誤（`probe_engine.cpp`、
+  `sdk_api.cpp` 各一個 `#error`，紅案已試）。**v1 的 define 下兩個原始檔前置處理後的 token 與 HEAD（`17c5d50b`）相同**：`sdk_api.cpp`
+  逐位元相同，`probe_engine.cpp` 只差一個空行（`diff -B` 相同）〔已觀察，2026-10-21，對 `build-a11y-gate0` 的標頭〕。
+- 新匯出 **`oxsdk_document_part_info(request, handle, part)`** → 回覆 `part-info`，欄位 `part` 與 `info`（LOK `getPartInfo` 的 JSON，原樣
+  當字串；SDK 解析，同 page-rectangles 的前例）。`getPartInfo` 回空字串（`ScDocShell::GetViewData()` 沒有 view）算 `LOK_ERROR`，不算可見。
+- 能力位元：`PART_INFO = 1<<14` 一律有；**`FORM_CONTROLS = 1<<15` 只在編譯時核心的 `config_features.h` 說 `HAVE_FEATURE_DBCONNECTIVITY 1`
+  時才有**——引擎讀的是規則 `-I` 進來的那棵核心的標頭，不是任何人宣告的。退路 F（連在 `build-a11y-gate0`）自動沒有這一位。
+- worker：`partInfo` 由能力 `part-info` 閘住；`part-info` 回覆只轉具名欄位；`part-text` 的三個新欄位只在引擎送了才轉（v1 的回覆鍵不變）。
+
+### 3.2 隱藏表（finding 157）
+
+- SDK（`viewer-shell/ods-document-sdk.js`）：profile 宣告 `part-info` 時，開檔時在名字之後對每張表問一次，`visible` 只接受 0／1（數字或字串），
+  得到 `handle.partVisible`（布林陣列）。**任何一張失敗都不讓開檔失敗**：handle 沒有 `partVisible`，`partInfoProblem` 寫原因。
+- adapter：`partVisible` 合格（長度＝parts、全是布林）才用；否則 fallback **`part-visibility-unknown`**（全部當可見，即 v1 的行為），
+  問題寫進 `partVisibilityProblem`。停用理由「隱藏的工作表」住在 adapter（session 的詞彙掃描不准別處有「工作表」）。
+- session：隱藏表的 tab `enabled: false`、`hidden: true`、`disabledReason` 為上述理由；`showPart(隱藏表)` 在問引擎之前拒絕 **`PART_HIDDEN`**。
+- 對 v1 profile 的影響（**已知、刻意**）：新殼層配 v1 引擎時 state 會多一個 fallback、`evidenceClass` 變 `diagnostic`——那是誠實的，
+  v1 引擎確實沒說哪張是隱藏表。出貨的組合（package 的頁面表）是新殼層配 v2。
+
+### 3.3 SelectAll 的等待（finding 160）
+
+- 期限 3 s → **10 s**（只在 V2）。`part-text` 回覆加 `selectAllWaitMs`（實際等了多久；-1 表示沒走到）、`selectAllDeadlineMs`、
+  `lateSelectAllResults`（自上一次 `part-text` 回覆以來，沒人在等時到達的 SelectAll 結果數）。
+- **預先寫好的讀法**：某次 `selectAllConfirmed: false`，而**下一次**回覆的 `lateSelectAllResults > 0` → 結果是晚到（期限仍短）；
+  整輪結束都沒有晚到的 → 結果沒來。兩者都不在 harness 裡重試（finding 160 的原則照舊）。
+- 更正（§0）：產品頁面不呼叫 `partText`，這是 E3 儀器與 SDK 能力的問題。
+
+### 3.4 表單控制項（finding 158-B）的殼層
+
+- session 新選項 **`formControlsSupported()`**：**只在** package probe 說這份檔有 `<draw:control` 時才問、而且在建立任何引擎之前問；
+  回 `true` 才繼續開，其他任何答案（含丟例外）都照 158-A 拒絕 `FORM_CONTROLS_UNSUPPORTED`、`engineRequested: false`。
+  state 加 `formControlsDrawable`（沒問是 null）。沒給這個選項＝不支援（158-A 不變）。
+- 頁面（`web/ods-viewer-app.js`）的實作：讀 worker 旁邊的 `sdk-manifest.json`，看 `capabilities` 有沒有 `form-controls`。worker 在 init 時
+  要求 manifest 的 `expectedCapabilityBits` 等於引擎回報的位元，所以 manifest 宣告了核心沒有的 forms，**每一份檔**都會在 init 失敗，
+  不會變成「只有這份是空白畫布」。頁面的 worker 字面值仍是 v1 的；換成 v2 是打包時的事（照 v1 的前例，鏡像執行改自己的副本）。
+
+### 3.5 profile 建構（E8′，取代 E8 對 v2 的讀法）
+
+`tools/build_ods_viewer_v2_profile.py`：
+
+- **程序**是 v14 的：`build_r5_profiles.classify()` 對核心 fs image 分出的 base 群組。**正向對照每次都跑**：同一程序在 `build-a11y-gate0`
+  上必須重現 `9901e9be`（2026-10-21 實測：1,489 檔，逐位元相同）。
+- v2 的 base＝v2 核心的 base 群組減 `35-lang-normalize.conf`（與 v1 相同的那一個檔，必須恰好出現一次）。
+- **與 v1 base 的差異只登錄不判**（新增／移除／內容變動的檔名與大小，寫進 `--report`），連結交出去之前讀過、寫進 §5。
+  第二個正向對照：`--core build-a11y-gate0` 時差異必須是 0／0／0，sha 等於 v1 的 `6f7424a1…`（實測成立）。紅案：`--red-drop` 多拿掉一個檔，
+  差異的 removed 必須看得到它（實測成立）。
+- CJK／fallback 包是 v1 的（路徑引用）。manifest：v1 的形狀＋`part-info`，核心有 forms 時＋`form-controls`（與 3.1 讀同一個標頭）。
+
+### 3.6 Makefile 與靜態檢查
+
+- 規則 `ods-viewer-v2`（`wasm_sdk_probe/Makefile`，v1 規則之後）：v1 的連結行逐 token 相同，只有核心路徑跟著 `ODS_VIEWER_V2_CORE`
+  （預設新樹，退路 F 用 `ODS_VIEWER_V2_CORE=../wasm-lite/build-a11y-gate0`）、define 多一個、匯出多一個；第一次就有凍結守衛。
+  連結後的位元組檢查：`search-result`（正向對照）、`partBefore`、`lateSelectAllResults` 必須在，`verified-caret-readback` 必須不在；
+  並**印出** wasm 的 gzip 大小（packager 的量法：level 9、mtime 0），F-2 當場就看得到。
+- worker 釘在 `9c85043a…`。
+- `test-e2-c-static` 的 carrier 宣告加 `ODS_VIEWER_V2=probe_engine,sdk_api`；宣告前且核心未 configure 時它紅在恰好 v2 的物件上
+  （證人 `findings/evidence/m4-ods/viewer-v2/pre-link/test-e2-c-static-red-v2-not-declared-core-not-configured.txt`）。
+  **核心 configure 之前它會一直紅**（`config_features.h` 不存在）——這是真的紅，不是要繞過的東西。
+
+### 3.7 測試與紅案（2026-10-21）
+
+| 範圍 | 綠 | 紅案 |
+| --- | --- | --- |
+| worker（`sdk/tests/sdk-worker-ods-viewer.test.mjs`） | 11／11 | 新 4 條在 HEAD 的 worker 上全紅；把「有才轉送」改成一律轉送，那一條紅；既有 7 個 mutation 全部 red as required |
+| SDK＋session（`tests/ods-document-sdk.test.mjs`、`tests/ods-viewer-session.test.mjs`） | 45／45 | 新 10 條在 HEAD 的殼層上全紅，其餘 35 條在 HEAD 上照過；`ods_document_sdk_mutations.py` 全部 red as required |
+| 核心判偽（`check_ods_viewer_v2_core.py --self-test`） | — | gate0 上紅在 K-1a／K-1b、K-2a／K-2c；用離線 bridge 輸出拼的假樹全綠 |
+| 引擎 | `em++ -fsyntax-only` 兩種 define 都過 | V2 單獨使用 → `#error` |
+
+§34 計數：`tests/sdk_worker_ods_viewer_mutations.py` 的 `reply-forwarded-whole` 錨點因產品改動失效（0 次）→ 改成新原文的前四行、
+替換成 `{ ...event,`（意圖不變）——**因執行而修 +1**，證人 `findings/evidence/m4-ods/viewer-v2/pre-link/sdk-worker-mutations-red-anchor-drift.txt`。
+另外**登錄、不修**：`findings/evidence/m4-ods/W9-viewer-draft/red-cases.py` 的 M31–M35 錨點從 158-A（`f0351130`）起就對不上了（不是本輪造成；
+本輪誤跑了一次，它覆寫的兩個證據檔已還原成 commit 的版本）。
+
+## 4. v2 的判準（Phase E 在 `ods-viewer-v2` 上；釘在任何 v2 執行之前）
+
+SPEC-M4 §4 的 E1–E9 照舊，在 v2 的連結上全部重跑（連結換了，計數歸零）。改了讀法的只有下列各條；新增的照 CLAUDE.md §9 的四個條件
+（先於滿足、由 157–160／158-B 逼出、形式一或二、第一筆乾淨的 v2 Phase E 落地即封閉）。
+
+| id | 判準 | 形式 | 永遠沒做的預設結論 |
+| --- | --- | :---: | --- |
+| **V2-157** | 每筆、每張表：`state.partVisible[k] === !hiddenParts.includes(k)`（`hiddenParts` 由 runner 從 content.xml 推，A7.2 的同一支）。隱藏的 k：tab `enabled === false`、`showPart(k)` 拒絕 `PART_HIDDEN`、讀回不變、這一次沒有 `setPart` 到 worker。**取代** A7.2 對隱藏表的 E5 讀法（v1 是「拒絕且讀回不是它」＝`PART_READBACK_MISMATCH`）；E3／E4a 照舊略過隱藏表 | 1 | v2 不打包 |
+| **V2-159** | E3 對 `upstream/date-time-functions.ods`、`upstream/functions.ods` **綠**（`L-addin-functions-value-error` 解除）。登錄（不判）：`probe-159.ods` 的 20 格引擎文字，與 finding 159 表中桌面那一欄並列 | 1 | 159 沒修；`L-addin-functions-value-error` 留著 |
+| **V2-158B** | profile 宣告 `form-controls` 時：每筆 `formControls === true` 的檔（runner 從 package probe 推；目前是 finding 158 的 5 份）**開得了**（E2 的開檔條件）、E4a（每張表的 tile OK）與 E3（文字＝期望）成立。**取代**追加 8 對這幾份的 E2 期望（拒絕）。失敗 → 退路 F-3 | 1 | 158-B 沒修；退路 F |
+| **V2-160** | 全語料 E3 跑 **N＝3** 次：每次 `selectAllConfirmed: false` 為 0。每次登錄 `selectAllWaitMs` 的最大值與 p99、`lateSelectAllResults` 的總和。不是 0 的那一次照 3.3 的讀法定性，E3 在那些讀取上照舊紅 | 1 | 160 只是把期限拉長，沒量 |
+| **E8′** | 3.5：正向對照成立、DROP 恰好一次、差異已登錄並讀過；CJK／fallback 包是 v1 的位元組；`soffice.js.linkdeps` 是規則指名的核心的；`check_core_build_provides.py --capability calc-spreadsheet` 對它通過 | 1 | profile 可能帶錯核心；停 |
+| **F-2** | 連結後印出的 wasm gzip ≤ 52,428,800 | 1 | 退路 F |
+
+計數語意：V2-* 與 E8′ 只對 v2 的連結；v2 換連結（wasm sha 變），全部重來。E6 的 B 在 v2 上重新量（M8 的程序）再算數。
+
+### 4.1 修訂紀錄（續）
+
+| 日期 | 變更 |
+| --- | --- |
+| 2026-10-21 | 追加 §3（引擎、殼層、profile、靜態檢查、測試）與 §4（V2-157／159／158B／160、E8′、F-2），任何 v2 連結與執行之前 |

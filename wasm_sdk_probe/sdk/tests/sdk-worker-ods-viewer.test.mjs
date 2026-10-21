@@ -68,7 +68,9 @@ function worker() {
     const raw = posted.find((m) => m.kind === "response" && m.requestId === 5);
     return { ...plain(raw), rawResultKeys: raw ? Object.keys(raw.result) : null };
   };
-  return { deliver, initialised, request, open };
+  // The last message as posted (structured-clone shape: an undefined value keeps its key).
+  const last = () => posted.at(-1);
+  return { deliver, initialised, request, open, last };
 }
 
 const VIEWER = { profile: "ods-viewer-v1",
@@ -161,4 +163,55 @@ test("a part that is not an integer is refused before the engine", () => {
     assert.equal(response.error.code, "INVALID_ARGUMENT", `part ${JSON.stringify(part)}`);
     assert.deepEqual(calls, [], `part ${JSON.stringify(part)} reached the engine`);
   }
+});
+
+// SPEC-M4-viewer-v2 3.1 / 3.3: partInfo (capability `part-info`, finding 157) and
+// part-text's three wait fields (finding 160), both from ods-viewer-v2's engine only.
+const VIEWER_V2 = { profile: "ods-viewer-v2", capabilities: [...VIEWER.capabilities, "part-info"] };
+
+test("v2: partInfo's reply passes LOK's string through, named fields only", () => {
+  const info = '{ "visible": 0, "rtllayout": 0, "protected": 0, "selected": 0 }';
+  assert.deepEqual(worker().deliver(61, "partInfo", { type: "part-info", requestId: 61, revision: 0,
+                                                      part: 12, info, engineInternal: "x",
+                                                      schemaVersion: 1, documentHandle: 1 }).result,
+                   { part: 12, info, revision: 0 });
+});
+
+test("v2: part-text forwards the wait fields when the engine sends them, and only then", () => {
+  const w = worker();
+  const base = { type: "part-text", requestId: 62, revision: 0, part: 0, text: "x", textNull: false,
+                 selectAllConfirmed: true, partBefore: 0, partAfter: 0 };
+  assert.deepEqual(w.deliver(62, "partText", { ...base, selectAllWaitMs: 41, selectAllDeadlineMs: 10000,
+                                               lateSelectAllResults: 1 }).result,
+                   { part: 0, text: "x", textNull: false, selectAllConfirmed: true, partBefore: 0,
+                     partAfter: 0, revision: 0, selectAllWaitMs: 41, selectAllDeadlineMs: 10000,
+                     lateSelectAllResults: 1 });
+  {
+    w.deliver(63, "partText", { ...base, requestId: 63 });
+    const raw = w.last();
+    assert.deepEqual(Object.keys(raw.result).sort(),
+                     ["part", "partAfter", "partBefore", "revision", "selectAllConfirmed", "text", "textNull"]);
+  }
+});
+
+test("v2: partInfo is refused without part-info (v1's viewer, an editor) and reaches nothing", () => {
+  for (const manifest of [VIEWER, EDITOR]) {
+    const w = worker();
+    w.initialised(manifest);
+    const { response, calls } = w.request(64, "partInfo", { documentHandle: 1, part: 0 });
+    assert.equal(response.error.code, "UNSUPPORTED_OPERATION", manifest.profile);
+    assert.equal(response.error.requiredCapability, "part-info", manifest.profile);
+    assert.deepEqual(calls, [], manifest.profile);
+  }
+});
+
+test("v2: partInfo calls its own export, and a non-integer part is refused before it", () => {
+  const w = worker();
+  w.initialised(VIEWER_V2);
+  const { response, calls } = w.request(65, "partInfo", { documentHandle: 7, part: 3 });
+  assert.equal(response, null, JSON.stringify(response));
+  assert.deepEqual(calls.at(-1), { name: "oxsdk_document_part_info", args: [65, 7, 3] });
+  const refused = w.request(66, "partInfo", { documentHandle: 7, part: "3" });
+  assert.equal(refused.response.error.code, "INVALID_ARGUMENT");
+  assert.equal(refused.calls.length, 1);
 });

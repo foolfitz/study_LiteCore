@@ -23,9 +23,29 @@ import { DocumentEngine, DocumentSdkError } from "../sdk/document-sdk.js";
 
 export const PART_SWITCH_CAPABILITY = "part-switch";
 export const PART_TEXT_CAPABILITY = "part-text";
+// SPEC-M4-viewer-v2 3.2 (finding 157): ods-viewer-v2's engine only.
+export const PART_INFO_CAPABILITY = "part-info";
 
 function declares(manifest, capability) {
   return Array.isArray(manifest?.capabilities) && manifest.capabilities.includes(capability);
+}
+
+// LOK's getPartInfo JSON (ScModelObj::getPartInfo: `visible` 0 or 1, through
+// tools::JsonWriter) -> a boolean.  Anything else is not guessed at.
+export function partVisibleFromInfo(info, part) {
+  let parsed;
+  try {
+    parsed = JSON.parse(info);
+  } catch (error) {
+    throw new DocumentSdkError("PART_INFO_UNPARSEABLE", `part ${part}: getPartInfo is not JSON: ${String(info).slice(0, 80)}`);
+  }
+  const visible = parsed?.visible;
+  if (visible === 1 || visible === "1")
+    return true;
+  if (visible === 0 || visible === "0")
+    return false;
+  throw new DocumentSdkError("PART_INFO_UNPARSEABLE",
+    `part ${part}: getPartInfo's visible is ${JSON.stringify(visible)}, not 0 or 1`);
 }
 
 function requirePart(part, operation) {
@@ -73,6 +93,19 @@ export class OdsViewerEngine extends DocumentEngine {
     for (let part = 0; part < handle.parts; part += 1)
       names.push((await request("partName", { part })).name);
     handle.partNames = names;
+    // SPEC-M4-viewer-v2 3.2: which parts core has a tab for.  A failure here
+    // does not fail the open: the handle then has no `partVisible`, says why in
+    // `partInfoProblem`, and the adapter reports that it had to assume.
+    if (declares(engine.manifest, PART_INFO_CAPABILITY)) {
+      try {
+        const visible = [];
+        for (let part = 0; part < handle.parts; part += 1)
+          visible.push(partVisibleFromInfo((await request("partInfo", { part })).info, part));
+        handle.partVisible = visible;
+      } catch (error) {
+        handle.partInfoProblem = `${error?.code || "ERROR"}: ${error?.message || String(error)}`;
+      }
+    }
 
     handle.readCurrentPart = async (callOptions = {}) => {
       handle.currentPart = (await request("currentPart", {}, callOptions)).part;

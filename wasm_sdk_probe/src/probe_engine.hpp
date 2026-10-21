@@ -56,6 +56,11 @@ SubmitStatus partName(std::uint32_t requestId, std::uint32_t documentHandle,
                       int part);
 SubmitStatus partText(std::uint32_t requestId, std::uint32_t documentHandle,
                       int part);
+#ifdef OXSDK_ODS_VIEWER_V2
+// SPEC-M4-viewer-v2 3.1: LOK's getPartInfo for one part (finding 157).
+SubmitStatus partInfo(std::uint32_t requestId, std::uint32_t documentHandle,
+                      int part);
+#endif
 #endif
 #ifdef OXSDK_E2_V20_LINK_BATCH
 // SPEC-M3-link-batch 10.8: the raw page rectangles, the document size and the

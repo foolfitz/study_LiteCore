@@ -46,6 +46,11 @@ export class OdsViewerSession {
     this._onEvent = options.onEvent || (() => {});
     this._tileOptions = options.tileOptions || {};
     this._openTimeoutMs = options.openTimeoutMs ?? DEFAULT_OPEN_TIMEOUT_MS;
+    // SPEC-M4-viewer-v2 3.4 (finding 158-B): whether the engine this page would
+    // start can draw form controls -- asked only for a file that has them, and
+    // BEFORE any engine starts.  Without the option the answer is no (158-A).
+    this._formControlsSupported = options.formControlsSupported || (() => false);
+    this._formControlsDrawable = null;
 
     this._state = "idle";
     this._engine = null;
@@ -96,6 +101,9 @@ export class OdsViewerSession {
       packageProbe: this._packageProbe ? { ...this._packageProbe } : null,
       // How long the probe took (it streams content.xml, addendum 8); null until it ran.
       packageProbeMs: this._packageProbeMs,
+      // For a file with form controls: what formControlsSupported answered
+      // (false also when it threw).  null when it was not asked.
+      formControlsDrawable: this._formControlsDrawable,
       engineRequested: this._engineRequested,
       documentType: view ? view.documentType : null,
       documentTypeKnown: view ? view.documentTypeKnown : false,
@@ -104,6 +112,8 @@ export class OdsViewerSession {
       namesFromEngine: view ? view.namesFromEngine : false,
       partNamesProblem: view ? view.partNamesProblem : null,
       canSwitchParts: view ? view.canSwitchParts : false,
+      partVisible: view && view.partVisible ? view.partVisible.slice() : null,
+      partVisibilityProblem: view ? view.partVisibilityProblem : null,
       currentPart: this._currentPart,
       // What the ENGINE said, or null.  Never the part that was asked for.
       currentPartReadBack: this._readBack,
@@ -123,13 +133,18 @@ export class OdsViewerSession {
       return [];
     return view.partNames.map((label, index) => {
       const current = index === this._currentPart;
-      const enabled = view.canSwitchParts || current;
+      const hidden = view.partVisible ? view.partVisible[index] === false : false;
+      const enabled = current || (view.canSwitchParts && !hidden);
+      let disabledReason = null;
+      if (!enabled)
+        disabledReason = hidden ? view.hiddenPartReason : view.partSwitchDisabledReason;
       return {
         index,
         label,
         current,
+        hidden,
         enabled,
-        disabledReason: enabled ? null : view.partSwitchDisabledReason,
+        disabledReason,
       };
     });
   }
@@ -163,7 +178,7 @@ export class OdsViewerSession {
     // SPEC-M4 addendum 8 (finding 158, the owner's 158-A): a form control shape
     // cannot be drawn on this core (no com.sun.star.form.Forms), so the file is
     // refused here, typed, rather than opened onto a canvas that stays blank.
-    if (this._packageProbe.formControls === true) {
+    if (this._packageProbe.formControls === true && !(await this._engineDrawsFormControls())) {
       const refusal = new ViewerError("FORM_CONTROLS_UNSUPPORTED",
         "the document contains form controls, which this viewer cannot draw");
       this._fail("refused", refusal, "FORM_CONTROLS_UNSUPPORTED");
@@ -222,6 +237,18 @@ export class OdsViewerSession {
     this._state = "ready";
     this._emit();
     return this.state;
+  }
+
+  async _engineDrawsFormControls() {
+    let answer = false;
+    try {
+      answer = (await this._formControlsSupported()) === true;
+    } catch {
+      answer = false;
+    }
+    this._formControlsDrawable = answer;
+    this._assertNotClosedDuringOpen();
+    return answer;
   }
 
   // A `close()` that arrives while the engine is still starting or the document
@@ -310,6 +337,12 @@ export class OdsViewerSession {
     if (!Number.isInteger(k) || k < 0 || k >= this._view.parts) {
       this._refuse(new ViewerError("PART_OUT_OF_RANGE",
         `part ${k} is not in 0..${this._view.parts - 1}`, { requested: k }));
+    }
+    // SPEC-M4-viewer-v2 3.2 (finding 157): core cannot show a hidden sheet, so
+    // the engine is not asked to (v1 asked, and read back the previous sheet).
+    if (this._view.partVisible && this._view.partVisible[k] === false) {
+      this._refuse(new ViewerError("PART_HIDDEN",
+        `part ${k} is a hidden sheet`, { requested: k }));
     }
     let reply;
     try {

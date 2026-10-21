@@ -79,6 +79,10 @@ class FakeW7Handle extends FakeHandle {
     this.documentType = options.documentType ?? "spreadsheet";
     this.partNames = options.partNames
       ?? ["Alpha", "Beta", "Gamma", "Delta"].slice(0, this.parts);
+    // SPEC-M4-viewer-v2 3.2: what ods-viewer-v2's SDK puts on the handle.  `null`
+    // leaves it off, as v1's does.
+    if (options.partVisible !== null)
+      this.partVisible = options.partVisible ?? Array.from({ length: this.parts }, () => true);
     this._ignoreSetPart = options.ignoreSetPart ?? false;
     this._setPartDelay = options.setPartDelay ?? (() => 0);
     this.setPartCalls = [];
@@ -736,4 +740,85 @@ test("refit does nothing when no paint moved the size, and nothing once closed",
   assert.equal(session.refit(), false);
   await session.close();
   assert.equal(session.refit(), false);
+});
+
+
+// SPEC-M4-viewer-v2 3.2 (finding 157) and 3.4 (finding 158-B).
+test("v2: a hidden part's tab is shown disabled with the adapter's reason, and is never switched to", async () => {
+  const handle = new FakeW7Handle({ parts: 3, partVisible: [true, false, true] });
+  const { session } = await openViewer({ handle, engineOptions: W7_ENGINE });
+  const state = session.state;
+  assert.deepEqual(state.partVisible, [true, false, true]);
+  assert.deepEqual(state.tabs.map((tab) => tab.enabled), [true, false, true]);
+  assert.deepEqual(state.tabs.map((tab) => tab.hidden), [false, true, false]);
+  assert.equal(state.tabs[1].disabledReason, "隱藏的工作表");
+  assert.deepEqual(state.adapterFallbacks, []);
+  await assert.rejects(session.showPart(1), { code: "PART_HIDDEN" });
+  assert.deepEqual(handle.setPartCalls, [], "the engine was asked to switch to a hidden sheet");
+  assert.equal(session.state.lastRefusal.code, "PART_HIDDEN");
+  assert.equal(session.state.currentPart, 0);
+  await session.showPart(2);
+  assert.deepEqual(handle.setPartCalls, [2]);
+});
+
+test("v2: without partVisible every tab stays enabled and the state says it was assumed", async () => {
+  const handle = new FakeW7Handle({ parts: 3, partVisible: null });
+  handle.partInfoProblem = "LOK_ERROR: getPartInfo returned an empty string";
+  const { session } = await openViewer({ handle, engineOptions: W7_ENGINE });
+  const state = session.state;
+  assert.equal(state.partVisible, null);
+  assert.deepEqual(state.tabs.map((tab) => tab.enabled), [true, true, true]);
+  assert.ok(state.adapterFallbacks.includes("part-visibility-unknown"), JSON.stringify(state.adapterFallbacks));
+  assert.equal(state.partVisibilityProblem, "LOK_ERROR: getPartInfo returned an empty string");
+});
+
+test("v2: a partVisible that disagrees with parts is not used, and the disagreement is recorded", async () => {
+  const handle = new FakeW7Handle({ parts: 3, partVisible: [true, false] });
+  const { session } = await openViewer({ handle, engineOptions: W7_ENGINE });
+  assert.equal(session.state.partVisible, null);
+  assert.equal(session.state.partVisibilityProblem, "partVisible is not 3 booleans");
+  assert.deepEqual(session.state.tabs.map((tab) => tab.enabled), [true, true, true]);
+});
+
+test("v2: a file with form controls opens when the page says its engine draws them, asked before any engine", async () => {
+  const handle = new FakeW7Handle({ parts: 1 });
+  const engine = new FakeEngine(handle, W7_ENGINE);
+  const order = [];
+  const session = new OdsViewerSession({
+    engineFactory: async (options) => { order.push("engine"); return factoryFor(engine)(options); },
+    formControlsSupported: async () => { order.push("asked"); return true; },
+  });
+  await session.open({ bytes: fixtureBuffer("upstream/tdf154005.ods"), name: "book.ods" });
+  assert.equal(session.state.state, "ready");
+  assert.deepEqual(order, ["asked", "engine"]);
+  assert.equal(session.state.formControlsDrawable, true);
+  assert.equal(session.state.packageProbe.formControls, true);
+});
+
+test("v2: an answer that is not true, or that throws, keeps 158-A's refusal and starts no engine", async () => {
+  for (const answer of [async () => false, async () => "yes", async () => { throw new Error("no manifest"); }]) {
+    const handle = new FakeW7Handle({ parts: 1 });
+    const engine = new FakeEngine(handle, W7_ENGINE);
+    let factory = 0;
+    const session = new OdsViewerSession({
+      engineFactory: async (options) => { factory += 1; return factoryFor(engine)(options); },
+      formControlsSupported: answer,
+    });
+    await assert.rejects(session.open({ bytes: fixtureBuffer("upstream/tdf154005.ods"), name: "book.ods" }),
+      { code: "FORM_CONTROLS_UNSUPPORTED" });
+    assert.equal(factory, 0);
+    assert.equal(session.state.formControlsDrawable, false);
+    assert.equal(session.state.engineRequested, false);
+  }
+});
+
+test("v2: a file without form controls never asks", async () => {
+  let asked = 0;
+  const handle = new FakeW7Handle({ parts: 1 });
+  const engine = new FakeEngine(handle, W7_ENGINE);
+  const session = new OdsViewerSession({ engineFactory: factoryFor(engine),
+                                         formControlsSupported: async () => { asked += 1; return true; } });
+  await session.open({ bytes: storedZip([MIMETYPE, PLAIN_MANIFEST, FORM_ONLY_CONTENT]), name: "book.ods" });
+  assert.equal(asked, 0);
+  assert.equal(session.state.formControlsDrawable, null);
 });

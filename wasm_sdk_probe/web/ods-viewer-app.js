@@ -110,6 +110,20 @@ async function engineFactory({ onEvent }) {
   return engine._initialize();
 }
 
+// SPEC-M4-viewer-v2 3.4 (finding 158-B): asked by the session only for a file
+// with form controls, and before any engine starts.  The manifest beside the
+// worker is the one the worker checks against the engine's own capability bits
+// at init, so a manifest claiming forms its core lacks fails there, for every
+// file, rather than painting a blank sheet for this one.
+async function formControlsSupported() {
+  const manifestUrl = new URL("./sdk-manifest.json", new URL(ENGINE_OPTIONS.workerUrl, location.href));
+  const response = await fetch(manifestUrl, { cache: "no-cache" });
+  if (!response.ok)
+    return false;
+  const manifest = await response.json();
+  return Array.isArray(manifest?.capabilities) && manifest.capabilities.includes("form-controls");
+}
+
 // What one run heard from its engine.  Stage lines are kept whole (each is one
 // `sbrk` sample); every other message is counted once per distinct text, or a
 // sweep's repeated warnings outgrow what CDP will carry (measured 2026-09-03).
@@ -352,6 +366,7 @@ async function openBytes(bytes, name, source) {
   const session = new OdsViewerSession({
     // Counted per run: an encrypted file must be refused with this still false.
     engineFactory: (options) => { run.engineCreated = true; return engineFactory(options); },
+    formControlsSupported,
     openTimeoutMs: OPEN_TIMEOUT_MS,
     tileOptions: { tileSizePx: 256, prefetchTiles: 1, maxInFlight: 2 },
     onState: render,

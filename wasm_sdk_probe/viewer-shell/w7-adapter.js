@@ -36,6 +36,9 @@ export const SPREADSHEET = "spreadsheet";
 export const OPEN_ODS_CAPABILITY = "open-ods";
 export const PART_SWITCH_DISABLED_REASON =
   "引擎尚無分頁切換（W7 的 set_part），目前只能顯示開檔時的那一頁";
+// SPEC-M4-viewer-v2 3.2 (finding 157): core has no page for a hidden sheet, so a
+// switch to it stays where it was; the tab is shown, disabled, with this.
+export const HIDDEN_PART_REASON = "隱藏的工作表";
 
 export const FALLBACK = Object.freeze({
   NAME_SPOOFED: "name-spoofed",
@@ -43,6 +46,9 @@ export const FALLBACK = Object.freeze({
   PART_NAMES_SYNTHESISED: "part-names-synthesised",
   PART_SWITCH_UNAVAILABLE: "part-switch-unavailable",
   PART_READBACK_UNAVAILABLE: "part-readback-unavailable",
+  // No `partVisible` from the engine (v1's, or part_info failed): every part is
+  // assumed visible, as before v2.
+  PART_VISIBILITY_UNKNOWN: "part-visibility-unknown",
 });
 
 function engineAcceptsOds(manifest) {
@@ -103,6 +109,17 @@ export function adaptHandle(handle) {
   if (!readBackExists)
     fallbacks.push(FALLBACK.PART_READBACK_UNAVAILABLE);
 
+  const visibilityUsable = Array.isArray(handle.partVisible)
+    && handle.partVisible.length === parts
+    && handle.partVisible.every((entry) => typeof entry === "boolean");
+  const partVisible = visibilityUsable ? handle.partVisible.slice() : null;
+  // As with the names: an array that exists and is wrong is kept apart from none.
+  const partVisibilityProblem = visibilityUsable ? null
+    : handle.partInfoProblem
+      || (handle.partVisible !== undefined ? `partVisible is not ${parts} booleans` : null);
+  if (!visibilityUsable)
+    fallbacks.push(FALLBACK.PART_VISIBILITY_UNKNOWN);
+
   return {
     parts,
     documentType,
@@ -112,6 +129,10 @@ export function adaptHandle(handle) {
     partNamesProblem,
     canSwitchParts,
     partSwitchDisabledReason: canSwitchParts ? null : PART_SWITCH_DISABLED_REASON,
+    // null when the engine did not say; then no part is treated as hidden.
+    partVisible,
+    partVisibilityProblem,
+    hiddenPartReason: HIDDEN_PART_REASON,
     fallbacks,
 
     get revision() { return handle.revision; },

@@ -44,6 +44,14 @@ typedef enum oxsdk_capability {
   OXSDK_CAPABILITY_OPEN_ODS = 1u << 11,
   OXSDK_CAPABILITY_PART_SWITCH = 1u << 12,
   OXSDK_CAPABILITY_PART_TEXT = 1u << 13
+#ifdef OXSDK_ODS_VIEWER_V2
+  ,
+  /* SPEC-M4-viewer-v2 3.1: part_info (finding 157), and whether the core this
+     engine was compiled against has the forms components (finding 158-B; read
+     from the core's own HAVE_FEATURE_DBCONNECTIVITY, never asserted). */
+  OXSDK_CAPABILITY_PART_INFO = 1u << 14,
+  OXSDK_CAPABILITY_FORM_CONTROLS = 1u << 15
+#endif
 #endif
 } oxsdk_capability;
 
@@ -160,6 +168,19 @@ int32_t oxsdk_document_part_name(oxsdk_request_id request_id,
 int32_t oxsdk_document_part_text(oxsdk_request_id request_id,
                                  oxsdk_document_handle document_handle,
                                  int32_t part);
+#ifdef OXSDK_ODS_VIEWER_V2
+/*
+ * SPEC-M4-viewer-v2 3.1 (finding 157).
+ *
+ *   part_info     replies `part-info` with LOK's getPartInfo JSON for `part`,
+ *                 as a string (`info`); the SDK parses it.  Its `visible` is
+ *                 what a tab needs: core has no page for a hidden sheet, so
+ *                 set_part to one stays where it was.
+ */
+int32_t oxsdk_document_part_info(oxsdk_request_id request_id,
+                                 oxsdk_document_handle document_handle,
+                                 int32_t part);
+#endif
 #endif
 
 /* Cancels only a request that has not begun executing on the engine thread. */

@@ -3,6 +3,17 @@
 #ifdef OXSDK_ODS_VIEWER
 #include "ods_viewer.hpp"
 #endif
+#ifdef OXSDK_ODS_VIEWER_V2
+#if !defined(OXSDK_ODS_VIEWER)
+#error "OXSDK_ODS_VIEWER_V2 is added to the viewer's shape, never used alone"
+#endif
+// The core's own answer to "were the forms components built" (finding 158-B):
+// config_host/config_features.h of the tree the rule compiles against.
+#include <config_features.h>
+#ifndef HAVE_FEATURE_DBCONNECTIVITY
+#error "config_features.h does not define HAVE_FEATURE_DBCONNECTIVITY"
+#endif
+#endif
 
 #include <emscripten/emscripten.h>
 
@@ -44,7 +55,19 @@ extern "C" EMSCRIPTEN_KEEPALIVE std::uint32_t oxsdk_abi_version(void) {
 }
 
 extern "C" EMSCRIPTEN_KEEPALIVE std::uint32_t oxsdk_capabilities(void) {
-#if defined(OXSDK_ODS_VIEWER)
+#if defined(OXSDK_ODS_VIEWER_V2)
+  // SPEC-M4-viewer-v2 3.1: v1's bits plus part_info, plus form-controls when
+  // the core has the forms components.  The manifest's expectedCapabilityBits
+  // must equal this, so a manifest cannot claim forms this core lacks.
+  return OXSDK_CAPABILITY_OPEN_ODT | OXSDK_CAPABILITY_RGBA_TILE |
+         OXSDK_CAPABILITY_CANCEL_QUEUED | OXSDK_CAPABILITY_SEARCH |
+         OXSDK_CAPABILITY_OPEN_ODS | OXSDK_CAPABILITY_PART_SWITCH |
+         OXSDK_CAPABILITY_PART_TEXT | OXSDK_CAPABILITY_PART_INFO
+#if HAVE_FEATURE_DBCONNECTIVITY
+         | OXSDK_CAPABILITY_FORM_CONTROLS
+#endif
+      ;
+#elif defined(OXSDK_ODS_VIEWER)
   // SPEC-M4-ods-in-nextcloud 3.2: the reader's bits without save, plus the
   // viewer's three.  The manifest's expectedCapabilityBits must equal this.
   return OXSDK_CAPABILITY_OPEN_ODT | OXSDK_CAPABILITY_RGBA_TILE |
@@ -340,6 +363,17 @@ extern "C" EMSCRIPTEN_KEEPALIVE int32_t oxsdk_document_part_text(
   return safeStatus(
       [&] { return probe::partText(requestId, documentHandle, part); });
 }
+
+#ifdef OXSDK_ODS_VIEWER_V2
+extern "C" EMSCRIPTEN_KEEPALIVE int32_t oxsdk_document_part_info(
+    oxsdk_request_id requestId, oxsdk_document_handle documentHandle,
+    std::int32_t part) {
+  if (!validRequest(requestId) || documentHandle == 0 || part < 0)
+    return OXSDK_STATUS_INVALID_ARGUMENT;
+  return safeStatus(
+      [&] { return probe::partInfo(requestId, documentHandle, part); });
+}
+#endif
 #endif
 
 extern "C" EMSCRIPTEN_KEEPALIVE int32_t

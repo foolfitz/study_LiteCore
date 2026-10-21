@@ -20,6 +20,8 @@ const { OdsViewerSession } = await import(pathToFileURL(path.join(shellDir, "ods
 
 const VIEWER_CAPABILITIES = ["open-odt", "rgba-tile", "cancel-queued", "search",
                              "open-ods", "part-switch", "part-text"];
+// SPEC-M4-viewer-v2 3.1: ods-viewer-v2 adds part-info.
+const VIEWER_V2_CAPABILITIES = [...VIEWER_CAPABILITIES, "part-info"];
 
 class FakeWorker {
   constructor(options = {}) {
@@ -28,6 +30,9 @@ class FakeWorker {
     this.names = options.names ?? ["Alpha", "Beta", "Gamma"];
     this.ignoreSetPart = options.ignoreSetPart ?? false;
     this.openReply = options.openReply ?? { documentType: "spreadsheet", inputSuffix: ".ods" };
+    // part-info: LOK's string for each part, or a function (part) -> reply / error body.
+    this.visible = options.visible ?? this.names.map(() => true);
+    this.partInfo = options.partInfo ?? null;
     this.operations = [];
     this.payloads = [];
     this.listeners = new Set();
@@ -68,6 +73,14 @@ class FakeWorker {
         return this.reply(requestId, true, { part: payload.part, text: `${this.names[payload.part]}\n`,
                                              textNull: false, selectAllConfirmed: true,
                                              partBefore: this.part, partAfter: this.part, revision: 0 });
+      case "partInfo": {
+        if (this.partInfo) {
+          const { ok, body } = this.partInfo(payload.part);
+          return this.reply(requestId, ok, body);
+        }
+        const info = `{ "visible": ${this.visible[payload.part] ? 1 : 0}, "rtllayout": 0, "protected": 0, "selected": 0 }`;
+        return this.reply(requestId, true, { part: payload.part, info, revision: 0 });
+      }
       case "close":
         return this.reply(requestId, true, {});
       default:
@@ -163,7 +176,7 @@ test("an open reply without documentType leaves the handle without one", async (
 });
 
 test("through the session: real names, every tab enabled, nothing stood in for, and the switch is read back", async () => {
-  const { engine } = await started();
+  const { engine } = await started({ capabilities: VIEWER_V2_CAPABILITIES });
   const session = new OdsViewerSession({ engineFactory: async () => engine,
                                          tileOptions: { tileSizePx: 256, prefetchTiles: 0, maxInFlight: 1 } });
   await session.open({ bytes: corpusBuffer("ladder/three-sheets-distinct.ods"), name: "three-sheets-distinct.ods" });
@@ -179,4 +192,57 @@ test("through the session: real names, every tab enabled, nothing stood in for, 
   assert.equal(session.state.currentPart, 2);
   assert.equal(session.state.currentPartReadBack, 2);
   await session.close();
+});
+
+
+// SPEC-M4-viewer-v2 3.2 (finding 157).
+test("v2: part-info is asked once per part after the names, and the handle carries what core said", async () => {
+  const { engine, worker } = await started({ capabilities: VIEWER_V2_CAPABILITIES, visible: [true, false, true] });
+  const handle = await engine.open(new ArrayBuffer(8), { name: "book.ods" });
+  assert.deepEqual(handle.partVisible, [true, false, true]);
+  assert.equal("partInfoProblem" in handle, false);
+  assert.deepEqual(worker.operations, ["init", "open", "currentPart", "partName", "partName", "partName",
+                                       "partInfo", "partInfo", "partInfo"]);
+  assert.deepEqual(worker.payloads.filter((p) => p.operation === "partInfo").map((p) => p.payload),
+                   [0, 1, 2].map((part) => ({ documentHandle: 9, part })));
+});
+
+test("v2: without part-info (v1's viewer) nothing is asked and the session says visibility was assumed", async () => {
+  const { engine, worker } = await started();
+  const handle = await engine.open(new ArrayBuffer(8), { name: "book.ods" });
+  assert.equal("partVisible" in handle, false);
+  assert.equal(worker.operations.includes("partInfo"), false);
+  const session = new OdsViewerSession({ engineFactory: async () => (await started()).engine,
+                                         tileOptions: { tileSizePx: 256, prefetchTiles: 0, maxInFlight: 1 } });
+  await session.open({ bytes: corpusBuffer("ladder/three-sheets-distinct.ods"), name: "three-sheets-distinct.ods" });
+  assert.deepEqual(session.state.adapterFallbacks, ["part-visibility-unknown"]);
+  assert.equal(session.state.evidenceClass, "diagnostic");
+  await session.close();
+});
+
+test("v2: a part-info that fails or is not 0/1 does not fail the open; the handle says why", async () => {
+  const cases = [
+    [() => ({ ok: false, body: { code: "LOK_ERROR", message: "getPartInfo returned an empty string" } }),
+     "LOK_ERROR: getPartInfo returned an empty string"],
+    [(part) => ({ ok: true, body: { part, info: "not json", revision: 0 } }), /^PART_INFO_UNPARSEABLE: part 0: getPartInfo is not JSON/],
+    [(part) => ({ ok: true, body: { part, info: '{ "visible": 2 }', revision: 0 } }), /^PART_INFO_UNPARSEABLE: part 0: .*visible is 2/],
+    [(part) => ({ ok: true, body: { part, info: '{ "rtllayout": 0 }', revision: 0 } }), /^PART_INFO_UNPARSEABLE: part 0: .*visible is undefined/],
+  ];
+  for (const [partInfo, problem] of cases) {
+    const { engine } = await started({ capabilities: VIEWER_V2_CAPABILITIES, partInfo });
+    const handle = await engine.open(new ArrayBuffer(8), { name: "book.ods" });
+    assert.equal("partVisible" in handle, false, String(problem));
+    if (typeof problem === "string")
+      assert.equal(handle.partInfoProblem, problem);
+    else
+      assert.match(handle.partInfoProblem, problem);
+    assert.deepEqual(handle.partNames, ["Alpha", "Beta", "Gamma"], "the rest of the open is intact");
+  }
+});
+
+test("v2: the string form of visible is read too (\"0\"/\"1\"), nothing else is guessed", async () => {
+  const { engine } = await started({ capabilities: VIEWER_V2_CAPABILITIES,
+    partInfo: (part) => ({ ok: true, body: { part, info: `{ "visible": "${part === 1 ? 0 : 1}" }`, revision: 0 } }) });
+  const handle = await engine.open(new ArrayBuffer(8), { name: "book.ods" });
+  assert.deepEqual(handle.partVisible, [true, false, true]);
 });

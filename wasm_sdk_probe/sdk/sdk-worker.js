@@ -59,6 +59,8 @@ const OPERATION_CAPABILITIES = new Map([
   ["currentPart", "part-switch"],
   ["partName", "part-switch"],
   ["partText", "part-text"],
+  // SPEC-M4-viewer-v2 3.1 (finding 157): only ods-viewer-v2 has the export.
+  ["partInfo", "part-info"],
 ]);
 const EDITOR_V1_ACTION_IDS = Object.freeze({
   "move-character-left": 1,
@@ -941,8 +943,20 @@ function handleCEvent(rawEvent) {
         complete(requestId, { part: event.part, text: event.text, textNull: event.textNull,
                               selectAllConfirmed: event.selectAllConfirmed,
                               partBefore: event.partBefore, partAfter: event.partAfter,
-                              revision: event.revision });
+                              revision: event.revision,
+                              // SPEC-M4-viewer-v2 3.3 (finding 160): v2's engine only, so
+                              // v1's reply keeps exactly the keys it had.
+                              ...(Number.isInteger(event.selectAllWaitMs)
+                                ? { selectAllWaitMs: event.selectAllWaitMs,
+                                    selectAllDeadlineMs: event.selectAllDeadlineMs,
+                                    lateSelectAllResults: event.lateSelectAllResults }
+                                : {}) });
       }
+      break;
+    // SPEC-M4-viewer-v2 3.1: LOK's getPartInfo JSON as a string; the SDK parses it.
+    case "part-info":
+      if (requestId)
+        complete(requestId, { part: event.part, info: event.info, revision: event.revision });
       break;
     case "page-rectangles":
       if (requestId) {
@@ -1512,9 +1526,10 @@ function handleRequest(request) {
     // ccall it would arrive as 0 and switch to the first sheet without a word.
     case "setPart":
     case "partName":
-    case "partText": {
+    case "partText":
+    case "partInfo": {
       const exports = { setPart: "oxsdk_document_set_part", partName: "oxsdk_document_part_name",
-                        partText: "oxsdk_document_part_text" };
+                        partText: "oxsdk_document_part_text", partInfo: "oxsdk_document_part_info" };
       accept(request, () => (Number.isInteger(payload.part) ? callStatus(
         exports[request.operation],
         ["number", "number", "number"],
