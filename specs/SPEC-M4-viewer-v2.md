@@ -323,3 +323,22 @@ SPEC-M4 §4 的 E1–E9 照舊，在 v2 的連結上全部重跑（連結換了�
 | 日期 | 變更 |
 | --- | --- |
 | 2026-10-22 | 追加 §7：v2 第一次 Phase E 的結果、F-3、退路與另一條路 |
+
+### 7.1 擁有者選 A：走退路（2026-10-22）
+
+v2 只帶 159（＋157、160）。步驟與讀法（先寫好）：
+
+1. **核心（擁有者）**：`bash handoff/ods-viewer-v2/build-core-fallback-gate0.sh`——在 `build-a11y-gate0` 刪三個 bridge 產物、`make`（autogen 會先重跑一次）。
+   判準：K-2a、K-2b、K-2e 成立；**K-2c 必須不成立**（這顆核心不該有 forms）；autogen 前後的 `config_host.mk` 與 51 個設定標頭逐一比對，
+   有變動就先讀再往下（預期全部相同：兩個 configure patch 只在明確下 `--enable-database-connectivity` 時生效）。證據 `findings/evidence/m4-ods/viewer-v2/fallback-core/`。
+2. **連結前（我）**：刪掉 `build/ods/viewer-v2/`（物件是對 v2 核心的標頭編的：`HAVE_FEATURE_DBCONNECTIVITY 1`，而物件規則不追蹤 `-I` 底下的標頭，
+   換核心不會自動重編）與 `dist/profiles/ods-viewer-v2/`（`a6390eef` 已封存，刪前比對封存）；連結手冊 §0 的閘門對 gate0 重做；新的凍結集合快照。
+3. **連結（擁有者）**：同一條規則加 `ODS_VIEWER_V2_CORE=../wasm-lite/build-a11y-gate0`。預期：manifest 沒有 `form-controls`（引擎讀 gate0 的標頭 0）、
+   base 就是 v1 的 `6f7424a1`（`--core gate0` 時差異 0／0／0，§3.5 已量）、gzip 與 v1 相近。
+4. **Phase E 從頭**（新的連結＝新的身分，`a6390eef` 上的結果不轉移）：v2 的讀法照 §4，但 `form-controls` 沒宣告，所以含控制項的檔照 158-A 拒絕
+   （E2 的 v1 讀法）、V2-158B 不跑；`tdf138507` 要開得了。
+5. 158-B 另立工作項，前提寫在 finding 158 的 158-B 段：要 dbaccess 的 RowSet，體積預算未量。
+
+| 日期 | 變更 |
+| --- | --- |
+| 2026-10-22 | 追加 §7.1：擁有者選 A（退路），步驟與預先寫好的讀法 |
