@@ -86,6 +86,7 @@ unset LOSRC LOBUILD EMSDK_ROOT EXTRA_DEFINES EXTRA_OBJECTS HOST_CXX
 make ALLOW_FROZEN_RELINK=1 ODS_VIEWER_V2_CORE=../wasm-lite/build-a11y-gate0 dist/profiles/ods-viewer-v2/sdk-manifest.json 2>&1 | tee build/link-ods-viewer-v2-gate0.log
 ```
 
+- The same three lines as a script: `bash handoff/ods-viewer-v2/link-gate0.sh` (from the repo root).
 - A few minutes, as before. One job at a time; §1 still holds (no other target, never the flag elsewhere).
 - Last line: `probe.wasm gzip: … (cap 52428800: within)`; expected near v1's 47,972,102.
 - If it stops with an error, stop there and tell the main session.
