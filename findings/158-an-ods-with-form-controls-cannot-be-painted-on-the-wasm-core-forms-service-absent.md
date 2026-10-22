@@ -57,3 +57,18 @@ v2 的核心（`build-ods-viewer-v2`）開了 DB connectivity，`OFormsCollectio
 - 推論：要讓表單畫得出來，核心必須**也有 dbaccess**（至少 `dba` 函式庫的 RowSet）。dbaccess 含整套資料庫 UI，體積未量；v2 的 gzip 餘裕只剩 3.28 MB。
 
 證據：`findings/evidence/m4-ods/viewer-v2/phase-e/`；規格 `SPEC-M4-viewer-v2` §7。
+
+## 158-B 另立工作項（2026-10-22，SPEC-M4-viewer-v2 §7.1 第 5 步）
+
+擁有者選了退路：出貨的 v2（`e96e01ec`，`build-a11y-gate0`）不帶 forms，含控制項的檔照 158-A 拒絕。158-B 從 v2 拆出來，成為獨立工作項，**還沒排程**。
+
+- **目標**：含 `<draw:control` 的檔在檢視引擎上開得了、控制項畫得出來；而且 v1 開得了的檔（`tdf138507.ods` 這類有表單沒控制項的）不能變成開不了。
+- **已知前提**〔已觀察〕：forms 匯入時要 dbaccess 的 `com.sun.star.sdb.RowSet`（`ODatabaseForm`，`DatabaseForm.cxx:358`，`UNO_QUERY_THROW`）。
+  `ENABLE_WASM_STRIP_DBACCESS` 只有 Make 變數、沒有 C++ 巨集（§7 的讀法），所以讓 dbaccess 回來是組態層的事；dbaccess 回來時 reportdesign 會跟著回來
+  （第九個 patch 讓兩者同進退）。
+- **未量**：dbaccess 進核心的體積。gzip 餘裕：`e96e01ec` 是 47,972,953，距上限 52,428,800 還有 **4,455,847**；`a6390eef` 的經驗是 DB connectivity
+  一組就吃掉約 1.18 MB。只帶 RowSet（`dba`）不帶資料庫 UI（`dbu`）可不可行，也未查。混合文件（控制項只在某一張表）能不能畫其餘的表仍未量
+  （`L-mixed-form-control-sheets-unmeasured`）。
+- **起點**：`wasm-lite/build-ods-viewer-v2`（6.0 GB，DB connectivity 已開、K-1／K-2 已綠）可以增量往上加；`a6390eef` 封存作為「有 forms 沒 dbaccess」的診斷件。
+- **判準**：沿用 §4 的 V2-158B 原文，另加「`tdf138507.ods` 開得了」為不得回歸條件；排程時照 CLAUDE.md §9 先釘再跑。
+- **如果永遠沒做的預設結論**：158-A 的型別化拒絕就是產品行為；5 份含控制項的檔拒絕，其餘照開。
