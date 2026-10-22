@@ -98,3 +98,7 @@ Spec §7.2's readings, in order: frozen set (1,527 check; only the six new files
 ## F3. After that
 
 Phase E from zero on the new identity (spec §7.1 step 4): the targeted run (ladder, fdo67682-2, 159's two files, the five control files refused per 158-A, **tdf138507 must open**), E6's B on v2, then the full corpus ×3 for V2-160. Then a new package and Phase H in a ddev slot the owner names.
+
+## Fallback done (2026-10-22)
+
+Linked by the owner at 09:46 (exit 0). §7.2's readings all hold (spec §7.3, `findings/evidence/m4-ods/viewer-v2/fallback-post-link/`): probe.wasm `e96e01ec…`, no `form-controls`, bits 30771, base `6f7424a1`, `OFormsCollection` 0, gzip 47,972,953; archived at `build/archive/ods-viewer-v2-e96e01ec-worker-9c85043a/`.

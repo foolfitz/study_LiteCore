@@ -381,3 +381,16 @@ v2 只帶 159（＋157、160）。步驟與讀法（先寫好）：
 | 日期 | 變更 |
 | --- | --- |
 | 2026-10-22 | 追加 §7.2：退路核心的結果（`config_host.mk` 的 PATH 順序、五個 Writer 物件重編）、連結前閘門對 gate0 重做、Makefile 預設改 gate0、連結後的讀法 |
+
+### 7.3 退路的連結：`e96e01ec`（2026-10-22 追加）
+
+擁有者 09:46 連結完成（`bash handoff/ods-viewer-v2/link-gate0.sh`，exit 0）。**新的身分：probe.wasm `e96e01ec…`**、probe.js `fb5fb399…`、worker `9c85043a…`、
+manifest `fa54c32c…`、base `6f7424a1…`；封存於 `wasm_sdk_probe/build/archive/ods-viewer-v2-e96e01ec-worker-9c85043a/`。§7.2 預先寫的五條讀法全部成立
+（`findings/evidence/m4-ods/viewer-v2/fallback-post-link/`）：凍結集合 1,527 檔不變、只多六個新檔；manifest 沒有 `form-controls`、bits 30771；base 與 metadata
+與 v1 逐位元相同；`OFormsCollection` 0、v2 的四個特徵字串在、編輯器的不在、堆疊常數 PASS、E1-C 完好；gzip 47,972,953（v1 同量法 47,972,102，+851）。
+
+`a6390eef` 上的結果不轉移。接下來：§7.1 第 4 步的 Phase E 在 `e96e01ec` 上從頭跑。
+
+| 日期 | 變更 |
+| --- | --- |
+| 2026-10-22 | 追加 §7.3：退路連結的身分、封存、§7.2 讀法全部成立 |
