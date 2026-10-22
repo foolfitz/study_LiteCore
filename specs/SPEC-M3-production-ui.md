@@ -1317,3 +1317,16 @@ runner 一個位元組沒動。§34.4 仍是**因執行而修 6、因審核而�
    它們在錢包鎖著／不在時與今天相同（卡住／停 25 秒）。
 3. **M3 的四支在 `b true` 時仍拒絕**（`check_m3_new_document`、`probe_paste_latency`、`run_v20_shakedown`、`v21_shakedown_common`，後者有測試綁著）。
    在旗標下那個拒絕是多餘的，但保守、不會給錯結果。**永遠沒做**：錢包鎖著時那幾支要擁有者解鎖，與今天相同。
+
+### 17.28 §17.27 的見證：W1、W2 成立（2026-10-22，只追加）
+
+改動 `b9a76b8a`（啟動器 `2f14d9dd…` → `5f4c9595…`；六支 ODS 工具撤回錢包拒絕；selftest 43／17／16／20／12 全過、`test-e2-c-static` exit 0、E1-C 完好）。
+見證都在錢包服務不存在的同一個狀態下跑（`findings/evidence/launcher-password-store/`）：
+
+- **W1 成立**：`e96e01ec` 的定向 Phase E（`findings/evidence/m4-ods/viewer-v2/fallback-phase-e/report-2026-10-22T021041Z.json`）跑完，`timedOut: false`、
+  `pageFatal: null`，37.8 秒；執行前後錢包讀值相同、沒有任何錢包服務被喚起、Chrome 程序 0 → 0（`w1-wallet-state.txt`）。
+- **W2 成立**：`ods-viewer-v1` 上重跑 10-21 那一次的同一組（`w2/report-2026-10-22T021150Z.json`），與無旗標、錢包 `b false` 的那份比，
+  **0 筆差異**（`w2/compare-w2.txt`）；不判的 `messages` 也相同。比對工具的紅案先做過（`compare-w2-selftest.txt`：改一個 sha → 1 筆、只改被遮的欄位 → 0 筆）。
+- **W3（登錄）**：31.8 秒（10-21 無旗標 33.8 秒），沒有 25 秒的停頓。
+
+§34.4：因執行而修 +1 照 §17.27 記，**46／27**。三條殘留照 §17.27 登錄，殘留 1 的見證是下一個擁有者指定時段的第一支宿主 Chrome runner。
