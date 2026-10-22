@@ -1266,3 +1266,54 @@ runner 一個位元組沒動。§34.4 仍是**因執行而修 6、因審核而�
 - **下一個發佈（0.2.13）**：主題是 finding 127（自動儲存）；128 與 129 的「只動頁面」部分搭同一個發佈，各自帶判準。規格先寫（另立一節），判準、紅案、預測都寫在任何實作與執行之前。
 - **連結那一批（主 session 安排）**：需求一（Shift＋方向鍵延伸選取）、需求二（頁碼），以及 129 若改由 Writer 自己處理選取中的方向鍵，攢成同一次連結。先量原生、寫規格；這部分不動產品位元組，可以和 0.2.13 並行。連結由擁有者執行。
 - **頁碼的形式定為 Collabora 的做法**：在**狀態列**顯示「第 N 頁，共 M 頁」，捲動時跟著更新。依 §17.25 讀到的 `Parts.js:351`，N 由頁面矩形和目前看到的位置算出、M 是頁面矩形的數量；捲軸上的浮動提示不做。頁面矩形從引擎取得（要新的引擎操作），不得用「每頁一樣高」去推算。
+
+### 17.27 共用啟動器加 `--password-store=basic`；ODS 工具撤回錢包拒絕（2026-10-22，只追加；寫在改動與見證執行之前）
+
+**逼出它的量測（指名）**：2026-10-22 08:04 重開機後沒有人登入桌面（只有 sddm 登入畫面），`org.freedesktop.secrets` 不存在（`kwalletd6` 只是可喚起）。
+`run_ods_viewer_phase_e.py` 的前置條件因此拒絕執行 `ods-viewer-v2` `e96e01ec` 的 Phase E（錢包讀值是錯誤字串，不是 `b false`）。
+**W0**（`findings/evidence/launcher-password-store/w0*/`，`w0-dump-dom.sh`）：啟動器的旗標＋`--dump-dom` 一個 127.0.0.1 的頁面，成對、各 3 次：
+預設 **25.28–25.38 秒**才拿到頁面（＝D-Bus 預設逾時 25 秒）、只多 `--password-store=basic` **0.31 秒**；前後都沒有任何錢包服務被喚起。
+10-13 的診斷（`findings/evidence/136/guard/chrome-wallet-diagnosis.txt`）是另一種狀態（錢包在、`Locked: true`）：無限等，同一個旗標的成對對照就好。
+兩種狀態，同一個旗標。
+
+**擁有者的決定**：10-13 選 A（在共用啟動器加旗標，當時說不急）；10-22 選「現在落地」。
+
+**改動**（兩件，一次落地）：
+
+1. `wasm_sdk_probe/tools/run_browser_probe.py`：`ChromeSession.__init__` 的啟動參數加 `--password-store=basic`（一處）。經過它的工具 94 支（含
+   `EventChrome`、`LockChrome`）；Firefox 不受影響。沒有絕對 pin、沒有靜態測試綁它（現行雜湊 `2f14d9dd…` 只出現在 §17.23 與 10-11f 交接）。
+2. **撤回錢包前置條件的拒絕**（CLAUDE.md 判準形式 §4：前提「錢包沒開 headless Chrome 就會卡」在旗標之下不再成立，刪掉拒絕、不補機制）：
+   ODS 這條線的六支——`run_ods_viewer_draft_smoke.preconditions()` 的那一條 reason、`run_ods_viewer_phase_e`、`run_ods_viewer_e6_leak`、
+   `run_ods_viewer_e4b_e9`、`run_ods_viewer_step1`、`probe_ods_viewer_sheet_text`——錢包讀值照舊**記錄**進報告，不再拒絕。其他前置條件（別的
+   Chrome、負載）一個字都不動。
+
+**10-13 記憶裡的見證設計不照用**：那個 W1 有宿主的 `hostseg` 臂、W2 比對宿主的 121-B，都要佔 ddev；10-19 擁有者定了 ddev 不佔用、碰 ddev 的步驟
+集中到他指定的時段。這次改成**只用鏡像**的見證，宿主那一半登錄為殘留 1。
+
+**見證與預測**：
+
+| 項 | 預測（判準） | 讀法 |
+| --- | --- | --- |
+| W1 | 旗標下、錢包服務不存在的狀態，`e96e01ec` 的定向 Phase E（SPEC-M4-viewer-v2 §7.1 第 4 步本來就要跑的那一次）**跑完**：`timedOut: false`、`pageFatal` 空；執行前後錢包讀值相同、沒有服務被喚起 | 報告的那三欄；前後各讀一次 `busctl --user list` 與 `Locked` |
+| W2 | 旗標不改判定：在 `ods-viewer-v1` 上重跑 `findings/evidence/m4-ods/viewer-v2/pre-link/v1-shakedown-new-shell/report-2026-10-21T023626Z.json` 的同一組 `--only`（無旗標、錢包 `b false`；頁面檔、語料、v1 profile 的雜湊今天都相同，已核對），**比對結果 0 差異** | 比對工具（下段）；遮罩先釘在這裡 |
+| W3 | 登錄、不判：W1／W2 每次 Chrome 啟動到第一個頁面的時間不再含 25 秒的停頓 | 報告的 `elapsedSeconds` 照實記 |
+
+**W2 的比對規則（先釘死）**：比 `verdicts`、`staged`、`cases` 三塊。遮掉鍵名以 `Ms`、`At`、`Seconds` 結尾的值與 `sbrk`（堆積位置，隨執行緒時序變）；
+`messages`（引擎 stderr 的警告與次數）不判、差異照列。其餘每一個值都要相等。比對工具先做紅案再用：改掉一份副本的一個 sheet 的 `text.sha256` → 1 筆差異、
+非 0 結束；只改一個 `viewReadyAtMs` → 0 筆差異（遮罩生效）。
+**差異的讀法（先寫好）**：0 筆 → W2 成立。只出現在 tile／文字的 sha 或 `nonPaperPixels` → **NOT_ESTABLISHED**：分不出是旗標還是兩次執行本來就不同
+（沒有兩次無旗標的對照），停手交回擁有者，不下結論。出現在 `opened`／`refused`／`error`／`verdicts` → 旗標改了行為，撤回改動、交回擁有者。
+
+**W1 卡住或 W2 不成立**：停手交回擁有者，不自行加別的旗標、不加長等待。
+
+**§34.4 的帳**：見證＝今天被拒絕的那一次（`findings/evidence/launcher-password-store/refusal-2026-10-22.txt`）＋W0。**因執行而修 +1**（45 → 46）；因審核而修不變（27）。
+
+**殘留（各附「永遠沒做」的結論）**：
+
+1. **宿主的 runner 在旗標下沒有量。**`--password-store=basic` 改的是 cookie 加密金鑰的來源（固定金鑰取代錢包），cookie 怎麼送不變〔推論〕；宿主 runner
+   要登入、靠 cookie。下一個擁有者指定的 ddev 時段裡，第一支宿主 Chrome runner 的報告就是見證，紅了先查這一條。**永遠沒做**：宿主 runner 在旗標下的
+   等價性只是推論。
+2. **四支自己啟動 Chrome 的工具沒有旗標**（`validate_e1_preflight`、`validate_r7_preflight`、`validate_r8_preflight`、`v21_network`）。**永遠沒做**：
+   它們在錢包鎖著／不在時與今天相同（卡住／停 25 秒）。
+3. **M3 的四支在 `b true` 時仍拒絕**（`check_m3_new_document`、`probe_paste_latency`、`run_v20_shakedown`、`v21_shakedown_common`，後者有測試綁著）。
+   在旗標下那個拒絕是多餘的，但保守、不會給錯結果。**永遠沒做**：錢包鎖著時那幾支要擁有者解鎖，與今天相同。
