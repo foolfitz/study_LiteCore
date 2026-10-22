@@ -517,3 +517,13 @@ worker 字面值、要求恰好一個；預設仍是 v1）——這是把 §4「
 | 日期 | 變更 |
 | --- | --- |
 | 2026-10-22 | 追加 §8：160 的修法（重送未派送的 SelectAll）、連結前閘門、V2-160-D 與讀法，任何這次連結與執行之前 |
+
+### 8.4 第三次連結：`aa576ce7`（2026-10-22 追加）
+
+擁有者連結完成（`link-gate0.sh`，exit 0，gzip 47,971,896）。**身分：probe.wasm `aa576ce7…`**、probe.js `820bdbc8…`；manifest、worker、base 與 `e96e01ec` 逐位元相同。
+手冊 G2 全部成立（`findings/evidence/m4-ods/viewer-v2/160-fix-post-link/`）：凍結集合只換了 probe.js／probe.wasm；引擎的 `not dispatched` 字串在 wasm 裡；
+`OFormsCollection` 0、堆疊 PASS、E1-C 完好。封存於 `wasm_sdk_probe/build/archive/ods-viewer-v2-aa576ce7-worker-9c85043a/`。接下來 Phase E 從頭（§8.3）。
+
+| 日期 | 變更 |
+| --- | --- |
+| 2026-10-22 | 追加 §8.4：第三次連結的身分、封存、G2 成立 |

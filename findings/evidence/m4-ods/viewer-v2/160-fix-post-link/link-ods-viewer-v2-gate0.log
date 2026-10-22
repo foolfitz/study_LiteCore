@@ -1,0 +1,35 @@
+../wasm-lite/tools/emsdk/upstream/emscripten/em++ -DLOK_USE_UNSTABLE_API -I../libreoffice-26-8/include -I../wasm-lite/build-a11y-gate0/config_host -I../wasm-lite/build-a11y-gate0/workdir/UnoApiHeadersTarget/udkapi/comprehensive -I../wasm-lite/build-a11y-gate0/workdir/UnoApiHeadersTarget/offapi/comprehensive -I../wasm-lite/build-a11y-gate0/workdir/UnpackedTarball/boost -Oz -pthread -fwasm-exceptions -sSUPPORT_LONGJMP=wasm -DOXSDK_READER_PROFILE \
+	-DOXSDK_ODS_VIEWER -DOXSDK_ODS_VIEWER_V2 -c src/sdk_api.cpp -o build/ods/viewer-v2/sdk_api.o
+../wasm-lite/tools/emsdk/upstream/emscripten/em++ -DLOK_USE_UNSTABLE_API -I../libreoffice-26-8/include -I../wasm-lite/build-a11y-gate0/config_host -I../wasm-lite/build-a11y-gate0/workdir/UnoApiHeadersTarget/udkapi/comprehensive -I../wasm-lite/build-a11y-gate0/workdir/UnoApiHeadersTarget/offapi/comprehensive -I../wasm-lite/build-a11y-gate0/workdir/UnpackedTarball/boost -Oz -pthread -fwasm-exceptions -sSUPPORT_LONGJMP=wasm -DOXSDK_READER_PROFILE \
+	-DOXSDK_ODS_VIEWER -DOXSDK_ODS_VIEWER_V2 -c src/probe_engine.cpp -o build/ods/viewer-v2/probe_engine.o
+../wasm-lite/tools/emsdk/upstream/emscripten/em++ -DLOK_USE_UNSTABLE_API -I../libreoffice-26-8/include -I../wasm-lite/build-a11y-gate0/config_host -I../wasm-lite/build-a11y-gate0/workdir/UnoApiHeadersTarget/udkapi/comprehensive -I../wasm-lite/build-a11y-gate0/workdir/UnoApiHeadersTarget/offapi/comprehensive -I../wasm-lite/build-a11y-gate0/workdir/UnpackedTarball/boost -Oz -pthread -fwasm-exceptions -sSUPPORT_LONGJMP=wasm -DOXSDK_READER_PROFILE \
+	-DOXSDK_ODS_VIEWER -DOXSDK_ODS_VIEWER_V2 -c src/unoembind_stub.cpp -o build/ods/viewer-v2/unoembind_stub.o
+../wasm-lite/tools/emsdk/upstream/emscripten/em++ build/ods/viewer-v2/sdk_api.o build/ods/viewer-v2/probe_engine.o build/ods/viewer-v2/unoembind_stub.o \
+	-L../wasm-lite/build-a11y-gate0/instdir/program \
+	$(cat ../wasm-lite/build-a11y-gate0/instdir/program/soffice.js.linkdeps) \
+	-pthread -fwasm-exceptions -sSUPPORT_LONGJMP=wasm --no-entry -Oz \
+	-sMODULARIZE -sEXPORT_NAME=createProbeModule \
+	-sTOTAL_MEMORY=1GB -sPTHREAD_POOL_SIZE=7 -sPTHREAD_POOL_SIZE_STRICT=0 \
+	-sSTACK_SIZE=131072 -sDEFAULT_PTHREAD_STACK_SIZE=1048576 \
+	-sFORCE_FILESYSTEM=1 -sWASM_BIGINT=1 -sERROR_ON_UNDEFINED_SYMBOLS=1 -sFETCH=1 \
+	-sASSERTIONS=0 -sEXIT_RUNTIME=0 \
+	-sEXPORTED_RUNTIME_METHODS=ccall,FS,HEAPU8 \
+	-sEXPORTED_FUNCTIONS=@build/ods/viewer-v2/exports.txt \
+	-Wl,--wrap=_Z18initJsUnoScriptingv \
+	--pre-js ../libreoffice-26-8/static/emscripten/environment.js \
+	--pre-js ../wasm-lite/build-a11y-gate0/workdir/CustomTarget/static/emscripten_fs_image/soffice.data.js.link \
+	-o build/ods/viewer-v2/probe.js
+echo "9c85043ac7618e38062c1d0168a982708a16c930bdf8a422a67190222a888d84  sdk/sdk-worker.js" | sha256sum -c --quiet
+python3 tools/build_ods_viewer_v2_profile.py \
+	--core ../wasm-lite/build-a11y-gate0 \
+	--loader build/ods/viewer-v2/probe.js \
+	--wasm build/ods/viewer-v2/probe.wasm \
+	--worker sdk/sdk-worker.js \
+	--worker-sha256 9c85043ac7618e38062c1d0168a982708a16c930bdf8a422a67190222a888d84 \
+	--exports build/ods/viewer-v2/exports.txt \
+	--report build/ods/viewer-v2/base-pack-report.json \
+	--output dist/profiles/ods-viewer-v2
+wrote dist/profiles/ods-viewer-v2: probe.js, probe.wasm, sdk-worker.js, base-viewer-v2-no35.6f7424a1c1427ad7.data, base-viewer-v2-no35.8aae00e7cef956a0.metadata, sdk-manifest.json
+ok: base-viewer-v2-no35.6f7424a1c1427ad7.data (39892028 bytes, 1488 files, sha256 6f7424a1c1427ad7); the procedure reproduces 9901e9be on build-a11y-gate0
+against v1's base: 0 added, 0 removed, 0 changed, 1488 unchanged (recorded, not judged)
+probe.wasm gzip: 47971896 bytes (cap 52428800: within)
