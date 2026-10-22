@@ -54,3 +54,6 @@ Spec: `specs/SPEC-M4-viewer-v2.md` **§9** (page re-pointed; E4b/E9) and **§10*
 The scratch worktree is removed (branch `host-0.2.32` stays, merged into main).
 
 **Next:** H7 is the owner's (runbook §7: `three-sheets-distinct.ods`; to see what changed, `upstream/functions.ods` and `upstream/fdo67682-2.ods`). Then the remaining open items of the first part's Next 4. §34.4 unchanged: **46 / 27**.
+
+**H7 (after the addendum):** the owner opened `M4 phase-h/M4 檢視 測試 plain.ods` in Files: 「三個分頁都可以開啟」. H7 holds (spec §10.5). `functions.ods` / `fdo67682-2.ods` were not hand-checked on the host. What keeps 0.2.32 a draft release now is only K (batched). Next: the open items in Next 4 (158-B, finding 164's intra-open growth, the Phase H fixture clean-up on the instance, finding 163 is closed by reading).
+

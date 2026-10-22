@@ -6,7 +6,7 @@
 >
 > **這是草稿，因為三件事還沒做：**
 > - ~~0.2.32 還沒裝到 ddev，Phase H 還沒跑~~ → **2026-10-23 01:40 已裝，Phase H（H1–H4、H6）全過**（第 5 節）。
-> - **H7（擁有者親手點 .ods）還沒做。**
+> - ~~H7（擁有者親手點 .ods）還沒做~~ → **2026-10-23 擁有者點開 `three-sheets-distinct.ods` 的複本：「三個分頁都可以開啟」**（第 5 節）。
 > - **計數鏈 K 延後併批**：名義出貨版本仍是 **0.2.26**。
 >
 > 本檔是 `RELEASE-TEXT-DRAFT-0.2.29.md` 的後繼，那份照原樣留著。下面只寫 0.2.32 與 0.2.31 的差別；沒提到的（唯讀、只開 `.ods`、加密檔拒絕、編輯器那一半）**全部照舊**。
@@ -73,13 +73,14 @@
   - **H6 過**：檢視頁與編輯器頁都 200，COOP／COEP／CSP（去 nonce）相同。
   - **宿主送的真的是 v2**：Apache log 在那個時窗只有 `profiles/ods-viewer-v2/` 的檔，沒有 v1 的請求。〔已觀察：`access-log-viewer-engine.txt`〕
   - **H4 過**（編輯器那一半不變）：H-154c／H-154o／H-155 兩個瀏覽器各 3 輪全 PASS；`check_m3_host_entry.py`：HOST_ENTRY LANDS。
+  - **H7 過**：擁有者在 Files 裡點開 `three-sheets-distinct.ods` 的複本，原話「三個分頁都可以開啟」。`functions.ods`、`fdo67682-2.ods` 沒有在宿主上手測（鏡像上由 E3／V2-157 判過）。〔已觀察：擁有者回報；規格 §10.5〕
 - **沒證明**：「沒改的東西沒有被弄壞」——那是計數鏈 K，延後併批。〔未量〕
 
 ## 6. 「未量」彙整
 
 | 項目 | 怎麼量 |
 |---|---|
-| **H7：擁有者親手點 .ods** | 上傳 `wasm_sdk_probe/test-docs/ods/ladder/three-sheets-distinct.ods`，點它：三個分頁 Alpha／Beta／Gamma，點 Beta 換成第二張。想看這一版的差別，再開 `upstream/functions.ods`（add-in 函數的格有值了）與 `upstream/fdo67682-2.ods`（隱藏表的分頁是灰的） |
+| ~~H7~~ | **已做**（第 5 節）。想看這一版的差別可以再開 `upstream/functions.ods`（add-in 函數的格有值）與 `upstream/fdo67682-2.ods`（隱藏表的分頁是灰的），要先從 `wasm_sdk_probe/test-docs/ods/upstream/` 上傳 |
 | 計數鏈 K | 擁有者排時段，延後併批 |
 | 158-B（表單控制項） | 另外的工作項（finding 158） |
 
@@ -89,3 +90,4 @@
 |---|---|
 | 2026-10-23 凌晨 | 初稿：0.2.32 建好、離線檢查過、未安裝 |
 | 2026-10-23 01:50 | 0.2.32 已裝（01:40），Phase H 全過；版本表、第 5、6 節更新 |
+| 2026-10-23 | H7 成立（擁有者）；第 5、6 節更新。剩下讓它是草稿的只有計數鏈 K |

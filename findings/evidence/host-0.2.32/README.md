@@ -48,3 +48,4 @@ The install (`install-0.2.32.sh`) and Phase H (`chain-phase-h.sh`): both touch d
   - `host-entry`: HOST_ENTRY LANDS (`findings/evidence/m3-host-entry/shakedown/2026-10-22T174406Z.json`).
 - SPEC-M3-production-ui §17.27 residual 1: the H runner's Chrome (`EventChrome`, a `ChromeSession`, `--password-store=basic`) logged in on both arms (200 → dashboard) and its cookie-borne DAV GETs answered 200.
 - Reading (SPEC-M4-viewer-v2 §10.3, first row): 0.2.32 replaces 0.2.31 as the uncounted daily candidate. H7 is the owner's.
+- **H7** (appended 2026-10-23): the owner clicked `M4 phase-h/M4 檢視 測試 plain.ods` (the H runner's copy of `three-sheets-distinct.ods`) in Files and reported, in their words: 「三個分頁都可以開啟」 ("all three tabs open"). Browser not stated. H7 holds (SPEC-M4-viewer-v2 §10.5).
