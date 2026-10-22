@@ -1,0 +1,2242 @@
+{
+ "schemaVersion": 1,
+ "release": "m4-ods-e6-leak",
+ "spec": "specs/SPEC-M4-ods-in-nextcloud.md §4 E6, A6.1-A6.2",
+ "level": "sdk (both arms; the product session disposes its engine on close)",
+ "startedAt": "2026-10-22T025552Z",
+ "profile": "ods-viewer-v2",
+ "preconditions": {
+  "wallet": "Failed to get property Locked on interface org.freedesktop.Secret.Collection: The name org.freedesktop.secrets was not provided by any .service files",
+  "chromeProcessCount": 0,
+  "chromeProcessesSample": [],
+  "load1": 1.82,
+  "ok": false,
+  "reasons": [
+   "1-minute load 1.82 is not below 1.0"
+  ]
+ },
+ "profileManifestSha256": "fa54c32cbc028c07f42a223b701d41ea49aedccb82da19f83ca9a5737a08599f",
+ "probeWasmSha256": "e96e01ec0750c67ed4e6b8d9ee6daf8f06bc200ba28c04459e73a3023296867d",
+ "workerSha256": "9c85043ac7618e38062c1d0168a982708a16c930bdf8a422a67190222a888d84",
+ "pageFiles": {
+  "viewer-shell/ods-viewer-session.js": "87ca7ea65566f3717f11f1702b8f2c7c7f0009afc4366cda208069ac500dd757",
+  "viewer-shell/w7-adapter.js": "79e86a32df3049482aaa5610d1d642d021554c4b42bfedd43a980b8e23ead17d",
+  "viewer-shell/viewer-error.js": "237dad413606f1a55a8b7a5dcde9930b3ace14d532bb87edc7c1a7062771765d",
+  "viewer-shell/odf-package-probe.js": "5d6f025b903c6033f4756223f545cef4f8862862f4bfb6e840fe398b7e7d118e",
+  "viewer-shell/ods-document-sdk.js": "595b9a7b35bdfee9a0dd72c4b622a0dae0d564277e39483cd5e7c3fdabbaa0b5",
+  "ods-viewer-e6-harness.html": "0146f8408df3b857124a9fb03f811a0bc7d3c5b6efb725164b7473fd8261a953",
+  "ods-viewer-e6-harness-app.js": "1c5dd9d2007e41a75a26d1097b0c6637acd0de19c022f1577f914102681378ba"
+ },
+ "cycles": 20,
+ "bound": null,
+ "boundEntry": "ladder/one-cell-a1.ods",
+ "staged": [
+  {
+   "path": "ladder/one-cell-a1.ods",
+   "sha256": "bb6142d5b93e58f4a282569956ec5f482e2a41be28f0548c3cee4c5dfa64cb1d",
+   "sheets": 1,
+   "bytes": 7465
+  }
+ ],
+ "entries": [
+  {
+   "name": "one-cell-a1.ods",
+   "path": "ladder/one-cell-a1.ods",
+   "file": "./ods-e6-cases/000/one-cell-a1.ods",
+   "inputSha256": "bb6142d5b93e58f4a282569956ec5f482e2a41be28f0548c3cee4c5dfa64cb1d",
+   "inputBytes": 7465,
+   "boots": {
+    "arm": "boots",
+    "level": "sdk",
+    "cycles": [
+     {
+      "cycle": 1,
+      "startedAtMs": 26,
+      "stages": [
+       {
+        "name": "open.begin",
+        "sbrk": 236523520
+       },
+       {
+        "name": "open.documentLoad",
+        "sbrk": 236523520
+       },
+       {
+        "name": "open.documentLoad-returned",
+        "sbrk": 241864704
+       },
+       {
+        "name": "open.initializeForRendering",
+        "sbrk": 241864704
+       },
+       {
+        "name": "open.registerCallback",
+        "sbrk": 241864704
+       },
+       {
+        "name": "open.query-metadata",
+        "sbrk": 241864704
+       },
+       {
+        "name": "document-destroy-enter",
+        "sbrk": 241864704
+       },
+       {
+        "name": "document-destroy-return",
+        "sbrk": 241864704
+       }
+      ],
+      "openBegin": 236523520,
+      "destroyEnterSeen": true,
+      "parts": 1,
+      "tiles": [],
+      "error": null,
+      "workerCrashed": false,
+      "elapsedMs": 1825,
+      "peakSbrk": 241864704
+     },
+     {
+      "cycle": 2,
+      "startedAtMs": 1851,
+      "stages": [
+       {
+        "name": "open.begin",
+        "sbrk": 236523520
+       },
+       {
+        "name": "open.documentLoad",
+        "sbrk": 236523520
+       },
+       {
+        "name": "open.documentLoad-returned",
+        "sbrk": 241864704
+       },
+       {
+        "name": "open.initializeForRendering",
+        "sbrk": 241864704
+       },
+       {
+        "name": "open.registerCallback",
+        "sbrk": 241864704
+       },
+       {
+        "name": "open.query-metadata",
+        "sbrk": 241864704
+       },
+       {
+        "name": "document-destroy-enter",
+        "sbrk": 241864704
+       },
+       {
+        "name": "document-destroy-return",
+        "sbrk": 241864704
+       }
+      ],
+      "openBegin": 236523520,
+      "destroyEnterSeen": true,
+      "parts": 1,
+      "tiles": [],
+      "error": null,
+      "workerCrashed": false,
+      "elapsedMs": 1307,
+      "peakSbrk": 241864704
+     },
+     {
+      "cycle": 3,
+      "startedAtMs": 3158,
+      "stages": [
+       {
+        "name": "open.begin",
+        "sbrk": 236523520
+       },
+       {
+        "name": "open.documentLoad",
+        "sbrk": 236523520
+       },
+       {
+        "name": "open.documentLoad-returned",
+        "sbrk": 241864704
+       },
+       {
+        "name": "open.initializeForRendering",
+        "sbrk": 241864704
+       },
+       {
+        "name": "open.registerCallback",
+        "sbrk": 241864704
+       },
+       {
+        "name": "open.query-metadata",
+        "sbrk": 241864704
+       },
+       {
+        "name": "document-destroy-enter",
+        "sbrk": 241864704
+       },
+       {
+        "name": "document-destroy-return",
+        "sbrk": 241864704
+       }
+      ],
+      "openBegin": 236523520,
+      "destroyEnterSeen": true,
+      "parts": 1,
+      "tiles": [],
+      "error": null,
+      "workerCrashed": false,
+      "elapsedMs": 1236,
+      "peakSbrk": 241864704
+     },
+     {
+      "cycle": 4,
+      "startedAtMs": 4394,
+      "stages": [
+       {
+        "name": "open.begin",
+        "sbrk": 236523520
+       },
+       {
+        "name": "open.documentLoad",
+        "sbrk": 236523520
+       },
+       {
+        "name": "open.documentLoad-returned",
+        "sbrk": 241864704
+       },
+       {
+        "name": "open.initializeForRendering",
+        "sbrk": 241864704
+       },
+       {
+        "name": "open.registerCallback",
+        "sbrk": 241864704
+       },
+       {
+        "name": "open.query-metadata",
+        "sbrk": 241864704
+       },
+       {
+        "name": "document-destroy-enter",
+        "sbrk": 241864704
+       },
+       {
+        "name": "document-destroy-return",
+        "sbrk": 241864704
+       }
+      ],
+      "openBegin": 236523520,
+      "destroyEnterSeen": true,
+      "parts": 1,
+      "tiles": [],
+      "error": null,
+      "workerCrashed": false,
+      "elapsedMs": 1265,
+      "peakSbrk": 241864704
+     },
+     {
+      "cycle": 5,
+      "startedAtMs": 5659,
+      "stages": [
+       {
+        "name": "open.begin",
+        "sbrk": 236523520
+       },
+       {
+        "name": "open.documentLoad",
+        "sbrk": 236523520
+       },
+       {
+        "name": "open.documentLoad-returned",
+        "sbrk": 241864704
+       },
+       {
+        "name": "open.initializeForRendering",
+        "sbrk": 241864704
+       },
+       {
+        "name": "open.registerCallback",
+        "sbrk": 241864704
+       },
+       {
+        "name": "open.query-metadata",
+        "sbrk": 241864704
+       },
+       {
+        "name": "document-destroy-enter",
+        "sbrk": 241864704
+       },
+       {
+        "name": "document-destroy-return",
+        "sbrk": 241864704
+       }
+      ],
+      "openBegin": 236523520,
+      "destroyEnterSeen": true,
+      "parts": 1,
+      "tiles": [],
+      "error": null,
+      "workerCrashed": false,
+      "elapsedMs": 1240,
+      "peakSbrk": 241864704
+     },
+     {
+      "cycle": 6,
+      "startedAtMs": 6899,
+      "stages": [
+       {
+        "name": "open.begin",
+        "sbrk": 236523520
+       },
+       {
+        "name": "open.documentLoad",
+        "sbrk": 236523520
+       },
+       {
+        "name": "open.documentLoad-returned",
+        "sbrk": 241864704
+       },
+       {
+        "name": "open.initializeForRendering",
+        "sbrk": 241864704
+       },
+       {
+        "name": "open.registerCallback",
+        "sbrk": 241864704
+       },
+       {
+        "name": "open.query-metadata",
+        "sbrk": 241864704
+       },
+       {
+        "name": "document-destroy-enter",
+        "sbrk": 241864704
+       },
+       {
+        "name": "document-destroy-return",
+        "sbrk": 241864704
+       }
+      ],
+      "openBegin": 236523520,
+      "destroyEnterSeen": true,
+      "parts": 1,
+      "tiles": [],
+      "error": null,
+      "workerCrashed": false,
+      "elapsedMs": 1260,
+      "peakSbrk": 241864704
+     },
+     {
+      "cycle": 7,
+      "startedAtMs": 8159,
+      "stages": [
+       {
+        "name": "open.begin",
+        "sbrk": 236523520
+       },
+       {
+        "name": "open.documentLoad",
+        "sbrk": 236523520
+       },
+       {
+        "name": "open.documentLoad-returned",
+        "sbrk": 241864704
+       },
+       {
+        "name": "open.initializeForRendering",
+        "sbrk": 241864704
+       },
+       {
+        "name": "open.registerCallback",
+        "sbrk": 241864704
+       },
+       {
+        "name": "open.query-metadata",
+        "sbrk": 241864704
+       },
+       {
+        "name": "document-destroy-enter",
+        "sbrk": 241864704
+       },
+       {
+        "name": "document-destroy-return",
+        "sbrk": 241864704
+       }
+      ],
+      "openBegin": 236523520,
+      "destroyEnterSeen": true,
+      "parts": 1,
+      "tiles": [],
+      "error": null,
+      "workerCrashed": false,
+      "elapsedMs": 1249,
+      "peakSbrk": 241864704
+     },
+     {
+      "cycle": 8,
+      "startedAtMs": 9408,
+      "stages": [
+       {
+        "name": "open.begin",
+        "sbrk": 236523520
+       },
+       {
+        "name": "open.documentLoad",
+        "sbrk": 236523520
+       },
+       {
+        "name": "open.documentLoad-returned",
+        "sbrk": 241864704
+       },
+       {
+        "name": "open.initializeForRendering",
+        "sbrk": 241864704
+       },
+       {
+        "name": "open.registerCallback",
+        "sbrk": 241864704
+       },
+       {
+        "name": "open.query-metadata",
+        "sbrk": 241864704
+       },
+       {
+        "name": "document-destroy-enter",
+        "sbrk": 241864704
+       },
+       {
+        "name": "document-destroy-return",
+        "sbrk": 241864704
+       }
+      ],
+      "openBegin": 236523520,
+      "destroyEnterSeen": true,
+      "parts": 1,
+      "tiles": [],
+      "error": null,
+      "workerCrashed": false,
+      "elapsedMs": 1651,
+      "peakSbrk": 241864704
+     },
+     {
+      "cycle": 9,
+      "startedAtMs": 11059,
+      "stages": [
+       {
+        "name": "open.begin",
+        "sbrk": 236523520
+       },
+       {
+        "name": "open.documentLoad",
+        "sbrk": 236523520
+       },
+       {
+        "name": "open.documentLoad-returned",
+        "sbrk": 241864704
+       },
+       {
+        "name": "open.initializeForRendering",
+        "sbrk": 241864704
+       },
+       {
+        "name": "open.registerCallback",
+        "sbrk": 241864704
+       },
+       {
+        "name": "open.query-metadata",
+        "sbrk": 241864704
+       },
+       {
+        "name": "document-destroy-enter",
+        "sbrk": 241864704
+       },
+       {
+        "name": "document-destroy-return",
+        "sbrk": 241864704
+       }
+      ],
+      "openBegin": 236523520,
+      "destroyEnterSeen": true,
+      "parts": 1,
+      "tiles": [],
+      "error": null,
+      "workerCrashed": false,
+      "elapsedMs": 1262,
+      "peakSbrk": 241864704
+     },
+     {
+      "cycle": 10,
+      "startedAtMs": 12321,
+      "stages": [
+       {
+        "name": "open.begin",
+        "sbrk": 236523520
+       },
+       {
+        "name": "open.documentLoad",
+        "sbrk": 236523520
+       },
+       {
+        "name": "open.documentLoad-returned",
+        "sbrk": 241864704
+       },
+       {
+        "name": "open.initializeForRendering",
+        "sbrk": 241864704
+       },
+       {
+        "name": "open.registerCallback",
+        "sbrk": 241864704
+       },
+       {
+        "name": "open.query-metadata",
+        "sbrk": 241864704
+       },
+       {
+        "name": "document-destroy-enter",
+        "sbrk": 241864704
+       },
+       {
+        "name": "document-destroy-return",
+        "sbrk": 241864704
+       }
+      ],
+      "openBegin": 236523520,
+      "destroyEnterSeen": true,
+      "parts": 1,
+      "tiles": [],
+      "error": null,
+      "workerCrashed": false,
+      "elapsedMs": 2017,
+      "peakSbrk": 241864704
+     },
+     {
+      "cycle": 11,
+      "startedAtMs": 14338,
+      "stages": [
+       {
+        "name": "open.begin",
+        "sbrk": 236523520
+       },
+       {
+        "name": "open.documentLoad",
+        "sbrk": 236523520
+       },
+       {
+        "name": "open.documentLoad-returned",
+        "sbrk": 241864704
+       },
+       {
+        "name": "open.initializeForRendering",
+        "sbrk": 241864704
+       },
+       {
+        "name": "open.registerCallback",
+        "sbrk": 241864704
+       },
+       {
+        "name": "open.query-metadata",
+        "sbrk": 241864704
+       },
+       {
+        "name": "document-destroy-enter",
+        "sbrk": 241864704
+       },
+       {
+        "name": "document-destroy-return",
+        "sbrk": 241864704
+       }
+      ],
+      "openBegin": 236523520,
+      "destroyEnterSeen": true,
+      "parts": 1,
+      "tiles": [],
+      "error": null,
+      "workerCrashed": false,
+      "elapsedMs": 1230,
+      "peakSbrk": 241864704
+     },
+     {
+      "cycle": 12,
+      "startedAtMs": 15568,
+      "stages": [
+       {
+        "name": "open.begin",
+        "sbrk": 236523520
+       },
+       {
+        "name": "open.documentLoad",
+        "sbrk": 236523520
+       },
+       {
+        "name": "open.documentLoad-returned",
+        "sbrk": 241864704
+       },
+       {
+        "name": "open.initializeForRendering",
+        "sbrk": 241864704
+       },
+       {
+        "name": "open.registerCallback",
+        "sbrk": 241864704
+       },
+       {
+        "name": "open.query-metadata",
+        "sbrk": 241864704
+       },
+       {
+        "name": "document-destroy-enter",
+        "sbrk": 241864704
+       },
+       {
+        "name": "document-destroy-return",
+        "sbrk": 241864704
+       }
+      ],
+      "openBegin": 236523520,
+      "destroyEnterSeen": true,
+      "parts": 1,
+      "tiles": [],
+      "error": null,
+      "workerCrashed": false,
+      "elapsedMs": 1250,
+      "peakSbrk": 241864704
+     },
+     {
+      "cycle": 13,
+      "startedAtMs": 16818,
+      "stages": [
+       {
+        "name": "open.begin",
+        "sbrk": 236523520
+       },
+       {
+        "name": "open.documentLoad",
+        "sbrk": 236523520
+       },
+       {
+        "name": "open.documentLoad-returned",
+        "sbrk": 241864704
+       },
+       {
+        "name": "open.initializeForRendering",
+        "sbrk": 241864704
+       },
+       {
+        "name": "open.registerCallback",
+        "sbrk": 241864704
+       },
+       {
+        "name": "open.query-metadata",
+        "sbrk": 241864704
+       },
+       {
+        "name": "document-destroy-enter",
+        "sbrk": 241864704
+       },
+       {
+        "name": "document-destroy-return",
+        "sbrk": 241864704
+       }
+      ],
+      "openBegin": 236523520,
+      "destroyEnterSeen": true,
+      "parts": 1,
+      "tiles": [],
+      "error": null,
+      "workerCrashed": false,
+      "elapsedMs": 1200,
+      "peakSbrk": 241864704
+     },
+     {
+      "cycle": 14,
+      "startedAtMs": 18018,
+      "stages": [
+       {
+        "name": "open.begin",
+        "sbrk": 236523520
+       },
+       {
+        "name": "open.documentLoad",
+        "sbrk": 236523520
+       },
+       {
+        "name": "open.documentLoad-returned",
+        "sbrk": 241864704
+       },
+       {
+        "name": "open.initializeForRendering",
+        "sbrk": 241864704
+       },
+       {
+        "name": "open.registerCallback",
+        "sbrk": 241864704
+       },
+       {
+        "name": "open.query-metadata",
+        "sbrk": 241864704
+       },
+       {
+        "name": "document-destroy-enter",
+        "sbrk": 241864704
+       },
+       {
+        "name": "document-destroy-return",
+        "sbrk": 241864704
+       }
+      ],
+      "openBegin": 236523520,
+      "destroyEnterSeen": true,
+      "parts": 1,
+      "tiles": [],
+      "error": null,
+      "workerCrashed": false,
+      "elapsedMs": 1226,
+      "peakSbrk": 241864704
+     },
+     {
+      "cycle": 15,
+      "startedAtMs": 19244,
+      "stages": [
+       {
+        "name": "open.begin",
+        "sbrk": 236523520
+       },
+       {
+        "name": "open.documentLoad",
+        "sbrk": 236523520
+       },
+       {
+        "name": "open.documentLoad-returned",
+        "sbrk": 241864704
+       },
+       {
+        "name": "open.initializeForRendering",
+        "sbrk": 241864704
+       },
+       {
+        "name": "open.registerCallback",
+        "sbrk": 241864704
+       },
+       {
+        "name": "open.query-metadata",
+        "sbrk": 241864704
+       },
+       {
+        "name": "document-destroy-enter",
+        "sbrk": 241864704
+       },
+       {
+        "name": "document-destroy-return",
+        "sbrk": 241864704
+       }
+      ],
+      "openBegin": 236523520,
+      "destroyEnterSeen": true,
+      "parts": 1,
+      "tiles": [],
+      "error": null,
+      "workerCrashed": false,
+      "elapsedMs": 1710,
+      "peakSbrk": 241864704
+     },
+     {
+      "cycle": 16,
+      "startedAtMs": 20954,
+      "stages": [
+       {
+        "name": "open.begin",
+        "sbrk": 236523520
+       },
+       {
+        "name": "open.documentLoad",
+        "sbrk": 236523520
+       },
+       {
+        "name": "open.documentLoad-returned",
+        "sbrk": 241864704
+       },
+       {
+        "name": "open.initializeForRendering",
+        "sbrk": 241864704
+       },
+       {
+        "name": "open.registerCallback",
+        "sbrk": 241864704
+       },
+       {
+        "name": "open.query-metadata",
+        "sbrk": 241864704
+       },
+       {
+        "name": "document-destroy-enter",
+        "sbrk": 241864704
+       },
+       {
+        "name": "document-destroy-return",
+        "sbrk": 241864704
+       }
+      ],
+      "openBegin": 236523520,
+      "destroyEnterSeen": true,
+      "parts": 1,
+      "tiles": [],
+      "error": null,
+      "workerCrashed": false,
+      "elapsedMs": 1232,
+      "peakSbrk": 241864704
+     },
+     {
+      "cycle": 17,
+      "startedAtMs": 22186,
+      "stages": [
+       {
+        "name": "open.begin",
+        "sbrk": 236523520
+       },
+       {
+        "name": "open.documentLoad",
+        "sbrk": 236523520
+       },
+       {
+        "name": "open.documentLoad-returned",
+        "sbrk": 241864704
+       },
+       {
+        "name": "open.initializeForRendering",
+        "sbrk": 241864704
+       },
+       {
+        "name": "open.registerCallback",
+        "sbrk": 241864704
+       },
+       {
+        "name": "open.query-metadata",
+        "sbrk": 241864704
+       },
+       {
+        "name": "document-destroy-enter",
+        "sbrk": 241864704
+       },
+       {
+        "name": "document-destroy-return",
+        "sbrk": 241864704
+       }
+      ],
+      "openBegin": 236523520,
+      "destroyEnterSeen": true,
+      "parts": 1,
+      "tiles": [],
+      "error": null,
+      "workerCrashed": false,
+      "elapsedMs": 1231,
+      "peakSbrk": 241864704
+     },
+     {
+      "cycle": 18,
+      "startedAtMs": 23417,
+      "stages": [
+       {
+        "name": "open.begin",
+        "sbrk": 236523520
+       },
+       {
+        "name": "open.documentLoad",
+        "sbrk": 236523520
+       },
+       {
+        "name": "open.documentLoad-returned",
+        "sbrk": 241864704
+       },
+       {
+        "name": "open.initializeForRendering",
+        "sbrk": 241864704
+       },
+       {
+        "name": "open.registerCallback",
+        "sbrk": 241864704
+       },
+       {
+        "name": "open.query-metadata",
+        "sbrk": 241864704
+       },
+       {
+        "name": "document-destroy-enter",
+        "sbrk": 241864704
+       },
+       {
+        "name": "document-destroy-return",
+        "sbrk": 241864704
+       }
+      ],
+      "openBegin": 236523520,
+      "destroyEnterSeen": true,
+      "parts": 1,
+      "tiles": [],
+      "error": null,
+      "workerCrashed": false,
+      "elapsedMs": 1226,
+      "peakSbrk": 241864704
+     },
+     {
+      "cycle": 19,
+      "startedAtMs": 24643,
+      "stages": [
+       {
+        "name": "open.begin",
+        "sbrk": 236523520
+       },
+       {
+        "name": "open.documentLoad",
+        "sbrk": 236523520
+       },
+       {
+        "name": "open.documentLoad-returned",
+        "sbrk": 241864704
+       },
+       {
+        "name": "open.initializeForRendering",
+        "sbrk": 241864704
+       },
+       {
+        "name": "open.registerCallback",
+        "sbrk": 241864704
+       },
+       {
+        "name": "open.query-metadata",
+        "sbrk": 241864704
+       },
+       {
+        "name": "document-destroy-enter",
+        "sbrk": 241864704
+       },
+       {
+        "name": "document-destroy-return",
+        "sbrk": 241864704
+       }
+      ],
+      "openBegin": 236523520,
+      "destroyEnterSeen": true,
+      "parts": 1,
+      "tiles": [],
+      "error": null,
+      "workerCrashed": false,
+      "elapsedMs": 1229,
+      "peakSbrk": 241864704
+     },
+     {
+      "cycle": 20,
+      "startedAtMs": 25872,
+      "stages": [
+       {
+        "name": "open.begin",
+        "sbrk": 236523520
+       },
+       {
+        "name": "open.documentLoad",
+        "sbrk": 236523520
+       },
+       {
+        "name": "open.documentLoad-returned",
+        "sbrk": 241864704
+       },
+       {
+        "name": "open.initializeForRendering",
+        "sbrk": 241864704
+       },
+       {
+        "name": "open.registerCallback",
+        "sbrk": 241864704
+       },
+       {
+        "name": "open.query-metadata",
+        "sbrk": 241864704
+       },
+       {
+        "name": "document-destroy-enter",
+        "sbrk": 241864704
+       },
+       {
+        "name": "document-destroy-return",
+        "sbrk": 241864704
+       }
+      ],
+      "openBegin": 236523520,
+      "destroyEnterSeen": true,
+      "parts": 1,
+      "tiles": [],
+      "error": null,
+      "workerCrashed": false,
+      "elapsedMs": 1212,
+      "peakSbrk": 241864704
+     }
+    ]
+   },
+   "reopen": {
+    "arm": "reopen",
+    "level": "sdk",
+    "cycles": [
+     {
+      "cycle": 1,
+      "startedAtMs": 27865,
+      "stages": [
+       {
+        "name": "open.begin",
+        "sbrk": 236523520
+       },
+       {
+        "name": "open.documentLoad",
+        "sbrk": 236523520
+       },
+       {
+        "name": "open.documentLoad-returned",
+        "sbrk": 241864704
+       },
+       {
+        "name": "open.initializeForRendering",
+        "sbrk": 241864704
+       },
+       {
+        "name": "open.registerCallback",
+        "sbrk": 241864704
+       },
+       {
+        "name": "open.query-metadata",
+        "sbrk": 241864704
+       },
+       {
+        "name": "document-destroy-enter",
+        "sbrk": 246259712
+       },
+       {
+        "name": "document-destroy-return",
+        "sbrk": 246259712
+       }
+      ],
+      "openBegin": 236523520,
+      "destroyEnterSeen": true,
+      "parts": 1,
+      "tiles": [
+       {
+        "part": 0,
+        "sha256": "366471486cd13db4770fe1ecc51c3dbe3555bfb29bfc439c7676614ba3203c4f"
+       }
+      ],
+      "error": null,
+      "workerCrashed": false,
+      "elapsedMs": 499,
+      "peakSbrk": 246259712
+     },
+     {
+      "cycle": 2,
+      "startedAtMs": 28364,
+      "stages": [
+       {
+        "name": "open.begin",
+        "sbrk": 246259712
+       },
+       {
+        "name": "open.documentLoad",
+        "sbrk": 246259712
+       },
+       {
+        "name": "open.documentLoad-returned",
+        "sbrk": 246259712
+       },
+       {
+        "name": "open.initializeForRendering",
+        "sbrk": 246259712
+       },
+       {
+        "name": "open.registerCallback",
+        "sbrk": 246259712
+       },
+       {
+        "name": "open.query-metadata",
+        "sbrk": 246259712
+       },
+       {
+        "name": "document-destroy-enter",
+        "sbrk": 250454016
+       },
+       {
+        "name": "document-destroy-return",
+        "sbrk": 250454016
+       }
+      ],
+      "openBegin": 246259712,
+      "destroyEnterSeen": true,
+      "parts": 1,
+      "tiles": [
+       {
+        "part": 0,
+        "sha256": "366471486cd13db4770fe1ecc51c3dbe3555bfb29bfc439c7676614ba3203c4f"
+       }
+      ],
+      "error": null,
+      "workerCrashed": false,
+      "elapsedMs": 421,
+      "peakSbrk": 250454016
+     },
+     {
+      "cycle": 3,
+      "startedAtMs": 28785,
+      "stages": [
+       {
+        "name": "open.begin",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.documentLoad",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.documentLoad-returned",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.initializeForRendering",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.registerCallback",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.query-metadata",
+        "sbrk": 250454016
+       },
+       {
+        "name": "document-destroy-enter",
+        "sbrk": 250454016
+       },
+       {
+        "name": "document-destroy-return",
+        "sbrk": 250454016
+       }
+      ],
+      "openBegin": 250454016,
+      "destroyEnterSeen": true,
+      "parts": 1,
+      "tiles": [
+       {
+        "part": 0,
+        "sha256": "366471486cd13db4770fe1ecc51c3dbe3555bfb29bfc439c7676614ba3203c4f"
+       }
+      ],
+      "error": null,
+      "workerCrashed": false,
+      "elapsedMs": 416,
+      "peakSbrk": 250454016
+     },
+     {
+      "cycle": 4,
+      "startedAtMs": 29201,
+      "stages": [
+       {
+        "name": "open.begin",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.documentLoad",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.documentLoad-returned",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.initializeForRendering",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.registerCallback",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.query-metadata",
+        "sbrk": 250454016
+       },
+       {
+        "name": "document-destroy-enter",
+        "sbrk": 250454016
+       },
+       {
+        "name": "document-destroy-return",
+        "sbrk": 250454016
+       }
+      ],
+      "openBegin": 250454016,
+      "destroyEnterSeen": true,
+      "parts": 1,
+      "tiles": [
+       {
+        "part": 0,
+        "sha256": "366471486cd13db4770fe1ecc51c3dbe3555bfb29bfc439c7676614ba3203c4f"
+       }
+      ],
+      "error": null,
+      "workerCrashed": false,
+      "elapsedMs": 419,
+      "peakSbrk": 250454016
+     },
+     {
+      "cycle": 5,
+      "startedAtMs": 29620,
+      "stages": [
+       {
+        "name": "open.begin",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.documentLoad",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.documentLoad-returned",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.initializeForRendering",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.registerCallback",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.query-metadata",
+        "sbrk": 250454016
+       },
+       {
+        "name": "document-destroy-enter",
+        "sbrk": 250454016
+       },
+       {
+        "name": "document-destroy-return",
+        "sbrk": 250454016
+       }
+      ],
+      "openBegin": 250454016,
+      "destroyEnterSeen": true,
+      "parts": 1,
+      "tiles": [
+       {
+        "part": 0,
+        "sha256": "366471486cd13db4770fe1ecc51c3dbe3555bfb29bfc439c7676614ba3203c4f"
+       }
+      ],
+      "error": null,
+      "workerCrashed": false,
+      "elapsedMs": 422,
+      "peakSbrk": 250454016
+     },
+     {
+      "cycle": 6,
+      "startedAtMs": 30042,
+      "stages": [
+       {
+        "name": "open.begin",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.documentLoad",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.documentLoad-returned",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.initializeForRendering",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.registerCallback",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.query-metadata",
+        "sbrk": 250454016
+       },
+       {
+        "name": "document-destroy-enter",
+        "sbrk": 250454016
+       },
+       {
+        "name": "document-destroy-return",
+        "sbrk": 250454016
+       }
+      ],
+      "openBegin": 250454016,
+      "destroyEnterSeen": true,
+      "parts": 1,
+      "tiles": [
+       {
+        "part": 0,
+        "sha256": "366471486cd13db4770fe1ecc51c3dbe3555bfb29bfc439c7676614ba3203c4f"
+       }
+      ],
+      "error": null,
+      "workerCrashed": false,
+      "elapsedMs": 420,
+      "peakSbrk": 250454016
+     },
+     {
+      "cycle": 7,
+      "startedAtMs": 30462,
+      "stages": [
+       {
+        "name": "open.begin",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.documentLoad",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.documentLoad-returned",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.initializeForRendering",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.registerCallback",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.query-metadata",
+        "sbrk": 250454016
+       },
+       {
+        "name": "document-destroy-enter",
+        "sbrk": 250454016
+       },
+       {
+        "name": "document-destroy-return",
+        "sbrk": 250454016
+       }
+      ],
+      "openBegin": 250454016,
+      "destroyEnterSeen": true,
+      "parts": 1,
+      "tiles": [
+       {
+        "part": 0,
+        "sha256": "366471486cd13db4770fe1ecc51c3dbe3555bfb29bfc439c7676614ba3203c4f"
+       }
+      ],
+      "error": null,
+      "workerCrashed": false,
+      "elapsedMs": 416,
+      "peakSbrk": 250454016
+     },
+     {
+      "cycle": 8,
+      "startedAtMs": 30878,
+      "stages": [
+       {
+        "name": "open.begin",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.documentLoad",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.documentLoad-returned",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.initializeForRendering",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.registerCallback",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.query-metadata",
+        "sbrk": 250454016
+       },
+       {
+        "name": "document-destroy-enter",
+        "sbrk": 250454016
+       },
+       {
+        "name": "document-destroy-return",
+        "sbrk": 250454016
+       }
+      ],
+      "openBegin": 250454016,
+      "destroyEnterSeen": true,
+      "parts": 1,
+      "tiles": [
+       {
+        "part": 0,
+        "sha256": "366471486cd13db4770fe1ecc51c3dbe3555bfb29bfc439c7676614ba3203c4f"
+       }
+      ],
+      "error": null,
+      "workerCrashed": false,
+      "elapsedMs": 417,
+      "peakSbrk": 250454016
+     },
+     {
+      "cycle": 9,
+      "startedAtMs": 31295,
+      "stages": [
+       {
+        "name": "open.begin",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.documentLoad",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.documentLoad-returned",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.initializeForRendering",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.registerCallback",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.query-metadata",
+        "sbrk": 250454016
+       },
+       {
+        "name": "document-destroy-enter",
+        "sbrk": 250454016
+       },
+       {
+        "name": "document-destroy-return",
+        "sbrk": 250454016
+       }
+      ],
+      "openBegin": 250454016,
+      "destroyEnterSeen": true,
+      "parts": 1,
+      "tiles": [
+       {
+        "part": 0,
+        "sha256": "366471486cd13db4770fe1ecc51c3dbe3555bfb29bfc439c7676614ba3203c4f"
+       }
+      ],
+      "error": null,
+      "workerCrashed": false,
+      "elapsedMs": 417,
+      "peakSbrk": 250454016
+     },
+     {
+      "cycle": 10,
+      "startedAtMs": 31712,
+      "stages": [
+       {
+        "name": "open.begin",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.documentLoad",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.documentLoad-returned",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.initializeForRendering",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.registerCallback",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.query-metadata",
+        "sbrk": 250454016
+       },
+       {
+        "name": "document-destroy-enter",
+        "sbrk": 250454016
+       },
+       {
+        "name": "document-destroy-return",
+        "sbrk": 250454016
+       }
+      ],
+      "openBegin": 250454016,
+      "destroyEnterSeen": true,
+      "parts": 1,
+      "tiles": [
+       {
+        "part": 0,
+        "sha256": "366471486cd13db4770fe1ecc51c3dbe3555bfb29bfc439c7676614ba3203c4f"
+       }
+      ],
+      "error": null,
+      "workerCrashed": false,
+      "elapsedMs": 419,
+      "peakSbrk": 250454016
+     },
+     {
+      "cycle": 11,
+      "startedAtMs": 32131,
+      "stages": [
+       {
+        "name": "open.begin",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.documentLoad",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.documentLoad-returned",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.initializeForRendering",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.registerCallback",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.query-metadata",
+        "sbrk": 250454016
+       },
+       {
+        "name": "document-destroy-enter",
+        "sbrk": 250454016
+       },
+       {
+        "name": "document-destroy-return",
+        "sbrk": 250454016
+       }
+      ],
+      "openBegin": 250454016,
+      "destroyEnterSeen": true,
+      "parts": 1,
+      "tiles": [
+       {
+        "part": 0,
+        "sha256": "366471486cd13db4770fe1ecc51c3dbe3555bfb29bfc439c7676614ba3203c4f"
+       }
+      ],
+      "error": null,
+      "workerCrashed": false,
+      "elapsedMs": 418,
+      "peakSbrk": 250454016
+     },
+     {
+      "cycle": 12,
+      "startedAtMs": 32549,
+      "stages": [
+       {
+        "name": "open.begin",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.documentLoad",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.documentLoad-returned",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.initializeForRendering",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.registerCallback",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.query-metadata",
+        "sbrk": 250454016
+       },
+       {
+        "name": "document-destroy-enter",
+        "sbrk": 250454016
+       },
+       {
+        "name": "document-destroy-return",
+        "sbrk": 250454016
+       }
+      ],
+      "openBegin": 250454016,
+      "destroyEnterSeen": true,
+      "parts": 1,
+      "tiles": [
+       {
+        "part": 0,
+        "sha256": "366471486cd13db4770fe1ecc51c3dbe3555bfb29bfc439c7676614ba3203c4f"
+       }
+      ],
+      "error": null,
+      "workerCrashed": false,
+      "elapsedMs": 415,
+      "peakSbrk": 250454016
+     },
+     {
+      "cycle": 13,
+      "startedAtMs": 32964,
+      "stages": [
+       {
+        "name": "open.begin",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.documentLoad",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.documentLoad-returned",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.initializeForRendering",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.registerCallback",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.query-metadata",
+        "sbrk": 250454016
+       },
+       {
+        "name": "document-destroy-enter",
+        "sbrk": 250454016
+       },
+       {
+        "name": "document-destroy-return",
+        "sbrk": 250454016
+       }
+      ],
+      "openBegin": 250454016,
+      "destroyEnterSeen": true,
+      "parts": 1,
+      "tiles": [
+       {
+        "part": 0,
+        "sha256": "366471486cd13db4770fe1ecc51c3dbe3555bfb29bfc439c7676614ba3203c4f"
+       }
+      ],
+      "error": null,
+      "workerCrashed": false,
+      "elapsedMs": 411,
+      "peakSbrk": 250454016
+     },
+     {
+      "cycle": 14,
+      "startedAtMs": 33375,
+      "stages": [
+       {
+        "name": "open.begin",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.documentLoad",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.documentLoad-returned",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.initializeForRendering",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.registerCallback",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.query-metadata",
+        "sbrk": 250454016
+       },
+       {
+        "name": "document-destroy-enter",
+        "sbrk": 250454016
+       },
+       {
+        "name": "document-destroy-return",
+        "sbrk": 250454016
+       }
+      ],
+      "openBegin": 250454016,
+      "destroyEnterSeen": true,
+      "parts": 1,
+      "tiles": [
+       {
+        "part": 0,
+        "sha256": "366471486cd13db4770fe1ecc51c3dbe3555bfb29bfc439c7676614ba3203c4f"
+       }
+      ],
+      "error": null,
+      "workerCrashed": false,
+      "elapsedMs": 416,
+      "peakSbrk": 250454016
+     },
+     {
+      "cycle": 15,
+      "startedAtMs": 33791,
+      "stages": [
+       {
+        "name": "open.begin",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.documentLoad",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.documentLoad-returned",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.initializeForRendering",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.registerCallback",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.query-metadata",
+        "sbrk": 250454016
+       },
+       {
+        "name": "document-destroy-enter",
+        "sbrk": 250454016
+       },
+       {
+        "name": "document-destroy-return",
+        "sbrk": 250454016
+       }
+      ],
+      "openBegin": 250454016,
+      "destroyEnterSeen": true,
+      "parts": 1,
+      "tiles": [
+       {
+        "part": 0,
+        "sha256": "366471486cd13db4770fe1ecc51c3dbe3555bfb29bfc439c7676614ba3203c4f"
+       }
+      ],
+      "error": null,
+      "workerCrashed": false,
+      "elapsedMs": 410,
+      "peakSbrk": 250454016
+     },
+     {
+      "cycle": 16,
+      "startedAtMs": 34201,
+      "stages": [
+       {
+        "name": "open.begin",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.documentLoad",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.documentLoad-returned",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.initializeForRendering",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.registerCallback",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.query-metadata",
+        "sbrk": 250454016
+       },
+       {
+        "name": "document-destroy-enter",
+        "sbrk": 250454016
+       },
+       {
+        "name": "document-destroy-return",
+        "sbrk": 250454016
+       }
+      ],
+      "openBegin": 250454016,
+      "destroyEnterSeen": true,
+      "parts": 1,
+      "tiles": [
+       {
+        "part": 0,
+        "sha256": "366471486cd13db4770fe1ecc51c3dbe3555bfb29bfc439c7676614ba3203c4f"
+       }
+      ],
+      "error": null,
+      "workerCrashed": false,
+      "elapsedMs": 416,
+      "peakSbrk": 250454016
+     },
+     {
+      "cycle": 17,
+      "startedAtMs": 34617,
+      "stages": [
+       {
+        "name": "open.begin",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.documentLoad",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.documentLoad-returned",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.initializeForRendering",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.registerCallback",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.query-metadata",
+        "sbrk": 250454016
+       },
+       {
+        "name": "document-destroy-enter",
+        "sbrk": 250454016
+       },
+       {
+        "name": "document-destroy-return",
+        "sbrk": 250454016
+       }
+      ],
+      "openBegin": 250454016,
+      "destroyEnterSeen": true,
+      "parts": 1,
+      "tiles": [
+       {
+        "part": 0,
+        "sha256": "366471486cd13db4770fe1ecc51c3dbe3555bfb29bfc439c7676614ba3203c4f"
+       }
+      ],
+      "error": null,
+      "workerCrashed": false,
+      "elapsedMs": 414,
+      "peakSbrk": 250454016
+     },
+     {
+      "cycle": 18,
+      "startedAtMs": 35031,
+      "stages": [
+       {
+        "name": "open.begin",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.documentLoad",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.documentLoad-returned",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.initializeForRendering",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.registerCallback",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.query-metadata",
+        "sbrk": 250454016
+       },
+       {
+        "name": "document-destroy-enter",
+        "sbrk": 250454016
+       },
+       {
+        "name": "document-destroy-return",
+        "sbrk": 250454016
+       }
+      ],
+      "openBegin": 250454016,
+      "destroyEnterSeen": true,
+      "parts": 1,
+      "tiles": [
+       {
+        "part": 0,
+        "sha256": "366471486cd13db4770fe1ecc51c3dbe3555bfb29bfc439c7676614ba3203c4f"
+       }
+      ],
+      "error": null,
+      "workerCrashed": false,
+      "elapsedMs": 414,
+      "peakSbrk": 250454016
+     },
+     {
+      "cycle": 19,
+      "startedAtMs": 35445,
+      "stages": [
+       {
+        "name": "open.begin",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.documentLoad",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.documentLoad-returned",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.initializeForRendering",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.registerCallback",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.query-metadata",
+        "sbrk": 250454016
+       },
+       {
+        "name": "document-destroy-enter",
+        "sbrk": 250454016
+       },
+       {
+        "name": "document-destroy-return",
+        "sbrk": 250454016
+       }
+      ],
+      "openBegin": 250454016,
+      "destroyEnterSeen": true,
+      "parts": 1,
+      "tiles": [
+       {
+        "part": 0,
+        "sha256": "366471486cd13db4770fe1ecc51c3dbe3555bfb29bfc439c7676614ba3203c4f"
+       }
+      ],
+      "error": null,
+      "workerCrashed": false,
+      "elapsedMs": 416,
+      "peakSbrk": 250454016
+     },
+     {
+      "cycle": 20,
+      "startedAtMs": 35861,
+      "stages": [
+       {
+        "name": "open.begin",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.documentLoad",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.documentLoad-returned",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.initializeForRendering",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.registerCallback",
+        "sbrk": 250454016
+       },
+       {
+        "name": "open.query-metadata",
+        "sbrk": 250454016
+       },
+       {
+        "name": "document-destroy-enter",
+        "sbrk": 250454016
+       },
+       {
+        "name": "document-destroy-return",
+        "sbrk": 250454016
+       }
+      ],
+      "openBegin": 250454016,
+      "destroyEnterSeen": true,
+      "parts": 1,
+      "tiles": [
+       {
+        "part": 0,
+        "sha256": "366471486cd13db4770fe1ecc51c3dbe3555bfb29bfc439c7676614ba3203c4f"
+       }
+      ],
+      "error": null,
+      "workerCrashed": false,
+      "elapsedMs": 419,
+      "peakSbrk": 250454016
+     }
+    ],
+    "engineError": null
+   },
+   "fatal": null
+  }
+ ],
+ "chrome": "Chrome/151.0.7922.169",
+ "timedOut": false,
+ "pageFatal": null,
+ "workerUrl": "http://127.0.0.1:55881/profiles/ods-viewer-v2/sdk-worker.js",
+ "elapsedSeconds": 43.8,
+ "noiseFloor": {
+  "entry": "ladder/one-cell-a1.ods",
+  "openBegins": [
+   236523520,
+   236523520,
+   236523520,
+   236523520,
+   236523520,
+   236523520,
+   236523520,
+   236523520,
+   236523520,
+   236523520,
+   236523520,
+   236523520,
+   236523520,
+   236523520,
+   236523520,
+   236523520,
+   236523520,
+   236523520,
+   236523520,
+   236523520
+  ],
+  "absoluteSteps": [
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  "B": 0,
+  "complete": true
+ },
+ "verdicts": {
+  "judged": [
+   {
+    "id": "E6 noise floor measured on ladder/one-cell-a1.ods",
+    "ok": true,
+    "detail": {
+     "entry": "ladder/one-cell-a1.ods",
+     "openBegins": [
+      236523520,
+      236523520,
+      236523520,
+      236523520,
+      236523520,
+      236523520,
+      236523520,
+      236523520,
+      236523520,
+      236523520,
+      236523520,
+      236523520,
+      236523520,
+      236523520,
+      236523520,
+      236523520,
+      236523520,
+      236523520,
+      236523520,
+      236523520
+     ],
+     "absoluteSteps": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "B": 0,
+     "complete": true
+    }
+   },
+   {
+    "id": "E6 boots ladder/one-cell-a1.ods",
+    "ok": true,
+    "detail": [
+     236523520,
+     236523520,
+     236523520,
+     236523520,
+     236523520,
+     236523520,
+     236523520,
+     236523520,
+     236523520,
+     236523520,
+     236523520,
+     236523520,
+     236523520,
+     236523520,
+     236523520,
+     236523520,
+     236523520,
+     236523520,
+     236523520,
+     236523520
+    ]
+   },
+   {
+    "id": "E6 reopen shape ladder/one-cell-a1.ods",
+    "ok": true,
+    "detail": [
+     236523520,
+     246259712,
+     250454016,
+     250454016,
+     250454016,
+     250454016,
+     250454016,
+     250454016,
+     250454016,
+     250454016,
+     250454016,
+     250454016,
+     250454016,
+     250454016,
+     250454016,
+     250454016,
+     250454016,
+     250454016,
+     250454016,
+     250454016
+    ]
+   }
+  ],
+  "notJudged": [
+   {
+    "id": "E6 reopen bound ladder/one-cell-a1.ods",
+    "why": "B is not pinned (--bound absent)",
+    "detail": {
+     "openBegins": [
+      236523520,
+      246259712,
+      250454016,
+      250454016,
+      250454016,
+      250454016,
+      250454016,
+      250454016,
+      250454016,
+      250454016,
+      250454016,
+      250454016,
+      250454016,
+      250454016,
+      250454016,
+      250454016,
+      250454016,
+      250454016,
+      250454016,
+      250454016
+     ],
+     "deltas": [
+      9736192,
+      4194304,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "recordedHead": [
+      9736192,
+      4194304
+     ],
+     "judgedTail": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "bound": null
+    }
+   }
+  ],
+  "pass": true
+ },
+ "completedAt": "2026-10-22T025636Z"
+}
