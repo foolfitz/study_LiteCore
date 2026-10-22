@@ -17,10 +17,10 @@ files to the page's own file input, one after the other:
 What it cannot measure: the reader object set on this core (only the link can),
 and anything of W7 -- the name is still spoofed and `documentType` unknown.
 
-Machine preconditions: the KDE wallet must be unlocked (`b false`), or headless
-Chrome hangs; that one refuses the run.  Other Chrome processes and the load are
+Machine preconditions: the KDE wallet, other Chrome processes and the load are
 RECORDED, not refused: this run measures no time (the owner, 2026-10-20: the
-desk gate is for timing cells only).
+desk gate is for timing cells only).  The wallet was refused until the launcher
+got --password-store=basic (SPEC-M3-production-ui 17.27).
 
   run_ods_viewer_step1.py --selftest        the judge against synthetic red cases
   run_ods_viewer_step1.py [--out DIR]
@@ -244,9 +244,6 @@ def main() -> int:
         return selftest()
 
     gate = preconditions()
-    if gate["wallet"] != "b false":
-        print(json.dumps(gate, ensure_ascii=False, indent=2))
-        raise SystemExit("the KDE wallet is locked: headless Chrome would hang")
 
     from probe_ods_on_profile import patch_pthread_stack           # noqa: E402
     from r7_support import evaluate, wait_page                      # noqa: E402

@@ -219,6 +219,13 @@ class ChromeSession:
                 f"--user-data-dir={self.profile_dir}",
                 "--no-first-run",
                 "--no-default-browser-check",
+                # The cookie key from a fixed key, not the desktop wallet: with
+                # the wallet locked the first navigation waits forever, with
+                # no secrets service it waits the 25 s D-Bus timeout (paired
+                # runs, findings/evidence/launcher-password-store/ and
+                # 136/guard/chrome-wallet-diagnosis.txt; SPEC-M3-production-ui
+                # 17.27).
+                "--password-store=basic",
                 "about:blank",
             ],
             # DEVNULL, not PIPE: nothing ever read these pipes, and a filled

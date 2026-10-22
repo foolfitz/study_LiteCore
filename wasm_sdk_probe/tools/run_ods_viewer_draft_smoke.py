@@ -16,7 +16,8 @@ comparison is RECORDED, not a gate.
 
 Preconditions are checked here and the run REFUSES to start otherwise: another
 agent's timing-sensitive measurement must not share the machine with this one.
-  - the KDE wallet is unlocked (`b false`), else headless Chrome hangs;
+The KDE wallet is recorded, not refused (the launcher's --password-store=basic,
+SPEC-M3-production-ui 17.27).
   - no other Chrome is running;
   - the 1-minute load average is below 1.0.
 
@@ -114,8 +115,6 @@ def preconditions() -> dict:
     chromes = [line for line in listing.stdout.splitlines() if line and mine not in line]
     load1 = os.getloadavg()[0]
     reasons = []
-    if wallet_text != "b false":
-        reasons.append(f"KDE wallet is not 'b false': {wallet_text!r}")
     if chromes:
         reasons.append(f"{len(chromes)} Chrome process(es) already running")
     if not load1 < 1.0:
@@ -330,7 +329,7 @@ def main() -> int:
     if not gate["ok"]:
         print(json.dumps(gate, ensure_ascii=False, indent=2))
         raise SystemExit("preconditions not met: this run would share the machine "
-                         "with another measurement, or hang on the wallet")
+                         "with another measurement")
 
     # Imported late so --selftest and --check-only need neither Chrome nor the
     # (large) product-path module.

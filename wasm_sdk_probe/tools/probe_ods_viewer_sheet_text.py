@@ -6,7 +6,7 @@ report is for reading, e.g. finding 159's one-formula-per-cause probe file.
 
   probe_ods_viewer_sheet_text.py --out DIR FILE.ods [FILE.ods ...]
 
-Preconditions as run_ods_viewer_phase_e.py (the KDE wallet unlocked).  The files are staged into
+Preconditions as run_ods_viewer_phase_e.py (recorded, not refused).  The files are staged into
 the mirror under ods-e-cases/, so they need not live in the corpus and E1 is not involved.
 """
 from __future__ import annotations
@@ -33,8 +33,6 @@ def main() -> int:
     parser.add_argument("--timeout", type=float, default=600)
     args = parser.parse_args()
     gate = preconditions()
-    if gate["wallet"] != "b false":
-        raise SystemExit(f"the KDE wallet is locked ({gate['wallet']!r}): headless Chrome would hang")
     profile_manifest = PROJECT / "dist" / "profiles" / PROFILE / "sdk-manifest.json"
     if not profile_manifest.is_file():
         raise SystemExit(f"{profile_manifest} does not exist: the viewer is not linked")

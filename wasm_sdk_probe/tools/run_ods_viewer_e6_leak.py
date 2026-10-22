@@ -21,8 +21,9 @@ them -- a bound not yet pinned in the spec must not produce a green.
   run_ods_viewer_e6_leak.py --selftest
   run_ods_viewer_e6_leak.py [--entries PATH ...] [--bound-entry PATH] [--cycles N] [--bound B] [--out DIR]
 
-Preconditions: the KDE wallet unlocked (headless Chrome hangs otherwise) -- refused; other Chrome
-processes and the load are recorded, not refused (no criterion here is a time).
+Preconditions: the KDE wallet, other Chrome processes and the load are recorded, not refused (no
+criterion here is a time; the wallet was refused until the launcher got --password-store=basic,
+SPEC-M3-production-ui 17.27).
 Report: findings/evidence/m4-ods/phase-e/e6-leak/report-<UTC>.json
 """
 from __future__ import annotations
@@ -235,8 +236,6 @@ def main() -> int:
     if args.selftest:
         return selftest()
     gate = preconditions()
-    if gate["wallet"] != "b false":
-        raise SystemExit(f"the KDE wallet is locked ({gate['wallet']!r}): headless Chrome would hang")
     profile_manifest = PROJECT / "dist" / "profiles" / PROFILE / "sdk-manifest.json"
     if not profile_manifest.is_file():
         raise SystemExit(f"{profile_manifest} does not exist: the viewer is not linked")

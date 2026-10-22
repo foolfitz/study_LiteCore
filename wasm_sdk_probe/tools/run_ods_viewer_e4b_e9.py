@@ -303,8 +303,6 @@ def main() -> int:
     if args.selftest:
         return selftest()
     gate = preconditions()
-    if gate["wallet"] != "b false":
-        raise SystemExit(f"the KDE wallet is locked ({gate['wallet']!r}): headless Chrome would hang")
     profile_manifest = PROJECT / "dist" / "profiles" / PROFILE / "sdk-manifest.json"
     if not profile_manifest.is_file():
         raise SystemExit(f"{profile_manifest} does not exist: the viewer is not linked")
