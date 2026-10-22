@@ -44,6 +44,8 @@ from run_ods_viewer_draft_smoke import PAGE_FILES, preconditions          # noqa
 from run_ods_viewer_phase_e import KILL_LINE, sha256_bytes, utc_now      # noqa: E402
 
 PROFILE = "ods-viewer-v1"
+PROFILES = ("ods-viewer-v1", "ods-viewer-v2")
+HARNESS_LITERAL = b'"./profiles/ods-viewer-v1/sdk-worker.js"'
 CORPUS = PROJECT / "test-docs" / "ods"
 MANIFEST = CORPUS / "manifest.json"
 DEFAULT_OUT = PROJECT.parent / "findings" / "evidence" / "m4-ods" / "phase-e" / "e6-leak"
@@ -226,6 +228,7 @@ def selftest() -> int:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--selftest", action="store_true")
+    parser.add_argument("--profile", choices=PROFILES, default=PROFILE)
     parser.add_argument("--entries", nargs="+", default=DEFAULT_ENTRIES, help="manifest paths to stage")
     parser.add_argument("--bound-entry", default=BOUND_ENTRY, help="the entry whose boots define B")
     parser.add_argument("--cycles", type=int, default=5)
@@ -236,7 +239,7 @@ def main() -> int:
     if args.selftest:
         return selftest()
     gate = preconditions()
-    profile_manifest = PROJECT / "dist" / "profiles" / PROFILE / "sdk-manifest.json"
+    profile_manifest = PROJECT / "dist" / "profiles" / args.profile / "sdk-manifest.json"
     if not profile_manifest.is_file():
         raise SystemExit(f"{profile_manifest} does not exist: the viewer is not linked")
     if args.bound_entry not in args.entries:
@@ -255,6 +258,14 @@ def main() -> int:
 
     overrides = {path: source.read_bytes() for path, source in PAGE_FILES.items() if path.startswith("viewer-shell/")}
     overrides.update({path: source.read_bytes() for path, source in HARNESS.items()})
+    if args.profile != PROFILE:
+        # SPEC-M4-viewer-v2 4: E6's B is measured again on v2.  The harness's one worker literal,
+        # rewritten in the mirror copy only, as run_ods_viewer_phase_e.py does.
+        app = overrides["ods-viewer-e6-harness-app.js"]
+        if app.count(HARNESS_LITERAL) != 1:
+            raise SystemExit(f"the E6 harness has {app.count(HARNESS_LITERAL)} worker literals, not 1")
+        overrides["ods-viewer-e6-harness-app.js"] = app.replace(
+            HARNESS_LITERAL, f'"./profiles/{args.profile}/sdk-worker.js"'.encode())
     specs, staged = [], []
     for index, path in enumerate(args.entries):
         entry = by_path[path]
@@ -282,7 +293,7 @@ def main() -> int:
 
     report = {"schemaVersion": 1, "release": "m4-ods-e6-leak", "spec": "specs/SPEC-M4-ods-in-nextcloud.md §4 E6, A6.1-A6.2",
               "level": "sdk (both arms; the product session disposes its engine on close)",
-              "startedAt": utc_now(), "profile": PROFILE, "preconditions": gate,
+              "startedAt": utc_now(), "profile": args.profile, "preconditions": gate,
               "profileManifestSha256": sha256_bytes(profile_manifest.read_bytes()),
               "probeWasmSha256": sha256_bytes((profile_manifest.parent / "probe.wasm").read_bytes()),
               "workerSha256": sha256_bytes((profile_manifest.parent / "sdk-worker.js").read_bytes()),
