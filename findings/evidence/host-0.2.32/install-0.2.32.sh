@@ -31,7 +31,13 @@ if [ "$(diff -rq "$A/engine" "$OLD" 2>&1)" != "Only in $OLD: ATTRIBUTION.md" ]; 
 fi
 got=$(python3 -c "import json;print(json.load(open('$NEW/MANIFEST.json'))['buildId'])") || stop "archive $NEW unreadable"
 [ "$got" = "$BUILD_ID" ] || stop "archive buildId $got != $BUILD_ID"
-say "pre-checks hold: tree clean, HEAD 421f4b8, host-0.2.32 = bffc7dc on 421f4b8, live engine == 0.2.29 archive (+ATTRIBUTION.md only), new archive $BUILD_ID"
+# occ needs the container: a paused litecore would stop the script after the code and package had moved.
+state=$(timeout 60 ddev list -j 2>/dev/null | python3 -c "
+import json, sys
+d = json.load(sys.stdin); raw = d.get('raw', d)
+print(next((p.get('status') for p in raw if p.get('name') == 'litecore'), 'absent'))")
+[ "$state" = "running" ] || stop "ddev project litecore is '$state', not running (start it in the owner's slot first)"
+say "pre-checks hold: tree clean, HEAD 421f4b8, host-0.2.32 = bffc7dc on 421f4b8, live engine == 0.2.29 archive (+ATTRIBUTION.md only), new archive $BUILD_ID, litecore running"
 
 # -- step 1: the code (the version only) --
 run git -C "$A" merge --ff-only host-0.2.32 || stop "merge failed"

@@ -20,7 +20,7 @@ Written 2026-10-23 01:3x CST, BEFORE anything on the live instance was touched (
 
 ## Pre-check before the install, observed 2026-10-23 01:30
 
-`diff -rq ~/Projects/Nextcloud_Apps/litecore/engine wasm_sdk_probe/build/archive/host-0.2.29-engine-1b4d6a1fc905fb8a` → only `ATTRIBUTION.md`. The live `engine/` IS the 0.2.29 archive, so that archive is the way back. (`engine.old` in the app dir is 0.2.27/0.2.28's `817413d5`, untouched.) `install-0.2.32.sh`'s pre-check block, run alone with its log in the scratchpad: all hold.
+`diff -rq ~/Projects/Nextcloud_Apps/litecore/engine wasm_sdk_probe/build/archive/host-0.2.29-engine-1b4d6a1fc905fb8a` → only `ATTRIBUTION.md`. The live `engine/` IS the 0.2.29 archive, so that archive is the way back. (`engine.old` in the app dir is 0.2.27/0.2.28's `817413d5`, untouched.) `install-0.2.32.sh`'s pre-check block, run alone with its log in the scratchpad: all hold (01:30). A guard was then added for the container: `ddev list` at 01:34 showed `litecore` **paused** and `fgp-nc` running, and `occ upgrade` on a paused project would stop the script after the code and the package had already moved. The re-run of the pre-check block at 01:35 stopped on exactly that line (`STOP: ddev project litecore is 'paused', not running`) -- the guard's red case, on the real state.
 
 ## The way back (the package only)
 

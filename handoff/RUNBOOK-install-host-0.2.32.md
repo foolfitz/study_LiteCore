@@ -14,7 +14,7 @@ Written 2026-10-23 01:3x CST, before any install. Spec: `specs/SPEC-M4-viewer-v2
 ddev list                                   # record the running set; expect {litecore}
 busctl --user get-property org.freedesktop.secrets /org/freedesktop/secrets/collection/kdewallet org.freedesktop.Secret.Collection Locked   # `b false`; the chain's guard refuses on `b true`
 ```
-If another project is running, stop and ask the owner (the chain's guard would refuse anyway).
+If another project is running, stop and ask the owner (the chain's guard would refuse anyway). At 2026-10-23 01:34 `litecore` was **paused** and `fgp-nc` running: the slot starts with the owner's `ddev start` in `~/Projects/Nextcloud_Apps/litecore` (another project's start makes the router 404 for a moment). `install-0.2.32.sh` refuses unless `litecore` is running.
 
 ## 1–4. Install (seconds)
 
