@@ -1,0 +1,20 @@
+control: exit 0: ok (0 failures)
+case-sensitive: exit 1, red as required: FAIL S1 BOOK.ODS is accepted as .ods
+odt-only: exit 1, red as required: FAIL S1 book.ods is accepted as .ods
+no-stem-required: exit 1, red as required: FAIL S1 a name that is only the suffix is refused
+types-shifted: exit 1, red as required: FAIL T1 spreadsheet
+range-off-by-one: exit 1, red as required: FAIL R1 parts itself is out of range
+queried-before-range: exit 1, red as required: FAIL X1 nothing but parts() is asked: part parts
+always-switch: exit 1, red as required: FAIL X3 no switch when part k is current: parts part setPart(1) selectAll text resetSelection part part
+reset-only-when-confirmed: exit 1, red as required: FAIL X4 deselected anyway: parts part setPart(1) selectAll text part setPart(0) part
+confirmation-assumed: exit 1, red as required: FAIL X4 the result says the SelectAll was not confirmed
+unconfirmed-not-read: exit 1, red as required: FAIL X4 the text is read anyway
+not-restored: exit 1, red as required: FAIL X2 the order: parts part setPart(2) selectAll text resetSelection part
+empty-sheet-is-an-error: exit 1, red as required: FAIL X5 an empty sheet is not an error
+empty-sheet-not-flagged: exit 1, red as required: FAIL X5 the empty text, flagged
+part-after-assumed: exit 1, red as required: FAIL X2 the order: parts part setPart(2) selectAll text resetSelection part setPart(0)
+no-redispatch: exit 1, red as required: FAIL D1 confirmed once a post was dispatched
+deadline-ignored: exit 1, red as required: FAIL D2 four posts in 200 ms with 50 ms pauses: 1001
+redispatch-after-dispatch: exit 1, red as required: FAIL D3 a dispatched SelectAll is not posted again: post await(10000) post await(0) post
+await-full-deadline: exit 1, red as required: FAIL D1 posted again after each pause: post pause(50) post pause(50) post await(10000)
+ALL RED AS REQUIRED

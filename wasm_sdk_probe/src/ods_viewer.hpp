@@ -126,6 +126,49 @@ PartTextResult readPartText(Document &document, int part) {
   return result;
 }
 
+#ifdef OXSDK_ODS_VIEWER_V2
+// SPEC-M4-viewer-v2 8 (finding 160).  LOK at times does not dispatch
+// .uno:SelectAll at all: getError() says "Failed to dispatch .uno:SelectAll",
+// no listener is called, no result comes and nothing is selected (5 of 5
+// unconfirmed reads over six corpus sweeps, v1 and v2; the next sheet's
+// dispatch worked).  A longer wait cannot help a command that was never sent.
+// So a post LOK did not dispatch is posted again after a pause, until the
+// deadline; a dispatched one is waited for as before and never posted twice.
+struct SelectAllAttempt {
+  bool confirmed = false;   // a dispatched SelectAll's result came in time
+  bool dispatched = false;  // some post was dispatched
+  int dispatchFailures = 0; // posts LOK did not dispatch
+};
+
+// `Poster` provides:
+//   bool post();         true when LOK dispatched the command
+//   bool await(int ms);  true when its result came within ms (ms may be 0)
+//   int elapsedMs();     since the first post
+//   void pause(int ms);
+//
+// The rules, each a red case in the test:
+//   * a post that was not dispatched is posted again, after a pause;
+//   * a dispatched post is awaited for what is left of the deadline and is
+//     never posted again, confirmed or not;
+//   * no post starts once the next pause would reach the deadline.
+template <typename Poster>
+SelectAllAttempt selectAllUntilDispatched(Poster &poster, int deadlineMs, int pauseMs) {
+  SelectAllAttempt attempt;
+  for (;;) {
+    if (poster.post()) {
+      attempt.dispatched = true;
+      const int left = deadlineMs - poster.elapsedMs();
+      attempt.confirmed = poster.await(left > 0 ? left : 0);
+      return attempt;
+    }
+    ++attempt.dispatchFailures;
+    if (poster.elapsedMs() + pauseMs >= deadlineMs)
+      return attempt;
+    poster.pause(pauseMs);
+  }
+}
+#endif
+
 } // namespace probe::odsviewer
 
 #endif

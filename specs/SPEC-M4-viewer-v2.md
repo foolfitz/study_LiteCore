@@ -472,3 +472,48 @@ worker 字面值、要求恰好一個；預設仍是 v1）——這是把 §4「
 | 日期 | 變更 |
 | --- | --- |
 | 2026-10-22 | 追加 §7.7：全語料 ×3、V2-160 FAIL、§3.3 讀法的盲點、期限無效的獨立證據，不含決定 |
+
+## 8. 擁有者選「先修 160 再出 v2」：第三次連結（2026-10-22 追加；任何這次連結與執行之前）
+
+### 8.1 成因與修法
+
+- **成因**（finding 160 的「成因」段）〔已觀察〕：6 趟全語料的 5 次未確認，每一次引擎 stderr 都有 LOK 的
+  `lok exception 'Failed to dispatch .uno:SelectAll'`，其他讀取都沒有——**SelectAll 沒被派送**，不是晚到。暫時性的（同一份檔的下一張表派送成功）。
+  派送失敗的原因〔推論〕：`doc_postUnoCommand` 派送到 Desktop 的作用中 frame。
+- **修法（只動引擎，`OXSDK_ODS_VIEWER_V2` 底下）**：`src/ods_viewer.hpp` 的 `selectAllUntilDispatched`——每次 post 之後讀 `getError()`，
+  是 `Failed to dispatch` 就停 50 ms 再 post，直到 10 s 期限；派送成功的照舊等結果、**不再 post 第二次**。引擎在有過失敗的那一讀之後印一行
+  `oxsdk part-text: .uno:SelectAll not dispatched N time(s), then dispatched|never dispatched`，和 LOK 自己的那一行並列在 worker 的 stderr（harness 的 `messages`）。
+- **不動**：worker（`9c85043a`，pin 不變）、SDK、殼層、harness、runner、Makefile 的規則；manifest 的能力不變（沒有新的回覆欄位）。
+- 核心 patch（`doc_postUnoCommand` 改派送到文件自己的 frame）**不走**：要重建核心，而 LOK 自己的錯誤訊息已經是可用的判別子。若 §8.3 的讀法指向它，才另議。
+
+### 8.2 連結前的閘門（`findings/evidence/m4-ods/viewer-v2/160-fix-pre-link/`）
+
+1. ✅ 主機上的 header 測試：D1（未派送就重送）、D2（到期限就停、什麼都不等）、D3（派送過的不重送）、D4（晚派送的只等剩下的時間）全綠；
+   `tests/ods_viewer_mutations.py` 新增 4 個 mutation，連同既有 14 個**全部紅在指定的檢查**（`ods-viewer-mutations.txt`）。
+2. ✅ v1 的 token 與 HEAD（`e7694378`）相同（`probe_engine.cpp`、`sdk_api.cpp` 用 v1 的 define 前處理，`diff -B` exit 0）；v2 的有變（84 行）。`tokens.txt`。
+3. ✅ `em++ -fsyntax-only` 三個單元、v1 與 v2 兩種 define，對 gate0 的標頭全過。
+4. ✅ `make -k test-e2-c-static` exit 0。
+5. ✅ 凍結集合快照 1,543 檔（`frozen-set-before.sha256`；含現在 `dist/profiles/ods-viewer-v2/` 的 `e96e01ec` 六檔，連結後只准那六檔被換掉）。
+
+### 8.3 這次連結的判準（Phase E 從頭；釘在任何執行之前）
+
+新的連結＝新的身分，`e96e01ec` 的結果不轉移。§4 的判準全部重跑（E6 照 SPEC-M4 追加 12），**V2-160 原文不變**（全語料 ×3，每趟未確認為 0）。新增一條，照 CLAUDE.md §9：
+
+| id | 判準 | 形式 | 永遠沒做的預設結論 |
+| --- | --- | :---: | --- |
+| **V2-160-D** | 每一筆（每份檔的 `messages`）：LOK 的 `Failed to dispatch .uno:SelectAll` 行數 ＝ 引擎那一行的 N 乘上它的次數之和；有這種行的檔，每一讀都 `selectAllConfirmed: true`，而且引擎行沒有 `never dispatched` | 1 | 引擎的偵測與 LOK 自己的紀錄是否一致沒有人核對；160 只看 V2-160 |
+
+§9 的四個條件：先於滿足（寫在這次連結之前）；被逼出且指名（V2-160 的 `023406Z`、`024415Z` 與 finding 160 的 stderr 一對一）；形式一（逐筆）；
+截止：第三次乾淨的全語料執行落地即封閉。
+
+**預先寫好的讀法**：
+
+- 三趟未確認 0，且有過派送失敗、V2-160-D 成立 → **160 修好**（重送有被走到、也有效）。
+- 三趟未確認 0，但三趟都**沒有**任何派送失敗 → V2-160 照字面成立；重送這條路在真引擎上**沒被走到**，登錄為 NOT_ESTABLISHED（「綠燈不是證據」），
+  不加跑、不判 160 已修，只判「v2 的 160 不比 v1 差，而且這幾趟沒發生」。
+- 有未確認，而引擎行是 `never dispatched` → 10 s 內 Desktop 的作用中 frame 都沒回來；下一步才議核心 patch。
+- 有未確認，但沒有任何派送失敗的行 → 另一個機制；finding 160 重開。
+
+| 日期 | 變更 |
+| --- | --- |
+| 2026-10-22 | 追加 §8：160 的修法（重送未派送的 SelectAll）、連結前閘門、V2-160-D 與讀法，任何這次連結與執行之前 |

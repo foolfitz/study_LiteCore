@@ -102,3 +102,25 @@ Phase E from zero on the new identity (spec §7.1 step 4): the targeted run (lad
 ## Fallback done (2026-10-22)
 
 Linked by the owner at 09:46 (exit 0). §7.2's readings all hold (spec §7.3, `findings/evidence/m4-ods/viewer-v2/fallback-post-link/`): probe.wasm `e96e01ec…`, no `form-controls`, bits 30771, base `6f7424a1`, `OFormsCollection` 0, gzip 47,972,953; archived at `build/archive/ods-viewer-v2-e96e01ec-worker-9c85043a/`.
+
+---
+
+# The third link of `ods-viewer-v2`: finding 160's fix, on `build-a11y-gate0` (appended 2026-10-22)
+
+The owner chose "fix 160 before v2 ships". Spec §8. Engine only: a SelectAll LOK did not dispatch (`Failed to dispatch .uno:SelectAll` in `getError()`) is posted again after 50 ms until the 10 s deadline (`selectAllUntilDispatched`, `src/ods_viewer.hpp`). Worker, SDK, shell, harness, runner and the Makefile rule are unchanged; the objects rebuild because `src/` changed. `e96e01ec` stays archived (`build/archive/ods-viewer-v2-e96e01ec-worker-9c85043a/`); this link replaces its six files in `dist/profiles/ods-viewer-v2/`.
+
+## G0. Gates (spec §8.2, `findings/evidence/m4-ods/viewer-v2/160-fix-pre-link/`)
+
+All ✅: header test D1-D4 and 18 mutations red as required; v1's tokens equal HEAD's; syntax for both shapes; `test-e2-c-static` exit 0; frozen set 1,543 files.
+
+## G1. The link (**the owner's step**)
+
+```
+bash ~/LibreOffice/study_LiteCore/handoff/ods-viewer-v2/link-gate0.sh
+```
+
+The same script as the fallback link. A few minutes; the last line is the gzip size (expected within a few KB of 47,972,953).
+
+## G2. After the link (the main session)
+
+Frozen set: only the six files of `dist/profiles/ods-viewer-v2/` changed. Manifest as e96e01ec's (no `form-controls`, bits 30771), base `6f7424a1`; the wasm carries `oxsdk part-text: .uno:SelectAll not dispatched`; markers and stack as before; archive as `build/archive/ods-viewer-v2-<wasm sha8>-worker-9c85043a/`. Then Phase E from zero (targeted run, E6 per SPEC-M4 addendum 12, full corpus x3 with V2-160 and V2-160-D).

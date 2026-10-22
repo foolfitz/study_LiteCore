@@ -1,3 +1,6 @@
+// SPEC-M4-viewer-v2 8: the redispatch rule is v2's; it is tested here with the
+// rest (the engine compiles it only under the same define).
+#define OXSDK_ODS_VIEWER_V2
 #include "ods_viewer.hpp"
 
 // The engine is compiled with it (E2_V5_CPPFLAGS); the document types are under it.
@@ -24,6 +27,10 @@
 //   X5 no text     core returned nothing (an empty sheet): the empty text,
 //                  flagged, not an error; deselect and restore as always
 //   X6 read back   partAfter is what the document says, not what was asked for
+//   D1 redispatch  a SelectAll LOK did not dispatch is posted again after a pause
+//   D2 deadline    never dispatched: posts stop at the deadline, nothing awaited
+//   D3 once        a dispatched SelectAll is never posted again, confirmed or not
+//   D4 what's left a SelectAll dispatched late is awaited for the rest only
 
 namespace {
 namespace ov = probe::odsviewer;
@@ -65,6 +72,30 @@ struct FakeDocument {
     return true;
   }
   void resetSelection() { calls.push_back("resetSelection"); }
+};
+
+// SPEC-M4-viewer-v2 8.  A clock that moves only when the rule pauses or waits.
+struct FakePoster {
+  std::vector<bool> dispatches;   // per post; past the end: not dispatched
+  bool resultComes = true;
+  int clock = 0;
+  std::size_t posts = 0;
+  std::vector<std::string> calls;
+
+  bool post() {
+    calls.push_back("post");
+    return posts < dispatches.size() && dispatches[posts++];
+  }
+  bool await(int ms) {
+    calls.push_back("await(" + std::to_string(ms) + ")");
+    clock += resultComes ? (ms < 30 ? ms : 30) : ms;
+    return resultComes && ms > 0;
+  }
+  int elapsedMs() { return clock; }
+  void pause(int ms) {
+    calls.push_back("pause(" + std::to_string(ms) + ")");
+    clock += ms;
+  }
 };
 
 std::string joined(const std::vector<std::string> &calls) {
@@ -183,6 +214,47 @@ int main() {
     check(result.partAfter == 2 && document.current == 2,
           "X6 a switch back that did not take is reported as such: partAfter " +
               std::to_string(result.partAfter));
+  }
+
+  // D1
+  {
+    FakePoster poster;
+    poster.dispatches = {false, false, true};
+    const auto attempt = ov::selectAllUntilDispatched(poster, 10000, 50);
+    check(attempt.confirmed && attempt.dispatched, "D1 confirmed once a post was dispatched");
+    check(attempt.dispatchFailures == 2, "D1 two posts were not dispatched: " +
+                                             std::to_string(attempt.dispatchFailures));
+    check(joined(poster.calls) == "post pause(50) post pause(50) post await(9900)",
+          "D1 posted again after each pause: " + joined(poster.calls));
+  }
+  // D2
+  {
+    FakePoster poster;
+    const auto attempt = ov::selectAllUntilDispatched(poster, 200, 50);
+    check(!attempt.confirmed && !attempt.dispatched, "D2 never dispatched, never confirmed");
+    check(attempt.dispatchFailures == 4, "D2 four posts in 200 ms with 50 ms pauses: " +
+                                             std::to_string(attempt.dispatchFailures));
+    check(!contains(poster.calls, "await(0)") && joined(poster.calls).find("await") == std::string::npos,
+          "D2 nothing awaited: " + joined(poster.calls));
+    check(poster.clock <= 200, "D2 stops at the deadline: " + std::to_string(poster.clock));
+  }
+  // D3
+  {
+    FakePoster poster;
+    poster.dispatches = {true, true};
+    poster.resultComes = false;
+    const auto attempt = ov::selectAllUntilDispatched(poster, 10000, 50);
+    check(attempt.dispatched && !attempt.confirmed, "D3 dispatched, no result: unconfirmed");
+    check(joined(poster.calls) == "post await(10000)",
+          "D3 a dispatched SelectAll is not posted again: " + joined(poster.calls));
+  }
+  // D4
+  {
+    FakePoster poster;
+    poster.dispatches = {false, true};
+    const auto attempt = ov::selectAllUntilDispatched(poster, 1000, 50);
+    check(attempt.confirmed && attempt.dispatchFailures == 1, "D4 confirmed after one failed post");
+    check(contains(poster.calls, "await(950)"), "D4 awaited for what is left: " + joined(poster.calls));
   }
 
   std::printf("%s (%d failure%s)\n", gFailures ? "FAILED" : "ok", gFailures, gFailures == 1 ? "" : "s");

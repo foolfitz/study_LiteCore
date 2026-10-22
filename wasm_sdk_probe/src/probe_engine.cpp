@@ -2695,6 +2695,51 @@ int takeLatePartTextResults() {
   gPartTextAwait.lateResults = 0;
   return late;
 }
+
+// SPEC-M4-viewer-v2 8 (finding 160): every unconfirmed SelectAll of six corpus
+// sweeps had LOK's "Failed to dispatch .uno:SelectAll" beside it, and no other
+// read did.  doc_postUnoCommand clears the error first and sets that one when
+// comphelper::dispatchCommand finds nothing to dispatch to, so the error
+// right after the post says whether the post was dispatched.
+constexpr int kPartTextRedispatchPauseMs = 50;
+
+bool lokSaidNotDispatched() {
+  if (!gState.kit || !gState.kit->pClass || !gState.kit->pClass->getError)
+    return false;
+  char *error = gState.kit->pClass->getError(gState.kit);
+  const bool failed =
+      error && std::strstr(error, "Failed to dispatch") != nullptr;
+  if (error && gState.kit->pClass->freeError)
+    gState.kit->pClass->freeError(error);
+  return failed;
+}
+
+// selectAllUntilDispatched's Poster (src/ods_viewer.hpp), on LOK.
+struct PartTextSelectAllPoster {
+  LibreOfficeKitDocument *document;
+  std::chrono::steady_clock::time_point started;
+
+  bool post() {
+    document->pClass->postUnoCommand(document, ".uno:SelectAll", nullptr, true);
+    return !lokSaidNotDispatched();
+  }
+  bool await(int ms) {
+    std::unique_lock<std::mutex> lock(gPartTextAwait.mutex);
+    const bool landed = gPartTextAwait.condition.wait_for(
+        lock, std::chrono::milliseconds(ms), [] { return gPartTextAwait.done; });
+    gPartTextAwait.active = false;
+    return landed;
+  }
+  int elapsedMs() const {
+    return static_cast<int>(
+        std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::steady_clock::now() - started)
+            .count());
+  }
+  void pause(int ms) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(ms));
+  }
+};
 #endif
 
 // readPartText's document, on LOK.  The text is read the way the native
@@ -2716,21 +2761,34 @@ struct LokPartTextDocument {
       gPartTextAwait.done = false;
     }
 #ifdef OXSDK_ODS_VIEWER_V2
-    const auto started = std::chrono::steady_clock::now();
-#endif
+    // A post LOK did not dispatch is posted again until the deadline.  The
+    // engine's line beside LOK's own warnings says how many posts this read
+    // took, so the two can be matched in the worker's stderr.
+    PartTextSelectAllPoster poster{document, std::chrono::steady_clock::now()};
+    const probe::odsviewer::SelectAllAttempt attempt =
+        probe::odsviewer::selectAllUntilDispatched(
+            poster, kPartTextSelectAllDeadlineMs, kPartTextRedispatchPauseMs);
+    {
+      std::lock_guard<std::mutex> lock(gPartTextAwait.mutex);
+      gPartTextAwait.active = false;
+    }
+    selectAllWaitMs = poster.elapsedMs();
+    if (attempt.dispatchFailures > 0)
+      std::fprintf(stderr,
+                   "oxsdk part-text: .uno:SelectAll not dispatched %d time(s), "
+                   "%s\n",
+                   attempt.dispatchFailures,
+                   attempt.dispatched ? "then dispatched" : "never dispatched");
+    return attempt.confirmed;
+#else
     document->pClass->postUnoCommand(document, ".uno:SelectAll", nullptr, true);
     std::unique_lock<std::mutex> lock(gPartTextAwait.mutex);
     const bool landed = gPartTextAwait.condition.wait_for(
         lock, std::chrono::milliseconds(kPartTextSelectAllDeadlineMs),
         [] { return gPartTextAwait.done; });
     gPartTextAwait.active = false;
-#ifdef OXSDK_ODS_VIEWER_V2
-    selectAllWaitMs = static_cast<int>(
-        std::chrono::duration_cast<std::chrono::milliseconds>(
-            std::chrono::steady_clock::now() - started)
-            .count());
-#endif
     return landed;
+#endif
   }
   bool text(std::string &out) {
     char *used = nullptr;

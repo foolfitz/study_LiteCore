@@ -19,6 +19,10 @@ check.  Each edit must match exactly once.
   part-after-assumed      partAfter is the part asked for, not read      -> X6 fails
   empty-sheet-is-an-error an empty sheet's null text becomes an error    -> X5 fails
   empty-sheet-not-flagged the empty text is not flagged                  -> X5 fails
+  no-redispatch           a SelectAll not dispatched is not posted again  -> D1 fails
+  deadline-ignored        posts go on past the deadline                   -> D2 fails
+  redispatch-after-dispatch  an unconfirmed dispatched SelectAll is posted again -> D3 fails
+  await-full-deadline     a late dispatch is awaited for the whole deadline -> D4 fails
 
 Usage: python3 -I tests/ods_viewer_mutations.py [--cxx g++]
 Exit 0 only when the control passes and every mutation is red as required.
@@ -93,6 +97,23 @@ MUTATIONS = {
         '  result.partAfter = document.part();\n',
         '  result.partAfter = result.partBefore;\n',
         'FAIL X6'),
+    # SPEC-M4-viewer-v2 8 (finding 160): selectAllUntilDispatched.
+    'no-redispatch': (
+        '    ++attempt.dispatchFailures;\n    if (poster.elapsedMs() + pauseMs >= deadlineMs)\n',
+        '    ++attempt.dispatchFailures;\n    if (true)\n',
+        'FAIL D1 confirmed once a post was dispatched'),
+    'deadline-ignored': (
+        '    if (poster.elapsedMs() + pauseMs >= deadlineMs)\n',
+        '    if (attempt.dispatchFailures > 1000)\n',
+        'FAIL D2 four posts'),
+    'redispatch-after-dispatch': (
+        '      attempt.confirmed = poster.await(left > 0 ? left : 0);\n      return attempt;\n',
+        '      attempt.confirmed = poster.await(left > 0 ? left : 0);\n      if (attempt.confirmed)\n        return attempt;\n      continue;\n',
+        'FAIL D3 a dispatched SelectAll is not posted again'),
+    'await-full-deadline': (
+        '      attempt.confirmed = poster.await(left > 0 ? left : 0);\n',
+        '      attempt.confirmed = poster.await(deadlineMs);\n',
+        'FAIL D4 awaited for what is left'),
 }
 
 
