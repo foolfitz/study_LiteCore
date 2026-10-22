@@ -13,3 +13,11 @@ Readings, written before the run:
 - **N2** -- unconfirmed reads occur with an empty `dispatchError` (control holding): the command was dispatched and its result did not come within 10 s; `lateBeforeThisReply` / `lateAfterLastRead` say whether it came later. The hypothesis does not hold for those reads.
 - **N3** -- no unconfirmed read in five passes: not reproduced natively (wasm-only, or rarer here). The cause has to be measured on wasm: a link carrying the same `getError()` record.
 - A mix is reported as a mix. Nothing here is a gate.
+
+## Result (11:09-11:17 CST; `reads.jsonl`, `probe.err`, `runs.txt`)
+
+1,530 document lines (306 files x 5 rounds; 15 did not load -- three files x five, the corpus's unloadable ones). **Control holds 1,515 of 1,515**: the command nothing provides was reported `Failed to dispatch` every time. **2,410 reads: 0 unconfirmed, 0 with `Failed to dispatch .uno:SelectAll`, 0 other dispatch errors**; confirmed waits at most 182 ms (p99 66); late results 0.
+
+Reading, as written: **N3 -- not reproduced natively.** At wasm's rate (3 of 1,392, about 0.22 %) about 5 would be expected in 2,410; seeing 0 has a probability of about 0.5 % [inferred: Poisson]. So the failed dispatch is wasm's, or far rarer natively; it is not shown to be LOK's own behaviour, and nothing goes upstream on this. The wasm side already carries the signal in the existing reports (LOK's own warning line), and the fix link (spec §8) adds the engine's line beside it.
+
+The probe binary is not kept (rebuilt by `run.sh` from `wasm_sdk_probe/tools/probe_160_native.cpp`).

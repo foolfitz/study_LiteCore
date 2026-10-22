@@ -62,3 +62,7 @@ Calc 的 `queryDispatch` 查的是靜態的 slot pool，不依賴殼層堆疊，
 **修法的方向**：引擎在每次 post 之後讀 `getError()`；是 `Failed to dispatch .uno:SelectAll` 就稍等再送，直到期限。訊號是 LOK 自己給的那一句，不靠回呼、
 不靠計時。另一條路是核心 patch（`doc_postUnoCommand` 改派送到文件自己的 frame），比較乾淨，但要重建核心；先不走。
 原生對照在跑（`findings/evidence/m4-ods/viewer-v2/160-native/`），它決定這是不是 LOK 本身的行為（可送上游；上游送出仍擱置）。
+
+**原生對照（2026-10-22）**：`build-native-26-8`（同一個 commit、多執行緒 LOK）5 趟全語料 2,410 次讀取，**0 次未確認、0 次派送失敗**，正向對照 1,515／1,515
+（`findings/evidence/m4-ods/viewer-v2/160-native/`）。照 wasm 的比率約該看到 5 次〔推論：Poisson，看到 0 的機率約 0.5%〕。結論：派送失敗是 wasm 上的
+（或原生罕見得多），**沒有證明是 LOK 本身的行為，不列上游**。修法照 SPEC-M4-viewer-v2 §8 走引擎（重送未派送的 SelectAll）。
