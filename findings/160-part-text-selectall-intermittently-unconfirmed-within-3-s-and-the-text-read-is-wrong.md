@@ -26,3 +26,19 @@ A4.7 把 `part_text` 改成「最多等 SelectAll 的 `UNO_COMMAND_RESULT` 3 秒
 - 把 `kPartTextSelectAllDeadlineMs` 拉長或改成「等到選取真的存在」（讀回 `getTextSelection` 非空或 `SelectAll` 的 state 變化）要**連結**；
   排進下一個檢視連結（與 finding 157 的 `part_info` 同批）。
 - 在那之前，若要量發生率：同一份全語料再跑 N 次、數 `selectAllConfirmed: false` 的次數。
+
+## 10 秒的期限沒有用（2026-10-22，`ods-viewer-v2` `e96e01ec`）
+
+v2 把期限拉到 10 s，回覆帶 `selectAllWaitMs` 與 `lateSelectAllResults`（SPEC-M4-viewer-v2 §3.3）。全語料 ×3（`findings/evidence/m4-ods/viewer-v2/fallback-phase-e/full-corpus/`）：
+
+- 未確認 **0、2、1／464**：`tdf115655_HideDetail.ods`、`tdf125938_anchor_after_copy_paste.ods`、`tdf137082_LTR_arrow_image.ods`，都是 part 0、都等滿 10,001 ms。
+  與 10-20 那兩筆不是同一批檔——間歇、不挑檔〔已觀察〕。
+- 已確認的 1,389 次等待最多 **106 ms**；106 ms 到 10 s 之間 0 次。v1（3 s）2／1,392，v2（10 s）3／1,392。
+- **假說一（3 秒在負載下不夠）駁倒**〔推論，強〕：如果只是慢，拉長期限會救回一些；一筆都沒有，時間分布是兩極的。**假說二留著**：SelectAll 偶爾
+  不回 `UNO_COMMAND_RESULT`，或晚得遠超過 10 s。
+- `lateSelectAllResults` 分不出這兩者：每份檔一顆新引擎，計數器在每份檔的最後一讀之後是瞎的；同一份檔的下一讀期間晚到的結果會被當成下一讀的確認
+  （`notePartTextUnoResult` 只比對 payload 有沒有 `.uno:SelectAll`）。SPEC-M4-viewer-v2 §7.7。
+
+**下一步（要連結）**：不要再靠拉長期限。候選：等到選取真的存在（`getTextSelection` 非空，或 SelectAll 的狀態變化）、或逾時後重送一次 SelectAll；
+要分「晚到／沒來」就要讓計數器在關檔前看得到（例如關檔時把未認領的結果數放進最後一個回覆），並且讓結果帶得出它是哪一次的請求。產品不呼叫
+`partText`，所以這仍是 E3 儀器與 SDK 能力的問題。
