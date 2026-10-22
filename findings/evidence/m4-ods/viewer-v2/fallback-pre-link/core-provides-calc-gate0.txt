@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "release": "core-build-capability",
+  "coreBuild": "../wasm-lite/build-a11y-gate0",
+  "capabilities": [
+    {
+      "capability": "calc-spreadsheet",
+      "why": "Opening an ODS needs the Calc document shell, the ODS importer, the document model and the LOK part/tile entry points.  A core built with --with-wasm-module=writer has none of them: the module's directories are not even in the build.  This asks whether the objects that ARE that capability exist, are linked, and are registered; it does not claim to have opened a spreadsheet.",
+      "objectsCompiled": true,
+      "missingObjects": [],
+      "makeVariable": "ENABLE_WASM_STRIP_CALC",
+      "makeVariableValue": "",
+      "makeVariableRequired": "",
+      "makeVariableAllows": true,
+      "disableDynloading": "TRUE",
+      "librariesLinked": true,
+      "missingLibraries": [],
+      "registered": true,
+      "missingRegistrations": [],
+      "provided": true
+    }
+  ],
+  "notProvidedByCoreBuild": [],
+  "ok": true
+}
+exit 0

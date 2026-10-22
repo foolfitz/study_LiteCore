@@ -1,0 +1,15 @@
+/* config_host/config_validation.h.  Generated from config_validation.h.in by configure.  */
+#pragma once
+
+/*
+ * Whether to use validation on files.
+ */
+#define HAVE_EXPORT_VALIDATION 0
+
+/*
+ * Whether to use export validation of binary formats (doc, xls, ppt)
+ *
+ * Requires installed Microsoft Office Binary File Format Validator
+ * https://www.microsoft.com/en-us/download/details.aspx?id=26794
+ */
+#define HAVE_BFFVALIDATOR 0

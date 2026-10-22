@@ -2750,6 +2750,10 @@ $(ODS_VIEWER_V1_BUILD) $(ODS_VIEWER_V1_DIST):
 #    `make ODS_VIEWER_V2_CORE=../wasm-lite/build-a11y-gate0 ...`; the engine
 #    then reads HAVE_FEATURE_DBCONNECTIVITY 0 from that core's config header and
 #    reports no form-controls bit, and the builder declares none.
+#    SINCE 2026-10-22 THE DEFAULT IS THE FALLBACK (section 7.1, the owner chose
+#    A): build-ods-viewer-v2 linked a6390eef, which cannot ship (F-3: forms
+#    need dbaccess's RowSet, files that open on v1 stop loading).  A link or a
+#    test-e2-c-static run that forgets the variable must not pick that core.
 #  * -DOXSDK_ODS_VIEWER_V2 on top of v1's defines: part_info (157), part_text's
 #    10 s wait with its wait fields (160), the form-controls bit (158-B).  Under
 #    v1's defines the sources preprocess to v1's tokens (checked 2026-10-21).
@@ -2762,7 +2766,7 @@ $(ODS_VIEWER_V1_BUILD) $(ODS_VIEWER_V1_DIST):
 #
 # THE WORKER IS PINNED: sdk/sdk-worker.js with partInfo and part-text's wait
 # fields.  Guarded from the first link.
-ODS_VIEWER_V2_CORE ?= ../wasm-lite/build-ods-viewer-v2
+ODS_VIEWER_V2_CORE ?= ../wasm-lite/build-a11y-gate0
 ODS_VIEWER_V2_BUILD := build/ods/viewer-v2
 ODS_VIEWER_V2_DIST := dist/profiles/ods-viewer-v2
 ODS_VIEWER_V2_SOURCES := src/sdk_api.cpp src/probe_engine.cpp src/unoembind_stub.cpp

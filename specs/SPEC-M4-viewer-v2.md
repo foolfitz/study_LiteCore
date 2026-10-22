@@ -342,3 +342,42 @@ v2 只帶 159（＋157、160）。步驟與讀法（先寫好）：
 | 日期 | 變更 |
 | --- | --- |
 | 2026-10-22 | 追加 §7.1：擁有者選 A（退路），步驟與預先寫好的讀法 |
+
+### 7.2 退路核心建好、連結前閘門對 gate0 重做（2026-10-22 追加）
+
+**第 1 步（擁有者，09:15–09:18，`make` exit 0，3 分鐘）**，證據 `findings/evidence/m4-ods/viewer-v2/fallback-core/`（README 有逐項）：
+
+- 照 §7.1 的讀法成立：K-2a、K-2b（80 個簽章，與離線集合相同）、K-2e 成立；**K-2c 不成立**（700 個建構子，沒有 `OFormsCollection`，scaddins 三個在）。
+  K-2f 登錄：`soffice.wasm` 149,208,138 → 149,236,537（+28,399）；`soffice.data` 不變。bridge 的 `exports` 雜湊不變，兩個 generated 檔換了。
+- **§7.1 預期「52 個設定檔全部相同」沒有逐字成立**：51 個標頭相同，`config_host.mk` 有一行不同，已讀：只有 `export PATH=` 的目錄**順序**
+  （擁有者 shell 的 `~/.cargo/bin`、`~/.deno/bin` 排到 nvm 前面）。被挪動的目錄之間沒有同名執行檔，任何查找找到的仍是同一支〔已觀察〕。判讀：不影響建置。
+- **預期外的觀察**：除了 bridge，`make` 還重編了 5 個 Writer 原始檔（`pagechg`、`frmform`、`porrst`、`fntcache`、`xmltble`），因為它們的 mtime
+  （09-25、09-26）比 gate0 的物件新。五個檔對 LO 的 HEAD `git diff` 都是空的、都不在 patch 清單裡；09-26 那一對正好是 `lo-submit` 的 tdf#173931 commit
+  動的原始碼——在這棵 worktree 套上又還原過。判讀：用的是與 v1 核心相同的原始碼〔由此推論：假設八月建 gate0 時它們就是 HEAD；舊物件已不在，無法直接比〕。
+  `build-headless-probe` 的這五個物件（08-01）也比原始碼舊，它下一次 `make` 一樣會重編。
+
+**第 2 步（我）**，證據 `findings/evidence/m4-ods/viewer-v2/fallback-pre-link/`：
+
+- 刪除前比對：`dist/profiles/ods-viewer-v2/` 六檔、`build/ods/viewer-v2/` 四個非物件檔與 `a6390eef` 封存逐位元相同，三個物件的雜湊記下。刪除由擁有者手動執行
+  （session 的 `rm -rf` 被 auto mode 擋下）。
+- **Makefile 的 `ODS_VIEWER_V2_CORE` 預設改成 `../wasm-lite/build-a11y-gate0`**（原本是 v2 樹）。理由：忘了帶變數的連結或 `test-e2-c-static` 不得選到
+  F-3 那顆不能出貨的核心（交接文件列的風險）。§7.1 第 3 步的指令照舊明寫變數，與預設相同。
+- 閘門全部成立：builder `--check --core gate0` 的正向對照 9901e9be 成立、base `6f7424a1`（v1 自己的 base）、對 v1 差異 0／0／0；`em++ -fsyntax-only`
+  三個單元 exit 0，`sdk_api.cpp` 讀到 `HAVE_FEATURE_DBCONNECTIVITY 0`；`make -k test-e2-c-static` exit 0；`check_core_build_provides --capability
+  calc-spreadsheet` exit 0；`make -n -B` 連結行與 v1 只差三個物件路徑、匯出清單路徑、輸出路徑（核心路徑已與 v1 相同），編譯行只差
+  `-DOXSDK_ODS_VIEWER_V2` 與物件路徑；凍結集合快照 1,527 檔（＝01 點那份 1,517 檔原封不動＋`a6390eef` 封存的 10 檔）。
+- 引擎原始碼、worker（`9c85043a`）、三支建構工具自 `a6390eef` 連結以來沒有改；手冊 §0 第 3、4 項沿用。
+
+**第 3 步（擁有者連結）之後的讀法（先寫好）**：
+
+1. 凍結集合 1,527 檔 `sha256sum -c` 通過，新檔只有 `dist/profiles/ods-viewer-v2/` 的六個。
+2. manifest：v1 的能力＋`part-info`，**沒有 `form-controls`**，bits **30771**（＝14387＋16384；`a6390eef` 是 63539）。
+3. base 是 `base-viewer-v2-no35.6f7424a1c1427ad7.data`。
+4. wasm：`search-result`、`partBefore`、`lateSelectAllResults`、`part-info` 在，`verified-caret-readback` 不在；`ScDocShell` 在，**`OFormsCollection` 0**；
+   probe.wasm 與 `a6390eef`、v1 都不同。堆疊常數 1,048,576 PASS；E1-C 完好。
+5. gzip 接近 v1（規則最後一行印出）。v1 的 `probe.wasm` 用規則那一行的量法今天量是 **47,972,102**；§5.3 引用的 47,987,215 與它差 15,113，出處未查。
+6. 以上任一條不成立就停手，先讀再往下。成立則封存為 `build/archive/ods-viewer-v2-<wasm sha8>-worker-9c85043a/`，Phase E 照 §7.1 第 4 步從頭跑。
+
+| 日期 | 變更 |
+| --- | --- |
+| 2026-10-22 | 追加 §7.2：退路核心的結果（`config_host.mk` 的 PATH 順序、五個 Writer 物件重編）、連結前閘門對 gate0 重做、Makefile 預設改 gate0、連結後的讀法 |

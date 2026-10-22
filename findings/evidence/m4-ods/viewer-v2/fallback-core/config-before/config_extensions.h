@@ -1,0 +1,16 @@
+/* config_host/config_extensions.h.  Generated from config_extensions.h.in by configure.  */
+#ifndef CONFIG_EXTENSION_UPDATE
+#define CONFIG_EXTENSION_UPDATE
+
+/* EXTENSIONS - Whether we have any extension mechanism at all
+ *
+ * Primarily intended for non-desktop platforms where supporting
+ * extensions can be complicated, or even prohibited by the OS (as on
+ * iOS).
+ */
+
+#define HAVE_FEATURE_EXTENSIONS 0
+
+#define ENABLE_EXTENSION_UPDATE 0
+
+#endif

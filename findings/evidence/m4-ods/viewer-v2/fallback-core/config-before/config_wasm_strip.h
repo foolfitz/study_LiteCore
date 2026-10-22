@@ -1,0 +1,15 @@
+/* config_host/config_wasm_strip.h.  Generated from config_wasm_strip.h.in by configure.  */
+#ifndef CONFIG_FEATURE_WASM_STRIP_H
+#define CONFIG_FEATURE_WASM_STRIP_H
+
+#define ENABLE_WASM_STRIP_ACCESSIBILITY 0
+#define ENABLE_WASM_STRIP_CHART 0
+#define ENABLE_WASM_STRIP_EXTRA 1
+#define ENABLE_WASM_STRIP_HUNSPELL 0
+#define ENABLE_WASM_STRIP_PINGUSER 1
+#define ENABLE_WASM_STRIP_PREMULTIPLY 1
+#define ENABLE_WASM_STRIP_RECENT 1
+#define ENABLE_WASM_STRIP_RECOVERYUI 1
+#define ENABLE_WASM_STRIP_SPLASH 1
+
+#endif

@@ -1,0 +1,106 @@
+{
+  "stage": "built",
+  "build": "/home/jiajun/LibreOffice/study_LiteCore/wasm-lite/build-a11y-gate0",
+  "ok": false,
+  "clauses": [
+    {
+      "clause": "K-2a",
+      "ok": true,
+      "hard": true,
+      "observed": {
+        "count": 80,
+        "missing": []
+      },
+      "expected": {
+        "contains": [
+          "didddi",
+          "diiii",
+          "diiiii",
+          "diiiiii"
+        ]
+      }
+    },
+    {
+      "clause": "K-2b",
+      "ok": true,
+      "hard": false,
+      "observed": {
+        "count": 80,
+        "extra": [],
+        "absent": []
+      },
+      "expected": {
+        "count": 80,
+        "file": "findings/evidence/m4-ods/phase-e/159-diagnosis/bridgegen-offline/signatures-scaddins.txt"
+      }
+    },
+    {
+      "clause": "K-2c",
+      "ok": false,
+      "hard": true,
+      "observed": {
+        "count": 700,
+        "absent": [
+          "com_sun_star_form_OFormsCollection_get_implementation"
+        ]
+      },
+      "expected": {
+        "contains": [
+          "com_sun_star_form_OFormsCollection_get_implementation",
+          "scaddins_AnalysisAddIn_get_implementation",
+          "scaddins_ScaDateAddIn_get_implementation",
+          "scaddins_ScaPricingAddIn_get_implementation"
+        ]
+      }
+    },
+    {
+      "clause": "K-2d",
+      "ok": true,
+      "hard": false,
+      "observed": [],
+      "expected": []
+    },
+    {
+      "clause": "K-2e",
+      "ok": true,
+      "hard": true,
+      "observed": {
+        "instdir/program/soffice.js.linkdeps": {
+          "bytes": 14232,
+          "sha256": "009301c394065b9e1e07118ed57e9be39032e95677cb625228c8378f9b9eb0ba"
+        },
+        "instdir/program/soffice.data": {
+          "bytes": 108527803,
+          "sha256": "15237566b8267e70132fd0da7b388f404934b892e08a2ba80167dbb64b9584df"
+        },
+        "instdir/program/soffice.data.js.metadata": {
+          "bytes": 180087,
+          "sha256": "25b75fd3e0d64ddca5601ead850d9cb08bc7b6ec0185684b4530b4f60baf2443"
+        },
+        "workdir/CustomTarget/static/emscripten_fs_image/soffice.data.js.link": {
+          "bytes": 17297,
+          "sha256": "87d5b286ebdadb7faa59b506135f0d7226a98fd7d1c9a0332584e5796954619a"
+        },
+        "workdir/CustomTarget/desktop/soffice_bin-emscripten-exports/exports": {
+          "bytes": 13427,
+          "sha256": "e9b54133db5c887b1c9558116f8b704c14a39874599c134c81a6345102beb81c"
+        }
+      },
+      "expected": "every file present and non-empty"
+    },
+    {
+      "clause": "K-2f",
+      "ok": true,
+      "hard": false,
+      "observed": {
+        "instdir/program/soffice.wasm": {
+          "build-a11y-gate0": 149236537
+        },
+        "instdir/program/soffice.data": {
+          "build-a11y-gate0": 108527803
+        }
+      },
+      "expected": "recorded beside build-a11y-gate0 (judged at link, F-2)"
+    }
+  ]
+}

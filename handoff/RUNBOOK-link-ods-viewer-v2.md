@@ -58,3 +58,42 @@ Phase E on v2 on the mirror (`run_ods_viewer_phase_e.py --profile ods-viewer-v2`
 
 Linked by the owner; §3 items 1–5 done the same night (spec §6, `findings/evidence/m4-ods/viewer-v2/post-link/`): probe.wasm `a6390eef…`, archived at `build/archive/ods-viewer-v2-a6390eef-worker-9c85043a/`, gzip 49,153,029. The make's closing `Error 1` was the gzip print line's quoting bug, after every check; fixed in the Makefile.
 
+
+---
+
+# Fallback F: the second link of `ods-viewer-v2`, on `build-a11y-gate0` (appended 2026-10-22)
+
+`a6390eef` cannot ship (SPEC-M4-viewer-v2 §7, F-3); the owner chose A, the fallback (§7.1). 159's bridge signatures were built into `wasm-lite/build-a11y-gate0` incrementally (`findings/evidence/m4-ods/viewer-v2/fallback-core/`), and this link puts v2's engine on that core. **A new link is a new identity**: nothing measured on `a6390eef` carries over.
+
+What differs from the first link: the core (gate0 has no DB connectivity, so the engine reads `HAVE_FEATURE_DBCONNECTIVITY 0`, reports no form-controls bit, and the builder declares none); the base pack is v1's own `6f7424a1`. Engine sources, worker `9c85043a` and the builder tools are unchanged. The Makefile's `ODS_VIEWER_V2_CORE` now defaults to gate0; the command below names it anyway.
+
+## F0. Gates before the link (redone against gate0; spec §7.2, `findings/evidence/m4-ods/viewer-v2/fallback-pre-link/`)
+
+1. ✅ Core: K-2a, K-2b, K-2e hold and K-2c does not (no forms); 51 config headers the same, `config_host.mk` differs only in PATH order (read).
+2. ✅ `dist/profiles/ods-viewer-v2/` and `build/ods/viewer-v2/` compared with the a6390eef archive, then deleted (stale objects carried `HAVE_FEATURE_DBCONNECTIVITY 1`).
+3. ✅ Builder `--check --core ../wasm-lite/build-a11y-gate0`: positive control 9901e9be, base `6f7424a1`, 0/0/0 against v1.
+4. ✅ `em++ -fsyntax-only`, three units, exit 0 against gate0's headers.
+5. ✅ `make -k test-e2-c-static` exit 0 with the gate0 default.
+6. ✅ The core provides Calc.
+7. ✅ `make -n -B`: link line differs from v1's only in object, export-list and output paths; compile lines only in `-DOXSDK_ODS_VIEWER_V2`.
+8. ✅ Frozen set: `fallback-pre-link/frozen-set-before.sha256`, 1,527 files.
+
+## F1. The link (**the owner's step**)
+
+```
+cd ~/LibreOffice/study_LiteCore/wasm_sdk_probe
+unset LOSRC LOBUILD EMSDK_ROOT EXTRA_DEFINES EXTRA_OBJECTS HOST_CXX
+make ALLOW_FROZEN_RELINK=1 ODS_VIEWER_V2_CORE=../wasm-lite/build-a11y-gate0 dist/profiles/ods-viewer-v2/sdk-manifest.json 2>&1 | tee build/link-ods-viewer-v2-gate0.log
+```
+
+- A few minutes, as before. One job at a time; §1 still holds (no other target, never the flag elsewhere).
+- Last line: `probe.wasm gzip: … (cap 52428800: within)`; expected near v1's 47,972,102.
+- If it stops with an error, stop there and tell the main session.
+
+## F2. Right after the link (the main session)
+
+Spec §7.2's readings, in order: frozen set (1,527 check; only the six new files); manifest without `form-controls`, bits 30771; base `6f7424a1`; markers, `ScDocShell` present, `OFormsCollection` 0, stack PASS, E1-C intact; archive as `build/archive/ods-viewer-v2-<wasm sha8>-worker-9c85043a/`; witnesses under `findings/evidence/m4-ods/viewer-v2/fallback-post-link/`. Any reading that fails: stop and read.
+
+## F3. After that
+
+Phase E from zero on the new identity (spec §7.1 step 4): the targeted run (ladder, fdo67682-2, 159's two files, the five control files refused per 158-A, **tdf138507 must open**), E6's B on v2, then the full corpus ×3 for V2-160. Then a new package and Phase H in a ddev slot the owner names.
