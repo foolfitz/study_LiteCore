@@ -42,3 +42,23 @@ v2 把期限拉到 10 s，回覆帶 `selectAllWaitMs` 與 `lateSelectAllResults`
 **下一步（要連結）**：不要再靠拉長期限。候選：等到選取真的存在（`getTextSelection` 非空，或 SelectAll 的狀態變化）、或逾時後重送一次 SelectAll；
 要分「晚到／沒來」就要讓計數器在關檔前看得到（例如關檔時把未認領的結果數放進最後一個回覆），並且讓結果帶得出它是哪一次的請求。產品不呼叫
 `partText`，所以這仍是 E3 儀器與 SDK 能力的問題。
+
+## 成因：SelectAll 根本沒派送出去（2026-10-22，從既有報告讀到）
+
+**已觀察**：6 趟全語料（v1 `f6ab3cdb` 三趟、v2 `e96e01ec` 三趟）共 5 次未確認，**每一次**那份檔的引擎 stderr 都有
+`warn:lok:…:desktop/source/lib/init.cxx:285: lok exception 'Failed to dispatch .uno:SelectAll'`；其他任何一份檔、任何一趟都沒有這一行。
+一對一：`133240Z` 2／2、`023406Z` 2／2、`024415Z` 1／1、其餘三趟 0／0（`messages` 欄，報告本來就記著）。
+
+- 所以不是「晚到」也不是「選取做了但通知丟了」：**指令沒有被派送**，沒有 listener 被呼叫、沒有結果、選取也沒做（`tdf125938` 等了 10 s 仍讀到 6／14 字）。
+- **暫時性的**：`tdf125938` 第 0 張表失敗後，第 1 張表的 SelectAll 成功（同一份 stderr 有它的 `UNO_COMMAND_RESULT`，`success: true`）。
+- 5 次都在 part 0（開檔後的第一次讀取）。讀取中約三分之二是 part 0，所以這只是傾向，不是證據。
+
+**為什麼派送會失敗**〔由原始碼推論，未量〕：`doc_postUnoCommand`（`desktop/source/lib/init.cxx:5514-5525`）用的是不帶 frame 的
+`comphelper::dispatchCommand`，它的目標是 `Desktop::getActiveFrame()`（`comphelper/source/misc/dispatchcommand.cxx`），沒有作用中的 frame 就退回 Desktop
+本身，找不到派送就回 false，LOK 記下 `Failed to dispatch`。設 Desktop 作用中 frame 的是 `SfxLokHelper::setView`（上游註解：「Make
+comphelper::dispatchCommand() find the correct frame」，`sfx2/source/view/lokhelper.cxx:231`），但目前的 view 已是它時會提早 return。
+Calc 的 `queryDispatch` 查的是靜態的 slot pool，不依賴殼層堆疊，所以「frame 不對」是最可能的那一個。
+
+**修法的方向**：引擎在每次 post 之後讀 `getError()`；是 `Failed to dispatch .uno:SelectAll` 就稍等再送，直到期限。訊號是 LOK 自己給的那一句，不靠回呼、
+不靠計時。另一條路是核心 patch（`doc_postUnoCommand` 改派送到文件自己的 frame），比較乾淨，但要重建核心；先不走。
+原生對照在跑（`findings/evidence/m4-ods/viewer-v2/160-native/`），它決定這是不是 LOK 本身的行為（可送上游；上游送出仍擱置）。
