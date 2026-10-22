@@ -14,3 +14,5 @@ The six redispatched reads (all part 0): `tdf103092_RotatedImage`, `tdf115655_Hi
 Reading (SPEC-M4-viewer-v2 §8.3, the first one): **160 is fixed** -- the redispatch was exercised (6 times) and worked every time. The judge's red cases: `judge-v2-160-d-selftest.txt` (9/9) and `judge-v2-160-d-red-on-e96e01ec.jsonl` (red on exactly e96e01ec's three failed-dispatch files).
 
 Not run here: E4b and E9 -- their runner drives the product page (`web/ods-viewer.html`), which names `ods-viewer-v1` and is deliberately not retargeted; they run once the page names v2 (the next package).
+
+**2026-10-23, after the page was re-pointed (SPEC-M4-viewer-v2 §9, `ffb6fe57`):** `e4b-e9/` -- E4b PASS (2/2), E9 PASS, the no-refit red case reproduced (E4b red with the 12 px). See `e4b-e9/README.md`.
