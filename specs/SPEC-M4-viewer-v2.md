@@ -602,3 +602,42 @@ worker 字面值、要求恰好一個；預設仍是 v1）——這是把 §4「
 | 日期 | 變更 |
 | --- | --- |
 | 2026-10-23 | 追加 §9.4：E4b、E9 在 v2 的產品頁上成立，紅案重現 |
+
+## 10. host 0.2.32：帶 v2 的引擎包（2026-10-23 追加；任何安裝與 Phase H 執行之前）
+
+### 10.1 package 與離線閘門（`findings/evidence/host-0.2.32/`）
+
+- 宿主：分支 `host-0.2.32`（`bffc7dc`）＝0.2.31（`421f4b8`）＋`info.xml` 的版本號。**宿主程式碼沒有改。**
+- 引擎包：`tools/package_m3_engine.py --app <worktree>`（schema `litecore-engine/3`），**buildId `80349a1a24cecb17`**，35 檔，340,275,823 B → gzip 116,503,128、zstd 83,956,258。
+  與 0.2.29–0.2.31 的 `1b4d6a1fc905fb8a` 逐檔比：**25 檔相同**（編輯器頁、`e2-editor-v22` 的 profile、共用的 SDK／排程器／CJK 包）；4 檔換了（`ods-viewer-app.js` `c2159481…`＝`ffb6fe57` 的頁面、
+  `viewer-shell/` 的 `ods-document-sdk.js`、`ods-viewer-session.js`、`w7-adapter.js`）；`profiles/ods-viewer-v1/` 六檔換成 `profiles/ods-viewer-v2/` 六檔，與 `aa576ce7` 的封存逐位元相同〔已觀察〕。
+  最大的 gzip 是檢視引擎的 wasm 47,971,896（上限 52,428,800），最大的 zstd 36,048,845（上限 45,000,000）。
+- 離線：packager `--selftest` 13／13；`check_m3_assets.py` 的 K0／Z0／H5-1 對這份 package **0 個問題**，22 個 package 紅案全紅（`offline-package-check.txt`）；
+  負對照：同一支檢查對 ddev 上現在的 0.2.31 package 回 22 個問題（K0-1 ×1、K0-2 ×10、Z0-1 ×10、Z0-4 ×1）。
+- `check_m3_assets.BUILD_ID` 改綁 `80349a1a24cecb17`（0.2.29 的前例：package 換了就改綁）。這是綁定，不是檢查的修改，§34 記 0／0。
+- 封存：`wasm_sdk_probe/build/archive/host-0.2.32-engine-80349a1a24cecb17/`（＋`ATTRIBUTION.md`）。
+
+### 10.2 安裝與退路
+
+- 安裝：`findings/evidence/host-0.2.32/install-0.2.32.sh`（手冊 `handoff/RUNBOOK-install-host-0.2.32.md`）：前提檢查（樹乾淨、HEAD `421f4b8`、ddev 上的 `engine/`＝0.2.29 的封存）→ `merge --ff-only host-0.2.32`
+  → `rsync --delete` 從封存換 package → `occ upgrade` → 不登入的 curl（期望不是 500）。
+- **退路只動 package**：0.2.32 與 0.2.31 的宿主程式碼只差版本號，所以把 `engine/` 用 `rsync --delete` 換回 `1b4d6a1f` 的封存，功能上就是 0.2.31，不用 `git reset`、
+  也不用 `occ`（Nextcloud 記的版本留在 0.2.32）。
+- **ddev 是共用的**：安裝與 Phase H 只在擁有者指定的時段跑（memory `ddev-is-shared-do-not-occupy`）。
+
+### 10.3 Phase H 在 0.2.32 上的判準與讀法（釘在任何執行之前）
+
+**判準**：SPEC-M4 §4 的 H1–H6 原文，不改、不新增；H4 照 10-21 的做法（H-154c／H-154o／H-155 兩個瀏覽器各 3 輪，`--require-h155` 判；`check_m3_host_entry.py --label shakedown`）。
+H5＝10.1 的離線閘門（已過）。H7 是擁有者的。宿主 Chrome 的 runner 在 `--password-store=basic` 底下跑，第一支就是 SPEC-M3-production-ui §17.27 殘留 1 的證人。
+
+**預先寫好的讀法**：
+
+| 結果 | 讀法與動作 |
+| --- | --- |
+| H1–H4、H6 全過 | 0.2.32 取代 0.2.31，成為日常用的未計數候選；H7 交擁有者（第一次開 .ods 與 ODT 都會重抓一次引擎檔，buildId 換了） |
+| 任何一條紅 | **先讀原始輸入**（第一個紅就是量測）；不在時段內改工具。照 10.2 換回 `1b4d6a1f`，記錄，停在 H7 之前 |
+| 只有 NOT_ESTABLISHED | 留著 0.2.32，登錄「未成立」，由擁有者決定 |
+
+| 日期 | 變更 |
+| --- | --- |
+| 2026-10-23 | 追加 §10：host 0.2.32 的 package、離線閘門、安裝與退路、Phase H 的判準與讀法，任何安裝與執行之前 |
