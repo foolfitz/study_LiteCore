@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """E4b and E9 of SPEC-M4-ods-in-nextcloud (§4, addendum 6 A6.3-A6.4): the real viewer page
-(web/ods-viewer.html, whose one worker literal names `ods-viewer-v1`), on a mirror, through the
-page's own file input and its own tab buttons.
+(web/ods-viewer.html, whose one worker literal names the profile under test: `ods-viewer-v1`, and
+`ods-viewer-v2` since SPEC-M4-viewer-v2 §9), on a mirror, through the page's own file input and its
+own tab buttons.
 
 What it does: mirrors dist/ with symlinks, writes the page and the viewer's shell modules into the
 MIRROR only (no retarget, no stack patch: the page is for this profile), serves it, opens it with
@@ -23,7 +24,9 @@ only, `if (session.refit()) {` into `if (false && session.refit()) {` -- today's
 re-measure -- and expects E4b RED on three-sheets-distinct; the report goes to <out>/red-cases/.
 
   run_ods_viewer_e4b_e9.py --selftest
-  run_ods_viewer_e4b_e9.py [--phase-e-report FILE] [--out DIR] [--red-case no-refit]
+  run_ods_viewer_e4b_e9.py [--profile ods-viewer-v2] [--phase-e-report FILE] [--out DIR] [--red-case no-refit]
+
+--profile names the profile the page must already name exactly once; the page is never retargeted.
 Report: findings/evidence/m4-ods/phase-e/e4b-e9/report-<UTC>.json
 """
 from __future__ import annotations
@@ -42,7 +45,7 @@ from pathlib import Path
 PROJECT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT / "tools"))
 from run_ods_viewer_draft_smoke import PAGE_FILES, preconditions          # noqa: E402
-from run_ods_viewer_phase_e import DISTINCT, sha256_bytes, utc_now       # noqa: E402
+from run_ods_viewer_phase_e import DISTINCT, PROFILES, sha256_bytes, utc_now  # noqa: E402
 
 PROFILE = "ods-viewer-v1"
 CORPUS = PROJECT / "test-docs" / "ods"
@@ -295,6 +298,7 @@ def mutate_no_refit(payload: bytes) -> bytes:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--selftest", action="store_true")
+    parser.add_argument("--profile", choices=PROFILES, default=PROFILE)
     parser.add_argument("--phase-e-report", type=Path, default=None, help="E5's tiles (default: the latest)")
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
     parser.add_argument("--red-case", choices=("no-refit",), default=None)
@@ -303,7 +307,7 @@ def main() -> int:
     if args.selftest:
         return selftest()
     gate = preconditions()
-    profile_manifest = PROJECT / "dist" / "profiles" / PROFILE / "sdk-manifest.json"
+    profile_manifest = PROJECT / "dist" / "profiles" / args.profile / "sdk-manifest.json"
     if not profile_manifest.is_file():
         raise SystemExit(f"{profile_manifest} does not exist: the viewer is not linked")
 
@@ -323,9 +327,9 @@ def main() -> int:
         out_dir = args.out / "red-cases"
     else:
         out_dir = args.out
-    literal = overrides["ods-viewer-app.js"].decode("utf-8").count(f'workerUrl: "./profiles/{PROFILE}/sdk-worker.js"')
+    literal = overrides["ods-viewer-app.js"].decode("utf-8").count(f'workerUrl: "./profiles/{args.profile}/sdk-worker.js"')
     if literal != 1:
-        raise SystemExit(f"the page names {PROFILE} {literal} times, want exactly 1 (no retarget here)")
+        raise SystemExit(f"the page names {args.profile} {literal} times, want exactly 1 (no retarget here)")
 
     scratch = Path(tempfile.mkdtemp(prefix="ods-e4b-e9-"))
     root = scratch / "root"
@@ -342,7 +346,7 @@ def main() -> int:
 
     report = {"schemaVersion": 1, "release": "m4-ods-e4b-e9", "spec": "specs/SPEC-M4-ods-in-nextcloud.md §4 E4b, E9; A6.3-A6.4",
               "evidenceClass": "red-case" if args.red_case else "gate",
-              "redCase": args.red_case, "startedAt": utc_now(), "profile": PROFILE, "preconditions": gate,
+              "redCase": args.red_case, "startedAt": utc_now(), "profile": args.profile, "preconditions": gate,
               "profileManifestSha256": sha256_bytes(profile_manifest.read_bytes()),
               "probeWasmSha256": sha256_bytes((profile_manifest.parent / "probe.wasm").read_bytes()),
               "workerSha256": sha256_bytes((profile_manifest.parent / "sdk-worker.js").read_bytes()),

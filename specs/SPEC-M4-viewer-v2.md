@@ -542,3 +542,48 @@ worker 字面值、要求恰好一個；預設仍是 v1）——這是把 §4「
 | 日期 | 變更 |
 | --- | --- |
 | 2026-10-22 | 追加 §8.5：`aa576ce7` 的 Phase E、160 修好、E4b／E9 待頁面改指 v2 |
+
+## 9. 產品頁改指 v2，E4b／E9 在 v2 上（2026-10-23 追加；任何頁面改動與 E4b／E9 執行之前）
+
+### 9.1 理由與改動
+
+`aa576ce7` 上，§4 與 §8.3 的判準除 E4b、E9 之外都在鏡像上成立（§8.5）。E4b、E9 量的是**產品頁自己的路**（頁面的 file input、頁面的 tab），
+而產品頁寫死 `ods-viewer-v1`，所以它們只能在頁面改指之後跑。宿主的 package 由頁面那**一個** worker 字面值推出頁面的閉包（SPEC-M4 §3.5、審查 C3），
+所以改這一行同時也是「下一個 package 帶 v2」的唯一入口：不從 URL 選 profile、不在 runner 裡改寫。
+
+- **產品改動**：`wasm_sdk_probe/web/ods-viewer-app.js` 的 `workerUrl` 由 `./profiles/ods-viewer-v1/sdk-worker.js` 改成 `./profiles/ods-viewer-v2/sdk-worker.js`；
+  它上方那句「Before `ods-viewer-v1` is linked…」的註解改寫成現況。其餘一個位元組不動。
+- **staging**：`make ods-viewer-assets`（只有 cp）。`dist/` 現在的檢視頁與 `viewer-shell/` 是 10-20 23:13 為 0.2.29 staged 的（v1 時代的殼層，沒有 157 的 part-info、
+  沒有 158-B 的 hook）；這次會一起換成原始碼的版本。§8.5 不受影響：Phase E 與 E6 的 runner 一直把殼層**原始碼**寫進鏡像（`overrides`），量的就是現在的殼層〔已觀察：`run_ods_viewer_phase_e.py` 的 docstring 與 `build_mirror` 的呼叫〕。
+- **測試**：`tests/ods-viewer-session.test.mjs`、`tests/ods-document-sdk.test.mjs`、`sdk/tests/sdk-worker-ods-viewer.test.mjs` 重跑；`make -k test-e2-c-static` 重跑（staging 之後，E7 的前提）。
+
+### 9.2 連帶效果（先寫下，改動之後核對）
+
+- `formControlsSupported()` 讀的是頁面 worker 旁邊的 manifest，也就是 v2 的：v2 沒有宣告 `form-controls`（退路，§7.1），所以有表單控制項的檔在產品頁上**照 158-A 拒絕**，與 §8.5 定向執行的 5 份相同。
+- v2 的 manifest 宣告 `part-info`：產品頁的 session 會問每張表是否可見，隱藏表的 tab 停用（V2-157 在 harness 的路上已過）。`three-sheets-distinct.ods` 沒有隱藏表，E9 的三個 tab 都應該是可用的。
+- 從 v1 的字面值改寫頁面的**連結前工具**——`run_ods_viewer_step1.py`、`run_ods_viewer_draft_smoke.py`（`retarget_page()`，錨點恰一次）——從此拒絕執行（錨點出現 0 次）。
+  它們是 v1 連結前的工具，結果已在證據裡；**不改**（fail closed 就是想要的行為）。
+- Phase E 與 E6 的 harness 頁（`ods-viewer-e-harness-app.js`、`ods-viewer-e6-harness-app.js`）各有自己的字面值，不受影響。
+
+### 9.3 E4b／E9 的執行
+
+- runner `tools/run_ods_viewer_e4b_e9.py` 加 `--profile`（`ods-viewer-v1`／`ods-viewer-v2`，預設 v1，與 `run_ods_viewer_e6_leak.py` 同形）。判讀一個位元組不動；
+  它照舊**拒絕**頁面沒有恰好一次指名該 profile 的情況（不改寫頁面）。§34：這是選項不是判讀改動，記 +0（10-22b 給 E6 runner 加同一個選項時的記法）。
+- `--phase-e-report findings/evidence/m4-ods/viewer-v2/160-fix-phase-e/full-corpus/report-2026-10-22T032908Z.json`（`aa576ce7` 的第一趟全語料；E5 的 tile 從它取）。
+  runner 把那份報告的 `probeWasmSha256` 記進 `e5Reference`；它必須是 `aa576ce7…`，也必須等於這次執行自己記的 `probeWasmSha256`——讀報告時核對，不新增判讀。
+- `--out findings/evidence/m4-ods/viewer-v2/160-fix-phase-e/e4b-e9/`（runner 的預設是 v1 的計數目錄）。紅案 `--red-case no-refit` 在 v2 上跑一次，期望 E4b 紅在 `three-sheets-distinct.ods`。
+- **判準**：SPEC-M4 §4 的 E4b、E9 與追加 6 的 A6.3／A6.4，原文不改；計數語意照 §4（只對 `aa576ce7`）。
+
+**預先寫好的讀法**：
+
+| 結果 | 讀法 |
+| --- | --- |
+| E4b、E9 都過，紅案重現 | `aa576ce7` 的 E1–E9 在鏡像上能量的全部成立（E8′ 見 §7.2；E7 的前提——凍結集合、E1-C 完好——見 §7.3、§8.4，package 時由 H4／K0 再判）；可以打 package |
+| E4b 紅 | 頁面的 refit 在 v2 的引擎上不成立；停，讀 `afterOpen`／`afterScroll` 的原始值再說 |
+| E9 紅在 tile | 先核對 `e5Reference.probeWasmSha256` 與本次的是否同一顆 wasm；同一顆仍不等 → 頁面的路與 harness 的路畫出不同的圖，停 |
+| E9 紅在 read-back、tab 文字或 `adapterFallbacks` | 產品頁在 v2 上的行為與 harness 不同；停 |
+| 紅案沒重現 | 這支檢查在 v2 的頁面上沒有鑑別力；E4b 的綠不算數，不打包，查 |
+
+| 日期 | 變更 |
+| --- | --- |
+| 2026-10-23 | 追加 §9：產品頁改指 v2 的理由、改動與連帶效果；E4b／E9 在 v2 上的跑法與讀法，任何頁面改動與執行之前 |

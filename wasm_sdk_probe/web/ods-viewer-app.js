@@ -20,10 +20,12 @@ const params = new URLSearchParams(location.search);
 // URL literal (SPEC-M4 §3.5, §5.1; review C3) -- the packager's pattern must
 // match exactly once in this file, comments included: it derives the page's
 // closure from exactly that, and a profile picked from the URL would be a path
-// the host serves whatever its evidence.  Before `ods-viewer-v1` is linked, a
-// mirror run rewrites this literal in its OWN copy of the page, never here.
+// the host serves whatever its evidence.  A run on another profile rewrites
+// this literal in its OWN copy of the page, never here.  Re-pointed from
+// `ods-viewer-v1` to v2 (`aa576ce7`) once v2's Phase E held on the mirror
+// (SPEC-M4-viewer-v2 §9).
 const ENGINE_OPTIONS = Object.freeze({
-  workerUrl: "./profiles/ods-viewer-v1/sdk-worker.js",
+  workerUrl: "./profiles/ods-viewer-v2/sdk-worker.js",
   timeoutMs: 60000,
 });
 const OPEN_TIMEOUT_MS = Number.parseInt(params.get("openTimeoutMs") || "180000", 10);
