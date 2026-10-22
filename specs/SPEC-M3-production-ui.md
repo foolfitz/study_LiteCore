@@ -1330,3 +1330,9 @@ runner 一個位元組沒動。§34.4 仍是**因執行而修 6、因審核而�
 - **W3（登錄）**：31.8 秒（10-21 無旗標 33.8 秒），沒有 25 秒的停頓。
 
 §34.4：因執行而修 +1 照 §17.27 記，**46／27**。三條殘留照 §17.27 登錄，殘留 1 的見證是下一個擁有者指定時段的第一支宿主 Chrome runner。
+
+### 17.29 §17.27 殘留 1 的見證：宿主 runner 在旗標下登入正常（2026-10-23，只追加）
+
+擁有者指定的時段裡第一支宿主 Chrome runner：host 0.2.32 上的 `check_m4_host_viewer.py --label shakedown`（`findings/evidence/m4-ods/phase-h/shakedown/2026-10-22T174116+0000.json`）。
+它的瀏覽器是 `EventChrome`（`ChromeSession` 的子類別，帶 `--password-store=basic`）。兩支臂都登入成功（200 → `/apps/dashboard/`），之後靠 cookie 的 WebDAV GET 200，
+判讀 VIEWER HOST HOLDS。同一時段的 H-154／H-155 Chrome 臂與 `check_m3_host_entry.py` 的 Chrome 臂也全過。殘留 1 結案〔已觀察〕。細節在 SPEC-M4-viewer-v2 §10.4。

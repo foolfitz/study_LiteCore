@@ -36,3 +36,21 @@ Spec: `specs/SPEC-M4-viewer-v2.md` **§9** (page re-pointed; E4b/E9) and **§10*
 
 - This stretch: because of execution **+0**, because of review **+0** (`--profile` on the E4b/E9 runner is an option, the judges unchanged -- 10-22b's precedent; the BUILD_ID re-pin is a binding). Running total since 10-14b: **46 / 27.**
 - New, unreviewed: `findings/evidence/host-0.2.32/offline-package-check.py` (a one-off reader of check_m3_assets' own package scorer; its red cases are the existing 22 PACKAGE_CASES plus the live-package negative control), `chain-phase-h.sh` (0.2.29's chain with substitutions and two added steps), the install script's container guard (shown red on the real paused state).
+
+---
+
+## Addendum (01:50): the owner named the slot; 0.2.32 is installed and Phase H holds
+
+**First line now:** (a) **installed: host 0.2.32** (`bffc7dc`, main) on package **`80349a1a24cecb17`** (viewer `ods-viewer-v2` `aa576ce7`) -- it replaces 0.2.31 as the uncounted daily candidate; (b) archived as above; (c) nothing counted; (d) unchanged from the first line, `L-ods-editor-redownload-once` realised by this install.
+
+| when (CST) | what | record |
+| --- | --- | --- |
+| 01:39 | owner: 「A，我已停用和啟用了」 (fgp-nc stopped, litecore started) | -- |
+| 01:40:12 | step 0: running set {litecore}; KWallet `b false` | `host-0.2.32/README.md` |
+| 01:40:41-55 | `install-0.2.32.sh`: pre-checks held, `bffc7dc`, buildId `80349a1a24cecb17`, `litecore: 0.2.32`, both routes 401 | `install.txt` |
+| 01:41-01:49 | `chain-phase-h.sh`: **VIEWER HOST HOLDS** (H1, H2 + control + red arm, H3, H6); Apache log: only `profiles/ods-viewer-v2/` served, no v1; **H4**: H-154c/o/H-155 PASS x2 browsers x3, HOST_ENTRY LANDS | spec §10.4, `phase-h/shakedown/2026-10-22T174116+0000.json` |
+| -- | SPEC-M3-production-ui §17.27 residual 1 witnessed (login + cookie DAV under `--password-store=basic`) -- §17.29 | -- |
+
+The scratch worktree is removed (branch `host-0.2.32` stays, merged into main).
+
+**Next:** H7 is the owner's (runbook §7: `three-sheets-distinct.ods`; to see what changed, `upstream/functions.ods` and `upstream/fdo67682-2.ods`). Then the remaining open items of the first part's Next 4. §34.4 unchanged: **46 / 27**.

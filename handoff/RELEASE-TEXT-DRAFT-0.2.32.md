@@ -5,7 +5,7 @@
 > 怎麼讀：每一句宣稱後面附依據。**「已觀察」＝量過；「讀原始碼」＝沒量；「推論」＝從量過的東西推出來；「未量」＝沒有人量過。**
 >
 > **這是草稿，因為三件事還沒做：**
-> - **0.2.32 還沒裝到 ddev，Phase H 還沒跑**（要擁有者指定時段；`handoff/RUNBOOK-install-host-0.2.32.md`）。
+> - ~~0.2.32 還沒裝到 ddev，Phase H 還沒跑~~ → **2026-10-23 01:40 已裝，Phase H（H1–H4、H6）全過**（第 5 節）。
 > - **H7（擁有者親手點 .ods）還沒做。**
 > - **計數鏈 K 延後併批**：名義出貨版本仍是 **0.2.26**。
 >
@@ -17,8 +17,8 @@
 | 版本 | 宿主 commit | 引擎包 buildId | 檢視引擎 | 狀態 |
 |---|---|---|---|---|
 | 0.2.26 | `3c01876` | `f5f0df762e1855f2` | （沒有） | **名義出貨版本** |
-| 0.2.31 | `421f4b8` | `1b4d6a1fc905fb8a` | `ods-viewer-v1`（wasm `f6ab3cdb…`） | 目前 ddev 上的日常用未計數候選 |
-| **0.2.32** | `bffc7dc`（分支 `host-0.2.32`） | **`80349a1a24cecb17`** | **`ods-viewer-v2`（wasm `aa576ce7…`）** | **建好、離線檢查過、未安裝** |
+| 0.2.31 | `421f4b8` | `1b4d6a1fc905fb8a` | `ods-viewer-v1`（wasm `f6ab3cdb…`） | 前一個未計數候選（10-21 06:19 – 10-23 01:40 在 ddev 上） |
+| **0.2.32** | `bffc7dc` | **`80349a1a24cecb17`** | **`ods-viewer-v2`（wasm `aa576ce7…`）** | **未計數候選**。2026-10-23 01:40 裝在 ddev；Phase H 全過；取代 0.2.31 |
 
 - **宿主程式碼沒有改**，只改了版本號。〔已觀察：`git diff 421f4b8 bffc7dc` 只有 `appinfo/info.xml` 一行〕
 - **ODT 編輯器一個位元組都沒動**：編輯器頁、`e2-editor-v22` 的 profile、共用的 SDK 與字型包，共 25 檔與 0.2.31 的 package 逐位元相同。〔已觀察：`findings/evidence/host-0.2.32/manifest-diff.txt`〕
@@ -66,14 +66,19 @@
 
 - **鏡像上（不經 Nextcloud），`aa576ce7`**：E1、E2、E4a、E5、E6、V2-157、V2-160、V2-160-D 全語料三趟都過；E3 只紅在 4.1 那一份；**E4b、E9 在產品頁自己的路上過**（頁面改指 v2 之後），E4b 的紅案在 v2 上照樣重現。〔已觀察：`160-fix-phase-e/README.md`、`160-fix-phase-e/e4b-e9/README.md`〕
 - **離線（H5）**：打包工具 selftest 13／13；K0／Z0／H5-1 對這份 package 0 個問題、22 個紅案全紅；同一支檢查對 0.2.31 的 package 紅 22 條（負對照）。〔已觀察：`findings/evidence/host-0.2.32/`〕
-- **Nextcloud 上：未量。**H1–H4、H6 要等安裝與擁有者指定的時段（第 6 節）。
+- **Nextcloud 上（0.2.32）**，Phase H（`findings/evidence/host-0.2.32/README.md`、`m4-ods/phase-h/shakedown/2026-10-22T174116+0000.json`）：
+  - **H1 過**：ODS 與 ODT 的列選單有 LiteCore 的動作，XLSX 與 PDF 沒有。
+  - **H2 過**：點 .ods 落在新位址的檢視路由；Apache log 對那個檔只有 GET 與 PROPFIND，瀏覽器只送 GET，ETag 與版本數不動。正對照：開 ODT 有 LOCK。紅案：偷拿鎖的宿主讓 H2 紅。
+  - **H3 過**：分頁 Alpha／Beta／Gamma 來自引擎、三個都可用，點 1、2、0 讀回 1、2、0。
+  - **H6 過**：檢視頁與編輯器頁都 200，COOP／COEP／CSP（去 nonce）相同。
+  - **宿主送的真的是 v2**：Apache log 在那個時窗只有 `profiles/ods-viewer-v2/` 的檔，沒有 v1 的請求。〔已觀察：`access-log-viewer-engine.txt`〕
+  - **H4 過**（編輯器那一半不變）：H-154c／H-154o／H-155 兩個瀏覽器各 3 輪全 PASS；`check_m3_host_entry.py`：HOST_ENTRY LANDS。
 - **沒證明**：「沒改的東西沒有被弄壞」——那是計數鏈 K，延後併批。〔未量〕
 
 ## 6. 「未量」彙整
 
 | 項目 | 怎麼量 |
 |---|---|
-| 安裝與 Phase H（H1–H4、H6） | 擁有者指定 ddev 時段；`install-0.2.32.sh` 幾秒、`chain-phase-h.sh` 約 10 分鐘（手冊 §1–5） |
 | **H7：擁有者親手點 .ods** | 上傳 `wasm_sdk_probe/test-docs/ods/ladder/three-sheets-distinct.ods`，點它：三個分頁 Alpha／Beta／Gamma，點 Beta 換成第二張。想看這一版的差別，再開 `upstream/functions.ods`（add-in 函數的格有值了）與 `upstream/fdo67682-2.ods`（隱藏表的分頁是灰的） |
 | 計數鏈 K | 擁有者排時段，延後併批 |
 | 158-B（表單控制項） | 另外的工作項（finding 158） |
@@ -83,3 +88,4 @@
 | 日期 | 內容 |
 |---|---|
 | 2026-10-23 凌晨 | 初稿：0.2.32 建好、離線檢查過、未安裝 |
+| 2026-10-23 01:50 | 0.2.32 已裝（01:40），Phase H 全過；版本表、第 5、6 節更新 |

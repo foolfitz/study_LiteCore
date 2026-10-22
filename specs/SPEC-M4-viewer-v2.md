@@ -641,3 +641,27 @@ H5＝10.1 的離線閘門（已過）。H7 是擁有者的。宿主 Chrome 的 r
 | 日期 | 變更 |
 | --- | --- |
 | 2026-10-23 | 追加 §10：host 0.2.32 的 package、離線閘門、安裝與退路、Phase H 的判準與讀法，任何安裝與執行之前 |
+
+### 10.4 安裝與 Phase H：0.2.32 成立（2026-10-23 追加）
+
+擁有者 01:39 給時段（停掉 fgp-nc、啟動 litecore）；01:40:12 `ddev list` 只有 litecore 在跑，錢包 `b false`。
+
+- **安裝**（`install-0.2.32.sh`，01:40:41–01:40:55，`install.txt`）：前提全部成立 → host `bffc7dc` → package `80349a1a24cecb17`（與封存只差 `ATTRIBUTION.md`）→ `litecore: 0.2.32`、
+  maintenance off → 兩條路由對不登入的 curl 回 401（不是 500）。
+- **Phase H**（`chain-phase-h.sh`，01:41:14–01:49:40，每步 exit 0）：
+  - `m4-ods/phase-h/shakedown/2026-10-22T174116+0000.json`：**VIEWER HOST HOLDS**，problems 空。H1：ODS 與 ODT 的列選單有 `litecore-open`，XLSX／PDF 沒有；
+    H2：落在 `r/80349a1a24cecb17-90d7bc2c/ods-viewer.html`，ODS 的 log 只有 GET 200、PROPFIND 207，瀏覽器只送 GET，ETag 與版本數不動；正對照的 ODT 有 LOCK；
+    紅案（偷拿鎖的宿主）LOCK 進了 log、ETag 變了；H3：Alpha／Beta／Gamma 來自引擎、三個都可用，點 1、2、0 讀回 1、2、0；H6：兩頁 200，COOP／COEP／CSP（去 nonce）相同。
+  - **宿主送的是 v2**：容器的 Apache access.log 在這個時窗只有 `profiles/ods-viewer-v2/` 的六個檔（兩支臂各一次，都 200），沒有任何 v1 的請求（`access-log-viewer-engine.txt`）〔已觀察〕。
+    H 的報告本身沒記 profile，這一條靠 log。
+  - **H4**：H-154c／H-154o／H-155 在 Chrome、Firefox 各 3 輪 PASS（`judge-h155.txt`）；`check_m3_host_entry.py --label shakedown`：HOST_ENTRY LANDS，
+    Chrome open-save 3/3、conflict 3/3、broken 1/1、broken-no-save 1/1，Firefox open-save 3/3、conflict 3/3（`m3-host-entry/shakedown/2026-10-22T174406Z.json`）。
+  - ODT 臂離開時的 UNLOCK 204＋500 是 finding 163（10-21 讀碼結案，files_lock 的），不判。
+- **SPEC-M3-production-ui §17.27 殘留 1 的見證**：H 的 runner（`EventChrome` → `ChromeSession`，帶 `--password-store=basic`）兩支臂都登入成功（200 → dashboard），
+  之後靠 cookie 的 DAV GET 200——旗標下宿主 runner 的登入與 cookie 正常。
+
+照 §10.3 第一列：**0.2.32 取代 0.2.31，成為日常用的未計數候選**；H7 交擁有者。
+
+| 日期 | 變更 |
+| --- | --- |
+| 2026-10-23 | 追加 §10.4：0.2.32 已裝、Phase H（H1–H4、H6）成立、宿主送的是 v2、§17.27 殘留 1 的見證 |

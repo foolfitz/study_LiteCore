@@ -36,3 +36,15 @@ Each switch of the package makes warm browsers fetch the engine files once more 
 ## Not done here
 
 The install (`install-0.2.32.sh`) and Phase H (`chain-phase-h.sh`): both touch ddev, which is shared; they wait for a slot the owner names. Runbook: `handoff/RUNBOOK-install-host-0.2.32.md`.
+
+## The slot's run (2026-10-23 01:39 onward; appended after the run)
+
+- The owner named the slot at 01:39 (stopped fgp-nc, started litecore). Step 0 at 01:40:12: `ddev list` running set {litecore} (nc-bridge paused, the rest stopped); KWallet `Locked` = `b false`; load 0.45.
+- **Install** (`install-0.2.32.sh`, 01:40:41-01:40:55, `install.txt`): every pre-check held; `merge --ff-only` → host HEAD `bffc7dc`; `rsync --delete` → live buildId `80349a1a24cecb17`, differs from the archive only by `ATTRIBUTION.md`; `occ upgrade` → `litecore: 0.2.32`, maintenance off; both routes 401 to the unauthenticated curl.
+- **Phase H** (`chain-phase-h.sh` with `WINDOW_END='2026-10-23 02:45'`, 01:41:14-01:49:40, `chain.log`; every step exit 0, no guard refusal):
+  - `h-viewer`: `findings/evidence/m4-ods/phase-h/shakedown/2026-10-22T174116+0000.json` -- **VIEWER HOST HOLDS**, no problems (H1, H2 + positive control + lock-taking red arm, H3, H6).
+  - The served engine is v2: `access-log-viewer-engine.txt` -- the container's Apache log in the window has the six `profiles/ods-viewer-v2/` files, once per arm, all 200, and no `ods-viewer-v1` request (the H report does not record the profile; the log does).
+  - `h155-chrome`, `h155-firefox`: H-154c, H-154o, H-155 PASS, 3 rounds each (`judge-h155.txt`, `h155/`).
+  - `host-entry`: HOST_ENTRY LANDS (`findings/evidence/m3-host-entry/shakedown/2026-10-22T174406Z.json`).
+- SPEC-M3-production-ui §17.27 residual 1: the H runner's Chrome (`EventChrome`, a `ChromeSession`, `--password-store=basic`) logged in on both arms (200 → dashboard) and its cookie-borne DAV GETs answered 200.
+- Reading (SPEC-M4-viewer-v2 §10.3, first row): 0.2.32 replaces 0.2.31 as the uncounted daily candidate. H7 is the owner's.
