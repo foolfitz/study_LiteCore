@@ -66,3 +66,9 @@ Calc 的 `queryDispatch` 查的是靜態的 slot pool，不依賴殼層堆疊，
 **原生對照（2026-10-22）**：`build-native-26-8`（同一個 commit、多執行緒 LOK）5 趟全語料 2,410 次讀取，**0 次未確認、0 次派送失敗**，正向對照 1,515／1,515
 （`findings/evidence/m4-ods/viewer-v2/160-native/`）。照 wasm 的比率約該看到 5 次〔推論：Poisson，看到 0 的機率約 0.5%〕。結論：派送失敗是 wasm 上的
 （或原生罕見得多），**沒有證明是 LOK 本身的行為，不列上游**。修法照 SPEC-M4-viewer-v2 §8 走引擎（重送未派送的 SelectAll）。
+
+## 已修（2026-10-22，`ods-viewer-v2` `aa576ce7`）
+
+引擎重送未派送的 SelectAll（SPEC-M4-viewer-v2 §8）。全語料 ×3：**0／1,392 未確認**；派送失敗 6 次，每次都被引擎記到、重送一次後確認（67–97 ms）；
+V2-160-D 三趟都過（`findings/evidence/m4-ods/viewer-v2/160-fix-phase-e/`）。6 次裡 4 次是之前失敗過的同一批檔、都在 part 0〔已觀察〕：失敗偏好某些檔，
+成因（Desktop 的作用中 frame 那一刻為什麼不在）仍只是推論，沒有量。狀態改為：**已修（v2 引擎），成因未量**。v1（`f6ab3cdb`）不修，照舊約 0.2%。
