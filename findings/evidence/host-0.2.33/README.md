@@ -29,3 +29,24 @@ Spec: `specs/SPEC-M4-viewer-v3.md` section 16. V3-SEE was confirmed by the owner
 If a Phase H criterion is red, read its raw data before taking the specified rollback: `bash findings/evidence/host-0.2.33/rollback-package.sh`. This restores only the engine from **host-0.2.32-engine-80349a1a24cecb17**; leave the host version at 0.2.33, with no reset/downgrade/occ. Both archives remain available.
 
 Installation/Phase H results will be appended after execution. H7 remains the owner's Files-path observation; the completed mirror V3-SEE does not replace it. Full count chain K remains batched and nominal shipped host remains 0.2.26.
+
+## Installed and machine Phase H holds, 2026-10-24 (supersedes preparation status)
+
+The owner requested autonomous execution while asleep, a handoff/stop at a work-unit boundary, and recording hard-to-judge results. `ddev-before-slot.json` showed no running project; the agent started only litecore and used the recorded 30-minute window, 01:13:48 to 01:43 Asia/Taipei (`slot.json`, spec section 18).
+
+- Install **01:14:31-01:14:44**: all real pre-checks held, main fast-forwarded to 4f7f870, live engine became a67beefefebe57d6, occ upgraded litecore to 0.2.33, maintenance disabled, both unauthenticated routes returned 401 (`install.txt`).
+- Phase H **01:15:14-01:23:42**, every step exit 0 (`chain.log`, `guard.log`, `phase-h-summary.json`):
+  - **H1/H2/H3/H6:** VIEWER HOST HOLDS, no problems. Raw report `findings/evidence/m4-ods/phase-h/shakedown/2026-10-23T171515+0000.json`; includes the ODT lock positive control and lock-taking-viewer red arm.
+  - The actual Apache window has **12 v3 profile requests, all 200**, no v2 profile request (`access-log-viewer-engine.txt`).
+  - **H4 dialogs:** Chrome and Firefox, three rounds each, H-154c/H-154o/H-155 all pass with --require-h155 (`h155/`, `judge-h155.txt`).
+  - **H4 host entry:** HOST_ENTRY LANDS, Chrome/Firefox open-save and conflict 3/3 each, both Chrome broken-host controls 1/1, no problems. Raw report `findings/evidence/m3-host-entry/shakedown/2026-10-23T171807Z.json`.
+  - **H5:** the prepared package's offline gates above hold; installed package matches the archive (`post-install-identity.txt`).
+- Result: **0.2.33 / a67beefefebe57d6 replaces 0.2.32 as the installed uncounted candidate**. No rollback was needed. No unresolved judgment question was encountered; no existing acceptance tool was changed.
+
+**H7 is pending**, because the owner is asleep: later open Files -> `M4 phase-h/M4 檢視 測試 plain.ods` (fileId 24674), verify Alpha/Beta/Gamma and switch tabs. The fixture folder is preserved for that observation. It is a later manual entry point, not an immediate request. K remains batched; nominal shipped host stays 0.2.26.
+
+## Stop/cleanup completed
+
+At 01:25 the agent stopped its litecore project. `ddev-after-stop.json` exactly matches every starting project status: litecore stopped, nc-bridge paused, all others stopped. The agent's 8794 preview server was terminated only after matching its recorded PID/command/root; the port is closed, the mirror files remain. The isolated worktree was removed only after verifying it was clean and its package matched the archive; main and branch host-0.2.33 remain at 4f7f870. `cleanup.json` records all of this. Both engine archives remain intact.
+
+Two routine orchestration corrections had no product impact: an initial root-repo git command was issued from the host cwd and failed without changes, then was rerun from the correct repo before installation; a post-run path reader was corrected to read the host-entry log's JSON record rather than a plain path. Neither changed a runner, criterion, report or verdict. Section 34.4 remains +0 / +0, cumulative 46 / 27.

@@ -11,3 +11,9 @@ The editor's entire derived page closure (22 files) is byte-identical to 0.2.32,
 A new package buildId gives engine files new URLs, so a browser will fetch that version on its next use; the editor bytes themselves are unchanged. The viewer remains read-only and accepts .ods only; encrypted ODS files are refused. The existing 157/159/160 fixes carry over.
 
 Mirror acceptance and offline package checks do not establish the new package's Nextcloud behavior. Phase H and the owner's later Files-path H7 must be reported separately. The rollback is the archived 0.2.32 engine package, while retaining the 0.2.33 host version.
+
+## Installation status, appended 2026-10-24
+
+0.2.33 was installed at 01:14 Asia/Taipei under the owner's sleeping/autonomous instruction. Machine H1-H6 pass, including the viewer host's read-only/headers/tab checks, Chrome/Firefox x3 dialog regressions, host-entry open/save/conflict, and the offline package gates. Apache records the v3 engine files, all 200. Evidence: `findings/evidence/host-0.2.33/README.md` and `phase-h-summary.json`.
+
+The installed version is an **uncounted candidate**, with the owner's Files-path **H7 still pending**. Full K remains batched. The agent stopped litecore after testing, restoring the initial stopped state; it retains the installed package and data and is available on the next ddev start. No immediate manual task is requested while the owner sleeps.
