@@ -1,0 +1,2463 @@
+{
+ "schemaVersion": 1,
+ "release": "m4-ods-growth-probe",
+ "spec": "specs/SPEC-M4-viewer-v2.md §11",
+ "evidenceClass": "probe (record-only)",
+ "level": "sdk",
+ "startedAt": "2026-10-23T062735Z",
+ "profile": "ods-viewer-v2",
+ "preconditions": {
+  "wallet": "b false",
+  "chromeProcessCount": 2,
+  "chromeProcessesSample": [
+   "8204 /snap/brave/698/opt/brave.com/brave/chrome_crashpad_handler --monitor-self --monitor-self-annotation=ptype=crashpad-handler --user-stre",
+   "8206 /snap/brave/698/opt/brave.com/brave/chrome_crashpad_handler --no-periodic-tasks --monitor-self-annotation=ptype=crashpad-handler --data"
+  ],
+  "load1": 1.13,
+  "ok": false,
+  "reasons": [
+   "2 Chrome process(es) already running",
+   "1-minute load 1.13 is not below 1.0"
+  ]
+ },
+ "profileManifestSha256": "fa54c32cbc028c07f42a223b701d41ea49aedccb82da19f83ca9a5737a08599f",
+ "probeWasmSha256": "aa576ce7bfdad404fdd23c0b7e22c0cbb57c2299515361de7cf9774bd4640c38",
+ "workerSha256": "9c85043ac7618e38062c1d0168a982708a16c930bdf8a422a67190222a888d84",
+ "pageFiles": {
+  "viewer-shell/ods-viewer-session.js": "87ca7ea65566f3717f11f1702b8f2c7c7f0009afc4366cda208069ac500dd757",
+  "viewer-shell/w7-adapter.js": "79e86a32df3049482aaa5610d1d642d021554c4b42bfedd43a980b8e23ead17d",
+  "viewer-shell/viewer-error.js": "237dad413606f1a55a8b7a5dcde9930b3ace14d532bb87edc7c1a7062771765d",
+  "viewer-shell/odf-package-probe.js": "5d6f025b903c6033f4756223f545cef4f8862862f4bfb6e840fe398b7e7d118e",
+  "viewer-shell/ods-document-sdk.js": "595b9a7b35bdfee9a0dd72c4b622a0dae0d564277e39483cd5e7c3fdabbaa0b5",
+  "ods-viewer-growth-probe.html": "14e4cdeb4f55a8ccb67275a09a41bf379d786a2b99039a20b1813fb3f2c316aa",
+  "ods-viewer-growth-probe-app.js": "1a0c7eef9a2412052f9e8167a866ccbea1307551d4af32bd904dce742db540d4",
+  "ods-growth-plan.json": "5551ea29f30db2bc78e2dd8a681b2db15a6e5b572f338bc073a70c9cd89b11af"
+ },
+ "repeats": 2,
+ "arms": {
+  "paint": {
+   "path": "ladder/numeric-100k.ods",
+   "k": [
+    0,
+    200,
+    800,
+    3200
+   ]
+  },
+  "switch": {
+   "path": "ladder/three-sheets-distinct.ods",
+   "k": [
+    0,
+    60,
+    240,
+    960
+   ]
+  },
+  "control": {
+   "path": "ladder/three-sheets-distinct.ods",
+   "k": [
+    1
+   ]
+  }
+ },
+ "staged": [
+  {
+   "path": "ladder/numeric-100k.ods",
+   "sha256": "13b5b572b82cfbb15adcb77271b7f604160da5d5433265f1fdc0e77798dc26b2",
+   "bytes": 615493
+  },
+  {
+   "path": "ladder/three-sheets-distinct.ods",
+   "sha256": "0402e52724cb5bbd3046461a5fb1c40b9431b33f20834136a835a68f3123e750",
+   "bytes": 7537
+  }
+ ],
+ "plan": [
+  {
+   "arm": "paint",
+   "path": "ladder/numeric-100k.ods",
+   "name": "numeric-100k.ods",
+   "file": "./ods-growth-cases/000/numeric-100k.ods",
+   "k": 0,
+   "repeat": 1
+  },
+  {
+   "arm": "paint",
+   "path": "ladder/numeric-100k.ods",
+   "name": "numeric-100k.ods",
+   "file": "./ods-growth-cases/000/numeric-100k.ods",
+   "k": 200,
+   "repeat": 1
+  },
+  {
+   "arm": "paint",
+   "path": "ladder/numeric-100k.ods",
+   "name": "numeric-100k.ods",
+   "file": "./ods-growth-cases/000/numeric-100k.ods",
+   "k": 800,
+   "repeat": 1
+  },
+  {
+   "arm": "paint",
+   "path": "ladder/numeric-100k.ods",
+   "name": "numeric-100k.ods",
+   "file": "./ods-growth-cases/000/numeric-100k.ods",
+   "k": 3200,
+   "repeat": 1
+  },
+  {
+   "arm": "switch",
+   "path": "ladder/three-sheets-distinct.ods",
+   "name": "three-sheets-distinct.ods",
+   "file": "./ods-growth-cases/001/three-sheets-distinct.ods",
+   "k": 0,
+   "repeat": 1
+  },
+  {
+   "arm": "switch",
+   "path": "ladder/three-sheets-distinct.ods",
+   "name": "three-sheets-distinct.ods",
+   "file": "./ods-growth-cases/001/three-sheets-distinct.ods",
+   "k": 60,
+   "repeat": 1
+  },
+  {
+   "arm": "switch",
+   "path": "ladder/three-sheets-distinct.ods",
+   "name": "three-sheets-distinct.ods",
+   "file": "./ods-growth-cases/001/three-sheets-distinct.ods",
+   "k": 240,
+   "repeat": 1
+  },
+  {
+   "arm": "switch",
+   "path": "ladder/three-sheets-distinct.ods",
+   "name": "three-sheets-distinct.ods",
+   "file": "./ods-growth-cases/001/three-sheets-distinct.ods",
+   "k": 960,
+   "repeat": 1
+  },
+  {
+   "arm": "control",
+   "path": "ladder/three-sheets-distinct.ods",
+   "name": "three-sheets-distinct.ods",
+   "file": "./ods-growth-cases/001/three-sheets-distinct.ods",
+   "k": 1,
+   "repeat": 1
+  },
+  {
+   "arm": "paint",
+   "path": "ladder/numeric-100k.ods",
+   "name": "numeric-100k.ods",
+   "file": "./ods-growth-cases/000/numeric-100k.ods",
+   "k": 0,
+   "repeat": 2
+  },
+  {
+   "arm": "paint",
+   "path": "ladder/numeric-100k.ods",
+   "name": "numeric-100k.ods",
+   "file": "./ods-growth-cases/000/numeric-100k.ods",
+   "k": 200,
+   "repeat": 2
+  },
+  {
+   "arm": "paint",
+   "path": "ladder/numeric-100k.ods",
+   "name": "numeric-100k.ods",
+   "file": "./ods-growth-cases/000/numeric-100k.ods",
+   "k": 800,
+   "repeat": 2
+  },
+  {
+   "arm": "paint",
+   "path": "ladder/numeric-100k.ods",
+   "name": "numeric-100k.ods",
+   "file": "./ods-growth-cases/000/numeric-100k.ods",
+   "k": 3200,
+   "repeat": 2
+  },
+  {
+   "arm": "switch",
+   "path": "ladder/three-sheets-distinct.ods",
+   "name": "three-sheets-distinct.ods",
+   "file": "./ods-growth-cases/001/three-sheets-distinct.ods",
+   "k": 0,
+   "repeat": 2
+  },
+  {
+   "arm": "switch",
+   "path": "ladder/three-sheets-distinct.ods",
+   "name": "three-sheets-distinct.ods",
+   "file": "./ods-growth-cases/001/three-sheets-distinct.ods",
+   "k": 60,
+   "repeat": 2
+  },
+  {
+   "arm": "switch",
+   "path": "ladder/three-sheets-distinct.ods",
+   "name": "three-sheets-distinct.ods",
+   "file": "./ods-growth-cases/001/three-sheets-distinct.ods",
+   "k": 240,
+   "repeat": 2
+  },
+  {
+   "arm": "switch",
+   "path": "ladder/three-sheets-distinct.ods",
+   "name": "three-sheets-distinct.ods",
+   "file": "./ods-growth-cases/001/three-sheets-distinct.ods",
+   "k": 960,
+   "repeat": 2
+  },
+  {
+   "arm": "control",
+   "path": "ladder/three-sheets-distinct.ods",
+   "name": "three-sheets-distinct.ods",
+   "file": "./ods-growth-cases/001/three-sheets-distinct.ods",
+   "k": 1,
+   "repeat": 2
+  }
+ ],
+ "runs": [
+  {
+   "arm": "paint",
+   "path": "ladder/numeric-100k.ods",
+   "name": "numeric-100k.ods",
+   "file": "./ods-growth-cases/000/numeric-100k.ods",
+   "k": 0,
+   "repeat": 1,
+   "stages": [
+    {
+     "name": "open.begin",
+     "sbrk": 237752320
+    },
+    {
+     "name": "open.documentLoad",
+     "sbrk": 237752320
+    },
+    {
+     "name": "open.documentLoad-returned",
+     "sbrk": 261304320
+    },
+    {
+     "name": "open.initializeForRendering",
+     "sbrk": 261304320
+    },
+    {
+     "name": "open.registerCallback",
+     "sbrk": 261304320
+    },
+    {
+     "name": "open.query-metadata",
+     "sbrk": 261304320
+    },
+    {
+     "name": "document-destroy-enter",
+     "sbrk": 261304320
+    },
+    {
+     "name": "document-destroy-return",
+     "sbrk": 261304320
+    }
+   ],
+   "opsStartStage": 6,
+   "operations": 0,
+   "samples": [],
+   "rows": 6640,
+   "parts": 1,
+   "widthTwips": 26593,
+   "heightTwips": 25500000,
+   "error": null,
+   "workerCrashed": false,
+   "elapsedMs": 2214
+  },
+  {
+   "arm": "paint",
+   "path": "ladder/numeric-100k.ods",
+   "name": "numeric-100k.ods",
+   "file": "./ods-growth-cases/000/numeric-100k.ods",
+   "k": 200,
+   "repeat": 1,
+   "stages": [
+    {
+     "name": "open.begin",
+     "sbrk": 237752320
+    },
+    {
+     "name": "open.documentLoad",
+     "sbrk": 237752320
+    },
+    {
+     "name": "open.documentLoad-returned",
+     "sbrk": 261304320
+    },
+    {
+     "name": "open.initializeForRendering",
+     "sbrk": 261304320
+    },
+    {
+     "name": "open.registerCallback",
+     "sbrk": 261304320
+    },
+    {
+     "name": "open.query-metadata",
+     "sbrk": 261304320
+    },
+    {
+     "name": "document-destroy-enter",
+     "sbrk": 261304320
+    },
+    {
+     "name": "document-destroy-return",
+     "sbrk": 261304320
+    }
+   ],
+   "opsStartStage": 6,
+   "operations": 200,
+   "samples": [
+    {
+     "i": 0,
+     "x": 0,
+     "y": 0,
+     "ms": 25,
+     "nonPaper": 5280,
+     "bytes": 262144,
+     "sha256": "7da1badeda52"
+    },
+    {
+     "i": 100,
+     "x": 0,
+     "y": 96000,
+     "ms": 1.5,
+     "nonPaper": 6547,
+     "bytes": 262144,
+     "sha256": "b96a8bd878d9"
+    },
+    {
+     "i": 199,
+     "x": 11520,
+     "y": 188160,
+     "ms": 1,
+     "nonPaper": 4545,
+     "bytes": 262144,
+     "sha256": "8528d5184c30"
+    }
+   ],
+   "rows": 6640,
+   "parts": 1,
+   "widthTwips": 26593,
+   "heightTwips": 25500000,
+   "error": null,
+   "workerCrashed": false,
+   "elapsedMs": 1823
+  },
+  {
+   "arm": "paint",
+   "path": "ladder/numeric-100k.ods",
+   "name": "numeric-100k.ods",
+   "file": "./ods-growth-cases/000/numeric-100k.ods",
+   "k": 800,
+   "repeat": 1,
+   "stages": [
+    {
+     "name": "open.begin",
+     "sbrk": 237752320
+    },
+    {
+     "name": "open.documentLoad",
+     "sbrk": 237752320
+    },
+    {
+     "name": "open.documentLoad-returned",
+     "sbrk": 261304320
+    },
+    {
+     "name": "open.initializeForRendering",
+     "sbrk": 261304320
+    },
+    {
+     "name": "open.registerCallback",
+     "sbrk": 261304320
+    },
+    {
+     "name": "open.query-metadata",
+     "sbrk": 261304320
+    },
+    {
+     "name": "document-destroy-enter",
+     "sbrk": 261304320
+    },
+    {
+     "name": "document-destroy-return",
+     "sbrk": 261304320
+    }
+   ],
+   "opsStartStage": 6,
+   "operations": 800,
+   "samples": [
+    {
+     "i": 0,
+     "x": 0,
+     "y": 0,
+     "ms": 14.1,
+     "nonPaper": 5280,
+     "bytes": 262144,
+     "sha256": "7da1badeda52"
+    },
+    {
+     "i": 100,
+     "x": 0,
+     "y": 96000,
+     "ms": 1.2,
+     "nonPaper": 6547,
+     "bytes": 262144,
+     "sha256": "b96a8bd878d9"
+    },
+    {
+     "i": 200,
+     "x": 0,
+     "y": 192000,
+     "ms": 1.2,
+     "nonPaper": 6449,
+     "bytes": 262144,
+     "sha256": "ac256e2afdde"
+    },
+    {
+     "i": 300,
+     "x": 0,
+     "y": 288000,
+     "ms": 1.3,
+     "nonPaper": 6607,
+     "bytes": 262144,
+     "sha256": "ea5554a7a981"
+    },
+    {
+     "i": 400,
+     "x": 0,
+     "y": 384000,
+     "ms": 1.1,
+     "nonPaper": 6693,
+     "bytes": 262144,
+     "sha256": "9941e5e8f1ac"
+    },
+    {
+     "i": 500,
+     "x": 0,
+     "y": 480000,
+     "ms": 1,
+     "nonPaper": 7088,
+     "bytes": 262144,
+     "sha256": "59e1035947d3"
+    },
+    {
+     "i": 600,
+     "x": 0,
+     "y": 576000,
+     "ms": 1,
+     "nonPaper": 6888,
+     "bytes": 262144,
+     "sha256": "8bdfe82166fb"
+    },
+    {
+     "i": 700,
+     "x": 0,
+     "y": 672000,
+     "ms": 1.1,
+     "nonPaper": 7059,
+     "bytes": 262144,
+     "sha256": "b4b242d6247b"
+    },
+    {
+     "i": 799,
+     "x": 11520,
+     "y": 764160,
+     "ms": 1.4,
+     "nonPaper": 4545,
+     "bytes": 262144,
+     "sha256": "4d5943d46441"
+    }
+   ],
+   "rows": 6640,
+   "parts": 1,
+   "widthTwips": 26593,
+   "heightTwips": 25500000,
+   "error": null,
+   "workerCrashed": false,
+   "elapsedMs": 2121
+  },
+  {
+   "arm": "paint",
+   "path": "ladder/numeric-100k.ods",
+   "name": "numeric-100k.ods",
+   "file": "./ods-growth-cases/000/numeric-100k.ods",
+   "k": 3200,
+   "repeat": 1,
+   "stages": [
+    {
+     "name": "open.begin",
+     "sbrk": 237752320
+    },
+    {
+     "name": "open.documentLoad",
+     "sbrk": 237752320
+    },
+    {
+     "name": "open.documentLoad-returned",
+     "sbrk": 261304320
+    },
+    {
+     "name": "open.initializeForRendering",
+     "sbrk": 261304320
+    },
+    {
+     "name": "open.registerCallback",
+     "sbrk": 261304320
+    },
+    {
+     "name": "open.query-metadata",
+     "sbrk": 261304320
+    },
+    {
+     "name": "document-destroy-enter",
+     "sbrk": 263524352
+    },
+    {
+     "name": "document-destroy-return",
+     "sbrk": 263524352
+    }
+   ],
+   "opsStartStage": 6,
+   "operations": 3200,
+   "samples": [
+    {
+     "i": 0,
+     "x": 0,
+     "y": 0,
+     "ms": 13.9,
+     "nonPaper": 5280,
+     "bytes": 262144,
+     "sha256": "7da1badeda52"
+    },
+    {
+     "i": 100,
+     "x": 0,
+     "y": 96000,
+     "ms": 1,
+     "nonPaper": 6547,
+     "bytes": 262144,
+     "sha256": "b96a8bd878d9"
+    },
+    {
+     "i": 200,
+     "x": 0,
+     "y": 192000,
+     "ms": 1.2,
+     "nonPaper": 6449,
+     "bytes": 262144,
+     "sha256": "ac256e2afdde"
+    },
+    {
+     "i": 300,
+     "x": 0,
+     "y": 288000,
+     "ms": 1.3,
+     "nonPaper": 6607,
+     "bytes": 262144,
+     "sha256": "ea5554a7a981"
+    },
+    {
+     "i": 400,
+     "x": 0,
+     "y": 384000,
+     "ms": 1.1,
+     "nonPaper": 6693,
+     "bytes": 262144,
+     "sha256": "9941e5e8f1ac"
+    },
+    {
+     "i": 500,
+     "x": 0,
+     "y": 480000,
+     "ms": 1.2,
+     "nonPaper": 7088,
+     "bytes": 262144,
+     "sha256": "59e1035947d3"
+    },
+    {
+     "i": 600,
+     "x": 0,
+     "y": 576000,
+     "ms": 1.8,
+     "nonPaper": 6888,
+     "bytes": 262144,
+     "sha256": "8bdfe82166fb"
+    },
+    {
+     "i": 700,
+     "x": 0,
+     "y": 672000,
+     "ms": 1.3,
+     "nonPaper": 7059,
+     "bytes": 262144,
+     "sha256": "b4b242d6247b"
+    },
+    {
+     "i": 800,
+     "x": 0,
+     "y": 768000,
+     "ms": 1.5,
+     "nonPaper": 6972,
+     "bytes": 262144,
+     "sha256": "0fd3b83478d2"
+    },
+    {
+     "i": 900,
+     "x": 0,
+     "y": 864000,
+     "ms": 1.1,
+     "nonPaper": 7222,
+     "bytes": 262144,
+     "sha256": "f0a82841ea94"
+    },
+    {
+     "i": 1000,
+     "x": 0,
+     "y": 960000,
+     "ms": 1.2,
+     "nonPaper": 6709,
+     "bytes": 262144,
+     "sha256": "8ef255c1ead9"
+    },
+    {
+     "i": 1100,
+     "x": 0,
+     "y": 1056000,
+     "ms": 1,
+     "nonPaper": 6661,
+     "bytes": 262144,
+     "sha256": "04d117dd75c1"
+    },
+    {
+     "i": 1200,
+     "x": 0,
+     "y": 1152000,
+     "ms": 1,
+     "nonPaper": 6887,
+     "bytes": 262144,
+     "sha256": "678d4c8cbc4a"
+    },
+    {
+     "i": 1300,
+     "x": 0,
+     "y": 1248000,
+     "ms": 0.9,
+     "nonPaper": 7108,
+     "bytes": 262144,
+     "sha256": "e92a11641fa3"
+    },
+    {
+     "i": 1400,
+     "x": 0,
+     "y": 1344000,
+     "ms": 1.1,
+     "nonPaper": 6893,
+     "bytes": 262144,
+     "sha256": "8885bec42e6a"
+    },
+    {
+     "i": 1500,
+     "x": 0,
+     "y": 1440000,
+     "ms": 1,
+     "nonPaper": 7120,
+     "bytes": 262144,
+     "sha256": "1061a5f1e756"
+    },
+    {
+     "i": 1600,
+     "x": 0,
+     "y": 1536000,
+     "ms": 0.9,
+     "nonPaper": 7177,
+     "bytes": 262144,
+     "sha256": "0978c3f3b187"
+    },
+    {
+     "i": 1700,
+     "x": 0,
+     "y": 1632000,
+     "ms": 0.9,
+     "nonPaper": 6975,
+     "bytes": 262144,
+     "sha256": "35df2746b18b"
+    },
+    {
+     "i": 1800,
+     "x": 0,
+     "y": 1728000,
+     "ms": 1,
+     "nonPaper": 6942,
+     "bytes": 262144,
+     "sha256": "ff66fc65f076"
+    },
+    {
+     "i": 1900,
+     "x": 0,
+     "y": 1824000,
+     "ms": 0.8,
+     "nonPaper": 6854,
+     "bytes": 262144,
+     "sha256": "ea6b14ae8669"
+    },
+    {
+     "i": 2000,
+     "x": 0,
+     "y": 1920000,
+     "ms": 1,
+     "nonPaper": 6808,
+     "bytes": 262144,
+     "sha256": "1eb1454c8250"
+    },
+    {
+     "i": 2100,
+     "x": 0,
+     "y": 2016000,
+     "ms": 1,
+     "nonPaper": 6738,
+     "bytes": 262144,
+     "sha256": "8aaaf1a74b26"
+    },
+    {
+     "i": 2200,
+     "x": 0,
+     "y": 2112000,
+     "ms": 1,
+     "nonPaper": 7210,
+     "bytes": 262144,
+     "sha256": "b74cce755a3a"
+    },
+    {
+     "i": 2300,
+     "x": 0,
+     "y": 2208000,
+     "ms": 0.9,
+     "nonPaper": 7203,
+     "bytes": 262144,
+     "sha256": "4cce87a89a92"
+    },
+    {
+     "i": 2400,
+     "x": 0,
+     "y": 2304000,
+     "ms": 1,
+     "nonPaper": 7149,
+     "bytes": 262144,
+     "sha256": "a77dbd61aed5"
+    },
+    {
+     "i": 2500,
+     "x": 0,
+     "y": 2400000,
+     "ms": 1,
+     "nonPaper": 6852,
+     "bytes": 262144,
+     "sha256": "93b7a6002d6b"
+    },
+    {
+     "i": 2600,
+     "x": 0,
+     "y": 2496000,
+     "ms": 0.8,
+     "nonPaper": 7070,
+     "bytes": 262144,
+     "sha256": "de7344866d5f"
+    },
+    {
+     "i": 2700,
+     "x": 0,
+     "y": 2592000,
+     "ms": 1,
+     "nonPaper": 7184,
+     "bytes": 262144,
+     "sha256": "9077b915f48a"
+    },
+    {
+     "i": 2800,
+     "x": 0,
+     "y": 2688000,
+     "ms": 0.9,
+     "nonPaper": 7441,
+     "bytes": 262144,
+     "sha256": "cc157b991886"
+    },
+    {
+     "i": 2900,
+     "x": 0,
+     "y": 2784000,
+     "ms": 0.7,
+     "nonPaper": 7522,
+     "bytes": 262144,
+     "sha256": "3e41e72d7ac5"
+    },
+    {
+     "i": 3000,
+     "x": 0,
+     "y": 2880000,
+     "ms": 1.2,
+     "nonPaper": 7348,
+     "bytes": 262144,
+     "sha256": "312420a2b7d2"
+    },
+    {
+     "i": 3100,
+     "x": 0,
+     "y": 2976000,
+     "ms": 0.8,
+     "nonPaper": 7239,
+     "bytes": 262144,
+     "sha256": "eb896006edd9"
+    },
+    {
+     "i": 3199,
+     "x": 11520,
+     "y": 3068160,
+     "ms": 0.6,
+     "nonPaper": 4545,
+     "bytes": 262144,
+     "sha256": "0c182469e1b1"
+    }
+   ],
+   "rows": 6640,
+   "parts": 1,
+   "widthTwips": 26593,
+   "heightTwips": 25500000,
+   "error": null,
+   "workerCrashed": false,
+   "elapsedMs": 3341
+  },
+  {
+   "arm": "switch",
+   "path": "ladder/three-sheets-distinct.ods",
+   "name": "three-sheets-distinct.ods",
+   "file": "./ods-growth-cases/001/three-sheets-distinct.ods",
+   "k": 0,
+   "repeat": 1,
+   "stages": [
+    {
+     "name": "open.begin",
+     "sbrk": 236523520
+    },
+    {
+     "name": "open.documentLoad",
+     "sbrk": 236523520
+    },
+    {
+     "name": "open.documentLoad-returned",
+     "sbrk": 241872896
+    },
+    {
+     "name": "open.initializeForRendering",
+     "sbrk": 241872896
+    },
+    {
+     "name": "open.registerCallback",
+     "sbrk": 241872896
+    },
+    {
+     "name": "open.query-metadata",
+     "sbrk": 241872896
+    },
+    {
+     "name": "document-destroy-enter",
+     "sbrk": 241872896
+    },
+    {
+     "name": "document-destroy-return",
+     "sbrk": 241872896
+    }
+   ],
+   "opsStartStage": 6,
+   "operations": 0,
+   "samples": [],
+   "rows": 3,
+   "parts": 3,
+   "widthTwips": 26593,
+   "heightTwips": 13005,
+   "error": null,
+   "workerCrashed": false,
+   "elapsedMs": 1332
+  },
+  {
+   "arm": "switch",
+   "path": "ladder/three-sheets-distinct.ods",
+   "name": "three-sheets-distinct.ods",
+   "file": "./ods-growth-cases/001/three-sheets-distinct.ods",
+   "k": 60,
+   "repeat": 1,
+   "stages": [
+    {
+     "name": "open.begin",
+     "sbrk": 236523520
+    },
+    {
+     "name": "open.documentLoad",
+     "sbrk": 236523520
+    },
+    {
+     "name": "open.documentLoad-returned",
+     "sbrk": 241872896
+    },
+    {
+     "name": "open.initializeForRendering",
+     "sbrk": 241872896
+    },
+    {
+     "name": "open.registerCallback",
+     "sbrk": 241872896
+    },
+    {
+     "name": "open.query-metadata",
+     "sbrk": 241872896
+    },
+    {
+     "name": "document-destroy-enter",
+     "sbrk": 242540544
+    },
+    {
+     "name": "document-destroy-return",
+     "sbrk": 242540544
+    }
+   ],
+   "opsStartStage": 6,
+   "operations": 60,
+   "samples": [
+    {
+     "i": 0,
+     "part": 0,
+     "readBack": 0,
+     "ms": 16.8,
+     "nonPaper": 4817,
+     "bytes": 262144,
+     "sha256": "0a516b644c78"
+    },
+    {
+     "i": 59,
+     "part": 2,
+     "readBack": 2,
+     "ms": 2,
+     "nonPaper": 4810,
+     "bytes": 262144,
+     "sha256": "4b0ae6b9daa5"
+    }
+   ],
+   "rows": 3,
+   "parts": 3,
+   "widthTwips": 26593,
+   "heightTwips": 13005,
+   "error": null,
+   "workerCrashed": false,
+   "elapsedMs": 1404
+  },
+  {
+   "arm": "switch",
+   "path": "ladder/three-sheets-distinct.ods",
+   "name": "three-sheets-distinct.ods",
+   "file": "./ods-growth-cases/001/three-sheets-distinct.ods",
+   "k": 240,
+   "repeat": 1,
+   "stages": [
+    {
+     "name": "open.begin",
+     "sbrk": 236523520
+    },
+    {
+     "name": "open.documentLoad",
+     "sbrk": 236523520
+    },
+    {
+     "name": "open.documentLoad-returned",
+     "sbrk": 241872896
+    },
+    {
+     "name": "open.initializeForRendering",
+     "sbrk": 241872896
+    },
+    {
+     "name": "open.registerCallback",
+     "sbrk": 241872896
+    },
+    {
+     "name": "open.query-metadata",
+     "sbrk": 241872896
+    },
+    {
+     "name": "document-destroy-enter",
+     "sbrk": 242712576
+    },
+    {
+     "name": "document-destroy-return",
+     "sbrk": 242712576
+    }
+   ],
+   "opsStartStage": 6,
+   "operations": 240,
+   "samples": [
+    {
+     "i": 0,
+     "part": 0,
+     "readBack": 0,
+     "ms": 12.8,
+     "nonPaper": 4817,
+     "bytes": 262144,
+     "sha256": "0a516b644c78"
+    },
+    {
+     "i": 100,
+     "part": 1,
+     "readBack": 1,
+     "ms": 1.4,
+     "nonPaper": 4800,
+     "bytes": 262144,
+     "sha256": "6a84277c2152"
+    },
+    {
+     "i": 200,
+     "part": 2,
+     "readBack": 2,
+     "ms": 1.3,
+     "nonPaper": 4810,
+     "bytes": 262144,
+     "sha256": "4b0ae6b9daa5"
+    },
+    {
+     "i": 239,
+     "part": 2,
+     "readBack": 2,
+     "ms": 1.1,
+     "nonPaper": 4810,
+     "bytes": 262144,
+     "sha256": "4b0ae6b9daa5"
+    }
+   ],
+   "rows": 3,
+   "parts": 3,
+   "widthTwips": 26593,
+   "heightTwips": 13005,
+   "error": null,
+   "workerCrashed": false,
+   "elapsedMs": 2146
+  },
+  {
+   "arm": "switch",
+   "path": "ladder/three-sheets-distinct.ods",
+   "name": "three-sheets-distinct.ods",
+   "file": "./ods-growth-cases/001/three-sheets-distinct.ods",
+   "k": 960,
+   "repeat": 1,
+   "stages": [
+    {
+     "name": "open.begin",
+     "sbrk": 236523520
+    },
+    {
+     "name": "open.documentLoad",
+     "sbrk": 236523520
+    },
+    {
+     "name": "open.documentLoad-returned",
+     "sbrk": 241872896
+    },
+    {
+     "name": "open.initializeForRendering",
+     "sbrk": 241872896
+    },
+    {
+     "name": "open.registerCallback",
+     "sbrk": 241872896
+    },
+    {
+     "name": "open.query-metadata",
+     "sbrk": 241872896
+    },
+    {
+     "name": "document-destroy-enter",
+     "sbrk": 244330496
+    },
+    {
+     "name": "document-destroy-return",
+     "sbrk": 244330496
+    }
+   ],
+   "opsStartStage": 6,
+   "operations": 960,
+   "samples": [
+    {
+     "i": 0,
+     "part": 0,
+     "readBack": 0,
+     "ms": 13.3,
+     "nonPaper": 4817,
+     "bytes": 262144,
+     "sha256": "0a516b644c78"
+    },
+    {
+     "i": 100,
+     "part": 1,
+     "readBack": 1,
+     "ms": 1.5,
+     "nonPaper": 4800,
+     "bytes": 262144,
+     "sha256": "6a84277c2152"
+    },
+    {
+     "i": 200,
+     "part": 2,
+     "readBack": 2,
+     "ms": 1.3,
+     "nonPaper": 4810,
+     "bytes": 262144,
+     "sha256": "4b0ae6b9daa5"
+    },
+    {
+     "i": 300,
+     "part": 0,
+     "readBack": 0,
+     "ms": 1.6,
+     "nonPaper": 4817,
+     "bytes": 262144,
+     "sha256": "0a516b644c78"
+    },
+    {
+     "i": 400,
+     "part": 1,
+     "readBack": 1,
+     "ms": 1.6,
+     "nonPaper": 4800,
+     "bytes": 262144,
+     "sha256": "6a84277c2152"
+    },
+    {
+     "i": 500,
+     "part": 2,
+     "readBack": 2,
+     "ms": 2.1,
+     "nonPaper": 4810,
+     "bytes": 262144,
+     "sha256": "4b0ae6b9daa5"
+    },
+    {
+     "i": 600,
+     "part": 0,
+     "readBack": 0,
+     "ms": 1.3,
+     "nonPaper": 4817,
+     "bytes": 262144,
+     "sha256": "0a516b644c78"
+    },
+    {
+     "i": 700,
+     "part": 1,
+     "readBack": 1,
+     "ms": 1.8,
+     "nonPaper": 4800,
+     "bytes": 262144,
+     "sha256": "6a84277c2152"
+    },
+    {
+     "i": 800,
+     "part": 2,
+     "readBack": 2,
+     "ms": 1.3,
+     "nonPaper": 4810,
+     "bytes": 262144,
+     "sha256": "4b0ae6b9daa5"
+    },
+    {
+     "i": 900,
+     "part": 0,
+     "readBack": 0,
+     "ms": 1.5,
+     "nonPaper": 4817,
+     "bytes": 262144,
+     "sha256": "0a516b644c78"
+    },
+    {
+     "i": 959,
+     "part": 2,
+     "readBack": 2,
+     "ms": 1.4,
+     "nonPaper": 4810,
+     "bytes": 262144,
+     "sha256": "4b0ae6b9daa5"
+    }
+   ],
+   "rows": 3,
+   "parts": 3,
+   "widthTwips": 26593,
+   "heightTwips": 13005,
+   "error": null,
+   "workerCrashed": false,
+   "elapsedMs": 2455
+  },
+  {
+   "arm": "control",
+   "path": "ladder/three-sheets-distinct.ods",
+   "name": "three-sheets-distinct.ods",
+   "file": "./ods-growth-cases/001/three-sheets-distinct.ods",
+   "k": 1,
+   "repeat": 1,
+   "stages": [
+    {
+     "name": "open.begin",
+     "sbrk": 236523520
+    },
+    {
+     "name": "open.documentLoad",
+     "sbrk": 236523520
+    },
+    {
+     "name": "open.documentLoad-returned",
+     "sbrk": 241872896
+    },
+    {
+     "name": "open.initializeForRendering",
+     "sbrk": 241872896
+    },
+    {
+     "name": "open.registerCallback",
+     "sbrk": 241872896
+    },
+    {
+     "name": "open.query-metadata",
+     "sbrk": 241872896
+    },
+    {
+     "name": "document-destroy-enter",
+     "sbrk": 310661120
+    },
+    {
+     "name": "document-destroy-return",
+     "sbrk": 310661120
+    }
+   ],
+   "opsStartStage": 6,
+   "operations": 1,
+   "samples": [
+    {
+     "i": 0,
+     "px": 4096,
+     "ms": 163.3,
+     "nonPaper": 1168112,
+     "bytes": 67108864,
+     "sha256": "eaa2182d8d75"
+    }
+   ],
+   "rows": 3,
+   "parts": 3,
+   "widthTwips": 26593,
+   "heightTwips": 13005,
+   "error": null,
+   "workerCrashed": false,
+   "elapsedMs": 1602
+  },
+  {
+   "arm": "paint",
+   "path": "ladder/numeric-100k.ods",
+   "name": "numeric-100k.ods",
+   "file": "./ods-growth-cases/000/numeric-100k.ods",
+   "k": 0,
+   "repeat": 2,
+   "stages": [
+    {
+     "name": "open.begin",
+     "sbrk": 237752320
+    },
+    {
+     "name": "open.documentLoad",
+     "sbrk": 237752320
+    },
+    {
+     "name": "open.documentLoad-returned",
+     "sbrk": 261304320
+    },
+    {
+     "name": "open.initializeForRendering",
+     "sbrk": 261304320
+    },
+    {
+     "name": "open.registerCallback",
+     "sbrk": 261304320
+    },
+    {
+     "name": "open.query-metadata",
+     "sbrk": 261304320
+    },
+    {
+     "name": "document-destroy-enter",
+     "sbrk": 261304320
+    },
+    {
+     "name": "document-destroy-return",
+     "sbrk": 261304320
+    }
+   ],
+   "opsStartStage": 6,
+   "operations": 0,
+   "samples": [],
+   "rows": 6640,
+   "parts": 1,
+   "widthTwips": 26593,
+   "heightTwips": 25500000,
+   "error": null,
+   "workerCrashed": false,
+   "elapsedMs": 1837
+  },
+  {
+   "arm": "paint",
+   "path": "ladder/numeric-100k.ods",
+   "name": "numeric-100k.ods",
+   "file": "./ods-growth-cases/000/numeric-100k.ods",
+   "k": 200,
+   "repeat": 2,
+   "stages": [
+    {
+     "name": "open.begin",
+     "sbrk": 237752320
+    },
+    {
+     "name": "open.documentLoad",
+     "sbrk": 237752320
+    },
+    {
+     "name": "open.documentLoad-returned",
+     "sbrk": 261304320
+    },
+    {
+     "name": "open.initializeForRendering",
+     "sbrk": 261304320
+    },
+    {
+     "name": "open.registerCallback",
+     "sbrk": 261304320
+    },
+    {
+     "name": "open.query-metadata",
+     "sbrk": 261304320
+    },
+    {
+     "name": "document-destroy-enter",
+     "sbrk": 261304320
+    },
+    {
+     "name": "document-destroy-return",
+     "sbrk": 261304320
+    }
+   ],
+   "opsStartStage": 6,
+   "operations": 200,
+   "samples": [
+    {
+     "i": 0,
+     "x": 0,
+     "y": 0,
+     "ms": 13.7,
+     "nonPaper": 5280,
+     "bytes": 262144,
+     "sha256": "7da1badeda52"
+    },
+    {
+     "i": 100,
+     "x": 0,
+     "y": 96000,
+     "ms": 0.9,
+     "nonPaper": 6547,
+     "bytes": 262144,
+     "sha256": "b96a8bd878d9"
+    },
+    {
+     "i": 199,
+     "x": 11520,
+     "y": 188160,
+     "ms": 0.7,
+     "nonPaper": 4545,
+     "bytes": 262144,
+     "sha256": "8528d5184c30"
+    }
+   ],
+   "rows": 6640,
+   "parts": 1,
+   "widthTwips": 26593,
+   "heightTwips": 25500000,
+   "error": null,
+   "workerCrashed": false,
+   "elapsedMs": 1734
+  },
+  {
+   "arm": "paint",
+   "path": "ladder/numeric-100k.ods",
+   "name": "numeric-100k.ods",
+   "file": "./ods-growth-cases/000/numeric-100k.ods",
+   "k": 800,
+   "repeat": 2,
+   "stages": [
+    {
+     "name": "open.begin",
+     "sbrk": 237752320
+    },
+    {
+     "name": "open.documentLoad",
+     "sbrk": 237752320
+    },
+    {
+     "name": "open.documentLoad-returned",
+     "sbrk": 261304320
+    },
+    {
+     "name": "open.initializeForRendering",
+     "sbrk": 261304320
+    },
+    {
+     "name": "open.registerCallback",
+     "sbrk": 261304320
+    },
+    {
+     "name": "open.query-metadata",
+     "sbrk": 261304320
+    },
+    {
+     "name": "document-destroy-enter",
+     "sbrk": 261304320
+    },
+    {
+     "name": "document-destroy-return",
+     "sbrk": 261304320
+    }
+   ],
+   "opsStartStage": 6,
+   "operations": 800,
+   "samples": [
+    {
+     "i": 0,
+     "x": 0,
+     "y": 0,
+     "ms": 12.8,
+     "nonPaper": 5280,
+     "bytes": 262144,
+     "sha256": "7da1badeda52"
+    },
+    {
+     "i": 100,
+     "x": 0,
+     "y": 96000,
+     "ms": 0.8,
+     "nonPaper": 6547,
+     "bytes": 262144,
+     "sha256": "b96a8bd878d9"
+    },
+    {
+     "i": 200,
+     "x": 0,
+     "y": 192000,
+     "ms": 0.8,
+     "nonPaper": 6449,
+     "bytes": 262144,
+     "sha256": "ac256e2afdde"
+    },
+    {
+     "i": 300,
+     "x": 0,
+     "y": 288000,
+     "ms": 0.8,
+     "nonPaper": 6607,
+     "bytes": 262144,
+     "sha256": "ea5554a7a981"
+    },
+    {
+     "i": 400,
+     "x": 0,
+     "y": 384000,
+     "ms": 0.8,
+     "nonPaper": 6693,
+     "bytes": 262144,
+     "sha256": "9941e5e8f1ac"
+    },
+    {
+     "i": 500,
+     "x": 0,
+     "y": 480000,
+     "ms": 0.6,
+     "nonPaper": 7088,
+     "bytes": 262144,
+     "sha256": "59e1035947d3"
+    },
+    {
+     "i": 600,
+     "x": 0,
+     "y": 576000,
+     "ms": 0.9,
+     "nonPaper": 6888,
+     "bytes": 262144,
+     "sha256": "8bdfe82166fb"
+    },
+    {
+     "i": 700,
+     "x": 0,
+     "y": 672000,
+     "ms": 0.9,
+     "nonPaper": 7059,
+     "bytes": 262144,
+     "sha256": "b4b242d6247b"
+    },
+    {
+     "i": 799,
+     "x": 11520,
+     "y": 764160,
+     "ms": 0.7,
+     "nonPaper": 4545,
+     "bytes": 262144,
+     "sha256": "4d5943d46441"
+    }
+   ],
+   "rows": 6640,
+   "parts": 1,
+   "widthTwips": 26593,
+   "heightTwips": 25500000,
+   "error": null,
+   "workerCrashed": false,
+   "elapsedMs": 1961
+  },
+  {
+   "arm": "paint",
+   "path": "ladder/numeric-100k.ods",
+   "name": "numeric-100k.ods",
+   "file": "./ods-growth-cases/000/numeric-100k.ods",
+   "k": 3200,
+   "repeat": 2,
+   "stages": [
+    {
+     "name": "open.begin",
+     "sbrk": 237752320
+    },
+    {
+     "name": "open.documentLoad",
+     "sbrk": 237752320
+    },
+    {
+     "name": "open.documentLoad-returned",
+     "sbrk": 261304320
+    },
+    {
+     "name": "open.initializeForRendering",
+     "sbrk": 261304320
+    },
+    {
+     "name": "open.registerCallback",
+     "sbrk": 261304320
+    },
+    {
+     "name": "open.query-metadata",
+     "sbrk": 261304320
+    },
+    {
+     "name": "document-destroy-enter",
+     "sbrk": 264704000
+    },
+    {
+     "name": "document-destroy-return",
+     "sbrk": 264704000
+    }
+   ],
+   "opsStartStage": 6,
+   "operations": 3200,
+   "samples": [
+    {
+     "i": 0,
+     "x": 0,
+     "y": 0,
+     "ms": 12.7,
+     "nonPaper": 5280,
+     "bytes": 262144,
+     "sha256": "7da1badeda52"
+    },
+    {
+     "i": 100,
+     "x": 0,
+     "y": 96000,
+     "ms": 0.8,
+     "nonPaper": 6547,
+     "bytes": 262144,
+     "sha256": "b96a8bd878d9"
+    },
+    {
+     "i": 200,
+     "x": 0,
+     "y": 192000,
+     "ms": 0.8,
+     "nonPaper": 6449,
+     "bytes": 262144,
+     "sha256": "ac256e2afdde"
+    },
+    {
+     "i": 300,
+     "x": 0,
+     "y": 288000,
+     "ms": 1.2,
+     "nonPaper": 6607,
+     "bytes": 262144,
+     "sha256": "ea5554a7a981"
+    },
+    {
+     "i": 400,
+     "x": 0,
+     "y": 384000,
+     "ms": 0.8,
+     "nonPaper": 6693,
+     "bytes": 262144,
+     "sha256": "9941e5e8f1ac"
+    },
+    {
+     "i": 500,
+     "x": 0,
+     "y": 480000,
+     "ms": 0.8,
+     "nonPaper": 7088,
+     "bytes": 262144,
+     "sha256": "59e1035947d3"
+    },
+    {
+     "i": 600,
+     "x": 0,
+     "y": 576000,
+     "ms": 0.9,
+     "nonPaper": 6888,
+     "bytes": 262144,
+     "sha256": "8bdfe82166fb"
+    },
+    {
+     "i": 700,
+     "x": 0,
+     "y": 672000,
+     "ms": 0.7,
+     "nonPaper": 7059,
+     "bytes": 262144,
+     "sha256": "b4b242d6247b"
+    },
+    {
+     "i": 800,
+     "x": 0,
+     "y": 768000,
+     "ms": 0.9,
+     "nonPaper": 6972,
+     "bytes": 262144,
+     "sha256": "0fd3b83478d2"
+    },
+    {
+     "i": 900,
+     "x": 0,
+     "y": 864000,
+     "ms": 0.6,
+     "nonPaper": 7222,
+     "bytes": 262144,
+     "sha256": "f0a82841ea94"
+    },
+    {
+     "i": 1000,
+     "x": 0,
+     "y": 960000,
+     "ms": 0.6,
+     "nonPaper": 6709,
+     "bytes": 262144,
+     "sha256": "8ef255c1ead9"
+    },
+    {
+     "i": 1100,
+     "x": 0,
+     "y": 1056000,
+     "ms": 0.6,
+     "nonPaper": 6661,
+     "bytes": 262144,
+     "sha256": "04d117dd75c1"
+    },
+    {
+     "i": 1200,
+     "x": 0,
+     "y": 1152000,
+     "ms": 0.8,
+     "nonPaper": 6887,
+     "bytes": 262144,
+     "sha256": "678d4c8cbc4a"
+    },
+    {
+     "i": 1300,
+     "x": 0,
+     "y": 1248000,
+     "ms": 0.9,
+     "nonPaper": 7108,
+     "bytes": 262144,
+     "sha256": "e92a11641fa3"
+    },
+    {
+     "i": 1400,
+     "x": 0,
+     "y": 1344000,
+     "ms": 0.8,
+     "nonPaper": 6893,
+     "bytes": 262144,
+     "sha256": "8885bec42e6a"
+    },
+    {
+     "i": 1500,
+     "x": 0,
+     "y": 1440000,
+     "ms": 0.6,
+     "nonPaper": 7120,
+     "bytes": 262144,
+     "sha256": "1061a5f1e756"
+    },
+    {
+     "i": 1600,
+     "x": 0,
+     "y": 1536000,
+     "ms": 0.6,
+     "nonPaper": 7177,
+     "bytes": 262144,
+     "sha256": "0978c3f3b187"
+    },
+    {
+     "i": 1700,
+     "x": 0,
+     "y": 1632000,
+     "ms": 0.8,
+     "nonPaper": 6975,
+     "bytes": 262144,
+     "sha256": "35df2746b18b"
+    },
+    {
+     "i": 1800,
+     "x": 0,
+     "y": 1728000,
+     "ms": 0.8,
+     "nonPaper": 6942,
+     "bytes": 262144,
+     "sha256": "ff66fc65f076"
+    },
+    {
+     "i": 1900,
+     "x": 0,
+     "y": 1824000,
+     "ms": 0.8,
+     "nonPaper": 6854,
+     "bytes": 262144,
+     "sha256": "ea6b14ae8669"
+    },
+    {
+     "i": 2000,
+     "x": 0,
+     "y": 1920000,
+     "ms": 0.7,
+     "nonPaper": 6808,
+     "bytes": 262144,
+     "sha256": "1eb1454c8250"
+    },
+    {
+     "i": 2100,
+     "x": 0,
+     "y": 2016000,
+     "ms": 0.9,
+     "nonPaper": 6738,
+     "bytes": 262144,
+     "sha256": "8aaaf1a74b26"
+    },
+    {
+     "i": 2200,
+     "x": 0,
+     "y": 2112000,
+     "ms": 0.9,
+     "nonPaper": 7210,
+     "bytes": 262144,
+     "sha256": "b74cce755a3a"
+    },
+    {
+     "i": 2300,
+     "x": 0,
+     "y": 2208000,
+     "ms": 0.8,
+     "nonPaper": 7203,
+     "bytes": 262144,
+     "sha256": "4cce87a89a92"
+    },
+    {
+     "i": 2400,
+     "x": 0,
+     "y": 2304000,
+     "ms": 1.1,
+     "nonPaper": 7149,
+     "bytes": 262144,
+     "sha256": "a77dbd61aed5"
+    },
+    {
+     "i": 2500,
+     "x": 0,
+     "y": 2400000,
+     "ms": 1,
+     "nonPaper": 6852,
+     "bytes": 262144,
+     "sha256": "93b7a6002d6b"
+    },
+    {
+     "i": 2600,
+     "x": 0,
+     "y": 2496000,
+     "ms": 1.1,
+     "nonPaper": 7070,
+     "bytes": 262144,
+     "sha256": "de7344866d5f"
+    },
+    {
+     "i": 2700,
+     "x": 0,
+     "y": 2592000,
+     "ms": 0.9,
+     "nonPaper": 7184,
+     "bytes": 262144,
+     "sha256": "9077b915f48a"
+    },
+    {
+     "i": 2800,
+     "x": 0,
+     "y": 2688000,
+     "ms": 0.7,
+     "nonPaper": 7441,
+     "bytes": 262144,
+     "sha256": "cc157b991886"
+    },
+    {
+     "i": 2900,
+     "x": 0,
+     "y": 2784000,
+     "ms": 0.8,
+     "nonPaper": 7522,
+     "bytes": 262144,
+     "sha256": "3e41e72d7ac5"
+    },
+    {
+     "i": 3000,
+     "x": 0,
+     "y": 2880000,
+     "ms": 0.9,
+     "nonPaper": 7348,
+     "bytes": 262144,
+     "sha256": "312420a2b7d2"
+    },
+    {
+     "i": 3100,
+     "x": 0,
+     "y": 2976000,
+     "ms": 1,
+     "nonPaper": 7239,
+     "bytes": 262144,
+     "sha256": "eb896006edd9"
+    },
+    {
+     "i": 3199,
+     "x": 11520,
+     "y": 3068160,
+     "ms": 0.8,
+     "nonPaper": 4545,
+     "bytes": 262144,
+     "sha256": "0c182469e1b1"
+    }
+   ],
+   "rows": 6640,
+   "parts": 1,
+   "widthTwips": 26593,
+   "heightTwips": 25500000,
+   "error": null,
+   "workerCrashed": false,
+   "elapsedMs": 3855
+  },
+  {
+   "arm": "switch",
+   "path": "ladder/three-sheets-distinct.ods",
+   "name": "three-sheets-distinct.ods",
+   "file": "./ods-growth-cases/001/three-sheets-distinct.ods",
+   "k": 0,
+   "repeat": 2,
+   "stages": [
+    {
+     "name": "open.begin",
+     "sbrk": 236523520
+    },
+    {
+     "name": "open.documentLoad",
+     "sbrk": 236523520
+    },
+    {
+     "name": "open.documentLoad-returned",
+     "sbrk": 241872896
+    },
+    {
+     "name": "open.initializeForRendering",
+     "sbrk": 241872896
+    },
+    {
+     "name": "open.registerCallback",
+     "sbrk": 241872896
+    },
+    {
+     "name": "open.query-metadata",
+     "sbrk": 241872896
+    },
+    {
+     "name": "document-destroy-enter",
+     "sbrk": 241872896
+    },
+    {
+     "name": "document-destroy-return",
+     "sbrk": 241872896
+    }
+   ],
+   "opsStartStage": 6,
+   "operations": 0,
+   "samples": [],
+   "rows": 3,
+   "parts": 3,
+   "widthTwips": 26593,
+   "heightTwips": 13005,
+   "error": null,
+   "workerCrashed": false,
+   "elapsedMs": 1245
+  },
+  {
+   "arm": "switch",
+   "path": "ladder/three-sheets-distinct.ods",
+   "name": "three-sheets-distinct.ods",
+   "file": "./ods-growth-cases/001/three-sheets-distinct.ods",
+   "k": 60,
+   "repeat": 2,
+   "stages": [
+    {
+     "name": "open.begin",
+     "sbrk": 236523520
+    },
+    {
+     "name": "open.documentLoad",
+     "sbrk": 236523520
+    },
+    {
+     "name": "open.documentLoad-returned",
+     "sbrk": 241872896
+    },
+    {
+     "name": "open.initializeForRendering",
+     "sbrk": 241872896
+    },
+    {
+     "name": "open.registerCallback",
+     "sbrk": 241872896
+    },
+    {
+     "name": "open.query-metadata",
+     "sbrk": 241872896
+    },
+    {
+     "name": "document-destroy-enter",
+     "sbrk": 242544640
+    },
+    {
+     "name": "document-destroy-return",
+     "sbrk": 242544640
+    }
+   ],
+   "opsStartStage": 6,
+   "operations": 60,
+   "samples": [
+    {
+     "i": 0,
+     "part": 0,
+     "readBack": 0,
+     "ms": 12.8,
+     "nonPaper": 4817,
+     "bytes": 262144,
+     "sha256": "0a516b644c78"
+    },
+    {
+     "i": 59,
+     "part": 2,
+     "readBack": 2,
+     "ms": 1.2,
+     "nonPaper": 4810,
+     "bytes": 262144,
+     "sha256": "4b0ae6b9daa5"
+    }
+   ],
+   "rows": 3,
+   "parts": 3,
+   "widthTwips": 26593,
+   "heightTwips": 13005,
+   "error": null,
+   "workerCrashed": false,
+   "elapsedMs": 1355
+  },
+  {
+   "arm": "switch",
+   "path": "ladder/three-sheets-distinct.ods",
+   "name": "three-sheets-distinct.ods",
+   "file": "./ods-growth-cases/001/three-sheets-distinct.ods",
+   "k": 240,
+   "repeat": 2,
+   "stages": [
+    {
+     "name": "open.begin",
+     "sbrk": 236523520
+    },
+    {
+     "name": "open.documentLoad",
+     "sbrk": 236523520
+    },
+    {
+     "name": "open.documentLoad-returned",
+     "sbrk": 241872896
+    },
+    {
+     "name": "open.initializeForRendering",
+     "sbrk": 241872896
+    },
+    {
+     "name": "open.registerCallback",
+     "sbrk": 241872896
+    },
+    {
+     "name": "open.query-metadata",
+     "sbrk": 241872896
+    },
+    {
+     "name": "document-destroy-enter",
+     "sbrk": 242774016
+    },
+    {
+     "name": "document-destroy-return",
+     "sbrk": 242774016
+    }
+   ],
+   "opsStartStage": 6,
+   "operations": 240,
+   "samples": [
+    {
+     "i": 0,
+     "part": 0,
+     "readBack": 0,
+     "ms": 11.6,
+     "nonPaper": 4817,
+     "bytes": 262144,
+     "sha256": "0a516b644c78"
+    },
+    {
+     "i": 100,
+     "part": 1,
+     "readBack": 1,
+     "ms": 1.2,
+     "nonPaper": 4800,
+     "bytes": 262144,
+     "sha256": "6a84277c2152"
+    },
+    {
+     "i": 200,
+     "part": 2,
+     "readBack": 2,
+     "ms": 1.2,
+     "nonPaper": 4810,
+     "bytes": 262144,
+     "sha256": "4b0ae6b9daa5"
+    },
+    {
+     "i": 239,
+     "part": 2,
+     "readBack": 2,
+     "ms": 1.2,
+     "nonPaper": 4810,
+     "bytes": 262144,
+     "sha256": "4b0ae6b9daa5"
+    }
+   ],
+   "rows": 3,
+   "parts": 3,
+   "widthTwips": 26593,
+   "heightTwips": 13005,
+   "error": null,
+   "workerCrashed": false,
+   "elapsedMs": 1470
+  },
+  {
+   "arm": "switch",
+   "path": "ladder/three-sheets-distinct.ods",
+   "name": "three-sheets-distinct.ods",
+   "file": "./ods-growth-cases/001/three-sheets-distinct.ods",
+   "k": 960,
+   "repeat": 2,
+   "stages": [
+    {
+     "name": "open.begin",
+     "sbrk": 236523520
+    },
+    {
+     "name": "open.documentLoad",
+     "sbrk": 236523520
+    },
+    {
+     "name": "open.documentLoad-returned",
+     "sbrk": 241872896
+    },
+    {
+     "name": "open.initializeForRendering",
+     "sbrk": 241872896
+    },
+    {
+     "name": "open.registerCallback",
+     "sbrk": 241872896
+    },
+    {
+     "name": "open.query-metadata",
+     "sbrk": 241872896
+    },
+    {
+     "name": "document-destroy-enter",
+     "sbrk": 244387840
+    },
+    {
+     "name": "document-destroy-return",
+     "sbrk": 244387840
+    }
+   ],
+   "opsStartStage": 6,
+   "operations": 960,
+   "samples": [
+    {
+     "i": 0,
+     "part": 0,
+     "readBack": 0,
+     "ms": 13.3,
+     "nonPaper": 4817,
+     "bytes": 262144,
+     "sha256": "0a516b644c78"
+    },
+    {
+     "i": 100,
+     "part": 1,
+     "readBack": 1,
+     "ms": 1.3,
+     "nonPaper": 4800,
+     "bytes": 262144,
+     "sha256": "6a84277c2152"
+    },
+    {
+     "i": 200,
+     "part": 2,
+     "readBack": 2,
+     "ms": 1.4,
+     "nonPaper": 4810,
+     "bytes": 262144,
+     "sha256": "4b0ae6b9daa5"
+    },
+    {
+     "i": 300,
+     "part": 0,
+     "readBack": 0,
+     "ms": 1.3,
+     "nonPaper": 4817,
+     "bytes": 262144,
+     "sha256": "0a516b644c78"
+    },
+    {
+     "i": 400,
+     "part": 1,
+     "readBack": 1,
+     "ms": 1.3,
+     "nonPaper": 4800,
+     "bytes": 262144,
+     "sha256": "6a84277c2152"
+    },
+    {
+     "i": 500,
+     "part": 2,
+     "readBack": 2,
+     "ms": 1.3,
+     "nonPaper": 4810,
+     "bytes": 262144,
+     "sha256": "4b0ae6b9daa5"
+    },
+    {
+     "i": 600,
+     "part": 0,
+     "readBack": 0,
+     "ms": 1.3,
+     "nonPaper": 4817,
+     "bytes": 262144,
+     "sha256": "0a516b644c78"
+    },
+    {
+     "i": 700,
+     "part": 1,
+     "readBack": 1,
+     "ms": 1,
+     "nonPaper": 4800,
+     "bytes": 262144,
+     "sha256": "6a84277c2152"
+    },
+    {
+     "i": 800,
+     "part": 2,
+     "readBack": 2,
+     "ms": 1,
+     "nonPaper": 4810,
+     "bytes": 262144,
+     "sha256": "4b0ae6b9daa5"
+    },
+    {
+     "i": 900,
+     "part": 0,
+     "readBack": 0,
+     "ms": 1.1,
+     "nonPaper": 4817,
+     "bytes": 262144,
+     "sha256": "0a516b644c78"
+    },
+    {
+     "i": 959,
+     "part": 2,
+     "readBack": 2,
+     "ms": 1,
+     "nonPaper": 4810,
+     "bytes": 262144,
+     "sha256": "4b0ae6b9daa5"
+    }
+   ],
+   "rows": 3,
+   "parts": 3,
+   "widthTwips": 26593,
+   "heightTwips": 13005,
+   "error": null,
+   "workerCrashed": false,
+   "elapsedMs": 2113
+  },
+  {
+   "arm": "control",
+   "path": "ladder/three-sheets-distinct.ods",
+   "name": "three-sheets-distinct.ods",
+   "file": "./ods-growth-cases/001/three-sheets-distinct.ods",
+   "k": 1,
+   "repeat": 2,
+   "stages": [
+    {
+     "name": "open.begin",
+     "sbrk": 236523520
+    },
+    {
+     "name": "open.documentLoad",
+     "sbrk": 236523520
+    },
+    {
+     "name": "open.documentLoad-returned",
+     "sbrk": 241872896
+    },
+    {
+     "name": "open.initializeForRendering",
+     "sbrk": 241872896
+    },
+    {
+     "name": "open.registerCallback",
+     "sbrk": 241872896
+    },
+    {
+     "name": "open.query-metadata",
+     "sbrk": 241872896
+    },
+    {
+     "name": "document-destroy-enter",
+     "sbrk": 310661120
+    },
+    {
+     "name": "document-destroy-return",
+     "sbrk": 310661120
+    }
+   ],
+   "opsStartStage": 6,
+   "operations": 1,
+   "samples": [
+    {
+     "i": 0,
+     "px": 4096,
+     "ms": 151.3,
+     "nonPaper": 1168112,
+     "bytes": 67108864,
+     "sha256": "eaa2182d8d75"
+    }
+   ],
+   "rows": 3,
+   "parts": 3,
+   "widthTwips": 26593,
+   "heightTwips": 13005,
+   "error": null,
+   "workerCrashed": false,
+   "elapsedMs": 1439
+  }
+ ],
+ "chrome": "Chrome/151.0.7922.169",
+ "timedOut": false,
+ "pageFatal": null,
+ "workerUrl": "http://127.0.0.1:39853/profiles/ods-viewer-v2/sdk-worker.js",
+ "elapsedSeconds": 41.8,
+ "table": {
+  "paint": {
+   "1": {
+    "0": {
+     "destroyEnter": 261304320,
+     "G": 0,
+     "peak": 261304320
+    },
+    "200": {
+     "destroyEnter": 261304320,
+     "G": 0,
+     "peak": 261304320
+    },
+    "800": {
+     "destroyEnter": 261304320,
+     "G": 0,
+     "peak": 261304320
+    },
+    "3200": {
+     "destroyEnter": 263524352,
+     "G": 2220032,
+     "peak": 263524352
+    }
+   },
+   "2": {
+    "0": {
+     "destroyEnter": 261304320,
+     "G": 0,
+     "peak": 261304320
+    },
+    "200": {
+     "destroyEnter": 261304320,
+     "G": 0,
+     "peak": 261304320
+    },
+    "800": {
+     "destroyEnter": 261304320,
+     "G": 0,
+     "peak": 261304320
+    },
+    "3200": {
+     "destroyEnter": 264704000,
+     "G": 3399680,
+     "peak": 264704000
+    }
+   }
+  },
+  "switch": {
+   "1": {
+    "0": {
+     "destroyEnter": 241872896,
+     "G": 0,
+     "peak": 241872896
+    },
+    "60": {
+     "destroyEnter": 242540544,
+     "G": 667648,
+     "peak": 242540544
+    },
+    "240": {
+     "destroyEnter": 242712576,
+     "G": 839680,
+     "peak": 242712576
+    },
+    "960": {
+     "destroyEnter": 244330496,
+     "G": 2457600,
+     "peak": 244330496
+    }
+   },
+   "2": {
+    "0": {
+     "destroyEnter": 241872896,
+     "G": 0,
+     "peak": 241872896
+    },
+    "60": {
+     "destroyEnter": 242544640,
+     "G": 671744,
+     "peak": 242544640
+    },
+    "240": {
+     "destroyEnter": 242774016,
+     "G": 901120,
+     "peak": 242774016
+    },
+    "960": {
+     "destroyEnter": 244387840,
+     "G": 2514944,
+     "peak": 244387840
+    }
+   }
+  },
+  "control": {
+   "1": {
+    "1": {
+     "destroyEnter": 310661120,
+     "G": 68788224,
+     "peak": 310661120
+    }
+   },
+   "2": {
+    "1": {
+     "destroyEnter": 310661120,
+     "G": 68788224,
+     "peak": 310661120
+    }
+   }
+  }
+ },
+ "reading": {
+  "rules": "SPEC-M4-viewer-v2 11.3",
+  "problems": [],
+  "control": {
+   "G": [
+    68788224,
+    68788224
+   ],
+   "holds": true
+  },
+  "deterministic": {
+   "paint/0": true,
+   "paint/200": true,
+   "paint/800": true,
+   "paint/3200": false,
+   "switch/0": true,
+   "switch/60": false,
+   "switch/240": false,
+   "switch/960": false,
+   "control/1": true
+  },
+  "arms": {
+   "paint": {
+    "shape": "flat",
+    "Kmid": 800,
+    "Kmax": 3200,
+    "Gmid": 0,
+    "Gmax": 3399680,
+    "rise": 3399680,
+    "resolutionBytesPerOp": 1748
+   },
+   "switch": {
+    "shape": "flat",
+    "Kmid": 240,
+    "Kmax": 960,
+    "Gmid": 901120,
+    "Gmax": 2514944,
+    "rise": 1613824,
+    "resolutionBytesPerOp": 5825
+   }
+  }
+ },
+ "completedAt": "2026-10-23T062817Z"
+}
