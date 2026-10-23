@@ -145,3 +145,39 @@ K3 綠且投影未超限之後才準備 v3 Makefile／獨立 profile builder，�
 | 日期 | 變更 |
 | --- | --- |
 | 2026-10-24 | 追加 §8：核心實測與 dbaxml 記錄更正；§9：連結準備的具體步驟 |
+
+## 10. 連結準備完成，交擁有者（2026-10-24，只追加；尚未連結）
+
+v3 規則與獨立 builder 已提交（`624f4399`）；引擎 `src/` 與 `aa576ce7` 封存所記的 `2430916d` 無差異。證據：`findings/evidence/m4-ods/viewer-v3/pre-link/README.md`。
+
+### 10.1 E8′ 差異已讀
+
+base **`21bec646…`**，39,934,615 B，1,488 檔；對 v1 **0 新增、0 移除、9 變動、1,479 相同**。逐檔讀實際切片（`base-pack-reading.json`）：
+
+| 檔 | 對 v1 的大小差 | 讀法 |
+| --- | ---: | --- |
+| `services.rdb` | +24,954 B | forms／connectivity 的既有登錄，再加 dba；對 `a6390eef` 只多 **2,051 B**，XML component 集合恰好多 `libdbalo.a`（8 個 implementation），舊 component 無刪除／變動 |
+| `main.xcd` | +11,045 B | 與 `a6390eef` 逐位元相同，是 v2 §5.2 已讀過的 DB connectivity 驅動設定 |
+| `calc.xcd`／`writer.xcd` | +1,216／+1,217 B | 同上 |
+| `registry_en-US.xcd`／`qtz`／`zh-TW` | +715／+1,736／+1,704 B | 同一組驅動設定的語系字串，與 `a6390eef` 相同 |
+| `mytexts.bau`／`images_colibre.zip` | 0 B | zip 內每個檔案的 SHA256 與 v1 相同，容器不同；不是內容變動 |
+
+對 DB connectivity 診斷核心 `a6390eef` 的 base，**只有 services.rdb 改變**；字型、fontconfig 與其他檔沒有意外差異。這是新增 dba 的預期結果。
+
+內部正向對照重現 9901e9be；另指 gate0 的 base 對照重現 `6f7424a1…`、差異 0／0／0。紅案多刪 `main.xcd`，removed 確實看到它。CJK／fallback 沿用 v1 位元組。E8′ 的連結前讀法成立。
+
+### 10.2 規則、檢查與封存
+
+- v2／v3 的 Makefile 展開逐 token 比較：正規化核心、物件、匯出清單與輸出路徑後完全相同，define／link flags 不變。三個 v3 單元對新核心標頭 `-fsyntax-only` 都過，沒有寫物件。
+- builder 用合成 loader／wasm 驗過：v3 身分、獨立 base stem、`form-controls`、bits **63539**；錯 worker、缺 part-info export、沒有 forms 的 gate0 都在建立輸出目錄前拒絕。這不是引擎執行證據。
+- carrier 宣告前的真實紅案：恰好 v3 的 `sdk_api`／`probe_engine` 兩個物件紅。新增宣告之後 `make -k test-e2-c-static` **exit 0**（含 490＋5 條 Node、31 條規則／121 個物件普查與 guard、既有 Python 與 E1-C）；viewer 三支單元測試 **57／57**。既有 checker 未修改。
+- 核心提供 Calc 的既有檢查通過；v3 最後那行 gzip recipe 實際指到舊 v2 wasm 跑過（唯讀對照），引號正確、量得 47,971,896 B；v3 真實值仍待連結。
+- 現行 editor／viewer 的本地檔與 manifest 引用的資源 **16 檔、388,892,439 B**，複製到 `build/archive/before-ods-viewer-v3-20261023T160805Z/`，先逐檔比來源 SHA256、再跑 `sha256sum -c SHA256SUMS`，全過。相對路徑保留 manifest 引用。
+- 現有 `dist/profiles/` 與 `build/archive/` 的 **1,643** 檔記入 `frozen-set-before.sha256`。v3 profile 此刻不存在；連結後每一筆舊檔都必須仍相同。
+- 2026-10-24 00:11（Asia/Taipei）交出前 `uptime` 0.60／1.10／1.34，`pgrep -a make` 無結果。
+
+下一步：擁有者從 repo 根執行 `bash handoff/ods-viewer-v3/link.sh`，估幾分鐘。手冊 `handoff/RUNBOOK-link-ods-viewer-v3.md`。連結後先核對實測 F3-2、manifest／位元、凍結集合、bytes／stack／E1-C、封存，再進 Phase E；158-B 此刻尚未證明修好。宿主仍為 0.2.32，ddev 未啟動。§34.4 本輪 **+0／+0**，累計 **46／27**。
+
+| 日期 | 變更 |
+| --- | --- |
+| 2026-10-24 | 追加 §10：E8′ 九檔差異判讀、連結前檢查與 archive／凍結快照、交擁有者連結 |
