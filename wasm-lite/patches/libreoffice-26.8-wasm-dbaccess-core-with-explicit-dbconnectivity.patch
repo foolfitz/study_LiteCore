@@ -1,0 +1,34 @@
+diff --git a/RepositoryModule_host.mk b/RepositoryModule_host.mk
+index 8381d3c5..5359df61 100644
+--- a/RepositoryModule_host.mk
++++ b/RepositoryModule_host.mk
+@@ -53,6 +53,16 @@ $(eval $(call gb_Module_add_moduledirs,libreoffice,\
+ ))
+ endif
+ 
++# A wasm build with DB connectivity still needs dbaccess's core library: the
++# forms' ODatabaseForm aggregates its com.sun.star.sdb.RowSet when a
++# <form:form> is imported (finding 158). Module_dbaccess.mk keeps dbu,
++# dbaxml, sdbt and the UI configs out under the strip; reportdesign stays out.
++ifeq ($(ENABLE_WASM_STRIP_DBACCESS),TRUE)
++$(eval $(call gb_Module_add_moduledirs,libreoffice,\
++	$(call gb_Helper_optional,DBCONNECTIVITY,dbaccess) \
++))
++endif
++
+ $(eval $(call gb_Module_add_moduledirs,libreoffice,\
+ 	android \
+     $(if $(ENABLE_WASM_STRIP_BASIC_DRAW_MATH_IMPRESS),, \
+diff --git a/dbaccess/Module_dbaccess.mk b/dbaccess/Module_dbaccess.mk
+index 035c0445..3b589a42 100644
+--- a/dbaccess/Module_dbaccess.mk
++++ b/dbaccess/Module_dbaccess.mk
+@@ -18,7 +18,7 @@ $(eval $(call gb_Module_add_l10n_targets,dbaccess,\
+ 	AllLangMoTarget_dba \
+ ))
+ 
+-ifneq (,$(filter DBCONNECTIVITY,$(BUILD_TYPE)))
++ifneq (,$(and $(filter DBCONNECTIVITY,$(BUILD_TYPE)),$(if $(filter TRUE,$(ENABLE_WASM_STRIP_DBACCESS)),,yes)))
+ 
+ $(eval $(call gb_Module_add_targets,dbaccess,\
+ 	$(if $(filter WNT,$(OS)),Executable_odbcconfig) \

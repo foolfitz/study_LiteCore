@@ -23,6 +23,7 @@
 | `libreoffice-26.8-wasm-bridge-scaddins-signatures.patch` | `bridges/CustomTarget_gcc3_wasm.mk` | **含 Calc 的 WASM 建置**（`ENABLE_WASM_STRIP_CALC` 為空時把 scaddins 的 internal API 以 primary 餵給 `wasmbridgegen`；writer-only 的 `build-headless-probe` 條件不成立、產物不變） | [159](../../findings/159-functions-recalculated-at-load-give-value-errors-on-the-viewer-core.md) | 候選，未送（上游 master 的同一檔與 26.8 相同，2026-10-21 查） |
 | `libreoffice-26.8-wasm-explicit-database-connectivity.patch` | `configure.ac`（兩處） | **只影響明確下 `--enable-database-connectivity` 的 Emscripten 建置**（現行兩棵樹都沒下，configure 結果不變） | [158](../../findings/158-an-ods-with-form-controls-cannot-be-painted-on-the-wasm-core-forms-service-absent.md) | 不送（本地組態選擇；上游 2021 年 `dc9ccf3d8f29` 為了 Linux 靜態建置一律關掉，iOS／Android 照開） |
 | `libreoffice-26.8-wasm-reportdesign-follows-dbaccess-strip.patch` | `RepositoryModule_host.mk` | **只影響開了 DB connectivity 的 wasm 建置**（reportdesign 搬進 `ENABLE_WASM_STRIP_DBACCESS` 的同一個區塊；非 wasm 建置照舊建它，現行兩棵 wasm 樹本來就沒有它） | [158](../../findings/158-an-ods-with-form-controls-cannot-be-painted-on-the-wasm-core-forms-service-absent.md) | 候選，未送（上游組合 DBCONNECTIVITY＋WASM_STRIP_DBACCESS 本身不一致） |
+| `libreoffice-26.8-wasm-dbaccess-core-with-explicit-dbconnectivity.patch` | `RepositoryModule_host.mk`、`dbaccess/Module_dbaccess.mk` | **只讓開了 DB connectivity 的 strip 組態補回 dba／dbahsql**（RowSet）；dbu／dbaxml／sdbt／UI configs 與 reportdesign 仍排除，原生與未開 DB connectivity 的兩棵出貨核心照舊 | [158-B](../../findings/158-an-ods-with-form-controls-cannot-be-painted-on-the-wasm-core-forms-service-absent.md) | 不送（本地組態選擇；SPEC-M4-viewer-v3，擁有者選 A） |
 
 注意：兩份 fs-image patch 拆自同一檔案的同一份 diff。在乾淨樹上套用時先套
 `multilang-registry` 再套 `extra-fonts`（hunk 行號以此順序計算；`git apply` 對位移有容忍度，
@@ -89,6 +90,8 @@ connectivity 的 `dbtools` 等。
   `fs-image-extra-fonts`（若要 CJK 字型）。
   檢視引擎 v2 的核心（`build-ods-viewer-v2`）另外需要 `wasm-strip-accessibility-single-input`、
   `wasm-bridge-scaddins-signatures`、`wasm-explicit-database-connectivity` 與 `wasm-reportdesign-follows-dbaccess-strip`。
+  158-B／檢視引擎 v3 在同一棵 `build-ods-viewer-v2` 上另加 `wasm-dbaccess-core-with-explicit-dbconnectivity`；
+  只改模組選擇，不改 configure，不需 autogen。`build-a11y-gate0` 與 `build-headless-probe` 沒有 DBCONNECTIVITY，新增分支不加入模組。
 - **Qt6-WASM QA 線**：需要全部五份 LibreOffice patch 加三份 qtbase patch。
 
 ## worktree 未追蹤檔案
@@ -109,3 +112,4 @@ done
 
 2026-10-21：加入兩份（bridge 簽章、DB connectivity），八份 LibreOffice patch 全部 `git apply --check --reverse` 通過。
 2026-10-22：加入第九份（reportdesign 跟著 dbaccess strip），九份全部 `git apply --check --reverse` 通過。
+2026-10-23：加入第十份（158-B 只補 dba／dbahsql）；與第九份各自 `git apply --check --reverse`，十份全過。規格先釘於 `specs/SPEC-M4-viewer-v3.md`；核心建置交擁有者執行。

@@ -1,0 +1,60 @@
+{
+  "purpose": "GNU make expands the actual two patched module files with recording macros; noop compiles nothing. This is a one-time scope measurement, not a new gate.",
+  "sourceSha256": {
+    "RepositoryModule_host.mk": "adfe52f790d4650842bb6b66c4b905e8cfdeb5dc5174e939616a0640b9383c83",
+    "dbaccess/Module_dbaccess.mk": "62b57028c6eb17883674c005f0b0dfc274465513b7ad08023665a503eeaa8e99"
+  },
+  "cases": [
+    {
+      "strip": "TRUE",
+      "dbconnectivity": true,
+      "modules": [
+        "dbaccess"
+      ],
+      "librariesWhenModuleRead": [
+        "Library_dba",
+        "Library_dbahsql"
+      ],
+      "ok": true
+    },
+    {
+      "strip": "TRUE",
+      "dbconnectivity": false,
+      "modules": [],
+      "librariesWhenModuleRead": [
+        "Library_dba",
+        "Library_dbahsql"
+      ],
+      "ok": true
+    },
+    {
+      "strip": "",
+      "dbconnectivity": true,
+      "modules": [
+        "dbaccess",
+        "reportdesign"
+      ],
+      "librariesWhenModuleRead": [
+        "Library_dba",
+        "Library_dbahsql",
+        "Library_dbaxml",
+        "Library_dbu",
+        "Library_sdbt"
+      ],
+      "ok": true
+    },
+    {
+      "strip": "",
+      "dbconnectivity": false,
+      "modules": [
+        "dbaccess"
+      ],
+      "librariesWhenModuleRead": [
+        "Library_dba",
+        "Library_dbahsql"
+      ],
+      "ok": true
+    }
+  ],
+  "ok": true
+}
