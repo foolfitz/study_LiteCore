@@ -72,3 +72,19 @@ v2 的核心（`build-ods-viewer-v2`）開了 DB connectivity，`OFormsCollectio
 - **起點**：`wasm-lite/build-ods-viewer-v2`（6.0 GB，DB connectivity 已開、K-1／K-2 已綠）可以增量往上加；`a6390eef` 封存作為「有 forms 沒 dbaccess」的診斷件。
 - **判準**：沿用 §4 的 V2-158B 原文，另加「`tdf138507.ods` 開得了」為不得回歸條件；排程時照 CLAUDE.md §9 先釘再跑。
 - **如果永遠沒做的預設結論**：158-A 的型別化拒絕就是產品行為；5 份含控制項的檔拒絕，其餘照開。
+
+## 2026-10-24：158-B 的 v3 候選通過機器驗收，待擁有者確認控制項外觀
+
+擁有者選 A（只補 `dba`／`dbahsql`，不帶資料庫 UI／reportdesign）；規格 `SPEC-M4-viewer-v3` 先釘再套補丁。`RepositoryModule_host.mk` 只讓 strip＋DBCONNECTIVITY 組態選入 dbaccess，`Module_dbaccess.mk` 在 strip 下排除 UI 那一組。原生組態照舊；十份 patch 各自 reverse-check 通過。核心建置由擁有者執行，184 秒，建構子 783 → 791，dba 的 8 個都在，RowSet 已補回；dbu／sdbt／rpt／rptui 不在。
+
+新 profile **`ods-viewer-v3`／wasm `ebb7e0cb…`**，沿用 v2 的引擎 ABI 與 160 修法；manifest 宣告 `form-controls`、bits 63539。實測 gzip **49,530,696 B**，距上限 52,428,800 B 還有 2,898,104 B。已封存，不再重連結。
+
+〔已觀察〕`findings/evidence/m4-ods/viewer-v3/phase-e/`：
+
+- 五份控制項檔在定向執行與三趟全語料中都通過 **E2 開檔、E3 文字、E4a 各張可見表 tile**，不再走 158-A 拒絕；`tdf138507.ods` 也正常。
+- 三趟都是 **303 開、3 加密拒絕**；v2 實際 opened 的 **298 筆逐筆全部保留**（V3-NR，以產物讀取器對帳），沒有新增回歸。E3 仍只紅既有 `L-no-basic-udf`。
+- E4b／E9、E6 既有讀法、V2-157／159／160／160-D 都通過；三趟 1,410 次文字讀取零次未確認，且一次真實派送失敗被重送接住。
+
+**尚未完成的部分**：V3-SEE 要擁有者在具名 mirror 上親眼確認 `tdf134161.ods` 的控制項可見。agent 已確認正確 profile／fixture 被載入並留頁面狀態與截圖，但不能替代擁有者的原話。預覽位於本機 8794，綠色橫幅標示 v3／ebb7e0cb；證據 `phase-e/human-preview/`。
+
+因此目前是**機器驗收成立的候選**，不是已出貨的修復；宿主仍未更動，0.2.32 的 158-A 行為照舊。待 V3-SEE 成立後才準備 host 0.2.33，安裝／Phase H 仍需擁有者指定 ddev 時段。
