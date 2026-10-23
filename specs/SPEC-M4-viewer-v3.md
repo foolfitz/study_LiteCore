@@ -207,3 +207,16 @@ Phase E runner 只擴充 profile 名稱清單，判讀邏輯未改；phase-e／E
 | 日期 | 變更 |
 | --- | --- |
 | 2026-10-24 | 追加 §12：定向結果，產品頁與人類 mirror 的接續範圍 |
+
+## 13. E4b／E9、E6 與人工預覽已備（2026-10-24，只追加；全語料進行中）
+
+- 產品頁改指 v3（`99859cd4`）：E4b 2／2、E9 1／1 全過（`phase-e/e4b-e9/report-2026-10-23T162756Z.json`）。no-refit 紅案兩筆 E4b 都紅，E9 仍綠；工具明確回報紅案重現（`162839Z`）。
+- E6（`phase-e/e6/report-2026-10-23T162930Z.json`）：三份檔的各五輪 boots／reopen shape 都過，one-cell-a1 的五次 `open.begin` 一致，**B＝0**。未帶 `--bound`；重開序列只記錄。distinct-sheets 尾段仍每次 +12,288 B，不把它寫成「沒有洩漏」，finding 164／L-E6-leak-sbrk 不撤。
+- 人工 mirror `http://127.0.0.1:8794/ods-viewer.html?diagnostics=1`：頁面綠色橫幅標 `ods-viewer-v3`／`ebb7e0cb`，用本機 load-only host 自動載入 `tdf134161.ods`；沒有 ddev。交出前以新瀏覽器讀到正確 worker、fixture sha、opened 與畫出的 tile，並留截圖／頁面狀態。證據 `phase-e/human-preview/`；**擁有者尚未確認 V3-SEE**，不得以我的截圖取代。
+- V3-NR 的產物讀取器 `tools/check_ods_viewer_v3_nonregression.py`（`9d248fe6`）讀固定 `aa576ce7` 全語料報告中的 **298 筆 opened**，每筆套既有 E2。306 筆語料只有 304 個不同 sha，因此用 staged path＋索引化 case URL 配對，沒有把同位元組的不同檔合併。先做合成綠案，以及少了／開不了 `tdf138507`、換檔案位元組、錯 wasm 身分的紅案，全依預期。這是 §4 既定 V3-NR 的落地，不修改既有 runner／判讀條件；實際全語料對帳尚待報告。
+
+全語料 N＝3 照 §4 執行，不在執行期間修改它讀取的檔案。§34.4 **+0／+0**，累計 **46／27**。
+
+| 日期 | 變更 |
+| --- | --- |
+| 2026-10-24 | 追加 §13：E4b／E9 與紅案、E6、人工鏡像與 V3-NR 讀取器；全語料仍在執行 |
