@@ -1,0 +1,1298 @@
+{
+ "schemaVersion": 1,
+ "release": "m4-ods-growth-probe",
+ "spec": "specs/SPEC-M4-viewer-v2.md §11",
+ "evidenceClass": "probe (record-only)",
+ "level": "sdk",
+ "startedAt": "2026-10-23T062535Z",
+ "profile": "ods-viewer-v2",
+ "preconditions": {
+  "wallet": "b false",
+  "chromeProcessCount": 2,
+  "chromeProcessesSample": [
+   "8204 /snap/brave/698/opt/brave.com/brave/chrome_crashpad_handler --monitor-self --monitor-self-annotation=ptype=crashpad-handler --user-stre",
+   "8206 /snap/brave/698/opt/brave.com/brave/chrome_crashpad_handler --no-periodic-tasks --monitor-self-annotation=ptype=crashpad-handler --data"
+  ],
+  "load1": 0.61,
+  "ok": false,
+  "reasons": [
+   "2 Chrome process(es) already running"
+  ]
+ },
+ "profileManifestSha256": "fa54c32cbc028c07f42a223b701d41ea49aedccb82da19f83ca9a5737a08599f",
+ "probeWasmSha256": "aa576ce7bfdad404fdd23c0b7e22c0cbb57c2299515361de7cf9774bd4640c38",
+ "workerSha256": "9c85043ac7618e38062c1d0168a982708a16c930bdf8a422a67190222a888d84",
+ "pageFiles": {
+  "viewer-shell/ods-viewer-session.js": "87ca7ea65566f3717f11f1702b8f2c7c7f0009afc4366cda208069ac500dd757",
+  "viewer-shell/w7-adapter.js": "79e86a32df3049482aaa5610d1d642d021554c4b42bfedd43a980b8e23ead17d",
+  "viewer-shell/viewer-error.js": "237dad413606f1a55a8b7a5dcde9930b3ace14d532bb87edc7c1a7062771765d",
+  "viewer-shell/odf-package-probe.js": "5d6f025b903c6033f4756223f545cef4f8862862f4bfb6e840fe398b7e7d118e",
+  "viewer-shell/ods-document-sdk.js": "595b9a7b35bdfee9a0dd72c4b622a0dae0d564277e39483cd5e7c3fdabbaa0b5",
+  "ods-viewer-growth-probe.html": "14e4cdeb4f55a8ccb67275a09a41bf379d786a2b99039a20b1813fb3f2c316aa",
+  "ods-viewer-growth-probe-app.js": "4138d38e5453158e84cb577cf97feeb1e6c1a365801f4d16e87eb0d8cb201c0e",
+  "ods-growth-plan.json": "5551ea29f30db2bc78e2dd8a681b2db15a6e5b572f338bc073a70c9cd89b11af"
+ },
+ "repeats": 2,
+ "arms": {
+  "paint": {
+   "path": "ladder/numeric-100k.ods",
+   "k": [
+    0,
+    200,
+    800,
+    3200
+   ]
+  },
+  "switch": {
+   "path": "ladder/three-sheets-distinct.ods",
+   "k": [
+    0,
+    60,
+    240,
+    960
+   ]
+  },
+  "control": {
+   "path": "ladder/three-sheets-distinct.ods",
+   "k": [
+    1
+   ]
+  }
+ },
+ "staged": [
+  {
+   "path": "ladder/numeric-100k.ods",
+   "sha256": "13b5b572b82cfbb15adcb77271b7f604160da5d5433265f1fdc0e77798dc26b2",
+   "bytes": 615493
+  },
+  {
+   "path": "ladder/three-sheets-distinct.ods",
+   "sha256": "0402e52724cb5bbd3046461a5fb1c40b9431b33f20834136a835a68f3123e750",
+   "bytes": 7537
+  }
+ ],
+ "plan": [
+  {
+   "arm": "paint",
+   "path": "ladder/numeric-100k.ods",
+   "name": "numeric-100k.ods",
+   "file": "./ods-growth-cases/000/numeric-100k.ods",
+   "k": 0,
+   "repeat": 1
+  },
+  {
+   "arm": "paint",
+   "path": "ladder/numeric-100k.ods",
+   "name": "numeric-100k.ods",
+   "file": "./ods-growth-cases/000/numeric-100k.ods",
+   "k": 200,
+   "repeat": 1
+  },
+  {
+   "arm": "paint",
+   "path": "ladder/numeric-100k.ods",
+   "name": "numeric-100k.ods",
+   "file": "./ods-growth-cases/000/numeric-100k.ods",
+   "k": 800,
+   "repeat": 1
+  },
+  {
+   "arm": "paint",
+   "path": "ladder/numeric-100k.ods",
+   "name": "numeric-100k.ods",
+   "file": "./ods-growth-cases/000/numeric-100k.ods",
+   "k": 3200,
+   "repeat": 1
+  },
+  {
+   "arm": "switch",
+   "path": "ladder/three-sheets-distinct.ods",
+   "name": "three-sheets-distinct.ods",
+   "file": "./ods-growth-cases/001/three-sheets-distinct.ods",
+   "k": 0,
+   "repeat": 1
+  },
+  {
+   "arm": "switch",
+   "path": "ladder/three-sheets-distinct.ods",
+   "name": "three-sheets-distinct.ods",
+   "file": "./ods-growth-cases/001/three-sheets-distinct.ods",
+   "k": 60,
+   "repeat": 1
+  },
+  {
+   "arm": "switch",
+   "path": "ladder/three-sheets-distinct.ods",
+   "name": "three-sheets-distinct.ods",
+   "file": "./ods-growth-cases/001/three-sheets-distinct.ods",
+   "k": 240,
+   "repeat": 1
+  },
+  {
+   "arm": "switch",
+   "path": "ladder/three-sheets-distinct.ods",
+   "name": "three-sheets-distinct.ods",
+   "file": "./ods-growth-cases/001/three-sheets-distinct.ods",
+   "k": 960,
+   "repeat": 1
+  },
+  {
+   "arm": "control",
+   "path": "ladder/three-sheets-distinct.ods",
+   "name": "three-sheets-distinct.ods",
+   "file": "./ods-growth-cases/001/three-sheets-distinct.ods",
+   "k": 1,
+   "repeat": 1
+  },
+  {
+   "arm": "paint",
+   "path": "ladder/numeric-100k.ods",
+   "name": "numeric-100k.ods",
+   "file": "./ods-growth-cases/000/numeric-100k.ods",
+   "k": 0,
+   "repeat": 2
+  },
+  {
+   "arm": "paint",
+   "path": "ladder/numeric-100k.ods",
+   "name": "numeric-100k.ods",
+   "file": "./ods-growth-cases/000/numeric-100k.ods",
+   "k": 200,
+   "repeat": 2
+  },
+  {
+   "arm": "paint",
+   "path": "ladder/numeric-100k.ods",
+   "name": "numeric-100k.ods",
+   "file": "./ods-growth-cases/000/numeric-100k.ods",
+   "k": 800,
+   "repeat": 2
+  },
+  {
+   "arm": "paint",
+   "path": "ladder/numeric-100k.ods",
+   "name": "numeric-100k.ods",
+   "file": "./ods-growth-cases/000/numeric-100k.ods",
+   "k": 3200,
+   "repeat": 2
+  },
+  {
+   "arm": "switch",
+   "path": "ladder/three-sheets-distinct.ods",
+   "name": "three-sheets-distinct.ods",
+   "file": "./ods-growth-cases/001/three-sheets-distinct.ods",
+   "k": 0,
+   "repeat": 2
+  },
+  {
+   "arm": "switch",
+   "path": "ladder/three-sheets-distinct.ods",
+   "name": "three-sheets-distinct.ods",
+   "file": "./ods-growth-cases/001/three-sheets-distinct.ods",
+   "k": 60,
+   "repeat": 2
+  },
+  {
+   "arm": "switch",
+   "path": "ladder/three-sheets-distinct.ods",
+   "name": "three-sheets-distinct.ods",
+   "file": "./ods-growth-cases/001/three-sheets-distinct.ods",
+   "k": 240,
+   "repeat": 2
+  },
+  {
+   "arm": "switch",
+   "path": "ladder/three-sheets-distinct.ods",
+   "name": "three-sheets-distinct.ods",
+   "file": "./ods-growth-cases/001/three-sheets-distinct.ods",
+   "k": 960,
+   "repeat": 2
+  },
+  {
+   "arm": "control",
+   "path": "ladder/three-sheets-distinct.ods",
+   "name": "three-sheets-distinct.ods",
+   "file": "./ods-growth-cases/001/three-sheets-distinct.ods",
+   "k": 1,
+   "repeat": 2
+  }
+ ],
+ "runs": [
+  {
+   "arm": "paint",
+   "path": "ladder/numeric-100k.ods",
+   "name": "numeric-100k.ods",
+   "file": "./ods-growth-cases/000/numeric-100k.ods",
+   "k": 0,
+   "repeat": 1,
+   "stages": [
+    {
+     "name": "open.begin",
+     "sbrk": 237752320
+    },
+    {
+     "name": "open.documentLoad",
+     "sbrk": 237752320
+    },
+    {
+     "name": "open.documentLoad-returned",
+     "sbrk": 261304320
+    },
+    {
+     "name": "open.initializeForRendering",
+     "sbrk": 261304320
+    },
+    {
+     "name": "open.registerCallback",
+     "sbrk": 261304320
+    },
+    {
+     "name": "open.query-metadata",
+     "sbrk": 261304320
+    },
+    {
+     "name": "document-destroy-enter",
+     "sbrk": 261304320
+    },
+    {
+     "name": "document-destroy-return",
+     "sbrk": 261304320
+    }
+   ],
+   "opsStartStage": 6,
+   "operations": 0,
+   "rows": 6640,
+   "parts": 1,
+   "widthTwips": 26593,
+   "heightTwips": 25500000,
+   "error": null,
+   "workerCrashed": false,
+   "elapsedMs": 2271
+  },
+  {
+   "arm": "paint",
+   "path": "ladder/numeric-100k.ods",
+   "name": "numeric-100k.ods",
+   "file": "./ods-growth-cases/000/numeric-100k.ods",
+   "k": 200,
+   "repeat": 1,
+   "stages": [
+    {
+     "name": "open.begin",
+     "sbrk": 237752320
+    },
+    {
+     "name": "open.documentLoad",
+     "sbrk": 237752320
+    },
+    {
+     "name": "open.documentLoad-returned",
+     "sbrk": 261304320
+    },
+    {
+     "name": "open.initializeForRendering",
+     "sbrk": 261304320
+    },
+    {
+     "name": "open.registerCallback",
+     "sbrk": 261304320
+    },
+    {
+     "name": "open.query-metadata",
+     "sbrk": 261304320
+    },
+    {
+     "name": "document-destroy-enter",
+     "sbrk": 261304320
+    },
+    {
+     "name": "document-destroy-return",
+     "sbrk": 261304320
+    }
+   ],
+   "opsStartStage": 6,
+   "operations": 200,
+   "rows": 6640,
+   "parts": 1,
+   "widthTwips": 26593,
+   "heightTwips": 25500000,
+   "error": null,
+   "workerCrashed": false,
+   "elapsedMs": 1862
+  },
+  {
+   "arm": "paint",
+   "path": "ladder/numeric-100k.ods",
+   "name": "numeric-100k.ods",
+   "file": "./ods-growth-cases/000/numeric-100k.ods",
+   "k": 800,
+   "repeat": 1,
+   "stages": [
+    {
+     "name": "open.begin",
+     "sbrk": 237752320
+    },
+    {
+     "name": "open.documentLoad",
+     "sbrk": 237752320
+    },
+    {
+     "name": "open.documentLoad-returned",
+     "sbrk": 261304320
+    },
+    {
+     "name": "open.initializeForRendering",
+     "sbrk": 261304320
+    },
+    {
+     "name": "open.registerCallback",
+     "sbrk": 261304320
+    },
+    {
+     "name": "open.query-metadata",
+     "sbrk": 261304320
+    },
+    {
+     "name": "document-destroy-enter",
+     "sbrk": 261304320
+    },
+    {
+     "name": "document-destroy-return",
+     "sbrk": 261304320
+    }
+   ],
+   "opsStartStage": 6,
+   "operations": 800,
+   "rows": 6640,
+   "parts": 1,
+   "widthTwips": 26593,
+   "heightTwips": 25500000,
+   "error": null,
+   "workerCrashed": false,
+   "elapsedMs": 2174
+  },
+  {
+   "arm": "paint",
+   "path": "ladder/numeric-100k.ods",
+   "name": "numeric-100k.ods",
+   "file": "./ods-growth-cases/000/numeric-100k.ods",
+   "k": 3200,
+   "repeat": 1,
+   "stages": [
+    {
+     "name": "open.begin",
+     "sbrk": 237752320
+    },
+    {
+     "name": "open.documentLoad",
+     "sbrk": 237752320
+    },
+    {
+     "name": "open.documentLoad-returned",
+     "sbrk": 261304320
+    },
+    {
+     "name": "open.initializeForRendering",
+     "sbrk": 261304320
+    },
+    {
+     "name": "open.registerCallback",
+     "sbrk": 261304320
+    },
+    {
+     "name": "open.query-metadata",
+     "sbrk": 261304320
+    },
+    {
+     "name": "document-destroy-enter",
+     "sbrk": 264572928
+    },
+    {
+     "name": "document-destroy-return",
+     "sbrk": 264572928
+    }
+   ],
+   "opsStartStage": 6,
+   "operations": 3200,
+   "rows": 6640,
+   "parts": 1,
+   "widthTwips": 26593,
+   "heightTwips": 25500000,
+   "error": null,
+   "workerCrashed": false,
+   "elapsedMs": 3244
+  },
+  {
+   "arm": "switch",
+   "path": "ladder/three-sheets-distinct.ods",
+   "name": "three-sheets-distinct.ods",
+   "file": "./ods-growth-cases/001/three-sheets-distinct.ods",
+   "k": 0,
+   "repeat": 1,
+   "stages": [
+    {
+     "name": "open.begin",
+     "sbrk": 236523520
+    },
+    {
+     "name": "open.documentLoad",
+     "sbrk": 236523520
+    },
+    {
+     "name": "open.documentLoad-returned",
+     "sbrk": 241872896
+    },
+    {
+     "name": "open.initializeForRendering",
+     "sbrk": 241872896
+    },
+    {
+     "name": "open.registerCallback",
+     "sbrk": 241872896
+    },
+    {
+     "name": "open.query-metadata",
+     "sbrk": 241872896
+    },
+    {
+     "name": "document-destroy-enter",
+     "sbrk": 241872896
+    },
+    {
+     "name": "document-destroy-return",
+     "sbrk": 241872896
+    }
+   ],
+   "opsStartStage": 6,
+   "operations": 0,
+   "rows": 3,
+   "parts": 3,
+   "widthTwips": 26593,
+   "heightTwips": 13005,
+   "error": null,
+   "workerCrashed": false,
+   "elapsedMs": 1314
+  },
+  {
+   "arm": "switch",
+   "path": "ladder/three-sheets-distinct.ods",
+   "name": "three-sheets-distinct.ods",
+   "file": "./ods-growth-cases/001/three-sheets-distinct.ods",
+   "k": 60,
+   "repeat": 1,
+   "stages": [
+    {
+     "name": "open.begin",
+     "sbrk": 236523520
+    },
+    {
+     "name": "open.documentLoad",
+     "sbrk": 236523520
+    },
+    {
+     "name": "open.documentLoad-returned",
+     "sbrk": 241872896
+    },
+    {
+     "name": "open.initializeForRendering",
+     "sbrk": 241872896
+    },
+    {
+     "name": "open.registerCallback",
+     "sbrk": 241872896
+    },
+    {
+     "name": "open.query-metadata",
+     "sbrk": 241872896
+    },
+    {
+     "name": "document-destroy-enter",
+     "sbrk": 242528256
+    },
+    {
+     "name": "document-destroy-return",
+     "sbrk": 242528256
+    }
+   ],
+   "opsStartStage": 6,
+   "operations": 60,
+   "rows": 3,
+   "parts": 3,
+   "widthTwips": 26593,
+   "heightTwips": 13005,
+   "error": null,
+   "workerCrashed": false,
+   "elapsedMs": 1407
+  },
+  {
+   "arm": "switch",
+   "path": "ladder/three-sheets-distinct.ods",
+   "name": "three-sheets-distinct.ods",
+   "file": "./ods-growth-cases/001/three-sheets-distinct.ods",
+   "k": 240,
+   "repeat": 1,
+   "stages": [
+    {
+     "name": "open.begin",
+     "sbrk": 236523520
+    },
+    {
+     "name": "open.documentLoad",
+     "sbrk": 236523520
+    },
+    {
+     "name": "open.documentLoad-returned",
+     "sbrk": 241872896
+    },
+    {
+     "name": "open.initializeForRendering",
+     "sbrk": 241872896
+    },
+    {
+     "name": "open.registerCallback",
+     "sbrk": 241872896
+    },
+    {
+     "name": "open.query-metadata",
+     "sbrk": 241872896
+    },
+    {
+     "name": "document-destroy-enter",
+     "sbrk": 242692096
+    },
+    {
+     "name": "document-destroy-return",
+     "sbrk": 242692096
+    }
+   ],
+   "opsStartStage": 6,
+   "operations": 240,
+   "rows": 3,
+   "parts": 3,
+   "widthTwips": 26593,
+   "heightTwips": 13005,
+   "error": null,
+   "workerCrashed": false,
+   "elapsedMs": 2155
+  },
+  {
+   "arm": "switch",
+   "path": "ladder/three-sheets-distinct.ods",
+   "name": "three-sheets-distinct.ods",
+   "file": "./ods-growth-cases/001/three-sheets-distinct.ods",
+   "k": 960,
+   "repeat": 1,
+   "stages": [
+    {
+     "name": "open.begin",
+     "sbrk": 236523520
+    },
+    {
+     "name": "open.documentLoad",
+     "sbrk": 236523520
+    },
+    {
+     "name": "open.documentLoad-returned",
+     "sbrk": 241872896
+    },
+    {
+     "name": "open.initializeForRendering",
+     "sbrk": 241872896
+    },
+    {
+     "name": "open.registerCallback",
+     "sbrk": 241872896
+    },
+    {
+     "name": "open.query-metadata",
+     "sbrk": 241872896
+    },
+    {
+     "name": "document-destroy-enter",
+     "sbrk": 244482048
+    },
+    {
+     "name": "document-destroy-return",
+     "sbrk": 244482048
+    }
+   ],
+   "opsStartStage": 6,
+   "operations": 960,
+   "rows": 3,
+   "parts": 3,
+   "widthTwips": 26593,
+   "heightTwips": 13005,
+   "error": null,
+   "workerCrashed": false,
+   "elapsedMs": 2286
+  },
+  {
+   "arm": "control",
+   "path": "ladder/three-sheets-distinct.ods",
+   "name": "three-sheets-distinct.ods",
+   "file": "./ods-growth-cases/001/three-sheets-distinct.ods",
+   "k": 1,
+   "repeat": 1,
+   "stages": [
+    {
+     "name": "open.begin",
+     "sbrk": 236523520
+    },
+    {
+     "name": "open.documentLoad",
+     "sbrk": 236523520
+    },
+    {
+     "name": "open.documentLoad-returned",
+     "sbrk": 241872896
+    },
+    {
+     "name": "open.initializeForRendering",
+     "sbrk": 241872896
+    },
+    {
+     "name": "open.registerCallback",
+     "sbrk": 241872896
+    },
+    {
+     "name": "open.query-metadata",
+     "sbrk": 241872896
+    },
+    {
+     "name": "document-destroy-enter",
+     "sbrk": 310661120
+    },
+    {
+     "name": "document-destroy-return",
+     "sbrk": 310661120
+    }
+   ],
+   "opsStartStage": 6,
+   "operations": 1,
+   "rows": 3,
+   "parts": 3,
+   "widthTwips": 26593,
+   "heightTwips": 13005,
+   "error": null,
+   "workerCrashed": false,
+   "elapsedMs": 1379
+  },
+  {
+   "arm": "paint",
+   "path": "ladder/numeric-100k.ods",
+   "name": "numeric-100k.ods",
+   "file": "./ods-growth-cases/000/numeric-100k.ods",
+   "k": 0,
+   "repeat": 2,
+   "stages": [
+    {
+     "name": "open.begin",
+     "sbrk": 237752320
+    },
+    {
+     "name": "open.documentLoad",
+     "sbrk": 237752320
+    },
+    {
+     "name": "open.documentLoad-returned",
+     "sbrk": 261304320
+    },
+    {
+     "name": "open.initializeForRendering",
+     "sbrk": 261304320
+    },
+    {
+     "name": "open.registerCallback",
+     "sbrk": 261304320
+    },
+    {
+     "name": "open.query-metadata",
+     "sbrk": 261304320
+    },
+    {
+     "name": "document-destroy-enter",
+     "sbrk": 261304320
+    },
+    {
+     "name": "document-destroy-return",
+     "sbrk": 261304320
+    }
+   ],
+   "opsStartStage": 6,
+   "operations": 0,
+   "rows": 6640,
+   "parts": 1,
+   "widthTwips": 26593,
+   "heightTwips": 25500000,
+   "error": null,
+   "workerCrashed": false,
+   "elapsedMs": 1760
+  },
+  {
+   "arm": "paint",
+   "path": "ladder/numeric-100k.ods",
+   "name": "numeric-100k.ods",
+   "file": "./ods-growth-cases/000/numeric-100k.ods",
+   "k": 200,
+   "repeat": 2,
+   "stages": [
+    {
+     "name": "open.begin",
+     "sbrk": 237752320
+    },
+    {
+     "name": "open.documentLoad",
+     "sbrk": 237752320
+    },
+    {
+     "name": "open.documentLoad-returned",
+     "sbrk": 261304320
+    },
+    {
+     "name": "open.initializeForRendering",
+     "sbrk": 261304320
+    },
+    {
+     "name": "open.registerCallback",
+     "sbrk": 261304320
+    },
+    {
+     "name": "open.query-metadata",
+     "sbrk": 261304320
+    },
+    {
+     "name": "document-destroy-enter",
+     "sbrk": 261304320
+    },
+    {
+     "name": "document-destroy-return",
+     "sbrk": 261304320
+    }
+   ],
+   "opsStartStage": 6,
+   "operations": 200,
+   "rows": 6640,
+   "parts": 1,
+   "widthTwips": 26593,
+   "heightTwips": 25500000,
+   "error": null,
+   "workerCrashed": false,
+   "elapsedMs": 1698
+  },
+  {
+   "arm": "paint",
+   "path": "ladder/numeric-100k.ods",
+   "name": "numeric-100k.ods",
+   "file": "./ods-growth-cases/000/numeric-100k.ods",
+   "k": 800,
+   "repeat": 2,
+   "stages": [
+    {
+     "name": "open.begin",
+     "sbrk": 237752320
+    },
+    {
+     "name": "open.documentLoad",
+     "sbrk": 237752320
+    },
+    {
+     "name": "open.documentLoad-returned",
+     "sbrk": 261304320
+    },
+    {
+     "name": "open.initializeForRendering",
+     "sbrk": 261304320
+    },
+    {
+     "name": "open.registerCallback",
+     "sbrk": 261304320
+    },
+    {
+     "name": "open.query-metadata",
+     "sbrk": 261304320
+    },
+    {
+     "name": "document-destroy-enter",
+     "sbrk": 261304320
+    },
+    {
+     "name": "document-destroy-return",
+     "sbrk": 261304320
+    }
+   ],
+   "opsStartStage": 6,
+   "operations": 800,
+   "rows": 6640,
+   "parts": 1,
+   "widthTwips": 26593,
+   "heightTwips": 25500000,
+   "error": null,
+   "workerCrashed": false,
+   "elapsedMs": 2016
+  },
+  {
+   "arm": "paint",
+   "path": "ladder/numeric-100k.ods",
+   "name": "numeric-100k.ods",
+   "file": "./ods-growth-cases/000/numeric-100k.ods",
+   "k": 3200,
+   "repeat": 2,
+   "stages": [
+    {
+     "name": "open.begin",
+     "sbrk": 237752320
+    },
+    {
+     "name": "open.documentLoad",
+     "sbrk": 237752320
+    },
+    {
+     "name": "open.documentLoad-returned",
+     "sbrk": 261304320
+    },
+    {
+     "name": "open.initializeForRendering",
+     "sbrk": 261304320
+    },
+    {
+     "name": "open.registerCallback",
+     "sbrk": 261304320
+    },
+    {
+     "name": "open.query-metadata",
+     "sbrk": 261304320
+    },
+    {
+     "name": "document-destroy-enter",
+     "sbrk": 263524352
+    },
+    {
+     "name": "document-destroy-return",
+     "sbrk": 263524352
+    }
+   ],
+   "opsStartStage": 6,
+   "operations": 3200,
+   "rows": 6640,
+   "parts": 1,
+   "widthTwips": 26593,
+   "heightTwips": 25500000,
+   "error": null,
+   "workerCrashed": false,
+   "elapsedMs": 3676
+  },
+  {
+   "arm": "switch",
+   "path": "ladder/three-sheets-distinct.ods",
+   "name": "three-sheets-distinct.ods",
+   "file": "./ods-growth-cases/001/three-sheets-distinct.ods",
+   "k": 0,
+   "repeat": 2,
+   "stages": [
+    {
+     "name": "open.begin",
+     "sbrk": 236523520
+    },
+    {
+     "name": "open.documentLoad",
+     "sbrk": 236523520
+    },
+    {
+     "name": "open.documentLoad-returned",
+     "sbrk": 241872896
+    },
+    {
+     "name": "open.initializeForRendering",
+     "sbrk": 241872896
+    },
+    {
+     "name": "open.registerCallback",
+     "sbrk": 241872896
+    },
+    {
+     "name": "open.query-metadata",
+     "sbrk": 241872896
+    },
+    {
+     "name": "document-destroy-enter",
+     "sbrk": 241872896
+    },
+    {
+     "name": "document-destroy-return",
+     "sbrk": 241872896
+    }
+   ],
+   "opsStartStage": 6,
+   "operations": 0,
+   "rows": 3,
+   "parts": 3,
+   "widthTwips": 26593,
+   "heightTwips": 13005,
+   "error": null,
+   "workerCrashed": false,
+   "elapsedMs": 1245
+  },
+  {
+   "arm": "switch",
+   "path": "ladder/three-sheets-distinct.ods",
+   "name": "three-sheets-distinct.ods",
+   "file": "./ods-growth-cases/001/three-sheets-distinct.ods",
+   "k": 60,
+   "repeat": 2,
+   "stages": [
+    {
+     "name": "open.begin",
+     "sbrk": 236523520
+    },
+    {
+     "name": "open.documentLoad",
+     "sbrk": 236523520
+    },
+    {
+     "name": "open.documentLoad-returned",
+     "sbrk": 241872896
+    },
+    {
+     "name": "open.initializeForRendering",
+     "sbrk": 241872896
+    },
+    {
+     "name": "open.registerCallback",
+     "sbrk": 241872896
+    },
+    {
+     "name": "open.query-metadata",
+     "sbrk": 241872896
+    },
+    {
+     "name": "document-destroy-enter",
+     "sbrk": 242528256
+    },
+    {
+     "name": "document-destroy-return",
+     "sbrk": 242528256
+    }
+   ],
+   "opsStartStage": 6,
+   "operations": 60,
+   "rows": 3,
+   "parts": 3,
+   "widthTwips": 26593,
+   "heightTwips": 13005,
+   "error": null,
+   "workerCrashed": false,
+   "elapsedMs": 1303
+  },
+  {
+   "arm": "switch",
+   "path": "ladder/three-sheets-distinct.ods",
+   "name": "three-sheets-distinct.ods",
+   "file": "./ods-growth-cases/001/three-sheets-distinct.ods",
+   "k": 240,
+   "repeat": 2,
+   "stages": [
+    {
+     "name": "open.begin",
+     "sbrk": 236523520
+    },
+    {
+     "name": "open.documentLoad",
+     "sbrk": 236523520
+    },
+    {
+     "name": "open.documentLoad-returned",
+     "sbrk": 241872896
+    },
+    {
+     "name": "open.initializeForRendering",
+     "sbrk": 241872896
+    },
+    {
+     "name": "open.registerCallback",
+     "sbrk": 241872896
+    },
+    {
+     "name": "open.query-metadata",
+     "sbrk": 241872896
+    },
+    {
+     "name": "document-destroy-enter",
+     "sbrk": 242778112
+    },
+    {
+     "name": "document-destroy-return",
+     "sbrk": 242778112
+    }
+   ],
+   "opsStartStage": 6,
+   "operations": 240,
+   "rows": 3,
+   "parts": 3,
+   "widthTwips": 26593,
+   "heightTwips": 13005,
+   "error": null,
+   "workerCrashed": false,
+   "elapsedMs": 1494
+  },
+  {
+   "arm": "switch",
+   "path": "ladder/three-sheets-distinct.ods",
+   "name": "three-sheets-distinct.ods",
+   "file": "./ods-growth-cases/001/three-sheets-distinct.ods",
+   "k": 960,
+   "repeat": 2,
+   "stages": [
+    {
+     "name": "open.begin",
+     "sbrk": 236523520
+    },
+    {
+     "name": "open.documentLoad",
+     "sbrk": 236523520
+    },
+    {
+     "name": "open.documentLoad-returned",
+     "sbrk": 241872896
+    },
+    {
+     "name": "open.initializeForRendering",
+     "sbrk": 241872896
+    },
+    {
+     "name": "open.registerCallback",
+     "sbrk": 241872896
+    },
+    {
+     "name": "open.query-metadata",
+     "sbrk": 241872896
+    },
+    {
+     "name": "document-destroy-enter",
+     "sbrk": 244445184
+    },
+    {
+     "name": "document-destroy-return",
+     "sbrk": 244445184
+    }
+   ],
+   "opsStartStage": 6,
+   "operations": 960,
+   "rows": 3,
+   "parts": 3,
+   "widthTwips": 26593,
+   "heightTwips": 13005,
+   "error": null,
+   "workerCrashed": false,
+   "elapsedMs": 2146
+  },
+  {
+   "arm": "control",
+   "path": "ladder/three-sheets-distinct.ods",
+   "name": "three-sheets-distinct.ods",
+   "file": "./ods-growth-cases/001/three-sheets-distinct.ods",
+   "k": 1,
+   "repeat": 2,
+   "stages": [
+    {
+     "name": "open.begin",
+     "sbrk": 236523520
+    },
+    {
+     "name": "open.documentLoad",
+     "sbrk": 236523520
+    },
+    {
+     "name": "open.documentLoad-returned",
+     "sbrk": 241872896
+    },
+    {
+     "name": "open.initializeForRendering",
+     "sbrk": 241872896
+    },
+    {
+     "name": "open.registerCallback",
+     "sbrk": 241872896
+    },
+    {
+     "name": "open.query-metadata",
+     "sbrk": 241872896
+    },
+    {
+     "name": "document-destroy-enter",
+     "sbrk": 310661120
+    },
+    {
+     "name": "document-destroy-return",
+     "sbrk": 310661120
+    }
+   ],
+   "opsStartStage": 6,
+   "operations": 1,
+   "rows": 3,
+   "parts": 3,
+   "widthTwips": 26593,
+   "heightTwips": 13005,
+   "error": null,
+   "workerCrashed": false,
+   "elapsedMs": 1328
+  }
+ ],
+ "chrome": "Chrome/151.0.7922.169",
+ "timedOut": false,
+ "pageFatal": null,
+ "workerUrl": "http://127.0.0.1:60563/profiles/ods-viewer-v2/sdk-worker.js",
+ "elapsedSeconds": 42.1,
+ "table": {
+  "paint": {
+   "1": {
+    "0": {
+     "destroyEnter": 261304320,
+     "G": 0,
+     "peak": 261304320
+    },
+    "200": {
+     "destroyEnter": 261304320,
+     "G": 0,
+     "peak": 261304320
+    },
+    "800": {
+     "destroyEnter": 261304320,
+     "G": 0,
+     "peak": 261304320
+    },
+    "3200": {
+     "destroyEnter": 264572928,
+     "G": 3268608,
+     "peak": 264572928
+    }
+   },
+   "2": {
+    "0": {
+     "destroyEnter": 261304320,
+     "G": 0,
+     "peak": 261304320
+    },
+    "200": {
+     "destroyEnter": 261304320,
+     "G": 0,
+     "peak": 261304320
+    },
+    "800": {
+     "destroyEnter": 261304320,
+     "G": 0,
+     "peak": 261304320
+    },
+    "3200": {
+     "destroyEnter": 263524352,
+     "G": 2220032,
+     "peak": 263524352
+    }
+   }
+  },
+  "switch": {
+   "1": {
+    "0": {
+     "destroyEnter": 241872896,
+     "G": 0,
+     "peak": 241872896
+    },
+    "60": {
+     "destroyEnter": 242528256,
+     "G": 655360,
+     "peak": 242528256
+    },
+    "240": {
+     "destroyEnter": 242692096,
+     "G": 819200,
+     "peak": 242692096
+    },
+    "960": {
+     "destroyEnter": 244482048,
+     "G": 2609152,
+     "peak": 244482048
+    }
+   },
+   "2": {
+    "0": {
+     "destroyEnter": 241872896,
+     "G": 0,
+     "peak": 241872896
+    },
+    "60": {
+     "destroyEnter": 242528256,
+     "G": 655360,
+     "peak": 242528256
+    },
+    "240": {
+     "destroyEnter": 242778112,
+     "G": 905216,
+     "peak": 242778112
+    },
+    "960": {
+     "destroyEnter": 244445184,
+     "G": 2572288,
+     "peak": 244445184
+    }
+   }
+  },
+  "control": {
+   "1": {
+    "1": {
+     "destroyEnter": 310661120,
+     "G": 68788224,
+     "peak": 310661120
+    }
+   },
+   "2": {
+    "1": {
+     "destroyEnter": 310661120,
+     "G": 68788224,
+     "peak": 310661120
+    }
+   }
+  }
+ },
+ "reading": {
+  "rules": "SPEC-M4-viewer-v2 11.3",
+  "problems": [],
+  "control": {
+   "G": [
+    68788224,
+    68788224
+   ],
+   "holds": true
+  },
+  "deterministic": {
+   "paint/0": true,
+   "paint/200": true,
+   "paint/800": true,
+   "paint/3200": false,
+   "switch/0": true,
+   "switch/60": true,
+   "switch/240": false,
+   "switch/960": false,
+   "control/1": true
+  },
+  "arms": {
+   "paint": {
+    "shape": "flat",
+    "Kmid": 800,
+    "Kmax": 3200,
+    "Gmid": 0,
+    "Gmax": 3268608,
+    "rise": 3268608,
+    "resolutionBytesPerOp": 1748
+   },
+   "switch": {
+    "shape": "flat",
+    "Kmid": 240,
+    "Kmax": 960,
+    "Gmid": 905216,
+    "Gmax": 2609152,
+    "rise": 1703936,
+    "resolutionBytesPerOp": 5825
+   }
+  }
+ },
+ "completedAt": "2026-10-23T062617Z"
+}

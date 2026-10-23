@@ -39,6 +39,21 @@ function settle() {
   return new Promise((resolve) => setTimeout(resolve, SETTLE_MS));
 }
 
+// What an operation produced, every SAMPLE_EVERY-th and the last one: proof the
+// operations painted (and switched) rather than returned quickly with nothing.
+const SAMPLE_EVERY = 100;
+
+async function sample(run, i, op, result, began) {
+  const view = new Uint8Array(result.pixels);
+  let nonPaper = 0;
+  for (let p = 0; p + 3 < view.length; p += 4)
+    if (view[p] !== 255 || view[p + 1] !== 255 || view[p + 2] !== 255) nonPaper += 1;
+  const digest = await crypto.subtle.digest("SHA-256", view);
+  run.samples.push({ i, ...op, ms: Math.round((performance.now() - began) * 10) / 10, nonPaper,
+                     bytes: view.length, sha256: [...new Uint8Array(digest)].slice(0, 6)
+                       .map((b) => b.toString(16).padStart(2, "0")).join("") });
+}
+
 function region(xTwips, yTwips, px) {
   return { xTwips, yTwips, widthTwips: px * TWIPS_PER_PX, heightTwips: px * TWIPS_PER_PX,
            canvasWidthPx: px, canvasHeightPx: px };
@@ -48,24 +63,32 @@ async function operate(arm, handle, k, run) {
   const step = TILE_PX * TWIPS_PER_PX;
   const rows = Math.max(1, Math.floor((handle.heightTwips || step) / step));
   for (let i = 0; i < k; i += 1) {
+    const began = performance.now();
+    let result = null;
+    let op = null;
     if (arm === "paint") {
       const row = Math.floor(i / COLUMNS) % rows;
-      await handle.render(region((i % COLUMNS) * step, row * step, TILE_PX), { timeoutMs: 60000 });
+      op = { x: (i % COLUMNS) * step, y: row * step };
+      result = await handle.render(region(op.x, op.y, TILE_PX), { timeoutMs: 60000 });
     } else if (arm === "switch") {
-      await handle.setPart(i % handle.parts);
-      await handle.render(region(0, 0, TILE_PX), { timeoutMs: 60000 });
+      const set = await handle.setPart(i % handle.parts);
+      op = { part: i % handle.parts, readBack: set?.part ?? null };
+      result = await handle.render(region(0, 0, TILE_PX), { timeoutMs: 60000 });
     } else if (arm === "control") {
-      await handle.render(region(0, 0, CONTROL_PX), { timeoutMs: 120000 });
+      op = { px: CONTROL_PX };
+      result = await handle.render(region(0, 0, CONTROL_PX), { timeoutMs: 120000 });
     } else {
       throw new Error(`unknown arm ${arm}`);
     }
     run.operations = i + 1;
+    if (i % SAMPLE_EVERY === 0 || i === k - 1)
+      await sample(run, i, op, result, began);
   }
   run.rows = rows;
 }
 
 async function runOne(spec, bytes) {
-  const run = { ...spec, stages: [], opsStartStage: null, operations: 0, rows: null, parts: null,
+  const run = { ...spec, stages: [], opsStartStage: null, operations: 0, samples: [], rows: null, parts: null,
                 widthTwips: null, heightTwips: null, error: null, workerCrashed: false, elapsedMs: null };
   report.runs.push(run);
   const started = performance.now();
