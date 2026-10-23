@@ -48,7 +48,7 @@ sys.path.insert(0, str(PROJECT / "tools"))
 from run_ods_viewer_draft_smoke import PAGE_FILES, preconditions  # noqa: E402
 
 PROFILE = "ods-viewer-v1"
-PROFILES = ("ods-viewer-v1", "ods-viewer-v2")
+PROFILES = ("ods-viewer-v1", "ods-viewer-v2", "ods-viewer-v3")
 HARNESS_LITERAL = b'"./profiles/ods-viewer-v1/sdk-worker.js"'
 CORPUS = PROJECT / "test-docs" / "ods"
 MANIFEST = CORPUS / "manifest.json"

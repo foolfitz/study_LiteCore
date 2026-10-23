@@ -44,7 +44,7 @@ from run_ods_viewer_draft_smoke import PAGE_FILES, preconditions          # noqa
 from run_ods_viewer_phase_e import KILL_LINE, sha256_bytes, utc_now      # noqa: E402
 
 PROFILE = "ods-viewer-v1"
-PROFILES = ("ods-viewer-v1", "ods-viewer-v2")
+PROFILES = ("ods-viewer-v1", "ods-viewer-v2", "ods-viewer-v3")
 HARNESS_LITERAL = b'"./profiles/ods-viewer-v1/sdk-worker.js"'
 CORPUS = PROJECT / "test-docs" / "ods"
 MANIFEST = CORPUS / "manifest.json"
