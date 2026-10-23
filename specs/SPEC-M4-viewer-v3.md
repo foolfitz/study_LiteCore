@@ -1,0 +1,104 @@
+# SPEC-M4-viewer-v3：158-B，只補 dbaccess 核心函式庫
+
+> 建立：2026-10-23。在任何本輪 patch、建置、檢查執行之前釘下。閘門文件只追加；更正指名取代的段落並保留原文。
+> 來源：[交接 10-23b](../handoff/HANDOFF-2026-10-23b-to-codex-158b-dba-only.md)、[finding 158](../findings/158-an-ods-with-form-controls-cannot-be-painted-on-the-wasm-core-forms-service-absent.md)、[v2 規格](SPEC-M4-viewer-v2.md)。
+
+## 0. 決定、現況與範圍
+
+擁有者 2026-10-23 選 **A**（原話「A」）：只補回 dbaccess 的 `dba`＋`dbahsql`，不帶資料庫 UI／reportdesign；核心建置由擁有者手動執行（原話「我可以手動建置」）。本輪依交接接續這個已決定的處方，不重新選方案。
+
+158-A 是現行行為：含 `<draw:control` 的檔在建立引擎之前拒絕 `FORM_CONTROLS_UNSUPPORTED`。158-B 的目標是這類檔開得了、控制項畫得出來，且原本可開的檔不能退步。10-22 的 `a6390eef…` 帶 forms 但缺 RowSet，五份含控制項的檔與 `tdf138507.ods` 都開不了（v2 §7；finding 158）。
+
+起點是 **`wasm-lite/build-ods-viewer-v2`**：DB connectivity 已開，159 的 bridge 已在；新 profile 必須叫 **`ods-viewer-v3`**。引擎沿用出貨 `aa576ce7…` 的原始碼與 `OXSDK_ODS_VIEWER_V2` 介面，包括 157／160 的修法；v3 的差異是核心與 profile 身分，不新增引擎 ABI。
+
+現行宿主是 **0.2.32**、package `80349a1a24cecb17`（editor `e2-editor-v22`、viewer `ods-viewer-v2`）。名義出貨仍為 0.2.26；0.2.29–0.2.32 累積未計數。完整計數鏈 K 維持併批，不自行啟動。ddev 時段由擁有者指定；交接時 litecore 是 stopped。
+
+本輪不重建 `build-a11y-gate0`、`build-headless-probe` 或原生樹，不覆寫凍結 v2。`libreoffice-26-8` 是四棵建置樹共用的原始碼，既存修改及未追蹤研究檔保留；只把本輪兩個 hunk 存成新 patch。
+
+## 1. 已建立的事實與體積推估
+
+以下引用交接 §2.2 的原始碼調查，屬〔讀原始碼〕，不是本輪的新量測：
+
+- `config_host.mk.in:262`：`ENABLE_WASM_STRIP_DBACCESS=@ENABLE_WASM_STRIP@`，沒有獨立 configure 開關。Emscripten 的 global strip 一直開。
+- strip 的四個位置：`RepositoryModule_host.mk:38–48`（dbaccess／reportdesign 模組）、`Repository.mk:1235`（UI configs）、`filter/Configuration_filter.mk:285`（StarBase type／filter）、`postprocess/CustomTarget_registry.mk:41`（base.xcd 的 database filter fragments）。A 只讓 dbaccess 模組在明確開 DB connectivity 的 strip 組態進來，其他三處照 strip。
+- `dbaccess/Module_dbaccess.mk` 無條件加入 `Library_dba`、`Library_dbahsql`、`AllLangMoTarget_dba`；DBCONNECTIVITY 條件一路包到檔尾，包住 `dbaxml`、`dbu`、`sdbt`、UI configs 與測試。修改這一個條件即可取現有的核心函式庫形狀。
+- `Repository.mk:409–410` 已無條件登錄 dba／dbahsql；原生未開 DB connectivity 時本來就建這兩個。`Library_dba.mk:35–58` 的相依函式庫在起點核心均已建好。
+- `forms/source/component/DatabaseForm.cxx:358`：`ODatabaseForm` 用 `UNO_QUERY_THROW` 聚合 `com.sun.star.sdb.RowSet`。RowSet 的建構子在 `dbaccess/util/dba.component`。
+- `static/CustomTarget_components.mk:23` 呼叫 `native-code.py -c services_constructors.list`；`native-code.py:828–850` 在這個模式引用每個已建元件的建構子。不能用 native-code.py 內建短清單估連結範圍。
+- `.component` 才是建構子的真值源：交接讀得 dba 8、dbu 26、sdbt 1、dbaxml 0、rpt 8、rptui 6。本輪檢查直接解析檔案屬性，不抄建構子清單；上述數量只作調查登錄。
+
+〔推論，約 ±50%〕原生 `.text`：dba 2,173,962 B、dbahsql 55,841 B；以 v2 §5.3 的 DB connectivity 增量（native 約 3.95 MB → wasm gzip +1,153,716 B）校準，A 約增加 0.65 MB gzip，viewer 約 49.8 MB。這不是放行依據。
+
+量測基準：10-22 DB connectivity 核心 `soffice.wasm` gzip **49,572,266 B**；它對應的診斷 viewer `a6390eef…` gzip **49,153,029 B**。建好後投影＝49,153,029＋（新核心 gzip－49,572,266）。連結後仍以 viewer 自己的實測判。上限 **52,428,800 B**（SPEC-M4 追加 2；packager 的 gzip level 9、mtime 0）。
+
+## 2. 本輪 patch（先釘再套）
+
+新檔：`wasm-lite/patches/libreoffice-26.8-wasm-dbaccess-core-with-explicit-dbconnectivity.patch`。
+
+1. `dbaccess/Module_dbaccess.mk` 的 DBCONNECTIVITY 條件改成：
+
+   ```make
+   ifneq (,$(and $(filter DBCONNECTIVITY,$(BUILD_TYPE)),$(if $(filter TRUE,$(ENABLE_WASM_STRIP_DBACCESS)),,yes)))
+   ```
+
+   strip 空值也應容許原生組態，不能用 `filter-out TRUE`（空值仍會是空）。
+2. `RepositoryModule_host.mk` 在 accessibility 區塊的 `endif` 之後，加 `ifeq ($(ENABLE_WASM_STRIP_DBACCESS),TRUE)` 區塊，只加 `$(call gb_Helper_optional,DBCONNECTIVITY,dbaccess)`。與 reportdesign patch 的 hunk context 保持距離，兩份都要能 reverse-check。
+3. INVENTORY 加表列、headless 段與日期紀錄；十份 LibreOffice patch 逐份 `git apply --check --reverse`。不動 `configure.ac`／autogen 輸入，不重跑 autogen。
+
+組態讀法：strip TRUE＋DBCONNECTIVITY → dba／dbahsql；strip TRUE＋沒有 DBCONNECTIVITY → 不加入 dbaccess；strip 空值的原生組態照原本分支，含 DB connectivity 的原生組態仍有 UI／reportdesign。這是本次修改的範圍說明，不把手工清單升成未來所有建置的硬性判準。
+
+## 3. 核心閘門 K3 與停手條件
+
+新工具：`wasm_sdk_probe/tools/check_ods_viewer_v3_core.py --stage built`。重用 `check_ods_viewer_v2_core.py` 的 helper 與 K-2a／c／e；不修改 v2 的 K-2d（「無 dba」是 v2 當時的期望）。configure 階段仍用 v2 工具的 K-1，在 patch 後、擁有者 `make` 前跑。
+
+| id | 判準 | 形式 | 永遠沒做的預設結論 |
+| --- | --- | :---: | --- |
+| K-1 | v2 §2.3 的五項 configure 條件仍成立 | 1 | 不開始 make |
+| K3-a | `services_constructors.list` 包含從 `dbaccess/util/dba.component` 解析的每個 constructor；來源不存在或應有的集合為空不得通過 | 2 | v3 不連結 |
+| K3-b | 同一清單不含從 `dbu.component`、`sdbt.component`、`reportdesign/util/rpt.component`、`rptui.component` 讀出的任何 constructor；來源缺失或這些集合為空不得通過 | 2 | v3 不連結 |
+| K3-c | v2 K-2a（add-in 完整簽章）、K-2c（OFormsCollection＋scaddins）、K-2e（五個連結輸入存在且非空）都成立 | 2 | v3 不連結 |
+| F3-1 | 建置在 dbaccess（dba／dbahsql）內失敗 → 保存完整 log 與 tail 200，停手交擁有者決定，不連續補 patch（v2 §2.7 的教訓） | 停手規則 | 未建好，不連結 |
+| F3-2 | K3 後投影或連結後實測 viewer gzip > 52,428,800 B → 停手 | 1 | 體積未判，不出貨 |
+
+只登錄：新 `soffice.wasm` 大小、sha256、gzip 大小、相對基準增量與 viewer 投影；dbaxml 的 component 沒有 constructor，僅記錄。K3 本身的硬性結果是 a／b／c，體積另依 F3-2 讀。
+
+**建置前紅案**：今日 `build-ods-viewer-v2` 必須 K3-a 紅（缺 dba）、K3-b 綠；從真值源取一個 dbu constructor 加進合成清單，K3-b 必須紅。補全 dba 的合成清單可作檢查器的綠案，必須明標 synthetic，不能當核心已建好的證據。輸出存 `findings/evidence/m4-ods/viewer-v3/core/`，先保留第一次輸出才判讀。
+
+建置腳本：`handoff/ods-viewer-v3/build-core.sh --make-only`，只收這個參數，不跑 autogen；emcc 4.0.10 guard、K-1、每次獨立 log、失敗保存 tail 200、`timing.txt`、成功後跑 K3 並讀 F3-2。擁有者手動執行，估 15–40 分鐘（起點上次完整建置 45 分鐘，本次加 dba／dbahsql 與重連結）。交出前讀 `uptime`、`pgrep -a make`；有其他建置或長時間量測先說明狀況。
+
+## 4. 連結與 Phase E（任何本輪連結／執行之前釘下）
+
+K3 綠且投影未超限之後才準備 v3 Makefile／獨立 profile builder，核心指向 `build-ods-viewer-v2`。沿用 v2 §3.5 E8′ 的程序：base 正向對照、DROP 恰好一次、相對 v1 差異列出並在連結前讀過；CJK／fallback 沿用 v1 位元組。manifest 必須宣告 `form-controls`，由核心標頭與引擎能力位元相符來建立，不用旗標假裝支援。
+
+在任何連結前先核對並封存現行 profile（`build/archive/`；wasm 不可重現），準備連結手冊，由擁有者跑連結。不用 v3 覆寫 v2。Phase E 的 runner 加 v3 名稱；每次明給 `--profile ods-viewer-v3` 與 **`--out`**，不碰 v1／v2 已計數證據。
+
+| id | 判準 | 形式 | 永遠沒做的預設結論 |
+| --- | --- | :---: | --- |
+| V2-158B（沿用 v2 §4 原文，在 v3 上） | profile 宣告 `form-controls` 時，每筆 `formControls === true` 的檔開得了（E2 的開檔條件）、E4a（每張表 tile OK）與 E3（文字＝期望）成立。母體由 package probe 產生，目前五份：`move-cell-anchored-shapes`、`tdf106181`、`tdf121963`、`tdf134161`、`tdf154005` | 1 | 158-B 未修；0.2.32 留著 |
+| V3-NR | 每筆在 `aa576ce7…` 的既有全語料報告裡成功開啟的語料，在 v3 仍滿足 E2 的開檔條件；以語料身分逐筆對帳，包含 `tdf138507.ods` | 2 | v3 不出貨 |
+| V3-SEE | 擁有者在鏡像頁看 `tdf134161.ods`（101 個控制項），明確確認控制項可見；原話與頁面／profile 身分記錄在樹裡 | 人類殘餘／記錄 | 不宣稱「控制項已畫出」；158-B 未完成 |
+| E1–E9、V2-157／159／160／160-D、E8′ | 沿用 SPEC-M4 與 v2 的既有判準與追加修正，在 v3 重跑。V2-160 全語料 N＝3；160-D 照 v2 §8.3，包括「沒有派送失敗則重送未被走到」的預設讀法。E6 採 SPEC-M4 追加 12，只判 stage 高水位 < 896 MiB，洩漏半句已撤回（finding 164） | 1／2 | 各項原來的預設結論；v3 不打包 |
+
+既有具名限制照舊（例如 `L-no-basic-udf`、揮發表的 E3 讀法）；不能把它們當本輪新紅或自行改判準。V3-SEE 是明列的人類殘餘，不假稱機器可判；像素不同不能證明控制項可見。
+
+**預先寫好的讀法**：全成立 → 準備 host **0.2.33**。V2-158B 或 V3-NR 紅 → v3 不出貨，0.2.32 留著，finding 158 記下下一個阻礙。控制項在 headless LOK 的繪製路徑、其他 dbaccess service 是〔未量〕候選，不先歸因。不出貨「核心有 forms、殼層仍拒絕」或反向的組合（v2 §2.5）。
+
+計數語意：新連結的 E 全部從零；v3 wasm sha 改變就重來。新增判準由 158-B／`tdf138507` 的既有失敗逼出，先於滿足，逐實例或工具封閉母體；第三筆乾淨全語料落地即封閉，之後的顧慮另立 finding／工作項。V3-SEE 不用等待「穩定」來作硬性判準。宿主計數鏈 K 仍併批。
+
+## 5. 包裝、宿主與接續順序
+
+1. 本規格單獨 commit。
+2. 兩個 hunk＋patch inventory、十份 reverse-check、K-1，commit。
+3. 新 K3 工具＋建置前真實紅案與合成紅案／綠案，commit。
+4. 擁有者建置腳本與手冊，commit，交短指令。停在等建置結果；不越過 K3 準備實際連結。
+5. 建好後讀 K3／F3-2 → v3 連結準備／E8′ 差異判讀／封存 → 擁有者連結 → 連結後核對 → Phase E。
+6. 全成立才依 `findings/evidence/host-0.2.32/` 準備 host 0.2.33：隔離 worktree、`package_m3_engine.py --app <worktree>`（預設是 LIVE app，不可漏）、離線閘門、archive、安裝腳本與還原配方、Phase H 鏈、手冊與 release 草稿。
+7. 只有擁有者指定 ddev 時段後才安裝／跑 H1–H7；未排時段就維持現況，K 不自行啟動。
+
+§34.4：交接起點累計 **46／27**（因執行而修／因審核而修）；本輪新增規格、K3、腳本不算修既有檢查。本輪因審核而修須維持 **0**；若誠實執行證實既有工具誤判，先 commit 證人再照 §34 處理。
+
+## 6. 修訂紀錄
+
+| 日期 | 變更 |
+| --- | --- |
+| 2026-10-23 | 事前釘下 A、兩個 hunk、K3／F3、Phase E／人類殘餘與停手讀法、後續工作順序 |
