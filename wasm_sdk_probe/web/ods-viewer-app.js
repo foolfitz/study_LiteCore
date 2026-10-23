@@ -23,9 +23,10 @@ const params = new URLSearchParams(location.search);
 // the host serves whatever its evidence.  A run on another profile rewrites
 // this literal in its OWN copy of the page, never here.  Re-pointed from
 // `ods-viewer-v1` to v2 (`aa576ce7`) once v2's Phase E held on the mirror
-// (SPEC-M4-viewer-v2 §9).
+// (SPEC-M4-viewer-v2 §9). V3's targeted sweep then passed with dba/RowSet;
+// the v3 page checks use this identity (SPEC-M4-viewer-v3 §12).
 const ENGINE_OPTIONS = Object.freeze({
-  workerUrl: "./profiles/ods-viewer-v2/sdk-worker.js",
+  workerUrl: "./profiles/ods-viewer-v3/sdk-worker.js",
   timeoutMs: 60000,
 });
 const OPEN_TIMEOUT_MS = Number.parseInt(params.get("openTimeoutMs") || "180000", 10);
