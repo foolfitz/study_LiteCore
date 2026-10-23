@@ -88,3 +88,7 @@ v2 的核心（`build-ods-viewer-v2`）開了 DB connectivity，`OFormsCollectio
 **尚未完成的部分**：V3-SEE 要擁有者在具名 mirror 上親眼確認 `tdf134161.ods` 的控制項可見。agent 已確認正確 profile／fixture 被載入並留頁面狀態與截圖，但不能替代擁有者的原話。預覽位於本機 8794，綠色橫幅標示 v3／ebb7e0cb；證據 `phase-e/human-preview/`。
 
 因此目前是**機器驗收成立的候選**，不是已出貨的修復；宿主仍未更動，0.2.32 的 158-A 行為照舊。待 V3-SEE 成立後才準備 host 0.2.33，安裝／Phase H 仍需擁有者指定 ddev 時段。
+
+### 同日追加：擁有者確認外觀，V3-SEE 成立
+
+擁有者在 v3／`ebb7e0cb` mirror 上原話：「綠色橫幅 OK」「黃色格子裡的小方框 OK」。證據 `findings/evidence/m4-ods/viewer-v3/phase-e/human-preview/owner-confirmation.md`。這輪 158-B 的鏡像驗收已完成，含機器與人類兩半；接續準備 host 0.2.33。**尚未安裝到 Nextcloud**，不把 mirror 的修復宣稱成目前 0.2.32 的產品行為。
