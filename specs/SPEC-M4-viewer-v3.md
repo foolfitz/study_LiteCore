@@ -287,3 +287,26 @@ N＝3 已滿；§4 的第三趟乾淨執行截止已到，之後的新增顧慮�
 | 日期 | 變更 |
 | --- | --- |
 | 2026-10-24 | 追加 §16：V3-SEE 原話成立、0.2.33 的隔離包裝與 Phase H 原有判準／退路 |
+
+## 17. 0.2.33 包裝與離線成立（2026-10-24，只追加；安裝之前）
+
+宿主 `host-0.2.33`／`4f7f870` 在 `bffc7dc` 上，只改版本號。隔離 worktree 包裝出 schema 3／**`a67beefefebe57d6`**，35 檔、345,292,248 B，gzip 118,065,155 B、zstd 85,087,410 B。最大單檔 gzip 49,530,696 B、zstd 37,177,361 B，均未超既有上限。
+
+對 0.2.32：28 檔完全相同，common path 只改 `ods-viewer-app.js`，六個 v2 profile 路徑換成六個 v3 路徑；**編輯器整個工具推導閉包 22 檔連編碼 metadata 都相同**。封存 `build/archive/host-0.2.33-engine-a67beefefebe57d6/`，71 檔比來源並驗 checksum。live `main` 與 `engine/` 在準備時仍是 0.2.32／80349a1a，沒有被 packager 寫入。
+
+證據 `findings/evidence/host-0.2.33/`：packager 自測 13／13、K0／Z0／H5-1 零問題、22／22 紅案；live 0.2.32 負對照 exit 1、16 個問題。BUILD_ID 改綁實測的新包，是綁定不是判準修改。安裝／還原／Phase H 腳本與手冊已備，自製 ddev 狀態 fixture 的停止／忙碌拒絕、preflight-only 不寫 live、過期時段拒絕皆成立；這些 fixture 沒有操作真實 ddev。
+
+## 18. 擁有者睡前授權自主執行（2026-10-24，只追加；啟動／安裝之前）
+
+擁有者原話：
+
+> 我要睡了，請你自主執行；告一段落就自主交接和停止
+> 如果遇到難以判斷的地方就先記錄下來
+
+將這項新指示用在已備妥的 0.2.33 安裝與 Phase H：`ddev list` 實讀目前沒有 running 專案，litecore stopped、nc-bridge paused（`ddev-before-slot.json`）。受託者採當下空閒時段，設定 **30 分鐘**的 WINDOW_END（實際起訖記於 `slot.json`）；只啟動自己的 litecore、不停別的專案，依 §16.2 讀結果。遇到難判處記錄，不擴張成 patch／審查鏈。
+
+完成這段後寫交接、停止自己啟動的 litecore、恢復原本 stopped 狀態並結束。H7 仍需擁有者日後從 Files 親手開檔，不能由 agent 代答；今晚不追加人工要求。K 保持併批。§34.4 **+0／+0**，累計 **46／27**。
+
+| 日期 | 變更 |
+| --- | --- |
+| 2026-10-24 | 追加 §17：套件／離線結果；§18：睡前自主指示、實讀空閒 ddev、界限與停止點 |
