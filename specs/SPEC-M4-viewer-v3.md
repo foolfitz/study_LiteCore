@@ -181,3 +181,15 @@ base **`21bec646…`**，39,934,615 B，1,488 檔；對 v1 **0 新增、0 移除
 | 日期 | 變更 |
 | --- | --- |
 | 2026-10-24 | 追加 §10：E8′ 九檔差異判讀、連結前檢查與 archive／凍結快照、交擁有者連結 |
+
+## 11. 第一次連結成立（2026-10-24，只追加；Phase E 尚未執行）
+
+擁有者執行 `link.sh`，make／tee exit 0（`link-ods-viewer-v3-20261024T001307-kZZfMV.log`）。wasm 身分 **`ebb7e0cb…`**，loader **`a6f77b08…`**；worker 沿用 `9c85043a…`。實測 gzip **49,530,696 B**，距上限 **2,898,104 B**，比投影少 1,491 B，F3-2 未觸發。
+
+連結後核對全過（`findings/evidence/m4-ods/viewer-v3/post-link/`）：舊凍結集合 1,643 檔完全相同；manifest 為 v3、`part-info`＋`form-controls`、bits 63539、base `21bec646…`／metadata `43da6a24…`；wasm 的 viewer／SelectAll retry／Calc／forms／RowSet 字串存在、editor completion 不存在；stack PASS、E1-C intact。已立即封存到 `build/archive/ods-viewer-v3-ebb7e0cb-worker-9c85043a/`，比來源並驗 checksum，沒有再連結。
+
+Phase E runner 只擴充 profile 名稱清單，判讀邏輯未改；phase-e／E6／E4b-E9 自測 **43／43、17／17、16／16**（`45b75452`）。接著在這顆身分上執行 §4，先定向；這些產物核對尚未證明控制項畫得出來。§34.4 **+0／+0**，累計 **46／27**。
+
+| 日期 | 變更 |
+| --- | --- |
+| 2026-10-24 | 追加 §11：連結身分、實測 F3-2、凍結核對與封存，Phase E 從零開始 |
