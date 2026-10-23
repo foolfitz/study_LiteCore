@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **狀態** | **已確認**（Phase E 全語料，2026-10-20；core 原始碼與建置組態讀過）；**158-A 已落地**（擁有者裁示，同晚）：session 在引擎之前以 `<draw:control` 型別化拒絕 `FORM_CONTROLS_UNSUPPORTED`（規格追加 8；全語料 5 拒／298 開，`report-2026-10-20T144351Z.json`）。核心層的缺口（B）未修 |
+| **狀態** | **158-B 已在 v3／`ebb7e0cb` 修復並完成鏡像驗收**（機器＋擁有者外觀確認，2026-10-24）；host **0.2.33** 已裝，機器 Phase H 通過，為**未計數候選**，H7 待擁有者日後從 Files 確認。舊 v2 仍採 158-A 的型別化拒絕；名義出貨版本仍 0.2.26 |
 | **Bugzilla** | 無（上游送出擱置）。**可能是上游 wasm 建置的通病**：上游的 WASM 組態同樣關 DB connectivity；未在上游 build 上重現 |
 | **發現日** | 2026-10-20（`findings/evidence/m4-ods/phase-e/report-2026-10-20T133240Z.json`） |
 | **嚴重度** | **高**（對使用者）：這類檔開得了、名字讀得到、但畫布空白，每一次畫圖都丟例外。語料 303 份可開的裡有 5 份（1.7%） |
@@ -92,3 +92,7 @@ v2 的核心（`build-ods-viewer-v2`）開了 DB connectivity，`OFormsCollectio
 ### 同日追加：擁有者確認外觀，V3-SEE 成立
 
 擁有者在 v3／`ebb7e0cb` mirror 上原話：「綠色橫幅 OK」「黃色格子裡的小方框 OK」。證據 `findings/evidence/m4-ods/viewer-v3/phase-e/human-preview/owner-confirmation.md`。這輪 158-B 的鏡像驗收已完成，含機器與人類兩半；接續準備 host 0.2.33。**尚未安裝到 Nextcloud**，不把 mirror 的修復宣稱成目前 0.2.32 的產品行為。
+
+### 同日安裝結果：0.2.33 的機器 Phase H 成立
+
+0.2.33／package `a67beefefebe57d6` 已安裝，帶 v3／`ebb7e0cb`；H1–H6 的機器部分全部成立，包含唯讀、實際送出 v3 的 Apache 紀錄、兩個瀏覽器的編輯器回歸。證據 `findings/evidence/host-0.2.33/README.md`。H7 仍待擁有者日後從 Files 開檔；K 仍併批。受託睡前工作告一段落後，litecore 已恢復 stopped，資料與新候選保留，新舊 package archive 都在。
