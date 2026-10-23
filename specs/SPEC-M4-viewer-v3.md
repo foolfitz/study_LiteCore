@@ -254,3 +254,36 @@ N＝3 已滿；§4 的第三趟乾淨執行截止已到，之後的新增顧慮�
 | 日期 | 變更 |
 | --- | --- |
 | 2026-10-24 | 追加 §15：三趟全語料／V3-NR／160-D 全部結果；機器部分封閉，V3-SEE 待擁有者 |
+
+## 16. 擁有者確認 V3-SEE；準備 host 0.2.33（2026-10-24，只追加）
+
+擁有者在具名 v3／`ebb7e0cb` mirror 上回報原話：
+
+> 綠色橫幅 OK
+> 黃色格子裡的小方框 OK
+
+證據 `phase-e/human-preview/owner-confirmation.md` 綁該頁／fixture 身分與原話。**V3-SEE 成立**；取代 §15「仍待人工」的狀態。§4 的這輪要求已全成立（保留原有 `L-no-basic-udf`），不追加別的人類項目。接續 §5 的 host **0.2.33** 準備；這不是 ddev 時段授權。
+
+### 16.1 包裝、隔離與退路（任何 0.2.33 包裝／安裝之前釘下）
+
+- 主 app 目前讀到 `main`／`bffc7dc`（0.2.32），工作樹乾淨。建立隔離 worktree／`host-0.2.33`，宿主只把 `appinfo/info.xml` 版本升成 0.2.33，不改路由／控制器／Files 動作。
+- 先執行已讀過的 cp-only `make ods-viewer-assets`，不觸發編譯或 relink；再用 `package_m3_engine.py --app <隔離 worktree>` 包裝。**預設 app 是 LIVE，不能省略參數**。
+- 依 schema 3 的既有流程產生實測 buildId；比較每個解碼檔與 0.2.32 archive，編輯器頁的閉包與引擎身分必須相同。這個包只帶新的 viewer page／profile，實際差異由 manifest 對帳列出，不把手工檔數當硬條件。
+- 離線沿用 K0／Z0／H5-1、22 個 package 紅案及 packager 自測。`check_m3_assets.BUILD_ID` 在實測後改綁新值；是換包的綁定，不改判讀條件。以 live 0.2.32 包作負對照，不動它。
+- 新包封存於 `build/archive/host-0.2.33-engine-<buildId>/`，逐檔驗過。安裝腳本、Phase H 鏈、手冊、release 草稿與退路先完成，再詢問 ddev 時段。
+- 退路：宿主只有版本差異，換回 `build/archive/host-0.2.32-engine-80349a1a24cecb17/` 的 package 即回到原有功能；不 reset、不降 app 版本、不另跑 occ。新的 archive 與舊 archive 都保留。
+
+### 16.2 Phase H 的判準與讀法（任何這次宿主執行之前釘下）
+
+沿用 SPEC-M4 §4 H1–H7 與 viewer-v2 §10.3 的既有讀法；H4＝H-154c／H-154o／H-155，兩個瀏覽器各三輪並 `--require-h155`，加 host-entry runner；H5 是本次 package 的離線閘門。不新增判準，H7 仍是**裝好後擁有者從 Files 點開 .ods**，本輪 mirror 的 V3-SEE 不替代它。
+
+- H1–H4、H6 全過 → 0.2.33 成為日常用的未計數候選，交擁有者 H7。
+- 有紅 → 先讀 raw、時段內不修檢查，照 16.1 換回 0.2.32 package，記錄後停止。
+- 只有 NOT_ESTABLISHED → 留候選、登錄，由擁有者決定。
+- 沒有 ddev 時段 → 不安裝、不跑 H，0.2.32 留著。K 一律維持併批，不自行啟動或重綁。
+
+§34.4 本段 **+0／+0**，累計 **46／27**。
+
+| 日期 | 變更 |
+| --- | --- |
+| 2026-10-24 | 追加 §16：V3-SEE 原話成立、0.2.33 的隔離包裝與 Phase H 原有判準／退路 |
