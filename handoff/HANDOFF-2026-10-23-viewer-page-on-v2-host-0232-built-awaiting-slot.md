@@ -57,3 +57,19 @@ The scratch worktree is removed (branch `host-0.2.32` stays, merged into main).
 
 **H7 (after the addendum):** the owner opened `M4 phase-h/M4 檢視 測試 plain.ods` in Files: 「三個分頁都可以開啟」. H7 holds (spec §10.5). `functions.ods` / `fdo67682-2.ods` were not hand-checked on the host. What keeps 0.2.32 a draft release now is only K (batched). Next: the open items in Next 4 (158-B, finding 164's intra-open growth, the Phase H fixture clean-up on the instance, finding 163 is closed by reading).
 
+
+---
+
+## Addendum 2 (14:30): the instance clean-up, and finding 164's intra-open work item measured
+
+The owner: 「照你建議」 (order: C first, A in a ddev slot), then 「現在可以用ddev」.
+
+| when (CST) | what | record |
+| --- | --- | --- |
+| ~14:20 | **A, clean-up:** nothing was running (litecore and nc-bridge paused); the session `ddev start`ed litecore; PROPFIND listed exactly the eight Phase H fixtures in `M4 phase-h/`; one DELETE 204 (admin's trash); re-check: no `M4 ` entry; `ddev stop` (1.25.3 has no pause) -- **litecore is now stopped, not paused** | `findings/evidence/host-0.2.32/README.md` (end), `99ee5518` |
+| 14:2x | **C:** SPEC-M4-viewer-v2 §11 pinned first (`48bf08d0`): count instead of resolution -- a fresh engine per run (B = 0 makes boots identical), K paints / K switches, read at `document-destroy-enter`, a 64 MiB tile as the positive control; probe + reader (selftest 8/8) committed before its run (`d1ed2658`) | §11.1-11.3 |
+| 14:25-14:28 | run 1 (no record of what the operations produced) → the page samples every 100th operation (`2910e135`) → run 2. Control +68,788,224 4/4; every sampled paint non-blank and distinct, every switch read back; **paint flat** (0 at 200 and 800, 2.2-3.4 MB at 3,200), **switch flat** (0.66 / 0.86 / 2.5 MB at 60 / 240 / 960). The switch arm's monotonic ~2.3 KB/switch is registered, not read (below the probe's resolution; ~310,000 switches to the kill line if it were all retained) | §11.4, finding 164's new section, `b2cabff7` |
+
+**Next:** what remains open is B -- 158-B (form controls), a core rebuild with the owner's make; a plan first. Also open: `engine.old` (0.2.27/0.2.28's package, archived) is still in the app dir -- delete only on the owner's word; the live-byte count (`mallinfo().uordblks`) waits for the next link (finding 164).
+
+§34.4: because of execution +0, because of review +0 (the probe is record-only; its page gained sampling after run 1, its reader did not change). Running total **46 / 27**. New, unreviewed: `tools/probe_ods_viewer_intra_open_growth.py` and its page.
