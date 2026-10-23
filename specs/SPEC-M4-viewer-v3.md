@@ -121,3 +121,27 @@ K3 綠且投影未超限之後才準備 v3 Makefile／獨立 profile builder，�
 | 日期 | 變更 |
 | --- | --- |
 | 2026-10-23 | 追加 §7：建置前結果、保留首次工具中止、建置腳本與交接點 |
+
+## 8. 核心建好、允許準備連結（2026-10-24，只追加）
+
+擁有者執行 `build-core.sh --make-only`，run `20261023T235528-ctpzQR`：make／tee 都 exit 0，**184 秒**。K-1 與 K3 全綠，且已將報告中的 component、constructor list、五個連結輸入、wasm 與 checker 雜湊逐項對到現場檔案。證據在 `findings/evidence/m4-ods/viewer-v3/core/runs/20261023T235528-ctpzQR/`。
+
+- 建構子 **783 → 791**：dba.component 的 8 個全部進來（含 RowSet）；dbu／sdbt／rpt／rptui 的建構子都沒有。bridge 仍是 80 個，forms／scaddins 與五個連結輸入照過。
+- 核心 wasm **154,650,988 B**，gzip **49,951,424 B**；gzip 增量 **379,158 B**。viewer 投影 **49,532,187 B**，距上限 **2,896,613 B**。F3-1 未觸發；投影未觸發 F3-2，實際 viewer 仍待連結後判。
+- 更正 §1 的調查登錄與 §3 的「dbaxml 沒有 constructor」：交接把它記成 0，本輪工具實際讀 `dbaccess/source/filter/xml/dbaxml.component` 是 **6** 個；這 6 個在已建核心均缺席。它仍是 record-only，K3-b 的既定四個來源不變，不改檢查器與判準。
+
+## 9. v3 連結準備的具體落地（2026-10-24，任何本輪連結之前，只追加）
+
+沿用 §4／§5 的範圍，落地 `ODS_VIEWER_V3_*` 規則、`build/ods/viewer-v3/`、`dist/profiles/ods-viewer-v3/` 與獨立 `tools/build_ods_viewer_v3_profile.py`。核心預設 `../wasm-lite/build-ods-viewer-v2`；引擎 define **仍是 `OXSDK_ODS_VIEWER_V2`**，沒有新的 ABI／C++ define。worker 沿用 v2 的 pin。v3 的 builder 使用獨立 profile／base stem，包裝時要求核心有 DB connectivity；`--check --core gate0` 只是 base 程序的對照，不是可出貨的 v3。
+
+連結行與 v2 逐 token 比，差異只容許物件、核心、匯出清單與輸出路徑；引擎原始碼要與 `aa576ce7` 封存所記的 `2430916d` 相同。static 的 carrier 清單新增 `ODS_VIEWER_V3=probe_engine,sdk_api`，是新 profile 的綁定宣告，不改既有檢查器。
+
+建置工具的紅案／對照照 v2：gate0 內部正向對照重現 9901e9be；`--check --core gate0` 對 v1 差異 0／0／0；`--red-drop` 多刪一個真實檔，removed 必須看見它。用合成 loader／wasm 在暫存輸出測包裝身分與 form-controls，標為 synthetic，不當作實際連結；錯 worker／缺匯出與 gate0 核心不得包成 v3。既有單元與 `test-e2-c-static` 照適用範圍執行；不為既有檢查新增判準。
+
+在交出連結前讀 E8′ 的 base 差異、封存現行 editor／viewer 與所引用資源、記錄凍結集合；短指令放在 `handoff/ods-viewer-v3/link.sh`。連結由擁有者執行，估幾分鐘。連結後依 §4 核對實測 gzip、manifest `form-controls`／位元 63539、字串、stack、既有 profile 不變與 E1-C，再立即封存 v3。Phase E 的 profile 選項在需要時加 v3，執行一律明給 `--out`。
+
+以上是 §4 的實作與驗證順序，沒有放寬或新增閘門；§34.4 本段 **+0／+0**，累計 **46／27**。
+
+| 日期 | 變更 |
+| --- | --- |
+| 2026-10-24 | 追加 §8：核心實測與 dbaxml 記錄更正；§9：連結準備的具體步驟 |

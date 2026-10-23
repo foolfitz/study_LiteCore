@@ -1,0 +1,221 @@
+{
+  "stage": "built",
+  "build": "/home/jiajun/LibreOffice/study_LiteCore/wasm-lite/build-ods-viewer-v2",
+  "source": "/home/jiajun/LibreOffice/study_LiteCore/libreoffice-26-8",
+  "ok": true,
+  "clauses": [
+    {
+      "clause": "K3-a",
+      "ok": true,
+      "hard": true,
+      "observed": {
+        "constructorCount": 791,
+        "absent": []
+      },
+      "expected": {
+        "contains": [
+          "com_sun_star_comp_dba_DataAccessDescriptorFactory",
+          "com_sun_star_comp_dba_OCommandDefinition",
+          "com_sun_star_comp_dba_OComponentDefinition",
+          "com_sun_star_comp_dba_ODatabaseContext_get_implementation",
+          "com_sun_star_comp_dba_ODatabaseDocument",
+          "com_sun_star_comp_dba_ODatabaseSource",
+          "com_sun_star_comp_dba_ORowSet_get_implementation",
+          "com_sun_star_comp_dbaccess_DatabaseDataProvider_get_implementation"
+        ]
+      }
+    },
+    {
+      "clause": "K3-b",
+      "ok": true,
+      "hard": true,
+      "observed": {
+        "dbu": [],
+        "sdbt": [],
+        "rpt": [],
+        "rptui": []
+      },
+      "expected": "no constructors from dbu, sdbt, rpt or rptui"
+    },
+    {
+      "clause": "K3-c",
+      "ok": true,
+      "hard": true,
+      "observed": [
+        {
+          "clause": "K-2a",
+          "ok": true,
+          "hard": true,
+          "observed": {
+            "count": 80,
+            "missing": []
+          },
+          "expected": {
+            "contains": [
+              "didddi",
+              "diiii",
+              "diiiii",
+              "diiiiii"
+            ]
+          }
+        },
+        {
+          "clause": "K-2c",
+          "ok": true,
+          "hard": true,
+          "observed": {
+            "count": 791,
+            "absent": []
+          },
+          "expected": {
+            "contains": [
+              "com_sun_star_form_OFormsCollection_get_implementation",
+              "scaddins_AnalysisAddIn_get_implementation",
+              "scaddins_ScaDateAddIn_get_implementation",
+              "scaddins_ScaPricingAddIn_get_implementation"
+            ]
+          }
+        },
+        {
+          "clause": "K-2e",
+          "ok": true,
+          "hard": true,
+          "observed": {
+            "instdir/program/soffice.js.linkdeps": {
+              "bytes": 14692,
+              "sha256": "54efe832e05746dc7e3c9038674473c6fefe5bbe82322bc883d0bab537246a33"
+            },
+            "instdir/program/soffice.data": {
+              "bytes": 108570390,
+              "sha256": "57f28c2b04ad7b3adc0d228173f70e7a2db40afe579955a523e09ff48b83977f"
+            },
+            "instdir/program/soffice.data.js.metadata": {
+              "bytes": 180093,
+              "sha256": "f126a6c292a9a7daf7fb2ac03cdfef1712d119f2eb9e07f1c16f98e33473c6e6"
+            },
+            "workdir/CustomTarget/static/emscripten_fs_image/soffice.data.js.link": {
+              "bytes": 17306,
+              "sha256": "5482e64d96952ea3a3e2bad37c0716b73b53258d3a96c37bf37eca6052f0ca66"
+            },
+            "workdir/CustomTarget/desktop/soffice_bin-emscripten-exports/exports": {
+              "bytes": 13427,
+              "sha256": "e9b54133db5c887b1c9558116f8b704c14a39874599c134c81a6345102beb81c"
+            }
+          },
+          "expected": "every file present and non-empty"
+        }
+      ],
+      "expected": "v2 K-2a, K-2c and K-2e all pass"
+    }
+  ],
+  "componentSources": {
+    "dba": {
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/libreoffice-26-8/dbaccess/util/dba.component",
+      "sha256": "07f9f7673a38995290c38231a1b1364f2a2b31ea4938abed2f12921652be0559",
+      "constructors": [
+        "com_sun_star_comp_dba_DataAccessDescriptorFactory",
+        "com_sun_star_comp_dba_OCommandDefinition",
+        "com_sun_star_comp_dba_OComponentDefinition",
+        "com_sun_star_comp_dba_ODatabaseContext_get_implementation",
+        "com_sun_star_comp_dba_ODatabaseDocument",
+        "com_sun_star_comp_dba_ODatabaseSource",
+        "com_sun_star_comp_dba_ORowSet_get_implementation",
+        "com_sun_star_comp_dbaccess_DatabaseDataProvider_get_implementation"
+      ]
+    },
+    "dbu": {
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/libreoffice-26-8/dbaccess/util/dbu.component",
+      "sha256": "64fdc4abeb61332b3b02e90646e9e352f03b561659a2a6d05ed066a6aa8ce183",
+      "constructors": [
+        "com_sun_star_comp_dbaccess_DatabaseInteractionHandler_get_implementation",
+        "com_sun_star_comp_dbaccess_LegacyInteractionHandler_get_implementation",
+        "com_sun_star_comp_dbaccess_OTextConnectionSettingsDialog_get_implementation",
+        "com_sun_star_comp_dbu_OColumnControlModel_get_implementation",
+        "com_sun_star_comp_dbu_OColumnControl_get_implementation",
+        "com_sun_star_comp_dbu_SbaXGridControl_get_implementation",
+        "com_sun_star_comp_sdb_DirectSQLDialog_get_implementation",
+        "com_sun_star_uno_comp_sdb_RowsetFilterDialog_get_implementation",
+        "com_sun_star_uno_comp_sdb_RowsetOrderDialog_get_implementation",
+        "org_libreoffice_comp_dbu_LimitBoxController_get_implementation",
+        "org_openoffice_comp_dbu_CopyTableWizard_get_implementation",
+        "org_openoffice_comp_dbu_DBContentLoader_get_implementation",
+        "org_openoffice_comp_dbu_OAdvancedSettingsDialog_get_implementation",
+        "org_openoffice_comp_dbu_OApplicationController_get_implementation",
+        "org_openoffice_comp_dbu_ODBTypeWizDialogSetup_get_implementation",
+        "org_openoffice_comp_dbu_ODBTypeWizDialog_get_implementation",
+        "org_openoffice_comp_dbu_ODatasourceAdministrationDialog_get_implementation",
+        "org_openoffice_comp_dbu_ODatasourceBrowser_get_implementation",
+        "org_openoffice_comp_dbu_OFormGridView_get_implementation",
+        "org_openoffice_comp_dbu_OQueryDesign_get_implementation",
+        "org_openoffice_comp_dbu_ORelationDesign_get_implementation",
+        "org_openoffice_comp_dbu_OSQLMessageDialog_get_implementation",
+        "org_openoffice_comp_dbu_OTableDesign_get_implementation",
+        "org_openoffice_comp_dbu_OTableFilterDialog_get_implementation",
+        "org_openoffice_comp_dbu_OUserSettingsDialog_get_implementation",
+        "org_openoffice_comp_dbu_OViewDesign_get_implementation"
+      ]
+    },
+    "sdbt": {
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/libreoffice-26-8/dbaccess/util/sdbt.component",
+      "sha256": "df9b90e0b781f7f202b01776a813e252b8df47b8cea190af9fabf4e975fc03c8",
+      "constructors": [
+        "com_sun_star_comp_dbaccess_ConnectionTools_get_implementation"
+      ]
+    },
+    "dbaxml": {
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/libreoffice-26-8/dbaccess/source/filter/xml/dbaxml.component",
+      "sha256": "10e265b919d0d895dab857ebc745dd1d66661736e399de44227e99e742e76694",
+      "constructors": [
+        "com_sun_star_comp_sdb_DBExportFilter_get_implementation",
+        "com_sun_star_comp_sdb_DBFilter_get_implementation",
+        "com_sun_star_comp_sdb_XMLFullExporter_get_implementation",
+        "com_sun_star_comp_sdb_XMLSettingsExporter_get_implementation",
+        "org_openoffice_comp_dbflt_DBContentLoader2_get_implementation",
+        "org_openoffice_comp_dbflt_DBTypeDetection_get_implementation"
+      ]
+    },
+    "rpt": {
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/libreoffice-26-8/reportdesign/util/rpt.component",
+      "sha256": "23be9104c04b0352a8917102b8e9deb3895b585bd3e7b8774233ef6ab36ad570",
+      "constructors": [
+        "reportdesign_ExportDocumentHandler_get_implementation",
+        "reportdesign_ImportDocumentHandler_get_implementation",
+        "reportdesign_OReportFilter_get_implementation",
+        "reportdesign_ORptImportHelper_get_implementation",
+        "reportdesign_ORptMetaImportHelper_get_implementation",
+        "reportdesign_ORptStylesImportHelper_get_implementation",
+        "reportdesign_ORptTypeDetection_get_implementation",
+        "reportdesign_XMLOasisContentImporter_get_implementation"
+      ]
+    },
+    "rptui": {
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/libreoffice-26-8/reportdesign/util/rptui.component",
+      "sha256": "fa5da5c7ed8f76779d5973abc4a900219158b30e93e38613fba97776b9a8660d",
+      "constructors": [
+        "reportdesign_DataProviderHandler_get_implementation",
+        "reportdesign_DefaultComponentInspectorModel_get_implementation",
+        "reportdesign_GeometryHandler_get_implementation",
+        "reportdesign_OReportController_get_implementation",
+        "reportdesign_OStatusbarController_get_implementation",
+        "reportdesign_ReportComponentHandler_get_implementation"
+      ]
+    }
+  },
+  "constructorsSha256": "d89083421074fb848b7929dbe15333277e1b382dd06bd59548556e1bbbbb51e6",
+  "sizeRecord": {
+    "path": "/home/jiajun/LibreOffice/study_LiteCore/wasm-lite/build-ods-viewer-v2/instdir/program/soffice.wasm",
+    "bytes": 154650988,
+    "sha256": "7f18759e9dde2c3c412dbd19b439884cd4631e78bc04fa32aeb49258d7ac2bbb",
+    "gzipLevel": 9,
+    "gzipMtime": 0,
+    "gzipBytes": 49951424,
+    "baselineCoreGzipBytes": 49572266,
+    "baselineViewerGzipBytes": 49153029,
+    "deltaGzipBytes": 379158,
+    "projectedViewerGzipBytes": 49532187,
+    "viewerGzipCapBytes": 52428800,
+    "projectedWithinCap": true,
+    "interpretation": "Projection only; measure the viewer itself after linking (F3-2)."
+  },
+  "checkerSha256": "c9ac4c8f280e3acafd3a171c413aa5ac8bcac7b48e64f7d4d01f57735d0d7d2d"
+}

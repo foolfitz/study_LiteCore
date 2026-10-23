@@ -1,0 +1,76 @@
+{
+  "stage": "configure",
+  "build": "/home/jiajun/LibreOffice/study_LiteCore/wasm-lite/build-ods-viewer-v2",
+  "ok": true,
+  "clauses": [
+    {
+      "clause": "K-1a",
+      "ok": true,
+      "hard": true,
+      "observed": "1",
+      "expected": "1"
+    },
+    {
+      "clause": "K-1b",
+      "ok": true,
+      "hard": true,
+      "observed": true,
+      "expected": true
+    },
+    {
+      "clause": "K-1c",
+      "ok": true,
+      "hard": true,
+      "observed": {
+        "ENABLE_WASM_STRIP_DBACCESS": "TRUE",
+        "ENABLE_FIREBIRD_SDBC": "",
+        "ENABLE_MARIADBC": "",
+        "BUILD_POSTGRESQL_SDBC": ""
+      },
+      "expected": {
+        "ENABLE_WASM_STRIP_DBACCESS": "TRUE",
+        "ENABLE_FIREBIRD_SDBC": "",
+        "ENABLE_MARIADBC": "",
+        "BUILD_POSTGRESQL_SDBC": ""
+      }
+    },
+    {
+      "clause": "K-1d",
+      "ok": true,
+      "hard": true,
+      "observed": {
+        "ENABLE_WASM_STRIP_CALC": "",
+        "ENABLE_WASM_STRIP_ACCESSIBILITY": "",
+        "macro ENABLE_WASM_STRIP_ACCESSIBILITY": "0"
+      },
+      "expected": {
+        "ENABLE_WASM_STRIP_CALC": "",
+        "ENABLE_WASM_STRIP_ACCESSIBILITY": "",
+        "macro ENABLE_WASM_STRIP_ACCESSIBILITY": "0"
+      }
+    },
+    {
+      "clause": "K-1e",
+      "ok": true,
+      "hard": true,
+      "observed": {
+        "added": [
+          "--enable-database-connectivity",
+          "--disable-firebird-sdbc",
+          "--disable-mariadb-sdbc",
+          "--disable-postgresql-sdbc"
+        ],
+        "removed": []
+      },
+      "expected": {
+        "added": [
+          "--enable-database-connectivity",
+          "--disable-firebird-sdbc",
+          "--disable-mariadb-sdbc",
+          "--disable-postgresql-sdbc"
+        ],
+        "removed": []
+      }
+    }
+  ]
+}
