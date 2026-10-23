@@ -1,0 +1,1043 @@
+{
+ "runner": "check_m4_host_viewer.py",
+ "runnerSha256": "712c8cd83ea87d07bb102f2b34fa1fa3e97accd207b0cec4fce3ad72b93726dc",
+ "label": "shakedown",
+ "startedAt": "2026-10-23T17:15:15+00:00",
+ "spec": "SPEC-M4-ods-in-nextcloud §4 H1-H3, H6",
+ "instance": {
+  "baseUrl": "https://litecore.ddev.site:8443",
+  "webserver": "apache-fpm",
+  "nextcloud": {
+   "installed": true,
+   "version": "34.0.2.1",
+   "versionstring": "34.0.2",
+   "edition": "",
+   "maintenance": false,
+   "needsDbUpgrade": false,
+   "productname": "Nextcloud",
+   "extendedSupport": false
+  },
+  "debug": "false",
+  "app": {
+   "repo": "/home/jiajun/Projects/Nextcloud_Apps/litecore",
+   "commit": "4f7f870bb44e703e101148f143f174c7facee5c9",
+   "dirty": [],
+   "files": {
+    ".ddev/addon-metadata/ddev-nextcloud-app/manifest.yaml": "62e823e575f201c4b21d4ae6802f56400730eea106b4cbf0f58c2f301d8262bf",
+    ".ddev/commands/web/cron": "5461838303d48929b9cdda43188313350a3551e530ceb9721992066742b90760",
+    ".ddev/commands/web/nc-app-exec": "e1cb59733ec8c0ae0f41c56d7ca0cc7cc4d4f0d2631d5e0cbacb77a3cf8439ba",
+    ".ddev/commands/web/nc-link": "c6711f9f01fec00e46b7e0164d352a4567baa1a0bdac620ae74e1064758abeeb",
+    ".ddev/commands/web/nc-setup": "1ea04755e7980564dabb794a6edc731ec0456a6123d0da045927093e3f2bcdfb",
+    ".ddev/commands/web/occ": "5cba0c208c6e77a1f7242541259afdaea0dc366c2d759ad9768e8fee0bee11e4",
+    ".ddev/config.nextcloud-app.yaml": "30fe1476ac6b3cd375b49ce4fd63b548537a9f846088c78eefa631cdd1540355",
+    ".ddev/config.yaml": "0af57e7b87476db3363359c92a0a68ea3bbbb659c47a98688fb54583680f8abf",
+    ".ddev/nextcloud-app/ddev.config.php": "dabb6f509f9afb007d403176be75671c9339ee80c553c1f931bb639d9c939b2c",
+    ".ddev/nextcloud-app/lib.sh": "18184498f760ea48e4f517022f1feb5cbdc20b65ec1fc4ab872d409b1084bc2d",
+    ".gitignore": "acc8370d0a17b4da8f1d8a025422535e5d9dd1eb2c9ec684509ee9ccbab3b9ac",
+    "appinfo/info.xml": "8ef79e19129b1d3f674b52c66cc5accba80e4bf68ff9721e3c8e7e0323b9ccb5",
+    "blank/MANIFEST.json": "e5cdb8e2f0311cc10ad543f918906144e73015352304385719b5f85bfd97eb04",
+    "blank/de-DE_zh-TW_A4.odt": "1fb1c2c94c4b9ba114fed336d1d23207668340059079df7e067af9ee05f8c34e",
+    "blank/de-DE_zh-TW_Letter.odt": "3d1539c2ea585e5b6ef820b683a185e79681bb340a44bb82fb3e41f2856e4c65",
+    "blank/en-GB_zh-TW_A4.odt": "114a8faa967e09938db3a183ae295a32ee7036423d5ecfce5dd3a6d36097fec1",
+    "blank/en-GB_zh-TW_Letter.odt": "d434228eb26ee69f245712befabd5a3c86910e3ccc63a92572600d1d2391bbb3",
+    "blank/en-US_ja-JP_A4.odt": "41a829e4ca46ca87cd6cad17e7a57719e92d8f96406850435bc572dfc795b326",
+    "blank/en-US_ja-JP_Letter.odt": "6be6ecbf57174229e2d17e45ed0b2e2ea7813fabea92b8ef6c977aba5106d315",
+    "blank/en-US_ko-KR_A4.odt": "ad189760d2ed8177304ca3450f61e72d680c0431fdc3fbd1fe00651c188396f7",
+    "blank/en-US_ko-KR_Letter.odt": "40065df33ea1666457d249288606166ab1503c6b7ff5bd80d85d0c4b667f0d5b",
+    "blank/en-US_zh-CN_A4.odt": "b962c3a762f2dcc2ad6fcef479aaa64e65460ad14265739e4c0969be971f18ac",
+    "blank/en-US_zh-CN_Letter.odt": "418145864b8eabb5dc56b8604044d658ec2c5829a85332a412c34b54947eeb22",
+    "blank/en-US_zh-HK_A4.odt": "7d765f14818421743e82653679b860c079b2f70008b8df0e389db3e882eecf88",
+    "blank/en-US_zh-HK_Letter.odt": "57bc7697ffcc5d8692350f03d2b2552d2cf7fff5d1b9a7f02e66ae779b6c3876",
+    "blank/en-US_zh-TW_A4.odt": "7e6221b697d408fc011b820226b98e4ad908afbadce8aac3ded48140349b5475",
+    "blank/en-US_zh-TW_Letter.odt": "23f8b70d2f27095ad0ef04efae4e4eea439763c905cb64232da27806d5807300",
+    "blank/es-EC_zh-TW_A4.odt": "3fd632822fb8364a1e89cebdb9502e269cade21d6a5571d502dc3a32f1026858",
+    "blank/es-EC_zh-TW_Letter.odt": "3b64f70b26f3d217baa4e72e1beea61fe3e494a35d7033fa8e60664850f7801a",
+    "blank/es-ES_zh-TW_A4.odt": "4e37ec6623715cee1b95a57d4e7bc06d76dc565e229eaa1305424c052bbe2762",
+    "blank/es-ES_zh-TW_Letter.odt": "a2c2817122857c68123f9b8ae29e4acde233187ece46726ae1e21586f4f445e3",
+    "blank/es-MX_zh-TW_A4.odt": "df09dd55ec14833b049436487af5578d3e021c50f46a9f7fee530c5ecd064d2a",
+    "blank/es-MX_zh-TW_Letter.odt": "1c9542d053acb58c8374737e703b9fa8bbbfa570d1cc0ee530923f293ae38658",
+    "blank/fr-FR_zh-TW_A4.odt": "0d2b2f99d525660fb74779a5421f8f1c73c0c4469493b2ecb496a46c26827232",
+    "blank/fr-FR_zh-TW_Letter.odt": "7fa95bcb46e11b074e369415a21c2d6a716e84f8cef0f7d960f0daf92f7e93d2",
+    "blank/it-IT_zh-TW_A4.odt": "9650312ebf0552462065e1f905a31175dd69a5bc13e4327476029292eb93a8e8",
+    "blank/it-IT_zh-TW_Letter.odt": "b39914f3c88156548b29a282d0ea7d671a86931b16cf85545fbe3eca0e2e1fc2",
+    "blank/nl-NL_zh-TW_A4.odt": "87cca166b1de345bf3ca2b02dc9b6a28a11077bfb4af1ad5c1ea711c873725e2",
+    "blank/nl-NL_zh-TW_Letter.odt": "60142400ffc864f6fadd2d201faa2ba83c94a0aa4c7219f2114c357255db3bce",
+    "blank/pt-BR_zh-TW_A4.odt": "77a3acbe213dbed2d5970f69f12a8a1bf260497a6ae8edf1c76b017da2eb2ba0",
+    "blank/pt-BR_zh-TW_Letter.odt": "e097a7975801ede37e06e345bd3c7ef02d6da24bcafaea4bc958ce1c412f9f75",
+    "blank/pt-PT_zh-TW_A4.odt": "313d0e9c9eda737f3875735ee5359c87be930deededb4b5a33684499c3928dba",
+    "blank/pt-PT_zh-TW_Letter.odt": "65192b6fa58a59293e277be4d5610fb7b8ff76470149a4431015b6109f5c79e8",
+    "js/litecore-editor.js": "7bd05a8458a9d50ae6e1e3ee76e259ce2d1dd54e57bef7862b5cad8ccc41677a",
+    "js/litecore-files.mjs": "112b134bbcb99543295e996e9cce6c6ab75ecb2b922d10db1ccf84fbf40ac8c3",
+    "js/litecore-viewer.js": "75dc7db54017328b364aed43083a2ba2c3edeabb6ca15849fb1d5cb2ffe91900",
+    "l10n/zh_TW.js": "ff0d16c2e126e56b3e3d6458b712868bcbde8c75af7c6a7cdf20728ba3ae7e67",
+    "l10n/zh_TW.json": "dfdfca5e1c94f0481ee375f55584490b725000ca835ffdbe36c3209ad02e9952",
+    "lib/AppInfo/Application.php": "8877b79bce6e7ec327a3179f86ac45c64cdb52ede60d951ded527c0d852fe5b2",
+    "lib/Controller/EditorController.php": "f8df8db0cef2ae4cb9f190113e9a5994efbfaaf15f6285ec08e7bd7f3475f5a4",
+    "lib/Listener/FileCreatedFromTemplateListener.php": "8868fdda7653f8707504a3494644457e6e04d216ece8137ae8407de494940330",
+    "lib/Listener/FilesScriptsListener.php": "36106e7098c5d6483b802d1f6ba26015363a4b76fc108dbfcdc8e0ecd8a0e60d",
+    "lib/Listener/RegisterTemplateCreatorListener.php": "4ff78d446ff9ff2e51a5acd8a54436fbc5a19ded5c451c28983d000934062c3e",
+    "lib/Template/BlankDocument.php": "2ba5cdc6a74c9bff864ff8a2dc5bab6c722914f767accaa6eb9aa9cc7637ce6f",
+    "package-lock.json": "1d0db3025ab71651da3b91e6110d438a28bdd49afefcf96e42c9ae7854df3f31",
+    "package.json": "a0f5d7c5d8142dda63249cca5a65cdd50522ce3817c3c9f15f569c8061076741",
+    "src/files.js": "80c94c24f0ceaf70747e4c397ba3f89a4eb57bc1ff93d117e773e4561160f3ec",
+    "templates/editor.php": "3446ec9093d4d63883dd44364845f03cc6991707da1a251f80daa16be84fd36c",
+    "templates/viewer.php": "7af8e5bcf6990a09cf4f84fb631a1ae01c2aee1222927ed86efb7de8aee38e4f"
+   }
+  }
+ },
+ "fixtures": {
+  "plain": {
+   "ods": {
+    "putStatus": 201,
+    "name": "M4 phase-h/M4 檢視 測試 plain.ods",
+    "basename": "M4 檢視 測試 plain.ods",
+    "mime": "application/vnd.oasis.opendocument.spreadsheet",
+    "bytes": 7537,
+    "fileId": 24674,
+    "etag": "3da0766d15f76e2a58f64eb97444cdd3",
+    "encodedName": "M4%20phase-h/M4%20%E6%AA%A2%E8%A6%96%20%E6%B8%AC%E8%A9%A6%20plain.ods",
+    "versionsStatus": 207,
+    "versions": 1,
+    "sha256": "0402e52724cb5bbd3046461a5fb1c40b9431b33f20834136a835a68f3123e750"
+   },
+   "odt": {
+    "putStatus": 201,
+    "name": "M4 phase-h/M4 檢視 測試 plain.odt",
+    "basename": "M4 檢視 測試 plain.odt",
+    "mime": "application/vnd.oasis.opendocument.text",
+    "bytes": 1343,
+    "fileId": 24675,
+    "etag": "7e537b09efff19eda67395d1dae108b2",
+    "encodedName": "M4%20phase-h/M4%20%E6%AA%A2%E8%A6%96%20%E6%B8%AC%E8%A9%A6%20plain.odt",
+    "versionsStatus": 207,
+    "versions": 1,
+    "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934"
+   },
+   "xlsx": {
+    "putStatus": 201,
+    "name": "M4 phase-h/M4 檢視 測試 plain.xlsx",
+    "basename": "M4 檢視 測試 plain.xlsx",
+    "mime": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "bytes": 849,
+    "fileId": 24676,
+    "etag": "104f73bccb6998aae155abef84bce882",
+    "encodedName": "M4%20phase-h/M4%20%E6%AA%A2%E8%A6%96%20%E6%B8%AC%E8%A9%A6%20plain.xlsx",
+    "versionsStatus": 207,
+    "versions": 1,
+    "sha256": "3ee843e444cbebc9e276865717443a3f18e126c863fb906672a6717d07afed76"
+   },
+   "pdf": {
+    "putStatus": 201,
+    "name": "M4 phase-h/M4 檢視 測試 plain.pdf",
+    "basename": "M4 檢視 測試 plain.pdf",
+    "mime": "application/pdf",
+    "bytes": 329,
+    "fileId": 24677,
+    "etag": "0c8e336574057ade2b698b4796c294b2",
+    "encodedName": "M4%20phase-h/M4%20%E6%AA%A2%E8%A6%96%20%E6%B8%AC%E8%A9%A6%20plain.pdf",
+    "versionsStatus": 207,
+    "versions": 1,
+    "sha256": "7d5371d3d9d5588cdb4c7851773488380aa8e9644001ad32ba5dad8084272746"
+   }
+  },
+  "lock-taking-host": {
+   "ods": {
+    "putStatus": 201,
+    "name": "M4 phase-h/M4 檢視 測試 lock-taking-host.ods",
+    "basename": "M4 檢視 測試 lock-taking-host.ods",
+    "mime": "application/vnd.oasis.opendocument.spreadsheet",
+    "bytes": 7537,
+    "fileId": 24678,
+    "etag": "8dbf64f4aa4e34702a324609e5026eb1",
+    "encodedName": "M4%20phase-h/M4%20%E6%AA%A2%E8%A6%96%20%E6%B8%AC%E8%A9%A6%20lock-taking-host.ods",
+    "versionsStatus": 207,
+    "versions": 1,
+    "sha256": "0402e52724cb5bbd3046461a5fb1c40b9431b33f20834136a835a68f3123e750"
+   },
+   "odt": {
+    "putStatus": 201,
+    "name": "M4 phase-h/M4 檢視 測試 lock-taking-host.odt",
+    "basename": "M4 檢視 測試 lock-taking-host.odt",
+    "mime": "application/vnd.oasis.opendocument.text",
+    "bytes": 1343,
+    "fileId": 24679,
+    "etag": "4c93074fa614ec34dcefdeb5d0cf41fe",
+    "encodedName": "M4%20phase-h/M4%20%E6%AA%A2%E8%A6%96%20%E6%B8%AC%E8%A9%A6%20lock-taking-host.odt",
+    "versionsStatus": 207,
+    "versions": 1,
+    "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934"
+   },
+   "xlsx": {
+    "putStatus": 201,
+    "name": "M4 phase-h/M4 檢視 測試 lock-taking-host.xlsx",
+    "basename": "M4 檢視 測試 lock-taking-host.xlsx",
+    "mime": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "bytes": 849,
+    "fileId": 24680,
+    "etag": "1f0effd6da2e75516a7cb53cc2f51077",
+    "encodedName": "M4%20phase-h/M4%20%E6%AA%A2%E8%A6%96%20%E6%B8%AC%E8%A9%A6%20lock-taking-host.xlsx",
+    "versionsStatus": 207,
+    "versions": 1,
+    "sha256": "3ee843e444cbebc9e276865717443a3f18e126c863fb906672a6717d07afed76"
+   },
+   "pdf": {
+    "putStatus": 201,
+    "name": "M4 phase-h/M4 檢視 測試 lock-taking-host.pdf",
+    "basename": "M4 檢視 測試 lock-taking-host.pdf",
+    "mime": "application/pdf",
+    "bytes": 329,
+    "fileId": 24681,
+    "etag": "53079b5aae903a5b806fd003d011665d",
+    "encodedName": "M4%20phase-h/M4%20%E6%AA%A2%E8%A6%96%20%E6%B8%AC%E8%A9%A6%20lock-taking-host.pdf",
+    "versionsStatus": 207,
+    "versions": 1,
+    "sha256": "7d5371d3d9d5588cdb4c7851773488380aa8e9644001ad32ba5dad8084272746"
+   }
+  }
+ },
+ "runs": [
+  {
+   "arm": "plain",
+   "startedAt": "2026-10-23T17:15:22+00:00",
+   "browser": "Chrome/151.0.7922.169",
+   "login": {
+    "result": {
+     "status": 200,
+     "url": "https://litecore.ddev.site:8443/apps/dashboard/"
+    }
+   },
+   "h1": {
+    "ods": {
+     "rowPresent": true,
+     "menu": "clicked",
+     "menuAppeared": true,
+     "inline": [
+      "sharing-status"
+     ],
+     "menuActions": [
+      "favorite",
+      "details",
+      "litecore-open",
+      "systemtags:bulk",
+      "rename",
+      "move-copy",
+      "set-reminder-menu",
+      "edit-locally",
+      "lock",
+      "download",
+      "delete"
+     ],
+     "expandedWhenRead": "true",
+     "expandedAfterClose": "false",
+     "actions": [
+      "sharing-status",
+      "favorite",
+      "details",
+      "litecore-open",
+      "systemtags:bulk",
+      "rename",
+      "move-copy",
+      "set-reminder-menu",
+      "edit-locally",
+      "lock",
+      "download",
+      "delete"
+     ],
+     "offered": true
+    },
+    "odt": {
+     "rowPresent": true,
+     "menu": "clicked",
+     "menuAppeared": true,
+     "inline": [
+      "sharing-status"
+     ],
+     "menuActions": [
+      "favorite",
+      "details",
+      "litecore-open",
+      "systemtags:bulk",
+      "rename",
+      "move-copy",
+      "set-reminder-menu",
+      "edit-locally",
+      "lock",
+      "download",
+      "delete"
+     ],
+     "expandedWhenRead": "true",
+     "expandedAfterClose": "false",
+     "actions": [
+      "sharing-status",
+      "favorite",
+      "details",
+      "litecore-open",
+      "systemtags:bulk",
+      "rename",
+      "move-copy",
+      "set-reminder-menu",
+      "edit-locally",
+      "lock",
+      "download",
+      "delete"
+     ],
+     "offered": true
+    },
+    "xlsx": {
+     "rowPresent": true,
+     "menu": "clicked",
+     "menuAppeared": true,
+     "inline": [
+      "sharing-status"
+     ],
+     "menuActions": [
+      "favorite",
+      "details",
+      "systemtags:bulk",
+      "rename",
+      "move-copy",
+      "set-reminder-menu",
+      "edit-locally",
+      "lock",
+      "download",
+      "delete"
+     ],
+     "expandedWhenRead": "true",
+     "expandedAfterClose": "true",
+     "actions": [
+      "sharing-status",
+      "favorite",
+      "details",
+      "systemtags:bulk",
+      "rename",
+      "move-copy",
+      "set-reminder-menu",
+      "edit-locally",
+      "lock",
+      "download",
+      "delete"
+     ],
+     "offered": false
+    },
+    "pdf": {
+     "rowPresent": true,
+     "menu": "clicked",
+     "menuAppeared": true,
+     "inline": [
+      "sharing-status"
+     ],
+     "menuActions": [
+      "favorite",
+      "details",
+      "systemtags:bulk",
+      "view",
+      "rename",
+      "move-copy",
+      "set-reminder-menu",
+      "edit-locally",
+      "lock",
+      "download",
+      "delete"
+     ],
+     "expandedWhenRead": "true",
+     "expandedAfterClose": "true",
+     "actions": [
+      "sharing-status",
+      "favorite",
+      "details",
+      "systemtags:bulk",
+      "view",
+      "rename",
+      "move-copy",
+      "set-reminder-menu",
+      "edit-locally",
+      "lock",
+      "download",
+      "delete"
+     ],
+     "offered": false
+    }
+   },
+   "odsBefore": {
+    "fileId": 24674,
+    "etag": "3da0766d15f76e2a58f64eb97444cdd3",
+    "encodedName": "M4%20phase-h/M4%20%E6%AA%A2%E8%A6%96%20%E6%B8%AC%E8%A9%A6%20plain.ods",
+    "versionsStatus": 207,
+    "versions": 1
+   },
+   "logStart": 78160,
+   "open": {
+    "clickedFrom": "https://litecore.ddev.site:8443/apps/files/files?dir=/M4%20phase-h",
+    "filesRow": true,
+    "landed": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/a67beefefebe57d6-90d7bc2c/ods-viewer.html?fileId=24674"
+   },
+   "host": {
+    "started": 1792775733881,
+    "done": true,
+    "steps": [
+     {
+      "step": "imported",
+      "at": 236
+     },
+     {
+      "step": "fetched",
+      "at": 258
+     },
+     {
+      "step": "opened",
+      "at": 2438,
+      "state": {
+       "state": "ready",
+       "parts": 3,
+       "documentType": "spreadsheet",
+       "currentPart": 0,
+       "currentPartReadBack": 0,
+       "adapterFallbacks": [],
+       "error": null,
+       "hostError": null
+      }
+     }
+    ],
+    "scope": "scoped",
+    "file": {
+     "id": 24674,
+     "name": "M4 檢視 測試 plain.ods",
+     "size": 7537,
+     "etag": "3da0766d15f76e2a58f64eb97444cdd3"
+    },
+    "isolation": {
+     "crossOriginIsolated": true,
+     "sharedArrayBuffer": true
+    },
+    "href": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/a67beefefebe57d6-90d7bc2c/ods-viewer.html?fileId=24674",
+    "fetched": {
+     "status": 200,
+     "contentType": "application/vnd.oasis.opendocument.spreadsheet",
+     "etag": "\"3da0766d15f76e2a58f64eb97444cdd3\"",
+     "bytes": 7537,
+     "sha256": "0402e52724cb5bbd3046461a5fb1c40b9431b33f20834136a835a68f3123e750",
+     "at": 258
+    },
+    "finished": 2438
+   },
+   "page": {
+    "state": "ready",
+    "parts": 3,
+    "documentType": "spreadsheet",
+    "partNames": [
+     "Alpha",
+     "Beta",
+     "Gamma"
+    ],
+    "namesFromEngine": true,
+    "adapterFallbacks": [],
+    "currentPart": 0,
+    "currentPartReadBack": 0,
+    "error": null,
+    "lastRefusal": null,
+    "host": "liteCoreViewerHost",
+    "hostError": null,
+    "tabs": [
+     {
+      "part": 0,
+      "text": "Alpha",
+      "selected": "true",
+      "disabled": false
+     },
+     {
+      "part": 1,
+      "text": "Beta",
+      "selected": "false",
+      "disabled": false
+     },
+     {
+      "part": 2,
+      "text": "Gamma",
+      "selected": "false",
+      "disabled": false
+     }
+    ]
+   },
+   "document": {
+    "title": "Nextcloud",
+    "status": "跳到主內容\n跳到應用程式導覽\n搜尋應用程式、檔案、標籤、訊息……\nadmin 的頭像 — Online\nNextcloud\nM4 檢視 測試 plain.ods\n唯讀\n✕\nAlpha\nBeta\nGamma"
+   },
+   "clicks": [
+    {
+     "requested": 1,
+     "currentPart": 1,
+     "currentPartReadBack": 1,
+     "lastRefusal": null,
+     "timedOut": false
+    },
+    {
+     "requested": 2,
+     "currentPart": 2,
+     "currentPartReadBack": 2,
+     "lastRefusal": null,
+     "timedOut": false
+    },
+    {
+     "requested": 0,
+     "currentPart": 0,
+     "currentPartReadBack": 0,
+     "lastRefusal": null,
+     "timedOut": false
+    }
+   ],
+   "browserDav": [
+    {
+     "method": "GET",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M4%20phase-h/M4%20%E6%AA%A2%E8%A6%96%20%E6%B8%AC%E8%A9%A6%20plain.ods"
+    }
+   ],
+   "logEnd": 170978,
+   "odsAfter": {
+    "fileId": 24674,
+    "etag": "3da0766d15f76e2a58f64eb97444cdd3",
+    "encodedName": "M4%20phase-h/M4%20%E6%AA%A2%E8%A6%96%20%E6%B8%AC%E8%A9%A6%20plain.ods",
+    "versionsStatus": 207,
+    "versions": 1
+   },
+   "odsLog": [
+    {
+     "when": "24/Oct/2026:01:15:34 +0800",
+     "method": "GET",
+     "target": "/remote.php/dav/files/admin/M4%20phase-h/M4%20%E6%AA%A2%E8%A6%96%20%E6%B8%AC%E8%A9%A6%20plain.ods",
+     "path": "/remote.php/dav/files/admin/M4%20phase-h/M4%20%E6%AA%A2%E8%A6%96%20%E6%B8%AC%E8%A9%A6%20plain.ods",
+     "status": 200,
+     "sent": 8308,
+     "agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36"
+    },
+    {
+     "when": "24/Oct/2026:01:15:41 +0800",
+     "method": "PROPFIND",
+     "target": "/remote.php/dav/files/admin/M4%20phase-h/M4%20%E6%AA%A2%E8%A6%96%20%E6%B8%AC%E8%A9%A6%20plain.ods",
+     "path": "/remote.php/dav/files/admin/M4%20phase-h/M4%20%E6%AA%A2%E8%A6%96%20%E6%B8%AC%E8%A9%A6%20plain.ods",
+     "status": 207,
+     "sent": 1894,
+     "agent": "Python-urllib/3.14"
+    }
+   ],
+   "controlLogStart": 171318,
+   "controlOpen": {
+    "clickedFrom": "https://litecore.ddev.site:8443/apps/files/files?dir=/M4%20phase-h",
+    "filesRow": true,
+    "landed": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/a67beefefebe57d6-90d7bc2c/e2-editor.html?fileId=24675"
+   },
+   "controlHost": {
+    "lock": {
+     "state": "held",
+     "status": 200,
+     "at": 272,
+     "refreshes": [],
+     "verified": true
+    },
+    "reported": true
+   },
+   "controlLogEnd": 264890,
+   "odtLog": [
+    {
+     "when": "24/Oct/2026:01:15:42 +0800",
+     "method": "LOCK",
+     "target": "/remote.php/dav/files/admin/M4%20phase-h/M4%20%E6%AA%A2%E8%A6%96%20%E6%B8%AC%E8%A9%A6%20plain.odt",
+     "path": "/remote.php/dav/files/admin/M4%20phase-h/M4%20%E6%AA%A2%E8%A6%96%20%E6%B8%AC%E8%A9%A6%20plain.odt",
+     "status": 200,
+     "sent": 896,
+     "agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36"
+    },
+    {
+     "when": "24/Oct/2026:01:15:42 +0800",
+     "method": "PROPFIND",
+     "target": "/remote.php/dav/files/admin/M4%20phase-h/M4%20%E6%AA%A2%E8%A6%96%20%E6%B8%AC%E8%A9%A6%20plain.odt",
+     "path": "/remote.php/dav/files/admin/M4%20phase-h/M4%20%E6%AA%A2%E8%A6%96%20%E6%B8%AC%E8%A9%A6%20plain.odt",
+     "status": 207,
+     "sent": 1100,
+     "agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36"
+    },
+    {
+     "when": "24/Oct/2026:01:15:42 +0800",
+     "method": "GET",
+     "target": "/remote.php/dav/files/admin/M4%20phase-h/M4%20%E6%AA%A2%E8%A6%96%20%E6%B8%AC%E8%A9%A6%20plain.odt",
+     "path": "/remote.php/dav/files/admin/M4%20phase-h/M4%20%E6%AA%A2%E8%A6%96%20%E6%B8%AC%E8%A9%A6%20plain.odt",
+     "status": 200,
+     "sent": 2069,
+     "agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36"
+    },
+    {
+     "when": "24/Oct/2026:01:15:44 +0800",
+     "method": "UNLOCK",
+     "target": "/remote.php/dav/files/admin/M4%20phase-h/M4%20%E6%AA%A2%E8%A6%96%20%E6%B8%AC%E8%A9%A6%20plain.odt",
+     "path": "/remote.php/dav/files/admin/M4%20phase-h/M4%20%E6%AA%A2%E8%A6%96%20%E6%B8%AC%E8%A9%A6%20plain.odt",
+     "status": 204,
+     "sent": 362,
+     "agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36"
+    },
+    {
+     "when": "24/Oct/2026:01:15:44 +0800",
+     "method": "UNLOCK",
+     "target": "/remote.php/dav/files/admin/M4%20phase-h/M4%20%E6%AA%A2%E8%A6%96%20%E6%B8%AC%E8%A9%A6%20plain.odt",
+     "path": "/remote.php/dav/files/admin/M4%20phase-h/M4%20%E6%AA%A2%E8%A6%96%20%E6%B8%AC%E8%A9%A6%20plain.odt",
+     "status": 204,
+     "sent": 362,
+     "agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36"
+    }
+   ],
+   "completedAt": "2026-10-23T17:15:48+00:00"
+  },
+  {
+   "arm": "lock-taking-host",
+   "startedAt": "2026-10-23T17:15:52+00:00",
+   "browser": "Chrome/151.0.7922.169",
+   "login": {
+    "result": {
+     "status": 200,
+     "url": "https://litecore.ddev.site:8443/apps/dashboard/"
+    }
+   },
+   "h1": {
+    "ods": {
+     "rowPresent": true,
+     "menu": "clicked",
+     "menuAppeared": true,
+     "inline": [
+      "sharing-status"
+     ],
+     "menuActions": [
+      "favorite",
+      "details",
+      "litecore-open",
+      "systemtags:bulk",
+      "rename",
+      "move-copy",
+      "set-reminder-menu",
+      "edit-locally",
+      "lock",
+      "download",
+      "delete"
+     ],
+     "expandedWhenRead": "true",
+     "expandedAfterClose": "false",
+     "actions": [
+      "sharing-status",
+      "favorite",
+      "details",
+      "litecore-open",
+      "systemtags:bulk",
+      "rename",
+      "move-copy",
+      "set-reminder-menu",
+      "edit-locally",
+      "lock",
+      "download",
+      "delete"
+     ],
+     "offered": true
+    },
+    "odt": {
+     "rowPresent": true,
+     "menu": "clicked",
+     "menuAppeared": true,
+     "inline": [
+      "sharing-status"
+     ],
+     "menuActions": [
+      "favorite",
+      "details",
+      "litecore-open",
+      "systemtags:bulk",
+      "rename",
+      "move-copy",
+      "set-reminder-menu",
+      "edit-locally",
+      "lock",
+      "download",
+      "delete"
+     ],
+     "expandedWhenRead": "true",
+     "expandedAfterClose": "false",
+     "actions": [
+      "sharing-status",
+      "favorite",
+      "details",
+      "litecore-open",
+      "systemtags:bulk",
+      "rename",
+      "move-copy",
+      "set-reminder-menu",
+      "edit-locally",
+      "lock",
+      "download",
+      "delete"
+     ],
+     "offered": true
+    },
+    "xlsx": {
+     "rowPresent": true,
+     "menu": "clicked",
+     "menuAppeared": true,
+     "inline": [
+      "sharing-status"
+     ],
+     "menuActions": [
+      "favorite",
+      "details",
+      "systemtags:bulk",
+      "rename",
+      "move-copy",
+      "set-reminder-menu",
+      "edit-locally",
+      "lock",
+      "download",
+      "delete"
+     ],
+     "expandedWhenRead": "true",
+     "expandedAfterClose": "true",
+     "actions": [
+      "sharing-status",
+      "favorite",
+      "details",
+      "systemtags:bulk",
+      "rename",
+      "move-copy",
+      "set-reminder-menu",
+      "edit-locally",
+      "lock",
+      "download",
+      "delete"
+     ],
+     "offered": false
+    },
+    "pdf": {
+     "rowPresent": true,
+     "menu": "clicked",
+     "menuAppeared": true,
+     "inline": [
+      "sharing-status"
+     ],
+     "menuActions": [
+      "favorite",
+      "details",
+      "systemtags:bulk",
+      "view",
+      "rename",
+      "move-copy",
+      "set-reminder-menu",
+      "edit-locally",
+      "lock",
+      "download",
+      "delete"
+     ],
+     "expandedWhenRead": "true",
+     "expandedAfterClose": "true",
+     "actions": [
+      "sharing-status",
+      "favorite",
+      "details",
+      "systemtags:bulk",
+      "view",
+      "rename",
+      "move-copy",
+      "set-reminder-menu",
+      "edit-locally",
+      "lock",
+      "download",
+      "delete"
+     ],
+     "offered": false
+    }
+   },
+   "odsBefore": {
+    "fileId": 24678,
+    "etag": "8dbf64f4aa4e34702a324609e5026eb1",
+    "encodedName": "M4%20phase-h/M4%20%E6%AA%A2%E8%A6%96%20%E6%B8%AC%E8%A9%A6%20lock-taking-host.ods",
+    "versionsStatus": 207,
+    "versions": 1
+   },
+   "logStart": 341875,
+   "open": {
+    "clickedFrom": "https://litecore.ddev.site:8443/apps/files/files?dir=/M4%20phase-h",
+    "filesRow": true,
+    "landed": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/a67beefefebe57d6-90d7bc2c/ods-viewer.html?fileId=24678"
+   },
+   "host": {
+    "started": 1792775764112,
+    "done": true,
+    "steps": [
+     {
+      "step": "imported",
+      "at": 241
+     },
+     {
+      "step": "fetched",
+      "at": 287
+     },
+     {
+      "step": "opened",
+      "at": 2443,
+      "state": {
+       "state": "ready",
+       "parts": 3,
+       "documentType": "spreadsheet",
+       "currentPart": 0,
+       "currentPartReadBack": 0,
+       "adapterFallbacks": [],
+       "error": null,
+       "hostError": null
+      }
+     }
+    ],
+    "scope": "scoped",
+    "file": {
+     "id": 24678,
+     "name": "M4 檢視 測試 lock-taking-host.ods",
+     "size": 7537,
+     "etag": "8dbf64f4aa4e34702a324609e5026eb1"
+    },
+    "isolation": {
+     "crossOriginIsolated": true,
+     "sharedArrayBuffer": true
+    },
+    "href": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/a67beefefebe57d6-90d7bc2c/ods-viewer.html?fileId=24678",
+    "fetched": {
+     "status": 200,
+     "contentType": "application/vnd.oasis.opendocument.spreadsheet",
+     "etag": "\"6adb96545ada3\"",
+     "bytes": 7537,
+     "sha256": "0402e52724cb5bbd3046461a5fb1c40b9431b33f20834136a835a68f3123e750",
+     "at": 287
+    },
+    "finished": 2443
+   },
+   "page": {
+    "state": "ready",
+    "parts": 3,
+    "documentType": "spreadsheet",
+    "partNames": [
+     "Alpha",
+     "Beta",
+     "Gamma"
+    ],
+    "namesFromEngine": true,
+    "adapterFallbacks": [],
+    "currentPart": 0,
+    "currentPartReadBack": 0,
+    "error": null,
+    "lastRefusal": null,
+    "host": "liteCoreViewerHost",
+    "hostError": null,
+    "tabs": [
+     {
+      "part": 0,
+      "text": "Alpha",
+      "selected": "true",
+      "disabled": false
+     },
+     {
+      "part": 1,
+      "text": "Beta",
+      "selected": "false",
+      "disabled": false
+     },
+     {
+      "part": 2,
+      "text": "Gamma",
+      "selected": "false",
+      "disabled": false
+     }
+    ]
+   },
+   "document": {
+    "title": "Nextcloud",
+    "status": "跳到主內容\n跳到應用程式導覽\n搜尋應用程式、檔案、標籤、訊息……\nadmin 的頭像 — Online\nNextcloud\nM4 檢視 測試 lock-taking-host.ods\n唯讀\n✕\nAlpha\nBeta\nGamma"
+   },
+   "clicks": [
+    {
+     "requested": 1,
+     "currentPart": 1,
+     "currentPartReadBack": 1,
+     "lastRefusal": null,
+     "timedOut": false
+    },
+    {
+     "requested": 2,
+     "currentPart": 2,
+     "currentPartReadBack": 2,
+     "lastRefusal": null,
+     "timedOut": false
+    },
+    {
+     "requested": 0,
+     "currentPart": 0,
+     "currentPartReadBack": 0,
+     "lastRefusal": null,
+     "timedOut": false
+    }
+   ],
+   "browserDav": [
+    {
+     "method": "LOCK",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M4%20phase-h/M4%20%E6%AA%A2%E8%A6%96%20%E6%B8%AC%E8%A9%A6%20lock-taking-host.ods"
+    },
+    {
+     "method": "GET",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M4%20phase-h/M4%20%E6%AA%A2%E8%A6%96%20%E6%B8%AC%E8%A9%A6%20lock-taking-host.ods"
+    }
+   ],
+   "logEnd": 435282,
+   "odsAfter": {
+    "fileId": 24678,
+    "etag": "6adb96545ada3",
+    "encodedName": "M4%20phase-h/M4%20%E6%AA%A2%E8%A6%96%20%E6%B8%AC%E8%A9%A6%20lock-taking-host.ods",
+    "versionsStatus": 207,
+    "versions": 1
+   },
+   "odsLog": [
+    {
+     "when": "24/Oct/2026:01:16:04 +0800",
+     "method": "LOCK",
+     "target": "/remote.php/dav/files/admin/M4%20phase-h/M4%20%E6%AA%A2%E8%A6%96%20%E6%B8%AC%E8%A9%A6%20lock-taking-host.ods",
+     "path": "/remote.php/dav/files/admin/M4%20phase-h/M4%20%E6%AA%A2%E8%A6%96%20%E6%B8%AC%E8%A9%A6%20lock-taking-host.ods",
+     "status": 200,
+     "sent": 906,
+     "agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36"
+    },
+    {
+     "when": "24/Oct/2026:01:16:04 +0800",
+     "method": "GET",
+     "target": "/remote.php/dav/files/admin/M4%20phase-h/M4%20%E6%AA%A2%E8%A6%96%20%E6%B8%AC%E8%A9%A6%20lock-taking-host.ods",
+     "path": "/remote.php/dav/files/admin/M4%20phase-h/M4%20%E6%AA%A2%E8%A6%96%20%E6%B8%AC%E8%A9%A6%20lock-taking-host.ods",
+     "status": 200,
+     "sent": 8292,
+     "agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36"
+    },
+    {
+     "when": "24/Oct/2026:01:16:11 +0800",
+     "method": "PROPFIND",
+     "target": "/remote.php/dav/files/admin/M4%20phase-h/M4%20%E6%AA%A2%E8%A6%96%20%E6%B8%AC%E8%A9%A6%20lock-taking-host.ods",
+     "path": "/remote.php/dav/files/admin/M4%20phase-h/M4%20%E6%AA%A2%E8%A6%96%20%E6%B8%AC%E8%A9%A6%20lock-taking-host.ods",
+     "status": 207,
+     "sent": 1880,
+     "agent": "Python-urllib/3.14"
+    }
+   ],
+   "controlLogStart": 435633,
+   "controlOpen": {
+    "clickedFrom": "https://litecore.ddev.site:8443/apps/files/files?dir=/M4%20phase-h",
+    "filesRow": true,
+    "landed": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/a67beefefebe57d6-90d7bc2c/e2-editor.html?fileId=24679"
+   },
+   "controlHost": {
+    "lock": {
+     "state": "held",
+     "status": 200,
+     "at": 298,
+     "refreshes": [],
+     "verified": true
+    },
+    "reported": true
+   },
+   "controlLogEnd": 530146,
+   "odtLog": [
+    {
+     "when": "24/Oct/2026:01:16:13 +0800",
+     "method": "LOCK",
+     "target": "/remote.php/dav/files/admin/M4%20phase-h/M4%20%E6%AA%A2%E8%A6%96%20%E6%B8%AC%E8%A9%A6%20lock-taking-host.odt",
+     "path": "/remote.php/dav/files/admin/M4%20phase-h/M4%20%E6%AA%A2%E8%A6%96%20%E6%B8%AC%E8%A9%A6%20lock-taking-host.odt",
+     "status": 200,
+     "sent": 902,
+     "agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36"
+    },
+    {
+     "when": "24/Oct/2026:01:16:13 +0800",
+     "method": "PROPFIND",
+     "target": "/remote.php/dav/files/admin/M4%20phase-h/M4%20%E6%AA%A2%E8%A6%96%20%E6%B8%AC%E8%A9%A6%20lock-taking-host.odt",
+     "path": "/remote.php/dav/files/admin/M4%20phase-h/M4%20%E6%AA%A2%E8%A6%96%20%E6%B8%AC%E8%A9%A6%20lock-taking-host.odt",
+     "status": 207,
+     "sent": 1108,
+     "agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36"
+    },
+    {
+     "when": "24/Oct/2026:01:16:13 +0800",
+     "method": "LOCK",
+     "target": "/remote.php/dav/files/admin/M4%20phase-h/M4%20%E6%AA%A2%E8%A6%96%20%E6%B8%AC%E8%A9%A6%20lock-taking-host.odt",
+     "path": "/remote.php/dav/files/admin/M4%20phase-h/M4%20%E6%AA%A2%E8%A6%96%20%E6%B8%AC%E8%A9%A6%20lock-taking-host.odt",
+     "status": 423,
+     "sent": 731,
+     "agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36"
+    },
+    {
+     "when": "24/Oct/2026:01:16:13 +0800",
+     "method": "GET",
+     "target": "/remote.php/dav/files/admin/M4%20phase-h/M4%20%E6%AA%A2%E8%A6%96%20%E6%B8%AC%E8%A9%A6%20lock-taking-host.odt",
+     "path": "/remote.php/dav/files/admin/M4%20phase-h/M4%20%E6%AA%A2%E8%A6%96%20%E6%B8%AC%E8%A9%A6%20lock-taking-host.odt",
+     "status": 200,
+     "sent": 2091,
+     "agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36"
+    },
+    {
+     "when": "24/Oct/2026:01:16:14 +0800",
+     "method": "UNLOCK",
+     "target": "/remote.php/dav/files/admin/M4%20phase-h/M4%20%E6%AA%A2%E8%A6%96%20%E6%B8%AC%E8%A9%A6%20lock-taking-host.odt",
+     "path": "/remote.php/dav/files/admin/M4%20phase-h/M4%20%E6%AA%A2%E8%A6%96%20%E6%B8%AC%E8%A9%A6%20lock-taking-host.odt",
+     "status": 204,
+     "sent": 362,
+     "agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36"
+    },
+    {
+     "when": "24/Oct/2026:01:16:14 +0800",
+     "method": "UNLOCK",
+     "target": "/remote.php/dav/files/admin/M4%20phase-h/M4%20%E6%AA%A2%E8%A6%96%20%E6%B8%AC%E8%A9%A6%20lock-taking-host.odt",
+     "path": "/remote.php/dav/files/admin/M4%20phase-h/M4%20%E6%AA%A2%E8%A6%96%20%E6%B8%AC%E8%A9%A6%20lock-taking-host.odt",
+     "status": 204,
+     "sent": 362,
+     "agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36"
+    },
+    {
+     "when": "24/Oct/2026:01:16:15 +0800",
+     "method": "UNLOCK",
+     "target": "/remote.php/dav/files/admin/M4%20phase-h/M4%20%E6%AA%A2%E8%A6%96%20%E6%B8%AC%E8%A9%A6%20lock-taking-host.odt",
+     "path": "/remote.php/dav/files/admin/M4%20phase-h/M4%20%E6%AA%A2%E8%A6%96%20%E6%B8%AC%E8%A9%A6%20lock-taking-host.odt",
+     "status": 500,
+     "sent": 451,
+     "agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36"
+    },
+    {
+     "when": "24/Oct/2026:01:16:15 +0800",
+     "method": "UNLOCK",
+     "target": "/remote.php/dav/files/admin/M4%20phase-h/M4%20%E6%AA%A2%E8%A6%96%20%E6%B8%AC%E8%A9%A6%20lock-taking-host.odt",
+     "path": "/remote.php/dav/files/admin/M4%20phase-h/M4%20%E6%AA%A2%E8%A6%96%20%E6%B8%AC%E8%A9%A6%20lock-taking-host.odt",
+     "status": 500,
+     "sent": 451,
+     "agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36"
+    }
+   ],
+   "completedAt": "2026-10-23T17:16:19+00:00"
+  }
+ ],
+ "folder": {
+  "name": "M4 phase-h",
+  "mkcol": 201
+ },
+ "wire": {
+  "ods": {
+   "status": 200,
+   "url": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/a67beefefebe57d6-90d7bc2c/ods-viewer.html?fileId=24674",
+   "coop": "same-origin",
+   "coep": "require-corp",
+   "csp": "default-src 'none';base-uri 'none';manifest-src 'self';script-src 'nonce-FHXqhd8hMIy7jbugmMyzd6SpdvmslF1GION/LArX66A=' 'wasm-unsafe-eval';script-src-elem 'strict-dynamic' 'nonce-FHXqhd8hMIy7jbugmMyzd6SpdvmslF1GION/LArX66A=' 'wasm-unsafe-eval';style-src 'self' 'unsafe-inline';img-src 'self' data: blob: https://*.tile.openstreetmap.org;font-src 'self' data:;connect-src 'self';media-src 'self';frame-src 'self';frame-ancestors 'self';worker-src 'self';form-action 'self'"
+  },
+  "odt": {
+   "status": 200,
+   "url": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/a67beefefebe57d6-90d7bc2c/e2-editor.html?fileId=24675",
+   "coop": "same-origin",
+   "coep": "require-corp",
+   "csp": "default-src 'none';base-uri 'none';manifest-src 'self';script-src 'nonce-P9vlNzfqcffRmD7SowIK9ivn53OUYy3dhQirbi2+EzI=' 'wasm-unsafe-eval';script-src-elem 'strict-dynamic' 'nonce-P9vlNzfqcffRmD7SowIK9ivn53OUYy3dhQirbi2+EzI=' 'wasm-unsafe-eval';style-src 'self' 'unsafe-inline';img-src 'self' data: blob: https://*.tile.openstreetmap.org;font-src 'self' data:;connect-src 'self';media-src 'self';frame-src 'self';frame-ancestors 'self';worker-src 'self';form-action 'self'"
+  }
+ },
+ "completedAt": "2026-10-23T17:16:19+00:00",
+ "score": {
+  "verdict": "VIEWER HOST HOLDS",
+  "problems": []
+ }
+}
