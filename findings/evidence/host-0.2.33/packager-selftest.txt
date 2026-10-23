@@ -1,0 +1,14 @@
+PASS gzip exactly at the cap is accepted
+PASS gzip one byte over the cap
+PASS zstd one byte over the cap
+PASS a page with zero worker literals
+PASS a page with two worker literals (one in a comment)
+PASS a page with one worker literal closes
+PASS a two-page schema-3 manifest holds
+PASS a one-page manifest under schema 3
+PASS a schema-2 manifest
+PASS a page whose wasm is not packaged
+PASS a page whose module is another file
+PASS a build id that is not the files'
+PASS a file over the gzip cap in the manifest
+selftest: 13/13

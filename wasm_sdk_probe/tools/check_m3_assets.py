@@ -102,7 +102,7 @@ TYPES = {".js": "text/javascript", ".json": "application/json", ".wasm": "applic
 # its own engine.  H5-1 (score_package) judges the table through the packager's
 # own validate_manifest(); the files are the union of both closures (K0-1).
 ENGINE_SCHEMA = "litecore-engine/3"
-BUILD_ID = "80349a1a24cecb17"   # host 0.2.32's engine package (schema 3: editor v22 + ods-viewer-v2 aa576ce7, 35 files, 2026-10-23); was 1b4d6a1f (0.2.29-0.2.31: editor v22 + ods-viewer-v1), f5f0df76 (0.2.26-0.2.28: v21/v22 editor only), d3cd39bb (0.2.24, finding 145), c3c22d92 (0.2.23, link-batch §17), eb3f9408 (0.2.14), 59e6a9fe (0.2.13), 45cdcedf (0.2.12), b99f4b13 (0.2.11), bebc7e83 (0.2.10), 7bf6dbd6 (0.2.9), 63656ee4 (0.2.8), fabdb50e (0.2.7)
+BUILD_ID = "a67beefefebe57d6"   # host 0.2.33 (schema 3: editor v22 + ods-viewer-v3 ebb7e0cb, 35 files, 2026-10-24); previous 0.2.32: 80349a1a24cecb17
 # What Chrome 151 and Firefox 156 are predicted to send over HTTPS (spec §2, P1).
 BROWSER_AE = "gzip, deflate, br, zstd"
 # Z1-2: Accept-Encoding -> the coding the host must pick.
