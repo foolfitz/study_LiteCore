@@ -102,3 +102,22 @@ K3 綠且投影未超限之後才準備 v3 Makefile／獨立 profile builder，�
 | 日期 | 變更 |
 | --- | --- |
 | 2026-10-23 | 事前釘下 A、兩個 hunk、K3／F3、Phase E／人類殘餘與停手讀法、後續工作順序 |
+
+## 7. 建置前準備完成（2026-10-23，只追加；核心尚未建置）
+
+規格先提交（`10e8f917`），再套兩個 hunk 與 inventory（`d17e31b6`），再提交 K3 與紅案（`940f2294`）。證據：`findings/evidence/m4-ods/viewer-v3/core/README.md`。
+
+- 十份 LibreOffice patch 各自 reverse-check 通過；舊 reportdesign patch 仍獨立通過。K-1a–e 全綠，沒有跑 autogen。
+- 實際讀兩個模組檔、用 GNU make 的記錄巨集展開四種組態（不編譯）：strip＋DBCONNECTIVITY 只選 dba／dbahsql，沒有 reportdesign；原生＋DBCONNECTIVITY 的五個函式庫照舊。這是一次性範圍量測，不升成新閘門。
+- K3 的真實建置前報告 exit 1：**K3-a 紅、K3-b 綠、K3-c 綠**。缺少從 dba.component 讀出的全部 8 個建構子；這是還沒建置的預期紅，不是已修好。
+- 合成對照：補全 dba 的清單 a／b 綠；再加入一個從 dbu.component 讀出的建構子，b 紅。self-test exit 0。沒有改動核心的真實清單。
+- 新檢查器第一次中止在我填錯的 `dbaxml.component` 路徑，原始輸出留於 `first-run-missing-dbaxml/`；改用實際的 `dbaccess/source/filter/xml/dbaxml.component` 後才產出上述紅案。這是工具尚未判過資料時的建構修正，既有 v2 工具未改。
+- 現有核心 `soffice.wasm` 153,330,836 B，gzip **49,572,266 B**，恰好重現 §1 的基準；目前投影仍只是舊診斷 viewer 的 **49,153,029 B**，不是新核心的體積。
+- `handoff/ods-viewer-v3/build-core.sh --make-only` 備好。`bash -n`、四個提前拒絕案例、現場 emcc 4.0.10 guard 都過；沒有執行編譯。每次獨立 run 目錄、完整 log、失敗 tail 200、timing、K-1→make→K3→F3-2。
+- 2026-10-23 23:44（Asia/Taipei）讀主機 `uptime`：0.16／0.32／0.35；`pgrep -a make` 無結果，程序清單沒有看到相關長時間量測。這是交出時的一次觀察，不保證之後仍空閒。
+
+下一步：擁有者從 repo 根執行 `bash handoff/ods-viewer-v3/build-core.sh --make-only`，估 15–40 分鐘；回報 DONE／STOP 與 run 路徑。接手讀 K3 與 F3-2 後才準備 v3 連結。現行宿主、凍結 profile 與 ddev 都未變動；§34.4 本輪 **+0／+0**，累計 **46／27**。
+
+| 日期 | 變更 |
+| --- | --- |
+| 2026-10-23 | 追加 §7：建置前結果、保留首次工具中止、建置腳本與交接點 |

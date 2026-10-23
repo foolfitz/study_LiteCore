@@ -1,0 +1,35 @@
+{
+  "syntax": "bash -n passed",
+  "cases": [
+    {
+      "arguments": [],
+      "exit": 2,
+      "stdout": "Usage: bash handoff/ods-viewer-v3/build-core.sh --make-only\n"
+    },
+    {
+      "arguments": [
+        "--help"
+      ],
+      "exit": 2,
+      "stdout": "Usage: bash handoff/ods-viewer-v3/build-core.sh --make-only\n"
+    },
+    {
+      "arguments": [
+        "--make-only",
+        "extra"
+      ],
+      "exit": 2,
+      "stdout": "Usage: bash handoff/ods-viewer-v3/build-core.sh --make-only\n"
+    },
+    {
+      "arguments": [
+        "--make-only"
+      ],
+      "JOBS": "0",
+      "exit": 2,
+      "stdout": "STOP: JOBS must be a positive integer\n"
+    }
+  ],
+  "compilationInvoked": false,
+  "ok": true
+}
