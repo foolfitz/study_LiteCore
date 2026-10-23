@@ -1,0 +1,66 @@
+{
+  "purpose": "Script controls only. ddev list was stubbed; no real ddev command, installation or Phase H was run.",
+  "syntax": "bash -n passed for install/rollback/Phase H scripts",
+  "liveHostAndEngineUnchanged": true,
+  "cases": [
+    {
+      "case": "stopped",
+      "syntheticDdevState": [
+        {
+          "name": "litecore",
+          "status": "stopped"
+        }
+      ],
+      "exit": 1,
+      "expectedExit": 1,
+      "lastLines": [
+        "2026-10-24T01:08:36+08:00 # 0.2.33 pre-checks; window-end 2099-01-01 00:00",
+        "2026-10-24T01:08:37+08:00 STOP: ddev slot unavailable: {\"litecore\": \"stopped\", \"otherRunning\": []}"
+      ],
+      "stderr": ""
+    },
+    {
+      "case": "other-project-running",
+      "syntheticDdevState": [
+        {
+          "name": "litecore",
+          "status": "running"
+        },
+        {
+          "name": "fixture-other-project",
+          "status": "running"
+        }
+      ],
+      "exit": 1,
+      "expectedExit": 1,
+      "lastLines": [
+        "2026-10-24T01:08:37+08:00 # 0.2.33 pre-checks; window-end 2099-01-01 00:00",
+        "2026-10-24T01:08:38+08:00 STOP: ddev slot unavailable: {\"litecore\": \"running\", \"otherRunning\": [\"fixture-other-project\"]}"
+      ],
+      "stderr": ""
+    },
+    {
+      "case": "preflight-only",
+      "syntheticDdevState": [
+        {
+          "name": "litecore",
+          "status": "running"
+        }
+      ],
+      "exit": 0,
+      "expectedExit": 0,
+      "lastLines": [
+        "2026-10-24T01:08:39+08:00 pre-checks hold: recorded host/branch/archives; only litecore running",
+        "2026-10-24T01:08:39+08:00 PREFLIGHT ONLY: no live mutation performed"
+      ],
+      "stderr": ""
+    },
+    {
+      "case": "phase-h-closed-window",
+      "exit": 3,
+      "expectedExit": 3,
+      "log": "2026-10-24 01:08:39 CHAIN START phase-h tree ed53131a buildId a67beefefebe57d6 window-end 2000-01-01 00:00\n2026-10-24 01:08:39 WINDOW CLOSED before h-viewer (2000-01-01 00:00); chain stopped\n"
+    }
+  ],
+  "ok": true
+}
