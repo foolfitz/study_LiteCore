@@ -1,0 +1,97 @@
+{
+  "selftest": true,
+  "ok": true,
+  "cases": {
+    "synthetic-control": {
+      "synthetic": true,
+      "expected": true,
+      "verdict": {
+        "ok": true,
+        "errors": [],
+        "requiredEntries": 298,
+        "failed": []
+      }
+    },
+    "missing-tdf138507": {
+      "synthetic": true,
+      "expected": false,
+      "verdict": {
+        "ok": false,
+        "errors": [],
+        "requiredEntries": 298,
+        "failed": [
+          {
+            "path": "upstream/tdf138507.ods",
+            "sha256": "a5be24fda7b4769eb1cf9ddd1d4a11d8b94592e4d1fdacf3358b2ea759b0a886",
+            "ok": false,
+            "detail": [
+              "Candidate entry/case missing or duplicated"
+            ]
+          }
+        ]
+      }
+    },
+    "tdf138507-does-not-open": {
+      "synthetic": true,
+      "expected": false,
+      "verdict": {
+        "ok": false,
+        "errors": [],
+        "requiredEntries": 298,
+        "failed": [
+          {
+            "path": "upstream/tdf138507.ods",
+            "sha256": "a5be24fda7b4769eb1cf9ddd1d4a11d8b94592e4d1fdacf3358b2ea759b0a886",
+            "ok": false,
+            "detail": [
+              {
+                "viewReadyAtMs": 968,
+                "documentType": "spreadsheet",
+                "parts": 1,
+                "expected": 1,
+                "inputSuffix": ".ods",
+                "nameSpoofed": false,
+                "error": null,
+                "refused": null
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "changed-entry-bytes": {
+      "synthetic": true,
+      "expected": false,
+      "verdict": {
+        "ok": false,
+        "errors": [],
+        "requiredEntries": 298,
+        "failed": [
+          {
+            "path": "upstream/tdf138507.ods",
+            "sha256": "a5be24fda7b4769eb1cf9ddd1d4a11d8b94592e4d1fdacf3358b2ea759b0a886",
+            "ok": false,
+            "detail": [
+              "Candidate bytes differ from baseline entry"
+            ]
+          }
+        ]
+      }
+    },
+    "wrong-candidate-identity": {
+      "synthetic": true,
+      "expected": false,
+      "verdict": {
+        "ok": false,
+        "errors": [
+          "Candidate is not the recorded v3 identity"
+        ],
+        "requiredEntries": 298,
+        "failed": []
+      }
+    }
+  },
+  "baseline": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/m4-ods/viewer-v2/160-fix-phase-e/full-corpus/report-2026-10-22T032908Z.json",
+  "baselineReportSha256": "1dc1d82be58362eb8e8bc1c973c09bd78ac9162ba03798265ba59710a8d1e487",
+  "candidateWasmSha256": "ebb7e0cb9f886185c0b0e53eb68f137eb9c5df07af2e83cdb09255c07477d82a"
+}
