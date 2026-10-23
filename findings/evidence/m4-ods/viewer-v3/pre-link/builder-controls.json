@@ -1,0 +1,78 @@
+{
+  "synthetic": true,
+  "purpose": "Builder controls only; dummy loader/wasm, no engine link or runtime claim.",
+  "cases": {
+    "synthetic-valid-inputs": {
+      "exit": 0,
+      "expectedExit": 0,
+      "stdout": "wrote /tmp/ods-v3-builder-c0o0ejko/packaged: probe.js, probe.wasm, sdk-worker.js, base-viewer-v3-no35.21bec6461a48d3ec.data, base-viewer-v3-no35.43da6a24481dc483.metadata, sdk-manifest.json\nok: base-viewer-v3-no35.21bec6461a48d3ec.data (39934615 bytes, 1488 files, sha256 21bec6461a48d3ec); the procedure reproduces 9901e9be on build-a11y-gate0\nagainst v1's base: 0 added, 0 removed, 9 changed, 1479 unchanged (recorded, not judged)\n",
+      "ok": true
+    },
+    "wrong-worker-pin": {
+      "exit": 1,
+      "expectedExit": 1,
+      "stdout": "FAIL /home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/sdk/sdk-worker.js is not the pinned worker 0000000000000000\n",
+      "ok": true
+    },
+    "missing-part-info-export": {
+      "exit": 1,
+      "expectedExit": 1,
+      "stdout": "FAIL the export list lacks _oxsdk_document_part_info\n",
+      "ok": true
+    },
+    "core-without-forms": {
+      "exit": 1,
+      "expectedExit": 1,
+      "stdout": "FAIL ods-viewer-v3 requires DB connectivity and form-controls\n",
+      "ok": true
+    }
+  },
+  "syntheticManifest": {
+    "abiVersion": 65537,
+    "abiVersionText": "1.1",
+    "artifactFiles": {
+      "probe.js": "./probe.js",
+      "probe.wasm": "./probe.wasm",
+      "soffice.data": "./base-viewer-v3-no35.21bec6461a48d3ec.data",
+      "soffice.data.js.metadata": "./base-viewer-v3-no35.43da6a24481dc483.metadata"
+    },
+    "capabilities": [
+      "open-odt",
+      "rgba-tile",
+      "cancel-queued",
+      "search",
+      "open-ods",
+      "part-switch",
+      "part-text",
+      "part-info",
+      "form-controls"
+    ],
+    "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+    "expectedCapabilityBits": 63539,
+    "profile": "ods-viewer-v3",
+    "protocolVersion": 1,
+    "providerContractVersion": "1.0",
+    "resourcePacks": [
+      {
+        "bytes": 14384632,
+        "data": "../resources/cjk-sub-e10.06976180177c8bd2.data",
+        "id": "cjk-sub-e10",
+        "loadAtStartup": true,
+        "metadata": "../resources/cjk-sub-e10.4144b2b2a44dd797.metadata",
+        "purpose": "CJK corpus: the editor's Traditional Chinese subset of Noto Sans CJK (tier E), shared",
+        "sha256": "06976180177c8bd2a0c7bb7c18837bd12ce116481aefc56b60807948b585ffab"
+      },
+      {
+        "bytes": 49102042,
+        "data": "../resources/fallback-fonts-r5.33856e2a082148dd.data",
+        "id": "fallback-fonts-r5",
+        "loadAtStartup": false,
+        "metadata": "../resources/fallback-fonts-r5.924fb0ed8b459946.metadata",
+        "purpose": "optional complex-script and fidelity fallback",
+        "sha256": "33856e2a082148ddbb753652861a5dd05af911e0d3587a3e8c75948a345de3a9"
+      }
+    ],
+    "sdkVersion": "0.6.0-r6-worker+ods-viewer-v3"
+  },
+  "ok": true
+}

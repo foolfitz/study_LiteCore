@@ -2865,6 +2865,108 @@ $(ODS_VIEWER_V2_DIST)/sdk-manifest.json: $(ODS_VIEWER_V2_BUILD)/probe.js \
 $(ODS_VIEWER_V2_BUILD) $(ODS_VIEWER_V2_DIST):
 	mkdir -p $@
 
+# ------------------------------- ods-viewer-v3, finding 158-B's dba core
+# SPEC-M4-viewer-v3 sections 4 and 9. A separate profile and object tree on the
+# DB connectivity core with dba/dbahsql. The engine sources, defines, exports,
+# worker pin and link flags are v2's. The independent v3 builder requires forms;
+# the base-pack diff is read before linking. Existing profiles stay frozen.
+ODS_VIEWER_V3_CORE ?= ../wasm-lite/build-ods-viewer-v2
+ODS_VIEWER_V3_BUILD := build/ods/viewer-v3
+ODS_VIEWER_V3_DIST := dist/profiles/ods-viewer-v3
+ODS_VIEWER_V3_SOURCES := src/sdk_api.cpp src/probe_engine.cpp src/unoembind_stub.cpp
+ODS_VIEWER_V3_OBJECTS := $(patsubst src/%.cpp,$(ODS_VIEWER_V3_BUILD)/%.o,$(ODS_VIEWER_V3_SOURCES))
+ODS_VIEWER_V3_WORKER_SHA256 := 9c85043ac7618e38062c1d0168a982708a16c930bdf8a422a67190222a888d84
+ODS_VIEWER_V3_CPPFLAGS := -DLOK_USE_UNSTABLE_API -I$(LOSRC)/include \
+	-I$(ODS_VIEWER_V3_CORE)/config_host \
+	-I$(ODS_VIEWER_V3_CORE)/workdir/UnoApiHeadersTarget/udkapi/comprehensive \
+	-I$(ODS_VIEWER_V3_CORE)/workdir/UnoApiHeadersTarget/offapi/comprehensive \
+	-I$(ODS_VIEWER_V3_CORE)/workdir/UnpackedTarball/boost
+
+$(ODS_VIEWER_V3_BUILD)/%.o: src/%.cpp $(HEADERS) src/ods_viewer.hpp Makefile \
+		| $(ODS_VIEWER_V3_BUILD)
+	$(CXX) $(ODS_VIEWER_V3_CPPFLAGS) $(R5_CXXFLAGS) -DOXSDK_READER_PROFILE \
+		-DOXSDK_ODS_VIEWER -DOXSDK_ODS_VIEWER_V2 -c $< -o $@
+
+$(ODS_VIEWER_V3_BUILD)/exports.txt: \
+		$(ODS_VIEWER_V3_CORE)/workdir/CustomTarget/desktop/soffice_bin-emscripten-exports/exports \
+		Makefile | $(ODS_VIEWER_V3_BUILD)
+	grep -v -e '^__ZTI' -e '^_main$$' $< > $@
+	printf '%s\n' __ZTIN3com3sun4star3ucb31InteractiveAugmentedIOExceptionE >> $@
+	printf '%s\n' \
+		_oxsdk_abi_version \
+		_oxsdk_capabilities \
+		_oxsdk_engine_start \
+		_oxsdk_document_open \
+		_oxsdk_document_paint \
+		_oxsdk_document_close \
+		_oxsdk_document_search \
+		_oxsdk_document_set_part \
+		_oxsdk_document_current_part \
+		_oxsdk_document_part_name \
+		_oxsdk_document_part_text \
+		_oxsdk_document_part_info \
+		_oxsdk_request_cancel \
+		_oxsdk_buffer_alloc \
+		_oxsdk_buffer_free >> $@
+	@if grep -q -e '^_oxsdk_document_save$$' -e '^_oxsdk_editor' $@; then \
+		echo "the viewer's export list carries save or an editor symbol"; \
+		rm -f $@; exit 1; fi
+
+$(ODS_VIEWER_V3_BUILD)/probe.js: $(ODS_VIEWER_V3_OBJECTS) \
+		$(ODS_VIEWER_V3_BUILD)/exports.txt \
+		$(ODS_VIEWER_V3_CORE)/instdir/program/soffice.js.linkdeps Makefile
+	$(call refuse_unasked_relink,ods-viewer-v3 -- the spreadsheet viewer with dba core services; every link mints a new hash and its Phase E binds to one)
+	$(CXX) $(ODS_VIEWER_V3_OBJECTS) \
+		-L$(ODS_VIEWER_V3_CORE)/instdir/program \
+		$$(cat $(ODS_VIEWER_V3_CORE)/instdir/program/soffice.js.linkdeps) \
+		-pthread -fwasm-exceptions -sSUPPORT_LONGJMP=wasm --no-entry -Oz \
+		-sMODULARIZE -sEXPORT_NAME=createProbeModule \
+		-sTOTAL_MEMORY=1GB -sPTHREAD_POOL_SIZE=7 -sPTHREAD_POOL_SIZE_STRICT=0 \
+		-sSTACK_SIZE=131072 -sDEFAULT_PTHREAD_STACK_SIZE=1048576 \
+		-sFORCE_FILESYSTEM=1 -sWASM_BIGINT=1 -sERROR_ON_UNDEFINED_SYMBOLS=1 -sFETCH=1 \
+		-sASSERTIONS=0 -sEXIT_RUNTIME=0 \
+		-sEXPORTED_RUNTIME_METHODS=ccall,FS,HEAPU8 \
+		-sEXPORTED_FUNCTIONS=@$(ODS_VIEWER_V3_BUILD)/exports.txt \
+		-Wl,--wrap=_Z18initJsUnoScriptingv \
+		--pre-js $(LOSRC)/static/emscripten/environment.js \
+		--pre-js $(ODS_VIEWER_V3_CORE)/workdir/CustomTarget/static/emscripten_fs_image/soffice.data.js.link \
+		-o $@
+
+$(ODS_VIEWER_V3_BUILD)/probe.wasm: $(ODS_VIEWER_V3_BUILD)/probe.js
+	@test -s $@
+
+# DID THE VIEWER ENGINE GET INTO THESE BYTES? v1's controls and v2's ABI field.
+# Measure gzip as the packager does (level 9, mtime 0) and stop above F3-2's cap.
+$(ODS_VIEWER_V3_DIST)/sdk-manifest.json: $(ODS_VIEWER_V3_BUILD)/probe.js \
+		$(ODS_VIEWER_V3_BUILD)/probe.wasm $(ODS_VIEWER_V3_BUILD)/exports.txt \
+		sdk/sdk-worker.js tools/build_ods_viewer_v3_profile.py \
+		tools/build_ods_viewer_profile.py tools/build_r5_profiles.py | $(ODS_VIEWER_V3_DIST)
+	echo "$(ODS_VIEWER_V3_WORKER_SHA256)  sdk/sdk-worker.js" | sha256sum -c --quiet
+	python3 tools/build_ods_viewer_v3_profile.py \
+		--core $(ODS_VIEWER_V3_CORE) \
+		--loader $(ODS_VIEWER_V3_BUILD)/probe.js \
+		--wasm $(ODS_VIEWER_V3_BUILD)/probe.wasm \
+		--worker sdk/sdk-worker.js \
+		--worker-sha256 $(ODS_VIEWER_V3_WORKER_SHA256) \
+		--exports $(ODS_VIEWER_V3_BUILD)/exports.txt \
+		--report $(ODS_VIEWER_V3_BUILD)/base-pack-report.json \
+		--output $(ODS_VIEWER_V3_DIST)
+	@test -s $(ODS_VIEWER_V3_DIST)/probe.js
+	@test -s $(ODS_VIEWER_V3_DIST)/probe.wasm
+	@test -s $(ODS_VIEWER_V3_DIST)/sdk-worker.js
+	@for marker in search-result partBefore lateSelectAllResults; do \
+		grep -qaF -- "$$marker" $(ODS_VIEWER_V3_DIST)/probe.wasm \
+		|| { echo "$(ODS_VIEWER_V3_DIST)/probe.wasm does not carry '$$marker'"; \
+		     echo "  (search-result missing: the CHECK is broken; otherwise the viewer engine is not in it)"; \
+		     rm -f $(ODS_VIEWER_V3_DIST)/sdk-manifest.json; exit 1; }; done
+	@if grep -qaF -- 'verified-caret-readback' $(ODS_VIEWER_V3_DIST)/probe.wasm; then \
+		echo "$(ODS_VIEWER_V3_DIST)/probe.wasm carries the editor's completion"; \
+		rm -f $(ODS_VIEWER_V3_DIST)/sdk-manifest.json; exit 1; fi
+	@python3 -c 'import gzip,sys; n=len(gzip.compress(open(sys.argv[1],"rb").read(),9,mtime=0)); v="within" if n <= 52428800 else "OVER -- stop F3-2"; print(f"probe.wasm gzip: {n} bytes (cap 52428800: {v})"); sys.exit(n > 52428800)' $(ODS_VIEWER_V3_DIST)/probe.wasm
+
+$(ODS_VIEWER_V3_BUILD) $(ODS_VIEWER_V3_DIST):
+	mkdir -p $@
+
 # --------------------------------------------- v9, the a11y product candidate
 #
 # `a11y-calloc` answered finding 076 and is deliberately NOT a product profile:
@@ -4146,13 +4248,17 @@ test-e2-c-static:
 	# configured (config_features.h); before that, and without this line, the
 	# check is red on exactly them -- findings/evidence/m4-ods/viewer-v2/pre-link/
 	# test-e2-c-static-red-v2-not-declared-core-not-configured.txt.
+	# ODS_VIEWER_V3 keeps v2's engine shape on the dba core. Without this
+	# declaration its sdk_api/probe_engine objects are red (viewer-v3/pre-link/
+	# carrier-red-without-v3.txt); B remains forbidden in the viewer shape.
 	python3 tools/check_merge_key_undo_scope.py --base 5d77dc84 \
 		--carrier E2_V15 --carrier E2_V19 \
 		--carrier E2_V20=probe_engine,sdk_api,editor_api \
 		--carrier E2_V21=probe_engine,sdk_api,editor_api \
 		--carrier E2_V22=probe_engine,sdk_api,editor_api \
 		--carrier ODS_VIEWER_V1=probe_engine,sdk_api \
-		--carrier ODS_VIEWER_V2=probe_engine,sdk_api
+		--carrier ODS_VIEWER_V2=probe_engine,sdk_api \
+		--carrier ODS_VIEWER_V3=probe_engine,sdk_api
 	# E2-C must never touch what E1-C bound.  Read-only on purpose: a static
 	# target that rewrites verdict-bound evidence has happened here once.
 	python3 tools/check_e1_c_bundle_intact.py > /dev/null
