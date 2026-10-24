@@ -1,0 +1,20 @@
+PHP Fatal error:  Uncaught Error: Call to undefined method OC_App::getAppPath() in Command line code:6
+Stack trace:
+#0 {main}
+  thrown in Command line code on line 6
+Failed to execute command `php -r "
+define('OC_CONSOLE', true);
+require_once 'lib/base.php';
+$name='M4 phase-h/M4 檢視 測試 plain.ods';
+$file=\OC::$server->get(\OCP\Files\IRootFolder::class)->getUserFolder('admin')->get($name);
+$manifestPath=\OC_App::getAppPath('litecore').'/engine/MANIFEST.json';
+$manifest=json_decode(file_get_contents($manifestPath), true, 512, JSON_THROW_ON_ERROR);
+echo json_encode([
+    'installedVersion'=>\OC::$server->get(\OCP\IConfig::class)->getAppValue('litecore','installed_version'),
+    'maintenance'=>\OC::$server->get(\OCP\IConfig::class)->getSystemValue('maintenance',false),
+    'buildId'=>$manifest['buildId'],
+    'manifestSha256'=>hash_file('sha256',$manifestPath),
+    'viewer'=>$manifest['source']['pages']['ods-viewer.html'],
+    'fixture'=>['name'=>$name,'fileId'=>$file->getId(),'bytes'=>$file->getSize(),'sha256'=>hash('sha256',$file->getContent())]
+],JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES).\"\n\";
+"`: exit status 255
