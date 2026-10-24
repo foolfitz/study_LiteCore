@@ -602,8 +602,10 @@ def census(session, kind: str, record: dict[str, Any], writable: bool) -> list[d
              "set-bold", "set-italic", "set-underline", "set-strikethrough", "clear-format", "undo", "redo",
              "move-character-left", "move-character-right", "save", "open-file"]
     # Every control the page has, in this order, then any the order does not name (none expected).
+    # v22 §11.6: paste-markdown only opens a modal, just as open-file opens
+    # a picker. Its mutation occurs inside the dialog, outside this census.
     names = [n for n in order if n in by_action and n != "open-file"] + [
-        n for n in by_action if n not in order]
+        n for n in by_action if n not in order and n != "paste-markdown"]
     record["censusOrder"] = names
     point()
     for name in names:
@@ -626,8 +628,8 @@ def census(session, kind: str, record: dict[str, Any], writable: bool) -> list[d
         rows.append(census_step(session, kind, name, click(by_action[name])))
         if name == "save":
             time.sleep(2.0)
-    # Not clicked: it opens the file picker, which is a modal the driver cannot
-    # dismiss; it is disabled with a host anyway, and exempt by name (§7.3).
+    # open-file and paste-markdown are modal entry points, exempt by name
+    # (§7.3, v22 §11.6). V7 still reads every control's read-only disabling.
     point()
     for label, input_type in (("Enter", "insertLineBreak"), ("Backspace", "deleteContentBackward")):
         rows.append({**census_step(session, kind, label, lambda t=input_type: evaluate(
@@ -939,9 +941,9 @@ def score_view(run: dict[str, Any], re) -> list[str]:
     buttons = [r for r in census_rows if r.get("half") != "keyboard"]
     mutates = {(c["action"] or c["id"]): c.get("mutates") for c in (run.get("controlsAtCensus") or [])}
     # The census covers every control the PAGE lists (not a list in this file),
-    # except open-file (§7.3: a modal the driver cannot dismiss).  Without this
+    # except open-file and paste-markdown (§7.3, v22 §11.6: modal entry points). Without this
     # an empty census passes both arms.
-    wanted = set(mutates) - {"open-file"}
+    wanted = set(mutates) - {"open-file", "paste-markdown"}
     missing = sorted(wanted - {r.get("item") for r in buttons})
     if not wanted or missing or "insert-text" not in wanted:
         bad.append(f"V2 census: {len(wanted)} controls listed, missing {missing}")
@@ -950,7 +952,7 @@ def score_view(run: dict[str, Any], re) -> list[str]:
         # paste-markdown), so it is not asked to advance; the other direction below still applies to it.
         hidden = {(c["action"] or c["id"]): c.get("hidden") is True for c in (run.get("controlsAtCensus") or [])}
         for row in buttons:
-            if (mutates.get(row["item"]) == "1" and row["item"] != "save" and not hidden.get(row["item"])
+            if (mutates.get(row["item"]) == "1" and row["item"] not in ("save", "paste-markdown") and not hidden.get(row["item"])
                     and row["revisionAfter"] == row["revisionBefore"]):
                 bad.append(f"V2 control: {row['item']} did not advance ({row['latency']!r})")
             # The other direction: a control that changed the document must be

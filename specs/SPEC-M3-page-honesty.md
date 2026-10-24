@@ -381,3 +381,19 @@ shakedown `…154412`）：`firefox:warm:edit` 12/12 在 10 秒內放鎖，每�
 | 2026-09-29 | **加 §7.7：離頁靜態普查的結果。**唯一會改變結果的是 `check_m3_assets` K2（帶著未存修改離開 → 0.2.3 不放鎖 → Firefox 走 105 的舊路），處置待決、傾向 A（K2 離開前先存）；順帶修掉 `savesUnsettled` 晚一次繪製才歸零的時序瑕疵。 |
 | 2026-09-29 | **加 §7：對抗性審核（opus，唯讀）之後、任何實作之前的修訂。**處置全表在 `findings/evidence/m3-page-honesty/review-2026-09-29-opus.md`。判準層：未交出的定義改成「dirty 或 pending 或存檔未結束」；有宿主時由宿主唯一決定（`watchUnsaved`，擋時不放鎖）；觀測法改成包住原型並以 stack 歸屬、缺紀錄算不過；U0／U1／V2／V4 取代，U-window／U7／K-sep／V7 新增，K9′／K10′ 判定式逐條寫出；回歸的綁定列舉成四個常數。事實層：§1 的報讀限於提供段落文字的 profile。登錄六項（§7.5）。 |
 | 2026-09-29 | 初版。依據：finding 107（同日量到）、finding 106、擁有者對唯讀的裁示 A。寫在頁面、殼層、宿主改動與 runner 之前。 |
+
+### 7.15 v22 的 Markdown modal 入口：落實既有 §11.6 處方（2026-10-25，只追加）
+
+本段取代 §7 V2 與 §7.14 對「可見 paste-markdown 入口本身必須前進 revision」的讀法；既有處方在 `SPEC-M3-link-batch-v22.md` §11.6（2026-10-19）已先釘死，這次沒有新增判準。
+
+**執行證人**：宿主 0.2.33／package `a67beefefebe57d6`、頁面 `3b96cb16…` 上，未改判定的 `check_m3_page_honesty.py`（`3eab7432…`）跑 Vrw／Chrome 一回，**只有** `V2 control: paste-markdown did not advance ('存回 87 ms')`。原始報告 `findings/evidence/m3-page-honesty/shakedown/2026-10-24T190507+0000.json` 已先 commit（`21d7b46c`）。頁面／session 的 tree、dist、served 身分一致，宿主版本與 buildId 都是本候選；不是把舊 counted pin 的拒絕當成產品紅。
+
+**處置**：依 `open-file` 的前例，普查不點 `paste-markdown`，覆蓋母體仍由 `controlsAtCensus` 的頁面控制項產生，只按名字排除這兩個 modal 入口。入口的點擊只會開框；文件 mutation 是框內的「插入」，不是工具列入口本身。重判已存的舊證人時，也不再要求該入口的 census row 前進。其他控制項的覆蓋、「會改文件就必須標 mutation」及可寫前進條件照舊；唯讀 V7 仍逐顆讀全體控制項，沒有豁免入口的 disabled／mutates 配對。Markdown 對話框內的插入、取消與焦點由既有 F3／宿主臂負責，不把本次 census 例外宣稱成對話框驗收。
+
+**紅先行**：新增五個以真報告為底的單元測試。未修改判讀器時，兩個新正向條件確實紅（入口不得當編輯失敗、可省略 modal row）；其餘三個反向條件已綠（未來新增的編輯按鈕仍要前進、其他漏查按鈕仍紅、唯讀入口未停用仍紅）。修改後 5／5，舊證人重判 clean，既有紅案 **158／158** 仍紅。輸出 `findings/evidence/host-0.2.33/count-preparation-2026-10-25/`。新的活頁正向執行另記在該目錄的 README，不以重判替代實際 driver 路徑。
+
+**帳**：§34.4 **因執行而修 +1／因審核而修 +0**，累計 **47／27**。沒有變更產品位元組、pins、BINDING 或計數判定；未啟動 K。
+
+| 日期 | 變更 |
+| --- | --- |
+| 2026-10-25 | 追加 §7.15：已 commit 的 Vrw 證人後落實 v22 §11.6 modal 入口例外；紅先行 5 個測試、158 個既有紅案；§34.4 +1／+0 |

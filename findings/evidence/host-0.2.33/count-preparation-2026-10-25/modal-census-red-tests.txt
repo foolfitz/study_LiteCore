@@ -1,0 +1,42 @@
+test_a_future_mutating_control_still_has_to_advance (tests.test_page_honesty_modal_census.ModalCensus.test_a_future_mutating_control_still_has_to_advance) ... ok
+test_an_uncovered_edit_button_still_fails (tests.test_page_honesty_modal_census.ModalCensus.test_an_uncovered_edit_button_still_fails) ... ok
+test_census_can_omit_the_named_modal_entry (tests.test_page_honesty_modal_census.ModalCensus.test_census_can_omit_the_named_modal_entry) ... FAIL
+test_existing_modal_witness_is_not_an_edit_failure (tests.test_page_honesty_modal_census.ModalCensus.test_existing_modal_witness_is_not_an_edit_failure) ... FAIL
+test_readonly_disabling_of_markdown_still_has_to_hold (tests.test_page_honesty_modal_census.ModalCensus.test_readonly_disabling_of_markdown_still_has_to_hold) ... ok
+
+======================================================================
+FAIL: test_census_can_omit_the_named_modal_entry (tests.test_page_honesty_modal_census.ModalCensus.test_census_can_omit_the_named_modal_entry)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tests/test_page_honesty_modal_census.py", line 31, in test_census_can_omit_the_named_modal_entry
+    self.assertEqual(honesty.score_arm(run), [])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ["V2 census: 21 controls listed, missing ['paste-markdown']"] != []
+
+First list contains 1 additional elements.
+First extra element 0:
+"V2 census: 21 controls listed, missing ['paste-markdown']"
+
+- ["V2 census: 21 controls listed, missing ['paste-markdown']"]
++ []
+
+======================================================================
+FAIL: test_existing_modal_witness_is_not_an_edit_failure (tests.test_page_honesty_modal_census.ModalCensus.test_existing_modal_witness_is_not_an_edit_failure)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tests/test_page_honesty_modal_census.py", line 26, in test_existing_modal_witness_is_not_an_edit_failure
+    self.assertEqual(honesty.score_arm(self.writable), [])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ["V2 control: paste-markdown did not advance ('存回 87 ms')"] != []
+
+First list contains 1 additional elements.
+First extra element 0:
+"V2 control: paste-markdown did not advance ('存回 87 ms')"
+
+- ["V2 control: paste-markdown did not advance ('存回 87 ms')"]
++ []
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.021s
+
+FAILED (failures=2)
