@@ -343,3 +343,15 @@ K 沒有啟動／重綁，名義出貨版本仍 0.2.26。依擁有者指示，�
 | 日期 | 變更 |
 | --- | --- |
 | 2026-10-25 | 追加 §20：接續 H7 的離線身分讀取、實讀 ddev 占用狀態與操作手冊 |
+
+## 21. 擁有者空出時段；litecore 已啟動待 H7（2026-10-25，只追加）
+
+擁有者原話：「我把fgp容器停掉了，請繼續」。02:50:35（Asia/Taipei）重新實讀：沒有 running 專案，fgp-nc／nc-bridge paused、litecore 與其餘專案 stopped；本段取代 §20 的「時段被占用」現況。啟動前已記錄新授權與本輪 H7 的工作界限，不沿用前一晚 WINDOW_END。受託者只執行 litecore 的 `ddev start`，exit 0；02:51:35 的狀態快照證實只有 litecore 從 stopped 變 running，其餘逐項相同。
+
+02:52:02 在容器內直接讀到 installed_version **0.2.33**、maintenance false、package **a67beefefebe57d6**；manifest sha 與 viewer 完整項目均符合 `release.json`，viewer 是 **ods-viewer-v3／ebb7e0cb**。並經 Nextcloud 檔案 API 讀到保留的測試檔：`M4 phase-h/M4 檢視 測試 plain.ods`、fileId **24674**、7,537 B、sha256 **0402e527…**，名稱／id／大小／內容雜湊均與既有 H2／H3 報告相同。這些是本次實讀，沒有重跑瀏覽器閘門或重新驗全部引擎酬載。證據 `findings/evidence/host-0.2.33/h7-2026-10-25/`。
+
+Files 的未登入 HTML 請求到登入頁 HTTP 200，已交擁有者實際 Files 入口與 Alpha／Beta／Gamma 切換步驟。**H7 仍待擁有者原話，尚未成立**；litecore 保持執行供本輪操作，收到結果或取消後停止本輪自行啟動的服務，除非擁有者要求保留。沒有重新安裝／升版、核心編譯／連結、Phase E／H 或語料重跑；K 維持併批未執行／未重綁。§34.4 **+0／+0**，累計 **46／27**。
+
+| 日期 | 變更 |
+| --- | --- |
+| 2026-10-25 | 追加 §21：新時段授權、啟動 litecore、容器與測試檔身分實讀，待擁有者 H7 |
