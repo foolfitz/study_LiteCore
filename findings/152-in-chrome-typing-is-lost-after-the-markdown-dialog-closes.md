@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **狀態** | **已確認（CDP 量測，含有視窗的 Chrome）；已裁決＝登錄，修法跟著第 2 項下一批**（fable 裁決 1，2026-10-17，擁有者授權） |
+| **狀態** | **修法 3 已隨 v22 落地，F3 機械判準通過；0.2.33 的 Xvfb 原生 X11 鍵盤診斷 3／3 成立**（2026-10-25）。仍缺既有 F3-hand 的擁有者親手回報；宿主仍為未計數候選，不宣稱完整出貨驗收已完成 |
 | **影響版本** | 只有 v21 未計數候選（頁面 `3d511216…`）。0.2.24 沒有 `<dialog>`（`diag-dirty-move/` V11f）。v21 依規格 §12.3 (e) 不提供對話框入口，所以出貨版**到不了** |
 | **所在** | 頁面 `web/e2-editor-app.js` `closeMarkdownDialog`（約 `:2337-2344`）：同一個 task 裡先 `dialog.close()`，再 `sink.focus()` |
 | **發現日** | 2026-10-17：item 1 smoke 的 D6（Z 不見了）→ `findings/evidence/link-batch-v21/shakedown/diag-dirty-move/` V5、V11、V11g |
@@ -45,3 +45,11 @@
 1. V5（關閉後 0 ms、300 ms 再打）與 V11c／V11d，N=3、兩個瀏覽器，打的字都要進到文件。
 2. 擁有者在真的 Chrome 手測：按「插入」之後、按「取消」之後各打一次字。
 3. 若沒做：不提供入口。
+
+## 2026-10-25：補登錄 v22 的修法與 Xvfb 原生鍵盤診斷
+
+修法 3 已於 v22 的頁面 `3b96cb16…` 落地；`SPEC-M3-link-batch-v22.md` §11.3.1 與 `findings/evidence/link-batch-v22/shell/f3/` 記錄 F3 八格（V5@0／300 ms、V11c、V11d，兩個瀏覽器）各 3／3。前文「候選、只在 mirror」是 10-17 的歷史狀態。
+
+擁有者睡前指示可試 xvfb 後，於 host **0.2.33／a67beefefebe57d6** 的真實 Files 路徑上，以**有視窗的 Chrome**、獨立 Xvfb display／profile，透過 **XTestFakeKeyEvent** 送 X11 原生鍵盤事件。三回皆為：Markdown 插入後焦點回到 sink、打入的標記在存回 ODT 裡；再開框輸入另一標記、取消後焦點回 sink、接著打的標記也在存回 ODT 裡；被取消的框內文字不在存檔。事件皆為 trusted，對話框插入的文字也已存回，GET 200。證據 `findings/evidence/host-0.2.33/count-preparation-2026-10-25/xvfb-focus/`。
+
+這補上了前段「還沒證明」裡**Xvfb／X11 原生鍵盤路徑**的機器證據，不是擁有者實際桌面／IME 的親手回報。既有 F3-hand 仍未收到；不以診斷自動滿足該人工條件。沒有更動產品、共用啟動器或 F3 判準。
