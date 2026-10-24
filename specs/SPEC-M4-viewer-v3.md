@@ -331,3 +331,15 @@ K 沒有啟動／重綁，名義出貨版本仍 0.2.26。依擁有者指示，�
 | 日期 | 變更 |
 | --- | --- |
 | 2026-10-24 | 追加 §19：安裝／Phase H 成立，H7 待日後，恢復服務狀態與自主停止 |
+
+## 20. 接續 H7 的離線準備；ddev 時段被占用（2026-10-25，只追加）
+
+擁有者要求依 `handoff/HANDOFF-2026-10-24-host-0233-installed-phase-h-holds-stopped.md` 展開後續任務。接續項目沿用 §19 的 H7，不新增判準。00:39:02（Asia/Taipei）實讀 `ddev list --json-output`：**fgp-nc running、litecore stopped**；依既有安裝手冊「別的專案正在執行就不另啟 litecore」的規則，本段沒有啟停任何專案，待新的可用時段。前一晚的 WINDOW_END 已過期，不沿用。
+
+離線讀到宿主仍乾淨、`4f7f870`／0.2.33；磁碟上的 manifest 宣告 **a67beefefebe57d6**，sha256 與 `release.json` 相符，位元組與 archive 的 manifest 相同。這只確認 checkout 與 manifest，沒有重新驗完整引擎檔、容器或伺服器測試檔。證據 `findings/evidence/host-0.2.33/h7-preparation-2026-10-25/` 明列讀取範圍；未重跑 Phase E／H、語料或 K。
+
+接續手冊 `handoff/RUNBOOK-host-0.2.33-h7.md` 已整理實際 Files 入口、`M4 phase-h/M4 檢視 測試 plain.ods`（fileId 24674）、Alpha／Beta／Gamma 切換、擁有者原話的紀錄位置，以及服務收尾。H7 的機械證據沿用同候選／同測試檔的既有 H2／H3，照 viewer-v2 §10.5 的前例；人類那半仍待擁有者在新時段親手操作。**未操作時 H7 維持 pending，0.2.33 維持未計數候選。**完成 H7 後 K 仍待擁有者明確排程，名義出貨版本仍 0.2.26。§34.4 **+0／+0**，累計 **46／27**。
+
+| 日期 | 變更 |
+| --- | --- |
+| 2026-10-25 | 追加 §20：接續 H7 的離線身分讀取、實讀 ddev 占用狀態與操作手冊 |
