@@ -32,3 +32,17 @@
 | 日期 | 變更 |
 | --- | --- |
 | 2026-10-25 | 自主接續範圍、page honesty 既有處方、xvfb 診斷範圍與人工停止點 |
+
+## 4. 本輪結果與人工停止點（2026-10-25，只追加）
+
+03:04:53 記錄空閒 ddev 狀態後，只啟動 litecore。未改的 Vrw／Chrome 實際只紅在 modal 入口沒有前進 revision，原始證人先 commit `21d7b46c`；`e704efee` 落實 v22 §11.6 既有處方。新測試先有兩個預期紅，修改後 **5／5**；舊證人重判 clean、既有紅案 **158／158**。實際新 driver 的 Vrw／Vro × Chrome／Firefox 各一回，四格全 clean（03:10:43–03:22:36），沒有只靠重判宣告 driver 已修。
+
+Xvfb 診斷在真實 Files／宿主上，用獨立有視窗 Chrome 與 XTest 原生鍵盤跑三回；插入／取消後的打字標記皆確實存回 ODT，被取消的文字皆未存回，事件 trusted、焦點回 sink，**3／3**。新診斷第一次的 host adapter 錯誤保留原始 source／log，修正後用新輸出重跑；產品與共用啟動器都沒改。完整證據 `findings/evidence/host-0.2.33/count-preparation-2026-10-25/`。
+
+**必要人工殘餘仍是 v22 §11.3 的 F3-hand**：擁有者在自己的 Chrome 桌面親手於插入／取消後各打一次字。先前 H7 交接「沒有剩餘人工驗收」的範圍是 ODS Phase H，不涵蓋這個繼承的編輯器條件；已在原交接追加澄清。本輪依「遇到非得人工驗證再停」在這裡交接，不偽造擁有者回報；這也不新增 K 的閘門，F3-hand 仍依原規格管可出貨、不管量測。Home／End 與外觀的舊手測追蹤亦未默認完成。
+
+已備好下一次親手操作的專用文件 **LiteCore 手動驗收 2026-10-25/Markdown 焦點測試.odt**（fileId **24920**），上傳 201、GET 200 與來源逐位元相同。`manual-fixture.json` 綁定測試檔與當時容器身分；手冊 `handoff/RUNBOOK-host-0.2.33-f3-hand.md`。不要求重做 ODS H7／V3-SEE。
+
+03:24:13–03:24:15 停止自行啟動的 litecore，exit 0；所有 ddev 專案狀態與本輪起點相同。這個相同是專案狀態，不是 DB 列數：第一支既有 runner 啟動前曾讀到 22 列 app lock，沒有先存列明細，該 runner 按原設計清表，收尾為 0；不推定原列的擁有者或是否過期。宿主 source、package 與舊證據身分未改，人工測試文件保留。
+
+K 沒有啟動／重綁；只留舊 re-pin template 所指參與者的只讀快照，不宣稱完整普查。J-a P5 的 K 時段／不開站約定仍未成立。檢查到 `make test-e2-c-static` 內有 C++ model 編譯，因此沒有違反既有建置規則去代跑；本輪不宣稱 full static 已通過。0.2.33 仍是未計數候選，名義出貨仍 0.2.26。§34.4 本輪 **+1／+0**，累計 **47／27**，僅計 page honesty 的有證人修正。
