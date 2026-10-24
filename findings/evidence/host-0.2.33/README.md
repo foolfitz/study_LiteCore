@@ -50,3 +50,13 @@ The owner requested autonomous execution while asleep, a handoff/stop at a work-
 At 01:25 the agent stopped its litecore project. `ddev-after-stop.json` exactly matches every starting project status: litecore stopped, nc-bridge paused, all others stopped. The agent's 8794 preview server was terminated only after matching its recorded PID/command/root; the port is closed, the mirror files remain. The isolated worktree was removed only after verifying it was clean and its package matched the archive; main and branch host-0.2.33 remain at 4f7f870. `cleanup.json` records all of this. Both engine archives remain intact.
 
 Two routine orchestration corrections had no product impact: an initial root-repo git command was issued from the host cwd and failed without changes, then was rerun from the correct repo before installation; a post-run path reader was corrected to read the host-entry log's JSON record rather than a plain path. Neither changed a runner, criterion, report or verdict. Section 34.4 remains +0 / +0, cumulative 46 / 27.
+
+## Owner H7 holds, 2026-10-25 (supersedes pending H7)
+
+In a new slot explicitly requested after the owner freed the shared ddev environment, the agent started only litecore. The current installed version, manifest and retained ODS were read from the container and matched the candidate and prior machine H2/H3 fixture (`h7-2026-10-25/container-identity.json`).
+
+The owner opened the identified Files-path test and replied **「三個工作表都能顯示」** ("All three worksheets can be displayed."). **H7 holds**; exact words, identity and the existing machine half are recorded in `h7-2026-10-25/owner-confirmation.md`. The browser was not specified. This is distinct from V3-SEE; machine Phase H was not repeated. `phase-h-summary.json` remains the historical 2026-10-24 machine-run record; `release.json` now points to the completed H7.
+
+At **02:55:46 Asia/Taipei**, the agent had stopped its litecore project again, exit 0. All project states exactly match this slot's starting snapshot: litecore stopped, fgp-nc and nc-bridge paused, all others stopped. See `h7-2026-10-25/cleanup.json` and its raw snapshots. The fixture folder and installed candidate are preserved.
+
+**All candidate Phase H clauses now hold; 0.2.33 / a67beefefebe57d6 remains installed and uncounted.** K remains batched, not run or re-pinned, and nominal shipped host remains 0.2.26. No criterion/judge/binding changed: section 34.4 **+0 / +0**, cumulative **46 / 27**.

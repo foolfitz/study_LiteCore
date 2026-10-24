@@ -17,3 +17,9 @@ Mirror acceptance and offline package checks do not establish the new package's 
 0.2.33 was installed at 01:14 Asia/Taipei under the owner's sleeping/autonomous instruction. Machine H1-H6 pass, including the viewer host's read-only/headers/tab checks, Chrome/Firefox x3 dialog regressions, host-entry open/save/conflict, and the offline package gates. Apache records the v3 engine files, all 200. Evidence: `findings/evidence/host-0.2.33/README.md` and `phase-h-summary.json`.
 
 The installed version is an **uncounted candidate**, with the owner's Files-path **H7 still pending**. Full K remains batched. The agent stopped litecore after testing, restoring the initial stopped state; it retains the installed package and data and is available on the next ddev start. No immediate manual task is requested while the owner sleeps.
+
+## Owner Files-path acceptance, appended 2026-10-25
+
+This supersedes the pending-H7 status above. On the identified installed 0.2.33 candidate, the owner opened `M4 phase-h/M4 檢視 測試 plain.ods` from Files and confirmed **「三個工作表都能顯示」** ("All three worksheets can be displayed."). H7 holds, with the same candidate/fixture's existing machine H2/H3; evidence: `findings/evidence/host-0.2.33/h7-2026-10-25/owner-confirmation.md`. All candidate Phase H clauses now hold.
+
+The agent stopped litecore after this slot and verified that every project state matched the starting snapshot. Host 0.2.33 and its data remain installed. The candidate is still **uncounted**: K has not been run or re-pinned, and nominal shipped host remains 0.2.26.
