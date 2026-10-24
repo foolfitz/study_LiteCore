@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **狀態** | **158-B 已在 v3／`ebb7e0cb` 修復並完成鏡像驗收**（機器＋擁有者外觀確認，2026-10-24）；host **0.2.33** 已裝，機器 Phase H 通過，為**未計數候選**，H7 待擁有者日後從 Files 確認。舊 v2 仍採 158-A 的型別化拒絕；名義出貨版本仍 0.2.26 |
+| **狀態** | **158-B 已在 v3／`ebb7e0cb` 修復並完成鏡像驗收**（機器＋擁有者外觀確認，2026-10-24）；host **0.2.33** 已裝，**Phase H 含擁有者 Files 驗收 H7 全成立**（2026-10-25），仍為**未計數候選**。舊 v2 仍採 158-A 的型別化拒絕；K 維持併批，名義出貨版本仍 0.2.26 |
 | **Bugzilla** | 無（上游送出擱置）。**可能是上游 wasm 建置的通病**：上游的 WASM 組態同樣關 DB connectivity；未在上游 build 上重現 |
 | **發現日** | 2026-10-20（`findings/evidence/m4-ods/phase-e/report-2026-10-20T133240Z.json`） |
 | **嚴重度** | **高**（對使用者）：這類檔開得了、名字讀得到、但畫布空白，每一次畫圖都丟例外。語料 303 份可開的裡有 5 份（1.7%） |
@@ -96,3 +96,7 @@ v2 的核心（`build-ods-viewer-v2`）開了 DB connectivity，`OFormsCollectio
 ### 同日安裝結果：0.2.33 的機器 Phase H 成立
 
 0.2.33／package `a67beefefebe57d6` 已安裝，帶 v3／`ebb7e0cb`；H1–H6 的機器部分全部成立，包含唯讀、實際送出 v3 的 Apache 紀錄、兩個瀏覽器的編輯器回歸。證據 `findings/evidence/host-0.2.33/README.md`。H7 仍待擁有者日後從 Files 開檔；K 仍併批。受託睡前工作告一段落後，litecore 已恢復 stopped，資料與新候選保留，新舊 package archive 都在。
+
+### 2026-10-25：H7 的 Files 驗收成立
+
+擁有者在新時段對 host 0.2.33 上指明的 Files 測試檔回報：「三個工作表都能顯示」。H7 成立，取代前段待驗收狀態；證據 `findings/evidence/host-0.2.33/h7-2026-10-25/owner-confirmation.md`。這份 plain ODS 的 Files 驗收與控制項 fixture 的 mirror 外觀驗收各自成立，不互相替代。本輪服務已停止，所有 ddev 專案狀態恢復到本輪開始前；候選與資料保留。0.2.33 仍未計數，K 仍併批，名義出貨版本仍 0.2.26。
