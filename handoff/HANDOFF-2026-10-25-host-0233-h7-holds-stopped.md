@@ -25,3 +25,7 @@ After the owner's confirmation, the agent stopped its own litecore project at **
 The installed candidate, data, H7 fixture folder, engine archives and source patches remain. There was no reinstall, app upgrade, compilation, relink, rollback or fixture deletion. The old 8794 preview server was not restarted. The host repo remains clean at 4f7f870.
 
 Standing rules: Taiwan Traditional Chinese replies; handoff/evidence/upstream/commits in English, preserving exact owner quotations as data. No sudo/su/doas. Compilation make goes to the owner unless explicitly asked otherwise. Keep cohesive commits with `Co-Authored-By: Codex <noreply@openai.com>`.
+
+## Scope clarification after the owner's new autonomous instruction
+
+The statement above that no human acceptance item remains refers to **ODS Phase H** only. A subsequent read of the earlier v22 requirements found that the separate editor **F3-hand** owner report (typing after Markdown Insert and Cancel, v22 section 11.3) is still pending. This handoff did not establish that report. See `specs/SPEC-M3-host-0233-count-preparation.md` and the later count-preparation handoff for the new autonomous work and its actual stopping point. Do not repeat ODS H7 to fill that editor requirement.
