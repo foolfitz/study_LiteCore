@@ -397,3 +397,7 @@ shakedown `…154412`）：`firefox:warm:edit` 12/12 在 10 秒內放鎖，每�
 | 日期 | 變更 |
 | --- | --- |
 | 2026-10-25 | 追加 §7.15：已 commit 的 Vrw 證人後落實 v22 §11.6 modal 入口例外；紅先行 5 個測試、158 個既有紅案；§34.4 +1／+0 |
+
+#### 7.15.1 實際 driver 的正向執行（2026-10-25，只追加）
+
+`findings/evidence/m3-page-honesty/shakedown/2026-10-24T191043+0000.json`（03:10:43–03:22:36，Asia/Taipei）：Vrw／Vro × Chrome／Firefox 各一回，四格都是 **1／1、VERDICT clean、exit 0**。每格實讀頁面清單 22 顆控制項，按名字排除兩個 modal 入口後的 20 顆與實際 census rows 集合相同；這是本次量測的大小，不設未來固定顆數。唯讀 V7 仍涵蓋全體控制項。本次不是 counted run；舊 pins 未動，K 未啟動。證據與一行重讀指令在 `findings/evidence/host-0.2.33/count-preparation-2026-10-25/README.md`。§34.4 不再加記，累計 **47／27**。
