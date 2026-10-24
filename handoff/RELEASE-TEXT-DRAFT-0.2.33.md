@@ -23,3 +23,7 @@ The installed version is an **uncounted candidate**, with the owner's Files-path
 This supersedes the pending-H7 status above. On the identified installed 0.2.33 candidate, the owner opened `M4 phase-h/M4 檢視 測試 plain.ods` from Files and confirmed **「三個工作表都能顯示」** ("All three worksheets can be displayed."). H7 holds, with the same candidate/fixture's existing machine H2/H3; evidence: `findings/evidence/host-0.2.33/h7-2026-10-25/owner-confirmation.md`. All candidate Phase H clauses now hold.
 
 The agent stopped litecore after this slot and verified that every project state matched the starting snapshot. Host 0.2.33 and its data remain installed. The candidate is still **uncounted**: K has not been run or re-pinned, and nominal shipped host remains 0.2.26.
+
+## Inherited editor acceptance still pending, appended 2026-10-25
+
+The completed ODS H7 does not close v22's separate F3-hand editor requirement. Autonomous follow-up verified native X11 keyboard typing after Markdown Insert and Cancel under Xvfb in 3/3 rounds, including server-saved content, but the owner's normal Chrome desktop report is still absent. Evidence and the prepared manual fixture are in `findings/evidence/host-0.2.33/count-preparation-2026-10-25/`; the one-minute procedure is `RUNBOOK-host-0.2.33-f3-hand.md`. This draft makes no completed F3-hand or shippable-release claim. K remains batched/unrun.

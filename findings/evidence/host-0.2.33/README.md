@@ -60,3 +60,11 @@ The owner opened the identified Files-path test and replied **「三個工作表
 At **02:55:46 Asia/Taipei**, the agent had stopped its litecore project again, exit 0. All project states exactly match this slot's starting snapshot: litecore stopped, fgp-nc and nc-bridge paused, all others stopped. See `h7-2026-10-25/cleanup.json` and its raw snapshots. The fixture folder and installed candidate are preserved.
 
 **All candidate Phase H clauses now hold; 0.2.33 / a67beefefebe57d6 remains installed and uncounted.** K remains batched, not run or re-pinned, and nominal shipped host remains 0.2.26. No criterion/judge/binding changed: section 34.4 **+0 / +0**, cumulative **46 / 27**.
+
+## Later autonomous editor count preparation, 2026-10-25
+
+After H7, the owner requested autonomous continuation, suggested Xvfb, and asked to stop at required human verification. `count-preparation-2026-10-25/README.md` records the resulting work: the already prescribed v22 modal census repair, with a committed old-runner witness, red-first focused tests (5/5 after repair), 158/158 existing red cases, and clean actual Vrw/Vro runs in both browsers. This judge repair adds section 34.4 **execution +1 / review +0**, cumulative **47 / 27**; product and package remain unchanged.
+
+Native X11 typing on a headed Chrome under Xvfb succeeded in **3/3** actual Files-path rounds after Insert and Cancel, with server-saved text verified. The inherited **editor F3-hand owner report remains pending**, distinct from completed ODS H7/V3-SEE. A dedicated manual fixture and runbook are ready. No new K pins, BINDING or chain were applied; K remains unrun and the candidate uncounted.
+
+The agent stopped its litecore project at **03:24:15 Asia/Taipei**. All ddev project states match the new slot's start; see `count-preparation-2026-10-25/cleanup.json`. The evidence separately records the existing runner's lock-table clearing and does not claim database row equality. Host source is clean at 4f7f870; both archives and the retained manual fixtures remain.
