@@ -36,3 +36,11 @@ The Files URL is **https://litecore.ddev.site:8443/index.php/apps/files/**. An u
 The owner has been asked to use **admin**, enter **M4 phase-h**, click **M4 檢視 測試 plain.ods** in Files, and switch **Alpha / Beta / Gamma**, then report the actual result. No owner observation has yet been recorded. Do not substitute the completed V3-SEE or the earlier 0.2.32 H7.
 
 No Phase E/H or corpus sweep was repeated. K remains batched and was not started or re-pinned; nominal shipped host remains 0.2.26. Section 34.4 **+0 / +0**, cumulative **46 / 27**.
+
+## Completed: owner H7 holds and slot closed
+
+This section supersedes the pending-H7 and running-service statuses above. The owner replied **「三個工作表都能顯示」** ("All three worksheets can be displayed."). `owner-confirmation.md` records the exact words, candidate/fixture identity and existing H2/H3 evidence. **H7 holds**, separately from V3-SEE. No browser was specified or inferred.
+
+The agent then ran `ddev stop` for its own litecore project, **02:55:44-02:55:46 Asia/Taipei**, exit **0** (`stop.txt`). `ddev-before-stop.json`, `ddev-after-stop.json` and `cleanup.json` show that every final project state matches `slot.json`'s starting state: litecore stopped; fgp-nc and nc-bridge paused; all others stopped. No other project's state changed. The fixture folder, installed candidate and both engine archives remain preserved.
+
+The H7 work unit is complete. There is no remaining human acceptance item for this candidate's Phase H. Full K remains batched, unrun and not re-pinned; host 0.2.33 remains an uncounted candidate. No further measurement or build was launched. Section 34.4 remains **46 / 27**.
