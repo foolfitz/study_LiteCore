@@ -102,3 +102,11 @@ ODS 的優先工作已完成，現有可接續的功能批次是 **v23：指令�
 新定向驗收 **378／378**（兩瀏覽器各三輪）、過長／保護／失敗選格等每瀏覽器 **8／8**、session／SDK／host contract **22／22**；實際 Files **28／28**。新畫面總計 mirror 312、host 56 塊 tile，與同區域引擎繪圖相符。reader 與紅控制可重讀，詳見[整理](2026-10-25-calc-input-range.md)及規格 §13–16。45 個封包檔的 42 筆完整紀錄相同，只改 Calc HTML／app／session；Writer／viewer／Calc v1 engine 不變。
 
 本批續列未計數帳，K／全域 pins／merge BINDING／chain 不動，名義出貨仍 0.2.26。litecore 保留原 running、現有鎖與擁有者文件不變，測試資源／隔離 worktree 已清。一般 commit 等待期間按鍵接收的既有限制由 Astra 列為未量測後續工作，不擴成本批新閘門。本批短期待辦結束，不自行啟動 v23；§34.4 +0／+0，累計 47／27。
+
+## 2026-10-25 接續完成：多格格式與已確認修改的自動儲存
+
+擁有者自行完成必要的小型 native／WASM 建置後，續跑、封存及安裝 **0.2.37／2f7a119／754ae8eafd15edda**。後繼 Calc v2（wasm 5bc53490／worker 0bed22bd）提供明確矩形的一次 B／I／U、三字族與 mixed 語意、65,536 格上限、保護／交界合併拒絕；頁面新增 committed-only autosave（30 秒 idle／5 分鐘加 3 秒 quiet／hidden），不強制確認草稿，失敗暫停。快捷鍵與工具列 busy eligibility 已由真實 source-chain 紅案修正。
+
+新候選 native 22／22、range 240／240、auto 108／108、cell 回歸 62／62、實際 Files 54／54；range 六份／156 塊、host 兩份／56 塊實際 DOM tiles 對直接引擎相同。各層 artifact reader／紅控制通過，Astra 讀最後產物後裁決有限範圍封閉。原文件24920、既有24674鎖與服務狀態相同，自有測試資源及 worktree 已清，精確 archives／分支／退路保留。Writer v22、viewer v3、舊 Calc v1 不改；代理未代編譯。
+
+本批續列未計數帳，完整 K／全域 pins／merge BINDING／chain 不動，名義出貨仍 0.2.26；§34.4 +0／+0，累計 47／27。短期待辦完成，不自行展開既有 ordinary-commit 按鍵接收、rich text 或全 Calc merge closure。詳見[功能整理](2026-10-25-calc-range-autosave.md)與[完成交接](../handoff/HANDOFF-2026-10-25-calc-range-autosave-complete.md)。
