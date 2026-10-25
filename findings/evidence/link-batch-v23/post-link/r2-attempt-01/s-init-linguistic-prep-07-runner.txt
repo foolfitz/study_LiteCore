@@ -1,0 +1,24 @@
+chrome r1 linguistic-layout e2-editor-v22
+chrome r1 linguistic-layout e2-editor-v23-diag-r2
+firefox r1 linguistic-layout e2-editor-v22
+firefox r1 linguistic-layout e2-editor-v23-diag-r2
+Traceback (most recent call last):
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/run_v23_s_init.py", line 152, in <module>
+    if __name__ == '__main__': raise SystemExit(main())
+                                                ~~~~^^
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/run_v23_s_init.py", line 140, in main
+    if session is not None: cell['cleanup'] = common.close_browser(session)
+                                              ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/v21_shakedown_common.py", line 382, in close_browser
+    session.close()
+    ~~~~~~~~~~~~~^^
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/run_browser_probe.py", line 191, in close
+    self.process.wait(timeout=10)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "/usr/lib/python3.14/subprocess.py", line 1279, in wait
+    return self._wait(timeout=timeout)
+           ~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/subprocess.py", line 2078, in _wait
+    time.sleep(delay)
+    ~~~~~~~~~~^^^^^^^
+KeyboardInterrupt
