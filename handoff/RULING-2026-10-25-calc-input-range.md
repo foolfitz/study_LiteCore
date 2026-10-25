@@ -1,0 +1,13 @@
+# Astra ruling: finite input and rectangular selection batch
+
+Owner-authorized decision maker: `/root/astra_calc_scope` (canonical agent ID, retained for follow-up). The owner explicitly delegated ambiguous decisions to Astra. This ruling precedes selection implementation and acceptance runs.
+
+Deliver direct replacement typing, F2 preserving safe input, and rectangular selection using the existing frozen v1. Arbitrary-range B/I/U is outside this batch: disable toolbar, shortcuts and session formatting for a multi-cell selection and explain why. Do not simulate atomic range writes with per-cell calls. Starting either edit mode collapses to the explicit active cell. Keep manual saving; no rich text, fill or multi-cell paste.
+
+Selection stores active/anchor/focus separately from text selection. Click collapses; drag, Shift-click and Shift-arrows extend focus; ordinary arrows move from focus to the next visible cell and collapse. Editing arrows remain textarea operations. Sheet switch resets to the new sheet's A1. No automatic drag scrolling: outside the viewport retains the last valid endpoint. Cancellation ends the gesture; late replies cannot revive it.
+
+Merged-cell policy is a logical address rectangle: normalize endpoints to engine merged origins and include their endColumn/endRow. Other intersecting merges do not recursively expand selection. The overlay uses the two real engine cursor envelopes; this is not full Calc merge closure and must not later be treated as a range-write contract. Hidden indices remain within the logical address rectangle but contribute no invented pixel area. Navigation uses an engine hit just beyond the focus edge, never an unbounded scan over hidden indices. Missing geometry or boundaries retain the old selection and report refusal.
+
+Each extension uses a fixed number of SDK requests independent of area. readCell/hitCell move the engine cursor; mutations continue to capture and pass the explicit active address/revision. If measured geometry cannot satisfy this policy, use a small read-only successor on the existing core, preserving v1; do not guess dimensions. No present human preference/root blocker exists. A core rebuild, if actually needed, belongs to the owner.
+
+Acceptance must cover actual keyboard replacement/F2/cancel/commit/XML/reopen, focus isolation; four-way mouse/Shift selection and shrink; variable dimensions, merged endpoints/interior boundary merges and consecutive hidden indices; every format entry's side-effect-free refusal; constant request counts, delayed/reversed gestures and sheet changes; and actual post-input DOM tiles compared with engine render. All unmeasured claims default to not established. Keep prior owner passes, K deferral and invalidate-before-emit.

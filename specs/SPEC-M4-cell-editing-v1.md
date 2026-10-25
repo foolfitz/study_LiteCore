@@ -137,3 +137,13 @@ Calc 仍 manual only，沒有新增 autosave；先前可選範圍問題未獲追
 **I-entry**（逐實例）：新 session 狀態案例與 Chrome／Firefox 真實鍵盤路徑各 N＝3；每次涵蓋替換非空白格、F2 保留文字與公式、Escape 不寫、Enter 寫入、字首 apostrophe literal、組字期間不提交、公式／A1 欄的焦點隔離、唯讀／保護拒絕。每筆已提交修改下載 ODS 後獨立讀 XML 並重開；鄰格／別表不變。每份新 revision 後畫面須有可見 tile，DOM tile 與同 region 的直接 engine render bytes 一致。先保留目前未實作頁面的實際紅案；三筆全成立即封閉。未做／失敗：入口不列完成、不升宿主候選。自動送入的 composition 事件只算事件守衛，不冒稱實際 OS 輸入法；另記能實際驅動的預編輯路徑與限制。
 
 區域選取的語意與判準將於該部分實作／驗收之前另行追加；Astra 已獲擁有者裁決授權，agent `/root/astra_calc_scope` 保留供續問。K／全域 pins／BINDING／chain 不動。既有人工已通過項目不重問。
+
+## 14. Astra 裁決的矩形選取範圍（2026-10-25，只追加）
+
+依擁有者明確授權，Astra `/root/astra_calc_scope` 作成 [裁決](../handoff/RULING-2026-10-25-calc-input-range.md)：本批以既有 v1 完成直接輸入／F2 與選取，不擴成 native 任意範圍格式。**多格選取時工具列、快捷鍵、session B／I／U 都拒絕且不寫入**，畫面說明原因；開始打字／F2 則收合至 active cell，僅編輯該格。不冒稱部分文字格式、原子範圍寫入或 autosave。
+
+選區獨立保存 active／anchor／focus。單擊收合、滑鼠拖曳／Shift-click／Shift＋四方向擴縮，無 Shift 四方向從 focus 移到下一個可見格並收合；文字編輯中的方向鍵仍編輯文字。切表清選區並選新表 A1。範圍標籤顯示地址與 active cell。沒有拖曳自動捲動；拖出 viewport 保留最後有效點，可自行捲動再延伸。pointercancel／失焦終止拖曳，遲到結果不能復活舊手勢。
+
+合併政策是**地址矩形**：端點依 engine snapshot 的 merged origin／endColumn／endRow 正規化，矩形含端點 merged extent，其他交界合併格不連鎖擴張。視覺包絡使用兩端真實 cursor twips；不宣稱 Calc 的完整 merge closure，未來範圍寫入必須另立契約。隱藏索引仍在地址矩形內但不捏造面積；導覽用 focus 邊緣外的 hitCell 找可見格，不逐一掃隱藏索引。幾何拒絕／越界時保留選取並提示。每次移動／延伸最多一次 readCell 或 hitCell，與面積無關；不可由被讀取操作改動的 engine cursor 推導寫入目標。
+
+**R-select**（工具封閉枚舉）：新 runner 自 fixture case manifest 產生四向 mouse／Shift、縮回、Shift-click、普通方向收合、變寬高、merged endpoints／interior boundary、連續 hidden rows／columns、跨 sheet、取消及延遲反向操作；Chrome／Firefox 各 N＝3。每份報告記完整 case id 集合、selection/active 與 overlay twips 對照 engine endpoints，並量 SDK call count；多格每種格式的所有入口拒絕且 revision／原內容／鄰格／別表不變。session 測試另包含巨大地址矩形與延遲回覆，空 case／缺 case 的 reader 必須紅。先留下未實作的真實 mouse／Shift 紅案；第三筆成立後封閉。沒做／失敗：區域選取未成立、不升宿主候選。I-entry／R-select 皆成立後才打包並跑雙瀏覽器實際 Files 的新路徑／手動存回／正常釋放自有鎖，保留原專案狀態與既有 24674 鎖；K 不啟動。
