@@ -1,0 +1,265 @@
+{
+  "checks": {
+    "all_exit_zero": true,
+    "all_outputs_nonempty": true,
+    "count": 12,
+    "rows": [
+      {
+        "check": 1,
+        "command": [
+          "python3",
+          "-I",
+          "tools/check_v23_diagnostic_build.py",
+          "--makefile",
+          "Makefile",
+          "--profile",
+          "e2-editor-v23-diag-r2"
+        ],
+        "output": "check-01.txt",
+        "output_bytes": 127,
+        "output_exists": true,
+        "output_nonempty": true,
+        "output_sha256": "20e178d9dfb0a9cfa26d6d07031675dfe5a4367b27a2bb3effe456f519c8007b",
+        "recorded_exit": 0
+      },
+      {
+        "check": 2,
+        "command": [
+          "python3",
+          "-I",
+          "tools/check_v23_diagnostic_build.py",
+          "--build-log",
+          "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v23/pre-link/diagnostic-r2-01/dry-run.txt",
+          "--profile",
+          "e2-editor-v23-diag-r2"
+        ],
+        "output": "check-02.txt",
+        "output_bytes": 230,
+        "output_exists": true,
+        "output_nonempty": true,
+        "output_sha256": "e671340ce1bf0b42d08337ae6e408240855214895a99bc913bf9da472e2af459",
+        "recorded_exit": 0
+      },
+      {
+        "check": 3,
+        "command": [
+          "python3",
+          "-I",
+          "tools/build_e2_v23_diagnostic_r2_profile.py",
+          "--check-worker-base",
+          "--base-worker",
+          "build/archive/e2-editor-v22-f7a40bcc-worker-0d55bcfa/sdk-worker.js",
+          "--base-worker-sha256",
+          "0d55bcfa2ee0e4ddc6239e25282001c13410b152a5a08ebac9903cc65c3fd350"
+        ],
+        "output": "check-03.txt",
+        "output_bytes": 294,
+        "output_exists": true,
+        "output_nonempty": true,
+        "output_sha256": "df7c66b009115bfcf5f273184bc85e0350d14f39a4a1516583140b2bb3b04ccd",
+        "recorded_exit": 0
+      },
+      {
+        "check": 4,
+        "command": [
+          "python3",
+          "tests/test_v23_r2_build.py"
+        ],
+        "output": "check-04.txt",
+        "output_bytes": 167,
+        "output_exists": true,
+        "output_nonempty": true,
+        "output_sha256": "75ca8db985e36e00151cb8388abf0815e8a1dcd2c5c107db7c9bd5f292c12e6f",
+        "recorded_exit": 0
+      },
+      {
+        "check": 5,
+        "command": [
+          "python3",
+          "tests/test_ordered_diagnostic_html.py"
+        ],
+        "output": "check-05.txt",
+        "output_bytes": 153,
+        "output_exists": true,
+        "output_nonempty": true,
+        "output_sha256": "3ff7abb607232a518b5f55a22ab072268873ab6bc3bc0eca9e21dfb5254db04b",
+        "recorded_exit": 0
+      },
+      {
+        "check": 6,
+        "command": [
+          "python3",
+          "tests/test_ordered_engine_scope.py"
+        ],
+        "output": "check-06.txt",
+        "output_bytes": 150,
+        "output_exists": true,
+        "output_nonempty": true,
+        "output_sha256": "02439ba8f59393dace4d62e1748ecc77d0480cd34d2e4f406e547df5b4adec00",
+        "recorded_exit": 0
+      },
+      {
+        "check": 7,
+        "command": [
+          "node",
+          "tests/v23_diagnostic_r2_worker_test.cjs"
+        ],
+        "output": "check-07.txt",
+        "output_bytes": 147,
+        "output_exists": true,
+        "output_nonempty": true,
+        "output_sha256": "2ebde36aeac9786a6c4b5ae2e5779d0e65680eb726c4579d8db079c48ab4d3c6",
+        "recorded_exit": 0
+      },
+      {
+        "check": 8,
+        "command": [
+          "node",
+          "tests/v23_diagnostic_worker_test.cjs"
+        ],
+        "output": "check-08.txt",
+        "output_bytes": 132,
+        "output_exists": true,
+        "output_nonempty": true,
+        "output_sha256": "e14cb6ab72b605759ff7abd85806c2437fac7e75d3b63679957d367878f94986",
+        "recorded_exit": 0
+      },
+      {
+        "check": 9,
+        "command": [
+          "node",
+          "tests/v23_diagnostic_error_test.cjs"
+        ],
+        "output": "check-09.txt",
+        "output_bytes": 130,
+        "output_exists": true,
+        "output_nonempty": true,
+        "output_sha256": "8fba8aa53538a4308c9dc9f13ac7c22661ed1bf443b7cb4d603fb60085bd453d",
+        "recorded_exit": 0
+      },
+      {
+        "check": 10,
+        "command": [
+          "python3",
+          "-I",
+          "tests/v23_diagnostic_packaging_test.py"
+        ],
+        "output": "check-10.txt",
+        "output_bytes": 178,
+        "output_exists": true,
+        "output_nonempty": true,
+        "output_sha256": "b47a3f443006cafac6f7d0900e5d79d8f60323ac426656e8905a2bf4493d0ace",
+        "recorded_exit": 0
+      },
+      {
+        "check": 11,
+        "command": [
+          "python3",
+          "tests/test_v23_packaging_resume.py"
+        ],
+        "output": "check-11.txt",
+        "output_bytes": 161,
+        "output_exists": true,
+        "output_nonempty": true,
+        "output_sha256": "8edd24ae129564f7c1e977bde10f561f404e5030bb06ab8644e0ab49e53cdb5d",
+        "recorded_exit": 0
+      },
+      {
+        "check": 12,
+        "command": [
+          "python3",
+          "tests/test_v23_packaging_cleanup_mutations.py"
+        ],
+        "output": "check-12.txt",
+        "output_bytes": 161,
+        "output_exists": true,
+        "output_nonempty": true,
+        "output_sha256": "8319dc430f2a5ec591ee97d53078d41ff273f45cba825729860a6819e9b11a84",
+        "recorded_exit": 0
+      }
+    ]
+  },
+  "core_inputs": {
+    "checked_count": 189,
+    "mismatch_count": 0,
+    "mismatches": [],
+    "missing": [],
+    "missing_count": 0,
+    "recorded_count": 189
+  },
+  "frozen_inventory_membership": {
+    "actual_file_count": 2326,
+    "expected_file_count": 2326,
+    "extra": [],
+    "extra_count": 0,
+    "missing": [],
+    "missing_count": 0
+  },
+  "frozen_rows": {
+    "checked_count": 2326,
+    "mismatch_count": 0,
+    "mismatches": [],
+    "missing": [],
+    "missing_count": 0,
+    "recorded_count": 2326
+  },
+  "makefile_variables": {
+    "E2_V23D_R2_BASE_WORKER": "build/archive/e2-editor-v22-f7a40bcc-worker-0d55bcfa/sdk-worker.js",
+    "E2_V23D_R2_BUILD": "build/e2/editor-v23-diag-r2",
+    "E2_V23D_R2_DIST": "dist/profiles/e2-editor-v23-diag-r2",
+    "E2_V23D_R2_WORKER_SHA256": "0d55bcfa2ee0e4ddc6239e25282001c13410b152a5a08ebac9903cc65c3fd350"
+  },
+  "r2_absence": {
+    "r2_build_dir_exists": false,
+    "r2_link_log_matches": [],
+    "r2_profile_dir_exists": false
+  },
+  "source_inputs": {
+    "checked_count": 43,
+    "mismatch_count": 0,
+    "mismatches": [],
+    "missing": [],
+    "missing_count": 0,
+    "recorded_count": 43
+  },
+  "tooling_inputs": {
+    "available": true,
+    "candidate_files": [
+      "findings/evidence/link-batch-v23/pre-link/diagnostic-r2-01/capture_tooling_inputs.py",
+      "findings/evidence/link-batch-v23/pre-link/diagnostic-r2-01/tooling-inputs.json"
+    ]
+  },
+  "tooling_inputs_ast_audit": {
+    "bad_edges": [],
+    "checked_file_count": 13,
+    "collector_argv": [
+      "python3",
+      "-I",
+      "findings/evidence/link-batch-v23/pre-link/diagnostic-r2-01/capture_tooling_inputs.py"
+    ],
+    "collector_claimed_verification": "Every captured file rehashed identically after traversal; no modules executed.",
+    "collector_output_matches_saved_json": true,
+    "dynamic_import_or_execution_site_count": 0,
+    "edge_targets_missing_or_unlisted_count": 0,
+    "exit_code": 0,
+    "file_hash_or_size_mismatch_count": 0,
+    "local_import_edge_count": 19,
+    "mismatches": [],
+    "recorded_file_count": 13,
+    "root_count": 4,
+    "stderr": "",
+    "sys_path_mutation_site_count": 9,
+    "unresolved_nonlocal_count": 98
+  },
+  "worker_pin": {
+    "actual": {
+      "bytes": 76401,
+      "sha256": "0d55bcfa2ee0e4ddc6239e25282001c13410b152a5a08ebac9903cc65c3fd350"
+    },
+    "expected_sha256": "0d55bcfa2ee0e4ddc6239e25282001c13410b152a5a08ebac9903cc65c3fd350",
+    "makefile_path_matches_recorded": true,
+    "makefile_sha_matches_recorded": true,
+    "matches_pin": true,
+    "path": "wasm_sdk_probe/build/archive/e2-editor-v22-f7a40bcc-worker-0d55bcfa/sdk-worker.js"
+  }
+}
