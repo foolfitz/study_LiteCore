@@ -203,3 +203,11 @@ session／SDK／worker／host／autosave 單元 **45／45**；autosave 七個突
 獨立 GET 並保留伺服器 ODS bytes／hash，依 ODF cell、row／column defaults、named parent 及 family defaults 解析有效格式，核對 B2/C2 三字族格式、標記文字、範圍外 A2 與別表 A1 不變，不只相信 host success。active replacement draft 保持超過 30 秒不得新增保存或變模型；一次受控延後的真 native export 期間以 trusted input 打入新草稿，存回 XML 只能是先前已確認值，新草稿／焦點／dirty 必須保留。取消新草稿後回到已儲存，正常離開釋放自有 lock，再由 Files 重開讀回格式／內容並正常釋放。readonly 分享沿既有實際 viewer 路由，無 save API／按鈕且不持鎖；不要求另等 30 秒。
 
 這個 driver 只建立與清除自己的 folder／user／share／lock token，不改服務狀態、不寫全域 lock table。呼叫方提供本次 fresh ddev-before/after.json、locks-before/after.txt 與 owner-document-before/after.json；reader 核對 service 狀態完全一致、既有 24674 lock 保留、24920 文件 bytes/hash 身分相同。正常成功不容許依賴 fallback UNLOCK；失敗仍由既有 Harness 清理自有 token，且失敗不算通過。未做／失敗：實際 Files 層未成立，不宣告 combined 交付；雙瀏覽器固定集合全部成立即封閉，後續新疑慮另案，不無限新增門檻。
+
+## 21. 忙碌快捷鍵旁路與新候選重播（2026-10-25，只追加）
+
+Claude successor review 05 的兩個原始 repro 以 selection 不經佇列為前提，完整 source chain 不支持該前提；但 Astra 追查實際 window Ctrl+B／I／U 路徑，發現它未遵守工具列 busy 限制，會先依舊格算 enabled，再在 queued selection 之後套用。source-chain 紅案 `shortcut-queued-selection-source-red.json` 使用實際 page toggleFormat 與 CalcEditorSession、fake engine／held host：A1 非粗體，排入 E5（已粗體）選取後按快捷鍵，結果 E5 被設 true。這是有明確來源的缺陷，不把它誤稱原 reviewer 的直接 typing 資料遺失已成立。
+
+有限修正為工具列及快捷鍵共用 eligibility；ready／cell writable／非 readOnly／非 uncertain，且無 busy／selectionPending／pendingEntry／dragWork，範圍另需支援與 writable metadata。drag 完成／取消要刷新工具列。focused tests 必須執行實際來源函式，涵蓋這些條件的工具封閉案例、有效 mixed→on／on→off，以及 actual session 的 queued-selection 紅案修後不排入格式。移除共同入口守衛與各 predicate 的突變須被拒絕；未做或失敗不成立。
+
+這是新 JS 候選，既有 range 240／autosave 108 的完成 cohorts 原樣保留，不能把新 hash 填回舊報告。修後對新候選各重播一次既有固定 Chrome／Firefox N＝3 母體（range 40／autosave 18，不新增案例），現有 reader 必須通過；native 22 未改不用重建。之後依既定 cell regression／freeze／package／guarded install／§20 host 54 繼續。新候選重播與 host reader 全過即封閉，不繼續擴 source audit；後續顧慮登錄 finding，除非另有具體資料遺失 blocker。
