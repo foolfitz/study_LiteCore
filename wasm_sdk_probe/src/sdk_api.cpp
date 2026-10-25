@@ -15,6 +15,10 @@
 #endif
 #endif
 
+#if defined(OXSDK_ODS_EDITOR) && !defined(OXSDK_ODS_VIEWER_V2)
+#error "OXSDK_ODS_EDITOR requires the v2 spreadsheet engine shape"
+#endif
+
 #include <emscripten/emscripten.h>
 
 #include <cstdlib>
@@ -63,6 +67,9 @@ extern "C" EMSCRIPTEN_KEEPALIVE std::uint32_t oxsdk_capabilities(void) {
          OXSDK_CAPABILITY_CANCEL_QUEUED | OXSDK_CAPABILITY_SEARCH |
          OXSDK_CAPABILITY_OPEN_ODS | OXSDK_CAPABILITY_PART_SWITCH |
          OXSDK_CAPABILITY_PART_TEXT | OXSDK_CAPABILITY_PART_INFO
+#ifdef OXSDK_ODS_EDITOR
+         | OXSDK_CAPABILITY_CELL_EDITING | OXSDK_CAPABILITY_SAVE_ODS
+#endif
 #if HAVE_FEATURE_DBCONNECTIVITY
          | OXSDK_CAPABILITY_FORM_CONTROLS
 #endif
@@ -166,7 +173,7 @@ extern "C" EMSCRIPTEN_KEEPALIVE int32_t oxsdk_document_insert_text(
 // The viewer has no save (SPEC-M4 3.2, review M2): not in its export list and
 // not compiled, because EMSCRIPTEN_KEEPALIVE exports a function whatever the
 // list says -- the reader's click is kept out the same way.
-#ifndef OXSDK_ODS_VIEWER
+#if !defined(OXSDK_ODS_VIEWER) || defined(OXSDK_ODS_EDITOR)
 extern "C" EMSCRIPTEN_KEEPALIVE int32_t oxsdk_document_save(
     oxsdk_request_id requestId, oxsdk_document_handle documentHandle,
     const char *formatUtf8, std::uint32_t formatLength) {
@@ -175,9 +182,30 @@ extern "C" EMSCRIPTEN_KEEPALIVE int32_t oxsdk_document_save(
     return OXSDK_STATUS_INVALID_ARGUMENT;
   return safeStatus([&] {
     const std::string format(formatUtf8, formatLength);
+#ifdef OXSDK_ODS_EDITOR
+    if (format != "ods")
+#else
     if (format != "odt")
+#endif
       return probe::SubmitStatus::InvalidArgument;
     return probe::save(requestId, documentHandle, format);
+  });
+}
+#endif
+
+#ifdef OXSDK_ODS_EDITOR
+extern "C" EMSCRIPTEN_KEEPALIVE int32_t oxsdk_document_cell(
+    oxsdk_request_id requestId, oxsdk_document_handle documentHandle,
+    std::uint32_t expectedRevision, std::int32_t part, std::int32_t column,
+    std::int32_t row, std::int32_t operation, const char *text,
+    std::uint32_t textLength, std::uint32_t enabled) {
+  if (!validRequest(requestId) || documentHandle == 0 || part < 0
+      || column < 0 || row < 0 || operation < 0 || operation > 5
+      || enabled > 1 || (textLength > 0 && !text) || textLength > 131068)
+    return OXSDK_STATUS_INVALID_ARGUMENT;
+  return safeStatus([&] {
+    return probe::cell(requestId, documentHandle, expectedRevision, part,
+        column, row, operation, std::string(text ? text : "", textLength), enabled != 0);
   });
 }
 #endif

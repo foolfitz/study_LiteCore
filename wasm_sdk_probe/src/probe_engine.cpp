@@ -58,6 +58,12 @@
 #error "OXSDK_ODS_VIEWER_V2 is added to the viewer's shape, never used alone"
 #endif
 #include "sdk_api.h"
+#ifdef OXSDK_ODS_EDITOR
+#include "calc_cell_bridge.h"
+#if !defined(OXSDK_ODS_VIEWER_V2)
+#error "OXSDK_ODS_EDITOR requires the v2 spreadsheet engine shape"
+#endif
+#endif
 #ifdef OXSDK_EDITOR_DISCOVERY
 #include "editor_discovery_api.h"
 #endif
@@ -204,6 +210,9 @@ enum class CommandType {
   InsertText,
   Search,
   GetSelection,
+#ifdef OXSDK_ODS_EDITOR
+  Cell,
+#endif
   ReplaceSelection,
   Undo,
   // Redo is a SIBLING OF UNDO, not an editor action with a wire id.
@@ -6619,6 +6628,49 @@ bool readOutputBuffer(const std::string &path, void *&pointer,
   return true;
 }
 
+#ifdef OXSDK_ODS_EDITOR
+void handleCell(const Command &command) {
+  if (!requireDocument(command, "cell")) return;
+  const int operation = command.values[3];
+  const bool mutation = operation >= 1 && operation <= 4;
+  if (mutation && !requireRevision(command, "cell")) return;
+  char *raw = oxsdk_calc_cell_model(gState.document, command.values[0],
+      command.values[1], command.values[2], operation, command.text.data(),
+      command.text.size(), command.values[4]);
+  if (!raw) {
+    emitCommandError(command, "cell", "INTERNAL_ERROR", "cell model allocation failed");
+    return;
+  }
+  const std::string json(raw);
+  std::free(raw);
+  try {
+    boost::property_tree::ptree result;
+    std::istringstream stream(json);
+    boost::property_tree::read_json(stream, result);
+    if (!result.get<bool>("ok")) {
+      const bool uncertain = result.get<bool>("mutationAttempted", false);
+      if (uncertain) advanceRevision();
+      emitCommandError(command, "cell", uncertain ? "MUTATION_OUTCOME_UNKNOWN"
+          : result.get<std::string>("code", "CELL_MODEL_ERROR").c_str(), json);
+      return;
+    }
+    const bool changed = result.get<bool>("changed", false);
+    if (changed) advanceRevision();
+    std::ostringstream reply;
+    reply << "{\"schemaVersion\":" << ProtocolSchemaVersion
+          << ",\"type\":\"cell-result\",\"requestId\":" << command.requestId
+          << ",\"documentHandle\":" << gState.documentHandle
+          << ",\"revision\":" << gState.revision << ",\"changed\":"
+          << (changed ? "true" : "false") << ",\"cellJson\":\""
+          << jsonEscape(json.c_str()) << "\"}";
+    emitJson(reply.str());
+  } catch (const std::exception &e) {
+    emitCommandError(command, "cell", mutation ? "MUTATION_OUTCOME_UNKNOWN"
+        : "CELL_RESULT_INVALID", json + " -- " + e.what());
+  }
+}
+#endif
+
 void handleSave(const Command &command) {
   if (!requireDocument(command, "save"))
     return;
@@ -6679,6 +6731,11 @@ void dispatch(const Command &command) {
   }
 #endif
   switch (command.type) {
+#ifdef OXSDK_ODS_EDITOR
+  case CommandType::Cell:
+    handleCell(command);
+    break;
+#endif
   case CommandType::EmitReady:
     emitReady(command);
     break;
@@ -7523,6 +7580,25 @@ SubmitStatus getSelection(std::uint32_t requestId,
   command.documentHandle = documentHandle;
   return submit(std::move(command));
 }
+
+#ifdef OXSDK_ODS_EDITOR
+SubmitStatus cell(std::uint32_t requestId, std::uint32_t documentHandle,
+                  std::uint32_t expectedRevision, int part, int column,
+                  int row, int operation, std::string text, bool enabled) {
+  Command command{CommandType::Cell};
+  command.sdk = true;
+  command.requestId = requestId;
+  command.documentHandle = documentHandle;
+  command.expectedRevision = expectedRevision;
+  command.values[0] = part;
+  command.values[1] = column;
+  command.values[2] = row;
+  command.values[3] = operation;
+  command.values[4] = enabled;
+  command.text = std::move(text);
+  return submit(std::move(command));
+}
+#endif
 
 #ifdef OXSDK_ODS_VIEWER
 namespace {

@@ -53,10 +53,23 @@ typedef enum oxsdk_capability {
   OXSDK_CAPABILITY_FORM_CONTROLS = 1u << 15
 #endif
 #endif
+#ifdef OXSDK_ODS_EDITOR
+  , OXSDK_CAPABILITY_CELL_EDITING = 1u << 16,
+  OXSDK_CAPABILITY_SAVE_ODS = 1u << 17
+#endif
 } oxsdk_capability;
 
 uint32_t oxsdk_abi_version(void);
 uint32_t oxsdk_capabilities(void);
+
+#ifdef OXSDK_ODS_EDITOR
+int32_t oxsdk_document_cell(oxsdk_request_id request_id,
+                            oxsdk_document_handle document_handle,
+                            uint32_t expected_revision, int32_t part,
+                            int32_t column, int32_t row, int32_t operation,
+                            const char *text_utf8, uint32_t text_length,
+                            uint32_t enabled);
+#endif
 
 int32_t oxsdk_engine_start(uint32_t requested_abi_version,
                            oxsdk_request_id request_id);

@@ -44,6 +44,11 @@ SubmitStatus search(std::uint32_t requestId, std::uint32_t documentHandle,
                     std::string query, bool backward);
 SubmitStatus getSelection(std::uint32_t requestId,
                           std::uint32_t documentHandle);
+#ifdef OXSDK_ODS_EDITOR
+SubmitStatus cell(std::uint32_t requestId, std::uint32_t documentHandle,
+                  std::uint32_t expectedRevision, int part, int column,
+                  int row, int operation, std::string text, bool enabled);
+#endif
 #ifdef OXSDK_ODS_VIEWER
 // SPEC-M4-ods-in-nextcloud §3.2: the spreadsheet viewer's document-level
 // queries (W7c-e, B1).  A part out of range is refused on the engine thread,
