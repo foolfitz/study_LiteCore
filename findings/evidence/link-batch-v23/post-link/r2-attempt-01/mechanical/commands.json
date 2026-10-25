@@ -1,0 +1,68 @@
+{
+  "readers": [
+    {
+      "argv": [
+        "python3",
+        "-I",
+        "tools/check_v23_diagnostic_build.py",
+        "--build-log",
+        "build/link-v23-diagnostic-r2-01.log",
+        "--profile",
+        "e2-editor-v23-diag-r2"
+      ],
+      "cwd": "wasm_sdk_probe",
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": "preconditions hold\n"
+    },
+    {
+      "argv": [
+        "python3",
+        "-I",
+        "tools/check_v23_diagnostic_build.py",
+        "--wasm",
+        "dist/profiles/e2-editor-v23-diag-r2/probe.wasm",
+        "--profile",
+        "e2-editor-v23-diag-r2"
+      ],
+      "cwd": "wasm_sdk_probe",
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": "preconditions hold\n"
+    },
+    {
+      "argv": [
+        "python3",
+        "-I",
+        "tools/check_e1_c_bundle_intact.py"
+      ],
+      "cwd": "wasm_sdk_probe",
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": "{\n  \"bundleSha256\": \"187706b2dcb07d2b\",\n  \"includedFiles\": 5,\n  \"availableModules\": 6,\n  \"intact\": true,\n  \"divergedAsDeclared\": [],\n  \"unbinds\": null,\n  \"problems\": []\n}\n"
+    },
+    {
+      "argv": [
+        "sha256sum",
+        "-c",
+        "SHA256SUMS"
+      ],
+      "cwd": "wasm_sdk_probe/build/archive/e2-editor-v22-f7a40bcc-worker-0d55bcfa",
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": "probe.wasm: OK\nprobe.js: OK\nsdk-worker.js: OK\nsdk-manifest.json: OK\nexports.txt: OK\n"
+    }
+  ],
+  "base_archive_sha256sum": {
+    "argv": [
+      "sha256sum",
+      "-c",
+      "SHA256SUMS"
+    ],
+    "cwd": "wasm_sdk_probe/build/archive/e2-editor-v22-f7a40bcc-worker-0d55bcfa",
+    "exit_code": 0,
+    "stderr": "",
+    "stdout": "probe.wasm: OK\nprobe.js: OK\nsdk-worker.js: OK\nsdk-manifest.json: OK\nexports.txt: OK\n"
+  },
+  "note": "Reader command captures were generated from actual subprocess.run invocations; outputs and exit codes are preserved verbatim."
+}
