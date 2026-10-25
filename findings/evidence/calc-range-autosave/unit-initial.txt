@@ -1,0 +1,37 @@
+✔ idle save waits 30 seconds and includes exact eligibility and revision (0.804126ms)
+✔ navigation and actual mutation restart idle; five-minute cap still needs three quiet seconds (1.419832ms)
+✔ every input/session blocker defers; clearing it permits an overdue save (1.128991ms)
+✔ an unconfirmed draft alone never creates an autosave or download (0.086821ms)
+✔ hidden bypasses idle only for eligible committed changes and saves only once (0.092021ms)
+✔ a slow save is single flight and newer changes remain due (0.125614ms)
+✔ copy, stranded and export failures pause until explicit successful original save (0.233044ms)
+✔ manual failure pauses and disposal cancels scheduled and hidden requests (0.09682ms)
+✔ cancelled drafts never enter the engine (3.089439ms)
+✔ replacement entry clears only the draft; F2 entry preserves safe model input (0.257058ms)
+✔ changing cells commits the captured original cell before hit testing (0.546637ms)
+✔ readonly prevents drafts, formatting and exports (0.667492ms)
+✔ failed host save keeps edits dirty and a retry can save them (0.396798ms)
+✔ new typing during a host save remains an unsaved draft (0.267287ms)
+✔ committed-only save preserves an active draft and accounts only exported revision (0.253271ms)
+✔ successor range formats use one explicit native operation and retain both endpoints (0.405364ms)
+✔ native range refusal retains selection; post-mutation refresh failure locks uncertain state (3.74606ms)
+✔ stale revision keeps the draft and does not start a following sheet switch (0.657364ms)
+✔ formatting commits the shared draft first and updates tile revision (0.350672ms)
+✔ oversized drafts refuse without changing the existing draft (0.212225ms)
+✔ selecting a protected cell does not prevent saving earlier edits (0.297353ms)
+✔ IME Enter and keyCode 229 never submit; Escape and ordinary Enter do (0.099456ms)
+✔ actual host copy outcome marks the exported revision saved while preserving the notice (0.39738ms)
+✔ a stranded host export remains dirty (0.228755ms)
+✔ format state never exposes a revision before its tile scheduler is invalidated (0.208298ms)
+✔ range selection retains active cell, uses bounded reads and refuses every format (0.329493ms)
+✔ expired hit replies never replace a newer gesture or its draft (0.566264ms)
+✔ arrows hit beyond exact focus geometry once, then collapse or extend (0.255365ms)
+✔ geometry refusal leaves selection unchanged and sheet switch resets it (0.318733ms)
+ℹ tests 29
+ℹ suites 0
+ℹ pass 29
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 60.117027
