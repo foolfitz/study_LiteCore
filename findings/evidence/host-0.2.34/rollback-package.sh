@@ -6,7 +6,7 @@ R=/home/jiajun/LibreOffice/study_LiteCore
 A=/home/jiajun/Projects/Nextcloud_Apps/litecore
 OLD="$R/wasm_sdk_probe/build/archive/host-0.2.33-engine-a67beefefebe57d6"
 [ -z "$(git -C "$A" status --short)" ]
-[ "$(git -C "$A" rev-parse --short=7 HEAD)" = db5139c ]
+[ "$(git -C "$A" rev-parse --short=7 HEAD)" = 2f3ef60 ]
 python3 - "$OLD/MANIFEST.json" <<'CHECK'
 import json,sys
 assert json.load(open(sys.argv[1]))['buildId']=='a67beefefebe57d6'
