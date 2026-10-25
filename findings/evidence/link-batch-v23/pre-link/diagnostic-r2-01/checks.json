@@ -1,0 +1,115 @@
+[
+  {
+    "command": [
+      "python3",
+      "-I",
+      "tools/check_v23_diagnostic_build.py",
+      "--makefile",
+      "Makefile",
+      "--profile",
+      "e2-editor-v23-diag-r2"
+    ],
+    "exit": 0,
+    "output": "check-01.txt"
+  },
+  {
+    "command": [
+      "python3",
+      "-I",
+      "tools/check_v23_diagnostic_build.py",
+      "--build-log",
+      "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v23/pre-link/diagnostic-r2-01/dry-run.txt",
+      "--profile",
+      "e2-editor-v23-diag-r2"
+    ],
+    "exit": 0,
+    "output": "check-02.txt"
+  },
+  {
+    "command": [
+      "python3",
+      "-I",
+      "tools/build_e2_v23_diagnostic_r2_profile.py",
+      "--check-worker-base",
+      "--base-worker",
+      "build/archive/e2-editor-v22-f7a40bcc-worker-0d55bcfa/sdk-worker.js",
+      "--base-worker-sha256",
+      "0d55bcfa2ee0e4ddc6239e25282001c13410b152a5a08ebac9903cc65c3fd350"
+    ],
+    "exit": 0,
+    "output": "check-03.txt"
+  },
+  {
+    "command": [
+      "python3",
+      "tests/test_v23_r2_build.py"
+    ],
+    "exit": 0,
+    "output": "check-04.txt"
+  },
+  {
+    "command": [
+      "python3",
+      "tests/test_ordered_diagnostic_html.py"
+    ],
+    "exit": 0,
+    "output": "check-05.txt"
+  },
+  {
+    "command": [
+      "python3",
+      "tests/test_ordered_engine_scope.py"
+    ],
+    "exit": 0,
+    "output": "check-06.txt"
+  },
+  {
+    "command": [
+      "node",
+      "tests/v23_diagnostic_r2_worker_test.cjs"
+    ],
+    "exit": 0,
+    "output": "check-07.txt"
+  },
+  {
+    "command": [
+      "node",
+      "tests/v23_diagnostic_worker_test.cjs"
+    ],
+    "exit": 0,
+    "output": "check-08.txt"
+  },
+  {
+    "command": [
+      "node",
+      "tests/v23_diagnostic_error_test.cjs"
+    ],
+    "exit": 0,
+    "output": "check-09.txt"
+  },
+  {
+    "command": [
+      "python3",
+      "-I",
+      "tests/v23_diagnostic_packaging_test.py"
+    ],
+    "exit": 0,
+    "output": "check-10.txt"
+  },
+  {
+    "command": [
+      "python3",
+      "tests/test_v23_packaging_resume.py"
+    ],
+    "exit": 0,
+    "output": "check-11.txt"
+  },
+  {
+    "command": [
+      "python3",
+      "tests/test_v23_packaging_cleanup_mutations.py"
+    ],
+    "exit": 0,
+    "output": "check-12.txt"
+  }
+]
