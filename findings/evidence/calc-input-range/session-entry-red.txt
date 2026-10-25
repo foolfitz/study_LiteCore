@@ -1,0 +1,41 @@
+✔ cancelled drafts never enter the engine (2.336919ms)
+✖ replacement entry clears only the draft; F2 entry preserves safe model input (1.292625ms)
+✔ changing cells commits the captured original cell before hit testing (0.420051ms)
+✔ readonly prevents drafts, formatting and exports (0.597683ms)
+✔ failed host save keeps edits dirty and a retry can save them (3.775786ms)
+✔ new typing during a host save remains an unsaved draft (0.304477ms)
+✔ stale revision keeps the draft and does not start a following sheet switch (0.269561ms)
+✔ formatting commits the shared draft first and updates tile revision (0.23613ms)
+✔ oversized drafts refuse without changing the existing draft (0.192097ms)
+✔ selecting a protected cell does not prevent saving earlier edits (0.620865ms)
+✔ IME Enter and keyCode 229 never submit; Escape and ordinary Enter do (0.105125ms)
+✔ actual host copy outcome marks the exported revision saved while preserving the notice (0.27391ms)
+✔ a stranded host export remains dirty (0.221603ms)
+✔ format state never exposes a revision before its tile scheduler is invalidated (0.194432ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 13
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 54.314578
+
+✖ failing tests:
+
+test at wasm_sdk_probe/tests/calc-editor-session.test.mjs:33:1
+✖ replacement entry clears only the draft; F2 entry preserves safe model input (1.292625ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  '原始內容' !== ''
+  
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tests/calc-editor-session.test.mjs:36:10)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '原始內容',
+    expected: '',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

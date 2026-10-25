@@ -30,6 +30,17 @@ test("cancelled drafts never enter the engine",async()=>{
   await session.close();
 });
 
+test("replacement entry clears only the draft; F2 entry preserves safe model input",async()=>{
+  const {session,calls}=await opened();
+  session.beginEdit("inline",{replace:true});
+  assert.equal(session.state.draft,"");assert.equal(session.state.cell.input,"原始內容");
+  assert.equal(session.hasUnsavedEdits(),true);assert.deepEqual(calls,[]);
+  session.setDraft("替換");session.cancelEdit();
+  session.beginEdit("inline");assert.equal(session.state.draft,"原始內容");
+  session.cancelEdit();assert.equal(session.hasUnsavedEdits(),false);
+  await session.close();
+});
+
 test("changing cells commits the captured original cell before hit testing",async()=>{
   const {session,calls}=await opened();
   session.beginEdit("inline");session.setDraft("第一格");
