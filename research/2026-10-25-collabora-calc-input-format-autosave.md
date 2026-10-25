@@ -19,14 +19,15 @@ B／I／U 也有兩個作用範圍：**只選 cell 時套整格／所選範圍�
 | 操作 | 核心路徑／狀態 | 一般文字 cell 的語意 |
 | --- | --- | --- |
 | 單擊、方向鍵移到某格 | 選格；尚未開啟格內 EditView | 可對整格套格式、開始新的輸入 |
-| 選格後直接打字 | `ScInputHandler::KeyInput` → `DataChanging(nChar)` → `StartTable(cTyped)`；新輸入後成為 `SC_INPUT_TYPE` | 第一個字觸發新的輸入，既有文字被清掉，隨後插入新字；空白格看不出覆寫的差別 |
+| 選格後直接打字 | `ScInputHandler::KeyInput` 或延伸文字的 `InputCommand` → `DataChanging` → `StartTable`；新輸入後成為 `SC_INPUT_TYPE` | 第一個字觸發新的輸入，既有文字被清掉，隨後插入新字；空白格看不出覆寫的差別 |
 | 雙擊 | mouse 帶 `clickCount=2` → `ScGridWindow` → `SetInputMode(SC_INPUT_TABLE)` | 以現有內容建立 EditEngine，將文字游標放到雙擊位置，讓使用者修改／選取文字 |
 | 第一次 F2 | `StartOrToggleEditMode` → `SC_INPUT_TABLE` | 進入編輯；再次 F2 可在 TABLE／TYPE 間切換，不能把「每次 F2」都簡化為雙擊 |
 | 上方輸入列 | `SC_INPUT_TOP`，與 table EditEngine／selection 同步 | 顯示原始文字／公式，保留編輯草稿 |
 
 直接的依據：
 
-- [inputhdl.cxx:2675](../cool-26-04/engine/sc/source/ui/app/inputhdl.cxx#L2675) 明確以 `cTyped != 0` 區分 overtyping 與 editing。`StartTable` 取回原 cell 後，`KeyInput` 在新啟動且舊模式為 NONE 時清空 EditEngine，再送鍵（[同檔 :4008](../cool-26-04/engine/sc/source/ui/app/inputhdl.cxx#L4008)）；不是「只有空白格特殊允許打字」。百分比等數值格式另有分支，表格只概括一般文字 cell。
+- [inputhdl.cxx:2675](../cool-26-04/engine/sc/source/ui/app/inputhdl.cxx#L2675) 在按鍵路徑明確以 `cTyped != 0` 區分 overtyping 與 editing。`StartTable` 取回原 cell 後，`KeyInput` 在新啟動且舊模式為 NONE 時清空 EditEngine，再送鍵（[同檔 :4008](../cool-26-04/engine/sc/source/ui/app/inputhdl.cxx#L4008)）；不是「只有空白格特殊允許打字」。百分比等數值格式另有分支，表格只概括一般文字 cell。
+- 延伸文字／IME 的 [InputCommand :4238](../cool-26-04/engine/sc/source/ui/app/inputhdl.cxx#L4238) 則走 `DataChanging(0,true)`，同樣在新建立且舊模式為 NONE 時清空 table／top EditEngine，再轉交 Command；瀏覽器的 `textinput` 不能一律說成 KeyInput。
 - [DataChanging／DataChanged :2794](../cool-26-04/engine/sc/source/ui/app/inputhdl.cxx#L2794) 與 [SetMode／StartOrToggleEditMode :3050](../cool-26-04/engine/sc/source/ui/app/inputhdl.cxx#L3050) 建立 TYPE／TABLE／TOP 的區分。格內編輯時方向鍵能交給文字 EditEngine；公式參照模式另有選格規則，不能只用「有沒有游標」分類。
 - [gridwin.cxx:2659](../cool-26-04/engine/sc/source/ui/view/gridwin.cxx#L2659) 的雙擊分支及 [:2720](../cool-26-04/engine/sc/source/ui/view/gridwin.cxx#L2720) 的 SetInputMode／MouseButtonDown，表明它是在修改既有內容並定位文字游標。
 - 瀏覽器端 [MouseControl.ts:102](../cool-26-04/browser/src/canvas/sections/MouseControl.ts#L102) 帶出 click count；[TextInput.js:1220](../cool-26-04/browser/src/layer/marker/TextInput.js#L1220) 將文字送為 `textinput`，[ChildSession.cpp:2068](../cool-26-04/kit/ChildSession.cpp#L2068) 送進核心的延伸文字輸入；不是由瀏覽器把空白 cell 改成 HTML input。
@@ -62,3 +63,9 @@ B／I／U 也有兩個作用範圍：**只選 cell 時套整格／所選範圍�
 ## 全白回歸的實測
 
 [證人與修法](../findings/evidence/165-calc-format-blank/README.md) 保留原始紅案：第一次格式的 DOM 舊 tile 與引擎直接 render 不同；後續五個操作 DOM tile 數為 0，而模型和格式正確。原因是 session 先以新 revision 通知畫面，再讓 scheduler 清快取／取消工作。修正是先 invalidate，再同步發布狀態；不改引擎、格式作用範圍或輸入語意。
+
+## 宿主實際核對結果
+
+全白修法已裝 **0.2.35／b007f950b2e18cd2**，不需重連結。鏡像兩瀏覽器各三輪 90／90，實際 Files 兩瀏覽器 24／24，畫面與引擎 render 一致；詳見 [0.2.35 證據](../findings/evidence/host-0.2.35/README.md)。
+
+兩個瀏覽器各在已提交的修改後靜置 **35,021 ms**，host saves 皆為零、仍 dirty；隨後手動儲存成功並從伺服器 XML 讀回修改。這是特定閒置時段的觀察；「目前沒有 autosave 排程」仍以原始碼核對為依據。本輪先完成差異確認與 165 修正，沒有把新 autosave 行為併入。litecore 保留原本 running，現有 24674 鎖及其他專案狀態不變。
