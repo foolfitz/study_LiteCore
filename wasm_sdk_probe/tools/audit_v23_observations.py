@@ -297,6 +297,13 @@ def audit_page(page: dict, expected_identity: dict, source: str,
                                      "actual": a11y.get("unavailable"),
                                      "at": state_response_at})
 
+        # A later bad same-handle observation remains a contradiction even if
+        # an earlier valid witness exists. Wrong handles and generations are
+        # only diagnostic candidates when no valid witness was found.
+        if wrong_status:
+            problems.append(_problem("a11y-status", "same-handle state has an unexpected accessibility status",
+                                     **ref, documentHandle=handle, evidence=wrong_status))
+
         if not state_evidence:
             if wrong_generation:
                 problems.append(_problem("state-wrong-generation",
@@ -306,9 +313,6 @@ def audit_page(page: dict, expected_identity: dict, source: str,
                 problems.append(_problem("state-wrong-handle",
                                          "state observation does not belong to the opened document handle",
                                          **ref, documentHandle=handle, evidence=wrong_handle))
-            if wrong_status:
-                problems.append(_problem("a11y-status", "same-handle state lacks the required accessibility status",
-                                         **ref, documentHandle=handle, evidence=wrong_status))
             if not (wrong_generation or wrong_handle or wrong_status):
                 problems.append(_problem("state-witness-missing",
                                          "no same-generation, same-handle state event/response in the open window",

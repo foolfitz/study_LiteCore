@@ -82,6 +82,13 @@ class ObservationAuditTests(unittest.TestCase):
         page["events"][0]["message"]["a11y"]["unavailable"] = "unknown"
         self.assert_red(page, "a11y-status")
 
+    def test_valid_witness_does_not_mask_later_wrong_same_handle_status(self):
+        page = valid_page()
+        page["events"].append({"generation": 4, "at": 2.75, "message": {
+            "event": "editor-state", "documentHandle": 21,
+            "a11y": {"unavailable": "unexpected-status"}}})
+        self.assert_red(page, "a11y-status")
+
     def test_failed_open_reply_red(self):
         page = valid_page()
         page["responses"][0]["message"]["ok"] = False
