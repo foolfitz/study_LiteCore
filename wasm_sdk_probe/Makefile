@@ -1914,6 +1914,7 @@ $(E2_V23D_DIST)/sdk-manifest.json: $(E2_V23D_BUILD)/probe.js $(E2_V23D_BUILD)/pr
 		tools/build_cjk_subset.py tools/build_cjk_subset_ttc_pack.py \
 		tools/build_cjk_subset_mono_pack.py \
 		tools/build_e2_editor_v5_profile.py tools/build_e2_v23_diagnostic_profile.py \
+		tools/check_v23_diagnostic_build.py \
 		tools/build_e2_editor_v4_profile.py tools/build_e2_c_profile.py \
 		tools/build_e2_b_profile.py tools/e1_support.py | $(E2_V23D_DIST)
 	echo "$(E2_V23D_WORKER_SHA256)  sdk/sdk-worker.js" | sha256sum -c --quiet
