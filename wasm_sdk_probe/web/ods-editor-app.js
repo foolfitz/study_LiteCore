@@ -47,6 +47,21 @@ function place(node,cell) {
   node.style.width=`${Math.max(1,cell.widthTwips/15)}px`;
   node.style.height=`${Math.max(1,cell.heightTwips/15)}px`;
 }
+function formatAvailable(state) {
+  return state.state==="ready" && state.cell?.writable===true && !state.readOnly && !state.uncertain
+    && !state.busy && !state.selectionPending && !pendingEntry && !dragWork
+    && (!state.selection?.multiple || (state.rangeFormattingSupported===true && state.rangeFormat?.writable===true));
+}
+function renderFormatControls(state) {
+  for(const node of document.querySelectorAll("[data-format]")) {
+    const multiple=state.selection?.multiple,range=state.rangeFormat;
+    const value=multiple ? range?.[node.dataset.format] : state.cell?.[node.dataset.format];
+    node.disabled=!formatAvailable(state);
+    node.setAttribute("aria-pressed",multiple && value==null ? "mixed" : value ? "true":"false");
+    node.title=multiple && !state.rangeFormattingSupported ? "目前的引擎尚未支援範圍格式。"
+      : multiple && range?.refusalCode ? formatRefusal(range.refusalCode) : node.getAttribute("aria-label");
+  }
+}
 function render(state) {
   restoreGridFocus ||= document.activeElement===ui["cell-editor"];
   record.state=state;
@@ -66,15 +81,7 @@ function render(state) {
     ? !ready || state.readOnly || state.uncertain : !editable || waiting;
   ui["commit-button"].disabled=!editable || !state.editing || waiting;
   ui["cancel-button"].disabled=!state.editing || waiting;
-  for(const node of document.querySelectorAll("[data-format]")) {
-    const multiple=state.selection?.multiple,range=state.rangeFormat;
-    const value=multiple ? range?.[node.dataset.format] : state.cell?.[node.dataset.format];
-    node.disabled=!editable || state.busy || pendingEntry!==null
-      || (multiple && (!state.rangeFormattingSupported || !range?.writable));
-    node.setAttribute("aria-pressed",multiple && value==null ? "mixed" : value ? "true":"false");
-    node.title=multiple && !state.rangeFormattingSupported ? "目前的引擎尚未支援範圍格式。"
-      : multiple && range?.refusalCode ? formatRefusal(range.refusalCode) : node.getAttribute("aria-label");
-  }
+  renderFormatControls(state);
   if(!composing) {
     if(ui["formula-input"].value!==state.draft)ui["formula-input"].value=state.draft;
     if(!pendingEntry && ui["cell-editor"].value!==state.draft)ui["cell-editor"].value=state.draft;
@@ -288,6 +295,7 @@ function formatRefusal(code) {
     RANGE_PROTECTED:"選取範圍含受保護的儲存格。",READ_ONLY:"此範圍無法編輯。"})[code] || "目前無法設定此範圍的格式。";
 }
 function toggleFormat(format) {
+  if(!session || !formatAvailable(session.state))return;
   const s=session.state,value=s.selection?.multiple ? s.rangeFormat?.[format] : s.cell[format];
   return session.setFormat(format,value!==true);
 }
@@ -359,6 +367,7 @@ function cancelDrag(){
   if(pendingEntry && dragWork)pendingEntry.invalid=true;
   gesture++;const current=drag;drag=null;dragWork=null;
   if(current && ui.viewport.hasPointerCapture(current.pointer))ui.viewport.releasePointerCapture(current.pointer);
+  if(session)renderFormatControls(session.state);
   autosave?.update();
 }
 function inViewport(event) {
@@ -379,6 +388,7 @@ async function extendDrag(current) {
     current.pumping=false;
     if(!current.active && current.generation===gesture){
       if(dragWork===current)dragWork=null;
+      if(session)renderFormatControls(session.state);
       autosave?.update();
       void flushPendingEntry();focusGrid();
     }
