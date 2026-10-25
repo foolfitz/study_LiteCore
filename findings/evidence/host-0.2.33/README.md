@@ -68,3 +68,11 @@ After H7, the owner requested autonomous continuation, suggested Xvfb, and asked
 Native X11 typing on a headed Chrome under Xvfb succeeded in **3/3** actual Files-path rounds after Insert and Cancel, with server-saved text verified. The inherited **editor F3-hand owner report remains pending**, distinct from completed ODS H7/V3-SEE. A dedicated manual fixture and runbook are ready. No new K pins, BINDING or chain were applied; K remains unrun and the candidate uncounted.
 
 The agent stopped its litecore project at **03:24:15 Asia/Taipei**. All ddev project states match the new slot's start; see `count-preparation-2026-10-25/cleanup.json`. The evidence separately records the existing runner's lock-table clearing and does not claim database row equality. Host source is clean at 4f7f870; both archives and the retained manual fixtures remain.
+
+## Editor owner acceptance complete, 2026-10-25 (supersedes pending F3-hand)
+
+In the new 08:53 manual slot, the owner completed the specified normal-Chrome Files-path procedure. After initially saying **「測試完成」**, they explicitly answered **「A」** to the choice **「A：四項都符合預期」**, whose question named all four observations. **F3-hand holds**, and the carried Home/End boundary and dialog appearance owner checks are reported as meeting expectations. Exact wording and attribution: `f3-hand-2026-10-25/owner-confirmation.md`. No browser version was supplied or inferred.
+
+The candidate identity remained 0.2.33 / a67beefefebe57d6 / editor v22. The test document, fileId 24920, is retained with owner edits; `post-test-identity.json` records its new hash separately from the historical unedited source. The agent stopped litecore **08:59:47-08:59:49**, exit 0, restoring all ddev project states to this slot's start (`f3-hand-2026-10-25/cleanup.json`). No lock-table clearing command, product/judge change, build or reassurance run was performed.
+
+The four requested editor observations and ODS H7/V3-SEE are complete. **0.2.33 remains installed and uncounted; K remains unrun and not re-pinned; nominal shipped host remains 0.2.26.** Section 34.4 **+0 / +0**, cumulative **47 / 27**.
