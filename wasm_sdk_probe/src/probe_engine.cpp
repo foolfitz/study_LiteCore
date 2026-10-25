@@ -224,6 +224,7 @@ enum class CommandType {
 #ifdef OXSDK_E2_V23_DIAGNOSTIC
   DiagnosticNeverReturn,
   DiagnosticMissingProof,
+  DiagnosticHtml,
   DiagnosticKey,
 #endif
   OpenUrl,
@@ -7083,6 +7084,8 @@ void emitOrderedControl(int kind, std::uint32_t requestId) {
   emitJson(json.str());
 }
 
+#include "ordered_diagnostic_html.inc"
+
 void handleOrderedDiagnostic(const Command &command) {
   const int kind = command.values[0];
   if (kind == 1) {
@@ -7105,6 +7108,10 @@ void handleOrderedDiagnostic(const Command &command) {
   if (kind == 4 && readSelection().type != LOK_SELTYPE_TEXT) {
     emitCommandError(command, "v23Diagnostic", "INVALID_ARGUMENT",
                      "the private range-Left control requires a TEXT selection");
+    return;
+  }
+  if (kind == 9) {
+    startOrderedHtmlRead(command);
     return;
   }
   emitOrderedControl(kind, command.requestId);
@@ -7147,6 +7154,7 @@ void dispatch(const Command &command) {
 #ifdef OXSDK_E2_V23_DIAGNOSTIC
   case CommandType::DiagnosticNeverReturn:
   case CommandType::DiagnosticMissingProof:
+  case CommandType::DiagnosticHtml:
   case CommandType::DiagnosticKey:
     handleOrderedDiagnostic(command);
     break;
@@ -7901,7 +7909,7 @@ SubmitStatus startEngine(std::uint32_t requestId, bool sdk) {
 
 #ifdef OXSDK_E2_V23_DIAGNOSTIC
 extern "C" int oxsdk_v23_diagnostic(int kind, int requestId) {
-  if (kind < 1 || kind > 8 || requestId <= 0)
+  if (kind < 1 || kind > 9 || requestId <= 0)
     return static_cast<int>(SubmitStatus::InvalidArgument);
   if (!gStarted.load(std::memory_order_acquire))
     return static_cast<int>(SubmitStatus::NotStarted);
@@ -7928,6 +7936,7 @@ extern "C" int oxsdk_v23_diagnostic(int kind, int requestId) {
   }
   Command command{kind == 1 ? CommandType::DiagnosticNeverReturn
                            : kind == 2 ? CommandType::DiagnosticMissingProof
+                           : kind == 9 ? CommandType::DiagnosticHtml
                                        : CommandType::DiagnosticKey};
   command.sdk = true;
   command.requestId = static_cast<std::uint32_t>(requestId);

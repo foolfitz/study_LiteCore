@@ -1,0 +1,41 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const vm = require('node:vm');
+const path = require('node:path');
+const root = path.join(__dirname, '..');
+const source = fs.readFileSync(path.join(root,'build/archive/e2-editor-v22-f7a40bcc-worker-0d55bcfa/sdk-worker.js'),'utf8')
+  + fs.readFileSync(path.join(root,'sdk/v23-diagnostic-r2-worker-tail.js'),'utf8');
+const messages=[], calls=[];
+let receive;
+const context=vm.createContext({TextEncoder, console, self:{addEventListener:(_,fn)=>receive=fn, postMessage:m=>messages.push(m)}});
+vm.runInContext(source,context);
+context.call=(...args)=>{calls.push(args);return 0;};
+vm.runInContext(`moduleInstance={ccall:call};activeManifest={profile:'e2-editor-v23-diag-r2',editorContract:{abiVersion:5}};`,context);
+const send=(kind,id)=>receive({data:{protocolVersion:1,kind:'request',requestId:id,operation:'v23Diagnostic',payload:{kind}}});
+for(let kind=1;kind<=9;kind++)send(kind,kind);
+assert.equal(calls.length,9);
+send(10,10);assert.equal(messages.pop().error.code,'INVALID_ARGUMENT');
+assert.equal(calls.length,9);
+const event=value=>{context.raw=JSON.stringify(value);vm.runInContext('handleCEvent(raw)',context);};
+// Entry/return diagnostics cannot resolve the pending request.
+event({type:'v23-control',kind:9,requestId:9});
+event({type:'v23-html-return',requestId:9,html:'<img>台',bytes:8});
+assert.equal(vm.runInContext('pending.has(9)',context),true);
+event({type:'v23-html-result',requestId:9,html:'<img>台',bytes:8});
+assert.equal(vm.runInContext('pending.has(9)',context),false);
+assert.equal(messages.at(-1).ok,true);
+assert.equal(messages.at(-1).result.html,'<img>台');
+assert.equal(messages.at(-1).result.bytes,8);
+// A different operation/kind cannot consume the new terminal event.
+event({type:'v23-html-result',requestId:2,html:'<img>',bytes:5});
+assert.equal(vm.runInContext('pending.has(2)',context),true);
+event({type:'error',requestId:2,code:'MUTATION_OUTCOME_UNKNOWN',message:'missing',failureShape:'proof-absent-at-poll:UNO_COMMAND_RESULT'});
+assert.equal(messages.at(-1).error.failureShape,'proof-absent-at-poll:UNO_COMMAND_RESULT');
+assert.equal(vm.runInContext('pending.has(2)',context),false);
+send(9,19);event({type:'v23-html-result',requestId:19,html:'台',bytes:1});
+assert.equal(messages.at(-1).error.code,'WORKER_PROTOCOL_ERROR');
+assert.equal(vm.runInContext('pending.has(19)',context),false);
+vm.runInContext("activeManifest.profile='e2-editor-v23-diag';",context);
+send(9,29);assert.equal(messages.at(-1).error.code,'UNSUPPORTED_OPERATION');
+assert.equal(calls.length,10);
+console.log('r2 actual archived worker: closed kinds, correlated cached HTML, UTF8 count and cleanup pass');
