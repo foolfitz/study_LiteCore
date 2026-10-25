@@ -83,3 +83,15 @@ H-write `findings/evidence/host-0.2.34/host-write-02/report.json` 留下真實�
 `pre-stop-verification.json` 實讀：所有本輪帳號／folder 已不存在、鎖 file-id 前後皆空、live source 乾淨、版本 0.2.34／package 相符。沒有清整張鎖表；早期 dirty 紅案只 UNLOCK 自己的測試檔。fileId 24920 的擁有者編輯 31,008 B／sha a8462965… 保持相同。停止 litecore 後 `cleanup.json` 比對全部專案狀態一致：litecore stopped，fgp-nc／nc-bridge paused，其餘 stopped。隔離 worktree 核對後移除，分支與全部 archive 留存。
 
 整理見 `research/2026-10-25-cell-editor-v1.md`、英文證據 README 與最終 handoff。K 保持延後併批、名義出貨仍 **0.2.26**；§34.4 **+0／+0，累計 47／27**。本輪沒有剩餘必須人工介入的阻礙；後續由擁有者試用／提出下一批功能，不能自行把 v23 接回來或啟動完整 K。
+
+## 9. 擁有者手測與格式後全白回歸（2026-10-25，只追加；新實測之前）
+
+擁有者原話確認「輸入文字及公式功能符合預期」。另回報雙擊 cell、選取文字後按 B／I／U，編輯區全白、框線與內容消失；關閉重開後格式存在。這撤回先前定向驗收對這條路徑的畫面完整性信心，不撤回已讀到的存檔／模型結果。當時格式測試只驗模型和 XML，缺的是操作後繪圖證據。
+
+本輪先調查本機 `cool-26-04`（HEAD c64a7343a5c6295623619c80aa7857c4e00e1ddd）之直接輸入、雙擊與格式分派，唯讀參考機制、不搬原始碼。新直接輸入、格內部分文字格式不是本次「研究做法」就自行納入實作；v1 仍整格 B／I／U。另依擁有者後續指示核對 Calc 是否自動儲存與 Writer 差異；沒有排程不能宣稱 autosave。
+
+全白問題登錄 finding 165。先在未修的頁面走「單擊選格套格式」與「雙擊選取文字套格式」各個 B／I／U，保留直接 engine cell 值、revision、scheduler context／generation／metrics、畫布數與截圖；單看像素或模型變綠均不足。若臂在首個失敗停下，不把未跑的說成通過。
+
+修正判準 **F165-view**（逐實例）：Chrome／Firefox，各三輪；每一個上列操作後 scheduler context revision 等於 document revision；drain 後同一輪實際送到 DOM 的每塊 tile，其 bytes 與引擎對應 region 直接 render 一致；可見區有 tile，沒有 tile error。並核對 cell 值／格式正確、存成 ODS／重開一致。先保留未修紅案；修後三輪成立就封閉。沒做／失敗：165 維持未修，不升宿主候選。不能把 v1 的舊六輪當作這條新路徑的畫面證據。
+
+本輪先在隔離鏡像修正／定向驗證；不要重連結 frozen ods-editor-v1，不啟動 K。若發佈，沿用隔離宿主 worktree、不可覆寫 archive、先備退路再安裝與定向 Files 驗證；共享環境先實讀，保留擁有者目前測試狀態及全部原文件，不清鎖表、不重問已成立人工項目。§34.4 起點 47／27；新產品回歸工具不自動算既有判讀修理。
