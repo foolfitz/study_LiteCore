@@ -450,3 +450,13 @@ Astra裁決先測同步Q候選：同一記錄點連續RESET→START→RESET，�
 同一新binary預備原§16.2的async Escape備案，**Q先行，備案不自動啟動**。F操作在同一poll做K1＋無listener的Escape，緊接G在下一poll先驗NONE及cache游標等原點才送使用者鍵；以pollIndex恰差1證明，F/G間不得有quiet window或固定睡眠。若Q足夠成立就不跑備案；若需啟動，先完成其已登錄45程序的獨立runner／reader與紅控制。若永遠未啟動，預設未成立，不得寫該引擎路徑。FORMAT不得假定Escape可修復，既有finding049限制保留。
 
 此階段沒有改core、沒有重新連結WASM、沒有動宿主服務或使用者文件。下一個人類步驟只編譯已審查的新版本小型原生harness，單次供兩個Q測量與有條件備案使用；不是舊v23連結命令。
+
+## 19. 診斷 W-D 的私有輸入路由（2026-10-25，只追加）
+
+本節記錄擁有者授權 Astra 的路由裁示，來源為 `findings/evidence/link-batch-v23/pre-link/diagnostic-packaging/private-wd-routing.md`。原生 DELETE45 與 FORMAT40 已各自依凍結判準通過，且整批輸入雜湊未變；本次追加發生在那85筆封閉之後、任何候選 WASM 連結或 W-D 執行之前，不回頭改原生判準或結果。
+
+實讀 v22 manifest 後發現：字元移動只允許 collapsed gesture，但既定 W-D 的 d4 要在 Shift+Right 後於範圍上按 Left，d5 要先延伸再刪除選取；原生 L 落點觀測也要 Shift+End、Shift+Home。ABI5 診斷版若完整保留原公開合約，無法從那些公開入口送出全部既定輸入。
+
+裁示為保留 manifest、公開 gesture 檢查與 ABI5，僅由單一 `OXSDK_E2_V23_DIAGNOSTIC` 私有入口補足具名 W-D 測試輸入：種類4為有 TEXT 選取時的 Left，5／6為 Shift+Left／Right，7／8為 L 觀測用 Shift+End／Home。它們沿用公開移動的同一個指令佇列、`dispatchOrderedKey` 與首次 poll composer，不接受任意鍵碼或 UNO 名稱，也不新增公開動作或能力。實際來源檢查必須保留公開 gate 與私有前提；私有 worker 的封閉 whitelist 拒絕種類9。
+
+W-D 報告逐步標示公開或私有來源，並獨立核對實際 worker requests；其結論只涵蓋同一組原生輸入在 C 拓撲的落點。**這不代表 ABI6 的公開 Shift／範圍移動功能已驗收。** 那一層仍依 §9.3 另做功能身分、公開手勢與產品路徑驗證。未執行 W-D 的預設仍是未成立。沒有擴增 §9.2 的母體；首次乾淨診斷計數後依既定截止封閉。
