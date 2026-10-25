@@ -1,0 +1,35 @@
+{
+  "commands": [
+    {
+      "argv": ["python3", "-I", "wasm_sdk_probe/tests/test_v23_wd_reader.py"],
+      "exit_code": 0,
+      "stdout": ".......\n----------------------------------------------------------------------\nRan 7 tests in 0.881s\n\nOK\n",
+      "stderr": ""
+    },
+    {
+      "argv": ["node", "--check", "wasm_sdk_probe/web/v23-diagnostic-wd.js"],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": ["python3", "-I", "wasm_sdk_probe/tools/run_v23_diagnostic.py", "--help"],
+      "exit_code": 0,
+      "stdout": "usage: run_v23_diagnostic.py [-h] --wasm-sha256 WASM_SHA256 --fixture FIXTURE\n                             [--fixture-name FIXTURE_NAME] --output OUTPUT\n                             [--browser {chrome,firefox,both}]\n                             [--arm {smoke,proof,hang,js-thread,all,wd}]\n                             [--case-id CASE_ID] [--rounds {1,3,5}]\n\nRun the predeclared bounded v23 no-host cohort only after an actual owner\nlink. No make, host, service changes, frozen-profile writes or live documents.\nThe temporary HTTP server/browser are owned subprocesses, closed on every\nexit.\n\noptions:\n  -h, --help            show this help message and exit\n  --wasm-sha256 WASM_SHA256\n                        explicit actual owner-linked candidate pin\n  --fixture FIXTURE\n  --fixture-name FIXTURE_NAME\n                        actual loader filename; defaults to fixture basename\n  --output OUTPUT       new directory, never overwritten\n  --browser {chrome,firefox,both}\n  --arm {smoke,proof,hang,js-thread,all,wd}\n  --case-id CASE_ID     W-D module case id; not part of bounded diagnostic\n                        cohort\n  --rounds {1,3,5}      bounded cohort requires 3; W-D requires 5; 1 is\n                        preparation only\n",
+      "stderr": ""
+    },
+    {
+      "argv_description": "Import test_v23_wd_reader from wasm_sdk_probe/tests, create a fresh synthetic page for each mutation, then call wd.judge(page, case, expected, oracle).",
+      "exit_code": 0,
+      "stdout": "[\n  {\n    \"case\": \"bold-disabled\",\n    \"verdict\": \"FAIL\",\n    \"failed\": [],\n    \"missing\": []\n  },\n  {\n    \"case\": \"false-wire-bold\",\n    \"verdict\": \"FAIL\",\n    \"failed\": [],\n    \"missing\": []\n  },\n  {\n    \"case\": \"wrong-click\",\n    \"verdict\": \"PASS\",\n    \"failed\": [],\n    \"missing\": []\n  },\n  {\n    \"case\": \"extra-click\",\n    \"verdict\": \"FAIL\",\n    \"failed\": [],\n    \"missing\": []\n  }\n]\n",
+      "stderr": ""
+    },
+    {
+      "argv_description": "Repeat wrong-click with the test's xTwips/yTwips field names, to distinguish an ignored-field mutation from the test's actual mutation.",
+      "exit_code": 0,
+      "stdout": "{\n  \"case\": \"wrong-click-xTwips-control\",\n  \"payload\": {\n    \"xTwips\": 999999,\n    \"yTwips\": 999999\n  },\n  \"verdict\": \"FAIL\",\n  \"failed\": [],\n  \"missing\": []\n}\n",
+      "stderr": ""
+    }
+  ],
+  "interpretation": "The requested payload x/y=999999 mutation was accepted as PASS. The existing unit control mutates xTwips/yTwips and is rejected as FAIL. The x/y fields are ignored by this synthetic protocol payload, so the requested four-control condition is not met. No source or criteria changes were made."
+}
