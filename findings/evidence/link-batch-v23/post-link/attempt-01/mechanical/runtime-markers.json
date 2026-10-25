@@ -1,0 +1,109 @@
+{
+  "expected_wasm_sha256": "52cf9d23b615458d3a4086b3995fd68bf3ced19c252c6f89f017109fc282a443",
+  "link_log": {
+    "exact_link_command_count": 1,
+    "link_commands": [
+      "../wasm-lite/tools/emsdk/upstream/emscripten/em++ build/e2/editor-v23-diag/sdk_api.o build/e2/editor-v23-diag/probe_engine.o build/e2/editor-v23-diag/unoembind_stub.o build/e2/editor-v23-diag/editor_api.o  -L../wasm-lite/build-headless-probe/instdir/program $(cat ../wasm-lite/build-headless-probe/instdir/program/soffice.js.linkdeps) -pthread -fwasm-exceptions -sSUPPORT_LONGJMP=wasm --no-entry -Oz -sMODULARIZE -sEXPORT_NAME=createProbeModule -sTOTAL_MEMORY=1GB -sPTHREAD_POOL_SIZE=7 -sPTHREAD_POOL_SIZE_STRICT=0 -sSTACK_SIZE=131072 -sDEFAULT_PTHREAD_STACK_SIZE=1048576 -sSTACK_OVERFLOW_CHECK=2 -sFORCE_FILESYSTEM=1 -sWASM_BIGINT=1 -sERROR_ON_UNDEFINED_SYMBOLS=1 -sFETCH=1 -sASSERTIONS=0 -sEXIT_RUNTIME=0 -sEXPORTED_RUNTIME_METHODS=ccall,FS,HEAPU8 -sEXPORTED_FUNCTIONS=@build/e2/editor-v23-diag/exports.txt -Wl,--wrap=_Z18initJsUnoScriptingv --pre-js ../libreoffice-26-8/static/emscripten/environment.js --pre-js ../wasm-lite/build-headless-probe/workdir/CustomTarget/static/emscripten_fs_image/soffice.data.js.link -o build/e2/editor-v23-diag/probe.js"
+    ],
+    "object_outputs": {
+      "build/e2/editor-v23-diag/editor_api.o": {
+        "compile_output_command_count": 1,
+        "linked_as_input": true
+      },
+      "build/e2/editor-v23-diag/probe_engine.o": {
+        "compile_output_command_count": 1,
+        "linked_as_input": true
+      },
+      "build/e2/editor-v23-diag/sdk_api.o": {
+        "compile_output_command_count": 1,
+        "linked_as_input": true
+      },
+      "build/e2/editor-v23-diag/unoembind_stub.o": {
+        "compile_output_command_count": 1,
+        "linked_as_input": true
+      }
+    },
+    "path": "wasm_sdk_probe/build/link-v23-diagnostic-01.log",
+    "sha256": "6e77b02e2e8a9699162a4b0c4ba9da84915b7a99e95c6bfd12bca47a247c040c"
+  },
+  "probe_js": {
+    "bytes": 146388,
+    "path": "wasm_sdk_probe/build/e2/editor-v23-diag/probe.js",
+    "sha256": "a3919e977868934589e1e37ac1406930a6011640a82540ca507c6ae4002eede4"
+  },
+  "runtime_marker_search": {
+    "HEAP32[0]": {
+      "match_count": 0,
+      "snippets": []
+    },
+    "HEAPU32[0]": {
+      "match_count": 0,
+      "snippets": []
+    },
+    "_oxsdk_v23_diagnostic": {
+      "match_count": 3,
+      "snippets": [
+        {
+          "context": "rectangles,_oxsdk_document_paste_markdown,_oxsdk_request_cancel,_oxsdk_buffer_alloc,_malloc,_oxsdk_buffer_free,_free,_libreofficekit_hook_2,_oxsdk_v23_diagnostic,_oxsdk_editor_action,_oxsdk_editor_abi_version,_oxsdk_editor_set_action_gestures,_oxsdk_editor_get_state,_oxsdk_editor_place_caret,_oxsdk_e",
+          "offset": 138328
+        },
+        {
+          "context": "wasmExports[\"ab\"];Module[\"_free\"]=_free=wasmExports[\"bb\"];Module[\"_libreofficekit_hook_2\"]=_libreofficekit_hook_2=wasmExports[\"db\"];Module[\"_oxsdk_v23_diagnostic\"]=_oxsdk_v23_diagnostic=wasmExports[\"eb\"];Module[\"_oxsdk_editor_action\"]=_oxsdk_editor_action=wasmExports[\"fb\"];Module[\"_oxsdk_editor_abi_v",
+          "offset": 141016
+        },
+        {
+          "context": "[\"_free\"]=_free=wasmExports[\"bb\"];Module[\"_libreofficekit_hook_2\"]=_libreofficekit_hook_2=wasmExports[\"db\"];Module[\"_oxsdk_v23_diagnostic\"]=_oxsdk_v23_diagnostic=wasmExports[\"eb\"];Module[\"_oxsdk_editor_action\"]=_oxsdk_editor_action=wasmExports[\"fb\"];Module[\"_oxsdk_editor_abi_version\"]=_oxsdk_editor_a",
+          "offset": 141040
+        }
+      ]
+    },
+    "checkStackCookie": {
+      "match_count": 7,
+      "snippets": [
+        {
+          "context": "r max=_emscripten_stack_get_end();if(max==0){max+=4}HEAPU32[max>>2]=34821223;HEAPU32[max+4>>2]=2310721022;HEAPU32[0>>2]=1668509029}function checkStackCookie(){if(ABORT)return;var max=_emscripten_stack_get_end();if(max==0){max+=4}var cookie1=HEAPU32[max>>2];var cookie2=HEAPU32[max+4>>2];if(cookie",
+          "offset": 17006
+        },
+        {
+          "context": "meCallbacks(onPreRuns)}function initRuntime(){runtimeInitialized=true;if(ENVIRONMENT_IS_PTHREAD)return startWorker(Module);setStackLimits();checkStackCookie();if(!Module[\"noFSInit\"]&&!FS.initialized)FS.init();TTY.init();SOCKFS.root=FS.mount(SOCKFS,{},null);PIPEFS.root=FS.mount(PIPEFS,{},null);wa",
+          "offset": 20212
+        },
+        {
+          "context": "SOCKFS.root=FS.mount(SOCKFS,{},null);PIPEFS.root=FS.mount(PIPEFS,{},null);wasmExports[\"Ea\"]();FS.ignorePermissions=false}function postRun(){checkStackCookie();if(ENVIRONMENT_IS_PTHREAD){return}if(Module[\"postRun\"]){if(typeof Module[\"postRun\"]==\"function\")Module[\"postRun\"]=[Module[\"postRun\"]];whi",
+          "offset": 20432
+        }
+      ]
+    },
+    "heap corruption": {
+      "match_count": 0,
+      "snippets": []
+    },
+    "stack cookie": {
+      "match_count": 0,
+      "snippets": []
+    },
+    "writeStackCookie": {
+      "match_count": 3,
+      "snippets": [
+        {
+          "context": ";var EXITSTATUS;function assert(condition,text){if(!condition){abort(text)}}var isFileURI=filename=>filename.startsWith(\"file://\");function writeStackCookie(){var max=_emscripten_stack_get_end();if(max==0){max+=4}HEAPU32[max>>2]=34821223;HEAPU32[max+4>>2]=2310721022;HEAPU32[0>>2]=1668509029}func",
+          "offset": 16845
+        },
+        {
+          "context": "hread_ptr+56>>2];var stackLow=stackHigh-stackSize;_emscripten_stack_set_limits(stackHigh,stackLow);setStackLimits();stackRestore(stackHigh);writeStackCookie()}var wasmTable;var getWasmTableEntry=funcPtr=>wasmTable.get(funcPtr);var invokeEntryPoint=(ptr,arg)=>{runtimeKeepaliveCounter=0;noExitRunt",
+          "offset": 28962
+        },
+        {
+          "context": "rtedSymbol,a:wasmMemory,Ca:_proc_exit,ka:_random_get}}var wasmExports=await createWasm();function stackCheckInit(){_emscripten_stack_init();writeStackCookie()}function run(){if(runDependencies>0){dependenciesFulfilled=run;return}if(ENVIRONMENT_IS_PTHREAD){readyPromiseResolve?.(Module);initRuntim",
+          "offset": 144775
+        }
+      ]
+    }
+  },
+  "wasm": {
+    "bytes": 123594341,
+    "path": "wasm_sdk_probe/build/e2/editor-v23-diag/probe.wasm",
+    "sha256": "52cf9d23b615458d3a4086b3995fd68bf3ced19c252c6f89f017109fc282a443"
+  },
+  "wasm_matches_expected": true
+}
