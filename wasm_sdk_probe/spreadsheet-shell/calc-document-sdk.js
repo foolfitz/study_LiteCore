@@ -26,8 +26,11 @@ export function normalizeCell(raw) {
   if (!raw || typeof raw !== "object")
     throw new DocumentSdkError("CELL_RESULT_INVALID", "cell reply has no model snapshot");
   const cell = {};
-  for (const key of ["part", "column", "row", "endColumn", "endRow", "xTwips", "yTwips", "widthTwips", "heightTwips", "cellType"])
+  for (const key of ["part", "column", "row", "endColumn", "endRow", "xTwips", "yTwips", "widthTwips", "heightTwips", "cellType"]) {
+    if (typeof raw[key] !== "number" && !(typeof raw[key] === "string" && /^[0-9]+$/.test(raw[key])))
+      throw new DocumentSdkError("CELL_RESULT_INVALID", `${key} is not an integer`);
     cell[key] = unsigned(Number(raw[key]), key);
+  }
   if (cell.widthTwips === 0 || cell.heightTwips === 0
       || cell.endColumn < cell.column || cell.endRow < cell.row)
     throw new DocumentSdkError("CELL_RESULT_INVALID", "cell reply has invalid geometry");
@@ -39,7 +42,7 @@ export function normalizeCell(raw) {
   for (const key of ["writable", "bold", "boldAsian", "boldComplex", "italic", "italicAsian", "italicComplex", "underline"])
     cell[key] = boolean(raw[key], key);
   cell.value = Number(raw.value);
-  if (!Number.isFinite(cell.value))
+  if (raw.value === "" || raw.value === null || !Number.isFinite(cell.value))
     throw new DocumentSdkError("CELL_RESULT_INVALID", "cell value is not finite");
   return Object.freeze(cell);
 }
