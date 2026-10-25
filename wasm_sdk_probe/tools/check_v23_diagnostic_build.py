@@ -34,6 +34,8 @@ LINK_MACRO = 'link_v23_diagnostic'
 FLAG = '-sSTACK_OVERFLOW_CHECK=2'
 PROBE_016 = 'OXSDK_FINDING_016_SCHEDULER_PROBE'
 V23_DEFINES = ('-DOXSDK_E2_V23_LINK_BATCH', '-DOXSDK_E2_V23_DIAGNOSTIC', '-DOXSDK_MAINLOOP_ENGINE')
+DIAGNOSTIC_DEFINE = '-DOXSDK_E2_V23_DIAGNOSTIC'
+FEATURE_BUILD_DIR = 'build/e2/editor-v23'
 
 
 def logical_lines(text):
@@ -112,6 +114,41 @@ def read_build_log(text):
     return problems
 
 
+def read_wasm(data):
+    """Read the actual linked bytes; text/source metadata cannot satisfy this check."""
+    problems = []
+    if not data.startswith(b'\x00asm\x01\x00\x00\x00'):
+        problems.append('P-A11Y: not a version-1 WebAssembly binary')
+    if b'core-built-without-accessibility' not in data:
+        problems.append('P-A11Y: missing core-built-without-accessibility')
+    if b'lok-lacks-setAccessibilityState' in data:
+        problems.append('P-A11Y: unexpected lok-lacks-setAccessibilityState')
+    return problems
+
+
+def read_feature_build_log(text, build_dir=FEATURE_BUILD_DIR):
+    """The feature link must not inherit diagnostic instrumentation (spec 16.5)."""
+    problems = []
+    lines = logical_lines(text)
+    compiles = [line for line in lines if ' -c ' in line
+                and f'-o {build_dir}/' in line and line.rstrip().endswith('.o')]
+    links = [line for line in lines if f'-o {build_dir}/probe.js' in line]
+    if not compiles:
+        problems.append('P-FEATURE: no feature compile lines (an empty record)')
+    if len(links) != 1:
+        problems.append(f'P-FEATURE: {len(links)} feature link lines (exactly one)')
+    for line in compiles + links:
+        if re.search(r'(?:^|\s)' + re.escape(DIAGNOSTIC_DEFINE) + r'(?:=|\s|$)', line):
+            problems.append('P-FEATURE: diagnostic define present')
+        if 'STACK_OVERFLOW_CHECK' in line:
+            problems.append('P-FEATURE: diagnostic stack-overflow flag present')
+    for line in compiles:
+        for define in V23_DEFINES:
+            if define != DIAGNOSTIC_DEFINE and define not in line.split():
+                problems.append('P-FEATURE: missing ' + define)
+    return problems
+
+
 GOOD_MAKEFILE = f'''define link_product_stack_1m
 \t$(CXX) $(1) -sSTACK_SIZE=131072 -sDEFAULT_PTHREAD_STACK_SIZE=1048576 -o $(3)
 endef
@@ -140,6 +177,8 @@ em++ {BUILD_DIR}/probe_engine.o {BUILD_DIR}/sdk_api.o -sSTACK_SIZE=131072 {FLAG}
 
 
 def self_test():
+    wasm = b'\x00asm\x01\x00\x00\x00' + b'core-built-without-accessibility'
+    feature = GOOD_LOG.replace(BUILD_DIR, FEATURE_BUILD_DIR).replace(DIAGNOSTIC_DEFINE+' ', '').replace(FLAG+' ', '')
     cases = [
         ('makefile', 'well-formed', GOOD_MAKEFILE, None),
         ('makefile', 'the flag removed from the diagnostic macro', GOOD_MAKEFILE.replace(f'\\\n\t\t{FLAG} ', ''), 'does not carry'),
@@ -152,10 +191,23 @@ def self_test():
         ('log', 'the link without the flag', GOOD_LOG.replace(f' {FLAG} ', ' '), 'lacks -sSTACK'),
         ('log', 'an empty record', '', 'an empty record'),
         ('log', 'an object built without the v23 define', GOOD_LOG.replace('-DOXSDK_E2_V23_LINK_BATCH -DOXSDK_E2_V23_DIAGNOSTIC -c src/sdk_api.cpp', '-DOXSDK_E2_V23_DIAGNOSTIC -c src/sdk_api.cpp'), 'without -DOXSDK_E2_V23_LINK_BATCH'),
+        ('wasm', 'headless core marker bytes', wasm, None),
+        ('wasm', 'empty bytes', b'', 'not a version-1'),
+        ('wasm', 'text masquerading as wasm', wasm[8:], 'not a version-1'),
+        ('wasm', 'missing headless marker', wasm[:8], 'missing core-built'),
+        ('wasm', 'wrong API absence marker', wasm+b'lok-lacks-setAccessibilityState', 'unexpected lok-lacks'),
+        ('feature', 'well-formed feature log', feature, None),
+        ('feature', 'diagnostic define via EXTRA_DEFINES', feature.replace('-c src/sdk_api.cpp', DIAGNOSTIC_DEFINE+'=1 -c src/sdk_api.cpp'), 'diagnostic define present'),
+        ('feature', 'diagnostic overflow flag', feature.replace('-sSTACK_SIZE', FLAG+' -sSTACK_SIZE'), 'stack-overflow flag present'),
+        ('feature', 'empty feature record', '', 'an empty record'),
+        ('feature', 'no feature link', '\n'.join(feature.splitlines()[:-1]), '0 feature link'),
+        ('feature', 'duplicate feature link', feature+feature.splitlines()[-1], '2 feature link'),
+        ('feature', 'old engine without mainloop', feature.replace('-DOXSDK_MAINLOOP_ENGINE ', ''), 'missing -DOXSDK_MAINLOOP_ENGINE'),
     ]
     ok = True
     for kind, label, text, needle in cases:
-        found = read_makefile(text) if kind == 'makefile' else read_build_log(text)
+        found = {'makefile': read_makefile, 'log': read_build_log,
+                 'wasm': read_wasm, 'feature': read_feature_build_log}[kind](text)
         good = (not found) if needle is None else any(needle in p for p in found)
         ok &= good
         print(f"{'ok  ' if good else 'FAIL'} {kind}: {label}: {found if found else 'holds'}")
@@ -168,12 +220,20 @@ def main():
     g = ap.add_mutually_exclusive_group(required=True)
     g.add_argument('--makefile')
     g.add_argument('--build-log')
+    g.add_argument('--wasm', help='linked diagnostic probe.wasm bytes (spec 16.5)')
+    g.add_argument('--feature-build-log', help='actual feature compile/link log; diagnostic define must be absent')
     g.add_argument('--self-test', action='store_true')
+    ap.add_argument('--feature-build-dir', default=FEATURE_BUILD_DIR)
     a = ap.parse_args()
     if a.self_test:
         return self_test()
-    text = pathlib.Path(a.makefile or a.build_log).read_text(errors='replace')
-    problems = read_makefile(text) if a.makefile else read_build_log(text)
+    if a.wasm:
+        problems = read_wasm(pathlib.Path(a.wasm).read_bytes())
+    elif a.feature_build_log:
+        problems = read_feature_build_log(pathlib.Path(a.feature_build_log).read_text(errors='replace'), a.feature_build_dir)
+    else:
+        text = pathlib.Path(a.makefile or a.build_log).read_text(errors='replace')
+        problems = read_makefile(text) if a.makefile else read_build_log(text)
     for p in problems:
         print(p)
     print('preconditions hold' if not problems else f'{len(problems)} precondition problem(s)')
