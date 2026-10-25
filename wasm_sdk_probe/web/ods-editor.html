@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>LiteCore 試算表</title>
+<style>
+:root { --ink:#22312d; --muted:#64736c; --line:#d8e1dc; --accent:#187452; --wash:#f3f7f4; font-family:system-ui,"Noto Sans TC",sans-serif; color:var(--ink); background:#fff; }
+* { box-sizing:border-box; }
+body { margin:0; height:100vh; display:flex; flex-direction:column; overflow:hidden; }
+button,input,textarea { font:inherit; }
+button { border:1px solid transparent; border-radius:5px; background:transparent; color:inherit; cursor:pointer; }
+button:hover:not(:disabled) { background:#e7efea; }
+button:focus-visible,input:focus-visible,textarea:focus-visible { outline:2px solid var(--accent); outline-offset:1px; }
+button:disabled { opacity:.4; cursor:default; }
+[hidden] { display:none !important; }
+.titlebar { display:flex; align-items:center; gap:14px; min-height:43px; padding:7px 14px; border-bottom:1px solid var(--line); background:var(--wash); }
+.brand { font-size:14px; font-weight:650; letter-spacing:.02em; }
+#toolbar { display:flex; align-items:center; gap:5px; min-height:46px; padding:6px 12px; border-bottom:1px solid var(--line); }
+#toolbar button { min-width:34px; height:32px; padding:3px 9px; }
+#save-button { background:var(--accent); color:#fff; margin-right:7px; }
+#save-button:hover:not(:disabled) { background:#105d40; }
+.separator { width:1px; height:22px; background:var(--line); margin:0 7px; }
+[data-format] { font-family:Georgia,serif; font-size:19px; }
+[data-format][aria-pressed="true"] { background:#d8ecdf; border-color:#8cbda0; color:#105d40; }
+.formula-bar { display:flex; align-items:flex-start; gap:8px; padding:8px 12px; border-bottom:1px solid var(--line); background:#fff; }
+#cell-address { width:86px; flex:none; min-height:33px; border:1px solid var(--line); border-radius:4px; padding:5px 9px; font-size:13px; }
+.formula-label { flex:none; padding:5px 2px; font-family:Georgia,serif; font-style:italic; color:var(--muted); font-size:18px; }
+#formula-input { flex:1; min-width:80px; height:33px; min-height:33px; max-height:150px; resize:vertical; border:1px solid var(--line); border-radius:4px; padding:5px 9px; line-height:21px; font-size:14px; }
+.formula-bar button { width:32px; height:33px; font-size:20px; }
+#commit-button { color:var(--accent); }
+#viewport { flex:1; min-height:0; overflow:auto; position:relative; background:#edf1ee; outline:none; }
+#surface { position:relative; background:#fff; min-width:100%; min-height:100%; }
+#tiles canvas { position:absolute; display:block; }
+#selection { position:absolute; border:2px solid var(--accent); pointer-events:none; z-index:2; }
+#cell-editor { position:absolute; z-index:3; min-width:80px; min-height:30px; margin:0; border:2px solid var(--accent); border-radius:0; background:#fff; padding:3px 5px; font-size:14px; line-height:21px; resize:none; box-shadow:0 3px 12px #163d2320; }
+#empty { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; color:var(--muted); pointer-events:none; }
+#empty strong { color:var(--ink); font-size:21px; font-weight:550; }
+#tab-strip { display:flex; gap:3px; padding:0 12px; min-height:37px; background:var(--wash); border-top:1px solid var(--line); overflow-x:auto; }
+.sheet-tab { padding:7px 17px; border-radius:0; white-space:nowrap; border-bottom:3px solid transparent; font-size:13px; }
+.sheet-tab[aria-selected="true"] { background:#fff; border-bottom-color:var(--accent); color:var(--accent); font-weight:650; }
+.statusbar { display:flex; align-items:center; gap:12px; min-height:30px; padding:4px 13px; border-top:1px solid var(--line); color:var(--muted); font-size:12px; background:#fff; }
+#toast { margin-left:auto; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+#toast.error { color:#a52828; }
+@media(max-width:600px) { .formula-bar { gap:5px; padding:7px; } #cell-address { width:65px; } #toolbar { padding-left:7px; } }
+</style></head>
+<body>
+<div class="titlebar"><span class="brand">LiteCore 試算表</span><span id="s-doc" hidden></span></div>
+<div id="toolbar" role="toolbar" aria-label="試算表工具列">
+<button id="open-file" type="button">開啟檔案</button><input id="file-input" type="file" accept=".ods" hidden>
+<button id="save-button" type="button" disabled>儲存</button><span class="separator" aria-hidden="true"></span>
+<button type="button" data-format="bold" aria-label="粗體" title="粗體（Ctrl／⌘＋B）" aria-pressed="false" disabled><strong>B</strong></button>
+<button type="button" data-format="italic" aria-label="斜體" title="斜體（Ctrl／⌘＋I）" aria-pressed="false" disabled><em>I</em></button>
+<button type="button" data-format="underline" aria-label="底線" title="底線（Ctrl／⌘＋U）" aria-pressed="false" disabled><u>U</u></button>
+</div>
+<div class="formula-bar" role="group" aria-label="儲存格輸入列">
+<input id="cell-address" aria-label="儲存格位址" value="A1" spellcheck="false" disabled>
+<span class="formula-label" aria-hidden="true">fx</span>
+<textarea id="formula-input" rows="1" aria-label="儲存格內容或公式" spellcheck="false" disabled></textarea>
+<button id="cancel-button" type="button" aria-label="取消編輯" title="取消（Esc）" disabled>×</button>
+<button id="commit-button" type="button" aria-label="確認編輯" title="確認（Enter）" disabled>✓</button>
+</div>
+<div id="viewport" tabindex="0" aria-label="試算表儲存格，連按兩下編輯">
+<div id="surface"><div id="tiles"></div><div id="selection" hidden></div><textarea id="cell-editor" aria-label="原地編輯儲存格" spellcheck="false" hidden></textarea></div>
+<div id="empty"><strong>開啟試算表，開始編輯</strong><span>選取儲存格後，可連按兩下編輯或使用上方輸入欄。</span></div>
+</div>
+<div id="tab-strip" role="tablist" aria-label="工作表"></div>
+<div class="statusbar"><span id="state-pill" data-state="idle">尚未開啟</span><span id="selection-label"></span><span id="s-revision" hidden></span><span id="toast" role="status" aria-live="polite"></span></div>
+<script type="module" src="./ods-editor-app.js"></script>
+</body></html>
