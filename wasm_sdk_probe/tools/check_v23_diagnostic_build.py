@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The v23 diagnostic profile's two build preconditions, read from the build record rather than stated
+"""The v23 diagnostic/feature build preconditions, read from artifacts rather than stated
 (SPEC-M3-ordered-commands 9.2 and 15.4; fable ruling 1 addendum 1 2.4; ruling 2 2.5 table, form 2).
 
   P-SOC  `-sSTACK_OVERFLOW_CHECK=2` is on the diagnostic link and on no other link: the product stays off
@@ -20,6 +20,13 @@ Two readings, because a Makefile is a claim and the build log is what ran:
       no such compile line, or no such link line, is red: an empty record proves nothing.
   python3 -I tools/check_v23_diagnostic_build.py --self-test
       the red cases, on edited copies of a well-formed Makefile fragment and log.
+  python3 -I tools/check_v23_diagnostic_build.py --wasm PATH
+      actual diagnostic WebAssembly bytes: require core-built-without-accessibility and reject
+      lok-lacks-setAccessibilityState (spec 16.5). This is a build precondition, not profile identity.
+  python3 -I tools/check_v23_diagnostic_build.py --feature-build-log LOG
+      actual feature object/link commands, default directory build/e2/editor-v23: require v23/mainloop
+      and reject the diagnostic define and stack-overflow flag. --feature-build-dir overrides only
+      the destination directory, not the required/forbidden flags. Empty/incremental-only logs fail.
 
 Exit 0 when every precondition read holds; 1 otherwise.
 """
