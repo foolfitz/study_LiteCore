@@ -74,6 +74,7 @@
 //                                      (a result listener forces SYNCHRON)
 //                     P<text>          paste("text/plain;charset=utf-8")
 //                     C<point>[+<dx>]  click DOWN+UP at a recorded point, dx twips to its right
+//                     R<point>        synchronous setTextSelection(RESET) at a recorded caret point
 //                     I<ms>            idle: seq settles as after any op; uni1f polls doing nothing for
 //                                      <ms> (VCL timers run); not a LOK call, no record
 //                   After every op returns: the selection type and text and the
@@ -288,7 +289,7 @@ bool pointOf(const std::string &spec, long &px, long &py) {
 // ---- the ops of a measured sequence ------------------------------------------------
 
 struct Op {
-  char kind;  // K U P C
+  char kind;  // K U P C R I
   std::string arg, json;
 };
 std::vector<Op> parseOps(const std::string &s) {
@@ -307,7 +308,7 @@ std::vector<Op> parseOps(const std::string &s) {
           if (c == '`') c = ',';
       }
     }
-    if (std::string("KUPCI").find(op.kind) == std::string::npos) fatal("unknown op", ",\"op\":" + q(one));
+    if (std::string("KUPCRI").find(op.kind) == std::string::npos) fatal("unknown op", ",\"op\":" + q(one));
     ops.push_back(op);
   }
   return ops;
@@ -331,6 +332,10 @@ std::string runOp(const Op &op, double t0) {
     if (!pointOf(op.arg, x, y)) fatal("no point", ",\"name\":" + q(op.arg));
     gDoc->pClass->postMouseEvent(gDoc, LOK_MOUSEEVENT_MOUSEBUTTONDOWN, x, y, 1, 1, 0);
     gDoc->pClass->postMouseEvent(gDoc, LOK_MOUSEEVENT_MOUSEBUTTONUP, x, y, 1, 1, 0);
+  } else if (op.kind == 'R') {
+    long x, y;
+    if (!pointOf(op.arg, x, y)) fatal("no reset point", ",\"name\":" + q(op.arg));
+    gDoc->pClass->setTextSelection(gDoc, LOK_SETTEXTSELECTION_RESET, x, y);
   }
   const double tReturned = nowMs();
   const Sel s = readSel();
