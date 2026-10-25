@@ -36,7 +36,7 @@ button:disabled { opacity:.4; cursor:default; }
 #tab-strip { display:flex; gap:3px; padding:0 12px; min-height:37px; background:var(--wash); border-top:1px solid var(--line); overflow-x:auto; }
 .sheet-tab { padding:7px 17px; border-radius:0; white-space:nowrap; border-bottom:3px solid transparent; font-size:13px; }
 .sheet-tab[aria-selected="true"] { background:#fff; border-bottom-color:var(--accent); color:var(--accent); font-weight:650; }
-.statusbar { display:flex; align-items:center; gap:12px; min-height:30px; padding:4px 13px; border-top:1px solid var(--line); color:var(--muted); font-size:12px; background:#fff; }
+.calc-statusbar { display:flex; align-items:center; gap:12px; min-height:30px; padding:4px 13px; border-top:1px solid var(--line); color:var(--muted); font-size:12px; background:#fff; }
 #toast { margin-left:auto; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 #toast.error { color:#a52828; }
 @media(max-width:600px) { .formula-bar { gap:5px; padding:7px; } #cell-address { width:65px; } #toolbar { padding-left:7px; } }
@@ -62,6 +62,6 @@ button:disabled { opacity:.4; cursor:default; }
 <div id="empty"><strong>開啟試算表，開始編輯</strong><span>選取儲存格後，可連按兩下編輯或使用上方輸入欄。</span></div>
 </div>
 <div id="tab-strip" role="tablist" aria-label="工作表"></div>
-<div class="statusbar"><span id="state-pill" data-state="idle">尚未開啟</span><span id="selection-label"></span><span id="s-revision" hidden></span><span id="toast" role="status" aria-live="polite"></span></div>
+<div class="calc-statusbar"><span id="state-pill" data-state="idle">尚未開啟</span><span id="selection-label"></span><span id="s-revision" hidden></span><span id="toast" role="status" aria-live="polite"></span></div>
 <script type="module" src="./ods-editor-app.js"></script>
 </body></html>

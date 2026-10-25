@@ -120,7 +120,11 @@ async function openBytes(bytes,name,options={}) {
       engine.onEvent(event=>{onEvent(event);if(diagnostics && record.events.length<300)record.events.push(event);});
       return engine._initialize();
     },
-    formControlsSupported:()=>true,
+    formControlsSupported:async()=>{
+      const url=new URL("./sdk-manifest.json",new URL(ENGINE_OPTIONS.workerUrl,location.href));
+      const response=await fetch(url,{cache:"no-cache"});
+      return response.ok && (await response.json()).capabilities?.includes("form-controls")===true;
+    },
     onState:render,onTile:drawTile,
   });
   record.session=session;
