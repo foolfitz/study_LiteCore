@@ -1,0 +1,7 @@
+# W-D N1 preparation, remainder population
+
+The seven remainder cases were derived from `v23_wd_cases.PLANS` after validating the five clean `wd-prep-01` case reports (`d1`, `d2`, `d2p`, `d3`, `d4`). The remainder was `d5`, `d6`, `merge`, `d7i`, `d7ii`, `d7iii`, and `d7plain`. Each runner used the original native `.fodt` bytes, the matching `wd-CASE.odt` loader alias, profile `e2-editor-v23-diag-r2`, explicit WASM SHA-256 `683b7343bd02b432d4a1b0cea0af8c7542b6a0ad84885e8cc5755a4efdfce078`, both browsers, and one round.
+
+All seven cases completed with runner exit code 0 and two page records each. All 14 pages passed individual `judge_v23_wd.judge(page, case, expected, reference(case))` checks. The mechanical records also verify exact native fixture bytes, R2 profile/artifact identity, W-D source graph and mirror worker bytes, actual Chrome/Firefox user-agent, and unique page SHA-256 across the remainder. No CPU refusal or fatal payload occurred. The earlier `wd-prep-01/d5` CPU refusal had zero pages and was not reused; the fresh `wd-prep-02/d5` execution passed both browsers.
+
+Together with the five clean `wd-prep-01` cases, this completes all 12 cases at N1 (24 uncounted browser pages). These are preparation observations, not the final 120-cell W-D cohort; the final W-D reader was not run and remains NOT_ESTABLISHED. Per-case runner stdout/stderr, full reports, and mechanical audit JSON are preserved. Generated mirror trees are retained locally and excluded from Git by this directory's `.gitignore`.
