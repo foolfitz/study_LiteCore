@@ -1,0 +1,29 @@
+{
+  "commands": [
+    {
+      "argv": ["python3", "-I", "wasm_sdk_probe/tests/test_v23_wd_reader.py"],
+      "exit_code": 0,
+      "stdout": "......\n----------------------------------------------------------------------\nRan 6 tests in 0.197s\n\nOK\n",
+      "stderr": ""
+    },
+    {
+      "argv": ["node", "--check", "wasm_sdk_probe/web/v23-diagnostic-wd.js"],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": ["python3", "-I", "wasm_sdk_probe/tests/test_v23_diagnostic_reader.py"],
+      "exit_code": 0,
+      "stdout": "..........\n----------------------------------------------------------------------\nRan 10 tests in 0.002s\n\nOK\n",
+      "stderr": ""
+    },
+    {
+      "argv": ["python3", "-I", "wasm_sdk_probe/tools/check_v23_diagnostic_build.py", "--makefile", "wasm_sdk_probe/Makefile"],
+      "exit_code": 0,
+      "stdout": "preconditions hold\n",
+      "stderr": ""
+    }
+  ],
+  "scope_note": "No make command or build was run. These checks do not establish browser behavior."
+}
