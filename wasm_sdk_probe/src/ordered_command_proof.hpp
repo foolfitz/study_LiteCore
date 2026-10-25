@@ -5,6 +5,10 @@
 // either the requested proof or a typed refusal. There is no pending result
 // here: waiting longer would silently restore the retired deadline machinery.
 // The engine keeps the payloads and composes replies; callbacks only record.
+// Available means presence, not success: matching payload validation and the
+// 059 inline-format state exception remain the composer's responsibility.
+// errorCode is the editor UNO policy. Search/annotation SDK operations retain
+// their existing non-retry error codes; the engine adds the named failureShape.
 
 namespace probe {
 namespace orderedproof {

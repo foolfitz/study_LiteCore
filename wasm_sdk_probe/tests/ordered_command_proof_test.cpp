@@ -58,11 +58,15 @@ bool wholeFlush(bool oldComposer) {
   probe::poll::runOnePoll(engine, inPoll);
   if (!engine.replies.empty())
     return false;
+  // Keep proof availability identical on both paths, so the old composer's
+  // failure is reply timing/partial state, rather than a second missing-proof
+  // defect. The result callback is allowed to precede these two callbacks.
+  engine.resultPresent = true;
   engine.callback(true);
   engine.callback(false);
-  engine.resultPresent = true;
+  const bool callbacksDidNotReply = engine.replies.empty();
   probe::poll::runOnePoll(engine, inPoll);
-  return engine.replies.size() == 1 && engine.replies[0] == engine.cache &&
+  return callbacksDidNotReply && engine.replies.size() == 1 && engine.replies[0] == engine.cache &&
          engine.verdicts[0] == proof::Verdict::Available;
 }
 

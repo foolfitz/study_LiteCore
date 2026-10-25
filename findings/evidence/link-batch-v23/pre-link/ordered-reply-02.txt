@@ -1,0 +1,15 @@
+original: exit 0
+ordered command proof: 0 failures
+
+proof-absent-as-success: exit 1
+FAIL missing result refuses at first poll after dispatch
+ordered command proof: 1 failures
+
+dispatch-failure-as-success: exit 1
+FAIL dispatch failure refuses at first poll
+FAIL a stale proof cannot override dispatch failure
+ordered command proof: 2 failures
+
+wrong-unknown-code: exit 1
+FAIL unknown mutation code
+ordered command proof: 1 failures
