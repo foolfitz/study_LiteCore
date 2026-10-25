@@ -1,0 +1,41 @@
+{
+  "checks": [
+    {
+      "id": "owned-folder",
+      "ok": true,
+      "raw": 201
+    },
+    {
+      "id": "readonly-fixture",
+      "ok": true,
+      "raw": 201
+    }
+  ],
+  "runs": [
+    {
+      "browser": "chrome",
+      "kind": "readonly",
+      "browserClose": {}
+    }
+  ],
+  "cleanup": {
+    "ownedUnlocks": [],
+    "shareRemoved": true,
+    "userRemoved": true,
+    "folderDeleteStatus": 204
+  },
+  "ownedFolder": "M4-cell-host-20261025T101448",
+  "temporaryUser": "m4_cell_3788ef92",
+  "readonlyShare": {
+    "id": "365",
+    "permissions": 1
+  },
+  "failedEntry": {
+    "expected": "ods-viewer.html",
+    "location": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/d308e0cc58958d85-90d7bc2c/ods-editor.html?fileId=25035",
+    "body": "Skip to main content\nSkip to navigation of app\nSearch apps, files, tags, messages …\nAvatar of m4_cell_3788ef92 — Online\nNextcloud\n唯讀：只能檢視，不能修改或存檔。\nreadonly.ods\n✕\n儲存\nB\nI\nU\nfx\n×\n✓\n編輯測試\n另一張表\n保護測試\n唯讀\nA1\n此檔案目前以唯讀開啟。"
+  },
+  "error": "condition did not become true: location.pathname.endsWith(\"/ods-viewer.html\"); last False",
+  "traceback": "Traceback (most recent call last):\n  File \"/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/run_calc_editor_host.py\", line 253, in run\n    if self.kind in ('both','readonly'): self.readonly_round(browser)\n                                         ~~~~~~~~~~~~~~~~~~~^^^^^^^^^\n  File \"/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/run_calc_editor_host.py\", line 234, in readonly_round\n    run['entry']=self.open_file(session,self.folder+'/readonly.ods','ods-viewer.html',False)\n                 ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/run_calc_editor_host.py\", line 112, in open_file\n    wait(session,f'location.pathname.endsWith({json.dumps(\"/\"+page)})',30)\n    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/run_calc_editor_browser.py\", line 49, in wait\n    raise RuntimeError(f\"condition did not become true: {expression}; last {last}\")\nRuntimeError: condition did not become true: location.pathname.endsWith(\"/ods-viewer.html\"); last False\n",
+  "ok": false
+}

@@ -1,0 +1,815 @@
+{
+  "checks": [
+    {
+      "id": "owned-folder",
+      "ok": true,
+      "raw": 201
+    },
+    {
+      "id": "readonly-fixture",
+      "ok": true,
+      "raw": 201
+    },
+    {
+      "id": "chrome/upload-ods",
+      "ok": true,
+      "raw": "M4-cell-host-20261025T101140/chrome.ods"
+    },
+    {
+      "id": "chrome/upload-odt",
+      "ok": true,
+      "raw": "M4-cell-host-20261025T101140/chrome.odt"
+    },
+    {
+      "id": "chrome/files-writable-route",
+      "ok": true,
+      "raw": {
+        "from": "https://litecore.ddev.site:8443/apps/files/files?dir=/M4-cell-host-20261025T101140",
+        "landed": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/d308e0cc58958d85-90d7bc2c/ods-editor.html?fileId=24952"
+      }
+    },
+    {
+      "id": "chrome/real-lock",
+      "ok": true,
+      "raw": {
+        "status": 207,
+        "fileId": "24952",
+        "lock": "1"
+      }
+    },
+    {
+      "id": "chrome/lock-refuses-unrelated-write",
+      "ok": true,
+      "raw": 423
+    },
+    {
+      "id": "chrome/formula-before-save",
+      "ok": true,
+      "raw": {
+        "part": 0,
+        "column": 2,
+        "row": 0,
+        "endColumn": 2,
+        "endRow": 0,
+        "xTwips": 2715,
+        "yTwips": 0,
+        "widthTwips": 1694,
+        "heightTwips": 269,
+        "cellType": 3,
+        "formula": "=B1*5",
+        "input": "=B1*5",
+        "text": "85",
+        "writable": true,
+        "bold": false,
+        "boldAsian": false,
+        "boldComplex": false,
+        "italic": false,
+        "italicAsian": false,
+        "italicComplex": false,
+        "underline": false,
+        "value": 85
+      }
+    },
+    {
+      "id": "chrome/conditional-ods-put",
+      "ok": true,
+      "raw": [
+        {
+          "method": "PUT",
+          "url": "/remote.php/dav/files/admin/M4-cell-host-20261025T101140/chrome.ods",
+          "contentType": "application/vnd.oasis.opendocument.spreadsheet",
+          "ifMatch": "\"6add656858c62\"",
+          "ifNoneMatch": null,
+          "withToken": true,
+          "status": 204
+        }
+      ]
+    },
+    {
+      "id": "chrome/host-saved",
+      "ok": true,
+      "raw": [
+        {
+          "at": 4339,
+          "name": "chrome.ods",
+          "bytes": 12440,
+          "attempts": [
+            {
+              "waited": 0,
+              "check": {
+                "at": 4340,
+                "status": 200,
+                "etag": "\"6add656858c62\"",
+                "sha256": "7210d8a664a82fd660db06feb004cb52c8f7dd57b0a7f7461b7d416e89d756b2",
+                "ms": 28
+              },
+              "ifMatch": "\"6add656858c62\"",
+              "withToken": true,
+              "target": "original",
+              "at": 4368,
+              "respondedAt": 4421,
+              "status": 204
+            }
+          ],
+          "trigger": "manual",
+          "target": "original",
+          "sha256": "8561946f3bb93b61c3373bad16a07c3bfd5030111b3aa0be8e178ef7d9e43c1b",
+          "ifMatch": "\"6add656858c62\"",
+          "status": 204,
+          "etag": "\"a42dc886bf2291732c413063cf6ac175\"",
+          "outcome": "saved",
+          "settled": true
+        }
+      ]
+    },
+    {
+      "id": "chrome/server-xml-input",
+      "ok": true,
+      "raw": "Host inline chrome 中文"
+    },
+    {
+      "id": "chrome/server-xml-result",
+      "ok": true,
+      "raw": "85"
+    },
+    {
+      "id": "chrome/server-mimetype",
+      "ok": true,
+      "raw": "application/vnd.oasis.opendocument.spreadsheet"
+    },
+    {
+      "id": "chrome/leave-releases-own-lock",
+      "ok": true,
+      "raw": {
+        "status": 207,
+        "fileId": "24952",
+        "lock": ""
+      }
+    },
+    {
+      "id": "chrome/actual-host-reopen",
+      "ok": true,
+      "raw": {
+        "part": 0,
+        "column": 2,
+        "row": 0,
+        "endColumn": 2,
+        "endRow": 0,
+        "xTwips": 2715,
+        "yTwips": 0,
+        "widthTwips": 1694,
+        "heightTwips": 269,
+        "cellType": 3,
+        "formula": "=B1*5",
+        "input": "=B1*5",
+        "text": "85",
+        "writable": true,
+        "bold": false,
+        "boldAsian": false,
+        "boldComplex": false,
+        "italic": false,
+        "italicAsian": false,
+        "italicComplex": false,
+        "underline": false,
+        "value": 85
+      }
+    },
+    {
+      "id": "chrome/host-reopen-formats",
+      "ok": true,
+      "raw": {
+        "part": 0,
+        "column": 1,
+        "row": 1,
+        "endColumn": 1,
+        "endRow": 1,
+        "xTwips": 1695,
+        "yTwips": 270,
+        "widthTwips": 1019,
+        "heightTwips": 554,
+        "cellType": 2,
+        "formula": "格式測試",
+        "input": "格式測試",
+        "text": "格式測試",
+        "writable": true,
+        "bold": true,
+        "boldAsian": true,
+        "boldComplex": true,
+        "italic": true,
+        "italicAsian": true,
+        "italicComplex": true,
+        "underline": true,
+        "value": 0
+      }
+    },
+    {
+      "id": "chrome/external-owned-write",
+      "ok": true,
+      "raw": 204
+    },
+    {
+      "id": "chrome/ods-conflict-copy",
+      "ok": true,
+      "raw": {
+        "name": "chrome（衝突副本 2026-10-25 101203）.ods",
+        "url": "/remote.php/dav/files/admin/M4-cell-host-20261025T101140/chrome%EF%BC%88%E8%A1%9D%E7%AA%81%E5%89%AF%E6%9C%AC%202026-10-25%20101203%EF%BC%89.ods",
+        "status": 201,
+        "etag": "\"dc89712fa5e58b4b97219c7ffc593768\"",
+        "respondedAt": 3119
+      }
+    },
+    {
+      "id": "chrome/conflict-preserves-original",
+      "ok": true,
+      "raw": {
+        "status": 200,
+        "sha256": "7210d8a664a82fd660db06feb004cb52c8f7dd57b0a7f7461b7d416e89d756b2"
+      }
+    },
+    {
+      "id": "chrome/conflict-preserves-local-input",
+      "ok": true,
+      "raw": {
+        "status": 200,
+        "cell": "Conflict local chrome",
+        "contentType": "application/vnd.oasis.opendocument.spreadsheet"
+      }
+    },
+    {
+      "id": "chrome/copy-ods-mimetype",
+      "ok": true,
+      "raw": "application/vnd.oasis.opendocument.spreadsheet"
+    },
+    {
+      "id": "chrome/copy-success-clears-dirty",
+      "ok": true,
+      "raw": {
+        "state": "ready",
+        "evidenceClass": "unbound",
+        "adapterFallbacks": [],
+        "fileName": "chrome.ods",
+        "openName": "chrome.ods",
+        "nameSpoofed": false,
+        "packageProbe": {
+          "readable": true,
+          "encrypted": false,
+          "formControls": false,
+          "reason": null
+        },
+        "packageProbeMs": 1,
+        "formControlsDrawable": null,
+        "engineRequested": true,
+        "documentType": "spreadsheet",
+        "documentTypeKnown": true,
+        "parts": 3,
+        "partNames": [
+          "編輯測試",
+          "另一張表",
+          "保護測試"
+        ],
+        "namesFromEngine": true,
+        "partNamesProblem": null,
+        "canSwitchParts": true,
+        "partVisible": [
+          true,
+          true,
+          true
+        ],
+        "partVisibilityProblem": null,
+        "currentPart": 0,
+        "currentPartReadBack": 0,
+        "tabs": [
+          {
+            "index": 0,
+            "label": "編輯測試",
+            "current": true,
+            "hidden": false,
+            "enabled": true,
+            "disabledReason": null
+          },
+          {
+            "index": 1,
+            "label": "另一張表",
+            "current": false,
+            "hidden": false,
+            "enabled": true,
+            "disabledReason": null
+          },
+          {
+            "index": 2,
+            "label": "保護測試",
+            "current": false,
+            "hidden": false,
+            "enabled": true,
+            "disabledReason": null
+          }
+        ],
+        "widthTwips": 26505,
+        "heightTwips": 13080,
+        "lastRefusal": null,
+        "tileErrors": 0,
+        "lastTileError": null,
+        "error": {
+          "code": "CONFLICT",
+          "message": "檔案在你開啟之後已被別處修改或移走，沒有覆寫。你的內容另存為「chrome（衝突副本 2026-10-25 101203）.ods」。"
+        },
+        "cell": {
+          "part": 0,
+          "column": 0,
+          "row": 0,
+          "endColumn": 0,
+          "endRow": 0,
+          "xTwips": 0,
+          "yTwips": 0,
+          "widthTwips": 1694,
+          "heightTwips": 269,
+          "cellType": 2,
+          "formula": "Conflict local chrome",
+          "input": "Conflict local chrome",
+          "text": "Conflict local chrome",
+          "writable": true,
+          "bold": false,
+          "boldAsian": false,
+          "boldComplex": false,
+          "italic": false,
+          "italicAsian": false,
+          "italicComplex": false,
+          "underline": false,
+          "value": 0
+        },
+        "draft": "Conflict local chrome",
+        "editing": null,
+        "readOnly": false,
+        "busy": false,
+        "saving": false,
+        "revision": 1,
+        "dirty": false,
+        "uncertain": false
+      }
+    },
+    {
+      "id": "chrome/later-save-targets-same-copy",
+      "ok": true,
+      "raw": {
+        "at": 4144,
+        "name": "chrome.ods",
+        "bytes": 12498,
+        "attempts": [
+          {
+            "waited": 78,
+            "check": {
+              "at": 4222,
+              "status": 200,
+              "etag": "\"dc89712fa5e58b4b97219c7ffc593768\"",
+              "sha256": "f0f7a49032212460cd2cfebee0fecc02591894f1177d8ffbfccb8ed1fd604ccb",
+              "ms": 26
+            },
+            "ifMatch": "\"dc89712fa5e58b4b97219c7ffc593768\"",
+            "withToken": false,
+            "target": "chrome（衝突副本 2026-10-25 101203）.ods",
+            "at": 4248,
+            "respondedAt": 4304,
+            "status": 204
+          }
+        ],
+        "trigger": "manual",
+        "target": "chrome（衝突副本 2026-10-25 101203）.ods",
+        "sha256": "0ccbe8bc8aa322512af733e18e6f8157c7afa83ab47cb2b1432ae3d6496e021c",
+        "ifMatch": "\"dc89712fa5e58b4b97219c7ffc593768\"",
+        "status": 204,
+        "etag": "\"29a3bc1b9477c4710b3fb5c59c9fd9a1\"",
+        "outcome": "saved",
+        "settled": true
+      }
+    },
+    {
+      "id": "chrome/later-save-preserves-external-original",
+      "ok": true,
+      "raw": "7210d8a664a82fd660db06feb004cb52c8f7dd57b0a7f7461b7d416e89d756b2"
+    },
+    {
+      "id": "chrome/writer-still-opens-saves",
+      "ok": true,
+      "raw": {
+        "status": 200,
+        "sha256": "4be88dd0e823bef00050e30c57665e12bf9f473f4790e17d0b3f1b52eff0b157",
+        "host": {
+          "started": 1792894329456,
+          "done": true,
+          "steps": [
+            {
+              "step": "imported",
+              "at": 260
+            },
+            {
+              "step": "fetched",
+              "at": 327
+            },
+            {
+              "step": "opened",
+              "at": 1862,
+              "state": {
+                "state": "ready",
+                "doc": "chrome.odt",
+                "revision": "0",
+                "toast": null
+              }
+            }
+          ],
+          "saves": [
+            {
+              "at": 2353,
+              "name": "chrome.odt",
+              "bytes": 10072,
+              "attempts": [
+                {
+                  "waited": 0,
+                  "check": {
+                    "at": 2353,
+                    "status": 200,
+                    "etag": "\"6add6579b398f\"",
+                    "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+                    "ms": 24
+                  },
+                  "ifMatch": "\"6add6579b398f\"",
+                  "withToken": true,
+                  "target": "original",
+                  "at": 2377,
+                  "respondedAt": 2438,
+                  "status": 204
+                }
+              ],
+              "trigger": "manual",
+              "target": "original",
+              "sha256": "4be88dd0e823bef00050e30c57665e12bf9f473f4790e17d0b3f1b52eff0b157",
+              "ifMatch": "\"6add6579b398f\"",
+              "status": 204,
+              "etag": "\"646b5874d3de8525bb35f81c9cb8697d\"",
+              "outcome": "saved",
+              "settled": true
+            }
+          ],
+          "lock": {
+            "state": "held",
+            "status": 200,
+            "at": 283,
+            "refreshes": [],
+            "verified": true
+          },
+          "stranded": null,
+          "notice": "",
+          "scope": "scoped",
+          "file": {
+            "id": 24953,
+            "name": "chrome.odt",
+            "size": 1343,
+            "etag": "881b012f04e8b8bc7c2f6f0dc3277b54",
+            "writable": true
+          },
+          "isolation": {
+            "crossOriginIsolated": true,
+            "sharedArrayBuffer": true
+          },
+          "href": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/d308e0cc58958d85-90d7bc2c/e2-editor.html?fileId=24953",
+          "watchingPage": true,
+          "fetched": {
+            "status": 200,
+            "contentType": "application/vnd.oasis.opendocument.text",
+            "etag": "\"6add6579b398f\"",
+            "bytes": 1343,
+            "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+            "at": 327
+          },
+          "handedReadOnly": false,
+          "finished": 1862,
+          "lastSaved": {
+            "at": 2438,
+            "trigger": "manual",
+            "target": "original"
+          }
+        }
+      }
+    }
+  ],
+  "runs": [
+    {
+      "browser": "chrome",
+      "entry": {
+        "from": "https://litecore.ddev.site:8443/apps/files/files?dir=/M4-cell-host-20261025T101140",
+        "landed": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/d308e0cc58958d85-90d7bc2c/ods-editor.html?fileId=24952"
+      },
+      "openedHost": {
+        "started": 1792894312081,
+        "done": true,
+        "steps": [
+          {
+            "step": "imported",
+            "at": 263
+          },
+          {
+            "step": "fetched",
+            "at": 331
+          },
+          {
+            "step": "opened",
+            "at": 2265,
+            "state": {
+              "state": "ready",
+              "doc": "chrome.ods",
+              "revision": "0",
+              "toast": "連按兩下儲存格編輯，或使用上方輸入欄。"
+            }
+          }
+        ],
+        "saves": [],
+        "lock": {
+          "state": "held",
+          "status": 200,
+          "at": 286,
+          "refreshes": [],
+          "verified": true
+        },
+        "stranded": null,
+        "notice": "",
+        "scope": "scoped",
+        "file": {
+          "id": 24952,
+          "name": "chrome.ods",
+          "size": 4267,
+          "etag": "3a3231ef2e26e7f8462778718d5128e0",
+          "writable": true
+        },
+        "isolation": {
+          "crossOriginIsolated": true,
+          "sharedArrayBuffer": true
+        },
+        "href": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/d308e0cc58958d85-90d7bc2c/ods-editor.html?fileId=24952",
+        "watchingPage": true,
+        "fetched": {
+          "status": 200,
+          "contentType": "application/vnd.oasis.opendocument.spreadsheet",
+          "etag": "\"6add656858c62\"",
+          "bytes": 4267,
+          "sha256": "7210d8a664a82fd660db06feb004cb52c8f7dd57b0a7f7461b7d416e89d756b2",
+          "at": 331
+        },
+        "handedReadOnly": false,
+        "finished": 2265
+      },
+      "savedHost": {
+        "started": 1792894312081,
+        "done": true,
+        "steps": [
+          {
+            "step": "imported",
+            "at": 263
+          },
+          {
+            "step": "fetched",
+            "at": 331
+          },
+          {
+            "step": "opened",
+            "at": 2265,
+            "state": {
+              "state": "ready",
+              "doc": "chrome.ods",
+              "revision": "0",
+              "toast": "連按兩下儲存格編輯，或使用上方輸入欄。"
+            }
+          }
+        ],
+        "saves": [
+          {
+            "at": 4339,
+            "name": "chrome.ods",
+            "bytes": 12440,
+            "attempts": [
+              {
+                "waited": 0,
+                "check": {
+                  "at": 4340,
+                  "status": 200,
+                  "etag": "\"6add656858c62\"",
+                  "sha256": "7210d8a664a82fd660db06feb004cb52c8f7dd57b0a7f7461b7d416e89d756b2",
+                  "ms": 28
+                },
+                "ifMatch": "\"6add656858c62\"",
+                "withToken": true,
+                "target": "original",
+                "at": 4368,
+                "respondedAt": 4421,
+                "status": 204
+              }
+            ],
+            "trigger": "manual",
+            "target": "original",
+            "sha256": "8561946f3bb93b61c3373bad16a07c3bfd5030111b3aa0be8e178ef7d9e43c1b",
+            "ifMatch": "\"6add656858c62\"",
+            "status": 204,
+            "etag": "\"a42dc886bf2291732c413063cf6ac175\"",
+            "outcome": "saved",
+            "settled": true
+          }
+        ],
+        "lock": {
+          "state": "held",
+          "status": 200,
+          "at": 286,
+          "refreshes": [],
+          "verified": true
+        },
+        "stranded": null,
+        "notice": "",
+        "scope": "scoped",
+        "file": {
+          "id": 24952,
+          "name": "chrome.ods",
+          "size": 4267,
+          "etag": "3a3231ef2e26e7f8462778718d5128e0",
+          "writable": true
+        },
+        "isolation": {
+          "crossOriginIsolated": true,
+          "sharedArrayBuffer": true
+        },
+        "href": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/d308e0cc58958d85-90d7bc2c/ods-editor.html?fileId=24952",
+        "watchingPage": true,
+        "fetched": {
+          "status": 200,
+          "contentType": "application/vnd.oasis.opendocument.spreadsheet",
+          "etag": "\"6add656858c62\"",
+          "bytes": 4267,
+          "sha256": "7210d8a664a82fd660db06feb004cb52c8f7dd57b0a7f7461b7d416e89d756b2",
+          "at": 331
+        },
+        "handedReadOnly": false,
+        "finished": 2265,
+        "lastSaved": {
+          "at": 4421,
+          "trigger": "manual",
+          "target": "original"
+        }
+      },
+      "requests": [
+        {
+          "method": "PUT",
+          "url": "/remote.php/dav/files/admin/M4-cell-host-20261025T101140/chrome.ods",
+          "contentType": "application/vnd.oasis.opendocument.spreadsheet",
+          "ifMatch": "\"6add656858c62\"",
+          "ifNoneMatch": null,
+          "withToken": true,
+          "status": 204
+        }
+      ],
+      "serverSaved": {
+        "status": 200,
+        "sha256": "8561946f3bb93b61c3373bad16a07c3bfd5030111b3aa0be8e178ef7d9e43c1b",
+        "contentType": "application/vnd.oasis.opendocument.spreadsheet"
+      },
+      "reentry": {
+        "from": "https://litecore.ddev.site:8443/apps/files/files?dir=/M4-cell-host-20261025T101140",
+        "landed": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/d308e0cc58958d85-90d7bc2c/ods-editor.html?fileId=24952"
+      },
+      "conflictHost": {
+        "started": 1792894320657,
+        "done": true,
+        "steps": [
+          {
+            "step": "imported",
+            "at": 247
+          },
+          {
+            "step": "fetched",
+            "at": 312
+          },
+          {
+            "step": "opened",
+            "at": 1648,
+            "state": {
+              "state": "ready",
+              "doc": "chrome.ods",
+              "revision": "0",
+              "toast": "連按兩下儲存格編輯，或使用上方輸入欄。"
+            }
+          }
+        ],
+        "saves": [
+          {
+            "at": 3011,
+            "name": "chrome.ods",
+            "bytes": 12506,
+            "attempts": [
+              {
+                "waited": 0,
+                "check": {
+                  "at": 3011,
+                  "status": 200,
+                  "etag": "\"7377827c6c10ed4e6c50064f783ab1e5\"",
+                  "sha256": "7210d8a664a82fd660db06feb004cb52c8f7dd57b0a7f7461b7d416e89d756b2",
+                  "ms": 23
+                },
+                "ifMatch": "\"6add6570e171b\"",
+                "withToken": true,
+                "target": "original",
+                "at": 3034,
+                "respondedAt": 3054,
+                "status": 412
+              }
+            ],
+            "trigger": "manual",
+            "target": "chrome（衝突副本 2026-10-25 101203）.ods",
+            "sha256": "f0f7a49032212460cd2cfebee0fecc02591894f1177d8ffbfccb8ed1fd604ccb",
+            "ifMatch": "\"6add6570e171b\"",
+            "tokenOnServer": true,
+            "status": 412,
+            "responseEtag": "\"7377827c6c10ed4e6c50064f783ab1e5\"",
+            "conflictCopy": {
+              "name": "chrome（衝突副本 2026-10-25 101203）.ods",
+              "url": "/remote.php/dav/files/admin/M4-cell-host-20261025T101140/chrome%EF%BC%88%E8%A1%9D%E7%AA%81%E5%89%AF%E6%9C%AC%202026-10-25%20101203%EF%BC%89.ods",
+              "status": 201,
+              "etag": "\"dc89712fa5e58b4b97219c7ffc593768\"",
+              "respondedAt": 3119
+            },
+            "outcome": "copy",
+            "settled": true
+          }
+        ],
+        "lock": {
+          "state": "held",
+          "status": 200,
+          "at": 270,
+          "refreshes": [],
+          "verified": true
+        },
+        "stranded": null,
+        "notice": "檔案在你開啟之後已被別處修改或移走，沒有覆寫。你的內容存在「chrome（衝突副本 2026-10-25 101203）.ods」，之後的存檔都會存到這份。",
+        "scope": "scoped",
+        "file": {
+          "id": 24952,
+          "name": "chrome.ods",
+          "size": 12440,
+          "etag": "6add656ce3a76",
+          "writable": true
+        },
+        "isolation": {
+          "crossOriginIsolated": true,
+          "sharedArrayBuffer": true
+        },
+        "href": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/d308e0cc58958d85-90d7bc2c/ods-editor.html?fileId=24952",
+        "watchingPage": true,
+        "fetched": {
+          "status": 200,
+          "contentType": "application/vnd.oasis.opendocument.spreadsheet",
+          "etag": "\"6add6570e171b\"",
+          "bytes": 12440,
+          "sha256": "8561946f3bb93b61c3373bad16a07c3bfd5030111b3aa0be8e178ef7d9e43c1b",
+          "at": 312
+        },
+        "handedReadOnly": false,
+        "finished": 1648,
+        "lastSaved": {
+          "at": 3119,
+          "trigger": "manual",
+          "target": "chrome（衝突副本 2026-10-25 101203）.ods"
+        }
+      },
+      "conflictRelease": {
+        "status": 207,
+        "fileId": "24952",
+        "lock": ""
+      },
+      "writerEntry": {
+        "from": "https://litecore.ddev.site:8443/apps/files/files?dir=/M4-cell-host-20261025T101140",
+        "landed": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/d308e0cc58958d85-90d7bc2c/e2-editor.html?fileId=24953"
+      },
+      "writerRelease": {
+        "status": 207,
+        "fileId": "24953",
+        "lock": ""
+      },
+      "screenshot": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/host-0.2.34/host-write-03/chrome-host.png",
+      "browserClose": {}
+    },
+    {
+      "browser": "chrome",
+      "kind": "readonly",
+      "browserClose": {}
+    }
+  ],
+  "cleanup": {
+    "ownedUnlocks": [],
+    "shareRemoved": true,
+    "userRemoved": true,
+    "folderDeleteStatus": 204
+  },
+  "ownedFolder": "M4-cell-host-20261025T101140",
+  "temporaryUser": "m4_cell_afc02d52",
+  "readonlyShare": {
+    "id": "364",
+    "permissions": 1
+  },
+  "error": "condition did not become true: location.pathname.endsWith(\"/ods-viewer.html\"); last False",
+  "traceback": "Traceback (most recent call last):\n  File \"/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/run_calc_editor_host.py\", line 246, in run\n    self.admin_round(browser);self.readonly_round(browser)\n                              ~~~~~~~~~~~~~~~~~~~^^^^^^^^^\n  File \"/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/run_calc_editor_host.py\", line 228, in readonly_round\n    run['entry']=self.open_file(session,self.folder+'/readonly.ods','ods-viewer.html',False)\n                 ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/run_calc_editor_host.py\", line 110, in open_file\n    wait(session,f'location.pathname.endsWith({json.dumps(\"/\"+page)})',90)\n    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/run_calc_editor_browser.py\", line 49, in wait\n    raise RuntimeError(f\"condition did not become true: {expression}; last {last}\")\nRuntimeError: condition did not become true: location.pathname.endsWith(\"/ods-viewer.html\"); last False\n",
+  "ok": false
+}

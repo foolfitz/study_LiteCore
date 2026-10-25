@@ -49,7 +49,8 @@ OBSERVE = '''(() => {
 })();'''
 
 class Harness:
-    def __init__(self,out):
+    def __init__(self,out,browsers=('chrome','firefox'),kind='both'):
+        self.browsers=browsers;self.kind=kind
         self.out=out; self.instance=Instance(DEFAULT_DDEV)
         self.report={'checks':[], 'runs':[], 'cleanup':{}}
         self.folder='M4-cell-host-'+time.strftime('%Y%m%dT%H%M%S')
@@ -107,7 +108,12 @@ class Harness:
         selector=f'[data-cy-files-list-row-name={json.dumps(leaf)}] [data-cy-files-list-row-name-link]'
         wait(session,f'Boolean(document.querySelector({json.dumps(selector)}))',60)
         before=evaluate(session,'location.href'); session.click(selector)
-        wait(session,f'location.pathname.endsWith({json.dumps("/"+page)})',90)
+        try:
+            wait(session,f'location.pathname.endsWith({json.dumps("/"+page)})',30)
+        except Exception:
+            self.report['failedEntry']={'expected':page,'location':evaluate(session,'location.href'),'body':evaluate(session,'document.body.innerText.slice(0,12000)')}
+            (self.out/'entry-failed.png').write_bytes(session.screenshot())
+            raise
         return {'from':before,'landed':evaluate(session,'location.href')}
 
     def ready_calc(self,session):
@@ -242,8 +248,9 @@ class Harness:
             code,_,_=self.dav('PUT',name,self.fixture.read_bytes(),{'Content-Type':ODS});self.check('readonly-fixture',code in (200,201,204),code)
             share=self.ocs('POST','apps/files_sharing/api/v1/shares',{'path':'/'+name,'shareType':0,'shareWith':self.user,'permissions':1})
             self.share=share['id'];self.report['readonlyShare']={'id':self.share,'permissions':share['permissions']}
-            for browser in ('chrome','firefox'):
-                self.admin_round(browser);self.readonly_round(browser)
+            for browser in self.browsers:
+                if self.kind in ('both','admin'): self.admin_round(browser)
+                if self.kind in ('both','readonly'): self.readonly_round(browser)
         except Exception as error:
             self.report['error']=str(error);self.report['traceback']=traceback.format_exc()
         finally:
@@ -270,6 +277,6 @@ class Harness:
         return self.report['ok']
 
 if __name__=='__main__':
-    p=argparse.ArgumentParser();p.add_argument('--out',required=True,type=Path);args=p.parse_args();args.out.mkdir(parents=True,exist_ok=False)
+    p=argparse.ArgumentParser();p.add_argument('--out',required=True,type=Path);p.add_argument('--browsers',nargs='+',choices=['chrome','firefox'],default=['chrome','firefox']);p.add_argument('--kind',choices=['both','admin','readonly'],default='both');args=p.parse_args();args.out.mkdir(parents=True,exist_ok=False)
     with browser_lock('run_calc_editor_host'):
-        raise SystemExit(0 if Harness(args.out.resolve()).run() else 1)
+        raise SystemExit(0 if Harness(args.out.resolve(),args.browsers,args.kind).run() else 1)
