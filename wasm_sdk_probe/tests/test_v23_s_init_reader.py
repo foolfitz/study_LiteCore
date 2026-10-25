@@ -164,6 +164,26 @@ class SInitReader(unittest.TestCase):
             next(r for r in page['responses'] if r['message']['requestId']==req['message']['requestId'])['message']['result']['buffer']=binary(data)
         result=reader.judge(cells,self.config)
         self.assertEqual(result['verdict'],'PASS',result)
+    def test_observed_opaque_default_and_nondefault_opacity(self):
+        evidence=Path(__file__).resolve().parents[2]/'findings/evidence/link-batch-v23/post-link/r2-attempt-01/s-init-prep-02'
+        opacity='{urn:org:documentfoundation:names:experimental:office:xmlns:loext:1.0}opacity'
+        for profile in PROFILES:
+            record=json.loads((evidence/f'chrome-r1-direct-load-reopen-{profile}.json').read_text())
+            obs=record['page']['observations'][0]
+            original=reader.decode(obs['saved']['base64']); reopened=reader.decode(obs['reopened']['base64'])
+            self.assertEqual(reader.semantic(original),reader.semantic(reopened),profile)
+            changed=io.BytesIO(); edits=0
+            with zipfile.ZipFile(io.BytesIO(reopened)) as source, zipfile.ZipFile(changed,'w') as dest:
+                for name in source.namelist():
+                    data=source.read(name)
+                    if name.endswith('.xml'):
+                        root=ET.fromstring(data)
+                        for element in root.iter():
+                            if element.get(opacity)=='100%': element.set(opacity,'50%'); edits+=1
+                        data=ET.tostring(root)
+                    dest.writestr(name,data)
+            self.assertGreater(edits,0)
+            self.assertNotEqual(reader.semantic(original),reader.semantic(changed.getvalue()),profile)
     def test_real_mirror_covers_transitive_import_graph(self):
         from v23_s_init_cases import instrument_identity, served_sources
         from run_v23_s_init import mirror

@@ -53,6 +53,11 @@ def semantic(data):
         # Writer's SvxHyphenZoneItem::CreateDefault is false (paraitem.cxx).
         # Export may omit an explicit false; normalize that effective default.
         out = {q('style', 'text-properties') + '/' + q('fo', 'hyphenate'): 'false'} if family == 'paragraph' else {}
+        if family == 'paragraph':
+            # SvxColorItem defaults to opaque COL_BLACK; CharTransparence is
+            # exported as 100-transparency. A second Writer save may make this
+            # effective default explicit. Nondefault opacity still overrides it.
+            out[q('style', 'text-properties') + '/{urn:org:documentfoundation:names:experimental:office:xmlns:loext:1.0}opacity'] = '100%'
         out.update(own(defaults.get(family)))
         if item is not None:
             parent = item.get(q('style', 'parent-style-name'))
