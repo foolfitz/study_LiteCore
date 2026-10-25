@@ -39,6 +39,8 @@ def exercise(session,out,run):
     def bytes_file(label):
         encoded=evaluate(session,'btoa(Array.from(new Uint8Array(window.__autoHost.bytes),v=>String.fromCharCode(v)).join(""))')
         file=out/(run['browser']+'-'+str(run['repeat'])+'-'+label+'.ods');file.write_bytes(base64.b64decode(encoded));return file
+    focused=evaluate(session,'(()=>{const n=document.querySelector("#cell-address");n.focus();n.value="B2";window.__calcEditor.session._emit();return {value:n.value,focus:document.activeElement.id};})()')
+    check('focused-address-keeps-input',focused['value']=='B2' and focused['focus']=='cell-address',focused)
     select(session,'B2');flush();check('clean-no-save',len(auto())==0,auto())
     insert(session,'Unconfirmed draft');flush()
     check('draft-never-forced',len(auto())==0 and state()['editing']=='inline' and state()['draft']=='Unconfirmed draft',state())

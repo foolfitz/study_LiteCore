@@ -85,7 +85,7 @@ function render(state) {
   ui["cell-editor"].classList.toggle("grid-input",state.editing!=="inline");
   if(state.cell) {
     const address=cellAddress(state.cell.column,state.cell.row);
-    ui["cell-address"].value=address;
+    if(document.activeElement!==ui["cell-address"])ui["cell-address"].value=address;
     const range=state.selection;
     ui["selection-label"].textContent=range?.multiple
       ? `${cellAddress(range.column,range.row)}:${cellAddress(range.endColumn,range.endRow)} · 作用中 ${address}${state.rangeFormattingSupported ? "" : "（範圍格式尚未支援）"}` : address;
@@ -340,6 +340,10 @@ for(const node of [ui["formula-input"],ui["cell-editor"]]) {
 ui["formula-input"].addEventListener("focus",()=>{
   if(pendingEntry){focusGrid();return;}
   void action(()=>session.beginEdit("formula"));
+});
+ui["cell-address"].addEventListener("blur",()=>{
+  const cell=session?.state.cell;
+  if(cell)ui["cell-address"].value=cellAddress(cell.column,cell.row);
 });
 ui["cell-address"].addEventListener("keydown",event=>{
   if(event.key!=="Enter")return;event.preventDefault();
