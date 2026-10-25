@@ -147,3 +147,11 @@ Calc 仍 manual only，沒有新增 autosave；先前可選範圍問題未獲追
 合併政策是**地址矩形**：端點依 engine snapshot 的 merged origin／endColumn／endRow 正規化，矩形含端點 merged extent，其他交界合併格不連鎖擴張。視覺包絡使用兩端真實 cursor twips；不宣稱 Calc 的完整 merge closure，未來範圍寫入必須另立契約。隱藏索引仍在地址矩形內但不捏造面積；導覽用 focus 邊緣外的 hitCell 找可見格，不逐一掃隱藏索引。幾何拒絕／越界時保留選取並提示。每次移動／延伸最多一次 readCell 或 hitCell，與面積無關；不可由被讀取操作改動的 engine cursor 推導寫入目標。
 
 **R-select**（工具封閉枚舉）：新 runner 自 fixture case manifest 產生四向 mouse／Shift、縮回、Shift-click、普通方向收合、變寬高、merged endpoints／interior boundary、連續 hidden rows／columns、跨 sheet、取消及延遲反向操作；Chrome／Firefox 各 N＝3。每份報告記完整 case id 集合、selection/active 與 overlay twips 對照 engine endpoints，並量 SDK call count；多格每種格式的所有入口拒絕且 revision／原內容／鄰格／別表不變。session 測試另包含巨大地址矩形與延遲回覆，空 case／缺 case 的 reader 必須紅。先留下未實作的真實 mouse／Shift 紅案；第三筆成立後封閉。沒做／失敗：區域選取未成立、不升宿主候選。I-entry／R-select 皆成立後才打包並跑雙瀏覽器實際 Files 的新路徑／手動存回／正常釋放自有鎖，保留原專案狀態與既有 24674 鎖；K 不啟動。
+
+## 15. 選格等待與可見性紅案逼出的補充（2026-10-25，只追加）
+
+Astra 覆核指出 selection busy 會停用唯一接收器；`pending-entry-red` 已以 600 ms hit 回覆延遲重現點格後第一筆文字遺失。`pending-entry-green-01` 的 Chrome 又揭露暫存草稿過早交給 session：pointer pump 隨後提交它，未按 Enter 就改模型。兩個失敗原樣保留。故輸入意圖須等待該手勢的端點佇列完整結束，再建立新目標的 replacement／F2 草稿；期間同一 textarea 持續接收文字／組字，不可改投舊格或被 render 清除。Enter 排在輸入後、Escape 清除暫存且不寫；選格失敗／取消則保留未寫文字並提示取消。暫存輸入未處理完時的新選格／切表／位址跳轉以等待提示拒絕，不讓它換寫入目標。儲存先等選格、接回草稿再提交；換檔沿未存確認，明確捨棄才清掉暫存。
+
+方向鍵須以 engine focus 幾何最小幅度捲動使其可見；開始編輯則顯示 active anchor。手動捲動重新定位 idle sink。繪圖在途的新 viewport 要補畫最新需求；不改共享 scheduler。手勢捕獲其 owner session，起點失敗不得從舊 anchor 擴選，pointerup 採最後有效座標，取消釋放 capture，換檔前取消舊手勢。上／左邊界的普通方向鍵收合到 focus，Shift 則不動。
+
+上述均是 §13／14 的先前語意尚未被完整守住，新增固定的等待文字＋Enter／F2／F2 後文字／IME／Escape／再選格、鍵盤可見性與手勢生命週期案例，從 fixture manifest 讀母體，未測則未成立。本節先於可算入的新 N＝3；先前單輪 attempt 皆屬開發觀察，不挪作完成計數。沒有重設已封閉的 165／既有 cell 驗收，也不新增人工閘門。
