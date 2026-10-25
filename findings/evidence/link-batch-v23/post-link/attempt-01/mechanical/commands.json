@@ -1,0 +1,43 @@
+{
+  "commands": [
+    {
+      "argv": [
+        "python3",
+        "-I",
+        "wasm_sdk_probe/tools/check_v23_diagnostic_build.py",
+        "--build-log",
+        "wasm_sdk_probe/build/link-v23-diagnostic-01.log",
+        "--wasm",
+        "wasm_sdk_probe/build/e2/editor-v23-diag/probe.wasm"
+      ],
+      "exit_code": 2,
+      "stdout": "",
+      "stderr": "usage: check_v23_diagnostic_build.py [-h] (--makefile MAKEFILE |\n                                     --build-log BUILD_LOG | --wasm WASM |\n                                     --feature-build-log FEATURE_BUILD_LOG |\n                                     --self-test)\n                                     [--feature-build-dir FEATURE_BUILD_DIR]\ncheck_v23_diagnostic_build.py: error: argument --wasm: not allowed with argument --build-log\n"
+    },
+    {
+      "argv": [
+        "python3",
+        "-I",
+        "wasm_sdk_probe/tools/check_v23_diagnostic_build.py",
+        "--build-log",
+        "wasm_sdk_probe/build/link-v23-diagnostic-01.log"
+      ],
+      "exit_code": 0,
+      "stdout": "preconditions hold\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "python3",
+        "-I",
+        "wasm_sdk_probe/tools/check_v23_diagnostic_build.py",
+        "--wasm",
+        "wasm_sdk_probe/build/e2/editor-v23-diag/probe.wasm"
+      ],
+      "exit_code": 0,
+      "stdout": "preconditions hold\n",
+      "stderr": ""
+    }
+  ],
+  "note": "The checker CLI defines --build-log and --wasm as mutually exclusive modes. The combined invocation was rejected; both supported modes were then run separately."
+}
