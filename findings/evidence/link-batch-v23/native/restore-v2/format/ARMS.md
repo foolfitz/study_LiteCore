@@ -52,3 +52,7 @@ python3 findings/evidence/link-batch-v23/native/restore-v2/format/read_format.py
 ```
 
 Use the exact native installation pinned by the combined runbook; the placeholder above is not an instruction to substitute a different core. The reader's own pre-execution rejection controls are available with `read_format.py --self-test`; they are synthetic, not native results.
+
+## Installation binding clarified before execution
+
+The installation placeholder in the reproduction command above is bound to the same path as `handoff/RUNBOOK-v23-reset-native-preparation.md`: `/home/jiajun/LibreOffice/study_LiteCore/native-lok-26-8/build/instdir/program`. This clarification supplies the concrete existing installation; it does not change any arm, candidate, acceptance condition, or count.
