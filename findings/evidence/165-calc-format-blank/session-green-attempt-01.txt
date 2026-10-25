@@ -1,0 +1,36 @@
+✔ cancelled drafts never enter the engine (2.30594ms)
+✔ changing cells commits the captured original cell before hit testing (1.043963ms)
+✔ readonly prevents drafts, formatting and exports (0.620775ms)
+✔ failed host save keeps edits dirty and a retry can save them (3.488019ms)
+✔ new typing during a host save remains an unsaved draft (0.50505ms)
+✔ stale revision keeps the draft and does not start a following sheet switch (0.3118ms)
+✔ formatting commits the shared draft first and updates tile revision (0.267308ms)
+✔ oversized drafts refuse without changing the existing draft (0.163434ms)
+✔ selecting a protected cell does not prevent saving earlier edits (0.334803ms)
+✔ IME Enter and keyCode 229 never submit; Escape and ordinary Enter do (0.142254ms)
+✔ actual host copy outcome marks the exported revision saved while preserving the notice (0.289018ms)
+✔ a stranded host export remains dirty (0.296252ms)
+✖ format state never exposes a revision before its tile scheduler is invalidated (0.288738ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 12
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 52.637351
+
+✖ failing tests:
+
+test at wasm_sdk_probe/tests/calc-editor-session.test.mjs:128:1
+✖ format state never exposes a revision before its tile scheduler is invalidated (0.288738ms)
+  TypeError: Cannot read properties of null (reading '_context')
+      at session._onState (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tests/calc-editor-session.test.mjs:131:68)
+      at CalcEditorSession._emit (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/spreadsheet-shell/calc-editor-session.js:51:35)
+      at OdsViewerSession.onState [as _onState] (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/spreadsheet-shell/calc-editor-session.js:31:27)
+      at OdsViewerSession._emit (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/viewer-shell/ods-viewer-session.js:153:10)
+      at OdsViewerSession.close (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/viewer-shell/ods-viewer-session.js:417:10)
+      at async CalcEditorSession.close (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/spreadsheet-shell/calc-editor-session.js:198:5)
+      at async TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tests/calc-editor-session.test.mjs:134:25)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7)

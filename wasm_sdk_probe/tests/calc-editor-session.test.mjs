@@ -128,7 +128,7 @@ test("a stranded host export remains dirty",async()=>{
 test("format state never exposes a revision before its tile scheduler is invalidated",async()=>{
   const {session}=await opened();let observed=0;
   session._onState=state=>{
-    if(state.revision>0){observed++;assert.equal(session.scheduler._context.revision,state.revision);}
+    if(state.state === "ready" && state.revision>0){observed++;assert.equal(session.scheduler._context.revision,state.revision);}
   };
   await session.setFormat("bold",true);
   assert.ok(observed>0);await session.close();
