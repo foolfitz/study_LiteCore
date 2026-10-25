@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from v23_remaining_cases import ARMS, CASES_040, FRAME_SHA256, identity, sha, fixtures
+from v23_remaining_cases import ARMS, CASES_040, FRAME_SHA256, identity, sha, fixtures, verify_bindings
 PASS, FAIL, NE = 'PASS', 'FAIL', 'NOT_ESTABLISHED'
 
 
@@ -45,9 +45,18 @@ def judge(page, expected, fixture_hashes, profile):
             need(responses.get((op['generation'],op['requestId']),{}).get('ok') is True, 'actual frame open/restoration response absent')
     if arm == 'frame':
         step('frame-close')
+        check([(x.get('generation'),x.get('operation')) for x in requests] ==
+              [(1,'init'),(1,'open'),(1,'close')], 'unplanned/reordered destroy wire operations')
         closes = [x for x in requests if x.get('operation') == 'close']
         need(len(closes)==1, 'no unique actual close')
         if closes:
+            need(len(opened)==1, 'destroy requires one actual frame open')
+            if len(opened)==1:
+                op=opened[0]; close=closes[0]
+                handle=responses.get((op['generation'],op['requestId']),{}).get('result',{}).get('documentHandle')
+                need(handle is not None, 'opened frame handle absent')
+                check(close['generation']==op['generation'] and close['requestId']>op['requestId']
+                      and close.get('payload',{}).get('documentHandle')==handle, 'close does not target the opened frame document')
             reply = responses.get((closes[0]['generation'], closes[0]['requestId']), {})
             check(reply.get('ok') is True and reply.get('result',{}).get('recovered') is not True,
                   'destroy lacks actual successful close reply')
@@ -88,6 +97,12 @@ def judge(page, expected, fixture_hashes, profile):
                 expected_range={'startXTwips':x,'startYTwips':y+h//2,'endXTwips':x+8000,'endYTwips':y+h//2}
                 check(all(select.get('payload',{}).get(k)==v for k,v in expected_range.items()), 'wire range differs from actual rectangle')
             except (KeyError,IndexError,ValueError,AttributeError): need(False,'actual search rectangle unreadable')
+        expected_ops = [(1,'init'),(1,'open'),(1,'editorGetStateV2'),(1,'search'),
+                        (1,'editorSelectRangeV2'),(1,'getSelection'),(1,'v23Diagnostic')]
+        expected_ops += ([(1,'editorGetStateV2')] if kind==9 else
+                         [(2,'init'),(2,'open'),(2,'editorGetStateV2'),(2,'save')])
+        check([(x.get('generation'),x.get('operation')) for x in requests] == expected_ops,
+              'unplanned or reordered wire operation in040 setup/control/restoration')
         c = page.get('control', {})
         if kind == 9:
             returns = [(g,e) for g,e in events if e.get('type')=='v23-html-return']
@@ -111,6 +126,21 @@ def judge(page, expected, fixture_hashes, profile):
                 check(terminal is None, 'negative control returned a terminal wire reply')
             check(c.get('error',{}).get('code')=='TIMEOUT' and c.get('error',{}).get('details',{}).get('timeoutMs')==30000,
                   'selected-context JS LOK did not reach existing30s timeout')
+            # Bind the actual SDK's failAndCancel path; elapsed is an observation,
+            # not a newly invented browser timer tolerance.
+            cancels = page.get('cancels', [])
+            need(len(cancels)==1, 'actual SDK timeout cancellation absent/nonunique')
+            if controls and len(cancels)==1:
+                cancel=cancels[0]; request=controls[0]
+                check(cancel.get('kind')=='cancel' and cancel.get('generation')==request['generation']
+                      and cancel.get('requestId')==request['requestId'], 'SDK cancellation attribution mismatch')
+                need(all(isinstance(x,(int,float)) for x in (request.get('at'),cancel.get('at'),c.get('startedAt'),c.get('finishedAt'))),
+                     'actual timeout path timestamps absent')
+                if all(isinstance(x,(int,float)) for x in (request.get('at'),cancel.get('at'),c.get('startedAt'),c.get('finishedAt'))):
+                    check(c['startedAt']<=request['at']<=cancel['at']<=c['finishedAt'], 'SDK cancellation order mismatch')
+                if page.get('workers'):
+                    check(cancel.get('at',float('inf')) <= page['workers'][0].get('terminatedAt',-1),
+                          'SDK cancellation was not before worker disposal')
             check(c.get('stateAfter',{}).get('state')=='recoverable-error', 'session did not enter recovery')
             step('040-restart'); step('040-recovery-save')
             need(len({x['generation'] for x in opened})==2, 'successful fresh-generation restoration absent')
@@ -132,7 +162,7 @@ def judge(page, expected, fixture_hashes, profile):
              'after-merge timing has no actual verified changed merge')
     timing = {name: s.get('finishedAt',0)-s.get('startedAt',0) for name,s in steps.items()}
     return {'verdict': NE if missing else FAIL if failures else PASS, 'missing':missing,'failed':failures,
-            'stepMilliseconds':timing, 'unestablishedMetrics':['engine tick intervals','exact INVALIDATE_TILES latency',
+            'stepMilliseconds':timing, 'controlElapsedMs': (page.get('control',{}).get('finishedAt',0)-page.get('control',{}).get('startedAt',0)) if page.get('control') else None, 'unestablishedMetrics':['engine tick intervals','exact INVALIDATE_TILES latency',
             'engine idle-layout completion'], 'caseId':CASES_040.get(arm,arm), 'scope':'only named arm; exact040 requires all three040 arms'}
 
 
@@ -144,6 +174,7 @@ def main():
     _, population=fixtures()
     for path in a.reports:
         report=json.loads(path.read_text())
+        verify_bindings(report, path.parent/'mirror')
         for name,digest in report['fixtures'].items():
             if sha(path.parent/'mirror'/f'{name}.odt')!=digest:raise ValueError(f'archived fixture mismatch: {name}')
         if population!=report['population']:raise ValueError('source corpus population drift')
