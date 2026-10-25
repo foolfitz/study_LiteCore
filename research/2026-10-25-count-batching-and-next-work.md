@@ -82,3 +82,9 @@ ODS 的優先工作已完成，現有可接續的功能批次是 **v23：指令�
 擁有者後續明確指定：格內雙擊編輯、上方寬輸入欄與 B／I／U，離座期間自主執行，簡單建置可直接跑。這取代上面的「下一批建議」之執行優先順序；v23 沒有恢復。新功能與宿主 0.2.34 續列未計數帳，細節見[儲存格編輯整理](2026-10-25-cell-editor-v1.md)與 [M4 cell 規格](../specs/SPEC-M4-cell-editing-v1.md)。
 
 未計數批次新增：新 `ods-editor-v1` cell model bridge／C ABI／worker、獨立 spreadsheet session／頁面、三頁封包母體、Files 可寫／唯讀分流、ODS MIME 與副本副檔名。舊 Writer／viewer 閉包原檔與編碼 metadata 相同；這是本輪逐檔比較的結果，不是未來固定的影響面宣稱。K 的全域 pins、merge BINDING、舊 chain 仍未改綁；這輪只在離線 package wrapper 綁新候選 buildId。
+
+## 2026-10-25 手測後：格式畫面修法與研究
+
+擁有者確認 cell 文字／公式輸入符合預期；另報告格式後全白。finding 165 修法只調整新 Calc session 的 invalidate／emit 順序，既有模型／存檔驗證不足以證明畫面完整。本輪新增 DOM tile 與引擎 render 對比，雙瀏覽器各三輪 90／90；宿主準備 **0.2.35**，引擎不重連結。這一項續列未計數帳，K 舊 pins／BINDING／chain 不改。
+
+[Collabora 輸入／格式原始碼與 autosave 差異](2026-10-25-collabora-calc-input-format-autosave.md) 已整理；直接輸入與部分文字格式尚未新增，目前 Calc 的手動儲存與 Writer autosave 有差異。本輪沒有把「要求確認」當作已新增排程。§34.4 +0／+0，累計 47／27。
