@@ -71,3 +71,7 @@ Report success/failure and the final error if any. `ALLOW_FROZEN_RELINK=1` appli
 5. Run specification 9.2 as amended by the latest appended rulings (currently through 19, appended after the native cohort close) on this exact identity. Readers must bind profile plus WASM hash, reject v22 identity, and retain the depth-at-least-two witness and missing-proof positive control. No feature implementation follows until all diagnostic gates pass. Browser reports and source/dry-run tests are distinct evidence.
 
 No host deployment, ddev state change, K/counting edit or Calc reopening is part of this boundary.
+
+## Coordinating review complete before the owner command
+
+The coordinator read the combined engine polling/proof/delete code, native45/40 results, full-source Claude disposition, actual focused-test records and current source/core hashes. `pre-link/ordered-engine-01/coordinator-source-verification.json` confirms all48 source and189 explicit core/toolchain inputs unchanged, with10 successful focused-test records. GPT-6 Luna independently checked all2,315 preserved profile/archive files plus inventory membership and the same source/core hashes (`pre-link/mechanical-01`, bea43f39). No mismatch was found. The compiling make remains owner-run; its exact command above was presented after this review. Subsequent W-D-only tool/document commits do not alter those recorded compiler inputs. Actual artifact/build-log/browser verification is still required after the owner link.

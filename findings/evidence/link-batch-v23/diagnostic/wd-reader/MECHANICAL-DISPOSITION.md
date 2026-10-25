@@ -1,0 +1,7 @@
+# Disposition of the mechanical W-D controls
+
+The first work order abbreviated the consumed coordinate field names as “x/y”. The mechanical agent correctly reported that adding `payload.x` and `payload.y` while retaining the real `xTwips` and `yTwips` did not turn the result red. Those extra aliases are ignored by the actual worker operation; the executed click is unchanged, so this is an equivalent mutation, not an invalid-input witness and not a product false green. The ambiguous result remains in mechanical-02 instead of being hidden or converted to approval.
+
+The corrected work order names the actual consumed fields explicitly. Fresh mechanical-03 controls all give FAIL: enabled:false Bold; false actual wire Bold with a retained page summary; xTwips/yTwips999999; an extra unplanned click operation. The reader source was not changed to reject harmless aliases. Seven synthetic test groups, JS syntax and runner CLI checks also pass. These are bounded reader/input-provenance results; no candidate browser or WASM behavior is claimed.
+
+The owner requested lower-tier agents for mechanical validation and also authorized Terra when available. This batch used GPT-6 Luna (`/root/v23_mechanical`); Astra handled interpretation and architecture. The current collaboration override list/tool discovery exposed no Terra identifier or CLI, so no unavailable model alias was invented. Recheck available dispatch routes on future work rather than treating this as an owner prohibition.
