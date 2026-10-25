@@ -34,7 +34,8 @@ button:disabled { opacity:.4; cursor:default; }
 #active-cell { position:absolute; border:2px solid var(--accent); pointer-events:none; z-index:2; }
 #surface { user-select:none; }
 #cell-editor { user-select:text; }
-#cell-editor { position:absolute; z-index:3; min-width:80px; min-height:30px; margin:0; border:2px solid var(--accent); border-radius:0; background:#fff; padding:3px 5px; font-size:14px; line-height:21px; resize:none; box-shadow:0 3px 12px #163d2320; }
+/* Pair text and caret with the white document canvas under host themes. */
+#cell-editor { position:absolute; z-index:3; min-width:80px; min-height:30px; margin:0; border:2px solid var(--accent); border-radius:0; background:#fff; color:var(--ink); caret-color:currentColor; color-scheme:light; padding:3px 5px; font-size:14px; line-height:21px; resize:none; box-shadow:0 3px 12px #163d2320; }
 #cell-editor.grid-input { width:1px !important; height:1px !important; min-width:0; min-height:0; padding:0; border:0; opacity:0; box-shadow:none; pointer-events:none; }
 #empty { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; color:var(--muted); pointer-events:none; }
 #empty strong { color:var(--ink); font-size:21px; font-weight:550; }
