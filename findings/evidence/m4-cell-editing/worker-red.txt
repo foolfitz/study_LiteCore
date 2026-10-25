@@ -1,0 +1,138 @@
+✖ cell operations without the declaration never touch a WASM symbol (3.091911ms)
+✖ fractional, missing or negative cell indices refuse before ccall (0.648707ms)
+✖ empty input clears a cell without allocating an empty WASM buffer (0.874126ms)
+✖ format action and enabled are validated before dispatch (0.707646ms)
+✖ ODS save requires its own capability and preserves ODT save gating (1.378264ms)
+✖ cell result forwards named fields and the actual model payload (0.868165ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 0
+ℹ fail 6
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 47.294189
+
+✖ failing tests:
+
+test at wasm_sdk_probe/sdk/tests/sdk-worker-calc-cell.test.mjs:32:1
+✖ cell operations without the declaration never touch a WASM symbol (3.091911ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'UNKNOWN_OPERATION'
+  - 'UNSUPPORTED_OPERATION'
+       ^
+  
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/sdk/tests/sdk-worker-calc-cell.test.mjs:35:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.start (node:internal/test_runner/test:1177:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'UNKNOWN_OPERATION',
+    expected: 'UNSUPPORTED_OPERATION',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at wasm_sdk_probe/sdk/tests/sdk-worker-calc-cell.test.mjs:39:1
+✖ fractional, missing or negative cell indices refuse before ccall (0.648707ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'UNKNOWN_OPERATION'
+  - 'INVALID_ARGUMENT'
+  
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/sdk/tests/sdk-worker-calc-cell.test.mjs:42:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'UNKNOWN_OPERATION',
+    expected: 'INVALID_ARGUMENT',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at wasm_sdk_probe/sdk/tests/sdk-worker-calc-cell.test.mjs:47:1
+✖ empty input clears a cell without allocating an empty WASM buffer (0.874126ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + {
+  +   error: {
+  +     code: 'UNKNOWN_OPERATION',
+  +     message: 'unknown worker operation: cellInput'
+  +   },
+  +   kind: 'response',
+  +   ok: false,
+  +   protocolVersion: 1,
+  +   requestId: 1
+  + }
+  - undefined
+  
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/sdk/tests/sdk-worker-calc-cell.test.mjs:49:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { protocolVersion: 1, kind: 'response', requestId: 1, ok: false, error: { code: 'UNKNOWN_OPERATION', message: 'unknown worker operation: cellInput' } },
+    expected: undefined,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at wasm_sdk_probe/sdk/tests/sdk-worker-calc-cell.test.mjs:53:1
+✖ format action and enabled are validated before dispatch (0.707646ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'UNKNOWN_OPERATION'
+  - 'INVALID_ARGUMENT'
+  
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/sdk/tests/sdk-worker-calc-cell.test.mjs:56:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'UNKNOWN_OPERATION',
+    expected: 'INVALID_ARGUMENT',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at wasm_sdk_probe/sdk/tests/sdk-worker-calc-cell.test.mjs:64:1
+✖ ODS save requires its own capability and preserves ODT save gating (1.378264ms)
+  TypeError: Cannot read properties of undefined (reading 'error')
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/sdk/tests/sdk-worker-calc-cell.test.mjs:66:50)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7)
+
+test at wasm_sdk_probe/sdk/tests/sdk-worker-calc-cell.test.mjs:74:1
+✖ cell result forwards named fields and the actual model payload (0.868165ms)
+  TypeError: Cannot read properties of undefined (reading 'result')
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/sdk/tests/sdk-worker-calc-cell.test.mjs:78:27)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7)

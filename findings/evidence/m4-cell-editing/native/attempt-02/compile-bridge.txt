@@ -1,0 +1,27 @@
+/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/src/calc_cell_bridge.cpp: In function ‘boost::property_tree::ptree {anonymous}::access(int, int, int, int, int, const char*, int, int)’:
+/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/src/calc_cell_bridge.cpp:78:83: error: use of deleted function ‘com::sun::star::uno::Reference<interface_type>::Reference(const com::sun::star::uno::Reference<interface_type>&, com::sun::star::uno::UnoReference_QueryThrow) [with interface_type = com::sun::star::frame::XModel]’
+   78 |   Reference<frame::XModel> model(shell->GetCurrentDocument(), uno::UNO_QUERY_THROW);
+      |                                                                                   ^
+In file included from /home/jiajun/LibreOffice/study_LiteCore/build-native-26-8/workdir/UnoApiHeadersTarget/udkapi/comprehensive/com/sun/star/lang/EventObject.hdl:6,
+                 from /home/jiajun/LibreOffice/study_LiteCore/build-native-26-8/workdir/UnoApiHeadersTarget/offapi/comprehensive/com/sun/star/awt/InputEvent.hdl:5,
+                 from /home/jiajun/LibreOffice/study_LiteCore/build-native-26-8/workdir/UnoApiHeadersTarget/offapi/comprehensive/com/sun/star/awt/KeyEvent.hdl:5,
+                 from /home/jiajun/LibreOffice/study_LiteCore/build-native-26-8/workdir/UnoApiHeadersTarget/offapi/comprehensive/com/sun/star/ui/XAcceleratorConfiguration.hdl:5,
+                 from /home/jiajun/LibreOffice/study_LiteCore/build-native-26-8/workdir/UnoApiHeadersTarget/offapi/comprehensive/com/sun/star/ui/XAcceleratorConfiguration.hpp:5,
+                 from /home/jiajun/LibreOffice/study_LiteCore/libreoffice-26-8/include/sfx2/lokhelper.hxx:13,
+                 from /home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/src/calc_cell_bridge.cpp:5:
+/home/jiajun/LibreOffice/study_LiteCore/libreoffice-26-8/include/com/sun/star/uno/Reference.h:338:5: note: declared here
+  338 |     Reference( const Reference< interface_type > & rRef, UnoReference_QueryThrow dummy ) = delete;
+      |     ^~~~~~~~~
+/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/src/calc_cell_bridge.cpp:78:83: note: use ‘-fdiagnostics-all-candidates’ to display considered candidates
+   78 |   Reference<frame::XModel> model(shell->GetCurrentDocument(), uno::UNO_QUERY_THROW);
+      |                                                                                   ^
+/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/src/calc_cell_bridge.cpp:100:44: error: cannot convert ‘com::sun::star::uno::Reference<com::sun::star::table::XCellRange>’ to ‘const com::sun::star::uno::Reference<com::sun::star::sheet::XSheetCellRange>&’
+  100 |   auto cursor = sheet->createCursorByRange(range);
+      |                                            ^~~~~
+      |                                            |
+      |                                            com::sun::star::uno::Reference<com::sun::star::table::XCellRange>
+In file included from /home/jiajun/LibreOffice/study_LiteCore/build-native-26-8/workdir/UnoApiHeadersTarget/offapi/comprehensive/com/sun/star/sheet/XSpreadsheet.hpp:5,
+                 from /home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/src/calc_cell_bridge.cpp:20:
+/home/jiajun/LibreOffice/study_LiteCore/build-native-26-8/workdir/UnoApiHeadersTarget/offapi/comprehensive/com/sun/star/sheet/XSpreadsheet.hdl:28:161: note: initializing argument 1 of ‘virtual com::sun::star::uno::Reference<com::sun::star::sheet::XSheetCellCursor> com::sun::star::sheet::XSpreadsheet::createCursorByRange(const com::sun::star::uno::Reference<com::sun::star::sheet::XSheetCellRange>&)’
+   28 |     virtual ::css::uno::Reference< ::css::sheet::XSheetCellCursor > SAL_CALL createCursorByRange( const ::css::uno::Reference< ::css::sheet::XSheetCellRange >& aRange ) = 0;
+      |                                                                                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~
