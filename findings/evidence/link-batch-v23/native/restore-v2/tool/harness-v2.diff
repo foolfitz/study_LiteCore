@@ -1,0 +1,97 @@
+--- findings/evidence/link-batch-v23/native/ordered-commands/tool/oc_native.cpp	2026-10-25 21:03:19.936375859 +0800
++++ findings/evidence/link-batch-v23/native/restore-v2/tool/oc_native.cpp	2026-10-25 22:06:16.961710640 +0800
+@@ -1,3 +1,9 @@
++// Versioned restoration experiment. Original RESET cohort source remains unchanged.
++// Added operations: Qpoint = RESET/START/RESET at one recorded point; Epoint = END.
++// Fkey = K1 then asynchronous Escape (notify=false) in this same runOp/poll.
++// Gpoint|key = at the immediately following poll, require NONE and the recorded
++// cursor rectangle before posting the user's key. A failed guard never posts it.
++// Each op records pollIndex; F/G adjacency is checked from observations, not time.
+ // Ordered commands (engine v23), fable ruling 1 §2.6: does LOK apply the
+ // engine's command sequences in Writer's order under unipoll (candidate C)?
+ //
+@@ -142,6 +148,7 @@
+   return gMode == Mode::Unipoll || gMode == Mode::Uni1 || gMode == Mode::Uni1Ai || gMode == Mode::Uni1F;
+ }
+ bool onePerPoll() { return gMode == Mode::Uni1 || gMode == Mode::Uni1Ai; }
++long gPolls = 0;
+ bool gReplyPending = false;  // uni1ai's anyInput answer
+ bool anyInputCallback(void *, int) { return gReplyPending; }
+ 
+@@ -299,7 +306,7 @@
+   while (std::getline(ss, one, ';')) {
+     if (one.empty()) continue;
+     Op op{one[0], one.substr(1), ""};
+-    if (op.kind == 'U') {
++    if (op.kind == 'U' || op.kind == 'G') {
+       const auto bar = op.arg.find('|');
+       if (bar != std::string::npos) {
+         op.json = op.arg.substr(bar + 1);
+@@ -308,7 +315,7 @@
+           if (c == '`') c = ',';
+       }
+     }
+-    if (std::string("KUPCRI").find(op.kind) == std::string::npos) fatal("unknown op", ",\"op\":" + q(one));
++    if (std::string("KUPCRIQEFG").find(op.kind) == std::string::npos) fatal("unknown op", ",\"op\":" + q(one));
+     ops.push_back(op);
+   }
+   return ops;
+@@ -319,6 +326,7 @@
+   // OC_A11Y: the decider's "before" inputs, read just before the call, nothing in between
+   const std::string undoAtStart = gA11y ? undoValues() : "", a11yAtStart = gA11y ? a11yRead() : "";
+   const double tStart = nowMs();
++  std::string extra;
+   if (op.kind == 'K') {
+     post(std::atoi(op.arg.c_str()));
+   } else if (op.kind == 'U') {
+@@ -332,6 +340,32 @@
+     if (!pointOf(op.arg, x, y)) fatal("no point", ",\"name\":" + q(op.arg));
+     gDoc->pClass->postMouseEvent(gDoc, LOK_MOUSEEVENT_MOUSEBUTTONDOWN, x, y, 1, 1, 0);
+     gDoc->pClass->postMouseEvent(gDoc, LOK_MOUSEEVENT_MOUSEBUTTONUP, x, y, 1, 1, 0);
++  } else if (op.kind == 'Q' || op.kind == 'E') {
++    long x, y;
++    if (!pointOf(op.arg, x, y)) fatal("no restoration point", ",\"name\":" + q(op.arg));
++    if (op.kind == 'E') {
++      gDoc->pClass->setTextSelection(gDoc, LOK_SETTEXTSELECTION_END, x, y);
++    } else {
++      const int types[] = {LOK_SETTEXTSELECTION_RESET, LOK_SETTEXTSELECTION_START, LOK_SETTEXTSELECTION_RESET};
++      for (const int type : types)
++        gDoc->pClass->setTextSelection(gDoc, type, x, y);
++      extra = ",\"restoreSequence\":[\"RESET\",\"START\",\"RESET\"]";
++    }
++  } else if (op.kind == 'F') {
++    post(std::atoi(op.arg.c_str()));
++    const Sel k1 = readSel();
++    extra = ",\"k1AtReturn\":{\"selType\":" + std::to_string(k1.type) + ",\"selText\":" + q(k1.text) +
++            "},\"escapeNotify\":false";
++    gDoc->pClass->postUnoCommand(gDoc, ".uno:Escape", nullptr, false);
++  } else if (op.kind == 'G') {
++    const Snap before = snap();
++    const auto target = gPoints.find(op.arg);
++    const bool passed = target != gPoints.end() && before.sel.type == LOK_SELTYPE_NONE &&
++                        before.sel.text.empty() && before.cursor == target->second;
++    extra = ",\"guardRead\":" + snapJson(before) + ",\"guardPassed\":" + (passed ? "true" : "false") +
++            ",\"keyPosted\":" + (passed ? "true" : "false") + ",\"guardKey\":" + q(op.json);
++    if (op.json.empty()) fatal("missing guarded key");
++    if (passed) post(std::atoi(op.json.c_str()));
+   } else if (op.kind == 'R') {
+     long x, y;
+     if (!pointOf(op.arg, x, y)) fatal("no reset point", ",\"name\":" + q(op.arg));
+@@ -343,7 +377,7 @@
+   const std::string a11y = gA11y ? a11yRead() : "";
+   std::ostringstream o;
+   o << "{\"op\":" << q(std::string(1, op.kind) + op.arg) << ",\"startMs\":" << (tStart - t0)
+-    << ",\"returnedMs\":" << (tReturned - t0);
++    << ",\"returnedMs\":" << (tReturned - t0) << ",\"pollIndex\":" << gPolls << extra;
+   if (gA11y) o << ",\"atStart\":{\"undo\":" << q(undoAtStart) << ",\"a11y\":" << q(a11yAtStart) << "}";
+   o << ",\"atReturn\":{\"selType\":" << s.type << ",\"selText\":" << q(s.text) << ",\"undo\":" << q(undo);
+   if (gA11y) o << ",\"a11y\":" << q(a11y);
+@@ -631,8 +665,6 @@
+ bool gLoaded = false, gWaiting = false;
+ Settle gWait;
+ Clock::time_point gWaitStart;
+-long gPolls = 0;
+-
+ int pollCallback(void *, int timeoutUs) {
+   ++gPolls;
+   if (!gLoaded) {
