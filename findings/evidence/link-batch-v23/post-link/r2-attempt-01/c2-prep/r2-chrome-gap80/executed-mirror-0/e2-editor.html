@@ -1,0 +1,429 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+<meta charset="utf-8">
+<title>LiteCore 編輯器 — 產品 v2（十五個動作）</title>
+<style>
+  :root {
+    --bg: #f4f6f8; --bar: #fff; --line: #dbe3ea; --ink: #1d2b36; --muted: #6b7c8a;
+    --accent: #3178c6; --warn: #8a6d1c; --bad: #a8342a; --ok: #2b7a4b;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 14px/1.5 system-ui, "Noto Sans CJK TC", sans-serif;
+    display: flex; flex-direction: column; height: 100vh;
+  }
+  .titlebar {
+    display: flex; align-items: center; gap: 10px; padding: 8px 14px;
+    background: var(--bar); border-bottom: 1px solid var(--line);
+  }
+  .brand { font-weight: 650; }
+  .brand small { font-weight: 400; color: var(--muted); margin-left: 8px; }
+  .spacer { flex: 1; }
+  .pill {
+    padding: 3px 9px; border-radius: 999px; font-size: 12px;
+    background: #eef2f6; color: var(--muted); border: 1px solid var(--line);
+  }
+  .pill[data-state="ready"] { background: #e7f4ec; color: var(--ok); border-color: #bfe0cc; }
+  .pill[data-state="busy"], .pill[data-state="loading"] {
+    background: #fdf3e3; color: var(--warn); border-color: #ecd6ac;
+  }
+  .pill[data-state="recoverable-error"], .pill[data-state="restart-required"],
+  .pill[data-state="expired"], .pill[data-state="stopped"] {
+    background: #fbeae9; color: var(--bad); border-color: #eec4c1;
+  }
+
+  .provenance {
+    padding: 8px 14px; font-size: 12.5px; line-height: 1.6;
+    background: #fdf3e3; color: #6b551c; border-bottom: 1px solid #ecd6ac;
+  }
+  .provenance code {
+    font-family: ui-monospace, Menlo, monospace; font-size: 11.5px;
+    background: #fff8e8; padding: 1px 5px; border-radius: 4px; word-break: break-all;
+  }
+  .provenance b { font-weight: 650; }
+
+  .toolbar {
+    display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+    padding: 6px 14px; background: var(--bar); border-bottom: 1px solid var(--line);
+  }
+  .toolbar .sep { width: 1px; height: 22px; background: var(--line); margin: 0 4px; }
+  button, select, input[type=text] {
+    font: inherit; color: inherit; background: #fff;
+    border: 1px solid var(--line); border-radius: 6px; padding: 5px 10px;
+  }
+  button { cursor: pointer; }
+  button:hover:not(:disabled) { border-color: #a9bccd; background: #f6f9fc; }
+  button:disabled { opacity: .4; cursor: default; }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  /* Only ever rendered when the engine gave an answer -- see
+     updateGestureAffordance; the attribute is removed when the state is null. */
+  button[aria-pressed="true"] { background: #dbe7f3; border-color: var(--accent); }
+  /* 看不見，但**留在 accessibility tree 上**。display:none 與
+     visibility:hidden 會把節點拿掉，1px clip 不會。
+
+     TWO ELEMENTS USE THIS CLASS AND BOTH HAVE NEEDED THEIR OWN `top`/`left`:
+     `#sink` (finding 069, 2026-08-22) and `#a11y-doc` (finding 093,
+     2026-09-08). This rule deliberately still supplies neither -- see
+     `#a11y-doc`'s own rule below for why widening the class is not the repair
+     -- so a THIRD user of it inherits the same trap. If you are adding one,
+     that is what you are inheriting. */
+  .a11y-only {
+    position: absolute; width: 1px; height: 1px;
+    margin: -1px; padding: 0; border: 0;
+    clip: rect(0 0 0 0); clip-path: inset(50%);
+    overflow: hidden; white-space: nowrap;
+  }
+  button.danger { border-color: #eec4c1; color: var(--bad); }
+  button.b { font-weight: 700; min-width: 34px; }
+  button.i { font-style: italic; font-family: Georgia, serif; min-width: 34px; }
+  button.u { text-decoration: underline; min-width: 34px; }
+  button.s { text-decoration: line-through; min-width: 34px; }
+
+  .desk { flex: 1; overflow: auto; display: flex; align-items: flex-start;
+          justify-content: center; padding: 20px; }
+  .paper { position: relative; background: #fff; box-shadow: 0 1px 6px rgba(20,40,60,.14); }
+  canvas { display: block; touch-action: none; }
+  /*
+   * `top`/`left` are not decoration.  Without them an absolutely positioned
+   * element sits at its STATIC position -- which for this one is directly
+   * after the canvas, and the canvas is the whole document's height.  The
+   * input sink was therefore lying at the bottom of the page, and every time
+   * an IME began composing, the browser scrolled the focused element into
+   * view and took the whole desk with it.  Reported by an operator typing
+   * Chinese with 新酷音, 2026-08-22.
+   *
+   * `paint()` keeps it on the caret from here on; 0,0 is only where it starts.
+   *
+   * `pointer-events: none` because moving it over the canvas puts a 1px
+   * transparent target on top of the drawing surface, and the canvas's own
+   * pointerdown is what places the caret.  The sink is only ever focused
+   * programmatically -- it is never clicked -- so nothing loses a click.
+   */
+  #sink {
+    position: absolute; top: 0; left: 0;
+    width: 1px; height: 1px; opacity: 0; border: 0;
+    padding: 0; margin: 0; outline: none;
+    pointer-events: none;
+    resize: none; overflow: hidden; white-space: pre; line-height: 1;
+  }
+
+  /*
+   * FINDING 093, AND IT IS THE COMMENT DIRECTLY ABOVE, ON THE ELEMENT BESIDE
+   * THE ONE IT WAS WRITTEN FOR.
+   *
+   * `#a11y-doc` also uses `.a11y-only`, also had `position: absolute` and no
+   * `top`/`left`, and so also sat at its STATIC position at the bottom of the
+   * paper -- for four months, about a hundred and forty lines below the
+   * paragraph explaining why that is fatal.  Every time a screen reader
+   * brought a projected node into view, the browser took the whole desk to the
+   * end of the document.  Reported by the owner walking the page with Orca,
+   * 2026-09-08, and measured the same day: `offsetTop` 928 against a 929px
+   * canvas on the shipped profile AND on the candidate, 27,197 against 27,198
+   * on a 133-paragraph document.
+   *
+   * FIXED HERE AND NOT ON `.a11y-only`, which is the OTHER half of 069's
+   * lesson.  069 fixed one element and left the class producing the same
+   * defect for the next element that used it -- but widening the class rule is
+   * not the repair, it is the same mistake pointed the other way: a census of
+   * all 62 stylesheets and pages under `web/` on 2026-09-08 found 28 other
+   * rules that position absolutely, and NONE of them in this shape.  Changing
+   * the class would move 28 elements to fix one.  One element, one fix, and
+   * the class comment above now names both of its instances.
+   *
+   * WHY IT SPANS THE PAPER AND STOPS CLIPPING.  A clipping ancestor makes
+   * `scrollIntoView` on a child meaningless -- the child has nowhere to be --
+   * and the projection's whole job is now to put each paragraph's node where
+   * that paragraph is drawn.  So the container becomes the coordinate space
+   * (`height: 100%` of `.paper`, which is the canvas's height) and every
+   * DESCENDANT carries the clip instead: `#a11y-para` below, and each
+   * projected node inline from `projectStructure()`.  Nothing inside is
+   * visible; everything inside is still in the accessibility tree, which is
+   * the property `.a11y-only` exists for and the reason it clips rather than
+   * using `display: none`.
+   *
+   * `pointer-events: none` for exactly the reason `#sink` has it, and it
+   * matters MORE here: this box now covers the whole drawing surface, and the
+   * canvas's own pointerdown is what places the caret.  Measured on the
+   * candidate shapes 2026-09-08 that `clip-path: inset(50%)` alone already
+   * kept `elementFromPoint` returning the canvas
+   * (`findings/evidence/093/phase3-s2-hit-test.json`); this is the same
+   * property asserted rather than relied upon.
+   */
+  #a11y-doc {
+    top: 0; left: 0; width: 1px; height: 100%;
+    margin: 0; overflow: visible;
+    clip: auto; clip-path: none;
+    pointer-events: none;
+  }
+  /* The clip `#a11y-doc` gave up, on the child that still needs it: the live
+     region holds the focused paragraph's TEXT, and an unclipped copy of it
+     would be painted across the document. */
+  #a11y-para {
+    position: absolute; top: 0; left: 0;
+    width: 1px; height: 1px; margin: 0; padding: 0;
+    overflow: hidden; white-space: nowrap;
+    clip: rect(0 0 0 0); clip-path: inset(50%);
+  }
+
+  /*
+   * FINDING 073.  While an IME is composing, the sink has to be SEEN.
+   *
+   * Everything above this rule is written for an element nobody looks at: one
+   * transparent pixel that collects keystrokes.  That is right until an input
+   * method starts composing, because the PREEDIT -- the bopomofo or pinyin the
+   * user is part way through, before it becomes a character -- is drawn by the
+   * browser INSIDE this element.
+   * At `opacity: 0` and one pixel wide it cannot be seen, so a user typing
+   * Chinese watches an empty page and finds out what they typed only when it
+   * commits.  Reported by an operator using 新酷音, 2026-08-22.
+   *
+   * Visible only while composing, and back to one transparent pixel after: a
+   * sink left visible would sit on top of the document forever.
+   *
+   * `z-index` because it has to be above the canvas it overlaps; the border and
+   * the background because preedit over glyphs is unreadable without them.
+   */
+  #sink[data-composing] {
+    opacity: 1;
+    z-index: 5;
+    background: var(--bar, #eef3f8);
+    color: var(--ink, #16202b);
+    border: 1px solid #7aa7d8;
+    border-radius: 2px;
+  }
+
+  .statusbar {
+    display: flex; gap: 18px; align-items: center; padding: 5px 14px;
+    background: var(--bar); border-top: 1px solid var(--line);
+    font-size: 12px; color: var(--muted);
+  }
+  .statusbar b { color: var(--ink); font-weight: 600; }
+  /* 頁碼那一行（見 body 裡 #page-status 的註解）。故意不寫 display：寫了就會蓋掉
+     `hidden` 屬性的 UA 樣式，元素會在沒有頁碼可報時仍然佔著一行。 */
+  #page-status {
+    padding: 4px 14px; font-size: 12px; color: var(--muted); text-align: left;
+    background: var(--bar); border-top: 1px solid var(--line);
+  }
+
+  #notice {
+    display: none; padding: 8px 14px; font-size: 13px;
+    background: #fbeae9; color: #6b1f19; border-bottom: 1px solid #eec4c1;
+  }
+  #notice[data-show="1"] { display: flex; gap: 10px; align-items: center; }
+
+  #toast {
+    position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%);
+    background: #24333f; color: #fff; padding: 8px 14px; border-radius: 8px;
+    font-size: 13px; opacity: 0; transition: opacity .18s; pointer-events: none;
+    max-width: 80vw;
+  }
+  #toast.show { opacity: 1; }
+  #toast.bad { background: #8c2f26; }
+
+  #expired {
+    margin: 40px auto; max-width: 640px; padding: 20px 24px; background: #fff;
+    border: 1px solid #eec4c1; border-radius: 10px; display: none;
+  }
+  #expired h2 { margin: 0 0 8px; font-size: 16px; color: var(--bad); }
+  #expired code { font-family: ui-monospace, Menlo, monospace; font-size: 12px;
+                  word-break: break-all; }
+
+  /* SPEC-M3-link-batch-v21 4.2：貼上為 Markdown 的對話框。 */
+  #markdown-dialog {
+    width: min(640px, 92vw); padding: 16px 18px; border: 1px solid var(--line);
+    border-radius: 10px; color: var(--ink); background: var(--bar);
+  }
+  /* SPEC-M3-link-batch-v22 11.1（finding 154）：關著的對話框由頁面自己藏起來。宿主的
+     reset（Nextcloud core/css/server.css 的 `dialog { display: block }`）蓋得過瀏覽器
+     內建的 `dialog:not([open])`，蓋不過這個 id 選擇器。 */
+  #markdown-dialog:not([open]) { display: none; }
+  #markdown-dialog::backdrop { background: rgba(20, 40, 60, .25); }
+  #markdown-dialog h2 { margin: 0 0 6px; font-size: 15px; }
+  #markdown-dialog p { margin: 0 0 8px; font-size: 13px; color: var(--muted); }
+  #markdown-text {
+    width: 100%; min-height: 14em; box-sizing: border-box; resize: vertical;
+    font: 13px/1.45 ui-monospace, Menlo, monospace; color: inherit;
+    border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px;
+  }
+  #markdown-message { margin: 8px 0 0; color: var(--bad); font-size: 13px; }
+  #markdown-dialog .dialog-buttons {
+    display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px;
+  }
+</style>
+</head>
+<body>
+  <div class="titlebar">
+    <span class="brand">LiteCore 編輯器<small>產品 v2 契約，十五個動作</small></span>
+    <span class="spacer"></span>
+    <span class="pill" id="state-pill" data-state="loading">啟動中</span>
+  </div>
+
+  <div class="provenance">
+    <b>這是 E2-C 的產品頁面，跑在 <code id="pinned-hash">—</code> 上。</b>
+    十五個動作（E1 的十個 ＋ E2 的五個）走的是**同一個 session、同一個 queue**
+    ——`NarrowEditorV2Session` ＋ `NarrowEditorV2Client`。
+    <b>這一頁釘死在上面那顆 artifact</b>：換一顆 build 它會拒絕啟動。
+    <br>
+    <b>拖曳選取走的是這一頁自己的指標處理器</b>，不是合成事件——SPEC E2-C 的 D5
+    要的就是這條路徑上的真實 pointer event。
+    <br>
+    <b>工具列不顯示這一段現在是什麼格式，這是刻意的</b>（路線 C 不讀前置狀態，
+    finding 022／021）。灰掉的按鈕代表<b>manifest 沒有為這種選取宣告這個動作</b>，
+    不代表它現在的狀態。
+    <br>
+    <b>派送後驗不了的失敗，處置是回到檢查點</b>，不是按復原——復原走的是同一條
+    被擋住的 queue（SPEC E2-B 5.13）。出現那種失敗時上面會跳出「回到檢查點」。
+  </div>
+
+  <div id="notice">
+    <span id="notice-text"></span>
+    <button id="notice-action" class="danger">回到檢查點</button>
+  </div>
+
+  <div class="toolbar" id="toolbar">
+    <select id="fixture" title="範例文件"></select>
+    <button id="open-file" title="開啟你自己的 .odt">📂 開啟檔案</button>
+    <input type="file" id="file" accept=".odt,application/vnd.oasis.opendocument.text" hidden>
+    <div class="sep"></div>
+    <button data-action="undo">↶ 復原</button>
+    <!-- Hidden until the profile carries redo; see updateRedoAffordance(). -->
+    <button data-action="redo" hidden>↷ 重做</button>
+    <div class="sep"></div>
+    <button data-action="move-character-left" title="游標左移">◀</button>
+    <button data-action="move-character-right" title="游標右移">▶</button>
+    <button data-action="delete-backward">⌫ 刪除</button>
+    <button data-action="delete-forward">⌦ 前刪</button>
+    <button data-action="insert-paragraph-break">↵ 分段</button>
+    <button data-action="insert-line-break">↳ 換行</button>
+    <div class="sep"></div>
+    <button data-action="set-bold" class="b">B</button>
+    <button data-action="set-italic" class="i">I</button>
+    <button data-action="set-underline" class="u">U</button>
+    <button data-action="set-strikethrough" class="s">S</button>
+    <button id="clear-format" title="把粗體、斜體、底線、刪除線都關掉">清除格式</button>
+    <div class="sep"></div>
+    <button data-action="set-paragraph-heading">標題</button>
+    <button data-action="set-paragraph-body">內文</button>
+    <button data-action="set-list-unordered">• 項目符號</button>
+    <button data-action="set-list-ordered">1. 編號</button>
+    <button data-action="set-list-none">移除清單</button>
+    <div class="sep"></div>
+    <input type="text" id="text" placeholder="要插入的文字" size="12">
+    <button data-action="insert-text">插入</button>
+    <!-- SPEC-M3-link-batch-v21 4.2：只有 profile 宣告了 pasteMarkdown 才顯示，
+         見 updatePasteMarkdownAffordance()。 -->
+    <button data-action="paste-markdown" hidden>貼上為 Markdown…</button>
+    <span class="spacer"></span>
+    <button data-action="save" class="primary">儲存 ODT</button>
+  </div>
+
+  <div class="desk" id="desk">
+    <div class="paper" id="paper">
+      <canvas id="canvas" aria-label="ODT 文件畫面"></canvas>
+      <textarea id="sink" aria-label="輸入" autocomplete="off"></textarea>
+      <!-- 路線圖 3.4：報讀軟體讀不到 canvas，所以引擎給的「游標在哪一段、
+           那一段寫什麼」必須投影成 DOM。這裡是那份投影。
+
+           .a11y-only 用 clip 而不是 display:none／visibility:hidden——後兩者
+           會把節點從 accessibility tree 上整個拿掉，於是投影會量成「不存在」，
+           而那讀起來像投影壞了，不像 CSS 寫錯了。 -->
+      <div id="a11y-doc" class="a11y-only" role="group" aria-label="文件內容">
+        <p id="a11y-para" aria-live="polite" aria-atomic="true"></p>
+        <!-- 路線圖 3.4 的結構那一半。空的時候就是空的：出貨 profile 沒有這份
+             資料，而**空的結構區域不會被念成「文件，空白」**，因為上面那個
+             #a11y-para 仍然帶著說明為什麼的句子。 -->
+        <div id="a11y-structure"></div>
+      </div>
+    </div>
+    <div id="expired">
+      <h2>這個頁面已經過期</h2>
+      <p>它釘死在證據所描述的那一版引擎，目前提供的是另一個 build，所以它
+         <strong>拒絕啟動</strong>。</p>
+      <p>需要的：<code id="expected-hash">—</code><br>
+         實際的：<code id="actual-hash">—</code></p>
+    </div>
+  </div>
+
+  <!-- SPEC-M3-link-batch §4.3／§10.10 Q-A：頁碼，「第 N 頁，共 M 頁」或「第 N–L 頁，共 M 頁」，
+       由頁面從 handle.pageRectangles() 算出（e2-editor-app.js，updatePageStatus）。
+
+       自己一個元素，不放進 .statusbar——宿主把整條 .statusbar 藏起來
+       （litecore/templates/editor.php:51），而這一行在宿主裡也要看得到。
+       不是 live region（沒有 aria-live、沒有 role）：捲動不該說話（finding 087／088），
+       報讀軟體用瀏覽的方式就讀得到。
+       沒有 page-rectangles 的 profile（v8、v19）永遠 hidden，頁面也永遠不會去問引擎。 -->
+  <div id="page-status" hidden></div>
+
+  <div class="statusbar">
+    <span>狀態 <b id="s-state">—</b></span>
+    <span>修訂 <b id="s-revision">—</b></span>
+    <span>佇列 <b id="s-pending">—</b></span>
+    <span>世代 <b id="s-generation">—</b></span>
+    <span>檢查點 <b id="s-checkpoint">—</b></span>
+    <span>上次操作 <b id="s-latency">—</b></span>
+    <span class="spacer" style="flex:1"></span>
+    <span id="s-doc">—</span>
+  </div>
+
+  <!-- SPEC-M3-link-batch-v21 4.2、9.13（Q1＝A）：在框裡用一般的 Ctrl+V 貼上，按「插入」
+       才送出；文件裡的 Ctrl+V 照舊是純文字。這個框是對話框自己的元素，打進去的字
+       不經過輸入 adapter（E1-C 綁定的）。「取消」與 Esc 什麼都不送。 -->
+  <dialog id="markdown-dialog" aria-labelledby="markdown-title">
+    <h2 id="markdown-title">貼上為 Markdown</h2>
+    <p>在框裡貼上或輸入 Markdown，按「插入」轉成格式，放在游標的位置。</p>
+    <textarea id="markdown-text" spellcheck="false" aria-label="要貼上的 Markdown"></textarea>
+    <p id="markdown-message" role="alert" hidden></p>
+    <div class="dialog-buttons">
+      <button type="button" id="markdown-cancel">取消</button>
+      <button type="button" id="markdown-insert" class="primary">插入</button>
+    </div>
+  </dialog>
+
+  <div id="toast" role="status"></div>
+  <script>
+(() => {
+  // fable's ruling on finding 122 (CONDITIONS, instrument): "on screen" is the first blit of a NEW
+  // ImageData -- a fresh render -- not any putImageData: updateState() re-blits the cached tiles on
+  // every state change, which is what the first version of this probe measured (0.1-4 ms after the
+  // revision, the old picture).  Each fresh image carries the revision of the paint reply it came from.
+  const root = document.documentElement;
+  const NativeImageData = window.ImageData;
+  const fresh = new WeakMap();           // image -> { born, revision }
+  let lastPaintRevision = null;
+  window.ImageData = class extends NativeImageData {
+    constructor(...args) { super(...args); fresh.set(this, { born: performance.now(), revision: lastPaintRevision }); }
+  };
+  const NativeWorker = window.Worker;
+  window.Worker = class extends NativeWorker {
+    constructor(...args) {
+      super(...args);
+      this.addEventListener("message", (e) => {
+        const d = e.data;
+        if (d && d.kind === "response" && d.ok && d.result && d.result.pixels && typeof d.result.revision === "number")
+          lastPaintRevision = d.result.revision;
+      });
+    }
+  };
+  const proto = CanvasRenderingContext2D.prototype, native = proto.putImageData;
+  const stale = [], blits = [];
+  proto.putImageData = function (image, dx, dy, ...rest) {
+    const t = Math.round(performance.now() * 10) / 10;
+    const f = fresh.get(image);
+    if (f) {
+      fresh.delete(image);               // later blits of the same image are re-blits of the old picture
+      blits.push([t, dy, image.height, f.revision]);
+      if (blits.length > 2000) blits.splice(0, 500);
+      root.dataset.blits = JSON.stringify(blits.slice(-600));
+    } else {
+      stale.push(t);
+      if (stale.length > 4000) stale.splice(0, 1000);
+      root.dataset.paints = JSON.stringify(stale.slice(-400));
+    }
+    return native.call(this, image, dx, dy, ...rest);
+  };
+})();
+</script><script type="module" src="./e2-editor-app.js"></script>
+</body>
+</html>

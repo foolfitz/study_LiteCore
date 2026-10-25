@@ -1,0 +1,9 @@
+# Initial C2 preparation observation
+
+This single r2/Chrome/gap80 slot is **NOT_ESTABLISHED**, an uncounted preparation observation. No historical C2 numeric threshold or performance acceptance was applied. No further slot was started.
+
+The browser fetched all four exact frozen r2 artifacts: WASM `683b7343bd02b432d4a1b0cea0af8c7542b6a0ad84885e8cc5755a4efdfce078`, manifest `716620972050c5d55485cb99564102cfe0e749af81457180f7f7a265701709da`, loader `f0c77adde7313ece193f16b3a97ea6d539492d282ad787b4f2cdb260c7229fd3`, worker `c8a3de873c3fbd61b20cc3404eb582433f0c8b1db2e52be374671c3b8851de50`. The actual user agent reports HeadlessChrome151. Actual geometry was1400×1000 CSS pixels, devicePixelRatio2. The pinned PMPC fixture and source/mirror bindings are in `binding.json`; the existing foreign-CPU guard passed.
+
+The unchanged probe observed20 real keys, but zero revision changes and zero fresh or stale blits. Revision latency, on-screen latency, overlay-blit latency and all-current-after-last-key latency are all null. Raw `revs`, `paints` and `blits` are empty; `startRevision` is `0` and the recorded canvas height is150. These observations do not establish document mutation or a usable typing-latency result. There was no Python exception. The reason that the unchanged probe did not collect document revision/paint evidence is unmeasured; no product or original-probe adaptation was attempted.
+
+`probe.json` preserves the complete original report and raw keys. The input and executed mirrors preserve the applied worker-URL patch and original paint-shim composition; symlinked dependencies remain bound by recorded source hashes. `cleanup-check.json` records that the shared browser lock was free and the owned server and Chrome PIDs were absent after completion. The result remains NE, and work stopped as directed.
