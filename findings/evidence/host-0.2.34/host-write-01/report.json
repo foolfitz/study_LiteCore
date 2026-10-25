@@ -1,0 +1,45 @@
+{
+  "checks": [
+    {
+      "id": "owned-folder",
+      "ok": true,
+      "raw": 201
+    },
+    {
+      "id": "readonly-fixture",
+      "ok": true,
+      "raw": 201
+    },
+    {
+      "id": "chrome/upload-ods",
+      "ok": true,
+      "raw": "M4-cell-host-20261025T100704/chrome.ods"
+    },
+    {
+      "id": "chrome/upload-odt",
+      "ok": true,
+      "raw": "M4-cell-host-20261025T100704/chrome.odt"
+    }
+  ],
+  "runs": [
+    {
+      "browser": "chrome",
+      "browserClose": {}
+    }
+  ],
+  "cleanup": {
+    "ownedUnlocks": [],
+    "shareRemoved": true,
+    "userRemoved": true,
+    "folderDeleteStatus": 204
+  },
+  "ownedFolder": "M4-cell-host-20261025T100704",
+  "temporaryUser": "m4_cell_22054e7e",
+  "readonlyShare": {
+    "id": "362",
+    "permissions": 1
+  },
+  "error": "CDP Runtime.evaluate: {'code': -32000, 'message': 'Object reference chain is too long'}",
+  "traceback": "Traceback (most recent call last):\n  File \"/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/run_calc_editor_host.py\", line 239, in run\n    self.admin_round(browser);self.readonly_round(browser)\n    ~~~~~~~~~~~~~~~~^^^^^^^^^\n  File \"/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/run_calc_editor_host.py\", line 141, in admin_round\n    run['entry']=self.open_file(session,name,'ods-editor.html'); state=self.ready_calc(session)\n                 ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/run_calc_editor_host.py\", line 108, in open_file\n    wait(session,f'document.querySelector({json.dumps(selector)})',60)\n    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/run_calc_editor_browser.py\", line 45, in wait\n    last = evaluate(session, expression)\n  File \"/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/r7_support.py\", line 96, in evaluate\n    return session.evaluate(expression)\n           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^\n  File \"/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/run_browser_probe.py\", line 292, in evaluate\n    result = self.call(\n             ~~~~~~~~~^\n        \"Runtime.evaluate\",\n        ^^^^^^^^^^^^^^^^^^^\n    ...<4 lines>...\n        },\n        ^^\n    ).get(\"result\", {})\n    ^\n  File \"/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/run_browser_probe.py\", line 288, in call\n    raise RuntimeError(f\"CDP {method}: {response['error']}\")\nRuntimeError: CDP Runtime.evaluate: {'code': -32000, 'message': 'Object reference chain is too long'}\n",
+  "ok": false
+}
