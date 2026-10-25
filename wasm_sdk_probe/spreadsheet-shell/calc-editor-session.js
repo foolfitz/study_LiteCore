@@ -11,10 +11,22 @@ export function inputIntent(event) {
   return null;
 }
 
+// Address rectangle with endpoint merge extents, not recursive merge closure.
+function rectangle(anchor, focus = anchor) {
+  return Object.freeze({part:anchor.part,anchor,focus,
+    column:Math.min(anchor.column,focus.column),row:Math.min(anchor.row,focus.row),
+    endColumn:Math.max(anchor.endColumn,focus.endColumn),endRow:Math.max(anchor.endRow,focus.endRow),
+    xTwips:Math.min(anchor.xTwips,focus.xTwips),yTwips:Math.min(anchor.yTwips,focus.yTwips),
+    widthTwips:Math.max(anchor.xTwips+anchor.widthTwips,focus.xTwips+focus.widthTwips)-Math.min(anchor.xTwips,focus.xTwips),
+    heightTwips:Math.max(anchor.yTwips+anchor.heightTwips,focus.yTwips+focus.heightTwips)-Math.min(anchor.yTwips,focus.yTwips),
+    multiple:anchor.column!==focus.column || anchor.row!==focus.row});
+}
+
 export class CalcEditorSession {
   constructor(options) {
     this.document = null;
     this._cell = null;
+    this._selection = null;
     this._draft = "";
     this._draftVersion = 0;
     this._editing = null;
@@ -42,7 +54,7 @@ export class CalcEditorSession {
 
   get scheduler() { return this.viewer.scheduler; }
   get state() {
-    return { ...this.viewer.state, cell: this._cell, draft: this._draft,
+    return { ...this.viewer.state, cell: this._cell, selection:this._selection, draft: this._draft,
       editing: this._editing, readOnly: this._readOnly, busy: this._busy > 0,
       saving: this._saving > 0, revision: this.document?.revision ?? null,
       dirty: this.hasUnsavedEdits(), error: this._error || this.viewer.state.error,
@@ -75,6 +87,7 @@ export class CalcEditorSession {
   }
   _adopt(cell) {
     this._cell = cell;
+    this._selection = rectangle(cell);
     this._draft = cell.input;
     this._draftVersion++;
     this._editing = null;
@@ -97,6 +110,7 @@ export class CalcEditorSession {
 
   beginEdit(mode = "formula", {replace = false} = {}) {
     this._assertReady(true);
+    this._selection = rectangle(this._cell);
     if (replace && !this._editing) {
       this._draft = "";
       this._draftVersion++;
@@ -135,20 +149,40 @@ export class CalcEditorSession {
     if (version !== this._draftVersion) await this._commitNow();
   }
   commit() { return this._enqueue(() => this._commitNow()); }
-  selectAt(xTwips,yTwips) {
+  _selectResult(cell, extend) {
+    if (extend && this._cell?.part===cell.part) {
+      this._selection=rectangle(this._cell,cell);
+      this._emit();
+    } else this._adopt(cell);
+    return cell;
+  }
+  selectAt(xTwips,yTwips,{extend=false,valid=()=>true}={}) {
     return this._enqueue(async()=>{
+      if(!valid())return;
       await this._commitNow();
       const result=await this.document.hitCell(xTwips,yTwips);
-      this._adopt(result.cell);
-      return result.cell;
+      if(valid())return this._selectResult(result.cell,extend);
     });
   }
-  selectCell(column,row) {
+  selectCell(column,row,{extend=false,valid=()=>true}={}) {
     return this._enqueue(async()=>{
+      if(!valid())return;
       await this._commitNow();
       const result=await this.document.readCell(column,row);
-      this._adopt(result.cell);
-      return result.cell;
+      if(valid())return this._selectResult(result.cell,extend);
+    });
+  }
+  moveSelection(dx,dy,{extend=false}={}) {
+    return this._enqueue(async()=>{
+      if(!Number.isInteger(dx) || !Number.isInteger(dy) || Math.abs(dx)+Math.abs(dy)!==1)
+        throw new DocumentSdkError("INVALID_ARGUMENT","selection movement must be one axis step");
+      await this._commitNow();
+      const focus=this._selection.focus;
+      const x=dx<0 ? focus.xTwips-1 : dx>0 ? focus.xTwips+focus.widthTwips+1 : focus.xTwips+Math.floor(focus.widthTwips/2);
+      const y=dy<0 ? focus.yTwips-1 : dy>0 ? focus.yTwips+focus.heightTwips+1 : focus.yTwips+Math.floor(focus.heightTwips/2);
+      if(x<0 || y<0)return focus;
+      const result=await this.document.hitCell(x,y);
+      return this._selectResult(result.cell,extend);
     });
   }
   showPart(part) {
@@ -165,6 +199,8 @@ export class CalcEditorSession {
       this._assertReady(true);
       if (!CELL_FORMATS.includes(format) || typeof enabled!=="boolean")
         throw new DocumentSdkError("INVALID_ARGUMENT","unknown cell format");
+      if(this._selection?.multiple)
+        throw new DocumentSdkError("RANGE_FORMAT_UNSUPPORTED","formatting a cell range is not supported yet");
       await this._commitNow();
       const cell=this._cell;
       const result=await this.document.setCellFormat(cell.column,cell.row,format,enabled,{part:cell.part});
