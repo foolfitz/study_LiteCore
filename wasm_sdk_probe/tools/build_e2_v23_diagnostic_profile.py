@@ -20,6 +20,9 @@ from check_v23_diagnostic_build import read_wasm
 
 PROFILE = "e2-editor-v23-diag"
 PRIVATE_EXPORT = "_oxsdk_v23_diagnostic"
+# build_e2_b_profile.build_profile binds these to each candidate's own bytes.
+ARTIFACT_BINDINGS = {"loaderSha256": "probe.js", "wasmSha256": "probe.wasm",
+                     "workerSha256": "sdk-worker.js"}
 
 
 def contract_problems(candidate: dict, reference: dict) -> list[str]:
@@ -30,10 +33,23 @@ def contract_problems(candidate: dict, reference: dict) -> list[str]:
         problems.append("reference must be the frozen v22 profile")
     if candidate.get("editorContract", {}).get("abiVersion") != 5:
         problems.append("diagnostic editor ABI must remain 5")
-    if candidate.get("editorContract") != reference.get("editorContract"):
+    candidate_contract = {k: v for k, v in candidate.get("editorContract", {}).items()
+                          if k not in ARTIFACT_BINDINGS}
+    reference_contract = {k: v for k, v in reference.get("editorContract", {}).items()
+                          if k not in ARTIFACT_BINDINGS}
+    if candidate_contract != reference_contract:
         problems.append("diagnostic public editor contract differs from v22")
     if candidate.get("capabilities") != reference.get("capabilities"):
         problems.append("diagnostic public capabilities differ from v22")
+    return problems
+
+
+def binding_problems(candidate: dict, output: Path) -> list[str]:
+    problems = []
+    for key, filename in ARTIFACT_BINDINGS.items():
+        actual = hashlib.sha256((output / filename).read_bytes()).hexdigest()
+        if candidate.get("editorContract", {}).get(key) != actual:
+            problems.append(f"{key} does not bind the packaged {filename}")
     return problems
 
 
@@ -71,7 +87,7 @@ def main(argv=None):
         if code:
             return code
         manifest = json.loads(manifest_path.read_text())
-        problems = contract_problems(manifest, reference)
+        problems = contract_problems(manifest, reference) + binding_problems(manifest, known.output)
         if problems:
             raise SystemExit("; ".join(problems))
         summary = json.loads(printed.getvalue())

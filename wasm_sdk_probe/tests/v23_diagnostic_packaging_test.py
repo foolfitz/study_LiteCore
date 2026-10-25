@@ -2,6 +2,7 @@
 """Contract controls use the complete actual v22 contract as their population."""
 import copy
 import json
+import hashlib
 import contextlib
 import io
 import tempfile
@@ -47,6 +48,11 @@ class DiagnosticContract(unittest.TestCase):
         self.candidate['capabilities'].append('v23-diagnostic')
         self.assertTrue(contract_problems(self.candidate, self.reference))
 
+    def test_new_artifact_bindings_do_not_change_public_contract(self):
+        for key in ('loaderSha256', 'wasmSha256', 'workerSha256'):
+            self.candidate['editorContract'][key] = '1' * 64
+        self.assertEqual([], contract_problems(self.candidate, self.reference))
+
     def test_reference_identity(self):
         self.reference['profile'] = PROFILE
         self.assertTrue(contract_problems(self.candidate, self.reference))
@@ -67,6 +73,10 @@ class PackagingFailures(unittest.TestCase):
         (self.work / 'exports.txt').write_text(builder.PRIVATE_EXPORT + '\n')
         (self.work / 'worker.js').write_bytes((ROOT / 'sdk/sdk-worker.js').read_bytes()
             + (ROOT / 'sdk/v23-diagnostic-worker-tail.js').read_bytes())
+        (self.work / 'probe.js').write_text('// synthetic loader for packaging-only tests\n')
+        (self.work / 'sdk-worker.js').write_bytes((self.work / 'worker.js').read_bytes())
+        for key, filename in builder.ARTIFACT_BINDINGS.items():
+            self.candidate['editorContract'][key] = hashlib.sha256((self.work / filename).read_bytes()).hexdigest()
         self.argv = ['builder', '--profile', PROFILE, '--wasm', str(self.work / 'probe.wasm'),
                      '--exports', str(self.work / 'exports.txt'), '--worker', str(self.work / 'worker.js'),
                      '--output', str(self.work)]
@@ -89,6 +99,34 @@ class PackagingFailures(unittest.TestCase):
         self.assertTrue(self.manifest.exists())
         self.assertEqual(self.stderr.getvalue(), '')
         self.assertTrue(json.loads(self.stdout.getvalue())['diagnosticOnly'])
+
+    def test_each_missing_stale_or_corrupted_artifact_binding_is_rejected(self):
+        for key, filename in builder.ARTIFACT_BINDINGS.items():
+            for fault in ('missing', 'stale', 'bytes'):
+                with self.subTest(binding=key, fault=fault):
+                    candidate = copy.deepcopy(self.candidate)
+                    original = (self.work / filename).read_bytes()
+                    if fault == 'missing':
+                        del candidate['editorContract'][key]
+                    elif fault == 'stale':
+                        candidate['editorContract'][key] = '0' * 64
+                    else:
+                        (self.work / filename).write_bytes(original + b'changed')
+                    try:
+                        self.assertTrue(builder.binding_problems(candidate, self.work))
+                    finally:
+                        (self.work / filename).write_bytes(original)
+
+    def test_postwrite_missing_artifact_removes_manifest_and_keeps_output(self):
+        def packer(argv):
+            self.write_candidate()
+            (self.work / 'probe.js').unlink()
+            print('{}')
+            return 0
+        with self.assertRaises(FileNotFoundError):
+            self.invoke(packer)
+        self.assertFalse(self.manifest.exists())
+        self.assertEqual(self.stderr.getvalue(), '{}\n')
 
     def test_postwrite_candidate_parse_failure_removes_manifest_and_keeps_output(self):
         def packer(argv):
