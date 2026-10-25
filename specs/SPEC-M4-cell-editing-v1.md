@@ -211,3 +211,13 @@ Claude successor review 05 的兩個原始 repro 以 selection 不經佇列為�
 有限修正為工具列及快捷鍵共用 eligibility；ready／cell writable／非 readOnly／非 uncertain，且無 busy／selectionPending／pendingEntry／dragWork，範圍另需支援與 writable metadata。drag 完成／取消要刷新工具列。focused tests 必須執行實際來源函式，涵蓋這些條件的工具封閉案例、有效 mixed→on／on→off，以及 actual session 的 queued-selection 紅案修後不排入格式。移除共同入口守衛與各 predicate 的突變須被拒絕；未做或失敗不成立。
 
 這是新 JS 候選，既有 range 240／autosave 108 的完成 cohorts 原樣保留，不能把新 hash 填回舊報告。修後對新候選各重播一次既有固定 Chrome／Firefox N＝3 母體（range 40／autosave 18，不新增案例），現有 reader 必須通過；native 22 未改不用重建。之後依既定 cell regression／freeze／package／guarded install／§20 host 54 繼續。新候選重播與 host reader 全過即封閉，不繼續擴 source audit；後續顧慮登錄 finding，除非另有具體資料遺失 blocker。
+
+## 22. 多格格式與自動儲存交付成立（2026-10-25，只追加）
+
+擁有者完成 native／WASM 建置，六份 v2 產物 hash 與回報逐一相同，capability bits 522291。native 22／22；§21 的新頁面候選 `range-browser-03` Chrome／Firefox 各 N＝3 **240／240**，六份畫面／156 塊實際 DOM tiles 對引擎相同，ODS 三字族 XML／重開成立；`auto-v2-02` 同母體各 N＝3 **108／108**、18 份 ODS；`cell-v2-02` **62／62**。新 cohort 原樣保存，不借用之前 hash／成功輪數。range 與 autosave reader 各六個紅控制全拒絕；range reader 也直接把匯出樣式改壞再拒絕。59 個來源單元、4 個獨立 XML 單元、格式入口 15 個工具衍生突變成立。XML 工具初次誤以為每格需 cell-local style-name 的六輪失敗保留，改正的是讀取 ODF 欄預設／parent 樣式的方法，沒有改格式期望。
+
+`ods-editor-v2` 以使用者建置的完整六份 bytes 凍結一次，wasm **5bc53490**／worker **0bed22bd**；v1／Writer v22／viewer v3 不覆寫。宿主 **0.2.37／2f7a119／754ae8eafd15edda** 已於 20:06:22 安裝。46 個封包檔的 35 筆完整紀錄與前版相同；離線零問題、22 個紅案全拒絕，精確 archive／還原腳本先於 live mutation 準備並提交。代理只跑資產 cp target，未代編譯或重連結；沒有核心重建。
+
+§20 實際 Files **54／54**，宿主 reader 七個紅控制全拒絕，四份獨立 GET 伺服器 ODS／兩份畫面 56 塊 tiles、production 自動存回、If-Match／自有 token／ODS MIME、31 秒不強制草稿、真匯出期間新輸入／焦點／dirty、正常離頁放鎖與 Files 重開、readonly 分享均成立。自有 folder／share／user 刪除完成且另查 folder 404／user absent，沒有 fallback UNLOCK。24674 lock 原樣保留；24920 文件仍 31,008 bytes／sha256 a8462965…；ddev 前後狀態相同，litecore 留 running。live engine／archive／隔離 worktree 逐檔相同，worktree 已清、branch／archive 保留。沒有全域 lock table 寫入或 root 指令。
+
+Astra `/root/astra_calc_scope` 獨立讀取 release、host reader 與保留產物後裁決本輪正式封閉，不再新增測試／閘門。Claude successor review 05 引出的真實 shortcut 旁路、已修與不成立前提均保留完整處置。這批短期待辦完成，沒有剩餘人工／建置阻擋；普通 cell commit 等待期間的既有連續按鍵接收限制、OS IME 等仍不外推。K／全域 pins／BINDING／chain 延後，名義出貨 0.2.26；§34.4 +0／+0，累計 47／27。最新狀態見 [完成交接](../handoff/HANDOFF-2026-10-25-calc-range-autosave-complete.md)。
