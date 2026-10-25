@@ -34,6 +34,7 @@ export class CalcEditorSession {
     this._savedRevision = null;
     this._saving = 0;
     this._busy = 0;
+    this._selecting = 0;
     this._error = null;
     this._closed = false;
     this._uncertain = false;
@@ -56,6 +57,7 @@ export class CalcEditorSession {
   get state() {
     return { ...this.viewer.state, cell: this._cell, selection:this._selection, draft: this._draft,
       editing: this._editing, readOnly: this._readOnly, busy: this._busy > 0,
+      selectionPending: this._selecting > 0,
       saving: this._saving > 0, revision: this.document?.revision ?? null,
       dirty: this.hasUnsavedEdits(), error: this._error || this.viewer.state.error,
       uncertain: this._uncertain };
@@ -93,7 +95,8 @@ export class CalcEditorSession {
     this._editing = null;
     this._emit();
   }
-  _enqueue(work) {
+  _enqueue(work, {selection = false} = {}) {
+    if(selection){this._selecting++;this._emit();}
     const run = this._chain.then(async () => {
       this._assertReady();
       this._busy++;this._error=null;this._emit();
@@ -104,8 +107,9 @@ export class CalcEditorSession {
         throw error;
       } finally { this._busy--;this._emit(); }
     });
-    this._chain = run.catch(() => {});
-    return run;
+    const completed=run.finally(()=>{if(selection){this._selecting--;this._emit();}});
+    this._chain = completed.catch(() => {});
+    return completed;
   }
 
   beginEdit(mode = "formula", {replace = false} = {}) {
@@ -163,7 +167,7 @@ export class CalcEditorSession {
       await this._commitNow();
       const result=await this.document.hitCell(xTwips,yTwips);
       if(valid())return this._selectResult(result.cell,extend);
-    });
+    },{selection:true});
   }
   selectCell(column,row,{extend=false,valid=()=>true}={}) {
     return this._enqueue(async()=>{
@@ -171,7 +175,7 @@ export class CalcEditorSession {
       await this._commitNow();
       const result=await this.document.readCell(column,row);
       if(valid())return this._selectResult(result.cell,extend);
-    });
+    },{selection:true});
   }
   moveSelection(dx,dy,{extend=false}={}) {
     return this._enqueue(async()=>{
@@ -181,10 +185,10 @@ export class CalcEditorSession {
       const focus=this._selection.focus;
       const x=dx<0 ? focus.xTwips-1 : dx>0 ? focus.xTwips+focus.widthTwips+1 : focus.xTwips+Math.floor(focus.widthTwips/2);
       const y=dy<0 ? focus.yTwips-1 : dy>0 ? focus.yTwips+focus.heightTwips+1 : focus.yTwips+Math.floor(focus.heightTwips/2);
-      if(x<0 || y<0)return focus;
+      if(x<0 || y<0)return this._selectResult(focus,extend);
       const result=await this.document.hitCell(x,y);
       return this._selectResult(result.cell,extend);
-    });
+    },{selection:true});
   }
   showPart(part) {
     return this._enqueue(async()=>{
@@ -193,7 +197,7 @@ export class CalcEditorSession {
       const result=await this.document.readCell(0,0);
       this._adopt(result.cell);
       return this.state;
-    });
+    },{selection:true});
   }
   setFormat(format,enabled) {
     return this._enqueue(async()=>{
@@ -231,6 +235,7 @@ export class CalcEditorSession {
     });
   }
   scheduleViewport(viewport) { return this.viewer.scheduleViewport(viewport); }
+  whenIdle() { return this._chain; }
   drain() { return this.viewer.drain(); }
   refit() { return this.viewer.refit(); }
   async close() {

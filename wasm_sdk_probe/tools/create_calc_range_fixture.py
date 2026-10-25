@@ -29,6 +29,9 @@ def create(output):
     ]]
     manifest = json.loads((output / "manifest.json").read_text())
     manifest["selectionCases"] = cases
+    manifest["pendingCases"] = ["text-Enter", "F2", "F2-text", "text-Escape", "text-new-selection", "IME"]
+    manifest["shiftKeys"] = ["ArrowLeft", "ArrowUp", "ArrowDown"]
+    manifest["reopenCases"] = [["A1","active replacement"],["B2","replacement 中文"],["C1","'=B1*9"],["G2","組字完成"]]
     manifest["selectionPolicy"] = "endpoint-address-rectangle-without-recursive-merge-closure"
     (output / "manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n")
     return path

@@ -1,0 +1,11 @@
+# Adversarial reviews and resolution
+
+Astra's canonical agent ID is `/root/astra_calc_scope`, retained and reused for scope and follow-up audits. The owner delegated scope decisions to Astra. Its finite selection ruling is in `handoff/RULING-2026-10-25-calc-input-range.md`.
+
+Astra identified missing first input during delayed selection, missing keyboard reveal, premature draft transfer before the pointer pump finished, capture/cancellation/owner lifetime issues, buffer validation before state changes, permanent association of failed selection with buffered input, and old draft prefixes entering new-cell text. Product changes and focused browser cases address these; acceptance status is recorded separately and must not be inferred from this narrative.
+
+Claude Code was invoked via `claude -p` with English read-only work orders. Review attempts 01 (tool-assisted), 02 (source snapshot, 360 seconds) and 03 (streaming source review, 240 seconds) produced no final review before termination/time limit; they are not approvals. Attempt 03's stream contains only initialization and thinking-token estimates, not a final finding. A separate READY control proved authentication/API connectivity.
+
+Protocol review 04 completed using the configured Claude model, disabled extended thinking and no tools. Session ID `ccb9d702-85c9-484d-9f94-984acc76237c` can be resumed if useful. Its original JSON records no permission denials. It suggested tests for transfer timing, compositionend ordering, save-after-flush and invalid buffer leakage. The proposal of an independent engine revision bump/undo and Enter automatically moving down is not part of this implementation's serialized API/input contract; no claim is made that those unimplemented paths were measured. The source-based Astra audit, not this protocol-only review, supplied concrete product defects.
+
+Firefox IME evidence distinguishes a synthetic composition lifecycle guard plus trusted keyboard events from Chrome's trusted CDP preedit. Neither is an OS input-method claim. Full-attempt-04's request-count failures were an incorrect tool bound over an entire interpolated drag: the spec bounds each pointer step, not the total number of emitted pointer events. The corrected tool records both actual pointer-step and SDK-call counts and retains the original failure.
