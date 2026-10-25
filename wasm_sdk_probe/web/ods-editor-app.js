@@ -1,5 +1,6 @@
 import { CalcDocumentEngine, CELL_INPUT_LIMIT } from "./spreadsheet-shell/calc-document-sdk.js";
 import { CalcEditorSession, inputIntent } from "./spreadsheet-shell/calc-editor-session.js";
+import { CalcAutosave } from "./spreadsheet-shell/calc-autosave.js";
 
 const ENGINE_OPTIONS = Object.freeze({workerUrl:"./profiles/ods-editor-v1/sdk-worker.js",timeoutMs:60000});
 const HOST = globalThis.liteCoreHost ?? null;
@@ -7,9 +8,9 @@ const diagnostics = new URLSearchParams(location.search).get("diagnostics") === 
 const $ = id => document.getElementById(id);
 const ui = Object.fromEntries(["file-input","open-file","save-button","cell-address","formula-input",
   "cancel-button","commit-button","viewport","surface","tiles","selection","active-cell","cell-editor","empty",
-  "tab-strip","state-pill","selection-label","s-doc","s-revision","toast"].map(id=>[id,$(id)]));
+  "tab-strip","state-pill","autosave-status","selection-label","s-doc","s-revision","toast"].map(id=>[id,$(id)]));
 let session = null, composing = false, paintPending = false, paintAgain = false, lastPaint = null, restoreGridFocus = false;
-let pendingEntry = null;
+let pendingEntry = null, autosave = null, manualSaves = 0;
 const record = globalThis.__calcEditor = {schemaVersion:1,session:null,state:null,events:[],lastSave:null};
 if(diagnostics)record.inputState=()=>({composing,pending:pendingEntry ? {replace:pendingEntry.replace,invalid:pendingEntry.invalid===true,textLength:pendingEntry.text.length}:null});
 
@@ -26,8 +27,17 @@ function errorNotice(error) {
   const messages={READ_ONLY:"這個儲存格無法編輯。",CELL_TEXT_TOO_LONG:"儲存格內容超過 32,767 個字元，尚未寫入。",
     STALE_REVISION:"文件狀態已改變；你的輸入已保留，請先儲存或重新開啟。",
     MUTATION_OUTCOME_UNKNOWN:"無法確認剛才的修改，請保留此頁，避免遺失內容。",
-    PART_HIDDEN:"這張工作表已隱藏。",RANGE_FORMAT_UNSUPPORTED:"目前尚未支援整個選取範圍的格式，請先選取單一儲存格。"};
+    PART_HIDDEN:"這張工作表已隱藏。",RANGE_FORMAT_UNSUPPORTED:"目前的引擎尚未支援範圍格式。",
+    RANGE_TOO_LARGE:"一次最多可設定 65,536 個儲存格的格式，請縮小選取範圍。",
+    RANGE_MERGE_BOUNDARY:"選取範圍跨過合併格邊界，請選取完整的合併格後重試。",
+    RANGE_PROTECTED:"選取範圍含有受保護的儲存格，無法變更格式。"};
   notice(messages[error.code] || error.message || String(error),true);
+}
+function autosaveState(state) {
+  ui["autosave-status"].hidden=!state.enabled;
+  ui["autosave-status"].textContent=state.paused ? "自動儲存已暫停，請手動儲存" : state.saving ? "自動儲存中…"
+    : state.draft ? "編輯中（確認後自動儲存）" : "自動儲存已開啟";
+  ui["autosave-status"].classList.toggle("error",!!state.paused);
 }
 async function action(work) {
   try { return await work(); } catch(error) { errorNotice(error); return null; }
@@ -57,9 +67,13 @@ function render(state) {
   ui["commit-button"].disabled=!editable || !state.editing || waiting;
   ui["cancel-button"].disabled=!state.editing || waiting;
   for(const node of document.querySelectorAll("[data-format]")) {
-    node.disabled=!editable || state.busy || state.selection?.multiple || pendingEntry!==null;
-    node.setAttribute("aria-pressed",state.selection?.multiple ? "false" : state.cell?.[node.dataset.format] ? "true":"false");
-    node.title=state.selection?.multiple ? "目前尚未支援範圍格式，請先選取單一儲存格。" : node.getAttribute("aria-label");
+    const multiple=state.selection?.multiple,range=state.rangeFormat;
+    const value=multiple ? range?.[node.dataset.format] : state.cell?.[node.dataset.format];
+    node.disabled=!editable || state.busy || pendingEntry!==null
+      || (multiple && (!state.rangeFormattingSupported || !range?.writable));
+    node.setAttribute("aria-pressed",multiple && value==null ? "mixed" : value ? "true":"false");
+    node.title=multiple && !state.rangeFormattingSupported ? "目前的引擎尚未支援範圍格式。"
+      : multiple && range?.refusalCode ? formatRefusal(range.refusalCode) : node.getAttribute("aria-label");
   }
   if(!composing) {
     if(ui["formula-input"].value!==state.draft)ui["formula-input"].value=state.draft;
@@ -74,7 +88,7 @@ function render(state) {
     ui["cell-address"].value=address;
     const range=state.selection;
     ui["selection-label"].textContent=range?.multiple
-      ? `${cellAddress(range.column,range.row)}:${cellAddress(range.endColumn,range.endRow)} · 作用中 ${address}（範圍格式尚未支援）` : address;
+      ? `${cellAddress(range.column,range.row)}:${cellAddress(range.endColumn,range.endRow)} · 作用中 ${address}${state.rangeFormattingSupported ? "" : "（範圍格式尚未支援）"}` : address;
     ui["selection-label"].title="範圍依兩端儲存格框選；交界合併格不自動擴張。";
     place(ui.selection,range || state.cell);place(ui["active-cell"],state.cell);place(ui["cell-editor"],state.cell);
     if(state.editing!=="inline") {
@@ -111,6 +125,7 @@ function render(state) {
     if(active===document.body || active===ui.viewport || active===ui["cell-editor"])focusGrid();
   }
   if(pendingEntry && !state.selectionPending && !state.busy && !composing)queueMicrotask(flushPendingEntry);
+  autosave?.update();
 }
 function flushPendingEntry() {
   if(!pendingEntry || composing || session.state.busy || session.state.selectionPending || dragWork)return;
@@ -164,6 +179,7 @@ async function paint() {
 }
 async function openBytes(bytes,name,options={}) {
   if((pendingEntry || session?.hasUnsavedEdits()) && !confirm("尚有修改未儲存，仍要開啟其他檔案嗎？"))return;
+  autosave?.dispose();autosave=null;
   pendingEntry=null;cancelDrag();
   if(session)await session.close();
   lastPaint=null;ui.tiles.replaceChildren();ui.viewport.scrollTop=0;ui.viewport.scrollLeft=0;
@@ -183,28 +199,59 @@ async function openBytes(bytes,name,options={}) {
   });
   record.session=session;
   await session.open({bytes,name,...options});
+  const owner=session;
+  autosave=new CalcAutosave({
+    snapshot:()=>{
+      const s=owner.state;
+      return {host:!!HOST,state:s.state,readOnly:s.readOnly,editing:s.editing,revision:s.revision,
+        committedDirty:s.committedDirty,busy:s.busy,saving:s.saving,selectionPending:s.selectionPending,
+        uncertain:s.uncertain,error:s.error,composing,pendingEntry:pendingEntry!==null,
+        dragging:dragWork!==null,manualPending:manualSaves>0};
+    },
+    save:conditions=>save("auto",conditions,owner),onState:autosaveState,
+  });
+  if(diagnostics)record.autosave=autosave;
+  autosave.update();
   notice(options.readOnly ? "此檔案目前以唯讀開啟。" : "直接輸入取代內容；F2 編輯；拖曳或 Shift＋方向鍵選取範圍。");
   await paint();
   return session.state;
 }
 record.openBytes=openBytes;
 record.ready=Promise.resolve();
-async function save() {
-  if(!session)return;
-  await session.whenIdle();
-  const entryWasPending=pendingEntry!==null,flushed=await flushPendingEntry();
-  if(entryWasPending && flushed!==true){notice("輸入尚未接回儲存格，請先完成或取消輸入。",true);return;}
-  if(pendingEntry || composing){notice("請先完成輸入或取消尚未寫入的內容，再儲存。",true);return;}
-  const saved=await session.save(async(bytes,{name})=>{
-    if(HOST)return HOST.save(bytes,{name,trigger:"manual"});
+async function save(trigger="manual",conditions,owner=session) {
+  if(!owner)return;
+  const controller=autosave;
+  if(trigger==="auto") {
+    // Recheck synchronously immediately before enqueueing. Autosave never
+    // consumes a pending textarea buffer or ends a cell/IME edit.
+    if(owner!==session || composing || pendingEntry || dragWork || owner.state.editing || owner.state.busy)return;
+    return saveToHost(owner,trigger,conditions);
+  }
+  manualSaves++;controller?.update();
+  try {
+    await owner.whenIdle();
+    if(owner!==session)return;
+    const entryWasPending=pendingEntry!==null,flushed=await flushPendingEntry();
+    if(entryWasPending && flushed!==true){notice("輸入尚未接回儲存格，請先完成或取消輸入。",true);return;}
+    if(pendingEntry || composing){notice("請先完成輸入或取消尚未寫入的內容，再儲存。",true);return;}
+    const result=await saveToHost(owner,trigger);
+    controller?.manualSaved(result);
+    return result;
+  } catch(error) {controller?.manualFailed(error);throw error;}
+  finally {manualSaves--;controller?.update();}
+}
+async function saveToHost(owner,trigger,conditions) {
+  const saved=await owner.save(async(bytes,{name})=>{
+    if(HOST)return HOST.save(bytes,{name,trigger,conditions});
     const url=URL.createObjectURL(new Blob([bytes],{type:"application/vnd.oasis.opendocument.spreadsheet"}));
     const link=document.createElement("a");link.href=url;link.download=name;link.click();
     setTimeout(()=>URL.revokeObjectURL(url),1000);
     return{name};
-  });
-  record.lastSave={revision:saved.revision,bytes:saved.bytes.byteLength,result:saved.result};
+  },{commitDraft:trigger!=="auto"});
+  record.lastSave={revision:saved.revision,bytes:saved.bytes.byteLength,result:saved.result,trigger};
   if(diagnostics)record.lastExport=saved.bytes;
-  notice(HOST ? "已存回試算表。":"已交給瀏覽器下載，請確認檔案已存好。");
+  if(trigger!=="auto")notice(HOST ? "已存回試算表。":"已交給瀏覽器下載，請確認檔案已存好。");
+  return saved.result;
 }
 function focusGrid(){
   const node=ui["cell-editor"].disabled ? ui.viewport : ui["cell-editor"];
@@ -228,14 +275,22 @@ ui["file-input"].addEventListener("change",()=>{
   const file=ui["file-input"].files[0];
   if(file)void action(async()=>openBytes(await file.arrayBuffer(),file.name));
 });
-ui["save-button"].addEventListener("click",()=>action(save));
+ui["save-button"].addEventListener("click",()=>action(()=>save()));
 ui["commit-button"].addEventListener("click",()=>action(async()=>{await session.commit();focusGrid();}));
 ui["cancel-button"].addEventListener("click",()=>{session.cancelEdit();focusGrid();});
 for(const node of document.querySelectorAll("[data-format]"))
   node.addEventListener("click",()=>{
     if(pendingEntry){notice("請先完成或取消目前的輸入。",true);return;}
-    void action(()=>session.setFormat(node.dataset.format,!session.state.cell[node.dataset.format]));
+    void action(()=>toggleFormat(node.dataset.format));
   });
+function formatRefusal(code) {
+  return ({RANGE_TOO_LARGE:"請縮小範圍至 65,536 格以內。",RANGE_MERGE_BOUNDARY:"請選取完整合併格後再設定格式。",
+    RANGE_PROTECTED:"選取範圍含受保護的儲存格。",READ_ONLY:"此範圍無法編輯。"})[code] || "目前無法設定此範圍的格式。";
+}
+function toggleFormat(format) {
+  const s=session.state,value=s.selection?.multiple ? s.rangeFormat?.[format] : s.cell[format];
+  return session.setFormat(format,value!==true);
+}
 for(const node of [ui["formula-input"],ui["cell-editor"]]) {
   const bufferEntry=replace=>{
     if(!pendingEntry){pendingEntry={replace,text:""};node.value="";node.setSelectionRange(0,0);}
@@ -300,6 +355,7 @@ function cancelDrag(){
   if(pendingEntry && dragWork)pendingEntry.invalid=true;
   gesture++;const current=drag;drag=null;dragWork=null;
   if(current && ui.viewport.hasPointerCapture(current.pointer))ui.viewport.releasePointerCapture(current.pointer);
+  autosave?.update();
 }
 function inViewport(event) {
   const r=ui.viewport.getBoundingClientRect();
@@ -319,6 +375,7 @@ async function extendDrag(current) {
     current.pumping=false;
     if(!current.active && current.generation===gesture){
       if(dragWork===current)dragWork=null;
+      autosave?.update();
       void flushPendingEntry();focusGrid();
     }
   }
@@ -347,6 +404,10 @@ ui.viewport.addEventListener("pointerup",event=>{
 ui.viewport.addEventListener("pointercancel",()=>{cancelDrag();focusGrid();});
 ui.viewport.addEventListener("lostpointercapture",event=>{if(drag?.pointer===event.pointerId)cancelDrag();});
 window.addEventListener("blur",cancelDrag);
+for(const name of ["keydown","beforeinput","compositionstart","compositionend","pointerdown"])
+  window.addEventListener(name,()=>autosave?.activity(),{capture:true});
+ui.viewport.addEventListener("pointermove",()=>{if(drag)autosave?.activity();});
+document.addEventListener("visibilitychange",()=>{if(document.hidden)void autosave?.flush("hidden");});
 function gridKey(event) {
   if(!session || session.state.editing || composing || event.isComposing || event.keyCode===229 || event.ctrlKey || event.metaKey || event.altKey)return;
   const direction={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]}[event.key];
@@ -374,15 +435,15 @@ window.addEventListener("keydown",event=>{
   }
   if(!session || event.isComposing || event.keyCode===229 || !(event.ctrlKey||event.metaKey) || event.repeat)return;
   const key=event.key.toLowerCase();
-  if(key==="s"){event.preventDefault();void action(save);return;}
+  if(key==="s"){event.preventDefault();void action(()=>save());return;}
   const format={b:"bold",i:"italic",u:"underline"}[key];
-  if(format){event.preventDefault();if(pendingEntry){notice("請先完成或取消目前的輸入。",true);return;}void action(()=>session.setFormat(format,!session.state.cell[format]));}
+  if(format){event.preventDefault();if(pendingEntry){notice("請先完成或取消目前的輸入。",true);return;}void action(()=>toggleFormat(format));}
 });
 const unsaved=()=>pendingEntry!==null || session?.hasUnsavedEdits()===true;
 if(HOST?.watchUnsaved)HOST.watchUnsaved(unsaved);
 else window.addEventListener("beforeunload",event=>{if(unsaved()){event.preventDefault();event.returnValue="";}});
 document.documentElement.setAttribute("data-litecore-page-guard","own");
-window.addEventListener("pagehide",()=>{void session?.close();});
+window.addEventListener("pagehide",()=>{autosave?.dispose();void session?.close();});
 if(HOST) {
   ui["open-file"].hidden=true;
   record.ready=action(async()=>{

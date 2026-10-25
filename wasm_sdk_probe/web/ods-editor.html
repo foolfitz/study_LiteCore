@@ -20,6 +20,7 @@ button:disabled { opacity:.4; cursor:default; }
 .separator { width:1px; height:22px; background:var(--line); margin:0 7px; }
 [data-format] { font-family:Georgia,serif; font-size:19px; }
 [data-format][aria-pressed="true"] { background:#d8ecdf; border-color:#8cbda0; color:#105d40; }
+[data-format][aria-pressed="mixed"] { background:#eef1e1; border-color:#a5ae7b; border-style:dashed; }
 .formula-bar { display:flex; align-items:flex-start; gap:8px; padding:8px 12px; border-bottom:1px solid var(--line); background:#fff; }
 #cell-address { width:86px; flex:none; min-height:33px; border:1px solid var(--line); border-radius:4px; padding:5px 9px; font-size:13px; }
 .formula-label { flex:none; padding:5px 2px; font-family:Georgia,serif; font-style:italic; color:var(--muted); font-size:18px; }
@@ -43,6 +44,7 @@ button:disabled { opacity:.4; cursor:default; }
 .calc-statusbar { display:flex; align-items:center; gap:12px; min-height:30px; padding:4px 13px; border-top:1px solid var(--line); color:var(--muted); font-size:12px; background:#fff; }
 #toast { margin-left:auto; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 #toast.error { color:#a52828; }
+#autosave-status.error { color:#a52828; }
 @media(max-width:600px) { .formula-bar { gap:5px; padding:7px; } #cell-address { width:65px; } #toolbar { padding-left:7px; } }
 </style></head>
 <body>
@@ -66,6 +68,6 @@ button:disabled { opacity:.4; cursor:default; }
 <div id="empty"><strong>開啟試算表，開始編輯</strong><span>選取儲存格後，可連按兩下編輯或使用上方輸入欄。</span></div>
 </div>
 <div id="tab-strip" role="tablist" aria-label="工作表"></div>
-<div class="calc-statusbar"><span id="state-pill" data-state="idle">尚未開啟</span><span id="selection-label"></span><span id="s-revision" hidden></span><span id="toast" role="status" aria-live="polite"></span></div>
+<div class="calc-statusbar"><span id="state-pill" data-state="idle">尚未開啟</span><span id="autosave-status" hidden></span><span id="selection-label"></span><span id="s-revision" hidden></span><span id="toast" role="status" aria-live="polite"></span></div>
 <script type="module" src="./ods-editor-app.js"></script>
 </body></html>
