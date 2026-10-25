@@ -18,7 +18,9 @@ from urllib.parse import urlencode
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import v21_shakedown_common as common
 import run_e2_c_product_path as pp
-from judge_v23_diagnostic import ARMS, FILES, PROFILE, identity
+from judge_v23_diagnostic import ARMS, FILES, PROFILE, R2_PROFILE, PROFILES, identity
+
+from v23_diagnostic_instruments import instrument_files, served_instruments, verify_bindings, sha
 
 PROJECT = Path(__file__).resolve().parents[1]
 
@@ -40,6 +42,7 @@ def mirror(target, fixture):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--profile', choices=PROFILES, default=PROFILE)
     parser.add_argument('--wasm-sha256', required=True, help='explicit actual owner-linked candidate pin')
     parser.add_argument('--fixture', type=Path, required=True)
     parser.add_argument('--fixture-name', help='actual loader filename; defaults to fixture basename')
@@ -54,16 +57,17 @@ def main():
         parser.error('five rounds belong only to the separate W-D protocol')
     if args.arm == 'wd' and not args.case_id:
         parser.error('--arm wd requires --case-id')
-    expected = identity(PROJECT / 'dist/profiles' / PROFILE, args.wasm_sha256)
+    if args.profile == R2_PROFILE and args.arm == 'js-thread':
+        parser.error('r2 js-thread obligations reuse corrected040 reports; do not run the old generic arm')
+    expected = identity(PROJECT / 'dist/profiles' / args.profile, args.wasm_sha256, args.profile)
     if not args.fixture.is_file(): parser.error('fixture does not exist')
     args.output.mkdir(parents=True, exist_ok=False)
     target = args.output.resolve() / 'mirror'
     mirror(target, args.fixture.resolve())
-    report = {'schema': 1, 'profile': PROFILE, 'identity': expected,
+    report = {'schema': 1, 'profile': args.profile, 'identity': expected,
               'fixtureSha256': hashlib.sha256(args.fixture.read_bytes()).hexdigest(),
-              'instrumentSha256': {str(p.relative_to(PROJECT)): hashlib.sha256(p.read_bytes()).hexdigest()
-                for p in [Path(__file__), PROJECT / 'tools/judge_v23_diagnostic.py',
-                          PROJECT / 'web/v23-diagnostic.js', PROJECT / 'web/v23-diagnostic.html']},
+              'instrument': {str(p.relative_to(PROJECT)): sha(p) for p in instrument_files()},
+              'mirrorInstrument': served_instruments(),
               'runs': []}
     if args.arm == 'wd':
         from v23_wd_cases import instrument_files
@@ -73,7 +77,7 @@ def main():
     output = args.output / 'report.json'
     def write(): output.write_text(json.dumps(report, indent=2) + '\n')
     browsers = ('chrome', 'firefox') if args.browser == 'both' else (args.browser,)
-    arms = ARMS if args.arm == 'all' else (args.arm,)
+    arms = (ARMS[:3] if args.profile == R2_PROFILE else ARMS) if args.arm == 'all' else (args.arm,)
     with common.browser_lock('run_v23_diagnostic'):
         report['preRun'] = common.pre_run_checks()
         report['foreignCpu'] = common.foreign_cpu()
@@ -90,10 +94,11 @@ def main():
                         session = None
                         try:
                             # Re-read identity before every fresh process; stop candidate drift.
-                            if identity(PROJECT / 'dist/profiles' / PROFILE, args.wasm_sha256) != expected:
+                            if identity(PROJECT / 'dist/profiles' / args.profile, args.wasm_sha256, args.profile) != expected:
                                 raise RuntimeError('candidate artifacts changed during cohort')
+                            verify_bindings(report, target, check_pages=False)
                             session = common.open_browser(browser)
-                            pp.navigate(session, base + '?' + urlencode({'arm': arm, 'caseId': args.case_id or '',
+                            pp.navigate(session, base + '?' + urlencode({'arm': arm, 'profile': args.profile, 'caseId': args.case_id or '',
                                 'fixtureName': args.fixture_name or args.fixture.name}))
                             deadline = time.monotonic() + 300
                             while time.monotonic() < deadline:

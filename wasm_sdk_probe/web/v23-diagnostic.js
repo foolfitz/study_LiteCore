@@ -1,12 +1,12 @@
 // Private no-host instrument. No frozen SDK/session source is modified.
 import {createDocumentEngine} from './sdk/document-sdk.js';
 import {NarrowEditorV2Session} from './editor-shell-v2/narrow-editor-v2-session.js';
-const PROFILE = 'e2-editor-v23-diag';
 const params = new URLSearchParams(location.search);
+const PROFILE = params.get('profile') || 'e2-editor-v23-diag';
 const arm = params.get('arm') || 'smoke';
 const fixtureName = params.get('fixtureName') || 'v23-diagnostic.odt';
 const result = globalThis.__v23 = {schema: 1, arm, profile: PROFILE, userAgent: navigator.userAgent,
-  fixtureName, complete: false, events: [], requests: [], responses: [], opens: [], steps: [], workers: [], artifacts: {}};
+  fixtureName, instrumentServed: {}, cancels: [], complete: false, events: [], requests: [], responses: [], opens: [], steps: [], workers: [], artifacts: {}};
 let generation = 0;
 const errorData = e => ({code: e?.code, message: String(e?.message || e), details: e?.details});
 const hash = async bytes => [...new Uint8Array(await crypto.subtle.digest('SHA-256', bytes))]
@@ -35,6 +35,7 @@ function workerFactory(url) {
     postMessage: (message, ...args) => {
       if (message.kind === 'request') result.requests.push({generation: gen, at: performance.now(),
         requestId: message.requestId, operation: message.operation, payload: Object.fromEntries(Object.entries(message.payload || {}).filter(([k]) => !['buffer', 'bytes'].includes(k)))});
+      if (message.kind === 'cancel') result.cancels.push({generation: gen, at: performance.now(), ...message});
       worker.postMessage(message, ...args);
     },
     terminate: () => {record.terminatedAt = performance.now(); worker.terminate();},
@@ -48,6 +49,13 @@ async function step(name, fn) {
 }
 let session;
 try {
+  if (!['e2-editor-v23-diag', 'e2-editor-v23-diag-r2'].includes(PROFILE)) throw new Error('unknown diagnostic profile');
+  if (PROFILE === 'e2-editor-v23-diag-r2' && arm === 'js-thread') throw new Error('r2 requires corrected040 selected-frame control');
+  for (const name of ['e2-editor.html', 'v23-diagnostic.js', ...(arm === 'wd' ? ['v23-diagnostic-wd.js'] : [])]) {
+    const response = await fetch(`./${name}`, {cache: 'no-store'});
+    if (!response.ok) throw new Error(`${name}: HTTP ${response.status}`);
+    result.instrumentServed[name] = await hash(await response.arrayBuffer());
+  }
   for (const name of ['sdk-manifest.json', 'probe.wasm', 'probe.js', 'sdk-worker.js']) {
     const response = await fetch(`./profiles/${PROFILE}/${name}`, {cache: 'no-store'});
     if (!response.ok) throw new Error(`${name}: HTTP ${response.status}`);
