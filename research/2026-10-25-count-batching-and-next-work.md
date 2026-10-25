@@ -88,3 +88,9 @@ ODS 的優先工作已完成，現有可接續的功能批次是 **v23：指令�
 擁有者確認 cell 文字／公式輸入符合預期；另報告格式後全白。finding 165 修法只調整新 Calc session 的 invalidate／emit 順序，既有模型／存檔驗證不足以證明畫面完整。本輪新增 DOM tile 與引擎 render 對比，雙瀏覽器各三輪 90／90；宿主準備 **0.2.35**，引擎不重連結。這一項續列未計數帳，K 舊 pins／BINDING／chain 不改。
 
 [Collabora 輸入／格式原始碼與 autosave 差異](2026-10-25-collabora-calc-input-format-autosave.md) 已整理；直接輸入與部分文字格式尚未新增，目前 Calc 的手動儲存與 Writer autosave 有差異。本輪沒有把「要求確認」當作已新增排程。§34.4 +0／+0，累計 47／27。
+
+## 2026-10-25 交接：人工通過與輸入／區域選取下一批
+
+擁有者手測回報整格 B／I／U、雙擊保留原文進編輯均通過；直接選格打字／F2 沒反應，符合目前未實作的狀態。下一批須補這些預期入口，並加入新要求的儲存格**區域選取**；本輪只有交接，沒有開始功能實作或把新需求列成已通過。
+
+目前候選仍 0.2.35／858a07c／b007f950b2e18cd2。操作細節、range 格式 API 與後繼 profile 需求在下一輪先定案；不要覆寫 frozen v1。自動儲存仍 manual only，未被這則新需求自動納入。最新接續文件：[人工結果與 cell range 下一步](../handoff/HANDOFF-2026-10-25-calc-owner-passes-input-range-next.md)。K 維持併批、名義出貨 0.2.26，§34.4 +0／+0，累計 47／27。

@@ -117,3 +117,13 @@ H-write `findings/evidence/host-0.2.34/host-write-02/report.json` 留下真實�
 `python3 findings/evidence/host-0.2.35/read-result.py` 讀既有產物與 XML／snapshot／實際 ddev 狀態紀錄，全部成立；空 host checks 與 false check 兩個紅案均拒絕。`post-test-identity.json` 實讀 live source 乾淨、installed 0.2.35、package **b007f950b2e18cd2** 等於封存，原有 **24674** 鎖列前後相同、測試帳號／folder 已不存在。`cleanup.json` 全專案狀態前後一致，**litecore 保留 running**；沒有清鎖表或停止別的專案。隔離 worktree 核對 source／archive 後移除，分支與 archive 保留。
 
 **finding 165 已修，0.2.35 成為已安裝未計數候選。**不需重連結 SDK／核心；ods-editor-v1 與全部舊 profile 身分不變。K 延後併批、名義出貨 0.2.26；§34.4 +0／+0，累計 47／27。擁有者本輪確認文字／公式符合預期已記錄；沒有把 0.2.35 的格式修法說成已由擁有者手測，也不新增人工閘門。
+
+## 12. 擁有者人工結果與下一批輸入／選取需求（2026-10-25，只追加）
+
+擁有者完成手測並明確回報：**「B／I／U 整格套用 => 測試通過」**、**「雙擊：保留原內容，進入文字編輯 => 測試通過」**；這兩項人類觀察成立，與先前文字／公式輸入的通過一起保留，不再重問。原話在 `findings/evidence/host-0.2.35/owner-test-2026-10-25/confirmation.md`。這是 0.2.35 安裝／研究之後的回覆；擁有者沒有另報 browser／版本／served 身分，不由本次離線 checkout 讀取替代當時的瀏覽器身分。
+
+「選格後直接打字，F2 進入文字編輯 => 沒反應」符合本版尚未接線的事實。上一份說明是在描述 Collabora 的行為，不能把它當本版已提供；下一批須補上這兩個預期入口，不能把沒有實作只登錄成不需處理的回歸。新要求 **「區域選取」** 續入下一批，語境是試算表 cell range，與 textarea 內文字反白／部分文字格式分開。
+
+本輪依指示只寫交接、記錄結果；沒有新增這些功能、凍結新功能判準或啟動建置／瀏覽器／ddev。下一輪先定義並事前記錄直接輸入、F2、矩形選區的語意與驗收，再實作。滑鼠拖拉、Shift 擴選、對選區套格式等細節是待具體化的實作規劃，不冒充本次已逐項指定的條件。既有 frozen ods-editor-v1 不覆寫；若 range mutation 要新增 API，另立後繼身分。
+
+Calc 仍 manual only，沒有新增 autosave；先前可選範圍問題未獲追加實作回答，不把這則區域選取要求推定為 autosave 授權。K 繼續併批、名義出貨 0.2.26，§34.4 +0／+0，累計 47／27。
