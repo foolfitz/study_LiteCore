@@ -288,11 +288,13 @@ def selftest() -> int:
                         and set(one["files"]) >= {"one.html", "one-app.js", "profiles/p/sdk-worker.js"}, one["files"]))
     entry = lambda sha: {"bytes": 1, "sha256": sha, "gzBytes": 1, "gzSha256": "g", "zstBytes": 1, "zstSha256": "z"}  # noqa: E731
     files = {"e2-editor.html": entry("a"), "e2-editor-app.js": entry("b"), "ods-viewer.html": entry("c"),
-             "ods-viewer-app.js": entry("d"), "profiles/e/probe.wasm": entry("w1"), "profiles/v/probe.wasm": entry("w2")}
+             "ods-viewer-app.js": entry("d"), "profiles/e/probe.wasm": entry("w1"), "profiles/v/probe.wasm": entry("w2"),
+             "ods-editor.html": entry("f"), "ods-editor-app.js": entry("g"), "profiles/c/probe.wasm": entry("w3")}
     good = {"schema": SCHEMA, "buildId": build_id(files), "files": files, "source": {"pages": {
         "e2-editor.html": {"module": "e2-editor-app.js", "profile": "e", "wasmSha256": "w1"},
-        "ods-viewer.html": {"module": "ods-viewer-app.js", "profile": "v", "wasmSha256": "w2"}}}}
-    results.append(("a two-page schema-3 manifest holds", validate_manifest(good) == [], validate_manifest(good)))
+        "ods-viewer.html": {"module": "ods-viewer-app.js", "profile": "v", "wasmSha256": "w2"},
+        "ods-editor.html": {"module": "ods-editor-app.js", "profile": "c", "wasmSha256": "w3"}}}}
+    results.append(("a three-page schema-3 manifest holds", validate_manifest(good) == [], validate_manifest(good)))
     import copy
     for label, edit in [
         ("a one-page manifest under schema 3", lambda m: m["source"]["pages"].pop("ods-viewer.html")),

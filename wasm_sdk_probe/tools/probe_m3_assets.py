@@ -58,7 +58,8 @@ PAGE_MODULE = "e2-editor-app.js"
 # page's closure -- that page's static import graph, its one hard-coded
 # workerUrl, and that worker's manifest closure.  The editor and the read-only
 # spreadsheet viewer share the SDK and the CJK pack; each has its own engine.
-PAGES = {"e2-editor.html": "e2-editor-app.js", "ods-viewer.html": "ods-viewer-app.js"}
+PAGES = {"e2-editor.html": "e2-editor-app.js", "ods-viewer.html": "ods-viewer-app.js",
+         "ods-editor.html": "ods-editor-app.js"}
 APP_ROUTE = "/apps/litecore/r/"
 IMPORT = re.compile(r'^\s*(?:import|export)\b[^;]*?\bfrom\s*"(\.{1,2}/[^"]+)"', re.M | re.S)
 WORKER_URL = re.compile(r'workerUrl:\s*"(\./[^"]+)"')
