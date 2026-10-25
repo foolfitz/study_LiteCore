@@ -47,3 +47,7 @@ Concrete `install-0.2.34.sh`, guarded package refresh, archive checksums, expire
 No required work remains for this request. The owner can start litecore and open a writable ODS from Files; the report has the command. Future feature requests get their own scope/gates. K still needs final identity inventory/repins/merge binding/chain-reader and the owner's existing scheduling/no-site agreement, after more updates accumulate. Historical K ran 7h48m40s; do not start it autonomously here. Existing ODS limitations including Basic UDF and L-E6-leak-sbrk remain. Section 34.4 **+0/+0**, cumulative **47/27**.
 
 Standing instructions: Taiwan Traditional Chinese replies; evidence/handoff/upstream/commits English. No sudo/su/doas/root changes. Compiling make belongs to the owner unless explicitly authorized in context; this turn's simple builds were authorized. Cohesive commits with Codex trailer. No subagents were authorized or used.
+
+## Later owner test and correction
+
+The owner subsequently confirmed text/formula input and reported post-format blanking. Current state is superseded by `HANDOFF-2026-10-25-calc-format-fixed-collabora-research.md`: host 0.2.35 / b007f950b2e18cd2, finding 165 fixed, Collabora source and autosave audit complete, litecore RUNNING as found. Do not restore the old stopped state from this historical handoff.
