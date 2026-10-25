@@ -106,7 +106,7 @@ class SInitReader(unittest.TestCase):
         for mutation in ('missing-cell','duplicate-cell','wrong-candidate','wrong-fixture',
                          'changed-saved-outcome','changed-method','changed-geometry','changed-pixels',
                          'missing-reopen','substituted-reopen-bytes','failed-response','wrong-worker',
-                         'wrong-served-source','wrong-served-config','extra-noop-mutation','both-silent-drop','no-revision-advance','missing-placement'):
+                         'wrong-served-source','wrong-served-config','extra-noop-mutation','both-silent-drop','no-revision-advance','missing-placement','wrong-UA-family','copied-round'):
             with self.subTest(mutation=mutation):
                 cells=copy.deepcopy(self.cells)
                 case='paragraph-break' if mutation=='missing-placement' else 'linguistic-layout' if mutation in ('changed-geometry','changed-pixels') else 'direct-load-reopen' if mutation in ('missing-reopen','substituted-reopen-bytes') else 'input-teh'
@@ -144,6 +144,10 @@ class SInitReader(unittest.TestCase):
                     request=next(r for r in page['requests'] if r['message']['operation']=='editorPlaceCaretV2')
                     ident=request['message']['requestId'];page['requests'].remove(request)
                     page['responses']=[r for r in page['responses'] if r['message']['requestId']!=ident]
+                elif mutation=='wrong-UA-family': page['userAgent']='Mozilla/5.0 Firefox/140.0'
+                elif mutation=='copied-round':
+                    target=next(c for c in cells if c['caseId']==case and c['profile']==cell['profile'] and c['browser']==cell['browser'] and c['round']==2)
+                    target['page']=copy.deepcopy(page)
                 elif mutation=='no-revision-advance':
                     req=next(r for r in page['requests'] if r['message']['operation']=='insertText')
                     next(r for r in page['responses'] if r['message']['requestId']==req['message']['requestId'])['message']['result']['revision']=0

@@ -5,6 +5,7 @@ import base64
 import hashlib
 import io
 import json
+import re
 from pathlib import Path
 import sys
 import xml.etree.ElementTree as ET
@@ -247,11 +248,18 @@ def judge(cells, config):
     keys = [(c['caseId'], c['profile'], c['browser'], c['round']) for c in cells]
     if len(keys) != len(set(keys)) or set(keys) != wanted:
         return {'verdict': 'NOT_ESTABLISHED', 'problems': ['missing/duplicate/extra Cartesian cells'], 'residuals': RESIDUALS}
-    normalized, failures = {}, []
+    normalized, failures, page_hashes = {}, [], {}
     for key, cell in zip(keys, cells):
         try:
             assert not cell.get('fatal'), 'runner failed'
             assert (cell['page']['caseId'], cell['page']['profile']) == key[:2], 'page mislabeled'
+            ua = cell['page'].get('userAgent', '')
+            actual_family = 'firefox' if re.search(r'Firefox/\d', ua) else 'chrome' if re.search(r'(?:Headless)?Chrome/\d', ua) else None
+            assert actual_family == cell['browser'], 'actual user-agent family differs from browser label'
+            page_hash = digest(json.dumps(cell['page'], sort_keys=True, separators=(',', ':'), ensure_ascii=False).encode())
+            assert page_hash not in page_hashes, 'actual page observation reused across cells'
+            page_hashes[page_hash] = key
+
             normalized[key] = inspect_cell(cell['page'], config)
         except (AssertionError, KeyError, ValueError, TypeError, ET.ParseError, zipfile.BadZipFile) as error:
             failures.append({'cell': key, 'reason': str(error)})

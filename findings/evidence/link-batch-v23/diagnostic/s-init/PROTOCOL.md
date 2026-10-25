@@ -66,3 +66,4 @@ This establishes admissible input for the existing paragraph-action comparison. 
 
 The reader binds the single placement request/response and its coordinates to the actual initial state, proves it precedes insertion, and binds the fresh placed and post-marker witnesses to wire responses. Its exact mutation projection now contains this one setup operation for this case only. A causal control removes the actual placement exchange while retaining the claimed setup and saved result; the reader rejects it.
 
+The existing two-browser/N3 provenance condition is also implemented directly: actual captured `page.userAgent` must match the outer Chrome/Firefox family, and a canonical hash of the actual page observation cannot be reused across cells. Wrong-family and copied-round controls reject; this uses already captured evidence and adds no case or data collection.
