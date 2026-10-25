@@ -1,0 +1,13 @@
+{
+  "procedure": "Import test_v23_wd_reader from wasm_sdk_probe/tests. For each case, call synthetic(case) to create a fresh page, apply exactly one mutation, then call wd.judge(page, case, expected, oracle).",
+  "mutation_verdicts": [
+    {"case": "bold-disabled", "mutation": "page['requests'][2]['payload']['enabled'] = False", "verdict": "FAIL", "failed": [], "missing": []},
+    {"case": "false-wire-bold", "mutation": "page['responses'][2]['message']['result'] = {'state': {'format': {'bold': False}}}", "verdict": "FAIL", "failed": [], "missing": []},
+    {"case": "wrong-point", "mutation": "next(r for r in page['requests'] if r['operation'] == 'editorPlaceCaretV2')['payload'].update(xTwips=999999, yTwips=999999)", "resulting_payload": {"xTwips": 999999, "yTwips": 999999}, "verdict": "FAIL", "failed": [], "missing": []},
+    {"case": "extra-click", "mutation": "page['requests'].append({'generation': 1, 'requestId': 99, 'at': 50, 'operation': 'click', 'payload': {}})", "verdict": "FAIL", "failed": [], "missing": []}
+  ],
+  "all_four_not_pass": true,
+  "exit_code": 0,
+  "stdout": "[\n  {\n    \"case\": \"bold-disabled\",\n    \"mutated_payload\": null,\n    \"verdict\": \"FAIL\",\n    \"failed\": [],\n    \"missing\": []\n  },\n  {\n    \"case\": \"false-wire-bold\",\n    \"mutated_payload\": null,\n    \"verdict\": \"FAIL\",\n    \"failed\": [],\n    \"missing\": []\n  },\n  {\n    \"case\": \"wrong-point\",\n    \"mutated_payload\": {\n      \"xTwips\": 999999,\n      \"yTwips\": 999999\n    },\n    \"verdict\": \"FAIL\",\n    \"failed\": [],\n    \"missing\": []\n  },\n  {\n    \"case\": \"extra-click\",\n    \"mutated_payload\": null,\n    \"verdict\": \"FAIL\",\n    \"failed\": [],\n    \"missing\": []\n  }\n]\n",
+  "stderr": ""
+}
