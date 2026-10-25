@@ -1,0 +1,58 @@
+[
+  {
+    "name": "format-shift-direct",
+    "fixture": "plain3",
+    "script": "rwrong,k1024,k1028,rbefore,k1029,rend,k1028,Xformat@1028=U.uno:StyleApply|{\"Style\":{\"type\":\"string\"`\"value\":\"Text body\"}`\"FamilyName\":{\"type\":\"string\"`\"value\":\"ParagraphStyles\"}},S,L",
+    "note": "FORMAT residue: direct, next shift; one-line plain P2 only",
+    "decides": true
+  },
+  {
+    "name": "format-shift-reset",
+    "fixture": "plain3",
+    "script": "rwrong,k1024,k1028,rbefore,k1029,rend,k1028,Xformat@1028=U.uno:StyleApply|{\"Style\":{\"type\":\"string\"`\"value\":\"Text body\"}`\"FamilyName\":{\"type\":\"string\"`\"value\":\"ParagraphStyles\"}};Rbefore;U.uno:SelectText;Rbefore,S,L",
+    "note": "FORMAT residue: reset, next shift; one-line plain P2 only",
+    "decides": true
+  },
+  {
+    "name": "format-shift-candidate",
+    "fixture": "plain3",
+    "script": "rwrong,k1024,k1028,rbefore,k1029,rend,k1028,Xformat@1028=U.uno:StyleApply|{\"Style\":{\"type\":\"string\"`\"value\":\"Text body\"}`\"FamilyName\":{\"type\":\"string\"`\"value\":\"ParagraphStyles\"}};Rbefore;U.uno:SelectText;Qbefore,S,L",
+    "note": "FORMAT residue: candidate, next shift; one-line plain P2 only",
+    "decides": true
+  },
+  {
+    "name": "format-shift-wrong",
+    "fixture": "plain3",
+    "script": "rwrong,k1024,k1028,rbefore,k1029,rend,k1028,Xformat@1028=U.uno:StyleApply|{\"Style\":{\"type\":\"string\"`\"value\":\"Text body\"}`\"FamilyName\":{\"type\":\"string\"`\"value\":\"ParagraphStyles\"}};Rbefore;U.uno:SelectText;Qwrong,S,L",
+    "note": "FORMAT residue: wrong, next shift; one-line plain P2 only",
+    "decides": true
+  },
+  {
+    "name": "format-handles-direct",
+    "fixture": "plain3",
+    "script": "rwrong,k1024,k1028,rbefore,k1029,rend,k1028,Xformat@1028=U.uno:StyleApply|{\"Style\":{\"type\":\"string\"`\"value\":\"Text body\"}`\"FamilyName\":{\"type\":\"string\"`\"value\":\"ParagraphStyles\"}};Rbefore;Eend;Rbefore,S,L",
+    "note": "FORMAT residue: direct, next handles; one-line plain P2 only",
+    "decides": true
+  },
+  {
+    "name": "format-handles-reset",
+    "fixture": "plain3",
+    "script": "rwrong,k1024,k1028,rbefore,k1029,rend,k1028,Xformat@1028=U.uno:StyleApply|{\"Style\":{\"type\":\"string\"`\"value\":\"Text body\"}`\"FamilyName\":{\"type\":\"string\"`\"value\":\"ParagraphStyles\"}};Rbefore;U.uno:SelectText;Rbefore;Rbefore;Eend;Rbefore,S,L",
+    "note": "FORMAT residue: reset, next handles; one-line plain P2 only",
+    "decides": true
+  },
+  {
+    "name": "format-handles-candidate",
+    "fixture": "plain3",
+    "script": "rwrong,k1024,k1028,rbefore,k1029,rend,k1028,Xformat@1028=U.uno:StyleApply|{\"Style\":{\"type\":\"string\"`\"value\":\"Text body\"}`\"FamilyName\":{\"type\":\"string\"`\"value\":\"ParagraphStyles\"}};Rbefore;U.uno:SelectText;Qbefore;Rbefore;Eend;Rbefore,S,L",
+    "note": "FORMAT residue: candidate, next handles; one-line plain P2 only",
+    "decides": true
+  },
+  {
+    "name": "format-handles-wrong",
+    "fixture": "plain3",
+    "script": "rwrong,k1024,k1028,rbefore,k1029,rend,k1028,Xformat@1028=U.uno:StyleApply|{\"Style\":{\"type\":\"string\"`\"value\":\"Text body\"}`\"FamilyName\":{\"type\":\"string\"`\"value\":\"ParagraphStyles\"}};Rbefore;U.uno:SelectText;Qwrong;Rwrong;Eend;Rwrong,S,L",
+    "note": "FORMAT residue: wrong, next handles; one-line plain P2 only",
+    "decides": true
+  }
+]
