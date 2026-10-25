@@ -164,6 +164,15 @@ class SInitReader(unittest.TestCase):
             next(r for r in page['responses'] if r['message']['requestId']==req['message']['requestId'])['message']['result']['buffer']=binary(data)
         result=reader.judge(cells,self.config)
         self.assertEqual(result['verdict'],'PASS',result)
+    def test_real_mirror_covers_transitive_import_graph(self):
+        from v23_s_init_cases import instrument_identity, served_sources
+        from run_v23_s_init import mirror
+        config={'fixtures':fixture_identity(),'instrumentSha256':instrument_identity(),
+                'servedSources':served_sources()}
+        with tempfile.TemporaryDirectory() as directory:
+            target=Path(directory)/'mirror'
+            mirror(target,config)
+            verify_mirror(target,config)
     def test_actual_mirror_source_config_and_fixture_controls(self):
         with tempfile.TemporaryDirectory() as directory:
             path=Path(directory); (path/'s-init-fixtures').mkdir()

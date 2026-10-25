@@ -26,6 +26,16 @@ def mirror(target, config):
         (target / name).symlink_to(PROJECT / name, target_is_directory=True)
     shutil.copyfile(PROJECT / 'web/v23-s-init.html', target / 'e2-editor.html')
     shutil.copyfile(PROJECT / 'web/v23-s-init.js', target / 'v23-s-init.js')
+    # Include transitive imports outside the three primary SDK/session trees.
+    # The same executable graph feeds verification; no second directory list.
+    for name in config['servedSources']:
+        destination = target / name
+        if destination.exists(): continue
+        source = PROJECT / name
+        if not source.is_file(): raise ValueError(f'missing served source: {source}')
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        destination.symlink_to(source)
+
     shutil.copytree(FIXTURES, target / 's-init-fixtures')
     (target / 's-init-config.json').write_bytes(config_bytes(config))
 
