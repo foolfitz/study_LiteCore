@@ -3689,6 +3689,18 @@ dist/viewer-shell/%.js: viewer-shell/%.js | dist/viewer-shell
 	cp $< $@
 
 ODS_VIEWER_SHELL_FILES := odf-package-probe.js ods-document-sdk.js ods-viewer-session.js viewer-error.js w7-adapter.js
+CALC_EDITOR_SHELL_FILES := $(notdir $(wildcard spreadsheet-shell/*.js))
+dist/ods-editor.html: web/ods-editor.html | dist
+	cp $< $@
+dist/ods-editor-app.js: web/ods-editor-app.js | dist
+	cp $< $@
+dist/spreadsheet-shell/%.js: spreadsheet-shell/%.js | dist/spreadsheet-shell
+	cp $< $@
+dist/spreadsheet-shell:
+	mkdir -p $@
+ods-editor-assets: dist/ods-editor.html dist/ods-editor-app.js \
+		$(addprefix dist/spreadsheet-shell/,$(CALC_EDITOR_SHELL_FILES))
+.PHONY: ods-editor-assets
 ods-viewer-assets: dist/ods-viewer.html dist/ods-viewer-app.js \
 	$(addprefix dist/viewer-shell/,$(ODS_VIEWER_SHELL_FILES))
 .PHONY: ods-viewer-assets
@@ -4323,7 +4335,8 @@ test-e2-c-static:
 		--carrier E2_V22=probe_engine,sdk_api,editor_api \
 		--carrier ODS_VIEWER_V1=probe_engine,sdk_api \
 		--carrier ODS_VIEWER_V2=probe_engine,sdk_api \
-		--carrier ODS_VIEWER_V3=probe_engine,sdk_api
+		--carrier ODS_VIEWER_V3=probe_engine,sdk_api \
+		--carrier ODS_EDITOR_V1=probe_engine,sdk_api
 	# E2-C must never touch what E1-C bound.  Read-only on purpose: a static
 	# target that rewrites verdict-bound evidence has happened here once.
 	python3 tools/check_e1_c_bundle_intact.py > /dev/null
