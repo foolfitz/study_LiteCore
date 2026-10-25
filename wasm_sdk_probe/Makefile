@@ -4650,3 +4650,89 @@ clean:
 	dist/provider-sdk/provider-sdk.js dist/provider-sdk/provider-sdk.d.ts \
 	dist/providers/text-translate-descriptor.js \
 	dist/providers/text-translate-provider.js dist/providers/text-translate-worker.js
+
+# ------------------------------- ods-editor-v2, range formatting on the existing v3 core
+# Development output is deliberately outside dist; only the final accepted
+# engine is copied to a fresh frozen profile. No existing profile is relinked.
+ODS_EDITOR_V2_CORE := ../wasm-lite/build-ods-viewer-v2
+ODS_EDITOR_V2_BUILD := build/ods/editor-v2
+ODS_EDITOR_V2_DIST := dist/profiles/ods-editor-v2
+ODS_EDITOR_V2_SOURCES := src/sdk_api.cpp src/probe_engine.cpp src/unoembind_stub.cpp
+ODS_EDITOR_V2_OBJECTS := $(patsubst src/%.cpp,$(ODS_EDITOR_V2_BUILD)/%.o,$(ODS_EDITOR_V2_SOURCES))
+ODS_EDITOR_V2_CPPFLAGS := -DLOK_USE_UNSTABLE_API -I$(LOSRC)/include \
+	-I$(ODS_EDITOR_V2_CORE)/config_host \
+	-I$(ODS_EDITOR_V2_CORE)/workdir/UnoApiHeadersTarget/udkapi/comprehensive \
+	-I$(ODS_EDITOR_V2_CORE)/workdir/UnoApiHeadersTarget/offapi/comprehensive \
+	-I$(ODS_EDITOR_V2_CORE)/workdir/UnpackedTarball/boost
+
+$(ODS_EDITOR_V2_BUILD)/%.o: src/%.cpp $(HEADERS) src/ods_viewer.hpp \
+		src/calc_cell_bridge.h Makefile | $(ODS_EDITOR_V2_BUILD)
+	$(CXX) $(ODS_EDITOR_V2_CPPFLAGS) $(R5_CXXFLAGS) -DOXSDK_READER_PROFILE \
+		-DOXSDK_ODS_VIEWER -DOXSDK_ODS_VIEWER_V2 -DOXSDK_ODS_EDITOR -DOXSDK_ODS_RANGE -c $< -o $@
+
+$(ODS_EDITOR_V2_BUILD)/calc_cell_bridge.o: src/calc_cell_bridge.cpp \
+		src/calc_cell_bridge.h Makefile | $(ODS_EDITOR_V2_BUILD)
+	$(CXX) $(ODS_EDITOR_V2_CPPFLAGS) $(R5_CXXFLAGS) -std=c++20 \
+		-DLIBO_INTERNAL_ONLY -DOXSDK_ODS_RANGE -c $< -o $@
+
+$(ODS_EDITOR_V2_BUILD)/exports.txt: \
+		$(ODS_EDITOR_V2_CORE)/workdir/CustomTarget/desktop/soffice_bin-emscripten-exports/exports Makefile \
+		| $(ODS_EDITOR_V2_BUILD)
+	grep -v -e '^__ZTI' -e '^_main$$' $< > $@
+	printf '%s\n' __ZTIN3com3sun4star3ucb31InteractiveAugmentedIOExceptionE \
+		_oxsdk_abi_version _oxsdk_capabilities _oxsdk_engine_start \
+		_oxsdk_document_open _oxsdk_document_paint _oxsdk_document_close \
+		_oxsdk_document_search _oxsdk_document_set_part _oxsdk_document_current_part \
+		_oxsdk_document_part_name _oxsdk_document_part_text _oxsdk_document_part_info \
+		_oxsdk_request_cancel _oxsdk_buffer_alloc _oxsdk_buffer_free \
+		_oxsdk_document_save _oxsdk_document_cell >> $@
+
+$(ODS_EDITOR_V2_BUILD)/probe.js: $(ODS_EDITOR_V2_OBJECTS) \
+		$(ODS_EDITOR_V2_BUILD)/calc_cell_bridge.o $(ODS_EDITOR_V2_BUILD)/exports.txt
+	@test ! -e $(ODS_EDITOR_V2_DIST)/sdk-manifest.json || \
+		{ echo "ods-editor-v2 is frozen; use a successor profile"; exit 1; }
+	$(CXX) $(ODS_EDITOR_V2_OBJECTS) $(ODS_EDITOR_V2_BUILD)/calc_cell_bridge.o \
+		-L$(ODS_EDITOR_V2_CORE)/instdir/program \
+		$$(cat $(ODS_EDITOR_V2_CORE)/instdir/program/soffice.js.linkdeps) \
+		-pthread -fwasm-exceptions -sSUPPORT_LONGJMP=wasm --no-entry -Oz \
+		-sMODULARIZE -sEXPORT_NAME=createProbeModule \
+		-sTOTAL_MEMORY=1GB -sPTHREAD_POOL_SIZE=7 -sPTHREAD_POOL_SIZE_STRICT=0 \
+		-sSTACK_SIZE=131072 -sDEFAULT_PTHREAD_STACK_SIZE=1048576 \
+		-sFORCE_FILESYSTEM=1 -sWASM_BIGINT=1 -sERROR_ON_UNDEFINED_SYMBOLS=1 -sFETCH=1 \
+		-sASSERTIONS=0 -sEXIT_RUNTIME=0 -sEXPORTED_RUNTIME_METHODS=ccall,FS,HEAPU8 \
+		-sEXPORTED_FUNCTIONS=@$(ODS_EDITOR_V2_BUILD)/exports.txt \
+		-Wl,--wrap=_Z18initJsUnoScriptingv \
+		--pre-js $(LOSRC)/static/emscripten/environment.js \
+		--pre-js $(ODS_EDITOR_V2_CORE)/workdir/CustomTarget/static/emscripten_fs_image/soffice.data.js.link \
+		-o $@
+
+$(ODS_EDITOR_V2_BUILD)/profile/sdk-manifest.json: $(ODS_EDITOR_V2_BUILD)/probe.js \
+		sdk/sdk-worker.js tools/build_calc_range_profile.py
+	python3 tools/build_calc_range_profile.py --development \
+		--loader $(ODS_EDITOR_V2_BUILD)/probe.js --wasm $(ODS_EDITOR_V2_BUILD)/probe.wasm \
+		--worker sdk/sdk-worker.js --exports $(ODS_EDITOR_V2_BUILD)/exports.txt \
+		--output $(ODS_EDITOR_V2_BUILD)/profile
+
+$(ODS_EDITOR_V2_BUILD):
+	mkdir -p $@
+
+# Owner-run, small native bridge build against the existing installed core.
+CALC_RANGE_NATIVE_CORE := ../build-native-26-8
+CALC_RANGE_NATIVE_BUILD := build/calc-range-native
+CALC_RANGE_NATIVE_FLAGS := -I$(LOSRC)/include -I$(CALC_RANGE_NATIVE_CORE)/config_host \
+	-I$(CALC_RANGE_NATIVE_CORE)/workdir/UnoApiHeadersTarget/udkapi/comprehensive \
+	-I$(CALC_RANGE_NATIVE_CORE)/workdir/UnoApiHeadersTarget/offapi/comprehensive \
+	-I$(CALC_RANGE_NATIVE_CORE)/workdir/UnpackedTarball/boost
+
+$(CALC_RANGE_NATIVE_BUILD)/bridge.o: src/calc_cell_bridge.cpp src/calc_cell_bridge.h Makefile
+	mkdir -p $(CALC_RANGE_NATIVE_BUILD)
+	$(HOST_CXX) -std=c++20 -O2 -fPIC -DLIBO_INTERNAL_ONLY -DOXSDK_ODS_RANGE \
+		-DCPPU_ENV=gcc3 -DUNX -DLINUX -DX86_64 $(CALC_RANGE_NATIVE_FLAGS) -c $< -o $@
+
+$(CALC_RANGE_NATIVE_BUILD)/calc-cell-native: tools/calc_cell_native.cpp $(CALC_RANGE_NATIVE_BUILD)/bridge.o
+	$(HOST_CXX) -std=c++17 -O2 $(CALC_RANGE_NATIVE_FLAGS) $^ \
+		-L$(CALC_RANGE_NATIVE_CORE)/instdir/program -lsfxlo -lvcllo -lcomphelper -ltllo \
+		$(CALC_RANGE_NATIVE_CORE)/instdir/program/libuno_sal.so.3 \
+		$(CALC_RANGE_NATIVE_CORE)/instdir/program/libuno_cppu.so.3 \
+		$(CALC_RANGE_NATIVE_CORE)/instdir/program/libuno_cppuhelpergcc3.so.3 \
+		-Wl,-rpath,$(abspath $(CALC_RANGE_NATIVE_CORE)/instdir/program) -ldl -o $@
