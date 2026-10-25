@@ -42,11 +42,19 @@ def validate(report,repeats=3):
     return len(runs)*len(wanted)
 
 def artifacts(out,report):
-    sources=json.loads((out/'mirror-sources.json').read_text())['sha256'];assert sources,'empty identity'
+    identity=json.loads((out/'mirror-sources.json').read_text());sources=identity['sha256'];assert sources,'empty identity'
     for relative,sha in sources.items():
         p=ROOT/'web'/relative if relative in ['ods-editor.html','ods-editor-app.js'] else ROOT/relative
         if relative.startswith('profiles/'):p=ROOT/'dist'/relative
         assert p.is_file() and hashlib.sha256(p.read_bytes()).hexdigest()==sha,'candidate changed: '+relative
+    if identity.get('engineSha256'):
+        binding=json.loads((out/'v2-runner.json').read_text());profile=Path(binding['profile'])
+        assert binding['wrapperSha256']==hashlib.sha256(PROBE.with_name('probe_calc_autosave_v2.py').read_bytes()).hexdigest(),'wrong v2 wrapper'
+        assert binding['runnerSha256']==report['toolSha256'],'wrong autosave runner binding'
+        manifest=json.loads((profile/'sdk-manifest.json').read_text())
+        assert manifest['profile']=='ods-editor-v2' and 'cell-range-formatting' in manifest['capabilities'],'wrong successor'
+        for name,sha in identity['engineSha256'].items():
+            assert hashlib.sha256((profile/name).read_bytes()).hexdigest()==sha,'changed successor: '+name
     ns={'t':'urn:oasis:names:tc:opendocument:xmlns:table:1.0','text':'urn:oasis:names:tc:opendocument:xmlns:text:1.0'}
     for r in report['runs']:
         for f in r['files']:

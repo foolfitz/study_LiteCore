@@ -24,8 +24,9 @@ def mirror(out, profile):
     (root/"profiles/ods-editor-v1").rename(root/"profiles/ods-editor-v2")
     app=root/"ods-editor-app.js";source=app.read_text()
     old='"./profiles/ods-editor-v1/sdk-worker.js"'
-    if source.count(old)!=1:raise RuntimeError("engine URL substitution premise changed")
-    app.write_text(source.replace(old,'"./profiles/ods-editor-v2/sdk-worker.js"'))
+    new='"./profiles/ods-editor-v2/sdk-worker.js"'
+    if source.count(old)==1:app.write_text(source.replace(old,new))
+    elif source.count(new)!=1:raise RuntimeError("engine URL substitution premise changed")
     manifest=json.loads((profile/"sdk-manifest.json").read_text())
     files={"sdk-manifest.json","sdk-worker.js",*map(lambda x:x.removeprefix("./"),manifest["artifactFiles"].values())}
     record={"root":str(root),"patch":"private mirror engine URL v1 -> v2",
