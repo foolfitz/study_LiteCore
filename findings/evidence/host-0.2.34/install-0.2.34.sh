@@ -14,8 +14,8 @@ A=/home/jiajun/Projects/Nextcloud_Apps/litecore
 OUT="$R/findings/evidence/host-0.2.34"
 LOG="${INSTALL_LOG:-$OUT/install.txt}"
 OLD="$R/wasm_sdk_probe/build/archive/host-0.2.33-engine-a67beefefebe57d6"
-NEW="$R/wasm_sdk_probe/build/archive/host-0.2.34-engine-df7f6fe14e395638"
-BUILD_ID=df7f6fe14e395638
+NEW="$R/wasm_sdk_probe/build/archive/host-0.2.34-engine-d308e0cc58958d85"
+BUILD_ID=d308e0cc58958d85
 readarray -t HEADS < <(python3 - "$OUT/release.json" <<'PY'
 import json, sys
 r = json.load(open(sys.argv[1]))

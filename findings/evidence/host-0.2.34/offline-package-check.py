@@ -15,7 +15,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "wasm_sdk_probe" / 
 import check_m3_assets as assets  # noqa: E402
 
 # Package-only candidate binding; full K pins remain untouched.
-assets.BUILD_ID = "df7f6fe14e395638"
+assets.BUILD_ID = "d308e0cc58958d85"
 
 
 def main() -> int:
