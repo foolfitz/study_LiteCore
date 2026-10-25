@@ -82,13 +82,13 @@ def validate(audit, boundary, build_log, planned_log, root=ROOT):
     packer.checked_base_worker()
     return protected
 
-def package():
+def package(protected=()):
     worker = ROOT / BUILD / 'sdk-worker.js'
     output = SDK / 'dist/profiles/e2-editor-v23-diag'
     manifest = output / 'sdk-manifest.json'
     temporary = worker.with_suffix('.js.pending')
-    failed = [manifest.with_name('sdk-manifest.failed.json'), worker.with_name('sdk-worker.failed.js'), worker.with_name('sdk-worker.pending.failed.js')]
-    if any(p.exists() for p in [worker, manifest, temporary] + failed):
+    failed = [output.with_name(output.name + '.failed'), worker.with_name('sdk-worker.failed.js'), worker.with_name('sdk-worker.pending.failed.js')]
+    if (output.exists() and (not output.is_dir() or any(output.iterdir()))) or any(p.exists() for p in [worker, manifest, temporary] + failed):
         raise ValueError('existing worker/manifest/failed bytes require a preserved retry decision')
     for script in ('build_base_no35_pack.py', 'build_cjk_subset_mono_pack.py'):
         subprocess.run([sys.executable, str(SDK / 'tools' / script), '--check'], cwd=SDK, check=True)
@@ -107,11 +107,19 @@ def package():
             code = packer.main(args)
         finally: os.chdir(previous)
         if code: raise RuntimeError('diagnostic packer returned ' + str(code))
-        return {name: digest(output / name) for name in ('probe.js', 'probe.wasm', 'sdk-worker.js', 'sdk-manifest.json')}
-    except BaseException:
+        result = {name: digest(output / name) for name in ('probe.js', 'probe.wasm', 'sdk-worker.js', 'sdk-manifest.json')}
+        verify_rows(protected, ROOT)
+        return result
+    except BaseException as error:
         # Failed bytes remain inspectable under non-target names.
-        for path, target in zip([manifest, worker, temporary], failed):
-            if path.exists(): os.rename(path, target)
+        for path, target in zip([output, worker, temporary], failed):
+            try:
+                if path.exists():
+                    if target.exists(): raise FileExistsError(str(target))
+                    os.rename(path, target)
+            except OSError as cleanup_error:
+                # Continue quarantining other artifacts; retain the primary failure.
+                error.add_note(f"quarantine failed for {path}: {cleanup_error}")
         raise
 
 def main():
@@ -126,17 +134,17 @@ def main():
         protected = None
         try:
             protected = validate(json.loads(args.linked_inputs.read_text()), args.prelink_boundary, args.build_log, args.planned_build_log)
-            if args.package: result['packaged'] = package()
-            verify_rows(protected)
+            if args.package: result['packaged'] = package(protected)
+            else: verify_rows(protected, ROOT)
             result['linkedArtifactsUnchanged'] = True
             result['ok'] = True
         except BaseException as error:
             result['error'] = str(error)
             raise
         finally:
-            if protected is not None:
+            if protected is not None and not (args.package and result['ok']):
                 try:
-                    verify_rows(protected)
+                    verify_rows(protected, ROOT)
                     result['linkedArtifactsUnchanged'] = True
                 except BaseException as error:
                     result.update(linkedArtifactsUnchanged=False, preservationError=str(error), ok=False)

@@ -13,6 +13,8 @@ import io
 import json
 from pathlib import Path
 import sys
+import tempfile
+import os
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import build_e2_editor_v5_profile as v5
@@ -125,7 +127,12 @@ def main(argv=None):
             # interruption after the underlying packer wrote the make target.
             # Keep partial non-manifest files for diagnosis; make must retry.
             try:
-                manifest_path.unlink(missing_ok=True)
+                if manifest_path.exists():
+                    # Keep the exact rejected bytes without leaving a make target.
+                    fd, failed = tempfile.mkstemp(prefix="sdk-manifest.failed-", suffix=".json",
+                                                   dir=known.output)
+                    os.close(fd)
+                    os.replace(manifest_path, failed)
             finally:
                 sys.stderr.write(printed.getvalue())
 

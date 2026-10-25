@@ -109,6 +109,17 @@ class PackagingFailures(unittest.TestCase):
     def write_candidate(self, text=None):
         self.manifest.write_text(json.dumps(self.candidate) if text is None else text)
 
+    def test_rejected_manifest_bytes_are_preserved(self):
+        def packer(argv):
+            self.write_candidate('invalid manifest bytes')
+            print('{}')
+            return 0
+        with self.assertRaises(json.JSONDecodeError):self.invoke(packer)
+        self.assertFalse(self.manifest.exists())
+        failed=list(self.work.glob('sdk-manifest.failed-*.json'))
+        self.assertEqual(len(failed),1)
+        self.assertEqual(failed[0].read_bytes(),b'invalid manifest bytes')
+
     def test_success_keeps_validated_manifest(self):
         def packer(argv):
             self.write_candidate()

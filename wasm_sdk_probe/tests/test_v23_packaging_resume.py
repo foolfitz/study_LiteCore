@@ -79,6 +79,53 @@ class Resume(unittest.TestCase):
         p=self.sdk/'Makefile';p.write_text(self.current_make.replace('E1_CPPFLAGS := $(CPPFLAGS)', 'E1_CPPFLAGS := $(CPPFLAGS) -DUNREVIEWED'))
         with self.assertRaisesRegex(ValueError,'outside the reviewed packaging-only delta'):self.validate()
 
+    def test_partial_profile_is_refused_without_overwrite(self):
+        output=self.sdk/'dist/profiles/e2-editor-v23-diag';output.mkdir(parents=True)
+        old=output/'probe.wasm';old.write_bytes(b'previous failed attempt')
+        with mock.patch.object(resume,'ROOT',self.root),mock.patch.object(resume,'SDK',self.sdk), \
+             mock.patch.object(resume.subprocess,'run') as run:
+            with self.assertRaisesRegex(ValueError,'existing worker/manifest/failed bytes'):resume.package()
+            run.assert_not_called()
+        self.assertEqual(old.read_bytes(),b'previous failed attempt')
+
+    def test_postpackage_input_change_quarantines_whole_profile(self):
+        output=self.sdk/'dist/profiles/e2-editor-v23-diag'
+        tail=self.sdk/'sdk/v23-diagnostic-worker-tail.js';tail.parent.mkdir();tail.write_bytes(b'tail')
+        def change_protected(argv):
+            output.mkdir(parents=True)
+            for name in ('sdk-manifest.json','probe.js','probe.wasm','sdk-worker.js'):
+                (output/name).write_bytes(b'new candidate')
+            (self.root/self.audit['build_artifacts'][0]['path']).write_bytes(b'changed during packing')
+            return 0
+        with mock.patch.object(resume,'ROOT',self.root),mock.patch.object(resume,'SDK',self.sdk), \
+             mock.patch.object(resume.packer,'checked_base_worker',return_value=b'base'), \
+             mock.patch.object(resume.packer,'main',side_effect=change_protected), \
+             mock.patch.object(resume.subprocess,'run'):
+            with self.assertRaisesRegex(ValueError,'preserved input changed'):
+                resume.package(self.audit['build_artifacts'])
+        self.assertFalse(output.exists())
+        failed=output.with_name(output.name+'.failed')
+        self.assertEqual(len(list(failed.iterdir())),4)
+        self.assertFalse((self.root/resume.BUILD/'sdk-worker.js').exists())
+
+    def test_quarantine_error_keeps_primary_error_and_continues(self):
+        output=self.sdk/'dist/profiles/e2-editor-v23-diag';output.mkdir(parents=True)
+        tail=self.sdk/'sdk/v23-diagnostic-worker-tail.js';tail.parent.mkdir();tail.write_bytes(b'tail')
+        def fail(argv):
+            (output/'probe.js').write_bytes(b'partial loader')
+            raise ValueError('original packing failure')
+        original_rename=resume.os.rename
+        def rename(source,target):
+            if source==output:raise PermissionError('injected quarantine denial')
+            return original_rename(source,target)
+        with mock.patch.object(resume,'ROOT',self.root),mock.patch.object(resume,'SDK',self.sdk), \
+             mock.patch.object(resume.packer,'checked_base_worker',return_value=b'base'), \
+             mock.patch.object(resume.packer,'main',side_effect=fail), \
+             mock.patch.object(resume.subprocess,'run'),mock.patch.object(resume.os,'rename',side_effect=rename):
+            with self.assertRaisesRegex(ValueError,'original packing failure') as raised:resume.package()
+        self.assertIn('quarantine denial',raised.exception.__notes__[0])
+        self.assertTrue((self.root/resume.BUILD/'sdk-worker.failed.js').exists())
+
     def test_pack_failure_preserves_bytes_without_success_target(self):
         output=self.sdk/'dist/profiles/e2-editor-v23-diag';output.mkdir(parents=True)
         tail=self.sdk/'sdk/v23-diagnostic-worker-tail.js';tail.parent.mkdir();tail.write_bytes(b'tail')
@@ -97,7 +144,7 @@ class Resume(unittest.TestCase):
         worker=self.root/resume.BUILD/'sdk-worker.js'
         self.assertFalse(worker.exists());self.assertFalse((output/'sdk-manifest.json').exists())
         self.assertEqual(worker.with_name('sdk-worker.failed.js').read_bytes(),b'basetail')
-        self.assertEqual((output/'sdk-manifest.failed.json').read_bytes(),b'partial manifest')
+        self.assertEqual((output.with_name(output.name+'.failed')/'sdk-manifest.json').read_bytes(),b'partial manifest')
         for row in self.audit['build_artifacts']+[self.audit['link_log']]:
             resume.verify_rows([row],self.root)
 
