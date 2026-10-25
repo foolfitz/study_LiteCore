@@ -1,0 +1,61 @@
+{
+  "runner": {
+    "argv": [
+      "python3",
+      "-I",
+      "tools/run_v23_remaining.py",
+      "--arm",
+      "html-positive",
+      "--browser",
+      "chrome",
+      "--rounds",
+      "1",
+      "--profile",
+      "e2-editor-v23-diag-r2",
+      "--wasm-sha256",
+      "683b7343bd02b432d4a1b0cea0af8c7542b6a0ad84885e8cc5755a4efdfce078",
+      "--output",
+      "../findings/evidence/link-batch-v23/post-link/r2-attempt-01/040-positive-prep-01"
+    ],
+    "cwd": "wasm_sdk_probe",
+    "exit_code": 0,
+    "stdout": "chrome html-positive 1\n../findings/evidence/link-batch-v23/post-link/r2-attempt-01/040-positive-prep-01/report.json\n",
+    "stderr": ""
+  },
+  "reader": {
+    "operation": "judge_v23_remaining.verify_bindings(report, mirror) then judge(page, expected, fixtures, profile)",
+    "exit_code": 0,
+    "result": {
+      "bindingVerification": "PASS",
+      "foreignCpuOk": true,
+      "identity": {
+        "probe.wasm": "683b7343bd02b432d4a1b0cea0af8c7542b6a0ad84885e8cc5755a4efdfce078",
+        "probe.js": "f0c77adde7313ece193f16b3a97ea6d539492d282ad787b4f2cdb260c7229fd3",
+        "sdk-worker.js": "c8a3de873c3fbd61b20cc3404eb582433f0c8b1db2e52be374671c3b8851de50",
+        "sdk-manifest.json": "716620972050c5d55485cb99564102cfe0e749af81457180f7f7a265701709da"
+      },
+      "browser": "chrome",
+      "round": 1,
+      "arm": "html-positive",
+      "fatal": null,
+      "complete": true,
+      "verdict": "PASS",
+      "missing": [],
+      "failed": [],
+      "stepMilliseconds": {
+        "open-frame": 1645.0199999958277,
+        "040-anchor": 53.92499999701977,
+        "040-select": 47.79000000655651,
+        "040-complex-read": 22.12999999523163
+      },
+      "controlElapsedMs": 56.74500000476837,
+      "unestablishedMetrics": [
+        "engine tick intervals",
+        "exact INVALIDATE_TILES latency",
+        "engine idle-layout completion"
+      ],
+      "caseId": "frame-html-engine",
+      "scope": "only named arm; exact040 requires all three040 arms"
+    }
+  }
+}
