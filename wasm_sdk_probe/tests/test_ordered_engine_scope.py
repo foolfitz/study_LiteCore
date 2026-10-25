@@ -44,6 +44,18 @@ def violations(source):
     for name, body in walk('onLokCallback'):
         if re.search(r'\bpClass\b|\b(?:setOrderedReply|finishAsynchronous|composeOrdered\w*|completePending\w*|emitSdkError)\s*\(', body):
             errors.append('callback performs command/reply work: ' + name)
+    callback = '\n'.join(bodies.get('onLokCallback', []))
+    if not re.search(r'recordParsedCallback\(gOrderedProof.callbacks, type,\s*editorStateChanged,', callback):
+        errors.append('callback proof does not require successful parse')
+    for name, flag in (('dispatchOne', 'gOrderedDispatching'),
+                       ('sendPendingReply', 'gOrderedComposing'),
+                       ('mainLoopPollCallback', 'inPollCallback')):
+        if not re.search(r'FlagScope\s+\w+\(' + flag + r'\)', '\n'.join(bodies.get(name, []))):
+            errors.append('exception flag cleanup missing: ' + name)
+    update = '\n'.join(bodies.get('updateEditorFormatState', []))
+    resolve = '\n'.join(bodies.get('inlineFormatArgumentResolved', []))
+    if 'gOrderedProof.stateItems.insert(parsed.command)' not in update or 'gOrderedProof.stateItems.count(unoCommand)' not in resolve:
+        errors.append('059 proof is not tied to current command state items')
     for name in ('mainLoopPollCallbackImpl', 'dispatchOne'):
         body = '\n'.join(bodies.get(name, []))
         if re.search(r'\b(?:while|for|wait|wait_until|wait_for)\s*\(', body):
@@ -83,6 +95,11 @@ class OrderedEngineScope(unittest.TestCase):
     def test_actual_and_causal_mutations(self):
         self.assertEqual(violations(self.source), [])
         changes = {
+            'parse-gate-lost': ('editorStateChanged, gEditorState.sourceSequence);', 'true, gEditorState.sourceSequence);'),
+            'dispatch-scope-lost': ('probe::ordered::FlagScope dispatching(gOrderedDispatching);', 'gOrderedDispatching = true;'),
+            'outer-scope-lost': ('probe::ordered::FlagScope scope(inPollCallback);', 'inPollCallback = true;'),
+            '059-item-not-recorded': ('gOrderedProof.stateItems.insert(parsed.command);', '(void)parsed;'),
+            '059-own-flush-bypassed': ('gOrderedProof.stateItems.count(unoCommand)', 'true'),
             'callback-lok': ('void onLokCallback(int type, const char *payload, void *) {',
                              'void onLokCallback(int type, const char *payload, void *) { readSelection();'),
             'callback-reply': ('void onLokCallback(int type, const char *payload, void *) {',

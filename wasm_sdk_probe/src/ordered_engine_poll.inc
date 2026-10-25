@@ -3,6 +3,8 @@
 struct OrderedPollEngine {
   probe::poll::Inputs pollInputs() {
     std::lock_guard<std::mutex> lock(gState.mutex);
+    // Only the queue is shared with submitters. Reply and proof slots are
+    // engine-thread-owned, including poll/anyInput and callback flushes.
     return {gState.commands.size(), static_cast<bool>(gOrderedReply)};
   }
   void recordPoll(const probe::poll::Inputs &in, probe::poll::Step step) {
@@ -31,7 +33,7 @@ struct OrderedPollEngine {
   void sendPendingReply() {
     auto reply = std::move(gOrderedReply);
     gOrderedReply = {};
-    gOrderedComposing = true;
+    probe::ordered::FlagScope composing(gOrderedComposing);
     try {
       reply();
     } catch (const std::exception &error) {
@@ -41,7 +43,6 @@ struct OrderedPollEngine {
       emitSdkError(gOrderedCommand.requestId, gOrderedCommand.documentHandle,
                    "ordered-reply", "MUTATION_OUTCOME_UNKNOWN", "reply composition failed");
     }
-    gOrderedComposing = false;
     finishAsynchronous(gOrderedCommand.requestId);
     gEditorPending = EditorPendingOperation{};
     gOrderedProof = OrderedCommandProof{};
@@ -62,9 +63,8 @@ struct OrderedPollEngine {
     }
     gOrderedCommand = command;
     gOrderedProof = OrderedCommandProof{};
-    gOrderedDispatching = true;
+    probe::ordered::FlagScope dispatching(gOrderedDispatching);
     executeQueuedCommand(command, cancelled);
-    gOrderedDispatching = false;
   }
 };
 

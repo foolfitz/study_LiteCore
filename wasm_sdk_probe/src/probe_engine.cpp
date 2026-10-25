@@ -29,6 +29,7 @@
 #error "ordered commands must not pump the scheduler inside a command"
 #endif
 #include "ordered_poll.hpp"
+#include "ordered_engine_guards.hpp"
 #include "ordered_command_proof.hpp"
 #include "ordered_delete_route.hpp"
 #include "reply_state_reads.hpp"
@@ -3172,7 +3173,8 @@ void onLokCallback(int type, const char *payload, void *) {
 #ifdef OXSDK_E2_V23_LINK_BATCH
   // Cache/evidence only. The pending command owns the first-poll composer.
   if (gOrderedDispatching || gOrderedReply) {
-    gOrderedProof.callbacks[type] = gEditorState.sourceSequence;
+    probe::ordered::recordParsedCallback(gOrderedProof.callbacks, type,
+        editorStateChanged, gEditorState.sourceSequence);
     if (type == 70 && payload && std::strstr(payload, "afterCallbackRegistered invoked"))
       gOrderedProof.viewReady = true;
     if (type == LOK_CALLBACK_UNO_COMMAND_RESULT) {
@@ -7732,10 +7734,15 @@ int mainLoopPollCallback(void *closure, int timeoutUs) {
   static bool inPollCallback = false;
   if (inPollCallback)
     return 0;
+#ifdef OXSDK_E2_V23_LINK_BATCH
+  probe::ordered::FlagScope scope(inPollCallback);
+  return mainLoopPollCallbackImpl(closure, timeoutUs);
+#else
   inPollCallback = true;
   const int processed = mainLoopPollCallbackImpl(closure, timeoutUs);
   inPollCallback = false;
   return processed;
+#endif
 }
 
 void mainLoopWakeCallback(void *) {
