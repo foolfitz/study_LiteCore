@@ -46,9 +46,13 @@ def main():
     parser.add_argument('--browser', choices=('chrome', 'firefox', 'both'), default='both')
     parser.add_argument('--arm', choices=(*ARMS, 'all', 'wd'), default='all')
     parser.add_argument('--case-id', help='W-D module case id; not part of bounded diagnostic cohort')
-    parser.add_argument('--rounds', type=int, choices=(1, 3), default=3,
-                        help='1 is preparation only; the reader requires the exact 3-round cohort')
+    parser.add_argument('--rounds', type=int, choices=(1, 3, 5), default=3,
+                        help='bounded cohort requires 3; W-D requires 5; 1 is preparation only')
     args = parser.parse_args()
+    if args.rounds == 5 and args.arm != 'wd':
+        parser.error('five rounds belong only to the separate W-D protocol')
+    if args.arm == 'wd' and not args.case_id:
+        parser.error('--arm wd requires --case-id')
     expected = identity(PROJECT / 'dist/profiles' / PROFILE, args.wasm_sha256)
     if not args.fixture.is_file(): parser.error('fixture does not exist')
     args.output.mkdir(parents=True, exist_ok=False)
