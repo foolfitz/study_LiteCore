@@ -15,3 +15,7 @@ Acceptance must cover actual keyboard replacement/F2/cancel/commit/XML/reopen, f
 ## Follow-up source audit
 
 The same Astra agent identified three input-preservation blockers: validation after destructive buffer transfer, invalid selection input depending on a volatile error field, and an old textarea draft becoming a new-cell prefix. It reviewed the corrections in `3ed296ee` and found these resolved, subject to focused tests. Its final source ruling found no remaining blocker in this finite scope; this is not a claim to have run the browser tests. The focused `pending-validation-05` subsequently passed 8/8 in each browser. Global Escape also cancels a retained buffer after refused Save moves focus to a toolbar button.
+
+## Final finite-scope closure decision
+
+Astra reviewed Claude's final excerpt findings against the full session chain. save commits drafts before export, and successful selection clears prior errors. Continuous keystroke reception while an ordinary cell commit disables the textarea is a pre-existing, unmeasured limitation left as follow-up; no arbitrary-delay continuous typing claim is made. Actual session draft updates retain version protection. Astra authorized guarded installation after the reported 378/378 final mirror checks, artifact reader/six red controls, and focused pending validation 8/8 per browser. Actual Files acceptance remains required.
