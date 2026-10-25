@@ -43,3 +43,11 @@ N-model／N-format 的 fixture 與原生讀取產物落地後就封閉該次 N�
 不宣稱支援整片多格貼上、拖拉填滿、格內部分文字格式或所有 Calc 編輯功能。原有 ODS 限制（如 Basic UDF、E6 leak 登錄）保留。新編輯 UI 不顯示開發用協定／profile 判斷細節；診斷資料留給測試讀取。
 
 本輪開始 §34.4 累計 47／27。新功能工具不是既有判讀修理；若真的改到既有判讀，依原規則留下證人並記帳。
+
+## 5. 第一次原生執行逼出的兩項修正（2026-10-25，只追加）
+
+`native/run-01/report.json` 159／171：寫入、重算、格式、保護與另存均成立；幾何在第 3／5 列各偏 25／38 twips，另外文字型 `'=B1*9` 的 UNO `getFormula()` 回傳 `=B1*9`（仍為 TEXT）。原始失敗保留，不用放寬幾何比較或把文字誤判成公式通過。
+
+取代 §1 的幾何來源假設：UNO Position／Size 是邏輯毫米尺寸，不能代替 LOK 的像素對齊矩形。bridge 將以同步 `XSelectionSupplier` 選到明確 cell，再直接讀公開的 `.uno:CellCursor`，點選則讀 `.uno:ViewRowColumnHeaders`。本頁固定 scale＝1、每 CSS px 15 twips，明確設定 client zoom；不把一般 Writer 的鍵／回呼等待接回來。原生仍對比獨立 LOK GoToCell 後的 cursor，且保留偏一格紅案。若不能讀到相符 cell，就拒絕，不拿舊矩形繼續寫入。
+
+`formula` 保留 UNO 原值，另回傳可安全送回的 `input`；TEXT 的 `=／+／-` 開頭補一個 apostrophe，數字／既有 apostrophe 則沿 UNO 本身的 escape。這是修正實作對 raw 值的解讀，原本「原始內容不得被改型」的判準不變。先讓上述紅案在新讀法成立，再執行新的 N＝3，舊三輪不挪來計數。§34.4 +0／+0（新功能實作／新原生工具，不是修理既有判讀）。
