@@ -30,3 +30,7 @@ Evidence/reader commands and limits: **`findings/evidence/host-0.2.33/count-prep
 Section 34.4: this work **execution +1 / review +0**, cumulative **47 / 27**, solely for the witnessed modal census repair. Diagnostic adapter corrections and read-only inventory add 0/0.
 
 Standing rules: Taiwan Traditional Chinese replies; handoff/evidence/upstream/commits in English, preserving quotations as data. No sudo/su/doas. Keep cohesive commits with `Co-Authored-By: Codex <noreply@openai.com>`. This work unit ends after committing the evidence/status/handoff; no further automatic work remains before the owner observation.
+
+## Superseded manual boundary, later 2026-10-25
+
+The owner has now explicitly accepted all four listed editor checks, including F3-hand. Do not stop at or request that manual observation again. Current entry point: `HANDOFF-2026-10-25-editor-owner-acceptance-holds-stopped.md`; exact result: `findings/evidence/host-0.2.33/f3-hand-2026-10-25/owner-confirmation.md`. The edited fixture is preserved and litecore is stopped again. K remains unrun.

@@ -32,3 +32,7 @@ The older owner follow-ups for Ctrl/Cmd+Home/End and dialog appearance remain as
 - Stop litecore if the agent started it unless the owner requests that it remain running, and verify all other project states.
 - K is still unrun. Do not use the old 0.2.26 chain unchanged. The remaining work is final identity re-pins, merge BINDING, a new chain/reader on 0.2.33, existing preflights and the owner's K window/no-site agreement. Once that agreement is given, retain it instead of asking again.
 - `make test-e2-c-static` contains a **C++ model compilation**, despite its name. The owner has not asked the agent to build; do not run that target unattended. The autonomous preparation used the focused Python tests, existing red cases and actual browser arms instead. Handle any required compiling target under the owner's standing build rule.
+
+## Completed, 2026-10-25
+
+The owner explicitly selected A (all four listed observations meet expectations) after this procedure. F3-hand, the carried Home/End hand check and dialog appearance report are complete; see `findings/evidence/host-0.2.33/f3-hand-2026-10-25/owner-confirmation.md`. Do not request them again for this candidate. The document is now edited; its original hash above describes only the pre-test source. It was preserved with the owner's changes. litecore was stopped and all ddev project states restored. K remains unrun.
