@@ -25,6 +25,12 @@ def mirror(out, profile):
     root.mkdir(parents=True, exist_ok=False)
     for name in ("ods-editor.html", "ods-editor-app.js"):
         shutil.copyfile(PROJECT / "web" / name, root / name)
+    # This generic mirror deliberately aliases its selected engine as v1.
+    # Keep that private URL valid after the product switches to a successor;
+    # successor-specific wrappers rename both the alias and URL together.
+    app=root/"ods-editor-app.js"
+    app.write_text(app.read_text().replace('"./profiles/ods-editor-v2/sdk-worker.js"',
+                                         '"./profiles/ods-editor-v1/sdk-worker.js"'))
     for directory in ("sdk", "viewer-shell", "spreadsheet-shell"):
         shutil.copytree(PROJECT / directory, root / directory)
     (root / "reader-shell").mkdir()
