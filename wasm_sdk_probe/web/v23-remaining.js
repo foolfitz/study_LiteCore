@@ -3,7 +3,7 @@ import {NarrowEditorV2Session} from './editor-shell-v2/narrow-editor-v2-session.
 const params = new URLSearchParams(location.search);
 const arm = params.get('arm');
 const profile = params.get('profile') || 'e2-editor-v23-diag';
-const r = globalThis.__v23remaining = {schema: 1, profile, arm, complete: false,
+const r = globalThis.__v23remaining = {schema: 1, profile, arm, userAgent: navigator.userAgent, complete: false,
   steps: [], requests: [], cancels: [], responses: [], events: [], workers: [], artifacts: {}, fixtures: {}, instrumentServed: {}};
 const hash = async b => [...new Uint8Array(await crypto.subtle.digest('SHA-256', b))]
   .map(x => x.toString(16).padStart(2, '0')).join('');
