@@ -1,0 +1,43 @@
+{
+  "commands": [
+    {
+      "argv": [
+        "python3",
+        "-I",
+        "tools/run_v23_diagnostic.py",
+        "--wasm-sha256",
+        "52cf9d23b615458d3a4086b3995fd68bf3ced19c252c6f89f017109fc282a443",
+        "--fixture",
+        "test-docs/e1/plain-grapheme.odt",
+        "--output",
+        "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v23/post-link/attempt-01/bounded-01",
+        "--browser",
+        "both",
+        "--arm",
+        "all",
+        "--rounds",
+        "3"
+      ],
+      "cwd": "wasm_sdk_probe",
+      "exit_code": 0,
+      "stdout": "chrome round 1 smoke\nchrome round 1 proof\nchrome round 1 hang\nchrome round 1 js-thread\nchrome round 2 smoke\nchrome round 2 proof\nchrome round 2 hang\nchrome round 2 js-thread\nchrome round 3 smoke\nchrome round 3 proof\nchrome round 3 hang\nchrome round 3 js-thread\nfirefox round 1 smoke\nfirefox round 1 proof\nfirefox round 1 hang\nfirefox round 1 js-thread\nfirefox round 2 smoke\nfirefox round 2 proof\nfirefox round 2 hang\nfirefox round 2 js-thread\nfirefox round 3 smoke\nfirefox round 3 proof\nfirefox round 3 hang\nfirefox round 3 js-thread\n/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v23/post-link/attempt-01/bounded-01/report.json\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "python3",
+        "-I",
+        "tools/judge_v23_diagnostic.py",
+        "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v23/post-link/attempt-01/bounded-01/report.json",
+        "--profile-dir",
+        "dist/profiles/e2-editor-v23-diag",
+        "--wasm-sha256",
+        "52cf9d23b615458d3a4086b3995fd68bf3ced19c252c6f89f017109fc282a443"
+      ],
+      "cwd": "wasm_sdk_probe",
+      "exit_code": 1,
+      "stdout_file": "aggregate-judge.stdout.json",
+      "stderr": ""
+    }
+  ]
+}
