@@ -1,0 +1,207 @@
+{
+  "archive": {
+    "all_five_sources_match_archive": true,
+    "directory": "wasm_sdk_probe/build/archive/e2-editor-v23-diag-52cf9d23-worker-889edcde",
+    "files": [
+      {
+        "archive_sha256": "a3919e977868934589e1e37ac1406930a6011640a82540ca507c6ae4002eede4",
+        "bytes": 146388,
+        "file": "probe.js",
+        "same_bytes": true,
+        "source_sha256": "a3919e977868934589e1e37ac1406930a6011640a82540ca507c6ae4002eede4"
+      },
+      {
+        "archive_sha256": "52cf9d23b615458d3a4086b3995fd68bf3ced19c252c6f89f017109fc282a443",
+        "bytes": 123594341,
+        "file": "probe.wasm",
+        "same_bytes": true,
+        "source_sha256": "52cf9d23b615458d3a4086b3995fd68bf3ced19c252c6f89f017109fc282a443"
+      },
+      {
+        "archive_sha256": "889edcde583c77be78b5ccfe9d71f967175f946123d806d15180693f600d4f68",
+        "bytes": 79509,
+        "file": "sdk-worker.js",
+        "same_bytes": true,
+        "source_sha256": "889edcde583c77be78b5ccfe9d71f967175f946123d806d15180693f600d4f68"
+      },
+      {
+        "archive_sha256": "f6f4ae796eaf6ed231861c967957208cc3d05ed4b601cbecfbc8f3387d4a8f0a",
+        "bytes": 8696,
+        "file": "sdk-manifest.json",
+        "same_bytes": true,
+        "source_sha256": "f6f4ae796eaf6ed231861c967957208cc3d05ed4b601cbecfbc8f3387d4a8f0a"
+      },
+      {
+        "archive_sha256": "dba0e8a0bcec3e305a7ceb00e6d3e9b2aac32894648cf3f7e80fe6639e03611e",
+        "bytes": 893,
+        "file": "exports.txt",
+        "same_bytes": true,
+        "source_sha256": "dba0e8a0bcec3e305a7ceb00e6d3e9b2aac32894648cf3f7e80fe6639e03611e"
+      }
+    ],
+    "sha256sum_check_exit_code": 0,
+    "sha256sum_check_stdout": "probe.js: OK\nprobe.wasm: OK\nsdk-worker.js: OK\nsdk-manifest.json: OK\nexports.txt: OK\n"
+  },
+  "initial_path_error": {
+    "argv": [
+      "python3",
+      "-I",
+      "wasm_sdk_probe/tools/run_v23_diagnostic.py",
+      "--wasm-sha256",
+      "52cf9d23b615458d3a4086b3995fd68bf3ced19c252c6f89f017109fc282a443",
+      "--fixture",
+      "test-docs/e1/plain-grapheme.odt",
+      "--output",
+      "findings/evidence/link-batch-v23/post-link/attempt-01/browser-prep-01",
+      "--browser",
+      "both",
+      "--arm",
+      "smoke",
+      "--rounds",
+      "1"
+    ],
+    "cwd": "repository root",
+    "exit_code": 2,
+    "note": "No browser started. The path is relative to wasm_sdk_probe; the only actual smoke run below used that working directory.",
+    "stderr": "run_v23_diagnostic.py: error: fixture does not exist"
+  },
+  "no_build_or_packaging_run_by_this_audit": true,
+  "readers": [
+    {
+      "argv": [
+        "python3",
+        "-I",
+        "wasm_sdk_probe/tools/check_v23_diagnostic_build.py",
+        "--build-log",
+        "wasm_sdk_probe/build/link-v23-diagnostic-01.log"
+      ],
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": "preconditions hold\n"
+    },
+    {
+      "argv": [
+        "python3",
+        "-I",
+        "wasm_sdk_probe/tools/check_v23_diagnostic_build.py",
+        "--wasm",
+        "wasm_sdk_probe/dist/profiles/e2-editor-v23-diag/probe.wasm"
+      ],
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": "preconditions hold\n"
+    }
+  ],
+  "smoke": {
+    "aggregate24_not_run": true,
+    "argv": [
+      "python3",
+      "-I",
+      "tools/run_v23_diagnostic.py",
+      "--wasm-sha256",
+      "52cf9d23b615458d3a4086b3995fd68bf3ced19c252c6f89f017109fc282a443",
+      "--fixture",
+      "test-docs/e1/plain-grapheme.odt",
+      "--output",
+      "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v23/post-link/attempt-01/browser-prep-01",
+      "--browser",
+      "both",
+      "--arm",
+      "smoke",
+      "--rounds",
+      "1"
+    ],
+    "cwd": "wasm_sdk_probe",
+    "exit_code": 0,
+    "fixture_sha256": "9a99a2f708191ff6ae79624cb1e18163c9ff00a41ad5d5208368cd0cea4e69ca",
+    "individual_page_results": [
+      {
+        "arm": "smoke",
+        "browser": "chrome",
+        "complete": true,
+        "failed": [],
+        "fatal": null,
+        "missing": [],
+        "round": 1,
+        "steps": [
+          {
+            "finishedAt": 1880.905000001192,
+            "name": "open",
+            "ok": true,
+            "startedAt": 322.6550000011921
+          },
+          {
+            "finishedAt": 1972.0049999952316,
+            "name": "type",
+            "ok": true,
+            "startedAt": 1880.9099999964237
+          },
+          {
+            "finishedAt": 2615.515000000596,
+            "name": "move",
+            "ok": true,
+            "startedAt": 1972.0099999904633
+          },
+          {
+            "finishedAt": 3033.7399999946356,
+            "name": "save",
+            "ok": true,
+            "startedAt": 2615.5249999910593
+          },
+          {
+            "finishedAt": 3071.5199999958277,
+            "name": "queue-pair",
+            "ok": true,
+            "startedAt": 3034.3049999922514
+          }
+        ],
+        "verdict": "PASS"
+      },
+      {
+        "arm": "smoke",
+        "browser": "firefox",
+        "complete": true,
+        "failed": [],
+        "fatal": null,
+        "missing": [],
+        "round": 1,
+        "steps": [
+          {
+            "finishedAt": 2267.96,
+            "name": "open",
+            "ok": true,
+            "startedAt": 437.08
+          },
+          {
+            "finishedAt": 2353.9,
+            "name": "type",
+            "ok": true,
+            "startedAt": 2267.96
+          },
+          {
+            "finishedAt": 2907.82,
+            "name": "move",
+            "ok": true,
+            "startedAt": 2353.92
+          },
+          {
+            "finishedAt": 3360.66,
+            "name": "save",
+            "ok": true,
+            "startedAt": 2907.84
+          },
+          {
+            "finishedAt": 3399,
+            "name": "queue-pair",
+            "ok": true,
+            "startedAt": 3361.84
+          }
+        ],
+        "verdict": "PASS"
+      }
+    ],
+    "report_path": "findings/evidence/link-batch-v23/post-link/attempt-01/browser-prep-01/report.json",
+    "stderr": "",
+    "stdout": "chrome round 1 smoke\nfirefox round 1 smoke\n/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v23/post-link/attempt-01/browser-prep-01/report.json\n"
+  }
+}
