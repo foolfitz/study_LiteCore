@@ -77,3 +77,32 @@ test("cell result forwards named fields and the actual model payload", () => {
     cellJson:JSON.stringify({input:"=B1*3",value:"63"}),internal:"do not forward"});
   assert.deepEqual(result.result,{revision:4,changed:true,cell:{input:"=B1*3",value:"63"}});
 });
+
+test("range operations require their successor capability even when single-cell editing exists",()=>{
+  const w=worker(["cell-editing","save-ods"]);
+  for(const operation of ["rangeRead","rangeFormat"])
+    assert.equal(w.request(operation,{endColumn:2,endRow:4,format:"bold",enabled:true}).error.code,"UNSUPPORTED_OPERATION");
+  assert.deepEqual(w.calls(),[]);
+});
+
+test("range bounds, area and explicit format refuse before any native allocation",()=>{
+  for(const payload of [{endColumn:0,endRow:4},{endColumn:2,endRow:2},{endColumn:1.5,endRow:4},
+    {endColumn:2,endRow:null},{endColumn:65537,endRow:4},{endColumn:2,endRow:4,enabled:1},
+    {endColumn:2,endRow:4,format:"font-size"}]) {
+    const w=worker(["cell-range-formatting"]);
+    assert.equal(w.request("rangeFormat",{format:"bold",enabled:true,...payload}).error.code,"INVALID_ARGUMENT");
+    assert.deepEqual(w.calls(),[]);
+  }
+});
+
+test("range ABI appends operations 6 to 9 with an explicit address and endpoint payload",()=>{
+  for(const [operation,format,id] of [["rangeRead",null,6],["rangeFormat","bold",7],
+    ["rangeFormat","italic",8],["rangeFormat","underline",9]]) {
+    const w=worker(["cell-range-formatting"]),payload={endColumn:4,endRow:6,enabled:true};
+    if(format)payload.format=format;
+    assert.equal(w.request(operation,payload),undefined);
+    const call=w.calls().find(c=>c.name==="oxsdk_document_cell");
+    assert.deepEqual(call.args,[1,8,2,0,1,3,id,32,JSON.stringify({endColumn:4,endRow:6}).length,1]);
+    assert.equal(w.calls().filter(c=>c.name==="oxsdk_document_cell").length,1);
+  }
+});
