@@ -15,7 +15,7 @@ import zipfile
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from v23_wd_cases import ROOT, NATIVE, BASE, PLANS, FIXTURES, PRIVATE, LOCATOR, P, D, instrument_files
-from judge_v23_diagnostic import PROFILE, PROFILES, identity, details
+from judge_v23_diagnostic import PROFILE, PROFILES, identity, details, require_browser, page_sha256
 from read_results import shape, read_cell, run_log, landing
 
 
@@ -161,6 +161,7 @@ def read(reports, directory, pin, profile=PROFILE):
     from v23_diagnostic_instruments import verify_bindings
     expected = identity(directory, pin, profile)
     cells, duplicates = {}, []
+    observed_pages=set(); duplicate_pages=[]
     for path in reports:
         report = json.loads(Path(path).read_text())
         verify_bindings(report, Path(path).resolve().parent / 'mirror')
@@ -176,14 +177,18 @@ def read(reports, directory, pin, profile=PROFILE):
             raise ValueError('executed copied W-D module differs from recorded source')
         for run in report.get('runs', []):
             page = run.get('page') or {}
+            require_browser(page,run.get('browser'))
+            digest=page_sha256(page)
+            if digest in observed_pages:duplicate_pages.append(digest)
+            observed_pages.add(digest)
             case = page.get('wd', {}).get('caseId')
             key = (run.get('browser'), run.get('round'), case)
             if key in cells: duplicates.append(key)
             cells[key] = page
     wanted = {(b, r, c) for b in ('chrome', 'firefox') for r in range(1, 6) for c in PLANS}
-    if duplicates or set(cells) != wanted:
+    if duplicates or duplicate_pages or set(cells) != wanted:
         return {'verdict': 'NOT_ESTABLISHED', 'reason': 'missing/extra/duplicate W-D cells',
-                'duplicates': duplicates, 'cells': len(cells), 'expected': len(wanted)}
+                'duplicates': duplicates, 'duplicatePageObservations':duplicate_pages, 'cells': len(cells), 'expected': len(wanted)}
     judged = {str(key): judge(page, key[2], expected, reference(key[2]), profile) for key, page in cells.items()}
     verdicts = [item['verdict'] for item in judged.values()]
     return {'verdict': 'NOT_ESTABLISHED' if 'NOT_ESTABLISHED' in verdicts else 'FAIL' if 'FAIL' in verdicts else 'PASS',

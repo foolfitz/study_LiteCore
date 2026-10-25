@@ -159,6 +159,8 @@ class WdReader(unittest.TestCase):
         report['instrument']={str(p.relative_to(SDK)):instruments.sha(p) for p in instruments.instrument_files()}
         report['mirrorInstrument']=instruments.served_instruments()
         for row in report['runs']:
+            row['page']['userAgent']='Mozilla/5.0 Chrome/132.0' if row['browser']=='chrome' else 'Mozilla/5.0 Firefox/136.0'
+            row['page']['syntheticObservationId']=f"{row['browser']}-{row['round']}-{row['page']['wd']['caseId']}"
             row['page']['instrumentServed']={k:report['mirrorInstrument'][k] for k in ('e2-editor.html','v23-diagnostic.js','v23-diagnostic-wd.js')}
         copied = (SDK / 'web/v23-diagnostic-wd.js').read_bytes()
         report['wdMirrorSha256'] = hashlib.sha256(copied).hexdigest()
@@ -174,6 +176,12 @@ class WdReader(unittest.TestCase):
             with patch.object(wd, 'identity', return_value=expected):
                 path.write_text(json.dumps(report))
                 self.assertEqual(wd.read([path], Path(directory), 'unused')['verdict'], 'PASS')
+                copied_report=copy.deepcopy(report);copied_report['runs'][len(PLANS)]['page']=copy.deepcopy(copied_report['runs'][0]['page'])
+                path.write_text(json.dumps(copied_report))
+                self.assertEqual(wd.read([path],Path(directory),'unused')['verdict'],'NOT_ESTABLISHED')
+                swapped=copy.deepcopy(report);swapped['runs'][0]['browser']='firefox'
+                path.write_text(json.dumps(swapped))
+                with self.assertRaisesRegex(ValueError,'userAgent'):wd.read([path],Path(directory),'unused')
                 for rows in ([], report['runs'][:-1], report['runs'] + [report['runs'][0]]):
                     altered = {**report, 'runs': rows}; path.write_text(json.dumps(altered))
                     self.assertEqual(wd.read([path], Path(directory), 'unused')['verdict'], 'NOT_ESTABLISHED')
