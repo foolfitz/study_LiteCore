@@ -38,7 +38,8 @@ def violations(engine, include):
     # Old staging/containment has no place anywhere in this implementation.
     for token in ('queueFormatBarrierStep', 'armFormatBarrierDeadline', 'stageDeadline',
                   'checkFormatBarrierContainment', 'finishFormatBarrierAfterRestore',
-                  'handleFormatBarrierStep', 'maybeAdvanceFormatBarrierSelection'):
+                  'handleFormatBarrierStep', 'maybeAdvanceFormatBarrierSelection',
+                  'postFormatBarrierRestore'):
         if re.search(r'\b' + token + r'\b', code):
             errors.append('legacy FORMAT dependency: ' + token)
     bodies = function_bodies(engine + '\n' + include)

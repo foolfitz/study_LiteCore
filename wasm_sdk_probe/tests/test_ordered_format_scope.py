@@ -18,6 +18,10 @@ class OrderedFormatScope(unittest.TestCase):
                 'void completeFormatBarrier() {', 'void completeFormatBarrier() {\n  readSelection();'), include),
             ('old-stage-in-command', engine, include.replace(
                 '  FormatStateBarrier barrier;', '  queueFormatBarrierStep(FormatBarrierStage::SelectQueued);\n  FormatStateBarrier barrier;')),
+            ('restore-in-reply', engine, include.replace(
+                '    finishOrderedFormatReadback();', '    restoreOrderedFormatPoint();\n    finishOrderedFormatReadback();')),
+            ('legacy-RESET-only-restore', engine, include.replace(
+                '    restoreOrderedFormatPoint();', '    postFormatBarrierRestore();')),
             ('missing-roots', engine, ''),
         ]
         for label, changed_engine, changed_include in mutations:
