@@ -10,26 +10,39 @@ import copy
 import hashlib
 import io
 import json
+import sys
 from pathlib import Path
 import zipfile
 import xml.etree.ElementTree as ET
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
 PROFILE = 'e2-editor-v23-diag'
+R2_PROFILE = 'e2-editor-v23-diag-r2'
+PROFILES = (PROFILE, R2_PROFILE)
+R2_HASHES = {
+ 'probe.wasm':'683b7343bd02b432d4a1b0cea0af8c7542b6a0ad84885e8cc5755a4efdfce078',
+ 'sdk-manifest.json':'716620972050c5d55485cb99564102cfe0e749af81457180f7f7a265701709da',
+ 'sdk-worker.js':'c8a3de873c3fbd61b20cc3404eb582433f0c8b1db2e52be374671c3b8851de50',
+ 'probe.js':'f0c77adde7313ece193f16b3a97ea6d539492d282ad787b4f2cdb260c7229fd3',
+}
 FILES = ('sdk-manifest.json', 'probe.wasm', 'probe.js', 'sdk-worker.js')
 ARMS = ('smoke', 'proof', 'hang', 'js-thread')
 PASS, FAIL, NE = 'PASS', 'FAIL', 'NOT_ESTABLISHED'
 
 
-def identity(directory, expected_wasm):
+def identity(directory, expected_wasm, profile=PROFILE):
     directory = Path(directory)
     manifest = json.loads((directory / FILES[0]).read_text())
     hashes = {name: hashlib.sha256((directory / name).read_bytes()).hexdigest() for name in FILES}
-    if manifest.get('profile') != PROFILE:
+    if profile not in PROFILES or manifest.get('profile') != profile:
         raise ValueError('wrong profile: ABI5 is not evidence of v23')
     if hashes['probe.wasm'] != expected_wasm:
         raise ValueError('actual WASM differs from explicit candidate SHA256')
     if manifest.get('editorContract', {}).get('abiVersion') != 5:
         raise ValueError('diagnostic contract must remain ABI5')
+    if profile == R2_PROFILE and hashes != R2_HASHES:
+        raise ValueError('r2 artifact bytes differ from the owner-linked frozen identity')
     return hashes
 
 
@@ -39,18 +52,19 @@ def details(record, kind):
             and e['message'].get('detail', {}).get('type') == kind]
 
 
-def judge(record, expected):
+def judge(record, expected, profile=PROFILE):
     missing, failed = [], []
     def need(ok, message):
         if not ok: missing.append(message)
     def check(ok, message):
         if not ok: failed.append(message)
     need(record.get('complete') is True and not record.get('fatal'), 'incomplete/unclean browser arm')
-    check(record.get('profile') == PROFILE and record.get('manifest', {}).get('profile') == PROFILE,
+    check(profile in PROFILES and record.get('profile') == profile and record.get('manifest', {}).get('profile') == profile,
           'wrong profile (v22/ABI-only evidence rejected)')
     check(record.get('artifacts') == expected, 'served artifact hashes differ from actual candidate')
     arm = record.get('arm')
     need(arm in ARMS, 'unknown arm')
+    check(not (profile == R2_PROFILE and arm == 'js-thread'), 'r2 generic plain-NONE js-thread cannot count; cite corrected040')
     requests = record.get('requests', [])
     opens = [r for r in requests if r.get('operation') == 'open']
     need(bool(opens), 'no actual open request')
@@ -102,6 +116,20 @@ def judge(record, expected):
             check(entries[0] == (controls[0]['generation'], {'type': 'v23-control', 'kind': kind,
                   'requestId': controls[0]['requestId']}), 'private entry/request mismatch')
         control = record.get('control', {})
+        if profile == R2_PROFILE and controls:
+            owner=controls[0]; terminal=responses.get((owner['generation'],owner['requestId']))
+            if kind == 2:
+                check(terminal is not None and terminal.get('ok') is False and
+                      terminal.get('error',{}).get('code')=='MUTATION_OUTCOME_UNKNOWN' and
+                      terminal.get('error',{}).get('failureShape')=='proof-absent-at-poll:UNO_COMMAND_RESULT',
+                      'r2 proof rejection lacks actual typed wire response')
+            else:
+                check(terminal is None, 'r2 hang has a terminal wire response')
+                cancels=record.get('cancels',[])
+                need(len(cancels)==1, 'r2 hang lacks unique actual SDK cancellation')
+                if len(cancels)==1:
+                    check(cancels[0].get('kind')=='cancel' and cancels[0].get('generation')==owner['generation']
+                          and cancels[0].get('requestId')==owner['requestId'], 'r2 cancellation attribution mismatch')
         if kind == 2:
             need(len(proofs) == 1, 'missing-proof positive control must produce exactly one event')
             if proofs and controls:
@@ -129,26 +157,80 @@ def judge(record, expected):
             'missing': missing, 'failed': failed, 'scope': 'bounded diagnostic only'}
 
 
+def corrected_references(paths, expected):
+    """Rejudge six actual corrected040 negatives; references never create new runs."""
+    import judge_v23_remaining as remaining
+    import v23_remaining_cases as cases
+    references=[]
+    _, population=cases.fixtures()
+    for path in paths:
+        path=Path(path).resolve();report=json.loads(path.read_text())
+        if report.get('profile')!=R2_PROFILE or report.get('identity')!=expected:
+            raise ValueError('corrected040 reference is not bound to actual r2 identity')
+        cases.verify_bindings(report,path.parent/'mirror')
+        if report.get('population')!=population:raise ValueError('corrected040 input population drift')
+        for name,digest in report['fixtures'].items():
+            if cases.sha(path.parent/'mirror'/f'{name}.odt')!=digest:raise ValueError('corrected040 fixture drift')
+        report_sha=hashlib.sha256(path.read_bytes()).hexdigest()
+        for index,run in enumerate(report.get('runs',[])):
+            page=run.get('page') or {}
+            if run.get('arm')!='html-negative' or page.get('arm')!='html-negative':
+                raise ValueError('only corrected frame-html-js observations may replace r2 logical js-thread obligations')
+            verdict=remaining.judge(page,expected,report['fixtures'],R2_PROFILE)
+            references.append(dict(browser=run.get('browser'),round=run.get('round'),arm='js-thread',
+                source={'path':str(path),'sha256':report_sha,'runIndex':index,
+                        'pageSha256':hashlib.sha256(json.dumps(page,sort_keys=True).encode()).hexdigest(),
+                        'caseId':'frame-html-js'}, **verdict))
+    return references
+
+
+def summarize(results, references, profile):
+    problems=[]
+    if profile==R2_PROFILE:
+        if any(r.get('arm')=='js-thread' for r in results):problems.append('generic r2 js-thread cell cannot count')
+        keys=[(r.get('browser'),r.get('round')) for r in references]
+        wanted={(b,n) for b in ('chrome','firefox') for n in range(1,4)}
+        if len(keys)!=6 or set(keys)!=wanted:problems.append('missing/extra/duplicate corrected040 references')
+        ids=[(r.get('source',{}).get('sha256'),r.get('source',{}).get('runIndex')) for r in references]
+        pages=[r.get('source',{}).get('pageSha256') for r in references]
+        if len(ids)!=len(set(ids)) or len(pages)!=len(set(pages)) or any(x is None for x in pages):
+            problems.append('duplicate or unidentified corrected040 observation')
+    elif references:problems.append('original identity does not use corrected r2 references')
+    cells=results+references
+    population={(b,n,a) for b in ('chrome','firefox') for n in range(1,4) for a in ARMS}
+    actual=[(r.get('browser'),r.get('round'),r.get('arm')) for r in cells]
+    complete=len(actual)==24 and len(set(actual))==24 and set(actual)==population and not problems
+    verdict=NE if not complete or any(r['verdict']==NE for r in cells) else FAIL if any(r['verdict']==FAIL for r in cells) else PASS
+    return {'verdict':verdict,'populationComplete':complete,'problems':problems,
+            'directCells':len(results),'referencedCells':len(references),'results':cells,
+            'scope':'24 logical bounded obligations; six r2 negatives reuse uniquely identified corrected040 observations',
+            'notClosed':['W-D','S-init','040-W frame/destroy/engine-HTML','large fixtures/64KiB/long60',
+                         'idle layout/tile timing','feature gates','host/K']}
+
+
 def main():
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('report', type=Path)
-    parser.add_argument('--profile-dir', type=Path, required=True)
-    parser.add_argument('--wasm-sha256', required=True)
-    args = parser.parse_args()
-    expected = identity(args.profile_dir, args.wasm_sha256)
-    report = json.loads(args.report.read_text())
-    results = [dict(browser=r.get('browser'), round=r.get('round'), arm=r.get('arm'),
-                    **judge(r.get('page', {}), expected)) for r in report.get('runs', [])]
-    population = [(b, n, a) for b in ('chrome', 'firefox') for n in range(1, 4) for a in ARMS]
-    actual = [(r['browser'], r['round'], r['arm']) for r in results]
-    complete = sorted(actual) == sorted(population)
-    verdict = NE if not complete or any(r['verdict'] == NE for r in results) else (
-        FAIL if any(r['verdict'] == FAIL for r in results) else PASS)
-    print(json.dumps({'verdict': verdict, 'populationComplete': complete, 'results': results,
-          'notClosed': ['W-D', 'S-init', '040-W frame/destroy', 'large fixtures/64KiB/long60',
-                        'idle layout/tile timing', 'feature gates', 'host/K']}, indent=2))
-    return 0 if verdict == PASS else 1
+    from v23_diagnostic_instruments import verify_bindings
+    parser=argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('report',type=Path)
+    parser.add_argument('--profile',choices=PROFILES,default=PROFILE)
+    parser.add_argument('--profile-dir',type=Path,required=True)
+    parser.add_argument('--wasm-sha256',required=True)
+    parser.add_argument('--corrected-040-report',type=Path,action='append',default=[])
+    args=parser.parse_args();expected=identity(args.profile_dir,args.wasm_sha256,args.profile)
+    report=json.loads(args.report.read_text())
+    if report.get('profile')!=args.profile or report.get('identity')!=expected:raise ValueError('report candidate identity mismatch')
+    verify_bindings(report,args.report.parent/'mirror')
+    fixture=hashlib.sha256((args.report.parent/'mirror/fixture.odt').read_bytes()).hexdigest()
+    if report.get('fixtureSha256')!=fixture:raise ValueError('actual fixture identity mismatch')
+    results=[]
+    for run in report.get('runs',[]):
+        page=run.get('page') or {}
+        if page.get('fixtureSha256')!=fixture:raise ValueError('browser fixture identity mismatch')
+        if run.get('arm')!=page.get('arm'):raise ValueError('run/page arm mismatch')
+        results.append(dict(browser=run.get('browser'),round=run.get('round'),arm=run.get('arm'),
+                            **judge(page,expected,args.profile)))
+    references=corrected_references(args.corrected_040_report,expected)
+    result=summarize(results,references,args.profile)
+    print(json.dumps(result,indent=2));return 0 if result['verdict']==PASS else 1
 
-
-if __name__ == '__main__':
-    raise SystemExit(main())
+if __name__=='__main__':raise SystemExit(main())

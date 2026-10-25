@@ -4,6 +4,7 @@ import base64
 import copy
 import importlib.util
 import io
+import json
 from pathlib import Path
 import tempfile
 import unittest
@@ -113,6 +114,57 @@ class ReaderControls(unittest.TestCase):
         with zipfile.ZipFile(data, 'w') as z: z.writestr('content.xml', '<doc/>')
         d['savedBase64'] = base64.b64encode(data.getvalue()).decode()
         self.assertEqual(self.verdict(d), r.FAIL)
+
+    def test_explicit_r2_and_no_generic_negative(self):
+        d=sample();d['profile']=d['manifest']['profile']=r.R2_PROFILE
+        self.assertEqual(r.judge(d,EXPECTED,r.R2_PROFILE)['verdict'],r.PASS)
+        self.assertEqual(self.verdict(d),r.FAIL)
+        d=sample('js-thread');d['profile']=d['manifest']['profile']=r.R2_PROFILE
+        self.assertNotEqual(r.judge(d,EXPECTED,r.R2_PROFILE)['verdict'],r.PASS)
+        d=sample();d['profile']=d['manifest']['profile']='e2-editor-v22'
+        self.assertEqual(r.judge(d,EXPECTED,r.R2_PROFILE)['verdict'],r.FAIL)
+
+    def test_r2_private_controls_require_wire_evidence(self):
+        for arm in ('proof','hang'):
+            d=sample(arm);d['profile']=d['manifest']['profile']=r.R2_PROFILE
+            self.assertNotEqual(r.judge(d,EXPECTED,r.R2_PROFILE)['verdict'],r.PASS)
+            if arm=='proof':
+                d['responses'].append({'generation':1,'message':{'requestId':4,'ok':False,'error':{
+                    'code':'MUTATION_OUTCOME_UNKNOWN','failureShape':'proof-absent-at-poll:UNO_COMMAND_RESULT'}}})
+            else:d['cancels']=[{'kind':'cancel','generation':1,'requestId':4}]
+            self.assertEqual(r.judge(d,EXPECTED,r.R2_PROFILE)['verdict'],r.PASS)
+            if arm=='proof':d['responses'][-1]['message']['error']['failureShape']='wrong'
+            else:d['cancels'][0]['requestId']=99
+            self.assertNotEqual(r.judge(d,EXPECTED,r.R2_PROFILE)['verdict'],r.PASS)
+
+    def test_r2_actual_artifacts_must_match_owner_link(self):
+        import hashlib
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp)
+            for name in r.FILES:(root/name).write_bytes(b'fake')
+            (root/'sdk-manifest.json').write_text(json.dumps({'profile':r.R2_PROFILE,'editorContract':{'abiVersion':5}}))
+            with self.assertRaisesRegex(ValueError,'owner-linked'):
+                r.identity(root,hashlib.sha256(b'fake').hexdigest(),r.R2_PROFILE)
+            with self.assertRaisesRegex(ValueError,'wrong profile'):
+                r.identity(root,hashlib.sha256(b'fake').hexdigest())
+
+    def test_r2_reference_population_and_duplicate_reds(self):
+        direct=[{'browser':b,'round':n,'arm':a,'verdict':r.PASS} for b in ('chrome','firefox') for n in range(1,4) for a in r.ARMS[:3]]
+        refs=[{'browser':b,'round':n,'arm':'js-thread','verdict':r.PASS,
+               'source':{'sha256':'reference-report','runIndex':i,'pageSha256':str(i)}}
+              for i,(b,n) in enumerate((b,n) for b in ('chrome','firefox') for n in range(1,4))]
+        self.assertEqual(r.summarize(direct,refs,r.R2_PROFILE)['verdict'],r.PASS)
+        for altered in (refs[:-1],refs+[refs[0]],[]):
+            self.assertEqual(r.summarize(direct,altered,r.R2_PROFILE)['verdict'],r.NE)
+        for field in ('runIndex','pageSha256'):
+            altered=copy.deepcopy(refs);altered[1]['source'][field]=altered[0]['source'][field]
+            self.assertEqual(r.summarize(direct,altered,r.R2_PROFILE)['verdict'],r.NE)
+        self.assertEqual(r.summarize(direct+[refs[0]],refs,r.R2_PROFILE)['verdict'],r.NE)
+
+    def test_old_identity_cannot_be_corrected_reference(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path=Path(tmp)/'report.json';path.write_text(json.dumps({'profile':r.PROFILE,'identity':EXPECTED,'runs':[]}))
+            with self.assertRaisesRegex(ValueError,'actual r2 identity'):r.corrected_references([path],EXPECTED)
 
     def test_actual_files_are_required_and_v22_rejected(self):
         import json, hashlib
