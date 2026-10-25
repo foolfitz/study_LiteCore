@@ -40,6 +40,8 @@ def main():
     clean=not subprocess.check_output(['git','-C',str(DEFAULT_DDEV),'status','--short'],text=True).strip()
     version=instance._run(['ddev','occ','config:app:get','litecore','installed_version']).strip()
     assert installed['buildId']==release['buildId'] and head==release['hostCommit'] and clean and version=='0.2.37'
+    compared=subprocess.run(['diff','-rq',str(DEFAULT_DDEV/'engine'),release['archive']],text=True,capture_output=True)
+    assert compared.returncode==1 and compared.stdout.strip()=='Only in '+release['archive']+': ATTRIBUTION.md','live engine differs from archive'
     report=json.loads((OUT/'range-autosave-host-01/report.json').read_text())
     try:folder_status=instance.dav('PROPFIND',report['ownedFolder'],LOCK_PROPS,{'Depth':'0'})[0]
     except urllib.error.HTTPError as e:folder_status=e.code
@@ -55,7 +57,7 @@ def main():
     record={'hostCommit':head,'hostClean':clean,'installedVersion':version,'buildId':installed['buildId'],
         'ownerFileId24920Preserved':True,'lockFileIdsBefore':locks.split(),'lockFileIdsAfter':locks.split(),
         'globalLockTableWrites':False,'serviceStatesPreserved':True,
-        'ownedFolderStatus':folder_status,'temporaryUserAbsent':user_absent}
+        'ownedFolderStatus':folder_status,'temporaryUserAbsent':user_absent,'engineEqualsArchive':True}
     (OUT/'post-test-identity.json').write_text(json.dumps(record,indent=2)+'\n')
     print(json.dumps(record,indent=2))
 
