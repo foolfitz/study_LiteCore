@@ -100,6 +100,9 @@ def main():
                     try:
                         s=open_browser(browser,(1440,1000));run['version']=s.version;navigate(s,url)
                         wait(s,'Boolean(window.__calcEditor?.autosave && window.__calcEditor.state.cell)')
+                        # A first cell precedes completion of openBytes/paint.
+                        # Wait for the public ready promise before typing A1 text.
+                        assert evaluate(s,'(async()=>{await window.__calcEditor.ready;return window.__calcEditor.state.state==="ready";})()')
                         exercise(s,out,run)
                     except Exception as error:
                         run['error']=repr(error)
