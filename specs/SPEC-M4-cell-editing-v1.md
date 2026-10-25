@@ -179,3 +179,9 @@ Astra `/root/astra_calc_scope` 在完整呼叫鏈覆核後裁決有限範圍可�
 **A-save**（工具封閉枚舉）：clock tests 覆蓋 idle／cap+quiet／hidden／blocked／clean／readonly／single-flight／dispose、錯誤暫停與手動恢復，並用突變確認守衛有效；Chrome／Firefox 各 N＝3 使用真實 30 秒 idle 與既有輸入／engine／ODS 匯出，固定覆蓋 draft不強制、匯出中新打字、copy／stranded 暫停／手動 retry、XML／鄰格。host double 只證明頁面契約，不冒稱 WebDAV；完成 v2 建置後另跑實際 Files 雙瀏覽器的 auto trigger／原檔內容／自有鎖釋放，保持原有文件／鎖／服務狀態。各 reader 必須拒絕空集合、缺 case、false、錯工具／profile 身分；未做／失敗：對應層自動儲存驗收未成立。
 
 每項 N＝3 的第三筆有效執行完成後封閉；之後的疑慮登錄為 finding／後續工作，不能無限加閘門。新 native 尚未建置時只完成可審閱來源與精確 build/runbook，不把舊 v1 實測算成 v2 證據。依本次 standing instruction，會編譯的命令交使用者，不援引舊 session 授權；不跑 root／K、不改全域 pins／BINDING／chain。安裝維持 0.2.36，待 combined v2 實測後才切換候選。
+
+## 18. 位址欄輸入被狀態通知覆寫（2026-10-25，只追加）
+
+`auto-final-03` Firefox 第三輪與等待公開 ready 後的 `auto-final-04` Chrome 第一輪，均在零個 autosave case 的 B2 定位前置停住，仍為 A1／revision 0／無 session error。因此撤回「只等 ready 就能解釋前次失敗」的推論，不改稱純工具問題。Astra 裁決以固定案例直接驗 render：聚焦位址欄、設入 B2、發送既有 session 狀態通知，內容必須保留；失焦後才依實際 active cell 正規化。Enter 沿既有選格流程，沒有新啟動架構。
+
+本案在正式可計數執行前先留固定紅案，再修 focused render／blur；新增 `focused-address-keeps-input` 到既有 runner 的可執行 case 母體，reader 自動納入，未做／失敗則本案未成立。本輪尚無完整 N＝3 成立，修後重新開始雙瀏覽器各三輪，之前成功不拼湊計數。若固定紅案不成立或修後同症狀仍出現，停止沿此歸因擴張，改以明確 session 選格作 autosave fixture 前置，將起始互動另案登錄；這是有截止的裁決，不是「跑到看起來穩定」。
