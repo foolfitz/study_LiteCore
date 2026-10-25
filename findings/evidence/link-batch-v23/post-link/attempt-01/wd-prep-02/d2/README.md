@@ -1,0 +1,1 @@
+W-D d2 was not run in a browser. The runner exited before browser launch because the pre-run foreign CPU guard failed. The raw report preserves the exact preRun and foreignCpu measurements; there are zero page records. No retry was attempted.

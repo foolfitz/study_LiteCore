@@ -1,0 +1,1 @@
+W-D d1 preparation, N=1 per browser. Uses the original native FODT fixture bytes under alias wd-d1.odt. Both individual pages passed the W-D reader; report.json preserves the full browser observations.

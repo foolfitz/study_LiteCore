@@ -1,0 +1,104 @@
+{
+  "schema": 1,
+  "profile": "e2-editor-v23-diag",
+  "expectedIdentity": {
+    "sdk-manifest.json": "f6f4ae796eaf6ed231861c967957208cc3d05ed4b601cbecfbc8f3387d4a8f0a",
+    "probe.wasm": "52cf9d23b615458d3a4086b3995fd68bf3ced19c252c6f89f017109fc282a443",
+    "probe.js": "a3919e977868934589e1e37ac1406930a6011640a82540ca507c6ae4002eede4",
+    "sdk-worker.js": "889edcde583c77be78b5ccfe9d71f967175f946123d806d15180693f600d4f68"
+  },
+  "caseCountExpected": 12,
+  "pagesExpected": 24,
+  "instrumentFileCount": 18,
+  "completedCases": [
+    {
+      "case": "d1",
+      "fixturePath": "findings/evidence/link-batch-v23/native/ordered-commands/fixtures/numbered-second.fodt",
+      "fixtureBytes": 1498,
+      "fixtureSha256": "501f75fe798b9e9fbadce8b4b3582a02f4ecef811c838be7d60780b6de0fda41",
+      "argv": [
+        "python3",
+        "-I",
+        "tools/run_v23_diagnostic.py",
+        "--wasm-sha256",
+        "52cf9d23b615458d3a4086b3995fd68bf3ced19c252c6f89f017109fc282a443",
+        "--fixture",
+        "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v23/native/ordered-commands/fixtures/numbered-second.fodt",
+        "--fixture-name",
+        "wd-d1.odt",
+        "--output",
+        "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v23/post-link/attempt-01/wd-prep-02/d1",
+        "--browser",
+        "both",
+        "--arm",
+        "wd",
+        "--case-id",
+        "d1",
+        "--rounds",
+        "1"
+      ],
+      "exitCode": 0,
+      "stdout": "chrome round 1 wd\nfirefox round 1 wd\n/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v23/post-link/attempt-01/wd-prep-02/d1/report.json\n",
+      "stderr": "",
+      "foreignCpuOk": true,
+      "instrumentBindingsPass": true,
+      "pages": [
+        {
+          "browser": "chrome",
+          "round": 1,
+          "arm": "wd",
+          "complete": true,
+          "fatal": null,
+          "verdict": "PASS",
+          "missing": [],
+          "failures": []
+        },
+        {
+          "browser": "firefox",
+          "round": 1,
+          "arm": "wd",
+          "complete": true,
+          "fatal": null,
+          "verdict": "PASS",
+          "missing": [],
+          "failures": []
+        }
+      ]
+    },
+    {
+      "case": "d2",
+      "fixturePath": "findings/evidence/link-batch-v23/native/ordered-commands/fixtures/abcd.fodt",
+      "fixtureBytes": 890,
+      "fixtureSha256": "488c9cc00b5f07b83a4bf572194b427869739b31ea8c28338009bacb39cbd4d0",
+      "argv": [
+        "python3",
+        "-I",
+        "tools/run_v23_diagnostic.py",
+        "--wasm-sha256",
+        "52cf9d23b615458d3a4086b3995fd68bf3ced19c252c6f89f017109fc282a443",
+        "--fixture",
+        "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v23/native/ordered-commands/fixtures/abcd.fodt",
+        "--fixture-name",
+        "wd-d2.odt",
+        "--output",
+        "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v23/post-link/attempt-01/wd-prep-02/d2",
+        "--browser",
+        "both",
+        "--arm",
+        "wd",
+        "--case-id",
+        "d2",
+        "--rounds",
+        "1"
+      ],
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": "foreign CPU load: no browser started; use a fresh output for a later trial\n",
+      "foreignCpuOk": false,
+      "instrumentBindingsPass": null,
+      "pages": [],
+      "error": "runner nonzero or report missing; preserving without retry"
+    }
+  ],
+  "stopReason": "d2: runner/precondition/instrument/page was not PASS; no later cases consumed"
+}
