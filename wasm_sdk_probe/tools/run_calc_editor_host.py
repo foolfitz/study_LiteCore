@@ -8,6 +8,8 @@ import json
 from pathlib import Path
 import re
 import secrets
+import tempfile
+import os
 import time
 import traceback
 import urllib.error
@@ -19,9 +21,9 @@ from xml.etree import ElementTree as ET
 from check_m3_skeleton_open import Instance, DEFAULT_DDEV, FIXTURE, product_state
 from check_m3_host_entry import LOCK_PROPS, host_record
 from create_calc_edit_fixture import create
-from probe_m3_gate0_coep import browser_login
+from probe_m3_gate0_coep import browser_login, firefox_profile
 from r7_support import evaluate, run_in_page
-from run_browser_probe import ChromeSession
+from run_browser_probe import ChromeSession, FirefoxSession
 from run_calc_editor_browser import wait, select, type_text, key, double_click
 from run_calc_cell_native import cells_from_xml
 from run_e2_c_page_smoke import navigate, POINT_AT
@@ -49,7 +51,8 @@ OBSERVE = '''(() => {
 })();'''
 
 class Harness:
-    def __init__(self,out,browsers=('chrome','firefox'),kind='both'):
+    def __init__(self,out,scratch,browsers=('chrome','firefox'),kind='both'):
+        self.scratch=scratch
         self.browsers=browsers;self.kind=kind
         self.out=out; self.instance=Instance(DEFAULT_DDEV)
         self.report={'checks':[], 'runs':[], 'cleanup':{}}
@@ -59,8 +62,21 @@ class Harness:
         self.report['ownedFolder']=self.folder; self.report['temporaryUser']=self.user
         self.fixture=create(out/'fixture'); self.paths=[]
 
+    def browser(self,browser,kind):
+        if browser != 'firefox': return open_browser(browser)
+        os.environ['MOZ_HEADLESS_WIDTH']='1400';os.environ['MOZ_HEADLESS_HEIGHT']='1000'
+        profile=firefox_profile(self.scratch / kind)
+        session=FirefoxSession.__new__(FirefoxSession)
+        try:
+            session.__init__('cold',profile_dir=profile)
+            return session
+        except Exception:
+            close_browser(session)
+            raise
+
     def check(self,id,ok,raw):
         self.report['checks'].append({'id':id,'ok':bool(ok),'raw':raw})
+        print(('PASS ' if ok else 'FAIL ')+id,flush=True)
         if not ok: raise AssertionError(id)
 
     def request(self,method,path,body=None,headers=None):
@@ -137,7 +153,7 @@ class Harness:
 
     def admin_round(self,browser):
         run={'browser':browser}; self.report['runs'].append(run)
-        session=open_browser(browser)
+        session=self.browser(browser,'admin');run['version']=session.version
         name=self.folder+'/'+browser+'.ods'; writer=self.folder+'/'+browser+'.odt'
         self.paths.extend([name,writer])
         try:
@@ -220,7 +236,7 @@ class Harness:
         select(session,address);return evaluate(session,'window.__calcEditor.state.cell')
 
     def readonly_round(self,browser):
-        session=open_browser(browser);run={'browser':browser,'kind':'readonly'};self.report['runs'].append(run)
+        session=self.browser(browser,'readonly');run={'browser':browser,'kind':'readonly','version':session.version};self.report['runs'].append(run)
         try:
             navigate(session,self.instance.base+'/login',timeout=60)
             if isinstance(session,ChromeSession):
@@ -278,5 +294,5 @@ class Harness:
 
 if __name__=='__main__':
     p=argparse.ArgumentParser();p.add_argument('--out',required=True,type=Path);p.add_argument('--browsers',nargs='+',choices=['chrome','firefox'],default=['chrome','firefox']);p.add_argument('--kind',choices=['both','admin','readonly'],default='both');args=p.parse_args();args.out.mkdir(parents=True,exist_ok=False)
-    with browser_lock('run_calc_editor_host'):
-        raise SystemExit(0 if Harness(args.out.resolve(),args.browsers,args.kind).run() else 1)
+    with browser_lock('run_calc_editor_host'), tempfile.TemporaryDirectory(prefix='calc-editor-host-',dir=Path(__file__).resolve().parents[1]/'build') as scratch:
+        raise SystemExit(0 if Harness(args.out.resolve(),Path(scratch),args.browsers,args.kind).run() else 1)

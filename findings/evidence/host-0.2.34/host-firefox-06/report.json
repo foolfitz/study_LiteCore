@@ -1,0 +1,34 @@
+{
+  "checks": [
+    {
+      "id": "owned-folder",
+      "ok": true,
+      "raw": 201
+    },
+    {
+      "id": "readonly-fixture",
+      "ok": true,
+      "raw": 201
+    }
+  ],
+  "runs": [
+    {
+      "browser": "firefox"
+    }
+  ],
+  "cleanup": {
+    "ownedUnlocks": [],
+    "shareRemoved": true,
+    "userRemoved": true,
+    "folderDeleteStatus": 204
+  },
+  "ownedFolder": "M4-cell-host-20261025T101754",
+  "temporaryUser": "m4_cell_4924af4e",
+  "readonlyShare": {
+    "id": "367",
+    "permissions": 1
+  },
+  "error": "HTTP 500 for POST http://127.0.0.1:38093/session: {\"value\":{\"error\":\"session not created\",\"message\":\"Failed to set preferences: unknown error\",\"stacktrace\":\"\"}}",
+  "traceback": "Traceback (most recent call last):\n  File \"/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/run_browser_probe.py\", line 43, in http_json\n    with urllib.request.urlopen(request, timeout=timeout) as response:\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.14/urllib/request.py\", line 187, in urlopen\n    return opener.open(url, data, timeout)\n           ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.14/urllib/request.py\", line 493, in open\n    response = meth(req, response)\n  File \"/usr/lib/python3.14/urllib/request.py\", line 602, in http_response\n    response = self.parent.error(\n        'http', request, response, code, msg, hdrs)\n  File \"/usr/lib/python3.14/urllib/request.py\", line 531, in error\n    return self._call_chain(*args)\n           ~~~~~~~~~~~~~~~~^^^^^^^\n  File \"/usr/lib/python3.14/urllib/request.py\", line 464, in _call_chain\n    result = func(*args)\n  File \"/usr/lib/python3.14/urllib/request.py\", line 611, in http_error_default\n    raise HTTPError(req.full_url, code, msg, hdrs, fp)\nurllib.error.HTTPError: HTTP Error 500: Internal Server Error\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/run_calc_editor_host.py\", line 262, in run\n    if self.kind in ('both','admin'): self.admin_round(browser)\n                                      ~~~~~~~~~~~~~~~~^^^^^^^^^\n  File \"/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/run_calc_editor_host.py\", line 150, in admin_round\n    session=self.browser(browser,'admin');run['version']=session.version\n  File \"/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/run_calc_editor_host.py\", line 69, in browser\n    return FirefoxSession('cold',profile_dir=profile)\n  File \"/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/run_browser_probe.py\", line 129, in __init__\n    response = self.request(\n               ~~~~~~~~~~~~^\n        \"POST\",\n        ^^^^^^^\n    ...<11 lines>...\n        },\n        ^^\n    )[\"value\"]\n    ^\n  File \"/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/run_browser_probe.py\", line 149, in request\n    return http_json(method, self.base_url + path, payload, timeout)\n  File \"/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/run_browser_probe.py\", line 47, in http_json\n    raise RuntimeError(\n        f\"HTTP {error.code} for {method} {url}: {raw.decode(errors='replace')}\"\n    ) from error\nRuntimeError: HTTP 500 for POST http://127.0.0.1:38093/session: {\"value\":{\"error\":\"session not created\",\"message\":\"Failed to set preferences: unknown error\",\"stacktrace\":\"\"}}\n",
+  "ok": false
+}
