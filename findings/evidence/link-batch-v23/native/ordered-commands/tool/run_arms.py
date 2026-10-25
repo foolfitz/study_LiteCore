@@ -17,6 +17,7 @@ its env record, and the reader checks it). Writes out/<arm>/<mode>-r<N>.jsonl,
 import argparse
 import datetime
 import gzip
+import hashlib
 import json
 import os
 import pathlib
@@ -116,6 +117,18 @@ for _name, _op in (('bold', f'U.uno:Bold|{BOLD_TRUE}'), ('del', f'K{DEL}'), ('bk
                        'script': f'k{RIGHT}x2,rimg,k{HOME},Xob@{RIGHT}=Cimg+567;{_idle}{_op},S,L',
                        'note': f'click the image, {"idle 150 ms, " if _idle else ""}then {_op}', 'decides': False})
 
+# Spec 16.2: restoration is measured in one unipoll command, not uni1's separate polls.
+# Both points are real recorded carets, at the starts of adjacent one-line paragraphs.
+R_ARMS = []
+for _label, _fixture in (('plain', 'plain3'), ('numbered', 'numbered-second'), ('indent', 'indent-second')):
+    for _variant, _ops in (('direct', f'K{BKSP}'),
+                           ('restore', f'K{LEFT | SH};Rbefore;K{BKSP}'),
+                           ('wrong-line', f'K{LEFT | SH};Rwrong;K{BKSP}')):
+        R_ARMS.append({'name': f'reset-{_label}-{_variant}', 'fixture': _fixture,
+                       'script': f'rwrong,k{DOWN},k{HOME},rbefore,Xreset@{HOME}={_ops},S,L',
+                       'note': f'P2 start {_variant}: {_label}; RESET uses recorded point, no guessed grid',
+                       'decides': True})
+
 
 def utc():
     return datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
@@ -131,13 +144,21 @@ def main():
     ap.add_argument('--runs', type=int, default=5)
     ap.add_argument('--only', default='')
     ap.add_argument('--modes', default='seq,q,unipoll')
-    ap.add_argument('--arms-set', choices=('d', 'n1', 'g', 'o'), default='d')
+    ap.add_argument('--arms-set', choices=('d', 'n1', 'g', 'o', 'r'), default='d')
     a = ap.parse_args()
     out = pathlib.Path(a.out)
     work = pathlib.Path(a.work)
     out.mkdir(parents=True, exist_ok=True)
-    table = {'d': ARMS, 'n1': ARMS + N1_ARMS, 'g': G_ARMS, 'o': O_ARMS}[a.arms_set]
+    table = {'d': ARMS, 'n1': ARMS + N1_ARMS, 'g': G_ARMS, 'o': O_ARMS, 'r': R_ARMS}[a.arms_set]
     (out / 'arms.json').write_text(json.dumps(table, indent=1) + '\n')
+    if a.arms_set == 'r':
+        digest = lambda path: hashlib.sha256(pathlib.Path(path).read_bytes()).hexdigest()
+        tool = pathlib.Path(__file__).resolve().parent
+        identity = {'binary': str(pathlib.Path(a.binary).resolve()), 'binarySha256': digest(a.binary),
+                    'sources': {name: digest(tool / name) for name in ('oc_native.cpp', 'run_arms.py', 'make_fixtures.py')},
+                    'fixtures': {name: digest(pathlib.Path(a.fixtures) / (name + '.fodt'))
+                                 for name in sorted({arm['fixture'] for arm in table})}}
+        (out / 'identity.json').write_text(json.dumps(identity, indent=2) + '\n')
     only = set(filter(None, a.only.split(',')))
     modes = [m for m in a.modes.split(',') if m]
     assert all(m in MODES for m in modes), modes

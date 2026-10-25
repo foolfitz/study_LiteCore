@@ -102,6 +102,9 @@ FIXTURES = {
     # D7 (iii) Backspace at the document start, first-line indent
     'indent': doc('<text:p text:style-name="PI">Indented first</text:p>\n<text:p>Second</text:p>\n',
                   extra_auto=INDENT_STYLE),
+    # Spec 16.2 RESET restore at P2 start, with a recorded P1 wrong-line control.
+    'indent-second': doc(p('Plain first') + '<text:p text:style-name="PI">Indented second</text:p>\n'
+                         + p('Plain third'), extra_auto=INDENT_STYLE),
     # D7 plain: Backspace at the start of a plain first paragraph
     'plain3': doc(p('Alpha first paragraph') + p('Bravo second paragraph') + p('Charlie third paragraph')),
     # N1b's positive control (SPEC-M3-ordered-commands §9.1): a one-row table, then a paragraph;
