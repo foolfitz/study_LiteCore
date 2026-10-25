@@ -14,7 +14,8 @@ CASES = {
     'input-teh': {'fixtures': ['empty-en-US.odt'], 'input': 'teh '},
     'input-quotes': {'fixtures': ['empty-en-US.odt'], 'input': '"word" '},
     'input-number': {'fixtures': ['empty-en-US.odt'], 'input': '1. '},
-    'paragraph-break': {'fixtures': ['empty-en-US.odt'], 'input': PARAGRAPH_MARKER},
+    'paragraph-break': {'fixtures': ['empty-en-US.odt'], 'input': PARAGRAPH_MARKER,
+                        'setup': 'initial-empty-caret-once'},
     'linguistic-layout': {'fixtures': ['hyphenation-on.odt', 'hyphenation-off.odt']},
 }
 REGION = {'xTwips': 0, 'yTwips': 0, 'widthTwips': 8640, 'heightTwips': 11520,
@@ -76,7 +77,9 @@ def served_sources():
 def expected_mutations(case_id):
     plan = CASES[case_id]
     mutations = [('insertText', plan['input'])] if 'input' in plan else []
-    if case_id == 'paragraph-break': mutations.append(('editorActionV2', 'insert-paragraph-break'))
+    if case_id == 'paragraph-break':
+        mutations.insert(0, ('editorPlaceCaretV2', None))
+        mutations.append(('editorActionV2', 'insert-paragraph-break'))
     return mutations
 
 

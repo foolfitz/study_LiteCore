@@ -183,7 +183,29 @@ def inspect_cell(page, config):
             assert semantic(reopened) == shape and MARKER in ''.join(p['text'] for p in shape), 'roundtrip marker/structure changed'
             item['reopenedShape'] = semantic(reopened)
         if case_id == 'paragraph-break':
+            setup = obs['paragraphSetup']
+            placements = operations('editorPlaceCaretV2', gen)
+            assert len(placements) == 1, 'missing/nonunique paired public placement'
+            placed = placements[0]; place_id = placed['message']['requestId']
+            insert_id = inserts[0]['message']['requestId']
+            states = operations('editorGetStateV2', gen)
+            initial = [s for s in states if s['message']['requestId'] < place_id]
+            after = [s for s in states if place_id < s['message']['requestId'] < insert_id]
+            assert initial and after and place_id < insert_id, 'placement must precede marker with fresh state witness'
+            initial_state, placed_state = response(initial[-1]), response(after[0])
+            assert setup['initialState'] == initial_state and setup['afterPlacementState'] == placed_state, 'setup state not bound to actual responses'
+            caret = initial_state['caret']
+            assert initial_state['selectionType'] == 'none', 'initial fixture caret is not empty selection'
+            point = {'xTwips': caret['x'], 'yTwips': caret['y'] + caret['height'] // 2}
+            assert setup['point'] == point and all(placed['message']['payload'].get(k) == v for k,v in point.items()), 'placement point not from actual initial caret'
+            assert setup['placement'] == response(placed), 'placement result not bound to wire'
+            assert placed_state['selection']['observed'] is True and placed_state['selection']['collapsed'] is True, 'public placement did not establish collapsed observation'
             actions = operations('editorActionV2', gen)
+            assert len(actions) == 1, 'nonunique InsertPara'
+            post = [s for s in states if insert_id < s['message']['requestId'] < actions[0]['message']['requestId']]
+            assert post and setup['postMarkerState'] == response(post[-1]), 'fresh post-marker state missing'
+            assert setup['postMarkerState']['selection']['observed'] is True and setup['postMarkerState']['selection']['collapsed'] is True, 'post-marker precondition absent'
+
             assert any(a['message']['payload'].get('action') == 'insert-paragraph-break' for a in actions), 'public InsertPara absent'
             assert [p['text'] for p in shape] == [PARAGRAPH_MARKER, ''], 'InsertPara paragraph order/structure differs'
         if case_id == 'linguistic-layout':
@@ -213,6 +235,7 @@ def inspect_cell(page, config):
 
 
 RESIDUALS = {
+    'unprimedParagraphActionAsymmetry': 'KNOWN: prep03 v22 refused and r2 succeeded without setup; the comparison covers the explicitly paired public precondition',
     'serviceDictionaryAvailability': 'NOT_ESTABLISHED: no service inventory; equal renders do not establish dictionaries',
     'effectiveSpellingAutocorrectionConfiguration': 'NOT_ESTABLISHED: not exposed by current contract',
     'naturalKeyFallbackCoverage': 'NOT_ESTABLISHED unless the wire actually reports postKeyEvent',

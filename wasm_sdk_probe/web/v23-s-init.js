@@ -88,8 +88,30 @@ try {
     result.observations.push(observation);
     await open(fixture, fixtureName);
     observation.openGeneration = generation;
+    if (caseId === 'paragraph-break') {
+      const setup = observation.paragraphSetup = {};
+      setup.initialState = await step('initial-caret-state', () => session.editor.getState());
+      const caret = setup.initialState.caret;
+      if (!caret || ![caret.x, caret.y, caret.height].every(Number.isFinite) ||
+          setup.initialState.selectionType !== 'none')
+        throw Object.assign(new Error('initial empty-paragraph caret unavailable'), {code: 'S_INIT_PRECONDITION_NOT_ESTABLISHED'});
+      setup.point = {xTwips: Math.round(caret.x), yTwips: Math.round(caret.y) + Math.floor(caret.height / 2)};
+      // One public client call, without session retry/grace loops or extra keys.
+      setup.placement = await step('place-initial-caret', () =>
+        session.editor.placeCaret(setup.point.xTwips, setup.point.yTwips));
+      setup.afterPlacementState = await step('placed-caret-state', () => session.editor.getState());
+      if (setup.afterPlacementState.selection?.observed !== true ||
+          setup.afterPlacementState.selection?.collapsed !== true)
+        throw Object.assign(new Error('public placement did not establish observed collapsed selection'), {code: 'S_INIT_PRECONDITION_NOT_ESTABLISHED'});
+    }
     if (plan.input !== undefined) await step('insertText', () => session.commitText(plan.input));
-    if (caseId === 'paragraph-break') await step('InsertPara', () => session.action('insert-paragraph-break'));
+    if (caseId === 'paragraph-break') {
+      observation.paragraphSetup.postMarkerState = await step('post-marker-state', () => session.editor.getState());
+      if (observation.paragraphSetup.postMarkerState.selection?.observed !== true ||
+          observation.paragraphSetup.postMarkerState.selection?.collapsed !== true)
+        throw Object.assign(new Error('post-marker selection precondition absent'), {code: 'S_INIT_PRECONDITION_NOT_ESTABLISHED'});
+      await step('InsertPara', () => session.action('insert-paragraph-break'));
+    }
     if (caseId === 'linguistic-layout') {
       observation.geometry = await step('pageRectangles', () => session.document.pageRectangles());
       const tile = await step('render', () => session.document.render(config.region));

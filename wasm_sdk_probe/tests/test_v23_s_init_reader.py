@@ -54,13 +54,25 @@ def population():
                 page['workers'].append({'generation':gen,'createdAt':gen*10,'terminatedAt':gen*10+5,'url':f'http://local/profiles/{profile}/sdk-worker.js'})
                 request(gen,'init',{}, {'profile':profile,'coreCommit':'test-core'})
                 request(gen,'open',{'name':fixture,'buffer':binary(original)},{'revision':0})
-                data=original
+                data=original; setup=None
+                if case_id=='paragraph-break':
+                    initial={'revision':0,'caret':{'x':10,'y':20,'height':10},'selectionType':'none','selection':{'observed':False,'collapsed':True}}
+                    placed=copy.deepcopy(initial);placed['selection']['observed']=True
+                    point={'xTwips':10,'yTwips':25}; placement={'revision':0,'state':placed}
+                    request(gen,'editorGetStateV2',{},initial)
+                    request(gen,'editorPlaceCaretV2',point,placement)
+                    request(gen,'editorGetStateV2',{},placed)
+                    setup={'initialState':initial,'point':point,'placement':placement,'afterPlacementState':placed}
                 if 'input' in plan:
                     request(gen,'insertText',{'text':plan['input']},{'method':'paste','revision':1})
                     text=plan['input']+('Language tagged authority paragraph.' if case_id=='direct-load-reopen' else '')
                     data=modified(data,text,case_id=='paragraph-break')
-                if case_id=='paragraph-break': request(gen,'editorActionV2',{'action':'insert-paragraph-break'},{})
+                if case_id=='paragraph-break':
+                    post=copy.deepcopy(placed);post['revision']=1;setup['postMarkerState']=post
+                    request(gen,'editorGetStateV2',{},post)
+                    request(gen,'editorActionV2',{'action':'insert-paragraph-break'},{})
                 obs={'fixtureName':fixture,'fixtureSha256':reader.digest(original),'openGeneration':gen,'saved':saved(data)}
+                if setup is not None: obs['paragraphSetup']=setup
                 if case_id=='linguistic-layout':
                     geo={'parts':1,'rectangles':[{'x':0,'y':0,'width':8640,'height':11520}],'widthTwips':8640,'heightTwips':11520}
                     request(gen,'pageRectangles',{},dict(parts=1,rectangles='0,0,8640,11520',documentWidthTwips=8640,documentHeightTwips=11520))
@@ -76,7 +88,10 @@ def population():
                 page['observations'].append(obs)
             for browser in BROWSERS:
                 for n in ROUNDS:
-                    cells.append({'caseId':case_id,'profile':profile,'browser':browser,'round':n,'page':copy.deepcopy(page)})
+                    actual_page=copy.deepcopy(page)
+                    actual_page['userAgent']='Mozilla/5.0 Firefox/140.0' if browser=='firefox' else 'Mozilla/5.0 HeadlessChrome/140.0'
+                    actual_page['steps'][0]['startedAt']=n
+                    cells.append({'caseId':case_id,'profile':profile,'browser':browser,'round':n,'page':actual_page})
     return cells,config
 
 
@@ -91,10 +106,10 @@ class SInitReader(unittest.TestCase):
         for mutation in ('missing-cell','duplicate-cell','wrong-candidate','wrong-fixture',
                          'changed-saved-outcome','changed-method','changed-geometry','changed-pixels',
                          'missing-reopen','substituted-reopen-bytes','failed-response','wrong-worker',
-                         'wrong-served-source','wrong-served-config','extra-noop-mutation','both-silent-drop','no-revision-advance'):
+                         'wrong-served-source','wrong-served-config','extra-noop-mutation','both-silent-drop','no-revision-advance','missing-placement'):
             with self.subTest(mutation=mutation):
                 cells=copy.deepcopy(self.cells)
-                case='linguistic-layout' if mutation in ('changed-geometry','changed-pixels') else 'direct-load-reopen' if mutation in ('missing-reopen','substituted-reopen-bytes') else 'input-teh'
+                case='paragraph-break' if mutation=='missing-placement' else 'linguistic-layout' if mutation in ('changed-geometry','changed-pixels') else 'direct-load-reopen' if mutation in ('missing-reopen','substituted-reopen-bytes') else 'input-teh'
                 cell=next(c for c in cells if c['caseId']==case and c['profile']==PROFILES[1])
                 page=cell['page']; obs=page['observations'][0]
                 if mutation=='missing-cell': cells.pop()
@@ -125,6 +140,10 @@ class SInitReader(unittest.TestCase):
                 elif mutation=='wrong-worker': page['workers'][0]['url']='http://local/profiles/e2-editor-v22/sdk-worker.js'
                 elif mutation=='wrong-served-source': page['servedSources']={'e2-editor.html':'substituted-source'}
                 elif mutation=='wrong-served-config': page['configSha256']='wrong'
+                elif mutation=='missing-placement':
+                    request=next(r for r in page['requests'] if r['message']['operation']=='editorPlaceCaretV2')
+                    ident=request['message']['requestId'];page['requests'].remove(request)
+                    page['responses']=[r for r in page['responses'] if r['message']['requestId']!=ident]
                 elif mutation=='no-revision-advance':
                     req=next(r for r in page['requests'] if r['message']['operation']=='insertText')
                     next(r for r in page['responses'] if r['message']['requestId']==req['message']['requestId'])['message']['result']['revision']=0
