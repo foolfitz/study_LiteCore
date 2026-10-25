@@ -193,3 +193,13 @@ Astra `/root/astra_calc_scope` 在完整呼叫鏈覆核後裁決有限範圍可�
 session／SDK／worker／host／autosave 單元 **45／45**；autosave 七個突變、range 六個突變、range reader 五個合成紅案與兩個 frozen profile 保護控制均拒絕，E1-C intact。Astra `/root/astra_calc_scope` 讀取 reader 結果後裁決鏡像層與來源準備可封閉，不再擴本輪閘門。Claude 03 完整審核與逐項處置、其餘逾時無 verdict 紀錄均保留。
 
 以上使用真實凍結 v1 引擎與可控制的 HOST 替身，**不證明 native／v2 範圍格式、實際 Files 存回或新候選安裝**。這三層仍為 NOT_ESTABLISHED。來源、native 22 案及 browser 40 案／輪的續跑工具、精確 build／runbook 已完成，會編譯的命令依擁有者規則交使用者。未編譯、未重連結、未動 ddev／原文件／鎖、未凍結 v2、未打包安裝；現有宿主 0.2.36 與既有三顆 frozen profile 身分相同。K／全域 pins／BINDING／chain／計數不動，名義出貨 0.2.26，§34.4 累計 47／27。下一步是 [使用者建置](../handoff/RUNBOOK-build-calc-range-v2.md)，成功後由 agent 繼續實測及候選流程。
+
+## 20. Combined 候選的實際 Files 有限驗收（2026-10-25，只追加）
+
+擁有者已執行小型 native／後繼 SDK 建置；本節只釘實際 Files 層的新入口判準，不把鏡像 HOST 替身當成 WebDAV 證據，也不重跑既有完整衝突／stranded／Writer／K 閘門。使用 probe_calc_range_autosave_host.py，Chrome／Firefox 各一個管理者自有 fixture 加既有唯讀分享 route。case 母體由 driver 及實際繼承的 Harness run／readonly_round 可執行 check call sites 生成，reader 拒絕空／缺項／重複／false／缺 browser-route／錯工具／錯 package 身分。
+
+每種 B／I／U 真工具列建立單格開啟＋鄰格關閉，再 Shift 擴選，驗 mixed → on → off，最後保留全開；作用目標仍為 B2:C2。確認新的模型 revision 與實際 tiles 對 direct render 一致。提交標記文字後等待 production 30 秒 idle，自動存回 original；driver 在 commit 完成後才取起始時間，因此 host 層採 29–55 秒完成窗，精確不少於 30 秒的排程性質仍由已封閉鏡像與 clock 層承載。實際 PUT 必須有 If-Match／自有 lock token／ODS MIME，host 紀錄 trigger=auto、outcome=saved、target=original。
+
+獨立 GET 並保留伺服器 ODS bytes／hash，依 ODF cell、row／column defaults、named parent 及 family defaults 解析有效格式，核對 B2/C2 三字族格式、標記文字、範圍外 A2 與別表 A1 不變，不只相信 host success。active replacement draft 保持超過 30 秒不得新增保存或變模型；一次受控延後的真 native export 期間以 trusted input 打入新草稿，存回 XML 只能是先前已確認值，新草稿／焦點／dirty 必須保留。取消新草稿後回到已儲存，正常離開釋放自有 lock，再由 Files 重開讀回格式／內容並正常釋放。readonly 分享沿既有實際 viewer 路由，無 save API／按鈕且不持鎖；不要求另等 30 秒。
+
+這個 driver 只建立與清除自己的 folder／user／share／lock token，不改服務狀態、不寫全域 lock table。呼叫方提供本次 fresh ddev-before/after.json、locks-before/after.txt 與 owner-document-before/after.json；reader 核對 service 狀態完全一致、既有 24674 lock 保留、24920 文件 bytes/hash 身分相同。正常成功不容許依賴 fallback UNLOCK；失敗仍由既有 Harness 清理自有 token，且失敗不算通過。未做／失敗：實際 Files 層未成立，不宣告 combined 交付；雙瀏覽器固定集合全部成立即封閉，後續新疑慮另案，不無限新增門檻。
