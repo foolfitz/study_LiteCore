@@ -1,0 +1,212 @@
+{
+  "file": "cell-editing.ods",
+  "sheets": [
+    "編輯測試",
+    "另一張表",
+    "保護測試"
+  ],
+  "cases": [
+    {
+      "id": "text",
+      "column": 0,
+      "row": 0,
+      "input": "編輯完成 Alpha"
+    },
+    {
+      "id": "number",
+      "column": 1,
+      "row": 0,
+      "input": "21"
+    },
+    {
+      "id": "formula",
+      "column": 2,
+      "row": 0,
+      "input": "=B1*3"
+    },
+    {
+      "id": "clear",
+      "column": 2,
+      "row": 1,
+      "input": ""
+    },
+    {
+      "id": "multiline",
+      "column": 4,
+      "row": 1,
+      "input": "第一行\n第二行 \"引號\""
+    },
+    {
+      "id": "literal",
+      "column": 5,
+      "row": 1,
+      "input": "'=B1*9"
+    },
+    {
+      "id": "merged",
+      "column": 1,
+      "row": 2,
+      "input": "合併格已修改"
+    }
+  ],
+  "formats": [
+    "bold",
+    "italic",
+    "underline"
+  ],
+  "preserved": [
+    {
+      "part": 0,
+      "column": 0,
+      "row": 1,
+      "formula": "鄰格必須保留"
+    },
+    {
+      "part": 1,
+      "column": 0,
+      "row": 0,
+      "formula": "第二表不應改動"
+    }
+  ],
+  "geometry": [
+    {
+      "column": 0,
+      "row": 0
+    },
+    {
+      "column": 1,
+      "row": 0
+    },
+    {
+      "column": 2,
+      "row": 0
+    },
+    {
+      "column": 4,
+      "row": 0
+    },
+    {
+      "column": 1,
+      "row": 1
+    },
+    {
+      "column": 1,
+      "row": 2
+    },
+    {
+      "column": 0,
+      "row": 4
+    }
+  ],
+  "selectionCases": [
+    {
+      "id": "drag-SE",
+      "from": [
+        0,
+        0
+      ],
+      "to": [
+        2,
+        1
+      ]
+    },
+    {
+      "id": "drag-NW",
+      "from": [
+        2,
+        1
+      ],
+      "to": [
+        0,
+        0
+      ]
+    },
+    {
+      "id": "drag-NE",
+      "from": [
+        0,
+        1
+      ],
+      "to": [
+        2,
+        0
+      ]
+    },
+    {
+      "id": "drag-SW",
+      "from": [
+        2,
+        0
+      ],
+      "to": [
+        0,
+        1
+      ]
+    },
+    {
+      "id": "merged-endpoint",
+      "from": [
+        2,
+        1
+      ],
+      "to": [
+        1,
+        2
+      ]
+    },
+    {
+      "id": "interior-boundary-merge",
+      "from": [
+        1,
+        1
+      ],
+      "to": [
+        2,
+        6
+      ]
+    },
+    {
+      "id": "hidden-columns-rows",
+      "from": [
+        2,
+        1
+      ],
+      "to": [
+        6,
+        6
+      ]
+    }
+  ],
+  "pendingCases": [
+    "text-Enter",
+    "F2",
+    "F2-text",
+    "text-Escape",
+    "text-new-selection",
+    "IME"
+  ],
+  "shiftKeys": [
+    "ArrowLeft",
+    "ArrowUp",
+    "ArrowDown"
+  ],
+  "reopenCases": [
+    [
+      "A1",
+      "active replacement"
+    ],
+    [
+      "B2",
+      "replacement 中文"
+    ],
+    [
+      "C1",
+      "'=B1*9"
+    ],
+    [
+      "G2",
+      "組字完成"
+    ]
+  ],
+  "selectionPolicy": "endpoint-address-rectangle-without-recursive-merge-closure"
+}
