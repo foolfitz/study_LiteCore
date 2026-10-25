@@ -5,6 +5,7 @@ import { DocumentSdkError } from "../sdk/document-sdk.js";
 
 export const CELL_FORMATS = Object.freeze(["bold", "italic", "underline"]);
 export const CELL_INPUT_LIMIT = 32767;
+export const RANGE_CELL_LIMIT = 65536;
 
 function invalid(message) {
   throw new DocumentSdkError("INVALID_ARGUMENT", message);
@@ -20,6 +21,35 @@ function boolean(value, name) {
   if (value === true || value === "true") return true;
   if (value === false || value === "false") return false;
   throw new DocumentSdkError("CELL_RESULT_INVALID", `${name} is not a boolean`);
+}
+
+function rangeBounds(column,row,endColumn,endRow) {
+  for(const [key,value] of Object.entries({column,row,endColumn,endRow}))unsigned(value,key);
+  if(endColumn<column || endRow<row)invalid("range endpoints are reversed");
+  if((endColumn-column+1)*(endRow-row+1)>RANGE_CELL_LIMIT)
+    throw new DocumentSdkError("RANGE_TOO_LARGE",`range exceeds ${RANGE_CELL_LIMIT} logical cells`);
+  return {column,row,endColumn,endRow};
+}
+
+export function normalizeRange(raw) {
+  if(!raw || typeof raw!=="object")invalid("range reply is missing");
+  const range={};
+  for(const key of ["part","column","row","endColumn","endRow"]) {
+    if(typeof raw[key]!=="number" && !(typeof raw[key]==="string" && /^[0-9]+$/.test(raw[key])))
+      throw new DocumentSdkError("CELL_RESULT_INVALID",`range ${key} is not an integer`);
+    range[key]=unsigned(Number(raw[key]),key);
+  }
+  rangeBounds(range.column,range.row,range.endColumn,range.endRow);
+  for(const key of CELL_FORMATS) {
+    if(!["on","off","mixed"].includes(raw[key]))
+      throw new DocumentSdkError("CELL_RESULT_INVALID",`range ${key} is not a tristate`);
+    range[key]=raw[key]==="mixed" ? null : raw[key]==="on";
+  }
+  range.writable=boolean(raw.writable,"writable");
+  if(typeof raw.refusalCode!=="string" || range.writable!==(raw.refusalCode===""))
+    throw new DocumentSdkError("CELL_RESULT_INVALID","range refusal does not match writability");
+  range.refusalCode=raw.refusalCode;
+  return Object.freeze(range);
 }
 
 export function normalizeCell(raw) {
@@ -57,7 +87,7 @@ export class CalcDocumentEngine extends OdsViewerEngine {
       await handle.close();
       throw new DocumentSdkError("DOCUMENT_TYPE_REFUSED", "cell editing requires a spreadsheet");
     }
-    const request = async (operation, column, row, payload = {}, callOptions = {}) => {
+    const request = async (operation, column, row, payload = {}, callOptions = {}, normalize = normalizeCell) => {
       handle._assertUsable();
       const expectedRevision = callOptions.expectedRevision ?? handle.revision;
       if (!Number.isInteger(expectedRevision) || expectedRevision < 0 || expectedRevision > 0xffffffff)
@@ -67,7 +97,16 @@ export class CalcDocumentEngine extends OdsViewerEngine {
         part: unsigned(callOptions.part ?? handle.currentPart, "part"),
         column: unsigned(column, "column"), row: unsigned(row, "row"), ...payload,
       }, callOptions);
-      const cell = normalizeCell(result.cell);
+      let cell;
+      try {
+        cell=normalize(result.cell);
+        if(operation.startsWith("range") && (cell.part!==(callOptions.part ?? handle.currentPart)
+            || cell.column!==column || cell.row!==row || cell.endColumn!==payload.endColumn || cell.endRow!==payload.endRow))
+          throw new DocumentSdkError("CELL_RESULT_INVALID","range reply target differs from request");
+      } catch(error) {
+        if(operation==="rangeFormat")throw new DocumentSdkError("MUTATION_OUTCOME_UNKNOWN",error.message);
+        throw error;
+      }
       handle.revision = result.revision;
       return { cell, changed: result.changed === true, revision: result.revision };
     };
@@ -83,6 +122,20 @@ export class CalcDocumentEngine extends OdsViewerEngine {
       if (!CELL_FORMATS.includes(format) || typeof enabled !== "boolean")
         invalid("cell format must be bold, italic or underline and enabled must be boolean");
       return request("cellFormat", column, row, {format, enabled}, callOptions);
+    };
+    handle.rangeFormattingSupported=this.manifest.capabilities.includes("cell-range-formatting");
+    const rangeRequest=(operation,column,row,endColumn,endRow,payload,callOptions)=>{
+      if(!handle.rangeFormattingSupported)
+        throw new DocumentSdkError("UNSUPPORTED_OPERATION","this engine has no range formatting contract");
+      rangeBounds(column,row,endColumn,endRow);
+      return request(operation,column,row,{endColumn,endRow,...payload},callOptions,normalizeRange)
+        .then(({cell,changed,revision})=>({range:cell,changed,revision}));
+    };
+    handle.readRange=(column,row,endColumn,endRow,callOptions)=>
+      rangeRequest("rangeRead",column,row,endColumn,endRow,{},callOptions);
+    handle.setRangeFormat=(column,row,endColumn,endRow,format,enabled,callOptions)=>{
+      if(!CELL_FORMATS.includes(format) || typeof enabled!=="boolean")invalid("invalid range format");
+      return rangeRequest("rangeFormat",column,row,endColumn,endRow,{format,enabled},callOptions);
     };
     return handle;
   }
