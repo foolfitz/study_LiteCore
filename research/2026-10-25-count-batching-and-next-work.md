@@ -94,3 +94,11 @@ ODS 的優先工作已完成，現有可接續的功能批次是 **v23：指令�
 擁有者手測回報整格 B／I／U、雙擊保留原文進編輯均通過；直接選格打字／F2 沒反應，符合目前未實作的狀態。下一批須補這些預期入口，並加入新要求的儲存格**區域選取**；本輪只有交接，沒有開始功能實作或把新需求列成已通過。
 
 目前候選仍 0.2.35／858a07c／b007f950b2e18cd2。操作細節、range 格式 API 與後繼 profile 需求在下一輪先定案；不要覆寫 frozen v1。自動儲存仍 manual only，未被這則新需求自動納入。最新接續文件：[人工結果與 cell range 下一步](../handoff/HANDOFF-2026-10-25-calc-owner-passes-input-range-next.md)。K 維持併批、名義出貨 0.2.26，§34.4 +0／+0，累計 47／27。
+
+## 2026-10-25 接續完成：直接輸入、F2 與矩形選取
+
+依最新交接與自主授權完成本批，Astra `/root/astra_calc_scope` 裁決有限選取語意並多次覆核；Claude Code 的英文對抗審核與處置均已留存。已安裝 **0.2.36／702bad6／2b17a0e790b24eb3**，接回直接取代輸入、F2 保留原文、滑鼠／Shift 矩形選取、active／anchor／focus、隱藏／合併端點幾何與慢速選格輸入保護。多格格式拒絕，autosave、rich text、拖拉填滿等未加入；不需要重連結 frozen v1。
+
+新定向驗收 **378／378**（兩瀏覽器各三輪）、過長／保護／失敗選格等每瀏覽器 **8／8**、session／SDK／host contract **22／22**；實際 Files **28／28**。新畫面總計 mirror 312、host 56 塊 tile，與同區域引擎繪圖相符。reader 與紅控制可重讀，詳見[整理](2026-10-25-calc-input-range.md)及規格 §13–16。45 個封包檔的 42 筆完整紀錄相同，只改 Calc HTML／app／session；Writer／viewer／Calc v1 engine 不變。
+
+本批續列未計數帳，K／全域 pins／merge BINDING／chain 不動，名義出貨仍 0.2.26。litecore 保留原 running、現有鎖與擁有者文件不變，測試資源／隔離 worktree 已清。一般 commit 等待期間按鍵接收的既有限制由 Astra 列為未量測後續工作，不擴成本批新閘門。本批短期待辦結束，不自行啟動 v23；§34.4 +0／+0，累計 47／27。
