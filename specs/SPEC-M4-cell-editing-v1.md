@@ -155,3 +155,11 @@ Astra 覆核指出 selection busy 會停用唯一接收器；`pending-entry-red`
 方向鍵須以 engine focus 幾何最小幅度捲動使其可見；開始編輯則顯示 active anchor。手動捲動重新定位 idle sink。繪圖在途的新 viewport 要補畫最新需求；不改共享 scheduler。手勢捕獲其 owner session，起點失敗不得從舊 anchor 擴選，pointerup 採最後有效座標，取消釋放 capture，換檔前取消舊手勢。上／左邊界的普通方向鍵收合到 focus，Shift 則不動。
 
 上述均是 §13／14 的先前語意尚未被完整守住，新增固定的等待文字＋Enter／F2／F2 後文字／IME／Escape／再選格、鍵盤可見性與手勢生命週期案例，從 fixture manifest 讀母體，未測則未成立。本節先於可算入的新 N＝3；先前單輪 attempt 皆屬開發觀察，不挪作完成計數。沒有重設已封閉的 165／既有 cell 驗收，也不新增人工閘門。
+
+## 16. 本批定向驗收與安裝成立（2026-10-25，只追加）
+
+`calc-input-range/final-02/report.json` Chrome／Firefox 各三輪 **378／378**；每輪 63 項，十二份新輸入畫面／312 塊 DOM tile 比對直接 engine render 全相同，下載 ODS 的獨立 XML／重開、鄰格／別表均成立。reader 自可執行 check call sites 與 fixture 生成母體，核對來源／工具身分及確切集合；空 runs、缺瀏覽器、空 checks、缺項、false check、錯工具身分六個紅控制均拒絕。`pending-validation-05` 過長／保護／選格失敗後的拒絕、舊草稿前綴及拒絕 Save 後 Escape 每瀏覽器 **8／8**；session／SDK／host contract **22／22**，E1-C intact。
+
+Astra `/root/astra_calc_scope` 在完整呼叫鏈覆核後裁決有限範圍可封閉；Claude 協定及片段審核原文與處置保留。一般 cell commit 等待時 textarea 停用所造成的按鍵接收限制屬既有、未量測的後續工作，不宣稱任意延遲下連續輸入已成立；不因片段審核的條件假設（save 不提交草稿／成功選格不清錯誤，兩者實際都做）重開本輪。Firefox 組字為合成生命週期守衛，Chrome 為 CDP 預編輯；均非 OS 輸入法證明。
+
+宿主 **0.2.36／702bad6／package 2b17a0e790b24eb3** 已安裝，實際 Files 雙瀏覽器 **28／28**，兩份新輸入畫面／56 塊 tile 與引擎一致，手動存回、伺服器 XML 及自有鎖正常釋放成立。45 個封包檔的 42 筆完整前版紀錄相同，只改 Calc HTML／app／session。凍結 Calc v1、Writer v22、viewer v3 不改，不需重連結；離線零問題、22 個紅案全拒絕。原有 24674 鎖、24920 文件與所有專案狀態相同，litecore 留 running；測試資源與隔離 worktree 清完，分支／archive／rollback 保留。詳見[功能整理](../research/2026-10-25-calc-input-range.md)與[宿主證據](../findings/evidence/host-0.2.36/README.md)。I-entry／R-select 於本輪第三筆成立後封閉，無新增人工閘門。K／全域 pins／BINDING／chain 仍延後，名義出貨 0.2.26；§34.4 +0／+0，累計 47／27。
