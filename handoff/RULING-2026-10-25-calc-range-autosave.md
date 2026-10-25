@@ -39,3 +39,13 @@ The final acceptance runs must precede freezing/package/install. Do not install 
 - `cool-26-04/engine/sc/source/ui/unoobj/cursuno.cxx`: merged-range expansion used as a boundary refusal test.
 - `wasm_sdk_probe/web/e2-editor-app.js`: existing timing, eligibility and host trigger contract.
 - `/home/jiajun/Projects/Nextcloud_Apps/litecore/js/litecore-editor.js`: host copy/stranded/version/lock ownership.
+
+## Address-input causal correction and finite continuation
+
+This addendum supersedes the provisional explanation that awaiting the public host-ready promise alone explained the failed address-selection setup. `auto-final-04` reproduced the A1/B2 setup symptom after that wait, so the earlier explanation was insufficient. The zero-case setup failures remain failures; they are neither counted autosave successes nor established autosave assertion failures.
+
+The fixed witness in `findings/evidence/calc-range-autosave/address-red-01/report.json` demonstrated an actual product mechanism: while the address field owned focus and contained B2, a session state notification caused `render` to replace it with A1. This proves that focused input could be overwritten; it does not by itself establish that this was the sole cause of every earlier intermittent setup failure.
+
+After the criteria were appended in specification section 18 (`386b74fe`), correction `720adcc6` prevents rendering from replacing the address field while it owns focus and normalizes it to the current active cell on blur. Enter still parses the entered address and follows the existing asynchronous selection path. Source review by `/root/astra_calc_scope` finds that this limited correction matches the demonstrated mechanism, with no new blocker in that change. It does not claim that arbitrary typing during other disabled/busy states has been established.
+
+The runner now includes the executable `focused-address-keeps-input` case, increasing the finite population to 18 checks per run. `auto-final-05` is a new candidate acceptance attempt, not an accepted result at the time of this addendum. Only its completed Chrome/Firefox N=3 artifacts and the reader can establish the final result. Earlier successful rounds are not combined with it. If the same setup symptom recurs after this correction, stop expanding this diagnosis: use explicit session selection as autosave fixture setup and register the separate startup-interaction defect. Native v2 build and range acceptance remain unperformed; installed host 0.2.36 and the owner-build boundary are unchanged.
