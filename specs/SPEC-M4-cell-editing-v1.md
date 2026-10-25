@@ -61,3 +61,25 @@ N-model／N-format 的 fixture 與原生讀取產物落地後就封閉該次 N�
 H-write `findings/evidence/host-0.2.34/host-write-02/report.json` 留下真實紅案：ODS 條件 PUT、鎖、重開、格式、外部改檔與衝突副本內容都正確，**副本已成功但 dirty 仍 true**。新 session 讀 `error.details.outcome`，既有宿主的 `failure()` 實際把 `outcome` 放在頂層。證人 commit **a25eedb0** 先於修法；新增 session 測試先紅，再由 **85ad4e33** 改讀真實契約，保留衝突提示、stranded 仍 dirty。
 
 這不是放寬 §2 的儲存條件，H-write 尚未成立；接續只修正／重包新 session asset，留下第一份 immutable archive，再跑 H-write 全部指定路徑。新引擎不改、W-edit 不重置。第一次宿主工具本身的 DOM 序列化錯誤留在 host-write-01。§34.4 **+0／+0，累計 47／27**：這是新功能與新工具，沒有修理既有判讀。完整 K、既有 counted pins／BINDING／chain 仍未動。
+
+## 7. 實際唯讀分享揭露的路由修正（2026-10-25，只追加）
+
+修正 session 後封包 **d308e0cc58958d85**，45 檔中只改 `spreadsheet-shell/calc-editor-session.js`，前一包保留；離線零問題、22／22 紅案。host-write-03 的 Chrome 可寫路徑 **23 項全過**，包含 Writer 開存、存回副本後再存一次；最後卡在唯讀分享路由，因此不把整份報告說成 clean。
+
+`host-readonly-04/report.json` 與 `entry-failed.png` 是實際證人：OCS 分享權限 1，新帳號由 Files 的 readonly.ods 進到 ods-editor；伺服器解析的 `writable=false` 已讓 UI 禁用編輯與儲存，但未照 §1 保留 viewer 路由。這表示 Files 的 UPDATE 提示不能代替實際檔案權限，不能把 contract unit mock 的 permissions=1 當成真分享驗收。
+
+宿主 **2f3ef60** 在 page render 前，對 ods-editor 的實際 readonly target 導向原 viewer。使用同一次已讀取的 engine 身分建 URL；不改 manifest／引擎，也不改既有 viewer。`host-readonly-05` 的 Chrome 路由、無儲存與無鎖皆成立；該報告後半的 Firefox 未到產品頁（專用 profile 缺開發 CA）。`host-firefox-06` 為 snap Firefox 無法使用 /tmp 的外部 profile；專用 profile 移到本 repo ignored build 目錄、匯入既有開發 CA，失敗建構器自己的 geckodriver 已具名清理。這兩次不是產品紅、不算 Firefox H-write。
+
+接續只完成 Firefox 的可寫／唯讀路徑，Chrome 已成立的路徑不重跑。H-write 全成立前仍不把 0.2.34 當日常候選。§34.4 **+0／+0，累計 47／27**；新功能實作修正，沒有修理既有判讀。
+
+## 8. H-write 成立；候選已安裝，環境已還原（2026-10-25，只追加）
+
+完成的 H-write 分別讀：Chrome 可寫／Writer `host-write-03/report.json` **23 項**，Chrome readonly `host-readonly-05/report.json` **2 項**，Firefox `host-firefox-07/report.json` **27／27**（含兩項 setup，其餘為 23＋2）。前兩份整體失敗維持原樣，只採已完成的具名臂；不把它們重新標成整份 clean。Firefox 確認為 157.0.1；Chrome 宿主臂未獨立記版本，不從另一輪推定。
+
+實際 Files 的鎖正向與無 token PUT 423、ODS MIME／If-Match／帶 token 的原檔 PUT、伺服器 GET／ZIP／XML／重開、格式、外部改檔保留、`.ods` 副本與後續存同副本、readonly 分享 viewer 無寫入口／無鎖，以及 Writer 開存均成立。重讀工具 `python3 wasm_sdk_probe/tools/read_calc_editor_acceptance.py --red-cases` 讀既有產物：原生 171、W-edit 186、兩瀏覽器各 23＋2，零問題；空母體、缺 Firefox、真衝突 dirty 紅案三項都紅。H-write 成立，不新增人工項目。
+
+**0.2.34／host 2f3ef60／package d308e0cc58958d85** 成為已安裝、未計數候選。35 個舊封包檔的完整 record 均相同，十個新路徑；離線 checksum 與 live／隔離 worktree 均對上 immutable archive。引擎 **ods-editor-v1／d5a081f8** 不改；第一次 package 仍獨立封存。沒有重建核心，也不需擁有者補跑本輪連結。
+
+`pre-stop-verification.json` 實讀：所有本輪帳號／folder 已不存在、鎖 file-id 前後皆空、live source 乾淨、版本 0.2.34／package 相符。沒有清整張鎖表；早期 dirty 紅案只 UNLOCK 自己的測試檔。fileId 24920 的擁有者編輯 31,008 B／sha a8462965… 保持相同。停止 litecore 後 `cleanup.json` 比對全部專案狀態一致：litecore stopped，fgp-nc／nc-bridge paused，其餘 stopped。隔離 worktree 核對後移除，分支與全部 archive 留存。
+
+整理見 `research/2026-10-25-cell-editor-v1.md`、英文證據 README 與最終 handoff。K 保持延後併批、名義出貨仍 **0.2.26**；§34.4 **+0／+0，累計 47／27**。本輪沒有剩餘必須人工介入的阻礙；後續由擁有者試用／提出下一批功能，不能自行把 v23 接回來或啟動完整 K。
