@@ -33,3 +33,7 @@ Unperformed/unclean/nondiscriminating evidence gives NOT_ESTABLISHED. Each cohor
 Reusable owner-delegated Astra agents: `/root/astra_calc_scope` owns native results, new shared harness/DELETE/fallback and scope decisions; `/root/astra_v23_format` owns FORMAT preparation/source audit; `/root/astra_v23_build` owns diagnostic build/worker/packager preparation. Root coordinates and owns future `probe_engine.cpp` integration. All are idle/available after their committed subtasks.
 
 Installed host remains0.2.38/package5ad1f70a8c5f7d2f with the completed Calc dark-theme fix. No ddev, live file, lock, service, frozen profile or WASM artifact was touched during this native/preparation turn. Do not reopen Calc acceptance or K; nominal shipped0.2.26 and existing cumulative product counters are not changed by these source/VM/native measurements. Preserve owner documents24674/24920/25391 and all actual current locks, never restore historic content. The unrelated untracked `codex-claude-code-delegation.md` remains untouched/uncommitted. No sudo/root actions. Compiling project make stays owner-run.
+
+## Superseded after the supplied versioned binary
+
+DELETE45 and FORMAT40 both passed completely, Q was adopted only after the corresponding result, and the full diagnostic source boundary is ready for owner link. Continue from `HANDOFF-2026-10-25-v23-diagnostic-link-ready.md`; the previous native-build wait is historical. The original single-RESET failure remains retained.
