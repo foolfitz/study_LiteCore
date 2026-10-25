@@ -6,6 +6,7 @@ Own local HTTP/browser processes; no host, services, make or frozen writes.
 import argparse
 import base64
 import json
+import hashlib
 from pathlib import Path
 import shutil
 import sys
@@ -17,6 +18,47 @@ import v21_shakedown_common as common
 import run_e2_c_product_path as pp
 from v23_s_init_cases import PROJECT, CASES, PROFILES, BROWSERS, ROUNDS, REGION, FIXTURES
 from v23_s_init_cases import fixture_identity, profile_identity, instrument_identity, sha, served_sources, verify_mirror, config_bytes
+
+
+# Each base64 reply stays well below the existing 1 MiB transport limit.
+EXPORT_CHUNK_BYTES = 64 * 1024
+EXPORT_BEGIN = """(async () => {
+  if (!globalThis.__sinit?.complete) throw new Error('S-init snapshot incomplete');
+  const bytes = new TextEncoder().encode(JSON.stringify(globalThis.__sinit));
+  globalThis.__sinitExportBytes = bytes;
+  const digest = await crypto.subtle.digest('SHA-256', bytes);
+  return {byteLength: bytes.length, sha256: Array.from(new Uint8Array(digest),
+    x => x.toString(16).padStart(2, '0')).join('')};
+})()"""
+
+
+def export_page(session, evaluate=None):
+    """Freeze once; transfer UTF-8 bytes losslessly and verify before parsing."""
+    evaluate = evaluate or pp.evaluate
+    metadata = evaluate(session, EXPORT_BEGIN)
+    length = metadata['byteLength']
+    if type(length) is not int or length <= 0:
+        raise ValueError('invalid snapshot byte length')
+    chunks = []
+    for offset in range(0, length, EXPORT_CHUNK_BYTES):
+        end = min(offset + EXPORT_CHUNK_BYTES, length)
+        encoded = evaluate(session, f"""(() => {{
+          const bytes = globalThis.__sinitExportBytes.subarray({offset}, {end});
+          let binary = '';
+          for (let i = 0; i < bytes.length; i += 8192)
+            binary += String.fromCharCode(...bytes.subarray(i, i + 8192));
+          return btoa(binary);
+        }})()""")
+        chunk = base64.b64decode(encoded, validate=True)
+        if len(chunk) != end - offset:
+            raise ValueError(f'snapshot chunk length mismatch at {offset}')
+        chunks.append(chunk)
+    raw = b''.join(chunks)
+    if len(raw) != length or hashlib.sha256(raw).hexdigest() != metadata['sha256']:
+        raise ValueError('snapshot length/hash mismatch')
+    page = json.loads(raw.decode('utf-8'))
+    evaluate(session, 'delete globalThis.__sinitExportBytes')
+    return page, metadata
 
 
 def mirror(target, config):
@@ -90,7 +132,7 @@ def main():
                                 while time.monotonic() < deadline:
                                     if pp.evaluate(session, 'Boolean(globalThis.__sinit?.complete)'): break
                                     time.sleep(0.25)
-                                cell['page'] = pp.evaluate(session, 'globalThis.__sinit || null')
+                                cell['page'], cell['pageTransfer'] = export_page(session)
                                 if not cell['page'] or not cell['page'].get('complete'):
                                     cell['fatal'] = 'outer observation bound; not an SDK recovery'
                             except Exception: cell['fatal'] = traceback.format_exc()
