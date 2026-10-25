@@ -1,0 +1,40 @@
+✔ cancelled drafts never enter the engine (2.266587ms)
+✔ changing cells commits the captured original cell before hit testing (1.08021ms)
+✔ readonly prevents drafts, formatting and exports (0.617639ms)
+✔ failed host save keeps edits dirty and a retry can save them (0.336075ms)
+✔ new typing during a host save remains an unsaved draft (0.297834ms)
+✔ stale revision keeps the draft and does not start a following sheet switch (0.328561ms)
+✔ formatting commits the shared draft first and updates tile revision (0.23659ms)
+✔ oversized drafts refuse without changing the existing draft (0.17198ms)
+✔ selecting a protected cell does not prevent saving earlier edits (0.315166ms)
+✔ IME Enter and keyCode 229 never submit; Escape and ordinary Enter do (0.170597ms)
+✔ actual host copy outcome marks the exported revision saved while preserving the notice (0.31706ms)
+✔ a stranded host export remains dirty (0.270363ms)
+✖ format state never exposes a revision before its tile scheduler is invalidated (0.671289ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 12
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 50.439993
+
+✖ failing tests:
+
+test at wasm_sdk_probe/tests/calc-editor-session.test.mjs:128:1
+✖ format state never exposes a revision before its tile scheduler is invalidated (0.671289ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  0 !== 1
+  
+      at session._onState (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tests/calc-editor-session.test.mjs:131:44)
+      at CalcEditorSession._emit (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/spreadsheet-shell/calc-editor-session.js:51:35)
+      at file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/spreadsheet-shell/calc-editor-session.js:92:37 {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

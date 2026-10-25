@@ -124,3 +124,12 @@ test("a stranded host export remains dirty",async()=>{
   await assert.rejects(session.save(async()=>{throw error;}));
   assert.equal(session.hasUnsavedEdits(),true);await session.close();
 });
+
+test("format state never exposes a revision before its tile scheduler is invalidated",async()=>{
+  const {session}=await opened();let observed=0;
+  session._onState=state=>{
+    if(state.revision>0){observed++;assert.equal(session.scheduler._context.revision,state.revision);}
+  };
+  await session.setFormat("bold",true);
+  assert.ok(observed>0);await session.close();
+});

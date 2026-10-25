@@ -164,8 +164,9 @@ export class CalcEditorSession {
       await this._commitNow();
       const cell=this._cell;
       const result=await this.document.setCellFormat(cell.column,cell.row,format,enabled,{part:cell.part});
-      this._adopt(result.cell);
+      // _adopt emits synchronously: its listener can schedule tiles immediately.
       this.scheduler.invalidateRevision(this.document.revision);
+      this._adopt(result.cell);
       return result.cell;
     });
   }
