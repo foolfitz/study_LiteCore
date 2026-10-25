@@ -15,7 +15,7 @@ import zipfile
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from v23_wd_cases import ROOT, NATIVE, BASE, PLANS, FIXTURES, PRIVATE, LOCATOR, P, D, instrument_files
-from judge_v23_diagnostic import PROFILE, identity, details
+from judge_v23_diagnostic import PROFILE, PROFILES, identity, details
 from read_results import shape, read_cell, run_log, landing
 
 
@@ -70,12 +70,12 @@ def wire_actor(request):
     return None
 
 
-def judge(page, case, expected, oracle):
+def judge(page, case, expected, oracle, profile=PROFILE):
     missing, failed = [], []
     need = lambda ok, message: None if ok else missing.append(message)
     check = lambda ok, message: None if ok else failed.append(message)
     need(page.get('complete') is True and not page.get('fatal'), 'unclean/incomplete W-D page')
-    check(page.get('profile') == PROFILE and page.get('manifest', {}).get('profile') == PROFILE,
+    check(profile in PROFILES and page.get('profile') == profile and page.get('manifest', {}).get('profile') == profile,
           'profile is not the diagnostic candidate')
     check(page.get('artifacts') == expected, 'served bytes do not bind actual candidate')
     source = NATIVE / 'fixtures' / (FIXTURES[case] + '.fodt')
@@ -157,12 +157,14 @@ def judge(page, case, expected, oracle):
             'missing': missing, 'failures': failed}
 
 
-def read(reports, directory, pin):
-    expected = identity(directory, pin)
+def read(reports, directory, pin, profile=PROFILE):
+    from v23_diagnostic_instruments import verify_bindings
+    expected = identity(directory, pin, profile)
     cells, duplicates = {}, []
     for path in reports:
         report = json.loads(Path(path).read_text())
-        if report.get('identity') != expected:
+        verify_bindings(report, Path(path).resolve().parent / 'mirror')
+        if report.get('identity') != expected or report.get('profile') != profile:
             raise ValueError('report identity differs from actual candidate')
         instruments = {str(p.relative_to(ROOT / 'wasm_sdk_probe')): hashlib.sha256(p.read_bytes()).hexdigest()
                        for p in instrument_files()}
@@ -182,7 +184,7 @@ def read(reports, directory, pin):
     if duplicates or set(cells) != wanted:
         return {'verdict': 'NOT_ESTABLISHED', 'reason': 'missing/extra/duplicate W-D cells',
                 'duplicates': duplicates, 'cells': len(cells), 'expected': len(wanted)}
-    judged = {str(key): judge(page, key[2], expected, reference(key[2])) for key, page in cells.items()}
+    judged = {str(key): judge(page, key[2], expected, reference(key[2]), profile) for key, page in cells.items()}
     verdicts = [item['verdict'] for item in judged.values()]
     return {'verdict': 'NOT_ESTABLISHED' if 'NOT_ESTABLISHED' in verdicts else 'FAIL' if 'FAIL' in verdicts else 'PASS',
             'cells': judged, 'identity': expected,
@@ -192,6 +194,7 @@ def read(reports, directory, pin):
 if __name__ == '__main__':
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('reports', type=Path, nargs='+'); p.add_argument('--profile-dir', type=Path, required=True)
+    p.add_argument('--profile', choices=PROFILES, default=PROFILE)
     p.add_argument('--wasm-sha256', required=True); a = p.parse_args()
-    result = read(a.reports, a.profile_dir, a.wasm_sha256)
+    result = read(a.reports, a.profile_dir, a.wasm_sha256, a.profile)
     print(json.dumps(result, indent=2)); raise SystemExit(0 if result['verdict'] == 'PASS' else 1)

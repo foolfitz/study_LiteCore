@@ -17,6 +17,7 @@ import zipfile
 SDK = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(SDK / 'tools'))
 import judge_v23_wd as wd
+import v23_diagnostic_instruments as instruments
 from v23_wd_cases import NATIVE, PLANS, FIXTURES, PRIVATE, LOCATOR, P, D
 
 
@@ -48,7 +49,7 @@ def synthetic(case):
     expected = {'probe.wasm': 'a' * 64, 'probe.js': 'b' * 64,
                 'sdk-worker.js': 'c' * 64, 'sdk-manifest.json': 'd' * 64}
     page = {'complete': True, 'profile': wd.PROFILE, 'manifest': {'profile': wd.PROFILE},
-            'artifacts': expected, 'fixtureSha256': hashlib.sha256((NATIVE / 'fixtures' / (FIXTURES[case] + '.fodt')).read_bytes()).hexdigest(),
+            'arm': 'wd', 'artifacts': expected, 'fixtureSha256': hashlib.sha256((NATIVE / 'fixtures' / (FIXTURES[case] + '.fodt')).read_bytes()).hexdigest(),
             'events': [], 'requests': [], 'responses': []}
     result = {'caseId': case, 'fixture': FIXTURES[case], 'savedBase64': encoded,
               'before': {'a11y': {'unavailable': 'core-built-without-accessibility'}},
@@ -126,6 +127,13 @@ class WdReader(unittest.TestCase):
         page['wd']['deleteResult']['changed'] = True
         self.assertEqual(wd.judge(page, 'd7plain', expected, oracle)['verdict'], 'FAIL')
 
+    def test_r2_is_explicit_and_original_default_stays_strict(self):
+        page,expected,oracle=synthetic('d1');page['profile']=page['manifest']['profile']='e2-editor-v23-diag-r2'
+        self.assertEqual(wd.judge(page,'d1',expected,oracle,'e2-editor-v23-diag-r2')['verdict'],'PASS')
+        self.assertEqual(wd.judge(page,'d1',expected,oracle)['verdict'],'FAIL')
+        page['profile']=page['manifest']['profile']='e2-editor-v22'
+        self.assertEqual(wd.judge(page,'d1',expected,oracle,'e2-editor-v23-diag-r2')['verdict'],'FAIL')
+
     def test_actual_wire_provenance_controls(self):
         for mutation in ('bold-disabled', 'false-wire-bold', 'wrong-click', 'extra-click'):
             with self.subTest(mutation=mutation):
@@ -143,17 +151,24 @@ class WdReader(unittest.TestCase):
     def test_complete_population_and_copied_instrument(self):
         seeds = {case: synthetic(case) for case in PLANS}
         expected = seeds['d1'][1]
-        report = {'identity': expected, 'runs': [
+        report = {'profile': wd.PROFILE, 'identity': expected, 'runs': [
             {'browser': browser, 'round': n, 'page': copy.deepcopy(seeds[case][0])}
             for browser in ('chrome', 'firefox') for n in range(1, 6) for case in PLANS]}
         report['wdInstrumentSha256'] = {str(p.relative_to(SDK)): hashlib.sha256(p.read_bytes()).hexdigest()
                                        for p in wd.instrument_files()}
+        report['instrument']={str(p.relative_to(SDK)):instruments.sha(p) for p in instruments.instrument_files()}
+        report['mirrorInstrument']=instruments.served_instruments()
+        for row in report['runs']:
+            row['page']['instrumentServed']={k:report['mirrorInstrument'][k] for k in ('e2-editor.html','v23-diagnostic.js','v23-diagnostic-wd.js')}
         copied = (SDK / 'web/v23-diagnostic-wd.js').read_bytes()
         report['wdMirrorSha256'] = hashlib.sha256(copied).hexdigest()
         with tempfile.TemporaryDirectory(prefix='v23-wd-report-') as directory:
             path = Path(directory) / 'report.json'
             mirror = Path(directory) / 'mirror/v23-diagnostic-wd.js'
             mirror.parent.mkdir(); mirror.write_bytes(copied)
+            for name in report['mirrorInstrument']:
+                source=SDK/({'e2-editor.html':'web/v23-diagnostic.html','v23-diagnostic.js':'web/v23-diagnostic.js','v23-diagnostic-wd.js':'web/v23-diagnostic-wd.js'}.get(name,name))
+                target=mirror.parent/name;target.parent.mkdir(parents=True,exist_ok=True);target.write_bytes(source.read_bytes())
             # Artifact identity itself has separate tests. This stub isolates
             # population/instrument enforcement without fabricating a WASM.
             with patch.object(wd, 'identity', return_value=expected):
@@ -164,6 +179,11 @@ class WdReader(unittest.TestCase):
                     self.assertEqual(wd.read([path], Path(directory), 'unused')['verdict'], 'NOT_ESTABLISHED')
                 path.write_text(json.dumps(report)); mirror.write_text('// wrong executed instrument')
                 with self.assertRaises(ValueError): wd.read([path], Path(directory), 'unused')
+                mirror.write_bytes(copied)
+                for name in ('e2-editor.html','v23-diagnostic.js','sdk/document-sdk.js'):
+                    target=mirror.parent/name;raw=target.read_bytes();target.write_bytes(raw+b' changed')
+                    with self.assertRaises(ValueError):wd.read([path],Path(directory),'unused')
+                    target.write_bytes(raw)
 
 
 if __name__ == '__main__':
