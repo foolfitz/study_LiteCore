@@ -43,3 +43,7 @@ The browser runner `tools/run_calc_editor_browser.py` and accumulated evidence a
 6. Read raw results; fix ordinary implementation issues within scope, stopping only for actual necessary human/root/large-core-build intervention. Final append of spec results, ledger, English evidence README, release status and final handoff. Keep §34.4 **47/27**, unless an existing judge is actually repaired with a witness. K remains deferred and nominal shipped version 0.2.26.
 
 User-facing replies remain Taiwan Traditional Chinese; handoff/evidence/upstream/commits English. Preserve exact quoted data. No subagents were requested or used. Use brief progress commentary at least every minute while active.
+
+## Completion
+
+Superseded by `HANDOFF-2026-10-25-cell-editor-v1-installed-stopped.md`: H-write holds, corrected package d308e0cc58958d85 / host 2f3ef60 installed, all ddev states restored. No required work or manual link remains for this request. Read the final handoff rather than executing the outstanding-work list above.
