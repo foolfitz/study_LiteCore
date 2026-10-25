@@ -76,3 +76,9 @@ ODS 的優先工作已完成，現有可接續的功能批次是 **v23：指令�
 ## 本次驗證與帳目
 
 本次以 Python 標準函式庫讀日誌、重算時間並核對磁碟頁面／manifest 身分；沒有新量測、編譯、重綁或服務操作。文件以 `git diff --check` 與本機相對連結檢查驗證。§34.4 **+0／+0，累計 47／27**。
+
+## 2026-10-25 接續：優先完成 cell 編輯
+
+擁有者後續明確指定：格內雙擊編輯、上方寬輸入欄與 B／I／U，離座期間自主執行，簡單建置可直接跑。這取代上面的「下一批建議」之執行優先順序；v23 沒有恢復。新功能與宿主 0.2.34 續列未計數帳，細節見[儲存格編輯整理](2026-10-25-cell-editor-v1.md)與 [M4 cell 規格](../specs/SPEC-M4-cell-editing-v1.md)。
+
+未計數批次新增：新 `ods-editor-v1` cell model bridge／C ABI／worker、獨立 spreadsheet session／頁面、三頁封包母體、Files 可寫／唯讀分流、ODS MIME 與副本副檔名。舊 Writer／viewer 閉包原檔與編碼 metadata 相同；這是本輪逐檔比較的結果，不是未來固定的影響面宣稱。K 的全域 pins、merge BINDING、舊 chain 仍未改綁；這輪只在離線 package wrapper 綁新候選 buildId。
