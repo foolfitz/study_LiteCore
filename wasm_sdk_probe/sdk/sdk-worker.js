@@ -61,6 +61,10 @@ const OPERATION_CAPABILITIES = new Map([
   ["partText", "part-text"],
   // SPEC-M4-viewer-v2 3.1 (finding 157): only ods-viewer-v2 has the export.
   ["partInfo", "part-info"],
+  ["cellRead", "cell-editing"],
+  ["cellHit", "cell-editing"],
+  ["cellInput", "cell-editing"],
+  ["cellFormat", "cell-editing"],
 ]);
 const EDITOR_V1_ACTION_IDS = Object.freeze({
   "move-character-left": 1,
@@ -1209,6 +1213,16 @@ function handleCEvent(rawEvent) {
         });
       }
       break;
+    case "cell-result":
+      if (requestId) {
+        try {
+          complete(requestId, { cell: parseEngineJson(event.cellJson, "cell"),
+            revision: event.revision, changed: event.changed === true });
+        } catch (error) {
+          fail(requestId, "CELL_RESULT_INVALID", String(error?.stack || error));
+        }
+      }
+      break;
     case "saved": {
       if (!requestId)
         return;
@@ -1382,7 +1396,8 @@ function handleRequest(request) {
   }
 
   const payload = request.payload || {};
-  const requiredCapability = OPERATION_CAPABILITIES.get(request.operation);
+  const requiredCapability = request.operation === "save" && payload.format === "ods"
+    ? "save-ods" : OPERATION_CAPABILITIES.get(request.operation);
   if (requiredCapability
       && !activeManifest?.capabilities?.includes(requiredCapability)) {
     postResponse(request.requestId, false, {
@@ -1797,6 +1812,29 @@ function handleRequest(request) {
         [request.requestId, payload.documentHandle],
       ));
       break;
+    case "cellRead":
+    case "cellHit":
+    case "cellInput":
+    case "cellFormat": {
+      const indices = [payload.part, payload.column, payload.row, payload.expectedRevision];
+      const formats = { bold: 2, italic: 3, underline: 4 };
+      if (indices.some(value => !Number.isInteger(value) || value < 0 || value > 0x7fffffff)
+          || (request.operation === "cellInput" && (typeof payload.text !== "string" || payload.text.length > 32767))
+          || (request.operation === "cellFormat" && (!Object.hasOwn(formats, payload.format) || typeof payload.enabled !== "boolean"))) {
+        accept(request, () => 1);
+        break;
+      }
+      const operation = request.operation === "cellRead" ? 0
+        : request.operation === "cellHit" ? 5
+        : request.operation === "cellInput" ? 1 : formats[payload.format];
+      const invoke = (pointer, length) => callStatus("oxsdk_document_cell",
+        Array(10).fill("number"), [request.requestId, payload.documentHandle,
+          payload.expectedRevision, payload.part, payload.column, payload.row,
+          operation, pointer, length, payload.enabled === true ? 1 : 0]);
+      accept(request, () => operation === 1 && payload.text.length > 0
+        ? withUtf8(payload.text, invoke) : invoke(0, 0));
+      break;
+    }
     case "save":
       accept(request, () => withUtf8(String(payload.format || ""), (pointer, length) =>
         callStatus(
