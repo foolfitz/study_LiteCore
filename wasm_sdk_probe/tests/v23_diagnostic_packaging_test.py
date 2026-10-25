@@ -23,6 +23,25 @@ class DiagnosticContract(unittest.TestCase):
         self.candidate = copy.deepcopy(self.reference)
         self.candidate['profile'] = PROFILE
 
+    def test_frozen_worker_identity_rejects_current_sdk_and_bad_pin(self):
+        self.assertEqual(hashlib.sha256(builder.checked_base_worker()).hexdigest(), builder.BASE_WORKER_SHA256)
+        with self.assertRaises(ValueError):
+            builder.checked_base_worker(ROOT / 'sdk/sdk-worker.js')
+        with self.assertRaises(ValueError):
+            builder.checked_base_worker(expected='0' * 64)
+        with mock.patch.object(Path, 'read_bytes', return_value=b'corrupt frozen archive'):
+            with self.assertRaisesRegex(ValueError, 'hash mismatch'):
+                builder.checked_base_worker()
+
+    def test_makefile_base_resolves_to_checked_bytes(self):
+        import re
+        text = (ROOT / 'Makefile').read_text()
+        base = re.search(r'^E2_V23D_BASE_WORKER := (.+)$', text, re.M)[1]
+        pin = re.search(r'^E2_V23D_WORKER_SHA256 := (.+)$', text, re.M)[1]
+        builder.checked_base_worker(ROOT / base, pin)
+        self.assertIn('| $(E2_V23D_BUILD) v23-diagnostic-worker-preflight', text)
+        self.assertIn('--base-worker $(E2_V23D_BASE_WORKER)', text)
+
     def test_inherited_contract(self):
         self.assertEqual([], contract_problems(self.candidate, self.reference))
 
@@ -71,7 +90,7 @@ class PackagingFailures(unittest.TestCase):
         self.candidate['profile'] = PROFILE
         (self.work / 'probe.wasm').write_bytes(b'\x00asm\x01\x00\x00\x00core-built-without-accessibility')
         (self.work / 'exports.txt').write_text(builder.PRIVATE_EXPORT + '\n')
-        (self.work / 'worker.js').write_bytes((ROOT / 'sdk/sdk-worker.js').read_bytes()
+        (self.work / 'worker.js').write_bytes(builder.checked_base_worker()
             + (ROOT / 'sdk/v23-diagnostic-worker-tail.js').read_bytes())
         (self.work / 'probe.js').write_text('// synthetic loader for packaging-only tests\n')
         (self.work / 'sdk-worker.js').write_bytes((self.work / 'worker.js').read_bytes())

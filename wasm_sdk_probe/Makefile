@@ -1858,7 +1858,13 @@ E2_V23D_SOURCES := $(E2_C_SOURCES)
 E2_V23D_OBJECTS := $(patsubst src/%.cpp,$(E2_V23D_BUILD)/%.o,$(E2_V23D_SOURCES))
 E2_V23D_MD4C_INCLUDE := $(LOBUILD)/workdir/UnpackedTarball/md4c/src
 # Frozen base worker; the private diagnostic tail is concatenated in build/.
+E2_V23D_BASE_WORKER := build/archive/e2-editor-v22-f7a40bcc-worker-0d55bcfa/sdk-worker.js
 E2_V23D_WORKER_SHA256 := 0d55bcfa2ee0e4ddc6239e25282001c13410b152a5a08ebac9903cc65c3fd350
+
+.PHONY: v23-diagnostic-worker-preflight
+v23-diagnostic-worker-preflight:
+	python3 tools/build_e2_v23_diagnostic_profile.py --check-worker-base \
+		--base-worker $(E2_V23D_BASE_WORKER) --base-worker-sha256 $(E2_V23D_WORKER_SHA256)
 
 $(E2_V23D_BUILD)/%.o: src/%.cpp $(HEADERS) src/editor_api.h \
 		src/editor_discovery_api.h src/format_readback_text.hpp \
@@ -1867,7 +1873,7 @@ $(E2_V23D_BUILD)/%.o: src/%.cpp $(HEADERS) src/editor_api.h \
 		src/ordered_delete_route.hpp src/ordered_poll.hpp src/ordered_engine_guards.hpp src/reply_state_reads.hpp \
 		src/ordered_engine_state.inc src/ordered_engine_reply.inc src/ordered_engine_poll.inc \
 		src/ordered_engine_delete.inc src/ordered_format.inc $(E2_V23D_MD4C_INCLUDE)/md4c.h Makefile \
-		| $(E2_V23D_BUILD)
+		| $(E2_V23D_BUILD) v23-diagnostic-worker-preflight
 	$(CXX) $(E1_CPPFLAGS) $(R5_CXXFLAGS) -I$(E2_V23D_MD4C_INCLUDE) \
 		-DOXSDK_EDITOR_DISCOVERY \
 		-DOXSDK_FINDING_016_SELECTION_BARRIER -DOXSDK_E2_FORMAT_BARRIER \
@@ -1904,9 +1910,9 @@ $(E2_V23D_BUILD)/probe.wasm: $(E2_V23D_BUILD)/probe.js
 	@test -s $@
 
 # No public worker/API edit: append the private entry to the pinned base.
-$(E2_V23D_BUILD)/sdk-worker.js: sdk/sdk-worker.js sdk/v23-diagnostic-worker-tail.js Makefile | $(E2_V23D_BUILD)
-	echo "$(E2_V23D_WORKER_SHA256)  sdk/sdk-worker.js" | sha256sum -c --quiet
-	cat sdk/sdk-worker.js sdk/v23-diagnostic-worker-tail.js > $@
+$(E2_V23D_BUILD)/sdk-worker.js: $(E2_V23D_BASE_WORKER) sdk/v23-diagnostic-worker-tail.js Makefile | $(E2_V23D_BUILD)
+	echo "$(E2_V23D_WORKER_SHA256)  $(E2_V23D_BASE_WORKER)" | sha256sum -c --quiet
+	cat $(E2_V23D_BASE_WORKER) sdk/v23-diagnostic-worker-tail.js > $@
 
 # ABI 5 and the complete v22 action contract are preserved by the wrapper.
 $(E2_V23D_DIST)/sdk-manifest.json: $(E2_V23D_BUILD)/probe.js $(E2_V23D_BUILD)/probe.wasm \
@@ -1919,7 +1925,7 @@ $(E2_V23D_DIST)/sdk-manifest.json: $(E2_V23D_BUILD)/probe.js $(E2_V23D_BUILD)/pr
 		tools/check_v23_diagnostic_build.py \
 		tools/build_e2_editor_v4_profile.py tools/build_e2_c_profile.py \
 		tools/build_e2_b_profile.py tools/e1_support.py | $(E2_V23D_DIST)
-	echo "$(E2_V23D_WORKER_SHA256)  sdk/sdk-worker.js" | sha256sum -c --quiet
+	echo "$(E2_V23D_WORKER_SHA256)  $(E2_V23D_BASE_WORKER)" | sha256sum -c --quiet
 	python3 tools/build_base_no35_pack.py --check
 	python3 tools/build_cjk_subset_mono_pack.py --check
 	python3 tools/build_e2_v23_diagnostic_profile.py \

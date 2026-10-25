@@ -16,7 +16,7 @@ const root = path.join(__dirname, '..');
   const context = vm.createContext({TextEncoder, console,
     self: {addEventListener: (_, fn) => { receive = fn; },
       postMessage: message => {messages.push(message); engine._handleMessage(message);}}});
-  vm.runInContext(fs.readFileSync(path.join(root, 'sdk/sdk-worker.js'), 'utf8')
+  vm.runInContext(fs.readFileSync(path.join(root, 'build/archive/e2-editor-v22-f7a40bcc-worker-0d55bcfa/sdk-worker.js'), 'utf8')
     + fs.readFileSync(path.join(root, 'sdk/v23-diagnostic-worker-tail.js'), 'utf8'), context);
   vm.runInContext(`moduleInstance = {ccall: () => 0};
     activeManifest = {profile: 'e2-editor-v23-diag', editorContract: {abiVersion: 5}};`, context);

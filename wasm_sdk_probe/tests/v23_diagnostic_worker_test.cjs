@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const path = require('node:path');
 const root = path.join(__dirname, '..');
-const source = fs.readFileSync(path.join(root, 'sdk/sdk-worker.js'), 'utf8')
+const source = fs.readFileSync(path.join(root, 'build/archive/e2-editor-v22-f7a40bcc-worker-0d55bcfa/sdk-worker.js'), 'utf8')
   + fs.readFileSync(path.join(root, 'sdk/v23-diagnostic-worker-tail.js'), 'utf8');
 const messages = [], calls = [];
 let listener;
