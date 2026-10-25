@@ -25,6 +25,10 @@ class OrderedFormat(unittest.TestCase):
             ('read-NONE-as-TEXT', 'selected.type == LOK_SELTYPE_TEXT', 'true'),
             ('restore-assumed', 'gFormatBarrier.restorePointValid && readSelection().type == LOK_SELTYPE_NONE', 'true'),
             ('selection-proof-ignored', '(selects && !gFormatBarrier.selectionResultSeen)', 'false'),
+            ('Q-does-not-clear-selection-mode', 'LOK_SETTEXTSELECTION_START, x, y',
+             'LOK_SETTEXTSELECTION_RESET, x, y'),
+            ('Q-intermediate-read', '      gState.document, LOK_SETTEXTSELECTION_START, x, y);',
+             '      gState.document, LOK_SETTEXTSELECTION_START, x, y);\n  readSelection();'),
             ('reply-waits-instead-of-next-poll', '    finishOrderedFormatReadback();', '    return;'),
         ]:
             self.assertEqual(source.count(before), 1, label)

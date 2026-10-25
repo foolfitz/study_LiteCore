@@ -4,6 +4,24 @@
 // L-format-read-identity-by-content: equal paragraph text is indistinguishable;
 // unavailable/unusable accessibility fingerprints remain explicitly declined.
 
+// Native restore-v2 FORMAT: 40/40, five rounds, FORMAT-RESTORE-HOLDS.
+// RESET alone clears the mark but leaves SelectText's selection mode active.
+// The measured Q sequence clears that mode at the same recorded point. Do not
+// insert a read, event-loop yield, or callback wait between these three calls.
+void restoreOrderedFormatPoint() {
+  if (!gFormatBarrier.restorePointValid)
+    return;
+  const int x = gFormatBarrier.restorePoint.x;
+  const int y = gFormatBarrier.restorePoint.y +
+                gFormatBarrier.restorePoint.height / 2;
+  gState.document->pClass->setTextSelection(
+      gState.document, LOK_SETTEXTSELECTION_RESET, x, y);
+  gState.document->pClass->setTextSelection(
+      gState.document, LOK_SETTEXTSELECTION_START, x, y);
+  gState.document->pClass->setTextSelection(
+      gState.document, LOK_SETTEXTSELECTION_RESET, x, y);
+}
+
 void finishOrderedFormatReadback() {
   auto refuse = [](const char *shape, const char *message) {
     gFormatBarrier.failureShape = shape;
@@ -242,7 +260,7 @@ void startOrderedFormatAction(const Command &command, std::uint32_t action,
     // Preserve the caller's entire range and compare every block by content.
     checkFormatBarrierCrossParagraph();
   } else {
-    postFormatBarrierRestore();
+    restoreOrderedFormatPoint();
     expectOrderedUno(kFormatBarrierSelectCommand);
     gState.document->pClass->postUnoCommand(
         gState.document, kFormatBarrierSelectCommand, nullptr, true);
@@ -263,7 +281,7 @@ void startOrderedFormatAction(const Command &command, std::uint32_t action,
       gFormatBarrier.readback = parseFormatReadback(markup);
     }
   }
-  postFormatBarrierRestore();
+  restoreOrderedFormatPoint();
   gFormatBarrier.restoreConfirmed =
       gFormatBarrier.restorePointValid && readSelection().type == LOK_SELTYPE_NONE;
   barrier = gFormatBarrier;
