@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Read only bounded040 entrance/timing observations, never all of section9.2."""
 import argparse
+import hashlib
+import re
 import json
 from pathlib import Path
 import sys
@@ -166,11 +168,26 @@ def judge(page, expected, fixture_hashes, profile):
             'engine idle-layout completion'], 'caseId':CASES_040.get(arm,arm), 'scope':'only named arm; exact040 requires all three040 arms'}
 
 
+def observation_duplicates(rows):
+    """Require observed browser family; copied pages never become new trials."""
+    seen=set();duplicates=[]
+    for row in rows:
+        page=row.get('page') or {};ua=page.get('userAgent');browser=row.get('browser')
+        firefox=isinstance(ua,str) and re.search(r'Firefox/\d',ua) is not None
+        chrome=isinstance(ua,str) and re.search(r'(?:Headless)?Chrome/\d',ua) is not None and not firefox
+        if not ((browser=='chrome' and chrome) or (browser=='firefox' and firefox)):
+            raise ValueError(f'actual page userAgent absent or inconsistent with browser label: {browser}')
+        digest=hashlib.sha256(json.dumps(page,sort_keys=True).encode()).hexdigest()
+        if digest in seen:duplicates.append(digest)
+        seen.add(digest)
+    return duplicates
+
+
 def main():
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('reports',type=Path,nargs='+')
     p.add_argument('--profile',required=True);p.add_argument('--wasm-sha256',required=True)
     p.add_argument('--scope',choices=('040','timing'),default='040')
-    a=p.parse_args();expected=identity(a.profile,a.wasm_sha256);results=[]
+    a=p.parse_args();expected=identity(a.profile,a.wasm_sha256);results=[];observations=[]
     _, population=fixtures()
     for path in a.reports:
         report=json.loads(path.read_text())
@@ -178,14 +195,16 @@ def main():
         for name,digest in report['fixtures'].items():
             if sha(path.parent/'mirror'/f'{name}.odt')!=digest:raise ValueError(f'archived fixture mismatch: {name}')
         if population!=report['population']:raise ValueError('source corpus population drift')
+        observations.extend(report.get('runs',[]))
         results.extend(dict(browser=x['browser'],round=x['round'],arm=x['arm'],
             **judge(x.get('page') or {},expected,report['fixtures'],a.profile)) for x in report.get('runs',[]))
     arms=set(CASES_040) if a.scope=='040' else {'largest','workload'}
     expected_population={(b,n,arm) for arm in arms for b in ('chrome','firefox') for n in range(1,4)}
     actual=[(x['browser'],x['round'],x['arm']) for x in results]
-    complete=bool(actual) and len(actual)==len(set(actual)) and set(actual)==expected_population
+    duplicates=observation_duplicates(observations)
+    complete=bool(actual) and not duplicates and len(actual)==len(set(actual)) and set(actual)==expected_population
     successor=a.scope!='040' or a.profile=='e2-editor-v23-diag-r2'
     verdict=NE if not complete or not successor or any(x['verdict']==NE for x in results) else FAIL if any(x['verdict']==FAIL for x in results) else PASS
-    print(json.dumps({'verdict':verdict,'populationComplete':complete,'successorAcceptanceIdentity':successor,
+    print(json.dumps({'verdict':verdict,'populationComplete':complete,'duplicatePageObservations':duplicates,'successorAcceptanceIdentity':successor,
         'results':results,'allSection9_2Closed':False},indent=2));return 0 if verdict==PASS else 1
 if __name__=='__main__':raise SystemExit(main())

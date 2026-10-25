@@ -107,6 +107,18 @@ class Checks(unittest.TestCase):
                 target.write_bytes(raw)
             red=copy.deepcopy(report);red['runs'][0]['page']['instrumentServed']['e2-editor.html']='wrong'
             with self.assertRaises(ValueError):c.verify_bindings(red,mirror)
+    def test_observed_browser_and_duplicate_aggregate_controls(self):
+        chrome=sample('frame');chrome['userAgent']='Mozilla/5.0 HeadlessChrome/132.0 Safari/537.36'
+        firefox=sample('frame');firefox['userAgent']='Mozilla/5.0 Gecko/20100101 Firefox/136.0'
+        rows=[{'browser':'chrome','round':1,'page':chrome},{'browser':'firefox','round':1,'page':firefox}]
+        self.assertEqual(j.observation_duplicates(rows),[])
+        copied=copy.deepcopy(rows[0]);copied['round']=2
+        self.assertTrue(j.observation_duplicates(rows+[copied]))
+        wrong=copy.deepcopy(rows);wrong[0]['browser']='firefox'
+        with self.assertRaisesRegex(ValueError,'userAgent'):j.observation_duplicates(wrong)
+        missing=copy.deepcopy(rows);missing[0]['page'].pop('userAgent')
+        with self.assertRaisesRegex(ValueError,'userAgent'):j.observation_duplicates(missing)
+
     def test_actual_corpus_nonempty_and_frame_xml(self):
         files,pop=c.fixtures();self.assertEqual(pop['selected']['expected']['pageCount'],100)
         self.assertTrue(files['frame'].is_file());self.assertTrue(pop['excluded'])
