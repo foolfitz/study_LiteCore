@@ -8,7 +8,7 @@ const $ = id => document.getElementById(id);
 const ui = Object.fromEntries(["file-input","open-file","save-button","cell-address","formula-input",
   "cancel-button","commit-button","viewport","surface","tiles","selection","active-cell","cell-editor","empty",
   "tab-strip","state-pill","selection-label","s-doc","s-revision","toast"].map(id=>[id,$(id)]));
-let session = null, composing = false, paintPending = false, lastPaint = null;
+let session = null, composing = false, paintPending = false, lastPaint = null, restoreGridFocus = false;
 const record = globalThis.__calcEditor = {schemaVersion:1,session:null,state:null,events:[],lastSave:null};
 
 function cellAddress(column,row) {
@@ -36,6 +36,7 @@ function place(node,cell) {
   node.style.height=`${Math.max(1,cell.heightTwips/15)}px`;
 }
 function render(state) {
+  restoreGridFocus ||= document.activeElement===ui["cell-editor"];
   record.state=state;
   const ready=state.state==="ready";
   const editable=ready && !state.readOnly && state.cell?.writable && !state.uncertain;
@@ -96,6 +97,11 @@ function render(state) {
   const paintKey=`${state.currentPart}/${state.revision}`;
   if(ready && lastPaint!==paintKey) {
     lastPaint=paintKey;ui.tiles.replaceChildren();void paint();
+  }
+  if(!waiting && restoreGridFocus) {
+    const active=document.activeElement;
+    restoreGridFocus=false;
+    if(active===document.body || active===ui.viewport || active===ui["cell-editor"])focusGrid();
   }
 }
 function drawTile(entry) {
@@ -165,6 +171,9 @@ function focusGrid(){
   node.focus({preventScroll:true});
 }
 ui.viewport.addEventListener("focus",focusGrid);
+document.addEventListener("focusin",event=>{
+  if(![document.body,ui.viewport,ui["cell-editor"]].includes(event.target))restoreGridFocus=false;
+});
 ui["open-file"].addEventListener("click",()=>ui["file-input"].click());
 ui["file-input"].addEventListener("change",()=>{
   const file=ui["file-input"].files[0];
@@ -186,7 +195,10 @@ for(const node of [ui["formula-input"],ui["cell-editor"]]) {
   node.addEventListener("compositionend",()=>{composing=false;void action(()=>session.setDraft(node.value));});
   node.addEventListener("input",()=>action(()=>session.setDraft(node.value)));
   node.addEventListener("keydown",event=>{
-    if(composing || event.isComposing || event.keyCode===229)return;
+    if(composing || event.isComposing || event.keyCode===229) {
+      if(composing && !event.isComposing && event.keyCode!==229 && ["Enter","Escape"].includes(event.key))event.preventDefault();
+      return;
+    }
     if(node===ui["cell-editor"] && event.key==="F2" && !composing && !event.isComposing && event.keyCode!==229) {
       event.preventDefault();
       void action(()=>{

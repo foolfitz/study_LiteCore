@@ -172,3 +172,28 @@ test("expired hit replies never replace a newer gesture or its draft",async()=>{
   assert.equal(session.state.draft,"原始內容");
   await session.close();
 });
+
+test("arrows hit beyond exact focus geometry once, then collapse or extend",async()=>{
+  const {session,doc,calls}=await opened();
+  const hit=[];doc.hitCell=async(x,y)=>{hit.push([x,y]);return{cell:doc.cell(4,5)};};
+  await session.moveSelection(1,0,{extend:true});
+  assert.deepEqual(hit,[[1000,149]]);assert.equal(session.state.cell.column,0);
+  assert.equal(session.state.selection.focus.column,4);
+  await session.moveSelection(0,1);
+  assert.deepEqual(hit[1],[4499,1800]);assert.equal(session.state.cell.column,4);
+  assert.equal(session.state.selection.multiple,false);assert.equal(hit.length,2);
+  assert.deepEqual(calls,[]);assert.equal(doc.revision,0);
+  await session.setFormat("bold",true);assert.equal(doc.revision,1);
+  await session.close();
+});
+
+test("geometry refusal leaves selection unchanged and sheet switch resets it",async()=>{
+  const {session,doc}=await opened();
+  await session.selectCell(2,3,{extend:true});const before=session.state.selection;
+  doc.hitCell=async()=>{throw Object.assign(new Error("no geometry"),{code:"CELL_GEOMETRY_UNAVAILABLE"});};
+  await assert.rejects(session.moveSelection(1,0),{code:"CELL_GEOMETRY_UNAVAILABLE"});
+  assert.equal(session.state.selection,before);assert.equal(doc.revision,0);
+  await session.showPart(1);
+  assert.equal(session.state.selection.part,1);assert.equal(session.state.selection.multiple,false);
+  await session.close();
+});
