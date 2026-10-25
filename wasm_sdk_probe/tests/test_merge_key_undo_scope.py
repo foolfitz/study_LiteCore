@@ -248,3 +248,23 @@ class GuardVariants(unittest.TestCase):
     def test_a_b_carrier_that_lost_its_define_gets_the_without_b_guard(self):
         lost = [x for x in self.B_ARGS if x != "-DOXSDK_MERGE_KEY_UNDO"]
         self.assertEqual([name for name, _ in c.guard_variants(lost)], ["with OXSDK_MERGE_KEY_UNDO"])
+
+
+class V23GuardVariants(unittest.TestCase):
+    """Spec 16.1 replaces the old mutually-exclusive topology guard for v23."""
+
+    def test_v23_requires_mainloop_v21_and_selection_barrier(self):
+        args = GuardVariants.B_ARGS + ["-DOXSDK_E2_V23_LINK_BATCH",
+                                      "-DOXSDK_MAINLOOP_ENGINE", "-DOXSDK_E2_V21_LINK_BATCH"]
+        variants = dict(c.guard_variants(args))
+        required = ["OXSDK_MAINLOOP_ENGINE", "OXSDK_E2_V21_LINK_BATCH",
+                    "OXSDK_FINDING_016_SELECTION_BARRIER"]
+        self.assertEqual(sorted(variants), sorted("without " + flag for flag in required))
+        for flag in required:
+            self.assertEqual(variants["without " + flag],
+                             [arg for arg in args if arg != "-D" + flag])
+
+    def test_v23_without_merge_still_gets_the_v23_topology_guards(self):
+        args = ["em++", "-DOXSDK_E2_V23_LINK_BATCH", "-DOXSDK_MAINLOOP_ENGINE",
+                "-DOXSDK_E2_V21_LINK_BATCH", "-DOXSDK_FINDING_016_SELECTION_BARRIER"]
+        self.assertIn("without OXSDK_MAINLOOP_ENGINE", dict(c.guard_variants(args)))

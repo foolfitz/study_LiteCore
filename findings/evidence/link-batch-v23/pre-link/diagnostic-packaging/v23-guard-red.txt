@@ -1,0 +1,36 @@
+.........................FF
+======================================================================
+FAIL: test_v23_requires_mainloop_v21_and_selection_barrier (test_merge_key_undo_scope.V23GuardVariants.test_v23_requires_mainloop_v21_and_selection_barrier)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tests/test_merge_key_undo_scope.py", line 262, in test_v23_requires_mainloop_v21_and_selection_barrier
+    self.assertEqual(sorted(variants), sorted("without " + flag for flag in required))
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ['with OXSDK_MAINLOOP_ENGINE', 'without OXSDK_F[25 chars]IER'] != ['without OXSDK_E2_V21_LINK_BATCH', 'without OX[63 chars]INE']
+
+First differing element 0:
+'with OXSDK_MAINLOOP_ENGINE'
+'without OXSDK_E2_V21_LINK_BATCH'
+
+Second list contains 1 additional elements.
+First extra element 2:
+'without OXSDK_MAINLOOP_ENGINE'
+
+- ['with OXSDK_MAINLOOP_ENGINE', 'without OXSDK_FINDING_016_SELECTION_BARRIER']
++ ['without OXSDK_E2_V21_LINK_BATCH',
++  'without OXSDK_FINDING_016_SELECTION_BARRIER',
++  'without OXSDK_MAINLOOP_ENGINE']
+
+======================================================================
+FAIL: test_v23_without_merge_still_gets_the_v23_topology_guards (test_merge_key_undo_scope.V23GuardVariants.test_v23_without_merge_still_gets_the_v23_topology_guards)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tests/test_merge_key_undo_scope.py", line 270, in test_v23_without_merge_still_gets_the_v23_topology_guards
+    self.assertIn("without OXSDK_MAINLOOP_ENGINE", dict(c.guard_variants(args)))
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'without OXSDK_MAINLOOP_ENGINE' not found in {'with OXSDK_MERGE_KEY_UNDO': ['em++', '-DOXSDK_MERGE_KEY_UNDO', '-DOXSDK_E2_V23_LINK_BATCH', '-DOXSDK_MAINLOOP_ENGINE', '-DOXSDK_E2_V21_LINK_BATCH', '-DOXSDK_FINDING_016_SELECTION_BARRIER']}
+
+----------------------------------------------------------------------
+Ran 27 tests in 0.006s
+
+FAILED (failures=2)

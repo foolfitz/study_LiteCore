@@ -142,6 +142,13 @@ def guard_variants(args: list[str]) -> list[tuple[str, list[str]]]:
     test-e2-c-static-red-viewer-not-declared.txt (the viewer's rule undeclared) and the run declaring it.
     A B carrier that lost its define now falls in the second branch and is red there: B compiles into it.
     """
+    # Ordered-command spec 16.1: v23 includes only the pure merge helpers;
+    # mainloop is mandatory, not the old option-B forbidden combination.
+    # Keep the pre-v23 guards unchanged for every historical carrier.
+    if "-DOXSDK_E2_V23_LINK_BATCH" in args:
+        return [("without " + flag, [x for x in args if x != "-D" + flag])
+                for flag in ("OXSDK_MAINLOOP_ENGINE", "OXSDK_E2_V21_LINK_BATCH",
+                             "OXSDK_FINDING_016_SELECTION_BARRIER")]
     if "-DOXSDK_MERGE_KEY_UNDO" in args:
         return [("with OXSDK_MAINLOOP_ENGINE", args[:1] + ["-DOXSDK_MAINLOOP_ENGINE"] + args[1:]),
                 ("without OXSDK_FINDING_016_SELECTION_BARRIER",
