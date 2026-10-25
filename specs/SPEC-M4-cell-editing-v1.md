@@ -163,3 +163,19 @@ Astra 覆核指出 selection busy 會停用唯一接收器；`pending-entry-red`
 Astra `/root/astra_calc_scope` 在完整呼叫鏈覆核後裁決有限範圍可封閉；Claude 協定及片段審核原文與處置保留。一般 cell commit 等待時 textarea 停用所造成的按鍵接收限制屬既有、未量測的後續工作，不宣稱任意延遲下連續輸入已成立；不因片段審核的條件假設（save 不提交草稿／成功選格不清錯誤，兩者實際都做）重開本輪。Firefox 組字為合成生命週期守衛，Chrome 為 CDP 預編輯；均非 OS 輸入法證明。
 
 宿主 **0.2.36／702bad6／package 2b17a0e790b24eb3** 已安裝，實際 Files 雙瀏覽器 **28／28**，兩份新輸入畫面／56 塊 tile 與引擎一致，手動存回、伺服器 XML 及自有鎖正常釋放成立。45 個封包檔的 42 筆完整前版紀錄相同，只改 Calc HTML／app／session。凍結 Calc v1、Writer v22、viewer v3 不改，不需重連結；離線零問題、22 個紅案全拒絕。原有 24674 鎖、24920 文件與所有專案狀態相同，litecore 留 running；測試資源與隔離 worktree 清完，分支／archive／rollback 保留。詳見[功能整理](../research/2026-10-25-calc-input-range.md)與[宿主證據](../findings/evidence/host-0.2.36/README.md)。I-entry／R-select 於本輪第三筆成立後封閉，無新增人工閘門。K／全域 pins／BINDING／chain 仍延後，名義出貨 0.2.26；§34.4 +0／+0，累計 47／27。
+
+## 17. 多格格式與已確認修改的自動儲存（2026-10-25，只追加）
+
+擁有者已回報前批人工驗收通過，並明確要求下一批「多格 B／I／U 與自動儲存」。由 Astra `/root/astra_calc_scope` 裁決，詳見 `handoff/RULING-2026-10-25-calc-range-autosave.md`。本節新增後繼能力，不撤銷 frozen v1 或前批人工通過紀錄；本批尚未量測的 native 能力不得宣稱交付。
+
+範圍格式以明確 part、起訖索引、expectedRevision、format、enabled 呼叫一次 native `XMultiPropertySet`，三字族在同一個 pattern 套用。每次最多 65,536 個邏輯格，含隱藏／空白格；畫面仍可選更大的範圍，但操作拒絕。不用逐格 writes 冒充原子操作。跨越合併邊界的矩形整筆拒絕，不自動擴大目標；完整包含的合併格可套用。保護表僅接受 aggregate `CellProtection` 可證為一致且 unlocked，混合或 locked 整筆拒絕；這可能保守拒絕 IsLocked 皆 false 但其他保護欄位不同的範圍。已知拒絕不得改模型／revision；進入 native 寫入後的例外／無法驗回結果一律 uncertain，不宣稱 crash rollback，不自動重試。
+
+多格格式狀態 true／false／null 分別是全開／全關／混合，混合按下設為全開，全開按下設為全關，三字族一起處理。成功後保留 active anchor 和範圍；先 invalidate 再 emit，並重新讀取兩端幾何。新 capability 為 `cell-range-formatting`，只在後繼 ods-editor-v2 出現；原 v1 不覆寫，仍拒絕多格格式。本節對多格選取增加一次固定的 range metadata read，取代 §14「每次至多一次 read/hit」對後繼的字面限制；原因是混合／保護／合併邊界不能由單格幾何證明。查詢與寫入呼叫次數均不隨面積增加。
+
+自動儲存僅在 HOST 存在時啟用，存已確認進模型的修改：閒置 30 秒，dirty 上限 5 分鐘後仍需 3 秒 quiet，隱藏時符合條件可立即嘗試。不強制提交 active draft／IME；畫面標示「確認後自動儲存」。editing、composing、pendingEntry、selectionPending、drag、busy／saving、manual pending、uncertain、error 時延後。`committedDirty` 不含純草稿，automatic 呼叫 `save(...,{commitDraft:false})`，手動預設仍先提交草稿。匯出／host write 期間的新草稿不可被完成的儲存清掉。copy／stranded／其他失敗後停自動重試；成功手動存回 original 才恢復，sticky copy target 持續暫停。host 繼續負責版本／鎖／副本／stranded 與離開保護，不新增 unload 非同步完成保證。
+
+**R-format**（工具封閉枚舉）：由新範圍 fixture 的 format 與 case manifest 產生所有 B／I／U × 成功／混合切換／冪等／保護拒絕／合併拒絕、隱藏包含、明確目標、stale revision、超限案例。Chrome／Firefox 各 N＝3，保存 profile／工具／fixture 身分與每個 case id；每種格式檢查 Latin／Asian／Complex（適用者），已知拒絕 revision 不變，成功最多一次模型 revision，鄰格／別表內容和格式不變。匯出 ODS 獨立讀 XML 並重開，實際 DOM tiles 對 direct engine bytes，不以模型綠燈替代畫面。SDK/session 突變紅案先證明 cap、v1 gate、回覆目標、一次明確 range 寫入與 uncertain 失敗路徑檢查會拒絕。未做／失敗：範圍格式未成立，不凍結或安裝 v2。
+
+**A-save**（工具封閉枚舉）：clock tests 覆蓋 idle／cap+quiet／hidden／blocked／clean／readonly／single-flight／dispose、錯誤暫停與手動恢復，並用突變確認守衛有效；Chrome／Firefox 各 N＝3 使用真實 30 秒 idle 與既有輸入／engine／ODS 匯出，固定覆蓋 draft不強制、匯出中新打字、copy／stranded 暫停／手動 retry、XML／鄰格。host double 只證明頁面契約，不冒稱 WebDAV；完成 v2 建置後另跑實際 Files 雙瀏覽器的 auto trigger／原檔內容／自有鎖釋放，保持原有文件／鎖／服務狀態。各 reader 必須拒絕空集合、缺 case、false、錯工具／profile 身分；未做／失敗：對應層自動儲存驗收未成立。
+
+每項 N＝3 的第三筆有效執行完成後封閉；之後的疑慮登錄為 finding／後續工作，不能無限加閘門。新 native 尚未建置時只完成可審閱來源與精確 build/runbook，不把舊 v1 實測算成 v2 證據。依本次 standing instruction，會編譯的命令交使用者，不援引舊 session 授權；不跑 root／K、不改全域 pins／BINDING／chain。安裝維持 0.2.36，待 combined v2 實測後才切換候選。
