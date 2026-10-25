@@ -12,7 +12,7 @@
 // blocking engineLoop only, and B rides on the selection barrier.  A build
 // that combines them otherwise must fail here, not wait silently in front of
 // the user.
-#ifdef OXSDK_MAINLOOP_ENGINE
+#if defined(OXSDK_MAINLOOP_ENGINE) && !defined(OXSDK_E2_V23_LINK_BATCH)
 #error "OXSDK_MERGE_KEY_UNDO is not wired into OXSDK_MAINLOOP_ENGINE"
 #endif
 #ifndef OXSDK_FINDING_016_SELECTION_BARRIER
@@ -20,6 +20,23 @@
 #endif
 #include "merge_key_undo.hpp"
 #endif
+#endif
+#ifdef OXSDK_E2_V23_LINK_BATCH
+#if !defined(OXSDK_MAINLOOP_ENGINE) || !defined(OXSDK_E2_V21_LINK_BATCH)
+#error "OXSDK_E2_V23_LINK_BATCH requires MAINLOOP_ENGINE and v21's transitive defines"
+#endif
+#ifdef OXSDK_FINDING_016_SCHEDULER_PROBE
+#error "ordered commands must not pump the scheduler inside a command"
+#endif
+#include "ordered_poll.hpp"
+#include "ordered_command_proof.hpp"
+#include "ordered_delete_route.hpp"
+#include "reply_state_reads.hpp"
+#include <functional>
+#include <map>
+#endif
+#if defined(OXSDK_E2_V23_DIAGNOSTIC) && !defined(OXSDK_E2_V23_LINK_BATCH)
+#error "OXSDK_E2_V23_DIAGNOSTIC requires the ordered engine"
 #endif
 #ifdef OXSDK_E2_V21_LINK_BATCH
 // SPEC-M3-link-batch-v21: everything this batch adds -- move-document-start/
@@ -203,6 +220,11 @@ constexpr std::uint32_t ProtocolSchemaVersion = 1;
 
 enum class CommandType {
   EmitReady,
+#ifdef OXSDK_E2_V23_DIAGNOSTIC
+  DiagnosticNeverReturn,
+  DiagnosticMissingProof,
+  DiagnosticKey,
+#endif
   OpenUrl,
   OpenBytes,
   PaintTile,
@@ -261,17 +283,27 @@ enum class CommandType {
   // is not `selection || caret` -- so the step would have fired, answered
   // nothing, and been re-synthesised for ever because the deadline stays in
   // the past.  A busy loop instead of a wedge is not an improvement.
+#ifndef OXSDK_E2_V23_LINK_BATCH
   EditorActionReadback,
+#endif
   EditorSelect,
+#ifndef OXSDK_E2_V23_LINK_BATCH
   EditorSelectReadback,
+#endif
   EditorPlaceCaret,
+#ifndef OXSDK_E2_V23_LINK_BATCH
   EditorPlaceCaretReadback,
+#endif
   EditorGetState,
 #ifdef OXSDK_FINDING_016_SELECTION_BARRIER
+#ifndef OXSDK_E2_V23_LINK_BATCH
   EditorSelectionBarrierStep,
 #endif
+#endif
 #ifdef OXSDK_E2_FORMAT_BARRIER
+#ifndef OXSDK_E2_V23_LINK_BATCH
   EditorFormatBarrierStep,
+#endif
 #endif
 #ifdef OXSDK_FINDING_016_SCHEDULER_PROBE
   EditorDrainScheduler,
@@ -622,7 +654,7 @@ struct SelectionBarrierTransaction {
 };
 
 SelectionBarrierTransaction gSelectionBarrier;
-#ifdef OXSDK_MERGE_KEY_UNDO
+#if defined(OXSDK_MERGE_KEY_UNDO) && !defined(OXSDK_E2_V23_LINK_BATCH)
 // Fed on the LOK thread (onLokCallback), told about our sends on the engine
 // thread.  13.2 holds for this mutex too: nothing under it calls LOK or emits.
 std::mutex gMergeMutex;
@@ -1171,6 +1203,10 @@ void handleSelectionBarrierStep(const Command &command);
 void handleFormatBarrierStateCallback(int callbackType);
 void handleFormatBarrierStep(const Command &command);
 #endif
+#endif
+
+#ifdef OXSDK_E2_V23_LINK_BATCH
+#include "ordered_engine_state.inc"
 #endif
 
 std::string jsonEscape(const char *value) {
@@ -1808,7 +1844,15 @@ void updateEditorFormatState(const char *payload) {
   gEditorState.formatStateStale = false;
   ++gEditorState.sourceSequence;
   emitEditorStateEvent("format-state");
+#ifdef OXSDK_E2_V23_LINK_BATCH
+  if (gOrderedDispatching || gOrderedReply) {
+    for (const auto &read : probe::replystate::kReads)
+      if (parsed.command == read.stateKey)
+        gOrderedProof.stateItems.insert(parsed.command);
+  }
+#else
   observeFormatBarrierPayload(parsed);
+#endif
 }
 #else
 // Restored verbatim for every non-E2 profile.  E1-C validated e1-editor-v1 at a
@@ -2156,6 +2200,10 @@ bool commandResultSucceeded(const char *payload) {
  * saved document on all nine arms.
  */
 bool inlineFormatArgumentResolved(const std::string &unoCommand, bool requested) {
+#ifdef OXSDK_E2_V23_LINK_BATCH
+  if (!gOrderedProof.stateItems.count(unoCommand))
+    return false;
+#endif
   if (unoCommand == ".uno:Bold")
     return gEditorState.boldKnown && gEditorState.bold == requested;
   if (unoCommand == ".uno:Italic")
@@ -2170,6 +2218,7 @@ bool inlineFormatArgumentResolved(const std::string &unoCommand, bool requested)
 void queueFormatBarrierStep(FormatBarrierStage next);
 void maybeAdvanceFormatBarrierSelection();
 
+#ifndef OXSDK_E2_V23_LINK_BATCH
 void handleFormatBarrierUnoResult(const char *payload) {
   if (!formatBarrierActive())
     return;
@@ -2200,6 +2249,7 @@ void handleFormatBarrierUnoResult(const char *payload) {
   if (gFormatBarrier.stage == FormatBarrierStage::AwaitingResult)
     queueFormatBarrierStep(FormatBarrierStage::SelectQueued);
 }
+#endif
 #endif
 
 void refreshEditorAccessibility() {
@@ -2250,6 +2300,7 @@ void refreshEditorAccessibility() {
 #endif
 }
 
+#ifndef OXSDK_E2_V23_LINK_BATCH
 void completePendingEditorOperation(int callbackType) {
   const bool matches = callbackType == gEditorPending.requiredCallback ||
                        (gEditorPending.requiredCallback ==
@@ -2317,6 +2368,7 @@ void completePendingEditorOperation(int callbackType) {
   emitJson(json.str());
   finishAsynchronous(pending.requestId);
 }
+#endif
 
 // SPEC E1-D bounded completion.  Runs only when a product range-select armed a
 // readback deadline and no LOK_CALLBACK_TEXT_SELECTION arrived before it.  That
@@ -2327,6 +2379,7 @@ void completePendingEditorOperation(int callbackType) {
 // is actually there, read back at the deadline -- normally "none" -- under its
 // own completion name so callers can tell the two paths apart.  Callers judge
 // by the reported selection, never by the fact that the call returned.
+#ifndef OXSDK_E2_V23_LINK_BATCH
 void completePendingEditorSelectByReadback() {
   if (gEditorPending.requestId == 0 ||
       !(gEditorPending.selection || gEditorPending.caret) ||
@@ -2358,6 +2411,7 @@ void completePendingEditorSelectByReadback() {
   emitJson(json.str());
   finishAsynchronous(pending.requestId);
 }
+#endif
 
 // FINDING 096 bounded completion, and the same discipline as the two above.
 //
@@ -2395,6 +2449,7 @@ void completePendingEditorSelectByReadback() {
 // DEFAULT CONCLUSION IF THIS IS NEVER REVISITED: an attribution profile
 // relinked in the future still wedges at a boundary, on purpose, and anyone
 // measuring 096 there is measuring the unbounded path deliberately.
+#ifndef OXSDK_E2_V23_LINK_BATCH
 void completePendingEditorActionByReadback() {
   if (gEditorPending.requestId == 0 || gEditorPending.selection ||
       gEditorPending.caret || !gEditorPending.readbackDeadlineArmed) {
@@ -2424,6 +2479,7 @@ void completePendingEditorActionByReadback() {
   emitJson(json.str());
   finishAsynchronous(pending.requestId);
 }
+#endif
 #endif
 
 void emitStage(const char *stage) {
@@ -2455,6 +2511,12 @@ std::string kitError() {
 void emitSdkError(std::uint32_t requestId, std::uint32_t documentHandle,
                   const char *operation, const char *code,
                   const std::string &message) {
+#ifdef OXSDK_E2_V23_LINK_BATCH
+  if (gOrderedDispatching) {
+    setOrderedReply([requestId, documentHandle, operation = std::string(operation), code = std::string(code), message] { emitSdkError(requestId, documentHandle, operation.c_str(), code.c_str(), message); });
+    return;
+  }
+#endif
   std::ostringstream json;
   json << "{\"schemaVersion\":" << ProtocolSchemaVersion
        << ",\"type\":\"error\",\"requestId\":" << requestId
@@ -2468,6 +2530,12 @@ void emitSdkError(std::uint32_t requestId, std::uint32_t documentHandle,
 }
 
 void emitStaleRevision(const Command &command, const char *operation) {
+#ifdef OXSDK_E2_V23_LINK_BATCH
+  if (gOrderedDispatching) {
+    setOrderedReply([command, operation = std::string(operation)] { emitStaleRevision(command, operation.c_str()); });
+    return;
+  }
+#endif
   std::ostringstream json;
   json << "{\"schemaVersion\":" << ProtocolSchemaVersion
        << ",\"type\":\"error\",\"requestId\":" << command.requestId
@@ -2495,6 +2563,12 @@ void emitCommandError(const Command &command, const char *operation,
 }
 
 void emitReady(const Command &command) {
+#ifdef OXSDK_E2_V23_LINK_BATCH
+  if (gOrderedDispatching) {
+    setOrderedReply([command] { emitReady(command); });
+    return;
+  }
+#endif
   if (!command.sdk) {
     if (gState.kit)
       emitJson("{\"type\":\"ready\"}");
@@ -2612,7 +2686,7 @@ void closeDocument(const Command *command) {
 #ifdef OXSDK_FINDING_016_SELECTION_BARRIER
   gSelectionBarrier = SelectionBarrierTransaction{};
 #endif
-#ifdef OXSDK_MERGE_KEY_UNDO
+#if defined(OXSDK_MERGE_KEY_UNDO) && !defined(OXSDK_E2_V23_LINK_BATCH)
   {
     // Review N6: no caret of this document may become P in the next one.
     std::lock_guard<std::mutex> merge(gMergeMutex);
@@ -2624,6 +2698,11 @@ void closeDocument(const Command *command) {
 
   if (!command)
     return;
+#ifdef OXSDK_E2_V23_LINK_BATCH
+  const Command replyCommand = *command;
+  setOrderedReply([replyCommand, closedHandle] {
+    const Command *command = &replyCommand;
+#endif
   if (!command->sdk) {
     emitJson("{\"type\":\"closed\"}");
     return;
@@ -2634,6 +2713,9 @@ void closeDocument(const Command *command) {
        << ",\"type\":\"closed\",\"requestId\":" << command->requestId
        << ",\"documentHandle\":" << closedHandle << ",\"revision\":0}";
   emitJson(json.str());
+#ifdef OXSDK_E2_V23_LINK_BATCH
+  });
+#endif
 }
 
 #ifdef OXSDK_ODS_VIEWER
@@ -2940,6 +3022,10 @@ void handlePartInfo(const Command &command) {
 #endif
 #endif
 
+#ifdef OXSDK_E2_V23_LINK_BATCH
+#include "ordered_engine_reply.inc"
+#endif
+
 void onLokCallback(int type, const char *payload, void *) {
   const std::uint32_t documentHandle =
       gCallbackDocumentHandle.load(std::memory_order_acquire);
@@ -2952,7 +3038,7 @@ void onLokCallback(int type, const char *payload, void *) {
   emitJson(json.str());
 
 #ifdef OXSDK_EDITOR_DISCOVERY
-#ifdef OXSDK_MERGE_KEY_UNDO
+#if defined(OXSDK_MERGE_KEY_UNDO) && !defined(OXSDK_E2_V23_LINK_BATCH)
   feedMergeAttribution(type, payload);
 #endif
   bool editorStateChanged = false;
@@ -3062,6 +3148,7 @@ void onLokCallback(int type, const char *payload, void *) {
       gEditorState.formatStateStale = true;
 #endif
     emitEditorStateEvent(editorSource);
+#ifndef OXSDK_E2_V23_LINK_BATCH
 #ifdef OXSDK_FINDING_016_SELECTION_BARRIER
     handleSelectionBarrierStateCallback(type);
 #endif
@@ -3069,6 +3156,7 @@ void onLokCallback(int type, const char *payload, void *) {
     handleFormatBarrierStateCallback(type);
 #endif
     completePendingEditorOperation(type);
+#endif
   } else if (type >= LOK_CALLBACK_INVALIDATE_VISIBLE_CURSOR &&
              type <= LOK_CALLBACK_CURSOR_VISIBLE && editorSource == nullptr) {
     std::ostringstream parseError;
@@ -3081,6 +3169,30 @@ void onLokCallback(int type, const char *payload, void *) {
   }
 #endif
 
+#ifdef OXSDK_E2_V23_LINK_BATCH
+  // Cache/evidence only. The pending command owns the first-poll composer.
+  if (gOrderedDispatching || gOrderedReply) {
+    gOrderedProof.callbacks[type] = gEditorState.sourceSequence;
+    if (type == 70 && payload && std::strstr(payload, "afterCallbackRegistered invoked"))
+      gOrderedProof.viewReady = true;
+    if (type == LOK_CALLBACK_UNO_COMMAND_RESULT) {
+      for (auto &entry : gOrderedProof.uno) {
+        if (commandResultMatches(payload, entry.first)) {
+          entry.second = {true, payload ? payload : "", gEditorState.sourceSequence};
+        }
+      }
+    }
+    if (type == LOK_CALLBACK_SEARCH_RESULT_SELECTION || type == LOK_CALLBACK_SEARCH_NOT_FOUND) {
+      gOrderedProof.searchType = type;
+      gOrderedProof.searchPayload = payload ? payload : "";
+    }
+    if (type == LOK_CALLBACK_COMMENT && payload &&
+        std::strstr(payload, "\"action\": \"Add\"")) {
+      gOrderedProof.commentAdded = true;
+      gOrderedProof.commentPayload = payload;
+    }
+  }
+#else
   if (type == 70 && payload &&
       std::strstr(payload, "afterCallbackRegistered invoked")) {
     const std::uint32_t requestId =
@@ -3244,6 +3356,7 @@ void onLokCallback(int type, const char *payload, void *) {
       finishAsynchronous(requestId);
     }
   }
+#endif
 }
 
 bool decodeUtf8(const std::string &text,
@@ -3447,6 +3560,13 @@ void handleOpen(const Command &command) {
   const int parts = gState.document->pClass->getParts(gState.document);
   const int tileMode = gState.document->pClass->getTileMode(gState.document);
 
+#ifdef OXSDK_E2_V23_LINK_BATCH
+  setOrderedReply([=] {
+    if (command.sdk && !gOrderedProof.viewReady) {
+      emitOrderedMissingProof(command, "open", "view-ready", "LOK_ERROR");
+      return;
+    }
+#endif
   std::ostringstream json;
   json << "{\"type\":\"opened\",\"parts\":" << parts << ",\"width\":" << width
        << ",\"height\":" << height << ",\"tileMode\":" << tileMode;
@@ -3466,6 +3586,20 @@ void handleOpen(const Command &command) {
   }
   json << "}";
   emitJson(json.str());
+#ifdef OXSDK_E2_V23_LINK_BATCH
+    if (command.sdk) {
+      std::ostringstream ready;
+      ready << "{\"schemaVersion\":" << ProtocolSchemaVersion
+            << ",\"type\":\"view-ready\",\"requestId\":" << command.requestId
+            << ",\"documentHandle\":" << gState.documentHandle
+            << ",\"revision\":" << gState.revision << "}";
+      emitJson(ready.str());
+      gOpenRequestId.store(0, std::memory_order_release);
+    }
+#endif
+#ifdef OXSDK_E2_V23_LINK_BATCH
+  });
+#endif
   gStage = "idle";
 }
 
@@ -3583,6 +3717,9 @@ void handlePaintTile(const Command &command) {
   gState.documentWidthTwips = documentWidth;
   gState.documentHeightTwips = documentHeight;
 
+#ifdef OXSDK_E2_V23_LINK_BATCH
+  setOrderedReply([=] {
+#endif
   std::ostringstream json;
   json << "{\"type\":\"tile\",\"ptr\":"
        << reinterpret_cast<std::uintptr_t>(pixels) << ",\"size\":" << byteCount
@@ -3611,6 +3748,9 @@ void handlePaintTile(const Command &command) {
   }
   json << "}";
   emitJson(json.str());
+#ifdef OXSDK_E2_V23_LINK_BATCH
+  });
+#endif
 }
 
 void handleClick(const Command &command) {
@@ -3624,6 +3764,9 @@ void handleClick(const Command &command) {
       gState.document, LOK_MOUSEEVENT_MOUSEBUTTONUP, command.values[0],
       command.values[1], 1, 1, 0);
 
+#ifdef OXSDK_E2_V23_LINK_BATCH
+  setOrderedReply([command] {
+#endif
   if (!command.sdk) {
     emitJson("{\"type\":\"clicked\"}");
     return;
@@ -3634,6 +3777,9 @@ void handleClick(const Command &command) {
        << ",\"documentHandle\":" << gState.documentHandle
        << ",\"revision\":" << gState.revision << "}";
   emitJson(json.str());
+#ifdef OXSDK_E2_V23_LINK_BATCH
+  });
+#endif
 }
 
 void handleInsertText(const Command &command) {
@@ -3662,6 +3808,9 @@ void handleInsertText(const Command &command) {
 
   ++gState.revision;
   gCallbackRevision.store(gState.revision, std::memory_order_release);
+#ifdef OXSDK_E2_V23_LINK_BATCH
+  setOrderedReply([=] {
+#endif
   std::ostringstream json;
   json << "{\"type\":\"inserted\",\"method\":\"" << method << "\"";
   if (command.sdk) {
@@ -3672,6 +3821,9 @@ void handleInsertText(const Command &command) {
   }
   json << "}";
   emitJson(json.str());
+#ifdef OXSDK_E2_V23_LINK_BATCH
+  });
+#endif
 }
 
 void handleSearch(const Command &command) {
@@ -3693,9 +3845,27 @@ void handleSearch(const Command &command) {
   }
 #endif
 
+#ifdef OXSDK_E2_V23_LINK_BATCH
+  setOrderedReply([command] {
+    if (gOrderedProof.searchType < 0) {
+      emitOrderedMissingProof(command, "search", "SEARCH_RESULT_SELECTION", "LOK_ERROR");
+      return;
+    }
+    std::ostringstream result;
+    result << "{\"schemaVersion\":" << ProtocolSchemaVersion
+           << ",\"type\":\"search-result\",\"requestId\":" << command.requestId
+           << ",\"documentHandle\":" << command.documentHandle
+           << ",\"revision\":" << gState.revision << ",\"found\":"
+           << (gOrderedProof.searchType == LOK_CALLBACK_SEARCH_RESULT_SELECTION ? "true" : "false")
+           << ",\"query\":\"" << jsonEscape(command.text.c_str())
+           << "\",\"resultPayload\":\"" << jsonEscape(gOrderedProof.searchPayload.c_str()) << "\"}";
+    emitJson(result.str());
+  });
+#else
   gSearchQuery = command.text;
   gSearchRequestId.store(command.requestId, std::memory_order_release);
   markAsynchronous(command.requestId);
+#endif
   std::ostringstream arguments;
   arguments
       << "{\"SearchItem.SearchString\":{\"type\":\"string\",\"value\":\""
@@ -3799,7 +3969,7 @@ void appendCaretBefore(std::ostringstream &json,
                        const SelectionBarrierTransaction &transaction) {
   EditorRect rect = transaction.caretBefore;
   bool fromAttribution = false;
-#ifdef OXSDK_MERGE_KEY_UNDO
+#if defined(OXSDK_MERGE_KEY_UNDO) && !defined(OXSDK_E2_V23_LINK_BATCH)
   {
     std::lock_guard<std::mutex> merge(gMergeMutex);
     if (gMergeAttribution.hasP()) {
@@ -3824,6 +3994,7 @@ void appendCaretBefore(std::ostringstream &json,
 }
 #endif
 
+#ifndef OXSDK_E2_V23_LINK_BATCH
 void finishSelectionBarrierError(const char *code, const char *message,
                                  bool viewRecoveryRequired) {
   const SelectionBarrierTransaction transaction = gSelectionBarrier;
@@ -3854,19 +4025,23 @@ void finishSelectionBarrierError(const char *code, const char *message,
 #endif
   finishAsynchronous(transaction.requestId);
 }
+#endif
 
 #ifdef OXSDK_MERGE_KEY_UNDO
 probe::merge::Rect mergeRect(const EditorRect &r) {
   return {r.x, r.y, r.width, r.height};
 }
 
+#ifndef OXSDK_E2_V23_LINK_BATCH
 void armMergeDeadline() {
   gSelectionBarrier.stageDeadlineArmed = true;
   gSelectionBarrier.stageDeadline =
       std::chrono::steady_clock::now() +
       std::chrono::milliseconds(MergeStepDeadlineMs);
 }
+#endif
 
+#ifndef OXSDK_E2_V23_LINK_BATCH
 bool mergeStageAwaiting() {
   switch (gSelectionBarrier.stage) {
   case SelectionBarrierStage::MergeAwaitingCollapse1:
@@ -3878,6 +4053,7 @@ bool mergeStageAwaiting() {
     return false;
   }
 }
+#endif
 
 // Engine thread only (getCommandValues takes the SolarMutex): never under
 // gState.mutex or gMergeMutex.
@@ -3897,6 +4073,7 @@ bool readMergeUndoPayload(std::string &out) {
 // whether or not the key was posted.  mergeKey says which: before the key
 // nothing was dispatched; after it, the key's own effect is unknown and the
 // message must not claim otherwise.
+#ifndef OXSDK_E2_V23_LINK_BATCH
 void finishMergeKeyError(const char *stage) {
   const probe::merge::Stage *known = probe::merge::findStage(stage);
   const bool keyPosted =
@@ -3934,6 +4111,7 @@ void finishMergeKeyError(const char *stage) {
   emitJson(json.str());
   finishAsynchronous(transaction.requestId);
 }
+#endif
 
 #ifdef OXSDK_E2_V20_LINK_BATCH
 // SPEC-M3-link-batch 10.5 (ruling 2 condition 8; ruling 4 condition 35, no
@@ -3949,6 +4127,7 @@ void finishMergeKeyError(const char *stage) {
 // spec (L-C-late-K1): a K1 that runs after this reply leaves a selection in a
 // live session, and nothing here can wait for a signal that a key which
 // changes nothing never sends (ruling 2 F1).
+#ifndef OXSDK_E2_V23_LINK_BATCH
 void finishSelectionBarrierBoundaryNoop() {
   const SelectionBarrierTransaction transaction = gSelectionBarrier;
   gSelectionBarrier = SelectionBarrierTransaction{};
@@ -3980,7 +4159,9 @@ void finishSelectionBarrierBoundaryNoop() {
 }
 #endif
 #endif
+#endif
 
+#ifndef OXSDK_E2_V23_LINK_BATCH
 void maybeFinishSelectionBarrier() {
   if (!selectionBarrierActive() ||
       gSelectionBarrier.stage !=
@@ -4057,7 +4238,9 @@ void maybeFinishSelectionBarrier() {
   emitJson(json.str());
   finishAsynchronous(transaction.requestId);
 }
+#endif
 
+#ifndef OXSDK_E2_V23_LINK_BATCH
 void queueSelectionBarrierStep(bool boundaryDeadline = false) {
   Command command{CommandType::EditorSelectionBarrierStep};
   command.requestId = gSelectionBarrier.requestId;
@@ -4071,7 +4254,9 @@ void queueSelectionBarrierStep(bool boundaryDeadline = false) {
         false);
   }
 }
+#endif
 
+#ifndef OXSDK_E2_V23_LINK_BATCH
 void maybeQueueSelectionBarrierFinalVerification() {
   if (gSelectionBarrier.stage !=
           SelectionBarrierStage::AwaitingDeleteCompletion ||
@@ -4084,12 +4269,14 @@ void maybeQueueSelectionBarrierFinalVerification() {
   gSelectionBarrier.stage = SelectionBarrierStage::FinalVerificationQueued;
   queueSelectionBarrierStep();
 }
+#endif
 
 #ifdef OXSDK_MERGE_KEY_UNDO
 // LOK thread, every callback, before anything else looks at it.  Feeds the
 // attribution with each START/END/TEXT_SELECTION/caret as delivered, and,
 // when a proof arrives (or, after the key, any callback), queues one merge
 // step addressed by the ticket.  It writes nothing the engine thread owns.
+#ifndef OXSDK_E2_V23_LINK_BATCH
 void feedMergeAttribution(int type, const char *payload) {
   using Phase = probe::merge::Attribution::Phase;
   EditorRect parsed;
@@ -4142,9 +4329,11 @@ void feedMergeAttribution(int type, const char *payload) {
   if (queue)
     submit(std::move(step));
 }
+#endif
 
 // Engine thread: send a .uno:Escape after marking it sent (16.2 steps 2, 4).
 // postUnoCommand with a listener runs synchronously here (unoctitm.cxx:654).
+#ifndef OXSDK_E2_V23_LINK_BATCH
 void sendMergeEscape(SelectionBarrierStage awaiting) {
   gSelectionBarrier.stage = awaiting;
   bool sent;
@@ -4162,16 +4351,20 @@ void sendMergeEscape(SelectionBarrierStage awaiting) {
   // and a busy LOK must not use up the step's 2000 ms before the step ran.
   armMergeDeadline();
 }
+#endif
 
+#ifndef OXSDK_E2_V23_LINK_BATCH
 void postMergeKeyEvents(int keyCode) {
   gState.document->pClass->postKeyEvent(gState.document,
                                         LOK_KEYEVENT_KEYINPUT, 0, keyCode);
   gState.document->pClass->postKeyEvent(gState.document, LOK_KEYEVENT_KEYUP,
                                         0, keyCode);
 }
+#endif
 
 // Step 1 passed the classification: the unit holds a paragraph or line
 // separator.  K1's anchor must satisfy the fence against P (13.1, 14.2).
+#ifndef OXSDK_E2_V23_LINK_BATCH
 void startMergeKeyUndo(const SelectionReadback &selected,
                        std::vector<std::uint32_t> codePoints) {
   bool fence;
@@ -4192,8 +4385,10 @@ void startMergeKeyUndo(const SelectionReadback &selected,
   gSelectionBarrier.selectedCodePoints = std::move(codePoints);
   sendMergeEscape(SelectionBarrierStage::MergeAwaitingCollapse1);
 }
+#endif
 
 // Step 3: K2, Shift+arrow back; it has a mark, so no stop in front of a label.
+#ifndef OXSDK_E2_V23_LINK_BATCH
 void postMergeReturn() {
   gSelectionBarrier.stage = SelectionBarrierStage::MergeAwaitingReturn;
   bool posted;
@@ -4211,8 +4406,10 @@ void postMergeReturn() {
                      EditorShiftModifier);
   armMergeDeadline();
 }
+#endif
 
 // K2's selection: the same text as K1's, its point side at P.
+#ifndef OXSDK_E2_V23_LINK_BATCH
 void verifyMergeReturn() {
   const SelectionReadback selected = readSelection();
   bool fence;
@@ -4227,8 +4424,10 @@ void verifyMergeReturn() {
   }
   sendMergeEscape(SelectionBarrierStage::MergeAwaitingCollapse2);
 }
+#endif
 
 // Step 5: P0, P_start == P0 (10.1(f)), then the user's own key.
+#ifndef OXSDK_E2_V23_LINK_BATCH
 void postMergeKey() {
   std::string p0;
   const bool read = readMergeUndoPayload(p0);
@@ -4250,7 +4449,9 @@ void postMergeKey() {
                          : com::sun::star::awt::Key::DELETE);
   armMergeDeadline();
 }
+#endif
 
+#ifndef OXSDK_E2_V23_LINK_BATCH
 void finishMergeKeyUndo(const probe::merge::KeyJudgement &judgement) {
   const SelectionBarrierTransaction transaction = gSelectionBarrier;
   gSelectionBarrier = SelectionBarrierTransaction{};
@@ -4292,8 +4493,10 @@ void finishMergeKeyUndo(const probe::merge::KeyJudgement &judgement) {
   emitJson(json.str());
   finishAsynchronous(transaction.requestId);
 }
+#endif
 
 // After the key: the whole payload against P0 (3.1 items 8-9, 10.1(b)).
+#ifndef OXSDK_E2_V23_LINK_BATCH
 void verifyMergeKey(bool atDeadline) {
   std::string now;
   const bool read = readMergeUndoPayload(now);
@@ -4307,11 +4510,13 @@ void verifyMergeKey(bool atDeadline) {
   }
   finishMergeKeyUndo(judgement);
 }
+#endif
 
 // A step queued by the feed: act on the proof the attribution now holds, if
 // it is the one the current stage waits for.  The pending flag is cleared
 // before anything is read (review N3): a callback after this point queues
 // the next step instead of being absorbed by this one.
+#ifndef OXSDK_E2_V23_LINK_BATCH
 void advanceMerge() {
   using Phase = probe::merge::Attribution::Phase;
   Phase phase;
@@ -4340,8 +4545,10 @@ void advanceMerge() {
     return;
   }
 }
+#endif
 
 // A step's proof did not arrive within MergeStepDeadlineMs.
+#ifndef OXSDK_E2_V23_LINK_BATCH
 void handleMergeDeadline() {
   if (!gSelectionBarrier.stageDeadlineArmed || !mergeStageAwaiting() ||
       std::chrono::steady_clock::now() < gSelectionBarrier.stageDeadline)
@@ -4354,7 +4561,9 @@ void handleMergeDeadline() {
   finishMergeKeyError("restore");
 }
 #endif
+#endif
 
+#ifndef OXSDK_E2_V23_LINK_BATCH
 void verifyAndDispatchSelectionBarrierDelete() {
   if (gSelectionBarrier.stage !=
       SelectionBarrierStage::UnitVerificationQueued)
@@ -4412,7 +4621,9 @@ void verifyAndDispatchSelectionBarrierDelete() {
   gState.document->pClass->postUnoCommand(
       gState.document, gSelectionBarrier.command.c_str(), nullptr, true);
 }
+#endif
 
+#ifndef OXSDK_E2_V23_LINK_BATCH
 void rejectSelectionBarrierAtDeadline(const Command &command) {
   if (gSelectionBarrier.stage !=
       SelectionBarrierStage::AwaitingUnitSelection)
@@ -4487,7 +4698,9 @@ void rejectSelectionBarrierAtDeadline(const Command &command) {
           : "selection text became visible without its required typed callback",
       selected.type != LOK_SELTYPE_NONE || !typedCollapsed);
 }
+#endif
 
+#ifndef OXSDK_E2_V23_LINK_BATCH
 void handleSelectionBarrierStateCallback(int callbackType) {
   if (!selectionBarrierActive() || callbackType != LOK_CALLBACK_TEXT_SELECTION)
     return;
@@ -4511,7 +4724,9 @@ void handleSelectionBarrierStateCallback(int callbackType) {
     }
   }
 }
+#endif
 
+#ifndef OXSDK_E2_V23_LINK_BATCH
 bool handleSelectionBarrierUnoResult(const char *payload) {
 #ifdef OXSDK_MERGE_KEY_UNDO
   // Option B's Escapes are proven by the selection turning empty, not by
@@ -4544,7 +4759,9 @@ bool handleSelectionBarrierUnoResult(const char *payload) {
   maybeQueueSelectionBarrierFinalVerification();
   return true;
 }
+#endif
 
+#ifndef OXSDK_E2_V23_LINK_BATCH
 void handleSelectionBarrierStep(const Command &command) {
   if (!selectionBarrierActive() ||
       command.requestId != gSelectionBarrier.requestId ||
@@ -4586,7 +4803,9 @@ void handleSelectionBarrierStep(const Command &command) {
       SelectionBarrierStage::FinalVerificationQueued)
     maybeFinishSelectionBarrier();
 }
+#endif
 
+#ifndef OXSDK_E2_V23_LINK_BATCH
 void startSelectionBarrierDelete(const Command &command, const char *action,
                                  const char *unoCommand, bool backward) {
   if (selectionBarrierActive() ||
@@ -4655,6 +4874,7 @@ void startSelectionBarrierDelete(const Command &command, const char *action,
                                         keyCode);
 }
 #endif
+#endif
 
 #ifdef OXSDK_E2_V20_LINK_BATCH
 // SPEC-M3-link-batch 4.3 / 10.8 (S-10, S-11; ruling 2 conditions 11 and 13):
@@ -4684,6 +4904,9 @@ void handlePageRectangles(const Command &command) {
   long height = 0;
   gState.document->pClass->getDocumentSize(gState.document, &width, &height);
   const int parts = gState.document->pClass->getParts(gState.document);
+#ifdef OXSDK_E2_V23_LINK_BATCH
+  setOrderedReply([=] {
+#endif
   std::ostringstream json;
   json << "{\"schemaVersion\":" << ProtocolSchemaVersion
        << ",\"type\":\"page-rectangles\",\"requestId\":" << command.requestId
@@ -4694,6 +4917,9 @@ void handlePageRectangles(const Command &command) {
        << ",\"documentHeightTwips\":" << height << "}";
   std::free(rectangles);
   emitJson(json.str());
+#ifdef OXSDK_E2_V23_LINK_BATCH
+  });
+#endif
 }
 #endif
 
@@ -4708,6 +4934,9 @@ void handleGetSelection(const Command &command) {
         "selection type is text but no utf-8 text was returned");
     return;
   }
+#ifdef OXSDK_E2_V23_LINK_BATCH
+  setOrderedReply([=] {
+#endif
   std::ostringstream json;
   json << "{\"schemaVersion\":" << ProtocolSchemaVersion
        << ",\"type\":\"selection\",\"requestId\":" << command.requestId
@@ -4717,6 +4946,9 @@ void handleGetSelection(const Command &command) {
        << "\",\"mimeType\":\"text/plain;charset=utf-8\",\"text\":\""
        << jsonEscape(readback.text.c_str()) << "\"}";
   emitJson(json.str());
+#ifdef OXSDK_E2_V23_LINK_BATCH
+  });
+#endif
 }
 #endif
 
@@ -4732,16 +4964,37 @@ void handleReplaceSelection(const Command &command) {
     return;
   }
   advanceRevision();
+#ifdef OXSDK_E2_V23_LINK_BATCH
+  setOrderedReply([=] {
+#endif
   std::ostringstream json;
   json << "{\"schemaVersion\":" << ProtocolSchemaVersion
        << ",\"type\":\"replaced\",\"requestId\":" << command.requestId
        << ",\"documentHandle\":" << gState.documentHandle
        << ",\"revision\":" << gState.revision << "}";
   emitJson(json.str());
+#ifdef OXSDK_E2_V23_LINK_BATCH
+  });
+#endif
 }
 
 void startUnoMutation(const Command &command, const char *operation,
                       const char *unoCommand, const std::string &arguments) {
+#ifdef OXSDK_E2_V23_LINK_BATCH
+  const std::string operationName(operation), unoName(unoCommand);
+  const auto beforeRevision = gState.revision;
+  const auto beforeSequence = gEditorState.sourceSequence;
+  const std::string action = gEditorUnoAction;
+  const bool option = command.values[2] != 0;
+  expectOrderedUno(unoName);
+  setOrderedReply([command, operationName, unoName, action, beforeRevision, beforeSequence, option] {
+    composeOrderedUno(command, operationName, unoName, action, beforeRevision, beforeSequence, option);
+  });
+  gState.document->pClass->postUnoCommand(gState.document, unoCommand,
+      arguments.empty() ? nullptr : arguments.c_str(), true);
+  if (operationName == "comment-added")
+    gState.document->pClass->postUnoCommand(gState.document, ".uno:Escape", nullptr, false);
+#else
   if (gUnoRequestId.load(std::memory_order_acquire) != 0) {
     emitCommandError(command, operation, "BUSY",
                      "another UNO mutation is still in flight");
@@ -4753,6 +5006,7 @@ void startUnoMutation(const Command &command, const char *operation,
   gState.document->pClass->postUnoCommand(
       gState.document, unoCommand,
       arguments.empty() ? nullptr : arguments.c_str(), true);
+#endif
 }
 
 void handleUndo(const Command &command) {
@@ -4792,6 +5046,9 @@ void emitCommandValues(const Command &command, const char *operation,
     emitCommandError(command, operation, "LOK_ERROR", kitError());
     return;
   }
+#ifdef OXSDK_E2_V23_LINK_BATCH
+  setOrderedReply([=] {
+#endif
   std::ostringstream json;
   json << "{\"schemaVersion\":" << ProtocolSchemaVersion << ",\"type\":\""
        << eventType << "\",\"requestId\":" << command.requestId
@@ -4800,6 +5057,9 @@ void emitCommandValues(const Command &command, const char *operation,
        << jsonEscape(values) << "\"}";
   std::free(values);
   emitJson(json.str());
+#ifdef OXSDK_E2_V23_LINK_BATCH
+  });
+#endif
 }
 
 void handleListComments(const Command &command) {
@@ -5044,13 +5304,16 @@ const char *const kFormatMutationOutcomeUnknown = "MUTATION_OUTCOME_UNKNOWN";
 // Every awaiting stage gets a fresh deadline as it is entered, so a barrier
 // that keeps making progress is never cut off by a clock started three stages
 // ago; only a stage that stops advancing runs out.
+#ifndef OXSDK_E2_V23_LINK_BATCH
 void armFormatBarrierDeadline() {
   gFormatBarrier.stageDeadline = std::chrono::steady_clock::now() +
                                  std::chrono::milliseconds(
                                      FormatBarrierStageDeadlineMs);
   gFormatBarrier.stageDeadlineArmed = true;
 }
+#endif
 
+#ifndef OXSDK_E2_V23_LINK_BATCH
 void failFormatBarrierAtDeadline() {
   // Re-checked by the caller as well; repeated here because this function is
   // reachable from two loops and neither is allowed to end a barrier that has
@@ -5069,7 +5332,9 @@ void failFormatBarrierAtDeadline() {
                     "the format barrier stopped advancing before it could read "
                     "the paragraph, so what the dispatch did is unknown");
 }
+#endif
 
+#ifndef OXSDK_E2_V23_LINK_BATCH
 void queueFormatBarrierStep(FormatBarrierStage next) {
   gFormatBarrier.stage = next;
   Command step{CommandType::EditorFormatBarrierStep};
@@ -5081,6 +5346,7 @@ void queueFormatBarrierStep(FormatBarrierStage next) {
                       "format barrier could not schedule a non-reentrant "
                       "postcondition read");
 }
+#endif
 
 // SPEC E2-A 2.8: a collapsed caret reads back nothing, so the paragraph has to
 // be selected first.  Paragraph-relative, not line-relative -- applying a
@@ -5095,10 +5361,12 @@ void queueFormatBarrierStep(FormatBarrierStage next) {
 // 033), because the two values are two dispatch paths; and the pair escaped to
 // a neighbouring paragraph whenever the caret already sat at a paragraph edge
 // (finding 034).  A single dispatch has neither problem to have.
+#ifndef OXSDK_E2_V23_LINK_BATCH
 void postFormatBarrierParagraphSelection() {
   gState.document->pClass->postUnoCommand(
       gState.document, kFormatBarrierSelectCommand, nullptr, true);
 }
+#endif
 
 // Does the selection the read is about to serialise actually cover the caret
 // the action was dispatched from?
@@ -5115,6 +5383,7 @@ void postFormatBarrierParagraphSelection() {
 // the paragraph's height, which is the residual finding 033 records and which
 // needs a paragraph identity LOK does not expose -- so it is a check that can
 // fail, not a proof.
+#ifndef OXSDK_E2_V23_LINK_BATCH
 void checkFormatBarrierContainment() {
   gFormatBarrier.containmentChecked = false;
   gFormatBarrier.containmentHeld = false;
@@ -5148,6 +5417,7 @@ void checkFormatBarrierContainment() {
   gFormatBarrier.containmentHeld =
       gFormatBarrier.restoreCentre >= top && gFormatBarrier.restoreCentre <= bottom;
 }
+#endif
 
 // Finding 037: is this selection one the html readback is known to survive?
 //
@@ -5324,6 +5594,7 @@ void checkFormatBarrierCrossParagraph() {
   }
 }
 
+#ifndef OXSDK_E2_V23_LINK_BATCH
 void readFormatBarrierPostcondition() {
   // Finding 046.  Asked HERE, at the read, and not at the verdict: by the time
   // the verdict runs the restore has been posted, so the caret is back on the
@@ -5343,6 +5614,7 @@ void readFormatBarrierPostcondition() {
           : markup;
   gFormatBarrier.readback = parseFormatReadback(markup);
 }
+#endif
 
 bool formatBarrierReadbackSatisfied() {
   const FormatReadback &readback = gFormatBarrier.readback;
@@ -5381,6 +5653,7 @@ void postFormatBarrierRestore() {
       gFormatBarrier.restorePoint.y + gFormatBarrier.restorePoint.height / 2);
 }
 
+#ifndef OXSDK_E2_V23_LINK_BATCH
 void finishFormatBarrierAfterRestore() {
   gFormatBarrier.restoreConfirmed = gEditorState.selectionRectangles.empty();
 
@@ -5600,7 +5873,9 @@ void finishFormatBarrierAfterRestore() {
   }
   completeFormatBarrier();
 }
+#endif
 
+#ifndef OXSDK_E2_V23_LINK_BATCH
 void handleFormatBarrierStep(const Command &command) {
   if (!formatBarrierActive() ||
       command.requestId != gFormatBarrier.requestId ||
@@ -5681,6 +5956,7 @@ void handleFormatBarrierStep(const Command &command) {
     return;
   }
 }
+#endif
 
 // Both halves of the advance condition, checked from whichever side arrived
 // last.  Native ordering puts the command result after the state broadcast for
@@ -5692,6 +5968,7 @@ void handleFormatBarrierStep(const Command &command) {
 // something to read.  Either alone was the defect -- rectangles alone accepted
 // the caller's search, and a result alone would read before the selection
 // materialised.
+#ifndef OXSDK_E2_V23_LINK_BATCH
 void maybeAdvanceFormatBarrierSelection() {
   if (gFormatBarrier.stage != FormatBarrierStage::AwaitingSelection)
     return;
@@ -5700,7 +5977,9 @@ void maybeAdvanceFormatBarrierSelection() {
     return;
   queueFormatBarrierStep(FormatBarrierStage::ReadQueued);
 }
+#endif
 
+#ifndef OXSDK_E2_V23_LINK_BATCH
 void handleFormatBarrierStateCallback(int callbackType) {
   if (!formatBarrierActive())
     return;
@@ -5718,6 +5997,7 @@ void handleFormatBarrierStateCallback(int callbackType) {
       gEditorState.selectionRectangles.empty())
     queueFormatBarrierStep(FormatBarrierStage::AwaitingRestore);
 }
+#endif
 
 // Route C: no precondition read at all.
 //
@@ -5725,11 +6005,14 @@ void handleFormatBarrierStateCallback(int callbackType) {
 // might describe another paragraph, which is most of the time (finding 021).
 // Route C does not consult the cache, so there is nothing here to be stale --
 // the action dispatches and the postcondition is read from the document.
+#ifndef OXSDK_E2_V23_LINK_BATCH
 void startFormatBarrierAction(const Command &command, std::uint32_t action,
                               const char *name) {
   startFormatBarrierActionResolved(command, action, name);
 }
+#endif
 
+#ifndef OXSDK_E2_V23_LINK_BATCH
 void startFormatBarrierActionResolved(const Command &command,
                                       std::uint32_t action, const char *name) {
   FormatStateBarrier barrier;
@@ -5856,6 +6139,21 @@ void startFormatBarrierActionResolved(const Command &command,
       true);
 }
 #endif
+#endif
+
+#ifdef OXSDK_E2_V23_LINK_BATCH
+#include "ordered_format.inc"
+#include "ordered_engine_delete.inc"
+#endif
+
+#ifdef OXSDK_E2_V23_LINK_BATCH
+void dispatchOrderedKey(int keyCode, EditorPendingOperation pending) {
+  setOrderedReply([pending] { composeOrderedEditorPending(pending); });
+  gState.document->pClass->postKeyEvent(gState.document, LOK_KEYEVENT_KEYINPUT, 0, keyCode);
+  gState.document->pClass->postKeyEvent(gState.document, LOK_KEYEVENT_KEYUP, 0, keyCode);
+  refreshCaretParagraph();
+}
+#endif
 
 void handleEditorAction(const Command &command) {
   if (!requireDocument(command, "editor-action"))
@@ -5913,7 +6211,11 @@ void handleEditorAction(const Command &command) {
 
 #ifdef OXSDK_E2_FORMAT_BARRIER
   if (editorActionIsParagraphFormat(action)) {
+#ifdef OXSDK_E2_V23_LINK_BATCH
+    startOrderedFormatAction(command, action, name);
+#else
     startFormatBarrierAction(command, action, name);
+#endif
     return;
   }
 
@@ -5972,7 +6274,11 @@ void handleEditorAction(const Command &command) {
                        "manual delete bypass is disabled for verified-selection delete");
       return;
     }
+#ifdef OXSDK_E2_V23_LINK_BATCH
+    startOrderedCaretDelete(command, name, ".uno:SwBackspace", true);
+#else
     startSelectionBarrierDelete(command, name, ".uno:SwBackspace", true);
+#endif
 #else
     startEditorUnoAction(command, name, ".uno:SwBackspace",
                          command.values[2] == 0);
@@ -5985,7 +6291,11 @@ void handleEditorAction(const Command &command) {
                        "manual delete bypass is disabled for verified-selection delete");
       return;
     }
+#ifdef OXSDK_E2_V23_LINK_BATCH
+    startOrderedCaretDelete(command, name, ".uno:Delete", false);
+#else
     startSelectionBarrierDelete(command, name, ".uno:Delete", false);
+#endif
 #else
     startEditorUnoAction(command, name, ".uno:Delete",
                          command.values[2] == 0);
@@ -6175,15 +6485,26 @@ void handleEditorAction(const Command &command) {
   // recovery -- the same death it reaches today, 30 seconds earlier and with a
   // less accurate code.  No v1 artifact moves for this change; the e1 profiles
   // are frozen and none is relinked here.
+#ifdef OXSDK_E2_V23_LINK_BATCH
+  const EditorPendingOperation pending = gEditorPending;
+  dispatchOrderedKey(keyCode, pending);
+  return;
+#else
   gEditorPending.readbackDeadlineArmed = true;
   gEditorPending.readbackDeadline =
       std::chrono::steady_clock::now() +
       std::chrono::milliseconds(EditorMoveReadbackDeadlineMs);
   markAsynchronous(command.requestId);
+#endif
+#ifndef OXSDK_E2_V23_LINK_BATCH
   gState.document->pClass->postKeyEvent(gState.document,
                                         LOK_KEYEVENT_KEYINPUT, 0, keyCode);
   gState.document->pClass->postKeyEvent(gState.document, LOK_KEYEVENT_KEYUP, 0,
                                         keyCode);
+#endif
+#ifdef OXSDK_E2_V23_LINK_BATCH
+  refreshCaretParagraph();
+#endif
 }
 
 #ifdef OXSDK_E2_V21_LINK_BATCH
@@ -6196,6 +6517,12 @@ void handleEditorAction(const Command &command) {
 // error after it, MUTATION_OUTCOME_UNKNOWN, where nothing may be claimed.
 void emitPasteMarkdownError(const Command &command, const char *code,
                             const std::string &message, bool dispatched) {
+#ifdef OXSDK_E2_V23_LINK_BATCH
+  if (gOrderedDispatching) {
+    setOrderedReply([command, code = std::string(code), message, dispatched] { emitPasteMarkdownError(command, code.c_str(), message, dispatched); });
+    return;
+  }
+#endif
   std::ostringstream json;
   json << "{\"schemaVersion\":" << ProtocolSchemaVersion
        << ",\"type\":\"error\",\"requestId\":" << command.requestId
@@ -6299,6 +6626,9 @@ void handlePasteMarkdown(const Command &command) {
     return;
   }
   advanceRevision();
+#ifdef OXSDK_E2_V23_LINK_BATCH
+  setOrderedReply([=] {
+#endif
   std::ostringstream json;
   json << "{\"schemaVersion\":" << ProtocolSchemaVersion
        << ",\"type\":\"markdown-pasted\",\"requestId\":" << command.requestId
@@ -6310,6 +6640,9 @@ void handlePasteMarkdown(const Command &command) {
        << ",\"undoTopComment\":\""
        << jsonEscape(judgement.after.topComment.c_str()) << "\"}";
   emitJson(json.str());
+#ifdef OXSDK_E2_V23_LINK_BATCH
+  });
+#endif
 }
 #endif
 
@@ -6362,6 +6695,10 @@ void handleEditorSelect(const Command &command) {
   gEditorPending.mutation = false;
   gEditorPending.selection = true;
   gEditorPending.name = methodName;
+#ifdef OXSDK_E2_V23_LINK_BATCH
+  const EditorPendingOperation pending = gEditorPending;
+  setOrderedReply([pending] { composeOrderedEditorPending(pending); });
+#else
   gEditorPending.readbackDeadlineArmed = command.values[5] != 0;
   if (gEditorPending.readbackDeadlineArmed) {
     gEditorPending.readbackDeadline =
@@ -6369,6 +6706,7 @@ void handleEditorSelect(const Command &command) {
         std::chrono::milliseconds(EditorSelectReadbackDeadlineMs);
   }
   markAsynchronous(command.requestId);
+#endif
   if (method == OXSDK_EDITOR_SELECTION_MOUSE_DRAG) {
     gState.document->pClass->postMouseEvent(
         gState.document, LOK_MOUSEEVENT_MOUSEBUTTONDOWN, command.values[1],
@@ -6430,6 +6768,9 @@ void handleEditorSelect(const Command &command) {
         gState.document, LOK_SETTEXTSELECTION_RESET, command.values[1],
         command.values[2]);
   }
+#ifdef OXSDK_E2_V23_LINK_BATCH
+  refreshCaretParagraph();
+#endif
 }
 
 // SPEC E2-C, queue item queue-verify-caret-by-block-identity.
@@ -6491,17 +6832,25 @@ void handleEditorPlaceCaret(const Command &command) {
   // ALWAYS armed, unlike the select path where it is a parameter.  The case it
   // covers -- a click that changes nothing -- is not an edge here; it is the
   // one a user reaches by clicking twice in the same place.
+#ifdef OXSDK_E2_V23_LINK_BATCH
+  const EditorPendingOperation pending = gEditorPending;
+  setOrderedReply([pending] { composeOrderedEditorPending(pending); });
+#else
   gEditorPending.readbackDeadlineArmed = true;
   gEditorPending.readbackDeadline =
       std::chrono::steady_clock::now() +
       std::chrono::milliseconds(EditorPlaceCaretDeadlineMs);
   markAsynchronous(command.requestId);
+#endif
   gState.document->pClass->postMouseEvent(
       gState.document, LOK_MOUSEEVENT_MOUSEBUTTONDOWN, command.values[0],
       command.values[1], 1, 1, 0);
   gState.document->pClass->postMouseEvent(
       gState.document, LOK_MOUSEEVENT_MOUSEBUTTONUP, command.values[0],
       command.values[1], 1, 1, 0);
+#ifdef OXSDK_E2_V23_LINK_BATCH
+  refreshCaretParagraph();
+#endif
 }
 
 void handleEditorGetState(const Command &command) {
@@ -6512,6 +6861,9 @@ void handleEditorGetState(const Command &command) {
   // paragraph whose text differed rather than the one the caret is in.
   refreshCaretParagraph();
   const SelectionReadback readback = readSelection();
+#ifdef OXSDK_E2_V23_LINK_BATCH
+  setOrderedReply([=] {
+#endif
   std::ostringstream json;
   json << "{\"schemaVersion\":" << ProtocolSchemaVersion
        << ",\"type\":\"editor-state-result\",\"requestId\":"
@@ -6525,6 +6877,9 @@ void handleEditorGetState(const Command &command) {
   appendEditorState(json);
   json << "}";
   emitJson(json.str());
+#ifdef OXSDK_E2_V23_LINK_BATCH
+  });
+#endif
 }
 
 #ifdef OXSDK_FINDING_016_SCHEDULER_PROBE
@@ -6701,6 +7056,9 @@ void handleSave(const Command &command) {
     return;
   }
 
+#ifdef OXSDK_E2_V23_LINK_BATCH
+  setOrderedReply([=] {
+#endif
   std::ostringstream json;
   json << "{\"schemaVersion\":" << ProtocolSchemaVersion
        << ",\"type\":\"saved\",\"requestId\":" << command.requestId
@@ -6710,10 +7068,63 @@ void handleSave(const Command &command) {
        << "\",\"ptr\":" << reinterpret_cast<std::uintptr_t>(output)
        << ",\"size\":" << byteLength << "}";
   emitJson(json.str());
+#ifdef OXSDK_E2_V23_LINK_BATCH
+  });
+#endif
 }
 
+#ifdef OXSDK_E2_V23_DIAGNOSTIC
+void emitOrderedControl(int kind, std::uint32_t requestId) {
+  std::ostringstream json;
+  json << "{\"type\":\"v23-control\",\"kind\":" << kind
+       << ",\"requestId\":" << requestId << "}";
+  emitJson(json.str());
+}
+
+void handleOrderedDiagnostic(const Command &command) {
+  const int kind = command.values[0];
+  if (kind == 1) {
+    emitOrderedControl(kind, command.requestId);
+    std::mutex mutex;
+    std::condition_variable condition;
+    std::unique_lock<std::mutex> lock(mutex);
+    condition.wait(lock, [] { return false; });
+    return;
+  }
+  if (kind == 2) {
+    emitOrderedControl(kind, command.requestId);
+    setOrderedReply([command] {
+      emitOrderedMissingProof(command, "v23Diagnostic", "UNO_COMMAND_RESULT");
+    });
+    return;
+  }
+  if (!requireDocument(command, "v23Diagnostic"))
+    return;
+  if (kind == 4 && readSelection().type != LOK_SELTYPE_TEXT) {
+    emitCommandError(command, "v23Diagnostic", "INVALID_ARGUMENT",
+                     "the private range-Left control requires a TEXT selection");
+    return;
+  }
+  emitOrderedControl(kind, command.requestId);
+  EditorPendingOperation pending;
+  pending.requestId = command.requestId;
+  pending.documentHandle = command.documentHandle;
+  pending.beforeRevision = gState.revision;
+  pending.beforeSequence = gEditorState.sourceSequence;
+  pending.requiredCallback = kind == 4 ? EditorCaretOrSelectionCallback : LOK_CALLBACK_TEXT_SELECTION;
+  pending.name = kind == 6 ? "move-character-right" : kind == 7 ? "move-line-end"
+                 : kind == 8 ? "move-line-home" : "move-character-left";
+  int key = kind == 6 ? com::sun::star::awt::Key::RIGHT
+            : kind == 7 ? com::sun::star::awt::Key::END
+            : kind == 8 ? com::sun::star::awt::Key::HOME : com::sun::star::awt::Key::LEFT;
+  if (kind != 4)
+    key |= EditorShiftModifier;
+  dispatchOrderedKey(key, pending);
+}
+#endif
+
 void dispatch(const Command &command) {
-#ifdef OXSDK_FINDING_016_SELECTION_BARRIER
+#if defined(OXSDK_FINDING_016_SELECTION_BARRIER) && !defined(OXSDK_E2_V23_LINK_BATCH)
   if (selectionBarrierActive() &&
       command.type != CommandType::EditorSelectionBarrierStep) {
 #ifdef OXSDK_E2_V21_LINK_BATCH
@@ -6731,6 +7142,13 @@ void dispatch(const Command &command) {
   }
 #endif
   switch (command.type) {
+#ifdef OXSDK_E2_V23_DIAGNOSTIC
+  case CommandType::DiagnosticNeverReturn:
+  case CommandType::DiagnosticMissingProof:
+  case CommandType::DiagnosticKey:
+    handleOrderedDiagnostic(command);
+    break;
+#endif
 #ifdef OXSDK_ODS_EDITOR
   case CommandType::Cell:
     handleCell(command);
@@ -6816,7 +7234,7 @@ void dispatch(const Command &command) {
     break;
 #endif
 #ifdef OXSDK_EDITOR_DISCOVERY
-#ifdef OXSDK_E2_FORMAT_BARRIER
+#if defined(OXSDK_E2_FORMAT_BARRIER) && !defined(OXSDK_E2_V23_LINK_BATCH)
   case CommandType::EditorFormatBarrierStep:
     handleFormatBarrierStep(command);
     break;
@@ -6827,6 +7245,7 @@ void dispatch(const Command &command) {
   case CommandType::EditorSelect:
     handleEditorSelect(command);
     break;
+#ifndef OXSDK_E2_V23_LINK_BATCH
   case CommandType::EditorSelectReadback:
   case CommandType::EditorPlaceCaretReadback:
     if (command.requestId == gEditorPending.requestId &&
@@ -6844,13 +7263,14 @@ void dispatch(const Command &command) {
       completePendingEditorActionByReadback();
     }
     break;
+#endif
   case CommandType::EditorPlaceCaret:
     handleEditorPlaceCaret(command);
     break;
   case CommandType::EditorGetState:
     handleEditorGetState(command);
     break;
-#ifdef OXSDK_FINDING_016_SELECTION_BARRIER
+#if defined(OXSDK_FINDING_016_SELECTION_BARRIER) && !defined(OXSDK_E2_V23_LINK_BATCH)
   case CommandType::EditorSelectionBarrierStep:
     handleSelectionBarrierStep(command);
     break;
@@ -6875,6 +7295,12 @@ void dispatch(const Command &command) {
 }
 
 void emitCancelled(const Command &command) {
+#ifdef OXSDK_E2_V23_LINK_BATCH
+  if (gOrderedDispatching) {
+    setOrderedReply([command] { emitCancelled(command); });
+    return;
+  }
+#endif
   std::ostringstream json;
   json << "{\"schemaVersion\":" << ProtocolSchemaVersion
        << ",\"type\":\"cancelled\",\"requestId\":" << command.requestId
@@ -7132,14 +7558,23 @@ void executeQueuedCommand(const Command &command, bool cancelled) {
   } catch (const com::sun::star::uno::Exception &exception) {
     const rtl::OString message =
         OUStringToOString(exception.Message, RTL_TEXTENCODING_UTF8);
+#ifdef OXSDK_E2_V23_LINK_BATCH
+    gOrderedReply = {};
+#endif
     emitCommandError(command, "engine", "UNO_EXCEPTION",
                      std::string(gStage) +
                          ": UNO exception: " + message.getStr());
   } catch (const std::exception &exception) {
+#ifdef OXSDK_E2_V23_LINK_BATCH
+    gOrderedReply = {};
+#endif
     emitCommandError(command, "engine", "CPP_EXCEPTION",
                      std::string(gStage) + ": " + exception.what());
   } catch (...) {
     const std::type_info *type = __cxxabiv1::__cxa_current_exception_type();
+#ifdef OXSDK_E2_V23_LINK_BATCH
+    gOrderedReply = {};
+#endif
     emitCommandError(command, "engine", "UNKNOWN_EXCEPTION",
                      std::string(gStage) + ": unknown C++ exception type=" +
                          (type ? type->name() : "<unavailable>"));
@@ -7149,6 +7584,9 @@ void executeQueuedCommand(const Command &command, bool cancelled) {
 
 // Dispatches every queued command, plus a synthesized selection-barrier
 // deadline step when one is due, and returns how many ran.  Never blocks.
+#ifdef OXSDK_E2_V23_LINK_BATCH
+#include "ordered_engine_poll.inc"
+#else
 int mainLoopDrainCommands() {
   int processed = 0;
   for (;;) {
@@ -7283,6 +7721,8 @@ int mainLoopPollCallbackImpl(void *, int timeoutUs) {
   return mainLoopDrainCommands();
 }
 
+#endif
+
 // One command at a time is an engine invariant.  A dispatched command can
 // itself pump the scheduler (the combined drain profile runs
 // ProcessEventsToIdle from inside a command), which nests ImplYield and would
@@ -7311,7 +7751,11 @@ bool mainLoopAnyInputCallback(void *, int) {
   // still pending, so a busy stretch cannot starve command dispatch
   // (vcl/headless/svpinst.cxx ImplYield's anyInput check).
   std::lock_guard<std::mutex> lock(gState.mutex);
+#ifdef OXSDK_E2_V23_LINK_BATCH
+  return probe::poll::anyInput({gState.commands.size(), static_cast<bool>(gOrderedReply)});
+#else
   return !gState.commands.empty();
+#endif
 }
 
 extern "C" void *mainLoopEngineThreadMain(void *argument) {
@@ -7344,8 +7788,18 @@ extern "C" void *mainLoopEngineThreadMain(void *argument) {
     }
     gStage = "start.libreofficekit_hook_2";
     gState.kit = libreofficekit_hook_2("/instdir/program", "file:///tmp/user");
+#ifdef OXSDK_E2_V23_LINK_BATCH
+    if (gState.kit) {
+      std::lock_guard<std::mutex> lock(gState.mutex);
+      gState.commands.push_front(*initial);
+    } else {
+      emitReady(*initial);
+      finishExecuting(initial->requestId);
+    }
+#else
     emitReady(*initial);
     finishExecuting(initial->requestId);
+#endif
   }
   mainLoopTrace("init-done", gState.kit != nullptr, 0);
   if (!gState.kit)
@@ -7354,7 +7808,9 @@ extern "C" void *mainLoopEngineThreadMain(void *argument) {
   // thread (COOL kit/Kit.cpp documents the loop getting stuck otherwise), and
   // this thread became the VCL main thread when the hook ran InitVCL.
   gStage = "mainloop.runLoop";
+#ifndef OXSDK_E2_V23_LINK_BATCH
   emscripten_set_interval(mainLoopTickAliveProbe, 1000.0, nullptr);
+#endif
   mainLoopTrace("entering-runLoop", 0, 0);
   // The closure must be non-null: SvpSalInstance::ImplYield only invokes the
   // poll callback when mpPollClosure is set (vcl/headless/svpinst.cxx, the
@@ -7435,6 +7891,44 @@ SubmitStatus startEngine(std::uint32_t requestId, bool sdk) {
   return SubmitStatus::Ok;
 }
 } // namespace
+
+#ifdef OXSDK_E2_V23_DIAGNOSTIC
+extern "C" int oxsdk_v23_diagnostic(int kind, int requestId) {
+  if (kind < 1 || kind > 8 || requestId <= 0)
+    return static_cast<int>(SubmitStatus::InvalidArgument);
+  if (!gStarted.load(std::memory_order_acquire))
+    return static_cast<int>(SubmitStatus::NotStarted);
+  if (kind == 3) {
+    // Deliberately the sole off-engine-thread LOK entrance, for the 040
+    // negative control. An isolated harness invokes it with a settled doc.
+    LibreOfficeKitDocument *document = nullptr;
+    {
+      std::lock_guard<std::mutex> lock(gState.mutex);
+      if (!gCallbackDocumentHandle.load(std::memory_order_acquire) ||
+          gState.executingRequest || !gState.commands.empty() ||
+          !gState.asynchronousRequests.empty())
+        return static_cast<int>(SubmitStatus::InvalidArgument);
+      document = gState.document;
+    }
+    if (!document)
+      return static_cast<int>(SubmitStatus::InvalidArgument);
+    emitOrderedControl(kind, static_cast<std::uint32_t>(requestId));
+    char *text = document->pClass->getTextSelection(document, "text/html", nullptr);
+    std::free(text);
+    emitSdkError(requestId, gCallbackDocumentHandle.load(), "v23Diagnostic",
+                 "DIAGNOSTIC_CONTROL_RETURNED", "JS-thread LOK negative control returned");
+    return static_cast<int>(SubmitStatus::Ok);
+  }
+  Command command{kind == 1 ? CommandType::DiagnosticNeverReturn
+                           : kind == 2 ? CommandType::DiagnosticMissingProof
+                                       : CommandType::DiagnosticKey};
+  command.sdk = true;
+  command.requestId = static_cast<std::uint32_t>(requestId);
+  command.documentHandle = gCallbackDocumentHandle.load(std::memory_order_acquire);
+  command.values[0] = kind;
+  return static_cast<int>(submit(std::move(command)));
+}
+#endif
 
 void emitError(const char *where, const std::string &message) {
   emitJson("{\"type\":\"error\",\"where\":\"" + jsonEscape(where) +

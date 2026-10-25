@@ -1864,7 +1864,9 @@ $(E2_V23D_BUILD)/%.o: src/%.cpp $(HEADERS) src/editor_api.h \
 		src/editor_discovery_api.h src/format_readback_text.hpp \
 		src/a11y_paragraph_identity.hpp src/merge_key_undo.hpp \
 		src/markdown_paste.hpp src/ordered_command_proof.hpp \
-		src/ordered_delete_route.hpp src/ordered_poll.hpp $(E2_V23D_MD4C_INCLUDE)/md4c.h Makefile \
+		src/ordered_delete_route.hpp src/ordered_poll.hpp src/reply_state_reads.hpp \
+		src/ordered_engine_state.inc src/ordered_engine_reply.inc src/ordered_engine_poll.inc \
+		src/ordered_engine_delete.inc src/ordered_format.inc $(E2_V23D_MD4C_INCLUDE)/md4c.h Makefile \
 		| $(E2_V23D_BUILD)
 	$(CXX) $(E1_CPPFLAGS) $(R5_CXXFLAGS) -I$(E2_V23D_MD4C_INCLUDE) \
 		-DOXSDK_EDITOR_DISCOVERY \
