@@ -881,6 +881,25 @@ define link_product_stack_1m
 		-o $(3)
 endef
 
+# Diagnostic only: product link flags plus the spec 9.2 overflow instrument.
+define link_v23_diagnostic
+	$(CXX) $(1) \
+		-L$(LOBUILD)/instdir/program $$(cat $(LINKDEPS)) \
+		-pthread -fwasm-exceptions -sSUPPORT_LONGJMP=wasm --no-entry -Oz \
+		-sMODULARIZE -sEXPORT_NAME=createProbeModule \
+		-sTOTAL_MEMORY=1GB -sPTHREAD_POOL_SIZE=7 -sPTHREAD_POOL_SIZE_STRICT=0 \
+		-sSTACK_SIZE=131072 -sDEFAULT_PTHREAD_STACK_SIZE=1048576 \
+		-sSTACK_OVERFLOW_CHECK=2 \
+		-sFORCE_FILESYSTEM=1 -sWASM_BIGINT=1 -sERROR_ON_UNDEFINED_SYMBOLS=1 -sFETCH=1 \
+		-sASSERTIONS=0 -sEXIT_RUNTIME=0 \
+		-sEXPORTED_RUNTIME_METHODS=ccall,FS,HEAPU8 \
+		-sEXPORTED_FUNCTIONS=@$(2) \
+		-Wl,--wrap=_Z18initJsUnoScriptingv \
+		--pre-js $(LOSRC)/static/emscripten/environment.js \
+		--pre-js $(FS_PRE_JS) \
+		-o $(3)
+endef
+
 # Finding 037 / 032.  The stuck thread is parked, not spinning (measured: a CPU
 # profile during the hang is identical to one taken before it), so profiling is
 # exhausted and the question is what it is waiting for.  Emscripten already
@@ -1830,6 +1849,89 @@ $(E2_V22_DIST)/sdk-manifest.json: $(E2_V22_BUILD)/probe.js $(E2_V22_BUILD)/probe
 	@test -s $(E2_V22_DIST)/sdk-worker.js
 
 $(E2_V22_BUILD) $(E2_V22_DIST):
+	mkdir -p $@
+
+# --------- v23 diagnostic candidate C; feature ABI 6 is a later link.
+E2_V23D_BUILD := build/e2/editor-v23-diag
+E2_V23D_DIST := dist/profiles/e2-editor-v23-diag
+E2_V23D_SOURCES := $(E2_C_SOURCES)
+E2_V23D_OBJECTS := $(patsubst src/%.cpp,$(E2_V23D_BUILD)/%.o,$(E2_V23D_SOURCES))
+E2_V23D_MD4C_INCLUDE := $(LOBUILD)/workdir/UnpackedTarball/md4c/src
+# Frozen base worker; the private diagnostic tail is concatenated in build/.
+E2_V23D_WORKER_SHA256 := 0d55bcfa2ee0e4ddc6239e25282001c13410b152a5a08ebac9903cc65c3fd350
+
+$(E2_V23D_BUILD)/%.o: src/%.cpp $(HEADERS) src/editor_api.h \
+		src/editor_discovery_api.h src/format_readback_text.hpp \
+		src/a11y_paragraph_identity.hpp src/merge_key_undo.hpp \
+		src/markdown_paste.hpp src/ordered_command_proof.hpp \
+		src/ordered_delete_route.hpp src/ordered_poll.hpp $(E2_V23D_MD4C_INCLUDE)/md4c.h Makefile \
+		| $(E2_V23D_BUILD)
+	$(CXX) $(E1_CPPFLAGS) $(R5_CXXFLAGS) -I$(E2_V23D_MD4C_INCLUDE) \
+		-DOXSDK_EDITOR_DISCOVERY \
+		-DOXSDK_FINDING_016_SELECTION_BARRIER -DOXSDK_E2_FORMAT_BARRIER \
+		-DOXSDK_MERGE_KEY_UNDO -DOXSDK_E2_V20_LINK_BATCH \
+		-DOXSDK_E2_V21_LINK_BATCH -DOXSDK_MAINLOOP_ENGINE \
+		-DOXSDK_E2_V23_LINK_BATCH -DOXSDK_E2_V23_DIAGNOSTIC \
+		$(EXTRA_DEFINES) -c $< -o $@
+
+# v22 public exports with one private diagnostic entrance.
+$(E2_V23D_BUILD)/exports.txt: $(R5_BUILD)/writer-review/exports.txt Makefile \
+		| $(E2_V23D_BUILD)
+	cp $< $@
+	printf '%s\n' \
+		_oxsdk_editor_action \
+		_oxsdk_editor_get_state \
+		_oxsdk_editor_select_range \
+		_oxsdk_editor_place_caret \
+		_oxsdk_editor_abi_version \
+		_oxsdk_editor_set_action_gestures \
+		_oxsdk_document_redo \
+		_oxsdk_document_page_rectangles \
+		_oxsdk_document_paste_markdown \
+		_oxsdk_v23_diagnostic >> $@
+	@if grep -q editor_discovery $@; then \
+		echo "product export list contains a discovery symbol"; exit 1; fi
+
+# Guarded from the first link, like every product artifact before it.
+$(E2_V23D_BUILD)/probe.js: $(E2_V23D_OBJECTS) $(EXTRA_OBJECTS) \
+		$(E2_V23D_BUILD)/exports.txt $(LINKDEPS) $(FS_PRE_JS) Makefile
+	$(call refuse_unasked_relink,the v23 diagnostic candidate C (ABI 5; unipoll; diagnostic instruments) -- every link mints a new hash)
+	$(call link_v23_diagnostic,$(E2_V23D_OBJECTS) $(EXTRA_OBJECTS),$(E2_V23D_BUILD)/exports.txt,$@)
+
+$(E2_V23D_BUILD)/probe.wasm: $(E2_V23D_BUILD)/probe.js
+	@test -s $@
+
+# No public worker/API edit: append the private entry to the pinned base.
+$(E2_V23D_BUILD)/sdk-worker.js: sdk/sdk-worker.js sdk/v23-diagnostic-worker-tail.js Makefile | $(E2_V23D_BUILD)
+	echo "$(E2_V23D_WORKER_SHA256)  sdk/sdk-worker.js" | sha256sum -c --quiet
+	cat sdk/sdk-worker.js sdk/v23-diagnostic-worker-tail.js > $@
+
+# ABI 5 and the complete v22 action contract are preserved by the wrapper.
+$(E2_V23D_DIST)/sdk-manifest.json: $(E2_V23D_BUILD)/probe.js $(E2_V23D_BUILD)/probe.wasm \
+		$(E2_V23D_BUILD)/exports.txt $(E2_V23D_BUILD)/sdk-worker.js \
+		sdk/v18-writer-review-manifest.json \
+		tools/build_base_no35_pack.py tools/build_r5_profiles.py \
+		tools/build_cjk_subset.py tools/build_cjk_subset_ttc_pack.py \
+		tools/build_cjk_subset_mono_pack.py \
+		tools/build_e2_editor_v5_profile.py tools/build_e2_v23_diagnostic_profile.py \
+		tools/build_e2_editor_v4_profile.py tools/build_e2_c_profile.py \
+		tools/build_e2_b_profile.py tools/e1_support.py | $(E2_V23D_DIST)
+	echo "$(E2_V23D_WORKER_SHA256)  sdk/sdk-worker.js" | sha256sum -c --quiet
+	python3 tools/build_base_no35_pack.py --check
+	python3 tools/build_cjk_subset_mono_pack.py --check
+	python3 tools/build_e2_v23_diagnostic_profile.py \
+		--source-manifest sdk/v18-writer-review-manifest.json \
+		--loader $(E2_V23D_BUILD)/probe.js --wasm $(E2_V23D_BUILD)/probe.wasm \
+		--worker $(E2_V23D_BUILD)/sdk-worker.js \
+		--exports $(E2_V23D_BUILD)/exports.txt \
+		--profile e2-editor-v23-diag --inline-range-gestures all \
+		--page-rectangles --paste-markdown \
+		--output $(E2_V23D_DIST)
+	@test -s $(E2_V23D_DIST)/probe.js
+	@test -s $(E2_V23D_DIST)/probe.wasm
+	@test -s $(E2_V23D_DIST)/sdk-worker.js
+
+$(E2_V23D_BUILD) $(E2_V23D_DIST):
 	mkdir -p $@
 
 # ---------------------------------------------------------------- v5, a11y
@@ -4333,6 +4435,7 @@ test-e2-c-static:
 		--carrier E2_V20=probe_engine,sdk_api,editor_api \
 		--carrier E2_V21=probe_engine,sdk_api,editor_api \
 		--carrier E2_V22=probe_engine,sdk_api,editor_api \
+		--carrier E2_V23D=probe_engine,sdk_api,editor_api \
 		--carrier ODS_VIEWER_V1=probe_engine,sdk_api \
 		--carrier ODS_VIEWER_V2=probe_engine,sdk_api \
 		--carrier ODS_VIEWER_V3=probe_engine,sdk_api \
