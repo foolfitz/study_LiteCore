@@ -1,0 +1,30 @@
+{
+  "argv": [
+    "python3",
+    "-I",
+    "tools/run_v23_diagnostic.py",
+    "--profile",
+    "e2-editor-v23-diag-r2",
+    "--wasm-sha256",
+    "683b7343bd02b432d4a1b0cea0af8c7542b6a0ad84885e8cc5755a4efdfce078",
+    "--fixture",
+    "test-docs/e1/plain-grapheme.odt",
+    "--fixture-name",
+    "plain-grapheme.odt",
+    "--output",
+    "../findings/evidence/link-batch-v23/post-link/r2-attempt-01/bounded-prep-01",
+    "--browser",
+    "both",
+    "--arm",
+    "all",
+    "--rounds",
+    "1"
+  ],
+  "cwd": "wasm_sdk_probe",
+  "exitCode": 1,
+  "stdout": "",
+  "stderr": "Traceback (most recent call last):\n  File \"/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/run_v23_diagnostic.py\", line 121, in <module>\n    raise SystemExit(main())\n                     ~~~~^^\n  File \"/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/run_v23_diagnostic.py\", line 69, in main\n    'instrument': {str(p.relative_to(PROJECT)): sha(p) for p in instrument_files()},\n                                                                ^^^^^^^^^^^^^^^^\nUnboundLocalError: cannot access local variable 'instrument_files' where it is not associated with a value\n",
+  "browserStarted": false,
+  "reportPresent": false,
+  "scope": "runner setup failure before page retrieval; no bounded observations"
+}
