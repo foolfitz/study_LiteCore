@@ -56,3 +56,7 @@ Use the exact native installation pinned by the combined runbook; the placeholde
 ## Installation binding clarified before execution
 
 The installation placeholder in the reproduction command above is bound to the same path as `handoff/RUNBOOK-v23-reset-native-preparation.md`: `/home/jiajun/LibreOffice/study_LiteCore/native-lok-26-8/build/instdir/program`. This clarification supplies the concrete existing installation; it does not change any arm, candidate, acceptance condition, or count.
+
+## Reader implementation of the already declared command boundary
+
+Before any counted run, the reader now checks the shared harness's actual `pollIndex` on every measured operation: all must be positive integers and identical within the arm. Each `Q` record must report exactly `restoreSequence: ["RESET", "START", "RESET"]`. These implement the existing one-command and compound-restoration requirements above; they add no population or acceptance scope. Synthetic split-poll, missing-poll and wrong-sequence records must be rejected. The runner and reader also support isolated Python invocation (`python3 -I`).

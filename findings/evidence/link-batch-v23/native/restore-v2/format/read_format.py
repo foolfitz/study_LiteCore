@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 import sys
 import xml.etree.ElementTree as ET
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 from arms import F_ARMS, expected_ops
 from run_format import OLD, FIXTURES, identity
 sys.path.insert(0, str(OLD))
@@ -41,6 +42,12 @@ def judge(cells, p2):
             if [op['op'] for op in ops] != expected_ops(arm):
                 problems.append(f'{arm["name"]}/r{r}: op sequence mismatch')
                 continue
+            polls = [op.get('pollIndex') for op in ops]
+            if not all(type(poll) is int and poll > 0 for poll in polls) or len(set(polls)) != 1:
+                problems.append(f'{arm["name"]}/r{r}: operations did not share one positive poll index')
+            for op in ops:
+                if op['op'].startswith('Q') and op.get('restoreSequence') != ['RESET', 'START', 'RESET']:
+                    problems.append(f'{arm["name"]}/r{r}: Q restoration sequence differs')
             variant = arm['name'].split('-')[-1]
             if variant != 'direct':
                 selected = ops[2]['atReturn']
@@ -125,8 +132,11 @@ def self_test():
     cells = {}
     for arm in F_ARMS:
         continuation, variant = arm['name'].split('-')[1:]
-        ops = [{'op': name, 'atReturn': {'selType': 0, 'selText': '', 'undo': undo}}
+        ops = [{'op': name, 'pollIndex': 7, 'atReturn': {'selType': 0, 'selText': '', 'undo': undo}}
                for name in expected_ops(arm)]
+        for op in ops:
+            if op['op'].startswith('Q'):
+                op['restoreSequence'] = ['RESET', 'START', 'RESET']
         if variant != 'direct':
             ops[2]['atReturn'].update(selType=1, selText=p2)
         if continuation == 'handles':
@@ -142,7 +152,8 @@ def self_test():
     controls = []
     for mutation in ('empty-shift', 'empty-handles', 'wrong-save', 'wrong-undo', 'not-NONE',
                      'no-selection', 'no-reset-discriminator', 'no-wrong-discriminator',
-                     'unclean', 'missing-cell', 'empty-population', 'wrong-op', 'bad-undo'):
+                     'unclean', 'missing-cell', 'empty-population', 'wrong-op', 'bad-undo',
+                     'split-poll', 'wrong-Q-sequence', 'missing-poll'):
         bad = copy.deepcopy(cells)
         cell = bad[('format-shift-candidate', 1)]
         if mutation == 'empty-shift': cell['caret'] = ['', '']
@@ -159,6 +170,9 @@ def self_test():
         elif mutation == 'empty-population': bad = {}
         elif mutation == 'wrong-op': cell['measured']['ops'][3]['op'] = 'Rbefore'
         elif mutation == 'bad-undo': cell['measured']['ops'][-1]['atReturn']['undo'] = 'bad'
+        elif mutation == 'split-poll': cell['measured']['ops'][1]['pollIndex'] = 8
+        elif mutation == 'wrong-Q-sequence': cell['measured']['ops'][3]['restoreSequence'] = ['RESET', 'RESET']
+        elif mutation == 'missing-poll': cell['measured']['ops'][0].pop('pollIndex')
         try: rejected = judge(bad, p2)['verdict'] != 'FORMAT-RESTORE-HOLDS'
         except AssertionError: rejected = True
         assert rejected, mutation
