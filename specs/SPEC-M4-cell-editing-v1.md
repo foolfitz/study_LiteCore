@@ -185,3 +185,11 @@ Astra `/root/astra_calc_scope` 在完整呼叫鏈覆核後裁決有限範圍可�
 `auto-final-03` Firefox 第三輪與等待公開 ready 後的 `auto-final-04` Chrome 第一輪，均在零個 autosave case 的 B2 定位前置停住，仍為 A1／revision 0／無 session error。因此撤回「只等 ready 就能解釋前次失敗」的推論，不改稱純工具問題。Astra 裁決以固定案例直接驗 render：聚焦位址欄、設入 B2、發送既有 session 狀態通知，內容必須保留；失焦後才依實際 active cell 正規化。Enter 沿既有選格流程，沒有新啟動架構。
 
 本案在正式可計數執行前先留固定紅案，再修 focused render／blur；新增 `focused-address-keeps-input` 到既有 runner 的可執行 case 母體，reader 自動納入，未做／失敗則本案未成立。本輪尚無完整 N＝3 成立，修後重新開始雙瀏覽器各三輪，之前成功不拼湊計數。若固定紅案不成立或修後同症狀仍出現，停止沿此歸因擴張，改以明確 session 選格作 autosave fixture 前置，將起始互動另案登錄；這是有截止的裁決，不是「跑到看起來穩定」。
+
+## 19. 自動儲存鏡像層成立，後繼引擎待使用者建置（2026-10-25，只追加）
+
+`calc-range-autosave/auto-final-05` Chrome／Firefox 各 N＝3，18 案／輪，**108／108**。包含 focused address 回歸、真實 30 秒閒置、草稿不強制提交、匯出中新打字與焦點保留、copy／stranded 暫停及手動恢復，十八份 ODS 的獨立 XML／鄰格核對。artifact reader 自 runner 可執行 call sites 生成母體，核對工具與來源身分、ODS hash／XML；空 runs、缺瀏覽器、空 checks、缺項、false、錯工具六個紅控制全拒絕。先前失敗與未完成輪數均未拼入。
+
+session／SDK／worker／host／autosave 單元 **45／45**；autosave 七個突變、range 六個突變、range reader 五個合成紅案與兩個 frozen profile 保護控制均拒絕，E1-C intact。Astra `/root/astra_calc_scope` 讀取 reader 結果後裁決鏡像層與來源準備可封閉，不再擴本輪閘門。Claude 03 完整審核與逐項處置、其餘逾時無 verdict 紀錄均保留。
+
+以上使用真實凍結 v1 引擎與可控制的 HOST 替身，**不證明 native／v2 範圍格式、實際 Files 存回或新候選安裝**。這三層仍為 NOT_ESTABLISHED。來源、native 22 案及 browser 40 案／輪的續跑工具、精確 build／runbook 已完成，會編譯的命令依擁有者規則交使用者。未編譯、未重連結、未動 ddev／原文件／鎖、未凍結 v2、未打包安裝；現有宿主 0.2.36 與既有三顆 frozen profile 身分相同。K／全域 pins／BINDING／chain／計數不動，名義出貨 0.2.26，§34.4 累計 47／27。下一步是 [使用者建置](../handoff/RUNBOOK-build-calc-range-v2.md)，成功後由 agent 繼續實測及候選流程。
