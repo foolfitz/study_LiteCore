@@ -103,7 +103,7 @@ void deferOrderedFormatReply(FormatStateBarrier barrier, bool dispatched,
     if (!gFormatBarrier.resultSeen ||
         (selects && !gFormatBarrier.selectionResultSeen)) {
       gFormatBarrier.failureShape =
-          std::string("proof-absent-at-poll:") +
+          std::string("proof-absent-at-poll:UNO_COMMAND_RESULT:") +
           (!gFormatBarrier.resultSeen ? barrier.command
                                      : kFormatBarrierSelectCommand);
       failFormatBarrier(kFormatMutationOutcomeUnknown,

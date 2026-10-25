@@ -108,8 +108,12 @@ int main() {
  check(emitted.restoreConfirmed,"NONE read confirms restore");
  reset(); selectedType=1; deliverSelect=false; run(); flush();
  check(code=="MUTATION_OUTCOME_UNKNOWN","missing SelectText proof refused");
+ check(emitted.failureShape=="proof-absent-at-poll:UNO_COMMAND_RESULT:.uno:SelectText",
+       "missing SelectText proof names callback and command");
  reset(); selectedType=1; deliverFormat=false; run(); flush();
  check(code=="MUTATION_OUTCOME_UNKNOWN","missing format proof refused");
+ check(emitted.failureShape=="proof-absent-at-poll:UNO_COMMAND_RESULT:.uno:StyleApply",
+       "missing format proof names callback and command");
  reset(); selectedType=1; restoreWorks=false; run(); flush();
  check(code=="MUTATION_OUTCOME_UNKNOWN","restore failure refused");
  reset(); crossRoute=true; deliverSelect=false; run(); flush();
