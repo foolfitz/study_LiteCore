@@ -6,7 +6,7 @@ const HOST = globalThis.liteCoreHost ?? null;
 const diagnostics = new URLSearchParams(location.search).get("diagnostics") === "1";
 const $ = id => document.getElementById(id);
 const ui = Object.fromEntries(["file-input","open-file","save-button","cell-address","formula-input",
-  "cancel-button","commit-button","viewport","surface","tiles","selection","cell-editor","empty",
+  "cancel-button","commit-button","viewport","surface","tiles","selection","active-cell","cell-editor","empty",
   "tab-strip","state-pill","selection-label","s-doc","s-revision","toast"].map(id=>[id,$(id)]));
 let session = null, composing = false, paintPending = false, lastPaint = null;
 const record = globalThis.__calcEditor = {schemaVersion:1,session:null,state:null,events:[],lastSave:null};
@@ -24,7 +24,7 @@ function errorNotice(error) {
   const messages={READ_ONLY:"這個儲存格無法編輯。",CELL_TEXT_TOO_LONG:"儲存格內容超過 32,767 個字元，尚未寫入。",
     STALE_REVISION:"文件狀態已改變；你的輸入已保留，請先儲存或重新開啟。",
     MUTATION_OUTCOME_UNKNOWN:"無法確認剛才的修改，請保留此頁，避免遺失內容。",
-    PART_HIDDEN:"這張工作表已隱藏。"};
+    PART_HIDDEN:"這張工作表已隱藏。",RANGE_FORMAT_UNSUPPORTED:"目前尚未支援整個選取範圍的格式，請先選取單一儲存格。"};
   notice(messages[error.code] || error.message || String(error),true);
 }
 async function action(work) {
@@ -53,21 +53,25 @@ function render(state) {
   ui["commit-button"].disabled=!editable || !state.editing || waiting;
   ui["cancel-button"].disabled=!state.editing || waiting;
   for(const node of document.querySelectorAll("[data-format]")) {
-    node.disabled=!editable || state.busy;
-    node.setAttribute("aria-pressed",state.cell?.[node.dataset.format] ? "true":"false");
+    node.disabled=!editable || state.busy || state.selection?.multiple;
+    node.setAttribute("aria-pressed",state.selection?.multiple ? "false" : state.cell?.[node.dataset.format] ? "true":"false");
+    node.title=state.selection?.multiple ? "目前尚未支援範圍格式，請先選取單一儲存格。" : node.getAttribute("aria-label");
   }
   if(!composing) {
     if(ui["formula-input"].value!==state.draft)ui["formula-input"].value=state.draft;
     if(ui["cell-editor"].value!==state.draft)ui["cell-editor"].value=state.draft;
   }
   ui.selection.hidden=!ready || !state.cell;
+  ui["active-cell"].hidden=ui.selection.hidden;
   ui["cell-editor"].hidden=!ready || !state.cell;
   ui["cell-editor"].classList.toggle("grid-input",state.editing!=="inline");
   if(state.cell) {
     const address=cellAddress(state.cell.column,state.cell.row);
     ui["cell-address"].value=address;
-    ui["selection-label"].textContent=address;
-    place(ui.selection,state.cell);place(ui["cell-editor"],state.cell);
+    const range=state.selection;
+    ui["selection-label"].textContent=range?.multiple
+      ? `${cellAddress(range.column,range.row)}:${cellAddress(range.endColumn,range.endRow)} · 作用中 ${address}（範圍格式尚未支援）` : address;
+    place(ui.selection,range || state.cell);place(ui["active-cell"],state.cell);place(ui["cell-editor"],state.cell);
     if(state.editing!=="inline") {
       // A focused, real textarea receives beforeinput and IME without moving
       // focus midway through the first character. Keep its idle caret in view.
@@ -84,7 +88,7 @@ function render(state) {
       button.textContent=tab.label;button.dataset.part=tab.index;button.setAttribute("role","tab");
       button.setAttribute("aria-selected",String(tab.current));button.disabled=!tab.enabled;
       button.title=tab.disabledReason || "";
-      button.addEventListener("click",()=>action(()=>session.showPart(tab.index)));
+      button.addEventListener("click",()=>{cancelDrag();void action(async()=>{await session.showPart(tab.index);focusGrid();});});
       return button;
     }));
   }
@@ -137,7 +141,7 @@ async function openBytes(bytes,name,options={}) {
   });
   record.session=session;
   await session.open({bytes,name,...options});
-  notice(options.readOnly ? "此檔案目前以唯讀開啟。" : "連按兩下儲存格編輯，或使用上方輸入欄。");
+  notice(options.readOnly ? "此檔案目前以唯讀開啟。" : "直接輸入取代內容；F2 編輯；拖曳或 Shift＋方向鍵選取範圍。");
   await paint();
   return session.state;
 }
@@ -203,16 +207,60 @@ ui["cell-address"].addEventListener("keydown",event=>{
   const match=/^([A-Z]+)([1-9][0-9]*)$/.exec(ui["cell-address"].value.trim().toUpperCase());
   if(!match){notice("請輸入儲存格位址，例如 A1。",true);return;}
   let column=0;for(const char of match[1])column=column*26+char.charCodeAt(0)-64;
-  void action(async()=>{await session.selectCell(column-1,Number(match[2])-1);focusGrid();});
+  cancelDrag();void action(async()=>{await session.selectCell(column-1,Number(match[2])-1);focusGrid();});
 });
 function point(event){const rect=ui.surface.getBoundingClientRect();return[Math.max(0,Math.round((event.clientX-rect.left)*15)),Math.max(0,Math.round((event.clientY-rect.top)*15))];}
-ui.viewport.addEventListener("click",event=>{
-  if(!session || event.target===ui["cell-editor"] || event.detail!==1)return;
-  const [x,y]=point(event);void action(async()=>{await session.selectAt(x,y);focusGrid();});
+let drag=null, gesture=0;
+function cancelDrag(){gesture++;drag=null;}
+function inViewport(event) {
+  const r=ui.viewport.getBoundingClientRect();
+  return event.clientX>=r.left && event.clientY>=r.top && event.clientX<r.left+ui.viewport.clientWidth && event.clientY<r.top+ui.viewport.clientHeight;
+}
+async function extendDrag(current) {
+  if(current.pumping)return;
+  current.pumping=true;
+  try {
+    await current.start;
+    while(current.latest && current.generation===gesture) {
+      const [x,y]=current.latest;current.latest=null;
+      await action(()=>session.selectAt(x,y,{extend:true,valid:()=>current.generation===gesture}));
+    }
+  } finally {
+    current.pumping=false;
+    if(!current.active && current.generation===gesture)focusGrid();
+  }
+}
+ui.viewport.addEventListener("pointerdown",event=>{
+  if(!session || event.button!==0 || event.target===ui["cell-editor"] || !inViewport(event))return;
+  cancelDrag();
+  const [x,y]=point(event), current={generation:gesture,pointer:event.pointerId,active:true,latest:null,pumping:false};
+  drag=current;ui.viewport.setPointerCapture(event.pointerId);
+  current.start=action(()=>session.selectAt(x,y,{extend:event.shiftKey,valid:()=>current.generation===gesture}));
+  void current.start.then(()=>{if(!current.active && !current.pumping && current.generation===gesture)focusGrid();});
 });
+ui.viewport.addEventListener("pointermove",event=>{
+  if(!drag || event.pointerId!==drag.pointer || !inViewport(event))return;
+  drag.latest=point(event);void extendDrag(drag);
+});
+ui.viewport.addEventListener("pointerup",event=>{
+  if(!drag || event.pointerId!==drag.pointer)return;
+  const current=drag;current.active=false;drag=null;
+  if(ui.viewport.hasPointerCapture(event.pointerId))ui.viewport.releasePointerCapture(event.pointerId);
+  void extendDrag(current);
+});
+ui.viewport.addEventListener("pointercancel",()=>{cancelDrag();focusGrid();});
+window.addEventListener("blur",cancelDrag);
+function gridKey(event) {
+  if(!session || session.state.editing || composing || event.isComposing || event.keyCode===229 || event.ctrlKey || event.metaKey || event.altKey)return;
+  const direction={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]}[event.key];
+  if(!direction)return;
+  event.preventDefault();cancelDrag();
+  void action(async()=>{await session.moveSelection(...direction,{extend:event.shiftKey});focusGrid();});
+}
+ui.viewport.addEventListener("keydown",gridKey);
 ui.viewport.addEventListener("dblclick",event=>{
   if(!session || event.target===ui["cell-editor"])return;
-  event.preventDefault();const [x,y]=point(event);
+  event.preventDefault();cancelDrag();const [x,y]=point(event);
   void action(async()=>{
     await session.selectAt(x,y);session.beginEdit("inline");
     ui["cell-editor"].focus({preventScroll:true});

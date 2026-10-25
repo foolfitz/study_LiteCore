@@ -141,6 +141,7 @@ export class CalcEditorSession {
     const result = await this.document.setCellInput(cell.column,cell.row,text,
       {part:cell.part,expectedRevision:this.document.revision});
     this._cell=result.cell;
+    this._selection=rectangle(result.cell);
     this.scheduler.invalidateRevision(this.document.revision);
     if (version === this._draftVersion) {
       this._draft=result.cell.input;this._editing=null;

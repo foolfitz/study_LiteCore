@@ -29,7 +29,10 @@ button:disabled { opacity:.4; cursor:default; }
 #viewport { flex:1; min-height:0; overflow:auto; position:relative; background:#edf1ee; outline:none; }
 #surface { position:relative; background:#fff; min-width:100%; min-height:100%; }
 #tiles canvas { position:absolute; display:block; }
-#selection { position:absolute; border:2px solid var(--accent); pointer-events:none; z-index:2; }
+#selection { position:absolute; border:2px solid var(--accent); background:#18745218; pointer-events:none; z-index:2; }
+#active-cell { position:absolute; border:2px solid var(--accent); pointer-events:none; z-index:2; }
+#surface { user-select:none; }
+#cell-editor { user-select:text; }
 #cell-editor { position:absolute; z-index:3; min-width:80px; min-height:30px; margin:0; border:2px solid var(--accent); border-radius:0; background:#fff; padding:3px 5px; font-size:14px; line-height:21px; resize:none; box-shadow:0 3px 12px #163d2320; }
 #cell-editor.grid-input { width:1px !important; height:1px !important; min-width:0; min-height:0; padding:0; border:0; opacity:0; box-shadow:none; pointer-events:none; }
 #empty { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; color:var(--muted); pointer-events:none; }
@@ -59,7 +62,7 @@ button:disabled { opacity:.4; cursor:default; }
 <button id="commit-button" type="button" aria-label="確認編輯" title="確認（Enter）" disabled>✓</button>
 </div>
 <div id="viewport" tabindex="0" aria-label="試算表儲存格，直接輸入取代內容，F2 或連按兩下編輯">
-<div id="surface"><div id="tiles"></div><div id="selection" hidden></div><textarea id="cell-editor" aria-label="原地編輯儲存格" spellcheck="false" hidden></textarea></div>
+<div id="surface"><div id="tiles"></div><div id="selection" hidden></div><div id="active-cell" hidden></div><textarea id="cell-editor" aria-label="原地編輯儲存格" spellcheck="false" hidden></textarea></div>
 <div id="empty"><strong>開啟試算表，開始編輯</strong><span>選取儲存格後，可連按兩下編輯或使用上方輸入欄。</span></div>
 </div>
 <div id="tab-strip" role="tablist" aria-label="工作表"></div>
