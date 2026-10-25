@@ -95,8 +95,12 @@ export class CalcEditorSession {
     return run;
   }
 
-  beginEdit(mode = "formula") {
+  beginEdit(mode = "formula", {replace = false} = {}) {
     this._assertReady(true);
+    if (replace && !this._editing) {
+      this._draft = "";
+      this._draftVersion++;
+    }
     this._editing = mode;
     this._emit();
   }
