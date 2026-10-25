@@ -4,8 +4,9 @@ import {NarrowEditorV2Session} from './editor-shell-v2/narrow-editor-v2-session.
 const PROFILE = 'e2-editor-v23-diag';
 const params = new URLSearchParams(location.search);
 const arm = params.get('arm') || 'smoke';
+const fixtureName = params.get('fixtureName') || 'v23-diagnostic.odt';
 const result = globalThis.__v23 = {schema: 1, arm, profile: PROFILE, userAgent: navigator.userAgent,
-  complete: false, events: [], requests: [], responses: [], opens: [], steps: [], workers: [], artifacts: {}};
+  fixtureName, complete: false, events: [], requests: [], responses: [], opens: [], steps: [], workers: [], artifacts: {}};
 let generation = 0;
 const errorData = e => ({code: e?.code, message: String(e?.message || e), details: e?.details});
 const hash = async bytes => [...new Uint8Array(await crypto.subtle.digest('SHA-256', bytes))]
@@ -60,7 +61,7 @@ try {
     // Omit timeoutMs: this intentionally tests the existing SDK default.
   })});
   globalThis.__v23Session = session;
-  await step('open', () => session.open({bytes: fixture, name: 'v23-diagnostic.odt'}));
+  await step('open', () => session.open({bytes: fixture, name: fixtureName}));
   result.initialState = session.state.snapshot;
   if (arm === 'smoke') {
     await step('type', () => session.commitText('V23_DIAGNOSTIC_TOKEN'));

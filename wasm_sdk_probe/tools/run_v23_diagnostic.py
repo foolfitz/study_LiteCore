@@ -42,6 +42,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--wasm-sha256', required=True, help='explicit actual owner-linked candidate pin')
     parser.add_argument('--fixture', type=Path, required=True)
+    parser.add_argument('--fixture-name', help='actual loader filename; defaults to fixture basename')
     parser.add_argument('--output', type=Path, required=True, help='new directory, never overwritten')
     parser.add_argument('--browser', choices=('chrome', 'firefox', 'both'), default='both')
     parser.add_argument('--arm', choices=(*ARMS, 'all', 'wd'), default='all')
@@ -87,7 +88,8 @@ def main():
                             if identity(PROJECT / 'dist/profiles' / PROFILE, args.wasm_sha256) != expected:
                                 raise RuntimeError('candidate artifacts changed during cohort')
                             session = common.open_browser(browser)
-                            pp.navigate(session, base + '?' + urlencode({'arm': arm, 'caseId': args.case_id or ''}))
+                            pp.navigate(session, base + '?' + urlencode({'arm': arm, 'caseId': args.case_id or '',
+                                'fixtureName': args.fixture_name or args.fixture.name}))
                             deadline = time.monotonic() + 300
                             while time.monotonic() < deadline:
                                 if pp.evaluate(session, 'Boolean(globalThis.__v23?.complete)'):
