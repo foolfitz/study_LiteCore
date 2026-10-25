@@ -4,7 +4,7 @@ const params = new URLSearchParams(location.search);
 const arm = params.get('arm');
 const profile = params.get('profile') || 'e2-editor-v23-diag';
 const r = globalThis.__v23remaining = {schema: 1, profile, arm, complete: false,
-  steps: [], requests: [], responses: [], events: [], workers: [], artifacts: {}, fixtures: {}};
+  steps: [], requests: [], cancels: [], responses: [], events: [], workers: [], artifacts: {}, fixtures: {}, instrumentServed: {}};
 const hash = async b => [...new Uint8Array(await crypto.subtle.digest('SHA-256', b))]
   .map(x => x.toString(16).padStart(2, '0')).join('');
 const err = e => ({code: e?.code, message: String(e?.message || e), details: e?.details});
@@ -35,6 +35,7 @@ function factory(url) {
         if (typeof payload.text === 'string') payload.textUtf8Bytes = new TextEncoder().encode(payload.text).length;
         r.requests.push({generation, at: performance.now(), ...m, payload});
       }
+      if (m.kind === 'cancel') r.cancels.push({generation, at: performance.now(), ...m});
       w.postMessage(m, ...a);
     }, terminate: () => {rec.terminatedAt = performance.now(); w.terminate();}};
 }
@@ -68,6 +69,11 @@ async function saved(doc, name) {
 }
 let engine;
 try {
+  for (const file of ['e2-editor.html', 'v23-remaining.js']) {
+    const response = await fetch(`./${file}`, {cache: 'no-store'});
+    if (!response.ok) throw new Error(`instrument HTTP ${response.status}: ${file}`);
+    r.instrumentServed[file] = await hash(await response.arrayBuffer());
+  }
   for (const file of ['probe.wasm', 'probe.js', 'sdk-worker.js', 'sdk-manifest.json']) {
     const response = await fetch(`./profiles/${profile}/${file}`, {cache: 'no-store'});
     if (!response.ok) throw new Error(`${file}: ${response.status}`);

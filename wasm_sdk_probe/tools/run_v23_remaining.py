@@ -12,7 +12,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import v21_shakedown_common as common
 import run_e2_c_product_path as pp
 from create_long_document import build
-from v23_remaining_cases import PROJECT, PROFILE, ARMS, identity, fixtures, sha
+from v23_remaining_cases import PROJECT, PROFILE, ARMS, identity, fixtures, sha, instrument_files, served_instruments, verify_bindings
 
 
 def main():
@@ -38,11 +38,10 @@ def main():
     for name, path in source.items(): shutil.copyfile(path, mirror / f'{name}.odt')
     (mirror / 'long60.odt').write_bytes(build(60))
     inputs = {name: sha(mirror / f'{name}.odt') for name in (*source, 'long60')}
-    graph = [Path(__file__), PROJECT/'tools/v23_remaining_cases.py', PROJECT/'tools/judge_v23_remaining.py',
-             PROJECT/'tools/create_long_document.py', PROJECT/'web/v23-remaining.js', PROJECT/'web/v23-remaining.html']
-    graph += [f for d in ('sdk', 'editor-shell', 'editor-shell-v2') for f in (PROJECT/d).glob('*.js')]
+    graph = instrument_files()
     report = {'schema': 1, 'profile': a.profile, 'identity': expected, 'fixtures': inputs,
-              'population': population, 'instrument': {str(f.relative_to(PROJECT)): sha(f) for f in graph}, 'runs': []}
+              'population': population, 'instrument': {str(f.relative_to(PROJECT)): sha(f) for f in graph},
+              'mirrorInstrument': served_instruments(), 'runs': []}
     def write(): (a.output/'report.json').write_text(json.dumps(report, indent=2)+'\n')
     with common.browser_lock('run_v23_remaining'):
         report['preRun'] = common.pre_run_checks(); report['foreignCpu'] = common.foreign_cpu()
@@ -51,7 +50,7 @@ def main():
             for browser in ('chrome', 'firefox') if a.browser == 'both' else (a.browser,):
                 for n in range(1, a.rounds+1):
                     if identity(a.profile, a.wasm_sha256) != expected: raise RuntimeError('candidate drift')
-                    if any(sha(PROJECT/f) != h for f,h in report['instrument'].items()): raise RuntimeError('instrument drift')
+                    verify_bindings(report, mirror, check_pages=False)
                     row = {'browser': browser, 'round': n, 'arm': a.arm}; report['runs'].append(row)
                     session = None
                     print(f'{browser} {a.arm} {n}', flush=True)
