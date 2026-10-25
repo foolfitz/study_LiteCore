@@ -61,12 +61,20 @@ function render(state) {
     if(ui["cell-editor"].value!==state.draft)ui["cell-editor"].value=state.draft;
   }
   ui.selection.hidden=!ready || !state.cell;
-  ui["cell-editor"].hidden=state.editing!=="inline";
+  ui["cell-editor"].hidden=!ready || !state.cell;
+  ui["cell-editor"].classList.toggle("grid-input",state.editing!=="inline");
   if(state.cell) {
     const address=cellAddress(state.cell.column,state.cell.row);
     ui["cell-address"].value=address;
     ui["selection-label"].textContent=address;
     place(ui.selection,state.cell);place(ui["cell-editor"],state.cell);
+    if(state.editing!=="inline") {
+      // A focused, real textarea receives beforeinput and IME without moving
+      // focus midway through the first character. Keep its idle caret in view.
+      ui["cell-editor"].style.left=`${Math.max(ui.viewport.scrollLeft,Math.min(state.cell.xTwips/15,ui.viewport.scrollLeft+ui.viewport.clientWidth-4))}px`;
+      ui["cell-editor"].style.top=`${Math.max(ui.viewport.scrollTop,Math.min(state.cell.yTwips/15,ui.viewport.scrollTop+ui.viewport.clientHeight-4))}px`;
+      if(!composing)ui["cell-editor"].value="";
+    }
   }
   const signature=state.tabs.map(t=>`${t.index}:${t.current}:${t.enabled}`).join("|");
   if(ui["tab-strip"].dataset.signature!==signature) {
@@ -148,7 +156,11 @@ async function save() {
   if(diagnostics)record.lastExport=saved.bytes;
   notice(HOST ? "已存回試算表。":"已交給瀏覽器下載，請確認檔案已存好。");
 }
-function focusGrid(){ui.viewport.focus({preventScroll:true});}
+function focusGrid(){
+  const node=ui["cell-editor"].disabled ? ui.viewport : ui["cell-editor"];
+  node.focus({preventScroll:true});
+}
+ui.viewport.addEventListener("focus",focusGrid);
 ui["open-file"].addEventListener("click",()=>ui["file-input"].click());
 ui["file-input"].addEventListener("change",()=>{
   const file=ui["file-input"].files[0];
@@ -160,10 +172,25 @@ ui["cancel-button"].addEventListener("click",()=>{session.cancelEdit();focusGrid
 for(const node of document.querySelectorAll("[data-format]"))
   node.addEventListener("click",()=>action(()=>session.setFormat(node.dataset.format,!session.state.cell[node.dataset.format])));
 for(const node of [ui["formula-input"],ui["cell-editor"]]) {
-  node.addEventListener("compositionstart",()=>{composing=true;});
+  const startReplacement=()=>{
+    if(node===ui["cell-editor"] && !session.state.editing)session.beginEdit("inline",{replace:true});
+  };
+  node.addEventListener("beforeinput",event=>{
+    if(event.inputType.startsWith("insert"))void action(startReplacement);
+  });
+  node.addEventListener("compositionstart",()=>{void action(startReplacement);composing=true;});
   node.addEventListener("compositionend",()=>{composing=false;void action(()=>session.setDraft(node.value));});
   node.addEventListener("input",()=>action(()=>session.setDraft(node.value)));
   node.addEventListener("keydown",event=>{
+    if(composing || event.isComposing || event.keyCode===229)return;
+    if(node===ui["cell-editor"] && event.key==="F2" && !composing && !event.isComposing && event.keyCode!==229) {
+      event.preventDefault();
+      void action(()=>{
+        session.beginEdit("inline");
+        node.setSelectionRange(node.value.length,node.value.length);
+      });
+      return;
+    }
     const intent=inputIntent(event);if(!intent)return;
     event.preventDefault();
     if(intent==="cancel"){session.cancelEdit();focusGrid();}
@@ -181,7 +208,7 @@ ui["cell-address"].addEventListener("keydown",event=>{
 function point(event){const rect=ui.surface.getBoundingClientRect();return[Math.max(0,Math.round((event.clientX-rect.left)*15)),Math.max(0,Math.round((event.clientY-rect.top)*15))];}
 ui.viewport.addEventListener("click",event=>{
   if(!session || event.target===ui["cell-editor"] || event.detail!==1)return;
-  const [x,y]=point(event);void action(()=>session.selectAt(x,y));
+  const [x,y]=point(event);void action(async()=>{await session.selectAt(x,y);focusGrid();});
 });
 ui.viewport.addEventListener("dblclick",event=>{
   if(!session || event.target===ui["cell-editor"])return;

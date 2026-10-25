@@ -9,7 +9,7 @@ from run_browser_probe import ChromeSession
 
 
 def press(session, key, shift=False):
-    codes = {"F2": (113, "F2", "\ue031"), "Enter": (13, "Enter", "\ue007"),
+    codes = {"F2": (113, "F2", "\ue032"), "Enter": (13, "Enter", "\ue007"),
              "Escape": (27, "Escape", "\ue00c"), "ArrowRight": (39, "ArrowRight", "\ue014"),
              "ArrowLeft": (37, "ArrowLeft", "\ue012"), "ArrowDown": (40, "ArrowDown", "\ue015"),
              "ArrowUp": (38, "ArrowUp", "\ue013")}
