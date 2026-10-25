@@ -183,7 +183,7 @@ export class CalcEditorSession {
         this._savedRevision=revision;
         return {bytes,result,revision};
       } catch (error) {
-        if (error.details?.outcome==="copy") this._savedRevision=revision;
+        if (error.outcome==="copy") this._savedRevision=revision;
         throw error;
       } finally { this._saving--;this._emit(); }
     });

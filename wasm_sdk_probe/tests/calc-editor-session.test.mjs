@@ -108,3 +108,19 @@ test("IME Enter and keyCode 229 never submit; Escape and ordinary Enter do",()=>
   assert.equal(inputIntent({key:"Escape"}),"cancel");
   assert.equal(inputIntent({key:"Enter",shiftKey:true}),null);
 });
+
+test("actual host copy outcome marks the exported revision saved while preserving the notice",async()=>{
+  const {session}=await opened();session.beginEdit();session.setDraft("衝突副本內容");
+  const conflict=Object.assign(new Error("saved to conflict.ods"),{code:"CONFLICT",outcome:"copy",savedAs:"conflict.ods"});
+  await assert.rejects(session.save(async()=>{throw conflict;}),error=>error===conflict);
+  assert.equal(session.hasUnsavedEdits(),false);
+  assert.equal(session.state.error.code,"CONFLICT");
+  await session.close();
+});
+
+test("a stranded host export remains dirty",async()=>{
+  const {session}=await opened();session.beginEdit();session.setDraft("仍未存好");
+  const error=Object.assign(new Error("offline"),{code:"HOST_SAVE_FAILED",outcome:"stranded"});
+  await assert.rejects(session.save(async()=>{throw error;}));
+  assert.equal(session.hasUnsavedEdits(),true);await session.close();
+});
