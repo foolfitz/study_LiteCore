@@ -1816,9 +1816,11 @@ function handleRequest(request) {
     case "cellHit":
     case "cellInput":
     case "cellFormat": {
-      const indices = [payload.part, payload.column, payload.row, payload.expectedRevision];
+      const indices = [payload.part, payload.column, payload.row];
       const formats = { bold: 2, italic: 3, underline: 4 };
       if (indices.some(value => !Number.isInteger(value) || value < 0 || value > 0x7fffffff)
+          || !Number.isInteger(payload.expectedRevision) || payload.expectedRevision < 0 || payload.expectedRevision > 0xffffffff
+          || !Number.isInteger(payload.documentHandle) || payload.documentHandle <= 0 || payload.documentHandle > 0xffffffff
           || (request.operation === "cellInput" && (typeof payload.text !== "string" || payload.text.length > 32767))
           || (request.operation === "cellFormat" && (!Object.hasOwn(formats, payload.format) || typeof payload.enabled !== "boolean"))) {
         accept(request, () => 1);
