@@ -60,9 +60,14 @@ def main():
                 if (work / 'saved.fodt').exists():
                     (out / f'unipoll-r{r}.fodt.gz').write_bytes(gzip.compress((work / 'saved.fodt').read_bytes()))
                 row = {'arm': arm['name'], 'mode': 'unipoll', 'round': r, 'exit': status,
-                       'seconds': time.monotonic() - start, 'utc': datetime.datetime.now(datetime.timezone.utc).isoformat()}
+                       'seconds': time.monotonic() - start, 'cmd': cmd,
+                       'utc': datetime.datetime.now(datetime.timezone.utc).isoformat()}
                 log.write(json.dumps(row) + '\n'); log.flush()
                 print(json.dumps(row), flush=True)
+                # Output and the saved document are archived above. Keep failed
+                # child profiles for diagnosis; remove only successful owned work.
+                if status == 0 and (work / 'saved.fodt').exists():
+                    shutil.rmtree(work)
 
 
 if __name__ == '__main__':
