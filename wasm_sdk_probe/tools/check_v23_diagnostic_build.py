@@ -37,6 +37,8 @@ import sys
 
 BUILD_DIR = 'build/e2/editor-v23-diag'
 BUILD_VAR = '$(E2_V23D_BUILD)'
+R2_BUILD_VAR = '$(E2_V23D_R2_BUILD)'
+R2_BUILD_DIR = 'build/e2/editor-v23-diag-r2'
 LINK_MACRO = 'link_v23_diagnostic'
 FLAG = '-sSTACK_OVERFLOW_CHECK=2'
 PROBE_016 = 'OXSDK_FINDING_016_SCHEDULER_PROBE'
@@ -70,8 +72,9 @@ def rule_body(text, target):
     return None
 
 
-def read_makefile(text):
+def read_makefile(text, successor=False):
     problems = []
+    build_var = R2_BUILD_VAR if successor else BUILD_VAR
     defs = macros(text)
     if LINK_MACRO not in defs:
         problems.append(f'P-SOC: no `define {LINK_MACRO}`')
@@ -80,15 +83,22 @@ def read_makefile(text):
     for name, body in defs.items():
         if name != LINK_MACRO and 'STACK_OVERFLOW_CHECK' in body:
             problems.append(f'P-SOC: link macro {name} mentions STACK_OVERFLOW_CHECK')
-    link = rule_body(text, f'{BUILD_VAR}/probe.js:')
+    link = rule_body(text, f'{build_var}/probe.js:')
     if link is None:
         problems.append(f'P-SOC: no rule for {BUILD_VAR}/probe.js')
     elif f'$(call {LINK_MACRO},' not in link:
         problems.append(f'P-SOC: {BUILD_VAR}/probe.js does not call {LINK_MACRO}')
     callers = [m.start() for m in re.finditer(r'\$\(call ' + LINK_MACRO + ',', text)]
-    if len(callers) != 1:
-        problems.append(f'P-SOC: {LINK_MACRO} is called {len(callers)} times (exactly one: the diagnostic)')
-    compile_rule = rule_body(text, f'{BUILD_VAR}/%.o:')
+    allowed = 0
+    for known in (BUILD_VAR, R2_BUILD_VAR):
+        body = rule_body(text, f'{known}/probe.js:')
+        if body is not None:
+            allowed += 1
+            if f'$(call {LINK_MACRO},' not in body:
+                problems.append(f'P-SOC: {known}/probe.js does not call {LINK_MACRO}')
+    if len(callers) != allowed:
+        problems.append(f'P-SOC: {LINK_MACRO} is called {len(callers)} times (exactly {allowed}: named diagnostic targets only)')
+    compile_rule = rule_body(text, f'{build_var}/%.o:')
     if compile_rule is None:
         problems.append(f'P-016: no compile rule for {BUILD_VAR}/%.o')
     else:
@@ -100,12 +110,13 @@ def read_makefile(text):
     return problems
 
 
-def read_build_log(text):
+def read_build_log(text, successor=False):
     problems = []
-    compiles = [l for l in logical_lines(text) if ' -c ' in l and f'-o {BUILD_DIR}/' in l and l.rstrip().endswith('.o')]
-    links = [l for l in logical_lines(text) if f'-o {BUILD_DIR}/probe.js' in l]
+    build_dir = R2_BUILD_DIR if successor else BUILD_DIR
+    compiles = [l for l in logical_lines(text) if ' -c ' in l and f'-o {build_dir}/' in l and l.rstrip().endswith('.o')]
+    links = [l for l in logical_lines(text) if f'-o {build_dir}/probe.js' in l]
     if not compiles:
-        problems.append(f'P-016: the log has no compile line writing into {BUILD_DIR} (an empty record)')
+        problems.append(f'P-016: the log has no compile line writing into {build_dir} (an empty record)')
     for l in compiles:
         obj = l.rsplit('-o ', 1)[1].strip()
         if PROBE_016 in l:
@@ -114,7 +125,7 @@ def read_build_log(text):
             if d not in l.split():
                 problems.append(f'P-016: {obj} was compiled without {d}')
     if len(links) != 1:
-        problems.append(f'P-SOC: {len(links)} link lines write {BUILD_DIR}/probe.js (exactly one)')
+        problems.append(f'P-SOC: {len(links)} link lines write {build_dir}/probe.js (exactly one)')
     for l in links:
         if FLAG not in l.split():
             problems.append(f'P-SOC: the diagnostic link line lacks {FLAG}')
@@ -230,6 +241,7 @@ def main():
     g.add_argument('--wasm', help='linked diagnostic probe.wasm bytes (spec 16.5)')
     g.add_argument('--feature-build-log', help='actual feature compile/link log; diagnostic define must be absent')
     g.add_argument('--self-test', action='store_true')
+    ap.add_argument('--profile', choices=('e2-editor-v23-diag', 'e2-editor-v23-diag-r2'), default='e2-editor-v23-diag')
     ap.add_argument('--feature-build-dir', default=FEATURE_BUILD_DIR)
     a = ap.parse_args()
     if a.self_test:
@@ -240,7 +252,7 @@ def main():
         problems = read_feature_build_log(pathlib.Path(a.feature_build_log).read_text(errors='replace'), a.feature_build_dir)
     else:
         text = pathlib.Path(a.makefile or a.build_log).read_text(errors='replace')
-        problems = read_makefile(text) if a.makefile else read_build_log(text)
+        problems = read_makefile(text, a.profile.endswith('-r2')) if a.makefile else read_build_log(text, a.profile.endswith('-r2'))
     for p in problems:
         print(p)
     print('preconditions hold' if not problems else f'{len(problems)} precondition problem(s)')

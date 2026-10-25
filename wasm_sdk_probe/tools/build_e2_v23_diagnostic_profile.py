@@ -21,6 +21,8 @@ import build_e2_editor_v5_profile as v5
 from check_v23_diagnostic_build import read_wasm
 
 PROFILE = "e2-editor-v23-diag"
+PROFILES = {PROFILE: "v23-diagnostic-worker-tail.js",
+            "e2-editor-v23-diag-r2": "v23-diagnostic-r2-worker-tail.js"}
 PRIVATE_EXPORT = "_oxsdk_v23_diagnostic"
 ROOT = Path(__file__).resolve().parent.parent
 BASE_WORKER = ROOT / "build/archive/e2-editor-v22-f7a40bcc-worker-0d55bcfa/sdk-worker.js"
@@ -41,9 +43,9 @@ ARTIFACT_BINDINGS = {"loaderSha256": "probe.js", "wasmSha256": "probe.wasm",
                      "workerSha256": "sdk-worker.js"}
 
 
-def contract_problems(candidate: dict, reference: dict) -> list[str]:
+def contract_problems(candidate: dict, reference: dict, profile=PROFILE) -> list[str]:
     problems = []
-    if candidate.get("profile") != PROFILE:
+    if profile not in PROFILES or candidate.get("profile") != profile:
         problems.append("candidate must be the exact v23 diagnostic profile")
     if reference.get("profile") != "e2-editor-v22":
         problems.append("reference must be the frozen v22 profile")
@@ -69,7 +71,7 @@ def binding_problems(candidate: dict, output: Path) -> list[str]:
     return problems
 
 
-def main(argv=None):
+def main(argv=None, *, expected_profile=PROFILE):
     argv = list(sys.argv if argv is None else argv)
     if "--check-worker-base" in argv[1:]:
         check = argparse.ArgumentParser(allow_abbrev=False)
@@ -87,14 +89,14 @@ def main(argv=None):
     parser.add_argument("--worker", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     known, _ = parser.parse_known_args(argv[1:])
-    if known.profile != PROFILE:
-        raise SystemExit("this builder only packages " + PROFILE)
+    if expected_profile not in PROFILES or known.profile != expected_profile:
+        raise SystemExit("this builder only packages " + expected_profile)
     problems = read_wasm(known.wasm.read_bytes())
     if PRIVATE_EXPORT not in known.exports.read_text().splitlines():
         problems.append("missing private diagnostic export")
     root = Path(__file__).resolve().parent.parent
     expected_worker = checked_base_worker() + (
-        root / "sdk/v23-diagnostic-worker-tail.js").read_bytes()
+        root / "sdk" / PROFILES[expected_profile]).read_bytes()
     if known.worker.read_bytes() != expected_worker:
         problems.append("worker is not the base worker plus diagnostic tail")
     if problems:
@@ -112,7 +114,7 @@ def main(argv=None):
         if code:
             return code
         manifest = json.loads(manifest_path.read_text())
-        problems = contract_problems(manifest, reference) + binding_problems(manifest, known.output)
+        problems = contract_problems(manifest, reference, expected_profile) + binding_problems(manifest, known.output)
         if problems:
             raise SystemExit("; ".join(problems))
         summary = json.loads(printed.getvalue())

@@ -1943,6 +1943,98 @@ $(E2_V23D_DIST)/sdk-manifest.json: $(E2_V23D_BUILD)/probe.js $(E2_V23D_BUILD)/pr
 $(E2_V23D_BUILD) $(E2_V23D_DIST):
 	mkdir -p $@
 
+# Spec20 successor: new bytes, original diagnostic identity remains frozen.
+E2_V23D_R2_BUILD := build/e2/editor-v23-diag-r2
+E2_V23D_R2_DIST := dist/profiles/e2-editor-v23-diag-r2
+E2_V23D_R2_SOURCES := $(E2_C_SOURCES)
+E2_V23D_R2_OBJECTS := $(patsubst src/%.cpp,$(E2_V23D_R2_BUILD)/%.o,$(E2_V23D_R2_SOURCES))
+E2_V23D_R2_MD4C_INCLUDE := $(LOBUILD)/workdir/UnpackedTarball/md4c/src
+# Frozen base worker; the private diagnostic tail is concatenated in build/.
+E2_V23D_R2_BASE_WORKER := build/archive/e2-editor-v22-f7a40bcc-worker-0d55bcfa/sdk-worker.js
+E2_V23D_R2_WORKER_SHA256 := 0d55bcfa2ee0e4ddc6239e25282001c13410b152a5a08ebac9903cc65c3fd350
+
+.PHONY: v23-diagnostic-r2-worker-preflight
+v23-diagnostic-r2-worker-preflight:
+	python3 tools/build_e2_v23_diagnostic_r2_profile.py --check-worker-base \
+		--base-worker $(E2_V23D_R2_BASE_WORKER) --base-worker-sha256 $(E2_V23D_R2_WORKER_SHA256)
+
+$(E2_V23D_R2_BUILD)/%.o: src/%.cpp $(HEADERS) src/editor_api.h \
+		src/editor_discovery_api.h src/format_readback_text.hpp \
+		src/a11y_paragraph_identity.hpp src/merge_key_undo.hpp \
+		src/markdown_paste.hpp src/ordered_command_proof.hpp \
+		src/ordered_delete_route.hpp src/ordered_poll.hpp src/ordered_engine_guards.hpp src/reply_state_reads.hpp \
+		src/ordered_engine_state.inc src/ordered_engine_reply.inc src/ordered_engine_poll.inc \
+		src/ordered_engine_delete.inc src/ordered_format.inc src/ordered_diagnostic_html.inc $(E2_V23D_R2_MD4C_INCLUDE)/md4c.h Makefile \
+		| $(E2_V23D_R2_BUILD) v23-diagnostic-r2-worker-preflight
+	$(CXX) $(E1_CPPFLAGS) $(R5_CXXFLAGS) -I$(E2_V23D_R2_MD4C_INCLUDE) \
+		-DOXSDK_EDITOR_DISCOVERY \
+		-DOXSDK_FINDING_016_SELECTION_BARRIER -DOXSDK_E2_FORMAT_BARRIER \
+		-DOXSDK_MERGE_KEY_UNDO -DOXSDK_E2_V20_LINK_BATCH \
+		-DOXSDK_E2_V21_LINK_BATCH -DOXSDK_MAINLOOP_ENGINE \
+		-DOXSDK_E2_V23_LINK_BATCH -DOXSDK_E2_V23_DIAGNOSTIC \
+		$(EXTRA_DEFINES) -c $< -o $@
+
+# v22 public exports with one private diagnostic entrance.
+$(E2_V23D_R2_BUILD)/exports.txt: $(R5_BUILD)/writer-review/exports.txt Makefile \
+		| $(E2_V23D_R2_BUILD)
+	cp $< $@
+	printf '%s\n' \
+		_oxsdk_editor_action \
+		_oxsdk_editor_get_state \
+		_oxsdk_editor_select_range \
+		_oxsdk_editor_place_caret \
+		_oxsdk_editor_abi_version \
+		_oxsdk_editor_set_action_gestures \
+		_oxsdk_document_redo \
+		_oxsdk_document_page_rectangles \
+		_oxsdk_document_paste_markdown \
+		_oxsdk_v23_diagnostic >> $@
+	@if grep -q editor_discovery $@; then \
+		echo "product export list contains a discovery symbol"; exit 1; fi
+
+# Guarded from the first link, like every product artifact before it.
+$(E2_V23D_R2_BUILD)/probe.js: $(E2_V23D_R2_OBJECTS) $(EXTRA_OBJECTS) \
+		$(E2_V23D_R2_BUILD)/exports.txt $(LINKDEPS) $(FS_PRE_JS) Makefile
+	$(call refuse_unasked_relink,the v23 diagnostic candidate C (ABI 5; unipoll; diagnostic instruments) -- every link mints a new hash)
+	$(call link_v23_diagnostic,$(E2_V23D_R2_OBJECTS) $(EXTRA_OBJECTS),$(E2_V23D_R2_BUILD)/exports.txt,$@)
+
+$(E2_V23D_R2_BUILD)/probe.wasm: $(E2_V23D_R2_BUILD)/probe.js
+	@test -s $@
+
+# No public worker/API edit: append the private entry to the pinned base.
+$(E2_V23D_R2_BUILD)/sdk-worker.js: $(E2_V23D_R2_BASE_WORKER) sdk/v23-diagnostic-r2-worker-tail.js Makefile | $(E2_V23D_R2_BUILD)
+	echo "$(E2_V23D_R2_WORKER_SHA256)  $(E2_V23D_R2_BASE_WORKER)" | sha256sum -c --quiet
+	cat $(E2_V23D_R2_BASE_WORKER) sdk/v23-diagnostic-r2-worker-tail.js > $@
+
+# ABI 5 and the complete v22 action contract are preserved by the wrapper.
+$(E2_V23D_R2_DIST)/sdk-manifest.json: $(E2_V23D_R2_BUILD)/probe.js $(E2_V23D_R2_BUILD)/probe.wasm \
+		$(E2_V23D_R2_BUILD)/exports.txt $(E2_V23D_R2_BUILD)/sdk-worker.js \
+		sdk/v18-writer-review-manifest.json \
+		tools/build_base_no35_pack.py tools/build_r5_profiles.py \
+		tools/build_cjk_subset.py tools/build_cjk_subset_ttc_pack.py \
+		tools/build_cjk_subset_mono_pack.py \
+		tools/build_e2_editor_v5_profile.py tools/build_e2_v23_diagnostic_r2_profile.py \
+		tools/build_e2_v23_diagnostic_profile.py tools/check_v23_diagnostic_build.py \
+		tools/build_e2_editor_v4_profile.py tools/build_e2_c_profile.py \
+		tools/build_e2_b_profile.py tools/e1_support.py | $(E2_V23D_R2_DIST)
+	echo "$(E2_V23D_R2_WORKER_SHA256)  $(E2_V23D_R2_BASE_WORKER)" | sha256sum -c --quiet
+	python3 tools/build_base_no35_pack.py --check
+	python3 tools/build_cjk_subset_mono_pack.py --check
+	python3 tools/build_e2_v23_diagnostic_r2_profile.py \
+		--source-manifest sdk/v18-writer-review-manifest.json \
+		--loader $(E2_V23D_R2_BUILD)/probe.js --wasm $(E2_V23D_R2_BUILD)/probe.wasm \
+		--worker $(E2_V23D_R2_BUILD)/sdk-worker.js \
+		--exports $(E2_V23D_R2_BUILD)/exports.txt \
+		--profile e2-editor-v23-diag-r2 --inline-range-gestures all \
+		--page-rectangles --paste-markdown \
+		--output $(E2_V23D_R2_DIST)
+	@test -s $(E2_V23D_R2_DIST)/probe.js
+	@test -s $(E2_V23D_R2_DIST)/probe.wasm
+	@test -s $(E2_V23D_R2_DIST)/sdk-worker.js
+
+$(E2_V23D_R2_BUILD) $(E2_V23D_R2_DIST):
+	mkdir -p $@
+
 # ---------------------------------------------------------------- v5, a11y
 #
 # Everything below names $(E2_V5_CORE) explicitly instead of $(LOBUILD).  The
@@ -4445,6 +4537,7 @@ test-e2-c-static:
 		--carrier E2_V21=probe_engine,sdk_api,editor_api \
 		--carrier E2_V22=probe_engine,sdk_api,editor_api \
 		--carrier E2_V23D=probe_engine,sdk_api,editor_api \
+		--carrier E2_V23D_R2=probe_engine,sdk_api,editor_api \
 		--carrier ODS_VIEWER_V1=probe_engine,sdk_api \
 		--carrier ODS_VIEWER_V2=probe_engine,sdk_api \
 		--carrier ODS_VIEWER_V3=probe_engine,sdk_api \
