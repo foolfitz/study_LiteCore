@@ -25,7 +25,8 @@ EXPORT_CHUNK_BYTES = 64 * 1024
 EXPORT_BEGIN = """(async () => {
   if (!globalThis.__sinit?.complete) throw new Error('S-init snapshot incomplete');
   const bytes = new TextEncoder().encode(JSON.stringify(globalThis.__sinit));
-  globalThis.__sinitExportBytes = bytes;
+  // WebDriver globals are per-execute sandboxes; the page window persists.
+  window.__sinitExportBytes = bytes;
   const digest = await crypto.subtle.digest('SHA-256', bytes);
   return {byteLength: bytes.length, sha256: Array.from(new Uint8Array(digest),
     x => x.toString(16).padStart(2, '0')).join('')};
@@ -43,7 +44,7 @@ def export_page(session, evaluate=None):
     for offset in range(0, length, EXPORT_CHUNK_BYTES):
         end = min(offset + EXPORT_CHUNK_BYTES, length)
         encoded = evaluate(session, f"""(() => {{
-          const bytes = globalThis.__sinitExportBytes.subarray({offset}, {end});
+          const bytes = window.__sinitExportBytes.subarray({offset}, {end});
           let binary = '';
           for (let i = 0; i < bytes.length; i += 8192)
             binary += String.fromCharCode(...bytes.subarray(i, i + 8192));
@@ -57,7 +58,7 @@ def export_page(session, evaluate=None):
     if len(raw) != length or hashlib.sha256(raw).hexdigest() != metadata['sha256']:
         raise ValueError('snapshot length/hash mismatch')
     page = json.loads(raw.decode('utf-8'))
-    evaluate(session, 'delete globalThis.__sinitExportBytes')
+    evaluate(session, 'delete window.__sinitExportBytes')
     return page, metadata
 
 
