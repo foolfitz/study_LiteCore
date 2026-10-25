@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { CalcEditorSession, inputIntent } from "../spreadsheet-shell/calc-editor-session.js";
+const { CalcEditorSession, inputIntent } = await import(process.env.CALC_SESSION_MODULE || "../spreadsheet-shell/calc-editor-session.js");
 
 async function opened(readOnly=false) {
   const calls=[];
@@ -77,6 +77,52 @@ test("new typing during a host save remains an unsaved draft",async()=>{
   const save=session.save(async()=>{started();await new Promise(resolve=>{release=resolve;});});
   await begin;session.beginEdit("formula");session.setDraft("第二版");release();await save;
   assert.equal(session.state.draft,"第二版");assert.equal(session.hasUnsavedEdits(),true);
+  await session.close();
+});
+
+test("committed-only save preserves an active draft and accounts only exported revision",async()=>{
+  const {session,calls}=await opened();
+  session.beginEdit();session.setDraft("committed");await session.commit();
+  assert.equal(session.state.committedDirty,true);
+  session.beginEdit("inline");session.setDraft("still editing");
+  const selected=session.state.selection;
+  await session.save(async()=>({name:"test.ods"}),{commitDraft:false});
+  assert.equal(session.state.committedDirty,false);assert.equal(session.state.dirty,true);
+  assert.equal(session.state.draft,"still editing");assert.equal(session.state.editing,"inline");
+  assert.equal(session.state.selection,selected);
+  assert.equal(calls.filter(c=>c[0]==="input").length,1);
+  await session.close();
+});
+
+test("successor range formats use one explicit native operation and retain both endpoints",async()=>{
+  const {session,doc,calls}=await opened();doc.rangeFormattingSupported=true;
+  const range=(column,row,endColumn,endRow)=>({part:0,column,row,endColumn,endRow,writable:true,refusalCode:"",bold:null,italic:false,underline:false});
+  doc.readRange=async(...a)=>({range:range(...a)});
+  doc.setRangeFormat=async(c,r,ec,er,format,enabled,options)=>{
+    calls.push(["range",c,r,ec,er,format,enabled,options]);doc.revision++;
+    return{range:{...range(c,r,ec,er),[format]:enabled},changed:true};
+  };
+  await session.selectCell(2,3,{extend:true});
+  assert.equal(session.state.rangeFormat.bold,null);
+  await session.setFormat("bold",true);
+  assert.deepEqual(calls,[ ["range",0,0,2,3,"bold",true,{part:0,expectedRevision:0}] ]);
+  assert.equal(session.state.selection.multiple,true);assert.equal(session.state.cell.column,0);
+  assert.equal(session.state.selection.focus.column,2);assert.equal(session.state.rangeFormat.bold,true);
+  assert.equal(session.state.committedDirty,true);
+  await session.close();
+});
+
+test("native range refusal retains selection; post-mutation refresh failure locks uncertain state",async()=>{
+  const {session,doc}=await opened();doc.rangeFormattingSupported=true;
+  doc.readRange=async(c,r,ec,er)=>({range:{part:0,column:c,row:r,endColumn:ec,endRow:er,writable:false,refusalCode:"RANGE_MERGE_BOUNDARY",bold:null,italic:false,underline:false}});
+  await session.selectCell(2,3,{extend:true});const selection=session.state.selection;
+  doc.setRangeFormat=async()=>{throw Object.assign(new Error("merge"),{code:"RANGE_MERGE_BOUNDARY"});};
+  await assert.rejects(session.setFormat("bold",true),{code:"RANGE_MERGE_BOUNDARY"});
+  assert.equal(session.state.selection,selection);assert.equal(doc.revision,0);assert.equal(session.state.uncertain,false);
+  doc.setRangeFormat=async()=>{doc.revision++;return{range:session.state.rangeFormat};};
+  doc.readCell=async()=>{throw new Error("geometry unavailable");};
+  await assert.rejects(session.setFormat("bold",true),{code:"MUTATION_OUTCOME_UNKNOWN"});
+  assert.equal(session.state.uncertain,true);assert.equal(session.state.dirty,true);
   await session.close();
 });
 
