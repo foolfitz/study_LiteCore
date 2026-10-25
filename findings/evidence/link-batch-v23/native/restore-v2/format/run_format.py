@@ -10,9 +10,11 @@ from pathlib import Path
 import shutil
 import subprocess
 import time
-from arms import F_ARMS
+import sys
 
 HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE))
+from arms import F_ARMS
 OLD = HERE.parents[1] / 'ordered-commands/tool'
 FIXTURES = OLD.parent / 'fixtures'
 SOURCES = [HERE / name for name in ('arms.py', 'run_format.py', 'read_format.py', 'ARMS.md')]
