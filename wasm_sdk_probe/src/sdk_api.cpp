@@ -69,6 +69,9 @@ extern "C" EMSCRIPTEN_KEEPALIVE std::uint32_t oxsdk_capabilities(void) {
          OXSDK_CAPABILITY_PART_TEXT | OXSDK_CAPABILITY_PART_INFO
 #ifdef OXSDK_ODS_EDITOR
          | OXSDK_CAPABILITY_CELL_EDITING | OXSDK_CAPABILITY_SAVE_ODS
+#ifdef OXSDK_ODS_RANGE
+         | OXSDK_CAPABILITY_CELL_RANGE_FORMATTING
+#endif
 #endif
 #if HAVE_FEATURE_DBCONNECTIVITY
          | OXSDK_CAPABILITY_FORM_CONTROLS
@@ -199,8 +202,14 @@ extern "C" EMSCRIPTEN_KEEPALIVE int32_t oxsdk_document_cell(
     std::uint32_t expectedRevision, std::int32_t part, std::int32_t column,
     std::int32_t row, std::int32_t operation, const char *text,
     std::uint32_t textLength, std::uint32_t enabled) {
+  constexpr int maxOperation =
+#ifdef OXSDK_ODS_RANGE
+      9;
+#else
+      5;
+#endif
   if (!validRequest(requestId) || documentHandle == 0 || part < 0
-      || column < 0 || row < 0 || operation < 0 || operation > 5
+      || column < 0 || row < 0 || operation < 0 || operation > maxOperation
       || enabled > 1 || (textLength > 0 && !text) || textLength > 131068)
     return OXSDK_STATUS_INVALID_ARGUMENT;
   return safeStatus([&] {
