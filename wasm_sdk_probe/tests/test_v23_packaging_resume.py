@@ -15,7 +15,9 @@ class Resume(unittest.TestCase):
     def setUpClass(cls):
         cls.real_boundary = SDK.parent/'findings/evidence/link-batch-v23/pre-link/ordered-engine-01'
         cls.old_make = subprocess.check_output(['git','show',json.loads((cls.real_boundary/'source-inputs.json').read_text())['commit']+':wasm_sdk_probe/Makefile'],cwd=SDK,text=True)
-        cls.current_make = (SDK/'Makefile').read_text()
+        # The successful resume fixture is the historical packaging-only fix.
+        # Later successor source/Makefile changes must not authorize its reuse.
+        cls.current_make = subprocess.check_output(['git','show','45e9eb15:wasm_sdk_probe/Makefile'],cwd=SDK,text=True)
         cls.log = (SDK/'build/link-v23-diagnostic-01.log').read_text()
 
     def setUp(self):
