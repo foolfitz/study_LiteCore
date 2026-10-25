@@ -1,5 +1,29 @@
 # Owner link: v23 diagnostic candidate C, editor ABI 5
 
+## Current attempt 01: packaging-only resume
+
+The owner completed the four compilations and WASM link, then Make failed because the worker rule compared the current Calc-v2 source worker (`0bed22bd...`) against the frozen Writer v22 pin (`0d55bcfa...`). The actual linked WASM is `52cf9d23b615458d3a4086b3995fd68bf3ced19c252c6f89f017109fc282a443`; the failure does not require another link. **Do not rerun the fresh-link make command below for this attempt:** changing the Makefile makes its object prerequisites newer and would unnecessarily rebuild/relink.
+
+The fix uses exactly `build/archive/e2-editor-v22-f7a40bcc-worker-0d55bcfa/sdk-worker.js` plus the existing diagnostic tail. The current Calc worker and all frozen files remain untouched. Future fresh builds execute a noncompiling worker-base preflight before object compilation. Both worker VM tests now run the actual archived base instead of the current SDK source.
+
+The resume tool consumes the independently preserved audit from commit `c30aa82d`, checks all seven linked artifacts plus log 01, checks original engine/header/core inputs, compares the four actual compilation commands and sole link against the current planned commands, and permits only the reviewed packaging changes in the Makefile. Default mode only checks. `--package` runs the two existing Python pack checks, creates the derived worker, and invokes the diagnostic wrapper directly. It never invokes make or a compiler. Linked inputs are verified again afterward, including failed packing; failure bytes are preserved under non-target names, and receipts are exclusive-created.
+
+The coordinator reviewed the check-only receipt. Run this direct Python command from the SDK directory (no build approval or compiling make is involved):
+
+```bash
+cd /home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe
+python3 -I tools/resume_v23_diagnostic_packaging.py \
+  --linked-inputs ../findings/evidence/link-batch-v23/post-link/attempt-01/mechanical/audit.json \
+  --prelink-boundary ../findings/evidence/link-batch-v23/pre-link/ordered-engine-01 \
+  --build-log build/link-v23-diagnostic-01.log \
+  --planned-build-log ../findings/evidence/link-batch-v23/post-link/attempt-01/packing-fix/planned-build.txt \
+  --receipt ../findings/evidence/link-batch-v23/post-link/attempt-01/packing-fix/package-01.json \
+  --package
+```
+
+Do not reuse an existing receipt or overwrite failed bytes. After successful packing, continue the actual artifact/frozen-inventory checks and archival steps below, using the preserved **first** build log for compile/link evidence and the packaging receipt for the derived worker/manifest. No browser verdict is implied by packaging success.
+
+
 This is the diagnostic build boundary, not the historical feature-v23 link. The coordinating agent must confirm the engine source and required integration red cases are complete, the chosen restoration path has satisfied its native prerequisite under the current appended specification, and the final dry-run is clean before presenting the owner command. This document alone does not assert those engine gates passed. The original 45-process RESET cohort formally failed (evidence preserved); the restore-v2 harness has now been owner-built. Its DELETE Q cohort passed 45/45 and FORMAT Q separately passed 40/40, each across five rounds. Both gated Q bodies are integrated. The combined source/dry-run boundary is recorded in `findings/evidence/link-batch-v23/pre-link/ordered-engine-01/`; the coordinating agent must finish reviewing that boundary before presenting this owner command. If the owner never links, all WASM claims remain unestablished and the current Writer product remains unchanged.
 
 ## Artifact and source contract
@@ -9,7 +33,7 @@ This is the diagnostic build boundary, not the historical feature-v23 link. The 
 - Core: `wasm-lite/build-headless-probe`, as v22, accessibility stripped. No Calc core substitution.
 - Compile: v22's selection/format barriers and v20/v21 defines, plus `OXSDK_MAINLOOP_ENGINE`, `OXSDK_E2_V23_LINK_BATCH`, `OXSDK_E2_V23_DIAGNOSTIC`. No `OXSDK_FINDING_016_SCHEDULER_PROBE`.
 - Link: `link_product_stack_1m` flags plus `-sSTACK_OVERFLOW_CHECK=2` in the separate `link_v23_diagnostic` macro. Its default `CHECK_NULL_WRITES` is on; record the installed Emscripten settings and resulting loader when linking.
-- Worker: frozen base `sdk/sdk-worker.js`, sha256 `0d55bcfa2ee0e4ddc6239e25282001c13410b152a5a08ebac9903cc65c3fd350`, concatenated with `sdk/v23-diagnostic-worker-tail.js` into this build directory only. Existing frozen worker/profile bytes are not rewritten.
+- Worker: frozen base `build/archive/e2-editor-v22-f7a40bcc-worker-0d55bcfa/sdk-worker.js`, sha256 `0d55bcfa2ee0e4ddc6239e25282001c13410b152a5a08ebac9903cc65c3fd350`, concatenated with `sdk/v23-diagnostic-worker-tail.js` into this build directory only. Existing frozen worker/profile bytes are not rewritten.
 - Private entrance: `_oxsdk_v23_diagnostic(kind, requestId)`; 1 queues a never-return command, 2 queues intentional missing proof, 3 calls selection LOK on the JS-side thread with an open document. Kinds 4–8 are the closed W-D inputs (range Left requiring TEXT, ShiftLeft, ShiftRight, ShiftEnd, ShiftHome), using normal ordered key dispatch and composition. See `findings/evidence/link-batch-v23/pre-link/diagnostic-packaging/private-wd-routing.md` for the owner-proxy route ruling. It is compiled only with the single diagnostic define; no public SDK method, editor action or capability is added.
 
 The harness calls the existing engine object's `_request("v23Diagnostic", {kind: 1})` with default options. That uses the SDK's existing page-side 30-second request timeout and best-effort cancel message (including its existing late-deadline extension behavior). A cancel message does not stop a synchronous LOK hang: kind 3 blocks the worker event loop and cannot process that message; kind 1 may retain worker-side pending state. After a hang, use the existing session recovery/disposal path to terminate the worker before reuse. Kind 2's engine error follows the base worker's `fail()` path, which clears its pending entry. The diagnostic tail adds only the top-level `failureShape` to that existing error projection; it does not relabel it as a format/merge failure. To test session recovery, invoke it through the existing session action/recovery path and record the result; a harness-owned timer alone is not recovery evidence. The private tail checks exact diagnostic profile plus ABI 5 before dispatch. SDK request ids are uint32, 1 through 0xffffffff; this private C `int` entrance accepts only 1 through 0x7fffffff. Diagnostic trials use fresh engines. This bound is not a claim about the full SDK id range. Enable existing SDK debug diagnostics to receive `v23-poll` (queued, drained, replyPending) and `v23-proof-absent` events through the unchanged worker event bridge.
@@ -36,7 +60,7 @@ python3 -I tools/check_v23_diagnostic_build.py --build-log build/v23-diagnostic-
 
 The last check reads planned commands, not actual build evidence. Confirm its compile/link destinations are this diagnostic directory only. Before handing over, record the final source commit and hashes, compiler/core link inputs, engine gate results, and hashes of every existing file in `dist/profiles/` and `build/archive/`. Record the baseline inventory too, so unexpected new files outside this candidate are visible. Preserve all previous attempts. Check `uptime` and `pgrep -a make`; if another build or long measurement remains active, tell the owner before requesting this link. Do not run a compiling make as an agent.
 
-## Exact owner command
+## Fresh-link owner command (not for already-linked attempt 01)
 
 Run in Bash. Allow roughly 3–10 minutes for four small object compilations plus the full WASM link and packing; one job, no core build. The log must be new: if the command says the log already exists, stop and let the agent preserve/read that attempt rather than overwrite it.
 

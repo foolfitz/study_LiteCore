@@ -1,0 +1,11 @@
+# Preserve the completed link; repair only the diagnostic worker packaging
+
+Attempt 01 completed compilation and linking, then the worker pin failed. This was a preparation defect: the pin was the frozen Writer v22 worker, while the recipe and three tests read the current source worker containing Calc-v2 additions. The pre-link inventory captured the latter's hash, but no check compared that actual source against the pin before compilation. Source existence/hashes were not a cross-binding check.
+
+The fix selects the exact archived v22 worker (`0d55bcfa2ee0e4ddc6239e25282001c13410b152a5a08ebac9903cc65c3fd350`) as both Make dependency and wrapper byte predicate. The preflight CLI verifies both path identity and actual bytes, and object rules wait for it before compilation. Tests reject the current SDK source as a substitute, wrong pins and corrupted archived bytes, and cross-check the Makefile variable with the same actual-byte predicate. The VM tests execute this archived base plus the unchanged tail.
+
+No engine/core/public SDK/Calc/frozen files are changed. The independently captured attempt audit `../mechanical/audit.json` is authoritative; no later rehash replaces it. `planned-build.txt` is only a dry-run. `check-01.json` and `check-02.json` are successful check-only receipts; the latter includes the full Makefile delta check, preventing a stale plan from concealing header/library flag variable edits.
+
+The seven resume test groups cover the accepted case; mutation of every linked output and log; engine/core changes; incomplete/duplicate/changed compilation/link records; changed link macro despite a stale plan; changed global compilation flags despite a stale plan; and post-write packing failure. The latter must retain failed worker/manifest bytes under non-target names while every original linked input remains unchanged. Only the existing Python pack-check scripts may be launched by the packaging step. Nineteen packaging tests and both actual-base VM tests pass.
+
+The first actual log and linked WASM pass `check_v23_diagnostic_build.py`. The resume tool does not invoke make/compiler; direct Python packaging is delegated to the coordinator after review. Exact command and receipt path are in `handoff/RUNBOOK-v23-diagnostic-link.md`. Success here remains a packaging result, not a browser or diagnostic-gate verdict.
