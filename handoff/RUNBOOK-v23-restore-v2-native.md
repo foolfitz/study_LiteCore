@@ -43,3 +43,7 @@ python3 findings/evidence/link-batch-v23/native/restore-v2/format/read_format.py
 Only each cohort's complete reader result can establish its own restoration. No run or missing evidence means `NOT_ESTABLISHED`; failures remain failures. Read raw saved documents, undo and subsequent selection witnesses, not only the final verdict. A pass does not close L-C-number-or-indent, add new actions, change the Writer core, or authorize a host rollout.
 
 The asynchronous fallback is compiled into this binary to avoid another owner build, but is not run automatically. If Q is sufficient, leave it dormant. If needed after adjudication, complete the dedicated runner/reader and controls for `restore-v2/fallback/ARMS.md` before any counted fallback execution. Existing uni1f setup settles precede F; no settle occurs between F and G. A delayed/stabilized key is not acceptable evidence for the exact next-poll prerequisite.
+
+## Source preflight completed
+
+The coordinating agent ran `g++ -std=c++17 -Wall -fsyntax-only` against the versioned harness and the same local public headers. It exited zero without compiler output and produced no object or binary. Exact command/source hash are recorded in `findings/evidence/link-batch-v23/native/restore-v2/tool/syntax-only.json`. This is a syntax check, not the owner compilation or any native candidate evidence. The original v1 harness and failed cohort remain untouched.
