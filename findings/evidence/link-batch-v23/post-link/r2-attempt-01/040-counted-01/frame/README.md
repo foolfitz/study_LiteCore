@@ -1,0 +1,1 @@
+R2 counted frame arm: Chrome and Firefox rounds 1–3, all six individual pages PASS. Instrument bindings and CPU guard passed. Full observations are in report.json; individual judgments are in verdicts.json.
