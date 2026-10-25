@@ -1,0 +1,25 @@
+ok   makefile: well-formed: holds
+ok   makefile: the flag removed from the diagnostic macro: ['P-SOC: link_v23_diagnostic does not carry -sSTACK_OVERFLOW_CHECK=2']
+ok   makefile: the flag on the product macro too: ['P-SOC: link macro link_product_stack_1m mentions STACK_OVERFLOW_CHECK']
+ok   makefile: the product rule calls the diagnostic macro: ['P-SOC: link_v23_diagnostic is called 2 times (exactly one: the diagnostic)']
+ok   makefile: the 016 probe defined: ['P-016: the diagnostic compile rule defines OXSDK_FINDING_016_SCHEDULER_PROBE']
+ok   makefile: no diagnostic rule at all: ['P-SOC: no rule for $(E2_V23D_BUILD)/probe.js', 'P-SOC: link_v23_diagnostic is called 0 times (exactly one: the diagnostic)', 'P-016: no compile rule for $(E2_V23D_BUILD)/%.o']
+ok   log: well-formed: holds
+ok   log: one object built with the 016 probe (EXTRA_DEFINES): ['P-016: build/e2/editor-v23-diag/sdk_api.o was compiled with OXSDK_FINDING_016_SCHEDULER_PROBE']
+ok   log: the link without the flag: ['P-SOC: the diagnostic link line lacks -sSTACK_OVERFLOW_CHECK=2']
+ok   log: an empty record: ['P-016: the log has no compile line writing into build/e2/editor-v23-diag (an empty record)', 'P-SOC: 0 link lines write build/e2/editor-v23-diag/probe.js (exactly one)']
+ok   log: an object built without the v23 define: ['P-016: build/e2/editor-v23-diag/sdk_api.o was compiled without -DOXSDK_E2_V23_LINK_BATCH']
+ok   wasm: headless core marker bytes: holds
+ok   wasm: empty bytes: ['P-A11Y: not a version-1 WebAssembly binary', 'P-A11Y: missing core-built-without-accessibility']
+ok   wasm: text masquerading as wasm: ['P-A11Y: not a version-1 WebAssembly binary']
+ok   wasm: missing headless marker: ['P-A11Y: missing core-built-without-accessibility']
+ok   wasm: wrong API absence marker: ['P-A11Y: unexpected lok-lacks-setAccessibilityState']
+ok   feature: well-formed feature log: holds
+ok   feature: diagnostic define via EXTRA_DEFINES: ['P-FEATURE: diagnostic define present']
+ok   feature: diagnostic overflow flag: ['P-FEATURE: diagnostic stack-overflow flag present']
+ok   feature: empty feature record: ['P-FEATURE: no feature compile lines (an empty record)', 'P-FEATURE: 0 feature link lines (exactly one)']
+ok   feature: no feature link: ['P-FEATURE: 0 feature link lines (exactly one)']
+ok   feature: duplicate feature link: ['P-FEATURE: 2 feature link lines (exactly one)']
+ok   feature: old engine without mainloop: ['P-FEATURE: missing -DOXSDK_MAINLOOP_ENGINE', 'P-FEATURE: missing -DOXSDK_MAINLOOP_ENGINE']
+self-test: all as required
+exit 0

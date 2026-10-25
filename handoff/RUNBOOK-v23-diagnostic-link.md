@@ -1,6 +1,6 @@
 # Owner link: v23 diagnostic candidate C, editor ABI 5
 
-This is the diagnostic build boundary, not the historical feature-v23 link. The coordinating agent must confirm the engine source and required integration red cases are complete, the chosen restoration path has satisfied its native prerequisite under the current appended specification, and the final dry-run is clean before presenting the owner command. This document alone does not assert those engine gates passed. The original 45-process RESET cohort formally failed (evidence preserved); the restore-v2 harness has now been owner-built. Its DELETE Q cohort passed 45/45 across five rounds; FORMAT retains a separate native prerequisite. The engine integration is source-complete for review, but this WASM link remains blocked until the FORMAT ruling/body and final integration review are complete. If the owner never links, all WASM claims remain unestablished and the current Writer product remains unchanged.
+This is the diagnostic build boundary, not the historical feature-v23 link. The coordinating agent must confirm the engine source and required integration red cases are complete, the chosen restoration path has satisfied its native prerequisite under the current appended specification, and the final dry-run is clean before presenting the owner command. This document alone does not assert those engine gates passed. The original 45-process RESET cohort formally failed (evidence preserved); the restore-v2 harness has now been owner-built. Its DELETE Q cohort passed 45/45 and FORMAT Q separately passed 40/40, each across five rounds. Both gated Q bodies are integrated. The combined source/dry-run boundary is recorded in `findings/evidence/link-batch-v23/pre-link/ordered-engine-01/`; the coordinating agent must finish reviewing that boundary before presenting this owner command. If the owner never links, all WASM claims remain unestablished and the current Writer product remains unchanged.
 
 ## Artifact and source contract
 
@@ -25,6 +25,7 @@ python3 -I tests/v23_diagnostic_packaging_test.py
 node tests/v23_diagnostic_worker_test.cjs
 node tests/v23_diagnostic_error_test.cjs
 python3 tests/test_ordered_engine_scope.py
+python3 tests/test_ordered_engine_guards.py
 python3 tests/test_ordered_format_scope.py
 python3 tests/test_ordered_command_contract.py
 python3 tests/test_ordered_format.py
@@ -67,6 +68,6 @@ Report success/failure and the final error if any. `ALLOW_FROZEN_RELINK=1` appli
 
 3. Record actual loader/WASM/worker/manifest/export hashes. Confirm ABI 5, exact profile, full semantic editor contract and public capabilities equal v22, with all three artifact hash fields separately verified against the actual candidate files; worker is exact base plus private tail; export inventory is v22's plus the single private export. Confirm actual core link inputs still match the recorded headless core.
 4. Archive those five bound files, checksum inventory and attribution under a new directory named by both WASM and worker hashes. Freeze only now, after all source edits and actual-byte checks. Never replace an existing archive generation.
-5. Run specification 9.2 as amended by the latest appended rulings (currently through 18, with the private W-D route append pending the native cohort close) on this exact identity. Readers must bind profile plus WASM hash, reject v22 identity, and retain the depth-at-least-two witness and missing-proof positive control. No feature implementation follows until all diagnostic gates pass. Browser reports and source/dry-run tests are distinct evidence.
+5. Run specification 9.2 as amended by the latest appended rulings (currently through 19, appended after the native cohort close) on this exact identity. Readers must bind profile plus WASM hash, reject v22 identity, and retain the depth-at-least-two witness and missing-proof positive control. No feature implementation follows until all diagnostic gates pass. Browser reports and source/dry-run tests are distinct evidence.
 
 No host deployment, ddev state change, K/counting edit or Calc reopening is part of this boundary.

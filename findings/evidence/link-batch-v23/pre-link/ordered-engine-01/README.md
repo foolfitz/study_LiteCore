@@ -1,0 +1,19 @@
+# Combined ordered-engine source boundary
+
+This is unlinked preparation for `e2-editor-v23-diag`, ABI 5, candidate C. It is not a WASM result, browser result, public ABI 6 feature claim, or permission to bypass the coordinating agent's final review. The exact proposed owner command is in `handoff/RUNBOOK-v23-diagnostic-link.md`; it targets only `dist/profiles/e2-editor-v23-diag/sdk-manifest.json` with one job and a new preserved log.
+
+Both independent native prerequisites are established: DELETE-Q-HOLDS 45/45 and FORMAT-RESTORE-HOLDS 40/40, each N=5. The original single RESET remains formally failed. This boundary includes the actual DELETE Q body and the separately owned FORMAT Q helper (`41e3f951`), not the earlier RESET-only include. Specification append 19 records the bounded private W-D route after the native cohort closed.
+
+- `source-inputs.json`: exact engine/header/SDK tail/Makefile/packing-source hashes and specification hash. The recorded commit is the shared tree at collection; subsequent evidence-only commits do not change these inputs.
+- `core-inputs.json`: 188 resolved core/toolchain explicit inputs plus the filesystem pre-JS. They resolve from `wasm-lite/build-headless-probe`, the same headless Writer core. Emscripten's `m`/`dl` aliases map to empty lists in the recorded `tools/link.py`; compiler-selected implicit runtime archives are not misrepresented as explicit core libraries.
+- `compiler-version.txt`: Emscripten 4.0.10. The recorded settings source defaults `CHECK_NULL_WRITES=true`; the actual dry-run explicitly sets `STACK_OVERFLOW_CHECK=2`. Actual loader/WASM markers still require the owner link and post-link reader.
+- `dry-run.txt` and its reader output: actual current target commands, with no project compilation or link executed. The build-rule reader and its adversarial controls pass.
+- `syntax-only.txt`: combined engine including FORMAT Q passes the actual diagnostic compilation flags with `-c/-o` removed and `-fsyntax-only` added. It produces no object or linked artifact.
+- `diagnostic-define-isolation.json`: actual preprocessing includes the private C entrance and all three diagnostic event families only with the sole diagnostic define; removing that define removes all four.
+- `tests.json` plus numbered logs: focused actual-engine scope/guards, fake-LOK FORMAT, pure ordered contracts, reply-state classification, poll causal mutations, packaging fault injection, worker whitelist, and actual SDK error/pending cleanup. Scope checks include malformed callback proof, no callback LOK/reply composition, current-command 059 state keys, public gesture protection, private TEXT requirement, no old engine/stage roots, and exception flag cleanup. These checks do not replace native or browser behavior evidence.
+- `legacy-preprocess.json`: final v22 Writer and Calc editor-v2 engine preprocessed nonblank lines exactly match the source baseline before integration. No existing artifact was relinked.
+- `frozen-before.json`: inventory and SHA-256 of every existing file under `dist/profiles/` and `build/archive/`, 2,315 files. Compare this list and hashes after the owner link; permit only the newly created diagnostic profile outside the old inventory. Frozen files are not replaced.
+
+At preparation, `uptime` reported load averages 0.48, 0.44, 0.39 and `pgrep -a make` found no process. The native cohorts had finished. Recheck before the owner command if preparation and execution are separated. No host/ddev/Calc state changes, user-document writes, compiler make, or core build were performed.
+
+The first-poll review's actual-source disposition is `review/engine-poll-01/DISPOSITION.md`. Findings 1 and 6 were fixed with causal red controls. Other claims were checked against full source and append 16.4 instead of adopting changes based on absent context. Future source edits require refreshing the affected hashes, syntax/scope checks, and dry-run boundary before link.

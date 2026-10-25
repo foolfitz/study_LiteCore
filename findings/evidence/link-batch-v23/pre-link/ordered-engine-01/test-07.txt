@@ -1,0 +1,8 @@
+$ python3 -I tests/ordered_poll_mutations.py
+control: exit 0: ordered poll: P1-P6 on the new poll and their red variants, failures 0
+drain-until-empty: exit 1, red as required: FAIL P1 new: two queued, one poll did not dispatch exactly one
+anyinput-queue-only: exit 1, red as required: FAIL P2 new: a pending reply is not input
+command-first: exit 1, red as required: FAIL P3 new: the reply did not go first
+guard-not-reset: exit 1, red as required: FAIL P5 new: seed 1: D1 never replied
+ALL RED AS REQUIRED
+exit 0
