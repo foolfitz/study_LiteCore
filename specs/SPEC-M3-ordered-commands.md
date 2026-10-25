@@ -460,3 +460,19 @@ Astra裁決先測同步Q候選：同一記錄點連續RESET→START→RESET，�
 裁示為保留 manifest、公開 gesture 檢查與 ABI5，僅由單一 `OXSDK_E2_V23_DIAGNOSTIC` 私有入口補足具名 W-D 測試輸入：種類4為有 TEXT 選取時的 Left，5／6為 Shift+Left／Right，7／8為 L 觀測用 Shift+End／Home。它們沿用公開移動的同一個指令佇列、`dispatchOrderedKey` 與首次 poll composer，不接受任意鍵碼或 UNO 名稱，也不新增公開動作或能力。實際來源檢查必須保留公開 gate 與私有前提；私有 worker 的封閉 whitelist 拒絕種類9。
 
 W-D 報告逐步標示公開或私有來源，並獨立核對實際 worker requests；其結論只涵蓋同一組原生輸入在 C 拓撲的落點。**這不代表 ABI6 的公開 Shift／範圍移動功能已驗收。** 那一層仍依 §9.3 另做功能身分、公開手勢與產品路徑驗證。未執行 W-D 的預設仍是未成立。沒有擴增 §9.2 的母體；首次乾淨診斷計數後依既定截止封閉。
+
+## 20. S-init 有限比較與040量測入口更正（2026-10-26，只追加）
+
+本節依擁有者授權Astra裁示，完整協定見 `handoff/RULING-2026-10-26-v23-s-init-and-040.md`；寫在S-init行為計數及更正後040計數之前。原候選 `e2-editor-v23-diag` 與WASM `52cf9d23…` 保持凍結，不覆寫。
+
+**S-init**：工具固定六格 `direct-load-reopen`、`input-teh`、`input-quotes`、`input-number`、`paragraph-break`、`linguistic-layout`，實際v22與後繼診斷候選、Chrome／Firefox、各N=3，共72格。逐格保存實際候選／資源包／儀器／fixture身分、wire輸入與回覆、存檔及必要畫面資料。前三種文字輸入比實際 `method` 與存檔結果；換段獨立比結構；語言格含相同文件的自動斷字開／關對照，比固定區域像素、頁面幾何、存檔語言／斷字設定。母體由工具表生成；缺格、重格、錯身分、不同輸入、缺輸出不得過，並先以因果紅案守住。實際v22功能在後繼失效是FAIL，不能改稱未使用。
+
+通過後只關閉「具名產品路徑的有限S-init比較」。來源可處置的擴充套件編譯guard、headless復原掃描guard、直接LOK載入路徑與行為證據分開記錄。擁有者代理明確接受 `L-no-desktop-main` 下仍未成立的殘餘：沒有正向區辨觀測時的字典／服務可用性、未曝露的有效拼字／自動校正設定、沒有自然觸發時的paste失敗按鍵fallback，以及略過 `disableRecovery` 的長時間效果。這些不是PASS，也不另開無截止閘門；禁止據此宣稱沒有語言功能使用或完整初始化等價。未跑有限比較的預設仍是NE並擋功能接線。
+
+**040更正有實際反例**：`post-link/attempt-01/bounded-01/report.json` 的Chrome第1輪kind3，在 `plain-grapheme.odt` 的NONE選取上約1.31ms返回 `DIAGNOSTIC_CONTROL_RETURNED`，session仍ready。原24格保留原始結果與失敗，不改判。這否證「任意JS側LOK入口一定卡住」；040決定性條件是非主執行緒解構含frame的SwDoc，空選取沒有建立該條件。此更正指名量測儀器前提不足，不宣稱產品已過。
+
+只新增後繼 `e2-editor-v23-diag-r2`、ABI5、新build／dist／archive身分中的私有kind9：既有引擎佇列上對目前文件／選取直接呼叫 `getTextSelection(...,"text/html",...)`，記錄實際進入、返回HTML及正常首次poll回覆；不接受任意MIME／UNO／鍵碼，不移除公開037guard。本節只對後繼身分取代§19的「拒絕9」：後繼允許1–9、拒絕10，原候選仍拒絕9。這是擁有者執行的後繼診斷連結，不重建core，agent不得代跑建置。
+
+更正040固定三格：含frame文件的公開close真正返回；kind9在引擎執行緒的HTML選取真正返回含image元素；kind3在相同實際選取的JS側呼叫達既有SDK預設30000ms TIMEOUT並走既有復原。fixture固定 `test-docs/e1/image-variants.odt`、SHA256 `b2869e0eb89bc5644e08e5d86c5d374615d1e641ec5ed8a7d7aca0198567c661`，HTML兩格依裁示由IV-ASCHAR實際搜尋矩形建立範圍，先讀到COMPLEX才可計數；不能用同名標籤、猜座標、空HTML或兄弟API替代。兩瀏覽器各N=3，共18格，wire與fixture結構由讀取器驗證，紅案先行。缺前提／缺入口／未跑為NE；前提齊備仍快速返回的負對照是真反例，不能再自動豁免。逾時門檻不變。
+
+計數語意：原24格及舊候選準備資料不計入更正後繼；依新輸入前提及實際後繼身分重新計數，相同觀測被兩份報告引用不能重複算輪次。原生DELETE45／FORMAT40封閉結論不變。這是§9.2既有具名義務的有限落地與反例逼出的前提更正，不是公開ABI6功能。首次完整乾淨母體及產物讀取器通過即封閉；後來非回歸疑慮登錄後續工作，不繼續擴張閘門。
