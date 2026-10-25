@@ -59,23 +59,37 @@ def main(argv=None):
     if problems:
         raise SystemExit("; ".join(problems))
     printed = io.StringIO()
-    with contextlib.redirect_stdout(printed):
-        code = v5.main(argv)
-    if code:
-        return code
     manifest_path = known.output / "sdk-manifest.json"
-    manifest = json.loads(manifest_path.read_text())
-    reference = json.loads((root / "dist/profiles/e2-editor-v22/sdk-manifest.json").read_text())
-    problems = contract_problems(manifest, reference)
-    if problems:
-        # Do not leave an invalid candidate manifest that make could accept.
-        manifest_path.unlink()
-        raise SystemExit("; ".join(problems))
-    summary = json.loads(printed.getvalue())
-    summary["diagnosticOnly"] = True
-    summary["manifestSha256"] = hashlib.sha256(manifest_path.read_bytes()).hexdigest()
-    print(json.dumps(summary, indent=2))
-    return 0
+    validated = False
+    try:
+        # Fail before packing if the inherited contract cannot be read. Keep
+        # this read inside the cleanup boundary so a stale target cannot mask
+        # the failed attempt on the next make invocation.
+        reference = json.loads((root / "dist/profiles/e2-editor-v22/sdk-manifest.json").read_text())
+        with contextlib.redirect_stdout(printed):
+            code = v5.main(argv)
+        if code:
+            return code
+        manifest = json.loads(manifest_path.read_text())
+        problems = contract_problems(manifest, reference)
+        if problems:
+            raise SystemExit("; ".join(problems))
+        summary = json.loads(printed.getvalue())
+        summary["diagnosticOnly"] = True
+        summary["manifestSha256"] = hashlib.sha256(manifest_path.read_bytes()).hexdigest()
+        print(json.dumps(summary, indent=2))
+        validated = True
+        return 0
+    finally:
+        if not validated:
+            # Includes nonzero returns, SystemExit, parse/IO failures and
+            # interruption after the underlying packer wrote the make target.
+            # Keep partial non-manifest files for diagnosis; make must retry.
+            try:
+                manifest_path.unlink(missing_ok=True)
+            finally:
+                sys.stderr.write(printed.getvalue())
+
 
 
 if __name__ == "__main__":

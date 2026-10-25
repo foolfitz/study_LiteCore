@@ -1,0 +1,88 @@
+.......FFFFFF.FFF
+======================================================================
+FAIL: test_bad_reference_is_read_before_packer_and_invalidates_stale_manifest (__main__.PackagingFailures.test_bad_reference_is_read_before_packer_and_invalidates_stale_manifest) (fault="FileNotFoundError('reference missing')")
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tests/v23_diagnostic_packaging_test.py", line 166, in test_bad_reference_is_read_before_packer_and_invalidates_stale_manifest
+    with self.assertRaises((FileNotFoundError, json.JSONDecodeError)):
+         ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: (<class 'FileNotFoundError'>, <class 'json.decoder.JSONDecodeError'>) not raised
+
+======================================================================
+FAIL: test_bad_reference_is_read_before_packer_and_invalidates_stale_manifest (__main__.PackagingFailures.test_bad_reference_is_read_before_packer_and_invalidates_stale_manifest) (fault="'{broken'")
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tests/v23_diagnostic_packaging_test.py", line 166, in test_bad_reference_is_read_before_packer_and_invalidates_stale_manifest
+    with self.assertRaises((FileNotFoundError, json.JSONDecodeError)):
+         ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: (<class 'FileNotFoundError'>, <class 'json.decoder.JSONDecodeError'>) not raised
+
+======================================================================
+FAIL: test_postwrite_candidate_parse_failure_removes_manifest_and_keeps_output (__main__.PackagingFailures.test_postwrite_candidate_parse_failure_removes_manifest_and_keeps_output)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tests/v23_diagnostic_packaging_test.py", line 100, in test_postwrite_candidate_parse_failure_removes_manifest_and_keeps_output
+    self.assertFalse(self.manifest.exists())
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_postwrite_reference_comparison_failure_removes_manifest (__main__.PackagingFailures.test_postwrite_reference_comparison_failure_removes_manifest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tests/v23_diagnostic_packaging_test.py", line 112, in test_postwrite_reference_comparison_failure_removes_manifest
+    self.assertEqual(self.stderr.getvalue(), '{}\n')
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: '' != '{}\n'
++ {}
+
+
+======================================================================
+FAIL: test_postwrite_summary_failure_removes_manifest_and_preserves_exact_output (__main__.PackagingFailures.test_postwrite_summary_failure_removes_manifest_and_preserves_exact_output)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tests/v23_diagnostic_packaging_test.py", line 132, in test_postwrite_summary_failure_removes_manifest_and_preserves_exact_output
+    self.assertFalse(self.manifest.exists())
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_postwrite_validator_exception_removes_manifest (__main__.PackagingFailures.test_postwrite_validator_exception_removes_manifest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tests/v23_diagnostic_packaging_test.py", line 122, in test_postwrite_validator_exception_removes_manifest
+    self.assertFalse(self.manifest.exists())
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_v5_nonzero_and_exceptions_remove_manifest_and_keep_output (__main__.PackagingFailures.test_v5_nonzero_and_exceptions_remove_manifest_and_keep_output) (outcome='7')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tests/v23_diagnostic_packaging_test.py", line 150, in test_v5_nonzero_and_exceptions_remove_manifest_and_keep_output
+    self.assertFalse(self.manifest.exists())
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_v5_nonzero_and_exceptions_remove_manifest_and_keep_output (__main__.PackagingFailures.test_v5_nonzero_and_exceptions_remove_manifest_and_keep_output) (outcome="RuntimeError('packer failed')")
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tests/v23_diagnostic_packaging_test.py", line 150, in test_v5_nonzero_and_exceptions_remove_manifest_and_keep_output
+    self.assertFalse(self.manifest.exists())
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_v5_nonzero_and_exceptions_remove_manifest_and_keep_output (__main__.PackagingFailures.test_v5_nonzero_and_exceptions_remove_manifest_and_keep_output) (outcome='SystemExit(9)')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tests/v23_diagnostic_packaging_test.py", line 150, in test_v5_nonzero_and_exceptions_remove_manifest_and_keep_output
+    self.assertFalse(self.manifest.exists())
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not false
+
+----------------------------------------------------------------------
+Ran 14 tests in 0.011s
+
+FAILED (failures=9)
