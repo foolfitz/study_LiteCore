@@ -24,3 +24,13 @@ The owner has been given the actual Files entry and the dedicated fixture. Reque
 The first two observations are existing **F3-hand**; the latter two are separately recorded owner follow-ups, not new F3 criteria. No owner outcome has been recorded yet. ODS H7 and V3-SEE already hold and were not requested again. The completed Xvfb diagnostic remains distinct from this owner observation.
 
 litecore remains running for this manual slot. Stop the agent-started service after the observation or cancellation unless the owner asks to retain it, and record all project states. No lock-table clearing, fixture overwrite, product change, compiling make, new count binding, K chain or reassurance rerun was performed. Section 34.4 **+0 / +0**, cumulative **47 / 27**.
+
+## Completed: all four owner checks meet expectations; service stopped
+
+This section supersedes the pending-result and running-service statuses above. The owner first said **「測試完成」**, then explicitly answered **「A」** to the choice **「A：四項都符合預期」**, whose question named all four checks. **F3-hand holds**, and the carried Home/End and dialog appearance checks are reported as meeting expectations. Exact replies, clarification scope and identity are in `owner-confirmation.md`. No browser version was supplied or inferred.
+
+`post-test-identity.json` records the same fileId 24920 and candidate identity after the owner's edits: **31,008 bytes**, sha256 **a84629657cf01ea0adeb26991c6f62932e2df601637ecaee0b1fa6721afa6adb**. The pre-edit source hash is historical, not an immutability criterion for an edit test. This read is provenance, not a proxy judge for the owner's report.
+
+The agent stopped its own litecore project **08:59:47-08:59:49 Asia/Taipei**, exit **0**. `cleanup.json` and raw before/after snapshots show every ddev project state matches the slot start: litecore stopped; fgp-nc and nc-bridge paused; all others stopped. Host source remains clean at **4f7f870**. The owner's edited test document is preserved; no lock-table clearing command, fixture deletion or overwrite was performed.
+
+The four requested manual observations are complete. ODS H7/V3-SEE remain accepted. **K is still unrun and not re-pinned**; host 0.2.33 remains installed and uncounted, nominal shipped host 0.2.26. Section 34.4 remains **47 / 27**.
