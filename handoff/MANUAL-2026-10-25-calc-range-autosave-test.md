@@ -14,3 +14,7 @@ This file was created on request to guide the owner through manual testing after
 ```
 
 Use the normal admin account. Cell B2:C2 is suitable for range B/I/U and B2 for confirmed-value autosave. A2 and the other sheet are preservation controls. Service was already running; no service lifecycle command was executed.
+
+## Owner feedback
+
+The owner reported the preceding functional tests passed on 2026-10-25. Their screenshot used a document named M4 檢視 測試 plain.ods; the exact manually used file is not inferred to be fixture25391. All owner documents, including25391, remain protected. A separate dark-host inline text contrast issue was reported and handled as a CSS-only correction.
