@@ -144,3 +144,31 @@ test("format state never exposes a revision before its tile scheduler is invalid
   await session.setFormat("bold",true);
   assert.ok(observed>0);await session.close();
 });
+
+test("range selection retains active cell, uses bounded reads and refuses every format",async()=>{
+  const {session,doc,calls}=await opened();let reads=0;
+  doc.readCell=async(c,r)=>{reads++;return{cell:doc.cell(c,r)};};
+  await session.selectCell(100000,100000,{extend:true});
+  assert.equal(reads,1);assert.equal(session.state.cell.column,0);
+  assert.equal(session.state.selection.endColumn,100000);
+  assert.equal(session.state.selection.multiple,true);
+  for(const format of ["bold","italic","underline"])
+    await assert.rejects(session.setFormat(format,true),{code:"RANGE_FORMAT_UNSUPPORTED"});
+  assert.equal(doc.revision,0);assert.deepEqual(calls,[]);
+  session.beginEdit("inline",{replace:true});
+  assert.equal(session.state.selection.multiple,false);assert.equal(session.state.cell.column,0);
+  session.setDraft("active only");await session.commit();
+  assert.deepEqual(calls[0].slice(1,5),[0,0,0,"active only"]);
+  await session.close();
+});
+
+test("expired hit replies never replace a newer gesture or its draft",async()=>{
+  const {session,doc}=await opened();let release,started,valid=true;
+  const pending=new Promise(r=>{started=r;});
+  doc.hitCell=async()=>{started();await new Promise(r=>{release=r;});return{cell:doc.cell(8,9)};};
+  const select=session.selectAt(500,200,{extend:true,valid:()=>valid});
+  await pending;valid=false;release();await select;
+  assert.equal(session.state.cell.column,0);assert.equal(session.state.selection.multiple,false);
+  assert.equal(session.state.draft,"原始內容");
+  await session.close();
+});
