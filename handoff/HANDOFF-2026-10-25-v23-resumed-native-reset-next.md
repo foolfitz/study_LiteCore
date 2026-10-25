@@ -27,3 +27,7 @@ Reuse Astra **`/root/astra_calc_scope`** with follow-up tasks. It has the owner'
 5. Execute the predeclared diagnostic browser gates. Feature ABI6 and its shell/action protocols follow only after that stage passes. Any host deployment/K stage must use the owner's actual current availability; no historical0.2.29 or K window is implicitly reopened.
 
 The unrelated untracked `codex-claude-code-delegation.md` belongs to the owner/prior session; leave it untouched/uncommitted. No root command is authorized. Compiling make remains owner-run. Routine host unit-test compilations in the focused test driver are separate from the owner native harness/core link; no project build was run by the agent.
+
+## Superseded next step after owner compilation and native execution
+
+The original native binary was supplied and its full cohort failed without changing criteria. Continue from `HANDOFF-2026-10-25-v23-reset-failed-restore-v2-native-next.md` and the versioned restore-v2 native runbook. The original single-RESET adoption prerequisite did not pass; do not use this older handoff's first-build wait as current state.
