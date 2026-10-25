@@ -1,0 +1,9 @@
+# S-init paragraph preparation 04: paired public setup succeeded
+
+Two separately filtered Chrome preparations completed, v22 first and then r2, with runner exit0. Both used the single approved BEFORE-marker public placement. The exact saved semantic outcomes are equal: `S_INIT_PARAGRAPH_MARKER` followed by an empty paragraph. Both actual insert responses report `method: paste`. This is **PREPARATION_ONLY_MATCH**, not the full72-cell comparison.
+
+The initial v22 selection was unobserved/collapsed. Public placement at its actual initial caret point (x1004,y1142) returned `verified-caret-readback`; the fresh selection became observed/collapsed and remained so after marker insertion. The same measured-point setup on r2 also succeeded. The reader checked each actual placement request/response, initial and fresh states, ordering, insertion, InsertPara and saved bytes. No retry, added sleep, guessed point, private input or post-marker reposition was used.
+
+`s-init-paragraph-prep-04-pair.json` records actual input identities, user agents, state witnesses, methods, saved paragraph text and normalized hashes. Each individual report retains actual requests, responses, callbacks and binary evidence. Actual profile/resource bytes, fixture bytes, instrument sources, mirror bindings and before/after identities were independently rechecked and held. Both owned runtimes and browser/server contexts were closed normally. Mirrors remain locally available and are ignored in git.
+
+Historical prep03 is unchanged: eleven records comprise ten completed Chrome pages (including the actual v22 unprimed paragraph refusal and successful r2 paragraph case), plus one interrupted v22 linguistic constructor. This new admissible-input result does not erase that cold unprimed asymmetry. Firefox, linguistic layout and the complete counted72 remain unestablished. No further browser work was performed after the authorized pair.
