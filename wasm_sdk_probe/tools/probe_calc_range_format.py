@@ -14,6 +14,7 @@ from probe_calc_input_range_full import pointer
 from probe_calc_format_view import INSTRUMENT, SNAPSHOT
 from r7_support import evaluate, run_in_page
 from run_calc_cell_native import cells_from_xml, NAMES
+from ods_cell_attributes import effective_attributes
 
 _base_mirror = browser.mirror
 
@@ -102,17 +103,11 @@ def exercise(session, out, run):
     deadline = time.monotonic()+30
     while not list(downloads.glob("*.ods")) and time.monotonic()<deadline:time.sleep(.1)
     saved = next(downloads.glob("*.ods"))
-    doc,cells = cells_from_xml(saved)
-    styles = {s.get(f"{{{NAMES['s']}}}name"):s for s in doc.findall(".//s:style",NAMES)}
-    def attributes(address):
-        style = styles[cells[address].get(f"{{{NAMES['t']}}}style-name")]
-        props = style.find("s:text-properties",NAMES)
-        return {} if props is None else props.attrib
     fields = [f"{{{NAMES['f']}}}font-weight",f"{{{NAMES['s']}}}font-weight-asian",f"{{{NAMES['s']}}}font-weight-complex",
               f"{{{NAMES['f']}}}font-style",f"{{{NAMES['s']}}}font-style-asian",f"{{{NAMES['s']}}}font-style-complex",
               f"{{{NAMES['s']}}}text-underline-style"]
     expected = ["bold","bold","bold","italic","italic","italic","solid"]
-    exported = {f"{c},{r}":attributes((0,c,r)) for c in range(3) for r in range(2)}
+    exported = {f"{c},{r}":effective_attributes(saved,0,c,r) for c in range(3) for r in range(2)}
     check("xml-script-families", all([a.get(k) for k in fields] == expected for a in exported.values()), exported)
     run["saved"]={"path":str(saved),"sha256":hashlib.sha256(saved.read_bytes()).hexdigest()}
     run_in_page(session,"window.__rangeOldSession=window.__calcEditor.session;")

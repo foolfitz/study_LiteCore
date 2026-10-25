@@ -5,8 +5,12 @@ import ast
 import copy
 import hashlib
 import json
+import tempfile
+import zipfile
+from xml.etree import ElementTree as ET
 from pathlib import Path
 from create_calc_range_format_fixture import FORMATS, CASES
+from ods_cell_attributes import effective_attributes
 
 PROBE = Path(__file__).with_name("probe_calc_range_format.py")
 
@@ -40,6 +44,18 @@ def validate(report):
     return len(runs)*len(wanted)
 
 
+def verify_saved(path):
+    f='urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0'
+    s='urn:oasis:names:tc:opendocument:xmlns:style:1.0'
+    expected={f'{{{f}}}font-weight':'bold',f'{{{f}}}font-style':'italic',f'{{{s}}}text-underline-style':'solid'}
+    for script in ('asian','complex'):
+        expected[f'{{{s}}}font-weight-{script}']='bold';expected[f'{{{s}}}font-style-{script}']='italic'
+    for c in range(3):
+        for r in range(2):
+            actual=effective_attributes(path,0,c,r)
+            assert all(actual.get(k)==v for k,v in expected.items()),'saved ODS format mismatch'
+
+
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument("out",type=Path);parser.add_argument("--red-cases",action="store_true")
@@ -48,6 +64,11 @@ def main():
     assert manifest["profile"]=="ods-editor-v2" and "cell-range-formatting" in manifest["capabilities"],"wrong native profile"
     for run in report["runs"]:
         saved=run["saved"];assert hashlib.sha256(Path(saved["path"]).read_bytes()).hexdigest()==saved["sha256"],"saved bytes changed"
+        verify_saved(saved['path'])
+        views=[c['actual']['artifact'] for c in run['checks'] if c['id']=='tiles']
+        assert len(views)==1,'missing tile snapshot'
+        view=json.loads((args.out/views[0]).read_text())
+        assert view['visibleTiles']>0 and view['tiles'] and all(t['matched'] is True for t in view['tiles']),'tile mismatch'
     sources=json.loads((args.out/"mirror-sources.json").read_text())
     root=Path(sources["root"]);assert sources["sha256"],"empty mirror"
     for relative,sha in sources["sha256"].items():
@@ -67,6 +88,23 @@ def main():
             try:validate(bad)
             except (AssertionError,ValueError,KeyError):controls.append({"id":name,"rejected":True});continue
             raise AssertionError("red control passed: "+name)
+        # Change actual ODS style bytes. The semantic check must reject this,
+        # independently of the report's saved-file hash or pass booleans.
+        with tempfile.TemporaryDirectory(prefix='range-xml-red-') as scratch:
+            path=Path(scratch)/'normal.ods'
+            with zipfile.ZipFile(report['runs'][0]['saved']['path']) as z,zipfile.ZipFile(path,'w') as out:
+                for name in z.namelist():
+                    body=z.read(name)
+                    if name=='content.xml':
+                        doc=ET.fromstring(body)
+                        for node in doc.iter():
+                            key='{urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0}font-weight'
+                            if key in node.attrib:node.set(key,'normal')
+                        body=ET.tostring(doc)
+                    out.writestr(name,body)
+            try:verify_saved(path)
+            except AssertionError:controls.append({'id':'wrong-xml-style','rejected':True})
+            else:raise AssertionError('wrong XML style was accepted')
     print(json.dumps({"pass":True,"checks":count,"redControls":controls},indent=2))
 
 
