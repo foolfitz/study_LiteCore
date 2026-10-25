@@ -70,9 +70,9 @@ def main():
               'mirrorInstrument': served_instruments(),
               'runs': []}
     if args.arm == 'wd':
-        from v23_wd_cases import instrument_files
+        from v23_wd_cases import instrument_files as wd_instrument_files
         report['wdInstrumentSha256'] = {str(p.relative_to(PROJECT)): hashlib.sha256(p.read_bytes()).hexdigest()
-                                       for p in instrument_files()}
+                                       for p in wd_instrument_files()}
         report['wdMirrorSha256'] = hashlib.sha256((target / 'v23-diagnostic-wd.js').read_bytes()).hexdigest()
     output = args.output / 'report.json'
     def write(): output.write_text(json.dumps(report, indent=2) + '\n')
