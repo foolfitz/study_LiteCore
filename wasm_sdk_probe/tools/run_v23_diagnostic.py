@@ -65,6 +65,11 @@ def main():
                 for p in [Path(__file__), PROJECT / 'tools/judge_v23_diagnostic.py',
                           PROJECT / 'web/v23-diagnostic.js', PROJECT / 'web/v23-diagnostic.html']},
               'runs': []}
+    if args.arm == 'wd':
+        from v23_wd_cases import instrument_files
+        report['wdInstrumentSha256'] = {str(p.relative_to(PROJECT)): hashlib.sha256(p.read_bytes()).hexdigest()
+                                       for p in instrument_files()}
+        report['wdMirrorSha256'] = hashlib.sha256((target / 'v23-diagnostic-wd.js').read_bytes()).hexdigest()
     output = args.output / 'report.json'
     def write(): output.write_text(json.dumps(report, indent=2) + '\n')
     browsers = ('chrome', 'firefox') if args.browser == 'both' else (args.browser,)
