@@ -40,3 +40,7 @@
 - 擁有者 14:00 指定時段到 14:45（規格 §14.5）。宿主 commit `0870695`，`occ upgrade` 後 `app:list` 是 0.2.28，maintenance false。engine 封包沒動，HTTP 送出的引擎檔案與 0.2.27 逐位元組相同。〔已觀察：`findings/evidence/host-0.2.28/install.txt`、`http-served.txt`〕
 - **H-155 PASS**：打開的對話框框 `[605, 323, 640, 335]`／視窗 1850×980（Chrome），`[605, 326, 640, 342]`／1850×994（Firefox）。中心偏移 Chrome `[0, +0.5]`、Firefox `[0, 0]`，各 3 輪都一樣；0.2.27 是 `[−605, −322.5]`。H-154c、H-154o 也都 PASS。〔已觀察：`findings/evidence/host-0.2.28/judge-h155.txt`〕
 - 桌面閘門在這一步撤除，因為它守的是計時格（規格 §14.5）。
+
+## 擁有者外觀回報（2026-10-25，host 0.2.33）
+
+擁有者在指明的 Chrome／Files 手測流程後，對四項結果回覆「A」（A＝「四項都符合預期」），其中外觀項目是對話框打開時置中、關閉後沒有框遮住文件。這補上先前保留的人的外觀回報；既有 H-155 機械驗收不重跑、不改判準。證據 `findings/evidence/host-0.2.33/f3-hand-2026-10-25/owner-confirmation.md`。0.2.33 仍為未計數候選。
