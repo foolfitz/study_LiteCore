@@ -51,3 +51,13 @@ N-model／N-format 的 fixture 與原生讀取產物落地後就封閉該次 N�
 取代 §1 的幾何來源假設：UNO Position／Size 是邏輯毫米尺寸，不能代替 LOK 的像素對齊矩形。bridge 將以同步 `XSelectionSupplier` 選到明確 cell，再直接讀公開的 `.uno:CellCursor`，點選則讀 `.uno:ViewRowColumnHeaders`。本頁固定 scale＝1、每 CSS px 15 twips，明確設定 client zoom；不把一般 Writer 的鍵／回呼等待接回來。原生仍對比獨立 LOK GoToCell 後的 cursor，且保留偏一格紅案。若不能讀到相符 cell，就拒絕，不拿舊矩形繼續寫入。
 
 `formula` 保留 UNO 原值，另回傳可安全送回的 `input`；TEXT 的 `=／+／-` 開頭補一個 apostrophe，數字／既有 apostrophe 則沿 UNO 本身的 escape。這是修正實作對 raw 值的解讀，原本「原始內容不得被改型」的判準不變。先讓上述紅案在新讀法成立，再執行新的 N＝3，舊三輪不挪來計數。§34.4 +0／+0（新功能實作／新原生工具，不是修理既有判讀）。
+
+## 6. 定向實測與宿主衝突證人（2026-10-25，只追加）
+
+原生最終 `findings/evidence/m4-cell-editing/native/run-03-final/report.json` **171／171**；兩瀏覽器各三輪的真實鍵鼠、下載到磁碟、獨立 ZIP／XML 與重開為 `browser-edit-03-download/report.json` **186／186**。W-edit 在該輪封閉；首次重開的 reader 誤以為存檔仍停在第 0 表，保留失敗並改成明確選第 0 表，沒有改產品判準。既有 static gate exit 0、E1-C intact，舊 Writer／viewer frozen 檔案保持相同。
+
+新引擎凍結為 **ods-editor-v1／d5a081f8…／worker 39737ddb…**；沿用 viewer v3 核心，沒有重建 LibreOffice core。第一份 host 0.2.34 封包 **df7f6fe14e395638** 已封存，離線零問題、22／22 紅案；原 Writer／viewer 的 page records 相同。宿主快轉 **db5139c**，occ 0.2.34，測試時段只啟動 litecore。這是功能定向測試時段，不是 K／P5。
+
+H-write `findings/evidence/host-0.2.34/host-write-02/report.json` 留下真實紅案：ODS 條件 PUT、鎖、重開、格式、外部改檔與衝突副本內容都正確，**副本已成功但 dirty 仍 true**。新 session 讀 `error.details.outcome`，既有宿主的 `failure()` 實際把 `outcome` 放在頂層。證人 commit **a25eedb0** 先於修法；新增 session 測試先紅，再由 **85ad4e33** 改讀真實契約，保留衝突提示、stranded 仍 dirty。
+
+這不是放寬 §2 的儲存條件，H-write 尚未成立；接續只修正／重包新 session asset，留下第一份 immutable archive，再跑 H-write 全部指定路徑。新引擎不改、W-edit 不重置。第一次宿主工具本身的 DOM 序列化錯誤留在 host-write-01。§34.4 **+0／+0，累計 47／27**：這是新功能與新工具，沒有修理既有判讀。完整 K、既有 counted pins／BINDING／chain 仍未動。
