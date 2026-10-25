@@ -1,0 +1,50 @@
+{
+  "runner": {
+    "argv": [
+      "python3",
+      "-I",
+      "tools/run_v23_remaining.py",
+      "--arm",
+      "html-negative",
+      "--browser",
+      "firefox",
+      "--rounds",
+      "1",
+      "--profile",
+      "e2-editor-v23-diag",
+      "--wasm-sha256",
+      "52cf9d23b615458d3a4086b3995fd68bf3ced19c252c6f89f017109fc282a443",
+      "--output",
+      "../findings/evidence/link-batch-v23/diagnostic/040-negative-prep-02"
+    ],
+    "cwd": "wasm_sdk_probe",
+    "exit_code": 0,
+    "stdout": "firefox html-negative 1\n../findings/evidence/link-batch-v23/diagnostic/040-negative-prep-02/report.json\n",
+    "stderr": ""
+  },
+  "reader": {
+    "operation": "judge_v23_remaining.verify_bindings(report, mirror) then judge(page, reportIdentity, reportFixtures, reportProfile)",
+    "exit_code": 0,
+    "result": {
+      "verdict": "PASS",
+      "missing": [],
+      "failed": [],
+      "stepMilliseconds": {
+        "open-frame": 1931.56,
+        "040-anchor": 46.2800000000002,
+        "040-select": 47.07999999999993,
+        "040-complex-read": 19.38000000000011,
+        "040-restart": 2005.3600000000006,
+        "040-recovery-save": 546.1399999999994
+      },
+      "controlElapsedMs": 30001.399999999998,
+      "unestablishedMetrics": [
+        "engine tick intervals",
+        "exact INVALIDATE_TILES latency",
+        "engine idle-layout completion"
+      ],
+      "caseId": "frame-html-js",
+      "scope": "only named arm; exact040 requires all three040 arms"
+    }
+  }
+}

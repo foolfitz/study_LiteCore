@@ -1,0 +1,4671 @@
+{
+  "schema": 1,
+  "profile": "e2-editor-v23-diag",
+  "identity": {
+    "probe.wasm": "52cf9d23b615458d3a4086b3995fd68bf3ced19c252c6f89f017109fc282a443",
+    "probe.js": "a3919e977868934589e1e37ac1406930a6011640a82540ca507c6ae4002eede4",
+    "sdk-worker.js": "889edcde583c77be78b5ccfe9d71f967175f946123d806d15180693f600d4f68",
+    "sdk-manifest.json": "f6f4ae796eaf6ed231861c967957208cc3d05ed4b601cbecfbc8f3387d4a8f0a"
+  },
+  "fixtures": {
+    "frame": "b2869e0eb89bc5644e08e5d86c5d374615d1e641ec5ed8a7d7aca0198567c661",
+    "largest": "ae648d6bae96d82ce6636434c9dbba3ec75af07489a59b9fcce4c7af07f5e2ef",
+    "plain": "bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02",
+    "long60": "4c6f812ff784255f340f636a77dffc6a2b2b6240994ce4509192be70b8f0db6c"
+  },
+  "population": {
+    "corpusManifestSha256": "6261d22cdf501b83d281689ff8e90c06c204d6392e9a604de62d76492605f3cf",
+    "metric": "maximum declared pageCount among expected-open-pass ODT",
+    "eligible": [
+      {
+        "id": "l0-t1",
+        "tier": "L0",
+        "path": "l0-t1-plain-zh.odt",
+        "bytes": 17885,
+        "sha256": "bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02",
+        "mediaType": "application/vnd.oasis.opendocument.text",
+        "source": {
+          "kind": "project-generated",
+          "path": "wasm_sdk_probe/test-docs/t1-plain-zh.odt",
+          "license": "MPL-2.0"
+        },
+        "features": [
+          "plain",
+          "cjk"
+        ],
+        "expected": {
+          "open": "pass",
+          "save": "odt",
+          "typedCode": null,
+          "degradation": [],
+          "pageCount": 1
+        },
+        "mutationPolicy": "append-and-save",
+        "anchors": [
+          {
+            "text": "Final line\uff1aODT round-trip \u5b8c\u6574\u6027\u6aa2\u67e5\u3002",
+            "count": 1
+          }
+        ],
+        "limits": {
+          "openMs": 180000
+        }
+      },
+      {
+        "id": "l0-t2",
+        "tier": "L0",
+        "path": "l0-t2-styled.odt",
+        "bytes": 33278,
+        "sha256": "0f69906035cb5d96f86b034cf2596994d5de82ee6347a47c00f35784c9888d31",
+        "mediaType": "application/vnd.oasis.opendocument.text",
+        "source": {
+          "kind": "project-generated",
+          "path": "wasm_sdk_probe/test-docs/t2-styled.odt",
+          "license": "MPL-2.0"
+        },
+        "features": [
+          "styles",
+          "table",
+          "image",
+          "comment"
+        ],
+        "expected": {
+          "open": "pass",
+          "save": "none",
+          "typedCode": null,
+          "degradation": [
+            "finding-012-known-discovery-sequence"
+          ],
+          "pageCount": 3
+        },
+        "mutationPolicy": "read-only",
+        "anchors": [
+          {
+            "text": "\u6587\u4ef6\u7d50\u5c3e\uff1a\u8acb\u78ba\u8a8d\u8868\u683c\u3001\u5716\u7247\u3001\u8a3b\u89e3\u8207\u6a19\u984c\u6a23\u5f0f\u5747\u4fdd\u7559\u3002",
+            "count": 1
+          }
+        ],
+        "limits": {
+          "openMs": 180000
+        }
+      },
+      {
+        "id": "l0-t3",
+        "tier": "L0",
+        "path": "l0-t3-long.odt",
+        "bytes": 44849,
+        "sha256": "858d7a0424a1c69a025fc49ff4ff079263af55f3532d573bbe5c6f92e3108e02",
+        "mediaType": "application/vnd.oasis.opendocument.text",
+        "source": {
+          "kind": "project-generated",
+          "path": "wasm_sdk_probe/test-docs/t3-long.odt",
+          "license": "MPL-2.0"
+        },
+        "features": [
+          "long-document"
+        ],
+        "expected": {
+          "open": "pass",
+          "save": "none",
+          "typedCode": null,
+          "degradation": [],
+          "pageCount": 22
+        },
+        "mutationPolicy": "read-only",
+        "anchors": [
+          {
+            "text": "\u7b2c 1 \u9801\uff1a\u9577\u6587\u4ef6\u8a18\u61b6\u9ad4\u8207\u6548\u80fd\u6e2c\u8a66",
+            "count": 1
+          },
+          {
+            "text": "\u7b2c 22 \u9801\uff1a\u9577\u6587\u4ef6\u8a18\u61b6\u9ad4\u8207\u6548\u80fd\u6e2c\u8a66",
+            "count": 1
+          }
+        ],
+        "limits": {
+          "openMs": 180000
+        }
+      },
+      {
+        "id": "l4-stress-100",
+        "tier": "L4",
+        "path": "l4-stress-100.odt",
+        "bytes": 35772,
+        "sha256": "ae648d6bae96d82ce6636434c9dbba3ec75af07489a59b9fcce4c7af07f5e2ef",
+        "mediaType": "application/vnd.oasis.opendocument.text",
+        "source": {
+          "kind": "project-derived",
+          "path": "t1-plain-zh.odt + assets/r1-test-image.png",
+          "license": "MPL-2.0"
+        },
+        "features": [
+          "100-pages",
+          "cjk",
+          "image",
+          "stress"
+        ],
+        "expected": {
+          "open": "pass",
+          "save": "none",
+          "typedCode": null,
+          "degradation": [],
+          "pageCount": 100
+        },
+        "mutationPolicy": "read-only",
+        "anchors": [
+          {
+            "text": "R7 stress page 001 \u9801\u9762\u9328\u9ede",
+            "count": 1
+          },
+          {
+            "text": "R7 stress page 050 \u9801\u9762\u9328\u9ede",
+            "count": 1
+          },
+          {
+            "text": "R7 stress page 100 \u9801\u9762\u9328\u9ede",
+            "count": 1
+          }
+        ],
+        "limits": {
+          "openMs": 180000
+        }
+      }
+    ],
+    "selected": {
+      "id": "l4-stress-100",
+      "tier": "L4",
+      "path": "l4-stress-100.odt",
+      "bytes": 35772,
+      "sha256": "ae648d6bae96d82ce6636434c9dbba3ec75af07489a59b9fcce4c7af07f5e2ef",
+      "mediaType": "application/vnd.oasis.opendocument.text",
+      "source": {
+        "kind": "project-derived",
+        "path": "t1-plain-zh.odt + assets/r1-test-image.png",
+        "license": "MPL-2.0"
+      },
+      "features": [
+        "100-pages",
+        "cjk",
+        "image",
+        "stress"
+      ],
+      "expected": {
+        "open": "pass",
+        "save": "none",
+        "typedCode": null,
+        "degradation": [],
+        "pageCount": 100
+      },
+      "mutationPolicy": "read-only",
+      "anchors": [
+        {
+          "text": "R7 stress page 001 \u9801\u9762\u9328\u9ede",
+          "count": 1
+        },
+        {
+          "text": "R7 stress page 050 \u9801\u9762\u9328\u9ede",
+          "count": 1
+        },
+        {
+          "text": "R7 stress page 100 \u9801\u9762\u9328\u9ede",
+          "count": 1
+        }
+      ],
+      "limits": {
+        "openMs": 180000
+      }
+    },
+    "packageByteMaximum": {
+      "id": "l0-t3",
+      "tier": "L0",
+      "path": "l0-t3-long.odt",
+      "bytes": 44849,
+      "sha256": "858d7a0424a1c69a025fc49ff4ff079263af55f3532d573bbe5c6f92e3108e02",
+      "mediaType": "application/vnd.oasis.opendocument.text",
+      "source": {
+        "kind": "project-generated",
+        "path": "wasm_sdk_probe/test-docs/t3-long.odt",
+        "license": "MPL-2.0"
+      },
+      "features": [
+        "long-document"
+      ],
+      "expected": {
+        "open": "pass",
+        "save": "none",
+        "typedCode": null,
+        "degradation": [],
+        "pageCount": 22
+      },
+      "mutationPolicy": "read-only",
+      "anchors": [
+        {
+          "text": "\u7b2c 1 \u9801\uff1a\u9577\u6587\u4ef6\u8a18\u61b6\u9ad4\u8207\u6548\u80fd\u6e2c\u8a66",
+          "count": 1
+        },
+        {
+          "text": "\u7b2c 22 \u9801\uff1a\u9577\u6587\u4ef6\u8a18\u61b6\u9ad4\u8207\u6548\u80fd\u6e2c\u8a66",
+          "count": 1
+        }
+      ],
+      "limits": {
+        "openMs": 180000
+      }
+    },
+    "excluded": [
+      {
+        "id": "l1-plain-odt",
+        "expected": {
+          "open": "pass",
+          "save": "odt",
+          "typedCode": null,
+          "degradation": []
+        },
+        "mediaType": "application/vnd.oasis.opendocument.text"
+      },
+      {
+        "id": "l1-plain-docx",
+        "expected": {
+          "open": "typed-failure",
+          "save": "none",
+          "typedCode": "UNSUPPORTED_FORMAT",
+          "degradation": [
+            "finding-013-public-docx-unsupported"
+          ]
+        },
+        "mediaType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      },
+      {
+        "id": "l1-layout-table-image-odt",
+        "expected": {
+          "open": "pass",
+          "save": "none",
+          "typedCode": null,
+          "degradation": []
+        },
+        "mediaType": "application/vnd.oasis.opendocument.text"
+      },
+      {
+        "id": "l1-layout-table-image-docx",
+        "expected": {
+          "open": "typed-failure",
+          "save": "none",
+          "typedCode": "UNSUPPORTED_FORMAT",
+          "degradation": [
+            "finding-013-public-docx-unsupported"
+          ]
+        },
+        "mediaType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      },
+      {
+        "id": "l1-review-odt",
+        "expected": {
+          "open": "pass",
+          "save": "none",
+          "typedCode": null,
+          "degradation": []
+        },
+        "mediaType": "application/vnd.oasis.opendocument.text"
+      },
+      {
+        "id": "l1-review-docx",
+        "expected": {
+          "open": "typed-failure",
+          "save": "none",
+          "typedCode": "UNSUPPORTED_FORMAT",
+          "degradation": [
+            "finding-013-public-docx-unsupported"
+          ]
+        },
+        "mediaType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      },
+      {
+        "id": "l1-hyperlink-font-odt",
+        "expected": {
+          "open": "pass",
+          "save": "none",
+          "typedCode": null,
+          "degradation": [
+            "font-not-observable"
+          ]
+        },
+        "mediaType": "application/vnd.oasis.opendocument.text"
+      },
+      {
+        "id": "l1-hyperlink-font-docx",
+        "expected": {
+          "open": "typed-failure",
+          "save": "none",
+          "typedCode": "UNSUPPORTED_FORMAT",
+          "degradation": [
+            "finding-013-public-docx-unsupported",
+            "font-not-observable"
+          ]
+        },
+        "mediaType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      },
+      {
+        "id": "l2-qa-comments-on-load",
+        "expected": {
+          "open": "typed-failure",
+          "save": "none",
+          "typedCode": "UNSUPPORTED_FORMAT",
+          "degradation": [
+            "finding-013-public-docx-unsupported"
+          ]
+        },
+        "mediaType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      },
+      {
+        "id": "l2-qa-redline-range-comment",
+        "expected": {
+          "open": "typed-failure",
+          "save": "none",
+          "typedCode": "UNSUPPORTED_FORMAT",
+          "degradation": [
+            "finding-013-public-docx-unsupported"
+          ]
+        },
+        "mediaType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      },
+      {
+        "id": "l2-qa-image-lazy-read",
+        "expected": {
+          "open": "typed-failure",
+          "save": "none",
+          "typedCode": "UNSUPPORTED_FORMAT",
+          "degradation": [
+            "finding-013-public-docx-unsupported"
+          ]
+        },
+        "mediaType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      },
+      {
+        "id": "l2-qa-subsetted-embedded-font",
+        "expected": {
+          "open": "typed-failure",
+          "save": "none",
+          "typedCode": "UNSUPPORTED_FORMAT",
+          "degradation": [
+            "finding-013-public-docx-unsupported"
+          ]
+        },
+        "mediaType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      },
+      {
+        "id": "l2-qa-hyperlink",
+        "expected": {
+          "open": "pass",
+          "save": "none",
+          "typedCode": null,
+          "degradation": []
+        },
+        "mediaType": "application/vnd.oasis.opendocument.text"
+      },
+      {
+        "id": "l2-qa-redlines-and-comments",
+        "expected": {
+          "open": "pass",
+          "save": "none",
+          "typedCode": null,
+          "degradation": []
+        },
+        "mediaType": "application/vnd.oasis.opendocument.text"
+      },
+      {
+        "id": "l3-truncated-odt",
+        "expected": {
+          "open": "typed-failure",
+          "save": "none",
+          "typedCode": "CORRUPT_DOCUMENT",
+          "degradation": []
+        },
+        "mediaType": "application/vnd.oasis.opendocument.text"
+      },
+      {
+        "id": "l3-truncated-docx",
+        "expected": {
+          "open": "typed-failure",
+          "save": "none",
+          "typedCode": "UNSUPPORTED_FORMAT",
+          "degradation": []
+        },
+        "mediaType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      },
+      {
+        "id": "l3-bad-central",
+        "expected": {
+          "open": "typed-failure",
+          "save": "none",
+          "typedCode": "CORRUPT_DOCUMENT",
+          "degradation": []
+        },
+        "mediaType": "application/vnd.oasis.opendocument.text"
+      },
+      {
+        "id": "l3-missing-content",
+        "expected": {
+          "open": "typed-failure",
+          "save": "none",
+          "typedCode": "CORRUPT_DOCUMENT",
+          "degradation": []
+        },
+        "mediaType": "application/vnd.oasis.opendocument.text"
+      },
+      {
+        "id": "l3-format-mismatch",
+        "expected": {
+          "open": "typed-failure",
+          "save": "none",
+          "typedCode": "UNSUPPORTED_FORMAT",
+          "degradation": []
+        },
+        "mediaType": "application/vnd.oasis.opendocument.text"
+      },
+      {
+        "id": "l3-unknown",
+        "expected": {
+          "open": "typed-failure",
+          "save": "none",
+          "typedCode": "UNSUPPORTED_FORMAT",
+          "degradation": []
+        },
+        "mediaType": "application/octet-stream"
+      },
+      {
+        "id": "l3-too-large",
+        "expected": {
+          "open": "typed-failure",
+          "save": "none",
+          "typedCode": "DOCUMENT_TOO_LARGE",
+          "degradation": []
+        },
+        "mediaType": "application/octet-stream"
+      },
+      {
+        "id": "l3-entry-limit",
+        "expected": {
+          "open": "typed-failure",
+          "save": "none",
+          "typedCode": "DOCUMENT_TOO_LARGE",
+          "degradation": []
+        },
+        "mediaType": "application/vnd.oasis.opendocument.text"
+      },
+      {
+        "id": "l3-ratio-limit",
+        "expected": {
+          "open": "typed-failure",
+          "save": "none",
+          "typedCode": "DOCUMENT_TOO_LARGE",
+          "degradation": []
+        },
+        "mediaType": "application/vnd.oasis.opendocument.text"
+      },
+      {
+        "id": "l3-external",
+        "expected": {
+          "open": "typed-failure",
+          "save": "none",
+          "typedCode": "UNSUPPORTED_FORMAT",
+          "degradation": []
+        },
+        "mediaType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      }
+    ]
+  },
+  "instrument": {
+    "editor-shell/editor-client.js": "b779f157c3e3588ab46bffdae657430c6fba7ae1ce402d652ba2f9c49d88698a",
+    "editor-shell/editor-session.js": "95bc60cc655074e958ab2d5f174ebf682c54a551f0ee04cf25a989d5c34ca14a",
+    "editor-shell/state-machine.js": "7b1d9e2d6619d408004cd2eb49f3cdf845f7d8f16c2e3e9c24b6e2243b9a8cf3",
+    "editor-shell-v2/narrow-editor-v2-client.js": "c5ab9d17b7ad0e3de5e982ad6e0f4744bd16deb5bfd3d8b7cfcc8367609467ad",
+    "editor-shell-v2/narrow-editor-v2-session.js": "f1509ff22e6e2d8d945cfd803d293fd4cf102cece27618f54825571a2e1ef3a8",
+    "editor-shell-v2/paragraph-editor-client.js": "4616ae1715a57927fdf11aaf45004dfd4656bf3c816ee7cebeedd203c180a9c6",
+    "editor-shell-v2/paragraph-editor-session.js": "d853d420d794af4d79edd0956e504a5e61eef3c98bd95f112a03f53d248279c9",
+    "input/clipboard-adapter.js": "ec84cec0494697d7ce4045769bc47e7f665f2e0386d99ce2fd8ae468d9318bd8",
+    "input/input-adapter.js": "f815e156a901ac6b05614cae16e69e2157fefaaeced3ebe1225668f496334d16",
+    "reader-shell/tile-scheduler.js": "4c60ab4e5ed11e32155af50a7b6983500cdab47431c8fc494aaf2369f046e722",
+    "sdk/document-sdk.js": "9dcb83120c144cad5cf04cabcc14452255d0a640200b8e08f5eed4d4c2d63539",
+    "tools/build_e1_b_profile.py": "54a65663e08c59f1600640b53dde33312332a2a9b3f8d7a95fac498122b1d0a6",
+    "tools/build_e2_c_shell_bundle.py": "29dcc508ba329ca002b9ccc3f8e816e0c9abb33b5fa1867ec4ee9a9071f73b55",
+    "tools/create_long_document.py": "b1d533619dd3682d5538f47a29e11f96eae6cf87dd4f5703a7f0f7f51a688847",
+    "tools/e1_support.py": "b76d54f9a28daca7a7942898a8b1991c2f27d579db413b7b7f987e531fe68d9e",
+    "tools/judge_v23_remaining.py": "349e41fc8e2534bfc5d4f6b44452522b7e695bf14fe733a25c6637ed821ecc4a",
+    "tools/odt_paragraphs.py": "00b332a8fe357c5a1b06843b742f9ff0e47ca9a18c429dee37d309e08c18d9c8",
+    "tools/r7_support.py": "6f465787915e750fdb01e45c729ea9e62fa4c790fa71b5e788d46858f5fd4ae8",
+    "tools/run_browser_probe.py": "5f4c95956ef16e192234366904f42392653b3db35dc27a09e2bdd60382de4094",
+    "tools/run_e2_c_page_smoke.py": "cc38ee97ca20611dc91afd2f0832ef8ee49da9aea460463e5c17aca8d0367973",
+    "tools/run_e2_c_product_path.py": "3e824c9710f5f21fc05424531e259173d6b5cd3f092a5b3667926be84e26fef5",
+    "tools/run_merge_wasm_shakedown.py": "aaee0cda5be5ad84365962c72b13260ef64794e2f7712eb2cfdd6b3ead08664a",
+    "tools/run_v23_remaining.py": "0073225bc954cd246aa3180acf18ff5b7a344386c5c7f02c394df81acfd0112f",
+    "tools/v21_shakedown_common.py": "681c176851e9e130d536a45dd6e8a6194d07f8756d269c05210abaa42e8ee055",
+    "tools/v23_remaining_cases.py": "cd7b0c261b30fb1f061024b609b210179b68e3df630b153f5d153edcfd79f493",
+    "tools/validate_e1_c.py": "79258067879b280fc2382774afe10927762eedac6123cbe7dc2661dbbbf76534",
+    "web/v23-remaining.html": "6ea72873a65abac41eed276f879ea60f43dbdf8c5fb4704546d3ec0511a8a9a4",
+    "web/v23-remaining.js": "eedba14d7b2df923a6a22cd8416fb0271b5aee4e92b607cc355939a71e07dae4"
+  },
+  "mirrorInstrument": {
+    "editor-shell/editor-client.js": "b779f157c3e3588ab46bffdae657430c6fba7ae1ce402d652ba2f9c49d88698a",
+    "editor-shell/editor-session.js": "95bc60cc655074e958ab2d5f174ebf682c54a551f0ee04cf25a989d5c34ca14a",
+    "editor-shell/state-machine.js": "7b1d9e2d6619d408004cd2eb49f3cdf845f7d8f16c2e3e9c24b6e2243b9a8cf3",
+    "editor-shell-v2/narrow-editor-v2-client.js": "c5ab9d17b7ad0e3de5e982ad6e0f4744bd16deb5bfd3d8b7cfcc8367609467ad",
+    "editor-shell-v2/narrow-editor-v2-session.js": "f1509ff22e6e2d8d945cfd803d293fd4cf102cece27618f54825571a2e1ef3a8",
+    "editor-shell-v2/paragraph-editor-client.js": "4616ae1715a57927fdf11aaf45004dfd4656bf3c816ee7cebeedd203c180a9c6",
+    "editor-shell-v2/paragraph-editor-session.js": "d853d420d794af4d79edd0956e504a5e61eef3c98bd95f112a03f53d248279c9",
+    "input/clipboard-adapter.js": "ec84cec0494697d7ce4045769bc47e7f665f2e0386d99ce2fd8ae468d9318bd8",
+    "input/input-adapter.js": "f815e156a901ac6b05614cae16e69e2157fefaaeced3ebe1225668f496334d16",
+    "reader-shell/tile-scheduler.js": "4c60ab4e5ed11e32155af50a7b6983500cdab47431c8fc494aaf2369f046e722",
+    "sdk/document-sdk.js": "9dcb83120c144cad5cf04cabcc14452255d0a640200b8e08f5eed4d4c2d63539",
+    "e2-editor.html": "6ea72873a65abac41eed276f879ea60f43dbdf8c5fb4704546d3ec0511a8a9a4",
+    "v23-remaining.js": "eedba14d7b2df923a6a22cd8416fb0271b5aee4e92b607cc355939a71e07dae4"
+  },
+  "runs": [
+    {
+      "browser": "chrome",
+      "round": 1,
+      "arm": "html-negative",
+      "page": {
+        "schema": 1,
+        "profile": "e2-editor-v23-diag",
+        "arm": "html-negative",
+        "complete": true,
+        "steps": [
+          {
+            "name": "open-frame",
+            "startedAt": 377.4050000011921,
+            "ok": true,
+            "value": {
+              "state": "ready",
+              "documentName": "frame.odt",
+              "revision": 0,
+              "dirty": false,
+              "generation": 1,
+              "pending": 0,
+              "editorState": {
+                "documentHandle": 1,
+                "revision": 0,
+                "sourceSequence": 2,
+                "documentChangeSequence": 0,
+                "documentSizeChangedCount": 0,
+                "visible": true,
+                "caret": {
+                  "x": 1418,
+                  "y": 1418,
+                  "width": 0,
+                  "height": 276
+                },
+                "selection": {
+                  "observed": true,
+                  "collapsed": true,
+                  "start": null,
+                  "end": null,
+                  "rectangles": []
+                },
+                "a11y": {
+                  "observed": false,
+                  "changeCount": 0,
+                  "unparsedCount": 0,
+                  "lastSequence": 0,
+                  "contentLength": -1,
+                  "position": -1,
+                  "enabled": false,
+                  "unavailable": "core-built-without-accessibility",
+                  "paragraphFresh": false,
+                  "paragraphFingerprint": "0",
+                  "fingerprintUsable": false,
+                  "listPrefixLength": 0
+                },
+                "caretParagraph": {
+                  "enabled": false,
+                  "unavailable": "core-built-without-accessibility",
+                  "fresh": false,
+                  "observed": false,
+                  "fingerprint": "0",
+                  "length": -1,
+                  "offset": -1,
+                  "listPrefixLength": 0,
+                  "text": null
+                },
+                "documentOutline": null,
+                "selectionType": "none",
+                "selectionTextMissing": false,
+                "selectionText": "",
+                "format": {
+                  "bold": null,
+                  "italic": null,
+                  "underline": null,
+                  "strikethrough": null,
+                  "listBullet": null,
+                  "listNumber": null,
+                  "paragraphStyle": null,
+                  "stateChangedTotal": 0,
+                  "stateChangedUnrecognised": 0,
+                  "formatStale": true,
+                  "pollCount": 0,
+                  "idlePollCount": 0
+                }
+              },
+              "hasSavedBytes": false,
+              "hasCheckpoint": false,
+              "checkpointRevision": null,
+              "checkpointError": null,
+              "error": null
+            },
+            "finishedAt": 2369.9099999964237
+          },
+          {
+            "name": "040-anchor",
+            "startedAt": 2369.920000001788,
+            "ok": true,
+            "value": {
+              "found": true,
+              "query": "IV-ASCHAR",
+              "selections": [
+                {
+                  "part": "0",
+                  "rectangles": "1418, 1807, 1306, 275"
+                }
+              ],
+              "revision": 0
+            },
+            "finishedAt": 2424.2250000089407
+          },
+          {
+            "name": "040-select",
+            "startedAt": 2424.2699999958277,
+            "ok": true,
+            "value": {
+              "method": "text-handles-unstable",
+              "revision": 0,
+              "completion": "documented-callback-text-selection",
+              "callbackSequenceBefore": 6,
+              "callbackSequenceAfter": 10,
+              "state": {
+                "sourceSequence": 10,
+                "documentChangeSequence": 0,
+                "documentSizeChangedCount": 0,
+                "visible": true,
+                "caret": {
+                  "x": 5118,
+                  "y": 1807,
+                  "width": 0,
+                  "height": 276
+                },
+                "selection": {
+                  "observed": true,
+                  "collapsed": false,
+                  "start": {
+                    "x": 1418,
+                    "y": 1807,
+                    "width": 0,
+                    "height": 275
+                  },
+                  "end": {
+                    "x": 5118,
+                    "y": 1807,
+                    "width": 0,
+                    "height": 275
+                  },
+                  "rectangles": [
+                    {
+                      "x": 1418,
+                      "y": 1807,
+                      "width": 3700,
+                      "height": 275
+                    }
+                  ]
+                },
+                "a11y": {
+                  "observed": false,
+                  "changeCount": 0,
+                  "unparsedCount": 0,
+                  "lastSequence": 0,
+                  "contentLength": -1,
+                  "position": -1,
+                  "enabled": false,
+                  "unavailable": "core-built-without-accessibility",
+                  "paragraphFresh": false,
+                  "paragraphFingerprint": "0",
+                  "fingerprintUsable": false,
+                  "listPrefixLength": 0
+                },
+                "format": {
+                  "bold": null,
+                  "italic": null,
+                  "underline": null,
+                  "strikethrough": null,
+                  "listBullet": null,
+                  "listNumber": null,
+                  "paragraphStyle": null,
+                  "stateChangedTotal": 4,
+                  "stateChangedUnrecognised": 4,
+                  "formatStale": true,
+                  "pollCount": 0,
+                  "idlePollCount": 0
+                }
+              }
+            },
+            "finishedAt": 2472.484999999404
+          },
+          {
+            "name": "040-complex-read",
+            "startedAt": 2472.4950000047684,
+            "ok": true,
+            "value": {
+              "selectionType": "complex",
+              "text": "",
+              "mimeType": "text/plain;charset=utf-8",
+              "revision": 0
+            },
+            "finishedAt": 2493.8250000029802
+          },
+          {
+            "name": "040-restart",
+            "startedAt": 32494.82000000775,
+            "ok": true,
+            "value": {
+              "state": "ready",
+              "documentName": "frame.odt",
+              "revision": 0,
+              "dirty": false,
+              "generation": 2,
+              "pending": 0,
+              "editorState": {
+                "documentHandle": 1,
+                "revision": 0,
+                "sourceSequence": 2,
+                "documentChangeSequence": 0,
+                "documentSizeChangedCount": 0,
+                "visible": true,
+                "caret": {
+                  "x": 1418,
+                  "y": 1418,
+                  "width": 0,
+                  "height": 276
+                },
+                "selection": {
+                  "observed": true,
+                  "collapsed": true,
+                  "start": null,
+                  "end": null,
+                  "rectangles": []
+                },
+                "a11y": {
+                  "observed": false,
+                  "changeCount": 0,
+                  "unparsedCount": 0,
+                  "lastSequence": 0,
+                  "contentLength": -1,
+                  "position": -1,
+                  "enabled": false,
+                  "unavailable": "core-built-without-accessibility",
+                  "paragraphFresh": false,
+                  "paragraphFingerprint": "0",
+                  "fingerprintUsable": false,
+                  "listPrefixLength": 0
+                },
+                "caretParagraph": {
+                  "enabled": false,
+                  "unavailable": "core-built-without-accessibility",
+                  "fresh": false,
+                  "observed": false,
+                  "fingerprint": "0",
+                  "length": -1,
+                  "offset": -1,
+                  "listPrefixLength": 0,
+                  "text": null
+                },
+                "documentOutline": null,
+                "selectionType": "none",
+                "selectionTextMissing": false,
+                "selectionText": "",
+                "format": {
+                  "bold": null,
+                  "italic": null,
+                  "underline": null,
+                  "strikethrough": null,
+                  "listBullet": null,
+                  "listNumber": null,
+                  "paragraphStyle": null,
+                  "stateChangedTotal": 0,
+                  "stateChangedUnrecognised": 0,
+                  "formatStale": true,
+                  "pollCount": 0,
+                  "idlePollCount": 0
+                }
+              },
+              "hasSavedBytes": false,
+              "hasCheckpoint": false,
+              "checkpointRevision": null,
+              "checkpointError": null,
+              "error": null
+            },
+            "finishedAt": 33546.94500000775
+          },
+          {
+            "name": "040-recovery-save",
+            "startedAt": 33547.010000005364,
+            "ok": true,
+            "value": {
+              "byteLength": 14971
+            },
+            "finishedAt": 34288.29999999702
+          }
+        ],
+        "requests": [
+          {
+            "generation": 1,
+            "at": 381.70499999821186,
+            "protocolVersion": 1,
+            "kind": "request",
+            "requestId": 1,
+            "operation": "init",
+            "payload": {
+              "requestedAbiVersion": 65537,
+              "debug": true
+            }
+          },
+          {
+            "generation": 1,
+            "at": 1157.875,
+            "protocolVersion": 1,
+            "kind": "request",
+            "requestId": 2,
+            "operation": "open",
+            "payload": {
+              "buffer": {
+                "byteLength": 2196,
+                "sha256": "b2869e0eb89bc5644e08e5d86c5d374615d1e641ec5ed8a7d7aca0198567c661"
+              },
+              "name": "frame.odt"
+            }
+          },
+          {
+            "generation": 1,
+            "at": 2211.564999997616,
+            "protocolVersion": 1,
+            "kind": "request",
+            "requestId": 3,
+            "operation": "editorGetStateV2",
+            "payload": {
+              "documentHandle": 1
+            }
+          },
+          {
+            "generation": 1,
+            "at": 2369.9900000095367,
+            "protocolVersion": 1,
+            "kind": "request",
+            "requestId": 4,
+            "operation": "search",
+            "payload": {
+              "documentHandle": 1,
+              "query": "IV-ASCHAR",
+              "backward": false
+            }
+          },
+          {
+            "generation": 1,
+            "at": 2424.3050000071526,
+            "protocolVersion": 1,
+            "kind": "request",
+            "requestId": 5,
+            "operation": "editorSelectRangeV2",
+            "payload": {
+              "documentHandle": 1,
+              "anchor": "IV-ASCHAR",
+              "rectangle": [
+                1418,
+                1807,
+                1306,
+                275
+              ],
+              "startXTwips": 1418,
+              "startYTwips": 1944,
+              "endXTwips": 9418,
+              "endYTwips": 1944
+            }
+          },
+          {
+            "generation": 1,
+            "at": 2472.594999998808,
+            "protocolVersion": 1,
+            "kind": "request",
+            "requestId": 6,
+            "operation": "getSelection",
+            "payload": {
+              "documentHandle": 1
+            }
+          },
+          {
+            "generation": 1,
+            "at": 2494.234999999404,
+            "protocolVersion": 1,
+            "kind": "request",
+            "requestId": 7,
+            "operation": "v23Diagnostic",
+            "payload": {
+              "kind": 3
+            }
+          },
+          {
+            "generation": 2,
+            "at": 32495.27500000596,
+            "protocolVersion": 1,
+            "kind": "request",
+            "requestId": 1,
+            "operation": "init",
+            "payload": {
+              "requestedAbiVersion": 65537,
+              "debug": true
+            }
+          },
+          {
+            "generation": 2,
+            "at": 33041.70499999821,
+            "protocolVersion": 1,
+            "kind": "request",
+            "requestId": 2,
+            "operation": "open",
+            "payload": {
+              "buffer": {
+                "byteLength": 2196,
+                "sha256": "b2869e0eb89bc5644e08e5d86c5d374615d1e641ec5ed8a7d7aca0198567c661"
+              },
+              "name": "frame.odt"
+            }
+          },
+          {
+            "generation": 2,
+            "at": 33499.75,
+            "protocolVersion": 1,
+            "kind": "request",
+            "requestId": 3,
+            "operation": "editorGetStateV2",
+            "payload": {
+              "documentHandle": 1
+            }
+          },
+          {
+            "generation": 2,
+            "at": 33547.085000008345,
+            "protocolVersion": 1,
+            "kind": "request",
+            "requestId": 4,
+            "operation": "save",
+            "payload": {
+              "documentHandle": 1,
+              "format": "odt"
+            }
+          }
+        ],
+        "cancels": [
+          {
+            "generation": 1,
+            "at": 32494.50499999523,
+            "protocolVersion": 1,
+            "kind": "cancel",
+            "requestId": 7
+          }
+        ],
+        "responses": [
+          {
+            "generation": 1,
+            "at": 1157.3799999952316,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "response",
+              "requestId": 1,
+              "ok": true,
+              "result": {
+                "abiVersion": 65537,
+                "abiVersionText": "1.1",
+                "artifactFiles": {
+                  "probe.js": "./probe.js",
+                  "probe.wasm": "./probe.wasm",
+                  "soffice.data": "../resources/base-r5-no35.65e8acbb5f0632be.data",
+                  "soffice.data.js.metadata": "../resources/base-r5-no35.1700ed39031eaf49.metadata"
+                },
+                "capabilities": [
+                  "open-odt",
+                  "rgba-tile",
+                  "insert-text",
+                  "save-odt",
+                  "cancel-queued",
+                  "search",
+                  "selection-text",
+                  "replace-selection",
+                  "undo",
+                  "comments",
+                  "tracked-changes",
+                  "provider-contract-1.0",
+                  "provider-worker",
+                  "validated-provider-operation",
+                  "narrow-editor-v2",
+                  "verified-selection-delete"
+                ],
+                "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+                "expectedCapabilityBits": 2047,
+                "profile": "e2-editor-v23-diag",
+                "protocolVersion": 1,
+                "providerContractVersion": "1.0",
+                "resourcePacks": [
+                  {
+                    "bytes": 14384632,
+                    "data": "../resources/cjk-sub-e10.06976180177c8bd2.data",
+                    "id": "cjk-sub-e10",
+                    "loadAtStartup": true,
+                    "metadata": "../resources/cjk-sub-e10.4144b2b2a44dd797.metadata",
+                    "purpose": "CJK corpus: Traditional Chinese subset of Noto Sans CJK, tier E (Big5, HKSCS, U+4E00-U+9FFF, kana), as five Sans families (JP KR SC TC HK) sharing one glyph set plus five Noto Sans Mono CJK families sharing the same code points cut from the Mono TC face",
+                    "sha256": "06976180177c8bd2a0c7bb7c18837bd12ce116481aefc56b60807948b585ffab"
+                  },
+                  {
+                    "bytes": 49102042,
+                    "data": "../resources/fallback-fonts-r5.33856e2a082148dd.data",
+                    "id": "fallback-fonts-r5",
+                    "loadAtStartup": false,
+                    "metadata": "../resources/fallback-fonts-r5.924fb0ed8b459946.metadata",
+                    "purpose": "optional complex-script and fidelity fallback",
+                    "sha256": "33856e2a082148ddbb753652861a5dd05af911e0d3587a3e8c75948a345de3a9"
+                  }
+                ],
+                "sdkVersion": "0.6.0-r6-worker+e2-editor-v23-diag",
+                "editorContract": {
+                  "version": 2,
+                  "abiVersion": 5,
+                  "actions": {
+                    "move-character-left": {
+                      "id": 1,
+                      "gestures": [
+                        "collapsed"
+                      ],
+                      "limits": []
+                    },
+                    "move-character-right": {
+                      "id": 2,
+                      "gestures": [
+                        "collapsed"
+                      ],
+                      "limits": []
+                    },
+                    "delete-backward": {
+                      "id": 3,
+                      "gestures": [
+                        "collapsed"
+                      ],
+                      "limits": []
+                    },
+                    "delete-forward": {
+                      "id": 4,
+                      "gestures": [
+                        "collapsed"
+                      ],
+                      "limits": []
+                    },
+                    "insert-paragraph-break": {
+                      "id": 5,
+                      "gestures": [
+                        "collapsed"
+                      ],
+                      "limits": []
+                    },
+                    "insert-line-break": {
+                      "id": 6,
+                      "gestures": [
+                        "collapsed"
+                      ],
+                      "limits": []
+                    },
+                    "set-bold": {
+                      "id": 7,
+                      "gestures": [
+                        "collapsed",
+                        "range-single",
+                        "range-cross"
+                      ],
+                      "limits": [
+                        "range-characterised-2026-08-23-chrome-one-fixture",
+                        "whole-paragraph-selection-writes-paragraph-level-formatting-as-native-does"
+                      ]
+                    },
+                    "set-italic": {
+                      "id": 8,
+                      "gestures": [
+                        "collapsed",
+                        "range-single",
+                        "range-cross"
+                      ],
+                      "limits": [
+                        "range-characterised-2026-08-23-chrome-one-fixture",
+                        "whole-paragraph-selection-writes-paragraph-level-formatting-as-native-does"
+                      ]
+                    },
+                    "set-underline": {
+                      "id": 9,
+                      "gestures": [
+                        "collapsed",
+                        "range-single",
+                        "range-cross"
+                      ],
+                      "limits": [
+                        "range-characterised-2026-08-23-chrome-one-fixture",
+                        "whole-paragraph-selection-writes-paragraph-level-formatting-as-native-does"
+                      ]
+                    },
+                    "set-strikethrough": {
+                      "id": 10,
+                      "gestures": [
+                        "collapsed",
+                        "range-single",
+                        "range-cross"
+                      ],
+                      "limits": [
+                        "range-characterised-2026-08-23-chrome-one-fixture",
+                        "whole-paragraph-selection-writes-paragraph-level-formatting-as-native-does"
+                      ]
+                    },
+                    "set-list-none": {
+                      "id": 11,
+                      "gestures": [
+                        "collapsed",
+                        "range-single",
+                        "range-cross"
+                      ],
+                      "limits": [
+                        "no-note-paragraphs"
+                      ]
+                    },
+                    "set-list-unordered": {
+                      "id": 12,
+                      "gestures": [
+                        "collapsed",
+                        "range-single",
+                        "range-cross"
+                      ],
+                      "limits": [
+                        "no-note-paragraphs"
+                      ]
+                    },
+                    "set-list-ordered": {
+                      "id": 13,
+                      "gestures": [
+                        "collapsed",
+                        "range-single",
+                        "range-cross"
+                      ],
+                      "limits": [
+                        "no-note-paragraphs"
+                      ]
+                    },
+                    "set-paragraph-heading": {
+                      "id": 14,
+                      "gestures": [
+                        "collapsed",
+                        "range-single",
+                        "range-cross"
+                      ],
+                      "limits": [
+                        "heading-level-1-only",
+                        "no-precondition-state",
+                        "no-note-paragraphs"
+                      ]
+                    },
+                    "set-paragraph-body": {
+                      "id": 15,
+                      "gestures": [
+                        "collapsed",
+                        "range-single",
+                        "range-cross"
+                      ],
+                      "limits": [
+                        "no-precondition-state",
+                        "no-note-paragraphs"
+                      ]
+                    },
+                    "move-line-up": {
+                      "id": 16,
+                      "gestures": [
+                        "collapsed"
+                      ],
+                      "limits": [
+                        "no-extend-selection"
+                      ]
+                    },
+                    "move-line-down": {
+                      "id": 17,
+                      "gestures": [
+                        "collapsed"
+                      ],
+                      "limits": [
+                        "no-extend-selection"
+                      ]
+                    },
+                    "move-line-home": {
+                      "id": 18,
+                      "gestures": [
+                        "collapsed"
+                      ],
+                      "limits": [
+                        "no-extend-selection"
+                      ]
+                    },
+                    "move-line-end": {
+                      "id": 19,
+                      "gestures": [
+                        "collapsed"
+                      ],
+                      "limits": [
+                        "no-extend-selection"
+                      ]
+                    },
+                    "delete-selection": {
+                      "id": 20,
+                      "gestures": [
+                        "range-single",
+                        "range-cross"
+                      ],
+                      "limits": [
+                        "not-characterised-in-tables-or-note-apparatus"
+                      ]
+                    },
+                    "select-all": {
+                      "id": 21,
+                      "gestures": [],
+                      "limits": [
+                        "withheld-pending-characterisation"
+                      ]
+                    },
+                    "move-document-start": {
+                      "id": 22,
+                      "gestures": [
+                        "collapsed"
+                      ],
+                      "limits": [
+                        "no-extend-selection"
+                      ]
+                    },
+                    "move-document-end": {
+                      "id": 23,
+                      "gestures": [
+                        "collapsed"
+                      ],
+                      "limits": [
+                        "no-extend-selection"
+                      ]
+                    }
+                  },
+                  "gestureBits": {
+                    "collapsed": 1,
+                    "range-single": 2,
+                    "range-cross": 4
+                  },
+                  "textCommit": "document-sdk-insert-text",
+                  "undo": "document-sdk-undo",
+                  "state": "typed-editor-state-v1",
+                  "selectionBarrier": "verified-single-writer-unit-v1",
+                  "formatBarrier": "verified-format-readback-v2",
+                  "postDispatchFailureDisposition": "rollback-to-checkpoint",
+                  "crossParagraphDisposition": "verify-every-block",
+                  "boundaryRejectionRequiresFreshWorker": true,
+                  "automaticRetry": false,
+                  "rawCallbackExposed": false,
+                  "arbitraryKeyCodeAccepted": false,
+                  "arbitraryUnoCommandAccepted": false,
+                  "diagnosticOperationsExposed": false,
+                  "loaderSha256": "a3919e977868934589e1e37ac1406930a6011640a82540ca507c6ae4002eede4",
+                  "wasmSha256": "52cf9d23b615458d3a4086b3995fd68bf3ced19c252c6f89f017109fc282a443",
+                  "workerSha256": "889edcde583c77be78b5ccfe9d71f967175f946123d806d15180693f600d4f68",
+                  "inlineRangeEvidence": "findings/evidence/f078-inline-format-on-a-selection/ -- all four inline formats measured on both range shapes against the shipped artifact f923cfa5, the formatted text equal to the selected text in every arm, with a baseline save and a shipped-profile control. Both bits are granted because the engine's gate requires both for an unclassified range; granting one alone admits nothing, measured. A fully selected paragraph comes back as paragraph-level formatting, which native LibreOffice 26.8 does identically (same extent, same shape, measured with tools/f078_native_range_format.cpp). Chrome only, one fixture, one selection geometry per arm; the 5-character list prefix the copy path reports on a cross-paragraph selection is unexplained and touches no formatting outcome",
+                  "inlineFormatEnabledIsHonoured": true,
+                  "redo": "document-sdk-redo",
+                  "pageRectangles": "document-sdk-page-rectangles",
+                  "pasteMarkdown": "document-sdk-paste-markdown"
+                },
+                "capabilityBits": 2047
+              }
+            }
+          },
+          {
+            "generation": 1,
+            "at": 2211.2549999952316,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "response",
+              "requestId": 2,
+              "ok": true,
+              "result": {
+                "documentHandle": 1,
+                "revision": 0,
+                "parts": 1,
+                "width": 12808,
+                "height": 16408,
+                "tileMode": 0,
+                "viewReady": true
+              }
+            }
+          },
+          {
+            "generation": 1,
+            "at": 2369.6650000065565,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "response",
+              "requestId": 3,
+              "ok": true,
+              "result": {
+                "documentHandle": 1,
+                "revision": 0,
+                "sourceSequence": 2,
+                "documentChangeSequence": 0,
+                "documentSizeChangedCount": 0,
+                "visible": true,
+                "caret": {
+                  "x": 1418,
+                  "y": 1418,
+                  "width": 0,
+                  "height": 276
+                },
+                "selection": {
+                  "observed": true,
+                  "collapsed": true,
+                  "start": null,
+                  "end": null,
+                  "rectangles": []
+                },
+                "a11y": {
+                  "observed": false,
+                  "changeCount": 0,
+                  "unparsedCount": 0,
+                  "lastSequence": 0,
+                  "contentLength": -1,
+                  "position": -1,
+                  "enabled": false,
+                  "unavailable": "core-built-without-accessibility",
+                  "paragraphFresh": false,
+                  "paragraphFingerprint": "0",
+                  "fingerprintUsable": false,
+                  "listPrefixLength": 0
+                },
+                "caretParagraph": {
+                  "enabled": false,
+                  "unavailable": "core-built-without-accessibility",
+                  "fresh": false,
+                  "observed": false,
+                  "fingerprint": "0",
+                  "length": -1,
+                  "offset": -1,
+                  "listPrefixLength": 0,
+                  "text": null
+                },
+                "documentOutline": null,
+                "selectionType": "none",
+                "selectionTextMissing": false,
+                "selectionText": "",
+                "format": {
+                  "bold": null,
+                  "italic": null,
+                  "underline": null,
+                  "strikethrough": null,
+                  "listBullet": null,
+                  "listNumber": null,
+                  "paragraphStyle": null,
+                  "stateChangedTotal": 0,
+                  "stateChangedUnrecognised": 0,
+                  "formatStale": true,
+                  "pollCount": 0,
+                  "idlePollCount": 0
+                }
+              }
+            }
+          },
+          {
+            "generation": 1,
+            "at": 2424.204999998212,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "response",
+              "requestId": 4,
+              "ok": true,
+              "result": {
+                "found": true,
+                "query": "IV-ASCHAR",
+                "selections": [
+                  {
+                    "part": "0",
+                    "rectangles": "1418, 1807, 1306, 275"
+                  }
+                ],
+                "revision": 0
+              }
+            }
+          },
+          {
+            "generation": 1,
+            "at": 2472.4650000035763,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "response",
+              "requestId": 5,
+              "ok": true,
+              "result": {
+                "method": "text-handles-unstable",
+                "revision": 0,
+                "completion": "documented-callback-text-selection",
+                "callbackSequenceBefore": 6,
+                "callbackSequenceAfter": 10,
+                "state": {
+                  "sourceSequence": 10,
+                  "documentChangeSequence": 0,
+                  "documentSizeChangedCount": 0,
+                  "visible": true,
+                  "caret": {
+                    "x": 5118,
+                    "y": 1807,
+                    "width": 0,
+                    "height": 276
+                  },
+                  "selection": {
+                    "observed": true,
+                    "collapsed": false,
+                    "start": {
+                      "x": 1418,
+                      "y": 1807,
+                      "width": 0,
+                      "height": 275
+                    },
+                    "end": {
+                      "x": 5118,
+                      "y": 1807,
+                      "width": 0,
+                      "height": 275
+                    },
+                    "rectangles": [
+                      {
+                        "x": 1418,
+                        "y": 1807,
+                        "width": 3700,
+                        "height": 275
+                      }
+                    ]
+                  },
+                  "a11y": {
+                    "observed": false,
+                    "changeCount": 0,
+                    "unparsedCount": 0,
+                    "lastSequence": 0,
+                    "contentLength": -1,
+                    "position": -1,
+                    "enabled": false,
+                    "unavailable": "core-built-without-accessibility",
+                    "paragraphFresh": false,
+                    "paragraphFingerprint": "0",
+                    "fingerprintUsable": false,
+                    "listPrefixLength": 0
+                  },
+                  "format": {
+                    "bold": null,
+                    "italic": null,
+                    "underline": null,
+                    "strikethrough": null,
+                    "listBullet": null,
+                    "listNumber": null,
+                    "paragraphStyle": null,
+                    "stateChangedTotal": 4,
+                    "stateChangedUnrecognised": 4,
+                    "formatStale": true,
+                    "pollCount": 0,
+                    "idlePollCount": 0
+                  }
+                }
+              }
+            }
+          },
+          {
+            "generation": 1,
+            "at": 2493.8050000071526,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "response",
+              "requestId": 6,
+              "ok": true,
+              "result": {
+                "selectionType": "complex",
+                "text": "",
+                "mimeType": "text/plain;charset=utf-8",
+                "revision": 0
+              }
+            }
+          },
+          {
+            "generation": 2,
+            "at": 33041.57500000298,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "response",
+              "requestId": 1,
+              "ok": true,
+              "result": {
+                "abiVersion": 65537,
+                "abiVersionText": "1.1",
+                "artifactFiles": {
+                  "probe.js": "./probe.js",
+                  "probe.wasm": "./probe.wasm",
+                  "soffice.data": "../resources/base-r5-no35.65e8acbb5f0632be.data",
+                  "soffice.data.js.metadata": "../resources/base-r5-no35.1700ed39031eaf49.metadata"
+                },
+                "capabilities": [
+                  "open-odt",
+                  "rgba-tile",
+                  "insert-text",
+                  "save-odt",
+                  "cancel-queued",
+                  "search",
+                  "selection-text",
+                  "replace-selection",
+                  "undo",
+                  "comments",
+                  "tracked-changes",
+                  "provider-contract-1.0",
+                  "provider-worker",
+                  "validated-provider-operation",
+                  "narrow-editor-v2",
+                  "verified-selection-delete"
+                ],
+                "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+                "expectedCapabilityBits": 2047,
+                "profile": "e2-editor-v23-diag",
+                "protocolVersion": 1,
+                "providerContractVersion": "1.0",
+                "resourcePacks": [
+                  {
+                    "bytes": 14384632,
+                    "data": "../resources/cjk-sub-e10.06976180177c8bd2.data",
+                    "id": "cjk-sub-e10",
+                    "loadAtStartup": true,
+                    "metadata": "../resources/cjk-sub-e10.4144b2b2a44dd797.metadata",
+                    "purpose": "CJK corpus: Traditional Chinese subset of Noto Sans CJK, tier E (Big5, HKSCS, U+4E00-U+9FFF, kana), as five Sans families (JP KR SC TC HK) sharing one glyph set plus five Noto Sans Mono CJK families sharing the same code points cut from the Mono TC face",
+                    "sha256": "06976180177c8bd2a0c7bb7c18837bd12ce116481aefc56b60807948b585ffab"
+                  },
+                  {
+                    "bytes": 49102042,
+                    "data": "../resources/fallback-fonts-r5.33856e2a082148dd.data",
+                    "id": "fallback-fonts-r5",
+                    "loadAtStartup": false,
+                    "metadata": "../resources/fallback-fonts-r5.924fb0ed8b459946.metadata",
+                    "purpose": "optional complex-script and fidelity fallback",
+                    "sha256": "33856e2a082148ddbb753652861a5dd05af911e0d3587a3e8c75948a345de3a9"
+                  }
+                ],
+                "sdkVersion": "0.6.0-r6-worker+e2-editor-v23-diag",
+                "editorContract": {
+                  "version": 2,
+                  "abiVersion": 5,
+                  "actions": {
+                    "move-character-left": {
+                      "id": 1,
+                      "gestures": [
+                        "collapsed"
+                      ],
+                      "limits": []
+                    },
+                    "move-character-right": {
+                      "id": 2,
+                      "gestures": [
+                        "collapsed"
+                      ],
+                      "limits": []
+                    },
+                    "delete-backward": {
+                      "id": 3,
+                      "gestures": [
+                        "collapsed"
+                      ],
+                      "limits": []
+                    },
+                    "delete-forward": {
+                      "id": 4,
+                      "gestures": [
+                        "collapsed"
+                      ],
+                      "limits": []
+                    },
+                    "insert-paragraph-break": {
+                      "id": 5,
+                      "gestures": [
+                        "collapsed"
+                      ],
+                      "limits": []
+                    },
+                    "insert-line-break": {
+                      "id": 6,
+                      "gestures": [
+                        "collapsed"
+                      ],
+                      "limits": []
+                    },
+                    "set-bold": {
+                      "id": 7,
+                      "gestures": [
+                        "collapsed",
+                        "range-single",
+                        "range-cross"
+                      ],
+                      "limits": [
+                        "range-characterised-2026-08-23-chrome-one-fixture",
+                        "whole-paragraph-selection-writes-paragraph-level-formatting-as-native-does"
+                      ]
+                    },
+                    "set-italic": {
+                      "id": 8,
+                      "gestures": [
+                        "collapsed",
+                        "range-single",
+                        "range-cross"
+                      ],
+                      "limits": [
+                        "range-characterised-2026-08-23-chrome-one-fixture",
+                        "whole-paragraph-selection-writes-paragraph-level-formatting-as-native-does"
+                      ]
+                    },
+                    "set-underline": {
+                      "id": 9,
+                      "gestures": [
+                        "collapsed",
+                        "range-single",
+                        "range-cross"
+                      ],
+                      "limits": [
+                        "range-characterised-2026-08-23-chrome-one-fixture",
+                        "whole-paragraph-selection-writes-paragraph-level-formatting-as-native-does"
+                      ]
+                    },
+                    "set-strikethrough": {
+                      "id": 10,
+                      "gestures": [
+                        "collapsed",
+                        "range-single",
+                        "range-cross"
+                      ],
+                      "limits": [
+                        "range-characterised-2026-08-23-chrome-one-fixture",
+                        "whole-paragraph-selection-writes-paragraph-level-formatting-as-native-does"
+                      ]
+                    },
+                    "set-list-none": {
+                      "id": 11,
+                      "gestures": [
+                        "collapsed",
+                        "range-single",
+                        "range-cross"
+                      ],
+                      "limits": [
+                        "no-note-paragraphs"
+                      ]
+                    },
+                    "set-list-unordered": {
+                      "id": 12,
+                      "gestures": [
+                        "collapsed",
+                        "range-single",
+                        "range-cross"
+                      ],
+                      "limits": [
+                        "no-note-paragraphs"
+                      ]
+                    },
+                    "set-list-ordered": {
+                      "id": 13,
+                      "gestures": [
+                        "collapsed",
+                        "range-single",
+                        "range-cross"
+                      ],
+                      "limits": [
+                        "no-note-paragraphs"
+                      ]
+                    },
+                    "set-paragraph-heading": {
+                      "id": 14,
+                      "gestures": [
+                        "collapsed",
+                        "range-single",
+                        "range-cross"
+                      ],
+                      "limits": [
+                        "heading-level-1-only",
+                        "no-precondition-state",
+                        "no-note-paragraphs"
+                      ]
+                    },
+                    "set-paragraph-body": {
+                      "id": 15,
+                      "gestures": [
+                        "collapsed",
+                        "range-single",
+                        "range-cross"
+                      ],
+                      "limits": [
+                        "no-precondition-state",
+                        "no-note-paragraphs"
+                      ]
+                    },
+                    "move-line-up": {
+                      "id": 16,
+                      "gestures": [
+                        "collapsed"
+                      ],
+                      "limits": [
+                        "no-extend-selection"
+                      ]
+                    },
+                    "move-line-down": {
+                      "id": 17,
+                      "gestures": [
+                        "collapsed"
+                      ],
+                      "limits": [
+                        "no-extend-selection"
+                      ]
+                    },
+                    "move-line-home": {
+                      "id": 18,
+                      "gestures": [
+                        "collapsed"
+                      ],
+                      "limits": [
+                        "no-extend-selection"
+                      ]
+                    },
+                    "move-line-end": {
+                      "id": 19,
+                      "gestures": [
+                        "collapsed"
+                      ],
+                      "limits": [
+                        "no-extend-selection"
+                      ]
+                    },
+                    "delete-selection": {
+                      "id": 20,
+                      "gestures": [
+                        "range-single",
+                        "range-cross"
+                      ],
+                      "limits": [
+                        "not-characterised-in-tables-or-note-apparatus"
+                      ]
+                    },
+                    "select-all": {
+                      "id": 21,
+                      "gestures": [],
+                      "limits": [
+                        "withheld-pending-characterisation"
+                      ]
+                    },
+                    "move-document-start": {
+                      "id": 22,
+                      "gestures": [
+                        "collapsed"
+                      ],
+                      "limits": [
+                        "no-extend-selection"
+                      ]
+                    },
+                    "move-document-end": {
+                      "id": 23,
+                      "gestures": [
+                        "collapsed"
+                      ],
+                      "limits": [
+                        "no-extend-selection"
+                      ]
+                    }
+                  },
+                  "gestureBits": {
+                    "collapsed": 1,
+                    "range-single": 2,
+                    "range-cross": 4
+                  },
+                  "textCommit": "document-sdk-insert-text",
+                  "undo": "document-sdk-undo",
+                  "state": "typed-editor-state-v1",
+                  "selectionBarrier": "verified-single-writer-unit-v1",
+                  "formatBarrier": "verified-format-readback-v2",
+                  "postDispatchFailureDisposition": "rollback-to-checkpoint",
+                  "crossParagraphDisposition": "verify-every-block",
+                  "boundaryRejectionRequiresFreshWorker": true,
+                  "automaticRetry": false,
+                  "rawCallbackExposed": false,
+                  "arbitraryKeyCodeAccepted": false,
+                  "arbitraryUnoCommandAccepted": false,
+                  "diagnosticOperationsExposed": false,
+                  "loaderSha256": "a3919e977868934589e1e37ac1406930a6011640a82540ca507c6ae4002eede4",
+                  "wasmSha256": "52cf9d23b615458d3a4086b3995fd68bf3ced19c252c6f89f017109fc282a443",
+                  "workerSha256": "889edcde583c77be78b5ccfe9d71f967175f946123d806d15180693f600d4f68",
+                  "inlineRangeEvidence": "findings/evidence/f078-inline-format-on-a-selection/ -- all four inline formats measured on both range shapes against the shipped artifact f923cfa5, the formatted text equal to the selected text in every arm, with a baseline save and a shipped-profile control. Both bits are granted because the engine's gate requires both for an unclassified range; granting one alone admits nothing, measured. A fully selected paragraph comes back as paragraph-level formatting, which native LibreOffice 26.8 does identically (same extent, same shape, measured with tools/f078_native_range_format.cpp). Chrome only, one fixture, one selection geometry per arm; the 5-character list prefix the copy path reports on a cross-paragraph selection is unexplained and touches no formatting outcome",
+                  "inlineFormatEnabledIsHonoured": true,
+                  "redo": "document-sdk-redo",
+                  "pageRectangles": "document-sdk-page-rectangles",
+                  "pasteMarkdown": "document-sdk-paste-markdown"
+                },
+                "capabilityBits": 2047
+              }
+            }
+          },
+          {
+            "generation": 2,
+            "at": 33499.68000000715,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "response",
+              "requestId": 2,
+              "ok": true,
+              "result": {
+                "documentHandle": 1,
+                "revision": 0,
+                "parts": 1,
+                "width": 12808,
+                "height": 16408,
+                "tileMode": 0,
+                "viewReady": true
+              }
+            }
+          },
+          {
+            "generation": 2,
+            "at": 33546.885000005364,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "response",
+              "requestId": 3,
+              "ok": true,
+              "result": {
+                "documentHandle": 1,
+                "revision": 0,
+                "sourceSequence": 2,
+                "documentChangeSequence": 0,
+                "documentSizeChangedCount": 0,
+                "visible": true,
+                "caret": {
+                  "x": 1418,
+                  "y": 1418,
+                  "width": 0,
+                  "height": 276
+                },
+                "selection": {
+                  "observed": true,
+                  "collapsed": true,
+                  "start": null,
+                  "end": null,
+                  "rectangles": []
+                },
+                "a11y": {
+                  "observed": false,
+                  "changeCount": 0,
+                  "unparsedCount": 0,
+                  "lastSequence": 0,
+                  "contentLength": -1,
+                  "position": -1,
+                  "enabled": false,
+                  "unavailable": "core-built-without-accessibility",
+                  "paragraphFresh": false,
+                  "paragraphFingerprint": "0",
+                  "fingerprintUsable": false,
+                  "listPrefixLength": 0
+                },
+                "caretParagraph": {
+                  "enabled": false,
+                  "unavailable": "core-built-without-accessibility",
+                  "fresh": false,
+                  "observed": false,
+                  "fingerprint": "0",
+                  "length": -1,
+                  "offset": -1,
+                  "listPrefixLength": 0,
+                  "text": null
+                },
+                "documentOutline": null,
+                "selectionType": "none",
+                "selectionTextMissing": false,
+                "selectionText": "",
+                "format": {
+                  "bold": null,
+                  "italic": null,
+                  "underline": null,
+                  "strikethrough": null,
+                  "listBullet": null,
+                  "listNumber": null,
+                  "paragraphStyle": null,
+                  "stateChangedTotal": 0,
+                  "stateChangedUnrecognised": 0,
+                  "formatStale": true,
+                  "pollCount": 0,
+                  "idlePollCount": 0
+                }
+              }
+            }
+          },
+          {
+            "generation": 2,
+            "at": 34288.28000000119,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "response",
+              "requestId": 4,
+              "ok": true,
+              "result": {
+                "buffer": {
+                  "byteLength": 14971
+                },
+                "format": "odt",
+                "revision": 0
+              }
+            }
+          }
+        ],
+        "events": [
+          {
+            "generation": 1,
+            "at": 992.2300000041723,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "resource-pack-loaded",
+              "resourcePack": "cjk-sub-e10",
+              "files": 1,
+              "bytes": 14384632,
+              "sha256": "06976180177c8bd2a0c7bb7c18837bd12ce116481aefc56b60807948b585ffab"
+            }
+          },
+          {
+            "generation": 1,
+            "at": 1099.015000000596,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stderr",
+              "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"m5\" in \"file:///instdir/program/../share/registry/res/registry_qtz.xcd\""
+            }
+          },
+          {
+            "generation": 1,
+            "at": 1099.2750000059605,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stderr",
+              "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"m14\" in \"file:///instdir/program/../share/registry/res/registry_qtz.xcd\""
+            }
+          },
+          {
+            "generation": 1,
+            "at": 1106.9500000029802,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stderr",
+              "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"private:resource/toolbar/addon_LibreLogo.OfficeToolBar\" in \"file:///instdir/program/../share/registry/res/registry_qtz.xcd\""
+            }
+          },
+          {
+            "generation": 1,
+            "at": 1107.4200000017881,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stderr",
+              "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"com.sun.star.sdb.RelationDesign\" in \"file:///instdir/program/../share/registry/res/registry_qtz.xcd\""
+            }
+          },
+          {
+            "generation": 1,
+            "at": 1107.5100000053644,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stderr",
+              "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"com.sun.star.sdb.QueryDesign\" in \"file:///instdir/program/../share/registry/res/registry_qtz.xcd\""
+            }
+          },
+          {
+            "generation": 1,
+            "at": 1107.6050000041723,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stderr",
+              "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"com.sun.star.sdb.ViewDesign\" in \"file:///instdir/program/../share/registry/res/registry_qtz.xcd\""
+            }
+          },
+          {
+            "generation": 1,
+            "at": 1107.6650000065565,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stderr",
+              "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"com.sun.star.sdb.TableDesign\" in \"file:///instdir/program/../share/registry/res/registry_qtz.xcd\""
+            }
+          },
+          {
+            "generation": 1,
+            "at": 1107.7450000047684,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stderr",
+              "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"com.sun.star.sdb.DataSourceBrowser\" in \"file:///instdir/program/../share/registry/res/registry_qtz.xcd\""
+            }
+          },
+          {
+            "generation": 1,
+            "at": 1107.8400000035763,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stderr",
+              "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"com.sun.star.sdb.TableDataView\" in \"file:///instdir/program/../share/registry/res/registry_qtz.xcd\""
+            }
+          },
+          {
+            "generation": 1,
+            "at": 1108.594999998808,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stderr",
+              "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"m5\" in \"file:///instdir/program/../share/registry/res/registry_zh-TW.xcd\""
+            }
+          },
+          {
+            "generation": 1,
+            "at": 1108.7250000089407,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stderr",
+              "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"m14\" in \"file:///instdir/program/../share/registry/res/registry_zh-TW.xcd\""
+            }
+          },
+          {
+            "generation": 1,
+            "at": 1115.640000000596,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stderr",
+              "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"private:resource/toolbar/addon_LibreLogo.OfficeToolBar\" in \"file:///instdir/program/../share/registry/res/registry_zh-TW.xcd\""
+            }
+          },
+          {
+            "generation": 1,
+            "at": 1115.9900000095367,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stderr",
+              "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"com.sun.star.sdb.RelationDesign\" in \"file:///instdir/program/../share/registry/res/registry_zh-TW.xcd\""
+            }
+          },
+          {
+            "generation": 1,
+            "at": 1116.0550000071526,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stderr",
+              "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"com.sun.star.sdb.QueryDesign\" in \"file:///instdir/program/../share/registry/res/registry_zh-TW.xcd\""
+            }
+          },
+          {
+            "generation": 1,
+            "at": 1116.1500000059605,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stderr",
+              "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"com.sun.star.sdb.ViewDesign\" in \"file:///instdir/program/../share/registry/res/registry_zh-TW.xcd\""
+            }
+          },
+          {
+            "generation": 1,
+            "at": 1116.25,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stderr",
+              "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"com.sun.star.sdb.TableDesign\" in \"file:///instdir/program/../share/registry/res/registry_zh-TW.xcd\""
+            }
+          },
+          {
+            "generation": 1,
+            "at": 1116.3400000035763,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stderr",
+              "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"com.sun.star.sdb.DataSourceBrowser\" in \"file:///instdir/program/../share/registry/res/registry_zh-TW.xcd\""
+            }
+          },
+          {
+            "generation": 1,
+            "at": 1116.4099999964237,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stderr",
+              "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"com.sun.star.sdb.TableDataView\" in \"file:///instdir/program/../share/registry/res/registry_zh-TW.xcd\""
+            }
+          },
+          {
+            "generation": 1,
+            "at": 1121.3250000029802,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stderr",
+              "message": "warn:i18nlangtag:42:1:i18nlangtag/source/isolang/mslangid.cxx:105: MsLangId::getConfiguredSystemLanguage() - not configured yet"
+            }
+          },
+          {
+            "generation": 1,
+            "at": 1125.1000000089407,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stderr",
+              "message": "warn:i18nlangtag:42:1:i18nlangtag/source/isolang/mslangid.cxx:115: MsLangId::getConfiguredSystemUILanguage() - not configured yet"
+            }
+          },
+          {
+            "generation": 1,
+            "at": 1147.8299999982119,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "event",
+              "detail": {
+                "type": "v23-poll",
+                "poll": 1,
+                "queued": 1,
+                "drained": 1,
+                "replyPending": false,
+                "reply": false,
+                "requestId": 1
+              }
+            }
+          },
+          {
+            "generation": 1,
+            "at": 1156.9500000029802,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "event",
+              "detail": {
+                "type": "v23-poll",
+                "poll": 2,
+                "queued": 0,
+                "drained": 0,
+                "replyPending": true,
+                "reply": true,
+                "requestId": 1
+              }
+            }
+          },
+          {
+            "generation": 1,
+            "at": 1166.5250000059605,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "event",
+              "detail": {
+                "type": "v23-poll",
+                "poll": 3,
+                "queued": 1,
+                "drained": 1,
+                "replyPending": false,
+                "reply": false,
+                "requestId": 2
+              }
+            }
+          },
+          {
+            "generation": 1,
+            "at": 1167.8850000053644,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stage",
+              "detail": {
+                "type": "stage",
+                "name": "open.begin",
+                "heapBytes": 1073741824,
+                "sbrk": 67506176
+              }
+            }
+          },
+          {
+            "generation": 1,
+            "at": 1167.9099999964237,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stage",
+              "detail": {
+                "type": "stage",
+                "name": "open.documentLoad",
+                "heapBytes": 1073741824,
+                "sbrk": 67506176
+              }
+            }
+          },
+          {
+            "generation": 1,
+            "at": 1780.3050000071526,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stderr",
+              "message": "warn:editeng:42:1:editeng/source/misc/acorrcfg.cxx:107: Unable to iterate directory 'file:///instdir/program/../share/autocorr' com.sun.star.ucb.InteractiveAugmentedIOException message: \"an error occurred during file opening (12/2)\" context: N10fileaccess11BaseContentE Code: 22"
+            }
+          },
+          {
+            "generation": 1,
+            "at": 1975.8350000083447,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stderr",
+              "message": "warn:sfx.doc:42:1:sfx2/source/doc/objserv.cxx:2002: Failed to get document signature information com.sun.star.uno.DeploymentException message: \"component context fails to supply service com.sun.star.security.DocumentDigitalSignatures of type com.sun.star.security.XDocumentDigitalSignatures\" context: N4cppu12_GLOBAL__N_116ComponentContextE"
+            }
+          },
+          {
+            "generation": 1,
+            "at": 1975.9549999982119,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stderr",
+              "message": "warn:sfx.doc:42:1:sfx2/source/doc/objserv.cxx:2002: Failed to get document signature information com.sun.star.uno.DeploymentException message: \"component context fails to supply service com.sun.star.security.DocumentDigitalSignatures of type com.sun.star.security.XDocumentDigitalSignatures\" context: N4cppu12_GLOBAL__N_116ComponentContextE"
+            }
+          },
+          {
+            "generation": 1,
+            "at": 2067.9450000077486,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stderr",
+              "message": "warn:lok:42:1:sfx2/source/view/lokhelper.cxx:1118: no explicit viewshell set"
+            }
+          },
+          {
+            "generation": 1,
+            "at": 2102.170000001788,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stderr",
+              "message": "warn:lok:42:1:sfx2/source/view/lokhelper.cxx:1118: no explicit viewshell set"
+            }
+          },
+          {
+            "generation": 1,
+            "at": 2113.4750000089407,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stderr",
+              "message": "warn:lok:42:1:sfx2/source/view/lokhelper.cxx:1118: no explicit viewshell set"
+            }
+          },
+          {
+            "generation": 1,
+            "at": 2113.6350000053644,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stderr",
+              "message": "warn:lok:42:1:sfx2/source/view/lokhelper.cxx:1118: no explicit viewshell set"
+            }
+          },
+          {
+            "generation": 1,
+            "at": 2124.9900000095367,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stage",
+              "detail": {
+                "type": "stage",
+                "name": "open.documentLoad-returned",
+                "heapBytes": 1073741824,
+                "sbrk": 233443328
+              }
+            }
+          },
+          {
+            "generation": 1,
+            "at": 2125.1000000089407,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stage",
+              "detail": {
+                "type": "stage",
+                "name": "open.initializeForRendering",
+                "heapBytes": 1073741824,
+                "sbrk": 233443328
+              }
+            }
+          },
+          {
+            "generation": 1,
+            "at": 2130.734999999404,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stage",
+              "detail": {
+                "type": "stage",
+                "name": "open.registerCallback",
+                "heapBytes": 1073741824,
+                "sbrk": 233443328
+              }
+            }
+          },
+          {
+            "generation": 1,
+            "at": 2134.2400000095367,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stage",
+              "detail": {
+                "type": "stage",
+                "name": "open.query-metadata",
+                "heapBytes": 1073741824,
+                "sbrk": 233443328
+              }
+            }
+          },
+          {
+            "generation": 1,
+            "at": 2185.564999997616,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "document-invalidated",
+              "documentHandle": 1,
+              "revision": 0
+            }
+          },
+          {
+            "generation": 1,
+            "at": 2186.170000001788,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "editor-state",
+              "documentHandle": 1,
+              "revision": 0,
+              "source": "visible-cursor",
+              "sourceSequence": 1,
+              "documentChangeSequence": 0,
+              "documentSizeChangedCount": 0,
+              "visible": true,
+              "caret": {
+                "x": 1418,
+                "y": 1418,
+                "width": 0,
+                "height": 276
+              },
+              "selection": {
+                "observed": false,
+                "collapsed": true,
+                "start": null,
+                "end": null,
+                "rectangles": []
+              },
+              "a11y": {
+                "observed": false,
+                "changeCount": 0,
+                "unparsedCount": 0,
+                "lastSequence": 0,
+                "contentLength": -1,
+                "position": -1,
+                "enabled": false,
+                "unavailable": "core-built-without-accessibility",
+                "paragraphFresh": false,
+                "paragraphFingerprint": "0",
+                "fingerprintUsable": false,
+                "listPrefixLength": 0
+              },
+              "caretParagraph": {
+                "enabled": false,
+                "unavailable": "core-built-without-accessibility",
+                "fresh": false,
+                "observed": false,
+                "fingerprint": "0",
+                "length": -1,
+                "offset": -1,
+                "listPrefixLength": 0,
+                "text": null
+              },
+              "documentOutline": null,
+              "format": {
+                "bold": null,
+                "italic": null,
+                "underline": null,
+                "strikethrough": null,
+                "listBullet": null,
+                "listNumber": null,
+                "paragraphStyle": null,
+                "stateChangedTotal": 0,
+                "stateChangedUnrecognised": 0,
+                "formatStale": true,
+                "pollCount": 0,
+                "idlePollCount": 0
+              }
+            }
+          },
+          {
+            "generation": 1,
+            "at": 2210.954999998212,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "event",
+              "detail": {
+                "type": "v23-poll",
+                "poll": 4,
+                "queued": 0,
+                "drained": 0,
+                "replyPending": true,
+                "reply": true,
+                "requestId": 2
+              }
+            }
+          },
+          {
+            "generation": 1,
+            "at": 2211.594999998808,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "view-ready",
+              "documentHandle": 1,
+              "revision": 0
+            }
+          },
+          {
+            "generation": 1,
+            "at": 2344.6150000095367,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "event",
+              "detail": {
+                "type": "v23-poll",
+                "poll": 5,
+                "queued": 1,
+                "drained": 1,
+                "replyPending": false,
+                "reply": false,
+                "requestId": 3
+              }
+            }
+          },
+          {
+            "generation": 1,
+            "at": 2345.655000001192,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stderr",
+              "message": "warn:lok:42:1:desktop/source/lib/init.cxx:285: lok exception 'Flavor text/plain;charset=utf-16 is not supported'"
+            }
+          },
+          {
+            "generation": 1,
+            "at": 2359.8400000035763,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "editor-state",
+              "documentHandle": 1,
+              "revision": 0,
+              "source": "selection-rectangles",
+              "sourceSequence": 2,
+              "documentChangeSequence": 0,
+              "documentSizeChangedCount": 0,
+              "visible": true,
+              "caret": {
+                "x": 1418,
+                "y": 1418,
+                "width": 0,
+                "height": 276
+              },
+              "selection": {
+                "observed": true,
+                "collapsed": true,
+                "start": null,
+                "end": null,
+                "rectangles": []
+              },
+              "a11y": {
+                "observed": false,
+                "changeCount": 0,
+                "unparsedCount": 0,
+                "lastSequence": 0,
+                "contentLength": -1,
+                "position": -1,
+                "enabled": false,
+                "unavailable": "core-built-without-accessibility",
+                "paragraphFresh": false,
+                "paragraphFingerprint": "0",
+                "fingerprintUsable": false,
+                "listPrefixLength": 0
+              },
+              "caretParagraph": {
+                "enabled": false,
+                "unavailable": "core-built-without-accessibility",
+                "fresh": false,
+                "observed": false,
+                "fingerprint": "0",
+                "length": -1,
+                "offset": -1,
+                "listPrefixLength": 0,
+                "text": null
+              },
+              "documentOutline": null,
+              "format": {
+                "bold": null,
+                "italic": null,
+                "underline": null,
+                "strikethrough": null,
+                "listBullet": null,
+                "listNumber": null,
+                "paragraphStyle": null,
+                "stateChangedTotal": 0,
+                "stateChangedUnrecognised": 0,
+                "formatStale": true,
+                "pollCount": 0,
+                "idlePollCount": 0
+              }
+            }
+          },
+          {
+            "generation": 1,
+            "at": 2369.3850000053644,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "event",
+              "detail": {
+                "type": "v23-poll",
+                "poll": 6,
+                "queued": 0,
+                "drained": 0,
+                "replyPending": true,
+                "reply": true,
+                "requestId": 3
+              }
+            }
+          },
+          {
+            "generation": 1,
+            "at": 2388.2600000053644,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "event",
+              "detail": {
+                "type": "v23-poll",
+                "poll": 7,
+                "queued": 1,
+                "drained": 1,
+                "replyPending": false,
+                "reply": false,
+                "requestId": 4
+              }
+            }
+          },
+          {
+            "generation": 1,
+            "at": 2415.1800000071526,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "editor-state",
+              "documentHandle": 1,
+              "revision": 0,
+              "source": "selection-rectangles",
+              "sourceSequence": 3,
+              "documentChangeSequence": 0,
+              "documentSizeChangedCount": 0,
+              "visible": true,
+              "caret": {
+                "x": 1418,
+                "y": 1418,
+                "width": 0,
+                "height": 276
+              },
+              "selection": {
+                "observed": true,
+                "collapsed": false,
+                "start": null,
+                "end": null,
+                "rectangles": [
+                  {
+                    "x": 1418,
+                    "y": 1807,
+                    "width": 1306,
+                    "height": 275
+                  }
+                ]
+              },
+              "a11y": {
+                "observed": false,
+                "changeCount": 0,
+                "unparsedCount": 0,
+                "lastSequence": 0,
+                "contentLength": -1,
+                "position": -1,
+                "enabled": false,
+                "unavailable": "core-built-without-accessibility",
+                "paragraphFresh": false,
+                "paragraphFingerprint": "0",
+                "fingerprintUsable": false,
+                "listPrefixLength": 0
+              },
+              "caretParagraph": {
+                "enabled": false,
+                "unavailable": "core-built-without-accessibility",
+                "fresh": false,
+                "observed": false,
+                "fingerprint": "0",
+                "length": -1,
+                "offset": -1,
+                "listPrefixLength": 0,
+                "text": null
+              },
+              "documentOutline": null,
+              "format": {
+                "bold": null,
+                "italic": null,
+                "underline": null,
+                "strikethrough": null,
+                "listBullet": null,
+                "listNumber": null,
+                "paragraphStyle": null,
+                "stateChangedTotal": 1,
+                "stateChangedUnrecognised": 1,
+                "formatStale": true,
+                "pollCount": 0,
+                "idlePollCount": 0
+              }
+            }
+          },
+          {
+            "generation": 1,
+            "at": 2415.3200000077486,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "lok-review",
+              "detail": {
+                "type": "lok",
+                "id": 15,
+                "payload": "{\n    \"searchString\": \"IV-ASCHAR\",\n    \"highlightAll\": \"false\",\n    \"searchResultSelection\": [\n        {\n            \"part\": \"0\",\n            \"rectangles\": \"1418, 1807, 1306, 275\"\n        }\n    ]\n}\n",
+                "documentHandle": 1,
+                "revision": 0
+              }
+            }
+          },
+          {
+            "generation": 1,
+            "at": 2415.405000001192,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "editor-state",
+              "documentHandle": 1,
+              "revision": 0,
+              "source": "selection-start",
+              "sourceSequence": 4,
+              "documentChangeSequence": 0,
+              "documentSizeChangedCount": 0,
+              "visible": true,
+              "caret": {
+                "x": 1418,
+                "y": 1418,
+                "width": 0,
+                "height": 276
+              },
+              "selection": {
+                "observed": true,
+                "collapsed": false,
+                "start": {
+                  "x": 1418,
+                  "y": 1807,
+                  "width": 0,
+                  "height": 275
+                },
+                "end": null,
+                "rectangles": [
+                  {
+                    "x": 1418,
+                    "y": 1807,
+                    "width": 1306,
+                    "height": 275
+                  }
+                ]
+              },
+              "a11y": {
+                "observed": false,
+                "changeCount": 0,
+                "unparsedCount": 0,
+                "lastSequence": 0,
+                "contentLength": -1,
+                "position": -1,
+                "enabled": false,
+                "unavailable": "core-built-without-accessibility",
+                "paragraphFresh": false,
+                "paragraphFingerprint": "0",
+                "fingerprintUsable": false,
+                "listPrefixLength": 0
+              },
+              "caretParagraph": {
+                "enabled": false,
+                "unavailable": "core-built-without-accessibility",
+                "fresh": false,
+                "observed": false,
+                "fingerprint": "0",
+                "length": -1,
+                "offset": -1,
+                "listPrefixLength": 0,
+                "text": null
+              },
+              "documentOutline": null,
+              "format": {
+                "bold": null,
+                "italic": null,
+                "underline": null,
+                "strikethrough": null,
+                "listBullet": null,
+                "listNumber": null,
+                "paragraphStyle": null,
+                "stateChangedTotal": 1,
+                "stateChangedUnrecognised": 1,
+                "formatStale": true,
+                "pollCount": 0,
+                "idlePollCount": 0
+              }
+            }
+          },
+          {
+            "generation": 1,
+            "at": 2415.4950000047684,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "editor-state",
+              "documentHandle": 1,
+              "revision": 0,
+              "source": "selection-end",
+              "sourceSequence": 5,
+              "documentChangeSequence": 0,
+              "documentSizeChangedCount": 0,
+              "visible": true,
+              "caret": {
+                "x": 1418,
+                "y": 1418,
+                "width": 0,
+                "height": 276
+              },
+              "selection": {
+                "observed": true,
+                "collapsed": false,
+                "start": {
+                  "x": 1418,
+                  "y": 1807,
+                  "width": 0,
+                  "height": 275
+                },
+                "end": {
+                  "x": 2724,
+                  "y": 1807,
+                  "width": 0,
+                  "height": 275
+                },
+                "rectangles": [
+                  {
+                    "x": 1418,
+                    "y": 1807,
+                    "width": 1306,
+                    "height": 275
+                  }
+                ]
+              },
+              "a11y": {
+                "observed": false,
+                "changeCount": 0,
+                "unparsedCount": 0,
+                "lastSequence": 0,
+                "contentLength": -1,
+                "position": -1,
+                "enabled": false,
+                "unavailable": "core-built-without-accessibility",
+                "paragraphFresh": false,
+                "paragraphFingerprint": "0",
+                "fingerprintUsable": false,
+                "listPrefixLength": 0
+              },
+              "caretParagraph": {
+                "enabled": false,
+                "unavailable": "core-built-without-accessibility",
+                "fresh": false,
+                "observed": false,
+                "fingerprint": "0",
+                "length": -1,
+                "offset": -1,
+                "listPrefixLength": 0,
+                "text": null
+              },
+              "documentOutline": null,
+              "format": {
+                "bold": null,
+                "italic": null,
+                "underline": null,
+                "strikethrough": null,
+                "listBullet": null,
+                "listNumber": null,
+                "paragraphStyle": null,
+                "stateChangedTotal": 1,
+                "stateChangedUnrecognised": 1,
+                "formatStale": true,
+                "pollCount": 0,
+                "idlePollCount": 0
+              }
+            }
+          },
+          {
+            "generation": 1,
+            "at": 2415.5,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "document-invalidated",
+              "documentHandle": 1,
+              "revision": 0
+            }
+          },
+          {
+            "generation": 1,
+            "at": 2415.6150000095367,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "editor-state",
+              "documentHandle": 1,
+              "revision": 0,
+              "source": "visible-cursor",
+              "sourceSequence": 6,
+              "documentChangeSequence": 0,
+              "documentSizeChangedCount": 0,
+              "visible": true,
+              "caret": {
+                "x": 2724,
+                "y": 1807,
+                "width": 0,
+                "height": 276
+              },
+              "selection": {
+                "observed": true,
+                "collapsed": false,
+                "start": {
+                  "x": 1418,
+                  "y": 1807,
+                  "width": 0,
+                  "height": 275
+                },
+                "end": {
+                  "x": 2724,
+                  "y": 1807,
+                  "width": 0,
+                  "height": 275
+                },
+                "rectangles": [
+                  {
+                    "x": 1418,
+                    "y": 1807,
+                    "width": 1306,
+                    "height": 275
+                  }
+                ]
+              },
+              "a11y": {
+                "observed": false,
+                "changeCount": 0,
+                "unparsedCount": 0,
+                "lastSequence": 0,
+                "contentLength": -1,
+                "position": -1,
+                "enabled": false,
+                "unavailable": "core-built-without-accessibility",
+                "paragraphFresh": false,
+                "paragraphFingerprint": "0",
+                "fingerprintUsable": false,
+                "listPrefixLength": 0
+              },
+              "caretParagraph": {
+                "enabled": false,
+                "unavailable": "core-built-without-accessibility",
+                "fresh": false,
+                "observed": false,
+                "fingerprint": "0",
+                "length": -1,
+                "offset": -1,
+                "listPrefixLength": 0,
+                "text": null
+              },
+              "documentOutline": null,
+              "format": {
+                "bold": null,
+                "italic": null,
+                "underline": null,
+                "strikethrough": null,
+                "listBullet": null,
+                "listNumber": null,
+                "paragraphStyle": null,
+                "stateChangedTotal": 1,
+                "stateChangedUnrecognised": 1,
+                "formatStale": true,
+                "pollCount": 0,
+                "idlePollCount": 0
+              }
+            }
+          },
+          {
+            "generation": 1,
+            "at": 2423.9800000041723,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "event",
+              "detail": {
+                "type": "v23-poll",
+                "poll": 8,
+                "queued": 0,
+                "drained": 0,
+                "replyPending": true,
+                "reply": true,
+                "requestId": 4
+              }
+            }
+          },
+          {
+            "generation": 1,
+            "at": 2442.890000000596,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "event",
+              "detail": {
+                "type": "v23-poll",
+                "poll": 9,
+                "queued": 1,
+                "drained": 1,
+                "replyPending": false,
+                "reply": false,
+                "requestId": 5
+              }
+            }
+          },
+          {
+            "generation": 1,
+            "at": 2462.295000001788,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "editor-state",
+              "documentHandle": 1,
+              "revision": 0,
+              "source": "selection-rectangles",
+              "sourceSequence": 7,
+              "documentChangeSequence": 0,
+              "documentSizeChangedCount": 0,
+              "visible": true,
+              "caret": {
+                "x": 2724,
+                "y": 1807,
+                "width": 0,
+                "height": 276
+              },
+              "selection": {
+                "observed": true,
+                "collapsed": false,
+                "start": {
+                  "x": 1418,
+                  "y": 1807,
+                  "width": 0,
+                  "height": 275
+                },
+                "end": {
+                  "x": 2724,
+                  "y": 1807,
+                  "width": 0,
+                  "height": 275
+                },
+                "rectangles": [
+                  {
+                    "x": 1418,
+                    "y": 1807,
+                    "width": 3700,
+                    "height": 275
+                  }
+                ]
+              },
+              "a11y": {
+                "observed": false,
+                "changeCount": 0,
+                "unparsedCount": 0,
+                "lastSequence": 0,
+                "contentLength": -1,
+                "position": -1,
+                "enabled": false,
+                "unavailable": "core-built-without-accessibility",
+                "paragraphFresh": false,
+                "paragraphFingerprint": "0",
+                "fingerprintUsable": false,
+                "listPrefixLength": 0
+              },
+              "caretParagraph": {
+                "enabled": false,
+                "unavailable": "core-built-without-accessibility",
+                "fresh": false,
+                "observed": false,
+                "fingerprint": "0",
+                "length": -1,
+                "offset": -1,
+                "listPrefixLength": 0,
+                "text": null
+              },
+              "documentOutline": null,
+              "format": {
+                "bold": null,
+                "italic": null,
+                "underline": null,
+                "strikethrough": null,
+                "listBullet": null,
+                "listNumber": null,
+                "paragraphStyle": null,
+                "stateChangedTotal": 4,
+                "stateChangedUnrecognised": 4,
+                "formatStale": true,
+                "pollCount": 0,
+                "idlePollCount": 0
+              }
+            }
+          },
+          {
+            "generation": 1,
+            "at": 2462.375,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "editor-state",
+              "documentHandle": 1,
+              "revision": 0,
+              "source": "selection-start",
+              "sourceSequence": 8,
+              "documentChangeSequence": 0,
+              "documentSizeChangedCount": 0,
+              "visible": true,
+              "caret": {
+                "x": 2724,
+                "y": 1807,
+                "width": 0,
+                "height": 276
+              },
+              "selection": {
+                "observed": true,
+                "collapsed": false,
+                "start": {
+                  "x": 1418,
+                  "y": 1807,
+                  "width": 0,
+                  "height": 275
+                },
+                "end": {
+                  "x": 2724,
+                  "y": 1807,
+                  "width": 0,
+                  "height": 275
+                },
+                "rectangles": [
+                  {
+                    "x": 1418,
+                    "y": 1807,
+                    "width": 3700,
+                    "height": 275
+                  }
+                ]
+              },
+              "a11y": {
+                "observed": false,
+                "changeCount": 0,
+                "unparsedCount": 0,
+                "lastSequence": 0,
+                "contentLength": -1,
+                "position": -1,
+                "enabled": false,
+                "unavailable": "core-built-without-accessibility",
+                "paragraphFresh": false,
+                "paragraphFingerprint": "0",
+                "fingerprintUsable": false,
+                "listPrefixLength": 0
+              },
+              "caretParagraph": {
+                "enabled": false,
+                "unavailable": "core-built-without-accessibility",
+                "fresh": false,
+                "observed": false,
+                "fingerprint": "0",
+                "length": -1,
+                "offset": -1,
+                "listPrefixLength": 0,
+                "text": null
+              },
+              "documentOutline": null,
+              "format": {
+                "bold": null,
+                "italic": null,
+                "underline": null,
+                "strikethrough": null,
+                "listBullet": null,
+                "listNumber": null,
+                "paragraphStyle": null,
+                "stateChangedTotal": 4,
+                "stateChangedUnrecognised": 4,
+                "formatStale": true,
+                "pollCount": 0,
+                "idlePollCount": 0
+              }
+            }
+          },
+          {
+            "generation": 1,
+            "at": 2462.5049999952316,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "editor-state",
+              "documentHandle": 1,
+              "revision": 0,
+              "source": "selection-end",
+              "sourceSequence": 9,
+              "documentChangeSequence": 0,
+              "documentSizeChangedCount": 0,
+              "visible": true,
+              "caret": {
+                "x": 2724,
+                "y": 1807,
+                "width": 0,
+                "height": 276
+              },
+              "selection": {
+                "observed": true,
+                "collapsed": false,
+                "start": {
+                  "x": 1418,
+                  "y": 1807,
+                  "width": 0,
+                  "height": 275
+                },
+                "end": {
+                  "x": 5118,
+                  "y": 1807,
+                  "width": 0,
+                  "height": 275
+                },
+                "rectangles": [
+                  {
+                    "x": 1418,
+                    "y": 1807,
+                    "width": 3700,
+                    "height": 275
+                  }
+                ]
+              },
+              "a11y": {
+                "observed": false,
+                "changeCount": 0,
+                "unparsedCount": 0,
+                "lastSequence": 0,
+                "contentLength": -1,
+                "position": -1,
+                "enabled": false,
+                "unavailable": "core-built-without-accessibility",
+                "paragraphFresh": false,
+                "paragraphFingerprint": "0",
+                "fingerprintUsable": false,
+                "listPrefixLength": 0
+              },
+              "caretParagraph": {
+                "enabled": false,
+                "unavailable": "core-built-without-accessibility",
+                "fresh": false,
+                "observed": false,
+                "fingerprint": "0",
+                "length": -1,
+                "offset": -1,
+                "listPrefixLength": 0,
+                "text": null
+              },
+              "documentOutline": null,
+              "format": {
+                "bold": null,
+                "italic": null,
+                "underline": null,
+                "strikethrough": null,
+                "listBullet": null,
+                "listNumber": null,
+                "paragraphStyle": null,
+                "stateChangedTotal": 4,
+                "stateChangedUnrecognised": 4,
+                "formatStale": true,
+                "pollCount": 0,
+                "idlePollCount": 0
+              }
+            }
+          },
+          {
+            "generation": 1,
+            "at": 2462.5349999964237,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "document-invalidated",
+              "documentHandle": 1,
+              "revision": 0
+            }
+          },
+          {
+            "generation": 1,
+            "at": 2462.6200000047684,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "editor-state",
+              "documentHandle": 1,
+              "revision": 0,
+              "source": "visible-cursor",
+              "sourceSequence": 10,
+              "documentChangeSequence": 0,
+              "documentSizeChangedCount": 0,
+              "visible": true,
+              "caret": {
+                "x": 5118,
+                "y": 1807,
+                "width": 0,
+                "height": 276
+              },
+              "selection": {
+                "observed": true,
+                "collapsed": false,
+                "start": {
+                  "x": 1418,
+                  "y": 1807,
+                  "width": 0,
+                  "height": 275
+                },
+                "end": {
+                  "x": 5118,
+                  "y": 1807,
+                  "width": 0,
+                  "height": 275
+                },
+                "rectangles": [
+                  {
+                    "x": 1418,
+                    "y": 1807,
+                    "width": 3700,
+                    "height": 275
+                  }
+                ]
+              },
+              "a11y": {
+                "observed": false,
+                "changeCount": 0,
+                "unparsedCount": 0,
+                "lastSequence": 0,
+                "contentLength": -1,
+                "position": -1,
+                "enabled": false,
+                "unavailable": "core-built-without-accessibility",
+                "paragraphFresh": false,
+                "paragraphFingerprint": "0",
+                "fingerprintUsable": false,
+                "listPrefixLength": 0
+              },
+              "caretParagraph": {
+                "enabled": false,
+                "unavailable": "core-built-without-accessibility",
+                "fresh": false,
+                "observed": false,
+                "fingerprint": "0",
+                "length": -1,
+                "offset": -1,
+                "listPrefixLength": 0,
+                "text": null
+              },
+              "documentOutline": null,
+              "format": {
+                "bold": null,
+                "italic": null,
+                "underline": null,
+                "strikethrough": null,
+                "listBullet": null,
+                "listNumber": null,
+                "paragraphStyle": null,
+                "stateChangedTotal": 4,
+                "stateChangedUnrecognised": 4,
+                "formatStale": true,
+                "pollCount": 0,
+                "idlePollCount": 0
+              }
+            }
+          },
+          {
+            "generation": 1,
+            "at": 2472.1150000095367,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "event",
+              "detail": {
+                "type": "v23-poll",
+                "poll": 10,
+                "queued": 0,
+                "drained": 0,
+                "replyPending": true,
+                "reply": true,
+                "requestId": 5
+              }
+            }
+          },
+          {
+            "generation": 1,
+            "at": 2482.2750000059605,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "event",
+              "detail": {
+                "type": "v23-poll",
+                "poll": 11,
+                "queued": 1,
+                "drained": 1,
+                "replyPending": false,
+                "reply": false,
+                "requestId": 6
+              }
+            }
+          },
+          {
+            "generation": 1,
+            "at": 2493.7000000029802,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "event",
+              "detail": {
+                "type": "v23-poll",
+                "poll": 12,
+                "queued": 0,
+                "drained": 0,
+                "replyPending": true,
+                "reply": true,
+                "requestId": 6
+              }
+            }
+          },
+          {
+            "generation": 1,
+            "at": 2494.484999999404,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "event",
+              "detail": {
+                "type": "v23-control",
+                "kind": 3,
+                "requestId": 7
+              }
+            }
+          },
+          {
+            "generation": 1,
+            "at": 2496.829999998212,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stderr",
+              "message": "warn:sw.core:42:3:sw/source/core/doc/docfmt.cxx:1666: Found unknown auto SwNumRule during reset!"
+            }
+          },
+          {
+            "generation": 1,
+            "at": 2509.560000002384,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stderr",
+              "message": "warn:svx:42:3:svx/source/xoutdev/_xoutbmp.cxx:389: XOutBitmap::GraphicToBase64() invalid Graphic? error: 0x20d(Error Area:Io Class:General Code:13)"
+            }
+          },
+          {
+            "generation": 2,
+            "at": 32970.79000000656,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "resource-pack-loaded",
+              "resourcePack": "cjk-sub-e10",
+              "files": 1,
+              "bytes": 14384632,
+              "sha256": "06976180177c8bd2a0c7bb7c18837bd12ce116481aefc56b60807948b585ffab"
+            }
+          },
+          {
+            "generation": 2,
+            "at": 33011.564999997616,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stderr",
+              "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"m5\" in \"file:///instdir/program/../share/registry/res/registry_qtz.xcd\""
+            }
+          },
+          {
+            "generation": 2,
+            "at": 33011.609999999404,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stderr",
+              "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"m14\" in \"file:///instdir/program/../share/registry/res/registry_qtz.xcd\""
+            }
+          },
+          {
+            "generation": 2,
+            "at": 33018.859999999404,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stderr",
+              "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"private:resource/toolbar/addon_LibreLogo.OfficeToolBar\" in \"file:///instdir/program/../share/registry/res/registry_qtz.xcd\""
+            }
+          },
+          {
+            "generation": 2,
+            "at": 33019.12999999523,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stderr",
+              "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"com.sun.star.sdb.RelationDesign\" in \"file:///instdir/program/../share/registry/res/registry_qtz.xcd\""
+            }
+          },
+          {
+            "generation": 2,
+            "at": 33019.189999997616,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stderr",
+              "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"com.sun.star.sdb.QueryDesign\" in \"file:///instdir/program/../share/registry/res/registry_qtz.xcd\""
+            }
+          },
+          {
+            "generation": 2,
+            "at": 33019.25,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stderr",
+              "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"com.sun.star.sdb.ViewDesign\" in \"file:///instdir/program/../share/registry/res/registry_qtz.xcd\""
+            }
+          },
+          {
+            "generation": 2,
+            "at": 33019.36500000954,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stderr",
+              "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"com.sun.star.sdb.TableDesign\" in \"file:///instdir/program/../share/registry/res/registry_qtz.xcd\""
+            }
+          },
+          {
+            "generation": 2,
+            "at": 33019.47500000894,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stderr",
+              "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"com.sun.star.sdb.DataSourceBrowser\" in \"file:///instdir/program/../share/registry/res/registry_qtz.xcd\""
+            }
+          },
+          {
+            "generation": 2,
+            "at": 33019.55500000715,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stderr",
+              "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"com.sun.star.sdb.TableDataView\" in \"file:///instdir/program/../share/registry/res/registry_qtz.xcd\""
+            }
+          },
+          {
+            "generation": 2,
+            "at": 33020.62000000477,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stderr",
+              "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"m5\" in \"file:///instdir/program/../share/registry/res/registry_zh-TW.xcd\""
+            }
+          },
+          {
+            "generation": 2,
+            "at": 33020.69500000775,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stderr",
+              "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"m14\" in \"file:///instdir/program/../share/registry/res/registry_zh-TW.xcd\""
+            }
+          },
+          {
+            "generation": 2,
+            "at": 33027.10500000417,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stderr",
+              "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"private:resource/toolbar/addon_LibreLogo.OfficeToolBar\" in \"file:///instdir/program/../share/registry/res/registry_zh-TW.xcd\""
+            }
+          },
+          {
+            "generation": 2,
+            "at": 33027.49500000477,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stderr",
+              "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"com.sun.star.sdb.RelationDesign\" in \"file:///instdir/program/../share/registry/res/registry_zh-TW.xcd\""
+            }
+          },
+          {
+            "generation": 2,
+            "at": 33027.53000000119,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stderr",
+              "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"com.sun.star.sdb.QueryDesign\" in \"file:///instdir/program/../share/registry/res/registry_zh-TW.xcd\""
+            }
+          },
+          {
+            "generation": 2,
+            "at": 33027.59499999881,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stderr",
+              "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"com.sun.star.sdb.ViewDesign\" in \"file:///instdir/program/../share/registry/res/registry_zh-TW.xcd\""
+            }
+          },
+          {
+            "generation": 2,
+            "at": 33027.640000000596,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stderr",
+              "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"com.sun.star.sdb.TableDesign\" in \"file:///instdir/program/../share/registry/res/registry_zh-TW.xcd\""
+            }
+          },
+          {
+            "generation": 2,
+            "at": 33027.70000000298,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stderr",
+              "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"com.sun.star.sdb.DataSourceBrowser\" in \"file:///instdir/program/../share/registry/res/registry_zh-TW.xcd\""
+            }
+          },
+          {
+            "generation": 2,
+            "at": 33027.74000000954,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stderr",
+              "message": "warn:configmgr:42:1:configmgr/source/xcuparser.cxx:906: ignoring modify of unknown set member node \"com.sun.star.sdb.TableDataView\" in \"file:///instdir/program/../share/registry/res/registry_zh-TW.xcd\""
+            }
+          },
+          {
+            "generation": 2,
+            "at": 33028.32999999821,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stderr",
+              "message": "warn:i18nlangtag:42:1:i18nlangtag/source/isolang/mslangid.cxx:105: MsLangId::getConfiguredSystemLanguage() - not configured yet"
+            }
+          },
+          {
+            "generation": 2,
+            "at": 33028.37000000477,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stderr",
+              "message": "warn:i18nlangtag:42:1:i18nlangtag/source/isolang/mslangid.cxx:115: MsLangId::getConfiguredSystemUILanguage() - not configured yet"
+            }
+          },
+          {
+            "generation": 2,
+            "at": 33031.92000000179,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "event",
+              "detail": {
+                "type": "v23-poll",
+                "poll": 1,
+                "queued": 1,
+                "drained": 1,
+                "replyPending": false,
+                "reply": false,
+                "requestId": 1
+              }
+            }
+          },
+          {
+            "generation": 2,
+            "at": 33041.30500000715,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "event",
+              "detail": {
+                "type": "v23-poll",
+                "poll": 2,
+                "queued": 0,
+                "drained": 0,
+                "replyPending": true,
+                "reply": true,
+                "requestId": 1
+              }
+            }
+          },
+          {
+            "generation": 2,
+            "at": 33050.710000008345,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "event",
+              "detail": {
+                "type": "v23-poll",
+                "poll": 3,
+                "queued": 1,
+                "drained": 1,
+                "replyPending": false,
+                "reply": false,
+                "requestId": 2
+              }
+            }
+          },
+          {
+            "generation": 2,
+            "at": 33051.41500000656,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stage",
+              "detail": {
+                "type": "stage",
+                "name": "open.begin",
+                "heapBytes": 1073741824,
+                "sbrk": 67506176
+              }
+            }
+          },
+          {
+            "generation": 2,
+            "at": 33051.49000000954,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stage",
+              "detail": {
+                "type": "stage",
+                "name": "open.documentLoad",
+                "heapBytes": 1073741824,
+                "sbrk": 67506176
+              }
+            }
+          },
+          {
+            "generation": 2,
+            "at": 33366.590000003576,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stderr",
+              "message": "warn:editeng:42:1:editeng/source/misc/acorrcfg.cxx:107: Unable to iterate directory 'file:///instdir/program/../share/autocorr' com.sun.star.ucb.InteractiveAugmentedIOException message: \"an error occurred during file opening (12/2)\" context: N10fileaccess11BaseContentE Code: 22"
+            }
+          },
+          {
+            "generation": 2,
+            "at": 33391.59499999881,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stderr",
+              "message": "warn:sfx.doc:42:1:sfx2/source/doc/objserv.cxx:2002: Failed to get document signature information com.sun.star.uno.DeploymentException message: \"component context fails to supply service com.sun.star.security.DocumentDigitalSignatures of type com.sun.star.security.XDocumentDigitalSignatures\" context: N4cppu12_GLOBAL__N_116ComponentContextE"
+            }
+          },
+          {
+            "generation": 2,
+            "at": 33391.69500000775,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stderr",
+              "message": "warn:sfx.doc:42:1:sfx2/source/doc/objserv.cxx:2002: Failed to get document signature information com.sun.star.uno.DeploymentException message: \"component context fails to supply service com.sun.star.security.DocumentDigitalSignatures of type com.sun.star.security.XDocumentDigitalSignatures\" context: N4cppu12_GLOBAL__N_116ComponentContextE"
+            }
+          },
+          {
+            "generation": 2,
+            "at": 33411.24500000477,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stderr",
+              "message": "warn:lok:42:1:sfx2/source/view/lokhelper.cxx:1118: no explicit viewshell set"
+            }
+          },
+          {
+            "generation": 2,
+            "at": 33415.265000000596,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stderr",
+              "message": "warn:lok:42:1:sfx2/source/view/lokhelper.cxx:1118: no explicit viewshell set"
+            }
+          },
+          {
+            "generation": 2,
+            "at": 33418.01999999583,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stderr",
+              "message": "warn:lok:42:1:sfx2/source/view/lokhelper.cxx:1118: no explicit viewshell set"
+            }
+          },
+          {
+            "generation": 2,
+            "at": 33418.17000000179,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stderr",
+              "message": "warn:lok:42:1:sfx2/source/view/lokhelper.cxx:1118: no explicit viewshell set"
+            }
+          },
+          {
+            "generation": 2,
+            "at": 33420.09499999881,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stage",
+              "detail": {
+                "type": "stage",
+                "name": "open.documentLoad-returned",
+                "heapBytes": 1073741824,
+                "sbrk": 233443328
+              }
+            }
+          },
+          {
+            "generation": 2,
+            "at": 33420.140000000596,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stage",
+              "detail": {
+                "type": "stage",
+                "name": "open.initializeForRendering",
+                "heapBytes": 1073741824,
+                "sbrk": 233443328
+              }
+            }
+          },
+          {
+            "generation": 2,
+            "at": 33422.564999997616,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stage",
+              "detail": {
+                "type": "stage",
+                "name": "open.registerCallback",
+                "heapBytes": 1073741824,
+                "sbrk": 233443328
+              }
+            }
+          },
+          {
+            "generation": 2,
+            "at": 33424.640000000596,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stage",
+              "detail": {
+                "type": "stage",
+                "name": "open.query-metadata",
+                "heapBytes": 1073741824,
+                "sbrk": 233443328
+              }
+            }
+          },
+          {
+            "generation": 2,
+            "at": 33471.29500000179,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "document-invalidated",
+              "documentHandle": 1,
+              "revision": 0
+            }
+          },
+          {
+            "generation": 2,
+            "at": 33471.65000000596,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "editor-state",
+              "documentHandle": 1,
+              "revision": 0,
+              "source": "visible-cursor",
+              "sourceSequence": 1,
+              "documentChangeSequence": 0,
+              "documentSizeChangedCount": 0,
+              "visible": true,
+              "caret": {
+                "x": 1418,
+                "y": 1418,
+                "width": 0,
+                "height": 276
+              },
+              "selection": {
+                "observed": false,
+                "collapsed": true,
+                "start": null,
+                "end": null,
+                "rectangles": []
+              },
+              "a11y": {
+                "observed": false,
+                "changeCount": 0,
+                "unparsedCount": 0,
+                "lastSequence": 0,
+                "contentLength": -1,
+                "position": -1,
+                "enabled": false,
+                "unavailable": "core-built-without-accessibility",
+                "paragraphFresh": false,
+                "paragraphFingerprint": "0",
+                "fingerprintUsable": false,
+                "listPrefixLength": 0
+              },
+              "caretParagraph": {
+                "enabled": false,
+                "unavailable": "core-built-without-accessibility",
+                "fresh": false,
+                "observed": false,
+                "fingerprint": "0",
+                "length": -1,
+                "offset": -1,
+                "listPrefixLength": 0,
+                "text": null
+              },
+              "documentOutline": null,
+              "format": {
+                "bold": null,
+                "italic": null,
+                "underline": null,
+                "strikethrough": null,
+                "listBullet": null,
+                "listNumber": null,
+                "paragraphStyle": null,
+                "stateChangedTotal": 0,
+                "stateChangedUnrecognised": 0,
+                "formatStale": true,
+                "pollCount": 0,
+                "idlePollCount": 0
+              }
+            }
+          },
+          {
+            "generation": 2,
+            "at": 33499.460000008345,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "event",
+              "detail": {
+                "type": "v23-poll",
+                "poll": 4,
+                "queued": 0,
+                "drained": 0,
+                "replyPending": true,
+                "reply": true,
+                "requestId": 2
+              }
+            }
+          },
+          {
+            "generation": 2,
+            "at": 33499.77500000596,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "view-ready",
+              "documentHandle": 1,
+              "revision": 0
+            }
+          },
+          {
+            "generation": 2,
+            "at": 33523.625,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "event",
+              "detail": {
+                "type": "v23-poll",
+                "poll": 5,
+                "queued": 1,
+                "drained": 1,
+                "replyPending": false,
+                "reply": false,
+                "requestId": 3
+              }
+            }
+          },
+          {
+            "generation": 2,
+            "at": 33523.715000003576,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stderr",
+              "message": "warn:lok:42:1:desktop/source/lib/init.cxx:285: lok exception 'Flavor text/plain;charset=utf-16 is not supported'"
+            }
+          },
+          {
+            "generation": 2,
+            "at": 33537.48000000417,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "editor-state",
+              "documentHandle": 1,
+              "revision": 0,
+              "source": "selection-rectangles",
+              "sourceSequence": 2,
+              "documentChangeSequence": 0,
+              "documentSizeChangedCount": 0,
+              "visible": true,
+              "caret": {
+                "x": 1418,
+                "y": 1418,
+                "width": 0,
+                "height": 276
+              },
+              "selection": {
+                "observed": true,
+                "collapsed": true,
+                "start": null,
+                "end": null,
+                "rectangles": []
+              },
+              "a11y": {
+                "observed": false,
+                "changeCount": 0,
+                "unparsedCount": 0,
+                "lastSequence": 0,
+                "contentLength": -1,
+                "position": -1,
+                "enabled": false,
+                "unavailable": "core-built-without-accessibility",
+                "paragraphFresh": false,
+                "paragraphFingerprint": "0",
+                "fingerprintUsable": false,
+                "listPrefixLength": 0
+              },
+              "caretParagraph": {
+                "enabled": false,
+                "unavailable": "core-built-without-accessibility",
+                "fresh": false,
+                "observed": false,
+                "fingerprint": "0",
+                "length": -1,
+                "offset": -1,
+                "listPrefixLength": 0,
+                "text": null
+              },
+              "documentOutline": null,
+              "format": {
+                "bold": null,
+                "italic": null,
+                "underline": null,
+                "strikethrough": null,
+                "listBullet": null,
+                "listNumber": null,
+                "paragraphStyle": null,
+                "stateChangedTotal": 0,
+                "stateChangedUnrecognised": 0,
+                "formatStale": true,
+                "pollCount": 0,
+                "idlePollCount": 0
+              }
+            }
+          },
+          {
+            "generation": 2,
+            "at": 33546.73000000417,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "event",
+              "detail": {
+                "type": "v23-poll",
+                "poll": 6,
+                "queued": 0,
+                "drained": 0,
+                "replyPending": true,
+                "reply": true,
+                "requestId": 3
+              }
+            }
+          },
+          {
+            "generation": 2,
+            "at": 33565.26999999583,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "event",
+              "detail": {
+                "type": "v23-poll",
+                "poll": 7,
+                "queued": 1,
+                "drained": 1,
+                "replyPending": false,
+                "reply": false,
+                "requestId": 4
+              }
+            }
+          },
+          {
+            "generation": 2,
+            "at": 33597.90500000119,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stderr",
+              "message": "warn:xmloff:42:1:xmloff/source/draw/shapeexport.cxx:1153: XMLShapeExport::seekShapes(): XShapes size varied between calls"
+            }
+          },
+          {
+            "generation": 2,
+            "at": 33610.26999999583,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stderr",
+              "message": "warn:svx:42:1:svx/source/table/tableautofmt.cxx:454: Cannot open table styles file: file:///instdir/program/../share/svx/tablestyles.xml"
+            }
+          },
+          {
+            "generation": 2,
+            "at": 33619.07999999821,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "stderr",
+              "message": "warn:xmloff:42:1:xmloff/source/draw/shapeexport.cxx:1153: XMLShapeExport::seekShapes(): XShapes size varied between calls"
+            }
+          },
+          {
+            "generation": 2,
+            "at": 34269.375,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "editor-state",
+              "documentHandle": 1,
+              "revision": 0,
+              "source": "cursor-visible",
+              "sourceSequence": 3,
+              "documentChangeSequence": 0,
+              "documentSizeChangedCount": 0,
+              "visible": true,
+              "caret": {
+                "x": 1418,
+                "y": 1418,
+                "width": 0,
+                "height": 276
+              },
+              "selection": {
+                "observed": true,
+                "collapsed": true,
+                "start": null,
+                "end": null,
+                "rectangles": []
+              },
+              "a11y": {
+                "observed": false,
+                "changeCount": 0,
+                "unparsedCount": 0,
+                "lastSequence": 0,
+                "contentLength": -1,
+                "position": -1,
+                "enabled": false,
+                "unavailable": "core-built-without-accessibility",
+                "paragraphFresh": false,
+                "paragraphFingerprint": "0",
+                "fingerprintUsable": false,
+                "listPrefixLength": 0
+              },
+              "caretParagraph": {
+                "enabled": false,
+                "unavailable": "core-built-without-accessibility",
+                "fresh": false,
+                "observed": false,
+                "fingerprint": "0",
+                "length": -1,
+                "offset": -1,
+                "listPrefixLength": 0,
+                "text": null
+              },
+              "documentOutline": null,
+              "format": {
+                "bold": null,
+                "italic": null,
+                "underline": null,
+                "strikethrough": null,
+                "listBullet": null,
+                "listNumber": null,
+                "paragraphStyle": null,
+                "stateChangedTotal": 0,
+                "stateChangedUnrecognised": 0,
+                "formatStale": true,
+                "pollCount": 0,
+                "idlePollCount": 0
+              }
+            }
+          },
+          {
+            "generation": 2,
+            "at": 34287.82999999821,
+            "message": {
+              "protocolVersion": 1,
+              "kind": "event",
+              "event": "diagnostic",
+              "level": "event",
+              "detail": {
+                "type": "v23-poll",
+                "poll": 8,
+                "queued": 0,
+                "drained": 0,
+                "replyPending": true,
+                "reply": true,
+                "requestId": 4
+              }
+            }
+          }
+        ],
+        "workers": [
+          {
+            "generation": 1,
+            "createdAt": 381.4800000041723,
+            "terminatedAt": 32495.12999999523
+          },
+          {
+            "generation": 2,
+            "createdAt": 32495.24500000477,
+            "terminatedAt": 34288.43000000715
+          }
+        ],
+        "artifacts": {
+          "probe.wasm": "52cf9d23b615458d3a4086b3995fd68bf3ced19c252c6f89f017109fc282a443",
+          "probe.js": "a3919e977868934589e1e37ac1406930a6011640a82540ca507c6ae4002eede4",
+          "sdk-worker.js": "889edcde583c77be78b5ccfe9d71f967175f946123d806d15180693f600d4f68",
+          "sdk-manifest.json": "f6f4ae796eaf6ed231861c967957208cc3d05ed4b601cbecfbc8f3387d4a8f0a"
+        },
+        "fixtures": {
+          "frame": {
+            "sha256": "b2869e0eb89bc5644e08e5d86c5d374615d1e641ec5ed8a7d7aca0198567c661",
+            "bytes": 2196
+          }
+        },
+        "instrumentServed": {
+          "e2-editor.html": "6ea72873a65abac41eed276f879ea60f43dbdf8c5fb4704546d3ec0511a8a9a4",
+          "v23-remaining.js": "eedba14d7b2df923a6a22cd8416fb0271b5aee4e92b607cc355939a71e07dae4"
+        },
+        "selectionSetup": {
+          "anchor": "IV-ASCHAR",
+          "rectangle": [
+            1418,
+            1807,
+            1306,
+            275
+          ],
+          "startXTwips": 1418,
+          "startYTwips": 1944,
+          "endXTwips": 9418,
+          "endYTwips": 1944
+        },
+        "preSelection": {
+          "selectionType": "complex",
+          "text": "",
+          "mimeType": "text/plain;charset=utf-8",
+          "revision": 0
+        },
+        "control": {
+          "kind": 3,
+          "startedAt": 2493.8350000083447,
+          "error": {
+            "code": "TIMEOUT",
+            "message": "v23Diagnostic timed out after 30000 ms",
+            "details": {
+              "operation": "v23Diagnostic",
+              "timeoutMs": 30000
+            }
+          },
+          "finishedAt": 32494.79999999702,
+          "stateAfter": {
+            "state": "recoverable-error",
+            "documentName": "frame.odt",
+            "revision": 0,
+            "dirty": false,
+            "generation": 1,
+            "pending": 0,
+            "editorState": {
+              "documentHandle": 1,
+              "revision": 0,
+              "sourceSequence": 10,
+              "documentChangeSequence": 0,
+              "documentSizeChangedCount": 0,
+              "visible": true,
+              "caret": {
+                "x": 5118,
+                "y": 1807,
+                "width": 0,
+                "height": 276
+              },
+              "selection": {
+                "observed": true,
+                "collapsed": false,
+                "start": {
+                  "x": 1418,
+                  "y": 1807,
+                  "width": 0,
+                  "height": 275
+                },
+                "end": {
+                  "x": 5118,
+                  "y": 1807,
+                  "width": 0,
+                  "height": 275
+                },
+                "rectangles": [
+                  {
+                    "x": 1418,
+                    "y": 1807,
+                    "width": 3700,
+                    "height": 275
+                  }
+                ]
+              },
+              "a11y": {
+                "observed": false,
+                "changeCount": 0,
+                "unparsedCount": 0,
+                "lastSequence": 0,
+                "contentLength": -1,
+                "position": -1,
+                "enabled": false,
+                "unavailable": "core-built-without-accessibility",
+                "paragraphFresh": false,
+                "paragraphFingerprint": "0",
+                "fingerprintUsable": false,
+                "listPrefixLength": 0
+              },
+              "caretParagraph": {
+                "enabled": false,
+                "unavailable": "core-built-without-accessibility",
+                "fresh": false,
+                "observed": false,
+                "fingerprint": "0",
+                "length": -1,
+                "offset": -1,
+                "listPrefixLength": 0,
+                "text": null
+              },
+              "documentOutline": null,
+              "selectionType": "none",
+              "selectionTextMissing": false,
+              "selectionText": "",
+              "format": {
+                "bold": null,
+                "italic": null,
+                "underline": null,
+                "strikethrough": null,
+                "listBullet": null,
+                "listNumber": null,
+                "paragraphStyle": null,
+                "stateChangedTotal": 4,
+                "stateChangedUnrecognised": 4,
+                "formatStale": true,
+                "pollCount": 0,
+                "idlePollCount": 0
+              }
+            },
+            "hasSavedBytes": false,
+            "hasCheckpoint": false,
+            "checkpointRevision": null,
+            "checkpointError": null,
+            "error": {
+              "code": "TIMEOUT",
+              "message": "v23Diagnostic timed out after 30000 ms",
+              "details": {
+                "operation": "v23Diagnostic",
+                "timeoutMs": 30000
+              }
+            }
+          }
+        },
+        "recovered": {
+          "state": "ready",
+          "documentName": "frame.odt",
+          "revision": 0,
+          "dirty": false,
+          "generation": 2,
+          "pending": 0,
+          "editorState": {
+            "documentHandle": 1,
+            "revision": 0,
+            "sourceSequence": 2,
+            "documentChangeSequence": 0,
+            "documentSizeChangedCount": 0,
+            "visible": true,
+            "caret": {
+              "x": 1418,
+              "y": 1418,
+              "width": 0,
+              "height": 276
+            },
+            "selection": {
+              "observed": true,
+              "collapsed": true,
+              "start": null,
+              "end": null,
+              "rectangles": []
+            },
+            "a11y": {
+              "observed": false,
+              "changeCount": 0,
+              "unparsedCount": 0,
+              "lastSequence": 0,
+              "contentLength": -1,
+              "position": -1,
+              "enabled": false,
+              "unavailable": "core-built-without-accessibility",
+              "paragraphFresh": false,
+              "paragraphFingerprint": "0",
+              "fingerprintUsable": false,
+              "listPrefixLength": 0
+            },
+            "caretParagraph": {
+              "enabled": false,
+              "unavailable": "core-built-without-accessibility",
+              "fresh": false,
+              "observed": false,
+              "fingerprint": "0",
+              "length": -1,
+              "offset": -1,
+              "listPrefixLength": 0,
+              "text": null
+            },
+            "documentOutline": null,
+            "selectionType": "none",
+            "selectionTextMissing": false,
+            "selectionText": "",
+            "format": {
+              "bold": null,
+              "italic": null,
+              "underline": null,
+              "strikethrough": null,
+              "listBullet": null,
+              "listNumber": null,
+              "paragraphStyle": null,
+              "stateChangedTotal": 0,
+              "stateChangedUnrecognised": 0,
+              "formatStale": true,
+              "pollCount": 0,
+              "idlePollCount": 0
+            }
+          },
+          "hasSavedBytes": false,
+          "hasCheckpoint": false,
+          "checkpointRevision": null,
+          "checkpointError": null,
+          "error": null
+        },
+        "040-recovery-save": {
+          "sha256": "77ba879cd092214ff5ebdd1facf54af6f71c26c4c77f783d488a786ff1e61d13",
+          "byteLength": 14971
+        }
+      },
+      "cleanup": {}
+    }
+  ],
+  "preRun": {
+    "kwalletLocked": "b false",
+    "chromeProcesses": "1",
+    "firefoxProcesses": "1",
+    "oursRunning": [],
+    "loadavg": [
+      "1.17",
+      "1.14",
+      "1.10"
+    ],
+    "topCpu": [
+      "PID %CPU COMMAND",
+      " 752219 65.0 python3",
+      " 743172 10.6 llama-server",
+      " 741365  4.8 claude",
+      " 751784  4.8 Isolated Web Co",
+      " 744718  4.4 codium"
+    ],
+    "at": "2026-10-26T00:29:34+0800",
+    "refuse": []
+  },
+  "foreignCpu": {
+    "seconds": 2.012,
+    "limitPct": 50.0,
+    "rootPid": 752219,
+    "ok": true,
+    "overLimit": [],
+    "topForeign": [
+      {
+        "pid": 3809,
+        "comm": "telegram-deskto",
+        "pct": 9.9,
+        "own": false,
+        "cmd": "/snap/telegram-desktop/7175/usr/bin/telegram-desktop -- "
+      },
+      {
+        "pid": 252770,
+        "comm": "zen",
+        "pct": 7.0,
+        "own": false,
+        "cmd": "/home/jiajun/.tarball-installations/zen/zen https://litecore.ddev.site:8443/index.php/apps/files/ "
+      },
+      {
+        "pid": 3336,
+        "comm": "kwin_wayland",
+        "pct": 5.0,
+        "own": false,
+        "cmd": "/usr/bin/kwin_wayland --wayland-fd 7 --socket wayland-0 --xwayland-fd 8 --xwayland-fd 9 --xwayland-display :0 --xwayland-xauthority /run/user/1000/xauth_IgQjcJ --xwayland "
+      },
+      {
+        "pid": 16670,
+        "comm": "codex",
+        "pct": 3.0,
+        "own": false,
+        "cmd": "/home/jiajun/.codex/packages/app-server-daemon/releases/0.164.0-x86_64-unknown-linux-musl/bin/codex app-server --listen unix:// --analytics-default-enabled -c features.api_key_model_discovery=true -c "
+      },
+      {
+        "pid": 400931,
+        "comm": "codex",
+        "pct": 3.0,
+        "own": false,
+        "cmd": "codex "
+      }
+    ],
+    "topOwn": [],
+    "loadavg": [
+      "1.17",
+      "1.14",
+      "1.10"
+    ],
+    "at": "2026-10-26T00:29:36+0800"
+  }
+}

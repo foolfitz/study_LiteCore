@@ -1,0 +1,113 @@
+{
+  "bindingVerification": "PASS",
+  "identity": {
+    "probe.wasm": "52cf9d23b615458d3a4086b3995fd68bf3ced19c252c6f89f017109fc282a443",
+    "probe.js": "a3919e977868934589e1e37ac1406930a6011640a82540ca507c6ae4002eede4",
+    "sdk-worker.js": "889edcde583c77be78b5ccfe9d71f967175f946123d806d15180693f600d4f68",
+    "sdk-manifest.json": "f6f4ae796eaf6ed231861c967957208cc3d05ed4b601cbecfbc8f3387d4a8f0a"
+  },
+  "browser": "firefox",
+  "round": 1,
+  "arm": "html-negative",
+  "fatal": null,
+  "complete": true,
+  "verdict": "PASS",
+  "missing": [],
+  "failed": [],
+  "stepMilliseconds": {
+    "open-frame": 1931.56,
+    "040-anchor": 46.2800000000002,
+    "040-select": 47.07999999999993,
+    "040-complex-read": 19.38000000000011,
+    "040-restart": 2005.3600000000006,
+    "040-recovery-save": 546.1399999999994
+  },
+  "controlElapsedMs": 30001.399999999998,
+  "unestablishedMetrics": [
+    "engine tick intervals",
+    "exact INVALIDATE_TILES latency",
+    "engine idle-layout completion"
+  ],
+  "caseId": "frame-html-js",
+  "scope": "only named arm; exact040 requires all three040 arms",
+  "preRun": {
+    "kwalletLocked": "b false",
+    "chromeProcesses": "1",
+    "firefoxProcesses": "1",
+    "oursRunning": [],
+    "loadavg": [
+      "1.24",
+      "1.21",
+      "1.12"
+    ],
+    "topCpu": [
+      "PID %CPU COMMAND",
+      " 754066 69.2 python3",
+      " 751784 23.8 Isolated Web Co",
+      " 743172  9.2 llama-server",
+      " 753412  5.9 soffice.bin",
+      " 741365  5.0 claude"
+    ],
+    "at": "2026-10-26T00:30:38+0800",
+    "refuse": []
+  },
+  "foreignCpu": {
+    "seconds": 2.012,
+    "limitPct": 50.0,
+    "rootPid": 754066,
+    "ok": true,
+    "overLimit": [],
+    "topForeign": [
+      {
+        "pid": 751784,
+        "comm": "Isolated Web Co",
+        "pct": 24.9,
+        "own": false,
+        "cmd": "/home/jiajun/.tarball-installations/zen/zen -contentproc -isForBrowser -prefsHandle 0:55512 -prefMapHandle 1:311950 -jsInitHandle 2:162336 -parentBuildID 20261020090730 -sandboxReporter 3 -chrootClien"
+      },
+      {
+        "pid": 252770,
+        "comm": "zen",
+        "pct": 17.9,
+        "own": false,
+        "cmd": "/home/jiajun/.tarball-installations/zen/zen https://litecore.ddev.site:8443/index.php/apps/files/ "
+      },
+      {
+        "pid": 741365,
+        "comm": "claude",
+        "pct": 13.9,
+        "own": false,
+        "cmd": "claude "
+      },
+      {
+        "pid": 3809,
+        "comm": "telegram-deskto",
+        "pct": 10.4,
+        "own": false,
+        "cmd": "/snap/telegram-desktop/7175/usr/bin/telegram-desktop -- "
+      },
+      {
+        "pid": 753412,
+        "comm": "soffice.bin",
+        "pct": 8.5,
+        "own": false,
+        "cmd": "/home/jiajun/OSSII/study_OxOffice_AI/OxOffice/instdir/program/soffice.bin -env:UserInstallation=file:///tmp/claude-1000/-home-jiajun-OSSII-study-OxOffice-AI-oxoffice-mcp/e9ba6e0e-5837-43e1-9bdd-9b788d"
+      }
+    ],
+    "topOwn": [
+      {
+        "pid": 754066,
+        "comm": "python3",
+        "pct": 1.0,
+        "own": true,
+        "cmd": "python3 -I tools/run_v23_remaining.py --arm html-negative --browser firefox --rounds 1 --profile e2-editor-v23-diag --wasm-sha256 52cf9d23b615458d3a4086b3995fd68bf3ced19c252c6f89f017109fc282a443 --out"
+      }
+    ],
+    "loadavg": [
+      "1.24",
+      "1.21",
+      "1.12"
+    ],
+    "at": "2026-10-26T00:30:40+0800"
+  }
+}
