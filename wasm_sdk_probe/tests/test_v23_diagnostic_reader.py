@@ -115,6 +115,14 @@ class ReaderControls(unittest.TestCase):
         d['savedBase64'] = base64.b64encode(data.getvalue()).decode()
         self.assertEqual(self.verdict(d), r.FAIL)
 
+    def test_actual_ua_browser_family_and_copied_observation(self):
+        chrome={'userAgent':'Mozilla/5.0 HeadlessChrome/132.0.0.0 Safari/537.36','actualRecord':1}
+        firefox={'userAgent':'Mozilla/5.0 Gecko/20100101 Firefox/136.0','actualRecord':2}
+        r.require_browser(chrome,'chrome');r.require_browser(firefox,'firefox')
+        for page,browser in ((chrome,'firefox'),(firefox,'chrome'),({},'chrome')):
+            with self.assertRaisesRegex(ValueError,'userAgent'):r.require_browser(page,browser)
+        self.assertEqual(r.page_sha256(chrome),r.page_sha256(copy.deepcopy(chrome)))
+
     def test_explicit_r2_and_no_generic_negative(self):
         d=sample();d['profile']=d['manifest']['profile']=r.R2_PROFILE
         self.assertEqual(r.judge(d,EXPECTED,r.R2_PROFILE)['verdict'],r.PASS)
@@ -149,11 +157,13 @@ class ReaderControls(unittest.TestCase):
                 r.identity(root,hashlib.sha256(b'fake').hexdigest())
 
     def test_r2_reference_population_and_duplicate_reds(self):
-        direct=[{'browser':b,'round':n,'arm':a,'verdict':r.PASS} for b in ('chrome','firefox') for n in range(1,4) for a in r.ARMS[:3]]
+        direct=[{'browser':b,'round':n,'arm':a,'verdict':r.PASS,'pageSha256':f'{b}-{n}-{a}'} for b in ('chrome','firefox') for n in range(1,4) for a in r.ARMS[:3]]
         refs=[{'browser':b,'round':n,'arm':'js-thread','verdict':r.PASS,
                'source':{'sha256':'reference-report','runIndex':i,'pageSha256':str(i)}}
               for i,(b,n) in enumerate((b,n) for b in ('chrome','firefox') for n in range(1,4))]
         self.assertEqual(r.summarize(direct,refs,r.R2_PROFILE)['verdict'],r.PASS)
+        copied=copy.deepcopy(direct);copied[3]['pageSha256']=copied[0]['pageSha256']
+        self.assertEqual(r.summarize(copied,refs,r.R2_PROFILE)['verdict'],r.NE)
         for altered in (refs[:-1],refs+[refs[0]],[]):
             self.assertEqual(r.summarize(direct,altered,r.R2_PROFILE)['verdict'],r.NE)
         for field in ('runIndex','pageSha256'):

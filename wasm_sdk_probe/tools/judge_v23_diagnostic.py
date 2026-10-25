@@ -10,6 +10,7 @@ import copy
 import hashlib
 import io
 import json
+import re
 import sys
 from pathlib import Path
 import zipfile
@@ -157,6 +158,19 @@ def judge(record, expected, profile=PROFILE):
             'missing': missing, 'failed': failed, 'scope': 'bounded diagnostic only'}
 
 
+def page_sha256(page):
+    return hashlib.sha256(json.dumps(page,sort_keys=True).encode()).hexdigest()
+
+
+def require_browser(page, browser):
+    """Check an observed UA, never infer a browser from the runner label."""
+    ua=page.get('userAgent')
+    firefox=isinstance(ua,str) and re.search(r'Firefox/\d',ua) is not None
+    chrome=isinstance(ua,str) and re.search(r'(?:Headless)?Chrome/\d',ua) is not None and not firefox
+    if not ((browser=='chrome' and chrome) or (browser=='firefox' and firefox)):
+        raise ValueError(f'actual page userAgent absent or inconsistent with browser label: {browser}')
+
+
 def corrected_references(paths, expected):
     """Rejudge six actual corrected040 negatives; references never create new runs."""
     import judge_v23_remaining as remaining
@@ -176,16 +190,20 @@ def corrected_references(paths, expected):
             page=run.get('page') or {}
             if run.get('arm')!='html-negative' or page.get('arm')!='html-negative':
                 raise ValueError('only corrected frame-html-js observations may replace r2 logical js-thread obligations')
+            require_browser(page,run.get('browser'))
             verdict=remaining.judge(page,expected,report['fixtures'],R2_PROFILE)
             references.append(dict(browser=run.get('browser'),round=run.get('round'),arm='js-thread',
                 source={'path':str(path),'sha256':report_sha,'runIndex':index,
-                        'pageSha256':hashlib.sha256(json.dumps(page,sort_keys=True).encode()).hexdigest(),
+                        'pageSha256':page_sha256(page),
                         'caseId':'frame-html-js'}, **verdict))
     return references
 
 
 def summarize(results, references, profile):
     problems=[]
+    direct_pages=[r.get('pageSha256') for r in results]
+    if any(x is None for x in direct_pages) or len(direct_pages)!=len(set(direct_pages)):
+        problems.append('duplicate or unidentified direct page observation')
     if profile==R2_PROFILE:
         if any(r.get('arm')=='js-thread' for r in results):problems.append('generic r2 js-thread cell cannot count')
         keys=[(r.get('browser'),r.get('round')) for r in references]
@@ -227,7 +245,8 @@ def main():
         page=run.get('page') or {}
         if page.get('fixtureSha256')!=fixture:raise ValueError('browser fixture identity mismatch')
         if run.get('arm')!=page.get('arm'):raise ValueError('run/page arm mismatch')
-        results.append(dict(browser=run.get('browser'),round=run.get('round'),arm=run.get('arm'),
+        require_browser(page,run.get('browser'))
+        results.append(dict(browser=run.get('browser'),round=run.get('round'),arm=run.get('arm'),pageSha256=page_sha256(page),
                             **judge(page,expected,args.profile)))
     references=corrected_references(args.corrected_040_report,expected)
     result=summarize(results,references,args.profile)
