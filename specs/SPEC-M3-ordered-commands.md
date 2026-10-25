@@ -440,3 +440,13 @@ K：v22 累積的未計數改動（交接 10-20 的清單）加上 v23，在擁�
 - 不含分隔符時，沿用安全文字單位的 128-byte 界限，tab／物件占位字元仍拒絕。
 
 原本要求的合成 K1 三分支測試同時涵蓋 128、129、4096、4097 bytes；這是既定單元紅案的邊界輸入，不新增計數閘門。RESET 引擎還原碼仍必須等既定 N=5 的原生量測通過才能寫；若量測永遠未做，預設就是未成立，不能連結該分支。
+
+## 18. 原 RESET 失敗與版本化還原測量（2026-10-25，只追加）
+
+擁有者編譯原生 harness 後，原凍結九臂各 N＝5 共45個程序皆正常結束，但原reader判為 **RESET-FAILS**（`native/reset-restore/reader-result-01.json`）：15組restore的存檔形狀、游標矩形及undo頂端均等direct，後續Shift定位卻全部讀不到選取。這不是把幾何正確推成狀態正確；既有判準與失敗不改寫。原始碼的ClearMark未EndSelect、後續SttSelect因m_bInSelect提早返回，支持選取模式殘留的因果推論，內部旗標本身未直接量測。
+
+Astra裁決先測同步Q候選：同一記錄點連續RESET→START→RESET，中間不讀取、不yield、不等待。以新版本`native/restore-v2/tool/oc_native.cpp`承載，保留原工具及雜湊可重讀。DELETE三種P2×direct／Q／錯點各N＝5，共45；FORMAT另依`format/ARMS.md`四種路徑×Shift／handles各N＝5，共40。兩者讀取器自可執行arms產生母體，核對provenance、存檔／undo、後續選取與反例；各自未做或失敗即未成立，不能互相代證。第五輪完成即封閉該讀取；不為等到喜歡的結果而續跑。兩者成立才准各自採用Q，不增加新產品動作。
+
+同一新binary預備原§16.2的async Escape備案，**Q先行，備案不自動啟動**。F操作在同一poll做K1＋無listener的Escape，緊接G在下一poll先驗NONE及cache游標等原點才送使用者鍵；以pollIndex恰差1證明，F/G間不得有quiet window或固定睡眠。若Q足夠成立就不跑備案；若需啟動，先完成其已登錄45程序的獨立runner／reader與紅控制。若永遠未啟動，預設未成立，不得寫該引擎路徑。FORMAT不得假定Escape可修復，既有finding049限制保留。
+
+此階段沒有改core、沒有重新連結WASM、沒有動宿主服務或使用者文件。下一個人類步驟只編譯已審查的新版本小型原生harness，單次供兩個Q測量與有條件備案使用；不是舊v23連結命令。
