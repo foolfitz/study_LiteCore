@@ -27,7 +27,7 @@ vm.runInContext(`activeManifest.profile='e2-editor-v23-diag';
 send('v23Diagnostic', 1);
 assert.equal(messages.pop()?.error?.code, 'UNSUPPORTED_OPERATION');
 vm.runInContext('activeManifest.editorContract.abiVersion=5;', context);
-for (const kind of [0, 4, '1', null]) {
+for (const kind of [0, 9, '1', null]) {
   send('v23Diagnostic', kind);
   assert.equal(messages.pop()?.error?.code, 'INVALID_ARGUMENT');
 }
@@ -35,7 +35,7 @@ for (const id of [0, -1, 2147483648]) {
   send('v23Diagnostic', 1, id);
   assert.equal(messages.pop()?.error?.code, 'INVALID_ARGUMENT');
 }
-for (const kind of [1, 2, 3]) {
+for (const kind of [1, 2, 3, 4, 5, 6, 7, 8]) {
   send('v23Diagnostic', kind, kind);
   assert.equal(calls.at(-1)[0], 'oxsdk_v23_diagnostic');
   assert.deepEqual(Array.from(calls.at(-1)[3]), [kind, kind]);

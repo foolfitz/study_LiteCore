@@ -19,14 +19,16 @@ handleRequest = function handleV23DiagnosticRequest(request) {
   // SDK ids range over uint32. This private int C entrance intentionally
   // accepts only positive int32 ids; diagnostic trials use fresh engines.
   const kind = request.payload?.kind;
-  if (![1, 2, 3].includes(kind) || !Number.isInteger(request.requestId)
+  if (![1, 2, 3, 4, 5, 6, 7, 8].includes(kind) || !Number.isInteger(request.requestId)
       || request.requestId <= 0 || request.requestId > 2147483647) {
     postResponse(request.requestId, false, {
       code: "INVALID_ARGUMENT", message: "invalid private v23 diagnostic request",
     });
     return;
   }
-  // 1: queued never-return; 2: queued missing-proof; 3: direct JS-thread LOK.
+  // 1: never-return; 2: missing-proof; 3: direct JS-thread LOK.
+  // 4: range-Left; 5/6: Shift+Left/Right; 7/8: Shift+End/Home.
+  // These closed controls/observers are private W-D inputs only.
   // The engine checks that kind 3 has an open document. It may never return.
   accept(request, () => callStatus("oxsdk_v23_diagnostic",
     ["number", "number"], [kind, request.requestId]));
