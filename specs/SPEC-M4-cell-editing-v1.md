@@ -95,3 +95,25 @@ H-write `findings/evidence/host-0.2.34/host-write-02/report.json` 留下真實�
 修正判準 **F165-view**（逐實例）：Chrome／Firefox，各三輪；每一個上列操作後 scheduler context revision 等於 document revision；drain 後同一輪實際送到 DOM 的每塊 tile，其 bytes 與引擎對應 region 直接 render 一致；可見區有 tile，沒有 tile error。並核對 cell 值／格式正確、存成 ODS／重開一致。先保留未修紅案；修後三輪成立就封閉。沒做／失敗：165 維持未修，不升宿主候選。不能把 v1 的舊六輪當作這條新路徑的畫面證據。
 
 本輪先在隔離鏡像修正／定向驗證；不要重連結 frozen ods-editor-v1，不啟動 K。若發佈，沿用隔離宿主 worktree、不可覆寫 archive、先備退路再安裝與定向 Files 驗證；共享環境先實讀，保留擁有者目前測試狀態及全部原文件，不清鎖表、不重問已成立人工項目。§34.4 起點 47／27；新產品回歸工具不自動算既有判讀修理。
+
+## 10. 165 的畫面證人、修法與六輪結果（2026-10-25，只追加）
+
+未修 `165-calc-format-blank/red-01` 六個畫面檢查全紅：第一次 B／inline 為 28 塊 DOM tile、其中 1 塊與同 region 的引擎直接 render 不同；後五次 DOM tile 為 **0**。模型格式全正確，`tileErrors=0`，取消請求未被當成 error，符合擁有者「全白但重開格式存在」的觀察。紅案 commit **b3ccca5c** 先於產品修法。
+
+產品 **4caa253e**：`setFormat` 先 `scheduler.invalidateRevision`，再 `_adopt` 同步 emit；不改共享 scheduler／UI／引擎。新增的 state observer 在未修程式見到 revision 0／1 不一致；修後第一次單元嘗試是在 close 時讀已釋放 scheduler，並非格式操作仍錯，保留 `session-green-attempt-01.txt`，限定 ready callback 後最終 **13／13**。初次 green 檔名不是通過證據，以最終輸出為準。
+
+`green-01/report.json` Chrome／Firefox 各三輪，**90／90**，36 份格式後 snapshot／**936** 塊 DOM tile 逐位元組對比引擎同 region，全部一致；cell model、下載、重開也正確。另直接讀六份下載 ODS 的 B2 XML，文字及三格式關閉與預期相符（`saved-xml-read.json`）。`read_calc_format_view.py` 重讀綠案零問題，讀紅案會因真實 stale／empty 拒絕；不允許空集合通過。**F165-view 在第三筆成立後封閉**，不再為放心多跑。
+
+接續 host **0.2.35／858a07c**、package **b007f950b2e18cd2**：45 個檔案 record 中 **44 個相同**，只改新 spreadsheet session；profile／worker／wasm、Writer 與唯讀 viewer 都不變。離線零問題、22／22 紅案、archive／checksum／rollback 先備；12:17:59–12:18:08 安裝成功，maintenance disabled，三路由未登入 401。這輪最初 litecore 已 running（擁有者手測後），測完應保留 running，其他專案不變。原有 fileId **24674** 的鎖列已先記錄，禁止清除；本輪只操作新建的測試資料。
+
+自動儲存目前仍只做**差異核對**：Calc 沒有 Writer 的排程，不能因有未存提醒／共用 host 而宣稱已對齊。已提出可選範圍澄清，在沒有追加實作指示前不把新的 autosave 行為併入 165 修法。source 分析與差異表見 `research/2026-10-25-collabora-calc-input-format-autosave.md`。§34.4 **+0／+0，累計 47／27**，K 維持併批。
+
+## 11. 165 宿主驗證成立；保留原先 running 狀態（2026-10-25，只追加）
+
+`findings/evidence/host-0.2.35/format-host-01/report.json` **24／24**：Chrome／Firefox 各一輪實際 Files 開啟；B／I／U × inline／cell 共 12 份畫面、**336 塊 tile** 逐位元組對比同 region 的引擎 render；手動存回、伺服器 ODS XML、自己鎖的正常釋放皆成立。這是 165 的定向宿主驗證，沒有重跑 Writer／唯讀 viewer 的已成立觀察或完整 K。
+
+自動儲存實際觀察：兩瀏覽器各完成一個修改後，**35,021 ms** 無操作，host saves 清單前後皆空，dirty 仍 true；接著 manual save 成功，伺服器 XML 含該修改。這只證明指定 35 秒內沒有自動存，不從等待推論永遠不存；「Calc 沒有排程」另由完整產品頁入口與 Writer 差異原始碼確立。本輪沒有新增 autosave，仍 manual only。
+
+`python3 findings/evidence/host-0.2.35/read-result.py` 讀既有產物與 XML／snapshot／實際 ddev 狀態紀錄，全部成立；空 host checks 與 false check 兩個紅案均拒絕。`post-test-identity.json` 實讀 live source 乾淨、installed 0.2.35、package **b007f950b2e18cd2** 等於封存，原有 **24674** 鎖列前後相同、測試帳號／folder 已不存在。`cleanup.json` 全專案狀態前後一致，**litecore 保留 running**；沒有清鎖表或停止別的專案。隔離 worktree 核對 source／archive 後移除，分支與 archive 保留。
+
+**finding 165 已修，0.2.35 成為已安裝未計數候選。**不需重連結 SDK／核心；ods-editor-v1 與全部舊 profile 身分不變。K 延後併批、名義出貨 0.2.26；§34.4 +0／+0，累計 47／27。擁有者本輪確認文字／公式符合預期已記錄；沒有把 0.2.35 的格式修法說成已由擁有者手測，也不新增人工閘門。
