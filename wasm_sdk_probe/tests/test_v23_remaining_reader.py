@@ -40,10 +40,10 @@ def sample(arm='html-positive'):
     # Raw wire setup and actual frame open, independent of page summaries.
     r['requests'][:0]=[
       {'generation':1,'requestId':1,'operation':'open','payload':{'buffer':{'sha256':c.FRAME_SHA256}}},
-      {'generation':1,'requestId':2,'operation':'search','payload':{'query':'IV-ASCHAR'}},
-      {'generation':1,'requestId':3,'operation':'editorSelectRangeV2','payload':{'startXTwips':10,'startYTwips':25,'endXTwips':8010,'endYTwips':25}},
-      {'generation':1,'requestId':4,'operation':'getSelection'}]
-    for i,result in [(1,{}),(2,{'found':True,'selections':[{'rectangles':'10,20,100,10'}]}),(3,{}),(4,{'selectionType':'complex'})]:
+      {'generation':1,'requestId':2,'operation':'search','payload':{'query':'IV-ASCHAR','documentHandle':7}},
+      {'generation':1,'requestId':3,'operation':'editorSelectRangeV2','payload':{'documentHandle':7,'startXTwips':10,'startYTwips':25,'endXTwips':8010,'endYTwips':25}},
+      {'generation':1,'requestId':4,'operation':'getSelection','payload':{'documentHandle':7}}]
+    for i,result in [(1,{'documentHandle':7}),(2,{'found':True,'selections':[{'rectangles':'10,20,100,10'}]}),(3,{}),(4,{'selectionType':'complex'})]:
       r['responses'].append({'generation':1,'message':{'requestId':i,'ok':True,'result':result}})
     if kind==9:r['responses'].append({'generation':1,'message':{'requestId':5,'ok':True,'result':r['control']['result'].copy()}})
     else:
@@ -74,6 +74,8 @@ class Checks(unittest.TestCase):
         self.assertEqual(self.verdict(r),j.FAIL)
         r=sample();r['requests'][2]['payload']['endXTwips']=99;self.assertEqual(self.verdict(r),j.FAIL)
         r=sample();r['responses'][3]['message']['result']['selectionType']='none';self.assertEqual(self.verdict(r),j.NE)
+    def test_wire_document_attribution(self):
+        r=sample();r['requests'][2]['payload']['documentHandle']=8;self.assertEqual(self.verdict(r),j.FAIL)
     def test_actual_corpus_nonempty_and_frame_xml(self):
         files,pop=c.fixtures();self.assertEqual(pop['selected']['expected']['pageCount'],100)
         self.assertTrue(files['frame'].is_file());self.assertTrue(pop['excluded'])

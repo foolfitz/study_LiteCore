@@ -72,6 +72,11 @@ def judge(page, expected, fixture_hashes, profile):
             search, select, read, control_req = searches[0], selects[0], reads[0], controls[0]
             need(search['generation']==select['generation']==read['generation']==control_req['generation'], 'setup generation mismatch')
             need(search['requestId']<select['requestId']<read['requestId']<control_req['requestId'], 'setup wire order mismatch')
+            initial_open=next((o for o in opened if o['generation']==search['generation']), None)
+            handle=responses.get((initial_open['generation'],initial_open['requestId']),{}).get('result',{}).get('documentHandle') if initial_open else None
+            need(handle is not None, 'opened document handle absent')
+            if handle is not None:
+                check(all(op.get('payload',{}).get('documentHandle')==handle for op in (search,select,read)), 'setup refers to a different document')
             search_reply=responses.get((search['generation'],search['requestId']),{})
             select_reply=responses.get((select['generation'],select['requestId']),{})
             read_reply=responses.get((read['generation'],read['requestId']),{})
@@ -95,11 +100,11 @@ def judge(page, expected, fixture_hashes, profile):
             if returns and controls:
                 check(returns[0][0]==controls[0]['generation'] and
                       returns[0][1].get('requestId')==controls[0]['requestId'] and
-                      returns[0][1].get('html')==html, 'HTML return attribution mismatch')
+                      returns[0][1].get('html')==html and returns[0][1].get('bytes')==len((html or '').encode()), 'HTML return attribution mismatch')
             check(not c.get('error'), 'positive HTML rejected')
             if controls:
                 terminal=responses.get((controls[0]['generation'],controls[0]['requestId']),{})
-                need(terminal.get('ok') is True and terminal.get('result',{}).get('html')==html, 'literal terminal wire result absent')
+                need(terminal.get('ok') is True and terminal.get('result',{}).get('html')==html and terminal.get('result',{}).get('bytes')==len((html or '').encode()), 'literal terminal wire result absent')
         else:
             if controls:
                 terminal=responses.get((controls[0]['generation'],controls[0]['requestId']))
