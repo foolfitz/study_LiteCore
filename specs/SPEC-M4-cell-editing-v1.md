@@ -127,3 +127,13 @@ H-write `findings/evidence/host-0.2.34/host-write-02/report.json` 留下真實�
 本輪依指示只寫交接、記錄結果；沒有新增這些功能、凍結新功能判準或啟動建置／瀏覽器／ddev。下一輪先定義並事前記錄直接輸入、F2、矩形選區的語意與驗收，再實作。滑鼠拖拉、Shift 擴選、對選區套格式等細節是待具體化的實作規劃，不冒充本次已逐項指定的條件。既有 frozen ods-editor-v1 不覆寫；若 range mutation 要新增 API，另立後繼身分。
 
 Calc 仍 manual only，沒有新增 autosave；先前可選範圍問題未獲追加實作回答，不把這則區域選取要求推定為 autosave 授權。K 繼續併批、名義出貨 0.2.26，§34.4 +0／+0，累計 47／27。
+
+## 13. 直接輸入與 F2 的事前判準（2026-10-25，只追加）
+
+依 §12 的未實作回報，本批先補入口：選格後打字建立空白的替換草稿（尚未 Enter 不改模型）；F2 與既有雙擊保留 cell.input，游標在尾端。Escape 還原並不增加 revision；Enter 提交。IME 組字中 Enter／Escape 不得提交或取消，組字結束後仍等一次明確 Enter。公式欄／位址欄維持自己的輸入，Ctrl／Meta／Alt 快捷鍵不當新內容；AltGraph 文字可經 beforeinput 輸入。純文字以既有 apostrophe-safe input 契約寫入；不新增格內 rich text、貼上多格或 autosave。
+
+輸入焦點屬於同一個原地 textarea：未編輯時是貼近可見區的輸入接收點，beforeinput／compositionstart 才轉成原地編輯，避免第一字、IME 預編輯內容或焦點轉移遺失。唯讀／保護格拒絕新草稿。選格和切表提交既有草稿；失敗則保留原草稿與原選格，不帶著未提交內容改目標。此批不更動 frozen profile。
+
+**I-entry**（逐實例）：新 session 狀態案例與 Chrome／Firefox 真實鍵盤路徑各 N＝3；每次涵蓋替換非空白格、F2 保留文字與公式、Escape 不寫、Enter 寫入、字首 apostrophe literal、組字期間不提交、公式／A1 欄的焦點隔離、唯讀／保護拒絕。每筆已提交修改下載 ODS 後獨立讀 XML 並重開；鄰格／別表不變。每份新 revision 後畫面須有可見 tile，DOM tile 與同 region 的直接 engine render bytes 一致。先保留目前未實作頁面的實際紅案；三筆全成立即封閉。未做／失敗：入口不列完成、不升宿主候選。自動送入的 composition 事件只算事件守衛，不冒稱實際 OS 輸入法；另記能實際驅動的預編輯路徑與限制。
+
+區域選取的語意與判準將於該部分實作／驗收之前另行追加；Astra 已獲擁有者裁決授權，agent `/root/astra_calc_scope` 保留供續問。K／全域 pins／BINDING／chain 不動。既有人工已通過項目不重問。
