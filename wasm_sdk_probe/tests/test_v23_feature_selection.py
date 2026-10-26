@@ -405,13 +405,22 @@ class PreservedGraphControls(unittest.TestCase):
                     with self.assertRaises(NotEstablished):preserved_graph(path,executed)
 
 
-class ActualPreparationRereads(unittest.TestCase):
-    """Preserved uncounted pages re-read by the current reader with their own executed config."""
+class PreservedPages:
+    """Mixin: preserved uncounted pages with their own executed config, and consistent edits."""
     BASE=PROJECT.parent/'findings/evidence/link-batch-v23/feature-protocol'
     def page(self,prep,case):
         import gzip
         plan=json.loads((self.BASE/prep/'report.json').read_bytes())['config']
         return json.loads(gzip.decompress((self.BASE/prep/f'chrome-{case}.json.gz').read_bytes()))['page'],plan
+    def consistent(self,page,name,mutate):
+        # Mutate the page record, the public call result and the wire reply together.
+        call=next(c for c in page['calls'] if c['name']==name)
+        request=next(r for r in page['requests'][call['requestStart']:call['requestEnd']] if r['message']['operation'] in ('getSelection','editorGetStateV2'))
+        reply=next(x for x in page['responses'] if x['generation']==request['generation'] and x['message']['requestId']==request['message']['requestId'])
+        for value in (call['result'],reply['message']['result']):mutate(value)
+
+class ActualPreparationRereads(PreservedPages,unittest.TestCase):
+    """Preserved uncounted pages re-read by the current reader with their own executed config."""
     def test_collapsed_click_end_shape_anchors_at_the_caret(self):
         from judge_v23_feature_selection import inspect
         page,plan=self.page('selection-prep-05','shift-End@wrap-line-end')
@@ -431,14 +440,8 @@ class ActualPreparationRereads(unittest.TestCase):
         self.assertEqual(inspect(page,plan,'chrome')['verdict'],'PASS')
 
 
-class TableSelectionControls(ActualPreparationRereads):
+class TableSelectionControls(PreservedPages,unittest.TestCase):
     """Fable ruling 2026-10-27 (A'), red cases (a)-(e)."""
-    def consistent(self,page,name,mutate):
-        # Mutate the page record, the public call result and the wire reply together.
-        call=next(c for c in page['calls'] if c['name']==name)
-        request=next(r for r in page['requests'][call['requestStart']:call['requestEnd']] if r['message']['operation'] in ('getSelection','editorGetStateV2'))
-        reply=next(x for x in page['responses'] if x['generation']==request['generation'] and x['message']['requestId']==request['message']['requestId'])
-        for value in (call['result'],reply['message']['result']):mutate(value)
     def test_a_one_character_off_native_text_fails(self):
         from judge_v23_feature_selection import inspect
         page,plan=self.page('selection-prep-04','shift-Down@cell-end')
@@ -505,6 +508,63 @@ class TableSelectionControls(ActualPreparationRereads):
             value=judge.inspect(page,plan,'chrome')['groups']['S1']
         self.assertEqual(value.get('containers'),['body',[0,0,0]])
         self.assertIn(value['verdict'],('PASS','FAIL'))
+
+
+class InteractionControls(PreservedPages,unittest.TestCase):
+    """S4 red cases built from the real preparation-06 pages (one per interaction method)."""
+    def read(self,case,mutate=None):
+        from judge_v23_feature_selection import inspect
+        page,plan=self.page('selection-prep-06',case)
+        if mutate:mutate(page)
+        return inspect(page,plan,'chrome')
+    def test_real_pages_pass(self):
+        for case in ('inter-Shift+Right-a','inter-Shift+Down-b','inter-Shift+End-c'):
+            with self.subTest(case=case):self.assertEqual(self.read(case)['verdict'],'PASS')
+    def test_wrong_interaction_outcomes_fail(self):
+        def text(name,field,value):
+            def mutate(page):
+                edit=lambda v:v.update(text=value)
+                edit(page['interaction'][field]);self.consistent(page,name,edit)
+            return mutate
+        def kept_range(page):
+            edit=lambda v:v['selection'].update(collapsed=False)
+            edit(page['interaction']['stepState']);self.consistent(page,'interaction-step-state',edit)
+        for case,mutate,reason in (
+                ('inter-Shift+Right-a',text('interaction-active-selection','activeSelection','P3 plain paragr'),'interaction native text differs after settling'),
+                ('inter-Shift+Right-a',kept_range,'click did not reset the selection'),
+                ('inter-Shift+Down-b',text('interaction-step-text','stepSelection','ALPH'),'interaction native text differs'),
+                ('inter-Shift+End-c',text('interaction-active-selection','activeSelection','DELT'),'interaction native text differs after settling')):
+            with self.subTest(case=case,reason=reason):
+                value=self.read(case,mutate);self.assertEqual(value['groups']['S4'],{'verdict':'FAIL','reason':reason})
+    def test_missing_or_foreign_witnesses_are_ne(self):
+        def untrusted(page):
+            for x in page['inputs'][page['interaction']['inputStart']:page['interaction']['inputEnd']]:x['isTrusted']=False
+        def click_payload(page):
+            c=next(c for c in page['calls'] if c['name']=='interaction-step-click')
+            r=next(r for r in page['requests'][c['requestStart']:c['requestEnd']] if r['message']['operation'] in ('click','editorPlaceCaretV2'))
+            r['message']['payload']['xTwips']+=1
+        def range_payload(page):
+            c=next(c for c in page['calls'] if c['name']=='interaction-select-range')
+            page['requests'][c['requestStart']]['message']['payload']['endXTwips']+=1
+        def no_extension(page):
+            edit=lambda v:v['selection'].update(collapsed=True)
+            edit(page['interaction']['firstState']);self.consistent(page,'interaction-first-state',edit)
+        def early(page):
+            c=next(c for c in page['calls'] if c['name']=='interaction-readback')
+            for r in page['requests'][c['requestStart']:c['requestEnd']]:r['at']-=400
+            c['startedAt']-=400
+        def unowned(page):
+            r=copy.deepcopy(next(r for r in page['requests'] if r['message']['operation']=='editorActionV2'))
+            t=copy.deepcopy(next(x for x in page['responses'] if x['generation']==r['generation'] and x['message']['requestId']==r['message']['requestId']))
+            r['message']['requestId']=t['message']['requestId']=10**6;page['requests'].append(r);page['responses'].append(t)
+        for case,mutate,reason in (('inter-Shift+Right-a',untrusted,'actual trusted click absent'),
+                                   ('inter-Shift+Right-a',click_payload,'click request differs from the actual pointer'),
+                                   ('inter-Shift+Down-b',untrusted,'actual trusted drag absent'),
+                                   ('inter-Shift+End-c',range_payload,'text-handle coordinates differ'),
+                                   ('inter-Shift+End-c',no_extension,'Shift extension before the interaction absent'),
+                                   ('inter-Shift+Down-b',early,'readback too early'),('inter-Shift+End-c',unowned,'unowned wire mutation')):
+            with self.subTest(case=case,mutate=mutate.__name__):
+                value=self.read(case,mutate);self.assertEqual((value['verdict'],value['reason']),('NOT_ESTABLISHED',reason))
 
 
 class OpenBoundaryControls(unittest.TestCase):
