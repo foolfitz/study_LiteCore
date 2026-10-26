@@ -1,0 +1,27 @@
+✔ 18 unflagged same-boundary presses are held behind a deliberately unresolved request, not a timer (5.669428ms)
+✔ real deletions preserve all18 original keys; no clock or synthetic beforeinput releases them (3.121478ms)
+✔ intervening input flushes earlier retained keys and replacement drops only old-document work (3.241ms)
+✔ interleaved held moves and deletes flush earlier admissions before a different retained key (1.750938ms)
+✔ actual insertText event preserves the earlier held move before adapter admission (6.366406ms)
+✔ actual insertReplacementText event preserves the earlier held move before adapter admission (5.408403ms)
+✔ actual insertFromPaste event preserves the earlier held move before adapter admission (1.714009ms)
+✔ composition updates do not flush; the actual composition commit flushes once before adapter admission (1.883704ms)
+✔ the actual paste event preserves the earlier held move before its independent adapter commit (1.764122ms)
+✔ the six actual product keys carry Shift directly; partial and old grants leave them alone (14.262135ms)
+✔ unresolved first move admits only one held repeat; release discards it without a wire request (0.844651ms)
+✔ partial hold releases exactly the retained repeat at answer and counts repaint in depth (0.75782ms)
+✔ retained original direction precedes another key, save, type or click; initial presses are not cancelled (2.266156ms)
+✔ blur, rejection and document replacement never transfer a held repeat to another document (1.743624ms)
+✔ the page action bridge forwards extension and the ordered-delete choice to the real session API (0.466889ms)
+✔ causal controls expose a missing release discard and a depth guard that ignores painting work (1.692579ms)
+✔ a depth-rejected modifier change preserves release of the admitted hold (initial Shift=false) (1.446431ms)
+✔ a depth-rejected modifier change preserves release of the admitted hold (initial Shift=true) (0.629551ms)
+✔ Shift keyup reaches the earlier shifted hold after a rejected plain repeat (0.563729ms)
+ℹ tests 19
+ℹ suites 0
+ℹ pass 19
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 77.893315

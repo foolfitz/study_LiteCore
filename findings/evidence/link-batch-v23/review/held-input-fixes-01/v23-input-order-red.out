@@ -1,0 +1,106 @@
+✖ actual insertText event preserves the earlier held move before adapter admission (6.388947ms)
+✖ actual insertReplacementText event preserves the earlier held move before adapter admission (2.239858ms)
+✖ actual insertFromPaste event preserves the earlier held move before adapter admission (1.713499ms)
+✖ composition updates do not flush; the actual composition commit flushes once before adapter admission (1.968973ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 0
+ℹ fail 4
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 57.566515
+
+✖ failing tests:
+
+test at editor-shell-v2/tests/v23-held-input-order.test.mjs:78:3
+✖ actual insertText event preserves the earlier held move before adapter admission (6.388947ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+      'move-character-right',
+  +   'type:x',
+      'move-character-right',
+  -   'type:x'
+    ]
+  
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/v23-held-input-order.test.mjs:82:12)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 'move-character-right', 'type:x', 'move-character-right' ],
+    expected: [ 'move-character-right', 'move-character-right', 'type:x' ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at editor-shell-v2/tests/v23-held-input-order.test.mjs:78:3
+✖ actual insertReplacementText event preserves the earlier held move before adapter admission (2.239858ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+      'move-character-right',
+  +   'type:x',
+      'move-character-right',
+  -   'type:x'
+    ]
+  
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/v23-held-input-order.test.mjs:82:12)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 'move-character-right', 'type:x', 'move-character-right' ],
+    expected: [ 'move-character-right', 'move-character-right', 'type:x' ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at editor-shell-v2/tests/v23-held-input-order.test.mjs:78:3
+✖ actual insertFromPaste event preserves the earlier held move before adapter admission (1.713499ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+      'move-character-right',
+  +   'type:x',
+      'move-character-right',
+  -   'type:x'
+    ]
+  
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/v23-held-input-order.test.mjs:82:12)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 'move-character-right', 'type:x', 'move-character-right' ],
+    expected: [ 'move-character-right', 'move-character-right', 'type:x' ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at editor-shell-v2/tests/v23-held-input-order.test.mjs:87:1
+✖ composition updates do not flush; the actual composition commit flushes once before adapter admission (1.968973ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+      'move-character-right',
+  +   'type:字',
+      'move-character-right',
+  -   'type:字'
+    ]
+  
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/v23-held-input-order.test.mjs:95:10)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 'move-character-right', 'type:字', 'move-character-right' ],
+    expected: [ 'move-character-right', 'move-character-right', 'type:字' ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

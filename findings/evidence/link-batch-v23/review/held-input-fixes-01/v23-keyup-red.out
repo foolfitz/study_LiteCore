@@ -1,0 +1,137 @@
+✔ the six actual product keys carry Shift directly; partial and old grants leave them alone (10.846781ms)
+✔ unresolved first move admits only one held repeat; release discards it without a wire request (0.760284ms)
+✔ partial hold releases exactly the retained repeat at answer and counts repaint in depth (0.739435ms)
+✔ retained original direction precedes another key, save, type or click; initial presses are not cancelled (1.802795ms)
+✔ blur, rejection and document replacement never transfer a held repeat to another document (1.727154ms)
+✔ the page action bridge forwards extension and the ordered-delete choice to the real session API (0.468912ms)
+✔ causal controls expose a missing release discard and a depth guard that ignores painting work (1.648938ms)
+✖ a depth-rejected modifier change preserves release of the admitted hold (initial Shift=false) (1.276855ms)
+✖ a depth-rejected modifier change preserves release of the admitted hold (initial Shift=true) (0.695394ms)
+✖ Shift keyup reaches the earlier shifted hold after a rejected plain repeat (0.661971ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 7
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 65.44296
+
+✖ failing tests:
+
+test at editor-shell-v2/tests/v23-page-selection-moves.test.mjs:165:3
+✖ a depth-rejected modifier change preserves release of the admitted hold (initial Shift=false) (1.276855ms)
+  AssertionError [ERR_ASSERTION]: initial Shift=false
+  + actual - expected
+  
+  + {
+  +   action: 'move-character-right',
+  +   answered: false,
+  +   document: {
+  +     handle: 1
+  +   },
+  +   extendSelection: false,
+  +   hold: {
+  +     active: true,
+  +     document: {
+  +       handle: 1
+  +     },
+  +     extendSelection: false,
+  +     key: 'ArrowRight'
+  +   },
+  +   id: 2
+  + }
+  - null
+  
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/v23-page-selection-moves.test.mjs:173:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: { id: 2, action: 'move-character-right', extendSelection: false, hold: { key: 'ArrowRight', extendSelection: false, document: [Object], active: true }, document: { handle: 1 }, answered: false },
+    expected: null,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at editor-shell-v2/tests/v23-page-selection-moves.test.mjs:165:3
+✖ a depth-rejected modifier change preserves release of the admitted hold (initial Shift=true) (0.695394ms)
+  AssertionError [ERR_ASSERTION]: initial Shift=true
+  + actual - expected
+  
+  + {
+  +   action: 'move-character-right',
+  +   answered: false,
+  +   document: {
+  +     handle: 1
+  +   },
+  +   extendSelection: true,
+  +   hold: {
+  +     active: true,
+  +     document: {
+  +       handle: 1
+  +     },
+  +     extendSelection: true,
+  +     key: 'ArrowRight'
+  +   },
+  +   id: 2
+  + }
+  - null
+  
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/v23-page-selection-moves.test.mjs:173:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: { id: 2, action: 'move-character-right', extendSelection: true, hold: { key: 'ArrowRight', extendSelection: true, document: [Object], active: true }, document: { handle: 1 }, answered: false },
+    expected: null,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at editor-shell-v2/tests/v23-page-selection-moves.test.mjs:178:1
+✖ Shift keyup reaches the earlier shifted hold after a rejected plain repeat (0.661971ms)
+  AssertionError [ERR_ASSERTION]: Shift release must reach the earlier shifted hold
+  + actual - expected
+  
+  + {
+  +   action: 'move-character-right',
+  +   answered: false,
+  +   document: {
+  +     handle: 1
+  +   },
+  +   extendSelection: true,
+  +   hold: {
+  +     active: true,
+  +     document: {
+  +       handle: 1
+  +     },
+  +     extendSelection: true,
+  +     key: 'ArrowRight'
+  +   },
+  +   id: 2
+  + }
+  - null
+  
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/v23-page-selection-moves.test.mjs:182:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: { id: 2, action: 'move-character-right', extendSelection: true, hold: { key: 'ArrowRight', extendSelection: true, document: [Object], active: true }, document: { handle: 1 }, answered: false },
+    expected: null,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

@@ -3303,16 +3303,46 @@ function releaseHeldInputsBeforeEnqueue() {
 }
 
 function endSelectionMoveHold(event) {
-  for (const [key, hold] of selectionMoveHolds) {
-    if (event.type === "blur" || event.key === key || (event.key === "Shift" && hold.extendSelection)) {
+  // A depth-rejected modifier change may have replaced the lookup entry while
+  // an earlier admitted repeat still owns the old hold. Physical release must
+  // reach both records; deleting an old record must not erase a newer one.
+  const holds = new Set(selectionMoveHolds.values());
+  if (heldSelectionMove) holds.add(heldSelectionMove.hold);
+  for (const hold of holds) {
+    if (event.type === "blur" || event.key === hold.key || (event.key === "Shift" && hold.extendSelection)) {
       hold.active = false;
       if (heldSelectionMove?.hold === hold) heldSelectionMove = null;
-      selectionMoveHolds.delete(key);
+      if (selectionMoveHolds.get(hold.key) === hold) selectionMoveHolds.delete(hold.key);
     }
   }
 }
 window.addEventListener("keyup", endSelectionMoveHold, true);
 window.addEventListener("blur", endSelectionMoveHold);
+
+// Flush earlier retained input BEFORE the frozen adapter counts the new text.
+// Waiting for beforeEnqueue is too late: finding111 would then (correctly for
+// its own admission order) place the earlier move behind the newly typed text.
+// These capture listeners neither commit text nor interfere with IME updates.
+function releaseHeldSelectionMoveBeforeInput(event) {
+  if (session?.engine?.manifest?.editorContract?.abiVersion !== 6
+      || event.isComposing || session.input?.state?.composing) return;
+  if (["insertText", "insertReplacementText", "insertFromPaste", "insertLineBreak", "insertParagraph"]
+    .includes(event.inputType)) releaseHeldSelectionMove();
+}
+function releaseHeldSelectionMoveBeforeComposition(event) {
+  if (session?.engine?.manifest?.editorContract?.abiVersion !== 6) return;
+  const input = session.input?.state;
+  const text = typeof event.data === "string" ? event.data : input?.compositionText;
+  if (input?.composing && typeof text === "string" && text.length > 0) releaseHeldSelectionMove();
+}
+function releaseHeldSelectionMoveBeforePaste() {
+  // The adapter also commits directly from paste; no beforeinput is required.
+  // Clipboard content and validation remain entirely owned by the adapter.
+  if (session?.engine?.manifest?.editorContract?.abiVersion === 6) releaseHeldSelectionMove();
+}
+el.sink.addEventListener("beforeinput", releaseHeldSelectionMoveBeforeInput, true);
+el.sink.addEventListener("compositionend", releaseHeldSelectionMoveBeforeComposition, true);
+el.sink.addEventListener("paste", releaseHeldSelectionMoveBeforePaste, true);
 
 // FINDING 132 (SPEC-M3-held-key §3.2; the owner chose this, §4).  A held
 // Backspace or Delete repeats every 30 ms on the owner's desk, and a delete

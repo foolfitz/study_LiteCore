@@ -106,6 +106,10 @@ test('retained original direction precedes another key, save, type or click; ini
   assert.deepEqual(f.order, ['move-character-left', 'move-character-left', 'move-line-down']);
   f.api.up({ type: 'keyup', key: 'ArrowDown' });
   assert.equal(f.wire.length, 3);
+  const initial = fixture(); initial.down(); initial.down();
+  initial.api.up({ type: 'keyup', key: 'ArrowRight' });
+  assert.equal(initial.wire.length, 2, 'two nonrepeat presses remain admitted at release');
+  assert.equal(initial.api.work().outstanding.length, 2);
 });
 
 test('blur, rejection and document replacement never transfer a held repeat to another document', async () => {
@@ -159,4 +163,25 @@ test('causal controls expose a missing release discard and a depth guard that ig
   depthMutant.down('ArrowRight', { repeat: true });
   assert.equal(depthMutant.api.work().outstanding.length + (depthMutant.api.work().held ? 1 : 0), 3,
     'mutant must violate admitted-outstanding depth2');
+});
+
+for (const initialShift of [false, true]) {
+  test(`a depth-rejected modifier change preserves release of the admitted hold (initial Shift=${initialShift})`, async () => {
+    const f = fixture();
+    f.down('ArrowRight', { shiftKey: initialShift });
+    f.down('ArrowRight', { shiftKey: initialShift, repeat: true });
+    f.down('ArrowRight', { shiftKey: !initialShift, repeat: true });
+    assert.equal(f.wire.length, 1);
+    assert.equal(f.api.work().held.extendSelection, initialShift);
+    f.api.up({ type: 'keyup', key: 'ArrowRight' });
+    assert.equal(f.api.work().held, null, `initial Shift=${initialShift}`);
+    f.pending[0].answer(); f.pending[0].resolve(); await tick();
+    assert.equal(f.wire.length, 1);
+  });
+}
+test('Shift keyup reaches the earlier shifted hold after a rejected plain repeat', () => {
+  const f = fixture(); f.down(); f.down('ArrowRight', { repeat: true });
+  f.down('ArrowRight', { repeat: true, shiftKey: false });
+  f.api.up({ type: 'keyup', key: 'Shift' });
+  assert.equal(f.api.work().held, null, 'Shift release must reach the earlier shifted hold');
 });

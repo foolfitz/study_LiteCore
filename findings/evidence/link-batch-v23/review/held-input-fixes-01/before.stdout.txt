@@ -1,0 +1,261 @@
+✔ 18 unflagged same-boundary presses are held behind a deliberately unresolved request, not a timer (4.340235ms)
+✔ real deletions preserve all18 original keys; no clock or synthetic beforeinput releases them (5.723599ms)
+✔ intervening input flushes earlier retained keys and replacement drops only old-document work (2.183182ms)
+✔ interleaved held moves and deletes flush earlier admissions before a different retained key (1.187249ms)
+✖ actual insertText event preserves the earlier held move before adapter admission (9.695128ms)
+✖ actual insertReplacementText event preserves the earlier held move before adapter admission (3.366523ms)
+✖ actual insertFromPaste event preserves the earlier held move before adapter admission (2.009138ms)
+✖ composition updates do not flush; the actual composition commit flushes once before adapter admission (2.294559ms)
+✖ the actual paste event preserves the earlier held move before its independent adapter commit (2.030888ms)
+✔ the six actual product keys carry Shift directly; partial and old grants leave them alone (11.247276ms)
+✔ unresolved first move admits only one held repeat; release discards it without a wire request (0.818624ms)
+✔ partial hold releases exactly the retained repeat at answer and counts repaint in depth (0.720942ms)
+✔ retained original direction precedes another key, save, type or click; initial presses are not cancelled (2.350904ms)
+✔ blur, rejection and document replacement never transfer a held repeat to another document (1.716985ms)
+✔ the page action bridge forwards extension and the ordered-delete choice to the real session API (0.468061ms)
+✔ causal controls expose a missing release discard and a depth guard that ignores painting work (1.728736ms)
+✖ a depth-rejected modifier change preserves release of the admitted hold (initial Shift=false) (1.299919ms)
+✖ a depth-rejected modifier change preserves release of the admitted hold (initial Shift=true) (0.678152ms)
+✖ Shift keyup reaches the earlier shifted hold after a rejected plain repeat (0.69316ms)
+ℹ tests 19
+ℹ suites 0
+ℹ pass 11
+ℹ fail 8
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 73.780923
+
+✖ failing tests:
+
+test at editor-shell-v2/tests/v23-held-input-order.test.mjs:79:3
+✖ actual insertText event preserves the earlier held move before adapter admission (9.695128ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+      'move-character-right',
+  +   'type:x',
+      'move-character-right',
+  -   'type:x'
+    ]
+  
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/build/v23-held-replay-xrypbio3/before/editor-shell-v2/tests/v23-held-input-order.test.mjs:83:12)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 'move-character-right', 'type:x', 'move-character-right' ],
+    expected: [ 'move-character-right', 'move-character-right', 'type:x' ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at editor-shell-v2/tests/v23-held-input-order.test.mjs:79:3
+✖ actual insertReplacementText event preserves the earlier held move before adapter admission (3.366523ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+      'move-character-right',
+  +   'type:x',
+      'move-character-right',
+  -   'type:x'
+    ]
+  
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/build/v23-held-replay-xrypbio3/before/editor-shell-v2/tests/v23-held-input-order.test.mjs:83:12)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 'move-character-right', 'type:x', 'move-character-right' ],
+    expected: [ 'move-character-right', 'move-character-right', 'type:x' ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at editor-shell-v2/tests/v23-held-input-order.test.mjs:79:3
+✖ actual insertFromPaste event preserves the earlier held move before adapter admission (2.009138ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+      'move-character-right',
+  +   'type:x',
+      'move-character-right',
+  -   'type:x'
+    ]
+  
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/build/v23-held-replay-xrypbio3/before/editor-shell-v2/tests/v23-held-input-order.test.mjs:83:12)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 'move-character-right', 'type:x', 'move-character-right' ],
+    expected: [ 'move-character-right', 'move-character-right', 'type:x' ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at editor-shell-v2/tests/v23-held-input-order.test.mjs:88:1
+✖ composition updates do not flush; the actual composition commit flushes once before adapter admission (2.294559ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+      'move-character-right',
+  +   'type:字',
+      'move-character-right',
+  -   'type:字'
+    ]
+  
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/build/v23-held-replay-xrypbio3/before/editor-shell-v2/tests/v23-held-input-order.test.mjs:96:10)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 'move-character-right', 'type:字', 'move-character-right' ],
+    expected: [ 'move-character-right', 'move-character-right', 'type:字' ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at editor-shell-v2/tests/v23-held-input-order.test.mjs:100:1
+✖ the actual paste event preserves the earlier held move before its independent adapter commit (2.030888ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+      'move-character-right',
+  +   'type:x',
+      'move-character-right',
+  -   'type:x'
+    ]
+  
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/build/v23-held-replay-xrypbio3/before/editor-shell-v2/tests/v23-held-input-order.test.mjs:104:10)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 'move-character-right', 'type:x', 'move-character-right' ],
+    expected: [ 'move-character-right', 'move-character-right', 'type:x' ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at editor-shell-v2/tests/v23-page-selection-moves.test.mjs:169:3
+✖ a depth-rejected modifier change preserves release of the admitted hold (initial Shift=false) (1.299919ms)
+  AssertionError [ERR_ASSERTION]: initial Shift=false
+  + actual - expected
+  
+  + {
+  +   action: 'move-character-right',
+  +   answered: false,
+  +   document: {
+  +     handle: 1
+  +   },
+  +   extendSelection: false,
+  +   hold: {
+  +     active: true,
+  +     document: {
+  +       handle: 1
+  +     },
+  +     extendSelection: false,
+  +     key: 'ArrowRight'
+  +   },
+  +   id: 2
+  + }
+  - null
+  
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/build/v23-held-replay-xrypbio3/before/editor-shell-v2/tests/v23-page-selection-moves.test.mjs:177:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: { id: 2, action: 'move-character-right', extendSelection: false, hold: { key: 'ArrowRight', extendSelection: false, document: [Object], active: true }, document: { handle: 1 }, answered: false },
+    expected: null,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at editor-shell-v2/tests/v23-page-selection-moves.test.mjs:169:3
+✖ a depth-rejected modifier change preserves release of the admitted hold (initial Shift=true) (0.678152ms)
+  AssertionError [ERR_ASSERTION]: initial Shift=true
+  + actual - expected
+  
+  + {
+  +   action: 'move-character-right',
+  +   answered: false,
+  +   document: {
+  +     handle: 1
+  +   },
+  +   extendSelection: true,
+  +   hold: {
+  +     active: true,
+  +     document: {
+  +       handle: 1
+  +     },
+  +     extendSelection: true,
+  +     key: 'ArrowRight'
+  +   },
+  +   id: 2
+  + }
+  - null
+  
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/build/v23-held-replay-xrypbio3/before/editor-shell-v2/tests/v23-page-selection-moves.test.mjs:177:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: { id: 2, action: 'move-character-right', extendSelection: true, hold: { key: 'ArrowRight', extendSelection: true, document: [Object], active: true }, document: { handle: 1 }, answered: false },
+    expected: null,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at editor-shell-v2/tests/v23-page-selection-moves.test.mjs:182:1
+✖ Shift keyup reaches the earlier shifted hold after a rejected plain repeat (0.69316ms)
+  AssertionError [ERR_ASSERTION]: Shift release must reach the earlier shifted hold
+  + actual - expected
+  
+  + {
+  +   action: 'move-character-right',
+  +   answered: false,
+  +   document: {
+  +     handle: 1
+  +   },
+  +   extendSelection: true,
+  +   hold: {
+  +     active: true,
+  +     document: {
+  +       handle: 1
+  +     },
+  +     extendSelection: true,
+  +     key: 'ArrowRight'
+  +   },
+  +   id: 2
+  + }
+  - null
+  
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/build/v23-held-replay-xrypbio3/before/editor-shell-v2/tests/v23-page-selection-moves.test.mjs:186:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: { id: 2, action: 'move-character-right', extendSelection: true, hold: { key: 'ArrowRight', extendSelection: true, document: [Object], active: true }, document: { handle: 1 }, answered: false },
+    expected: null,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

@@ -1,0 +1,27 @@
+✔ 18 unflagged same-boundary presses are held behind a deliberately unresolved request, not a timer (5.719872ms)
+✔ real deletions preserve all18 original keys; no clock or synthetic beforeinput releases them (3.069662ms)
+✔ intervening input flushes earlier retained keys and replacement drops only old-document work (2.837589ms)
+✔ interleaved held moves and deletes flush earlier admissions before a different retained key (1.474454ms)
+✔ actual insertText event preserves the earlier held move before adapter admission (8.931267ms)
+✔ actual insertReplacementText event preserves the earlier held move before adapter admission (2.986827ms)
+✔ actual insertFromPaste event preserves the earlier held move before adapter admission (3.180488ms)
+✔ composition updates do not flush; the actual composition commit flushes once before adapter admission (2.846717ms)
+✔ the actual paste event preserves the earlier held move before its independent adapter commit (2.52075ms)
+✔ the six actual product keys carry Shift directly; partial and old grants leave them alone (11.508543ms)
+✔ unresolved first move admits only one held repeat; release discards it without a wire request (1.115615ms)
+✔ partial hold releases exactly the retained repeat at answer and counts repaint in depth (0.960898ms)
+✔ retained original direction precedes another key, save, type or click; initial presses are not cancelled (3.091242ms)
+✔ blur, rejection and document replacement never transfer a held repeat to another document (2.151052ms)
+✔ the page action bridge forwards extension and the ordered-delete choice to the real session API (0.527241ms)
+✔ causal controls expose a missing release discard and a depth guard that ignores painting work (2.024577ms)
+✔ a depth-rejected modifier change preserves release of the admitted hold (initial Shift=false) (1.100017ms)
+✔ a depth-rejected modifier change preserves release of the admitted hold (initial Shift=true) (1.372183ms)
+✔ Shift keyup reaches the earlier shifted hold after a rejected plain repeat (0.599906ms)
+ℹ tests 19
+ℹ suites 0
+ℹ pass 19
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 84.196272
