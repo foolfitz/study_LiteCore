@@ -46,3 +46,7 @@ Prerequisite scan, a scoped scan of the 784 run-01 saves:
 Each edit is asserted to land inside its named section. The real control and reference pass. Full `reduce_content` still sees the font table on the WASM-vs-native pair, so the settled branch was not silently loosened.
 
 The ruling's second prerequisite, one uncounted native-referenced deletion cell through the new comparator, is pending the browser lock.
+
+## Appended 2026-10-27: second prerequisite discharged
+
+The ruling's prerequisite "run ONE uncounted native-referenced deletion cell through the new comparator" is met by `s5-prep-02`: four native-referenced deletion cells (`shift-Left@caret-mid/backspace`, `shift-Right@range-fwd/delete`, `shift-Left@range-kbd/delete-twice`, and, under the corrected final-save binding, `shift-Home@caret-mid/delete-before-and-after`) read PASS through `native_reference`. Each therefore passed its per-cell unedited-document control and its collapse guard. No rsid or non-font drift appeared, so no §9 addition is needed.
