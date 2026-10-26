@@ -2229,7 +2229,7 @@ const ACTION_LABELS = {
   "move-document-end": "移到文件結尾",
 };
 
-async function editorAction(action, { onResult = null } = {}) {
+async function editorAction(action, { onResult = null, extendSelection = false, deleteKey = false } = {}) {
   // The keyboard still reaches here while the toolbar is off (finding 109's
   // reload, a restart): say nothing, rather than toast EDITOR_NOT_READY at
   // someone waiting for the document to come back.
@@ -2242,7 +2242,7 @@ async function editorAction(action, { onResult = null } = {}) {
     // the honest response to that is to ask for ON, which is what the button
     // says it does.
     ? { enabled: formatStateFor(action) !== true }
-    : {};
+    : (extendSelection ? { extendSelection } : {});
   // FINDING 128.  A repaint that meets this action's barrier (BUSY) gives up
   // instead of waiting a fixed 120 ms and asking again: `run()` repaints as
   // soon as the action returns, and the deleted character used to stay on
@@ -2256,10 +2256,17 @@ async function editorAction(action, { onResult = null } = {}) {
     // `run()` waits for: the delete listener decides the fate of the presses it
     // is holding there, so a real-delete burst keeps the engine as busy as the
     // queue did (one answered and repainting, the next already out).
-    await run(label, () => session.action(action, options).then((result) => {
-      if (onResult) onResult(result);
-      return result;
-    }));
+    if (deleteKey) {
+      await run(label, () => session.deleteKey(action, options).then((result) => {
+        if (onResult) onResult(result);
+        return result;
+      }));
+    } else {
+      await run(label, () => session.action(action, options).then((result) => {
+        if (onResult) onResult(result);
+        return result;
+      }));
+    }
   } finally {
     engineActionsOut -= 1;
     if (engineActionsOut === 0 && busyLeftToAction) {
@@ -2828,11 +2835,11 @@ function deleteActionFor(action, shape, offersSelectionDelete, deletesInFlight =
 //   * `verified-boundary-noop` with the state it came back with equal to the
 //     state the delete was sent from (`boundaryNoopStands`): the held presses
 //     are DROPPED, their answer is known -- nothing to delete here, nothing
-//     moved.  The first press at a boundary still costs the window; the rest
-//     cost nothing.
+//     moved. Legacy profiles pay their boundary window on the first press;
+//     ABI6 uses actual outstanding work only, without that removed window.
 //   * anything else -- a real delete, a refusal, an answer whose state moved,
 //     an answer without a state: ONE held press is delivered again
-//     (`releaseHeldDelete`), through this same listener, so a burst of real
+//     (`releaseHeldDelete`), through dispatchDelete, so a burst of real
 //     deletes is still deleted press for press (131), one answered and
 //     repainting while the next is already out (132's depth).  A refusal drops
 //     them, as 134's B drops the rest of a hold.
@@ -2968,7 +2975,8 @@ function dispatchDelete(action, held = []) {
   // document that is gone, so they go with it.
   if (!session?.document) { heldDeletes.count -= held.length; return; }
   const shape = selectionShapeOf({ state: session.state.snapshot.editorState }) ?? lastSelectionShape;
-  const sent = deleteActionFor(action, shape,
+  const ordered = session.engine?.manifest?.editorContract?.abiVersion === 6;
+  const sent = ordered ? action : deleteActionFor(action, shape,
                                session.offers?.("delete-selection") === true, deletesInFlight);
   // `action` is the KEY (its original direction, §10.3 rule 2), `sent` the
   // form it went out in; `held` the presses that now wait on this one.
@@ -2990,7 +2998,7 @@ function dispatchDelete(action, held = []) {
   // (overlayEditorState), and no state write may follow to draw it.  A refusal
   // also ends what the rest of this hold sends (finding 134, B).
   deletesInFlight += 1;
-  void editorAction(sent, { onResult: (result) => settleDelete(send, result, false) })
+  void editorAction(sent, { onResult: (result) => settleDelete(send, result, false), deleteKey: ordered })
     .catch(() => { deleteRefusedThisHold = true; settleDelete(send, null, true); })
     // A delete that never went out (the session not accepting) was never answered either.
     .finally(() => settleDelete(send, null, false))
@@ -3004,6 +3012,8 @@ el.sink.addEventListener("beforeinput", (event) => {
   const action = DELETE_INPUT_TYPES[event.inputType];
   if (!action || !session?.document) return;
   event.preventDefault();
+  // A retained move is earlier input even though it has no enqueue mark yet.
+  if (session.engine?.manifest?.editorContract?.abiVersion === 6) releaseHeldSelectionMove();
   // FINDING 141, as SPEC-M3-link-batch-v21 §10.3 rule 1 narrows it: the
   // session's last enqueue is an unanswered delete of this key -- held behind
   // that send, with this key's direction, not queued.
@@ -3190,6 +3200,7 @@ el.sink.addEventListener("keydown", (event) => {
   // Finding 142: Ctrl/Cmd+Home/End, when offered (see DOCUMENT_KEY_ACTIONS).
   if (takeDocumentKey(event)) return;
   if (accel) return;
+  if (session.engine?.manifest?.editorContract?.abiVersion === 6 && takeSelectionMove(event)) return;
   const action = KEY_ACTIONS[event.key];
   // `offers()`, not `gesturesFor()`: the latter answers null both for a
   // v1-shaped manifest and for an action the profile does not carry, and
@@ -3223,6 +3234,85 @@ el.sink.addEventListener("keydown", (event) => {
   }
   void editorAction(action).catch(() => {});
 });
+
+/** ABI6 grants these six moves directly, including range origins. */
+function takeSelectionMove(event) {
+  if (event.ctrlKey || event.metaKey || event.altKey || event.isComposing) return false;
+  const action = KEY_ACTIONS[event.key];
+  const shape = selectionShapeOf({ state: session?.state?.snapshot?.editorState }) ?? lastSelectionShape;
+  if (!action || !session?.offersSelectionMove?.(action, shape)) return false;
+  event.preventDefault();
+  if (!SESSION_ACCEPTS.has(session.state.snapshot.state)) return true;
+  // Do not let a held delete and a later held move straddle the same enqueue.
+  releaseHeldDeletesBeforeEnqueue();
+  const extendSelection = event.shiftKey === true;
+  let hold = selectionMoveHolds.get(event.key);
+  if (!event.repeat || !hold?.active || hold.document !== session.document
+      || hold.extendSelection !== extendSelection) {
+    hold = { key: event.key, extendSelection, document: session.document, active: true };
+    selectionMoveHolds.set(event.key, hold);
+  }
+  if (event.repeat && selectionMovesOutstanding.size + (heldSelectionMove ? 1 : 0) >= HELD_DELETE_DEPTH)
+    return true;
+  const move = { id: ++selectionMoveSequence, action, extendSelection,
+    hold, document: session.document, answered: false };
+  if (event.repeat && selectionMovesOutstanding.size > 0) heldSelectionMove = move;
+  else {
+    if (!event.repeat) releaseHeldSelectionMove();
+    sendSelectionMove(move);
+  }
+  return true;
+}
+
+// ABI6 repeats use the existing depth2 policy: admitted outstanding work and
+// at most one repeat retained by the page. These are NOT wire-pending counts.
+// The instrument derives wire pending from actual requests and terminals.
+const selectionMoveHolds = new Map();
+const selectionMovesOutstanding = new Set();
+let heldSelectionMove = null;
+let selectionMoveSending = false;
+let selectionMoveSequence = 0;
+
+function sendSelectionMove(move) {
+  if (move.document !== session?.document) return;
+  selectionMovesOutstanding.add(move);
+  selectionMoveSending = true;
+  void editorAction(move.action, { extendSelection: move.extendSelection, onResult: () => {
+    move.answered = true;
+    // Release at the answer, before repaint; retain132's paint-inclusive depth.
+    if (![...selectionMovesOutstanding].some((item) => !item.answered)) releaseHeldSelectionMove();
+  } }).catch(() => {
+    if (heldSelectionMove?.hold === move.hold) heldSelectionMove = null;
+  }).finally(() => {
+    selectionMovesOutstanding.delete(move);
+    if (selectionMovesOutstanding.size === 0) releaseHeldSelectionMove();
+  });
+  selectionMoveSending = false;
+}
+
+function releaseHeldSelectionMove() {
+  const move = heldSelectionMove;
+  heldSelectionMove = null;
+  if (move?.hold.active && move.document === session?.document) sendSelectionMove(move);
+}
+
+function releaseHeldInputsBeforeEnqueue() {
+  releaseHeldDeletesBeforeEnqueue();
+  // Earlier retained input precedes an unrelated save, click, key or edit.
+  if (!selectionMoveSending) releaseHeldSelectionMove();
+}
+
+function endSelectionMoveHold(event) {
+  for (const [key, hold] of selectionMoveHolds) {
+    if (event.type === "blur" || event.key === key || (event.key === "Shift" && hold.extendSelection)) {
+      hold.active = false;
+      if (heldSelectionMove?.hold === hold) heldSelectionMove = null;
+      selectionMoveHolds.delete(key);
+    }
+  }
+}
+window.addEventListener("keyup", endSelectionMoveHold, true);
+window.addEventListener("blur", endSelectionMoveHold);
 
 // FINDING 132 (SPEC-M3-held-key §3.2; the owner chose this, §4).  A held
 // Backspace or Delete repeats every 30 ms on the owner's desk, and a delete
@@ -3681,7 +3771,7 @@ async function openDocument(bytes, name, { readOnly = false } = {}) {
     clipboard: navigator.clipboard,
     secureContext: globalThis.isSecureContext,
     // SPEC-M3-link-batch-v21 §10.3 rule 4: held deletes go before anything else.
-    beforeEnqueue: releaseHeldDeletesBeforeEnqueue,
+    beforeEnqueue: releaseHeldInputsBeforeEnqueue,
     onState: updateState,
     onEvent(event) {
       if (event.event === "document-invalidated") {

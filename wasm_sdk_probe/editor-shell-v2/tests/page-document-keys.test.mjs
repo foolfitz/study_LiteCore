@@ -265,5 +265,8 @@ test("wiring: both moves have a label (editorAction names a failure by it)", () 
 
 test("wiring: the page builds its session with the held deletes' beforeEnqueue (§10.3 rule 4)", () => {
   const construction = slice(/session = new NarrowEditorV2Session\(\{[\s\S]*?\n {2}\}\);/, "the session construction");
-  assert.match(construction, /\n\s+beforeEnqueue: releaseHeldDeletesBeforeEnqueue,\n/);
+  // ABI6 composes the existing delete flush with the retained-move flush;
+  // the earlier delete inputs still go first through the unchanged hook.
+  assert.match(construction, /\n\s+beforeEnqueue: releaseHeldInputsBeforeEnqueue,\n/);
+  assert.match(SOURCE, /function releaseHeldInputsBeforeEnqueue\(\) \{\s+releaseHeldDeletesBeforeEnqueue\(\);/);
 });
