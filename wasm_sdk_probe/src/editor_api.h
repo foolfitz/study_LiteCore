@@ -44,8 +44,21 @@ extern "C" {
  * 4.1): a successor identity again.  Ids 1-21 inherited verbatim, 22 and 23
  * appended (move-document-start / -end, finding 142).  v8-v20 stay at 4: the
  * define keeps their preprocessed output what it was.
+ *
+ * 6 is selected only by OXSDK_E2_V23_FEATURE_ABI6: the same IDs 1-23,
+ * with extend_selection accepted by character and line moves (1,2,16-19).
+ * The feature manifest grants those six existing actions the three gesture
+ * classes. Diagnostic v23 builds retain ABI 5; the Document SDK ABI is separate.
  */
-#ifdef OXSDK_E2_V21_LINK_BATCH
+#if defined(OXSDK_E2_V23_FEATURE_ABI6)
+#if !defined(OXSDK_E2_V23_LINK_BATCH) || !defined(OXSDK_E2_V21_LINK_BATCH)
+#error "ABI6 feature requires the ordered v23 engine and inherited v21 actions"
+#endif
+#ifdef OXSDK_E2_V23_DIAGNOSTIC
+#error "ABI6 feature cannot be combined with diagnostic instrumentation"
+#endif
+#define OXSDK_EDITOR_ABI_VERSION 6u
+#elif defined(OXSDK_E2_V21_LINK_BATCH)
 #define OXSDK_EDITOR_ABI_VERSION 5u
 #else
 #define OXSDK_EDITOR_ABI_VERSION 4u
@@ -72,8 +85,8 @@ typedef enum oxsdk_editor_v1_action {
  * that exists to pin v1 is how a freeze test turns into something that follows
  * the implementation around.
  *
- * Neither flag is accepted by any of these: extend_selection is for the two
- * movement actions and enabled is for the four inline format actions, so both
+ * Neither flag is accepted by any of these: extend_selection is for movement
+ * actions admitted by the selected ABI and enabled is for the four inline format actions, so both
  * must be strictly 0 here (SPEC E2-B 5.11, negative matrix N7).
  *
  * set_paragraph_heading takes no level: narrowing 2 promises H1 only, so the
@@ -96,12 +109,12 @@ typedef enum oxsdk_editor_v2_action {
  *
  * MOVE_LINE_* are the caret movements the engine has always had and the product
  * ABI never named. They take the same shape as the two character movements and
- * are subject to the same rule below: `extend_selection` is accepted ONLY by
+ * retain the legacy ABI 4/5 rule: `extend_selection` is accepted ONLY by
  * the two character movements, NOT by these four. That is deliberate and it is
  * a narrowing, not an oversight -- a shift-selected line movement is a
  * selection this build has never classified, and granting it here would let a
  * caller build a range the gesture router cannot describe. It can be added
- * later by a version that measures it first.
+ * by ABI 6 under the feature-only selector, after its protocol boundary.
  *
  * DELETE_SELECTION is the one genuinely new behaviour. It exists because
  * `delete-backward` is characterised caret-only and cut runs on a range by
@@ -137,7 +150,7 @@ typedef enum oxsdk_editor_v3_action {
  *
  * Ctrl+Home / Ctrl+End (finding 142).  Caret moves like 1-2 and 16-19 --
  * revision unchanged, `changed: false`, completed by a caret callback or by
- * `verified-move-readback` -- and, like 16-19, they take NO extend_selection:
+ * `verified-move-readback` -- and they take NO extend_selection in every ABI:
  * Ctrl+Shift+Home/End is a selection this build has never classified.  Inside
  * a table, a header or a section Writer goes up one level per press
  * (L-142-steps); nothing here merges the presses.
@@ -159,7 +172,8 @@ typedef enum oxsdk_editor_v4_action {
 #define OXSDK_EDITOR_GESTURE_RANGE_CROSS 4u
 
 /*
- * extend_selection is accepted only by the two movement actions.
+ * extend_selection is accepted by character moves (1,2) in every ABI, and
+ * additionally by line moves (16-19) only in the ABI 6 feature build.
  * enabled is accepted only by the inline format actions
  * (SET_BOLD, SET_ITALIC, SET_UNDERLINE, SET_STRIKETHROUGH).
  * Both flags are strict 0/1 values. Mutations are revision guarded.

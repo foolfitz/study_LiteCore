@@ -91,8 +91,17 @@ enum InternalSelectionMethod : std::uint32_t {
 bool validRequest(oxsdk_request_id requestId) { return requestId != 0; }
 
 bool isMove(std::uint32_t action) {
+#ifdef OXSDK_E2_V23_FEATURE_ABI6
+  return action == OXSDK_EDITOR_V1_MOVE_CHARACTER_LEFT ||
+         action == OXSDK_EDITOR_V1_MOVE_CHARACTER_RIGHT ||
+         action == OXSDK_EDITOR_V3_MOVE_LINE_UP ||
+         action == OXSDK_EDITOR_V3_MOVE_LINE_DOWN ||
+         action == OXSDK_EDITOR_V3_MOVE_LINE_HOME ||
+         action == OXSDK_EDITOR_V3_MOVE_LINE_END;
+#else
   return action == OXSDK_EDITOR_V1_MOVE_CHARACTER_LEFT ||
          action == OXSDK_EDITOR_V1_MOVE_CHARACTER_RIGHT;
+#endif
 }
 
 bool isFormat(std::uint32_t action) {
