@@ -1027,6 +1027,21 @@ export class NarrowEditorV2Session extends EditorSession {
    * expects would be the other's.
    */
   action(action, options = {}) {
+    return this._action(action, options, false);
+  }
+
+  /** ABI6 product keys keep their direction until their existing queue turn. */
+  deleteKey(action, options = {}) {
+    if (!["delete-backward", "delete-forward"].includes(action)
+        || this.engine?.manifest?.editorContract?.abiVersion !== 6) {
+      const error = new Error("deleteKey requires an ABI6 backward or forward delete");
+      error.code = "INVALID_ARGUMENT";
+      return Promise.reject(this._withDisposition(error));
+    }
+    return this._action(action, options, true);
+  }
+
+  _action(action, options, fromKey) {
     if (!ACTIONS.has(action)) {
       const error = new Error(`unsupported v2 editor action: ${String(action)}`);
       error.code = "EDITOR_ACTION_UNSUPPORTED";
@@ -1035,13 +1050,34 @@ export class NarrowEditorV2Session extends EditorSession {
     return this._enqueue(
       `action:${action}`,
       async ({ document, editor }, tools) => {
+        let dispatchedAction = action;
+        if (fromKey) {
+          const generation = this._generation;
+          // One ordered read at dequeue, not a cached page shape or a waiter.
+          const state = await editor.getState(options);
+          if (generation !== this._generation || document !== this.document) {
+            const error = new Error("delete key belongs to a stale Worker generation");
+            error.code = "STALE_EDITOR_GENERATION";
+            throw error;
+          }
+          const shape = selectionShapeOf({ state });
+          if (state?.documentHandle !== document.handle
+              || state?.selection?.observed !== true || shape === null
+              || (shape !== "collapsed" && !editor.gesturesFor("delete-selection")?.includes(shape))) {
+            const error = new Error("the current selection does not permit this delete key");
+            error.code = "EDITOR_FORMAT_GESTURE_UNSUPPORTED";
+            error.details = { dispatched: false, keyAction: action };
+            throw error;
+          }
+          if (shape !== "collapsed") dispatchedAction = "delete-selection";
+        }
         if (CHECKPOINTED_MOVES.has(action))
           await this._checkpointBeforeBoundaryMove(document);
         try {
-          const result = await editor.action(action, options);
+          const result = await editor.action(dispatchedAction, options);
           if (result?.completion === "verified-boundary-noop" && result?.changed === false)
             tools.completedUnchanged();
-          return result;
+          return fromKey ? { ...result, keyAction: action } : result;
         } catch (error) {
           // FINDING 119.  A delete the selection barrier could not verify in
           // time comes back as EDITOR_STATE_UNAVAILABLE with no barrier detail;
@@ -1055,7 +1091,7 @@ export class NarrowEditorV2Session extends EditorSession {
           // posted, so nothing here or on the page may say "unchanged" -- every
           // typed change survives, only the key's own effect is uncertain.
           // Scoped by action and code, never by message text (spec §14.1).
-          if (stateUnavailableOnDelete(action, error)) {
+          if (stateUnavailableOnDelete(dispatchedAction, error)) {
             await this._checkpointBeforeBoundaryRestart(document);
             this._blockQueue(error, "restart-required", "editor-boundary");
             error.recovery = "restart";
@@ -1321,6 +1357,10 @@ export class NarrowEditorV2Session extends EditorSession {
   /** Which gestures the profile offers, for enabling buttons rather than for failing. */
   gesturesFor(action) {
     return this.editor?.gesturesFor(action) ?? null;
+  }
+
+  offersSelectionMove(action, gesture) {
+    return this.editor?.offersSelectionMove(action, gesture) ?? false;
   }
 
   offers(action) {
