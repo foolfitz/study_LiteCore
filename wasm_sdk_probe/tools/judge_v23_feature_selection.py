@@ -48,7 +48,7 @@ class Evidence:
     def __init__(self,page,plan,browser):
         self.page,self.plan=page,plan;self.used=set();self.mutations=set();self.call_order=[]
         need(page.get('profile')==PROFILE,'wrong feature profile')
-        need(page.get('caseId') in plan['cases'],'undeclared source case')
+        need(page.get('caseId') in plan['cases'] or page.get('caseId') in plan.get('interactions',{}),'undeclared source case')
         ua=page.get('userAgent','')
         actual='firefox' if re.search(r'Firefox/[0-9]',ua) else 'chrome' if re.search(r'(?:Headless)?Chrome/[0-9]',ua) else None
         need(actual==browser,'actual UA family differs')
@@ -188,6 +188,41 @@ def endpoint_pair(selection,anchor,moving,measured=False):
     points=[xy(selection.get('start')),xy(selection.get('end'))]
     check(anchor!=moving and points.count(anchor)==1 and points.count(moving)==1,'anchor/moving endpoints not uniquely witnessed')
 
+def drag_witness(e,v,gen,anchor,moving):
+    """An actual trusted pointer drag from anchor to moving, bound to its public range requests."""
+    start,end=v['requestStart'],v['requestEnd']
+    need(type(start) is int and type(end) is int and 0<=start<end<=len(e.page['requests']),'drag request bounds invalid')
+    requests=[r for r in e.page['requests'][start:end] if r['generation']==gen and r['message']['operation']=='editorSelectRangeV2']
+    need(requests,'actual drag wire absent')
+    inputs=e.page['inputs'][v['inputStart']:v['inputEnd']]
+    pointers=[x for x in inputs if x['type'] in ('pointerdown','pointermove','pointerup')]
+    need(pointers and all(x.get('isTrusted') is True for x in pointers),'actual trusted drag absent')
+    down=[x for x in pointers if x['type']=='pointerdown'];up=[x for x in pointers if x['type']=='pointerup']
+    need(len(down)==len(up)==1 and down[0]['at']<up[0]['at'],'drag direction evidence absent')
+    openreq=next(r for r in e.requests.values() if r['generation']==gen and r['message']['operation']=='open')
+    metadata=e.replies[request_key(openreq)]['message']['result']
+    # Literal frozen page pointToTwips projection; no added pixel tolerance.
+    def projected(event):
+        rect=event['paper'];size=event['size']
+        need(size=={'w':metadata['width'],'h':metadata['height']},'pointer document geometry differs')
+        return {'xTwips':max(0,math.floor((event['clientX']-rect['left'])/rect['width']*size['w']+0.5)),
+                'yTwips':max(0,math.floor((event['clientY']-rect['top'])/rect['height']*size['h']+0.5))}
+    for event,caret in ((down[0],anchor),(up[0],moving)):
+        rect=event['paper'];size=event['size'];p=point(caret)
+        wanted=(round(rect['left']+rect['width']*p['xTwips']/size['w']),round(rect['top']+rect['height']*p['yTwips']/size['h']))
+        need((event['clientX'],event['clientY'])==wanted,'actual pointer endpoint differs')
+    a,b=projected(down[0]),projected(up[0])
+    allowed_ends=[projected(x) for x in pointers]
+    for r in requests:
+        payload=r['message']['payload']
+        need(payload['startXTwips']==a['xTwips'] and payload['startYTwips']==a['yTwips'],'drag anchor differs')
+        need({'xTwips':payload['endXTwips'],'yTwips':payload['endYTwips']} in allowed_ends,'drag endpoint without actual pointer')
+        e.mutations.add(request_key(r))
+    payload=requests[-1]['message']['payload'];need(payload['endXTwips']==b['xTwips'] and payload['endYTwips']==b['yTwips'],'drag final endpoint differs')
+    route=place_route(e.page['requests'][start:end],e.replies,gen)
+    clicks=[r for r in e.page['requests'][start:end] if r['generation']==gen and r['message']['operation']==route]
+    need(len(clicks)==1 and all(clicks[0]['message']['payload'][k]==z for k,z in a.items()),'drag initial click differs');e.mutations.add(request_key(clicks[0]))
+
 def setup(e,name,row):
     v=e.page[name];gen,handle=e.opened(v['open'])
     need(e.save(name+'-original-save',v['originalSave'])==e.plan['fixtureParagraphs'],'fresh original differs')
@@ -197,39 +232,7 @@ def setup(e,name,row):
     origin=moving if name=='reference' else anchor
     if name=='reference' or row['nativeSetupMethod']!='drag':
         _,r,_=e.place(name+'-origin-click');need(all(r['message']['payload'][k]==z for k,z in point(origin).items()),'shape origin differs')
-    else:
-        start,end=v['requestStart'],v['requestEnd']
-        need(type(start) is int and type(end) is int and 0<=start<end<=len(e.page['requests']),'drag request bounds invalid')
-        requests=[r for r in e.page['requests'][start:end] if r['generation']==gen and r['message']['operation']=='editorSelectRangeV2']
-        need(requests,'actual drag wire absent')
-        inputs=e.page['inputs'][v['inputStart']:v['inputEnd']]
-        pointers=[x for x in inputs if x['type'] in ('pointerdown','pointermove','pointerup')]
-        need(pointers and all(x.get('isTrusted') is True for x in pointers),'actual trusted drag absent')
-        down=[x for x in pointers if x['type']=='pointerdown'];up=[x for x in pointers if x['type']=='pointerup']
-        need(len(down)==len(up)==1 and down[0]['at']<up[0]['at'],'drag direction evidence absent')
-        openreq=next(r for r in e.requests.values() if r['generation']==gen and r['message']['operation']=='open')
-        metadata=e.replies[request_key(openreq)]['message']['result']
-        # Literal frozen page pointToTwips projection; no added pixel tolerance.
-        def projected(event):
-            rect=event['paper'];size=event['size']
-            need(size=={'w':metadata['width'],'h':metadata['height']},'pointer document geometry differs')
-            return {'xTwips':max(0,math.floor((event['clientX']-rect['left'])/rect['width']*size['w']+0.5)),
-                    'yTwips':max(0,math.floor((event['clientY']-rect['top'])/rect['height']*size['h']+0.5))}
-        for event,caret in ((down[0],anchor),(up[0],moving)):
-            rect=event['paper'];size=event['size'];p=point(caret)
-            wanted=(round(rect['left']+rect['width']*p['xTwips']/size['w']),round(rect['top']+rect['height']*p['yTwips']/size['h']))
-            need((event['clientX'],event['clientY'])==wanted,'actual pointer endpoint differs')
-        a,b=projected(down[0]),projected(up[0])
-        allowed_ends=[projected(x) for x in pointers]
-        for r in requests:
-            payload=r['message']['payload']
-            need(payload['startXTwips']==a['xTwips'] and payload['startYTwips']==a['yTwips'],'drag anchor differs')
-            need({'xTwips':payload['endXTwips'],'yTwips':payload['endYTwips']} in allowed_ends,'drag endpoint without actual pointer')
-            e.mutations.add(request_key(r))
-        payload=requests[-1]['message']['payload'];need(payload['endXTwips']==b['xTwips'] and payload['endYTwips']==b['yTwips'],'drag final endpoint differs')
-        route=place_route(e.page['requests'][start:end],e.replies,gen)
-        clicks=[r for r in e.page['requests'][start:end] if r['generation']==gen and r['message']['operation']==route]
-        need(len(clicks)==1 and all(clicks[0]['message']['payload'][k]==z for k,z in a.items()),'drag initial click differs');e.mutations.add(request_key(clicks[0]))
+    else:drag_witness(e,v,gen,anchor,moving)
     if name=='candidate' and row['nativeSetupMethod']=='click+Shift+Right x3':
         right={**row,'action':'move-character-right','productKey':{'key':'ArrowRight'}}
         for n in range(3):e.key('candidate-setup-shift-'+str(n),right,True)
@@ -334,7 +337,74 @@ def table_selection(containers,row,anchorname,endpoint_paragraph):
     target=containers[endpoint_paragraph]
     return [moving,target] if moving!=target else None
 
+def click_witness(e,v,gen,target,request):
+    """One actual trusted click at the target caret, bound to the product's own placeCaret request."""
+    pointers=[x for x in e.page['inputs'][v['inputStart']:v['inputEnd']] if x['type'] in ('pointerdown','pointermove','pointerup')]
+    need(pointers and all(x.get('isTrusted') is True for x in pointers),'actual trusted click absent')
+    down=[x for x in pointers if x['type']=='pointerdown'];up=[x for x in pointers if x['type']=='pointerup']
+    need(len(down)==len(up)==1 and down[0]['at']<=up[0]['at'] and (down[0]['clientX'],down[0]['clientY'])==(up[0]['clientX'],up[0]['clientY']),'click is not one press')
+    event=down[0];rect=event['paper'];size=event['size'];p=point(target)
+    need((event['clientX'],event['clientY'])==(round(rect['left']+rect['width']*p['xTwips']/size['w']),round(rect['top']+rect['height']*p['yTwips']/size['h'])),'actual click point differs')
+    projected={'xTwips':max(0,math.floor((event['clientX']-rect['left'])/rect['width']*size['w']+0.5)),
+               'yTwips':max(0,math.floor((event['clientY']-rect['top'])/rect['height']*size['h']+0.5))}
+    need(all(request['message']['payload'][k]==z for k,z in projected.items()),'click request differs from the actual pointer')
+    need(event['at']<=request['at'],'click request precedes the pointer')
+
+def interaction(e,row):
+    """S4: Writer's selection after an actual public interaction that follows a Shift extension."""
+    v=e.page['interaction'];gen,handle=e.opened(v['open'])
+    need(e.save('interaction-original-save',v['originalSave'])==e.plan['fixtureParagraphs'],'fresh original differs')
+    need(set(v['points'])==set(row['pointPlans']),'point discovery population differs')
+    for name,plan in row['pointPlans'].items():e.locate('interaction-point-'+name,v['points'][name],plan)
+    origin=v['points'][row['originPointName']]['final']['caret']
+    _,r,_=e.place('interaction-origin-click');need(all(r['message']['payload'][k]==z for k,z in point(origin).items()),'caret-mid origin differs')
+    _,before=e.state('interaction-before-state',v['before'])
+    need(xy(v['before']['caret'])==xy(origin) and v['before']['selection']['collapsed'] is True,'caret-mid shape differs')
+    first={**row,'action':row['firstAction'],'productKey':{'key':row['firstProductKey']['key']}}
+    _,r,t=e.key('interaction-first-key',first,True);need(r['at']>=before['at'],'first key precedes its shape')
+    e.state('interaction-first-state',v['firstState']);e.text('interaction-first-text',v['firstSelection'])
+    need(v['firstState']['selection'].get('collapsed') is False and v['firstSelection'].get('text'),'Shift extension before the interaction absent')
+    texts=row['nativeAfterStepText'];need(isinstance(texts,list) and len(texts)==3 and len(set(texts))==1,'native interaction oracle disagrees')
+    points=[v['points'][n]['final']['caret'] for n in row['logicalPointNames']]
+    if row['method']=='click':
+        _,step,_=e.place('interaction-step-click');click_witness(e,v,gen,points[0],step)
+    elif row['method']=='drag':drag_witness(e,v,gen,points[0],points[1])
+    else:e.selection('interaction-select-range',points[0],points[1])
+    e.state('interaction-step-state',v['stepState']);e.text('interaction-step-text',v['stepSelection'])
+    if row['method']=='click':
+        need(xy(v['stepState']['caret'])==xy(points[0]),'step click landed elsewhere')
+        contradict(v['stepState']['selection'].get('collapsed') is True and v['stepSelection'].get('text')==texts[0],'click did not reset the selection')
+        homes=row['nativeShiftHomeAfterClickText'];need(isinstance(homes,list) and len(homes)==3 and len(set(homes))==1,'native ShiftHome oracle disagrees')
+        _,_,t=e.key('interaction-shift-home',{**row,'action':'move-line-home','productKey':{'key':'Home'}},True);final=homes[0]
+    else:
+        contradict(v['stepSelection'].get('text')==texts[0],'interaction native text differs');final=texts[0]
+        t=e.replies[max((k for k in e.mutations if k[0]==gen),key=lambda k:e.replies[k]['at'])]
+    rr,rt=e.state('interaction-readback',v['readback']);need(rr['at']-t['at']>=500,'readback too early')
+    ar,_=e.text('interaction-active-selection',v['activeSelection']);need(ar['at']>=rt['at'],'active selection precedes delayed state')
+    contradict(v['activeSelection'].get('text')==final,'interaction native text differs after settling')
+    _,_,close=e.call('interaction-close','close')
+    return gen,close
+
+def inspect_interaction(page,plan,browser):
+    groups={'S4':{'verdict':'NOT_ESTABLISHED'}}
+    try:
+        e=Evidence(page,plan,browser);row=plan['interactions'][page['caseId']]
+        g=readiness(e);gen,_=interaction(e,row)
+        need(page.get('complete'),'incomplete page')
+        need(len({g,gen})==2 and len(page['workers'])==2,'fresh arm/recovery generation differs')
+        need(len([r for r in e.requests.values() if r['message']['operation']=='open'])==2,'extra/missing open')
+        e.closure()
+        contradict(not any(x['message'].get('event') in ('recoverable-error','worker-restart') for x in page['events']),'recovery occurred')
+        groups['S4']={'verdict':'PASS','method':row['method'],'nativeText':row['nativeAfterStepText'][0]}
+        return {'verdict':'PASS','groups':groups}
+    except ProductFailure as error:
+        groups['S4']={'verdict':'FAIL','reason':str(error)}
+        return {'verdict':'FAIL','reason':str(error),'groups':groups}
+    except (NotEstablished,KeyError,ValueError,TypeError,IndexError) as error:
+        return {'verdict':'NOT_ESTABLISHED','reason':str(error),'groups':groups}
+
 def inspect(page,plan,browser):
+    if page.get('caseId') in plan.get('interactions',{}):return inspect_interaction(page,plan,browser)
     groups={'S1':{'verdict':'NOT_APPLICABLE'},'S2':{'verdict':'NOT_ESTABLISHED'},'S3':{'verdict':'NOT_APPLICABLE'}}
     try:
         e=Evidence(page,plan,browser);row=plan['cases'][page['caseId']]
@@ -460,7 +530,8 @@ def check_pre_red(path):
     return {'path':str(path),'sha256':digest(raw),'verdict':'EXPECTED_RED','cells':result['cells']}
 
 def judge(cells,plan):
-    wanted={(b,c) for b in BROWSERS for c in plan['cases']};seen=set();hashes=set();rows=[]
+    population={**plan['cases'],**plan.get('interactions',{})}
+    wanted={(b,c) for b in BROWSERS for c in population};seen=set();hashes=set();rows=[]
     for cell in cells:
         key=(cell['browser'],cell['caseId']);page=cell.get('page') or {}
         fingerprint=digest(json.dumps(page,sort_keys=True,separators=(',',':'),ensure_ascii=False).encode())
@@ -471,15 +542,15 @@ def judge(cells,plan):
         # Recorded, never asserted: does the candidate's selected text equal Writer's? A wrong
         # plain move can take a table member out of the A' branch (review of 853f2522), and
         # Up/Down outside that branch have no native comparison; this makes such a flip visible.
-        texts=plan['cases'][key[1]].get('nativeAfterSelectionText') or []
+        texts=population[key[1]].get('nativeAfterSelectionText') or []
         observed=((page.get('candidate') or {}).get('activeSelection') or {}).get('text')
-        if 'S1' in plan['cases'][key[1]]['memberships'] and isinstance(observed,str) and texts:
+        if 'S1' in population[key[1]]['memberships'] and isinstance(observed,str) and texts:
             value={**value,'nativeTextAgreement':{'agrees':all(observed==x for x in texts),'roundsAgree':len(set(texts))==1}}
         rows.append({'cell':key,**value})
     complete=seen==wanted and len(rows)==len(wanted)
     groups={}
-    for group in ('S1','S2','S3'):
-        members={(b,c) for b,c in wanted if group in plan['cases'][c]['memberships']}
+    for group in ('S1','S2','S3','S4'):
+        members={(b,c) for b,c in wanted if group in population[c]['memberships']}
         observations=[r for r in rows if tuple(r['cell']) in members]
         groups[group]={'required':len(members),'observed':len(observations),
             'verdict':'FAIL' if any(r.get('groups',{}).get(group,{}).get('verdict')=='FAIL' for r in observations) else 'PASS' if complete and len(observations)==len(members) and all(r.get('groups',{}).get(group,{}).get('verdict')=='PASS' for r in observations) else 'NOT_ESTABLISHED'}

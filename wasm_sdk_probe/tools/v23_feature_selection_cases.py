@@ -76,6 +76,37 @@ def cases(table=None):
     if len(result)!=108:raise ValueError('selection population differs')
     return result
 
+def interactions(table,rounds,texts):
+    """S4: every native kind=interaction row; its caret-mid origin comes from the S1 shape table."""
+    origins={tuple(r['setup']['logicalPointNames']) for r in table['cases'] if r['shape']=='caret-mid'}
+    if len(origins)!=1 or len(next(iter(origins)))!=1:raise ValueError('caret-mid origin not unique')
+    origin=next(iter(origins))[0]
+    keys={'Shift+Right':('ArrowRight','move-character-right'),'Shift+Down':('ArrowDown','move-line-down'),
+          'Shift+End':('End','move-line-end')}
+    methods={'a':'click','b':'drag','c':'public-select-range'}
+    result={}
+    for row in table['S4']:
+        natives=[]
+        for ref in row['nativeReferences']:
+            native=rounds[ref['round']-1][ref['line']-1]
+            if native.get('sourceLine')!=ref['line'] or native.get('arm')!=row['id'] or native.get('kind')!='interaction':
+                raise ValueError('native interaction reference differs')
+            natives.append(native)
+        names=row['logicalPointNames']
+        if row['id'] in result or row['step'] not in methods or row['firstKey'] not in keys or len(natives)!=3 \
+                or len(names)!=(1 if row['step']=='a' else 2):
+            raise ValueError('unmapped native interaction')
+        key,action=keys[row['firstKey']]
+        result[row['id']]={**row,'method':methods[row['step']],'originPointName':origin,
+            'firstProductKey':{'key':key,'shiftKey':True},'firstAction':action,
+            'pointPlans':{n:point_plan(n,texts) for n in dict.fromkeys([origin]+names)},
+            'nativeAfterFirstKeyText':[n['afterFirstKey']['getTextSelection'] for n in natives],
+            'nativeAfterStepText':[n['afterStep']['getTextSelection'] for n in natives],
+            'nativeShiftHomeAfterClickText':[n['shiftHomeAfterClick'] for n in natives] if row['step']=='a' else None,
+            'memberships':['S4'],'default':'NOT_ESTABLISHED_UNPERFORMED'}
+    if len(result)!=9:raise ValueError('S4 population differs')
+    return result
+
 def identity():
     directory=PROJECT/'dist/profiles'/PROFILE
     for name,expected in ARTIFACT_PINS.items():
@@ -130,10 +161,10 @@ def config():
             for name in names:
                 candidate=PROJECT/'tools'/Path(*name.split('.')).with_suffix('.py')
                 if candidate.is_file():pending.append(candidate)
-    texts=paragraphs();table=derive(read_rounds())
+    texts=paragraphs();rounds=read_rounds();table=derive(rounds)
     return {'schema':1,'profile':identity(),'servedSources':{n:digest(v) for n,v in sources().items()},
             'instrumentSources':{str(p.relative_to(PROJECT)):sha(p) for p in sorted(closure)},
-            'cases':cases(table),'sourceTable':table,'fixtureSha256':PINS['fixture-as-run.fodt'],
+            'cases':cases(table),'interactions':interactions(table,rounds,texts),'sourceTable':table,'fixtureSha256':PINS['fixture-as-run.fodt'],
             'fixtureParagraphs':texts,'fixtureManifest':{'fixtures':[{'id':'list-contexts'}]},
             'readinessPoint':point_plan('p0.0',texts),
             'mappingPoints':[point_plan(f'p{i}.0',texts) for i in range(len(texts))]}

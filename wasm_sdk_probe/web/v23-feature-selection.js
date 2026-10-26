@@ -101,6 +101,16 @@ async function locate(plan,prefix){
 }
 let armed=null,actionPromise=null,keyArm=null;
 result.keyArms=[];
+// S4: the product's own pointer handler calls placeCaret; when armed, that call is recorded
+// like an instrumented one, so its wire window and completion are bound.
+let placeArmed=null,placePromise=null;
+const originalPlace=NarrowEditorV2Session.prototype.placeCaret;
+NarrowEditorV2Session.prototype.placeCaret=function(...args){
+  if(!placeArmed)return originalPlace.apply(this,args);
+  const name=placeArmed;placeArmed=null;
+  placePromise=call(name,()=>originalPlace.apply(this,args));
+  return placePromise;
+};
 const originalAction=NarrowEditorV2Session.prototype.action;
 NarrowEditorV2Session.prototype.action=function(action,options){
   if(!armed)return originalAction.call(this,action,options);
@@ -127,6 +137,39 @@ window.__selectionControl={
   async finishReadiness(){try{
     result.readiness.afterSave=await save('readiness-after-save');
     result.readiness.afterState=await state('readiness-after-state');return true;
+  }catch(error){return fail(error);}},
+  async prepareInteraction(){try{
+    const row=config.interactions[result.caseId];if(!row)throw new Error('unknown interaction');
+    phaseName='interaction';phase=result.interaction={open:snap(result.currentOpen),points:{}};
+    phase.originalSave=await save('interaction-original-save');
+    for(const [name,plan] of Object.entries(row.pointPlans))phase.points[name]=await locate(plan,'interaction-point-'+name);
+    await place(point(phase.points[row.originPointName].final.caret),'interaction-origin-click');
+    phase.before=await state('interaction-before-state');
+    return {method:row.method,points:row.logicalPointNames.map(n=>phase.points[n].final.caret),
+      size:{w:current.document.widthTwips,h:current.document.heightTwips}};
+  }catch(error){return fail(error);}},
+  async afterFirstKey(){try{
+    phase.firstState=await state('interaction-first-state');
+    phase.firstSelection=await call('interaction-first-text',()=>current.document.getSelection());return true;
+  }catch(error){return fail(error);}},
+  markStep(){phase.inputStart=result.inputs.length;phase.requestStart=result.requests.length;return true;},
+  armPlace(name){placeArmed=name;placePromise=null;return true;},
+  async answeredPlace(){try{if(!placePromise)throw new Error('product pointer did not call placeCaret');await placePromise;return true;}catch(error){return fail(error);}},
+  async selectRangeStep(){try{
+    const row=config.interactions[result.caseId];const [a,b]=row.logicalPointNames.map(n=>phase.points[n].final.caret);
+    await call('interaction-select-range',()=>current.editor.selectRange(point(a),point(b)));return true;
+  }catch(error){return fail(error);}},
+  async afterStep(){try{
+    phase.inputEnd=result.inputs.length;phase.requestEnd=result.requests.length;
+    phase.stepState=await state('interaction-step-state');
+    phase.stepSelection=await call('interaction-step-text',()=>current.document.getSelection());return true;
+  }catch(error){return fail(error);}},
+  async finishInteraction(){try{
+    // Existing S2 observation interval, distinct from product completion.
+    await new Promise(resolve=>setTimeout(resolve,500));
+    phase.readback=await state('interaction-readback');
+    phase.activeSelection=await call('interaction-active-selection',()=>current.document.getSelection());
+    await call('interaction-close',()=>current.close());result.complete=true;result.phase='complete';return true;
   }catch(error){return fail(error);}},
   async prepare(which){try{
     if(!['reference','candidate'].includes(which))throw new Error('unknown arm');

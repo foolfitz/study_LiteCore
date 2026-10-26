@@ -76,27 +76,47 @@ def product_key(session,browser,name,key,shift):
     inputs.key(session,browser,key,('shift',) if shift else ())
     control(session,'answered()')
 
+def screen_rect(session,setup,last):
+    # Existing helper scrolls to the point; compute endpoints from the final
+    # observed paper rectangle, then require them to remain visible.
+    size=setup['size'];inputs.paper_point(session,evaluate,last['x'],last['y'],last['height'],size)
+    rect=evaluate(session,inputs.PAPER_RECT)
+    def screen(c):return (round(rect['left']+rect['width']*c['x']/size['w']),
+                         round(rect['top']+rect['height']*(c['y']+int(c['height']//2))/size['h']))
+    return rect,screen
+
+def drag(session,browser,setup):
+    a,b=setup['points'];rect,screen=screen_rect(session,setup,b)
+    aa,bb=screen(a),screen(b)
+    if not all(rect['deskTop']<=q[1]<=rect['deskBottom'] for q in (aa,bb)):
+        raise ValueError('native drag endpoints not both visible; no guessed autoscroll')
+    inputs.drag(session,browser,aa,bb)
+    # Observe the final actual public drag request/terminal, not a sleep
+    # standing in for completion. The outer wait remains containment only.
+    wait_page(session,"""(()=>{const p=window.__featureSelection,g=p.currentOpen.generation;
+      const up=p.inputs.filter(e=>e.type==='pointerup'&&e.generation===g).at(-1);if(!up)return false;
+      const r=up.paper,s=up.size,x=Math.max(0,Math.round((up.clientX-r.left)/r.width*s.w)),y=Math.max(0,Math.round((up.clientY-r.top)/r.height*s.h));
+      const q=p.requests.filter(e=>e.generation===g&&e.message.operation==='editorSelectRangeV2'&&e.message.payload.endXTwips===x&&e.message.payload.endYTwips===y).at(-1);
+      return q&&p.responses.some(e=>e.generation===g&&e.message.requestId===q.message.requestId);})()""")
+
+def run_interaction(session,browser,row):
+    """S4: Shift extension from caret-mid, then the actual public interaction."""
+    setup=control(session,'prepareInteraction()')
+    product_key(session,browser,'interaction-first-key',row['firstProductKey']['key'],True)
+    control(session,'afterFirstKey()');control(session,'markStep()')
+    if row['method']=='click':
+        rect,screen=screen_rect(session,setup,setup['points'][0]);at=screen(setup['points'][0])
+        if not rect['deskTop']<=at[1]<=rect['deskBottom']:raise ValueError('click point not visible; no guessed autoscroll')
+        control(session,'armPlace("interaction-step-click")');inputs.click(session,browser,*at);control(session,'answeredPlace()')
+    elif row['method']=='drag':drag(session,browser,setup)
+    else:control(session,'selectRangeStep()')
+    control(session,'afterStep()')
+    if row['method']=='click':product_key(session,browser,'interaction-shift-home','Home',True)
+    control(session,'finishInteraction()')
+
 def run_arm(session,browser,which,row):
     setup=control(session,'prepare('+json.dumps(which)+')')
-    if setup['method']=='drag':
-        a,b=setup['points'];size=setup['size']
-        # Existing helper scrolls to the point; compute both endpoints from the
-        # final observed paper rectangle, then require both remain visible.
-        inputs.paper_point(session,evaluate,b['x'],b['y'],b['height'],size)
-        rect=evaluate(session,inputs.PAPER_RECT)
-        def screen(c):return (round(rect['left']+rect['width']*c['x']/size['w']),
-                             round(rect['top']+rect['height']*(c['y']+int(c['height']//2))/size['h']))
-        aa,bb=screen(a),screen(b)
-        if not all(rect['deskTop']<=q[1]<=rect['deskBottom'] for q in (aa,bb)):
-            raise ValueError('native drag endpoints not both visible; no guessed autoscroll')
-        inputs.drag(session,browser,aa,bb)
-        # Observe the final actual public drag request/terminal, not a sleep
-        # standing in for completion. The outer wait remains containment only.
-        wait_page(session,"""(()=>{const p=window.__featureSelection,g=p.currentOpen.generation;
-          const up=p.inputs.filter(e=>e.type==='pointerup'&&e.generation===g).at(-1);if(!up)return false;
-          const r=up.paper,s=up.size,x=Math.max(0,Math.round((up.clientX-r.left)/r.width*s.w)),y=Math.max(0,Math.round((up.clientY-r.top)/r.height*s.h));
-          const q=p.requests.filter(e=>e.generation===g&&e.message.operation==='editorSelectRangeV2'&&e.message.payload.endXTwips===x&&e.message.payload.endYTwips===y).at(-1);
-          return q&&p.responses.some(e=>e.generation===g&&e.message.requestId===q.message.requestId);})()""")
+    if setup['method']=='drag':drag(session,browser,setup)
     elif setup['method']=='click+Shift+Right x3':
         for n in range(3):product_key(session,browser,'candidate-setup-shift-'+str(n),'ArrowRight',True)
     elif setup['method']=='click+End':product_key(session,browser,'candidate-setup-end','End',False)
@@ -111,7 +131,8 @@ def main():
     parser.add_argument('--keep-going',action='store_true',help='preparation only: record every listed cell instead of stopping at the first nonpassing one')
     args=parser.parse_args();plan=config()
     if (args.browser or args.case_id or args.keep_going) and not args.preparation_only:parser.error('filters require preparation-only')
-    if args.case_id and (set(args.case_id)-set(plan['cases']) or len(set(args.case_id))!=len(args.case_id)):parser.error('unknown or repeated source case')
+    population=list(plan['cases'])+list(plan['interactions'])
+    if args.case_id and (set(args.case_id)-set(population) or len(set(args.case_id))!=len(args.case_id)):parser.error('unknown or repeated source case')
     if not args.preparation_only and not args.pre_red_report:parser.error('qualifying collection requires complete historical pre-red')
     prerequisite=check_pre_red(args.pre_red_report) if args.pre_red_report else {'verdict':'NOT_ESTABLISHED'}
     args.output.mkdir(parents=True,exist_ok=False);target=args.output.resolve()/'mirror';mirror(target,plan)
@@ -124,7 +145,7 @@ def main():
         if not report['foreignCpu'].get('ok'):raise SystemExit('foreign CPU refusal; no browser cells')
         with common.served(target) as base:
             for browser in ([args.browser] if args.browser else BROWSERS):
-                for case in (args.case_id or plan['cases']):
+                for case in (args.case_id or population):
                     cell={'browser':browser,'caseId':case};session=None
                     try:
                         if config()!=plan:raise ValueError('source/profile drift')
@@ -134,8 +155,10 @@ def main():
                         control(session,'prepareReadiness()');actual_Z(session);control(session,'finishReadiness()')
                         initial,meta=export_page(session);readiness(Evidence(initial,plan,browser))
                         cell['readinessTransfer']=meta
-                        for which in ('reference','candidate'):
-                            fresh(session,target);run_arm(session,browser,which,plan['cases'][case])
+                        if case in plan['interactions']:fresh(session,target);run_interaction(session,browser,plan['interactions'][case])
+                        else:
+                            for which in ('reference','candidate'):
+                                fresh(session,target);run_arm(session,browser,which,plan['cases'][case])
                         cell['page'],cell['pageTransfer']=export_page(session);cell['inspection']=inspect(cell['page'],plan,browser)
                     except Exception:
                         cell['fatal']=traceback.format_exc()
