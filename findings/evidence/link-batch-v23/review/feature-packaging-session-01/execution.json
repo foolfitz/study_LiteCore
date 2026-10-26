@@ -1,0 +1,30 @@
+{
+  "argv": [
+    "timeout",
+    "180",
+    "claude",
+    "-p",
+    "--model",
+    "sonnet",
+    "--effort",
+    "low",
+    "--max-turns",
+    "1",
+    "--settings",
+    "{\"alwaysThinkingEnabled\":false,\"disableAllHooks\":true}",
+    "--system-prompt",
+    "Review supplied source only. No tools. Reply in English.",
+    "--tools",
+    "",
+    "--strict-mcp-config",
+    "--output-format",
+    "json"
+  ],
+  "stdin": "findings/evidence/link-batch-v23/review/feature-packaging-session-01/request.md",
+  "stdinSha256": "9e8924093eaadc55ac12233b6fed1dafcbc3230131a22ed2cea597d0c520dbe1",
+  "exitCode": 124,
+  "stdoutBytes": 0,
+  "stderrBytes": 0,
+  "verdict": "NOT_ESTABLISHED_TIMEOUT",
+  "meaning": "Optional source review produced no completed finding or approval. The separate boundary review completed, and independent source/causal reviews retain their own scope."
+}
