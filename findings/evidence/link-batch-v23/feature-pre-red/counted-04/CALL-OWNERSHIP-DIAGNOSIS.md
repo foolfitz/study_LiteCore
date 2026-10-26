@@ -1,0 +1,5 @@
+# Same-clock call ownership collision
+
+The saved Firefox cell-end page shows `readiness-start-state` from3428.4 to3429.22. Its request12 occurs at3428.42, raw request index11. The subsequent `readiness-target-state` begins at3429.22, and its request13 also has timestamp3429.22, raw index12. The old reader's inclusive interval therefore matches both requests to the preceding call and raises `NotEstablished: missing/nonunique wire call readiness-start-state`. The original traceback,18 raw cells and incomplete report remain untouched.
+
+Owner-proxy Astra `/root/astra_calc_scope` approved the observation-only raw-index correction and a runtime checkpoint at the owner feature link. The source controls and final receipts are in `review/call-ownership-01/`. The corrected source must acquire a fresh complete32 cells in a later allowed window; no request range is backfilled into historical pages and no old verdict is upgraded. Post-run cleanup reported a free lock and no owned browser process; the independent CPU sample found unrelated llama-server load98.3%, which was not altered and was not the cause of this recorded readiness collision.
