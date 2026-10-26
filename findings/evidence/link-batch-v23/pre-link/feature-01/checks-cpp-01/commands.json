@@ -1,0 +1,290 @@
+[
+  {
+    "name": "feature-abi",
+    "argv": [
+      "python3",
+      "-I",
+      "tests/test_v23_feature_abi.py"
+    ],
+    "cwd": "wasm_sdk_probe",
+    "exitCode": 0,
+    "stdoutPath": "feature-abi.stdout.txt",
+    "stderrPath": "feature-abi.stderr.txt"
+  },
+  {
+    "name": "feature-profile",
+    "argv": [
+      "python3",
+      "-I",
+      "tests/test_v23_feature_profile.py"
+    ],
+    "cwd": "wasm_sdk_probe",
+    "exitCode": 0,
+    "stdoutPath": "feature-profile.stdout.txt",
+    "stderrPath": "feature-profile.stderr.txt"
+  },
+  {
+    "name": "feature-build",
+    "argv": [
+      "python3",
+      "-I",
+      "tests/test_v23_feature_build.py"
+    ],
+    "cwd": "wasm_sdk_probe",
+    "exitCode": 0,
+    "stdoutPath": "feature-build.stdout.txt",
+    "stderrPath": "feature-build.stderr.txt"
+  },
+  {
+    "name": "feature-worker",
+    "argv": [
+      "node",
+      "tests/v23_feature_worker_test.cjs"
+    ],
+    "cwd": "wasm_sdk_probe",
+    "exitCode": 0,
+    "stdoutPath": "feature-worker.stdout.txt",
+    "stderrPath": "feature-worker.stderr.txt"
+  },
+  {
+    "name": "e1-c-guard",
+    "argv": [
+      "python3",
+      "-I",
+      "tools/check_e1_c_bundle_intact.py"
+    ],
+    "cwd": "wasm_sdk_probe",
+    "exitCode": 0,
+    "stdoutPath": "e1-c-guard.stdout.txt",
+    "stderrPath": "e1-c-guard.stderr.txt"
+  },
+  {
+    "name": "make-dry-run",
+    "argv": [
+      "make",
+      "-n",
+      "ALLOW_FROZEN_RELINK=1",
+      "dist/profiles/e2-editor-v23/sdk-manifest.json"
+    ],
+    "cwd": "wasm_sdk_probe",
+    "exitCode": 0,
+    "stdoutPath": "make-dry-run.stdout.txt",
+    "stderrPath": "make-dry-run.stderr.txt"
+  },
+  {
+    "name": "feature-build-log-reader",
+    "argv": [
+      "python3",
+      "-I",
+      "tools/check_v23_feature_contract.py",
+      "--build-log",
+      "../findings/evidence/link-batch-v23/pre-link/feature-01/checks-cpp-01/dry-run.log"
+    ],
+    "cwd": "wasm_sdk_probe",
+    "exitCode": 0,
+    "stdoutPath": "feature-build-log-reader.stdout.txt",
+    "stderrPath": "feature-build-log-reader.stderr.txt"
+  },
+  {
+    "name": "syntax-only-01",
+    "argv": [
+      "taskset",
+      "-c",
+      "0",
+      "../wasm-lite/tools/emsdk/upstream/emscripten/em++",
+      "-fsyntax-only",
+      "-DLOK_USE_UNSTABLE_API",
+      "-I../libreoffice-26-8/include",
+      "-I../wasm-lite/build-headless-probe/config_host",
+      "-I../wasm-lite/build-headless-probe/workdir/UnoApiHeadersTarget/udkapi/comprehensive",
+      "-I../wasm-lite/build-headless-probe/workdir/UnoApiHeadersTarget/offapi/comprehensive",
+      "-I../wasm-lite/build-headless-probe/workdir/UnpackedTarball/boost",
+      "-Oz",
+      "-pthread",
+      "-fwasm-exceptions",
+      "-sSUPPORT_LONGJMP=wasm",
+      "-I../wasm-lite/build-headless-probe/workdir/UnpackedTarball/md4c/src",
+      "-DOXSDK_EDITOR_DISCOVERY",
+      "-DOXSDK_FINDING_016_SELECTION_BARRIER",
+      "-DOXSDK_E2_FORMAT_BARRIER",
+      "-DOXSDK_MERGE_KEY_UNDO",
+      "-DOXSDK_E2_V20_LINK_BATCH",
+      "-DOXSDK_E2_V21_LINK_BATCH",
+      "-DOXSDK_MAINLOOP_ENGINE",
+      "-DOXSDK_E2_V23_LINK_BATCH",
+      "-DOXSDK_E2_V23_FEATURE_ABI6",
+      "src/sdk_api.cpp"
+    ],
+    "cwd": "wasm_sdk_probe",
+    "exitCode": 0,
+    "stdoutPath": "syntax-only-01.stdout.txt",
+    "stderrPath": "syntax-only-01.stderr.txt"
+  },
+  {
+    "name": "syntax-only-02",
+    "argv": [
+      "taskset",
+      "-c",
+      "0",
+      "../wasm-lite/tools/emsdk/upstream/emscripten/em++",
+      "-fsyntax-only",
+      "-DLOK_USE_UNSTABLE_API",
+      "-I../libreoffice-26-8/include",
+      "-I../wasm-lite/build-headless-probe/config_host",
+      "-I../wasm-lite/build-headless-probe/workdir/UnoApiHeadersTarget/udkapi/comprehensive",
+      "-I../wasm-lite/build-headless-probe/workdir/UnoApiHeadersTarget/offapi/comprehensive",
+      "-I../wasm-lite/build-headless-probe/workdir/UnpackedTarball/boost",
+      "-Oz",
+      "-pthread",
+      "-fwasm-exceptions",
+      "-sSUPPORT_LONGJMP=wasm",
+      "-I../wasm-lite/build-headless-probe/workdir/UnpackedTarball/md4c/src",
+      "-DOXSDK_EDITOR_DISCOVERY",
+      "-DOXSDK_FINDING_016_SELECTION_BARRIER",
+      "-DOXSDK_E2_FORMAT_BARRIER",
+      "-DOXSDK_MERGE_KEY_UNDO",
+      "-DOXSDK_E2_V20_LINK_BATCH",
+      "-DOXSDK_E2_V21_LINK_BATCH",
+      "-DOXSDK_MAINLOOP_ENGINE",
+      "-DOXSDK_E2_V23_LINK_BATCH",
+      "-DOXSDK_E2_V23_FEATURE_ABI6",
+      "src/probe_engine.cpp"
+    ],
+    "cwd": "wasm_sdk_probe",
+    "exitCode": 0,
+    "stdoutPath": "syntax-only-02.stdout.txt",
+    "stderrPath": "syntax-only-02.stderr.txt"
+  },
+  {
+    "name": "syntax-only-03",
+    "argv": [
+      "taskset",
+      "-c",
+      "0",
+      "../wasm-lite/tools/emsdk/upstream/emscripten/em++",
+      "-fsyntax-only",
+      "-DLOK_USE_UNSTABLE_API",
+      "-I../libreoffice-26-8/include",
+      "-I../wasm-lite/build-headless-probe/config_host",
+      "-I../wasm-lite/build-headless-probe/workdir/UnoApiHeadersTarget/udkapi/comprehensive",
+      "-I../wasm-lite/build-headless-probe/workdir/UnoApiHeadersTarget/offapi/comprehensive",
+      "-I../wasm-lite/build-headless-probe/workdir/UnpackedTarball/boost",
+      "-Oz",
+      "-pthread",
+      "-fwasm-exceptions",
+      "-sSUPPORT_LONGJMP=wasm",
+      "-I../wasm-lite/build-headless-probe/workdir/UnpackedTarball/md4c/src",
+      "-DOXSDK_EDITOR_DISCOVERY",
+      "-DOXSDK_FINDING_016_SELECTION_BARRIER",
+      "-DOXSDK_E2_FORMAT_BARRIER",
+      "-DOXSDK_MERGE_KEY_UNDO",
+      "-DOXSDK_E2_V20_LINK_BATCH",
+      "-DOXSDK_E2_V21_LINK_BATCH",
+      "-DOXSDK_MAINLOOP_ENGINE",
+      "-DOXSDK_E2_V23_LINK_BATCH",
+      "-DOXSDK_E2_V23_FEATURE_ABI6",
+      "src/unoembind_stub.cpp"
+    ],
+    "cwd": "wasm_sdk_probe",
+    "exitCode": 0,
+    "stdoutPath": "syntax-only-03.stdout.txt",
+    "stderrPath": "syntax-only-03.stderr.txt"
+  },
+  {
+    "name": "syntax-only-04",
+    "argv": [
+      "taskset",
+      "-c",
+      "0",
+      "../wasm-lite/tools/emsdk/upstream/emscripten/em++",
+      "-fsyntax-only",
+      "-DLOK_USE_UNSTABLE_API",
+      "-I../libreoffice-26-8/include",
+      "-I../wasm-lite/build-headless-probe/config_host",
+      "-I../wasm-lite/build-headless-probe/workdir/UnoApiHeadersTarget/udkapi/comprehensive",
+      "-I../wasm-lite/build-headless-probe/workdir/UnoApiHeadersTarget/offapi/comprehensive",
+      "-I../wasm-lite/build-headless-probe/workdir/UnpackedTarball/boost",
+      "-Oz",
+      "-pthread",
+      "-fwasm-exceptions",
+      "-sSUPPORT_LONGJMP=wasm",
+      "-I../wasm-lite/build-headless-probe/workdir/UnpackedTarball/md4c/src",
+      "-DOXSDK_EDITOR_DISCOVERY",
+      "-DOXSDK_FINDING_016_SELECTION_BARRIER",
+      "-DOXSDK_E2_FORMAT_BARRIER",
+      "-DOXSDK_MERGE_KEY_UNDO",
+      "-DOXSDK_E2_V20_LINK_BATCH",
+      "-DOXSDK_E2_V21_LINK_BATCH",
+      "-DOXSDK_MAINLOOP_ENGINE",
+      "-DOXSDK_E2_V23_LINK_BATCH",
+      "-DOXSDK_E2_V23_FEATURE_ABI6",
+      "src/editor_api.cpp"
+    ],
+    "cwd": "wasm_sdk_probe",
+    "exitCode": 0,
+    "stdoutPath": "syntax-only-04.stdout.txt",
+    "stderrPath": "syntax-only-04.stderr.txt"
+  },
+  {
+    "name": "pre-merge-uptime",
+    "argv": [
+      "uptime"
+    ],
+    "cwd": ".",
+    "exitCode": 0,
+    "stdoutPath": "pre-merge-uptime.stdout.txt",
+    "stderrPath": "pre-merge-uptime.stderr.txt"
+  },
+  {
+    "name": "pre-merge-make-processes",
+    "argv": [
+      "pgrep",
+      "-a",
+      "make"
+    ],
+    "cwd": ".",
+    "exitCode": 1,
+    "stdoutPath": "pre-merge-make-processes.stdout.txt",
+    "stderrPath": "pre-merge-make-processes.stderr.txt"
+  },
+  {
+    "name": "merge-key-undo-scope",
+    "argv": [
+      "taskset",
+      "-c",
+      "0",
+      "python3",
+      "tools/check_merge_key_undo_scope.py",
+      "--base",
+      "5d77dc84",
+      "--carrier",
+      "E2_V15",
+      "--carrier",
+      "E2_V19",
+      "--carrier",
+      "E2_V20=probe_engine,sdk_api,editor_api",
+      "--carrier",
+      "E2_V21=probe_engine,sdk_api,editor_api",
+      "--carrier",
+      "E2_V22=probe_engine,sdk_api,editor_api",
+      "--carrier",
+      "E2_V23D=probe_engine,sdk_api,editor_api",
+      "--carrier",
+      "E2_V23D_R2=probe_engine,sdk_api,editor_api",
+      "--carrier",
+      "E2_V23=probe_engine,sdk_api,editor_api",
+      "--carrier",
+      "ODS_VIEWER_V1=probe_engine,sdk_api",
+      "--carrier",
+      "ODS_VIEWER_V2=probe_engine,sdk_api",
+      "--carrier",
+      "ODS_VIEWER_V3=probe_engine,sdk_api",
+      "--carrier",
+      "ODS_EDITOR_V1=probe_engine,sdk_api"
+    ],
+    "cwd": "wasm_sdk_probe",
+    "exitCode": 1,
+    "stdoutPath": "merge-key-undo-scope.stdout.txt",
+    "stderrPath": "merge-key-undo-scope.stderr.txt"
+  }
+]

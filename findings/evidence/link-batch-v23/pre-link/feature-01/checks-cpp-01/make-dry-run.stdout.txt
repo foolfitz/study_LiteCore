@@ -1,0 +1,51 @@
+mkdir -p build/e2/editor-v23
+python3 tools/check_v23_feature_contract.py --check-worker-base \
+	--base-worker build/archive/e2-editor-v22-f7a40bcc-worker-0d55bcfa/sdk-worker.js --base-worker-sha256 0d55bcfa2ee0e4ddc6239e25282001c13410b152a5a08ebac9903cc65c3fd350
+../wasm-lite/tools/emsdk/upstream/emscripten/em++ -DLOK_USE_UNSTABLE_API -I../libreoffice-26-8/include -I../wasm-lite/build-headless-probe/config_host -I../wasm-lite/build-headless-probe/workdir/UnoApiHeadersTarget/udkapi/comprehensive -I../wasm-lite/build-headless-probe/workdir/UnoApiHeadersTarget/offapi/comprehensive -I../wasm-lite/build-headless-probe/workdir/UnpackedTarball/boost -Oz -pthread -fwasm-exceptions -sSUPPORT_LONGJMP=wasm -I../wasm-lite/build-headless-probe/workdir/UnpackedTarball/md4c/src \
+	-DOXSDK_EDITOR_DISCOVERY \
+	-DOXSDK_FINDING_016_SELECTION_BARRIER -DOXSDK_E2_FORMAT_BARRIER \
+	-DOXSDK_MERGE_KEY_UNDO -DOXSDK_E2_V20_LINK_BATCH \
+	-DOXSDK_E2_V21_LINK_BATCH -DOXSDK_MAINLOOP_ENGINE \
+	-DOXSDK_E2_V23_LINK_BATCH -DOXSDK_E2_V23_FEATURE_ABI6 \
+	 -c src/sdk_api.cpp -o build/e2/editor-v23/sdk_api.o
+../wasm-lite/tools/emsdk/upstream/emscripten/em++ -DLOK_USE_UNSTABLE_API -I../libreoffice-26-8/include -I../wasm-lite/build-headless-probe/config_host -I../wasm-lite/build-headless-probe/workdir/UnoApiHeadersTarget/udkapi/comprehensive -I../wasm-lite/build-headless-probe/workdir/UnoApiHeadersTarget/offapi/comprehensive -I../wasm-lite/build-headless-probe/workdir/UnpackedTarball/boost -Oz -pthread -fwasm-exceptions -sSUPPORT_LONGJMP=wasm -I../wasm-lite/build-headless-probe/workdir/UnpackedTarball/md4c/src \
+	-DOXSDK_EDITOR_DISCOVERY \
+	-DOXSDK_FINDING_016_SELECTION_BARRIER -DOXSDK_E2_FORMAT_BARRIER \
+	-DOXSDK_MERGE_KEY_UNDO -DOXSDK_E2_V20_LINK_BATCH \
+	-DOXSDK_E2_V21_LINK_BATCH -DOXSDK_MAINLOOP_ENGINE \
+	-DOXSDK_E2_V23_LINK_BATCH -DOXSDK_E2_V23_FEATURE_ABI6 \
+	 -c src/probe_engine.cpp -o build/e2/editor-v23/probe_engine.o
+../wasm-lite/tools/emsdk/upstream/emscripten/em++ -DLOK_USE_UNSTABLE_API -I../libreoffice-26-8/include -I../wasm-lite/build-headless-probe/config_host -I../wasm-lite/build-headless-probe/workdir/UnoApiHeadersTarget/udkapi/comprehensive -I../wasm-lite/build-headless-probe/workdir/UnoApiHeadersTarget/offapi/comprehensive -I../wasm-lite/build-headless-probe/workdir/UnpackedTarball/boost -Oz -pthread -fwasm-exceptions -sSUPPORT_LONGJMP=wasm -I../wasm-lite/build-headless-probe/workdir/UnpackedTarball/md4c/src \
+	-DOXSDK_EDITOR_DISCOVERY \
+	-DOXSDK_FINDING_016_SELECTION_BARRIER -DOXSDK_E2_FORMAT_BARRIER \
+	-DOXSDK_MERGE_KEY_UNDO -DOXSDK_E2_V20_LINK_BATCH \
+	-DOXSDK_E2_V21_LINK_BATCH -DOXSDK_MAINLOOP_ENGINE \
+	-DOXSDK_E2_V23_LINK_BATCH -DOXSDK_E2_V23_FEATURE_ABI6 \
+	 -c src/unoembind_stub.cpp -o build/e2/editor-v23/unoembind_stub.o
+../wasm-lite/tools/emsdk/upstream/emscripten/em++ -DLOK_USE_UNSTABLE_API -I../libreoffice-26-8/include -I../wasm-lite/build-headless-probe/config_host -I../wasm-lite/build-headless-probe/workdir/UnoApiHeadersTarget/udkapi/comprehensive -I../wasm-lite/build-headless-probe/workdir/UnoApiHeadersTarget/offapi/comprehensive -I../wasm-lite/build-headless-probe/workdir/UnpackedTarball/boost -Oz -pthread -fwasm-exceptions -sSUPPORT_LONGJMP=wasm -I../wasm-lite/build-headless-probe/workdir/UnpackedTarball/md4c/src \
+	-DOXSDK_EDITOR_DISCOVERY \
+	-DOXSDK_FINDING_016_SELECTION_BARRIER -DOXSDK_E2_FORMAT_BARRIER \
+	-DOXSDK_MERGE_KEY_UNDO -DOXSDK_E2_V20_LINK_BATCH \
+	-DOXSDK_E2_V21_LINK_BATCH -DOXSDK_MAINLOOP_ENGINE \
+	-DOXSDK_E2_V23_LINK_BATCH -DOXSDK_E2_V23_FEATURE_ABI6 \
+	 -c src/editor_api.cpp -o build/e2/editor-v23/editor_api.o
+cp build/archive/e2-editor-v22-f7a40bcc-worker-0d55bcfa/exports.txt build/e2/editor-v23/exports.txt
+if [ "1" != "1" ]; then echo ""; echo "refusing to relink a frozen profile: build/e2/editor-v23/probe.js"; echo "it carries: the v23 ABI6 feature (ordered engine; no diagnostic entrance) -- every link mints a new hash"; echo "a new link mints a new artifact and unbinds that (findings 027, 036)."; echo "if that is really what you want:  make ALLOW_FROZEN_RELINK=1 build/e2/editor-v23/probe.js"; echo ""; exit 1; fi
+../wasm-lite/tools/emsdk/upstream/emscripten/em++ build/e2/editor-v23/sdk_api.o build/e2/editor-v23/probe_engine.o build/e2/editor-v23/unoembind_stub.o build/e2/editor-v23/editor_api.o  -L../wasm-lite/build-headless-probe/instdir/program $(cat ../wasm-lite/build-headless-probe/instdir/program/soffice.js.linkdeps) -pthread -fwasm-exceptions -sSUPPORT_LONGJMP=wasm --no-entry -Oz -sMODULARIZE -sEXPORT_NAME=createProbeModule -sTOTAL_MEMORY=1GB -sPTHREAD_POOL_SIZE=7 -sPTHREAD_POOL_SIZE_STRICT=0 -sSTACK_SIZE=131072 -sDEFAULT_PTHREAD_STACK_SIZE=1048576 -sFORCE_FILESYSTEM=1 -sWASM_BIGINT=1 -sERROR_ON_UNDEFINED_SYMBOLS=1 -sFETCH=1 -sASSERTIONS=0 -sEXIT_RUNTIME=0 -sEXPORTED_RUNTIME_METHODS=ccall,FS,HEAPU8 -sEXPORTED_FUNCTIONS=@build/e2/editor-v23/exports.txt -Wl,--wrap=_Z18initJsUnoScriptingv --pre-js ../libreoffice-26-8/static/emscripten/environment.js --pre-js ../wasm-lite/build-headless-probe/workdir/CustomTarget/static/emscripten_fs_image/soffice.data.js.link -o build/e2/editor-v23/probe.js
+test -s build/e2/editor-v23/probe.wasm
+cp sdk/v23-feature-worker.js build/e2/editor-v23/sdk-worker.js
+mkdir -p dist/profiles/e2-editor-v23
+echo "0d55bcfa2ee0e4ddc6239e25282001c13410b152a5a08ebac9903cc65c3fd350  build/archive/e2-editor-v22-f7a40bcc-worker-0d55bcfa/sdk-worker.js" | sha256sum -c --quiet
+python3 tools/build_base_no35_pack.py --check
+python3 tools/build_cjk_subset_mono_pack.py --check
+python3 tools/build_e2_v23_feature_profile.py \
+	--source-manifest sdk/v18-writer-review-manifest.json \
+	--loader build/e2/editor-v23/probe.js --wasm build/e2/editor-v23/probe.wasm \
+	--worker build/e2/editor-v23/sdk-worker.js \
+	--exports build/e2/editor-v23/exports.txt \
+	--profile e2-editor-v23 --inline-range-gestures all \
+	--page-rectangles --paste-markdown \
+	--output dist/profiles/e2-editor-v23
+test -s dist/profiles/e2-editor-v23/probe.js
+test -s dist/profiles/e2-editor-v23/probe.wasm
+test -s dist/profiles/e2-editor-v23/sdk-worker.js
