@@ -2113,6 +2113,15 @@ $(E2_V23_DIST)/sdk-manifest.json: $(E2_V23_BUILD)/probe.js $(E2_V23_BUILD)/probe
 $(E2_V23_BUILD) $(E2_V23_DIST):
 	mkdir -p $@
 
+# Focused source/contract tests only; no product objects, link or packaging target.
+.PHONY: test-v23-feature-static
+test-v23-feature-static:
+	python3 -I tests/test_v23_feature_abi.py
+	python3 -I tests/test_v23_feature_profile.py
+	python3 -I tests/test_v23_feature_build.py
+	node tests/v23_feature_worker_test.cjs
+	node --test editor-shell-v2/tests/v23-*.test.mjs
+
 # ---------------------------------------------------------------- v5, a11y
 #
 # Everything below names $(E2_V5_CORE) explicitly instead of $(LOBUILD).  The
