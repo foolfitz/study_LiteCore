@@ -26,6 +26,24 @@ def point(value):return {'xTwips':value['x'],'yTwips':value['y']+int(value['heig
 
 def request_key(item):return item['generation'],item['message']['requestId']
 
+# NarrowEditorV2Session.placeCaret (finding 140) picks its wire route from its own
+# first state read: an open range posts `click`, a collapsed caret posts
+# `editorPlaceCaretV2`.  The v19 pre-red route this reader came from had only
+# `click`; selection-prep-01 is the ABI6 counterexample.
+PLACE_OPS=('click','editorPlaceCaretV2')
+MUTATION_OPS=PLACE_OPS+('editorActionV2','editorSelectRangeV2')
+
+def place_route(requests,replies,generation):
+    """The route the product chose, from the raw reply to its first in-call state read."""
+    reads=[r for r in requests if r['generation']==generation and r['message']['operation']=='editorGetStateV2']
+    routed=[r for r in requests if r['generation']==generation and r['message']['operation'] in PLACE_OPS]
+    need(reads and len(routed)==1 and reads[0]['at']<=routed[0]['at'],'placeCaret route witness absent/nonunique')
+    t=replies.get(request_key(reads[0]));need(t is not None and t['message'].get('ok') is True,'placeCaret state read refused')
+    collapsed=(t['message'].get('result') or {}).get('selection',{}).get('collapsed')
+    need(type(collapsed) is bool,'placeCaret route state absent')
+    need(routed[0]['message']['operation']==('editorPlaceCaretV2' if collapsed else 'click'),'placeCaret route differs from its own state read')
+    return routed[0]['message']['operation']
+
 class Evidence:
     def __init__(self,page,plan,browser):
         self.page,self.plan=page,plan;self.used=set();self.mutations=set();self.call_order=[]
@@ -43,8 +61,12 @@ class Evidence:
     def call(self,name,op):
         need(name not in self.used,'reused call evidence');self.used.add(name);self.call_order.append(name)
         c,r,t=call_binding(self.page,name,op,self.requests,self.replies)
-        if op in ('click','editorActionV2','editorSelectRangeV2'):self.mutations.add(request_key(r))
+        if op in MUTATION_OPS:self.mutations.add(request_key(r))
         return c,r,t
+    def place(self,name):
+        calls=[c for c in self.page['calls'] if c['name']==name]
+        need(len(calls)==1 and type(calls[0].get('requestStart')) is int and type(calls[0].get('requestEnd')) is int,'missing/refused public call '+name)
+        c=calls[0];return self.call(name,place_route(self.page['requests'][c['requestStart']:c['requestEnd']],self.replies,c['generation']))
     def state(self,name,value):
         c,r,t=self.call(name,'editorGetStateV2')
         need(c['result']==value==t['message']['result'],'state not actual wire result')
@@ -72,7 +94,7 @@ class Evidence:
         first=wrap_first_rectangle(t['message']['result'])
         raw_boxes=sorted([list(map(int,x.split(','))) for x in t['message']['result']['selections'][0]['rectangles'].split(';')],key=lambda r:(r[1],r[0]))
         need(record.get('boxes')==raw_boxes,'unbound page search boxes')
-        _,r,_=self.call(prefix+'-search-click','click')
+        _,r,_=self.place(prefix+'-search-click')
         need(r['message']['payload']['xTwips']==first[0] and r['message']['payload']['yTwips']==first[1]+first[3]//2,'actual text-start click differs')
         if plan['anchor']=='search-first-displayed-line':self.move(prefix+'-home','move-line-home',False)
         self.state(prefix+'-start-state',record['start'])
@@ -90,7 +112,7 @@ class Evidence:
         if 'prefix' in plan:need(text==plan['prefix'],'actual logical prefix differs')
         elif offset=='visual-end':need(bool(text) and plan['query'].startswith(text) and record['target']['caret']['y']==first[1],'first visual-line prefix differs')
         else:need(text=='','nonempty start prefix')
-        _,r,_=self.call(prefix+'-restore-point','click');p=point(record['target']['caret'])
+        _,r,_=self.place(prefix+'-restore-point');p=point(record['target']['caret'])
         need(all(r['message']['payload'][k]==v for k,v in p.items()),'restore coordinates differ')
         self.state(prefix+'-final-state',record['final'])
         need(record['final']['caret']==record['target']['caret'] and record['final']['selection']['collapsed'] is True,'point not restored')
@@ -125,8 +147,8 @@ class Evidence:
         need({c['name'] for c in self.page['calls']}==self.used and len(self.page['calls'])==len(self.used),'unplanned/duplicate public call')
         for k,r in self.requests.items():
             op=r['message']['operation']
-            need(op in {'init','open','close','paint','search','getSelection','editorGetStateV2','save','click','editorActionV2','editorSelectRangeV2','insertText'},'unplanned wire operation')
-            if op in {'click','editorActionV2','editorSelectRangeV2'}:need(k in self.mutations,'unowned wire mutation')
+            need(op in {'init','open','close','paint','search','getSelection','editorGetStateV2','save','insertText',*MUTATION_OPS},'unplanned wire operation')
+            if op in MUTATION_OPS:need(k in self.mutations,'unowned wire mutation')
 
 def readiness(e):
     p=e.page;v=p['readiness'];gen,handle=e.opened(v['open'])
@@ -165,7 +187,7 @@ def setup(e,name,row):
     anchor=v['points'][row['anchorPointName']]['final']['caret'];moving=v['points'][row['movingPointName']]['final']['caret']
     origin=moving if name=='reference' else anchor
     if name=='reference' or row['nativeSetupMethod']!='drag':
-        _,r,_=e.call(name+'-origin-click','click');need(all(r['message']['payload'][k]==z for k,z in point(origin).items()),'shape origin differs')
+        _,r,_=e.place(name+'-origin-click');need(all(r['message']['payload'][k]==z for k,z in point(origin).items()),'shape origin differs')
     else:
         start,end=v['requestStart'],v['requestEnd']
         need(type(start) is int and type(end) is int and 0<=start<end<=len(e.page['requests']),'drag request bounds invalid')
@@ -196,7 +218,8 @@ def setup(e,name,row):
             need({'xTwips':payload['endXTwips'],'yTwips':payload['endYTwips']} in allowed_ends,'drag endpoint without actual pointer')
             e.mutations.add(request_key(r))
         payload=requests[-1]['message']['payload'];need(payload['endXTwips']==b['xTwips'] and payload['endYTwips']==b['yTwips'],'drag final endpoint differs')
-        clicks=[r for r in e.page['requests'][start:end] if r['generation']==gen and r['message']['operation']=='click']
+        route=place_route(e.page['requests'][start:end],e.replies,gen)
+        clicks=[r for r in e.page['requests'][start:end] if r['generation']==gen and r['message']['operation']==route]
         need(len(clicks)==1 and all(clicks[0]['message']['payload'][k]==z for k,z in a.items()),'drag initial click differs');e.mutations.add(request_key(clicks[0]))
     if name=='candidate' and row['nativeSetupMethod']=='click+Shift+Right x3':
         right={**row,'action':'move-character-right','productKey':{'key':'ArrowRight'}}
@@ -227,7 +250,7 @@ def arm(e,name,row):
     if v['readback']['revision']!=v['reply']['revision']:bad.append('delayed-revision')
     ar,_=e.text(name+'-active-selection',v['activeSelection']);need(ar['at']>=rt['at'],'active selection precedes delayed state')
     for request in e.requests.values():
-        if request['generation']==gen and before['at']<request['at']<=ar['at'] and request['message']['operation'] in ('click','editorActionV2','editorSelectRangeV2','insertText'):
+        if request['generation']==gen and before['at']<request['at']<=ar['at'] and request['message']['operation'] in MUTATION_OPS+('insertText',):
             need(request_key(request)==request_key(r),'unplanned mutation between precondition and delayed read')
     comparison={**v['reply'],'changed':False,'revision':v['reply']['beforeRevision']}
     stale=s2_compare(comparison,v['readback'],v['activeSelection'])+bad

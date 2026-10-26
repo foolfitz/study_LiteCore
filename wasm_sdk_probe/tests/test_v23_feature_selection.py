@@ -68,7 +68,12 @@ def synthetic_page(plan,case='shift-Left@caret-mid'):
         return r,t
     def state(par=0,offset=0,revision=0):return {'documentHandle':gen,'revision':revision,'caret':{'x':100+offset*10,'y':100+par*100,'height':20,'width':0},'selection':{'observed':True,'collapsed':True,'start':None,'end':None,'rectangles':[]}}
     def read(name,value):wire('editorGetStateV2',{},value,name);return copy.deepcopy(value)
-    def click(name,c):wire('click',{'xTwips':c['x'],'yTwips':c['y']+10},{},name)
+    def click(name,c,range_open):
+        # NarrowEditorV2Session.placeCaret: its own state read, then the route that read picks.
+        index=len(p['requests']);started=clock;before=state();before['selection']['collapsed']=not range_open
+        wire('editorGetStateV2',{},before)
+        wire('click' if range_open else 'editorPlaceCaretV2',{'xTwips':c['x'],'yTwips':c['y']+10},{})
+        p['calls'].append({'name':name,'generation':gen,'documentHandle':gen,'requestStart':index,'requestEnd':index+2,'startedAt':started,'finishedAt':clock+3,'ok':True,'result':{}})
     def selection(name,a,b):wire('editorSelectRangeV2',{'startXTwips':a['x'],'startYTwips':a['y']+10,'endXTwips':b['x'],'endYTwips':b['y']+10},{},name)
     def move(name,action,shift=False,value=None):
         if value is None:value={'action':action,'changed':False,'beforeRevision':0,'revision':0,'completion':'verified-move-readback','state':state()}
@@ -84,7 +89,7 @@ def synthetic_page(plan,case='shift-Left@caret-mid'):
         par=q.get('searchParagraph',q['paragraph']);offset=q['offset'];end=offset if type(offset) is int else len(plan['fixtureParagraphs'][par])
         start=state(par,0);target=state(q['paragraph'],0 if offset=='next-empty' else end)
         wire('search',{'query':q['query']},{'selections':[{'part':'0','rectangles':f'100,{100+par*100},1000,20'}]},prefix+'-search')
-        click(prefix+'-search-click',start['caret'])
+        click(prefix+'-search-click',start['caret'],True)
         if q['anchor']=='search-first-displayed-line':move(prefix+'-home','move-line-home')
         read(prefix+'-start-state',start)
         if type(offset) is int:
@@ -94,7 +99,7 @@ def synthetic_page(plan,case='shift-Left@caret-mid'):
             if offset=='next-empty':move(prefix+'-next-empty','move-character-right')
         read(prefix+'-target-state',target);selection(prefix+'-prefix-select',start['caret'],target['caret'])
         text={'text':q.get('prefix',''),'selectionType':'text' if q.get('prefix') else 'none'}
-        wire('getSelection',{},text,prefix+'-prefix-text');click(prefix+'-restore-point',target['caret']);read(prefix+'-final-state',target)
+        wire('getSelection',{},text,prefix+'-prefix-text');click(prefix+'-restore-point',target['caret'],bool(text['text']));read(prefix+'-final-state',target)
         return {'plan':q,'boxes':[[100,100+par*100,1000,20]],'start':start,'target':target,'final':target,'selected':text}
     v=p['readiness']={'open':open_doc()};v['setup']=locate('readiness',plan['readinessPoint'])
     v['beforeState']=read('readiness-before-state',state());v['beforeSave']=save('readiness-before-save',plan['fixtureParagraphs'])
@@ -107,7 +112,7 @@ def synthetic_page(plan,case='shift-Left@caret-mid'):
     for which in ('reference','candidate'):
         v=p[which]={'open':open_doc(),'points':{}};v['originalSave']=save(which+'-original-save',plan['fixtureParagraphs'])
         for n,q in row['pointPlans'].items():v['points'][n]=locate(which+'-point-'+n,q)
-        origin=v['points'][row['movingPointName']]['final'];click(which+'-origin-click',origin['caret'])
+        origin=v['points'][row['movingPointName']]['final'];click(which+'-origin-click',origin['caret'],False)
         v['setupState']=read(which+'-setup-state',origin);v['setupSelection']={'text':'','selectionType':'none'};wire('getSelection',{},v['setupSelection'],which+'-setup-text')
         v['before']=read(which+'-before-state',origin)
         inputstart=len(p['inputs']);sink={**sink,'generation':gen,'documentHandle':gen};shift=which=='candidate'
@@ -247,6 +252,39 @@ class ProductContradictionControls(unittest.TestCase):
         p=synthetic_page(self.plan);p['candidate']['points']['p1.11']['boxes']=[[100,200,1,1]]
         value=inspect(p,self.plan,'chrome')
         self.assertEqual(value['verdict'],'NOT_ESTABLISHED');self.assertIn('unbound page search boxes',value['reason'])
+
+
+class PlaceRouteControls(unittest.TestCase):
+    """selection-prep-01: ABI6 placeCaret posts editorPlaceCaretV2 on a collapsed caret, click on a range."""
+    @classmethod
+    def setUpClass(cls):
+        from v23_feature_selection_cases import config
+        cls.plan=config()
+    def test_route_is_read_from_the_products_own_state_read(self):
+        from judge_v23_feature_selection import inspect
+        p=synthetic_page(self.plan)
+        self.assertLessEqual({'click','editorPlaceCaretV2'},{r['message']['operation'] for r in p['requests']})
+        self.assertEqual(inspect(p,self.plan,'chrome')['verdict'],'PASS')
+        def window(page,name):
+            c=next(c for c in page['calls'] if c['name']==name);return c,page['requests'][c['requestStart']:c['requestEnd']]
+        def reply(page,request):
+            return next(t for t in page['responses'] if t['generation']==request['generation'] and t['message']['requestId']==request['message']['requestId'])
+        for kind in ('collapsed-but-click','range-but-placecaret','stale-state-read','fallback-both','no-state-read'):
+            page=copy.deepcopy(p)
+            if kind=='collapsed-but-click':window(page,'candidate-origin-click')[1][1]['message']['operation']='click'
+            elif kind=='range-but-placecaret':window(page,'readiness-search-click')[1][1]['message']['operation']='editorPlaceCaretV2'
+            elif kind=='stale-state-read':reply(page,window(page,'candidate-origin-click')[1][0])['message']['result']['selection']['collapsed']=False
+            elif kind=='no-state-read':window(page,'candidate-origin-click')[1][0]['message']['operation']='paint'
+            else:
+                c,requests=window(page,'candidate-origin-click');at=c['requestEnd'];extra=copy.deepcopy(requests[-1])
+                answer=copy.deepcopy(reply(page,extra));extra['message']['requestId']=answer['message']['requestId']=10**6
+                extra['message']['operation']='click';page['requests'].insert(at,extra);page['responses'].append(answer)
+                for other in page['calls']:
+                    if other['requestStart']>=at:other['requestStart']+=1;other['requestEnd']+=1
+                c['requestEnd']+=1
+            with self.subTest(kind=kind):
+                value=inspect(page,self.plan,'chrome')
+                self.assertEqual(value['verdict'],'NOT_ESTABLISHED',value);self.assertIn('placeCaret',value['reason'])
 
 
 
