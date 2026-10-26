@@ -151,6 +151,11 @@ class Evidence:
             # getDocumentSize, getParts in handlePageRectangles); shell57 under v19 never sent it.
             need(op in {'init','open','close','paint','pageRectangles','search','getSelection','editorGetStateV2','save','insertText',*MUTATION_OPS},'unplanned wire operation')
             if op in MUTATION_OPS:need(k in self.mutations,'unowned wire mutation')
+            if op=='paint' and self.replies.get(k,{}).get('message',{}).get('ok') is True:
+                # The observer keeps each bitmap's length and SHA-256 only (selection-prep-04).
+                pixels=self.replies[k]['message'].get('result',{}).get('pixels')
+                need(isinstance(pixels,dict) and pixels.get('encoding')=='sha256' and type(pixels.get('bytes')) is int
+                     and re.fullmatch(r'[0-9a-f]{64}',str(pixels.get('sha256'))) is not None,'paint digest incomplete')
 
 def readiness(e):
     p=e.page;v=p['readiness'];gen,handle=e.opened(v['open'])

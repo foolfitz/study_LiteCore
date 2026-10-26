@@ -14,17 +14,32 @@ const snap = value => {
   if(value&&typeof value==='object')return Object.fromEntries(Object.entries(value).map(([k,v])=>[k,snap(v)]));
   return value;
 };
+// Paint bitmaps (one 900x1153 RGBA page each) were 99.8% of a cell and no reader
+// predicate reads them; selection-prep-04's shift-Up@doc-end overflowed a single
+// JSON string. Keep each bitmap's length and SHA-256, not its bytes.
+const paintIds=new Set(),pending=window.__featureSelectionPending=[];
+function paintResponse(data){
+  const pixels=data?.result?.pixels;
+  if(!(pixels instanceof ArrayBuffer||ArrayBuffer.isView(pixels)))return snap(data);
+  const copy=(ArrayBuffer.isView(pixels)?new Uint8Array(pixels.buffer,pixels.byteOffset,pixels.byteLength):new Uint8Array(pixels)).slice();
+  const message=snap({...data,result:{...data.result,pixels:undefined}});
+  message.result.pixels={encoding:'sha256',bytes:copy.byteLength,sha256:null};
+  pending.push(hash(copy).then(h=>{message.result.pixels.sha256=h;}));
+  return message;
+}
 let generation=0,current,config;
 const NativeWorker=window.Worker;
 window.Worker=class extends NativeWorker {
   constructor(url,options){super(url,options);this.observedGeneration=++generation;
     const gen=this.observedGeneration;this.observedRecord={generation:gen,url:String(url),createdAt:performance.now()};
     result.workers.push(this.observedRecord);
-    this.addEventListener('message',event=>{const item={generation:gen,at:performance.now(),message:snap(event.data)};
+    this.addEventListener('message',event=>{const paint=event.data?.kind==='response'&&paintIds.delete(gen+':'+event.data.requestId);
+      const item={generation:gen,at:performance.now(),message:paint?paintResponse(event.data):snap(event.data)};
       if(event.data?.kind==='response')result.responses.push(item);
       if(event.data?.kind==='event')result.events.push(item);});}
   postMessage(message,...args){const item={generation:this.observedGeneration,at:performance.now(),message:snap(message)};
     if(message?.kind==='request')result.requests.push(item);
+    if(message?.kind==='request'&&message.operation==='paint')paintIds.add(this.observedGeneration+':'+message.requestId);
     if(message?.kind==='cancel')result.cancels.push(item);
     return super.postMessage(message,...args);}
   terminate(){this.observedRecord.terminatedAt=performance.now();return super.terminate();}

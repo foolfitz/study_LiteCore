@@ -213,6 +213,32 @@ for(const raw of ['1,2,3,4;bad','1,2,0,4','1,2,3,4;1,2,4,5','１,2,3,4']){
         self.assertEqual(run.returncode,0,run.stderr)
 
 
+    def test_actual_js_paint_digest_keeps_length_and_hash_only(self):
+        import subprocess
+        script=(Path(__file__).resolve().parents[1]/'web/v23-feature-selection.js').read_text()
+        head=script[script.index('const bytes64'):script.index('let generation=0')]
+        check="const window={};"+head+"""
+const pixels=new Uint8Array([1,2,3,4]);
+const message=paintResponse({kind:'response',requestId:9,ok:true,result:{pixels:pixels.buffer,width:1,height:1,revision:0}});
+if(message.result.width!==1||message.result.pixels.bytes!==4||message.result.pixels.sha256!==null)throw Error('digest shape');
+await Promise.all(window.__featureSelectionPending);
+if(message.result.pixels.sha256!=='9f64a747e1b97f131fabb6b447296c9b6f0201e79fb3c5356e6c77e89b6a806a')throw Error('wrong digest');
+if(JSON.stringify(message).includes('AQIDBA'))throw Error('bitmap bytes retained');
+const plain=paintResponse({kind:'response',requestId:9,ok:false,error:{code:'X'}});if(plain.error.code!=='X')throw Error('refusal changed');
+"""
+        run=subprocess.run(['node','--input-type=module','-e',check],capture_output=True,text=True)
+        self.assertEqual(run.returncode,0,run.stderr)
+    def test_paint_digest_is_required(self):
+        from judge_v23_feature_selection import inspect
+        for pixels,verdict in (({'encoding':'sha256','bytes':4,'sha256':'0'*64},'PASS'),({'encoding':'sha256','bytes':4,'sha256':None},'NOT_ESTABLISHED'),
+                               ({'encoding':'base64','bytes':4,'data':'AQIDBA=='},'NOT_ESTABLISHED')):
+            page=synthetic_page(self.plan);r=copy.deepcopy(page['requests'][-1]);t=copy.deepcopy(page['responses'][-1])
+            r['message'].update(requestId=10**6,operation='paint',payload={'documentHandle':r['generation']})
+            t['message'].update(requestId=10**6,ok=True,result={'pixels':pixels,'width':1,'height':1});page['requests'].append(r);page['responses'].append(t)
+            with self.subTest(pixels=pixels):
+                value=inspect(page,self.plan,'chrome');self.assertEqual(value['verdict'],verdict,value)
+                if verdict!='PASS':self.assertEqual(value['reason'],'paint digest incomplete')
+
 
 class ProductContradictionControls(unittest.TestCase):
     @classmethod
