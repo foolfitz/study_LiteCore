@@ -1,0 +1,47 @@
+{
+  "logPath": "wasm_sdk_probe/build/link-v23-feature-01.log",
+  "logBytes": 6277,
+  "logSha256": "71d57dbee69f1ce2d5b67016612b06edff3724e046c115234ef8332d5ee2bc23",
+  "compileCount": 4,
+  "linkCount": 1,
+  "records": [
+    {
+      "kind": "compile",
+      "source": "src/sdk_api.cpp",
+      "output": "build/e2/editor-v23/sdk_api.o",
+      "abi6": true,
+      "diagnosticFlag": false
+    },
+    {
+      "kind": "compile",
+      "source": "src/probe_engine.cpp",
+      "output": "build/e2/editor-v23/probe_engine.o",
+      "abi6": true,
+      "diagnosticFlag": false
+    },
+    {
+      "kind": "compile",
+      "source": "src/unoembind_stub.cpp",
+      "output": "build/e2/editor-v23/unoembind_stub.o",
+      "abi6": true,
+      "diagnosticFlag": false
+    },
+    {
+      "kind": "compile",
+      "source": "src/editor_api.cpp",
+      "output": "build/e2/editor-v23/editor_api.o",
+      "abi6": true,
+      "diagnosticFlag": false
+    },
+    {
+      "kind": "link",
+      "output": "build/e2/editor-v23/probe.js",
+      "objectInputs": [
+        "build/e2/editor-v23/sdk_api.o",
+        "build/e2/editor-v23/probe_engine.o",
+        "build/e2/editor-v23/unoembind_stub.o",
+        "build/e2/editor-v23/editor_api.o"
+      ]
+    }
+  ]
+}
