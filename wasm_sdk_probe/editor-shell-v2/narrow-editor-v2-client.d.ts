@@ -92,7 +92,7 @@ export class NarrowEditorV2Client {
          options?: RevisionOptions & { extendSelection?: boolean }): Promise<EditorV2InheritedResult>;
   action(action: "delete-selection",
          options?: RevisionOptions): Promise<EditorV2InheritedResult>;
-  /** ABI 5's two moves: no `extendSelection`, for the reason above. */
+  /** Document moves stay collapsed-only; Ctrl+Shift+Home/End is outside ABI6. */
   action(action: EditorV4AppendedAction,
          options?: RevisionOptions): Promise<EditorV2InheritedResult>;
 

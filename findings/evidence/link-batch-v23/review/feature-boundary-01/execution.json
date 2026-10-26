@@ -1,0 +1,35 @@
+{
+  "argv": [
+    "timeout",
+    "180",
+    "claude",
+    "-p",
+    "--model",
+    "sonnet",
+    "--effort",
+    "low",
+    "--max-turns",
+    "1",
+    "--settings",
+    "{\"alwaysThinkingEnabled\":false,\"disableAllHooks\":true}",
+    "--system-prompt",
+    "Review supplied source only. No tools. Reply in English.",
+    "--tools",
+    "",
+    "--strict-mcp-config",
+    "--output-format",
+    "json"
+  ],
+  "stdin": "findings/evidence/link-batch-v23/review/feature-boundary-01/request.md",
+  "stdinSha256": "353e63640b288f82bf9be0fea7f6eed1280652b5203a48b73c1346d416446e9d",
+  "exitCode": 0,
+  "stdout": "findings/evidence/link-batch-v23/review/feature-boundary-01/review.json",
+  "stderr": "findings/evidence/link-batch-v23/review/feature-boundary-01/stderr.txt",
+  "scopeCommits": [
+    "d98abffd",
+    "c6d3db0d",
+    "9a0d171e"
+  ],
+  "reviewVerdict": "NO_CONCRETE_FINDING",
+  "limits": "Supplied source hunks only; no tests, runtime, packager, session deletion or page/held code reviewed by this call."
+}
