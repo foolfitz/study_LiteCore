@@ -1,0 +1,63 @@
+diff -ru a/wasm_sdk_probe/tests/test_v23_feature_selection.py b/wasm_sdk_probe/tests/test_v23_feature_selection.py
+--- a/wasm_sdk_probe/tests/test_v23_feature_selection.py	2026-10-27 07:35:58.838900370 +0800
++++ b/wasm_sdk_probe/tests/test_v23_feature_selection.py	2026-10-27 07:36:15.603582083 +0800
+@@ -699,6 +699,23 @@
+             if r['family']!='type' and r['referencePolicy']!='settled-wasm':
+                 self.assertTrue(all('/s5-native/run-01/saves/' in r['native'][side]['path'] for side in ('before','after')),r['id'])
+                 self.assertIsNone(r['nativeOrderWitness'])
++    def test_type_fallback_only_for_witness_reasons(self):
++        # Addendum 1 item 2 red cases: a missing save and a wrong pre-key selection must raise.
++        from v23_feature_selection_cases import type_fallback
++        cell=lambda *reasons:{'id':'shift-Right@caret-mid/type','status':'NOT_ESTABLISHED','reasons':list(reasons)}
++        self.assertEqual(type_fallback(cell('Shift settle reached its cap')),['Shift settle reached its cap'])
++        self.assertEqual(type_fallback(cell('between-read does not complete before the x post')),['between-read does not complete before the x post'])
++        for invalid in ('missing actual save: after','missing or wrong actual pre-key selection/caret: beforePost',
++                        'before save differs from fixture paragraph text','setup cursor not bound to actual native discovery',
++                        'native rounds disagree on the Shift selection'):
++            with self.subTest(invalid=invalid),self.assertRaisesRegex(ValueError,'failed validity'):
++                type_fallback(cell('missing between-read',invalid))
++        with self.assertRaisesRegex(ValueError,'neither witnessed nor reasoned'):type_fallback(cell())
++    def test_witness_reason_list_matches_the_reader(self):
++        # Every listed reason is a string the type reader (or the shared cell validator) can emit.
++        from v23_feature_selection_cases import TYPE_WITNESS_REASONS
++        text=(PROJECT/'tools/read_v23_native_s5_type.py').read_text()+(PROJECT/'tools/read_v23_native_s5.py').read_text()
++        for reason in TYPE_WITNESS_REASONS:self.assertIn("'"+reason+"'",text,reason)
+     def judged(self,case,mutate,prep='s5-prep-02',browser='chrome'):
+         import gzip
+         from judge_v23_feature_selection import inspect
+diff -ru a/wasm_sdk_probe/tools/v23_feature_selection_cases.py b/wasm_sdk_probe/tools/v23_feature_selection_cases.py
+--- a/wasm_sdk_probe/tools/v23_feature_selection_cases.py	2026-10-27 07:35:58.828939998 +0800
++++ b/wasm_sdk_probe/tools/v23_feature_selection_cases.py	2026-10-27 07:36:15.603372062 +0800
+@@ -114,6 +114,22 @@
+          'Shift+Down':('ArrowDown',('shift',)),'Shift+Home':('Home',('shift',)),'Shift+End':('End',('shift',)),
+          'Backspace':('Backspace',()),'Delete':('Delete',()),'text:x':('x',())}
+ 
++# Fable ruling 3 Addendum 1 item 2: fallback A only for the ruling's named witness reasons,
++# (i) post order, (ii) the between-read, (iii) cap or missing read.  Any other reader reason
++# is an instrument failure; the plan then refuses, so S5 cannot count until it is resolved.
++TYPE_WITNESS_REASONS=frozenset({'actual FIFO key posts differ','invalid actual post ordering',
++    'missing Shift settle','Shift settle reached its cap','missing between-read','Shift/x posts not uniquely recorded',
++    'between-read does not follow the Shift posts','between-read does not complete before the x post',
++    'between-read selection differs from the three native rounds','silent member not collapsed at the between-read',
++    'native round caret not comparable with this run','silent member caret not at the moving point'})
++
++def type_fallback(cell):
++    reasons=cell.get('reasons')
++    if cell.get('status')!='NOT_ESTABLISHED' or not reasons:raise ValueError('native S5 type cell neither witnessed nor reasoned: '+cell['id'])
++    invalid=[r for r in reasons if r not in TYPE_WITNESS_REASONS]
++    if invalid:raise ValueError('native S5 type cell failed validity, not its witness: '+cell['id']+': '+'; '.join(invalid))
++    return reasons
++
+ def native_saves(run,cell):
+     saves={}
+     for side in ('before','after'):
+@@ -155,8 +171,7 @@
+                 # is witnessed (review item D; 0 of run-03's 47 strong cells are affected).
+                 if witness=='selection-before-x' and cell['between']['getTextSelection']==source['setup']['expectedSelection']:
+                     raise ValueError('strong order witness without a Shift-changed selection: '+row['id'])
+-            elif cell.get('status')=='NOT_ESTABLISHED' and cell.get('reasons'):fallback=cell['reasons']
+-            else:raise ValueError('native S5 type cell neither witnessed nor reasoned: '+row['id'])
++            else:fallback=type_fallback(cell)
+         elif row['referencePolicy']!='settled-wasm':
+             cell=native.get(row['id'])
+             if cell is None or cell.get('status')!='NATIVE_SAVE_AVAILABLE':raise ValueError('native S5 save missing: '+row['id'])
