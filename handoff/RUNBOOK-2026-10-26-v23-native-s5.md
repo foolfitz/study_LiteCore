@@ -51,3 +51,23 @@ The before/after ODTs remain actual oracle evidence. Consumers must additionally
 ## Appended 2026-10-27: type family
 
 "Literal `x` is character120/key0 through the same queue" did not keep order: run-01's 56 type cells measured x-then-Shift (fable ruling 3, `feature-protocol/s5-type-oracle-ruling/RULING.md`). Their saves are not oracles for the declared sequence. Deletion entries are unaffected. A type-only run-02 with a settle and an order witness is required; its harness change needs a new owner-authorized build.
+
+## Appended 2026-10-27: type-only run 02 (fable ruling 3)
+
+Separate source units, so run-01's bound sources stay byte-unchanged and run-01 still re-reads identically (`read_v23_native_s5.py run-01` reproduced `reader-01.json` byte for byte before and after this change): `v23_native_s5_type.cpp` (harness), `build_v23_native_s5_type_owner.py`, `run_v23_native_s5_type.py`, `read_v23_native_s5_type.py`, tests `tests/test_v23_native_s5_type.py`. The harness posts Shift INPUT/UP, settles (800 ms quiet / 8000 ms cap), reads the selection and selection type, then posts x INPUT/UP, settles and saves. A Shift-settle cap does not fail the run; the reader reads that cell NE (fallback A).
+
+```bash
+cd /home/jiajun/LibreOffice/study_LiteCore
+uptime; pgrep -a make
+python3 -I wasm_sdk_probe/tools/build_v23_native_s5_type_owner.py --build --out wasm_sdk_probe/build/native/v23-s5-type-owner-01
+python3 -I wasm_sdk_probe/tools/run_v23_native_s5_type.py \
+  --binary wasm_sdk_probe/build/native/v23-s5-type-owner-01/v23-native-s5-type \
+  --build-receipt wasm_sdk_probe/build/native/v23-s5-type-owner-01/build-receipt.json \
+  --install native-lok-26-8/build/instdir/program \
+  --out findings/evidence/link-batch-v23/feature-protocol/s5-native/run-02
+python3 -I wasm_sdk_probe/tools/read_v23_native_s5_type.py \
+  findings/evidence/link-batch-v23/feature-protocol/s5-native/run-02 \
+  --output findings/evidence/link-batch-v23/feature-protocol/s5-native/reader-02.json
+```
+
+The reader's verdict is `NATIVE_S5_TYPE_SAVES_READ` when the run-level bindings hold; each cell is then `NATIVE_SAVE_AVAILABLE` with `orderWitness` `selection-before-x` or `settle-only` (silent members), or `NOT_ESTABLISHED` with its reasons, which the selection plan turns into the settled-WASM fallback for that cell. The selection plan binds `reader-02.json` by hash (`NATIVE_S5_TYPE_READER_SHA256` in `v23_feature_selection_cases.py`).

@@ -675,6 +675,50 @@ class S5Controls(PreservedPages,unittest.TestCase):
                 value=self.s5(case,mutate);self.assertEqual((value['verdict'],value.get('reason')),(verdict,reason))
 
 
+class S5TypeOracleControls(PreservedPages,unittest.TestCase):
+    """Fable ruling 3: type cells bind run-03's witnessed native saves or settled-WASM, never run-01's."""
+    def test_live_plan_binds_type_cells_to_run03_or_the_settled_fallback(self):
+        from v23_feature_selection_cases import s5
+        table=derive(read_rounds());plan=s5(table,cases(table))
+        types=[r for r in plan.values() if r['family']=='type'];self.assertEqual(len(types),84)
+        native=fallback=0
+        for r in types:
+            self.assertNotIn('run-01',json.dumps(r),r['id'])
+            if r['referencePolicy']=='settled-wasm':
+                self.assertEqual((r['native'],r['nativeOrderWitness'],r['nativeFallback'],r['settledReference']),(None,None,None,True))
+            elif r['native'] is not None:
+                native+=1
+                self.assertIn(r['nativeOrderWitness'],('selection-before-x','settle-only'));self.assertIsNone(r['nativeFallback'])
+                self.assertTrue(all('/s5-native/run-03/saves/' in r['native'][side]['path'] for side in ('before','after')))
+                self.assertEqual(r['settledReference'],r['referencePolicy']!='native')
+            else:
+                fallback+=1
+                self.assertTrue(r['nativeFallback']);self.assertIsNone(r['nativeOrderWitness']);self.assertTrue(r['settledReference'])
+        self.assertEqual(native+fallback,56)
+        for r in plan.values():
+            if r['family']!='type' and r['referencePolicy']!='settled-wasm':
+                self.assertTrue(all('/s5-native/run-01/saves/' in r['native'][side]['path'] for side in ('before','after')),r['id'])
+                self.assertIsNone(r['nativeOrderWitness'])
+    def judged(self,case,mutate):
+        import gzip
+        from judge_v23_feature_selection import inspect
+        d=self.BASE/'s5-prep-02';plan=json.loads((d/'report.json').read_bytes())['config']
+        page=json.loads(gzip.decompress((d/('chrome-'+case.replace('/','__')+'.json.gz')).read_bytes()))['page']
+        # The page binds the config it ran under, so the page is re-bound to the edited plan.
+        from judge_v23_feature_selection import digest,encoded
+        mutate(plan['s5'][case]);page['configSha256']=digest(encoded(plan));return inspect(page,plan,'chrome')
+    def test_missing_native_save_is_ne_unless_a_reasoned_type_fallback_has_its_arm(self):
+        def drop(row):row['native']=None
+        value=self.judged('shift-Left@caret-mid/backspace',drop)
+        self.assertEqual((value['verdict'],value['reason']),('NOT_ESTABLISHED','native reference absent'))
+        value=self.judged('shift-Right@caret-mid/type',drop)
+        self.assertEqual((value['verdict'],value['reason']),('NOT_ESTABLISHED','native reference absent'))
+        # A reasoned fallback still needs the settled-WASM arm; the prep-02 page has none.
+        def fallback(row):row.update(native=None,nativeFallback=['between-read does not complete before the x post'])
+        value=self.judged('shift-Right@caret-mid/type',fallback)
+        self.assertEqual((value['verdict'],value['reason']),('NOT_ESTABLISHED','settled reference arm absent'))
+
+
 class OpenBoundaryControls(unittest.TestCase):
     def test_actual_runner_alias_and_mirror_respect_sdk_suffix_without_repacking(self):
         import re

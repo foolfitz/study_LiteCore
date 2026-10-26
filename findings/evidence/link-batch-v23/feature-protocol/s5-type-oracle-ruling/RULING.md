@@ -21,3 +21,14 @@ Census of all 56 native type cells (`s5-native/run-01/native.jsonl` posts and af
 ## Status at this record
 
 Not yet implemented: the harness change, the owner-authorized rebuild, native run-02, the reader's order-witness branch and its three red cases, and the finding. The counted selection run (`selection-counted-01`) had already completed when this ruling arrived, so constraint (a) no longer binds; it binds any future counted run. The appended corrections below are in place.
+
+## Appended 2026-10-27 07:10: implementation
+
+Done under the owner's in-session authorization (build and long runs handled by the session; hard calls to fable). Supersedes the "Not yet implemented" list above for these items.
+
+- Harness, builder, runner, reader and tests as new files (`de68de56`): `v23_native_s5_type.cpp`, `build_v23_native_s5_type_owner.py`, `run_v23_native_s5_type.py`, `read_v23_native_s5_type.py`, `tests/test_v23_native_s5_type.py`. run-01's bound sources are untouched; `read_v23_native_s5.py run-01` still reproduces `reader-01.json` byte for byte. The ruling's three red cases are tests (swapped timestamps, between text replaced by the post-x selection, and every actual run-01 type record), each NE for the named reason; nine reader mutations each turn a test red.
+- Run 02 (`../s5-native/run-02.README.md`): executed, but 46 cells could not witness order because the harness printed six significant digits (between-read end and x post rounded equal). Preserved with `reader-02.precision-defect.json`; superseded. Forced fix: fifteen digits.
+- Run 03 (`../s5-native/run-03.README.md`, `reader-03.json` `30530678…0706`): 56/56 witnessed, 47 `selection-before-x`, 9 `settle-only`, 0 fallback A. The selection plan binds it by hash; no run-01 type save is bound anywhere.
+- Judge: a missing native save is NE unless the row is a type cell with recorded fallback reasons, which then needs its settled-WASM arm. Recorded per cell: `nativeOrderWitness`, `nativeFallback`.
+- Finding 166 opened (`findings/166-…md`, evidence `findings/evidence/166/`). The census reproduces this ruling's 56/56 (52 derivable cells plus 14/14 cross-key) and shows run-02/03 at 7/52 and 0/14.
+- Instrument changes forced by execution: 1 (timestamp precision). Changes forced by review: listed in `implementation-review/` when it returns.

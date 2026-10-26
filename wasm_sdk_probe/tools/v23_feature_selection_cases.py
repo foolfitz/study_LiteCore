@@ -109,17 +109,35 @@ def interactions(table,rounds,texts):
 
 NATIVE_S5=ROOT/'findings/evidence/link-batch-v23/feature-protocol/s5-native'
 NATIVE_S5_READER_SHA256='014c1e0d51f6a522101c2acc6395797a8f974822cf085c8ea7f8f978b64ec538'
+NATIVE_S5_TYPE_READER_SHA256='305306785509764f1130709650ca44c8a6c0cc320b0d79bb632bbe0817870706'
 S5_KEYS={'Shift+Left':('ArrowLeft',('shift',)),'Shift+Right':('ArrowRight',('shift',)),'Shift+Up':('ArrowUp',('shift',)),
          'Shift+Down':('ArrowDown',('shift',)),'Shift+Home':('Home',('shift',)),'Shift+End':('End',('shift',)),
          'Backspace':('Backspace',()),'Delete':('Delete',()),'text:x':('x',())}
 
+def native_saves(run,cell):
+    saves={}
+    for side in ('before','after'):
+        path=NATIVE_S5/run/'saves'/Path(cell['saves'][side]['path']).name
+        if sha(path)!=cell['saves'][side]['sha256']:raise ValueError('native S5 save bytes differ: '+cell['id'])
+        saves[side]={'path':str(path.relative_to(ROOT)),'sha256':cell['saves'][side]['sha256']}
+    return saves
+
 def s5(table,cases_by_id):
-    """S5: every Table 1 arm by the seven families, with the native run-01 references bound by hash."""
+    """S5: every Table 1 arm by the seven families, with the native references bound by hash:
+    run-01 for the deletion families, run-03 for type (fable ruling 3; run-02 printed timestamps
+    too coarse to witness order).  run-01's type saves measured x-then-Shift and are never an
+    oracle; a type cell without run-03's order witness takes the fresh settled-WASM
+    reference (fallback A), its reasons recorded."""
     raw=(NATIVE_S5/'reader-01.json').read_bytes()
     if digest(raw)!=NATIVE_S5_READER_SHA256:raise ValueError('native S5 reader output differs')
     native=json.loads(raw)
     if native.get('verdict')!='NATIVE_S5_SAVES_AVAILABLE' or native.get('problems')!=[]:raise ValueError('native S5 references unavailable')
     native={c['id']:c for c in native['cells']}
+    raw=(NATIVE_S5/'reader-03.json').read_bytes()
+    if digest(raw)!=NATIVE_S5_TYPE_READER_SHA256:raise ValueError('native S5 type reader output differs')
+    typed=json.loads(raw)
+    if typed.get('verdict')!='NATIVE_S5_TYPE_SAVES_READ' or typed.get('problems')!=[]:raise ValueError('native S5 type references unavailable')
+    typed={c['id']:c for c in typed['cells']}
     result={}
     for row in table['S5']:
         source=cases_by_id.get(row['sourceArm'])
@@ -127,20 +145,23 @@ def s5(table,cases_by_id):
         keys=[S5_KEYS[k] for k in row['sequence']]
         shift=[i for i,k in enumerate(row['sequence']) if k.startswith('Shift+')]
         if len(shift)!=1 or row['sequence'][shift[0]]!='Shift+'+source['key']:raise ValueError('S5 sequence differs from its source arm')
-        reference=None
-        if row['referencePolicy']!='settled-wasm':
+        reference=witness=fallback=None
+        if row['referencePolicy']!='settled-wasm' and row['family']=='type':
+            cell=typed.get(row['id'])
+            if cell is None:raise ValueError('native S5 type cell missing: '+row['id'])
+            if cell.get('status')=='NATIVE_SAVE_AVAILABLE' and cell.get('orderWitness') in ('selection-before-x','settle-only'):
+                reference=native_saves('run-03',cell);witness=cell['orderWitness']
+            elif cell.get('status')=='NOT_ESTABLISHED' and cell.get('reasons'):fallback=cell['reasons']
+            else:raise ValueError('native S5 type cell neither witnessed nor reasoned: '+row['id'])
+        elif row['referencePolicy']!='settled-wasm':
             cell=native.get(row['id'])
             if cell is None or cell.get('status')!='NATIVE_SAVE_AVAILABLE':raise ValueError('native S5 save missing: '+row['id'])
-            saves={}
-            for side in ('before','after'):
-                path=NATIVE_S5/'run-01/saves'/Path(cell['saves'][side]['path']).name
-                if sha(path)!=cell['saves'][side]['sha256']:raise ValueError('native S5 save bytes differ: '+row['id'])
-                saves[side]={'path':str(path.relative_to(ROOT)),'sha256':cell['saves'][side]['sha256']}
-            reference=saves
+            reference=native_saves('run-01',cell)
         result[row['id']]={'id':row['id'],'sourceArm':row['sourceArm'],'family':row['family'],'sequence':row['sequence'],
             'keys':[{'key':k,'mods':list(m)} for k,m in keys],'shiftIndex':shift[0],'comparison':row['comparison'],
-            'referencePolicy':row['referencePolicy'],'native':reference,'memberships':['S5'],
-            'settledReference':row['referencePolicy']!='native','default':'NOT_ESTABLISHED_UNPERFORMED'}
+            'referencePolicy':row['referencePolicy'],'native':reference,'nativeOrderWitness':witness,'nativeFallback':fallback,
+            'memberships':['S5'],'settledReference':row['referencePolicy']!='native' or reference is None,
+            'default':'NOT_ESTABLISHED_UNPERFORMED'}
     if len(result)!=588:raise ValueError('S5 population differs')
     return result
 

@@ -536,14 +536,17 @@ def inspect_s5(page,plan,browser):
         e.closure()
         contradict(not any(x['message'].get('event') in ('recoverable-error','worker-restart') for x in page['events']),'recovery occurred')
         single=single_line(e,'s5cand')
-        native=row['referencePolicy']=='native' or (row['referencePolicy'].startswith('native-if-single-line') and single)
+        # A type cell without run-03's order witness carries no native save (fable ruling 3, fallback A).
+        need(row['native'] is not None or row['referencePolicy']=='settled-wasm' or (row['family']=='type' and row.get('nativeFallback')),'native reference absent')
+        native=row['native'] is not None and (row['referencePolicy']=='native' or (row['referencePolicy'].startswith('native-if-single-line') and single))
         if native:reference=native_reference(row,cand['original'])
         else:
             need(ref is not None,'settled reference arm absent');reference=ref['final']
         contradict(s5_compare(row['family'],cand['final'],reference,native),'sequence result differs from its reference')
         overlapping=any(o['pendingMoveOrExtendKeys'] for o in cand['overlap'])
         groups['S5']={'verdict':'PASS','reference':'native' if native else 'settled-wasm','singleLineWitness':single,
-                      'overlap':cand['overlap'],'overlapping':overlapping}
+                      'nativeOrderWitness':row.get('nativeOrderWitness') if native else None,
+                      'nativeFallback':row.get('nativeFallback'),'overlap':cand['overlap'],'overlapping':overlapping}
         return {'verdict':'PASS','groups':groups}
     except ProductFailure as error:
         groups['S5']={'verdict':'FAIL','reason':str(error)}
