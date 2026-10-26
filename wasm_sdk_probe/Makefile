@@ -2035,6 +2035,84 @@ $(E2_V23D_R2_DIST)/sdk-manifest.json: $(E2_V23D_R2_BUILD)/probe.js $(E2_V23D_R2_
 $(E2_V23D_R2_BUILD) $(E2_V23D_R2_DIST):
 	mkdir -p $@
 
+# Feature-only ABI6 successor; diagnostics stay frozen on ABI5.
+E2_V23_BUILD := build/e2/editor-v23
+E2_V23_DIST := dist/profiles/e2-editor-v23
+E2_V23_SOURCES := $(E2_C_SOURCES)
+E2_V23_OBJECTS := $(patsubst src/%.cpp,$(E2_V23_BUILD)/%.o,$(E2_V23_SOURCES))
+E2_V23_MD4C_INCLUDE := $(LOBUILD)/workdir/UnpackedTarball/md4c/src
+# Frozen base identity for the isolated feature worker.
+E2_V23_BASE_WORKER := build/archive/e2-editor-v22-f7a40bcc-worker-0d55bcfa/sdk-worker.js
+E2_V23_WORKER_SHA256 := 0d55bcfa2ee0e4ddc6239e25282001c13410b152a5a08ebac9903cc65c3fd350
+
+.PHONY: v23-feature-worker-preflight
+v23-feature-worker-preflight:
+	python3 tools/check_v23_feature_contract.py --check-worker-base \
+		--base-worker $(E2_V23_BASE_WORKER) --base-worker-sha256 $(E2_V23_WORKER_SHA256)
+
+$(E2_V23_BUILD)/%.o: src/%.cpp $(HEADERS) src/editor_api.h \
+		src/editor_discovery_api.h src/format_readback_text.hpp \
+		src/a11y_paragraph_identity.hpp src/merge_key_undo.hpp \
+		src/markdown_paste.hpp src/ordered_command_proof.hpp \
+		src/ordered_delete_route.hpp src/ordered_poll.hpp src/ordered_engine_guards.hpp src/reply_state_reads.hpp \
+		src/ordered_engine_state.inc src/ordered_engine_reply.inc src/ordered_engine_poll.inc \
+		src/ordered_engine_delete.inc src/ordered_format.inc $(E2_V23_MD4C_INCLUDE)/md4c.h Makefile \
+		| $(E2_V23_BUILD) v23-feature-worker-preflight
+	$(CXX) $(E1_CPPFLAGS) $(R5_CXXFLAGS) -I$(E2_V23_MD4C_INCLUDE) \
+		-DOXSDK_EDITOR_DISCOVERY \
+		-DOXSDK_FINDING_016_SELECTION_BARRIER -DOXSDK_E2_FORMAT_BARRIER \
+		-DOXSDK_MERGE_KEY_UNDO -DOXSDK_E2_V20_LINK_BATCH \
+		-DOXSDK_E2_V21_LINK_BATCH -DOXSDK_MAINLOOP_ENGINE \
+		-DOXSDK_E2_V23_LINK_BATCH -DOXSDK_E2_V23_FEATURE_ABI6 \
+		$(EXTRA_DEFINES) -c $< -o $@
+
+# Same public export surface as frozen v22; no diagnostic entrance.
+$(E2_V23_BUILD)/exports.txt: build/archive/e2-editor-v22-f7a40bcc-worker-0d55bcfa/exports.txt Makefile | $(E2_V23_BUILD)
+	cp $< $@
+
+# Guarded from the first link, like every product artifact before it.
+$(E2_V23_BUILD)/probe.js: $(E2_V23_OBJECTS) $(EXTRA_OBJECTS) \
+		$(E2_V23_BUILD)/exports.txt $(LINKDEPS) $(FS_PRE_JS) Makefile
+	$(call refuse_unasked_relink,the v23 ABI6 feature (ordered engine; no diagnostic entrance) -- every link mints a new hash)
+	$(call link_product_stack_1m,$(E2_V23_OBJECTS) $(EXTRA_OBJECTS),$(E2_V23_BUILD)/exports.txt,$@)
+
+$(E2_V23_BUILD)/probe.wasm: $(E2_V23_BUILD)/probe.js
+	@test -s $@
+
+# Isolated product worker; never rewrite the shared Calc SDK worker.
+$(E2_V23_BUILD)/sdk-worker.js: sdk/v23-feature-worker.js Makefile | $(E2_V23_BUILD) v23-feature-worker-preflight
+	cp $< $@
+
+# ABI6 changes only the six inherited movement contracts.
+$(E2_V23_DIST)/sdk-manifest.json: $(E2_V23_BUILD)/probe.js $(E2_V23_BUILD)/probe.wasm \
+		$(E2_V23_BUILD)/exports.txt $(E2_V23_BUILD)/sdk-worker.js \
+		sdk/v18-writer-review-manifest.json \
+		tools/build_base_no35_pack.py tools/build_r5_profiles.py \
+		tools/build_cjk_subset.py tools/build_cjk_subset_ttc_pack.py \
+		tools/build_cjk_subset_mono_pack.py \
+		tools/build_e2_editor_v5_profile.py tools/build_e2_v23_feature_profile.py \
+		tools/check_v23_feature_contract.py tools/check_v23_diagnostic_build.py \
+		tools/inspect_wasm_function.py tools/validate_r5_artifacts.py \
+		tools/build_e2_editor_v4_profile.py tools/build_e2_c_profile.py \
+		tools/build_e2_b_profile.py tools/e1_support.py | $(E2_V23_DIST)
+	echo "$(E2_V23_WORKER_SHA256)  $(E2_V23_BASE_WORKER)" | sha256sum -c --quiet
+	python3 tools/build_base_no35_pack.py --check
+	python3 tools/build_cjk_subset_mono_pack.py --check
+	python3 tools/build_e2_v23_feature_profile.py \
+		--source-manifest sdk/v18-writer-review-manifest.json \
+		--loader $(E2_V23_BUILD)/probe.js --wasm $(E2_V23_BUILD)/probe.wasm \
+		--worker $(E2_V23_BUILD)/sdk-worker.js \
+		--exports $(E2_V23_BUILD)/exports.txt \
+		--profile e2-editor-v23 --inline-range-gestures all \
+		--page-rectangles --paste-markdown \
+		--output $(E2_V23_DIST)
+	@test -s $(E2_V23_DIST)/probe.js
+	@test -s $(E2_V23_DIST)/probe.wasm
+	@test -s $(E2_V23_DIST)/sdk-worker.js
+
+$(E2_V23_BUILD) $(E2_V23_DIST):
+	mkdir -p $@
+
 # ---------------------------------------------------------------- v5, a11y
 #
 # Everything below names $(E2_V5_CORE) explicitly instead of $(LOBUILD).  The
@@ -4538,6 +4616,7 @@ test-e2-c-static:
 		--carrier E2_V22=probe_engine,sdk_api,editor_api \
 		--carrier E2_V23D=probe_engine,sdk_api,editor_api \
 		--carrier E2_V23D_R2=probe_engine,sdk_api,editor_api \
+		--carrier E2_V23=probe_engine,sdk_api,editor_api \
 		--carrier ODS_VIEWER_V1=probe_engine,sdk_api \
 		--carrier ODS_VIEWER_V2=probe_engine,sdk_api \
 		--carrier ODS_VIEWER_V3=probe_engine,sdk_api \
