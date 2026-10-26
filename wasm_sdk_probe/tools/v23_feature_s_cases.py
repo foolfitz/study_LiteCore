@@ -140,7 +140,7 @@ def derive(rounds):
         'contracts': {
             'S1': {'anchorUnchanged': True, 'movingEndpoint': 'same-browser independent unshifted control',
                    'logicalCoordinates': 'paragraph index and Unicode code-point offset; never native twips'},
-            'S2': {'wireStateOperation': 'editorGetStateV1', 'wireActiveSelectionOperation': 'getSelection',
+            'S2': {'wireStateOperation': 'editorGetStateV2', 'wireActiveSelectionOperation': 'getSelection',
                    'minimumReadbackDelayAfterTerminalMs': 500,
                    'compare': ['caret', 'selection'], 'captureFullState': True,
                    'uniqueTerminalPerRequest': True, 'moveChanged': False, 'revisionUnchanged': True,

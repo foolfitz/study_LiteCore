@@ -71,3 +71,7 @@ Reproduce the source table and focused controls without a build or browser:
 python3 -I wasm_sdk_probe/tools/v23_feature_s_cases.py --output findings/evidence/link-batch-v23/feature-protocol/s-cases.json
 python3 -I wasm_sdk_probe/tests/test_v23_feature_s_cases.py
 ```
+
+## Literal state-route correction before execution (ordered §22)
+
+The earlier Actual public evidence contract sentence naming `editorGetStateV1` is superseded for the narrow v2 client used here. Both the pinned v19/v57 and current feature `NarrowEditorV2Client.getState()` delegate to `ParagraphEditorClient.getState()`, whose actual request is **`editorGetStateV2`**. V1 belongs to the separate base client; it must not be accepted as a synonym on this route. The table generator now records the exact V2 operation. The pre-red reader has a wrong-literal-route causal control. This is a source-proven correction before any feature execution, changes no case/grant/product behavior, and resets no diagnostic count.

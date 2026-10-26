@@ -14,6 +14,7 @@ class SourcePopulationTests(unittest.TestCase):
 
     def test_archive_and_missing_oracle_are_distinct(self):
         result = derive(self.rounds)
+        self.assertEqual(result['contracts']['S2']['wireStateOperation'], 'editorGetStateV2')
         self.assertEqual(result['counts'], {'S1':84,'S2':108,'v19PreRed':16,'S3':10,'S4':9,'S5':588})
         self.assertEqual(len({r['id'] for r in result['S5']}), 588)
         self.assertEqual(sum(r['referencePolicy']=='native' for r in result['S5']), 196)
