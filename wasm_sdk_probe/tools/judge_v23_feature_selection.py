@@ -290,6 +290,50 @@ def logical_endpoint(e):
     return paragraph,len(text)
 
 
+TABLE_NS='urn:oasis:names:tc:opendocument:xmlns:table:1.0'
+
+def containers_from_xml(raw,expected):
+    """Paragraph -> 'body' or [table,row,column], in paragraph_texts_from_xml order."""
+    import xml.etree.ElementTree as ET
+    from odt_paragraphs import PARAGRAPHS,CONTAINERS,OFFICE,_inline
+    t=lambda name:'{'+TABLE_NS+'}'+name
+    body=ET.fromstring(raw).find('{'+OFFICE+'}body');need(body is not None,'container fixture has no body')
+    parent={child:node for node in body.iter() for child in node}
+    tables=[x for x in body.iter() if x.tag==t('table')];need(tables,'container parser found no table')
+    texts=[];out=[]
+    for element in body.iter():
+        if element.tag not in PARAGRAPHS:continue
+        parts=[];_inline(element,parts);texts.append(''.join(parts))
+        chain=[];node=element
+        while node in parent:node=parent[node];chain.append(node)
+        need(not any(x.tag in CONTAINERS for x in chain),'container parser: paragraph in note/frame/annotation not modelled')
+        cells=[x for x in chain if x.tag in (t('table-cell'),t('covered-table-cell'))]
+        if not cells:out.append('body');continue
+        need(len(cells)==1 and cells[0].tag==t('table-cell'),'container parser: nested or covered cell not modelled')
+        cell=cells[0];row=parent[cell];table=parent.get(row)
+        need(row.tag==t('table-row') and table is not None and table.tag==t('table'),'container parser: row group or header rows not modelled')
+        rows=[x for x in table if x.tag==t('table-row')];columns=[x for x in row if x.tag in (t('table-cell'),t('covered-table-cell'))]
+        need(not any(x.get(t(a)) for x in rows+columns for a in ('number-rows-repeated','number-columns-repeated','number-columns-spanned','number-rows-spanned')),
+             'container parser: repeated or spanned cell not modelled')
+        out.append([tables.index(table),rows.index(row),columns.index(cell)])
+    need(texts==expected,'container parser paragraph order differs')
+    return out
+
+def fixture_containers(plan):
+    from v23_feature_selection_cases import FIXTURE
+    raw=FIXTURE.read_bytes();need(digest(raw)==plan['fixtureSha256'],'container fixture differs')
+    return containers_from_xml(raw,plan['fixtureParagraphs'])
+
+def table_selection(containers,row,anchorname,endpoint_paragraph):
+    """Fable ruling 2026-10-27 (A'): a member is a table-selection member when the plain
+    control's endpoint lies in a different container than the moving point, the condition
+    under which Writer itself selects cells or jumps the table (selection-prep-03/04)."""
+    need(type(endpoint_paragraph) is int and 0<=endpoint_paragraph<len(containers),'reference endpoint paragraph absent')
+    moving=containers[row['pointPlans'][row['movingPointName']]['paragraph']]
+    need(containers[row['pointPlans'][anchorname]['paragraph']]==moving,'setup shape crosses container; no oracle')
+    target=containers[endpoint_paragraph]
+    return [moving,target] if moving!=target else None
+
 def inspect(page,plan,browser):
     groups={'S1':{'verdict':'NOT_APPLICABLE'},'S2':{'verdict':'NOT_ESTABLISHED'},'S3':{'verdict':'NOT_APPLICABLE'}}
     try:
@@ -321,23 +365,37 @@ def inspect(page,plan,browser):
             anchorname=row['anchorPointName'] if row['setup']['expectRange'] else row['movingPointName']
             state=page['candidate']['readback'];target=page['reference']['endpoint']
             anchor=candidate['anchor'] if row['setup']['expectRange'] else candidate['moving']
-            contradict(xy(state['caret'])==xy(target),'moving endpoint differs from independent control')
-            endpoint_pair(state['selection'],xy(anchor),xy(target),measured=True)
-            if row['key'] in ('Left','Right'):
-                contradict(all(page['candidate']['activeSelection']['text']==x for x in row['nativeAfterSelectionText']),'native literal selection differs')
-            # Native Home/End parity is conditional; the independent control is always retained.
-            single=True
-            for pointname,observed in page['candidate']['points'].items():
-                _,_,search=call_binding(page,'candidate-point-'+pointname+'-search','search',e.requests,e.replies)
-                raw=search['message']['result'];first=wrap_first_rectangle(raw)
-                boxes=raw['selections'][0]['rectangles'].split(';')
-                single=single and len(boxes)==1 and observed['start']['caret']['y']==first[1] and observed['final']['caret']['y']==first[1]
-            single=single and state['caret']['y']==candidate['moving']['y'] and target['y']==candidate['moving']['y']
-            if row['key'] in ('Home','End') and single:
-                contradict(all(page['candidate']['activeSelection']['text']==x for x in row['nativeAfterSelectionText']),'single-line native selection differs')
+            def single_line():
+                single=True
+                for pointname,observed in page['candidate']['points'].items():
+                    _,_,search=call_binding(page,'candidate-point-'+pointname+'-search','search',e.requests,e.replies)
+                    raw=search['message']['result'];first=wrap_first_rectangle(raw)
+                    boxes=raw['selections'][0]['rectangles'].split(';')
+                    single=single and len(boxes)==1 and observed['start']['caret']['y']==first[1] and observed['final']['caret']['y']==first[1]
+                return single and state['caret']['y']==candidate['moving']['y'] and target['y']==candidate['moving']['y']
             anchorplan=row['pointPlans'][anchorname]
             offset=anchorplan['offset'] if type(anchorplan['offset']) is int else 0 if anchorplan['offset']=='next-empty' else len(page['candidate']['points'][anchorname]['selected']['text'])
-            groups['S1']={'verdict':'PASS','logicalAnchor':[anchorplan['paragraph'],offset],'logicalEndpoint':logical,'singleLineNativeWitness':single}
+            crossing=table_selection(fixture_containers(plan),row,anchorname,logical[0])
+            if crossing:
+                # Oracle: Writer's own selected text, all three native rounds agreeing; the
+                # unshifted-endpoint premise is false here (append to the protocol, 2026-10-27).
+                texts=row['nativeAfterSelectionText']
+                need(isinstance(texts,list) and len(texts)==3 and len(set(texts))==1,'native table-selection oracle disagrees')
+                contradict(page['candidate']['activeSelection']['text']==texts[0],'table-selection native text differs')
+                groups['S1']={'verdict':'PASS','tableSelection':True,'containers':crossing,'logicalAnchor':[anchorplan['paragraph'],offset],
+                              'logicalEndpoint':logical,'nativeText':texts[0],'anchorWitness':'native-text-extent',
+                              'namedLimitation':'caret side and text-anchor identity not independently witnessed for table-selection members',
+                              'singleLineNativeWitness':single_line()}
+            else:
+                contradict(xy(state['caret'])==xy(target),'moving endpoint differs from independent control')
+                endpoint_pair(state['selection'],xy(anchor),xy(target),measured=True)
+                if row['key'] in ('Left','Right'):
+                    contradict(all(page['candidate']['activeSelection']['text']==x for x in row['nativeAfterSelectionText']),'native literal selection differs')
+                # Native Home/End parity is conditional; the independent control is always retained.
+                single=single_line()
+                if row['key'] in ('Home','End') and single:
+                    contradict(all(page['candidate']['activeSelection']['text']==x for x in row['nativeAfterSelectionText']),'single-line native selection differs')
+                groups['S1']={'verdict':'PASS','logicalAnchor':[anchorplan['paragraph'],offset],'logicalEndpoint':logical,'singleLineNativeWitness':single}
         return {'verdict':'FAIL' if any(x['verdict']=='FAIL' for x in groups.values()) else 'PASS','groups':groups}
     except ProductFailure as error:
         groups[current_group]={'verdict':'FAIL','reason':str(error)}

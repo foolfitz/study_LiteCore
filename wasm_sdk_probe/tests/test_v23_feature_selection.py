@@ -408,6 +408,63 @@ class ActualPreparationRereads(unittest.TestCase):
         self.assertEqual(inspect(page,plan,'chrome')['verdict'],'PASS')
 
 
+class TableSelectionControls(ActualPreparationRereads):
+    """Fable ruling 2026-10-27 (A'), red cases (a)-(e)."""
+    def consistent(self,page,name,mutate):
+        # Mutate the page record, the public call result and the wire reply together.
+        call=next(c for c in page['calls'] if c['name']==name)
+        request=next(r for r in page['requests'][call['requestStart']:call['requestEnd']] if r['message']['operation'] in ('getSelection','editorGetStateV2'))
+        reply=next(x for x in page['responses'] if x['generation']==request['generation'] and x['message']['requestId']==request['message']['requestId'])
+        for value in (call['result'],reply['message']['result']):mutate(value)
+    def test_a_one_character_off_native_text_fails(self):
+        from judge_v23_feature_selection import inspect
+        page,plan=self.page('selection-prep-04','shift-Down@cell-end')
+        self.assertTrue(inspect(page,plan,'chrome')['groups']['S1'].get('tableSelection'))
+        edit=lambda v:v.update(text=v['text'].replace('A2','A3',1))
+        edit(page['candidate']['activeSelection']);self.consistent(page,'candidate-active-selection',edit)
+        value=inspect(page,plan,'chrome');self.assertEqual(value['groups']['S1'],{'verdict':'FAIL','reason':'table-selection native text differs'})
+    def test_b_the_old_premise_extension_fails(self):
+        from judge_v23_feature_selection import inspect
+        page,plan=self.page('selection-prep-03','shift-Up@cell-end')
+        # What the withdrawn premise expected: extend from the cell end to the plain Up endpoint.
+        end=page['reference']['endpoint'];anchor=page['candidate']['before']['caret']
+        def old(state):
+            state.update(caret=copy.deepcopy(end));state['selection'].update(collapsed=False,start={**end,'height':275},end={**anchor,'height':275})
+        old(page['candidate']['readback']);self.consistent(page,'candidate-readback',old)
+        text=lambda v:v.update(text='item one\nA1 cell text')
+        text(page['candidate']['activeSelection']);self.consistent(page,'candidate-active-selection',text)
+        self.assertEqual(inspect(page,plan,'chrome')['groups']['S1']['verdict'],'FAIL')
+    def test_c_container_parser_refuses_what_it_does_not_model(self):
+        import re
+        from judge_v23_feature_selection import containers_from_xml
+        from judge_v23_feature_pre_red import NotEstablished
+        from v23_feature_selection_cases import FIXTURE,config
+        raw=FIXTURE.read_text();expected=config()['fixtureParagraphs']
+        self.assertEqual(containers_from_xml(raw.encode(),expected)[8],[0,0,0])
+        no_table=re.sub(r'<table:table .*?</table:table>','',raw,flags=re.S)
+        spanned=raw.replace('<table:table-cell office:value-type="string"><text:p>A1','<table:table-cell table:number-columns-spanned="2" office:value-type="string"><text:p>A1',1)
+        for name,text,wanted in (('no table',no_table,[t for t in expected if 'cell text' not in t]),('order',raw,expected[::-1]),('spanned',spanned,expected)):
+            with self.subTest(name=name),self.assertRaises(NotEstablished):containers_from_xml(text.encode(),wanted)
+    def test_d_non_table_members_read_as_before(self):
+        import gzip
+        from judge_v23_feature_selection import inspect
+        for prep,case in (('selection-prep-03','shift-Down@caret-mid'),('selection-prep-04','shift-Home@cell-end'),('selection-prep-05','shift-Right@range-bwd')):
+            cell=json.loads(gzip.decompress((self.BASE/prep/f'chrome-{case}.json.gz').read_bytes()))
+            plan=json.loads((self.BASE/prep/'report.json').read_bytes())['config']
+            # As stored: the runner wrote the reader's output through JSON.
+            with self.subTest(case=case):self.assertEqual(json.loads(json.dumps(inspect(cell['page'],plan,'chrome'))),cell['inspection'])
+    def test_e_a_crossing_control_endpoint_flips_the_branch(self):
+        from unittest.mock import patch
+        import judge_v23_feature_selection as judge
+        page,plan=self.page('selection-prep-05','shift-Home@list-mid')
+        self.assertNotIn('tableSelection',judge.inspect(page,plan,'chrome')['groups']['S1'])
+        real=judge.logical_endpoint
+        with patch.object(judge,'logical_endpoint',lambda e:(8,real(e)[1])):
+            value=judge.inspect(page,plan,'chrome')['groups']['S1']
+        self.assertEqual(value.get('containers'),['body',[0,0,0]])
+        self.assertIn(value['verdict'],('PASS','FAIL'))
+
+
 class OpenBoundaryControls(unittest.TestCase):
     def test_actual_runner_alias_and_mirror_respect_sdk_suffix_without_repacking(self):
         import re

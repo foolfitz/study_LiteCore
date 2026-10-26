@@ -75,3 +75,7 @@ python3 -I wasm_sdk_probe/tests/test_v23_feature_s_cases.py
 ## Literal state-route correction before execution (ordered §22)
 
 The earlier Actual public evidence contract sentence naming `editorGetStateV1` is superseded for the narrow v2 client used here. Both the pinned v19/v57 and current feature `NarrowEditorV2Client.getState()` delegate to `ParagraphEditorClient.getState()`, whose actual request is **`editorGetStateV2`**. V1 belongs to the separate base client; it must not be accepted as a synonym on this route. The table generator now records the exact V2 operation. The pre-red reader has a wrong-literal-route causal control. This is a source-proven correction before any feature execution, changes no case/grant/product behavior, and resets no diagnostic count.
+
+## Appended 2026-10-27: S1 table-selection members
+
+The generated `contracts.S1` field (`movingEndpoint: same-browser independent unshifted control`) is superseded for table-selection members by the protocol appendix of 2026-10-27 and `s1-table-selection-ruling/RULING.md`. For those members, where the plain move crosses a table container boundary, the oracle is the agreeing three-round native selected text. The generator source is left unchanged on purpose because it is bound by the sealed pre-red reader closure; RULING.md explains why.
