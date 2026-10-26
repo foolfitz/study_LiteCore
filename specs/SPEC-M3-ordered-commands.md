@@ -518,3 +518,11 @@ as-char frame沿原object-click八臂（Bold／Delete／Backspace／Left，各�
 本節與來源生成表／因果紅控制完成後准寫既定功能來源；**未做的S5 native saves、fresh settled-WASM references及v19預紅是計數前義務，不是要求先有feature才能編寫feature的循環前提**。計數前須釘住真正feature五身分、儀器graph／fixture、readiness及各硬格oracle。需要編譯native harness時另備完整命令由擁有者跑，不假定舊binary能做新序列。此裁示不授權agent make、host／服務／活文件變更或K。
 
 逐格缺輸入、身分、readiness或oracle為NE並擋該硬格；齊備而反例為FAIL。具名限制記錄維持各自預設，不暗升為Writer parity硬閘門。讀取器從工具真值源核對完整母體與因果紅案，保存原始wire及存檔，不許缺格／重格／錯browser／自造oracle轉綠。第一次完整乾淨母體及產物reader通過即關閉各組；之後不為疑慮追加輪數／門檻。candidate或clean定義變動使受影響feature計數失效；純文字／provenance更正不自動重設無關封閉組。歷史失敗／準備資料原樣保留，五組diagnostic與C2記錄不重開。
+
+## 22. 實作來源逼出的三個窄澄清（2026-10-26，只追加）
+
+**刪除選擇的時點**：實讀 `dispatchDelete` 在enqueue前從頁面snapshot選caret delete／delete-selection，而session直到既有queue operation開始才派送。S5的Shift→Backspace因此可能持pre-Shift collapsed送錯動作；C的引擎順序不會自動修正已選錯的client動作。本次只加ABI6用的窄 `session.deleteKey(direction)`，direction只收原Backspace／Delete兩名稱。於既有queue operation開始後一次 `editor.getState()`，必須有observed selection及合法collapsed boolean；collapsed派原方向，range且manifest確有action20才派delete-selection。未知shape用現成typed gesture refusal且不派送，讀取錯誤保留原code／recovery，缺grant不自行拓寬。共用既有mutation、唯讀、generation、錯誤及unchanged accounting；保留原方向與resolved action各自意義。舊profile沿舊路。這是對具體S5錯路重新推導的單次dequeue讀取，不帶回§4撤回的resolver旗標／waiter／K1柵欄，不造第二佇列、泛用resolver callback或公開options標記，096不改。因果紅案先保留Shift未完成時收到Backspace的舊錯路，再驗range／collapsed／雙delete／prefix-delete及未知state不派送；不放寬S5。
+
+**held Shift release**：採頁面最多一個尚未派送的repeat，加一個outstanding＝既有132深度2；前者完成才釋出held，keyup丟棄同一hold尚未派送的repeat，已posted正常完成。其他操作真正enqueue前沿既有beforeEnqueue先釋出較早held，保留輸入順序及document generation。不加session cancellation或泛用queue；repeat:false初按不得丟棄。§21的wire release-bound只量已固定clean long200、沒有前序dirty checkpoint／typing的兩個held臂，並須見證初按已posted；缺此setup為NE。這不外推為所有混合操作／dirty checkpoint下的初按取消規則；其他路徑維持原輸入保序，不冒稱已量同一bound。三集合繼續分列，不把尚未posted當in-flight。
+
+**state wire字面來源更正**：準備文件曾把窄client的getState寫成editorGetStateV1，是只看到base class的漏讀。實際current `narrow-editor-v2-client.js:514` 委派 `paragraph-editor-client.js:173–177`，真正wire是 `editorGetStateV2`；釘住v19 shell的同一public路亦為V2。本節取代 `S-CASES.md` 與產品readiness協定中這條路的V1敘述；工具依實際profile／shell及完整委派鏈釘V2，不能接受模糊state-like別名。V1只屬真正使用base client且另有來源綁定的其他路，不是本格的替代輸入。此更正不改SDK或凍結artifact，不新增case、threshold或runtime；尚無feature／預紅計數可重設，已封閉diagnostic保持原判。
