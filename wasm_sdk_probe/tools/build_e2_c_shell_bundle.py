@@ -142,7 +142,8 @@ FROZEN_MANIFESTS = (Path("e2/editor-shell-v2-bundle-v1.json"),
                     Path("e2/editor-shell-v2-bundle-v37.json"),
                     Path("e2/editor-shell-v2-bundle-v38.json"),
                     Path("e2/editor-shell-v2-bundle-v39.json"),
-                    Path("e2/editor-shell-v2-bundle-v40.json"))
+                    Path("e2/editor-shell-v2-bundle-v40.json"),
+                    Path("e2/editor-shell-v2-bundle-v75.json"))
 FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
 # v41, 2026-08-24: the page runs `e2-editor-v8` -- finding 076's link.
 #
@@ -777,7 +778,9 @@ FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
 # page 3b96cb16…; findings/evidence/link-batch-v22/shakedown/): F3 PASS, E2 PASS (item 2, both browsers, composed
 # per §11.2.1, fable ruling 6), I1-rerun PASS with E0-v22 (§11.4.1, §11.4.2, ruling 6 addendum 1), I2-v22 PASS.
 # The host arms on 0.2.27 (H-154c, H-154o, D2-v22, M11-autosave) are the checks still ahead; K is deferred (§13).
-MANIFEST = Path("e2/editor-shell-v2-bundle-v75.json")
+# v76: actual ABI6 feature page cutover and client/session source, after the
+# feature archive audit. Diagnostic tails and feature worker stay profile-bound.
+MANIFEST = Path("e2/editor-shell-v2-bundle-v76.json")
 ENTRYPOINT = Path("web/e2-editor-app.js")
 
 # The directories whose *.js files must all be accounted for.  `editor-shell`

@@ -1,0 +1,64 @@
+{
+  "status": "PREPARATION_ONLY_NO_CUTOVER_OR_GENERATION_WRITE",
+  "sourceSha256": "5b3dc5222ae59751809838e7f15cef86e7c9d0eef46c02661f193d97fc391c14",
+  "candidatePageSha256": "c25b11c463a24fc183a046a5c26ebe6ad71d04d22dcc7830ba77997d231e4490",
+  "wasmSha256": "fe1f99cddf27ff6aca9f39f6286770f68981291e5a3505dc58dd88ef6ed05658",
+  "v75Sha256": "b67bd6558b1e25f6b77d84abeb721635548a113b0d53a52dfe41f5e34f250a90",
+  "included": [
+    "editor-shell-v2/narrow-editor-v2-client.js",
+    "editor-shell-v2/narrow-editor-v2-session.js",
+    "editor-shell-v2/paragraph-editor-client.js",
+    "editor-shell-v2/paragraph-editor-session.js",
+    "editor-shell/editor-client.js",
+    "editor-shell/editor-session.js",
+    "editor-shell/recovery-notice.js",
+    "editor-shell/state-machine.js",
+    "input/clipboard-adapter.js",
+    "input/input-adapter.js",
+    "reader-shell/tile-scheduler.js",
+    "sdk/document-sdk.js",
+    "web/e2-editor-app.js"
+  ],
+  "proposedExclusions": [
+    {
+      "path": "sdk/sdk-worker.js",
+      "reason": "Bound separately and more precisely as workerSha256: the copy that actually runs is the one inside the profile."
+    },
+    {
+      "path": "reader-shell/reader-session.js",
+      "reason": "The R6 reader shell. Not in the editor page import graph; only reader-shell/tile-scheduler.js is."
+    },
+    {
+      "path": "reader-shell/state-machine.js",
+      "reason": "The reader shell own state machine, not the editor. Not in the editor page import graph."
+    },
+    {
+      "path": "sdk/v23-diagnostic-worker-tail.js",
+      "reason": "Private ABI5 diagnostic tail concatenated only into e2-editor-v23-diag; its resulting profile worker is separately bound by workerSha256. Not imported by the product page."
+    },
+    {
+      "path": "sdk/v23-diagnostic-r2-worker-tail.js",
+      "reason": "Private ABI5 diagnostic tail concatenated only into e2-editor-v23-diag-r2; its resulting profile worker is separately bound by workerSha256. Not imported by the product page."
+    },
+    {
+      "path": "sdk/v23-feature-worker.js",
+      "reason": "Source of the ABI6 e2-editor-v23 profile worker, separately bound by workerSha256. The product creates that profile worker by URL; this source is not a page import."
+    }
+  ],
+  "causalControls": [
+    {
+      "case": "missing URL",
+      "rejected": true
+    },
+    {
+      "case": "duplicate URL",
+      "rejected": true
+    },
+    {
+      "case": "missing pin",
+      "rejected": true
+    }
+  ],
+  "exactTwoLineChange": true,
+  "idempotent": true
+}

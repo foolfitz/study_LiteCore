@@ -1,0 +1,112 @@
+[
+  {
+    "argv": [
+      "python3",
+      "tools/build_cutover_page.py",
+      "--profile",
+      "e2-editor-v23",
+      "--write",
+      "--expect-sha256",
+      "c25b11c463a24fc183a046a5c26ebe6ad71d04d22dcc7830ba77997d231e4490"
+    ],
+    "cwd": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe",
+    "exitCode": 0,
+    "stdout": "profile        e2-editor-v23\npin            f7a40bcce073d913 -> fe1f99cddf27ff6a\npageSha256     c25b11c463a24fc183a046a5c26ebe6ad71d04d22dcc7830ba77997d231e4490\nunchanged      False\nwritten        /home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/web/e2-editor-app.js\n",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "python3",
+      "tools/build_e2_c_shell_bundle.py",
+      "--manifest",
+      "e2/editor-shell-v2-bundle-v76.json",
+      "--frozen-date",
+      "2026-10-26",
+      "--write",
+      "--exclude",
+      "sdk/sdk-worker.js=Bound separately and more precisely as workerSha256: the copy that actually runs is the one inside the profile.",
+      "--exclude",
+      "reader-shell/reader-session.js=The R6 reader shell. Not in the editor page import graph; only reader-shell/tile-scheduler.js is.",
+      "--exclude",
+      "reader-shell/state-machine.js=The reader shell own state machine, not the editor. Not in the editor page import graph.",
+      "--exclude",
+      "sdk/v23-diagnostic-worker-tail.js=Private ABI5 diagnostic tail concatenated only into e2-editor-v23-diag; its resulting profile worker is separately bound by workerSha256. Not imported by the product page.",
+      "--exclude",
+      "sdk/v23-diagnostic-r2-worker-tail.js=Private ABI5 diagnostic tail concatenated only into e2-editor-v23-diag-r2; its resulting profile worker is separately bound by workerSha256. Not imported by the product page.",
+      "--exclude",
+      "sdk/v23-feature-worker.js=Source of the ABI6 e2-editor-v23 profile worker, separately bound by workerSha256. The product creates that profile worker by URL; this source is not a page import."
+    ],
+    "cwd": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe",
+    "exitCode": 0,
+    "stdout": "{\n  \"manifest\": \"e2/editor-shell-v2-bundle-v76.json\",\n  \"included\": [\n    \"editor-shell-v2/narrow-editor-v2-client.js\",\n    \"editor-shell-v2/narrow-editor-v2-session.js\",\n    \"editor-shell-v2/paragraph-editor-client.js\",\n    \"editor-shell-v2/paragraph-editor-session.js\",\n    \"editor-shell/editor-client.js\",\n    \"editor-shell/editor-session.js\",\n    \"editor-shell/recovery-notice.js\",\n    \"editor-shell/state-machine.js\",\n    \"input/clipboard-adapter.js\",\n    \"input/input-adapter.js\",\n    \"reader-shell/tile-scheduler.js\",\n    \"sdk/document-sdk.js\",\n    \"web/e2-editor-app.js\"\n  ],\n  \"excluded\": [\n    \"sdk/sdk-worker.js\",\n    \"reader-shell/reader-session.js\",\n    \"reader-shell/state-machine.js\",\n    \"sdk/v23-diagnostic-worker-tail.js\",\n    \"sdk/v23-diagnostic-r2-worker-tail.js\",\n    \"sdk/v23-feature-worker.js\"\n  ],\n  \"bundleSha256\": \"f97bedeef73c7834cd5c86234d72e1ce459131153c36b8737583211a358e772c\",\n  \"problems\": [],\n  \"exclusionsInheritedFrom\": null,\n  \"written\": true,\n  \"problemsRecheckedAfterWrite\": true\n}\n",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "python3",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tests",
+      "-p",
+      "test_e2_c_shell_bundle.py"
+    ],
+    "cwd": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe",
+    "exitCode": 0,
+    "stdout": "",
+    "stderr": "............\n----------------------------------------------------------------------\nRan 12 tests in 0.030s\n\nOK\n"
+  },
+  {
+    "argv": [
+      "python3",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tests",
+      "-p",
+      "test_product_path_mutations.py"
+    ],
+    "cwd": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe",
+    "exitCode": 0,
+    "stdout": "",
+    "stderr": "..........\n----------------------------------------------------------------------\nRan 10 tests in 0.046s\n\nOK\n"
+  },
+  {
+    "argv": [
+      "node",
+      "--test",
+      "editor-shell-v2/tests/v23-selection-moves.test.mjs",
+      "editor-shell-v2/tests/v23-page-selection-moves.test.mjs",
+      "editor-shell-v2/tests/v23-held-input-order.test.mjs",
+      "editor-shell-v2/tests/page-document-keys.test.mjs"
+    ],
+    "cwd": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe",
+    "exitCode": 0,
+    "stdout": "\u2714 D5: the absent state really is v20's manifest, with neither move in it (0.625033ms)\n\u2714 D5 (absent (the real v20 manifest)): only an offered move takes its key (4.102213ms)\n\u2714 D5 (both withheld): only an offered move takes its key (2.969485ms)\n\u2714 D5 (only start withheld): only an offered move takes its key (3.479153ms)\n\u2714 D5 (only end withheld): only an offered move takes its key (3.050596ms)\n\u2714 D5 (declared): only an offered move takes its key (3.279121ms)\n\u2714 D5: Shift, Alt and an IME composition are never taken, even when the move is offered (9.157037ms)\n\u2714 D5: plain Home/End and other Ctrl keys are not this binding's (3.763081ms)\n\u2714 D9 (Ctrl+Home): held 1 s with flagged repeats -- one move, ready within 500 ms of release (6.208631ms)\n\u2714 D9 (Ctrl+Home): unflagged presses every 30 ms for 1 s -- a move only when the last one is answered, ready within 500 ms (2.27357ms)\n\u2714 D9 (Ctrl+End): held 1 s with flagged repeats -- one move, ready within 500 ms of release (2.297454ms)\n\u2714 D9 (Ctrl+End): unflagged presses every 30 ms for 1 s -- a move only when the last one is answered, ready within 500 ms (1.631706ms)\n\u2714 D9: the two keys do not drop each other -- Ctrl+End while Ctrl+Home is unanswered goes out (0.846114ms)\n\u2714 D4: on a range the move goes through moveFromPoint (click at the point, then move) (1.444959ms)\n\u2714 D4: on a caret, or while a point move is already queued, the move goes straight out (1.367564ms)\n\u2714 wiring: the keydown handler takes the document keys BEFORE `if (accel) return;` (0.169636ms)\n\u2714 wiring: both moves have a label (editorAction names a failure by it) (0.199802ms)\n\u2714 wiring: the page builds its session with the held deletes' beforeEnqueue (\u00a710.3 rule 4) (0.27936ms)\n\u2714 actual insertText event preserves the earlier held move before adapter admission (9.213191ms)\n\u2714 actual insertReplacementText event preserves the earlier held move before adapter admission (3.530388ms)\n\u2714 actual insertFromPaste event preserves the earlier held move before adapter admission (2.546898ms)\n\u2714 composition updates do not flush; the actual composition commit flushes once before adapter admission (2.804398ms)\n\u2714 the actual paste event preserves the earlier held move before its independent adapter commit (2.548852ms)\n\u2714 the six actual product keys carry Shift directly; partial and old grants leave them alone (17.243872ms)\n\u2714 unresolved first move admits only one held repeat; release discards it without a wire request (1.135592ms)\n\u2714 partial hold releases exactly the retained repeat at answer and counts repaint in depth (1.02631ms)\n\u2714 retained original direction precedes another key, save, type or click; initial presses are not cancelled (3.028174ms)\n\u2714 blur, rejection and document replacement never transfer a held repeat to another document (2.567828ms)\n\u2714 the page action bridge forwards extension and the ordered-delete choice to the real session API (0.656281ms)\n\u2714 causal controls expose a missing release discard and a depth guard that ignores painting work (2.383524ms)\n\u2714 a depth-rejected modifier change preserves release of the admitted hold (initial Shift=false) (1.369548ms)\n\u2714 a depth-rejected modifier change preserves release of the admitted hold (initial Shift=true) (1.738184ms)\n\u2714 Shift keyup reaches the earlier shifted hold after a rejected plain repeat (0.652083ms)\n\u2714 ABI6 selection offers require an actual six-move gesture grant (1.378484ms)\n\u2714 six existing moves send typed extension and keep their move postcondition (5.893375ms)\n\u2714 legacy character SDK extension stays callable; line and document extension remain closed (0.852526ms)\n\u2139 tests 36\n\u2139 suites 0\n\u2139 pass 36\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 593.755954\n",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "node",
+      "--check",
+      "web/e2-editor-app.js"
+    ],
+    "cwd": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe",
+    "exitCode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "git",
+      "diff",
+      "--check"
+    ],
+    "cwd": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe",
+    "exitCode": 0,
+    "stdout": "",
+    "stderr": ""
+  }
+]
