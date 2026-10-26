@@ -77,6 +77,7 @@ from r7_support import evaluate, wait_page  # noqa: E402
 from run_browser_probe import ChromeSession, FirefoxSession, free_port  # noqa: E402
 from run_e2_c_page_smoke import DOC_WINDOW_JS, READ_STATE, navigate  # noqa: E402
 from validate_e1_c import shell_bundle_digest  # noqa: E402
+from v21_input import key as trusted_key  # noqa: E402
 import build_e2_c_shell_bundle as _shell_bundle  # noqa: E402
 
 PROJECT = Path(__file__).resolve().parent.parent
@@ -2858,8 +2859,14 @@ def induce_worker_failure(session, settle: float = 4.0) -> dict:
     """
     call = getattr(session, "call", None)
     if call is None:
-        return {"name": "INDUCE_WORKER_FAILURE", "fired": False,
-                "why": "no CDP; a worker cannot be reached over WebDriver"}
+        from firefox_worker_error import induce_worker_error
+        target = getattr(session, "worker_error_target", {})
+        result = induce_worker_error(
+            getattr(session, "worker_error_port", None),
+            target.get("pageUrl"), target.get("workerUrl"), settle)
+        result["browserVersion"] = getattr(session, "version", "unknown")
+        result["launchConfiguration"] = getattr(session, "worker_error_configuration", None)
+        return result
     websocket = getattr(session, "websocket", None)
     if websocket is None:
         return {"name": "INDUCE_WORKER_FAILURE", "fired": False,
@@ -4146,7 +4153,7 @@ def press_the_notice_and_save(session, boundary: dict) -> bool:
     return True
 
 
-def boundary_rescue(session, boundary: dict) -> dict:
+def boundary_rescue(session, boundary: dict, browser: str = "chrome") -> dict:
     """FINDING 096: does an arrow key with nowhere to go still cost the work?
 
     Everything here goes through the product's own controls -- its file input,
@@ -4222,10 +4229,7 @@ def boundary_rescue(session, boundary: dict) -> dict:
         was = evaluate(session, BOUNDARY_SINK) or {}
         evaluate(session, INSTALL_KEY_TAKEN)
         started = time.monotonic()
-        for kind in ("rawKeyDown", "keyUp"):
-            session.call("Input.dispatchKeyEvent",
-                         {"type": kind, "key": "ArrowUp", "code": "ArrowUp",
-                          "windowsVirtualKeyCode": 38, "nativeVirtualKeyCode": 38})
+        trusted_key(session, browser, "ArrowUp")
         moved = False
         now = was
         watch = time.monotonic() + 4.0
@@ -5251,7 +5255,13 @@ def main() -> int:
         base = f"http://127.0.0.1:{port}/e2-editor.html"
         wait_page(base)
         session_class = ChromeSession if args.browser == "chrome" else FirefoxSession
-        session = session_class("cold")
+        session = (session_class("cold") if args.browser == "chrome" else
+                   session_class("cold", worker_error_server=True))
+        if args.browser == "firefox":
+            session.worker_error_target = {
+                "pageUrl": base,
+                "workerUrl": f"http://127.0.0.1:{port}/profiles/{product_profile(root)}/sdk-worker.js",
+            }
         # Before navigating, so the page never sees a denied clipboard.
         clipboard_grant = {"granted": False, "why": "not attempted"}
         call = getattr(session, "call", None)
@@ -9544,12 +9554,12 @@ return { available: true, afterButton };
         # (amendment of 2026-09-09), including what it does to the counting
         # composition (39 PASS / 2 NE -> 40 / 2). Written before this code.
         boundary: dict = {"sentinel": BOUNDARY_MARK}
-        boundary_cdp = getattr(session, "call", None)
+        boundary_input = callable(getattr(session, "call" if args.browser == "chrome" else "command", None))
         boundary["offered"] = offered_actions(root, ["move-line-up"])
-        if boundary_cdp is None or boundary["offered"].get("move-line-up") is not True:
+        if not boundary_input or boundary["offered"].get("move-line-up") is not True:
             check("a-boundary-arrow-press-does-not-cost-the-work", False,
                   outcome="NOT_ESTABLISHED", observed=boundary,
-                  why="no CDP (so a real arrow key cannot be delivered), or "
+                  why="no trusted browser input transport, or "
                       "this profile does not offer `move-line-up`. On a "
                       "profile without it the page leaves the key to the "
                       "browser and there is no gesture to protect",
@@ -9563,7 +9573,7 @@ return { available: true, afterButton };
                     "finding 096: the boundary press wedges the engine on every "
                     "artifact in this tree, and this arm presses the product's "
                     "recovery notice afterwards"):
-                boundary_verdict = boundary_rescue(session, boundary)
+                boundary_verdict = boundary_rescue(session, boundary, args.browser)
                 check("a-boundary-arrow-press-does-not-cost-the-work",
                       boundary_verdict["ok"],
                       outcome=boundary_verdict.get("outcome"),

@@ -82,7 +82,8 @@ def _browser_stderr_path(prefix: str) -> Path | None:
 
 class FirefoxSession:
     def __init__(self, cache_mode: str, profile_dir: Path | None = None,
-                 extra_prefs: dict[str, object] | None = None):
+                 extra_prefs: dict[str, object] | None = None,
+                 worker_error_server: bool = False):
         geckodriver = shutil.which("geckodriver") or "/snap/bin/geckodriver"
         if not Path(geckodriver).exists():
             raise RuntimeError("geckodriver is unavailable")
@@ -121,6 +122,14 @@ class FirefoxSession:
         if extra_prefs:
             prefs.update(extra_prefs)
         firefox_args = ["-headless"]
+        self.worker_error_port = free_port() if worker_error_server else None
+        self.worker_error_configuration = None
+        if worker_error_server:
+            from firefox_worker_error import launch_options
+            debug_args, debug_prefs = launch_options(self.worker_error_port)
+            firefox_args.extend(debug_args)
+            prefs.update(debug_prefs)
+            self.worker_error_configuration = {"args": debug_args, "prefs": debug_prefs}
         if profile_dir is not None:
             profile_dir = profile_dir.resolve()
             profile_dir.mkdir(parents=True, exist_ok=True)

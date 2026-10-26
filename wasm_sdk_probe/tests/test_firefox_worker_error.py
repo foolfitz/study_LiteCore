@@ -115,5 +115,53 @@ class WorkerErrorTests(unittest.TestCase):
                 worker.launch_options(bad)
 
 
+class IntegrationSeams(unittest.TestCase):
+    """integration-pending.patch: opt-in launch only; Firefox 096 reaches the RDP helper."""
+    def launch(self, **kwargs):
+        from unittest.mock import patch
+        import run_browser_probe as probe
+        sent = {}
+        def request(self_, method, path, payload=None, timeout=180):
+            sent["payload"] = payload
+            return {"value": {"sessionId": "s", "capabilities": {"browserVersion": "150.0"}}}
+        with patch.object(probe.shutil, "which", return_value="/bin/true"), \
+                patch.object(probe.subprocess, "Popen"), patch.object(probe, "wait_http"), \
+                patch.object(probe.FirefoxSession, "request", request):
+            session = probe.FirefoxSession("cold", **kwargs)
+        return session, sent["payload"]["capabilities"]["alwaysMatch"]["moz:firefoxOptions"]
+
+    def test_default_session_is_unchanged_and_opt_in_is_owned_loopback(self):
+        session, options = self.launch()
+        self.assertEqual(options["args"], ["-headless"])
+        self.assertFalse(any(name.startswith("devtools.") for name in options["prefs"]))
+        self.assertIsNone(session.worker_error_port)
+        session, options = self.launch(worker_error_server=True)
+        port = session.worker_error_port
+        self.assertEqual(options["args"], ["-headless", "--start-debugger-server", str(port)])
+        self.assertIs(options["prefs"]["devtools.debugger.force-local"], True)
+        self.assertEqual(session.worker_error_configuration["args"], options["args"][1:])
+
+    def test_firefox_inducer_uses_the_owned_target_and_keeps_its_result(self):
+        from unittest.mock import patch
+        import run_e2_c_product_path as runner
+
+        class Session:
+            worker_error_port = 7
+            worker_error_target = {"pageUrl": "http://127.0.0.1:1/e2-editor.html",
+                                   "workerUrl": "http://127.0.0.1:1/profiles/p/sdk-worker.js"}
+            version = "150.0"
+            worker_error_configuration = {"args": ["--start-debugger-server", "7"]}
+
+        refused = {"name": "INDUCE_WORKER_FAILURE", "fired": False, "why": "no unique worker"}
+        with patch.object(worker, "induce_worker_error", return_value=dict(refused)) as induce:
+            result = runner.induce_worker_failure(Session(), settle=2.5)
+        induce.assert_called_once_with(7, Session.worker_error_target["pageUrl"],
+                                       Session.worker_error_target["workerUrl"], 2.5)
+        self.assertIs(result["fired"], False)
+        self.assertEqual(result["why"], "no unique worker")
+        self.assertEqual(result["browserVersion"], "150.0")
+        self.assertEqual(result["launchConfiguration"], Session.worker_error_configuration)
+
+
 if __name__ == "__main__":
     unittest.main()
