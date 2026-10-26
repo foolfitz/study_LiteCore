@@ -539,6 +539,8 @@ def inspect_s5(page,plan,browser):
         # A type cell without run-03's order witness carries no native save (fable ruling 3, fallback A).
         need(row['native'] is not None or row['referencePolicy']=='settled-wasm' or (row['family']=='type' and row.get('nativeFallback')),'native reference absent')
         native=row['native'] is not None and (row['referencePolicy']=='native' or (row['referencePolicy'].startswith('native-if-single-line') and single))
+        # Older configs bound run-01's x-then-Shift type saves; only a witnessed save is a type oracle.
+        need(not native or row['family']!='type' or row.get('nativeOrderWitness') in ('selection-before-x','settle-only'),'native type reference without order witness')
         if native:reference=native_reference(row,cand['original'])
         else:
             need(ref is not None,'settled reference arm absent');reference=ref['final']
@@ -711,6 +713,11 @@ def judge(cells,plan,kind='selection'):
         # continuation; an empty overlapping set fails S5 even when every sequence matches.
         overlapping=[r['cell'] for r in rows if r.get('groups',{}).get('S5',{}).get('overlapping')]
         groups['S5']['overlappingCells']=len(overlapping)
+        # Recorded, never asserted: how many PASS cells rest on the weaker settle-only native witness.
+        s5=[r.get('groups',{}).get('S5',{}) for r in rows]
+        groups['S5']['nativeReferenceCells']={label:sum(g.get('reference')=='native' and g.get('nativeOrderWitness')==w for g in s5)
+            for label,w in (('selection-before-x','selection-before-x'),('settle-only','settle-only'),('deletion-family',None))}
+        groups['S5']['nativeFallbackCells']=sum(bool(g.get('nativeFallback')) for g in s5)
         if groups['S5']['verdict']=='PASS' and not overlapping:groups['S5'].update(verdict='FAIL',reason='empty overlap set')
         verdict=groups['S5']['verdict']
     else:

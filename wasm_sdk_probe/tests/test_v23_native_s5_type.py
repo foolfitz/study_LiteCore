@@ -101,6 +101,11 @@ class NativeS5Type(unittest.TestCase):
         bad=copy.deepcopy(row);bad['beforePost']=dict(bad['beforePost'],INVALIDATE_VISIBLE_CURSOR='9,9,0,276')
         self.assertIn('native round caret not comparable with this run',reader.order_witness(bad,setup,states)[1])
 
+    def test_disagreeing_native_rounds_give_no_witness(self):
+        _,setup,states,row=record(self.table,self.rows,self.rounds,'shift-Right@caret-mid/type')
+        bad=copy.deepcopy(setup);bad['nativeAfterSelectionText']=['T','T','TA']
+        self.assertEqual(reader.order_witness(row,bad,states),(None,['native rounds disagree on the Shift selection']))
+
     def test_harness_settles_and_reads_only_between_the_two_members(self):
         text=(SDK/'tools/v23_native_s5_type.cpp').read_text()
         self.assertEqual(runner.sha(SDK/'tools/link_native_extend_signatures.cpp'),runner.base.source.PINS['tool-source-as-run.cpp'])
@@ -124,7 +129,10 @@ class NativeS5Type(unittest.TestCase):
         fixture=(runner.ROOT/self.table['fixture']['path']).read_bytes()
         xml=fixture.replace(b'<office:document ',b'<office:document-content ').replace(b'</office:document>',b'</office:document-content>')
         built={c:record(self.table,self.rows,self.rounds,c) for c in cells}
-        for mutation in ('none','cap','source'):
+        # Per-cell refusals other than the witness (review item B) must also reach the cell status.
+        reasons={'cap':'Shift settle reached its cap','setup':'missing or wrong actual pre-key selection/caret: beforePost',
+                 'fixture':'before save differs from fixture paragraph text','cursor':'setup cursor not bound to actual native discovery'}
+        for mutation in ('none','cap','source','setup','fixture','cursor'):
             with self.subTest(mutation=mutation),tempfile.TemporaryDirectory() as tmp,contextlib.ExitStack() as stack:
                 p=Path(tmp);tools=p/'tools';tools.mkdir();install=p/'install';install.mkdir()
                 (install/'libstandin.so').write_bytes(b'standin library')
@@ -153,16 +161,18 @@ class NativeS5Type(unittest.TestCase):
                 stack.enter_context(patch.object(runner.subprocess,'check_output',side_effect=check_output))
                 def execute(command,stdout,stderr,env):
                     self.assertEqual(command[3],str(binary));self.assertNotIn('SAL_LOK_OPTIONS',env)
-                    steps=[]
+                    steps=[];written=[]
                     for i,c in enumerate(cells):
                         row=copy.deepcopy(built[c][3]);stem=c.replace('/','_')
                         row.update(beforeFile=stem+'-before.odt',afterFile=stem+'-after.odt')
                         if mutation=='cap' and i==0:row['shiftSettleMs']=-8025.0
+                        if mutation=='setup' and i==0:row['beforePost']=dict(row['beforePost'],getTextSelection='wrong')
                         for label in ('before','after'):
-                            with zipfile.ZipFile(out/'saves'/row[label+'File'],'w') as z:z.writestr('content.xml',xml)
-                        steps.append({'name':row['expectedCursorPoint'],'rect':row['expectedCursorRect']})
-                        built[c]=built[c][:3]+(row,)
-                    stdout.write(json.dumps({'arm':'discover-stub','steps':steps})+'\n'+''.join(json.dumps(built[c][3])+'\n' for c in cells))
+                            body=xml.replace(b'P1 plain',b'P1 plaiN',1) if (mutation,i,label)==('fixture',0,'before') else xml
+                            with zipfile.ZipFile(out/'saves'/row[label+'File'],'w') as z:z.writestr('content.xml',body)
+                        steps.append({'name':row['expectedCursorPoint'],'rect':'7,7,0,276' if (mutation,i)==('cursor',0) else row['expectedCursorRect']})
+                        written.append(row)  # per subtest; never written back into the shared records
+                    stdout.write(json.dumps({'arm':'discover-stub','steps':steps})+'\n'+''.join(json.dumps(r)+'\n' for r in written))
                     if mutation=='source':sources[0].write_text('changed source')
                     return type('Result',(),{'returncode':0})()
                 stack.enter_context(patch.object(runner.subprocess,'run',side_effect=execute))
@@ -172,7 +182,8 @@ class NativeS5Type(unittest.TestCase):
                 if mutation=='source':continue
                 status={r['id']:(r['status'],r['orderWitness']) for r in result['cells']}
                 self.assertEqual(status[cells[1]],('NATIVE_SAVE_AVAILABLE','settle-only'))
-                self.assertEqual(status[cells[0]],('NOT_ESTABLISHED',None) if mutation=='cap' else ('NATIVE_SAVE_AVAILABLE','selection-before-x'))
-                self.assertEqual(result['counts']['fallbackSettledWasm'],int(mutation=='cap'))
+                self.assertEqual(status[cells[0]],('NATIVE_SAVE_AVAILABLE','selection-before-x') if mutation=='none' else ('NOT_ESTABLISHED',None))
+                if mutation!='none':self.assertIn(reasons[mutation],next(r for r in result['cells'] if r['id']==cells[0])['reasons'])
+                self.assertEqual(result['counts']['fallbackSettledWasm'],int(mutation!='none'))
 
 if __name__=='__main__':unittest.main()

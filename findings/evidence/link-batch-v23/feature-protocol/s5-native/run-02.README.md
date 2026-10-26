@@ -13,3 +13,7 @@ Correction: `std::cout.precision(15)` in the harness (commit after `de68de56`), 
 ## What run 02 still shows
 
 The saves are valid measurements of the settled sequence. `census_f166_native_type_order.py run-02` (finding 166): of the 52 cells whose offsets derive from setup names, 7 have the after-text "x typed over the pre-Shift shape", exactly the silent members whose Shift step moves nothing; no shape gives one after-text across its four Shift keys (run-01: 52/52 and 14/14). Settling the Shift step therefore restores Shift-then-x.
+
+## Appended 2026-10-27: correction and status (fable ruling 3, Addendum 1)
+
+The "past 1000 ms" account above is wrong as a description of which cells failed. Six significant digits give 1 µs resolution below 1000 ms and 10 µs above, and the true between-read-to-x gap is 0.26–0.74 µs (run 03), so the timestamp clause could not measure order in any cell: 4 of the 46 NE cells lie below 1000 ms, and 2 of the 10 "witnessed" cells lie above. The 10 `NATIVE_SAVE_AVAILABLE` cells in `reader-02.precision-defect.json` are rounding accidents, not witnesses. Status: superseded; instrument-NE 56/56 for the timestamp clause; bound nowhere. Run 02 vs run 03: before, after and between texts identical in 56/56.

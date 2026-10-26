@@ -37,7 +37,7 @@ native S5 參考 harness（`wasm_sdk_probe/tools/v23_native_s5.cpp`，build 01�
 
 ## 影響
 
-- **對本樹**：run-01 的 56 個 type 存檔不是宣告序列的 oracle，已撤（裁決 3）；run-02 以逐格順序見證取代。產品不受影響——產品的 x 走 `insertText` wire 請求、Shift 走 `editorActionV2`，序列順序由產品自己保證（`s5-prep-02` 的 overlap 見證）。
+- **對本樹**：run-01 的 56 個 type 存檔不是宣告序列的 oracle，已撤（裁決 3）；由 run-03 的逐格順序見證取代（run-02 的時間戳太粗、已作廢）。產品不受影響——產品的 x 走 `insertText` wire 請求、Shift 走 `editorActionV2`，序列順序由產品自己保證（`s5-prep-02` 的 overlap 見證）。
 - **對上游（未確認）**：若候選成立，任何 LOK 客戶端（例如 Collabora Online）在 Writer 處理前就把 Shift+方向鍵與一個字元都送進佇列，使用者就會看到字元插在選取之前、而不是蓋掉選取。是否真的會在 COOL 的時序下發生，沒有量過。
 
 ## 還缺什麼才能送

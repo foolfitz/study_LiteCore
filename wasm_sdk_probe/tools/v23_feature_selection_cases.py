@@ -151,6 +151,10 @@ def s5(table,cases_by_id):
             if cell is None:raise ValueError('native S5 type cell missing: '+row['id'])
             if cell.get('status')=='NATIVE_SAVE_AVAILABLE' and cell.get('orderWitness') in ('selection-before-x','settle-only'):
                 reference=native_saves('run-03',cell);witness=cell['orderWitness']
+                # The strong label needs a between-read that Shift changed; else only settle-only
+                # is witnessed (review item D; 0 of run-03's 47 strong cells are affected).
+                if witness=='selection-before-x' and cell['between']['getTextSelection']==source['setup']['expectedSelection']:
+                    raise ValueError('strong order witness without a Shift-changed selection: '+row['id'])
             elif cell.get('status')=='NOT_ESTABLISHED' and cell.get('reasons'):fallback=cell['reasons']
             else:raise ValueError('native S5 type cell neither witnessed nor reasoned: '+row['id'])
         elif row['referencePolicy']!='settled-wasm':

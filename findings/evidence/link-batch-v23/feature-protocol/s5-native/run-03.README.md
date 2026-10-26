@@ -20,3 +20,7 @@ Per cell (56 native-capable type cells, once each): fresh document, run-01's set
 `v23_feature_selection_cases.py` binds `reader-03.json` by hash (`NATIVE_S5_TYPE_READER_SHA256`) and each cell's before/after save by sha256. For the S5 plan: 25 Left/Right type cells are native `selection-before-x`, 3 Left/Right native `settle-only`; the 28 Home/End type cells carry a native save (22 `selection-before-x`, 6 `settle-only`) that applies only with the browser single-line witness, otherwise their settled-WASM arm; the 28 Up/Down type cells stay settled-WASM. No run-01 type save is bound anywhere in the plan. Deletion families still bind run-01 under fable ruling 2.
 
 Scope: native reference availability with an order witness. Not browser parity, no Up/Down parity, no overlap witness. `settle-only` is the ruling's weaker, named witness: for those members the between-read shows the state Shift leaves, which is also the state before Shift for all but `shift-Left@range-one`.
+
+## Appended 2026-10-27: correction
+
+The between-read-to-x gap is 0.26–0.74 µs, not 0.26–0.46 µs as written above (0.46 was the median; 29/56 cells exceed it; maximum `shift-End@range-cross/type`, 0.742 µs). `readEnd < xPost` holds in 56/56. Fable ruling 3 Addendum 1 confirms run 03 as the type oracle and the last type run under ruling 3.

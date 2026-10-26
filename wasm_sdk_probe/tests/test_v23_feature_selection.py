@@ -699,14 +699,14 @@ class S5TypeOracleControls(PreservedPages,unittest.TestCase):
             if r['family']!='type' and r['referencePolicy']!='settled-wasm':
                 self.assertTrue(all('/s5-native/run-01/saves/' in r['native'][side]['path'] for side in ('before','after')),r['id'])
                 self.assertIsNone(r['nativeOrderWitness'])
-    def judged(self,case,mutate):
+    def judged(self,case,mutate,prep='s5-prep-02',browser='chrome'):
         import gzip
         from judge_v23_feature_selection import inspect
-        d=self.BASE/'s5-prep-02';plan=json.loads((d/'report.json').read_bytes())['config']
-        page=json.loads(gzip.decompress((d/('chrome-'+case.replace('/','__')+'.json.gz')).read_bytes()))['page']
+        d=self.BASE/prep;plan=json.loads((d/'report.json').read_bytes())['config']
+        page=json.loads(gzip.decompress((d/(browser+'-'+case.replace('/','__')+'.json.gz')).read_bytes()))['page']
         # The page binds the config it ran under, so the page is re-bound to the edited plan.
         from judge_v23_feature_selection import digest,encoded
-        mutate(plan['s5'][case]);page['configSha256']=digest(encoded(plan));return inspect(page,plan,'chrome')
+        mutate(plan['s5'][case]);page['configSha256']=digest(encoded(plan));return inspect(page,plan,browser)
     def test_missing_native_save_is_ne_unless_a_reasoned_type_fallback_has_its_arm(self):
         def drop(row):row['native']=None
         value=self.judged('shift-Left@caret-mid/backspace',drop)
@@ -717,6 +717,15 @@ class S5TypeOracleControls(PreservedPages,unittest.TestCase):
         def fallback(row):row.update(native=None,nativeFallback=['between-read does not complete before the x post'])
         value=self.judged('shift-Right@caret-mid/type',fallback)
         self.assertEqual((value['verdict'],value['reason']),('NOT_ESTABLISHED','settled reference arm absent'))
+    def test_type_cells_on_prep03_pages_need_their_order_witness(self):
+        for browser in ('chrome','firefox'):
+            for case,witness in (('shift-Right@caret-mid/type','selection-before-x'),('shift-Left@range-one/type','settle-only'),('shift-Home@caret-mid/type','selection-before-x')):
+                with self.subTest(browser=browser,case=case):
+                    value=self.judged(case,lambda row:None,'s5-prep-03',browser)
+                    self.assertEqual((value['verdict'],value['groups']['S5']['reference'],value['groups']['S5']['nativeOrderWitness']),('PASS','native',witness))
+                    # An older config's shape: a type row with a save but no order witness.
+                    value=self.judged(case,lambda row:row.update(nativeOrderWitness=None),'s5-prep-03',browser)
+                    self.assertEqual((value['verdict'],value['reason']),('NOT_ESTABLISHED','native type reference without order witness'))
 
 
 class OpenBoundaryControls(unittest.TestCase):
