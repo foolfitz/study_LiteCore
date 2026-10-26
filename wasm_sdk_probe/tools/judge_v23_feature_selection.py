@@ -152,10 +152,12 @@ class Evidence:
             need(op in {'init','open','close','paint','pageRectangles','search','getSelection','editorGetStateV2','save','insertText',*MUTATION_OPS},'unplanned wire operation')
             if op in MUTATION_OPS:need(k in self.mutations,'unowned wire mutation')
             if op=='paint' and self.replies.get(k,{}).get('message',{}).get('ok') is True:
-                # The observer keeps each bitmap's length and SHA-256 only (selection-prep-04).
+                # The observer keeps each bitmap's length and SHA-256 (since selection-prep-05);
+                # earlier preparations kept the full bytes, a superset.
                 pixels=self.replies[k]['message'].get('result',{}).get('pixels')
-                need(isinstance(pixels,dict) and pixels.get('encoding')=='sha256' and type(pixels.get('bytes')) is int
-                     and re.fullmatch(r'[0-9a-f]{64}',str(pixels.get('sha256'))) is not None,'paint digest incomplete')
+                need(isinstance(pixels,dict) and type(pixels.get('bytes')) is int and (
+                     pixels.get('encoding')=='sha256' and re.fullmatch(r'[0-9a-f]{64}',str(pixels.get('sha256'))) is not None
+                     or pixels.get('encoding')=='base64' and isinstance(pixels.get('data'),str)),'paint digest incomplete')
 
 def readiness(e):
     p=e.page;v=p['readiness'];gen,handle=e.opened(v['open'])
@@ -313,7 +315,12 @@ def inspect(page,plan,browser):
             groups['S3']={'verdict':'PASS'}
         current_group='S1'
         if 'S1' in row['memberships']:
-            state=page['candidate']['readback'];target=page['reference']['endpoint'];anchor=candidate['anchor']
+            # The Shift anchor is where the selection was anchored before the key: a range
+            # shape's anchor point, but for a collapsed shape the caret itself (the moving
+            # point). click+End shapes click elsewhere first (selection-prep-05, wrap-line-end).
+            anchorname=row['anchorPointName'] if row['setup']['expectRange'] else row['movingPointName']
+            state=page['candidate']['readback'];target=page['reference']['endpoint']
+            anchor=candidate['anchor'] if row['setup']['expectRange'] else candidate['moving']
             contradict(xy(state['caret'])==xy(target),'moving endpoint differs from independent control')
             endpoint_pair(state['selection'],xy(anchor),xy(target),measured=True)
             if row['key'] in ('Left','Right'):
@@ -328,8 +335,8 @@ def inspect(page,plan,browser):
             single=single and state['caret']['y']==candidate['moving']['y'] and target['y']==candidate['moving']['y']
             if row['key'] in ('Home','End') and single:
                 contradict(all(page['candidate']['activeSelection']['text']==x for x in row['nativeAfterSelectionText']),'single-line native selection differs')
-            anchorplan=row['pointPlans'][row['anchorPointName']]
-            offset=anchorplan['offset'] if type(anchorplan['offset']) is int else 0 if anchorplan['offset']=='next-empty' else len(page['candidate']['points'][row['anchorPointName']]['selected']['text'])
+            anchorplan=row['pointPlans'][anchorname]
+            offset=anchorplan['offset'] if type(anchorplan['offset']) is int else 0 if anchorplan['offset']=='next-empty' else len(page['candidate']['points'][anchorname]['selected']['text'])
             groups['S1']={'verdict':'PASS','logicalAnchor':[anchorplan['paragraph'],offset],'logicalEndpoint':logical,'singleLineNativeWitness':single}
         return {'verdict':'FAIL' if any(x['verdict']=='FAIL' for x in groups.values()) else 'PASS','groups':groups}
     except ProductFailure as error:

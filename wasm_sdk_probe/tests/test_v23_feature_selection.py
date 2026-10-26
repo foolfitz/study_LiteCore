@@ -231,7 +231,7 @@ const plain=paintResponse({kind:'response',requestId:9,ok:false,error:{code:'X'}
     def test_paint_digest_is_required(self):
         from judge_v23_feature_selection import inspect
         for pixels,verdict in (({'encoding':'sha256','bytes':4,'sha256':'0'*64},'PASS'),({'encoding':'sha256','bytes':4,'sha256':None},'NOT_ESTABLISHED'),
-                               ({'encoding':'base64','bytes':4,'data':'AQIDBA=='},'NOT_ESTABLISHED')):
+                               ({'encoding':'base64','bytes':4,'data':'AQIDBA=='},'PASS'),({'encoding':'base64','bytes':4},'NOT_ESTABLISHED'),(None,'NOT_ESTABLISHED')):
             page=synthetic_page(self.plan);r=copy.deepcopy(page['requests'][-1]);t=copy.deepcopy(page['responses'][-1])
             r['message'].update(requestId=10**6,operation='paint',payload={'documentHandle':r['generation']})
             t['message'].update(requestId=10**6,ok=True,result={'pixels':pixels,'width':1,'height':1});page['requests'].append(r);page['responses'].append(t)
@@ -380,6 +380,32 @@ class PreservedGraphControls(unittest.TestCase):
                 if kind=='exact':self.assertEqual(set(preserved_graph(path,executed)),set(executed))
                 else:
                     with self.assertRaises(NotEstablished):preserved_graph(path,executed)
+
+
+class ActualPreparationRereads(unittest.TestCase):
+    """Preserved uncounted pages re-read by the current reader with their own executed config."""
+    BASE=PROJECT.parent/'findings/evidence/link-batch-v23/feature-protocol'
+    def page(self,prep,case):
+        import gzip
+        plan=json.loads((self.BASE/prep/'report.json').read_bytes())['config']
+        return json.loads(gzip.decompress((self.BASE/prep/f'chrome-{case}.json.gz').read_bytes()))['page'],plan
+    def test_collapsed_click_end_shape_anchors_at_the_caret(self):
+        from judge_v23_feature_selection import inspect
+        page,plan=self.page('selection-prep-05','shift-End@wrap-line-end')
+        value=inspect(page,plan,'chrome');self.assertEqual(value['verdict'],'PASS',value)
+        self.assertEqual(value['groups']['S1']['logicalAnchor'],[4,101])
+        # A product that kept the setup click (line start) as the Shift anchor must not read PASS.
+        moved=copy.deepcopy(page);start=moved['candidate']['points']['w.l1start']['final']['caret']
+        call=next(c for c in moved['calls'] if c['name']=='candidate-readback')
+        request=next(r for r in moved['requests'][call['requestStart']:call['requestEnd']] if r['message']['operation']=='editorGetStateV2')
+        reply=next(x for x in moved['responses'] if x['generation']==request['generation'] and x['message']['requestId']==request['message']['requestId'])
+        for state in (moved['candidate']['readback'],call['result'],reply['message']['result']):
+            state['selection'].update(collapsed=False,start={**start,'height':275},end={**state['caret'],'height':275})
+        bad=inspect(moved,plan,'chrome');self.assertEqual(bad['groups']['S1']['verdict'],'FAIL',bad)
+    def test_full_bitmap_preparation_still_reads(self):
+        from judge_v23_feature_selection import inspect
+        page,plan=self.page('selection-prep-02','shift-Right@caret-mid')
+        self.assertEqual(inspect(page,plan,'chrome')['verdict'],'PASS')
 
 
 class OpenBoundaryControls(unittest.TestCase):
