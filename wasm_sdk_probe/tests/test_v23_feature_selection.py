@@ -287,6 +287,15 @@ class PlaceRouteControls(unittest.TestCase):
                 self.assertEqual(value['verdict'],'NOT_ESTABLISHED',value);self.assertIn('placeCaret',value['reason'])
 
 
+    def test_passive_page_rectangles_pass_and_unknown_operations_do_not(self):
+        from judge_v23_feature_selection import inspect
+        for op,verdict in (('pageRectangles','PASS'),('pasteMarkdown','NOT_ESTABLISHED')):
+            page=synthetic_page(self.plan);r=copy.deepcopy(page['requests'][-1])
+            r['message'].update(requestId=10**6,operation=op,payload={'documentHandle':r['generation']});page['requests'].append(r)
+            with self.subTest(op=op):
+                value=inspect(page,self.plan,'chrome');self.assertEqual(value['verdict'],verdict,value)
+                if verdict!='PASS':self.assertEqual(value['reason'],'unplanned wire operation')
+
 
 class OpenBoundaryControls(unittest.TestCase):
     def test_actual_runner_alias_and_mirror_respect_sdk_suffix_without_repacking(self):

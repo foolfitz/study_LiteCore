@@ -147,7 +147,9 @@ class Evidence:
         need({c['name'] for c in self.page['calls']}==self.used and len(self.page['calls'])==len(self.used),'unplanned/duplicate public call')
         for k,r in self.requests.items():
             op=r['message']['operation']
-            need(op in {'init','open','close','paint','search','getSelection','editorGetStateV2','save','insertText',*MUTATION_OPS},'unplanned wire operation')
+            # pageRectangles: the shell76 page-count scheduler's per-open read (getPartPageRectangles,
+            # getDocumentSize, getParts in handlePageRectangles); shell57 under v19 never sent it.
+            need(op in {'init','open','close','paint','pageRectangles','search','getSelection','editorGetStateV2','save','insertText',*MUTATION_OPS},'unplanned wire operation')
             if op in MUTATION_OPS:need(k in self.mutations,'unowned wire mutation')
 
 def readiness(e):
