@@ -1,0 +1,33 @@
+{
+  "manifest": "e2/editor-shell-v2-bundle-v75.json",
+  "included": [
+    "editor-shell-v2/narrow-editor-v2-client.js",
+    "editor-shell-v2/narrow-editor-v2-session.js",
+    "editor-shell-v2/paragraph-editor-client.js",
+    "editor-shell-v2/paragraph-editor-session.js",
+    "editor-shell/editor-client.js",
+    "editor-shell/editor-session.js",
+    "editor-shell/recovery-notice.js",
+    "editor-shell/state-machine.js",
+    "input/clipboard-adapter.js",
+    "input/input-adapter.js",
+    "reader-shell/tile-scheduler.js",
+    "sdk/document-sdk.js",
+    "web/e2-editor-app.js"
+  ],
+  "excluded": [
+    "sdk/sdk-worker.js",
+    "reader-shell/reader-session.js",
+    "reader-shell/state-machine.js"
+  ],
+  "bundleSha256": "9a70e1ca025b30e53350def8c978a2f89b399fba0f10721c9c38ff9abd720b67",
+  "problems": [
+    "in scope but neither included nor excluded: ['sdk/v23-diagnostic-r2-worker-tail.js', 'sdk/v23-diagnostic-worker-tail.js', 'sdk/v23-feature-worker.js']",
+    "dist copy differs from source: editor-shell-v2/narrow-editor-v2-client.js (run `make e2-c-assets`)",
+    "dist copy differs from source: editor-shell-v2/narrow-editor-v2-session.js (run `make e2-c-assets`)",
+    "dist copy differs from source: web/e2-editor-app.js (run `make e2-c-assets`)",
+    "manifest is out of date: added=[] removed=[] changed=['editor-shell-v2/narrow-editor-v2-client.js', 'editor-shell-v2/narrow-editor-v2-session.js', 'web/e2-editor-app.js']",
+    "refusing to rewrite e2/editor-shell-v2-bundle-v75.json -- it exists with digest 5b14038e8f50e966... and the tree now hashes 9a70e1ca025b30e5.... A changed shell needs a NEW generation: bump MANIFEST and add this one to FROZEN_MANIFESTS. --force only if you mean to discard the record of what a round actually ran on."
+  ],
+  "exclusionsInheritedFrom": null
+}

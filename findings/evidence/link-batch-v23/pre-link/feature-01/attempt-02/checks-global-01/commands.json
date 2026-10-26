@@ -1,0 +1,66 @@
+[
+  {
+    "name": "precheck-uptime",
+    "argv": [
+      "uptime"
+    ],
+    "cwd": ".",
+    "exitCode": 0,
+    "stdoutPath": "precheck-uptime.stdout.txt",
+    "stderrPath": "precheck-uptime.stderr.txt"
+  },
+  {
+    "name": "precheck-make-processes",
+    "argv": [
+      "pgrep",
+      "-a",
+      "make"
+    ],
+    "cwd": ".",
+    "exitCode": 1,
+    "stdoutPath": "precheck-make-processes.stdout.txt",
+    "stderrPath": "precheck-make-processes.stderr.txt"
+  },
+  {
+    "name": "merge-key-undo-scope",
+    "argv": [
+      "taskset",
+      "-c",
+      "0",
+      "python3",
+      "tools/check_merge_key_undo_scope.py",
+      "--base",
+      "5d77dc84",
+      "--carrier",
+      "E2_V15",
+      "--carrier",
+      "E2_V19",
+      "--carrier",
+      "E2_V20=probe_engine,sdk_api,editor_api",
+      "--carrier",
+      "E2_V21=probe_engine,sdk_api,editor_api",
+      "--carrier",
+      "E2_V22=probe_engine,sdk_api,editor_api",
+      "--carrier",
+      "E2_V23D=probe_engine,sdk_api,editor_api",
+      "--carrier",
+      "E2_V23D_R2=probe_engine,sdk_api,editor_api",
+      "--carrier",
+      "E2_V23=probe_engine,sdk_api,editor_api",
+      "--carrier",
+      "ODS_VIEWER_V1=probe_engine,sdk_api",
+      "--carrier",
+      "ODS_VIEWER_V2=probe_engine,sdk_api",
+      "--carrier",
+      "ODS_VIEWER_V3=probe_engine,sdk_api",
+      "--carrier",
+      "ODS_EDITOR_V1=probe_engine,sdk_api",
+      "--carrier",
+      "ODS_EDITOR_V2=probe_engine,sdk_api"
+    ],
+    "cwd": "wasm_sdk_probe",
+    "exitCode": 0,
+    "stdoutPath": "merge-key-undo-scope.stdout.txt",
+    "stderrPath": "merge-key-undo-scope.stderr.txt"
+  }
+]

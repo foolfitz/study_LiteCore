@@ -1,0 +1,55 @@
+[
+  {
+    "name": "make-dry-run",
+    "argv": [
+      "make",
+      "-n",
+      "ALLOW_FROZEN_RELINK=1",
+      "dist/profiles/e2-editor-v23/sdk-manifest.json"
+    ],
+    "cwd": "wasm_sdk_probe",
+    "exitCode": 0,
+    "stdoutPath": "make-dry-run.stdout.txt",
+    "stderrPath": "make-dry-run.stderr.txt"
+  },
+  {
+    "name": "feature-build-log-reader",
+    "argv": [
+      "python3",
+      "-I",
+      "tools/check_v23_feature_contract.py",
+      "--build-log",
+      "../findings/evidence/link-batch-v23/pre-link/feature-01/attempt-02/checks-package-01/dry-run.log"
+    ],
+    "cwd": "wasm_sdk_probe",
+    "exitCode": 0,
+    "stdoutPath": "feature-build-log-reader.stdout.txt",
+    "stderrPath": "feature-build-log-reader.stderr.txt"
+  },
+  {
+    "name": "base-no35-resource-check",
+    "argv": [
+      "python3",
+      "-I",
+      "tools/build_base_no35_pack.py",
+      "--check"
+    ],
+    "cwd": "wasm_sdk_probe",
+    "exitCode": 0,
+    "stdoutPath": "base-no35-resource-check.stdout.txt",
+    "stderrPath": "base-no35-resource-check.stderr.txt"
+  },
+  {
+    "name": "cjk-mono-resource-check",
+    "argv": [
+      "python3",
+      "-I",
+      "tools/build_cjk_subset_mono_pack.py",
+      "--check"
+    ],
+    "cwd": "wasm_sdk_probe",
+    "exitCode": 0,
+    "stdoutPath": "cjk-mono-resource-check.stdout.txt",
+    "stderrPath": "cjk-mono-resource-check.stderr.txt"
+  }
+]

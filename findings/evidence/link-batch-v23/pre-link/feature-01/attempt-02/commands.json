@@ -1,0 +1,321 @@
+{
+  "commands": [
+    {
+      "argv": [
+        "python3",
+        "-I",
+        "findings/evidence/link-batch-v23/pre-link/feature-01/capture_build_inputs.py",
+        "--capture"
+      ],
+      "cwd": ".",
+      "exitCode": 0,
+      "group": "input-capture",
+      "record": "capture.command.json",
+      "stderrPath": "build-inputs.stderr.txt",
+      "stdoutPath": "build-inputs.json"
+    },
+    {
+      "argv": [
+        "uptime"
+      ],
+      "cwd": ".",
+      "exitCode": 0,
+      "group": "global-scope",
+      "name": "precheck-uptime",
+      "record": "checks-global-01/commands.json",
+      "stderrPath": "precheck-uptime.stderr.txt",
+      "stdoutPath": "precheck-uptime.stdout.txt"
+    },
+    {
+      "argv": [
+        "pgrep",
+        "-a",
+        "make"
+      ],
+      "cwd": ".",
+      "exitCode": 1,
+      "group": "global-scope",
+      "name": "precheck-make-processes",
+      "record": "checks-global-01/commands.json",
+      "stderrPath": "precheck-make-processes.stderr.txt",
+      "stdoutPath": "precheck-make-processes.stdout.txt"
+    },
+    {
+      "argv": [
+        "taskset",
+        "-c",
+        "0",
+        "python3",
+        "tools/check_merge_key_undo_scope.py",
+        "--base",
+        "5d77dc84",
+        "--carrier",
+        "E2_V15",
+        "--carrier",
+        "E2_V19",
+        "--carrier",
+        "E2_V20=probe_engine,sdk_api,editor_api",
+        "--carrier",
+        "E2_V21=probe_engine,sdk_api,editor_api",
+        "--carrier",
+        "E2_V22=probe_engine,sdk_api,editor_api",
+        "--carrier",
+        "E2_V23D=probe_engine,sdk_api,editor_api",
+        "--carrier",
+        "E2_V23D_R2=probe_engine,sdk_api,editor_api",
+        "--carrier",
+        "E2_V23=probe_engine,sdk_api,editor_api",
+        "--carrier",
+        "ODS_VIEWER_V1=probe_engine,sdk_api",
+        "--carrier",
+        "ODS_VIEWER_V2=probe_engine,sdk_api",
+        "--carrier",
+        "ODS_VIEWER_V3=probe_engine,sdk_api",
+        "--carrier",
+        "ODS_EDITOR_V1=probe_engine,sdk_api",
+        "--carrier",
+        "ODS_EDITOR_V2=probe_engine,sdk_api"
+      ],
+      "cwd": "wasm_sdk_probe",
+      "exitCode": 0,
+      "group": "global-scope",
+      "name": "merge-key-undo-scope",
+      "record": "checks-global-01/commands.json",
+      "stderrPath": "merge-key-undo-scope.stderr.txt",
+      "stdoutPath": "merge-key-undo-scope.stdout.txt"
+    },
+    {
+      "argv": [
+        "make",
+        "-n",
+        "ALLOW_FROZEN_RELINK=1",
+        "dist/profiles/e2-editor-v23/sdk-manifest.json"
+      ],
+      "cwd": "wasm_sdk_probe",
+      "exitCode": 0,
+      "group": "package-checks",
+      "name": "make-dry-run",
+      "record": "checks-package-01/commands.json",
+      "stderrPath": "make-dry-run.stderr.txt",
+      "stdoutPath": "make-dry-run.stdout.txt"
+    },
+    {
+      "argv": [
+        "python3",
+        "-I",
+        "tools/check_v23_feature_contract.py",
+        "--build-log",
+        "../findings/evidence/link-batch-v23/pre-link/feature-01/attempt-02/checks-package-01/dry-run.log"
+      ],
+      "cwd": "wasm_sdk_probe",
+      "exitCode": 0,
+      "group": "package-checks",
+      "name": "feature-build-log-reader",
+      "record": "checks-package-01/commands.json",
+      "stderrPath": "feature-build-log-reader.stderr.txt",
+      "stdoutPath": "feature-build-log-reader.stdout.txt"
+    },
+    {
+      "argv": [
+        "python3",
+        "-I",
+        "tools/build_base_no35_pack.py",
+        "--check"
+      ],
+      "cwd": "wasm_sdk_probe",
+      "exitCode": 0,
+      "group": "package-checks",
+      "name": "base-no35-resource-check",
+      "record": "checks-package-01/commands.json",
+      "stderrPath": "base-no35-resource-check.stderr.txt",
+      "stdoutPath": "base-no35-resource-check.stdout.txt"
+    },
+    {
+      "argv": [
+        "python3",
+        "-I",
+        "tools/build_cjk_subset_mono_pack.py",
+        "--check"
+      ],
+      "cwd": "wasm_sdk_probe",
+      "exitCode": 0,
+      "group": "package-checks",
+      "name": "cjk-mono-resource-check",
+      "record": "checks-package-01/commands.json",
+      "stderrPath": "cjk-mono-resource-check.stderr.txt",
+      "stdoutPath": "cjk-mono-resource-check.stdout.txt"
+    },
+    {
+      "argv": [
+        "node",
+        "--test",
+        "editor-shell-v2/tests/boundary-noop.test.mjs",
+        "editor-shell-v2/tests/closed-lists.test.mjs",
+        "editor-shell-v2/tests/declaration-drift.test.mjs",
+        "editor-shell-v2/tests/manifest-reachability.test.mjs",
+        "editor-shell-v2/tests/markdown-paste-session.test.mjs",
+        "editor-shell-v2/tests/narrow-editor-v2-client.test.mjs",
+        "editor-shell-v2/tests/narrow-editor-v2-session.test.mjs",
+        "editor-shell-v2/tests/offers.test.mjs",
+        "editor-shell-v2/tests/page-boundary-noop.test.mjs",
+        "editor-shell-v2/tests/page-boundary-text.test.mjs",
+        "editor-shell-v2/tests/page-delete-and-sink.test.mjs",
+        "editor-shell-v2/tests/page-document-keys-generated.test.mjs",
+        "editor-shell-v2/tests/page-document-keys.test.mjs",
+        "editor-shell-v2/tests/page-follow-caret.test.mjs",
+        "editor-shell-v2/tests/page-held-after-move.test.mjs",
+        "editor-shell-v2/tests/page-held-deletes.test.mjs",
+        "editor-shell-v2/tests/page-held-depth.test.mjs",
+        "editor-shell-v2/tests/page-markdown-dialog.test.mjs",
+        "editor-shell-v2/tests/page-move-during-delete.test.mjs",
+        "editor-shell-v2/tests/page-number.test.mjs",
+        "editor-shell-v2/tests/page-paint-overlay.test.mjs",
+        "editor-shell-v2/tests/page-render-bands.test.mjs",
+        "editor-shell-v2/tests/page-render-disposed.test.mjs",
+        "editor-shell-v2/tests/page-reopen-caret.test.mjs",
+        "editor-shell-v2/tests/page-scroll-bubble.test.mjs",
+        "editor-shell-v2/tests/page-state-shown.test.mjs",
+        "editor-shell-v2/tests/page-unsaved-work.test.mjs",
+        "editor-shell-v2/tests/paragraph-editor-client.test.mjs",
+        "editor-shell-v2/tests/paragraph-editor-session.test.mjs",
+        "editor-shell-v2/tests/place-caret-acknowledgement.test.mjs",
+        "editor-shell-v2/tests/place-caret-blank-page.test.mjs",
+        "editor-shell-v2/tests/place-caret-second-pass.test.mjs",
+        "editor-shell-v2/tests/product-page-calls.test.mjs",
+        "editor-shell-v2/tests/selection-shape.test.mjs",
+        "editor-shell-v2/tests/v23-delete-key.test.mjs",
+        "editor-shell-v2/tests/v23-held-deletes-unresolved.test.mjs",
+        "editor-shell-v2/tests/v23-held-input-order.test.mjs",
+        "editor-shell-v2/tests/v23-page-selection-moves.test.mjs",
+        "editor-shell-v2/tests/v23-selection-moves.test.mjs"
+      ],
+      "cwd": "wasm_sdk_probe",
+      "display": "node --test editor-shell-v2/tests/*.test.mjs",
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "group": "final-suite",
+      "name": "node-editor-shell-v2-all",
+      "record": "checks-final-01/commands.json",
+      "stderrPath": "node-editor-shell-v2-all.stderr.txt",
+      "stdoutPath": "node-editor-shell-v2-all.stdout.txt"
+    },
+    {
+      "argv": [
+        "python3",
+        "-I",
+        "tests/test_product_path_mutations.py"
+      ],
+      "cwd": "wasm_sdk_probe",
+      "display": null,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "group": "final-suite",
+      "name": "product-path-mutations",
+      "record": "checks-final-01/commands.json",
+      "stderrPath": "product-path-mutations.stderr.txt",
+      "stdoutPath": "product-path-mutations.stdout.txt"
+    },
+    {
+      "argv": [
+        "python3",
+        "-I",
+        "tools/check_e1_c_bundle_intact.py"
+      ],
+      "cwd": "wasm_sdk_probe",
+      "display": null,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "group": "final-suite",
+      "name": "e1-c-guard",
+      "record": "checks-final-01/commands.json",
+      "stderrPath": "e1-c-guard.stderr.txt",
+      "stdoutPath": "e1-c-guard.stdout.txt"
+    },
+    {
+      "argv": [
+        "python3",
+        "-I",
+        "tests/test_v23_r1_inputs.py"
+      ],
+      "cwd": "wasm_sdk_probe",
+      "display": null,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "group": "final-suite",
+      "name": "r1-inputs",
+      "record": "checks-final-01/commands.json",
+      "stderrPath": "r1-inputs.stderr.txt",
+      "stdoutPath": "r1-inputs.stdout.txt"
+    },
+    {
+      "argv": [
+        "python3",
+        "-I",
+        "tests/test_v23_feature_s_cases.py"
+      ],
+      "cwd": "wasm_sdk_probe",
+      "display": null,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "group": "final-suite",
+      "name": "feature-s-cases",
+      "record": "checks-final-01/commands.json",
+      "stderrPath": "feature-s-cases.stderr.txt",
+      "stdoutPath": "feature-s-cases.stdout.txt"
+    },
+    {
+      "argv": [
+        "python3",
+        "-I",
+        "tests/test_v23_feature_pre_red.py"
+      ],
+      "cwd": "wasm_sdk_probe",
+      "display": null,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "group": "final-suite",
+      "name": "feature-pre-red",
+      "record": "checks-final-01/commands.json",
+      "stderrPath": "feature-pre-red.stderr.txt",
+      "stdoutPath": "feature-pre-red.stdout.txt"
+    },
+    {
+      "argv": [
+        "python3",
+        "-I",
+        "tests/test_e2_c_shell_bundle.py"
+      ],
+      "cwd": "wasm_sdk_probe",
+      "display": null,
+      "exitCode": 1,
+      "expectedExitCode": 1,
+      "group": "final-suite",
+      "name": "e2-c-shell-bundle-known-failure",
+      "record": "checks-final-01/commands.json",
+      "stderrPath": "e2-c-shell-bundle-known-failure.stderr.txt",
+      "stdoutPath": "e2-c-shell-bundle-known-failure.stdout.txt"
+    },
+    {
+      "argv": [
+        "python3",
+        "-I",
+        "tools/build_e2_c_shell_bundle.py"
+      ],
+      "cwd": "wasm_sdk_probe",
+      "exitCode": 1,
+      "group": "shell-bundle-full-state-reader",
+      "mode": "default read-only; --write not supplied",
+      "record": "checks-final-01/shell-bundle-complete.command.json",
+      "stderrPath": "shell-bundle-complete.stderr.txt",
+      "stdoutPath": "shell-bundle-complete.stdout.json"
+    }
+  ],
+  "evidenceRoot": ".",
+  "notes": [
+    "Pre/post source pin captures are recorded in checks-final-01/source-pins-before.json and source-pins-after.json; they were run by the inline Python orchestration driver, each comparing 60 paths.",
+    "Exit 1 for precheck-make-processes means pgrep found no make process.",
+    "Exit 1 for e2-c-shell-bundle-known-failure is the staging-ruling expected retained failure: exactly one of twelve tests failed. The supplemental build_e2_c_shell_bundle.py command is read-only and prints the complete current problem/state/hash report.",
+    "No product make/link, browser, profile write, package write, shell generation, or dist synchronization was run."
+  ],
+  "schema": "v23-feature-attempt-02-command-index-v1"
+}
