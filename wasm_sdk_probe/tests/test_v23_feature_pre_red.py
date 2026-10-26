@@ -150,4 +150,31 @@ class PreRedTests(unittest.TestCase):
             path=target/'editor-shell-v2/narrow-editor-v2-client.js';path.write_bytes(path.read_bytes()+b'\n// drift\n')
             with self.assertRaises(ValueError):verify_mirror(target,self.plan)
 
+
+class ProductNavigationTests(unittest.TestCase):
+    def test_product_ready_state_without_probe_metrics(self):
+        from run_v23_feature_pre_red import navigate
+        from run_browser_probe import ChromeSession
+        class FakeChrome(ChromeSession):
+            def __init__(self):
+                self.calls=[];self.expressions=[];self.generic_calls=0
+            def call(self,method,payload):
+                self.calls.append((method,payload));return {}
+            def navigate(self,url):
+                self.generic_calls+=1
+                raise RuntimeError('generic navigation requires absent __probe_metrics')
+            def evaluate(self,expression):
+                self.expressions.append(expression)
+                self.assert_ready="document.readyState === 'complete'" in expression
+                return self.assert_ready and '__probe_metrics' not in expression
+        page=FakeChrome();url='http://127.0.0.1/product'
+        # Historical path is red on this loaded product page.
+        with self.assertRaisesRegex(RuntimeError,'__probe_metrics'):page.navigate(url)
+        navigate(page,url)
+        self.assertEqual(page.generic_calls,1)
+        self.assertEqual(page.calls,[('Page.navigate',{'url':url})])
+        self.assertTrue(page.assert_ready)
+        self.assertEqual(len(page.expressions),1)
+        self.assertNotIn('__probe_metrics',page.expressions[0])
+
 if __name__=='__main__':unittest.main()

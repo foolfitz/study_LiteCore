@@ -12,6 +12,7 @@ sys.path.insert(0,str(Path(__file__).resolve().parent))
 import v21_shakedown_common as common
 from r7_support import evaluate
 from run_browser_probe import ChromeSession
+from run_e2_c_page_smoke import navigate
 from v23_feature_pre_red_cases import BROWSERS,config,mirror,verify_mirror,encoded,digest
 from judge_v23_feature_pre_red import readiness,inspect
 
@@ -80,7 +81,7 @@ def main():
                         if config(args.v19_wasm_sha256)!=plan:raise ValueError('source/profile drift')
                         verify_mirror(target,plan)
                         session=common.open_browser(browser)
-                        session.navigate(base+'?'+urlencode({'caseId':case}))
+                        navigate(session,base+'?'+urlencode({'caseId':case}))
                         wait_page(session,"Boolean(window.__featurePreRed?.booted && window.__featurePreRed?.currentOpen && !document.querySelector('#sink').disabled && !document.querySelector('#sink').readOnly)")
                         if evaluate(session,'window.__preRedControl.prepareReadiness()') is not True:raise ValueError('readiness preparation failed')
                         actual_Z(session)
