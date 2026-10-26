@@ -1,0 +1,7 @@
+# Native S5 continuation references, run 01
+
+Executed 2026-10-27 01:34–02:08 (+0800) with the runbook's command (`handoff/RUNBOOK-2026-10-26-v23-native-s5.md`) against the owner-requested harness build 01 (`build-01/`, binary `4a6d9c48…3cfa`). The installed native core is `native-lok-26-8/build/instdir/program`. Wall time 33.5 min, exit 0. No browser measurement overlapped it. `completion.json` records `protectedInputsUnchanged: true` and the after-run identities of the build receipt, binary, sources and every loaded native library.
+
+The reader (`read_v23_native_s5.py run-01 --output reader-01.json`, exit 0) reports `NATIVE_S5_SAVES_AVAILABLE`: 392 cells, one native execution per cell, 0 problems. The 392 cells are the source-derived native-capable S5 entries: 196 Left/Right and 196 Home/End, the latter conditional. `saves/` holds the 784 actual before/after ODTs.
+
+What this does and does not supply, per the runbook: these saves are native Writer oracles for the S5 sequences. They are not browser parity. Home/End entries apply only when the browser later shows an actual single-line witness. Up/Down and other layout-dependent members still need fresh same-browser settled-WASM references. No browser S5 cell has run. The runtime-only LibreOffice profile under `run-01/profile/` is excluded from version control.
