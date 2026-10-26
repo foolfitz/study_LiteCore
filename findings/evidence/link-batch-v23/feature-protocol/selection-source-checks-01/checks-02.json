@@ -1,0 +1,73 @@
+{
+  "scope": "source-only; final ODT alias review correction; no browser execution",
+  "sources": {
+    "tools/v23_feature_selection_cases.py": "c625da961ee2575458e786eb5b11c4e89fee68c6f90bbde1ae873f1e070fd4bc",
+    "tools/run_v23_feature_selection.py": "5d709fb3b1005e16589f2f2946dcf9eeb33d34dfe76c7495a0abf93a0ff2818b",
+    "tools/judge_v23_feature_selection.py": "2c1601072b51760fda3b58d9f0c62afa6f40c99a6848a514370726bd4c6e6fae",
+    "web/v23-feature-selection.js": "642dfc4d4f1cfd2f49476fad4e0691754f21ebd425a7d8a0c8af6914ff821495",
+    "tests/test_v23_feature_selection.py": "dad570dce6b4d557b40858d0225dfcc5bed4df5ac9355b168e6d15388fe63771",
+    "src/sdk_api.cpp": "042b6ca0a8357d3fef4081cd30056af302090d65e6e0d69067fea492b0db59f8"
+  },
+  "checks": [
+    {
+      "argv": [
+        "python3",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_v23_feature_selection.py"
+      ],
+      "cwd": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe",
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ".............\n----------------------------------------------------------------------\nRan 13 tests in 2.678s\n\nOK\n"
+    },
+    {
+      "argv": [
+        "node",
+        "--check",
+        "web/v23-feature-selection.js"
+      ],
+      "cwd": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe",
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "python3",
+        "tools/run_v23_feature_selection.py",
+        "--help"
+      ],
+      "cwd": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe",
+      "exitCode": 0,
+      "stdout": "usage: run_v23_feature_selection.py [-h] --output OUTPUT [--preparation-only]\n                                    [--browser {chrome,firefox}]\n                                    [--case-id CASE_ID]\n                                    [--pre-red-report PRE_RED_REPORT]\n\nNew public feature selection collector; explicit fixed population, no retries.\n\noptions:\n  -h, --help            show this help message and exit\n  --output OUTPUT\n  --preparation-only\n  --browser {chrome,firefox}\n  --case-id CASE_ID\n  --pre-red-report PRE_RED_REPORT\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "python3",
+        "tools/judge_v23_feature_selection.py",
+        "--help"
+      ],
+      "cwd": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe",
+      "exitCode": 0,
+      "stdout": "usage: judge_v23_feature_selection.py [-h] report\n\nIndependent raw-artifact reader for fixed public ABI6 S1/S2/S3 observations.\n\npositional arguments:\n  report\n\noptions:\n  -h, --help  show this help message and exit\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "cwd": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe",
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ]
+}
