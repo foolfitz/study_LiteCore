@@ -7,7 +7,7 @@ from pathlib import Path
 import re
 import sys
 sys.path.insert(0,str(Path(__file__).resolve().parent))
-from v23_feature_selection_cases import config,encoded,digest,verify_mirror,BROWSERS,PROFILE
+from v23_feature_selection_cases import config,encoded,digest,verify_mirror,BROWSERS,PROFILE,ROOT
 from judge_v23_feature_pre_red import (NotEstablished,need,stream,call_binding,bound_state,bound_save,
                                      binary,s2_compare,wrap_first_rectangle)
 
@@ -48,7 +48,7 @@ class Evidence:
     def __init__(self,page,plan,browser):
         self.page,self.plan=page,plan;self.used=set();self.mutations=set();self.call_order=[]
         need(page.get('profile')==PROFILE,'wrong feature profile')
-        need(page.get('caseId') in plan['cases'] or page.get('caseId') in plan.get('interactions',{}),'undeclared source case')
+        need(any(page.get('caseId') in plan.get(k,{}) for k in ('cases','interactions','s5')),'undeclared source case')
         ua=page.get('userAgent','')
         actual='firefox' if re.search(r'Firefox/[0-9]',ua) else 'chrome' if re.search(r'(?:Headless)?Chrome/[0-9]',ua) else None
         need(actual==browser,'actual UA family differs')
@@ -166,7 +166,8 @@ def readiness(e):
     before=e.save('readiness-before-save',v['beforeSave']);after=e.save('readiness-after-save',v['afterSave'])
     expected=e.plan['fixtureParagraphs'];need(before==expected,'readiness original differs');changed=expected.copy();changed[0]='Z'+changed[0]
     need(after==changed,'actual readiness save mutation missing')
-    mutations=[r for r in e.requests.values() if r['message']['operation']=='insertText']
+    # Only the readiness generation: S5's type family inserts in its own fresh documents.
+    mutations=[r for r in e.requests.values() if r['message']['operation']=='insertText' and r['generation']==gen]
     need(len(mutations)==1,'readiness mutation absent/extra')
     r=mutations[0];need(r['generation']==gen and r['message']['payload']=={'documentHandle':handle,'text':'Z'},'readiness wire mutation differs')
     need(e.replies[request_key(r)]['message'].get('ok') is True,'readiness mutation refused')
@@ -233,17 +234,18 @@ def setup(e,name,row):
     if name=='reference' or row['nativeSetupMethod']!='drag':
         _,r,_=e.place(name+'-origin-click');need(all(r['message']['payload'][k]==z for k,z in point(origin).items()),'shape origin differs')
     else:drag_witness(e,v,gen,anchor,moving)
-    if name=='candidate' and row['nativeSetupMethod']=='click+Shift+Right x3':
+    # Every arm but the plain control takes the candidate shape (S5 arms s5cand/s5ref too).
+    if name!='reference' and row['nativeSetupMethod']=='click+Shift+Right x3':
         right={**row,'action':'move-character-right','productKey':{'key':'ArrowRight'}}
-        for n in range(3):e.key('candidate-setup-shift-'+str(n),right,True)
-    if name=='candidate' and row['nativeSetupMethod']=='click+End':
-        e.key('candidate-setup-end',{**row,'action':'move-line-end','productKey':{'key':'End'}},False)
+        for n in range(3):e.key(name+'-setup-shift-'+str(n),right,True)
+    if name!='reference' and row['nativeSetupMethod']=='click+End':
+        e.key(name+'-setup-end',{**row,'action':'move-line-end','productKey':{'key':'End'}},False)
     e.state(name+'-setup-state',v['setupState']);e.text(name+'-setup-text',v['setupSelection'])
     want='' if name=='reference' else row['setup']['expectedSelection']
     need(v['setupSelection']['text']==want,'actual native setup text differs')
     need(v['setupState']['selection']['collapsed'] is (name=='reference' or not row['setup']['expectRange']),'actual native setup shape differs')
     need(xy(v['setupState']['caret'])==xy(moving),'actual moving point differs')
-    if name=='candidate' and row['setup']['expectRange']:endpoint_pair(v['setupState']['selection'],xy(anchor),xy(moving))
+    if name!='reference' and row['setup']['expectRange']:endpoint_pair(v['setupState']['selection'],xy(anchor),xy(moving))
     _,before=e.state(name+'-before-state',v['before'])
     need(v['before']['caret']==v['setupState']['caret'] and v['before']['selection']==v['setupState']['selection'],'shape changed before measured key')
     return gen,handle,anchor,moving,before
@@ -403,7 +405,138 @@ def inspect_interaction(page,plan,browser):
     except (NotEstablished,KeyError,ValueError,TypeError,IndexError) as error:
         return {'verdict':'NOT_ESTABLISHED','reason':str(error),'groups':groups}
 
+S5_DELETES={'Backspace':('delete-backward','delete-selection'),'Delete':('delete-forward','delete-selection')}
+
+def odt_content(raw):
+    import io,zipfile
+    try:return zipfile.ZipFile(io.BytesIO(raw)).read('content.xml')
+    except (zipfile.BadZipFile,KeyError) as error:raise NotEstablished('saved ODT unreadable: '+str(error))
+
+def strip_ffd(content):
+    """Fable ruling 2 (2026-10-27): against a native save only, remove the single
+    office:font-face-decls element, which lists each environment's installed CJK fonts."""
+    pattern=rb'<office:font-face-decls>(.*?)</office:font-face-decls>'
+    found=re.findall(pattern,content,re.S)
+    need(len(found)==1,'font-face-decls not uniquely present')
+    need(found[0].strip()!=b'','font-face-decls empty')
+    rest=re.sub(pattern,b'',content,count=1,flags=re.S)
+    need(b'<office:body>' in rest,'office:body absent after removing font-face-decls')
+    return rest
+
+def s5_reduced(raw,native):
+    from run_merge_wasm_shakedown import reduce_content
+    content=reduce_content(odt_content(raw))
+    return strip_ffd(content) if native else content
+
+def s5_compare(family,candidate,reference,native):
+    """Deletion: reduce_content byte equality (minus font-face-decls against native); type: paragraph text."""
+    if family=='type':
+        from odt_paragraphs import paragraph_texts_from_xml
+        return paragraph_texts_from_xml(odt_content(candidate))==paragraph_texts_from_xml(odt_content(reference))
+    return s5_reduced(candidate,native)==s5_reduced(reference,native)
+
+def native_reference(row,original):
+    """The cell's native after-save, once its two guards hold (fable ruling 2)."""
+    files={}
+    for side in ('before','after'):
+        raw=(ROOT/row['native'][side]['path']).read_bytes()
+        need(digest(raw)==row['native'][side]['sha256'],'native reference bytes differ');files[side]=raw
+    # Per cell: the unedited WASM and native documents agree under the same reduction.
+    need(s5_compare(row['family'],original,files['before'],True),'native reference not comparable')
+    if row['family']!='type' and s5_reduced(files['before'],True)==s5_reduced(files['after'],True):
+        need(odt_content(files['before'])==odt_content(files['after']),'reduction collapses the native edit')
+    return files['after']
+
+def single_line(e,name):
+    """Every located point of the arm sits on a one-rectangle (single displayed line) paragraph."""
+    for pointname,observed in e.page[name]['points'].items():
+        _,_,search=call_binding(e.page,name+'-point-'+pointname+'-search','search',e.requests,e.replies)
+        raw=search['message']['result'];first=wrap_first_rectangle(raw)
+        if len(raw['selections'][0]['rectangles'].split(';'))!=1 or observed['start']['caret']['y']!=first[1] or observed['final']['caret']['y']!=first[1]:
+            return False
+    return True
+
+def s5_arm(e,name,row,source):
+    gen,handle,anchor,moving,before=setup(e,name,source)
+    v=e.page[name];q=v.get('sequence') or {}
+    need(all(type(q.get(k)) is int for k in ('inputStart','inputEnd','requestStart','requestEnd')) and q.get('generation')==gen,'sequence window absent')
+    keys=[x for x in e.page['inputs'][q['inputStart']:q['inputEnd']] if x['type']=='keydown' and x.get('key')!='Shift']
+    need([(x.get('key'),x.get('shiftKey') is True) for x in keys]==[(k['key'],'shift' in k['mods']) for k in row['keys']],'actual sequence keys differ')
+    for x in keys:
+        sink=x.get('sink',{})
+        need(x.get('isTrusted') is True and not any(x.get(k) for k in ('ctrlKey','altKey','metaKey','repeat')),'sequence key not a trusted plain press')
+        need(sink.get('active') and sink.get('connected') and not sink.get('disabled') and not sink.get('readOnly') and sink.get('documentHandle')==handle,'sequence key not in the editable document sink')
+    need(keys[0]['at']>=before['at'],'sequence precedes its shape')
+    window=[r for r in e.page['requests'][q['requestStart']:q['requestEnd']] if r['generation']==gen]
+    moves=[r for r in window if r['message']['operation']=='editorActionV2' and str(r['message']['payload'].get('action','')).startswith('move-')]
+    need(len(moves)==1 and moves[0]['message']['payload']['action']==source['action'] and moves[0]['message']['payload'].get('extendSelection') is True,'extension request absent/nonunique')
+    extension=e.replies.get(request_key(moves[0]));need(extension is not None,'extension terminal absent')
+    deletes=[k for k in row['sequence'] if k in S5_DELETES]
+    for r in window:
+        op=r['message']['operation']
+        if op not in MUTATION_OPS+('insertText',):continue
+        need(op in ('editorActionV2','insertText'),'unplanned mutation in the sequence window')
+        if op=='editorActionV2' and r is not moves[0]:
+            need(r['message']['payload'].get('action') in {a for d in deletes for a in S5_DELETES[d]},'unplanned action in the sequence window')
+        if op=='insertText':need(row['family']=='type' and r['message']['payload'].get('text')=='x','unplanned insertion in the sequence window')
+        e.mutations.add(request_key(r))
+    continuation=keys[row['shiftIndex']+1:]
+    result={'generation':gen,'extensionTerminal':extension}
+    if name=='s5ref':
+        rr,rt=e.state(name+'-settled-state',v['settledState']);need(rr['at']-extension['at']>=500,'settled witness too early')
+        ar,at=e.text(name+'-settled-text',v['settledSelection']);need(ar['at']>=rt['at'],'settled selection precedes its state')
+        need(type(q.get('continuationInputStart')) is int and all(k['at']>at['at'] for k in continuation),'continuation before the settled witness')
+    else:
+        # Overlap witness: posted move/extend requests without a terminal or cancel at each
+        # continuation's beforeinput (its keydown when the product consumed the key first).
+        cancels={(c['generation'],c['message'].get('requestId')):c for c in e.page.get('cancels',[])}
+        allmoves=[r for r in e.requests.values() if r['generation']==gen and r['message']['operation']=='editorActionV2' and str(r['message']['payload'].get('action','')).startswith('move-')]
+        overlap=[]
+        for j,key in enumerate(continuation):
+            until=continuation[j+1]['at'] if j+1<len(continuation) else float('inf')
+            mark=next((x for x in e.page['inputs'][q['inputStart']:q['inputEnd']] if x['type']=='beforeinput' and key['at']<=x['at']<until),None)
+            t=(mark or key)['at']
+            pending=[list(request_key(r)) for r in allmoves if r['at']<t and not any(x is not None and x['at']<t for x in (e.replies.get(request_key(r)),cancels.get(request_key(r))))]
+            overlap.append({'key':key['key'],'at':t,'witness':'beforeinput' if mark else 'keydown','pendingMoveOrExtendKeys':pending})
+        result['overlap']=overlap
+    import base64
+    def recorded(save):
+        raw=base64.b64decode(save['base64'],validate=True);need(digest(raw)==save['sha256'],'page save record differs from its hash');return raw
+    e.save(name+'-final-save',v['finalSave'])
+    e.state(name+'-final-state',v['finalState']);_,_,close=e.call(name+'-close','close')
+    result.update(final=recorded(v['finalSave']),original=recorded(v['originalSave']),close=close)
+    return result
+
+def inspect_s5(page,plan,browser):
+    groups={'S5':{'verdict':'NOT_ESTABLISHED'}}
+    try:
+        e=Evidence(page,plan,browser);row=plan['s5'][page['caseId']];source=plan['cases'][row['sourceArm']]
+        g=readiness(e);cand=s5_arm(e,'s5cand',row,source)
+        ref=s5_arm(e,'s5ref',row,source) if row['settledReference'] else None
+        arms=1+(ref is not None)
+        need(page.get('complete'),'incomplete page')
+        need(len({g,cand['generation']}|({ref['generation']} if ref else set()))==1+arms and len(page['workers'])==1+arms,'fresh arms/recovery generation differs')
+        need(len([r for r in e.requests.values() if r['message']['operation']=='open'])==1+arms,'extra/missing open')
+        e.closure()
+        contradict(not any(x['message'].get('event') in ('recoverable-error','worker-restart') for x in page['events']),'recovery occurred')
+        single=single_line(e,'s5cand')
+        native=row['referencePolicy']=='native' or (row['referencePolicy'].startswith('native-if-single-line') and single)
+        if native:reference=native_reference(row,cand['original'])
+        else:
+            need(ref is not None,'settled reference arm absent');reference=ref['final']
+        contradict(s5_compare(row['family'],cand['final'],reference,native),'sequence result differs from its reference')
+        overlapping=any(o['pendingMoveOrExtendKeys'] for o in cand['overlap'])
+        groups['S5']={'verdict':'PASS','reference':'native' if native else 'settled-wasm','singleLineWitness':single,
+                      'overlap':cand['overlap'],'overlapping':overlapping}
+        return {'verdict':'PASS','groups':groups}
+    except ProductFailure as error:
+        groups['S5']={'verdict':'FAIL','reason':str(error)}
+        return {'verdict':'FAIL','reason':str(error),'groups':groups}
+    except (NotEstablished,KeyError,ValueError,TypeError,IndexError) as error:
+        return {'verdict':'NOT_ESTABLISHED','reason':str(error),'groups':groups}
+
 def inspect(page,plan,browser):
+    if page.get('caseId') in plan.get('s5',{}):return inspect_s5(page,plan,browser)
     if page.get('caseId') in plan.get('interactions',{}):return inspect_interaction(page,plan,browser)
     groups={'S1':{'verdict':'NOT_APPLICABLE'},'S2':{'verdict':'NOT_ESTABLISHED'},'S3':{'verdict':'NOT_APPLICABLE'}}
     try:
@@ -529,8 +662,8 @@ def check_pre_red(path):
     result=historical_judge(cells,executed);need(result['verdict']=='EXPECTED_RED' and result['populationComplete'],'historical pre-red not complete expected red')
     return {'path':str(path),'sha256':digest(raw),'verdict':'EXPECTED_RED','cells':result['cells']}
 
-def judge(cells,plan):
-    population={**plan['cases'],**plan.get('interactions',{})}
+def judge(cells,plan,kind='selection'):
+    population=plan['s5'] if kind=='s5' else {**plan['cases'],**plan.get('interactions',{})}
     wanted={(b,c) for b in BROWSERS for c in population};seen=set();hashes=set();rows=[]
     for cell in cells:
         key=(cell['browser'],cell['caseId']);page=cell.get('page') or {}
@@ -549,13 +682,21 @@ def judge(cells,plan):
         rows.append({'cell':key,**value})
     complete=seen==wanted and len(rows)==len(wanted)
     groups={}
-    for group in ('S1','S2','S3','S4'):
+    for group in (('S5',) if kind=='s5' else ('S1','S2','S3','S4')):
         members={(b,c) for b,c in wanted if group in population[c]['memberships']}
         observations=[r for r in rows if tuple(r['cell']) in members]
         groups[group]={'required':len(members),'observed':len(observations),
             'verdict':'FAIL' if any(r.get('groups',{}).get(group,{}).get('verdict')=='FAIL' for r in observations) else 'PASS' if complete and len(observations)==len(members) and all(r.get('groups',{}).get(group,{}).get('verdict')=='PASS' for r in observations) else 'NOT_ESTABLISHED'}
-    return {'verdict':'FAIL' if any(r['verdict']=='FAIL' for r in rows) else 'PASS' if complete and all(r['verdict']=='PASS' for r in rows) else 'NOT_ESTABLISHED',
-            'populationComplete':complete,'groups':groups,'results':rows}
+    if kind=='s5':
+        # Protocol: overlap is claimed only over cells with actual pending move/extend requests at a
+        # continuation; an empty overlapping set fails S5 even when every sequence matches.
+        overlapping=[r['cell'] for r in rows if r.get('groups',{}).get('S5',{}).get('overlapping')]
+        groups['S5']['overlappingCells']=len(overlapping)
+        if groups['S5']['verdict']=='PASS' and not overlapping:groups['S5'].update(verdict='FAIL',reason='empty overlap set')
+        verdict=groups['S5']['verdict']
+    else:
+        verdict='FAIL' if any(r['verdict']=='FAIL' for r in rows) else 'PASS' if complete and all(r['verdict']=='PASS' for r in rows) else 'NOT_ESTABLISHED'
+    return {'verdict':verdict,'population':kind,'populationComplete':complete,'groups':groups,'results':rows}
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('report',type=Path);args=parser.parse_args()
@@ -567,5 +708,5 @@ def main():
     cells=[]
     for item in report['runs']:
         raw=(args.report.parent/item['path']).read_bytes();need(digest(raw)==item['sha256'],'cell bytes changed');cells.append(json.loads(raw))
-    result=judge(cells,plan);print(json.dumps(result,indent=2));return 0 if result['verdict']=='PASS' else 1
+    result=judge(cells,plan,report.get('population','selection'));print(json.dumps(result,indent=2));return 0 if result['verdict']=='PASS' else 1
 if __name__=='__main__':raise SystemExit(main())

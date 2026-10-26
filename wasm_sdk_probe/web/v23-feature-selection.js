@@ -138,6 +138,26 @@ window.__selectionControl={
     result.readiness.afterSave=await save('readiness-after-save');
     result.readiness.afterState=await state('readiness-after-state');return true;
   }catch(error){return fail(error);}},
+  // S5: the whole sequence goes through the real product keys with no wait between members;
+  // the settled reference arm alone observes the Shift terminal before its continuation.
+  armSequence(){phase.sequence={generation,inputStart:result.inputs.length,requestStart:result.requests.length,at:performance.now()};
+    document.querySelector('#sink').focus();return true;},
+  async settledWitness(){try{
+    // Existing S2 observation interval (ruling-3 line 55), only in the reference arm.
+    await new Promise(resolve=>setTimeout(resolve,500));
+    phase.settledState=await state(phaseName+'-settled-state');
+    phase.settledSelection=await call(phaseName+'-settled-text',()=>current.document.getSelection());
+    phase.sequence.continuationInputStart=result.inputs.length;document.querySelector('#sink').focus();return true;
+  }catch(error){return fail(error);}},
+  async finishSequence(){try{
+    phase.sequence.inputEnd=result.inputs.length;
+    if(typeof current.input?.idle==='function')await current.input.idle();
+    phase.finalSave=await save(phaseName+'-final-save');
+    phase.sequence.requestEnd=result.requests.length;
+    phase.finalState=await state(phaseName+'-final-state');
+    await call(phaseName+'-close',()=>current.close());return true;
+  }catch(error){return fail(error);}},
+  completeS5(){result.complete=true;result.phase='complete';return true;},
   async prepareInteraction(){try{
     const row=config.interactions[result.caseId];if(!row)throw new Error('unknown interaction');
     phaseName='interaction';phase=result.interaction={open:snap(result.currentOpen),points:{}};
@@ -172,10 +192,11 @@ window.__selectionControl={
     await call('interaction-close',()=>current.close());result.complete=true;result.phase='complete';return true;
   }catch(error){return fail(error);}},
   async prepare(which){try{
-    if(!['reference','candidate'].includes(which))throw new Error('unknown arm');
+    if(!['reference','candidate','s5cand','s5ref'].includes(which))throw new Error('unknown arm');
     phaseName=which;phase=result[which]={open:snap(result.currentOpen),points:{}};
     phase.originalSave=await save(which+'-original-save');
-    const row=config.cases[result.caseId];
+    // S5 arms reuse their Table 1 source arm's candidate shape.
+    const row=config.cases[result.caseId]??config.cases[config.s5?.[result.caseId]?.sourceArm];
     for(const [name,plan] of Object.entries(row.pointPlans))phase.points[name]=await locate(plan,which+'-point-'+name);
     const moving=phase.points[row.movingPointName].final.caret;
     if(which==='reference')await place(point(moving),which+'-origin-click');

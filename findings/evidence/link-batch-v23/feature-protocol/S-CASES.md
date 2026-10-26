@@ -79,3 +79,7 @@ The earlier Actual public evidence contract sentence naming `editorGetStateV1` i
 ## Appended 2026-10-27: S1 table-selection members
 
 The generated `contracts.S1` field (`movingEndpoint: same-browser independent unshifted control`) is superseded for table-selection members by the protocol appendix of 2026-10-27 and `s1-table-selection-ruling/RULING.md`. For those members, where the plain move crosses a table container boundary, the oracle is the agreeing three-round native selected text. The generator source is left unchanged on purpose because it is bound by the sealed pre-red reader closure; RULING.md explains why.
+
+## Appended 2026-10-27: S5 comparator against native saves
+
+"No other XML/style normalization is authorized here" stands for `reduce_content` itself. For comparisons against a native save only, the S5 reader additionally removes the single `office:font-face-decls` element after `reduce_content`, subject to a per-cell unedited-document control and a collapse guard (fable ruling 2, `s5-comparator-ruling/RULING.md`). Settled-WASM references and the type family are unchanged.

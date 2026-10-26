@@ -567,6 +567,57 @@ class InteractionControls(PreservedPages,unittest.TestCase):
                 value=self.read(case,mutate);self.assertEqual((value['verdict'],value['reason']),('NOT_ESTABLISHED',reason))
 
 
+class S5ComparatorControls(PreservedPages,unittest.TestCase):
+    """Fable ruling 2 (2026-10-27) red cases, on real files: a WASM unedited save and native run-01 saves."""
+    NATIVE=PROJECT.parent/'findings/evidence/link-batch-v23/feature-protocol/s5-native/run-01/saves'
+    def setUp(self):
+        import base64,gzip
+        cell=json.loads(gzip.decompress((self.BASE/'selection-prep-05'/'chrome-shift-Home@doc-start.json.gz').read_bytes()))
+        self.original=base64.b64decode(cell['page']['readiness']['beforeSave']['base64'])
+        self.before=(self.NATIVE/'shift-Left@caret-mid_backspace-before.odt').read_bytes()
+        self.after=(self.NATIVE/'shift-Left@caret-mid_backspace-after.odt').read_bytes()
+        self.row={'family':'backspace','native':{side:{'path':str((self.NATIVE/f'shift-Left@caret-mid_backspace-{side}.odt').relative_to(PROJECT.parent)),
+                  'sha256':__import__('hashlib').sha256(raw).hexdigest()} for side,raw in (('before',self.before),('after',self.after))}}
+    def edit(self,raw,section,old=None,new=None):
+        """Rebuild the ODT with one byte changed inside the named content.xml section."""
+        import io,re,zipfile
+        source=zipfile.ZipFile(io.BytesIO(raw));content=source.read('content.xml')
+        if section=='duplicate-ffd':
+            block=re.search(rb'<office:font-face-decls>.*?</office:font-face-decls>',content,re.S).group(0);content=content.replace(block,block+block,1)
+        else:
+            m=re.search(rb'<office:%s>(.*?)</office:%s>'%(section.encode(),section.encode()),content,re.S)
+            assert m and old in m.group(1),(section,old);i=m.start(1)+m.group(1).find(old);content=content[:i]+new+content[i+len(old):]
+        out=io.BytesIO()
+        with zipfile.ZipFile(out,'w') as target:
+            for item in source.infolist():target.writestr(item,content if item.filename=='content.xml' else source.read(item.filename))
+        return out.getvalue()
+    def test_real_control_and_reference(self):
+        from judge_v23_feature_selection import native_reference,s5_compare
+        self.assertEqual(native_reference(self.row,self.original),self.after)
+        self.assertFalse(s5_compare('backspace',self.original,self.before,False),'full reduce_content must still see the font table')
+    def test_ruling_red_cases(self):
+        from judge_v23_feature_selection import native_reference,s5_compare,strip_ffd
+        from judge_v23_feature_pre_red import NotEstablished
+        self.assertFalse(s5_compare('backspace',self.edit(self.after,'body',b'ALPHA',b'ALPHB'),self.after,True))
+        self.assertFalse(s5_compare('backspace',self.edit(self.after,'automatic-styles',b'P1',b'P9'),self.after,True))
+        self.assertTrue(s5_compare('backspace',self.edit(self.after,'font-face-decls',b'Liberation Serif',b'Liberation Serig'),self.after,True))
+        with self.assertRaisesRegex(NotEstablished,'native reference not comparable'):
+            native_reference(self.row,self.edit(self.original,'body',b'ALPHA',b'ALPHB'))
+        with self.assertRaisesRegex(NotEstablished,'not uniquely present'):
+            s5_compare('backspace',self.edit(self.after,'duplicate-ffd'),self.after,True)
+        with self.assertRaisesRegex(NotEstablished,'not uniquely present'):strip_ffd(b'<office:body></office:body>')
+    def test_collapsing_reduction_is_not_a_native_no_effect(self):
+        from judge_v23_feature_selection import native_reference
+        from judge_v23_feature_pre_red import NotEstablished
+        import hashlib,tempfile,shutil
+        # A native after that differs from before only inside font-face-decls collapses under the reduction.
+        collapsed=self.edit(self.before,'font-face-decls',b'Liberation Serif',b'Liberation Serig')
+        with tempfile.TemporaryDirectory(dir=PROJECT.parent/'findings') as directory:
+            path=Path(directory)/'after.odt';path.write_bytes(collapsed)
+            row={**self.row,'native':{**self.row['native'],'after':{'path':str(path.relative_to(PROJECT.parent)),'sha256':hashlib.sha256(collapsed).hexdigest()}}}
+            with self.assertRaisesRegex(NotEstablished,'reduction collapses the native edit'):native_reference(row,self.original)
+
+
 class OpenBoundaryControls(unittest.TestCase):
     def test_actual_runner_alias_and_mirror_respect_sdk_suffix_without_repacking(self):
         import re

@@ -107,6 +107,43 @@ def interactions(table,rounds,texts):
     if len(result)!=9:raise ValueError('S4 population differs')
     return result
 
+NATIVE_S5=ROOT/'findings/evidence/link-batch-v23/feature-protocol/s5-native'
+NATIVE_S5_READER_SHA256='014c1e0d51f6a522101c2acc6395797a8f974822cf085c8ea7f8f978b64ec538'
+S5_KEYS={'Shift+Left':('ArrowLeft',('shift',)),'Shift+Right':('ArrowRight',('shift',)),'Shift+Up':('ArrowUp',('shift',)),
+         'Shift+Down':('ArrowDown',('shift',)),'Shift+Home':('Home',('shift',)),'Shift+End':('End',('shift',)),
+         'Backspace':('Backspace',()),'Delete':('Delete',()),'text:x':('x',())}
+
+def s5(table,cases_by_id):
+    """S5: every Table 1 arm by the seven families, with the native run-01 references bound by hash."""
+    raw=(NATIVE_S5/'reader-01.json').read_bytes()
+    if digest(raw)!=NATIVE_S5_READER_SHA256:raise ValueError('native S5 reader output differs')
+    native=json.loads(raw)
+    if native.get('verdict')!='NATIVE_S5_SAVES_AVAILABLE' or native.get('problems')!=[]:raise ValueError('native S5 references unavailable')
+    native={c['id']:c for c in native['cells']}
+    result={}
+    for row in table['S5']:
+        source=cases_by_id.get(row['sourceArm'])
+        if row['id'] in result or source is None or not source['extendSelection']:raise ValueError('unmapped S5 source arm')
+        keys=[S5_KEYS[k] for k in row['sequence']]
+        shift=[i for i,k in enumerate(row['sequence']) if k.startswith('Shift+')]
+        if len(shift)!=1 or row['sequence'][shift[0]]!='Shift+'+source['key']:raise ValueError('S5 sequence differs from its source arm')
+        reference=None
+        if row['referencePolicy']!='settled-wasm':
+            cell=native.get(row['id'])
+            if cell is None or cell.get('status')!='NATIVE_SAVE_AVAILABLE':raise ValueError('native S5 save missing: '+row['id'])
+            saves={}
+            for side in ('before','after'):
+                path=NATIVE_S5/'run-01/saves'/Path(cell['saves'][side]['path']).name
+                if sha(path)!=cell['saves'][side]['sha256']:raise ValueError('native S5 save bytes differ: '+row['id'])
+                saves[side]={'path':str(path.relative_to(ROOT)),'sha256':cell['saves'][side]['sha256']}
+            reference=saves
+        result[row['id']]={'id':row['id'],'sourceArm':row['sourceArm'],'family':row['family'],'sequence':row['sequence'],
+            'keys':[{'key':k,'mods':list(m)} for k,m in keys],'shiftIndex':shift[0],'comparison':row['comparison'],
+            'referencePolicy':row['referencePolicy'],'native':reference,'memberships':['S5'],
+            'settledReference':row['referencePolicy']!='native','default':'NOT_ESTABLISHED_UNPERFORMED'}
+    if len(result)!=588:raise ValueError('S5 population differs')
+    return result
+
 def identity():
     directory=PROJECT/'dist/profiles'/PROFILE
     for name,expected in ARTIFACT_PINS.items():
@@ -161,10 +198,10 @@ def config():
             for name in names:
                 candidate=PROJECT/'tools'/Path(*name.split('.')).with_suffix('.py')
                 if candidate.is_file():pending.append(candidate)
-    texts=paragraphs();rounds=read_rounds();table=derive(rounds)
+    texts=paragraphs();rounds=read_rounds();table=derive(rounds);selection=cases(table)
     return {'schema':1,'profile':identity(),'servedSources':{n:digest(v) for n,v in sources().items()},
             'instrumentSources':{str(p.relative_to(PROJECT)):sha(p) for p in sorted(closure)},
-            'cases':cases(table),'interactions':interactions(table,rounds,texts),'sourceTable':table,'fixtureSha256':PINS['fixture-as-run.fodt'],
+            'cases':selection,'interactions':interactions(table,rounds,texts),'s5':s5(table,selection),'sourceTable':table,'fixtureSha256':PINS['fixture-as-run.fodt'],
             'fixtureParagraphs':texts,'fixtureManifest':{'fixtures':[{'id':'list-contexts'}]},
             'readinessPoint':point_plan('p0.0',texts),
             'mappingPoints':[point_plan(f'p{i}.0',texts) for i in range(len(texts))]}

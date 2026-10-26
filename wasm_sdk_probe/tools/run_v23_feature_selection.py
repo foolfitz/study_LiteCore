@@ -114,13 +114,33 @@ def run_interaction(session,browser,row):
     if row['method']=='click':product_key(session,browser,'interaction-shift-home','Home',True)
     control(session,'finishInteraction()')
 
+EXTENSION_ANSWERED="""(()=>{const p=window.__featureSelection,q=p[ARG_ARM].sequence,g=q.generation;
+  const r=p.requests.slice(q.requestStart).filter(e=>e.generation===g&&e.message.operation==='editorActionV2'&&e.message.payload.extendSelection===true);
+  return r.length===1&&p.responses.some(e=>e.generation===g&&e.message.requestId===r[0].message.requestId);})()"""
+
+def run_s5(session,browser,row,plan,target):
+    """S5: the shape of the Table 1 source arm, then the whole sequence through real product keys."""
+    keys=[(k['key'],tuple(k['mods'])) for k in row['keys']];i=row['shiftIndex']
+    for which in ('s5cand','s5ref') if row['settledReference'] else ('s5cand',):
+        fresh(session,target);run_arm(session,browser,which,plan['cases'][row['sourceArm']])
+        control(session,'armSequence()')
+        if which=='s5cand':inputs.chain(session,browser,keys)
+        else:
+            inputs.chain(session,browser,keys[:i+1])
+            # The reference alone waits for the Shift terminal, then the settled witness.
+            wait_page(session,EXTENSION_ANSWERED.replace('ARG_ARM',json.dumps(which)))
+            control(session,'settledWitness()');inputs.chain(session,browser,keys[i+1:])
+        control(session,'finishSequence()')
+    control(session,'completeS5()')
+
 def run_arm(session,browser,which,row):
     setup=control(session,'prepare('+json.dumps(which)+')')
     if setup['method']=='drag':drag(session,browser,setup)
     elif setup['method']=='click+Shift+Right x3':
-        for n in range(3):product_key(session,browser,'candidate-setup-shift-'+str(n),'ArrowRight',True)
-    elif setup['method']=='click+End':product_key(session,browser,'candidate-setup-end','End',False)
+        for n in range(3):product_key(session,browser,which+'-setup-shift-'+str(n),'ArrowRight',True)
+    elif setup['method']=='click+End':product_key(session,browser,which+'-setup-end','End',False)
     control(session,'before()')
+    if which in ('s5cand','s5ref'):return
     product_key(session,browser,which+'-move',row['productKey']['key'],row['extendSelection'] if which=='candidate' else False)
     control(session,'finish()')
 
@@ -128,15 +148,16 @@ def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output',type=Path,required=True);parser.add_argument('--preparation-only',action='store_true')
     parser.add_argument('--browser',choices=BROWSERS);parser.add_argument('--case-id',action='append',help='preparation only; repeatable, run in the given order');parser.add_argument('--pre-red-report',type=Path)
+    parser.add_argument('--population',choices=('selection','s5'),default='selection',help='selection: S1-S4 cells; s5: the 588 S5 sequences')
     parser.add_argument('--keep-going',action='store_true',help='preparation only: record every listed cell instead of stopping at the first nonpassing one')
     args=parser.parse_args();plan=config()
     if (args.browser or args.case_id or args.keep_going) and not args.preparation_only:parser.error('filters require preparation-only')
-    population=list(plan['cases'])+list(plan['interactions'])
+    population=list(plan['s5']) if args.population=='s5' else list(plan['cases'])+list(plan['interactions'])
     if args.case_id and (set(args.case_id)-set(population) or len(set(args.case_id))!=len(args.case_id)):parser.error('unknown or repeated source case')
     if not args.preparation_only and not args.pre_red_report:parser.error('qualifying collection requires complete historical pre-red')
     prerequisite=check_pre_red(args.pre_red_report) if args.pre_red_report else {'verdict':'NOT_ESTABLISHED'}
     args.output.mkdir(parents=True,exist_ok=False);target=args.output.resolve()/'mirror';mirror(target,plan)
-    report={'schema':1,'argv':sys.argv,'cwd':str(Path.cwd()),'config':plan,'preparationOnly':args.preparation_only,
+    report={'schema':1,'population':args.population,'argv':sys.argv,'cwd':str(Path.cwd()),'config':plan,'preparationOnly':args.preparation_only,
             'preRed':prerequisite,'mirrorBindings':verify_mirror(target,plan),'runs':[]}
     def write():(args.output/'report.json').write_bytes(encoded(report))
     write()
@@ -155,7 +176,8 @@ def main():
                         control(session,'prepareReadiness()');actual_Z(session);control(session,'finishReadiness()')
                         initial,meta=export_page(session);readiness(Evidence(initial,plan,browser))
                         cell['readinessTransfer']=meta
-                        if case in plan['interactions']:fresh(session,target);run_interaction(session,browser,plan['interactions'][case])
+                        if case in plan['s5']:run_s5(session,browser,plan['s5'][case],plan,target)
+                        elif case in plan['interactions']:fresh(session,target);run_interaction(session,browser,plan['interactions'][case])
                         else:
                             for which in ('reference','candidate'):
                                 fresh(session,target);run_arm(session,browser,which,plan['cases'][case])
