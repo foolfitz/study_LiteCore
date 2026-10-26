@@ -1,0 +1,52 @@
+{
+  "scope": "source causal controls only; historical runtime unchanged; no future32claim",
+  "checks": [
+    {
+      "label": "before",
+      "argv": [
+        "/usr/bin/python3",
+        "-I",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v23/review/call-ownership-01/clock-causal-slfcll8w/tests",
+        "-p",
+        "test_v23_feature_pre_red.py",
+        "-k",
+        "adjacent_same_clock"
+      ],
+      "cwd": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe",
+      "exitCode": 1,
+      "readerSha256": "8e5a5debade0d22bb6bf6f4feb97b7df6d021addb80a44602f340d5eab86e683",
+      "testSha256": "a948d82a4b6a158681500d79b2cbdf1cdc59b6d41fc26133909ae21be1bf9e11",
+      "stdout": "",
+      "stderr": "FF\n======================================================================\nFAIL: test_adjacent_same_clock_calls_keep_actual_request_ownership (test_v23_feature_pre_red.CallOwnershipTests.test_adjacent_same_clock_calls_keep_actual_request_ownership)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v23/review/call-ownership-01/clock-causal-slfcll8w/tests/test_v23_feature_pre_red.py\", line 239, in test_adjacent_same_clock_calls_keep_actual_request_ownership\n    self.assertEqual(inspect(page,plan,'chrome')['verdict'],'EXPECTED_RED')\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 'NOT_ESTABLISHED' != 'EXPECTED_RED'\n- NOT_ESTABLISHED\n+ EXPECTED_RED\n\n\n======================================================================\nFAIL: test_adjacent_same_clock_mutation_has_one_owner (test_v23_feature_pre_red.CallOwnershipTests.test_adjacent_same_clock_mutation_has_one_owner)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v23/review/call-ownership-01/clock-causal-slfcll8w/tests/test_v23_feature_pre_red.py\", line 247, in test_adjacent_same_clock_mutation_has_one_owner\n    self.assertEqual(inspect(page,plan,'chrome')['verdict'],'EXPECTED_RED')\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 'NOT_ESTABLISHED' != 'EXPECTED_RED'\n- NOT_ESTABLISHED\n+ EXPECTED_RED\n\n\n----------------------------------------------------------------------\nRan 2 tests in 0.809s\n\nFAILED (failures=2)\n"
+    },
+    {
+      "label": "after",
+      "argv": [
+        "/usr/bin/python3",
+        "-I",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v23/review/call-ownership-01/clock-causal-slfcll8w/tests",
+        "-p",
+        "test_v23_feature_pre_red.py",
+        "-k",
+        "adjacent_same_clock"
+      ],
+      "cwd": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe",
+      "exitCode": 0,
+      "readerSha256": "cfc318f4f2b8dbffe953599f134367a599f444309a89be54567155712a9a14dd",
+      "testSha256": "a948d82a4b6a158681500d79b2cbdf1cdc59b6d41fc26133909ae21be1bf9e11",
+      "stdout": "",
+      "stderr": "..\n----------------------------------------------------------------------\nRan 2 tests in 0.796s\n\nOK\n"
+    }
+  ],
+  "temporaryMirrorRemoved": true
+}

@@ -30,6 +30,13 @@ def paragraphs(saved):
         return paragraph_texts_from_xml(archive.read('content.xml'))
 
 def stream(page):
+    previous_end=0
+    for call in page['calls']:
+        start,end=call.get('requestStart'),call.get('requestEnd')
+        need(type(start) is int and type(end) is int and 0<=start<end<=len(page['requests']),
+             'invalid public call request range')
+        need(start>=previous_end,'overlapping or unordered public call request ranges')
+        previous_end=end
     requests={}; replies={}
     for item in page['requests']:
         key=(item['generation'],item['message']['requestId'])
@@ -44,8 +51,10 @@ def call_binding(page,name,operation,requests,replies):
     calls=[c for c in page['calls'] if c['name']==name]
     need(len(calls)==1 and calls[0].get('ok') is True,'missing/refused public call '+name)
     call=calls[0]
-    matches=[(key,r) for key,r in requests.items() if r['generation']==call['generation'] and
-             r['message']['operation']==operation and call['startedAt']<=r['at']<=call['finishedAt']]
+    matches=[((r['generation'],r['message']['requestId']),r)
+             for r in page['requests'][call['requestStart']:call['requestEnd']]
+             if r['generation']==call['generation'] and r['message']['operation']==operation
+             and call['startedAt']<=r['at']<=call['finishedAt']]
     need(len(matches)==1,'missing/nonunique wire call '+name)
     key,request=matches[0]; terminal=replies.get(key)
     need(terminal is not None and terminal['message'].get('ok') is True,'missing/refused terminal '+name)
@@ -189,12 +198,13 @@ def mutation_closure(page,requests,plan):
         else:
             allowed.add(prefix+'-end')
             if discovery['offset']=='next-empty':allowed.add(prefix+'-next-empty')
-    for request in requests.values():
+    for index,request in enumerate(page['requests']):
         operation=request['message']['operation']
         need(operation in mutations|passive,'unplanned public operation '+operation)
         if operation=='insertText':continue  # Bound uniquely by readiness; forbidden in the measured generation below.
         if operation in mutations:
             calls=[c for c in page['calls'] if c['generation']==request['generation'] and
+                   c['requestStart']<=index<c['requestEnd'] and
                    c['startedAt']<=request['at']<=c['finishedAt']]
             need(len(calls)==1,'mutation outside a declared call')
             name=calls[0]['name'];payload=request['message']['payload']

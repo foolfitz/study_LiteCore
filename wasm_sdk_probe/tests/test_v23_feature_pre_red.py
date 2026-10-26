@@ -37,7 +37,7 @@ def make_page(plan,case='shift-Left@caret-mid',browser='chrome'):
         identifier+=1;clock+=4;request={'kind':'request','requestId':identifier,'operation':op,'payload':payload}
         p['requests'].append({'generation':gen,'at':clock+1,'message':request})
         p['responses'].append({'generation':gen,'at':clock+2,'message':{'kind':'response','requestId':identifier,'ok':True,'result':copy.deepcopy(value)}})
-        if name:p['calls'].append({'name':name,'generation':gen,'documentHandle':gen,'startedAt':clock,'finishedAt':clock+3,'ok':True,'result':copy.deepcopy(value)})
+        if name:p['calls'].append({'name':name,'generation':gen,'documentHandle':gen,'requestStart':len(p['requests'])-1,'requestEnd':len(p['requests']),'startedAt':clock,'finishedAt':clock+3,'ok':True,'result':copy.deepcopy(value)})
         return clock
     def call(name,op,payload,value):return wire(op,{'documentHandle':gen,**payload},value,name)
     def state(x=100,revision=0):return {'documentHandle':gen,'revision':revision,'caret':{'x':x,'y':100,'width':0,'height':20},
@@ -227,6 +227,41 @@ locate({paragraph:7,offset:5,query:text,anchor:'search-text-start'},'measured')
         result=json.loads(run.stdout)
         self.assertEqual(result['text'],'List ')
         self.assertEqual(result['moves'],['character-right']*5)
+
+
+class CallOwnershipTests(unittest.TestCase):
+    def test_adjacent_same_clock_calls_keep_actual_request_ownership(self):
+        plan=config(WASM);page=make_page(plan)
+        first=next(c for c in page['calls'] if c['name']=='readiness-start-state')
+        second=next(c for c in page['calls'] if c['name']=='readiness-target-state')
+        second['startedAt']=first['finishedAt']
+        page['requests'][second['requestStart']]['at']=first['finishedAt']
+        self.assertEqual(inspect(page,plan,'chrome')['verdict'],'EXPECTED_RED')
+
+    def test_adjacent_same_clock_mutation_has_one_owner(self):
+        plan=config(WASM);page=make_page(plan)
+        first=next(c for c in page['calls'] if c['name']=='readiness-search')
+        second=next(c for c in page['calls'] if c['name']=='readiness-search-click')
+        second['startedAt']=first['finishedAt']
+        page['requests'][second['requestStart']]['at']=first['finishedAt']
+        self.assertEqual(inspect(page,plan,'chrome')['verdict'],'EXPECTED_RED')
+
+    def test_invalid_or_reassigned_call_ranges_are_ne(self):
+        plan=config(WASM)
+        for change in ('missing','empty','bool','negative','outside','overlap','wrong-owner'):
+            page=make_page(plan);call=page['calls'][0]
+            if change=='missing':call.pop('requestStart')
+            elif change=='empty':call['requestEnd']=call['requestStart']
+            elif change=='bool':call['requestStart']=True
+            elif change=='negative':call['requestStart']=-1
+            elif change=='outside':call['requestEnd']=len(page['requests'])+1
+            elif change=='overlap':call['requestEnd']=page['calls'][1]['requestEnd']
+            else:
+                a,b=page['calls'][:2]
+                a['requestStart'],b['requestStart']=b['requestStart'],a['requestStart']
+                a['requestEnd'],b['requestEnd']=b['requestEnd'],a['requestEnd']
+            with self.subTest(change=change):
+                self.assertEqual(inspect(page,plan,'chrome')['verdict'],'NOT_ESTABLISHED')
 
 
 class WrapAnchorTests(unittest.TestCase):

@@ -1,0 +1,22 @@
+{
+  "argv": [
+    "python3",
+    "-m",
+    "unittest",
+    "discover",
+    "-s",
+    "tests",
+    "-p",
+    "test_v23_feature_pre_red.py",
+    "-k",
+    "adjacent_same_clock"
+  ],
+  "cwd": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe",
+  "exitCode": 1,
+  "stdout": "",
+  "stderr": "F\n======================================================================\nFAIL: test_adjacent_same_clock_calls_keep_actual_request_ownership (test_v23_feature_pre_red.CallOwnershipTests.test_adjacent_same_clock_calls_keep_actual_request_ownership)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tests/test_v23_feature_pre_red.py\", line 239, in test_adjacent_same_clock_calls_keep_actual_request_ownership\n    self.assertEqual(inspect(page,plan,'chrome')['verdict'],'EXPECTED_RED')\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 'NOT_ESTABLISHED' != 'EXPECTED_RED'\n- NOT_ESTABLISHED\n+ EXPECTED_RED\n\n\n----------------------------------------------------------------------\nRan 1 test in 0.423s\n\nFAILED (failures=1)\n",
+  "sources": {
+    "tools/judge_v23_feature_pre_red.py": "8e5a5debade0d22bb6bf6f4feb97b7df6d021addb80a44602f340d5eab86e683",
+    "tests/test_v23_feature_pre_red.py": "38b587fb3172c25a057100dac0c3cbe3dc0292768ab09d97588235b277451fdc"
+  }
+}

@@ -44,10 +44,10 @@ for(const type of ['keydown','keyup','beforeinput','input'])document.addEventLis
   if(event.target?.id==='sink')result.inputs.push({type,at:performance.now(),isTrusted:event.isTrusted,
     key:event.key,code:event.code,repeat:event.repeat,inputType:event.inputType,data:event.data,sink:sinkSnapshot()});
 },true);
-async function call(name,fn){const entry={name,generation,documentHandle:current?.document?.handle,startedAt:performance.now()};
+async function call(name,fn){const entry={name,generation,documentHandle:current?.document?.handle,startedAt:performance.now(),requestStart:result.requests.length};
   result.calls.push(entry);try{const value=await fn();entry.result=snap(value);entry.ok=true;return value;}
   catch(error){entry.ok=false;entry.error={code:error?.code,message:String(error?.message||error)};throw error;}
-  finally{entry.finishedAt=performance.now();}}
+  finally{entry.requestEnd=result.requests.length;entry.finishedAt=performance.now();}}
 const state=name=>call(name,()=>current.editor.getState());
 const move=(direction,name)=>call(name,()=>current.editor.action('move-'+direction));
 const point=caret=>({xTwips:caret.x,yTwips:caret.y+Math.floor(caret.height/2)});
