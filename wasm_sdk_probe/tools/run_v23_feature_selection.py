@@ -18,7 +18,8 @@ from v23_feature_selection_cases import BROWSERS,config,mirror,verify_mirror,enc
 from judge_v23_feature_selection import Evidence,readiness,inspect,check_pre_red
 
 def export_page(session):
-    meta=evaluate(session,"""(async()=>{await Promise.all(window.__featureSelectionPending||[]);
+    meta=evaluate(session,"""(async()=>{const pending=window.__featureSelectionPending||[];let n;
+      do{n=pending.length;await Promise.all(pending.slice());}while(pending.length!==n);
       const b=new TextEncoder().encode(JSON.stringify(window.__featureSelection));
       window.__featureExport=b;const h=await crypto.subtle.digest('SHA-256',b);
       return {length:b.length,sha256:Array.from(new Uint8Array(h),x=>x.toString(16).padStart(2,'0')).join('')};})()""")

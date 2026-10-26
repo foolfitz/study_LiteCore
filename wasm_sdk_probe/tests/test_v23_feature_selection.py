@@ -228,13 +228,31 @@ const plain=paintResponse({kind:'response',requestId:9,ok:false,error:{code:'X'}
 """
         run=subprocess.run(['node','--input-type=module','-e',check],capture_output=True,text=True)
         self.assertEqual(run.returncode,0,run.stderr)
+    def test_actual_js_worker_wrapper_routes_only_paint_replies_to_digests(self):
+        import subprocess
+        script=(Path(__file__).resolve().parents[1]/'web/v23-feature-selection.js').read_text()
+        wrapper=script[script.index('const result = window.__featureSelection'):script.index('const openOriginal')]
+        check="""const window={},location={search:''},navigator={userAgent:'node'};
+class FakeWorker extends EventTarget{constructor(){super();}postMessage(){}terminate(){}}
+window.Worker=FakeWorker;"""+wrapper+"""
+const a=new window.Worker('w1'),b=new window.Worker('w2');
+a.postMessage({kind:'request',requestId:5,operation:'paint',payload:{}});
+a.postMessage({kind:'request',requestId:6,operation:'save',payload:{}});
+const reply=(w,id)=>{const e=new Event('message');e.data={kind:'response',requestId:id,ok:true,result:{pixels:new Uint8Array([1,2]).buffer}};w.dispatchEvent(e);};
+reply(b,5);reply(a,6);reply(a,5);reply(a,5);
+await Promise.all(window.__featureSelectionPending);
+const enc=result.responses.map(x=>x.message.result.pixels.encoding).join(',');
+if(enc!=='base64,base64,sha256,base64')throw Error('routing '+enc);
+"""
+        run=subprocess.run(['node','--input-type=module','-e',check],capture_output=True,text=True)
+        self.assertEqual(run.returncode,0,run.stderr)
     def test_paint_digest_is_required(self):
         from judge_v23_feature_selection import inspect
         for pixels,verdict in (({'encoding':'sha256','bytes':4,'sha256':'0'*64},'PASS'),({'encoding':'sha256','bytes':4,'sha256':None},'NOT_ESTABLISHED'),
-                               ({'encoding':'base64','bytes':4,'data':'AQIDBA=='},'PASS'),({'encoding':'base64','bytes':4},'NOT_ESTABLISHED'),(None,'NOT_ESTABLISHED')):
+                               ({'encoding':'base64','bytes':4,'data':'AQIDBA=='},'PASS'),({'encoding':'base64','bytes':4},'NOT_ESTABLISHED'),(None,'NOT_ESTABLISHED'),('no-result','NOT_ESTABLISHED')):
             page=synthetic_page(self.plan);r=copy.deepcopy(page['requests'][-1]);t=copy.deepcopy(page['responses'][-1])
             r['message'].update(requestId=10**6,operation='paint',payload={'documentHandle':r['generation']})
-            t['message'].update(requestId=10**6,ok=True,result={'pixels':pixels,'width':1,'height':1});page['requests'].append(r);page['responses'].append(t)
+            t['message'].update(requestId=10**6,ok=True,result={'pixels':pixels,'width':1,'height':1} if pixels!='no-result' else None);page['requests'].append(r);page['responses'].append(t)
             with self.subTest(pixels=pixels):
                 value=inspect(page,self.plan,'chrome');self.assertEqual(value['verdict'],verdict,value)
                 if verdict!='PASS':self.assertEqual(value['reason'],'paint digest incomplete')
@@ -296,12 +314,17 @@ class PlaceRouteControls(unittest.TestCase):
             c=next(c for c in page['calls'] if c['name']==name);return c,page['requests'][c['requestStart']:c['requestEnd']]
         def reply(page,request):
             return next(t for t in page['responses'] if t['generation']==request['generation'] and t['message']['requestId']==request['message']['requestId'])
-        for kind in ('collapsed-but-click','range-but-placecaret','stale-state-read','fallback-both','no-state-read'):
+        for kind in ('collapsed-but-click','range-but-placecaret','stale-state-read','fallback-both','no-state-read','read-after-route','other-generation-read','selection-none'):
             page=copy.deepcopy(p)
             if kind=='collapsed-but-click':window(page,'candidate-origin-click')[1][1]['message']['operation']='click'
             elif kind=='range-but-placecaret':window(page,'readiness-search-click')[1][1]['message']['operation']='editorPlaceCaretV2'
             elif kind=='stale-state-read':reply(page,window(page,'candidate-origin-click')[1][0])['message']['result']['selection']['collapsed']=False
             elif kind=='no-state-read':window(page,'candidate-origin-click')[1][0]['message']['operation']='paint'
+            elif kind=='read-after-route':
+                read,route=window(page,'candidate-origin-click')[1];read['at'],route['at']=route['at'],read['at']
+            elif kind=='other-generation-read':
+                read=window(page,'candidate-origin-click')[1][0];reply(page,read)['generation']+=100;read['generation']+=100
+            elif kind=='selection-none':reply(page,window(page,'candidate-origin-click')[1][0])['message']['result']['selection']=None
             else:
                 c,requests=window(page,'candidate-origin-click');at=c['requestEnd'];extra=copy.deepcopy(requests[-1])
                 answer=copy.deepcopy(reply(page,extra));extra['message']['requestId']=answer['message']['requestId']=10**6
@@ -434,6 +457,25 @@ class TableSelectionControls(ActualPreparationRereads):
         text=lambda v:v.update(text='item one\nA1 cell text')
         text(page['candidate']['activeSelection']);self.consistent(page,'candidate-active-selection',text)
         self.assertEqual(inspect(page,plan,'chrome')['groups']['S1']['verdict'],'FAIL')
+    def test_b_named_limit_caret_side_is_not_witnessed(self):
+        from judge_v23_feature_selection import inspect
+        page,plan=self.page('selection-prep-03','shift-Up@cell-end')
+        end=page['reference']['endpoint'];anchor=page['candidate']['before']['caret']
+        def old(state):
+            state.update(caret=copy.deepcopy(end));state['selection'].update(collapsed=False,start={**end,'height':275},end={**anchor,'height':275})
+        old(page['candidate']['readback']);self.consistent(page,'candidate-readback',old)
+        value=inspect(page,plan,'chrome')['groups']['S1']
+        self.assertEqual((value['verdict'],value['anchorWitness']),('PASS','native-text-extent'))
+    def test_aggregate_records_native_text_agreement_without_asserting_it(self):
+        import gzip
+        from judge_v23_feature_selection import judge
+        plan=json.loads((self.BASE/'selection-prep-03'/'report.json').read_bytes())['config']
+        cell=json.loads(gzip.decompress((self.BASE/'selection-prep-03'/'chrome-shift-Down@caret-mid.json.gz').read_bytes()))
+        row=next(r for r in judge([cell],plan)['results'] if tuple(r['cell'])==('chrome','shift-Down@caret-mid'))
+        self.assertEqual(row['verdict'],'PASS');self.assertIn('nativeTextAgreement',row)
+        cell['page']['candidate']['activeSelection']['text']+='x'
+        row=next(r for r in judge([cell],plan)['results'] if tuple(r['cell'])==('chrome','shift-Down@caret-mid'))
+        self.assertEqual(row['nativeTextAgreement']['agrees'],False)
     def test_c_container_parser_refuses_what_it_does_not_model(self):
         import re
         from judge_v23_feature_selection import containers_from_xml

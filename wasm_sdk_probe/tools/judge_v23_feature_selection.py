@@ -39,7 +39,7 @@ def place_route(requests,replies,generation):
     routed=[r for r in requests if r['generation']==generation and r['message']['operation'] in PLACE_OPS]
     need(reads and len(routed)==1 and reads[0]['at']<=routed[0]['at'],'placeCaret route witness absent/nonunique')
     t=replies.get(request_key(reads[0]));need(t is not None and t['message'].get('ok') is True,'placeCaret state read refused')
-    collapsed=(t['message'].get('result') or {}).get('selection',{}).get('collapsed')
+    collapsed=((t['message'].get('result') or {}).get('selection') or {}).get('collapsed')
     need(type(collapsed) is bool,'placeCaret route state absent')
     need(routed[0]['message']['operation']==('editorPlaceCaretV2' if collapsed else 'click'),'placeCaret route differs from its own state read')
     return routed[0]['message']['operation']
@@ -154,7 +154,7 @@ class Evidence:
             if op=='paint' and self.replies.get(k,{}).get('message',{}).get('ok') is True:
                 # The observer keeps each bitmap's length and SHA-256 (since selection-prep-05);
                 # earlier preparations kept the full bytes, a superset.
-                pixels=self.replies[k]['message'].get('result',{}).get('pixels')
+                pixels=(self.replies[k]['message'].get('result') or {}).get('pixels')
                 need(isinstance(pixels,dict) and type(pixels.get('bytes')) is int and (
                      pixels.get('encoding')=='sha256' and re.fullmatch(r'[0-9a-f]{64}',str(pixels.get('sha256'))) is not None
                      or pixels.get('encoding')=='base64' and isinstance(pixels.get('data'),str)),'paint digest incomplete')
@@ -468,6 +468,13 @@ def judge(cells,plan):
             rows.append({'cell':key,'verdict':'NOT_ESTABLISHED','reason':'duplicate/undeclared actual observation'});continue
         seen.add(key);hashes.add(fingerprint)
         value=inspect(page,plan,cell['browser']) if not cell.get('fatal') and page.get('caseId')==cell['caseId'] else {'verdict':'NOT_ESTABLISHED','reason':'unclean cell/label'}
+        # Recorded, never asserted: does the candidate's selected text equal Writer's? A wrong
+        # plain move can take a table member out of the A' branch (review of 853f2522), and
+        # Up/Down outside that branch have no native comparison; this makes such a flip visible.
+        texts=plan['cases'][key[1]].get('nativeAfterSelectionText') or []
+        observed=((page.get('candidate') or {}).get('activeSelection') or {}).get('text')
+        if 'S1' in plan['cases'][key[1]]['memberships'] and isinstance(observed,str) and texts:
+            value={**value,'nativeTextAgreement':{'agrees':all(observed==x for x in texts),'roundsAgree':len(set(texts))==1}}
         rows.append({'cell':key,**value})
     complete=seen==wanted and len(rows)==len(wanted)
     groups={}
