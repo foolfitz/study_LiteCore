@@ -16,3 +16,9 @@ The original bytes/hashes and original reader paths are then available. Replayin
 Historical source copies are exact evidence, including original whitespace. The six frozen `mirror/input/clipboard-adapter.js` copies and recorded Python blob `b76d54f9…` end with a preexisting blank line. Their literal bytes are preserved; the archive commit's whitespace check therefore separately excludes only `**/mirror/**` and `tool-source-blobs/**`. Current implementation/source checks retain their normal rules.
 
 The second storage batch adds preparation04 and counted04, including two more exact mirrors with the same historical whitespace. The final inventory uses **both** `storage-index-01.json` and `storage-index-02.json`; verify or restore each with the commands above, substituting its actual index name. Both preserve their original reports and paths. Neither inventory supplies the future corrected-graph32-cell population.
+
+## Added cohort: counted-05
+
+`storage-index-03.json` adds the corrected complete historical cohort only: one report and 32 full raw pages, 2,682,882,779 raw bytes and 38,684,767 gzip bytes. Existing indices01/02 and their stopped/preparation evidence remain unchanged. The runner and independent aggregate reader both exited0 with all32 EXPECTED_RED observations; storage itself supplies no product verdict. See counted-05's retained reader, correction and post-run scope records.
+
+Use the existing tool with `verify --index storage-index-03.json` or `restore --index storage-index-03.json` for this cohort. Raw originals remain present/ignored and deterministic gzip files are tracked. `tool-source-bindings-03.json` binds its 17 recorded Python sources to preserved exact blobs. Source mirror and source-blob whitespace is preserved byte-for-byte; only those archival paths were excluded from this evidence commit's whitespace check, with ordinary source checks unchanged.
