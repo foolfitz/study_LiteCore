@@ -1,0 +1,13 @@
+# Accepted diagnostic source replay index
+
+This read-only check ties the accepted r2 diagnostic reports' recorded local source SHA maps to Git commit `1fdd165a2e89f58d86051482570fe83a09012df9`. It does not rerun cohort readers, reinterpret browser outcomes, or copy the underlying reports. Its finite index is `source-closure.stdout.json`; the command record and actual stdout/stderr are preserved alongside it.
+
+The replay covered 19 report/config records: bounded (1), W-D (12 per-case reports), 040 (3 arms), timing (largest and workload), and S-init (1). It checked 1,073 recorded map rows across 41 unique repository source paths. Every row matched the SHA256 of the bytes returned by `git show <commit>:<path>`; all Git blob object IDs are also recorded. Before reading reports, the checker derives the expected W-D and 040 member sets from top-level literal dictionary keys in `v23_wd_cases.py` and `v23_remaining_cases.py` at the pinned commit. Missing cohort directories, empty member lists, missing members, and unexpected members are errors; the accepted sets were exactly W-D's 12 `PLANS` keys and 040's three `CASES_040` keys. The executed command exited 0 with empty stderr. The exact command is reproducible from the repository root:
+
+```sh
+python3 -I findings/evidence/link-batch-v23/pre-link/feature-01/diagnostic-replay/replay-source-closure.py --commit 1fdd165a
+```
+
+The index includes the transitive `create_long_document.py` generator because it appears in the timing/remaining source graphs. W-D's case-definition module imports `findings/evidence/link-batch-v23/native/ordered-commands/tool/run_arms.py` to derive its population. That generator exists at the pinned Git commit (blob `66aed7291b1ecd3e0231c66ec606e924f13af01e`, SHA256 `c978b12b2d61f129faf7d1d72c8311f1d245f8742d2573863b7b74b980bca536`), but is not included in this replay map's instrument SHA rows. This records a limitation of this replay map only; it does not re-adjudicate or negate native-oracle provenance recorded elsewhere for the accepted W-D cohort.
+
+The source maps bind the diagnostics as accepted at that commit. Later shared client/page edits are expected to make the current-source readers report drift; this replay index preserves the earlier Git source closure without bypassing those readers or editing their reports. `causal-reds.*` preserves the checker self-test output for missing-directory and empty-list cases; both were detected without changing any accepted evidence. The initial parser attempt failed while evaluating W-D dictionary values that use `P`/`D` aliases; the raw command output is retained in `implementation-red/`, and the final checker reads only the source-owned dictionary keys.

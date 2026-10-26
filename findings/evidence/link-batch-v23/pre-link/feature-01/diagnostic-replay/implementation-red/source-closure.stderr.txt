@@ -1,0 +1,30 @@
+Traceback (most recent call last):
+  File "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v23/pre-link/feature-01/diagnostic-replay/replay-source-closure.py", line 222, in <module>
+    raise SystemExit(main())
+                     ~~~~^^
+  File "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v23/pre-link/feature-01/diagnostic-replay/replay-source-closure.py", line 134, in main
+    reports, membership_problems, source_case_sets = accepted_reports(commit)
+                                                     ~~~~~~~~~~~~~~~~^^^^^^^^
+  File "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v23/pre-link/feature-01/diagnostic-replay/replay-source-closure.py", line 51, in accepted_reports
+    expected_wd = literal_assignment(commit, 'wasm_sdk_probe/tools/v23_wd_cases.py', 'PLANS')
+  File "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v23/pre-link/feature-01/diagnostic-replay/replay-source-closure.py", line 27, in literal_assignment
+    value = ast.literal_eval(node.value)
+  File "/usr/lib/python3.14/ast.py", line 106, in literal_eval
+    return _convert(node_or_string)
+  File "/usr/lib/python3.14/ast.py", line 95, in _convert
+    return dict(zip(map(_convert, node.keys),
+                    map(_convert, node.values)))
+  File "/usr/lib/python3.14/ast.py", line 86, in _convert
+    return list(map(_convert, node.elts))
+  File "/usr/lib/python3.14/ast.py", line 84, in _convert
+    return tuple(map(_convert, node.elts))
+  File "/usr/lib/python3.14/ast.py", line 105, in _convert
+    return _convert_signed_num(node)
+  File "/usr/lib/python3.14/ast.py", line 79, in _convert_signed_num
+    return _convert_num(node)
+  File "/usr/lib/python3.14/ast.py", line 70, in _convert_num
+    _raise_malformed_node(node)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/usr/lib/python3.14/ast.py", line 67, in _raise_malformed_node
+    raise ValueError(msg + f': {node!r}')
+ValueError: malformed node or string on line 14: Name(id='P', ctx=Load())
