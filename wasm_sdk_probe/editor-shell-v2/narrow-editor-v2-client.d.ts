@@ -87,12 +87,10 @@ export class NarrowEditorV2Client {
     : Promise<EditorV2InheritedResult>;
   action(action: EditorV2ParagraphAction,
          options?: RevisionOptions): Promise<EditorV2ActionResult>;
-  /**
-   * `extendSelection` is absent on purpose: the ABI refuses that flag for
-   * anything but the two character moves, so offering it here would type a
-   * call the engine rejects.
-   */
-  action(action: EditorV3AppendedAction,
+  /** ABI6 grants extension on the four existing line moves. */
+  action(action: Exclude<EditorV3AppendedAction, "delete-selection">,
+         options?: RevisionOptions & { extendSelection?: boolean }): Promise<EditorV2InheritedResult>;
+  action(action: "delete-selection",
          options?: RevisionOptions): Promise<EditorV2InheritedResult>;
   /** ABI 5's two moves: no `extendSelection`, for the reason above. */
   action(action: EditorV4AppendedAction,
@@ -102,7 +100,7 @@ export class NarrowEditorV2Client {
                 options?: RevisionOptions & { extendSelection?: boolean })
     : Promise<EditorV2InheritedResult>;
   moveLine(direction: "up" | "down" | "home" | "end",
-           options?: RevisionOptions): Promise<EditorV2InheritedResult>;
+           options?: RevisionOptions & { extendSelection?: boolean }): Promise<EditorV2InheritedResult>;
   delete(direction: "backward" | "forward",
          options?: RevisionOptions): Promise<EditorV2InheritedResult>;
   /** The caller makes the selection; this removes it.  No direction, no arity. */
@@ -127,6 +125,7 @@ export class NarrowEditorV2Client {
               end: { xTwips: number; yTwips: number },
               options?: AbortableOptions): Promise<unknown>;
   gesturesFor(action: EditorV4Action): EditorV2Gesture[] | null;
+  offersSelectionMove(action: EditorV4Action, gesture: EditorV2Gesture): boolean;
   limitsFor(action: EditorV4Action): string[];
   /**
    * SPEC-M3-link-batch 10.8: whether the profile declares the page-rectangles

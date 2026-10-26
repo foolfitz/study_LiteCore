@@ -102,20 +102,18 @@ const MOVE_ACTIONS = new Set(["move-character-left", "move-character-right"]);
 // point: these inherit one somebody measured instead of getting a new one
 // nobody has.
 //
-// They are NOT in MOVE_ACTIONS, and that is deliberate rather than an
-// oversight: MOVE_ACTIONS is also what permits `extendSelection`, and the ABI
-// refuses that flag for anything but the two character moves
-// (editor_api.cpp:159).  A shift+Up that the client accepts and the engine
-// rejects is worse than one the client refuses.
+// Older ABIs permit extension only for character moves. ABI6 adds extension
+// on these existing IDs only when the active contract grants it; the move
+// postcondition is unchanged.
 const LINE_MOVE_ACTIONS = new Set([
   "move-line-up", "move-line-down", "move-line-home", "move-line-end",
 ]);
-// SPEC-M3-link-batch-v21 4.1: the same route again -- a posted key,
-// `mutation = false`, the 250 ms readback always armed -- so the same
-// postcondition, and at a document boundary (where Ctrl+Home is silent,
+// SPEC-M3-link-batch-v21 4.1: the same non-mutation move postcondition,
+// and at a document boundary (where Ctrl+Home is silent,
 // measured natively) the same `verified-move-readback` completion.  Not in
-// MOVE_ACTIONS, for the reason LINE_MOVE_ACTIONS is not: that set also permits
-// `extendSelection`, which the ABI refuses for anything but the character moves.
+// MOVE_ACTIONS: document extension remains refused, including on ABI6.
+// ABI6's ordered engine completes from its first poll rather than the legacy
+// 250ms readback; the accepted completion names and postcondition stay the same.
 const DOCUMENT_MOVE_ACTIONS = new Set(["move-document-start", "move-document-end"]);
 // FINDING 096.  The two completions a movement is allowed to come back with,
 // and the SECOND one is why this is a function rather than a prefix test.
@@ -235,6 +233,16 @@ export class NarrowEditorV2Client {
   gesturesFor(action) {
     const spec = this.document._engine.manifest?.editorContract?.actions?.[action];
     return Array.isArray(spec?.gestures) ? spec.gestures : null;
+  }
+
+  /** ABI6's six selection moves, for the actual advertised gesture only. */
+  offersSelectionMove(action, gesture) {
+    const contract = this.document._engine.manifest?.editorContract;
+    return contract?.abiVersion === 6
+      && (MOVE_ACTIONS.has(action) || LINE_MOVE_ACTIONS.has(action))
+      && ["collapsed", "range-single", "range-cross"].includes(gesture)
+      && this.gesturesFor(action)?.includes(gesture) === true
+      && !this.limitsFor(action).includes("no-extend-selection");
   }
 
   /**
@@ -410,11 +418,16 @@ export class NarrowEditorV2Client {
       );
     }
     const extendSelection = options.extendSelection ?? false;
+    const lineExtension = LINE_MOVE_ACTIONS.has(action)
+      && ["collapsed", "range-single", "range-cross"]
+        .some((gesture) => this.offersSelectionMove(action, gesture));
     if (typeof extendSelection !== "boolean"
-        || (!MOVE_ACTIONS.has(action) && extendSelection)) {
+        || (!MOVE_ACTIONS.has(action) && !lineExtension && extendSelection)) {
       throw new DocumentSdkError(
         "INVALID_ARGUMENT",
-        "extendSelection is a boolean restricted to character movement",
+        this.document._engine.manifest?.editorContract?.abiVersion === 6
+          ? "extendSelection requires character movement or an advertised ABI6 line move"
+          : "extendSelection is a boolean restricted to character movement",
       );
     }
     const enabled = FORMAT_ACTIONS.has(action) ? options.enabled : false;
