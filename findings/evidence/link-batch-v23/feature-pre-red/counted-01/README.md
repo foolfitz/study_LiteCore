@@ -1,0 +1,7 @@
+# Historical v19 pre-red counted attempt 01
+
+This fixed run used the explicit v19 WASM pin and the source-derived finite case table. The command was `python3 -I wasm_sdk_probe/tools/run_v23_feature_pre_red.py --v19-wasm-sha256 1aafd4f9da42fd83d9be4c4e9edfbd818e3c7ea17d62fa1cb1bfbd47d1a32819 --output findings/evidence/link-batch-v23/feature-pre-red/counted-01`. It exited 1 after the runner stopped on the first non-`EXPECTED_RED` cell. The exact command, exit, stdout, and stderr are recorded in `command-capture.json` and the adjacent stream files.
+
+Seven Chrome cells were captured. The first six (`caret-mid`, `cell-end`, `cjk-mid`, `doc-end`, `empty-para`, and `heading-mid`) each reported `EXPECTED_RED`, stale field `caret`, and cleanup `{}`. The seventh, `shift-Left@list-mid`, reported `NOT_ESTABLISHED` with reason `actual setup text differs from logical point`; execution stopped there. No Firefox cell ran. The raw report and all seven raw page records are retained unchanged. This incomplete attempt is not a 32-cell result, and the aggregate judge was not run.
+
+`identity-check.json` confirms the captured v19 profile's ten artifact hashes, all 15 served-source mirror hashes, fixture/config/manifest hashes, and the seven raw page hashes against the runner report. `post-source-recheck.json` rereads the 17 recorded runner/tooling source inputs after execution. The first stop condition is preserved as observed; these checks do not adjudicate its cause.

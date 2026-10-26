@@ -1,0 +1,9 @@
+# Wrapped-origin materialization error
+
+The original counted03 cell and NE verdict remain unchanged. The actual `measured-search` terminal contains one selection in part0 with rectangles, in returned order: `1418,3350,1846,275; 1418,2522,9972,275; 1418,2798,9972,551`. The instrument selected the first raw rectangle, not the first displayed line. Its start and target caret y are both3350, and its selected text is the final-line suffix `it finally stops here`. The unchanged prefix reader correctly rejected it.
+
+The archived native `tool-source-as-run.cpp` defines wrap-line-end as click at `w.l1start`, then End, with expected cursor `w.l1end`; discover-wrap establishes that first-line start independently. That is the intended logical shape. Native coordinates are diagnostic evidence only and must never be transplanted into the browser setup.
+
+Owner-proxy Astra `/root/astra_calc_scope` approved a correction limited to the two wrap cells: anchor `search-first-displayed-line`, derive the minimum actual `(y,x)` among valid search rectangles in the unique same-part selection, preserve Home/start/End/prefix/restore, and require the reader to independently reconstruct that choice from raw replies. Bind the actual start caret to it, the target to that same first line, and preserve a nonempty literal query prefix. Malformed or ambiguous geometry is NE, never skipped. Other shapes,16-cell membership and expected stale-reply comparison do not change. Required source controls include the actual JavaScript's unsorted-rectangle red/green and rejection of an agreeing page/wire last-line setup. A changed source graph requires a fresh complete32 cells; none of counted03's seven red observations can be imported.
+
+This setup diagnosis neither establishes a feature regression nor blocks the already-reviewed owner ABI6 link. The source correction and future runtime have their own later records.

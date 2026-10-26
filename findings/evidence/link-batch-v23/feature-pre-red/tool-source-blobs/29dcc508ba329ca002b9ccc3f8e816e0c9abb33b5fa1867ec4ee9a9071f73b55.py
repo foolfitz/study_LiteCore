@@ -1,0 +1,1044 @@
+#!/usr/bin/env python3
+"""SPEC E2-C section 6: bind the E2 verdict to the shell, not just the artifact.
+
+Half of what E2-C proves lives in JavaScript -- the fifteen-action client, the
+product session, the page that drives them.  A verdict bound to wasm, loader
+and worker alone permits all three to change afterwards while
+`E2_GO_PARAGRAPH_FORMAT` stays green.  E1-C learned this the expensive way and
+now binds a fourth hash; this is E2's.
+
+Two deliberate choices carried over from E1-C's bundle:
+
+  * the digest is over PATH + HASH pairs, so renaming a module is a change even
+    if its bytes are identical;
+  * `available - included - excluded` must be empty, so ADDING a file beside
+    the covered ones is a change too.  Without that rule the binding says
+    nothing about a module somebody drops in tomorrow.
+
+And one addition E1-C's does not have, because E2-C's page is served rather
+than imported by a test: every included path is compared against its copy under
+`dist/`.  serve.py serves dist/, so a manifest frozen against source bytes the
+server is not actually serving would bind the wrong thing.  Forgetting
+`make e2-c-assets` is a standing trap in this tree.
+
+Default mode is a question, not an action: it prints the difference and exits 1.
+`--write` is the answer, and it always prints the diff as well.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import re
+import sys
+from pathlib import Path
+from typing import Any
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from validate_e1_c import sha256, shell_bundle_digest  # noqa: E402
+
+PROJECT = Path(__file__).resolve().parent.parent
+# v1 is ROUND ONE's record and is frozen: `e2/validation-matrix-v1.json` names
+# its digest, and round one's evidence can only be revalidated against the shell
+# it actually ran on.  A legitimate shell change therefore writes a NEW manifest
+# rather than regenerating that one -- the same rule the artifacts follow.
+# Each generation is the record of the shell some round actually ran on, so a
+# legitimate shell change writes a NEW manifest instead of regenerating one.
+#   v1 -- round one's shell; `e2/validation-matrix-v1.json` names its digest.
+#   v2 -- the shell the pre-relink D2/D3 defect sweeps ran on, including every
+#         arm of finding 048.  Frozen from 2026-08-16, when the fix landed.
+#   v3 -- the shell with finding 048's fix in EditorSession.placeCaret.  Frozen
+#         from 2026-08-16: D3's corpus round, D4, D5's machine half and both
+#         operator rounds ran on it, and so did the 046 and 048 rounds.
+#   v4 -- the shell with finding 049's fix in web/e2-editor-app.js: the save
+#         button had been writing 15 bytes of "[object Object]".  A new
+#         manifest rather than a rewrite of v3, for the same reason as every
+#         generation before it -- v3 is the record of what those rounds ran on.
+#   v5 -- the shell with finding 050's fix in input/input-adapter.js: every IME
+#         commit after the first was being rejected as a buffer mismatch,
+#         because nothing cleared the host sink.
+#   v6 -- the shell that wires Ctrl+C to session.copySelection() and surfaces
+#         the input/clipboard traces, so a silently rejected commit is visible.
+#   v7 -- finding 051: caretIsOnLine accepts the whole line box.  Under v1-v6
+#         every click landing in the BOTTOM HALF of the line it hit waited 30 s
+#         and was then refused, so about half of the product's clicks failed.
+#   v8 -- finding 052: a click OUTSIDE every line box (below the last line, say)
+#         is confirmed when the engine moves the caret, instead of waiting out
+#         the 30 s timeout and being refused.
+#   v9 -- findings 053 and 054: the product prescribed a recovery whose button
+#         it did not show, and read a reload flag nobody ever wrote.
+#   v10, v11 -- pinning the product page at the v3 artifact.  Two generations
+#         because pointing a page at an artifact turned out to be two separate
+#         statements (the worker URL and the pin), and the guard caught the
+#         first attempt with only one of them changed.
+#   v12 -- the second v3 link (artifact d538ce0b): the worker projects the
+#         engine's new caretParagraph/formatStale fields.  The generation the
+#         finding 056 measurement is bound to.
+#   v13 -- the product can open a document the USER chose, not only the samples
+#         in its own dropdown (web/e2-editor.html + web/e2-editor-app.js).  A
+#         shell-only change: `session.open({bytes, name})` was already the one
+#         door in, so there is no engine side and it needed no link.
+#   v14 -- finding 046's residual: bulleting a blank line no longer demands a
+#         rollback.  `recovery` gains a fourth value, `review` (SPEC E2-C 2.6b,
+#         written in the same generation).  Also shell-only, and also no link --
+#         the disposition was always decided host-side from fields the frozen
+#         worker already projects.
+#   v15 -- finding 058: the page draws the caret and the selection.  Both were
+#         delivered all along (editorState.caret, selection.rectangles) and the
+#         page's only drawing call pasted the tile, so a user clicked and saw
+#         nothing move.  Plus finding 045's product half: the page stopped
+#         sending `enabled: true` unconditionally.
+#   v16 -- the typing path: Backspace and Delete (beforeinput's two delete
+#         types, which the input adapter drops as `ignored-input-type` without
+#         preventing them), the left/right arrows, Ctrl+Z, Ctrl+S and cut.
+#         Correcting a typo used to require the mouse and a toolbar button.
+#   v17 -- finding 059's disposition half.  LOK_COMMAND_FAILED now reports
+#         `dispatched-unverified` rather than falling through to
+#         `unknown-rollback`, because that code is emitted only from the UNO
+#         command RESULT handler, after the payload is matched to the command
+#         that was sent -- core answered, so dispatch is established rather than
+#         guessed.  Measured on both sides the same day: core APPLIES the
+#         parameterised inline format on the shipped artifact and reports
+#         success:false, so the old disposition asked the user to discard work
+#         in order to undo a change that had succeeded
+#         (findings/evidence/059/wasm/).  Shell-only; no link.  The engine fix
+#         still needs one and still blocks it.
+FROZEN_MANIFESTS = (Path("e2/editor-shell-v2-bundle-v1.json"),
+                    Path("e2/editor-shell-v2-bundle-v2.json"),
+                    Path("e2/editor-shell-v2-bundle-v3.json"),
+                    Path("e2/editor-shell-v2-bundle-v4.json"),
+                    Path("e2/editor-shell-v2-bundle-v5.json"),
+                    Path("e2/editor-shell-v2-bundle-v6.json"),
+                    Path("e2/editor-shell-v2-bundle-v7.json"),
+                    Path("e2/editor-shell-v2-bundle-v8.json"),
+                    Path("e2/editor-shell-v2-bundle-v9.json"),
+                    Path("e2/editor-shell-v2-bundle-v10.json"),
+                    Path("e2/editor-shell-v2-bundle-v11.json"),
+                    Path("e2/editor-shell-v2-bundle-v12.json"),
+                    Path("e2/editor-shell-v2-bundle-v13.json"),
+                    Path("e2/editor-shell-v2-bundle-v14.json"),
+                    Path("e2/editor-shell-v2-bundle-v15.json"),
+                    Path("e2/editor-shell-v2-bundle-v16.json"),
+                    Path("e2/editor-shell-v2-bundle-v17.json"),
+                    Path("e2/editor-shell-v2-bundle-v18.json"),
+                    Path("e2/editor-shell-v2-bundle-v19.json"),
+                    Path("e2/editor-shell-v2-bundle-v20.json"),
+                    Path("e2/editor-shell-v2-bundle-v21.json"),
+                    Path("e2/editor-shell-v2-bundle-v22.json"),
+                    Path("e2/editor-shell-v2-bundle-v23.json"),
+                    Path("e2/editor-shell-v2-bundle-v24.json"),
+                    Path("e2/editor-shell-v2-bundle-v25.json"),
+                    Path("e2/editor-shell-v2-bundle-v26.json"),
+                    Path("e2/editor-shell-v2-bundle-v27.json"),
+                    Path("e2/editor-shell-v2-bundle-v28.json"),
+                    Path("e2/editor-shell-v2-bundle-v29.json"),
+                    Path("e2/editor-shell-v2-bundle-v30.json"),
+                    Path("e2/editor-shell-v2-bundle-v31.json"),
+                    Path("e2/editor-shell-v2-bundle-v32.json"),
+                    Path("e2/editor-shell-v2-bundle-v33.json"),
+                    Path("e2/editor-shell-v2-bundle-v34.json"),
+                    Path("e2/editor-shell-v2-bundle-v35.json"),
+                    Path("e2/editor-shell-v2-bundle-v36.json"),
+                    Path("e2/editor-shell-v2-bundle-v37.json"),
+                    Path("e2/editor-shell-v2-bundle-v38.json"),
+                    Path("e2/editor-shell-v2-bundle-v39.json"),
+                    Path("e2/editor-shell-v2-bundle-v40.json"))
+FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
+# v41, 2026-08-24: the page runs `e2-editor-v8` -- finding 076's link.
+#
+# One file, and BOTH pinned lines move this time, because the artifact does:
+# `workerUrl` to v8 and `PINNED_WASM_SHA256` to `4a2710bba1ef07d9`, from
+# `f923cfa5aba30749`. The v7 cutover moved only the first, because v7 was v4's
+# artifact under a wider manifest; this is a link.
+#
+# The LOADER did not move (`c382b834aa768b91`, the same bytes v4 and v7 carry),
+# which is the argument for pinning the wasm rather than the loader: a page that
+# identified its engine by the loader would see no change at all here.
+#
+# What the link ships was measured before it was taken, by preprocessing the
+# product's own translation units with the product's own defines at the shipped
+# commit and at the tree: finding 076's `calloc` for the tile buffer,
+# `refreshCaretParagraph()`'s early return, and 21 code lines of additive a11y
+# forwarding in the worker. Reading the `#ifdef`s would have found only the
+# first -- the second is gated on a runtime flag on purpose.
+#
+# Also corrected in the same file: a paragraph under the v7 cutover heading that
+# described v5's core, contract fields and engine fix. None of it was true of
+# v7, which was v4's wasm byte for byte, and left alone it would have told the
+# next reader that this page was running an accessibility core.
+# v40, 2026-08-23: finding 079 -- the page's selection shape was computed from
+# two fields that are not on the object it read.
+#
+# `pumpDrag` read `result.collapsed` and `result.rectangles`, which is what
+# `editor-shell/editor-client.js` assembles on the V1 path.  The v2 client
+# returns the worker's envelope verbatim and the selection sits at
+# `state.selection`, so both reads were `undefined` and the expression returned
+# `collapsed` for EVERY drag ever made.  Recorded as a stale value; it was never
+# a value.  Measured on the shipped page with the engine's answer in the same
+# arm: 12 code points selected inside one line and 34 across two while the page
+# said `collapsed`, unchanged across an 8-second sampling window; afterwards
+# `range-single` and `range-cross`, 52-55 ms after the pointer went down.
+#
+# TWO files, and the second is the point.  The derivation MOVED out of the page
+# into `selectionShapeOf` in editor-shell-v2, exported and unit-tested, with the
+# recorded envelopes as its fixtures -- one case being this finding, that a
+# v1-shaped object must come back unknown rather than `collapsed`.  The defect's
+# class is "a derivation with no test read a layout some other layer assembles",
+# and a DOM tripwire on one reader does nothing about a second reader looking in
+# a second wrong place.
+#
+# The page also gained two attributes on the toolbar: `data-selection-shape`,
+# which makes its belief legible without inferring it from which buttons went
+# grey (that inference was what `e2-editor-v7` silently disarmed -- finding
+# 080), and `data-selection-unreadable` plus `data-selection-evidence` for a
+# result the accessor cannot read, so not-knowing is reported instead of being
+# spelled as `collapsed`.
+#
+# Shell-only.  No relink, the artifact did not move, and the pin did not move.
+# v39, 2026-08-23: THE SHELL e2-editor-v7 SHIPPED ON -- frozen late, and the
+# lateness is the record's most useful part.
+#
+# Three files have differed from v38 since commit 7fcb143: the v2 client and
+# session gained `offersDocumentOutline()`, and the page swapped the engine's
+# diagnostic `a11y.tree` for the contract's `documentOutline`, then took the
+# e2-editor-v7 cutover. Nine commits and TWO ship commits passed between that
+# drift and this freeze, and for all nine `make test-e2-c-static` was red on
+# `test_the_real_manifest_matches_the_real_tree`. Nobody ran it: the round's
+# own verification recipe named `test-e2-b-static`, which was green.
+#
+# So this generation does NOT record one round. The rounds it swallows --
+# the v5 mint and revert, findings 075/076/077, and 078/v7 -- each ran on a
+# shell that no manifest names, and no later generation can give them one.
+# What it does record, exactly, is the shell at HEAD be8291a: the bytes the
+# operator's real-mouse pass on the four format buttons ran against, and the
+# bytes the shipped page serves today.
+#
+# The dist copies were already in sync, so nothing but the freeze was owed.
+# v38, 2026-08-23: roadmap 3.4 -- the screen reader can read the DOCUMENT.
+#
+# v37 projected the focused paragraph. WCAG 2.1 1.3.1 is Level A and wants
+# information and relationships to be programmatically determinable, so one
+# paragraph with no role was below the floor, not a scope boundary.
+#
+# This projects the whole document: one node per paragraph, in order, carrying
+# role (heading with aria-level, listitem inside a list, or paragraph) and the
+# paragraph's text, with focus following the caret. Everything it keys on was
+# measured first (findings/evidence/aria-projection/TREE-SHAPE.md): role is an
+# AccessibleRole ENUM, not the localised style name finding 031 is about;
+# aria-level is numberingLevel + 1, verified across seven outline levels
+# including a gap; list membership is isNumbered read AFTER role, because a
+# heading reports numbered too.
+#
+# Measured after, same instrument as the 171/0 baseline:
+#   shipped e2-editor-v4   175 nodes, no structure roles, no document text
+#   diagnostic a11y-tree   205 nodes, heading/list/listitem, 9 of 9 paragraphs
+#
+# The shipped page is unchanged to the node -- `aria-hidden` takes the empty
+# container out of the tree, which is the difference between that claim being
+# true and being nearly true (it was 176 before).
+#
+# v37, 2026-08-23: roadmap 3.4 -- the screen reader can read the paragraph.
+#
+# A screen reader cannot read a canvas and this whole document is one canvas.
+# Measured on the core that DOES provide accessibility: 171 accessibility-tree
+# nodes and not one carrying a character of the document
+# (findings/evidence/aria-projection/BASELINE.md).
+#
+# Three files changed. The page gained the projection itself -- a clipped
+# region carrying the focused paragraph, updated from `updateState` -- and the
+# v2 client and session gained `offersCaretParagraphText()`, declared the way
+# `offersRedo()` is so a host can tell "this profile does not carry the text"
+# from "this paragraph is empty" BEFORE reading it. An empty document region
+# announces as "document, blank", which is a confident wrong answer about the
+# user's own file.
+#
+# Measured after: 175 nodes, three caret placements, three distinct readings,
+# each matching the paragraph targeted (findings/evidence/aria-projection/
+# RESULT.md). On the shipped profile the region says why it is empty instead,
+# and `the-document-region-says-why-it-is-empty` holds the product to that.
+#
+# v36, 2026-08-22: finding 073 -- the user could not see what they were typing.
+#
+# The input sink is one transparent pixel wide by design, and the browser draws
+# an IME's PREEDIT inside it, so composing 台 with 新酷音 wrote ㄊㄞˊ into a box
+# nobody can see: the first thing the user saw was the committed character.
+# There were no composition handlers in this file at all, so nothing had to be
+# undone -- composition was entirely the browser's until `beforeinput` delivered
+# the result, and that half was working.
+#
+# The sink is now visible WHILE COMPOSING and back to one transparent pixel
+# after. Both endings are wired, and the second is the one that gets forgotten:
+# an IME abandoned by clicking away does not fire `compositionend` everywhere,
+# and a sink left visible is a box of stale text sitting on top of the document,
+# which is worse than the defect it repairs.
+#
+# It reached this file because an OPERATOR typed Chinese. It is now driven by
+# `the-composition-you-are-typing-is-visible`, which turned out not to need a
+# human after all: CDP's `Input.imeSetComposition` drives the renderer's own IME
+# path, so compositionstart/update fire for real. The instrument existed; nobody
+# had looked for it, because "IME" had been filed under "D5 by definition".
+#
+# v35, 2026-08-22: two layers the ABI 4 profile found within minutes of it.
+#
+# Both were latent the whole time and neither was reachable until a manifest
+# offered the new actions, which is what makes them worth naming here:
+#
+#   * `editorAction()` read its label off the toolbar button. The four line
+#     movements and delete-selection have no button, so
+#     `querySelector(...).textContent` threw a TypeError BEFORE `run()` -- the
+#     key was consumed by preventDefault, nothing dispatched, and the call
+#     site's `.catch(() => {})` ate the evidence. A label lookup produced a key
+#     that looks bound and does nothing.
+#   * `NarrowEditorV2Session`'s own `ACTIONS` allowlist was still built from
+#     EDITOR_V2_ACTIONS. The client had learned the appended five; the session
+#     had not, so it refused them with EDITOR_ACTION_UNSUPPORTED -- three
+#     layers agreeing and a fourth lagging.
+#
+# v34, 2026-08-22: the page moves to the ABI 4 artifact.
+# `PINNED_WASM_SHA256` and the worker URL move together to `e2-editor-v4`
+# (`f923cfa5…`).  They HAVE to move together: the pin exists so a page cannot
+# run on whatever build happens to be in dist/, and the expiry screen makes a
+# mismatch loud -- so half a move reads as a broken build rather than as a
+# mistake.
+#
+# This is the generation the ABI 4 round measures on, and the first on which
+# the arrow keys, 重做 and cut-by-delete-selection are reachable at all: every
+# one of them was written to gate itself on what the profile declares, and this
+# is the first profile that declares them.
+#
+# v33, 2026-08-22: redo and cut, prepared ahead of the ABI 4 link.
+# 重做 joins the toolbar HIDDEN, plus Ctrl+Shift+Z and Ctrl+Y, all three gated on
+# `offersRedo()` -- a separate accessor from `offers()` because redo is not an
+# action: it has no wire id and no gesture, and the action map would answer
+# "absent" for it on every profile including the ones that carry it.  Hidden
+# rather than disabled: a disabled control promises a later moment that never
+# arrives on a profile without redo.  Cut now prefers `delete-selection` when
+# the profile offers it and otherwise falls back to today's behaviour rather
+# than to an untested path.
+#
+# v32, 2026-08-22: the arrow keys, bound ahead of the ABI 4 link.
+# The page now lists all six (Left/Right/Up/Down/Home/End) and gates each on
+# `offers()`, a new client method that separates "this profile does not carry
+# the action" from "this manifest has no gesture map at all" -- `gesturesFor`
+# answers null for both, and treating them alike binds a key the engine refuses
+# on every press.  On v3 the four new ones fall through untouched, measured; on
+# v4 they light up because the manifest says the action exists.
+#
+# v31, 2026-08-22: finding 069's fix.  `#sink` had `position: absolute` with no
+# `top`/`left`, so it sat at its static position -- after a canvas the height of
+# the whole document -- and every IME composition scrolled the desk to the
+# bottom.  It now rides the caret from `paint()`, in CSS pixels rather than
+# backing pixels, sized to the caret so an IME candidate window has a line to
+# open against, and with `pointer-events: none` so a 1px target over the canvas
+# cannot swallow the pointerdown that places the caret.  Two files, and one of
+# them is the HTML, which is the first time this bundle has moved for a
+# stylesheet.
+#
+# v30, 2026-08-22: finding 068's fix, the session half.
+# `editor-shell-v2/narrow-editor-v2-session.js` overrides `_handleEngineEvent`
+# to take the caret from the engine's own `editor-state` announcement instead of
+# waiting for the next queued operation to read it.
+#
+# AN OVERRIDE, not an edit to the base class, and the tree said so rather than
+# me: the natural home was `EditorSession._handleEngineEvent`, and
+# `check_e1_c_bundle_intact.py` refused it -- `editor-shell/editor-session.js`
+# is bound to E1-C's verdict (shell bundle `187706b2…`), so editing it would
+# unbind a verdict that has nothing to do with this defect.
+#
+# The other half is in the worker, which is NOT in this bundle: it is one of the
+# profile's five bound identities, so it ships with the v4 link.  Verified in a
+# mirror before either shipped: 5/5 with both halves, 0/4 with the worker half
+# alone, 2/7 with neither.
+#
+# v29, 2026-08-22: the ABI 4 relink's client half.
+# `editor-shell-v2/narrow-editor-v2-client.js` learned the five appended actions
+# -- four movements by line and delete-selection -- with the movements sharing
+# the character moves' postcondition (same route through the engine: a posted
+# key event, `mutation = false`) and delete-selection filed with the UNO
+# mutations rather than the barrier deletes, because it completes as
+# `uno-command-result` and never produces `verified-selection-delete`.
+#
+# TWO GENERATIONS IN ONE DAY, and the second one is the honest cost of freezing
+# the first too early: v28 was minted mid-work, before the client change was
+# written. No round ran on v28, so rewriting it would have been harmless in
+# fact -- which is exactly the argument this file's guard exists to refuse. A
+# generation number is cheap; a generation that says one thing and holds another
+# is what cost a day in 2026-08-17.
+#
+# v28, 2026-08-22: the ABI 4 relink's shell half.  `sdk/document-sdk.js` gained
+# `redo()`, the sibling of `undo()` -- a document-level operation with no wire
+# id, because an action id would drag the gesture mask and the option-flag
+# validation along with it and none of the three means anything for walking the
+# undo stack.  One file, and it is NOT the entrypoint this time, which is the
+# point: the bundle covers the SDK the shell loads, so a change there moves the
+# generation exactly as an entrypoint change does.
+#
+# v27, 2026-08-22: finding 067's fix.  `web/e2-editor-app.js` binds the Enter
+# key in its own keydown handler -- paragraph break, or line break with Shift --
+# instead of letting it reach the frozen input adapter, which turned it into a
+# newline paste the engine accepted and ignored.  One file, and it is the
+# entrypoint again.
+#
+# v26, 2026-08-22: finding 066's fix.  `web/e2-editor-app.js` gained a
+# `mousedown` listener on the toolbar so a style button no longer takes the
+# keyboard away from the document.  One file changed, and it is the entrypoint,
+# so the bundle digest moves and the generation is a new identity -- which is
+# what the version number is for (E2-B's first structural lesson: 版本是身分).
+#
+# v43, 2026-08-27: finding 084's fix.  `editor-shell-v2/narrow-editor-v2-session.js`
+# gained a guard that refuses an `editorState` write whose `sourceSequence` went
+# BACKWARDS -- the other half of finding 068's guard, and the half the product
+# actually hits: the drain's own read, answered before the engine's announcement
+# and applied after it, was putting the caret back a commit.  One file changed,
+# and it is not the entrypoint, but the bundle digest moves either way and that
+# is what makes it a new identity.
+# v44, 2026-09-06: THE SHELL THAT WAS ALREADY SHIPPING, declared late.
+# No file changed to make this generation -- it records bytes `dist/` has served
+# since finding 090's `make` (2026-09-05 ~01:3x CST, between `f7d8cdd0` and
+# `8d5da45a`, immediately before soak run 1): the product as a real user loads
+# it today, and the state every revert returns to.  v43 declared the entrypoint
+# as `28e03e5b...`; findings 087 and 088 moved the source and finding 090's
+# `make` moved the served copy, and none of the three froze a generation.  The
+# tree's own `test_the_real_manifest_matches_the_real_tree` had been red since
+# 087's fix and nobody ran it; the revert rehearsal of 2026-09-06 found it from
+# the other side, when the post-revert run could not be reconciled.
+#
+# The intermediate shell between `681a22b0` and `3d3d0323` (087 without 088) is
+# deliberately NOT reconstructed: no run was ever reconciled against it, and a
+# generation with no measurement bound to it is a declaration without a subject.
+#
+# Adjudicated 2026-09-06 (finding 091, ruling E-1 in
+# `handoff/PLAN-2026-08-28-the-v11-cutover-horizon.md`).  Consequence: the
+# cutover's step-3 generation is **v45**, not v44.
+# v45, 2026-09-06: finding 088's residue fixed -- one paragraph, one voice.
+# `projectFocusedParagraph` now stays silent when the structure projection is
+# already naming the same paragraph through `aria-activedescendant`, and
+# `projectStructure` runs first and returns the text it will speak.  Frozen in
+# the SAME COMMIT as the change, which is the step 087, 088 and 090 each
+# skipped and which finding 091 is the record of.
+#
+# v47, 2026-09-07: 088's residue was still not gone -- v45 only silenced the
+# live region when the two channels AGREED, and at the second heading they
+# disagreed for one snapshot (`caretParagraph` and `documentOutline` do not
+# advance together across a heading boundary), so the older text was spoken
+# once more.  `doubled` is now `structureSpeaks !== null`: silence whenever the
+# structure channel has a focused node at all, not only when it says the same
+# thing.  T1c's six walks (`findings/evidence/manual-round-v12d-9b29e39b/`)
+# measured this on the built candidate page before it landed.  This is also
+# the cutover itself: the entrypoint's worker/pin lines move from `e2-editor-v8`
+# to `e2-editor-v12`, decided in `handoff/PLAN-2026-09-06-after-the-page-moved-
+# twice.md` ("T1c: v46 measures better; D1 = A lands it"). v46 was never
+# frozen (the attempt was reverted before a generation existed for it); this is
+# the first frozen generation carrying the fix, hence v47, not v46.
+#
+# CORRECTION, 2026-09-07 (commit after `000a57e2`): v47 above is wrong about
+# what it froze. The v47 paragraph says "this is also the cutover itself" --
+# it was not supposed to be. The brief for that landing asked only for the
+# v46 hunk and a frozen generation of the shell AS SHIPPED; `build_cutover_
+# page.py --write` was run and it also repointed `workerUrl` and
+# `PINNED_WASM_SHA256` from `e2-editor-v8` to `e2-editor-v12` -- the actual
+# cutover -- which nothing in the gate (12 soak runs, 4a, condition 2, the
+# owner's manual round) had passed yet. v47 is left frozen as a record of
+# those (premature) bytes; generations are never overwritten.
+#
+# v48, 2026-09-07: the correction. Same v46 hunk, entrypoint restored to
+# `f7f20317`'s `e2-editor-v8` / `4a2710bba1ef07d9` -- `git diff f7f20317 --
+# web/e2-editor-app.js` is exactly the one v46 hunk, nothing else. This is
+# the shell as shipped, with the fix, not yet cut over.
+# v49, 2026-09-08: finding 093's page half -- the accessibility projection is
+# placed in the document's coordinate space instead of at the static position
+# after the canvas, and each projected node carries its own paragraph's
+# rectangle when the engine supplies one.  Frozen in the SAME COMMIT as the
+# change, which is the step 087, 088 and 090 each skipped and which finding 091
+# is the record of.
+#
+# THE ENTRYPOINT STILL PINS `e2-editor-v8`.  This is not the cutover and it is
+# not option B's relink either: no artifact emits per-paragraph geometry yet,
+# so the page ships the honest degradation (`data-geometry="absent"`) and the
+# clause that uses the geometry is inert.  The relink is the owner's step 4 in
+# `handoff/RUNBOOK-operator-093-engine-geometry.md`, and it will move
+# `workerUrl` and `PINNED_WASM_SHA256` again -- so a FURTHER generation is owed
+# after it (step 5.4 of that runbook already says so).  Freezing here anyway,
+# rather than waiting for that, because the alternative is leaving the tree's
+# own `test_the_real_manifest_matches_the_real_tree` red between the two, and
+# a red static gate is exactly where the next real drift hides -- which is
+# what v41..v45's correction above is the record of.
+# v50 IS SPENT AND THE FILE NEVER EXISTED IN THE TREE.  The revert rehearsal of
+# 2026-09-09 froze a generation under that name on the CUTOVER bytes
+# (`bundleSha256 ea69984c…`, the digest the six banked soak runs served),
+# measured the revert, and deleted the file -- `handoff/PLAN-2026-08-28-the-v11-
+# cutover-horizon.md`, "Generation v50 does not remain", which says the number
+# "stays unclaimed for the next real cutover".
+#
+# CORRECTION TO THAT SENTENCE, and it is why this is v51: the number is NOT
+# unclaimed.  `findings/evidence/queue-v12-cutover-revert-rehearsal/freeze-v50
+# .json` names generation v50 with a specific digest, and evidence is never
+# rewritten here.  Reusing the name for different bytes would leave two things
+# called v50 in one tree -- which is the ambiguity `build/archive/`'s
+# `ATTRIBUTION.md` exists because of.  Numbers are cheap; a colliding name is
+# not.  v46 is absent from `e2/` for the same kind of reason.
+#
+# v51, 2026-09-09: finding 096's shell half.  Two files, one defect.
+#
+#   * `narrow-editor-v2-session.js` takes a checkpoint before any of the six
+#     key-path moves when the document is dirty.  Before this, `_checkpoint
+#     BeforeSelection` ran only ahead of a range selection, so an arrow key at
+#     a document boundary killed the session with `data-rescue: "none"` and
+#     the owner's own sentence: 「沒有檢查點，所以自上次儲存以來的內容不會回
+#     來。」 The trigger cost is zero -- `revision: 0`, one keypress.
+#   * `narrow-editor-v2-client.js` accepts `verified-move-readback` as a
+#     movement completion.  That is the ENGINE half's answer, and without this
+#     line the engine fix makes things worse rather than better: the boundary
+#     press would be answered in 250 ms, rejected here as
+#     EDITOR_RESULT_INVALID, and the session would die 29.75 seconds earlier
+#     than it does today.  The two halves are one change and land together --
+#     this tree paid for shipping half a fix on 2026-08-22.
+#
+# Frozen in the SAME COMMIT as the change (findings 087/088/090 each skipped
+# that step; finding 091 is the record).
+#
+# THE ENTRYPOINT STILL PINS `e2-editor-v8`, unchanged from v49 and for the same
+# reason: this is not the cutover, and the ENGINE half of 096 is source only
+# until the owner links.  `web/e2-editor-app.js` is byte-identical to v49's.
+# The engine's deadline cannot be measured on any artifact in this tree, and
+# nothing here pretends otherwise.
+#
+# v52, 2026-09-28: findings 098 and 099, one file
+# (`editor-shell-v2/narrow-editor-v2-session.js`) and one change, because the
+# second fix only holds with the first.
+#
+#   * 098 -- `action()` enqueues the six key-path moves with `mutation: false`.
+#     They went in with `mutation: true`, so one arrow key marked a never-typed
+#     document dirty and the second banked a checkpoint of the bytes it was
+#     opened from (`#s-checkpoint` 有（r0）, measured 3/3 on the page).
+#   * 099 -- half C's price control compares content stamps, not revisions.
+#     Revisions restart at zero with every Worker and the checkpoint survives
+#     the rollback, so after one rollback a coincident revision skipped a
+#     checkpoint and the next death went back to the OLDER bytes.  Stamps only
+#     work as the price control once moves stop bumping them -- hence one
+#     generation, not two.
+#
+# Frozen in the SAME COMMIT as the change (finding 091's rule).  THE ENTRYPOINT
+# STILL PINS `e2-editor-v8` and `web/e2-editor-app.js` is byte-identical to
+# v51's: not a cutover, not a link.
+#
+# v53, 2026-09-28: M3's host entry (specs/SPEC-M3-host-entry.md), one file
+# (`web/e2-editor-app.js`).  The page reads `globalThis.liteCoreHost = { load,
+# save }` once at module evaluation.  With a host it opens what `load()` gives
+# instead of its bundled sample, switches off the two local pickers, hands a
+# save's bytes to `save()` instead of a download link, and runs one save at a
+# time end to end.  A host of the wrong shape is refused, not ignored.  Without
+# a host nothing changes: the product-path net on v8 and v14 is cell for cell
+# the same as on v52.  Still pins `e2-editor-v8`; no engine change, no link.
+#
+# v54, 2026-09-29: M3 page honesty (specs/SPEC-M3-page-honesty.md), two files.
+#
+#   * `editor-shell-v2/narrow-editor-v2-session.js` -- setViewOnly() refuses
+#     every mutation before it is queued (EDITOR_VIEW_ONLY), actionMutates()
+#     is fail-closed, and hasUnsavedEdits() is dirty OR pending, never a
+#     revision (099's lesson: revisions restart with every Worker).
+#   * `web/e2-editor-app.js` -- a read-only file opens view-only; edits nobody
+#     has handed over (hasUnsavedEdits, or a save not yet ended) are asked about
+#     on leaving, through the host's watchUnsaved() when there is a host
+#     (finding 107); held Ctrl+S saves once, not per key repeat (finding 106);
+#     hasUnsavedWork() is fail-closed with no session (review BLOCKING 2).
+#
+# NOT frozen in the same commit as the change (finding 091's rule): the page
+# changed in 500eb39a and again in b61e9fd9, and the round's shakedowns kept
+# forcing changes; frozen once they stopped (all six M3 runners clean on page
+# fc80050c and host 0.2.4, b954857d).  Still pins `e2-editor-v8`; no engine
+# change, no link.
+#
+# v55, 2026-10-06: M3 production UI (specs/SPEC-M3-production-ui.md), two files.
+#
+#   * `editor-shell-v2/narrow-editor-v2-session.js` -- a boundary refusal
+#     banks the content inside the refusal and `restartKeepsContent()` says
+#     whether a restart keeps it (finding 109); `restartAvailable()` and
+#     `takeContentForRescue()` for the Worker generation ceiling (B1, §9).
+#   * `web/e2-editor-app.js` -- the page reopens on its own after a boundary
+#     refusal when nothing is lost, and at the ceiling hands the content to
+#     the save path and asks for a reload instead of restarting (B1); the
+#     notice says which (`data-limit`); the sink gets its focus back the moment
+#     `restart()` returns; the toolbar and Ctrl+Z/Y/S do nothing outside
+#     ready/busy.
+#
+# NOT frozen in the same commit as the change (finding 091's rule): the page
+# changed in 27402abc, ec951c41, 04d19fcd and bc95b342 as the round's
+# shakedowns and two reviews forced changes; frozen once B3x, Bdel and Bbs were
+# clean in both browsers on host 0.2.7 (shake4, 68f68b1b).  Still pins
+# `e2-editor-v8`; no engine change, no link.
+#
+# v56, 2026-10-08: paragraph merge B (specs/SPEC-M3-paragraph-merge.md), three
+# files.
+#
+#   * `editor-shell-v2/narrow-editor-v2-client.js` -- the two delete actions
+#     also accept `verified-key-undo` with a structural `keyUndo` check (M1-3,
+#     106eaf1a); nothing depends on Writer's undo comment string.
+#   * `editor-shell-v2/narrow-editor-v2-session.js` -- comment only (106eaf1a):
+#     a boundary refusal raised after the key was pressed
+#     (`mergeKey.keyPosted`) keeps every typed change; only the key's own
+#     effect is uncertain.
+#   * `web/e2-editor-app.js` -- the refusal wording follows `mergeKey`: only
+#     stages known to come before the key say "the document was not changed"
+#     (M1-5, 525dcffe, 9919d06a, f76c470e); a repaint the page's own dispose
+#     refused (ENGINE_DISPOSED) is not reported, and at most one BUSY retry
+#     loop is in flight (c50c7789); `documentSizeChanged` is handled before the
+#     paint check (finding 118, 840794af).
+#
+# NOT frozen in the same commit as the change (finding 091's rule): the page
+# changed in 525dcffe, 9919d06a, f76c470e, c50c7789 and 840794af as the
+# round's reviews and the 117/118 diagnosis forced changes; frozen once the
+# pre-link review was dispositioned (3af89eb5), the reviewed runner was all
+# HIT in both browsers on v18 (99475c4b) and spec §34 froze the checks
+# (202313ba).  Still pins `e2-editor-v8`: the v19 link is separate, and its
+# candidate page is built by `build_cutover_page.py`, not by editing this one.
+#
+# v57, 2026-10-08: THE CUTOVER TO `e2-editor-v19`, one file (`web/e2-editor-app.js`).
+# `build_cutover_page.py --profile e2-editor-v19 --write --expect-sha256 e00ab76a…` rewrote exactly two lines of
+# v56's page: `PINNED_WASM_SHA256` 4a2710bb… -> 1aafd4f9…, `workerUrl` e2-editor-v8 -> e2-editor-v19.  The
+# bytes are the candidate page every v19 report measured (e00ab76a…; findings/evidence/v19/RESULT.md: X1-X5 and
+# X7 pass, spec §35/§36).  Frozen in the SAME commit as the cutover (Ruling E-1, as v47 was); the other twelve
+# modules equal v56's.  Approved by the owner 2026-10-08.
+#
+# v58, 2026-10-09: FINDINGS 119 AND 111 (fable's ruling on the owner's authority; SPEC-M3-production-ui §14).
+# Two files differ from v57:
+#   * `editor-shell-v2/narrow-editor-v2-session.js` -- 119 (73da170e): a delete that comes back
+#     EDITOR_STATE_UNAVAILABLE with no barrier detail banks the content and blocks as restart-required, 109's
+#     mould; 111 (f26b80a6): an operation that is not typed text waits behind characters still in the input
+#     adapter (its public `state`), released by `commitText`, rejected if a restart came in between.
+#   * `web/e2-editor-app.js` -- 119 (73da170e): that refusal reaches the auto-reopen with its own wording, never
+#     "unchanged"; the notice's reopen gives the input sink its focus back.  Still pins e2-editor-v19 (1aafd4f9...).
+# Frozen AFTER both browser probes were green on dist/, as the ruling orders (finding 091's rule): F111-B 160/160
+# (a3f2a23e), F119-B injection 3/3 + 3/3 and natural 0 in 400 registered (1c3edf15).  The other modules equal v57's.
+#
+# v59, 2026-10-10: FINDINGS 122, 121 AND 120 (fable's rulings on the owner's request; SPEC-M3-production-ui §15).
+# One file differs from v58, `web/e2-editor-app.js` (18c8afbe...):
+#   * 121 (05f46923): Backspace/Delete with a range selected sends `delete-selection` when the engine's current
+#     selection is not a caret and the profile offers it.
+#   * 120 (3632dabe): after `attachInput` the sink's `disabled` follows the new adapter's `state.blocked`.
+#   * 122 (6993186c B', 4353dcee A+B): the canvas is repainted in bands of floor(MAX_TILE_HEIGHT / 32) rows, the
+#     view's bands first, each blitted on arrival, never cleared; a new invalidation, or a key that will reach
+#     the engine while a pass runs, ends the pass after the band in flight.  Still pins e2-editor-v19 (1aafd4f9...).
+# Frozen AFTER the browser criteria were met on dist/ (finding 091's rule): 122-B read by the reviewed reader
+# `findings/evidence/typing-latency/judge.py` as PASS in both browsers (§15.8-15.9, fable's fourth ruling R),
+# 121-B and 120-B re-run on these bytes (5293628a).  The other modules equal v58's.
+#
+# v60, 2026-10-10: RELEASE P AND FINDING 123 (fable's fifth ruling on the owner's request; SPEC-M3-production-ui §16).
+# One file differs from v59, `web/e2-editor-app.js` (36c2b18b...):
+#   * 123 (db9a0052): `renderBands` joins a last piece shorter than half a band to the band above it, so the last
+#     band is never a few rows of the transparent gap below the last page that 062's guard reads as unpainted.
+#   * P (706e8565): `paint()` remembers the overlay on the canvas; an equal one costs no pixels, a different one
+#     restores only the old and new rectangles from the cached bands (dirty-rect putImageData, clearRect where no
+#     band was painted) and draws the overlay clipped to them.  Still pins e2-editor-v19 (1aafd4f9...).
+# Frozen AFTER the browser criteria were met on dist/ (finding 091's rule): P1 and 123-B read by the reviewed
+# reader `findings/evidence/typing-latency/judge_p.py` (§16.9) as PASS in both browsers, P2 by `judge_p2.py`
+# (judge.py with the page constant re-bound) as PASS, 121-B and 120-B re-run on these bytes (§16.10).  The other
+# modules equal v59's.
+#
+# v61, 2026-10-11: C′ WITH FINDINGS 124 AND 125 (fable's fifth ruling Part 5; SPEC-M3-production-ui §17).
+# One file differs from v60, `web/e2-editor-app.js` (8909564e...):
+#   * C′ (57d21411 -> 90242ebc): a canvas about three viewports tall, absolutely positioned inside `#paper` (which
+#     carries the document's height), native scrolling, bands outside the window stale by revision; 062's
+#     65,535-row ceiling (finding 126) no longer applies to the document.
+#   * 124 (bbce5596): the desk scrolls to keep a caret that changed and left the visible range in view.
+#   * 125 (0ad30e73): 「處理中」 is shown to the user only after 700 ms busy (`#state-shown`); `#state-pill` keeps
+#     every state immediately.  Still pins e2-editor-v19 (1aafd4f9...).
+# Frozen AFTER the browser criteria were met on dist/ (finding 091's rule): witness 0 red on the final page
+# (§17.15), C3/C4 6/6, C6 8/8, 124-B/125-B PASS both browsers (§17.16), C2 PASS (§17.17), C1′ (§17.18), C5 (i)
+# (§17.12) and C5 (ii)′ (§17.21; C5 (ii) as written not held, §17.20).  The other modules equal v60's.
+#
+# v62, 2026-10-12: AUTOSAVE AND FINDINGS 128, 129, 130, 131 (host 0.2.13; SPEC-M3-autosave §9).
+# One file differs from v61, `web/e2-editor-app.js` (d761f1ce...):
+#   * 127 (c335f5cb, 7c85ccd6): autosave with a host -- 30 s idle, 3 s once an unsaved change is 5 min old, at
+#     once when the page goes to the background; conditions read from their sources of truth.
+#   * 128 (8c6b831a): finding 128's prescription B -- a repaint that meets BUSY while an editorAction is in flight
+#     is left to the repaint after the action; the flag is cleared by any finished pass.
+#   * 129 (c335f5cb, 7c85ccd6): arrow keys click the visible caret before moving; Shift+arrow is not taken.
+#   * 130 (c335f5cb): the queue-full notice compares the adapter's type.
+#   * 131 (6326d31b): rule A -- while the page's own delete is unsettled (`deletesInFlight`), Backspace/Delete
+#     send the collapsed action; at 0 finding 121's rule applies.  Still pins e2-editor-v19 (1aafd4f9...).
+# Frozen AFTER the browser criteria were met on dist/ (finding 091's rule): 131-B PASS with its red control red
+# (§9.14), 121-U 215/215 and 121-B 4/4 (§9.13), 130-U replayed (§9.14), 129-B round 3 (d9d696ae), 128-B single
+# keys and host segment with its red control red, the rapid clause withdrawn into L-128-rapid (§9.15, fable's
+# ruling 2).  The other modules equal v61's.
+#
+# v63, 2026-10-12: FINDING 133 (fable's ruling on the owner's request; SPEC-M3-autosave §9.20-§9.22; host 0.2.14).
+# One file differs from v62, `sdk/document-sdk.js` (e4c3fe92...): a request deadline that fires more than 2 s late
+# means the page (and its Worker) was stopped -- no TIMEOUT, no cancel; the deadline becomes now + 10 s and is looked
+# at again; on-time timeouts unchanged.  The page is v62's (d761f1ce...), so the page criteria and the owner's hand
+# test (§9.18) stand on v62 (§9.20, condition: this manifest differs from v62 only in the SDK).  Frozen AFTER 133-U
+# (unit, 31/31 after review 1; 12 named wrong fixes red) and before 133-B, which needs the packaged SDK on the host.
+#
+# v64, 2026-10-13: FINDING 132 and the blue flash (SPEC-M3-held-key; the owner chose A, §4; host 0.2.15).  One file
+# differs from v63, `web/e2-editor-app.js` (abe93f45...): H1 the band holding the caret is painted first among the
+# visible bands; H2 a held Backspace/Delete repeat is not sent while two of the page's deletes are out (a press always
+# is); H3 while a delete is out, the engine's range (the barrier's one character) is not drawn.  Frozen after 132-U,
+# 132-B on these bytes (12/12 holds) and §5.3 on these bytes: 131-B, 121-B, 128-B (single keys, host segment on a
+# bounded re-run, its red control red), 129-B, 130-U, 122-B / C2.
+#
+# v65, 2026-10-13: FINDING 134 (SPEC-M3-held-key §14; fable's ruling for the owner, B + D; host 0.2.16).  One file
+# differs from v64, `web/e2-editor-app.js` (6470dec0...): B once a delete the page sent is refused, the rest of that
+# Backspace/Delete hold is not sent; D after an automatic reopen the caret the engine last reported is put back.
+# Frozen after U-B (red on abe93f45 first), the acceptance run on these bytes (judge exit 0, four arms, both browsers)
+# and ruling-1 condition 4 on these bytes: 132-B, 131-B, 128-B (host segment on a bounded re-run, its red control red),
+# 121-B, 129-B, 130-U, 122-B / C2.
+#
+# v66, 2026-10-13: FINDING 136 and L-134-restore-flash (SPEC-M3-held-key §16; fable's ruling-3 for the owner, with
+# addenda 1-6; host 0.2.18).  One file differs from v65, `web/e2-editor-app.js` (b24d754a...): after an automatic
+# reopen the caret is put back at the last caret the engine pushed with no range selected (addendum 4; not the
+# send-time FIFO of the never-released 0.2.17, aebef525...), and while the page reopens `updateState` does not follow
+# the caret (one explicit follow when the reopen ends).  Frozen after U-136 / U-flash (red on 6470dec0 first), the
+# acceptance on these bytes (both judges exit 0, every arm, both browsers) and ruling-3 conditions 5-6 on these bytes
+# (guard chain run 2, both browsers): 132-B, 131-B, 128-B (host segment on a bounded re-run, its red control red),
+# 121-B, 129-B, 130-U, 122-B / C2, restore-window.
+#
+# v67, 2026-10-14: the v20 link batch's page and shell (SPEC-M3-link-batch §13.3, §15; fable's ruling 6 for the owner).
+# Differs from v66 in `web/e2-editor-app.js`, `web/e2-editor.html` (part 2: the page number, `#page-status` outside
+# `.statusbar`, gated on offersPageRectangles()), `editor-shell-v2/narrow-editor-v2-client.js` (part 1: accepts
+# verified-boundary-noop; offersPageRectangles()), `editor-shell-v2/narrow-editor-v2-session.js` (part 2's scheduler and
+# pure functions; ruling 6 conditions 45 placeCaret override = finding 138, 47 a noop is not a mutation, 48 re-read
+# after a failed page-rectangles read) and `sdk/document-sdk.js` (part 1: handle.pageRectangles()).  On engine v19 only
+# placeCaret and the queue observer change paths.  Frozen after 412/412 unit tests, E1-C intact, and the pre-freeze
+# witness on these bytes on v19 (129-B, both browsers, 54/54, 0 cells differ from three reference rounds;
+# findings/evidence/link-batch/v67-witness/).  restore-window needs the ddev host and was not run on these bytes.
+#
+# v68, 2026-10-14: finding 140 (a click below the first line of a blank document held the queue for 30 s).  Differs
+# from v67 in `editor-shell-v2/narrow-editor-v2-session.js` only (`placeCaret`: a click made while a range is open takes
+# v67's polling path, a click on a collapsed selection asks the engine through editorPlaceCaretV2 with rounded twips;
+# first pass 6c761117, second pass a60456a6 after the first candidate's 129-B witness was red) plus declarations in
+# `narrow-editor-v2-client.js` / `paragraph-editor-client.js`.  Frozen after 352/352 editor-shell-v2 unit tests, E1-C
+# intact, C1 (paste-latency, blank-page click, v19 and v20, both browsers) and the pre-freeze 129-B witness on these
+# bytes on v19 (both browsers, 54/54, 0 cells differ from four reference rounds, `定位游標` Chrome 25.9-41.6 ms median
+# 27.5 / Firefox 27.8-34.6 median 29.1; findings/evidence/link-batch/v68-witness-2/).  restore-window needs the host and
+# was not run on these bytes.
+#
+# v69, 2026-10-14: the cutover to engine v20 (owner's approval 2026-10-14, choice A), frozen in the cutover's own commit
+# as v57 was at the v19 cutover.  Differs from v68 in the entrypoint only: `build_cutover_page.py --profile e2-editor-v20
+# --write --expect-sha256 53019168…` changed two lines of `web/e2-editor-app.js` (PINNED_WASM_SHA256 1aafd4f9 ->
+# 313b08d5, workerUrl e2-editor-v19 -> e2-editor-v20).  Page 53019168… is the page the first v20 shakedown (task
+# 10-14e, both browsers), finding 140's C1 on v20 and the J1 re-judge measured; the other modules are v68's.
+#
+# v70, 2026-10-14: finding 141 (at a C boundary every press or unflagged repeat queued its own 2.26 s silent no-op;
+# the owner's held Backspace at the document start held the page about 30 s on host 0.2.20).  Differs from v69 in the
+# entrypoint only: `web/e2-editor-app.js` 53019168… -> 2d6c4580… (task 10-14o, `2b647fcb`: a press of a key whose
+# delete the engine has not yet answered is held on the page; a standing `verified-boundary-noop` drops the held
+# presses, anything else re-delivers them one by one -- 131's press-for-press and 132's depth kept, independent of
+# event.repeat).  Frozen after 360/360 editor-shell-v2 unit tests (the new page-held-deletes test red on 53019168…),
+# E1-C intact, and K2 on these bytes without the host on v20 (burst at the document start: 1 engine request, ready
+# 2,260 ms in Firefox and 2,259 ms in Chrome; the in-text control: 18 deletes; findings/evidence/host-0.2.21/).  The
+# host-side K3 (held, table, restore-window, 132-B and the burst/page-number arms on 0.2.21) runs after the install.
+#
+# v71, 2026-10-14: finding 144 (v70's held presses kept deletesInFlight <= 1, so 132's depth cut never fired and a held
+# delete key inside text deleted 27-29 characters after release on host 0.2.21 -- K3c, 132-B FAIL).  Differs from v70
+# in the entrypoint only: `web/e2-editor-app.js` 2d6c4580… -> aa50cd20… (task 10-14q, `54dafccd`: the depth counts the
+# held presses too; a held press is released by a direct `dispatchDelete` call, not a synthetic beforeinput).  Frozen
+# after 364/364 editor-shell-v2 unit tests (page-held-depth red on 2d6c4580…), E1-C intact, the product-path mutations
+# 10/10, and N1 on these bytes without the host on v20 (flagged 2 s hold in text: 2 / 1 deletes after the key-up in
+# Firefox / Chrome; burst at the document start: 1 request, ready 2,258 / 2,260 ms; findings/evidence/host-0.2.22/).
+# 132-B and K3 on the installed 0.2.22 are the binding host check.
+#
+# v72, 2026-10-14: the scroll page bubble (specs/SPEC-M3-scroll-page-bubble.md; the owner's request and decisions,
+# 「OK 照規格走」).  Differs from v71 in the entrypoint only: `web/e2-editor-app.js` aa50cd20… -> ccb67a52… (unit half
+# `bb30b99f`: a `#scroll-bubble` beside the scrollbar thumb on any `#desk` scroll, the status line's page part, hidden
+# 1 s after the last scroll with a 180 ms fade, aria-hidden, no engine request).  Frozen after 372/372 editor-shell-v2
+# unit tests (page-scroll-bubble 0/8 on aa50cd20…), E1-C intact, the product-path mutations 10/10, and the no-host
+# criteria N1-N6, D1, K1, Z1 PASS in both browsers on these bytes on v20 (`82ee51fc`, judge_bubble.py ALL PASS, its
+# self-test red where it must be; Firefox N2/D1 through the host-like CSS bar, L-bubble-ff-headless-thumb).  H1-H3
+# (host) and 132-B run after the 0.2.23 install.
+#
+# v73, 2026-10-15: finding 145 (the 0.2.23 count's merge step read FAIL: a refused delete's reopen makes a new document,
+# and `settleDelete` returned before counting the answer, so every later press of the last-sent key was held and the
+# held presses went out as the other key's action).  Differs from v72 in the entrypoint only: `web/e2-editor-app.js`
+# ccb67a52… -> 901dd6a6… (`f7887ced`: the answer is counted back whatever became of its document, and the presses held
+# for a document that is gone are dropped, as at a refusal).  Frozen after 374/374 editor-shell-v2 unit tests (145 U1
+# and U2 red on ccb67a52…), E1-C intact, the product-path mutations 10/10, and N1 on these bytes without the host on
+# v20 (the merge runner's counted and red modes, both browsers; findings/evidence/145/n1/).  The full count chain on
+# the installed 0.2.24 is the binding check.
+#
+# v74, 2026-10-17: link batch v21 (specs/SPEC-M3-link-batch-v21.md), shipping item 1 only, Ctrl/Cmd+Home/End
+# (finding 142; fable ruling 1: item 2, paste as Markdown, withheld, its entry hidden by the shell, finding 153), with
+# findings 150 and 151 fixed in the page (`712f955a`).  Differs from v73 in five files: the entrypoint
+# `web/e2-editor-app.js` 901dd6a6… -> 605cf24b… (repointed to `e2-editor-v21`, `build_cutover_page.py --profile
+# e2-editor-v21 --write --expect-sha256 605cf24b…`), `editor-shell-v2/narrow-editor-v2-client.js` aaceb555… ->
+# c5ab9d17…, `editor-shell-v2/narrow-editor-v2-session.js` f47c80ec… -> f1509ff2…,
+# `editor-shell-v2/paragraph-editor-client.js` 38a46f4b… -> 4616ae17…, `sdk/document-sdk.js` 6898b795… -> 9dcb8312…;
+# the included set is v73's 13 paths.  Frozen after the shakedown's evidence runs on exactly these bytes (served
+# through the mirror, shell digest e35923a0…, page 605cf24b…; findings/evidence/link-batch-v21/shakedown/README.md §5):
+# item 1's judge VERDICT PASS in Chrome and Firefox, N=3 (D7 Firefox after the observer calibration of spec §12.4,
+# fable ruling 2), M7 PASS, D2's no-host predictor PASS, the 0.2.24 red cases red; node 596/596 and E1-C intact at
+# `712f955a`.  D2 on the host, the 0.2.25 install and the count chain K are the binding checks.
+#
+# v75, 2026-10-20: link batch v22 (specs/SPEC-M3-link-batch-v22.md), the engine pthread stack at 1 MiB (finding 153)
+# and the shell items of §11 (fable ruling 5): item 2's entry on, finding 152's fix 3, finding 154's page rule
+# (`01dd9921`).  Differs from v74 in one file: the entrypoint `web/e2-editor-app.js` 605cf24b… -> 3b96cb16…
+# (repointed to `e2-editor-v22`, `build_cutover_page.py --profile e2-editor-v22 --write --expect-sha256 3b96cb16…`);
+# the included set is v74's 13 paths, the exclusions v74's (= v40's) three.  The HTML (not in the bundle) is
+# b9c2b975….  Frozen after the evidence on exactly these bytes, served through the mirror (shell digest e35923a0…,
+# page 3b96cb16…; findings/evidence/link-batch-v22/shakedown/): F3 PASS, E2 PASS (item 2, both browsers, composed
+# per §11.2.1, fable ruling 6), I1-rerun PASS with E0-v22 (§11.4.1, §11.4.2, ruling 6 addendum 1), I2-v22 PASS.
+# The host arms on 0.2.27 (H-154c, H-154o, D2-v22, M11-autosave) are the checks still ahead; K is deferred (§13).
+MANIFEST = Path("e2/editor-shell-v2-bundle-v75.json")
+ENTRYPOINT = Path("web/e2-editor-app.js")
+
+# The directories whose *.js files must all be accounted for.  `editor-shell`
+# is in the list even though E2 does not own it: the v2 session extends the v1
+# session, so v1's bytes are part of what E2-C measures, and a change there must
+# break E2's binding as well as E1's.  `reader-shell` is in it because the
+# session's tile scheduler lives there -- a directory that contributes a module
+# to the graph has to be scanned, or a file dropped in beside that module is
+# invisible to this check.
+SCOPE = ("editor-shell-v2", "editor-shell", "input", "sdk",
+         "reader-shell")
+
+IMPORT_PATTERN = re.compile(
+    r"""(?:import|export)[^"']*?from\s*["']([^"']+)["']|import\s*\(\s*["']([^"']+)["']\s*\)""")
+
+
+def imports_of(text: str) -> list[str]:
+    return [a or b for a, b in IMPORT_PATTERN.findall(text)]
+
+
+def reachable(project: Path, entry_relative: Path) -> list[str]:
+    """Local modules reachable from the entry point, project-relative."""
+    entry = project / entry_relative
+    pending = [entry]
+    visited: set[Path] = set()
+    found: set[str] = set()
+    while pending:
+        path = pending.pop()
+        resolved = path.resolve()
+        if resolved in visited or not path.is_file():
+            continue
+        visited.add(resolved)
+        text = path.read_text(encoding="utf-8")
+        # The entry point lives under web/ but is served from the dist ROOT, so
+        # its relative specifiers resolve from the project root.  Everything it
+        # pulls in keeps its own directory.
+        base = project if path == entry else path.parent
+        for specifier in imports_of(text):
+            if not specifier.startswith("."):
+                continue
+            dependency = (base / specifier).resolve()
+            try:
+                relative = dependency.relative_to(project.resolve())
+            except ValueError:
+                continue
+            pending.append(dependency)
+            if relative.suffix == ".js":
+                found.add(relative.as_posix())
+    return sorted(found)
+
+
+def available(project: Path) -> list[str]:
+    return sorted(path.relative_to(project).as_posix()
+                  for directory in SCOPE
+                  for path in (project / directory).glob("*.js"))
+
+
+def compute(project: Path) -> dict[str, Any]:
+    entry = ENTRYPOINT.as_posix()
+    included = sorted({entry, *reachable(project, ENTRYPOINT)})
+    hashes = {path: sha256(project / path) for path in included}
+    # The dist copy of every included module, and of every available one: a
+    # stale copy of a module this bundle excludes is still a stale server.
+    dist_root = project / "dist"
+    dist_name = {path: ("e2-editor-app.js" if path == entry else path)
+                 for path in set(included) | set(available(project))}
+    dist_hashes = {
+        path: (sha256(dist_root / name) if (dist_root / name).is_file() else None)
+        for path, name in dist_name.items()
+    }
+    return {
+        "included": included,
+        "hashes": hashes,
+        "available": available(project),
+        "distHashes": dist_hashes,
+        "digest": shell_bundle_digest(hashes),
+    }
+
+
+def manifest_body(state: dict[str, Any], excluded: list[dict[str, str]],
+                  frozen_date: str) -> dict:
+    return {
+        "schemaVersion": 1,
+        "release": "E2-C-editor-shell-v2-bundle",
+        # A generation's own date, not the first generation's.  It was hard
+        # coded, so v4 came out claiming it was frozen on the day v1 was --
+        # a manifest whose own record of when it was written is wrong is a poor
+        # thing to bind a verdict to.
+        "frozenDate": frozen_date,
+        "entrypoint": ENTRYPOINT.as_posix(),
+        "scope": "JavaScript modules reached by the E2-C product page's import "
+                 "graph, plus every *.js in " + ", ".join(SCOPE),
+        "algorithm": "SHA-256 of UTF-8 path + NUL + lowercase file SHA-256 + LF "
+                     "for each included path in lexicographic order",
+        "included": [{"path": path, "sha256": state["hashes"][path]}
+                     for path in state["included"]],
+        "excluded": excluded,
+        "bundleSha256": state["digest"],
+    }
+
+
+def problems(project: Path, state: dict[str, Any],
+             manifest: dict[str, Any] | None) -> list[str]:
+    out: list[str] = []
+    covered = set(state["included"]) | {
+        str(item.get("path")) for item in (manifest or {}).get("excluded", [])}
+    uncovered = sorted(set(state["available"]) - covered)
+    if uncovered:
+        out.append(f"in scope but neither included nor excluded: {uncovered}")
+    # A path in BOTH lists is a manifest that contradicts itself, and the
+    # exclusion's stated reason is by then describing a file that is imported
+    # after all.  It happened on 2026-08-19: the page started importing
+    # recovery-notice.js, the builder correctly moved it into `included`, and
+    # the inherited exclusion -- "the product page never imports it" -- came
+    # along for the ride.  The digest was right; the document was lying.
+    both = sorted(set(state["included"]) & {
+        str(item.get("path")) for item in (manifest or {}).get("excluded", [])})
+    if both:
+        out.append(f"included AND excluded, so one of the two is wrong: {both}")
+    for path in state["included"]:
+        if state["distHashes"].get(path) != state["hashes"][path]:
+            out.append(f"dist copy differs from source: {path} "
+                       f"(run `make e2-c-assets`)")
+    for path in state["available"]:
+        if path in state["included"]:
+            continue
+        source = project / path
+        # A path with no source file has nothing to be stale against.  Reading
+        # it unconditionally made this function crash instead of reporting,
+        # which the unit test found before the tree ever produced the case.
+        if not source.is_file():
+            continue
+        if state["distHashes"].get(path) not in (None, sha256(source)):
+            out.append(f"dist copy of an excluded module is stale: {path}")
+    if manifest is not None:
+        recorded = {item["path"]: item["sha256"]
+                    for item in manifest.get("included", [])}
+        if recorded != state["hashes"]:
+            added = sorted(set(state["hashes"]) - set(recorded))
+            removed = sorted(set(recorded) - set(state["hashes"]))
+            changed = sorted(p for p in set(recorded) & set(state["hashes"])
+                             if recorded[p] != state["hashes"][p])
+            out.append(f"manifest is out of date: added={added} "
+                       f"removed={removed} changed={changed}")
+        elif manifest.get("bundleSha256") != state["digest"]:
+            out.append("manifest records a digest that does not match its own "
+                       "file list")
+    return out
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--manifest", type=Path, default=MANIFEST,
+                        help="which bundle manifest to check or write; the "
+                             "default is round two's, and round one's is frozen")
+    parser.add_argument("--write", action="store_true",
+                        help="write the manifest; the diff is printed either way")
+    parser.add_argument("--exclude", action="append", default=[],
+                        metavar="PATH=REASON",
+                        help="exclude a module from the bundle, with a reason; "
+                             "'this file is not covered' is a claim somebody has "
+                             "to make, so it does not get a default")
+    parser.add_argument("--force", action="store_true",
+                        help="rewrite an existing manifest whose digest would "
+                             "change -- discards the record of what a round ran "
+                             "on, so it is never the routine answer")
+    parser.add_argument("--frozen-date", default=None,
+                        help="the date THIS generation was frozen; defaults to "
+                             "the existing manifest's, and a new generation "
+                             "should be given one explicitly")
+    args = parser.parse_args()
+
+    state = compute(PROJECT)
+    manifest_path = PROJECT / args.manifest
+    manifest = (json.loads(manifest_path.read_text(encoding="utf-8"))
+                if manifest_path.is_file() else None)
+
+    excluded = [{"path": item.split("=", 1)[0], "reason": item.split("=", 1)[1]}
+                for item in args.exclude if "=" in item]
+    if manifest and not excluded:
+        excluded = manifest.get("excluded", [])
+    if not manifest and not excluded:
+        # Starting a NEW generation used to silently produce an empty exclusion
+        # list, and an empty one breaks the rule this bundle is built on:
+        # `available - included - excluded` must be empty, so that dropping a
+        # file beside the covered ones is a change.  A v4 that inherits nothing
+        # binds LESS than the v3 it replaces, while looking like progress.
+        # Measured on 2026-08-16 while freezing v4 for finding 049.
+        for candidate in reversed(FROZEN_MANIFESTS):
+            path = PROJECT / candidate
+            if not path.is_file():
+                continue
+            inherited = json.loads(path.read_text(encoding="utf-8")).get("excluded")
+            if inherited:
+                excluded = inherited
+                report_inherited = str(candidate)
+                break
+        else:
+            report_inherited = None
+    else:
+        report_inherited = None
+
+    found = problems(PROJECT, state, manifest if not args.write else None)
+    report = {
+        "manifest": str(args.manifest),
+        "included": state["included"],
+        "excluded": [item["path"] for item in excluded],
+        "bundleSha256": state["digest"],
+        "problems": found,
+        # Said out loud: a new generation that inherited its exclusions did not
+        # decide them, and the reader should know which manifest did.
+        "exclusionsInheritedFrom": report_inherited,
+    }
+    # Refuse to change a generation that already exists.
+    #
+    # 2026-08-17: bumping MANIFEST to v15 was done with a string replace that did
+    # not match, so MANIFEST was still v14 and `--write` regenerated it in place
+    # with a DIFFERENT digest -- the generation `e2/validation-matrix-v2.json`
+    # and finding 046's evidence both name.  It was restored from git and no
+    # measurement had been taken against the rewritten copy, so the damage was
+    # nil, but only by luck: nothing complained.
+    #
+    # A generation is the record of what some round ran on (the comment at the
+    # top of this file has said so since v1).  Adding it to FROZEN_MANIFESTS is
+    # a manual step, so "not yet listed there" cannot be what protects it.  What
+    # protects it is this: an existing manifest may be rewritten only when the
+    # bytes it describes are unchanged.
+    rewrites_existing = (manifest is not None
+                         and manifest.get("bundleSha256") != state["digest"])
+    if rewrites_existing and not args.force:
+        # `.append`, not `found = found + [...]`: `report["problems"]` already
+        # holds a reference to this list, and rebinding would leave the refusal
+        # out of the report -- a guard that stops the write and says nothing,
+        # which is the failure mode it was written for.
+        found.append(
+            f"refusing to rewrite {args.manifest} -- it exists with digest "
+            f"{manifest.get('bundleSha256', '')[:16]}... and the tree now hashes "
+            f"{state['digest'][:16]}.... A changed shell needs a NEW generation: "
+            f"bump MANIFEST and add this one to FROZEN_MANIFESTS. --force only if "
+            f"you mean to discard the record of what a round actually ran on.")
+    if args.write and not rewrites_existing and not [p for p in found if "dist copy" in p]:
+        manifest_path.parent.mkdir(parents=True, exist_ok=True)
+        body = manifest_body(state, excluded, args.frozen_date
+                             or (manifest or {}).get("frozenDate")
+                             or "unrecorded")
+        manifest_path.write_text(
+            json.dumps(body, indent=2, ensure_ascii=False) + "\n",
+            encoding="utf-8")
+        report["written"] = True
+        # Re-checked against what was just written.  `found` above was computed
+        # with no manifest (a new generation has none yet), so it reports every
+        # exclusion as unaccounted for -- a report that reads like four problems
+        # when the file on disk has none.  A tool that prints stale problems
+        # trains its reader to ignore the field.
+        found = problems(PROJECT, state,
+                         json.loads(manifest_path.read_text(encoding="utf-8")))
+        report["problems"] = found
+        report["problemsRecheckedAfterWrite"] = True
+    print(json.dumps(report, indent=2, ensure_ascii=False))
+    return 0 if not found else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())
