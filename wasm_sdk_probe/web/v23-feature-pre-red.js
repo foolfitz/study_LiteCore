@@ -59,7 +59,8 @@ async function locate(plan,prefix){
   const coords=String(found?.selections?.[0]?.rectangles||'').split(';')[0].split(',').map(Number);
   if(coords.length!==4||!coords.every(Number.isFinite))throw new Error('actual search rectangle missing');
   await place({xTwips:coords[0],yTwips:coords[1]+Math.floor(coords[3]/2)},prefix+'-search-click');
-  await move('line-home',prefix+'-home');
+  // List Home enters the label position; native p7.5 counts from text start.
+  if(plan.anchor!=='search-text-start')await move('line-home',prefix+'-home');
   const start=await state(prefix+'-start-state');
   if(typeof plan.offset==='number')for(let n=0;n<plan.offset;n++)await move('character-right',prefix+'-right-'+n);
   else {await move('line-end',prefix+'-end');

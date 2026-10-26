@@ -68,6 +68,7 @@ def cases():
             plan={'paragraph':int(part),'offset':int(offset) if offset.isdecimal() else offset}
         if row['shape']=='empty-para': plan={'paragraph':2,'offset':'next-empty'}
         plan['query']=paragraphs[plan['paragraph']]
+        if row['shape']=='list-mid': plan['anchor']='search-text-start'
         row['discovery']=plan
     return rows
 

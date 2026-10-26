@@ -49,7 +49,8 @@ def make_page(plan,case='shift-Left@caret-mid',browser='chrome'):
     def setup(prefix,discovery):
         call(prefix+'-search','search',{'query':discovery['query']},{'selections':[{'rectangles':'100,100,100,20'}]})
         call(prefix+'-search-click','click',{'xTwips':100,'yTwips':110},{})
-        call(prefix+'-home','editorActionV2',{'action':'move-line-home','extendSelection':False},{})
+        if discovery.get('anchor')!='search-text-start':
+            call(prefix+'-home','editorActionV2',{'action':'move-line-home','extendSelection':False},{})
         start=state();call(prefix+'-start-state','editorGetStateV2',{},start)
         offset=discovery['offset'];x=100
         if isinstance(offset,int):
@@ -149,6 +150,83 @@ class PreRedTests(unittest.TestCase):
             target=Path(folder)/'mirror';mirror(target,self.plan);verify_mirror(target,self.plan)
             path=target/'editor-shell-v2/narrow-editor-v2-client.js';path.write_bytes(path.read_bytes()+b'\n// drift\n')
             with self.assertRaises(ValueError):verify_mirror(target,self.plan)
+
+
+class ListMidSetupTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):cls.plan=config(WASM)
+    def test_native_offset_and_prefix_preserved(self):
+        for direction in ('Left','Right'):
+            case='shift-'+direction+'@list-mid'
+            discovery=self.plan['cases'][case]['discovery']
+            self.assertEqual(discovery,{'paragraph':7,'offset':5,'query':'List item one','anchor':'search-text-start'})
+            page=make_page(self.plan,case)
+            self.assertEqual(page['measured']['setup']['selected']['text'],'List ')
+            self.assertEqual(inspect(page,self.plan,'chrome')['verdict'],'EXPECTED_RED')
+    def test_unplanned_home_rejected(self):
+        old=copy.deepcopy(self.plan);case='shift-Left@list-mid'
+        del old['cases'][case]['discovery']['anchor']
+        page=make_page(old,case)
+        page['configSha256']=digest(encoded(self.plan))
+        page['measured']['setup']['plan']=self.plan['cases'][case]['discovery']
+        result=inspect(page,self.plan,'chrome')
+        self.assertEqual(result['verdict'],'NOT_ESTABLISHED')
+        self.assertIn('undeclared',result['reason'])
+    def test_four_rights_cannot_replace_native_five(self):
+        wrong=copy.deepcopy(self.plan);case='shift-Left@list-mid'
+        wrong['cases'][case]['discovery']['offset']=4
+        page=make_page(wrong,case);page['configSha256']=digest(encoded(self.plan))
+        page['measured']['setup']['plan']=self.plan['cases'][case]['discovery']
+        self.assertEqual(inspect(page,self.plan,'chrome')['verdict'],'NOT_ESTABLISHED')
+    def test_missing_literal_space_rejected_even_when_wire_agrees(self):
+        page=make_page(self.plan,'shift-Left@list-mid')
+        page['measured']['setup']['selected']['text']='List'
+        call=next(c for c in page['calls'] if c['name']=='measured-prefix-text')
+        call['result']['text']='List'
+        request=next(r for r in page['requests'] if r['message']['operation']=='getSelection'
+                     and call['startedAt']<=r['at']<=call['finishedAt'])
+        next(r for r in page['responses'] if r['message']['requestId']==request['message']['requestId'])['message']['result']['text']='List'
+        result=inspect(page,self.plan,'chrome')
+        self.assertEqual(result['verdict'],'NOT_ESTABLISHED')
+        self.assertIn('actual setup text',result['reason'])
+    def test_start_state_must_be_actual_search_text_start(self):
+        page=make_page(self.plan,'shift-Left@list-mid')
+        page['measured']['setup']['start']['caret']['x']=99
+        call=next(c for c in page['calls'] if c['name']=='measured-start-state')
+        call['result']['caret']['x']=99
+        request=next(r for r in page['requests'] if r['message']['operation']=='editorGetStateV2'
+                     and call['startedAt']<=r['at']<=call['finishedAt'])
+        next(r for r in page['responses'] if r['message']['requestId']==request['message']['requestId'])['message']['result']['caret']['x']=99
+        selection=next(c for c in page['calls'] if c['name']=='measured-prefix-select')
+        next(r for r in page['requests'] if r['message']['operation']=='editorSelectRangeV2'
+             and selection['startedAt']<=r['at']<=selection['finishedAt'])['message']['payload']['startXTwips']=99
+        result=inspect(page,self.plan,'chrome')
+        self.assertEqual(result['verdict'],'NOT_ESTABLISHED')
+        self.assertIn('actual search text start',result['reason'])
+    def test_actual_locate_does_not_enter_list_label(self):
+        import subprocess
+        source=(Path(__file__).resolve().parents[1]/'web/v23-feature-pre-red.js').read_text()
+        locate='async function locate'+source.split('async function locate',1)[1].split('function fail',1)[0]
+        script=r"""
+let at=0,range=[0,0];const moves=[];const text='List item one';
+const current={document:{search:async()=>({selections:[{rectangles:'100,100,100,20'}]}),
+ getSelection:async()=>({text:text.slice(Math.max(0,range[0]),Math.max(0,range[1]))})},
+ editor:{selectRange:async(a,b)=>{range=[a.xTwips-100,b.xTwips-100]}}};
+const call=async(name,fn)=>await fn();
+const place=async p=>{at=p.xTwips-100};
+const move=async direction=>{moves.push(direction);if(direction==='line-home')at=-1;else if(direction==='character-right')at++};
+const state=async()=>({caret:{x:100+at,y:100,width:0,height:20}});
+const point=caret=>({xTwips:caret.x,yTwips:caret.y+Math.floor(caret.height/2)});
+"""+locate+r"""
+locate({paragraph:7,offset:5,query:text,anchor:'search-text-start'},'measured')
+ .then(result=>process.stdout.write(JSON.stringify({text:result.selected.text,moves})))
+ .catch(error=>{console.error(error);process.exitCode=1});
+"""
+        run=subprocess.run(['node','-e',script],text=True,capture_output=True)
+        self.assertEqual(run.returncode,0,run.stderr)
+        result=json.loads(run.stdout)
+        self.assertEqual(result['text'],'List ')
+        self.assertEqual(result['moves'],['character-right']*5)
 
 
 class ProductNavigationTests(unittest.TestCase):

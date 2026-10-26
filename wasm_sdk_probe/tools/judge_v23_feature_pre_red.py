@@ -103,13 +103,16 @@ def validate_setup(page,prefix,setup,plan,requests,replies):
     payload=click_req['message']['payload']
     need((payload['xTwips'],payload['yTwips'])==(coordinates[0],coordinates[1]+coordinates[3]//2),
          'setup point not derived from actual search')
-    moves=[(prefix+'-home','move-line-home')]
+    text_start=plan.get('anchor')=='search-text-start'
+    moves=[] if text_start else [(prefix+'-home','move-line-home')]
     if isinstance(plan['offset'],int):moves += [(prefix+'-right-'+str(i),'move-character-right') for i in range(plan['offset'])]
     else:
         moves.append((prefix+'-end','move-line-end'))
         if plan['offset']=='next-empty':moves.append((prefix+'-next-empty','move-character-right'))
-    order=[prefix+'-search',prefix+'-search-click',prefix+'-home',prefix+'-start-state']
-    order += [name for name,_ in moves[1:]]
+    order=[prefix+'-search',prefix+'-search-click']
+    if not text_start:order.append(prefix+'-home')
+    order.append(prefix+'-start-state')
+    order += [name for name,_ in (moves if text_start else moves[1:])]
     order += [prefix+'-target-state',prefix+'-prefix-select',prefix+'-prefix-text',prefix+'-restore-point',prefix+'-final-state']
     previous=-1
     for name in order:
@@ -124,6 +127,11 @@ def validate_setup(page,prefix,setup,plan,requests,replies):
         bound_state(page,prefix+'-'+phase+'-state',setup[phase],requests,replies)
     def point(state):
         c=state['caret'];return c['x'],c['y']+c['height']//2
+    if text_start:
+        need(not any(c['name']==prefix+'-home' for c in page['calls']),'unplanned Home at text-start anchor')
+        need((setup['start']['caret']['x'],setup['start']['caret']['y'])==(coordinates[0],coordinates[1]),
+             'list anchor is not actual search text start')
+        need(setup['start']['selection']['collapsed'] is True,'list text-start is not collapsed')
     a,b=point(setup['start']),point(setup['target'])
     _,selection,_=call_binding(page,prefix+'-prefix-select','editorSelectRangeV2',requests,replies)
     payload=selection['message']['payload']
@@ -144,7 +152,8 @@ def mutation_closure(page,requests,plan):
     passive={'init','open','close','paint','search','getSelection','editorGetStateV2','save'}
     allowed={'measured-shift'}
     for prefix,discovery in [('readiness',{'offset':0}),('measured',plan['cases'][page['caseId']]['discovery'])]:
-        allowed.update(prefix+'-'+suffix for suffix in ('search-click','home','prefix-select','restore-point'))
+        allowed.update(prefix+'-'+suffix for suffix in ('search-click','prefix-select','restore-point'))
+        if discovery.get('anchor')!='search-text-start':allowed.add(prefix+'-home')
         if isinstance(discovery['offset'],int):allowed.update(prefix+'-right-'+str(i) for i in range(discovery['offset']))
         else:
             allowed.add(prefix+'-end')

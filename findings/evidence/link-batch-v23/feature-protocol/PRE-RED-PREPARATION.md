@@ -43,3 +43,11 @@ g++ -std=c++17 -O2 -I../libreoffice-26-8/include tools/v23_native_s5_continuatio
 ```
 
 The future runtime must bind `native-lok-26-8/build/instdir/program`, use isolated fresh documents/profiles and retain each actual save. No owner compile is requested by this document yet. A compiled binary, finite input dispatcher, actual oracle runs and reader are all still missing; no 588-cell runtime completion is claimed.
+
+## List-mid discovery correction before the replacement cohort
+
+The retained `feature-pre-red/counted-01/chrome-shift-Left@list-mid.json` is NOT_ESTABLISHED because the instrument did not reach native p7.5. Its actual search rectangle and clicked caret start at x2138; the inserted Home moves to x1778 before the list label. The first of five Right actions returns to x2138, so the final selected prefix is only `List` (four text characters), not native `List ` (five). The native `discover-p7` record has prefix `List ` and suffix `item one`; its `makeShape` clicks that discovered p7.5. The original cohort remains six EXPECTED_RED entries followed by this setup NE, never a full pass.
+
+Scope authorizes this one setup correction: both list-mid direction cells declare `anchor: search-text-start`; after the public search-derived click, capture actual start state and issue exactly five Right actions, with **no Home**. Require that start state's actual V2 caret equal the search rectangle's text start, and retain the exact literal `List ` prefix, paragraph7, offset5, query and source fixture. Other shapes keep their existing setup. The reader rejects an inserted Home, offset4/four Rights, a missing trailing space even when page and wire agree, or an anchor different from the actual search text start. The actual JavaScript locate function was red before this change in a model of the observed label transition (`List` versus `List `), then green with the corrected branch.
+
+This changes the new instrument/source graph, not v19, its frozen shell, the feature product, the original sixteen-cell membership or the expected stale-reply predicate. After preparation under the corrected graph, use a fresh complete32-cell cohort. Do not splice the old six rows into it or relabel the old list NE. No runtime was performed while making this correction.
