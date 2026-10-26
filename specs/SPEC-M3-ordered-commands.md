@@ -476,3 +476,45 @@ W-D 報告逐步標示公開或私有來源，並獨立核對實際 worker reque
 更正040固定三格：含frame文件的公開close真正返回；kind9在引擎執行緒的HTML選取真正返回含image元素；kind3在相同實際選取的JS側呼叫達既有SDK預設30000ms TIMEOUT並走既有復原。fixture固定 `test-docs/e1/image-variants.odt`、SHA256 `b2869e0eb89bc5644e08e5d86c5d374615d1e641ec5ed8a7d7aca0198567c661`，HTML兩格依裁示由IV-ASCHAR實際搜尋矩形建立範圍，先讀到COMPLEX才可計數；不能用同名標籤、猜座標、空HTML或兄弟API替代。兩瀏覽器各N=3，共18格，wire與fixture結構由讀取器驗證，紅案先行。缺前提／缺入口／未跑為NE；前提齊備仍快速返回的負對照是真反例，不能再自動豁免。逾時門檻不變。
 
 計數語意：原24格及舊候選準備資料不計入更正後繼；依新輸入前提及實際後繼身分重新計數，相同觀測被兩份報告引用不能重複算輪次。原生DELETE45／FORMAT40封閉結論不變。這是§9.2既有具名義務的有限落地與反例逼出的前提更正，不是公開ABI6功能。首次完整乾淨母體及產物讀取器通過即封閉；後來非回歸疑慮登錄後續工作，不繼續擴張閘門。
+
+## 21. §9.3 功能實作前的有限逐格協定（2026-10-26，只追加）
+
+§9.2五組硬性讀取已由 `handoff/RULING-2026-10-26-v23-diagnostic-closure.md` 依實際產物封閉；C2單一準備格沒有版本變動／fresh paint，仍為已登錄NE，不當成改善、引擎退化或新硬閘門。本節只開啟§9.3的來源實作階段。完整英文逐格裁決為 `handoff/PROTOCOL-2026-10-26-v23-abi6-feature.md`，採用已提交的R1來源索引、S表與產品readiness協定；沒有任何功能執行已因此被判通過。
+
+**合約更正**：本節對§5.8「加在25之後」的句子明確更正為既有六動作的行為擴充，不配置新ID。external 1、2、16、17、18、19／internal 1–6使用既有extend布林及三種gesture，external最大23、internal最大25不變。功能身分固定 `e2-editor-v23`、ABI6、獨立build與以釘住v22為基底的新產品worker；診斷ABI5與Calc/shared worker不變。保留空gesture的select-all、document moves原限制及096檢查點；不給新Ctrl+Shift文件移動、私有診斷入口、宿主或K授權。詳細來源邊界依 `DESIGN-2026-10-26-v23-abi6-after-diagnostics.md`。
+
+### 21.1 工具產生的母體與比較
+
+R1使用 `collect_v23_r1_inputs.py` 由保留原生資料產生的72格：主表42、extras18、drag extras12，每格三筆原生觀測；emuend只是參照，不再加格。36格在相同文字／單行／硬換行／表格前提成立時比logical落點；36個版面相關格使用同瀏覽器fresh control，依原生三輪已證相等的emu規則；`m1e`、`s1d`、`m1d`的Down改用原生已證相等的emuend與實際 `TEXT_SELECTION_END`，不可用上一行末visible cursor替代。產品setup以實際公開搜尋／幾何／placement／drag／六鍵建立語意shape，先證選取文字、方向及visual affinity；不搬原生XY或不存在的公開Ctrl+Down。缺setup/control為NE，不能拿候選range結果自證。
+
+`v23_feature_s_cases.py` 與 `feature-protocol/s-cases.json`／`S-CASES.md` 固定S1＝84、S2＝108、v19預紅＝16、S3＝10、S4＝9、S5＝588。**各宣告格每瀏覽器一次**；歷史原生三輪不是新瀏覽器N3。S1保持anchor，以同瀏覽器非Shift對照移動端；literal native比較限Left/Right及已證單行的Home/End。S2比較完成回覆與至少500ms後真正引擎state／selection type，記錄重複terminal與晚cursor；500ms不是產品完成等待。S3沿來源三輪皆無callback子集，要求合法readback完成、版本不變、changed:false及不復原；不恢復250ms waiter。S4維持原三種延伸後三種click／drag／handles互動與原結果。
+
+S2預紅以真正v19 SDK/client跑更正後16格，排除兩個文件邊界靜默格；不能用舊頁丟掉Shift作紅案。第一次用S2讀取器驗收之前必須完成，任何非預期綠先查儀器／callback，不往下計數。它不要求先有功能artifact才能編寫ABI6來源。
+
+S5逐個84來源格固定七序列：Shift→Backspace、Shift→Delete、Shift→`x`、Shift→Backspace→Backspace、Shift→Delete→Delete、Backspace→Shift→Backspace、Delete→Shift→Delete，成員間不插等待。刪除採paragraph-merge§24的reduce_content，打字比段落文字。原生Left/Right及已證單行Home/End的exact continuation存檔尚未存在，不能把三輪Shift snapshots冒充；須有實際釘住的native save才可判該格。其餘依既有 `ruling-3.md` line55，以相同瀏覽器／feature／fixture／shape的fresh settled arm作oracle：只在Shift terminal與至少500ms穩態觀測後送後續，兩個delete仍連發，prefix delete→Shift仍連發。先前提議將全部browser端點重建進native版面不是既有規則，撤去該多餘機制。timed candidate final不能自證。continuation beforeinput的實際posted未terminal/cancel move/extend集合才算overlap；空overlap集合仍依舊規FAIL，未重疊格另判序列，不造產品延遲取得重疊。
+
+### 21.2 真正產品輸入、held與保留鍵
+
+採 `diagnostic/9.3-product-readiness-retained-keys-protocol.md` 的釘住fixture及輸入，並由本節取代其中建議標籤。預紅／計數之前另開readiness文件，必須有實際open/doc handle及fixture見證、啟用且聚焦的sink、真瀏覽器按鍵→wire→已存檔的已知修改，再fresh-open原fixture開始正式格。UI ready、抓到按鍵、canvas或正確下載bytes單獨都不足；實際UA browser family及不同page artifact須可核對。
+
+三產品臂沿既有runner新增：`abcd`選b→打x→立即ShiftRight，期望axcd且選c；`plain3`第二段首Backspace→立即ShiftRight，期望前兩段接合且選原Bravo的B；`long200`第一文字caret按住ShiftRight一秒。另S-12是不同的兩秒臂。原文把N留待跑前填入，本次明定這四臂各瀏覽器N＝3，共24格，**不是宣稱原已有N3**。沿既有500ms delay／30ms repeat排程：一秒臂18 downs、計畫keyup995ms；兩秒臂52 downs、計畫keyup2015ms。保存實際時間／repeat旗標；這是輸入，不是新增延遲門檻。fixture第一段必須足夠長且未到邊界。S-12放開後增長上限嚴格是當下實際wire-pending延伸數，queued／held另列不能墊高上限；132 admitted outstanding深度2另行保留。缺實際repeat或release引擎state為NE，不是零增長PASS。
+
+L-142另格採abcd末端→完成save→CtrlHome立即Z，存檔必為Zabcd；不以歷史2–9ms另設門檻。兩種刪字各自保留：cjk25末端25個真Backspace到空；underscores末端25個真Backspace留下 `Name: _____`。每成功刪除的版本與存檔損失須對得上，完成詞彙依當前headless路徑。這些未指定N的既有family各瀏覽器一次，不暗乘3。每次產品runner仍須由真正dirty-first-move取得原096讀取器的B2＝true；L-142先save不代證B2，原讀取器／突變不改。
+
+保留鍵新判準是實際outstanding期間已admit輸入的保存及順序，不是2.25秒窗。由既有141／144／145與page-held-deletes／page-held-depth測試來源產生母體；單元以第一筆fake request尚未resolve明確建立重疊，測standing unchanged boundary noop、real change、state改變／缺失、拒絕、換文件及插入其他enqueue。保持18 unflagged presses、52 repeat、132深度2、144放開後最多2刪除及五種D8方向／click／其他鍵序列的原內容答案。只對真正在未完成request後保留的鍵判one-request；不把快速完成後的新按鍵誤判掉鍵。撤除舊2.5秒ready界限與fake66ms throughput要求，不改原使用者事件數。
+
+### 21.3 具名限制、表格與frame的實際來源
+
+L-C三格沿d7i／d7ii／d7iii與bullet／indent，每瀏覽器一次，記錄真正產品terminal、saved structure／caret及與native `Number On/Off`、`Number On/Off`、`Apply attributes`的差異。headless K1-NONE/noop限制維持，不宣布L-C關閉，也不授權a11y/core/A3 fallback。
+
+表格start/end直接沿 `134/table/probe_table_refusal.py` 完整五格ARMS、table-boundary fixture及marks／排程，不新造start/end×兩刪除Cartesian。每瀏覽器各一次，`cell-start-hold`沿既有兩次，共12格。保留136接受的文件保存與marker落點；cell-start-hold依link-batch§10.7的C更正：刪完kjkjk後boundary不再nothing-selected拒絕／重開，wvy正好位於原A1之前。其餘保留真正內容／marker判準，typed terminal／generation按實測記錄，不要求舊toast猜stage或重造等待窗。
+
+跨格來源為R1 s5，每瀏覽器一個fresh public Delete延續，只記錄實際terminal、版本、存檔cell結構及可讀性，native刪除parity缺oracle仍NE。**來源更正**：action20的range grant與 `.uno:Delete`直接派送確實存在；`not-characterised-in-tables-or-note-apparatus`是描述性限制，並不是runtime拒絕guard。因此不能釘「必拒絕且不變」、加新guard來保住假前提或稱此為新增grant。這不豁免S5對其source cell另有的硬性比較。
+
+as-char frame沿原object-click八臂（Bold／Delete／Backspace／Left，各立即或150ms）及原fixture／實際object選取，每臂每瀏覽器一次，作既有具名限制記錄。保留native seq參照與實際公開permission/type處置；拒絕就記拒絕，不稱parity。150ms是原對照輸入而非新完成wait；缺setup／oracle為NE，未量預設仍text-click範圍，不新開frame grant，也不拿040 HTML證據替代。
+
+### 21.4 前提、預設與截止
+
+本節與來源生成表／因果紅控制完成後准寫既定功能來源；**未做的S5 native saves、fresh settled-WASM references及v19預紅是計數前義務，不是要求先有feature才能編寫feature的循環前提**。計數前須釘住真正feature五身分、儀器graph／fixture、readiness及各硬格oracle。需要編譯native harness時另備完整命令由擁有者跑，不假定舊binary能做新序列。此裁示不授權agent make、host／服務／活文件變更或K。
+
+逐格缺輸入、身分、readiness或oracle為NE並擋該硬格；齊備而反例為FAIL。具名限制記錄維持各自預設，不暗升為Writer parity硬閘門。讀取器從工具真值源核對完整母體與因果紅案，保存原始wire及存檔，不許缺格／重格／錯browser／自造oracle轉綠。第一次完整乾淨母體及產物reader通過即關閉各組；之後不為疑慮追加輪數／門檻。candidate或clean定義變動使受影響feature計數失效；純文字／provenance更正不自動重設無關封閉組。歷史失敗／準備資料原樣保留，五組diagnostic與C2記錄不重開。

@@ -1,0 +1,77 @@
+# Finite ABI6 feature protocol, before implementation
+
+Owner-proxy decision by Astra `/root/astra_calc_scope`, following diagnostic closure `1fdd165a`. This document selects the remaining inputs and interpretations required by ordered-commands9.3. It does not claim any feature execution, native continuation oracle, v19 pre-red, owner link, host acceptance or K count. The five diagnostic readers remain closed; C2 remains a closed record of NOT_ESTABLISHED, not a new prerequisite.
+
+The ABI/worker/build design in `DESIGN-2026-10-26-v23-abi6-after-diagnostics.md` and work order `41edd3c0` controls implementation. The exact feature target is `e2-editor-v23`, ABI6, fresh objects, isolated worker copied from the pinned v22 worker. The six existing external IDs1,2,16,17,18,19 gain the already specified extension/range behavior. External maximum23 and internal maximum25 do not change. No new ID, Ctrl+Shift document move, select-all grant, Calc change, diagnostic entrance, host deployment or agent compiling make is authorized.
+
+## Source-owned feature populations
+
+| Group | Exact population per browser | Input and independently checkable oracle |
+| --- | ---: | --- |
+| R1 | 72 | `feature-protocol/r1/native-inputs.json`:42 main,18 extras,12 drag extras, each with three retained native observations. The dragend emuend controls are references, not additional members. Apply the36 literal/36 layout-relative classification in the R1 protocol. |
+| S1 | 84 | Fourteen actual source shapes by six Shift keys. Preserve the anchor; compare moving endpoint with the same-browser unshifted control. Only Left/Right and witnessed single-line Home/End permit literal native comparison. |
+| S2 | 108 | Table1's84 plus Table2's24 plain range moves. Compare completed state with actual engine state read at least500ms later and active selection type; record duplicate terminals and later cursor observations. The observation delay is not a completion waiter. |
+| S2 v19 pre-red | 16 | Source-derived caret-origin Left/Right extensions, excluding the two silent document-boundary members. Actual pinned v19 SDK/client route; the old page dropping Shift is not an instrument. All16 must show the predicted successful-move completion state disagreeing with the delayed engine read; an unexpected green requires instrument/callback investigation before feature counting. |
+| S3 | 10 | Source-derived members with no relevant callbacks in all three native rounds. Valid readback completion, unchanged revision and `changed:false`, no recovery; no old250ms waiter. |
+| S4 | 9 | The three original extension keys by three actual click/drag/handle continuations. Use the source interaction text/anchor/next-selection outcomes, not a private diagnostic kind. |
+| S5 | 588 | Every Table1 member by the seven sequences below. Preserve actual input order, oracle class and continuation overlap witness. |
+
+These groups run each declared cell once in Chrome and once in Firefox. Historical native N=3 is a reference provenance condition, not a new browser multiplier. Membership, input/setup and reference availability come from `wasm_sdk_probe/tools/v23_feature_s_cases.py`, its generated `feature-protocol/s-cases.json` and `S-CASES.md`; R1 comes from `collect_v23_r1_inputs.py`. Missing/extra/duplicate members, changed fixtures or missing actual shape witnesses cannot be green.
+
+R1 uses actual public setup on the feature browser, not native coordinates or an unavailable public Ctrl+Down command. Public search/geometry, placement/drag and the six authorized moves may materialize the source semantic shape. Verify text, paragraph/table topology, direction and visual-line affinity before the measured move. For36 literal cells compare logical marker landing with the retained native reference, subject to the single-line/hard-break/table precondition. For36 layout-relative cells create a fresh same-browser control using the per-cell emu rule proved equal to Writer in all three native rounds. The three Down cells `m1e`, `s1d`, `m1d` instead use the proved emuend rule and actual `TEXT_SELECTION_END` at the next visual line, not visible-cursor affinity at the preceding line end. A candidate range result cannot supply its own reference. Absent setup/control witness is NE, not an excuse to compare native pixels.
+
+## S5 exact sequences and references
+
+For each of84 source cells, `Shift` below means that cell's existing key and initial shape:
+
+1. Shift, Backspace.
+2. Shift, Delete.
+3. Shift, literal ASCII `x`.
+4. Shift, Backspace, Backspace.
+5. Shift, Delete, Delete.
+6. Backspace, Shift, Backspace.
+7. Delete, Shift, Delete.
+
+Candidate sequences contain no inserted wait/readback between members. The two prefix-delete families follow ruling-3 Q4 SequenceA; they are not merely delete followed by Shift. Deletion compares `reduce_content` from paragraph-merge24; typing compares paragraph text. Preserve the fixture and any table/list structure those comparators retain.
+
+Reference correction, before any feature execution: the earlier planning suggestion to map every layout-dependent browser selection back into a new native layout was unnecessary and is withdrawn. The existing `findings/evidence/link-batch/review/ruling-3.md` line55 explicitly prescribes a **fresh same-browser settled reference** for layout-dependent cells. Use native exact continuation saves for Left/Right and Home/End only with the existing single-line witness. Otherwise use the same feature/browser/fixture/shape in a fresh arm, preserving prefix delete→Shift without waits, then wait for the actual Shift terminal and the existing at-least500ms settled-state witness before the continuation. The two following delete keys still run consecutively. Do not wait after every member or change the continuation.
+
+The old three-round Shift snapshots do not contain the required native continuation saves. Such references are NE until actually produced with bound source, inputs, binary and saved document. The protocol fixes the generator inputs and comparator now; it does not invent those outcomes. Implementing the feature and reference instruments may precede these measurements, but qualifying S5 execution/parity requires the corresponding reference. A candidate's timed final save is never its own oracle.
+
+At continuation `beforeinput`, derive posted unanswered move/extend requests from actual wire request/terminal/cancel records, separately from admitted/queued work. Only cells with positive actual overlap support the overlap claim; the existing empty-overlap-set rule is FAIL. Nonoverlapping cells remain sequence comparisons and are reported separately. Do not fabricate delay in product code to produce overlap.
+
+## Product readiness and fixed inputs
+
+The protocol `diagnostic/9.3-product-readiness-retained-keys-protocol.md` is incorporated with the decisions here overriding its provisional recommendation labels. Before pre-red or a qualifying product cell, establish actual loaded document/handle and bound fixture, a connected enabled focused sink, then a browser-native input that reaches the wire and a saved known mutation on a separate readiness document. Fresh-open the original fixture for the measured cell. UI readiness, fetched bytes, captured DOM keys or canvas presence alone are insufficient, as the closed C2 preparation demonstrates. Record browser UA family and unique page-artifact identity; a label or duplicated page cannot supply two browsers or repetitions.
+
+Adopt the protocol's existing fixture hashes and exact inputs:
+
+- Insert→Shift: `abcd`, publicly select `b`, type `x`, immediately Shift+Right. Save `axcd`, selection `c`, anchor after `x`.
+- Merge→Shift: `plain3`, paragraph2 start, Backspace immediately followed by Shift+Right. The first two paragraphs join without extra characters; selection is the initial `B` of `Bravo`, at the old boundary.
+- One-second ShiftRight hold and the distinct S-12 two-second hold: `long200`, first text caret, enough first-paragraph text that no scheduled extension reaches its boundary. Retain the original500ms delay/30ms repeat schedule:18 downs then keyup995ms for the existing one-second schedule;52 downs then keyup2015ms for the two-second schedule. Record actual event times/flags; scheduled times are not measured times. These are inputs, not new latency tolerances.
+
+The original three product arms explicitly left N to be written before execution. **Choose N=3 in each browser for those three arms and S-12:24 cells total.** This is a prospective bounded choice, not an assertion that N3 was already prescribed. Add the three arms to the existing product-path runner as required by link-batch10.1. Do not substitute the diagnostic page.
+
+S-12 means the literal release-time **wire-pending** extension count. Post-release selection growth cannot exceed posted unanswered extension requests at release. Queued/held work is recorded separately and cannot inflate that bound. Keep132's admitted-outstanding depth2 independently. Preserve the anchor, unchanged content/revision and actual public extension flag. Missing repeat input or an attributable release state is NE, not zero-growth success.
+
+The other already named product inputs run once per browser unless their retained source specifies a count: L-142 uses `abcd`, end caret, completed public save, Ctrl+Home immediately followed by `Z`, final `Zabcd`; distinct deletion uses `cjk25`, End and25 genuine Backspaces, final empty; identical deletion uses `underscores`, End and25 genuine Backspaces, final `Name: _____`. These use the actual headless deletion completion contract, not the unshipped a11y route. Every successful deletion must be reflected in the actual revision/content accounting. B2 is obtained from the real dirty-first-move path, not inferred from L-142's explicit clean save.
+
+## Retained keys and limited contexts
+
+The retained-key criterion is conservation/order of admitted inputs behind actual outstanding work. Derive membership from the existing141/144/145 and `page-held-deletes.test.mjs` / `page-held-depth.test.mjs` tests; do not preserve the removed2.25second window. An unresolved first fake request gives the deterministic unit overlap witness. Standing unchanged boundary-noop may discard same-boundary held work; rejection/document replacement clears old-document work; real changes preserve original key/order. Preserve the18 unflagged presses,52 repeat schedule, depth2, existing144 post-release bound2 and the five D8 direction/other-key/click sequences with their exact final-content outcomes in the incorporated protocol. Do not import mock66ms throughput or the old2.5second readiness threshold into WASM acceptance.
+
+L-C's three existing d7i/d7ii/d7iii positions run once per browser through the product. Record actual terminal, saved structure/caret and difference from native `Number On/Off`, `Number On/Off`, `Apply attributes`. Headless K1-NONE/noop remains the named limitation; this protocol does not close L-C or authorize an a11y/core/A3 fallback. Missing measurement stays NE; an honest existing limitation is not a fabricated Writer-parity PASS.
+
+For the table start/end obligation, reuse the **complete five-member `ARMS` table** in `findings/evidence/134/table/probe_table_refusal.py` and its existing `table-boundary.odt`, marks and input schedules. Keep one execution per browser except `cell-start-hold`'s inherited two, hence12 cells. Do not invent start/end×both-delete Cartesian cases. Preserve136's accepted marker landing and document preservation; append link-batch10.7's C correction for `cell-start-hold`: no old nothing-selected refusal/reopen, unchanged boundary caret/document after the five inserted characters are removed, `wvy` exactly before original A1. Old toast text is not a typed stage witness. Other table-boundary semantic outcomes retain their actual source predicates, while true typed refusal/completion/generation are recorded rather than forcing the old timing window.
+
+The cross-cell source is R1 `s5`, already materialized with its actual selection witness. One fresh public Delete continuation per browser records actual terminal, revision, saved table/cell structure and document readability. **Source correction:** action20 is range-granted and dispatches `.uno:Delete` directly (`probe_engine.cpp`, `OXSDK_EDITOR_DELETE_SELECTION`); builder-v4's `not-characterised-in-tables-or-note-apparatus` is a descriptive limitation, not a runtime refusal. Therefore do not require refusal/unchanged, add a new guard, or call this a new grant. Native deletion parity remains NE without its independent oracle. This record does not waive any separately required S5 comparator on a source cell.
+
+As-char frame retains the eight source arms in `native/object-click/ARMS.md`: Bold/Delete/Backspace/Left, immediate or150ms-separated continuation, exact image fixture and actual object-click selection. Run each once per browser as a **named-limit record**, preserving native seq references and actual public permission/type outcome. A refusal is a refusal, not parity; the150ms arm is a reference input, not a new completion wait. Missing native/public shape proof stays NE. The original named-limit default remains: text-click scope is unchanged, and these records do not open a frame-editing grant or replace040's different frame-HTML proof.
+
+## Defaults, prerequisites and closure
+
+Before implementation: this appendix, source-derived case/oracle tables and causal controls must exist. Before qualifying feature counts: actual linked/frozen feature identity, instrument graph and fixture pins, readiness, each required reference and v19's corrected16 pre-red must be established. The pre-red is required before the first use of the S2 reader for acceptance, not before writing the ABI6 source. A needed native harness compile is owner-only and must be separately prepared; no historical binary is assumed to implement the new S5 continuations.
+
+Each missing input/oracle/readiness/identity is NE and blocks that hard cell; measured contradictory behavior is FAIL. Named-limit records retain their stated defaults and do not silently become hard Writer-parity gates. Keep actual binary/profile/worker/source/fixture/reader hashes, raw wire events and saved files. A causal control must reject removal or corruption of each defining witness; source-owned population changes must be detected rather than producing an empty green reading. Product-runner096 must include true B2 under its unchanged reader/mutations; missing or false B2 is product failure.
+
+The first complete declared clean population and its artifact reader closes that feature group; no additional repetitions or thresholds arise from later unease. Changing candidate code or a required clean predicate invalidates affected candidate counts; documentation-only provenance corrections do not automatically reset unrelated closed groups. Preserve all failed/preparation evidence. None of these feature preparations resets the diagnostic cohorts or C2 record. No runtime/build/host action was performed by this protocol decision.
