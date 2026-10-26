@@ -32,3 +32,7 @@ src/probe_engine.cpp:69:2: error: "OXSDK_ODS_VIEWER is the reader rule's shape: 
 ```
 
 The existing `guard_variants` non-B branch already selects precisely that injected-B refusal; no checker or guard change is necessary. Proposal for root/scope adjudication: append only `--carrier ODS_EDITOR_V2=probe_engine,sdk_api` to the static check invocation, exactly analogous to ODS_EDITOR_V1. This declares existing non-B source differences within the tool-closed inventory; it does not permit B, exempt unoembind_stub, change core/worker/feature behavior, or alter any old declared carrier. The complete global checker must still be run after any authorized declaration change.
+
+## Owner-proxy adjudication
+
+Astra `/root/astra_calc_scope` read this source/hash diagnosis and the original recorded checker output, and approved precisely the proposed two-object Calc V2 declaration. The original checks-cpp-01 FAIL remains unchanged. No checker/guard/predicate or other object exception is modified. A new attempt02 source boundary and complete global checker run, including Calc V2's injected-B rejection, are required after the Make invocation change; the earlier result is not retroactively green.
