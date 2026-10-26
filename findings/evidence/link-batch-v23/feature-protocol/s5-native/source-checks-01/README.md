@@ -1,0 +1,7 @@
+# Native S5 source checks
+
+The coordinator ran the actual runner-to-reader boundary test and three pure Python source/content controls, all exit0. Exact argv, stdout, stderr and final source hashes are adjacent. These tests use stand-in files/processes and real ODT parsing; they do not load LibreOfficeKit or compile the native harness. The pure sequence header's four compiled FIFO mutations were tested separately during agent preparation; no compiled-stub receipt is asserted by this directory.
+
+Root source review found that the first runner draft added buildReceipt only to its initial identity, making its final equality comparison always false. The corrected runner validates/captures that same receipt in both snapshots. The boundary test now exercises actual main-to-reader plumbing: an unchanged complete identity is available, while changed receipt bytes, compiled source or header each preserve a failed completion and an NE reader result. Source-population, key/selection/save refusals and the existing structural-versus-text comparator controls passed independently. This is instrument preparation, not evidence that any native S5 save or browser parity has been obtained.
+
+The native-capable population remains392 source-derived entries, with Home/End conditional on later browser single-line evidence. A fresh owner harness build and actual native execution remain required. All product/core/profile artifacts and shell76 remain unchanged by these checks.
