@@ -33,3 +33,5 @@ Eight members involve the table, judged by the moving point being in a cell para
 | `shift-Home@cell-end`, `shift-End@cell-end`, `shift-Left@cell-end` | within A1 | within A1 | predicted to hold |
 
 The rows marked predicted are being measured in preparation 04. No criterion has been changed. The disposition of S1 for these members is an open decision, recorded in the session handoff.
+
+The runner that executed this preparation (repeatable `--case-id`, before `--keep-going`) was never committed on its own; `run_v23_feature_selection.executed.py` is its exact reconstruction, whose SHA256 equals `config.instrumentSources["tools/run_v23_feature_selection.py"]` (`4400380a…`).

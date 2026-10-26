@@ -105,10 +105,11 @@ def run_arm(session,browser,which,row):
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output',type=Path,required=True);parser.add_argument('--preparation-only',action='store_true')
-    parser.add_argument('--browser',choices=BROWSERS);parser.add_argument('--case-id');parser.add_argument('--pre-red-report',type=Path)
+    parser.add_argument('--browser',choices=BROWSERS);parser.add_argument('--case-id',action='append',help='preparation only; repeatable, run in the given order');parser.add_argument('--pre-red-report',type=Path)
+    parser.add_argument('--keep-going',action='store_true',help='preparation only: record every listed cell instead of stopping at the first nonpassing one')
     args=parser.parse_args();plan=config()
-    if (args.browser or args.case_id) and not args.preparation_only:parser.error('filters require preparation-only')
-    if args.case_id and args.case_id not in plan['cases']:parser.error('unknown source case')
+    if (args.browser or args.case_id or args.keep_going) and not args.preparation_only:parser.error('filters require preparation-only')
+    if args.case_id and (set(args.case_id)-set(plan['cases']) or len(set(args.case_id))!=len(args.case_id)):parser.error('unknown or repeated source case')
     if not args.preparation_only and not args.pre_red_report:parser.error('qualifying collection requires complete historical pre-red')
     prerequisite=check_pre_red(args.pre_red_report) if args.pre_red_report else {'verdict':'NOT_ESTABLISHED'}
     args.output.mkdir(parents=True,exist_ok=False);target=args.output.resolve()/'mirror';mirror(target,plan)
@@ -121,7 +122,7 @@ def main():
         if not report['foreignCpu'].get('ok'):raise SystemExit('foreign CPU refusal; no browser cells')
         with common.served(target) as base:
             for browser in ([args.browser] if args.browser else BROWSERS):
-                for case in ([args.case_id] if args.case_id else plan['cases']):
+                for case in (args.case_id or plan['cases']):
                     cell={'browser':browser,'caseId':case};session=None
                     try:
                         if config()!=plan:raise ValueError('source/profile drift')
@@ -144,8 +145,9 @@ def main():
                         path=args.output/f'{browser}-{case}.json';path.write_bytes(encoded(cell))
                         report['runs'].append({'path':path.name,'sha256':digest(path.read_bytes())});write()
                     if cell.get('fatal') or cell.get('inspection',{}).get('verdict')!='PASS':
-                        raise SystemExit('first nonpassing observation retained; no retry')
+                        report.setdefault('nonpassing',[]).append(cell['caseId']);write()
+                        if not args.keep_going:raise SystemExit('first nonpassing observation retained; no retry')
     report['postConfig']=config();verify_mirror(target,plan);write()
     if report['postConfig']!=plan:raise SystemExit('post-run drift')
-    return 0
+    return 1 if report.get('nonpassing') else 0
 if __name__=='__main__':raise SystemExit(main())
