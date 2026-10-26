@@ -189,7 +189,7 @@ def main():
                             except Exception:cell['exportFailure']=traceback.format_exc()
                     finally:
                         if session is not None:cell['cleanup']=common.close_browser(session)
-                        path=args.output/f'{browser}-{case}.json';path.write_bytes(encoded(cell))
+                        path=args.output/(f'{browser}-{case}.json'.replace('/','__'));path.write_bytes(encoded(cell))
                         report['runs'].append({'path':path.name,'sha256':digest(path.read_bytes())});write()
                     if cell.get('fatal') or cell.get('inspection',{}).get('verdict')!='PASS':
                         report.setdefault('nonpassing',[]).append(cell['caseId']);write()

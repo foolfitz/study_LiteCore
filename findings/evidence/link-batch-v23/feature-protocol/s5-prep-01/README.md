@@ -1,0 +1,3 @@
+# S5 preparation 01 (uncounted): case id used as a file name
+
+The first S5 preparation (Chrome, 8 cells) ran its first cell, `shift-Left@caret-mid/backspace`, for 17 s and then failed to write the cell record: S5 case ids contain `/`, and `run_v23_feature_selection.py` used the id directly in the file name, so the path pointed into a nonexistent directory (`runner.command.json`, `FileNotFoundError`). The cell record was lost before writing; no retry was made. The browser had already been closed by the cell's `finally` block. The runner now writes `<browser>-<case id with / replaced by __>.json`; the record itself keeps the original `caseId`. No S5 result is established here.
