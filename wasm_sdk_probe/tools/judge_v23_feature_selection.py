@@ -456,6 +456,22 @@ def single_line(e,name):
             return False
     return True
 
+def final_save(e,name,saved):
+    """The page's own save is queued behind the sequence, so the product's dirty-checkpoint save
+    can fall inside its window (s5-prep-02); bind the LAST save there, byte-equal to the call."""
+    calls=[c for c in e.page['calls'] if c['name']==name]
+    need(len(calls)==1 and calls[0].get('ok') is True,'missing/refused public call '+name)
+    need(name not in e.used,'reused call evidence');e.used.add(name);e.call_order.append(name)
+    c=calls[0]
+    saves=[r for r in e.page['requests'][c['requestStart']:c['requestEnd']] if r['generation']==c['generation']
+           and r['message']['operation']=='save' and c['startedAt']<=r['at']<=c['finishedAt']]
+    need(saves,'missing wire call '+name);request=saves[-1];terminal=e.replies.get(request_key(request))
+    need(terminal is not None and terminal['message'].get('ok') is True and request['at']<=terminal['at']<=c['finishedAt'],'missing/refused terminal '+name)
+    need(request['message']['payload'].get('documentHandle')==c['documentHandle'],'wrong document '+name)
+    raw=binary(terminal['message']['result']['buffer'])
+    need(digest(raw)==saved['sha256'] and binary(c['result']['bytes'])==raw,'save not bound to actual wire bytes')
+    need(all(r['at']<request['at'] for r in saves[:-1]),'final save is not the last save in its window')
+
 def s5_arm(e,name,row,source):
     gen,handle,anchor,moving,before=setup(e,name,source)
     v=e.page[name];q=v.get('sequence') or {}
@@ -502,7 +518,7 @@ def s5_arm(e,name,row,source):
     import base64
     def recorded(save):
         raw=base64.b64decode(save['base64'],validate=True);need(digest(raw)==save['sha256'],'page save record differs from its hash');return raw
-    e.save(name+'-final-save',v['finalSave'])
+    final_save(e,name+'-final-save',v['finalSave'])
     e.state(name+'-final-state',v['finalState']);_,_,close=e.call(name+'-close','close')
     result.update(final=recorded(v['finalSave']),original=recorded(v['originalSave']),close=close)
     return result

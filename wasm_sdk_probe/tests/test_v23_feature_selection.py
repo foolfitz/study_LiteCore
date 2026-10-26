@@ -618,6 +618,63 @@ class S5ComparatorControls(PreservedPages,unittest.TestCase):
             with self.assertRaisesRegex(NotEstablished,'reduction collapses the native edit'):native_reference(row,self.original)
 
 
+class S5Controls(PreservedPages,unittest.TestCase):
+    """S5 red cases built from the real uncounted preparation-02 pages."""
+    def s5(self,case,mutate=None):
+        import gzip
+        from judge_v23_feature_selection import inspect
+        d=self.BASE/'s5-prep-02';plan=json.loads((d/'report.json').read_bytes())['config']
+        page=json.loads(gzip.decompress((d/('chrome-'+case.replace('/','__')+'.json.gz')).read_bytes()))['page']
+        if mutate:mutate(page)
+        return inspect(page,plan,'chrome')
+    def test_real_pages(self):
+        for case,reference in (('shift-Left@caret-mid/backspace','native'),('shift-Down@caret-mid/delete','settled-wasm'),
+                               ('shift-Home@caret-mid/delete-before-and-after','native'),('shift-End@wrap-line-end/backspace-before-and-after','settled-wasm')):
+            with self.subTest(case=case):
+                value=self.s5(case);self.assertEqual((value['verdict'],value['groups']['S5']['reference']),('PASS',reference))
+        self.assertTrue(self.s5('shift-Left@caret-mid/backspace')['groups']['S5']['overlapping'])
+    def test_wrong_result_fails_and_missing_witnesses_are_ne(self):
+        import base64,io,zipfile
+        def content(page):
+            # One character of the candidate's final save body changed, consistently on page, call and wire.
+            v=page['s5cand'];raw=base64.b64decode(v['finalSave']['base64']);src=zipfile.ZipFile(io.BytesIO(raw));out=io.BytesIO()
+            with zipfile.ZipFile(out,'w') as z:
+                for item in src.infolist():
+                    data=src.read(item.filename)
+                    if item.filename=='content.xml':assert b'P1 plain' in data;data=data.replace(b'P1 plain',b'P1 plaiN',1)
+                    z.writestr(item,data)
+            new=out.getvalue();h=__import__('hashlib').sha256(new).hexdigest();b64=base64.b64encode(new).decode()
+            v['finalSave'].update(base64=b64,sha256=h)
+            call=next(c for c in page['calls'] if c['name']=='s5cand-final-save');call['result']['bytes'].update(data=b64,bytes=len(new))
+            saves=[r for r in page['requests'][call['requestStart']:call['requestEnd']] if r['message']['operation']=='save']
+            reply=next(x for x in page['responses'] if x['generation']==saves[-1]['generation'] and x['message']['requestId']==saves[-1]['message']['requestId'])
+            reply['message']['result']['buffer'].update(data=b64,bytes=len(new))
+        def swapped(page):
+            q=page['s5cand']['sequence'];keys=[x for x in page['inputs'][q['inputStart']:q['inputEnd']] if x['type']=='keydown']
+            keys[0]['key'],keys[-1]['key']=keys[-1]['key'],keys[0]['key']
+        def no_extension(page):
+            q=page['s5cand']['sequence']
+            for r in page['requests'][q['requestStart']:q['requestEnd']]:
+                if r['message']['operation']=='editorActionV2' and r['message']['payload'].get('extendSelection'):r['message']['payload']['extendSelection']=False
+        def early(page):
+            c=next(c for c in page['calls'] if c['name']=='s5ref-settled-state')
+            for r in page['requests'][c['requestStart']:c['requestEnd']]:r['at']-=450
+            c['startedAt']-=450
+        def stale_save(page):
+            call=next(c for c in page['calls'] if c['name']=='s5cand-final-save')
+            saves=[r for r in page['requests'][call['requestStart']:call['requestEnd']] if r['message']['operation']=='save']
+            saves[0]['at'],saves[-1]['at']=saves[-1]['at'],saves[0]['at']
+        for case,mutate,verdict,reason in (
+                ('shift-Left@caret-mid/backspace',content,'FAIL','sequence result differs from its reference'),
+                ('shift-Down@caret-mid/delete',content,'FAIL','sequence result differs from its reference'),
+                ('shift-Left@caret-mid/backspace',swapped,'NOT_ESTABLISHED','actual sequence keys differ'),
+                ('shift-Left@caret-mid/backspace',no_extension,'NOT_ESTABLISHED','extension request absent/nonunique'),
+                ('shift-Down@caret-mid/delete',early,'NOT_ESTABLISHED','settled witness too early'),
+                ('shift-Home@caret-mid/delete-before-and-after',stale_save,'NOT_ESTABLISHED','final save is not the last save in its window')):
+            with self.subTest(case=case,mutate=mutate.__name__):
+                value=self.s5(case,mutate);self.assertEqual((value['verdict'],value.get('reason')),(verdict,reason))
+
+
 class OpenBoundaryControls(unittest.TestCase):
     def test_actual_runner_alias_and_mirror_respect_sdk_suffix_without_repacking(self):
         import re

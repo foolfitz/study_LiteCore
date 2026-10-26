@@ -47,3 +47,7 @@ python3 -I wasm_sdk_probe/tools/read_v23_native_s5.py \
 The runner creates only the new output directory and owned profile/fixture/save children. An interrupted process lacking completion, failed settle, missing save, failed setup or changed binding is NE. Do not restart into run-01 or retry until green. The reader must enumerate the entire source-derived native-capable set; no percentage or selected clean subset closes availability.
 
 The before/after ODTs remain actual oracle evidence. Consumers must additionally establish browser fixture/shape/direction and, for Home/End, single-line applicability. Fresh same-browser settled references still require independent browser work: wait only after the Shift terminal and the existing at-least500ms state witness, preserve prefix-delete→Shift and consecutive following deletes. This native tool never promotes a timed candidate save to its own oracle, never supplies Up/Down layout parity, and never supplies the browser overlap witness.
+
+## Appended 2026-10-27: type family
+
+"Literal `x` is character120/key0 through the same queue" did not keep order: run-01's 56 type cells measured x-then-Shift (fable ruling 3, `feature-protocol/s5-type-oracle-ruling/RULING.md`). Their saves are not oracles for the declared sequence. Deletion entries are unaffected. A type-only run-02 with a settle and an order witness is required; its harness change needs a new owner-authorized build.
