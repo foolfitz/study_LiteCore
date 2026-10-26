@@ -1,11 +1,12 @@
 """Causal controls for the public feature selection instruments."""
 import copy
+import json
 from pathlib import Path
 import sys
 import unittest
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'tools'))
 from v23_feature_s_cases import derive,read_rounds
-from v23_feature_selection_cases import cases,point_plan,paragraphs,identity,PROFILE
+from v23_feature_selection_cases import cases,point_plan,paragraphs,identity,PROFILE,PROJECT
 
 class SourceCases(unittest.TestCase):
     @classmethod
@@ -295,6 +296,64 @@ class PlaceRouteControls(unittest.TestCase):
             with self.subTest(op=op):
                 value=inspect(page,self.plan,'chrome');self.assertEqual(value['verdict'],verdict,value)
                 if verdict!='PASS':self.assertEqual(value['reason'],'unplanned wire operation')
+
+
+class PreRedProvenanceControls(unittest.TestCase):
+    """The sealed v19 counted-05 report survives a runner-side helper change, not a reader or input change."""
+    REPORT=PROJECT.parent/'findings/evidence/link-batch-v23/feature-pre-red/counted-05/report.json'
+    @classmethod
+    def setUpClass(cls):
+        import v23_feature_pre_red_cases as historical
+        report=json.loads(cls.REPORT.read_bytes())
+        if not all((cls.REPORT.parent/r['path']).is_file() for r in report['runs']):
+            raise unittest.SkipTest('counted-05 raw cells not restored (store_payloads.py restore)')
+        cls.historical=historical;cls.live=historical.config(historical.WASM)
+    def check(self,mutate):
+        from unittest.mock import patch
+        from judge_v23_feature_selection import check_pre_red
+        plan=copy.deepcopy(self.live);mutate(plan)
+        with patch.object(self.historical,'config',return_value=plan):return check_pre_red(self.REPORT)
+    def test_runner_helper_change_keeps_the_sealed_result(self):
+        def helper(plan):plan['instrumentSources']['tools/run_browser_probe.py']='0'*64
+        self.assertEqual(self.check(helper)['verdict'],'EXPECTED_RED')
+        # The strict live comparison this replaces would have refused the same change.
+        plan=copy.deepcopy(self.live);helper(plan)
+        self.assertNotEqual(json.loads(self.REPORT.read_bytes())['config'],plan)
+    def test_reader_or_frozen_input_change_is_refused(self):
+        from judge_v23_feature_pre_red import NotEstablished
+        def reader(plan):plan['instrumentSources']['tools/judge_v23_feature_pre_red.py']='0'*64
+        def inputs(plan):plan['fixtureSha256']='0'*64
+        for mutate,reason in ((reader,'historical reader changed'),(inputs,'historical frozen inputs differ')):
+            with self.subTest(reason=reason),self.assertRaisesRegex(NotEstablished,reason):self.check(mutate)
+
+class PreservedGraphControls(unittest.TestCase):
+    def layout(self,directory,blobs=None,extra=None):
+        import hashlib
+        base=Path(directory);(base/'cohort').mkdir();(base/'tool-source-blobs').mkdir()
+        executed={}
+        rows={}
+        for name,data in (blobs or {'tools/a.py':b'a\n','tools/b.py':b'b\n'}).items():
+            sha=hashlib.sha256(data).hexdigest();executed[name]=sha
+            (base/'tool-source-blobs'/(sha+'.py')).write_bytes(data)
+            rows[name]={'sha256':sha,'storedPath':'tool-source-blobs/'+sha+'.py'}
+        (base/'tool-source-bindings-01.json').write_text(json.dumps({'reports':{'cohort':rows}}))
+        if extra:(base/'tool-source-bindings-02.json').write_text(json.dumps({'reports':{'cohort':rows}}))
+        return base/'cohort'/'report.json',executed,rows
+    def test_blobs_bind_exactly(self):
+        import tempfile
+        from judge_v23_feature_selection import preserved_graph
+        from judge_v23_feature_pre_red import NotEstablished
+        for kind in ('exact','corrupt','membership','duplicate','escape'):
+            with self.subTest(kind=kind),tempfile.TemporaryDirectory() as directory:
+                path,executed,rows=self.layout(directory,extra=kind=='duplicate')
+                if kind=='corrupt':(path.parent.parent/rows['tools/a.py']['storedPath']).write_bytes(b'changed\n')
+                elif kind=='membership':executed['tools/c.py']='0'*64
+                elif kind=='escape':
+                    rows['tools/a.py']['storedPath']='../outside.py'
+                    (path.parent.parent/'tool-source-bindings-01.json').write_text(json.dumps({'reports':{'cohort':rows}}))
+                if kind=='exact':self.assertEqual(set(preserved_graph(path,executed)),set(executed))
+                else:
+                    with self.assertRaises(NotEstablished):preserved_graph(path,executed)
 
 
 class OpenBoundaryControls(unittest.TestCase):

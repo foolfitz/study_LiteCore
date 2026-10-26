@@ -333,17 +333,60 @@ def inspect(page,plan,browser):
     except (NotEstablished,KeyError,ValueError,TypeError,IndexError) as error:
         return {'verdict':'NOT_ESTABLISHED','reason':str(error),'groups':groups}
 
+def import_closure(*starts):
+    """Local tools/ modules reachable by import from `starts`; the same walk the pre-red config uses."""
+    import ast
+    tools=Path(__file__).resolve().parent;pending=[tools/s for s in starts];seen=set()
+    while pending:
+        path=pending.pop().resolve()
+        if path in seen:continue
+        seen.add(path)
+        for node in ast.walk(ast.parse(path.read_text())):
+            names=[x.name for x in node.names] if isinstance(node,ast.Import) else (
+                [node.module] if isinstance(node,ast.ImportFrom) and node.module else [])
+            pending+=[c for c in (tools/Path(*n.split('.')).with_suffix('.py') for n in names) if c.is_file()]
+    return sorted('tools/'+p.name for p in seen)
+
+def preserved_graph(path,executed):
+    """Bind the report's executed Python graph to the exact bytes preserved beside its cohort."""
+    base=path.parent.parent
+    found=[]
+    for record in sorted(base.glob('tool-source-bindings-*.json')):
+        rows=json.loads(record.read_bytes()).get('reports',{}).get(path.parent.name)
+        if rows is not None:found.append(rows)
+    need(len(found)==1,'executed graph not uniquely preserved')
+    rows=found[0];need(isinstance(executed,dict) and executed and set(rows)==set(executed),'preserved graph membership differs')
+    for name,sha in executed.items():
+        stored=Path(rows[name].get('storedPath',''))
+        need(not stored.is_absolute() and '..' not in stored.parts and rows[name].get('sha256')==sha,'preserved source record differs: '+name)
+        blob=base/stored;need(blob.is_file() and digest(blob.read_bytes())==sha,'preserved source blob differs: '+name)
+    return rows
+
 def check_pre_red(path):
+    # The report records the Python graph that executed it, and tool-source-bindings preserves
+    # those bytes.  A later runner-side helper change (the Firefox 096 transport edits
+    # run_browser_probe.py and run_e2_c_product_path.py) must not void a sealed result, and
+    # arbitrary bytes must not pass either: frozen inputs are recomputed live, the executed
+    # graph is bound to its preserved blobs, and the live reader re-judges only when its own
+    # import closure is byte-identical to what executed.
     from judge_v23_feature_pre_red import judge as historical_judge
     from v23_feature_pre_red_cases import config as historical_config,verify_mirror as historical_mirror,WASM
     need(path is not None,'complete historical pre-red reference absent')
-    path=Path(path).resolve();raw=path.read_bytes();report=json.loads(raw);plan=historical_config(WASM)
-    need(report.get('config')==plan and report.get('postConfig')==plan,'historical graph differs or incomplete')
+    path=Path(path).resolve();raw=path.read_bytes();report=json.loads(raw);live=historical_config(WASM)
+    executed,post=report.get('config'),report.get('postConfig')
+    need(isinstance(executed,dict) and isinstance(post,dict),'historical graph incomplete')
+    frozen=lambda plan:{k:v for k,v in plan.items() if k!='instrumentSources'}
+    need(frozen(executed)==frozen(live)==frozen(post),'historical frozen inputs differ or incomplete')
+    need(post.get('instrumentSources')==executed.get('instrumentSources'),'executed graph changed during the run')
+    preserved_graph(path,executed['instrumentSources'])
+    reader=import_closure('judge_v23_feature_pre_red.py')
+    need(all(live['instrumentSources'].get(n)==executed['instrumentSources'].get(n) is not None for n in reader),
+         'historical reader changed; re-judging needs the recorded reader')
     need(not report.get('preparationOnly'),'historical preparation cannot qualify')
-    historical_mirror(path.parent/'mirror',plan);cells=[]
+    historical_mirror(path.parent/'mirror',executed);cells=[]
     for row in report['runs']:
         data=(path.parent/row['path']).read_bytes();need(digest(data)==row['sha256'],'historical cell bytes differ');cells.append(json.loads(data))
-    result=historical_judge(cells,plan);need(result['verdict']=='EXPECTED_RED' and result['populationComplete'],'historical pre-red not complete expected red')
+    result=historical_judge(cells,executed);need(result['verdict']=='EXPECTED_RED' and result['populationComplete'],'historical pre-red not complete expected red')
     return {'path':str(path),'sha256':digest(raw),'verdict':'EXPECTED_RED','cells':result['cells']}
 
 def judge(cells,plan):
