@@ -106,6 +106,9 @@ int main(int argc,char** argv) {
     if(argc!=5) {std::cerr<<"usage: v23-native-s5-type INSTALL PROFILE_URL FIXTURE_URL FRESH_SAVE_DIRECTORY\n";return 2;}
     const std::filesystem::path out=std::filesystem::absolute(argv[4]);
     if(!std::filesystem::is_directory(out)||!std::filesystem::is_empty(out)) return 2;
+    // run-02 printed the default six significant digits: past 1000 ms the between-read end
+    // and the x post rounded to the same 0.01 ms in 46 cells, so the order was unwitnessable.
+    std::cout.precision(15);
     LibreOfficeKit* kit=lok_init_2(argv[1],argv[2]);if(!kit)return 3;
     if(!discoverAll(kit,argv[3],1,800))return 4;
     bool ok=true;

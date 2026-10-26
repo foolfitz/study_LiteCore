@@ -56,6 +56,9 @@ class NativeS5Type(unittest.TestCase):
         bad['betweenReadEndMs'],x['atMs']=x['atMs'],bad['betweenReadEndMs']
         witness,why=reader.order_witness(bad,setup,states)
         self.assertIsNone(witness);self.assertIn('between-read does not complete before the x post',why)
+        # Equal timestamps (run-02's six-digit output) cannot witness "precedes".
+        bad=copy.deepcopy(row);bad['betweenReadEndMs']=bad['posts'][2]['atMs']
+        self.assertIn('between-read does not complete before the x post',reader.order_witness(bad,setup,states)[1])
         # Red 2: the between-read text replaced by the post-x selection.
         bad=copy.deepcopy(row);bad['between']['getTextSelection']=bad['after']['getTextSelection']
         witness,why=reader.order_witness(bad,setup,states)
@@ -109,6 +112,10 @@ class NativeS5Type(unittest.TestCase):
         self.assertEqual(calls,['const auto shiftSettled=settle(s,800,8000);','const auto readStart=nowMs()-start;',
             'const auto between=snap(s);','const int betweenType=s.d->pClass->getSelectionType(s.d);','const auto readEnd=nowMs()-start;'])
         self.assertEqual(text.count('post(seq['),2)
+        # Timestamps are printed with enough digits to order microsecond-apart events past 1000 ms.
+        main=text.split('int main(',1)[1]
+        self.assertIn('std::cout.precision(15);',main)
+        self.assertLess(main.index('std::cout.precision(15);'),main.index('measured(kit'))
         # run-01's harness and builder are untouched; run-01 keeps reading through them.
         self.assertNotIn('v23_native_s5_type',(SDK/'tools/v23_native_s5.cpp').read_text())
 
