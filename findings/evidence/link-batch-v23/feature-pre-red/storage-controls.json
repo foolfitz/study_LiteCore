@@ -1,0 +1,93 @@
+{
+  "scope": "storage controls only; no product acceptance",
+  "sourceSha256": "4510f520bd3c791e6a099d6929ff3b8e8ddab88e623835f5442c81efd143a7ba",
+  "cases": [
+    {
+      "label": "pack actual raw bytes",
+      "argv": [
+        "/usr/bin/python3",
+        "-I",
+        "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v23/feature-pre-red/storage-controls-hr1pzojl/store_payloads.py",
+        "pack",
+        "--index",
+        "storage.json",
+        "sample"
+      ],
+      "exitCode": 0,
+      "stdout": "{\"scope\": \"byte storage only; no product verdict\", \"reports\": 1, \"payloads\": 1, \"mode\": \"pack\"}\n",
+      "stderr": ""
+    },
+    {
+      "label": "restore missing original",
+      "argv": [
+        "/usr/bin/python3",
+        "-I",
+        "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v23/feature-pre-red/storage-controls-hr1pzojl/store_payloads.py",
+        "restore",
+        "--index",
+        "storage.json"
+      ],
+      "exitCode": 0,
+      "stdout": "{\"scope\": \"byte storage only; no product verdict\", \"reports\": 1, \"payloads\": 1, \"mode\": \"restore\"}\n",
+      "stderr": ""
+    },
+    {
+      "label": "reject existing raw mutation",
+      "argv": [
+        "/usr/bin/python3",
+        "-I",
+        "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v23/feature-pre-red/storage-controls-hr1pzojl/store_payloads.py",
+        "verify",
+        "--index",
+        "storage.json"
+      ],
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": "Traceback (most recent call last):\n  File \"/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v23/feature-pre-red/storage-controls-hr1pzojl/store_payloads.py\", line 91, in <module>\n    main()\n    ~~~~^^\n  File \"/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v23/feature-pre-red/storage-controls-hr1pzojl/store_payloads.py\", line 85, in main\n    raise ValueError('existing raw payload differs; never overwrite: ' + row['path'])\nValueError: existing raw payload differs; never overwrite: sample/chrome-example.json\n"
+    },
+    {
+      "label": "reject stored payload mutation",
+      "argv": [
+        "/usr/bin/python3",
+        "-I",
+        "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v23/feature-pre-red/storage-controls-hr1pzojl/store_payloads.py",
+        "verify",
+        "--index",
+        "storage.json"
+      ],
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": "Traceback (most recent call last):\n  File \"/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v23/feature-pre-red/storage-controls-hr1pzojl/store_payloads.py\", line 91, in <module>\n    main()\n    ~~~~^^\n  File \"/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v23/feature-pre-red/storage-controls-hr1pzojl/store_payloads.py\", line 80, in main\n    raise ValueError('stored payload bytes changed: ' + row['path'])\nValueError: stored payload bytes changed: sample/chrome-example.json\n"
+    },
+    {
+      "label": "verify actual restored bytes",
+      "argv": [
+        "/usr/bin/python3",
+        "-I",
+        "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v23/feature-pre-red/storage-controls-hr1pzojl/store_payloads.py",
+        "verify",
+        "--index",
+        "storage.json"
+      ],
+      "exitCode": 0,
+      "stdout": "{\"scope\": \"byte storage only; no product verdict\", \"reports\": 1, \"payloads\": 1, \"mode\": \"verify\"}\n",
+      "stderr": ""
+    },
+    {
+      "label": "reject empty storage inventory",
+      "argv": [
+        "/usr/bin/python3",
+        "-I",
+        "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v23/feature-pre-red/storage-controls-hr1pzojl/store_payloads.py",
+        "pack",
+        "--index",
+        "empty-index.json",
+        "empty"
+      ],
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": "Traceback (most recent call last):\n  File \"/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v23/feature-pre-red/storage-controls-hr1pzojl/store_payloads.py\", line 91, in <module>\n    main()\n    ~~~~^^\n  File \"/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v23/feature-pre-red/storage-controls-hr1pzojl/store_payloads.py\", line 63, in main\n    raise ValueError('no raw cells in requested cohorts; no storage completion claim')\nValueError: no raw cells in requested cohorts; no storage completion claim\n"
+    }
+  ],
+  "temporaryCopyRemoved": true
+}
