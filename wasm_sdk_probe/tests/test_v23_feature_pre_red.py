@@ -177,4 +177,56 @@ class ProductNavigationTests(unittest.TestCase):
         self.assertEqual(len(page.expressions),1)
         self.assertNotIn('__probe_metrics',page.expressions[0])
 
+    def assert_main_product_route(self,main):
+        from contextlib import ExitStack, nullcontext, redirect_stdout
+        from unittest.mock import Mock, patch
+        import run_v23_feature_pre_red as runner
+        browser=Mock()
+        browser.navigate.side_effect=RuntimeError('generic-route-sentinel')
+        navigate=Mock(side_effect=RuntimeError('product-navigation-route-sentinel'))
+        case='shift-Left@caret-mid';plan={'cases':{case:{}}}
+        with tempfile.TemporaryDirectory() as directory, ExitStack() as stack:
+            output=Path(directory)/'fresh-output'
+            stack.enter_context(patch.object(sys,'argv',['pre-red','--v19-wasm-sha256',WASM,
+                '--preparation-only','--browser','chrome','--case-id',case,'--output',str(output)]))
+            for name,value in {'config':Mock(return_value=plan),'mirror':Mock(),
+                'verify_mirror':Mock(return_value={}), 'navigate':navigate,
+                'export_page':Mock(return_value=({},{}))}.items():
+                stack.enter_context(patch.object(runner,name,value))
+            wait=stack.enter_context(patch.object(runner,'wait_page'))
+            ready=stack.enter_context(patch.object(runner,'readiness'))
+            for name,value in {'browser_lock':Mock(side_effect=lambda *a:nullcontext()),
+                'pre_run_checks':Mock(return_value={}), 'foreign_cpu':Mock(return_value={'ok':True}),
+                'served':Mock(side_effect=lambda *a:nullcontext('http://127.0.0.1/product')),
+                'open_browser':Mock(return_value=browser), 'close_browser':Mock(return_value={})}.items():
+                stack.enter_context(patch.object(runner.common,name,value))
+            with redirect_stdout(io.StringIO()), self.assertRaisesRegex(SystemExit,'first non-expected-red'):
+                main()
+            navigate.assert_called_once_with(browser,'http://127.0.0.1/product?caseId=shift-Left%40caret-mid')
+            browser.navigate.assert_not_called()
+            wait.assert_not_called();ready.assert_not_called()
+            report=json.loads((output/'report.json').read_text())
+            self.assertEqual(len(report['runs']),1)
+            cell=json.loads((output/report['runs'][0]['path']).read_text())
+            self.assertIn('product-navigation-route-sentinel',cell['fatal'])
+
+    def test_actual_main_uses_product_navigation(self):
+        import run_v23_feature_pre_red as runner
+        self.assert_main_product_route(runner.main)
+
+    def test_historical_main_callsite_fails_route_control(self):
+        import inspect
+        import types
+        import run_v23_feature_pre_red as runner
+        source=inspect.getsource(runner.main)
+        old=source.replace("navigate(session,base+'?'+urlencode({'caseId':case}))",
+                           "session.navigate(base+'?'+urlencode({'caseId':case}))")
+        self.assertNotEqual(source,old)
+        namespace={}
+        exec(compile(old,'<historical-main-callsite>','exec'),namespace)
+        historical=types.FunctionType(namespace['main'].__code__,runner.__dict__)
+        # Execute the actual main body with only its old callsite restored.
+        # An unused correct import must not preserve the routing control's green.
+        with self.assertRaises(AssertionError):self.assert_main_product_route(historical)
+
 if __name__=='__main__':unittest.main()
