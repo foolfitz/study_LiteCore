@@ -93,11 +93,33 @@ def bound_save(page,name,saved,requests,replies):
     need(binary(call['result']['bytes'])==raw,'public saved result differs')
     return paragraphs(saved)
 
+def wrap_first_rectangle(result):
+    need(isinstance(result,dict),'malformed wrap search result')
+    selections=result.get('selections')
+    need(isinstance(selections,list) and len(selections)==1,'ambiguous wrap search matches')
+    selection=selections[0]
+    need(isinstance(selection,dict),'malformed wrap search selection')
+    part=selection.get('part')
+    need((type(part) is int and part==0) or (type(part) is str and part=='0'),'ambiguous wrap search part')
+    raw=selection.get('rectangles')
+    need(isinstance(raw,str),'missing wrap search rectangles')
+    rectangles=[]
+    for item in raw.split(';'):
+        need(re.fullmatch(r'\s*[0-9]+\s*,\s*[0-9]+\s*,\s*[0-9]+\s*,\s*[0-9]+\s*',item) is not None,
+             'malformed wrap search rectangle')
+        rect=tuple(map(int,item.split(',')))
+        need(all(v<=9007199254740991 for v in rect) and rect[2]>0 and rect[3]>0,'invalid wrap search rectangle')
+        rectangles.append(rect)
+    need(len({r[:2] for r in rectangles})==len(rectangles),'ambiguous wrap search rectangle origin')
+    return min(rectangles,key=lambda r:(r[1],r[0]))
+
+
 def validate_setup(page,prefix,setup,plan,requests,replies):
     need(setup['plan']==plan,'setup discovery differs')
     _,search_req,search_res=call_binding(page,prefix+'-search','search',requests,replies)
     need(search_req['message']['payload']['query']==plan['query'],'setup search query differs')
-    coordinates=list(map(int,search_res['message']['result']['selections'][0]['rectangles'].split(';')[0].split(',')))
+    first_line=plan.get('anchor')=='search-first-displayed-line'
+    coordinates=wrap_first_rectangle(search_res['message']['result']) if first_line else list(map(int,search_res['message']['result']['selections'][0]['rectangles'].split(';')[0].split(',')))
     need(len(coordinates)==4,'actual search rectangle absent')
     _,click_req,_=call_binding(page,prefix+'-search-click','click',requests,replies)
     payload=click_req['message']['payload']
@@ -133,12 +155,21 @@ def validate_setup(page,prefix,setup,plan,requests,replies):
              'list anchor is not actual search text start')
         need(setup['start']['selection']['collapsed'] is True,'list text-start is not collapsed')
     a,b=point(setup['start']),point(setup['target'])
+    if first_line:
+        need((setup['start']['caret']['x'],setup['start']['caret']['y'])==coordinates[:2],
+             'wrap anchor is not actual first displayed search text start')
+        need(setup['target']['caret']['y']==coordinates[1] and setup['target']['caret']['x']>coordinates[0],
+             'wrap target is not on first displayed line')
+        need(setup['start']['selection']['collapsed'] is True and setup['target']['selection']['collapsed'] is True,
+             'wrap caret setup is not collapsed')
     _,selection,_=call_binding(page,prefix+'-prefix-select','editorSelectRangeV2',requests,replies)
     payload=selection['message']['payload']
     need((payload['startXTwips'],payload['startYTwips'],payload['endXTwips'],payload['endYTwips'])==(*a,*b),
          'prefix selected different points')
     _,_,selected=call_binding(page,prefix+'-prefix-text','getSelection',requests,replies)
     need(setup['selected']==selected['message']['result'],'setup text is not actual selection')
+    if first_line:need(bool(setup['selected'].get('text')) and plan['query'].startswith(setup['selected']['text']),
+                       'wrap first-line prefix is not query prefix')
     _,restored,_=call_binding(page,prefix+'-restore-point','click',requests,replies)
     need((restored['message']['payload']['xTwips'],restored['message']['payload']['yTwips'])==b,
          'setup restoration uses different point')

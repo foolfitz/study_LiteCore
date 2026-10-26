@@ -47,7 +47,7 @@ def make_page(plan,case='shift-Left@caret-mid',browser='chrome'):
         p['workers'].append({'generation':gen,'url':'./profiles/e2-editor-v19/sdk-worker.js'})
         return {'generation':gen,'documentHandle':gen,'name':name,'fixtureSha256':plan['fixtureSha256'],'serial':gen}
     def setup(prefix,discovery):
-        call(prefix+'-search','search',{'query':discovery['query']},{'selections':[{'rectangles':'100,100,100,20'}]})
+        call(prefix+'-search','search',{'query':discovery['query']},{'selections':[{'part':'0','rectangles':('100,200,100,20; 100,100,100,20' if discovery.get('anchor')=='search-first-displayed-line' else '100,100,100,20')}]})
         call(prefix+'-search-click','click',{'xTwips':100,'yTwips':110},{})
         if discovery.get('anchor')!='search-text-start':
             call(prefix+'-home','editorActionV2',{'action':'move-line-home','extendSelection':False},{})
@@ -227,6 +227,90 @@ locate({paragraph:7,offset:5,query:text,anchor:'search-text-start'},'measured')
         result=json.loads(run.stdout)
         self.assertEqual(result['text'],'List ')
         self.assertEqual(result['moves'],['character-right']*5)
+
+
+class WrapAnchorTests(unittest.TestCase):
+    def run_wrap(self, mutate=lambda script:script):
+        import subprocess
+        source=(Path(__file__).resolve().parents[1]/'web/v23-feature-pre-red.js').read_text()
+        locate='async function locate'+source.split('async function locate',1)[1].split('function fail',1)[0]
+        script=r"""
+let x=1418,y=0,range;const clicks=[],moves=[];const query='W1 first line followed by more text';
+const current={document:{search:async()=>({selections:[{part:'0',rectangles:
+ '1418,3350,1846,275; 1418,2522,9972,275; 1418,2798,9972,551'}]}),
+ getSelection:async()=>({text:y===2522?'W1 first line':'it finally stops here'})},
+ editor:{selectRange:async(a,b)=>{range=[a,b]}}};
+const call=async(name,fn)=>await fn();
+const place=async p=>{clicks.push(p);x=p.xTwips;y=p.yTwips-137};
+const move=async direction=>{moves.push(direction);x=direction==='line-home'?1418:11390};
+const state=async()=>({caret:{x,y,width:0,height:275},selection:{observed:true,collapsed:true}});
+const point=c=>({xTwips:c.x,yTwips:c.y+Math.floor(c.height/2)});
+"""+locate+r"""
+locate({paragraph:4,offset:'visual-end',query,anchor:'search-first-displayed-line'},'measured')
+ .then(value=>process.stdout.write(JSON.stringify({value,clicks,moves})))
+ .catch(error=>{console.error(error);process.exitCode=1});
+"""
+        return subprocess.run(['node','-e',mutate(script)],text=True,capture_output=True)
+
+    def test_actual_js_chooses_first_displayed_line_from_unsorted_search(self):
+        run=self.run_wrap()
+        self.assertEqual(run.returncode,0,run.stderr)
+        actual=json.loads(run.stdout)
+        self.assertEqual(actual['clicks'][0],{'xTwips':1418,'yTwips':2659})
+        self.assertEqual(actual['value']['start']['caret']['y'],2522)
+        self.assertEqual(actual['value']['target']['caret']['y'],2522)
+        self.assertEqual(actual['value']['selected']['text'],'W1 first line')
+        self.assertEqual(actual['moves'],['line-home','line-end'])
+
+    def test_actual_js_rejects_malformed_and_ambiguous_search(self):
+        original='1418,3350,1846,275; 1418,2522,9972,275; 1418,2798,9972,551'
+        for raw in ['1418,2522,9972,275; BAD','1418,2522,0,275',
+                    '1418,2522,9972,275;1418,2522,9972,275',
+                    '1418,2522,9972,275;1418,2522,10,10','']:
+            with self.subTest(raw=raw):self.assertNotEqual(self.run_wrap(lambda s:s.replace(original,raw)).returncode,0)
+        self.assertNotEqual(self.run_wrap(lambda s:s.replace("part:'0'","part:'1'")).returncode,0)
+
+    def test_reader_derives_minimum_and_rejects_consistent_old_last_line(self):
+        plan=config(WASM);case='shift-Left@wrap-line-end'
+        self.assertEqual(plan['cases'][case]['discovery']['anchor'],'search-first-displayed-line')
+        page=make_page(plan,case)
+        self.assertEqual(inspect(page,plan,'chrome')['verdict'],'EXPECTED_RED')
+        def alter(value):
+            if isinstance(value,dict):
+                for k,v in value.items():
+                    if k=='y' and v==100:value[k]=200
+                    elif k in ('yTwips','startYTwips','endYTwips') and v==110:value[k]=210
+                    else:alter(v)
+            elif isinstance(value,list):
+                for v in value:alter(v)
+        alter(page['measured'])
+        for group in ('calls','requests','responses'):
+            for entry in page[group]:
+                if entry['generation']==2:alter(entry)
+        # Prefix is deliberately still the acceptable full query; page and wire agree.
+        self.assertEqual(inspect(page,plan,'chrome')['verdict'],'NOT_ESTABLISHED')
+        for entry in page['requests']:
+            if entry['generation']==2 and entry['message']['operation']=='click':
+                entry['message']['payload']['yTwips']=110
+                break
+        verdict=inspect(page,plan,'chrome')
+        self.assertEqual(verdict['verdict'],'NOT_ESTABLISHED')
+        self.assertIn('first displayed search text start',verdict['reason'])
+
+    def test_reader_rejects_every_bad_rectangle_and_part(self):
+        from judge_v23_feature_pre_red import wrap_first_rectangle, NotEstablished
+        good={'selections':[{'part':'0','rectangles':'1418,3350,1846,275;1418,2522,9972,275;1418,2798,9972,551'}]}
+        self.assertEqual(wrap_first_rectangle(good),(1418,2522,9972,275))
+        variants=[None,[],{'selections':[None]},{'selections':[[]]}]
+        for raw in ['', '100,100,10,20;bad', '100,100,10,0','100,100,10,20;',
+                    '100,100,10,20;100,100,10,20','100,100,10,20;100,100,11,20','１００,100,10,20']:
+            v=copy.deepcopy(good);v['selections'][0]['rectangles']=raw;variants.append(v)
+        for part in [None,True,'1',1,'0.0']:
+            v=copy.deepcopy(good);v['selections'][0]['part']=part;variants.append(v)
+        v=copy.deepcopy(good);v['selections']*=2;variants.append(v)
+        v=copy.deepcopy(good);v['selections'].append({'part':'1','rectangles':'100,100,10,20'});variants.append(v)
+        for value in variants:
+            with self.subTest(value=value),self.assertRaises(NotEstablished):wrap_first_rectangle(value)
 
 
 class ProductNavigationTests(unittest.TestCase):

@@ -69,6 +69,7 @@ def cases():
         if row['shape']=='empty-para': plan={'paragraph':2,'offset':'next-empty'}
         plan['query']=paragraphs[plan['paragraph']]
         if row['shape']=='list-mid': plan['anchor']='search-text-start'
+        if row['shape']=='wrap-line-end': plan['anchor']='search-first-displayed-line'
         row['discovery']=plan
     return rows
 

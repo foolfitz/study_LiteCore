@@ -56,7 +56,24 @@ async function save(name){const saved=await call(name,()=>current.save());
 async function place(p,name){return call(name,()=>current.placeCaret(p.xTwips,p.yTwips));}
 async function locate(plan,prefix){
   const found=await call(prefix+'-search',()=>current.document.search(plan.query));
-  const coords=String(found?.selections?.[0]?.rectangles||'').split(';')[0].split(',').map(Number);
+  let coords=String(found?.selections?.[0]?.rectangles||'').split(';')[0].split(',').map(Number);
+  const firstLine=plan.anchor==='search-first-displayed-line';
+  if(firstLine){
+    // Full-paragraph search may return the last visual line first. This Writer
+    // setup can address part0 only; multiple matches/parts are ambiguous.
+    const selections=found?.selections;
+    if(!Array.isArray(selections)||selections.length!==1||![0,'0'].includes(selections[0].part)
+      ||typeof selections[0].rectangles!=='string')throw new Error('ambiguous wrap search match or part');
+    const rectangles=selections[0].rectangles.split(';').map(raw=>{
+      if(!/^\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,\s*\d+\s*$/.test(raw))throw new Error('malformed wrap search rectangle');
+      const r=raw.split(',').map(Number);
+      if(!r.every(Number.isSafeInteger)||r[2]<=0||r[3]<=0)throw new Error('invalid wrap search rectangle');
+      return r;
+    });
+    if(new Set(rectangles.map(r=>`${r[0]},${r[1]}`)).size!==rectangles.length)
+      throw new Error('ambiguous wrap search rectangle origin');
+    coords=rectangles.sort((a,b)=>a[1]-b[1]||a[0]-b[0])[0];
+  }
   if(coords.length!==4||!coords.every(Number.isFinite))throw new Error('actual search rectangle missing');
   await place({xTwips:coords[0],yTwips:coords[1]+Math.floor(coords[3]/2)},prefix+'-search-click');
   // List Home enters the label position; native p7.5 counts from text start.
@@ -71,6 +88,9 @@ async function locate(plan,prefix){
   const selected=await call(prefix+'-prefix-text',()=>current.document.getSelection());
   await place(b,prefix+'-restore-point');
   const final=await state(prefix+'-final-state');
+  if(firstLine&&(start.caret?.x!==coords[0]||start.caret?.y!==coords[1]
+    ||target.caret?.y!==coords[1]||!(target.caret?.x>start.caret.x)
+    ||!selected.text||!plan.query.startsWith(selected.text)))throw new Error('wrap first-line witness differs');
   return {plan,start,target,selected,final};
 }
 function fail(error){result.fatal={code:error?.code,message:String(error?.message||error)};result.complete=true;return false;}

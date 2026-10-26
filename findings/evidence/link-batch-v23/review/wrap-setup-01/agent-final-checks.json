@@ -1,0 +1,48 @@
+{
+  "sourceSha256": {
+    "tools/v23_feature_pre_red_cases.py": "8bd7d2b9d7868a693adbeb25899398d2b1099b39c214c2f780305d9b05cbe24f",
+    "web/v23-feature-pre-red.js": "e071b7d37c643b99e90a38c9eabbd12ca9212a046202b597ed6858fd6c35ab3c",
+    "tools/judge_v23_feature_pre_red.py": "8e5a5debade0d22bb6bf6f4feb97b7df6d021addb80a44602f340d5eab86e683",
+    "tests/test_v23_feature_pre_red.py": "817304dd79b9b7a89f03b2220cfb655410b76fd92c83a45cec3131b4c91a7ae4"
+  },
+  "checks": [
+    {
+      "argv": [
+        "python3",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_v23_feature_pre_red.py"
+      ],
+      "cwd": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe",
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "..............................\n----------------------------------------------------------------------\nRan 30 tests in 1.488s\n\nOK\n"
+    },
+    {
+      "argv": [
+        "node",
+        "--check",
+        "web/v23-feature-pre-red.js"
+      ],
+      "cwd": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe",
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "cwd": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe",
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ]
+}
