@@ -699,6 +699,23 @@ class S5TypeOracleControls(PreservedPages,unittest.TestCase):
             if r['family']!='type' and r['referencePolicy']!='settled-wasm':
                 self.assertTrue(all('/s5-native/run-01/saves/' in r['native'][side]['path'] for side in ('before','after')),r['id'])
                 self.assertIsNone(r['nativeOrderWitness'])
+    def test_type_fallback_only_for_witness_reasons(self):
+        # Addendum 1 item 2 red cases: a missing save and a wrong pre-key selection must raise.
+        from v23_feature_selection_cases import type_fallback
+        cell=lambda *reasons:{'id':'shift-Right@caret-mid/type','status':'NOT_ESTABLISHED','reasons':list(reasons)}
+        self.assertEqual(type_fallback(cell('Shift settle reached its cap')),['Shift settle reached its cap'])
+        self.assertEqual(type_fallback(cell('between-read does not complete before the x post')),['between-read does not complete before the x post'])
+        for invalid in ('missing actual save: after','missing or wrong actual pre-key selection/caret: beforePost',
+                        'before save differs from fixture paragraph text','setup cursor not bound to actual native discovery',
+                        'native rounds disagree on the Shift selection'):
+            with self.subTest(invalid=invalid),self.assertRaisesRegex(ValueError,'failed validity'):
+                type_fallback(cell('missing between-read',invalid))
+        with self.assertRaisesRegex(ValueError,'neither witnessed nor reasoned'):type_fallback(cell())
+    def test_witness_reason_list_matches_the_reader(self):
+        # Every listed reason is a string the type reader (or the shared cell validator) can emit.
+        from v23_feature_selection_cases import TYPE_WITNESS_REASONS
+        text=(PROJECT/'tools/read_v23_native_s5_type.py').read_text()+(PROJECT/'tools/read_v23_native_s5.py').read_text()
+        for reason in TYPE_WITNESS_REASONS:self.assertIn("'"+reason+"'",text,reason)
     def judged(self,case,mutate,prep='s5-prep-02',browser='chrome'):
         import gzip
         from judge_v23_feature_selection import inspect
@@ -726,6 +743,81 @@ class S5TypeOracleControls(PreservedPages,unittest.TestCase):
                     # An older config's shape: a type row with a save but no order witness.
                     value=self.judged(case,lambda row:row.update(nativeOrderWitness=None),'s5-prep-03',browser)
                     self.assertEqual((value['verdict'],value['reason']),('NOT_ESTABLISHED','native type reference without order witness'))
+
+
+class S5EmptyMarkControls(PreservedPages,unittest.TestCase):
+    """Fable ruling 4 red cases (a)-(f), on real records: counted-01's stop cell and the witness run."""
+    STOP='shift-End@cell-end/backspace'
+    def judged(self,prep,case,mutate,browser='chrome'):
+        import gzip
+        from judge_v23_feature_selection import inspect,digest,encoded
+        d=self.BASE/prep;plan=json.loads((d/'report.json').read_bytes())['config']
+        page=json.loads(gzip.decompress((d/(browser+'-'+case.replace('/','__')+'.json.gz')).read_bytes()))['page']
+        mutate(plan['s5'][case]);page['configSha256']=digest(encoded(plan));return inspect(page,plan,browser)
+    @staticmethod
+    def as_empty_mark(row):
+        row.update(native=None,emptyMark=True,settledReference=True,nativeOrderIndependent=True,
+                   emptyMarkWitness={'run':'empty-mark-witness-01','text':'','selectionType':0})
+    def test_a_stop_cell_routes_to_settled_and_withheld_witness_refuses(self):
+        value=self.judged('s5-counted-01',self.STOP,lambda row:None)
+        self.assertEqual((value['verdict'],value['reason']),('FAIL','sequence result differs from its reference'))
+        self.assertEqual((value['groups']['S5']['reference'],value['groups']['S5']['differingParagraph']['candidate'],
+                          value['groups']['S5']['differingParagraph']['reference']),('native','A1 cell tex','A1 cell text'))
+        value=self.judged('s5-counted-01',self.STOP,self.as_empty_mark)
+        self.assertEqual((value['verdict'],value['groups']['S5']['reference'],value['groups']['S5']['emptyMark']),('PASS','settled-wasm',True))
+        from v23_feature_selection_cases import empty_mark_route
+        with self.assertRaisesRegex(ValueError,'empty-mark witness missing'):empty_mark_route(self.STOP,None)
+    def test_b_live_plan_routes_by_witness_not_by_arm(self):
+        from v23_feature_selection_cases import s5
+        table=derive(read_rounds());plan=s5(table,cases(table))
+        self.assertIs(plan[self.STOP]['emptyMark'],True);self.assertIsNone(plan[self.STOP]['native']);self.assertTrue(plan[self.STOP]['settledReference'])
+        row=plan['shift-End@empty-para/delete-before-and-after']
+        self.assertIs(row['emptyMark'],False);self.assertIn('/s5-native/run-01/saves/',row['native']['after']['path'])
+        deletion=[r for r in plan.values() if r['family']!='type' and r['referencePolicy']!='settled-wasm']
+        self.assertEqual(len(deletion),336);self.assertTrue(all(isinstance(r['emptyMark'],bool) for r in deletion))
+        for r in plan.values():
+            if r['emptyMark']:self.assertEqual((r['native'],r['settledReference']),(None,True),r['id'])
+    def test_c_native_reference_refuses_an_empty_mark_row(self):
+        from judge_v23_feature_selection import native_reference
+        from judge_v23_feature_pre_red import NotEstablished
+        with self.assertRaisesRegex(NotEstablished,'empty-mark row has no native oracle'):native_reference({'emptyMark':True,'family':'backspace'},b'')
+    def test_d_deleted_or_malformed_witness_refuses(self):
+        from v23_feature_selection_cases import empty_mark_route
+        good={'id':self.STOP,'status':'WITNESSED','emptyMark':True,'orderIndependent':True,'witness':{'selectionType':0,'text':'','TEXT_SELECTION':''}}
+        self.assertEqual(empty_mark_route(self.STOP,good)[0],True)
+        for bad in (None,{**good,'status':'NOT_ESTABLISHED'},{**good,'witness':{'selectionType':0,'text':'t','TEXT_SELECTION':''}},
+                    {**good,'witness':{'selectionType':1,'text':'','TEXT_SELECTION':''}},{**good,'emptyMark':False},{**good,'orderIndependent':None}):
+            with self.subTest(bad=bad),self.assertRaises(ValueError):empty_mark_route(self.STOP,bad)
+    def test_e_witness_that_contradicts_the_arm_rounds_refuses(self):
+        from read_v23_native_s5_empty_mark import rounds_disagreements
+        setups={c['id']:c for c in derive(read_rounds())['cases']}
+        ok=[{'id':'shift-End@cell-end/backspace','status':'WITNESSED','family':'backspace','sourceArm':'shift-End@cell-end','emptyMark':True},
+            {'id':'shift-Left@caret-mid/delete','status':'WITNESSED','family':'delete','sourceArm':'shift-Left@caret-mid','emptyMark':False}]
+        self.assertEqual(rounds_disagreements(ok,setups),[])
+        bad=[{**ok[1],'emptyMark':True}]
+        self.assertEqual(rounds_disagreements(bad,setups),['shift-Left@caret-mid/delete: witness disagrees with the arm rounds'])
+        # Before-and-after families are not bound to the arm rounds (the prefix moves the caret).
+        self.assertEqual(rounds_disagreements([{**bad[0],'family':'delete-before-and-after'}],setups),[])
+    def test_f_empty_mark_cell_without_its_settled_arm_is_ne(self):
+        # A real page that ran without a settled arm (native policy, prep-04).
+        case='shift-Right@doc-end/backspace'
+        def no_arm(row):self.as_empty_mark(row);row['settledReference']=False
+        value=self.judged('s5-prep-04',case,no_arm)
+        self.assertEqual((value['verdict'],value['reason']),('NOT_ESTABLISHED','settled reference arm absent'))
+        # Never native, even with the native save still on the row.
+        def keep_save(row):row.update(emptyMark=True,nativeOrderIndependent=True)
+        value=self.judged('s5-prep-04',case,keep_save)
+        self.assertEqual((value['verdict'],value['reason']),('NOT_ESTABLISHED','settled reference arm absent'))
+    def test_aggregate_counts_the_routed_cells(self):
+        import gzip
+        from judge_v23_feature_selection import judge,digest,encoded
+        d=self.BASE/'s5-counted-01';plan=json.loads((d/'report.json').read_bytes())['config']
+        self.as_empty_mark(plan['s5'][self.STOP])
+        cell=json.loads(gzip.decompress((d/('chrome-'+self.STOP.replace('/','__')+'.json.gz')).read_bytes()))
+        cell['page']['configSha256']=digest(encoded(plan))
+        groups=judge([cell],plan,'s5')['groups']['S5']
+        self.assertEqual((groups['emptyMarkRoutedCells']['chrome'],groups['emptyMarkRoutedCells']['firefox']),(1,0))
+        self.assertEqual(groups['emptyMarkCells']['chrome'],1)
 
 
 class OpenBoundaryControls(unittest.TestCase):

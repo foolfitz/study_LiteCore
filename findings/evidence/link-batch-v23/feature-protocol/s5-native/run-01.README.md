@@ -9,3 +9,7 @@ What this does and does not supply, per the runbook: these saves are native Writ
 ## Appended 2026-10-27: type entries are not oracles
 
 The 56 type-family entries record "x then Shift" (the native harness processed the character before the earlier-posted Shift key in every cell), so they are not oracles for the declared "Shift then x" sequence (fable ruling 3, `../s5-type-oracle-ruling/RULING.md`). This applies to `reader-01.json`'s type entries as well; that file stays unchanged because the selection config binds its hash. The deletion entries keep `NATIVE_S5_SAVES_AVAILABLE`.
+
+## Appended 2026-10-27: empty-mark deletion entries are not oracles (fable ruling 4)
+
+Deletion entries whose cell is `emptyMark` (Writer's state right after the Shift member is an empty mark, decided per cell by `empty-mark-witness-01/`; 49 of the 66 cells in `diag-settled-01/`) record Writer's empty-mark behaviour: the first Backspace/Delete after a Shift that moves nothing deletes nothing. They are a true record of Writer and evidence for finding 167, not the S5 oracle; those cells compare with the settled-WASM arm. `reader-01.json` is unchanged (the selection config binds its hash). The other deletion entries keep `NATIVE_S5_SAVES_AVAILABLE` under ruling 2.

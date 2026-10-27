@@ -440,6 +440,8 @@ def s5_compare(family,candidate,reference,native):
 
 def native_reference(row,original):
     """The cell's native after-save, once its two guards hold (fable ruling 2)."""
+    # Fable ruling 4: an empty-mark row's native save records Writer's empty-mark deletion.
+    need(not row.get('emptyMark'),'empty-mark row has no native oracle')
     files={}
     for side in ('before','after'):
         raw=(ROOT/row['native'][side]['path']).read_bytes()
@@ -526,8 +528,17 @@ def s5_arm(e,name,row,source):
     result.update(final=recorded(v['finalSave']),original=recorded(v['originalSave']),close=close)
     return result
 
+def paragraph_difference(candidate,reference):
+    """The first differing paragraph pair, recorded on a FAIL (ruling 4 condition 2)."""
+    try:
+        from odt_paragraphs import paragraph_texts_from_xml
+        a,b=paragraph_texts_from_xml(odt_content(candidate)),paragraph_texts_from_xml(odt_content(reference))
+    except NotEstablished as error:return {'unreadable':str(error)}
+    i=next((k for k in range(max(len(a),len(b))) if k>=len(a) or k>=len(b) or a[k]!=b[k]),None)
+    return {'index':i,'candidate':a[i] if i is not None and i<len(a) else None,'reference':b[i] if i is not None and i<len(b) else None}
+
 def inspect_s5(page,plan,browser):
-    groups={'S5':{'verdict':'NOT_ESTABLISHED'}}
+    groups={'S5':{'verdict':'NOT_ESTABLISHED'}};context={}
     try:
         e=Evidence(page,plan,browser);row=plan['s5'][page['caseId']];source=plan['cases'][row['sourceArm']]
         g=readiness(e);cand=s5_arm(e,'s5cand',row,source)
@@ -540,21 +551,26 @@ def inspect_s5(page,plan,browser):
         contradict(not any(x['message'].get('event') in ('recoverable-error','worker-restart') for x in page['events']),'recovery occurred')
         single=single_line(e,'s5cand')
         # A type cell without run-03's order witness carries no native save (fable ruling 3, fallback A).
-        need(row['native'] is not None or row['referencePolicy']=='settled-wasm' or (row['family']=='type' and row.get('nativeFallback')),'native reference absent')
-        native=row['native'] is not None and (row['referencePolicy']=='native' or (row['referencePolicy'].startswith('native-if-single-line') and single))
+        need(row['native'] is not None or row['referencePolicy']=='settled-wasm' or (row['family']=='type' and row.get('nativeFallback'))
+             or (row['family']!='type' and row.get('emptyMark') is True),'native reference absent')
+        native=row['native'] is not None and not row.get('emptyMark') and (row['referencePolicy']=='native' or (row['referencePolicy'].startswith('native-if-single-line') and single))
+        need(not native or row['family']=='type' or row.get('nativeOrderIndependent') is not False,'native save not order-independent')
         # Older configs bound run-01's x-then-Shift type saves; only a witnessed save is a type oracle.
         need(not native or row['family']!='type' or row.get('nativeOrderWitness') in ('selection-before-x','settle-only'),'native type reference without order witness')
         if native:reference=native_reference(row,cand['original'])
         else:
             need(ref is not None,'settled reference arm absent');reference=ref['final']
+        context={'reference':'native' if native else 'settled-wasm','singleLineWitness':single,'emptyMark':row.get('emptyMark'),
+                 'differingParagraph':paragraph_difference(cand['final'],reference)}
         contradict(s5_compare(row['family'],cand['final'],reference,native),'sequence result differs from its reference')
         overlapping=any(o['pendingMoveOrExtendKeys'] for o in cand['overlap'])
         groups['S5']={'verdict':'PASS','reference':'native' if native else 'settled-wasm','singleLineWitness':single,
                       'nativeOrderWitness':row.get('nativeOrderWitness') if native else None,
-                      'nativeFallback':row.get('nativeFallback'),'overlap':cand['overlap'],'overlapping':overlapping}
+                      'nativeFallback':row.get('nativeFallback'),'emptyMark':row.get('emptyMark'),
+                      'emptyMarkWitness':row.get('emptyMarkWitness'),'overlap':cand['overlap'],'overlapping':overlapping}
         return {'verdict':'PASS','groups':groups}
     except ProductFailure as error:
-        groups['S5']={'verdict':'FAIL','reason':str(error)}
+        groups['S5']={'verdict':'FAIL','reason':str(error),**context}
         return {'verdict':'FAIL','reason':str(error),'groups':groups}
     except (NotEstablished,KeyError,ValueError,TypeError,IndexError) as error:
         return {'verdict':'NOT_ESTABLISHED','reason':str(error),'groups':groups}
@@ -901,6 +917,14 @@ def judge(cells,plan,kind='selection'):
         groups['S5']['nativeReferenceCells']={label:sum(g.get('reference')=='native' and g.get('nativeOrderWitness')==w for g in s5)
             for label,w in (('selection-before-x','selection-before-x'),('settle-only','settle-only'),('deletion-family',None))}
         groups['S5']['nativeFallbackCells']=sum(bool(g.get('nativeFallback')) for g in s5)
+        # Fable ruling 4: per browser, the empty-mark cells and those routed to settled-WASM; a
+        # counted population that never exercised the route proves nothing about it (§6).
+        groups['S5']['emptyMarkCells']={b:sum(population[c].get('emptyMark') is True for bb,c in wanted if bb==b) for b in BROWSERS}
+        groups['S5']['emptyMarkRoutedCells']={b:sum(1 for r in rows if r['cell'][0]==b and r.get('groups',{}).get('S5',{}).get('verdict')=='PASS'
+            and r['groups']['S5'].get('emptyMark') is True and r['groups']['S5'].get('reference')=='settled-wasm') for b in BROWSERS}
+        groups['S5']['namedLimitation']='S5 does not guard the delete unit after a no-op extension (fable ruling 4)'
+        if groups['S5']['verdict']=='PASS' and not all(groups['S5']['emptyMarkRoutedCells'].values()):
+            groups['S5'].update(verdict='NOT_ESTABLISHED',reason='empty-mark route not exercised in every browser')
         if groups['S5']['verdict']=='PASS' and not overlapping:groups['S5'].update(verdict='FAIL',reason='empty overlap set')
         verdict=groups['S5']['verdict']
     elif kind=='r1':

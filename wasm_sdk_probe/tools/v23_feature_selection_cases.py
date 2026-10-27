@@ -110,9 +110,37 @@ def interactions(table,rounds,texts):
 NATIVE_S5=ROOT/'findings/evidence/link-batch-v23/feature-protocol/s5-native'
 NATIVE_S5_READER_SHA256='014c1e0d51f6a522101c2acc6395797a8f974822cf085c8ea7f8f978b64ec538'
 NATIVE_S5_TYPE_READER_SHA256='305306785509764f1130709650ca44c8a6c0cc320b0d79bb632bbe0817870706'
+NATIVE_S5_EMPTY_MARK_READER_SHA256='PENDING-EMPTY-MARK-WITNESS-01'
 S5_KEYS={'Shift+Left':('ArrowLeft',('shift',)),'Shift+Right':('ArrowRight',('shift',)),'Shift+Up':('ArrowUp',('shift',)),
          'Shift+Down':('ArrowDown',('shift',)),'Shift+Home':('Home',('shift',)),'Shift+End':('End',('shift',)),
          'Backspace':('Backspace',()),'Delete':('Delete',()),'text:x':('x',())}
+
+# Fable ruling 3 Addendum 1 item 2: fallback A only for the ruling's named witness reasons,
+# (i) post order, (ii) the between-read, (iii) cap or missing read.  Any other reader reason
+# is an instrument failure; the plan then refuses, so S5 cannot count until it is resolved.
+TYPE_WITNESS_REASONS=frozenset({'actual FIFO key posts differ','invalid actual post ordering',
+    'missing Shift settle','Shift settle reached its cap','missing between-read','Shift/x posts not uniquely recorded',
+    'between-read does not follow the Shift posts','between-read does not complete before the x post',
+    'between-read selection differs from the three native rounds','silent member not collapsed at the between-read',
+    'native round caret not comparable with this run','silent member caret not at the moving point'})
+
+def type_fallback(cell):
+    reasons=cell.get('reasons')
+    if cell.get('status')!='NOT_ESTABLISHED' or not reasons:raise ValueError('native S5 type cell neither witnessed nor reasoned: '+cell['id'])
+    invalid=[r for r in reasons if r not in TYPE_WITNESS_REASONS]
+    if invalid:raise ValueError('native S5 type cell failed validity, not its witness: '+cell['id']+': '+'; '.join(invalid))
+    return reasons
+
+def empty_mark_route(row_id,cell):
+    """Fable ruling 4: (emptyMark, witness record, orderIndependent) from the bound witness reader."""
+    if cell is None:raise ValueError('empty-mark witness missing: '+row_id)
+    record=cell.get('witness')
+    if cell.get('status')!='WITNESSED' or not isinstance(cell.get('emptyMark'),bool) or not isinstance(record,dict) \
+       or cell.get('orderIndependent') not in (True,False):raise ValueError('empty-mark witness malformed: '+row_id)
+    empty=record.get('selectionType')==0 and record.get('text')=='' and record.get('TEXT_SELECTION')==''
+    nonempty=record.get('selectionType')!=0 and (record.get('text')!='' or record.get('TEXT_SELECTION')!='')
+    if cell['emptyMark']!=empty or not (empty or nonempty):raise ValueError('empty-mark witness malformed: '+row_id)
+    return cell['emptyMark'],{'run':'empty-mark-witness-01','text':record['text'],'selectionType':record['selectionType']},cell['orderIndependent']
 
 def native_saves(run,cell):
     saves={}
@@ -127,7 +155,8 @@ def s5(table,cases_by_id):
     run-01 for the deletion families, run-03 for type (fable ruling 3; run-02 printed timestamps
     too coarse to witness order).  run-01's type saves measured x-then-Shift and are never an
     oracle; a type cell without run-03's order witness takes the fresh settled-WASM
-    reference (fallback A), its reasons recorded."""
+    reference (fallback A), its reasons recorded.  A deletion cell whose bound native witness
+    shows an empty mark after its Shift (fable ruling 4) takes the settled-WASM arm too."""
     raw=(NATIVE_S5/'reader-01.json').read_bytes()
     if digest(raw)!=NATIVE_S5_READER_SHA256:raise ValueError('native S5 reader output differs')
     native=json.loads(raw)
@@ -138,6 +167,11 @@ def s5(table,cases_by_id):
     typed=json.loads(raw)
     if typed.get('verdict')!='NATIVE_S5_TYPE_SAVES_READ' or typed.get('problems')!=[]:raise ValueError('native S5 type references unavailable')
     typed={c['id']:c for c in typed['cells']}
+    raw=(NATIVE_S5/'empty-mark-reader-01.json').read_bytes()
+    if digest(raw)!=NATIVE_S5_EMPTY_MARK_READER_SHA256:raise ValueError('native S5 empty-mark reader output differs')
+    marks=json.loads(raw)
+    if marks.get('verdict')!='NATIVE_S5_EMPTY_MARK_WITNESS_READ' or marks.get('problems')!=[]:raise ValueError('native S5 empty-mark witness unavailable')
+    marks={c['id']:c for c in marks['cells']}
     result={}
     for row in table['S5']:
         source=cases_by_id.get(row['sourceArm'])
@@ -145,7 +179,7 @@ def s5(table,cases_by_id):
         keys=[S5_KEYS[k] for k in row['sequence']]
         shift=[i for i,k in enumerate(row['sequence']) if k.startswith('Shift+')]
         if len(shift)!=1 or row['sequence'][shift[0]]!='Shift+'+source['key']:raise ValueError('S5 sequence differs from its source arm')
-        reference=witness=fallback=None
+        reference=witness=fallback=empty=mark=independent=None
         if row['referencePolicy']!='settled-wasm' and row['family']=='type':
             cell=typed.get(row['id'])
             if cell is None:raise ValueError('native S5 type cell missing: '+row['id'])
@@ -155,15 +189,18 @@ def s5(table,cases_by_id):
                 # is witnessed (review item D; 0 of run-03's 47 strong cells are affected).
                 if witness=='selection-before-x' and cell['between']['getTextSelection']==source['setup']['expectedSelection']:
                     raise ValueError('strong order witness without a Shift-changed selection: '+row['id'])
-            elif cell.get('status')=='NOT_ESTABLISHED' and cell.get('reasons'):fallback=cell['reasons']
-            else:raise ValueError('native S5 type cell neither witnessed nor reasoned: '+row['id'])
+            else:fallback=type_fallback(cell)
         elif row['referencePolicy']!='settled-wasm':
             cell=native.get(row['id'])
             if cell is None or cell.get('status')!='NATIVE_SAVE_AVAILABLE':raise ValueError('native S5 save missing: '+row['id'])
-            reference=native_saves('run-01',cell)
+            # Fable ruling 4: an empty-mark cell's run-01 save records Writer's empty-mark deletion,
+            # not the target; it compares with its settled-WASM arm and carries no native save.
+            empty,mark,independent=empty_mark_route(row['id'],marks.get(row['id']))
+            if not empty:reference=native_saves('run-01',cell)
         result[row['id']]={'id':row['id'],'sourceArm':row['sourceArm'],'family':row['family'],'sequence':row['sequence'],
             'keys':[{'key':k,'mods':list(m)} for k,m in keys],'shiftIndex':shift[0],'comparison':row['comparison'],
             'referencePolicy':row['referencePolicy'],'native':reference,'nativeOrderWitness':witness,'nativeFallback':fallback,
+            'emptyMark':empty,'emptyMarkWitness':mark,'nativeOrderIndependent':independent,
             'memberships':['S5'],'settledReference':row['referencePolicy']!='native' or reference is None,
             'default':'NOT_ESTABLISHED_UNPERFORMED'}
     if len(result)!=588:raise ValueError('S5 population differs')

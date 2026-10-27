@@ -86,6 +86,16 @@ def check_cell(row,item,setup,saves,artifacts,fixture):
     if 'before' in out and paragraph_texts_from_xml(content(out['before']))!=fixture:issues.append('before save differs from fixture')
     return issues,out
 
+def rounds_disagreements(results,setups):
+    """Ruling 4 condition 1: for single and twice families the Shift is the first member, so the
+    witness must agree with the arm's three archived rounds (empty in all three = empty mark)."""
+    out=[]
+    for r in results:
+        if r['status']=='WITNESSED' and r['family'] in SINGLE:
+            rounds=setups[r['sourceArm']]['nativeAfterSelectionText']
+            if r['emptyMark']!=(len(rounds)==3 and all(x=='' for x in rounds)):out.append(r['id']+': witness disagrees with the arm rounds')
+    return out
+
 def read(directory):
     table,cells=population();setups={c['id']:c for c in table['cases']};problems=[]
     receipt=json.loads((directory/'build/build-receipt.json').read_text())
@@ -126,12 +136,7 @@ def read(directory):
             'emptyMark':None if issues else empty,'witness':None if issues else record,
             'orderIndependent':independent,'family':item['family'],'sourceArm':item['sourceArm']})
     problems+=[r['id']+': '+x for r in results for x in r['reasons']]
-    # Consistency with the archived rounds (ruling 4 condition 1): for single and twice families
-    # the Shift is the first member, so the arm's three-round snapshot must agree.
-    for r in results:
-        if r['status']=='WITNESSED' and r['family'] in SINGLE:
-            rounds=setups[r['sourceArm']]['nativeAfterSelectionText']
-            if r['emptyMark']!=(len(rounds)==3 and all(x=='' for x in rounds)):problems.append(r['id']+': witness disagrees with the arm rounds')
+    problems+=rounds_disagreements(results,setups)
     diag=NATIVE/'diag-settled-01'
     if diag.is_dir():
         prior={x['id']:x for x in (json.loads(l) for l in (diag/'native.jsonl').read_text().splitlines() if l.strip()) if 'id' in x}
