@@ -58,8 +58,10 @@ class NativeSettledReader(unittest.TestCase):
             (lambda r:r['sequence'].reverse(),'native sequence differs'),
             (lambda r:r['interMemberSettle'].update(after='Shift only'),'inter-member policy differs'),
             (lambda r:r['steps'].pop(),'member operations/count differ'),
+            (lambda r:r['steps'].__setitem__(0,'malformed'),'member operations/count differ'),
             (lambda r:r['steps'][0].update(operation='Backspace'),'member operations/count differ'),
             (lambda r:r['posts'].pop(),'key posts/count differ'),
+            (lambda r:r['posts'].__setitem__(0,'malformed'),'key posts/count differ'),
             (lambda r:r['posts'][0].update(key=1283),'key posts/count differ'),
             (lambda r:r['posts'][0].update(type=False),'key posts/count differ')):
             with self.subTest(reason=reason):self.bad_order(edit,reason)
@@ -156,6 +158,18 @@ class NativeSettledReader(unittest.TestCase):
         collapsed=edit(before,lambda x:x.replace(b'</text:p>',b'<text:soft-page-break/></text:p>',1))
         self.assertNotEqual(odt_content(collapsed),odt_content(before))
         with self.assertRaisesRegex(ValueError,'reduction collapses settled native edit'):validate_settled_pair(before,collapsed,before)
+
+    def test_native_font_declaration_guards_remain_exact(self):
+        import re
+        from v23_s5_comparison import strip_ffd,odt_content
+        ref=next(c['reference'] for c in self.report['cells'] if c['reference'])
+        content=odt_content((cases.ROOT/ref['saves']['before']['path']).read_bytes())
+        strip_ffd(content)
+        for raw,reason in (
+            (re.sub(rb'<office:font-face-decls>.*?</office:font-face-decls>',b'',content,flags=re.S),'not uniquely present'),
+            (re.sub(rb'(<office:font-face-decls>).*?(</office:font-face-decls>)',rb'\1\2',content,flags=re.S),'font-face-decls empty'),
+            (content.replace(b'<office:body>',b'<office:other>'),'office:body absent')):
+            with self.subTest(reason=reason),self.assertRaisesRegex(ValueError,reason):strip_ffd(raw)
 
     @contextlib.contextmanager
     def certificate(self):

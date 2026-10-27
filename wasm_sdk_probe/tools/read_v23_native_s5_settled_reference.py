@@ -25,8 +25,8 @@ SCHEDULE={'after':'every member','quietMs':800,'capMs':8000}
 VERDICT='NATIVE_S5_EVERY_MEMBER_SETTLED_REFERENCES_READ'
 
 
-def require(ok,message):
-    if not ok:raise ValueError(message)
+def require(ok,message,observed=None):
+    if not ok:raise ValueError(message+(' | '+json.dumps(observed,ensure_ascii=False) if observed is not None else ''))
 
 
 def sha(path):return hashlib.sha256(Path(path).read_bytes()).hexdigest()
@@ -45,29 +45,29 @@ def index_records(rows,wanted,label):
 
 
 def validate_order(row,expected):
-    require(row.get('sequence')==expected['sequence'],'native sequence differs: '+expected['id'])
-    require(row.get('interMemberSettle')==SCHEDULE,'native inter-member policy differs: '+expected['id'])
+    require(row.get('sequence')==expected['sequence'],'native sequence differs: '+expected['id'],{'actual':row.get('sequence'),'expected':expected['sequence']})
+    require(row.get('interMemberSettle')==SCHEDULE,'native inter-member policy differs: '+expected['id'],row.get('interMemberSettle'))
     steps=row.get('steps');posts=row.get('posts')
-    require(isinstance(steps,list) and [s.get('operation') for s in steps]==expected['sequence'],
-            'native member operations/count differ: '+expected['id'])
-    require(isinstance(posts,list) and all(type(p.get(k)) is int for p in posts for k in ('type','character','key'))
+    require(isinstance(steps,list) and all(isinstance(s,dict) for s in steps) and [s.get('operation') for s in steps]==expected['sequence'],
+            'native member operations/count differ: '+expected['id'],steps)
+    require(isinstance(posts,list) and all(isinstance(p,dict) for p in posts) and all(type(p.get(k)) is int for p in posts for k in ('type','character','key'))
             and [{k:p[k] for k in ('type','character','key')} for p in posts]==queued.expected_posts(expected),
-            'native key posts/count differ: '+expected['id'])
+            'native key posts/count differ: '+expected['id'],posts)
     for field in ('openedSettleMs','setupSettleMs'):
-        require(finite(row.get(field)) and row[field]>=0,'native settle missing/capped: '+field)
+        require(finite(row.get(field)) and row[field]>=0,'native settle missing/capped: '+field,{'actual':row.get(field)})
     last=-1
     for p in posts:
         require(finite(p.get('atMs')) and finite(p.get('returnMs')) and last<=p['atMs']<=p['returnMs'],
-                'invalid native post time: '+expected['id'])
+                'invalid native post time: '+expected['id'],{'post':p,'previousReturnMs':last})
         last=p['returnMs']
     result=[]
     for i,step in enumerate(steps):
         require(all(finite(step.get(k)) for k in ('settleMs','readStartMs','readEndMs')) and step['settleMs']>=0,
-                'native member settle/read missing/capped: '+expected['id'])
+                'native member settle/read missing/capped: '+expected['id'],step)
         following=posts[2*i+2]['atMs'] if i+1<len(steps) else None
         require(posts[2*i+1]['returnMs']<=step['readStartMs']<=step['readEndMs']
                 and (following is None or step['readEndMs']<following),
-                'native member read not ordered between posts: '+expected['id'])
+                'native member read not ordered between posts: '+expected['id'],{'step':step,'keyUp':posts[2*i+1],'nextKeyDownMs':following})
         result.append({'operation':step['operation'],'keyUpReturnMs':posts[2*i+1]['returnMs'],
             'readStartMs':step['readStartMs'],'readEndMs':step['readEndMs'],'nextKeyDownMs':following})
     return result
@@ -164,7 +164,7 @@ def read(directory):
         if member:validate_settled_pair(before_raw,after_raw,queued_before)
         reference={'kind':'native-every-member-settled','id':cid,'family':spec['family'],'sequence':spec['sequence'],
             'referencePolicy':spec['referencePolicy'],
-            'schedule':SCHEDULE,'saves':{'before':before,'after':after},
+            'schedule':dict(SCHEDULE),'saves':{'before':before,'after':after},
             'witness':{'run':directory.name,'raw':{'path':name(directory/'native.jsonl'),'sha256':sha(directory/'native.jsonl')},
                        'id':cid,'memberReads':timing,'setupSaveLifecycle':'source-bound; not independently timestamped'}} if member else None
         result.append({'id':cid,'emptyMark':empty[cid]['emptyMark'],'orderIndependent':independent,'reference':reference})
