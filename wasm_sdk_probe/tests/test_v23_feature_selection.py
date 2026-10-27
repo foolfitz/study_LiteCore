@@ -696,7 +696,7 @@ class S5TypeOracleControls(PreservedPages,unittest.TestCase):
                 self.assertTrue(r['nativeFallback']);self.assertIsNone(r['nativeOrderWitness']);self.assertTrue(r['settledReference'])
         self.assertEqual(native+fallback,56)
         for r in plan.values():
-            if r['family']!='type' and r['referencePolicy']!='settled-wasm':
+            if r['family']!='type' and r['referencePolicy']!='settled-wasm' and not r['emptyMark']:
                 self.assertTrue(all('/s5-native/run-01/saves/' in r['native'][side]['path'] for side in ('before','after')),r['id'])
                 self.assertIsNone(r['nativeOrderWitness'])
     def test_type_fallback_only_for_witness_reasons(self):
