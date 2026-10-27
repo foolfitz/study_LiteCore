@@ -747,7 +747,8 @@ class R1SourcePaths(unittest.TestCase):
 
 class PreservedPreparationRereads(unittest.TestCase):
     """Selection and S5 unchanged: every preserved page of selection-prep-07 and s5-prep-03, read by
-    the current reader with its own stored config, gives the stored inspection exactly."""
+    the current reader with its own stored config, gives the stored inspection plus the new
+    record-only defaults. Non-default values and every other field still have to match."""
     BASE=PROJECT.parent/'findings/evidence/link-batch-v23/feature-protocol'
     def test_every_preserved_page_keeps_its_verdict(self):
         from judge_v23_feature_selection import inspect
@@ -758,8 +759,30 @@ class PreservedPreparationRereads(unittest.TestCase):
             for path in sorted((self.BASE/prep).glob('*.json.gz')):
                 cell=json.loads(gzip.decompress(path.read_bytes()))
                 with self.subTest(path=path.name):
-                    self.assertEqual(json.loads(json.dumps(inspect(cell['page'],plan,cell['browser']))),cell['inspection'])
+                    expected=copy.deepcopy(cell['inspection'])
+                    if 'S5' in expected.get('groups',{}):
+                        expected['groups']['S5'].setdefault('emptyMark',None)
+                        expected['groups']['S5'].setdefault('emptyMarkWitness',None)
+                    self.assertEqual(json.loads(json.dumps(inspect(cell['page'],plan,cell['browser']))),expected)
                 count+=1
         self.assertEqual(count,13+22)
+
+    def test_r1_prep_01_only_adds_empty_stale_fields(self):
+        """R1 ruling 1 C3: all 24 bound pages keep their complete recorded inspection."""
+        from judge_v23_feature_selection import inspect
+        directory=self.BASE/'r1-prep-01';report=json.loads((directory/'report.json').read_bytes())
+        counts={'chrome':0,'firefox':0}
+        for run in report['runs']:
+            raw=gzip.decompress((directory/(run['path']+'.gz')).read_bytes())
+            self.assertEqual(digest(raw),run['sha256'])
+            cell=json.loads(raw)
+            with self.subTest(path=run['path']):
+                expected=copy.deepcopy(cell['inspection'])
+                self.assertEqual(expected['verdict'],'PASS')
+                expected['groups']['R1'].setdefault('staleFields',[])
+                actual=json.loads(json.dumps(inspect(cell['page'],report['config'],cell['browser'])))
+                self.assertEqual(actual,expected)
+            counts[cell['browser']]+=1
+        self.assertEqual(counts,{'chrome':12,'firefox':12})
 
 if __name__=='__main__':unittest.main()
