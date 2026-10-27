@@ -112,8 +112,8 @@ NATIVE_S5=ROOT/'findings/evidence/link-batch-v23/feature-protocol/s5-native'
 NATIVE_S5_READER_SHA256='014c1e0d51f6a522101c2acc6395797a8f974822cf085c8ea7f8f978b64ec538'
 NATIVE_S5_TYPE_READER_SHA256='305306785509764f1130709650ca44c8a6c0cc320b0d79bb632bbe0817870706'
 NATIVE_S5_EMPTY_MARK_READER_SHA256='fc62e6adb4aaba82a75c868337b3988efa2c30ddb3ad66b613776445a9767974'
-NATIVE_S5_SETTLED_READER_FILE='settled-reference-reader-04.json'
-NATIVE_S5_SETTLED_READER_SHA256='bb0617c505bc136776359ca953f725351615fbcf6ecef73f6a05a592d95ee1a5'
+NATIVE_S5_SETTLED_READER_FILE='settled-reference-reader-05.json'
+NATIVE_S5_SETTLED_READER_SHA256='ad4febf67df932a8eaa3770b43feebbb4c6e8673e1ed54db3498abcbd5257e43'
 S5_KEYS={'Shift+Left':('ArrowLeft',('shift',)),'Shift+Right':('ArrowRight',('shift',)),'Shift+Up':('ArrowUp',('shift',)),
          'Shift+Down':('ArrowDown',('shift',)),'Shift+Home':('Home',('shift',)),'Shift+End':('End',('shift',)),
          'Backspace':('Backspace',()),'Delete':('Delete',()),'text:x':('x',())}

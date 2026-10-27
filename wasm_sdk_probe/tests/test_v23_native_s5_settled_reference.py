@@ -82,6 +82,12 @@ class NativeSettledReader(unittest.TestCase):
         self.bad_order(lambda r:r['steps'][0].update(readEndMs=r['posts'][2]['atMs']),'read not ordered between posts')
         self.bad_order(lambda r:r['steps'][0].update(readEndMs=r['steps'][0]['readStartMs']-1),'read not ordered between posts')
 
+    def test_every_member_has_the_actual_state_read_payload(self):
+        for edit in (lambda r:r['steps'][-1].pop('state'),
+                     lambda r:r['steps'][-1]['state'].pop('getTextSelection'),
+                     lambda r:r['steps'][-1].update(selectionType=False)):
+            with self.subTest(edit=edit):self.bad_order(edit,'state payload missing/malformed')
+
     def test_population_is_complete_unique_and_not_empty(self):
         records=[self.native[cid] for cid in self.expected]
         for rows,wanted in ((records[:-1],self.expected),(records+[records[0]],self.expected),([],self.expected),

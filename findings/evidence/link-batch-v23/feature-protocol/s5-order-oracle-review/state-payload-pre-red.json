@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "scope": "Fault injection on a copied record; no native execution or preserved-input modification",
+  "readerSha256": "4d11c95b9479ae7f01ab3229bff50f8a8447a39023711c820e7ca066b8b7589d",
+  "caseId": "shift-Home@heading-mid/backspace-twice",
+  "removed": "last member state payload",
+  "accepted": true,
+  "memberReads": [
+    {
+      "operation": "Shift+Home",
+      "keyUpReturnMs": 0.0106599999126047,
+      "readStartMs": 1142.32453499991,
+      "readEndMs": 1145.75580799999,
+      "nextKeyDownMs": 1145.75733099994
+    },
+    {
+      "operation": "Backspace",
+      "keyUpReturnMs": 1145.77138699987,
+      "readStartMs": 2287.27235899982,
+      "readEndMs": 2287.64575299993,
+      "nextKeyDownMs": 2287.64682499995
+    },
+    {
+      "operation": "Backspace",
+      "keyUpReturnMs": 2287.66449799994,
+      "readStartMs": 3403.17748299986,
+      "readEndMs": 3403.56574500003,
+      "nextKeyDownMs": null
+    }
+  ],
+  "requiredOutcome": "refuse missing state payload under the every-member state-read claim"
+}

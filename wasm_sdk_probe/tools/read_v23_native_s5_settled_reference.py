@@ -62,6 +62,10 @@ def validate_order(row,expected):
         last=p['returnMs']
     result=[]
     for i,step in enumerate(steps):
+        state=step.get('state')
+        require(type(step.get('selectionType')) is int and isinstance(state,dict)
+                and all(isinstance(state.get(k),str) for k in ('getTextSelection','TEXT_SELECTION','INVALIDATE_VISIBLE_CURSOR')),
+                'native member state payload missing/malformed: '+expected['id'],step)
         require(all(finite(step.get(k)) for k in ('settleMs','readStartMs','readEndMs')) and step['settleMs']>=0,
                 'native member settle/read missing/capped: '+expected['id'],step)
         following=posts[2*i+2]['atMs'] if i+1<len(steps) else None
