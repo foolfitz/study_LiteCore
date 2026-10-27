@@ -1,0 +1,84 @@
+{
+  "scope": "Mocked launcher control only; no browser/native execution",
+  "rows": [
+    {
+      "injection": "none",
+      "state": "BOTH_COHORTS_PASS",
+      "calls": [
+        [
+          "runner",
+          "r1"
+        ],
+        [
+          "judge",
+          "r1"
+        ],
+        [
+          "runner",
+          "s5"
+        ],
+        [
+          "judge",
+          "s5"
+        ]
+      ],
+      "exitCode": 0,
+      "expected": true
+    },
+    {
+      "injection": "runner",
+      "state": "STOPPED_FIRST_NONPASS",
+      "calls": [
+        [
+          "runner",
+          "r1"
+        ],
+        [
+          "judge",
+          "r1"
+        ]
+      ],
+      "exitCode": 1,
+      "expected": true
+    },
+    {
+      "injection": "judge",
+      "state": "STOPPED_FIRST_NONPASS",
+      "calls": [
+        [
+          "runner",
+          "r1"
+        ],
+        [
+          "judge",
+          "r1"
+        ]
+      ],
+      "exitCode": 1,
+      "expected": true
+    },
+    {
+      "injection": "drift",
+      "state": "STOPPED_EXCEPTION",
+      "calls": [
+        [
+          "runner",
+          "r1"
+        ],
+        [
+          "judge",
+          "r1"
+        ]
+      ],
+      "exitCode": 1,
+      "expected": true
+    },
+    {
+      "injection": "existing-output",
+      "state": "STOPPED_EXCEPTION",
+      "calls": [],
+      "exitCode": 1,
+      "expected": true
+    }
+  ]
+}
