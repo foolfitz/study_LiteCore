@@ -11,6 +11,8 @@ from v23_feature_selection_cases import (config,encoded,digest,verify_mirror,BRO
                                         r1_point_plan,r1_logical,r1_saved_marker)
 from judge_v23_feature_pre_red import (NotEstablished,need,stream,call_binding,bound_state,bound_save,
                                      binary,s2_compare,wrap_first_rectangle,paragraphs as saved_paragraphs)
+from v23_s5_comparison import (odt_content,strip_ffd,s5_reduced,s5_compare,
+                               validate_settled_pair,reduced_difference)
 
 
 class ProductFailure(ValueError):pass
@@ -409,34 +411,6 @@ def inspect_interaction(page,plan,browser):
         return {'verdict':'NOT_ESTABLISHED','reason':str(error),'groups':groups}
 
 S5_DELETES={'Backspace':('delete-backward','delete-selection'),'Delete':('delete-forward','delete-selection')}
-
-def odt_content(raw):
-    import io,zipfile
-    try:return zipfile.ZipFile(io.BytesIO(raw)).read('content.xml')
-    except (zipfile.BadZipFile,KeyError) as error:raise NotEstablished('saved ODT unreadable: '+str(error))
-
-def strip_ffd(content):
-    """Fable ruling 2 (2026-10-27): against a native save only, remove the single
-    office:font-face-decls element, which lists each environment's installed CJK fonts."""
-    pattern=rb'<office:font-face-decls>(.*?)</office:font-face-decls>'
-    found=re.findall(pattern,content,re.S)
-    need(len(found)==1,'font-face-decls not uniquely present')
-    need(found[0].strip()!=b'','font-face-decls empty')
-    rest=re.sub(pattern,b'',content,count=1,flags=re.S)
-    need(b'<office:body>' in rest,'office:body absent after removing font-face-decls')
-    return rest
-
-def s5_reduced(raw,native):
-    from run_merge_wasm_shakedown import reduce_content
-    content=reduce_content(odt_content(raw))
-    return strip_ffd(content) if native else content
-
-def s5_compare(family,candidate,reference,native):
-    """Deletion: reduce_content byte equality (minus font-face-decls against native); type: paragraph text."""
-    if family=='type':
-        from odt_paragraphs import paragraph_texts_from_xml
-        return paragraph_texts_from_xml(odt_content(candidate))==paragraph_texts_from_xml(odt_content(reference))
-    return s5_reduced(candidate,native)==s5_reduced(reference,native)
 
 def native_reference(row,original):
     """The cell's native after-save, once its two guards hold (fable ruling 2)."""
