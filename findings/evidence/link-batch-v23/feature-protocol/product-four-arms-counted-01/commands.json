@@ -1,0 +1,61 @@
+{
+  "schema": 1,
+  "cohortSha256": "08e042dd9affc20a1402b4b6c381294d17aecd5285c316f7045d3b032ad94e40",
+  "runs": [
+    {
+      "browser": "chrome",
+      "argv": [
+        "python3",
+        "-I",
+        "tools/run_e2_c_product_path.py",
+        "--browser",
+        "chrome",
+        "--out",
+        "../findings/evidence/link-batch-v23/feature-protocol/product-four-arms-counted-01/chrome.json"
+      ],
+      "cwd": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe",
+      "startedAt": "2026-10-27T11:40:39+08:00",
+      "completedAt": "2026-10-27T11:49:14+08:00",
+      "exitCode": 1,
+      "report": "chrome.json",
+      "reportSha256": "2c28188ffaba268e0a13c07eb0324198298e47f66c4eb16aff5cbc02d6efcf1b",
+      "recordedChecks": 46
+    },
+    {
+      "browser": "firefox",
+      "argv": [
+        "python3",
+        "-I",
+        "tools/run_e2_c_product_path.py",
+        "--browser",
+        "firefox",
+        "--out",
+        "../findings/evidence/link-batch-v23/feature-protocol/product-four-arms-counted-01/firefox.json"
+      ],
+      "cwd": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe",
+      "startedAt": "2026-10-27T11:50:06+08:00",
+      "completedAt": "2026-10-27T11:58:49+08:00",
+      "exitCode": 1,
+      "report": "firefox.json",
+      "reportSha256": "50429b534acc046733d2a86eccb0edc977815c54ec8bd433c870dfe0c04c47fb",
+      "recordedChecks": 46
+    }
+  ],
+  "aggregateJudge": {
+    "argv": [
+      "python3",
+      "-I",
+      "tools/judge_v23_product_four_arms.py",
+      "../findings/evidence/link-batch-v23/feature-protocol/product-four-arms-counted-01/chrome.v23-four-arms",
+      "../findings/evidence/link-batch-v23/feature-protocol/product-four-arms-counted-01/firefox.v23-four-arms",
+      "--out",
+      "../findings/evidence/link-batch-v23/feature-protocol/product-four-arms-counted-01/aggregate-judge.json"
+    ],
+    "cwd": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe",
+    "exitCode": 0,
+    "reportSha256": "3b9f09d66971c2d64f0e928bbafe2373f9353003eec1d95c86a191e7c4dca11c",
+    "rows": 24,
+    "declaredPopulationMatches": true
+  },
+  "prerequisiteReportsUnchanged": true
+}

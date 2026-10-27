@@ -97,3 +97,13 @@ Next, after applying it:
 
 1. Run the unpatched and the patched product runner once each per browser, and require the 42 existing checks' outcomes to be identical. This is the measurement for the always-on dormant observer, which the review read as effectively pass-through but which has not been run.
 2. Then run the first qualifying four-arm execution.
+
+## Integration and first qualifying execution completed (2026-10-27)
+
+The earlier unintegrated status above is superseded by the following results; its original preparation record remains intact. The runner integration is `c6213c85`; `6c1640f6` fixes the actual mirror builder to materialize new override files. A new host regression first reproduced both absent observer files; corrected tests give 49 host cases, 10 original product-mutation static cases and 11 Node observer cases, all passing. The product, SDK, worker, WASM and shell generation 76 remain byte-identical.
+
+`../product-four-arms-integration-01/` retains the unpatched baselines, the failed first Chrome boot (observer entry HTTP 404), the corrected two-browser preparations, and a source-bound independent comparison. All 42 original outcomes are identical before and after integration per browser; the preparation four-arm reader gives 24/24 PASS.
+
+After that prerequisite completed, `../product-four-arms-counted-01/` declared and executed a separate fresh qualifying population. Its independent aggregate reader gives **24/24 PASS**, all four arms PASS, no population problems. The Python import closure and served identity are unchanged at completion, and both reports still reach 096. The raw traces, identities, tables, rows, 26 ODT saves and command receipts are retained. The existing product FAIL/NE outcomes remain recorded; this establishes only the four prescribed ABI6 product arms, not S5, R1 or overall acceptance.
+
+`integration-pending.patch` is now the historical source-preparation patch and is already integrated; do not apply it again. The host integration test now inspects the actual runner's original-check preservation and four literal sites.
