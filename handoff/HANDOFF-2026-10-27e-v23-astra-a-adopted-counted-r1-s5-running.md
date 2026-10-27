@@ -56,3 +56,8 @@ Ruling-4/S-CASES/native-consumer/protocol amendments are append-only. No prepara
 The previous handoff's four product arms remain independently **24/24 PASS**, `product-four-arms-counted-01/aggregate-judge.json`, commit `431bce12`. The new S5 oracle does not reset them. The four-arm patch is integrated (`c6213c85`, mirror fix `6c1640f6`); never reapply `integration-pending.patch`. Original 42 outcomes per browser remain unchanged, including preexisting reds/NE; neither that cohort nor this pipeline claims overall product acceptance.
 
 At this checkpoint there is no complete counted R1 or S5 verdict. Remaining named inputs, Firefox 096 B2/B4, host/DDEV, K, finding 166 unipoll and finding 167 desktop-Writer remain unclosed. When the pipeline finishes, inspect both runner and independent-judge statuses, preserve first observations and source bindings, archive/commit evidence, and update the checkpoint accordingly. No new owner decision is required to finish the authorized sequence.
+
+
+## Verified startup checkpoint
+
+`counted-r1-s5-01/startup-checkpoint.json` at 2026-10-27T13:38:36.510677+08:00 verifies 5 genuine R1 cells PASS, no nonpassing observations, historical EXPECTED_RED, foreign-CPU gate green, all 30 current instrument hashes unchanged, actual served mirror hashes matching and launcher unchanged. This is startup progress only. The detached pipeline remains RUNNING_R1; its live status and reports supersede this static checkpoint.
