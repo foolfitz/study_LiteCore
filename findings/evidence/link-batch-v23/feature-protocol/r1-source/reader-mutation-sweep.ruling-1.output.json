@@ -1,0 +1,1148 @@
+{
+  "schema": 1,
+  "reader": "wasm_sdk_probe/tools/judge_v23_feature_selection.py",
+  "readerSha256": "d77ec17418c1c27ead7aa2c809038df039202863330ba13e51bec06a38c6f4a3",
+  "tests": "wasm_sdk_probe/tests/test_v23_feature_r1.py",
+  "testsSha256": "bcd9421592e50e097f33c10bbebeb505a4b2d49ec5e4f5ae1a238607db4a4560",
+  "functions": [
+    "r1_walk",
+    "r1_drag_end",
+    "r1_marker_witness",
+    "r1_arm",
+    "r1_literal_premise",
+    "inspect_r1"
+  ],
+  "mutations": [
+    {
+      "id": "r1_walk:584:need",
+      "kind": "condition-disabled",
+      "message": "'wrap discovery input differs'",
+      "original": "isinstance(record,dict) and record.get('plan')==plan",
+      "suite": [
+        "R1ReaderRedCases",
+        "R1ReaderEvidenceBinding",
+        "R1ReaderBaseline.test_all_72_cells_pass_on_the_model"
+      ],
+      "ran": 36,
+      "red": [
+        "test_walk_binding (test_v23_feature_r1.R1ReaderEvidenceBinding.test_walk_binding) (reason='wrap discovery input differs')"
+      ],
+      "killed": true
+    },
+    {
+      "id": "r1_walk:585:need",
+      "kind": "condition-disabled",
+      "message": "'query differs'",
+      "original": "r['message']['payload']['query']==plan['query']",
+      "suite": [
+        "R1ReaderRedCases",
+        "R1ReaderEvidenceBinding",
+        "R1ReaderBaseline.test_all_72_cells_pass_on_the_model"
+      ],
+      "ran": 36,
+      "red": [
+        "test_walk_binding (test_v23_feature_r1.R1ReaderEvidenceBinding.test_walk_binding) (reason='query differs')"
+      ],
+      "killed": true
+    },
+    {
+      "id": "r1_walk:588:need",
+      "kind": "condition-disabled",
+      "message": "'unbound page search boxes'",
+      "original": "record.get('boxes')==raw_boxes",
+      "suite": [
+        "R1ReaderRedCases",
+        "R1ReaderEvidenceBinding",
+        "R1ReaderBaseline.test_all_72_cells_pass_on_the_model"
+      ],
+      "ran": 36,
+      "red": [
+        "test_walk_binding (test_v23_feature_r1.R1ReaderEvidenceBinding.test_walk_binding) (reason='unbound page search boxes')"
+      ],
+      "killed": true
+    },
+    {
+      "id": "r1_walk:590:need",
+      "kind": "condition-disabled",
+      "message": "'actual text-start click differs'",
+      "original": "r['message']['payload']['xTwips']==first[0] and r['message']['payload']['yTwips']==first[1]+first[3]//2",
+      "suite": [
+        "R1ReaderRedCases",
+        "R1ReaderEvidenceBinding",
+        "R1ReaderBaseline.test_all_72_cells_pass_on_the_model"
+      ],
+      "ran": 36,
+      "red": [
+        "test_walk_binding (test_v23_feature_r1.R1ReaderEvidenceBinding.test_walk_binding) (reason='actual text-start click differs')"
+      ],
+      "killed": true
+    },
+    {
+      "id": "r1_walk:592:need",
+      "kind": "condition-disabled",
+      "message": "'actual text start caret differs'",
+      "original": "xy(record['start']['caret'])==first[:2]",
+      "suite": [
+        "R1ReaderRedCases",
+        "R1ReaderEvidenceBinding",
+        "R1ReaderBaseline.test_all_72_cells_pass_on_the_model"
+      ],
+      "ran": 36,
+      "red": [
+        "test_walk_binding (test_v23_feature_r1.R1ReaderEvidenceBinding.test_walk_binding) (reason='actual text start caret differs')"
+      ],
+      "killed": true
+    },
+    {
+      "id": "r1_walk:594:need",
+      "kind": "condition-disabled",
+      "message": "'wrap discovery walk absent or unbounded'",
+      "original": "isinstance(steps,list) and 0<len(steps)<=plan['limit']",
+      "suite": [
+        "R1ReaderRedCases",
+        "R1ReaderEvidenceBinding",
+        "R1ReaderBaseline.test_all_72_cells_pass_on_the_model"
+      ],
+      "ran": 36,
+      "red": [
+        "test_walk_binding (test_v23_feature_r1.R1ReaderEvidenceBinding.test_walk_binding) (reason='wrap discovery walk absent or unbounded')"
+      ],
+      "killed": true
+    },
+    {
+      "id": "r1_walk:598:need",
+      "kind": "condition-disabled",
+      "message": "'wrap discovery transition differs'",
+      "original": "(xy(step.get('caret'))[1]!=y0)==(i==len(steps))",
+      "suite": [
+        "R1ReaderRedCases",
+        "R1ReaderEvidenceBinding",
+        "R1ReaderBaseline.test_all_72_cells_pass_on_the_model"
+      ],
+      "ran": 36,
+      "red": [
+        "test_wrap_transition_and_result (test_v23_feature_r1.R1ReaderRedCases.test_wrap_transition_and_result)"
+      ],
+      "killed": true
+    },
+    {
+      "id": "r1_walk:599:need",
+      "kind": "condition-disabled",
+      "message": "'wrap discovery result differs'",
+      "original": "record.get('wrap')==len(steps)",
+      "suite": [
+        "R1ReaderRedCases",
+        "R1ReaderEvidenceBinding",
+        "R1ReaderBaseline.test_all_72_cells_pass_on_the_model"
+      ],
+      "ran": 36,
+      "red": [
+        "test_wrap_transition_and_result (test_v23_feature_r1.R1ReaderRedCases.test_wrap_transition_and_result)"
+      ],
+      "killed": true
+    },
+    {
+      "id": "r1_walk:601:need",
+      "kind": "condition-disabled",
+      "message": "'wrap discovery call order differs'",
+      "original": "[c['name'] for c in e.page['calls'] if c['name'] in expected]==expected",
+      "suite": [
+        "R1ReaderRedCases",
+        "R1ReaderEvidenceBinding",
+        "R1ReaderBaseline.test_all_72_cells_pass_on_the_model"
+      ],
+      "ran": 36,
+      "red": [
+        "test_walk_binding (test_v23_feature_r1.R1ReaderEvidenceBinding.test_walk_binding) (reason='wrap discovery call order differs')"
+      ],
+      "killed": true
+    },
+    {
+      "id": "r1_drag_end:612:need",
+      "kind": "condition-disabled",
+      "message": "'no paper right of the first displayed line'",
+      "original": "right<end['x']<width",
+      "suite": [
+        "R1ReaderRedCases",
+        "R1ReaderEvidenceBinding",
+        "R1ReaderBaseline.test_all_72_cells_pass_on_the_model"
+      ],
+      "ran": 36,
+      "red": [
+        "test_drag_needs_paper_right_of_the_line (test_v23_feature_r1.R1ReaderEvidenceBinding.test_drag_needs_paper_right_of_the_line)"
+      ],
+      "killed": true
+    },
+    {
+      "id": "r1_drag_end:613:need",
+      "kind": "condition-disabled",
+      "message": "'drag end not derived from public geometry'",
+      "original": "v.get('dragEnd')==end",
+      "suite": [
+        "R1ReaderRedCases",
+        "R1ReaderEvidenceBinding",
+        "R1ReaderBaseline.test_all_72_cells_pass_on_the_model"
+      ],
+      "ran": 36,
+      "red": [
+        "test_drag_end_is_recomputed (test_v23_feature_r1.R1ReaderRedCases.test_drag_end_is_recomputed)"
+      ],
+      "killed": true
+    },
+    {
+      "id": "r1_marker_witness:619:need",
+      "kind": "condition-disabled",
+      "message": "'marker window absent'",
+      "original": "m.get('generation')==gen and all(type(m.get(k)) is int for k in ('inputStart','inputEnd','requestStart','requestEnd'))\n         and 0<=m['inputStart']<=m['input",
+      "suite": [
+        "R1ReaderRedCases",
+        "R1ReaderEvidenceBinding",
+        "R1ReaderBaseline.test_all_72_cells_pass_on_the_model"
+      ],
+      "ran": 36,
+      "red": [
+        "test_marker_binding (test_v23_feature_r1.R1ReaderEvidenceBinding.test_marker_binding) (reason='marker window absent')"
+      ],
+      "killed": true
+    },
+    {
+      "id": "r1_marker_witness:623:need",
+      "kind": "condition-disabled",
+      "message": "'marker key absent or not one trusted press'",
+      "original": "len(keys)==1 and keys[0].get('key')=='#' and keys[0].get('isTrusted') is True\n         and not any(keys[0].get(k) for k in ('ctrlKey','altKey','metaKey','repeat",
+      "suite": [
+        "R1ReaderRedCases",
+        "R1ReaderEvidenceBinding",
+        "R1ReaderBaseline.test_all_72_cells_pass_on_the_model"
+      ],
+      "ran": 36,
+      "red": [
+        "test_missing_marker (test_v23_feature_r1.R1ReaderRedCases.test_missing_marker)"
+      ],
+      "killed": true
+    },
+    {
+      "id": "r1_marker_witness:626:need",
+      "kind": "condition-disabled",
+      "message": "'marker key not in the editable document sink'",
+      "original": "sink.get('active') and sink.get('connected') and not sink.get('disabled') and not sink.get('readOnly') and sink.get('documentHandle')==handle",
+      "suite": [
+        "R1ReaderRedCases",
+        "R1ReaderEvidenceBinding",
+        "R1ReaderBaseline.test_all_72_cells_pass_on_the_model"
+      ],
+      "ran": 36,
+      "red": [
+        "test_marker_binding (test_v23_feature_r1.R1ReaderEvidenceBinding.test_marker_binding) (reason='marker key not in the editable document sink')"
+      ],
+      "killed": true
+    },
+    {
+      "id": "r1_marker_witness:627:need",
+      "kind": "condition-disabled",
+      "message": "'marker typed before the delayed read'",
+      "original": "keys[0]['at']>=after['at']",
+      "suite": [
+        "R1ReaderRedCases",
+        "R1ReaderEvidenceBinding",
+        "R1ReaderBaseline.test_all_72_cells_pass_on_the_model"
+      ],
+      "ran": 36,
+      "red": [
+        "test_error_and_late (test_v23_feature_r1.R1ReaderRedCases.test_error_and_late)"
+      ],
+      "killed": true
+    },
+    {
+      "id": "r1_marker_witness:629:need",
+      "kind": "condition-disabled",
+      "message": "'marker beforeinput absent'",
+      "original": "len(typed)==1 and typed[0]['at']>=keys[0]['at']",
+      "suite": [
+        "R1ReaderRedCases",
+        "R1ReaderEvidenceBinding",
+        "R1ReaderBaseline.test_all_72_cells_pass_on_the_model"
+      ],
+      "ran": 36,
+      "red": [
+        "test_missing_marker (test_v23_feature_r1.R1ReaderRedCases.test_missing_marker)"
+      ],
+      "killed": true
+    },
+    {
+      "id": "r1_marker_witness:632:need",
+      "kind": "condition-disabled",
+      "message": "'marker insertion absent/extra'",
+      "original": "len(inserts)==1 and in_window==inserts and inserts[0]['message']['payload']=={'documentHandle':handle,'text':'#'}\n         and inserts[0]['at']>=typed[0]['at']",
+      "suite": [
+        "R1ReaderRedCases",
+        "R1ReaderEvidenceBinding",
+        "R1ReaderBaseline.test_all_72_cells_pass_on_the_model"
+      ],
+      "ran": 36,
+      "red": [
+        "test_missing_marker (test_v23_feature_r1.R1ReaderRedCases.test_missing_marker)"
+      ],
+      "killed": true
+    },
+    {
+      "id": "r1_marker_witness:634:need",
+      "kind": "condition-disabled",
+      "message": "'marker insertion refused'",
+      "original": "terminal is not None and terminal['message'].get('ok') is True",
+      "suite": [
+        "R1ReaderRedCases",
+        "R1ReaderEvidenceBinding",
+        "R1ReaderBaseline.test_all_72_cells_pass_on_the_model"
+      ],
+      "ran": 36,
+      "red": [
+        "test_marker_binding (test_v23_feature_r1.R1ReaderEvidenceBinding.test_marker_binding) (reason='marker insertion refused')"
+      ],
+      "killed": true
+    },
+    {
+      "id": "r1_marker_witness:635:need",
+      "kind": "condition-disabled",
+      "message": "'unplanned mutation around the marker'",
+      "original": "not any(r['generation']==gen and r['message']['operation'] in MUTATION_OPS for r in e.page['requests'][m['requestStart']:m['requestEnd']])",
+      "suite": [
+        "R1ReaderRedCases",
+        "R1ReaderEvidenceBinding",
+        "R1ReaderBaseline.test_all_72_cells_pass_on_the_model"
+      ],
+      "ran": 36,
+      "red": [
+        "test_marker_binding (test_v23_feature_r1.R1ReaderEvidenceBinding.test_marker_binding) (reason='unplanned mutation around the marker')"
+      ],
+      "killed": true
+    },
+    {
+      "id": "r1_marker_witness:639:need",
+      "kind": "condition-disabled",
+      "message": "'export precedes the marker insertion'",
+      "original": "saves[-1]['at']>=terminal['at']",
+      "suite": [
+        "R1ReaderRedCases",
+        "R1ReaderEvidenceBinding",
+        "R1ReaderBaseline.test_all_72_cells_pass_on_the_model"
+      ],
+      "ran": 36,
+      "red": [
+        "test_missing_or_wrong_export (test_v23_feature_r1.R1ReaderRedCases.test_missing_or_wrong_export)"
+      ],
+      "killed": true
+    },
+    {
+      "id": "r1_marker_witness:641:need",
+      "kind": "condition-disabled",
+      "message": "'export is not the fixture plus one marker'",
+      "original": "position is not None",
+      "suite": [
+        "R1ReaderRedCases",
+        "R1ReaderEvidenceBinding",
+        "R1ReaderBaseline.test_all_72_cells_pass_on_the_model"
+      ],
+      "ran": 36,
+      "red": [
+        "test_missing_or_wrong_export (test_v23_feature_r1.R1ReaderRedCases.test_missing_or_wrong_export)"
+      ],
+      "killed": true
+    },
+    {
+      "id": "r1_arm:651:need",
+      "kind": "condition-disabled",
+      "message": "'R1 fixture alias differs'",
+      "original": "v['open'].get('name')==f['servedName']",
+      "suite": [
+        "R1ReaderRedCases",
+        "R1ReaderEvidenceBinding",
+        "R1ReaderBaseline.test_all_72_cells_pass_on_the_model"
+      ],
+      "ran": 36,
+      "red": [
+        "test_wrong_fixture (test_v23_feature_r1.R1ReaderRedCases.test_wrong_fixture)"
+      ],
+      "killed": true
+    },
+    {
+      "id": "r1_arm:653:need",
+      "kind": "condition-disabled",
+      "message": "'fresh original differs'",
+      "original": "e.save(name+'-original-save',v['originalSave'])==texts",
+      "suite": [
+        "R1ReaderRedCases",
+        "R1ReaderEvidenceBinding",
+        "R1ReaderBaseline.test_all_72_cells_pass_on_the_model"
+      ],
+      "ran": 36,
+      "red": [
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='main/p2-backward/Down')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='main/p2-backward/End')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='main/p2-backward/Home')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='main/p2-backward/Left')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='main/p2-backward/Right')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='main/p2-backward/Up')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='main/p2-forward/Down')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='main/p2-forward/End')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='main/p2-forward/Home')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='main/p2-forward/Left')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='main/p2-forward/Right')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='main/p2-forward/Up')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='main/s1/Down')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='main/s1/End')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='main/s1/Home')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='main/s1/Left')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='main/s1/Right')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='main/s1/Up')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='main/s2/Down')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='main/s2/End')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='main/s2/Home')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='main/s2/Left')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='main/s2/Right')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='main/s2/Up')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='main/s3/Down')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='main/s3/End')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='main/s3/Home')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='main/s3/Left')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='main/s3/Right')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='main/s3/Up')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='main/s4/Down')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='main/s4/End')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='main/s4/Home')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='main/s4/Left')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='main/s4/Right')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='main/s4/Up')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='main/s5/Down')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='main/s5/End')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='main/s5/Home')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='main/s5/Left')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='main/s5/Right')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='main/s5/Up')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='wrap-drag/m1d/Down')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='wrap-drag/m1d/End')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='wrap-drag/m1d/Home')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='wrap-drag/m1d/Left')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='wrap-drag/m1d/Right')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='wrap-drag/m1d/Up')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='wrap-drag/s1d/Down')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='wrap-drag/s1d/End')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='wrap-drag/s1d/Home')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='wrap-drag/s1d/Left')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='wrap-drag/s1d/Right')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='wrap-drag/s1d/Up')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='wrap-keys/m1e/Down')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='wrap-keys/m1e/End')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='wrap-keys/m1e/Home')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='wrap-keys/m1e/Left')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='wrap-keys/m1e/Right')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='wrap-keys/m1e/Up')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='wrap-keys/m1r/Down')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='wrap-keys/m1r/End')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='wrap-keys/m1r/Home')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='wrap-keys/m1r/Left')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='wrap-keys/m1r/Right')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='wrap-keys/m1r/Up')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='wrap-keys/s1e/Down')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='wrap-keys/s1e/End')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='wrap-keys/s1e/Home')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='wrap-keys/s1e/Left')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='wrap-keys/s1e/Right')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='wrap-keys/s1e/Up')",
+        "test_arms_disagree_on_the_wrap (test_v23_feature_r1.R1ReaderRedCases.test_arms_disagree_on_the_wrap)",
+        "test_control_after_candidate (test_v23_feature_r1.R1ReaderRedCases.test_control_after_candidate)",
+        "test_emuend_rule_is_the_selection_end (test_v23_feature_r1.R1ReaderRedCases.test_emuend_rule_is_the_selection_end)",
+        "test_literal_home_end_premise (test_v23_feature_r1.R1ReaderRedCases.test_literal_home_end_premise)",
+        "test_literal_home_end_premise (test_v23_feature_r1.R1ReaderRedCases.test_literal_home_end_premise) (case='main/p2-forward/Home')",
+        "test_literal_home_end_premise (test_v23_feature_r1.R1ReaderRedCases.test_literal_home_end_premise) (case='main/s2/Home')",
+        "test_literal_home_end_premise (test_v23_feature_r1.R1ReaderRedCases.test_literal_home_end_premise) (case='main/s4/End')",
+        "test_mismatching_landing_fails (test_v23_feature_r1.R1ReaderRedCases.test_mismatching_landing_fails)",
+        "test_original_differs (test_v23_feature_r1.R1ReaderRedCases.test_original_differs)",
+        "test_recovery_fails (test_v23_feature_r1.R1ReaderRedCases.test_recovery_fails)",
+        "test_same_offset_other_affinity_fails (test_v23_feature_r1.R1ReaderRedCases.test_same_offset_other_affinity_fails)",
+        "test_stale_reply (test_v23_feature_r1.R1ReaderRedCases.test_stale_reply)",
+        "test_token_wrap_exposure_is_recorded_not_decided (test_v23_feature_r1.R1ReaderRedCases.test_token_wrap_exposure_is_recorded_not_decided)"
+      ],
+      "killed": true
+    },
+    {
+      "id": "r1_arm:655:need",
+      "kind": "condition-disabled",
+      "message": "'point discovery population differs'",
+      "original": "list(v['points'])==[p['name'] for p in s['points']]",
+      "suite": [
+        "R1ReaderRedCases",
+        "R1ReaderEvidenceBinding",
+        "R1ReaderBaseline.test_all_72_cells_pass_on_the_model"
+      ],
+      "ran": 36,
+      "red": [
+        "test_setup_binding (test_v23_feature_r1.R1ReaderEvidenceBinding.test_setup_binding) (reason='point discovery population differs')"
+      ],
+      "killed": true
+    },
+    {
+      "id": "r1_arm:661:need",
+      "kind": "condition-disabled",
+      "message": "'shape anchor differs'",
+      "original": "all(r['message']['payload'][k]==z for k,z in point(anchor).items())",
+      "suite": [
+        "R1ReaderRedCases",
+        "R1ReaderEvidenceBinding",
+        "R1ReaderBaseline.test_all_72_cells_pass_on_the_model"
+      ],
+      "ran": 36,
+      "red": [
+        "test_setup_binding (test_v23_feature_r1.R1ReaderEvidenceBinding.test_setup_binding) (reason='shape anchor differs')"
+      ],
+      "killed": true
+    },
+    {
+      "id": "r1_arm:667:need",
+      "kind": "condition-disabled",
+      "message": "'R1 setup selected text differs from native'",
+      "original": "v['setupSelection'].get('text')==row['native']['made']",
+      "suite": [
+        "R1ReaderRedCases",
+        "R1ReaderEvidenceBinding",
+        "R1ReaderBaseline.test_all_72_cells_pass_on_the_model"
+      ],
+      "ran": 36,
+      "red": [
+        "test_setup_text_differs (test_v23_feature_r1.R1ReaderRedCases.test_setup_text_differs)"
+      ],
+      "killed": true
+    },
+    {
+      "id": "r1_arm:668:need",
+      "kind": "condition-disabled",
+      "message": "'R1 setup selection type absent'",
+      "original": "v['setupSelection'].get('selectionType') in ('text','complex')",
+      "suite": [
+        "R1ReaderRedCases",
+        "R1ReaderEvidenceBinding",
+        "R1ReaderBaseline.test_all_72_cells_pass_on_the_model"
+      ],
+      "ran": 36,
+      "red": [
+        "test_setup_binding (test_v23_feature_r1.R1ReaderEvidenceBinding.test_setup_binding) (reason='R1 setup selection type absent')"
+      ],
+      "killed": true
+    },
+    {
+      "id": "r1_arm:669:need",
+      "kind": "condition-disabled",
+      "message": "'R1 setup made no range'",
+      "original": "selection.get('observed') is True and selection.get('collapsed') is False",
+      "suite": [
+        "R1ReaderRedCases",
+        "R1ReaderEvidenceBinding",
+        "R1ReaderBaseline.test_all_72_cells_pass_on_the_model"
+      ],
+      "ran": 36,
+      "red": [
+        "test_setup_made_no_range (test_v23_feature_r1.R1ReaderRedCases.test_setup_made_no_range)"
+      ],
+      "killed": true
+    },
+    {
+      "id": "r1_arm:671:need",
+      "kind": "condition-disabled",
+      "message": "'R1 setup point/affinity differs'",
+      "original": "caret==xy(target)",
+      "suite": [
+        "R1ReaderRedCases",
+        "R1ReaderEvidenceBinding",
+        "R1ReaderBaseline.test_all_72_cells_pass_on_the_model"
+      ],
+      "ran": 36,
+      "red": [
+        "test_setup_point_differs (test_v23_feature_r1.R1ReaderRedCases.test_setup_point_differs)"
+      ],
+      "killed": true
+    },
+    {
+      "id": "r1_arm:672:need",
+      "kind": "condition-disabled",
+      "message": "'R1 setup point not displayed at the end of line 1'",
+      "original": "caret[1]==target['y'] and caret[0]>=target['x']",
+      "suite": [
+        "R1ReaderRedCases",
+        "R1ReaderEvidenceBinding",
+        "R1ReaderBaseline.test_all_72_cells_pass_on_the_model"
+      ],
+      "ran": 36,
+      "red": [
+        "test_drag_point_not_at_line_end (test_v23_feature_r1.R1ReaderRedCases.test_drag_point_not_at_line_end)"
+      ],
+      "killed": true
+    },
+    {
+      "id": "r1_arm:674:need",
+      "kind": "condition-disabled",
+      "message": "'R1 setup selection endpoints differ'",
+      "original": "a!=b and sorted([xy(selection.get('start')),xy(selection.get('end'))])==sorted([a,b])",
+      "suite": [
+        "R1ReaderRedCases",
+        "R1ReaderEvidenceBinding",
+        "R1ReaderBaseline.test_all_72_cells_pass_on_the_model"
+      ],
+      "ran": 36,
+      "red": [
+        "test_setup_endpoints_differ (test_v23_feature_r1.R1ReaderRedCases.test_setup_endpoints_differ)"
+      ],
+      "killed": true
+    },
+    {
+      "id": "r1_arm:676:need",
+      "kind": "condition-disabled",
+      "message": "'shape changed before measured key'",
+      "original": "v['before']['caret']==state['caret'] and v['before']['selection']==selection",
+      "suite": [
+        "R1ReaderRedCases",
+        "R1ReaderEvidenceBinding",
+        "R1ReaderBaseline.test_all_72_cells_pass_on_the_model"
+      ],
+      "ran": 36,
+      "red": [
+        "test_setup_binding (test_v23_feature_r1.R1ReaderEvidenceBinding.test_setup_binding) (reason='shape changed before measured key')"
+      ],
+      "killed": true
+    },
+    {
+      "id": "r1_arm:682:need",
+      "kind": "condition-disabled",
+      "message": "'control rectangle is not the shape rectangle'",
+      "original": "isinstance(rect,dict) and v.get('controlRect')==rect",
+      "suite": [
+        "R1ReaderRedCases",
+        "R1ReaderEvidenceBinding",
+        "R1ReaderBaseline.test_all_72_cells_pass_on_the_model"
+      ],
+      "ran": 36,
+      "red": [
+        "test_emuend_rule_is_the_selection_end (test_v23_feature_r1.R1ReaderRedCases.test_emuend_rule_is_the_selection_end)"
+      ],
+      "killed": true
+    },
+    {
+      "id": "r1_arm:684:need",
+      "kind": "condition-disabled",
+      "message": "'control click differs'",
+      "original": "r['message']['payload']['xTwips']==rect['x'] and r['message']['payload']['yTwips']==rect['y']+int(rect['height']//2)",
+      "suite": [
+        "R1ReaderRedCases",
+        "R1ReaderEvidenceBinding",
+        "R1ReaderBaseline.test_all_72_cells_pass_on_the_model"
+      ],
+      "ran": 36,
+      "red": [
+        "test_control_click_and_witness (test_v23_feature_r1.R1ReaderRedCases.test_control_click_and_witness)"
+      ],
+      "killed": true
+    },
+    {
+      "id": "r1_arm:686:need",
+      "kind": "condition-disabled",
+      "message": "'control point/affinity not witnessed'",
+      "original": "v['controlState']['selection'].get('collapsed') is True and xy(v['controlState']['caret'])==xy(rect)",
+      "suite": [
+        "R1ReaderRedCases",
+        "R1ReaderEvidenceBinding",
+        "R1ReaderBaseline.test_all_72_cells_pass_on_the_model"
+      ],
+      "ran": 36,
+      "red": [
+        "test_control_click_and_witness (test_v23_feature_r1.R1ReaderRedCases.test_control_click_and_witness)"
+      ],
+      "killed": true
+    },
+    {
+      "id": "r1_arm:688:need",
+      "kind": "condition-disabled",
+      "message": "'measured key ownership/order differs'",
+      "original": "r['generation']==gen and r['message']['payload']['documentHandle']==handle and r['at']>=after['at']",
+      "suite": [
+        "R1ReaderRedCases",
+        "R1ReaderEvidenceBinding",
+        "R1ReaderBaseline.test_all_72_cells_pass_on_the_model"
+      ],
+      "ran": 36,
+      "red": [
+        "test_key_and_reply_binding (test_v23_feature_r1.R1ReaderEvidenceBinding.test_key_and_reply_binding) (reason='measured key ownership/order differs')"
+      ],
+      "killed": true
+    },
+    {
+      "id": "r1_arm:689:need",
+      "kind": "condition-disabled",
+      "message": "'actual measured reply differs'",
+      "original": "v['reply']==c['result']==t['message']['result']",
+      "suite": [
+        "R1ReaderRedCases",
+        "R1ReaderEvidenceBinding",
+        "R1ReaderBaseline.test_all_72_cells_pass_on_the_model"
+      ],
+      "ran": 36,
+      "red": [
+        "test_key_and_reply_binding (test_v23_feature_r1.R1ReaderEvidenceBinding.test_key_and_reply_binding) (reason='actual measured reply differs')"
+      ],
+      "killed": true
+    },
+    {
+      "id": "r1_arm:691:need",
+      "kind": "condition-disabled",
+      "message": "'move accounting witness missing'",
+      "original": "type(reply.get('changed')) is bool and all(type(reply.get(k)) is int for k in ('revision','beforeRevision'))",
+      "suite": [
+        "R1ReaderRedCases",
+        "R1ReaderEvidenceBinding",
+        "R1ReaderBaseline.test_all_72_cells_pass_on_the_model"
+      ],
+      "ran": 36,
+      "red": [
+        "test_key_and_reply_binding (test_v23_feature_r1.R1ReaderEvidenceBinding.test_key_and_reply_binding) (reason='move accounting witness missing')"
+      ],
+      "killed": true
+    },
+    {
+      "id": "r1_arm:692:need",
+      "kind": "condition-disabled",
+      "message": "'readback too early'",
+      "original": "rr['at']-t['at']>=500",
+      "suite": [
+        "R1ReaderRedCases",
+        "R1ReaderEvidenceBinding",
+        "R1ReaderBaseline.test_all_72_cells_pass_on_the_model"
+      ],
+      "ran": 36,
+      "red": [
+        "test_error_and_late (test_v23_feature_r1.R1ReaderRedCases.test_error_and_late)"
+      ],
+      "killed": true
+    },
+    {
+      "id": "r1_arm:693:need",
+      "kind": "condition-disabled",
+      "message": "'active selection precedes delayed state'",
+      "original": "ar['at']>=rt['at']",
+      "suite": [
+        "R1ReaderRedCases",
+        "R1ReaderEvidenceBinding",
+        "R1ReaderBaseline.test_all_72_cells_pass_on_the_model"
+      ],
+      "ran": 36,
+      "red": [
+        "test_key_and_reply_binding (test_v23_feature_r1.R1ReaderEvidenceBinding.test_key_and_reply_binding) (reason='active selection precedes delayed state')"
+      ],
+      "killed": true
+    },
+    {
+      "id": "r1_arm:696:need",
+      "kind": "condition-disabled",
+      "message": "'unplanned mutation between the shape and the delayed read'",
+      "original": "request_key(request) in owned",
+      "suite": [
+        "R1ReaderRedCases",
+        "R1ReaderEvidenceBinding",
+        "R1ReaderBaseline.test_all_72_cells_pass_on_the_model"
+      ],
+      "ran": 36,
+      "red": [
+        "test_nonpublic_candidate_request (test_v23_feature_r1.R1ReaderRedCases.test_nonpublic_candidate_request)"
+      ],
+      "killed": true
+    },
+    {
+      "id": "r1_arm:699:check",
+      "kind": "condition-disabled",
+      "message": "label('measured move changed the document/revision: '+','.join(bad))",
+      "original": "not bad",
+      "suite": [
+        "R1ReaderRedCases",
+        "R1ReaderEvidenceBinding",
+        "R1ReaderBaseline.test_all_72_cells_pass_on_the_model"
+      ],
+      "ran": 36,
+      "red": [
+        "test_changed_revision_fails (test_v23_feature_r1.R1ReaderRedCases.test_changed_revision_fails) (fields='changed')",
+        "test_changed_revision_fails (test_v23_feature_r1.R1ReaderRedCases.test_changed_revision_fails) (fields='revision,delayed-revision')",
+        "test_control_outcome_is_an_oracle_not_a_product_result (test_v23_feature_r1.R1ReaderRedCases.test_control_outcome_is_an_oracle_not_a_product_result)"
+      ],
+      "killed": true
+    },
+    {
+      "id": "r1_arm:700:check",
+      "kind": "condition-disabled",
+      "message": "label('measured move result not collapsed')",
+      "original": "v['readback']['selection'].get('collapsed') is True and v['activeSelection'].get('selectionType')=='none'\n          and v['activeSelection'].get('text')==''",
+      "suite": [
+        "R1ReaderRedCases",
+        "R1ReaderEvidenceBinding",
+        "R1ReaderBaseline.test_all_72_cells_pass_on_the_model"
+      ],
+      "ran": 36,
+      "red": [
+        "test_uncollapsed_result_fails (test_v23_feature_r1.R1ReaderRedCases.test_uncollapsed_result_fails)"
+      ],
+      "killed": true
+    },
+    {
+      "id": "r1_arm:707:need",
+      "kind": "condition-disabled",
+      "message": "label('measured move reply stale: '+','.join(stale))",
+      "original": "not stale",
+      "suite": [
+        "R1ReaderRedCases",
+        "R1ReaderEvidenceBinding",
+        "R1ReaderBaseline.test_all_72_cells_pass_on_the_model"
+      ],
+      "ran": 36,
+      "red": [
+        "test_stale_reply (test_v23_feature_r1.R1ReaderRedCases.test_stale_reply)"
+      ],
+      "killed": true
+    },
+    {
+      "id": "r1_literal_premise:720:need",
+      "kind": "condition-disabled",
+      "message": "'literal premise not witnessed: '+kind",
+      "original": "len(boxes)==1 and cand['setupCaret'][1]==boxes[0][1]",
+      "suite": [
+        "R1ReaderRedCases",
+        "R1ReaderEvidenceBinding",
+        "R1ReaderBaseline.test_all_72_cells_pass_on_the_model"
+      ],
+      "ran": 36,
+      "red": [
+        "test_literal_home_end_premise (test_v23_feature_r1.R1ReaderRedCases.test_literal_home_end_premise) (case='main/p2-forward/Home')",
+        "test_literal_home_end_premise (test_v23_feature_r1.R1ReaderRedCases.test_literal_home_end_premise) (case='main/s2/Home')",
+        "test_literal_home_end_premise (test_v23_feature_r1.R1ReaderRedCases.test_literal_home_end_premise) (case='main/s4/End')"
+      ],
+      "killed": true
+    },
+    {
+      "id": "inspect_r1:728:need",
+      "kind": "condition-disabled",
+      "message": "'R1 control declaration differs'",
+      "original": "bool(row['control'])==(row['oracle']=='layout-relative')",
+      "suite": [
+        "R1ReaderRedCases",
+        "R1ReaderEvidenceBinding",
+        "R1ReaderBaseline.test_all_72_cells_pass_on_the_model"
+      ],
+      "ran": 36,
+      "red": [
+        "test_plan_control_declaration (test_v23_feature_r1.R1ReaderEvidenceBinding.test_plan_control_declaration)"
+      ],
+      "killed": true
+    },
+    {
+      "id": "inspect_r1:729:need",
+      "kind": "condition-disabled",
+      "message": "'independent control arm absent/undeclared'",
+      "original": "('r1control' in page)==bool(row['control'])",
+      "suite": [
+        "R1ReaderRedCases",
+        "R1ReaderEvidenceBinding",
+        "R1ReaderBaseline.test_all_72_cells_pass_on_the_model"
+      ],
+      "ran": 36,
+      "red": [
+        "test_missing_control (test_v23_feature_r1.R1ReaderRedCases.test_missing_control)"
+      ],
+      "killed": true
+    },
+    {
+      "id": "inspect_r1:733:need",
+      "kind": "condition-disabled",
+      "message": "'incomplete page'",
+      "original": "page.get('complete')",
+      "suite": [
+        "R1ReaderRedCases",
+        "R1ReaderEvidenceBinding",
+        "R1ReaderBaseline.test_all_72_cells_pass_on_the_model"
+      ],
+      "ran": 36,
+      "red": [
+        "test_page_binding (test_v23_feature_r1.R1ReaderEvidenceBinding.test_page_binding) (reason='incomplete page')"
+      ],
+      "killed": true
+    },
+    {
+      "id": "inspect_r1:734:need",
+      "kind": "condition-disabled",
+      "message": "'fresh arms/recovery generation differs'",
+      "original": "len({g,cand['generation']}|({ctl['generation']} if ctl else set()))==1+arms and len(page['workers'])==1+arms",
+      "suite": [
+        "R1ReaderRedCases",
+        "R1ReaderEvidenceBinding",
+        "R1ReaderBaseline.test_all_72_cells_pass_on_the_model"
+      ],
+      "ran": 36,
+      "red": [
+        "test_page_binding (test_v23_feature_r1.R1ReaderEvidenceBinding.test_page_binding) (reason='fresh arms/recovery generation differs')"
+      ],
+      "killed": true
+    },
+    {
+      "id": "inspect_r1:735:need",
+      "kind": "condition-disabled",
+      "message": "'extra/missing open'",
+      "original": "len([r for r in e.requests.values() if r['message']['operation']=='open'])==1+arms",
+      "suite": [
+        "R1ReaderRedCases",
+        "R1ReaderEvidenceBinding",
+        "R1ReaderBaseline.test_all_72_cells_pass_on_the_model"
+      ],
+      "ran": 36,
+      "red": [
+        "test_page_binding (test_v23_feature_r1.R1ReaderEvidenceBinding.test_page_binding) (reason='extra/missing open')"
+      ],
+      "killed": true
+    },
+    {
+      "id": "inspect_r1:738:need",
+      "kind": "condition-disabled",
+      "message": "'control not established before the candidate key'",
+      "original": "ctl['generation']<cand['generation'] and ctl['controlAt']<cand['keyAt']",
+      "suite": [
+        "R1ReaderRedCases",
+        "R1ReaderEvidenceBinding",
+        "R1ReaderBaseline.test_all_72_cells_pass_on_the_model"
+      ],
+      "ran": 36,
+      "red": [
+        "test_control_after_candidate (test_v23_feature_r1.R1ReaderRedCases.test_control_after_candidate)"
+      ],
+      "killed": true
+    },
+    {
+      "id": "inspect_r1:739:need",
+      "kind": "condition-disabled",
+      "message": "'arms disagree on the visual wrap'",
+      "original": "ctl['wrap']==cand['wrap']",
+      "suite": [
+        "R1ReaderRedCases",
+        "R1ReaderEvidenceBinding",
+        "R1ReaderBaseline.test_all_72_cells_pass_on_the_model"
+      ],
+      "ran": 36,
+      "red": [
+        "test_arms_disagree_on_the_wrap (test_v23_feature_r1.R1ReaderRedCases.test_arms_disagree_on_the_wrap)"
+      ],
+      "killed": true
+    },
+    {
+      "id": "inspect_r1:740:contradict",
+      "kind": "condition-disabled",
+      "message": "'recovery occurred'",
+      "original": "not any(x['message'].get('event') in ('recoverable-error','worker-restart') for x in page['events'])",
+      "suite": [
+        "R1ReaderRedCases",
+        "R1ReaderEvidenceBinding",
+        "R1ReaderBaseline.test_all_72_cells_pass_on_the_model"
+      ],
+      "ran": 36,
+      "red": [
+        "test_recovery_fails (test_v23_feature_r1.R1ReaderRedCases.test_recovery_fails)"
+      ],
+      "killed": true
+    },
+    {
+      "id": "inspect_r1:750:contradict",
+      "kind": "condition-disabled",
+      "message": "'logical landing differs from native'\n                       +('' if at_native else ' (setup not at the native logical position)')",
+      "original": "cand['marker']==row['native']['markerLogical']",
+      "suite": [
+        "R1ReaderRedCases",
+        "R1ReaderEvidenceBinding",
+        "R1ReaderBaseline.test_all_72_cells_pass_on_the_model"
+      ],
+      "ran": 36,
+      "red": [
+        "test_mismatching_landing_fails (test_v23_feature_r1.R1ReaderRedCases.test_mismatching_landing_fails)",
+        "test_token_wrap_exposure_is_recorded_not_decided (test_v23_feature_r1.R1ReaderRedCases.test_token_wrap_exposure_is_recorded_not_decided)"
+      ],
+      "killed": true
+    },
+    {
+      "id": "inspect_r1:754:contradict",
+      "kind": "condition-disabled",
+      "message": "'logical landing differs from the control'",
+      "original": "cand['marker']==ctl['marker']",
+      "suite": [
+        "R1ReaderRedCases",
+        "R1ReaderEvidenceBinding",
+        "R1ReaderBaseline.test_all_72_cells_pass_on_the_model"
+      ],
+      "ran": 36,
+      "red": [
+        "test_mismatching_landing_fails (test_v23_feature_r1.R1ReaderRedCases.test_mismatching_landing_fails)"
+      ],
+      "killed": true
+    },
+    {
+      "id": "inspect_r1:755:contradict",
+      "kind": "condition-disabled",
+      "message": "'caret differs from the control'",
+      "original": "xy(cand['caret'])==xy(ctl['caret'])",
+      "suite": [
+        "R1ReaderRedCases",
+        "R1ReaderEvidenceBinding",
+        "R1ReaderBaseline.test_all_72_cells_pass_on_the_model"
+      ],
+      "ran": 36,
+      "red": [
+        "test_same_offset_other_affinity_fails (test_v23_feature_r1.R1ReaderRedCases.test_same_offset_other_affinity_fails)"
+      ],
+      "killed": true
+    },
+    {
+      "id": "text:control rectangle always the visible cursor (emuend ignored)",
+      "kind": "text",
+      "original": "rect=state['caret'] if row['control']['rule']=='emu' else selection.get('end')",
+      "replacement": "rect=state['caret']",
+      "suite": [
+        "R1ReaderRedCases",
+        "R1ReaderEvidenceBinding",
+        "R1ReaderBaseline.test_all_72_cells_pass_on_the_model"
+      ],
+      "ran": 36,
+      "red": [
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='wrap-drag/m1d/Down')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='wrap-drag/s1d/Down')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='wrap-keys/m1e/Down')",
+        "test_emuend_rule_is_the_selection_end (test_v23_feature_r1.R1ReaderRedCases.test_emuend_rule_is_the_selection_end)"
+      ],
+      "killed": true
+    },
+    {
+      "id": "text:every cell judged against the native literal landing",
+      "kind": "text",
+      "original": "if row['oracle']=='literal':",
+      "replacement": "if True:",
+      "suite": [
+        "R1ReaderRedCases",
+        "R1ReaderEvidenceBinding",
+        "R1ReaderBaseline.test_all_72_cells_pass_on_the_model"
+      ],
+      "ran": 36,
+      "red": [
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='main/p2-backward/Down')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='main/p2-backward/Up')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='main/p2-forward/Down')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='main/p2-forward/Up')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='main/s1/Down')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='main/s1/End')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='main/s2/Down')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='main/s2/Up')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='main/s4/Down')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='main/s4/Up')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='main/s5/Down')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='main/s5/Up')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='wrap-drag/m1d/Down')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='wrap-drag/m1d/End')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='wrap-drag/m1d/Home')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='wrap-drag/s1d/Down')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='wrap-drag/s1d/End')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='wrap-drag/s1d/Home')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='wrap-keys/m1e/Down')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='wrap-keys/m1e/End')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='wrap-keys/m1e/Home')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='wrap-keys/m1r/Down')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='wrap-keys/m1r/End')",
+        "test_all_72_cells_pass_on_the_model (test_v23_feature_r1.R1ReaderBaseline.test_all_72_cells_pass_on_the_model) (case='wrap-keys/s1e/Down')",
+        "test_emuend_rule_is_the_selection_end (test_v23_feature_r1.R1ReaderRedCases.test_emuend_rule_is_the_selection_end)",
+        "test_mismatching_landing_fails (test_v23_feature_r1.R1ReaderRedCases.test_mismatching_landing_fails)",
+        "test_same_offset_other_affinity_fails (test_v23_feature_r1.R1ReaderRedCases.test_same_offset_other_affinity_fails)",
+        "test_token_wrap_exposure_is_recorded_not_decided (test_v23_feature_r1.R1ReaderRedCases.test_token_wrap_exposure_is_recorded_not_decided)"
+      ],
+      "killed": true
+    },
+    {
+      "id": "text:caret rule: equality dropped for keyboard and Shift+End shapes",
+      "kind": "text",
+      "original": "if s['caret']['kind']=='equals':",
+      "replacement": "if False:",
+      "suite": [
+        "R1ReaderRedCases",
+        "R1ReaderEvidenceBinding",
+        "R1ReaderBaseline.test_all_72_cells_pass_on_the_model"
+      ],
+      "ran": 36,
+      "red": [
+        "test_setup_point_differs (test_v23_feature_r1.R1ReaderRedCases.test_setup_point_differs)"
+      ],
+      "killed": true
+    },
+    {
+      "id": "text:literal Home/End premise skipped",
+      "kind": "text",
+      "original": "if row['literalPremise']:record['premise']",
+      "replacement": "if False:record['premise']",
+      "suite": [
+        "R1ReaderRedCases",
+        "R1ReaderEvidenceBinding",
+        "R1ReaderBaseline.test_all_72_cells_pass_on_the_model"
+      ],
+      "ran": 36,
+      "red": [
+        "test_literal_home_end_premise (test_v23_feature_r1.R1ReaderRedCases.test_literal_home_end_premise)",
+        "test_literal_home_end_premise (test_v23_feature_r1.R1ReaderRedCases.test_literal_home_end_premise) (case='main/p2-forward/Home')",
+        "test_literal_home_end_premise (test_v23_feature_r1.R1ReaderRedCases.test_literal_home_end_premise) (case='main/s2/Home')",
+        "test_literal_home_end_premise (test_v23_feature_r1.R1ReaderRedCases.test_literal_home_end_premise) (case='main/s4/End')"
+      ],
+      "killed": true
+    },
+    {
+      "id": "text:candidate outcome contradictions read as NE instead of FAIL",
+      "kind": "text",
+      "original": "measured=name=='r1cand';check=contradict if measured else need",
+      "replacement": "measured=name=='r1cand';check=need",
+      "suite": [
+        "R1ReaderRedCases",
+        "R1ReaderEvidenceBinding",
+        "R1ReaderBaseline.test_all_72_cells_pass_on_the_model"
+      ],
+      "ran": 36,
+      "red": [
+        "test_changed_revision_fails (test_v23_feature_r1.R1ReaderRedCases.test_changed_revision_fails) (fields='changed')",
+        "test_changed_revision_fails (test_v23_feature_r1.R1ReaderRedCases.test_changed_revision_fails) (fields='revision,delayed-revision')",
+        "test_uncollapsed_result_fails (test_v23_feature_r1.R1ReaderRedCases.test_uncollapsed_result_fails)"
+      ],
+      "killed": true
+    },
+    {
+      "id": "text:aggregate drops the three wrong-old-click controls",
+      "kind": "text",
+      "original": "and population[r['cell'][1]]['wrongOldClickControl']]",
+      "replacement": "and False]",
+      "suite": [
+        "R1ReaderBaseline.test_aggregate_is_per_cell_and_lists_the_three_controls"
+      ],
+      "ran": 1,
+      "red": [
+        "test_aggregate_is_per_cell_and_lists_the_three_controls (test_v23_feature_r1.R1ReaderBaseline.test_aggregate_is_per_cell_and_lists_the_three_controls)"
+      ],
+      "killed": true
+    }
+  ],
+  "baseline": {
+    "reader": {
+      "ran": 36,
+      "red": []
+    },
+    "aggregate": {
+      "ran": 1,
+      "red": []
+    }
+  },
+  "survivors": [],
+  "counts": {
+    "mutations": 62,
+    "killed": 62,
+    "conditionChecks": 56
+  },
+  "verdict": "ALL_KILLED"
+}
