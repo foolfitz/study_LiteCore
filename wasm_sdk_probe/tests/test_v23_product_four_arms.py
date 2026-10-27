@@ -1,4 +1,4 @@
-"""The four ABI6 product arms' reader, table, mirror, driver and integration patch -- no browser.
+"""The four ABI6 product arms' reader, table, mirror, driver and integrated runner -- no browser.
 
 A synthetic page builder reproduces the observer's record semantics (one shared sequence, sync
 half-open instrument windows, admissions recorded during a trusted input's dispatch, release-set
@@ -649,6 +649,22 @@ class TableAndMirror(Base):
         (root / arms.HTML).write_bytes(original.replace(arms.APP_TAG, b""))
         with self.assertRaisesRegex(ValueError, "exactly one app module tag"):
             arms.observer_mirror(root, PROFILE)
+
+    def test_runner_materializes_the_new_observer_files_in_the_served_mirror(self):
+        from run_e2_c_product_path import build_mirror
+        root = self.root()
+        overrides, _ = arms.observer_mirror(root, PROFILE)
+        original = (root / arms.HTML).read_bytes()
+        target = self.tmp / "served"
+        build_mirror(root, target, overrides)
+        for relative, payload in overrides.items():
+            with self.subTest(relative=relative):
+                self.assertEqual((target / relative).read_bytes(), payload)
+                self.assertFalse((target / relative).is_symlink())
+        self.assertEqual((root / arms.HTML).read_bytes(), original)
+        self.assertFalse((root / arms.OBSERVER_ENTRY).exists())
+        self.assertFalse((root / arms.OBSERVER_CORE).exists())
+        self.assertEqual((target / arms.APP_MODULE).read_bytes(), (root / arms.APP_MODULE).read_bytes())
 
 
 class PositiveBaseline(Base):

@@ -2523,13 +2523,18 @@ def build_mirror(source: Path, target: Path, overrides: dict[str, bytes]) -> Non
             child = relative / entry.name if relative != Path(".") else Path(entry.name)
             key = child.as_posix()
             if key in overrides:
-                (target / child).write_bytes(overrides[key])
+                # Materialise every override below, including files absent in source.
+                continue
             elif entry.is_dir() and key in real_dirs:
                 walk(child)
             else:
                 os.symlink(entry.resolve(), target / child)
 
     walk(Path("."))
+    for relative, payload in overrides.items():
+        destination = target / relative
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        destination.write_bytes(payload)
 
 
 # The shell generation this run actually SERVED, derived rather than declared.
