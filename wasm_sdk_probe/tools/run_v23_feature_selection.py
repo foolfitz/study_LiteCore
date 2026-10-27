@@ -65,11 +65,12 @@ def control(session,expression):
     if value is False:raise ValueError('instrument stopped; preserve raw page')
     return value
 
-def fresh(session,target):
+def fresh(session,target,name='feature-selection.odt'):
+    if not all(c.isalnum() or c in '-_.' for c in name):raise ValueError('unexpected served fixture name')
     serial=evaluate(session,'window.__featureSelection.currentOpen.serial')
     evaluate(session,"document.querySelector('#file').value='';true")
-    session.set_file('#file',target/'feature-selection.odt')
-    wait_page(session,f"window.__featureSelection?.currentOpen?.serial>{serial} && window.__featureSelection.currentOpen.name==='feature-selection.odt'")
+    session.set_file('#file',target/name)
+    wait_page(session,f"window.__featureSelection?.currentOpen?.serial>{serial} && window.__featureSelection.currentOpen.name==='{name}'")
 
 def product_key(session,browser,name,key,shift):
     control(session,'arm('+json.dumps(name)+')')
@@ -133,6 +134,40 @@ def run_s5(session,browser,row,plan,target):
         control(session,'finishSequence()')
     control(session,'completeS5()')
 
+def actual_marker(session,browser):
+    """R1's marker '#' through the product's own typing path, a real trusted key the way readiness
+    types Z (actual_Z): the page takes no '#' key, the sink's default action inserts it and the
+    adapter commits it.  Chrome gets the '3' key's code/VK: v21_input's one-character rule would
+    send VK 35, which is End's virtual key code."""
+    if browser=='chrome':
+        session.call('Input.dispatchKeyEvent',{'type':'keyDown','key':'#','code':'Digit3','text':'#','unmodifiedText':'#',
+                     'windowsVirtualKeyCode':51,'nativeVirtualKeyCode':51})
+        session.call('Input.dispatchKeyEvent',{'type':'keyUp','key':'#','code':'Digit3','windowsVirtualKeyCode':51,'nativeVirtualKeyCode':51})
+    else:inputs.key(session,browser,'#')
+
+MARKER_ANSWERED="""(()=>{const p=window.__featureSelection,q=p[ARG_ARM].marker,g=q.generation;
+  const r=p.requests.slice(q.requestStart).filter(e=>e.generation===g&&e.message.operation==='insertText');
+  return r.length>0&&r.every(x=>p.responses.some(e=>e.generation===g&&e.message.requestId===x.message.requestId));})()"""
+
+def run_r1(session,browser,row,target,fixture):
+    """R1: per arm a fresh document of the cell's fixture and its shape; the control (layout-relative
+    cells) is placed collapsed at that shape's own point; then the unshifted real key, the marker
+    and the export.  Runs once; nothing is retried."""
+    setup=row['setup']
+    for which in (('r1control',) if row['control'] else ())+('r1cand',):
+        fresh(session,target,fixture['servedName'])
+        shape=control(session,'prepareR1('+json.dumps(which)+')')
+        if setup['method']=='keys':
+            for n in range(setup['count']):product_key(session,browser,which+'-setup-shift-'+str(n),setup['productKey'],True)
+        elif setup['method']=='shift-end':product_key(session,browser,which+'-setup-end','End',True)
+        else:drag(session,browser,shape)
+        control(session,'shapeR1()')
+        if which=='r1control':control(session,'controlPointR1()')
+        product_key(session,browser,which+'-move',row['productKey']['key'],False)
+        control(session,'finishR1()');actual_marker(session,browser)
+        wait_page(session,MARKER_ANSWERED.replace('ARG_ARM',json.dumps(which)))
+        control(session,'markerR1()')
+
 def run_arm(session,browser,which,row):
     setup=control(session,'prepare('+json.dumps(which)+')')
     if setup['method']=='drag':drag(session,browser,setup)
@@ -148,11 +183,11 @@ def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output',type=Path,required=True);parser.add_argument('--preparation-only',action='store_true')
     parser.add_argument('--browser',choices=BROWSERS);parser.add_argument('--case-id',action='append',help='preparation only; repeatable, run in the given order');parser.add_argument('--pre-red-report',type=Path)
-    parser.add_argument('--population',choices=('selection','s5'),default='selection',help='selection: S1-S4 cells; s5: the 588 S5 sequences')
+    parser.add_argument('--population',choices=('selection','s5','r1'),default='selection',help='selection: S1-S4 cells; s5: the 588 S5 sequences; r1: the 72 R1 cells')
     parser.add_argument('--keep-going',action='store_true',help='preparation only: record every listed cell instead of stopping at the first nonpassing one')
     args=parser.parse_args();plan=config()
     if (args.browser or args.case_id or args.keep_going) and not args.preparation_only:parser.error('filters require preparation-only')
-    population=list(plan['s5']) if args.population=='s5' else list(plan['cases'])+list(plan['interactions'])
+    population=list(plan['s5']) if args.population=='s5' else list(plan['r1']) if args.population=='r1' else list(plan['cases'])+list(plan['interactions'])
     if args.case_id and (set(args.case_id)-set(population) or len(set(args.case_id))!=len(args.case_id)):parser.error('unknown or repeated source case')
     if not args.preparation_only and not args.pre_red_report:parser.error('qualifying collection requires complete historical pre-red')
     prerequisite=check_pre_red(args.pre_red_report) if args.pre_red_report else {'verdict':'NOT_ESTABLISHED'}
@@ -177,6 +212,7 @@ def main():
                         initial,meta=export_page(session);readiness(Evidence(initial,plan,browser))
                         cell['readinessTransfer']=meta
                         if case in plan['s5']:run_s5(session,browser,plan['s5'][case],plan,target)
+                        elif case in plan['r1']:run_r1(session,browser,plan['r1'][case],target,plan['r1Fixtures'][plan['r1'][case]['fixture']])
                         elif case in plan['interactions']:fresh(session,target);run_interaction(session,browser,plan['interactions'][case])
                         else:
                             for which in ('reference','candidate'):

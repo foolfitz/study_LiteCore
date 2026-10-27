@@ -4,7 +4,7 @@ import json
 import re
 from pathlib import Path
 from odt_paragraphs import paragraph_texts_from_xml
-from v23_feature_s_cases import ROOT, ARCHIVE, PINS, derive, read_rounds
+from v23_feature_s_cases import ROOT, ARCHIVE, PINS, MOVES, derive, read_rounds
 
 PROJECT=ROOT/'wasm_sdk_probe'
 PROFILE='e2-editor-v23'
@@ -169,6 +169,265 @@ def s5(table,cases_by_id):
     if len(result)!=588:raise ValueError('S5 population differs')
     return result
 
+# ---- R1 (handoff/PROTOCOL-2026-10-26-v23-r1-inputs.md) ----------------------------------------
+# The population is collect_v23_r1_inputs.collect(), bound to the committed index by hash; the
+# fixture of every cell is the one whose native text rendering equals the cell's native text.
+R1_INDEX=ROOT/'findings/evidence/link-batch-v23/feature-protocol/r1/native-inputs.json'
+R1_INDEX_SHA256='6e13c04d6acc901bdc7988d65ac4e616a9bf35ddbcce5549dbb76f6e40ab6fdd'
+R1_TABLE='urn:oasis:names:tc:opendocument:xmlns:table:1.0'
+R1_KEYS={'Left':'ArrowLeft','Right':'ArrowRight','Up':'ArrowUp','Down':'ArrowDown','Home':'Home','End':'End'}
+MOVES_R1={k:v[0] for k,v in MOVES.items()}
+# The Shape table of the source-as-run (tools/f129_native_point_click.cpp, bound by collect()),
+# restated as logical inputs; no native coordinate enters.  An offset is {'offset': n} or
+# {'wrapDelta': d}, d counted from the shape paragraph's first visual wrap W, which the browser
+# discovers itself (its own Right walk).  Drag and Shift+End points follow from the native
+# selected text.  Every entry is cross-checked against the native records in r1().
+R1_SHAPES={
+ 'p2-forward':{'fixture':'arrow-selection','method':'keys','key':'Right','count':10,'anchor':(1,{'offset':9}),'point':(1,{'offset':19})},
+ 'p2-backward':{'fixture':'arrow-selection','method':'keys','key':'Left','count':10,'anchor':(1,{'offset':19}),'point':(1,{'offset':9})},
+ 's1':{'fixture':'arrow-selection-shapes','wrap':'s1','paragraph':0,'method':'keys','key':'Right','count':10,'anchor':(0,{'wrapDelta':-10}),'point':(0,{'wrapDelta':0})},
+ 's2':{'fixture':'arrow-selection-shapes','method':'keys','key':'Right','count':11,'anchor':(1,{'offset':9}),'point':(1,{'offset':20})},
+ 's3':{'fixture':'arrow-selection-shapes','method':'keys','key':'Right','count':10,'anchor':(2,{'offset':25}),'point':(3,{'offset':0})},
+ 's4':{'fixture':'arrow-selection-shapes','method':'keys','key':'Right','count':7,'anchor':(5,{'offset':3}),'point':(5,{'offset':10})},
+ 's5':{'fixture':'arrow-selection-shapes','method':'keys','key':'Right','count':5,'anchor':(5,{'offset':11}),'point':(6,{'offset':0}),'cellSelection':True},
+ 's1e':{'fixture':'arrow-selection-shapes','wrap':'s1','paragraph':0,'method':'shift-end','anchor':(0,{'wrapDelta':-10})},
+ 'm1r':{'fixture':'arrow-selection-wrap','wrap':'m1','paragraph':0,'method':'keys','key':'Right','count':10,'anchor':(0,{'wrapDelta':-10}),'point':(0,{'wrapDelta':0})},
+ 'm1e':{'fixture':'arrow-selection-wrap','wrap':'m1','paragraph':0,'method':'shift-end','anchor':(0,{'wrapDelta':-10})},
+ 's1d':{'fixture':'arrow-selection-shapes','wrap':'s1','paragraph':0,'method':'drag'},
+ 'm1d':{'fixture':'arrow-selection-wrap','wrap':'m1','paragraph':0,'method':'drag'},
+}
+
+def r1_layout(raw):
+    """Paragraphs in paragraph_texts_from_xml order and each one's container: 'body' or [table,row,cell]."""
+    import xml.etree.ElementTree as ET
+    from odt_paragraphs import PARAGRAPHS,CONTAINERS,OFFICE,_inline
+    t=lambda name:'{'+R1_TABLE+'}'+name
+    body=ET.fromstring(raw).find('{'+OFFICE+'}body')
+    if body is None:raise ValueError('R1 fixture has no office:body')
+    parent={child:node for node in body.iter() for child in node}
+    tables=[x for x in body.iter() if x.tag==t('table')];texts=[];where=[]
+    for element in body.iter():
+        if element.tag not in PARAGRAPHS:continue
+        parts=[];_inline(element,parts);texts.append(''.join(parts))
+        chain=[];node=element
+        while node in parent:node=parent[node];chain.append(node)
+        if any(x.tag in CONTAINERS for x in chain):raise ValueError('R1 fixture: note/frame/annotation paragraph not modelled')
+        cells=[x for x in chain if x.tag in (t('table-cell'),t('covered-table-cell'))]
+        if not cells:where.append('body');continue
+        if len(cells)!=1 or cells[0].tag!=t('table-cell'):raise ValueError('R1 fixture: nested or covered cell not modelled')
+        cell=cells[0];row=parent[cell];table=parent.get(row)
+        if row.tag!=t('table-row') or table is None or table.tag!=t('table'):raise ValueError('R1 fixture: row group not modelled')
+        rows=[x for x in table if x.tag==t('table-row')];columns=[x for x in row if x.tag in (t('table-cell'),t('covered-table-cell'))]
+        if any(x.get(t(a)) for x in rows+columns for a in ('number-rows-repeated','number-columns-repeated','number-columns-spanned','number-rows-spanned')):
+            raise ValueError('R1 fixture: repeated or spanned cell not modelled')
+        where.append([tables.index(table),rows.index(row),columns.index(cell)])
+    if texts!=paragraph_texts_from_xml(raw):raise ValueError('R1 fixture paragraph order differs')
+    return texts,where
+
+def r1_rendering(texts,where):
+    """The native `.uno:SelectAll` text/plain form: paragraphs joined by newline, cells of one table
+    row by tab, a line break (U+2028 in the save) as newline.  Returns the text and each
+    paragraph's [start,end] span in it (code points)."""
+    out='';spans=[]
+    for i,text in enumerate(texts):
+        if i:
+            a,b=where[i-1],where[i]
+            out+='\t' if a!='body' and b!='body' and a[:2]==b[:2] and a[2]!=b[2] else '\n'
+        start=len(out);out+=text.replace('\u2028','\n');spans.append((start,len(out)))
+    return out,spans
+
+def r1_position(spans,index):
+    """Native text index -> the unique (paragraph, code-point offset)."""
+    found=[(i,index-s) for i,(s,e) in enumerate(spans) if s<=index<=e]
+    if len(found)!=1:raise ValueError('native text index maps to no or several logical positions')
+    return found[0]
+
+def r1_index(spans,position):
+    p,o=position
+    if not 0<=p<len(spans) or not 0<=o<=spans[p][1]-spans[p][0]:raise ValueError('logical position outside the fixture')
+    return spans[p][0]+o
+
+def r1_marker(fixtures,text):
+    """A native marked text -> (fixture stem, (paragraph, offset)); unique, and round-tripped."""
+    if not isinstance(text,str) or text.count('#')!=1:raise ValueError('native marker not unique')
+    g=text.index('#');plain=text[:g]+text[g+1:]
+    found=[stem for stem,f in fixtures.items() if f['rendering']==plain]
+    if len(found)!=1:raise ValueError('native text does not identify exactly one fixture')
+    f=fixtures[found[0]];p,o=r1_position(f['spans'],g)
+    marked=list(f['paragraphs']);marked[p]=marked[p][:o]+'#'+marked[p][o:]
+    if r1_rendering(marked,f['containers'])[0]!=text:raise ValueError('marker position not consistent with the fixture paragraphs')
+    return found[0],(p,o)
+
+def r1_saved_marker(saved,original):
+    """Saved paragraphs -> (paragraph, offset) of the one '#'; everything else must be the original."""
+    hits=[(p,t.index('#')) for p,t in enumerate(saved) if '#' in t]
+    if len(saved)!=len(original) or len(hits)!=1 or saved[hits[0][0]].count('#')!=1:return None
+    p,o=hits[0]
+    if saved[p][:o]+saved[p][o+1:]!=original[p] or any(a!=b for i,(a,b) in enumerate(zip(saved,original)) if i!=p):return None
+    return p,o
+
+def r1_point_plan(texts,spec,wrap=None):
+    """A located point's logical plan, the shape the page's locate() takes.  The query is the
+    paragraph's text up to its first hard break, so no prefix crosses one."""
+    p=spec['paragraph']
+    if not 0<=p<len(texts):raise ValueError('R1 point outside the fixture')
+    segment=lambda q:texts[q].split('\u2028')[0]
+    base={'name':spec['name'],'paragraph':p}
+    if spec['kind']=='next-empty':
+        if texts[p] or p==0 or not texts[p-1] or '\u2028' in texts[p-1]:raise ValueError('undeclared empty-paragraph traversal')
+        return {**base,'searchParagraph':p-1,'query':texts[p-1],'anchor':'search-text-start','offset':'next-empty',
+                'prefix':texts[p-1]+'\n','requiredWitness':'preceding-paragraph-end-right-empty-caret'}
+    if not texts[p]:raise ValueError('an empty paragraph is reached by next-empty only')
+    if spec['kind']=='visual-end':
+        return {**base,'query':segment(p),'anchor':'search-text-start','offset':'visual-end','requiredWitness':'actual-first-line-end'}
+    if spec['kind']!='offset':raise ValueError('unknown R1 point kind')
+    if spec.get('wrapDelta') is None:offset=spec['offset']
+    elif type(wrap) is int:offset=wrap+spec['wrapDelta']
+    else:raise ValueError('wrap-relative point without a discovered wrap')
+    if type(offset) is not int or not 0<=offset<=len(segment(p)):raise ValueError('logical offset outside the paragraph line segment')
+    return {**base,'query':segment(p),'anchor':'search-text-start','offset':offset,'prefix':texts[p][:offset],
+            'requiredWitness':'actual-text-start-prefix-and-restored-caret'}
+
+def r1_logical(plan,selected=None):
+    """(paragraph, offset) of a located point; a line end takes its actual prefix length."""
+    if plan['offset']=='next-empty':return (plan['paragraph'],0)
+    if plan['offset']=='visual-end':
+        if not isinstance(selected,str):raise ValueError('line end without its prefix')
+        return (plan['paragraph'],len(selected))
+    return (plan['paragraph'],plan['offset'])
+
+def r1_walk_logical(texts,start,key,count):
+    p,o=start
+    for _ in range(count):
+        if key=='Right':
+            if o<len(texts[p]):o+=1
+            elif p+1<len(texts):p,o=p+1,0
+            else:raise ValueError('logical walk leaves the fixture')
+        else:
+            if o>0:o-=1
+            elif p>0:p,o=p-1,len(texts[p-1])
+            else:raise ValueError('logical walk leaves the fixture')
+    return p,o
+
+def r1_native_wraps(collected):
+    """The as-run discover rows (wrapOffset per round) beside the ref/emu records collect() binds."""
+    from collect_v23_r1_inputs import NATIVE,SOURCES,ROUNDS
+    wraps={}
+    for _,directory in SOURCES:
+        for round_id in ROUNDS:
+            rel=str(NATIVE/directory/f'arms-r{round_id}.jsonl');raw=(ROOT/rel).read_bytes()
+            if collected['files'].get(rel)!=digest(raw):raise ValueError('native discover rows not bound: '+rel)
+            for line in raw.decode().splitlines():
+                row=json.loads(line) if line.strip() else {}
+                if str(row.get('arm','')).startswith('discover-'):
+                    wraps.setdefault(row['arm'].removeprefix('discover-'),set()).add(row.get('wrapOffset'))
+    if any(len(v)!=1 or not isinstance(next(iter(v)),int) for v in wraps.values()):raise ValueError('native wrap discovery unstable')
+    return {k:next(iter(v)) for k,v in wraps.items()}
+
+def r1_fixtures(collected):
+    out={}
+    for path,pin in collected['fixtures'].items():
+        raw=(ROOT/path).read_bytes()
+        if digest(raw)!=pin:raise ValueError('R1 fixture bytes differ: '+path)
+        texts,where=r1_layout(raw)
+        if any('#' in t for t in texts):raise ValueError('R1 fixture already contains the marker')
+        rendering,spans=r1_rendering(texts,where);stem=Path(path).stem
+        out[stem]={'path':path,'sha256':pin,'servedName':'r1-'+stem+'.odt','paragraphs':texts,'containers':where,
+                   'rendering':rendering,'spans':[list(s) for s in spans]}
+    return out
+
+def r1_setup(shape,recipe,texts,where,made,native_wrap):
+    """Executable setup of one shape, plus its native logical setup (native W only here)."""
+    spec=lambda name,p,o:{'name':name,'paragraph':p,'kind':'next-empty' if not texts[p] else 'offset',**o}
+    walk=None
+    if recipe.get('wrap'):
+        p=recipe['paragraph']
+        if 'anchor' in recipe and recipe['anchor'][0]!=p:raise ValueError('R1 wrap shape leaves its paragraph')
+        walk={'paragraph':p,'query':texts[p].split('\u2028')[0],'limit':len(texts[p])}
+    method=recipe['method']
+    if method=='keys':
+        (ap,ao),(pp,po)=recipe['anchor'],recipe['point']
+        points=[spec('anchor',ap,ao),spec('point',pp,po)]
+        selection=('anchor','point')
+        if recipe.get('cellSelection'):
+            points.append(spec('selectionEnd',ap,{'offset':len(texts[ap])}));selection=('anchor','selectionEnd')
+        caret={'kind':'equals','point':'point'};point_name='point'
+    else:
+        p=walk['paragraph']
+        anchor=recipe['anchor'][1] if method=='shift-end' else {'wrapDelta':-len(made)}
+        end=anchor['wrapDelta']+len(made) if method=='shift-end' else 0
+        points=[spec('anchor',p,anchor),{'name':'line1End','paragraph':p,'kind':'visual-end'},spec('selectionEnd',p,{'wrapDelta':end})]
+        selection=('anchor','selectionEnd');point_name='selectionEnd'
+        caret={'kind':'equals' if method=='shift-end' else 'line1-at-or-after','point':'line1End'}
+    setup={'method':method,'walk':walk,'points':points,'caret':caret,'selection':list(selection),'pointName':point_name,
+           'productKey':None if method=='drag' else R1_KEYS[recipe['key'] if method=='keys' else 'End'],
+           'action':None if method=='drag' else MOVES_R1[recipe['key'] if method=='keys' else 'End'],
+           'count':recipe['count'] if method=='keys' else None,'cellSelection':bool(recipe.get('cellSelection'))}
+    # Native cross-check: the recipe with the native W reproduces the native selected text.
+    plans={s['name']:r1_point_plan(texts,s,native_wrap) for s in points if s['kind']!='visual-end'}
+    anchor=r1_logical(plans['anchor']);point=r1_logical(plans[point_name])
+    if method=='keys' and r1_walk_logical(texts,anchor,recipe['key'],recipe['count'])!=point:raise ValueError('R1 shape walk differs: '+shape)
+    rendering,spans=r1_rendering(texts,where);a,b=sorted((r1_index(spans,anchor),r1_index(spans,point)))
+    if setup['cellSelection']:
+        s0=spans[anchor[0]][0];s1=spans[point[0]][1]
+        if made!=rendering[s0:s1]+'\n':raise ValueError('R1 cell selection differs from native: '+shape)
+    elif rendering[a:b]!=made:raise ValueError('R1 shape does not reproduce the native selected text: '+shape)
+    return setup,{'anchor':list(anchor),'point':list(point)}
+
+def r1_premise(texts,where,point):
+    p=point[0]
+    if not texts[p]:return 'empty-paragraph'
+    if '\u2028' in texts[p]:return 'hard-break-line'
+    return 'table-cell-line' if where[p]!='body' else 'single-visual-line'
+
+def r1(collected=None):
+    """R1: every generated cell, its fixture, oracle class, control rule and native logical landing."""
+    from collect_v23_r1_inputs import collect
+    if collected is None:
+        # The live collection and the committed index are both the pinned bytes.
+        collected=collect()
+        if digest(encoded(collected))!=R1_INDEX_SHA256 or digest(R1_INDEX.read_bytes())!=R1_INDEX_SHA256:
+            raise ValueError('R1 native index differs from the committed native-inputs.json')
+    fixtures=r1_fixtures(collected);wraps=r1_native_wraps(collected)
+    controls={c['id']:c for c in collected['wrongOldClickControls']}
+    if set(R1_SHAPES)!={c['shape'] for c in collected['cells']}:raise ValueError('R1 shape table differs from the native population')
+    result={};setups={}
+    for cell in collected['cells']:
+        if cell['id'] in result:raise ValueError('duplicate R1 cell')
+        recipe=R1_SHAPES[cell['shape']];native=cell['native']
+        stem,marker=r1_marker(fixtures,native['text'])
+        if stem!=recipe['fixture']:raise ValueError('R1 cell fixture differs from its shape: '+cell['id'])
+        f=fixtures[stem];texts,where=f['paragraphs'],f['containers']
+        if native['selectedAfterKey']!='':raise ValueError('native move did not collapse: '+cell['id'])
+        wrap=wraps[recipe['wrap']] if recipe.get('wrap') else None
+        setup,setup_logical=r1_setup(cell['shape'],recipe,texts,where,native['made'],wrap)
+        if setups.setdefault(cell['shape'],(setup,setup_logical))!=(setup,setup_logical):raise ValueError('R1 shape setup unstable')
+        wrapped=bool(recipe.get('wrap'))
+        literal=cell['key'] in ('Left','Right') or (cell['key'] in ('Home','End') and not wrapped)
+        old=controls.get(cell['id'])
+        if old and literal:raise ValueError('wrong-old-click control on a literal cell')
+        emulated=None
+        if old:
+            emulated=list(r1_position(f['spans'],old['emulatedMarkerIndex']))
+            if old['nativeMarkerIndex']!=cell['nativeMarkerIndex'] or not cell['oldClickEmulationDiffers']:raise ValueError('wrong-old-click control differs')
+        elif cell['oldClickEmulationDiffers']:raise ValueError('undeclared old-click difference')
+        result[cell['id']]={'id':cell['id'],'group':cell['group'],'shape':cell['shape'],'key':cell['key'],'memberships':['R1'],
+            'fixture':stem,'productKey':{'key':R1_KEYS[cell['key']],'shiftKey':False},'action':MOVES_R1[cell['key']],
+            'oracle':'literal' if literal else 'layout-relative',
+            'control':None if literal else {'rule':'emuend' if old else 'emu','freshOriginalDocument':True,'key':cell['key'],'shiftKey':False},
+            'literalPremise':r1_premise(texts,where,setup_logical['point']) if literal and cell['key'] in ('Home','End') else None,
+            'wrongOldClickControl':None if not old else {'rounds':old['rounds'],'nativeMarkerIndex':old['nativeMarkerIndex'],
+                                                         'emulatedMarkerIndex':old['emulatedMarkerIndex'],'emulatedLogical':emulated},
+            'setup':setup,
+            'native':{'made':native['made'],'selectedAfterKey':native['selectedAfterKey'],'markerIndex':cell['nativeMarkerIndex'],
+                      'markerLogical':list(marker),'setupLogical':setup_logical,'wrapOffset':wrap,'observations':cell['observations']},
+            'default':'NOT_ESTABLISHED_UNPERFORMED'}
+    oracles=[r['oracle'] for r in result.values()]
+    if len(result)!=72 or oracles.count('literal')!=36 or oracles.count('layout-relative')!=36:raise ValueError('R1 population/partition differs')
+    if sorted(i for i,r in result.items() if r['control'] and r['control']['rule']=='emuend')!=sorted(controls) or len(controls)!=3:
+        raise ValueError('R1 emuend controls differ')
+    return result,{stem:{k:v for k,v in f.items() if k in ('path','sha256','servedName','paragraphs','containers')} for stem,f in fixtures.items()}
+
 def identity():
     directory=PROJECT/'dist/profiles'/PROFILE
     for name,expected in ARTIFACT_PINS.items():
@@ -224,9 +483,12 @@ def config():
                 candidate=PROJECT/'tools'/Path(*name.split('.')).with_suffix('.py')
                 if candidate.is_file():pending.append(candidate)
     texts=paragraphs();rounds=read_rounds();table=derive(rounds);selection=cases(table)
+    s5_plan=s5(table,selection);interaction_plan=interactions(table,rounds,texts);r1_plan,r1_fixture_plan=r1()
+    if len({*selection,*interaction_plan,*s5_plan,*r1_plan})!=len(selection)+len(interaction_plan)+len(s5_plan)+len(r1_plan):
+        raise ValueError('population identifiers overlap')
     return {'schema':1,'profile':identity(),'servedSources':{n:digest(v) for n,v in sources().items()},
             'instrumentSources':{str(p.relative_to(PROJECT)):sha(p) for p in sorted(closure)},
-            'cases':selection,'interactions':interactions(table,rounds,texts),'s5':s5(table,selection),'sourceTable':table,'fixtureSha256':PINS['fixture-as-run.fodt'],
+            'cases':selection,'interactions':interaction_plan,'s5':s5_plan,'r1':r1_plan,'r1Fixtures':r1_fixture_plan,'sourceTable':table,'fixtureSha256':PINS['fixture-as-run.fodt'],
             'fixtureParagraphs':texts,'fixtureManifest':{'fixtures':[{'id':'list-contexts'}]},
             'readinessPoint':point_plan('p0.0',texts),
             'mappingPoints':[point_plan(f'p{i}.0',texts) for i in range(len(texts))]}
@@ -239,6 +501,8 @@ def mirror(target,plan):
     (target/'e1-fixtures').mkdir()
     (target/'e1-fixtures/manifest.json').write_bytes(encoded(plan['fixtureManifest']))
     for name in ('e1-fixtures/list-contexts.odt','feature-selection.odt'):(target/name).write_bytes(FIXTURE.read_bytes())
+    # R1: each original FODT under its own .odt alias (the SDK's non-ODS suffix guard), opened by fresh().
+    for f in plan.get('r1Fixtures',{}).values():(target/f['servedName']).write_bytes((ROOT/f['path']).read_bytes())
     (target/'selection-config.json').write_bytes(encoded(plan))
 
 def verify_mirror(target,plan):
@@ -248,4 +512,9 @@ def verify_mirror(target,plan):
         if sha(target/name)!=plan['fixtureSha256']:raise ValueError('actual fixture mirror differs')
     for name,value in [('selection-config.json',plan),('e1-fixtures/manifest.json',plan['fixtureManifest'])]:
         if (target/name).read_bytes()!=encoded(value):raise ValueError('actual config mirror differs')
-    return {'sources':plan['servedSources'],'fixtureSha256':plan['fixtureSha256'],'configSha256':digest(encoded(plan))}
+    receipt={'sources':plan['servedSources'],'fixtureSha256':plan['fixtureSha256'],'configSha256':digest(encoded(plan))}
+    if plan.get('r1Fixtures'):
+        for f in plan['r1Fixtures'].values():
+            if sha(target/f['servedName'])!=f['sha256']:raise ValueError('actual R1 fixture mirror differs: '+f['servedName'])
+        receipt['r1Fixtures']={f['servedName']:f['sha256'] for f in plan['r1Fixtures'].values()}
+    return receipt

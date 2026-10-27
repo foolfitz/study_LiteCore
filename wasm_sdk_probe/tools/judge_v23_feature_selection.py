@@ -7,9 +7,10 @@ from pathlib import Path
 import re
 import sys
 sys.path.insert(0,str(Path(__file__).resolve().parent))
-from v23_feature_selection_cases import config,encoded,digest,verify_mirror,BROWSERS,PROFILE,ROOT
+from v23_feature_selection_cases import (config,encoded,digest,verify_mirror,BROWSERS,PROFILE,ROOT,
+                                        r1_point_plan,r1_logical,r1_saved_marker)
 from judge_v23_feature_pre_red import (NotEstablished,need,stream,call_binding,bound_state,bound_save,
-                                     binary,s2_compare,wrap_first_rectangle)
+                                     binary,s2_compare,wrap_first_rectangle,paragraphs as saved_paragraphs)
 
 
 class ProductFailure(ValueError):pass
@@ -48,7 +49,7 @@ class Evidence:
     def __init__(self,page,plan,browser):
         self.page,self.plan=page,plan;self.used=set();self.mutations=set();self.call_order=[]
         need(page.get('profile')==PROFILE,'wrong feature profile')
-        need(any(page.get('caseId') in plan.get(k,{}) for k in ('cases','interactions','s5')),'undeclared source case')
+        need(any(page.get('caseId') in plan.get(k,{}) for k in ('cases','interactions','s5','r1')),'undeclared source case')
         ua=page.get('userAgent','')
         actual='firefox' if re.search(r'Firefox/[0-9]',ua) else 'chrome' if re.search(r'(?:Headless)?Chrome/[0-9]',ua) else None
         need(actual==browser,'actual UA family differs')
@@ -76,13 +77,15 @@ class Evidence:
     def save(self,name,value):
         self.used.add(name)
         return bound_save(self.page,name,value,self.requests,self.replies)
-    def opened(self,record):
-        need(record['fixtureSha256']==self.plan['fixtureSha256'],'opened fixture differs')
+    def opened(self,record,fixture_sha256=None):
+        # R1 arms open their own fixture; everything else the selection fixture.
+        fixture=fixture_sha256 or self.plan['fixtureSha256']
+        need(record['fixtureSha256']==fixture,'opened fixture differs')
         matches=[r for r in self.requests.values() if r['generation']==record['generation'] and r['message']['operation']=='open']
         need(len(matches)==1,'actual fresh open absent/nonunique');r=matches[0];t=self.replies.get(request_key(r))
         need(t and t['message'].get('ok') is True,'open refused')
         need(t['message']['result']['documentHandle']==record['documentHandle'],'open handle differs')
-        need(digest(binary(r['message']['payload']['buffer']))==self.plan['fixtureSha256'],'wire open bytes differ')
+        need(digest(binary(r['message']['payload']['buffer']))==fixture,'wire open bytes differ')
         need(r['message']['payload']['name']==record['name'],'wire filename differs')
         workers=[w for w in self.page['workers'] if w['generation']==record['generation']]
         need(len(workers)==1 and workers[0]['url'].endswith('/profiles/'+PROFILE+'/sdk-worker.js'),'actual worker differs')
@@ -556,7 +559,187 @@ def inspect_s5(page,plan,browser):
     except (NotEstablished,KeyError,ValueError,TypeError,IndexError) as error:
         return {'verdict':'NOT_ESTABLISHED','reason':str(error),'groups':groups}
 
+# ---- R1 (handoff/PROTOCOL-2026-10-26-v23-r1-inputs.md) ----------------------------------------
+
+def r1_walk(e,prefix,record,plan):
+    """The browser's own first visual wrap W, recomputed from the raw walk: a fresh Right walk from
+    the text start, W = the first step whose caret y differs, bounded by the paragraph length."""
+    order_start=len(e.call_order)
+    need(isinstance(record,dict) and record.get('plan')==plan,'wrap discovery input differs')
+    _,r,t=e.call(prefix+'-search','search');need(r['message']['payload']['query']==plan['query'],'query differs')
+    first=wrap_first_rectangle(t['message']['result'])
+    raw_boxes=sorted([list(map(int,x.split(','))) for x in t['message']['result']['selections'][0]['rectangles'].split(';')],key=lambda r:(r[1],r[0]))
+    need(record.get('boxes')==raw_boxes,'unbound page search boxes')
+    _,r,_=e.place(prefix+'-search-click')
+    need(r['message']['payload']['xTwips']==first[0] and r['message']['payload']['yTwips']==first[1]+first[3]//2,'actual text-start click differs')
+    e.state(prefix+'-start-state',record['start'])
+    need(xy(record['start']['caret'])==first[:2],'actual text start caret differs')
+    steps=record.get('steps')
+    need(isinstance(steps,list) and 0<len(steps)<=plan['limit'],'wrap discovery walk absent or unbounded')
+    y0=record['start']['caret']['y']
+    for i,step in enumerate(steps,1):
+        e.move(prefix+'-right-'+str(i),'move-character-right',False);e.state(prefix+'-step-'+str(i),step)
+        need((xy(step.get('caret'))[1]!=y0)==(i==len(steps)),'wrap discovery transition differs')
+    need(record.get('wrap')==len(steps),'wrap discovery result differs')
+    expected=e.call_order[order_start:]
+    need([c['name'] for c in e.page['calls'] if c['name'] in expected]==expected,'wrap discovery call order differs')
+    return len(steps)
+
+def r1_drag_end(e,v,name,gen):
+    """The drag release point, recomputed from the raw first-line search rectangle and the open's
+    document width: the middle of the paper right of the first displayed line, at its height."""
+    _,_,t=call_binding(e.page,name+'-walk-search','search',e.requests,e.replies)
+    first=wrap_first_rectangle(t['message']['result'])
+    opened=next(r for r in e.requests.values() if r['generation']==gen and r['message']['operation']=='open')
+    width=e.replies[request_key(opened)]['message']['result']['width'];right=first[0]+first[2]
+    end={'x':right+(width-right)//2,'y':first[1],'height':first[3]}
+    need(right<end['x']<width,'no paper right of the first displayed line')
+    need(v.get('dragEnd')==end,'drag end not derived from public geometry')
+    return end
+
+def r1_marker_witness(e,v,name,gen,handle,after,texts):
+    """The '#' through the product's typing path, then the export: (paragraph, offset) of the marker."""
+    m=v.get('marker') or {}
+    need(m.get('generation')==gen and all(type(m.get(k)) is int for k in ('inputStart','inputEnd','requestStart','requestEnd'))
+         and 0<=m['inputStart']<=m['inputEnd']<=len(e.page['inputs']) and 0<=m['requestStart']<=m['requestEnd']<=len(e.page['requests']),'marker window absent')
+    window=e.page['inputs'][m['inputStart']:m['inputEnd']]
+    keys=[x for x in window if x['type']=='keydown']
+    need(len(keys)==1 and keys[0].get('key')=='#' and keys[0].get('isTrusted') is True
+         and not any(keys[0].get(k) for k in ('ctrlKey','altKey','metaKey','repeat')),'marker key absent or not one trusted press')
+    sink=keys[0].get('sink',{})
+    need(sink.get('active') and sink.get('connected') and not sink.get('disabled') and not sink.get('readOnly') and sink.get('documentHandle')==handle,'marker key not in the editable document sink')
+    need(keys[0]['at']>=after['at'],'marker typed before the delayed read')
+    typed=[x for x in window if x['type']=='beforeinput' and x.get('inputType')=='insertText' and x.get('data')=='#' and x.get('isTrusted') is True]
+    need(len(typed)==1 and typed[0]['at']>=keys[0]['at'],'marker beforeinput absent')
+    inserts=[r for r in e.requests.values() if r['generation']==gen and r['message']['operation']=='insertText']
+    in_window=[r for r in e.page['requests'][m['requestStart']:m['requestEnd']] if r['generation']==gen and r['message']['operation']=='insertText']
+    need(len(inserts)==1 and in_window==inserts and inserts[0]['message']['payload']=={'documentHandle':handle,'text':'#'}
+         and inserts[0]['at']>=typed[0]['at'],'marker insertion absent/extra')
+    terminal=e.replies.get(request_key(inserts[0]));need(terminal is not None and terminal['message'].get('ok') is True,'marker insertion refused')
+    need(not any(r['generation']==gen and r['message']['operation'] in MUTATION_OPS for r in e.page['requests'][m['requestStart']:m['requestEnd']]),'unplanned mutation around the marker')
+    final_save(e,name+'-final-save',v['finalSave'])
+    c=next(c for c in e.page['calls'] if c['name']==name+'-final-save')
+    saves=[r for r in e.page['requests'][c['requestStart']:c['requestEnd']] if r['generation']==gen and r['message']['operation']=='save']
+    need(saves[-1]['at']>=terminal['at'],'export precedes the marker insertion')
+    position=r1_saved_marker(saved_paragraphs(v['finalSave']),texts)
+    need(position is not None,'export is not the fixture plus one marker')
+    return position
+
+def r1_arm(e,name,row):
+    """One fresh R1 arm.  A setup that does not reproduce the recorded semantics is NE; for the
+    candidate a changed document or an uncollapsed result is a FAIL, for the control (the oracle)
+    the same outcome only makes the cell NE."""
+    v=e.page[name];f=e.plan['r1Fixtures'][row['fixture']];texts=f['paragraphs'];s=row['setup']
+    measured=name=='r1cand';check=contradict if measured else need
+    label=(lambda m:m) if measured else (lambda m:'independent control outcome invalid: '+m)
+    need(v['open'].get('name')==f['servedName'],'R1 fixture alias differs')
+    gen,handle=e.opened(v['open'],f['sha256'])
+    need(e.save(name+'-original-save',v['originalSave'])==texts,'fresh original differs')
+    wrap=r1_walk(e,name+'-walk',v.get('walk'),s['walk']) if s['walk'] else None
+    need(list(v['points'])==[p['name'] for p in s['points']],'point discovery population differs')
+    plans={p['name']:r1_point_plan(texts,p,wrap) for p in s['points']}
+    carets={n:e.locate(name+'-point-'+n,v['points'][n],plan) for n,plan in plans.items()}
+    anchor=carets['anchor']
+    if s['method']=='drag':drag_witness(e,v,gen,anchor,r1_drag_end(e,v,name,gen))
+    else:
+        _,r,_=e.place(name+'-anchor-click');need(all(r['message']['payload'][k]==z for k,z in point(anchor).items()),'shape anchor differs')
+        names=[name+'-setup-shift-'+str(n) for n in range(s['count'])] if s['method']=='keys' else [name+'-setup-end']
+        for n in names:e.key(n,{'action':s['action'],'productKey':{'key':s['productKey']}},True)
+    e.state(name+'-setup-state',v['setupState']);e.text(name+'-setup-text',v['setupSelection'])
+    state=v['setupState'];selection=state.get('selection') or {}
+    # Shape witnesses (protocol: selected text/type, identity, caret, start/end, affinity).
+    need(v['setupSelection'].get('text')==row['native']['made'],'R1 setup selected text differs from native')
+    need(v['setupSelection'].get('selectionType') in ('text','complex'),'R1 setup selection type absent')
+    need(selection.get('observed') is True and selection.get('collapsed') is False,'R1 setup made no range')
+    target=carets[s['caret']['point']];caret=xy(state.get('caret'))
+    if s['caret']['kind']=='equals':need(caret==xy(target),'R1 setup point/affinity differs')
+    else:need(caret[1]==target['y'] and caret[0]>=target['x'],'R1 setup point not displayed at the end of line 1')
+    a,b=(xy(carets[n]) for n in s['selection'])
+    need(a!=b and sorted([xy(selection.get('start')),xy(selection.get('end'))])==sorted([a,b]),'R1 setup selection endpoints differ')
+    _,before=e.state(name+'-before-state',v['before'])
+    need(v['before']['caret']==state['caret'] and v['before']['selection']==selection,'shape changed before measured key')
+    pn=s['pointName']
+    logical={'anchor':list(r1_logical(plans['anchor'])),'point':list(r1_logical(plans[pn],v['points'][pn]['selected'].get('text')))}
+    after=before;owned=set()
+    if name=='r1control':
+        rect=state['caret'] if row['control']['rule']=='emu' else selection.get('end')
+        need(isinstance(rect,dict) and v.get('controlRect')==rect,'control rectangle is not the shape rectangle')
+        _,r,_=e.place(name+'-control-click');owned.add(request_key(r))
+        need(r['message']['payload']['xTwips']==rect['x'] and r['message']['payload']['yTwips']==rect['y']+int(rect['height']//2),'control click differs')
+        _,after=e.state(name+'-control-state',v['controlState'])
+        need(v['controlState']['selection'].get('collapsed') is True and xy(v['controlState']['caret'])==xy(rect),'control point/affinity not witnessed')
+    c,r,t=e.key(name+'-move',{'action':row['action'],'productKey':row['productKey']},False);owned.add(request_key(r))
+    need(r['generation']==gen and r['message']['payload']['documentHandle']==handle and r['at']>=after['at'],'measured key ownership/order differs')
+    need(v['reply']==c['result']==t['message']['result'],'actual measured reply differs')
+    reply=v['reply']
+    need(type(reply.get('changed')) is bool and all(type(reply.get(k)) is int for k in ('revision','beforeRevision')),'move accounting witness missing')
+    rr,rt=e.state(name+'-readback',v['readback']);need(rr['at']-t['at']>=500,'readback too early')
+    ar,at=e.text(name+'-active-selection',v['activeSelection']);need(ar['at']>=rt['at'],'active selection precedes delayed state')
+    for request in e.requests.values():
+        if request['generation']==gen and before['at']<request['at']<=ar['at'] and request['message']['operation'] in MUTATION_OPS+('insertText',):
+            need(request_key(request) in owned,'unplanned mutation between the shape and the delayed read')
+    bad=[k for k,ok in (('before-revision',reply['beforeRevision']==v['before']['revision']),('changed',reply['changed'] is False),
+                        ('revision',reply['revision']==reply['beforeRevision']),('delayed-revision',v['readback']['revision']==reply['revision'])) if not ok]
+    check(not bad,label('measured move changed the document/revision: '+','.join(bad)))
+    check(v['readback']['selection'].get('collapsed') is True and v['activeSelection'].get('selectionType')=='none'
+          and v['activeSelection'].get('text')=='',label('measured move result not collapsed'))
+    marker=r1_marker_witness(e,v,name,gen,handle,at,texts)
+    e.state(name+'-final-state',v['finalState']);e.call(name+'-close','close')
+    return {'generation':gen,'wrap':wrap,'setupLogical':logical,'marker':list(marker),'caret':v['readback']['caret'],
+            'keyAt':r['at'],'controlAt':after['at'],'pointBoxes':v['points'][pn]['boxes'],'setupCaret':caret,
+            'setupSelectionType':v['setupSelection']['selectionType']}
+
+def r1_literal_premise(row,cand):
+    """Literal Home/End: the point's line is one displayed line (its own search has exactly one
+    rectangle and the shape's caret is on it); an empty paragraph is one line by itself."""
+    kind=row['literalPremise']
+    if kind!='empty-paragraph':
+        boxes=cand['pointBoxes']
+        need(len(boxes)==1 and cand['setupCaret'][1]==boxes[0][1],'literal premise not witnessed: '+kind)
+    return kind
+
+def inspect_r1(page,plan,browser):
+    groups={'R1':{'verdict':'NOT_ESTABLISHED'}}
+    try:
+        e=Evidence(page,plan,browser);row=plan['r1'][page['caseId']]
+        g=readiness(e)
+        need(bool(row['control'])==(row['oracle']=='layout-relative'),'R1 control declaration differs')
+        need(('r1control' in page)==bool(row['control']),'independent control arm absent/undeclared')
+        ctl=r1_arm(e,'r1control',row) if row['control'] else None
+        cand=r1_arm(e,'r1cand',row)
+        arms=1+(ctl is not None)
+        need(page.get('complete'),'incomplete page')
+        need(len({g,cand['generation']}|({ctl['generation']} if ctl else set()))==1+arms and len(page['workers'])==1+arms,'fresh arms/recovery generation differs')
+        need(len([r for r in e.requests.values() if r['message']['operation']=='open'])==1+arms,'extra/missing open')
+        e.closure()
+        if ctl:
+            need(ctl['generation']<cand['generation'] and ctl['controlAt']<cand['keyAt'],'control not established before the candidate key')
+            need(ctl['wrap']==cand['wrap'],'arms disagree on the visual wrap')
+        contradict(not any(x['message'].get('event') in ('recoverable-error','worker-restart') for x in page['events']),'recovery occurred')
+        record={'oracle':row['oracle'],'controlRule':(row['control'] or {}).get('rule'),'wrongOldClickControl':bool(row['wrongOldClickControl']),
+                'wrap':cand['wrap'],'setupLogical':cand['setupLogical'],'setupSelectionType':cand['setupSelectionType'],'landing':cand['marker']}
+        if row['oracle']=='literal':
+            if row['literalPremise']:record['premise']=r1_literal_premise(row,cand)
+            # Recorded, never asserted (open question in r1-source/README.md): the protocol compares
+            # absolute positions, and a browser wrap elsewhere can still give the native text.
+            at_native=cand['setupLogical']==row['native']['setupLogical']
+            record.update(nativeLanding=row['native']['markerLogical'],setupAtNativePosition=at_native)
+            contradict(cand['marker']==row['native']['markerLogical'],'logical landing differs from native'
+                       +('' if at_native else ' (setup not at the native logical position)'))
+        else:
+            record.update(controlLanding=ctl['marker'],controlCaret=xy(ctl['caret']),caret=xy(cand['caret']))
+            contradict(cand['marker']==ctl['marker'],'logical landing differs from the control')
+            contradict(xy(cand['caret'])==xy(ctl['caret']),'caret differs from the control')
+        groups['R1']={'verdict':'PASS',**record}
+        return {'verdict':'PASS','groups':groups}
+    except ProductFailure as error:
+        groups['R1']={'verdict':'FAIL','reason':str(error)}
+        return {'verdict':'FAIL','reason':str(error),'groups':groups}
+    except (NotEstablished,KeyError,ValueError,TypeError,IndexError) as error:
+        return {'verdict':'NOT_ESTABLISHED','reason':str(error),'groups':groups}
+
 def inspect(page,plan,browser):
+    if page.get('caseId') in plan.get('r1',{}):return inspect_r1(page,plan,browser)
     if page.get('caseId') in plan.get('s5',{}):return inspect_s5(page,plan,browser)
     if page.get('caseId') in plan.get('interactions',{}):return inspect_interaction(page,plan,browser)
     groups={'S1':{'verdict':'NOT_APPLICABLE'},'S2':{'verdict':'NOT_ESTABLISHED'},'S3':{'verdict':'NOT_APPLICABLE'}}
@@ -684,7 +867,7 @@ def check_pre_red(path):
     return {'path':str(path),'sha256':digest(raw),'verdict':'EXPECTED_RED','cells':result['cells']}
 
 def judge(cells,plan,kind='selection'):
-    population=plan['s5'] if kind=='s5' else {**plan['cases'],**plan.get('interactions',{})}
+    population=plan['s5'] if kind=='s5' else plan['r1'] if kind=='r1' else {**plan['cases'],**plan.get('interactions',{})}
     wanted={(b,c) for b in BROWSERS for c in population};seen=set();hashes=set();rows=[]
     for cell in cells:
         key=(cell['browser'],cell['caseId']);page=cell.get('page') or {}
@@ -703,7 +886,7 @@ def judge(cells,plan,kind='selection'):
         rows.append({'cell':key,**value})
     complete=seen==wanted and len(rows)==len(wanted)
     groups={}
-    for group in (('S5',) if kind=='s5' else ('S1','S2','S3','S4')):
+    for group in (('S5',) if kind=='s5' else ('R1',) if kind=='r1' else ('S1','S2','S3','S4')):
         members={(b,c) for b,c in wanted if group in population[c]['memberships']}
         observations=[r for r in rows if tuple(r['cell']) in members]
         groups[group]={'required':len(members),'observed':len(observations),
@@ -720,6 +903,12 @@ def judge(cells,plan,kind='selection'):
         groups['S5']['nativeFallbackCells']=sum(bool(g.get('nativeFallback')) for g in s5)
         if groups['S5']['verdict']=='PASS' and not overlapping:groups['S5'].update(verdict='FAIL',reason='empty overlap set')
         verdict=groups['S5']['verdict']
+    elif kind=='r1':
+        # Per cell, never an aggregate percentage; the three wrong-old-click Down cells listed apart.
+        groups['R1']['oracleCellsPerBrowser']={c:sum(r['oracle']==c for r in population.values()) for c in ('literal','layout-relative')}
+        groups['R1']['wrongOldClickControls']=[{'cell':list(r['cell']),'verdict':r['verdict'],'controlRule':'emuend'}
+            for r in rows if tuple(r['cell']) in wanted and population[r['cell'][1]]['wrongOldClickControl']]
+        verdict=groups['R1']['verdict']
     else:
         verdict='FAIL' if any(r['verdict']=='FAIL' for r in rows) else 'PASS' if complete and all(r['verdict']=='PASS' for r in rows) else 'NOT_ESTABLISHED'
     return {'verdict':verdict,'population':kind,'populationComplete':complete,'groups':groups,'results':rows}

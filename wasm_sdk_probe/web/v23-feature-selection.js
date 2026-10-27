@@ -99,6 +99,43 @@ async function locate(plan,prefix){
   if(JSON.stringify(final.caret)!==JSON.stringify(target.caret))throw new Error('restored caret differs');
   return {plan,boxes,start,target,selected,final};
 }
+// R1 (PROTOCOL-2026-10-26-v23-r1-inputs): the same point plan the Python plan builds
+// (v23_feature_selection_cases.r1_point_plan), offsets in code points.
+const codePoints=text=>Array.from(text);
+function r1PointPlan(texts,spec,wrap){
+  const p=spec.paragraph;if(!(p>=0&&p<texts.length))throw new Error('R1 point outside the fixture');
+  const segment=q=>texts[q].split('\u2028')[0],base={name:spec.name,paragraph:p};
+  if(spec.kind==='next-empty'){
+    if(texts[p]||p===0||!texts[p-1]||texts[p-1].includes('\u2028'))throw new Error('undeclared empty-paragraph traversal');
+    return {...base,searchParagraph:p-1,query:texts[p-1],anchor:'search-text-start',offset:'next-empty',
+      prefix:texts[p-1]+'\n',requiredWitness:'preceding-paragraph-end-right-empty-caret'};}
+  if(!texts[p])throw new Error('an empty paragraph is reached by next-empty only');
+  if(spec.kind==='visual-end')return {...base,query:segment(p),anchor:'search-text-start',offset:'visual-end',requiredWitness:'actual-first-line-end'};
+  if(spec.kind!=='offset')throw new Error('unknown R1 point kind');
+  let offset;
+  if(spec.wrapDelta===undefined||spec.wrapDelta===null)offset=spec.offset;
+  else if(Number.isInteger(wrap))offset=wrap+spec.wrapDelta;
+  else throw new Error('wrap-relative point without a discovered wrap');
+  if(!Number.isInteger(offset)||offset<0||offset>codePoints(segment(p)).length)throw new Error('logical offset outside the paragraph line segment');
+  return {...base,query:segment(p),anchor:'search-text-start',offset,prefix:codePoints(texts[p]).slice(0,offset).join(''),
+    requiredWitness:'actual-text-start-prefix-and-restored-caret'};
+}
+// The first visual wrap W: a fresh Right walk from the paragraph's text start until the caret's y
+// changes, bounded by the paragraph's own length (closed fixture population, no open scan).
+async function r1Walk(plan,prefix){
+  const found=await call(prefix+'-search',()=>current.document.search(plan.query));
+  const boxes=rectangles(found),r=boxes[0];
+  await place({xTwips:r[0],yTwips:r[1]+Math.floor(r[3]/2)},prefix+'-search-click');
+  const start=await state(prefix+'-start-state');
+  if(start.caret?.x!==r[0]||start.caret?.y!==r[1])throw new Error('actual text start differs');
+  const steps=[];
+  for(let i=1;i<=plan.limit;i++){
+    await move('character-right',prefix+'-right-'+i);
+    const step=await state(prefix+'-step-'+i);steps.push(step);
+    if(step.caret?.y!==start.caret.y)return {plan,boxes,start,steps,wrap:i};
+  }
+  throw new Error('no visual wrap inside the paragraph');
+}
 let armed=null,actionPromise=null,keyArm=null;
 result.keyArms=[];
 // S4: the product's own pointer handler calls placeCaret; when armed, that call is recorded
@@ -158,6 +195,63 @@ window.__selectionControl={
     await call(phaseName+'-close',()=>current.close());return true;
   }catch(error){return fail(error);}},
   completeS5(){result.complete=true;result.phase='complete';return true;},
+  // R1: one shape per fresh arm of the cell's own fixture; the control (layout-relative cells
+  // only) runs first and is placed collapsed at its own shape's point before any key.
+  async prepareR1(which){try{
+    if(!['r1control','r1cand'].includes(which))throw new Error('unknown R1 arm');
+    const row=config.r1?.[result.caseId];if(!row)throw new Error('unknown R1 cell');
+    const fixture=config.r1Fixtures[row.fixture],texts=fixture.paragraphs;
+    if(result.currentOpen?.fixtureSha256!==fixture.sha256||result.currentOpen?.name!==fixture.servedName)throw new Error('R1 fixture not open');
+    phaseName=which;phase=result[which]={open:snap(result.currentOpen),points:{}};
+    phase.originalSave=await save(which+'-original-save');
+    let wrap=null;
+    if(row.setup.walk){phase.walk=await r1Walk(row.setup.walk,which+'-walk');wrap=phase.walk.wrap;}
+    for(const spec of row.setup.points)phase.points[spec.name]=await locate(r1PointPlan(texts,spec,wrap),which+'-point-'+spec.name);
+    const anchor=phase.points.anchor.final.caret,size={w:current.document.widthTwips,h:current.document.heightTwips};
+    if(row.setup.method!=='drag')await place(point(anchor),which+'-anchor-click');
+    phase.inputStart=result.inputs.length;phase.requestStart=result.requests.length;
+    if(row.setup.method!=='drag')return {method:row.setup.method,size};
+    // Past the first line's right edge: the middle of the paper right of the first displayed
+    // line's search rectangle, at that line's height (public geometry only).
+    const line=phase.walk.boxes[0],right=line[0]+line[2];
+    phase.dragEnd={x:right+Math.floor((size.w-right)/2),y:line[1],height:line[3]};
+    return {method:'drag',points:[anchor,phase.dragEnd],size};
+  }catch(error){return fail(error);}},
+  async shapeR1(){try{
+    phase.setupState=await state(phaseName+'-setup-state');
+    phase.setupSelection=await call(phaseName+'-setup-text',()=>current.document.getSelection());
+    phase.inputEnd=result.inputs.length;phase.requestEnd=result.requests.length;
+    phase.before=await state(phaseName+'-before-state');return true;
+  }catch(error){return fail(error);}},
+  async controlPointR1(){try{
+    // Native emu: the visible cursor rectangle; emuend (the three wrong-old-click Down cells):
+    // the actual TEXT_SELECTION_END rectangle.  Both read from this arm's own shape.
+    const rule=config.r1[result.caseId].control.rule;
+    const r=rule==='emuend'?phase.before.selection?.end:phase.before.caret;
+    if(!r)throw new Error('control rectangle absent');
+    phase.controlRect=r;
+    await place({xTwips:r.x,yTwips:r.y+Math.floor(r.height/2)},phaseName+'-control-click');
+    phase.controlState=await state(phaseName+'-control-state');return true;
+  }catch(error){return fail(error);}},
+  async finishR1(){try{
+    if(!actionPromise)throw new Error('measured product action absent');phase.reply=await actionPromise;keyArm.inputEnd=result.inputs.length;
+    // Existing S2 observation interval, distinct from product completion.
+    await new Promise(resolve=>setTimeout(resolve,500));
+    phase.readback=await state(phaseName+'-readback');
+    phase.activeSelection=await call(phaseName+'-active-selection',()=>current.document.getSelection());
+    phase.marker={generation,inputStart:result.inputs.length,requestStart:result.requests.length,at:performance.now()};
+    document.querySelector('#sink').focus();return true;
+  }catch(error){return fail(error);}},
+  async markerR1(){try{
+    phase.marker.inputEnd=result.inputs.length;
+    if(typeof current.input?.idle==='function')await current.input.idle();
+    phase.finalSave=await save(phaseName+'-final-save');
+    phase.marker.requestEnd=result.requests.length;
+    phase.finalState=await state(phaseName+'-final-state');
+    await call(phaseName+'-close',()=>current.close());
+    if(phaseName==='r1cand'){result.complete=true;result.phase='complete';}
+    return true;
+  }catch(error){return fail(error);}},
   async prepareInteraction(){try{
     const row=config.interactions[result.caseId];if(!row)throw new Error('unknown interaction');
     phaseName='interaction';phase=result.interaction={open:snap(result.currentOpen),points:{}};
