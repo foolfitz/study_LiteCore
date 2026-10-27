@@ -33,8 +33,6 @@ sys.path.insert(0, str(ROOT / "tools"))
 import judge_v23_product_four_arms as judge  # noqa: E402
 import v23_product_four_arms as arms  # noqa: E402
 
-PATCH = (WORKSPACE / "findings" / "evidence" / "link-batch-v23" / "feature-protocol"
-         / "product-four-arms-source" / "integration-pending.patch")
 UA = {"chrome": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) "
                 "HeadlessChrome/139.0.0.0 Safari/537.36",
       "firefox": "Mozilla/5.0 (X11; Linux x86_64; rv:143.0) Gecko/20100101 Firefox/143.0"}
@@ -998,26 +996,12 @@ class ObserverSemantics(Base):
             self.assertEqual({k: shot[k] for k in want}, want, shot)
 
 
-class IntegrationPatch(Base):
-    """The runner change exists only as a patch; it must apply to HEAD and declare the four sites."""
+class IntegratedRunner(Base):
+    """The integrated runner preserves the old checks and declares the four literal sites."""
 
-    def patched_runner(self) -> str:
-        work = self.tmp / "tree"
-        (work / "wasm_sdk_probe" / "tools").mkdir(parents=True)
-        target = work / "wasm_sdk_probe" / "tools" / "run_e2_c_product_path.py"
-        target.write_bytes((ROOT / "tools" / "run_e2_c_product_path.py").read_bytes())
-        done = subprocess.run(["git", "apply", "--check", str(PATCH)], capture_output=True, text=True, cwd=work)
-        self.assertEqual(done.returncode, 0, done.stderr)
-        subprocess.run(["git", "apply", str(PATCH)], check=True, capture_output=True, cwd=work)
-        return target.read_text(encoding="utf-8")
-
-    def test_the_patch_applies_keeps_the_42_and_declares_exactly_the_table_sites(self):
-        if not PATCH.is_file():
-            self.skipTest("integration patch not written")
+    def test_runner_keeps_the_42_and_declares_exactly_the_table_sites(self):
         from run_e2_c_product_path import declared_check_ids
-        original = (ROOT / "tools" / "run_e2_c_product_path.py").read_text(encoding="utf-8")
-        self.assertEqual(declared_check_ids(original), ORIGINAL_CHECKS)
-        text = self.patched_runner()
+        text = (ROOT / "tools" / "run_e2_c_product_path.py").read_text(encoding="utf-8")
         patched = declared_check_ids(text)
         new = [a["check"] for a in arms.table()]
         self.assertEqual([c for c in patched if c not in new], ORIGINAL_CHECKS)

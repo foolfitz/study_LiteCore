@@ -78,6 +78,8 @@ from run_browser_probe import ChromeSession, FirefoxSession, free_port  # noqa: 
 from run_e2_c_page_smoke import DOC_WINDOW_JS, READ_STATE, navigate  # noqa: E402
 from validate_e1_c import shell_bundle_digest  # noqa: E402
 from v21_input import key as trusted_key  # noqa: E402
+import judge_v23_product_four_arms as judge_four_arms  # noqa: E402
+import v23_product_four_arms as four_arms  # noqa: E402
 import build_e2_c_shell_bundle as _shell_bundle  # noqa: E402
 
 PROJECT = Path(__file__).resolve().parent.parent
@@ -5140,6 +5142,36 @@ def main() -> int:
                      "already been reproduced under `stalled`.",
         }
 
+    # THE FOUR-ARM OBSERVER, a DECLARED instrument mirror, and the last one built
+    # (handoff/WORKORDER-2026-10-26-v23-product-four-arms.md).  Only
+    # e2-editor.html's module tag changes, to an observation entry that imports
+    # the unchanged app; the app, shell, SDK and frozen worker are served
+    # byte-identical, which `servedShell` below still proves (the HTML is not a
+    # bundle member).  The identity binds the whole served graph -- every shell
+    # bundle member against the generation reported here, the profile's files,
+    # the observer and the HTML -- and the page re-fetches and hashes all of it.
+    # The observer stays DORMANT until the four-arm block, so every earlier
+    # check runs against a pass-through.  An observer that cannot bind is
+    # recorded and its four checks say NOT_ESTABLISHED; it never stops the net.
+    try:
+        four_arm_overrides, four_arm_identity = four_arms.observer_mirror(
+            root, product_profile(root),
+            (report.get("candidateCutover") or {}).get("pageSha256"))
+        # A diagnostic mirror or a mutation underneath is named, so the block is
+        # skipped and the reader would refuse to call such rows acceptance.
+        four_arm_identity["diagnosticOverrides"] = sorted(
+            key for key, value in report.items()
+            if isinstance(value, dict)
+            and value.get("evidenceClass") == "diagnostic") + (
+            ["mutation"] if args.mutate != "none" else [])
+        mirror = scratch / "four-arms-observer-root"
+        build_mirror(root, mirror, four_arm_overrides)
+        root = mirror
+    except (OSError, ValueError, KeyError, SystemExit) as error:
+        four_arm_identity = {"installed": False,
+                             "why": f"{type(error).__name__}: {error}"}
+    report["v23ProductFourArmsMirror"] = four_arm_identity
+
     # Written AFTER the mirror is built, so it describes what was served rather
     # than what was intended.
     report["servedShell"] = served_shell_identity(root)
@@ -9344,6 +9376,112 @@ return { available: true, afterButton };
                           "than it used to be",
                       oracle="see the established branch: the product's own "
                              "declaration, honoured")
+
+        # ----------------------------- v23: the four ABI6 product arms
+        #
+        # handoff/WORKORDER-2026-10-26-v23-product-four-arms.md.  BEFORE the
+        # terminal 096 block, which may replace the Worker, and before P-CUT-4,
+        # which stays the last diagnostic ahead of it.  One readiness document on
+        # this browser path, then per arm three fresh OPEN_BYTES opens of the
+        # bound fixture, real CDP / WebDriver keys (tools/v21_input.py, never a
+        # synthetic KeyboardEvent), the product's Save button through
+        # capture_save, and raw artifacts judged by
+        # tools/judge_v23_product_four_arms.py -- nothing here computes a verdict.
+        # The four literal sites below are the population `declared_check_ids`
+        # reads; the aggregate (both families, 24 rows) is the reader's CLI.
+        #
+        # IT MAY NOT CUT OFF 096.  Every exception of the block or the reader is
+        # this block's NOT_ESTABLISHED; afterwards the product's own file input
+        # reopens a neutral document and must reach `ready`, so 096 never starts
+        # from whatever the last cell left.  The guard is held off while the
+        # four checks are recorded and reads the page once on the way out: only a
+        # page that cannot even be reopened stops the run there, naming this
+        # block, which is the state 096 could not measure either.
+        four_arm_dir = (four_arms.artifact_dir_for(args.out)
+                        or Path(tempfile.mkdtemp(prefix="v23-four-arms-"))
+                        / "four-arms")
+        four_arm_mirror = report.get("v23ProductFourArmsMirror") or {}
+        with liveness.expecting(
+                "v23-product-held-shift-two-seconds",
+                "v23 four arms: each cell opens its own document and may leave "
+                "it in any state; a neutral document is reopened before the "
+                "block's checks are recorded"):
+            four_arm_summary: dict = {}
+            four_arm_restore: dict | None = None
+            try:
+                if four_arm_mirror.get("installed") is not True:
+                    four_arm_summary = {
+                        "refused": "the declared observer mirror was not "
+                                   "installed: " + str(four_arm_mirror.get("why"))}
+                elif four_arm_mirror.get("diagnosticOverrides"):
+                    # No Worker spawns spent on rows that cannot be acceptance.
+                    four_arm_summary = {
+                        "refused": "diagnostic/mutation run: " + ", ".join(
+                            four_arm_mirror["diagnosticOverrides"])}
+                else:
+                    four_arm_summary = four_arms.run_block(
+                        session, args.browser,
+                        {"open_bytes": OPEN_BYTES, "capture_save": capture_save,
+                         "read_save": READ_SAVE, "save_count": SAVE_COUNT},
+                        four_arm_dir, four_arm_mirror)
+                four_arm_verdict = (
+                    four_arms.not_established(four_arm_summary["refused"])
+                    if four_arm_summary.get("refused")
+                    else judge_four_arms.judge_run(four_arm_dir))
+            except SessionDied:
+                raise
+            except Exception as error:      # noqa: BLE001 -- the block's NE
+                four_arm_verdict = four_arms.not_established(
+                    f"four-arm block exception: {type(error).__name__}: {error}")
+            if four_arm_mirror.get("installed") is True \
+                    and not four_arm_mirror.get("diagnosticOverrides"):
+                try:
+                    four_arm_restore = four_arms.restore_neutral(
+                        session, {"open_file": OPEN_FILE, "read_state": READ_STATE})
+                except Exception as error:  # noqa: BLE001 -- recorded
+                    four_arm_restore = {"ok": False,
+                                        "error": f"{type(error).__name__}: {error}"}
+                four_arm_verdict = four_arms.with_restore(four_arm_verdict,
+                                                          four_arm_restore)
+            report["v23ProductFourArms"] = {
+                "artifactDir": str(four_arm_dir),
+                "files": four_arm_summary.get("files"),
+                "failures": four_arm_summary.get("failures"),
+                "refused": four_arm_summary.get("refused"),
+                "restore": four_arm_restore,
+                "verdict": four_arm_verdict,
+            }
+
+            def four_arm(arm_id: str) -> dict:
+                value = four_arm_verdict["arms"][arm_id]
+                rows = [row for row in four_arm_verdict.get("rows") or []
+                        if row.get("arm") == arm_id]
+                return {"ok": value["ok"], "outcome": value["outcome"],
+                        "observed": {"rows": rows,
+                                     "artifactDir": str(four_arm_dir),
+                                     "why": value.get("why")}}
+
+            four_arm_oracle = ("the work order's exact result for this arm, read "
+                               "by tools/judge_v23_product_four_arms.py from the "
+                               "raw artifacts of three fresh cells in this "
+                               "browser; missing or ambiguous witness is "
+                               "NOT_ESTABLISHED")
+            arm_result = four_arm("insert-then-shift")
+            check("v23-product-insert-then-shift", arm_result["ok"],
+                  outcome=arm_result["outcome"], observed=arm_result["observed"],
+                  oracle=four_arm_oracle)
+            arm_result = four_arm("merge-then-shift")
+            check("v23-product-merge-then-shift", arm_result["ok"],
+                  outcome=arm_result["outcome"], observed=arm_result["observed"],
+                  oracle=four_arm_oracle)
+            arm_result = four_arm("held-shift-one-second")
+            check("v23-product-held-shift-one-second", arm_result["ok"],
+                  outcome=arm_result["outcome"], observed=arm_result["observed"],
+                  oracle=four_arm_oracle)
+            arm_result = four_arm("held-shift-two-seconds")
+            check("v23-product-held-shift-two-seconds", arm_result["ok"],
+                  outcome=arm_result["outcome"], observed=arm_result["observed"],
+                  oracle=four_arm_oracle)
 
         # ------------------------------------------ P-CUT-4, the cross shape
         #
