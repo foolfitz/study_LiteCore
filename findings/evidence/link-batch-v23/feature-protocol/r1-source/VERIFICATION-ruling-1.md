@@ -36,3 +36,10 @@ python3 -I findings/evidence/link-batch-v23/feature-protocol/r1-source/check-sta
 ```
 
 `stale-controls.ruling-1.output.json` records **FOUR_PREVIOUS_FALSE_PASSES_REJECTED**: all four malformed model pages PASS on the previous reader; the current reader gives FAIL, FAIL, NOT_ESTABLISHED, NOT_ESTABLISHED respectively, with the prescribed reasons. The output binds both reader versions, the model and the control script by sha256. These are model controls, not browser observations. The current reader and test file are unchanged, so the 62-mutation census above retains its exact input hashes.
+
+
+## Shared S5 oracle amendment: refreshed bindings before counted R1
+
+The shared judge changed for the owner-delegated S5 ruling; R1's criterion did not change. `reader-mutation-sweep.settled-native.output.json` refreshes the full-file binding to reader SHA-256 `865651357970a0a9080b8f5f79c8b58ae4493a208350cf2be6a925c209a76a67` and the unchanged R1 test SHA-256 `bcd9421592e50e097f33c10bbebeb505a4b2d49ec5e4f5ae1a238607db4a4560`. All 62 mutations are killed. These exact hashes were checked again after the final settled-native reader/certificate-05 change; neither file changed. `stale-controls.settled-native.output.json` again records FOUR_PREVIOUS_FALSE_PASSES_REJECTED.
+
+Under the final certificate-05 plan, all 50 R1 tests pass (31.105 s), including all 72 model cells, exact C1 red controls and every retained R1 prep-01 page; all 50 selection tests pass (46.564 s). The new settled reader has 18 passing tests and its consumer pages have 11. The independent 14-cell historical prep-05 re-read preserves complete inspections without field ignores. None of these controls is counted browser evidence. Counted R1 remains contingent on its pre-red prerequisite and full fresh population.
