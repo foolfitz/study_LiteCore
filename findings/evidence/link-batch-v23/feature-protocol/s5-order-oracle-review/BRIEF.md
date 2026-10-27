@@ -38,3 +38,7 @@ Astra recommended A conditionally on a repeatable reader with red controls. The 
 Required red controls before a gate change: missing witness/save, wrong hash, capped settle, wrong step operation or interleaved timing, wrong own-before, queued-native heading/list result used as candidate (FAIL, including list structure), empty-mark row sent to native (refusal), and a new generated member without its witness (refusal). Timing must be finite and non-boolean, exact posts must match the generated sequence, every key-up must precede its read, and every non-final read must finish strictly before the next key-down.
 
 No gate amendment, S5 plan/judge change, new counted population or terminal acceptance is claimed by this brief.
+
+## Appended decision and implementation status
+
+The initial decision-pending status is superseded by the owner's explicit delegation to Astra and its binding A decision in `RULING.md`. New plans use explicit schema 2 and the certified own before/after pair for the generated disagreement partition. The original four preparation NE inspections and historical claims above are preserved. Current certification is `../s5-native/settled-reference-reader-04.json`; development certificates 01-03 are not current plan inputs. Guard controls and final-plan preparation still precede full counted execution; no S5 acceptance is implied by the decision.

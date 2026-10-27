@@ -13,3 +13,9 @@ The 56 type-family entries record "x then Shift" (the native harness processed t
 ## Appended 2026-10-27: empty-mark deletion entries are not oracles (fable ruling 4)
 
 Deletion entries whose cell is `emptyMark` (Writer's state right after the Shift member is an empty mark, decided per cell by `empty-mark-witness-01/`; 49 of the 66 cells in `diag-settled-01/`) record Writer's empty-mark behaviour: the first Backspace/Delete after a Shift that moves nothing deletes nothing. They are a true record of Writer and evidence for finding 167, not the S5 oracle; those cells compare with the settled-WASM arm. `reader-01.json` is unchanged (the selection config binds its hash). The other deletion entries keep `NATIVE_S5_SAVES_AVAILABLE` under ruling 2.
+
+## Appended 2026-10-27: order-dependent entries in new S5 plans
+
+The owner-delegated Astra decision in `../s5-order-oracle-review/RULING.md` authorizes a distinct `native-every-member-settled` reference for the non-empty-mark partition derived from disagreement between these queued saves and each cell's every-member-settled save. Current complete-population measurement derives two members. For new schema-2 plans, where native comparison is eligible, their queued after-saves remain diagnostic records rather than the target; use `empty-mark-witness-01/`'s own before/after pair certified by `settled-reference-reader-04.json`.
+
+Do not change `nativeOrderIndependent` to true. The native comparator and both before controls retain ruling 2; the actual browser single-line premise still gates Home/End. The exact native continuation settles/reads every member at 800/8000, unlike the existing WASM reference's Shift-only wait. Its setup/save lifecycle is source-bound, not independently timestamped. Missing/invalid evidence is NE or plan refusal. The original `reader-01.json`, historical NE configurations, type and empty-mark notes above remain unchanged. No native execution was repeated for this certification.
