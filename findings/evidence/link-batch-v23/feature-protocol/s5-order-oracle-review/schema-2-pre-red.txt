@@ -1,0 +1,93 @@
+======================================================================
+FAIL: test_own_sequence_settled_native_is_used_in_both_browsers (test_v23_native_s5_settled_reference.SettledNativePages.test_own_sequence_settled_native_is_used_in_both_browsers) (browser='chrome', case='shift-Home@heading-mid/backspace-twice')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tests/test_v23_native_s5_settled_reference.py", line 40, in test_own_sequence_settled_native_is_used_in_both_browsers
+    self.assertEqual(value['verdict'],'PASS',value)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'NOT_ESTABLISHED' != 'PASS'
+- NOT_ESTABLISHED
++ PASS
+ : {'verdict': 'NOT_ESTABLISHED', 'reason': 'native save not order-independent', 'groups': {'S5': {'verdict': 'NOT_ESTABLISHED'}}}
+
+======================================================================
+FAIL: test_own_sequence_settled_native_is_used_in_both_browsers (test_v23_native_s5_settled_reference.SettledNativePages.test_own_sequence_settled_native_is_used_in_both_browsers) (browser='chrome', case='shift-Home@list-mid/backspace-twice')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tests/test_v23_native_s5_settled_reference.py", line 40, in test_own_sequence_settled_native_is_used_in_both_browsers
+    self.assertEqual(value['verdict'],'PASS',value)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'NOT_ESTABLISHED' != 'PASS'
+- NOT_ESTABLISHED
++ PASS
+ : {'verdict': 'NOT_ESTABLISHED', 'reason': 'native save not order-independent', 'groups': {'S5': {'verdict': 'NOT_ESTABLISHED'}}}
+
+======================================================================
+FAIL: test_own_sequence_settled_native_is_used_in_both_browsers (test_v23_native_s5_settled_reference.SettledNativePages.test_own_sequence_settled_native_is_used_in_both_browsers) (browser='firefox', case='shift-Home@heading-mid/backspace-twice')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tests/test_v23_native_s5_settled_reference.py", line 40, in test_own_sequence_settled_native_is_used_in_both_browsers
+    self.assertEqual(value['verdict'],'PASS',value)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'NOT_ESTABLISHED' != 'PASS'
+- NOT_ESTABLISHED
++ PASS
+ : {'verdict': 'NOT_ESTABLISHED', 'reason': 'native save not order-independent', 'groups': {'S5': {'verdict': 'NOT_ESTABLISHED'}}}
+
+======================================================================
+FAIL: test_own_sequence_settled_native_is_used_in_both_browsers (test_v23_native_s5_settled_reference.SettledNativePages.test_own_sequence_settled_native_is_used_in_both_browsers) (browser='firefox', case='shift-Home@list-mid/backspace-twice')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tests/test_v23_native_s5_settled_reference.py", line 40, in test_own_sequence_settled_native_is_used_in_both_browsers
+    self.assertEqual(value['verdict'],'PASS',value)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'NOT_ESTABLISHED' != 'PASS'
+- NOT_ESTABLISHED
++ PASS
+ : {'verdict': 'NOT_ESTABLISHED', 'reason': 'native save not order-independent', 'groups': {'S5': {'verdict': 'NOT_ESTABLISHED'}}}
+
+======================================================================
+FAIL: test_queued_heading_and_structure_only_list_results_fail (test_v23_native_s5_settled_reference.SettledNativePages.test_queued_heading_and_structure_only_list_results_fail) (case='shift-Home@heading-mid/backspace-twice')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tests/test_v23_native_s5_settled_reference.py", line 77, in test_queued_heading_and_structure_only_list_results_fail
+    self.assertEqual(value['verdict'],'FAIL',value)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'NOT_ESTABLISHED' != 'FAIL'
+- NOT_ESTABLISHED
++ FAIL
+ : {'verdict': 'NOT_ESTABLISHED', 'reason': 'native save not order-independent', 'groups': {'S5': {'verdict': 'NOT_ESTABLISHED'}}}
+
+======================================================================
+FAIL: test_queued_heading_and_structure_only_list_results_fail (test_v23_native_s5_settled_reference.SettledNativePages.test_queued_heading_and_structure_only_list_results_fail) (case='shift-Home@list-mid/backspace-twice')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tests/test_v23_native_s5_settled_reference.py", line 77, in test_queued_heading_and_structure_only_list_results_fail
+    self.assertEqual(value['verdict'],'FAIL',value)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'NOT_ESTABLISHED' != 'FAIL'
+- NOT_ESTABLISHED
++ FAIL
+ : {'verdict': 'NOT_ESTABLISHED', 'reason': 'native save not order-independent', 'groups': {'S5': {'verdict': 'NOT_ESTABLISHED'}}}
+
+======================================================================
+FAIL: test_unknown_schema_is_ne (test_v23_native_s5_settled_reference.SettledNativePages.test_unknown_schema_is_ne)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tests/test_v23_native_s5_settled_reference.py", line 58, in test_unknown_schema_is_ne
+    self.assertEqual((result['verdict'],result['reason']),('NOT_ESTABLISHED','unknown S5 native reference schema'))
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Tuples differ: ('NOT_ESTABLISHED', 'native save not order-independent') != ('NOT_ESTABLISHED', 'unknown S5 native reference schema')
+
+First differing element 1:
+'native save not order-independent'
+'unknown S5 native reference schema'
+
+- ('NOT_ESTABLISHED', 'native save not order-independent')
++ ('NOT_ESTABLISHED', 'unknown S5 native reference schema')
+
+----------------------------------------------------------------------
+Ran 4 tests in 1.126s
+
+FAILED (failures=7)
+

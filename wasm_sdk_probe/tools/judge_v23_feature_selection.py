@@ -13,6 +13,7 @@ from judge_v23_feature_pre_red import (NotEstablished,need,stream,call_binding,b
                                      binary,s2_compare,wrap_first_rectangle,paragraphs as saved_paragraphs)
 from v23_s5_comparison import (odt_content,strip_ffd,s5_reduced,s5_compare,
                                validate_settled_pair,reduced_difference)
+from read_v23_native_s5_settled_reference import binding as settled_binding
 
 
 class ProductFailure(ValueError):pass
@@ -412,19 +413,39 @@ def inspect_interaction(page,plan,browser):
 
 S5_DELETES={'Backspace':('delete-backward','delete-selection'),'Delete':('delete-forward','delete-selection')}
 
-def native_reference(row,original):
+def native_reference(row,original,*,every_member_settled=False):
     """The cell's native after-save, once its two guards hold (fable ruling 2)."""
     # Fable ruling 4: an empty-mark row's native save records Writer's empty-mark deletion.
     need(not row.get('emptyMark'),'empty-mark row has no native oracle')
+    reference=settled_binding(row)['saves'] if every_member_settled else row['native']
     files={}
     for side in ('before','after'):
-        raw=(ROOT/row['native'][side]['path']).read_bytes()
-        need(digest(raw)==row['native'][side]['sha256'],'native reference bytes differ');files[side]=raw
+        raw=(ROOT/reference[side]['path']).read_bytes()
+        need(digest(raw)==reference[side]['sha256'],'native reference bytes differ');files[side]=raw
+    if every_member_settled:
+        queued=row['native']['before'];raw=(ROOT/queued['path']).read_bytes()
+        need(digest(raw)==queued['sha256'],'queued native before bytes differ')
+        validate_settled_pair(files['before'],files['after'],raw)
     # Per cell: the unedited WASM and native documents agree under the same reduction.
     need(s5_compare(row['family'],original,files['before'],True),'native reference not comparable')
     if row['family']!='type' and s5_reduced(files['before'],True)==s5_reduced(files['after'],True):
         need(odt_content(files['before'])==odt_content(files['after']),'reduction collapses the native edit')
     return files['after']
+
+def s5_reference_schema(plan,row):
+    version=plan.get('s5NativeReferenceSchema',1)
+    need(type(version) is int and version in (1,2),'unknown S5 native reference schema')
+    if version==1:
+        need('nativeEveryMemberSettled' not in row,'settled native declaration without schema')
+        return version,None
+    need('nativeEveryMemberSettled' in row,'settled native declaration absent')
+    need(row['referencePolicy'] in ('native','settled-wasm','native-if-single-line-otherwise-settled-wasm'),'unknown S5 reference policy')
+    if row['family']!='type' and row['referencePolicy']!='settled-wasm':
+        need(type(row.get('emptyMark')) is bool and type(row.get('nativeOrderIndependent')) is bool,'native witness classification absent')
+    member=row['family']!='type' and row['referencePolicy']!='settled-wasm' and row.get('emptyMark') is False and row.get('nativeOrderIndependent') is False
+    need(isinstance(row['nativeEveryMemberSettled'],dict) if member else row['nativeEveryMemberSettled'] is None,
+         'native settled partition/reference differs')
+    return version,settled_binding(row) if member else None
 
 def single_line(e,name):
     """Every located point of the arm sits on a one-rectangle (single displayed line) paragraph."""
@@ -515,6 +536,7 @@ def inspect_s5(page,plan,browser):
     groups={'S5':{'verdict':'NOT_ESTABLISHED'}};context={}
     try:
         e=Evidence(page,plan,browser);row=plan['s5'][page['caseId']];source=plan['cases'][row['sourceArm']]
+        reference_schema,settled=s5_reference_schema(plan,row)
         g=readiness(e);cand=s5_arm(e,'s5cand',row,source)
         ref=s5_arm(e,'s5ref',row,source) if row['settledReference'] else None
         arms=1+(ref is not None)
@@ -528,20 +550,27 @@ def inspect_s5(page,plan,browser):
         need(row['native'] is not None or row['referencePolicy']=='settled-wasm' or (row['family']=='type' and row.get('nativeFallback'))
              or (row['family']!='type' and row.get('emptyMark') is True),'native reference absent')
         native=row['native'] is not None and not row.get('emptyMark') and (row['referencePolicy']=='native' or (row['referencePolicy'].startswith('native-if-single-line') and single))
-        need(not native or row['family']=='type' or row.get('nativeOrderIndependent') is not False,'native save not order-independent')
+        need(not native or row['family']=='type' or row.get('nativeOrderIndependent') is not False or settled is not None,'native save not order-independent')
         # Older configs bound run-01's x-then-Shift type saves; only a witnessed save is a type oracle.
         need(not native or row['family']!='type' or row.get('nativeOrderWitness') in ('selection-before-x','settle-only'),'native type reference without order witness')
-        if native:reference=native_reference(row,cand['original'])
+        routed=bool(native and settled is not None)
+        label='native-every-member-settled' if routed else 'native' if native else 'settled-wasm'
+        if native:reference=native_reference(row,cand['original'],every_member_settled=routed)
         else:
             need(ref is not None,'settled reference arm absent');reference=ref['final']
-        context={'reference':'native' if native else 'settled-wasm','singleLineWitness':single,'emptyMark':row.get('emptyMark'),
+        context={'reference':label,'singleLineWitness':single,'emptyMark':row.get('emptyMark'),
                  'differingParagraph':paragraph_difference(cand['final'],reference)}
-        contradict(s5_compare(row['family'],cand['final'],reference,native),'sequence result differs from its reference')
+        extra={'nativeOrderIndependent':row.get('nativeOrderIndependent'),'nativeSettledWitness':settled['witness'],
+               'nativeSettledSchedule':settled['schedule'],'nativeReferenceSaves':settled['saves']} if routed else {}
+        context.update(extra)
+        equal=s5_compare(row['family'],cand['final'],reference,native)
+        if not equal and reference_schema==2:context['reducedDifference']=reduced_difference(cand['final'],reference,native)
+        contradict(equal,'sequence result differs from its reference')
         overlapping=any(o['pendingMoveOrExtendKeys'] for o in cand['overlap'])
-        groups['S5']={'verdict':'PASS','reference':'native' if native else 'settled-wasm','singleLineWitness':single,
+        groups['S5']={'verdict':'PASS','reference':label,'singleLineWitness':single,
                       'nativeOrderWitness':row.get('nativeOrderWitness') if native else None,
                       'nativeFallback':row.get('nativeFallback'),'emptyMark':row.get('emptyMark'),
-                      'emptyMarkWitness':row.get('emptyMarkWitness'),'overlap':cand['overlap'],'overlapping':overlapping}
+                      'emptyMarkWitness':row.get('emptyMarkWitness'),'overlap':cand['overlap'],'overlapping':overlapping,**extra}
         return {'verdict':'PASS','groups':groups}
     except ProductFailure as error:
         groups['S5']={'verdict':'FAIL','reason':str(error),**context}
@@ -904,6 +933,18 @@ def judge(cells,plan,kind='selection'):
         groups['S5']['emptyMarkRoutedCells']={b:sum(1 for r in rows if r['cell'][0]==b and r.get('groups',{}).get('S5',{}).get('verdict')=='PASS'
             and r['groups']['S5'].get('emptyMark') is True and r['groups']['S5'].get('reference')=='settled-wasm') for b in BROWSERS}
         groups['S5']['namedLimitation']='S5 does not guard the delete unit after a no-op extension (fable ruling 4)'
+        if plan.get('s5NativeReferenceSchema')==2:
+            derived={cid for cid,row in population.items() if row.get('nativeEveryMemberSettled') is not None}
+            groups['S5']['nativeSettledDerivedCells']={b:sorted(derived) for b in BROWSERS}
+            groups['S5']['nativeSettledEligibleCells']={b:sorted(r['cell'][1] for r in rows if r['cell'][0]==b
+                and r['cell'][1] in derived and (population[r['cell'][1]]['referencePolicy']=='native'
+                    or r.get('groups',{}).get('S5',{}).get('singleLineWitness') is True)) for b in BROWSERS}
+            groups['S5']['nativeSettledRoutedCells']={b:sorted(r['cell'][1] for r in rows if r['cell'][0]==b
+                and r.get('groups',{}).get('S5',{}).get('reference')=='native-every-member-settled'
+                and r['groups']['S5'].get('verdict')=='PASS') for b in BROWSERS}
+            groups['S5']['nativeReferenceCells']['every-member-settled']=sum(len(v) for v in groups['S5']['nativeSettledRoutedCells'].values())
+            if groups['S5']['verdict']=='PASS' and groups['S5']['nativeSettledEligibleCells']!=groups['S5']['nativeSettledRoutedCells']:
+                groups['S5'].update(verdict='NOT_ESTABLISHED',reason='eligible native settled routing differs')
         if groups['S5']['verdict']=='PASS' and not all(groups['S5']['emptyMarkRoutedCells'].values()):
             groups['S5'].update(verdict='NOT_ESTABLISHED',reason='empty-mark route not exercised in every browser')
         if groups['S5']['verdict']=='PASS' and not overlapping:groups['S5'].update(verdict='FAIL',reason='empty overlap set')

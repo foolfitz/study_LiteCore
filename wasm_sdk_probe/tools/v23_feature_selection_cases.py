@@ -5,6 +5,7 @@ import re
 from pathlib import Path
 from odt_paragraphs import paragraph_texts_from_xml
 from v23_feature_s_cases import ROOT, ARCHIVE, PINS, MOVES, derive, read_rounds
+import read_v23_native_s5_settled_reference as settled_native
 
 PROJECT=ROOT/'wasm_sdk_probe'
 PROFILE='e2-editor-v23'
@@ -111,6 +112,8 @@ NATIVE_S5=ROOT/'findings/evidence/link-batch-v23/feature-protocol/s5-native'
 NATIVE_S5_READER_SHA256='014c1e0d51f6a522101c2acc6395797a8f974822cf085c8ea7f8f978b64ec538'
 NATIVE_S5_TYPE_READER_SHA256='305306785509764f1130709650ca44c8a6c0cc320b0d79bb632bbe0817870706'
 NATIVE_S5_EMPTY_MARK_READER_SHA256='fc62e6adb4aaba82a75c868337b3988efa2c30ddb3ad66b613776445a9767974'
+NATIVE_S5_SETTLED_READER_FILE='settled-reference-reader-04.json'
+NATIVE_S5_SETTLED_READER_SHA256='bb0617c505bc136776359ca953f725351615fbcf6ecef73f6a05a592d95ee1a5'
 S5_KEYS={'Shift+Left':('ArrowLeft',('shift',)),'Shift+Right':('ArrowRight',('shift',)),'Shift+Up':('ArrowUp',('shift',)),
          'Shift+Down':('ArrowDown',('shift',)),'Shift+Home':('Home',('shift',)),'Shift+End':('End',('shift',)),
          'Backspace':('Backspace',()),'Delete':('Delete',()),'text:x':('x',())}
@@ -150,6 +153,17 @@ def native_saves(run,cell):
         saves[side]={'path':str(path.relative_to(ROOT)),'sha256':cell['saves'][side]['sha256']}
     return saves
 
+def settled_references(table,marks_by_id):
+    path=NATIVE_S5/NATIVE_S5_SETTLED_READER_FILE;raw=path.read_bytes()
+    if digest(raw)!=NATIVE_S5_SETTLED_READER_SHA256:raise ValueError('native settled reader output differs')
+    report=json.loads(raw);references=settled_native.references(report,table)
+    for cell in report['cells']:
+        mark=marks_by_id.get(cell['id'])
+        if mark is None or cell['emptyMark'] is not mark['emptyMark'] or cell['orderIndependent'] is not mark['orderIndependent']:
+            raise ValueError('native settled classification disagrees with empty-mark witness: '+cell['id'])
+    receipt={'path':str(path.relative_to(ROOT)),'sha256':digest(raw)}
+    return {cid:{**reference,'readerReport':receipt} for cid,reference in references.items()}
+
 def s5(table,cases_by_id):
     """S5: every Table 1 arm by the seven families, with the native references bound by hash:
     run-01 for the deletion families, run-03 for type (fable ruling 3; run-02 printed timestamps
@@ -172,6 +186,7 @@ def s5(table,cases_by_id):
     marks=json.loads(raw)
     if marks.get('verdict')!='NATIVE_S5_EMPTY_MARK_WITNESS_READ' or marks.get('problems')!=[]:raise ValueError('native S5 empty-mark witness unavailable')
     marks={c['id']:c for c in marks['cells']}
+    settled=settled_references(table,marks)
     result={}
     for row in table['S5']:
         source=cases_by_id.get(row['sourceArm'])
@@ -201,6 +216,7 @@ def s5(table,cases_by_id):
             'keys':[{'key':k,'mods':list(m)} for k,m in keys],'shiftIndex':shift[0],'comparison':row['comparison'],
             'referencePolicy':row['referencePolicy'],'native':reference,'nativeOrderWitness':witness,'nativeFallback':fallback,
             'emptyMark':empty,'emptyMarkWitness':mark,'nativeOrderIndependent':independent,
+            'nativeEveryMemberSettled':settled.get(row['id']),
             'memberships':['S5'],'settledReference':row['referencePolicy']!='native' or reference is None,
             'default':'NOT_ESTABLISHED_UNPERFORMED'}
     if len(result)!=588:raise ValueError('S5 population differs')
@@ -523,7 +539,7 @@ def config():
     s5_plan=s5(table,selection);interaction_plan=interactions(table,rounds,texts);r1_plan,r1_fixture_plan=r1()
     if len({*selection,*interaction_plan,*s5_plan,*r1_plan})!=len(selection)+len(interaction_plan)+len(s5_plan)+len(r1_plan):
         raise ValueError('population identifiers overlap')
-    return {'schema':1,'profile':identity(),'servedSources':{n:digest(v) for n,v in sources().items()},
+    return {'schema':1,'s5NativeReferenceSchema':2,'profile':identity(),'servedSources':{n:digest(v) for n,v in sources().items()},
             'instrumentSources':{str(p.relative_to(PROJECT)):sha(p) for p in sorted(closure)},
             'cases':selection,'interactions':interaction_plan,'s5':s5_plan,'r1':r1_plan,'r1Fixtures':r1_fixture_plan,'sourceTable':table,'fixtureSha256':PINS['fixture-as-run.fodt'],
             'fixtureParagraphs':texts,'fixtureManifest':{'fixtures':[{'id':'list-contexts'}]},
