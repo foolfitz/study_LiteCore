@@ -26,3 +26,13 @@ python3 -I findings/evidence/link-batch-v23/feature-protocol/r1-source/reader-mu
 Result: **ALL_KILLED, 62/62**, comprising 56 AST-enumerated condition checks and 6 defining-expression mutations; no survivors; both unmutated baselines green. The new stale condition is present as `r1_arm:707:need` (`measured move reply stale`). Output sha256: `9a5004686580902cb2df02995e1a1294f2131df14876d46b3f2b325c53e133c6`. The output binds the current reader and test hashes. The previous `reader-mutation-sweep.output.json` is preserved as the earlier 61-mutation measurement rather than overwritten.
 
 C5-C6 still govern a future counted invocation: full population, historical pre-red prerequisite, committed inputs and no concurrent measurement sharing the instrument closure. No counted R1 run has started here.
+
+## Exact C1 replay against the previous reader
+
+`check-stale-controls.py` additionally replays the four C1 scenarios literally: the candidate reply carries the actual pre-move caret (rather than merely an arbitrary changed coordinate); the candidate reply carries its actual pre-move range selection; the control reply carries its actual pre-move caret; and the candidate reply lacks state. Public-call results and raw wire replies are edited consistently. The clean model must first pass on the archived reader at `2b561678`.
+
+```bash
+python3 -I findings/evidence/link-batch-v23/feature-protocol/r1-source/check-stale-controls.py
+```
+
+`stale-controls.ruling-1.output.json` records **FOUR_PREVIOUS_FALSE_PASSES_REJECTED**: all four malformed model pages PASS on the previous reader; the current reader gives FAIL, FAIL, NOT_ESTABLISHED, NOT_ESTABLISHED respectively, with the prescribed reasons. The output binds both reader versions, the model and the control script by sha256. These are model controls, not browser observations. The current reader and test file are unchanged, so the 62-mutation census above retains its exact input hashes.
