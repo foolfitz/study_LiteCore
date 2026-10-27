@@ -70,6 +70,7 @@ def main():
     summary=json.loads(read(witness/'comparison.json'))
     rows=[json.loads(line) for line in read(witness/'native.jsonl',summary['artifacts']['native.jsonl']).splitlines() if line]
     native={r['id']:r for r in rows if 'id' in r}
+    timing_census={cid:len(settled_order(row)) for cid,row in native.items()}
     result=[]
     for entry in report['runs']:
         path=directory/entry['path']
@@ -110,6 +111,7 @@ def main():
             'comparisons':comparisons,'nativeReducedDiff':delta,'nativeSettledSteps':native[row['id']]['steps']})
     print(json.dumps({'schema':1,'scope':'Oracle decision evidence only; no acceptance verdict',
         'readerSha256':sha(Path(__file__).read_bytes()),'nativeWitnessValidation':{'verdict':validation['verdict'],'counts':validation['counts']},
+        'settledTimingCensus':{'population':len(timing_census),'valid':len(timing_census),'members':sum(timing_census.values())},
         'lifecycleScope':'Member reads have timestamp witnesses; setup and save order are bound through the retained harness source, not independent timestamps',
         'inputs':inputs,'cells':result},indent=2))
 
