@@ -23,3 +23,8 @@ python3 -I findings/evidence/link-batch-v23/feature-protocol/s5-order-oracle-rev
 ```
 
 These are model/reader controls, not native or browser repetitions. Final-plan preparation 06 and fresh complete counted runs remain separate evidence obligations. No preparation/partial run contributes to the full-population count; the first complete clean population per browser remains the cutoff.
+
+
+## Final-plan preparation completed
+
+`../s5-prep-06/` completes the required final-plan seven cases per browser: **14/14 PASS**, runner exit 0, 353.9 s, config/postConfig equal to the live final plan. `prep-06-reread.json` compares every complete inspection and retained raw SHA exactly. The report also binds the historical 32-cell EXPECTED_RED prerequisite. No keep-going, retry or counted credit. All implementation/control/preparation obligations above are now satisfied before prospective frozen full counted execution.
