@@ -1,0 +1,978 @@
+{
+  "schema": 1,
+  "scope": "Native settled reference reader/consumer guard controls, not browser evidence",
+  "inputs": {
+    "wasm_sdk_probe/tools/read_v23_native_s5_settled_reference.py": "4d11c95b9479ae7f01ab3229bff50f8a8447a39023711c820e7ca066b8b7589d",
+    "wasm_sdk_probe/tools/v23_s5_comparison.py": "0ad3d17dbb87872e2b5eeb98a0ea2fdce9d887f1dfc9c146b59e123fc9d5878f",
+    "wasm_sdk_probe/tools/judge_v23_feature_selection.py": "865651357970a0a9080b8f5f79c8b58ae4493a208350cf2be6a925c209a76a67",
+    "wasm_sdk_probe/tools/v23_feature_selection_cases.py": "58cc0721a7defb674b54e6cf39a05e8b37c42e6101046ee333b42b52bdbcf419",
+    "wasm_sdk_probe/tests/test_v23_native_s5_settled_reference.py": "9ebdcea8bfc76b7bd6d7bb2b9f22e3cb381390257209023b32700c31a7f80899",
+    "wasm_sdk_probe/tests/test_v23_settled_native_pages.py": "c22a870bb2d587663fd7362893b71fadc0cdb04182be324c68c4005117bb46ac",
+    "wasm_sdk_probe/tests/test_v23_feature_selection.py": "85236c9a9e519c620f0b8c42683139ad739354266dce08d9965966efbd98726f"
+  },
+  "baseline": {
+    "ran": 31,
+    "red": []
+  },
+  "selfChecks": {
+    "newCheckEnumerated": true,
+    "emptyModuleRefused": true
+  },
+  "mutations": [
+    {
+      "id": "read_v23_native_s5_settled_reference.py:index_records:43",
+      "module": "read_v23_native_s5_settled_reference.py",
+      "kind": "guard-disabled",
+      "message": "label+' missing/extra/duplicate witness'",
+      "span": [
+        1612,
+        1666
+      ],
+      "original": "len(result)==len(records) and set(result)==set(wanted)",
+      "replacement": "True",
+      "ran": 31,
+      "red": [
+        "test_population_is_complete_unique_and_not_empty (test_v23_native_s5_settled_reference.NativeSettledReader.test_population_is_complete_unique_and_not_empty) (count=0)",
+        "test_population_is_complete_unique_and_not_empty (test_v23_native_s5_settled_reference.NativeSettledReader.test_population_is_complete_unique_and_not_empty) (count=335)",
+        "test_population_is_complete_unique_and_not_empty (test_v23_native_s5_settled_reference.NativeSettledReader.test_population_is_complete_unique_and_not_empty) (count=336)",
+        "test_population_is_complete_unique_and_not_empty (test_v23_native_s5_settled_reference.NativeSettledReader.test_population_is_complete_unique_and_not_empty) (count=337)",
+        "test_report_schema_coverage_and_classification (test_v23_native_s5_settled_reference.NativeSettledReader.test_report_schema_coverage_and_classification)",
+        "test_report_schema_coverage_and_classification (test_v23_native_s5_settled_reference.NativeSettledReader.test_report_schema_coverage_and_classification) (reason='missing/extra/duplicate')"
+      ],
+      "killed": true
+    },
+    {
+      "id": "read_v23_native_s5_settled_reference.py:validate_order:48",
+      "module": "read_v23_native_s5_settled_reference.py",
+      "kind": "guard-disabled",
+      "message": "'native sequence differs: '+expected['id']",
+      "span": [
+        1775,
+        1816
+      ],
+      "original": "row.get('sequence')==expected['sequence']",
+      "replacement": "True",
+      "ran": 31,
+      "red": [
+        "test_exact_sequence_policy_operations_and_posts (test_v23_native_s5_settled_reference.NativeSettledReader.test_exact_sequence_policy_operations_and_posts) (reason='native sequence differs')"
+      ],
+      "killed": true
+    },
+    {
+      "id": "read_v23_native_s5_settled_reference.py:validate_order:49",
+      "module": "read_v23_native_s5_settled_reference.py",
+      "kind": "guard-disabled",
+      "message": "'native inter-member policy differs: '+expected['id']",
+      "span": [
+        1936,
+        1974
+      ],
+      "original": "row.get('interMemberSettle')==SCHEDULE",
+      "replacement": "True",
+      "ran": 31,
+      "red": [
+        "test_exact_sequence_policy_operations_and_posts (test_v23_native_s5_settled_reference.NativeSettledReader.test_exact_sequence_policy_operations_and_posts) (reason='inter-member policy differs')"
+      ],
+      "killed": true
+    },
+    {
+      "id": "read_v23_native_s5_settled_reference.py:validate_order:51",
+      "module": "read_v23_native_s5_settled_reference.py",
+      "kind": "guard-disabled",
+      "message": "'native member operations/count differ: '+expected['id']",
+      "span": [
+        2121,
+        2248
+      ],
+      "original": "isinstance(steps,list) and all(isinstance(s,dict) for s in steps) and [s.get('operation') for s in steps]==expected['sequence']",
+      "replacement": "True",
+      "ran": 31,
+      "red": [
+        "test_exact_sequence_policy_operations_and_posts (test_v23_native_s5_settled_reference.NativeSettledReader.test_exact_sequence_policy_operations_and_posts) (reason='member operations/count differ')"
+      ],
+      "killed": true
+    },
+    {
+      "id": "read_v23_native_s5_settled_reference.py:validate_order:53",
+      "module": "read_v23_native_s5_settled_reference.py",
+      "kind": "guard-disabled",
+      "message": "'native key posts/count differ: '+expected['id']",
+      "span": [
+        2338,
+        2596
+      ],
+      "original": "isinstance(posts,list) and all(isinstance(p,dict) for p in posts) and all(type(p.get(k)) is int for p in posts for k in ('type','character','key'))\n            and [{k:p[k] for k in ('type','character','key')} for p in posts]==queued.expected_posts(expected)",
+      "replacement": "True",
+      "ran": 31,
+      "red": [
+        "test_exact_sequence_policy_operations_and_posts (test_v23_native_s5_settled_reference.NativeSettledReader.test_exact_sequence_policy_operations_and_posts) (reason='key posts/count differ')"
+      ],
+      "killed": true
+    },
+    {
+      "id": "read_v23_native_s5_settled_reference.py:validate_order:57",
+      "module": "read_v23_native_s5_settled_reference.py",
+      "kind": "guard-disabled",
+      "message": "'native settle missing/capped: '+field",
+      "span": [
+        2735,
+        2775
+      ],
+      "original": "finite(row.get(field)) and row[field]>=0",
+      "replacement": "True",
+      "ran": 31,
+      "red": [
+        "test_open_setup_and_member_caps (test_v23_native_s5_settled_reference.NativeSettledReader.test_open_setup_and_member_caps) (field='openedSettleMs')",
+        "test_open_setup_and_member_caps (test_v23_native_s5_settled_reference.NativeSettledReader.test_open_setup_and_member_caps) (field='setupSettleMs')"
+      ],
+      "killed": true
+    },
+    {
+      "id": "read_v23_native_s5_settled_reference.py:validate_order:60",
+      "module": "read_v23_native_s5_settled_reference.py",
+      "kind": "guard-disabled",
+      "message": "'invalid native post time: '+expected['id']",
+      "span": [
+        2890,
+        2976
+      ],
+      "original": "finite(p.get('atMs')) and finite(p.get('returnMs')) and last<=p['atMs']<=p['returnMs']",
+      "replacement": "True",
+      "ran": 31,
+      "red": [
+        "test_finite_nonboolean_and_monotone_times (test_v23_native_s5_settled_reference.NativeSettledReader.test_finite_nonboolean_and_monotone_times)",
+        "test_finite_nonboolean_and_monotone_times (test_v23_native_s5_settled_reference.NativeSettledReader.test_finite_nonboolean_and_monotone_times) (value=False)",
+        "test_finite_nonboolean_and_monotone_times (test_v23_native_s5_settled_reference.NativeSettledReader.test_finite_nonboolean_and_monotone_times) (value=inf)",
+        "test_finite_nonboolean_and_monotone_times (test_v23_native_s5_settled_reference.NativeSettledReader.test_finite_nonboolean_and_monotone_times) (value=nan)"
+      ],
+      "killed": true
+    },
+    {
+      "id": "read_v23_native_s5_settled_reference.py:validate_order:65",
+      "module": "read_v23_native_s5_settled_reference.py",
+      "kind": "guard-disabled",
+      "message": "'native member settle/read missing/capped: '+expected['id']",
+      "span": [
+        3167,
+        3263
+      ],
+      "original": "all(finite(step.get(k)) for k in ('settleMs','readStartMs','readEndMs')) and step['settleMs']>=0",
+      "replacement": "True",
+      "ran": 31,
+      "red": [
+        "test_finite_nonboolean_and_monotone_times (test_v23_native_s5_settled_reference.NativeSettledReader.test_finite_nonboolean_and_monotone_times)",
+        "test_open_setup_and_member_caps (test_v23_native_s5_settled_reference.NativeSettledReader.test_open_setup_and_member_caps)"
+      ],
+      "killed": true
+    },
+    {
+      "id": "read_v23_native_s5_settled_reference.py:validate_order:68",
+      "module": "read_v23_native_s5_settled_reference.py",
+      "kind": "guard-disabled",
+      "message": "'native member read not ordered between posts: '+expected['id']",
+      "span": [
+        3430,
+        3565
+      ],
+      "original": "posts[2*i+1]['returnMs']<=step['readStartMs']<=step['readEndMs']\n                and (following is None or step['readEndMs']<following)",
+      "replacement": "True",
+      "ran": 31,
+      "red": [
+        "test_member_reads_must_be_between_key_posts (test_v23_native_s5_settled_reference.NativeSettledReader.test_member_reads_must_be_between_key_posts)"
+      ],
+      "killed": true
+    },
+    {
+      "id": "read_v23_native_s5_settled_reference.py:python_sources:89",
+      "module": "read_v23_native_s5_settled_reference.py",
+      "kind": "guard-disabled",
+      "message": "'native reader depends on its consumer plan'",
+      "span": [
+        4674,
+        4748
+      ],
+      "original": "found and not any(p.name=='v23_feature_selection_cases.py' for p in found)",
+      "replacement": "True",
+      "ran": 31,
+      "red": [
+        "test_dependency_census_rejects_a_consumer_plan_cycle (test_v23_native_s5_settled_reference.NativeSettledReader.test_dependency_census_rejects_a_consumer_plan_cycle)"
+      ],
+      "killed": true
+    },
+    {
+      "id": "read_v23_native_s5_settled_reference.py:verify_bindings:116",
+      "module": "read_v23_native_s5_settled_reference.py",
+      "kind": "guard-disabled",
+      "message": "'native reference binding population differs'",
+      "span": [
+        6233,
+        6302
+      ],
+      "original": "isinstance(bindings,dict) and set(bindings)=={name(p) for p in paths}",
+      "replacement": "True",
+      "ran": 31,
+      "red": [
+        "test_binding_membership_and_bytes_are_checked (test_v23_native_s5_settled_reference.NativeSettledReader.test_binding_membership_and_bytes_are_checked)"
+      ],
+      "killed": true
+    },
+    {
+      "id": "read_v23_native_s5_settled_reference.py:verify_bindings:118",
+      "module": "read_v23_native_s5_settled_reference.py",
+      "kind": "guard-disabled",
+      "message": "'native reference input changed: '+name(path)",
+      "span": [
+        6389,
+        6439
+      ],
+      "original": "path.is_file() and sha(path)==bindings[name(path)]",
+      "replacement": "True",
+      "ran": 31,
+      "red": [
+        "test_binding_membership_and_bytes_are_checked (test_v23_native_s5_settled_reference.NativeSettledReader.test_binding_membership_and_bytes_are_checked)"
+      ],
+      "killed": true
+    },
+    {
+      "id": "read_v23_native_s5_settled_reference.py:checked_save:123",
+      "module": "read_v23_native_s5_settled_reference.py",
+      "kind": "guard-disabled",
+      "message": "'native own save missing: '+side",
+      "span": [
+        6586,
+        6699
+      ],
+      "original": "isinstance(filename,str) and filename and Path(filename).name==filename and row.get('saved'+side.title()) is True",
+      "replacement": "True",
+      "ran": 31,
+      "red": [
+        "test_own_saves_are_present_and_hash_bound (test_v23_native_s5_settled_reference.NativeSettledReader.test_own_saves_are_present_and_hash_bound) (update={'savedBefore': False})"
+      ],
+      "killed": true
+    },
+    {
+      "id": "read_v23_native_s5_settled_reference.py:checked_save:126",
+      "module": "read_v23_native_s5_settled_reference.py",
+      "kind": "guard-disabled",
+      "message": "'native own save missing/hash differs: '+side",
+      "span": [
+        6795,
+        6857
+      ],
+      "original": "path.is_file() and artifacts.get('saves/'+filename)==sha(path)",
+      "replacement": "True",
+      "ran": 31,
+      "red": [
+        "test_own_saves_are_present_and_hash_bound (test_v23_native_s5_settled_reference.NativeSettledReader.test_own_saves_are_present_and_hash_bound)",
+        "test_own_saves_are_present_and_hash_bound (test_v23_native_s5_settled_reference.NativeSettledReader.test_own_saves_are_present_and_hash_bound) (update={'beforeFile': 'absent.odt'})"
+      ],
+      "killed": true
+    },
+    {
+      "id": "read_v23_native_s5_settled_reference.py:validate_execution:132",
+      "module": "read_v23_native_s5_settled_reference.py",
+      "kind": "guard-disabled",
+      "message": "'native settled invocation differs'",
+      "span": [
+        7120,
+        7335
+      ],
+      "original": "len(argv)==9 and argv[:3]==['nice','-n','10'] and argv[3]==str(binary)\n            and argv[5:]==[(directory/'profile').as_uri(),(directory/'fixture.fodt').as_uri(),str(directory/'saves'),str(directory/'cells.txt')]",
+      "replacement": "True",
+      "ran": 31,
+      "red": [
+        "test_execution_binary_core_and_command_bindings (test_v23_native_s5_settled_reference.NativeSettledReader.test_execution_binary_core_and_command_bindings) (reason='invocation differs')"
+      ],
+      "killed": true
+    },
+    {
+      "id": "read_v23_native_s5_settled_reference.py:validate_execution:135",
+      "module": "read_v23_native_s5_settled_reference.py",
+      "kind": "guard-disabled",
+      "message": "'native settled binary differs'",
+      "span": [
+        7398,
+        7453
+      ],
+      "original": "binary.is_file() and sha(binary)==receipt.get('binary')",
+      "replacement": "True",
+      "ran": 31,
+      "red": [
+        "test_execution_binary_core_and_command_bindings (test_v23_native_s5_settled_reference.NativeSettledReader.test_execution_binary_core_and_command_bindings) (reason='binary differs')"
+      ],
+      "killed": true
+    },
+    {
+      "id": "read_v23_native_s5_settled_reference.py:validate_execution:136",
+      "module": "read_v23_native_s5_settled_reference.py",
+      "kind": "guard-disabled",
+      "message": "'native settled command policy differs'",
+      "span": [
+        7499,
+        7624
+      ],
+      "original": "command.get('mode')=='default-native-queued' and command.get('interMemberSettle')=='every member, 800 ms quiet / 8000 ms cap'",
+      "replacement": "True",
+      "ran": 31,
+      "red": [
+        "test_execution_binary_core_and_command_bindings (test_v23_native_s5_settled_reference.NativeSettledReader.test_execution_binary_core_and_command_bindings) (reason='command policy differs')"
+      ],
+      "killed": true
+    },
+    {
+      "id": "read_v23_native_s5_settled_reference.py:validate_execution:138",
+      "module": "read_v23_native_s5_settled_reference.py",
+      "kind": "guard-disabled",
+      "message": "'native settled core differs'",
+      "span": [
+        7691,
+        7781
+      ],
+      "original": "sha(Path(argv[4])/'libmergedlo.so')==command.get('installSha256',{}).get('libmergedlo.so')",
+      "replacement": "True",
+      "ran": 31,
+      "red": [
+        "test_execution_binary_core_and_command_bindings (test_v23_native_s5_settled_reference.NativeSettledReader.test_execution_binary_core_and_command_bindings) (reason='core differs')"
+      ],
+      "killed": true
+    },
+    {
+      "id": "read_v23_native_s5_settled_reference.py:read:144",
+      "module": "read_v23_native_s5_settled_reference.py",
+      "kind": "guard-disabled",
+      "message": "'invalid native empty-mark witness: '+str(base.get('problems'))",
+      "span": [
+        7953,
+        8038
+      ],
+      "original": "base.get('verdict')=='NATIVE_S5_EMPTY_MARK_WITNESS_READ' and base.get('problems')==[]",
+      "replacement": "True",
+      "ran": 31,
+      "red": [
+        "test_invalid_upstream_readers_and_classification_refuse (test_v23_native_s5_settled_reference.NativeSettledReader.test_invalid_upstream_readers_and_classification_refuse) (reason='invalid native empty-mark witness')"
+      ],
+      "killed": true
+    },
+    {
+      "id": "read_v23_native_s5_settled_reference.py:read:146",
+      "module": "read_v23_native_s5_settled_reference.py",
+      "kind": "guard-disabled",
+      "message": "'invalid queued native witness: '+str(original.get('problems'))",
+      "span": [
+        8149,
+        8234
+      ],
+      "original": "original.get('verdict')=='NATIVE_S5_SAVES_AVAILABLE' and original.get('problems')==[]",
+      "replacement": "True",
+      "ran": 31,
+      "red": [
+        "test_invalid_upstream_readers_and_classification_refuse (test_v23_native_s5_settled_reference.NativeSettledReader.test_invalid_upstream_readers_and_classification_refuse) (reason='invalid queued native witness')"
+      ],
+      "killed": true
+    },
+    {
+      "id": "read_v23_native_s5_settled_reference.py:read:162",
+      "module": "read_v23_native_s5_settled_reference.py",
+      "kind": "guard-disabled",
+      "message": "'native witness classification differs: '+cid",
+      "span": [
+        9466,
+        9555
+      ],
+      "original": "type(empty[cid].get('emptyMark')) is bool and empty[cid]['orderIndependent']==independent",
+      "replacement": "True",
+      "ran": 31,
+      "red": [
+        "test_invalid_upstream_readers_and_classification_refuse (test_v23_native_s5_settled_reference.NativeSettledReader.test_invalid_upstream_readers_and_classification_refuse)"
+      ],
+      "killed": true
+    },
+    {
+      "id": "read_v23_native_s5_settled_reference.py:references:180",
+      "module": "read_v23_native_s5_settled_reference.py",
+      "kind": "guard-disabled",
+      "message": "'native settled reference report invalid'",
+      "span": [
+        10973,
+        11096
+      ],
+      "original": "type(report.get('schema')) is int and report['schema']==1 and report.get('verdict')==VERDICT and report.get('problems')==[]",
+      "replacement": "True",
+      "ran": 31,
+      "red": [
+        "test_report_schema_coverage_and_classification (test_v23_native_s5_settled_reference.NativeSettledReader.test_report_schema_coverage_and_classification) (reason='report invalid')"
+      ],
+      "killed": true
+    },
+    {
+      "id": "read_v23_native_s5_settled_reference.py:references:188",
+      "module": "read_v23_native_s5_settled_reference.py",
+      "kind": "guard-disabled",
+      "message": "'native settled classification malformed: '+cid",
+      "span": [
+        11565,
+        11647
+      ],
+      "original": "type(cell.get('emptyMark')) is bool and type(cell.get('orderIndependent')) is bool",
+      "replacement": "True",
+      "ran": 31,
+      "red": [
+        "test_report_schema_coverage_and_classification (test_v23_native_s5_settled_reference.NativeSettledReader.test_report_schema_coverage_and_classification) (reason='classification malformed')"
+      ],
+      "killed": true
+    },
+    {
+      "id": "read_v23_native_s5_settled_reference.py:references:190",
+      "module": "read_v23_native_s5_settled_reference.py",
+      "kind": "guard-disabled",
+      "message": "'native settled partition/reference differs: '+cid",
+      "span": [
+        11793,
+        11852
+      ],
+      "original": "isinstance(reference,dict) if member else reference is None",
+      "replacement": "True",
+      "ran": 31,
+      "red": [
+        "test_report_schema_coverage_and_classification (test_v23_native_s5_settled_reference.NativeSettledReader.test_report_schema_coverage_and_classification) (reason='partition/reference differs')"
+      ],
+      "killed": true
+    },
+    {
+      "id": "read_v23_native_s5_settled_reference.py:references:192",
+      "module": "read_v23_native_s5_settled_reference.py",
+      "kind": "guard-disabled",
+      "message": "'native settled reference identity differs: '+cid",
+      "span": [
+        11944,
+        12279
+      ],
+      "original": "reference.get('kind')=='native-every-member-settled' and reference.get('id')==cid\n                    and reference.get('family')==spec['family'] and reference.get('sequence')==spec['sequence']\n                    and reference.get('referencePolicy')==spec['referencePolicy']\n                    and reference.get('schedule')==SCHEDULE",
+      "replacement": "True",
+      "ran": 31,
+      "red": [
+        "test_report_schema_coverage_and_classification (test_v23_native_s5_settled_reference.NativeSettledReader.test_report_schema_coverage_and_classification) (reason='reference identity differs')"
+      ],
+      "killed": true
+    },
+    {
+      "id": "read_v23_native_s5_settled_reference.py:binding:203",
+      "module": "read_v23_native_s5_settled_reference.py",
+      "kind": "guard-disabled",
+      "message": "'every-member-settled reference absent'",
+      "span": [
+        12562,
+        12582
+      ],
+      "original": "isinstance(ref,dict)",
+      "replacement": "True",
+      "ran": 31,
+      "red": [
+        "test_sealed_certificate_positive_and_partition_guards (test_v23_native_s5_settled_reference.NativeSettledReader.test_sealed_certificate_positive_and_partition_guards) (changes={'nativeEveryMemberSettled': None})"
+      ],
+      "killed": true
+    },
+    {
+      "id": "read_v23_native_s5_settled_reference.py:binding:204",
+      "module": "read_v23_native_s5_settled_reference.py",
+      "kind": "guard-disabled",
+      "message": "'invalid every-member-settled partition'",
+      "span": [
+        12636,
+        12738
+      ],
+      "original": "row.get('emptyMark') is False and row.get('nativeOrderIndependent') is False and row['family']!='type'",
+      "replacement": "True",
+      "ran": 31,
+      "red": [
+        "test_sealed_certificate_positive_and_partition_guards (test_v23_native_s5_settled_reference.NativeSettledReader.test_sealed_certificate_positive_and_partition_guards) (changes={'emptyMark': True})",
+        "test_sealed_certificate_positive_and_partition_guards (test_v23_native_s5_settled_reference.NativeSettledReader.test_sealed_certificate_positive_and_partition_guards) (changes={'family': 'type'})",
+        "test_sealed_certificate_positive_and_partition_guards (test_v23_native_s5_settled_reference.NativeSettledReader.test_sealed_certificate_positive_and_partition_guards) (changes={'nativeOrderIndependent': True})"
+      ],
+      "killed": true
+    },
+    {
+      "id": "read_v23_native_s5_settled_reference.py:binding:207",
+      "module": "read_v23_native_s5_settled_reference.py",
+      "kind": "guard-disabled",
+      "message": "'native settled certificate path invalid'",
+      "span": [
+        12879,
+        12949
+      ],
+      "original": "str(p) not in ('','.') and not p.is_absolute() and '..' not in p.parts",
+      "replacement": "True",
+      "ran": 31,
+      "red": [
+        "test_certificate_path_file_and_hash_guards (test_v23_native_s5_settled_reference.NativeSettledReader.test_certificate_path_file_and_hash_guards) (path='')",
+        "test_certificate_path_file_and_hash_guards (test_v23_native_s5_settled_reference.NativeSettledReader.test_certificate_path_file_and_hash_guards) (path='../outside')",
+        "test_certificate_path_file_and_hash_guards (test_v23_native_s5_settled_reference.NativeSettledReader.test_certificate_path_file_and_hash_guards) (path='/absolute')"
+      ],
+      "killed": true
+    },
+    {
+      "id": "read_v23_native_s5_settled_reference.py:binding:209",
+      "module": "read_v23_native_s5_settled_reference.py",
+      "kind": "guard-disabled",
+      "message": "'native settled certificate missing/hash differs'",
+      "span": [
+        13018,
+        13063
+      ],
+      "original": "p.is_file() and sha(p)==receipt.get('sha256')",
+      "replacement": "True",
+      "ran": 31,
+      "red": [
+        "test_certificate_path_file_and_hash_guards (test_v23_native_s5_settled_reference.NativeSettledReader.test_certificate_path_file_and_hash_guards)"
+      ],
+      "killed": true
+    },
+    {
+      "id": "read_v23_native_s5_settled_reference.py:binding:211",
+      "module": "read_v23_native_s5_settled_reference.py",
+      "kind": "guard-disabled",
+      "message": "'native settled certificate invalid'",
+      "span": [
+        13165,
+        13288
+      ],
+      "original": "type(report.get('schema')) is int and report['schema']==1 and report.get('verdict')==VERDICT and report.get('problems')==[]",
+      "replacement": "True",
+      "ran": 31,
+      "red": [
+        "test_certificate_schema_population_and_exact_identity (test_v23_native_s5_settled_reference.NativeSettledReader.test_certificate_schema_population_and_exact_identity) (reason='certificate invalid')"
+      ],
+      "killed": true
+    },
+    {
+      "id": "read_v23_native_s5_settled_reference.py:binding:215",
+      "module": "read_v23_native_s5_settled_reference.py",
+      "kind": "guard-disabled",
+      "message": "'native settled certificate cell differs'",
+      "span": [
+        13471,
+        13616
+      ],
+      "original": "len(cells)==1 and cells[0].get('emptyMark') is False and cells[0].get('orderIndependent') is False\n            and cells[0].get('reference')==own",
+      "replacement": "True",
+      "ran": 31,
+      "red": [
+        "test_certificate_schema_population_and_exact_identity (test_v23_native_s5_settled_reference.NativeSettledReader.test_certificate_schema_population_and_exact_identity) (reason='certificate cell differs')"
+      ],
+      "killed": true
+    },
+    {
+      "id": "read_v23_native_s5_settled_reference.py:binding:217",
+      "module": "read_v23_native_s5_settled_reference.py",
+      "kind": "guard-disabled",
+      "message": "'native settled certificate sequence/schedule differs'",
+      "span": [
+        13672,
+        13938
+      ],
+      "original": "own.get('kind')=='native-every-member-settled' and own.get('id')==row['id']\n            and own.get('family')==row['family'] and own.get('sequence')==row['sequence'] and own.get('schedule')==SCHEDULE\n            and own.get('referencePolicy')==row['referencePolicy']",
+      "replacement": "True",
+      "ran": 31,
+      "red": [
+        "test_certificate_schema_population_and_exact_identity (test_v23_native_s5_settled_reference.NativeSettledReader.test_certificate_schema_population_and_exact_identity) (reason='certificate sequence/schedule differs')"
+      ],
+      "killed": true
+    },
+    {
+      "id": "v23_s5_comparison.py:strip_ffd:20",
+      "module": "v23_s5_comparison.py",
+      "kind": "guard-disabled",
+      "message": "'font-face-decls not uniquely present'",
+      "span": [
+        741,
+        754
+      ],
+      "original": "len(found)==1",
+      "replacement": "True",
+      "ran": 31,
+      "red": [
+        "test_native_font_declaration_guards_remain_exact (test_v23_native_s5_settled_reference.NativeSettledReader.test_native_font_declaration_guards_remain_exact) (reason='not uniquely present')",
+        "test_ruling_red_cases (test_v23_feature_selection.S5ComparatorControls.test_ruling_red_cases)"
+      ],
+      "killed": true
+    },
+    {
+      "id": "v23_s5_comparison.py:strip_ffd:21",
+      "module": "v23_s5_comparison.py",
+      "kind": "guard-disabled",
+      "message": "'font-face-decls empty'",
+      "span": [
+        804,
+        825
+      ],
+      "original": "found[0].strip()!=b''",
+      "replacement": "True",
+      "ran": 31,
+      "red": [
+        "test_native_font_declaration_guards_remain_exact (test_v23_native_s5_settled_reference.NativeSettledReader.test_native_font_declaration_guards_remain_exact) (reason='font-face-decls empty')"
+      ],
+      "killed": true
+    },
+    {
+      "id": "v23_s5_comparison.py:strip_ffd:23",
+      "module": "v23_s5_comparison.py",
+      "kind": "guard-disabled",
+      "message": "'office:body absent after removing font-face-decls'",
+      "span": [
+        916,
+        940
+      ],
+      "original": "b'<office:body>' in rest",
+      "replacement": "True",
+      "ran": 31,
+      "red": [
+        "test_native_font_declaration_guards_remain_exact (test_v23_native_s5_settled_reference.NativeSettledReader.test_native_font_declaration_guards_remain_exact) (reason='office:body absent')"
+      ],
+      "killed": true
+    },
+    {
+      "id": "v23_s5_comparison.py:validate_settled_pair:40",
+      "module": "v23_s5_comparison.py",
+      "kind": "guard-disabled",
+      "message": "'settled native before differs from queued native before'",
+      "span": [
+        1559,
+        1605
+      ],
+      "original": "s5_compare('delete',queued_before,before,True)",
+      "replacement": "True",
+      "ran": 31,
+      "red": [
+        "test_pair_guards_keep_before_structure_and_noncollapse (test_v23_native_s5_settled_reference.NativeSettledReader.test_pair_guards_keep_before_structure_and_noncollapse)"
+      ],
+      "killed": true
+    },
+    {
+      "id": "v23_s5_comparison.py:validate_settled_pair:42",
+      "module": "v23_s5_comparison.py",
+      "kind": "guard-disabled",
+      "message": "'reduction collapses settled native edit'",
+      "span": [
+        1734,
+        1773
+      ],
+      "original": "odt_content(before)==odt_content(after)",
+      "replacement": "True",
+      "ran": 31,
+      "red": [
+        "test_pair_guards_keep_before_structure_and_noncollapse (test_v23_native_s5_settled_reference.NativeSettledReader.test_pair_guards_keep_before_structure_and_noncollapse)"
+      ],
+      "killed": true
+    },
+    {
+      "id": "judge_v23_feature_selection.py:native_reference:419",
+      "module": "judge_v23_feature_selection.py",
+      "kind": "guard-disabled",
+      "message": "'empty-mark row has no native oracle'",
+      "span": [
+        31978,
+        32002
+      ],
+      "original": "not row.get('emptyMark')",
+      "replacement": "True",
+      "ran": 31,
+      "red": [
+        "test_empty_mark_refuses_both_native_routes (test_v23_settled_native_pages.SettledNativePages.test_empty_mark_refuses_both_native_routes) (settled=False)",
+        "test_empty_mark_refuses_both_native_routes (test_v23_settled_native_pages.SettledNativePages.test_empty_mark_refuses_both_native_routes) (settled=True)"
+      ],
+      "killed": true
+    },
+    {
+      "id": "judge_v23_feature_selection.py:native_reference:430",
+      "module": "judge_v23_feature_selection.py",
+      "kind": "guard-disabled",
+      "message": "'native reference not comparable'",
+      "span": [
+        32684,
+        32739
+      ],
+      "original": "s5_compare(row['family'],original,files['before'],True)",
+      "replacement": "True",
+      "ran": 31,
+      "red": [
+        "test_own_pair_and_browser_original_guards_are_independent (test_v23_settled_native_pages.SettledNativePages.test_own_pair_and_browser_original_guards_are_independent)",
+        "test_ruling_red_cases (test_v23_feature_selection.S5ComparatorControls.test_ruling_red_cases)"
+      ],
+      "killed": true
+    },
+    {
+      "id": "judge_v23_feature_selection.py:native_reference:424",
+      "module": "judge_v23_feature_selection.py",
+      "kind": "guard-disabled",
+      "message": "'native reference bytes differ'",
+      "span": [
+        32247,
+        32285
+      ],
+      "original": "digest(raw)==reference[side]['sha256']",
+      "replacement": "True",
+      "ran": 31,
+      "red": [
+        "test_own_pair_and_browser_original_guards_are_independent (test_v23_settled_native_pages.SettledNativePages.test_own_pair_and_browser_original_guards_are_independent)"
+      ],
+      "killed": true
+    },
+    {
+      "id": "judge_v23_feature_selection.py:native_reference:427",
+      "module": "judge_v23_feature_selection.py",
+      "kind": "guard-disabled",
+      "message": "'queued native before bytes differ'",
+      "span": [
+        32455,
+        32484
+      ],
+      "original": "digest(raw)==queued['sha256']",
+      "replacement": "True",
+      "ran": 31,
+      "red": [
+        "test_own_pair_and_browser_original_guards_are_independent (test_v23_settled_native_pages.SettledNativePages.test_own_pair_and_browser_original_guards_are_independent)"
+      ],
+      "killed": true
+    },
+    {
+      "id": "judge_v23_feature_selection.py:native_reference:432",
+      "module": "judge_v23_feature_selection.py",
+      "kind": "guard-disabled",
+      "message": "'reduction collapses the native edit'",
+      "span": [
+        32888,
+        32945
+      ],
+      "original": "odt_content(files['before'])==odt_content(files['after'])",
+      "replacement": "True",
+      "ran": 31,
+      "red": [
+        "test_collapsing_reduction_is_not_a_native_no_effect (test_v23_feature_selection.S5ComparatorControls.test_collapsing_reduction_is_not_a_native_no_effect)"
+      ],
+      "killed": true
+    },
+    {
+      "id": "judge_v23_feature_selection.py:s5_reference_schema:437",
+      "module": "judge_v23_feature_selection.py",
+      "kind": "guard-disabled",
+      "message": "'unknown S5 native reference schema'",
+      "span": [
+        33106,
+        33147
+      ],
+      "original": "type(version) is int and version in (1,2)",
+      "replacement": "True",
+      "ran": 31,
+      "red": [
+        "test_new_schema_never_falls_back_when_its_declaration_is_bad (test_v23_settled_native_pages.SettledNativePages.test_new_schema_never_falls_back_when_its_declaration_is_bad) (reason='unknown S5 native reference schema')",
+        "test_unknown_schema_is_ne (test_v23_settled_native_pages.SettledNativePages.test_unknown_schema_is_ne)"
+      ],
+      "killed": true
+    },
+    {
+      "id": "judge_v23_feature_selection.py:s5_reference_schema:441",
+      "module": "judge_v23_feature_selection.py",
+      "kind": "guard-disabled",
+      "message": "'settled native declaration absent'",
+      "span": [
+        33338,
+        33371
+      ],
+      "original": "'nativeEveryMemberSettled' in row",
+      "replacement": "True",
+      "ran": 31,
+      "red": [
+        "test_new_schema_never_falls_back_when_its_declaration_is_bad (test_v23_settled_native_pages.SettledNativePages.test_new_schema_never_falls_back_when_its_declaration_is_bad) (reason='settled native declaration absent')"
+      ],
+      "killed": true
+    },
+    {
+      "id": "judge_v23_feature_selection.py:s5_reference_schema:442",
+      "module": "judge_v23_feature_selection.py",
+      "kind": "guard-disabled",
+      "message": "'unknown S5 reference policy'",
+      "span": [
+        33418,
+        33516
+      ],
+      "original": "row['referencePolicy'] in ('native','settled-wasm','native-if-single-line-otherwise-settled-wasm')",
+      "replacement": "True",
+      "ran": 31,
+      "red": [
+        "test_new_schema_never_falls_back_when_its_declaration_is_bad (test_v23_settled_native_pages.SettledNativePages.test_new_schema_never_falls_back_when_its_declaration_is_bad) (reason='unknown S5 reference policy')"
+      ],
+      "killed": true
+    },
+    {
+      "id": "judge_v23_feature_selection.py:s5_reference_schema:446",
+      "module": "judge_v23_feature_selection.py",
+      "kind": "guard-disabled",
+      "message": "'native settled partition/reference differs'",
+      "span": [
+        33927,
+        34030
+      ],
+      "original": "isinstance(row['nativeEveryMemberSettled'],dict) if member else row['nativeEveryMemberSettled'] is None",
+      "replacement": "True",
+      "ran": 31,
+      "red": [
+        "test_new_schema_never_falls_back_when_its_declaration_is_bad (test_v23_settled_native_pages.SettledNativePages.test_new_schema_never_falls_back_when_its_declaration_is_bad) (reason='native settled partition/reference differs')"
+      ],
+      "killed": true
+    },
+    {
+      "id": "judge_v23_feature_selection.py:s5_reference_schema:439",
+      "module": "judge_v23_feature_selection.py",
+      "kind": "guard-disabled",
+      "message": "'settled native declaration without schema'",
+      "span": [
+        33218,
+        33255
+      ],
+      "original": "'nativeEveryMemberSettled' not in row",
+      "replacement": "True",
+      "ran": 31,
+      "red": [
+        "test_new_schema_never_falls_back_when_its_declaration_is_bad (test_v23_settled_native_pages.SettledNativePages.test_new_schema_never_falls_back_when_its_declaration_is_bad) (reason='settled native declaration without schema')"
+      ],
+      "killed": true
+    },
+    {
+      "id": "judge_v23_feature_selection.py:s5_reference_schema:444",
+      "module": "judge_v23_feature_selection.py",
+      "kind": "guard-disabled",
+      "message": "'native witness classification absent'",
+      "span": [
+        33634,
+        33720
+      ],
+      "original": "type(row.get('emptyMark')) is bool and type(row.get('nativeOrderIndependent')) is bool",
+      "replacement": "True",
+      "ran": 31,
+      "red": [
+        "test_new_schema_never_falls_back_when_its_declaration_is_bad (test_v23_settled_native_pages.SettledNativePages.test_new_schema_never_falls_back_when_its_declaration_is_bad) (reason='native witness classification absent')"
+      ],
+      "killed": true
+    },
+    {
+      "id": "v23_feature_selection_cases.py:settled_references:158",
+      "module": "v23_feature_selection_cases.py",
+      "kind": "guard-disabled",
+      "message": "direct refusal",
+      "span": [
+        10282,
+        10326
+      ],
+      "original": "digest(raw)!=NATIVE_S5_SETTLED_READER_SHA256",
+      "replacement": "False",
+      "ran": 31,
+      "red": [
+        "test_plan_requires_the_sealed_report_and_matching_mark_classification (test_v23_settled_native_pages.SettledNativePages.test_plan_requires_the_sealed_report_and_matching_mark_classification)"
+      ],
+      "killed": true
+    },
+    {
+      "id": "v23_feature_selection_cases.py:settled_references:162",
+      "module": "v23_feature_selection_cases.py",
+      "kind": "guard-disabled",
+      "message": "direct refusal",
+      "span": [
+        10547,
+        10665
+      ],
+      "original": "mark is None or cell['emptyMark'] is not mark['emptyMark'] or cell['orderIndependent'] is not mark['orderIndependent']",
+      "replacement": "False",
+      "ran": 31,
+      "red": [
+        "test_plan_requires_the_sealed_report_and_matching_mark_classification (test_v23_settled_native_pages.SettledNativePages.test_plan_requires_the_sealed_report_and_matching_mark_classification)"
+      ],
+      "killed": true
+    },
+    {
+      "id": "text:queued save used for the new native route",
+      "module": "judge_v23_feature_selection.py",
+      "kind": "semantic",
+      "original": "reference=settled_binding(row)['saves'] if every_member_settled else row['native']",
+      "replacement": "reference=row['native']",
+      "ran": 31,
+      "red": [
+        "test_aggregate_derives_and_reconciles_the_actual_route_identities (test_v23_settled_native_pages.SettledNativePages.test_aggregate_derives_and_reconciles_the_actual_route_identities)",
+        "test_own_pair_and_browser_original_guards_are_independent (test_v23_settled_native_pages.SettledNativePages.test_own_pair_and_browser_original_guards_are_independent)",
+        "test_own_sequence_settled_native_is_used_in_both_browsers (test_v23_settled_native_pages.SettledNativePages.test_own_sequence_settled_native_is_used_in_both_browsers) (browser='chrome', case='shift-Home@heading-mid/backspace-twice')",
+        "test_own_sequence_settled_native_is_used_in_both_browsers (test_v23_settled_native_pages.SettledNativePages.test_own_sequence_settled_native_is_used_in_both_browsers) (browser='chrome', case='shift-Home@list-mid/backspace-twice')",
+        "test_own_sequence_settled_native_is_used_in_both_browsers (test_v23_settled_native_pages.SettledNativePages.test_own_sequence_settled_native_is_used_in_both_browsers) (browser='firefox', case='shift-Home@heading-mid/backspace-twice')",
+        "test_own_sequence_settled_native_is_used_in_both_browsers (test_v23_settled_native_pages.SettledNativePages.test_own_sequence_settled_native_is_used_in_both_browsers) (browser='firefox', case='shift-Home@list-mid/backspace-twice')",
+        "test_queued_heading_and_structure_only_list_results_fail (test_v23_settled_native_pages.SettledNativePages.test_queued_heading_and_structure_only_list_results_fail) (case='shift-Home@heading-mid/backspace-twice')",
+        "test_queued_heading_and_structure_only_list_results_fail (test_v23_settled_native_pages.SettledNativePages.test_queued_heading_and_structure_only_list_results_fail) (case='shift-Home@list-mid/backspace-twice')"
+      ],
+      "killed": true
+    },
+    {
+      "id": "text:new schedule label erased",
+      "module": "judge_v23_feature_selection.py",
+      "kind": "semantic",
+      "original": "label='native-every-member-settled' if routed else 'native' if native else 'settled-wasm'",
+      "replacement": "label='native' if native else 'settled-wasm'",
+      "ran": 31,
+      "red": [
+        "test_aggregate_derives_and_reconciles_the_actual_route_identities (test_v23_settled_native_pages.SettledNativePages.test_aggregate_derives_and_reconciles_the_actual_route_identities)",
+        "test_own_sequence_settled_native_is_used_in_both_browsers (test_v23_settled_native_pages.SettledNativePages.test_own_sequence_settled_native_is_used_in_both_browsers) (browser='chrome', case='shift-Home@heading-mid/backspace-twice')",
+        "test_own_sequence_settled_native_is_used_in_both_browsers (test_v23_settled_native_pages.SettledNativePages.test_own_sequence_settled_native_is_used_in_both_browsers) (browser='chrome', case='shift-Home@list-mid/backspace-twice')",
+        "test_own_sequence_settled_native_is_used_in_both_browsers (test_v23_settled_native_pages.SettledNativePages.test_own_sequence_settled_native_is_used_in_both_browsers) (browser='firefox', case='shift-Home@heading-mid/backspace-twice')",
+        "test_own_sequence_settled_native_is_used_in_both_browsers (test_v23_settled_native_pages.SettledNativePages.test_own_sequence_settled_native_is_used_in_both_browsers) (browser='firefox', case='shift-Home@list-mid/backspace-twice')",
+        "test_queued_heading_and_structure_only_list_results_fail (test_v23_settled_native_pages.SettledNativePages.test_queued_heading_and_structure_only_list_results_fail) (case='shift-Home@heading-mid/backspace-twice')",
+        "test_queued_heading_and_structure_only_list_results_fail (test_v23_settled_native_pages.SettledNativePages.test_queued_heading_and_structure_only_list_results_fail) (case='shift-Home@list-mid/backspace-twice')"
+      ],
+      "killed": true
+    },
+    {
+      "id": "text:Home/End native branch ignores the browser line witness",
+      "module": "judge_v23_feature_selection.py",
+      "kind": "semantic",
+      "original": "row['referencePolicy'].startswith('native-if-single-line') and single",
+      "replacement": "row['referencePolicy'].startswith('native-if-single-line') and True",
+      "ran": 31,
+      "red": [
+        "test_home_end_still_require_the_browser_single_line_witness (test_v23_settled_native_pages.SettledNativePages.test_home_end_still_require_the_browser_single_line_witness)"
+      ],
+      "killed": true
+    },
+    {
+      "id": "text:historical plans implicitly adopt the new schema",
+      "module": "judge_v23_feature_selection.py",
+      "kind": "semantic",
+      "original": "version=plan.get('s5NativeReferenceSchema',1)",
+      "replacement": "version=plan.get('s5NativeReferenceSchema',2)",
+      "ran": 31,
+      "red": [
+        "test_historical_pages_keep_their_exact_ne_inspections (test_v23_settled_native_pages.SettledNativePages.test_historical_pages_keep_their_exact_ne_inspections) (browser='chrome', case='shift-Home@heading-mid/backspace-twice')",
+        "test_historical_pages_keep_their_exact_ne_inspections (test_v23_settled_native_pages.SettledNativePages.test_historical_pages_keep_their_exact_ne_inspections) (browser='chrome', case='shift-Home@list-mid/backspace-twice')",
+        "test_historical_pages_keep_their_exact_ne_inspections (test_v23_settled_native_pages.SettledNativePages.test_historical_pages_keep_their_exact_ne_inspections) (browser='firefox', case='shift-Home@heading-mid/backspace-twice')",
+        "test_historical_pages_keep_their_exact_ne_inspections (test_v23_settled_native_pages.SettledNativePages.test_historical_pages_keep_their_exact_ne_inspections) (browser='firefox', case='shift-Home@list-mid/backspace-twice')",
+        "test_new_schema_never_falls_back_when_its_declaration_is_bad (test_v23_settled_native_pages.SettledNativePages.test_new_schema_never_falls_back_when_its_declaration_is_bad) (reason='settled native declaration without schema')"
+      ],
+      "killed": true
+    },
+    {
+      "id": "text:aggregate route reconciliation omitted",
+      "module": "judge_v23_feature_selection.py",
+      "kind": "semantic",
+      "original": "if groups['S5']['verdict']=='PASS' and groups['S5']['nativeSettledEligibleCells']!=groups['S5']['nativeSettledRoutedCells']:",
+      "replacement": "if False:",
+      "ran": 31,
+      "red": [
+        "test_aggregate_derives_and_reconciles_the_actual_route_identities (test_v23_settled_native_pages.SettledNativePages.test_aggregate_derives_and_reconciles_the_actual_route_identities)"
+      ],
+      "killed": true
+    }
+  ],
+  "survivors": [],
+  "counts": {
+    "guards": 50,
+    "semantic": 5,
+    "mutations": 55,
+    "killed": 55
+  },
+  "verdict": "ALL_KILLED",
+  "inputsUnchanged": true
+}
