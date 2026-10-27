@@ -699,11 +699,17 @@ def r1_arm(e,name,row):
     check(not bad,label('measured move changed the document/revision: '+','.join(bad)))
     check(v['readback']['selection'].get('collapsed') is True and v['activeSelection'].get('selectionType')=='none'
           and v['activeSelection'].get('text')=='',label('measured move result not collapsed'))
+    # R1 ruling 1: a "late" result includes S2's stale reply; s2_compare unchanged, with the
+    # comparison neutralised as arm() does, so a changed document stays the FAIL above.
+    stale=s2_compare({**reply,'changed':False,'revision':reply['beforeRevision']},v['readback'],v['activeSelection'])
+    if stale and measured:
+        error=ProductFailure('measured move reply stale: '+','.join(stale));error.staleFields=stale;raise error
+    need(not stale,label('measured move reply stale: '+','.join(stale)))
     marker=r1_marker_witness(e,v,name,gen,handle,at,texts)
     e.state(name+'-final-state',v['finalState']);e.call(name+'-close','close')
     return {'generation':gen,'wrap':wrap,'setupLogical':logical,'marker':list(marker),'caret':v['readback']['caret'],
             'keyAt':r['at'],'controlAt':after['at'],'pointBoxes':v['points'][pn]['boxes'],'setupCaret':caret,
-            'setupSelectionType':v['setupSelection']['selectionType']}
+            'setupSelectionType':v['setupSelection']['selectionType'],'staleFields':stale}
 
 def r1_literal_premise(row,cand):
     """Literal Home/End: the point's line is one displayed line (its own search has exactly one
@@ -733,7 +739,8 @@ def inspect_r1(page,plan,browser):
             need(ctl['wrap']==cand['wrap'],'arms disagree on the visual wrap')
         contradict(not any(x['message'].get('event') in ('recoverable-error','worker-restart') for x in page['events']),'recovery occurred')
         record={'oracle':row['oracle'],'controlRule':(row['control'] or {}).get('rule'),'wrongOldClickControl':bool(row['wrongOldClickControl']),
-                'wrap':cand['wrap'],'setupLogical':cand['setupLogical'],'setupSelectionType':cand['setupSelectionType'],'landing':cand['marker']}
+                'wrap':cand['wrap'],'setupLogical':cand['setupLogical'],'setupSelectionType':cand['setupSelectionType'],'landing':cand['marker'],
+                'staleFields':cand['staleFields']}
         if row['oracle']=='literal':
             if row['literalPremise']:record['premise']=r1_literal_premise(row,cand)
             # Recorded, never asserted (open question in r1-source/README.md): the protocol compares
@@ -749,7 +756,7 @@ def inspect_r1(page,plan,browser):
         groups['R1']={'verdict':'PASS',**record}
         return {'verdict':'PASS','groups':groups}
     except ProductFailure as error:
-        groups['R1']={'verdict':'FAIL','reason':str(error)}
+        groups['R1']={'verdict':'FAIL','reason':str(error),**({'staleFields':error.staleFields} if hasattr(error,'staleFields') else {})}
         return {'verdict':'FAIL','reason':str(error),'groups':groups}
     except (NotEstablished,KeyError,ValueError,TypeError,IndexError) as error:
         return {'verdict':'NOT_ESTABLISHED','reason':str(error),'groups':groups}

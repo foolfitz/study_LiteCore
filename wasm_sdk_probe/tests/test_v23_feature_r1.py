@@ -500,6 +500,17 @@ class R1ReaderRedCases(unittest.TestCase):
         page=r1_page(self.LITERAL);m=page['r1cand']['marker'];key=[x for x in page['inputs'][m['inputStart']:m['inputEnd']] if x['type']=='keydown'][0]
         key['at']=0
         self.expect(page,'NOT_ESTABLISHED','marker typed before the delayed read')
+    # -- late result: S2's stale reply (R1 ruling 1, C1 red cases) --
+    def test_stale_reply(self):
+        def caret(v):v['state']['caret']={**v['state']['caret'],'x':v['state']['caret']['x']+137}
+        def ranged(v):v['state']['selection']={**v['state']['selection'],'collapsed':False}
+        value=judged(r1_page(self.LITERAL,faults={'r1cand':{'reply':caret}}))
+        self.assertEqual((value['verdict'],value['reason'],value['groups']['R1']['staleFields']),('FAIL','measured move reply stale: caret',['caret']))
+        value=judged(r1_page(self.LITERAL,faults={'r1cand':{'reply':ranged}}))
+        self.assertEqual((value['verdict'],value['reason']),('FAIL','measured move reply stale: selection,active-selection-type'))
+        self.expect(r1_page(self.LAYOUT,faults={'r1control':{'reply':caret}}),'NOT_ESTABLISHED','independent control outcome invalid: measured move reply stale: caret')
+        self.expect(r1_page(self.LITERAL,faults={'r1cand':{'reply':lambda v:v.pop('state')}}),'NOT_ESTABLISHED','move/state absent')
+        value=judged(r1_page(self.LITERAL));self.assertEqual((value['verdict'],value['groups']['R1']['staleFields']),('PASS',[]))
     # -- candidate outcome (FAIL) --
     def test_changed_revision_fails(self):
         for edit,fields in ((lambda v:v.update(changed=True),'changed'),(lambda v:v.update(revision=v['revision']+1),'revision,delayed-revision')):
