@@ -1,0 +1,7 @@
+# S5 preparation 05: 14/14 PASS, not counted
+
+Both browsers completed the same seven declared cases under `s5NativeReferenceSchema: 2`, using settled-reference certificate 04. The report has matching `config` and `postConfig`, no nonpassing cells, and 14 PASS inspections. This is preparation only and contributes no qualifying S5 count.
+
+Coverage includes two empty-mark cases, ordinary native deletion before/after Shift, native type, mandatory settled-WASM, and both tool-derived order-dependent native members. The original raw cell receipts are retained in `report.json`; cells are archived as deterministic `.json.gz` with identical decompressed bytes. The mirror contains the actual served preparation sources; its profiles symlink is runtime-only and ignored.
+
+After this preparation, a fault injected into a copied native record removed the last member's state payload. The then-current reader still accepted it (`../s5-order-oracle-review/state-payload-pre-red.json`). The final reader now checks actual state payload presence/type at every member, as required by the already-declared every-member state-read claim; it produces certificate 05. Certificate 04 and this preparation remain unchanged. `../s5-order-oracle-review/prep-05-reread.json` verifies all 14 complete inspections against their recorded plan without adopting certificate 05 or ignoring fields. A fresh preparation 06 is required under the final plan before counted execution.
