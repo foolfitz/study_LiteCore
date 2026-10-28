@@ -1,0 +1,1 @@
+/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/dist/r8-discovery-app.js

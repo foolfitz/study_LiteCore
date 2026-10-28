@@ -1,0 +1,440 @@
+{
+ "scope": "Legacy K premise diagnostic only; zero K credit; no gate bypass",
+ "argv": [
+  "findings/evidence/host-0.2.39/probe-legacy-v8-gate.py",
+  "--out",
+  "findings/evidence/host-0.2.39/legacy-v8-gate-01"
+ ],
+ "sourceSha256": "b15a6d8e07b6a4f3e551f27971b7cfe8bec2cb743e5f6809013ca7f2082de669",
+ "v8PageSha256": "5b4c72deb3c65adc82163cb56d8c424ca57bcc8ba79af697d0b8c5bc803c2216",
+ "v8ManifestSha256": "d70481cb1be5b1f963458a090a8b2b23e48ef68a4d07f3ebd934e566f03efa0d",
+ "pinBefore": "276158084a602178",
+ "v8WasmSha256": "4a2710bba1ef07d9364f02bd07905f0e95e92f805d97eab37dfb262e2a28b47f",
+ "v8TypedInsert": null,
+ "expectedGateCodeByBoundSource": "PAGE_BUILD_MISMATCH",
+ "runs": [
+  {
+   "path": "control.json",
+   "sha256": "612c0beca7bdb3074b2647125a4b332fc867c8cfd45a8d1eb6d207e786312436",
+   "inspection": {
+    "insertRequests": 1,
+    "initReplies": [
+     {
+      "protocolVersion": 1,
+      "kind": "response",
+      "requestId": 1,
+      "ok": true,
+      "result": {
+       "abiVersion": 65537,
+       "abiVersionText": "1.1",
+       "artifactFiles": {
+        "probe.js": "./probe.js",
+        "probe.wasm": "./probe.wasm",
+        "soffice.data": "../resources/base-r5-no35.65e8acbb5f0632be.data",
+        "soffice.data.js.metadata": "../resources/base-r5-no35.1700ed39031eaf49.metadata"
+       },
+       "capabilities": [
+        "open-odt",
+        "rgba-tile",
+        "insert-text",
+        "save-odt",
+        "cancel-queued",
+        "search",
+        "selection-text",
+        "replace-selection",
+        "undo",
+        "comments",
+        "tracked-changes",
+        "provider-contract-1.0",
+        "provider-worker",
+        "validated-provider-operation",
+        "narrow-editor-v2",
+        "verified-selection-delete"
+       ],
+       "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+       "expectedCapabilityBits": 2047,
+       "profile": "e2-editor-v24",
+       "protocolVersion": 1,
+       "providerContractVersion": "1.0",
+       "resourcePacks": [
+        {
+         "bytes": 14384632,
+         "data": "../resources/cjk-sub-e10.06976180177c8bd2.data",
+         "id": "cjk-sub-e10",
+         "loadAtStartup": true,
+         "metadata": "../resources/cjk-sub-e10.4144b2b2a44dd797.metadata",
+         "purpose": "CJK corpus: Traditional Chinese subset of Noto Sans CJK, tier E (Big5, HKSCS, U+4E00-U+9FFF, kana), as five Sans families (JP KR SC TC HK) sharing one glyph set plus five Noto Sans Mono CJK families sharing the same code points cut from the Mono TC face",
+         "sha256": "06976180177c8bd2a0c7bb7c18837bd12ce116481aefc56b60807948b585ffab"
+        },
+        {
+         "bytes": 49102042,
+         "data": "../resources/fallback-fonts-r5.33856e2a082148dd.data",
+         "id": "fallback-fonts-r5",
+         "loadAtStartup": false,
+         "metadata": "../resources/fallback-fonts-r5.924fb0ed8b459946.metadata",
+         "purpose": "optional complex-script and fidelity fallback",
+         "sha256": "33856e2a082148ddbb753652861a5dd05af911e0d3587a3e8c75948a345de3a9"
+        }
+       ],
+       "sdkVersion": "0.6.0-r6-worker+e2-editor-v24",
+       "editorContract": {
+        "version": 2,
+        "abiVersion": 6,
+        "actions": {
+         "move-character-left": {
+          "id": 1,
+          "gestures": [
+           "collapsed",
+           "range-single",
+           "range-cross"
+          ],
+          "limits": []
+         },
+         "move-character-right": {
+          "id": 2,
+          "gestures": [
+           "collapsed",
+           "range-single",
+           "range-cross"
+          ],
+          "limits": []
+         },
+         "delete-backward": {
+          "id": 3,
+          "gestures": [
+           "collapsed"
+          ],
+          "limits": []
+         },
+         "delete-forward": {
+          "id": 4,
+          "gestures": [
+           "collapsed"
+          ],
+          "limits": []
+         },
+         "insert-paragraph-break": {
+          "id": 5,
+          "gestures": [
+           "collapsed"
+          ],
+          "limits": []
+         },
+         "insert-line-break": {
+          "id": 6,
+          "gestures": [
+           "collapsed"
+          ],
+          "limits": []
+         },
+         "set-bold": {
+          "id": 7,
+          "gestures": [
+           "collapsed",
+           "range-single",
+           "range-cross"
+          ],
+          "limits": [
+           "range-characterised-2026-08-23-chrome-one-fixture",
+           "whole-paragraph-selection-writes-paragraph-level-formatting-as-native-does"
+          ]
+         },
+         "set-italic": {
+          "id": 8,
+          "gestures": [
+           "collapsed",
+           "range-single",
+           "range-cross"
+          ],
+          "limits": [
+           "range-characterised-2026-08-23-chrome-one-fixture",
+           "whole-paragraph-selection-writes-paragraph-level-formatting-as-native-does"
+          ]
+         },
+         "set-underline": {
+          "id": 9,
+          "gestures": [
+           "collapsed",
+           "range-single",
+           "range-cross"
+          ],
+          "limits": [
+           "range-characterised-2026-08-23-chrome-one-fixture",
+           "whole-paragraph-selection-writes-paragraph-level-formatting-as-native-does"
+          ]
+         },
+         "set-strikethrough": {
+          "id": 10,
+          "gestures": [
+           "collapsed",
+           "range-single",
+           "range-cross"
+          ],
+          "limits": [
+           "range-characterised-2026-08-23-chrome-one-fixture",
+           "whole-paragraph-selection-writes-paragraph-level-formatting-as-native-does"
+          ]
+         },
+         "set-list-none": {
+          "id": 11,
+          "gestures": [
+           "collapsed",
+           "range-single",
+           "range-cross"
+          ],
+          "limits": [
+           "no-note-paragraphs"
+          ]
+         },
+         "set-list-unordered": {
+          "id": 12,
+          "gestures": [
+           "collapsed",
+           "range-single",
+           "range-cross"
+          ],
+          "limits": [
+           "no-note-paragraphs"
+          ]
+         },
+         "set-list-ordered": {
+          "id": 13,
+          "gestures": [
+           "collapsed",
+           "range-single",
+           "range-cross"
+          ],
+          "limits": [
+           "no-note-paragraphs"
+          ]
+         },
+         "set-paragraph-heading": {
+          "id": 14,
+          "gestures": [
+           "collapsed",
+           "range-single",
+           "range-cross"
+          ],
+          "limits": [
+           "heading-level-1-only",
+           "no-precondition-state",
+           "no-note-paragraphs"
+          ]
+         },
+         "set-paragraph-body": {
+          "id": 15,
+          "gestures": [
+           "collapsed",
+           "range-single",
+           "range-cross"
+          ],
+          "limits": [
+           "no-precondition-state",
+           "no-note-paragraphs"
+          ]
+         },
+         "move-line-up": {
+          "id": 16,
+          "gestures": [
+           "collapsed",
+           "range-single",
+           "range-cross"
+          ],
+          "limits": []
+         },
+         "move-line-down": {
+          "id": 17,
+          "gestures": [
+           "collapsed",
+           "range-single",
+           "range-cross"
+          ],
+          "limits": []
+         },
+         "move-line-home": {
+          "id": 18,
+          "gestures": [
+           "collapsed",
+           "range-single",
+           "range-cross"
+          ],
+          "limits": []
+         },
+         "move-line-end": {
+          "id": 19,
+          "gestures": [
+           "collapsed",
+           "range-single",
+           "range-cross"
+          ],
+          "limits": []
+         },
+         "delete-selection": {
+          "id": 20,
+          "gestures": [
+           "range-single",
+           "range-cross"
+          ],
+          "limits": [
+           "not-characterised-in-tables-or-note-apparatus"
+          ]
+         },
+         "select-all": {
+          "id": 21,
+          "gestures": [],
+          "limits": [
+           "withheld-pending-characterisation"
+          ]
+         },
+         "move-document-start": {
+          "id": 22,
+          "gestures": [
+           "collapsed"
+          ],
+          "limits": [
+           "no-extend-selection"
+          ]
+         },
+         "move-document-end": {
+          "id": 23,
+          "gestures": [
+           "collapsed"
+          ],
+          "limits": [
+           "no-extend-selection"
+          ]
+         }
+        },
+        "gestureBits": {
+         "collapsed": 1,
+         "range-single": 2,
+         "range-cross": 4
+        },
+        "textCommit": "document-sdk-insert-text",
+        "undo": "document-sdk-undo",
+        "state": "typed-editor-state-v1",
+        "selectionBarrier": "verified-single-writer-unit-v1",
+        "formatBarrier": "verified-format-readback-v2",
+        "postDispatchFailureDisposition": "rollback-to-checkpoint",
+        "crossParagraphDisposition": "verify-every-block",
+        "boundaryRejectionRequiresFreshWorker": true,
+        "automaticRetry": false,
+        "rawCallbackExposed": false,
+        "arbitraryKeyCodeAccepted": false,
+        "arbitraryUnoCommandAccepted": false,
+        "diagnosticOperationsExposed": false,
+        "loaderSha256": "64aaa8dc2c7a1c366c76911213090ae60d39c26cd4207274ef1c0420a5a0b301",
+        "wasmSha256": "276158084a602178f9b7219c086f749910601b1a121fca9339b10a79b0f7b639",
+        "workerSha256": "41041fe746b2355a1768bc774a10ac59802a8e359579618be405e3696f3b9461",
+        "inlineRangeEvidence": "findings/evidence/f078-inline-format-on-a-selection/ -- all four inline formats measured on both range shapes against the shipped artifact f923cfa5, the formatted text equal to the selected text in every arm, with a baseline save and a shipped-profile control. Both bits are granted because the engine's gate requires both for an unclassified range; granting one alone admits nothing, measured. A fully selected paragraph comes back as paragraph-level formatting, which native LibreOffice 26.8 does identically (same extent, same shape, measured with tools/f078_native_range_format.cpp). Chrome only, one fixture, one selection geometry per arm; the 5-character list prefix the copy path reports on a cross-paragraph selection is unexplained and touches no formatting outcome",
+        "inlineFormatEnabledIsHonoured": true,
+        "redo": "document-sdk-redo",
+        "pageRectangles": "document-sdk-page-rectangles",
+        "pasteMarkdown": "document-sdk-paste-markdown",
+        "typedInsert": "document-sdk-insert-typed-text"
+       },
+       "capabilityBits": 2047
+      }
+     }
+    ],
+    "workerExceptions": 0,
+    "firstInsert": {
+     "payload": {
+      "documentHandle": 1,
+      "text": "x",
+      "route": "uno-insert-text"
+     },
+     "reply": {
+      "protocolVersion": 1,
+      "kind": "response",
+      "requestId": 28,
+      "ok": true,
+      "result": {
+       "method": "uno-insert-text",
+       "revision": 1,
+       "completion": "uno-command-result",
+       "resultPayload": "{ \"commandName\": \".uno:InsertText\", \"success\": false, \"result\": { \"type\": \"void\"}, \"wasModified\": false, \"startUnixTimeMics\": 1793228451176584, \"saveDurationMics\": 4675}"
+      }
+     }
+    },
+    "verdict": "PASS"
+   }
+  },
+  {
+   "path": "legacy-v8.json",
+   "sha256": "815ec460a5d9d46314ef2d43d3c466062d3c07bc14530717d9af40297775989f",
+   "inspection": {
+    "verdict": "EXPECTED_REFUSAL",
+    "expiredAtSettlement": true,
+    "insertRequests": 0,
+    "gateCodeIsSourceAttribution": true
+   }
+  }
+ ],
+ "preRun": {
+  "kwalletLocked": "b false",
+  "chromeProcesses": "0",
+  "firefoxProcesses": "0",
+  "oursRunning": [],
+  "loadavg": [
+   "0.29",
+   "0.42",
+   "0.26"
+  ],
+  "topCpu": [
+   "PID %CPU COMMAND",
+   "1612765  100 ps",
+   "1612738 46.1 python3",
+   "   3008  3.5 kwin_wayland",
+   "   3463  0.3 konsole",
+   "1305257  0.3 codex"
+  ],
+  "at": "2026-10-29T07:00:41+0800",
+  "refuse": []
+ },
+ "foreignCpu": {
+  "seconds": 2.009,
+  "limitPct": 50.0,
+  "rootPid": 1612738,
+  "ok": true,
+  "overLimit": [],
+  "topForeign": [
+   {
+    "pid": 1305257,
+    "comm": "codex",
+    "pct": 5.0,
+    "own": false,
+    "cmd": "codex resume "
+   },
+   {
+    "pid": 3008,
+    "comm": "kwin_wayland",
+    "pct": 4.0,
+    "own": false,
+    "cmd": "/usr/bin/kwin_wayland --wayland-fd 7 --socket wayland-0 --xwayland-fd 8 --xwayland-fd 9 --xwayland-display :0 --xwayland-xauthority /run/user/1000/xauth_Twzvfw --xwayland "
+   },
+   {
+    "pid": 3463,
+    "comm": "konsole",
+    "pct": 3.0,
+    "own": false,
+    "cmd": "/usr/bin/konsole "
+   },
+   {
+    "pid": 9444,
+    "comm": "codex",
+    "pct": 1.0,
+    "own": false,
+    "cmd": "/home/jiajun/.codex/packages/app-server-daemon/releases/0.165.0-x86_64-unknown-linux-musl/bin/codex app-server --listen unix:// --analytics-default-enabled -c features.api_key_model_discovery=true -c "
+   }
+  ],
+  "topOwn": [],
+  "loadavg": [
+   "0.29",
+   "0.42",
+   "0.26"
+  ],
+  "at": "2026-10-29T07:00:43+0800"
+ },
+ "verdict": "LEGACY_V8_CONTROL_REFUSED"
+}
