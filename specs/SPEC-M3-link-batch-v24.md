@@ -330,3 +330,14 @@ page honesty（`check_m3_page_honesty.py`）在 v24 的頁面上照 K 鏈的前�
 5. **授權與負載**：擁有者本日明確要求離座後由代理代跑必要建置、測量及後續工作，取代前一日 B 的自行執行安排。新兩階段及 A4 由代理執行，仍逐階段 V0″、CPU 門檻不變、首個非 PASS 停止、新目錄不重試。若再次負載拒絕，保留零格結果並另作判讀；不關閉擁有者的瀏覽器、不偷偷等待到紅項消失而重用原目錄。
 
 原始 S5 以逐格 gzip 無損封存，receipt 仍以解壓後位元組計；這只改儲存，不改任何既有判準或結果。
+
+## 20. 功能計數成立，K 尚未執行（2026-10-29，只追加）
+
+代理依擁有者離座授權執行 `remaining-counted-01`，02:01:12 啟動、06:06:18 結束，job 結論 `SELECTION_AND_A4_PASS`。全部來源與原始產物可由既有讀取器重讀，不由本段敘述代替判讀。
+
+- **S5-v24**：原 `counted-selection-01` 1,176/1,176 PASS，無重跑；原始產物重讀與當時 inspection／aggregate 相同。
+- **R1-v24**：新 `remaining-counted-01` 144/144 PASS，兩瀏覽器、literal 與 layout-relative 各 36 格／瀏覽器、六格 wrong-old-click 對照全過。
+- **S14-v24**：新 234/234 PASS；S1 168、S2 216、S3 20、S4 18 全過（membership 重疊，不相加當母體）。合併完成讀取 `V24_SELECTION_COUNTS_HOLD`，共 1,554 個實測格。
+- **A4-v24**：`four-arms-counted-01`，四臂 × 三格 × 兩瀏覽器＝24/24 PASS，零 aggregate problems；前後儀器雜湊全同，逐次 V0″ 全過。代理執行原始產物 reader 的新檔重讀，結果與初次 aggregate 逐位元組相同。
+- **界限不撤回**：完整 product-path runner 仍含既有／宣告的 FAIL、NE；兩次 `runnerExit: 1` 與 A4 wrapper 的成功分開留存。不宣稱全部 46 項 PASS。I-enter-raw-substring 與 S5 對 no-op extension 後 delete 單位的既有限制維持。
+- **K**：宿主新封包、BINDING、完整計數鏈仍待執行；功能計數不代替 K，也不前移名義出貨版本。本次測量已結束，目前無佔用 DDEV 時段。

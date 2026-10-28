@@ -21,3 +21,20 @@ Any nonpass stops; no count is restarted and no browser is closed to bypass the 
 Progress: `job-status.json`, `status.json`, `r1.runner.txt`, `selection.runner.txt`.
 Final job state `SELECTION_AND_A4_PASS` means those declared stages succeeded; it does not imply
 host package, BINDING, K, DDEV operations, or release promotion.
+
+## Completed 2026-10-29
+
+Detached job ran 02:01:12–06:06:18 +0800, ending `SELECTION_AND_A4_PASS`.
+Fresh R1 **144/144 PASS**, selection **234/234 PASS**, both browsers; both runners and judges exit 0.
+Combined raw reader exit 0, `V24_SELECTION_COUNTS_HOLD`, retaining the original complete S5
+**1,176/1,176 PASS**. All 1,554 required selection observations are established across the two
+declarations, with no repeated S5 execution or inherited preparation credit.
+
+The job then ran A4 in both browsers: wrapper exit 0 each, source checks before/after identical,
+all four arms PASS, 24 distinct measured rows, no aggregate problems. Those artifacts are in
+`../four-arms-counted-01/`. The legacy product-path runner's own nonzero exits are separately
+recorded (including declared/inherited checks); A4 is established by the v24 raw reader.
+
+Post-job archival is lossless: fresh R1/selection raw cells are individually gzip-compressed,
+decompressed and checked against the report receipts. The storage index preserves both raw and
+stored hashes. No status, declared cohort, report, instrument or verdict is rewritten.
