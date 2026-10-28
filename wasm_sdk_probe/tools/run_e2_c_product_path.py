@@ -4110,6 +4110,36 @@ def zip_report(raw: bytes) -> dict:
     return out
 
 
+ODF_TEXT = "urn:oasis:names:tc:opendocument:xmlns:text:1.0"
+
+
+def paragraph_texts_with_breaks(content: str) -> list[str]:
+    """Every <text:p>/<text:h> of content.xml as its text, read THROUGH inline elements.
+
+    E1 (findings/evidence/link-batch-v24/pre-count/bound-tool-edits.json; fable ruling 1 v24
+    pre-count 2.3).  The Enter check's Shift arm asked for the raw substring
+    `A<text:line-break/>B`.  v24 types through .uno:InsertText, which stamps typed runs with
+    `officeooo:rsid` spans as native keyboard typing does, and a save between the two markers
+    starts a second span -- so the break was in the document and the substring was not
+    (t4/shift-enter-diagnostic.md).  This reads what the paragraph SAYS: text in document order,
+    descending into every element, with "\\n" for each <text:line-break/>; nothing else changes.
+    """
+    try:
+        root = ElementTree.fromstring(content)
+    except ElementTree.ParseError:
+        return []
+
+    def text_of(node) -> str:
+        parts = [node.text or ""]
+        for child in node:
+            parts.append("\n" if child.tag == f"{{{ODF_TEXT}}}line-break" else text_of(child))
+            parts.append(child.tail or "")
+        return "".join(parts)
+
+    return [text_of(node) for node in root.iter()
+            if node.tag in (f"{{{ODF_TEXT}}}p", f"{{{ODF_TEXT}}}h")]
+
+
 BOUNDARY_SINK = """(() => {
 const sink = document.querySelector('#sink');
 return sink ? { top: sink.offsetTop, left: sink.offsetLeft } : null;
@@ -8721,9 +8751,11 @@ return { available: true, afterButton };
             arm["secondLanded"] = second in content
             arm["together"] = any(first in para and second in para
                                   for para in paragraphs)
-            arm["lineBreaksBetween"] = any(
-                first in para and second in para for para in paragraphs) and (
-                    f"{first}<text:line-break/>{second}" in content)
+            # E1: read through text:span (paragraph_texts_with_breaks), and keep the paragraph
+            # that was read, so a FAIL says what it saw.
+            texts = paragraph_texts_with_breaks(content)
+            arm["lineBreaksBetween"] = any(f"{first}\n{second}" in text for text in texts)
+            arm["paragraphText"] = next((text for text in texts if first in text), None)
             arm["savedIsOdt"] = is_an_odt(after)
             # A question asked of text that is not in the document has no answer.
             if not arm["savedIsOdt"] or not arm["firstLanded"] \
