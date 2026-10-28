@@ -88,6 +88,21 @@ S5 完成讀取與 run-03 重讀就會轉紅。那行字以本節為準、已作
 擁有者」延伸出來的，但那條規則防的是 core 級建置撞上長時間量測（負載衝到 8–9）；
 f168 harness 的實測編譯是 1.6 秒，不是那個風險。
 
+### 不產出物件的 em++ 檢查也由 agent 自己跑（2026-10-28 起）
+
+連結前對引擎原始碼的 **`-fsyntax-only`** 語法檢查、以及跑 **`-E` 前置處理**的靜態檢查
+（`check_merge_key_undo_scope.py`、`what_the_link_ships.py` 這類）**不是 owner only**：
+它們不產出物件、不是 make。照上一節的作法：先看 `uptime` 與 `pgrep -a make`，有別的
+建置或長時間量測就先問；用 `taskset -c 0` 綁單核；argv、exit、耗時、輸出都留 receipt。
+語法檢查要附**正向對照**（故意的錯在帶該 define 時被抓到），否則「綠」可能只是沒編到。
+
+仍然交給擁有者的不變：產出物件或 artifact 的編譯——引擎的 `make`／relink、core、別的
+專案的建置。
+
+理由：擁有者 2026-10-28 在 v24 連結前授權並指示記成往後的規則。v24 的實測：四個單元的
+語法檢查共約 2.5 秒，M1-1 約 55 秒，`what_the_link_ships` 1.4 秒（`findings/evidence/
+link-batch-v24/pre-link/em-checks/`）。
+
 ---
 
 # 工作結論（2026-08-22）

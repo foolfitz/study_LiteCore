@@ -12,9 +12,9 @@ All of these must be green and committed first:
 - [x] V0′: v23's completion re-read green with only the declared shell file restored; native run-03 re-read identical; E1-C intact.
 - [x] Frozen set recorded (`pre-link/frozen-set-before.sha256`, 2,348 files).
 - [x] v23 archive re-verified: `build/archive/e2-editor-v23-fe1f99cd-worker-3fd3e1e6/` 5/5 OK, equal to `dist/profiles/e2-editor-v23/`.
-- [ ] C++ syntax-only compile of the four v24 units (`em++ -fsyntax-only`, v23's derivation in `findings/evidence/link-batch-v23/pre-link/feature-01/checks-cpp-01/syntax-command-derivation.json`) — waits for the owner's authorization.
-- [ ] M1-1 (`check_merge_key_undo_scope.py`): red naming `E2_V24` with today's carrier list, then green after `--carrier E2_V24=probe_engine,sdk_api,editor_api` is added to `test-e2-c-static` — waits for the same authorization (it runs the preprocessor).
-- [ ] `what_the_link_ships.py --variant link-batch-v24` — same.
+- [x] C++ syntax-only compile of the four v24 units, with a positive control (`pre-link/em-checks/`).
+- [x] M1-1 (`check_merge_key_undo_scope.py`): red naming only `E2_V24`'s three objects, then green after `--carrier E2_V24=probe_engine,sdk_api,editor_api` was added to `test-e2-c-static`.
+- [x] `what_the_link_ships.py --since dcffd17d --variant link-batch-v24`: `ok: true`, no drift, only `sdk_api` and `probe_engine` changed.
 
 Re-verify on the day: `cd wasm_sdk_probe/build/archive/e2-editor-v23-fe1f99cd-worker-3fd3e1e6 && sha256sum -c SHA256SUMS`.
 

@@ -39,9 +39,16 @@ Both dry runs use `make -n -B`: v23's build and profile directories exist, so wi
 - `v0/native-run-03-reread.json`: `read_v23_native_s5_type.py` over native run-03 exits 0 and its output is identical to the committed `s5-native/reader-03.json`.
 - `v0/e1-c.*`: `check_e1_c_bundle_intact.py` exits 0, `intact: true`.
 
-## Not done here, and why
+## em++ checks (owner-authorized 2026-10-28, `em-checks/`)
 
-- C++ syntax-only compiles of the four v24 units, the M1-1 carrier red/green (`check_merge_key_undo_scope.py`) and `what_the_link_ships.py --variant link-batch-v24`: each runs `em++` (syntax-only or preprocessor). The v23 equivalents ran under an explicit owner authorization; this checkpoint waits for the owner's answer before running them.
+The owner authorized these, and made it standing, after the rest of this directory was committed (`9b224a60`). Runner: `em-checks/run_em_checks.py`; every command's argv, exit code, duration and streams are in `em-checks/commands.json` and the per-step files. Each step first ran `uptime` and `pgrep -a make` (no make running; load below 0.6) and pinned itself to one core with `taskset -c 0`. Nothing emitted an object.
+
+- **Syntax-only**: the four v24 compile lines of `s3/dry-run.log` with `-c` and `-o OBJ` removed and `-fsyntax-only` added: `sdk_api`, `probe_engine`, `unoembind_stub`, `editor_api` all exit 0. Positive control (`em-checks/syntax-control.json`): a scratch copy of `probe_engine.cpp` with an undeclared call inserted inside `handleInsertTypedText` fails with the v24 define (`use of undeclared identifier`) and passes without it, so the check does compile the v24 region.
+- **M1-1** (`check_merge_key_undo_scope.py`, argv taken from `make -n test-e2-c-static`): with the carrier list as it was, exit 1 naming exactly `E2_V24` `sdk_api.o`, `probe_engine.o`, `editor_api.o` and no other rule (`m1-1-red-without-v24-carrier.*`); after adding `--carrier E2_V24=probe_engine,sdk_api,editor_api` to `test-e2-c-static`, exit 0 with 37 rules / 143 objects, and E2_V24's three guard variants (without `OXSDK_MAINLOOP_ENGINE`, `OXSDK_E2_V21_LINK_BATCH`, `OXSDK_FINDING_016_SELECTION_BARRIER`) each refused (`m1-1-green-with-v24-carrier.*`).
+- **what_the_link_ships** `--since dcffd17d` (the tree v23 was linked from; `wasm_sdk_probe/src` has no difference between `dcffd17d` and `ceaa2770`) `--variant link-batch-v24 --shipped-profile dist/profiles/e2-editor-v23`: `ok: true`, `configurationDrift: []`, changed `sdk_api` (the new export) and `probe_engine` (the command kind, submit function, handler and dispatch case), identical `unoembind_stub` and `editor_api` (`ships.*`). Its `worker` field compares the tree's shared `sdk/sdk-worker.js` (the Calc worker) with v23's isolated worker and is not about v24, whose worker W1 binds.
+
+## Not done here
+
 - J-red (the v24 S5 judge's red cases) and every post-link criterion: no v24 judge or artifact exists yet.
 
 ## A test that was green for the wrong reason

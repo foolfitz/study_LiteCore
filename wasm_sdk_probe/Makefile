@@ -4719,6 +4719,7 @@ test-e2-c-static:
 		--carrier E2_V23D=probe_engine,sdk_api,editor_api \
 		--carrier E2_V23D_R2=probe_engine,sdk_api,editor_api \
 		--carrier E2_V23=probe_engine,sdk_api,editor_api \
+		--carrier E2_V24=probe_engine,sdk_api,editor_api \
 		--carrier ODS_VIEWER_V1=probe_engine,sdk_api \
 		--carrier ODS_VIEWER_V2=probe_engine,sdk_api \
 		--carrier ODS_VIEWER_V3=probe_engine,sdk_api \
