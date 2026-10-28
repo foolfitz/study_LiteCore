@@ -318,3 +318,15 @@ page honesty（`check_m3_page_honesty.py`）在 v24 的頁面上照 K 鏈的前�
 ### 18.2 前置報告的身分界限（同日，只追加）
 
 §18 第 1 項「避免 M2 的 live-config 比較失效」收窄為「避免再新增工具位元組的差異」：M2 原報告寫 `candidate-77-not-frozen`，凍結後 live config 已寫 77；因此原 main 的完整 live-config 比較已有差異。裁決追加 1 §4 明定相同殼層摘要下 §6.3 仍成立。原 config 的逐格重讀與當時 reader 結論可保留；不可宣稱現在完整 live-config 相等，也不可把這份準備報告搬成 counted。
+
+## 19. S5 已完成、R1 零格負載拒絕後的剩餘計數（2026-10-29，只追加；新執行之前）
+
+已觀察：`counted-selection-01` 的 S5 1,176/1,176 PASS，runner 28,039.1 秒；隨後 R1 啟動前取樣有外部 Zen 程序使用單核 105.8%（門檻 50%），R1 零格拒絕，selection 未執行。`completion-read-01.json` 逐格重讀與 aggregate 相同：S5 完整 PASS、R1 NE，整批 NE。這是已凍結的停止，不修改其 status、宣告、工具或門檻。
+
+1. **依母體保留結果**：§6.4 與截止原本逐母體定義。S5 已成立，不因下一母體開始前的負載拒絕歸零；另開新目錄只執行 R1（144）與 selection（234），不重跑 S5、不把舊目錄改成可續跑。若剩餘部分沒做，R1／S14 仍 NE，整體也 NE。
+2. **所有原檔保持凍結**：新 remaining entry points 只替換 cohort verifier。原 verifier 的 code object 在新 namespace 把 `KINDS` 改為 `(r1, selection)`，`stage_spec` 改指新 collector／judge entry point；collector、逐格 judge、launcher 與完成讀取的原 code object 不改。collector 和 judge 新入口在匯入／呼叫原工具前安裝這個具名替換。原 config 與 38 個 instrumentSources 逐位元組相同；新增的 orchestration 靜態 import closure 另封存並逐檔比對，不冒稱舊 config 已包含新入口。
+3. **來源與合併判讀**：新宣告釘住原 cohort、status、S5 report／judge、完整 completion read 的 hash；來源 S5 必須完整 1,176 PASS。新完成讀取器重新讀原 S5 原始產物，再用原完成讀取的 code object（只替換 verifier）讀新兩階段；兩者全部成立才給 `V24_SELECTION_COUNTS_HOLD`。只餵一份自述 PASS、少一格或缺 status 均不得成立。
+4. **先讓新介面紅**：來源 S5 receipt 改錯／移除、remaining 少案例或瀏覽器、orchestration 來源或封存改變、空 status、重複啟動都必須拒絕或 NE；未改的凍結輸入必須可 dry-run，verifier／launcher／collector／judge／完成讀取的沿用關係需可檢查。紅案在新計數前完成。
+5. **授權與負載**：擁有者本日明確要求離座後由代理代跑必要建置、測量及後續工作，取代前一日 B 的自行執行安排。新兩階段及 A4 由代理執行，仍逐階段 V0″、CPU 門檻不變、首個非 PASS 停止、新目錄不重試。若再次負載拒絕，保留零格結果並另作判讀；不關閉擁有者的瀏覽器、不偷偷等待到紅項消失而重用原目錄。
+
+原始 S5 以逐格 gzip 無損封存，receipt 仍以解壓後位元組計；這只改儲存，不改任何既有判準或結果。
