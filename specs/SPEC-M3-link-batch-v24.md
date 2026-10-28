@@ -298,3 +298,15 @@ page honesty（`check_m3_page_honesty.py`）在 v24 的頁面上照 K 鏈的前�
 6. **順序**：本節 → `check_v24_shift_enter.py`＋紅案＋3 次重播 → T4 run 02 → 凍 77（＋Makefile、identity 釘選、V0″）→ A4 包裝器 → §6.4。
 
 §34.4（取代 §16 的數字）：因執行而修 1（`read_v24_t4.py` 的規則 2）、因審核而修 0；E1 落地又還原，runner 與 run 01 逐位元組相同。
+
+## 18. §6.4 計數工具的落地方式（2026-10-28，只追加；任何計數之前）
+
+接續交接 `HANDOFF-2026-10-28e-v24-pre-count-done-77-frozen.md`。generation 77 已凍結；本節沒有重開 §6.3 或搬移既有計數。
+
+1. **保留前置量測的讀取身分**：既有 v24 preparation runner、reader、cases 也不改。新的 `v24_counted_selection_cases.py` 呼叫既有 `config()`，只換成由新 runner／reader／launcher／完成讀取器的靜態 import 圖生成的 instrument closure。避免新工具讓 M2 的 live-config 比較失效。舊有 40 個活的綁定成員不改。
+2. **判讀沿用原碼**：R1、S1–S4 及 aggregate 用 v23 的 code object，在新的 namespace 只接 v24 的 Evidence／readiness／S5（含 T2）；S5 的 T1 比較器與 T2 沿用既有 v24 reader。紅案先於任何計數：v23 頁面不可過、缺 route／proof 必須 FAIL、空母體／少一格／重複頁面不可 PASS、preparation 報告不可取得 counted 身分。
+3. **封存與執行**：新 cohort 先封存 config 與實際 instrument／served sources，列出每一 stage 的工具生成 caseIds、兩瀏覽器與命令。順序 S5（588 × 2＝1,176）、R1（72 × 2＝144）、selection（117 × 2＝234）。每 stage 前 V0″ 必須 `V0PP_HOLDS`；launcher 核對封存、來源與前置證據；第一個非 PASS／漂移就停，既有 status 或輸出一律拒絕重跑。完成讀取器重讀原始產物，不採信 runner 的結論。尚未完整跑完的 stage 預設 NE。
+4. **A4 包裝器**：依 §17 與裁決追加 1，匯入 runner 前把 bundle 模組的 MANIFEST 綁到 77，輸出記錄原預設、實用 manifest 與 file hash。新 A4 reader 在原本的完整判讀之外，逐實例要求 v24 profile、ABI 6、v24 artifacts、凍結 77。`--preflight-only` 不開瀏覽器，供無 override／不存在 v78 的拒絕紅案；舊 run-01 的 v76 產物必須 NE。仍需新的兩瀏覽器四臂實跑才可宣稱 A4。
+5. **執行時段**：工具與紅案做好後才詢問擁有者 A（脫離 session 執行，建議）或 B（擁有者自行執行）。本節不授權直接開始數小時的計數、不取得 DDEV 時段；K、宿主與 BINDING 仍依 §6.4。
+
+截止與歸零語意維持 §6.4。工具的紅案與離線重讀不給任何 counted cell；若正式執行一直沒做，S5／R1／S14／A4 全數仍為未成立。
