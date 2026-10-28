@@ -7,7 +7,7 @@
 | **發現日** | 2026-10-27；2026-10-28 補兩瀏覽器診斷 |
 | **嚴重度** | 一般（輸入結果錯誤，阻擋 S5 完整驗收） |
 | **可重現** | 已保留 Chrome 兩次、Firefox 一次相同結果；不是完整情境普查 |
-| **是否上游** | **未確認**——產品把打字交給 paste，原生參照是鍵盤；尚未直接量原生純文字 paste |
+| **是否上游** | **否（我方路線選擇）**——原生 LOK paste 逐字重現同一結果（2026-10-28）；第二格的 `#` 是 core 的另一個缺陷，拆成 [169](169-writer-plain-text-paste-into-a-multi-cell-selection-decodes-later-cells-byte-by-byte.md) |
 
 ## 現象與重現
 
@@ -40,3 +40,19 @@
 - 若採產品修法，準備獨立、可檢視的引擎／核心變更與反例，再由使用者執行必要的建置；凍結 v23 不覆寫，後繼身分另行綁定及驗證。
 - 若要縮小驗收宣稱，必須另有明確裁決與事前判準，不能自行把本格改成 settled-WASM 取得綠燈。
 - 尚未做桌面 Writer、原生純文字 paste、上游重複單查詢或上游提交。
+
+## 2026-10-28 追加：原生把各條輸入路線並排量了
+
+`evidence/link-batch-v23/feature-protocol/f168-native-routes/`（英文 README）。原生 26.8 LOK、同一份 fixture、同一個選取（A1 尾端 Shift+Right），15 臂 × 3 輪，每臂三輪結果相同；`table2/key-x` 逐段重現 run-03 綁定的參照存檔（正向對照）。
+
+| 路線 | A1 | B1 | 等於鍵盤 |
+|---|---|---|---|
+| 鍵盤 KEYINPUT `x` | `` | `x` | — |
+| LOK paste `x` | `A1 cell textx` | `B1 cell textx#` | 否 |
+| `.uno:InsertText` `x` | `` | `x` | **是** |
+| ext-text-input `x` | `` | `x` | **是** |
+
+- **原生 paste 與產品逐字相同**，所以 168 的不一致來自產品把打字做成 paste，不是 WASM build 多做了什麼。上面「讀碼與尚未證實的解釋」第一段（table mode 不刪選取）現在有量測支持：在純文字選取與游標處，paste 與鍵盤相同（其餘 401 格因此通過）；只有表格選取模式不同。
+- **`#` 是另一個缺陷**：第二格起把 UTF-16LE 位元組逐位元組讀（`xy`→`x#y#`、`中`→`-N`、`é` 整段沒插入、四格選取後三格全部 `x#`），拆成 [169](169-writer-plain-text-paste-into-a-multi-cell-selection-decodes-later-cells-byte-by-byte.md)。修 168 的路線不會修到 169：真的 Ctrl+V 貼到多格選取仍走 paste。
+- 兩條候選修法路線在這個選取上都重現鍵盤參照：`.uno:InsertText`（FN_INSERT_STRING → `SwWrtShell::InsertByWord` → `SwWrtShell::Insert`，鍵盤的 `FlushInBuffer` 最後呼叫的也是 `SwWrtShell::Insert`）與 ext-text-input。**只量了一個選取形狀、一個字元**，不是 type 家族的普查，也沒有在 WASM 上量過。
+- 沒做：桌面 Writer、WASM 上的候選路線、會觸發自動校正的輸入（鍵盤在字界自動校正，paste 與 `.uno:InsertText` 都不會）。

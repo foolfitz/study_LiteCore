@@ -69,6 +69,27 @@
 
 ---
 
+## 原生小 harness 的編譯由 agent 自己做（2026-10-28 起）
+
+`wasm_sdk_probe/tools/build_*_owner.py` 這類**單檔 g++ 編小 harness**（連到既有的原生
+LibreOffice、不碰 core、幾秒結束）**不再是 owner only**。agent 先看 `uptime` 與
+`pgrep -a make`，沒有別的建置或長時間量測在跑就自己編、自己跑，照樣留 build receipt。
+
+仍然交給擁有者的：會編譯 LibreOffice core、wasm 探針引擎（`make`／relink）或別的專案
+的建置——全域規則不變。
+
+`build_v23_native_s5_owner.py` 與 `build_v23_native_s5_type_owner.py` 的 docstring 還寫著
+「OWNER ONLY」，**那兩個檔的位元組不改**：前者被 `counted-r1-s5-01/cohort.json` 的
+`instrumentSources` 釘住（`read-completion.py` 逐檔比 sha256），兩者都在 native run-03
+的 `identity.json` 裡由 `read_v23_native_s5_type.py` 重新比對。改一個字，已凍結的 R1／
+S5 完成讀取與 run-03 重讀就會轉紅。那行字以本節為準、已作廢。
+
+理由：擁有者 2026-10-28 指示改掉這個標記。原先的 owner only 是從「會編譯的 make 交給
+擁有者」延伸出來的，但那條規則防的是 core 級建置撞上長時間量測（負載衝到 8–9）；
+f168 harness 的實測編譯是 1.6 秒，不是那個風險。
+
+---
+
 # 工作結論（2026-08-22）
 
 ## 現況：**v4 連結等使用者跑一行指令**

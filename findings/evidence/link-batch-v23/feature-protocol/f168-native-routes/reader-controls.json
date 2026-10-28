@@ -1,0 +1,33 @@
+{
+ "schema": 1,
+ "readerSha256": "5fd50fbcde0944c6d0f486c9d2b08a17b4fa5cf6cec5970c64d50d533efd1cea",
+ "source": "scratch copies of run-01; the evidence directory was not modified",
+ "cases": [
+  {
+   "case": "missing-save",
+   "mutation": "deleted saves/table2_paste-x-r2-after.odt",
+   "exitCode": 1,
+   "problems": [
+    "artifact missing: saves/table2_paste-x-r2-after.odt",
+    "save file missing table2/paste-x round 2"
+   ]
+  },
+  {
+   "case": "swapped-key-save",
+   "mutation": "copied table2_paste-x-r1-after.odt over table2_key-x-r1-after.odt and updated its completion hash",
+   "exitCode": 1,
+   "problems": [
+    "table2/key-x does not reproduce run-03 shift-Right@cell-end_type-after.odt (round 1)"
+   ]
+  },
+  {
+   "case": "dropped-record",
+   "mutation": "removed the table4/paste-x round 3 line from native.jsonl and updated its completion hash",
+   "exitCode": 1,
+   "problems": [
+    "missing record table4/paste-x round 3",
+    "44 records for 15 arms x 3 rounds"
+   ]
+  }
+ ]
+}

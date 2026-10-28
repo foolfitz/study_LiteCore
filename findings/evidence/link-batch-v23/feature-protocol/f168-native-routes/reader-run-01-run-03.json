@@ -1,0 +1,1013 @@
+{
+ "schema": 1,
+ "readerSha256": "5fd50fbcde0944c6d0f486c9d2b08a17b4fa5cf6cec5970c64d50d533efd1cea",
+ "problems": [],
+ "runReference": {
+  "path": "findings/evidence/link-batch-v23/feature-protocol/s5-native/run-03/saves/shift-Right@cell-end_type-after.odt",
+  "sha256": "b4f798dce33dceaf2eef2d952c9876b4cd379817fae37e6a20e92cd03ac2d3d8"
+ },
+ "runs": [
+  {
+   "run": "findings/evidence/link-batch-v23/feature-protocol/f168-native-routes/run-01",
+   "environment": {
+    "SAL_USE_VCLPLUGIN": "svp",
+    "SAL_LOK_OPTIONS": null,
+    "OC_A11Y": null,
+    "LC_ALL": null,
+    "LANG": "zh_TW.UTF-8"
+   },
+   "rounds": 3,
+   "nativeExitCode": 0,
+   "arms": {
+    "table2/key-x": {
+     "route": "key",
+     "text": "x",
+     "records": 3,
+     "stableAcrossRounds": true,
+     "selections": [
+      "A1 cell text\tB1 cell text\n"
+     ],
+     "routeResults": [
+      "{\"posted\": 2}"
+     ],
+     "distinctOutcomes": [
+      {
+       "changes": {
+        "8": [
+         "A1 cell text",
+         ""
+        ],
+        "9": [
+         "B1 cell text",
+         "x"
+        ]
+       },
+       "rounds": [
+        1,
+        2,
+        3
+       ]
+      }
+     ]
+    },
+    "table2/paste-x": {
+     "route": "paste",
+     "text": "x",
+     "records": 3,
+     "stableAcrossRounds": true,
+     "selections": [
+      "A1 cell text\tB1 cell text\n"
+     ],
+     "routeResults": [
+      "{\"returned\": true}"
+     ],
+     "distinctOutcomes": [
+      {
+       "changes": {
+        "8": [
+         "A1 cell text",
+         "A1 cell textx"
+        ],
+        "9": [
+         "B1 cell text",
+         "B1 cell textx#"
+        ]
+       },
+       "rounds": [
+        1,
+        2,
+        3
+       ]
+      }
+     ]
+    },
+    "table2/paste-xy": {
+     "route": "paste",
+     "text": "xy",
+     "records": 3,
+     "stableAcrossRounds": true,
+     "selections": [
+      "A1 cell text\tB1 cell text\n"
+     ],
+     "routeResults": [
+      "{\"returned\": true}"
+     ],
+     "distinctOutcomes": [
+      {
+       "changes": {
+        "8": [
+         "A1 cell text",
+         "A1 cell textxy"
+        ],
+        "9": [
+         "B1 cell text",
+         "B1 cell textx#y#"
+        ]
+       },
+       "rounds": [
+        1,
+        2,
+        3
+       ]
+      }
+     ]
+    },
+    "table2/paste-hello-world": {
+     "route": "paste",
+     "text": "hello world",
+     "records": 3,
+     "stableAcrossRounds": true,
+     "selections": [
+      "A1 cell text\tB1 cell text\n"
+     ],
+     "routeResults": [
+      "{\"returned\": true}"
+     ],
+     "distinctOutcomes": [
+      {
+       "changes": {
+        "8": [
+         "A1 cell text",
+         "A1 cell texthello world"
+        ],
+        "9": [
+         "B1 cell text",
+         "B1 cell texthello world"
+        ]
+       },
+       "rounds": [
+        1,
+        2,
+        3
+       ]
+      }
+     ]
+    },
+    "table2/paste-e-acute": {
+     "route": "paste",
+     "text": "é",
+     "records": 3,
+     "stableAcrossRounds": true,
+     "selections": [
+      "A1 cell text\tB1 cell text\n"
+     ],
+     "routeResults": [
+      "{\"returned\": true}"
+     ],
+     "distinctOutcomes": [
+      {
+       "changes": {
+        "8": [
+         "A1 cell text",
+         "A1 cell texté"
+        ]
+       },
+       "rounds": [
+        1,
+        2,
+        3
+       ]
+      }
+     ]
+    },
+    "table2/paste-cjk": {
+     "route": "paste",
+     "text": "中",
+     "records": 3,
+     "stableAcrossRounds": true,
+     "selections": [
+      "A1 cell text\tB1 cell text\n"
+     ],
+     "routeResults": [
+      "{\"returned\": true}"
+     ],
+     "distinctOutcomes": [
+      {
+       "changes": {
+        "8": [
+         "A1 cell text",
+         "A1 cell text中"
+        ],
+        "9": [
+         "B1 cell text",
+         "B1 cell text-N"
+        ]
+       },
+       "rounds": [
+        1,
+        2,
+        3
+       ]
+      }
+     ]
+    },
+    "table2/uno-insert-text-x": {
+     "route": "uno-insert-text",
+     "text": "x",
+     "records": 3,
+     "stableAcrossRounds": true,
+     "selections": [
+      "A1 cell text\tB1 cell text\n"
+     ],
+     "routeResults": [
+      "{\"arguments\": \"{\\\"Text\\\":{\\\"type\\\":\\\"string\\\",\\\"value\\\":\\\"x\\\"}}\"}"
+     ],
+     "distinctOutcomes": [
+      {
+       "changes": {
+        "8": [
+         "A1 cell text",
+         ""
+        ],
+        "9": [
+         "B1 cell text",
+         "x"
+        ]
+       },
+       "rounds": [
+        1,
+        2,
+        3
+       ]
+      }
+     ]
+    },
+    "table2/ext-text-input-x": {
+     "route": "ext-text-input",
+     "text": "x",
+     "records": 3,
+     "stableAcrossRounds": true,
+     "selections": [
+      "A1 cell text\tB1 cell text\n"
+     ],
+     "routeResults": [
+      "{\"posted\": 2}"
+     ],
+     "distinctOutcomes": [
+      {
+       "changes": {
+        "8": [
+         "A1 cell text",
+         ""
+        ],
+        "9": [
+         "B1 cell text",
+         "x"
+        ]
+       },
+       "rounds": [
+        1,
+        2,
+        3
+       ]
+      }
+     ]
+    },
+    "table4/key-x": {
+     "route": "key",
+     "text": "x",
+     "records": 3,
+     "stableAcrossRounds": true,
+     "selections": [
+      "A1 cell text\tB1 cell text\nA2 cell text\tB2 cell text\n"
+     ],
+     "routeResults": [
+      "{\"posted\": 2}"
+     ],
+     "distinctOutcomes": [
+      {
+       "changes": {
+        "8": [
+         "A1 cell text",
+         ""
+        ],
+        "9": [
+         "B1 cell text",
+         ""
+        ],
+        "10": [
+         "A2 cell text",
+         ""
+        ],
+        "11": [
+         "B2 cell text",
+         "x"
+        ]
+       },
+       "rounds": [
+        1,
+        2,
+        3
+       ]
+      }
+     ]
+    },
+    "table4/paste-x": {
+     "route": "paste",
+     "text": "x",
+     "records": 3,
+     "stableAcrossRounds": true,
+     "selections": [
+      "A1 cell text\tB1 cell text\nA2 cell text\tB2 cell text\n"
+     ],
+     "routeResults": [
+      "{\"returned\": true}"
+     ],
+     "distinctOutcomes": [
+      {
+       "changes": {
+        "8": [
+         "A1 cell text",
+         "A1 cell textx"
+        ],
+        "9": [
+         "B1 cell text",
+         "B1 cell textx#"
+        ],
+        "10": [
+         "A2 cell text",
+         "A2 cell textx#"
+        ],
+        "11": [
+         "B2 cell text",
+         "B2 cell textx#"
+        ]
+       },
+       "rounds": [
+        1,
+        2,
+        3
+       ]
+      }
+     ]
+    },
+    "cell-caret/paste-x": {
+     "route": "paste",
+     "text": "x",
+     "records": 3,
+     "stableAcrossRounds": true,
+     "selections": [
+      ""
+     ],
+     "routeResults": [
+      "{\"returned\": true}"
+     ],
+     "distinctOutcomes": [
+      {
+       "changes": {
+        "8": [
+         "A1 cell text",
+         "A1 cell textx"
+        ]
+       },
+       "rounds": [
+        1,
+        2,
+        3
+       ]
+      }
+     ]
+    },
+    "cell-caret/key-x": {
+     "route": "key",
+     "text": "x",
+     "records": 3,
+     "stableAcrossRounds": true,
+     "selections": [
+      ""
+     ],
+     "routeResults": [
+      "{\"posted\": 2}"
+     ],
+     "distinctOutcomes": [
+      {
+       "changes": {
+        "8": [
+         "A1 cell text",
+         "A1 cell textx"
+        ]
+       },
+       "rounds": [
+        1,
+        2,
+        3
+       ]
+      }
+     ]
+    },
+    "text/paste-x": {
+     "route": "paste",
+     "text": "x",
+     "records": 3,
+     "stableAcrossRounds": true,
+     "selections": [
+      "T"
+     ],
+     "routeResults": [
+      "{\"returned\": true}"
+     ],
+     "distinctOutcomes": [
+      {
+       "changes": {
+        "1": [
+         "P2 ALPHA BETA GAMMA DELTA",
+         "P2 ALPHA BExA GAMMA DELTA"
+        ]
+       },
+       "rounds": [
+        1,
+        2,
+        3
+       ]
+      }
+     ]
+    },
+    "text/key-x": {
+     "route": "key",
+     "text": "x",
+     "records": 3,
+     "stableAcrossRounds": true,
+     "selections": [
+      "T"
+     ],
+     "routeResults": [
+      "{\"posted\": 2}"
+     ],
+     "distinctOutcomes": [
+      {
+       "changes": {
+        "1": [
+         "P2 ALPHA BETA GAMMA DELTA",
+         "P2 ALPHA BExA GAMMA DELTA"
+        ]
+       },
+       "rounds": [
+        1,
+        2,
+        3
+       ]
+      }
+     ]
+    },
+    "table2/none": {
+     "route": "none",
+     "text": "",
+     "records": 3,
+     "stableAcrossRounds": true,
+     "selections": [
+      "A1 cell text\tB1 cell text\n"
+     ],
+     "routeResults": [
+      "{}"
+     ],
+     "distinctOutcomes": [
+      {
+       "changes": {},
+       "rounds": [
+        1,
+        2,
+        3
+       ]
+      }
+     ]
+    }
+   },
+   "comparisonsWithKeyRoute": {
+    "table2/paste-x": {
+     "equalsKeyRoute": false
+    },
+    "table2/paste-xy": {
+     "equalsKeyRoute": false
+    },
+    "table2/paste-hello-world": {
+     "equalsKeyRoute": false
+    },
+    "table2/paste-e-acute": {
+     "equalsKeyRoute": false
+    },
+    "table2/paste-cjk": {
+     "equalsKeyRoute": false
+    },
+    "table2/uno-insert-text-x": {
+     "equalsKeyRoute": true
+    },
+    "table2/ext-text-input-x": {
+     "equalsKeyRoute": true
+    },
+    "table4/paste-x": {
+     "equalsKeyRoute": false
+    },
+    "cell-caret/paste-x": {
+     "equalsKeyRoute": true
+    },
+    "text/paste-x": {
+     "equalsKeyRoute": true
+    },
+    "table2/none": {
+     "equalsKeyRoute": false
+    }
+   }
+  },
+  {
+   "run": "findings/evidence/link-batch-v23/feature-protocol/f168-native-routes/run-03-lc-all-c",
+   "environment": {
+    "SAL_USE_VCLPLUGIN": "svp",
+    "SAL_LOK_OPTIONS": null,
+    "OC_A11Y": null,
+    "LC_ALL": "C",
+    "LANG": "C"
+   },
+   "rounds": 3,
+   "nativeExitCode": 0,
+   "arms": {
+    "table2/key-x": {
+     "route": "key",
+     "text": "x",
+     "records": 3,
+     "stableAcrossRounds": true,
+     "selections": [
+      "A1 cell text\tB1 cell text\n"
+     ],
+     "routeResults": [
+      "{\"posted\": 2}"
+     ],
+     "distinctOutcomes": [
+      {
+       "changes": {
+        "8": [
+         "A1 cell text",
+         ""
+        ],
+        "9": [
+         "B1 cell text",
+         "x"
+        ]
+       },
+       "rounds": [
+        1,
+        2,
+        3
+       ]
+      }
+     ]
+    },
+    "table2/paste-x": {
+     "route": "paste",
+     "text": "x",
+     "records": 3,
+     "stableAcrossRounds": true,
+     "selections": [
+      "A1 cell text\tB1 cell text\n"
+     ],
+     "routeResults": [
+      "{\"returned\": true}"
+     ],
+     "distinctOutcomes": [
+      {
+       "changes": {
+        "8": [
+         "A1 cell text",
+         "A1 cell textx"
+        ],
+        "9": [
+         "B1 cell text",
+         "B1 cell textx#"
+        ]
+       },
+       "rounds": [
+        1,
+        2,
+        3
+       ]
+      }
+     ]
+    },
+    "table2/paste-xy": {
+     "route": "paste",
+     "text": "xy",
+     "records": 3,
+     "stableAcrossRounds": true,
+     "selections": [
+      "A1 cell text\tB1 cell text\n"
+     ],
+     "routeResults": [
+      "{\"returned\": true}"
+     ],
+     "distinctOutcomes": [
+      {
+       "changes": {
+        "8": [
+         "A1 cell text",
+         "A1 cell textxy"
+        ],
+        "9": [
+         "B1 cell text",
+         "B1 cell textx#y#"
+        ]
+       },
+       "rounds": [
+        1,
+        2,
+        3
+       ]
+      }
+     ]
+    },
+    "table2/paste-hello-world": {
+     "route": "paste",
+     "text": "hello world",
+     "records": 3,
+     "stableAcrossRounds": true,
+     "selections": [
+      "A1 cell text\tB1 cell text\n"
+     ],
+     "routeResults": [
+      "{\"returned\": true}"
+     ],
+     "distinctOutcomes": [
+      {
+       "changes": {
+        "8": [
+         "A1 cell text",
+         "A1 cell texthello world"
+        ],
+        "9": [
+         "B1 cell text",
+         "B1 cell texthello world"
+        ]
+       },
+       "rounds": [
+        1,
+        2,
+        3
+       ]
+      }
+     ]
+    },
+    "table2/paste-e-acute": {
+     "route": "paste",
+     "text": "é",
+     "records": 3,
+     "stableAcrossRounds": true,
+     "selections": [
+      "A1 cell text\tB1 cell text\n"
+     ],
+     "routeResults": [
+      "{\"returned\": true}"
+     ],
+     "distinctOutcomes": [
+      {
+       "changes": {
+        "8": [
+         "A1 cell text",
+         "A1 cell texté"
+        ]
+       },
+       "rounds": [
+        1,
+        2,
+        3
+       ]
+      }
+     ]
+    },
+    "table2/paste-cjk": {
+     "route": "paste",
+     "text": "中",
+     "records": 3,
+     "stableAcrossRounds": true,
+     "selections": [
+      "A1 cell text\tB1 cell text\n"
+     ],
+     "routeResults": [
+      "{\"returned\": true}"
+     ],
+     "distinctOutcomes": [
+      {
+       "changes": {
+        "8": [
+         "A1 cell text",
+         "A1 cell text中"
+        ],
+        "9": [
+         "B1 cell text",
+         "B1 cell text-N"
+        ]
+       },
+       "rounds": [
+        1,
+        2,
+        3
+       ]
+      }
+     ]
+    },
+    "table2/uno-insert-text-x": {
+     "route": "uno-insert-text",
+     "text": "x",
+     "records": 3,
+     "stableAcrossRounds": true,
+     "selections": [
+      "A1 cell text\tB1 cell text\n"
+     ],
+     "routeResults": [
+      "{\"arguments\": \"{\\\"Text\\\":{\\\"type\\\":\\\"string\\\",\\\"value\\\":\\\"x\\\"}}\"}"
+     ],
+     "distinctOutcomes": [
+      {
+       "changes": {
+        "8": [
+         "A1 cell text",
+         ""
+        ],
+        "9": [
+         "B1 cell text",
+         "x"
+        ]
+       },
+       "rounds": [
+        1,
+        2,
+        3
+       ]
+      }
+     ]
+    },
+    "table2/ext-text-input-x": {
+     "route": "ext-text-input",
+     "text": "x",
+     "records": 3,
+     "stableAcrossRounds": true,
+     "selections": [
+      "A1 cell text\tB1 cell text\n"
+     ],
+     "routeResults": [
+      "{\"posted\": 2}"
+     ],
+     "distinctOutcomes": [
+      {
+       "changes": {
+        "8": [
+         "A1 cell text",
+         ""
+        ],
+        "9": [
+         "B1 cell text",
+         "x"
+        ]
+       },
+       "rounds": [
+        1,
+        2,
+        3
+       ]
+      }
+     ]
+    },
+    "table4/key-x": {
+     "route": "key",
+     "text": "x",
+     "records": 3,
+     "stableAcrossRounds": true,
+     "selections": [
+      "A1 cell text\tB1 cell text\nA2 cell text\tB2 cell text\n"
+     ],
+     "routeResults": [
+      "{\"posted\": 2}"
+     ],
+     "distinctOutcomes": [
+      {
+       "changes": {
+        "8": [
+         "A1 cell text",
+         ""
+        ],
+        "9": [
+         "B1 cell text",
+         ""
+        ],
+        "10": [
+         "A2 cell text",
+         ""
+        ],
+        "11": [
+         "B2 cell text",
+         "x"
+        ]
+       },
+       "rounds": [
+        1,
+        2,
+        3
+       ]
+      }
+     ]
+    },
+    "table4/paste-x": {
+     "route": "paste",
+     "text": "x",
+     "records": 3,
+     "stableAcrossRounds": true,
+     "selections": [
+      "A1 cell text\tB1 cell text\nA2 cell text\tB2 cell text\n"
+     ],
+     "routeResults": [
+      "{\"returned\": true}"
+     ],
+     "distinctOutcomes": [
+      {
+       "changes": {
+        "8": [
+         "A1 cell text",
+         "A1 cell textx"
+        ],
+        "9": [
+         "B1 cell text",
+         "B1 cell textx#"
+        ],
+        "10": [
+         "A2 cell text",
+         "A2 cell textx#"
+        ],
+        "11": [
+         "B2 cell text",
+         "B2 cell textx#"
+        ]
+       },
+       "rounds": [
+        1,
+        2,
+        3
+       ]
+      }
+     ]
+    },
+    "cell-caret/paste-x": {
+     "route": "paste",
+     "text": "x",
+     "records": 3,
+     "stableAcrossRounds": true,
+     "selections": [
+      ""
+     ],
+     "routeResults": [
+      "{\"returned\": true}"
+     ],
+     "distinctOutcomes": [
+      {
+       "changes": {
+        "8": [
+         "A1 cell text",
+         "A1 cell textx"
+        ]
+       },
+       "rounds": [
+        1,
+        2,
+        3
+       ]
+      }
+     ]
+    },
+    "cell-caret/key-x": {
+     "route": "key",
+     "text": "x",
+     "records": 3,
+     "stableAcrossRounds": true,
+     "selections": [
+      ""
+     ],
+     "routeResults": [
+      "{\"posted\": 2}"
+     ],
+     "distinctOutcomes": [
+      {
+       "changes": {
+        "8": [
+         "A1 cell text",
+         "A1 cell textx"
+        ]
+       },
+       "rounds": [
+        1,
+        2,
+        3
+       ]
+      }
+     ]
+    },
+    "text/paste-x": {
+     "route": "paste",
+     "text": "x",
+     "records": 3,
+     "stableAcrossRounds": true,
+     "selections": [
+      "T"
+     ],
+     "routeResults": [
+      "{\"returned\": true}"
+     ],
+     "distinctOutcomes": [
+      {
+       "changes": {
+        "1": [
+         "P2 ALPHA BETA GAMMA DELTA",
+         "P2 ALPHA BExA GAMMA DELTA"
+        ]
+       },
+       "rounds": [
+        1,
+        2,
+        3
+       ]
+      }
+     ]
+    },
+    "text/key-x": {
+     "route": "key",
+     "text": "x",
+     "records": 3,
+     "stableAcrossRounds": true,
+     "selections": [
+      "T"
+     ],
+     "routeResults": [
+      "{\"posted\": 2}"
+     ],
+     "distinctOutcomes": [
+      {
+       "changes": {
+        "1": [
+         "P2 ALPHA BETA GAMMA DELTA",
+         "P2 ALPHA BExA GAMMA DELTA"
+        ]
+       },
+       "rounds": [
+        1,
+        2,
+        3
+       ]
+      }
+     ]
+    },
+    "table2/none": {
+     "route": "none",
+     "text": "",
+     "records": 3,
+     "stableAcrossRounds": true,
+     "selections": [
+      "A1 cell text\tB1 cell text\n"
+     ],
+     "routeResults": [
+      "{}"
+     ],
+     "distinctOutcomes": [
+      {
+       "changes": {},
+       "rounds": [
+        1,
+        2,
+        3
+       ]
+      }
+     ]
+    }
+   },
+   "comparisonsWithKeyRoute": {
+    "table2/paste-x": {
+     "equalsKeyRoute": false
+    },
+    "table2/paste-xy": {
+     "equalsKeyRoute": false
+    },
+    "table2/paste-hello-world": {
+     "equalsKeyRoute": false
+    },
+    "table2/paste-e-acute": {
+     "equalsKeyRoute": false
+    },
+    "table2/paste-cjk": {
+     "equalsKeyRoute": false
+    },
+    "table2/uno-insert-text-x": {
+     "equalsKeyRoute": true
+    },
+    "table2/ext-text-input-x": {
+     "equalsKeyRoute": true
+    },
+    "table4/paste-x": {
+     "equalsKeyRoute": false
+    },
+    "cell-caret/paste-x": {
+     "equalsKeyRoute": true
+    },
+    "text/paste-x": {
+     "equalsKeyRoute": true
+    },
+    "table2/none": {
+     "equalsKeyRoute": false
+    }
+   }
+  }
+ ]
+}
