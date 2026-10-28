@@ -1,0 +1,59 @@
+{
+ "cwd": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe",
+ "commands": {
+  "remaining": [
+   "/usr/bin/python3",
+   "-I",
+   "tools/run_v24_remaining_cohort.py",
+   "--cohort",
+   "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v24/remaining-counted-01/cohort.json"
+  ],
+  "raw-read": [
+   "/usr/bin/python3",
+   "-I",
+   "tools/read_v24_remaining_cohort.py",
+   "--cohort",
+   "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v24/remaining-counted-01/cohort.json",
+   "--out",
+   "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v24/remaining-counted-01/completion-read-01.json"
+  ],
+  "a4-pins-before": [
+   "sha256sum",
+   "--check",
+   "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v24/count-preparation/a4-instruments.sha256"
+  ],
+  "a4-chrome": [
+   "/usr/bin/python3",
+   "-I",
+   "tools/run_v24_four_arms.py",
+   "--browser",
+   "chrome",
+   "--out",
+   "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v24/four-arms-counted-01/chrome"
+  ],
+  "a4-firefox": [
+   "/usr/bin/python3",
+   "-I",
+   "tools/run_v24_four_arms.py",
+   "--browser",
+   "firefox",
+   "--out",
+   "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v24/four-arms-counted-01/firefox"
+  ],
+  "a4-pins-after": [
+   "sha256sum",
+   "--check",
+   "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v24/count-preparation/a4-instruments.sha256"
+  ],
+  "a4-judge": [
+   "/usr/bin/python3",
+   "-I",
+   "tools/judge_v24_product_four_arms.py",
+   "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v24/four-arms-counted-01/chrome/report.v23-four-arms",
+   "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v24/four-arms-counted-01/firefox/report.v23-four-arms",
+   "--out",
+   "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v24/four-arms-counted-01/aggregate-judge.json"
+  ]
+ },
+ "scope": "Plan only; no status, measurement, DDEV or build"
+}
