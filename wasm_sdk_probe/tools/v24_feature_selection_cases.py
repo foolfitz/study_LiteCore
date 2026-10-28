@@ -30,6 +30,10 @@ PROFILE = 'e2-editor-v24'
 TYPED_INSERT = 'document-sdk-insert-typed-text'
 PAGE_SHA256 = 'b15a6d8e07b6a4f3e551f27971b7cfe8bec2cb743e5f6809013ca7f2082de669'
 CANDIDATE_SHELL_DIGEST = '56ce44c78043220e4f135343dc87a8e847e83849e4c6571345b1ac9e2e8a294a'
+# Generation 77, frozen 2026-10-28 by `--manifest` with the bound bundle tool unchanged (ruling 1
+# Addendum 1 section 4): its digest is the candidate above, its file is pinned here.
+BUNDLE = 'e2/editor-shell-v2-bundle-v77.json'
+BUNDLE_FILE_SHA256 = 'f8a7bd81eacde35f6629f22e623da02e5786b1ba552ad471920bbf3998beb86c'
 ARTIFACT_PINS = {
     'probe.wasm': '276158084a602178f9b7219c086f749910601b1a121fca9339b10a79b0f7b639',
     'probe.js': '64aaa8dc2c7a1c366c76911213090ae60d39c26cd4207274ef1c0420a5a0b301',
@@ -41,10 +45,15 @@ INSTRUMENTS = ('v24_feature_selection_cases.py', 'run_v24_feature_selection.py',
 
 
 def shell():
-    """The live shell: the bundle tool's own computation, bound to the candidate digest."""
+    """The live shell: the bundle tool's own computation, equal to frozen generation 77."""
     state = shell_bundle.compute(PROJECT)
     if state['digest'] != CANDIDATE_SHELL_DIGEST:
         raise ValueError('candidate shell digest differs: ' + state['digest'])
+    if sha(PROJECT / BUNDLE) != BUNDLE_FILE_SHA256:
+        raise ValueError('generation 77 manifest differs: ' + BUNDLE)
+    frozen = json.loads((PROJECT / BUNDLE).read_text())
+    if frozen['bundleSha256'] != state['digest'] or {r['path']: r['sha256'] for r in frozen['included']} != state['hashes']:
+        raise ValueError('live shell is not frozen generation 77')
     for path in state['included']:
         if state['distHashes'].get(path) != state['hashes'][path]:
             raise ValueError('shell source/dist differs: ' + path)
@@ -69,7 +78,7 @@ def identity():
         paths.update((pack['data'], pack['metadata']))
     return {'profile': PROFILE, 'editorAbi': 6, 'typedInsert': TYPED_INSERT,
             'artifacts': {n: sha(directory / n) for n in sorted(paths)},
-            'shell': {'generation': 'candidate-77-not-frozen', 'digest': state['digest'],
+            'shell': {'generation': 77, 'bundle': BUNDLE, 'bundleFileSha256': BUNDLE_FILE_SHA256, 'digest': state['digest'],
                       'included': {p: state['hashes'][p] for p in state['included']}},
             'pageSha256': PAGE_SHA256, 'originalHtmlSha256': sha(PROJECT / 'web/e2-editor.html')}
 

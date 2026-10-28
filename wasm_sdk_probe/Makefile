@@ -4840,7 +4840,7 @@ test-e2-c-reachability:
 	# SPEC E2-C 6: the verdict binds a fourth hash, and the shell it names has
 	# to still be the shell on disk AND the shell in dist/ (serve.py serves
 	# dist/).  Read-only: --write is a deliberate act with its own diff.
-	python3 tools/build_e2_c_shell_bundle.py > /dev/null
+	python3 tools/build_e2_c_shell_bundle.py --manifest e2/editor-shell-v2-bundle-v77.json > /dev/null
 	python3 -m json.tool e2/validation-matrix-v1.json > /dev/null
 	python3 -m json.tool e2/validation-matrix-v2-draft.json > /dev/null
 	# SPEC E2-C 9.1: every predicate that can turn the verdict has to be shown
