@@ -1,0 +1,13 @@
+Traceback (most recent call last):
+  File "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v23/feature-protocol/counted-r1-s5-01/read-completion.py", line 96, in <module>
+    if __name__=='__main__':main()
+                            ~~~~^^
+  File "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v23/feature-protocol/counted-r1-s5-01/read-completion.py", line 37, in main
+    assert sha(encoded(config()))==frozen['configSha256'],'live frozen plan differs'
+                       ~~~~~~^^
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/v23_feature_selection_cases.py", line 542, in config
+    return {'schema':1,'s5NativeReferenceSchema':2,'profile':identity(),'servedSources':{n:digest(v) for n,v in sources().items()},
+                                                             ~~~~~~~~^^
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/v23_feature_selection_cases.py", line 497, in identity
+    raise ValueError('final shell source/dist differs: '+path)
+ValueError: final shell source/dist differs: sdk/document-sdk.js
