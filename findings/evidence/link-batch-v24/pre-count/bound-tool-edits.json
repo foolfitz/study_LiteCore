@@ -14,7 +14,7 @@
         "counted-r1-s5-01": "7ba302353dd67d5f4c7643e1abc0e5c06105e7b7ebbb191b3c29b24b8e90a6a2",
         "product-four-arms-counted-01": "7ba302353dd67d5f4c7643e1abc0e5c06105e7b7ebbb191b3c29b24b8e90a6a2"
       },
-      "liveSha256": "598047377921821dfabd3fe2778ca386e78124cff09f29addb174b6c2f2fe6ba",
+      "liveSha256": null,
       "reason": "The Shift+Enter arm of the-enter-key-reaches-the-document reads a raw content.xml substring that the typed route's rsid spans break although the line break is present; the oracle reads the paragraph through text:span instead (ruling 1 section 2.3, nothing else).",
       "forcingEvidence": [
         "findings/evidence/link-batch-v24/pre-count/t4/README.md",
@@ -25,7 +25,10 @@
         "findings/evidence/link-batch-v24/pre-count/t4/enter-oracle-witness/"
       ],
       "rulingSection": "2.3, 2.4, 3.3",
-      "commit": "the commit that adds this liveSha256 (E1 lands in it)"
+      "commit": "landed da5569079, reverted in the commit that sets status reverted",
+      "status": "reverted",
+      "landedSha256": "598047377921821dfabd3fe2778ca386e78124cff09f29addb174b6c2f2fe6ba",
+      "revertedBecause": "V0'' run 01 step 1: with E1 live, read_v23_native_s5_settled_reference.verify_bindings refuses ('native reference input changed: wasm_sdk_probe/tools/run_e2_c_product_path.py'). The settled native reference report s5-native/settled-reference-reader-05.json binds 1772 input files by live sha256, this runner and build_e2_c_shell_bundle.py among them, and both v23's and v24's S5 plans (v24_feature_selection_cases.config -> v23 s5 -> settled_references) verify it, so E1 live leaves v24 unable to build its own S5/R1 plan. Not known when ruling 1 authorised E1 (its section 3.1 lists the cohorts and run-03's identity only)."
     }
   ]
 }

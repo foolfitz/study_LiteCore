@@ -1,0 +1,46 @@
+{
+ "schema": 1,
+ "argv": [
+  "tools/run_v24_v0_double_prime.py",
+  "--out",
+  "../findings/evidence/link-batch-v24/pre-count/v0-double-prime/run-01"
+ ],
+ "edits": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v24/pre-count/bound-tool-edits.json",
+ "editsSha256": "47da3bfe69277a0862d3244a46f059d34c6cb967ea7b7e6e924e5bab1e44924a",
+ "declared": [
+  "tools/run_e2_c_product_path.py"
+ ],
+ "steps": {
+  "1": {
+   "name": "step1-live",
+   "argv": [
+    "/usr/bin/python3",
+    "-I",
+    "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v23/feature-protocol/counted-r1-s5-01/read-completion.py",
+    "--output",
+    "../findings/evidence/link-batch-v24/pre-count/v0-double-prime/run-01/step1-live.json"
+   ],
+   "exit": 1,
+   "seconds": 0.9,
+   "stderrTail": "ValueError: native reference input changed: wasm_sdk_probe/tools/run_e2_c_product_path.py",
+   "stages": null
+  },
+  "2": {
+   "instruments": 30,
+   "differing": [
+    "tools/run_e2_c_product_path.py"
+   ],
+   "declared": [
+    "tools/run_e2_c_product_path.py"
+   ]
+  }
+ },
+ "red": [
+  {
+   "step": 1,
+   "why": "the live read did not fail on the shell"
+  }
+ ],
+ "gitStatusBefore": "",
+ "verdict": "V0PP_RED"
+}

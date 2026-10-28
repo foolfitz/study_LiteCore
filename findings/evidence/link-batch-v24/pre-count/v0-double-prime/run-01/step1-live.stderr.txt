@@ -1,0 +1,24 @@
+Traceback (most recent call last):
+  File "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v23/feature-protocol/counted-r1-s5-01/read-completion.py", line 96, in <module>
+    if __name__=='__main__':main()
+                            ~~~~^^
+  File "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v23/feature-protocol/counted-r1-s5-01/read-completion.py", line 37, in main
+    assert sha(encoded(config()))==frozen['configSha256'],'live frozen plan differs'
+                       ~~~~~~^^
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/v23_feature_selection_cases.py", line 539, in config
+    s5_plan=s5(table,selection);interaction_plan=interactions(table,rounds,texts);r1_plan,r1_fixture_plan=r1()
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/v23_feature_selection_cases.py", line 189, in s5
+    settled=settled_references(table,marks)
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/v23_feature_selection_cases.py", line 159, in settled_references
+    report=json.loads(raw);references=settled_native.references(report,table)
+                                      ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/read_v23_native_s5_settled_reference.py", line 188, in references
+    verify_bindings(report.get('bindings'),binding_paths(resolve(report['witnessDirectory']),table))
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/read_v23_native_s5_settled_reference.py", line 122, in verify_bindings
+    require(path.is_file() and sha(path)==bindings[name(path)],'native reference input changed: '+name(path))
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/read_v23_native_s5_settled_reference.py", line 29, in require
+    if not ok:raise ValueError(message+(' | '+json.dumps(observed,ensure_ascii=False) if observed is not None else ''))
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: native reference input changed: wasm_sdk_probe/tools/run_e2_c_product_path.py
