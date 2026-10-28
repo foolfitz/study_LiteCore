@@ -1,0 +1,133 @@
+{
+ "schema": 1,
+ "argv": [
+  "tools/run_v24_page_gates.py",
+  "--out",
+  "../findings/evidence/link-batch-v24/pre-count/page-gates/run-01"
+ ],
+ "preflight": {
+  "v24/probe.wasm": "276158084a602178f9b7219c086f749910601b1a121fca9339b10a79b0f7b639",
+  "v24/probe.js": "64aaa8dc2c7a1c366c76911213090ae60d39c26cd4207274ef1c0420a5a0b301",
+  "v24/sdk-worker.js": "41041fe746b2355a1768bc774a10ac59802a8e359579618be405e3696f3b9461",
+  "v24/sdk-manifest.json": "f9554e8c1b79ff4955dbfdf7dbe7c9975f3d0bcc945665c3491a730cb44cd04e",
+  "v23-archive/probe.wasm": "fe1f99cddf27ff6aca9f39f6286770f68981291e5a3505dc58dd88ef6ed05658",
+  "v23-archive/probe.js": "4d90d587cd24a2d75056e7e3400acce009f5841ae2e5df033adba3031a74578e",
+  "page": "b15a6d8e07b6a4f3e551f27971b7cfe8bec2cb743e5f6809013ca7f2082de669",
+  "sdk": "afdff2d4c6fc86a3fbca9f40ab7c0122021c61a0d23a7969b4f80b7770f3632e",
+  "laggingShell": []
+ },
+ "runs": [
+  {
+   "path": "chrome-control.json",
+   "sha256": "c39c0068931326c480d5bc6a81dc2564362d09caccffb27d08d04e4416e7cb05",
+   "verdict": "PASS"
+  },
+  {
+   "path": "firefox-control.json",
+   "sha256": "57035914761b9889a18cf157b85ae72a108687c434539f2d9181dd415d6f6d69",
+   "verdict": "PASS"
+  },
+  {
+   "path": "chrome-vii-leafless.json",
+   "sha256": "163670fd2bf598d1e8864b041efdde9f23851f13dd5d8f37343564d18d63a348",
+   "verdict": "PASS"
+  },
+  {
+   "path": "firefox-vii-leafless.json",
+   "sha256": "1176f4c2ae0f810eae218387deaa3ac5e6b9523b7b2e0e05c56555991b32f0d6",
+   "verdict": "PASS"
+  },
+  {
+   "path": "chrome-vi-stale-pair.json",
+   "sha256": "85ccce24d484501873de059e068c782e59796e8cd1d2209790f4147dd9feb93b",
+   "verdict": "PASS"
+  },
+  {
+   "path": "firefox-vi-stale-pair.json",
+   "sha256": "2a9a0b8eaea0262bd20ceab3fa4f2207cd0a42e10ab58604f660be97fa577a2c",
+   "verdict": "PASS"
+  },
+  {
+   "path": "chrome-vi-stale-wasm-only.json",
+   "sha256": "286bc7ccfbe1736c749f52e027d01aa2c16c992a9f32b659c1e192c980a9cdc4",
+   "verdict": "RECORDED"
+  },
+  {
+   "path": "firefox-vi-stale-wasm-only.json",
+   "sha256": "a124307b78bae0e0725f2852a387480fb1eb0c94494496cd8b5caa166b1112ee",
+   "verdict": "RECORDED"
+  }
+ ],
+ "preRun": {
+  "kwalletLocked": "b false",
+  "chromeProcesses": "34",
+  "firefoxProcesses": "1",
+  "oursRunning": [],
+  "loadavg": [
+   "0.63",
+   "0.63",
+   "0.88"
+  ],
+  "topCpu": [
+   "PID %CPU COMMAND",
+   "  67307 77.4 python3",
+   "  61923  8.9 Isolated Web Co",
+   "   3362  4.6 zen",
+   "  65169  3.1 project-meta",
+   "  15224  3.1 claude"
+  ],
+  "at": "2026-10-28T11:13:39+0800",
+  "refuse": []
+ },
+ "foreignCpu": {
+  "seconds": 2.01,
+  "limitPct": 50.0,
+  "rootPid": 67307,
+  "ok": true,
+  "overLimit": [],
+  "topForeign": [
+   {
+    "pid": 61923,
+    "comm": "Isolated Web Co",
+    "pct": 8.0,
+    "own": false,
+    "cmd": "/home/jiajun/.tarball-installations/zen/zen -contentproc -isForBrowser -prefsHandle 0:55443 -prefMapHandle 1:311969 -jsInitHandle 2:162336 -parentBuildID 20261020090730 -sandboxReporter 3 -chrootClien"
+   },
+   {
+    "pid": 3008,
+    "comm": "kwin_wayland",
+    "pct": 4.5,
+    "own": false,
+    "cmd": "/usr/bin/kwin_wayland --wayland-fd 7 --socket wayland-0 --xwayland-fd 8 --xwayland-fd 9 --xwayland-display :0 --xwayland-xauthority /run/user/1000/xauth_Twzvfw --xwayland "
+   },
+   {
+    "pid": 3362,
+    "comm": "zen",
+    "pct": 4.5,
+    "own": false,
+    "cmd": "/home/jiajun/.tarball-installations/zen/zen --sm-client-id 10d9e9d775000179310880600021014310000 "
+   },
+   {
+    "pid": 15224,
+    "comm": "claude",
+    "pct": 4.0,
+    "own": false,
+    "cmd": "claude -r "
+   },
+   {
+    "pid": 3463,
+    "comm": "konsole",
+    "pct": 1.5,
+    "own": false,
+    "cmd": "/usr/bin/konsole "
+   }
+  ],
+  "topOwn": [],
+  "loadavg": [
+   "0.63",
+   "0.63",
+   "0.88"
+  ],
+  "at": "2026-10-28T11:13:41+0800"
+ }
+}

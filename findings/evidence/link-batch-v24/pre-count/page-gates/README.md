@@ -23,3 +23,18 @@ A symlink mirror of `wasm_sdk_probe/dist/` per arm (`run_e2_c_product_path.build
 
 - (vi) not run, red, or NE: the stale-wasm hazard is open on v24; v24 is not bound.
 - (vii) not run, red, or its positive control not holding: v24 is not bound; a control that does not hold makes the arm NE (nothing was measured).
+
+## Run 01 (2026-10-28 11:13–11:22 +0800) — results
+
+`run-01/` (`report.json` + one file per browser and arm; the mirrors, 225 MB with two copies of the v23 wasm, were deleted after the run — every overridden file's SHA-256 is in each cell's `mirrorOverrides`). Pre-run: KWallet unlocked, no refusal, foreign CPU ok, load 0.63; no lagging shell file.
+
+| Arm | Chrome | Firefox | What was observed |
+|---|---|---|---|
+| `control` | PASS | PASS | trusted click on the canvas → `editorPlaceCaretV2`; trusted `x` → keydown+beforeinput on `#sink` → one `insertText` with payload `{documentHandle: 1, text: "x", route: "uno-insert-text"}`; reply `ok`, `method: "uno-insert-text"`, `completion: "uno-command-result"`, `resultPayload` = the raw `.uno:InsertText` result (`success: false`, `wasModified: false`, as M1 measured natively) |
+| `vii-leafless` | PASS | PASS | init and open ok (4 requests: init, open, pageRectangles, editorGetStateV2), then `#expired` shown, `#paper` `display: none`, pill `expired`; all three typing attempts delivered a trusted `keydown` (target `BODY`); `#sink.focus()` by script left `document.activeElement` on `BODY` (the sink is inside the hidden paper); **0 `insertText` requests** |
+| `vi-stale-pair` | **PASS** | **PASS** | the only request is `init`; reply `ok: false`, `code: "DECLARED_EXPORT_MISSING"`, message `profile e2-editor-v24 declares typedInsert: "document-sdk-insert-typed-text" but this binary has no oxsdk_document_insert_typed_text`; no `WORKER_EXCEPTION`; 0 `insertText` (the script-focused sink did take a `beforeinput`, with no document to send it to) |
+| `vi-stale-wasm-only` | RECORDED | RECORDED | refused at init with `INCOMPATIBLE_ABI`: `editor ABI 1 in this binary does not match 6` — the v24 loader called the v23 wasm through v24's minified export names, so `oxsdk_editor_abi_version` reached some other function and returned 1. Refused at init, by the wrong check for the wrong reason, which is the incoherent-pair point above made concrete |
+
+**(vi) holds and (vii) holds** in both browsers, each with its positive control.
+
+Observation outside both rules (no verdict here; triage later): in `vii-leafless`, the state pill read `expired` when the refusal settled and `ready` on every later snapshot, while `#expired` stayed shown and `#paper` hidden. Something after `showExpired` (the session's state callback, `web/e2-editor-app.js:979`, by reading only) repaints the pill. The same path runs on a wrong wasm, so this is not v24-specific.
