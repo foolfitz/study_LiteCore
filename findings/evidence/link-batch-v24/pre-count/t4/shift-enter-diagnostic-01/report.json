@@ -1,0 +1,996 @@
+{
+ "argv": [
+  "tools/diag_v24_shift_enter.py",
+  "--out",
+  "../findings/evidence/link-batch-v24/pre-count/t4/shift-enter-diagnostic-01"
+ ],
+ "products": {
+  "v23": {
+   "e2-editor.html": "c00017a0edfbe8c40bf149c00ad6fa6894f8d6a3bd953d124685594cbeb58be5",
+   "e2-editor-app.js": "c25b11c463a24fc183a046a5c26ebe6ad71d04d22dcc7830ba77997d231e4490",
+   "sdk/document-sdk.js": "9dcb83120c144cad5cf04cabcc14452255d0a640200b8e08f5eed4d4c2d63539"
+  },
+  "v24": {
+   "e2-editor.html": "c00017a0edfbe8c40bf149c00ad6fa6894f8d6a3bd953d124685594cbeb58be5"
+  }
+ },
+ "runs": [
+  {
+   "product": "v23",
+   "repetition": 1,
+   "steps": [
+    {
+     "type": "SHFTKEYA",
+     "into": {
+      "dispatchedTo": "sink"
+     }
+    },
+    {
+     "key": "shift-enter",
+     "stateAfter": {
+      "pill": "ready",
+      "doc": "list-contexts.odt",
+      "revision": 3,
+      "active": "sink",
+      "blobs": 0
+     }
+    },
+    {
+     "type": "SHFTKEYB",
+     "into": {
+      "dispatchedTo": "sink"
+     }
+    }
+   ],
+   "operations": [
+    [
+     "init",
+     {}
+    ],
+    [
+     "open",
+     {}
+    ],
+    [
+     "editorPlaceCaretV2",
+     {}
+    ],
+    [
+     "editorActionV2",
+     {
+      "action": "insert-paragraph-break",
+      "extendSelection": false
+     }
+    ],
+    [
+     "insertText",
+     {
+      "text": "SHFTKEYA"
+     }
+    ],
+    [
+     "editorActionV2",
+     {
+      "action": "insert-line-break",
+      "extendSelection": false
+     }
+    ],
+    [
+     "insertText",
+     {
+      "text": "SHFTKEYB"
+     }
+    ],
+    [
+     "save",
+     {}
+    ]
+   ],
+   "edits": [
+    {
+     "operation": "editorActionV2",
+     "payload": {
+      "documentHandle": 1,
+      "expectedRevision": 0,
+      "action": "insert-paragraph-break",
+      "extendSelection": false,
+      "enabled": false
+     },
+     "reply": {
+      "ok": true,
+      "result": {
+       "action": "insert-paragraph-break",
+       "option": false,
+       "beforeRevision": 0,
+       "revision": 1,
+       "changed": true,
+       "completion": "uno-command-result",
+       "callbackSequenceBefore": 5,
+       "callbackSequenceAfter": 6,
+       "state": {
+        "sourceSequence": 6,
+        "documentChangeSequence": 0,
+        "documentSizeChangedCount": 0,
+        "visible": true,
+        "caret": {
+         "x": 1598,
+         "y": 4423,
+         "width": 0,
+         "height": 276
+        },
+        "selection": {
+         "observed": true,
+         "collapsed": true,
+         "start": null,
+         "end": null,
+         "rectangles": []
+        },
+        "format": {
+         "bold": null,
+         "italic": null,
+         "underline": null,
+         "strikethrough": null
+        },
+        "formatStale": null,
+        "caretParagraph": {
+         "enabled": false,
+         "unavailable": "core-built-without-accessibility",
+         "fresh": false,
+         "observed": false,
+         "fingerprint": "0",
+         "length": -1,
+         "offset": -1,
+         "listPrefixLength": 0,
+         "text": null
+        },
+        "documentOutline": null
+       }
+      },
+      "error": null
+     }
+    },
+    {
+     "operation": "insertText",
+     "payload": {
+      "documentHandle": 1,
+      "text": "SHFTKEYA"
+     },
+     "reply": {
+      "ok": true,
+      "result": {
+       "method": "paste",
+       "revision": 2
+      },
+      "error": null
+     }
+    },
+    {
+     "operation": "editorActionV2",
+     "payload": {
+      "documentHandle": 1,
+      "expectedRevision": 2,
+      "action": "insert-line-break",
+      "extendSelection": false,
+      "enabled": false
+     },
+     "reply": {
+      "ok": true,
+      "result": {
+       "action": "insert-line-break",
+       "option": false,
+       "beforeRevision": 2,
+       "revision": 3,
+       "changed": true,
+       "completion": "uno-command-result",
+       "callbackSequenceBefore": 12,
+       "callbackSequenceAfter": 13,
+       "state": {
+        "sourceSequence": 13,
+        "documentChangeSequence": 0,
+        "documentSizeChangedCount": 0,
+        "visible": true,
+        "caret": {
+         "x": 1418,
+         "y": 4699,
+         "width": 0,
+         "height": 276
+        },
+        "selection": {
+         "observed": true,
+         "collapsed": true,
+         "start": null,
+         "end": null,
+         "rectangles": []
+        },
+        "format": {
+         "bold": false,
+         "italic": false,
+         "underline": false,
+         "strikethrough": false
+        },
+        "formatStale": null,
+        "caretParagraph": {
+         "enabled": false,
+         "unavailable": "core-built-without-accessibility",
+         "fresh": false,
+         "observed": false,
+         "fingerprint": "0",
+         "length": -1,
+         "offset": -1,
+         "listPrefixLength": 0,
+         "text": null
+        },
+        "documentOutline": null
+       }
+      },
+      "error": null
+     }
+    },
+    {
+     "operation": "insertText",
+     "payload": {
+      "documentHandle": 1,
+      "text": "SHFTKEYB"
+     },
+     "reply": {
+      "ok": true,
+      "result": {
+       "method": "paste",
+       "revision": 4
+      },
+      "error": null
+     }
+    }
+   ],
+   "saveSha256": "9dcb8f9cb99b234771e6f4478597b1b1f6c131008c40513dd3817b7ea766e8a8",
+   "paragraphXml": [
+    "<text:p text:style-name=\"P3\">SHFTKEYA<text:line-break/>SHFTKEYBE</text:p>"
+   ],
+   "literalPresent": true,
+   "automaticStyles": [],
+   "cleanup": {}
+  },
+  {
+   "product": "v23",
+   "repetition": 2,
+   "steps": [
+    {
+     "type": "SHFTKEYA",
+     "into": {
+      "dispatchedTo": "sink"
+     }
+    },
+    {
+     "key": "shift-enter",
+     "stateAfter": {
+      "pill": "ready",
+      "doc": "list-contexts.odt",
+      "revision": 3,
+      "active": "sink",
+      "blobs": 0
+     }
+    },
+    {
+     "type": "SHFTKEYB",
+     "into": {
+      "dispatchedTo": "sink"
+     }
+    }
+   ],
+   "operations": [
+    [
+     "init",
+     {}
+    ],
+    [
+     "open",
+     {}
+    ],
+    [
+     "editorPlaceCaretV2",
+     {}
+    ],
+    [
+     "editorActionV2",
+     {
+      "action": "insert-paragraph-break",
+      "extendSelection": false
+     }
+    ],
+    [
+     "insertText",
+     {
+      "text": "SHFTKEYA"
+     }
+    ],
+    [
+     "editorActionV2",
+     {
+      "action": "insert-line-break",
+      "extendSelection": false
+     }
+    ],
+    [
+     "insertText",
+     {
+      "text": "SHFTKEYB"
+     }
+    ],
+    [
+     "save",
+     {}
+    ]
+   ],
+   "edits": [
+    {
+     "operation": "editorActionV2",
+     "payload": {
+      "documentHandle": 1,
+      "expectedRevision": 0,
+      "action": "insert-paragraph-break",
+      "extendSelection": false,
+      "enabled": false
+     },
+     "reply": {
+      "ok": true,
+      "result": {
+       "action": "insert-paragraph-break",
+       "option": false,
+       "beforeRevision": 0,
+       "revision": 1,
+       "changed": true,
+       "completion": "uno-command-result",
+       "callbackSequenceBefore": 5,
+       "callbackSequenceAfter": 6,
+       "state": {
+        "sourceSequence": 6,
+        "documentChangeSequence": 0,
+        "documentSizeChangedCount": 0,
+        "visible": true,
+        "caret": {
+         "x": 1598,
+         "y": 4423,
+         "width": 0,
+         "height": 276
+        },
+        "selection": {
+         "observed": true,
+         "collapsed": true,
+         "start": null,
+         "end": null,
+         "rectangles": []
+        },
+        "format": {
+         "bold": null,
+         "italic": null,
+         "underline": null,
+         "strikethrough": null
+        },
+        "formatStale": null,
+        "caretParagraph": {
+         "enabled": false,
+         "unavailable": "core-built-without-accessibility",
+         "fresh": false,
+         "observed": false,
+         "fingerprint": "0",
+         "length": -1,
+         "offset": -1,
+         "listPrefixLength": 0,
+         "text": null
+        },
+        "documentOutline": null
+       }
+      },
+      "error": null
+     }
+    },
+    {
+     "operation": "insertText",
+     "payload": {
+      "documentHandle": 1,
+      "text": "SHFTKEYA"
+     },
+     "reply": {
+      "ok": true,
+      "result": {
+       "method": "paste",
+       "revision": 2
+      },
+      "error": null
+     }
+    },
+    {
+     "operation": "editorActionV2",
+     "payload": {
+      "documentHandle": 1,
+      "expectedRevision": 2,
+      "action": "insert-line-break",
+      "extendSelection": false,
+      "enabled": false
+     },
+     "reply": {
+      "ok": true,
+      "result": {
+       "action": "insert-line-break",
+       "option": false,
+       "beforeRevision": 2,
+       "revision": 3,
+       "changed": true,
+       "completion": "uno-command-result",
+       "callbackSequenceBefore": 12,
+       "callbackSequenceAfter": 13,
+       "state": {
+        "sourceSequence": 13,
+        "documentChangeSequence": 0,
+        "documentSizeChangedCount": 0,
+        "visible": true,
+        "caret": {
+         "x": 1418,
+         "y": 4699,
+         "width": 0,
+         "height": 276
+        },
+        "selection": {
+         "observed": true,
+         "collapsed": true,
+         "start": null,
+         "end": null,
+         "rectangles": []
+        },
+        "format": {
+         "bold": false,
+         "italic": false,
+         "underline": false,
+         "strikethrough": false
+        },
+        "formatStale": null,
+        "caretParagraph": {
+         "enabled": false,
+         "unavailable": "core-built-without-accessibility",
+         "fresh": false,
+         "observed": false,
+         "fingerprint": "0",
+         "length": -1,
+         "offset": -1,
+         "listPrefixLength": 0,
+         "text": null
+        },
+        "documentOutline": null
+       }
+      },
+      "error": null
+     }
+    },
+    {
+     "operation": "insertText",
+     "payload": {
+      "documentHandle": 1,
+      "text": "SHFTKEYB"
+     },
+     "reply": {
+      "ok": true,
+      "result": {
+       "method": "paste",
+       "revision": 4
+      },
+      "error": null
+     }
+    }
+   ],
+   "saveSha256": "e3b37ed624dd4d044194a9e921b6caf129fd1f48919bf1536f15201fdb256448",
+   "paragraphXml": [
+    "<text:p text:style-name=\"P3\">SHFTKEYA<text:line-break/>SHFTKEYBE</text:p>"
+   ],
+   "literalPresent": true,
+   "automaticStyles": [],
+   "cleanup": {}
+  },
+  {
+   "product": "v24",
+   "repetition": 1,
+   "steps": [
+    {
+     "type": "SHFTKEYA",
+     "into": {
+      "dispatchedTo": "sink"
+     }
+    },
+    {
+     "key": "shift-enter",
+     "stateAfter": {
+      "pill": "ready",
+      "doc": "list-contexts.odt",
+      "revision": 3,
+      "active": "sink",
+      "blobs": 0
+     }
+    },
+    {
+     "type": "SHFTKEYB",
+     "into": {
+      "dispatchedTo": "sink"
+     }
+    }
+   ],
+   "operations": [
+    [
+     "init",
+     {}
+    ],
+    [
+     "open",
+     {}
+    ],
+    [
+     "editorPlaceCaretV2",
+     {}
+    ],
+    [
+     "editorActionV2",
+     {
+      "action": "insert-paragraph-break",
+      "extendSelection": false
+     }
+    ],
+    [
+     "insertText",
+     {
+      "text": "SHFTKEYA",
+      "route": "uno-insert-text"
+     }
+    ],
+    [
+     "editorActionV2",
+     {
+      "action": "insert-line-break",
+      "extendSelection": false
+     }
+    ],
+    [
+     "insertText",
+     {
+      "text": "SHFTKEYB",
+      "route": "uno-insert-text"
+     }
+    ],
+    [
+     "save",
+     {}
+    ]
+   ],
+   "edits": [
+    {
+     "operation": "editorActionV2",
+     "payload": {
+      "documentHandle": 1,
+      "expectedRevision": 0,
+      "action": "insert-paragraph-break",
+      "extendSelection": false,
+      "enabled": false
+     },
+     "reply": {
+      "ok": true,
+      "result": {
+       "action": "insert-paragraph-break",
+       "option": false,
+       "beforeRevision": 0,
+       "revision": 1,
+       "changed": true,
+       "completion": "uno-command-result",
+       "callbackSequenceBefore": 5,
+       "callbackSequenceAfter": 6,
+       "state": {
+        "sourceSequence": 6,
+        "documentChangeSequence": 0,
+        "documentSizeChangedCount": 0,
+        "visible": true,
+        "caret": {
+         "x": 1598,
+         "y": 4423,
+         "width": 0,
+         "height": 276
+        },
+        "selection": {
+         "observed": true,
+         "collapsed": true,
+         "start": null,
+         "end": null,
+         "rectangles": []
+        },
+        "format": {
+         "bold": null,
+         "italic": null,
+         "underline": null,
+         "strikethrough": null
+        },
+        "formatStale": null,
+        "caretParagraph": {
+         "enabled": false,
+         "unavailable": "core-built-without-accessibility",
+         "fresh": false,
+         "observed": false,
+         "fingerprint": "0",
+         "length": -1,
+         "offset": -1,
+         "listPrefixLength": 0,
+         "text": null
+        },
+        "documentOutline": null
+       }
+      },
+      "error": null
+     }
+    },
+    {
+     "operation": "insertText",
+     "payload": {
+      "documentHandle": 1,
+      "text": "SHFTKEYA",
+      "route": "uno-insert-text"
+     },
+     "reply": {
+      "ok": true,
+      "result": {
+       "method": "uno-insert-text",
+       "revision": 2,
+       "completion": "uno-command-result"
+      },
+      "error": null
+     }
+    },
+    {
+     "operation": "editorActionV2",
+     "payload": {
+      "documentHandle": 1,
+      "expectedRevision": 2,
+      "action": "insert-line-break",
+      "extendSelection": false,
+      "enabled": false
+     },
+     "reply": {
+      "ok": true,
+      "result": {
+       "action": "insert-line-break",
+       "option": false,
+       "beforeRevision": 2,
+       "revision": 3,
+       "changed": true,
+       "completion": "uno-command-result",
+       "callbackSequenceBefore": 12,
+       "callbackSequenceAfter": 13,
+       "state": {
+        "sourceSequence": 13,
+        "documentChangeSequence": 0,
+        "documentSizeChangedCount": 0,
+        "visible": true,
+        "caret": {
+         "x": 1418,
+         "y": 4699,
+         "width": 0,
+         "height": 276
+        },
+        "selection": {
+         "observed": true,
+         "collapsed": true,
+         "start": null,
+         "end": null,
+         "rectangles": []
+        },
+        "format": {
+         "bold": false,
+         "italic": false,
+         "underline": false,
+         "strikethrough": false
+        },
+        "formatStale": null,
+        "caretParagraph": {
+         "enabled": false,
+         "unavailable": "core-built-without-accessibility",
+         "fresh": false,
+         "observed": false,
+         "fingerprint": "0",
+         "length": -1,
+         "offset": -1,
+         "listPrefixLength": 0,
+         "text": null
+        },
+        "documentOutline": null
+       }
+      },
+      "error": null
+     }
+    },
+    {
+     "operation": "insertText",
+     "payload": {
+      "documentHandle": 1,
+      "text": "SHFTKEYB",
+      "route": "uno-insert-text"
+     },
+     "reply": {
+      "ok": true,
+      "result": {
+       "method": "uno-insert-text",
+       "revision": 4,
+       "completion": "uno-command-result"
+      },
+      "error": null
+     }
+    }
+   ],
+   "saveSha256": "920adfb0eb1190645a933d3cd8c7e09d2078b2dd2966b452918d10f41806c246",
+   "paragraphXml": [
+    "<text:p text:style-name=\"P2\"><text:span text:style-name=\"T1\">SHFTKEYA<text:line-break/>SHFTKEYB</text:span>E</text:p>"
+   ],
+   "literalPresent": true,
+   "automaticStyles": [
+    "<style:style style:name=\"T1\" style:family=\"text\"><style:text-properties officeooo:rsid=\"000b3cb9\"/></style:style>"
+   ],
+   "cleanup": {}
+  },
+  {
+   "product": "v24",
+   "repetition": 2,
+   "steps": [
+    {
+     "type": "SHFTKEYA",
+     "into": {
+      "dispatchedTo": "sink"
+     }
+    },
+    {
+     "key": "shift-enter",
+     "stateAfter": {
+      "pill": "ready",
+      "doc": "list-contexts.odt",
+      "revision": 3,
+      "active": "sink",
+      "blobs": 0
+     }
+    },
+    {
+     "type": "SHFTKEYB",
+     "into": {
+      "dispatchedTo": "sink"
+     }
+    }
+   ],
+   "operations": [
+    [
+     "init",
+     {}
+    ],
+    [
+     "open",
+     {}
+    ],
+    [
+     "editorPlaceCaretV2",
+     {}
+    ],
+    [
+     "editorActionV2",
+     {
+      "action": "insert-paragraph-break",
+      "extendSelection": false
+     }
+    ],
+    [
+     "insertText",
+     {
+      "text": "SHFTKEYA",
+      "route": "uno-insert-text"
+     }
+    ],
+    [
+     "editorActionV2",
+     {
+      "action": "insert-line-break",
+      "extendSelection": false
+     }
+    ],
+    [
+     "insertText",
+     {
+      "text": "SHFTKEYB",
+      "route": "uno-insert-text"
+     }
+    ],
+    [
+     "save",
+     {}
+    ]
+   ],
+   "edits": [
+    {
+     "operation": "editorActionV2",
+     "payload": {
+      "documentHandle": 1,
+      "expectedRevision": 0,
+      "action": "insert-paragraph-break",
+      "extendSelection": false,
+      "enabled": false
+     },
+     "reply": {
+      "ok": true,
+      "result": {
+       "action": "insert-paragraph-break",
+       "option": false,
+       "beforeRevision": 0,
+       "revision": 1,
+       "changed": true,
+       "completion": "uno-command-result",
+       "callbackSequenceBefore": 5,
+       "callbackSequenceAfter": 6,
+       "state": {
+        "sourceSequence": 6,
+        "documentChangeSequence": 0,
+        "documentSizeChangedCount": 0,
+        "visible": true,
+        "caret": {
+         "x": 1598,
+         "y": 4423,
+         "width": 0,
+         "height": 276
+        },
+        "selection": {
+         "observed": true,
+         "collapsed": true,
+         "start": null,
+         "end": null,
+         "rectangles": []
+        },
+        "format": {
+         "bold": null,
+         "italic": null,
+         "underline": null,
+         "strikethrough": null
+        },
+        "formatStale": null,
+        "caretParagraph": {
+         "enabled": false,
+         "unavailable": "core-built-without-accessibility",
+         "fresh": false,
+         "observed": false,
+         "fingerprint": "0",
+         "length": -1,
+         "offset": -1,
+         "listPrefixLength": 0,
+         "text": null
+        },
+        "documentOutline": null
+       }
+      },
+      "error": null
+     }
+    },
+    {
+     "operation": "insertText",
+     "payload": {
+      "documentHandle": 1,
+      "text": "SHFTKEYA",
+      "route": "uno-insert-text"
+     },
+     "reply": {
+      "ok": true,
+      "result": {
+       "method": "uno-insert-text",
+       "revision": 2,
+       "completion": "uno-command-result"
+      },
+      "error": null
+     }
+    },
+    {
+     "operation": "editorActionV2",
+     "payload": {
+      "documentHandle": 1,
+      "expectedRevision": 2,
+      "action": "insert-line-break",
+      "extendSelection": false,
+      "enabled": false
+     },
+     "reply": {
+      "ok": true,
+      "result": {
+       "action": "insert-line-break",
+       "option": false,
+       "beforeRevision": 2,
+       "revision": 3,
+       "changed": true,
+       "completion": "uno-command-result",
+       "callbackSequenceBefore": 12,
+       "callbackSequenceAfter": 13,
+       "state": {
+        "sourceSequence": 13,
+        "documentChangeSequence": 0,
+        "documentSizeChangedCount": 0,
+        "visible": true,
+        "caret": {
+         "x": 1418,
+         "y": 4699,
+         "width": 0,
+         "height": 276
+        },
+        "selection": {
+         "observed": true,
+         "collapsed": true,
+         "start": null,
+         "end": null,
+         "rectangles": []
+        },
+        "format": {
+         "bold": false,
+         "italic": false,
+         "underline": false,
+         "strikethrough": false
+        },
+        "formatStale": null,
+        "caretParagraph": {
+         "enabled": false,
+         "unavailable": "core-built-without-accessibility",
+         "fresh": false,
+         "observed": false,
+         "fingerprint": "0",
+         "length": -1,
+         "offset": -1,
+         "listPrefixLength": 0,
+         "text": null
+        },
+        "documentOutline": null
+       }
+      },
+      "error": null
+     }
+    },
+    {
+     "operation": "insertText",
+     "payload": {
+      "documentHandle": 1,
+      "text": "SHFTKEYB",
+      "route": "uno-insert-text"
+     },
+     "reply": {
+      "ok": true,
+      "result": {
+       "method": "uno-insert-text",
+       "revision": 4,
+       "completion": "uno-command-result"
+      },
+      "error": null
+     }
+    }
+   ],
+   "saveSha256": "b9749bc75e164a5a946de4d9110fafd9c5276bbb887b8ecbc9bed8120b2fc845",
+   "paragraphXml": [
+    "<text:p text:style-name=\"P2\"><text:span text:style-name=\"T1\">SHFTKEYA<text:line-break/>SHFTKEYB</text:span>E</text:p>"
+   ],
+   "literalPresent": true,
+   "automaticStyles": [
+    "<style:style style:name=\"T1\" style:family=\"text\"><style:text-properties officeooo:rsid=\"00055b61\"/></style:style>"
+   ],
+   "cleanup": {}
+  }
+ ],
+ "preRun": {
+  "kwalletLocked": "b false",
+  "chromeProcesses": "34",
+  "firefoxProcesses": "1",
+  "oursRunning": [],
+  "loadavg": [
+   "0.15",
+   "0.31",
+   "0.34"
+  ],
+  "topCpu": [
+   "PID %CPU COMMAND",
+   " 277392 35.7 python3",
+   "   3362  3.8 zen",
+   "  61923  3.1 Isolated Web Co",
+   "   3008  2.6 kwin_wayland",
+   "  15224  2.5 claude"
+  ],
+  "at": "2026-10-28T13:52:18+0800",
+  "refuse": []
+ }
+}
