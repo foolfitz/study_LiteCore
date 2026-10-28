@@ -60,13 +60,15 @@ def main():
               'preparationOnly': True, 'scratch': plan.get('scratch'), 'mirrorBindings': verify_mirror(target, plan), 'runs': []}
     def write(): (args.output / 'report.json').write_bytes(encoded(report))
     write()
+    browsers = [args.browser] if args.browser else list(BROWSERS); cases = args.case_id or population
+    total = len(browsers) * len(cases)
     with common.browser_lock('v24-feature-selection'):
         report['preRun'] = common.pre_run_checks(); report['foreignCpu'] = common.foreign_cpu(); write()
         if report['preRun']['refuse']: raise SystemExit('pre-run refusal: ' + '; '.join(report['preRun']['refuse']))
         if not report['foreignCpu'].get('ok'): raise SystemExit('foreign CPU refusal; no browser cells')
         with common.served(target) as base:
-            for browser in ([args.browser] if args.browser else BROWSERS):
-                for case in (args.case_id or population):
+            for browser in browsers:
+                for case in cases:
                     cell = {'browser': browser, 'caseId': case}; session = None
                     try:
                         if plan_with(args.sdk_override) != plan: raise ValueError('source/profile drift')
@@ -92,6 +94,7 @@ def main():
                         path = args.output / (f'{browser}-{case}.json'.replace('/', '__')); path.write_bytes(encoded(cell))
                         report['runs'].append({'path': path.name, 'sha256': digest(path.read_bytes()),
                                                'verdict': (cell.get('inspection') or {}).get('verdict', 'FATAL')}); write()
+                        print(f"{len(report['runs'])}/{total} {browser} {case} {report['runs'][-1]['verdict']}", file=sys.stderr, flush=True)
                     if cell.get('fatal') or cell.get('inspection', {}).get('verdict') != 'PASS':
                         report.setdefault('nonpassing', []).append([browser, case]); write()
                         if not args.keep_going: raise SystemExit('first nonpassing observation retained; no retry')
