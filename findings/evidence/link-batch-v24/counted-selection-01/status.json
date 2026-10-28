@@ -1,0 +1,117 @@
+{
+  "schema": 1,
+  "startedAt": "2026-10-28T17:33:58.518919+08:00",
+  "pid": 415163,
+  "cohortSha256": "734bbed77f550f8de7b4d6be84c100f3c45dd7a58a9497a8600e167e2e03405a",
+  "gitHead": "d12d355e9f4ebe3b5c3c1bd91ea78a5c2ee55682",
+  "state": "STOPPED_FIRST_NONPASS",
+  "stages": [
+    {
+      "population": "s5",
+      "startedAt": "2026-10-28T17:33:59.974428+08:00",
+      "preflight": {
+        "argv": [
+          "/usr/bin/python3",
+          "-I",
+          "tools/run_v24_v0_double_prime.py",
+          "--out",
+          "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v24/counted-selection-01/v0-s5"
+        ],
+        "exit": 0,
+        "seconds": 30.4,
+        "log": "s5.v0.txt",
+        "logSha256": "85c6e113643a5f7cc3f214beca209efa6515caa57cb5ffdbb38688befa9f1ff4"
+      },
+      "v0": {
+        "path": "v0-s5/report.json",
+        "sha256": "268a6e6083cbe2d14b685b1cf284dcf3ce5740d0d04dea6edc6f28a3717e3d35"
+      },
+      "runner": {
+        "argv": [
+          "/usr/bin/python3",
+          "-I",
+          "tools/run_v24_counted_selection.py",
+          "--population",
+          "s5",
+          "--cohort",
+          "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v24/counted-selection-01/cohort.json",
+          "--pre-red-report",
+          "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v23/feature-pre-red/counted-05/report.json",
+          "--output",
+          "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v24/counted-selection-01/s5"
+        ],
+        "exit": 0,
+        "seconds": 28039.1,
+        "log": "s5.runner.txt",
+        "logSha256": "65c5da1aa43c56f8ab6dbc4d42d2ecdbd0d1cc6de045c70622893a6edc50de76"
+      },
+      "reportSha256": "84245cf0206a38b9f68e18441f63db5cdcf9de643edc7791712b1ffe171cf4db",
+      "judge": {
+        "argv": [
+          "/usr/bin/python3",
+          "-I",
+          "tools/judge_v24_counted_selection.py",
+          "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v24/counted-selection-01/s5/report.json"
+        ],
+        "exit": 0,
+        "seconds": 53.5,
+        "log": "s5.judge.txt",
+        "logSha256": "87cdd8318d570d57aed98c3832e68b5606c98322a185b327476f187c452a057b"
+      }
+    },
+    {
+      "population": "r1",
+      "startedAt": "2026-10-29T01:22:48.147128+08:00",
+      "preflight": {
+        "argv": [
+          "/usr/bin/python3",
+          "-I",
+          "tools/run_v24_v0_double_prime.py",
+          "--out",
+          "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v24/counted-selection-01/v0-r1"
+        ],
+        "exit": 0,
+        "seconds": 38.7,
+        "log": "r1.v0.txt",
+        "logSha256": "85c6e113643a5f7cc3f214beca209efa6515caa57cb5ffdbb38688befa9f1ff4"
+      },
+      "v0": {
+        "path": "v0-r1/report.json",
+        "sha256": "32176f7749d49c2329202f3067715cf9520be6bd8760fcc354cacc739a2a12b4"
+      },
+      "runner": {
+        "argv": [
+          "/usr/bin/python3",
+          "-I",
+          "tools/run_v24_counted_selection.py",
+          "--population",
+          "r1",
+          "--cohort",
+          "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v24/counted-selection-01/cohort.json",
+          "--pre-red-report",
+          "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v23/feature-pre-red/counted-05/report.json",
+          "--output",
+          "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v24/counted-selection-01/r1"
+        ],
+        "exit": 1,
+        "seconds": 27.6,
+        "log": "r1.runner.txt",
+        "logSha256": "0e9dd444f7e42cf39ad4817f0c5fd755aa55a1af9af530fe742f597d4ed8562b"
+      },
+      "reportSha256": "8f6566e1cd8ecb1ea5ee0c72183212bf6c40786bdf06464abb99d7c3364526d8",
+      "judge": {
+        "argv": [
+          "/usr/bin/python3",
+          "-I",
+          "tools/judge_v24_counted_selection.py",
+          "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v24/counted-selection-01/r1/report.json"
+        ],
+        "exit": 1,
+        "seconds": 21.7,
+        "log": "r1.judge.txt",
+        "logSha256": "4759456b027e4a4ebd7fe51297c9c503ce6f66b9cd42be0e5cb09ac57eec42b0"
+      }
+    }
+  ],
+  "finishedAt": "2026-10-29T01:24:20.028306+08:00"
+}
