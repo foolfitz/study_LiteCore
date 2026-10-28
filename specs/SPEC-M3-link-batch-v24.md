@@ -265,3 +265,10 @@ page honesty（`check_m3_page_honesty.py`）在 v24 的頁面上照 K 鏈的前�
 另記：E1 的基準是釘死本檔的 commit `ceaa2770`（四個檔的 blob 雜湊寫在 `tests/test_v24_typed_insert_engine.py`）。J-red（v24 判讀工具的紅案）排在連結之後、M2 之前；它在 §6.1 的預設是「該判讀工具不得用來判 v24」，不是連結的閘門。
 
 §34.4：因執行而修 0、因審核而修 0（第 1、2 項改的是判準的文字，不是已 commit 的檢查；E1 的紅案第一次沒紅是測試在 commit 前的錯，記在證據 README）。
+
+## 15. 切換與 generation 77 的凍結時機（2026-10-28，只追加；任何 v24 的瀏覽器執行之前）
+
+- **切換已做**（證據 `findings/evidence/link-batch-v24/cutover/README.md`）：頁面加上 `typedInsert` 的要求，再用 `build_cutover_page.py --profile e2-editor-v24 --write --expect-sha256 b15a6d8e…` 改 worker URL 與 wasm 釘選；頁面 `c25b11c4…` → `b15a6d8e…`，`dist/` 已複製。切換後的 V0′（兩個宣告的殼層檔一起換回）成立。
+- **generation 77 晚一點凍，取代 §8 第 5 步的「凍 generation 77」**：裁決 1 §3 的順序是「紅案 → 兩個瀏覽器的準備 → 凍綁定 → 新目錄」，而這棵樹的教訓是殼層改完才凍（同一天凍 v28／v29／v30 那次）。§8 第 5 步把凍結排在 §6.3 之前，兩者衝突，以裁決為準：77 在 §6.3 的 (vi)、(vii)、J-red、M2、T5、(i)、T4 都過、而且沒有待做的殼層改動之後才凍，在任何 §6.4 的計數之前。
+- 因此 §6 通則「與 generation 77 不符就作廢」在 §6.3 讀成「與報告記下的頁面雜湊＋候選殼層摘要不符就作廢」（今天的候選摘要 `56ce44c7…`）；凍出來的 77 若摘要不同，§6.3 的準備在新位元組上重做。§6.4 照原文。
+- 凍 77 時排除清單要**明列** 7 項（v76 的 6 項＋`sdk/v24-feature-worker.js`）：工具的已凍結清單沒有 v76，不明列就從 v75 繼承 3 項。

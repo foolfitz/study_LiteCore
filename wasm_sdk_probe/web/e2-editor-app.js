@@ -26,7 +26,7 @@
 //     through the queue that the failure has just blocked, so the user would
 //     get EDITOR_NOT_READY.  The page offers the rollback explicitly.
 
-import { createDocumentEngine } from "./sdk/document-sdk.js";
+import { createDocumentEngine, TYPED_INSERT_DECLARATION } from "./sdk/document-sdk.js";
 import { NarrowEditorV2Session, PageRectanglesScheduler, pageSpanOf, pageStatusText,
          selectionShapeEvidence, selectionShapeOf, visibleRegionTwips }
   from "./editor-shell-v2/narrow-editor-v2-session.js";
@@ -47,7 +47,7 @@ import { EDITOR_V2_ACTIONS } from "./editor-shell-v2/narrow-editor-v2-client.js"
 // move together or the page pins one artifact and loads another -- and the
 // expiry screen exists to make exactly that mismatch loud, so a half-move
 // would look like a broken build rather than a mistake.
-const PINNED_WASM_SHA256 = "fe1f99cddf27ff6a";
+const PINNED_WASM_SHA256 = "276158084a602178";
 
 // M3's host entry (specs/SPEC-M3-host-entry.md).  A host that embeds this page
 // -- the Nextcloud app -- puts `globalThis.liteCoreHost = { load, save }` in
@@ -3746,7 +3746,7 @@ el.desk.addEventListener("scroll", onDeskScroll, { passive: true });
 // The harness pages (`e2-c-d*-app.js`) do take `?profile=`; they are harnesses.
 function engineFactory() {
   return createDocumentEngine({
-    workerUrl: "./profiles/e2-editor-v23/sdk-worker.js",
+    workerUrl: "./profiles/e2-editor-v24/sdk-worker.js",
     timeoutMs: 30000,
   });
 }
@@ -3849,8 +3849,18 @@ async function openDocument(bytes, name, { readOnly = false } = {}) {
   session.attachInput(el.sink);
   syncSinkToInput(el.sink, session.input);
   const actual = session.engine.manifest?.editorContract?.wasmSha256 ?? "";
-  if (!actual.startsWith(PINNED_WASM_SHA256)) {
-    showExpired({ expected: PINNED_WASM_SHA256, actual: actual.slice(0, 16) });
+  // SPEC-M3-link-batch-v24 4.4 (fable ruling 2, follow-up A2): this page
+  // describes a build whose typing goes through .uno:InsertText.  A manifest
+  // without that declaration types through paste -- finding 168's route --
+  // and the SDK, shared with pages whose profiles never declare it, sends such
+  // a request unchanged; so it is refused here, the way a wrong wasm is.
+  const typedInsert = session.engine.manifest?.editorContract?.typedInsert;
+  if (!actual.startsWith(PINNED_WASM_SHA256) || typedInsert !== TYPED_INSERT_DECLARATION) {
+    showExpired({
+      expected: PINNED_WASM_SHA256,
+      actual: typedInsert === TYPED_INSERT_DECLARATION
+        ? actual.slice(0, 16) : `${actual.slice(0, 16)}（未宣告打字路線）`,
+    });
     throw Object.assign(new Error("this build is not the one this page describes"),
                         { code: "PAGE_BUILD_MISMATCH" });
   }
