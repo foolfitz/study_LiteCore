@@ -34,3 +34,30 @@ Recorded, not rules: every check's v24 outcome beside its v23 outcome in both br
 Typed-route checks (watched, not frozen): `caret-follows-the-text-you-type`, `every-ime-commit-reaches-the-document`, `recovery-returns-what-the-product-promised`, `the-keyboard-reaches-the-document`, `the-toolbar-gives-the-keyboard-back` — all unchanged from v23; `the-enter-key-reaches-the-document` as above.
 
 Totals (whole report): Chrome 35 PASS / 4 FAIL / 7 NE; Firefox 29 PASS / 2 FAIL / 15 NE (v23 counted-01: Chrome 40/3/3, Firefox 33/2/11 — the difference is the four four-arm checks and the Enter check).
+
+## Correction 1 (ruling 1, v24 pre-count) — written after run 01, before any reader or run under it
+
+Fable ruling 1 (`../rulings/RULING-1.md` §1) finds rule 2 unsatisfiable for a member that was not PASS on v23 and replaces it; the original text above stays. **Run 01 does not satisfy the corrected rule (CLAUDE.md §9(1)); T4's verdict is run 02's.**
+
+- **Population** (unchanged, form two): every check id whose step interval holds an `insertText` with `route: "paste"` or any `replaceSelection` / `pasteMarkdown` request, generated from Chrome's wire; Firefox uses Chrome's set; repeated ids compared as ordered lists. Non-vacuity: non-empty **and** at least one member whose v23 outcome is PASS; otherwise T4 is NE.
+- **2a** — a member whose v23 outcome (same browser) is PASS: v24 PASS. Anything else: FAIL for that member.
+- **2b** — a member whose v23 outcome is not PASS: v24 outcome equal to v23's **and** the check entry's leaf map (every `path → value` of the flattened JSON) equal to v23's except leaves on the volatile list. Any outcome change, either direction (NE→PASS included), or any differing non-volatile leaf: FAIL for that member.
+- **Volatile list** (by key name, the last path component): `profile`, `placed`, `seconds`, `formatPressLatency`, `formatPressWaitedMs`. Nothing else. It may grow only as ruling 1 §1.3 says.
+- **Payload**: every red member is printed with its rule (2a/2b), both outcomes and each differing non-volatile leaf as `path | v23 value | v24 value`.
+- Rule 1 and rule 3 unchanged. Default unchanged: T4 NE; v24 may not claim "paste unchanged".
+
+### Run 02 — expectations pinned before it (ruling 1 §1.5)
+
+Run 02 runs after E1 (`../bound-tool-edits.json`) is committed with its witness, V0″ run 1 is green, and the corrected reader and its red cases R-a…R-f are recorded.
+
+- Rule 1 PASS; 2a all PASS; 2b all equal; both browsers.
+- `the-enter-key-reaches-the-document` **PASS in Chrome**. If it stays FAIL, the oracle reading was wrong: stop, finding, nothing frozen on top.
+- **Differential against run 01**, per check per browser: every outcome equals its run-01 outcome except the Enter check in Chrome. Any other difference is named and T4 is not declared until it is diagnosed; intermittency may be claimed only by a run 03 in which the same check moves again with no edit in between.
+- T4 verdict = `read-02.json`.
+
+### The Enter oracle's controls — expected values pinned before E1 (ruling 1 §2.4, recorded under `enter-oracle-witness/`)
+
+- Witness (§34): run 01's Chrome report and `shift-enter-diagnostic-02/` (already committed).
+- Positive controls, the four `shift-enter-diagnostic-02/*-SHFTKEYA.odt` (v23-1, v23-2 without spans; v24-1, v24-2 with spans): new oracle True, True, True, True; **old oracle True, True, False, False** (the red before).
+- Negative controls, scratch copies of v24-1's content.xml — new oracle False for each: (n1) `<text:line-break/>` removed; (n2) the break replaced by a paragraph split; (n3) the break replaced by `<text:tab/>`; (n4) other text between the break and the second marker.
+- Default if never run: E1 may not be relied on; the Enter check stays unestablished on v24.

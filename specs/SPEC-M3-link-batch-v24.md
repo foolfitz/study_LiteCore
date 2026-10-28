@@ -272,3 +272,16 @@ page honesty（`check_m3_page_honesty.py`）在 v24 的頁面上照 K 鏈的前�
 - **generation 77 晚一點凍，取代 §8 第 5 步的「凍 generation 77」**：裁決 1 §3 的順序是「紅案 → 兩個瀏覽器的準備 → 凍綁定 → 新目錄」，而這棵樹的教訓是殼層改完才凍（同一天凍 v28／v29／v30 那次）。§8 第 5 步把凍結排在 §6.3 之前，兩者衝突，以裁決為準：77 在 §6.3 的 (vi)、(vii)、J-red、M2、T5、(i)、T4 都過、而且沒有待做的殼層改動之後才凍，在任何 §6.4 的計數之前。
 - 因此 §6 通則「與 generation 77 不符就作廢」在 §6.3 讀成「與報告記下的頁面雜湊＋候選殼層摘要不符就作廢」（今天的候選摘要 `56ce44c7…`）；凍出來的 77 若摘要不同，§6.3 的準備在新位元組上重做。§6.4 照原文。
 - 凍 77 時排除清單要**明列** 7 項（v76 的 6 項＋`sdk/v24-feature-worker.js`）：工具的已凍結清單沒有 v76，不明列就從 v75 繼承 3 項。
+
+## 16. fable 裁決 1（v24 計數前）帶來的更正（2026-10-28，只追加；T4 run 01 之後、run 02 之前）
+
+依據：`findings/evidence/link-batch-v24/pre-count/rulings/RULING-1.md`（簡報 `BRIEF-1.md`；擁有者選 A 交 fable）。原文不動，以本節為準。
+
+1. **§5.4 更正**：v24 的儀器一律是新檔，**例外是 `findings/evidence/link-batch-v24/pre-count/bound-tool-edits.json` 宣告的修改**。目前授權的封閉清單只有兩項：**E1**（`tools/run_e2_c_product_path.py` 的 Shift+Enter 判準與其酬載，別的不動）、**E2**（`tools/build_e2_c_shell_bundle.py` 的 `MANIFEST` 指到 v77、`FROZEN_MANIFESTS` 加 v76，與寫出 v77 同一個 commit）。每一項都要在修改之前先進清單、附逼出它的事實與證人。`build_v23_native_s5_owner.py`、`build_v23_native_s5_type_owner.py` 永遠不改（AGENTS.md）。之後再有被綁檔案要改，比照辦理，不必再裁決。
+2. **§6.1 V0 列 → V0″**：V0′（§14.2）推廣到工具。宣告的殼層檔與宣告的工具檔都換回凍結的位元組（工具取自 `frozen-sources.tar.gz` 的 `instrument/<path>`）後，`counted-r1-s5-01/read-completion.py` exit 0 而且階段結論等於 `completion-read-01.json`；只換殼層時要以「恰好一個宣告的工具路徑」為酬載失敗；原生 run-03 重讀等於 `reader-03.json`；E1-C `intact: true`；換回之後每個宣告檔的雜湊等於清單的 `liveSha256` 且**不等於**凍結值。細節照裁決 §3.4（七步）與紅案 V-1…V-3（§3.5）。**每次宣告的修改之後跑一次，而且每一次 §6.4 計數與 K 之前各跑一次。**預設照 V0：沒跑就停手，任何 §6.4 計數都不得開始。
+3. **§6.3 T4 列**：規則 2 拆成 2a／2b 加固定的易變欄位清單，見 `t4/README.md` 的 Correction 1；規則是在 run 01 之後改的，所以 **T4 的判決看 run 02**，並與 run 01 逐檢查比對（除了 Chrome 的 Enter 檢查之外都要相同）。
+4. **§10 新增 D-typed-rsid-spans**（D 是「宣告過的差異」，不是限制）：v24 打的字存檔時帶 `officeooo:rsid` 的字元 span，與原生鍵盤打字相同；v23 的 paste 路線不寫。證據：`t4/shift-enter-diagnostic-02/` 與一支讀 `m1-run-01/saves/` 的小工具（每個 shape×text×回合比較 key 與 uno-insert-text 兩臂的 rsid 樣式數與 span 數）。**那支工具沒寫出來之前，「與桌面 Writer 打字相同」只是推論，不得寫進發佈說明。**
+5. **§13 新增紅案**：R-a…R-f（T4 讀取工具，裁決 §1.4）、Enter 判準的正負對照（§2.4）、V-1…V-3（V0″，§3.5）。
+6. **generation 77**：照裁決 §4 的順序——更正 → 讀取工具紅案 → E1＋對照＋V0″ run 1 → T4 run 02 → 凍 77（E2＋v77 寫出且摘要等於 `56ce44c7…`＋`make test-e2-c-reachability` 綠＋V0″ run 2）→ §6.4。
+
+§34.4（本節）：因執行而修 2（`read_v24_t4.py` 的規則 2、`run_e2_c_product_path.py` 的 Enter 判準）、因審核而修 0。
