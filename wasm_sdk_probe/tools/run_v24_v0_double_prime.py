@@ -22,9 +22,15 @@ findings/evidence/link-batch-v24/pre-count/bound-tool-edits.json.
   7  report: product-four-arms-counted-01's instruments that differ from the live tree are a subset of
      the declared paths and the two pre-v24 moves
 
-  python3 -I tools/run_v24_v0_double_prime.py --out <new dir> [--edits <list>]
+  0  report (Addendum 1 section 7): the live-asserted set -- the cohort's instrumentSources, the
+     settled reference reader-05's bindings under wasm_sdk_probe/, native run-03's identity sources --
+     with per-source counts, so the next agent sees what may not be touched
 
---edits points at another list for red cases V-1..V-3; the verdict is V0PP_HOLDS only if every step holds.
+  python3 -I tools/run_v24_v0_double_prime.py --out <new dir> [--edits <list>] [--cohort <cohort.json>]
+
+Entries with status "reverted" are not declared (Addendum 1 closed the list; E1 stays as a record).
+--edits and --cohort point at scratch copies for the red cases; the verdict is V0PP_HOLDS only if
+every step holds.
 """
 import argparse
 import hashlib
@@ -82,13 +88,15 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('--out', type=Path, required=True)
     parser.add_argument('--edits', type=Path, default=EVIDENCE / 'bound-tool-edits.json')
+    parser.add_argument('--cohort', type=Path, default=COHORT_DIR / 'cohort.json')
     args = parser.parse_args()
     args.out.mkdir(parents=True, exist_ok=False)
     edits = json.loads(args.edits.read_text())['edits']
-    declared = {e['path']: e for e in edits}
-    cohort = json.loads((COHORT_DIR / 'cohort.json').read_text())['instrumentSources']
+    declared = {e['path']: e for e in edits if e.get('status') != 'reverted'}
+    cohort = json.loads(args.cohort.read_text())['instrumentSources']
     report = {'schema': 1, 'argv': sys.argv, 'edits': str(args.edits), 'editsSha256': sha(args.edits.read_bytes()),
-              'declared': sorted(declared), 'steps': {}, 'red': []}
+              'cohort': str(args.cohort), 'declared': sorted(declared), 'liveAsserted': live_asserted(cohort), 'steps': {}, 'red': []}
+    print(json.dumps({'liveAsserted': report['liveAsserted']['counts']}))
     write = lambda: (args.out / 'report.json').write_text(json.dumps(report, indent=1, ensure_ascii=False) + '\n')
     def red(step, why):
         report['red'].append({'step': step, 'why': why}); write()
@@ -187,6 +195,16 @@ def main():
     if not set(moved) <= set(declared) | PRE_V24_MOVES:
         red(7, f'undeclared drift against the four-arm cohort: {sorted(set(moved) - set(declared) - PRE_V24_MOVES)}')
     return finish(report, write)
+
+
+def live_asserted(cohort):
+    settled = json.loads((NATIVE / 'settled-reference-reader-05.json').read_text())['bindings']
+    native = json.loads((NATIVE / 'run-03/identity.json').read_text())['sources']
+    sources = {'counted-r1-s5-01 instrumentSources': sorted('wasm_sdk_probe/' + p for p in cohort),
+               'settled-reference-reader-05 bindings under wasm_sdk_probe/': sorted(p for p in settled if p.startswith('wasm_sdk_probe/')),
+               's5-native/run-03 identity sources': sorted(native)}
+    union = sorted(set().union(*sources.values()))
+    return {'counts': {**{k: len(v) for k, v in sources.items()}, 'union': len(union)}, 'paths': union}
 
 
 def finish(report, write):
