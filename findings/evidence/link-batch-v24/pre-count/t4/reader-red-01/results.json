@@ -1,0 +1,122 @@
+{
+ "reader": "wasm_sdk_probe/tools/read_v24_t4.py",
+ "results": {
+  "R-a": {
+   "exit": 1,
+   "verdict": "FAIL",
+   "rule2": "FAIL",
+   "red": [
+    {
+     "browser": "chrome",
+     "check": "ctrl-v-reaches-the-document",
+     "v23": [
+      "PASS"
+     ],
+     "v24": [
+      "FAIL"
+     ],
+     "rule": "2a",
+     "ok": false
+    }
+   ],
+   "rule1": "PASS"
+  },
+  "R-b": {
+   "exit": 1,
+   "verdict": "FAIL",
+   "rule2": "FAIL",
+   "red": [
+    {
+     "browser": "chrome",
+     "check": "clear-format-removes-every-inline-format",
+     "v23": [
+      "NOT_ESTABLISHED"
+     ],
+     "v24": [
+      "PASS"
+     ],
+     "rule": "2b",
+     "ok": false,
+     "differingLeaves": [
+      "[0]/ok | False | True",
+      "[0]/outcome | 'NOT_ESTABLISHED' | 'PASS'"
+     ]
+    }
+   ],
+   "rule1": "PASS"
+  },
+  "R-c-leaf": "wanted",
+  "R-c": {
+   "exit": 1,
+   "verdict": "FAIL",
+   "rule2": "FAIL",
+   "red": [
+    {
+     "browser": "chrome",
+     "check": "every-inline-format-reaches-the-document",
+     "v23": [
+      "NOT_ESTABLISHED"
+     ],
+     "v24": [
+      "NOT_ESTABLISHED"
+     ],
+     "rule": "2b",
+     "ok": false,
+     "differingLeaves": [
+      "[0]/observed/arms[0]/wanted | True | False"
+     ]
+    }
+   ],
+   "rule1": "PASS"
+  },
+  "R-d": {
+   "exit": 0,
+   "verdict": "PASS",
+   "rule2": "PASS",
+   "red": [],
+   "rule1": "PASS"
+  },
+  "R-e-dropped": 23,
+  "R-e": {
+   "exit": 1,
+   "verdict": "NOT_ESTABLISHED",
+   "rule2": "NOT_ESTABLISHED",
+   "red": [],
+   "rule1": "NOT_ESTABLISHED"
+  },
+  "R-f": {
+   "exit": 0,
+   "verdict": "PASS",
+   "rule2": "PASS",
+   "red": [],
+   "rule1": "PASS"
+  }
+ },
+ "checks": [
+  {
+   "check": "R-a: ctrl-v PASS->FAIL is a 2a FAIL naming it",
+   "ok": true
+  },
+  {
+   "check": "R-b: clear-format NE->PASS is a 2b FAIL naming it",
+   "ok": true
+  },
+  {
+   "check": "R-c: one non-volatile leaf changed is a 2b FAIL printing that leaf path",
+   "ok": true
+  },
+  {
+   "check": "R-d: only formatPressWaitedMs changed: the member stays ok, rule 2 PASS",
+   "ok": true
+  },
+  {
+   "check": "R-e: no paste-route request: T4 NE, not PASS",
+   "ok": true
+  },
+  {
+   "check": "R-f: run 01 unmodified under the corrected reader: rule 2 PASS (not T4's verdict)",
+   "ok": true
+  }
+ ],
+ "verdict": "RED_CASES_HOLD"
+}

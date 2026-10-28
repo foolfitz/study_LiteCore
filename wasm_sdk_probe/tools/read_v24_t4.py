@@ -4,9 +4,14 @@
 Rules (findings/evidence/link-batch-v24/pre-count/t4/README.md, fixed before the run):
   1  every insertText request in Chrome's wire record carries a route, has exactly one reply, the
      reply is ok and its method equals the route; both routes occur (else NE)
-  2  every check whose step interval holds a paste-route insertText or a replaceSelection /
-     pasteMarkdown request (set generated from the wire) is PASS on v24 and has its v23 outcome,
-     per browser (Firefox uses Chrome's set); an empty set is NE
+  2  (Correction 1, fable ruling 1 v24 pre-count section 1.2) over every check whose step interval
+     holds a paste-route insertText or a replaceSelection / pasteMarkdown request (set generated
+     from the wire; Firefox uses Chrome's set; repeated ids as ordered lists):
+       2a  v23 PASS -> v24 PASS
+       2b  v23 not PASS -> same outcome AND the entry's flattened leaf map equal to v23's except
+           leaves whose key name is in VOLATILE
+     non-vacuity: the set is non-empty and holds a member PASS on v23, else NE.  Every red member
+     is printed with its rule, both outcomes and each differing non-volatile leaf.
 
   python3 -I tools/read_v24_t4.py --chrome <dir> [--firefox <dir>] [--out <file>]
 """
@@ -19,6 +24,46 @@ import re
 ROOT = Path(__file__).resolve().parent.parent.parent
 BASELINE = ROOT / 'findings/evidence/link-batch-v23/feature-protocol/product-four-arms-counted-01'
 STEP = re.compile(r'^\[step\]\s+[0-9.]+s (\S+)\s+(\S+)')
+VOLATILE = frozenset({'profile', 'placed', 'seconds', 'formatPressLatency', 'formatPressWaitedMs'})
+
+
+def leaves(value, path='', key=None):
+    """(path, last dict key, value) for every scalar leaf; list items keep their parent's key."""
+    if isinstance(value, dict):
+        for k, v in value.items():
+            yield from leaves(v, f'{path}/{k}', k)
+    elif isinstance(value, list):
+        for i, v in enumerate(value):
+            yield from leaves(v, f'{path}[{i}]', key)
+    else:
+        yield path, key, value
+
+
+def entries(report):
+    out = defaultdict(list)
+    for entry in report['checks']:
+        out[entry['id']].append(entry)
+    return out
+
+
+def member(browser, cid, before, now):
+    """Rule 2a/2b for one member in one browser, with the payload a red member must carry."""
+    row = {'browser': browser, 'check': cid, 'v23': [e['outcome'] for e in before], 'v24': [e['outcome'] for e in now]}
+    if not before or len(before) != len(now):
+        return {**row, 'rule': None, 'ok': False, 'why': 'entry count differs from v23 (or absent)'}
+    if all(e['outcome'] == 'PASS' for e in before):
+        return {**row, 'rule': '2a', 'ok': all(e['outcome'] == 'PASS' for e in now)}
+    differing = []
+    for i, (a, b) in enumerate(zip(before, now)):
+        la = {p: (k, v) for p, k, v in leaves(a)}
+        lb = {p: (k, v) for p, k, v in leaves(b)}
+        for path in sorted(set(la) | set(lb)):
+            ka, va = la.get(path, (None, '<absent>'))
+            kb, vb = lb.get(path, (None, '<absent>'))
+            if va != vb and (ka or kb) not in VOLATILE:
+                differing.append(f'[{i}]{path} | {va!r} | {vb!r}')
+    same = [e['outcome'] for e in before] == [e['outcome'] for e in now]
+    return {**row, 'rule': '2b', 'ok': same and not differing, 'differingLeaves': differing}
 
 
 def outcomes(report):
@@ -102,19 +147,21 @@ def main():
         report = chrome if browser == 'chrome' else json.loads((directory / 'report.json').read_text())
         if browser == 'firefox':
             steps(directory, report)
-        now, before = outcomes(report), outcomes(json.loads((BASELINE / f'{browser}.json').read_text()))
+        baseline = json.loads((BASELINE / f'{browser}.json').read_text())
+        now, before = outcomes(report), outcomes(baseline)
         table = {cid: {'v23': before.get(cid), 'v24': now.get(cid)} for cid in sorted(set(now) | set(before))}
         changed = {cid: row for cid, row in table.items() if row['v23'] != row['v24']}
-        rows = [{'browser': browser, 'check': cid, 'v23': before.get(cid), 'v24': now.get(cid),
-                 'ok': bool(now.get(cid)) and all(o == 'PASS' for o in now[cid]) and now.get(cid) == before.get(cid)} for cid in paste_set]
+        rows = [member(browser, cid, entries(baseline).get(cid, []), entries(report).get(cid, [])) for cid in paste_set]
         rule2 += rows
         totals = defaultdict(int)
         for entry in report['checks']:
             totals[entry['outcome']] += 1
         result['browsers'][browser] = {'totals': dict(totals), 'checks': len(report['checks']),
                                        'changedFromV23': changed, 'table': table}
-    result['rule2'] = {'verdict': 'NOT_ESTABLISHED' if not paste_set else 'PASS' if all(r['ok'] for r in rule2) else 'FAIL',
-                       'rows': rule2}
+    vacuous = not paste_set or not any(r['rule'] == '2a' for r in rule2)
+    result['rule2'] = {'verdict': 'NOT_ESTABLISHED' if vacuous else 'PASS' if all(r['ok'] for r in rule2) else 'FAIL',
+                       'volatile': sorted(VOLATILE), 'rows': rule2,
+                       'red': [r for r in rule2 if not r['ok']]}
     result['verdict'] = 'FAIL' if 'FAIL' in (rule1, result['rule2']['verdict']) else \
         'PASS' if (rule1, result['rule2']['verdict']) == ('PASS', 'PASS') else 'NOT_ESTABLISHED'
     text = json.dumps(result, indent=1, ensure_ascii=False) + '\n'
@@ -122,6 +169,7 @@ def main():
         args.out.write_text(text)
     print(json.dumps({'verdict': result['verdict'], 'rule1': {k: result['rule1'][k] for k in ('verdict', 'insertTextRequests', 'byRoute')},
                       'rule1Problems': len(problems), 'pasteRouteChecks': paste_set, 'rule2': result['rule2']['verdict'],
+                      'rule2Red': result['rule2']['red'],
                       'changedFromV23': {b: list(v['changedFromV23']) for b, v in result['browsers'].items()}}, indent=1, ensure_ascii=False))
     return 0 if result['verdict'] == 'PASS' else 1
 
