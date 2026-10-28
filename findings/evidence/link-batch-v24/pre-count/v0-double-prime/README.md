@@ -27,3 +27,7 @@ With Addendum 1 the declared list is empty (E1 `reverted`, skipped). Live-assert
 7. four-arm cohort drift: exactly the two pre-v24 moves (`judge_v23_feature_selection.py`, `v23_feature_selection_cases.py`).
 
 Red cases (`reds/`, scratch inputs kept beside): **V-1** a scratch cohort whose frozen hash for `tools/run_e2_c_product_path.py` is wrong → `V0PP_RED` at step 2, `undeclared drift ['tools/run_e2_c_product_path.py']` (the path as payload). **V-3** a scratch list declaring `web/serve.py`, which has not moved → `V0PP_RED` at step 2, `declared but unmoved ['web/serve.py']`. **V-2** (a declared entry with a wrong `liveSha256`) needs a bound file that has actually moved; the closed list forbids moving one, so it is not constructed — its check (step 6) runs on every V0″ whenever a list entry exists.
+
+## run-04 (after the generation-77 freeze, `be13e0b5`): **V0PP_HOLDS**
+
+Same seven steps on the frozen tree: census 0/30 drift; shell-restored read exit 0 with the recorded stages; native run-03 re-read equal; E1-C intact; put back clean; four-arm cohort drift exactly the two pre-v24 moves. The freeze's three changes (`e2/editor-shell-v2-bundle-v77.json`, `Makefile`, `tools/v24_feature_selection_cases.py`) touch nothing v23 asserts.
