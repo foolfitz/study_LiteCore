@@ -1,0 +1,30 @@
+#!/usr/bin/env python3
+"""Existing K0/Z0/H5 package reader and its red cases, only BUILD_ID rebound for candidate 0.2.39."""
+import copy
+import json
+from pathlib import Path
+import sys
+
+ROOT = Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(ROOT / 'wasm_sdk_probe/tools'))
+import check_m3_assets as assets
+
+assets.BUILD_ID = json.loads(Path(__file__).with_name('release.json').read_bytes())['buildId']
+
+
+def main():
+    app = Path(sys.argv[1]); package = assets.package_record(app)
+    problems = assets.score_package(package, True)
+    result = {'scope': 'Offline package only; no full K binding or credit', 'buildId': assets.BUILD_ID,
+              'problems': problems, 'redCases': []}
+    if not problems:
+        for clause, label, mutate in assets.PACKAGE_CASES:
+            changed = copy.deepcopy(package); mutate(changed)
+            result['redCases'].append({'clause': clause, 'label': label,
+                                       'red': any(p.startswith(clause) for p in assets.score_package(changed, True))})
+    result['verdict'] = 'PACKAGE_HOLDS' if not problems and result['redCases'] and all(c['red'] for c in result['redCases']) else 'NOT_ESTABLISHED'
+    print(json.dumps(result, indent=1)); return 0 if result['verdict'] == 'PACKAGE_HOLDS' else 1
+
+
+if __name__ == '__main__':
+    raise SystemExit(main())
