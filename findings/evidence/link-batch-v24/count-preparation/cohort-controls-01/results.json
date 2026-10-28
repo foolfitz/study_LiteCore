@@ -1,0 +1,160 @@
+{
+  "scope": "Scratch instrument controls only; zero counted observations",
+  "commands": [
+    {
+      "name": "freeze",
+      "argv": [
+        "/usr/bin/python3",
+        "-I",
+        "tools/freeze_v24_counted_cohort.py",
+        "--out",
+        "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v24/count-preparation/cohort-controls-01/scratch-cohort"
+      ],
+      "exit": 0,
+      "seconds": 20.12
+    },
+    {
+      "name": "dry-run",
+      "argv": [
+        "/usr/bin/python3",
+        "-I",
+        "tools/run_v24_counted_cohort.py",
+        "--cohort",
+        "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v24/count-preparation/cohort-controls-01/scratch-cohort/cohort.json",
+        "--dry-run"
+      ],
+      "exit": 0,
+      "seconds": 1.752
+    },
+    {
+      "name": "missing-status-reader",
+      "argv": [
+        "/usr/bin/python3",
+        "-I",
+        "tools/read_v24_counted_cohort.py",
+        "--cohort",
+        "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v24/count-preparation/cohort-controls-01/scratch-cohort/cohort.json",
+        "--out",
+        "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v24/count-preparation/cohort-controls-01/missing-status.json"
+      ],
+      "exit": 1,
+      "seconds": 1.754
+    },
+    {
+      "name": "reused-status",
+      "argv": [
+        "/usr/bin/python3",
+        "-I",
+        "tools/run_v24_counted_cohort.py",
+        "--cohort",
+        "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v24/count-preparation/cohort-controls-01/scratch-cohort/cohort.json"
+      ],
+      "exit": 1,
+      "seconds": 1.764
+    },
+    {
+      "name": "empty-status-reader",
+      "argv": [
+        "/usr/bin/python3",
+        "-I",
+        "tools/read_v24_counted_cohort.py",
+        "--cohort",
+        "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v24/count-preparation/cohort-controls-01/scratch-cohort/cohort.json",
+        "--out",
+        "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v24/count-preparation/cohort-controls-01/empty-status.json"
+      ],
+      "exit": 1,
+      "seconds": 1.756
+    },
+    {
+      "name": "filters-counted-refused",
+      "argv": [
+        "/usr/bin/python3",
+        "-I",
+        "tools/run_v24_counted_selection.py",
+        "--population",
+        "s5",
+        "--browser",
+        "chrome",
+        "--output",
+        "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v24/count-preparation/cohort-controls-01/must-not-exist"
+      ],
+      "exit": 2,
+      "seconds": 0.081
+    },
+    {
+      "name": "no-cohort-refused",
+      "argv": [
+        "/usr/bin/python3",
+        "-I",
+        "tools/run_v24_counted_selection.py",
+        "--population",
+        "s5",
+        "--output",
+        "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v24/count-preparation/cohort-controls-01/must-not-exist"
+      ],
+      "exit": 2,
+      "seconds": 0.073
+    }
+  ],
+  "checks": [
+    {
+      "name": "scratch-freeze",
+      "ok": true
+    },
+    {
+      "name": "unmodified-verifies",
+      "ok": true
+    },
+    {
+      "name": "dry-run-no-status",
+      "ok": true
+    },
+    {
+      "name": "config-drift",
+      "ok": true,
+      "reason": "ValueError: frozen plan/input drift"
+    },
+    {
+      "name": "case-removed",
+      "ok": true,
+      "reason": "ValueError: declared population differs"
+    },
+    {
+      "name": "browser-removed",
+      "ok": true,
+      "reason": "ValueError: declared population differs"
+    },
+    {
+      "name": "prerequisite-drift",
+      "ok": true,
+      "reason": "ValueError: prerequisite changed: findings/evidence/link-batch-v24/count-preparation/controls-02.receipt.json"
+    },
+    {
+      "name": "archive-member-removed",
+      "ok": true,
+      "reason": "source archive membership differs"
+    },
+    {
+      "name": "missing-status-no-credit",
+      "ok": true
+    },
+    {
+      "name": "reused-status-no-launch",
+      "ok": true
+    },
+    {
+      "name": "empty-status-no-credit",
+      "ok": true
+    },
+    {
+      "name": "counted-filters-refused",
+      "ok": true
+    },
+    {
+      "name": "counted-no-cohort-refused",
+      "ok": true
+    }
+  ],
+  "verdict": "COHORT_CONTROLS_HOLD"
+}
