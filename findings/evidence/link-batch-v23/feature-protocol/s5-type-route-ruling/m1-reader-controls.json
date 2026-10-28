@@ -1,0 +1,25 @@
+{
+ "schema": 1,
+ "readerSha256": "51aa048ddcbc9baaa6b547fc0179e1d3db77584708dd81d781c3b00433c6ea91",
+ "source": "scratch copies of m1-run-01; the evidence directory was not modified",
+ "cases": [
+  {
+   "case": "swapped-save",
+   "mutation": "table2_key-xy-r2-after.odt copied over table2_uno-insert-text-x-r2-after.odt, completion hash updated",
+   "verdict": "M1_FAIL",
+   "failures": [
+    "table2/uno-insert-text-x: not stable across rounds",
+    "table2/uno-insert-text-x: differs from table2/key-x",
+    "table2/uno-insert-text-emoji: differs from table2/uno-insert-text-x with x -> U+1F600"
+   ]
+  },
+  {
+   "case": "no-uno-result",
+   "mutation": "unoCommandResults emptied for text/uno-insert-text-cjk round 3, completion hash updated",
+   "verdict": "M1_FAIL",
+   "failures": [
+    "text/uno-insert-text-cjk: UNO_COMMAND_RESULT for .uno:InsertText missing in a round"
+   ]
+  }
+ ]
+}
