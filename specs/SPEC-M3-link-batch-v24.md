@@ -285,3 +285,16 @@ page honesty（`check_m3_page_honesty.py`）在 v24 的頁面上照 K 鏈的前�
 6. **generation 77**：照裁決 §4 的順序——更正 → 讀取工具紅案 → E1＋對照＋V0″ run 1 → T4 run 02 → 凍 77（E2＋v77 寫出且摘要等於 `56ce44c7…`＋`make test-e2-c-reachability` 綠＋V0″ run 2）→ §6.4。
 
 §34.4（本節）：因執行而修 2（`read_v24_t4.py` 的規則 2、`run_e2_c_product_path.py` 的 Enter 判準）、因審核而修 0。
+
+## 17. fable 裁決 1 追加 1：被綁的共用工具一律不改（2026-10-28，只追加；T4 run 02 之前）
+
+依據：`RULING-1.md` 的 Addendum 1。起因：E1 落地後 V0″ run 01 第 1 步紅——`s5-native/settled-reference-reader-05.json` 逐檔綁 1,772 個輸入（`run_e2_c_product_path.py`、`build_e2_c_shell_bundle.py` 都在內），而 v24 自己的 S5／R1 計畫也會經 v23 的 `s5()` 驗它；E1 生效時 v24 連計畫都建不出來。E1 已還原（`aaea5336`）。
+
+1. **取代 §16 第 1、2 項**：**活的綁定集合**（`counted-r1-s5-01` 的 30 支 ∪ reader-05 綁在 `wasm_sdk_probe/` 底下的 30 個 ∪ 原生 run-03 identity 的 12 個）裡的檔案，只要還有計畫匯入 v23 的 `s5()`，就**一律不改**。`bound-tool-edits.json` 關閉，E1 一筆留作紀錄。真有產品理由非改不可時，走「重發 settled 證書」（選項 B），要新裁決。V0″ 保留，以空的宣告清單當每次 §6.4 計數與 K 的前置檢查，必須 `V0PP_HOLDS`。
+2. **取代 §16 第 3 項的 run 02 期望**：見 `t4/README.md` Correction 2——Enter 檢查在 Chrome 照凍結判準 FAIL（與 run 01 相同）、Firefox NE；46 支結果全部與 run 01 相同；另由新工具 `tools/check_v24_shift_enter.py` 以讀穿 span 的判準重播 3/3。
+3. **§10 新增 I-enter-raw-substring**（儀器的具名限制，不是產品限制）：v24 起打的字帶 rsid span，凍結 runner 的 Enter 檢查 Shift 臂用原始 XML 子字串比對，在 Chrome 必定 FAIL；斷行其實在。每一份 v24 的產品路徑報告都會帶這個 FAIL。
+4. **generation 77 用 `--manifest` 凍，工具一個位元組都不改**：`python3 tools/build_e2_c_shell_bundle.py --manifest e2/editor-shell-v2-bundle-v77.json --write --frozen-date …` 加明列的 7 項 `--exclude`；摘要必須等於 `56ce44c7…`。`Makefile:4843` 改成傳 `--manifest …v77.json`（Makefile 不在任何綁定裡）。**交接 10-28d 與工具自己的提示「改 MANIFEST、把 v76 加進 FROZEN_MANIFESTS」在這棵樹作廢**：工具的預設刻意留在 v76。`v24_feature_selection_cases.identity()` 在凍結後釘 v77 檔的雜湊並以紅案驗證。
+5. **A4-v24**：新包裝器 `tools/run_v24_four_arms.py` 在匯入 runner 前於行程內把 `build_e2_c_shell_bundle.MANIFEST` 換成 v77 並記錄；v24 的四臂判讀包裝器要求身分指名凍結的 77。不帶包裝器直接跑 runner，在 v24 上四臂一律 NE（綁 v76）。
+6. **順序**：本節 → `check_v24_shift_enter.py`＋紅案＋3 次重播 → T4 run 02 → 凍 77（＋Makefile、identity 釘選、V0″）→ A4 包裝器 → §6.4。
+
+§34.4（取代 §16 的數字）：因執行而修 1（`read_v24_t4.py` 的規則 2）、因審核而修 0；E1 落地又還原，runner 與 run 01 逐位元組相同。

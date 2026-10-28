@@ -61,3 +61,15 @@ Run 02 runs after E1 (`../bound-tool-edits.json`) is committed with its witness,
 - Positive controls, the four `shift-enter-diagnostic-02/*-SHFTKEYA.odt` (v23-1, v23-2 without spans; v24-1, v24-2 with spans): new oracle True, True, True, True; **old oracle True, True, False, False** (the red before).
 - Negative controls, scratch copies of v24-1's content.xml — new oracle False for each: (n1) `<text:line-break/>` removed; (n2) the break replaced by a paragraph split; (n3) the break replaced by `<text:tab/>`; (n4) other text between the break and the second marker.
 - Default if never run: E1 may not be relied on; the Enter check stays unestablished on v24.
+
+## Correction 2 (ruling 1 Addendum 1 §6) — written before run 02
+
+E1 was reverted (`../v0-double-prime/README.md`): the shared runner is byte-bound by the native settled reference that v24's own plan verifies, so it stays at its frozen bytes `7ba30235…`. This replaces Correction 1's run-02 expectations; nothing about rule 1 or 2a/2b changes.
+
+- Rule 1 PASS; 2a all PASS; 2b all equal; both browsers.
+- `the-enter-key-reaches-the-document`: **FAIL in Chrome by the frozen oracle (I-enter-raw-substring), NE in Firefox** — equal to run 01. A PASS would itself be a change to diagnose.
+- **Differential against run 01**: every check's outcome equals run 01's, both browsers (runner and product byte-identical, so run 02 is a true repeat). Any difference is named; intermittency may be claimed only by a run 03 in which the same check moves again.
+- Beside it, same day: `tools/check_v24_shift_enter.py` 3/3 (`enter-replay-01/`); T4 reports Enter as "frozen oracle FAIL (declared) / replay check PASS".
+- T4 verdict = `read-02.json`.
+
+**I-enter-raw-substring** (declared instrument limit): on any profile whose typed text is saved with rsid spans (v24 onward), the frozen runner's Enter check FAILs in Chrome because its Shift-arm oracle is the raw substring `A<text:line-break/>B` (`run_e2_c_product_path.py:8724-8726`); the break is present (`shift-enter-diagnostic-02/`, `enter-oracle-witness/`). Every v24 product-path report carries this FAIL.
