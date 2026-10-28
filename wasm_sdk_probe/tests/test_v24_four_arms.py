@@ -36,7 +36,9 @@ class IdentityControls(unittest.TestCase):
     def test_identity_reds(self):
         for field, value, reason in (('profile', 'e2-editor-v23', 'v24 ABI6'),
                                      ('abiVersion', 7, 'v24 ABI6'),
-                                     ('profileArtifacts', {}, 'frozen v24')):
+                                     ('profileArtifacts', {}, 'frozen v24'),
+                                     ('productModuleSha256', '0' * 64, 'page is not frozen v24'),
+                                     ('candidatePageSha256', '0' * 64, 'page is not frozen v24')):
             with self.subTest(field=field):
                 changed = copy.deepcopy(self.identity); changed[field] = value
                 with self.assertRaisesRegex(ValueError, reason):

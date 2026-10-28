@@ -20,6 +20,9 @@ class Record(j23.Record):
         want = identity()
         j23.need(i.get('profile') == PROFILE and i.get('abiVersion') == 6, 'profile is not v24 ABI6')
         j23.need(i.get('profileArtifacts') == want['artifacts'], 'profile artifacts are not frozen v24')
+        j23.need(i.get('productModuleSha256') == want['pageSha256']
+                 and i.get('candidatePageSha256') in (None, want['pageSha256']),
+                 'product page is not frozen v24')
         super()._identity(repo)
 
 
