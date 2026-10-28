@@ -1,0 +1,94 @@
+{
+ "tool": "wasm_sdk_probe/tools/check_v24_shift_enter.py",
+ "toolSha256": "8e1f632981f486ff7e2fe1bb8f4270cf427c6af705d66fa5ba2393f08ffba4a3",
+ "rows": [
+  {
+   "control": "positive v23-1",
+   "odtSha256": "55c516438cb28a6c28bb744b28834e7102b3921db2fac215a9d2f7a055e088a7",
+   "old": true,
+   "new": true
+  },
+  {
+   "control": "positive v23-2",
+   "odtSha256": "98b07d90501496c617f9ea709e126914f2ee4a9526ac5dc070a598d27c183202",
+   "old": true,
+   "new": true
+  },
+  {
+   "control": "positive v24-1",
+   "odtSha256": "1b4240aee2463ac3d6c780d8832eabcfbafcf126b5610a3b568da2f83fa62533",
+   "old": false,
+   "new": true
+  },
+  {
+   "control": "positive v24-2",
+   "odtSha256": "2dbc7967667344340e6710eebe47086021503f617349ef5926d10d16109ec7fa",
+   "old": false,
+   "new": true
+  },
+  {
+   "control": "negative n1 break removed",
+   "parsedWithBothMarkers": true,
+   "old": false,
+   "new": false,
+   "paragraphs": [
+    "SHFTKEYASHFTKEYBE"
+   ]
+  },
+  {
+   "control": "negative n2 paragraph split",
+   "parsedWithBothMarkers": true,
+   "old": false,
+   "new": false,
+   "paragraphs": [
+    "SHFTKEYA",
+    "SHFTKEYBE"
+   ]
+  },
+  {
+   "control": "negative n3 tab instead",
+   "parsedWithBothMarkers": true,
+   "old": false,
+   "new": false,
+   "paragraphs": [
+    "SHFTKEYASHFTKEYBE"
+   ]
+  },
+  {
+   "control": "negative n4 text after the break",
+   "parsedWithBothMarkers": true,
+   "old": false,
+   "new": false,
+   "paragraphs": [
+    "SHFTKEYA\nQQSHFTKEYBE"
+   ]
+  }
+ ],
+ "checks": [
+  {
+   "check": "old oracle on the four positives is True, True, False, False (the red before E1)",
+   "ok": true
+  },
+  {
+   "check": "new oracle on the four positives is True x4",
+   "ok": true
+  },
+  {
+   "check": "n1 break removed: parses, both markers present, new oracle False",
+   "ok": true
+  },
+  {
+   "check": "n2 paragraph split: parses, both markers present, new oracle False",
+   "ok": true
+  },
+  {
+   "check": "n3 tab instead: parses, both markers present, new oracle False",
+   "ok": true
+  },
+  {
+   "check": "n4 text after the break: parses, both markers present, new oracle False",
+   "ok": true
+  }
+ ],
+ "verdict": "CONTROLS_HOLD"
+}

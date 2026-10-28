@@ -1,0 +1,84 @@
+{
+ "rows": [
+  {
+   "case": "(ii) v23-1",
+   "paragraphsBefore": 12,
+   "paragraphsAfter": 12,
+   "together": true,
+   "lineBreakBetween": true,
+   "paragraphText": "SHFTKEYA\nSHFTKEYBE",
+   "outcome": "PASS"
+  },
+  {
+   "case": "(ii) v23-2",
+   "paragraphsBefore": 12,
+   "paragraphsAfter": 12,
+   "together": true,
+   "lineBreakBetween": true,
+   "paragraphText": "SHFTKEYA\nSHFTKEYBE",
+   "outcome": "PASS"
+  },
+  {
+   "case": "(ii) v24-1",
+   "paragraphsBefore": 12,
+   "paragraphsAfter": 12,
+   "together": true,
+   "lineBreakBetween": true,
+   "paragraphText": "SHFTKEYA\nSHFTKEYBE",
+   "outcome": "PASS"
+  },
+  {
+   "case": "(ii) v24-2",
+   "paragraphsBefore": 12,
+   "paragraphsAfter": 12,
+   "together": true,
+   "lineBreakBetween": true,
+   "paragraphText": "SHFTKEYA\nSHFTKEYBE",
+   "outcome": "PASS"
+  },
+  {
+   "case": "(ii) v24-1 break removed",
+   "paragraphsBefore": 12,
+   "paragraphsAfter": 12,
+   "together": true,
+   "lineBreakBetween": false,
+   "paragraphText": "SHFTKEYASHFTKEYBE",
+   "outcome": "FAIL"
+  },
+  {
+   "case": "(iii) --repetitions 0",
+   "exit": 2,
+   "stderrTail": [
+    "check_v24_shift_enter.py: error: at least one repetition: zero repetitions would hold vacuously"
+   ],
+   "outputCreated": false
+  },
+  {
+   "case": "(iii) no CDP",
+   "exit": 1,
+   "verdict": "NOT_ESTABLISHED",
+   "fatalTail": [
+    "RuntimeError: no CDP: a real key cannot be delivered"
+   ]
+  }
+ ],
+ "checks": [
+  {
+   "check": "(ii) the four diagnostic Shift-arm saves judge PASS",
+   "ok": true
+  },
+  {
+   "check": "(ii) the break removed judges FAIL",
+   "ok": true
+  },
+  {
+   "check": "(iii) --repetitions 0 is refused before anything runs",
+   "ok": true
+  },
+  {
+   "check": "(iii) a session without CDP is NOT_ESTABLISHED, never PASS",
+   "ok": true
+  }
+ ],
+ "verdict": "REDS_HOLD"
+}
