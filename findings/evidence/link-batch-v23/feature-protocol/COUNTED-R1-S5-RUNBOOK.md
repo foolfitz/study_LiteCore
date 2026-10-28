@@ -25,3 +25,8 @@ PY
 ```
 
 Preparation/control PASS and the independently established four product arms remain scoped conclusions. Neither a running pipeline nor S5/R1 acceptance establishes overall product acceptance, Firefox 096 B2/B4, remaining named inputs, host/DDEV, K, finding 166's unipoll arm or finding 167's desktop-Writer question.
+
+
+## Terminal checkpoint, 2026-10-28
+
+The pipeline is finished: terminal state `STOPPED_FIRST_NONPASS`, completed at 2026-10-27 17:18:20 +0800. R1 is complete PASS (144/144, both commands exit 0). S5 is incomplete (401 Chrome PASS, then table/type FAIL at `shift-Right@cell-end/type`; zero Firefox cells). No launcher/collector/judge remains running. The stop preceded the later daemon restart and was caused by the retained first FAIL. See `counted-r1-s5-01/README.md`, its verified completion reader and finding 168. Do not rerun the launcher or reuse existing output names. Archived raw JSON is restorable with the indices in `STORAGE.md`; restoring bytes changes no verdict/count.
