@@ -1,0 +1,1679 @@
+{
+ "schema": 1,
+ "readerSha256": "51aa048ddcbc9baaa6b547fc0179e1d3db77584708dd81d781c3b00433c6ea91",
+ "problems": [],
+ "verdict": "M1_PASS",
+ "failures": [],
+ "comparisons": {
+  "table2/uno-insert-text-x": {
+   "against": "table2/key-x",
+   "equal": true
+  },
+  "table2/uno-insert-text-xy": {
+   "against": "table2/key-xy",
+   "equal": true
+  },
+  "table2/uno-insert-text-cjk": {
+   "against": "table2/key-cjk",
+   "equal": true
+  },
+  "table2/uno-insert-text-e-acute": {
+   "against": "table2/key-e-acute",
+   "equal": true
+  },
+  "table2/uno-insert-text-emoji": {
+   "against": "table2/uno-insert-text-x with x -> U+1F600",
+   "equal": true
+  },
+  "table4/uno-insert-text-x": {
+   "against": "table4/key-x",
+   "equal": true
+  },
+  "table4/uno-insert-text-xy": {
+   "against": "table4/key-xy",
+   "equal": true
+  },
+  "table4/uno-insert-text-cjk": {
+   "against": "table4/key-cjk",
+   "equal": true
+  },
+  "table4/uno-insert-text-e-acute": {
+   "against": "table4/key-e-acute",
+   "equal": true
+  },
+  "table4/uno-insert-text-emoji": {
+   "against": "table4/uno-insert-text-x with x -> U+1F600",
+   "equal": true
+  },
+  "cell-caret/uno-insert-text-x": {
+   "against": "cell-caret/key-x",
+   "equal": true
+  },
+  "cell-caret/uno-insert-text-xy": {
+   "against": "cell-caret/key-xy",
+   "equal": true
+  },
+  "cell-caret/uno-insert-text-cjk": {
+   "against": "cell-caret/key-cjk",
+   "equal": true
+  },
+  "cell-caret/uno-insert-text-e-acute": {
+   "against": "cell-caret/key-e-acute",
+   "equal": true
+  },
+  "cell-caret/uno-insert-text-emoji": {
+   "against": "cell-caret/uno-insert-text-x with x -> U+1F600",
+   "equal": true
+  },
+  "text/uno-insert-text-x": {
+   "against": "text/key-x",
+   "equal": true
+  },
+  "text/uno-insert-text-xy": {
+   "against": "text/key-xy",
+   "equal": true
+  },
+  "text/uno-insert-text-cjk": {
+   "against": "text/key-cjk",
+   "equal": true
+  },
+  "text/uno-insert-text-e-acute": {
+   "against": "text/key-e-acute",
+   "equal": true
+  },
+  "text/uno-insert-text-emoji": {
+   "against": "text/uno-insert-text-x with x -> U+1F600",
+   "equal": true
+  }
+ },
+ "unoResultSuccessValues": [
+  "false"
+ ],
+ "autocorrectPair": {
+  "changes": {
+   "doc-end/key-teh": [
+    {
+     "12": [
+      "Final paragraph ends the document.",
+      "Final paragraph ends the document. The "
+     ]
+    }
+   ],
+   "doc-end/uno-insert-text-teh": [
+    {
+     "12": [
+      "Final paragraph ends the document.",
+      "Final paragraph ends the document. teh "
+     ]
+    }
+   ]
+  },
+  "equal": false
+ },
+ "runRecord": {
+  "run": "findings/evidence/link-batch-v24/pre-count/m1-rerun/run-02",
+  "rounds": 3,
+  "nativeExitCode": 1,
+  "arms": {
+   "table2/key-x": {
+    "route": "key",
+    "text": "x",
+    "rounds": 3,
+    "stable": true,
+    "changes": [
+     {
+      "8": [
+       "A1 cell text",
+       ""
+      ],
+      "9": [
+       "B1 cell text",
+       "x"
+      ]
+     }
+    ],
+    "unoCommandResults": [
+     [],
+     [],
+     []
+    ]
+   },
+   "table2/uno-insert-text-x": {
+    "route": "uno-insert-text",
+    "text": "x",
+    "rounds": 3,
+    "stable": true,
+    "changes": [
+     {
+      "8": [
+       "A1 cell text",
+       ""
+      ],
+      "9": [
+       "B1 cell text",
+       "x"
+      ]
+     }
+    ],
+    "unoCommandResults": [
+     [
+      {
+       "commandName": ".uno:InsertText",
+       "success": false,
+       "result": {
+        "type": "void"
+       },
+       "wasModified": false,
+       "startUnixTimeMics": 23826648596,
+       "saveDurationMics": 542
+      }
+     ],
+     [
+      {
+       "commandName": ".uno:InsertText",
+       "success": false,
+       "result": {
+        "type": "void"
+       },
+       "wasModified": false,
+       "startUnixTimeMics": 24064491263,
+       "saveDurationMics": 590
+      }
+     ],
+     [
+      {
+       "commandName": ".uno:InsertText",
+       "success": false,
+       "result": {
+        "type": "void"
+       },
+       "wasModified": false,
+       "startUnixTimeMics": 24302387151,
+       "saveDurationMics": 557
+      }
+     ]
+    ]
+   },
+   "table2/key-xy": {
+    "route": "key",
+    "text": "xy",
+    "rounds": 3,
+    "stable": true,
+    "changes": [
+     {
+      "8": [
+       "A1 cell text",
+       ""
+      ],
+      "9": [
+       "B1 cell text",
+       "xy"
+      ]
+     }
+    ],
+    "unoCommandResults": [
+     [],
+     [],
+     []
+    ]
+   },
+   "table2/uno-insert-text-xy": {
+    "route": "uno-insert-text",
+    "text": "xy",
+    "rounds": 3,
+    "stable": true,
+    "changes": [
+     {
+      "8": [
+       "A1 cell text",
+       ""
+      ],
+      "9": [
+       "B1 cell text",
+       "xy"
+      ]
+     }
+    ],
+    "unoCommandResults": [
+     [
+      {
+       "commandName": ".uno:InsertText",
+       "success": false,
+       "result": {
+        "type": "void"
+       },
+       "wasModified": false,
+       "startUnixTimeMics": 23839800370,
+       "saveDurationMics": 532
+      }
+     ],
+     [
+      {
+       "commandName": ".uno:InsertText",
+       "success": false,
+       "result": {
+        "type": "void"
+       },
+       "wasModified": false,
+       "startUnixTimeMics": 24077676996,
+       "saveDurationMics": 465
+      }
+     ],
+     [
+      {
+       "commandName": ".uno:InsertText",
+       "success": false,
+       "result": {
+        "type": "void"
+       },
+       "wasModified": false,
+       "startUnixTimeMics": 24315565205,
+       "saveDurationMics": 590
+      }
+     ]
+    ]
+   },
+   "table2/key-cjk": {
+    "route": "key",
+    "text": "中",
+    "rounds": 3,
+    "stable": true,
+    "changes": [
+     {
+      "8": [
+       "A1 cell text",
+       ""
+      ],
+      "9": [
+       "B1 cell text",
+       "中"
+      ]
+     }
+    ],
+    "unoCommandResults": [
+     [],
+     [],
+     []
+    ]
+   },
+   "table2/uno-insert-text-cjk": {
+    "route": "uno-insert-text",
+    "text": "中",
+    "rounds": 3,
+    "stable": true,
+    "changes": [
+     {
+      "8": [
+       "A1 cell text",
+       ""
+      ],
+      "9": [
+       "B1 cell text",
+       "中"
+      ]
+     }
+    ],
+    "unoCommandResults": [
+     [
+      {
+       "commandName": ".uno:InsertText",
+       "success": false,
+       "result": {
+        "type": "void"
+       },
+       "wasModified": false,
+       "startUnixTimeMics": 23852983169,
+       "saveDurationMics": 586
+      }
+     ],
+     [
+      {
+       "commandName": ".uno:InsertText",
+       "success": false,
+       "result": {
+        "type": "void"
+       },
+       "wasModified": false,
+       "startUnixTimeMics": 24090847267,
+       "saveDurationMics": 634
+      }
+     ],
+     [
+      {
+       "commandName": ".uno:InsertText",
+       "success": false,
+       "result": {
+        "type": "void"
+       },
+       "wasModified": false,
+       "startUnixTimeMics": 24328760453,
+       "saveDurationMics": 611
+      }
+     ]
+    ]
+   },
+   "table2/key-e-acute": {
+    "route": "key",
+    "text": "é",
+    "rounds": 3,
+    "stable": true,
+    "changes": [
+     {
+      "8": [
+       "A1 cell text",
+       ""
+      ],
+      "9": [
+       "B1 cell text",
+       "é"
+      ]
+     }
+    ],
+    "unoCommandResults": [
+     [],
+     [],
+     []
+    ]
+   },
+   "table2/uno-insert-text-e-acute": {
+    "route": "uno-insert-text",
+    "text": "é",
+    "rounds": 3,
+    "stable": true,
+    "changes": [
+     {
+      "8": [
+       "A1 cell text",
+       ""
+      ],
+      "9": [
+       "B1 cell text",
+       "é"
+      ]
+     }
+    ],
+    "unoCommandResults": [
+     [
+      {
+       "commandName": ".uno:InsertText",
+       "success": false,
+       "result": {
+        "type": "void"
+       },
+       "wasModified": false,
+       "startUnixTimeMics": 23866157049,
+       "saveDurationMics": 589
+      }
+     ],
+     [
+      {
+       "commandName": ".uno:InsertText",
+       "success": false,
+       "result": {
+        "type": "void"
+       },
+       "wasModified": false,
+       "startUnixTimeMics": 24104025681,
+       "saveDurationMics": 477
+      }
+     ],
+     [
+      {
+       "commandName": ".uno:InsertText",
+       "success": false,
+       "result": {
+        "type": "void"
+       },
+       "wasModified": false,
+       "startUnixTimeMics": 24341959940,
+       "saveDurationMics": 587
+      }
+     ]
+    ]
+   },
+   "table2/uno-insert-text-emoji": {
+    "route": "uno-insert-text",
+    "text": "😀",
+    "rounds": 3,
+    "stable": true,
+    "changes": [
+     {
+      "8": [
+       "A1 cell text",
+       ""
+      ],
+      "9": [
+       "B1 cell text",
+       "😀"
+      ]
+     }
+    ],
+    "unoCommandResults": [
+     [
+      {
+       "commandName": ".uno:InsertText",
+       "success": false,
+       "result": {
+        "type": "void"
+       },
+       "wasModified": false,
+       "startUnixTimeMics": 23872741815,
+       "saveDurationMics": 1545
+      }
+     ],
+     [
+      {
+       "commandName": ".uno:InsertText",
+       "success": false,
+       "result": {
+        "type": "void"
+       },
+       "wasModified": false,
+       "startUnixTimeMics": 24110603506,
+       "saveDurationMics": 1598
+      }
+     ],
+     [
+      {
+       "commandName": ".uno:InsertText",
+       "success": false,
+       "result": {
+        "type": "void"
+       },
+       "wasModified": false,
+       "startUnixTimeMics": 24348554066,
+       "saveDurationMics": 1477
+      }
+     ]
+    ]
+   },
+   "table4/key-x": {
+    "route": "key",
+    "text": "x",
+    "rounds": 3,
+    "stable": true,
+    "changes": [
+     {
+      "10": [
+       "A2 cell text",
+       ""
+      ],
+      "11": [
+       "B2 cell text",
+       "x"
+      ],
+      "8": [
+       "A1 cell text",
+       ""
+      ],
+      "9": [
+       "B1 cell text",
+       ""
+      ]
+     }
+    ],
+    "unoCommandResults": [
+     [],
+     [],
+     []
+    ]
+   },
+   "table4/uno-insert-text-x": {
+    "route": "uno-insert-text",
+    "text": "x",
+    "rounds": 3,
+    "stable": true,
+    "changes": [
+     {
+      "10": [
+       "A2 cell text",
+       ""
+      ],
+      "11": [
+       "B2 cell text",
+       "x"
+      ],
+      "8": [
+       "A1 cell text",
+       ""
+      ],
+      "9": [
+       "B1 cell text",
+       ""
+      ]
+     }
+    ],
+    "unoCommandResults": [
+     [
+      {
+       "commandName": ".uno:InsertText",
+       "success": false,
+       "result": {
+        "type": "void"
+       },
+       "wasModified": false,
+       "startUnixTimeMics": 23888194030,
+       "saveDurationMics": 573
+      }
+     ],
+     [
+      {
+       "commandName": ".uno:InsertText",
+       "success": false,
+       "result": {
+        "type": "void"
+       },
+       "wasModified": false,
+       "startUnixTimeMics": 24126061239,
+       "saveDurationMics": 553
+      }
+     ],
+     [
+      {
+       "commandName": ".uno:InsertText",
+       "success": false,
+       "result": {
+        "type": "void"
+       },
+       "wasModified": false,
+       "startUnixTimeMics": 24364014952,
+       "saveDurationMics": 577
+      }
+     ]
+    ]
+   },
+   "table4/key-xy": {
+    "route": "key",
+    "text": "xy",
+    "rounds": 3,
+    "stable": true,
+    "changes": [
+     {
+      "10": [
+       "A2 cell text",
+       ""
+      ],
+      "11": [
+       "B2 cell text",
+       "xy"
+      ],
+      "8": [
+       "A1 cell text",
+       ""
+      ],
+      "9": [
+       "B1 cell text",
+       ""
+      ]
+     }
+    ],
+    "unoCommandResults": [
+     [],
+     [],
+     []
+    ]
+   },
+   "table4/uno-insert-text-xy": {
+    "route": "uno-insert-text",
+    "text": "xy",
+    "rounds": 3,
+    "stable": true,
+    "changes": [
+     {
+      "10": [
+       "A2 cell text",
+       ""
+      ],
+      "11": [
+       "B2 cell text",
+       "xy"
+      ],
+      "8": [
+       "A1 cell text",
+       ""
+      ],
+      "9": [
+       "B1 cell text",
+       ""
+      ]
+     }
+    ],
+    "unoCommandResults": [
+     [
+      {
+       "commandName": ".uno:InsertText",
+       "success": false,
+       "result": {
+        "type": "void"
+       },
+       "wasModified": false,
+       "startUnixTimeMics": 23903637525,
+       "saveDurationMics": 548
+      }
+     ],
+     [
+      {
+       "commandName": ".uno:InsertText",
+       "success": false,
+       "result": {
+        "type": "void"
+       },
+       "wasModified": false,
+       "startUnixTimeMics": 24141508570,
+       "saveDurationMics": 556
+      }
+     ],
+     [
+      {
+       "commandName": ".uno:InsertText",
+       "success": false,
+       "result": {
+        "type": "void"
+       },
+       "wasModified": false,
+       "startUnixTimeMics": 24379473595,
+       "saveDurationMics": 570
+      }
+     ]
+    ]
+   },
+   "table4/key-cjk": {
+    "route": "key",
+    "text": "中",
+    "rounds": 3,
+    "stable": true,
+    "changes": [
+     {
+      "10": [
+       "A2 cell text",
+       ""
+      ],
+      "11": [
+       "B2 cell text",
+       "中"
+      ],
+      "8": [
+       "A1 cell text",
+       ""
+      ],
+      "9": [
+       "B1 cell text",
+       ""
+      ]
+     }
+    ],
+    "unoCommandResults": [
+     [],
+     [],
+     []
+    ]
+   },
+   "table4/uno-insert-text-cjk": {
+    "route": "uno-insert-text",
+    "text": "中",
+    "rounds": 3,
+    "stable": true,
+    "changes": [
+     {
+      "10": [
+       "A2 cell text",
+       ""
+      ],
+      "11": [
+       "B2 cell text",
+       "中"
+      ],
+      "8": [
+       "A1 cell text",
+       ""
+      ],
+      "9": [
+       "B1 cell text",
+       ""
+      ]
+     }
+    ],
+    "unoCommandResults": [
+     [
+      {
+       "commandName": ".uno:InsertText",
+       "success": false,
+       "result": {
+        "type": "void"
+       },
+       "wasModified": false,
+       "startUnixTimeMics": 23919070902,
+       "saveDurationMics": 639
+      }
+     ],
+     [
+      {
+       "commandName": ".uno:InsertText",
+       "success": false,
+       "result": {
+        "type": "void"
+       },
+       "wasModified": false,
+       "startUnixTimeMics": 24156975750,
+       "saveDurationMics": 621
+      }
+     ],
+     [
+      {
+       "commandName": ".uno:InsertText",
+       "success": false,
+       "result": {
+        "type": "void"
+       },
+       "wasModified": false,
+       "startUnixTimeMics": 24394937152,
+       "saveDurationMics": 624
+      }
+     ]
+    ]
+   },
+   "table4/key-e-acute": {
+    "route": "key",
+    "text": "é",
+    "rounds": 3,
+    "stable": true,
+    "changes": [
+     {
+      "10": [
+       "A2 cell text",
+       ""
+      ],
+      "11": [
+       "B2 cell text",
+       "é"
+      ],
+      "8": [
+       "A1 cell text",
+       ""
+      ],
+      "9": [
+       "B1 cell text",
+       ""
+      ]
+     }
+    ],
+    "unoCommandResults": [
+     [],
+     [],
+     []
+    ]
+   },
+   "table4/uno-insert-text-e-acute": {
+    "route": "uno-insert-text",
+    "text": "é",
+    "rounds": 3,
+    "stable": true,
+    "changes": [
+     {
+      "10": [
+       "A2 cell text",
+       ""
+      ],
+      "11": [
+       "B2 cell text",
+       "é"
+      ],
+      "8": [
+       "A1 cell text",
+       ""
+      ],
+      "9": [
+       "B1 cell text",
+       ""
+      ]
+     }
+    ],
+    "unoCommandResults": [
+     [
+      {
+       "commandName": ".uno:InsertText",
+       "success": false,
+       "result": {
+        "type": "void"
+       },
+       "wasModified": false,
+       "startUnixTimeMics": 23934514427,
+       "saveDurationMics": 557
+      }
+     ],
+     [
+      {
+       "commandName": ".uno:InsertText",
+       "success": false,
+       "result": {
+        "type": "void"
+       },
+       "wasModified": false,
+       "startUnixTimeMics": 24172433429,
+       "saveDurationMics": 555
+      }
+     ],
+     [
+      {
+       "commandName": ".uno:InsertText",
+       "success": false,
+       "result": {
+        "type": "void"
+       },
+       "wasModified": false,
+       "startUnixTimeMics": 24410362450,
+       "saveDurationMics": 561
+      }
+     ]
+    ]
+   },
+   "table4/uno-insert-text-emoji": {
+    "route": "uno-insert-text",
+    "text": "😀",
+    "rounds": 3,
+    "stable": true,
+    "changes": [
+     {
+      "10": [
+       "A2 cell text",
+       ""
+      ],
+      "11": [
+       "B2 cell text",
+       "😀"
+      ],
+      "8": [
+       "A1 cell text",
+       ""
+      ],
+      "9": [
+       "B1 cell text",
+       ""
+      ]
+     }
+    ],
+    "unoCommandResults": [
+     [
+      {
+       "commandName": ".uno:InsertText",
+       "success": false,
+       "result": {
+        "type": "void"
+       },
+       "wasModified": false,
+       "startUnixTimeMics": 23942248950,
+       "saveDurationMics": 1454
+      }
+     ],
+     [
+      {
+       "commandName": ".uno:InsertText",
+       "success": false,
+       "result": {
+        "type": "void"
+       },
+       "wasModified": false,
+       "startUnixTimeMics": 24180156295,
+       "saveDurationMics": 1521
+      }
+     ],
+     [
+      {
+       "commandName": ".uno:InsertText",
+       "success": false,
+       "result": {
+        "type": "void"
+       },
+       "wasModified": false,
+       "startUnixTimeMics": 24418077779,
+       "saveDurationMics": 1548
+      }
+     ]
+    ]
+   },
+   "cell-caret/key-x": {
+    "route": "key",
+    "text": "x",
+    "rounds": 3,
+    "stable": true,
+    "changes": [
+     {
+      "8": [
+       "A1 cell text",
+       "A1 cell textx"
+      ]
+     }
+    ],
+    "unoCommandResults": [
+     [],
+     [],
+     []
+    ]
+   },
+   "cell-caret/uno-insert-text-x": {
+    "route": "uno-insert-text",
+    "text": "x",
+    "rounds": 3,
+    "stable": true,
+    "changes": [
+     {
+      "8": [
+       "A1 cell text",
+       "A1 cell textx"
+      ]
+     }
+    ],
+    "unoCommandResults": [
+     [
+      {
+       "commandName": ".uno:InsertText",
+       "success": false,
+       "result": {
+        "type": "void"
+       },
+       "wasModified": false,
+       "startUnixTimeMics": 23952801645,
+       "saveDurationMics": 462
+      }
+     ],
+     [
+      {
+       "commandName": ".uno:InsertText",
+       "success": false,
+       "result": {
+        "type": "void"
+       },
+       "wasModified": false,
+       "startUnixTimeMics": 24190708456,
+       "saveDurationMics": 324
+      }
+     ],
+     [
+      {
+       "commandName": ".uno:InsertText",
+       "success": false,
+       "result": {
+        "type": "void"
+       },
+       "wasModified": false,
+       "startUnixTimeMics": 24428631644,
+       "saveDurationMics": 318
+      }
+     ]
+    ]
+   },
+   "cell-caret/key-xy": {
+    "route": "key",
+    "text": "xy",
+    "rounds": 3,
+    "stable": true,
+    "changes": [
+     {
+      "8": [
+       "A1 cell text",
+       "A1 cell textxy"
+      ]
+     }
+    ],
+    "unoCommandResults": [
+     [],
+     [],
+     []
+    ]
+   },
+   "cell-caret/uno-insert-text-xy": {
+    "route": "uno-insert-text",
+    "text": "xy",
+    "rounds": 3,
+    "stable": true,
+    "changes": [
+     {
+      "8": [
+       "A1 cell text",
+       "A1 cell textxy"
+      ]
+     }
+    ],
+    "unoCommandResults": [
+     [
+      {
+       "commandName": ".uno:InsertText",
+       "success": false,
+       "result": {
+        "type": "void"
+       },
+       "wasModified": false,
+       "startUnixTimeMics": 23963554741,
+       "saveDurationMics": 401
+      }
+     ],
+     [
+      {
+       "commandName": ".uno:InsertText",
+       "success": false,
+       "result": {
+        "type": "void"
+       },
+       "wasModified": false,
+       "startUnixTimeMics": 24201435042,
+       "saveDurationMics": 478
+      }
+     ],
+     [
+      {
+       "commandName": ".uno:InsertText",
+       "success": false,
+       "result": {
+        "type": "void"
+       },
+       "wasModified": false,
+       "startUnixTimeMics": 24439374637,
+       "saveDurationMics": 518
+      }
+     ]
+    ]
+   },
+   "cell-caret/key-cjk": {
+    "route": "key",
+    "text": "中",
+    "rounds": 3,
+    "stable": true,
+    "changes": [
+     {
+      "8": [
+       "A1 cell text",
+       "A1 cell text中"
+      ]
+     }
+    ],
+    "unoCommandResults": [
+     [],
+     [],
+     []
+    ]
+   },
+   "cell-caret/uno-insert-text-cjk": {
+    "route": "uno-insert-text",
+    "text": "中",
+    "rounds": 3,
+    "stable": true,
+    "changes": [
+     {
+      "8": [
+       "A1 cell text",
+       "A1 cell text中"
+      ]
+     }
+    ],
+    "unoCommandResults": [
+     [
+      {
+       "commandName": ".uno:InsertText",
+       "success": false,
+       "result": {
+        "type": "void"
+       },
+       "wasModified": false,
+       "startUnixTimeMics": 23974393963,
+       "saveDurationMics": 457
+      }
+     ],
+     [
+      {
+       "commandName": ".uno:InsertText",
+       "success": false,
+       "result": {
+        "type": "void"
+       },
+       "wasModified": false,
+       "startUnixTimeMics": 24212281213,
+       "saveDurationMics": 524
+      }
+     ],
+     [
+      {
+       "commandName": ".uno:InsertText",
+       "success": false,
+       "result": {
+        "type": "void"
+       },
+       "wasModified": false,
+       "startUnixTimeMics": 24450218158,
+       "saveDurationMics": 475
+      }
+     ]
+    ]
+   },
+   "cell-caret/key-e-acute": {
+    "route": "key",
+    "text": "é",
+    "rounds": 3,
+    "stable": true,
+    "changes": [
+     {
+      "8": [
+       "A1 cell text",
+       "A1 cell texté"
+      ]
+     }
+    ],
+    "unoCommandResults": [
+     [],
+     [],
+     []
+    ]
+   },
+   "cell-caret/uno-insert-text-e-acute": {
+    "route": "uno-insert-text",
+    "text": "é",
+    "rounds": 3,
+    "stable": true,
+    "changes": [
+     {
+      "8": [
+       "A1 cell text",
+       "A1 cell texté"
+      ]
+     }
+    ],
+    "unoCommandResults": [
+     [
+      {
+       "commandName": ".uno:InsertText",
+       "success": false,
+       "result": {
+        "type": "void"
+       },
+       "wasModified": false,
+       "startUnixTimeMics": 23985238521,
+       "saveDurationMics": 433
+      }
+     ],
+     [
+      {
+       "commandName": ".uno:InsertText",
+       "success": false,
+       "result": {
+        "type": "void"
+       },
+       "wasModified": false,
+       "startUnixTimeMics": 24223117777,
+       "saveDurationMics": 343
+      }
+     ],
+     [
+      {
+       "commandName": ".uno:InsertText",
+       "success": false,
+       "result": {
+        "type": "void"
+       },
+       "wasModified": false,
+       "startUnixTimeMics": 24461008126,
+       "saveDurationMics": 511
+      }
+     ]
+    ]
+   },
+   "cell-caret/uno-insert-text-emoji": {
+    "route": "uno-insert-text",
+    "text": "😀",
+    "rounds": 3,
+    "stable": true,
+    "changes": [
+     {
+      "8": [
+       "A1 cell text",
+       "A1 cell text😀"
+      ]
+     }
+    ],
+    "unoCommandResults": [
+     [
+      {
+       "commandName": ".uno:InsertText",
+       "success": false,
+       "result": {
+        "type": "void"
+       },
+       "wasModified": false,
+       "startUnixTimeMics": 23990806807,
+       "saveDurationMics": 1311
+      }
+     ],
+     [
+      {
+       "commandName": ".uno:InsertText",
+       "success": false,
+       "result": {
+        "type": "void"
+       },
+       "wasModified": false,
+       "startUnixTimeMics": 24228667457,
+       "saveDurationMics": 1263
+      }
+     ],
+     [
+      {
+       "commandName": ".uno:InsertText",
+       "success": false,
+       "result": {
+        "type": "void"
+       },
+       "wasModified": false,
+       "startUnixTimeMics": 24466577822,
+       "saveDurationMics": 1327
+      }
+     ]
+    ]
+   },
+   "text/key-x": {
+    "route": "key",
+    "text": "x",
+    "rounds": 3,
+    "stable": true,
+    "changes": [
+     {
+      "1": [
+       "P2 ALPHA BETA GAMMA DELTA",
+       "P2 ALPHA BExA GAMMA DELTA"
+      ]
+     }
+    ],
+    "unoCommandResults": [
+     [],
+     [],
+     []
+    ]
+   },
+   "text/uno-insert-text-x": {
+    "route": "uno-insert-text",
+    "text": "x",
+    "rounds": 3,
+    "stable": true,
+    "changes": [
+     {
+      "1": [
+       "P2 ALPHA BETA GAMMA DELTA",
+       "P2 ALPHA BExA GAMMA DELTA"
+      ]
+     }
+    ],
+    "unoCommandResults": [
+     [
+      {
+       "commandName": ".uno:InsertText",
+       "success": false,
+       "result": {
+        "type": "void"
+       },
+       "wasModified": false,
+       "startUnixTimeMics": 24002460848,
+       "saveDurationMics": 577
+      }
+     ],
+     [
+      {
+       "commandName": ".uno:InsertText",
+       "success": false,
+       "result": {
+        "type": "void"
+       },
+       "wasModified": false,
+       "startUnixTimeMics": 24240324713,
+       "saveDurationMics": 558
+      }
+     ],
+     [
+      {
+       "commandName": ".uno:InsertText",
+       "success": false,
+       "result": {
+        "type": "void"
+       },
+       "wasModified": false,
+       "startUnixTimeMics": 24478225538,
+       "saveDurationMics": 570
+      }
+     ]
+    ]
+   },
+   "text/key-xy": {
+    "route": "key",
+    "text": "xy",
+    "rounds": 3,
+    "stable": true,
+    "changes": [
+     {
+      "1": [
+       "P2 ALPHA BETA GAMMA DELTA",
+       "P2 ALPHA BExyA GAMMA DELTA"
+      ]
+     }
+    ],
+    "unoCommandResults": [
+     [],
+     [],
+     []
+    ]
+   },
+   "text/uno-insert-text-xy": {
+    "route": "uno-insert-text",
+    "text": "xy",
+    "rounds": 3,
+    "stable": true,
+    "changes": [
+     {
+      "1": [
+       "P2 ALPHA BETA GAMMA DELTA",
+       "P2 ALPHA BExyA GAMMA DELTA"
+      ]
+     }
+    ],
+    "unoCommandResults": [
+     [
+      {
+       "commandName": ".uno:InsertText",
+       "success": false,
+       "result": {
+        "type": "void"
+       },
+       "wasModified": false,
+       "startUnixTimeMics": 24013827366,
+       "saveDurationMics": 565
+      }
+     ],
+     [
+      {
+       "commandName": ".uno:InsertText",
+       "success": false,
+       "result": {
+        "type": "void"
+       },
+       "wasModified": false,
+       "startUnixTimeMics": 24251660708,
+       "saveDurationMics": 578
+      }
+     ],
+     [
+      {
+       "commandName": ".uno:InsertText",
+       "success": false,
+       "result": {
+        "type": "void"
+       },
+       "wasModified": false,
+       "startUnixTimeMics": 24489587745,
+       "saveDurationMics": 589
+      }
+     ]
+    ]
+   },
+   "text/key-cjk": {
+    "route": "key",
+    "text": "中",
+    "rounds": 3,
+    "stable": true,
+    "changes": [
+     {
+      "1": [
+       "P2 ALPHA BETA GAMMA DELTA",
+       "P2 ALPHA BE中A GAMMA DELTA"
+      ]
+     }
+    ],
+    "unoCommandResults": [
+     [],
+     [],
+     []
+    ]
+   },
+   "text/uno-insert-text-cjk": {
+    "route": "uno-insert-text",
+    "text": "中",
+    "rounds": 3,
+    "stable": true,
+    "changes": [
+     {
+      "1": [
+       "P2 ALPHA BETA GAMMA DELTA",
+       "P2 ALPHA BE中A GAMMA DELTA"
+      ]
+     }
+    ],
+    "unoCommandResults": [
+     [
+      {
+       "commandName": ".uno:InsertText",
+       "success": false,
+       "result": {
+        "type": "void"
+       },
+       "wasModified": false,
+       "startUnixTimeMics": 24025193572,
+       "saveDurationMics": 679
+      }
+     ],
+     [
+      {
+       "commandName": ".uno:InsertText",
+       "success": false,
+       "result": {
+        "type": "void"
+       },
+       "wasModified": false,
+       "startUnixTimeMics": 24263023116,
+       "saveDurationMics": 682
+      }
+     ],
+     [
+      {
+       "commandName": ".uno:InsertText",
+       "success": false,
+       "result": {
+        "type": "void"
+       },
+       "wasModified": false,
+       "startUnixTimeMics": 24500910623,
+       "saveDurationMics": 788
+      }
+     ]
+    ]
+   },
+   "text/key-e-acute": {
+    "route": "key",
+    "text": "é",
+    "rounds": 3,
+    "stable": true,
+    "changes": [
+     {
+      "1": [
+       "P2 ALPHA BETA GAMMA DELTA",
+       "P2 ALPHA BEéA GAMMA DELTA"
+      ]
+     }
+    ],
+    "unoCommandResults": [
+     [],
+     [],
+     []
+    ]
+   },
+   "text/uno-insert-text-e-acute": {
+    "route": "uno-insert-text",
+    "text": "é",
+    "rounds": 3,
+    "stable": true,
+    "changes": [
+     {
+      "1": [
+       "P2 ALPHA BETA GAMMA DELTA",
+       "P2 ALPHA BEéA GAMMA DELTA"
+      ]
+     }
+    ],
+    "unoCommandResults": [
+     [
+      {
+       "commandName": ".uno:InsertText",
+       "success": false,
+       "result": {
+        "type": "void"
+       },
+       "wasModified": false,
+       "startUnixTimeMics": 24036498351,
+       "saveDurationMics": 546
+      }
+     ],
+     [
+      {
+       "commandName": ".uno:InsertText",
+       "success": false,
+       "result": {
+        "type": "void"
+       },
+       "wasModified": false,
+       "startUnixTimeMics": 24274356244,
+       "saveDurationMics": 537
+      }
+     ],
+     [
+      {
+       "commandName": ".uno:InsertText",
+       "success": false,
+       "result": {
+        "type": "void"
+       },
+       "wasModified": false,
+       "startUnixTimeMics": 24512246325,
+       "saveDurationMics": 631
+      }
+     ]
+    ]
+   },
+   "text/uno-insert-text-emoji": {
+    "route": "uno-insert-text",
+    "text": "😀",
+    "rounds": 3,
+    "stable": true,
+    "changes": [
+     {
+      "1": [
+       "P2 ALPHA BETA GAMMA DELTA",
+       "P2 ALPHA BE😀A GAMMA DELTA"
+      ]
+     }
+    ],
+    "unoCommandResults": [
+     [
+      {
+       "commandName": ".uno:InsertText",
+       "success": false,
+       "result": {
+        "type": "void"
+       },
+       "wasModified": false,
+       "startUnixTimeMics": 24042158077,
+       "saveDurationMics": 1505
+      }
+     ],
+     [
+      {
+       "commandName": ".uno:InsertText",
+       "success": false,
+       "result": {
+        "type": "void"
+       },
+       "wasModified": false,
+       "startUnixTimeMics": 24280014542,
+       "saveDurationMics": 1786
+      }
+     ],
+     [
+      {
+       "commandName": ".uno:InsertText",
+       "success": false,
+       "result": {
+        "type": "void"
+       },
+       "wasModified": false,
+       "startUnixTimeMics": 24517920594,
+       "saveDurationMics": 1538
+      }
+     ]
+    ]
+   },
+   "doc-end/key-teh": {
+    "route": "key",
+    "text": " teh ",
+    "rounds": 3,
+    "stable": true,
+    "changes": [
+     {
+      "12": [
+       "Final paragraph ends the document.",
+       "Final paragraph ends the document. The "
+      ]
+     }
+    ],
+    "unoCommandResults": [
+     [],
+     [],
+     []
+    ]
+   },
+   "doc-end/uno-insert-text-teh": {
+    "route": "uno-insert-text",
+    "text": " teh ",
+    "rounds": 3,
+    "stable": true,
+    "changes": [
+     {
+      "12": [
+       "Final paragraph ends the document.",
+       "Final paragraph ends the document. teh "
+      ]
+     }
+    ],
+    "unoCommandResults": [
+     [
+      {
+       "commandName": ".uno:InsertText",
+       "success": false,
+       "result": {
+        "type": "void"
+       },
+       "wasModified": false,
+       "startUnixTimeMics": 24051109991,
+       "saveDurationMics": 652
+      }
+     ],
+     [
+      {
+       "commandName": ".uno:InsertText",
+       "success": false,
+       "result": {
+        "type": "void"
+       },
+       "wasModified": false,
+       "startUnixTimeMics": 24288984210,
+       "saveDurationMics": 629
+      }
+     ],
+     [
+      {
+       "commandName": ".uno:InsertText",
+       "success": false,
+       "result": {
+        "type": "void"
+       },
+       "wasModified": false,
+       "startUnixTimeMics": 24526897522,
+       "saveDurationMics": 661
+      }
+     ]
+    ]
+   }
+  }
+ }
+}
