@@ -58,6 +58,13 @@ extern "C" {
 #error "ABI6 feature cannot be combined with diagnostic instrumentation"
 #endif
 #define OXSDK_EDITOR_ABI_VERSION 6u
+/*
+ * OXSDK_E2_V24_TYPED_INSERT (SPEC-M3-link-batch-v24) adds a document-level
+ * export, not an action: no id, gesture, limit or field meaning changes, so
+ * the version stays 6 (fable ruling 2).  It is an ABI6 successor only.
+ */
+#elif defined(OXSDK_E2_V24_TYPED_INSERT)
+#error "the v24 typed insert requires the ABI6 feature engine"
 #elif defined(OXSDK_E2_V21_LINK_BATCH)
 #define OXSDK_EDITOR_ABI_VERSION 5u
 #else

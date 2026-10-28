@@ -99,6 +99,35 @@ export const MARKDOWN_PASTE_LIMIT_BYTES = 65536;
 const PASTE_MARKDOWN_DECLARATION = "document-sdk-paste-markdown";
 const utf8 = new TextEncoder();
 
+// SPEC-M3-link-batch-v24 4.3 (finding 168): which engine route a commit takes,
+// by the input adapter's `source`.  Typed text goes through .uno:InsertText,
+// which replaces a selection the way the keyboard does; a real paste keeps
+// Writer's paste.  The keys are exactly the adapter's `source:` literals --
+// T3 extracts them from input/*.js and requires equality, so a new commit
+// source cannot ship without being routed here.
+export const INSERT_ROUTE_BY_SOURCE = new Map([
+  ["beforeinput", "uno-insert-text"],
+  ["composition", "uno-insert-text"],
+  ["clipboard-event", "paste"],
+  ["clipboard-api", "paste"],
+]);
+export const TYPED_INSERT_DECLARATION = "document-sdk-insert-typed-text";
+// Enter is another family and NUL cannot cross jsonEscape: those keep paste.
+const TYPED_INSERT_REFUSED = /[\u0000\n\r]/;
+
+function insertRoute(text, source) {
+  if (source !== undefined && source !== null && source !== ""
+      && !INSERT_ROUTE_BY_SOURCE.has(source)) {
+    throw new DocumentSdkError(
+      "INSERT_ORIGIN_UNKNOWN",
+      `insertText has no route for metadata source ${JSON.stringify(source)}`,
+      { operation: "insertText", dispatched: false, source });
+  }
+  return INSERT_ROUTE_BY_SOURCE.get(source) === "uno-insert-text"
+      && !TYPED_INSERT_REFUSED.test(text)
+    ? "uno-insert-text" : "paste";
+}
+
 /**
  * Parse `getPartPageRectangles()`'s string: "x, y, w, h; x, y, w, h; ..." in
  * twips, one rectangle per page in page order, no trailing separator
@@ -530,14 +559,19 @@ export class DocumentHandle {
     this.revision = result.revision;
   }
 
+  // SPEC-M3-link-batch-v24 4.3: on a profile that declares the typed route,
+  // EVERY insert says which route the SDK chose (`route`), so a request without
+  // one can only come from another SDK.  On any other profile `metadata` is not
+  // read at all and the request is the one that profile shipped with and was
+  // measured on -- no route, no new error (fable ruling 2, follow-up A1).
   async insertText(text, options = {}) {
     this._assertUsable();
     if (typeof text !== "string" || text.length === 0)
       throw new DocumentSdkError("INVALID_ARGUMENT", "insertText requires non-empty text");
-    const result = await this._engine._request("insertText", {
-      documentHandle: this.handle,
-      text,
-    }, options);
+    const payload = { documentHandle: this.handle, text };
+    if (this._engine.manifest?.editorContract?.typedInsert === TYPED_INSERT_DECLARATION)
+      payload.route = insertRoute(text, options.metadata?.source);
+    const result = await this._engine._request("insertText", payload, options);
     this.revision = result.revision;
     return result;
   }

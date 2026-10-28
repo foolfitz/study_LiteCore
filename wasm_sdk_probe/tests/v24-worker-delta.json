@@ -1,0 +1,97 @@
+{
+ "schema": 1,
+ "note": "SPEC-M3-link-batch-v24 6.1 W1 (amended in section 14): the closed list of differences between the archived v23 worker (3fd3e1e6...) and sdk/v24-feature-worker.js, each hunk labelled with its section 4.2 item. tests/test_v24_feature_worker_delta.py applies the hunks to the archived v23 worker and requires the v24 worker byte for byte.",
+ "hunks": [
+  {
+   "item": "5 header comment",
+   "v23Index": 1,
+   "v23Lines": 0,
+   "old": "",
+   "new": "\n// SPEC-M3-link-batch-v24 4.2: the e2-editor-v24 worker.  Derived from the\n// frozen v23 worker (sdk/v23-feature-worker.js, 3fd3e1e6...), which stays\n// byte-identical because generation 76 and the v23 profile bind it.  The\n// differences are a closed list (criterion W1): (1) insertText routes on the\n// SDK's `route`; (2) `insertTypedText` joins the declared document exports;\n// (3) init refuses a binary that lacks a declared export; (4)\n// featureExtendPermitted names this profile; (5) this comment; (6) the\n// `inserted` reply names `completion` and `resultPayload` (the projection is\n// a whitelist, so without it the typed route's proof never reaches the page).\n"
+  },
+  {
+   "item": "4 profile term",
+   "v23Index": 154,
+   "v23Lines": 1,
+   "old": "  return activeManifest?.profile === \"e2-editor-v23\"\n",
+   "new": "  return activeManifest?.profile === \"e2-editor-v24\"\n"
+  },
+  {
+   "item": "2 declared exports (comment)",
+   "v23Index": 242,
+   "v23Lines": 0,
+   "old": "",
+   "new": "//\n// SPEC-M3-link-batch-v24 4.2: `insertTypedText` is the third.  It is not a\n// wire operation of its own -- typed text arrives as insertText with\n// `route: \"uno-insert-text\"` (exportOperation below) -- so a leafless manifest\n// answers UNSUPPORTED_OPERATION here instead of reaching for a symbol its\n// binary may not have.  `symbol` is what init's presence check looks for.\n"
+  },
+  {
+   "item": "2+3 declared exports (symbol for init)",
+   "v23Index": 244,
+   "v23Lines": 1,
+   "old": "                       declaration: \"document-sdk-page-rectangles\" }],\n",
+   "new": "                       declaration: \"document-sdk-page-rectangles\",\n                       symbol: \"oxsdk_document_page_rectangles\" }],\n"
+  },
+  {
+   "item": "2+3 declared exports (insertTypedText row)",
+   "v23Index": 246,
+   "v23Lines": 1,
+   "old": "                      declaration: \"document-sdk-paste-markdown\" }],\n",
+   "new": "                      declaration: \"document-sdk-paste-markdown\",\n                      symbol: \"oxsdk_document_paste_markdown\" }],\n  [\"insertTypedText\", { field: \"typedInsert\",\n                        declaration: \"document-sdk-insert-typed-text\",\n                        symbol: \"oxsdk_document_insert_typed_text\" }],\n"
+  },
+  {
+   "item": "1+2 INSERT_ROUTES and exportOperation",
+   "v23Index": 248,
+   "v23Lines": 0,
+   "old": "",
+   "new": "\nconst INSERT_ROUTES = new Set([\"uno-insert-text\", \"paste\"]);\n\nfunction exportOperation(request) {\n  return request.operation === \"insertText\"\n      && request.payload?.route === \"uno-insert-text\"\n    ? \"insertTypedText\" : request.operation;\n}\n"
+  },
+  {
+   "item": "6 inserted projection (comment)",
+   "v23Index": 859,
+   "v23Lines": 0,
+   "old": "",
+   "new": "    // SPEC-M3-link-batch-v24 4.2 (6): the typed route's reply carries its\n    // completion and the raw UNO_COMMAND_RESULT payload (T2 reads both).  Named\n    // only when the engine sent them, so a paste reply keeps its v23 shape.\n"
+  },
+  {
+   "item": "6 inserted projection",
+   "v23Index": 861,
+   "v23Lines": 1,
+   "old": "        complete(requestId, { method: event.method, revision: event.revision });\n",
+   "new": "        complete(requestId, {\n          method: event.method,\n          revision: event.revision,\n          ...(event.completion === undefined ? {} : {\n            completion: event.completion,\n            resultPayload: event.resultPayload,\n          }),\n        });\n"
+  },
+  {
+   "item": "3 init presence check",
+   "v23Index": 1280,
+   "v23Lines": 0,
+   "old": "",
+   "new": "    // SPEC-M3-link-batch-v24 4.2 (fable ruling 2): what an ABI bump would\n    // have caught at init.  A declaration is a claim about the binary; a\n    // stale wasm beside a fresh manifest must be refused here, not surface as\n    // WORKER_EXCEPTION at the first typed character.\n    for (const spec of DOCUMENT_EXPORT_OPERATIONS.values()) {\n      if (contract?.[spec.field] === spec.declaration\n          && typeof moduleInstance?.[\"_\" + spec.symbol] !== \"function\") {\n        fail(request.requestId, \"DECLARED_EXPORT_MISSING\",\n             `profile ${activeManifest?.profile || \"unknown\"} declares `\n             + `${spec.field}: \"${spec.declaration}\" but this binary has no `\n             + `${spec.symbol}`);\n        return;\n      }\n    }\n\n"
+  },
+  {
+   "item": "2 gate keyed by exportOperation",
+   "v23Index": 1380,
+   "v23Lines": 2,
+   "old": "  if (!documentExportDeclared(request.operation)) {\n    const spec = DOCUMENT_EXPORT_OPERATIONS.get(request.operation);\n",
+   "new": "  if (!documentExportDeclared(exportOperation(request))) {\n    const spec = DOCUMENT_EXPORT_OPERATIONS.get(exportOperation(request));\n"
+  },
+  {
+   "item": "1 route comment",
+   "v23Index": 1422,
+   "v23Lines": 0,
+   "old": "",
+   "new": "    // SPEC-M3-link-batch-v24 4.2: the SDK decides the route and says so;\n    // this layer only refuses a route it does not know.  Typed text was gated\n    // above on the `typedInsert` declaration.\n"
+  },
+  {
+   "item": "1 unknown route refused",
+   "v23Index": 1423,
+   "v23Lines": 0,
+   "old": "",
+   "new": "      if (payload.route !== undefined && !INSERT_ROUTES.has(payload.route)) {\n        postResponse(request.requestId, false, {\n          code: \"INVALID_ARGUMENT\",\n          message: `unknown insertText route ${JSON.stringify(payload.route)}`,\n          dispatched: false,\n        });\n        break;\n      }\n"
+  },
+  {
+   "item": "1 route selects the export",
+   "v23Index": 1425,
+   "v23Lines": 1,
+   "old": "          \"oxsdk_document_insert_text\",\n",
+   "new": "          payload.route === \"uno-insert-text\"\n            ? \"oxsdk_document_insert_typed_text\" : \"oxsdk_document_insert_text\",\n"
+  }
+ ]
+}

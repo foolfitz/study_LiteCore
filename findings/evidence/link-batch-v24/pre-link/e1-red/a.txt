@@ -1,0 +1,20 @@
+F...
+======================================================================
+FAIL: test_each_source (__main__.OutsideTheDefineNothingChanged.test_each_source) [probe_engine.cpp]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tests/test_v24_typed_insert_engine.py", line 81, in test_each_source
+    self.assertEqual(nonblank(stripped), nonblank(base_text(name)))
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ['#if[175389 chars]pasted";', '  if (!gState.document->pClass->pa[207115 chars]obe'] != ['#if[175389 chars]paste";', '  if (!gState.document->pClass->pas[207114 chars]obe']
+
+First differing element 3635:
+'  std::string method = "pasted";'
+'  std::string method = "paste";'
+
+Diff is 412712 characters long. Set self.maxDiff to None to see it.
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.059s
+
+FAILED (failures=1)

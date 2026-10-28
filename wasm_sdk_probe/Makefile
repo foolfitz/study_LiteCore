@@ -2122,6 +2122,99 @@ test-v23-feature-static:
 	node tests/v23_feature_worker_test.cjs
 	node --test editor-shell-v2/tests/v23-*.test.mjs
 
+# SPEC-M3-link-batch-v24 5.1: typed text through .uno:InsertText (finding 168).
+# v23's rule verbatim plus OXSDK_E2_V24_TYPED_INSERT; editor ABI stays 6
+# (fable ruling 2).  One appended export; worker derived from archived v23.
+E2_V24_BUILD := build/e2/editor-v24
+E2_V24_DIST := dist/profiles/e2-editor-v24
+E2_V24_SOURCES := $(E2_C_SOURCES)
+E2_V24_OBJECTS := $(patsubst src/%.cpp,$(E2_V24_BUILD)/%.o,$(E2_V24_SOURCES))
+E2_V24_MD4C_INCLUDE := $(LOBUILD)/workdir/UnpackedTarball/md4c/src
+# Frozen base identity for the v24 worker: the archived v23 worker.
+E2_V24_ARCHIVE := build/archive/e2-editor-v23-fe1f99cd-worker-3fd3e1e6
+E2_V24_BASE_WORKER := $(E2_V24_ARCHIVE)/sdk-worker.js
+E2_V24_WORKER_SHA256 := 3fd3e1e66fec54c571ab803555d51512ebf27eec61e85767c824dc5d79d76cd5
+
+.PHONY: v24-feature-worker-preflight
+v24-feature-worker-preflight:
+	python3 tools/check_v24_feature_contract.py --check-worker-base \
+		--base-worker $(E2_V24_BASE_WORKER) --base-worker-sha256 $(E2_V24_WORKER_SHA256)
+
+$(E2_V24_BUILD)/%.o: src/%.cpp $(HEADERS) src/editor_api.h \
+		src/editor_discovery_api.h src/format_readback_text.hpp \
+		src/a11y_paragraph_identity.hpp src/merge_key_undo.hpp \
+		src/markdown_paste.hpp src/ordered_command_proof.hpp \
+		src/ordered_delete_route.hpp src/ordered_poll.hpp src/ordered_engine_guards.hpp src/reply_state_reads.hpp \
+		src/ordered_engine_state.inc src/ordered_engine_reply.inc src/ordered_engine_poll.inc \
+		src/ordered_engine_delete.inc src/ordered_format.inc $(E2_V24_MD4C_INCLUDE)/md4c.h Makefile \
+		| $(E2_V24_BUILD) v24-feature-worker-preflight
+	$(CXX) $(E1_CPPFLAGS) $(R5_CXXFLAGS) -I$(E2_V24_MD4C_INCLUDE) \
+		-DOXSDK_EDITOR_DISCOVERY \
+		-DOXSDK_FINDING_016_SELECTION_BARRIER -DOXSDK_E2_FORMAT_BARRIER \
+		-DOXSDK_MERGE_KEY_UNDO -DOXSDK_E2_V20_LINK_BATCH \
+		-DOXSDK_E2_V21_LINK_BATCH -DOXSDK_MAINLOOP_ENGINE \
+		-DOXSDK_E2_V23_LINK_BATCH -DOXSDK_E2_V23_FEATURE_ABI6 \
+		-DOXSDK_E2_V24_TYPED_INSERT \
+		$(EXTRA_DEFINES) -c $< -o $@
+
+# v23's public export surface plus the typed-insert export.
+$(E2_V24_BUILD)/exports.txt: $(E2_V24_ARCHIVE)/exports.txt Makefile | $(E2_V24_BUILD)
+	cp $< $@
+	echo _oxsdk_document_insert_typed_text >> $@
+
+# Guarded from the first link, like every product artifact before it.
+$(E2_V24_BUILD)/probe.js: $(E2_V24_OBJECTS) $(EXTRA_OBJECTS) \
+		$(E2_V24_BUILD)/exports.txt $(LINKDEPS) $(FS_PRE_JS) Makefile
+	$(call refuse_unasked_relink,the v24 typed insert (ordered engine plus .uno:InsertText; ABI 6) -- every link mints a new hash)
+	$(call link_product_stack_1m,$(E2_V24_OBJECTS) $(EXTRA_OBJECTS),$(E2_V24_BUILD)/exports.txt,$@)
+
+$(E2_V24_BUILD)/probe.wasm: $(E2_V24_BUILD)/probe.js
+	@test -s $@
+
+# Its own worker source; the v23 one stays byte-identical (generation 76).
+$(E2_V24_BUILD)/sdk-worker.js: sdk/v24-feature-worker.js Makefile | $(E2_V24_BUILD) v24-feature-worker-preflight
+	cp $< $@
+
+# v23's manifest plus the typedInsert declaration and the three bindings.
+$(E2_V24_DIST)/sdk-manifest.json: $(E2_V24_BUILD)/probe.js $(E2_V24_BUILD)/probe.wasm \
+		$(E2_V24_BUILD)/exports.txt $(E2_V24_BUILD)/sdk-worker.js \
+		sdk/v18-writer-review-manifest.json \
+		tools/build_base_no35_pack.py tools/build_r5_profiles.py \
+		tools/build_cjk_subset.py tools/build_cjk_subset_ttc_pack.py \
+		tools/build_cjk_subset_mono_pack.py \
+		tools/build_e2_editor_v5_profile.py tools/build_e2_v23_feature_profile.py \
+		tools/build_e2_v24_feature_profile.py tools/check_v24_feature_contract.py \
+		tools/check_v23_feature_contract.py tools/check_v23_diagnostic_build.py \
+		tools/inspect_wasm_function.py tools/validate_r5_artifacts.py \
+		tools/build_e2_editor_v4_profile.py tools/build_e2_c_profile.py \
+		tools/build_e2_b_profile.py tools/e1_support.py | $(E2_V24_DIST)
+	echo "$(E2_V24_WORKER_SHA256)  $(E2_V24_BASE_WORKER)" | sha256sum -c --quiet
+	python3 tools/build_base_no35_pack.py --check
+	python3 tools/build_cjk_subset_mono_pack.py --check
+	python3 tools/build_e2_v24_feature_profile.py \
+		--source-manifest sdk/v18-writer-review-manifest.json \
+		--loader $(E2_V24_BUILD)/probe.js --wasm $(E2_V24_BUILD)/probe.wasm \
+		--worker $(E2_V24_BUILD)/sdk-worker.js \
+		--exports $(E2_V24_BUILD)/exports.txt \
+		--profile e2-editor-v24 --inline-range-gestures all \
+		--page-rectangles --paste-markdown \
+		--output $(E2_V24_DIST)
+	@test -s $(E2_V24_DIST)/probe.js
+	@test -s $(E2_V24_DIST)/probe.wasm
+	@test -s $(E2_V24_DIST)/sdk-worker.js
+
+$(E2_V24_BUILD) $(E2_V24_DIST):
+	mkdir -p $@
+
+# Focused source/contract tests only; no product objects, link or packaging target.
+.PHONY: test-v24-feature-static
+test-v24-feature-static:
+	python3 -I tests/test_v24_typed_insert_engine.py
+	python3 -I tests/test_v24_feature_worker_delta.py
+	python3 -I tests/test_v24_feature_profile.py
+	node tests/v24_feature_worker_test.cjs
+	node --test tests/v24-typed-insert-sdk.test.mjs
+
 # ---------------------------------------------------------------- v5, a11y
 #
 # Everything below names $(E2_V5_CORE) explicitly instead of $(LOBUILD).  The

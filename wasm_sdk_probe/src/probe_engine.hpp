@@ -80,6 +80,13 @@ SubmitStatus pageRectangles(std::uint32_t requestId,
 SubmitStatus pasteMarkdown(std::uint32_t requestId,
                            std::uint32_t documentHandle, std::string utf8);
 #endif
+#ifdef OXSDK_E2_V24_TYPED_INSERT
+// SPEC-M3-link-batch-v24 4.1: typed text through .uno:InsertText under the
+// ordered-UNO proof.  A document-level export beside insertText, which keeps
+// its paste semantics; never an editor action.
+SubmitStatus insertTypedText(std::uint32_t requestId,
+                             std::uint32_t documentHandle, std::string utf8);
+#endif
 SubmitStatus replaceSelection(std::uint32_t requestId,
                               std::uint32_t documentHandle,
                               std::uint32_t expectedRevision,

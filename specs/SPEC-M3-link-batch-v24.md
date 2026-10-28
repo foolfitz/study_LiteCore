@@ -252,3 +252,16 @@ page honesty（`check_m3_page_honesty.py`）在 v24 的頁面上照 K 鏈的前�
 | (vii)＝(d) 拿掉宣告 → 頁面拒絕開檔＋正向對照 | 裁決 2、追問 A2 | §6.3 |
 | (d′) 沒宣告的 manifest 上 `uno-insert-text` → worker `UNSUPPORTED_OPERATION` | 追問 A2 | §6.1 W2 |
 | (viii)＝(e) `featureExtendPermitted` 的 profile 條件 | 裁決 2 | §6.1 W2 |
+
+## 14. 實作逼出的更正（2026-10-28，只追加；任何 v24 的連結與瀏覽器執行之前）
+
+四件事都是實作時讀到或量到的具名事實逼出來的，原文不動、以本節為準（CLAUDE.md §9、§10）。證據 `findings/evidence/link-batch-v24/pre-link/README.md`。
+
+1. **§4.2 的 worker 改動是六項，不是五項；W1 的封閉清單跟著改。**第 6 項：`inserted` 回覆的投影是白名單，v23 只轉 `{ method, revision }`（`sdk/v23-feature-worker.js:887-890`，已觀察），照原清單做，新路線的 `completion` 與 `resultPayload` 到不了頁面，T2 永遠讀不到證明。v24 worker 只在引擎送了這兩個欄位時才轉，所以 paste 的回覆仍是 v23 的形狀。W1 的實作是 `tests/v24-worker-delta.json`（13 個帶項次標籤的 hunk）＋`tests/test_v24_feature_worker_delta.py`：套到封存的 v23 worker 上要逐位元組等於 v24 worker。這條更正與 W1 的證據同一個 commit 落地；沒有任何 W1 結果是在五項的文字下登錄的。
+2. **V0 的前提錯了，改成 V0′。**v23 的 `config()`／`identity()`（`tools/v23_feature_selection_cases.py:484-500`）要求活的樹裡 generation 76 的每一個殼層檔都等於綁定的位元組，所以只要有殼層改動進樹（本批的 `sdk/document-sdk.js`），在活的樹上重讀 v23 就**依構造**是紅的（已觀察：`final shell source/dist differs: sdk/document-sdk.js`）。V0 要證的是「除了宣告的殼層檔，沒有碰到任何 v23 綁住的位元組」，所以 V0′ 是：(a) **只**把宣告的殼層檔換回 generation 76 的位元組時，`read-completion.py` exit 0（換完立刻還原並核對雜湊）；(b) 原生 run-03 的重讀與已 commit 的 `reader-03.json` 相同；(c) E1-C `intact: true`。宣告的殼層檔現在是 `sdk/document-sdk.js`；切換（§8 第 5 步）之後加上 `web/e2-editor-app.js`，V0′ 照樣兩個一起換回。三件 2026-10-28 都成立。
+3. **S3-v24 兩邊都用 `make -n -B`。**v23 的 build 與 profile 目錄已存在，不加 `-B` 只有 v24 會印出兩行 `mkdir -p`；加了兩邊都印（各兩行）。比較前只把 `editor-v24` 換成 `editor-v23`（`E2_V24` 不換，否則 define 本身也被換掉）。結果的十二行差異恰好落在 §6.1 S3-v24 的五類裡。
+4. **§8 第 2 步不改頁面。**§4.4 的頁面改動（worker URL、wasm 釘選、`typedInsert` 的要求）全部在連結之後的切換一次做：頁面現在釘著 v23，先加 `typedInsert` 的要求會讓活的頁面拒絕開 v23。
+
+另記：E1 的基準是釘死本檔的 commit `ceaa2770`（四個檔的 blob 雜湊寫在 `tests/test_v24_typed_insert_engine.py`）。J-red（v24 判讀工具的紅案）排在連結之後、M2 之前；它在 §6.1 的預設是「該判讀工具不得用來判 v24」，不是連結的閘門。
+
+§34.4：因執行而修 0、因審核而修 0（第 1、2 項改的是判準的文字，不是已 commit 的檢查；E1 的紅案第一次沒紅是測試在 commit 前的錯，記在證據 README）。

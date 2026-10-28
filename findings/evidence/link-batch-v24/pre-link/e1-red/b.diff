@@ -1,0 +1,16 @@
+3876,3882d3875
+<   for (std::uint32_t codePoint : codePoints) {
+<     if (codePoint == 0 || codePoint == 0x0a || codePoint == 0x0d) {
+<       emitTypedInsertRefusal(command, "INVALID_ARGUMENT",
+<                              "typed text carries NUL or a line break; those keep the paste route");
+<       return;
+<     }
+<   }
+3911a3905,3911
+>   for (std::uint32_t codePoint : codePoints) {
+>     if (codePoint == 0 || codePoint == 0x0a || codePoint == 0x0d) {
+>       emitTypedInsertRefusal(command, "INVALID_ARGUMENT",
+>                              "typed text carries NUL or a line break; those keep the paste route");
+>       return;
+>     }
+>   }

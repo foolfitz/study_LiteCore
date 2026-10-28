@@ -275,6 +275,11 @@ enum class CommandType {
   // like PageRectangles and insert-text -- no wire id, no gesture.
   PasteMarkdown,
 #endif
+#ifdef OXSDK_E2_V24_TYPED_INSERT
+  // SPEC-M3-link-batch-v24 4.1: typed text through .uno:InsertText, the
+  // sibling of InsertText -- a document-level export, no wire id, no gesture.
+  InsertTypedText,
+#endif
 #ifdef OXSDK_EDITOR_DISCOVERY
   EditorAction,
   // FINDING 096.  The key path's own deadline step, and it is a THIRD kind
@@ -3829,6 +3834,84 @@ void handleInsertText(const Command &command) {
 #endif
 }
 
+#ifdef OXSDK_E2_V24_TYPED_INSERT
+// SPEC-M3-link-batch-v24 4.1 (finding 168).  TYPED text goes through
+// .uno:InsertText -- FN_INSERT_STRING, SwWrtShell::InsertByWord, the
+// keyboard's own Insert -- so a selection is replaced the way the keyboard
+// replaces it, table-selection mode included, where LOK paste appends to every
+// cell instead.  Real paste stays on handleInsertText above, byte for byte.
+//
+// The SDK routes a line break or NUL to the paste export, never here (Enter is
+// another family, and jsonEscape stops at NUL), so this export refuses them
+// before anything is dispatched rather than routing them itself: one layer
+// decides the route, and a foreign caller sees a refusal, not a silent paste.
+void emitTypedInsertRefusal(const Command &command, const char *code,
+                            const char *message) {
+  if (gOrderedDispatching) {
+    setOrderedReply([command, code = std::string(code), message = std::string(message)] {
+      emitTypedInsertRefusal(command, code.c_str(), message.c_str());
+    });
+    return;
+  }
+  std::ostringstream json;
+  json << "{\"schemaVersion\":" << ProtocolSchemaVersion
+       << ",\"type\":\"error\",\"requestId\":" << command.requestId
+       << ",\"documentHandle\":" << command.documentHandle
+       << ",\"revision\":" << gState.revision
+       << ",\"operation\":\"insert\",\"code\":\"" << code
+       << "\",\"message\":\"" << jsonEscape(message)
+       << "\",\"where\":\"insert\",\"msg\":\"" << jsonEscape(message)
+       << "\",\"dispatched\":false}";
+  emitJson(json.str());
+}
+
+void handleInsertTypedText(const Command &command) {
+  if (!requireDocument(command, "insert"))
+    return;
+  std::vector<std::uint32_t> codePoints;
+  if (!decodeUtf8(command.text, codePoints)) {
+    emitTypedInsertRefusal(command, "INVALID_UTF8", "typed text is not valid UTF-8");
+    return;
+  }
+  for (std::uint32_t codePoint : codePoints) {
+    if (codePoint == 0 || codePoint == 0x0a || codePoint == 0x0d) {
+      emitTypedInsertRefusal(command, "INVALID_ARGUMENT",
+                             "typed text carries NUL or a line break; those keep the paste route");
+      return;
+    }
+  }
+
+  expectOrderedUno(".uno:InsertText");
+  setOrderedReply([command] {
+    // The result's PRESENCE is the proof (the void-command policy).  Its
+    // fields are not: FN_INSERT_STRING never calls rReq.Done(), so `success`
+    // is false on every delivery and `wasModified` is false although the text
+    // changed -- M1, 16 shape x text pairs, 3 rounds each, native.
+    std::string payload;
+    if (!orderedUnoResult(".uno:InsertText", payload)) {
+      emitOrderedMissingProof(command, "insert", "UNO_COMMAND_RESULT");
+      return;
+    }
+    advanceRevision();
+    std::ostringstream json;
+    json << "{\"schemaVersion\":" << ProtocolSchemaVersion
+         << ",\"type\":\"inserted\",\"method\":\"uno-insert-text\""
+         << ",\"completion\":\"uno-command-result\",\"requestId\":" << command.requestId
+         << ",\"documentHandle\":" << command.documentHandle
+         << ",\"revision\":" << gState.revision << ",\"resultPayload\":\""
+         << jsonEscape(payload.c_str()) << "\"}";
+    emitJson(json.str());
+  });
+  std::ostringstream arguments;
+  arguments << "{\"Text\":{\"type\":\"string\",\"value\":\""
+            << jsonEscape(command.text.c_str()) << "\"}}";
+  // Unipoll: dispatched synchronously inside postUnoCommand (init.cxx adds
+  // SynchronMode=false only when not unipoll), like .uno:Paste in doc_paste.
+  gState.document->pClass->postUnoCommand(gState.document, ".uno:InsertText",
+                                          arguments.str().c_str(), true);
+}
+#endif
+
 void handleSearch(const Command &command) {
   if (!requireDocument(command, "search"))
     return;
@@ -7180,6 +7263,11 @@ void dispatch(const Command &command) {
   case CommandType::InsertText:
     handleInsertText(command);
     break;
+#ifdef OXSDK_E2_V24_TYPED_INSERT
+  case CommandType::InsertTypedText:
+    handleInsertTypedText(command);
+    break;
+#endif
   case CommandType::Search:
     handleSearch(command);
     break;
@@ -8036,6 +8124,18 @@ SubmitStatus insertText(std::uint32_t requestId, std::uint32_t documentHandle,
   command.text = std::move(utf8);
   return submit(std::move(command));
 }
+
+#ifdef OXSDK_E2_V24_TYPED_INSERT
+SubmitStatus insertTypedText(std::uint32_t requestId,
+                             std::uint32_t documentHandle, std::string utf8) {
+  Command command{CommandType::InsertTypedText};
+  command.sdk = true;
+  command.requestId = requestId;
+  command.documentHandle = documentHandle;
+  command.text = std::move(utf8);
+  return submit(std::move(command));
+}
+#endif
 
 void key(int type, int charCode, int keyCode) {
   Command command{CommandType::Key};

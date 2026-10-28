@@ -363,6 +363,29 @@ extern "C" EMSCRIPTEN_KEEPALIVE int32_t oxsdk_document_paste_markdown(
 }
 #endif
 
+#ifdef OXSDK_E2_V24_TYPED_INSERT
+/*
+ * SPEC-M3-link-batch-v24 4.1 (finding 168): typed text through .uno:InsertText.
+ * insert_text's shape and boundary checks; the content (UTF-8, NUL, line
+ * breaks) is judged on the engine thread.  A document-level export like
+ * page_rectangles and paste_markdown -- never an editor action, so the editor
+ * ABI stays 6 (fable ruling 2) and the SDK gates the call on the manifest's
+ * `typedInsert` declaration.  The Makefile's v24 export list adds
+ * `_oxsdk_document_insert_typed_text`.
+ */
+extern "C" EMSCRIPTEN_KEEPALIVE int32_t oxsdk_document_insert_typed_text(
+    oxsdk_request_id requestId, oxsdk_document_handle documentHandle,
+    const char *utf8, std::uint32_t utf8Length) {
+  if (!validRequest(requestId) || documentHandle == 0 || !utf8 ||
+      utf8Length == 0)
+    return OXSDK_STATUS_INVALID_ARGUMENT;
+  return safeStatus([&] {
+    return probe::insertTypedText(requestId, documentHandle,
+                                  std::string(utf8, utf8Length));
+  });
+}
+#endif
+
 #ifdef OXSDK_ODS_VIEWER
 // SPEC-M4-ods-in-nextcloud 3.2.  A negative part cannot be a request; the
 // upper bound needs the part count, which only the engine thread may read.
