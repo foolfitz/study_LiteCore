@@ -90,6 +90,8 @@ def main():
     parser.add_argument('--edits', type=Path, default=EVIDENCE / 'bound-tool-edits.json')
     parser.add_argument('--cohort', type=Path, default=COHORT_DIR / 'cohort.json')
     args = parser.parse_args()
+    # Absolute: the readers run with cwd at the repository root (run-02 lost its outputs to a relative --out).
+    args.out = args.out.resolve()
     args.out.mkdir(parents=True, exist_ok=False)
     edits = json.loads(args.edits.read_text())['edits']
     declared = {e['path']: e for e in edits if e.get('status') != 'reverted'}
