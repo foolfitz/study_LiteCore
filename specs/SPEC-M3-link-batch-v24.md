@@ -341,3 +341,11 @@ page honesty（`check_m3_page_honesty.py`）在 v24 的頁面上照 K 鏈的前�
 - **A4-v24**：`four-arms-counted-01`，四臂 × 三格 × 兩瀏覽器＝24/24 PASS，零 aggregate problems；前後儀器雜湊全同，逐次 V0″ 全過。代理執行原始產物 reader 的新檔重讀，結果與初次 aggregate 逐位元組相同。
 - **界限不撤回**：完整 product-path runner 仍含既有／宣告的 FAIL、NE；兩次 `runnerExit: 1` 與 A4 wrapper 的成功分開留存。不宣稱全部 46 項 PASS。I-enter-raw-substring 與 S5 對 no-op extension 後 delete 單位的既有限制維持。
 - **K**：宿主新封包、BINDING、完整計數鏈仍待執行；功能計數不代替 K，也不前移名義出貨版本。本次測量已結束，目前無佔用 DDEV 時段。
+
+## 21. 宿主 0.2.39 與 K 前置（2026-10-29，只追加；封包與新診斷之前）
+
+擁有者指示執行下一步。實際宿主為乾淨 `0.2.38 / fff18e48`，包含後加的 Calc 深色主題修法，不再以 0.2.37 當前版。新候選 0.2.39 從這個實際 parent 建隔離 worktree，只更新宿主版本並封裝目前已驗證的 Writer v24／殼層 77；viewer v3、Calc v2 與深色主題 HTML 保留。依現有 package 工具從三頁實際 import／worker manifest 推導母體，驗 raw／gzip／zstd、封存精確 engine、新舊差異、來源身分與回退封包。K0/Z0/H5-1 的既有離線讀取與紅案在安裝前完成；若未完成，不安裝候選。
+
+讀原碼發現舊 K 的前提衝突：`chain-0.2.26.sh` 的 product-path 對照與 merge red 都把目前頁面 repoint 到 v8；`repointed_page()` 只換 worker URL／wasm pin，保留 v24 的 `typedInsert` 必要宣告檢查，而 v8 manifest 不帶該葉。這是既有紅案 (vii) 的把關，不能藉「更新 pins」移除。先用獨立、本機 Chrome 的 v24 正向對照與實際 repointed-v8 觀察確認：v24 可開啟並 typed insert；v8 預期 PAGE_BUILD_MISMATCH／無 insertText。這份診斷不計入 K，亦不修改產品或任一已凍結工具。若符合預期，舊鏈不能直接重綁執行；對照／red 的新計數處方須先定案，不能造假的 manifest 或放鬆產品把關來維持舊前提。
+
+本次只先做離線封包與上述有限診斷。實際 `litecore` 暫停、另有 fgp-nc／nc-bridge 執行中，未取得共用 DDEV 時段；J-a P5 的具名窗口／期間不開站約定仍不得由代理代填。原始文件／鎖列保持不變，安裝前另讀現況與完整明細。完成可檢視候選及 K 的實際差異／前提紀錄後，再協調時段；不重新要求已完成的 F3-hand／H7／V3-SEE。
