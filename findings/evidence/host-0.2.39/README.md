@@ -23,3 +23,35 @@ positive unmodified v24 page. Expected: v24 opens and types via uno-insert-text;
 PAGE_BUILD_MISMATCH with no insertText, including attempts after refusal. No gate bypass, synthetic
 manifest declaration, DDEV use or K credit. This is evidence for adapting the count protocol,
 not a new product gate. If never measured, the incompatibility remains a source inference only.
+
+## Offline results
+
+Candidate source `4a8b3cd23a746fa6645823be7819bab91cdbbefe`, only info.xml version differs from
+the actual 0.2.38 parent. Engine **78e841368c9b907f**, 46 files; **38 complete predecessor records
+identical**, four changed existing modules (editor app, narrow-v2 client/session, shared SDK),
+four v24 profile files added and four v22 profile files removed. Viewer/Calc page identities and
+the complete dark-theme HTML records are unchanged. Both codings decode to exact current dist.
+Archive path, external hashes and per-member delta are in `release.json` and `archive.sha256`.
+
+Existing offline K0/Z0/H5-1: **PACKAGE_HOLDS**, zero problems, **22/22** red cases. Guarded install's
+offline mode: **OFFLINE_INSTALL_READY**. The live host/source/engine remain unchanged, installed
+false; no DDEV lifecycle or database operation has run. Installer requires a recorded owner slot,
+no-site agreement and no other running DDEV project. It snapshots current protected documents
+and full lock rows, performs no global unlock, and preserves the exact predecessor rollback.
+
+The first canonical packaging succeeded in 152.93 s, but the preparation wrapper's verification
+used a non-normalized ../resources path. Its source and error are preserved before correction.
+The correction normalizes manifest-relative paths and honors the existing declared-not-loaded
+exclusion. Run 02 reuses the already-produced canonical package and verifies the complete live
+closure and every gzip/zstd decoded byte before archival; it does not assume packaging success
+means validation success. No canonical packager or frozen instrument changed.
+
+`legacy-v8-gate-01`: **LEGACY_V8_CONTROL_REFUSED** with a passing real v24 typing control. The actual
+v8 mirror expires and all three typing attempts send zero inserts. This establishes why the old
+K control/red protocol cannot be copied by just changing pins. The protocol work order is
+`handoff/WORKORDER-v24-K-control-protocol.md`; no gate bypass or replacement count has been adopted.
+
+K inventory: 18 legacy entry points, 43 static-import files, 24 pin occurrences; only the proposed
+merge BINDING site's source is in the frozen count sets. The actual old BINDING and all other
+pins remain untouched. Git deltas and every package-member difference since host 0.2.26 are
+recorded; this is explicitly a one-time inventory, not a new exhaustive-execution claim.
