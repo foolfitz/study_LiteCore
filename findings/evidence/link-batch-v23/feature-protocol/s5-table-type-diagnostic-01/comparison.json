@@ -1,0 +1,1388 @@
+{
+  "schema": 1,
+  "scope": "Existing counted failure plus fresh uncounted controls; no native execution or oracle change",
+  "readerSha256": "e39c28763eda54c98ae2aec9f8f5e89135000632794913ef066d83bd7cc80d09",
+  "reports": {
+    "s5-counted-02": {
+      "sha256": "293900a266cea90cc14c7204da42ae18e180548af2426a3470fe25ebea8ac45c",
+      "preparationOnly": false,
+      "observed": 402
+    },
+    "s5-prep-07": {
+      "sha256": "f9e4c7d069b8f760e736e3e0a43606655cdaa8a0ab20620d0c8d74f261cf7cbc",
+      "preparationOnly": true,
+      "observed": 4
+    }
+  },
+  "observations": [
+    {
+      "cohort": "s5-counted-02",
+      "browser": "chrome",
+      "caseId": "shift-Right@cell-end/type",
+      "cellSha256": "ed1a54b5d61e08d6fb7ebfaf955ccc24d77ea7438e3fd48a71a49e6e13be63b1",
+      "configSha256": "0a47d0e82fc5b8f9d43e3aa3c59fab6592510526356a1100b9e70b38e2f91552",
+      "verdict": "FAIL",
+      "inspection": {
+        "verdict": "FAIL",
+        "reason": "sequence result differs from its reference",
+        "groups": {
+          "S5": {
+            "verdict": "FAIL",
+            "reason": "sequence result differs from its reference",
+            "reference": "native",
+            "singleLineWitness": true,
+            "emptyMark": null,
+            "differingParagraph": {
+              "index": 8,
+              "candidate": "A1 cell textx",
+              "reference": ""
+            },
+            "reducedDifference": [
+              "--- candidate",
+              "+++ reference",
+              "@@ -15,3 +15,3 @@",
+              " <style:style style:name=\"P2\" style:family=\"paragraph\" style:parent-style-name=\"Standard\">",
+              "-<style:paragraph-properties style:writing-mode=\"lr-tb\"/>",
+              "+<style:text-properties officeooo:rsid=\"0002ee50\" officeooo:paragraph-rsid=\"0002ee50\"/>",
+              " </style:style>",
+              "@@ -44,6 +44,6 @@",
+              " <table:table-cell office:value-type=\"string\">",
+              "-<text:p text:style-name=\"P2\">A1 cell textx</text:p>",
+              "+<text:p text:style-name=\"Standard\"/>",
+              " </table:table-cell>",
+              " <table:table-cell office:value-type=\"string\">",
+              "-<text:p text:style-name=\"P2\">B1 cell textx#</text:p>",
+              "+<text:p text:style-name=\"P2\">x</text:p>",
+              " </table:table-cell>"
+            ]
+          }
+        }
+      },
+      "family": "type",
+      "referencePolicy": "native",
+      "nativeOrderWitness": "selection-before-x",
+      "open": {
+        "serial": 2,
+        "name": "feature-selection.odt",
+        "fixtureSha256": "ede9cb038b8edabfb8dc6c05fb46b15deacfc6f529756ca816096bfd2c18b7bc",
+        "startedAt": 4237.495000004768,
+        "finishedAt": 5137.170000016689,
+        "generation": 2,
+        "documentHandle": 1
+      },
+      "original": {
+        "sha256": "144f314b306132830dc9d39920abc2d0e298ee533bb1bcbc1989af37332f63db",
+        "paragraphs": [
+          "P1 plain paragraph above",
+          "P2 ALPHA BETA GAMMA DELTA",
+          "P3 plain paragraph below",
+          "",
+          "W1 this paragraph is deliberately long so that it wraps onto several displayed lines because it keeps adding ordinary words one after another until the first line is full and then the second line is full as well and a third line is needed to hold the rest of the sentence which goes on for a little while longer before it finally stops here",
+          "\u4e2d\u6587\u6bb5\u843d\u6e2c\u8a66\uff0c\u9019\u662f\u7b2c\u4e8c\u53e5\u3002",
+          "Heading one for the test",
+          "List item one",
+          "A1 cell text",
+          "B1 cell text",
+          "A2 cell text",
+          "B2 cell text",
+          "Final paragraph ends the document."
+        ]
+      },
+      "final": {
+        "sha256": "06ee1815537f05a264479fa2188dd09dc78b57b1a681f58364be1e4a2be91429",
+        "paragraphs": [
+          "P1 plain paragraph above",
+          "P2 ALPHA BETA GAMMA DELTA",
+          "P3 plain paragraph below",
+          "",
+          "W1 this paragraph is deliberately long so that it wraps onto several displayed lines because it keeps adding ordinary words one after another until the first line is full and then the second line is full as well and a third line is needed to hold the rest of the sentence which goes on for a little while longer before it finally stops here",
+          "\u4e2d\u6587\u6bb5\u843d\u6e2c\u8a66\uff0c\u9019\u662f\u7b2c\u4e8c\u53e5\u3002",
+          "Heading one for the test",
+          "List item one",
+          "A1 cell textx",
+          "B1 cell textx#",
+          "A2 cell text",
+          "B2 cell text",
+          "Final paragraph ends the document."
+        ]
+      },
+      "native": {
+        "before": {
+          "path": "findings/evidence/link-batch-v23/feature-protocol/s5-native/run-03/saves/shift-Right@cell-end_type-before.odt",
+          "sha256": "b309775e1cf8e6ab370716877b1715c901a8d53f3ea03ed1fd745f1c281a45b6",
+          "paragraphs": [
+            "P1 plain paragraph above",
+            "P2 ALPHA BETA GAMMA DELTA",
+            "P3 plain paragraph below",
+            "",
+            "W1 this paragraph is deliberately long so that it wraps onto several displayed lines because it keeps adding ordinary words one after another until the first line is full and then the second line is full as well and a third line is needed to hold the rest of the sentence which goes on for a little while longer before it finally stops here",
+            "\u4e2d\u6587\u6bb5\u843d\u6e2c\u8a66\uff0c\u9019\u662f\u7b2c\u4e8c\u53e5\u3002",
+            "Heading one for the test",
+            "List item one",
+            "A1 cell text",
+            "B1 cell text",
+            "A2 cell text",
+            "B2 cell text",
+            "Final paragraph ends the document."
+          ]
+        },
+        "after": {
+          "path": "findings/evidence/link-batch-v23/feature-protocol/s5-native/run-03/saves/shift-Right@cell-end_type-after.odt",
+          "sha256": "b4f798dce33dceaf2eef2d952c9876b4cd379817fae37e6a20e92cd03ac2d3d8",
+          "paragraphs": [
+            "P1 plain paragraph above",
+            "P2 ALPHA BETA GAMMA DELTA",
+            "P3 plain paragraph below",
+            "",
+            "W1 this paragraph is deliberately long so that it wraps onto several displayed lines because it keeps adding ordinary words one after another until the first line is full and then the second line is full as well and a third line is needed to hold the rest of the sentence which goes on for a little while longer before it finally stops here",
+            "\u4e2d\u6587\u6bb5\u843d\u6e2c\u8a66\uff0c\u9019\u662f\u7b2c\u4e8c\u53e5\u3002",
+            "Heading one for the test",
+            "List item one",
+            "",
+            "x",
+            "A2 cell text",
+            "B2 cell text",
+            "Final paragraph ends the document."
+          ]
+        }
+      },
+      "insertRequest": {
+        "generation": 2,
+        "at": 7396.860000014305,
+        "message": {
+          "protocolVersion": 1,
+          "kind": "request",
+          "requestId": 72,
+          "operation": "insertText",
+          "payload": {
+            "documentHandle": 1,
+            "text": "x"
+          }
+        }
+      },
+      "insertResponse": {
+        "generation": 2,
+        "at": 7482.830000013113,
+        "message": {
+          "protocolVersion": 1,
+          "kind": "response",
+          "requestId": 72,
+          "ok": true,
+          "result": {
+            "method": "paste",
+            "revision": 1
+          }
+        }
+      },
+      "extensionRequest": {
+        "generation": 2,
+        "at": 7370.270000010729,
+        "message": {
+          "protocolVersion": 1,
+          "kind": "request",
+          "requestId": 70,
+          "operation": "editorActionV2",
+          "payload": {
+            "documentHandle": 1,
+            "expectedRevision": 0,
+            "action": "move-character-right",
+            "extendSelection": true,
+            "enabled": false
+          }
+        }
+      },
+      "extensionResponse": {
+        "generation": 2,
+        "at": 7396.415000021458,
+        "message": {
+          "protocolVersion": 1,
+          "kind": "response",
+          "requestId": 70,
+          "ok": true,
+          "result": {
+            "action": "move-character-right",
+            "option": false,
+            "beforeRevision": 0,
+            "revision": 0,
+            "changed": false,
+            "completion": "documented-callback-text-selection",
+            "callbackSequenceBefore": 32,
+            "callbackSequenceAfter": 34,
+            "state": {
+              "sourceSequence": 34,
+              "documentChangeSequence": 0,
+              "documentSizeChangedCount": 0,
+              "visible": true,
+              "caret": {
+                "x": 6403,
+                "y": 4620,
+                "width": 0,
+                "height": 276
+              },
+              "selection": {
+                "observed": true,
+                "collapsed": false,
+                "start": {
+                  "x": 1418,
+                  "y": 4620,
+                  "width": 0,
+                  "height": 275
+                },
+                "end": {
+                  "x": 2537,
+                  "y": 4620,
+                  "width": 0,
+                  "height": 275
+                },
+                "rectangles": [
+                  {
+                    "x": 1418,
+                    "y": 4620,
+                    "width": 9971,
+                    "height": 275
+                  }
+                ]
+              },
+              "format": {
+                "bold": false,
+                "italic": false,
+                "underline": false,
+                "strikethrough": false
+              },
+              "formatStale": null,
+              "caretParagraph": {
+                "enabled": false,
+                "unavailable": "core-built-without-accessibility",
+                "fresh": false,
+                "observed": false,
+                "fingerprint": "0",
+                "length": -1,
+                "offset": -1,
+                "listPrefixLength": 0,
+                "text": null
+              },
+              "documentOutline": null
+            }
+          }
+        }
+      },
+      "insertionPostedAfterExtensionTerminal": true,
+      "changedParagraphs": [
+        8,
+        9
+      ]
+    },
+    {
+      "cohort": "s5-prep-07",
+      "browser": "chrome",
+      "caseId": "shift-Right@caret-mid/type",
+      "cellSha256": "57fb27b4da1d6edc7aba9f2ca933bf05ab3144cf75e8541a3b00344bb9cb4495",
+      "configSha256": "0a47d0e82fc5b8f9d43e3aa3c59fab6592510526356a1100b9e70b38e2f91552",
+      "verdict": "PASS",
+      "inspection": {
+        "verdict": "PASS",
+        "groups": {
+          "S5": {
+            "verdict": "PASS",
+            "reference": "native",
+            "singleLineWitness": true,
+            "nativeOrderWitness": "selection-before-x",
+            "nativeFallback": null,
+            "emptyMark": null,
+            "emptyMarkWitness": null,
+            "overlap": [
+              {
+                "key": "x",
+                "at": 7213.875,
+                "witness": "beforeinput",
+                "pendingMoveOrExtendKeys": [
+                  [
+                    2,
+                    68
+                  ]
+                ]
+              }
+            ],
+            "overlapping": true
+          }
+        }
+      },
+      "family": "type",
+      "referencePolicy": "native",
+      "nativeOrderWitness": "selection-before-x",
+      "open": {
+        "serial": 2,
+        "name": "feature-selection.odt",
+        "fixtureSha256": "ede9cb038b8edabfb8dc6c05fb46b15deacfc6f529756ca816096bfd2c18b7bc",
+        "startedAt": 4116.524999999907,
+        "finishedAt": 5063.895000000019,
+        "generation": 2,
+        "documentHandle": 1
+      },
+      "original": {
+        "sha256": "d432a29880983a031617e42723b981ec342b89ed37652c1f8575043e653d2640",
+        "paragraphs": [
+          "P1 plain paragraph above",
+          "P2 ALPHA BETA GAMMA DELTA",
+          "P3 plain paragraph below",
+          "",
+          "W1 this paragraph is deliberately long so that it wraps onto several displayed lines because it keeps adding ordinary words one after another until the first line is full and then the second line is full as well and a third line is needed to hold the rest of the sentence which goes on for a little while longer before it finally stops here",
+          "\u4e2d\u6587\u6bb5\u843d\u6e2c\u8a66\uff0c\u9019\u662f\u7b2c\u4e8c\u53e5\u3002",
+          "Heading one for the test",
+          "List item one",
+          "A1 cell text",
+          "B1 cell text",
+          "A2 cell text",
+          "B2 cell text",
+          "Final paragraph ends the document."
+        ]
+      },
+      "final": {
+        "sha256": "73d14ad4906af5f11b24eb51a56e5265fc5f98c50210d79404ee906ae19776bf",
+        "paragraphs": [
+          "P1 plain paragraph above",
+          "P2 ALPHA BExA GAMMA DELTA",
+          "P3 plain paragraph below",
+          "",
+          "W1 this paragraph is deliberately long so that it wraps onto several displayed lines because it keeps adding ordinary words one after another until the first line is full and then the second line is full as well and a third line is needed to hold the rest of the sentence which goes on for a little while longer before it finally stops here",
+          "\u4e2d\u6587\u6bb5\u843d\u6e2c\u8a66\uff0c\u9019\u662f\u7b2c\u4e8c\u53e5\u3002",
+          "Heading one for the test",
+          "List item one",
+          "A1 cell text",
+          "B1 cell text",
+          "A2 cell text",
+          "B2 cell text",
+          "Final paragraph ends the document."
+        ]
+      },
+      "native": {
+        "before": {
+          "path": "findings/evidence/link-batch-v23/feature-protocol/s5-native/run-03/saves/shift-Right@caret-mid_type-before.odt",
+          "sha256": "b3b9460064fabbbba02410698d39069ea159fb5d850c123b7377a08bbbdbeced",
+          "paragraphs": [
+            "P1 plain paragraph above",
+            "P2 ALPHA BETA GAMMA DELTA",
+            "P3 plain paragraph below",
+            "",
+            "W1 this paragraph is deliberately long so that it wraps onto several displayed lines because it keeps adding ordinary words one after another until the first line is full and then the second line is full as well and a third line is needed to hold the rest of the sentence which goes on for a little while longer before it finally stops here",
+            "\u4e2d\u6587\u6bb5\u843d\u6e2c\u8a66\uff0c\u9019\u662f\u7b2c\u4e8c\u53e5\u3002",
+            "Heading one for the test",
+            "List item one",
+            "A1 cell text",
+            "B1 cell text",
+            "A2 cell text",
+            "B2 cell text",
+            "Final paragraph ends the document."
+          ]
+        },
+        "after": {
+          "path": "findings/evidence/link-batch-v23/feature-protocol/s5-native/run-03/saves/shift-Right@caret-mid_type-after.odt",
+          "sha256": "439bac036dcf307c42df1d89beca0a45b7ca7312ddac8255706afa49284fffb1",
+          "paragraphs": [
+            "P1 plain paragraph above",
+            "P2 ALPHA BExA GAMMA DELTA",
+            "P3 plain paragraph below",
+            "",
+            "W1 this paragraph is deliberately long so that it wraps onto several displayed lines because it keeps adding ordinary words one after another until the first line is full and then the second line is full as well and a third line is needed to hold the rest of the sentence which goes on for a little while longer before it finally stops here",
+            "\u4e2d\u6587\u6bb5\u843d\u6e2c\u8a66\uff0c\u9019\u662f\u7b2c\u4e8c\u53e5\u3002",
+            "Heading one for the test",
+            "List item one",
+            "A1 cell text",
+            "B1 cell text",
+            "A2 cell text",
+            "B2 cell text",
+            "Final paragraph ends the document."
+          ]
+        }
+      },
+      "insertRequest": {
+        "generation": 2,
+        "at": 7248.929999999935,
+        "message": {
+          "protocolVersion": 1,
+          "kind": "request",
+          "requestId": 70,
+          "operation": "insertText",
+          "payload": {
+            "documentHandle": 1,
+            "text": "x"
+          }
+        }
+      },
+      "insertResponse": {
+        "generation": 2,
+        "at": 7306.484999999986,
+        "message": {
+          "protocolVersion": 1,
+          "kind": "response",
+          "requestId": 70,
+          "ok": true,
+          "result": {
+            "method": "paste",
+            "revision": 1
+          }
+        }
+      },
+      "extensionRequest": {
+        "generation": 2,
+        "at": 7212.064999999944,
+        "message": {
+          "protocolVersion": 1,
+          "kind": "request",
+          "requestId": 68,
+          "operation": "editorActionV2",
+          "payload": {
+            "documentHandle": 1,
+            "expectedRevision": 0,
+            "action": "move-character-right",
+            "extendSelection": true,
+            "enabled": false
+          }
+        }
+      },
+      "extensionResponse": {
+        "generation": 2,
+        "at": 7248.6549999999115,
+        "message": {
+          "protocolVersion": 1,
+          "kind": "response",
+          "requestId": 68,
+          "ok": true,
+          "result": {
+            "action": "move-character-right",
+            "option": false,
+            "beforeRevision": 0,
+            "revision": 0,
+            "changed": false,
+            "completion": "documented-callback-text-selection",
+            "callbackSequenceBefore": 31,
+            "callbackSequenceAfter": 35,
+            "state": {
+              "sourceSequence": 35,
+              "documentChangeSequence": 0,
+              "documentSizeChangedCount": 0,
+              "visible": true,
+              "caret": {
+                "x": 2999,
+                "y": 1694,
+                "width": 0,
+                "height": 276
+              },
+              "selection": {
+                "observed": true,
+                "collapsed": false,
+                "start": {
+                  "x": 2871,
+                  "y": 1694,
+                  "width": 0,
+                  "height": 275
+                },
+                "end": {
+                  "x": 2999,
+                  "y": 1694,
+                  "width": 0,
+                  "height": 275
+                },
+                "rectangles": [
+                  {
+                    "x": 2871,
+                    "y": 1694,
+                    "width": 128,
+                    "height": 275
+                  }
+                ]
+              },
+              "format": {
+                "bold": false,
+                "italic": false,
+                "underline": false,
+                "strikethrough": false
+              },
+              "formatStale": null,
+              "caretParagraph": {
+                "enabled": false,
+                "unavailable": "core-built-without-accessibility",
+                "fresh": false,
+                "observed": false,
+                "fingerprint": "0",
+                "length": -1,
+                "offset": -1,
+                "listPrefixLength": 0,
+                "text": null
+              },
+              "documentOutline": null
+            }
+          }
+        }
+      },
+      "insertionPostedAfterExtensionTerminal": true,
+      "changedParagraphs": [
+        1
+      ]
+    },
+    {
+      "cohort": "s5-prep-07",
+      "browser": "chrome",
+      "caseId": "shift-Right@cell-end/type",
+      "cellSha256": "879584f436113337989d0c9c17a314d2a95788193a5820cd10bc802ad7ee1c91",
+      "configSha256": "0a47d0e82fc5b8f9d43e3aa3c59fab6592510526356a1100b9e70b38e2f91552",
+      "verdict": "FAIL",
+      "inspection": {
+        "verdict": "FAIL",
+        "reason": "sequence result differs from its reference",
+        "groups": {
+          "S5": {
+            "verdict": "FAIL",
+            "reason": "sequence result differs from its reference",
+            "reference": "native",
+            "singleLineWitness": true,
+            "emptyMark": null,
+            "differingParagraph": {
+              "index": 8,
+              "candidate": "A1 cell textx",
+              "reference": ""
+            },
+            "reducedDifference": [
+              "--- candidate",
+              "+++ reference",
+              "@@ -15,3 +15,3 @@",
+              " <style:style style:name=\"P2\" style:family=\"paragraph\" style:parent-style-name=\"Standard\">",
+              "-<style:paragraph-properties style:writing-mode=\"lr-tb\"/>",
+              "+<style:text-properties officeooo:rsid=\"0002ee50\" officeooo:paragraph-rsid=\"0002ee50\"/>",
+              " </style:style>",
+              "@@ -44,6 +44,6 @@",
+              " <table:table-cell office:value-type=\"string\">",
+              "-<text:p text:style-name=\"P2\">A1 cell textx</text:p>",
+              "+<text:p text:style-name=\"Standard\"/>",
+              " </table:table-cell>",
+              " <table:table-cell office:value-type=\"string\">",
+              "-<text:p text:style-name=\"P2\">B1 cell textx#</text:p>",
+              "+<text:p text:style-name=\"P2\">x</text:p>",
+              " </table:table-cell>"
+            ]
+          }
+        }
+      },
+      "family": "type",
+      "referencePolicy": "native",
+      "nativeOrderWitness": "selection-before-x",
+      "open": {
+        "serial": 2,
+        "name": "feature-selection.odt",
+        "fixtureSha256": "ede9cb038b8edabfb8dc6c05fb46b15deacfc6f529756ca816096bfd2c18b7bc",
+        "startedAt": 4218.119999999995,
+        "finishedAt": 5114.339999999967,
+        "generation": 2,
+        "documentHandle": 1
+      },
+      "original": {
+        "sha256": "30e545723f1fb3d560ed344fd563a7058a0ce1a8b4ac8db0e09ab1d3bf0bad85",
+        "paragraphs": [
+          "P1 plain paragraph above",
+          "P2 ALPHA BETA GAMMA DELTA",
+          "P3 plain paragraph below",
+          "",
+          "W1 this paragraph is deliberately long so that it wraps onto several displayed lines because it keeps adding ordinary words one after another until the first line is full and then the second line is full as well and a third line is needed to hold the rest of the sentence which goes on for a little while longer before it finally stops here",
+          "\u4e2d\u6587\u6bb5\u843d\u6e2c\u8a66\uff0c\u9019\u662f\u7b2c\u4e8c\u53e5\u3002",
+          "Heading one for the test",
+          "List item one",
+          "A1 cell text",
+          "B1 cell text",
+          "A2 cell text",
+          "B2 cell text",
+          "Final paragraph ends the document."
+        ]
+      },
+      "final": {
+        "sha256": "3a9355a704ce3ebcb25b0969bf0bcba8821c326fb1fdeb76981e7f80b0f5c57c",
+        "paragraphs": [
+          "P1 plain paragraph above",
+          "P2 ALPHA BETA GAMMA DELTA",
+          "P3 plain paragraph below",
+          "",
+          "W1 this paragraph is deliberately long so that it wraps onto several displayed lines because it keeps adding ordinary words one after another until the first line is full and then the second line is full as well and a third line is needed to hold the rest of the sentence which goes on for a little while longer before it finally stops here",
+          "\u4e2d\u6587\u6bb5\u843d\u6e2c\u8a66\uff0c\u9019\u662f\u7b2c\u4e8c\u53e5\u3002",
+          "Heading one for the test",
+          "List item one",
+          "A1 cell textx",
+          "B1 cell textx#",
+          "A2 cell text",
+          "B2 cell text",
+          "Final paragraph ends the document."
+        ]
+      },
+      "native": {
+        "before": {
+          "path": "findings/evidence/link-batch-v23/feature-protocol/s5-native/run-03/saves/shift-Right@cell-end_type-before.odt",
+          "sha256": "b309775e1cf8e6ab370716877b1715c901a8d53f3ea03ed1fd745f1c281a45b6",
+          "paragraphs": [
+            "P1 plain paragraph above",
+            "P2 ALPHA BETA GAMMA DELTA",
+            "P3 plain paragraph below",
+            "",
+            "W1 this paragraph is deliberately long so that it wraps onto several displayed lines because it keeps adding ordinary words one after another until the first line is full and then the second line is full as well and a third line is needed to hold the rest of the sentence which goes on for a little while longer before it finally stops here",
+            "\u4e2d\u6587\u6bb5\u843d\u6e2c\u8a66\uff0c\u9019\u662f\u7b2c\u4e8c\u53e5\u3002",
+            "Heading one for the test",
+            "List item one",
+            "A1 cell text",
+            "B1 cell text",
+            "A2 cell text",
+            "B2 cell text",
+            "Final paragraph ends the document."
+          ]
+        },
+        "after": {
+          "path": "findings/evidence/link-batch-v23/feature-protocol/s5-native/run-03/saves/shift-Right@cell-end_type-after.odt",
+          "sha256": "b4f798dce33dceaf2eef2d952c9876b4cd379817fae37e6a20e92cd03ac2d3d8",
+          "paragraphs": [
+            "P1 plain paragraph above",
+            "P2 ALPHA BETA GAMMA DELTA",
+            "P3 plain paragraph below",
+            "",
+            "W1 this paragraph is deliberately long so that it wraps onto several displayed lines because it keeps adding ordinary words one after another until the first line is full and then the second line is full as well and a third line is needed to hold the rest of the sentence which goes on for a little while longer before it finally stops here",
+            "\u4e2d\u6587\u6bb5\u843d\u6e2c\u8a66\uff0c\u9019\u662f\u7b2c\u4e8c\u53e5\u3002",
+            "Heading one for the test",
+            "List item one",
+            "",
+            "x",
+            "A2 cell text",
+            "B2 cell text",
+            "Final paragraph ends the document."
+          ]
+        }
+      },
+      "insertRequest": {
+        "generation": 2,
+        "at": 7372.614999999991,
+        "message": {
+          "protocolVersion": 1,
+          "kind": "request",
+          "requestId": 72,
+          "operation": "insertText",
+          "payload": {
+            "documentHandle": 1,
+            "text": "x"
+          }
+        }
+      },
+      "insertResponse": {
+        "generation": 2,
+        "at": 7462.064999999944,
+        "message": {
+          "protocolVersion": 1,
+          "kind": "response",
+          "requestId": 72,
+          "ok": true,
+          "result": {
+            "method": "paste",
+            "revision": 1
+          }
+        }
+      },
+      "extensionRequest": {
+        "generation": 2,
+        "at": 7346.125,
+        "message": {
+          "protocolVersion": 1,
+          "kind": "request",
+          "requestId": 70,
+          "operation": "editorActionV2",
+          "payload": {
+            "documentHandle": 1,
+            "expectedRevision": 0,
+            "action": "move-character-right",
+            "extendSelection": true,
+            "enabled": false
+          }
+        }
+      },
+      "extensionResponse": {
+        "generation": 2,
+        "at": 7372.280000000028,
+        "message": {
+          "protocolVersion": 1,
+          "kind": "response",
+          "requestId": 70,
+          "ok": true,
+          "result": {
+            "action": "move-character-right",
+            "option": false,
+            "beforeRevision": 0,
+            "revision": 0,
+            "changed": false,
+            "completion": "documented-callback-text-selection",
+            "callbackSequenceBefore": 32,
+            "callbackSequenceAfter": 34,
+            "state": {
+              "sourceSequence": 34,
+              "documentChangeSequence": 0,
+              "documentSizeChangedCount": 0,
+              "visible": true,
+              "caret": {
+                "x": 6403,
+                "y": 4620,
+                "width": 0,
+                "height": 276
+              },
+              "selection": {
+                "observed": true,
+                "collapsed": false,
+                "start": {
+                  "x": 1418,
+                  "y": 4620,
+                  "width": 0,
+                  "height": 275
+                },
+                "end": {
+                  "x": 2537,
+                  "y": 4620,
+                  "width": 0,
+                  "height": 275
+                },
+                "rectangles": [
+                  {
+                    "x": 1418,
+                    "y": 4620,
+                    "width": 9971,
+                    "height": 275
+                  }
+                ]
+              },
+              "format": {
+                "bold": false,
+                "italic": false,
+                "underline": false,
+                "strikethrough": false
+              },
+              "formatStale": null,
+              "caretParagraph": {
+                "enabled": false,
+                "unavailable": "core-built-without-accessibility",
+                "fresh": false,
+                "observed": false,
+                "fingerprint": "0",
+                "length": -1,
+                "offset": -1,
+                "listPrefixLength": 0,
+                "text": null
+              },
+              "documentOutline": null
+            }
+          }
+        }
+      },
+      "insertionPostedAfterExtensionTerminal": true,
+      "changedParagraphs": [
+        8,
+        9
+      ]
+    },
+    {
+      "cohort": "s5-prep-07",
+      "browser": "firefox",
+      "caseId": "shift-Right@caret-mid/type",
+      "cellSha256": "ab340b95df10f197fdfc3684f0ef218530750e3b5f02d871f0d6c9be50738481",
+      "configSha256": "0a47d0e82fc5b8f9d43e3aa3c59fab6592510526356a1100b9e70b38e2f91552",
+      "verdict": "PASS",
+      "inspection": {
+        "verdict": "PASS",
+        "groups": {
+          "S5": {
+            "verdict": "PASS",
+            "reference": "native",
+            "singleLineWitness": true,
+            "nativeOrderWitness": "selection-before-x",
+            "nativeFallback": null,
+            "emptyMark": null,
+            "emptyMarkWitness": null,
+            "overlap": [
+              {
+                "key": "x",
+                "at": 8929.88,
+                "witness": "beforeinput",
+                "pendingMoveOrExtendKeys": [
+                  [
+                    2,
+                    67
+                  ]
+                ]
+              }
+            ],
+            "overlapping": true
+          }
+        }
+      },
+      "family": "type",
+      "referencePolicy": "native",
+      "nativeOrderWitness": "selection-before-x",
+      "open": {
+        "serial": 2,
+        "name": "feature-selection.odt",
+        "fixtureSha256": "ede9cb038b8edabfb8dc6c05fb46b15deacfc6f529756ca816096bfd2c18b7bc",
+        "startedAt": 4852.3,
+        "finishedAt": 6635.32,
+        "generation": 2,
+        "documentHandle": 1
+      },
+      "original": {
+        "sha256": "e21e7a0254e607e74d1f75daa9339c144819610aefe881c7fb7f768466082045",
+        "paragraphs": [
+          "P1 plain paragraph above",
+          "P2 ALPHA BETA GAMMA DELTA",
+          "P3 plain paragraph below",
+          "",
+          "W1 this paragraph is deliberately long so that it wraps onto several displayed lines because it keeps adding ordinary words one after another until the first line is full and then the second line is full as well and a third line is needed to hold the rest of the sentence which goes on for a little while longer before it finally stops here",
+          "\u4e2d\u6587\u6bb5\u843d\u6e2c\u8a66\uff0c\u9019\u662f\u7b2c\u4e8c\u53e5\u3002",
+          "Heading one for the test",
+          "List item one",
+          "A1 cell text",
+          "B1 cell text",
+          "A2 cell text",
+          "B2 cell text",
+          "Final paragraph ends the document."
+        ]
+      },
+      "final": {
+        "sha256": "7badc04e7e351384b3d86fac225cac5278e6dd4363f0860dcd1260528429608e",
+        "paragraphs": [
+          "P1 plain paragraph above",
+          "P2 ALPHA BExA GAMMA DELTA",
+          "P3 plain paragraph below",
+          "",
+          "W1 this paragraph is deliberately long so that it wraps onto several displayed lines because it keeps adding ordinary words one after another until the first line is full and then the second line is full as well and a third line is needed to hold the rest of the sentence which goes on for a little while longer before it finally stops here",
+          "\u4e2d\u6587\u6bb5\u843d\u6e2c\u8a66\uff0c\u9019\u662f\u7b2c\u4e8c\u53e5\u3002",
+          "Heading one for the test",
+          "List item one",
+          "A1 cell text",
+          "B1 cell text",
+          "A2 cell text",
+          "B2 cell text",
+          "Final paragraph ends the document."
+        ]
+      },
+      "native": {
+        "before": {
+          "path": "findings/evidence/link-batch-v23/feature-protocol/s5-native/run-03/saves/shift-Right@caret-mid_type-before.odt",
+          "sha256": "b3b9460064fabbbba02410698d39069ea159fb5d850c123b7377a08bbbdbeced",
+          "paragraphs": [
+            "P1 plain paragraph above",
+            "P2 ALPHA BETA GAMMA DELTA",
+            "P3 plain paragraph below",
+            "",
+            "W1 this paragraph is deliberately long so that it wraps onto several displayed lines because it keeps adding ordinary words one after another until the first line is full and then the second line is full as well and a third line is needed to hold the rest of the sentence which goes on for a little while longer before it finally stops here",
+            "\u4e2d\u6587\u6bb5\u843d\u6e2c\u8a66\uff0c\u9019\u662f\u7b2c\u4e8c\u53e5\u3002",
+            "Heading one for the test",
+            "List item one",
+            "A1 cell text",
+            "B1 cell text",
+            "A2 cell text",
+            "B2 cell text",
+            "Final paragraph ends the document."
+          ]
+        },
+        "after": {
+          "path": "findings/evidence/link-batch-v23/feature-protocol/s5-native/run-03/saves/shift-Right@caret-mid_type-after.odt",
+          "sha256": "439bac036dcf307c42df1d89beca0a45b7ca7312ddac8255706afa49284fffb1",
+          "paragraphs": [
+            "P1 plain paragraph above",
+            "P2 ALPHA BExA GAMMA DELTA",
+            "P3 plain paragraph below",
+            "",
+            "W1 this paragraph is deliberately long so that it wraps onto several displayed lines because it keeps adding ordinary words one after another until the first line is full and then the second line is full as well and a third line is needed to hold the rest of the sentence which goes on for a little while longer before it finally stops here",
+            "\u4e2d\u6587\u6bb5\u843d\u6e2c\u8a66\uff0c\u9019\u662f\u7b2c\u4e8c\u53e5\u3002",
+            "Heading one for the test",
+            "List item one",
+            "A1 cell text",
+            "B1 cell text",
+            "A2 cell text",
+            "B2 cell text",
+            "Final paragraph ends the document."
+          ]
+        }
+      },
+      "insertRequest": {
+        "generation": 2,
+        "at": 8949.16,
+        "message": {
+          "protocolVersion": 1,
+          "kind": "request",
+          "requestId": 69,
+          "operation": "insertText",
+          "payload": {
+            "documentHandle": 1,
+            "text": "x"
+          }
+        }
+      },
+      "insertResponse": {
+        "generation": 2,
+        "at": 9006.02,
+        "message": {
+          "protocolVersion": 1,
+          "kind": "response",
+          "requestId": 69,
+          "ok": true,
+          "result": {
+            "method": "paste",
+            "revision": 1
+          }
+        }
+      },
+      "extensionRequest": {
+        "generation": 2,
+        "at": 8927.14,
+        "message": {
+          "protocolVersion": 1,
+          "kind": "request",
+          "requestId": 67,
+          "operation": "editorActionV2",
+          "payload": {
+            "documentHandle": 1,
+            "expectedRevision": 0,
+            "action": "move-character-right",
+            "extendSelection": true,
+            "enabled": false
+          }
+        }
+      },
+      "extensionResponse": {
+        "generation": 2,
+        "at": 8948.92,
+        "message": {
+          "protocolVersion": 1,
+          "kind": "response",
+          "requestId": 67,
+          "ok": true,
+          "result": {
+            "action": "move-character-right",
+            "option": false,
+            "beforeRevision": 0,
+            "revision": 0,
+            "changed": false,
+            "completion": "documented-callback-text-selection",
+            "callbackSequenceBefore": 31,
+            "callbackSequenceAfter": 35,
+            "state": {
+              "sourceSequence": 35,
+              "documentChangeSequence": 0,
+              "documentSizeChangedCount": 0,
+              "visible": true,
+              "caret": {
+                "x": 2999,
+                "y": 1694,
+                "width": 0,
+                "height": 276
+              },
+              "selection": {
+                "observed": true,
+                "collapsed": false,
+                "start": {
+                  "x": 2871,
+                  "y": 1694,
+                  "width": 0,
+                  "height": 275
+                },
+                "end": {
+                  "x": 2999,
+                  "y": 1694,
+                  "width": 0,
+                  "height": 275
+                },
+                "rectangles": [
+                  {
+                    "x": 2871,
+                    "y": 1694,
+                    "width": 128,
+                    "height": 275
+                  }
+                ]
+              },
+              "format": {
+                "bold": false,
+                "italic": false,
+                "underline": false,
+                "strikethrough": false
+              },
+              "formatStale": null,
+              "caretParagraph": {
+                "enabled": false,
+                "unavailable": "core-built-without-accessibility",
+                "fresh": false,
+                "observed": false,
+                "fingerprint": "0",
+                "length": -1,
+                "offset": -1,
+                "listPrefixLength": 0,
+                "text": null
+              },
+              "documentOutline": null
+            }
+          }
+        }
+      },
+      "insertionPostedAfterExtensionTerminal": true,
+      "changedParagraphs": [
+        1
+      ]
+    },
+    {
+      "cohort": "s5-prep-07",
+      "browser": "firefox",
+      "caseId": "shift-Right@cell-end/type",
+      "cellSha256": "a8c8461f26eb2477b8610ef061e3f86ae3845e39d148b82b062c38cb452b0d64",
+      "configSha256": "0a47d0e82fc5b8f9d43e3aa3c59fab6592510526356a1100b9e70b38e2f91552",
+      "verdict": "FAIL",
+      "inspection": {
+        "verdict": "FAIL",
+        "reason": "sequence result differs from its reference",
+        "groups": {
+          "S5": {
+            "verdict": "FAIL",
+            "reason": "sequence result differs from its reference",
+            "reference": "native",
+            "singleLineWitness": true,
+            "emptyMark": null,
+            "differingParagraph": {
+              "index": 8,
+              "candidate": "A1 cell textx",
+              "reference": ""
+            },
+            "reducedDifference": [
+              "--- candidate",
+              "+++ reference",
+              "@@ -15,3 +15,3 @@",
+              " <style:style style:name=\"P2\" style:family=\"paragraph\" style:parent-style-name=\"Standard\">",
+              "-<style:paragraph-properties style:writing-mode=\"lr-tb\"/>",
+              "+<style:text-properties officeooo:rsid=\"0002ee50\" officeooo:paragraph-rsid=\"0002ee50\"/>",
+              " </style:style>",
+              "@@ -44,6 +44,6 @@",
+              " <table:table-cell office:value-type=\"string\">",
+              "-<text:p text:style-name=\"P2\">A1 cell textx</text:p>",
+              "+<text:p text:style-name=\"Standard\"/>",
+              " </table:table-cell>",
+              " <table:table-cell office:value-type=\"string\">",
+              "-<text:p text:style-name=\"P2\">B1 cell textx#</text:p>",
+              "+<text:p text:style-name=\"P2\">x</text:p>",
+              " </table:table-cell>"
+            ]
+          }
+        }
+      },
+      "family": "type",
+      "referencePolicy": "native",
+      "nativeOrderWitness": "selection-before-x",
+      "open": {
+        "serial": 2,
+        "name": "feature-selection.odt",
+        "fixtureSha256": "ede9cb038b8edabfb8dc6c05fb46b15deacfc6f529756ca816096bfd2c18b7bc",
+        "startedAt": 4823.56,
+        "finishedAt": 6600.14,
+        "generation": 2,
+        "documentHandle": 1
+      },
+      "original": {
+        "sha256": "1f816cb86975d3b5f3e85e1d60f3e3bf236f3cfd189aeff44be29ac8a44a6a8c",
+        "paragraphs": [
+          "P1 plain paragraph above",
+          "P2 ALPHA BETA GAMMA DELTA",
+          "P3 plain paragraph below",
+          "",
+          "W1 this paragraph is deliberately long so that it wraps onto several displayed lines because it keeps adding ordinary words one after another until the first line is full and then the second line is full as well and a third line is needed to hold the rest of the sentence which goes on for a little while longer before it finally stops here",
+          "\u4e2d\u6587\u6bb5\u843d\u6e2c\u8a66\uff0c\u9019\u662f\u7b2c\u4e8c\u53e5\u3002",
+          "Heading one for the test",
+          "List item one",
+          "A1 cell text",
+          "B1 cell text",
+          "A2 cell text",
+          "B2 cell text",
+          "Final paragraph ends the document."
+        ]
+      },
+      "final": {
+        "sha256": "9320dabb8f022e57024bbd432bc4aa2aec15ea7fd7af7d37ad2a14bd2202aa23",
+        "paragraphs": [
+          "P1 plain paragraph above",
+          "P2 ALPHA BETA GAMMA DELTA",
+          "P3 plain paragraph below",
+          "",
+          "W1 this paragraph is deliberately long so that it wraps onto several displayed lines because it keeps adding ordinary words one after another until the first line is full and then the second line is full as well and a third line is needed to hold the rest of the sentence which goes on for a little while longer before it finally stops here",
+          "\u4e2d\u6587\u6bb5\u843d\u6e2c\u8a66\uff0c\u9019\u662f\u7b2c\u4e8c\u53e5\u3002",
+          "Heading one for the test",
+          "List item one",
+          "A1 cell textx",
+          "B1 cell textx#",
+          "A2 cell text",
+          "B2 cell text",
+          "Final paragraph ends the document."
+        ]
+      },
+      "native": {
+        "before": {
+          "path": "findings/evidence/link-batch-v23/feature-protocol/s5-native/run-03/saves/shift-Right@cell-end_type-before.odt",
+          "sha256": "b309775e1cf8e6ab370716877b1715c901a8d53f3ea03ed1fd745f1c281a45b6",
+          "paragraphs": [
+            "P1 plain paragraph above",
+            "P2 ALPHA BETA GAMMA DELTA",
+            "P3 plain paragraph below",
+            "",
+            "W1 this paragraph is deliberately long so that it wraps onto several displayed lines because it keeps adding ordinary words one after another until the first line is full and then the second line is full as well and a third line is needed to hold the rest of the sentence which goes on for a little while longer before it finally stops here",
+            "\u4e2d\u6587\u6bb5\u843d\u6e2c\u8a66\uff0c\u9019\u662f\u7b2c\u4e8c\u53e5\u3002",
+            "Heading one for the test",
+            "List item one",
+            "A1 cell text",
+            "B1 cell text",
+            "A2 cell text",
+            "B2 cell text",
+            "Final paragraph ends the document."
+          ]
+        },
+        "after": {
+          "path": "findings/evidence/link-batch-v23/feature-protocol/s5-native/run-03/saves/shift-Right@cell-end_type-after.odt",
+          "sha256": "b4f798dce33dceaf2eef2d952c9876b4cd379817fae37e6a20e92cd03ac2d3d8",
+          "paragraphs": [
+            "P1 plain paragraph above",
+            "P2 ALPHA BETA GAMMA DELTA",
+            "P3 plain paragraph below",
+            "",
+            "W1 this paragraph is deliberately long so that it wraps onto several displayed lines because it keeps adding ordinary words one after another until the first line is full and then the second line is full as well and a third line is needed to hold the rest of the sentence which goes on for a little while longer before it finally stops here",
+            "\u4e2d\u6587\u6bb5\u843d\u6e2c\u8a66\uff0c\u9019\u662f\u7b2c\u4e8c\u53e5\u3002",
+            "Heading one for the test",
+            "List item one",
+            "",
+            "x",
+            "A2 cell text",
+            "B2 cell text",
+            "Final paragraph ends the document."
+          ]
+        }
+      },
+      "insertRequest": {
+        "generation": 2,
+        "at": 9014.26,
+        "message": {
+          "protocolVersion": 1,
+          "kind": "request",
+          "requestId": 71,
+          "operation": "insertText",
+          "payload": {
+            "documentHandle": 1,
+            "text": "x"
+          }
+        }
+      },
+      "insertResponse": {
+        "generation": 2,
+        "at": 9089.48,
+        "message": {
+          "protocolVersion": 1,
+          "kind": "response",
+          "requestId": 71,
+          "ok": true,
+          "result": {
+            "method": "paste",
+            "revision": 1
+          }
+        }
+      },
+      "extensionRequest": {
+        "generation": 2,
+        "at": 8991.36,
+        "message": {
+          "protocolVersion": 1,
+          "kind": "request",
+          "requestId": 69,
+          "operation": "editorActionV2",
+          "payload": {
+            "documentHandle": 1,
+            "expectedRevision": 0,
+            "action": "move-character-right",
+            "extendSelection": true,
+            "enabled": false
+          }
+        }
+      },
+      "extensionResponse": {
+        "generation": 2,
+        "at": 9013.98,
+        "message": {
+          "protocolVersion": 1,
+          "kind": "response",
+          "requestId": 69,
+          "ok": true,
+          "result": {
+            "action": "move-character-right",
+            "option": false,
+            "beforeRevision": 0,
+            "revision": 0,
+            "changed": false,
+            "completion": "documented-callback-text-selection",
+            "callbackSequenceBefore": 32,
+            "callbackSequenceAfter": 34,
+            "state": {
+              "sourceSequence": 34,
+              "documentChangeSequence": 0,
+              "documentSizeChangedCount": 0,
+              "visible": true,
+              "caret": {
+                "x": 6403,
+                "y": 4620,
+                "width": 0,
+                "height": 276
+              },
+              "selection": {
+                "observed": true,
+                "collapsed": false,
+                "start": {
+                  "x": 1418,
+                  "y": 4620,
+                  "width": 0,
+                  "height": 275
+                },
+                "end": {
+                  "x": 2537,
+                  "y": 4620,
+                  "width": 0,
+                  "height": 275
+                },
+                "rectangles": [
+                  {
+                    "x": 1418,
+                    "y": 4620,
+                    "width": 9971,
+                    "height": 275
+                  }
+                ]
+              },
+              "format": {
+                "bold": false,
+                "italic": false,
+                "underline": false,
+                "strikethrough": false
+              },
+              "formatStale": null,
+              "caretParagraph": {
+                "enabled": false,
+                "unavailable": "core-built-without-accessibility",
+                "fresh": false,
+                "observed": false,
+                "fingerprint": "0",
+                "length": -1,
+                "offset": -1,
+                "listPrefixLength": 0,
+                "text": null
+              },
+              "documentOutline": null
+            }
+          }
+        }
+      },
+      "insertionPostedAfterExtensionTerminal": true,
+      "changedParagraphs": [
+        8,
+        9
+      ]
+    }
+  ],
+  "sourceReadings": [
+    {
+      "path": "wasm_sdk_probe/src/probe_engine.cpp",
+      "sha256": "4c597b9240460b81df8d755ddbe8bd385b0e1eb4ae7b404e66655b747f6ef946",
+      "anchors": [
+        {
+          "text": "void handleInsertText(",
+          "line": 3788
+        },
+        {
+          "text": "gState.document->pClass->paste(",
+          "line": 3793
+        }
+      ]
+    },
+    {
+      "path": "wasm_sdk_probe/sdk/sdk-worker.js",
+      "sha256": "0bed22bdb979138f1f0c23bd41bc05896e14f69e29fba10d4e42ccbcda5e1de9",
+      "anchors": [
+        {
+          "text": "case \"insertText\":",
+          "line": 1477
+        }
+      ]
+    },
+    {
+      "path": "libreoffice-26-8/desktop/source/lib/init.cxx",
+      "sha256": "21cd0c0f38ed49a2d085416425974151206919bfcfe8b3d557b2097451eb4b8e",
+      "anchors": [
+        {
+          "text": "static bool doc_paste(LibreOfficeKitDocument* pThis, const char* pMimeType, const char* pData, size_t nSize)",
+          "line": 6165
+        }
+      ]
+    },
+    {
+      "path": "libreoffice-26-8/desktop/source/lib/lokclipboard.cxx",
+      "sha256": "a597c8fc6d2ce337ca63935c3819ec95689a32fca47a89e46d64ee5f77e76897",
+      "anchors": [
+        {
+          "text": "LOKTransferable::LOKTransferable(const size_t",
+          "line": 192
+        },
+        {
+          "text": "aContent <<= OUString(pInStreams[i], pInSizes[i], RTL_TEXTENCODING_UTF8);",
+          "line": 204
+        }
+      ]
+    },
+    {
+      "path": "libreoffice-26-8/sw/source/uibase/dochdl/swdtflvr.cxx",
+      "sha256": "78895e81d445a0c60a1793e91a90598718072d4c41d43fc6c7287fdd464059ee",
+      "anchors": [
+        {
+          "text": "!rSh.IsTableMode() && rSh.HasSelection()",
+          "line": 1775
+        },
+        {
+          "text": "sData.getLength() * sizeof( sal_Unicode )",
+          "line": 2220
+        },
+        {
+          "text": "aAOpt.SetCharSet( RTL_TEXTENCODING_UCS2 );",
+          "line": 2242
+        }
+      ]
+    },
+    {
+      "path": "libreoffice-26-8/sw/source/filter/basflt/shellio.cxx",
+      "sha256": "702ce4064eea861f83d03fe6f09c7d0c6e998c24c3ed541cf36f833258550e48",
+      "anchors": [
+        {
+          "text": "void SwAsciiOptions::Reset()",
+          "line": 82
+        },
+        {
+          "text": "nError = po->Read(*mxDoc, msBaseURL, *pPam, maFileName);",
+          "line": 212
+        },
+        {
+          "text": "pPam = pPam->GetNext();",
+          "line": 324
+        }
+      ]
+    },
+    {
+      "path": "libreoffice-26-8/sw/source/filter/ascii/parasc.cxx",
+      "sha256": "2a4d959a52789fa2d5475925904c7f16c4d3716a701cfcbc5d0fca1928a763e1",
+      "anchors": [
+        {
+          "text": "m_aOption.ResetASCIIOpts();",
+          "line": 102
+        },
+        {
+          "text": "// Found control char, replace with '#'",
+          "line": 463
+        }
+      ]
+    }
+  ],
+  "coreSourceHead": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+  "sourceInference": "Table paste skips selected-content deletion. A UTF-16 stream is reused for multiple PaMs; ASCII options reset after each read. A later read using a single-byte charset could turn the NUL after x into #. This is consistent with the saves, not a runtime trace or a native-paste measurement."
+}
