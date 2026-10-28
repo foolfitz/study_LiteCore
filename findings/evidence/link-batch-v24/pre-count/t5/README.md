@@ -12,3 +12,16 @@ Both arms use the v24 harness page and plan, the readiness check, a fresh docume
 A repetition PASSes only if: the original save equals the fixture; every paragraph other than A1/B1 is unchanged; the sequence window's non-modifier keydowns are exactly `ArrowRight`+Shift then `x` (typed) or `v`+Ctrl (paste), all trusted; exactly one `insertText` with text `x` and the row's wire above; and A1/B1 as above. T5 holds if all 12 repetitions PASS and the plan did not drift. The typed arm is also read by the v24 S5 reader (`s5Inspection`), as a cross-check, not as T5's rule.
 
 The paste arm is the control of the fix's scope: it shows the paste route is still Writer's paste (append, plus 169), i.e. v24 changed typing, not pasting (ruling 1: the fix is not option B).
+
+## Run 01 (2026-10-28 13:34 +0800) — results
+
+`run-01/` (raw cells as `.json.gz`, index `../t5-run-01-storage-index.json`), runner exit 0, `T5_HOLDS`; pre-run no refusal, foreign CPU ok, no plan drift.
+
+| Browser | typed ×3 | paste ×3 |
+|---|---|---|
+| Chrome | PASS PASS PASS — A1 `""`, B1 `"x"` | PASS PASS PASS — A1 `"A1 cell textx"`, B1 `"B1 cell textx#"` |
+| Firefox | PASS PASS PASS — A1 `""`, B1 `"x"` | PASS PASS PASS — A1 `"A1 cell textx"`, B1 `"B1 cell textx#"` |
+
+Every repetition: trusted keydowns exactly `ArrowRight`+Shift then `x` (typed) or `v`+Ctrl (paste); one `insertText` of `x`; typed → `route`/`method` `uno-insert-text`, `completion` `uno-command-result`; paste → `route`/`method` `paste`, no `completion`; clipboard written and read back equal before the document opened. The v24 S5 reader also gives PASS on all six typed pages.
+
+**T5 holds**: on v24 the keyboard replaces the cross-cell selection the way native Writer does, and Ctrl+V still takes Writer's paste (append, plus finding 169's `#`) — the fix changed typing and nothing else.
