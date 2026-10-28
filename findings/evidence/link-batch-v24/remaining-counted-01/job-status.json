@@ -1,0 +1,136 @@
+{
+ "schema": 1,
+ "startedAt": "2026-10-29T02:01:12.149668+08:00",
+ "authority": "Owner authorized agent execution while away, 2026-10-29",
+ "scriptSha256": "2aab55b088aebddbcb6eb70db85c5dfa5d57c08765bb489acae8abee7ab741b6",
+ "cohortSha256": "ceb974305b5bbbec734d40a43cec502c347761cafe9d86b0b616d9cc0c149dfb",
+ "cwd": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe",
+ "gitHead": "7c31aad19672b65b7936790e695e59911a81e53b",
+ "state": "SELECTION_AND_A4_PASS",
+ "steps": [
+  {
+   "name": "remaining",
+   "argv": [
+    "/usr/bin/python3",
+    "-I",
+    "tools/run_v24_remaining_cohort.py",
+    "--cohort",
+    "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v24/remaining-counted-01/cohort.json"
+   ],
+   "startedAt": "2026-10-29T02:01:12.151656+08:00",
+   "pid": 1310091,
+   "exit": 0,
+   "seconds": 13507.8,
+   "finishedAt": "2026-10-29T05:46:19.909872+08:00",
+   "log": "job-remaining.txt",
+   "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "name": "raw-read",
+   "argv": [
+    "/usr/bin/python3",
+    "-I",
+    "tools/read_v24_remaining_cohort.py",
+    "--cohort",
+    "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v24/remaining-counted-01/cohort.json",
+    "--out",
+    "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v24/remaining-counted-01/completion-read-01.json"
+   ],
+   "startedAt": "2026-10-29T05:46:19.910283+08:00",
+   "pid": 1592680,
+   "exit": 0,
+   "seconds": 81.2,
+   "finishedAt": "2026-10-29T05:47:41.078939+08:00",
+   "log": "job-raw-read.txt",
+   "logSha256": "834233d9fc79acfbd1b5db9b203b1628d5206a8389dadd5258f48ca13c8fd10d"
+  },
+  {
+   "name": "a4-pins-before",
+   "argv": [
+    "sha256sum",
+    "--check",
+    "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v24/count-preparation/a4-instruments.sha256"
+   ],
+   "startedAt": "2026-10-29T05:47:41.079303+08:00",
+   "pid": 1592921,
+   "exit": 0,
+   "seconds": 0.0,
+   "finishedAt": "2026-10-29T05:47:41.088000+08:00",
+   "log": "job-a4-pins-before.txt",
+   "logSha256": "eae9a8e2fbef4aec8f524259a971bee44d41f6259ad394c65b2fea3ebb46083d"
+  },
+  {
+   "name": "a4-chrome",
+   "argv": [
+    "/usr/bin/python3",
+    "-I",
+    "tools/run_v24_four_arms.py",
+    "--browser",
+    "chrome",
+    "--out",
+    "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v24/four-arms-counted-01/chrome"
+   ],
+   "startedAt": "2026-10-29T05:47:41.088310+08:00",
+   "pid": 1592922,
+   "exit": 0,
+   "seconds": 551.5,
+   "finishedAt": "2026-10-29T05:56:52.609819+08:00",
+   "log": "job-a4-chrome.txt",
+   "logSha256": "8a1a2126de4fe13a748135e4198b2e33a2e8993231f7b37af7b7f3e001d6deac"
+  },
+  {
+   "name": "a4-firefox",
+   "argv": [
+    "/usr/bin/python3",
+    "-I",
+    "tools/run_v24_four_arms.py",
+    "--browser",
+    "firefox",
+    "--out",
+    "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v24/four-arms-counted-01/firefox"
+   ],
+   "startedAt": "2026-10-29T05:56:52.610412+08:00",
+   "pid": 1596196,
+   "exit": 0,
+   "seconds": 565.2,
+   "finishedAt": "2026-10-29T06:06:17.813211+08:00",
+   "log": "job-a4-firefox.txt",
+   "logSha256": "b872f09281d97412702f825b826aa4da914f5d2d2f374036b4026a63045af029"
+  },
+  {
+   "name": "a4-pins-after",
+   "argv": [
+    "sha256sum",
+    "--check",
+    "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v24/count-preparation/a4-instruments.sha256"
+   ],
+   "startedAt": "2026-10-29T06:06:17.813762+08:00",
+   "pid": 1599920,
+   "exit": 0,
+   "seconds": 0.0,
+   "finishedAt": "2026-10-29T06:06:17.817518+08:00",
+   "log": "job-a4-pins-after.txt",
+   "logSha256": "eae9a8e2fbef4aec8f524259a971bee44d41f6259ad394c65b2fea3ebb46083d"
+  },
+  {
+   "name": "a4-judge",
+   "argv": [
+    "/usr/bin/python3",
+    "-I",
+    "tools/judge_v24_product_four_arms.py",
+    "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v24/four-arms-counted-01/chrome/report.v23-four-arms",
+    "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v24/four-arms-counted-01/firefox/report.v23-four-arms",
+    "--out",
+    "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v24/four-arms-counted-01/aggregate-judge.json"
+   ],
+   "startedAt": "2026-10-29T06:06:17.817739+08:00",
+   "pid": 1599921,
+   "exit": 0,
+   "seconds": 1.1,
+   "finishedAt": "2026-10-29T06:06:18.893436+08:00",
+   "log": "job-a4-judge.txt",
+   "logSha256": "942a35a0ced95948a16e3b602f52a2f75172c7f1a9b83381eb10c39ab7ce2587"
+  }
+ ],
+ "finishedAt": "2026-10-29T06:06:18.893813+08:00"
+}

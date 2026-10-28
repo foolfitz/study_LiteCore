@@ -1,0 +1,117 @@
+{
+  "schema": 1,
+  "startedAt": "2026-10-29T02:01:16.804026+08:00",
+  "pid": 1310091,
+  "cohortSha256": "ceb974305b5bbbec734d40a43cec502c347761cafe9d86b0b616d9cc0c149dfb",
+  "gitHead": "7c31aad19672b65b7936790e695e59911a81e53b",
+  "state": "ALL_COHORTS_PASS",
+  "stages": [
+    {
+      "population": "r1",
+      "startedAt": "2026-10-29T02:01:21.335050+08:00",
+      "preflight": {
+        "argv": [
+          "/usr/bin/python3",
+          "-I",
+          "tools/run_v24_v0_double_prime.py",
+          "--out",
+          "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v24/remaining-counted-01/v0-r1"
+        ],
+        "exit": 0,
+        "seconds": 30.4,
+        "log": "r1.v0.txt",
+        "logSha256": "85c6e113643a5f7cc3f214beca209efa6515caa57cb5ffdbb38688befa9f1ff4"
+      },
+      "v0": {
+        "path": "v0-r1/report.json",
+        "sha256": "5efe09acbca4f7aaa55db83f0ce0475a9022953005ef3fe7ec55f499500fa2b1"
+      },
+      "runner": {
+        "argv": [
+          "/usr/bin/python3",
+          "-I",
+          "tools/run_v24_remaining_selection.py",
+          "--population",
+          "r1",
+          "--cohort",
+          "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v24/remaining-counted-01/cohort.json",
+          "--pre-red-report",
+          "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v23/feature-pre-red/counted-05/report.json",
+          "--output",
+          "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v24/remaining-counted-01/r1"
+        ],
+        "exit": 0,
+        "seconds": 5684.3,
+        "log": "r1.runner.txt",
+        "logSha256": "83e441f0d48f164879b414753764767128df66c351f08acc5af1686014aaad3b"
+      },
+      "reportSha256": "90cf538eaa5da0f54d52e2126df5a63b3018c3161e0139fa055f401b55c34e8e",
+      "judge": {
+        "argv": [
+          "/usr/bin/python3",
+          "-I",
+          "tools/judge_v24_remaining_selection.py",
+          "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v24/remaining-counted-01/r1/report.json"
+        ],
+        "exit": 0,
+        "seconds": 28.6,
+        "log": "r1.judge.txt",
+        "logSha256": "2c23a8a34e1ab81355f342f8847b8757967273b8bfaa33b9064b889e92091d3d"
+      }
+    },
+    {
+      "population": "selection",
+      "startedAt": "2026-10-29T03:37:18.166368+08:00",
+      "preflight": {
+        "argv": [
+          "/usr/bin/python3",
+          "-I",
+          "tools/run_v24_v0_double_prime.py",
+          "--out",
+          "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v24/remaining-counted-01/v0-selection"
+        ],
+        "exit": 0,
+        "seconds": 29.4,
+        "log": "selection.v0.txt",
+        "logSha256": "85c6e113643a5f7cc3f214beca209efa6515caa57cb5ffdbb38688befa9f1ff4"
+      },
+      "v0": {
+        "path": "v0-selection/report.json",
+        "sha256": "077675c5c25c468a026da93b69be15218d29f5522289b1ffc6bf95547fcda3e1"
+      },
+      "runner": {
+        "argv": [
+          "/usr/bin/python3",
+          "-I",
+          "tools/run_v24_remaining_selection.py",
+          "--population",
+          "selection",
+          "--cohort",
+          "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v24/remaining-counted-01/cohort.json",
+          "--pre-red-report",
+          "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v23/feature-pre-red/counted-05/report.json",
+          "--output",
+          "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v24/remaining-counted-01/selection"
+        ],
+        "exit": 0,
+        "seconds": 7673.1,
+        "log": "selection.runner.txt",
+        "logSha256": "b5a8419bff2ce232a9f32bf51014cecc9d31bdc7d62d1a437bf11013d0d9438f"
+      },
+      "reportSha256": "89fb49f439b0b13328f3966a45a53a5f81252b1b58797262d9d5a146e7ee2a51",
+      "judge": {
+        "argv": [
+          "/usr/bin/python3",
+          "-I",
+          "tools/judge_v24_remaining_selection.py",
+          "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/link-batch-v24/remaining-counted-01/selection/report.json"
+        ],
+        "exit": 0,
+        "seconds": 30.2,
+        "log": "selection.judge.txt",
+        "logSha256": "52fba2d7e855c4a4a330c63f92d90404a3bb0cd7c5f3251318e1111b8f9efdda"
+      }
+    }
+  ],
+  "finishedAt": "2026-10-29T05:46:19.892122+08:00"
+}
