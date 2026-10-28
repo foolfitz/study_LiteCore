@@ -2212,6 +2212,7 @@ test-v24-feature-static:
 	python3 -I tests/test_v24_typed_insert_engine.py
 	python3 -I tests/test_v24_feature_worker_delta.py
 	python3 -I tests/test_v24_feature_profile.py
+	python3 -I tests/test_v24_feature_selection_judge.py
 	node tests/v24_feature_worker_test.cjs
 	node --test tests/v24-typed-insert-sdk.test.mjs
 
