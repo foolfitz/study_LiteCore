@@ -310,3 +310,11 @@ page honesty（`check_m3_page_honesty.py`）在 v24 的頁面上照 K 鏈的前�
 5. **執行時段**：工具與紅案做好後才詢問擁有者 A（脫離 session 執行，建議）或 B（擁有者自行執行）。本節不授權直接開始數小時的計數、不取得 DDEV 時段；K、宿主與 BINDING 仍依 §6.4。
 
 截止與歸零語意維持 §6.4。工具的紅案與離線重讀不給任何 counted cell；若正式執行一直沒做，S5／R1／S14／A4 全數仍為未成立。
+
+### 18.1 R1 marker 的傳輸身分（同日，只追加；計數前讀原始碼逼出）
+
+§18 第 2 項「只接 Evidence／readiness／S5」補正：`judge_v23_feature_selection.r1_marker_witness` 也用完整 payload 相等檢查 `#`，而 R1 的 marker 同 readiness 一樣走真實打字，v24 會多 `route: "uno-insert-text"`。新 reader 的 marker witness 只在這一行加入 route；其餘文字逐行相同，`r1_arm` 用原 code object 接到這個新 witness。紅案必須使正確 v24 wire shape 通過、缺 route 的 marker 不可 PASS；合成改寫的歷史頁面只測儀器，不給 v24 計數。若不補正，R1 預設 NE，不能沿用 v23 144/144。
+
+### 18.2 前置報告的身分界限（同日，只追加）
+
+§18 第 1 項「避免 M2 的 live-config 比較失效」收窄為「避免再新增工具位元組的差異」：M2 原報告寫 `candidate-77-not-frozen`，凍結後 live config 已寫 77；因此原 main 的完整 live-config 比較已有差異。裁決追加 1 §4 明定相同殼層摘要下 §6.3 仍成立。原 config 的逐格重讀與當時 reader 結論可保留；不可宣稱現在完整 live-config 相等，也不可把這份準備報告搬成 counted。
