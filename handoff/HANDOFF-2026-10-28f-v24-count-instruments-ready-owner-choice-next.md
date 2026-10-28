@@ -94,3 +94,10 @@ correction remains the inherited tally; E1 remains reverted and the bound runner
 Whitespace QA: authored code/docs pass diff-check. Five copied smoke mirrors retain the original
 clipboard adapter's extra blank line at EOF; generic evidence diff-check warnings are documented,
 not repaired by changing the witness bytes.
+
+## Owner decision after this checkpoint (2026-10-28)
+
+The owner chose **B: owner-run**. This supersedes the pending choice above. The agent did not
+launch a count; the exact selection command block is in `RUNBOOK-v24-counted-selection.md`.
+Next: wait for the owner's completion report or first error, then read the retained artifacts.
+Do not independently start a second run or retry into the declared cohort directory.

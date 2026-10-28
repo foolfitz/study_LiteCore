@@ -1,6 +1,6 @@
 # v24 counted selection and four-arm execution
 
-Prepared 2026-10-28. Execution mode still awaits the owner. No DDEV or build is involved.
+Prepared 2026-10-28. The owner chose **B: owner-run** after preparation. No DDEV or build is involved.
 The frozen product-path Enter FAIL in Chrome is the declared I-enter-raw-substring instrument
 limit; its separate replay is already PASS. Do not edit any of the 40 live-asserted paths.
 
@@ -69,3 +69,11 @@ reserve roughly 20-30 minutes for A4, excluding diagnosis and machine contention
 Host package, BINDING, K remain separate work. Ask for the shared DDEV slot and the named quiet
 window before K. No build authority, slot or release promotion is implied by selection/A4 success.
 The uncounted-change ledger is `research/2026-10-25-count-batching-and-next-work.md`.
+
+## Owner decision (2026-10-28)
+
+The owner selected B. Use the selection-cohort command block above; the agent has not launched
+any count. Keep that terminal open until the launcher and completion reader return. Child runner
+output is written to the stage logs, so a quiet terminal alone does not mean the run has stalled.
+Return `completion-read-01.json` (or the first error if the reader cannot finish) for inspection
+before starting A4. Do not retry the same cohort after an error.
