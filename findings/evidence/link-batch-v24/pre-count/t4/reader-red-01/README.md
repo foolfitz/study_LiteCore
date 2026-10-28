@@ -6,7 +6,7 @@
 |---|---|---|
 | R-a | `ctrl-v-reaches-the-document` v24 PASS→FAIL | rule 2 FAIL, the one red row is that check under 2a |
 | R-b | `clear-format-removes-every-inline-format` v24 NE→PASS | rule 2 FAIL under 2b (equality, not "at least as good") |
-| R-c | `every-inline-format-reaches-the-document` `observed.arms[0].bold` flipped | rule 2 FAIL under 2b, payload `[0]/observed/arms[0]/bold \| True \| False` |
+| R-c | `every-inline-format-reaches-the-document` `observed.arms[0].wanted` (its first boolean leaf) flipped | rule 2 FAIL under 2b, payload `[0]/observed/arms[0]/wanted \| True \| False` |
 | R-d | the same member, only `formatPressWaitedMs` 402→999 | the member stays ok, rule 2 PASS (the exclusion applies, and only there) |
 | R-e | `wire.json` without the 23 paste-route `insertText` requests (no `replaceSelection`/`pasteMarkdown` occurred) | T4 NE, not PASS |
 | R-f | run 01 unmodified, both browsers | rule 2 PASS → `../read-01b.json` |
