@@ -20,3 +20,16 @@ instrument disposition needs its own ruling before K. Nothing here is a K result
 Findings 171 and 172 were first shipped by host 0.2.39 (v23 was never packaged); the owner's
 host engine was rolled back to exact 0.2.38 bytes on 2026-10-29 (`../rollback-20261029T104705+0800/`).
 Both fixes change the engine (and 172 possibly the page), i.e. a new successor identity and link.
+
+## Correction and pinned criteria (2026-10-29, after `RULING-v25-fixes.md`; before any K or v25 run)
+
+Supersedes row 7's cause. The B4 inducer does reach the v24 worker: on v24 finding 038 no longer
+reproduces, so `recovery-returns-what-the-product-promised` (checks[40]) spends the single-shot
+inducer on the v24 worker, and the boundary check's second call gets no session. Row 7 is now the
+named instrument limit **I-worker-inducer-single-shot**, read per report as in the ruling's Q3 (PASS
+only if B1-B3 true every round and the inducer record has exactly the single-shot shape; otherwise
+product RED; default RED). Finding candidate: 038's wedge does not reproduce on the ordered engine.
+
+Row 9 is pinned as the ruling's Q4 (N = K's three rounds per browser; **I-ink-trigger-race** only for
+the exact signature; at most one per browser; default RED). Rows 1-6 are unchanged: product, RED until
+findings 171/172 are fixed (v25) and re-measured.
