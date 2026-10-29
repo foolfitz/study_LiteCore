@@ -349,3 +349,11 @@ page honesty（`check_m3_page_honesty.py`）在 v24 的頁面上照 K 鏈的前�
 讀原碼發現舊 K 的前提衝突：`chain-0.2.26.sh` 的 product-path 對照與 merge red 都把目前頁面 repoint 到 v8；`repointed_page()` 只換 worker URL／wasm pin，保留 v24 的 `typedInsert` 必要宣告檢查，而 v8 manifest 不帶該葉。這是既有紅案 (vii) 的把關，不能藉「更新 pins」移除。先用獨立、本機 Chrome 的 v24 正向對照與實際 repointed-v8 觀察確認：v24 可開啟並 typed insert；v8 預期 PAGE_BUILD_MISMATCH／無 insertText。這份診斷不計入 K，亦不修改產品或任一已凍結工具。若符合預期，舊鏈不能直接重綁執行；對照／red 的新計數處方須先定案，不能造假的 manifest 或放鬆產品把關來維持舊前提。
 
 本次只先做離線封包與上述有限診斷。實際 `litecore` 暫停、另有 fgp-nc／nc-bridge 執行中，未取得共用 DDEV 時段；J-a P5 的具名窗口／期間不開站約定仍不得由代理代填。原始文件／鎖列保持不變，安裝前另讀現況與完整明細。完成可檢視候選及 K 的實際差異／前提紀錄後，再協調時段；不重新要求已完成的 F3-hand／H7／V3-SEE。
+
+## 22. 宿主 0.2.39 安裝（2026-10-29，只追加；安裝之後寫）
+
+擁有者在這一輪回答了時段問題：「現在開始，我不開」litecore.ddev.site，並在同一則訊息授權關掉其他 DDEV 專案。時段依實際回覆記在 `findings/evidence/host-0.2.39/slot.json`（09:21:11–10:06:11 +0800），不從交接推斷。fgp-nc／nc-bridge 先停，litecore 由 paused 啟動；結束後兩者照原樣啟回，litecore 留在 running（DDEV 1.25.3 沒有 pause，進場時的 paused 是重開機造成的）。
+
+結果：guarded installer 預檢與安裝都通過（CANDIDATE_INSTALLED）。受保護文件與完整鎖列前後相同（鎖列為零筆），三條未登入路由都是 401。既有 `run_calc_editor_host.py` 以兩個瀏覽器做擁有檔的 Files 實際流程，**52/52 PASS**，清理完整。安裝後讀取 `capture-after.py` 成立，紅案兩個都會轉紅；其中一個第一次沒轉紅，是讀取工具漏算 buildId 欄位，已在登錄前修好（因執行而修 1，因審核而修 0）。
+
+限制照寫：Writer 臂走頁面的插入欄位（`commitText`），不是對 sink 送按鍵；v24 的真實鍵入由 mirror 上的 S5／R1／A4 成立，沒有在這台宿主重量。0.2.39 現在是**日常使用的未計數候選**，取代 0.2.38；名義出貨版仍是 **0.2.26**。K 沒跑，控制協定交由 fable 裁決（擁有者選 A），未採用前不開計數。

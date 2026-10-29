@@ -55,3 +55,54 @@ K inventory: 18 legacy entry points, 43 static-import files, 24 pin occurrences;
 merge BINDING site's source is in the frozen count sets. The actual old BINDING and all other
 pins remain untouched. Git deltas and every package-member difference since host 0.2.26 are
 recorded; this is explicitly a one-time inventory, not a new exhaustive-execution claim.
+
+## Live installation, 2026-10-29 (owner slot)
+
+Slot: `slot.json`, 09:21:11 to 10:06:11 +0800. The owner replied to the pending slot question with
+"start now, I will not open litecore.ddev.site" and, in the same turn, authorized stopping the other
+running DDEV projects. Recorded verbatim (translated) in `slot.json`; nothing inferred from the handoff.
+Coordination: fgp-nc and nc-bridge stopped (`ddev stop`), litecore started from paused
+(`ddev-before.json`, `ddev-after-coordination.json`). No root command, no global lock write.
+
+- `install-0.2.39.py --preflight-only` -> **LIVE_PREFLIGHT_READY** (`install-20261029T092222+0800/`).
+  Fresh before-state: the three protected documents read 200 with the hashes in `before.json`;
+  `oc_files_lock` had **zero rows**.
+- `install-0.2.39.py` -> **CANDIDATE_INSTALLED** at 09:22:32-09:22:49 (`install-20261029T092237+0800/`):
+  fast-forward fff18e4..4a8b3cd (info.xml only), exact engine rsync, `occ upgrade` to 0.2.39 with
+  code-integrity check; protected documents and full lock rows equal before/after; maintenance off,
+  no pending DB upgrade; e2-editor/ods-viewer/ods-editor unauthenticated routes all **401**.
+
+## Owned-document Files workflow, `files-workflow-01/`
+
+Existing runner `wasm_sdk_probe/tools/run_calc_editor_host.py` (unchanged), both browsers
+(Chrome 156.0.8078.47, Firefox 157.0.1), owned folder + temporary user + read-only share, 09:23:57 to
+09:25:43. **52/52 PASS**, cleanup: no owned unlocks needed, share/user removed, folder DELETE 204.
+Every entry landed on `/r/78e841368c9b907f-90d7bc2c/...`, i.e. the installed build was served.
+
+What it covers: real Files click into ods-editor (writable route, real DAV lock, unrelated write
+423, inline/formula input, conditional PUT with If-Match + token, server XML, leave releases lock,
+reopen with formats, conflict copy and later save to the same copy), Files click into e2-editor
+(Writer v24) with insert + save and the text present in the server's content.xml, and the read-only
+share opening ods-viewer with no save surface and no lock.
+
+Limit, stated rather than implied: the Writer arm inserts through the page's insert-text field
+(`session.commitText`), not by key events into the sink. Real-key typing on v24 is established by
+the S5/R1/A4 cohorts on the mirror, not re-measured on this host. This run is host acceptance of
+the installed package, not K and not a count.
+
+## Post-install read, `post-install-identity.json`
+
+`capture-after.py install-20261029T092237+0800 files-workflow-01` -> **holds: true**: host HEAD
+4a8b3cd2 clean, installed_version 0.2.39, MANIFEST buildId 78e841368c9b907f, engine equals the exact
+archive, protected documents and lock rows (still zero) equal the installer's after-state, owned
+folder 404, temporary user absent. Red cases in `post-install-red/`: a flipped workflow check and
+a predecessor build id in one Writer entry both exit 1. The second red case first exited 0 -- the
+build-id field was computed but not part of `holds`; fixed before this read was recorded
+(fixed-by-execution: 1, fixed-by-review: 0).
+
+DDEV after the slot (`ddev-after-slot.json`): fgp-nc and nc-bridge restarted as found. litecore is
+left **running** instead of paused: DDEV 1.25.3 has no `pause` command, and the paused state at
+entry came from the reboot, not a choice. The owner may `ddev stop litecore` if preferred.
+
+Status: 0.2.39 is **installed as the daily uncounted candidate**, superseding 0.2.38. Nominal
+shipped host remains **0.2.26**. K has **not** run; its control protocol is under ruling.
