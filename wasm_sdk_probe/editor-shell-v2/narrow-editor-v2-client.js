@@ -55,7 +55,8 @@ export const EDITOR_V2_INHERITED_ACTIONS = Object.freeze([
 // that names an action the engine always refuses is a client offering a control
 // that cannot work.  It is withheld in the manifest rather than absent from the
 // binary, which is what makes granting it later a measurement instead of a
-// relink.
+// relink.  (2026-10-30: that measurement was made -- e2-editor-v26 grants it,
+// and it is named below in EDITOR_SELECT_ALL_ACTIONS, not here.)
 export const EDITOR_V3_APPENDED_ACTIONS = Object.freeze([
   "move-line-up",
   "move-line-down",
@@ -91,8 +92,25 @@ export const EDITOR_V4_ACTIONS = Object.freeze([
   ...EDITOR_V4_APPENDED_ACTIONS,
 ]);
 
+// SPEC-M3-select-all-v26 4.3.  Select-all (wire id 21) is not an append -- the
+// engine has carried it since ABI 4, withheld -- but a GRANT: e2-editor-v26's
+// manifest gives it the three gestures on the strength of a measurement
+// (findings/evidence/select-all-v25/).  Its own list, so V3 and V4 keep
+// meaning "what each ABI appended".  EDITOR_ACCEPTED_ACTIONS is the ONE list of
+// everything this client sends: the session's allowlist and the D13 census read
+// it, so a later grant cannot reach one of them and not the other (review
+// 2026-10-30 items 1 and 3).  Offered only where a manifest grants it
+// (`offers`), like every other action.
+export const EDITOR_SELECT_ALL_ACTIONS = Object.freeze(["select-all"]);
+
+export const EDITOR_ACCEPTED_ACTIONS = Object.freeze([
+  ...EDITOR_V4_ACTIONS,
+  ...EDITOR_SELECT_ALL_ACTIONS,
+]);
+
 const INHERITED = new Set(EDITOR_V2_INHERITED_ACTIONS);
-const APPENDED = new Set([...EDITOR_V3_APPENDED_ACTIONS, ...EDITOR_V4_APPENDED_ACTIONS]);
+const APPENDED = new Set([...EDITOR_V3_APPENDED_ACTIONS, ...EDITOR_V4_APPENDED_ACTIONS,
+                          ...EDITOR_SELECT_ALL_ACTIONS]);
 const PARAGRAPH = new Set(EDITOR_V2_PARAGRAPH_ACTIONS);
 const MOVE_ACTIONS = new Set(["move-character-left", "move-character-right"]);
 // Movement by line takes the SAME postcondition as movement by character --
@@ -115,6 +133,13 @@ const LINE_MOVE_ACTIONS = new Set([
 // ABI6's ordered engine completes from its first poll rather than the legacy
 // 250ms readback; the accepted completion names and postcondition stay the same.
 const DOCUMENT_MOVE_ACTIONS = new Set(["move-document-start", "move-document-end"]);
+// Select-all takes the moves' postcondition for the moves' reason: the engine
+// posts it as a key (Key::A | Mod1) with `mutation = false`, and measured on
+// v25 it answers `documented-callback-visible-cursor` from a caret and
+// `verified-move-readback` from a range or a blank document, revision held,
+// `changed: false` (SPEC-M3-select-all-v26 4.3).  NOT in MOVE_ACTIONS: that set
+// decides whether `extendSelection` is legal, and select-all never extends.
+const SELECT_ALL_ACTIONS = new Set(EDITOR_SELECT_ALL_ACTIONS);
 // FINDING 096.  The two completions a movement is allowed to come back with,
 // and the SECOND one is why this is a function rather than a prefix test.
 //
@@ -190,7 +215,7 @@ const MUTATION_ACTIONS = new Set([
  */
 export function postconditionClassOf(action) {
   if (MOVE_ACTIONS.has(action) || LINE_MOVE_ACTIONS.has(action)
-      || DOCUMENT_MOVE_ACTIONS.has(action)) return "move";
+      || DOCUMENT_MOVE_ACTIONS.has(action) || SELECT_ALL_ACTIONS.has(action)) return "move";
   if (DELETE_ACTIONS.has(action)) return "delete";
   if (MUTATION_ACTIONS.has(action)) return "mutation";
   if (PARAGRAPH.has(action)) return "paragraph";

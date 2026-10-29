@@ -50,6 +50,17 @@ export type EditorV4AppendedAction =
 
 export type EditorV4Action = EditorV3Action | EditorV4AppendedAction;
 
+/**
+ * The withheld id the ABI 4 comment above declines to name, now GRANTED by
+ * e2-editor-v26 on the strength of a measurement (SPEC-M3-select-all-v26 4.3).
+ * A grant, not an append: wire id 21, the move postcondition.  Offered only
+ * where a manifest grants it.
+ */
+export type EditorSelectAllAction = "select-all";
+
+/** Everything this client sends: the session's allowlist and D13 read it. */
+export type EditorAcceptedAction = EditorV4Action | EditorSelectAllAction;
+
 /** The closed postcondition classes (SPEC-M3-link-batch-v21 9.7, 11.1 D13). */
 export type EditorPostconditionClass = "move" | "delete" | "mutation" | "paragraph";
 
@@ -59,6 +70,8 @@ export const EDITOR_V3_APPENDED_ACTIONS: readonly EditorV3AppendedAction[];
 export const EDITOR_V3_ACTIONS: readonly EditorV3Action[];
 export const EDITOR_V4_APPENDED_ACTIONS: readonly EditorV4AppendedAction[];
 export const EDITOR_V4_ACTIONS: readonly EditorV4Action[];
+export const EDITOR_SELECT_ALL_ACTIONS: readonly EditorSelectAllAction[];
+export const EDITOR_ACCEPTED_ACTIONS: readonly EditorAcceptedAction[];
 
 /** Which postcondition judges an action's reply; null for an action with none. */
 export function postconditionClassOf(action: string): EditorPostconditionClass | null;

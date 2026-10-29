@@ -31,7 +31,7 @@
 // unsaved work.
 
 import { EditorSession, caretIsOnLine, caretDiffers } from "../editor-shell/editor-session.js";
-import { NarrowEditorV2Client, EDITOR_V4_ACTIONS }
+import { NarrowEditorV2Client, EDITOR_ACCEPTED_ACTIONS }
   from "./narrow-editor-v2-client.js";
 import { EDITOR_V2_PARAGRAPH_ACTIONS } from "./paragraph-editor-client.js";
 import { recoveryFor } from "./paragraph-editor-session.js";
@@ -57,7 +57,13 @@ const PARAGRAPH = new Set(EDITOR_V2_PARAGRAPH_ACTIONS);
 // of the client's: refusing an unknown action BEFORE it enters the queue is
 // what keeps a typo from occupying a queue slot and blocking real edits. What
 // was wrong was having a second copy that could lag, not having the check.
-const ACTIONS = new Set(EDITOR_V4_ACTIONS);
+//
+// SPEC-M3-select-all-v26 4.3 (review 2026-10-30 item 1): and now the CLIENT'S
+// OWN UNION, EDITOR_ACCEPTED_ACTIONS, not EDITOR_V4_ACTIONS -- select-all is a
+// grant outside the V4 list, and this copy refused it before the queue exactly
+// the way it refused move-line-up at the ABI 4 link.  One list, read here and
+// by the D13 census, is the remedy the paragraph above asks for.
+const ACTIONS = new Set(EDITOR_ACCEPTED_ACTIONS);
 
 // FINDING 096.  The six actions that reach the engine as a POSTED KEY, and
 // therefore the six that can be pressed where there is nothing to move to.
@@ -86,18 +92,28 @@ const ACTIONS = new Set(EDITOR_V4_ACTIONS);
 // when the caret is already at the start or the end -- which is exactly the
 // shape this set exists for.  So eight.  `postconditionClassOf` in the client
 // is the other statement of the same fact, and a test holds the two equal
-// (11.1 D13).  Which of the eight bank a dirty document before they go out is
+// (11.1 D13).  (Nine since select-all, SPEC-M3-select-all-v26 -- see below.)  Which
+// of the moves bank a dirty document before they go out is
 // a second set, CHECKPOINTED_MOVES, below (finding 151).
+//
+// SPEC-M3-select-all-v26 4.3 (review 2026-10-30 item 2): select-all is the
+// ninth.  It reaches the engine as a posted key (Key::A | Mod1, mutation =
+// false) and takes the move postcondition, so D13 holds this set equal to the
+// move class with it in.  Left out, it would go into the queue as a mutation:
+// Ctrl+A would mark an untouched document unsaved (finding 098's shape) and a
+// read-only document would refuse it.  Not in CHECKPOINTED_MOVES: selecting
+// changes nothing that a checkpoint could save.
 const BOUNDARY_CAPABLE_MOVES = new Set([
   "move-character-left", "move-character-right",
   "move-line-up", "move-line-down", "move-line-home", "move-line-end",
   "move-document-start", "move-document-end",
+  "select-all",
 ]);
 
 // FINDING 151 (SPEC-M3-link-batch-v21 §12.3 (b); fable ruling 1, Q2).  The
 // moves that still take finding 096's checkpoint before they go out: the six
 // arrow, Home and End moves, NOT finding 142's two document moves.
-// BOUNDARY_CAPABLE_MOVES stays eight -- it names the posted keys, which are
+// BOUNDARY_CAPABLE_MOVES stays the posted keys (nine with select-all) -- which are
 // non-mutations (098) and D13's closed list; this set names which of them pay
 // for a save first.
 //

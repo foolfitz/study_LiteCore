@@ -19,7 +19,7 @@ import test from "node:test";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
-import { EDITOR_V4_ACTIONS, EDITOR_V4_APPENDED_ACTIONS, NarrowEditorV2Client,
+import { EDITOR_ACCEPTED_ACTIONS, EDITOR_V4_APPENDED_ACTIONS, NarrowEditorV2Client,
          postconditionClassOf } from "../narrow-editor-v2-client.js";
 import { NarrowEditorV2Session } from "../narrow-editor-v2-session.js";
 
@@ -56,10 +56,14 @@ const MOVE_REPLY = (completion, over = {}) => (payload) => ({
   changed: false, completion, state: { caret: { x: 1, y: 2, width: 0, height: 3 } }, ...over,
 });
 
+// SPEC-M3-select-all-v26 4.3 (review 2026-10-30 item 3): the census reads
+// EDITOR_ACCEPTED_ACTIONS, the client's one list of what it sends.  It read
+// EDITOR_V4_ACTIONS until then, and select-all -- a grant outside V4 -- would
+// have been invisible to all three D13 tests.
 test("D13: every action the client sends has exactly one postcondition class", () => {
-  assert.ok(EDITOR_V4_ACTIONS.length >= 22, "the census is not the whole list");
+  assert.ok(EDITOR_ACCEPTED_ACTIONS.length >= 23, "the census is not the whole list");
   const classes = ["move", "delete", "mutation", "paragraph"];
-  for (const action of EDITOR_V4_ACTIONS) {
+  for (const action of EDITOR_ACCEPTED_ACTIONS) {
     const found = postconditionClassOf(action);
     assert.ok(classes.includes(found), `${action} has no postcondition class (${found})`);
   }
@@ -68,6 +72,7 @@ test("D13: every action the client sends has exactly one postcondition class", (
   // `_validateInherited`'s if/else chain over this one answer guarantees.
   assert.equal(postconditionClassOf("move-document-start"), "move");
   assert.equal(postconditionClassOf("move-document-end"), "move");
+  assert.equal(postconditionClassOf("select-all"), "move");
 });
 
 test("D13: each ABI 5 action is in the move class, and only there", () => {
@@ -75,9 +80,9 @@ test("D13: each ABI 5 action is in the move class, and only there", () => {
 });
 
 test("D13: BOUNDARY_CAPABLE_MOVES equals the move class over the client's list", () => {
-  const moves = EDITOR_V4_ACTIONS.filter((action) => postconditionClassOf(action) === "move").sort();
+  const moves = EDITOR_ACCEPTED_ACTIONS.filter((action) => postconditionClassOf(action) === "move").sort();
   assert.deepEqual(boundaryCapableMoves(), moves);
-  assert.equal(moves.length, 8, "six key-path moves and finding 142's two");
+  assert.equal(moves.length, 9, "six key-path moves, finding 142's two, and select-all (SPEC-M3-select-all-v26)");
 });
 
 test("D13: the session's own mutation flag agrees, action by action", async () => {
@@ -85,13 +90,13 @@ test("D13: the session's own mutation flag agrees, action by action", async () =
     engineFactory: async () => { throw new Error("not opened"); },
     secureContext: true, clipboard: { async writeText() {}, async readText() { return ""; } },
   });
-  for (const action of EDITOR_V4_ACTIONS)
+  for (const action of EDITOR_ACCEPTED_ACTIONS)
     assert.equal(session.actionMutates(action), postconditionClassOf(action) !== "move", action);
 });
 
 test("D13: an action in no class is refused, not accepted by falling through", () => {
   const { client } = clientWith(null);
-  for (const action of ["select-all", "move-document-middle", "paste-markdown"]) {
+  for (const action of ["move-document-middle", "paste-markdown"]) {
     assert.equal(postconditionClassOf(action), null, action);
     assert.throws(() => client._validateInherited(action, 7, {
       action, beforeRevision: 7, revision: 7, changed: false,
@@ -102,7 +107,7 @@ test("D13: an action in no class is refused, not accepted by falling through", (
 
 test("D13: the client refuses an unknown action before any request; the session before it is queued", async () => {
   const { client, issued } = clientWith(null);
-  await assert.rejects(() => client.action("select-all"), (error) => error.code === "EDITOR_ACTION_UNSUPPORTED");
+  await assert.rejects(() => client.action("move-document-middle"), (error) => error.code === "EDITOR_ACTION_UNSUPPORTED");
   assert.deepEqual(issued, []);
   const session = new NarrowEditorV2Session({
     engineFactory: async () => { throw new Error("not opened"); },

@@ -131,19 +131,24 @@ test("the client pair declares the closed postcondition classes and the paste of
   assert.match(productDeclaration, /offersPasteMarkdown\(\): boolean;/);
 });
 
-test("the withheld action is named nowhere in the client pair", () => {
-  // Twenty, not twenty-one: the v4 contract's last id ships with an empty
-  // gesture list, so the engine refuses it every time.  A client that named it
-  // would offer a control that cannot work -- and the relink queue's own check
-  // asserts this file does not contain it.
-  const withheld = ["select", "all"].join("-");
-  const client = readFileSync(
-    fileURLToPath(new URL("../narrow-editor-v2-client.js", import.meta.url)),
-    "utf8");
-  assert.equal(client.includes(withheld), false);
-  assert.equal(productDeclaration.includes(withheld), false);
-  assert.equal(EDITOR_V3_ACTIONS.includes(withheld), false);
-  assert.equal(EDITOR_V4_ACTIONS.includes(withheld), false);
+// SPEC-M3-select-all-v26 4.3.  Until v26 this test said "the withheld action is
+// named nowhere in the client pair": the v4 contract shipped id 21 with no
+// gestures, and a client naming it would have offered a control that could not
+// work.  e2-editor-v26 GRANTS it on a measurement, so the rule becomes: named
+// exactly once, as a grant -- EDITOR_SELECT_ALL_ACTIONS and its declared type --
+// and still in neither ABI's append list, which keep meaning what each ABI
+// appended.  Offering stays the manifest's (`offers`, offers.test.mjs).
+test("the granted select-all is named only as the grant, and in no ABI append list", async () => {
+  const name = ["select", "all"].join("-");
+  const client = await import("../narrow-editor-v2-client.js");
+  assert.deepEqual(client.EDITOR_SELECT_ALL_ACTIONS, [name]);
+  assert.deepEqual(client.EDITOR_ACCEPTED_ACTIONS, [...EDITOR_V4_ACTIONS, name]);
+  assert.equal(EDITOR_V3_ACTIONS.includes(name), false);
+  assert.equal(EDITOR_V4_ACTIONS.includes(name), false);
+  assert.deepEqual(unionMembers(productDeclaration, "EditorSelectAllAction"), [name]);
+  assert.match(productDeclaration, /export type EditorAcceptedAction = EditorV4Action \| EditorSelectAllAction;/);
+  assert.match(productDeclaration, /export const EDITOR_SELECT_ALL_ACTIONS: readonly EditorSelectAllAction\[\];/);
+  assert.match(productDeclaration, /export const EDITOR_ACCEPTED_ACTIONS: readonly EditorAcceptedAction\[\];/);
 });
 
 test("the worker's wire ids are the header's, and the header pins them", () => {

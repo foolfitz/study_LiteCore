@@ -1,0 +1,41 @@
+✔ U1: select-all takes the move postcondition (1.02183ms)
+✔ U1: the client exports the select-all list and the union it accepts (0.391719ms)
+✔ U1: the client sends select-all with both option flags false and the expected revision (0.47287ms)
+✔ U1: a select-all reply that claims a document change is rejected (0.444106ms)
+✔ U1: offered only when the manifest grants it -- withheld and omitted both say no (0.180777ms)
+✖ U1: the session queues select-all, as a non-mutation, and the document stays clean (1.038762ms)
+✖ U1: a read-only session still selects all (0.231631ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 5
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 58.467795
+
+✖ failing tests:
+
+test at editor-shell-v2/tests/narrow-editor-v2-select-all.test.mjs:130:1
+✖ U1: the session queues select-all, as a non-mutation, and the document stays clean (1.038762ms)
+  Error: unsupported v2 editor action: select-all
+      at NarrowEditorV2Session._action (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/narrow-editor-v2-session.js:1062:21)
+      at NarrowEditorV2Session.action (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/narrow-editor-v2-session.js:1046:17)
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/narrow-editor-v2-select-all.test.mjs:136:17)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    code: 'EDITOR_ACTION_UNSUPPORTED',
+    recovery: 'none'
+  }
+
+test at editor-shell-v2/tests/narrow-editor-v2-select-all.test.mjs:143:1
+✖ U1: a read-only session still selects all (0.231631ms)
+  Error: unsupported v2 editor action: select-all
+      at NarrowEditorV2Session._action (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/narrow-editor-v2-session.js:1062:21)
+      at NarrowEditorV2Session.action (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/narrow-editor-v2-session.js:1046:17)
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/narrow-editor-v2-select-all.test.mjs:147:17)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    code: 'EDITOR_ACTION_UNSUPPORTED',
+    recovery: 'none'
+  }

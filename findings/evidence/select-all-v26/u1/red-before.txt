@@ -1,0 +1,123 @@
+✖ U1: select-all takes the move postcondition (0.841906ms)
+✖ U1: the client exports the select-all list and the union it accepts (0.577835ms)
+✖ U1: the client sends select-all with both option flags false and the expected revision (0.459705ms)
+✖ U1: a select-all reply that claims a document change is rejected (0.352987ms)
+✔ U1: offered only when the manifest grants it -- withheld and omitted both say no (0.206274ms)
+✖ U1: the session queues select-all, as a non-mutation, and the document stays clean (0.976016ms)
+✖ U1: a read-only session still selects all (0.20383ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 1
+ℹ fail 6
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 60.956283
+
+✖ failing tests:
+
+test at editor-shell-v2/tests/narrow-editor-v2-select-all.test.mjs:95:1
+✖ U1: select-all takes the move postcondition (0.841906ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  null !== 'move'
+  
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/narrow-editor-v2-select-all.test.mjs:96:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.start (node:internal/test_runner/test:1177:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: 'move',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at editor-shell-v2/tests/narrow-editor-v2-select-all.test.mjs:99:1
+✖ U1: the client exports the select-all list and the union it accepts (0.577835ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+  + undefined
+  - [
+  -   'select-all'
+  - ]
+  
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/narrow-editor-v2-select-all.test.mjs:100:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: [ 'select-all' ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at editor-shell-v2/tests/narrow-editor-v2-select-all.test.mjs:105:1
+✖ U1: the client sends select-all with both option flags false and the expected revision (0.459705ms)
+  Error [DocumentSdkError]: unsupported narrow editor action: select-all
+      at NarrowEditorV2Client.action (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/narrow-editor-v2-client.js:415:13)
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/narrow-editor-v2-select-all.test.mjs:108:33)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    code: 'EDITOR_ACTION_UNSUPPORTED',
+    details: {}
+  }
+
+test at editor-shell-v2/tests/narrow-editor-v2-select-all.test.mjs:115:1
+✖ U1: a select-all reply that claims a document change is rejected (0.352987ms)
+  AssertionError [ERR_ASSERTION]: {"revision":8}
+      at async TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/narrow-editor-v2-select-all.test.mjs:118:5)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: DocumentSdkError: unsupported narrow editor action: select-all
+        at NarrowEditorV2Client.action (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/narrow-editor-v2-client.js:415:13)
+        at file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/narrow-editor-v2-select-all.test.mjs:118:39
+        at waitForActual (node:assert:632:21)
+        at strict.rejects (node:assert:769:31)
+        at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/narrow-editor-v2-select-all.test.mjs:118:18)
+        at Test.runInAsyncScope (node:async_hooks:227:14)
+        at Test.run (node:internal/test_runner/test:1306:25)
+        at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+        at Test.postRun (node:internal/test_runner/test:1447:19)
+        at Test.run (node:internal/test_runner/test:1372:12),
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at editor-shell-v2/tests/narrow-editor-v2-select-all.test.mjs:130:1
+✖ U1: the session queues select-all, as a non-mutation, and the document stays clean (0.976016ms)
+  Error: unsupported v2 editor action: select-all
+      at NarrowEditorV2Session._action (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/narrow-editor-v2-session.js:1046:21)
+      at NarrowEditorV2Session.action (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/narrow-editor-v2-session.js:1030:17)
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/narrow-editor-v2-select-all.test.mjs:136:17)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    code: 'EDITOR_ACTION_UNSUPPORTED',
+    recovery: 'none'
+  }
+
+test at editor-shell-v2/tests/narrow-editor-v2-select-all.test.mjs:143:1
+✖ U1: a read-only session still selects all (0.20383ms)
+  Error: unsupported v2 editor action: select-all
+      at NarrowEditorV2Session._action (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/narrow-editor-v2-session.js:1046:21)
+      at NarrowEditorV2Session.action (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/narrow-editor-v2-session.js:1030:17)
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/narrow-editor-v2-select-all.test.mjs:147:17)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    code: 'EDITOR_ACTION_UNSUPPORTED',
+    recovery: 'none'
+  }
