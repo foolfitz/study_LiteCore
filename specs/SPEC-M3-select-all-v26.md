@@ -284,3 +284,53 @@
 |---|---|
 | 2026-10-30 | 追加一：finding 175（fable 代擁有者裁決 A）。 |
 
+
+## 追加二（2026-10-30，F3-80 的三格移動；fable 代擁有者裁決「B 修改版」）
+
+> 本節只追加，不改上面任何一字。依據：F3-80 的兩條讀法（`findings/evidence/select-all-v26/f3/read-01.json` `F3_RED`、`equal-01.json` `F3_80_MOVED`）；§5.6 要求的查清（`f3/MOVED-CELLS.md`）；裁決原文 `f3/RULING-fable-2026-10-30.md`。
+
+**移動的三格**（Chrome；Firefox 46/46 不動）：
+
+| 格 | F3-79 | F3-80 |
+|---|---|---|
+| `an-aborted-gesture-stops-selecting` | PASS | NOT_ESTABLISHED |
+| `an-inline-format-reaches-a-selection`（`read_v25_f3.py` 的 [P]） | PASS | FAIL |
+| `the-page-agrees-with-the-engine-about-the-selection` | PASS | NOT_ESTABLISHED |
+
+**機制**（讀原始碼）：被綁、不改的 `tools/run_e2_c_product_path.py` 在三處（約 7515、8408、8504 行）用 `re.findall(r"U\+…")` 從複製提示解析引擎選到的文字；finding 175 把提示從編碼清單改成字數，三處都解析出空字串／零。F4-80 的 runner 在 generation 80 上把同一套檢查又跑了一次，移動的是同樣三格、其他格不動。Firefox 不動，是因為它的複製在 F3-79 就被拒（`CLIPBOARD_DENIED`）。
+
+**§5.6 那句延伸**：「174 **或 175**（任何改提示文字的修法）會讓讀提示的格子移動的話，先在本規格追加點名那一格與理由，再判。」
+
+**更正追加一**：追加一的具名限制 L-copy-lies-pattern-stale 寫「F3-80／F4-80 不帶 `--mutate`，不受影響」——**這句作廢**。它來自 fable 對 175 的裁決第 6 條，寫的時候沒有追 runner 不帶變異的路徑，主 session 照抄。實際上有三支一般檢查讀同一個提示。
+
+**不宣稱**：generation 80 的 F3 **不**宣稱 `F3_HOLDS` 也**不**宣稱 `F3_80_EQUAL`。紀錄就是 `F3_RED`／`F3_80_MOVED`，各自恰好是上面三格；接受與否由下面的讀取工具判。
+
+**讀過差異**：generation 79→80 的三個檔（`git diff 9f084bf06 HEAD`），逐 hunk：頁面＝`run()` 的 review 提示（174）、`ACTION_LABELS` 加「全選」、複製與剪下提示（175）、keydown 的註解與 `takeSelectAllKey` 一行、新增 `selectAllKey`／`selectAllResult`／`takeSelectAllKey`、`workerUrl` 改 v26；narrow client＝select-all 的清單與 move 類；narrow session＝允許清單改讀聯集、`BOUNDARY_CAPABLE_MOVES` 加 select-all。profile 的 worker 只改 profile 名稱一處，manifest 只改名稱、版本字串、select-all 的 gestures 與 limits、`workerSha256`。**沒有一處碰到拖曳結束、`pointercancel`、`blur` 的處理，也沒有碰到粗體的派送。**若有，B 不成立，要先做下面的工作項再打包。
+
+**讀取工具**：`tools/read_v80_f3_append2.py`（新檔；不改 `read_v25_f3.py`、`read_v80_f3_equal.py`、被綁的 runner，也不重產 `read-01.json`／`equal-01.json`）。只讀已 commit 的報告：基準＝`shell-v79-173/f3/run-01/chrome/report.json`；generation 80＝`select-all-v26/f3/run-01/chrome/report.json` 與 `select-all-v26/f4/chrome/report.json`；加上 `f3/read-01.json`、`f3/equal-01.json`。輸出 `f3/append2-read-01.json`，判定 `F3_80_HOLDS_UNDER_APPEND_2`，否則 `F3_80_APPEND_2_RED`；每個抽出的數字都進紀錄。對**每一份** generation 80 的報告：
+
+- (A) aborted-gesture：outcome 為 NOT_ESTABLISHED；control／reference／pointercancel／blur 的 `copyToast` 都符合 `^已複製 (\d+) 字$`，得 c、r、a1、a2；control 與 reference 的 `aRangeIsSelectedAfterAbortAndMove` 為 true；r > 0 且 r ≠ c；兩個 abort 臂 `aRangeIsSelectedBefore` 為 false 且 aᵢ＝r；四臂的瞄準（`x1`、`y`、`band`、`scanWidth`）相同，control 與兩個 abort 臂的 `abortAtFraction` 相同，各臂的 `aim` 與基準同一臂相同；c、r、aᵢ 各等於基準同一臂 `selectedText` 的 code point 數（23、12、12）。
+- (B) inline-format：outcome 為 FAIL；`selected`＝基準的 `selectedText`（空的就紅）；`savedIsOdt` 為 true；`buttonAfterDrag.disabled` 為 false；去空白後 `selected` 不在 `boldBefore`、在 `boldAfter`，且 `boldAfter` 去掉第一次出現的 `selected` 之後等於 `boldBefore`（也就是只有它新變粗）。
+- (C) page-agrees：outcome 為 NOT_ESTABLISHED；`copyToast` 符合 `^已複製 (\d+) 字$`，n > 0 且 n＝基準的 `engineCodePoints`（5）；`pageSaysARange` 為 true；`pageAfter.shape` 為 `range-single` 或 `range-cross`；`pageAfter.unreadable` 不是 true。
+- (B′)、(C′)（主 session 加的，比裁決嚴）：兩格的 `drag` 與基準相同——數字比的是同一個位置。
+- (D) `read-01.json`：`F3_RED`，`problems` 恰好是那三句；`equal-01.json`：`F3_80_MOVED`，`moved` 恰好是那三筆，Chrome 46 格中 43 相同、Firefox 46／46。
+- (E) 兩份 generation 80 的報告在 (A)–(C) 抽出的每個數字上一致。
+- (F) 非空洞：基準的提示含 `U+`；generation 80 的提示不含 `U+`；基準的文字非空。
+
+**紅案**（`--self-test`，在記憶體裡改真的輸入，輸出 `f3/append2-self-test.json`，每一個都紅才是 `ALL_RED`）：m1 blur 字數 12→13；m2 control 字數 23→12；m3 page-agrees 字數→0；m4 `pageSaysARange`→false；m5 `boldAfter` 拿掉 `KITAL`；m6 `savedIsOdt`→false；m7 基準 `selectedText`→空；m8 read-01 多一句 problem；m9 read-01 少一句；m10 equal-01 多一筆 moved；m11 blur 的 `x1` 改掉；m12 F4-80 的 blur 字數 12→11（兩次不一致）；m13 一則 generation 80 的提示換回舊的 `U+` 形式；m14 inline-format 的 `drag.x1` 改掉（B′）。先跑紅案，再跑真的讀取；兩個檔都 commit。
+
+**宿主的閘門**（`findings/evidence/host-0.2.42/prepare-release.py`，還沒跑過；docstring 的差異清單要寫進這一條）：`F3-80-spec16` 改成要求 `('F3_RED', 恰好那三句)`；`F3-80-equal` 改成要求 `('F3_80_MOVED', 恰好那三筆, chrome 46/43、firefox 46/46)`；新增 `F3-80-append2` 要求 `F3_80_HOLDS_UNDER_APPEND_2`、`F3-80-append2-selfTest` 要求 `ALL_RED`；兩個檔加進必備清單；`countBasis` 與 ATTRIBUTION 的句子寫「F3-80 under spec v26 append 2: three Chrome cells count-only (L-175-blinds-three-F3-cells)」；`release.json` 原樣帶三個判定字串。F3-80 的其他任何說法都拒絕。
+
+**具名限制 L-175-blinds-three-F3-cells**：從 generation 80 起，這三個性質在兩個瀏覽器都沒有「文字」的觀測（Chrome 的提示只有字數；Firefox 的複製被拒，L-firefox-copy）。Chrome 上由本節的讀取工具只看字數、對 F3-79 的文字長度比；inline-format 那格由存檔的粗體差異讀。從 80 起 F3 的綠**不得**被引用為「拖曳中止後的選取文字相等」或「選取的是哪些字」的證據。
+
+**工作項 W-f3-text-observable**：由被綁的 runner 衍生 `run_e2_c_product_path_clipboard.py`（封閉的差異清單：三處改讀剪貼簿，比照 `check_v26_select_all.py` 讀 `follow.clipboard`），衍生後做舊值掃描；在 **generation 80 自己的位元組**上跑 Chrome；預期三格 PASS、文字與 F3-79 相同（`E1-LC-ISOLATED 前後都不是清單的`／`E1-LC-ISOLAT`／`KITAL`），之後 `read_v80_f3_equal.py` 對那個目錄得 `F3_80_EQUAL`。文字不同就開 finding，並重開 0.2.42 的 F3 判讀。排在下一次 K 計數鏈之前、也排在任何改動拖曳選取、手勢中止或範圍上 inline format 的規格之前。**不是**打包或擁有者安裝時段的前提。Firefox 照舊沒量。
+
+**預設（工作項永遠沒做）**：三個性質從 80 起在 Chrome 只看字數、在 Firefox 沒量；之後每一次 F3 的判讀都要帶本節的讀取工具，它的預期文字停在 F3-79、隨每一代變舊；之後的規格不得引用 F3 涵蓋這些路徑；下一個碰到這些路徑的規格要先做工作項，或在自己的限制裡把這些性質列為沒量。
+
+**§9 的四個條件**：(1) 先於滿足——瀏覽器執行照原本釘死的判準做完、不重跑；讀取工具在第一次真的讀取之前 commit；判定式是各格自己的判定式、把文字換成字數，預期值全部來自 F3-79 的報告，不來自 generation 80；(2) 被逼出來且指名——`equal-01` 的 `F3_80_MOVED`、`read-01` 的 `F3_RED`、`MOVED-CELLS.md`、finding 175、175 裁決第 6 條；(3) 形式二——本節的三格封閉清單要等於兩條讀法輸出的集合，多一格或少一格都紅，全部從報告算；(4) 截止——`append2-read-01.json` 在現有兩次 generation 80 執行上成立即封閉，之後的顧慮變成 finding。計數：F3-80 的執行照算、不歸零；S1、S2 不受影響。
+
+**§8 追加**：因執行而修 +1（F3-80 三格移動 → 新讀取工具＋宿主閘門的例外）。新讀取工具 `read_v80_f3_append2.py` 依 §34 審一次。
+
+| 日期 | 修改 |
+|---|---|
+| 2026-10-30 | 追加二：F3-80 的三格移動（fable 代擁有者裁決 B 修改版）。 |
