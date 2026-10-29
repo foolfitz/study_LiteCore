@@ -2726,7 +2726,12 @@ el.sink.addEventListener("copy", (event) => {
   if (!session?.document) return;
   event.preventDefault();
   void run("複製", () => session.copySelection())
-    .then((result) => toast(`已複製 ${result?.codePoints ?? "?"} 字`))
+    // FINDING 175 (SPEC-M3-select-all-v26 append 1).  `codePoints` is the
+    // adapter's ARRAY of "U+XXXX" strings (input-adapter.js summarizeUnicode),
+    // and this line used to put the array itself into the sentence -- every
+    // copy since 2026-08-16 said 「已複製 U+0045,U+0031,… 字」, and after Ctrl+A
+    // that was the whole document.  The count is its length.
+    .then((result) => toast(`已複製 ${result?.codePoints?.length ?? "?"} 字`))
     .catch(() => {});
 });
 
@@ -3733,7 +3738,8 @@ el.sink.addEventListener("cut", (event) => {
                          ? "delete-selection" : "delete-backward", {});
     return copied;
   })
-    .then((copied) => toast(`已剪下 ${copied?.codePoints ?? "?"} 字`))
+    // FINDING 175: the count, not the code-point list (see the copy listener).
+    .then((copied) => toast(`已剪下 ${copied?.codePoints?.length ?? "?"} 字`))
     .catch(() => {});
 });
 

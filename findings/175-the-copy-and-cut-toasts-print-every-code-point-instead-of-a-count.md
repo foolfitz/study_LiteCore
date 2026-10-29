@@ -11,7 +11,7 @@
 
 ## 現象
 
-〔實測〕generation 80 候選、Chrome、list-contexts：Ctrl+A、Ctrl+C，剪貼簿得到整份文字（正確），提示為「已複製 U+0045,U+0031,U+002D,U+004C,…（175 個編碼）… 字」（S1 試跑 `s1-shake-01`，scratchpad，未保留；正式證據待 S1 run）。
+〔實測〕generation 80 候選、Chrome、list-contexts：Ctrl+A、Ctrl+C，剪貼簿得到整份文字（正確），提示為「已複製 U+0045,U+0031,U+002D,U+004C,…（175 個編碼）… 字」（S1 試跑 `s1-shake-01` 第 4 回；那一回的紀錄另存為 `findings/evidence/175/shake-run4-copy.json`。試跑不是閘門的執行，只當這張 finding 的證據）。
 
 ## 機制
 
