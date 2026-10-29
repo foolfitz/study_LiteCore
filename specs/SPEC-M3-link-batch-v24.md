@@ -357,3 +357,15 @@ page honesty（`check_m3_page_honesty.py`）在 v24 的頁面上照 K 鏈的前�
 結果：guarded installer 預檢與安裝都通過（CANDIDATE_INSTALLED）。受保護文件與完整鎖列前後相同（鎖列為零筆），三條未登入路由都是 401。既有 `run_calc_editor_host.py` 以兩個瀏覽器做擁有檔的 Files 實際流程，**52/52 PASS**，清理完整。安裝後讀取 `capture-after.py` 成立，紅案兩個都會轉紅；其中一個第一次沒轉紅，是讀取工具漏算 buildId 欄位，已在登錄前修好（因執行而修 1，因審核而修 0）。
 
 限制照寫：Writer 臂走頁面的插入欄位（`commitText`），不是對 sink 送按鍵；v24 的真實鍵入由 mirror 上的 S5／R1／A4 成立，沒有在這台宿主重量。0.2.39 現在是**日常使用的未計數候選**，取代 0.2.38；名義出貨版仍是 **0.2.26**。K 沒跑，控制協定交由 fable 裁決（擁有者選 A），未採用前不開計數。
+
+## 23. K 控制協定：fable 裁決（2026-10-29，只追加；任何 K 計數之前）
+
+擁有者選「先請 fable 裁決」。裁決全文、修正一與主 session 的核對在 `findings/evidence/host-0.2.39/k-protocol-ruling/RULING.md`。白話：
+
+- **不採用原工單的 A**：凍結的 runner 會拒絕「歷史頁面閉包」，因為它們要求送出的殼層等於現在樹裡的原始碼。硬要跑就得造新機制去撐一個已經死掉的前提（CLAUDE.md §4）。**也不採 B**：從 v24 起每顆引擎都帶 `typedInsert`，同一份頁面原始碼上的 v8 執行永遠不會再出現，所以延後只是把同一份處方晚一點寫。
+- **merge 的負向臂**：改讀 0.2.26 計數已提交的 v8 red 報告，不再重跑。merge runner 逐位元沒變（`aaee0cda`）。
+- **頁面把關的拒絕**：v24 拒絕沒帶 `typedInsert` 的 manifest，這件事獨立成新的負向臂，K 時重跑 `probe-legacy-v8-gate.py`。
+- **綁定**：在新的 K 包裝器裡於行程內覆寫，凍結檔的 `BINDING` 一個字都不改。
+- **product-path 的容許基準（修正一）**：錨定在 **0.2.26 計數過的 v21 紀錄**（讀，不重跑），套用舊 `verdict()`；四支新檢查要 3/3 PASS。第一版用 T4（候選自己的計數前執行）當基準，等於拿候選跟自己比，會吞掉自 0.2.26 以來的退化。這是主 session 量出 9 格之後退回修正的（因審核而修 1）。
+
+**新的硬條件**：v21 在 0.2.26 是 3/3 PASS、v24 的 T4 卻不是 PASS 的 9 格（Chrome 7：bulleting 空行、inline 格式到選取、全部 inline 格式、清除格式、邊界方向鍵、Enter、長文件；Firefox 2：bulleting 空行、全部 inline 格式），開跑前每一格都要有個別登錄的處置：產品 finding，或附 commit／hunk 的具名儀器限制並有自己的裁決。**永遠沒寫的預設：該格對 0.2.26 錨點判紅、K 不成立、名義出貨仍是 0.2.26。**現在可做（離線、不計數）：舊版 runner（`3e824c97`）在 v24 頁面上的二分、9 格的處置、各判讀工具與紅案、包裝器、repin 腳本。必須等 8–10 小時不開站時段的：安裝後 P2／P5、各 M3 runner 與整條鏈。
