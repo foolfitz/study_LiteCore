@@ -15,3 +15,13 @@ Declared before packaging, 2026-10-29 (spec `specs/SPEC-M3-shell-v79-finding-173
 After install: the Files workflow and `capture-after.py` as for 0.2.40, then the owner's own hand test (Files "+ New -> New document" -> bullet -> type -> save), which is the route B1 does not take (spec section 6, L-mirror-open-route).
 
 Not in this package: K. Nominal shipped host stays 0.2.26.
+
+## Offline results (2026-10-29 ~23:40 +0800)
+
+- `prepare-release.py` (`package-run-01.*`, exit 0; canonical packager 159.2 s): engine **829a988e199ebc43**. Against the live 0.2.40 predecessor: **44 records identical, exactly two changed** (`e2-editor-app.js`, `editor-shell-v2/paragraph-editor-client.js`), nothing added or removed; editor page `9cb6ea1f…`, profile `e2-editor-v25`; viewer/Calc page identities and HTML unchanged; both codings decode to the exact current `dist/` bytes. Evidence gate (`release.json`): `v25Gates` all hold and `v79Gates` all hold (U1, U2, shell tests, B1, F3-79 both readings, F4-79, V0′, E1-C).
+- Archive `wasm_sdk_probe/build/archive/host-0.2.41-engine-829a988e199ebc43` (not in git), MANIFEST sha256 `535a9ca5…`, all 94 members bound by `archive.sha256`.
+- `check-delta.py` -> `check-delta.json`: **DELTA_HOLDS**, re-derived from the two archived MANIFEST files; five red cases (one more changed record, one fewer, a changed profile file, an added record, a removed record) each red.
+- `offline-package-check.json`: **PACKAGE_HOLDS**, zero problems, **22/22** red cases red.
+- `offline-install-preflight.json`: **OFFLINE_INSTALL_READY** (parent ae1f9db, candidate 2bb5718, `liveMutation: false`).
+
+Next: an owner slot with an explicit no-site answer (`slot.json`), then `install-0.2.41.py --preflight-only`, `install-0.2.41.py`, the Files workflow, `capture-after.py`, and the owner's hand test.
