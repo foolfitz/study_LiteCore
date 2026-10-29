@@ -25,3 +25,16 @@ Not in this package: K. Nominal shipped host stays 0.2.26.
 - `offline-install-preflight.json`: **OFFLINE_INSTALL_READY** (parent ae1f9db, candidate 2bb5718, `liveMutation: false`).
 
 Next: an owner slot with an explicit no-site answer (`slot.json`), then `install-0.2.41.py --preflight-only`, `install-0.2.41.py`, the Files workflow, `capture-after.py`, and the owner's hand test.
+
+## Live installation (owner slot 23:51:55 2026-10-29 - 00:30 2026-10-30 +0800, `slot.json`)
+
+The owner answered the slot question "A: install now" (no-site during the install); only litecore and the router ran throughout (`ddev-before.json`, `ddev-after-slot.json`); fgp-nc and nc-bridge stay stopped by the owner's earlier choice.
+
+- `install-0.2.41.py --preflight-only` -> **LIVE_PREFLIGHT_READY** (`install-20261029T235201+0800/`): protected documents 24674/24920/25391 read 200; `oc_files_lock` **zero rows**.
+- `install-0.2.41.py` -> **CANDIDATE_INSTALLED** (`install-20261029T235218+0800/`): fast-forward ae1f9db..2bb5718 (info.xml only), exact engine rsync, `occ upgrade` to 0.2.41; protected documents and full lock rows equal before/after; e2-editor/ods-viewer/ods-editor unauthenticated routes all **401**.
+- **Files workflow** `files-workflow-01/` (unchanged `run_calc_editor_host.py`, Chrome + Firefox): **52/52 PASS**; cleanup: no owned unlocks, share and user removed, folder DELETE 204; every entry landed on `/r/829a988e199e…`. Same stated limit as 0.2.40's run: the Writer arm inserts through the page's insert-text field; finding 173's fix is established on the mirror (B1, real input), not re-measured on this host -- the owner's hand test is that measurement.
+- `capture-after.py install-20261029T235218+0800 files-workflow-01` -> `post-install-identity.json` **holds: true** (host 2bb5718 clean, installed_version 0.2.41, buildId 829a988e199ebc43, engine equals the archive, documents and lock rows equal the installer's after-state, owned folder 404, temporary user absent). The first invocation omitted the two positional arguments and died on `sys.argv[1]` (`post-install-identity.missing-args.stderr.txt`), an operator slip.
+- Red cases (`post-install-red/`), built as 0.2.40's were: one flipped workflow check with the report's `ok` as the runner computes it (`run_calc_editor_host.py:290`, `ok = all(checks)`) -> exit 1 (`failed: ['owned-folder']`); the predecessor build id in one Writer entry -> exit 1 (`buildIdInEveryEntry: false`).
+- **Named limit, found by the first red-case construction** (`post-install-red/flipped-check-only-the-cell/`, exit 0, `holds: true` with `failed: ['owned-folder']`): `capture-after.py` (an exact copy of 0.2.40's, which is itself a copy of 0.2.39's) gates on the runner's summary `report['ok']` and lists failed cells without gating on them. A report whose cells and summary disagree is not one the runner writes, so the installed 0.2.41 read is not affected; recorded rather than patched (the derived script may differ only in its docstring). A successor that re-derives `ok` from the cells is a candidate for the next host's scripts.
+
+Status: **0.2.41 is installed as the daily uncounted candidate**, superseding 0.2.40. Nominal shipped host stays **0.2.26**; K has not run. Rollback, if needed: `rollback-package.sh` (exact 0.2.40 engine; needs a slot).
