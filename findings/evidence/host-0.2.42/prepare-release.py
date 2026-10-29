@@ -15,10 +15,18 @@ Derived from findings/evidence/host-0.2.41/prepare-release.py (not edited).  Clo
   all under findings/evidence/select-all-v26/: P1 (dist profile P1_HOLDS, red cases RED_CASES_HOLD); U1-U4
   (red-before's last `ℹ fail K` line has K > 0, green-after's has K = 0 and its last `ℹ pass N` has N > 0);
   the whole shell suite after finding 175 (`suite-after-175.txt`, same green reading); S2 run-02 S2_HOLDS
-  (run-01 does not count, spec append 1); S1 run-01 S1_HOLDS with self-test ALL_RED; F3-80 by both
-  readings (F3_HOLDS, F3_80_EQUAL); F4-80 24/24 (the same expression as F4-79's); V0' V0_PRIME_HOLDS;
+  (run-01 does not count, spec append 1); S1 run-01 S1_HOLDS with self-test ALL_RED; F3-80 under spec v26
+  append 2 (see the next item); F4-80 24/24 (the same expression as F4-79's); V0' V0_PRIME_HOLDS;
   E1-C intact after the V0' put-back.  Every v26 evidence file is checked for existence first and the
   missing ones are named in the refusal;
+- F3-80 (spec v26 append 2, fable ruling B modified, findings/evidence/select-all-v26/f3/RULING-fable-2026-10-30.md;
+  edited by the main session after the scripts were derived and before any run): the two original readings are
+  required to be exactly the recorded move -- read-01 (F3_RED, exactly the three Chrome problems) and equal-01
+  (F3_80_MOVED, exactly the three moved records, chrome 46/43 and firefox 46/46 equal) -- and the append-2
+  reader (tools/read_v80_f3_append2.py) must say F3_80_HOLDS_UNDER_APPEND_2 with its self-test ALL_RED; both
+  of its files are in the existence check.  Any other F3-80 result is a refusal.  countBasis and ATTRIBUTION
+  say "F3-80 under spec v26 append 2: three Chrome cells count-only (L-175-blinds-three-F3-cells)"; the release
+  record carries the three verdict strings (f3_80Verdicts);
 - the delta against 0.2.41 must be exactly: three changed records (e2-editor-app.js and the two
   editor-shell-v2 narrow-editor-v2 files), the four profiles/e2-editor-v26/ files added, the four
   profiles/e2-editor-v25/ files removed; the added probe.wasm and probe.js equal the removed ones (sha256
@@ -55,6 +63,17 @@ DECLARED_CHANGED = ['e2-editor-app.js', 'editor-shell-v2/narrow-editor-v2-client
                     'editor-shell-v2/narrow-editor-v2-session.js']
 DECLARED_ADDED = sorted(f'profiles/{PROFILE}/{n}' for n in PROFILE_FILES)
 DECLARED_REMOVED = sorted(f'profiles/{OLD_PROFILE}/{n}' for n in PROFILE_FILES)
+# Spec v26 append 2: the recorded F3-80 move, exactly.
+F3_80_CELLS = ('an-aborted-gesture-stops-selecting', 'an-inline-format-reaches-a-selection',
+               'the-page-agrees-with-the-engine-about-the-selection')
+F3_80_READ01_PROBLEMS = [f'chrome {F3_80_CELLS[0]} [no-regression]: v24 PASS -> v25 NOT_ESTABLISHED',
+                         f'chrome {F3_80_CELLS[1]} [P]: v24 FAIL -> v25 FAIL',
+                         f'chrome {F3_80_CELLS[2]} [no-regression]: v24 PASS -> v25 NOT_ESTABLISHED']
+F3_80_EQUAL01_MOVED = [{'browser': 'chrome', 'check': F3_80_CELLS[0], 'f379': 'PASS', 'v80': 'NOT_ESTABLISHED'},
+                       {'browser': 'chrome', 'check': F3_80_CELLS[1], 'f379': 'PASS', 'v80': 'FAIL'},
+                       {'browser': 'chrome', 'check': F3_80_CELLS[2], 'f379': 'PASS', 'v80': 'NOT_ESTABLISHED'}]
+F3_80_EQUAL01_COUNTS = {'chrome': {'cells': 46, 'equal': 43}, 'firefox': {'cells': 46, 'equal': 46}}
+F3_80_BASIS = 'F3-80 under spec v26 append 2: three Chrome cells count-only (L-175-blinds-three-F3-cells)'
 sys.path.insert(0, str(SDK / 'tools'))
 from package_m3_engine import package, validate_manifest
 from probe_m3_assets import closure
@@ -132,7 +151,7 @@ def main():
     units = ('u1', 'u2', 'u3', 'u4')
     needed = (['p1/dist-profile.json', 'p1/red/red-cases.json', 'suite-after-175.txt', 's2/run-02/report.json',
                's1/run-01/report.json', 's1/self-test.json', 's2/self-test-02.json', 'f3/read-01.json', 'f3/equal-01.json',
-               'f4/aggregate-judge.json', 'v0/v0-prime.json', 'v0/e1-c-after-put-back.json']
+               'f3/append2-read-01.json', 'f3/append2-self-test.json', 'f4/aggregate-judge.json', 'v0/v0-prime.json', 'v0/e1-c-after-put-back.json']
               + [f'{u}/{n}' for u in units for n in ('red-before.txt', 'green-after.txt')])
     missing = [n for n in needed if not (v26 / n).is_file()]
     if missing:
@@ -162,8 +181,13 @@ def main():
         'S1-selfTest': (verdict('s1/self-test.json', 'selfTest'), 'ALL_RED'),
         # Added by the main session after review: S2 was rerun (run-02) on the final bytes; its own self-test.
         'S2-selfTest': (verdict('s2/self-test-02.json', 'selfTest'), 'ALL_RED'),
-        'F3-80-spec16': (verdict('f3/read-01.json'), 'F3_HOLDS'),
-        'F3-80-equal': (verdict('f3/equal-01.json'), 'F3_80_EQUAL'),
+        # Spec v26 append 2: the two original readings must be exactly the recorded move, and the append-2
+        # reader decides it.  The closed lists are written out here, not imported from the reader.
+        'F3-80-spec16': ([verdict('f3/read-01.json'), verdict('f3/read-01.json', 'problems')], ['F3_RED', F3_80_READ01_PROBLEMS]),
+        'F3-80-equal': ([verdict('f3/equal-01.json'), verdict('f3/equal-01.json', 'moved'), verdict('f3/equal-01.json', 'counts')],
+                        ['F3_80_MOVED', F3_80_EQUAL01_MOVED, F3_80_EQUAL01_COUNTS]),
+        'F3-80-append2': (verdict('f3/append2-read-01.json'), 'F3_80_HOLDS_UNDER_APPEND_2'),
+        'F3-80-append2-selfTest': (verdict('f3/append2-self-test.json', 'selfTest'), 'ALL_RED'),
         'F4-80': ('PASS' if not f4_80['problems'] and f4_80['rows'] == 24 and all(x['outcome'] == 'PASS' for x in f4_80['arms'].values()) else 'NOT', 'PASS'),
         'V0prime': (verdict('v0/v0-prime.json'), 'V0_PRIME_HOLDS'),
         'E1-C': (verdict('v0/e1-c-after-put-back.json', 'intact'), True),
@@ -231,7 +255,7 @@ def main():
         raise ValueError('archive already exists')
     shutil.copytree(APP / 'engine', archive)
     (archive / 'ATTRIBUTION.md').write_text('# Exact host 0.2.42 engine package\n\n'
-        f'Host commit {candidate}, predecessor {PARENT} (0.2.41, exact 0.2.41 engine). Writer on profile e2-editor-v26 (manifest successor of v25; wasm and loader are v25\'s bytes) / frozen shell generation 80: Ctrl+A select-all, findings 174 and 175; viewer v3, Calc v2 and 0.2.38 dark-theme HTML retained. v24 feature counts carried over (spec v25 section 14); v25 F1-F4, the section 9 reader, spec v79 U1/U2/B1/F3-79/F4-79/V0prime/E1-C and spec v26 P1/U1-U4/S1/S2/F3-80/F4-80/V0prime/E1-C hold; full K has not run. MANIFEST.json binds every raw/gzip/zstd member.\n')
+        f'Host commit {candidate}, predecessor {PARENT} (0.2.41, exact 0.2.41 engine). Writer on profile e2-editor-v26 (manifest successor of v25; wasm and loader are v25\'s bytes) / frozen shell generation 80: Ctrl+A select-all, findings 174 and 175; viewer v3, Calc v2 and 0.2.38 dark-theme HTML retained. v24 feature counts carried over (spec v25 section 14); v25 F1-F4, the section 9 reader, spec v79 U1/U2/B1/F3-79/F4-79/V0prime/E1-C and spec v26 P1/U1-U4/S1/S2/F3-80/F4-80/V0prime/E1-C hold ({F3_80_BASIS}); full K has not run. MANIFEST.json binds every raw/gzip/zstd member.\n')
     members = sorted(p for p in archive.rglob('*') if p.is_file())
     (OUT / 'archive.sha256').write_text(''.join(sha(p) + '  ' + p.relative_to(archive).as_posix() + '\n' for p in members))
     release = {'version': '0.2.42', 'hostParent': PARENT, 'hostCommit': candidate, 'branch': 'host-0.2.42',
@@ -243,7 +267,9 @@ def main():
                'archiveFilesVerified': len(members), 'installed': False, 'K': 'NOT_RUN',
                'nominalShippedHost': '0.2.26', 'shellGeneration': 80, 'v25Gates': gates, 'v79Gates': gates79,
                'v26Gates': gates26, 'v26NodeCounts': node_counts,
-               'countBasis': 'v24 counts carried over (owner, spec v25 section 14); v25 F1-F4 and section 9 reader; spec v79 U1/U2/B1/F3-79/F4-79/V0prime/E1-C; spec v26 P1/U1-U4/S1/S2 run-02/F3-80/F4-80/V0prime/E1-C',
+               'countBasis': 'v24 counts carried over (owner, spec v25 section 14); v25 F1-F4 and section 9 reader; spec v79 U1/U2/B1/F3-79/F4-79/V0prime/E1-C; spec v26 P1/U1-U4/S1/S2 run-02/F3-80/F4-80/V0prime/E1-C; ' + F3_80_BASIS,
+               'f3_80Verdicts': {'read01': verdict('f3/read-01.json'), 'equal01': verdict('f3/equal-01.json'),
+                                 'append2': verdict('f3/append2-read-01.json')},
                'shellBundleFileSha256': want['shell']['bundleFileSha256']}
     release['canonicalPackageReusedAfterWrapperError'] = args.reuse_existing
     (OUT / 'release.json').write_text(json.dumps(release, indent=1) + '\n')
