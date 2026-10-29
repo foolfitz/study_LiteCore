@@ -1,0 +1,14 @@
+--- wasm_sdk_probe/src/probe_engine.cpp	2026-10-29 11:56:40.500138603 +0800
++++ leak/src/probe_engine.cpp	2026-10-29 15:28:29.232679802 +0800
+@@ -8503,3 +8503,11 @@
+   return SubmitStatus::Ok;
+ }
+ } // namespace probe
++
++// RED CASE (check_v25_ships_confined, leak): a macro derived inside a V25 branch, used outside it.
++#ifdef OXSDK_E2_V25_FORMAT_PROOF
++#define OXSDK_V25_REDCASE_LEAK(x) static const int kV25RedCaseLeak = x;
++#else
++#define OXSDK_V25_REDCASE_LEAK(x)
++#endif
++OXSDK_V25_REDCASE_LEAK(1)

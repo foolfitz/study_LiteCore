@@ -1,0 +1,365 @@
+{
+ "tool": "check_v25_ships_confined",
+ "argv": [
+  "tools/check_v25_ships_confined.py",
+  "--ships",
+  "/tmp/claude-1000/-home-jiajun-LibreOffice-study-LiteCore/c20d3ac4-241e-4fa1-bda0-9ef24bd61b3b/scratchpad/confined-reds/ships-zero.json"
+ ],
+ "since": "1f95a9fca6c521a7d64828e44f2b890859d7086a",
+ "src": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/src",
+ "ships": {
+  "path": "/tmp/claude-1000/-home-jiajun-LibreOffice-study-LiteCore/c20d3ac4-241e-4fa1-bda0-9ef24bd61b3b/scratchpad/confined-reds/ships-zero.json",
+  "hunks": {}
+ },
+ "units": {
+  "sdk_api": {
+   "C-sameLine": true,
+   "seconds": [
+    0.13,
+    0.13,
+    0.12,
+    0.12
+   ],
+   "B-sameAsLink": true,
+   "A-changedLines": 0,
+   "A-outside": [],
+   "A-outsideCount": 0,
+   "A-byFile": {},
+   "A-lines": []
+  },
+  "probe_engine": {
+   "C-sameLine": true,
+   "seconds": [
+    0.25,
+    0.25,
+    0.24,
+    0.24
+   ],
+   "B-sameAsLink": true,
+   "A-changedLines": 39,
+   "A-outside": [],
+   "A-outsideCount": 0,
+   "A-byFile": {
+    "ordered_engine_reply.inc": 29,
+    "ordered_format.inc": 3,
+    "probe_engine.cpp": 7
+   },
+   "A-lines": [
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 974,
+     "insideV25": true,
+     "text": "  bool dispatchRecorded = false;"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 975,
+     "insideV25": true,
+     "text": "  bool dispatched = false;"
+    },
+    {
+     "side": "-",
+     "file": "probe_engine.cpp",
+     "line": 1640,
+     "insideV25": true,
+     "text": "       << \"\\\",\\\"failureShape\\\":\\\"\" << jsonEscape(barrier.failureShape.c_str())"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 1635,
+     "insideV25": true,
+     "text": "       << \"\\\"\" << (barrier.dispatchRecorded"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 1636,
+     "insideV25": true,
+     "text": "                       ? (barrier.dispatched ? \",\\\"dispatched\\\":true\" : \",\\\"dispatched\\\":false\")"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 1637,
+     "insideV25": true,
+     "text": "                       : \"\")"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 1638,
+     "insideV25": true,
+     "text": "       << \",\\\"failureShape\\\":\\\"\" << jsonEscape(barrier.failureShape.c_str())"
+    },
+    {
+     "side": "+",
+     "file": "ordered_engine_reply.inc",
+     "line": 68,
+     "insideV25": true,
+     "text": "bool orderedInlineFormatStateEquals(const std::string &unoCommand, bool requested) {"
+    },
+    {
+     "side": "+",
+     "file": "ordered_engine_reply.inc",
+     "line": 69,
+     "insideV25": true,
+     "text": "  if (unoCommand == \".uno:Bold\")"
+    },
+    {
+     "side": "+",
+     "file": "ordered_engine_reply.inc",
+     "line": 70,
+     "insideV25": true,
+     "text": "    return gEditorState.boldKnown && gEditorState.bold == requested;"
+    },
+    {
+     "side": "+",
+     "file": "ordered_engine_reply.inc",
+     "line": 71,
+     "insideV25": true,
+     "text": "  if (unoCommand == \".uno:Italic\")"
+    },
+    {
+     "side": "+",
+     "file": "ordered_engine_reply.inc",
+     "line": 72,
+     "insideV25": true,
+     "text": "    return gEditorState.italicKnown && gEditorState.italic == requested;"
+    },
+    {
+     "side": "+",
+     "file": "ordered_engine_reply.inc",
+     "line": 73,
+     "insideV25": true,
+     "text": "  if (unoCommand == \".uno:Underline\")"
+    },
+    {
+     "side": "+",
+     "file": "ordered_engine_reply.inc",
+     "line": 74,
+     "insideV25": true,
+     "text": "    return gEditorState.underlineKnown && gEditorState.underline == requested;"
+    },
+    {
+     "side": "+",
+     "file": "ordered_engine_reply.inc",
+     "line": 75,
+     "insideV25": true,
+     "text": "  if (unoCommand == \".uno:Strikeout\")"
+    },
+    {
+     "side": "+",
+     "file": "ordered_engine_reply.inc",
+     "line": 76,
+     "insideV25": true,
+     "text": "    return gEditorState.strikeoutKnown && gEditorState.strikeout == requested;"
+    },
+    {
+     "side": "+",
+     "file": "ordered_engine_reply.inc",
+     "line": 77,
+     "insideV25": true,
+     "text": "  return false;"
+    },
+    {
+     "side": "+",
+     "file": "ordered_engine_reply.inc",
+     "line": 78,
+     "insideV25": true,
+     "text": "}"
+    },
+    {
+     "side": "+",
+     "file": "ordered_engine_reply.inc",
+     "line": 80,
+     "insideV25": true,
+     "text": "const char *orderedInlineFormatWitness(const std::string &unoCommand, bool requested,"
+    },
+    {
+     "side": "+",
+     "file": "ordered_engine_reply.inc",
+     "line": 81,
+     "insideV25": true,
+     "text": "                                       const std::string &payload) {"
+    },
+    {
+     "side": "+",
+     "file": "ordered_engine_reply.inc",
+     "line": 82,
+     "insideV25": true,
+     "text": "  if (commandResultSucceeded(payload.c_str()))"
+    },
+    {
+     "side": "+",
+     "file": "ordered_engine_reply.inc",
+     "line": 83,
+     "insideV25": true,
+     "text": "    return \"uno-success\";"
+    },
+    {
+     "side": "+",
+     "file": "ordered_engine_reply.inc",
+     "line": 84,
+     "insideV25": true,
+     "text": "  for (const auto &read : probe::replystate::kReads) {"
+    },
+    {
+     "side": "+",
+     "file": "ordered_engine_reply.inc",
+     "line": 85,
+     "insideV25": true,
+     "text": "    if (unoCommand != read.unoCommand)"
+    },
+    {
+     "side": "+",
+     "file": "ordered_engine_reply.inc",
+     "line": 86,
+     "insideV25": true,
+     "text": "      continue;"
+    },
+    {
+     "side": "+",
+     "file": "ordered_engine_reply.inc",
+     "line": 87,
+     "insideV25": true,
+     "text": "    if (gOrderedProof.stateItems.count(read.stateKey))"
+    },
+    {
+     "side": "+",
+     "file": "ordered_engine_reply.inc",
+     "line": 88,
+     "insideV25": true,
+     "text": "      return orderedInlineFormatStateEquals(unoCommand, requested) ? \"on-time-item\" : nullptr;"
+    },
+    {
+     "side": "+",
+     "file": "ordered_engine_reply.inc",
+     "line": 89,
+     "insideV25": true,
+     "text": "    return orderedInlineFormatStateEquals(unoCommand, requested) ? \"state-noop\" : nullptr;"
+    },
+    {
+     "side": "+",
+     "file": "ordered_engine_reply.inc",
+     "line": 90,
+     "insideV25": true,
+     "text": "  }"
+    },
+    {
+     "side": "+",
+     "file": "ordered_engine_reply.inc",
+     "line": 91,
+     "insideV25": true,
+     "text": "  return nullptr;"
+    },
+    {
+     "side": "+",
+     "file": "ordered_engine_reply.inc",
+     "line": 92,
+     "insideV25": true,
+     "text": "}"
+    },
+    {
+     "side": "-",
+     "file": "ordered_engine_reply.inc",
+     "line": 121,
+     "insideV25": true,
+     "text": "    if (!commandResultSucceeded(payload.c_str()) &&"
+    },
+    {
+     "side": "-",
+     "file": "ordered_engine_reply.inc",
+     "line": 122,
+     "insideV25": true,
+     "text": "        !inlineFormatArgumentResolved(unoCommand, option)) {"
+    },
+    {
+     "side": "+",
+     "file": "ordered_engine_reply.inc",
+     "line": 113,
+     "insideV25": true,
+     "text": "    const char *witness = orderedInlineFormatWitness(unoCommand, option, payload);"
+    },
+    {
+     "side": "+",
+     "file": "ordered_engine_reply.inc",
+     "line": 114,
+     "insideV25": true,
+     "text": "    if (!witness) {"
+    },
+    {
+     "side": "+",
+     "file": "ordered_engine_reply.inc",
+     "line": 138,
+     "insideV25": true,
+     "text": "         << \",\\\"witness\\\":\\\"\" << witness << \"\\\"\""
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 107,
+     "insideV25": true,
+     "text": "    gFormatBarrier.dispatchRecorded = true;"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 108,
+     "insideV25": true,
+     "text": "    gFormatBarrier.dispatched = dispatched;"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 261,
+     "insideV25": true,
+     "text": "  barrier.stage = FormatBarrierStage::AwaitingResult;"
+    }
+   ]
+  },
+  "unoembind_stub": {
+   "C-sameLine": true,
+   "seconds": [
+    0.06,
+    0.06,
+    0.06,
+    0.06
+   ],
+   "B-sameAsLink": true,
+   "A-changedLines": 0,
+   "A-outside": [],
+   "A-outsideCount": 0,
+   "A-byFile": {},
+   "A-lines": []
+  },
+  "editor_api": {
+   "C-sameLine": true,
+   "seconds": [
+    0.13,
+    0.12,
+    0.12,
+    0.12
+   ],
+   "B-sameAsLink": true,
+   "A-changedLines": 0,
+   "A-outside": [],
+   "A-outsideCount": 0,
+   "A-byFile": {},
+   "A-lines": []
+  }
+ },
+ "notVisibleToShips": {
+  "files": [
+   "ordered_engine_reply.inc",
+   "ordered_format.inc"
+  ],
+  "lines": 32
+ },
+ "problems": [
+  "the ships report lists zero changed hunks"
+ ],
+ "verdict": "CONFINED_V25_RED"
+}

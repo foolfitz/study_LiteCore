@@ -1,0 +1,11 @@
+--- wasm_sdk_probe/src/probe_engine.cpp	2026-10-29 11:56:40.500138603 +0800
++++ baseline/src/probe_engine.cpp	2026-10-29 15:28:29.253634227 +0800
+@@ -1155,7 +1155,7 @@
+ std::uint64_t gNextFormatBarrierSerial = 1;
+ 
+ bool formatBarrierActive() {
+-  return gFormatBarrier.target != FormatBarrierTarget::None;
++  return gFormatBarrier.target != FormatBarrierTarget::None && true;
+ }
+ 
+ // Finding 021 remediation, discovery only.
