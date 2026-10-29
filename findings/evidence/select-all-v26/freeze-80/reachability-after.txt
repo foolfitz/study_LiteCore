@@ -1,0 +1,62 @@
+python3 tools/check_product_build_reaches.py
+{
+  "schemaVersion": 1,
+  "release": "product-build-reachability",
+  "source": "src/probe_engine.cpp",
+  "defines": [
+    "-DOXSDK_EDITOR_DISCOVERY",
+    "-DOXSDK_FINDING_016_SELECTION_BARRIER",
+    "-DOXSDK_E2_FORMAT_BARRIER"
+  ],
+  "required": [
+    {
+      "call": "refreshEditorAccessibility();",
+      "reachable": true,
+      "why": "switches accessibility on; without it getA11yFocusedParagraph() returns an empty paragraph and every caret fingerprint is the hash of an empty string (measured, findings/evidence/queue-block-identity/after-link-v3/)"
+    },
+    {
+      "call": "handleEditorPlaceCaret(command);",
+      "reachable": true,
+      "why": "the click that answers with where the caret went; an entry point the product cannot reach is an entry point that is not there"
+    },
+    {
+      "call": "json << \",\\\"formatStale\\\":\"",
+      "reachable": true,
+      "why": "the validity bit for the format cache the product ships; it was emitted only under OXSDK_MAINLOOP_ENGINE until 2026-08-17, so the product had the measurement and not the bit that says whether it is stale"
+    },
+    {
+      "call": "gFormatBarrier.paragraphIdentityChecked =",
+      "reachable": true,
+      "why": "whether finding 046's identity gate RAN; the gate is fail-open by design, so a verdict reached without it must be distinguishable from one reached with it"
+    },
+    {
+      "call": "gEditorState.a11yParagraphFresh = false;",
+      "reachable": true,
+      "why": "a failed synchronous paragraph read must CLEAR the fingerprint rather than leave the previous one standing, which would be a plausible wrong answer instead of an absent one"
+    },
+    {
+      "call": "gFormatBarrier.readbackParagraphKnown = refreshCaretParagraph();",
+      "reachable": true,
+      "why": "finding 046's fix reads the paragraph the barrier's own selection landed on; taken at the read, not at the verdict"
+    }
+  ],
+  "unreachableInProductBuild": [],
+  "ok": true
+}
+python3 tools/check_product_build_reaches.py --self-test
+  ok    the Makefile still has the product object rule
+  ok    the product build still passes -DOXSDK_EDITOR_DISCOVERY
+  ok    the product build still passes -DOXSDK_FINDING_016_SELECTION_BARRIER
+  ok    the product build still passes -DOXSDK_E2_FORMAT_BARRIER
+  ok    every required call is in the product build
+  ok    a discovery-only call is correctly reported as NOT in the product
+  ok    the search-time refresh is still excluded (the site that fooled us)
+
+self-test: 7/7 checks moved the verdict
+# Which of the PRODUCT PAGE's own paths any automated round has ever
+# driven.  Same shape as the shell bundle's rule -- page minus driven
+# minus waived must be empty -- so a handler cannot arrive unaccounted
+# for.  Findings 049, 050 and the unbound Ctrl+C were all found one at a
+# time by walking into them; this is that list, kept.
+python3 tools/audit_product_path_coverage.py > /dev/null
+make: *** [Makefile:4925: test-e2-c-reachability] Error 1
