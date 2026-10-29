@@ -67,3 +67,28 @@ the owner (ask first). Everything in the next steps below is offline (mirror, na
   `wasm_sdk_probe/build/` or the scratchpad, never under evidence.
 - DDEV 1.25.3 has no `pause`; `paused` means containers stopped (e.g. after reboot).
 - section 34.4 this round: execution 1, review 2.
+
+## Addendum (2026-10-29 afternoon): v25 implemented, link handed to the owner
+
+Commits `9d7fb9e7c` (engine + native red cases), `58a2f5ddf` (worker), `d860a898a` (Makefile, builder,
+contract checker, link script, M1-1, what_the_link_ships, v24 E1 on its linked source, frozen set).
+Evidence: `findings/evidence/link-batch-v25/pre-link/README.md`. All of spec v25 section 6.1 holds;
+spec section 13 records the four implementation-forced corrections (execution 1: the S guard control
+aimed at the wrong translation unit).
+
+**Owner step** (compiles; owner runs it):
+
+```bash
+cd /home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe && bash tools/link_v25_feature_owner.sh
+```
+
+It refuses if `build/e2/editor-v25`, `dist/profiles/e2-editor-v25` or `build/link-v25-feature-01.log`
+exists; logs to `build/link-v25-feature-01.log`; runs both contract checks and prints the five hashes.
+
+**Agent, after the link (spec 6.2, then 6.3):** L1 on the real log; X1
+(`tools/check_profile_identity.py --candidate dist/profiles/e2-editor-v25 --reference
+dist/profiles/e2-editor-v24`, declared worker only, no new leaf/export) plus red cases; frozen set
+equal except the four new v25 profile files; archive `build/archive/e2-editor-v25-<wasm8>-worker-<worker8>/`.
+Then page cut-over (workerUrl + PINNED_WASM_SHA256 prefix), freeze generation 78 only after all shell
+changes, F1 (diag_format.py with v25 as a third product), F2 (new `check_v25_clear_format_noop.py`,
+red on v24), F3, F4. Section 9 (carry over selection counts) still awaits the owner; default re-run.
