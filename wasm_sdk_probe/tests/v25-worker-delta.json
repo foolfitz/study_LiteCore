@@ -1,0 +1,41 @@
+{
+ "schema": 1,
+ "note": "SPEC-M3-link-batch-v25 6.1 W1: the closed list of differences between the archived v24 worker (41041fe7...) and sdk/v25-feature-worker.js, each hunk labelled with its section 4.2 item. tests/test_v25_feature_worker_delta.py applies the hunks to the archived v24 worker and requires the v25 worker byte for byte.",
+ "hunks": [
+  {
+   "item": "4 header comment",
+   "v24Index": 2,
+   "v24Lines": 9,
+   "old": "// SPEC-M3-link-batch-v24 4.2: the e2-editor-v24 worker.  Derived from the\n// frozen v23 worker (sdk/v23-feature-worker.js, 3fd3e1e6...), which stays\n// byte-identical because generation 76 and the v23 profile bind it.  The\n// differences are a closed list (criterion W1): (1) insertText routes on the\n// SDK's `route`; (2) `insertTypedText` joins the declared document exports;\n// (3) init refuses a binary that lacks a declared export; (4)\n// featureExtendPermitted names this profile; (5) this comment; (6) the\n// `inserted` reply names `completion` and `resultPayload` (the projection is\n// a whitelist, so without it the typed route's proof never reaches the page).\n",
+   "new": "// SPEC-M3-link-batch-v25 4.2: the e2-editor-v25 worker.  Derived from the\n// archived v24 worker (build/archive/e2-editor-v24-27615808-worker-41041fe7,\n// 41041fe7...), whose own derivation from v23 is SPEC-M3-link-batch-v24 4.2.\n// The differences from v24 are a closed list (criterion W1): (1)\n// productFormatBarrier takes the engine's `dispatched` when it is a boolean\n// (finding 171); (2) `editor-action-completed` forwards `witness` from a\n// known set, anything else as null (finding 172); (3)\n// featureExtendPermitted names this profile; (4) this comment.\n"
+  },
+  {
+   "item": "2 witness set",
+   "v24Index": 13,
+   "v24Lines": 0,
+   "old": "",
+   "new": "const FORMAT_WITNESSES = new Set([\"uno-success\", \"on-time-item\", \"state-noop\"]);\n"
+  },
+  {
+   "item": "3 profile term",
+   "v24Index": 164,
+   "v24Lines": 1,
+   "old": "  return activeManifest?.profile === \"e2-editor-v24\"\n",
+   "new": "  return activeManifest?.profile === \"e2-editor-v25\"\n"
+  },
+  {
+   "item": "1 dispatched from the engine",
+   "v24Index": 352,
+   "v24Lines": 1,
+   "old": "    dispatched: typeof value.stage === \"string\" && value.stage !== \"idle\",\n",
+   "new": "    // Finding 171: the engine's record says whether it posted the command.\n    // The stage-derived fallback only serves engines that do not send it; the\n    // ordered path never left `idle`, so on v23/v24 the fallback said false.\n    dispatched: typeof value.dispatched === \"boolean\" ? value.dispatched\n      : typeof value.stage === \"string\" && value.stage !== \"idle\",\n"
+  },
+  {
+   "item": "2 witness forwarded",
+   "v24Index": 1018,
+   "v24Lines": 0,
+   "old": "",
+   "new": "          // Finding 172: which proof made an inline format true; evidence only.\n          witness: FORMAT_WITNESSES.has(event.witness) ? event.witness : null,\n"
+  }
+ ]
+}

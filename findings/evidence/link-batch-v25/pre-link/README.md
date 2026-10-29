@@ -22,3 +22,12 @@ Engine edits (all under `OXSDK_E2_V25_FORMAT_PROOF`): `src/editor_api.h` guard,
   not the guard (v24's guard has the same single include site). Fixed-by-execution: 1.
 
 All runs pinned to one core (`taskset -c 0`), load 0.4-0.7, no make running.
+
+## Worker step
+
+`sdk/v25-feature-worker.js` = archived v24 worker (`41041fe7...`) + `tests/v25-worker-delta.json`
+(items 1 dispatched from the engine, 2 witness set + forwarded, 3 profile term, 4 header).
+- `w1-delta.txt`: **W1** byte-for-byte; a copy with one extra line outside the list fails (run by
+  hand with `V25_W1_WORKER` pointing at the copy in the scratchpad).
+- `w2-worker.txt`: **W2** in a vm sandbox: engine boolean wins over stage, stage fallback for
+  engines without it, known witnesses forwarded, others null; three causal controls each turn it red.
