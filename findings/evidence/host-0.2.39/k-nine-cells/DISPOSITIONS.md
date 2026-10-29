@@ -33,3 +33,7 @@ product RED; default RED). Finding candidate: 038's wedge does not reproduce on 
 Row 9 is pinned as the ruling's Q4 (N = K's three rounds per browser; **I-ink-trigger-race** only for
 the exact signature; at most one per browser; default RED). Rows 1-6 are unchanged: product, RED until
 findings 171/172 are fixed (v25) and re-measured.
+
+## v25 re-measure (2026-10-29, appended; not K)
+
+Rows 1-6 were re-measured on v25 on the local mirror (spec v25 sections 15-17): F3 run-02 (`link-batch-v25/f3/read-02.json`, criterion section 16 with correction 16.1) has all six cells **PASS** in their browsers, with F1 (engine record), F2 (clear-format no-op) and F4 (four arms 24/24) holding. The designed sentinel `notice-action-recovers-the-session` returns to NE (its v24 PASS was produced by finding 171), with `recoveryPairing` held. Rows 7 and 8 are unchanged (Chrome FAIL, the same named limits). Row 9 (`editing-a-long-document-stays-responsive`, Chrome) was PASS in F3 run-01 and run-02 -- two observations, not the N runs Q4 asks for. v25 ships in host 0.2.40 (installed as the daily uncounted candidate, `host-0.2.40/`). These cells are still read by K, which has not run.

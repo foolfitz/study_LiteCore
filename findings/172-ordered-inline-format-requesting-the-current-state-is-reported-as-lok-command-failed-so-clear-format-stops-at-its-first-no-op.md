@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **狀態** | 已確認（文件存檔＋Worker 回覆）／**v25 已修並量過**（F1、F2，2026-10-29）；尚未出貨——宿主仍是回退後的 0.2.38 引擎 |
+| **狀態** | 已確認（文件存檔＋Worker 回覆）／**v25 已修並量過**（F1–F4，2026-10-29）；宿主 0.2.40 已安裝為日常未計數候選（2026-10-29 18:46）；名義出貨仍 0.2.26，K 未跑 |
 | **Bugzilla** | —（本樹缺陷） |
 | **發現日** | 2026-10-29 |
 | **嚴重度** | 中——使用者可見：清除格式跳出 `LOK_COMMAND_FAILED` 而且沒清乾淨；接著工具列的斜體等按鈕顯示「開著」，按下去反而送出「關」 |
@@ -45,7 +45,7 @@ v24 的 Worker 回覆：第一次清除格式的 `set-bold {enabled:false}`（�
 - 量測一（`findings/evidence/link-batch-v25/f1/`，上面「現象」的同一步驟序列，Chrome 3 回）：v25 存檔的 `MKAFTERCLEAR` 不是斜體、`MKITALAGAIN` 是斜體（與 v22 相同），沒有任何格式回覆失敗；no-op 的要求在引擎紀錄裡是 `state-noop`。v24 同工具 3/3 重現本 finding。〔實測〕
 - 量測二（`findings/evidence/link-batch-v25/f2/`，普通文字上連按兩次清除格式、判第二次，兩瀏覽器各 3 回）：v25 四個回覆都 ok、witness 都是 `state-noop`；v24 在 `set-bold` 就 `LOK_COMMAND_FAILED`。〔實測〕
 - 量測時學到的觸發條件：**剛放好游標後的第一次清除格式不會觸發本 finding**——LOK 在那次 flush 裡會廣播四個狀態項，v24 也回四個 ok。觸發需要「狀態沒變所以 LOK 不重播」，也就是之前已經按過格式或清除過一次。上面「機制」第 3 點的敘述不變，只是補上 LOK 何時不廣播。〔實測〕
-- 仍待：F3（product-path 一般臂）上 `every-inline-format-reaches-the-document`（兩瀏覽器）、`clear-format-removes-every-inline-format`、`an-inline-format-reaches-a-selection`（Chrome）要 PASS，才算對 K 的處置解除；出貨要等宿主新版本與 DDEV 時段。
+- F3（product-path 一般臂，`findings/evidence/link-batch-v25/f3/` run-02）：本 finding 的格子兩個瀏覽器都 PASS。宿主 0.2.40 已裝（`findings/evidence/host-0.2.40/`，Files 實流程 52/52；Writer 那一臂走插入欄位，這兩個修法沒有在宿主上另外量）。對 K 的處置：修好並重量過，等 K 本身。
 
 ## 對 K 的處置（裁決修正一）
 
