@@ -26,3 +26,15 @@ Totals: Chrome 42 PASS / 2 NE / 2 FAIL; Firefox 35 PASS / 10 NE / 1 FAIL (v24 T4
 v24's PASS here was produced by finding 171 (the bullet put the session into `recoverable-error`, so the notice was offered and pressed). `../../host-0.2.39/k-nine-cells/README.md` had already recorded this check as NE on v21 and v22 (the 0.2.26 anchor) and PASS on v24, in both browsers. v25 returns it to the anchor's reading. The F4 runs (`../f4/`) show the same NE in both browsers.
 
 So criterion A, pinned against v24's T4, cannot be met by a v25 that fixes 171: one baseline PASS was manufactured by the defect being fixed, and its partner rule makes the fix force the abstain. This is the criterion's red, not a product regression -- but the rule says RED, and it is not reinterpreted here (CLAUDE.md sections 8-9). A correction, if any, must be decided by the owner or a ruling, written before a run-02 that counts under it (T4 Correction 1 is the precedent).
+
+## run-02 under correction 1 (chrome 18:07:19-18:16:54, firefox -18:26:45 +0800): **F3_HOLDS** (`read-02.json`, exit 0) -- F3's verdict
+
+Spec 16.1 was written and committed (`b3c6fea46`) after run-01 and before this run; the reader was exercised beforehand (`reader-correction-1/`).
+
+- **Every check's outcome equals run-01's**, both browsers (no cell moved between the runs). Totals as run-01: Chrome 42 PASS / 2 NE / 2 FAIL; Firefox 35 / 10 / 1.
+- P: six cells PASS. Recovery pairing: `notice-action-recovers-the-session` NE with `recoveryPairing` held, consistent with both checks, bulleting PASS, in both browsers. No-regression and same-or-pass groups: no problem. Improved (named): the six P cells, Chrome `editing-a-long-document-stays-responsive` FAIL -> PASS, Firefox `clear-format-removes-every-inline-format` NE -> PASS.
+- Remaining non-PASS on v25, all equal to v24's T4: Chrome `the-enter-key-reaches-the-document` FAIL (I-enter-raw-substring), `a-boundary-arrow-press-does-not-cost-the-work` FAIL (I-worker-inducer-single-shot), `a-refused-action-is-reported-and-changes-nothing` NE; Firefox `an-inline-format-reaches-a-selection` FAIL and nine NE as on v24.
+- `read-02-self-test.json`: base `F3_HOLDS`; all eleven mutations `F3_RED` -> `selfTest: PASS`.
+- Chrome wire (recorded): 41 `insertText` (23 `paste`, 18 `uno-insert-text`), every route equal to its ok reply's `method`; nothing lost.
+
+With F1, F2, F3 and F4 holding, DISPOSITIONS rows 1-6 are fixed and re-measured on v25 (mirror). K itself has not run.
