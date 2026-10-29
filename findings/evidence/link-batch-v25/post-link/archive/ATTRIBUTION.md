@@ -1,0 +1,7 @@
+# e2-editor-v25 candidate attribution
+
+This archive contains the exact owner-linked `e2-editor-v25` candidate (2026-10-29, `tools/link_v25_feature_owner.sh`, log `findings/evidence/link-batch-v25/post-link/link-v25-feature-01.log`): editor ABI 6, 23 public actions, select-all present with no granted gestures, `editorContract.typedInsert: "document-sdk-insert-typed-text"` unchanged from v24, and the v24 export list unchanged. The engine adds `OXSDK_E2_V25_FORMAT_PROOF` (SPEC-M3-link-batch-v25; findings 171 and 172; fable ruling `findings/evidence/host-0.2.39/k-nine-cells/RULING-v25-fixes.md`). It is a link candidate, not a feature acceptance or host deployment verdict.
+
+The WASM identity is `44cb15ea8d36f0e0191e007179769b6bcb468e3d084cb260c645e6127630d193`; the worker identity is `75557b220b0d29dfa222a3dd4c3fbde54403034676dc8b7b1a9b41934c218b0c`, the bytes of `sdk/v25-feature-worker.js`, which is the archived v24 worker `41041fe746b2355a1768bc774a10ac59802a8e359579618be405e3696f3b9461` plus the closed hunk list `tests/v25-worker-delta.json`.
+
+The five bound artifacts are probe.js, probe.wasm, sdk-worker.js, sdk-manifest.json and exports.txt. SHA256SUMS binds their actual bytes; the archive name identifies both WASM and worker. Never overwrite this identity. The owner link left every previously existing profile and archive file unchanged (`findings/evidence/link-batch-v25/post-link/frozen-set-*`).

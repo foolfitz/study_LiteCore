@@ -153,9 +153,16 @@ v25 只動格式回覆路徑，而且全部在新 define 之下。提案：
 3. **`what_the_link_ships`（`--since 1f95a9fca`）**：四個單元裡只有 `probe_engine` 的前置處理輸出有變，變的段落正好是 §4.1 宣告的四處（barrier 欄位、`dispatched` 序列化、stage、witness）；其餘三個單元相同。這可以當 §9 的材料，但 §9 仍然等擁有者確認。
 4. **原生測試沒有涵蓋的部分**：`dispatched` 與 `witness` 的 JSON 序列化寫在 `probe_engine.cpp`／`ordered_engine_reply.inc` 的輸出串流裡，原生 harness 測的是決定邏輯。序列化由連結後的 F1、F2 量到。
 
+## 14. 連結完成與 §9 的決定（2026-10-29，只追加；連結之後、任何 v25 瀏覽器執行之前）
+
+擁有者 14:14–14:17 連結：wasm `44cb15ea…`、loader `ed1d9a55…`、worker `75557b22…`、manifest `e7780061…`、匯出表等於 v24（`f5b21630…`）。§6.2 全過（`findings/evidence/link-batch-v25/post-link/`）：兩道契約檢查、X1 對 v24 只宣告 worker 而 `VERDICT PASS`、三個紅案各只紅自己那一條、凍結集合 2,453 個檔不變而且只多 v25 的四個檔、`ScDocShell` 0 次（有正向對照）、E1-C intact，已封存 `e2-editor-v25-44cb15ea-worker-75557b22`。
+
+**§9：擁有者選「沿用」**（2026-10-29 原話：「沿用」）。S5、R1、S1–S4 的計數不在 v25 上重跑；F3、F4 照跑。依據是 §9 寫的條件：`pre-link/ships.stdout.txt` 顯示相對於 v24 連結時的原始碼，只有 `probe_engine` 的前置處理輸出有變。**欠著**：把「每一段變動都落在 `#ifdef OXSDK_E2_V25_FORMAT_PROOF` 之內」寫成一支讀 `ships` 輸出與原始碼的小工具（形式二），在任何 K 之前補上；補上之前，「只差宣告段落」這件事是讀出來的，還不是工具判的。
+
 ## 12. 修訂紀錄
 
 | 日期 | 內容 |
 |---|---|
 | 2026-10-29 | 初版（裁決之後、任何 v25 實作之前） |
 | 2026-10-29 | §13 追加：實作逼出的四點更正（連結之前） |
+| 2026-10-29 | §14 追加：連結完成、§6.2 結果、§9 擁有者選沿用 |
