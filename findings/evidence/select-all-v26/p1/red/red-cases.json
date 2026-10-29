@@ -1,0 +1,114 @@
+{
+ "base": {
+  "profile": "dist/profiles/e2-editor-v26",
+  "checks": {
+   "archiveIsV25": true,
+   "wasmEqual": true,
+   "loaderEqual": true,
+   "workerHunkIsTheClosedList": true,
+   "manifestChangesAreTheClosedList": true,
+   "profileName": true,
+   "sdkVersion": true,
+   "workerShaBound": true,
+   "selectAllGrant": true,
+   "populationContiguous": true,
+   "everyWorkerActionPresent": true
+  },
+  "notes": {
+   "workerHunk": [
+    "+// SPEC-M3-select-all-v26 4.2: the e2-editor-v26 worker is the archived v25 worker with only this name changed.",
+    "-  return activeManifest?.profile === \"e2-editor-v25\"",
+    "+  return activeManifest?.profile === \"e2-editor-v26\""
+   ],
+   "manifestChangedPaths": [
+    "editorContract.actions.select-all",
+    "editorContract.workerSha256",
+    "profile",
+    "sdkVersion"
+   ],
+   "population": 23,
+   "absentOrUngated": []
+  },
+  "verdict": "P1_HOLDS"
+ },
+ "mutations": {
+  "select-all-omitted": {
+   "verdict": "P1_FAILS",
+   "failed": [
+    "everyWorkerActionPresent",
+    "selectAllGrant"
+   ],
+   "expected": "everyWorkerActionPresent",
+   "rightReason": true
+  },
+  "select-all-collapsed-only": {
+   "verdict": "P1_FAILS",
+   "failed": [
+    "selectAllGrant"
+   ],
+   "expected": "selectAllGrant",
+   "rightReason": true
+  },
+  "select-all-limit-missing": {
+   "verdict": "P1_FAILS",
+   "failed": [
+    "selectAllGrant"
+   ],
+   "expected": "selectAllGrant",
+   "rightReason": true
+  },
+  "other-field-changed": {
+   "verdict": "P1_FAILS",
+   "failed": [
+    "manifestChangesAreTheClosedList"
+   ],
+   "expected": "manifestChangesAreTheClosedList",
+   "rightReason": true
+  },
+  "worker-extra-byte": {
+   "verdict": "P1_FAILS",
+   "failed": [
+    "workerHunkIsTheClosedList"
+   ],
+   "expected": "workerHunkIsTheClosedList",
+   "rightReason": true
+  },
+  "worker-sha-unbound": {
+   "verdict": "P1_FAILS",
+   "failed": [
+    "manifestChangesAreTheClosedList",
+    "workerShaBound"
+   ],
+   "expected": "workerShaBound",
+   "rightReason": true
+  },
+  "wasm-replaced": {
+   "verdict": "P1_FAILS",
+   "failed": [
+    "wasmEqual"
+   ],
+   "expected": "wasmEqual",
+   "rightReason": true
+  },
+  "other-action-omitted": {
+   "verdict": "P1_FAILS",
+   "failed": [
+    "everyWorkerActionPresent",
+    "manifestChangesAreTheClosedList"
+   ],
+   "expected": "everyWorkerActionPresent",
+   "rightReason": true
+  },
+  "v1-action-omitted": {
+   "verdict": "P1_FAILS",
+   "failed": [
+    "everyWorkerActionPresent",
+    "manifestChangesAreTheClosedList"
+   ],
+   "expected": "everyWorkerActionPresent",
+   "rightReason": true
+  }
+ },
+ "allRed": true,
+ "verdict": "RED_CASES_HOLD"
+}

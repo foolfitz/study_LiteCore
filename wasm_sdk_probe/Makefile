@@ -2316,6 +2316,23 @@ test-v25-feature-static:
 	python3 -I tests/test_v25_feature_profile.py
 	node tests/v25_feature_worker_test.cjs
 
+# SPEC-M3-select-all-v26 4.1: e2-editor-v26 is a MANIFEST SUCCESSOR of the
+# archived v25 profile -- no object and no link.  The archive's wasm and loader
+# are copied byte for byte, the worker is sdk/v26-select-all-worker.js (v25's
+# with featureExtendPermitted renamed), the manifest is v25's with four values
+# changed.  Depends on the archive only, so it can never reach a relink.
+# Judged by tools/check_v26_profile.py (P1), which the rule runs last.
+E2_V26_DIST := dist/profiles/e2-editor-v26
+E2_V26_BASE := build/archive/e2-editor-v25-44cb15ea-worker-75557b22
+
+$(E2_V26_DIST)/sdk-manifest.json: $(E2_V26_BASE)/SHA256SUMS $(E2_V26_BASE)/probe.wasm \
+		$(E2_V26_BASE)/probe.js $(E2_V26_BASE)/sdk-manifest.json \
+		sdk/v26-select-all-worker.js tools/build_e2_v26_select_all_profile.py \
+		tools/check_v26_profile.py Makefile
+	python3 tools/build_e2_v26_select_all_profile.py --archive $(E2_V26_BASE) \
+		--worker sdk/v26-select-all-worker.js --output $(E2_V26_DIST)
+	python3 tools/check_v26_profile.py --profile $(E2_V26_DIST) > /dev/null
+
 # ---------------------------------------------------------------- v5, a11y
 #
 # Everything below names $(E2_V5_CORE) explicitly instead of $(LOBUILD).  The

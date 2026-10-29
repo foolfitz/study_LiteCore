@@ -1,0 +1,32 @@
+{
+ "profile": "dist/profiles/e2-editor-v26",
+ "checks": {
+  "archiveIsV25": true,
+  "wasmEqual": true,
+  "loaderEqual": true,
+  "workerHunkIsTheClosedList": true,
+  "manifestChangesAreTheClosedList": true,
+  "profileName": true,
+  "sdkVersion": true,
+  "workerShaBound": true,
+  "selectAllGrant": true,
+  "populationContiguous": true,
+  "everyWorkerActionPresent": true
+ },
+ "notes": {
+  "workerHunk": [
+   "+// SPEC-M3-select-all-v26 4.2: the e2-editor-v26 worker is the archived v25 worker with only this name changed.",
+   "-  return activeManifest?.profile === \"e2-editor-v25\"",
+   "+  return activeManifest?.profile === \"e2-editor-v26\""
+  ],
+  "manifestChangedPaths": [
+   "editorContract.actions.select-all",
+   "editorContract.workerSha256",
+   "profile",
+   "sdkVersion"
+  ],
+  "population": 23,
+  "absentOrUngated": []
+ },
+ "verdict": "P1_HOLDS"
+}
