@@ -1,0 +1,48 @@
+# E1 is v24's pre-link gate: "outside the v24 define nothing changed since
+# ceaa2770".  It is a claim about the source v24 was linked from (1f95a9fca),
+# so it reads that source; on the live tree it is red by construction once
+# a later batch (v25) adds its own regions.  The v23/v24 objects' bytes on
+# the live tree are held by V0-v25 instead (SPEC-M3-link-batch-v25 13).
+rm -rf build/v24-e1-linked-src
+mkdir -p build/v24-e1-linked-src
+git -C .. archive 1f95a9fca wasm_sdk_probe/src | tar -x -C build/v24-e1-linked-src
+V24_E1_SRC=build/v24-e1-linked-src/wasm_sdk_probe/src python3 -I tests/test_v24_typed_insert_engine.py
+....
+----------------------------------------------------------------------
+Ran 4 tests in 0.016s
+
+OK
+python3 -I tests/test_v24_feature_worker_delta.py
+...
+----------------------------------------------------------------------
+Ran 3 tests in 0.001s
+
+OK
+python3 -I tests/test_v24_feature_profile.py
+......
+----------------------------------------------------------------------
+Ran 6 tests in 0.161s
+
+OK
+python3 -I tests/test_v24_feature_selection_judge.py
+....
+----------------------------------------------------------------------
+Ran 4 tests in 0.001s
+
+OK
+node tests/v24_feature_worker_test.cjs
+v24 worker: routes, unknown route, leafless (d'), profile term (viii), init presence, reply projection and 6 causal controls pass
+node --test tests/v24-typed-insert-sdk.test.mjs
+✔ T3: the adapters' source literals are exactly the routed sources (1.776988ms)
+✔ U1: a declaring manifest routes every row and names the route (0.569991ms)
+✔ U1: a declaring manifest refuses an unknown source before any request (0.400976ms)
+✔ U1: any other manifest sends today's request and throws nothing new (1.254895ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 49.000526
+v24 static exit 0

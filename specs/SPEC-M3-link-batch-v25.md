@@ -146,8 +146,16 @@ v25 只動格式回覆路徑，而且全部在新 define 之下。提案：
 
 本輪：因執行而修 1（`capture-after.py` 的 buildId 欄位）；因審核而修 2（K 裁決修正一的錨點、DISPOSITIONS 第 7 列的成因）。
 
+## 13. 實作逼出的更正（2026-10-29，只追加；連結之前）
+
+1. **S 的守衛對照選錯編譯單元。**`editor_api.h` 只有 `editor_api.cpp` 會 include（v24 的守衛也一樣），所以「只帶 v25、不帶 v24」的對照要用 `editor_api.cpp` 的編譯行。第一次拿 `probe_engine.cpp` 跑，它照樣綠——錯的是對照，不是守衛（`s-v25-run01-wrong-control-tu.json` 保留）。因執行而修 1。
+2. **v24 的 E1 改讀 v24 連結時的原始碼。**`tests/test_v24_typed_insert_engine.py` 主張「v24 區塊以外，從 `ceaa2770` 起什麼都沒改」，這是 v24 的連結前閘門，說的是 v24 連結時的原始碼（`1f95a9fca`）。v25 在 v24 區塊以外加了自己的區塊，所以在活的樹上依構造是紅的（`v24-static-live-tree-red-by-construction.txt`）。比照 v24 規格 §14 的 V0′：測試檔一個字都不改，`test-v24-feature-static` 用它內建的 `V24_E1_SRC` 指向 `git archive 1f95a9fca` 抽出的 src，結果綠（在 `cd60b7d61` 上也綠）。活的樹上，v23／v24 物件的位元組由 V0-v25 守著。
+3. **`what_the_link_ships`（`--since 1f95a9fca`）**：四個單元裡只有 `probe_engine` 的前置處理輸出有變，變的段落正好是 §4.1 宣告的四處（barrier 欄位、`dispatched` 序列化、stage、witness）；其餘三個單元相同。這可以當 §9 的材料，但 §9 仍然等擁有者確認。
+4. **原生測試沒有涵蓋的部分**：`dispatched` 與 `witness` 的 JSON 序列化寫在 `probe_engine.cpp`／`ordered_engine_reply.inc` 的輸出串流裡，原生 harness 測的是決定邏輯。序列化由連結後的 F1、F2 量到。
+
 ## 12. 修訂紀錄
 
 | 日期 | 內容 |
 |---|---|
 | 2026-10-29 | 初版（裁決之後、任何 v25 實作之前） |
+| 2026-10-29 | §13 追加：實作逼出的四點更正（連結之前） |

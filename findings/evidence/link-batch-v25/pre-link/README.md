@@ -31,3 +31,24 @@ All runs pinned to one core (`taskset -c 0`), load 0.4-0.7, no make running.
   hand with `V25_W1_WORKER` pointing at the copy in the scratchpad).
 - `w2-worker.txt`: **W2** in a vm sandbox: engine boolean wins over stage, stage fallback for
   engines without it, known witnesses forwarded, others null; three causal controls each turn it red.
+
+## Build mechanics step
+
+- Makefile v25 block (v24's verbatim plus `-DOXSDK_E2_V25_FORMAT_PROOF`, v24 archive as base,
+  `sdk/v25-feature-worker.js`, guarded link), `tools/check_v25_feature_contract.py`,
+  `tools/build_e2_v25_feature_profile.py`, `tools/link_v25_feature_owner.sh` (owner-run; agent only
+  `bash -n`), `tests/test_v25_feature_profile.py` (6 tests: exact successor, every other change named,
+  v24 export list, v24 worker refused, wrong identity refused, build log needs the v25 define).
+- **M1-1**: without the v25 carrier, exit 1 naming exactly E2_V25's `sdk_api.o`, `probe_engine.o`,
+  `editor_api.o` (`m1-1-red-without-v25-carrier.*`); with
+  `--carrier E2_V25=probe_engine,sdk_api,editor_api`, exit 0, 38 rules / 147 objects, E2_V25's three
+  guard variants refused (`m1-1-green-with-v25-carrier.*`). 57 s each, one core.
+- `ships.*`: `what_the_link_ships.py --since 1f95a9fca --variant link-batch-v25 --shipped-profile
+  dist/profiles/e2-editor-v24`: only `probe_engine` changes (the declared hunks), the other three units
+  identical; worker diff against the shipped v24 worker recorded.
+- `static-tests.txt`: `make test-v25-feature-static` exit 0.
+- v24's E1 now reads the source v24 was linked from (spec v25 section 13 item 2):
+  `v24-static-live-tree-red-by-construction.txt` (before), `v24-static-on-linked-source.txt` (exit 0).
+- `v24-archive-sha256sums.txt`: the v24 archive verifies 5/5. No `build/e2/editor-v25`,
+  `dist/profiles/e2-editor-v25` or `build/link-v25-feature-01.log` exists before the link.
+- `frozen-set-before.sha256`: every regular file under `dist/profiles/` and `build/archive/`.

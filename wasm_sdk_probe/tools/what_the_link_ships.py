@@ -128,6 +128,20 @@ VARIANTS = {
         "includeVars": ["E2_V24_MD4C_INCLUDE"],
         "units": PRODUCT_UNITS,
     },
+    # SPEC-M3-link-batch-v25 5: v24's compile line plus the one v25 define.  Data only.
+    "link-batch-v25": {
+        "objectsVar": "E2_V25_OBJECTS",
+        "cppflagsVar": "E1_CPPFLAGS",
+        "defines": MERGE_V15_DEFINES + ["-DOXSDK_E2_V20_LINK_BATCH",
+                                        "-DOXSDK_E2_V21_LINK_BATCH",
+                                        "-DOXSDK_MAINLOOP_ENGINE",
+                                        "-DOXSDK_E2_V23_LINK_BATCH",
+                                        "-DOXSDK_E2_V23_FEATURE_ABI6",
+                                        "-DOXSDK_E2_V24_TYPED_INSERT",
+                                        "-DOXSDK_E2_V25_FORMAT_PROOF"],
+        "includeVars": ["E2_V25_MD4C_INCLUDE"],
+        "units": PRODUCT_UNITS,
+    },
     "product": {
         "objectsVar": "E2_V4_OBJECTS",
         "cppflagsVar": "E1_CPPFLAGS",

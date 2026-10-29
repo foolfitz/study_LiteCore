@@ -2209,12 +2209,112 @@ $(E2_V24_BUILD) $(E2_V24_DIST):
 # Focused source/contract tests only; no product objects, link or packaging target.
 .PHONY: test-v24-feature-static
 test-v24-feature-static:
-	python3 -I tests/test_v24_typed_insert_engine.py
+	# E1 is v24's pre-link gate: "outside the v24 define nothing changed since
+	# ceaa2770".  It is a claim about the source v24 was linked from (1f95a9fca),
+	# so it reads that source; on the live tree it is red by construction once
+	# a later batch (v25) adds its own regions.  The v23/v24 objects' bytes on
+	# the live tree are held by V0-v25 instead (SPEC-M3-link-batch-v25 13).
+	rm -rf build/v24-e1-linked-src
+	mkdir -p build/v24-e1-linked-src
+	git -C .. archive 1f95a9fca wasm_sdk_probe/src | tar -x -C build/v24-e1-linked-src
+	V24_E1_SRC=build/v24-e1-linked-src/wasm_sdk_probe/src python3 -I tests/test_v24_typed_insert_engine.py
 	python3 -I tests/test_v24_feature_worker_delta.py
 	python3 -I tests/test_v24_feature_profile.py
 	python3 -I tests/test_v24_feature_selection_judge.py
 	node tests/v24_feature_worker_test.cjs
 	node --test tests/v24-typed-insert-sdk.test.mjs
+
+# SPEC-M3-link-batch-v25 5.1: findings 171 and 172 (ordered format replies).
+# v24's rule verbatim plus OXSDK_E2_V25_FORMAT_PROOF; editor ABI stays 6, no
+# new export.  Worker derived from the archived v24 worker.
+E2_V25_BUILD := build/e2/editor-v25
+E2_V25_DIST := dist/profiles/e2-editor-v25
+E2_V25_SOURCES := $(E2_C_SOURCES)
+E2_V25_OBJECTS := $(patsubst src/%.cpp,$(E2_V25_BUILD)/%.o,$(E2_V25_SOURCES))
+E2_V25_MD4C_INCLUDE := $(LOBUILD)/workdir/UnpackedTarball/md4c/src
+# Frozen base identity for the v25 worker: the archived v24 worker.
+E2_V25_ARCHIVE := build/archive/e2-editor-v24-27615808-worker-41041fe7
+E2_V25_BASE_WORKER := $(E2_V25_ARCHIVE)/sdk-worker.js
+E2_V25_WORKER_SHA256 := 41041fe746b2355a1768bc774a10ac59802a8e359579618be405e3696f3b9461
+
+.PHONY: v25-feature-worker-preflight
+v25-feature-worker-preflight:
+	python3 tools/check_v25_feature_contract.py --check-worker-base \
+		--base-worker $(E2_V25_BASE_WORKER) --base-worker-sha256 $(E2_V25_WORKER_SHA256)
+
+$(E2_V25_BUILD)/%.o: src/%.cpp $(HEADERS) src/editor_api.h \
+		src/editor_discovery_api.h src/format_readback_text.hpp \
+		src/a11y_paragraph_identity.hpp src/merge_key_undo.hpp \
+		src/markdown_paste.hpp src/ordered_command_proof.hpp \
+		src/ordered_delete_route.hpp src/ordered_poll.hpp src/ordered_engine_guards.hpp src/reply_state_reads.hpp \
+		src/ordered_engine_state.inc src/ordered_engine_reply.inc src/ordered_engine_poll.inc \
+		src/ordered_engine_delete.inc src/ordered_format.inc $(E2_V25_MD4C_INCLUDE)/md4c.h Makefile \
+		| $(E2_V25_BUILD) v25-feature-worker-preflight
+	$(CXX) $(E1_CPPFLAGS) $(R5_CXXFLAGS) -I$(E2_V25_MD4C_INCLUDE) \
+		-DOXSDK_EDITOR_DISCOVERY \
+		-DOXSDK_FINDING_016_SELECTION_BARRIER -DOXSDK_E2_FORMAT_BARRIER \
+		-DOXSDK_MERGE_KEY_UNDO -DOXSDK_E2_V20_LINK_BATCH \
+		-DOXSDK_E2_V21_LINK_BATCH -DOXSDK_MAINLOOP_ENGINE \
+		-DOXSDK_E2_V23_LINK_BATCH -DOXSDK_E2_V23_FEATURE_ABI6 \
+		-DOXSDK_E2_V24_TYPED_INSERT -DOXSDK_E2_V25_FORMAT_PROOF \
+		$(EXTRA_DEFINES) -c $< -o $@
+
+# v24's public export surface, unchanged.
+$(E2_V25_BUILD)/exports.txt: $(E2_V25_ARCHIVE)/exports.txt Makefile | $(E2_V25_BUILD)
+	cp $< $@
+
+# Guarded from the first link, like every product artifact before it.
+$(E2_V25_BUILD)/probe.js: $(E2_V25_OBJECTS) $(EXTRA_OBJECTS) \
+		$(E2_V25_BUILD)/exports.txt $(LINKDEPS) $(FS_PRE_JS) Makefile
+	$(call refuse_unasked_relink,the v25 format proof (findings 171 and 172 on the v24 engine; ABI 6) -- every link mints a new hash)
+	$(call link_product_stack_1m,$(E2_V25_OBJECTS) $(EXTRA_OBJECTS),$(E2_V25_BUILD)/exports.txt,$@)
+
+$(E2_V25_BUILD)/probe.wasm: $(E2_V25_BUILD)/probe.js
+	@test -s $@
+
+# Its own worker source; the v24 one stays byte-identical (generation 77).
+$(E2_V25_BUILD)/sdk-worker.js: sdk/v25-feature-worker.js Makefile | $(E2_V25_BUILD) v25-feature-worker-preflight
+	cp $< $@
+
+# v24's manifest under the v25 name and the three bindings.
+$(E2_V25_DIST)/sdk-manifest.json: $(E2_V25_BUILD)/probe.js $(E2_V25_BUILD)/probe.wasm \
+		$(E2_V25_BUILD)/exports.txt $(E2_V25_BUILD)/sdk-worker.js \
+		sdk/v18-writer-review-manifest.json \
+		tools/build_base_no35_pack.py tools/build_r5_profiles.py \
+		tools/build_cjk_subset.py tools/build_cjk_subset_ttc_pack.py \
+		tools/build_cjk_subset_mono_pack.py \
+		tools/build_e2_editor_v5_profile.py tools/build_e2_v23_feature_profile.py \
+		tools/build_e2_v24_feature_profile.py tools/check_v24_feature_contract.py \
+		tools/build_e2_v25_feature_profile.py tools/check_v25_feature_contract.py \
+		tools/check_v23_feature_contract.py tools/check_v23_diagnostic_build.py \
+		tools/inspect_wasm_function.py tools/validate_r5_artifacts.py \
+		tools/build_e2_editor_v4_profile.py tools/build_e2_c_profile.py \
+		tools/build_e2_b_profile.py tools/e1_support.py | $(E2_V25_DIST)
+	echo "$(E2_V25_WORKER_SHA256)  $(E2_V25_BASE_WORKER)" | sha256sum -c --quiet
+	python3 tools/build_base_no35_pack.py --check
+	python3 tools/build_cjk_subset_mono_pack.py --check
+	python3 tools/build_e2_v25_feature_profile.py \
+		--source-manifest sdk/v18-writer-review-manifest.json \
+		--loader $(E2_V25_BUILD)/probe.js --wasm $(E2_V25_BUILD)/probe.wasm \
+		--worker $(E2_V25_BUILD)/sdk-worker.js \
+		--exports $(E2_V25_BUILD)/exports.txt \
+		--profile e2-editor-v25 --inline-range-gestures all \
+		--page-rectangles --paste-markdown \
+		--output $(E2_V25_DIST)
+	@test -s $(E2_V25_DIST)/probe.js
+	@test -s $(E2_V25_DIST)/probe.wasm
+	@test -s $(E2_V25_DIST)/sdk-worker.js
+
+$(E2_V25_BUILD) $(E2_V25_DIST):
+	mkdir -p $@
+
+# Focused source/contract tests only; no product objects, link or packaging target.
+.PHONY: test-v25-feature-static
+test-v25-feature-static:
+	python3 -I tests/test_ordered_format_v25.py
+	python3 -I tests/test_v25_feature_worker_delta.py
+	python3 -I tests/test_v25_feature_profile.py
+	node tests/v25_feature_worker_test.cjs
 
 # ---------------------------------------------------------------- v5, a11y
 #
@@ -4712,6 +4812,9 @@ test-e2-c-static:
 	# ODS_VIEWER_V3 keeps v2's engine shape on the dba core. Without this
 	# declaration its sdk_api/probe_engine objects are red (viewer-v3/pre-link/
 	# carrier-red-without-v3.txt); B remains forbidden in the viewer shape.
+	# E2_V25 (SPEC-M3-link-batch-v25 5): without its line this check is red on
+	# exactly its three objects -- findings/evidence/link-batch-v25/pre-link/
+	# m1-1-red-without-v25-carrier.stdout.txt.
 	python3 tools/check_merge_key_undo_scope.py --base 5d77dc84 \
 		--carrier E2_V15 --carrier E2_V19 \
 		--carrier E2_V20=probe_engine,sdk_api,editor_api \
@@ -4721,6 +4824,7 @@ test-e2-c-static:
 		--carrier E2_V23D_R2=probe_engine,sdk_api,editor_api \
 		--carrier E2_V23=probe_engine,sdk_api,editor_api \
 		--carrier E2_V24=probe_engine,sdk_api,editor_api \
+		--carrier E2_V25=probe_engine,sdk_api,editor_api \
 		--carrier ODS_VIEWER_V1=probe_engine,sdk_api \
 		--carrier ODS_VIEWER_V2=probe_engine,sdk_api \
 		--carrier ODS_VIEWER_V3=probe_engine,sdk_api \
