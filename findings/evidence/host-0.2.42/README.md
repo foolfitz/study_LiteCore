@@ -40,3 +40,17 @@ When these scripts were written (2026-10-30 ~02:15 +0800), F3-80, F4-80, V0' and
 After install: the Files workflow, `capture-after.py <install-dir> <workflow-dir>` (both positional arguments), then the owner's hand test (spec 5.9): (a) a new document, bullet -> the toast is not the red error box and has no English; (b) an existing document, **click into the document first**, Ctrl+A -> the highlight covers the whole document -> type to replace -> Ctrl+Z twice returns the original text; (c) a new document, click, Ctrl+A -> 「全選沒有選到任何內容」.
 
 Not in this package: K. Nominal shipped host stays 0.2.26.
+
+## Correction to the gate table above (2026-10-30 ~07:30 +0800, spec v26 append 2)
+
+The F3-80 row above ("`F3_HOLDS`, `F3_80_EQUAL`") is superseded. F3-80 moved three Chrome cells because the bound product-path runner reads the copy toast's `U+` list, which finding 175 removed (`../select-all-v26/f3/MOVED-CELLS.md`); fable ruled B modified on the owner's authority (`../select-all-v26/f3/RULING-fable-2026-10-30.md`). `prepare-release.py` was edited before its first run (commit `92d54b1a6`, docstring names the change) to require: `f3/read-01.json` = `F3_RED` with exactly the three problems; `f3/equal-01.json` = `F3_80_MOVED` with exactly the three moves (chrome 46/43, firefox 46/46); `f3/append2-read-01.json` = `F3_80_HOLDS_UNDER_APPEND_2`; `f3/append2-self-test.json` = `ALL_RED`.
+
+## Offline results (2026-10-30 ~07:33-07:37 +0800)
+
+- Host worktree `wasm_sdk_probe/build/host-0.2.42/litecore`, branch `host-0.2.42`, commit **93b1ebc** (from 2bb5718; `appinfo/info.xml` 0.2.41 -> 0.2.42 only).
+- `prepare-release.py` (`package-run-01.*`, exit 0, ~160 s): engine **01e6c3fb62626d16**. Against 0.2.41: 39 records unchanged; changed exactly `e2-editor-app.js`, `editor-shell-v2/narrow-editor-v2-client.js`, `editor-shell-v2/narrow-editor-v2-session.js`; added the four `profiles/e2-editor-v26/` files; removed the four `profiles/e2-editor-v25/` files. Every v25, v79 and v26 gate holds (`release.json` `v26Gates`; `f3_80Verdicts` = `F3_RED` / `F3_80_MOVED` / `F3_80_HOLDS_UNDER_APPEND_2`). Archive `wasm_sdk_probe/build/archive/host-0.2.42-engine-01e6c3fb62626d16` (not in git), 94 members bound by `archive.sha256`.
+- `check-delta.py` -> `check-delta.json`: **DELTA_HOLDS**, no problems; all nine red cases red.
+- `offline-package-check.py wasm_sdk_probe/build/host-0.2.42/litecore` -> `offline-package-check.json`: **PACKAGE_HOLDS**, zero problems, **22/22** red cases red.
+- `install-0.2.42.py --offline-only` -> `offline-install-preflight.json`: **OFFLINE_INSTALL_READY** (parent 2bb5718, candidate 93b1ebc, `liveMutation: false`).
+
+Next: an owner slot with an explicit no-site answer (`slot.json`); then `install-0.2.42.py --preflight-only`, `install-0.2.42.py`, the Files workflow, `capture-after.py <install-dir> <workflow-dir>`, and the owner's hand tests (a)-(c) plus (d) Ctrl+A then Ctrl+C shows 「已複製 N 字」.
