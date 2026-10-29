@@ -276,6 +276,27 @@ const PRE_DISPATCH_CODES = new Set([
   ...MARKDOWN_PRE_DISPATCH_CODES,
 ]);
 
+// Finding 083's situation, by both of the names it has been reported under:
+// the barrier's own `.uno:SelectText` on a blank paragraph came back and
+// selected nothing.  `stage-deadline:awaiting-selection` is the pre-v23
+// engine's (the barrier waited for rectangles that never came);
+// `select-text-returned-none` is the ordered engine's (v23 on: the synchronous
+// read found LOK_SELTYPE_NONE, ordered_format.inc finishOrderedFormatReadback).
+// FINDING 173: this rule knew only the first name, so on v24/v25 a bullet in a
+// NEW blank document -- no neighbour to overshoot into, no checkpoint to go
+// back to -- ended in 「引擎需要重新開啟」.
+//
+// Exported because the page picks finding 083's sentence from the SAME list
+// (e2-editor-app.js run()): a name added here and not there would keep the
+// queue open and then tell the user their check covered several paragraphs.
+// Only these two.  The ordered engine's other shapes are not the same
+// situation, and whether v22 kept any of them open is not measured
+// (SPEC-M3-shell-v79-finding-173 section 2).
+export const EMPTY_SELECTION_SHAPES = Object.freeze([
+  "stage-deadline:awaiting-selection",
+  "select-text-returned-none",
+]);
+
 export function formatFailureDisposition(error) {
   const barrier = error?.details?.formatBarrier ?? error?.formatBarrier ?? null;
   if (barrier && barrier.dispatched === false)
@@ -329,9 +350,14 @@ export function formatFailureDisposition(error) {
   // This does NOT claim the action succeeded. It claims what "review" means:
   // something was dispatched, this build cannot verify it, and the queue stays
   // open so undo is reachable.
+  //
+  // The ordered engine (v23 on) names the same answer differently and reaches
+  // its readback only after the select command's result came back
+  // (ordered_format.inc), so the same three conditions hold for it -- measured
+  // on v25, findings/evidence/173/run-02/.  Finding 173.
   if (barrier && barrier.dispatched === true
       && barrier.route === "collapsed"
-      && barrier.failureShape === "stage-deadline:awaiting-selection"
+      && EMPTY_SELECTION_SHAPES.includes(barrier.failureShape)
       && barrier.selectionResultSeen === true)
     return "dispatched-unverified";
   if (barrier && barrier.dispatched === true)

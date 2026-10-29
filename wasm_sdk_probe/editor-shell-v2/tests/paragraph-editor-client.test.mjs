@@ -161,6 +161,46 @@ test("a select command that came back empty is an answer, not a stall",
          "dispatched-unverified");
      });
 
+test("the ordered engine's name for an empty select is the same answer",
+     async () => {
+       // FINDING 173. From v23 on, the ordered engine reports finding 083's
+       // situation -- `.uno:SelectText` on a blank paragraph selects nothing --
+       // as `select-text-returned-none` (ordered_format.inc,
+       // finishOrderedFormatReadback, LOK_SELTYPE_NONE). The page knew only the
+       // old name, so a bullet in a NEW blank document asked for a rollback the
+       // document has no checkpoint for. Measured on v25 (0.2.40),
+       // findings/evidence/173/run-02/: these four fields, exactly.
+       const barrier = {
+         dispatched: true, route: "collapsed",
+         failureShape: "select-text-returned-none",
+         selectionResultSeen: true,
+       };
+       const disposition = (over) => formatFailureDisposition({
+         code: "MUTATION_OUTCOME_UNKNOWN",
+         details: { formatBarrier: { ...barrier, ...over } } });
+       assert.equal(disposition({}), "dispatched-unverified");
+
+       // NARROW: 083's three conditions hold for the new name too, and the
+       // ordered engine's OTHER shapes keep their rollback -- whether v22 kept
+       // any of those situations open is not measured (spec v79 section 2).
+       for (const [name, over] of [
+         ["the select command never came back", { selectionResultSeen: false }],
+         ["an engine that does not send the field", { selectionResultSeen: null }],
+         ["the cross route", { route: "range-cross" }],
+         ["another ordered shape", { failureShape: "selection-type-not-readable" }],
+       ]) {
+         assert.equal(disposition(over), "dispatched-rollback", name);
+       }
+       assert.equal(disposition({ dispatched: false }), "refused-no-mutation");
+
+       // And the two shapes the rule is modelled on still classify the same way.
+       assert.equal(disposition({ failureShape: "stage-deadline:awaiting-selection" }),
+                    "dispatched-unverified");
+       assert.equal(disposition({ failureShape: "multi-block-readback",
+                                  selectionResultSeen: undefined }),
+                    "dispatched-unverified");
+     });
+
 test("a failure that never reached the engine does not roll the document back",
      async () => {
        // SPEC E2-C 2.5.  Fail-closed is for "we do not know whether it was

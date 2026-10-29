@@ -1,0 +1,44 @@
+# tree: page 6e66c930fe3d8619; paragraph-editor-client.js 4616ae1715a57927
+# argv: node --test editor-shell-v2/tests/page-review-sentence.test.mjs
+✖ the ordered engine's empty select gets finding 083's sentence (1.909101ms)
+✔ finding 083's own shape still gets its sentence (0.405795ms)
+✔ finding 046's overshoot keeps the several-paragraphs sentence (0.288717ms)
+✔ finding 059's LOK_COMMAND_FAILED keeps its own sentence (0.280242ms)
+✖ one list: the page's sentence and the disposition read the same two names (0.086421ms)
+✔ the assertion has teeth: a page given only 083's name says the wrong sentence (0.274761ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 4
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 41.123611
+
+✖ failing tests:
+
+test at editor-shell-v2/tests/page-review-sentence.test.mjs:61:1
+✖ the ordered engine's empty select gets finding 083's sentence (1.909101ms)
+  AssertionError [ERR_ASSERTION]: no empty-paragraph sentence: • 項目符號：MUTATION_OUTCOME_UNKNOWN（動作已送出，但這一格的檢查涵蓋了不只一個段落，無法單獨核對你的段落。請看一下結果，不是你要的就按「復原」。這是檢查的極限，不是文件壞了）
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-review-sentence.test.mjs:63:10)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at editor-shell-v2/tests/page-review-sentence.test.mjs:83:1
+✖ one list: the page's sentence and the disposition read the same two names (0.086421ms)
+  TypeError: client.EMPTY_SELECTION_SHAPES is not iterable
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-review-sentence.test.mjs:84:31)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7)
+# exit 1

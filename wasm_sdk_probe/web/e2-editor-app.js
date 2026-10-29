@@ -39,6 +39,9 @@ import { NarrowEditorV2Session, PageRectanglesScheduler, pageSpanOf, pageStatusT
 // re-derivation produced: finding 054, a flag nothing wrote.
 import { recoveryNotice } from "./editor-shell/recovery-notice.js";
 import { EDITOR_V2_ACTIONS } from "./editor-shell-v2/narrow-editor-v2-client.js";
+// Finding 173: finding 083's sentence is chosen from the list the disposition
+// keeps open, not from a copy of it.
+import { EMPTY_SELECTION_SHAPES } from "./editor-shell-v2/paragraph-editor-client.js";
 
 // The artifact this page is for.  A page that runs on whatever build happens to
 // be in dist/ is a page that can show behaviour no evidence covers.
@@ -2164,8 +2167,13 @@ async function run(label, operation, { quiet = false } = {}) {
                 // precedent -- a sentence that is true of a different case is
                 // misleading attribution, and this tree has filed that as a
                 // defect once already.
-                : error?.details?.formatBarrier?.failureShape
-                    === "stage-deadline:awaiting-selection"
+                //
+                // FINDING 173: the ordered engine (v23 on) reports the same
+                // situation as `select-text-returned-none`; both names are in
+                // the disposition's list, and a whole blank document has no
+                // other paragraph for the sentence below to be true about.
+                : EMPTY_SELECTION_SHAPES.includes(
+                    error?.details?.formatBarrier?.failureShape)
                 ? "（動作已送出，但這一段是空的，檢查要用的選取取不到任何內容，"
                   + "所以無法核對。請看一下結果，不是你要的就按「復原」。"
                   + "這是檢查的極限，不是文件壞了）"
