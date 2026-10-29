@@ -106,3 +106,23 @@ entry came from the reboot, not a choice. The owner may `ddev stop litecore` if 
 
 Status: 0.2.39 is **installed as the daily uncounted candidate**, superseding 0.2.38. Nominal
 shipped host remains **0.2.26**. K has **not** run; its control protocol is under ruling.
+
+## Engine rollback to 0.2.38, 2026-10-29 10:46-10:50 (owner slot 2)
+
+Why: `k-nine-cells/` showed eight product-path cells regressed in v24 against v21 and v22 under
+identical tools and browsers, first shipped by this package. Offered A (roll back) / B (keep); the
+owner chose A and gave a 10-minute no-site window. `slot.json` now holds that window
+(10:46:54-10:56:54 +0800) with the install slot embedded as `previousSlot`.
+
+fgp-nc/nc-bridge stopped (`ddev-before-rollback.json`); `rollback-run.py` used the installer's own
+`slot()`/`snapshot()` and ran the prepared `rollback-package.sh` unchanged
+(`rollback-20261029T104705+0800/`): **ENGINE_ROLLED_BACK** in 7 s. Engine equals the exact 0.2.38
+archive (buildId 5ad1f70a8c5f7d2f); host source stays 4a8b3cd (label 0.2.39, info.xml only differs);
+protected documents and lock rows (zero) equal before/after; no maintenance, no pending upgrade;
+unauthenticated routes 401. `files-workflow-02-after-rollback/`: the same owned-file runner,
+**52/52 PASS** in both browsers, every entry on `/r/5ad1f70a8c5f7d2f-90d7bc2c/`, complete cleanup;
+`post-rollback-identity.json` re-read documents/locks unchanged afterwards. fgp-nc/nc-bridge
+restarted; states equal the pre-rollback snapshot (`ddev-after-rollback.json`).
+
+Status now: functional engine = 0.2.38 (Writer v22) under host label 0.2.39. The 0.2.39 engine
+archive stays intact for reinstallation. Nominal shipped host remains 0.2.26; K not run.
