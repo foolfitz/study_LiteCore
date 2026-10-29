@@ -216,6 +216,11 @@ async function page(caret) {
     ${slice(fn("moveFromPoint"), "moveFromPoint()")}
     ${["documentKeyAction", "dropsDocumentMove", "sendDocumentMove", "takeDocumentKey"]
       .map((name) => slice(fn(name), `${name}()`)).join("\n")}
+    ${/* SPEC-M3-select-all-v26 4.4: the handler takes Ctrl+A first (no key here is Ctrl+A);
+         optional, so a generation-79 page restored for V0' still assembles. */ ""}
+    ${optional(/^const SELECT_ALL_NOTHING_TEXT = [^\n]*;$/m)}
+    ${optional(/^const SELECT_ALL_UNOBSERVED_TEXT = [^\n]*;$/m)}
+    ${["selectAllKey", "selectAllResult", "takeSelectAllKey"].map((name) => optional(fn(name))).join("\n")}
     ${slice(KEYDOWN, "the keydown handler")}
     return { hook: typeof releaseHeldDeletesBeforeEnqueue === "function" ? releaseHeldDeletesBeforeEnqueue : null,
              held: () => heldDeletes.count, inFlight: () => deletesInFlight, pointMoves: () => pointMovesInFlight };

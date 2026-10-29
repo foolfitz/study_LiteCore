@@ -2141,44 +2141,55 @@ async function run(label, operation, { quiet = false } = {}) {
     // keeps saying it (SPEC-M3-autosave §9.2); a toast nobody asked for would
     // say it once, in a developer's words.
     if (quiet) throw error;
+    // FINDING 174 (SPEC-M3-select-all-v26 4.4 item 5; the owner chose B: all
+    // three).  `review` is NOT a failure: the action was dispatched, the queue
+    // is open, and the user is asked to look.  Until 0.2.42 it was shown like
+    // one -- red, `${code}：${the engine's English}`, then the sentence in
+    // parentheses -- and on 0.2.41 a bullet in a new document, which WORKED,
+    // read to the owner as a warning.  So: the label and the sentence, not in
+    // the error style; the code and the engine's message go to the console,
+    // where the next person debugging it will look.  The three sentences are
+    // unchanged but for their outer parentheses, and the choice between them is
+    // still read from the fields (E2-B 5.13), as below for the other dispositions.
+    if (recovery === "review") {
+      const shape = error?.details?.formatBarrier?.failureShape ?? null;
+      const sentence = error?.code === "LOK_COMMAND_FAILED"
+        // Finding 059.
+        ? "動作已送出，引擎收到了核心的回覆但無法據以判定成敗，"
+          + "所以這裡不敢說它成功了。請看一下結果，不是你要的就按「復原」"
+        // FINDING 083.  Its own sentence, and it needs one: this shape
+        // reaches `review` because NOTHING was selected, so telling the
+        // user the check "covered more than one paragraph" would be
+        // literally false about their document.  Finding 061 is the
+        // precedent -- a sentence that is true of a different case is
+        // misleading attribution, and this tree has filed that as a
+        // defect once already.
+        //
+        // FINDING 173: the ordered engine (v23 on) reports the same
+        // situation as `select-text-returned-none`; both names are in
+        // the disposition's list, and a whole blank document has no
+        // other paragraph for the sentence below to be true about.
+        : EMPTY_SELECTION_SHAPES.includes(shape)
+        ? "動作已送出，但這一段是空的，檢查要用的選取取不到任何內容，"
+          + "所以無法核對。請看一下結果，不是你要的就按「復原」。"
+          + "這是檢查的極限，不是文件壞了"
+        // Finding 046's residual.  Says dispatched-and-unverified, and does
+        // NOT say it worked -- the barrier did not verify it.  Undo is
+        // named because "review" leaves the queue open, which is the only
+        // reason that advice is honest.
+        : "動作已送出，但這一格的檢查涵蓋了不只一個段落，無法單獨核對你的段落。"
+          + "請看一下結果，不是你要的就按「復原」。這是檢查的極限，不是文件壞了";
+      console.warn(`[review] ${label}: ${error?.code ?? "(no code)"}: ${error?.message ?? ""}`,
+                   shape === null ? "" : `failureShape=${shape}`);
+      toast(`${label}：${sentence}`, false);
+      throw error;
+    }
     toast(`${label}：${describeError(error)}` +
           (recovery === "rollback"
             // B1: at the ceiling there is no 「回到檢查點」 to press.
             ? (session?.restartAvailable?.() === false ? "（請看上方的說明）"
                : "（可能已經改到文件：請回到檢查點）")
            : recovery === "restart" ? "（需要重新開啟文件）"
-           // Finding 046's residual.  Says dispatched-and-unverified, and does
-           // NOT say it worked -- the barrier did not verify it.  Undo is
-           // named because "review" leaves the queue open, which is the only
-           // reason that advice is honest.
-           // Two different reasons reach `review`, and telling the user the
-           // wrong one is worse than saying less.  The disposition is still
-           // read from the field (E2-B 5.13); only the EXPLANATION is chosen
-           // by code.
-           : recovery === "review"
-             ? (error?.code === "LOK_COMMAND_FAILED"
-                // Finding 059.
-                ? "（動作已送出，引擎收到了核心的回覆但無法據以判定成敗，"
-                  + "所以這裡不敢說它成功了。請看一下結果，不是你要的就按「復原」）"
-                // FINDING 083.  Its own sentence, and it needs one: this shape
-                // reaches `review` because NOTHING was selected, so telling the
-                // user the check "covered more than one paragraph" would be
-                // literally false about their document.  Finding 061 is the
-                // precedent -- a sentence that is true of a different case is
-                // misleading attribution, and this tree has filed that as a
-                // defect once already.
-                //
-                // FINDING 173: the ordered engine (v23 on) reports the same
-                // situation as `select-text-returned-none`; both names are in
-                // the disposition's list, and a whole blank document has no
-                // other paragraph for the sentence below to be true about.
-                : EMPTY_SELECTION_SHAPES.includes(
-                    error?.details?.formatBarrier?.failureShape)
-                ? "（動作已送出，但這一段是空的，檢查要用的選取取不到任何內容，"
-                  + "所以無法核對。請看一下結果，不是你要的就按「復原」。"
-                  + "這是檢查的極限，不是文件壞了）"
-                : "（動作已送出，但這一格的檢查涵蓋了不只一個段落，無法單獨核對你的段落。"
-                  + "請看一下結果，不是你要的就按「復原」。這是檢查的極限，不是文件壞了）")
            : ""), true);
     throw error;
   }
@@ -2235,6 +2246,7 @@ const ACTION_LABELS = {
   // SPEC-M3-link-batch-v21 4.1: Ctrl/Cmd+Home and Ctrl/Cmd+End, no button.
   "move-document-start": "移到文件開頭",
   "move-document-end": "移到文件結尾",
+  "select-all": "全選",
 };
 
 async function editorAction(action, { onResult = null, extendSelection = false, deleteKey = false } = {}) {
@@ -3155,15 +3167,22 @@ el.sink.addEventListener("keydown", (event) => {
       void editorAction(formatAction).catch(() => {});
       return;
     }
-    // Ctrl+A is deliberately NOT bound.  Select-all is not one of the fifteen
-    // actions, and expressing it as a geometric range -- (0,0) to the
-    // document's width and height -- was tried and MEASURED on 2026-08-19:
-    // `selectRange` reports success in about half a second, the engine reports
-    // the selection still collapsed, and the canvas shows no selection wash at
-    // all.  A shortcut that looks like it worked and selected nothing is worse
-    // than no shortcut, which is the same rule that put `preventDefault` on
-    // Ctrl+S.  A real one needs a select-all ACTION in the contract
-    // (queue-no-select-all-action).
+    // Ctrl+A is NOT bound here.  2026-08-19: expressing select-all as a
+    // geometric range -- (0,0) to the document's width and height -- was tried
+    // and MEASURED: `selectRange` reported success in about half a second, the
+    // engine reported the selection still collapsed, and the canvas showed no
+    // selection wash.  A shortcut that looks like it worked and selected
+    // nothing is worse than no shortcut.
+    //
+    // 2026-10-30 (SPEC-M3-select-all-v26): the select-all ACTION (wire id 21)
+    // was measured on v25 with its gesture granted -- the whole document, the
+    // reply in the same poll as its callbacks, 59 of 59
+    // (findings/evidence/select-all-v25/) -- and e2-editor-v26 grants it.  The
+    // key is taken by `takeSelectAllKey` below, before the accel bail-out,
+    // and ONLY where the profile grants it: on every profile that withholds it
+    // the 08-19 reason still holds and the key is left alone.  (The geometric
+    // range itself no longer fails on the ordered engine either; the page does
+    // not use it.)
   }
   // FINDING 067.  Enter did nothing, and the revision counter said it worked.
   //
@@ -3207,6 +3226,7 @@ el.sink.addEventListener("keydown", (event) => {
   }
   // Finding 142: Ctrl/Cmd+Home/End, when offered (see DOCUMENT_KEY_ACTIONS).
   if (takeDocumentKey(event)) return;
+  if (takeSelectAllKey(event)) return;
   if (accel) return;
   if (session.engine?.manifest?.editorContract?.abiVersion === 6 && takeSelectionMove(event)) return;
   const action = KEY_ACTIONS[event.key];
@@ -3526,6 +3546,65 @@ function takeDocumentKey(event) {
   return true;
 }
 
+// SPEC-M3-select-all-v26 4.4.  Ctrl/Cmd+A selects the whole document on a
+// profile that GRANTS select-all (e2-editor-v26 on) and nowhere else: where the
+// manifest withholds it the key is left to the browser exactly as before, so
+// the 2026-08-19 reason it was unbound (the comment in the format shortcuts
+// above) keeps holding on every such profile.  Never with Shift or Alt, never
+// during an IME composition.  A held key is one request -- finding 106's rule
+// for Ctrl+S: the repeats are taken and dropped.  Through `editorAction`, the
+// path every other editor key takes (SESSION_ACCEPTS, finding 128's repaint).
+const SELECT_ALL_NOTHING_TEXT = "全選沒有選到任何內容";
+const SELECT_ALL_UNOBSERVED_TEXT = "請先點一下文件，再按 Ctrl+A";
+
+/** Whether this keydown is the select-all chord the page takes. */
+function selectAllKey(event, offered, composing) {
+  return (event.ctrlKey || event.metaKey) && !event.shiftKey && !event.altKey
+    && !event.isComposing && composing !== true
+    && typeof event.key === "string" && event.key.toLowerCase() === "a"
+    && offered("select-all") === true;
+}
+
+/**
+ * The reply's selection becomes the page's belief, by the drag's rule
+ * (`pumpDrag`, finding 079): an unreadable reply keeps the old shape and raises
+ * the flag.  Without this the toolbar would keep judging gestures by the
+ * `collapsed` the last click left (measured: 53 of 53 harness selections,
+ * findings/evidence/select-all-v25/).  A reply that selected NOTHING says so --
+ * a blank document has nothing to select, and 2026-08-19's "reported success,
+ * selected nothing" is the same shape on a document that has text.  No toast on
+ * success: the wash is the answer, and "selected the whole document" would be
+ * false for the first press in a table cell, which selects the cell.
+ */
+function selectAllResult(result) {
+  const shape = selectionShapeOf(result);
+  if (shape === null) {
+    el.toolbar.dataset.selectionUnreadable = "1";
+    el.toolbar.dataset.selectionEvidence = selectionShapeEvidence(result);
+  } else {
+    delete el.toolbar.dataset.selectionUnreadable;
+    delete el.toolbar.dataset.selectionEvidence;
+    lastSelectionShape = shape;
+  }
+  updateGestureAffordance();
+  if (result?.state?.selection?.collapsed === true) toast(SELECT_ALL_NOTHING_TEXT);
+}
+
+/** Take Ctrl/Cmd+A when the profile grants select-all; true when the key was taken. */
+function takeSelectAllKey(event) {
+  if (!selectAllKey(event, (name) => session.offers(name), session.input?.state?.composing)) return false;
+  event.preventDefault();
+  if (event.repeat === true) return true;
+  void editorAction("select-all", { onResult: selectAllResult }).catch((error) => {
+    // The one refusal a granted select-all meets: the engine has seen no
+    // selection report yet (`selectionObserved`, probe_engine.cpp), e.g. a
+    // document the page focused itself after a restart.  run() has said it in
+    // the engine's words; this replaces that with what to do.
+    if (error?.code === "EDITOR_FORMAT_GESTURE_UNSUPPORTED") toast(SELECT_ALL_UNOBSERVED_TEXT, true);
+  });
+  return true;
+}
+
 // ---------------------------------------------------------------- autosave
 // FINDING 127, the scheduler (§9.2 of specs/SPEC-M3-autosave.md).  Activity is
 // a key into the sink, a composition, a pointer on the paper, and any edit
@@ -3754,7 +3833,7 @@ el.desk.addEventListener("scroll", onDeskScroll, { passive: true });
 // The harness pages (`e2-c-d*-app.js`) do take `?profile=`; they are harnesses.
 function engineFactory() {
   return createDocumentEngine({
-    workerUrl: "./profiles/e2-editor-v25/sdk-worker.js",
+    workerUrl: "./profiles/e2-editor-v26/sdk-worker.js",
     timeoutMs: 30000,
   });
 }

@@ -1,0 +1,245 @@
+✖ U2: offered -- Ctrl+A and Cmd+A are each taken once and send select-all once (1.664246ms)
+✖ U2: not offered -- Ctrl+A is left to the browser, nothing is sent (0.266716ms)
+✖ U2: a held key is one request -- the repeat is taken and dropped (0.233334ms)
+✖ U2: Shift, Alt, plain A and a composition are never taken (0.243422ms)
+✖ U2: a range reply becomes the page's shape, and nothing is toasted (0.210331ms)
+✖ U2: a reply that selected nothing says so and stays collapsed (0.234907ms)
+✖ U2: an unreadable reply keeps the shape, raises the flag and says nothing (0.236239ms)
+✖ U2: the refusal before any selection report says to click first (0.224758ms)
+✖ U2 teeth: without the offer check the not-offered assertion would fail (0.294418ms)
+✖ U2 teeth: without the repeat check a held key would send (0.323091ms)
+✖ U2 wiring: the handler takes Ctrl+A before `if (accel) return;`, with a label, on profile v26 (0.23114ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 0
+ℹ fail 11
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 52.844255
+
+✖ failing tests:
+
+test at editor-shell-v2/tests/page-select-all.test.mjs:74:1
+✖ U2: offered -- Ctrl+A and Cmd+A are each taken once and send select-all once (1.664246ms)
+  AssertionError [ERR_ASSERTION]: SELECT_ALL_NOTHING_TEXT not found in the page
+      at slice (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-select-all.test.mjs:29:10)
+      at konst (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-select-all.test.mjs:34:33)
+      at harness (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-select-all.test.mjs:51:7)
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-select-all.test.mjs:76:15)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.start (node:internal/test_runner/test:1177:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at editor-shell-v2/tests/page-select-all.test.mjs:82:1
+✖ U2: not offered -- Ctrl+A is left to the browser, nothing is sent (0.266716ms)
+  AssertionError [ERR_ASSERTION]: SELECT_ALL_NOTHING_TEXT not found in the page
+      at slice (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-select-all.test.mjs:29:10)
+      at konst (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-select-all.test.mjs:34:33)
+      at harness (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-select-all.test.mjs:51:7)
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-select-all.test.mjs:83:13)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at editor-shell-v2/tests/page-select-all.test.mjs:88:1
+✖ U2: a held key is one request -- the repeat is taken and dropped (0.233334ms)
+  AssertionError [ERR_ASSERTION]: SELECT_ALL_NOTHING_TEXT not found in the page
+      at slice (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-select-all.test.mjs:29:10)
+      at konst (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-select-all.test.mjs:34:33)
+      at harness (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-select-all.test.mjs:51:7)
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-select-all.test.mjs:89:13)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at editor-shell-v2/tests/page-select-all.test.mjs:94:1
+✖ U2: Shift, Alt, plain A and a composition are never taken (0.243422ms)
+  AssertionError [ERR_ASSERTION]: SELECT_ALL_NOTHING_TEXT not found in the page
+      at slice (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-select-all.test.mjs:29:10)
+      at konst (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-select-all.test.mjs:34:33)
+      at harness (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-select-all.test.mjs:51:7)
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-select-all.test.mjs:98:15)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at editor-shell-v2/tests/page-select-all.test.mjs:104:1
+✖ U2: a range reply becomes the page's shape, and nothing is toasted (0.210331ms)
+  AssertionError [ERR_ASSERTION]: SELECT_ALL_NOTHING_TEXT not found in the page
+      at slice (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-select-all.test.mjs:29:10)
+      at konst (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-select-all.test.mjs:34:33)
+      at harness (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-select-all.test.mjs:51:7)
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-select-all.test.mjs:105:13)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at editor-shell-v2/tests/page-select-all.test.mjs:112:1
+✖ U2: a reply that selected nothing says so and stays collapsed (0.234907ms)
+  AssertionError [ERR_ASSERTION]: SELECT_ALL_NOTHING_TEXT not found in the page
+      at slice (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-select-all.test.mjs:29:10)
+      at konst (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-select-all.test.mjs:34:33)
+      at harness (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-select-all.test.mjs:51:7)
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-select-all.test.mjs:113:13)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at editor-shell-v2/tests/page-select-all.test.mjs:120:1
+✖ U2: an unreadable reply keeps the shape, raises the flag and says nothing (0.236239ms)
+  AssertionError [ERR_ASSERTION]: SELECT_ALL_NOTHING_TEXT not found in the page
+      at slice (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-select-all.test.mjs:29:10)
+      at konst (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-select-all.test.mjs:34:33)
+      at harness (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-select-all.test.mjs:51:7)
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-select-all.test.mjs:121:13)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at editor-shell-v2/tests/page-select-all.test.mjs:128:1
+✖ U2: the refusal before any selection report says to click first (0.224758ms)
+  AssertionError [ERR_ASSERTION]: SELECT_ALL_NOTHING_TEXT not found in the page
+      at slice (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-select-all.test.mjs:29:10)
+      at konst (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-select-all.test.mjs:34:33)
+      at harness (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-select-all.test.mjs:51:7)
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-select-all.test.mjs:129:13)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at editor-shell-v2/tests/page-select-all.test.mjs:135:1
+✖ U2 teeth: without the offer check the not-offered assertion would fail (0.294418ms)
+  AssertionError [ERR_ASSERTION]: selectAllKey() not found in the page
+      at slice (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-select-all.test.mjs:29:10)
+      at fn (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-select-all.test.mjs:33:3)
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-select-all.test.mjs:136:16)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at editor-shell-v2/tests/page-select-all.test.mjs:143:1
+✖ U2 teeth: without the repeat check a held key would send (0.323091ms)
+  AssertionError [ERR_ASSERTION]: takeSelectAllKey() not found in the page
+      at slice (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-select-all.test.mjs:29:10)
+      at fn (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-select-all.test.mjs:33:3)
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-select-all.test.mjs:144:16)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at editor-shell-v2/tests/page-select-all.test.mjs:152:1
+✖ U2 wiring: the handler takes Ctrl+A before `if (accel) return;`, with a label, on profile v26 (0.23114ms)
+  AssertionError [ERR_ASSERTION]: the keydown handler does not call takeSelectAllKey
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-select-all.test.mjs:155:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

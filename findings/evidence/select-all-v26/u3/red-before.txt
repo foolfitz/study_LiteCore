@@ -1,0 +1,67 @@
+✖ U3: 083/173 empty paragraph -- the label and the sentence, not the error style, no code, no engine message (2.061695ms)
+✖ U3: 046 several paragraphs -- the label and the sentence, not the error style, no code, no engine message (0.46779ms)
+✖ U3: 059 core reply -- the label and the sentence, not the error style, no code, no engine message (0.311489ms)
+✔ U3: rollback is unchanged -- red, with the code (0.331346ms)
+✔ U3: restart is unchanged -- red, with the code (0.270453ms)
+✔ U3: no disposition is unchanged -- red, with the code (0.242712ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 3
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 43.230933
+
+✖ failing tests:
+
+test at editor-shell-v2/tests/page-review-presentation.test.mjs:70:3
+✖ U3: 083/173 empty paragraph -- the label and the sentence, not the error style, no code, no engine message (2.061695ms)
+  AssertionError [ERR_ASSERTION]: a review is shown as an error: • 項目符號：MUTATION_OUTCOME_UNKNOWN：the synchronous selection read did not provide readable text; the format mutation outcome is unknown（動作已送出，但這一段是空的，檢查要用的選取取不到任何內容，所以無法核對。請看一下結果，不是你要的就按「復原」。這是檢查的極限，不是文件壞了）
+  
+  true !== false
+  
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-review-presentation.test.mjs:72:12)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at editor-shell-v2/tests/page-review-presentation.test.mjs:70:3
+✖ U3: 046 several paragraphs -- the label and the sentence, not the error style, no code, no engine message (0.46779ms)
+  AssertionError [ERR_ASSERTION]: a review is shown as an error: • 項目符號：MUTATION_OUTCOME_UNKNOWN：the synchronous selection read did not provide readable text; the format mutation outcome is unknown（動作已送出，但這一格的檢查涵蓋了不只一個段落，無法單獨核對你的段落。請看一下結果，不是你要的就按「復原」。這是檢查的極限，不是文件壞了）
+  
+  true !== false
+  
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-review-presentation.test.mjs:72:12)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at editor-shell-v2/tests/page-review-presentation.test.mjs:70:3
+✖ U3: 059 core reply -- the label and the sentence, not the error style, no code, no engine message (0.311489ms)
+  AssertionError [ERR_ASSERTION]: a review is shown as an error: • 項目符號：LOK_COMMAND_FAILED：the synchronous selection read did not provide readable text; the format mutation outcome is unknown（動作已送出，引擎收到了核心的回覆但無法據以判定成敗，所以這裡不敢說它成功了。請看一下結果，不是你要的就按「復原」）
+  
+  true !== false
+  
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-review-presentation.test.mjs:72:12)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
