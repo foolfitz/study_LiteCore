@@ -526,3 +526,13 @@ as-char frame沿原object-click八臂（Bold／Delete／Backspace／Left，各�
 **held Shift release**：採頁面最多一個尚未派送的repeat，加一個outstanding＝既有132深度2；前者完成才釋出held，keyup丟棄同一hold尚未派送的repeat，已posted正常完成。其他操作真正enqueue前沿既有beforeEnqueue先釋出較早held，保留輸入順序及document generation。不加session cancellation或泛用queue；repeat:false初按不得丟棄。§21的wire release-bound只量已固定clean long200、沒有前序dirty checkpoint／typing的兩個held臂，並須見證初按已posted；缺此setup為NE。這不外推為所有混合操作／dirty checkpoint下的初按取消規則；其他路徑維持原輸入保序，不冒稱已量同一bound。三集合繼續分列，不把尚未posted當in-flight。
 
 **state wire字面來源更正**：準備文件曾把窄client的getState寫成editorGetStateV1，是只看到base class的漏讀。實際current `narrow-editor-v2-client.js:514` 委派 `paragraph-editor-client.js:173–177`，真正wire是 `editorGetStateV2`；釘住v19 shell的同一public路亦為V2。本節取代 `S-CASES.md` 與產品readiness協定中這條路的V1敘述；工具依實際profile／shell及完整委派鏈釘V2，不能接受模糊state-like別名。V1只屬真正使用base client且另有來源綁定的其他路，不是本格的替代輸入。此更正不改SDK或凍結artifact，不新增case、threshold或runtime；尚無feature／預紅計數可重設，已封閉diagnostic保持原判。
+
+## 23. 行內格式的 no-op 證明（2026-10-29，只追加；v25 實作之前）
+
+出處：finding 172、`findings/evidence/host-0.2.39/k-nine-cells/RULING-v25-fixes.md` Q1。本節修訂 §15.2（`:295`「收合游標上的行內格式，回覆讀這次 flush 裡的那一項狀態」）與 §16.4（`:395`「UNO 動作：在 poll 時對 flush 之後的快取跑 059 的檢查」），原文保留。
+
+- **改變**的情況：照舊由本次 flush 裡的那一項狀態決定。
+- **no-op**的情況（要求的狀態等於分派前的狀態，core 不廣播）：由「該狀態項在準時清單上，本次 flush 沒有該項，`<x>Known`，而且快取等於要求」決定。準時清單上四種行內格式的狀態項都是 5/5、late 0（`native/ordered-commands/out-n1b/on-time-list.json`）。所以真要改變，廣播會在這次 flush 裡到；沒到就代表沒變。
+- 回覆欄位不變（`changed:true`、`uno-command-result`、revision+1；被凍結的客戶端不接受別的形狀），另加 `witness` ∈ {`uno-success`, `on-time-item`, `state-noop`}。§5.8 的詞彙不動；§16.5 的 proof-absent 計數不受影響，因為 UNO 結果有到。
+- 新具名限制 **L-noop-trusts-last-state-item**：快取過期，而且派送被拒時會誤判成立；v22 有同一個洞。
+- 實作在 `OXSDK_E2_V25_FORMAT_PROOF` 之下（`SPEC-M3-link-batch-v25` §4.1），v23、v24 的前置處理輸出不變。
