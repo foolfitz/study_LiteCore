@@ -38,3 +38,14 @@ The owner answered the slot question "A: install now" (no-site during the instal
 - **Named limit, found by the first red-case construction** (`post-install-red/flipped-check-only-the-cell/`, exit 0, `holds: true` with `failed: ['owned-folder']`): `capture-after.py` (an exact copy of 0.2.40's, which is itself a copy of 0.2.39's) gates on the runner's summary `report['ok']` and lists failed cells without gating on them. A report whose cells and summary disagree is not one the runner writes, so the installed 0.2.41 read is not affected; recorded rather than patched (the derived script may differ only in its docstring). A successor that re-derives `ok` from the cells is a candidate for the next host's scripts.
 
 Status: **0.2.41 is installed as the daily uncounted candidate**, superseding 0.2.40. Nominal shipped host stays **0.2.26**; K has not run. Rollback, if needed: `rollback-package.sh` (exact 0.2.40 engine; needs a slot).
+
+## Owner's hand test (2026-10-30, appended)
+
+Files "+ New -> New document", bullet pressed on the blank paragraph: **the bullet is applied and no 「引擎需要重新開啟」
+notice appears** -- finding 173's fix holds on the host route (spec v79 section 6, L-mirror-open-route, now
+measured by a person). The toast that appears is the run() error style: red, prefixed `項目符號：MUTATION_OUTCOME_UNKNOWN：
+the synchronous selection read did not provide readable text; the format mutation outcome is unknown`, then 083's
+sentence. The owner read it as a warning. That presentation is pre-existing for every `review` disposition
+(`web/e2-editor-app.js` run() catch, ~2144-2181) and is filed as finding 174. Typing and saving after the bullet
+were not reported by the owner.
+
