@@ -187,6 +187,17 @@ v25 只動格式回覆路徑，而且全部在新 define 之下。提案：
 - **預設**：沒跑或 NE，F3 不成立；第 1–6 列對 K 的處置不解除。
 - 判讀工具 `tools/read_v25_f3.py`，紅案先做（v24 PASS 的格子改成 FAIL、P 組一格 NE、少一格、多一格、空報告、DISPOSITIONS 沒有 product 列），每個都要紅。
 
+### 16.1 更正一（2026-10-29，F3 run-01 之後、run-02 之前；擁有者選 A）
+
+**被逼出來的**：run-01（`findings/evidence/link-batch-v25/f3/`）依上面的規則判 `F3_RED`，紅的只有兩個瀏覽器的 `notice-action-recovers-the-session`（v24 PASS → v25 NE）；6 個 P 格全 PASS。這支是設計好的恢復哨兵，與 P 格 `bulleting-a-blank-line-does-not-demand-a-rollback` 依構造反相關（runner 每份報告都記 `recoveryPairing`）：項目符號沒鎖住佇列就沒有恢復按鈕可按，它只能棄權。v24 的 PASS 是 171 造出來的；v21／v22（0.2.26 錨點）上它是 NE（`k-nine-cells/README.md`）。所以原規則對「修好 171 的 v25」不可能成立。原文留著，只追加：
+
+- `notice-action-recovers-the-session` 這一格移出「不准退化」組，改由**同一份報告**的 `recoveryPairing` 判（形式二，runner 自己的紀錄）：`held` 必須是 `true`；`recoveryPairing.bulleting` 必須等於 `bulleting-…` 那一格的結果、`recoveryPairing.noticeAction` 必須等於本格的結果（紀錄與檢查一致，對應關係由資料核對，不是假設）；`bulleting` 是 PASS 時，本格必須是 `NOT_ESTABLISHED`（設計中的棄權＝錨點的讀數）。缺少 `recoveryPairing` 判紅。
+- 其餘規則不變。
+- **計數語意**：run-01 寫在更正之前，不滿足更正後的規則（CLAUDE.md 第 9 節 (1)）；**F3 的結論＝run-02 的讀取（`read-02.json`）**。run-02 與 run-01 若有其他任何一格不同，逐格點名，在判讀之前說明。
+- 判讀工具加 `--rule correction-1`（預設）；`--rule pinned` 重現 read-01。紅案：`held` 為 false、配對紀錄與檢查結果不一致、項目符號 PASS 而本格不是 NE、缺 `recoveryPairing`，每個都要紅。
+- §34.4：因執行而修 +1（本輪合計 2：F2 處方、F3 更正一）。
+- **預設**：run-02 沒跑或 NE，F3 不成立。
+
 ## 12. 修訂紀錄
 
 | 日期 | 內容 |
@@ -196,3 +207,4 @@ v25 只動格式回覆路徑，而且全部在新 define 之下。提案：
 | 2026-10-29 | §14 追加：連結完成、§6.2 結果、§9 擁有者選沿用 |
 | 2026-10-29 | §15 追加：切換、generation 78、§9 讀取器、§13 第 3／4 點的更正、F1／F2 結果、F2 處方更正、F3 判準待定 |
 | 2026-10-29 | §16 追加：F3 判準（擁有者選 A，不准退化），F3 執行之前 |
+| 2026-10-29 | §16.1 追加：F3 更正一（恢復哨兵改由 `recoveryPairing` 判），run-01 之後、run-02 之前 |

@@ -11,6 +11,13 @@ Population (form two), per browser, generated from the BASELINE report -- v24 T4
   others   v24 PASS -> v25 PASS; v24 not PASS -> v25 the same outcome or PASS.  Every move to PASS
            is listed by name (`improved`), never passed over silently.
 The two reports' id sets must be equal per browser; an empty report or zero P rows is red.
+
+--rule correction-1 (the default; spec 16.1, written after run-01 and before run-02): the cell
+`notice-action-recovers-the-session` leaves the no-regression group and is read from the SAME report's
+`recoveryPairing` (the runner's record of the pair): `held` true; its `bulleting` equal to the
+`bulleting-a-blank-line-does-not-demand-a-rollback` cell's outcome and its `noticeAction` equal to this
+cell's; and when bulleting is PASS this cell must be NOT_ESTABLISHED (the designed abstain, the 0.2.26
+anchor's reading).  A missing record is red.  --rule pinned reproduces section 16 as written (read-01).
 Exit 0 iff F3_HOLDS.
 """
 from __future__ import annotations
@@ -27,6 +34,8 @@ REPO = PROJECT.parent
 BASELINE = REPO / "findings/evidence/link-batch-v24/pre-count/t4/run-02"
 DISPOSITIONS = REPO / "findings/evidence/host-0.2.39/k-nine-cells/DISPOSITIONS.md"
 BROWSERS = ("chrome", "firefox")
+NOTICE = "notice-action-recovers-the-session"
+BULLETING = "bulleting-a-blank-line-does-not-demand-a-rollback"
 ROW = re.compile(r"^\| (\d+) \| (chrome|firefox) \| ([a-z0-9-]+) \| (.*?) \|")
 
 
@@ -43,7 +52,7 @@ def outcomes(report: dict) -> dict[str, str]:
     return {c["id"]: c.get("outcome") for c in report.get("checks", [])}
 
 
-def read(baseline: dict[str, dict], v25: dict[str, dict], dispositions: str) -> dict:
+def read(baseline: dict[str, dict], v25: dict[str, dict], dispositions: str, rule: str = "correction-1") -> dict:
     problems, rows, improved = [], [], []
     p_rows = product_rows(dispositions)
     if not p_rows:
@@ -63,6 +72,24 @@ def read(baseline: dict[str, dict], v25: dict[str, dict], dispositions: str) -> 
             was, now = base[check], new[check]
             if check.startswith("v23-product-"):
                 group, ok = "excluded", True
+            elif rule == "correction-1" and check == NOTICE:
+                group = "recovery-pairing"
+                pairing = v25.get(browser, {}).get("recoveryPairing")
+                why = []
+                if not isinstance(pairing, dict):
+                    why.append("no recoveryPairing record")
+                else:
+                    if pairing.get("held") is not True:
+                        why.append(f"held {pairing.get('held')!r}")
+                    if pairing.get("bulleting") != new.get(BULLETING):
+                        why.append(f"record bulleting {pairing.get('bulleting')!r} != check {new.get(BULLETING)!r}")
+                    if pairing.get("noticeAction") != now:
+                        why.append(f"record noticeAction {pairing.get('noticeAction')!r} != check {now!r}")
+                    if new.get(BULLETING) == "PASS" and now != "NOT_ESTABLISHED":
+                        why.append(f"bulleting PASS but this cell is {now}, not the designed abstain")
+                ok = not why
+                if why:
+                    problems.append(f"{browser} {check} [recovery-pairing]: {'; '.join(why)}")
             elif check in p_ids:
                 group, ok = "P", now == "PASS"
             elif was == "PASS":
@@ -72,11 +99,13 @@ def read(baseline: dict[str, dict], v25: dict[str, dict], dispositions: str) -> 
             if ok and group != "excluded" and was != "PASS" and now == "PASS":
                 improved.append(f"{browser} {check}: {was} -> PASS ({group})")
             rows.append({"browser": browser, "check": check, "group": group, "v24": was, "v25": now, "ok": ok})
-            if not ok:
+            if not ok and group != "recovery-pairing":
                 problems.append(f"{browser} {check} [{group}]: v24 {was} -> v25 {now}")
     counts = {b: {g: sum(1 for r in rows if r["browser"] == b and r["group"] == g)
-                  for g in ("P", "no-regression", "same-or-pass", "excluded")} for b in BROWSERS}
-    return {"verdict": "F3_HOLDS" if not problems else "F3_RED", "productRows": p_rows, "counts": counts,
+                  for g in ("P", "no-regression", "same-or-pass", "excluded")
+                  + (("recovery-pairing",) if rule == "correction-1" else ())} for b in BROWSERS}
+    head = {"verdict": "F3_HOLDS" if not problems else "F3_RED"} | ({"rule": rule} if rule == "correction-1" else {})
+    return {**head, "productRows": p_rows, "counts": counts,
             "improved": improved, "problems": problems, "rows": rows}
 
 
@@ -92,7 +121,8 @@ def mutations(v25: dict[str, dict], baseline: dict[str, dict], dispositions: str
         base = outcomes(baseline["chrome"])
         p = {c for _, b, c in product_rows(dispositions) if b == "chrome"}
         victim = next(c for c in checks(r, "chrome")
-                      if base.get(c["id"]) == "PASS" and c["id"] not in p and not c["id"].startswith("v23-product-"))
+                      if base.get(c["id"]) == "PASS" and c["id"] not in p and c["id"] != NOTICE
+                      and not c["id"].startswith("v23-product-"))
         victim["outcome"] = "FAIL"
 
     def p_not_established(r):
@@ -115,8 +145,22 @@ def mutations(v25: dict[str, dict], baseline: dict[str, dict], dispositions: str
     def empty(r):
         r["chrome"]["checks"] = []
 
+    def pairing_not_held(r):
+        r["chrome"]["recoveryPairing"]["held"] = False
+
+    def pairing_disagrees(r):  # the record says PASS, the check says NE
+        r["firefox"]["recoveryPairing"]["noticeAction"] = "PASS"
+
+    def notice_pass_while_bulleting_pass(r):  # record and check agree, but the abstain is missing
+        next(c for c in checks(r, "chrome") if c["id"] == NOTICE)["outcome"] = "PASS"
+        r["chrome"]["recoveryPairing"]["noticeAction"] = "PASS"
+
+    def pairing_missing(r):
+        del r["firefox"]["recoveryPairing"]
+
     out = []
-    for fn in (regress, p_not_established, same_or_pass_moved, missing, extra, empty):
+    for fn in (regress, p_not_established, same_or_pass_moved, missing, extra, empty, pairing_not_held,
+               pairing_disagrees, notice_pass_while_bulleting_pass, pairing_missing):
         mutated = copy.deepcopy(v25)
         fn(mutated)
         out.append((fn.__name__, mutated, dispositions))
@@ -131,12 +175,13 @@ def main() -> int:
     parser.add_argument("--baseline", type=Path, default=BASELINE)
     parser.add_argument("--dispositions", type=Path, default=DISPOSITIONS)
     parser.add_argument("--self-test", action="store_true")
+    parser.add_argument("--rule", choices=("correction-1", "pinned"), default="correction-1")
     args = parser.parse_args()
     baseline, v25 = load(args.baseline), load(args.v25)
     dispositions = args.dispositions.read_text(encoding="utf-8")
-    result = read(baseline, v25, dispositions)
+    result = read(baseline, v25, dispositions, args.rule)
     if args.self_test:
-        outcomes_ = {name: read(baseline, mutated, text)["verdict"]
+        outcomes_ = {name: read(baseline, mutated, text, args.rule)["verdict"]
                      for name, mutated, text in mutations(v25, baseline, dispositions)}
         report = {"base": result["verdict"], "mutations": outcomes_,
                   "selfTest": "PASS" if result["verdict"] == "F3_HOLDS"
