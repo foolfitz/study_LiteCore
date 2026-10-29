@@ -258,3 +258,29 @@
 | 2026-10-30 | 草稿。 |
 | 2026-10-30 | 草稿第二版：併入 finding 174（擁有者 B／A）與對抗性審核（§8）。 |
 | 2026-10-30 | 釘死。 |
+
+## 追加一（2026-10-30，finding 175；fable 代擁有者裁決 A）
+
+> 本節只追加，不改上面任何一字。依據：S1 試跑（`--plan shake`）第 4 回 after／list-contexts／copy／chrome 的複製提示是「已複製 U+0045,U+0031,…（175 個編碼）… 字」（記錄 `findings/evidence/175/shake-run4-copy.json`）；finding 175；裁決原文 `findings/evidence/175/RULING-fable-2026-10-30.md`。
+
+**§2「做」追加第 6 項**：頁面的複製與剪下成功提示，用複製到的字數（`codePoints` 陣列的長度），不再把每個字的編碼串進句子。只改頁面；`input/input-adapter.js` 的 `summarizeUnicode` 不改（r7 的頁面與既有證據的形狀都讀它）。
+
+**§5.4 追加子句 `C.count`**（S1 的 `copy` 臂，Chrome，非 frame 的文件）：提示符合 `已複製 (\d+) 字`，而且那個數字等於剪貼簿文字的 code point 數。`--self-test` 對它的變異是把數字加一，判定必須轉紅。
+
+**§5.10 U4（單元，先紅）**：`editor-shell-v2/tests/page-copy-toast-count.test.mjs`，從頁面原始碼切出複製與剪下的提示：兩者都符合 `已(複製|剪下) (\d+) 字`，數字＝code point 數，不含 `U+`。紅案：未修改的頁面上第一條紅，見證 `u4/red-before.txt`。U2 既有的見證不動。
+**預設**：沒有紅的見證，175 未修。
+
+**順序**（取代 §7 第 3–5 步之後的部分，前面已做的不重做，除非下面點名）：本追加 commit → U4 紅 → 修頁面 → U4 綠 → `make -n e2-c-assets`（三行 `cp`）→ `make e2-c-assets`＋`cmp` → 整套 `node --test`（U1／U2／U3 一併重跑）→ **S2 整個重跑**（頁面位元組在它跑過之後變了；判準不變；之前的 S2 run-01 不算數）→ 完整 S1（含 `C.count`）→ 凍 generation 80。**S1 試跑的 11 回只是 finding 175 的證據，不得當作閘門的執行引用。**
+
+**§6 追加具名限制**：
+- **L-cut-toast-browser-unmeasured**：剪下的提示沒有瀏覽器臂；由 U4 涵蓋。
+- **L-copy-lies-pattern-stale**：`run_e2_c_product_path.py`（被綁、不改）的 `copy-lies` 變異內嵌舊的複製提示那一行（約 2489 行）；本修法之後，下一次 `--mutate copy-lies` 會以「tree moved」中止。F3-80／F4-80 不帶 `--mutate`，不受影響；下一次變異普查要知道這筆債。
+
+**§9 的四個條件**：(1) 先於滿足——完整 S1 還沒跑、generation 80 未凍；(2) 被逼出來且指名——上述試跑第 4 回與 finding 175；(3) 形式——逐實例性質（每一次複製），在工具的子句表裡有變異（形式二）；(4) 截止——`S1_HOLDS` 落地即封閉，之後對提示的顧慮變成 finding。計數：S2、S1 因位元組改變而歸零；S2 的判準不變。
+
+**§8 追加**：因執行而修 1（S1 試跑，finding 175）。
+
+| 日期 | 修改 |
+|---|---|
+| 2026-10-30 | 追加一：finding 175（fable 代擁有者裁決 A）。 |
+
