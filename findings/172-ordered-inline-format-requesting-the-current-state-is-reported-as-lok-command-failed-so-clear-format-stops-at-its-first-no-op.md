@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **狀態** | 已確認（文件存檔＋Worker 回覆）／**未修**；宿主已回退到 0.2.38 引擎 |
+| **狀態** | 已確認（文件存檔＋Worker 回覆）／**v25 已修並量過**（F1、F2，2026-10-29）；尚未出貨——宿主仍是回退後的 0.2.38 引擎 |
 | **Bugzilla** | —（本樹缺陷） |
 | **發現日** | 2026-10-29 |
 | **嚴重度** | 中——使用者可見：清除格式跳出 `LOK_COMMAND_FAILED` 而且沒清乾淨；接著工具列的斜體等按鈕顯示「開著」，按下去反而送出「關」 |
@@ -33,11 +33,19 @@ v24 的 Worker 回覆：第一次清除格式的 `set-bold {enabled:false}`（�
 - `every-inline-format-reaches-the-document`（Chrome、Firefox NE）、`clear-format-removes-every-inline-format`（Chrome NE）：前置的「先清除格式歸零」中斷，前提建立不起來。
 - `an-inline-format-reaches-a-selection`（Chrome FAIL）：v22 的拖曳選到不是粗體的 `KITAL`，v24 選到已經是粗體的 `KBOLD`（`wasBoldBefore: true`）。選中的是不同的行（y 0.389 對 0.342），因為前面格式那幾格留下的文件不同。**沒有量到「選取範圍套粗體」本身失敗**；這一格掛在本 finding 底下，修好後重量。
 
-## 修法方向（未決定）
+## 修法方向（2026-10-29 已由裁決 Q1 決定，見下一節；以下為當時的原文）
 
 - 引擎：有序路徑下，同步分派完成時，若「分派前的狀態已等於要求」且沒有廣播，應該判成立（在 unipoll 有序分派裡，會改變狀態的指令其廣播在分派內就會到）。這需要先釐清 `9b6d4a6fb` 加這道條件想防的是什麼（看起來是不想拿分派前的快取當證據），屬於判斷題。
 - 頁面：清除格式可以逐個送、不因一個失敗就中斷（它本來就「什麼都不聲稱」）。這能減輕症狀，但第 3 點的錯誤回報仍在。
 - 兩者都會產生新身分（引擎→v25 連結；頁面→新頁面雜湊）。
+
+## 修法與量測（2026-10-29，v25）
+
+- 修法（裁決 Q1 的 (a′)，規格 `SPEC-M3-link-batch-v25` §4.1，全部在 `OXSDK_E2_V25_FORMAT_PROOF` 之下）：有序路徑照常派送；`success:false` 而且本次 flush 沒有該狀態項時，若快取已知且等於要求，判「已驗證的 no-op」，回覆與真的改變相同，多帶 `witness`（`uno-success`／`on-time-item`／`state-noop`）。`inlineFormatArgumentResolved` 本身不改。
+- 量測一（`findings/evidence/link-batch-v25/f1/`，上面「現象」的同一步驟序列，Chrome 3 回）：v25 存檔的 `MKAFTERCLEAR` 不是斜體、`MKITALAGAIN` 是斜體（與 v22 相同），沒有任何格式回覆失敗；no-op 的要求在引擎紀錄裡是 `state-noop`。v24 同工具 3/3 重現本 finding。〔實測〕
+- 量測二（`findings/evidence/link-batch-v25/f2/`，普通文字上連按兩次清除格式、判第二次，兩瀏覽器各 3 回）：v25 四個回覆都 ok、witness 都是 `state-noop`；v24 在 `set-bold` 就 `LOK_COMMAND_FAILED`。〔實測〕
+- 量測時學到的觸發條件：**剛放好游標後的第一次清除格式不會觸發本 finding**——LOK 在那次 flush 裡會廣播四個狀態項，v24 也回四個 ok。觸發需要「狀態沒變所以 LOK 不重播」，也就是之前已經按過格式或清除過一次。上面「機制」第 3 點的敘述不變，只是補上 LOK 何時不廣播。〔實測〕
+- 仍待：F3（product-path 一般臂）上 `every-inline-format-reaches-the-document`（兩瀏覽器）、`clear-format-removes-every-inline-format`、`an-inline-format-reaches-a-selection`（Chrome）要 PASS，才算對 K 的處置解除；出貨要等宿主新版本與 DDEV 時段。
 
 ## 對 K 的處置（裁決修正一）
 

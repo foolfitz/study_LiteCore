@@ -1,0 +1,1851 @@
+{
+ "argv": [
+  "tools/check_v25_clear_format_noop.py",
+  "--out",
+  "../findings/evidence/link-batch-v25/f2/run-01"
+ ],
+ "tool": "check_v25_clear_format_noop",
+ "products": {
+  "v24": {
+   "profile": "e2-editor-v24",
+   "generation": "e2/editor-shell-v2-bundle-v77.json",
+   "generationDigest": "56ce44c78043220e4f135343dc87a8e847e83849e4c6571345b1ac9e2e8a294a",
+   "archive": "build/archive/e2-editor-v24-27615808-worker-41041fe7",
+   "servedProfile": {
+    "probe.wasm": "276158084a602178f9b7219c086f749910601b1a121fca9339b10a79b0f7b639",
+    "probe.js": "64aaa8dc2c7a1c366c76911213090ae60d39c26cd4207274ef1c0420a5a0b301",
+    "sdk-worker.js": "41041fe746b2355a1768bc774a10ac59802a8e359579618be405e3696f3b9461",
+    "sdk-manifest.json": "f9554e8c1b79ff4955dbfdf7dbe7c9975f3d0bcc945665c3491a730cb44cd04e"
+   },
+   "shellMismatches": [],
+   "checks": {
+    "profileEqualsArchive": true,
+    "shellEqualsGeneration": true,
+    "pageServed": true,
+    "pagePointsAtProfile": true
+   },
+   "ok": true
+  },
+  "v25": {
+   "profile": "e2-editor-v25",
+   "generation": "e2/editor-shell-v2-bundle-v78.json",
+   "generationDigest": "550b68bfcc0ba7b6d8a71c4fbea6c7d6eba6b1de35edeaf4cddf26f40fcde8e4",
+   "archive": "build/archive/e2-editor-v25-44cb15ea-worker-75557b22",
+   "servedProfile": {
+    "probe.wasm": "44cb15ea8d36f0e0191e007179769b6bcb468e3d084cb260c645e6127630d193",
+    "probe.js": "ed1d9a55357a0a25d44224fbbdcb1fc26df0a1c64a1ae2a769761f9bf3784738",
+    "sdk-worker.js": "75557b220b0d29dfa222a3dd4c3fbde54403034676dc8b7b1a9b41934c218b0c",
+    "sdk-manifest.json": "e7780061471ffc81ccb4240e502f6343ee42c3312e7871efb6efa38066766519"
+   },
+   "shellMismatches": [],
+   "checks": {
+    "profileEqualsArchive": true,
+    "shellEqualsGeneration": true,
+    "pageServed": true,
+    "pagePointsAtProfile": true
+   },
+   "ok": true
+  }
+ },
+ "runs": [
+  {
+   "product": "v24",
+   "browser": "chrome",
+   "repetition": 1,
+   "browserVersion": "Chrome/156.0.8078.47",
+   "caretPlaced": true,
+   "warmup": {
+    "settled": true,
+    "before": {
+     "pill": "ready",
+     "latency": "定位游標 100 ms",
+     "toast": "點一下放游標，或拖曳選一段，再按動作",
+     "revision": "0",
+     "requests": 9
+    },
+    "after": {
+     "pill": "ready",
+     "latency": "清除格式 26 ms",
+     "toast": "已清除粗體、斜體、底線、刪除線",
+     "revision": "4",
+     "requests": 17
+    },
+    "rows": [
+     {
+      "action": "set-bold",
+      "enabled": false,
+      "ok": true,
+      "code": null,
+      "message": null,
+      "changed": true,
+      "completion": "uno-command-result",
+      "witness": null,
+      "hasWitness": false,
+      "revision": [
+       0,
+       1
+      ]
+     },
+     {
+      "action": "set-italic",
+      "enabled": false,
+      "ok": true,
+      "code": null,
+      "message": null,
+      "changed": true,
+      "completion": "uno-command-result",
+      "witness": null,
+      "hasWitness": false,
+      "revision": [
+       1,
+       2
+      ]
+     },
+     {
+      "action": "set-underline",
+      "enabled": false,
+      "ok": true,
+      "code": null,
+      "message": null,
+      "changed": true,
+      "completion": "uno-command-result",
+      "witness": null,
+      "hasWitness": false,
+      "revision": [
+       2,
+       3
+      ]
+     },
+     {
+      "action": "set-strikethrough",
+      "enabled": false,
+      "ok": true,
+      "code": null,
+      "message": null,
+      "changed": true,
+      "completion": "uno-command-result",
+      "witness": null,
+      "hasWitness": false,
+      "revision": [
+       3,
+       4
+      ]
+     }
+    ]
+   },
+   "warmupHeld": true,
+   "settled": true,
+   "before": {
+    "pill": "ready",
+    "latency": "清除格式 26 ms",
+    "toast": "已清除粗體、斜體、底線、刪除線",
+    "revision": "4",
+    "requests": 17
+   },
+   "after": {
+    "pill": "ready",
+    "latency": "清除格式 失敗",
+    "toast": "清除格式：LOK_COMMAND_FAILED：LibreOfficeKit rejected the fixed editor command（動作已送出，引擎收到了核心的回覆但無法據以判定成敗，所以這裡不敢說它成功了。請看一下結果，不是你要的就按「復原」）",
+    "revision": "4",
+    "requests": 19
+   },
+   "rows": [
+    {
+     "action": "set-bold",
+     "enabled": false,
+     "ok": false,
+     "code": "LOK_COMMAND_FAILED",
+     "message": "LibreOfficeKit rejected the fixed editor command",
+     "changed": null,
+     "completion": null,
+     "witness": null,
+     "hasWitness": false,
+     "revision": [
+      null,
+      null
+     ]
+    }
+   ],
+   "cleanup": {},
+   "pass": false,
+   "why": [
+    "requests ['set-bold']",
+    "set-bold ok=False code=LOK_COMMAND_FAILED changed=None completion=None",
+    "set-bold witness None, not state-noop: the no-op path was not exercised",
+    "toast '清除格式：LOK_COMMAND_FAILED：LibreOfficeKit rejected the fixed editor command（動作已送出，引擎收到了核心的回覆但無法據以判定成敗，所以這裡不敢說它成功了。請看一下結果，不是你要的就按「復原」）'"
+   ],
+   "redFor172": true
+  },
+  {
+   "product": "v24",
+   "browser": "chrome",
+   "repetition": 2,
+   "browserVersion": "Chrome/156.0.8078.47",
+   "caretPlaced": true,
+   "warmup": {
+    "settled": true,
+    "before": {
+     "pill": "ready",
+     "latency": "定位游標 127 ms",
+     "toast": "點一下放游標，或拖曳選一段，再按動作",
+     "revision": "0",
+     "requests": 9
+    },
+    "after": {
+     "pill": "ready",
+     "latency": "清除格式 26 ms",
+     "toast": "已清除粗體、斜體、底線、刪除線",
+     "revision": "4",
+     "requests": 17
+    },
+    "rows": [
+     {
+      "action": "set-bold",
+      "enabled": false,
+      "ok": true,
+      "code": null,
+      "message": null,
+      "changed": true,
+      "completion": "uno-command-result",
+      "witness": null,
+      "hasWitness": false,
+      "revision": [
+       0,
+       1
+      ]
+     },
+     {
+      "action": "set-italic",
+      "enabled": false,
+      "ok": true,
+      "code": null,
+      "message": null,
+      "changed": true,
+      "completion": "uno-command-result",
+      "witness": null,
+      "hasWitness": false,
+      "revision": [
+       1,
+       2
+      ]
+     },
+     {
+      "action": "set-underline",
+      "enabled": false,
+      "ok": true,
+      "code": null,
+      "message": null,
+      "changed": true,
+      "completion": "uno-command-result",
+      "witness": null,
+      "hasWitness": false,
+      "revision": [
+       2,
+       3
+      ]
+     },
+     {
+      "action": "set-strikethrough",
+      "enabled": false,
+      "ok": true,
+      "code": null,
+      "message": null,
+      "changed": true,
+      "completion": "uno-command-result",
+      "witness": null,
+      "hasWitness": false,
+      "revision": [
+       3,
+       4
+      ]
+     }
+    ]
+   },
+   "warmupHeld": true,
+   "settled": true,
+   "before": {
+    "pill": "ready",
+    "latency": "清除格式 26 ms",
+    "toast": "已清除粗體、斜體、底線、刪除線",
+    "revision": "4",
+    "requests": 17
+   },
+   "after": {
+    "pill": "ready",
+    "latency": "清除格式 失敗",
+    "toast": "清除格式：LOK_COMMAND_FAILED：LibreOfficeKit rejected the fixed editor command（動作已送出，引擎收到了核心的回覆但無法據以判定成敗，所以這裡不敢說它成功了。請看一下結果，不是你要的就按「復原」）",
+    "revision": "4",
+    "requests": 19
+   },
+   "rows": [
+    {
+     "action": "set-bold",
+     "enabled": false,
+     "ok": false,
+     "code": "LOK_COMMAND_FAILED",
+     "message": "LibreOfficeKit rejected the fixed editor command",
+     "changed": null,
+     "completion": null,
+     "witness": null,
+     "hasWitness": false,
+     "revision": [
+      null,
+      null
+     ]
+    }
+   ],
+   "cleanup": {},
+   "pass": false,
+   "why": [
+    "requests ['set-bold']",
+    "set-bold ok=False code=LOK_COMMAND_FAILED changed=None completion=None",
+    "set-bold witness None, not state-noop: the no-op path was not exercised",
+    "toast '清除格式：LOK_COMMAND_FAILED：LibreOfficeKit rejected the fixed editor command（動作已送出，引擎收到了核心的回覆但無法據以判定成敗，所以這裡不敢說它成功了。請看一下結果，不是你要的就按「復原」）'"
+   ],
+   "redFor172": true
+  },
+  {
+   "product": "v24",
+   "browser": "chrome",
+   "repetition": 3,
+   "browserVersion": "Chrome/156.0.8078.47",
+   "caretPlaced": true,
+   "warmup": {
+    "settled": true,
+    "before": {
+     "pill": "ready",
+     "latency": "定位游標 135 ms",
+     "toast": "點一下放游標，或拖曳選一段，再按動作",
+     "revision": "0",
+     "requests": 9
+    },
+    "after": {
+     "pill": "ready",
+     "latency": "清除格式 26 ms",
+     "toast": "已清除粗體、斜體、底線、刪除線",
+     "revision": "4",
+     "requests": 17
+    },
+    "rows": [
+     {
+      "action": "set-bold",
+      "enabled": false,
+      "ok": true,
+      "code": null,
+      "message": null,
+      "changed": true,
+      "completion": "uno-command-result",
+      "witness": null,
+      "hasWitness": false,
+      "revision": [
+       0,
+       1
+      ]
+     },
+     {
+      "action": "set-italic",
+      "enabled": false,
+      "ok": true,
+      "code": null,
+      "message": null,
+      "changed": true,
+      "completion": "uno-command-result",
+      "witness": null,
+      "hasWitness": false,
+      "revision": [
+       1,
+       2
+      ]
+     },
+     {
+      "action": "set-underline",
+      "enabled": false,
+      "ok": true,
+      "code": null,
+      "message": null,
+      "changed": true,
+      "completion": "uno-command-result",
+      "witness": null,
+      "hasWitness": false,
+      "revision": [
+       2,
+       3
+      ]
+     },
+     {
+      "action": "set-strikethrough",
+      "enabled": false,
+      "ok": true,
+      "code": null,
+      "message": null,
+      "changed": true,
+      "completion": "uno-command-result",
+      "witness": null,
+      "hasWitness": false,
+      "revision": [
+       3,
+       4
+      ]
+     }
+    ]
+   },
+   "warmupHeld": true,
+   "settled": true,
+   "before": {
+    "pill": "ready",
+    "latency": "清除格式 26 ms",
+    "toast": "已清除粗體、斜體、底線、刪除線",
+    "revision": "4",
+    "requests": 17
+   },
+   "after": {
+    "pill": "ready",
+    "latency": "清除格式 失敗",
+    "toast": "清除格式：LOK_COMMAND_FAILED：LibreOfficeKit rejected the fixed editor command（動作已送出，引擎收到了核心的回覆但無法據以判定成敗，所以這裡不敢說它成功了。請看一下結果，不是你要的就按「復原」）",
+    "revision": "4",
+    "requests": 19
+   },
+   "rows": [
+    {
+     "action": "set-bold",
+     "enabled": false,
+     "ok": false,
+     "code": "LOK_COMMAND_FAILED",
+     "message": "LibreOfficeKit rejected the fixed editor command",
+     "changed": null,
+     "completion": null,
+     "witness": null,
+     "hasWitness": false,
+     "revision": [
+      null,
+      null
+     ]
+    }
+   ],
+   "cleanup": {},
+   "pass": false,
+   "why": [
+    "requests ['set-bold']",
+    "set-bold ok=False code=LOK_COMMAND_FAILED changed=None completion=None",
+    "set-bold witness None, not state-noop: the no-op path was not exercised",
+    "toast '清除格式：LOK_COMMAND_FAILED：LibreOfficeKit rejected the fixed editor command（動作已送出，引擎收到了核心的回覆但無法據以判定成敗，所以這裡不敢說它成功了。請看一下結果，不是你要的就按「復原」）'"
+   ],
+   "redFor172": true
+  },
+  {
+   "product": "v24",
+   "browser": "firefox",
+   "repetition": 1,
+   "browserVersion": "157.0.1",
+   "caretPlaced": true,
+   "warmup": {
+    "settled": true,
+    "before": {
+     "pill": "ready",
+     "latency": "定位游標 149 ms",
+     "toast": "點一下放游標，或拖曳選一段，再按動作",
+     "revision": "0",
+     "requests": 9
+    },
+    "after": {
+     "pill": "ready",
+     "latency": "清除格式 28 ms",
+     "toast": "已清除粗體、斜體、底線、刪除線",
+     "revision": "4",
+     "requests": 17
+    },
+    "rows": [
+     {
+      "action": "set-bold",
+      "enabled": false,
+      "ok": true,
+      "code": null,
+      "message": null,
+      "changed": true,
+      "completion": "uno-command-result",
+      "witness": null,
+      "hasWitness": false,
+      "revision": [
+       0,
+       1
+      ]
+     },
+     {
+      "action": "set-italic",
+      "enabled": false,
+      "ok": true,
+      "code": null,
+      "message": null,
+      "changed": true,
+      "completion": "uno-command-result",
+      "witness": null,
+      "hasWitness": false,
+      "revision": [
+       1,
+       2
+      ]
+     },
+     {
+      "action": "set-underline",
+      "enabled": false,
+      "ok": true,
+      "code": null,
+      "message": null,
+      "changed": true,
+      "completion": "uno-command-result",
+      "witness": null,
+      "hasWitness": false,
+      "revision": [
+       2,
+       3
+      ]
+     },
+     {
+      "action": "set-strikethrough",
+      "enabled": false,
+      "ok": true,
+      "code": null,
+      "message": null,
+      "changed": true,
+      "completion": "uno-command-result",
+      "witness": null,
+      "hasWitness": false,
+      "revision": [
+       3,
+       4
+      ]
+     }
+    ]
+   },
+   "warmupHeld": true,
+   "settled": true,
+   "before": {
+    "pill": "ready",
+    "latency": "清除格式 28 ms",
+    "toast": "已清除粗體、斜體、底線、刪除線",
+    "revision": "4",
+    "requests": 17
+   },
+   "after": {
+    "pill": "ready",
+    "latency": "清除格式 失敗",
+    "toast": "清除格式：LOK_COMMAND_FAILED：LibreOfficeKit rejected the fixed editor command（動作已送出，引擎收到了核心的回覆但無法據以判定成敗，所以這裡不敢說它成功了。請看一下結果，不是你要的就按「復原」）",
+    "revision": "4",
+    "requests": 19
+   },
+   "rows": [
+    {
+     "action": "set-bold",
+     "enabled": false,
+     "ok": false,
+     "code": "LOK_COMMAND_FAILED",
+     "message": "LibreOfficeKit rejected the fixed editor command",
+     "changed": null,
+     "completion": null,
+     "witness": null,
+     "hasWitness": false,
+     "revision": [
+      null,
+      null
+     ]
+    }
+   ],
+   "cleanup": {},
+   "pass": false,
+   "why": [
+    "requests ['set-bold']",
+    "set-bold ok=False code=LOK_COMMAND_FAILED changed=None completion=None",
+    "set-bold witness None, not state-noop: the no-op path was not exercised",
+    "toast '清除格式：LOK_COMMAND_FAILED：LibreOfficeKit rejected the fixed editor command（動作已送出，引擎收到了核心的回覆但無法據以判定成敗，所以這裡不敢說它成功了。請看一下結果，不是你要的就按「復原」）'"
+   ],
+   "redFor172": true
+  },
+  {
+   "product": "v24",
+   "browser": "firefox",
+   "repetition": 2,
+   "browserVersion": "157.0.1",
+   "caretPlaced": true,
+   "warmup": {
+    "settled": true,
+    "before": {
+     "pill": "ready",
+     "latency": "定位游標 60 ms",
+     "toast": "點一下放游標，或拖曳選一段，再按動作",
+     "revision": "0",
+     "requests": 9
+    },
+    "after": {
+     "pill": "ready",
+     "latency": "清除格式 27 ms",
+     "toast": "已清除粗體、斜體、底線、刪除線",
+     "revision": "4",
+     "requests": 17
+    },
+    "rows": [
+     {
+      "action": "set-bold",
+      "enabled": false,
+      "ok": true,
+      "code": null,
+      "message": null,
+      "changed": true,
+      "completion": "uno-command-result",
+      "witness": null,
+      "hasWitness": false,
+      "revision": [
+       0,
+       1
+      ]
+     },
+     {
+      "action": "set-italic",
+      "enabled": false,
+      "ok": true,
+      "code": null,
+      "message": null,
+      "changed": true,
+      "completion": "uno-command-result",
+      "witness": null,
+      "hasWitness": false,
+      "revision": [
+       1,
+       2
+      ]
+     },
+     {
+      "action": "set-underline",
+      "enabled": false,
+      "ok": true,
+      "code": null,
+      "message": null,
+      "changed": true,
+      "completion": "uno-command-result",
+      "witness": null,
+      "hasWitness": false,
+      "revision": [
+       2,
+       3
+      ]
+     },
+     {
+      "action": "set-strikethrough",
+      "enabled": false,
+      "ok": true,
+      "code": null,
+      "message": null,
+      "changed": true,
+      "completion": "uno-command-result",
+      "witness": null,
+      "hasWitness": false,
+      "revision": [
+       3,
+       4
+      ]
+     }
+    ]
+   },
+   "warmupHeld": true,
+   "settled": true,
+   "before": {
+    "pill": "ready",
+    "latency": "清除格式 27 ms",
+    "toast": "已清除粗體、斜體、底線、刪除線",
+    "revision": "4",
+    "requests": 17
+   },
+   "after": {
+    "pill": "ready",
+    "latency": "清除格式 失敗",
+    "toast": "清除格式：LOK_COMMAND_FAILED：LibreOfficeKit rejected the fixed editor command（動作已送出，引擎收到了核心的回覆但無法據以判定成敗，所以這裡不敢說它成功了。請看一下結果，不是你要的就按「復原」）",
+    "revision": "4",
+    "requests": 19
+   },
+   "rows": [
+    {
+     "action": "set-bold",
+     "enabled": false,
+     "ok": false,
+     "code": "LOK_COMMAND_FAILED",
+     "message": "LibreOfficeKit rejected the fixed editor command",
+     "changed": null,
+     "completion": null,
+     "witness": null,
+     "hasWitness": false,
+     "revision": [
+      null,
+      null
+     ]
+    }
+   ],
+   "cleanup": {},
+   "pass": false,
+   "why": [
+    "requests ['set-bold']",
+    "set-bold ok=False code=LOK_COMMAND_FAILED changed=None completion=None",
+    "set-bold witness None, not state-noop: the no-op path was not exercised",
+    "toast '清除格式：LOK_COMMAND_FAILED：LibreOfficeKit rejected the fixed editor command（動作已送出，引擎收到了核心的回覆但無法據以判定成敗，所以這裡不敢說它成功了。請看一下結果，不是你要的就按「復原」）'"
+   ],
+   "redFor172": true
+  },
+  {
+   "product": "v24",
+   "browser": "firefox",
+   "repetition": 3,
+   "browserVersion": "157.0.1",
+   "caretPlaced": true,
+   "warmup": {
+    "settled": true,
+    "before": {
+     "pill": "ready",
+     "latency": "定位游標 74 ms",
+     "toast": "點一下放游標，或拖曳選一段，再按動作",
+     "revision": "0",
+     "requests": 9
+    },
+    "after": {
+     "pill": "ready",
+     "latency": "清除格式 28 ms",
+     "toast": "已清除粗體、斜體、底線、刪除線",
+     "revision": "4",
+     "requests": 17
+    },
+    "rows": [
+     {
+      "action": "set-bold",
+      "enabled": false,
+      "ok": true,
+      "code": null,
+      "message": null,
+      "changed": true,
+      "completion": "uno-command-result",
+      "witness": null,
+      "hasWitness": false,
+      "revision": [
+       0,
+       1
+      ]
+     },
+     {
+      "action": "set-italic",
+      "enabled": false,
+      "ok": true,
+      "code": null,
+      "message": null,
+      "changed": true,
+      "completion": "uno-command-result",
+      "witness": null,
+      "hasWitness": false,
+      "revision": [
+       1,
+       2
+      ]
+     },
+     {
+      "action": "set-underline",
+      "enabled": false,
+      "ok": true,
+      "code": null,
+      "message": null,
+      "changed": true,
+      "completion": "uno-command-result",
+      "witness": null,
+      "hasWitness": false,
+      "revision": [
+       2,
+       3
+      ]
+     },
+     {
+      "action": "set-strikethrough",
+      "enabled": false,
+      "ok": true,
+      "code": null,
+      "message": null,
+      "changed": true,
+      "completion": "uno-command-result",
+      "witness": null,
+      "hasWitness": false,
+      "revision": [
+       3,
+       4
+      ]
+     }
+    ]
+   },
+   "warmupHeld": true,
+   "settled": true,
+   "before": {
+    "pill": "ready",
+    "latency": "清除格式 28 ms",
+    "toast": "已清除粗體、斜體、底線、刪除線",
+    "revision": "4",
+    "requests": 17
+   },
+   "after": {
+    "pill": "ready",
+    "latency": "清除格式 失敗",
+    "toast": "清除格式：LOK_COMMAND_FAILED：LibreOfficeKit rejected the fixed editor command（動作已送出，引擎收到了核心的回覆但無法據以判定成敗，所以這裡不敢說它成功了。請看一下結果，不是你要的就按「復原」）",
+    "revision": "4",
+    "requests": 19
+   },
+   "rows": [
+    {
+     "action": "set-bold",
+     "enabled": false,
+     "ok": false,
+     "code": "LOK_COMMAND_FAILED",
+     "message": "LibreOfficeKit rejected the fixed editor command",
+     "changed": null,
+     "completion": null,
+     "witness": null,
+     "hasWitness": false,
+     "revision": [
+      null,
+      null
+     ]
+    }
+   ],
+   "cleanup": {},
+   "pass": false,
+   "why": [
+    "requests ['set-bold']",
+    "set-bold ok=False code=LOK_COMMAND_FAILED changed=None completion=None",
+    "set-bold witness None, not state-noop: the no-op path was not exercised",
+    "toast '清除格式：LOK_COMMAND_FAILED：LibreOfficeKit rejected the fixed editor command（動作已送出，引擎收到了核心的回覆但無法據以判定成敗，所以這裡不敢說它成功了。請看一下結果，不是你要的就按「復原」）'"
+   ],
+   "redFor172": true
+  },
+  {
+   "product": "v25",
+   "browser": "chrome",
+   "repetition": 1,
+   "browserVersion": "Chrome/156.0.8078.47",
+   "caretPlaced": true,
+   "warmup": {
+    "settled": true,
+    "before": {
+     "pill": "ready",
+     "latency": "定位游標 130 ms",
+     "toast": "點一下放游標，或拖曳選一段，再按動作",
+     "revision": "0",
+     "requests": 9
+    },
+    "after": {
+     "pill": "ready",
+     "latency": "清除格式 26 ms",
+     "toast": "已清除粗體、斜體、底線、刪除線",
+     "revision": "4",
+     "requests": 17
+    },
+    "rows": [
+     {
+      "action": "set-bold",
+      "enabled": false,
+      "ok": true,
+      "code": null,
+      "message": null,
+      "changed": true,
+      "completion": "uno-command-result",
+      "witness": "on-time-item",
+      "hasWitness": true,
+      "revision": [
+       0,
+       1
+      ]
+     },
+     {
+      "action": "set-italic",
+      "enabled": false,
+      "ok": true,
+      "code": null,
+      "message": null,
+      "changed": true,
+      "completion": "uno-command-result",
+      "witness": "on-time-item",
+      "hasWitness": true,
+      "revision": [
+       1,
+       2
+      ]
+     },
+     {
+      "action": "set-underline",
+      "enabled": false,
+      "ok": true,
+      "code": null,
+      "message": null,
+      "changed": true,
+      "completion": "uno-command-result",
+      "witness": "on-time-item",
+      "hasWitness": true,
+      "revision": [
+       2,
+       3
+      ]
+     },
+     {
+      "action": "set-strikethrough",
+      "enabled": false,
+      "ok": true,
+      "code": null,
+      "message": null,
+      "changed": true,
+      "completion": "uno-command-result",
+      "witness": "on-time-item",
+      "hasWitness": true,
+      "revision": [
+       3,
+       4
+      ]
+     }
+    ]
+   },
+   "warmupHeld": true,
+   "settled": true,
+   "before": {
+    "pill": "ready",
+    "latency": "清除格式 26 ms",
+    "toast": "已清除粗體、斜體、底線、刪除線",
+    "revision": "4",
+    "requests": 17
+   },
+   "after": {
+    "pill": "ready",
+    "latency": "清除格式 27 ms",
+    "toast": "已清除粗體、斜體、底線、刪除線",
+    "revision": "8",
+    "requests": 25
+   },
+   "rows": [
+    {
+     "action": "set-bold",
+     "enabled": false,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "changed": true,
+     "completion": "uno-command-result",
+     "witness": "state-noop",
+     "hasWitness": true,
+     "revision": [
+      4,
+      5
+     ]
+    },
+    {
+     "action": "set-italic",
+     "enabled": false,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "changed": true,
+     "completion": "uno-command-result",
+     "witness": "state-noop",
+     "hasWitness": true,
+     "revision": [
+      5,
+      6
+     ]
+    },
+    {
+     "action": "set-underline",
+     "enabled": false,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "changed": true,
+     "completion": "uno-command-result",
+     "witness": "state-noop",
+     "hasWitness": true,
+     "revision": [
+      6,
+      7
+     ]
+    },
+    {
+     "action": "set-strikethrough",
+     "enabled": false,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "changed": true,
+     "completion": "uno-command-result",
+     "witness": "state-noop",
+     "hasWitness": true,
+     "revision": [
+      7,
+      8
+     ]
+    }
+   ],
+   "cleanup": {},
+   "pass": true,
+   "why": [],
+   "redFor172": false
+  },
+  {
+   "product": "v25",
+   "browser": "chrome",
+   "repetition": 2,
+   "browserVersion": "Chrome/156.0.8078.47",
+   "caretPlaced": true,
+   "warmup": {
+    "settled": true,
+    "before": {
+     "pill": "ready",
+     "latency": "定位游標 63 ms",
+     "toast": "點一下放游標，或拖曳選一段，再按動作",
+     "revision": "0",
+     "requests": 9
+    },
+    "after": {
+     "pill": "ready",
+     "latency": "清除格式 24 ms",
+     "toast": "已清除粗體、斜體、底線、刪除線",
+     "revision": "4",
+     "requests": 17
+    },
+    "rows": [
+     {
+      "action": "set-bold",
+      "enabled": false,
+      "ok": true,
+      "code": null,
+      "message": null,
+      "changed": true,
+      "completion": "uno-command-result",
+      "witness": "on-time-item",
+      "hasWitness": true,
+      "revision": [
+       0,
+       1
+      ]
+     },
+     {
+      "action": "set-italic",
+      "enabled": false,
+      "ok": true,
+      "code": null,
+      "message": null,
+      "changed": true,
+      "completion": "uno-command-result",
+      "witness": "on-time-item",
+      "hasWitness": true,
+      "revision": [
+       1,
+       2
+      ]
+     },
+     {
+      "action": "set-underline",
+      "enabled": false,
+      "ok": true,
+      "code": null,
+      "message": null,
+      "changed": true,
+      "completion": "uno-command-result",
+      "witness": "on-time-item",
+      "hasWitness": true,
+      "revision": [
+       2,
+       3
+      ]
+     },
+     {
+      "action": "set-strikethrough",
+      "enabled": false,
+      "ok": true,
+      "code": null,
+      "message": null,
+      "changed": true,
+      "completion": "uno-command-result",
+      "witness": "on-time-item",
+      "hasWitness": true,
+      "revision": [
+       3,
+       4
+      ]
+     }
+    ]
+   },
+   "warmupHeld": true,
+   "settled": true,
+   "before": {
+    "pill": "ready",
+    "latency": "清除格式 24 ms",
+    "toast": "已清除粗體、斜體、底線、刪除線",
+    "revision": "4",
+    "requests": 17
+   },
+   "after": {
+    "pill": "ready",
+    "latency": "清除格式 29 ms",
+    "toast": "已清除粗體、斜體、底線、刪除線",
+    "revision": "8",
+    "requests": 25
+   },
+   "rows": [
+    {
+     "action": "set-bold",
+     "enabled": false,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "changed": true,
+     "completion": "uno-command-result",
+     "witness": "state-noop",
+     "hasWitness": true,
+     "revision": [
+      4,
+      5
+     ]
+    },
+    {
+     "action": "set-italic",
+     "enabled": false,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "changed": true,
+     "completion": "uno-command-result",
+     "witness": "state-noop",
+     "hasWitness": true,
+     "revision": [
+      5,
+      6
+     ]
+    },
+    {
+     "action": "set-underline",
+     "enabled": false,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "changed": true,
+     "completion": "uno-command-result",
+     "witness": "state-noop",
+     "hasWitness": true,
+     "revision": [
+      6,
+      7
+     ]
+    },
+    {
+     "action": "set-strikethrough",
+     "enabled": false,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "changed": true,
+     "completion": "uno-command-result",
+     "witness": "state-noop",
+     "hasWitness": true,
+     "revision": [
+      7,
+      8
+     ]
+    }
+   ],
+   "cleanup": {},
+   "pass": true,
+   "why": [],
+   "redFor172": false
+  },
+  {
+   "product": "v25",
+   "browser": "chrome",
+   "repetition": 3,
+   "browserVersion": "Chrome/156.0.8078.47",
+   "caretPlaced": true,
+   "warmup": {
+    "settled": true,
+    "before": {
+     "pill": "ready",
+     "latency": "定位游標 52 ms",
+     "toast": "點一下放游標，或拖曳選一段，再按動作",
+     "revision": "0",
+     "requests": 9
+    },
+    "after": {
+     "pill": "ready",
+     "latency": "清除格式 26 ms",
+     "toast": "已清除粗體、斜體、底線、刪除線",
+     "revision": "4",
+     "requests": 17
+    },
+    "rows": [
+     {
+      "action": "set-bold",
+      "enabled": false,
+      "ok": true,
+      "code": null,
+      "message": null,
+      "changed": true,
+      "completion": "uno-command-result",
+      "witness": "on-time-item",
+      "hasWitness": true,
+      "revision": [
+       0,
+       1
+      ]
+     },
+     {
+      "action": "set-italic",
+      "enabled": false,
+      "ok": true,
+      "code": null,
+      "message": null,
+      "changed": true,
+      "completion": "uno-command-result",
+      "witness": "on-time-item",
+      "hasWitness": true,
+      "revision": [
+       1,
+       2
+      ]
+     },
+     {
+      "action": "set-underline",
+      "enabled": false,
+      "ok": true,
+      "code": null,
+      "message": null,
+      "changed": true,
+      "completion": "uno-command-result",
+      "witness": "on-time-item",
+      "hasWitness": true,
+      "revision": [
+       2,
+       3
+      ]
+     },
+     {
+      "action": "set-strikethrough",
+      "enabled": false,
+      "ok": true,
+      "code": null,
+      "message": null,
+      "changed": true,
+      "completion": "uno-command-result",
+      "witness": "on-time-item",
+      "hasWitness": true,
+      "revision": [
+       3,
+       4
+      ]
+     }
+    ]
+   },
+   "warmupHeld": true,
+   "settled": true,
+   "before": {
+    "pill": "ready",
+    "latency": "清除格式 26 ms",
+    "toast": "已清除粗體、斜體、底線、刪除線",
+    "revision": "4",
+    "requests": 17
+   },
+   "after": {
+    "pill": "ready",
+    "latency": "清除格式 27 ms",
+    "toast": "已清除粗體、斜體、底線、刪除線",
+    "revision": "8",
+    "requests": 25
+   },
+   "rows": [
+    {
+     "action": "set-bold",
+     "enabled": false,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "changed": true,
+     "completion": "uno-command-result",
+     "witness": "state-noop",
+     "hasWitness": true,
+     "revision": [
+      4,
+      5
+     ]
+    },
+    {
+     "action": "set-italic",
+     "enabled": false,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "changed": true,
+     "completion": "uno-command-result",
+     "witness": "state-noop",
+     "hasWitness": true,
+     "revision": [
+      5,
+      6
+     ]
+    },
+    {
+     "action": "set-underline",
+     "enabled": false,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "changed": true,
+     "completion": "uno-command-result",
+     "witness": "state-noop",
+     "hasWitness": true,
+     "revision": [
+      6,
+      7
+     ]
+    },
+    {
+     "action": "set-strikethrough",
+     "enabled": false,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "changed": true,
+     "completion": "uno-command-result",
+     "witness": "state-noop",
+     "hasWitness": true,
+     "revision": [
+      7,
+      8
+     ]
+    }
+   ],
+   "cleanup": {},
+   "pass": true,
+   "why": [],
+   "redFor172": false
+  },
+  {
+   "product": "v25",
+   "browser": "firefox",
+   "repetition": 1,
+   "browserVersion": "157.0.1",
+   "caretPlaced": true,
+   "warmup": {
+    "settled": true,
+    "before": {
+     "pill": "ready",
+     "latency": "定位游標 55 ms",
+     "toast": "點一下放游標，或拖曳選一段，再按動作",
+     "revision": "0",
+     "requests": 9
+    },
+    "after": {
+     "pill": "ready",
+     "latency": "清除格式 28 ms",
+     "toast": "已清除粗體、斜體、底線、刪除線",
+     "revision": "4",
+     "requests": 17
+    },
+    "rows": [
+     {
+      "action": "set-bold",
+      "enabled": false,
+      "ok": true,
+      "code": null,
+      "message": null,
+      "changed": true,
+      "completion": "uno-command-result",
+      "witness": "on-time-item",
+      "hasWitness": true,
+      "revision": [
+       0,
+       1
+      ]
+     },
+     {
+      "action": "set-italic",
+      "enabled": false,
+      "ok": true,
+      "code": null,
+      "message": null,
+      "changed": true,
+      "completion": "uno-command-result",
+      "witness": "on-time-item",
+      "hasWitness": true,
+      "revision": [
+       1,
+       2
+      ]
+     },
+     {
+      "action": "set-underline",
+      "enabled": false,
+      "ok": true,
+      "code": null,
+      "message": null,
+      "changed": true,
+      "completion": "uno-command-result",
+      "witness": "on-time-item",
+      "hasWitness": true,
+      "revision": [
+       2,
+       3
+      ]
+     },
+     {
+      "action": "set-strikethrough",
+      "enabled": false,
+      "ok": true,
+      "code": null,
+      "message": null,
+      "changed": true,
+      "completion": "uno-command-result",
+      "witness": "on-time-item",
+      "hasWitness": true,
+      "revision": [
+       3,
+       4
+      ]
+     }
+    ]
+   },
+   "warmupHeld": true,
+   "settled": true,
+   "before": {
+    "pill": "ready",
+    "latency": "清除格式 28 ms",
+    "toast": "已清除粗體、斜體、底線、刪除線",
+    "revision": "4",
+    "requests": 17
+   },
+   "after": {
+    "pill": "ready",
+    "latency": "清除格式 27 ms",
+    "toast": "已清除粗體、斜體、底線、刪除線",
+    "revision": "8",
+    "requests": 25
+   },
+   "rows": [
+    {
+     "action": "set-bold",
+     "enabled": false,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "changed": true,
+     "completion": "uno-command-result",
+     "witness": "state-noop",
+     "hasWitness": true,
+     "revision": [
+      4,
+      5
+     ]
+    },
+    {
+     "action": "set-italic",
+     "enabled": false,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "changed": true,
+     "completion": "uno-command-result",
+     "witness": "state-noop",
+     "hasWitness": true,
+     "revision": [
+      5,
+      6
+     ]
+    },
+    {
+     "action": "set-underline",
+     "enabled": false,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "changed": true,
+     "completion": "uno-command-result",
+     "witness": "state-noop",
+     "hasWitness": true,
+     "revision": [
+      6,
+      7
+     ]
+    },
+    {
+     "action": "set-strikethrough",
+     "enabled": false,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "changed": true,
+     "completion": "uno-command-result",
+     "witness": "state-noop",
+     "hasWitness": true,
+     "revision": [
+      7,
+      8
+     ]
+    }
+   ],
+   "cleanup": {},
+   "pass": true,
+   "why": [],
+   "redFor172": false
+  },
+  {
+   "product": "v25",
+   "browser": "firefox",
+   "repetition": 2,
+   "browserVersion": "157.0.1",
+   "caretPlaced": true,
+   "warmup": {
+    "settled": true,
+    "before": {
+     "pill": "ready",
+     "latency": "定位游標 56 ms",
+     "toast": "點一下放游標，或拖曳選一段，再按動作",
+     "revision": "0",
+     "requests": 9
+    },
+    "after": {
+     "pill": "ready",
+     "latency": "清除格式 27 ms",
+     "toast": "已清除粗體、斜體、底線、刪除線",
+     "revision": "4",
+     "requests": 17
+    },
+    "rows": [
+     {
+      "action": "set-bold",
+      "enabled": false,
+      "ok": true,
+      "code": null,
+      "message": null,
+      "changed": true,
+      "completion": "uno-command-result",
+      "witness": "on-time-item",
+      "hasWitness": true,
+      "revision": [
+       0,
+       1
+      ]
+     },
+     {
+      "action": "set-italic",
+      "enabled": false,
+      "ok": true,
+      "code": null,
+      "message": null,
+      "changed": true,
+      "completion": "uno-command-result",
+      "witness": "on-time-item",
+      "hasWitness": true,
+      "revision": [
+       1,
+       2
+      ]
+     },
+     {
+      "action": "set-underline",
+      "enabled": false,
+      "ok": true,
+      "code": null,
+      "message": null,
+      "changed": true,
+      "completion": "uno-command-result",
+      "witness": "on-time-item",
+      "hasWitness": true,
+      "revision": [
+       2,
+       3
+      ]
+     },
+     {
+      "action": "set-strikethrough",
+      "enabled": false,
+      "ok": true,
+      "code": null,
+      "message": null,
+      "changed": true,
+      "completion": "uno-command-result",
+      "witness": "on-time-item",
+      "hasWitness": true,
+      "revision": [
+       3,
+       4
+      ]
+     }
+    ]
+   },
+   "warmupHeld": true,
+   "settled": true,
+   "before": {
+    "pill": "ready",
+    "latency": "清除格式 27 ms",
+    "toast": "已清除粗體、斜體、底線、刪除線",
+    "revision": "4",
+    "requests": 17
+   },
+   "after": {
+    "pill": "ready",
+    "latency": "清除格式 27 ms",
+    "toast": "已清除粗體、斜體、底線、刪除線",
+    "revision": "8",
+    "requests": 25
+   },
+   "rows": [
+    {
+     "action": "set-bold",
+     "enabled": false,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "changed": true,
+     "completion": "uno-command-result",
+     "witness": "state-noop",
+     "hasWitness": true,
+     "revision": [
+      4,
+      5
+     ]
+    },
+    {
+     "action": "set-italic",
+     "enabled": false,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "changed": true,
+     "completion": "uno-command-result",
+     "witness": "state-noop",
+     "hasWitness": true,
+     "revision": [
+      5,
+      6
+     ]
+    },
+    {
+     "action": "set-underline",
+     "enabled": false,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "changed": true,
+     "completion": "uno-command-result",
+     "witness": "state-noop",
+     "hasWitness": true,
+     "revision": [
+      6,
+      7
+     ]
+    },
+    {
+     "action": "set-strikethrough",
+     "enabled": false,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "changed": true,
+     "completion": "uno-command-result",
+     "witness": "state-noop",
+     "hasWitness": true,
+     "revision": [
+      7,
+      8
+     ]
+    }
+   ],
+   "cleanup": {},
+   "pass": true,
+   "why": [],
+   "redFor172": false
+  },
+  {
+   "product": "v25",
+   "browser": "firefox",
+   "repetition": 3,
+   "browserVersion": "157.0.1",
+   "caretPlaced": true,
+   "warmup": {
+    "settled": true,
+    "before": {
+     "pill": "ready",
+     "latency": "定位游標 171 ms",
+     "toast": "點一下放游標，或拖曳選一段，再按動作",
+     "revision": "0",
+     "requests": 9
+    },
+    "after": {
+     "pill": "ready",
+     "latency": "清除格式 27 ms",
+     "toast": "已清除粗體、斜體、底線、刪除線",
+     "revision": "4",
+     "requests": 17
+    },
+    "rows": [
+     {
+      "action": "set-bold",
+      "enabled": false,
+      "ok": true,
+      "code": null,
+      "message": null,
+      "changed": true,
+      "completion": "uno-command-result",
+      "witness": "on-time-item",
+      "hasWitness": true,
+      "revision": [
+       0,
+       1
+      ]
+     },
+     {
+      "action": "set-italic",
+      "enabled": false,
+      "ok": true,
+      "code": null,
+      "message": null,
+      "changed": true,
+      "completion": "uno-command-result",
+      "witness": "on-time-item",
+      "hasWitness": true,
+      "revision": [
+       1,
+       2
+      ]
+     },
+     {
+      "action": "set-underline",
+      "enabled": false,
+      "ok": true,
+      "code": null,
+      "message": null,
+      "changed": true,
+      "completion": "uno-command-result",
+      "witness": "on-time-item",
+      "hasWitness": true,
+      "revision": [
+       2,
+       3
+      ]
+     },
+     {
+      "action": "set-strikethrough",
+      "enabled": false,
+      "ok": true,
+      "code": null,
+      "message": null,
+      "changed": true,
+      "completion": "uno-command-result",
+      "witness": "on-time-item",
+      "hasWitness": true,
+      "revision": [
+       3,
+       4
+      ]
+     }
+    ]
+   },
+   "warmupHeld": true,
+   "settled": true,
+   "before": {
+    "pill": "ready",
+    "latency": "清除格式 27 ms",
+    "toast": "已清除粗體、斜體、底線、刪除線",
+    "revision": "4",
+    "requests": 17
+   },
+   "after": {
+    "pill": "ready",
+    "latency": "清除格式 26 ms",
+    "toast": "已清除粗體、斜體、底線、刪除線",
+    "revision": "8",
+    "requests": 25
+   },
+   "rows": [
+    {
+     "action": "set-bold",
+     "enabled": false,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "changed": true,
+     "completion": "uno-command-result",
+     "witness": "state-noop",
+     "hasWitness": true,
+     "revision": [
+      4,
+      5
+     ]
+    },
+    {
+     "action": "set-italic",
+     "enabled": false,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "changed": true,
+     "completion": "uno-command-result",
+     "witness": "state-noop",
+     "hasWitness": true,
+     "revision": [
+      5,
+      6
+     ]
+    },
+    {
+     "action": "set-underline",
+     "enabled": false,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "changed": true,
+     "completion": "uno-command-result",
+     "witness": "state-noop",
+     "hasWitness": true,
+     "revision": [
+      6,
+      7
+     ]
+    },
+    {
+     "action": "set-strikethrough",
+     "enabled": false,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "changed": true,
+     "completion": "uno-command-result",
+     "witness": "state-noop",
+     "hasWitness": true,
+     "revision": [
+      7,
+      8
+     ]
+    }
+   ],
+   "cleanup": {},
+   "pass": true,
+   "why": [],
+   "redFor172": false
+  }
+ ],
+ "preRun": {
+  "kwalletLocked": "b false",
+  "chromeProcesses": "23",
+  "firefoxProcesses": "1",
+  "oursRunning": [],
+  "loadavg": [
+   "1.28",
+   "1.02",
+   "0.96"
+  ],
+  "topCpu": [
+   "PID %CPU COMMAND",
+   "1902406 76.6 soffice.bin",
+   "1902508 41.1 python3",
+   "1902341 34.6 python.bin",
+   "1761781  6.2 chrome",
+   "1869196  4.1 claude"
+  ],
+  "at": "2026-10-29T15:33:35+0800",
+  "refuse": []
+ },
+ "problems": [],
+ "verdict": "F2_HOLDS"
+}

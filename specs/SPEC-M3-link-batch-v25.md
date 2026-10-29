@@ -159,6 +159,19 @@ v25 只動格式回覆路徑，而且全部在新 define 之下。提案：
 
 **§9：擁有者選「沿用」**（2026-10-29 原話：「沿用」）。S5、R1、S1–S4 的計數不在 v25 上重跑；F3、F4 照跑。依據是 §9 寫的條件：`pre-link/ships.stdout.txt` 顯示相對於 v24 連結時的原始碼，只有 `probe_engine` 的前置處理輸出有變。**欠著**：把「每一段變動都落在 `#ifdef OXSDK_E2_V25_FORMAT_PROOF` 之內」寫成一支讀 `ships` 輸出與原始碼的小工具（形式二），在任何 K 之前補上；補上之前，「只差宣告段落」這件事是讀出來的，還不是工具判的。
 
+## 15. 切換、generation 78、§9 讀取器與 §6.3 的 F1／F2（2026-10-29，只追加；F3、F4 之前）
+
+1. **切換**（`e06d10a1b`，`findings/evidence/link-batch-v25/cutover/`）：`build_cutover_page.py` 只改兩行（釘選 `44cb15ea8d36f0e0`、worker URL），頁面 `b15a6d8e…` → `6e66c930…`；`make -n e2-c-assets` 只印一行 `cp`（SDK 沒改，§4.3）。**V0′ 補做**：本規格沒有列，但 §9 沿用 v24 的計數，而 v24 的兩支讀取器（`read_v24_remaining_cohort.py`、`judge_v24_product_four_arms.py`）都綁活的殼層摘要——切換後在活的樹上**依構造**是 NE（`shell digest differs: 550b68bf…`）。只把頁面（原始碼與 `dist/`）換回 `b15a6d8e` 時，兩支都逐位元組重現已 commit 的結果；放回後雜湊核對無誤；E1-C intact。
+2. **generation 78**（`9450e5340`，`freeze-78/`）：照 §8 的順序在 §6.3 之前凍（§4.4 宣告的殼層改動只有頁面，已完成；v24 是在 6.3 準備之後才凍，順序不同）。第八個排除 `sdk/v25-feature-worker.js`：本規格沒有列，比照 v24 規格 4.4 對 `sdk/v24-feature-worker.js` 的前例與理由。與 v77 只差頁面。Makefile 的 bundle 行改指 v78（改前紅、改後綠、指回 v77 或工具預設 v76 都紅）。`test-e2-c-reachability` 整體仍紅在既有的覆蓋稽核那一行，在切換前的樹（`b241c83a4`）上量到完全相同的問題清單。凍結後再做一次 V0′，同樣成立。若 6.3 逼出殼層改動，那是 generation 79，不覆寫 78。
+3. **§13 第 3 點讀過頭了。**`what_the_link_ships.py` 的舊一側只抽 `.cpp`，同目錄的 `.inc`／`.h` 經 `-Isrc` 解析到**活的樹**，兩側讀的是同一份新的引入檔。v25 的 `ships` 只有 `probe_engine.cpp` 的兩段（barrier 欄位、`dispatched` 序列化）；stage（`ordered_format.inc`）與 witness（`ordered_engine_reply.inc`）不在裡面。§13 第 3 點寫「正好是宣告的四處」，§14 擁有者決定所引的也是同一份報告。這個盲點在工具本身（任何同目錄引入檔都看不到），不只在 v25；哪些舊批次的宣稱靠過它，另列工作項。
+4. **§14 欠的讀取器已補**（`dfa9ba6bd`，`tools/check_v25_ships_confined.py`，`findings/evidence/link-batch-v25/section-9-reader/`）：用 Makefile 的實際編譯行；(A) v25 的行與「去掉 v25 define 的同一行」前置處理（保留行號標記），每一個不同的行對回檔:行，必須在條件含 `OXSDK_E2_V25_FORMAT_PROOF` 的分支裡；(B) v24 的行在樹上與 `git archive 1f95a9fca`（引入檔各取自己的 commit）正規化後相同；(C) v24 的行＝v25 的行去掉 define。活的樹：`CONFINED_V25_HOLDS`，39 行、0 行在外（32 行在兩個 `.inc`，正是 `ships` 看不到的），內容正是 §4.1 宣告的各段。四個紅案（衍生巨集洩漏到區塊外、區塊外的無條件改動、零行、`ships` 零段）各自只紅自己那一條。**所以 §9「只差宣告段落」現在是工具判的**；結論與擁有者當時依據的讀法相同，只是當時的證據少看了兩處。
+5. **§13 第 4 點：頁面層量不到序列化。**v25 同時把 stage 提前，worker 的退路推算也會給 `dispatched: true`；v22 的引擎根本不送 `dispatched`，頁面照樣顯示 `true`（F1 實測）。所以 F1 在 Chrome 的 worker 裡經 `Target.setAutoAttach` 包一層 `JSON.parse` 觀察器，直接讀引擎紀錄是否**帶有** `dispatched`／`witness`（不改任何送出的位元組）。
+6. **F1**（`findings/evidence/link-batch-v25/f1/`，`diag_format.py` 以路徑匯入、位元組不動，衍生工具 `diag_format_v25.py`；v24 從自己的位元組送——切換後 `dist/` 是 v25，`diag_format.py` 的「v24＝`dist/` 原樣」會量到 v25）：run-01 Chrome 3 回 **`F1_HOLDS`**（`read_f1.py`，八個變異全紅）。v25：項目符號後 `ready`、引擎紀錄 `dispatched: true`／`stage: awaiting-result`、存檔 `MKAFTERCLEAR` 非斜體、`MKITALAGAIN` 斜體、每個 set-* 引擎回覆帶已知 `witness`，3/3。v24 這幾條 0/3；v22 參考值 3/3。
+7. **F2 的處方更正（因執行而修 1，在任何證據執行之前）。**照字面「普通文字上按清除格式」試跑（`f2-shake-01`，scratch），v24 是**綠的**：剛放好游標後的第一次清除格式，LOK 在 flush 裡廣播了四個狀態項（v25 的 witness 全是 `on-time-item`）。172 要的是「本次 flush 沒有該狀態項」，而 LOK 只在狀態有變時才重播。處方改成：同樣在普通文字上連按兩次，**判第二次**；第一次是暖身，必須以「已清除」與 `ready` 結束，否則算工具自己的設定問題。判準（四個 ok、toast、`ready`、對 v24 必須紅）不變，另加一條：第二次的 `set-bold` witness 必須是 `state-noop`（證明走到修法的路徑，而不是剛好有廣播）。v24 只有「為 172 而紅」（暖身成立、第二次第一個回覆是 `LOK_COMMAND_FAILED`）才算反例。
+8. **F2**（`findings/evidence/link-batch-v25/f2/`，新工具 `tools/check_v25_clear_format_noop.py`，產品同 F1 由 `tools/v25_f_products.py` 建構並逐檔核對身分）：run-01 Chrome 與 Firefox 各 3 回 **`F2_HOLDS`**。v25 6/6 PASS，第二次按的四個回覆都是 ok、witness 都是 `state-noop`、toast「已清除…」、`ready`；v24 6/6「為 172 而紅」（`set-bold` 就 `LOK_COMMAND_FAILED`，後面三個沒送）。十二回的暖身全部成立。
+9. **F3 的判準在跑之前要先釘清楚**（待擁有者決定；決定後另追加一節）：§6.3 寫「其餘 40 格與 v24 的 T4 相同」，但每個瀏覽器 46 個檢查、第 1–6 列共 6 格，數字對不上任何切法；而且 172 的修法會讓九格之外的同族格子變好（v24 T4 run-02 的 Firefox `clear-format-removes-every-inline-format` NE、`an-inline-format-reaches-a-selection` FAIL），照字面「相同」會讓修法本身判 F3 紅。
+10. §34.4（本節）：因執行而修 1（F2 的處方）；因審核而修 0。
+
 ## 12. 修訂紀錄
 
 | 日期 | 內容 |
@@ -166,3 +179,4 @@ v25 只動格式回覆路徑，而且全部在新 define 之下。提案：
 | 2026-10-29 | 初版（裁決之後、任何 v25 實作之前） |
 | 2026-10-29 | §13 追加：實作逼出的四點更正（連結之前） |
 | 2026-10-29 | §14 追加：連結完成、§6.2 結果、§9 擁有者選沿用 |
+| 2026-10-29 | §15 追加：切換、generation 78、§9 讀取器、§13 第 3／4 點的更正、F1／F2 結果、F2 處方更正、F3 判準待定 |

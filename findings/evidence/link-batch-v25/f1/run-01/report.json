@@ -1,0 +1,6523 @@
+{
+ "argv": [
+  "findings/evidence/link-batch-v25/f1/diag_format_v25.py",
+  "--out",
+  "findings/evidence/link-batch-v25/f1/run-01",
+  "--repetitions",
+  "3"
+ ],
+ "derivedFrom": {
+  "path": "findings/evidence/host-0.2.39/k-nine-cells/diag-format/diag_format.py",
+  "sha256": "ed0a22567235df8058185d0b85dc47444ee0cd15ddfd4c731892a2b249ae50ae"
+ },
+ "products": {
+  "v22": {
+   "page": "3b96cb1661aba6de6add989c98c80ab393cd394307763bc6dc28c9440fba82e2",
+   "package": "wasm_sdk_probe/build/archive/host-0.2.27-engine-817413d5ad5bd502"
+  },
+  "v24": {
+   "profile": "e2-editor-v24",
+   "generation": "e2/editor-shell-v2-bundle-v77.json",
+   "generationDigest": "56ce44c78043220e4f135343dc87a8e847e83849e4c6571345b1ac9e2e8a294a",
+   "archive": "build/archive/e2-editor-v24-27615808-worker-41041fe7",
+   "servedProfile": {
+    "probe.wasm": "276158084a602178f9b7219c086f749910601b1a121fca9339b10a79b0f7b639",
+    "probe.js": "64aaa8dc2c7a1c366c76911213090ae60d39c26cd4207274ef1c0420a5a0b301",
+    "sdk-worker.js": "41041fe746b2355a1768bc774a10ac59802a8e359579618be405e3696f3b9461",
+    "sdk-manifest.json": "f9554e8c1b79ff4955dbfdf7dbe7c9975f3d0bcc945665c3491a730cb44cd04e"
+   },
+   "shellMismatches": [],
+   "checks": {
+    "profileEqualsArchive": true,
+    "shellEqualsGeneration": true,
+    "pageServed": true,
+    "pagePointsAtProfile": true
+   },
+   "ok": true
+  },
+  "v25": {
+   "profile": "e2-editor-v25",
+   "generation": "e2/editor-shell-v2-bundle-v78.json",
+   "generationDigest": "550b68bfcc0ba7b6d8a71c4fbea6c7d6eba6b1de35edeaf4cddf26f40fcde8e4",
+   "archive": "build/archive/e2-editor-v25-44cb15ea-worker-75557b22",
+   "servedProfile": {
+    "probe.wasm": "44cb15ea8d36f0e0191e007179769b6bcb468e3d084cb260c645e6127630d193",
+    "probe.js": "ed1d9a55357a0a25d44224fbbdcb1fc26df0a1c64a1ae2a769761f9bf3784738",
+    "sdk-worker.js": "75557b220b0d29dfa222a3dd4c3fbde54403034676dc8b7b1a9b41934c218b0c",
+    "sdk-manifest.json": "e7780061471ffc81ccb4240e502f6343ee42c3312e7871efb6efa38066766519"
+   },
+   "shellMismatches": [],
+   "checks": {
+    "profileEqualsArchive": true,
+    "shellEqualsGeneration": true,
+    "pageServed": true,
+    "pagePointsAtProfile": true
+   },
+   "ok": true
+  }
+ },
+ "runs": [
+  {
+   "product": "v22",
+   "scenario": "bullet",
+   "repetition": 1,
+   "after": {
+    "pill": "ready",
+    "latency": "• 項目符號 失敗",
+    "toast": "• 項目符號：MUTATION_OUTCOME_UNKNOWN：the postcondition read covered more than one paragraph, so it does not describe the paragraph this action was dispatched on（動作已送出，但這一格的檢查涵蓋了不只一個段落，無法單獨核對你的段落。請看一下結果，不是你要的就按「復原」。這是檢查的極限，不是文件壞了）",
+    "revision": "1",
+    "pressed": {
+     "bold": "false",
+     "italic": "false",
+     "underline": "false",
+     "strikethrough": "false"
+    },
+    "blobs": 0
+   },
+   "settled": true,
+   "traffic": [
+    {
+     "operation": "editorActionV2",
+     "action": "insert-paragraph-break",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": true,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 10,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": null
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-list-unordered",
+     "ok": false,
+     "code": "MUTATION_OUTCOME_UNKNOWN",
+     "message": "the postcondition read covered more than one paragraph, so it does not describe the paragraph this action was dispatched on",
+     "barrier": {
+      "stage": null,
+      "route": "collapsed",
+      "dispatched": true,
+      "failureShape": "multi-block-readback",
+      "resultSeen": null,
+      "resultSuccess": null,
+      "selectionResultSeen": true,
+      "command": null
+     },
+     "resultFormat": null,
+     "errorKeys": [
+      "code",
+      "documentHandle",
+      "formatBarrier",
+      "message",
+      "operation"
+     ],
+     "errorDispatched": null,
+     "requestId": 13,
+     "completion": null,
+     "changed": null,
+     "witness": null
+    }
+   ],
+   "rawInstall": "installed",
+   "raw": [
+    {
+     "type": "editor-action-completed",
+     "requestId": 10,
+     "code": null,
+     "hasWitness": false,
+     "witness": null,
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "error",
+     "requestId": 13,
+     "code": "MUTATION_OUTCOME_UNKNOWN",
+     "hasWitness": false,
+     "witness": null,
+     "completion": null,
+     "changed": null,
+     "barrier": {
+      "hasDispatched": false,
+      "dispatched": null,
+      "stage": "awaiting-restore",
+      "failureShape": "multi-block-readback",
+      "route": "collapsed"
+     }
+    }
+   ],
+   "cleanup": {}
+  },
+  {
+   "product": "v22",
+   "scenario": "format",
+   "repetition": 1,
+   "steps": [
+    {
+     "step": "start",
+     "page": {
+      "pill": "ready",
+      "latency": "定位游標 27 ms",
+      "toast": "點一下放游標，或拖曳選一段，再按動作",
+      "revision": "0",
+      "pressed": {
+       "bold": "true",
+       "italic": "false",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "press",
+     "arg": "set-italic",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "I 14 ms",
+      "toast": "點一下放游標，或拖曳選一段，再按動作",
+      "revision": "1",
+      "pressed": {
+       "bold": "false",
+       "italic": "true",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "type",
+     "arg": "MKITALON",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "插入文字 9 ms",
+      "toast": "點一下放游標，或拖曳選一段，再按動作",
+      "revision": "2",
+      "pressed": {
+       "bold": "false",
+       "italic": "true",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "clear",
+     "arg": null,
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "清除格式 4 ms",
+      "toast": "已清除粗體、斜體、底線、刪除線",
+      "revision": "6",
+      "pressed": {
+       "bold": "false",
+       "italic": "false",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "type",
+     "arg": "MKAFTERCLEAR",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "插入文字 4 ms",
+      "toast": "已清除粗體、斜體、底線、刪除線",
+      "revision": "7",
+      "pressed": {
+       "bold": "false",
+       "italic": "false",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "press",
+     "arg": "set-italic",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "I 7 ms",
+      "toast": "已清除粗體、斜體、底線、刪除線",
+      "revision": "8",
+      "pressed": {
+       "bold": "false",
+       "italic": "true",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "type",
+     "arg": "MKITALAGAIN",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "插入文字 4 ms",
+      "toast": "已清除粗體、斜體、底線、刪除線",
+      "revision": "9",
+      "pressed": {
+       "bold": "false",
+       "italic": "true",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "press",
+     "arg": "set-bold",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "B 7 ms",
+      "toast": "已清除粗體、斜體、底線、刪除線",
+      "revision": "10",
+      "pressed": {
+       "bold": "true",
+       "italic": "true",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "type",
+     "arg": "MKBOLDON",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "插入文字 5 ms",
+      "toast": "已清除粗體、斜體、底線、刪除線",
+      "revision": "11",
+      "pressed": {
+       "bold": "true",
+       "italic": "true",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "clear",
+     "arg": null,
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "清除格式 4 ms",
+      "toast": "已清除粗體、斜體、底線、刪除線",
+      "revision": "15",
+      "pressed": {
+       "bold": "false",
+       "italic": "false",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "type",
+     "arg": "MKAFTERCLEAR2",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "插入文字 5 ms",
+      "toast": "已清除粗體、斜體、底線、刪除線",
+      "revision": "16",
+      "pressed": {
+       "bold": "false",
+       "italic": "false",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    }
+   ],
+   "saved": {
+    "sha256": "24848a7721d66422537dd6a044d17f334ba9935112e760d2f6a6dbeab666788b",
+    "markers": {
+     "MKITALON": {
+      "found": true,
+      "span": "T1",
+      "paragraphStyle": "P3",
+      "bold": false,
+      "italic": true,
+      "underline": false,
+      "strikethrough": false
+     },
+     "MKAFTERCLEAR": {
+      "found": true,
+      "span": "T2",
+      "paragraphStyle": "P3",
+      "bold": false,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     },
+     "MKITALAGAIN": {
+      "found": true,
+      "span": "T3",
+      "paragraphStyle": "P3",
+      "bold": false,
+      "italic": true,
+      "underline": false,
+      "strikethrough": false
+     },
+     "MKBOLDON": {
+      "found": true,
+      "span": "T4",
+      "paragraphStyle": "P3",
+      "bold": true,
+      "italic": true,
+      "underline": false,
+      "strikethrough": false
+     },
+     "MKAFTERCLEAR2": {
+      "found": true,
+      "span": "T2",
+      "paragraphStyle": "P3",
+      "bold": false,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     }
+    }
+   },
+   "traffic": [
+    {
+     "operation": "editorActionV2",
+     "action": "set-italic",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": false,
+      "italic": true,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 10,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": null
+    },
+    {
+     "operation": "insertText",
+     "action": null,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": null,
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 12,
+     "completion": null,
+     "changed": null,
+     "witness": null
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-bold",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": false,
+      "italic": true,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 16,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": null
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-italic",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": false,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 18,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": null
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-underline",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": false,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 20,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": null
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-strikethrough",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": false,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 22,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": null
+    },
+    {
+     "operation": "insertText",
+     "action": null,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": null,
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 24,
+     "completion": null,
+     "changed": null,
+     "witness": null
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-italic",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": false,
+      "italic": true,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 28,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": null
+    },
+    {
+     "operation": "insertText",
+     "action": null,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": null,
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 30,
+     "completion": null,
+     "changed": null,
+     "witness": null
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-bold",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": true,
+      "italic": true,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 34,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": null
+    },
+    {
+     "operation": "insertText",
+     "action": null,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": null,
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 36,
+     "completion": null,
+     "changed": null,
+     "witness": null
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-bold",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": false,
+      "italic": true,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 40,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": null
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-italic",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": false,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 42,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": null
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-underline",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": false,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 44,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": null
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-strikethrough",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": false,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 46,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": null
+    },
+    {
+     "operation": "insertText",
+     "action": null,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": null,
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 48,
+     "completion": null,
+     "changed": null,
+     "witness": null
+    }
+   ],
+   "rawInstall": "installed",
+   "raw": [
+    {
+     "type": "editor-action-completed",
+     "requestId": 10,
+     "code": null,
+     "hasWitness": false,
+     "witness": null,
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "editor-action-completed",
+     "requestId": 16,
+     "code": null,
+     "hasWitness": false,
+     "witness": null,
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "editor-action-completed",
+     "requestId": 18,
+     "code": null,
+     "hasWitness": false,
+     "witness": null,
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "editor-action-completed",
+     "requestId": 20,
+     "code": null,
+     "hasWitness": false,
+     "witness": null,
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "editor-action-completed",
+     "requestId": 22,
+     "code": null,
+     "hasWitness": false,
+     "witness": null,
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "editor-action-completed",
+     "requestId": 28,
+     "code": null,
+     "hasWitness": false,
+     "witness": null,
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "editor-action-completed",
+     "requestId": 34,
+     "code": null,
+     "hasWitness": false,
+     "witness": null,
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "editor-action-completed",
+     "requestId": 40,
+     "code": null,
+     "hasWitness": false,
+     "witness": null,
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "editor-action-completed",
+     "requestId": 42,
+     "code": null,
+     "hasWitness": false,
+     "witness": null,
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "editor-action-completed",
+     "requestId": 44,
+     "code": null,
+     "hasWitness": false,
+     "witness": null,
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "editor-action-completed",
+     "requestId": 46,
+     "code": null,
+     "hasWitness": false,
+     "witness": null,
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    }
+   ],
+   "cleanup": {}
+  },
+  {
+   "product": "v22",
+   "scenario": "bullet",
+   "repetition": 2,
+   "after": {
+    "pill": "ready",
+    "latency": "• 項目符號 失敗",
+    "toast": "• 項目符號：MUTATION_OUTCOME_UNKNOWN：the postcondition read covered more than one paragraph, so it does not describe the paragraph this action was dispatched on（動作已送出，但這一格的檢查涵蓋了不只一個段落，無法單獨核對你的段落。請看一下結果，不是你要的就按「復原」。這是檢查的極限，不是文件壞了）",
+    "revision": "1",
+    "pressed": {
+     "bold": "false",
+     "italic": "false",
+     "underline": "false",
+     "strikethrough": "false"
+    },
+    "blobs": 0
+   },
+   "settled": true,
+   "traffic": [
+    {
+     "operation": "editorActionV2",
+     "action": "insert-paragraph-break",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": true,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 10,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": null
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-list-unordered",
+     "ok": false,
+     "code": "MUTATION_OUTCOME_UNKNOWN",
+     "message": "the postcondition read covered more than one paragraph, so it does not describe the paragraph this action was dispatched on",
+     "barrier": {
+      "stage": null,
+      "route": "collapsed",
+      "dispatched": true,
+      "failureShape": "multi-block-readback",
+      "resultSeen": null,
+      "resultSuccess": null,
+      "selectionResultSeen": true,
+      "command": null
+     },
+     "resultFormat": null,
+     "errorKeys": [
+      "code",
+      "documentHandle",
+      "formatBarrier",
+      "message",
+      "operation"
+     ],
+     "errorDispatched": null,
+     "requestId": 13,
+     "completion": null,
+     "changed": null,
+     "witness": null
+    }
+   ],
+   "rawInstall": "installed",
+   "raw": [
+    {
+     "type": "editor-action-completed",
+     "requestId": 10,
+     "code": null,
+     "hasWitness": false,
+     "witness": null,
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "error",
+     "requestId": 13,
+     "code": "MUTATION_OUTCOME_UNKNOWN",
+     "hasWitness": false,
+     "witness": null,
+     "completion": null,
+     "changed": null,
+     "barrier": {
+      "hasDispatched": false,
+      "dispatched": null,
+      "stage": "awaiting-restore",
+      "failureShape": "multi-block-readback",
+      "route": "collapsed"
+     }
+    }
+   ],
+   "cleanup": {}
+  },
+  {
+   "product": "v22",
+   "scenario": "format",
+   "repetition": 2,
+   "steps": [
+    {
+     "step": "start",
+     "page": {
+      "pill": "ready",
+      "latency": "定位游標 29 ms",
+      "toast": "點一下放游標，或拖曳選一段，再按動作",
+      "revision": "0",
+      "pressed": {
+       "bold": "true",
+       "italic": "false",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "press",
+     "arg": "set-italic",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "I 14 ms",
+      "toast": "點一下放游標，或拖曳選一段，再按動作",
+      "revision": "1",
+      "pressed": {
+       "bold": "false",
+       "italic": "true",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "type",
+     "arg": "MKITALON",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "插入文字 9 ms",
+      "toast": "點一下放游標，或拖曳選一段，再按動作",
+      "revision": "2",
+      "pressed": {
+       "bold": "false",
+       "italic": "true",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "clear",
+     "arg": null,
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "清除格式 4 ms",
+      "toast": "已清除粗體、斜體、底線、刪除線",
+      "revision": "6",
+      "pressed": {
+       "bold": "false",
+       "italic": "false",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "type",
+     "arg": "MKAFTERCLEAR",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "插入文字 4 ms",
+      "toast": "已清除粗體、斜體、底線、刪除線",
+      "revision": "7",
+      "pressed": {
+       "bold": "false",
+       "italic": "false",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "press",
+     "arg": "set-italic",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "I 7 ms",
+      "toast": "已清除粗體、斜體、底線、刪除線",
+      "revision": "8",
+      "pressed": {
+       "bold": "false",
+       "italic": "true",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "type",
+     "arg": "MKITALAGAIN",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "插入文字 3 ms",
+      "toast": "已清除粗體、斜體、底線、刪除線",
+      "revision": "9",
+      "pressed": {
+       "bold": "false",
+       "italic": "true",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "press",
+     "arg": "set-bold",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "B 7 ms",
+      "toast": "已清除粗體、斜體、底線、刪除線",
+      "revision": "10",
+      "pressed": {
+       "bold": "true",
+       "italic": "true",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "type",
+     "arg": "MKBOLDON",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "插入文字 5 ms",
+      "toast": "已清除粗體、斜體、底線、刪除線",
+      "revision": "11",
+      "pressed": {
+       "bold": "true",
+       "italic": "true",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "clear",
+     "arg": null,
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "清除格式 4 ms",
+      "toast": "已清除粗體、斜體、底線、刪除線",
+      "revision": "15",
+      "pressed": {
+       "bold": "false",
+       "italic": "false",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "type",
+     "arg": "MKAFTERCLEAR2",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "插入文字 5 ms",
+      "toast": "已清除粗體、斜體、底線、刪除線",
+      "revision": "16",
+      "pressed": {
+       "bold": "false",
+       "italic": "false",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    }
+   ],
+   "saved": {
+    "sha256": "b06d11f2c43a4f17a1b560ac1558267b18a1207e05804c05c8d47dbb5301fc6d",
+    "markers": {
+     "MKITALON": {
+      "found": true,
+      "span": "T1",
+      "paragraphStyle": "P3",
+      "bold": false,
+      "italic": true,
+      "underline": false,
+      "strikethrough": false
+     },
+     "MKAFTERCLEAR": {
+      "found": true,
+      "span": "T2",
+      "paragraphStyle": "P3",
+      "bold": false,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     },
+     "MKITALAGAIN": {
+      "found": true,
+      "span": "T3",
+      "paragraphStyle": "P3",
+      "bold": false,
+      "italic": true,
+      "underline": false,
+      "strikethrough": false
+     },
+     "MKBOLDON": {
+      "found": true,
+      "span": "T4",
+      "paragraphStyle": "P3",
+      "bold": true,
+      "italic": true,
+      "underline": false,
+      "strikethrough": false
+     },
+     "MKAFTERCLEAR2": {
+      "found": true,
+      "span": "T2",
+      "paragraphStyle": "P3",
+      "bold": false,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     }
+    }
+   },
+   "traffic": [
+    {
+     "operation": "editorActionV2",
+     "action": "set-italic",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": false,
+      "italic": true,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 10,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": null
+    },
+    {
+     "operation": "insertText",
+     "action": null,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": null,
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 12,
+     "completion": null,
+     "changed": null,
+     "witness": null
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-bold",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": false,
+      "italic": true,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 16,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": null
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-italic",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": false,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 18,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": null
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-underline",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": false,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 20,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": null
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-strikethrough",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": false,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 22,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": null
+    },
+    {
+     "operation": "insertText",
+     "action": null,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": null,
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 24,
+     "completion": null,
+     "changed": null,
+     "witness": null
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-italic",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": false,
+      "italic": true,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 28,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": null
+    },
+    {
+     "operation": "insertText",
+     "action": null,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": null,
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 30,
+     "completion": null,
+     "changed": null,
+     "witness": null
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-bold",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": true,
+      "italic": true,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 34,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": null
+    },
+    {
+     "operation": "insertText",
+     "action": null,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": null,
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 36,
+     "completion": null,
+     "changed": null,
+     "witness": null
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-bold",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": false,
+      "italic": true,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 40,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": null
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-italic",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": false,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 42,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": null
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-underline",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": false,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 44,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": null
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-strikethrough",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": false,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 46,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": null
+    },
+    {
+     "operation": "insertText",
+     "action": null,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": null,
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 48,
+     "completion": null,
+     "changed": null,
+     "witness": null
+    }
+   ],
+   "rawInstall": "installed",
+   "raw": [
+    {
+     "type": "editor-action-completed",
+     "requestId": 10,
+     "code": null,
+     "hasWitness": false,
+     "witness": null,
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "editor-action-completed",
+     "requestId": 16,
+     "code": null,
+     "hasWitness": false,
+     "witness": null,
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "editor-action-completed",
+     "requestId": 18,
+     "code": null,
+     "hasWitness": false,
+     "witness": null,
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "editor-action-completed",
+     "requestId": 20,
+     "code": null,
+     "hasWitness": false,
+     "witness": null,
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "editor-action-completed",
+     "requestId": 22,
+     "code": null,
+     "hasWitness": false,
+     "witness": null,
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "editor-action-completed",
+     "requestId": 28,
+     "code": null,
+     "hasWitness": false,
+     "witness": null,
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "editor-action-completed",
+     "requestId": 34,
+     "code": null,
+     "hasWitness": false,
+     "witness": null,
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "editor-action-completed",
+     "requestId": 40,
+     "code": null,
+     "hasWitness": false,
+     "witness": null,
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "editor-action-completed",
+     "requestId": 42,
+     "code": null,
+     "hasWitness": false,
+     "witness": null,
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "editor-action-completed",
+     "requestId": 44,
+     "code": null,
+     "hasWitness": false,
+     "witness": null,
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "editor-action-completed",
+     "requestId": 46,
+     "code": null,
+     "hasWitness": false,
+     "witness": null,
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    }
+   ],
+   "cleanup": {}
+  },
+  {
+   "product": "v22",
+   "scenario": "bullet",
+   "repetition": 3,
+   "after": {
+    "pill": "ready",
+    "latency": "• 項目符號 失敗",
+    "toast": "• 項目符號：MUTATION_OUTCOME_UNKNOWN：the postcondition read covered more than one paragraph, so it does not describe the paragraph this action was dispatched on（動作已送出，但這一格的檢查涵蓋了不只一個段落，無法單獨核對你的段落。請看一下結果，不是你要的就按「復原」。這是檢查的極限，不是文件壞了）",
+    "revision": "1",
+    "pressed": {
+     "bold": "false",
+     "italic": "false",
+     "underline": "false",
+     "strikethrough": "false"
+    },
+    "blobs": 0
+   },
+   "settled": true,
+   "traffic": [
+    {
+     "operation": "editorActionV2",
+     "action": "insert-paragraph-break",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": true,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 10,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": null
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-list-unordered",
+     "ok": false,
+     "code": "MUTATION_OUTCOME_UNKNOWN",
+     "message": "the postcondition read covered more than one paragraph, so it does not describe the paragraph this action was dispatched on",
+     "barrier": {
+      "stage": null,
+      "route": "collapsed",
+      "dispatched": true,
+      "failureShape": "multi-block-readback",
+      "resultSeen": null,
+      "resultSuccess": null,
+      "selectionResultSeen": true,
+      "command": null
+     },
+     "resultFormat": null,
+     "errorKeys": [
+      "code",
+      "documentHandle",
+      "formatBarrier",
+      "message",
+      "operation"
+     ],
+     "errorDispatched": null,
+     "requestId": 13,
+     "completion": null,
+     "changed": null,
+     "witness": null
+    }
+   ],
+   "rawInstall": "installed",
+   "raw": [
+    {
+     "type": "editor-action-completed",
+     "requestId": 10,
+     "code": null,
+     "hasWitness": false,
+     "witness": null,
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "error",
+     "requestId": 13,
+     "code": "MUTATION_OUTCOME_UNKNOWN",
+     "hasWitness": false,
+     "witness": null,
+     "completion": null,
+     "changed": null,
+     "barrier": {
+      "hasDispatched": false,
+      "dispatched": null,
+      "stage": "awaiting-restore",
+      "failureShape": "multi-block-readback",
+      "route": "collapsed"
+     }
+    }
+   ],
+   "cleanup": {}
+  },
+  {
+   "product": "v22",
+   "scenario": "format",
+   "repetition": 3,
+   "steps": [
+    {
+     "step": "start",
+     "page": {
+      "pill": "ready",
+      "latency": "定位游標 28 ms",
+      "toast": "點一下放游標，或拖曳選一段，再按動作",
+      "revision": "0",
+      "pressed": {
+       "bold": "true",
+       "italic": "false",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "press",
+     "arg": "set-italic",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "I 13 ms",
+      "toast": "點一下放游標，或拖曳選一段，再按動作",
+      "revision": "1",
+      "pressed": {
+       "bold": "false",
+       "italic": "true",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "type",
+     "arg": "MKITALON",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "插入文字 9 ms",
+      "toast": "點一下放游標，或拖曳選一段，再按動作",
+      "revision": "2",
+      "pressed": {
+       "bold": "false",
+       "italic": "true",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "clear",
+     "arg": null,
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "清除格式 5 ms",
+      "toast": "已清除粗體、斜體、底線、刪除線",
+      "revision": "6",
+      "pressed": {
+       "bold": "false",
+       "italic": "false",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "type",
+     "arg": "MKAFTERCLEAR",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "插入文字 3 ms",
+      "toast": "已清除粗體、斜體、底線、刪除線",
+      "revision": "7",
+      "pressed": {
+       "bold": "false",
+       "italic": "false",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "press",
+     "arg": "set-italic",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "I 7 ms",
+      "toast": "已清除粗體、斜體、底線、刪除線",
+      "revision": "8",
+      "pressed": {
+       "bold": "false",
+       "italic": "true",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "type",
+     "arg": "MKITALAGAIN",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "插入文字 3 ms",
+      "toast": "已清除粗體、斜體、底線、刪除線",
+      "revision": "9",
+      "pressed": {
+       "bold": "false",
+       "italic": "true",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "press",
+     "arg": "set-bold",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "B 7 ms",
+      "toast": "已清除粗體、斜體、底線、刪除線",
+      "revision": "10",
+      "pressed": {
+       "bold": "true",
+       "italic": "true",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "type",
+     "arg": "MKBOLDON",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "插入文字 4 ms",
+      "toast": "已清除粗體、斜體、底線、刪除線",
+      "revision": "11",
+      "pressed": {
+       "bold": "true",
+       "italic": "true",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "clear",
+     "arg": null,
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "清除格式 6 ms",
+      "toast": "已清除粗體、斜體、底線、刪除線",
+      "revision": "15",
+      "pressed": {
+       "bold": "false",
+       "italic": "false",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "type",
+     "arg": "MKAFTERCLEAR2",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "插入文字 4 ms",
+      "toast": "已清除粗體、斜體、底線、刪除線",
+      "revision": "16",
+      "pressed": {
+       "bold": "false",
+       "italic": "false",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    }
+   ],
+   "saved": {
+    "sha256": "966c3b65cd42b7ef89f6b162ff2d1c069b89f1b42578a0c2e2599fadbac23b07",
+    "markers": {
+     "MKITALON": {
+      "found": true,
+      "span": "T1",
+      "paragraphStyle": "P3",
+      "bold": false,
+      "italic": true,
+      "underline": false,
+      "strikethrough": false
+     },
+     "MKAFTERCLEAR": {
+      "found": true,
+      "span": "T2",
+      "paragraphStyle": "P3",
+      "bold": false,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     },
+     "MKITALAGAIN": {
+      "found": true,
+      "span": "T3",
+      "paragraphStyle": "P3",
+      "bold": false,
+      "italic": true,
+      "underline": false,
+      "strikethrough": false
+     },
+     "MKBOLDON": {
+      "found": true,
+      "span": "T4",
+      "paragraphStyle": "P3",
+      "bold": true,
+      "italic": true,
+      "underline": false,
+      "strikethrough": false
+     },
+     "MKAFTERCLEAR2": {
+      "found": true,
+      "span": "T2",
+      "paragraphStyle": "P3",
+      "bold": false,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     }
+    }
+   },
+   "traffic": [
+    {
+     "operation": "editorActionV2",
+     "action": "set-italic",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": false,
+      "italic": true,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 10,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": null
+    },
+    {
+     "operation": "insertText",
+     "action": null,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": null,
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 12,
+     "completion": null,
+     "changed": null,
+     "witness": null
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-bold",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": false,
+      "italic": true,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 16,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": null
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-italic",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": false,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 18,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": null
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-underline",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": false,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 20,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": null
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-strikethrough",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": false,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 22,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": null
+    },
+    {
+     "operation": "insertText",
+     "action": null,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": null,
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 24,
+     "completion": null,
+     "changed": null,
+     "witness": null
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-italic",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": false,
+      "italic": true,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 28,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": null
+    },
+    {
+     "operation": "insertText",
+     "action": null,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": null,
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 30,
+     "completion": null,
+     "changed": null,
+     "witness": null
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-bold",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": true,
+      "italic": true,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 34,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": null
+    },
+    {
+     "operation": "insertText",
+     "action": null,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": null,
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 36,
+     "completion": null,
+     "changed": null,
+     "witness": null
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-bold",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": false,
+      "italic": true,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 40,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": null
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-italic",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": false,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 42,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": null
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-underline",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": false,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 44,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": null
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-strikethrough",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": false,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 46,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": null
+    },
+    {
+     "operation": "insertText",
+     "action": null,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": null,
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 48,
+     "completion": null,
+     "changed": null,
+     "witness": null
+    }
+   ],
+   "rawInstall": "installed",
+   "raw": [
+    {
+     "type": "editor-action-completed",
+     "requestId": 10,
+     "code": null,
+     "hasWitness": false,
+     "witness": null,
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "editor-action-completed",
+     "requestId": 16,
+     "code": null,
+     "hasWitness": false,
+     "witness": null,
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "editor-action-completed",
+     "requestId": 18,
+     "code": null,
+     "hasWitness": false,
+     "witness": null,
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "editor-action-completed",
+     "requestId": 20,
+     "code": null,
+     "hasWitness": false,
+     "witness": null,
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "editor-action-completed",
+     "requestId": 22,
+     "code": null,
+     "hasWitness": false,
+     "witness": null,
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "editor-action-completed",
+     "requestId": 28,
+     "code": null,
+     "hasWitness": false,
+     "witness": null,
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "editor-action-completed",
+     "requestId": 34,
+     "code": null,
+     "hasWitness": false,
+     "witness": null,
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "editor-action-completed",
+     "requestId": 40,
+     "code": null,
+     "hasWitness": false,
+     "witness": null,
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "editor-action-completed",
+     "requestId": 42,
+     "code": null,
+     "hasWitness": false,
+     "witness": null,
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "editor-action-completed",
+     "requestId": 44,
+     "code": null,
+     "hasWitness": false,
+     "witness": null,
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "editor-action-completed",
+     "requestId": 46,
+     "code": null,
+     "hasWitness": false,
+     "witness": null,
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    }
+   ],
+   "cleanup": {}
+  },
+  {
+   "product": "v24",
+   "scenario": "bullet",
+   "repetition": 1,
+   "after": {
+    "pill": "recoverable-error",
+    "latency": "• 項目符號 失敗",
+    "toast": "• 項目符號：MUTATION_OUTCOME_UNKNOWN：the readback covers more than one paragraph",
+    "revision": "1",
+    "pressed": {
+     "bold": "false",
+     "italic": "false",
+     "underline": "false",
+     "strikethrough": "false"
+    },
+    "blobs": 0
+   },
+   "settled": true,
+   "traffic": [
+    {
+     "operation": "editorActionV2",
+     "action": "insert-paragraph-break",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": true,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 10,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": null
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-list-unordered",
+     "ok": false,
+     "code": "MUTATION_OUTCOME_UNKNOWN",
+     "message": "the readback covers more than one paragraph",
+     "barrier": {
+      "stage": null,
+      "route": "collapsed",
+      "dispatched": false,
+      "failureShape": "multi-block-readback",
+      "resultSeen": null,
+      "resultSuccess": null,
+      "selectionResultSeen": true,
+      "command": null
+     },
+     "resultFormat": null,
+     "errorKeys": [
+      "code",
+      "documentHandle",
+      "formatBarrier",
+      "message",
+      "operation"
+     ],
+     "errorDispatched": null,
+     "requestId": 13,
+     "completion": null,
+     "changed": null,
+     "witness": null
+    }
+   ],
+   "rawInstall": "installed",
+   "raw": [
+    {
+     "type": "editor-action-completed",
+     "requestId": 10,
+     "code": null,
+     "hasWitness": false,
+     "witness": null,
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "error",
+     "requestId": 13,
+     "code": "MUTATION_OUTCOME_UNKNOWN",
+     "hasWitness": false,
+     "witness": null,
+     "completion": null,
+     "changed": null,
+     "barrier": {
+      "hasDispatched": false,
+      "dispatched": null,
+      "stage": "idle",
+      "failureShape": "multi-block-readback",
+      "route": "collapsed"
+     }
+    }
+   ],
+   "cleanup": {}
+  },
+  {
+   "product": "v24",
+   "scenario": "format",
+   "repetition": 1,
+   "steps": [
+    {
+     "step": "start",
+     "page": {
+      "pill": "ready",
+      "latency": "定位游標 55 ms",
+      "toast": "點一下放游標，或拖曳選一段，再按動作",
+      "revision": "0",
+      "pressed": {
+       "bold": "true",
+       "italic": "false",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "press",
+     "arg": "set-italic",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "I 28 ms",
+      "toast": "點一下放游標，或拖曳選一段，再按動作",
+      "revision": "1",
+      "pressed": {
+       "bold": "false",
+       "italic": "true",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "type",
+     "arg": "MKITALON",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "插入文字 87 ms",
+      "toast": "點一下放游標，或拖曳選一段，再按動作",
+      "revision": "2",
+      "pressed": {
+       "bold": "false",
+       "italic": "true",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "clear",
+     "arg": null,
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "清除格式 失敗",
+      "toast": "清除格式：LOK_COMMAND_FAILED：LibreOfficeKit rejected the fixed editor command（動作已送出，引擎收到了核心的回覆但無法據以判定成敗，所以這裡不敢說它成功了。請看一下結果，不是你要的就按「復原」）",
+      "revision": "2",
+      "pressed": {
+       "bold": "false",
+       "italic": "true",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "type",
+     "arg": "MKAFTERCLEAR",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "插入文字 74 ms",
+      "toast": "清除格式：LOK_COMMAND_FAILED：LibreOfficeKit rejected the fixed editor command（動作已送出，引擎收到了核心的回覆但無法據以判定成敗，所以這裡不敢說它成功了。請看一下結果，不是你要的就按「復原」）",
+      "revision": "3",
+      "pressed": {
+       "bold": "false",
+       "italic": "true",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "press",
+     "arg": "set-italic",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "I 22 ms",
+      "toast": "清除格式：LOK_COMMAND_FAILED：LibreOfficeKit rejected the fixed editor command（動作已送出，引擎收到了核心的回覆但無法據以判定成敗，所以這裡不敢說它成功了。請看一下結果，不是你要的就按「復原」）",
+      "revision": "4",
+      "pressed": {
+       "bold": "false",
+       "italic": "false",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "type",
+     "arg": "MKITALAGAIN",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "插入文字 73 ms",
+      "toast": "清除格式：LOK_COMMAND_FAILED：LibreOfficeKit rejected the fixed editor command（動作已送出，引擎收到了核心的回覆但無法據以判定成敗，所以這裡不敢說它成功了。請看一下結果，不是你要的就按「復原」）",
+      "revision": "5",
+      "pressed": {
+       "bold": "false",
+       "italic": "false",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "press",
+     "arg": "set-bold",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "B 26 ms",
+      "toast": "清除格式：LOK_COMMAND_FAILED：LibreOfficeKit rejected the fixed editor command（動作已送出，引擎收到了核心的回覆但無法據以判定成敗，所以這裡不敢說它成功了。請看一下結果，不是你要的就按「復原」）",
+      "revision": "6",
+      "pressed": {
+       "bold": "true",
+       "italic": "false",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "type",
+     "arg": "MKBOLDON",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "插入文字 78 ms",
+      "toast": "清除格式：LOK_COMMAND_FAILED：LibreOfficeKit rejected the fixed editor command（動作已送出，引擎收到了核心的回覆但無法據以判定成敗，所以這裡不敢說它成功了。請看一下結果，不是你要的就按「復原」）",
+      "revision": "7",
+      "pressed": {
+       "bold": "true",
+       "italic": "false",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "clear",
+     "arg": null,
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "清除格式 失敗",
+      "toast": "清除格式：LOK_COMMAND_FAILED：LibreOfficeKit rejected the fixed editor command（動作已送出，引擎收到了核心的回覆但無法據以判定成敗，所以這裡不敢說它成功了。請看一下結果，不是你要的就按「復原」）",
+      "revision": "8",
+      "pressed": {
+       "bold": "false",
+       "italic": "false",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "type",
+     "arg": "MKAFTERCLEAR2",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "插入文字 71 ms",
+      "toast": "清除格式：LOK_COMMAND_FAILED：LibreOfficeKit rejected the fixed editor command（動作已送出，引擎收到了核心的回覆但無法據以判定成敗，所以這裡不敢說它成功了。請看一下結果，不是你要的就按「復原」）",
+      "revision": "9",
+      "pressed": {
+       "bold": "false",
+       "italic": "false",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    }
+   ],
+   "saved": {
+    "sha256": "a06a6d3573dc2684256e19aef20eaacb256dbc83560c638268bae42d17bf5b0b",
+    "markers": {
+     "MKITALON": {
+      "found": true,
+      "span": "T1",
+      "paragraphStyle": "P3",
+      "bold": false,
+      "italic": true,
+      "underline": false,
+      "strikethrough": false
+     },
+     "MKAFTERCLEAR": {
+      "found": true,
+      "span": "T2",
+      "paragraphStyle": "P3",
+      "bold": false,
+      "italic": true,
+      "underline": false,
+      "strikethrough": false
+     },
+     "MKITALAGAIN": {
+      "found": true,
+      "span": "T3",
+      "paragraphStyle": "P3",
+      "bold": false,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     },
+     "MKBOLDON": {
+      "found": true,
+      "span": "T4",
+      "paragraphStyle": "P3",
+      "bold": true,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     },
+     "MKAFTERCLEAR2": {
+      "found": true,
+      "span": "T3",
+      "paragraphStyle": "P3",
+      "bold": false,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     }
+    }
+   },
+   "traffic": [
+    {
+     "operation": "editorActionV2",
+     "action": "set-italic",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": false,
+      "italic": true,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 10,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": null
+    },
+    {
+     "operation": "insertText",
+     "action": null,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": null,
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 12,
+     "completion": null,
+     "changed": null,
+     "witness": null
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-bold",
+     "ok": false,
+     "code": "LOK_COMMAND_FAILED",
+     "message": "LibreOfficeKit rejected the fixed editor command",
+     "barrier": null,
+     "resultFormat": null,
+     "errorKeys": [
+      "code",
+      "documentHandle",
+      "message",
+      "operation",
+      "revision"
+     ],
+     "errorDispatched": null,
+     "requestId": 16,
+     "completion": null,
+     "changed": null,
+     "witness": null
+    },
+    {
+     "operation": "insertText",
+     "action": null,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": null,
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 18,
+     "completion": null,
+     "changed": null,
+     "witness": null
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-italic",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": false,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 22,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": null
+    },
+    {
+     "operation": "insertText",
+     "action": null,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": null,
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 24,
+     "completion": null,
+     "changed": null,
+     "witness": null
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-bold",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": true,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 28,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": null
+    },
+    {
+     "operation": "insertText",
+     "action": null,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": null,
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 30,
+     "completion": null,
+     "changed": null,
+     "witness": null
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-bold",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": false,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 34,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": null
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-italic",
+     "ok": false,
+     "code": "LOK_COMMAND_FAILED",
+     "message": "LibreOfficeKit rejected the fixed editor command",
+     "barrier": null,
+     "resultFormat": null,
+     "errorKeys": [
+      "code",
+      "documentHandle",
+      "message",
+      "operation",
+      "revision"
+     ],
+     "errorDispatched": null,
+     "requestId": 36,
+     "completion": null,
+     "changed": null,
+     "witness": null
+    },
+    {
+     "operation": "insertText",
+     "action": null,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": null,
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 38,
+     "completion": null,
+     "changed": null,
+     "witness": null
+    }
+   ],
+   "rawInstall": "installed",
+   "raw": [
+    {
+     "type": "editor-action-completed",
+     "requestId": 10,
+     "code": null,
+     "hasWitness": false,
+     "witness": null,
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "error",
+     "requestId": 16,
+     "code": "LOK_COMMAND_FAILED",
+     "hasWitness": false,
+     "witness": null,
+     "completion": null,
+     "changed": null,
+     "barrier": null
+    },
+    {
+     "type": "editor-action-completed",
+     "requestId": 22,
+     "code": null,
+     "hasWitness": false,
+     "witness": null,
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "editor-action-completed",
+     "requestId": 28,
+     "code": null,
+     "hasWitness": false,
+     "witness": null,
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "editor-action-completed",
+     "requestId": 34,
+     "code": null,
+     "hasWitness": false,
+     "witness": null,
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "error",
+     "requestId": 36,
+     "code": "LOK_COMMAND_FAILED",
+     "hasWitness": false,
+     "witness": null,
+     "completion": null,
+     "changed": null,
+     "barrier": null
+    }
+   ],
+   "cleanup": {}
+  },
+  {
+   "product": "v24",
+   "scenario": "bullet",
+   "repetition": 2,
+   "after": {
+    "pill": "recoverable-error",
+    "latency": "• 項目符號 失敗",
+    "toast": "• 項目符號：MUTATION_OUTCOME_UNKNOWN：the readback covers more than one paragraph",
+    "revision": "1",
+    "pressed": {
+     "bold": "false",
+     "italic": "false",
+     "underline": "false",
+     "strikethrough": "false"
+    },
+    "blobs": 0
+   },
+   "settled": true,
+   "traffic": [
+    {
+     "operation": "editorActionV2",
+     "action": "insert-paragraph-break",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": true,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 10,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": null
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-list-unordered",
+     "ok": false,
+     "code": "MUTATION_OUTCOME_UNKNOWN",
+     "message": "the readback covers more than one paragraph",
+     "barrier": {
+      "stage": null,
+      "route": "collapsed",
+      "dispatched": false,
+      "failureShape": "multi-block-readback",
+      "resultSeen": null,
+      "resultSuccess": null,
+      "selectionResultSeen": true,
+      "command": null
+     },
+     "resultFormat": null,
+     "errorKeys": [
+      "code",
+      "documentHandle",
+      "formatBarrier",
+      "message",
+      "operation"
+     ],
+     "errorDispatched": null,
+     "requestId": 13,
+     "completion": null,
+     "changed": null,
+     "witness": null
+    }
+   ],
+   "rawInstall": "installed",
+   "raw": [
+    {
+     "type": "editor-action-completed",
+     "requestId": 10,
+     "code": null,
+     "hasWitness": false,
+     "witness": null,
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "error",
+     "requestId": 13,
+     "code": "MUTATION_OUTCOME_UNKNOWN",
+     "hasWitness": false,
+     "witness": null,
+     "completion": null,
+     "changed": null,
+     "barrier": {
+      "hasDispatched": false,
+      "dispatched": null,
+      "stage": "idle",
+      "failureShape": "multi-block-readback",
+      "route": "collapsed"
+     }
+    }
+   ],
+   "cleanup": {}
+  },
+  {
+   "product": "v24",
+   "scenario": "format",
+   "repetition": 2,
+   "steps": [
+    {
+     "step": "start",
+     "page": {
+      "pill": "ready",
+      "latency": "定位游標 56 ms",
+      "toast": "點一下放游標，或拖曳選一段，再按動作",
+      "revision": "0",
+      "pressed": {
+       "bold": "true",
+       "italic": "false",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "press",
+     "arg": "set-italic",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "I 30 ms",
+      "toast": "點一下放游標，或拖曳選一段，再按動作",
+      "revision": "1",
+      "pressed": {
+       "bold": "false",
+       "italic": "true",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "type",
+     "arg": "MKITALON",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "插入文字 88 ms",
+      "toast": "點一下放游標，或拖曳選一段，再按動作",
+      "revision": "2",
+      "pressed": {
+       "bold": "false",
+       "italic": "true",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "clear",
+     "arg": null,
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "清除格式 失敗",
+      "toast": "清除格式：LOK_COMMAND_FAILED：LibreOfficeKit rejected the fixed editor command（動作已送出，引擎收到了核心的回覆但無法據以判定成敗，所以這裡不敢說它成功了。請看一下結果，不是你要的就按「復原」）",
+      "revision": "2",
+      "pressed": {
+       "bold": "false",
+       "italic": "true",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "type",
+     "arg": "MKAFTERCLEAR",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "插入文字 80 ms",
+      "toast": "清除格式：LOK_COMMAND_FAILED：LibreOfficeKit rejected the fixed editor command（動作已送出，引擎收到了核心的回覆但無法據以判定成敗，所以這裡不敢說它成功了。請看一下結果，不是你要的就按「復原」）",
+      "revision": "3",
+      "pressed": {
+       "bold": "false",
+       "italic": "true",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "press",
+     "arg": "set-italic",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "I 28 ms",
+      "toast": "清除格式：LOK_COMMAND_FAILED：LibreOfficeKit rejected the fixed editor command（動作已送出，引擎收到了核心的回覆但無法據以判定成敗，所以這裡不敢說它成功了。請看一下結果，不是你要的就按「復原」）",
+      "revision": "4",
+      "pressed": {
+       "bold": "false",
+       "italic": "false",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "type",
+     "arg": "MKITALAGAIN",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "插入文字 78 ms",
+      "toast": "清除格式：LOK_COMMAND_FAILED：LibreOfficeKit rejected the fixed editor command（動作已送出，引擎收到了核心的回覆但無法據以判定成敗，所以這裡不敢說它成功了。請看一下結果，不是你要的就按「復原」）",
+      "revision": "5",
+      "pressed": {
+       "bold": "false",
+       "italic": "false",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "press",
+     "arg": "set-bold",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "B 26 ms",
+      "toast": "清除格式：LOK_COMMAND_FAILED：LibreOfficeKit rejected the fixed editor command（動作已送出，引擎收到了核心的回覆但無法據以判定成敗，所以這裡不敢說它成功了。請看一下結果，不是你要的就按「復原」）",
+      "revision": "6",
+      "pressed": {
+       "bold": "true",
+       "italic": "false",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "type",
+     "arg": "MKBOLDON",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "插入文字 80 ms",
+      "toast": "清除格式：LOK_COMMAND_FAILED：LibreOfficeKit rejected the fixed editor command（動作已送出，引擎收到了核心的回覆但無法據以判定成敗，所以這裡不敢說它成功了。請看一下結果，不是你要的就按「復原」）",
+      "revision": "7",
+      "pressed": {
+       "bold": "true",
+       "italic": "false",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "clear",
+     "arg": null,
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "清除格式 失敗",
+      "toast": "清除格式：LOK_COMMAND_FAILED：LibreOfficeKit rejected the fixed editor command（動作已送出，引擎收到了核心的回覆但無法據以判定成敗，所以這裡不敢說它成功了。請看一下結果，不是你要的就按「復原」）",
+      "revision": "8",
+      "pressed": {
+       "bold": "false",
+       "italic": "false",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "type",
+     "arg": "MKAFTERCLEAR2",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "插入文字 73 ms",
+      "toast": "清除格式：LOK_COMMAND_FAILED：LibreOfficeKit rejected the fixed editor command（動作已送出，引擎收到了核心的回覆但無法據以判定成敗，所以這裡不敢說它成功了。請看一下結果，不是你要的就按「復原」）",
+      "revision": "9",
+      "pressed": {
+       "bold": "false",
+       "italic": "false",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    }
+   ],
+   "saved": {
+    "sha256": "c4c7ead43a0d4e50cd443f01de92861dd08ae84fdd91207718017f1e70185bf0",
+    "markers": {
+     "MKITALON": {
+      "found": true,
+      "span": "T1",
+      "paragraphStyle": "P3",
+      "bold": false,
+      "italic": true,
+      "underline": false,
+      "strikethrough": false
+     },
+     "MKAFTERCLEAR": {
+      "found": true,
+      "span": "T2",
+      "paragraphStyle": "P3",
+      "bold": false,
+      "italic": true,
+      "underline": false,
+      "strikethrough": false
+     },
+     "MKITALAGAIN": {
+      "found": true,
+      "span": "T3",
+      "paragraphStyle": "P3",
+      "bold": false,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     },
+     "MKBOLDON": {
+      "found": true,
+      "span": "T4",
+      "paragraphStyle": "P3",
+      "bold": true,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     },
+     "MKAFTERCLEAR2": {
+      "found": true,
+      "span": "T3",
+      "paragraphStyle": "P3",
+      "bold": false,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     }
+    }
+   },
+   "traffic": [
+    {
+     "operation": "editorActionV2",
+     "action": "set-italic",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": false,
+      "italic": true,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 10,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": null
+    },
+    {
+     "operation": "insertText",
+     "action": null,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": null,
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 12,
+     "completion": null,
+     "changed": null,
+     "witness": null
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-bold",
+     "ok": false,
+     "code": "LOK_COMMAND_FAILED",
+     "message": "LibreOfficeKit rejected the fixed editor command",
+     "barrier": null,
+     "resultFormat": null,
+     "errorKeys": [
+      "code",
+      "documentHandle",
+      "message",
+      "operation",
+      "revision"
+     ],
+     "errorDispatched": null,
+     "requestId": 16,
+     "completion": null,
+     "changed": null,
+     "witness": null
+    },
+    {
+     "operation": "insertText",
+     "action": null,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": null,
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 18,
+     "completion": null,
+     "changed": null,
+     "witness": null
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-italic",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": false,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 22,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": null
+    },
+    {
+     "operation": "insertText",
+     "action": null,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": null,
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 24,
+     "completion": null,
+     "changed": null,
+     "witness": null
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-bold",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": true,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 28,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": null
+    },
+    {
+     "operation": "insertText",
+     "action": null,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": null,
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 30,
+     "completion": null,
+     "changed": null,
+     "witness": null
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-bold",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": false,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 34,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": null
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-italic",
+     "ok": false,
+     "code": "LOK_COMMAND_FAILED",
+     "message": "LibreOfficeKit rejected the fixed editor command",
+     "barrier": null,
+     "resultFormat": null,
+     "errorKeys": [
+      "code",
+      "documentHandle",
+      "message",
+      "operation",
+      "revision"
+     ],
+     "errorDispatched": null,
+     "requestId": 36,
+     "completion": null,
+     "changed": null,
+     "witness": null
+    },
+    {
+     "operation": "insertText",
+     "action": null,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": null,
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 38,
+     "completion": null,
+     "changed": null,
+     "witness": null
+    }
+   ],
+   "rawInstall": "installed",
+   "raw": [
+    {
+     "type": "editor-action-completed",
+     "requestId": 10,
+     "code": null,
+     "hasWitness": false,
+     "witness": null,
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "error",
+     "requestId": 16,
+     "code": "LOK_COMMAND_FAILED",
+     "hasWitness": false,
+     "witness": null,
+     "completion": null,
+     "changed": null,
+     "barrier": null
+    },
+    {
+     "type": "editor-action-completed",
+     "requestId": 22,
+     "code": null,
+     "hasWitness": false,
+     "witness": null,
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "editor-action-completed",
+     "requestId": 28,
+     "code": null,
+     "hasWitness": false,
+     "witness": null,
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "editor-action-completed",
+     "requestId": 34,
+     "code": null,
+     "hasWitness": false,
+     "witness": null,
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "error",
+     "requestId": 36,
+     "code": "LOK_COMMAND_FAILED",
+     "hasWitness": false,
+     "witness": null,
+     "completion": null,
+     "changed": null,
+     "barrier": null
+    }
+   ],
+   "cleanup": {}
+  },
+  {
+   "product": "v24",
+   "scenario": "bullet",
+   "repetition": 3,
+   "after": {
+    "pill": "recoverable-error",
+    "latency": "• 項目符號 失敗",
+    "toast": "• 項目符號：MUTATION_OUTCOME_UNKNOWN：the readback covers more than one paragraph",
+    "revision": "1",
+    "pressed": {
+     "bold": "false",
+     "italic": "false",
+     "underline": "false",
+     "strikethrough": "false"
+    },
+    "blobs": 0
+   },
+   "settled": true,
+   "traffic": [
+    {
+     "operation": "editorActionV2",
+     "action": "insert-paragraph-break",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": true,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 10,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": null
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-list-unordered",
+     "ok": false,
+     "code": "MUTATION_OUTCOME_UNKNOWN",
+     "message": "the readback covers more than one paragraph",
+     "barrier": {
+      "stage": null,
+      "route": "collapsed",
+      "dispatched": false,
+      "failureShape": "multi-block-readback",
+      "resultSeen": null,
+      "resultSuccess": null,
+      "selectionResultSeen": true,
+      "command": null
+     },
+     "resultFormat": null,
+     "errorKeys": [
+      "code",
+      "documentHandle",
+      "formatBarrier",
+      "message",
+      "operation"
+     ],
+     "errorDispatched": null,
+     "requestId": 13,
+     "completion": null,
+     "changed": null,
+     "witness": null
+    }
+   ],
+   "rawInstall": "installed",
+   "raw": [
+    {
+     "type": "editor-action-completed",
+     "requestId": 10,
+     "code": null,
+     "hasWitness": false,
+     "witness": null,
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "error",
+     "requestId": 13,
+     "code": "MUTATION_OUTCOME_UNKNOWN",
+     "hasWitness": false,
+     "witness": null,
+     "completion": null,
+     "changed": null,
+     "barrier": {
+      "hasDispatched": false,
+      "dispatched": null,
+      "stage": "idle",
+      "failureShape": "multi-block-readback",
+      "route": "collapsed"
+     }
+    }
+   ],
+   "cleanup": {}
+  },
+  {
+   "product": "v24",
+   "scenario": "format",
+   "repetition": 3,
+   "steps": [
+    {
+     "step": "start",
+     "page": {
+      "pill": "ready",
+      "latency": "定位游標 55 ms",
+      "toast": "點一下放游標，或拖曳選一段，再按動作",
+      "revision": "0",
+      "pressed": {
+       "bold": "true",
+       "italic": "false",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "press",
+     "arg": "set-italic",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "I 28 ms",
+      "toast": "點一下放游標，或拖曳選一段，再按動作",
+      "revision": "1",
+      "pressed": {
+       "bold": "false",
+       "italic": "true",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "type",
+     "arg": "MKITALON",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "插入文字 84 ms",
+      "toast": "點一下放游標，或拖曳選一段，再按動作",
+      "revision": "2",
+      "pressed": {
+       "bold": "false",
+       "italic": "true",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "clear",
+     "arg": null,
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "清除格式 失敗",
+      "toast": "清除格式：LOK_COMMAND_FAILED：LibreOfficeKit rejected the fixed editor command（動作已送出，引擎收到了核心的回覆但無法據以判定成敗，所以這裡不敢說它成功了。請看一下結果，不是你要的就按「復原」）",
+      "revision": "2",
+      "pressed": {
+       "bold": "false",
+       "italic": "true",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "type",
+     "arg": "MKAFTERCLEAR",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "插入文字 75 ms",
+      "toast": "清除格式：LOK_COMMAND_FAILED：LibreOfficeKit rejected the fixed editor command（動作已送出，引擎收到了核心的回覆但無法據以判定成敗，所以這裡不敢說它成功了。請看一下結果，不是你要的就按「復原」）",
+      "revision": "3",
+      "pressed": {
+       "bold": "false",
+       "italic": "true",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "press",
+     "arg": "set-italic",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "I 24 ms",
+      "toast": "清除格式：LOK_COMMAND_FAILED：LibreOfficeKit rejected the fixed editor command（動作已送出，引擎收到了核心的回覆但無法據以判定成敗，所以這裡不敢說它成功了。請看一下結果，不是你要的就按「復原」）",
+      "revision": "4",
+      "pressed": {
+       "bold": "false",
+       "italic": "false",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "type",
+     "arg": "MKITALAGAIN",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "插入文字 77 ms",
+      "toast": "清除格式：LOK_COMMAND_FAILED：LibreOfficeKit rejected the fixed editor command（動作已送出，引擎收到了核心的回覆但無法據以判定成敗，所以這裡不敢說它成功了。請看一下結果，不是你要的就按「復原」）",
+      "revision": "5",
+      "pressed": {
+       "bold": "false",
+       "italic": "false",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "press",
+     "arg": "set-bold",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "B 25 ms",
+      "toast": "清除格式：LOK_COMMAND_FAILED：LibreOfficeKit rejected the fixed editor command（動作已送出，引擎收到了核心的回覆但無法據以判定成敗，所以這裡不敢說它成功了。請看一下結果，不是你要的就按「復原」）",
+      "revision": "6",
+      "pressed": {
+       "bold": "true",
+       "italic": "false",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "type",
+     "arg": "MKBOLDON",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "插入文字 74 ms",
+      "toast": "清除格式：LOK_COMMAND_FAILED：LibreOfficeKit rejected the fixed editor command（動作已送出，引擎收到了核心的回覆但無法據以判定成敗，所以這裡不敢說它成功了。請看一下結果，不是你要的就按「復原」）",
+      "revision": "7",
+      "pressed": {
+       "bold": "true",
+       "italic": "false",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "clear",
+     "arg": null,
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "清除格式 失敗",
+      "toast": "清除格式：LOK_COMMAND_FAILED：LibreOfficeKit rejected the fixed editor command（動作已送出，引擎收到了核心的回覆但無法據以判定成敗，所以這裡不敢說它成功了。請看一下結果，不是你要的就按「復原」）",
+      "revision": "8",
+      "pressed": {
+       "bold": "false",
+       "italic": "false",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "type",
+     "arg": "MKAFTERCLEAR2",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "插入文字 75 ms",
+      "toast": "清除格式：LOK_COMMAND_FAILED：LibreOfficeKit rejected the fixed editor command（動作已送出，引擎收到了核心的回覆但無法據以判定成敗，所以這裡不敢說它成功了。請看一下結果，不是你要的就按「復原」）",
+      "revision": "9",
+      "pressed": {
+       "bold": "false",
+       "italic": "false",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    }
+   ],
+   "saved": {
+    "sha256": "c25073fa088d4effa054932520980184734bef14c1525725b0ff7aae580675d3",
+    "markers": {
+     "MKITALON": {
+      "found": true,
+      "span": "T1",
+      "paragraphStyle": "P3",
+      "bold": false,
+      "italic": true,
+      "underline": false,
+      "strikethrough": false
+     },
+     "MKAFTERCLEAR": {
+      "found": true,
+      "span": "T2",
+      "paragraphStyle": "P3",
+      "bold": false,
+      "italic": true,
+      "underline": false,
+      "strikethrough": false
+     },
+     "MKITALAGAIN": {
+      "found": true,
+      "span": "T3",
+      "paragraphStyle": "P3",
+      "bold": false,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     },
+     "MKBOLDON": {
+      "found": true,
+      "span": "T4",
+      "paragraphStyle": "P3",
+      "bold": true,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     },
+     "MKAFTERCLEAR2": {
+      "found": true,
+      "span": "T3",
+      "paragraphStyle": "P3",
+      "bold": false,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     }
+    }
+   },
+   "traffic": [
+    {
+     "operation": "editorActionV2",
+     "action": "set-italic",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": false,
+      "italic": true,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 10,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": null
+    },
+    {
+     "operation": "insertText",
+     "action": null,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": null,
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 12,
+     "completion": null,
+     "changed": null,
+     "witness": null
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-bold",
+     "ok": false,
+     "code": "LOK_COMMAND_FAILED",
+     "message": "LibreOfficeKit rejected the fixed editor command",
+     "barrier": null,
+     "resultFormat": null,
+     "errorKeys": [
+      "code",
+      "documentHandle",
+      "message",
+      "operation",
+      "revision"
+     ],
+     "errorDispatched": null,
+     "requestId": 16,
+     "completion": null,
+     "changed": null,
+     "witness": null
+    },
+    {
+     "operation": "insertText",
+     "action": null,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": null,
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 18,
+     "completion": null,
+     "changed": null,
+     "witness": null
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-italic",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": false,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 22,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": null
+    },
+    {
+     "operation": "insertText",
+     "action": null,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": null,
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 24,
+     "completion": null,
+     "changed": null,
+     "witness": null
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-bold",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": true,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 28,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": null
+    },
+    {
+     "operation": "insertText",
+     "action": null,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": null,
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 30,
+     "completion": null,
+     "changed": null,
+     "witness": null
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-bold",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": false,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 34,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": null
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-italic",
+     "ok": false,
+     "code": "LOK_COMMAND_FAILED",
+     "message": "LibreOfficeKit rejected the fixed editor command",
+     "barrier": null,
+     "resultFormat": null,
+     "errorKeys": [
+      "code",
+      "documentHandle",
+      "message",
+      "operation",
+      "revision"
+     ],
+     "errorDispatched": null,
+     "requestId": 36,
+     "completion": null,
+     "changed": null,
+     "witness": null
+    },
+    {
+     "operation": "insertText",
+     "action": null,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": null,
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 38,
+     "completion": null,
+     "changed": null,
+     "witness": null
+    }
+   ],
+   "rawInstall": "installed",
+   "raw": [
+    {
+     "type": "editor-action-completed",
+     "requestId": 10,
+     "code": null,
+     "hasWitness": false,
+     "witness": null,
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "error",
+     "requestId": 16,
+     "code": "LOK_COMMAND_FAILED",
+     "hasWitness": false,
+     "witness": null,
+     "completion": null,
+     "changed": null,
+     "barrier": null
+    },
+    {
+     "type": "editor-action-completed",
+     "requestId": 22,
+     "code": null,
+     "hasWitness": false,
+     "witness": null,
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "editor-action-completed",
+     "requestId": 28,
+     "code": null,
+     "hasWitness": false,
+     "witness": null,
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "editor-action-completed",
+     "requestId": 34,
+     "code": null,
+     "hasWitness": false,
+     "witness": null,
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "error",
+     "requestId": 36,
+     "code": "LOK_COMMAND_FAILED",
+     "hasWitness": false,
+     "witness": null,
+     "completion": null,
+     "changed": null,
+     "barrier": null
+    }
+   ],
+   "cleanup": {}
+  },
+  {
+   "product": "v25",
+   "scenario": "bullet",
+   "repetition": 1,
+   "after": {
+    "pill": "ready",
+    "latency": "• 項目符號 失敗",
+    "toast": "• 項目符號：MUTATION_OUTCOME_UNKNOWN：the readback covers more than one paragraph（動作已送出，但這一格的檢查涵蓋了不只一個段落，無法單獨核對你的段落。請看一下結果，不是你要的就按「復原」。這是檢查的極限，不是文件壞了）",
+    "revision": "1",
+    "pressed": {
+     "bold": "false",
+     "italic": "false",
+     "underline": "false",
+     "strikethrough": "false"
+    },
+    "blobs": 0
+   },
+   "settled": true,
+   "traffic": [
+    {
+     "operation": "editorActionV2",
+     "action": "insert-paragraph-break",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": true,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 10,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": "uno-success"
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-list-unordered",
+     "ok": false,
+     "code": "MUTATION_OUTCOME_UNKNOWN",
+     "message": "the readback covers more than one paragraph",
+     "barrier": {
+      "stage": null,
+      "route": "collapsed",
+      "dispatched": true,
+      "failureShape": "multi-block-readback",
+      "resultSeen": null,
+      "resultSuccess": null,
+      "selectionResultSeen": true,
+      "command": null
+     },
+     "resultFormat": null,
+     "errorKeys": [
+      "code",
+      "documentHandle",
+      "formatBarrier",
+      "message",
+      "operation"
+     ],
+     "errorDispatched": null,
+     "requestId": 13,
+     "completion": null,
+     "changed": null,
+     "witness": null
+    }
+   ],
+   "rawInstall": "installed",
+   "raw": [
+    {
+     "type": "editor-action-completed",
+     "requestId": 10,
+     "code": null,
+     "hasWitness": true,
+     "witness": "uno-success",
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "error",
+     "requestId": 13,
+     "code": "MUTATION_OUTCOME_UNKNOWN",
+     "hasWitness": false,
+     "witness": null,
+     "completion": null,
+     "changed": null,
+     "barrier": {
+      "hasDispatched": true,
+      "dispatched": true,
+      "stage": "awaiting-result",
+      "failureShape": "multi-block-readback",
+      "route": "collapsed"
+     }
+    }
+   ],
+   "cleanup": {}
+  },
+  {
+   "product": "v25",
+   "scenario": "format",
+   "repetition": 1,
+   "steps": [
+    {
+     "step": "start",
+     "page": {
+      "pill": "ready",
+      "latency": "定位游標 54 ms",
+      "toast": "點一下放游標，或拖曳選一段，再按動作",
+      "revision": "0",
+      "pressed": {
+       "bold": "true",
+       "italic": "false",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "press",
+     "arg": "set-italic",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "I 26 ms",
+      "toast": "點一下放游標，或拖曳選一段，再按動作",
+      "revision": "1",
+      "pressed": {
+       "bold": "false",
+       "italic": "true",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "type",
+     "arg": "MKITALON",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "插入文字 81 ms",
+      "toast": "點一下放游標，或拖曳選一段，再按動作",
+      "revision": "2",
+      "pressed": {
+       "bold": "false",
+       "italic": "true",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "clear",
+     "arg": null,
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "清除格式 25 ms",
+      "toast": "已清除粗體、斜體、底線、刪除線",
+      "revision": "6",
+      "pressed": {
+       "bold": "false",
+       "italic": "false",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "type",
+     "arg": "MKAFTERCLEAR",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "插入文字 74 ms",
+      "toast": "已清除粗體、斜體、底線、刪除線",
+      "revision": "7",
+      "pressed": {
+       "bold": "false",
+       "italic": "false",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "press",
+     "arg": "set-italic",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "I 27 ms",
+      "toast": "已清除粗體、斜體、底線、刪除線",
+      "revision": "8",
+      "pressed": {
+       "bold": "false",
+       "italic": "true",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "type",
+     "arg": "MKITALAGAIN",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "插入文字 69 ms",
+      "toast": "已清除粗體、斜體、底線、刪除線",
+      "revision": "9",
+      "pressed": {
+       "bold": "false",
+       "italic": "true",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "press",
+     "arg": "set-bold",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "B 22 ms",
+      "toast": "已清除粗體、斜體、底線、刪除線",
+      "revision": "10",
+      "pressed": {
+       "bold": "true",
+       "italic": "true",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "type",
+     "arg": "MKBOLDON",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "插入文字 80 ms",
+      "toast": "已清除粗體、斜體、底線、刪除線",
+      "revision": "11",
+      "pressed": {
+       "bold": "true",
+       "italic": "true",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "clear",
+     "arg": null,
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "清除格式 27 ms",
+      "toast": "已清除粗體、斜體、底線、刪除線",
+      "revision": "15",
+      "pressed": {
+       "bold": "false",
+       "italic": "false",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "type",
+     "arg": "MKAFTERCLEAR2",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "插入文字 76 ms",
+      "toast": "已清除粗體、斜體、底線、刪除線",
+      "revision": "16",
+      "pressed": {
+       "bold": "false",
+       "italic": "false",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    }
+   ],
+   "saved": {
+    "sha256": "c9fd637831242f28ba6d9f0a051c4179d188110272aab82480dc5dc78913b08c",
+    "markers": {
+     "MKITALON": {
+      "found": true,
+      "span": "T1",
+      "paragraphStyle": "P3",
+      "bold": false,
+      "italic": true,
+      "underline": false,
+      "strikethrough": false
+     },
+     "MKAFTERCLEAR": {
+      "found": true,
+      "span": "T2",
+      "paragraphStyle": "P3",
+      "bold": false,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     },
+     "MKITALAGAIN": {
+      "found": true,
+      "span": "T3",
+      "paragraphStyle": "P3",
+      "bold": false,
+      "italic": true,
+      "underline": false,
+      "strikethrough": false
+     },
+     "MKBOLDON": {
+      "found": true,
+      "span": "T4",
+      "paragraphStyle": "P3",
+      "bold": true,
+      "italic": true,
+      "underline": false,
+      "strikethrough": false
+     },
+     "MKAFTERCLEAR2": {
+      "found": true,
+      "span": "T2",
+      "paragraphStyle": "P3",
+      "bold": false,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     }
+    }
+   },
+   "traffic": [
+    {
+     "operation": "editorActionV2",
+     "action": "set-italic",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": false,
+      "italic": true,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 10,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": "on-time-item"
+    },
+    {
+     "operation": "insertText",
+     "action": null,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": null,
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 12,
+     "completion": null,
+     "changed": null,
+     "witness": null
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-bold",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": false,
+      "italic": true,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 16,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": "state-noop"
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-italic",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": false,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 18,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": "on-time-item"
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-underline",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": false,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 20,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": "state-noop"
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-strikethrough",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": false,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 22,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": "state-noop"
+    },
+    {
+     "operation": "insertText",
+     "action": null,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": null,
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 24,
+     "completion": null,
+     "changed": null,
+     "witness": null
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-italic",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": false,
+      "italic": true,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 28,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": "on-time-item"
+    },
+    {
+     "operation": "insertText",
+     "action": null,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": null,
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 30,
+     "completion": null,
+     "changed": null,
+     "witness": null
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-bold",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": true,
+      "italic": true,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 34,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": "on-time-item"
+    },
+    {
+     "operation": "insertText",
+     "action": null,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": null,
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 36,
+     "completion": null,
+     "changed": null,
+     "witness": null
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-bold",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": false,
+      "italic": true,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 40,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": "on-time-item"
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-italic",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": false,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 42,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": "on-time-item"
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-underline",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": false,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 44,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": "state-noop"
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-strikethrough",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": false,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 46,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": "state-noop"
+    },
+    {
+     "operation": "insertText",
+     "action": null,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": null,
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 48,
+     "completion": null,
+     "changed": null,
+     "witness": null
+    }
+   ],
+   "rawInstall": "installed",
+   "raw": [
+    {
+     "type": "editor-action-completed",
+     "requestId": 10,
+     "code": null,
+     "hasWitness": true,
+     "witness": "on-time-item",
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "editor-action-completed",
+     "requestId": 16,
+     "code": null,
+     "hasWitness": true,
+     "witness": "state-noop",
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "editor-action-completed",
+     "requestId": 18,
+     "code": null,
+     "hasWitness": true,
+     "witness": "on-time-item",
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "editor-action-completed",
+     "requestId": 20,
+     "code": null,
+     "hasWitness": true,
+     "witness": "state-noop",
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "editor-action-completed",
+     "requestId": 22,
+     "code": null,
+     "hasWitness": true,
+     "witness": "state-noop",
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "editor-action-completed",
+     "requestId": 28,
+     "code": null,
+     "hasWitness": true,
+     "witness": "on-time-item",
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "editor-action-completed",
+     "requestId": 34,
+     "code": null,
+     "hasWitness": true,
+     "witness": "on-time-item",
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "editor-action-completed",
+     "requestId": 40,
+     "code": null,
+     "hasWitness": true,
+     "witness": "on-time-item",
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "editor-action-completed",
+     "requestId": 42,
+     "code": null,
+     "hasWitness": true,
+     "witness": "on-time-item",
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "editor-action-completed",
+     "requestId": 44,
+     "code": null,
+     "hasWitness": true,
+     "witness": "state-noop",
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "editor-action-completed",
+     "requestId": 46,
+     "code": null,
+     "hasWitness": true,
+     "witness": "state-noop",
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    }
+   ],
+   "cleanup": {}
+  },
+  {
+   "product": "v25",
+   "scenario": "bullet",
+   "repetition": 2,
+   "after": {
+    "pill": "ready",
+    "latency": "• 項目符號 失敗",
+    "toast": "• 項目符號：MUTATION_OUTCOME_UNKNOWN：the readback covers more than one paragraph（動作已送出，但這一格的檢查涵蓋了不只一個段落，無法單獨核對你的段落。請看一下結果，不是你要的就按「復原」。這是檢查的極限，不是文件壞了）",
+    "revision": "1",
+    "pressed": {
+     "bold": "false",
+     "italic": "false",
+     "underline": "false",
+     "strikethrough": "false"
+    },
+    "blobs": 0
+   },
+   "settled": true,
+   "traffic": [
+    {
+     "operation": "editorActionV2",
+     "action": "insert-paragraph-break",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": true,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 10,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": "uno-success"
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-list-unordered",
+     "ok": false,
+     "code": "MUTATION_OUTCOME_UNKNOWN",
+     "message": "the readback covers more than one paragraph",
+     "barrier": {
+      "stage": null,
+      "route": "collapsed",
+      "dispatched": true,
+      "failureShape": "multi-block-readback",
+      "resultSeen": null,
+      "resultSuccess": null,
+      "selectionResultSeen": true,
+      "command": null
+     },
+     "resultFormat": null,
+     "errorKeys": [
+      "code",
+      "documentHandle",
+      "formatBarrier",
+      "message",
+      "operation"
+     ],
+     "errorDispatched": null,
+     "requestId": 13,
+     "completion": null,
+     "changed": null,
+     "witness": null
+    }
+   ],
+   "rawInstall": "installed",
+   "raw": [
+    {
+     "type": "editor-action-completed",
+     "requestId": 10,
+     "code": null,
+     "hasWitness": true,
+     "witness": "uno-success",
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "error",
+     "requestId": 13,
+     "code": "MUTATION_OUTCOME_UNKNOWN",
+     "hasWitness": false,
+     "witness": null,
+     "completion": null,
+     "changed": null,
+     "barrier": {
+      "hasDispatched": true,
+      "dispatched": true,
+      "stage": "awaiting-result",
+      "failureShape": "multi-block-readback",
+      "route": "collapsed"
+     }
+    }
+   ],
+   "cleanup": {}
+  },
+  {
+   "product": "v25",
+   "scenario": "format",
+   "repetition": 2,
+   "steps": [
+    {
+     "step": "start",
+     "page": {
+      "pill": "ready",
+      "latency": "定位游標 53 ms",
+      "toast": "點一下放游標，或拖曳選一段，再按動作",
+      "revision": "0",
+      "pressed": {
+       "bold": "true",
+       "italic": "false",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "press",
+     "arg": "set-italic",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "I 26 ms",
+      "toast": "點一下放游標，或拖曳選一段，再按動作",
+      "revision": "1",
+      "pressed": {
+       "bold": "false",
+       "italic": "true",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "type",
+     "arg": "MKITALON",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "插入文字 87 ms",
+      "toast": "點一下放游標，或拖曳選一段，再按動作",
+      "revision": "2",
+      "pressed": {
+       "bold": "false",
+       "italic": "true",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "clear",
+     "arg": null,
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "清除格式 27 ms",
+      "toast": "已清除粗體、斜體、底線、刪除線",
+      "revision": "6",
+      "pressed": {
+       "bold": "false",
+       "italic": "false",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "type",
+     "arg": "MKAFTERCLEAR",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "插入文字 74 ms",
+      "toast": "已清除粗體、斜體、底線、刪除線",
+      "revision": "7",
+      "pressed": {
+       "bold": "false",
+       "italic": "false",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "press",
+     "arg": "set-italic",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "I 27 ms",
+      "toast": "已清除粗體、斜體、底線、刪除線",
+      "revision": "8",
+      "pressed": {
+       "bold": "false",
+       "italic": "true",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "type",
+     "arg": "MKITALAGAIN",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "插入文字 72 ms",
+      "toast": "已清除粗體、斜體、底線、刪除線",
+      "revision": "9",
+      "pressed": {
+       "bold": "false",
+       "italic": "true",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "press",
+     "arg": "set-bold",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "B 29 ms",
+      "toast": "已清除粗體、斜體、底線、刪除線",
+      "revision": "10",
+      "pressed": {
+       "bold": "true",
+       "italic": "true",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "type",
+     "arg": "MKBOLDON",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "插入文字 82 ms",
+      "toast": "已清除粗體、斜體、底線、刪除線",
+      "revision": "11",
+      "pressed": {
+       "bold": "true",
+       "italic": "true",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "clear",
+     "arg": null,
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "清除格式 27 ms",
+      "toast": "已清除粗體、斜體、底線、刪除線",
+      "revision": "15",
+      "pressed": {
+       "bold": "false",
+       "italic": "false",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "type",
+     "arg": "MKAFTERCLEAR2",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "插入文字 72 ms",
+      "toast": "已清除粗體、斜體、底線、刪除線",
+      "revision": "16",
+      "pressed": {
+       "bold": "false",
+       "italic": "false",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    }
+   ],
+   "saved": {
+    "sha256": "1f0586ba5df49785cf24118f5fa834c1ee269054d4592f3d75298d29369ed275",
+    "markers": {
+     "MKITALON": {
+      "found": true,
+      "span": "T1",
+      "paragraphStyle": "P3",
+      "bold": false,
+      "italic": true,
+      "underline": false,
+      "strikethrough": false
+     },
+     "MKAFTERCLEAR": {
+      "found": true,
+      "span": "T2",
+      "paragraphStyle": "P3",
+      "bold": false,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     },
+     "MKITALAGAIN": {
+      "found": true,
+      "span": "T3",
+      "paragraphStyle": "P3",
+      "bold": false,
+      "italic": true,
+      "underline": false,
+      "strikethrough": false
+     },
+     "MKBOLDON": {
+      "found": true,
+      "span": "T4",
+      "paragraphStyle": "P3",
+      "bold": true,
+      "italic": true,
+      "underline": false,
+      "strikethrough": false
+     },
+     "MKAFTERCLEAR2": {
+      "found": true,
+      "span": "T2",
+      "paragraphStyle": "P3",
+      "bold": false,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     }
+    }
+   },
+   "traffic": [
+    {
+     "operation": "editorActionV2",
+     "action": "set-italic",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": false,
+      "italic": true,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 10,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": "on-time-item"
+    },
+    {
+     "operation": "insertText",
+     "action": null,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": null,
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 12,
+     "completion": null,
+     "changed": null,
+     "witness": null
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-bold",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": false,
+      "italic": true,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 16,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": "state-noop"
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-italic",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": false,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 18,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": "on-time-item"
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-underline",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": false,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 20,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": "state-noop"
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-strikethrough",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": false,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 22,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": "state-noop"
+    },
+    {
+     "operation": "insertText",
+     "action": null,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": null,
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 24,
+     "completion": null,
+     "changed": null,
+     "witness": null
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-italic",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": false,
+      "italic": true,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 28,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": "on-time-item"
+    },
+    {
+     "operation": "insertText",
+     "action": null,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": null,
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 30,
+     "completion": null,
+     "changed": null,
+     "witness": null
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-bold",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": true,
+      "italic": true,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 34,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": "on-time-item"
+    },
+    {
+     "operation": "insertText",
+     "action": null,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": null,
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 36,
+     "completion": null,
+     "changed": null,
+     "witness": null
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-bold",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": false,
+      "italic": true,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 40,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": "on-time-item"
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-italic",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": false,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 42,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": "on-time-item"
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-underline",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": false,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 44,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": "state-noop"
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-strikethrough",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": false,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 46,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": "state-noop"
+    },
+    {
+     "operation": "insertText",
+     "action": null,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": null,
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 48,
+     "completion": null,
+     "changed": null,
+     "witness": null
+    }
+   ],
+   "rawInstall": "installed",
+   "raw": [
+    {
+     "type": "editor-action-completed",
+     "requestId": 10,
+     "code": null,
+     "hasWitness": true,
+     "witness": "on-time-item",
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "editor-action-completed",
+     "requestId": 16,
+     "code": null,
+     "hasWitness": true,
+     "witness": "state-noop",
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "editor-action-completed",
+     "requestId": 18,
+     "code": null,
+     "hasWitness": true,
+     "witness": "on-time-item",
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "editor-action-completed",
+     "requestId": 20,
+     "code": null,
+     "hasWitness": true,
+     "witness": "state-noop",
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "editor-action-completed",
+     "requestId": 22,
+     "code": null,
+     "hasWitness": true,
+     "witness": "state-noop",
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "editor-action-completed",
+     "requestId": 28,
+     "code": null,
+     "hasWitness": true,
+     "witness": "on-time-item",
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "editor-action-completed",
+     "requestId": 34,
+     "code": null,
+     "hasWitness": true,
+     "witness": "on-time-item",
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "editor-action-completed",
+     "requestId": 40,
+     "code": null,
+     "hasWitness": true,
+     "witness": "on-time-item",
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "editor-action-completed",
+     "requestId": 42,
+     "code": null,
+     "hasWitness": true,
+     "witness": "on-time-item",
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "editor-action-completed",
+     "requestId": 44,
+     "code": null,
+     "hasWitness": true,
+     "witness": "state-noop",
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "editor-action-completed",
+     "requestId": 46,
+     "code": null,
+     "hasWitness": true,
+     "witness": "state-noop",
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    }
+   ],
+   "cleanup": {}
+  },
+  {
+   "product": "v25",
+   "scenario": "bullet",
+   "repetition": 3,
+   "after": {
+    "pill": "ready",
+    "latency": "• 項目符號 失敗",
+    "toast": "• 項目符號：MUTATION_OUTCOME_UNKNOWN：the readback covers more than one paragraph（動作已送出，但這一格的檢查涵蓋了不只一個段落，無法單獨核對你的段落。請看一下結果，不是你要的就按「復原」。這是檢查的極限，不是文件壞了）",
+    "revision": "1",
+    "pressed": {
+     "bold": "false",
+     "italic": "false",
+     "underline": "false",
+     "strikethrough": "false"
+    },
+    "blobs": 0
+   },
+   "settled": true,
+   "traffic": [
+    {
+     "operation": "editorActionV2",
+     "action": "insert-paragraph-break",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": true,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 10,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": "uno-success"
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-list-unordered",
+     "ok": false,
+     "code": "MUTATION_OUTCOME_UNKNOWN",
+     "message": "the readback covers more than one paragraph",
+     "barrier": {
+      "stage": null,
+      "route": "collapsed",
+      "dispatched": true,
+      "failureShape": "multi-block-readback",
+      "resultSeen": null,
+      "resultSuccess": null,
+      "selectionResultSeen": true,
+      "command": null
+     },
+     "resultFormat": null,
+     "errorKeys": [
+      "code",
+      "documentHandle",
+      "formatBarrier",
+      "message",
+      "operation"
+     ],
+     "errorDispatched": null,
+     "requestId": 13,
+     "completion": null,
+     "changed": null,
+     "witness": null
+    }
+   ],
+   "rawInstall": "installed",
+   "raw": [
+    {
+     "type": "editor-action-completed",
+     "requestId": 10,
+     "code": null,
+     "hasWitness": true,
+     "witness": "uno-success",
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "error",
+     "requestId": 13,
+     "code": "MUTATION_OUTCOME_UNKNOWN",
+     "hasWitness": false,
+     "witness": null,
+     "completion": null,
+     "changed": null,
+     "barrier": {
+      "hasDispatched": true,
+      "dispatched": true,
+      "stage": "awaiting-result",
+      "failureShape": "multi-block-readback",
+      "route": "collapsed"
+     }
+    }
+   ],
+   "cleanup": {}
+  },
+  {
+   "product": "v25",
+   "scenario": "format",
+   "repetition": 3,
+   "steps": [
+    {
+     "step": "start",
+     "page": {
+      "pill": "ready",
+      "latency": "定位游標 59 ms",
+      "toast": "點一下放游標，或拖曳選一段，再按動作",
+      "revision": "0",
+      "pressed": {
+       "bold": "true",
+       "italic": "false",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "press",
+     "arg": "set-italic",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "I 31 ms",
+      "toast": "點一下放游標，或拖曳選一段，再按動作",
+      "revision": "1",
+      "pressed": {
+       "bold": "false",
+       "italic": "true",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "type",
+     "arg": "MKITALON",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "插入文字 79 ms",
+      "toast": "點一下放游標，或拖曳選一段，再按動作",
+      "revision": "2",
+      "pressed": {
+       "bold": "false",
+       "italic": "true",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "clear",
+     "arg": null,
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "清除格式 27 ms",
+      "toast": "已清除粗體、斜體、底線、刪除線",
+      "revision": "6",
+      "pressed": {
+       "bold": "false",
+       "italic": "false",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "type",
+     "arg": "MKAFTERCLEAR",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "插入文字 75 ms",
+      "toast": "已清除粗體、斜體、底線、刪除線",
+      "revision": "7",
+      "pressed": {
+       "bold": "false",
+       "italic": "false",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "press",
+     "arg": "set-italic",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "I 29 ms",
+      "toast": "已清除粗體、斜體、底線、刪除線",
+      "revision": "8",
+      "pressed": {
+       "bold": "false",
+       "italic": "true",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "type",
+     "arg": "MKITALAGAIN",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "插入文字 72 ms",
+      "toast": "已清除粗體、斜體、底線、刪除線",
+      "revision": "9",
+      "pressed": {
+       "bold": "false",
+       "italic": "true",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "press",
+     "arg": "set-bold",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "B 21 ms",
+      "toast": "已清除粗體、斜體、底線、刪除線",
+      "revision": "10",
+      "pressed": {
+       "bold": "true",
+       "italic": "true",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "type",
+     "arg": "MKBOLDON",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "插入文字 77 ms",
+      "toast": "已清除粗體、斜體、底線、刪除線",
+      "revision": "11",
+      "pressed": {
+       "bold": "true",
+       "italic": "true",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "clear",
+     "arg": null,
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "清除格式 27 ms",
+      "toast": "已清除粗體、斜體、底線、刪除線",
+      "revision": "15",
+      "pressed": {
+       "bold": "false",
+       "italic": "false",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    },
+    {
+     "step": "type",
+     "arg": "MKAFTERCLEAR2",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "插入文字 73 ms",
+      "toast": "已清除粗體、斜體、底線、刪除線",
+      "revision": "16",
+      "pressed": {
+       "bold": "false",
+       "italic": "false",
+       "underline": "false",
+       "strikethrough": "false"
+      },
+      "blobs": 0
+     }
+    }
+   ],
+   "saved": {
+    "sha256": "bf00d41b59c74be2af1fceab28a5f6248531874ec6f6e5a5f93e2095312b0a6a",
+    "markers": {
+     "MKITALON": {
+      "found": true,
+      "span": "T1",
+      "paragraphStyle": "P3",
+      "bold": false,
+      "italic": true,
+      "underline": false,
+      "strikethrough": false
+     },
+     "MKAFTERCLEAR": {
+      "found": true,
+      "span": "T2",
+      "paragraphStyle": "P3",
+      "bold": false,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     },
+     "MKITALAGAIN": {
+      "found": true,
+      "span": "T3",
+      "paragraphStyle": "P3",
+      "bold": false,
+      "italic": true,
+      "underline": false,
+      "strikethrough": false
+     },
+     "MKBOLDON": {
+      "found": true,
+      "span": "T4",
+      "paragraphStyle": "P3",
+      "bold": true,
+      "italic": true,
+      "underline": false,
+      "strikethrough": false
+     },
+     "MKAFTERCLEAR2": {
+      "found": true,
+      "span": "T2",
+      "paragraphStyle": "P3",
+      "bold": false,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     }
+    }
+   },
+   "traffic": [
+    {
+     "operation": "editorActionV2",
+     "action": "set-italic",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": false,
+      "italic": true,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 10,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": "on-time-item"
+    },
+    {
+     "operation": "insertText",
+     "action": null,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": null,
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 12,
+     "completion": null,
+     "changed": null,
+     "witness": null
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-bold",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": false,
+      "italic": true,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 16,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": "state-noop"
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-italic",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": false,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 18,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": "on-time-item"
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-underline",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": false,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 20,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": "state-noop"
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-strikethrough",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": false,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 22,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": "state-noop"
+    },
+    {
+     "operation": "insertText",
+     "action": null,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": null,
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 24,
+     "completion": null,
+     "changed": null,
+     "witness": null
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-italic",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": false,
+      "italic": true,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 28,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": "on-time-item"
+    },
+    {
+     "operation": "insertText",
+     "action": null,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": null,
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 30,
+     "completion": null,
+     "changed": null,
+     "witness": null
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-bold",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": true,
+      "italic": true,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 34,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": "on-time-item"
+    },
+    {
+     "operation": "insertText",
+     "action": null,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": null,
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 36,
+     "completion": null,
+     "changed": null,
+     "witness": null
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-bold",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": false,
+      "italic": true,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 40,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": "on-time-item"
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-italic",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": false,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 42,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": "on-time-item"
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-underline",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": false,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 44,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": "state-noop"
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-strikethrough",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": false,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 46,
+     "completion": "uno-command-result",
+     "changed": true,
+     "witness": "state-noop"
+    },
+    {
+     "operation": "insertText",
+     "action": null,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": null,
+     "errorKeys": [],
+     "errorDispatched": null,
+     "requestId": 48,
+     "completion": null,
+     "changed": null,
+     "witness": null
+    }
+   ],
+   "rawInstall": "installed",
+   "raw": [
+    {
+     "type": "editor-action-completed",
+     "requestId": 10,
+     "code": null,
+     "hasWitness": true,
+     "witness": "on-time-item",
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "editor-action-completed",
+     "requestId": 16,
+     "code": null,
+     "hasWitness": true,
+     "witness": "state-noop",
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "editor-action-completed",
+     "requestId": 18,
+     "code": null,
+     "hasWitness": true,
+     "witness": "on-time-item",
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "editor-action-completed",
+     "requestId": 20,
+     "code": null,
+     "hasWitness": true,
+     "witness": "state-noop",
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "editor-action-completed",
+     "requestId": 22,
+     "code": null,
+     "hasWitness": true,
+     "witness": "state-noop",
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "editor-action-completed",
+     "requestId": 28,
+     "code": null,
+     "hasWitness": true,
+     "witness": "on-time-item",
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "editor-action-completed",
+     "requestId": 34,
+     "code": null,
+     "hasWitness": true,
+     "witness": "on-time-item",
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "editor-action-completed",
+     "requestId": 40,
+     "code": null,
+     "hasWitness": true,
+     "witness": "on-time-item",
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "editor-action-completed",
+     "requestId": 42,
+     "code": null,
+     "hasWitness": true,
+     "witness": "on-time-item",
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "editor-action-completed",
+     "requestId": 44,
+     "code": null,
+     "hasWitness": true,
+     "witness": "state-noop",
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    },
+    {
+     "type": "editor-action-completed",
+     "requestId": 46,
+     "code": null,
+     "hasWitness": true,
+     "witness": "state-noop",
+     "completion": "uno-command-result",
+     "changed": true,
+     "barrier": null
+    }
+   ],
+   "cleanup": {}
+  }
+ ],
+ "preRun": {
+  "kwalletLocked": "b false",
+  "chromeProcesses": "23",
+  "firefoxProcesses": "1",
+  "oursRunning": [],
+  "loadavg": [
+   "0.84",
+   "0.91",
+   "0.93"
+  ],
+  "topCpu": [
+   "PID %CPU COMMAND",
+   "1888070  100 ps",
+   "1888036 87.1 python3",
+   "1887799 23.3 claude",
+   "1761781  6.2 chrome",
+   "1887891  5.4 npm exec @playw"
+  ],
+  "at": "2026-10-29T15:24:14+0800",
+  "refuse": []
+ }
+}

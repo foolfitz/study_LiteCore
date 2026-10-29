@@ -1,0 +1,262 @@
+{
+ "argv": [
+  "tools/check_v25_clear_format_noop.py",
+  "--out",
+  "/tmp/claude-1000/-home-jiajun-LibreOffice-study-LiteCore/c20d3ac4-241e-4fa1-bda0-9ef24bd61b3b/scratchpad/f2-shake-01",
+  "--browsers",
+  "chrome",
+  "--repetitions",
+  "1"
+ ],
+ "tool": "check_v25_clear_format_noop",
+ "products": {
+  "v24": {
+   "profile": "e2-editor-v24",
+   "generation": "e2/editor-shell-v2-bundle-v77.json",
+   "generationDigest": "56ce44c78043220e4f135343dc87a8e847e83849e4c6571345b1ac9e2e8a294a",
+   "archive": "build/archive/e2-editor-v24-27615808-worker-41041fe7",
+   "servedProfile": {
+    "probe.wasm": "276158084a602178f9b7219c086f749910601b1a121fca9339b10a79b0f7b639",
+    "probe.js": "64aaa8dc2c7a1c366c76911213090ae60d39c26cd4207274ef1c0420a5a0b301",
+    "sdk-worker.js": "41041fe746b2355a1768bc774a10ac59802a8e359579618be405e3696f3b9461",
+    "sdk-manifest.json": "f9554e8c1b79ff4955dbfdf7dbe7c9975f3d0bcc945665c3491a730cb44cd04e"
+   },
+   "shellMismatches": [],
+   "checks": {
+    "profileEqualsArchive": true,
+    "shellEqualsGeneration": true,
+    "pageServed": true,
+    "pagePointsAtProfile": true
+   },
+   "ok": true
+  },
+  "v25": {
+   "profile": "e2-editor-v25",
+   "generation": "e2/editor-shell-v2-bundle-v78.json",
+   "generationDigest": "550b68bfcc0ba7b6d8a71c4fbea6c7d6eba6b1de35edeaf4cddf26f40fcde8e4",
+   "archive": "build/archive/e2-editor-v25-44cb15ea-worker-75557b22",
+   "servedProfile": {
+    "probe.wasm": "44cb15ea8d36f0e0191e007179769b6bcb468e3d084cb260c645e6127630d193",
+    "probe.js": "ed1d9a55357a0a25d44224fbbdcb1fc26df0a1c64a1ae2a769761f9bf3784738",
+    "sdk-worker.js": "75557b220b0d29dfa222a3dd4c3fbde54403034676dc8b7b1a9b41934c218b0c",
+    "sdk-manifest.json": "e7780061471ffc81ccb4240e502f6343ee42c3312e7871efb6efa38066766519"
+   },
+   "shellMismatches": [],
+   "checks": {
+    "profileEqualsArchive": true,
+    "shellEqualsGeneration": true,
+    "pageServed": true,
+    "pagePointsAtProfile": true
+   },
+   "ok": true
+  }
+ },
+ "runs": [
+  {
+   "product": "v24",
+   "browser": "chrome",
+   "repetition": 1,
+   "browserVersion": "Chrome/156.0.8078.47",
+   "caretPlaced": true,
+   "settled": true,
+   "before": {
+    "pill": "ready",
+    "latency": "定位游標 90 ms",
+    "toast": "點一下放游標，或拖曳選一段，再按動作",
+    "revision": "0",
+    "requests": 9
+   },
+   "after": {
+    "pill": "ready",
+    "latency": "清除格式 27 ms",
+    "toast": "已清除粗體、斜體、底線、刪除線",
+    "revision": "4",
+    "requests": 17
+   },
+   "rows": [
+    {
+     "action": "set-bold",
+     "enabled": false,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "changed": true,
+     "completion": "uno-command-result",
+     "witness": null,
+     "hasWitness": false,
+     "revision": [
+      0,
+      1
+     ]
+    },
+    {
+     "action": "set-italic",
+     "enabled": false,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "changed": true,
+     "completion": "uno-command-result",
+     "witness": null,
+     "hasWitness": false,
+     "revision": [
+      1,
+      2
+     ]
+    },
+    {
+     "action": "set-underline",
+     "enabled": false,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "changed": true,
+     "completion": "uno-command-result",
+     "witness": null,
+     "hasWitness": false,
+     "revision": [
+      2,
+      3
+     ]
+    },
+    {
+     "action": "set-strikethrough",
+     "enabled": false,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "changed": true,
+     "completion": "uno-command-result",
+     "witness": null,
+     "hasWitness": false,
+     "revision": [
+      3,
+      4
+     ]
+    }
+   ],
+   "cleanup": {},
+   "pass": false,
+   "why": [
+    "set-bold witness=None",
+    "set-italic witness=None",
+    "set-underline witness=None",
+    "set-strikethrough witness=None"
+   ],
+   "redFor172": false
+  },
+  {
+   "product": "v25",
+   "browser": "chrome",
+   "repetition": 1,
+   "browserVersion": "Chrome/156.0.8078.47",
+   "caretPlaced": true,
+   "settled": true,
+   "before": {
+    "pill": "ready",
+    "latency": "定位游標 104 ms",
+    "toast": "點一下放游標，或拖曳選一段，再按動作",
+    "revision": "0",
+    "requests": 9
+   },
+   "after": {
+    "pill": "ready",
+    "latency": "清除格式 27 ms",
+    "toast": "已清除粗體、斜體、底線、刪除線",
+    "revision": "4",
+    "requests": 17
+   },
+   "rows": [
+    {
+     "action": "set-bold",
+     "enabled": false,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "changed": true,
+     "completion": "uno-command-result",
+     "witness": "on-time-item",
+     "hasWitness": true,
+     "revision": [
+      0,
+      1
+     ]
+    },
+    {
+     "action": "set-italic",
+     "enabled": false,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "changed": true,
+     "completion": "uno-command-result",
+     "witness": "on-time-item",
+     "hasWitness": true,
+     "revision": [
+      1,
+      2
+     ]
+    },
+    {
+     "action": "set-underline",
+     "enabled": false,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "changed": true,
+     "completion": "uno-command-result",
+     "witness": "on-time-item",
+     "hasWitness": true,
+     "revision": [
+      2,
+      3
+     ]
+    },
+    {
+     "action": "set-strikethrough",
+     "enabled": false,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "changed": true,
+     "completion": "uno-command-result",
+     "witness": "on-time-item",
+     "hasWitness": true,
+     "revision": [
+      3,
+      4
+     ]
+    }
+   ],
+   "cleanup": {},
+   "pass": true,
+   "why": [],
+   "redFor172": false
+  }
+ ],
+ "preRun": {
+  "kwalletLocked": "b false",
+  "chromeProcesses": "23",
+  "firefoxProcesses": "1",
+  "oursRunning": [],
+  "loadavg": [
+   "0.98",
+   "1.13",
+   "0.99"
+  ],
+  "topCpu": [
+   "PID %CPU COMMAND",
+   "1880802  100 ps",
+   "1880796 31.2 python3",
+   "1761781  6.2 chrome",
+   "1869196  4.7 claude",
+   "1643330  3.1 zen"
+  ],
+  "at": "2026-10-29T15:17:50+0800",
+  "refuse": []
+ },
+ "problems": [
+  "v24: 0/1 red for 172"
+ ],
+ "verdict": "F2_RED"
+}
