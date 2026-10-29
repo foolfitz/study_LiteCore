@@ -113,3 +113,11 @@ from the regression net's records, not yet a characterised finding.
 Process lesson: T4 compared v24 with v23, which was never shipped; the comparison base for a
 regression net has to be the last shipped/counted product, or a regression introduced by an
 unshipped intermediate becomes the baseline.
+
+## Format diagnostic (`diag-format/`, not K)
+
+`diag_format.py`: v22 (0.2.27 package, MANIFEST-checked) and v24 (dist) served from a symlink mirror
+with a Worker observer, Chrome. run-01 recorded the bullet and clear-format scenarios; its traffic
+parser read the barrier from `error.details.formatBarrier`, where the worker does not put it, so the
+barrier fields are null in run-01 for both products. Fixed to read `error.formatBarrier` as well and
+to keep the error's keys; run-02 repeats the same scenarios.
