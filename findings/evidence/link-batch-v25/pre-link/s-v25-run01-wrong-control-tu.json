@@ -1,0 +1,105 @@
+{
+ "verdict": "S_V25_FAILS",
+ "clean": true,
+ "controlsBehave": false,
+ "rows": [
+  {
+   "row": "v25 sdk_api.cpp",
+   "argvTail": [
+    "-DOXSDK_E2_V23_LINK_BATCH",
+    "-DOXSDK_E2_V23_FEATURE_ABI6",
+    "-DOXSDK_E2_V24_TYPED_INSERT",
+    "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/src/sdk_api.cpp",
+    "-DOXSDK_E2_V25_FORMAT_PROOF",
+    "-fsyntax-only"
+   ],
+   "exit": 0,
+   "seconds": 0.44,
+   "stderrTail": ""
+  },
+  {
+   "row": "v25 probe_engine.cpp",
+   "argvTail": [
+    "-DOXSDK_E2_V23_LINK_BATCH",
+    "-DOXSDK_E2_V23_FEATURE_ABI6",
+    "-DOXSDK_E2_V24_TYPED_INSERT",
+    "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/src/probe_engine.cpp",
+    "-DOXSDK_E2_V25_FORMAT_PROOF",
+    "-fsyntax-only"
+   ],
+   "exit": 0,
+   "seconds": 1.3,
+   "stderrTail": ""
+  },
+  {
+   "row": "v25 unoembind_stub.cpp",
+   "argvTail": [
+    "-DOXSDK_E2_V23_LINK_BATCH",
+    "-DOXSDK_E2_V23_FEATURE_ABI6",
+    "-DOXSDK_E2_V24_TYPED_INSERT",
+    "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/src/unoembind_stub.cpp",
+    "-DOXSDK_E2_V25_FORMAT_PROOF",
+    "-fsyntax-only"
+   ],
+   "exit": 0,
+   "seconds": 0.06,
+   "stderrTail": ""
+  },
+  {
+   "row": "v25 editor_api.cpp",
+   "argvTail": [
+    "-DOXSDK_E2_V23_LINK_BATCH",
+    "-DOXSDK_E2_V23_FEATURE_ABI6",
+    "-DOXSDK_E2_V24_TYPED_INSERT",
+    "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/src/editor_api.cpp",
+    "-DOXSDK_E2_V25_FORMAT_PROOF",
+    "-fsyntax-only"
+   ],
+   "exit": 0,
+   "seconds": 0.39,
+   "stderrTail": ""
+  },
+  {
+   "row": "control: v25-only error, with define",
+   "argvTail": [
+    "-DOXSDK_E2_V23_LINK_BATCH",
+    "-DOXSDK_E2_V23_FEATURE_ABI6",
+    "-DOXSDK_E2_V24_TYPED_INSERT",
+    "/tmp/s-v25-u7toybc7/src/probe_engine.cpp",
+    "-DOXSDK_E2_V25_FORMAT_PROOF",
+    "-fsyntax-only"
+   ],
+   "exit": 1,
+   "seconds": 1.34,
+   "stderrTail": "In file included from /tmp/s-v25-u7toybc7/src/probe_engine.cpp:3046:\n/tmp/s-v25-u7toybc7/src/ordered_engine_reply.inc:69:3: error: use of undeclared identifier 'this_symbol_does_not_exist_v25'\n   69 |   this_symbol_does_not_exist_v25();\n      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n1 error generated.\n"
+  },
+  {
+   "row": "control: v25-only error, without define",
+   "argvTail": [
+    "-DOXSDK_MAINLOOP_ENGINE",
+    "-DOXSDK_E2_V23_LINK_BATCH",
+    "-DOXSDK_E2_V23_FEATURE_ABI6",
+    "-DOXSDK_E2_V24_TYPED_INSERT",
+    "/tmp/s-v25-u7toybc7/src/probe_engine.cpp",
+    "-fsyntax-only"
+   ],
+   "exit": 0,
+   "seconds": 1.27,
+   "stderrTail": ""
+  },
+  {
+   "row": "control: v25 define without v24",
+   "argvTail": [
+    "-DOXSDK_MAINLOOP_ENGINE",
+    "-DOXSDK_E2_V23_LINK_BATCH",
+    "-DOXSDK_E2_V23_FEATURE_ABI6",
+    "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/src/probe_engine.cpp",
+    "-DOXSDK_E2_V25_FORMAT_PROOF",
+    "-fsyntax-only"
+   ],
+   "exit": 0,
+   "seconds": 1.26,
+   "stderrTail": ""
+  }
+ ]
+}

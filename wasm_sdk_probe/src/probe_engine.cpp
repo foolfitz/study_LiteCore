@@ -968,6 +968,12 @@ struct FormatStateBarrier {
   bool resultSeen = false;
   bool resultSuccess = false;
   bool resultModified = false;
+#ifdef OXSDK_E2_V25_FORMAT_PROOF
+  // Finding 171.  The ordered path knows whether it posted the command; the
+  // record says so instead of leaving a projection to infer it from `stage`.
+  bool dispatchRecorded = false;
+  bool dispatched = false;
+#endif
   // Finding 033.  The barrier used to advance out of AwaitingSelection on any
   // TEXT_SELECTION carrying rectangles, and a search dispatched by the caller
   // selects its match -- so the caller's own caret move could hand the barrier
@@ -1625,7 +1631,14 @@ void appendFormatBarrierDetails(std::ostringstream &json,
        // failure cannot be told from a containment failure in the evidence,
        // and both arrive under the same caller-facing code on purpose.
        << ",\"stage\":\"" << formatBarrierStageName(barrier.stage)
+#ifdef OXSDK_E2_V25_FORMAT_PROOF
+       << "\"" << (barrier.dispatchRecorded
+                       ? (barrier.dispatched ? ",\"dispatched\":true" : ",\"dispatched\":false")
+                       : "")
+       << ",\"failureShape\":\"" << jsonEscape(barrier.failureShape.c_str())
+#else
        << "\",\"failureShape\":\"" << jsonEscape(barrier.failureShape.c_str())
+#endif
        << "\",\"crosstalkCount\":" << barrier.crosstalkCount
        << ",\"earlyStateCount\":" << barrier.earlyStateCount
        << ",\"resultSeen\":" << (barrier.resultSeen ? "true" : "false")

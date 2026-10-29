@@ -70,6 +70,14 @@ extern "C" {
 #else
 #define OXSDK_EDITOR_ABI_VERSION 4u
 #endif
+/*
+ * OXSDK_E2_V25_FORMAT_PROOF (SPEC-M3-link-batch-v25) changes two ordered
+ * format replies (findings 171, 172).  No export, action, gesture, limit or
+ * field meaning changes, so it is a v24 successor at ABI 6 only.
+ */
+#if defined(OXSDK_E2_V25_FORMAT_PROOF) && !defined(OXSDK_E2_V24_TYPED_INSERT)
+#error "the v25 format proof requires the v24 typed-insert engine"
+#endif
 
 typedef enum oxsdk_editor_v1_action {
   OXSDK_EDITOR_V1_MOVE_CHARACTER_LEFT = 1,

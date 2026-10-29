@@ -102,6 +102,11 @@ void deferOrderedFormatReply(FormatStateBarrier barrier, bool dispatched,
   setOrderedReply([barrier, dispatched, refusalCode, refusalMessage]() mutable {
     // Legacy serializers only: no LOK reads or stage transitions at poll.
     gFormatBarrier = barrier;
+#ifdef OXSDK_E2_V25_FORMAT_PROOF
+    // Finding 171: the record carries what this command already knows.
+    gFormatBarrier.dispatchRecorded = true;
+    gFormatBarrier.dispatched = dispatched;
+#endif
     if (refusalCode) {
       failFormatBarrier(refusalCode, refusalMessage);
       return;
@@ -248,6 +253,13 @@ void startOrderedFormatAction(const Command &command, std::uint32_t action,
   barrier.dispatchParagraphKnown = refreshCaretParagraph();
   barrier.dispatchParagraphFingerprint = gEditorState.a11yContentHash;
   barrier.dispatchParagraphUsable = gEditorState.a11yFingerprintUsable;
+#ifdef OXSDK_E2_V25_FORMAT_PROOF
+  // Finding 171.  The legacy path leaves `idle` here (AwaitingResult, set just
+  // before postUnoCommand), and the worker's projection still derives
+  // `dispatched` from that for engines that do not send the field.  Nothing
+  // compiled under the v23 define reads `stage`, and no deadline is armed.
+  barrier.stage = FormatBarrierStage::AwaitingResult;
+#endif
   // v23 callback routing must bypass all legacy barrier observers. This
   // temporary global lets existing pure/read helpers share the transaction;
   // no transaction survives here between this command and its reply.

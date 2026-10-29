@@ -51,6 +51,47 @@ void composeOrderedEditorPending(EditorPendingOperation pending) {
   gEditorPending = EditorPendingOperation{};
 }
 
+#ifdef OXSDK_E2_V25_FORMAT_PROOF
+// Finding 172, SPEC-M3-ordered-commands section 23.  What makes an inline-format
+// request true, given that core answers `success:false` when it honours the
+// parameterised form (finding 059):
+//   uno-success   the result itself says so;
+//   on-time-item  this flush carries the state item and it equals the request;
+//   state-noop    this flush carries NO item, the item is on the measured
+//                 on-time list (core broadcasts a change in the command's own
+//                 flush, 5/5), and the known state already equals the request:
+//                 nothing changed because nothing had to.  Without this case a
+//                 request for the current state -- clear-format's first press
+//                 on plain text -- answers LOK_COMMAND_FAILED.
+// Named limit L-noop-trusts-last-state-item: a stale cache plus a refused
+// dispatch passes here, exactly as it did on v22.
+bool orderedInlineFormatStateEquals(const std::string &unoCommand, bool requested) {
+  if (unoCommand == ".uno:Bold")
+    return gEditorState.boldKnown && gEditorState.bold == requested;
+  if (unoCommand == ".uno:Italic")
+    return gEditorState.italicKnown && gEditorState.italic == requested;
+  if (unoCommand == ".uno:Underline")
+    return gEditorState.underlineKnown && gEditorState.underline == requested;
+  if (unoCommand == ".uno:Strikeout")
+    return gEditorState.strikeoutKnown && gEditorState.strikeout == requested;
+  return false;
+}
+
+const char *orderedInlineFormatWitness(const std::string &unoCommand, bool requested,
+                                       const std::string &payload) {
+  if (commandResultSucceeded(payload.c_str()))
+    return "uno-success";
+  for (const auto &read : probe::replystate::kReads) {
+    if (unoCommand != read.unoCommand)
+      continue;
+    if (gOrderedProof.stateItems.count(read.stateKey))
+      return orderedInlineFormatStateEquals(unoCommand, requested) ? "on-time-item" : nullptr;
+    return orderedInlineFormatStateEquals(unoCommand, requested) ? "state-noop" : nullptr;
+  }
+  return nullptr;
+}
+#endif
+
 void composeOrderedUno(const Command &command, const std::string &operation,
                        const std::string &unoCommand, const std::string &action,
                        std::uint32_t beforeRevision, std::uint64_t beforeSequence,
@@ -68,6 +109,14 @@ void composeOrderedUno(const Command &command, const std::string &operation,
     payload = gOrderedProof.commentPayload;
   }
   if (operation == "editor-action-completed") {
+#ifdef OXSDK_E2_V25_FORMAT_PROOF
+    const char *witness = orderedInlineFormatWitness(unoCommand, option, payload);
+    if (!witness) {
+      emitSdkError(command.requestId, command.documentHandle, "editor-action",
+                   "LOK_COMMAND_FAILED", "LibreOfficeKit rejected the fixed editor command");
+      return;
+    }
+#else
     // 059 uses only an on-time item observed in this command's own flush.
     if (!commandResultSucceeded(payload.c_str()) &&
         !inlineFormatArgumentResolved(unoCommand, option)) {
@@ -75,6 +124,7 @@ void composeOrderedUno(const Command &command, const std::string &operation,
                    "LOK_COMMAND_FAILED", "LibreOfficeKit rejected the fixed editor command");
       return;
     }
+#endif
     advanceRevision();
     std::ostringstream json;
     json << "{\"schemaVersion\":" << ProtocolSchemaVersion
@@ -84,6 +134,9 @@ void composeOrderedUno(const Command &command, const std::string &operation,
          << ",\"action\":\"" << jsonEscape(action.c_str())
          << "\",\"option\":" << (option ? "true" : "false")
          << ",\"changed\":true,\"completion\":\"uno-command-result\""
+#ifdef OXSDK_E2_V25_FORMAT_PROOF
+         << ",\"witness\":\"" << witness << "\""
+#endif
          << ",\"callbackSequenceBefore\":" << beforeSequence
          << ",\"callbackSequenceAfter\":" << gEditorState.sourceSequence << ",\"state\":{";
     appendEditorState(json);
