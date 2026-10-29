@@ -1,0 +1,108 @@
+#!/usr/bin/env python3
+"""SPEC-M3-shell-v79-finding-173 5.4 F4-79: the unchanged product-path suite with frozen-79 identity, then its four arms.
+
+Derived from tools/run_v25_four_arms.py (bound by v25 F4's evidence; not edited).  The differences are a closed
+list: this paragraph and the line above it; generation 78 -> 79 (default manifest, twice); the identity and
+reader modules v25 -> v79 (tools/v79_four_arms_identity.py, tools/judge_v79_product_four_arms.py); the lock
+name.  Everything below is run_v25_four_arms.py's text, including its own derivation note.
+
+Derived from tools/run_v24_four_arms.py (bound by v24's A4 count, not edited).  The differences are a closed
+list: generation 78 instead of 77; the v25 identity (tools/v25_four_arms_identity.py) and reader
+(tools/judge_v25_product_four_arms.py); the lock name; and NO V0'' preflight -- v24's wrapper ran V0''
+because A4-v24 was a count against v23's live-asserted records; F4 is a section 6.3 check before any count,
+and the v24 counts v25 carries over are re-read by V0' instead (findings/evidence/link-batch-v25/cutover/,
+freeze-78/v0/).
+
+Rebind bundle.MANIFEST BEFORE importing the runner. Record the override, never edit bound tools.
+The other product-path checks include I-enter-raw-substring (expected frozen-oracle Chrome FAIL).
+--preflight-only reads identity without opening a browser. --without-override and --shell-manifest
+exist for the declared identity reds; a failing preflight cannot launch a browser.
+"""
+import argparse
+import json
+from pathlib import Path
+import sys
+import time
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+
+def prepare(manifest=None, without_override=False, metadata=None):
+    import build_e2_c_shell_bundle as bundle
+    default = bundle.MANIFEST.as_posix()
+    if 'run_e2_c_product_path' in sys.modules:
+        raise ValueError('runner imported before the manifest override')
+    used = Path(manifest or 'e2/editor-shell-v2-bundle-v79.json')
+    if not without_override:
+        bundle.MANIFEST = used
+    import hashlib
+    raw = Path(__file__).resolve().parent.parent / bundle.MANIFEST
+    override = {'default': default, 'used': bundle.MANIFEST.as_posix(), 'applied': not without_override,
+                'fileSha256': hashlib.sha256(raw.read_bytes()).hexdigest() if raw.is_file() else None}
+    if metadata is not None:
+        metadata['shellManifestOverride'] = override
+    import run_e2_c_product_path as pp
+    import v23_product_four_arms as arms
+    import judge_v79_product_four_arms as reader
+    from v79_four_arms_identity import PROFILE
+    from v23_feature_selection_cases import digest
+    root = pp.PROJECT / 'dist'
+    overrides, identity = arms.observer_mirror(root, PROFILE)
+    served = {p: digest(overrides[p] if p in overrides else (root / p).read_bytes())
+              for p in arms.served_paths(identity)}
+    # Only the identity phase; there is no fabricated stream or row verdict here.
+    record = object.__new__(reader.Record)
+    record.identity = identity
+    record.page = {'identity': {'profile': PROFILE, 'served': served}}
+    # The unmodified reader supplies the precise lagging-generation reason for the no-override red.
+    j23 = reader.j23
+    j23.Record._identity(record, pp.PROJECT)
+    reader.Record._identity(record, pp.PROJECT)
+    return pp, {'shellManifestOverride': override, 'identity': identity, 'preflight': 'READY'}
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--browser', choices=('chrome', 'firefox'), required=True)
+    parser.add_argument('--out', type=Path, required=True)
+    parser.add_argument('--preflight-only', action='store_true')
+    parser.add_argument('--without-override', action='store_true')
+    parser.add_argument('--shell-manifest', type=Path)
+    args = parser.parse_args()
+    args.out = args.out.resolve()
+    args.out.mkdir(parents=True, exist_ok=False)
+    metadata = {'argv': sys.argv, 'browser': args.browser, 'startedAt': time.time(),
+                'preflightOnly': args.preflight_only,
+                'requestedManifest': str(args.shell_manifest) if args.shell_manifest else 'e2/editor-shell-v2-bundle-v79.json',
+                'withoutOverride': args.without_override}
+    try:
+        pp, prepared = prepare(args.shell_manifest, args.without_override, metadata)
+        metadata.update(prepared)
+        if args.preflight_only:
+            return 0
+        import v21_shakedown_common as common
+        import judge_v79_product_four_arms as reader
+        with common.browser_lock('v79-four-arms'):
+            checks, cpu = common.pre_run_checks(), common.foreign_cpu()
+            metadata.update(preRun=checks, foreignCpu=cpu)
+            if checks['refuse'] or not cpu.get('ok'):
+                raise ValueError('browser pre-run refusal')
+            report = args.out / 'report.json'
+            sys.argv = ['tools/run_e2_c_product_path.py', '--browser', args.browser, '--out', str(report)]
+            metadata['runnerExit'] = pp.main()
+            directory = pp.four_arms.artifact_dir_for(str(report))
+            result = reader.judge_run(directory)
+            (args.out / 'four-arms-reader.json').write_text(json.dumps(result, indent=1, default=str) + '\n')
+            metadata['fourArms'] = {k: v['outcome'] for k, v in result['arms'].items()}
+            return 0 if all(v == 'PASS' for v in metadata['fourArms'].values()) else 1
+    except Exception as error:
+        metadata.update(preflight='NOT_ESTABLISHED', error=f'{type(error).__name__}: {error}')
+        print(metadata['error'], file=sys.stderr)
+        return 1
+    finally:
+        metadata['finishedAt'] = time.time()
+        (args.out / 'wrapper.json').write_text(json.dumps(metadata, indent=1, ensure_ascii=False, default=str) + '\n')
+
+
+if __name__ == '__main__':
+    raise SystemExit(main())
