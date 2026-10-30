@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "release": "E2-C-editor-shell-v2-bundle",
+  "frozenDate": "2026-10-30",
+  "entrypoint": "web/e2-editor-app.js",
+  "scope": "JavaScript modules reached by the E2-C product page's import graph, plus every *.js in editor-shell-v2, editor-shell, input, sdk, reader-shell",
+  "algorithm": "SHA-256 of UTF-8 path + NUL + lowercase file SHA-256 + LF for each included path in lexicographic order",
+  "included": [
+    {
+      "path": "editor-shell-v2/narrow-editor-v2-client.js",
+      "sha256": "50f5a2acd5f34e1db42fc82a0cf8e1a75072e51f0fcc95e7f6e77da3fecd21d5"
+    },
+    {
+      "path": "editor-shell-v2/narrow-editor-v2-session.js",
+      "sha256": "d037eaa4c0b69bd3cc2e52099d461e0a54f3594a6b342c34ab0faca06955aac0"
+    },
+    {
+      "path": "editor-shell-v2/paragraph-editor-client.js",
+      "sha256": "7d1c1eb22e0baa7ad487d16d02eb0b2cc29ade3653679372bbf9e05b06e94396"
+    },
+    {
+      "path": "editor-shell-v2/paragraph-editor-session.js",
+      "sha256": "d853d420d794af4d79edd0956e504a5e61eef3c98bd95f112a03f53d248279c9"
+    },
+    {
+      "path": "editor-shell/editor-client.js",
+      "sha256": "b779f157c3e3588ab46bffdae657430c6fba7ae1ce402d652ba2f9c49d88698a"
+    },
+    {
+      "path": "editor-shell/editor-session.js",
+      "sha256": "95bc60cc655074e958ab2d5f174ebf682c54a551f0ee04cf25a989d5c34ca14a"
+    },
+    {
+      "path": "editor-shell/recovery-notice.js",
+      "sha256": "a6f916bc78268c42f717bb996223cd1b0ad248d1023890abf6ee3e0c24d66e43"
+    },
+    {
+      "path": "editor-shell/state-machine.js",
+      "sha256": "7b1d9e2d6619d408004cd2eb49f3cdf845f7d8f16c2e3e9c24b6e2243b9a8cf3"
+    },
+    {
+      "path": "input/clipboard-adapter.js",
+      "sha256": "ec84cec0494697d7ce4045769bc47e7f665f2e0386d99ce2fd8ae468d9318bd8"
+    },
+    {
+      "path": "input/input-adapter.js",
+      "sha256": "f815e156a901ac6b05614cae16e69e2157fefaaeced3ebe1225668f496334d16"
+    },
+    {
+      "path": "reader-shell/tile-scheduler.js",
+      "sha256": "4c60ab4e5ed11e32155af50a7b6983500cdab47431c8fc494aaf2369f046e722"
+    },
+    {
+      "path": "sdk/document-sdk.js",
+      "sha256": "afdff2d4c6fc86a3fbca9f40ab7c0122021c61a0d23a7969b4f80b7770f3632e"
+    },
+    {
+      "path": "web/e2-editor-app.js",
+      "sha256": "b63d8ee53659c8b6216ecfc6ddaf4e3ef909f99f96b5975204ff31039816b1c7"
+    }
+  ],
+  "excluded": [
+    {
+      "path": "sdk/sdk-worker.js",
+      "reason": "Bound separately and more precisely as workerSha256: the copy that actually runs is the one inside the profile."
+    },
+    {
+      "path": "reader-shell/reader-session.js",
+      "reason": "The R6 reader shell. Not in the editor page import graph; only reader-shell/tile-scheduler.js is."
+    },
+    {
+      "path": "reader-shell/state-machine.js",
+      "reason": "The reader shell own state machine, not the editor. Not in the editor page import graph."
+    },
+    {
+      "path": "sdk/v23-diagnostic-worker-tail.js",
+      "reason": "Private ABI5 diagnostic tail concatenated only into e2-editor-v23-diag; its resulting profile worker is separately bound by workerSha256. Not imported by the product page."
+    },
+    {
+      "path": "sdk/v23-diagnostic-r2-worker-tail.js",
+      "reason": "Private ABI5 diagnostic tail concatenated only into e2-editor-v23-diag-r2; its resulting profile worker is separately bound by workerSha256. Not imported by the product page."
+    },
+    {
+      "path": "sdk/v23-feature-worker.js",
+      "reason": "Source of the ABI6 e2-editor-v23 profile worker, separately bound by workerSha256. The product creates that profile worker by URL; this source is not a page import."
+    },
+    {
+      "path": "sdk/v24-feature-worker.js",
+      "reason": "Source of the ABI6 e2-editor-v24 profile worker (typed-insert route), separately bound by the profile manifest workerSha256 (41041fe7...) and copied into dist/profiles/e2-editor-v24; the product page creates its worker from the profile, never from this path (spec SPEC-M3-link-batch-v24 4.4, 15)."
+    },
+    {
+      "path": "sdk/v25-feature-worker.js",
+      "reason": "Source of the ABI6 e2-editor-v25 profile worker (findings 171/172 format route), separately bound by the profile manifest workerSha256 (75557b22...) and copied into dist/profiles/e2-editor-v25; the product page creates its worker from the profile, never from this path (spec SPEC-M3-link-batch-v25 4.2, 4.4)."
+    },
+    {
+      "path": "sdk/v26-select-all-worker.js",
+      "reason": "Source of the ABI6 e2-editor-v26 profile worker (select-all route), separately bound by the profile manifest workerSha256 (95d6e7ae...) and copied into dist/profiles/e2-editor-v26; the product page creates its worker from the profile, never from this path (spec SPEC-M3-select-all-v26 4.2, 4.5)."
+    },
+    {
+      "path": "sdk/v27-first-block-worker.js",
+      "reason": "Source of the ABI6 e2-editor-v27 profile worker (finding 176 first-block route), separately bound by the profile manifest workerSha256 (8152448a...) and copied into dist/profiles/e2-editor-v27; the product page creates its worker from the profile, never from this path (spec SPEC-M3-v27-finding-176 4.2, 7.3)."
+    }
+  ],
+  "bundleSha256": "6eb7ca108ea77c4ad735f97344ee9befa76a2c3c76fb7a6bce2f6da1bdc5c094"
+}
