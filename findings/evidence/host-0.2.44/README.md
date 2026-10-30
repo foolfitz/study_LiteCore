@@ -71,3 +71,14 @@ Installing needs the owner's slot (DDEV is shared): `slot.json` with an explicit
 **`capture-after.py install-20261030T233941+0800 files-workflow-01`** (absolute paths) -> `post-install-identity.json`: **`holds: true`** (host clean, engine equals the archive, protected documents and lock rows equal the installer's after-state, temporary user absent, no global lock-table writes). The lock table was empty throughout, so L-capture-after-expired-lock-lazily-deleted (0.2.43) did not arise.
 
 **Pending: the owner's hand tests (a)-(d)**, then the owner's decision whether 0.2.44 replaces 0.2.43 as the daily uncounted candidate. Rollback, if wanted: `rollback-package.sh` (exact 0.2.43 engine, label stays 0.2.44).
+
+## Owner's hand tests and decision (2026-10-31 ~00:00 +0800)
+
+Owner's report, verbatim: 「已經測完，皆符合你的預期 / 選A」.
+
+- **(a)** a document with text, Enter at the end of the last line, bullet: no toast, as expected (v28's fallback, observed on the host).
+- **(b)** a new blank document, bullet: 083's sentence, unchanged, as expected.
+- **(c)** Ctrl+Z after (a): the list is undone, as expected.
+- **(d)** (optional) the table case: the report does not say item by item whether (d) was run; it is covered by 「皆符合」 only if it was. On the mirror it is S4-d (6/6).
+
+**Decision A: 0.2.44 replaces 0.2.43 as the daily uncounted candidate.** The nominal shipped host stays 0.2.26; K and the count chain stay batched (owner, 2026-10-12). Accumulated uncounted engine changes since 0.2.26: v22-v28.
