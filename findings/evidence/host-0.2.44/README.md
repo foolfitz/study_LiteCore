@@ -34,3 +34,24 @@ Spec `specs/SPEC-M3-v28-last-line-fallback.md` 7.4. A relink: `e2-editor-v28` is
 Files workflow: the unchanged `wasm_sdk_probe/tools/run_calc_editor_host.py`.
 
 Installing needs the owner's slot (DDEV is shared): `slot.json` with an explicit no-site answer. No slot, no install; 0.2.43 stays the daily uncounted candidate (spec 7.4).
+
+## Offline results (2026-10-30 ~23:09-23:16 +0800)
+
+- **`prepare-release.py`**
+  - package-run-01 (exit 1) never started: the generated script had a syntax error. The E1-C fix's `'\n'` had passed through two string layers in `derive_host_0244_prepare.py` and become a real newline. Fixed by execution in the derivation; the script was regenerated and parsed before run-02. Nothing was written by run-01.
+  - package-run-02 (`package-run-02.*`, exit 0, 163 s): engine **dacdfa20fd4ff1ea**.
+  - Against 0.2.43: 40 records unchanged; changed exactly `e2-editor-app.js` and `editor-shell-v2/paragraph-editor-client.js`; added the four v28 files; removed the four v27 files; all four profile files differ (`release.json` `profileSuccessor`).
+  - Every v25, v79, v26, v27 and v28 gate holds (`release.json` `v28Gates`, `f3_82Verdicts`: `F3_RED` / `F3_82_EQUAL`).
+  - Archive `wasm_sdk_probe/build/archive/host-0.2.44-engine-dacdfa20fd4ff1ea` (not in git), bound by `archive.sha256` (94 members).
+- **`check-delta.py`** -> `check-delta.json`: **DELTA_HOLDS**, no problems; all nine red cases red (more, fewer, fewer_client, added, removed, wasm_same, worker_same, another old page on v27, the editor still on v27).
+- **`offline-package-check.py`** -> `offline-package-check.json`: **PACKAGE_HOLDS**, zero problems, **22/22** red cases red.
+- **`install-0.2.44.py --offline-only`** -> `offline-install-preflight.json`: **OFFLINE_INSTALL_READY** (parent ae8240d, candidate a97724f, `liveMutation: false`).
+
+**Next.** The owner's slot (`slot.json`: an explicit no-site answer, shared-DDEV coordination). Then:
+1. `install-0.2.44.py --preflight-only`, then `install-0.2.44.py`;
+2. the Files workflow, then `capture-after.py <install-dir> <workflow-dir>`;
+3. the owner's hand tests (spec 7.4):
+   - (a) a document with text whose last line is empty, bullet -> no toast;
+   - (b) a new blank document, bullet -> the same sentence as now;
+   - (c) after (a), Ctrl+Z -> the list is undone;
+   - (d) (optional) a document ending in a table, bullet on the line below it -> the new sentence, no 「回到檢查點」, 「復原」 undoes it.

@@ -328,8 +328,7 @@ def main():
             if lines[-1] != 'exit 0':
                 return False
             lines = lines[:-1]
-        return json.loads('
-'.join(lines)).get('intact')
+        return json.loads('\n'.join(lines)).get('intact')
 
     def v28count(name, word):
         node_counts28[name + ':' + word] = node_last(v28 / name, word)
