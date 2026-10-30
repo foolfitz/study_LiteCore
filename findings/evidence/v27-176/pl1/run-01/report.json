@@ -1,0 +1,2283 @@
+{
+ "argv": [
+  "findings/evidence/v27-176/pl1/run_v27_pl1.py",
+  "--out",
+  "findings/evidence/v27-176/pl1/run-01",
+  "--repetitions",
+  "3"
+ ],
+ "tool": "run_v27_pl1",
+ "config": {
+  "browsers": [
+   "chrome",
+   "firefox"
+  ],
+  "recipes": [
+   "list-contexts",
+   "s3"
+  ],
+  "repetitions": 3
+ },
+ "sources": {
+  "findings/evidence/v27-176/pl1/run_v27_pl1.py": "741fcb17f4897b07189a48527356bdacbabb330c3b07f401d5586805a59ce00c",
+  "findings/evidence/host-0.2.39/k-nine-cells/diag-format/diag_format.py": "ed0a22567235df8058185d0b85dc47444ee0cd15ddfd4c731892a2b249ae50ae",
+  "wasm_sdk_probe/tools/check_v79_blank_bullet.py": "2b37b1a498ba39e310a20bdfab87fb21ed4bc7983b64dc1fa7f47e0b339dcabd",
+  "wasm_sdk_probe/tools/v21_input.py": "ff33f3b995680025d3fb43207ef4a632fefa5f59877da677fa8af8b15d9a1d99",
+  "wasm_sdk_probe/tools/v80_four_arms_identity.py": "7536be16f7b32f30e4fcf901e9ecaa59bb529fe35b7c352d06a49bff03a8f760"
+ },
+ "fixture": {
+  "path": "findings/evidence/v27-176/fixture-two-plain/build-01/two-plain.odt",
+  "sha256": "56bc01b03b094b8da784fa98419873009fb887c8bf62953d0574f71c18a497a9"
+ },
+ "lineEnd": [
+  0.8,
+  0.0894
+ ],
+ "products": {
+  "chrome": {
+   "profile": "e2-editor-v26",
+   "archive": "wasm_sdk_probe/build/archive/e2-editor-v26-44cb15ea-worker-95d6e7ae",
+   "servedProfile": {
+    "probe.wasm": "44cb15ea8d36f0e0191e007179769b6bcb468e3d084cb260c645e6127630d193",
+    "probe.js": "ed1d9a55357a0a25d44224fbbdcb1fc26df0a1c64a1ae2a769761f9bf3784738",
+    "sdk-worker.js": "95d6e7ae375e60ef58de3e1bbeb838f0d4922a0d4737287b262c23f595aed964",
+    "sdk-manifest.json": "835752a3cfa1dbe2170503ce8027bf27603ebc8c42b5e49d332bef1a48b61867"
+   },
+   "instrumentedWorker": false,
+   "evidenceClass": "observer-only",
+   "generation": 80,
+   "bundle": "e2/editor-shell-v2-bundle-v80.json",
+   "pageSha256": "3b6c023ea3f8807ef28e2a031e2d49f24c9c08db4278392c4c0d7252bbc51f7b",
+   "htmlServedSha256": "cfdc6faede3bf9aba65fd4f4ca60b5181da206fe5929934be314fbc73f90d11d",
+   "distHtmlSha256": "b9c2b9751f57962585bb9788255e2aa42a228c0a8b9983755191d2004bab545a",
+   "snippetSha256": [
+    "bab050f50dae868424d9217ad8b17ca9a60d732a9cc9d05e5611db08c8a3c57e",
+    "0130766af83c62e9b82034cc734c2b0fc7a99bbe2b594287f694346f5472ab30",
+    "f9626b55244bf531b64a068cc40e56e103392ddfdccce32458c6da7508ac45d0"
+   ],
+   "diagSuffixSha256": "1f6722afcd5673ae42268010f1d4d162513354ea555dd6ffe74fedabd79f93c3",
+   "checks": {
+    "bundleFileIsGeneration80": true,
+    "shellEqualsGeneration80": true,
+    "pageIsGeneration80": true,
+    "pagePointsAtV26": true,
+    "htmlIsDistPlusSnippets": true,
+    "wasmLoaderManifestEqualArchive": true,
+    "archiveWorkerIsPinned": true,
+    "workerEqualsArchive": true
+   },
+   "ok": true
+  },
+  "firefox": {
+   "profile": "e2-editor-v26",
+   "archive": "wasm_sdk_probe/build/archive/e2-editor-v26-44cb15ea-worker-95d6e7ae",
+   "servedProfile": {
+    "probe.wasm": "44cb15ea8d36f0e0191e007179769b6bcb468e3d084cb260c645e6127630d193",
+    "probe.js": "ed1d9a55357a0a25d44224fbbdcb1fc26df0a1c64a1ae2a769761f9bf3784738",
+    "sdk-worker.js": "84ea0644fb37ea2cf1bb0dc44473bd152a2ba436e3059212b49e077e6939ea54",
+    "sdk-manifest.json": "835752a3cfa1dbe2170503ce8027bf27603ebc8c42b5e49d332bef1a48b61867"
+   },
+   "instrumentedWorker": true,
+   "evidenceClass": "diagnostic",
+   "generation": 80,
+   "bundle": "e2/editor-shell-v2-bundle-v80.json",
+   "pageSha256": "3b6c023ea3f8807ef28e2a031e2d49f24c9c08db4278392c4c0d7252bbc51f7b",
+   "htmlServedSha256": "cfdc6faede3bf9aba65fd4f4ca60b5181da206fe5929934be314fbc73f90d11d",
+   "distHtmlSha256": "b9c2b9751f57962585bb9788255e2aa42a228c0a8b9983755191d2004bab545a",
+   "snippetSha256": [
+    "bab050f50dae868424d9217ad8b17ca9a60d732a9cc9d05e5611db08c8a3c57e",
+    "0130766af83c62e9b82034cc734c2b0fc7a99bbe2b594287f694346f5472ab30",
+    "f9626b55244bf531b64a068cc40e56e103392ddfdccce32458c6da7508ac45d0"
+   ],
+   "diagSuffixSha256": "1f6722afcd5673ae42268010f1d4d162513354ea555dd6ffe74fedabd79f93c3",
+   "checks": {
+    "bundleFileIsGeneration80": true,
+    "shellEqualsGeneration80": true,
+    "pageIsGeneration80": true,
+    "pagePointsAtV26": true,
+    "htmlIsDistPlusSnippets": true,
+    "wasmLoaderManifestEqualArchive": true,
+    "archiveWorkerIsPinned": true,
+    "workerIsArchivePlusSuffixExactly": true
+   },
+   "ok": true
+  }
+ },
+ "runs": [
+  {
+   "browser": "chrome",
+   "recipe": "list-contexts",
+   "repetition": 1,
+   "browserVersion": "Chrome/156.0.8078.47",
+   "after": {
+    "pill": "ready",
+    "latency": "• 項目符號 失敗",
+    "toast": "• 項目符號：動作已送出，但這一格的檢查涵蓋了不只一個段落，無法單獨核對你的段落。請看一下結果，不是你要的就按「復原」。這是檢查的極限，不是文件壞了",
+    "revision": "1",
+    "pressed": {
+     "bold": "false",
+     "italic": "false",
+     "underline": "false",
+     "strikethrough": "false"
+    },
+    "blobs": 0
+   },
+   "settled": true,
+   "traffic": [
+    {
+     "operation": "editorActionV2",
+     "action": "insert-paragraph-break",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": true,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-list-unordered",
+     "ok": false,
+     "code": "MUTATION_OUTCOME_UNKNOWN",
+     "message": "the readback covers more than one paragraph",
+     "barrier": {
+      "stage": null,
+      "route": "collapsed",
+      "dispatched": true,
+      "failureShape": "multi-block-readback",
+      "resultSeen": null,
+      "resultSuccess": null,
+      "selectionResultSeen": true,
+      "command": null
+     },
+     "resultFormat": null,
+     "errorKeys": [
+      "code",
+      "documentHandle",
+      "formatBarrier",
+      "message",
+      "operation"
+     ],
+     "errorDispatched": null
+    }
+   ],
+   "raw": [
+    {
+     "type": "editor-action-completed",
+     "requestId": 10,
+     "code": null,
+     "completion": "uno-command-result",
+     "barrier": null,
+     "worker": "http://127.0.0.1:39157/profiles/e2-editor-v26/sdk-worker.js"
+    },
+    {
+     "type": "error",
+     "requestId": 13,
+     "code": "MUTATION_OUTCOME_UNKNOWN",
+     "completion": null,
+     "barrier": {
+      "command": ".uno:DefaultBullet",
+      "stage": "awaiting-result",
+      "dispatched": true,
+      "failureShape": "multi-block-readback",
+      "route": "collapsed",
+      "selectionTypeReadable": true,
+      "hasDispatched": true,
+      "hasUndo": false,
+      "paragraphIdentity": {
+       "checked": false,
+       "dispatchKnown": false,
+       "readbackKnown": false,
+       "dispatchUsable": false,
+       "readbackUsable": false
+      },
+      "readback": {
+       "parsed": true,
+       "unknownTag": false,
+       "malformedNesting": false,
+       "footnoteApparatus": false,
+       "multiBlock": true,
+       "blockCount": 2,
+       "itemCount": 1,
+       "listTag": "ul",
+       "blockTag": "p",
+       "expectedListTag": "ul",
+       "expectedBlockTag": "",
+       "restoreConfirmed": true,
+       "html": "<!DOCTYPE html>\n<html>\n<head>\n\t<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\"/>\n\t<title></title>\n\t<meta name=\"generator\" content=\"%PRODUCTNAME %PRODUCTVERSION%PRODUCTEXTENSION (Emscripten)\"/>\n\t<style type=\"text/css\">\n\t\t@page { size: 8.5in 11in; margin: 0.79in }\n\t\tp { margin-bottom: 0.1in; line-height: 115%; background: transparent }\n\t</style>\n</head>\n<body lang=\"en-US\" link=\"#000080\" vlink=\"#800000\" dir=\"ltr\">\n<ul><li><p style=\"margin-bottom: 0.08in; line-height: 100%\"></p></li>\n</ul>\n<p style=\"margin-bottom: 0.08in; line-height: 100%\">E1-LC-END</p>\n</body>\n</html>"
+      }
+     },
+     "worker": "http://127.0.0.1:39157/profiles/e2-editor-v26/sdk-worker.js"
+    }
+   ],
+   "transport": {
+    "transport": "cdp-auto-attach",
+    "workers": [
+     {
+      "sessionId": "315FD1195869A5279510FE40D6DB0002",
+      "url": "http://127.0.0.1:39157/profiles/e2-editor-v26/sdk-worker.js",
+      "install": "installed"
+     }
+    ],
+    "attachError": null
+   },
+   "cleanup": {}
+  },
+  {
+   "browser": "chrome",
+   "recipe": "list-contexts",
+   "repetition": 2,
+   "browserVersion": "Chrome/156.0.8078.47",
+   "after": {
+    "pill": "ready",
+    "latency": "• 項目符號 失敗",
+    "toast": "• 項目符號：動作已送出，但這一格的檢查涵蓋了不只一個段落，無法單獨核對你的段落。請看一下結果，不是你要的就按「復原」。這是檢查的極限，不是文件壞了",
+    "revision": "1",
+    "pressed": {
+     "bold": "false",
+     "italic": "false",
+     "underline": "false",
+     "strikethrough": "false"
+    },
+    "blobs": 0
+   },
+   "settled": true,
+   "traffic": [
+    {
+     "operation": "editorActionV2",
+     "action": "insert-paragraph-break",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": true,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-list-unordered",
+     "ok": false,
+     "code": "MUTATION_OUTCOME_UNKNOWN",
+     "message": "the readback covers more than one paragraph",
+     "barrier": {
+      "stage": null,
+      "route": "collapsed",
+      "dispatched": true,
+      "failureShape": "multi-block-readback",
+      "resultSeen": null,
+      "resultSuccess": null,
+      "selectionResultSeen": true,
+      "command": null
+     },
+     "resultFormat": null,
+     "errorKeys": [
+      "code",
+      "documentHandle",
+      "formatBarrier",
+      "message",
+      "operation"
+     ],
+     "errorDispatched": null
+    }
+   ],
+   "raw": [
+    {
+     "type": "editor-action-completed",
+     "requestId": 10,
+     "code": null,
+     "completion": "uno-command-result",
+     "barrier": null,
+     "worker": "http://127.0.0.1:39157/profiles/e2-editor-v26/sdk-worker.js"
+    },
+    {
+     "type": "error",
+     "requestId": 13,
+     "code": "MUTATION_OUTCOME_UNKNOWN",
+     "completion": null,
+     "barrier": {
+      "command": ".uno:DefaultBullet",
+      "stage": "awaiting-result",
+      "dispatched": true,
+      "failureShape": "multi-block-readback",
+      "route": "collapsed",
+      "selectionTypeReadable": true,
+      "hasDispatched": true,
+      "hasUndo": false,
+      "paragraphIdentity": {
+       "checked": false,
+       "dispatchKnown": false,
+       "readbackKnown": false,
+       "dispatchUsable": false,
+       "readbackUsable": false
+      },
+      "readback": {
+       "parsed": true,
+       "unknownTag": false,
+       "malformedNesting": false,
+       "footnoteApparatus": false,
+       "multiBlock": true,
+       "blockCount": 2,
+       "itemCount": 1,
+       "listTag": "ul",
+       "blockTag": "p",
+       "expectedListTag": "ul",
+       "expectedBlockTag": "",
+       "restoreConfirmed": true,
+       "html": "<!DOCTYPE html>\n<html>\n<head>\n\t<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\"/>\n\t<title></title>\n\t<meta name=\"generator\" content=\"%PRODUCTNAME %PRODUCTVERSION%PRODUCTEXTENSION (Emscripten)\"/>\n\t<style type=\"text/css\">\n\t\t@page { size: 8.5in 11in; margin: 0.79in }\n\t\tp { margin-bottom: 0.1in; line-height: 115%; background: transparent }\n\t</style>\n</head>\n<body lang=\"en-US\" link=\"#000080\" vlink=\"#800000\" dir=\"ltr\">\n<ul><li><p style=\"margin-bottom: 0.08in; line-height: 100%\"></p></li>\n</ul>\n<p style=\"margin-bottom: 0.08in; line-height: 100%\">E1-LC-END</p>\n</body>\n</html>"
+      }
+     },
+     "worker": "http://127.0.0.1:39157/profiles/e2-editor-v26/sdk-worker.js"
+    }
+   ],
+   "transport": {
+    "transport": "cdp-auto-attach",
+    "workers": [
+     {
+      "sessionId": "6451BCAC467C43C0B6CDF08B8952C264",
+      "url": "http://127.0.0.1:39157/profiles/e2-editor-v26/sdk-worker.js",
+      "install": "installed"
+     }
+    ],
+    "attachError": null
+   },
+   "cleanup": {}
+  },
+  {
+   "browser": "chrome",
+   "recipe": "list-contexts",
+   "repetition": 3,
+   "browserVersion": "Chrome/156.0.8078.47",
+   "after": {
+    "pill": "ready",
+    "latency": "• 項目符號 失敗",
+    "toast": "• 項目符號：動作已送出，但這一格的檢查涵蓋了不只一個段落，無法單獨核對你的段落。請看一下結果，不是你要的就按「復原」。這是檢查的極限，不是文件壞了",
+    "revision": "1",
+    "pressed": {
+     "bold": "false",
+     "italic": "false",
+     "underline": "false",
+     "strikethrough": "false"
+    },
+    "blobs": 0
+   },
+   "settled": true,
+   "traffic": [
+    {
+     "operation": "editorActionV2",
+     "action": "insert-paragraph-break",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": true,
+      "italic": false,
+      "underline": false,
+      "strikethrough": false
+     },
+     "errorKeys": [],
+     "errorDispatched": null
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-list-unordered",
+     "ok": false,
+     "code": "MUTATION_OUTCOME_UNKNOWN",
+     "message": "the readback covers more than one paragraph",
+     "barrier": {
+      "stage": null,
+      "route": "collapsed",
+      "dispatched": true,
+      "failureShape": "multi-block-readback",
+      "resultSeen": null,
+      "resultSuccess": null,
+      "selectionResultSeen": true,
+      "command": null
+     },
+     "resultFormat": null,
+     "errorKeys": [
+      "code",
+      "documentHandle",
+      "formatBarrier",
+      "message",
+      "operation"
+     ],
+     "errorDispatched": null
+    }
+   ],
+   "raw": [
+    {
+     "type": "editor-action-completed",
+     "requestId": 10,
+     "code": null,
+     "completion": "uno-command-result",
+     "barrier": null,
+     "worker": "http://127.0.0.1:39157/profiles/e2-editor-v26/sdk-worker.js"
+    },
+    {
+     "type": "error",
+     "requestId": 13,
+     "code": "MUTATION_OUTCOME_UNKNOWN",
+     "completion": null,
+     "barrier": {
+      "command": ".uno:DefaultBullet",
+      "stage": "awaiting-result",
+      "dispatched": true,
+      "failureShape": "multi-block-readback",
+      "route": "collapsed",
+      "selectionTypeReadable": true,
+      "hasDispatched": true,
+      "hasUndo": false,
+      "paragraphIdentity": {
+       "checked": false,
+       "dispatchKnown": false,
+       "readbackKnown": false,
+       "dispatchUsable": false,
+       "readbackUsable": false
+      },
+      "readback": {
+       "parsed": true,
+       "unknownTag": false,
+       "malformedNesting": false,
+       "footnoteApparatus": false,
+       "multiBlock": true,
+       "blockCount": 2,
+       "itemCount": 1,
+       "listTag": "ul",
+       "blockTag": "p",
+       "expectedListTag": "ul",
+       "expectedBlockTag": "",
+       "restoreConfirmed": true,
+       "html": "<!DOCTYPE html>\n<html>\n<head>\n\t<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\"/>\n\t<title></title>\n\t<meta name=\"generator\" content=\"%PRODUCTNAME %PRODUCTVERSION%PRODUCTEXTENSION (Emscripten)\"/>\n\t<style type=\"text/css\">\n\t\t@page { size: 8.5in 11in; margin: 0.79in }\n\t\tp { margin-bottom: 0.1in; line-height: 115%; background: transparent }\n\t</style>\n</head>\n<body lang=\"en-US\" link=\"#000080\" vlink=\"#800000\" dir=\"ltr\">\n<ul><li><p style=\"margin-bottom: 0.08in; line-height: 100%\"></p></li>\n</ul>\n<p style=\"margin-bottom: 0.08in; line-height: 100%\">E1-LC-END</p>\n</body>\n</html>"
+      }
+     },
+     "worker": "http://127.0.0.1:39157/profiles/e2-editor-v26/sdk-worker.js"
+    }
+   ],
+   "transport": {
+    "transport": "cdp-auto-attach",
+    "workers": [
+     {
+      "sessionId": "D11DFCC1C8FEA3E046A18CC7F8FD4B84",
+      "url": "http://127.0.0.1:39157/profiles/e2-editor-v26/sdk-worker.js",
+      "install": "installed"
+     }
+    ],
+    "attachError": null
+   },
+   "cleanup": {}
+  },
+  {
+   "browser": "chrome",
+   "recipe": "s3",
+   "repetition": 1,
+   "browserVersion": "Chrome/156.0.8078.47",
+   "opened": {
+    "pill": "ready",
+    "latency": "—",
+    "toast": "已開啟 two-plain.odt",
+    "revision": "0",
+    "notice": {
+     "show": "0",
+     "text": ""
+    },
+    "focus": "BODY",
+    "requests": 11,
+    "responses": 11,
+    "workers": 2,
+    "blobs": 0
+   },
+   "clickAt": {
+    "fraction": [
+     0.8,
+     0.0894
+    ],
+    "viewport": [
+     962.5,
+     373.67702499999996
+    ],
+    "paper": {
+     "left": 242.5,
+     "top": 261.390625,
+     "width": 900,
+     "height": 1256,
+     "deskTop": 241.390625,
+     "deskBottom": 944
+    }
+   },
+   "clicked": {
+    "pill": "ready",
+    "latency": "定位游標 57 ms",
+    "toast": "已開啟 two-plain.odt",
+    "revision": "0",
+    "notice": {
+     "show": "0",
+     "text": ""
+    },
+    "focus": "sink",
+    "requests": 15,
+    "responses": 15,
+    "workers": 2,
+    "blobs": 0
+   },
+   "caretPlaced": true,
+   "entered": {
+    "pill": "ready",
+    "latency": "↵ 分段 28 ms",
+    "toast": "已開啟 two-plain.odt",
+    "revision": "1",
+    "notice": {
+     "show": "0",
+     "text": ""
+    },
+    "focus": "sink",
+    "requests": 18,
+    "responses": 18,
+    "workers": 2,
+    "blobs": 0
+   },
+   "enterSettled": true,
+   "enterRows": [
+    {
+     "operation": "editorActionV2",
+     "action": "insert-paragraph-break",
+     "route": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "revision": [
+      0,
+      1
+     ]
+    },
+    {
+     "operation": "paint",
+     "action": null,
+     "route": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "revision": [
+      null,
+      1
+     ]
+    },
+    {
+     "operation": "paint",
+     "action": null,
+     "route": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "revision": [
+      null,
+      1
+     ]
+    }
+   ],
+   "pressSettled": true,
+   "press": {
+    "pill": "ready",
+    "latency": "• 項目符號 失敗",
+    "toast": "• 項目符號：動作已送出，但這一格的檢查涵蓋了不只一個段落，無法單獨核對你的段落。請看一下結果，不是你要的就按「復原」。這是檢查的極限，不是文件壞了",
+    "revision": "1",
+    "notice": {
+     "show": "0",
+     "text": ""
+    },
+    "focus": "sink",
+    "requests": 21,
+    "responses": 21,
+    "workers": 2,
+    "blobs": 0
+   },
+   "pressRows": [
+    {
+     "operation": "editorActionV2",
+     "action": "set-list-unordered",
+     "route": null,
+     "replied": true,
+     "ok": false,
+     "code": "MUTATION_OUTCOME_UNKNOWN",
+     "message": "the readback covers more than one paragraph",
+     "barrier": {
+      "stage": null,
+      "route": "collapsed",
+      "dispatched": true,
+      "failureShape": "multi-block-readback",
+      "selectionResultSeen": true,
+      "resultSeen": null
+     },
+     "revision": [
+      null,
+      null
+     ]
+    },
+    {
+     "operation": "paint",
+     "action": null,
+     "route": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "revision": [
+      null,
+      1
+     ]
+    },
+    {
+     "operation": "editorGetStateV2",
+     "action": null,
+     "route": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "revision": [
+      null,
+      1
+     ]
+    }
+   ],
+   "raw": [
+    {
+     "type": "editor-action-completed",
+     "requestId": 10,
+     "code": null,
+     "completion": "uno-command-result",
+     "barrier": null,
+     "worker": "http://127.0.0.1:39157/profiles/e2-editor-v26/sdk-worker.js"
+    },
+    {
+     "type": "error",
+     "requestId": 13,
+     "code": "MUTATION_OUTCOME_UNKNOWN",
+     "completion": null,
+     "barrier": {
+      "command": ".uno:DefaultBullet",
+      "stage": "awaiting-result",
+      "dispatched": true,
+      "failureShape": "multi-block-readback",
+      "route": "collapsed",
+      "selectionTypeReadable": true,
+      "hasDispatched": true,
+      "hasUndo": false,
+      "paragraphIdentity": {
+       "checked": false,
+       "dispatchKnown": false,
+       "readbackKnown": false,
+       "dispatchUsable": false,
+       "readbackUsable": false
+      },
+      "readback": {
+       "parsed": true,
+       "unknownTag": false,
+       "malformedNesting": false,
+       "footnoteApparatus": false,
+       "multiBlock": true,
+       "blockCount": 2,
+       "itemCount": 1,
+       "listTag": "ul",
+       "blockTag": "p",
+       "expectedListTag": "ul",
+       "expectedBlockTag": "",
+       "restoreConfirmed": true,
+       "html": "<!DOCTYPE html>\n<html>\n<head>\n\t<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\"/>\n\t<title></title>\n\t<meta name=\"generator\" content=\"%PRODUCTNAME %PRODUCTVERSION%PRODUCTEXTENSION (Emscripten)\"/>\n\t<style type=\"text/css\">\n\t\t@page { size: 8.5in 11in; margin: 0.79in }\n\t\tp { margin-bottom: 0.1in; line-height: 115%; background: transparent }\n\t</style>\n</head>\n<body lang=\"en-US\" link=\"#000080\" vlink=\"#800000\" dir=\"ltr\">\n<ul><li><p style=\"margin-bottom: 0in; line-height: 100%\"></p></li>\n</ul>\n<p style=\"margin-bottom: 0in; line-height: 100%\">E1-EMPTY-AFTER</p>\n</body>\n</html>"
+      }
+     },
+     "worker": "http://127.0.0.1:39157/profiles/e2-editor-v26/sdk-worker.js"
+    }
+   ],
+   "transport": {
+    "transport": "cdp-auto-attach",
+    "workers": [
+     {
+      "sessionId": "E7B6D368D3CF7DA84A53B5DCF68C71F3",
+      "url": "http://127.0.0.1:39157/profiles/e2-editor-v26/sdk-worker.js",
+      "install": "installed"
+     }
+    ],
+    "attachError": null
+   },
+   "cleanup": {}
+  },
+  {
+   "browser": "chrome",
+   "recipe": "s3",
+   "repetition": 2,
+   "browserVersion": "Chrome/156.0.8078.47",
+   "opened": {
+    "pill": "ready",
+    "latency": "—",
+    "toast": "已開啟 two-plain.odt",
+    "revision": "0",
+    "notice": {
+     "show": "0",
+     "text": ""
+    },
+    "focus": "BODY",
+    "requests": 11,
+    "responses": 11,
+    "workers": 2,
+    "blobs": 0
+   },
+   "clickAt": {
+    "fraction": [
+     0.8,
+     0.0894
+    ],
+    "viewport": [
+     962.5,
+     373.67702499999996
+    ],
+    "paper": {
+     "left": 242.5,
+     "top": 261.390625,
+     "width": 900,
+     "height": 1256,
+     "deskTop": 241.390625,
+     "deskBottom": 944
+    }
+   },
+   "clicked": {
+    "pill": "ready",
+    "latency": "定位游標 57 ms",
+    "toast": "已開啟 two-plain.odt",
+    "revision": "0",
+    "notice": {
+     "show": "0",
+     "text": ""
+    },
+    "focus": "sink",
+    "requests": 15,
+    "responses": 15,
+    "workers": 2,
+    "blobs": 0
+   },
+   "caretPlaced": true,
+   "entered": {
+    "pill": "ready",
+    "latency": "↵ 分段 23 ms",
+    "toast": "已開啟 two-plain.odt",
+    "revision": "1",
+    "notice": {
+     "show": "0",
+     "text": ""
+    },
+    "focus": "sink",
+    "requests": 18,
+    "responses": 18,
+    "workers": 2,
+    "blobs": 0
+   },
+   "enterSettled": true,
+   "enterRows": [
+    {
+     "operation": "editorActionV2",
+     "action": "insert-paragraph-break",
+     "route": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "revision": [
+      0,
+      1
+     ]
+    },
+    {
+     "operation": "paint",
+     "action": null,
+     "route": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "revision": [
+      null,
+      1
+     ]
+    },
+    {
+     "operation": "paint",
+     "action": null,
+     "route": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "revision": [
+      null,
+      1
+     ]
+    }
+   ],
+   "pressSettled": true,
+   "press": {
+    "pill": "ready",
+    "latency": "• 項目符號 失敗",
+    "toast": "• 項目符號：動作已送出，但這一格的檢查涵蓋了不只一個段落，無法單獨核對你的段落。請看一下結果，不是你要的就按「復原」。這是檢查的極限，不是文件壞了",
+    "revision": "1",
+    "notice": {
+     "show": "0",
+     "text": ""
+    },
+    "focus": "sink",
+    "requests": 21,
+    "responses": 21,
+    "workers": 2,
+    "blobs": 0
+   },
+   "pressRows": [
+    {
+     "operation": "editorActionV2",
+     "action": "set-list-unordered",
+     "route": null,
+     "replied": true,
+     "ok": false,
+     "code": "MUTATION_OUTCOME_UNKNOWN",
+     "message": "the readback covers more than one paragraph",
+     "barrier": {
+      "stage": null,
+      "route": "collapsed",
+      "dispatched": true,
+      "failureShape": "multi-block-readback",
+      "selectionResultSeen": true,
+      "resultSeen": null
+     },
+     "revision": [
+      null,
+      null
+     ]
+    },
+    {
+     "operation": "paint",
+     "action": null,
+     "route": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "revision": [
+      null,
+      1
+     ]
+    },
+    {
+     "operation": "editorGetStateV2",
+     "action": null,
+     "route": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "revision": [
+      null,
+      1
+     ]
+    }
+   ],
+   "raw": [
+    {
+     "type": "editor-action-completed",
+     "requestId": 10,
+     "code": null,
+     "completion": "uno-command-result",
+     "barrier": null,
+     "worker": "http://127.0.0.1:39157/profiles/e2-editor-v26/sdk-worker.js"
+    },
+    {
+     "type": "error",
+     "requestId": 13,
+     "code": "MUTATION_OUTCOME_UNKNOWN",
+     "completion": null,
+     "barrier": {
+      "command": ".uno:DefaultBullet",
+      "stage": "awaiting-result",
+      "dispatched": true,
+      "failureShape": "multi-block-readback",
+      "route": "collapsed",
+      "selectionTypeReadable": true,
+      "hasDispatched": true,
+      "hasUndo": false,
+      "paragraphIdentity": {
+       "checked": false,
+       "dispatchKnown": false,
+       "readbackKnown": false,
+       "dispatchUsable": false,
+       "readbackUsable": false
+      },
+      "readback": {
+       "parsed": true,
+       "unknownTag": false,
+       "malformedNesting": false,
+       "footnoteApparatus": false,
+       "multiBlock": true,
+       "blockCount": 2,
+       "itemCount": 1,
+       "listTag": "ul",
+       "blockTag": "p",
+       "expectedListTag": "ul",
+       "expectedBlockTag": "",
+       "restoreConfirmed": true,
+       "html": "<!DOCTYPE html>\n<html>\n<head>\n\t<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\"/>\n\t<title></title>\n\t<meta name=\"generator\" content=\"%PRODUCTNAME %PRODUCTVERSION%PRODUCTEXTENSION (Emscripten)\"/>\n\t<style type=\"text/css\">\n\t\t@page { size: 8.5in 11in; margin: 0.79in }\n\t\tp { margin-bottom: 0.1in; line-height: 115%; background: transparent }\n\t</style>\n</head>\n<body lang=\"en-US\" link=\"#000080\" vlink=\"#800000\" dir=\"ltr\">\n<ul><li><p style=\"margin-bottom: 0in; line-height: 100%\"></p></li>\n</ul>\n<p style=\"margin-bottom: 0in; line-height: 100%\">E1-EMPTY-AFTER</p>\n</body>\n</html>"
+      }
+     },
+     "worker": "http://127.0.0.1:39157/profiles/e2-editor-v26/sdk-worker.js"
+    }
+   ],
+   "transport": {
+    "transport": "cdp-auto-attach",
+    "workers": [
+     {
+      "sessionId": "08907C256FE854904DDE56DD41D865B1",
+      "url": "http://127.0.0.1:39157/profiles/e2-editor-v26/sdk-worker.js",
+      "install": "installed"
+     }
+    ],
+    "attachError": null
+   },
+   "cleanup": {}
+  },
+  {
+   "browser": "chrome",
+   "recipe": "s3",
+   "repetition": 3,
+   "browserVersion": "Chrome/156.0.8078.47",
+   "opened": {
+    "pill": "ready",
+    "latency": "—",
+    "toast": "已開啟 two-plain.odt",
+    "revision": "0",
+    "notice": {
+     "show": "0",
+     "text": ""
+    },
+    "focus": "BODY",
+    "requests": 11,
+    "responses": 11,
+    "workers": 2,
+    "blobs": 0
+   },
+   "clickAt": {
+    "fraction": [
+     0.8,
+     0.0894
+    ],
+    "viewport": [
+     962.5,
+     373.67702499999996
+    ],
+    "paper": {
+     "left": 242.5,
+     "top": 261.390625,
+     "width": 900,
+     "height": 1256,
+     "deskTop": 241.390625,
+     "deskBottom": 944
+    }
+   },
+   "clicked": {
+    "pill": "ready",
+    "latency": "定位游標 57 ms",
+    "toast": "已開啟 two-plain.odt",
+    "revision": "0",
+    "notice": {
+     "show": "0",
+     "text": ""
+    },
+    "focus": "sink",
+    "requests": 15,
+    "responses": 15,
+    "workers": 2,
+    "blobs": 0
+   },
+   "caretPlaced": true,
+   "entered": {
+    "pill": "ready",
+    "latency": "↵ 分段 30 ms",
+    "toast": "已開啟 two-plain.odt",
+    "revision": "1",
+    "notice": {
+     "show": "0",
+     "text": ""
+    },
+    "focus": "sink",
+    "requests": 18,
+    "responses": 18,
+    "workers": 2,
+    "blobs": 0
+   },
+   "enterSettled": true,
+   "enterRows": [
+    {
+     "operation": "editorActionV2",
+     "action": "insert-paragraph-break",
+     "route": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "revision": [
+      0,
+      1
+     ]
+    },
+    {
+     "operation": "paint",
+     "action": null,
+     "route": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "revision": [
+      null,
+      1
+     ]
+    },
+    {
+     "operation": "paint",
+     "action": null,
+     "route": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "revision": [
+      null,
+      1
+     ]
+    }
+   ],
+   "pressSettled": true,
+   "press": {
+    "pill": "ready",
+    "latency": "• 項目符號 失敗",
+    "toast": "• 項目符號：動作已送出，但這一格的檢查涵蓋了不只一個段落，無法單獨核對你的段落。請看一下結果，不是你要的就按「復原」。這是檢查的極限，不是文件壞了",
+    "revision": "1",
+    "notice": {
+     "show": "0",
+     "text": ""
+    },
+    "focus": "sink",
+    "requests": 21,
+    "responses": 21,
+    "workers": 2,
+    "blobs": 0
+   },
+   "pressRows": [
+    {
+     "operation": "editorActionV2",
+     "action": "set-list-unordered",
+     "route": null,
+     "replied": true,
+     "ok": false,
+     "code": "MUTATION_OUTCOME_UNKNOWN",
+     "message": "the readback covers more than one paragraph",
+     "barrier": {
+      "stage": null,
+      "route": "collapsed",
+      "dispatched": true,
+      "failureShape": "multi-block-readback",
+      "selectionResultSeen": true,
+      "resultSeen": null
+     },
+     "revision": [
+      null,
+      null
+     ]
+    },
+    {
+     "operation": "paint",
+     "action": null,
+     "route": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "revision": [
+      null,
+      1
+     ]
+    },
+    {
+     "operation": "editorGetStateV2",
+     "action": null,
+     "route": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "revision": [
+      null,
+      1
+     ]
+    }
+   ],
+   "raw": [
+    {
+     "type": "editor-action-completed",
+     "requestId": 10,
+     "code": null,
+     "completion": "uno-command-result",
+     "barrier": null,
+     "worker": "http://127.0.0.1:39157/profiles/e2-editor-v26/sdk-worker.js"
+    },
+    {
+     "type": "error",
+     "requestId": 13,
+     "code": "MUTATION_OUTCOME_UNKNOWN",
+     "completion": null,
+     "barrier": {
+      "command": ".uno:DefaultBullet",
+      "stage": "awaiting-result",
+      "dispatched": true,
+      "failureShape": "multi-block-readback",
+      "route": "collapsed",
+      "selectionTypeReadable": true,
+      "hasDispatched": true,
+      "hasUndo": false,
+      "paragraphIdentity": {
+       "checked": false,
+       "dispatchKnown": false,
+       "readbackKnown": false,
+       "dispatchUsable": false,
+       "readbackUsable": false
+      },
+      "readback": {
+       "parsed": true,
+       "unknownTag": false,
+       "malformedNesting": false,
+       "footnoteApparatus": false,
+       "multiBlock": true,
+       "blockCount": 2,
+       "itemCount": 1,
+       "listTag": "ul",
+       "blockTag": "p",
+       "expectedListTag": "ul",
+       "expectedBlockTag": "",
+       "restoreConfirmed": true,
+       "html": "<!DOCTYPE html>\n<html>\n<head>\n\t<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\"/>\n\t<title></title>\n\t<meta name=\"generator\" content=\"%PRODUCTNAME %PRODUCTVERSION%PRODUCTEXTENSION (Emscripten)\"/>\n\t<style type=\"text/css\">\n\t\t@page { size: 8.5in 11in; margin: 0.79in }\n\t\tp { margin-bottom: 0.1in; line-height: 115%; background: transparent }\n\t</style>\n</head>\n<body lang=\"en-US\" link=\"#000080\" vlink=\"#800000\" dir=\"ltr\">\n<ul><li><p style=\"margin-bottom: 0in; line-height: 100%\"></p></li>\n</ul>\n<p style=\"margin-bottom: 0in; line-height: 100%\">E1-EMPTY-AFTER</p>\n</body>\n</html>"
+      }
+     },
+     "worker": "http://127.0.0.1:39157/profiles/e2-editor-v26/sdk-worker.js"
+    }
+   ],
+   "transport": {
+    "transport": "cdp-auto-attach",
+    "workers": [
+     {
+      "sessionId": "64EACDCABFC61BD38337F36062CA50B9",
+      "url": "http://127.0.0.1:39157/profiles/e2-editor-v26/sdk-worker.js",
+      "install": "installed"
+     }
+    ],
+    "attachError": null
+   },
+   "cleanup": {}
+  },
+  {
+   "browser": "firefox",
+   "recipe": "list-contexts",
+   "repetition": 1,
+   "browserVersion": "157.0.1",
+   "after": {
+    "pill": "ready",
+    "latency": "• 項目符號 失敗",
+    "toast": "• 項目符號：動作已送出，但這一格的檢查涵蓋了不只一個段落，無法單獨核對你的段落。請看一下結果，不是你要的就按「復原」。這是檢查的極限，不是文件壞了",
+    "revision": "1",
+    "pressed": {
+     "bold": "false",
+     "italic": "false",
+     "underline": "false",
+     "strikethrough": "false"
+    },
+    "blobs": 0
+   },
+   "settled": true,
+   "traffic": [
+    {
+     "operation": "editorActionV2",
+     "action": "insert-paragraph-break",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": null,
+      "italic": null,
+      "underline": null,
+      "strikethrough": null
+     },
+     "errorKeys": [],
+     "errorDispatched": null
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-list-unordered",
+     "ok": false,
+     "code": "MUTATION_OUTCOME_UNKNOWN",
+     "message": "the readback covers more than one paragraph",
+     "barrier": {
+      "stage": null,
+      "route": "collapsed",
+      "dispatched": true,
+      "failureShape": "multi-block-readback",
+      "resultSeen": null,
+      "resultSuccess": null,
+      "selectionResultSeen": true,
+      "command": null
+     },
+     "resultFormat": null,
+     "errorKeys": [
+      "code",
+      "documentHandle",
+      "formatBarrier",
+      "message",
+      "operation"
+     ],
+     "errorDispatched": null
+    }
+   ],
+   "raw": [
+    {
+     "type": "editor-action-completed",
+     "requestId": 10,
+     "code": null,
+     "completion": "uno-command-result",
+     "barrier": null
+    },
+    {
+     "type": "error",
+     "requestId": 13,
+     "code": "MUTATION_OUTCOME_UNKNOWN",
+     "completion": null,
+     "barrier": {
+      "command": ".uno:DefaultBullet",
+      "stage": "awaiting-result",
+      "dispatched": true,
+      "failureShape": "multi-block-readback",
+      "route": "collapsed",
+      "selectionTypeReadable": true,
+      "hasDispatched": true,
+      "hasUndo": false,
+      "paragraphIdentity": {
+       "checked": false,
+       "dispatchKnown": false,
+       "readbackKnown": false,
+       "dispatchUsable": false,
+       "readbackUsable": false
+      },
+      "readback": {
+       "parsed": true,
+       "unknownTag": false,
+       "malformedNesting": false,
+       "footnoteApparatus": false,
+       "multiBlock": true,
+       "blockCount": 2,
+       "itemCount": 1,
+       "listTag": "ul",
+       "blockTag": "p",
+       "expectedListTag": "ul",
+       "expectedBlockTag": "",
+       "restoreConfirmed": true,
+       "html": "<!DOCTYPE html>\n<html>\n<head>\n\t<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\"/>\n\t<title></title>\n\t<meta name=\"generator\" content=\"%PRODUCTNAME %PRODUCTVERSION%PRODUCTEXTENSION (Emscripten)\"/>\n\t<style type=\"text/css\">\n\t\t@page { size: 8.5in 11in; margin: 0.79in }\n\t\tp { margin-bottom: 0.1in; line-height: 115%; background: transparent }\n\t</style>\n</head>\n<body lang=\"en-US\" link=\"#000080\" vlink=\"#800000\" dir=\"ltr\">\n<ul><li><p style=\"margin-bottom: 0.08in; line-height: 100%\"></p></li>\n</ul>\n<p style=\"margin-bottom: 0.08in; line-height: 100%\">E1-LC-END</p>\n</body>\n</html>"
+      }
+     }
+    }
+   ],
+   "transport": {
+    "transport": "broadcast-channel",
+    "channel": "open"
+   },
+   "cleanup": {}
+  },
+  {
+   "browser": "firefox",
+   "recipe": "list-contexts",
+   "repetition": 2,
+   "browserVersion": "157.0.1",
+   "after": {
+    "pill": "ready",
+    "latency": "• 項目符號 失敗",
+    "toast": "• 項目符號：動作已送出，但這一格的檢查涵蓋了不只一個段落，無法單獨核對你的段落。請看一下結果，不是你要的就按「復原」。這是檢查的極限，不是文件壞了",
+    "revision": "1",
+    "pressed": {
+     "bold": "false",
+     "italic": "false",
+     "underline": "false",
+     "strikethrough": "false"
+    },
+    "blobs": 0
+   },
+   "settled": true,
+   "traffic": [
+    {
+     "operation": "editorActionV2",
+     "action": "insert-paragraph-break",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": null,
+      "italic": null,
+      "underline": null,
+      "strikethrough": null
+     },
+     "errorKeys": [],
+     "errorDispatched": null
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-list-unordered",
+     "ok": false,
+     "code": "MUTATION_OUTCOME_UNKNOWN",
+     "message": "the readback covers more than one paragraph",
+     "barrier": {
+      "stage": null,
+      "route": "collapsed",
+      "dispatched": true,
+      "failureShape": "multi-block-readback",
+      "resultSeen": null,
+      "resultSuccess": null,
+      "selectionResultSeen": true,
+      "command": null
+     },
+     "resultFormat": null,
+     "errorKeys": [
+      "code",
+      "documentHandle",
+      "formatBarrier",
+      "message",
+      "operation"
+     ],
+     "errorDispatched": null
+    }
+   ],
+   "raw": [
+    {
+     "type": "editor-action-completed",
+     "requestId": 10,
+     "code": null,
+     "completion": "uno-command-result",
+     "barrier": null
+    },
+    {
+     "type": "error",
+     "requestId": 13,
+     "code": "MUTATION_OUTCOME_UNKNOWN",
+     "completion": null,
+     "barrier": {
+      "command": ".uno:DefaultBullet",
+      "stage": "awaiting-result",
+      "dispatched": true,
+      "failureShape": "multi-block-readback",
+      "route": "collapsed",
+      "selectionTypeReadable": true,
+      "hasDispatched": true,
+      "hasUndo": false,
+      "paragraphIdentity": {
+       "checked": false,
+       "dispatchKnown": false,
+       "readbackKnown": false,
+       "dispatchUsable": false,
+       "readbackUsable": false
+      },
+      "readback": {
+       "parsed": true,
+       "unknownTag": false,
+       "malformedNesting": false,
+       "footnoteApparatus": false,
+       "multiBlock": true,
+       "blockCount": 2,
+       "itemCount": 1,
+       "listTag": "ul",
+       "blockTag": "p",
+       "expectedListTag": "ul",
+       "expectedBlockTag": "",
+       "restoreConfirmed": true,
+       "html": "<!DOCTYPE html>\n<html>\n<head>\n\t<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\"/>\n\t<title></title>\n\t<meta name=\"generator\" content=\"%PRODUCTNAME %PRODUCTVERSION%PRODUCTEXTENSION (Emscripten)\"/>\n\t<style type=\"text/css\">\n\t\t@page { size: 8.5in 11in; margin: 0.79in }\n\t\tp { margin-bottom: 0.1in; line-height: 115%; background: transparent }\n\t</style>\n</head>\n<body lang=\"en-US\" link=\"#000080\" vlink=\"#800000\" dir=\"ltr\">\n<ul><li><p style=\"margin-bottom: 0.08in; line-height: 100%\"></p></li>\n</ul>\n<p style=\"margin-bottom: 0.08in; line-height: 100%\">E1-LC-END</p>\n</body>\n</html>"
+      }
+     }
+    }
+   ],
+   "transport": {
+    "transport": "broadcast-channel",
+    "channel": "open"
+   },
+   "cleanup": {}
+  },
+  {
+   "browser": "firefox",
+   "recipe": "list-contexts",
+   "repetition": 3,
+   "browserVersion": "157.0.1",
+   "after": {
+    "pill": "ready",
+    "latency": "• 項目符號 失敗",
+    "toast": "• 項目符號：動作已送出，但這一格的檢查涵蓋了不只一個段落，無法單獨核對你的段落。請看一下結果，不是你要的就按「復原」。這是檢查的極限，不是文件壞了",
+    "revision": "1",
+    "pressed": {
+     "bold": "false",
+     "italic": "false",
+     "underline": "false",
+     "strikethrough": "false"
+    },
+    "blobs": 0
+   },
+   "settled": true,
+   "traffic": [
+    {
+     "operation": "editorActionV2",
+     "action": "insert-paragraph-break",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "resultFormat": {
+      "bold": null,
+      "italic": null,
+      "underline": null,
+      "strikethrough": null
+     },
+     "errorKeys": [],
+     "errorDispatched": null
+    },
+    {
+     "operation": "editorActionV2",
+     "action": "set-list-unordered",
+     "ok": false,
+     "code": "MUTATION_OUTCOME_UNKNOWN",
+     "message": "the readback covers more than one paragraph",
+     "barrier": {
+      "stage": null,
+      "route": "collapsed",
+      "dispatched": true,
+      "failureShape": "multi-block-readback",
+      "resultSeen": null,
+      "resultSuccess": null,
+      "selectionResultSeen": true,
+      "command": null
+     },
+     "resultFormat": null,
+     "errorKeys": [
+      "code",
+      "documentHandle",
+      "formatBarrier",
+      "message",
+      "operation"
+     ],
+     "errorDispatched": null
+    }
+   ],
+   "raw": [
+    {
+     "type": "editor-action-completed",
+     "requestId": 10,
+     "code": null,
+     "completion": "uno-command-result",
+     "barrier": null
+    },
+    {
+     "type": "error",
+     "requestId": 13,
+     "code": "MUTATION_OUTCOME_UNKNOWN",
+     "completion": null,
+     "barrier": {
+      "command": ".uno:DefaultBullet",
+      "stage": "awaiting-result",
+      "dispatched": true,
+      "failureShape": "multi-block-readback",
+      "route": "collapsed",
+      "selectionTypeReadable": true,
+      "hasDispatched": true,
+      "hasUndo": false,
+      "paragraphIdentity": {
+       "checked": false,
+       "dispatchKnown": false,
+       "readbackKnown": false,
+       "dispatchUsable": false,
+       "readbackUsable": false
+      },
+      "readback": {
+       "parsed": true,
+       "unknownTag": false,
+       "malformedNesting": false,
+       "footnoteApparatus": false,
+       "multiBlock": true,
+       "blockCount": 2,
+       "itemCount": 1,
+       "listTag": "ul",
+       "blockTag": "p",
+       "expectedListTag": "ul",
+       "expectedBlockTag": "",
+       "restoreConfirmed": true,
+       "html": "<!DOCTYPE html>\n<html>\n<head>\n\t<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\"/>\n\t<title></title>\n\t<meta name=\"generator\" content=\"%PRODUCTNAME %PRODUCTVERSION%PRODUCTEXTENSION (Emscripten)\"/>\n\t<style type=\"text/css\">\n\t\t@page { size: 8.5in 11in; margin: 0.79in }\n\t\tp { margin-bottom: 0.1in; line-height: 115%; background: transparent }\n\t</style>\n</head>\n<body lang=\"en-US\" link=\"#000080\" vlink=\"#800000\" dir=\"ltr\">\n<ul><li><p style=\"margin-bottom: 0.08in; line-height: 100%\"></p></li>\n</ul>\n<p style=\"margin-bottom: 0.08in; line-height: 100%\">E1-LC-END</p>\n</body>\n</html>"
+      }
+     }
+    }
+   ],
+   "transport": {
+    "transport": "broadcast-channel",
+    "channel": "open"
+   },
+   "cleanup": {}
+  },
+  {
+   "browser": "firefox",
+   "recipe": "s3",
+   "repetition": 1,
+   "browserVersion": "157.0.1",
+   "opened": {
+    "pill": "ready",
+    "latency": "—",
+    "toast": "已開啟 two-plain.odt",
+    "revision": "0",
+    "notice": {
+     "show": "0",
+     "text": ""
+    },
+    "focus": "BODY",
+    "requests": 11,
+    "responses": 11,
+    "workers": 2,
+    "blobs": 0
+   },
+   "clickAt": {
+    "fraction": [
+     0.8,
+     0.0894
+    ],
+    "viewport": [
+     964.0,
+     374.9864122070312
+    ],
+    "paper": {
+     "left": 244,
+     "top": 262.70001220703125,
+     "width": 900,
+     "height": 1256,
+     "deskTop": 242.6999969482422,
+     "deskBottom": 857.9999847412109
+    }
+   },
+   "clicked": {
+    "pill": "ready",
+    "latency": "定位游標 58 ms",
+    "toast": "已開啟 two-plain.odt",
+    "revision": "0",
+    "notice": {
+     "show": "0",
+     "text": ""
+    },
+    "focus": "sink",
+    "requests": 15,
+    "responses": 15,
+    "workers": 2,
+    "blobs": 0
+   },
+   "caretPlaced": true,
+   "entered": {
+    "pill": "ready",
+    "latency": "↵ 分段 28 ms",
+    "toast": "已開啟 two-plain.odt",
+    "revision": "1",
+    "notice": {
+     "show": "0",
+     "text": ""
+    },
+    "focus": "sink",
+    "requests": 18,
+    "responses": 18,
+    "workers": 2,
+    "blobs": 0
+   },
+   "enterSettled": true,
+   "enterRows": [
+    {
+     "operation": "editorActionV2",
+     "action": "insert-paragraph-break",
+     "route": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "revision": [
+      0,
+      1
+     ]
+    },
+    {
+     "operation": "paint",
+     "action": null,
+     "route": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "revision": [
+      null,
+      1
+     ]
+    },
+    {
+     "operation": "paint",
+     "action": null,
+     "route": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "revision": [
+      null,
+      1
+     ]
+    }
+   ],
+   "pressSettled": true,
+   "press": {
+    "pill": "ready",
+    "latency": "• 項目符號 失敗",
+    "toast": "• 項目符號：動作已送出，但這一格的檢查涵蓋了不只一個段落，無法單獨核對你的段落。請看一下結果，不是你要的就按「復原」。這是檢查的極限，不是文件壞了",
+    "revision": "1",
+    "notice": {
+     "show": "0",
+     "text": ""
+    },
+    "focus": "sink",
+    "requests": 21,
+    "responses": 21,
+    "workers": 2,
+    "blobs": 0
+   },
+   "pressRows": [
+    {
+     "operation": "editorActionV2",
+     "action": "set-list-unordered",
+     "route": null,
+     "replied": true,
+     "ok": false,
+     "code": "MUTATION_OUTCOME_UNKNOWN",
+     "message": "the readback covers more than one paragraph",
+     "barrier": {
+      "stage": null,
+      "route": "collapsed",
+      "dispatched": true,
+      "failureShape": "multi-block-readback",
+      "selectionResultSeen": true,
+      "resultSeen": null
+     },
+     "revision": [
+      null,
+      null
+     ]
+    },
+    {
+     "operation": "paint",
+     "action": null,
+     "route": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "revision": [
+      null,
+      1
+     ]
+    },
+    {
+     "operation": "editorGetStateV2",
+     "action": null,
+     "route": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "revision": [
+      null,
+      1
+     ]
+    }
+   ],
+   "raw": [
+    {
+     "type": "editor-action-completed",
+     "requestId": 10,
+     "code": null,
+     "completion": "uno-command-result",
+     "barrier": null
+    },
+    {
+     "type": "error",
+     "requestId": 13,
+     "code": "MUTATION_OUTCOME_UNKNOWN",
+     "completion": null,
+     "barrier": {
+      "command": ".uno:DefaultBullet",
+      "stage": "awaiting-result",
+      "dispatched": true,
+      "failureShape": "multi-block-readback",
+      "route": "collapsed",
+      "selectionTypeReadable": true,
+      "hasDispatched": true,
+      "hasUndo": false,
+      "paragraphIdentity": {
+       "checked": false,
+       "dispatchKnown": false,
+       "readbackKnown": false,
+       "dispatchUsable": false,
+       "readbackUsable": false
+      },
+      "readback": {
+       "parsed": true,
+       "unknownTag": false,
+       "malformedNesting": false,
+       "footnoteApparatus": false,
+       "multiBlock": true,
+       "blockCount": 2,
+       "itemCount": 1,
+       "listTag": "ul",
+       "blockTag": "p",
+       "expectedListTag": "ul",
+       "expectedBlockTag": "",
+       "restoreConfirmed": true,
+       "html": "<!DOCTYPE html>\n<html>\n<head>\n\t<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\"/>\n\t<title></title>\n\t<meta name=\"generator\" content=\"%PRODUCTNAME %PRODUCTVERSION%PRODUCTEXTENSION (Emscripten)\"/>\n\t<style type=\"text/css\">\n\t\t@page { size: 8.5in 11in; margin: 0.79in }\n\t\tp { margin-bottom: 0.1in; line-height: 115%; background: transparent }\n\t</style>\n</head>\n<body lang=\"en-US\" link=\"#000080\" vlink=\"#800000\" dir=\"ltr\">\n<ul><li><p style=\"margin-bottom: 0in; line-height: 100%\"></p></li>\n</ul>\n<p style=\"margin-bottom: 0in; line-height: 100%\">E1-EMPTY-AFTER</p>\n</body>\n</html>"
+      }
+     }
+    }
+   ],
+   "transport": {
+    "transport": "broadcast-channel",
+    "channel": "open"
+   },
+   "cleanup": {}
+  },
+  {
+   "browser": "firefox",
+   "recipe": "s3",
+   "repetition": 2,
+   "browserVersion": "157.0.1",
+   "opened": {
+    "pill": "ready",
+    "latency": "—",
+    "toast": "已開啟 two-plain.odt",
+    "revision": "0",
+    "notice": {
+     "show": "0",
+     "text": ""
+    },
+    "focus": "BODY",
+    "requests": 11,
+    "responses": 11,
+    "workers": 2,
+    "blobs": 0
+   },
+   "clickAt": {
+    "fraction": [
+     0.8,
+     0.0894
+    ],
+    "viewport": [
+     964.0,
+     374.9864122070312
+    ],
+    "paper": {
+     "left": 244,
+     "top": 262.70001220703125,
+     "width": 900,
+     "height": 1256,
+     "deskTop": 242.6999969482422,
+     "deskBottom": 857.9999847412109
+    }
+   },
+   "clicked": {
+    "pill": "ready",
+    "latency": "定位游標 59 ms",
+    "toast": "已開啟 two-plain.odt",
+    "revision": "0",
+    "notice": {
+     "show": "0",
+     "text": ""
+    },
+    "focus": "sink",
+    "requests": 15,
+    "responses": 15,
+    "workers": 2,
+    "blobs": 0
+   },
+   "caretPlaced": true,
+   "entered": {
+    "pill": "ready",
+    "latency": "↵ 分段 22 ms",
+    "toast": "已開啟 two-plain.odt",
+    "revision": "1",
+    "notice": {
+     "show": "0",
+     "text": ""
+    },
+    "focus": "sink",
+    "requests": 18,
+    "responses": 18,
+    "workers": 2,
+    "blobs": 0
+   },
+   "enterSettled": true,
+   "enterRows": [
+    {
+     "operation": "editorActionV2",
+     "action": "insert-paragraph-break",
+     "route": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "revision": [
+      0,
+      1
+     ]
+    },
+    {
+     "operation": "paint",
+     "action": null,
+     "route": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "revision": [
+      null,
+      1
+     ]
+    },
+    {
+     "operation": "paint",
+     "action": null,
+     "route": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "revision": [
+      null,
+      1
+     ]
+    }
+   ],
+   "pressSettled": true,
+   "press": {
+    "pill": "ready",
+    "latency": "• 項目符號 失敗",
+    "toast": "• 項目符號：動作已送出，但這一格的檢查涵蓋了不只一個段落，無法單獨核對你的段落。請看一下結果，不是你要的就按「復原」。這是檢查的極限，不是文件壞了",
+    "revision": "1",
+    "notice": {
+     "show": "0",
+     "text": ""
+    },
+    "focus": "sink",
+    "requests": 21,
+    "responses": 21,
+    "workers": 2,
+    "blobs": 0
+   },
+   "pressRows": [
+    {
+     "operation": "editorActionV2",
+     "action": "set-list-unordered",
+     "route": null,
+     "replied": true,
+     "ok": false,
+     "code": "MUTATION_OUTCOME_UNKNOWN",
+     "message": "the readback covers more than one paragraph",
+     "barrier": {
+      "stage": null,
+      "route": "collapsed",
+      "dispatched": true,
+      "failureShape": "multi-block-readback",
+      "selectionResultSeen": true,
+      "resultSeen": null
+     },
+     "revision": [
+      null,
+      null
+     ]
+    },
+    {
+     "operation": "paint",
+     "action": null,
+     "route": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "revision": [
+      null,
+      1
+     ]
+    },
+    {
+     "operation": "editorGetStateV2",
+     "action": null,
+     "route": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "revision": [
+      null,
+      1
+     ]
+    }
+   ],
+   "raw": [
+    {
+     "type": "editor-action-completed",
+     "requestId": 10,
+     "code": null,
+     "completion": "uno-command-result",
+     "barrier": null
+    },
+    {
+     "type": "error",
+     "requestId": 13,
+     "code": "MUTATION_OUTCOME_UNKNOWN",
+     "completion": null,
+     "barrier": {
+      "command": ".uno:DefaultBullet",
+      "stage": "awaiting-result",
+      "dispatched": true,
+      "failureShape": "multi-block-readback",
+      "route": "collapsed",
+      "selectionTypeReadable": true,
+      "hasDispatched": true,
+      "hasUndo": false,
+      "paragraphIdentity": {
+       "checked": false,
+       "dispatchKnown": false,
+       "readbackKnown": false,
+       "dispatchUsable": false,
+       "readbackUsable": false
+      },
+      "readback": {
+       "parsed": true,
+       "unknownTag": false,
+       "malformedNesting": false,
+       "footnoteApparatus": false,
+       "multiBlock": true,
+       "blockCount": 2,
+       "itemCount": 1,
+       "listTag": "ul",
+       "blockTag": "p",
+       "expectedListTag": "ul",
+       "expectedBlockTag": "",
+       "restoreConfirmed": true,
+       "html": "<!DOCTYPE html>\n<html>\n<head>\n\t<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\"/>\n\t<title></title>\n\t<meta name=\"generator\" content=\"%PRODUCTNAME %PRODUCTVERSION%PRODUCTEXTENSION (Emscripten)\"/>\n\t<style type=\"text/css\">\n\t\t@page { size: 8.5in 11in; margin: 0.79in }\n\t\tp { margin-bottom: 0.1in; line-height: 115%; background: transparent }\n\t</style>\n</head>\n<body lang=\"en-US\" link=\"#000080\" vlink=\"#800000\" dir=\"ltr\">\n<ul><li><p style=\"margin-bottom: 0in; line-height: 100%\"></p></li>\n</ul>\n<p style=\"margin-bottom: 0in; line-height: 100%\">E1-EMPTY-AFTER</p>\n</body>\n</html>"
+      }
+     }
+    }
+   ],
+   "transport": {
+    "transport": "broadcast-channel",
+    "channel": "open"
+   },
+   "cleanup": {}
+  },
+  {
+   "browser": "firefox",
+   "recipe": "s3",
+   "repetition": 3,
+   "browserVersion": "157.0.1",
+   "opened": {
+    "pill": "ready",
+    "latency": "—",
+    "toast": "已開啟 two-plain.odt",
+    "revision": "0",
+    "notice": {
+     "show": "0",
+     "text": ""
+    },
+    "focus": "BODY",
+    "requests": 11,
+    "responses": 11,
+    "workers": 2,
+    "blobs": 0
+   },
+   "clickAt": {
+    "fraction": [
+     0.8,
+     0.0894
+    ],
+    "viewport": [
+     964.0,
+     374.9864122070312
+    ],
+    "paper": {
+     "left": 244,
+     "top": 262.70001220703125,
+     "width": 900,
+     "height": 1256,
+     "deskTop": 242.6999969482422,
+     "deskBottom": 857.9999847412109
+    }
+   },
+   "clicked": {
+    "pill": "ready",
+    "latency": "定位游標 58 ms",
+    "toast": "已開啟 two-plain.odt",
+    "revision": "0",
+    "notice": {
+     "show": "0",
+     "text": ""
+    },
+    "focus": "sink",
+    "requests": 15,
+    "responses": 15,
+    "workers": 2,
+    "blobs": 0
+   },
+   "caretPlaced": true,
+   "entered": {
+    "pill": "ready",
+    "latency": "↵ 分段 24 ms",
+    "toast": "已開啟 two-plain.odt",
+    "revision": "1",
+    "notice": {
+     "show": "0",
+     "text": ""
+    },
+    "focus": "sink",
+    "requests": 18,
+    "responses": 18,
+    "workers": 2,
+    "blobs": 0
+   },
+   "enterSettled": true,
+   "enterRows": [
+    {
+     "operation": "editorActionV2",
+     "action": "insert-paragraph-break",
+     "route": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "revision": [
+      0,
+      1
+     ]
+    },
+    {
+     "operation": "paint",
+     "action": null,
+     "route": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "revision": [
+      null,
+      1
+     ]
+    },
+    {
+     "operation": "paint",
+     "action": null,
+     "route": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "revision": [
+      null,
+      1
+     ]
+    }
+   ],
+   "pressSettled": true,
+   "press": {
+    "pill": "ready",
+    "latency": "• 項目符號 失敗",
+    "toast": "• 項目符號：動作已送出，但這一格的檢查涵蓋了不只一個段落，無法單獨核對你的段落。請看一下結果，不是你要的就按「復原」。這是檢查的極限，不是文件壞了",
+    "revision": "1",
+    "notice": {
+     "show": "0",
+     "text": ""
+    },
+    "focus": "sink",
+    "requests": 21,
+    "responses": 21,
+    "workers": 2,
+    "blobs": 0
+   },
+   "pressRows": [
+    {
+     "operation": "editorActionV2",
+     "action": "set-list-unordered",
+     "route": null,
+     "replied": true,
+     "ok": false,
+     "code": "MUTATION_OUTCOME_UNKNOWN",
+     "message": "the readback covers more than one paragraph",
+     "barrier": {
+      "stage": null,
+      "route": "collapsed",
+      "dispatched": true,
+      "failureShape": "multi-block-readback",
+      "selectionResultSeen": true,
+      "resultSeen": null
+     },
+     "revision": [
+      null,
+      null
+     ]
+    },
+    {
+     "operation": "paint",
+     "action": null,
+     "route": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "revision": [
+      null,
+      1
+     ]
+    },
+    {
+     "operation": "editorGetStateV2",
+     "action": null,
+     "route": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "barrier": null,
+     "revision": [
+      null,
+      1
+     ]
+    }
+   ],
+   "raw": [
+    {
+     "type": "editor-action-completed",
+     "requestId": 10,
+     "code": null,
+     "completion": "uno-command-result",
+     "barrier": null
+    },
+    {
+     "type": "error",
+     "requestId": 13,
+     "code": "MUTATION_OUTCOME_UNKNOWN",
+     "completion": null,
+     "barrier": {
+      "command": ".uno:DefaultBullet",
+      "stage": "awaiting-result",
+      "dispatched": true,
+      "failureShape": "multi-block-readback",
+      "route": "collapsed",
+      "selectionTypeReadable": true,
+      "hasDispatched": true,
+      "hasUndo": false,
+      "paragraphIdentity": {
+       "checked": false,
+       "dispatchKnown": false,
+       "readbackKnown": false,
+       "dispatchUsable": false,
+       "readbackUsable": false
+      },
+      "readback": {
+       "parsed": true,
+       "unknownTag": false,
+       "malformedNesting": false,
+       "footnoteApparatus": false,
+       "multiBlock": true,
+       "blockCount": 2,
+       "itemCount": 1,
+       "listTag": "ul",
+       "blockTag": "p",
+       "expectedListTag": "ul",
+       "expectedBlockTag": "",
+       "restoreConfirmed": true,
+       "html": "<!DOCTYPE html>\n<html>\n<head>\n\t<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\"/>\n\t<title></title>\n\t<meta name=\"generator\" content=\"%PRODUCTNAME %PRODUCTVERSION%PRODUCTEXTENSION (Emscripten)\"/>\n\t<style type=\"text/css\">\n\t\t@page { size: 8.5in 11in; margin: 0.79in }\n\t\tp { margin-bottom: 0.1in; line-height: 115%; background: transparent }\n\t</style>\n</head>\n<body lang=\"en-US\" link=\"#000080\" vlink=\"#800000\" dir=\"ltr\">\n<ul><li><p style=\"margin-bottom: 0in; line-height: 100%\"></p></li>\n</ul>\n<p style=\"margin-bottom: 0in; line-height: 100%\">E1-EMPTY-AFTER</p>\n</body>\n</html>"
+      }
+     }
+    }
+   ],
+   "transport": {
+    "transport": "broadcast-channel",
+    "channel": "open"
+   },
+   "cleanup": {}
+  }
+ ],
+ "preRun": {
+  "kwalletLocked": "b false",
+  "chromeProcesses": "1",
+  "firefoxProcesses": "0",
+  "oursRunning": [],
+  "loadavg": [
+   "0.31",
+   "0.48",
+   "0.50"
+  ],
+  "topCpu": [
+   "PID %CPU COMMAND",
+   "2609545 40.0 python3",
+   "2599714  2.8 claude",
+   "1643330  2.5 zen",
+   "   3008  2.4 kwin_wayland",
+   "2162567  2.0 claude"
+  ],
+  "at": "2026-10-30T13:34:09+0800",
+  "refuse": []
+ }
+}
