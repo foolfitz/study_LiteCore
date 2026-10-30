@@ -142,6 +142,22 @@ VARIANTS = {
         "includeVars": ["E2_V25_MD4C_INCLUDE"],
         "units": PRODUCT_UNITS,
     },
+    # SPEC-M3-v27-finding-176 5: v25's compile line plus the one v27 define.  Data only.
+    # Blind to the .inc (v25 section 15): check_v27_ships_confined.py reads what this cannot.
+    "link-batch-v27": {
+        "objectsVar": "E2_V27_OBJECTS",
+        "cppflagsVar": "E1_CPPFLAGS",
+        "defines": MERGE_V15_DEFINES + ["-DOXSDK_E2_V20_LINK_BATCH",
+                                        "-DOXSDK_E2_V21_LINK_BATCH",
+                                        "-DOXSDK_MAINLOOP_ENGINE",
+                                        "-DOXSDK_E2_V23_LINK_BATCH",
+                                        "-DOXSDK_E2_V23_FEATURE_ABI6",
+                                        "-DOXSDK_E2_V24_TYPED_INSERT",
+                                        "-DOXSDK_E2_V25_FORMAT_PROOF",
+                                        "-DOXSDK_E2_V27_FIRST_BLOCK"],
+        "includeVars": ["E2_V27_MD4C_INCLUDE"],
+        "units": PRODUCT_UNITS,
+    },
     "product": {
         "objectsVar": "E2_V4_OBJECTS",
         "cppflagsVar": "E1_CPPFLAGS",

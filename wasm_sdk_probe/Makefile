@@ -2333,6 +2333,105 @@ $(E2_V26_DIST)/sdk-manifest.json: $(E2_V26_BASE)/SHA256SUMS $(E2_V26_BASE)/probe
 		--worker sdk/v26-select-all-worker.js --output $(E2_V26_DIST)
 	python3 tools/check_v26_profile.py --profile $(E2_V26_DIST) > /dev/null
 
+# SPEC-M3-v27-finding-176 5: finding 176 (the collapsed route judges a
+# two-paragraph readback by its first block).  v25's rule verbatim plus
+# OXSDK_E2_V27_FIRST_BLOCK; editor ABI stays 6, no new export.  The base is the
+# archived v26 profile (whose wasm, loader and export list are v25's bytes):
+# its export list, its worker as the worker's derivation base, its manifest's
+# select-all leaf.
+E2_V27_BUILD := build/e2/editor-v27
+E2_V27_DIST := dist/profiles/e2-editor-v27
+E2_V27_SOURCES := $(E2_C_SOURCES)
+E2_V27_OBJECTS := $(patsubst src/%.cpp,$(E2_V27_BUILD)/%.o,$(E2_V27_SOURCES))
+E2_V27_MD4C_INCLUDE := $(LOBUILD)/workdir/UnpackedTarball/md4c/src
+# Frozen base identity for the v27 worker: the archived v26 worker.
+E2_V27_ARCHIVE := build/archive/e2-editor-v26-44cb15ea-worker-95d6e7ae
+E2_V27_BASE_WORKER := $(E2_V27_ARCHIVE)/sdk-worker.js
+E2_V27_WORKER_SHA256 := 95d6e7ae375e60ef58de3e1bbeb838f0d4922a0d4737287b262c23f595aed964
+
+.PHONY: v27-first-block-worker-preflight
+v27-first-block-worker-preflight:
+	python3 tools/check_v27_first_block_contract.py --check-worker-base \
+		--base-worker $(E2_V27_BASE_WORKER) --base-worker-sha256 $(E2_V27_WORKER_SHA256)
+
+$(E2_V27_BUILD)/%.o: src/%.cpp $(HEADERS) src/editor_api.h \
+		src/editor_discovery_api.h src/format_readback_text.hpp \
+		src/a11y_paragraph_identity.hpp src/merge_key_undo.hpp \
+		src/markdown_paste.hpp src/ordered_command_proof.hpp \
+		src/ordered_delete_route.hpp src/ordered_poll.hpp src/ordered_engine_guards.hpp src/reply_state_reads.hpp \
+		src/ordered_engine_state.inc src/ordered_engine_reply.inc src/ordered_engine_poll.inc \
+		src/ordered_engine_delete.inc src/ordered_format.inc $(E2_V27_MD4C_INCLUDE)/md4c.h Makefile \
+		| $(E2_V27_BUILD) v27-first-block-worker-preflight
+	$(CXX) $(E1_CPPFLAGS) $(R5_CXXFLAGS) -I$(E2_V27_MD4C_INCLUDE) \
+		-DOXSDK_EDITOR_DISCOVERY \
+		-DOXSDK_FINDING_016_SELECTION_BARRIER -DOXSDK_E2_FORMAT_BARRIER \
+		-DOXSDK_MERGE_KEY_UNDO -DOXSDK_E2_V20_LINK_BATCH \
+		-DOXSDK_E2_V21_LINK_BATCH -DOXSDK_MAINLOOP_ENGINE \
+		-DOXSDK_E2_V23_LINK_BATCH -DOXSDK_E2_V23_FEATURE_ABI6 \
+		-DOXSDK_E2_V24_TYPED_INSERT -DOXSDK_E2_V25_FORMAT_PROOF \
+		-DOXSDK_E2_V27_FIRST_BLOCK \
+		$(EXTRA_DEFINES) -c $< -o $@
+
+# v26's public export surface (v25's), unchanged.
+$(E2_V27_BUILD)/exports.txt: $(E2_V27_ARCHIVE)/exports.txt Makefile | $(E2_V27_BUILD)
+	cp $< $@
+
+# Guarded from the first link, like every product artifact before it.
+$(E2_V27_BUILD)/probe.js: $(E2_V27_OBJECTS) $(EXTRA_OBJECTS) \
+		$(E2_V27_BUILD)/exports.txt $(LINKDEPS) $(FS_PRE_JS) Makefile
+	$(call refuse_unasked_relink,the v27 first-block read (finding 176 on the v25 engine; ABI 6) -- every link mints a new hash)
+	$(call link_product_stack_1m,$(E2_V27_OBJECTS) $(EXTRA_OBJECTS),$(E2_V27_BUILD)/exports.txt,$@)
+
+$(E2_V27_BUILD)/probe.wasm: $(E2_V27_BUILD)/probe.js
+	@test -s $@
+
+# Its own worker source; the v26 one stays byte-identical (generation 80).
+$(E2_V27_BUILD)/sdk-worker.js: sdk/v27-first-block-worker.js Makefile | $(E2_V27_BUILD) v27-first-block-worker-preflight
+	cp $< $@
+
+# v25's manifest construction under the v27 name, v26's select-all leaf, and
+# the three bindings.
+$(E2_V27_DIST)/sdk-manifest.json: $(E2_V27_BUILD)/probe.js $(E2_V27_BUILD)/probe.wasm \
+		$(E2_V27_BUILD)/exports.txt $(E2_V27_BUILD)/sdk-worker.js \
+		$(E2_V27_ARCHIVE)/sdk-manifest.json sdk/v18-writer-review-manifest.json \
+		tools/build_base_no35_pack.py tools/build_r5_profiles.py \
+		tools/build_cjk_subset.py tools/build_cjk_subset_ttc_pack.py \
+		tools/build_cjk_subset_mono_pack.py \
+		tools/build_e2_editor_v5_profile.py tools/build_e2_v23_feature_profile.py \
+		tools/build_e2_v24_feature_profile.py tools/check_v24_feature_contract.py \
+		tools/build_e2_v27_first_block_profile.py tools/check_v27_first_block_contract.py \
+		tools/check_v23_feature_contract.py tools/check_v23_diagnostic_build.py \
+		tools/inspect_wasm_function.py tools/validate_r5_artifacts.py \
+		tools/build_e2_editor_v4_profile.py tools/build_e2_c_profile.py \
+		tools/build_e2_b_profile.py tools/e1_support.py | $(E2_V27_DIST)
+	echo "$(E2_V27_WORKER_SHA256)  $(E2_V27_BASE_WORKER)" | sha256sum -c --quiet
+	python3 tools/build_base_no35_pack.py --check
+	python3 tools/build_cjk_subset_mono_pack.py --check
+	python3 tools/build_e2_v27_first_block_profile.py \
+		--source-manifest sdk/v18-writer-review-manifest.json \
+		--loader $(E2_V27_BUILD)/probe.js --wasm $(E2_V27_BUILD)/probe.wasm \
+		--worker $(E2_V27_BUILD)/sdk-worker.js \
+		--exports $(E2_V27_BUILD)/exports.txt \
+		--profile e2-editor-v27 --inline-range-gestures all \
+		--page-rectangles --paste-markdown \
+		--output $(E2_V27_DIST)
+	@test -s $(E2_V27_DIST)/probe.js
+	@test -s $(E2_V27_DIST)/probe.wasm
+	@test -s $(E2_V27_DIST)/sdk-worker.js
+
+$(E2_V27_BUILD) $(E2_V27_DIST):
+	mkdir -p $@
+
+# Focused source/contract tests only; no product objects, link or packaging
+# target.  E3's three inc-text tests are run one by one (spec 7.2 E3), not here.
+.PHONY: test-v27-first-block-static
+test-v27-first-block-static:
+	python3 -I tests/test_ordered_format_v27.py
+	python3 -I tests/test_format_readback_v27.py
+	python3 -I tests/test_v27_feature_worker_delta.py
+	python3 -I tests/test_v27_first_block_profile.py
+	node tests/v27_feature_worker_test.cjs
+
 # ---------------------------------------------------------------- v5, a11y
 #
 # Everything below names $(E2_V5_CORE) explicitly instead of $(LOBUILD).  The
@@ -4832,6 +4931,9 @@ test-e2-c-static:
 	# E2_V25 (SPEC-M3-link-batch-v25 5): without its line this check is red on
 	# exactly its three objects -- findings/evidence/link-batch-v25/pre-link/
 	# m1-1-red-without-v25-carrier.stdout.txt.
+	# E2_V27 (SPEC-M3-v27-finding-176 5) likewise: red on exactly its three
+	# objects without it -- findings/evidence/v27-176/pre-link/
+	# m1-1-red-without-v27-carrier.stdout.txt.
 	python3 tools/check_merge_key_undo_scope.py --base 5d77dc84 \
 		--carrier E2_V15 --carrier E2_V19 \
 		--carrier E2_V20=probe_engine,sdk_api,editor_api \
@@ -4842,6 +4944,7 @@ test-e2-c-static:
 		--carrier E2_V23=probe_engine,sdk_api,editor_api \
 		--carrier E2_V24=probe_engine,sdk_api,editor_api \
 		--carrier E2_V25=probe_engine,sdk_api,editor_api \
+		--carrier E2_V27=probe_engine,sdk_api,editor_api \
 		--carrier ODS_VIEWER_V1=probe_engine,sdk_api \
 		--carrier ODS_VIEWER_V2=probe_engine,sdk_api \
 		--carrier ODS_VIEWER_V3=probe_engine,sdk_api \

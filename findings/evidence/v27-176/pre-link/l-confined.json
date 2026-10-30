@@ -1,0 +1,473 @@
+{
+ "tool": "check_v27_ships_confined",
+ "argv": [
+  "tools/check_v27_ships_confined.py"
+ ],
+ "since": "9d7fb9e7c530a688b0a6e8ce8d8342750b960140",
+ "src": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/src",
+ "ships": {
+  "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/v27-176/pre-link/ships.stdout.txt",
+  "hunks": {
+   "probe_engine": 2
+  }
+ },
+ "units": {
+  "sdk_api": {
+   "C-sameLine": true,
+   "seconds": [
+    0.13,
+    0.14,
+    0.13,
+    0.13
+   ],
+   "B-sameAsLink": true,
+   "A-changedLines": 0,
+   "A-outside": [],
+   "A-outsideCount": 0,
+   "A-byFile": {},
+   "A-lines": []
+  },
+  "probe_engine": {
+   "C-sameLine": true,
+   "seconds": [
+    0.26,
+    0.26,
+    0.24,
+    0.25
+   ],
+   "B-sameAsLink": true,
+   "A-changedLines": 40,
+   "A-outside": [],
+   "A-outsideCount": 0,
+   "A-byFile": {
+    "ordered_format.inc": 22,
+    "probe_engine.cpp": 18
+   },
+   "A-lines": [
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 984,
+     "insideV27": true,
+     "text": "  bool undoAttempted = false;"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 985,
+     "insideV27": true,
+     "text": "  bool undoRead = false;"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 986,
+     "insideV27": true,
+     "text": "  bool undoChanged = false;"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 987,
+     "insideV27": true,
+     "text": "  std::size_t undoActionsBefore = 0;"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 988,
+     "insideV27": true,
+     "text": "  std::size_t undoActionsAfter = 0;"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 989,
+     "insideV27": true,
+     "text": "  std::string undoTop;"
+    },
+    {
+     "side": "-",
+     "file": "probe_engine.cpp",
+     "line": 1779,
+     "insideV27": true,
+     "text": "       << \"\\\"}}\";"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 1766,
+     "insideV27": true,
+     "text": "       << \"\\\"}\";"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 1768,
+     "insideV27": true,
+     "text": "  if (barrier.undoAttempted) {"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 1769,
+     "insideV27": true,
+     "text": "    json << \",\\\"undo\\\":{\\\"read\\\":\" << (barrier.undoRead ? \"true\" : \"false\");"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 1770,
+     "insideV27": true,
+     "text": "    if (barrier.undoRead)"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 1771,
+     "insideV27": true,
+     "text": "      json << \",\\\"changed\\\":\" << (barrier.undoChanged ? \"true\" : \"false\")"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 1772,
+     "insideV27": true,
+     "text": "           << \",\\\"actionsBefore\\\":\" << barrier.undoActionsBefore"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 1773,
+     "insideV27": true,
+     "text": "           << \",\\\"actionsAfter\\\":\" << barrier.undoActionsAfter"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 1774,
+     "insideV27": true,
+     "text": "           << \",\\\"top\\\":\\\"\" << jsonEscape(barrier.undoTop.c_str()) << \"\\\"\";"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 1775,
+     "insideV27": true,
+     "text": "    json << \"}\";"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 1776,
+     "insideV27": true,
+     "text": "  }"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 1777,
+     "insideV27": true,
+     "text": "  json << \"}\";"
+    },
+    {
+     "side": "-",
+     "file": "ordered_format.inc",
+     "line": 72,
+     "insideV27": true,
+     "text": "    if (readback.multiBlock) {"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 66,
+     "insideV27": true,
+     "text": "    if (readback.multiBlock &&"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 67,
+     "insideV27": true,
+     "text": "        gFormatBarrier.route != FormatBarrierRoute::Collapsed) {"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 282,
+     "insideV27": true,
+     "text": "  std::string undoBefore;"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 283,
+     "insideV27": true,
+     "text": "  const bool undoBeforeRead = readMergeUndoPayload(undoBefore);"
+    },
+    {
+     "side": "-",
+     "file": "ordered_format.inc",
+     "line": 306,
+     "insideV27": true,
+     "text": "    restoreOrderedFormatPoint();"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 303,
+     "insideV27": true,
+     "text": "    if (barrier.route != FormatBarrierRoute::Collapsed)"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 304,
+     "insideV27": true,
+     "text": "      restoreOrderedFormatPoint();"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 332,
+     "insideV27": true,
+     "text": "  {"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 333,
+     "insideV27": true,
+     "text": "    std::string undoAfter;"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 334,
+     "insideV27": true,
+     "text": "    const bool undoAfterRead = readMergeUndoPayload(undoAfter);"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 335,
+     "insideV27": true,
+     "text": "    const probe::merge::UndoSummary before = probe::merge::summarizeUndoPayload(undoBefore);"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 336,
+     "insideV27": true,
+     "text": "    const probe::merge::UndoSummary after = probe::merge::summarizeUndoPayload(undoAfter);"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 337,
+     "insideV27": true,
+     "text": "    gFormatBarrier.undoAttempted = true;"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 338,
+     "insideV27": true,
+     "text": "    gFormatBarrier.undoRead = undoBeforeRead && undoAfterRead && before.ok && after.ok;"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 339,
+     "insideV27": true,
+     "text": "    if (gFormatBarrier.undoRead) {"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 340,
+     "insideV27": true,
+     "text": "      gFormatBarrier.undoChanged = undoBefore != undoAfter;"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 341,
+     "insideV27": true,
+     "text": "      gFormatBarrier.undoActionsBefore = before.actions;"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 342,
+     "insideV27": true,
+     "text": "      gFormatBarrier.undoActionsAfter = after.actions;"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 343,
+     "insideV27": true,
+     "text": "      gFormatBarrier.undoTop = after.topComment;"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 344,
+     "insideV27": true,
+     "text": "    }"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 345,
+     "insideV27": true,
+     "text": "  }"
+    }
+   ]
+  },
+  "unoembind_stub": {
+   "C-sameLine": true,
+   "seconds": [
+    0.06,
+    0.06,
+    0.06,
+    0.06
+   ],
+   "B-sameAsLink": true,
+   "A-changedLines": 0,
+   "A-outside": [],
+   "A-outsideCount": 0,
+   "A-byFile": {},
+   "A-lines": []
+  },
+  "editor_api": {
+   "C-sameLine": true,
+   "seconds": [
+    0.13,
+    0.13,
+    0.13,
+    0.13
+   ],
+   "B-sameAsLink": true,
+   "A-changedLines": 0,
+   "A-outside": [],
+   "A-outsideCount": 0,
+   "A-byFile": {},
+   "A-lines": []
+  }
+ },
+ "D-closedList": {
+  "groups": [
+   {
+    "file": "editor_api.h",
+    "lines": [
+     81,
+     89
+    ],
+    "condition": "defined(OXSDK_E2_V27_FIRST_BLOCK) && !defined(OXSDK_E2_V25_FORMAT_PROOF)",
+    "hasElse": false,
+    "declared": [
+     "guard"
+    ],
+    "enclosingNamesV25": false
+   },
+   {
+    "file": "ordered_format.inc",
+    "lines": [
+     57,
+     76
+    ],
+    "condition": "OXSDK_E2_V27_FIRST_BLOCK",
+    "hasElse": true,
+    "declared": [
+     "multi-block-refused-off-collapsed"
+    ],
+    "enclosingNamesV25": false
+   },
+   {
+    "file": "ordered_format.inc",
+    "lines": [
+     279,
+     284
+    ],
+    "condition": "OXSDK_E2_V27_FIRST_BLOCK",
+    "hasElse": false,
+    "declared": [
+     "undo-read-before-post"
+    ],
+    "enclosingNamesV25": false
+   },
+   {
+    "file": "ordered_format.inc",
+    "lines": [
+     297,
+     307
+    ],
+    "condition": "OXSDK_E2_V27_FIRST_BLOCK",
+    "hasElse": true,
+    "declared": [
+     "collapsed-no-restore-before-select"
+    ],
+    "enclosingNamesV25": false
+   },
+   {
+    "file": "ordered_format.inc",
+    "lines": [
+     331,
+     346
+    ],
+    "condition": "OXSDK_E2_V27_FIRST_BLOCK",
+    "hasElse": false,
+    "declared": [
+     "undo-read-after-restore"
+    ],
+    "enclosingNamesV25": false
+   },
+   {
+    "file": "probe_engine.cpp",
+    "lines": [
+     977,
+     990
+    ],
+    "condition": "OXSDK_E2_V27_FIRST_BLOCK",
+    "hasElse": false,
+    "declared": [
+     "undo-fields"
+    ],
+    "enclosingNamesV25": false
+   },
+   {
+    "file": "probe_engine.cpp",
+    "lines": [
+     1765,
+     1780
+    ],
+    "condition": "OXSDK_E2_V27_FIRST_BLOCK",
+    "hasElse": true,
+    "declared": [
+     "undo-serialised"
+    ],
+    "enclosingNamesV25": false
+   }
+  ],
+  "declared": 7,
+  "strippedDiffer": [],
+  "files": 33,
+  "ignoredNonSource": [
+   "probe_api.o",
+   "probe_engine.o",
+   "sdk_api.o",
+   "unoembind_stub.o"
+  ],
+  "problems": []
+ },
+ "notVisibleToShips": {
+  "files": [
+   "ordered_format.inc"
+  ],
+  "lines": 22
+ },
+ "problems": [],
+ "verdict": "CONFINED_V27_HOLDS"
+}
