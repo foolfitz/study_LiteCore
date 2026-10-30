@@ -1,0 +1,200 @@
+[
+ {
+  "name": "a1-text-mid",
+  "class": "A",
+  "fixture": "text-mid.fodt",
+  "script": "k1024,Xa1-text-mid@1029=F.uno:DefaultBullet|{\"On\":{\"type\":\"boolean\"`\"value\":true}},S",
+  "target": 1,
+  "expect": "bullet",
+  "note": "control: a paragraph with text (the verified path today)"
+ },
+ {
+  "name": "a2-empty-mid",
+  "class": "A",
+  "fixture": "empty-mid.fodt",
+  "script": "k1024,Xa2-empty-mid@1029=F.uno:DefaultBullet|{\"On\":{\"type\":\"boolean\"`\"value\":true}},S",
+  "target": 1,
+  "expect": "bullet",
+  "note": "finding 046's cell: an empty paragraph with a paragraph after it"
+ },
+ {
+  "name": "a3-enter-mid",
+  "class": "A",
+  "fixture": "two-plain.fodt",
+  "script": "k1029,Xa3-enter-mid@1280=F.uno:DefaultBullet|{\"On\":{\"type\":\"boolean\"`\"value\":true}},S",
+  "target": 1,
+  "expect": "bullet",
+  "note": "F3's recipe shape: End of the first paragraph, Enter (the trigger), bullet the new empty one"
+ },
+ {
+  "name": "a4-empty-last",
+  "class": "A",
+  "fixture": "empty-last.fodt",
+  "script": "k1024,Xa4-empty-last@1029=F.uno:DefaultBullet|{\"On\":{\"type\":\"boolean\"`\"value\":true}},S",
+  "target": 1,
+  "expect": "bullet",
+  "note": "083's path: the empty paragraph is the last one"
+ },
+ {
+  "name": "a5-blank-one",
+  "class": "A",
+  "fixture": "blank-one.odt",
+  "script": "Xa5-blank-one@1029=F.uno:DefaultBullet|{\"On\":{\"type\":\"boolean\"`\"value\":true}},S",
+  "target": 0,
+  "expect": "bullet",
+  "note": "083/173's path: the host's blank template, one empty paragraph"
+ },
+ {
+  "name": "n1-sham-empty-mid",
+  "class": "N",
+  "fixture": "empty-mid.fodt",
+  "script": "k1024,Xn1-sham-empty-mid@1029=F.uno:DefaultBullet|{\"On\":{\"type\":\"boolean\"`\"value\":false}},S",
+  "target": 1,
+  "expect": "none",
+  "note": "the engine's sequence with a dispatch that changes nothing (On:false on a plain paragraph)"
+ },
+ {
+  "name": "n2-sham-empty-before-list",
+  "class": "N",
+  "fixture": "empty-before-list.fodt",
+  "script": "k1024,Xn2-sham-empty-before-list@1029=F.uno:DefaultBullet|{\"On\":{\"type\":\"boolean\"`\"value\":false}},S",
+  "target": 1,
+  "expect": "none",
+  "note": "the same, and the overshoot reaches a bulleted paragraph"
+ },
+ {
+  "name": "n3-sham-empty-after-list",
+  "class": "N",
+  "fixture": "empty-after-list.fodt",
+  "script": "k1024,Xn3-sham-empty-after-list@1029=F.uno:DefaultBullet|{\"On\":{\"type\":\"boolean\"`\"value\":false}},S",
+  "target": 1,
+  "expect": "none",
+  "note": "the same, the paragraph above is a bullet (046's upward counterexample's neighbour)"
+ },
+ {
+  "name": "r1-noop-empty-bulleted",
+  "class": "R",
+  "fixture": "empty-bulleted-mid.fodt",
+  "script": "k1024,Xr1-noop-empty-bulleted@1029=F.uno:DefaultBullet|{\"On\":{\"type\":\"boolean\"`\"value\":true}},S",
+  "target": 1,
+  "expect": "bullet",
+  "note": "bullet on an empty paragraph that is already a bullet (finding 030 predicts no item)"
+ },
+ {
+  "name": "r2-dispatch-only-empty-mid",
+  "class": "R",
+  "fixture": "empty-mid.fodt",
+  "script": "k1024,Xr2-dispatch-only-empty-mid@1029=U.uno:DefaultBullet|{\"On\":{\"type\":\"boolean\"`\"value\":true}},S",
+  "target": 1,
+  "expect": "bullet",
+  "note": "attribution: the dispatch alone, no readback"
+ },
+ {
+  "name": "r3-number-empty-mid",
+  "class": "R",
+  "fixture": "empty-mid.fodt",
+  "script": "k1024,Xr3-number-empty-mid@1029=F.uno:DefaultNumbering|{\"On\":{\"type\":\"boolean\"`\"value\":true}},S",
+  "target": 1,
+  "expect": "number",
+  "note": "set-list-ordered on the 046 cell"
+ },
+ {
+  "name": "r4-none-empty-bulleted",
+  "class": "R",
+  "fixture": "empty-bulleted-mid.fodt",
+  "script": "k1024,Xr4-none-empty-bulleted@1029=F.uno:RemoveBullets,S",
+  "target": 1,
+  "expect": "none",
+  "note": "set-list-none on an empty bullet with a paragraph after it"
+ },
+ {
+  "name": "r5-heading-empty-mid",
+  "class": "R",
+  "fixture": "empty-mid.fodt",
+  "script": "k1024,Xr5-heading-empty-mid@1029=F.uno:StyleApply|{\"Style\":{\"type\":\"string\"`\"value\":\"Heading 1\"}`\"FamilyName\":{\"type\":\"string\"`\"value\":\"ParagraphStyles\"}},S",
+  "target": 1,
+  "expect": "heading",
+  "note": "set-paragraph-heading on the 046 cell"
+ },
+ {
+  "name": "r6-bullet-empty-before-list",
+  "class": "R",
+  "fixture": "empty-before-list.fodt",
+  "script": "k1024,Xr6-bullet-empty-before-list@1029=F.uno:DefaultBullet|{\"On\":{\"type\":\"boolean\"`\"value\":true}},S",
+  "target": 1,
+  "expect": "bullet",
+  "note": "046's unmeasured variant: an empty paragraph followed by a list item"
+ },
+ {
+  "name": "g-a1-text-mid",
+  "class": "R",
+  "fixture": "text-mid.fodt",
+  "script": "k1024,Xg-a1-text-mid@1029=G.uno:DefaultBullet|{\"On\":{\"type\":\"boolean\"`\"value\":true}},S",
+  "target": 1,
+  "expect": "bullet",
+  "note": "G variant (no restore before the select): control: a paragraph with text (the verified path today)"
+ },
+ {
+  "name": "g-a2-empty-mid",
+  "class": "R",
+  "fixture": "empty-mid.fodt",
+  "script": "k1024,Xg-a2-empty-mid@1029=G.uno:DefaultBullet|{\"On\":{\"type\":\"boolean\"`\"value\":true}},S",
+  "target": 1,
+  "expect": "bullet",
+  "note": "G variant (no restore before the select): finding 046's cell: an empty paragraph with a paragraph after it"
+ },
+ {
+  "name": "g-a3-enter-mid",
+  "class": "R",
+  "fixture": "two-plain.fodt",
+  "script": "k1029,Xg-a3-enter-mid@1280=G.uno:DefaultBullet|{\"On\":{\"type\":\"boolean\"`\"value\":true}},S",
+  "target": 1,
+  "expect": "bullet",
+  "note": "G variant (no restore before the select): F3's recipe shape: End of the first paragraph, Enter (the trigger), bullet the new empty one"
+ },
+ {
+  "name": "g-a4-empty-last",
+  "class": "R",
+  "fixture": "empty-last.fodt",
+  "script": "k1024,Xg-a4-empty-last@1029=G.uno:DefaultBullet|{\"On\":{\"type\":\"boolean\"`\"value\":true}},S",
+  "target": 1,
+  "expect": "bullet",
+  "note": "G variant (no restore before the select): 083's path: the empty paragraph is the last one"
+ },
+ {
+  "name": "g-a5-blank-one",
+  "class": "R",
+  "fixture": "blank-one.odt",
+  "script": "Xg-a5-blank-one@1029=G.uno:DefaultBullet|{\"On\":{\"type\":\"boolean\"`\"value\":true}},S",
+  "target": 0,
+  "expect": "bullet",
+  "note": "G variant (no restore before the select): 083/173's path: the host's blank template, one empty paragraph"
+ },
+ {
+  "name": "g-n1-sham-empty-mid",
+  "class": "R",
+  "fixture": "empty-mid.fodt",
+  "script": "k1024,Xg-n1-sham-empty-mid@1029=G.uno:DefaultBullet|{\"On\":{\"type\":\"boolean\"`\"value\":false}},S",
+  "target": 1,
+  "expect": "none",
+  "note": "G variant (no restore before the select): the engine's sequence with a dispatch that changes nothing (On:false on a plain paragraph)"
+ },
+ {
+  "name": "g-n2-sham-empty-before-list",
+  "class": "R",
+  "fixture": "empty-before-list.fodt",
+  "script": "k1024,Xg-n2-sham-empty-before-list@1029=G.uno:DefaultBullet|{\"On\":{\"type\":\"boolean\"`\"value\":false}},S",
+  "target": 1,
+  "expect": "none",
+  "note": "G variant (no restore before the select): the same, and the overshoot reaches a bulleted paragraph"
+ },
+ {
+  "name": "g-n3-sham-empty-after-list",
+  "class": "R",
+  "fixture": "empty-after-list.fodt",
+  "script": "k1024,Xg-n3-sham-empty-after-list@1029=G.uno:DefaultBullet|{\"On\":{\"type\":\"boolean\"`\"value\":false}},S",
+  "target": 1,
+  "expect": "none",
+  "note": "G variant (no restore before the select): the same, the paragraph above is a bullet (046's upward counterexample's neighbour)"
+ }
+]
