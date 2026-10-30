@@ -138,3 +138,15 @@ M1-1 inside it is green. Three Python unit tests are red. Each predates this ses
   - Both close at generation 81's freeze, whose exclusion list is v80's plus `sdk/v27-first-block-worker.js` (spec 7.3).
 - `test_product_path_mutations ... (mutation='copy-lies')`: the named debt **L-copy-lies-pattern-stale** (finding 175's ruling, item 6). `run_e2_c_product_path.py` is bound.
 - `test_session_liveness ... inducing_arms_hold_the_guard_off`: 4 != 3. The bound runner has had four `with liveness.expecting(` since `c6213c854` (2026-10-27; its parent has 3).
+
+## Correction (2026-10-30 ~17:00 +0800): the shell-bundle unit test does not close at generation 81
+
+The `make -k test-e2-c-static` section above said `test_e2_c_shell_bundle … real_manifest_matches_the_real_tree` "closes at generation 81's freeze". It does not.
+
+The test reads the bundle tool's DEFAULT manifest: `bundle.MANIFEST`, `tools/build_e2_c_shell_bundle.py:783`, which is still `e2/editor-shell-v2-bundle-v76.json`. Every freeze since 77 passed `--manifest` and left the bound tool unchanged.
+
+Re-run after the freeze and the cutover (`python3 -m unittest tests.test_e2_c_shell_bundle`): 1 failure in 12.
+- The item "dist copy differs from source" is gone.
+- What remains is measured against v76: the four unclassified profile worker sources, and five modules changed since 76.
+
+It is red by construction on any generation after 76, as the other two are. It is not a v27 issue.

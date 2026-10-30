@@ -68,3 +68,11 @@ Finding 176 status: the 046 cell (a) is fixed, confirmed by the owner on the hos
 - Replies to the owner: Taiwan Traditional Chinese, A/B/C for options.
 - Evidence and `handoff/**`: English.
 - Specs and findings: zh-TW.
+
+## Addendum (~17:00 +0800): the owner answered both questions
+
+- **「1. A」**: 0.2.43 replaces 0.2.42 as the daily uncounted candidate. The nominal shipped host stays 0.2.26; K and the count chain stay batched.
+- **「2. 隱藏」**: the host keeps hiding the status strip. Recorded in `findings/evidence/host-0.2.43/README.md` ("Owner's decisions").
+- **The shell-bundle test was re-run.** It is still red (1 of 12). It reads the bound tool's default manifest v76 (`build_e2_c_shell_bundle.py:783`), so it is red by construction after 76 and will not close at any freeze. The pre-link README carries the correction. Next item 2 is closed.
+
+Nothing is open in this batch. Next work is whatever the owner picks next. Candidates on record: the 083 path (native measurement first); K and the count chain when the owner schedules them.

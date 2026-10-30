@@ -104,3 +104,10 @@ Owner's report, verbatim: 「a. 如預期。但我在頁面上沒看到「上次
   - The host hides the whole `.statusbar` (`templates/editor.php:51`, `#litecore-editor-root .statusbar { display: none; }`), since host 0.2.6 (`96a13b9`, 2026-10-06). The same rule is in 93b1ebc (0.2.42) and ae8240d (0.2.43).
   - The strip's 「失敗」 / 「待確認」 exist only on the mirror and the standalone page. There, U1 and S2′ measured them.
   - The hand-test clauses about 「上次操作」 (spec 7.4 (a), (b)) were unobservable on the host. They are withdrawn; see the spec's append 1. They are not counted as passed or failed.
+
+## Owner's decisions (2026-10-30 ~17:00 +0800)
+
+Asked: (1) does 0.2.43 replace 0.2.42 as the daily uncounted candidate, A replace / B roll the engine back; (2) should the host show the status strip (「上次操作」). The owner answered: 「1. A  2. 隱藏」.
+
+- **0.2.43 replaces 0.2.42 as the daily uncounted candidate.** The capture-after red stays named (L-capture-after-expired-lock-lazily-deleted). The nominal shipped host stays 0.2.26, and K and the count chain stay batched (owner, 2026-10-12).
+- **The host keeps hiding the status strip** (`templates/editor.php:51`, unchanged). This is spec v27 append 1 item 4's default, now the owner's choice. The shell item 「待確認」 is carried only by the mirror measurements (U1, S2′).
