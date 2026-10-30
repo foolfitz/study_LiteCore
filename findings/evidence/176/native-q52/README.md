@@ -185,3 +185,32 @@ All of them: 5/5, P0 and P3 in every round.
 - **heading** and **body**: V5 IN-SCOPE.
 - **Tables before the last line**: refused (fail closed).
 - **The blank document**: nothing to read (V1).
+
+## Amendment 4: ruling 4's cells before the v28 spec
+
+`tool/run_cells_q52_v6.py`: 7 cells x 5 = 35 processes, ~10:58-11:06Z, all exit 0. Fixtures in `fixtures-v6/` (byte copies, plus `empty-empty-last`); output in `out-v6/`. Judged by `tool/read_q52_v6.py out-v6` (`out-v6/reader-output.json`); self-test `out-v6/self-test.json`, `ALL_AS_EXPECTED`, 11 cases.
+
+**V6 (number and none, re-run after registration): both IN-SCOPE.**
+
+| cell | LAST | saved | FIRST |
+|---|---|---|---|
+| `cl-num-empty-last` | `ol/p`, satisfied | number | -- |
+| `cl-nnum-after-number` (trap) | `none/p`, not satisfied | not in a list | satisfied (fooled) |
+| `cl-none-bulleted-last` | `none/p`, satisfied | not in a list | -- |
+| `cl-nnone-noop-bulleted-last` | `ul/p`, not satisfied | still a bullet | satisfied (fooled) |
+
+5/5 each, 2 blocks each, P0 and P3 in every round.
+
+**V7: `V7-HOLDS`.**
+- `cl-long-300`: 300 lines, then the empty paragraph. The CL readback is **577 bytes** in every round, 2 blocks, LAST `ul/p` satisfied, saved bullet. CL's cost does not grow with the document: measured here, no longer only predicted by construction (README section 4).
+- `cl-a6-end`: two empty paragraphs at the end, bullet the last. LAST satisfied, saved last paragraph a bullet, **second-to-last paragraph not in a list**, restore NONE.
+- `cl-n6-end` (sham): SAFE.
+- The locator in a6 reads empty both ways, as registered: recorded, not judged.
+
+## Scope on the multi-paragraph last line, final (with amendment 4)
+
+- **bullet**: V3, and V7 (the long document, two empties at the end);
+- **number** and **none**: V6;
+- **heading** and **body**: V5;
+- tables before the last line are refused (fail closed);
+- the blank document has nothing to read (V1).

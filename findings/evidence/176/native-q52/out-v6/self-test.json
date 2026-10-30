@@ -1,0 +1,49 @@
+{
+ "cases": [
+  {
+   "case": "forced baseline: V6 both IN-SCOPE, V7 HOLDS",
+   "ok": true
+  },
+  {
+   "case": "V6: the number trap read with ol last while saved out of a list -> LAST-UNSAFE",
+   "ok": true
+  },
+  {
+   "case": "V6: the none negative applied (saved out of a list) -> none OUT-OF-SCOPE",
+   "ok": true
+  },
+  {
+   "case": "V6: one unclean number round -> number NOT-ESTABLISHED",
+   "ok": true
+  },
+  {
+   "case": "V7: the long document reads three blocks -> V7-PARTIAL (blockCount == 2 required)",
+   "ok": true
+  },
+  {
+   "case": "V7: the long document reads COMPLEX -> V7-PARTIAL",
+   "ok": true
+  },
+  {
+   "case": "V7: a6 bullets the second-to-last paragraph too -> V7-PARTIAL",
+   "ok": true
+  },
+  {
+   "case": "V7: the n6 sham read with ul last while saved out of a list -> V7-UNSAFE",
+   "ok": true
+  },
+  {
+   "case": "V7: a6 restore not NONE -> V7-PARTIAL",
+   "ok": true
+  },
+  {
+   "case": "V7: a6 SelectText read TEXT (not the 083 path) -> NOT-ESTABLISHED",
+   "ok": true
+  },
+  {
+   "case": "non-vacuous: 7 cells x 5 rounds",
+   "ok": true
+  }
+ ],
+ "result": "ALL_AS_EXPECTED"
+}

@@ -1,0 +1,86 @@
+[
+ {
+  "name": "cl-num-empty-last",
+  "class": "A",
+  "group": "V6",
+  "fixture": "empty-last.fodt",
+  "action": "number",
+  "dispatch": "number",
+  "script": "k1024,Xcl-num-empty-last@1029=H.uno:DefaultNumbering|{\"On\":{\"type\":\"boolean\"`\"value\":true}}~.uno:CharLeftSel,L,S",
+  "target": "last",
+  "expect": "number",
+  "note": "set-list-ordered on the empty last paragraph"
+ },
+ {
+  "name": "cl-none-bulleted-last",
+  "class": "A",
+  "group": "V6",
+  "fixture": "bulleted-last.fodt",
+  "action": "none",
+  "dispatch": "none",
+  "script": "k1024,Xcl-none-bulleted-last@1029=H.uno:RemoveBullets~.uno:CharLeftSel,L,S",
+  "target": "last",
+  "expect": "none",
+  "note": "set-list-none on an empty last bullet"
+ },
+ {
+  "name": "cl-nnum-after-number",
+  "class": "N",
+  "group": "V6",
+  "fixture": "number-then-empty-last.fodt",
+  "action": "number",
+  "dispatch": "number-off",
+  "script": "k1024,Xcl-nnum-after-number@1029=H.uno:DefaultNumbering|{\"On\":{\"type\":\"boolean\"`\"value\":false}}~.uno:CharLeftSel,L,S",
+  "target": "last",
+  "expect": "number",
+  "note": "the trap: the previous block is ol, nothing applies"
+ },
+ {
+  "name": "cl-nnone-noop-bulleted-last",
+  "class": "N",
+  "group": "V6",
+  "fixture": "bulleted-last.fodt",
+  "action": "none",
+  "dispatch": "bullet-on",
+  "script": "k1024,Xcl-nnone-noop-bulleted-last@1029=H.uno:DefaultBullet|{\"On\":{\"type\":\"boolean\"`\"value\":true}}~.uno:CharLeftSel,L,S",
+  "target": "last",
+  "expect": "none",
+  "note": "judged as set-list-none; the dispatch is a no-op on the bullet"
+ },
+ {
+  "name": "cl-long-300",
+  "class": "A",
+  "group": "V7",
+  "fixture": "long-then-empty-last.fodt",
+  "action": "bullet",
+  "dispatch": "bullet-on",
+  "script": "k9221,k9221,Xcl-long-300@1029=H.uno:DefaultBullet|{\"On\":{\"type\":\"boolean\"`\"value\":true}}~.uno:CharLeftSel,L,S",
+  "target": "last",
+  "expect": "bullet",
+  "note": "CL on 300 lines then the empty last paragraph"
+ },
+ {
+  "name": "cl-a6-end",
+  "class": "A",
+  "group": "V7",
+  "fixture": "empty-empty-last.fodt",
+  "action": "bullet",
+  "dispatch": "bullet-on",
+  "script": "k9221,k9221,Xcl-a6-end@1029=H.uno:DefaultBullet|{\"On\":{\"type\":\"boolean\"`\"value\":true}}~.uno:CharLeftSel,L,S",
+  "target": "last",
+  "expect": "bullet",
+  "note": "two empty paragraphs at the end, bullet the last"
+ },
+ {
+  "name": "cl-n6-end",
+  "class": "N",
+  "group": "V7",
+  "fixture": "empty-empty-last.fodt",
+  "action": "bullet",
+  "dispatch": "bullet-off",
+  "script": "k9221,k9221,Xcl-n6-end@1029=H.uno:DefaultBullet|{\"On\":{\"type\":\"boolean\"`\"value\":false}}~.uno:CharLeftSel,L,S",
+  "target": "last",
+  "expect": "bullet",
+  "note": "the sham on the same"
+ }
+]
