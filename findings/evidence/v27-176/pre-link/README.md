@@ -41,3 +41,20 @@ Positive control for the scope rule, run when the tests ran: an undo read insert
 - Hand pins: n2, r6 (two items in one list), r5 (`h1`), and a1 (one block).
 
 **Red cases.** One flipped expectation and one wrong pin are each reported.
+
+## V0-v27
+
+`v0_preprocess.py 9fbbb9b93`, derived from v25's tool: only VARIANTS gains `editor-v25`; the names change.
+
+- Result: **V0_V27_HOLDS** (`v0-v27.json`). Every unit of `E2_C_SOURCES` (sdk_api, probe_engine, unoembind_stub, editor_api) under the v23, v24 and v25 compile lines preprocesses identically (`-E -P`, nonblank lines) to the parent of the engine commit. That parent's `wasm_sdk_probe/src` is identical to `9d7fb9e7c`, v25's link source.
+- Positive control `--mutate` (`v0-v27-positive-control.json`): exactly the three `probe_engine` rows differ.
+- 3.8 s, one core, load 0.05.
+
+## S
+
+`s_syntax.py`, derived from v25's tool.
+
+- Result: **S_V27_HOLDS** (`s-v27.json`). Every unit is clean with `-DOXSDK_E2_V27_FIRST_BLOCK` on the v25 compile line.
+- Control 1: a deliberate error inside a v27-only block of `ordered_format.inc` fails with the define and passes without it.
+- Control 2: the v27 define without the v25 define, aimed at the TU that carries the guard (`editor_api.cpp`), hits `#error "the v27 first-block read requires the v25 format-proof engine"`.
+- `taskset -c 0`, about 5 s in all.
