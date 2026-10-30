@@ -1,0 +1,1413 @@
+{
+ "tool": "check_v28_ships_confined",
+ "argv": [
+  "tools/check_v28_ships_confined.py"
+ ],
+ "since": "3a6998b33f863f3d46cf437842a69597bc64b985",
+ "src": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/src",
+ "ships": {
+  "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/v28-083/pre-link/ships.stdout.txt",
+  "hunks": {
+   "probe_engine": 9
+  }
+ },
+ "units": {
+  "sdk_api": {
+   "C-sameLine": true,
+   "seconds": [
+    0.13,
+    0.13,
+    0.13,
+    0.13
+   ],
+   "B-sameAsLink": true,
+   "A-changedLines": 0,
+   "A-outside": [],
+   "A-outsideCount": 0,
+   "A-byFile": {},
+   "A-lines": []
+  },
+  "probe_engine": {
+   "C-sameLine": true,
+   "seconds": [
+    0.26,
+    0.26,
+    0.25,
+    0.26
+   ],
+   "B-sameAsLink": true,
+   "A-changedLines": 158,
+   "A-outside": [
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 410,
+     "insideV27": false,
+     "text": "    }"
+    }
+   ],
+   "A-outsideCount": 1,
+   "A-byFile": {
+    "ordered_format.inc": 87,
+    "probe_engine.cpp": 71
+   },
+   "A-lines": [
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 813,
+     "insideV27": true,
+     "text": "  std::string lastListTag;"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 814,
+     "insideV27": true,
+     "text": "  std::string lastBlockTag;"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 856,
+     "insideV27": true,
+     "text": "  std::vector<std::string> open;"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 898,
+     "insideV27": true,
+     "text": "        if (!open.empty())"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 899,
+     "insideV27": true,
+     "text": "          open.pop_back();"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 913,
+     "insideV27": true,
+     "text": "        readback.lastBlockTag = tag;"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 914,
+     "insideV27": true,
+     "text": "        readback.lastListTag.clear();"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 915,
+     "insideV27": true,
+     "text": "        for (auto inner = open.rbegin(); inner != open.rend(); ++inner)"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 916,
+     "insideV27": true,
+     "text": "          if (*inner == \"ul\" || *inner == \"ol\") {"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 917,
+     "insideV27": true,
+     "text": "            readback.lastListTag = *inner;"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 918,
+     "insideV27": true,
+     "text": "            break;"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 919,
+     "insideV27": true,
+     "text": "          }"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 927,
+     "insideV27": true,
+     "text": "      if (!selfClosing)"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 928,
+     "insideV27": true,
+     "text": "        open.push_back(tag);"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 1023,
+     "insideV27": true,
+     "text": "  bool fallbackRan = false;"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 1024,
+     "insideV27": true,
+     "text": "  bool fallbackResultSeen = false;"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 1025,
+     "insideV27": true,
+     "text": "  int fallbackSelectionType = -1;"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 1026,
+     "insideV27": true,
+     "text": "  bool fallbackReadable = false;"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 1027,
+     "insideV27": true,
+     "text": "  std::size_t fallbackReadbackBytes = 0;"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 1028,
+     "insideV27": true,
+     "text": "  std::string fallbackReadbackHtml;"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 1029,
+     "insideV27": true,
+     "text": "  FormatReadback fallbackReadback;"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 1030,
+     "insideV27": true,
+     "text": "  std::string fallbackRefusal;"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 1209,
+     "insideV27": true,
+     "text": "const char *const kFormatBarrierFallbackCommand = \".uno:CharLeftSel\";"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 1684,
+     "insideV27": true,
+     "text": "std::string formatBarrierFallbackJson(const FormatStateBarrier &barrier) {"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 1685,
+     "insideV27": true,
+     "text": "  std::ostringstream json;"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 1686,
+     "insideV27": true,
+     "text": "  json << \",\\\"fallback\\\":{\\\"ran\\\":\" << (barrier.fallbackRan ? \"true\" : \"false\");"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 1687,
+     "insideV27": true,
+     "text": "  if (barrier.fallbackRan) {"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 1688,
+     "insideV27": true,
+     "text": "    const FormatReadback &readback = barrier.fallbackReadback;"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 1689,
+     "insideV27": true,
+     "text": "    json << \",\\\"command\\\":\\\"\" << kFormatBarrierFallbackCommand"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 1690,
+     "insideV27": true,
+     "text": "         << \"\\\",\\\"resultSeen\\\":\" << (barrier.fallbackResultSeen ? \"true\" : \"false\")"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 1691,
+     "insideV27": true,
+     "text": "         << \",\\\"selectionType\\\":\" << barrier.fallbackSelectionType"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 1692,
+     "insideV27": true,
+     "text": "         << \",\\\"readable\\\":\" << (barrier.fallbackReadable ? \"true\" : \"false\")"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 1693,
+     "insideV27": true,
+     "text": "         << \",\\\"readbackBytes\\\":\" << barrier.fallbackReadbackBytes"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 1694,
+     "insideV27": true,
+     "text": "         << \",\\\"readback\\\":{\\\"parsed\\\":\" << (readback.parsed ? \"true\" : \"false\")"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 1695,
+     "insideV27": true,
+     "text": "         << \",\\\"unknownTag\\\":\" << (readback.unknownTag ? \"true\" : \"false\")"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 1696,
+     "insideV27": true,
+     "text": "         << \",\\\"unknownTagName\\\":\\\"\" << jsonEscape(readback.unknownTagName.c_str())"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 1697,
+     "insideV27": true,
+     "text": "         << \"\\\",\\\"malformedNesting\\\":\" << (readback.malformedNesting ? \"true\" : \"false\")"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 1698,
+     "insideV27": true,
+     "text": "         << \",\\\"footnoteApparatus\\\":\" << (readback.footnoteApparatus ? \"true\" : \"false\")"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 1699,
+     "insideV27": true,
+     "text": "         << \",\\\"listTag\\\":\\\"\" << jsonEscape(readback.listTag.c_str())"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 1700,
+     "insideV27": true,
+     "text": "         << \"\\\",\\\"blockTag\\\":\\\"\" << jsonEscape(readback.blockTag.c_str())"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 1701,
+     "insideV27": true,
+     "text": "         << \"\\\",\\\"lastListTag\\\":\\\"\" << jsonEscape(readback.lastListTag.c_str())"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 1702,
+     "insideV27": true,
+     "text": "         << \"\\\",\\\"lastBlockTag\\\":\\\"\" << jsonEscape(readback.lastBlockTag.c_str())"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 1703,
+     "insideV27": true,
+     "text": "         << \"\\\",\\\"blockCount\\\":\" << readback.blockCount"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 1704,
+     "insideV27": true,
+     "text": "         << \",\\\"itemCount\\\":\" << readback.itemCount"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 1705,
+     "insideV27": true,
+     "text": "         << \",\\\"multiBlock\\\":\" << (readback.multiBlock ? \"true\" : \"false\")"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 1706,
+     "insideV27": true,
+     "text": "         << \"},\\\"readbackHtml\\\":\\\"\" << jsonEscape(barrier.fallbackReadbackHtml.c_str())"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 1707,
+     "insideV27": true,
+     "text": "         << \"\\\",\\\"refusal\\\":\\\"\" << jsonEscape(barrier.fallbackRefusal.c_str()) << \"\\\"\";"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 1708,
+     "insideV27": true,
+     "text": "  }"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 1709,
+     "insideV27": true,
+     "text": "  json << \"}\";"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 1710,
+     "insideV27": true,
+     "text": "  return json.str();"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 1711,
+     "insideV27": true,
+     "text": "}"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 1816,
+     "insideV27": true,
+     "text": "       << formatBarrierFallbackJson(barrier)"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 1838,
+     "insideV27": true,
+     "text": "       << \"\\\",\\\"lastListTag\\\":\\\"\" << jsonEscape(barrier.readback.lastListTag.c_str())"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 1839,
+     "insideV27": true,
+     "text": "       << \"\\\",\\\"lastBlockTag\\\":\\\"\" << jsonEscape(barrier.readback.lastBlockTag.c_str())"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 5860,
+     "insideV27": true,
+     "text": "bool formatBarrierFallbackReadbackSatisfied() {"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 5861,
+     "insideV27": true,
+     "text": "  const FormatReadback &readback = gFormatBarrier.fallbackReadback;"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 5862,
+     "insideV27": true,
+     "text": "  if (!gFormatBarrier.fallbackReadable || !readback.parsed ||"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 5863,
+     "insideV27": true,
+     "text": "      readback.unknownTag || readback.malformedNesting ||"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 5864,
+     "insideV27": true,
+     "text": "      readback.footnoteApparatus || readback.lastBlockTag.empty())"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 5865,
+     "insideV27": true,
+     "text": "    return false;"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 5866,
+     "insideV27": true,
+     "text": "  if (!gFormatBarrier.expectedListTag.empty()) {"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 5867,
+     "insideV27": true,
+     "text": "    const std::string observed ="
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 5868,
+     "insideV27": true,
+     "text": "        readback.lastListTag.empty() ? std::string(\"none\") : readback.lastListTag;"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 5869,
+     "insideV27": true,
+     "text": "    if (observed != gFormatBarrier.expectedListTag)"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 5870,
+     "insideV27": true,
+     "text": "      return false;"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 5871,
+     "insideV27": true,
+     "text": "  }"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 5872,
+     "insideV27": true,
+     "text": "  if (!gFormatBarrier.expectedBlockTag.empty() &&"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 5873,
+     "insideV27": true,
+     "text": "      readback.lastBlockTag != gFormatBarrier.expectedBlockTag)"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 5874,
+     "insideV27": true,
+     "text": "    return false;"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 5875,
+     "insideV27": true,
+     "text": "  return true;"
+    },
+    {
+     "side": "+",
+     "file": "probe_engine.cpp",
+     "line": 5876,
+     "insideV27": true,
+     "text": "}"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 34,
+     "insideV27": true,
+     "text": "  if (gFormatBarrier.fallbackRan &&"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 35,
+     "insideV27": true,
+     "text": "      gFormatBarrier.fallbackSelectionType != LOK_SELTYPE_NONE) {"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 36,
+     "insideV27": true,
+     "text": "    auto refuseFallback = [](const char *reason) {"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 37,
+     "insideV27": true,
+     "text": "      gFormatBarrier.fallbackRefusal = reason;"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 38,
+     "insideV27": true,
+     "text": "      gFormatBarrier.failureShape = \"fallback-readback-refused\";"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 39,
+     "insideV27": true,
+     "text": "      failFormatBarrier(kFormatMutationOutcomeUnknown,"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 40,
+     "insideV27": true,
+     "text": "                        \"the fallback selection's readback does not provide a \""
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 41,
+     "insideV27": true,
+     "text": "                        \"supported structural proof; the format mutation outcome \""
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 42,
+     "insideV27": true,
+     "text": "                        \"is unknown\");"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 43,
+     "insideV27": true,
+     "text": "    };"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 45,
+     "insideV27": true,
+     "text": "    if (!gFormatBarrier.restoreConfirmed) {"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 48,
+     "insideV27": true,
+     "text": "      gFormatBarrier.failureShape = \"selection-not-restored\";"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 49,
+     "insideV27": true,
+     "text": "      failFormatBarrier(kFormatMutationOutcomeUnknown,"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 50,
+     "insideV27": true,
+     "text": "                        \"the synchronous read did not confirm NONE after restoring the caret\");"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 51,
+     "insideV27": true,
+     "text": "      return;"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 52,
+     "insideV27": true,
+     "text": "    }"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 53,
+     "insideV27": true,
+     "text": "    const FormatReadback &fallback = gFormatBarrier.fallbackReadback;"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 54,
+     "insideV27": true,
+     "text": "    if (!gFormatBarrier.fallbackReadable) {"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 55,
+     "insideV27": true,
+     "text": "      refuseFallback(\"selection-type-not-readable\");"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 56,
+     "insideV27": true,
+     "text": "      return;"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 57,
+     "insideV27": true,
+     "text": "    }"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 58,
+     "insideV27": true,
+     "text": "    if (!fallback.parsed || fallback.footnoteApparatus || fallback.unknownTag ||"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 59,
+     "insideV27": true,
+     "text": "        fallback.malformedNesting) {"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 60,
+     "insideV27": true,
+     "text": "      refuseFallback(fallback.footnoteApparatus ? \"footnote-apparatus-readback\""
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 61,
+     "insideV27": true,
+     "text": "                     : fallback.unknownTag ? \"unknown-structural-tag\""
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 62,
+     "insideV27": true,
+     "text": "                     : fallback.malformedNesting ? \"malformed-readback-nesting\""
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 63,
+     "insideV27": true,
+     "text": "                                                 : \"block-extraction-failed\");"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 64,
+     "insideV27": true,
+     "text": "      return;"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 65,
+     "insideV27": true,
+     "text": "    }"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 68,
+     "insideV27": true,
+     "text": "    if (gFormatBarrier.fallbackReadback.blockCount != 2) {"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 69,
+     "insideV27": true,
+     "text": "      refuseFallback(\"unexpected-block-count\");"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 70,
+     "insideV27": true,
+     "text": "      return;"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 71,
+     "insideV27": true,
+     "text": "    }"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 74,
+     "insideV27": true,
+     "text": "    gFormatBarrier.paragraphIdentityChecked ="
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 75,
+     "insideV27": true,
+     "text": "        gFormatBarrier.dispatchParagraphKnown &&"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 76,
+     "insideV27": true,
+     "text": "        gFormatBarrier.readbackParagraphKnown &&"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 77,
+     "insideV27": true,
+     "text": "        gFormatBarrier.dispatchParagraphUsable &&"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 78,
+     "insideV27": true,
+     "text": "        gFormatBarrier.readbackParagraphUsable;"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 79,
+     "insideV27": true,
+     "text": "    gFormatBarrier.paragraphIdentityDeclined ="
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 80,
+     "insideV27": true,
+     "text": "        gFormatBarrier.paragraphIdentityChecked ? \"\""
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 81,
+     "insideV27": true,
+     "text": "        : (!gFormatBarrier.dispatchParagraphKnown ||"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 82,
+     "insideV27": true,
+     "text": "           !gFormatBarrier.readbackParagraphKnown)"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 83,
+     "insideV27": true,
+     "text": "            ? \"a paragraph read did not succeed\""
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 84,
+     "insideV27": true,
+     "text": "            : \"the reported list prefix consumed the whole paragraph, so the \""
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 85,
+     "insideV27": true,
+     "text": "              \"fingerprint is the empty-string constant and identifies nothing \""
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 86,
+     "insideV27": true,
+     "text": "              \"(finding 074)\";"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 87,
+     "insideV27": true,
+     "text": "    if (gFormatBarrier.paragraphIdentityChecked &&"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 88,
+     "insideV27": true,
+     "text": "        gFormatBarrier.dispatchParagraphFingerprint !="
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 89,
+     "insideV27": true,
+     "text": "            gFormatBarrier.readbackParagraphFingerprint) {"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 90,
+     "insideV27": true,
+     "text": "      refuse(\"readback-is-a-different-paragraph\","
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 91,
+     "insideV27": true,
+     "text": "             \"the readback identifies a different paragraph from the dispatch\");"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 92,
+     "insideV27": true,
+     "text": "      return;"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 93,
+     "insideV27": true,
+     "text": "    }"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 94,
+     "insideV27": true,
+     "text": "    if (!formatBarrierFallbackReadbackSatisfied()) {"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 95,
+     "insideV27": true,
+     "text": "      gFormatBarrier.failureShape = \"postcondition-not-met\";"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 96,
+     "insideV27": true,
+     "text": "      failFormatBarrier(\"EDITOR_FORMAT_POSTCONDITION_FAILED\","
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 97,
+     "insideV27": true,
+     "text": "                        \"the document does not show the state this action asked for\");"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 98,
+     "insideV27": true,
+     "text": "      return;"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 99,
+     "insideV27": true,
+     "text": "    }"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 100,
+     "insideV27": true,
+     "text": "    completeFormatBarrier();"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 101,
+     "insideV27": true,
+     "text": "    return;"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 102,
+     "insideV27": true,
+     "text": "  }"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 220,
+     "insideV27": true,
+     "text": "    if (gFormatBarrier.fallbackRan) {"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 221,
+     "insideV27": true,
+     "text": "      const auto found = gOrderedProof.uno.find(kFormatBarrierFallbackCommand);"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 222,
+     "insideV27": true,
+     "text": "      gFormatBarrier.fallbackResultSeen ="
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 223,
+     "insideV27": true,
+     "text": "          found != gOrderedProof.uno.end() && found->second.seen;"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 224,
+     "insideV27": true,
+     "text": "    }"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 410,
+     "insideV27": false,
+     "text": "    }"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 419,
+     "insideV27": true,
+     "text": "    if (barrier.route == FormatBarrierRoute::Collapsed &&"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 420,
+     "insideV27": true,
+     "text": "        selected.type == LOK_SELTYPE_NONE && barrier.restorePointValid) {"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 421,
+     "insideV27": true,
+     "text": "      gFormatBarrier.fallbackRan = true;"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 422,
+     "insideV27": true,
+     "text": "      expectOrderedUno(kFormatBarrierFallbackCommand);"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 423,
+     "insideV27": true,
+     "text": "      gState.document->pClass->postUnoCommand("
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 424,
+     "insideV27": true,
+     "text": "          gState.document, kFormatBarrierFallbackCommand, nullptr, true);"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 425,
+     "insideV27": true,
+     "text": "      const SelectionReadback stepBack = readSelection();"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 426,
+     "insideV27": true,
+     "text": "      gFormatBarrier.fallbackSelectionType = stepBack.type;"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 427,
+     "insideV27": true,
+     "text": "      gFormatBarrier.fallbackReadable = stepBack.type == LOK_SELTYPE_TEXT;"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 428,
+     "insideV27": true,
+     "text": "      if (gFormatBarrier.fallbackReadable) {"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 429,
+     "insideV27": true,
+     "text": "        char *html = gState.document->pClass->getTextSelection("
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 430,
+     "insideV27": true,
+     "text": "            gState.document, \"text/html\", nullptr);"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 431,
+     "insideV27": true,
+     "text": "        const std::string markup = html ? std::string(html) : std::string();"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 432,
+     "insideV27": true,
+     "text": "        std::free(html);"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 433,
+     "insideV27": true,
+     "text": "        gFormatBarrier.fallbackReadbackBytes = markup.size();"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 434,
+     "insideV27": true,
+     "text": "        gFormatBarrier.fallbackReadbackHtml ="
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 435,
+     "insideV27": true,
+     "text": "            markup.substr(0, FormatReadbackEvidenceLimit);"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 436,
+     "insideV27": true,
+     "text": "        gFormatBarrier.fallbackReadback = parseFormatReadback(markup);"
+    },
+    {
+     "side": "+",
+     "file": "ordered_format.inc",
+     "line": 437,
+     "insideV27": true,
+     "text": "      }"
+    }
+   ]
+  },
+  "unoembind_stub": {
+   "C-sameLine": true,
+   "seconds": [
+    0.06,
+    0.06,
+    0.07,
+    0.07
+   ],
+   "B-sameAsLink": true,
+   "A-changedLines": 0,
+   "A-outside": [],
+   "A-outsideCount": 0,
+   "A-byFile": {},
+   "A-lines": []
+  },
+  "editor_api": {
+   "C-sameLine": true,
+   "seconds": [
+    0.14,
+    0.13,
+    0.13,
+    0.17
+   ],
+   "B-sameAsLink": true,
+   "A-changedLines": 0,
+   "A-outside": [],
+   "A-outsideCount": 0,
+   "A-byFile": {},
+   "A-lines": []
+  }
+ },
+ "D-closedList": {
+  "groups": [
+   {
+    "file": "editor_api.h",
+    "lines": [
+     90,
+     98
+    ],
+    "condition": "defined(OXSDK_E2_V28_LAST_BLOCK) && !defined(OXSDK_E2_V27_FIRST_BLOCK)",
+    "hasElse": false,
+    "declared": [
+     "guard"
+    ],
+    "enclosingNamesV25": false
+   },
+   {
+    "file": "ordered_format.inc",
+    "lines": [
+     30,
+     103
+    ],
+    "condition": "OXSDK_E2_V28_LAST_BLOCK",
+    "hasElse": false,
+    "declared": [
+     "finish-fallback-branch"
+    ],
+    "enclosingNamesV25": false
+   },
+   {
+    "file": "ordered_format.inc",
+    "lines": [
+     216,
+     225
+    ],
+    "condition": "OXSDK_E2_V28_LAST_BLOCK",
+    "hasElse": false,
+    "declared": [
+     "reply-fallback-result"
+    ],
+    "enclosingNamesV25": false
+   },
+   {
+    "file": "ordered_format.inc",
+    "lines": [
+     411,
+     439
+    ],
+    "condition": "OXSDK_E2_V28_LAST_BLOCK",
+    "hasElse": false,
+    "declared": [
+     "start-fallback-select"
+    ],
+    "enclosingNamesV25": false
+   },
+   {
+    "file": "probe_engine.cpp",
+    "lines": [
+     809,
+     815
+    ],
+    "condition": "OXSDK_E2_V28_LAST_BLOCK",
+    "hasElse": false,
+    "declared": [
+     "readback-last-fields"
+    ],
+    "enclosingNamesV25": false
+   },
+   {
+    "file": "probe_engine.cpp",
+    "lines": [
+     854,
+     857
+    ],
+    "condition": "OXSDK_E2_V28_LAST_BLOCK",
+    "hasElse": false,
+    "declared": [
+     "parser-stack"
+    ],
+    "enclosingNamesV25": false
+   },
+   {
+    "file": "probe_engine.cpp",
+    "lines": [
+     897,
+     900
+    ],
+    "condition": "OXSDK_E2_V28_LAST_BLOCK",
+    "hasElse": false,
+    "declared": [
+     "parser-pop"
+    ],
+    "enclosingNamesV25": false
+   },
+   {
+    "file": "probe_engine.cpp",
+    "lines": [
+     912,
+     920
+    ],
+    "condition": "OXSDK_E2_V28_LAST_BLOCK",
+    "hasElse": false,
+    "declared": [
+     "parser-last-block"
+    ],
+    "enclosingNamesV25": false
+   },
+   {
+    "file": "probe_engine.cpp",
+    "lines": [
+     926,
+     929
+    ],
+    "condition": "OXSDK_E2_V28_LAST_BLOCK",
+    "hasElse": false,
+    "declared": [
+     "parser-push"
+    ],
+    "enclosingNamesV25": false
+   },
+   {
+    "file": "probe_engine.cpp",
+    "lines": [
+     1019,
+     1031
+    ],
+    "condition": "OXSDK_E2_V28_LAST_BLOCK",
+    "hasElse": false,
+    "declared": [
+     "barrier-fallback-fields"
+    ],
+    "enclosingNamesV25": false
+   },
+   {
+    "file": "probe_engine.cpp",
+    "lines": [
+     1208,
+     1210
+    ],
+    "condition": "OXSDK_E2_V28_LAST_BLOCK",
+    "hasElse": false,
+    "declared": [
+     "fallback-command"
+    ],
+    "enclosingNamesV25": false
+   },
+   {
+    "file": "probe_engine.cpp",
+    "lines": [
+     1681,
+     1713
+    ],
+    "condition": "OXSDK_E2_V28_LAST_BLOCK",
+    "hasElse": false,
+    "declared": [
+     "fallback-json-helper"
+    ],
+    "enclosingNamesV25": false
+   },
+   {
+    "file": "probe_engine.cpp",
+    "lines": [
+     1815,
+     1817
+    ],
+    "condition": "OXSDK_E2_V28_LAST_BLOCK",
+    "hasElse": false,
+    "declared": [
+     "fallback-json-call"
+    ],
+    "enclosingNamesV25": false
+   },
+   {
+    "file": "probe_engine.cpp",
+    "lines": [
+     1837,
+     1840
+    ],
+    "condition": "OXSDK_E2_V28_LAST_BLOCK",
+    "hasElse": false,
+    "declared": [
+     "readback-last-serialised"
+    ],
+    "enclosingNamesV25": false
+   },
+   {
+    "file": "probe_engine.cpp",
+    "lines": [
+     5854,
+     5877
+    ],
+    "condition": "OXSDK_E2_V28_LAST_BLOCK",
+    "hasElse": false,
+    "declared": [
+     "fallback-predicate"
+    ],
+    "enclosingNamesV25": false
+   }
+  ],
+  "declared": 15,
+  "strippedDiffer": [],
+  "files": 33,
+  "ignoredNonSource": [
+   "probe_api.o",
+   "probe_engine.o",
+   "sdk_api.o",
+   "unoembind_stub.o"
+  ],
+  "problems": []
+ },
+ "notVisibleToShips": {
+  "files": [
+   "ordered_format.inc"
+  ],
+  "lines": 87
+ },
+ "problems": [
+  "probe_engine: 1 differing line(s) outside OXSDK_E2_V28_LAST_BLOCK, first ordered_format.inc:410 (+) '    }'"
+ ],
+ "verdict": "CONFINED_V28_RED"
+}

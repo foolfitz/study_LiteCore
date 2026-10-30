@@ -158,6 +158,22 @@ VARIANTS = {
         "includeVars": ["E2_V27_MD4C_INCLUDE"],
         "units": PRODUCT_UNITS,
     },
+    # SPEC-M3-v28-last-line-fallback 5: v27's line plus the v28 define.
+    "link-batch-v28": {
+        "objectsVar": "E2_V28_OBJECTS",
+        "cppflagsVar": "E1_CPPFLAGS",
+        "defines": MERGE_V15_DEFINES + ["-DOXSDK_E2_V20_LINK_BATCH",
+                                        "-DOXSDK_E2_V21_LINK_BATCH",
+                                        "-DOXSDK_MAINLOOP_ENGINE",
+                                        "-DOXSDK_E2_V23_LINK_BATCH",
+                                        "-DOXSDK_E2_V23_FEATURE_ABI6",
+                                        "-DOXSDK_E2_V24_TYPED_INSERT",
+                                        "-DOXSDK_E2_V25_FORMAT_PROOF",
+                                        "-DOXSDK_E2_V27_FIRST_BLOCK",
+                                        "-DOXSDK_E2_V28_LAST_BLOCK"],
+        "includeVars": ["E2_V28_MD4C_INCLUDE"],
+        "units": PRODUCT_UNITS,
+    },
     "product": {
         "objectsVar": "E2_V4_OBJECTS",
         "cppflagsVar": "E1_CPPFLAGS",

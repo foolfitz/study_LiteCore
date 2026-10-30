@@ -1,0 +1,293 @@
+since 3a6998b33: 3 unit(s) preprocess identically, 1 changed
+  same     sdk_api
+  same     unoembind_stub
+  same     editor_api
+  CHANGED  probe_engine
+      --- probe_engine@3a6998b33
+      +++ probe_engine@tree
+      +
+  std::string lastListTag
+      +
+  std::string lastBlockTag
+      +
+  std::vector<std::string> open
+      +
+        if (!open.empty())
+          open.pop_back()
+      -
+      } else if (tag == "li") {
+        ++readback.itemCount
+      +
+        readback.lastBlockTag = tag
+      +
+        readback.lastListTag.clear()
+      +
+        for (auto inner = open.rbegin()
+      + inner != open.rend()
+      + ++inner)
+          if (*inner == "ul" || *inner == "ol") {
+            readback.lastListTag = *inner
+      +
+            break
+      +
+          }
+      } else if (tag == "li") {
+        ++readback.itemCount
+      +
+      if (!selfClosing)
+        open.push_back(tag)
+      +
+  bool fallbackRan = false
+      +
+  bool fallbackResultSeen = false
+      +
+  int fallbackSelectionType = -1
+      +
+  bool fallbackReadable = false
+      +
+  std::size_t fallbackReadbackBytes = 0
+      +
+  std::string fallbackReadbackHtml
+      +
+  FormatReadback fallbackReadback
+      +
+  std::string fallbackRefusal
+      +
+const char *const kFormatBarrierFallbackCommand = ".uno:CharLeftSel"
+      +
+}
+std::string formatBarrierFallbackJson(const FormatStateBarrier &barrier) {
+  std::ostringstream json
+      +
+  json << ",\"fallback\":{\"ran\":" << (barrier.fallbackRan ? "true" : "false")
+      +
+  if (barrier.fallbackRan) {
+    const FormatReadback &readback = barrier.fallbackReadback
+      +
+    json << ",\"command\":\"" << kFormatBarrierFallbackCommand
+         << "\",\"resultSeen\":" << (barrier.fallbackResultSeen ? "true" : "false")
+ 
+      +
+  }
+  json << "}"
+      +
+  return json.str()
+      -
+  }
+  json << "],\"route\":"
+       << (barrier.route == FormatBarrierRoute::Unclassified ? "null"
+           : barrier.route == FormatBarrierRoute:
+      +
+  }
+  json << "],\"route\":"
+       << (barrier.route == FormatBarrierRoute::Unclassified ? "null"
+           : barrier.route == FormatBarrierRoute:
+      +
+  return true
+      +
+}
+bool formatBarrierFallbackReadbackSatisfied() {
+  const FormatReadback &readback = gFormatBarrier.fallbackReadback
+      +
+  if (!gFormatBarrier.fallbackReadable || !readback.parsed ||
+      readback.unknownTag || readback.malformedNesting ||
+      readback.footnoteAppar
+      +
+  if (!gFormatBarrier.expectedListTag.empty()) {
+    const std::string observed =
+        readback.lastListTag.empty() ? std::string("none") : readb
+      +
+    if (observed != gFormatBarrier.expectedListTag)
+      return false
+      +
+  }
+  if (!gFormatBarrier.expectedBlockTag.empty() &&
+      readback.lastBlockTag != gFormatBarrier.expectedBlockTag)
+    return false
+  CHANGED  sdk-worker.js 8152448ab83bc323 -> 0bed22bdb979138f (+130/-117 lines, 117 of them code)
+      + ["setPart", "part-switch"],
+      + ["currentPart", "part-switch"],
+      + ["partName", "part-switch"],
+      + ["partText", "part-text"],
+      + ["partInfo", "part-info"],
+      + ["cellRead", "cell-editing"],
+      + ["cellHit", "cell-editing"],
+      + ["cellInput", "cell-editing"],
+      + ["cellFormat", "cell-editing"],
+      + ["rangeRead", "cell-range-formatting"],
+      + ["rangeFormat", "cell-range-formatting"],
+      + declaration: "document-sdk-page-rectangles" }],
+      + declaration: "document-sdk-paste-markdown" }],
+      + dispatched: typeof value.stage === "string" && value.stage !== "idle",
+      + ...(typeof event.documentType === "string" ? { documentType: event.documentType } : {}),
+      + ...(typeof event.inputSuffix === "string" ? { inputSuffix: event.inputSuffix } : {}),
+      + complete(requestId, { method: event.method, revision: event.revision });
+      + case "part-set":
+      + if (requestId) {
+      + complete(requestId, { part: event.part, width: event.width, height: event.height,
+      + revision: event.revision });
+      + }
+      + break;
+      + case "current-part":
+      + if (requestId)
+      + complete(requestId, { part: event.part, revision: event.revision });
+      + break;
+      + case "part-name":
+      + if (requestId)
+      + complete(requestId, { part: event.part, name: event.name, revision: event.revision });
+      + break;
+      + case "part-text":
+      + if (requestId) {
+      + complete(requestId, { part: event.part, text: event.text, textNull: event.textNull,
+      + selectAllConfirmed: event.selectAllConfirmed,
+      + partBefore: event.partBefore, partAfter: event.partAfter,
+      + revision: event.revision,
+      + ...(Number.isInteger(event.selectAllWaitMs)
+      + ? { selectAllWaitMs: event.selectAllWaitMs,
+      + selectAllDeadlineMs: event.selectAllDeadlineMs,
+      + lateSelectAllResults: event.lateSelectAllResults }
+      + : {}) });
+      + }
+      + break;
+      + case "part-info":
+      + if (requestId)
+      + complete(requestId, { part: event.part, info: event.info, revision: event.revision });
+      + break;
+      + case "cell-result":
+      + if (requestId) {
+      + try {
+      + complete(requestId, { cell: parseEngineJson(event.cellJson, "cell"),
+      + revision: event.revision, changed: event.changed === true });
+      + } catch (error) {
+      + fail(requestId, "CELL_RESULT_INVALID", String(error?.stack || error));
+      + }
+      + }
+      + break;
+      + const requiredCapability = request.operation === "save" && payload.format === "ods"
+      + ? "save-ods" : OPERATION_CAPABILITIES.get(request.operation);
+      + if (!documentExportDeclared(request.operation)) {
+      + const spec = DOCUMENT_EXPORT_OPERATIONS.get(request.operation);
+      + "oxsdk_document_insert_text",
+      + ["number", "number"],
+      + [request.requestId, payload.documentHandle],
+      + ));
+      + break;
+      + case "setPart":
+      + case "partName":
+      + case "partText":
+      + case "partInfo": {
+      + const exports = { setPart: "oxsdk_document_set_part", partName: "oxsdk_document_part_name",
+      + partText: "oxsdk_document_part_text", partInfo: "oxsdk_document_part_info" };
+      + accept(request, () => (Number.isInteger(payload.part) ? callStatus(
+      + exports[request.operation],
+      + ["number", "number", "number"],
+      + [request.requestId, payload.documentHandle, payload.part],
+      + ) : 1));
+      + break;
+      + }
+      + case "currentPart":
+      + accept(request, () => callStatus(
+      + "oxsdk_document_current_part",
+      + case "cellRead":
+      + case "cellHit":
+      + case "cellInput":
+      + case "cellFormat":
+      + case "rangeRead":
+      + case "rangeFormat": {
+      + const indices = [payload.part, payload.column, payload.row];
+      + const formats = { bold: 2, italic: 3, underline: 4 };
+      + const range = request.operation === "rangeRead" || request.operation === "rangeFormat";
+      + if (range) indices.push(payload.endColumn, payload.endRow);
+      + if (indices.some(value => !Number.isInteger(value) || value < 0 || value > 0x7fffffff)
+      + || !Number.isInteger(payload.expectedRevision) || payload.expectedRevision < 0 || payload.expectedRevision > 0xffffffff
+      + || !Number.isInteger(payload.documentHandle) || payload.documentHandle <= 0 || payload.documentHandle > 0xffffffff
+      + || (request.operation === "cellInput" && (typeof payload.text !== "string" || payload.text.length > 32767))
+      + || (range && (payload.endColumn < payload.column || payload.endRow < payload.row
+      + || (payload.endColumn-payload.column+1)*(payload.endRow-payload.row+1)>65536))
+      + || (["cellFormat","rangeFormat"].includes(request.operation) && (!Object.hasOwn(formats, payload.format) || typeof payload.enabled !== "bool
+      + accept(request, () => 1);
+      + break;
+      + }
+      + const operation = request.operation === "cellRead" ? 0
+      + : request.operation === "cellHit" ? 5
+      + : request.operation === "cellInput" ? 1
+      + : request.operation === "rangeRead" ? 6
+      + : request.operation === "rangeFormat" ? formats[payload.format]+5 : formats[payload.format];
+      + const invoke = (pointer, length) => callStatus("oxsdk_document_cell",
+      + Array(10).fill("number"), [request.requestId, payload.documentHandle,
+      + payload.expectedRevision, payload.part, payload.column, payload.row,
+      + operation, pointer, length, payload.enabled === true ? 1 : 0]);
+      + accept(request, () => range ? withUtf8(JSON.stringify({endColumn:payload.endColumn,endRow:payload.endRow}),invoke)
+      + : operation === 1 && payload.text.length > 0
+      + ? withUtf8(payload.text, invoke) : invoke(0, 0));
+      + break;
+      + }
+      - const FORMAT_WITNESSES = new Set(["uno-success", "on-time-item", "state-noop"]);
+      - const EDITOR_V23_EXTEND_ACTIONS = new Set([
+      - "move-character-left", "move-character-right", "move-line-up",
+      - "move-line-down", "move-line-home", "move-line-end",
+      - ]);
+      - function featureExtendPermitted(action) {
+      - return activeManifest?.profile === "e2-editor-v27"
+      - && activeManifest?.editorContract?.abiVersion === 6
+      - && EDITOR_V23_EXTEND_ACTIONS.has(action);
+      - }
+      - declaration: "document-sdk-page-rectangles",
+      - symbol: "oxsdk_document_page_rectangles" }],
+      - declaration: "document-sdk-paste-markdown",
+      - symbol: "oxsdk_document_paste_markdown" }],
+      - ["insertTypedText", { field: "typedInsert",
+      - declaration: "document-sdk-insert-typed-text",
+      - symbol: "oxsdk_document_insert_typed_text" }],
+      - const INSERT_ROUTES = new Set(["uno-insert-text", "paste"]);
+      - function exportOperation(request) {
+      - return request.operation === "insertText"
+      - && request.payload?.route === "uno-insert-text"
+      - ? "insertTypedText" : request.operation;
+      - }
+      - dispatched: typeof value.dispatched === "boolean" ? value.dispatched
+      - : typeof value.stage === "string" && value.stage !== "idle",
+      - undo: productFormatUndo(value.undo),
+      - };
+      - }
+      - function productFormatUndo(value) {
+      - if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+      - const count = (n) => (Number.isInteger(n) && n >= 0 ? n : null);
+      - return {
+      - read: typeof value.read === "boolean" ? value.read : null,
+      - changed: typeof value.changed === "boolean" ? value.changed : null,
+      - actionsBefore: count(value.actionsBefore),
+      - actionsAfter: count(value.actionsAfter),
+      - complete(requestId, {
+      - method: event.method,
+      - revision: event.revision,
+      - ...(event.completion === undefined ? {} : {
+      - completion: event.completion,
+      - resultPayload: event.resultPayload,
+      - }),
+      - });
+      - witness: FORMAT_WITNESSES.has(event.witness) ? event.witness : null,
+      - return;
+      - }
+      - }
+      - for (const spec of DOCUMENT_EXPORT_OPERATIONS.values()) {
+      - if (contract?.[spec.field] === spec.declaration
+      - && typeof moduleInstance?.["_" + spec.symbol] !== "function") {
+      - fail(request.requestId, "DECLARED_EXPORT_MISSING",
+      - `profile ${activeManifest?.profile || "unknown"} declares `
+      - + `${spec.field}: "${spec.declaration}" but this binary has no `
+      - + `${spec.symbol}`);
+      - const requiredCapability = OPERATION_CAPABILITIES.get(request.operation);
+      - if (!documentExportDeclared(exportOperation(request))) {
+      - const spec = DOCUMENT_EXPORT_OPERATIONS.get(exportOperation(request));
+      - if (payload.route !== undefined && !INSERT_ROUTES.has(payload.route)) {
+      - postResponse(request.requestId, false, {
+      - code: "INVALID_ARGUMENT",
+      - message: `unknown insertText route ${JSON.stringify(payload.route)}`,
+      - dispatched: false,
+      - });
+      - break;
+      - }
+      - payload.route === "uno-insert-text"
+      - ? "oxsdk_document_insert_typed_text" : "oxsdk_document_insert_text",
+      - || featureExtendPermitted(payload.action)

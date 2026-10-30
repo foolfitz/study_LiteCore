@@ -418,7 +418,6 @@ void startOrderedFormatAction(const Command &command, std::uint32_t action,
     // callback wait between these calls and the restore.
     if (barrier.route == FormatBarrierRoute::Collapsed &&
         selected.type == LOK_SELTYPE_NONE && barrier.restorePointValid) {
-      gFormatBarrier.fallbackRan = true;
       expectOrderedUno(kFormatBarrierFallbackCommand);
       gState.document->pClass->postUnoCommand(
           gState.document, kFormatBarrierFallbackCommand, nullptr, true);
@@ -436,6 +435,10 @@ void startOrderedFormatAction(const Command &command, std::uint32_t action,
         gFormatBarrier.fallbackReadback = parseFormatReadback(markup);
       }
     }
+    // Set from the read (the type starts at -1), as the group's last statement:
+    // a group that ended in a bare `}` preprocessed identically to the line
+    // before it, which the L reader's line alignment could not tell apart.
+    gFormatBarrier.fallbackRan = gFormatBarrier.fallbackSelectionType >= 0;
 #endif
   }
   restoreOrderedFormatPoint();

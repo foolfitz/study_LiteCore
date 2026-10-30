@@ -50,3 +50,24 @@ The engine source carries every v28 change under `OXSDK_E2_V28_LAST_BLOCK`: `src
   - Without the v28 carrier: red (`m1-1-red-without-v28-carrier.*`, the three E2_V28 objects).
   - With it: green (`m1-1-green-with-v28-carrier.*`, 0 FAIL, 62 s, `taskset -c 0`).
 - **Fixed by execution (counted), caught by M1-1.** The first green attempt (`m1-1-run1-red-mangled-define.*`) was red. Deriving the Makefile block by a blanket `E2_V27_` → `E2_V28_` rename had also renamed `-DOXSDK_E2_V27_FIRST_BLOCK` into a nonexistent `-DOXSDK_E2_V28_FIRST_BLOCK`. The v28 compile line therefore lacked the v27 define, and `editor_api.h`'s new `#error` fired. It was fixed in the Makefile only; no other file carried the mangled name.
+
+## L, PIN, ships (spec 5, 7.2)
+
+- **ships** (`ships.stdout.txt`, `--json`): `what_the_link_ships.py --since 3a6998b33 --variant link-batch-v28 --shipped-profile dist/profiles/e2-editor-v27`. Result `ok`: only `probe_engine` changes (9 hunks, all in the `.cpp`). The `.inc` changes are invisible to it, as declared; `ships-text.stdout.txt` is the first, text-format run.
+- **L** (`tools/check_v28_ships_confined.py`, derived from v27's) → `l-confined.json`: **`CONFINED_V28_HOLDS`**.
+  - **D**: 15 groups = the 15 declared hunks. With them stripped, every file equals 3a6998b33's byte for byte. No group is nested in a v27 branch.
+  - **A**: the 158 differing preprocessed lines all lie inside v28 branches.
+  - **B, C**: v27's line equals v27's link.
+  - **Red cases** (`l-confined-red-cases.txt`): a line added outside any group → B and D red; the `parser-push` hunk removed → D red.
+- **Fixed by execution (counted) for L.** The first L run (`l-run1-red-alignment.json`) was red. It found one line "outside" (`ordered_format.inc:410`, a `}`).
+  - **The cause:** an alignment ambiguity. The v28 group in `startOrderedFormatAction` ended in a bare `    }`, which preprocessed identically to the line before the group (comments are stripped by `-E`), and difflib paired the wrong one.
+  - **The fix:** the group now ends in a statement, `gFormatBarrier.fallbackRan = gFormatBarrier.fallbackSelectionType >= 0;`, which replaces the `fallbackRan = true` at its start. The meaning is the same: the type starts at -1 and is set by the read. The reader's algorithm is unchanged.
+  - **Re-run after this change, all green:** E1/E2, E3's inc tests, `test-v28-last-block-static`, S (its control anchor moved to `stepBack`'s line), V0, M1-1, ships.
+- **V0 baseline correction (counted with the above).** V0 was re-run against **3a6998b33** (v27's link source): `V0_V28_HOLDS` 16/16, positive control exactly the four `probe_engine` rows. A re-run against HEAD after the engine commit would have compared v28 with itself; the first V0 (against 201b9edbb, before the engine commit) was valid when it ran.
+- **PIN.**
+  - `source_pin.py` (v27's, with v28's files added) → `source-pin.json`: 11 files, both trees (LOSRC `../libreoffice-26-8` at 671c848b, and `native-lok-26-8/src`) agree.
+  - Red case: an unmodified copy passes (`source-pin-control-copy.txt`); one byte added to `swcrsr.cxx` → `PIN_RED` on exactly that file (`source-pin-red-case.txt`).
+  - The v27 archive's `SHA256SUMS` all OK (`v27-archive-sha256sums-check.txt`).
+  - `frozen-set-before.sha256`: 2,862 files under `dist/profiles/` and `build/archive/`.
+  - `make-n-owner-command.txt`: v28's four compiles and one guarded link, no other profile's objects.
+  - `build/e2/editor-v28`, `dist/profiles/e2-editor-v28` and the link log do not exist.

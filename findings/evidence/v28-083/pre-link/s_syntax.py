@@ -64,7 +64,7 @@ def main():
         shutil.copytree(SDK / 'src', broken)
         inc = broken / 'ordered_format.inc'
         text = inc.read_text()
-        anchor = '      gFormatBarrier.fallbackRan = true;\n'
+        anchor = '      const SelectionReadback stepBack = readSelection();\n'
         assert text.count(anchor) == 1
         inc.write_text(text.replace(anchor, anchor + '      this_symbol_does_not_exist_v28();\n'))
         rows.append({'row': 'control: v28-only error, with define', **syntax(engine_argv, broken, add=[V28])})
