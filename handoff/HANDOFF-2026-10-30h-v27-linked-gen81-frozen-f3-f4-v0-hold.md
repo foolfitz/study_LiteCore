@@ -67,3 +67,27 @@ Default: no slot, no install; 0.2.42 stays the daily uncounted candidate.
 - Replies to the owner: Taiwan Traditional Chinese, A/B/C for options.
 - Evidence and `handoff/**`: English.
 - Specs and findings: zh-TW.
+
+## Addendum (~16:25 +0800): host 0.2.43 installed; hand tests and one red pending
+
+Everything is in `findings/evidence/host-0.2.43/README.md` (commits `b99aa6ff4`, `d95224e3a`).
+
+**Offline steps:**
+- worktree `host-0.2.43` at ae8240d;
+- engine **741afd80a36e673b**;
+- the delta is exactly the page + v27 x4 added + v26 x4 removed;
+- every gate holds, including F3-81 reading 1 exactly;
+- `DELTA_HOLDS` 8/8 reds, `PACKAGE_HOLDS` 22/22, `OFFLINE_INSTALL_READY`.
+
+**Slot.** The owner answered A ("install now, no site"). They also said other DDEV projects may be stopped; none were running.
+
+**Live steps:**
+- `CANDIDATE_INSTALLED`: host main at ae8240d, 0.2.43, documents and locks preserved across the install;
+- Files workflow 52/52;
+- `capture-after` **`holds: false`**, on `lockRowsEqualInstallAfter` only. A lock row that had expired ~5 h before the install was lazily deleted by Nextcloud's files_lock (`LockService.php:141-155`, `:337-339`), not by our tools; which request triggered it was not measured. Named **L-capture-after-expired-lock-lazily-deleted**; the verdict is not rewritten.
+
+**Pending with the owner:**
+1. Hand tests (a)-(c) (README, "Next").
+2. Whether 0.2.43 replaces 0.2.42 as the daily uncounted candidate given that named red, A/B. The rollback is prepared: `rollback-package.sh`, which restores the exact 0.2.42 engine and keeps the label 0.2.43.
+
+K and the count chain stay batched (owner, 10-12). The uncounted changes now run from 0.2.26 to v22-v27.
