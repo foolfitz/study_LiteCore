@@ -54,10 +54,26 @@ void finishOrderedFormatReadback() {
       return;
     }
   } else {
+#ifdef OXSDK_E2_V27_FIRST_BLOCK
+    // Finding 176 (SPEC-M3-v27-finding-176 4.1 item 2; fable ruling 3 Q1).  On
+    // the collapsed route `.uno:SelectText` is FN_SELECT_PARA: it selects from
+    // the start of the paragraph holding the cursor and, on an EMPTY paragraph
+    // only, runs on to the end of the NEXT one (textsh1.cxx:1975, GoCurrPara
+    // pam.cxx:1238) -- never upward.  So the first block IS the dispatch
+    // paragraph, and the predicate below already reads only the first block:
+    // judge it, in both directions, instead of refusing.  RangeSingle keeps
+    // the refusal (not measured under this read).
+    if (readback.multiBlock &&
+        gFormatBarrier.route != FormatBarrierRoute::Collapsed) {
+      refuse("multi-block-readback", "the readback covers more than one paragraph");
+      return;
+    }
+#else
     if (readback.multiBlock) {
       refuse("multi-block-readback", "the readback covers more than one paragraph");
       return;
     }
+#endif
     gFormatBarrier.paragraphIdentityChecked =
         gFormatBarrier.dispatchParagraphKnown &&
         gFormatBarrier.readbackParagraphKnown &&
@@ -260,6 +276,12 @@ void startOrderedFormatAction(const Command &command, std::uint32_t action,
   // compiled under the v23 define reads `stage`, and no deadline is armed.
   barrier.stage = FormatBarrierStage::AwaitingResult;
 #endif
+#ifdef OXSDK_E2_V27_FIRST_BLOCK
+  // Finding 176 (4.1 item 4): recorded, never a verdict input.  Read here,
+  // after routing (a pre-dispatch refusal never reads it), before the post.
+  std::string undoBefore;
+  const bool undoBeforeRead = readMergeUndoPayload(undoBefore);
+#endif
   // v23 callback routing must bypass all legacy barrier observers. This
   // temporary global lets existing pure/read helpers share the transaction;
   // no transaction survives here between this command and its reply.
@@ -272,7 +294,17 @@ void startOrderedFormatAction(const Command &command, std::uint32_t action,
     // Preserve the caller's entire range and compare every block by content.
     checkFormatBarrierCrossParagraph();
   } else {
+#ifdef OXSDK_E2_V27_FIRST_BLOCK
+    // Finding 176 (4.1 item 1; fable ruling 3 Q2): on the collapsed route the
+    // select runs from where the dispatch left the cursor -- the dispatch
+    // paragraph -- rather than from a point captured before the action changed
+    // that paragraph's geometry.  RangeSingle keeps the restore: it collapses
+    // the caller's range first.
+    if (barrier.route != FormatBarrierRoute::Collapsed)
+      restoreOrderedFormatPoint();
+#else
     restoreOrderedFormatPoint();
+#endif
     expectOrderedUno(kFormatBarrierSelectCommand);
     gState.document->pClass->postUnoCommand(
         gState.document, kFormatBarrierSelectCommand, nullptr, true);
@@ -296,6 +328,22 @@ void startOrderedFormatAction(const Command &command, std::uint32_t action,
   restoreOrderedFormatPoint();
   gFormatBarrier.restoreConfirmed =
       gFormatBarrier.restorePointValid && readSelection().type == LOK_SELTYPE_NONE;
+#ifdef OXSDK_E2_V27_FIRST_BLOCK
+  {
+    std::string undoAfter;
+    const bool undoAfterRead = readMergeUndoPayload(undoAfter);
+    const probe::merge::UndoSummary before = probe::merge::summarizeUndoPayload(undoBefore);
+    const probe::merge::UndoSummary after = probe::merge::summarizeUndoPayload(undoAfter);
+    gFormatBarrier.undoAttempted = true;
+    gFormatBarrier.undoRead = undoBeforeRead && undoAfterRead && before.ok && after.ok;
+    if (gFormatBarrier.undoRead) {
+      gFormatBarrier.undoChanged = undoBefore != undoAfter;
+      gFormatBarrier.undoActionsBefore = before.actions;
+      gFormatBarrier.undoActionsAfter = after.actions;
+      gFormatBarrier.undoTop = after.topComment;
+    }
+  }
+#endif
   barrier = gFormatBarrier;
   gFormatBarrier = FormatStateBarrier{};
   deferOrderedFormatReply(std::move(barrier), true);

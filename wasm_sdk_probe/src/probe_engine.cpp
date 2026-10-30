@@ -974,6 +974,20 @@ struct FormatStateBarrier {
   bool dispatchRecorded = false;
   bool dispatched = false;
 #endif
+#ifdef OXSDK_E2_V27_FIRST_BLOCK
+  // Finding 176 (SPEC-M3-v27-finding-176 4.1 item 4).  The undo stack read
+  // before the dispatch and after the final restore.  RECORDED, never a verdict
+  // input (fable ruling 3 Q4): it is an action trace that cannot name the
+  // paragraph, and it is silent on a no-op.  `undoAttempted` is false on a
+  // pre-dispatch refusal, which never reads it -- "not attempted" is not "not
+  // readable".
+  bool undoAttempted = false;
+  bool undoRead = false;
+  bool undoChanged = false;
+  std::size_t undoActionsBefore = 0;
+  std::size_t undoActionsAfter = 0;
+  std::string undoTop;
+#endif
   // Finding 033.  The barrier used to advance out of AwaitingSelection on any
   // TEXT_SELECTION carrying rectangles, and a search dispatched by the caller
   // selects its match -- so the caller's own caret move could hand the barrier
@@ -1748,7 +1762,22 @@ void appendFormatBarrierDetails(std::ostringstream &json,
        << ",\"restoreConfirmed\":"
        << (barrier.restoreConfirmed ? "true" : "false")
        << ",\"html\":\"" << jsonEscape(barrier.readbackHtml.c_str())
+#ifdef OXSDK_E2_V27_FIRST_BLOCK
+       << "\"}";
+  // Inside `formatBarrier`, where the worker reads it (event.formatBarrier).
+  if (barrier.undoAttempted) {
+    json << ",\"undo\":{\"read\":" << (barrier.undoRead ? "true" : "false");
+    if (barrier.undoRead)
+      json << ",\"changed\":" << (barrier.undoChanged ? "true" : "false")
+           << ",\"actionsBefore\":" << barrier.undoActionsBefore
+           << ",\"actionsAfter\":" << barrier.undoActionsAfter
+           << ",\"top\":\"" << jsonEscape(barrier.undoTop.c_str()) << "\"";
+    json << "}";
+  }
+  json << "}";
+#else
        << "\"}}";
+#endif
 }
 
 void completeFormatBarrier() {

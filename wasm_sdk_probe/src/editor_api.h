@@ -78,6 +78,15 @@ extern "C" {
 #if defined(OXSDK_E2_V25_FORMAT_PROOF) && !defined(OXSDK_E2_V24_TYPED_INSERT)
 #error "the v25 format proof requires the v24 typed-insert engine"
 #endif
+/*
+ * OXSDK_E2_V27_FIRST_BLOCK (SPEC-M3-v27-finding-176) lets the ordered collapsed
+ * route judge a two-paragraph readback by its first block, and records the undo
+ * stack around a format action.  No export, action, gesture, limit or field
+ * meaning changes: a v25/v26 successor at ABI 6.
+ */
+#if defined(OXSDK_E2_V27_FIRST_BLOCK) && !defined(OXSDK_E2_V25_FORMAT_PROOF)
+#error "the v27 first-block read requires the v25 format-proof engine"
+#endif
 
 typedef enum oxsdk_editor_v1_action {
   OXSDK_EDITOR_V1_MOVE_CHARACTER_LEFT = 1,
