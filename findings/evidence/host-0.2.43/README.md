@@ -92,3 +92,15 @@ These items hold:
 So the red is capture-after's comparison of the FULL lock table across a window in which Nextcloud itself may lazily delete an already-expired row. It is not a change to any document or live lock. Named: **L-capture-after-expired-lock-lazily-deleted**. It is recorded, not fixed: the tool is a derived copy kept byte-for-byte, and redesigning its lock clause would be new mechanism. The verdict stays `holds: false` as written.
 
 Not done yet: the owner's hand tests (a)-(c). The decision whether 0.2.43 replaces 0.2.42 as the daily uncounted candidate goes to the owner, with this red named. The rollback is prepared (`rollback-package.sh`: the exact 0.2.42 engine; the label stays 0.2.43).
+
+## Owner's hand tests on 0.2.43 (2026-10-30 ~16:45 +0800)
+
+Owner's report, verbatim: 「a. 如預期。但我在頁面上沒看到「上次操作」 / b. 顯示"動作以送出…"，跟之前一樣。也是沒看到「上次操作」 / c. 如預期」. Screenshot for (b): `owner-hand-test-b-toast-20261030-1646.png`. It shows 083's sentence 「• 項目符號：動作已送出，但這一段是空的，檢查要用的選取取不到任何內容，所以無法核對。…」.
+
+- **(a)**: as expected. A bullet on an empty line with a paragraph after it shows no toast. This is the engine item C, observed on the host.
+- **(b)**: 083's sentence, as designed. Spec 2 「083 的路不改」 and L-083-stays-a-toast (ruling 3 Q5).
+- **(c)**: as expected. Ctrl+Z undoes the list.
+- **「上次操作」 is not visible on the host, and never was.**
+  - The host hides the whole `.statusbar` (`templates/editor.php:51`, `#litecore-editor-root .statusbar { display: none; }`), since host 0.2.6 (`96a13b9`, 2026-10-06). The same rule is in 93b1ebc (0.2.42) and ae8240d (0.2.43).
+  - The strip's 「失敗」 / 「待確認」 exist only on the mirror and the standalone page. There, U1 and S2′ measured them.
+  - The hand-test clauses about 「上次操作」 (spec 7.4 (a), (b)) were unobservable on the host. They are withdrawn; see the spec's append 1. They are not counted as passed or failed.
