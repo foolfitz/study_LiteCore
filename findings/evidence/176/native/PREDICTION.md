@@ -65,3 +65,24 @@ Added, deciding nothing, so the run also records the inputs of the next candidat
 2. op G = F without the restore before `.uno:SelectText` (the select runs from where the dispatch left the cursor), on every A and N cell, as class R cells `g-<cell>`.
 
 The harness is rebuilt (`build-02`); `build-01` and `smoke/` stay as the smoke's record.
+
+## Amendment 2 (2026-10-30 ~12:12 +0800, before any of these cells ran): ruling 3 Q6.3's cells and its stop rule
+
+Ruling 3 (`../RULING-fable-2026-10-30-c.md`) accepts C (collapsed route; a multi-block readback judged by the existing first-block predicate; no restore before the select, op G) for all five paragraph actions **conditional on** these cells, and names the stop rule. Registered here before any of them ran. Same harness binary (`build-02`), same mode (`uni1ai`), 5 rounds each, run by `tool/run_cells_q63.py` into `out-q63/` with fixtures in `fixtures-q63/` (`tool/make_fixtures_q63.py`); `run_cells.py`, `make_fixtures.py` and `out/` are not touched. Every cell ends with the harness's `L` locator (Shift+End, Shift+Home from the caret) before the save, so where the caret is after the final restore is recorded.
+
+| cell | op | fixture | what |
+|---|---|---|---|
+| b0-heading-control | F Heading 1 | empty-heading-mid | fixture control: the empty paragraph loads as a heading (saved `text:h`) |
+| b1f-body-on-empty-heading | F Text body | empty-heading-mid | ruling Q2.1's hypothesis about F's restore after a heading shrinks |
+| b1g-body-on-empty-heading | G Text body | empty-heading-mid | the same under G |
+| a6f-empty-empty | F bullet | empty-empty-mid | an empty paragraph followed by another empty one |
+| a6g-empty-empty | G bullet | empty-empty-mid | |
+| n6f-sham-empty-empty | F sham (On:false) | empty-empty-mid | |
+| n6g-sham-empty-empty | G sham | empty-empty-mid | |
+| g-r3-number-empty-mid | G numbering | empty-mid | the G twin of r3 |
+| g-r4-none-empty-bulleted | G RemoveBullets | empty-bulleted-mid | the G twin of r4 |
+| g-r5-heading-empty-mid | G Heading 1 | empty-mid | the G twin of r5 |
+
+**Stop rule (ruling 3 Q3), judged by `tool/read_q63.py`:** for every G cell (b1g, a6g, n6g, g-r3, g-r4, g-r5): 5 clean rounds, and in every round the first block's state (the same derivation as `read_cells.py`'s recorded comparison) equals the saved dispatch paragraph's state. A G cell that fails it -> its action is **out of C's scope** and a finding; fewer than 5 clean rounds or b0 not saved as a heading -> NOT-ESTABLISHED for that action. F cells are recorded only. The verdict lists, per action (bullet, number, none, heading, body), `IN-SCOPE`, `OUT-OF-SCOPE` or `NOT-ESTABLISHED`; bullet's G evidence also counts the first run's g-a2/g-a3/g-n1..n3.
+
+Caveat carried from ruling 3 §2: the first-block state here is the reader's regex derivation, not the production parser; the production parser is pinned separately on the recorded HTML (ruling 3 Q6.2, a unit test in the v27 spec), and that test must include a6's and b1's HTML.

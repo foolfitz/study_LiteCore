@@ -1,0 +1,92 @@
+[
+ {
+  "name": "b0-heading-control",
+  "class": "R",
+  "fixture": "empty-heading-mid.fodt",
+  "script": "k1024,Xb0-heading-control@1029=F.uno:StyleApply|{\"Style\":{\"type\":\"string\"`\"value\":\"Heading 1\"}`\"FamilyName\":{\"type\":\"string\"`\"value\":\"ParagraphStyles\"}},L,S",
+  "target": 1,
+  "expect": "heading",
+  "note": "fixture control: the empty paragraph loads as a heading"
+ },
+ {
+  "name": "b1f-body-on-empty-heading",
+  "class": "R",
+  "fixture": "empty-heading-mid.fodt",
+  "script": "k1024,Xb1f-body-on-empty-heading@1029=F.uno:StyleApply|{\"Style\":{\"type\":\"string\"`\"value\":\"Text body\"}`\"FamilyName\":{\"type\":\"string\"`\"value\":\"ParagraphStyles\"}},L,S",
+  "target": 1,
+  "expect": "body",
+  "note": "ruling 3 Q2.1's hypothesis about F's restore after a heading shrinks"
+ },
+ {
+  "name": "b1g-body-on-empty-heading",
+  "class": "G",
+  "fixture": "empty-heading-mid.fodt",
+  "script": "k1024,Xb1g-body-on-empty-heading@1029=G.uno:StyleApply|{\"Style\":{\"type\":\"string\"`\"value\":\"Text body\"}`\"FamilyName\":{\"type\":\"string\"`\"value\":\"ParagraphStyles\"}},L,S",
+  "target": 1,
+  "expect": "body",
+  "note": "the same under G"
+ },
+ {
+  "name": "a6f-empty-empty",
+  "class": "R",
+  "fixture": "empty-empty-mid.fodt",
+  "script": "k1024,Xa6f-empty-empty@1029=F.uno:DefaultBullet|{\"On\":{\"type\":\"boolean\"`\"value\":true}},L,S",
+  "target": 1,
+  "expect": "bullet",
+  "note": "empty paragraph, another empty after it"
+ },
+ {
+  "name": "a6g-empty-empty",
+  "class": "G",
+  "fixture": "empty-empty-mid.fodt",
+  "script": "k1024,Xa6g-empty-empty@1029=G.uno:DefaultBullet|{\"On\":{\"type\":\"boolean\"`\"value\":true}},L,S",
+  "target": 1,
+  "expect": "bullet",
+  "note": "the same under G"
+ },
+ {
+  "name": "n6f-sham-empty-empty",
+  "class": "R",
+  "fixture": "empty-empty-mid.fodt",
+  "script": "k1024,Xn6f-sham-empty-empty@1029=F.uno:DefaultBullet|{\"On\":{\"type\":\"boolean\"`\"value\":false}},L,S",
+  "target": 1,
+  "expect": "none",
+  "note": "sham, F"
+ },
+ {
+  "name": "n6g-sham-empty-empty",
+  "class": "G",
+  "fixture": "empty-empty-mid.fodt",
+  "script": "k1024,Xn6g-sham-empty-empty@1029=G.uno:DefaultBullet|{\"On\":{\"type\":\"boolean\"`\"value\":false}},L,S",
+  "target": 1,
+  "expect": "none",
+  "note": "sham, G"
+ },
+ {
+  "name": "g-r3-number-empty-mid",
+  "class": "G",
+  "fixture": "empty-mid.fodt",
+  "script": "k1024,Xg-r3-number-empty-mid@1029=G.uno:DefaultNumbering|{\"On\":{\"type\":\"boolean\"`\"value\":true}},L,S",
+  "target": 1,
+  "expect": "number",
+  "note": "r3's G twin"
+ },
+ {
+  "name": "g-r4-none-empty-bulleted",
+  "class": "G",
+  "fixture": "empty-bulleted-mid.fodt",
+  "script": "k1024,Xg-r4-none-empty-bulleted@1029=G.uno:RemoveBullets,L,S",
+  "target": 1,
+  "expect": "none",
+  "note": "r4's G twin"
+ },
+ {
+  "name": "g-r5-heading-empty-mid",
+  "class": "G",
+  "fixture": "empty-mid.fodt",
+  "script": "k1024,Xg-r5-heading-empty-mid@1029=G.uno:StyleApply|{\"Style\":{\"type\":\"string\"`\"value\":\"Heading 1\"}`\"FamilyName\":{\"type\":\"string\"`\"value\":\"ParagraphStyles\"}},L,S",
+  "target": 1,
+  "expect": "heading",
+  "note": "r5's G twin"
+ }
+]

@@ -69,3 +69,35 @@
 - The product path (page, worker, session disposition). Carets placed by click (all carets here come from keys).
 - An empty paragraph followed by another empty paragraph; paragraphs in tables, frames or notes.
 - Whether the dispatch can move the cursor to another paragraph for any of the five actions. By source and by G = F here it does not; this is not a proof for every document.
+
+## Q6.3 cells (ruling 3, PREDICTION.md amendment 2): **all five actions IN-SCOPE**
+
+`tool/run_cells_q63.py` ran `run_cells.py`'s runner (unedited) on ten cells: 50 processes, 2026-10-30 04:12-04:23Z, all exit 0, load1 <= 0.62. Output in `out-q63/`, fixtures in `fixtures-q63/` (`SHA256SUMS`; `empty-mid` and `empty-bulleted-mid` are byte copies of the first run's).
+
+**Judged** by `tool/read_q63.py out-q63 out` (`out-q63/reader-output.json`) under amendment 2's stop rule:
+- every G cell has 5 clean rounds, and its first block agrees with the saved dispatch paragraph in each: `bullet`, `number`, `none`, `heading`, `body` are all `IN-SCOPE`;
+- bullet's G evidence includes the first run's g-a2, g-a3 and g-n1..n3.
+
+**Recorded:**
+
+| cell | first block | saved | undo | caret after the final restore |
+|---|---|---|---|---|
+| b1f / b1g body on an empty heading | none/p, 2 blocks | text:p | `Apply Styles: Body Text` | the empty paragraph (L: prefix and suffix empty; the neighbours have text) |
+| a6f / a6g empty, then empty | ul/p, 2 blocks (selected `    • \n`) | bullet | `Number On/Off` | the empty paragraph |
+| n6f / n6g sham on the same | none/p | not in a list | none | |
+| g-r3 / g-r4 / g-r5 | ol/p, none/p, none/h1 | number, none, heading | as r3/r4/r5 | |
+
+Ruling 3 Q2.1's hypothesis (under F, body on a shrunken heading would select the NEXT paragraph) did **not** show: b1f reads two blocks starting at the dispatch paragraph and verifies it, 5/5.
+
+**Correction found by execution (counted):** the registered control b0 ("the empty paragraph loads as a heading") applies Heading 1 itself, so its saved `text:h` cannot show the fixture's initial state.
+- The fixture was checked directly: loaded and saved with no step at all (`out-q63-fixture-check/`, one process, exit 0).
+- The saved paragraph 1 is `text:h`. So b1 did start from a heading.
+- `read_q63.py`'s b0 condition is left as registered; this check is the one that carries the claim.
+
+`tool/read_q63.py --self-test out-q63 out` (`out-q63/self-test.json`): `ALL_AS_EXPECTED`, six cases:
+- one disagreeing round in g-r5, in b1g, and in the first run's g-n2 -> `OUT-OF-SCOPE`;
+- g-r4 saved in a list -> `OUT-OF-SCOPE`;
+- one unclean a6g round -> `NOT-ESTABLISHED`;
+- the control not a heading -> `NOT-ESTABLISHED`.
+
+Caveat (ruling 3 §2): the first-block state in both readers is a regex derivation. The production parser is pinned on this HTML by the v27 spec's E4 unit test.
