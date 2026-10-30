@@ -60,3 +60,11 @@ Study HEAD **82c4c6dcb** plus this file's commit. Untracked, all to be kept:
 - Replies to the owner: Taiwan Traditional Chinese, with A/B/C options.
 - Evidence and handoff: English.
 - Specs and findings: zh-TW.
+
+## Addendum (~23:55 +0800): 0.2.44 installed
+
+The owner answered 「A 現在裝（建議）」 (`findings/evidence/host-0.2.44/slot.json`). Only litecore was running; nothing was stopped.
+- `CANDIDATE_INSTALLED`: host main a97724f, engine `dacdfa20fd4ff1ea`, documents and locks preserved.
+- Files workflow 52/52; capture-after `holds: true` (empty lock table).
+
+**Next:** the owner's hand tests (a)-(d) (`host-0.2.44/README.md`), then the owner decides whether 0.2.44 replaces 0.2.43 as the daily uncounted candidate (A/B). Rollback: `rollback-package.sh`.
