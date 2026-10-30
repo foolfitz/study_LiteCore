@@ -53,3 +53,21 @@ Before a v28 spec, the five paragraph actions need native cells on **multi-parag
 - Replies to the owner: Taiwan Traditional Chinese, with A/B/C options.
 - Evidence and `handoff/**`: English.
 - Specs and findings: zh-TW.
+
+## Addendum (~19:00 +0800): the owner chose A; the four other actions measured; fable ruling 4 requested
+
+- **The owner's answer.** 「A. 做多段文件最後一行（推薦）」 (~18:05): v28, a `.uno:CharLeftSel` fallback plus a last-block field. The blank document keeps the toast. The design goes to fable first; the four other actions are measured before a spec.
+- **Amendment 2** (`cce4a7e76` registered, `e798427f8` judged).
+  - Number, none, heading and body under CL + LAST. **V4 = `LAST-UNSAFE`** as registered (`cl-nbody-sham-heading-last` 5/5).
+  - The cause, measured: 176's heading markup in a document without `office:styles` loads as a **pseudo-heading** (automatic style, parent Standard, direct outline level). The HTML export writes it as `<p>`, while the ground truth calls it `text:h`.
+  - Number and none meet the per-action rule as recorded data.
+  - Correction 1: the UNSAFE clause was inverted for N cells. It was fixed before any of those records was read.
+- **Amendment 3** (`e798427f8` registered, `53c957838` judged).
+  - Real Heading 1 fixtures. The precondition holds: the untouched heading reads `<h1>`.
+  - **V5: heading and body IN-SCOPE.**
+  - On the v27 route: body on a real empty Heading 1 is verified and its sham refused. This closes ruling 3 Q6.3 b1's pseudo-heading premise.
+  - A pseudo-heading with text reads as body whatever the dispatch did: **L-pseudo-heading-reads-as-body**, which predates v28.
+- **Found for the design** (in the fable brief): any failure shape not in `EMPTY_SELECTION_SHAPES` / `multi-block-readback` keeps the **rollback** disposition (`editor-shell-v2/paragraph-editor-client.js` ~295-345). So a fallback refusing as `unknown-structural-tag` (a table before the last line) would make today's 083 toast a rollback. This is finding 173's shape. The v28 spec must keep every fallback outcome at least as gentle as the 083 path.
+- **Fable ruling 4 is running** (read-only, questions Q1-Q8: fallback command, last-block rule, failure shapes and dispositions, scope, pseudo-heading, the blank document, what the spec pins, batching). Save it as `findings/evidence/176/RULING-fable-2026-10-30-d.md`, relay it in plain words, then write the v28 spec.
+
+Section 34.4 this round, updated: fixed-by-execution **3** (the q52 self-test scope index; the headings reader's mid-document target; correction 1 of amendment 2, found while writing the reader). Fixed-by-review **0**. Fable rulings **1 requested**.
