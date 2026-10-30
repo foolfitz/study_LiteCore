@@ -92,6 +92,15 @@ REPS = [
     def v28last(name):
         return (v28 / name).read_text().rstrip().splitlines()[-1]
 
+    def v28intact(name):
+        # check_e1_c_bundle_intact.py's JSON; U-v28's two receipts end in an `exit N` line, which must be `exit 0`.
+        lines = (v28 / name).read_text().rstrip().splitlines()
+        if lines and lines[-1].startswith('exit '):
+            if lines[-1] != 'exit 0':
+                return False
+            lines = lines[:-1]
+        return json.loads('\n'.join(lines)).get('intact')
+
     def v28count(name, word):
         node_counts28[name + ':' + word] = node_last(v28 / name, word)
         return node_counts28[name + ':' + word]
@@ -131,7 +140,7 @@ REPS = [
         'F3-82-reading1': ([v28json('f3-82/read-01.json'), v28json('f3-82/read-01.json', 'problems')], ['F3_RED', F3_82_READ01_PROBLEMS]),
         'F4-82': ('PASS' if not f4_82['problems'] and f4_82['rows'] == 24 and all(x['outcome'] == 'PASS' for x in f4_82['arms'].values()) else 'NOT', 'PASS'),
         'V0prime-82': (v28json('v0/v0-prime.json'), 'V0_PRIME_HOLDS'),
-        'E1-C': ([v28json(n, 'intact') for n in ('u-v28/e1-c-before.txt', 'u-v28/e1-c-after.txt', 'cutover/e1-c-after-cutover.txt',
+        'E1-C': ([v28intact(n) for n in ('u-v28/e1-c-before.txt', 'u-v28/e1-c-after.txt', 'cutover/e1-c-after-cutover.txt',
                                                   'freeze-82/e1-c.txt', 'v0/e1-c-after-put-back.json')], [True] * 5),
     }
     if any(got != want_ for got, want_ in gates28.values()):
