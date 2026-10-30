@@ -68,3 +68,10 @@ The owner answered the slot question "A" (install now, no site during the instal
 - Red cases (`post-install-red/`), built as 0.2.41's were: the first workflow check flipped with the report's `ok` recomputed as the runner does -> exit 1 (`failed: ['owned-folder']`); the predecessor build id `829a988e199ebc43` in the first Writer entry -> exit 1 (`buildIdInEveryEntry: false`). The inherited named limit (the script gates on the summary `ok`, not the cells) is unchanged.
 
 Status: **0.2.42 is installed as the daily uncounted candidate**, superseding 0.2.41. Nominal shipped host stays **0.2.26**; K has not run. Rollback, if needed: `rollback-package.sh` (exact 0.2.41 engine; needs a slot). Next: the owner's hand tests (spec 5.9 a-c, and d: Ctrl+A then Ctrl+C shows 「已複製 N 字」).
+
+## Owner hand test (2026-10-30 ~10:09-10:15 +0800)
+
+Owner's report (zh-TW, verbatim): "a: 按清單，有出現符號，但也出現提示 … b~d: 通過", then "我原本是在有內容的文件按清單，然後貼截圖給你；剛剛又在全空白的文件是一次，確認行為也是一樣". Screenshot: `owner-hand-test-a-toast-20261030-1009.png`.
+
+- **(b) select-all over an existing document, type, Ctrl+Z twice; (c) blank document Ctrl+A says 「全選沒有選到任何內容」; (d) Ctrl+A, Ctrl+C says 「已複製 N 字」: pass** (owner).
+- **(a) bullet**: the bullet is applied and the toast is plain, with no code and no English (finding 174's criterion, spec 5.9 a, holds). The sentence is finding 046's ("這一格的檢查涵蓋了不只一個段落…"), in a document with content and, per the owner, in a blank one. Not new in 0.2.42: F3's `bulleting-a-blank-line-does-not-demand-a-rollback` (a blank line inside list-contexts) records the same sentence on generation 79 (red, `MUTATION_OUTCOME_UNKNOWN：the readback covers more than one paragraph`) and on 80 (plain). Inference (not measured on the owner's document): the caret was on an empty paragraph with another paragraph above it, so the barrier's selection readback took two paragraphs (finding 046's residual); a single-paragraph new document gives finding 083's sentence instead (S2 run-02, 24/24). A bullet on a paragraph with text gives no toast (F3 `format-a-paragraph-changes-that-paragraph`).
