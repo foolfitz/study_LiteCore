@@ -58,3 +58,19 @@ Positive control for the scope rule, run when the tests ran: an undo read insert
 - Control 1: a deliberate error inside a v27-only block of `ordered_format.inc` fails with the define and passes without it.
 - Control 2: the v27 define without the v25 define, aimed at the TU that carries the guard (`editor_api.cpp`), hits `#error "the v27 first-block read requires the v25 format-proof engine"`.
 - `taskset -c 0`, about 5 s in all.
+
+## Worker step
+
+`sdk/v27-first-block-worker.js` is the archived v26 worker (`95d6e7ae...`) plus `tests/v27-worker-delta.json`, four hunks:
+- item 1: the profile term in `featureExtendPermitted`, two hunks (its comment and the comparison);
+- item 2: the `undo` projection in `productFormatBarrier`, plus `productFormatUndo`;
+- item 3: the header.
+
+**W1** (`w1-delta.txt`): the list applied to the archived worker gives the candidate byte for byte. A copy with one extra line fails.
+
+**W2** (`w2-worker.txt`): the real source in a vm sandbox.
+- The projection inside `formatBarrier` is `{read, changed, actionsBefore, actionsAfter}`: no `top`; a field of the wrong type is null; an absent record and an array are null; a top-level `undo` is not read.
+- Line extension stays permitted under `e2-editor-v27`.
+- Four causal controls, each red: the old profile term, the projection removed, `top` projected, an untyped `read`.
+
+My first W2 called `featureExtendPermitted()` without its action argument. The test was wrong, not the worker; fixed before the run recorded here.
