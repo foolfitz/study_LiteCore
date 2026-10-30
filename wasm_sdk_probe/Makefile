@@ -2432,6 +2432,104 @@ test-v27-first-block-static:
 	python3 -I tests/test_v27_first_block_profile.py
 	node tests/v27_feature_worker_test.cjs
 
+# SPEC-M3-v28-last-line-fallback 5: the 083 path's multi-paragraph last line
+# (after an empty .uno:SelectText, select one position back and judge the LAST
+# block).  v27's rule verbatim plus OXSDK_E2_V28_LAST_BLOCK; editor ABI stays 6,
+# no new export.  The base is the archived v27 profile: its export list, its
+# worker as the worker's derivation base, its manifest's select-all leaf.
+E2_V28_BUILD := build/e2/editor-v28
+E2_V28_DIST := dist/profiles/e2-editor-v28
+E2_V28_SOURCES := $(E2_C_SOURCES)
+E2_V28_OBJECTS := $(patsubst src/%.cpp,$(E2_V28_BUILD)/%.o,$(E2_V28_SOURCES))
+E2_V28_MD4C_INCLUDE := $(LOBUILD)/workdir/UnpackedTarball/md4c/src
+# Frozen base identity for the v28 worker: the archived v27 worker.
+E2_V28_ARCHIVE := build/archive/e2-editor-v27-c089dfd6-worker-8152448a
+E2_V28_BASE_WORKER := $(E2_V28_ARCHIVE)/sdk-worker.js
+E2_V28_WORKER_SHA256 := 8152448ab83bc323edfa6982a1db08c4367b15b4c99978eeb1b39b3ef41a669d
+
+.PHONY: v28-last-block-worker-preflight
+v28-last-block-worker-preflight:
+	python3 tools/check_v28_last_block_contract.py --check-worker-base \
+		--base-worker $(E2_V28_BASE_WORKER) --base-worker-sha256 $(E2_V28_WORKER_SHA256)
+
+$(E2_V28_BUILD)/%.o: src/%.cpp $(HEADERS) src/editor_api.h \
+		src/editor_discovery_api.h src/format_readback_text.hpp \
+		src/a11y_paragraph_identity.hpp src/merge_key_undo.hpp \
+		src/markdown_paste.hpp src/ordered_command_proof.hpp \
+		src/ordered_delete_route.hpp src/ordered_poll.hpp src/ordered_engine_guards.hpp src/reply_state_reads.hpp \
+		src/ordered_engine_state.inc src/ordered_engine_reply.inc src/ordered_engine_poll.inc \
+		src/ordered_engine_delete.inc src/ordered_format.inc $(E2_V28_MD4C_INCLUDE)/md4c.h Makefile \
+		| $(E2_V28_BUILD) v28-last-block-worker-preflight
+	$(CXX) $(E1_CPPFLAGS) $(R5_CXXFLAGS) -I$(E2_V28_MD4C_INCLUDE) \
+		-DOXSDK_EDITOR_DISCOVERY \
+		-DOXSDK_FINDING_016_SELECTION_BARRIER -DOXSDK_E2_FORMAT_BARRIER \
+		-DOXSDK_MERGE_KEY_UNDO -DOXSDK_E2_V20_LINK_BATCH \
+		-DOXSDK_E2_V21_LINK_BATCH -DOXSDK_MAINLOOP_ENGINE \
+		-DOXSDK_E2_V23_LINK_BATCH -DOXSDK_E2_V23_FEATURE_ABI6 \
+		-DOXSDK_E2_V24_TYPED_INSERT -DOXSDK_E2_V25_FORMAT_PROOF \
+		-DOXSDK_E2_V27_FIRST_BLOCK -DOXSDK_E2_V28_LAST_BLOCK \
+		$(EXTRA_DEFINES) -c $< -o $@
+
+# v27's public export surface, unchanged.
+$(E2_V28_BUILD)/exports.txt: $(E2_V28_ARCHIVE)/exports.txt Makefile | $(E2_V28_BUILD)
+	cp $< $@
+
+# Guarded from the first link, like every product artifact before it.
+$(E2_V28_BUILD)/probe.js: $(E2_V28_OBJECTS) $(EXTRA_OBJECTS) \
+		$(E2_V28_BUILD)/exports.txt $(LINKDEPS) $(FS_PRE_JS) Makefile
+	$(call refuse_unasked_relink,the v28 last-block fallback (the 083 path on the v27 engine; ABI 6) -- every link mints a new hash)
+	$(call link_product_stack_1m,$(E2_V28_OBJECTS) $(EXTRA_OBJECTS),$(E2_V28_BUILD)/exports.txt,$@)
+
+$(E2_V28_BUILD)/probe.wasm: $(E2_V28_BUILD)/probe.js
+	@test -s $@
+
+# Its own worker source; the v27 one stays byte-identical (generation 81).
+$(E2_V28_BUILD)/sdk-worker.js: sdk/v28-last-block-worker.js Makefile | $(E2_V28_BUILD) v28-last-block-worker-preflight
+	cp $< $@
+
+# v27's manifest construction under the v28 name, the select-all leaf, and
+# the three bindings.
+$(E2_V28_DIST)/sdk-manifest.json: $(E2_V28_BUILD)/probe.js $(E2_V28_BUILD)/probe.wasm \
+		$(E2_V28_BUILD)/exports.txt $(E2_V28_BUILD)/sdk-worker.js \
+		$(E2_V28_ARCHIVE)/sdk-manifest.json sdk/v18-writer-review-manifest.json \
+		tools/build_base_no35_pack.py tools/build_r5_profiles.py \
+		tools/build_cjk_subset.py tools/build_cjk_subset_ttc_pack.py \
+		tools/build_cjk_subset_mono_pack.py \
+		tools/build_e2_editor_v5_profile.py tools/build_e2_v23_feature_profile.py \
+		tools/build_e2_v24_feature_profile.py tools/check_v24_feature_contract.py \
+		tools/build_e2_v28_last_block_profile.py tools/check_v28_last_block_contract.py \
+		tools/check_v23_feature_contract.py tools/check_v23_diagnostic_build.py \
+		tools/inspect_wasm_function.py tools/validate_r5_artifacts.py \
+		tools/build_e2_editor_v4_profile.py tools/build_e2_c_profile.py \
+		tools/build_e2_b_profile.py tools/e1_support.py | $(E2_V28_DIST)
+	echo "$(E2_V28_WORKER_SHA256)  $(E2_V28_BASE_WORKER)" | sha256sum -c --quiet
+	python3 tools/build_base_no35_pack.py --check
+	python3 tools/build_cjk_subset_mono_pack.py --check
+	python3 tools/build_e2_v28_last_block_profile.py \
+		--source-manifest sdk/v18-writer-review-manifest.json \
+		--loader $(E2_V28_BUILD)/probe.js --wasm $(E2_V28_BUILD)/probe.wasm \
+		--worker $(E2_V28_BUILD)/sdk-worker.js \
+		--exports $(E2_V28_BUILD)/exports.txt \
+		--profile e2-editor-v28 --inline-range-gestures all \
+		--page-rectangles --paste-markdown \
+		--output $(E2_V28_DIST)
+	@test -s $(E2_V28_DIST)/probe.js
+	@test -s $(E2_V28_DIST)/probe.wasm
+	@test -s $(E2_V28_DIST)/sdk-worker.js
+
+$(E2_V28_BUILD) $(E2_V28_DIST):
+	mkdir -p $@
+
+# Focused source/contract tests only; no product objects, link or packaging
+# target (SPEC-M3-v28-last-line-fallback 7.2).
+.PHONY: test-v28-last-block-static
+test-v28-last-block-static:
+	python3 -I tests/test_ordered_format_v28.py
+	python3 -I tests/test_format_readback_v28.py
+	python3 -I tests/test_v28_feature_worker_delta.py
+	python3 -I tests/test_v28_last_block_profile.py
+	node tests/v28_feature_worker_test.cjs
+
 # ---------------------------------------------------------------- v5, a11y
 #
 # Everything below names $(E2_V5_CORE) explicitly instead of $(LOBUILD).  The
@@ -4945,6 +5043,7 @@ test-e2-c-static:
 		--carrier E2_V24=probe_engine,sdk_api,editor_api \
 		--carrier E2_V25=probe_engine,sdk_api,editor_api \
 		--carrier E2_V27=probe_engine,sdk_api,editor_api \
+		--carrier E2_V28=probe_engine,sdk_api,editor_api \
 		--carrier ODS_VIEWER_V1=probe_engine,sdk_api \
 		--carrier ODS_VIEWER_V2=probe_engine,sdk_api \
 		--carrier ODS_VIEWER_V3=probe_engine,sdk_api \

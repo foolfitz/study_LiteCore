@@ -37,3 +37,16 @@ The engine source carries every v28 change under `OXSDK_E2_V28_LAST_BLOCK`: `src
 
 - E1's fake primary markup had no `<body>`, which the real parser (now cut into the harness) needs. It was fixed before any green was recorded.
 - E4's expectation for a row the parser must refuse (`cl-t1`, a table) was first "the saved document", but a refused row is never satisfied. It was fixed before any green was recorded.
+
+## Identity and link machinery (spec 5)
+
+- **Makefile.** A v28 block follows v27's: `E2_V28_*`, archive `build/archive/e2-editor-v27-c089dfd6-worker-8152448a`, worker pin `8152448a…`, defines v27's plus `-DOXSDK_E2_V28_LAST_BLOCK`. A new `test-v28-last-block-static` is green (`test-v28-last-block-static.txt`).
+- **Tools** derived from v27's with the names changed:
+  - `tools/check_v28_last_block_contract.py`;
+  - `tools/build_e2_v28_last_block_profile.py`;
+  - `tools/link_v28_last_block_owner.sh` (`bash -n` only);
+  - `tests/test_v28_last_block_profile.py` (7 tests).
+- **M1-1.**
+  - Without the v28 carrier: red (`m1-1-red-without-v28-carrier.*`, the three E2_V28 objects).
+  - With it: green (`m1-1-green-with-v28-carrier.*`, 0 FAIL, 62 s, `taskset -c 0`).
+- **Fixed by execution (counted), caught by M1-1.** The first green attempt (`m1-1-run1-red-mangled-define.*`) was red. Deriving the Makefile block by a blanket `E2_V27_` → `E2_V28_` rename had also renamed `-DOXSDK_E2_V27_FIRST_BLOCK` into a nonexistent `-DOXSDK_E2_V28_FIRST_BLOCK`. The v28 compile line therefore lacked the v27 define, and `editor_api.h`'s new `#error` fired. It was fixed in the Makefile only; no other file carried the mangled name.
