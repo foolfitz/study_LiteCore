@@ -102,3 +102,31 @@ Section 34.4 this round, updated: fixed-by-execution **3** (the q52 self-test sc
   5. Shell red then green, engine E1 red then green, the pre-link gates, PL-1-v28.
   6. Hand the link to the owner.
 - **Accumulated uncounted engine changes since 0.2.26: v22-v27, + v28 when linked.** K and the count chain stay batched.
+
+## Addendum 3 (~20:15 +0800): v28 spec pinned, shell half done; next is the engine
+
+- **Spec** `specs/SPEC-M3-v28-last-line-fallback.md` **pinned** (`b1241e3dd`): one adversarial review (opus, 20 items, all read against the source and adopted; no second round, per the owner's reminder below). Key departures from ruling 4:
+  - **Restore failure is judged before the fallback's structural refusals** (spec 3, 4.1 item 8). A refused shape is review with the queue open, and a live CL selection would otherwise survive.
+  - The fallback is **gated on `restorePointValid`**.
+  - The new sentence **does not say 「最後一段」** (the fallback runs at every collapsed NONE).
+- **The owner's reminder (~20:05): 「提醒：不要陷入修機械或修散文的坑裡喔」.** Review findings that change behaviour or a criterion's ability to go red are adopted after reading the code. Prose and count nits get one line or are left. There is one review round per document. This is recorded in memory (`checks-stop-rule-spec-34.md`).
+- **Done since addendum 2:**
+  - v27 spec append 2 (Q6.3 b1 pseudo-heading premise; `a9a04dc64`).
+  - **Shell U-v28** (`0763ed918`, `findings/evidence/v28-083/u-v28/`):
+    - client `FALLBACK_REFUSED_SHAPES` -> review; the page's own sentence;
+    - 4 red first;
+    - the three page tests' injected names added after their declared ReferenceError red;
+    - shell 565/566. The one red predates this change and is named **L-select-all-u2-pins-v26-profile** (red since the v27 cut-over), left unfixed;
+    - E1-C intact before and after.
+  - Census: `findings/evidence/v28-083/census/`.
+- **Next (spec 11, step 4 onward):**
+  1. **E1 red first.** Write `tests/ordered_format_v28_test.cpp` + `tests/test_ordered_format_v28.py`, derived from the v27 pair.
+     - Cut the REAL `parseFormatReadback` and `formatBarrierFallbackReadbackSatisfied` from `probe_engine.cpp`.
+     - Fake a selection-type sequence and html per call, plus a `gOrderedProof` stand-in.
+     - Cases (a)-(j) and the mutations, as in spec 7.2.
+  2. **Engine edits** in `probe_engine.cpp` (FormatReadback fields, parser stack, FormatStateBarrier fallback fields, the predicate, the `formatBarrierFallbackJson` helper mid-chain in v28 blocks) and `ordered_format.inc` (the fallback sequence, the reply lookup, the finish branch), under `OXSDK_E2_V28_LAST_BLOCK`, with the `#error` guard in `editor_api.h`.
+  3. E1/E2/E3/E4/V0/S green.
+  4. Worker `sdk/v28-last-block-worker.js` (W1/W2).
+  5. The Makefile v28 block and tools (`build_e2_v28_last_block_profile.py`, `check_v28_last_block_contract.py`, `link_v28_last_block_owner.sh`, `check_v28_ships_confined.py`, a `what_the_link_ships` variant).
+  6. M1-1, L, PIN, PL-1-v28.
+  7. Hand the link to the owner.
