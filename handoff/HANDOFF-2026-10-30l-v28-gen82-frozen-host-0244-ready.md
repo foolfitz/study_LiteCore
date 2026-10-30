@@ -68,3 +68,9 @@ The owner answered 「A 現在裝（建議）」 (`findings/evidence/host-0.2.44
 - Files workflow 52/52; capture-after `holds: true` (empty lock table).
 
 **Next:** the owner's hand tests (a)-(d) (`host-0.2.44/README.md`), then the owner decides whether 0.2.44 replaces 0.2.43 as the daily uncounted candidate (A/B). Rollback: `rollback-package.sh`.
+
+## Addendum 2 (2026-10-31 ~00:05 +0800): hand tests pass, 0.2.44 is the daily candidate
+
+- The owner reported 「已經測完，皆符合你的預期 / 選A」, then 「d有做」: (a)-(d) all as expected on 0.2.44, the optional table case included.
+- **Decision A: 0.2.44 replaces 0.2.43 as the daily uncounted candidate** (`findings/evidence/host-0.2.44/README.md`). Finding 176 and 083 appends record the last line as fixed; the one-paragraph document stays 083's sentence by design.
+- **The v28 batch is complete.** Nothing is pending from it. Still open from before: K and the count chain (batched; accumulated uncounted engine changes since 0.2.26: v22-v28); the named limits in spec v28 section 9 (L-fallback-html-read-is-new-on-this-path is unmeasured).
