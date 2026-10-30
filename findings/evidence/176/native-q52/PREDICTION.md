@@ -1,0 +1,242 @@
+# The 083 path, ruling 3 Q5.2: native arm for a second selection after `select-text-returned-none`
+
+Registered 2026-10-30 ~17:20 +0800, before `tool/f083_native.cpp` was compiled.
+
+**Authority.** The owner, 2026-10-30 ~17:05 +0800, answering the main session's A/B/C/D question after handoff 10-30i: 「A. 量 083 那格」. The ruling is `../RULING-fable-2026-10-30-c.md` Q5.2: candidates "to measure, not prescriptions"; "native arm first: a5, a4, a sham on a5, a document with a table/section before the last paragraph, and the Q sequence confirmed to clear SelectAll's selection."
+
+**If this is never run:** ruling 3 section 4 and spec v27's `L-083-stays-a-toast` stand. The 083 sentence stays on every bullet pressed on a last empty paragraph.
+
+## The question
+
+On the ordered engine's collapsed route, v27's `.uno:SelectText` selects nothing when the empty paragraph is the last one. That is the 083 path (`select-text-returned-none`; a4 and a5 10/10 in `../native/`). The question has three parts:
+
+1. Is there a second selection, made in the same command, whose `text/html` readback lets the existing predicate judge the dispatch paragraph? If not, does a minimally extended one?
+2. Does it judge correctly in both directions?
+3. Does the existing Q restore clear it?
+
+## Candidates
+
+- **SA: `.uno:SelectAll`.** This is `SID_SELECTALL`, handled by `SwWrtShell::SelAll` (`sw/source/uibase/wrtsh/select.cxx:131`).
+  - On a one-paragraph document it should select exactly that paragraph. One block means the existing parser and `formatBarrierReadbackSatisfied` apply unchanged: rule ONE below.
+  - On a multi-paragraph document it selects everything, so the readback is multi-block and rule ONE refuses (fail closed). Judging it needs a LAST-block field: rule LAST.
+  - Read in the source, not measured:
+    - With the caret inside a section, the first SelAll selects the current section only (`GoStart(..., !bIsFullSel)`, select.cxx:150-167).
+    - A body that starts or ends with a table or section takes `ExtendedSelectAll` (select.cxx:186-201; `StartsWith_`, `sw/source/core/crsr/crsrsh.cxx:910`).
+- **CL: `.uno:CharLeftSel`.** This is `FN_CHAR_LEFT_SEL` (`sw/sdi/swriter.sdi:577`), i.e. Shift+Left.
+  - From the start of the empty last paragraph it goes one position back, across the paragraph break. That selects from the end of the previous paragraph to the dispatch paragraph, so the dispatch paragraph is the LAST block, and the cost does not grow with the document. Judged by rule LAST.
+  - On a one-paragraph document it cannot move, so it predicts NONE.
+  - This is the narrowest instance of the ruling's general wording: "a selection that reaches the paragraph from before it so that it is the LAST block".
+
+## The harness
+
+`tool/f083_native.cpp` is `../native/tool/f176_native.cpp` (sha256 `cb4d9f41...`) with one marked addition.
+
+**Addition 5: op `H<.uno:Cmd>[|<json>]~<.uno:Fallback>`.** It runs G (v27's collapsed order), then the fallback only on the 083 path:
+1. The dispatch.
+2. No restore before the select.
+3. `.uno:SelectText` and the synchronous read; `text/html` if TEXT.
+4. **Only if that read is NONE:**
+   - `postUnoCommand(<Fallback>, null, true)`;
+   - the synchronous read;
+   - `text/html` if TEXT: the full markup up to 1 MiB, its byte count, and the wall times of the post and of the html call.
+5. The Q restore: RESET, START, RESET at the point captured before the dispatch.
+6. The read again.
+
+Everything G records is kept.
+
+**Runner.** `../native/tool/run_cells.py` (sha256 `e00ae2cd...`), unedited, as Q6.3 used it:
+- mode `uni1ai`, 5 rounds, one process per (cell, round), run-major;
+- `nice -n 10`, a fresh profile, `SAL_USE_VCLPLUGIN=svp`, `SAL_LOK_OPTIONS=unipoll`.
+
+Its cell table is replaced by `tool/run_cells_q52.py`. The script per cell is `<setup>,X<name>@<trigger>=<op>,L,S`: Q6.3's form, the locator after the measured step, then the save.
+
+**Core.** `native-lok-26-8/build/instdir/program`, buildid 671c848b, the N1 and 176 core.
+
+## Fixtures
+
+`tool/make_fixtures_q52.py` imports 176's `doc`, `p`, `item` and `EMPTY`. Two fixtures are byte copies of `../native/fixtures/`: `empty-last.fodt` and `two-plain.fodt`. `blank-one.odt` is the host's blank template (sha256 `7e6221b6...`), copied after its hash is checked.
+
+| fixture | body, in order |
+|---|---|
+| `blank-one.odt` | the host's blank template: one empty paragraph |
+| `bulleted-only` | one empty bulleted paragraph |
+| `heading-only` | one empty Heading 1 |
+| `empty-last` | `Plain first`, empty |
+| `two-plain` | `Plain first`, `E1-EMPTY-AFTER` |
+| `bullet-then-empty-last` | a bullet item `Bullet before`, empty |
+| `table-then-empty-last` | `Plain first`, a 1x1 table `Cell text`, empty |
+| `table-first-empty-last` | a 1x1 table `Cell text`, empty |
+| `section-then-empty-last` | `Plain first`, a section holding `Section text`, empty |
+| `empty-last-in-section` | `Plain first`, a section holding an empty paragraph |
+| `long-then-empty-last` | 300 paragraphs `Line NNN ...`, empty |
+
+**The target** in every cell is the LAST `text:p`/`text:h` of the body in document order.
+
+## Cells (27 x 5 rounds = 135 processes)
+
+**How the caret reaches the last paragraph:**
+- `k DOWN` in the fixtures where 176 used it (two paragraphs, or a list item then the empty one);
+- Ctrl+End twice (`k9221`) where a table or section sits in between, and for the long document;
+- nothing on the one-paragraph documents.
+
+**Trigger:** END (a no-op at the end of an empty paragraph, 176's form). The exception is the Enter cell: `DOWN, END`, then RETURN as the trigger.
+
+| cell | class | fixture | action | group |
+|---|---|---|---|---|
+| sa-a5-blank-one | A | blank-one | bullet | SA-1, SA-5 |
+| sa-n5-sham-blank-one | N | blank-one | bullet `On:false` | SA-1 |
+| sa-num-blank-one | S | blank-one | number | SA-5 |
+| sa-head-blank-one | S | blank-one | heading | SA-5 |
+| sa-none-bulleted-only | S | bulleted-only | none | SA-5 |
+| sa-body-heading-only | S | heading-only | body (`Text body`) | SA-5 |
+| sa-a4-empty-last | A | empty-last | bullet | SA-M |
+| sa-a7-enter-last | A | two-plain (End, Enter) | bullet | SA-M |
+| sa-a8-after-bullet | A | bullet-then-empty-last | bullet | SA-M |
+| sa-n4-sham-empty-last | N | empty-last | sham | SA-M |
+| sa-n8-sham-after-bullet | N | bullet-then-empty-last | sham | SA-M |
+| sa-t1-table-then-empty-last | A | table-then-empty-last | bullet | SA-M |
+| sa-t2-table-first-empty-last | A | table-first-empty-last | bullet | SA-M |
+| sa-s1-section-then-empty-last | A | section-then-empty-last | bullet | SA-M |
+| sa-s2-empty-last-in-section | A | empty-last-in-section | bullet | SA-M |
+| sa-ns2-sham-empty-last-in-section | N | empty-last-in-section | sham | SA-M |
+| cl-a4, cl-a7, cl-a8, cl-n4, cl-n8, cl-t1, cl-s1, cl-s2 | as SA's twins | as SA's twins | as SA's twins | CL |
+| cl-a5-blank-one | R | blank-one | bullet | recorded (predicted NONE) |
+| sa-r1-noop-bulleted-only | R | bulleted-only | bullet (already a bullet) | recorded |
+| sa-long-300 | R | long-then-empty-last | bullet | recorded (cost) |
+
+Notes on two cells:
+- In `sa-n8`, the first block of the readback is the bullet item. A first-block reading says `ul` there, and the target is not in a list. It is the trap rule LAST must not fall into.
+- In `sa-s2` and `sa-ns2`, SelAll inside a section is predicted (read, above) to select only the section. That is one block even in a two-paragraph document.
+
+## Derivations (`tool/read_q52.py`, from the records only)
+
+**A clean round** is 176's definition:
+- exit 0, a `done` record;
+- env `unipoll` + `uni1ai`, anyInput registered;
+- not capped, saved ok.
+
+Plus three conditions of its own:
+- the op is H, and its format record carries `fallback`;
+- the fallback markup was not truncated;
+- there is a `locate` record.
+
+**The fallback markup** is read by a port of `parseFormatReadback` (`wasm_sdk_probe/src/probe_engine.cpp:831`):
+- `parsed`, `unknownTag` (and its name), `malformedNesting`, `footnoteApparatus`;
+- `listTag`, `blockTag`, `blockCount`, `itemCount`, `multiBlock`.
+
+To these it adds two LAST-block fields:
+- `lastListTag`: the innermost open `ul`/`ol` when the last block-level tag opens (`none` if there is none);
+- `lastBlockTag`: that tag.
+
+**Expected per action** (`ordered_format.inc:160-202`):
+
+| action | expected |
+|---|---|
+| bullet | list `ul` |
+| number | list `ol` |
+| none | list `none` |
+| heading | block `h1` |
+| body | block `p` |
+
+**Rules:**
+- **ONE.** Refused if any of these holds:
+  - the fallback type is not TEXT;
+  - `!parsed`, `unknownTag`, `malformedNesting` or `footnoteApparatus`;
+  - `multiBlock`.
+
+  Otherwise satisfied iff the expected list matches `listTag` (or `none`) and the expected block matches `blockTag`. This is the existing parser and predicate, unchanged, with multi-block refused as on v25.
+- **LAST.** Refused as ONE, without the multi-block refusal. Satisfied iff the last-block fields match.
+- **FIRST.** Recorded only: ONE without the multi-block refusal, i.e. what the existing predicate says about the first block.
+
+**Ground truth** is the saved FODT's last paragraph: in a list or not, the list's kind (bullet or number, through its list style), heading or not. It "matches the action" as follows:
+
+| action | matches when |
+|---|---|
+| bullet | in a list, bullet |
+| number | in a list, number |
+| none | not in a list |
+| heading | `text:h` |
+| body | `text:p` |
+
+**P3 (the restore).** Both must hold:
+- `restoredType` is 0 (NONE);
+- the locate record's suffix and prefix are both empty. In every fixture the only empty paragraph is the last one, so this puts the caret in it.
+
+**P0 (the 083 path).** The H op's `.uno:SelectText` read is NONE, so the fallback ran. A deciding cell that fails P0 in a clean round is NOT-ESTABLISHED for its verdict.
+
+## Verdicts
+
+### V1: SA, rule ONE, the one-paragraph document (`sa-a5`, `sa-n5`)
+
+Judged in this order; the first that applies is the verdict.
+
+1. **`ONE-BLOCK-UNSAFE`**: in any clean round of **any** cell of this run, rule ONE is satisfied while the saved last paragraph does not match the action. This is a per-instance property, checked across every cell, not only the two deciding ones.
+2. **`NOT-ESTABLISHED`**: fewer than 5 clean rounds, or P0 fails, in `sa-a5` or `sa-n5`.
+3. **`ONE-BLOCK-DOES-NOT-VERIFY`**: some clean round of `sa-a5` does not hold every one of the following:
+   - fallback TEXT, `blockCount` 1;
+   - rule ONE satisfied;
+   - saved as a bullet;
+   - P3.
+
+   It is fail closed: the toast stays. The same applies if some clean round of `sa-n5` does not hold:
+   - rule ONE not satisfied;
+   - saved not in a list;
+   - P3.
+4. **`ONE-BLOCK-HOLDS`**: otherwise.
+
+### Action scope (SA-5)
+
+Read only when V1 holds. For each action:
+- **IN-SCOPE**: 5 clean rounds, and in every round P0, rule ONE satisfied, the saved paragraph matching, and P3;
+- **OUT-OF-SCOPE**: a clean round that does not;
+- **NOT-ESTABLISHED**: fewer than 5 clean rounds, or P0 fails.
+
+### V2: SA, rule LAST, the SA-M cells
+
+1. **`LAST-UNSAFE`**: rule LAST is satisfied while the saved paragraph does not match, in any clean round of any SA cell.
+2. **`NOT-ESTABLISHED`**: a cell with fewer than 5 clean rounds or a P0 failure.
+3. Otherwise each cell is classified.
+   - An A cell is one of:
+     - **COVERED**: every round satisfied, with P3;
+     - **REFUSED**: every round refused (fail closed);
+     - **PARTIAL**: anything else.
+   - An N cell is **SAFE** when it is never satisfied and is saved out of a list.
+4. **`LAST-HOLDS`**: every N cell is SAFE, every A cell is COVERED or REFUSED, and P3 holds in every clean round. The covered list is reported with it.
+5. **`LAST-PARTIAL`**: otherwise.
+
+### V3: CL, rule LAST, the CL cells
+
+The same as V2. `LAST-UNSAFE` is checked over the CL cells.
+
+## Recorded, deciding nothing
+
+- rule FIRST on every cell (predicted: `sa-n8` and `cl-n8` FIRST-satisfied, the first-block trap);
+- selection types, the fallback's selected text, markup bytes and wall times (native, not WASM);
+- the fallback's `UNO_COMMAND_RESULT`, if one arrives in the window;
+- `sa-r1`, `sa-long-300`, `cl-a5`;
+- the undo stacks.
+
+## Not measured here (named)
+
+- **WASM and the product path.** That includes the a11y paragraph-identity check: the native harness has no a11y. On the product, an empty paragraph's dispatch and readback fingerprints are the empty-string constant (finding 074), so that check is declined there, as it is today.
+- **Images and frames.** On v25 WASM, a select-all over an as-char frame copied back `complex` (`specs/SPEC-M3-select-all-v26.md` section 1). The collapsed route reads that as not TEXT, i.e. fail closed. It is not re-measured natively.
+- **Findings 037 and 038** (an inline image or a frame in a footnote wedging the handle on a selection read). A whole-document read reaches every such paragraph. This cannot be measured natively.
+- **Other caret positions:** the caret in a table cell, a frame or a footnote; hidden tracked changes.
+- **Time on WASM.**
+
+## Amendment 1 (2026-10-30 ~17:25 +0800, after the smoke, before the counted run): nothing changes
+
+**The smoke** is in `smoke/`: one round each of `sa-a5`, `sa-n5`, `sa-a4`, `sa-t2`, `sa-s2` and `cl-a4`, with binary `build-01` (sha256 `b3b4d293...`).
+
+- **The blank template.** In `sa-a5` and `sa-n5`, `.uno:SelectAll` reads **NONE**: the type is 0, the text is empty, and there is no markup.
+  - A document whose only paragraph is empty has no non-collapsed selection. The ruling's premise, "`.uno:SelectAll` on a one-paragraph document yields exactly one block", does not hold for the empty one.
+  - That predicts V1 = `ONE-BLOCK-DOES-NOT-VERIFY`, i.e. fail closed.
+- **The multi-paragraph cells** read TEXT:
+  - `sa-a4`: `<p>Plain first</p><ul><li><p></p></li></ul>`;
+  - `cl-a4`: `<p><br/></p><ul><li><p></p></li></ul>`;
+  - `sa-t2`: a body-level `<table>` before the list, which the engine's parser refuses as an unknown tag;
+  - `sa-s2`: the whole document, with no section markup. The read "SelAll in a section selects the section only" did not show. By source, an empty paragraph that is the section's only content is already at both section ends, so `bIsFullSel` is true.
+
+**The criteria, the cells and the binary are not changed.** The counted run judges them as registered.
+
+**Read, not measured.** `getTextSelection` on a collapsed selection is not a candidate. `SwTransferable::GetData` copies the (empty) selection into a fresh document (`lclOverWriteDoc`, `sw/source/uibase/dochdl/swdtflvr.cxx:530`), so its markup would describe that document's default paragraph, not the dispatch paragraph. Writer's `getCommandValues` set (`sw/source/uibase/uno/loktxdoc.cxx:1183`) has no paragraph or list state read.
