@@ -1,0 +1,98 @@
+[
+ {
+  "name": "cl-num-empty-last",
+  "class": "A",
+  "group": "V4",
+  "fixture": "empty-last.fodt",
+  "action": "number",
+  "dispatch": "number",
+  "script": "k1024,Xcl-num-empty-last@1029=H.uno:DefaultNumbering|{\"On\":{\"type\":\"boolean\"`\"value\":true}}~.uno:CharLeftSel,L,S",
+  "target": "last",
+  "expect": "number",
+  "note": "set-list-ordered on the empty last paragraph"
+ },
+ {
+  "name": "cl-none-bulleted-last",
+  "class": "A",
+  "group": "V4",
+  "fixture": "bulleted-last.fodt",
+  "action": "none",
+  "dispatch": "none",
+  "script": "k1024,Xcl-none-bulleted-last@1029=H.uno:RemoveBullets~.uno:CharLeftSel,L,S",
+  "target": "last",
+  "expect": "none",
+  "note": "set-list-none on an empty last bullet"
+ },
+ {
+  "name": "cl-head-empty-last",
+  "class": "A",
+  "group": "V4",
+  "fixture": "empty-last.fodt",
+  "action": "heading",
+  "dispatch": "heading",
+  "script": "k1024,Xcl-head-empty-last@1029=H.uno:StyleApply|{\"Style\":{\"type\":\"string\"`\"value\":\"Heading 1\"}`\"FamilyName\":{\"type\":\"string\"`\"value\":\"ParagraphStyles\"}}~.uno:CharLeftSel,L,S",
+  "target": "last",
+  "expect": "heading",
+  "note": "set-paragraph-heading on the empty last one"
+ },
+ {
+  "name": "cl-body-heading-last",
+  "class": "A",
+  "group": "V4",
+  "fixture": "heading-last.fodt",
+  "action": "body",
+  "dispatch": "body",
+  "script": "k1024,Xcl-body-heading-last@1029=H.uno:StyleApply|{\"Style\":{\"type\":\"string\"`\"value\":\"Text body\"}`\"FamilyName\":{\"type\":\"string\"`\"value\":\"ParagraphStyles\"}}~.uno:CharLeftSel,L,S",
+  "target": "last",
+  "expect": "body",
+  "note": "set-paragraph-body on an empty last heading"
+ },
+ {
+  "name": "cl-nnum-after-number",
+  "class": "N",
+  "group": "V4",
+  "fixture": "number-then-empty-last.fodt",
+  "action": "number",
+  "dispatch": "number-off",
+  "script": "k1024,Xcl-nnum-after-number@1029=H.uno:DefaultNumbering|{\"On\":{\"type\":\"boolean\"`\"value\":false}}~.uno:CharLeftSel,L,S",
+  "target": "last",
+  "expect": "number",
+  "note": "the trap: the previous block is ol, nothing applies"
+ },
+ {
+  "name": "cl-nhead-after-heading",
+  "class": "N",
+  "group": "V4",
+  "fixture": "heading-then-empty-last.fodt",
+  "action": "heading",
+  "dispatch": "no-such-style",
+  "script": "k1024,Xcl-nhead-after-heading@1029=H.uno:StyleApply|{\"Style\":{\"type\":\"string\"`\"value\":\"LiteCore No Such Style\"}`\"FamilyName\":{\"type\":\"string\"`\"value\":\"ParagraphStyles\"}}~.uno:CharLeftSel,L,S",
+  "target": "last",
+  "expect": "heading",
+  "note": "the trap: the previous block is h1, nothing applies"
+ },
+ {
+  "name": "cl-nnone-noop-bulleted-last",
+  "class": "N",
+  "group": "V4",
+  "fixture": "bulleted-last.fodt",
+  "action": "none",
+  "dispatch": "bullet-on",
+  "script": "k1024,Xcl-nnone-noop-bulleted-last@1029=H.uno:DefaultBullet|{\"On\":{\"type\":\"boolean\"`\"value\":true}}~.uno:CharLeftSel,L,S",
+  "target": "last",
+  "expect": "none",
+  "note": "judged as set-list-none; the dispatch is a no-op on the bullet"
+ },
+ {
+  "name": "cl-nbody-sham-heading-last",
+  "class": "N",
+  "group": "V4",
+  "fixture": "heading-last.fodt",
+  "action": "body",
+  "dispatch": "no-such-style",
+  "script": "k1024,Xcl-nbody-sham-heading-last@1029=H.uno:StyleApply|{\"Style\":{\"type\":\"string\"`\"value\":\"LiteCore No Such Style\"}`\"FamilyName\":{\"type\":\"string\"`\"value\":\"ParagraphStyles\"}}~.uno:CharLeftSel,L,S",
+  "target": "last",
+  "expect": "body",
+  "note": "judged as set-paragraph-body; nothing applies to the heading"
+ }
+]

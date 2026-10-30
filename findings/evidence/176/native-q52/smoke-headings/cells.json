@@ -1,0 +1,80 @@
+[
+ {
+  "name": "cl-nhead-after-realheading",
+  "class": "N",
+  "group": "V5",
+  "route": "083",
+  "fixture": "realheading-then-empty-last.fodt",
+  "action": "heading",
+  "dispatch": "no-such-style",
+  "script": "k1024,Xcl-nhead-after-realheading@1029=H.uno:StyleApply|{\"Style\":{\"type\":\"string\"`\"value\":\"LiteCore No Such Style\"}`\"FamilyName\":{\"type\":\"string\"`\"value\":\"ParagraphStyles\"}}~.uno:CharLeftSel,L,S",
+  "target": "last",
+  "expect": "heading",
+  "note": "the heading trap with a real Heading 1 before the empty last paragraph"
+ },
+ {
+  "name": "cl-body-realheading-last",
+  "class": "A",
+  "group": "V5",
+  "route": "083",
+  "fixture": "realheading-last.fodt",
+  "action": "body",
+  "dispatch": "body",
+  "script": "k1024,Xcl-body-realheading-last@1029=H.uno:StyleApply|{\"Style\":{\"type\":\"string\"`\"value\":\"Text body\"}`\"FamilyName\":{\"type\":\"string\"`\"value\":\"ParagraphStyles\"}}~.uno:CharLeftSel,L,S",
+  "target": "last",
+  "expect": "body",
+  "note": "set-paragraph-body on a real empty Heading 1 that is the last paragraph"
+ },
+ {
+  "name": "cl-nbody-realheading-last",
+  "class": "N",
+  "group": "V5",
+  "route": "083",
+  "fixture": "realheading-last.fodt",
+  "action": "body",
+  "dispatch": "no-such-style",
+  "script": "k1024,Xcl-nbody-realheading-last@1029=H.uno:StyleApply|{\"Style\":{\"type\":\"string\"`\"value\":\"LiteCore No Such Style\"}`\"FamilyName\":{\"type\":\"string\"`\"value\":\"ParagraphStyles\"}}~.uno:CharLeftSel,L,S",
+  "target": "last",
+  "expect": "body",
+  "note": "nothing applies to the real empty last heading"
+ },
+ {
+  "name": "g-body-real-empty-heading-mid",
+  "class": "R",
+  "group": "V5",
+  "route": "collapsed",
+  "fixture": "real-empty-heading-mid.fodt",
+  "action": "body",
+  "dispatch": "body",
+  "script": "k1024,Xg-body-real-empty-heading-mid@1029=H.uno:StyleApply|{\"Style\":{\"type\":\"string\"`\"value\":\"Text body\"}`\"FamilyName\":{\"type\":\"string\"`\"value\":\"ParagraphStyles\"}}~.uno:CharLeftSel,L,S",
+  "target": 1,
+  "expect": "body",
+  "note": "176 Q6.3's b1 on a real Heading 1 (the v27 route)"
+ },
+ {
+  "name": "g-nbody-real-empty-heading-mid",
+  "class": "R",
+  "group": "V5",
+  "route": "collapsed",
+  "fixture": "real-empty-heading-mid.fodt",
+  "action": "body",
+  "dispatch": "no-such-style",
+  "script": "k1024,Xg-nbody-real-empty-heading-mid@1029=H.uno:StyleApply|{\"Style\":{\"type\":\"string\"`\"value\":\"LiteCore No Such Style\"}`\"FamilyName\":{\"type\":\"string\"`\"value\":\"ParagraphStyles\"}}~.uno:CharLeftSel,L,S",
+  "target": 1,
+  "expect": "body",
+  "note": "the same, nothing applies"
+ },
+ {
+  "name": "g-nbody-pseudo-heading-text-mid",
+  "class": "R",
+  "group": "V5",
+  "route": "collapsed",
+  "fixture": "pseudo-heading-text-mid.fodt",
+  "action": "body",
+  "dispatch": "no-such-style",
+  "script": "k1024,Xg-nbody-pseudo-heading-text-mid@1029=H.uno:StyleApply|{\"Style\":{\"type\":\"string\"`\"value\":\"LiteCore No Such Style\"}`\"FamilyName\":{\"type\":\"string\"`\"value\":\"ParagraphStyles\"}}~.uno:CharLeftSel,L,S",
+  "target": 1,
+  "expect": "body",
+  "note": "a pseudo-heading WITH text on today's verified one-block route; nothing applies"
+ }
+]

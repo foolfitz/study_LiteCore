@@ -273,3 +273,62 @@ The same as V2. `LAST-UNSAFE` is checked over the CL cells.
 **Recorded only:** rule FIRST (predicted fooled on both traps), the undo stack, bytes and times.
 
 **If never run:** the v28 spec could pin only the bullet on this path.
+
+### Amendment 2, correction 1 (~18:22 +0800, while the cells ran, before any of their records was read)
+
+**The error.** Amendment 2's `LAST-UNSAFE` clause reads "satisfied while the saved paragraph matches the action's target state for an N cell". That is inverted. It contradicts two things:
+- the definition of UNSAFE used in V1-V3 (a rule satisfied while the saved paragraph does **not** match the action);
+- the same amendment's N-cell condition.
+
+It was found while writing `tool/read_q52_actions.py`.
+
+**It reads instead:** `LAST-UNSAFE` = in any clean round of these eight cells, rule LAST is satisfied while the saved paragraph is **not** in the target state of the action the cell is judged as.
+
+An N cell whose dispatch did apply (saved in the target state) is not unsafe. It fails its own condition ("the saved paragraph not in the target state"), so its action is OUT-OF-SCOPE. Nothing else changes.
+
+## Amendment 3 (2026-10-30 ~18:40 +0800, after amendment 2's result and a one-round smoke, before these cells' counted run): real Heading 1 paragraphs
+
+**Amendment 2's result, as registered.** V4 = **`LAST-UNSAFE`**: `cl-nbody-sham-heading-last` was satisfied for body in 5/5 while its saved last paragraph is `text:h`. That verdict stands.
+
+**What it was, measured.** 176's heading markup (`<text:h text:style-name="Heading_20_1" text:outline-level="1"/>` in a document with no `office:styles`) loads as an automatic style `P1` with parent **Standard** and a direct outline level 1. LibreOffice saves it back that way: `out-actions/cl-nbody-sham-heading-last/r1.fodt.gz`, and the same in `cl-nhead-after-heading`. So it is a `text:h` (the ground truth's heading) that is not a Heading 1 paragraph (the engine's heading: the HTML tag the export derives from the style), and the HTML export writes it as `<p>` (both cells' readbacks).
+
+Two consequences:
+- The negative cells for heading and body did not test what they were registered to test.
+- 176's Q6.3 cell b1 used the same markup (`empty-heading-mid`). Its "body on an empty heading" started from this pseudo-heading, not from a Heading 1.
+
+**The smoke** (`smoke-headings/`, one round each of the cells below; recorded, judging nothing):
+- the real fixtures save back as `Heading_20_1`;
+- the untouched empty Heading 1 reads `<h1>` (CL last block, SelectText first block);
+- the pseudo-heading with text reads `<p>`.
+
+**Cells** (5 rounds; `tool/run_cells_q52_headings.py`, fixtures `tool/make_fixtures_q52_headings.py`). "Real" means `Heading_20_1` defined in `office:styles` (display name "Heading 1", default outline level 1). Every cell is op H with the CL fallback; on a paragraph `.uno:SelectText` can read, H is G and the fallback does not run.
+
+| cell | class | route | fixture | dispatch | judged as |
+|---|---|---|---|---|---|
+| cl-nhead-after-realheading | N | 083 | a real Heading 1 `Heading before`, empty | the style that does not exist | heading |
+| cl-body-realheading-last | A | 083 | `Plain first`, a real empty Heading 1 | `Text body` | body |
+| cl-nbody-realheading-last | N | 083 | the same | the style that does not exist | body |
+| g-body-real-empty-heading-mid | R | v27 collapsed | `Plain first`, a real empty Heading 1, `E1-EMPTY-AFTER` | `Text body` | body |
+| g-nbody-real-empty-heading-mid | R | v27 collapsed | the same | the style that does not exist | body |
+| g-nbody-pseudo-heading-text-mid | R | v27 collapsed | `Plain first`, the pseudo-heading with text `Pseudo heading`, `E1-TEXT-AFTER` | the style that does not exist | body |
+
+**Precondition (fixture validity).** The untouched real Heading 1 reads `<h1>` in every clean round in both places:
+- `cl-nbody-realheading-last`: the CL last block;
+- `g-nbody-real-empty-heading-mid`: the SelectText first block.
+
+Otherwise V5 is NOT-ESTABLISHED.
+
+**V5 (by `tool/read_q52_headings.py`), the 083 path with real headings, rule LAST + CL:**
+- **`LAST-UNSAFE`**: in any clean round of the three 083 cells, LAST is satisfied while the saved paragraph is not in the target state.
+- Otherwise, per action:
+  - **heading**: the A cell is `cl-head-empty-last` from amendment 2. Its Heading 1 was applied by the dispatch, so it is valid as it stands. The N cell is `cl-nhead-after-realheading`.
+  - **body**: the A cell is `cl-body-realheading-last`, the N cell `cl-nbody-realheading-last`.
+  - Each action is IN-SCOPE / OUT-OF-SCOPE / NOT-ESTABLISHED by amendment 2's per-action rule.
+
+**Recorded** (the v27 route, rule FIRST on the SelectText readback, as v27 judges it):
+- the two real mid-document cells;
+- the pseudo-heading with text: predicted satisfied for body while saved `text:h`. That is a limitation of the heading/body postcondition that predates v28: the HTML heading is the style's, an outline level alone does not make one.
+
+Number and none keep their amendment 2 status; their fixtures have no heading.
+
+**If never run:** heading and body are not pinned on this path.

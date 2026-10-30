@@ -1,0 +1,45 @@
+{
+ "cases": [
+  {
+   "case": "every action IN-SCOPE from the forced baseline",
+   "ok": true
+  },
+  {
+   "case": "the number trap read as ol last (FIRST-style) -> LAST-UNSAFE",
+   "ok": true
+  },
+  {
+   "case": "the heading trap read as h1 last -> LAST-UNSAFE",
+   "ok": true
+  },
+  {
+   "case": "an applied heading saved as text:p while read as h1 -> LAST-UNSAFE (A cell)",
+   "ok": true
+  },
+  {
+   "case": "correction 1: the none negative APPLIED (saved out of a list, read as p) -> none OUT-OF-SCOPE, not UNSAFE",
+   "ok": true
+  },
+  {
+   "case": "the body A cell refused in one round -> body OUT-OF-SCOPE",
+   "ok": true
+  },
+  {
+   "case": "the number A cell restore not NONE -> number OUT-OF-SCOPE",
+   "ok": true
+  },
+  {
+   "case": "the heading negative with one unclean round -> heading NOT-ESTABLISHED",
+   "ok": true
+  },
+  {
+   "case": "the none A cell SelectText read TEXT (not the 083 path) -> none NOT-ESTABLISHED",
+   "ok": true
+  },
+  {
+   "case": "non-vacuous: 8 cells x 5 rounds, the four pairs present",
+   "ok": true
+  }
+ ],
+ "result": "ALL_AS_EXPECTED"
+}
