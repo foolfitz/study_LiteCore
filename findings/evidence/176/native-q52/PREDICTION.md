@@ -240,3 +240,36 @@ The same as V2. `LAST-UNSAFE` is checked over the CL cells.
 **The criteria, the cells and the binary are not changed.** The counted run judges them as registered.
 
 **Read, not measured.** `getTextSelection` on a collapsed selection is not a candidate. `SwTransferable::GetData` copies the (empty) selection into a fresh document (`lclOverWriteDoc`, `sw/source/uibase/dochdl/swdtflvr.cxx:530`), so its markup would describe that document's default paragraph, not the dispatch paragraph. Writer's `getCommandValues` set (`sw/source/uibase/uno/loktxdoc.cxx:1183`) has no paragraph or list state read.
+
+## Amendment 2 (2026-10-30 ~18:10 +0800, after the counted run, before these cells ran): the four other paragraph actions on the multi-paragraph last line
+
+**Why.** The owner chose 「A. 做多段文件最後一行」 (~18:05): build the multi-paragraph last line, with the design going to fable first. That means a `.uno:CharLeftSel` fallback and a last-block field. The counted run measured only the bullet on multi-paragraph documents (V3). Ruling 3's precedent (Q6.3) is native cells before the scope is pinned. This amendment adds cells only. **V1-V3 and their results are not touched.**
+
+**The cells.** All use CL (`H<cmd>~.uno:CharLeftSel`), 5 rounds, the same binary (`build-01`), the same runner (`../native/tool/run_cells.py`, imported unedited), and the cell table in `tool/run_cells_q52_actions.py`. Fixtures are made by `tool/make_fixtures_q52_actions.py`, into a new directory.
+
+| cell | class | fixture (body) | dispatch | judged as |
+|---|---|---|---|---|
+| cl-num-empty-last | A | `Plain first`, empty | `.uno:DefaultNumbering` On:true | number (`ol`; saved in a number list) |
+| cl-none-bulleted-last | A | `Plain first`, an empty bullet item | `.uno:RemoveBullets` | none (`none`; saved not in a list) |
+| cl-head-empty-last | A | `Plain first`, empty | `.uno:StyleApply` Heading 1 | heading (`h1`; saved `text:h`) |
+| cl-body-heading-last | A | `Plain first`, an empty Heading 1 | `.uno:StyleApply` Text body | body (`p`; saved `text:p`) |
+| cl-nnum-after-number | N | a number item `Numbered before`, empty | `.uno:DefaultNumbering` On:false | number (the trap: the previous block is `ol`) |
+| cl-nhead-after-heading | N | a Heading 1 `Heading before`, empty | `.uno:StyleApply` of a style that does not exist | heading (the trap: the previous block is `h1`) |
+| cl-nnone-noop-bulleted-last | N | `Plain first`, an empty bullet item | `.uno:DefaultBullet` On:true (a no-op there) | none |
+| cl-nbody-sham-heading-last | N | `Plain first`, an empty Heading 1 | `.uno:StyleApply` of a style that does not exist | body |
+
+**How the caret is reached:** `k DOWN`, then the trigger END, as `cl-a4` did.
+
+**How an N cell is judged.** It takes the expectation of the action in its last column. "The saved paragraph matches" means the saved paragraph is in that action's target state, which an N cell's must not be. The style that does not exist is `"LiteCore No Such Style"` (ParagraphStyles).
+
+**Verdict V4 (scope of rule LAST + CL on the multi-paragraph last line), by `tool/read_q52_actions.py`:**
+- **`LAST-UNSAFE`**: in any clean round of these eight cells, rule LAST is satisfied while the saved paragraph matches the action's target state for an N cell, or does not match it for an A cell.
+- Otherwise, per action:
+  - **IN-SCOPE**: its A cell has 5 clean rounds, each with P0, LAST satisfied, the saved paragraph matching, and P3; **and** its N cell has 5 clean rounds, each with P0, LAST not satisfied, the saved paragraph not in the target state, and P3;
+  - **NOT-ESTABLISHED**: either cell has fewer than 5 clean rounds or a P0 failure;
+  - **OUT-OF-SCOPE**: anything else.
+- The bullet's scope is V3 (`cl-a4`, `cl-a7`, `cl-a8`, `cl-n4`, `cl-n8`), already `LAST-HOLDS`.
+
+**Recorded only:** rule FIRST (predicted fooled on both traps), the undo stack, bytes and times.
+
+**If never run:** the v28 spec could pin only the bullet on this path.
