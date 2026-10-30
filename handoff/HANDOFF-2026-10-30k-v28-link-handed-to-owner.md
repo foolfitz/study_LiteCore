@@ -104,3 +104,23 @@ Owner decisions this session (all recorded in the spec):
 - Replies to the owner: Taiwan Traditional Chinese, with A/B/C options.
 - Evidence and handoff: English.
 - Specs and findings: zh-TW.
+
+## Addendum (~20:40 +0800): linked and archived (P-v28 holds)
+
+**The link.** The owner was away from his desk and asked 「我不在座位，請你幫我跑」, so the agent ran the link after the pre-checks (load 0.14, no make, v27 archive 5/5). It took 175 s, exit 0. The JSON was as expected:
+- `e2-editor-v28`, ABI 6, 23 actions, **`withheld: []`**;
+- wasm **`13f674e498a56c8a…`** (new), worker `a5df83db…`, exports = v27's.
+
+**P-v28 holds** (`findings/evidence/v28-083/post-link/README.md`):
+- the contract checks hold;
+- the log carries both defines;
+- the frozen set: 2,862 unchanged, 4 added;
+- the archive is `build/archive/e2-editor-v28-13f674e4-worker-a5df83db/` (read-only).
+
+**Next, in a fresh session:**
+1. The cutover: page pin `13f674e498a56c8a`, the v28 worker URL.
+2. S4 a-e.
+3. Freeze generation 82, then F3/F4/V0′/E1-C.
+4. Host 0.2.44 in the owner's slot.
+
+The accumulated uncounted engine changes now include **v28** (linked).
