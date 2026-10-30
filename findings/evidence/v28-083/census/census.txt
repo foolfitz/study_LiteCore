@@ -1,0 +1,139 @@
+# pattern: select-text-returned-none|EMPTY_SELECTION_SHAPES|取不到任何內容|L-083-stays-a-toast|selectionResultSeen|did not provide readable text|stage-deadline:awaiting-selection
+# product and tool sources
+wasm_sdk_probe/tools/check_v79_blank_bullet.py:6:`.uno:SelectText` on a blank paragraph that selects nothing) as `select-text-returned-none`; the page knew only
+wasm_sdk_probe/tools/check_v79_blank_bullet.py:25:  1. the bullet's reply is 173's shape: ok false, failureShape select-text-returned-none, dispatched true,
+wasm_sdk_probe/tools/check_v79_blank_bullet.py:26:     route collapsed, selectionResultSeen true -- otherwise the run did not reach 173's path and is NE;
+wasm_sdk_probe/tools/check_v79_blank_bullet.py:72:SHAPE = {"failureShape": "select-text-returned-none", "dispatched": True, "route": "collapsed",
+wasm_sdk_probe/tools/check_v79_blank_bullet.py:73:         "selectionResultSeen": True}
+wasm_sdk_probe/tools/check_v79_blank_bullet.py:132:                                                             "selectionResultSeen", "resultSeen")} if barrier else None,
+wasm_sdk_probe/tools/e2_a_native_selecttext_result.cpp:25:// AwaitingSelection with selectionResultSeen=true and no rectangles, which is
+wasm_sdk_probe/tools/check_v80_blank_bullet.py:5:synchronous selection read did not provide readable text; …` before 083's sentence.  Generation 80 shows a
+wasm_sdk_probe/tools/run_e2_c_product_path.py:5722:                                   or "取不到任何內容" in empty_cell_toast)
+wasm_sdk_probe/tools/run_e2_c_product_path.py:5732:                                    else "empty-selection" if "取不到任何內容"
+wasm_sdk_probe/web/e2-c-d3-app.js:25:// `stage-deadline:awaiting-selection`, and a save before the caret is the only
+wasm_sdk_probe/web/e2-editor-app.js:44:import { EMPTY_SELECTION_SHAPES } from "./editor-shell-v2/paragraph-editor-client.js";
+wasm_sdk_probe/web/e2-editor-app.js:2177:        // situation as `select-text-returned-none`; both names are in
+wasm_sdk_probe/web/e2-editor-app.js:2180:        : EMPTY_SELECTION_SHAPES.includes(shape)
+wasm_sdk_probe/web/e2-editor-app.js:2181:        ? "動作已送出，但這一段是空的，檢查要用的選取取不到任何內容，"
+wasm_sdk_probe/editor-shell-v2/tests/page-review-latency.test.mjs:18:import { EMPTY_SELECTION_SHAPES } from "../paragraph-editor-client.js";
+wasm_sdk_probe/editor-shell-v2/tests/page-review-latency.test.mjs:40:                             "publishWindow", "describeError", "VIEW_ONLY_TEXT", "EMPTY_SELECTION_SHAPES", `
+wasm_sdk_probe/editor-shell-v2/tests/page-review-latency.test.mjs:47:      (e) => `${e?.code ? `${e.code}：` : ""}${e?.message || String(e)}`, "唯讀", EMPTY_SELECTION_SHAPES);
+wasm_sdk_probe/editor-shell-v2/tests/page-review-latency.test.mjs:62:  details: { formatBarrier: { dispatched: true, route: "collapsed", failureShape, selectionResultSeen: true } },
+wasm_sdk_probe/editor-shell-v2/tests/page-review-latency.test.mjs:66:  ["083/173 empty paragraph", review("select-text-returned-none")],
+wasm_sdk_probe/editor-shell-v2/tests/page-review-latency.test.mjs:68:  ["059 core reply", review("select-text-returned-none", "LOK_COMMAND_FAILED")],
+wasm_sdk_probe/editor-shell-v2/tests/paragraph-editor-client.test.mjs:129:         failureShape: "stage-deadline:awaiting-selection",
+wasm_sdk_probe/editor-shell-v2/tests/paragraph-editor-client.test.mjs:130:         selectionResultSeen: true,
+wasm_sdk_probe/editor-shell-v2/tests/paragraph-editor-client.test.mjs:141:          { selectionResultSeen: false }],
+wasm_sdk_probe/editor-shell-v2/tests/paragraph-editor-client.test.mjs:143:          { selectionResultSeen: null }],
+wasm_sdk_probe/editor-shell-v2/tests/paragraph-editor-client.test.mjs:168:       // as `select-text-returned-none` (ordered_format.inc,
+wasm_sdk_probe/editor-shell-v2/tests/paragraph-editor-client.test.mjs:175:         failureShape: "select-text-returned-none",
+wasm_sdk_probe/editor-shell-v2/tests/paragraph-editor-client.test.mjs:176:         selectionResultSeen: true,
+wasm_sdk_probe/editor-shell-v2/tests/paragraph-editor-client.test.mjs:187:         ["the select command never came back", { selectionResultSeen: false }],
+wasm_sdk_probe/editor-shell-v2/tests/paragraph-editor-client.test.mjs:188:         ["an engine that does not send the field", { selectionResultSeen: null }],
+wasm_sdk_probe/editor-shell-v2/tests/paragraph-editor-client.test.mjs:197:       assert.equal(disposition({ failureShape: "stage-deadline:awaiting-selection" }),
+wasm_sdk_probe/editor-shell-v2/tests/paragraph-editor-client.test.mjs:200:                                  selectionResultSeen: undefined }),
+wasm_sdk_probe/editor-shell-v2/tests/page-review-presentation.test.mjs:4:// `MUTATION_OUTCOME_UNKNOWN：the synchronous selection read did not provide readable text; …` before 083's
+wasm_sdk_probe/editor-shell-v2/tests/page-review-presentation.test.mjs:17:import { EMPTY_SELECTION_SHAPES } from "../paragraph-editor-client.js";
+wasm_sdk_probe/editor-shell-v2/tests/page-review-presentation.test.mjs:28:const ENGINE_MESSAGE = "the synchronous selection read did not provide readable text; the format mutation outcome is unknown";
+wasm_sdk_probe/editor-shell-v2/tests/page-review-presentation.test.mjs:41:                             "publishWindow", "describeError", "VIEW_ONLY_TEXT", "EMPTY_SELECTION_SHAPES", `
+wasm_sdk_probe/editor-shell-v2/tests/page-review-presentation.test.mjs:48:      (e) => `${e?.code ? `${e.code}：` : ""}${e?.message || String(e)}`, "唯讀", EMPTY_SELECTION_SHAPES);
+wasm_sdk_probe/editor-shell-v2/tests/page-review-presentation.test.mjs:60:  details: { formatBarrier: { dispatched: true, route: "collapsed", failureShape, selectionResultSeen: true } },
+wasm_sdk_probe/editor-shell-v2/tests/page-review-presentation.test.mjs:64:  ["083/173 empty paragraph", review("select-text-returned-none"), "這一段是空的"],
+wasm_sdk_probe/editor-shell-v2/tests/page-review-presentation.test.mjs:66:  ["059 core reply", review("select-text-returned-none", "LOK_COMMAND_FAILED"), "核心的回覆"],
+wasm_sdk_probe/editor-shell-v2/tests/page-review-sentence.test.mjs:4:// engine's `select-text-returned-none`; this is the other half.  The toast for `review` picks its
+wasm_sdk_probe/editor-shell-v2/tests/page-review-sentence.test.mjs:36:async function toastFor(error, { shapes = client.EMPTY_SELECTION_SHAPES } = {}) {
+wasm_sdk_probe/editor-shell-v2/tests/page-review-sentence.test.mjs:42:                           "publishWindow", "describeError", "VIEW_ONLY_TEXT", "EMPTY_SELECTION_SHAPES", `
+wasm_sdk_probe/editor-shell-v2/tests/page-review-sentence.test.mjs:58:  details: { formatBarrier: { dispatched: true, route: "collapsed", failureShape, selectionResultSeen: true } },
+wasm_sdk_probe/editor-shell-v2/tests/page-review-sentence.test.mjs:62:  const message = await toastFor(review("select-text-returned-none"));
+wasm_sdk_probe/editor-shell-v2/tests/page-review-sentence.test.mjs:69:  const message = await toastFor(review("stage-deadline:awaiting-selection"));
+wasm_sdk_probe/editor-shell-v2/tests/page-review-sentence.test.mjs:79:  const message = await toastFor(review("select-text-returned-none", "LOK_COMMAND_FAILED"));
+wasm_sdk_probe/editor-shell-v2/tests/page-review-sentence.test.mjs:84:  assert.deepEqual([...client.EMPTY_SELECTION_SHAPES].sort(),
+wasm_sdk_probe/editor-shell-v2/tests/page-review-sentence.test.mjs:85:                   ["select-text-returned-none", "stage-deadline:awaiting-selection"]);
+wasm_sdk_probe/editor-shell-v2/tests/page-review-sentence.test.mjs:86:  assert.ok(fn("run").includes("EMPTY_SELECTION_SHAPES"), "run() does not consult the shared list");
+wasm_sdk_probe/editor-shell-v2/tests/page-review-sentence.test.mjs:90:  const message = await toastFor(review("select-text-returned-none"),
+wasm_sdk_probe/editor-shell-v2/tests/page-review-sentence.test.mjs:91:                                 { shapes: Object.freeze(["stage-deadline:awaiting-selection"]) });
+wasm_sdk_probe/editor-shell-v2/paragraph-editor-client.js:281:// selected nothing.  `stage-deadline:awaiting-selection` is the pre-v23
+wasm_sdk_probe/editor-shell-v2/paragraph-editor-client.js:283:// `select-text-returned-none` is the ordered engine's (v23 on: the synchronous
+wasm_sdk_probe/editor-shell-v2/paragraph-editor-client.js:295:export const EMPTY_SELECTION_SHAPES = Object.freeze([
+wasm_sdk_probe/editor-shell-v2/paragraph-editor-client.js:296:  "stage-deadline:awaiting-selection",
+wasm_sdk_probe/editor-shell-v2/paragraph-editor-client.js:297:  "select-text-returned-none",
+wasm_sdk_probe/editor-shell-v2/paragraph-editor-client.js:344:  // `selectionResultSeen` is what makes this narrow rather than "any stage
+wasm_sdk_probe/editor-shell-v2/paragraph-editor-client.js:360:      && EMPTY_SELECTION_SHAPES.includes(barrier.failureShape)
+wasm_sdk_probe/editor-shell-v2/paragraph-editor-client.js:361:      && barrier.selectionResultSeen === true)
+wasm_sdk_probe/sdk/v25-feature-worker.js:390:    // Finding 083.  `stage-deadline:awaiting-selection` has two causes and the
+wasm_sdk_probe/sdk/v25-feature-worker.js:405:    selectionResultSeen: value.selectionResultSeen ?? null,
+wasm_sdk_probe/sdk/v27-first-block-worker.js:399:    // Finding 083.  `stage-deadline:awaiting-selection` has two causes and the
+wasm_sdk_probe/sdk/v27-first-block-worker.js:414:    selectionResultSeen: value.selectionResultSeen ?? null,
+wasm_sdk_probe/sdk/sdk-worker.js:361:    // Finding 083.  `stage-deadline:awaiting-selection` has two causes and the
+wasm_sdk_probe/sdk/sdk-worker.js:376:    selectionResultSeen: value.selectionResultSeen ?? null,
+wasm_sdk_probe/sdk/v26-select-all-worker.js:391:    // Finding 083.  `stage-deadline:awaiting-selection` has two causes and the
+wasm_sdk_probe/sdk/v26-select-all-worker.js:406:    selectionResultSeen: value.selectionResultSeen ?? null,
+wasm_sdk_probe/sdk/v24-feature-worker.js:386:    // Finding 083.  `stage-deadline:awaiting-selection` has two causes and the
+wasm_sdk_probe/sdk/v24-feature-worker.js:401:    selectionResultSeen: value.selectionResultSeen ?? null,
+wasm_sdk_probe/sdk/v23-feature-worker.js:357:    // Finding 083.  `stage-deadline:awaiting-selection` has two causes and the
+wasm_sdk_probe/sdk/v23-feature-worker.js:372:    selectionResultSeen: value.selectionResultSeen ?? null,
+wasm_sdk_probe/tests/test_ordered_format.py:27:            ('selection-proof-ignored', '(selects && !gFormatBarrier.selectionResultSeen)', 'false'),
+wasm_sdk_probe/tests/test_e2_profile.py:370:        self.assertIn("!gFormatBarrier.selectionResultSeen ||", body)
+wasm_sdk_probe/tests/ordered_format_test.cpp:127: check(emitted.failureShape=="select-text-returned-none","NONE has precise shape");
+wasm_sdk_probe/src/ordered_format.inc:32:               ? "select-text-returned-none" : "selection-type-not-readable",
+wasm_sdk_probe/src/ordered_format.inc:33:           "the synchronous selection read did not provide readable text; "
+wasm_sdk_probe/src/ordered_format.inc:140:    gFormatBarrier.selectionResultSeen =
+wasm_sdk_probe/src/ordered_format.inc:143:        (selects && !gFormatBarrier.selectionResultSeen)) {
+wasm_sdk_probe/src/probe_engine.cpp:1001:  bool selectionResultSeen = false;
+wasm_sdk_probe/src/probe_engine.cpp:1659:       << ",\"selectionResultSeen\":"
+wasm_sdk_probe/src/probe_engine.cpp:1660:       << (barrier.selectionResultSeen ? "true" : "false")
+wasm_sdk_probe/src/probe_engine.cpp:2279:    gFormatBarrier.selectionResultSeen = true;
+wasm_sdk_probe/src/probe_engine.cpp:6103:  if (!gFormatBarrier.selectionResultSeen ||
+wasm_sdk_probe/src/probe_engine.cpp:6117:      if (!gFormatBarrier.selectionResultSeen)
+# evidence readers (.py) and disposition tables (.md) under findings/evidence
+findings/evidence/046/browser-vs-native/PREDICTION.md
+findings/evidence/046/browser-vs-native/README.md
+findings/evidence/046/diagnostic-readback/README.md
+findings/evidence/046/overshoot/README.md
+findings/evidence/046/residual-disposition-v14/README.md
+findings/evidence/047/README.md
+findings/evidence/082/RESULT.md
+findings/evidence/099/probe_099_within_worker_review_path.py
+findings/evidence/099/README.md
+findings/evidence/173/README.md
+findings/evidence/176/native/PREDICTION.md
+findings/evidence/176/native/README.md
+findings/evidence/176/RULING-fable-2026-10-30-c.md
+findings/evidence/176/RULING-fable-2026-10-30-d.md
+findings/evidence/176/RULING-fable-2026-10-30.md
+findings/evidence/host-0.2.39/k-nine-cells/diag-format/diag_format.py
+findings/evidence/host-0.2.41/README.md
+findings/evidence/host-0.2.43/README.md
+findings/evidence/link-batch-v23/feature-pre-red/tool-source-blobs/3e824c9710f5f21fc05424531e259173d6b5cd3f092a5b3667926be84e26fef5.py
+findings/evidence/link-batch-v23/pre-link/ordered-format-contract.md
+findings/evidence/queue-a11y-stage-deadline-awaiting-selection/PREDICTION.md
+findings/evidence/queue-a11y-stage-deadline-awaiting-selection/RESULT.md
+findings/evidence/sdk-e2/e2-c-validation/d3-lists/README.md
+findings/evidence/shell-v79-173/README.md
+findings/evidence/v27-176/s2p/README.md
+# count of matching lines per evidence file
+findings/evidence/046/browser-vs-native/PREDICTION.md:1
+findings/evidence/046/browser-vs-native/README.md:3
+findings/evidence/046/diagnostic-readback/README.md:1
+findings/evidence/046/overshoot/README.md:1
+findings/evidence/046/residual-disposition-v14/README.md:1
+findings/evidence/047/README.md:1
+findings/evidence/082/RESULT.md:3
+findings/evidence/099/probe_099_within_worker_review_path.py:1
+findings/evidence/099/README.md:1
+findings/evidence/173/README.md:5
+findings/evidence/176/native/PREDICTION.md:1
+findings/evidence/176/native/README.md:1
+findings/evidence/176/RULING-fable-2026-10-30-c.md:2
+findings/evidence/176/RULING-fable-2026-10-30-d.md:15
+findings/evidence/176/RULING-fable-2026-10-30.md:5
+findings/evidence/host-0.2.39/k-nine-cells/diag-format/diag_format.py:1
+findings/evidence/host-0.2.41/README.md:1
+findings/evidence/host-0.2.43/README.md:2
+findings/evidence/link-batch-v23/feature-pre-red/tool-source-blobs/3e824c9710f5f21fc05424531e259173d6b5cd3f092a5b3667926be84e26fef5.py:2
+findings/evidence/link-batch-v23/pre-link/ordered-format-contract.md:1
+findings/evidence/queue-a11y-stage-deadline-awaiting-selection/PREDICTION.md:5
+findings/evidence/queue-a11y-stage-deadline-awaiting-selection/RESULT.md:4
+findings/evidence/sdk-e2/e2-c-validation/d3-lists/README.md:1
+findings/evidence/shell-v79-173/README.md:3
+findings/evidence/v27-176/s2p/README.md:1
