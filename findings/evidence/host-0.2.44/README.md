@@ -55,3 +55,19 @@ Installing needs the owner's slot (DDEV is shared): `slot.json` with an explicit
    - (b) a new blank document, bullet -> the same sentence as now;
    - (c) after (a), Ctrl+Z -> the list is undone;
    - (d) (optional) a document ending in a table, bullet on the line below it -> the new sentence, no 「回到檢查點」, 「復原」 undoes it.
+
+## Live installation (owner slot `slot.json`, 2026-10-30 23:39 +0800 onward)
+
+**The slot.** The owner was asked: 「…可以現在安裝嗎？安裝期間請不要開 litecore 站台。」 The answer was **「A 現在裝（建議）」**. Only litecore was running before and after (`ddev-before.json`, `ddev-after-slot.json`), so nothing was stopped.
+
+**Live preflight** (`live-preflight.*`, `install-20261030T233910+0800/before.json`): `LIVE_PREFLIGHT_READY`. The lock table was empty.
+
+**Install** (`install.*`, `install-20261030T233941+0800/`): **`CANDIDATE_INSTALLED`**.
+- Host main moved ae8240d -> **a97724f**; the engine is `dacdfa20fd4ff1ea`; `installed_version` 0.2.44.
+- `preservedDocumentsAndLocks: true`; `globalLockWrites: false`; the three routes answer 401 unauthenticated.
+
+**Files workflow** (`files-workflow-01/`, the unchanged `run_calc_editor_host.py`, Chrome and Firefox): **52/52 PASS**, `ok: true`. Cleanup: no owned unlocks, share removed, temporary user removed, folder 204.
+
+**`capture-after.py install-20261030T233941+0800 files-workflow-01`** (absolute paths) -> `post-install-identity.json`: **`holds: true`** (host clean, engine equals the archive, protected documents and lock rows equal the installer's after-state, temporary user absent, no global lock-table writes). The lock table was empty throughout, so L-capture-after-expired-lock-lazily-deleted (0.2.43) did not arise.
+
+**Pending: the owner's hand tests (a)-(d)**, then the owner's decision whether 0.2.44 replaces 0.2.43 as the daily uncounted candidate. Rollback, if wanted: `rollback-package.sh` (exact 0.2.43 engine, label stays 0.2.44).
