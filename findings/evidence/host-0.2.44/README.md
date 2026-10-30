@@ -79,6 +79,6 @@ Owner's report, verbatim: 「已經測完，皆符合你的預期 / 選A」.
 - **(a)** a document with text, Enter at the end of the last line, bullet: no toast, as expected (v28's fallback, observed on the host).
 - **(b)** a new blank document, bullet: 083's sentence, unchanged, as expected.
 - **(c)** Ctrl+Z after (a): the list is undone, as expected.
-- **(d)** (optional) the table case: the report does not say item by item whether (d) was run; it is covered by 「皆符合」 only if it was. On the mirror it is S4-d (6/6).
+- **(d)** (optional) a document ending in a table, bullet on the line below: the new sentence, no 「回到檢查點」, 「復原」 undoes it, as expected. The owner confirmed it was run: 「d有做」 (follow-up, 2026-10-31). On the mirror it is S4-d (6/6).
 
 **Decision A: 0.2.44 replaces 0.2.43 as the daily uncounted candidate.** The nominal shipped host stays 0.2.26; K and the count chain stay batched (owner, 2026-10-12). Accumulated uncounted engine changes since 0.2.26: v22-v28.
