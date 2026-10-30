@@ -250,3 +250,19 @@ profile `e2-editor-v28`；`editorContract` 每一個葉等於 v27；只換 `prof
 | 2026-10-30 | 草案。 |
 | 2026-10-30 | 草案第二版：併入對抗性審核 20 項（§12）。 |
 | 2026-10-30 | 釘死。 |
+| 2026-10-30 | 追加 1（§14，S4 執行前）：S4 的程序細節。 |
+
+## 14. 追加
+
+### 追加 1（2026-10-30，S4 的工具寫好、任何 S4 執行之前）
+
+§7.3 S4 寫的是判準，程序有幾處沒寫死；以下在第一次執行前定下，不改任何判準。
+
+1. **夾具。** S4-a、S4-e、S4-b 的編號與標題：S3 的 `findings/evidence/v27-176/fixture-two-plain/build-01/two-plain.odt`（`56bc01b0…`）——它的來源就是 `native-q52/fixtures/two-plain.fodt`（兩份 `8d996d45…` 逐位元組相同），原生 core 存一次，收據在旁邊；不另存一份。S4-b 的取消清單（`fixtures-v6/bulleted-last.fodt`）、內文（`fixtures-headings/realheading-last.fodt`）與 S4-d（`fixtures/table-then-empty-last.fodt`）：`findings/evidence/v28-083/fixtures-s4/make_s4_odts.py`（S3 製作器的衍生）以原生 core 各存一次，`build-01/receipt.json`；未動過的三份以 S3 儀器的 `odt_reading` 讀過一次（`build-01/instrument-reading.txt`）：取消清單那份最後一段是空的項目符號、內文那份最後一段是空的 `text:h`（樣式 `Heading_20_1`，不是偽標題）、表格那份是 `Plain first`／`Cell text`／空段落。
+2. **點的位置。** 一律點在文字下方（PL-1-v28 的點，`#paper` 的 (0.80, 0.15)）：Writer 把游標放在最後一段的結尾。S3 的 `LINE_END` 是第一行的行尾，不用。
+3. **Enter。** S4-a 與 S4-b 的編號、標題按一次 Enter（兩段文件新增一個空的最後一段），S4-e 按兩次。**S4-b 的取消清單、內文與 S4-d 不按 Enter**：這三份夾具的最後一段本身就是空的目標段落（原生臂量的就是這幾份夾具的最後一段，沒有 Enter）；在表格那份按 Enter 會多一個空段落，後援就讀到兩個空段落而不是表格（V7 `cl-a6-end` 的形狀），S4-d 就量不到它要量的。
+4. **S4-b 不打標記字**：按完就存檔，最後一段依位置讀；之後一次 Ctrl+Z、再存檔，最後一段回到夾具的狀態（取消清單：回到項目符號；內文：回到 `text:h`；編號、標題：回到不在清單裡的 `text:p`）。
+5. **S4-b「按錯按鈕」的對應**：編號→按項目符號、取消清單→按編號、標題→按內文、內文→按標題。
+6. **S4-d 的「按「復原」」**：打完標記字之後按工具列的「↶ 復原」兩次（撤回打字、撤回清單），再存檔：最後一段空、不在清單裡，表格格子仍是 `Cell text`。
+7. **S4-c**：B1 的程序（兩個 arm：noclick、click）照 S2′ 的跑法，兩個產品都用 S2′ 的 `judge_after`（第 81 代本來就是「：待確認」）。after 另讀 worker 回覆列：`fallback.ran == true`、`fallback.selectionType == 0`；before：回覆列沒有 `fallback`。「使用者可見結果逐字相同」＝每一筆的（`pill`、`#toast` 文字、按壓後與打字後的狀態列、檢查點提示是否顯示）在兩個產品的全部執行裡是同一個值。
+8. **S4-e 與 S4-d 的 before 只記錄、不判**（§7.3 沒有給它們 before 的判準）。
