@@ -1,8 +1,8 @@
 # Handoff: finding 176 batch -- v27 spec pinned, shell item and engine step done; next: E4, worker, mechanics, PL-1, then the owner's link
 
-Checkpoint **2026-10-30 ~13:30 +0800**. Supersedes `HANDOFF-2026-10-30e-host-0242-installed-f176-next.md`; that file still holds for whatever it says that is not superseded here.
+Checkpoint **2026-10-30 ~13:10 +0800** (first written ~13:00; updated after the worker step). Supersedes `HANDOFF-2026-10-30e-host-0242-installed-f176-next.md`; that file still holds for whatever it says that is not superseded here.
 
-Study HEAD **3a6998b33** plus this file's commit. The tree is clean apart from three untracked files:
+Study HEAD **811a3d530** plus this file's update commit. The tree is clean apart from three untracked files:
 - `codex-claude-code-delegation.md` -- not ours; preserve it;
 - `findings/evidence/176/native/build-01/f176-native` and `build-02/f176-native` -- native harness binaries, deliberately not committed.
 
@@ -59,6 +59,16 @@ The design in one line: on the ordered engine's collapsed route, a multi-block r
 - E3: `test_ordered_format.py`, `test_ordered_format_scope.py` (run with `PYTHONPATH=tests`) and `test_ordered_format_v25.py` all green.
 - Not linked.
 
+## Done after the first version of this file (`960efd567`..`811a3d530`)
+
+- **E4** `tests/test_format_readback_v27.py`: the production parser and predicate agree with the saved documents on 18 recorded rows (F and G), and the red cases are reported.
+- **V0-v27** `V0_V27_HOLDS`: 12 rows. The positive control makes exactly the three probe_engine rows differ.
+- **S** `S_V27_HOLDS`, with both controls.
+- **Worker** `sdk/v27-first-block-worker.js`: W1 byte for byte, with a red extra line; W2 in a vm sandbox, with four causal controls.
+- Evidence and its README: `findings/evidence/v27-176/pre-link/`.
+
+So steps 1-4 below are DONE. Start at step 5, the mechanics.
+
 ## Next, in the spec's order (§11 steps 5-7)
 
 1. **E4**: the production parser on the recorded HTML.
@@ -101,10 +111,11 @@ Before any browser run: no other measurement serving `dist/`. Desk gate only for
 
 ## Section 34.4 this round
 
-- Fixed-by-execution: **3**.
+- Fixed-by-execution: **4**.
   - The native reader's clock check.
   - The heading control's design.
   - The scope checker's brace balance.
+  - W2's first form called `featureExtendPermitted` without its argument; the test was wrong.
 - Fixed-by-review: **9 + nits**, the opus spec review, before pinning.
 - Fable rulings: **1** (ruling 3).
 
