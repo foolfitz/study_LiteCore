@@ -334,3 +334,23 @@
 | 日期 | 修改 |
 |---|---|
 | 2026-10-30 | 追加二：F3-80 的三格移動（fable 代擁有者裁決 B 修改版）。 |
+
+## 追加三（2026-10-30，工作項 W-f3-text-observable 完成）
+
+> 本節只追加，不改上面任何一字。依據：`findings/evidence/select-all-v26/f3-clipboard/`（README、`equal-01.json`、`read-01.json`、`run-01/`）。
+
+**做了什麼**：`tools/run_e2_c_product_path_clipboard.py`（`dc2614399`，第一次執行之前 commit）——不複製被綁的 runner，而是讀入它、核對 sha256（`7ba30235…`）、套上恰好三處取代（三處 `U+` 解析改成讀剪貼簿），在綁到 generation 80 的 manifest 之後執行。剪貼簿只在剛清空的提示正好是「已複製 N 字」、而且剪貼簿字數等於 N 時才採用，否則當作複製失敗（空字串）；守衛的五個小案例都如預期。
+
+**結果**：generation 80 自己的位元組上，Chrome、Firefox 各跑一次：`equal-01` **`F3_80_EQUAL`**（Chrome 46／46、Firefox 46／46 與 F3-79 相同），`read-01` **`F3_HOLDS`**。三格在 Chrome 回到 PASS，剪貼簿讀到的字與 F3-79 從提示解析的逐字相同（`E1-LC-ISOLATED 前後都不是清單的`、`E1-LC-ISOLAT`、`KITAL`）。Firefox 的複製照舊被拒，三格不動。
+
+**後果**：
+- 文字相同，不開 finding；0.2.42 的 F3 判讀不重開（追加二工作項的條件）。
+- **L-175-blinds-three-F3-cells 在 Chrome 上解除，條件是用本工具跑 F3。**之後 generation 80 起的 F3，用 `run_e2_c_product_path_clipboard.py`（或它對新 generation 的衍生）跑時，三格照常判文字，不需要追加二的讀取工具；若仍用被綁的 runner 跑，三格依構造移動，仍要帶追加二的讀取工具。Firefox 照舊沒量（L-firefox-copy）。
+- 本工具釘住被綁 runner 的 sha256 與 generation 80 的 manifest；任一個變了就要重新衍生，不得改常數硬跑。
+- 追加二的讀取工具與宿主 0.2.42 的閘門不動（它們判的是已發生的 F3-80 執行）。
+
+**§8 追加**：因執行而修 0、因審核而修 0。
+
+| 日期 | 修改 |
+|---|---|
+| 2026-10-30 | 追加三：W-f3-text-observable 完成（F3_80_EQUAL、F3_HOLDS；L-175 在 Chrome 上以衍生工具解除）。 |
