@@ -14,7 +14,7 @@ import test from "node:test";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
-import { EMPTY_SELECTION_SHAPES } from "../paragraph-editor-client.js";
+import { EMPTY_SELECTION_SHAPES, FALLBACK_REFUSED_SHAPES } from "../paragraph-editor-client.js";
 
 const PAGE = readFileSync(fileURLToPath(new URL("../../web/e2-editor-app.js", import.meta.url)), "utf8");
 
@@ -38,14 +38,15 @@ async function toastFor(error) {
   try {
     // eslint-disable-next-line no-new-func
     const run = new Function("el", "session", "toast", "reopenAfterBoundaryRefusal", "renderDocument",
-                             "publishWindow", "describeError", "VIEW_ONLY_TEXT", "EMPTY_SELECTION_SHAPES", `
+                             "publishWindow", "describeError", "VIEW_ONLY_TEXT", "EMPTY_SELECTION_SHAPES",
+                             "FALLBACK_REFUSED_SHAPES", `
       let changes = 0;
       ${fn("deleteUnverified")}
       ${fn("reopensAfterRefusal")}
       ${fn("run")}
       return run;`)(
       el, session, (message, bad = false) => toasts.push({ message, bad }), () => {}, async () => {}, () => {},
-      (e) => `${e?.code ? `${e.code}：` : ""}${e?.message || String(e)}`, "唯讀", EMPTY_SELECTION_SHAPES);
+      (e) => `${e?.code ? `${e.code}：` : ""}${e?.message || String(e)}`, "唯讀", EMPTY_SELECTION_SHAPES, FALLBACK_REFUSED_SHAPES);
     const thrown = Object.assign(new Error(ENGINE_MESSAGE), error);
     await assert.rejects(() => run(LABEL, () => Promise.reject(thrown)), thrown);
   } finally {

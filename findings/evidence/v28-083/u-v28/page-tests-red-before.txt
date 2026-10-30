@@ -1,0 +1,181 @@
+✔ U1: review (083/173 empty paragraph) -- the strip says • 項目符號：待確認, not 失敗 (1.514711ms)
+✔ U1: review (046 several paragraphs) -- the strip says • 項目符號：待確認, not 失敗 (0.408621ms)
+✔ U1: review (059 core reply) -- the strip says • 項目符號：待確認, not 失敗 (0.2579ms)
+✔ U1: rollback is unchanged -- the strip says 失敗 (0.315748ms)
+✔ U1: restart is unchanged -- the strip says 失敗 (0.246259ms)
+✔ U1: no disposition is unchanged -- the strip says 失敗 (0.239115ms)
+✔ U1: view-only is unchanged -- the strip says 唯讀 (0.285441ms)
+✔ U1: success is unchanged -- the strip shows the time (0.967081ms)
+✔ U3: 083/173 empty paragraph -- the label and the sentence, not the error style, no code, no engine message (1.817685ms)
+✖ U3: 046 several paragraphs -- the label and the sentence, not the error style, no code, no engine message (1.384468ms)
+✔ U3: 059 core reply -- the label and the sentence, not the error style, no code, no engine message (0.351936ms)
+✔ U3: rollback is unchanged -- red, with the code (0.357495ms)
+✔ U3: restart is unchanged -- red, with the code (0.298005ms)
+✔ U3: no disposition is unchanged -- red, with the code (0.271987ms)
+[review] • 項目符號: MUTATION_OUTCOME_UNKNOWN: failed failureShape=select-text-returned-none
+[review] • 項目符號: MUTATION_OUTCOME_UNKNOWN: failed failureShape=stage-deadline:awaiting-selection
+[review] • 項目符號: LOK_COMMAND_FAILED: failed failureShape=select-text-returned-none
+✔ the ordered engine's empty select gets finding 083's sentence (2.906613ms)
+✔ finding 083's own shape still gets its sentence (0.686208ms)
+✖ finding 046's overshoot keeps the several-paragraphs sentence (1.495265ms)
+✔ finding 059's LOK_COMMAND_FAILED keeps its own sentence (0.48334ms)
+✔ one list: the page's sentence and the disposition read the same two names (0.520549ms)
+✖ the assertion has teeth: a page given only 083's name says the wrong sentence (1.453487ms)
+ℹ tests 20
+ℹ suites 0
+ℹ pass 17
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 64.067103
+
+✖ failing tests:
+
+test at editor-shell-v2/tests/page-review-presentation.test.mjs:70:3
+✖ U3: 046 several paragraphs -- the label and the sentence, not the error style, no code, no engine message (1.384468ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    Comparison {
+  +   message: 'FALLBACK_REFUSED_SHAPES is not defined',
+  +   name: 'ReferenceError'
+  -   code: 'MUTATION_OUTCOME_UNKNOWN',
+  -   details: {
+  -     formatBarrier: {
+  -       dispatched: true,
+  -       failureShape: 'multi-block-readback',
+  -       route: 'collapsed',
+  -       selectionResultSeen: true
+  -     }
+  -   },
+  -   message: 'the synchronous selection read did not provide readable text; the format mutation outcome is unknown',
+  -   name: 'Error',
+  -   recovery: 'review'
+    }
+  
+      at async toastFor (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-review-presentation.test.mjs:50:5)
+      at async TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-review-presentation.test.mjs:71:38)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: ReferenceError: FALLBACK_REFUSED_SHAPES is not defined
+        at run (eval at toastFor (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-review-presentation.test.mjs:40:17), <anonymous>:85:11)
+        at async waitForActual (node:assert:646:5)
+        at async strict.rejects (node:assert:769:25)
+        at async toastFor (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-review-presentation.test.mjs:50:5)
+        at async TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-review-presentation.test.mjs:71:38)
+        at async Test.run (node:internal/test_runner/test:1313:7)
+        at async Test.processPendingSubtests (node:internal/test_runner/test:897:7),
+    expected: Error: the synchronous selection read did not provide readable text; the format mutation outcome is unknown
+        at toastFor (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-review-presentation.test.mjs:49:34)
+        at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-review-presentation.test.mjs:71:44)
+        at Test.runInAsyncScope (node:async_hooks:227:14)
+        at Test.run (node:internal/test_runner/test:1306:25)
+        at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+        at Test.postRun (node:internal/test_runner/test:1447:19)
+        at Test.run (node:internal/test_runner/test:1372:12)
+        at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3),
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at editor-shell-v2/tests/page-review-sentence.test.mjs:73:1
+✖ finding 046's overshoot keeps the several-paragraphs sentence (1.495265ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    Comparison {
+  +   message: 'FALLBACK_REFUSED_SHAPES is not defined',
+  +   name: 'ReferenceError'
+  -   code: 'MUTATION_OUTCOME_UNKNOWN',
+  -   details: {
+  -     formatBarrier: {
+  -       dispatched: true,
+  -       failureShape: 'multi-block-readback',
+  -       route: 'collapsed',
+  -       selectionResultSeen: true
+  -     }
+  -   },
+  -   message: 'failed',
+  -   name: 'Error',
+  -   recovery: 'review'
+    }
+  
+      at async toastFor (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-review-sentence.test.mjs:51:3)
+      at async TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-review-sentence.test.mjs:74:19)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: ReferenceError: FALLBACK_REFUSED_SHAPES is not defined
+        at run (eval at toastFor (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-review-sentence.test.mjs:41:15), <anonymous>:85:11)
+        at async waitForActual (node:assert:646:5)
+        at async strict.rejects (node:assert:769:25)
+        at async toastFor (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-review-sentence.test.mjs:51:3)
+        at async TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-review-sentence.test.mjs:74:19)
+        at async Test.run (node:internal/test_runner/test:1313:7)
+        at async Test.processPendingSubtests (node:internal/test_runner/test:897:7),
+    expected: Error: failed
+        at toastFor (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-review-sentence.test.mjs:50:32)
+        at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-review-sentence.test.mjs:74:25)
+        at Test.runInAsyncScope (node:async_hooks:227:14)
+        at Test.run (node:internal/test_runner/test:1306:25)
+        at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+        at Test.postRun (node:internal/test_runner/test:1447:19)
+        at Test.run (node:internal/test_runner/test:1372:12)
+        at async Test.processPendingSubtests (node:internal/test_runner/test:897:7),
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at editor-shell-v2/tests/page-review-sentence.test.mjs:89:1
+✖ the assertion has teeth: a page given only 083's name says the wrong sentence (1.453487ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    Comparison {
+  +   message: 'FALLBACK_REFUSED_SHAPES is not defined',
+  +   name: 'ReferenceError'
+  -   code: 'MUTATION_OUTCOME_UNKNOWN',
+  -   details: {
+  -     formatBarrier: {
+  -       dispatched: true,
+  -       failureShape: 'select-text-returned-none',
+  -       route: 'collapsed',
+  -       selectionResultSeen: true
+  -     }
+  -   },
+  -   message: 'failed',
+  -   name: 'Error',
+  -   recovery: 'review'
+    }
+  
+      at async toastFor (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-review-sentence.test.mjs:51:3)
+      at async TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-review-sentence.test.mjs:90:19)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: ReferenceError: FALLBACK_REFUSED_SHAPES is not defined
+        at run (eval at toastFor (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-review-sentence.test.mjs:41:15), <anonymous>:85:11)
+        at async waitForActual (node:assert:646:5)
+        at async strict.rejects (node:assert:769:25)
+        at async toastFor (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-review-sentence.test.mjs:51:3)
+        at async TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-review-sentence.test.mjs:90:19)
+        at async Test.run (node:internal/test_runner/test:1313:7)
+        at async Test.processPendingSubtests (node:internal/test_runner/test:897:7),
+    expected: Error: failed
+        at toastFor (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-review-sentence.test.mjs:50:32)
+        at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/page-review-sentence.test.mjs:90:25)
+        at Test.runInAsyncScope (node:async_hooks:227:14)
+        at Test.run (node:internal/test_runner/test:1306:25)
+        at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+        at Test.postRun (node:internal/test_runner/test:1447:19)
+        at Test.run (node:internal/test_runner/test:1372:12)
+        at async Test.processPendingSubtests (node:internal/test_runner/test:897:7),
+    operator: 'rejects',
+    diff: 'simple'
+  }
+exit 1

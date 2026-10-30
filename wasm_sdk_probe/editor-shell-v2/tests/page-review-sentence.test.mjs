@@ -39,14 +39,15 @@ async function toastFor(error, { shapes = client.EMPTY_SELECTION_SHAPES } = {}) 
   const session = { restartAvailable: () => true };
   // eslint-disable-next-line no-new-func
   const run = new Function("el", "session", "toast", "reopenAfterBoundaryRefusal", "renderDocument",
-                           "publishWindow", "describeError", "VIEW_ONLY_TEXT", "EMPTY_SELECTION_SHAPES", `
+                           "publishWindow", "describeError", "VIEW_ONLY_TEXT", "EMPTY_SELECTION_SHAPES",
+                             "FALLBACK_REFUSED_SHAPES", `
     let changes = 0;
     ${fn("deleteUnverified")}
     ${fn("reopensAfterRefusal")}
     ${fn("run")}
     return run;`)(
     el, session, (message, bad) => toasts.push({ message, bad }), () => {}, async () => {}, () => {},
-    (e) => e?.code ?? String(e), "唯讀", shapes);
+    (e) => e?.code ?? String(e), "唯讀", shapes, client.FALLBACK_REFUSED_SHAPES);
   const thrown = Object.assign(new Error("failed"), error);
   await assert.rejects(() => run("• 項目符號", () => Promise.reject(thrown)), thrown);
   assert.equal(toasts.length, 1, "run() must raise exactly one toast for a review error");

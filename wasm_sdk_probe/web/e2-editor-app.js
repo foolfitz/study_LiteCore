@@ -41,7 +41,7 @@ import { recoveryNotice } from "./editor-shell/recovery-notice.js";
 import { EDITOR_V2_ACTIONS } from "./editor-shell-v2/narrow-editor-v2-client.js";
 // Finding 173: finding 083's sentence is chosen from the list the disposition
 // keeps open, not from a copy of it.
-import { EMPTY_SELECTION_SHAPES } from "./editor-shell-v2/paragraph-editor-client.js";
+import { EMPTY_SELECTION_SHAPES, FALLBACK_REFUSED_SHAPES } from "./editor-shell-v2/paragraph-editor-client.js";
 
 // The artifact this page is for.  A page that runs on whatever build happens to
 // be in dist/ is a page that can show behaviour no evidence covers.
@@ -2181,6 +2181,15 @@ async function run(label, operation, { quiet = false } = {}) {
         ? "動作已送出，但這一段是空的，檢查要用的選取取不到任何內容，"
           + "所以無法核對。請看一下結果，不是你要的就按「復原」。"
           + "這是檢查的極限，不是文件壞了"
+        // SPEC-M3-v28-last-line-fallback 4.3: the engine selected one
+        // position back because nothing follows this paragraph, and that
+        // readback held something it cannot read (a table, most often).  Not
+        // "the last paragraph": the fallback runs at every empty select, and
+        // in a table cell that would be false (finding 061's precedent).
+        : FALLBACK_REFUSED_SHAPES.includes(shape)
+        ? "動作已送出，但這一段後面沒有可以一起選的段落，檢查改成往前多選一格，"
+          + "碰到了表格或其他讀不了的內容，所以無法核對。"
+          + "請看一下結果，不是你要的就按「復原」。這是檢查的極限，不是文件壞了"
         // Finding 046's residual.  Says dispatched-and-unverified, and does
         // NOT say it worked -- the barrier did not verify it.  Undo is
         // named because "review" leaves the queue open, which is the only

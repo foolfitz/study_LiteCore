@@ -297,6 +297,17 @@ export const EMPTY_SELECTION_SHAPES = Object.freeze([
   "select-text-returned-none",
 ]);
 
+// SPEC-M3-v28-last-line-fallback 4.3.  When `.uno:SelectText` selects nothing,
+// the v28 engine selects one position back (`.uno:CharLeftSel`) and judges the
+// LAST block of that readback; this is its name for a readback it read but could
+// not judge (a table before the paragraph, an unexpected block count).  The
+// action was dispatched and the queue is open, so the answer is review -- a name
+// missing here falls to the rollback below, finding 173's regression again.
+// Exported for the same two readers as the list above.
+export const FALLBACK_REFUSED_SHAPES = Object.freeze([
+  "fallback-readback-refused",
+]);
+
 export function formatFailureDisposition(error) {
   const barrier = error?.details?.formatBarrier ?? error?.formatBarrier ?? null;
   if (barrier && barrier.dispatched === false)
@@ -358,6 +369,11 @@ export function formatFailureDisposition(error) {
   if (barrier && barrier.dispatched === true
       && barrier.route === "collapsed"
       && EMPTY_SELECTION_SHAPES.includes(barrier.failureShape)
+      && barrier.selectionResultSeen === true)
+    return "dispatched-unverified";
+  if (barrier && barrier.dispatched === true
+      && barrier.route === "collapsed"
+      && FALLBACK_REFUSED_SHAPES.includes(barrier.failureShape)
       && barrier.selectionResultSeen === true)
     return "dispatched-unverified";
   if (barrier && barrier.dispatched === true)

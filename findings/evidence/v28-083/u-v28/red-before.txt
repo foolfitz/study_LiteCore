@@ -1,0 +1,97 @@
+✖ a fallback readback the engine refused is reviewed, not rolled back (0.898133ms)
+✔ narrow: the new branch needs dispatched, collapsed and the select's own result (0.16604ms)
+✔ the 083 names keep their disposition, and their list is unchanged (0.39735ms)
+✖ one exported list, exactly one name (0.30077ms)
+✖ a refused fallback gets its own sentence, not 083's and not 046's (1.908494ms)
+✔ presented as a review: ordinary style, no code or English; both on the console; the strip says 待確認 (0.50448ms)
+✖ run() consults the shared list (0.169275ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 3
+ℹ fail 4
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 49.413286
+
+✖ failing tests:
+
+test at editor-shell-v2/tests/v28-fallback-disposition.test.mjs:20:1
+✖ a fallback readback the engine refused is reviewed, not rolled back (0.898133ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'dispatched-rollback'
+  - 'dispatched-unverified'
+                ^
+  
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/v28-fallback-disposition.test.mjs:21:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.start (node:internal/test_runner/test:1177:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'dispatched-rollback',
+    expected: 'dispatched-unverified',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at editor-shell-v2/tests/v28-fallback-disposition.test.mjs:37:1
+✖ one exported list, exactly one name (0.30077ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+  + undefined
+  - [
+  -   'fallback-readback-refused'
+  - ]
+  
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/v28-fallback-disposition.test.mjs:38:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: [ 'fallback-readback-refused' ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at editor-shell-v2/tests/v28-fallback-sentence.test.mjs:62:1
+✖ a refused fallback gets its own sentence, not 083's and not 046's (1.908494ms)
+  AssertionError [ERR_ASSERTION]: no fallback sentence: • 項目符號：動作已送出，但這一格的檢查涵蓋了不只一個段落，無法單獨核對你的段落。請看一下結果，不是你要的就按「復原」。這是檢查的極限，不是文件壞了
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/v28-fallback-sentence.test.mjs:64:10)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at editor-shell-v2/tests/v28-fallback-sentence.test.mjs:81:1
+✖ run() consults the shared list (0.169275ms)
+  AssertionError [ERR_ASSERTION]: run() does not consult FALLBACK_REFUSED_SHAPES
+      at TestContext.<anonymous> (file:///home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/tests/v28-fallback-sentence.test.mjs:82:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+exit 1
