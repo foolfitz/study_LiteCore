@@ -1,0 +1,34 @@
+{
+ "schema": 1,
+ "note": "SPEC-M3-v28-last-line-fallback 7.2 W1: the closed list of differences between the archived v27 worker (8152448a...) and sdk/v28-last-block-worker.js, each hunk labelled with its section 4.2 item. tests/test_v28_feature_worker_delta.py applies it.",
+ "hunks": [
+  {
+   "item": "3 header comment",
+   "v27Index": 2,
+   "v27Lines": 0,
+   "old": "",
+   "new": "// SPEC-M3-v28-last-line-fallback 4.2: the e2-editor-v28 worker.  Derived from\n// the archived v27 worker (build/archive/e2-editor-v27-c089dfd6-worker-8152448a,\n// 8152448a...).  The differences from v27 are a closed list (criterion W1):\n// (1) featureExtendPermitted names this profile; (2) productFormatBarrier\n// projects the engine's `fallback` record, last in the object, without its\n// markup; (3) this comment.  v27's own header follows, unchanged.\n//\n"
+  },
+  {
+   "item": "1 profile term",
+   "v27Index": 172,
+   "v27Lines": 0,
+   "old": "",
+   "new": "// SPEC-M3-v28-last-line-fallback 4.2 item 1: and e2-editor-v28.\n"
+  },
+  {
+   "item": "1 profile term",
+   "v27Index": 173,
+   "v27Lines": 1,
+   "old": "  return activeManifest?.profile === \"e2-editor-v27\"\n",
+   "new": "  return activeManifest?.profile === \"e2-editor-v28\"\n"
+  },
+  {
+   "item": "2 fallback projection",
+   "v27Index": 441,
+   "v27Lines": 0,
+   "old": "",
+   "new": "    // SPEC-M3-v28-last-line-fallback 4.2 item 2: the one-position-back fallback\n    // after an empty `.uno:SelectText`.  Last in the object (the F3 runner's\n    // WORKER_BARRIER_ANCHOR pins its first two lines); never the markup.\n    fallback: productFormatFallback(value.fallback, value.readback),\n  };\n}\n\nfunction productFormatFallback(value, readback) {\n  if (!value || typeof value !== \"object\" || Array.isArray(value)) return null;\n  const read = value.readback && typeof value.readback === \"object\" ? value.readback : {};\n  const flag = (b) => (typeof b === \"boolean\" ? b : null);\n  const text = (t) => (typeof t === \"string\" ? t : null);\n  return {\n    ran: flag(value.ran),\n    selectionType: Number.isInteger(value.selectionType) ? value.selectionType : null,\n    blockCount: Number.isInteger(read.blockCount) && read.blockCount >= 0 ? read.blockCount : null,\n    lastListTag: text(read.lastListTag),\n    lastBlockTag: text(read.lastBlockTag),\n    refusal: text(value.refusal),\n    restoreConfirmed: flag(readback?.restoreConfirmed),\n"
+  }
+ ]
+}
