@@ -1,0 +1,1221 @@
+{
+ "argv": [
+  "tools/check_v81_blank_line_bullet.py",
+  "--out",
+  "../findings/evidence/v27-176/s3/mutation-hide-review-toast",
+  "--mutation",
+  "hide-review-toast",
+  "--repetitions",
+  "1"
+ ],
+ "tool": "check_v81_blank_line_bullet",
+ "config": {
+  "products": [
+   "hide-review-toast"
+  ],
+  "browsers": [
+   "chrome",
+   "firefox"
+  ],
+  "repetitions": 1,
+  "mutation": "hide-review-toast"
+ },
+ "marker": "mks3q",
+ "lineEnd": [
+  0.8,
+  0.0894
+ ],
+ "fixture": {
+  "path": "findings/evidence/v27-176/fixture-two-plain/build-01/two-plain.odt",
+  "sha256": "56bc01b03b094b8da784fa98419873009fb887c8bf62953d0574f71c18a497a9",
+  "receipt": "findings/evidence/v27-176/fixture-two-plain/build-01/receipt.json"
+ },
+ "products": {
+  "hide-review-toast": {
+   "product": "hide-review-toast",
+   "profile": "e2-editor-v26",
+   "archive": "build/archive/e2-editor-v26-44cb15ea-worker-95d6e7ae",
+   "generation": "e2/editor-shell-v2-bundle-v80.json",
+   "generationDigest": "bc5bf13ee49e42bd46f1c4152b3f1a742273cdadcebbc6a8f4f14bface1012f7",
+   "servedProfile": {
+    "probe.wasm": "44cb15ea8d36f0e0191e007179769b6bcb468e3d084cb260c645e6127630d193",
+    "probe.js": "ed1d9a55357a0a25d44224fbbdcb1fc26df0a1c64a1ae2a769761f9bf3784738",
+    "sdk-worker.js": "95d6e7ae375e60ef58de3e1bbeb838f0d4922a0d4737287b262c23f595aed964",
+    "sdk-manifest.json": "835752a3cfa1dbe2170503ce8027bf27603ebc8c42b5e49d332bef1a48b61867"
+   },
+   "page": "841063a04c43a7fd530d9788439f5c7b5b727ecbea69760547b181d3de68b2e0",
+   "shellMismatchesAgainst80": [
+    "web/e2-editor-app.js"
+   ],
+   "checks": {
+    "pagePointsAtProfile": true,
+    "declaredInGeneration80": true,
+    "profileEqualsArchive": true,
+    "othersEqualGeneration80": true,
+    "pageIsTheVariantOfGeneration80": true,
+    "variantDiffersFromGeneration80": true,
+    "gitPageIsGeneration80": true
+   },
+   "ok": true
+  }
+ },
+ "runs": [
+  {
+   "product": "hide-review-toast",
+   "browser": "chrome",
+   "repetition": 1,
+   "browserVersion": "Chrome/156.0.8078.47",
+   "action": "set-list-unordered",
+   "opened": {
+    "pill": "ready",
+    "latency": "—",
+    "toast": "已開啟 two-plain.odt",
+    "toastBad": false,
+    "revision": "0",
+    "notice": {
+     "show": "0",
+     "text": ""
+    },
+    "requests": 11,
+    "responses": 11,
+    "workers": 2,
+    "blobs": 0,
+    "warns": 0
+   },
+   "clickAt": {
+    "fraction": [
+     0.8,
+     0.0894
+    ],
+    "viewport": [
+     962.5,
+     373.67702499999996
+    ]
+   },
+   "caretPlaced": true,
+   "enterSettled": true,
+   "pressSettled": true,
+   "press": {
+    "pill": "ready",
+    "latency": "• 項目符號 失敗",
+    "toast": "",
+    "toastBad": false,
+    "revision": "1",
+    "notice": {
+     "show": "0",
+     "text": ""
+    },
+    "requests": 21,
+    "responses": 21,
+    "workers": 2,
+    "blobs": 0,
+    "warns": 1
+   },
+   "pressRows": [
+    {
+     "operation": "editorActionV2",
+     "action": "set-list-unordered",
+     "replied": true,
+     "ok": false,
+     "code": "MUTATION_OUTCOME_UNKNOWN",
+     "recovery": null,
+     "completion": null,
+     "formatBarrier": {
+      "route": "collapsed",
+      "readbackBlockCount": 2,
+      "itemCount": 1,
+      "failureShape": "multi-block-readback",
+      "dispatched": true,
+      "undo": null
+     },
+     "revision": [
+      null,
+      null
+     ]
+    },
+    {
+     "operation": "paint",
+     "action": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "recovery": null,
+     "completion": null,
+     "formatBarrier": null,
+     "revision": [
+      null,
+      1
+     ]
+    },
+    {
+     "operation": "editorGetStateV2",
+     "action": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "recovery": null,
+     "completion": null,
+     "formatBarrier": null,
+     "revision": [
+      null,
+      1
+     ]
+    }
+   ],
+   "pressWarns": [
+    "[review] • 項目符號: MUTATION_OUTCOME_UNKNOWN: the readback covers more than one paragraph failureShape=multi-block-readback"
+   ],
+   "typedSettled": true,
+   "typed": {
+    "pill": "ready",
+    "latency": "• 項目符號 失敗",
+    "toast": "",
+    "toastBad": false,
+    "revision": "6",
+    "notice": {
+     "show": "0",
+     "text": ""
+    },
+    "requests": 36,
+    "responses": 36,
+    "workers": 2,
+    "blobs": 0,
+    "warns": 1
+   },
+   "typedRows": [
+    {
+     "operation": "insertText",
+     "action": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "recovery": null,
+     "completion": "uno-command-result",
+     "formatBarrier": null,
+     "revision": [
+      null,
+      2
+     ]
+    },
+    {
+     "operation": "paint",
+     "action": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "recovery": null,
+     "completion": null,
+     "formatBarrier": null,
+     "revision": [
+      null,
+      2
+     ]
+    },
+    {
+     "operation": "editorGetStateV2",
+     "action": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "recovery": null,
+     "completion": null,
+     "formatBarrier": null,
+     "revision": [
+      null,
+      2
+     ]
+    },
+    {
+     "operation": "insertText",
+     "action": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "recovery": null,
+     "completion": "uno-command-result",
+     "formatBarrier": null,
+     "revision": [
+      null,
+      3
+     ]
+    },
+    {
+     "operation": "paint",
+     "action": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "recovery": null,
+     "completion": null,
+     "formatBarrier": null,
+     "revision": [
+      null,
+      3
+     ]
+    },
+    {
+     "operation": "editorGetStateV2",
+     "action": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "recovery": null,
+     "completion": null,
+     "formatBarrier": null,
+     "revision": [
+      null,
+      3
+     ]
+    },
+    {
+     "operation": "insertText",
+     "action": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "recovery": null,
+     "completion": "uno-command-result",
+     "formatBarrier": null,
+     "revision": [
+      null,
+      4
+     ]
+    },
+    {
+     "operation": "paint",
+     "action": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "recovery": null,
+     "completion": null,
+     "formatBarrier": null,
+     "revision": [
+      null,
+      4
+     ]
+    },
+    {
+     "operation": "editorGetStateV2",
+     "action": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "recovery": null,
+     "completion": null,
+     "formatBarrier": null,
+     "revision": [
+      null,
+      4
+     ]
+    },
+    {
+     "operation": "insertText",
+     "action": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "recovery": null,
+     "completion": "uno-command-result",
+     "formatBarrier": null,
+     "revision": [
+      null,
+      5
+     ]
+    },
+    {
+     "operation": "paint",
+     "action": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "recovery": null,
+     "completion": null,
+     "formatBarrier": null,
+     "revision": [
+      null,
+      5
+     ]
+    },
+    {
+     "operation": "editorGetStateV2",
+     "action": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "recovery": null,
+     "completion": null,
+     "formatBarrier": null,
+     "revision": [
+      null,
+      5
+     ]
+    },
+    {
+     "operation": "insertText",
+     "action": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "recovery": null,
+     "completion": "uno-command-result",
+     "formatBarrier": null,
+     "revision": [
+      null,
+      6
+     ]
+    },
+    {
+     "operation": "paint",
+     "action": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "recovery": null,
+     "completion": null,
+     "formatBarrier": null,
+     "revision": [
+      null,
+      6
+     ]
+    },
+    {
+     "operation": "editorGetStateV2",
+     "action": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "recovery": null,
+     "completion": null,
+     "formatBarrier": null,
+     "revision": [
+      null,
+      6
+     ]
+    }
+   ],
+   "savedSettled": true,
+   "saved": {
+    "sha256": "93199847805d860540f49e55a2a683c5436b28c7542b906d6f8c6b2f161d673b",
+    "paragraphs": [
+     {
+      "text": "Plain first",
+      "tag": "p",
+      "inList": false,
+      "listStyle": null,
+      "listLevel1": null
+     },
+     {
+      "text": "mks3q",
+      "tag": "p",
+      "inList": true,
+      "listStyle": "L1",
+      "listLevel1": "list-level-style-bullet"
+     },
+     {
+      "text": "E1-EMPTY-AFTER",
+      "tag": "p",
+      "inList": false,
+      "listStyle": null,
+      "listLevel1": null
+     }
+    ]
+   },
+   "undo": [
+    {
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "復原 68 ms",
+      "toast": "已存出 9.3 KB",
+      "toastBad": false,
+      "revision": "7",
+      "notice": {
+       "show": "0",
+       "text": ""
+      },
+      "requests": 43,
+      "responses": 43,
+      "workers": 2,
+      "blobs": 1,
+      "warns": 1
+     },
+     "rows": [
+      {
+       "operation": "undo",
+       "action": null,
+       "replied": true,
+       "ok": true,
+       "code": null,
+       "recovery": null,
+       "completion": null,
+       "formatBarrier": null,
+       "revision": [
+        null,
+        7
+       ]
+      },
+      {
+       "operation": "paint",
+       "action": null,
+       "replied": true,
+       "ok": true,
+       "code": null,
+       "recovery": null,
+       "completion": null,
+       "formatBarrier": null,
+       "revision": [
+        null,
+        7
+       ]
+      },
+      {
+       "operation": "editorGetStateV2",
+       "action": null,
+       "replied": true,
+       "ok": true,
+       "code": null,
+       "recovery": null,
+       "completion": null,
+       "formatBarrier": null,
+       "revision": [
+        null,
+        7
+       ]
+      },
+      {
+       "operation": "paint",
+       "action": null,
+       "replied": true,
+       "ok": true,
+       "code": null,
+       "recovery": null,
+       "completion": null,
+       "formatBarrier": null,
+       "revision": [
+        null,
+        7
+       ]
+      }
+     ]
+    },
+    {
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "復原 70 ms",
+      "toast": "已存出 9.3 KB",
+      "toastBad": false,
+      "revision": "8",
+      "notice": {
+       "show": "0",
+       "text": ""
+      },
+      "requests": 47,
+      "responses": 47,
+      "workers": 2,
+      "blobs": 1,
+      "warns": 1
+     },
+     "rows": [
+      {
+       "operation": "undo",
+       "action": null,
+       "replied": true,
+       "ok": true,
+       "code": null,
+       "recovery": null,
+       "completion": null,
+       "formatBarrier": null,
+       "revision": [
+        null,
+        8
+       ]
+      },
+      {
+       "operation": "paint",
+       "action": null,
+       "replied": true,
+       "ok": true,
+       "code": null,
+       "recovery": null,
+       "completion": null,
+       "formatBarrier": null,
+       "revision": [
+        null,
+        8
+       ]
+      },
+      {
+       "operation": "editorGetStateV2",
+       "action": null,
+       "replied": true,
+       "ok": true,
+       "code": null,
+       "recovery": null,
+       "completion": null,
+       "formatBarrier": null,
+       "revision": [
+        null,
+        8
+       ]
+      },
+      {
+       "operation": "paint",
+       "action": null,
+       "replied": true,
+       "ok": true,
+       "code": null,
+       "recovery": null,
+       "completion": null,
+       "formatBarrier": null,
+       "revision": [
+        null,
+        8
+       ]
+      }
+     ]
+    }
+   ],
+   "savedAfterUndoSettled": true,
+   "savedAfterUndo": {
+    "sha256": "2305743428a8e3acc55d0d3c4dedbed0d8d62a2419c677f289982e43a2941e42",
+    "paragraphs": [
+     {
+      "text": "Plain first",
+      "tag": "p",
+      "inList": false,
+      "listStyle": null,
+      "listLevel1": null
+     },
+     {
+      "text": "",
+      "tag": "p",
+      "inList": false,
+      "listStyle": null,
+      "listLevel1": null
+     },
+     {
+      "text": "E1-EMPTY-AFTER",
+      "tag": "p",
+      "inList": false,
+      "listStyle": null,
+      "listLevel1": null
+     }
+    ]
+   },
+   "cleanup": {},
+   "outcome": "FAIL",
+   "clauses": {
+    "A.ready": true,
+    "A.no-toast": true,
+    "A.no-review-line": false,
+    "A.strip": false,
+    "A.reply-ok": false,
+    "A.completion": false,
+    "A.route": true,
+    "A.two-blocks": true,
+    "A.saved-marker-in-bullet-list": true,
+    "A.saved-neighbours": true,
+    "A.undo-replies-ok": true,
+    "A.undo-three-paragraphs": true
+   },
+   "failedClauses": [
+    "A.completion",
+    "A.no-review-line",
+    "A.reply-ok",
+    "A.strip"
+   ]
+  },
+  {
+   "product": "hide-review-toast",
+   "browser": "firefox",
+   "repetition": 1,
+   "browserVersion": "157.0.1",
+   "action": "set-list-unordered",
+   "opened": {
+    "pill": "ready",
+    "latency": "—",
+    "toast": "已開啟 two-plain.odt",
+    "toastBad": false,
+    "revision": "0",
+    "notice": {
+     "show": "0",
+     "text": ""
+    },
+    "requests": 11,
+    "responses": 11,
+    "workers": 2,
+    "blobs": 0,
+    "warns": 0
+   },
+   "clickAt": {
+    "fraction": [
+     0.8,
+     0.0894
+    ],
+    "viewport": [
+     964.0,
+     374.9864122070312
+    ]
+   },
+   "caretPlaced": true,
+   "enterSettled": true,
+   "pressSettled": true,
+   "press": {
+    "pill": "ready",
+    "latency": "• 項目符號 失敗",
+    "toast": "",
+    "toastBad": false,
+    "revision": "1",
+    "notice": {
+     "show": "0",
+     "text": ""
+    },
+    "requests": 21,
+    "responses": 21,
+    "workers": 2,
+    "blobs": 0,
+    "warns": 1
+   },
+   "pressRows": [
+    {
+     "operation": "editorActionV2",
+     "action": "set-list-unordered",
+     "replied": true,
+     "ok": false,
+     "code": "MUTATION_OUTCOME_UNKNOWN",
+     "recovery": null,
+     "completion": null,
+     "formatBarrier": {
+      "route": "collapsed",
+      "readbackBlockCount": 2,
+      "itemCount": 1,
+      "failureShape": "multi-block-readback",
+      "dispatched": true,
+      "undo": null
+     },
+     "revision": [
+      null,
+      null
+     ]
+    },
+    {
+     "operation": "paint",
+     "action": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "recovery": null,
+     "completion": null,
+     "formatBarrier": null,
+     "revision": [
+      null,
+      1
+     ]
+    },
+    {
+     "operation": "editorGetStateV2",
+     "action": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "recovery": null,
+     "completion": null,
+     "formatBarrier": null,
+     "revision": [
+      null,
+      1
+     ]
+    }
+   ],
+   "pressWarns": [
+    "[review] • 項目符號: MUTATION_OUTCOME_UNKNOWN: the readback covers more than one paragraph failureShape=multi-block-readback"
+   ],
+   "typedSettled": true,
+   "typed": {
+    "pill": "ready",
+    "latency": "• 項目符號 失敗",
+    "toast": "",
+    "toastBad": false,
+    "revision": "6",
+    "notice": {
+     "show": "0",
+     "text": ""
+    },
+    "requests": 36,
+    "responses": 36,
+    "workers": 2,
+    "blobs": 0,
+    "warns": 1
+   },
+   "typedRows": [
+    {
+     "operation": "insertText",
+     "action": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "recovery": null,
+     "completion": "uno-command-result",
+     "formatBarrier": null,
+     "revision": [
+      null,
+      2
+     ]
+    },
+    {
+     "operation": "paint",
+     "action": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "recovery": null,
+     "completion": null,
+     "formatBarrier": null,
+     "revision": [
+      null,
+      2
+     ]
+    },
+    {
+     "operation": "editorGetStateV2",
+     "action": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "recovery": null,
+     "completion": null,
+     "formatBarrier": null,
+     "revision": [
+      null,
+      2
+     ]
+    },
+    {
+     "operation": "insertText",
+     "action": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "recovery": null,
+     "completion": "uno-command-result",
+     "formatBarrier": null,
+     "revision": [
+      null,
+      3
+     ]
+    },
+    {
+     "operation": "paint",
+     "action": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "recovery": null,
+     "completion": null,
+     "formatBarrier": null,
+     "revision": [
+      null,
+      3
+     ]
+    },
+    {
+     "operation": "editorGetStateV2",
+     "action": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "recovery": null,
+     "completion": null,
+     "formatBarrier": null,
+     "revision": [
+      null,
+      3
+     ]
+    },
+    {
+     "operation": "insertText",
+     "action": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "recovery": null,
+     "completion": "uno-command-result",
+     "formatBarrier": null,
+     "revision": [
+      null,
+      4
+     ]
+    },
+    {
+     "operation": "paint",
+     "action": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "recovery": null,
+     "completion": null,
+     "formatBarrier": null,
+     "revision": [
+      null,
+      4
+     ]
+    },
+    {
+     "operation": "editorGetStateV2",
+     "action": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "recovery": null,
+     "completion": null,
+     "formatBarrier": null,
+     "revision": [
+      null,
+      4
+     ]
+    },
+    {
+     "operation": "insertText",
+     "action": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "recovery": null,
+     "completion": "uno-command-result",
+     "formatBarrier": null,
+     "revision": [
+      null,
+      5
+     ]
+    },
+    {
+     "operation": "paint",
+     "action": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "recovery": null,
+     "completion": null,
+     "formatBarrier": null,
+     "revision": [
+      null,
+      5
+     ]
+    },
+    {
+     "operation": "editorGetStateV2",
+     "action": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "recovery": null,
+     "completion": null,
+     "formatBarrier": null,
+     "revision": [
+      null,
+      5
+     ]
+    },
+    {
+     "operation": "insertText",
+     "action": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "recovery": null,
+     "completion": "uno-command-result",
+     "formatBarrier": null,
+     "revision": [
+      null,
+      6
+     ]
+    },
+    {
+     "operation": "paint",
+     "action": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "recovery": null,
+     "completion": null,
+     "formatBarrier": null,
+     "revision": [
+      null,
+      6
+     ]
+    },
+    {
+     "operation": "editorGetStateV2",
+     "action": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "recovery": null,
+     "completion": null,
+     "formatBarrier": null,
+     "revision": [
+      null,
+      6
+     ]
+    }
+   ],
+   "savedSettled": true,
+   "saved": {
+    "sha256": "d35a572780e5c35b2f95bc935d9dd0b874bfa6c51d1cb3fe73f27ff8ba3577a3",
+    "paragraphs": [
+     {
+      "text": "Plain first",
+      "tag": "p",
+      "inList": false,
+      "listStyle": null,
+      "listLevel1": null
+     },
+     {
+      "text": "mks3q",
+      "tag": "p",
+      "inList": true,
+      "listStyle": "L1",
+      "listLevel1": "list-level-style-bullet"
+     },
+     {
+      "text": "E1-EMPTY-AFTER",
+      "tag": "p",
+      "inList": false,
+      "listStyle": null,
+      "listLevel1": null
+     }
+    ]
+   },
+   "undo": [
+    {
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "復原 73 ms",
+      "toast": "已存出 9.3 KB",
+      "toastBad": false,
+      "revision": "7",
+      "notice": {
+       "show": "0",
+       "text": ""
+      },
+      "requests": 43,
+      "responses": 43,
+      "workers": 2,
+      "blobs": 1,
+      "warns": 1
+     },
+     "rows": [
+      {
+       "operation": "undo",
+       "action": null,
+       "replied": true,
+       "ok": true,
+       "code": null,
+       "recovery": null,
+       "completion": null,
+       "formatBarrier": null,
+       "revision": [
+        null,
+        7
+       ]
+      },
+      {
+       "operation": "paint",
+       "action": null,
+       "replied": true,
+       "ok": true,
+       "code": null,
+       "recovery": null,
+       "completion": null,
+       "formatBarrier": null,
+       "revision": [
+        null,
+        7
+       ]
+      },
+      {
+       "operation": "editorGetStateV2",
+       "action": null,
+       "replied": true,
+       "ok": true,
+       "code": null,
+       "recovery": null,
+       "completion": null,
+       "formatBarrier": null,
+       "revision": [
+        null,
+        7
+       ]
+      },
+      {
+       "operation": "paint",
+       "action": null,
+       "replied": true,
+       "ok": true,
+       "code": null,
+       "recovery": null,
+       "completion": null,
+       "formatBarrier": null,
+       "revision": [
+        null,
+        7
+       ]
+      }
+     ]
+    },
+    {
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "復原 71 ms",
+      "toast": "已存出 9.3 KB",
+      "toastBad": false,
+      "revision": "8",
+      "notice": {
+       "show": "0",
+       "text": ""
+      },
+      "requests": 47,
+      "responses": 47,
+      "workers": 2,
+      "blobs": 1,
+      "warns": 1
+     },
+     "rows": [
+      {
+       "operation": "undo",
+       "action": null,
+       "replied": true,
+       "ok": true,
+       "code": null,
+       "recovery": null,
+       "completion": null,
+       "formatBarrier": null,
+       "revision": [
+        null,
+        8
+       ]
+      },
+      {
+       "operation": "paint",
+       "action": null,
+       "replied": true,
+       "ok": true,
+       "code": null,
+       "recovery": null,
+       "completion": null,
+       "formatBarrier": null,
+       "revision": [
+        null,
+        8
+       ]
+      },
+      {
+       "operation": "editorGetStateV2",
+       "action": null,
+       "replied": true,
+       "ok": true,
+       "code": null,
+       "recovery": null,
+       "completion": null,
+       "formatBarrier": null,
+       "revision": [
+        null,
+        8
+       ]
+      },
+      {
+       "operation": "paint",
+       "action": null,
+       "replied": true,
+       "ok": true,
+       "code": null,
+       "recovery": null,
+       "completion": null,
+       "formatBarrier": null,
+       "revision": [
+        null,
+        8
+       ]
+      }
+     ]
+    }
+   ],
+   "savedAfterUndoSettled": true,
+   "savedAfterUndo": {
+    "sha256": "cd0ffa4df9a59bf0ed63b676235a3359f7297e356562c410cdddc338008c4807",
+    "paragraphs": [
+     {
+      "text": "Plain first",
+      "tag": "p",
+      "inList": false,
+      "listStyle": null,
+      "listLevel1": null
+     },
+     {
+      "text": "",
+      "tag": "p",
+      "inList": false,
+      "listStyle": null,
+      "listLevel1": null
+     },
+     {
+      "text": "E1-EMPTY-AFTER",
+      "tag": "p",
+      "inList": false,
+      "listStyle": null,
+      "listLevel1": null
+     }
+    ]
+   },
+   "cleanup": {},
+   "outcome": "FAIL",
+   "clauses": {
+    "A.ready": true,
+    "A.no-toast": true,
+    "A.no-review-line": false,
+    "A.strip": false,
+    "A.reply-ok": false,
+    "A.completion": false,
+    "A.route": true,
+    "A.two-blocks": true,
+    "A.saved-marker-in-bullet-list": true,
+    "A.saved-neighbours": true,
+    "A.undo-replies-ok": true,
+    "A.undo-three-paragraphs": true
+   },
+   "failedClauses": [
+    "A.completion",
+    "A.no-review-line",
+    "A.reply-ok",
+    "A.strip"
+   ]
+  }
+ ],
+ "preRun": {
+  "kwalletLocked": "b false",
+  "chromeProcesses": "2",
+  "firefoxProcesses": "0",
+  "oursRunning": [],
+  "loadavg": [
+   "0.76",
+   "0.82",
+   "0.95"
+  ],
+  "topCpu": [
+   "PID %CPU COMMAND",
+   "2660943 42.8 python3",
+   "2660489  7.2 check-new-relea",
+   "2634043  4.1 electron",
+   "1643330  2.5 zen",
+   "   3008  2.5 kwin_wayland"
+  ],
+  "at": "2026-10-30T14:46:42+0800",
+  "refuse": []
+ },
+ "verdict": "S3_MUTATION_CAUGHT",
+ "problems": []
+}
