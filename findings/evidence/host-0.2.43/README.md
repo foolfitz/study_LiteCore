@@ -54,3 +54,41 @@ Files workflow: the unchanged `wasm_sdk_probe/tools/run_calc_editor_host.py`.
    - (a) a document with text, an empty line with a paragraph after it, bullet -> no toast, the strip shows the time;
    - (b) a new blank document, bullet -> 083's sentence in the normal style, the strip says 「待確認」;
    - (c) after (a), Ctrl+Z -> the list is undone.
+
+## Live installation (owner slot `slot.json`, 2026-10-30 16:01-17:01 +0800)
+
+**The slot.** The owner was asked: 「可以現在安裝嗎？…這段時間請不要開 litecore 站台」. The answer was **「A 現在裝（建議）」**. Earlier, unprompted, the owner had written 「如果要用到ddev，可以把其他ddev關掉」. Only litecore was running before and after (`ddev-before.json`, `ddev-after-slot.json`), so nothing was stopped.
+
+**Live preflight** (`live-preflight.*`, `install-20261030T160144+0800/before.json`): `LIVE_PREFLIGHT_READY`.
+- One lock row was present: `oc_files_lock` id 5412, `file_id 25890` = `LiteCore Calc 手動驗收 2026-10-25 203756/empty.odt`, created 2026-10-30 10:38:08, ttl 1925 s.
+- It was expired for about 5 hours and not being refreshed, unlike 0.2.42's first slot, so it could not move during the install.
+
+**Install** (`install.*`, `install-20261030T160214+0800/`): **`CANDIDATE_INSTALLED`**.
+- Host main fast-forwarded 93b1ebc -> **ae8240d**; the engine was rsynced from the 0.2.43 archive; `occ upgrade`.
+- `installed_version` 0.2.43.
+- `preservedDocumentsAndLocks: true`: the installer's own before and after snapshots, bracketing the mutation, are equal, the stale lock row included.
+- `globalLockWrites: false`; the three routes answer 401 unauthenticated.
+
+**Files workflow** (`files-workflow-01/`, the unchanged `run_calc_editor_host.py`, Chrome and Firefox): **52/52 PASS**, `ok: true`.
+- Cleanup: no owned unlocks, share removed, temporary user removed, folder 204.
+
+**`capture-after.py install-20261030T160214+0800 files-workflow-01`** (absolute paths) -> `post-install-identity.json`: **`holds: false`**.
+
+These items hold:
+- host ae8240d clean; installed_version 0.2.43; buildId 741afd80a36e673b; engine equals the archive;
+- the protected documents equal the installer's after-state;
+- the workflow is ok, 52 checks, none failed;
+- owned folder 404; temporary user absent; no global lock-table writes.
+
+**The only false item is `lockRowsEqualInstallAfter`.** The stale row 5412 was present in the installer's after-state and is gone now (`oc_files_lock` empty). What was measured about its removal:
+- None of our steps deleted it. The installer and capture-after only read the lock table. The Files workflow never clears it, and its `ownedUnlocks` is `[]`.
+- The two lock background jobs last ran on 2026-10-25 (`oc_jobs`: `OCA\FilesLock\Cron\Unlock`, `OCA\Files\BackgroundJob\CleanupFileLocks`), so they did not remove it. `core.lastcron` moved during the window.
+- Nextcloud's files_lock deletes an EXPIRED lock row whenever any request looks the file's lock up:
+  - `apps/files_lock/lib/Service/LockService.php:141-155`: `getETA() === 0` -> `removeIds`;
+  - `:337-339`: `getLockFromFileId` deletes it, "lock is ignored and deleted as being too old".
+  The row had been expired since about 11:10.
+- Which request looked it up was not measured. It is not claimed here.
+
+So the red is capture-after's comparison of the FULL lock table across a window in which Nextcloud itself may lazily delete an already-expired row. It is not a change to any document or live lock. Named: **L-capture-after-expired-lock-lazily-deleted**. It is recorded, not fixed: the tool is a derived copy kept byte-for-byte, and redesigning its lock clause would be new mechanism. The verdict stays `holds: false` as written.
+
+Not done yet: the owner's hand tests (a)-(c). The decision whether 0.2.43 replaces 0.2.42 as the daily uncounted candidate goes to the owner, with this red named. The rollback is prepared (`rollback-package.sh`: the exact 0.2.42 engine; the label stays 0.2.43).
