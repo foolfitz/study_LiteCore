@@ -1,0 +1,87 @@
+{
+ "allOk": true,
+ "cases": [
+  {
+   "case": "copy refused: no clipboard read",
+   "toast": "複製：CLIPBOARD_DENIED：clipboard write was denied",
+   "clipboard": "STALE-TEXT",
+   "got": "",
+   "want": "",
+   "clipboardRead": false,
+   "ok": true
+  },
+  {
+   "case": "stale clipboard, count differs",
+   "toast": "已複製 5 字",
+   "clipboard": "E1-LC-ISOLAT",
+   "got": "",
+   "want": "",
+   "clipboardRead": true,
+   "ok": true
+  },
+  {
+   "case": "old U+ toast form is not a count",
+   "toast": "已複製 U+004B,U+0049,U+0054,U+0041,U+004C 字",
+   "clipboard": "KITAL",
+   "got": "",
+   "want": "",
+   "clipboardRead": false,
+   "ok": true
+  },
+  {
+   "case": "fresh clipboard, count equal",
+   "toast": "已複製 5 字",
+   "clipboard": "KITAL",
+   "got": "KITAL",
+   "want": "KITAL",
+   "clipboardRead": true,
+   "ok": true
+  },
+  {
+   "case": "non-string clipboard value",
+   "toast": "已複製 5 字",
+   "clipboard": "{}",
+   "got": "",
+   "want": "",
+   "clipboardRead": true,
+   "ok": true
+  }
+ ],
+ "reads": [
+  {
+   "site": "self-test",
+   "toast": "複製：CLIPBOARD_DENIED：clipboard write was denied",
+   "at": 1793328334.497547,
+   "text": ""
+  },
+  {
+   "site": "self-test",
+   "toast": "已複製 5 字",
+   "at": 1793328334.4975517,
+   "clipboardCodePoints": 12,
+   "refused": "clipboard is not a string of the toast count",
+   "text": ""
+  },
+  {
+   "site": "self-test",
+   "toast": "已複製 U+004B,U+0049,U+0054,U+0041,U+004C 字",
+   "at": 1793328334.497557,
+   "text": ""
+  },
+  {
+   "site": "self-test",
+   "toast": "已複製 5 字",
+   "at": 1793328334.4975588,
+   "clipboardCodePoints": 5,
+   "text": "KITAL"
+  },
+  {
+   "site": "self-test",
+   "toast": "已複製 5 字",
+   "at": 1793328334.4975615,
+   "clipboardCodePoints": null,
+   "refused": "clipboard is not a string of the toast count",
+   "text": ""
+  }
+ ]
+}
