@@ -332,3 +332,63 @@ Otherwise V5 is NOT-ESTABLISHED.
 Number and none keep their amendment 2 status; their fixtures have no heading.
 
 **If never run:** heading and body are not pinned on this path.
+
+## Amendment 4 (2026-10-30 ~19:25 +0800, before these cells ran): ruling 4's native cells before the v28 spec
+
+**Authority.** Fable ruling 4 (`../RULING-fable-2026-10-30-d.md`), Q4.3-4.5 and section 4 item 6. Same binary (`build-01`), same runner (`../native/tool/run_cells.py`, imported unedited), mode uni1ai, 5 rounds. The cell table is `tool/run_cells_q52_v6.py`, the fixtures `tool/make_fixtures_q52_v6.py` (byte copies of `fixtures-actions/` and `fixtures/` files, plus one new fixture). Output goes to `out-v6/`.
+
+**Stated plainly (ruling 4 Q4.3).** Amendment 2's records of the four number/none cells were read before this amendment: the README table "the per-action rule applied to the other cells". This re-run exists so that a run counted under a registered criterion post-dates that reading. The earlier records are not re-used for V6.
+
+| cell | class | fixture | dispatch | judged as | group |
+|---|---|---|---|---|---|
+| cl-num-empty-last | A | empty-last | `.uno:DefaultNumbering` On:true | number | V6 |
+| cl-nnum-after-number | N | number-then-empty-last | `.uno:DefaultNumbering` On:false | number | V6 |
+| cl-none-bulleted-last | A | bulleted-last | `.uno:RemoveBullets` | none | V6 |
+| cl-nnone-noop-bulleted-last | N | bulleted-last | `.uno:DefaultBullet` On:true | none | V6 |
+| cl-long-300 | A | long-then-empty-last (300 lines, then empty) | `.uno:DefaultBullet` On:true | bullet | V7 |
+| cl-a6-end | A | empty-empty-last (`Plain first`, empty, empty) | `.uno:DefaultBullet` On:true | bullet | V7 |
+| cl-n6-end | N | empty-empty-last | `.uno:DefaultBullet` On:false | bullet | V7 |
+
+The first four rows are the same cells as amendment 2, by name and table entry. How the caret is reached:
+- V6: `k DOWN`, then END (as amendment 2);
+- `cl-long-300` and the a6/n6 cells: Ctrl+End twice, then END.
+
+The ruling's user path is "type, Enter, Enter, bullet"; Ctrl+End reaches the same last empty paragraph.
+
+### V6: number and none, by `tool/read_q52_v6.py`
+
+Amendment 2's per-action rule with correction 1, over these four cells:
+- **`LAST-UNSAFE`** if LAST is satisfied in any clean round while the saved paragraph is not in the target state.
+- Otherwise each action is **IN-SCOPE** iff:
+  - its A cell has 5 clean rounds, each with P0, LAST satisfied, the saved last paragraph matching, and P3;
+  - and its N cell has 5 clean rounds, each with P0, LAST not satisfied, the saved last paragraph not matching, and P3.
+- **NOT-ESTABLISHED** if either cell has fewer than 5 clean rounds or a P0 failure.
+- **OUT-OF-SCOPE** otherwise.
+
+### V7: the long document and two empties at the end
+
+- **`cl-long-300` COVERED** iff 5 clean rounds and, in each:
+  - P0;
+  - the fallback reads TEXT;
+  - `blockCount == 2` (ruling 4's rule iii);
+  - LAST satisfied, the saved last paragraph a bullet, P3.
+
+  Recorded: the fallback markup's bytes, against the 561-581 of the short documents. This is the measurement behind "constant cost" (ruling 4 Q1.4).
+- **`cl-a6-end` COVERED** iff 5 clean rounds and, in each:
+  - P0, TEXT, `blockCount == 2`;
+  - LAST satisfied, the saved last paragraph a bullet;
+  - **the saved second-to-last paragraph not in a list** (the bullet went to the paragraph the caret was in);
+  - `restoredType == 0`.
+
+  The locator half of P3 does not discriminate here: two empty paragraphs give the same empty suffix and prefix. It is recorded, not judged.
+- **`cl-n6-end` SAFE** iff 5 clean rounds, each with P0, LAST not satisfied, the saved last two paragraphs not in a list, and `restoredType == 0`.
+- **`V7-UNSAFE`**: LAST satisfied while the saved last paragraph is not a bullet, in any clean round of the three cells.
+- **Verdict:**
+  - `V7-HOLDS` when all three hold;
+  - `V7-UNSAFE` as above;
+  - `NOT-ESTABLISHED` for fewer than 5 clean rounds or a P0 failure;
+  - `V7-PARTIAL` otherwise.
+
+**Stop rule** (ruling 4 Q4.5): a round where a rule is satisfied while the saved paragraph does not match takes that action out of scope and is a finding.
+
+**If never run:** ruling 4 section 5. The v28 spec may not cite number/none, CL's constant cost, or the two-empties path as measured.
