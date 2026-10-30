@@ -71,3 +71,34 @@ Before a v28 spec, the five paragraph actions need native cells on **multi-parag
 - **Fable ruling 4 is running** (read-only, questions Q1-Q8: fallback command, last-block rule, failure shapes and dispositions, scope, pseudo-heading, the blank document, what the spec pins, batching). Save it as `findings/evidence/176/RULING-fable-2026-10-30-d.md`, relay it in plain words, then write the v28 spec.
 
 Section 34.4 this round, updated: fixed-by-execution **3** (the q52 self-test scope index; the headings reader's mid-document target; correction 1 of amendment 2, found while writing the reader). Fixed-by-review **0**. Fable rulings **1 requested**.
+
+## Addendum 2 (~19:15 +0800): ruling 4 received; owner decisions; amendment 4 done -- next is the v28 spec
+
+- **Fable ruling 4** is saved as `findings/evidence/176/RULING-fable-2026-10-30-d.md` (`b71170036`), with the main session's verification appended: 22 cells = 18 counted + 4 smoke, all exactly 2 blocks; restores 205/205.
+  - **Fallback:** `.uno:CharLeftSel` only, collapsed route only, after a NONE SelectText read, before the Q restore.
+  - **Judgement:** a new last-block predicate (`lastListTag`/`lastBlockTag`) plus `blockCount == 2`.
+  - **Failure shapes:**
+
+    | outcome | shape | disposition |
+    |---|---|---|
+    | fallback reads NONE | `select-text-returned-none` | unchanged (the blank document byte for byte) |
+    | fallback refused | new `fallback-readback-refused` | review, via the client, plus its own new page sentence |
+    | judged, not satisfied | `postcondition-not-met` | as today |
+    | restore failure | `selection-not-restored` | rollback |
+
+  - **Batch:** v28 ships alone (gen 82, host 0.2.44). Section 4 of the ruling is the spec's checklist.
+- **Owner decisions (~19:10, A/B):**
+  - **「A. 照引擎原本規則」**: a restore failure after the fallback is rollback (ruling 4 Q3.3's default; alternative B declined).
+  - **「A. 新寫一句」**: the `fallback-readback-refused` toast gets its own new sentence (ruling 4 Q3.2's default).
+- **Amendment 4** (`dd8a74fcd` registered, `2939814ae` judged):
+  - **V6**: number and none IN-SCOPE, re-run after registration.
+  - **V7-HOLDS**: CL reads 577 bytes on 300 lines (constant cost now measured); two empty paragraphs at the end are verified with the previous one untouched; the sham is safe.
+  - **Final scope**: all five actions on the multi-paragraph last line.
+- **Next:**
+  1. Write `specs/SPEC-M3-v28-last-line-fallback.md` (zh-TW), modelled on the v27 spec and ruling 4 section 4. Include the census (section 10 of ruling 4 section 4), the source pins (CL's handler chain in the link tree; `init.cxx:6023`), the closed hunk list, E1/E4 red cases, PL-1-v28, the gen 82 shell items, S4-a..d, and host 0.2.44.
+  2. Adversarial review (opus).
+  3. Pin.
+  4. The appends owed: finding 176; v27 spec Q6.3 b1 premise (ruling 4 Q5.2); 046 if touched.
+  5. Shell red then green, engine E1 red then green, the pre-link gates, PL-1-v28.
+  6. Hand the link to the owner.
+- **Accumulated uncounted engine changes since 0.2.26: v22-v27, + v28 when linked.** K and the count chain stay batched.
