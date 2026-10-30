@@ -2130,13 +2130,19 @@ async function run(label, operation, { quiet = false } = {}) {
       toast(VIEW_ONLY_TEXT, true);
       throw error;
     }
-    el.s.latency.textContent = `${label} 失敗`;
+    // The disposition is a field, not a guess from the message (E2-B 5.13).
+    const recovery = error?.recovery;
+    // FINDING 176 (SPEC-M3-v27-finding-176 4.3; fable ruling of 2026-10-30
+    // §3.2).  This line used to say 失敗 for every rejection, before the
+    // disposition was read, and the `review` branch below never wrote it again
+    // -- so a bullet that worked showed 「上次操作：• 項目符號 失敗」 under a
+    // toast saying "dispatched, not a document fault".  A review is not a
+    // failure; the strip now says what the toast asks for.
+    el.s.latency.textContent = recovery === "review" ? `${label}：待確認` : `${label} 失敗`;
     if (reopensAfterRefusal(error)) {
       void reopenAfterBoundaryRefusal(error);
       throw error;
     }
-    // The disposition is a field, not a guess from the message (E2-B 5.13).
-    const recovery = error?.recovery;
     // An autosave's host part: the host bar says where the bytes went and
     // keeps saying it (SPEC-M3-autosave §9.2); a toast nobody asked for would
     // say it once, in a developer's words.
@@ -2151,6 +2157,8 @@ async function run(label, operation, { quiet = false } = {}) {
     // where the next person debugging it will look.  The three sentences are
     // unchanged but for their outer parentheses, and the choice between them is
     // still read from the fields (E2-B 5.13), as below for the other dispositions.
+    // The status strip says 待確認 for the same reason (finding 176,
+    // SPEC-M3-v27-finding-176 4.3; set above, before the early returns).
     if (recovery === "review") {
       const shape = error?.details?.formatBarrier?.failureShape ?? null;
       const sentence = error?.code === "LOK_COMMAND_FAILED"
