@@ -97,6 +97,15 @@ So steps 1-4 below are DONE. Start at step 5, the mechanics.
    - On the mirror, v26, no DDEV: use F1's in-worker `JSON.parse` observer (`tools/diag_format.py`) on S3's recipe and F3's list-contexts cell, 2 browsers x N=3.
    - `read_v27_pl1.py` must say "would verify" N/N.
    - Otherwise there is no relink hand-off.
+   - **Do PL-1 before the mechanics.** It is the relink gate: if v26's own records say v27 would not verify, the mechanics are moot.
+   - **Observer, Chrome.** It lives in `findings/evidence/link-batch-v25/f1/diag_format_v25.py` (`RAW_INSTALL` and `attach_worker`), derived from `findings/evidence/host-0.2.39/k-nine-cells/diag-format/diag_format.py`. It reaches the worker through CDP `Target.setAutoAttach`, so it is **Chrome-only**.
+   - **Observer, Firefox.** Spec 7.2 PL-1 says two browsers. Proposal, not yet done:
+     - serve, in the mirror only, a diagnostic copy of the v26 worker with the same `JSON.parse` wrapper prepended;
+     - leave wasm, loader and manifest bytes unchanged, record the identity, and mark the evidence class `diagnostic` (046's diagnostic-profile precedent);
+     - the wrapper posts the kept fields to the page on a side channel.
+     If that turns out to be infeasible, append to the spec (the deviation, Chrome-only, with its reason) before running. Do not silently run Chrome only.
+   - **Fields to keep per raw `error` record.** `formatBarrier.route`, `failureShape`, `readback.{parsed, unknownTag, malformedNesting, footnoteApparatus, multiBlock, listTag, blockTag, blockCount, itemCount}`, `restoreConfirmed` (it sits inside `readback` in the serializer, `probe_engine.cpp` ~1737-1752), `expectedListTag`, `expectedBlockTag`.
+   - **The reader.** `read_v27_pl1.py` applies the v27 rule: collapsed, parsed, the three flags false, `restoreConfirmed`, and the predicate on (listTag, blockTag) against the expectation. It must say "would verify" N/N, with a self-test.
 7. Runbook `handoff/RUNBOOK-relink-v27.md` and a short one-line command for the owner. Archive first (the v26 archive exists).
 
 Before any browser run: no other measurement serving `dist/`. Desk gate only for timing cells (none here).
