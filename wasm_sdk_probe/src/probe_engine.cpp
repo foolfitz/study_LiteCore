@@ -1709,8 +1709,8 @@ std::string formatBarrierFallbackJson(const FormatStateBarrier &barrier) {
   json << "}";
   return json.str();
 }
-#endif
 
+#endif
 void appendFormatBarrierDetails(std::ostringstream &json,
                                 const FormatStateBarrier &barrier) {
   json << "\"formatBarrier\":{\"command\":\""
@@ -5851,8 +5851,8 @@ bool formatBarrierReadbackSatisfied() {
     return false;
   return true;
 }
-
 #ifdef OXSDK_E2_V28_LAST_BLOCK
+
 // SPEC-M3-v28-last-line-fallback 4.1 item 5.  formatBarrierReadbackSatisfied on
 // the fallback's readback and its LAST block.  The fallback selects from the end
 // of the previous paragraph to the dispatch paragraph, so the last block is the
