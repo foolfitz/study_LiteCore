@@ -89,7 +89,10 @@ FOUR_ARM = {  # name -> (argv builder, committed)
     'v25-f4': (lambda out: four_arm_argv('tools/judge_v25_product_four_arms.py', F4_25, out), F4_25 / 'aggregate-judge.json'),
     'v79-f4': (lambda out: four_arm_argv('tools/judge_v79_product_four_arms.py', F4_79, out), F4_79 / 'aggregate-judge.json'),
     'v80-f4': (lambda out: four_arm_argv('tools/judge_v80_product_four_arms.py', F4_80, out), F4_80 / 'aggregate-judge.json'),
-    'v81-f4': (lambda out: four_arm_argv('tools/judge_v81_product_four_arms.py', F4_81, out), F4_81 / 'aggregate-judge.json'),
+    # F4-81's committed result was made with this un-normalised spelling of its input paths (the reader records
+    # them), so the argv has to spell them the same way to re-read byte for byte (fixed by execution, run-01).
+    'v81-f4': (lambda out: four_arm_argv('tools/judge_v81_product_four_arms.py', SDK / '../findings/evidence/v27-176/f4-81', out),
+               F4_81 / 'aggregate-judge.json'),
 }
 FILE_READERS = {  # name -> (argv, committed); each prints its result on stdout
     'b1-self-test': (['python3', 'tools/check_v79_blank_bullet.py', '--self-test',
