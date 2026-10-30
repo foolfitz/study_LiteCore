@@ -1,0 +1,44 @@
+{
+ "cases": [
+  {
+   "case": "forced baseline: heading and body IN-SCOPE",
+   "ok": true,
+   "verdict": "PER-ACTION"
+  },
+  {
+   "case": "precondition: the CL readback of the untouched heading is <p> -> NOT-ESTABLISHED",
+   "ok": true,
+   "verdict": "NOT-ESTABLISHED"
+  },
+  {
+   "case": "precondition: the SelectText first block of the mid heading is <p> -> NOT-ESTABLISHED",
+   "ok": true,
+   "verdict": "NOT-ESTABLISHED"
+  },
+  {
+   "case": "body applied but saved still a heading while read <p> -> LAST-UNSAFE",
+   "ok": true,
+   "verdict": "LAST-UNSAFE"
+  },
+  {
+   "case": "the heading trap read as h1 last with saved not a heading -> LAST-UNSAFE",
+   "ok": true,
+   "verdict": "LAST-UNSAFE"
+  },
+  {
+   "case": "the body negative saved as text:p but read <h1> -> precondition still holds, body OUT-OF-SCOPE",
+   "ok": true,
+   "verdict": "PER-ACTION"
+  },
+  {
+   "case": "the heading negative unclean in one round -> heading NOT-ESTABLISHED",
+   "ok": true,
+   "verdict": "PER-ACTION"
+  },
+  {
+   "case": "non-vacuous: 6 cells x 5 rounds; the amendment-2 heading A cell has 5 rounds",
+   "ok": true
+  }
+ ],
+ "result": "ALL_AS_EXPECTED"
+}

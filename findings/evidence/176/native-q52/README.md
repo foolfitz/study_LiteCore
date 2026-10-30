@@ -129,3 +129,59 @@ Every fallback's `UNO_COMMAND_RESULT` says `success: true`, including the ones t
 - **Images and frames, and findings 037 and 038.** A whole-document read reaches them; CharLeftSel's two-paragraph read reaches only the previous paragraph's end.
 - **Other caret positions and selections:** the caret in a table cell, a frame or a footnote; a previous paragraph that ends in an as-char frame; hidden tracked changes.
 - **The other four actions on multi-paragraph documents.** Only the bullet was run there; the five actions were run only on one-paragraph documents, where nothing can be read.
+
+## Amendment 2: the four other paragraph actions on the multi-paragraph last line (CL + rule LAST)
+
+`tool/run_cells_q52_actions.py`: 8 cells x 5 = 40 processes, 10:20-10:28Z, all exit 0. Fixtures in `fixtures-actions/`, output in `out-actions/`.
+
+**Judged** by `tool/read_q52_actions.py out-actions` (`out-actions/reader-output.json`): **V4 = `LAST-UNSAFE`**, as registered (UNSAFE is judged first). In `cl-nbody-sham-heading-last`, rule LAST was satisfied for body in 5/5 while the saved last paragraph is `text:h`. Self-test: `out-actions/self-test.json`, `ALL_AS_EXPECTED`, 10 cases, including correction 1's case.
+
+**The cause, measured.** The heading fixtures (176's markup, with no `office:styles`) load as a **pseudo-heading**: an automatic style `P1` with parent Standard and a direct outline level 1. LibreOffice's own save shows it that way.
+- It is `text:h` to the ground truth.
+- It is not a Heading 1 to the HTML export, which writes `<p>` both in the last block of `cl-nbody` and in the first block of `cl-nhead-after-heading` (the trap's `Heading before`).
+- So both heading/body negatives tested a paragraph whose two notions of "heading" disagree, and the body "unsafe" is that disagreement.
+
+**Recorded, not a verdict: the per-action rule applied to the other cells.**
+
+| action | applied cell | negative cell | per-action rule |
+|---|---|---|---|
+| number | LAST `ol`, saved number | the trap after a number item: first block `ol` (FIRST fooled), LAST `none` | met |
+| none | LAST `none`, saved out of a list | the no-op on a bullet: LAST `ul`, saved bullet | met |
+| heading | Heading 1 applied, LAST `h1` | invalid fixture | -- |
+| body | -- | invalid fixture | -- |
+
+All of them: 5/5, P0 and P3 in every round.
+
+## Amendment 3: real Heading 1 paragraphs
+
+`tool/run_cells_q52_headings.py`: 6 cells x 5 = 30 processes, 10:45-10:52Z, all exit 0. Fixtures in `fixtures-headings/`, with `Heading_20_1` defined in `office:styles`. Output in `out-headings/`; the smoke is in `smoke-headings/`.
+
+**Judged** by `tool/read_q52_headings.py out-headings out-actions` (`out-headings/reader-output.json`):
+- **The fixture precondition holds**: the untouched real Heading 1 reads `<h1>` in every round, as the CL last block and as the SelectText first block.
+- **V5: heading IN-SCOPE, body IN-SCOPE.**
+  - heading: the A cell is amendment 2's `cl-head-empty-last`; the trap after a real `Heading before` reads LAST `p`, not satisfied, saved `text:p`.
+  - body: the real empty last heading becomes `Text_20_body` and reads LAST `p`; the sham leaves `Heading_20_1` and reads LAST `h1`, not satisfied.
+- Self-test: `out-headings/self-test.json`, `ALL_AS_EXPECTED`, 8 cases.
+
+**Recorded: the v27 route** (rule FIRST on the SelectText readback, as v27 judges it). These cells' target is paragraph 1:
+
+| cell | SelectText readback | FIRST | saved paragraph 1 |
+|---|---|---|---|
+| body on a real empty Heading 1, mid-document | 2 blocks, first `p` | satisfied | `Text_20_body` |
+| the same, sham | first `h1` | not satisfied | `Heading_20_1` |
+| a **pseudo-heading with text**, sham | 1 block `<p>Pseudo heading</p>` | **satisfied** | `text:h`, style `P1` |
+
+5/5 each.
+
+- **The first two close a premise gap in 176's Q6.3.** b1's "body on an empty heading" started from a pseudo-heading. On a real Heading 1 the v27 route verifies body, and refuses the sham.
+- **The third is a limitation of the heading/body postcondition that predates v28.** The HTML heading is the style's, so a paragraph whose outline level comes only from direct formatting reads as body text whatever the dispatch did. It shows only when the dispatch leaves such a paragraph unchanged. In 176's b1 a real `Text body` dispatch did turn the pseudo-heading into `text:p`. It is not introduced by CL or the last-block field. Named here **L-pseudo-heading-reads-as-body**.
+
+**Fixed by execution (counted):** `read_q52_headings.py` first read the LAST saved paragraph for the mid-document cells (`read_q52.extract`'s rule, right only for the 083 cells). It now reads paragraph 1. V5 did not depend on those fields.
+
+## Scope on the multi-paragraph last line, all amendments together
+
+- **bullet**: V3 (`LAST-HOLDS`).
+- **number** and **none**: amendment 2, recorded per-action rule met.
+- **heading** and **body**: V5 IN-SCOPE.
+- **Tables before the last line**: refused (fail closed).
+- **The blank document**: nothing to read (V1).
