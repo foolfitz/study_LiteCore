@@ -27,6 +27,80 @@ void finishOrderedFormatReadback() {
     gFormatBarrier.failureShape = shape;
     failFormatBarrier(kFormatMutationOutcomeUnknown, message);
   };
+#ifdef OXSDK_E2_V28_LAST_BLOCK
+  // SPEC-M3-v28-last-line-fallback 4.1 item 8.  Before the NONE refusal below,
+  // which is the first check today.  A fallback that also read NONE (the blank
+  // document) falls through to it unchanged: same shape, same message.
+  if (gFormatBarrier.fallbackRan &&
+      gFormatBarrier.fallbackSelectionType != LOK_SELTYPE_NONE) {
+    auto refuseFallback = [](const char *reason) {
+      gFormatBarrier.fallbackRefusal = reason;
+      gFormatBarrier.failureShape = "fallback-readback-refused";
+      failFormatBarrier(kFormatMutationOutcomeUnknown,
+                        "the fallback selection's readback does not provide a "
+                        "supported structural proof; the format mutation outcome "
+                        "is unknown");
+    };
+    // v28: the restore before the structural refusals
+    if (!gFormatBarrier.restoreConfirmed) {
+      // A refused fallback is review with the queue open: a selection the
+      // restore did not clear must not survive into the user's next key.
+      gFormatBarrier.failureShape = "selection-not-restored";
+      failFormatBarrier(kFormatMutationOutcomeUnknown,
+                        "the synchronous read did not confirm NONE after restoring the caret");
+      return;
+    }
+    const FormatReadback &fallback = gFormatBarrier.fallbackReadback;
+    if (!gFormatBarrier.fallbackReadable) {
+      refuseFallback("selection-type-not-readable");
+      return;
+    }
+    if (!fallback.parsed || fallback.footnoteApparatus || fallback.unknownTag ||
+        fallback.malformedNesting) {
+      refuseFallback(fallback.footnoteApparatus ? "footnote-apparatus-readback"
+                     : fallback.unknownTag ? "unknown-structural-tag"
+                     : fallback.malformedNesting ? "malformed-readback-nesting"
+                                                 : "block-extraction-failed");
+      return;
+    }
+    // One position back from an empty paragraph crosses exactly one paragraph
+    // break: the previous paragraph's tail and the dispatch paragraph.
+    if (gFormatBarrier.fallbackReadback.blockCount != 2) {
+      refuseFallback("unexpected-block-count");
+      return;
+    }
+    // Finding 046's identity read, as on the primary route (declined on an empty
+    // paragraph: its fingerprint is the empty-string constant, finding 074).
+    gFormatBarrier.paragraphIdentityChecked =
+        gFormatBarrier.dispatchParagraphKnown &&
+        gFormatBarrier.readbackParagraphKnown &&
+        gFormatBarrier.dispatchParagraphUsable &&
+        gFormatBarrier.readbackParagraphUsable;
+    gFormatBarrier.paragraphIdentityDeclined =
+        gFormatBarrier.paragraphIdentityChecked ? ""
+        : (!gFormatBarrier.dispatchParagraphKnown ||
+           !gFormatBarrier.readbackParagraphKnown)
+            ? "a paragraph read did not succeed"
+            : "the reported list prefix consumed the whole paragraph, so the "
+              "fingerprint is the empty-string constant and identifies nothing "
+              "(finding 074)";
+    if (gFormatBarrier.paragraphIdentityChecked &&
+        gFormatBarrier.dispatchParagraphFingerprint !=
+            gFormatBarrier.readbackParagraphFingerprint) {
+      refuse("readback-is-a-different-paragraph",
+             "the readback identifies a different paragraph from the dispatch");
+      return;
+    }
+    if (!formatBarrierFallbackReadbackSatisfied()) {
+      gFormatBarrier.failureShape = "postcondition-not-met";
+      failFormatBarrier("EDITOR_FORMAT_POSTCONDITION_FAILED",
+                        "the document does not show the state this action asked for");
+      return;
+    }
+    completeFormatBarrier();
+    return;
+  }
+#endif
   if (!gFormatBarrier.selectionTypeReadable) {
     refuse(gFormatBarrier.selectionType == LOK_SELTYPE_NONE
                ? "select-text-returned-none" : "selection-type-not-readable",
@@ -139,6 +213,16 @@ void deferOrderedFormatReply(FormatStateBarrier barrier, bool dispatched,
     const bool selects = barrier.route != FormatBarrierRoute::RangeCross;
     gFormatBarrier.selectionResultSeen =
         selects && orderedUnoResult(kFormatBarrierSelectCommand, payload);
+#ifdef OXSDK_E2_V28_LAST_BLOCK
+    // 4.1 item 7.  Recorded, never a verdict input: the command answers success
+    // whether or not anything was selected.  Read from the proof map directly,
+    // because its absence is not an event here.
+    if (gFormatBarrier.fallbackRan) {
+      const auto found = gOrderedProof.uno.find(kFormatBarrierFallbackCommand);
+      gFormatBarrier.fallbackResultSeen =
+          found != gOrderedProof.uno.end() && found->second.seen;
+    }
+#endif
     if (!gFormatBarrier.resultSeen ||
         (selects && !gFormatBarrier.selectionResultSeen)) {
       gFormatBarrier.failureShape =
@@ -324,6 +408,35 @@ void startOrderedFormatAction(const Command &command, std::uint32_t action,
       gFormatBarrier.readbackHtml = markup.substr(0, FormatReadbackEvidenceLimit);
       gFormatBarrier.readback = parseFormatReadback(markup);
     }
+#ifdef OXSDK_E2_V28_LAST_BLOCK
+    // SPEC-M3-v28-last-line-fallback 4.1 item 6.  `.uno:SelectText` selects
+    // nothing on an empty paragraph with no next content node (finding 083's
+    // path): select one position back, across the paragraph break, so that the
+    // dispatch paragraph is the LAST block of the readback.  Collapsed only, and
+    // only with a restore point -- without one the restore below is a no-op and
+    // this selection would be left for the user's next key.  No read, yield or
+    // callback wait between these calls and the restore.
+    if (barrier.route == FormatBarrierRoute::Collapsed &&
+        selected.type == LOK_SELTYPE_NONE && barrier.restorePointValid) {
+      gFormatBarrier.fallbackRan = true;
+      expectOrderedUno(kFormatBarrierFallbackCommand);
+      gState.document->pClass->postUnoCommand(
+          gState.document, kFormatBarrierFallbackCommand, nullptr, true);
+      const SelectionReadback stepBack = readSelection();
+      gFormatBarrier.fallbackSelectionType = stepBack.type;
+      gFormatBarrier.fallbackReadable = stepBack.type == LOK_SELTYPE_TEXT;
+      if (gFormatBarrier.fallbackReadable) {
+        char *html = gState.document->pClass->getTextSelection(
+            gState.document, "text/html", nullptr);
+        const std::string markup = html ? std::string(html) : std::string();
+        std::free(html);
+        gFormatBarrier.fallbackReadbackBytes = markup.size();
+        gFormatBarrier.fallbackReadbackHtml =
+            markup.substr(0, FormatReadbackEvidenceLimit);
+        gFormatBarrier.fallbackReadback = parseFormatReadback(markup);
+      }
+    }
+#endif
   }
   restoreOrderedFormatPoint();
   gFormatBarrier.restoreConfirmed =

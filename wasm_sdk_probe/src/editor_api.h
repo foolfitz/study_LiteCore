@@ -87,6 +87,15 @@ extern "C" {
 #if defined(OXSDK_E2_V27_FIRST_BLOCK) && !defined(OXSDK_E2_V25_FORMAT_PROOF)
 #error "the v27 first-block read requires the v25 format-proof engine"
 #endif
+/*
+ * OXSDK_E2_V28_LAST_BLOCK (SPEC-M3-v28-last-line-fallback) lets the ordered
+ * collapsed route, when `.uno:SelectText` selects nothing, select one position
+ * back and judge that readback by its LAST block.  No export, action, gesture,
+ * limit or field meaning changes: a v27 successor at ABI 6.
+ */
+#if defined(OXSDK_E2_V28_LAST_BLOCK) && !defined(OXSDK_E2_V27_FIRST_BLOCK)
+#error "the v28 last-block fallback requires the v27 first-block engine"
+#endif
 
 typedef enum oxsdk_editor_v1_action {
   OXSDK_EDITOR_V1_MOVE_CHARACTER_LEFT = 1,

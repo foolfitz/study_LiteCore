@@ -806,6 +806,13 @@ struct FormatReadback {
   std::uint32_t blockCount = 0;  // block-level structural tags
   std::uint32_t itemCount = 0;   // <li>
   bool multiBlock = false;
+#ifdef OXSDK_E2_V28_LAST_BLOCK
+  // SPEC-M3-v28-last-line-fallback 4.1 item 2.  The LAST block-level tag and
+  // the innermost list still open when it opened ("" = none).  Read only by
+  // the fallback's predicate; the first-block fields above are unchanged.
+  std::string lastListTag;
+  std::string lastBlockTag;
+#endif
 };
 
 // The footnote/endnote container, recognised from what the writer actually
@@ -844,6 +851,10 @@ FormatReadback parseFormatReadback(const std::string &html) {
   // multi-block guard down with them.
   int depth = 0;
   bool first = true;
+#ifdef OXSDK_E2_V28_LAST_BLOCK
+  // The structural tags `depth` counts, innermost last (4.1 item 3).
+  std::vector<std::string> open;
+#endif
   for (++index; index < html.size(); ++index) {
     if (html[index] != '<')
       continue;
@@ -883,6 +894,10 @@ FormatReadback parseFormatReadback(const std::string &html) {
           break;
         }
         --depth;
+#ifdef OXSDK_E2_V28_LAST_BLOCK
+        if (!open.empty())
+          open.pop_back();
+#endif
         continue;
       }
       if (first) {
@@ -894,11 +909,24 @@ FormatReadback parseFormatReadback(const std::string &html) {
         ++readback.blockCount;
         if (readback.blockTag.empty())
           readback.blockTag = tag;
+#ifdef OXSDK_E2_V28_LAST_BLOCK
+        readback.lastBlockTag = tag;
+        readback.lastListTag.clear();
+        for (auto inner = open.rbegin(); inner != open.rend(); ++inner)
+          if (*inner == "ul" || *inner == "ol") {
+            readback.lastListTag = *inner;
+            break;
+          }
+#endif
       } else if (tag == "li") {
         ++readback.itemCount;
       }
       if (!selfClosing)
         ++depth;
+#ifdef OXSDK_E2_V28_LAST_BLOCK
+      if (!selfClosing)
+        open.push_back(tag);
+#endif
       continue;
     }
 
@@ -987,6 +1015,19 @@ struct FormatStateBarrier {
   std::size_t undoActionsBefore = 0;
   std::size_t undoActionsAfter = 0;
   std::string undoTop;
+#endif
+#ifdef OXSDK_E2_V28_LAST_BLOCK
+  // SPEC-M3-v28-last-line-fallback 4.1 item 4.  The one-position-back fallback
+  // (`.uno:CharLeftSel`), run only when the collapsed route's `.uno:SelectText`
+  // read NONE and the restore point is valid.  Judged by the LAST block.
+  bool fallbackRan = false;
+  bool fallbackResultSeen = false;
+  int fallbackSelectionType = -1;
+  bool fallbackReadable = false;
+  std::size_t fallbackReadbackBytes = 0;
+  std::string fallbackReadbackHtml;
+  FormatReadback fallbackReadback;
+  std::string fallbackRefusal;
 #endif
   // Finding 033.  The barrier used to advance out of AwaitingSelection on any
   // TEXT_SELECTION carrying rectangles, and a search dispatched by the caller
@@ -1164,6 +1205,9 @@ constexpr int FormatBarrierStageDeadlineMs = 5000;
 // AwaitingSelection attribution needs and was measured before this switch
 // rather than assumed from the pair's behaviour.
 const char *const kFormatBarrierSelectCommand = ".uno:SelectText";
+#ifdef OXSDK_E2_V28_LAST_BLOCK
+const char *const kFormatBarrierFallbackCommand = ".uno:CharLeftSel";
+#endif
 
 FormatStateBarrier gFormatBarrier;
 std::uint64_t gNextFormatBarrierSerial = 1;
@@ -1634,6 +1678,39 @@ const char *formatBarrierStageName(FormatBarrierStage stage) {
   return "unknown";
 }
 
+#ifdef OXSDK_E2_V28_LAST_BLOCK
+// SPEC-M3-v28-last-line-fallback 4.1 item 9.  The fallback's record, called
+// mid-chain below so that the v27 block's close is not touched.
+std::string formatBarrierFallbackJson(const FormatStateBarrier &barrier) {
+  std::ostringstream json;
+  json << ",\"fallback\":{\"ran\":" << (barrier.fallbackRan ? "true" : "false");
+  if (barrier.fallbackRan) {
+    const FormatReadback &readback = barrier.fallbackReadback;
+    json << ",\"command\":\"" << kFormatBarrierFallbackCommand
+         << "\",\"resultSeen\":" << (barrier.fallbackResultSeen ? "true" : "false")
+         << ",\"selectionType\":" << barrier.fallbackSelectionType
+         << ",\"readable\":" << (barrier.fallbackReadable ? "true" : "false")
+         << ",\"readbackBytes\":" << barrier.fallbackReadbackBytes
+         << ",\"readback\":{\"parsed\":" << (readback.parsed ? "true" : "false")
+         << ",\"unknownTag\":" << (readback.unknownTag ? "true" : "false")
+         << ",\"unknownTagName\":\"" << jsonEscape(readback.unknownTagName.c_str())
+         << "\",\"malformedNesting\":" << (readback.malformedNesting ? "true" : "false")
+         << ",\"footnoteApparatus\":" << (readback.footnoteApparatus ? "true" : "false")
+         << ",\"listTag\":\"" << jsonEscape(readback.listTag.c_str())
+         << "\",\"blockTag\":\"" << jsonEscape(readback.blockTag.c_str())
+         << "\",\"lastListTag\":\"" << jsonEscape(readback.lastListTag.c_str())
+         << "\",\"lastBlockTag\":\"" << jsonEscape(readback.lastBlockTag.c_str())
+         << "\",\"blockCount\":" << readback.blockCount
+         << ",\"itemCount\":" << readback.itemCount
+         << ",\"multiBlock\":" << (readback.multiBlock ? "true" : "false")
+         << "},\"readbackHtml\":\"" << jsonEscape(barrier.fallbackReadbackHtml.c_str())
+         << "\",\"refusal\":\"" << jsonEscape(barrier.fallbackRefusal.c_str()) << "\"";
+  }
+  json << "}";
+  return json.str();
+}
+#endif
+
 void appendFormatBarrierDetails(std::ostringstream &json,
                                 const FormatStateBarrier &barrier) {
   json << "\"formatBarrier\":{\"command\":\""
@@ -1735,6 +1812,9 @@ void appendFormatBarrierDetails(std::ostringstream &json,
        << (barrier.crossStateHeld ? "true" : "false")
        << ",\"blockTextsMatched\":"
        << (barrier.preBlockTexts == barrier.postBlockTexts ? "true" : "false")
+#ifdef OXSDK_E2_V28_LAST_BLOCK
+       << formatBarrierFallbackJson(barrier)
+#endif
        << ",\"readback\":{\"parsed\":"
        << (barrier.readback.parsed ? "true" : "false")
        << ",\"unknownTag\":"
@@ -1754,6 +1834,10 @@ void appendFormatBarrierDetails(std::ostringstream &json,
        << ",\"itemCount\":" << barrier.readback.itemCount
        << ",\"listTag\":\"" << jsonEscape(barrier.readback.listTag.c_str())
        << "\",\"blockTag\":\"" << jsonEscape(barrier.readback.blockTag.c_str())
+#ifdef OXSDK_E2_V28_LAST_BLOCK
+       << "\",\"lastListTag\":\"" << jsonEscape(barrier.readback.lastListTag.c_str())
+       << "\",\"lastBlockTag\":\"" << jsonEscape(barrier.readback.lastBlockTag.c_str())
+#endif
        << "\",\"expectedListTag\":\""
        << jsonEscape(barrier.expectedListTag.c_str())
        << "\",\"expectedBlockTag\":\""
@@ -5767,6 +5851,30 @@ bool formatBarrierReadbackSatisfied() {
     return false;
   return true;
 }
+
+#ifdef OXSDK_E2_V28_LAST_BLOCK
+// SPEC-M3-v28-last-line-fallback 4.1 item 5.  formatBarrierReadbackSatisfied on
+// the fallback's readback and its LAST block.  The fallback selects from the end
+// of the previous paragraph to the dispatch paragraph, so the last block is the
+// dispatch paragraph and the first block is not (native-q52's n8 trap).
+bool formatBarrierFallbackReadbackSatisfied() {
+  const FormatReadback &readback = gFormatBarrier.fallbackReadback;
+  if (!gFormatBarrier.fallbackReadable || !readback.parsed ||
+      readback.unknownTag || readback.malformedNesting ||
+      readback.footnoteApparatus || readback.lastBlockTag.empty())
+    return false;
+  if (!gFormatBarrier.expectedListTag.empty()) {
+    const std::string observed =
+        readback.lastListTag.empty() ? std::string("none") : readback.lastListTag;
+    if (observed != gFormatBarrier.expectedListTag)
+      return false;
+  }
+  if (!gFormatBarrier.expectedBlockTag.empty() &&
+      readback.lastBlockTag != gFormatBarrier.expectedBlockTag)
+    return false;
+  return true;
+}
+#endif
 
 // Putting the caret back is part of the operation, not cleanup after it.  The
 // stage waits for the collapse to be confirmed rather than assuming the posted
