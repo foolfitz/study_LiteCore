@@ -1,0 +1,429 @@
+{
+ "cases": [
+  {
+   "case": "V1: sa-a5 reads one <ul> block, sa-n5 one <p> -> HOLDS",
+   "want": "ONE-BLOCK-HOLDS",
+   "got": "ONE-BLOCK-HOLDS",
+   "ok": true
+  },
+  {
+   "case": "V1: then sa-n5 r3 reads <ul> while saved out of a list -> UNSAFE",
+   "want": "ONE-BLOCK-UNSAFE",
+   "got": "ONE-BLOCK-UNSAFE",
+   "ok": true
+  },
+  {
+   "case": "V1: UNSAFE is checked in every cell: sa-r1 r1 satisfied while saved out of a list",
+   "want": "ONE-BLOCK-UNSAFE",
+   "got": "ONE-BLOCK-UNSAFE",
+   "ok": true
+  },
+  {
+   "case": "V1: then one sa-a5 round unclean -> NOT-ESTABLISHED",
+   "want": "NOT-ESTABLISHED",
+   "got": "NOT-ESTABLISHED",
+   "ok": true
+  },
+  {
+   "case": "V1: then sa-a5 r2 SelectText read TEXT (not the 083 path) -> NOT-ESTABLISHED",
+   "want": "NOT-ESTABLISHED",
+   "got": "NOT-ESTABLISHED",
+   "ok": true
+  },
+  {
+   "case": "V1: then sa-a5 r4 restore read TEXT -> DOES-NOT-VERIFY",
+   "want": "ONE-BLOCK-DOES-NOT-VERIFY",
+   "got": "ONE-BLOCK-DOES-NOT-VERIFY",
+   "ok": true
+  },
+  {
+   "case": "V1: then sa-a5 r5 two blocks -> DOES-NOT-VERIFY (multi-block refused)",
+   "want": "ONE-BLOCK-DOES-NOT-VERIFY",
+   "got": "ONE-BLOCK-DOES-NOT-VERIFY",
+   "ok": true
+  },
+  {
+   "case": "V1: then the sa-a5 markup has a body-level <table> -> DOES-NOT-VERIFY (unknown tag refused)",
+   "want": "ONE-BLOCK-DOES-NOT-VERIFY",
+   "got": "ONE-BLOCK-DOES-NOT-VERIFY",
+   "ok": true
+  },
+  {
+   "case": "scope: V1 holds and sa-num reads one <ol> -> number IN-SCOPE",
+   "want": "see case",
+   "got": {
+    "bullet": {
+     "cell": "sa-a5-blank-one",
+     "status": "IN-SCOPE",
+     "ONE": [
+      "satisfied",
+      "satisfied",
+      "satisfied",
+      "satisfied",
+      "satisfied"
+     ]
+    },
+    "number": {
+     "cell": "sa-num-blank-one",
+     "status": "IN-SCOPE",
+     "ONE": [
+      "satisfied",
+      "satisfied",
+      "satisfied",
+      "satisfied",
+      "satisfied"
+     ]
+    },
+    "heading": {
+     "cell": "sa-head-blank-one",
+     "status": "OUT-OF-SCOPE",
+     "ONE": [
+      "refused",
+      "refused",
+      "refused",
+      "refused",
+      "refused"
+     ]
+    },
+    "none": {
+     "cell": "sa-none-bulleted-only",
+     "status": "OUT-OF-SCOPE",
+     "ONE": [
+      "refused",
+      "refused",
+      "refused",
+      "refused",
+      "refused"
+     ]
+    },
+    "body": {
+     "cell": "sa-body-heading-only",
+     "status": "OUT-OF-SCOPE",
+     "ONE": [
+      "refused",
+      "refused",
+      "refused",
+      "refused",
+      "refused"
+     ]
+    }
+   },
+   "ok": true
+  },
+  {
+   "case": "scope: then saved as a bullet, not a number -> number OUT-OF-SCOPE",
+   "want": "see case",
+   "got": {
+    "bullet": {
+     "cell": "sa-a5-blank-one",
+     "status": "IN-SCOPE",
+     "ONE": [
+      "satisfied",
+      "satisfied",
+      "satisfied",
+      "satisfied",
+      "satisfied"
+     ]
+    },
+    "number": {
+     "cell": "sa-num-blank-one",
+     "status": "OUT-OF-SCOPE",
+     "ONE": [
+      "satisfied",
+      "satisfied",
+      "satisfied",
+      "satisfied",
+      "satisfied"
+     ]
+    },
+    "heading": {
+     "cell": "sa-head-blank-one",
+     "status": "OUT-OF-SCOPE",
+     "ONE": [
+      "refused",
+      "refused",
+      "refused",
+      "refused",
+      "refused"
+     ]
+    },
+    "none": {
+     "cell": "sa-none-bulleted-only",
+     "status": "OUT-OF-SCOPE",
+     "ONE": [
+      "refused",
+      "refused",
+      "refused",
+      "refused",
+      "refused"
+     ]
+    },
+    "body": {
+     "cell": "sa-body-heading-only",
+     "status": "OUT-OF-SCOPE",
+     "ONE": [
+      "refused",
+      "refused",
+      "refused",
+      "refused",
+      "refused"
+     ]
+    }
+   },
+   "ok": true
+  },
+  {
+   "case": "scope: sa-head reads <p> -> heading OUT-OF-SCOPE",
+   "want": "see case",
+   "got": {
+    "bullet": {
+     "cell": "sa-a5-blank-one",
+     "status": "IN-SCOPE",
+     "ONE": [
+      "satisfied",
+      "satisfied",
+      "satisfied",
+      "satisfied",
+      "satisfied"
+     ]
+    },
+    "number": {
+     "cell": "sa-num-blank-one",
+     "status": "OUT-OF-SCOPE",
+     "ONE": [
+      "refused",
+      "refused",
+      "refused",
+      "refused",
+      "refused"
+     ]
+    },
+    "heading": {
+     "cell": "sa-head-blank-one",
+     "status": "OUT-OF-SCOPE",
+     "ONE": [
+      "not-satisfied",
+      "not-satisfied",
+      "not-satisfied",
+      "not-satisfied",
+      "not-satisfied"
+     ]
+    },
+    "none": {
+     "cell": "sa-none-bulleted-only",
+     "status": "OUT-OF-SCOPE",
+     "ONE": [
+      "refused",
+      "refused",
+      "refused",
+      "refused",
+      "refused"
+     ]
+    },
+    "body": {
+     "cell": "sa-body-heading-only",
+     "status": "OUT-OF-SCOPE",
+     "ONE": [
+      "refused",
+      "refused",
+      "refused",
+      "refused",
+      "refused"
+     ]
+    }
+   },
+   "ok": true
+  },
+  {
+   "case": "scope: sa-head reads <h1> saved as a heading -> heading IN-SCOPE",
+   "want": "see case",
+   "got": {
+    "bullet": {
+     "cell": "sa-a5-blank-one",
+     "status": "IN-SCOPE",
+     "ONE": [
+      "satisfied",
+      "satisfied",
+      "satisfied",
+      "satisfied",
+      "satisfied"
+     ]
+    },
+    "number": {
+     "cell": "sa-num-blank-one",
+     "status": "OUT-OF-SCOPE",
+     "ONE": [
+      "refused",
+      "refused",
+      "refused",
+      "refused",
+      "refused"
+     ]
+    },
+    "heading": {
+     "cell": "sa-head-blank-one",
+     "status": "IN-SCOPE",
+     "ONE": [
+      "satisfied",
+      "satisfied",
+      "satisfied",
+      "satisfied",
+      "satisfied"
+     ]
+    },
+    "none": {
+     "cell": "sa-none-bulleted-only",
+     "status": "OUT-OF-SCOPE",
+     "ONE": [
+      "refused",
+      "refused",
+      "refused",
+      "refused",
+      "refused"
+     ]
+    },
+    "body": {
+     "cell": "sa-body-heading-only",
+     "status": "OUT-OF-SCOPE",
+     "ONE": [
+      "refused",
+      "refused",
+      "refused",
+      "refused",
+      "refused"
+     ]
+    }
+   },
+   "ok": true
+  },
+  {
+   "case": "V2: every A cell COVERED, every N cell SAFE -> LAST-HOLDS",
+   "want": "LAST-HOLDS",
+   "got": "LAST-HOLDS",
+   "ok": true
+  },
+  {
+   "case": "V2: then sa-t1-table-then-empty-last refused in every round (body-level table) -> still LAST-HOLDS (fail closed)",
+   "want": "LAST-HOLDS",
+   "got": "LAST-HOLDS",
+   "ok": true
+  },
+  {
+   "case": "V2: then sa-t1-table-then-empty-last refused in one round only -> LAST-PARTIAL",
+   "want": "LAST-PARTIAL",
+   "got": "LAST-PARTIAL",
+   "ok": true
+  },
+  {
+   "case": "V2: then sa-n8-sham-after-bullet r1 last block in a <ul> while saved out of a list -> LAST-UNSAFE",
+   "want": "LAST-UNSAFE",
+   "got": "LAST-UNSAFE",
+   "ok": true
+  },
+  {
+   "case": "V2: then sa-a4-empty-last r2 unclean -> NOT-ESTABLISHED",
+   "want": "NOT-ESTABLISHED",
+   "got": "NOT-ESTABLISHED",
+   "ok": true
+  },
+  {
+   "case": "V2: then sa-a4-empty-last r3 restore not NONE -> LAST-PARTIAL",
+   "want": "LAST-PARTIAL",
+   "got": "LAST-PARTIAL",
+   "ok": true
+  },
+  {
+   "case": "V2: then sa-a4-empty-last r4 locator suffix not empty -> LAST-PARTIAL",
+   "want": "LAST-PARTIAL",
+   "got": "LAST-PARTIAL",
+   "ok": true
+  },
+  {
+   "case": "V2: then sa-n8-sham-after-bullet saved in a list (the sham applied) -> LAST-PARTIAL",
+   "want": "LAST-PARTIAL",
+   "got": "LAST-PARTIAL",
+   "ok": true
+  },
+  {
+   "case": "V3: every A cell COVERED, every N cell SAFE -> LAST-HOLDS",
+   "want": "LAST-HOLDS",
+   "got": "LAST-HOLDS",
+   "ok": true
+  },
+  {
+   "case": "V3: then cl-t1-table-then-empty-last refused in every round (body-level table) -> still LAST-HOLDS (fail closed)",
+   "want": "LAST-HOLDS",
+   "got": "LAST-HOLDS",
+   "ok": true
+  },
+  {
+   "case": "V3: then cl-t1-table-then-empty-last refused in one round only -> LAST-PARTIAL",
+   "want": "LAST-PARTIAL",
+   "got": "LAST-PARTIAL",
+   "ok": true
+  },
+  {
+   "case": "V3: then cl-n8-sham-after-bullet r1 last block in a <ul> while saved out of a list -> LAST-UNSAFE",
+   "want": "LAST-UNSAFE",
+   "got": "LAST-UNSAFE",
+   "ok": true
+  },
+  {
+   "case": "V3: then cl-a4-empty-last r2 unclean -> NOT-ESTABLISHED",
+   "want": "NOT-ESTABLISHED",
+   "got": "NOT-ESTABLISHED",
+   "ok": true
+  },
+  {
+   "case": "V3: then cl-a4-empty-last r3 restore not NONE -> LAST-PARTIAL",
+   "want": "LAST-PARTIAL",
+   "got": "LAST-PARTIAL",
+   "ok": true
+  },
+  {
+   "case": "V3: then cl-a4-empty-last r4 locator suffix not empty -> LAST-PARTIAL",
+   "want": "LAST-PARTIAL",
+   "got": "LAST-PARTIAL",
+   "ok": true
+  },
+  {
+   "case": "V3: then cl-n8-sham-after-bullet saved in a list (the sham applied) -> LAST-PARTIAL",
+   "want": "LAST-PARTIAL",
+   "got": "LAST-PARTIAL",
+   "ok": true
+  },
+  {
+   "case": "parse: first ul/p, last none/p, two blocks",
+   "ok": true
+  },
+  {
+   "case": "parse: nested lists, the last block is in the inner ol",
+   "ok": true
+  },
+  {
+   "case": "parse: footnote apparatus refused",
+   "ok": true
+  },
+  {
+   "case": "parse: a body-level closing tag is malformed nesting",
+   "ok": true
+  },
+  {
+   "case": "parse: a comment is skipped, not refused",
+   "ok": true
+  },
+  {
+   "case": "rule FIRST is fooled where LAST is not (the trap)",
+   "ok": true
+  },
+  {
+   "case": "not TEXT is refused by every rule",
+   "ok": true
+  },
+  {
+   "case": "non-vacuous: 27 cells x 5 rounds were read",
+   "ok": true
+  }
+ ],
+ "result": "ALL_AS_EXPECTED"
+}
