@@ -251,6 +251,7 @@ profile `e2-editor-v28`；`editorContract` 每一個葉等於 v27；只換 `prof
 | 2026-10-30 | 草案第二版：併入對抗性審核 20 項（§12）。 |
 | 2026-10-30 | 釘死。 |
 | 2026-10-30 | 追加 1（§14，S4 執行前）：S4 的程序細節。 |
+| 2026-10-31 | 追加 2（§14，量測前）：L-fallback-html-read-is-new-on-this-path 的 WASM 量測判準。 |
 
 ## 14. 追加
 
@@ -266,3 +267,16 @@ profile `e2-editor-v28`；`editorContract` 每一個葉等於 v27；只換 `prof
 6. **S4-d 的「按「復原」」**：打完標記字之後按工具列的「↶ 復原」兩次（撤回打字、撤回清單），再存檔：最後一段空、不在清單裡，表格格子仍是 `Cell text`。
 7. **S4-c**：B1 的程序（兩個 arm：noclick、click）照 S2′ 的跑法，兩個產品都用 S2′ 的 `judge_after`（第 81 代本來就是「：待確認」）。after 另讀 worker 回覆列：`fallback.ran == true`、`fallback.selectionType == 0`；before：回覆列沒有 `fallback`。「使用者可見結果逐字相同」＝每一筆的（`pill`、`#toast` 文字、按壓後與打字後的狀態列、檢查點提示是否顯示）在兩個產品的全部執行裡是同一個值。
 8. **S4-e 與 S4-d 的 before 只記錄、不判**（§7.3 沒有給它們 before 的判準）。
+
+### 追加 2（2026-10-31，擁有者「請執行A」；任何這一格的執行之前）
+
+§9 的 L-fallback-html-read-is-new-on-this-path 標著「選做：一格 WASM 量測」。擁有者選了做。後援的 `readSelection()` 與 html 讀取，在這條路上第一次碰到錨在空的派送段落上的 frame；finding 037／038 那一類會讓引擎執行緒卡死，比今天的提示更糟。
+
+1. **夾具**（`findings/evidence/v28-083/a-frames/make_frame_fixtures.py`，`build-01/`，原生 core 各存一次；未動過的五份已用儀器的 `odt_reading` 讀過，`build-01/instrument-reading.txt`）：`frame-para-last`（圖片錨在空的最後一段）、`frame-char-last`（錨在字元）、`textbox-para-last`（文字方塊）；§9「量測範圍外」的兩個鄰居：`prev-aschar-image`（上一段以 as-char 圖片結尾）、`prev-note-frame`（上一段以註腳結尾，註腳本文裡有 as-char 圖片，038 的形狀）。
+2. **程序**（`tools/check_v82_frame_last_line.py`，S4 的 `one()`，不按 Enter）：開檔、點文字下方、按項目符號、打標記字、存檔。after 產品（generation 82），兩瀏覽器 × 3。
+3. **每一筆 HOLDS 要全部成立**：(a) 按壓有回覆（沒有等到逾時）；(b) `state == ready`；(c) 打字成功（引擎還活著）；(d) 存檔成功，標記只在派送段落，其他段落的文字與種類等於夾具；(e) 存檔裡 `draw:frame` 的數量等於夾具；(f) 回覆列 `fallback.ran == true`、`fallback.restoreConfirmed == true`；(g) 若回覆是 `verified-format-readback`，派送段落在存檔裡必須真的是項目符號（不准判對而其實沒套上）。結果是已驗證或 `fallback-readback-refused`（review）都算成立，形狀逐筆記錄：這一格問的是「會不會卡死或判錯」，不是「能不能核對」。
+3a. **主讀就是 COMPLEX 的格**（工具 commit 前的第一次 smoke 逼出，那次不計）：`frame-char-last` 的 `.uno:SelectText` 選到字元錨點，主讀回 COMPLEX，finding 037 的守則回 `selection-type-not-readable`，後援根本不跑。那條路不是這一格要量的，第 3 項的 (b)(c)(d)(e)(f) 讀不到它。改判：(a) 有回覆；回覆是 `MUTATION_OUTCOME_UNKNOWN`／`selection-type-not-readable`；`fallback.ran` 不是 true；頁面是 `ready` 或 `recoverable-error`（沒有進 `restart-required`）。另以 `--product before` 在 generation 81 上跑同一格，同樣成立才算「v28 之前就有」。
+4. **判定**：五格全 HOLDS → `A_FRAMES_HOLD`，§9 那條限制改寫成量測結果。任一格卡死（a、b、c 任一不成立）或判錯（g）→ `A_FRAMES_RED`，是產品缺陷，先開 finding，修法要新規格，**不進 K**。
+5. **正向對照**（否則「沒卡死」與「儀器看不到卡死」長得一樣）：`--mutation swallow-press`，頁面送出的項目符號請求被擋在 worker 之前，從頁面看就是引擎不回。每一筆必須判卡死（兩瀏覽器 × 1）。另有 `--self-test`：每個子句一個突變，全紅。
+6. **沒做的預設**：§9 那條照舊是沒量的具名限制。
+
