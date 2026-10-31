@@ -34,7 +34,7 @@ v24 的裁決寫的是 v24、第 77 代、頁面 `b15a6d8e`。v24 沒有跑過 K
 | 1、2 | chrome、firefox | `bulleting-a-blank-line-does-not-demand-a-rollback` | **退役，不以 P3 判**（規格 v27 §8 第 1、6 項）。該格斷言 046 的提示存在，v27 起那個提示依設計不見了。K 讀取器只驗 FAIL 的形狀是 v27 的：`observed.state == "ready"`、`observed.toast == ""`、`unverifiedSentence is None`，每輪。接手的是 S3、S4（已成立，不重跑），不是這一格 |
 | 3–6 | | inline 格式四格 | P3 照舊（v21 PASS 3/3 ⇒ PASS 3/3）。v25 修好，F3-82 都 PASS |
 | 7 | chrome | `a-boundary-arrow-press-does-not-cost-the-work` | I-worker-inducer-single-shot（Q3）：B1–B3 每輪 true **且**誘發器紀錄恰好是單發形狀（`fired:false`、那句 `why`、`attachedTypes:[]`）→ 格 PASS；其他 FAIL ＝ 產品紅。三輪都要符合 |
-| 8 | chrome | `the-enter-key-reaches-the-document` | I-enter-raw-substring（v24 §17.3）：Enter 臂 PASS、Shift 臂 `together true`、`lineBreaksBetween false`（＝原始子字串看不到斷行的形狀）**且** `check_v24_shift_enter.py` 在 v28 上 `V24_ENTER_HOLDS`（鏡像、3 次，§5）。其他 FAIL ＝ 產品紅 |
+| 8 | chrome | `the-enter-key-reaches-the-document` | I-enter-raw-substring（v24 §17.3）：Enter 臂 PASS、Shift 臂 `together true`、`lineBreaksBetween false`（＝原始子字串看不到斷行的形狀）**且** `tools/check_v82_shift_enter.py`（匯入 `check_v24_shift_enter.py`，行程內只換掉綁 v24 頁面的 `preflight`）在 v28 上 `V24_ENTER_HOLDS`（鏡像、3 次，§5）。其他 FAIL ＝ 產品紅 |
 | 9 | chrome、firefox | `editing-a-long-document-stays-responsive` | Q4：N ＝ K 的三輪。三臂 `seconds <= 1.0` 且 `revisionAdvanced` ⇒ PASS；恰一臂 `seconds < 0.08` 且 `revisionAdvanced false`、另兩臂過 ⇒ I-ink-trigger-race，每瀏覽器最多一次；其他 FAIL 或兩次 ⇒ 產品紅；缺格 ⇒ STOP |
 
 `v23-product-*` 四格在 0.2.26 沒有列：要 PASS 3/3。`recovery-returns-what-the-product-promised` 帶 row 1′（窗口從 git 追蹤的 v8 報告算，同舊 `verdict()`）。
@@ -69,7 +69,7 @@ v24 §17 第 1 項要求 K 前 V0″ `V0PP_HOLDS`。它還原的是 v24 計數�
 ## 5. 鏈前在鏡像上跑的
 
 1. `probe-legacy-v8-gate.py`（§2 第 6 項）。
-2. `check_v24_shift_enter.py`（§3 第 8 列），3 次。
+2. `check_v82_shift_enter.py`（§3 第 8 列），3 次。
 3. 讀取器的紅案（§2 第 3 項、§3）。
 
 ## 6. 判定
@@ -104,3 +104,4 @@ K NOT RUN，名義出貨版留 0.2.26。
 | 日期 | 修改 |
 |---|---|
 | 2026-10-31 | 初版、釘死。 |
+| 2026-10-31 | 鏈前：Enter 重播改走薄包裝（原工具的 preflight 綁 v24 頁面，第一次拒絕）。讀法不變。 |

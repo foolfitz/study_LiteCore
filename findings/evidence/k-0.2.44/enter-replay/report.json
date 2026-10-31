@@ -1,0 +1,198 @@
+{
+ "schema": 1,
+ "argv": [
+  "tools/check_v82_shift_enter.py",
+  "--out",
+  "../findings/evidence/k-0.2.44/enter-replay",
+  "--repetitions",
+  "3"
+ ],
+ "preflight": {
+  "profile": "e2-editor-v28",
+  "editorAbi": 6,
+  "typedInsert": "document-sdk-insert-typed-text",
+  "artifacts": {
+   "../resources/base-r5-no35.1700ed39031eaf49.metadata": "1700ed39031eaf495f2ca5d77d11452f71cbffe190321c8afc9dcaa8ac15092b",
+   "../resources/base-r5-no35.65e8acbb5f0632be.data": "65e8acbb5f0632be8033c504f46140297f4e76f8872df9a19cfb6904c6986319",
+   "../resources/cjk-sub-e10.06976180177c8bd2.data": "06976180177c8bd2a0c7bb7c18837bd12ce116481aefc56b60807948b585ffab",
+   "../resources/cjk-sub-e10.4144b2b2a44dd797.metadata": "4144b2b2a44dd797cd54170bc28a6b27e01a27397bd1f8307c4f13229856a93b",
+   "../resources/fallback-fonts-r5.33856e2a082148dd.data": "33856e2a082148ddbb753652861a5dd05af911e0d3587a3e8c75948a345de3a9",
+   "../resources/fallback-fonts-r5.924fb0ed8b459946.metadata": "924fb0ed8b4599463e9a9d53f6c1aa06cc306cced8ef112424275605ed0c907a",
+   "probe.js": "c5336b96c3a73deb803e5704324f44ed4ed2bdbfee685e84b3cef3ca79db01df",
+   "probe.wasm": "13f674e498a56c8af68e1caaba36e861f9cb4ec83dd7ab865a9e4106cbd0b3bb",
+   "sdk-manifest.json": "7b4eb4743764a30bb38f9cdaa4be6bd1d7f6054d8fe43f609f45220fa6770db8",
+   "sdk-worker.js": "a5df83dbd0bd4df6b67b81d000da141910b76252fbf2bb8636d9a312edfffcba"
+  },
+  "shell": {
+   "generation": 82,
+   "bundle": "e2/editor-shell-v2-bundle-v82.json",
+   "bundleFileSha256": "da4e595d859c8659145b80721007be124ad17d4b6517145630a1f7edfed3a7f3",
+   "digest": "a02673fa0dd34b6b0c9852d0428970368e6322342d83bc08d3d6967ea568ee52",
+   "included": {
+    "editor-shell-v2/narrow-editor-v2-client.js": "50f5a2acd5f34e1db42fc82a0cf8e1a75072e51f0fcc95e7f6e77da3fecd21d5",
+    "editor-shell-v2/narrow-editor-v2-session.js": "d037eaa4c0b69bd3cc2e52099d461e0a54f3594a6b342c34ab0faca06955aac0",
+    "editor-shell-v2/paragraph-editor-client.js": "d07a58e0c674dd992e45df9a37ba26ade9a0d53555f284d1eb5cff2c343b5f3b",
+    "editor-shell-v2/paragraph-editor-session.js": "d853d420d794af4d79edd0956e504a5e61eef3c98bd95f112a03f53d248279c9",
+    "editor-shell/editor-client.js": "b779f157c3e3588ab46bffdae657430c6fba7ae1ce402d652ba2f9c49d88698a",
+    "editor-shell/editor-session.js": "95bc60cc655074e958ab2d5f174ebf682c54a551f0ee04cf25a989d5c34ca14a",
+    "editor-shell/recovery-notice.js": "a6f916bc78268c42f717bb996223cd1b0ad248d1023890abf6ee3e0c24d66e43",
+    "editor-shell/state-machine.js": "7b1d9e2d6619d408004cd2eb49f3cdf845f7d8f16c2e3e9c24b6e2243b9a8cf3",
+    "input/clipboard-adapter.js": "ec84cec0494697d7ce4045769bc47e7f665f2e0386d99ce2fd8ae468d9318bd8",
+    "input/input-adapter.js": "f815e156a901ac6b05614cae16e69e2157fefaaeced3ebe1225668f496334d16",
+    "reader-shell/tile-scheduler.js": "4c60ab4e5ed11e32155af50a7b6983500cdab47431c8fc494aaf2369f046e722",
+    "sdk/document-sdk.js": "afdff2d4c6fc86a3fbca9f40ab7c0122021c61a0d23a7969b4f80b7770f3632e",
+    "web/e2-editor-app.js": "3b0a2ebb92c3db282f9c832ab194249f963592698cf5c73d771998dc10203a6a"
+   }
+  },
+  "pageSha256": "3b0a2ebb92c3db282f9c832ab194249f963592698cf5c73d771998dc10203a6a",
+  "originalHtmlSha256": "b9c2b9751f57962585bb9788255e2aa42a228c0a8b9983755191d2004bab545a"
+ },
+ "oracleSha256": "3c882d21cefa99c9d8547a568989cd272d5b101eaf9a24b6d2e7664b52911cf6",
+ "toolSha256": "8e1f632981f486ff7e2fe1bb8f4270cf427c6af705d66fa5ba2393f08ffba4a3",
+ "runnerSha256": "7ba302353dd67d5f4c7643e1abc0e5c06105e7b7ebbb191b3c29b24b8e90a6a2",
+ "servedHtmlSha256": "c00017a0edfbe8c40bf149c00ad6fa6894f8d6a3bd953d124685594cbeb58be5",
+ "repetitions": [
+  {
+   "repetition": 1,
+   "arms": [
+    {
+     "shift": false,
+     "first": "ENTKEYA",
+     "second": "ENTKEYB",
+     "aim": {
+      "derived": true,
+      "near": "0.136400"
+     },
+     "baselineSha256": "d807939642374d8f540dc2b33578c5f7bcea64ec38b336f77cff226023401284",
+     "afterSha256": "7a36ad351c1f8f05b286e575b01dc05376a34ae3ff6bfdd4ad6a88b2733c1480",
+     "paragraphsBefore": 10,
+     "paragraphsAfter": 11,
+     "together": false,
+     "lineBreakBetween": false,
+     "paragraphText": "ENTKEYA",
+     "outcome": "PASS"
+    },
+    {
+     "shift": true,
+     "first": "SHFTKEYA",
+     "second": "SHFTKEYB",
+     "aim": {
+      "derived": true,
+      "near": "0.130400"
+     },
+     "baselineSha256": "5b828b9901b6e12e2867f68d7e4beebdb644255cbfbfb31ed083df818160f435",
+     "afterSha256": "ecaf3fd8409928274d95bf282ee027efb22d8cd6886aaea05381485b61d1de15",
+     "paragraphsBefore": 12,
+     "paragraphsAfter": 12,
+     "together": true,
+     "lineBreakBetween": true,
+     "paragraphText": "SHFTKEYA\nSHFTKEYBE",
+     "outcome": "PASS"
+    }
+   ],
+   "cleanup": {}
+  },
+  {
+   "repetition": 2,
+   "arms": [
+    {
+     "shift": false,
+     "first": "ENTKEYA",
+     "second": "ENTKEYB",
+     "aim": {
+      "derived": true,
+      "near": "0.136400"
+     },
+     "baselineSha256": "c42a7ac34de9f2cafa208e645eb339f6125c4fed0ad6545c3703b3640dbc5775",
+     "afterSha256": "2ec350a737b0a45b72d26d4d9b691e43571343d2d45fd05197f52fb8d71a6208",
+     "paragraphsBefore": 10,
+     "paragraphsAfter": 11,
+     "together": false,
+     "lineBreakBetween": false,
+     "paragraphText": "ENTKEYA",
+     "outcome": "PASS"
+    },
+    {
+     "shift": true,
+     "first": "SHFTKEYA",
+     "second": "SHFTKEYB",
+     "aim": {
+      "derived": true,
+      "near": "0.130400"
+     },
+     "baselineSha256": "8012f601f4a877e6d27b24192efa0464471027c2a8e1e82b92398d40ab6f8cff",
+     "afterSha256": "46fd5837081249b2b48622ccc0b35143c78661309c88211847411a856e74658f",
+     "paragraphsBefore": 12,
+     "paragraphsAfter": 12,
+     "together": true,
+     "lineBreakBetween": true,
+     "paragraphText": "SHFTKEYA\nSHFTKEYBE",
+     "outcome": "PASS"
+    }
+   ],
+   "cleanup": {}
+  },
+  {
+   "repetition": 3,
+   "arms": [
+    {
+     "shift": false,
+     "first": "ENTKEYA",
+     "second": "ENTKEYB",
+     "aim": {
+      "derived": true,
+      "near": "0.136400"
+     },
+     "baselineSha256": "c90c755021412c01a62ab3c82cc197d5619d0e4d974b7c1033ccf7e34d9b507b",
+     "afterSha256": "bcfa70fef3fc74eee3848f0aab5106353f54afa519f62c0cf7914ddf42c2d414",
+     "paragraphsBefore": 10,
+     "paragraphsAfter": 11,
+     "together": false,
+     "lineBreakBetween": false,
+     "paragraphText": "ENTKEYA",
+     "outcome": "PASS"
+    },
+    {
+     "shift": true,
+     "first": "SHFTKEYA",
+     "second": "SHFTKEYB",
+     "aim": {
+      "derived": true,
+      "near": "0.130400"
+     },
+     "baselineSha256": "d70db6ce0aa830e64a3246a75e6a01916dc946933adcdc06840cbdd4c3f23790",
+     "afterSha256": "2408a922488e8d32eed959ebca879dfbe11775f1cb494a7cf08d001a6bd03704",
+     "paragraphsBefore": 12,
+     "paragraphsAfter": 12,
+     "together": true,
+     "lineBreakBetween": true,
+     "paragraphText": "SHFTKEYA\nSHFTKEYBE",
+     "outcome": "PASS"
+    }
+   ],
+   "cleanup": {}
+  }
+ ],
+ "preRun": {
+  "kwalletLocked": "b false",
+  "chromeProcesses": "0",
+  "firefoxProcesses": "0",
+  "oursRunning": [],
+  "loadavg": [
+   "0.37",
+   "0.23",
+   "0.25"
+  ],
+  "topCpu": [
+   "PID %CPU COMMAND",
+   "  87247  100 ps",
+   "  87240 85.1 python3",
+   "   3059  4.8 kwin_wayland",
+   "  12959  2.5 claude",
+   "   3165  1.9 plasmashell"
+  ],
+  "at": "2026-10-31T13:52:39+0800",
+  "refuse": []
+ },
+ "verdict": "V24_ENTER_HOLDS"
+}
