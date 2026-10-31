@@ -111,3 +111,18 @@ Identity under test: host **a97724f** (0.2.44), engine package **dacdfa20fd4ff1e
 **Next.** Spec section 6's rule for an instrument red: this report is the witness; fix K2-1 and K1-1 to read per page, keep their red cases (`RUN_CASES`, the K1-1 cases) red, add one for "a file of the opened page was not requested". Check the same one-page assumption in the runners not reached yet before restarting. Restart from scratch: P0 needs a clean output tree, and every shakedown must be clean in one chain. Fixed-by-execution so far this session: add this one when done.
 
 litecore is running and idle; the lock table may have rows from the shakedowns (P5 needs 0; inspect, do not assume).
+
+## Addendum 2 (2026-10-31 ~22:35 +0800): the owner wants K finished
+
+Offered A (a new session fixes and re-runs), B (continue in the old session) or C (do not re-run K for now), the owner wrote 「可是我想把記數跑完啊」, then 「不如你幫我紀錄到交接文件」. **So C is out: K is to be run to the end. A new session picks it up from here.** Do not ask again whether to run K.
+
+Nothing has changed since the first addendum: `check_m3_assets.py` is not edited yet and no chain is running.
+
+**Order for the new session:**
+1. Fix the assets check (first addendum): K2-1 and K1-1 per page, red cases kept, one added, this report as the witness.
+2. First contact on the four runners the chain never reached: host_entry, same_second, the autosave gate, new_document, as the chain runs them (`--label shakedown`; autosave `--arms as2-key,as4a,as5 --repeats 1`), plus assets again. About 30 minutes. Fix instrument reds the same way; a product red stops here and goes to the owner.
+3. Confirm a no-site window with the owner, once. The earlier authorisation (「可以跑B」, compile and link, away from the desk) was for that run, and the owner is back. The new `--owner-window` quotes the new answer. Then P5 (inspect the lock rows, do not assume 0) and `--preflight-only`.
+4. Move `findings/evidence/m3-production-ui/runs-0.2.44/` shakedown leftovers aside only if P0 refuses. Start with `setsid nohup`, record the PID, and wait with `tail --pid=<pid> -f /dev/null`. Test the wait first on a process that exits at once.
+5. When it ends: section 6 of the spec, `read-0.2.44.sh`, `RESULT-0.2.44.md`.
+
+The chain is about 8-10 hours; litecore must stay unopened and no other ddev project may start during it.
