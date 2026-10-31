@@ -97,3 +97,17 @@ Identity under test: host **a97724f** (0.2.44), engine package **dacdfa20fd4ff1e
 - Replies to the owner: Taiwan Traditional Chinese, with A/B/C options.
 - Evidence and handoff: English (so `RESULT-0.2.44.md` is English).
 - Specs and findings: zh-TW.
+
+## Addendum (2026-10-31 ~22:35 +0800): the chain STOPPED at 14:57, read this first
+
+**K did not run. No counted step started.** Chain log `wasm_sdk_probe/build/m3-count-20261031T055523Z/chain.txt` (copy: `findings/evidence/m3-production-ui/runs-0.2.44/chain-stop-1.out`). Clean shakedowns: page_honesty, locks, versions. Then `STOP: shakedown assets not clean` at 06:57:03Z. host_entry, same_second, autosave and new_document were never reached.
+
+**Nobody noticed for 7.5 hours, by my mistake.** The background waiter looped on `pgrep -f 'chain-0.2.44.sh'`, and that matched the waiter's own command line, so it never ended and the session was never woken. The owner found it by asking. Wait on a PID instead: `tail --pid=<chain pid> -f /dev/null`.
+
+**The red is the instrument, read in the code, not yet changed** (`findings/evidence/m3-assets/shakedown/2026-10-31T065458+0000.json`). `check_m3_assets.py` assumes a one-page package. Its last live run was the 0.2.26 count; since 0.2.29 the package has three pages.
+- K2-1 (`:682`) requires first-open requests == every manifest file. Opening the Writer page cannot request the ODS pages' closures.
+- K1-1 (`score_wire`, `:352`) skips only `DOC`; `ods-editor.html` and `ods-viewer.html` are pages too, and the asset route answers them 404.
+
+**Next.** Spec section 6's rule for an instrument red: this report is the witness; fix K2-1 and K1-1 to read per page, keep their red cases (`RUN_CASES`, the K1-1 cases) red, add one for "a file of the opened page was not requested". Check the same one-page assumption in the runners not reached yet before restarting. Restart from scratch: P0 needs a clean output tree, and every shakedown must be clean in one chain. Fixed-by-execution so far this session: add this one when done.
+
+litecore is running and idle; the lock table may have rows from the shakedowns (P5 needs 0; inspect, do not assume).
