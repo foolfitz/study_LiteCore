@@ -1,0 +1,330 @@
+{
+ "argv": [
+  "tools/check_v82_frame_last_line.py",
+  "--mutation",
+  "swallow-press",
+  "--out",
+  "../findings/evidence/v28-083/a-frames/control-swallow-press"
+ ],
+ "tool": "check_v82_frame_last_line",
+ "config": {
+  "cells": [
+   "frame-para-last"
+  ],
+  "browsers": [
+   "chrome",
+   "firefox"
+  ],
+  "repetitions": 1,
+  "mutation": "swallow-press",
+  "product": "after"
+ },
+ "marker": "mks4q",
+ "click": [
+  0.8,
+  0.15
+ ],
+ "fixtures": {
+  "frame-para-last": {
+   "frames": 1,
+   "sha256": "bba5401ad8df9e07e1ac3bac69ad33a390044c92081e3e5c64a53b8c834bf939",
+   "paragraphs": [
+    {
+     "text": "Plain first",
+     "tag": "p",
+     "inList": false,
+     "listStyle": null,
+     "listLevel1": null,
+     "style": "Standard",
+     "inTable": false
+    },
+    {
+     "text": "",
+     "tag": "p",
+     "inList": false,
+     "listStyle": null,
+     "listLevel1": null,
+     "style": "Standard",
+     "inTable": false
+    }
+   ]
+  }
+ },
+ "products": {
+  "after": {
+   "product": "after",
+   "profile": "e2-editor-v28",
+   "archive": "build/archive/e2-editor-v28-13f674e4-worker-a5df83db",
+   "generation": "e2/editor-shell-v2-bundle-v81.json",
+   "generationDigest": "6eb7ca108ea77c4ad735f97344ee9befa76a2c3c76fb7a6bce2f6da1bdc5c094",
+   "servedProfile": {
+    "probe.wasm": "13f674e498a56c8af68e1caaba36e861f9cb4ec83dd7ab865a9e4106cbd0b3bb",
+    "probe.js": "c5336b96c3a73deb803e5704324f44ed4ed2bdbfee685e84b3cef3ca79db01df",
+    "sdk-worker.js": "a5df83dbd0bd4df6b67b81d000da141910b76252fbf2bb8636d9a312edfffcba",
+    "sdk-manifest.json": "7b4eb4743764a30bb38f9cdaa4be6bd1d7f6054d8fe43f609f45220fa6770db8"
+   },
+   "page": "3b0a2ebb92c3db282f9c832ab194249f963592698cf5c73d771998dc10203a6a",
+   "client": "d07a58e0c674dd992e45df9a37ba26ade9a0d53555f284d1eb5cff2c343b5f3b",
+   "shellMismatchesAgainst81": [
+    "editor-shell-v2/paragraph-editor-client.js",
+    "web/e2-editor-app.js"
+   ],
+   "checks": {
+    "pagePointsAtProfile": true,
+    "declaredInGeneration81": true,
+    "profileEqualsArchive": true,
+    "othersEqualGeneration81": true,
+    "pageEqualsTree": true,
+    "pageDiffersFromGeneration81": true,
+    "clientEqualsTree": true,
+    "clientDiffersFromGeneration81": true
+   },
+   "ok": true
+  }
+ },
+ "runs": [
+  {
+   "cell": "frame-para-last",
+   "product": "after",
+   "browser": "chrome",
+   "repetition": 1,
+   "browserVersion": "Chrome/156.0.8078.47",
+   "action": "set-list-unordered",
+   "opened": {
+    "pill": "ready",
+    "latency": "—",
+    "toast": "已開啟 frame-para-last.odt",
+    "toastBad": false,
+    "revision": "0",
+    "notice": {
+     "show": "0",
+     "text": ""
+    },
+    "requests": 11,
+    "responses": 11,
+    "workers": 2,
+    "blobs": 0,
+    "warns": 0
+   },
+   "clickAt": {
+    "fraction": [
+     0.8,
+     0.15
+    ],
+    "viewport": [
+     962.5,
+     449.790625
+    ]
+   },
+   "caretPlaced": true,
+   "enters": [],
+   "label": "• 項目符號",
+   "pressSettled": true,
+   "press": {
+    "pill": "recoverable-error",
+    "latency": "• 項目符號 失敗",
+    "toast": "• 項目符號：TIMEOUT：editorActionV2 timed out after 30000 ms（可能已經改到文件：請回到檢查點）",
+    "toastBad": true,
+    "revision": "0",
+    "notice": {
+     "show": "1",
+     "text": "引擎需要重新開啟。沒有檢查點，所以自上次儲存以來的內容不會回來。"
+    },
+    "requests": 16,
+    "responses": 15,
+    "workers": 2,
+    "blobs": 0,
+    "warns": 0
+   },
+   "pressRows": [
+    {
+     "operation": "editorActionV2",
+     "action": "set-list-unordered",
+     "replied": false,
+     "ok": null,
+     "code": null,
+     "message": null,
+     "recovery": null,
+     "completion": null,
+     "formatBarrier": null,
+     "revision": [
+      null,
+      null
+     ]
+    }
+   ],
+   "pressWarns": [],
+   "typedSettled": false,
+   "typed": {
+    "pill": "recoverable-error",
+    "latency": "• 項目符號 失敗",
+    "toast": "• 項目符號：TIMEOUT：editorActionV2 timed out after 30000 ms（可能已經改到文件：請回到檢查點）",
+    "toastBad": true,
+    "revision": "0",
+    "notice": {
+     "show": "1",
+     "text": "引擎需要重新開啟。沒有檢查點，所以自上次儲存以來的內容不會回來。"
+    },
+    "requests": 16,
+    "responses": 15,
+    "workers": 2,
+    "blobs": 0,
+    "warns": 0
+   },
+   "typedRows": [],
+   "savedSettled": false,
+   "cleanup": {},
+   "outcome": "RED",
+   "clauses": {
+    "a.replied": false,
+    "b.ready": false,
+    "c.typed": false,
+    "d.saved": false,
+    "e.frames": false,
+    "f.fallback": false,
+    "g.truthful": true
+   },
+   "failedClauses": [
+    "a.replied",
+    "b.ready",
+    "c.typed",
+    "d.saved",
+    "e.frames",
+    "f.fallback"
+   ]
+  },
+  {
+   "cell": "frame-para-last",
+   "product": "after",
+   "browser": "firefox",
+   "repetition": 1,
+   "browserVersion": "157.0.1",
+   "action": "set-list-unordered",
+   "opened": {
+    "pill": "ready",
+    "latency": "—",
+    "toast": "已開啟 frame-para-last.odt",
+    "toastBad": false,
+    "revision": "0",
+    "notice": {
+     "show": "0",
+     "text": ""
+    },
+    "requests": 11,
+    "responses": 11,
+    "workers": 2,
+    "blobs": 0,
+    "warns": 0
+   },
+   "clickAt": {
+    "fraction": [
+     0.8,
+     0.15
+    ],
+    "viewport": [
+     964.0,
+     451.1000122070312
+    ]
+   },
+   "caretPlaced": true,
+   "enters": [],
+   "label": "• 項目符號",
+   "pressSettled": true,
+   "press": {
+    "pill": "recoverable-error",
+    "latency": "• 項目符號 失敗",
+    "toast": "• 項目符號：TIMEOUT：editorActionV2 timed out after 30000 ms（可能已經改到文件：請回到檢查點）",
+    "toastBad": true,
+    "revision": "0",
+    "notice": {
+     "show": "1",
+     "text": "引擎需要重新開啟。沒有檢查點，所以自上次儲存以來的內容不會回來。"
+    },
+    "requests": 16,
+    "responses": 15,
+    "workers": 2,
+    "blobs": 0,
+    "warns": 0
+   },
+   "pressRows": [
+    {
+     "operation": "editorActionV2",
+     "action": "set-list-unordered",
+     "replied": false,
+     "ok": null,
+     "code": null,
+     "message": null,
+     "recovery": null,
+     "completion": null,
+     "formatBarrier": null,
+     "revision": [
+      null,
+      null
+     ]
+    }
+   ],
+   "pressWarns": [],
+   "typedSettled": false,
+   "typed": {
+    "pill": "recoverable-error",
+    "latency": "• 項目符號 失敗",
+    "toast": "• 項目符號：TIMEOUT：editorActionV2 timed out after 30000 ms（可能已經改到文件：請回到檢查點）",
+    "toastBad": true,
+    "revision": "0",
+    "notice": {
+     "show": "1",
+     "text": "引擎需要重新開啟。沒有檢查點，所以自上次儲存以來的內容不會回來。"
+    },
+    "requests": 16,
+    "responses": 15,
+    "workers": 2,
+    "blobs": 0,
+    "warns": 0
+   },
+   "typedRows": [],
+   "savedSettled": false,
+   "cleanup": {},
+   "outcome": "RED",
+   "clauses": {
+    "a.replied": false,
+    "b.ready": false,
+    "c.typed": false,
+    "d.saved": false,
+    "e.frames": false,
+    "f.fallback": false,
+    "g.truthful": true
+   },
+   "failedClauses": [
+    "a.replied",
+    "b.ready",
+    "c.typed",
+    "d.saved",
+    "e.frames",
+    "f.fallback"
+   ]
+  }
+ ],
+ "preRun": {
+  "kwalletLocked": "b false",
+  "chromeProcesses": "0",
+  "firefoxProcesses": "0",
+  "oursRunning": [],
+  "loadavg": [
+   "0.09",
+   "0.21",
+   "0.32"
+  ],
+  "topCpu": [
+   "PID %CPU COMMAND",
+   "  80751 41.6 python3",
+   "   3059  5.4 kwin_wayland",
+   "  12959  3.0 claude",
+   "   3165  2.0 plasmashell",
+   "   3511  0.9 telegram-deskto"
+  ],
+  "at": "2026-10-31T13:35:42+0800",
+  "refuse": []
+ },
+ "verdict": "A_FRAMES_CONTROL_RED_AS_WANTED",
+ "problems": []
+}

@@ -280,3 +280,5 @@ profile `e2-editor-v28`；`editorContract` 每一個葉等於 v27；只換 `prof
 5. **正向對照**（否則「沒卡死」與「儀器看不到卡死」長得一樣）：`--mutation swallow-press`，頁面送出的項目符號請求被擋在 worker 之前，從頁面看就是引擎不回。每一筆必須判卡死（兩瀏覽器 × 1）。另有 `--self-test`：每個子句一個突變，全紅。
 6. **沒做的預設**：§9 那條照舊是沒量的具名限制。
 
+**結果（2026-10-31，`findings/evidence/v28-083/a-frames/`）**：`A_FRAMES_HOLD`（30/30），正向對照會判卡死，self-test 35 全紅。§9 的 L-fallback-html-read-is-new-on-this-path 改為**量過**：這五種形狀沒有卡死、沒有判錯。`frame-char-last` 走的是 037 既有的拒絕（generation 81 相同），具名 L-char-anchored-frame-refuses-the-format-press。
+

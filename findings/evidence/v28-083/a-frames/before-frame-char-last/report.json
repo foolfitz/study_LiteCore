@@ -1,0 +1,881 @@
+{
+ "argv": [
+  "tools/check_v82_frame_last_line.py",
+  "--product",
+  "before",
+  "--cells",
+  "frame-char-last",
+  "--out",
+  "../findings/evidence/v28-083/a-frames/before-frame-char-last"
+ ],
+ "tool": "check_v82_frame_last_line",
+ "config": {
+  "cells": [
+   "frame-char-last"
+  ],
+  "browsers": [
+   "chrome",
+   "firefox"
+  ],
+  "repetitions": 3,
+  "mutation": null,
+  "product": "before"
+ },
+ "marker": "mks4q",
+ "click": [
+  0.8,
+  0.15
+ ],
+ "fixtures": {
+  "frame-char-last": {
+   "frames": 1,
+   "sha256": "abbfaa8711161096000cd613e46c212d2309aeb3435d72b0e30329fc7ab1768f",
+   "paragraphs": [
+    {
+     "text": "Plain first",
+     "tag": "p",
+     "inList": false,
+     "listStyle": null,
+     "listLevel1": null,
+     "style": "Standard",
+     "inTable": false
+    },
+    {
+     "text": "",
+     "tag": "p",
+     "inList": false,
+     "listStyle": null,
+     "listLevel1": null,
+     "style": "Standard",
+     "inTable": false
+    }
+   ]
+  }
+ },
+ "products": {
+  "before": {
+   "product": "before",
+   "profile": "e2-editor-v27",
+   "archive": "build/archive/e2-editor-v27-c089dfd6-worker-8152448a",
+   "generation": "e2/editor-shell-v2-bundle-v81.json",
+   "generationDigest": "6eb7ca108ea77c4ad735f97344ee9befa76a2c3c76fb7a6bce2f6da1bdc5c094",
+   "servedProfile": {
+    "probe.wasm": "c089dfd699d646e373113fa8437d05e01e150987302e9851543a31debc7ffb3c",
+    "probe.js": "0a73eb5ae83e42d6ce799b7ba32d6a4f821b184c66eff2053be7a83c1a4e6526",
+    "sdk-worker.js": "8152448ab83bc323edfa6982a1db08c4367b15b4c99978eeb1b39b3ef41a669d",
+    "sdk-manifest.json": "d5d076399b921d2749fcb4ded45aa1a7613759a330c42e307a82dce6fbd4e9fe"
+   },
+   "page": "b63d8ee53659c8b6216ecfc6ddaf4e3ef909f99f96b5975204ff31039816b1c7",
+   "client": "7d1c1eb22e0baa7ad487d16d02eb0b2cc29ade3653679372bbf9e05b06e94396",
+   "shellMismatchesAgainst81": [],
+   "checks": {
+    "pagePointsAtProfile": true,
+    "declaredInGeneration81": true,
+    "profileEqualsArchive": true,
+    "othersEqualGeneration81": true,
+    "pageIsGeneration81": true,
+    "clientIsGeneration81": true
+   },
+   "ok": true
+  }
+ },
+ "runs": [
+  {
+   "cell": "frame-char-last",
+   "product": "before",
+   "browser": "chrome",
+   "repetition": 1,
+   "browserVersion": "Chrome/156.0.8078.47",
+   "action": "set-list-unordered",
+   "opened": {
+    "pill": "ready",
+    "latency": "—",
+    "toast": "已開啟 frame-char-last.odt",
+    "toastBad": false,
+    "revision": "0",
+    "notice": {
+     "show": "0",
+     "text": ""
+    },
+    "requests": 11,
+    "responses": 11,
+    "workers": 2,
+    "blobs": 0,
+    "warns": 0
+   },
+   "clickAt": {
+    "fraction": [
+     0.8,
+     0.15
+    ],
+    "viewport": [
+     962.5,
+     449.790625
+    ]
+   },
+   "caretPlaced": true,
+   "enters": [],
+   "label": "• 項目符號",
+   "pressSettled": true,
+   "press": {
+    "pill": "recoverable-error",
+    "latency": "• 項目符號 失敗",
+    "toast": "• 項目符號：MUTATION_OUTCOME_UNKNOWN：the synchronous selection read did not provide readable text; the format mutation outcome is unknown（可能已經改到文件：請回到檢查點）",
+    "toastBad": true,
+    "revision": "0",
+    "notice": {
+     "show": "1",
+     "text": "引擎需要重新開啟。沒有檢查點，所以自上次儲存以來的內容不會回來。"
+    },
+    "requests": 17,
+    "responses": 17,
+    "workers": 2,
+    "blobs": 0,
+    "warns": 0
+   },
+   "pressRows": [
+    {
+     "operation": "editorActionV2",
+     "action": "set-list-unordered",
+     "replied": true,
+     "ok": false,
+     "code": "MUTATION_OUTCOME_UNKNOWN",
+     "message": "the synchronous selection read did not provide readable text; the format mutation outcome is unknown",
+     "recovery": null,
+     "completion": null,
+     "formatBarrier": {
+      "route": "collapsed",
+      "readbackBlockCount": 0,
+      "itemCount": 0,
+      "failureShape": "selection-type-not-readable",
+      "dispatched": true,
+      "selectionResultSeen": true,
+      "undo": {
+       "read": true,
+       "changed": true,
+       "actionsBefore": 0,
+       "actionsAfter": 1
+      },
+      "fallback": null
+     },
+     "revision": [
+      null,
+      null
+     ]
+    },
+    {
+     "operation": "paint",
+     "action": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "recovery": null,
+     "completion": null,
+     "formatBarrier": null,
+     "revision": [
+      null,
+      0
+     ]
+    }
+   ],
+   "pressWarns": [],
+   "typedSettled": false,
+   "typed": {
+    "pill": "recoverable-error",
+    "latency": "• 項目符號 失敗",
+    "toast": "• 項目符號：MUTATION_OUTCOME_UNKNOWN：the synchronous selection read did not provide readable text; the format mutation outcome is unknown（可能已經改到文件：請回到檢查點）",
+    "toastBad": true,
+    "revision": "0",
+    "notice": {
+     "show": "1",
+     "text": "引擎需要重新開啟。沒有檢查點，所以自上次儲存以來的內容不會回來。"
+    },
+    "requests": 17,
+    "responses": 17,
+    "workers": 2,
+    "blobs": 0,
+    "warns": 0
+   },
+   "typedRows": [],
+   "savedSettled": false,
+   "cleanup": {},
+   "outcome": "HOLDS",
+   "clauses": {
+    "a.replied": true,
+    "h.typed-refusal": true,
+    "h.no-fallback": true,
+    "h.not-wedged": true
+   },
+   "failedClauses": []
+  },
+  {
+   "cell": "frame-char-last",
+   "product": "before",
+   "browser": "chrome",
+   "repetition": 2,
+   "browserVersion": "Chrome/156.0.8078.47",
+   "action": "set-list-unordered",
+   "opened": {
+    "pill": "ready",
+    "latency": "—",
+    "toast": "已開啟 frame-char-last.odt",
+    "toastBad": false,
+    "revision": "0",
+    "notice": {
+     "show": "0",
+     "text": ""
+    },
+    "requests": 11,
+    "responses": 11,
+    "workers": 2,
+    "blobs": 0,
+    "warns": 0
+   },
+   "clickAt": {
+    "fraction": [
+     0.8,
+     0.15
+    ],
+    "viewport": [
+     962.5,
+     449.790625
+    ]
+   },
+   "caretPlaced": true,
+   "enters": [],
+   "label": "• 項目符號",
+   "pressSettled": true,
+   "press": {
+    "pill": "recoverable-error",
+    "latency": "• 項目符號 失敗",
+    "toast": "• 項目符號：MUTATION_OUTCOME_UNKNOWN：the synchronous selection read did not provide readable text; the format mutation outcome is unknown（可能已經改到文件：請回到檢查點）",
+    "toastBad": true,
+    "revision": "0",
+    "notice": {
+     "show": "1",
+     "text": "引擎需要重新開啟。沒有檢查點，所以自上次儲存以來的內容不會回來。"
+    },
+    "requests": 17,
+    "responses": 17,
+    "workers": 2,
+    "blobs": 0,
+    "warns": 0
+   },
+   "pressRows": [
+    {
+     "operation": "editorActionV2",
+     "action": "set-list-unordered",
+     "replied": true,
+     "ok": false,
+     "code": "MUTATION_OUTCOME_UNKNOWN",
+     "message": "the synchronous selection read did not provide readable text; the format mutation outcome is unknown",
+     "recovery": null,
+     "completion": null,
+     "formatBarrier": {
+      "route": "collapsed",
+      "readbackBlockCount": 0,
+      "itemCount": 0,
+      "failureShape": "selection-type-not-readable",
+      "dispatched": true,
+      "selectionResultSeen": true,
+      "undo": {
+       "read": true,
+       "changed": true,
+       "actionsBefore": 0,
+       "actionsAfter": 1
+      },
+      "fallback": null
+     },
+     "revision": [
+      null,
+      null
+     ]
+    },
+    {
+     "operation": "paint",
+     "action": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "recovery": null,
+     "completion": null,
+     "formatBarrier": null,
+     "revision": [
+      null,
+      0
+     ]
+    }
+   ],
+   "pressWarns": [],
+   "typedSettled": false,
+   "typed": {
+    "pill": "recoverable-error",
+    "latency": "• 項目符號 失敗",
+    "toast": "• 項目符號：MUTATION_OUTCOME_UNKNOWN：the synchronous selection read did not provide readable text; the format mutation outcome is unknown（可能已經改到文件：請回到檢查點）",
+    "toastBad": true,
+    "revision": "0",
+    "notice": {
+     "show": "1",
+     "text": "引擎需要重新開啟。沒有檢查點，所以自上次儲存以來的內容不會回來。"
+    },
+    "requests": 17,
+    "responses": 17,
+    "workers": 2,
+    "blobs": 0,
+    "warns": 0
+   },
+   "typedRows": [],
+   "savedSettled": false,
+   "cleanup": {},
+   "outcome": "HOLDS",
+   "clauses": {
+    "a.replied": true,
+    "h.typed-refusal": true,
+    "h.no-fallback": true,
+    "h.not-wedged": true
+   },
+   "failedClauses": []
+  },
+  {
+   "cell": "frame-char-last",
+   "product": "before",
+   "browser": "chrome",
+   "repetition": 3,
+   "browserVersion": "Chrome/156.0.8078.47",
+   "action": "set-list-unordered",
+   "opened": {
+    "pill": "ready",
+    "latency": "—",
+    "toast": "已開啟 frame-char-last.odt",
+    "toastBad": false,
+    "revision": "0",
+    "notice": {
+     "show": "0",
+     "text": ""
+    },
+    "requests": 11,
+    "responses": 11,
+    "workers": 2,
+    "blobs": 0,
+    "warns": 0
+   },
+   "clickAt": {
+    "fraction": [
+     0.8,
+     0.15
+    ],
+    "viewport": [
+     962.5,
+     449.790625
+    ]
+   },
+   "caretPlaced": true,
+   "enters": [],
+   "label": "• 項目符號",
+   "pressSettled": true,
+   "press": {
+    "pill": "recoverable-error",
+    "latency": "• 項目符號 失敗",
+    "toast": "• 項目符號：MUTATION_OUTCOME_UNKNOWN：the synchronous selection read did not provide readable text; the format mutation outcome is unknown（可能已經改到文件：請回到檢查點）",
+    "toastBad": true,
+    "revision": "0",
+    "notice": {
+     "show": "1",
+     "text": "引擎需要重新開啟。沒有檢查點，所以自上次儲存以來的內容不會回來。"
+    },
+    "requests": 17,
+    "responses": 17,
+    "workers": 2,
+    "blobs": 0,
+    "warns": 0
+   },
+   "pressRows": [
+    {
+     "operation": "editorActionV2",
+     "action": "set-list-unordered",
+     "replied": true,
+     "ok": false,
+     "code": "MUTATION_OUTCOME_UNKNOWN",
+     "message": "the synchronous selection read did not provide readable text; the format mutation outcome is unknown",
+     "recovery": null,
+     "completion": null,
+     "formatBarrier": {
+      "route": "collapsed",
+      "readbackBlockCount": 0,
+      "itemCount": 0,
+      "failureShape": "selection-type-not-readable",
+      "dispatched": true,
+      "selectionResultSeen": true,
+      "undo": {
+       "read": true,
+       "changed": true,
+       "actionsBefore": 0,
+       "actionsAfter": 1
+      },
+      "fallback": null
+     },
+     "revision": [
+      null,
+      null
+     ]
+    },
+    {
+     "operation": "paint",
+     "action": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "recovery": null,
+     "completion": null,
+     "formatBarrier": null,
+     "revision": [
+      null,
+      0
+     ]
+    }
+   ],
+   "pressWarns": [],
+   "typedSettled": false,
+   "typed": {
+    "pill": "recoverable-error",
+    "latency": "• 項目符號 失敗",
+    "toast": "• 項目符號：MUTATION_OUTCOME_UNKNOWN：the synchronous selection read did not provide readable text; the format mutation outcome is unknown（可能已經改到文件：請回到檢查點）",
+    "toastBad": true,
+    "revision": "0",
+    "notice": {
+     "show": "1",
+     "text": "引擎需要重新開啟。沒有檢查點，所以自上次儲存以來的內容不會回來。"
+    },
+    "requests": 17,
+    "responses": 17,
+    "workers": 2,
+    "blobs": 0,
+    "warns": 0
+   },
+   "typedRows": [],
+   "savedSettled": false,
+   "cleanup": {},
+   "outcome": "HOLDS",
+   "clauses": {
+    "a.replied": true,
+    "h.typed-refusal": true,
+    "h.no-fallback": true,
+    "h.not-wedged": true
+   },
+   "failedClauses": []
+  },
+  {
+   "cell": "frame-char-last",
+   "product": "before",
+   "browser": "firefox",
+   "repetition": 1,
+   "browserVersion": "157.0.1",
+   "action": "set-list-unordered",
+   "opened": {
+    "pill": "ready",
+    "latency": "—",
+    "toast": "已開啟 frame-char-last.odt",
+    "toastBad": false,
+    "revision": "0",
+    "notice": {
+     "show": "0",
+     "text": ""
+    },
+    "requests": 11,
+    "responses": 11,
+    "workers": 2,
+    "blobs": 0,
+    "warns": 0
+   },
+   "clickAt": {
+    "fraction": [
+     0.8,
+     0.15
+    ],
+    "viewport": [
+     964.0,
+     451.1000122070312
+    ]
+   },
+   "caretPlaced": true,
+   "enters": [],
+   "label": "• 項目符號",
+   "pressSettled": true,
+   "press": {
+    "pill": "recoverable-error",
+    "latency": "• 項目符號 失敗",
+    "toast": "• 項目符號：MUTATION_OUTCOME_UNKNOWN：the synchronous selection read did not provide readable text; the format mutation outcome is unknown（可能已經改到文件：請回到檢查點）",
+    "toastBad": true,
+    "revision": "0",
+    "notice": {
+     "show": "1",
+     "text": "引擎需要重新開啟。沒有檢查點，所以自上次儲存以來的內容不會回來。"
+    },
+    "requests": 17,
+    "responses": 17,
+    "workers": 2,
+    "blobs": 0,
+    "warns": 0
+   },
+   "pressRows": [
+    {
+     "operation": "editorActionV2",
+     "action": "set-list-unordered",
+     "replied": true,
+     "ok": false,
+     "code": "MUTATION_OUTCOME_UNKNOWN",
+     "message": "the synchronous selection read did not provide readable text; the format mutation outcome is unknown",
+     "recovery": null,
+     "completion": null,
+     "formatBarrier": {
+      "route": "collapsed",
+      "readbackBlockCount": 0,
+      "itemCount": 0,
+      "failureShape": "selection-type-not-readable",
+      "dispatched": true,
+      "selectionResultSeen": true,
+      "undo": {
+       "read": true,
+       "changed": true,
+       "actionsBefore": 0,
+       "actionsAfter": 1
+      },
+      "fallback": null
+     },
+     "revision": [
+      null,
+      null
+     ]
+    },
+    {
+     "operation": "paint",
+     "action": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "recovery": null,
+     "completion": null,
+     "formatBarrier": null,
+     "revision": [
+      null,
+      0
+     ]
+    }
+   ],
+   "pressWarns": [],
+   "typedSettled": false,
+   "typed": {
+    "pill": "recoverable-error",
+    "latency": "• 項目符號 失敗",
+    "toast": "• 項目符號：MUTATION_OUTCOME_UNKNOWN：the synchronous selection read did not provide readable text; the format mutation outcome is unknown（可能已經改到文件：請回到檢查點）",
+    "toastBad": true,
+    "revision": "0",
+    "notice": {
+     "show": "1",
+     "text": "引擎需要重新開啟。沒有檢查點，所以自上次儲存以來的內容不會回來。"
+    },
+    "requests": 17,
+    "responses": 17,
+    "workers": 2,
+    "blobs": 0,
+    "warns": 0
+   },
+   "typedRows": [],
+   "savedSettled": false,
+   "cleanup": {},
+   "outcome": "HOLDS",
+   "clauses": {
+    "a.replied": true,
+    "h.typed-refusal": true,
+    "h.no-fallback": true,
+    "h.not-wedged": true
+   },
+   "failedClauses": []
+  },
+  {
+   "cell": "frame-char-last",
+   "product": "before",
+   "browser": "firefox",
+   "repetition": 2,
+   "browserVersion": "157.0.1",
+   "action": "set-list-unordered",
+   "opened": {
+    "pill": "ready",
+    "latency": "—",
+    "toast": "已開啟 frame-char-last.odt",
+    "toastBad": false,
+    "revision": "0",
+    "notice": {
+     "show": "0",
+     "text": ""
+    },
+    "requests": 11,
+    "responses": 11,
+    "workers": 2,
+    "blobs": 0,
+    "warns": 0
+   },
+   "clickAt": {
+    "fraction": [
+     0.8,
+     0.15
+    ],
+    "viewport": [
+     964.0,
+     451.1000122070312
+    ]
+   },
+   "caretPlaced": true,
+   "enters": [],
+   "label": "• 項目符號",
+   "pressSettled": true,
+   "press": {
+    "pill": "recoverable-error",
+    "latency": "• 項目符號 失敗",
+    "toast": "• 項目符號：MUTATION_OUTCOME_UNKNOWN：the synchronous selection read did not provide readable text; the format mutation outcome is unknown（可能已經改到文件：請回到檢查點）",
+    "toastBad": true,
+    "revision": "0",
+    "notice": {
+     "show": "1",
+     "text": "引擎需要重新開啟。沒有檢查點，所以自上次儲存以來的內容不會回來。"
+    },
+    "requests": 17,
+    "responses": 17,
+    "workers": 2,
+    "blobs": 0,
+    "warns": 0
+   },
+   "pressRows": [
+    {
+     "operation": "editorActionV2",
+     "action": "set-list-unordered",
+     "replied": true,
+     "ok": false,
+     "code": "MUTATION_OUTCOME_UNKNOWN",
+     "message": "the synchronous selection read did not provide readable text; the format mutation outcome is unknown",
+     "recovery": null,
+     "completion": null,
+     "formatBarrier": {
+      "route": "collapsed",
+      "readbackBlockCount": 0,
+      "itemCount": 0,
+      "failureShape": "selection-type-not-readable",
+      "dispatched": true,
+      "selectionResultSeen": true,
+      "undo": {
+       "read": true,
+       "changed": true,
+       "actionsBefore": 0,
+       "actionsAfter": 1
+      },
+      "fallback": null
+     },
+     "revision": [
+      null,
+      null
+     ]
+    },
+    {
+     "operation": "paint",
+     "action": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "recovery": null,
+     "completion": null,
+     "formatBarrier": null,
+     "revision": [
+      null,
+      0
+     ]
+    }
+   ],
+   "pressWarns": [],
+   "typedSettled": false,
+   "typed": {
+    "pill": "recoverable-error",
+    "latency": "• 項目符號 失敗",
+    "toast": "• 項目符號：MUTATION_OUTCOME_UNKNOWN：the synchronous selection read did not provide readable text; the format mutation outcome is unknown（可能已經改到文件：請回到檢查點）",
+    "toastBad": true,
+    "revision": "0",
+    "notice": {
+     "show": "1",
+     "text": "引擎需要重新開啟。沒有檢查點，所以自上次儲存以來的內容不會回來。"
+    },
+    "requests": 17,
+    "responses": 17,
+    "workers": 2,
+    "blobs": 0,
+    "warns": 0
+   },
+   "typedRows": [],
+   "savedSettled": false,
+   "cleanup": {},
+   "outcome": "HOLDS",
+   "clauses": {
+    "a.replied": true,
+    "h.typed-refusal": true,
+    "h.no-fallback": true,
+    "h.not-wedged": true
+   },
+   "failedClauses": []
+  },
+  {
+   "cell": "frame-char-last",
+   "product": "before",
+   "browser": "firefox",
+   "repetition": 3,
+   "browserVersion": "157.0.1",
+   "action": "set-list-unordered",
+   "opened": {
+    "pill": "ready",
+    "latency": "—",
+    "toast": "已開啟 frame-char-last.odt",
+    "toastBad": false,
+    "revision": "0",
+    "notice": {
+     "show": "0",
+     "text": ""
+    },
+    "requests": 11,
+    "responses": 11,
+    "workers": 2,
+    "blobs": 0,
+    "warns": 0
+   },
+   "clickAt": {
+    "fraction": [
+     0.8,
+     0.15
+    ],
+    "viewport": [
+     964.0,
+     451.1000122070312
+    ]
+   },
+   "caretPlaced": true,
+   "enters": [],
+   "label": "• 項目符號",
+   "pressSettled": true,
+   "press": {
+    "pill": "recoverable-error",
+    "latency": "• 項目符號 失敗",
+    "toast": "• 項目符號：MUTATION_OUTCOME_UNKNOWN：the synchronous selection read did not provide readable text; the format mutation outcome is unknown（可能已經改到文件：請回到檢查點）",
+    "toastBad": true,
+    "revision": "0",
+    "notice": {
+     "show": "1",
+     "text": "引擎需要重新開啟。沒有檢查點，所以自上次儲存以來的內容不會回來。"
+    },
+    "requests": 17,
+    "responses": 17,
+    "workers": 2,
+    "blobs": 0,
+    "warns": 0
+   },
+   "pressRows": [
+    {
+     "operation": "editorActionV2",
+     "action": "set-list-unordered",
+     "replied": true,
+     "ok": false,
+     "code": "MUTATION_OUTCOME_UNKNOWN",
+     "message": "the synchronous selection read did not provide readable text; the format mutation outcome is unknown",
+     "recovery": null,
+     "completion": null,
+     "formatBarrier": {
+      "route": "collapsed",
+      "readbackBlockCount": 0,
+      "itemCount": 0,
+      "failureShape": "selection-type-not-readable",
+      "dispatched": true,
+      "selectionResultSeen": true,
+      "undo": {
+       "read": true,
+       "changed": true,
+       "actionsBefore": 0,
+       "actionsAfter": 1
+      },
+      "fallback": null
+     },
+     "revision": [
+      null,
+      null
+     ]
+    },
+    {
+     "operation": "paint",
+     "action": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "recovery": null,
+     "completion": null,
+     "formatBarrier": null,
+     "revision": [
+      null,
+      0
+     ]
+    }
+   ],
+   "pressWarns": [],
+   "typedSettled": false,
+   "typed": {
+    "pill": "recoverable-error",
+    "latency": "• 項目符號 失敗",
+    "toast": "• 項目符號：MUTATION_OUTCOME_UNKNOWN：the synchronous selection read did not provide readable text; the format mutation outcome is unknown（可能已經改到文件：請回到檢查點）",
+    "toastBad": true,
+    "revision": "0",
+    "notice": {
+     "show": "1",
+     "text": "引擎需要重新開啟。沒有檢查點，所以自上次儲存以來的內容不會回來。"
+    },
+    "requests": 17,
+    "responses": 17,
+    "workers": 2,
+    "blobs": 0,
+    "warns": 0
+   },
+   "typedRows": [],
+   "savedSettled": false,
+   "cleanup": {},
+   "outcome": "HOLDS",
+   "clauses": {
+    "a.replied": true,
+    "h.typed-refusal": true,
+    "h.no-fallback": true,
+    "h.not-wedged": true
+   },
+   "failedClauses": []
+  }
+ ],
+ "preRun": {
+  "kwalletLocked": "b false",
+  "chromeProcesses": "0",
+  "firefoxProcesses": "0",
+  "oursRunning": [],
+  "loadavg": [
+   "0.60",
+   "0.66",
+   "0.51"
+  ],
+  "topCpu": [
+   "PID %CPU COMMAND",
+   "  74812  100 ps",
+   "  74807 46.6 python3",
+   "   3059  5.8 kwin_wayland",
+   "  12959  3.8 claude",
+   "   3165  2.1 plasmashell"
+  ],
+  "at": "2026-10-31T13:24:50+0800",
+  "refuse": []
+ },
+ "verdict": "A_FRAMES_SUBSET_HOLDS",
+ "problems": []
+}
