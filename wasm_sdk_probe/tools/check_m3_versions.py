@@ -56,7 +56,7 @@ PLAN = {"versions": ("R1", ("chrome", "firefox"), 3)}
 # SPEC-M3-page-honesty §7.6/§7.11 re-runs it against 0.2.4 (finding 108), written
 # 2026-09-29 before that run.
 # SPEC-M3-zstd Z3 re-runs it against 0.2.5, written 2026-09-30 before that run.
-HOST_COMMIT = "a97724f302ddc7eb7180a4d3fd6d4863bfd6952d"   # host 0.2.44 (engine v28, shell generation 82), 2026-10-31; was 3c01876; host 0.2.26 (engine v21, shell v74, finding 154's host rule), 2026-10-17 (host 0.2.26); was 1479e56 (finding 145, host 0.2.24), 2ccf1a9 (SPEC-M3-link-batch §17, host 0.2.23), 237f2cb, e028517, b245ae7, 6b53c2e, d87960d, 069de55, 4140e00, 0488586
+HOST_COMMIT = "a97724f"   # host 0.2.44 (engine v28, shell generation 82), 2026-10-31; was 3c01876; host 0.2.26 (engine v21, shell v74, finding 154's host rule), 2026-10-17 (host 0.2.26); was 1479e56 (finding 145, host 0.2.24), 2ccf1a9 (SPEC-M3-link-batch §17, host 0.2.23), 237f2cb, e028517, b245ae7, 6b53c2e, d87960d, 069de55, 4140e00, 0488586
 NS = {"d": "DAV:", "nc": "http://nextcloud.org/ns"}
 LISTING = (b'<?xml version="1.0"?><d:propfind xmlns:d="DAV:" xmlns:nc="http://nextcloud.org/ns">'
            b"<d:prop><d:getlastmodified/><d:getcontentlength/><nc:version-author/></d:prop></d:propfind>")

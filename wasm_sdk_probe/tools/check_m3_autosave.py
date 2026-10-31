@@ -85,7 +85,7 @@ PASS, FAIL, NE = "PASS", "FAIL", "NOT_ESTABLISHED"
 PAGE_SHA256: str | None = "3b0a2ebb92c3db282f9c832ab194249f963592698cf5c73d771998dc10203a6a"   # host 0.2.44 (engine v28, shell generation 82), 2026-10-31; was 605cf24b3dff5a2d; web/e2-editor-app.js, dist copy and the copy the host serves; was 901dd6a6 (0.2.24), ccb67a52 (0.2.23), d761f1ce
 SESSION_SHA256: str | None = "d037eaa4c0b69bd3cc2e52099d461e0a54f3594a6b342c34ab0faca06955aac0"   # host 0.2.44 (engine v28, shell generation 82), 2026-10-31; was f1509ff22e6e2d8d; editor-shell-v2/narrow-editor-v2-session.js, same three places; shell v74 (0.2.26); was f47c80ec (link-batch §17) (0.2.23); was 62a2a20e
 HOST_VERSION: str | None = "0.2.44"   # host 0.2.44 (engine v28, shell generation 82), 2026-10-31; was 0.2.26; appinfo/info.xml <version>; engine v21 + finding 154; was 0.2.24 (finding 145), 0.2.23 (link-batch §17), 0.2.14
-HOST_COMMIT: str | None = "a97724f302ddc7eb7180a4d3fd6d4863bfd6952d"   # host 0.2.44 (engine v28, shell generation 82), 2026-10-31; was 3c01876; the host repo's HEAD, a prefix is enough; 0.2.26; was 1479e56 (finding 145), 2ccf1a9 (link-batch §17), 237f2cb
+HOST_COMMIT: str | None = "a97724f"   # host 0.2.44 (engine v28, shell generation 82), 2026-10-31; was 3c01876; the host repo's HEAD, a prefix is enough; 0.2.26; was 1479e56 (finding 145), 2ccf1a9 (link-batch §17), 237f2cb
 
 # arm -> (criterion, browsers, counted runs per browser)
 PLAN = {

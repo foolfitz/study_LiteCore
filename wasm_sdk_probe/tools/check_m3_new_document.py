@@ -98,7 +98,7 @@ def first_line(paper: str | None) -> tuple[str, str]:
 # the blank manifest is unchanged; the engine package and the page moved (shell v73).
 # Re-bound 2026-10-17 to host 0.2.26: git diff 1479e56..3c01876 touches only appinfo/info.xml and
 # templates/editor.php, so the blank manifest is unchanged; the engine package and the page moved (v21, shell v74).
-HOST_COMMIT: str | None = "a97724f302ddc7eb7180a4d3fd6d4863bfd6952d"   # host 0.2.44 (engine v28, shell generation 82), 2026-10-31; was 3c01876; 0.2.26; was 1479e56 (0.2.24), 2ccf1a9 (0.2.23), afbaf3c (0.2.19)
+HOST_COMMIT: str | None = "a97724f"   # host 0.2.44 (engine v28, shell generation 82), 2026-10-31; was 3c01876; 0.2.26; was 1479e56 (0.2.24), 2ccf1a9 (0.2.23), afbaf3c (0.2.19)
 HOST_VERSION: str | None = "0.2.44"   # host 0.2.44 (engine v28, shell generation 82), 2026-10-31; was 0.2.26; was 0.2.24, 0.2.23, 0.2.19
 MANIFEST_SHA256: str | None = "e5cdb8e2f0311cc10ad543f918906144e73015352304385719b5f85bfd97eb04"
 # The engine the count runs on: the host's engine/MANIFEST.json buildId and its

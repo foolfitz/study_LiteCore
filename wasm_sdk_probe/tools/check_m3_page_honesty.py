@@ -68,7 +68,7 @@ SESSION_SHA256: str | None = "d037eaa4c0b69bd3cc2e52099d461e0a54f3594a6b342c34ab
 HOST_VERSION = "0.2.44"   # host 0.2.44 (engine v28, shell generation 82), 2026-10-31; was 0.2.26; engine v21 + finding 154; was 0.2.24 (finding 145), 0.2.23 (link-batch §17), 0.2.14, 0.2.13, 0.2.12, 0.2.11, 0.2.10, 0.2.9, 0.2.8, 0.2.7
 # The host commit too (review 2026-09-29, implementation): a version string alone
 # lets a changed host with an unchanged info.xml through.
-HOST_COMMIT: str | None = "a97724f302ddc7eb7180a4d3fd6d4863bfd6952d"   # host 0.2.44 (engine v28, shell generation 82), 2026-10-31; was 3c01876; 0.2.26; was 1479e56 (finding 145), 2ccf1a9 (link-batch §17), 237f2cb, e028517, b245ae7, 6b53c2e, d87960d, 069de55, 4140e00, 0488586
+HOST_COMMIT: str | None = "a97724f"   # host 0.2.44 (engine v28, shell generation 82), 2026-10-31; was 3c01876; 0.2.26; was 1479e56 (finding 145), 2ccf1a9 (link-batch §17), 237f2cb, e028517, b245ae7, 6b53c2e, d87960d, 069de55, 4140e00, 0488586
 # arm -> (cells, browsers, rounds in a counted run)
 PLAN = {
     "U0": ("U0", BOTH, 3), "U1": ("U1", BOTH, 3), "Uwin": ("U-window", BOTH, 3), "U2": ("U2", BOTH, 3),

@@ -246,7 +246,7 @@ say "counted new_document exit $? :: $(grep -E 'NEW-DOCUMENT|NOT_ESTABLISHED|ref
 echo "$(ts) PRODUCT-PATH START tools: $(h $T/run_e2_c_product_path.py) clipboard wrapper $(h $T/run_v82_f3_clipboard.py)" >> $PP/chain.log
 for B in chrome firefox; do
   for N in 1 2 3; do
-    OUT=$PP/$B-r$N
+    OUT=$PWD/$PP/$B-r$N
     CMD="python3 $T/run_v82_f3_clipboard.py --browser $B --out $OUT"
     desk "before product-path v28 $B r$N"
     echo "$(ts) START v28 $B r$N :: $CMD" >> $PP/chain.log

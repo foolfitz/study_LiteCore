@@ -13,7 +13,9 @@ ROOT = Path(__file__).resolve().parents[3]
 HERE = Path(__file__).resolve().parent
 inventory = json.loads((HERE / "k-binding-inventory.json").read_bytes())
 WHY = "host 0.2.44 (engine v28, shell generation 82), 2026-10-31"
-sites = [(p["path"], p["symbol"], p["current"], p["candidate"]) for p in inventory["pinOccurrences"]
+# HOST_COMMIT is a prefix: the runners compare it with `git log --oneline`'s short hash (fixed by execution, see the README).
+sites = [(p["path"], p["symbol"], p["current"], p["candidate"][:7] if p["symbol"] == "HOST_COMMIT" else p["candidate"])
+         for p in inventory["pinOccurrences"]
          if p["differs"] and not p["frozenBy"] and isinstance(p["current"], str)]  # autosave's `PAGE_SHA256 = None` is its self-test's
 PAGE_OLD = "605cf24b3dff5a2de1d219ee59e79adc92048e46436d098b7c7a3d837761fa0f"
 PAGE_NEW = inventory["proposedMergeBinding"]["pageSha256"]
