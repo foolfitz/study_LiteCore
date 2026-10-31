@@ -56,6 +56,7 @@ from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import build_m3_release  # noqa: E402
+from k_static_target import static_target  # noqa: E402
 from check_m3_host_entry import saves_reached  # noqa: E402
 from check_m3_page_honesty import READ_RECORD, RECORDER  # noqa: E402
 from check_m3_skeleton_open import (  # noqa: E402
@@ -124,6 +125,15 @@ def asset_prefix(build: str) -> str:
     return f"/apps/litecore/r/{build}/"
 
 
+def pages_of(manifest: dict[str, Any]) -> set[str]:
+    """The package's documents, from its own page table (schema 3; before that, DOC).  The host renders a page at
+    `<page>?fileId=N`; the asset route never serves one, so K1 and Z1 have no file row for it (a bare GET is the 404 of
+    the witness, findings/evidence/m3-assets/shakedown/2026-10-31T065458+0000.json).  Read from the table, so a fourth
+    page needs no edit here.  SPEC-M3-K-0.2.44 append 1, H1."""
+    table = (manifest.get("source") or {}).get("pages")
+    return set(table) if isinstance(table, dict) and table else {DOC}
+
+
 def strip_front(path: str) -> str:
     return path[len("/index.php"):] if path.startswith("/index.php/") else path
 
@@ -167,6 +177,8 @@ def package_record(app: Path, repo: Path | None = None, rev: str | None = None) 
             "lastJsCommit": git_time("--", "js/"),
             "lastVersionCommit": git_time("-G<version>", "--", "appinfo/info.xml"),
             "derived": {f["path"]: f["sha256"] for f in derived["files"]},
+            # K2-1: what opening each page requests, derived as the union above is.
+            "pageFiles": {html: page["files"] for html, page in derived["pages"].items()},
             "files": files,
             "treeEntries": sorted(os.listdir(app)),
             "trackedDist": [t for t in tracked if t == "dist" or t.startswith("dist/")]}
@@ -297,8 +309,9 @@ def wire_record(instance: Instance, manifest: dict[str, Any], file_id: int, zstd
     address = location.split("/r/", 1)[1].split("/", 1)[0] if "/r/" in location else "?"
     base = instance.base + "/index.php" + asset_prefix(address)
     files = {}
+    pages = pages_of(manifest)
     for path in manifest["files"]:
-        if path == DOC:
+        if path in pages:
             continue
         files[path] = {"gzip": fetch(wire, base + path, "gzip", full_headers=zstd_step),
                        "identity": fetch(wire, base + path, "identity")}
@@ -350,8 +363,9 @@ def score_wire(w: dict[str, Any], manifest: dict[str, Any], zstd_step: bool = Tr
     match = ADDRESS.match(address)
     if not match or match.group("build") != build:
         bad.append(f"K1-4 address {address!r} is not <buildId {build}>-<8 hex>")
+    pages = pages_of(manifest)
     for path, entry in manifest["files"].items():
-        if path == DOC:
+        if path in pages:
             continue
         row = w["files"].get(path)
         if row is None:
@@ -426,8 +440,9 @@ def unquote(etag: str | None) -> str | None:
 def score_zstd_wire(w: dict[str, Any], manifest: dict[str, Any]) -> list[str]:
     """Z1 (SPEC-M3-zstd §4)."""
     bad = []
+    pages = pages_of(manifest)
     for path, entry in manifest["files"].items():
-        if path == DOC:
+        if path in pages:
             continue
         row = w["files"].get(path) or {}
         z = row.get("zstd")
@@ -630,7 +645,9 @@ def score_run(run: dict[str, Any], ctx: dict[str, Any]) -> list[str]:
     bad = []
     manifest = ctx["manifest"]
     prefix = asset_prefix(ctx["address"])
-    listed = set(manifest["files"])
+    # K2-1: the opened page's closure.  Opening one page cannot request another page's engine.  A report without the
+    # record keeps the whole manifest: an older one-page report as it was, a new three-page one red, not skipped.
+    listed = set((ctx.get("pageFiles") or {}).get(DOC) or manifest["files"])
     for label in ("first", "second"):
         o = run.get(label) or {}
         host = o.get("host") or {}
@@ -744,7 +761,8 @@ def zstd_step(report: dict[str, Any]) -> bool:
 def run_context(report: dict[str, Any]) -> dict[str, Any]:
     package = report.get("package") or {}
     return {"manifest": package.get("manifest") or {}, "address": (report.get("wire") or {}).get("address") or "?",
-            "noCache": package.get("noCacheFetches") or [], "zstd": zstd_step(report)}
+            "noCache": package.get("noCacheFetches") or [], "zstd": zstd_step(report),
+            "pageFiles": package.get("pageFiles")}
 
 
 # --------------------------------------------------------------------------
@@ -846,6 +864,10 @@ def _wasm_path(m: dict) -> str:
     return next(p for p in m["files"] if p.endswith("probe.wasm"))
 
 
+def _other_page_wasm(m: dict) -> str:
+    return next(p for p in m["files"] if p.endswith("probe.wasm") and "/e2-editor-" not in p)
+
+
 def _manifest_path(m: dict) -> str:
     # The served profile's manifest, next to its wasm (K1-6 named e2-editor-v19's literally until the v20 count).
     return _wasm_path(m).rsplit("/", 1)[0] + "/sdk-manifest.json"
@@ -897,6 +919,9 @@ WIRE_CASES = [
      lambda w, m: w["files"][_wasm_path(m)]["gzip"]["headers"].pop("content-encoding")),
     ("K1-1", "gzip body is not the packaged bytes",
      lambda w, m: w["files"][_wasm_path(m)]["gzip"].update(bodySha256="2" * 64)),
+    # SPEC-M3-K-0.2.44 append 1, H1: only the pages leave K1, another page's closure does not.
+    ("K1-1", "a file of another page's closure was not fetched",
+     lambda w, m: w["files"].pop(_other_page_wasm(m))),
     ("K1-1", "not immutable",
      lambda w, m: w["files"][_wasm_path(m)]["gzip"]["headers"].update({"cache-control": "private, max-age=31536000"})),
     ("K1-1", "max-age under a year",
@@ -973,6 +998,12 @@ RUN_CASES = [
     ("K2-1", "a request off the manifest",
      lambda r, c: r["first"]["log"].append(dict(r["first"]["log"][0], path=f"/index.php{asset_prefix(c['address'])}x.js",
                                                 target="x", status=200))),
+    # SPEC-M3-K-0.2.44 append 1, H1: K2-1 reads the opened page's closure, in both directions.
+    ("K2-1", "a file of the opened page was not requested",
+     lambda r, c: r["first"].update(log=[x for x in r["first"]["log"] if not x["path"].endswith("/e2-editor-app.js")])),
+    ("K2-1", "opening the Writer page requested another page's engine",
+     lambda r, c: r["first"]["log"].append(dict(_first_asset(r, c, "probe.wasm"), path=_first_asset(r, c, "probe.wasm")["path"]
+                                                .replace(_wasm_path(c["manifest"]), _other_page_wasm(c["manifest"]))))),
     ("K2-1", "a 404 under the app",
      lambda r, c: r["first"]["log"].append(dict(r["first"]["log"][0], path="/apps-extra/litecore/js/x.js", status=404))),
     ("K2-1", "an asset answered 206", lambda r, c: _first_asset(r, c, "probe.wasm").update(status=206)),
@@ -1154,8 +1185,7 @@ def main() -> int:
         print(f"refusing a counted run: the host repo has uncommitted changes:\n{dirty}")
         return 2
     if counted:
-        static["testStatic"] = subprocess.run(["make", "-C", str(PROJECT), "test-e2-c-static"],
-                                              capture_output=True, text=True).returncode
+        static.update(static_target(PROJECT))   # P6's reading of the named reds, not exit 0 (SPEC-M3-K-0.2.44 append 1, H2)
     instance = Instance(args.ddev_root)
     report: dict[str, Any] = {
         "runner": "check_m3_assets.py", "runnerSha256": sha256_file(Path(__file__)), "label": args.label,

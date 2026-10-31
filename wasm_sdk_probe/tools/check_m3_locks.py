@@ -39,6 +39,7 @@ from pathlib import Path
 from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+from k_static_target import static_target  # noqa: E402
 from check_m3_host_entry import CTRL_S, MARKER, PICKERS, host_record, requests_matching  # noqa: E402
 from check_m3_skeleton_open import (  # noqa: E402
     ACTION, DEFAULT_DDEV, FIXTURE, NAME, ROUTE, SAMPLE, Instance, binding_fields, host_binding, product_state, state_until)
@@ -1232,8 +1233,7 @@ def main() -> int:
         print(f"refusing a counted run: the host repo has uncommitted changes:\n{dirty}")
         return 2
     if counted:
-        static["testStatic"] = subprocess.run(["make", "-C", str(PROJECT), "test-e2-c-static"],
-                                              capture_output=True, text=True).returncode
+        static.update(static_target(PROJECT))   # P6's reading of the named reds, not exit 0 (SPEC-M3-K-0.2.44 append 1, H2)
     instance = Instance(args.ddev_root)
     log: list[dict[str, Any]] = []
     server = Server(instance, log)

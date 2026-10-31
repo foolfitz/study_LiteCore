@@ -41,6 +41,7 @@ from pathlib import Path
 from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+from k_static_target import static_target  # noqa: E402
 from check_m3_host_entry import CTRL_S, MARKER, host_record, paragraph_texts, server_file  # noqa: E402
 from check_m3_locks import (  # noqa: E402
     BAR, CENTER, OTHER, RO_NAME, LockChrome, Server, chrome_download_dir, downloaded, edit, edited, insert_marker,
@@ -1345,8 +1346,7 @@ def main() -> int:
         if PAGE_SHA256 is None or SESSION_SHA256 is None or HOST_COMMIT is None:
             print("refusing a counted run: PAGE_SHA256 / SESSION_SHA256 / HOST_COMMIT are not written down yet")
             return 2
-        static["testStatic"] = subprocess.run(["make", "-C", str(PROJECT), "test-e2-c-static"],
-                                              capture_output=True, text=True).returncode
+        static.update(static_target(PROJECT))   # P6's reading of the named reds, not exit 0 (SPEC-M3-K-0.2.44 append 1, H2)
     instance = Instance(args.ddev_root)
     log: list[dict[str, Any]] = []
     server = Server(instance, log)

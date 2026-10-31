@@ -59,6 +59,7 @@ from typing import Any
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import check_m3_page_honesty as ph  # noqa: E402
 import check_m3_production_ui as ui  # noqa: E402
+from k_static_target import static_target  # noqa: E402
 from check_m3_host_entry import MARKER, server_file  # noqa: E402
 from check_m3_locks import (  # noqa: E402
     STRANDED, Server, attempts, edit, edited, idle, login, open_from_files, save, wire)
@@ -1333,8 +1334,7 @@ def main() -> int:
         return 2
     static, binding = ph.static_facts(args.ddev_root)
     if counted:
-        static["testStatic"] = subprocess.run(["make", "-C", str(PROJECT), "test-e2-c-static"],
-                                              capture_output=True, text=True).returncode
+        static.update(static_target(PROJECT))   # P6's reading of the named reds, not exit 0 (SPEC-M3-K-0.2.44 append 1, H2)
         refuse = binding_problems({"static": static, "hostRepo": binding["hostRepo"], "hostDirty": binding["hostDirty"]})
         if refuse:
             print("refusing a counted run: " + "; ".join(refuse))

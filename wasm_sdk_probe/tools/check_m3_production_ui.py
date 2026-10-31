@@ -92,6 +92,9 @@ SESSION_SHA256: str | None = "d037eaa4c0b69bd3cc2e52099d461e0a54f3594a6b342c34ab
 HOST_VERSION: str | None = "0.2.44"   # host 0.2.44 (engine v28, shell generation 82), 2026-10-31; was 0.2.26; engine v21 + finding 154; was 0.2.24 (finding 145), 0.2.23 (link-batch §17), 0.2.14, 0.2.13, 0.2.12
 HOST_COMMIT: str | None = "a97724f"   # host 0.2.44 (engine v28, shell generation 82), 2026-10-31; was 3c01876; 0.2.26; was 1479e56 (finding 145), 2ccf1a9 (link-batch §17), 237f2cb, e028517, b245ae7
 SHELL_BUNDLE_SHA256: str | None = "a02673fa0dd34b6b0c9852d0428970368e6322342d83bc08d3d6967ea568ee52"   # host 0.2.44 (engine v28, shell generation 82), 2026-10-31; was 27f33a13d6047202; v74; was v73 6ab20f68, v72 4dc10507, v63 318b3bf2, v62 75e29eb2, v61 f48df85b, v60 784a1d93, v59 ad65480a, v58 a6f9331a, v57 1aed21b1
+# The generation the check below asks about.  build_e2_c_shell_bundle.py's own default stays v76 (it is bound and is not
+# edited), and asked about v76 this tree exits 1, so a counted run would refuse.  SPEC-M3-K-0.2.44 append 1, H3.
+SHELL_MANIFEST = "e2/editor-shell-v2-bundle-v82.json"
 DOC_SHA256: str | None = "7b336879547df057ae6d38e907f221b40c90c37cd65d2df5afceceb91941657e"
 # 0.2.7's places, calibrated on v8's layout (findings/evidence/109/README.md):
 # inside the first body paragraph; the blank right of the heading 「一、序言」;
@@ -632,25 +635,54 @@ def static_facts(root: Path) -> dict[str, Any]:
             "boundaryNoop": boundary_noop_keying(root / "engine")}
 
 
+def editor_wasm(manifest: dict[str, Any]) -> tuple[str, str | None]:
+    """The wasm these arms run and the sha256 the page table says it is.  Since schema 3 a package carries one wasm per
+    page, so "the only probe.wasm" no longer names it: the page table's editor row does (SPEC-M3-K-0.2.44 append 1, H4).
+    A package without a page table keeps the old rule: exactly one wasm."""
+    page = ((manifest.get("source") or {}).get("pages") or {}).get("e2-editor.html")
+    if page is not None:
+        return f"profiles/{page['profile']}/probe.wasm", page["wasmSha256"]
+    wasms = [p for p in (manifest.get("files") or {}) if p.endswith("/probe.wasm")]
+    if len(wasms) != 1:
+        raise ValueError(f"{len(wasms)} probe.wasm entries in the manifest: {wasms}")
+    return wasms[0], None
+
+
+def editor_abi(engine: Path, manifest: dict[str, Any], wasm: str) -> int | None:
+    """`editorContract.abiVersion` of the profile `wasm` belongs to, from the package's own copy, checked as the wasm
+    is.  None when that profile declares no editor contract (the ODS viewer, an engine before it)."""
+    path = wasm.rsplit("/", 1)[0] + "/sdk-manifest.json"
+    data = gzip.decompress((engine / "files" / (path + ".gz")).read_bytes())
+    if hashlib.sha256(data).hexdigest() != manifest["files"][path]["sha256"]:
+        raise ValueError(f"{path}: decoded bytes are not the manifest's")
+    return (json.loads(data).get("editorContract") or {}).get("abiVersion")
+
+
 def boundary_noop_keying(engine: Path) -> dict[str, Any]:
     """Whether the engine THE HOST SERVES carries C's no-op completion (SPEC-M3-link-batch 10.5, 10.7), read from
     the bytes of the packaged wasm (`files/<profile>/probe.wasm.gz`, decoded, its sha256 checked against the
-    manifest's) -- the merge runner's keying.  Fail-closed: no wasm entry, two of them, an undecodable copy or a
-    sha256 that is not the manifest's -> `declared` None with the reason; a run then refuses to start and a score
-    reads the R arms red.  Recorded in the report (`static.boundaryNoop`) so a re-judge reads it from there; a report
-    older than this key is re-judged with `--engine <archived package>` (its buildId must be the report's)."""
+    manifest's) -- the merge runner's keying.  Fail-closed: no wasm entry, two of them without a page table, an
+    undecodable copy or a sha256 that is not the manifest's or the page table's -> `declared` None with the reason; a
+    run then refuses to start and a score reads the R arms red.  Recorded in the report (`static.boundaryNoop`) so a
+    re-judge reads it from there; a report older than this key is re-judged with `--engine <archived package>` (its
+    buildId must be the report's)."""
     try:
         manifest = json.loads((engine / "MANIFEST.json").read_text())
-        wasms = [p for p in (manifest.get("files") or {}) if p.endswith("/probe.wasm")]
-        if len(wasms) != 1:
-            raise ValueError(f"{len(wasms)} probe.wasm entries in the manifest: {wasms}")
-        path = wasms[0]
+        path, table_sha = editor_wasm(manifest)
         copy_gz = engine / "files" / (path + ".gz")
         data = gzip.decompress(copy_gz.read_bytes())
         digest = hashlib.sha256(data).hexdigest()
         if digest != manifest["files"][path]["sha256"]:
             raise ValueError(f"decoded {digest[:16]} != manifest {manifest['files'][path]['sha256'][:16]}")
-        return {"declared": BOUNDARY_NOOP_FRAGMENT in data, "buildId": manifest.get("buildId"), "wasm": path,
+        if table_sha not in (None, digest):
+            raise ValueError(f"decoded {digest[:16]} != the page table's {table_sha[:16]}")
+        fragment = BOUNDARY_NOOP_FRAGMENT in data
+        abi = editor_abi(engine, manifest, path)
+        # SPEC-M3-ordered-commands.md's wasm-bytes clause: "v23's readers look at the manifest's editorContract.abiVersion >= 6".
+        # Its premise that the fragment stays in the bytes is false since v23 (the completion is composed at run time),
+        # measured in SPEC-M3-K-0.2.44 append 1, H4.  An engine with ABI >= 6 carries C; before that, the fragment says.
+        return {"declared": fragment or (abi is not None and abi >= 6), "fragmentInWasm": fragment, "abiVersion": abi,
+                "buildId": manifest.get("buildId"), "wasm": path,
                 "wasmSha256": digest, "fragment": BOUNDARY_NOOP_FRAGMENT.decode(), "readFrom": str(copy_gz)}
     except Exception as error:  # noqa: BLE001 -- every failure is the same answer: not keyed, fail closed
         return {"declared": None, "buildId": None, "error": f"{type(error).__name__}: {error}"}
@@ -659,8 +691,8 @@ def boundary_noop_keying(engine: Path) -> dict[str, Any]:
 def shell_bundle() -> dict[str, Any]:
     """The frozen generation's own tool, asked its question (no --write): exit 0
     means the tree and dist/ are exactly what the named manifest records."""
-    answer = subprocess.run([sys.executable, str(PROJECT / "tools" / "build_e2_c_shell_bundle.py")],
-                            capture_output=True, text=True)
+    answer = subprocess.run([sys.executable, str(PROJECT / "tools" / "build_e2_c_shell_bundle.py"),
+                             "--manifest", SHELL_MANIFEST], capture_output=True, text=True)
     try:
         said = json.loads(answer.stdout)
     except json.JSONDecodeError:
