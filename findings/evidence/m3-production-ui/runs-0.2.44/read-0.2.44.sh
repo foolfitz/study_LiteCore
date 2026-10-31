@@ -85,11 +85,11 @@ rep=$(newest_after findings/evidence/new-document/runs)
 tail -3 "$E/red-cases-new-document.txt"
 
 # 4. the merge count: the historical reds copied in, then the frozen judge --uncounted (K ruling items 1, 2) and the counted-ness reader (item 3)
-echo; echo "== 4. merge count: judge_counted_m2.py --dir $MM --profile e2-editor-v28 --uncounted (expected exit 4)"
+echo; echo "== 4. merge count: judge_k_0244_merge.py --dir $MM --profile e2-editor-v28 --uncounted (expected exit 4, keying abiVersion 6; spec append 2)"
 for B in chrome firefox; do
   [ -e "$MM/red-$B.json" ] || { cp findings/evidence/release-0.2.26/merge-m2/red-$B.json findings/evidence/release-0.2.26/merge-m2/red-$B.stderr.txt "$MM/"; cp -r findings/evidence/release-0.2.26/merge-m2/red-$B.docs "$MM/"; }
 done
-python3 $T/judge_counted_m2.py --dir "$MM" --profile e2-editor-v28 --uncounted > "$MM/judge-output.txt" 2>&1
+python3 $T/judge_k_0244_merge.py --dir "$MM" --profile e2-editor-v28 --uncounted > "$MM/judge-output.txt" 2>&1
 code=$?
 { echo "exit=$code"; echo "reader $(sha256sum $T/judge_counted_m2.py | cut -d' ' -f1)"; echo "runner $(sha256sum $T/run_merge_wasm_shakedown.py | cut -d' ' -f1)";
   echo "wasm $(sha256sum wasm_sdk_probe/dist/profiles/e2-editor-v28/probe.wasm | cut -d' ' -f1)"; echo "judged $(date -u +%FT%TZ) from chain $STAMP"; } > "$MM/judge-exit.txt"

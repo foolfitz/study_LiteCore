@@ -60,6 +60,11 @@ from run_e2_c_page_smoke import PRESS, navigate  # noqa: E402
 EVIDENCE = REPO / "findings" / "evidence" / "m3-same-second"
 SNAME = "M3 同秒 測試.odt"
 PLAN = {"same-second": ("R2", ("chrome", "firefox"), 3), "same-second-foreign": ("R3", ("chrome", "firefox"), 3)}
+# R3's press, as a phase of a wall-clock second: X has to land in S1's second.  On v21 S1 settled 0.30 s after the press and
+# 0.05 fitted; on v28 press-to-bytes went from 0.22 s to 0.61 s, S1 settles at 0.67 s, X takes 0.32 s, so 0.05 + 0.67 + 0.32
+# crosses into the next second (first contact 2026-10-31, 0/2, clause `premise`).  At 0.60 S1 lands near .25 of the next
+# second and X near .60.  SPEC-M3-K-0.2.44 append 2.
+FOREIGN_PHASE = 0.60
 # ruling D shipped as 0.2.2; SPEC-M3-page-honesty §7.6/§7.11 re-ran it on 0.2.4; SPEC-M3-zstd Z3
 # re-runs it on 0.2.5 (written 2026-09-30 before that run).
 HOST_VERSION = "0.2.44"   # host 0.2.44 (engine v28, shell generation 82), 2026-10-31; was 0.2.26; host 0.2.26 (engine v21, shell v74, finding 154's host rule), 2026-10-17; was 0.2.24 (finding 145, v73), 0.2.23 (SPEC-M3-link-batch §17), 0.2.14, 0.2.13, 0.2.12, 0.2.11, 0.2.10, 0.2.9, 0.2.8, 0.2.7
@@ -181,7 +186,7 @@ def run_foreign(kind: str, server: SServer, scratch: Path) -> dict[str, Any]:
         open_from_files(session, server.instance.base, "", SNAME, record)
         record["afterOpen"] = server.props(server.admin, SNAME)
         before = evaluate(session, SETTLED)[0]
-        wait = (0.05 - time.time() % 1) % 1
+        wait = (FOREIGN_PHASE - time.time() % 1) % 1
         time.sleep(wait if wait > 0.02 else wait + 1)
         record["pressedAt"] = round(time.time(), 3)
         evaluate(session, BUTTON)

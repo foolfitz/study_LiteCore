@@ -1,0 +1,77 @@
+{
+ "tool": "check_keying.py red-cases",
+ "held": 14,
+ "of": 14,
+ "rows": [
+  {
+   "check": "the bound v28 wasm is on the ordered table, by its ABI, without the fragment",
+   "ok": true,
+   "detail": "{'fragmentInBytes': False, 'abiVersion': 6, 'manifestWasmSha256': '13f674e498a56c8af68e1caaba36e861f9cb4ec83dd7ab865a9e4106cbd0b3bb', 'servedWasmSha256': '13f674e498a56c8af68e1caaba36e861f9cb4ec83dd7ab865a9e4106cbd0b3bb', 'boundWasmSha256': '13f674e498a56c8af68e1caaba36e861f9cb4ec83dd7ab865a9e4106cb"
+  },
+  {
+   "check": "v21 stays on the C table",
+   "ok": true,
+   "detail": "c"
+  },
+  {
+   "check": "v19 stays on the refusal table",
+   "ok": true,
+   "detail": "refusal"
+  },
+  {
+   "check": "all five expect the no-op under the ordered table",
+   "ok": true,
+   "detail": "{'C15': ['verified-boundary-noop', None, None], 'C16': ['verified-boundary-noop', None, None], 'C17': ['verified-boundary-noop', None, None], 'C29': ['verified-boundary-noop', None, None], 'C30': ['verified-boundary-noop', None, None]}"
+  },
+  {
+   "check": "kept documents are the ruling's after-key 78, follow 63, reopened 0",
+   "ok": true,
+   "detail": "['{\"after-key\": 78, \"follow\": 63, \"reopened\": 0}']"
+  },
+  {
+   "check": "refused-k2-* is not moved",
+   "ok": true,
+   "detail": "['[\"M2-3\", \"refused\", \"return-mismatch\", false]']"
+  },
+  {
+   "check": "R1 the wrapper refuses the v8 profile before any browser",
+   "ok": true,
+   "detail": "--candidate-profile e2-editor-v8: this wrapper runs the count's profile, e2-editor-v28"
+  },
+  {
+   "check": "R2 inert on ABI 5: wrapped stdout equals the bare judge's, exit 4 both",
+   "ok": true,
+   "detail": "(4, 4)"
+  },
+  {
+   "check": "R3 ABI forced to 6 on v21's records: FAIL, and on C15-C17",
+   "ok": true,
+   "detail": "('1', ['C15', 'C16', 'C17'])"
+  },
+  {
+   "check": "R4 the manifest does not name the served wasm: refused, the wrapper stops before a browser",
+   "ok": true,
+   "detail": "refusal"
+  },
+  {
+   "check": "R4 the served wasm is not the bound one: not the ordered table",
+   "ok": true,
+   "detail": "refusal"
+  },
+  {
+   "check": "R5 the smoke's refusal-branch records are not PASS under the ordered table",
+   "ok": true,
+   "detail": "{'C15': 'FAIL', 'C16': 'FAIL', 'C17': 'FAIL', 'C29': 'FAIL', 'C30': 'FAIL'}"
+  },
+  {
+   "check": "R7 the reader holds on a synthetic rebinding with a keying record",
+   "ok": true,
+   "detail": "{\n \"verdict\": \"K_MERGE_COUNTED\",\n \"problems\": []\n}\n"
+  },
+  {
+   "check": "R7 every reader mutation red, the three new ones included",
+   "ok": true,
+   "detail": "{\n \"selfTest\": \"ALL_RED\",\n \"results\": {\n  \"run-without-override-is-uncounted\": \"K_MERGE_NOT_COUNTED\",\n  \"one-flipped-bou"
+  }
+ ]
+}

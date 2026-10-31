@@ -10,8 +10,8 @@
   read_k_0244_merge.py --dir DIR            exit 0 iff K_MERGE_COUNTED
   read_k_0244_merge.py --dir DIR --self-test   each clause's mutation of a holding input must be red
 
-The verdict on the behaviour stays judge_counted_m2.py's (--uncounted, exit 4, red PASS, oneRunner); this reader only
-says what those reports are.
+The verdict on the behaviour stays judge_counted_m2.py's, through judge_k_0244_merge.py (spec append 2: --uncounted, exit
+4, red PASS, oneRunner); this reader only says what those reports are.
 """
 import argparse
 import copy
@@ -85,6 +85,13 @@ def read(reports, proposed, original, historical):
                     problems.append(f"{where}: stderr bytes {item['stderrBytes']}")
                 if not ((item["override"] or {}).get("binding") or {}).get("applied"):
                     problems.append(f"{where}: no applied binding override")
+                # Spec append 2: the table was keyed on these bytes, and the report's own candidate.boundaryNoop is
+                # superseded by this record.
+                keying = (item["override"] or {}).get("keying") or {}
+                if not (keying.get("applied") is True and keying.get("table") == "ordered-abi6"
+                        and isinstance(keying.get("abiVersion"), int) and keying["abiVersion"] >= 6
+                        and keying.get("manifestWasmSha256") == keying.get("servedWasmSha256") == bound.get("wasmSha256")):
+                    problems.append(f"{where}: keying record {keying}")
     return ("K_MERGE_COUNTED" if not problems else "K_MERGE_NOT_COUNTED"), problems
 
 
@@ -112,6 +119,9 @@ def mutations():
     yield "red-rebound", lambda r: r[("chrome", "red")]["report"].__setitem__("binding", dict(r[("chrome", "counted")]["report"]["binding"]))
     yield "red-not-historical", lambda r: r[("firefox", "red")].__setitem__("sha256", "0" * 64)
     yield "red-two-cases", lambda r: r[("chrome", "red")]["report"]["cases"].pop()
+    yield "no-keying-record", lambda r: r[("firefox", "counted")]["override"].pop("keying")
+    yield "served-wasm-is-not-bound", lambda r: r[("chrome", "control")]["override"]["keying"].__setitem__("servedWasmSha256", "0" * 64)
+    yield "abi-5-on-the-ordered-table", lambda r: r[("chrome", "m2-1b")]["override"]["keying"].__setitem__("abiVersion", 5)
 
 
 def main() -> int:

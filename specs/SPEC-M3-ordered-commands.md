@@ -536,3 +536,7 @@ as-char frame沿原object-click八臂（Bold／Delete／Backspace／Left，各�
 - 回覆欄位不變（`changed:true`、`uno-command-result`、revision+1；被凍結的客戶端不接受別的形狀），另加 `witness` ∈ {`uno-success`, `on-time-item`, `state-noop`}。§5.8 的詞彙不動；§16.5 的 proof-absent 計數不受影響，因為 UNO 結果有到。
 - 新具名限制 **L-noop-trusts-last-state-item**：快取過期，而且派送被拒時會誤判成立；v22 有同一個洞。
 - 實作在 `OXSDK_E2_V25_FORMAT_PROOF` 之下（`SPEC-M3-link-batch-v25` §4.1），v23、v24 的前置處理輸出不變。
+
+## 追加（2026-10-31，K 0.2.44 鏈前）：更正 §5.8 wasm 位元組偵測那句的前提
+
+`:151` 寫「字串照字面意思還在 `probe.wasm` 裡，`declared: true`」。實測 v21、v22 是 `true`，v23–v28 是 `false`：有序引擎在執行時才組這個字串。同句的處方（讀 `editorContract.abiVersion ≥ 6`）照用；但「修判讀工具、不修 runner」不夠，runner 的期望也要在行程內換，否則保留的文件種類不對。見 `findings/evidence/k-0.2.44/merge-keying/RULING.md` 與 `SPEC-M3-K-0.2.44` 追加 2。

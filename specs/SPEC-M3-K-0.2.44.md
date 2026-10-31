@@ -105,3 +105,42 @@ K NOT RUN，名義出貨版留 0.2.26。
 |---|---|
 | 2026-10-31 | 初版、釘死。 |
 | 2026-10-31 | 鏈前：Enter 重播改走薄包裝（原工具的 preflight 綁 v24 頁面，第一次拒絕）。讀法不變。 |
+
+## 11. 追加 1（2026-10-31 深夜，重跑之前、任何計數之前）
+
+第一次鏈停在 `shakedown assets`（`chain-stop-1.out`），沒有任何計數開始。照 §6「儀器紅先做紅案與證人再修」修 assets 時，順手普查了**只有計數模式才走的路徑**——shakedown 走不到，所以鏈第一次跑沒抓到——又查出三個。四個都是儀器，都會讓 8–10 小時的鏈白跑：
+
+| 代號 | 缺陷 | 不修的後果 | 證人 | 修法 |
+|---|---|---|---|---|
+| H1 | `check_m3_assets.py` 假設單頁套件：K1／Z1 對 `ods-*.html` 打資產路由（404），K2-1 要求開 Writer 頁請求到整份 manifest | shakedown STOP（已發生） | `m3-assets/shakedown/2026-10-31T065458+0000.json` | K1／Z1 跳過 manifest 頁面表裡的頁（工具封閉，第四頁不用改這裡）；K2-1 比「開啟頁自己的 closure」（`package.pageFiles`，`closure(DIST)` 導出）。缺這筆紀錄的新報告是紅，不是跳過 |
+| H2 | 六支計數 runner 跑 `make test-e2-c-static` 要 exit 0，而該 target 在這棵樹上 exit 2（§4.1 的具名紅） | page_honesty、locks、versions、assets、same_second 的計數結論全紅；**autosave 直接拒跑** | 當場實測 exit 2，4 秒停在第一個紅項 | `tools/k_static_target.py`：P6 的讀法，一份實作。`testStatic` 為 0 ⇔ `make -i` 成功且紅集合**恰好等於** `p6-named-reds.txt`，多一個少一個都不是 0。runner 的條款 `testStatic != 0` 不動，讀到的集合進報告 |
+| H3 | production UI 與 host_entry 問的是被綁工具的預設 manifest（v76），不是第 82 代 | **production UI 第一個計數步驟就拒跑**（`shell.exit` 1）；host_entry 也拒跑（五個檔不同） | `build_e2_c_shell_bundle.py` 無參數 exit 1 | 兩支 runner 明確釘 `e2/editor-shell-v2-bundle-v82.json`；被綁工具不改 |
+| H4 | production UI 的 C keying 要求 manifest 裡恰好一個 `probe.wasm`（現在三個），且 v23 起讀不到 fragment | **production UI 拒跑**（`declared None`）；就算修了張數，R 臂也會被拿去比「拒絕」 | `len(wasms) != 1`；v23–v28 的 wasm 沒有那段字面量 | 由頁面表取 Writer 的 wasm；`declared` ＝ fragment 或 `editorContract.abiVersion ≥ 6` |
+
+**H4 更正 `SPEC-M3-ordered-commands.md:151` 的前提**：該句寫「字串照字面意思還在 `probe.wasm` 裡，`declared: true`」。實測 v21、v22 是 `true`，v23–v28 是 `false`——有序引擎在執行時才組字串（`ordered_engine_delete.inc`）。同一句的處方（讀 ABI ≥ 6）照用。〔實測，`k-0.2.44/counted-paths/`〕
+
+**更正交接與 `k-0.2.44/README.md` 的「merge smoke 26/26」**：那是把 26 格的 `outcome` 數成通過。逐格 `pass` 是 **21 過、5 FAIL**（C15、C16、C17、C29、C30），見追加 2。
+
+**紅案**：`k-0.2.44/counted-paths/check_counted_paths.py` 33/33，含 assets `--red-cases` 166 個全紅、無缺項（新增三個：另一頁 closure 的檔沒抓到、開啟頁的檔沒請求、開 Writer 頁請求到別頁引擎）；0.2.26 計數報告的 wire 與 runs 判定不變。
+
+**P5 的窗口**：§7 的授權是給第一次鏈的。擁有者 2026-10-31 約 23:05 就重跑選 A「可以，到鏈結束」，`--owner-window` 引述這句。
+
+**§34.4**：因執行而修 +1（H1，shakedown 抓到），另外三個（H2–H4）是鏈前讀碼抓到、沒有執行過就修掉。
+
+## 12. 追加 2（2026-10-31 深夜，任何計數之前）：merge 的表、K5 的字句
+
+**逼出來的量測**：鏈前 merge smoke 在 v28 上逐格 `pass` 是 21 過、5 FAIL（C15、C16、C17、C29、C30），不是交接寫的 26/26。v23 起有序引擎依設計把這五格從「拒絕＋重開」改成 no-op（`SPEC-M3-ordered-commands` A4、A5、§16.2），而被綁的 runner 與 judge 還是 v20 的表，並用 wasm 裡的字面量判 C——v23 起那段字面量不在位元組裡。不處理 K5 永遠不成立。
+
+**裁決**：擁有者選 A 請 fable 裁決，全文 `findings/evidence/k-0.2.44/merge-keying/RULING.md`，主 session 已核對它依賴的事實。
+
+**K5（修訂，取代 §2 第 2 項與 §6 K5 的舊字句）**：`,"completion":"verified-boundary-noop"` 留在 wasm 位元組裡這個前提自 v23 起為假（`SPEC-M3-ordered-commands.md:151`）。C 由 `tools/run_k_0244_merge.py` 與 `tools/judge_k_0244_merge.py` 在行程內判定（`tools/k_0244_merge_keying.py`）：fragment，或 manifest `editorContract.abiVersion ≥ 6` 且 `editorContract.wasmSha256` 等於實際送出與綁定的 wasm；記成 override 檔的 `keying`，`read_k_0244_merge.py` 要求它。ABI ≥ 6 之下 R0c 的 `nothing-selected`、`key-noop`、`refused-k1-*` 期望 `verified-boundary-noop`，由 `noop_record` 判（文件＝原文＋marker、revision、generation、沒有 toast、游標）。K5 成立＝`judge_k_0244_merge.py --uncounted --profile e2-editor-v28` exit 4、`red PASS`、`oneRunner true`，且 keying 紀錄讀 `abiVersion 6`。runner（`aaee0cda`）與 `judge_counted_m2.py` 的位元組不改。
+
+**具名限制 L-K-0244-no-engine-refusal-exercised**：這次 K 沒有任何格走到 v28 的引擎拒絕（`reopened` 文件 0 份）。工作項：下一批找一個能走到 `EDITOR_BOUNDARY_UNSUPPORTED` 的夾具位置，先原生量，再立自己的判準。
+
+**鏡像證明是開鏈的前提**：五格兩瀏覽器，六個 no-op 條款逐格成立（`merge-keying/proof/`）。任一紅：STOP，K NOT RUN，開 finding。紅案 `merge-keying/red-cases/` 14/14。
+
+**計數中這五格紅就是產品紅**：K 不成立、開 finding、不重讀。
+
+**same-second R3 的相位**：first contact 兩瀏覽器 0/2，子句 `premise`：v28 的按存檔到位元組從 0.22 秒變 0.61 秒，S1 約 0.67 秒才 settled，X 的 PUT 0.32 秒，從每秒 .05 按下會跨到下一秒，於是根本量不到 103。產品當下是安全的（S2 得到 412）。只改按鍵相位 `FOREIGN_PHASE = 0.60`，`premise` 條款不動。存檔慢了約 0.39 秒是觀察項，不是 K 判準。
+
+**§34.4**：因執行而修 +2（merge 的字面量、R3 的相位）。
