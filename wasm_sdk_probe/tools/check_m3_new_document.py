@@ -98,16 +98,16 @@ def first_line(paper: str | None) -> tuple[str, str]:
 # the blank manifest is unchanged; the engine package and the page moved (shell v73).
 # Re-bound 2026-10-17 to host 0.2.26: git diff 1479e56..3c01876 touches only appinfo/info.xml and
 # templates/editor.php, so the blank manifest is unchanged; the engine package and the page moved (v21, shell v74).
-HOST_COMMIT: str | None = "3c01876"      # 0.2.26; was 1479e56 (0.2.24), 2ccf1a9 (0.2.23), afbaf3c (0.2.19)
-HOST_VERSION: str | None = "0.2.26"      # was 0.2.24, 0.2.23, 0.2.19
+HOST_COMMIT: str | None = "a97724f302ddc7eb7180a4d3fd6d4863bfd6952d"   # host 0.2.44 (engine v28, shell generation 82), 2026-10-31; was 3c01876; 0.2.26; was 1479e56 (0.2.24), 2ccf1a9 (0.2.23), afbaf3c (0.2.19)
+HOST_VERSION: str | None = "0.2.44"   # host 0.2.44 (engine v28, shell generation 82), 2026-10-31; was 0.2.26; was 0.2.24, 0.2.23, 0.2.19
 MANIFEST_SHA256: str | None = "e5cdb8e2f0311cc10ad543f918906144e73015352304385719b5f85bfd97eb04"
 # The engine the count runs on: the host's engine/MANIFEST.json buildId and its
 # declared e2-editor-app.js sha256.  None until the count binds them (review
 # 2026-10-14, Q3): a strict run on any host but DELTA_HOST_VERSION then reads
 # "binding not written" -- the count never inherits 0.2.19's engine clause.
 # Written 2026-10-15: host 0.2.23's package (engine v20, shell v72); was None.
-ENGINE_BUILD_ID: str | None = "f5f0df762e1855f2"   # 0.2.26 (v21, shell v74); was d3cd39bb (0.2.24, finding 145), c3c22d92 (0.2.23)
-PAGE_SHA256: str | None = "605cf24b3dff5a2de1d219ee59e79adc92048e46436d098b7c7a3d837761fa0f"   # 0.2.26; was 901dd6a6 (0.2.24), ccb67a52 (0.2.23)
+ENGINE_BUILD_ID: str | None = "dacdfa20fd4ff1ea"   # host 0.2.44 (engine v28, shell generation 82), 2026-10-31; was f5f0df762e1855f2; 0.2.26 (v21, shell v74); was d3cd39bb (0.2.24, finding 145), c3c22d92 (0.2.23)
+PAGE_SHA256: str | None = "3b0a2ebb92c3db282f9c832ab194249f963592698cf5c73d771998dc10203a6a"   # host 0.2.44 (engine v28, shell generation 82), 2026-10-31; was 605cf24b3dff5a2d; 0.2.26; was 901dd6a6 (0.2.24), ccb67a52 (0.2.23)
 # N9 as 0.2.19's acceptance: "0.2.19 changed only the host" -- the engine
 # package and page are 0.2.18's (host 96a87d8) and the host diff since 96a87d8
 # is within ALLOWED_CHANGED.  These three clauses are evaluated ONLY on a report

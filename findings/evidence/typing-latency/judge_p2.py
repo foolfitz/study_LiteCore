@@ -45,7 +45,7 @@ from pathlib import Path
 # Every committed P2 report ran on an earlier page: re-judge them with --page, or with this file from git history.
 # Re-pinned 2026-10-17 to host 0.2.26 (engine v21, shell v74, finding 154's host rule), 2026-10-17.  The previous pin, host 0.2.24's page, was
 # 901dd6a6dbff6ad6f5252814fb4dc09230446a11d75387fb447e8a6a398a68c2 (the 0.2.24 count's P2 ran on it).
-PAGE = "605cf24b3dff5a2de1d219ee59e79adc92048e46436d098b7c7a3d837761fa0f"
+PAGE = "3b0a2ebb92c3db282f9c832ab194249f963592698cf5c73d771998dc10203a6a"   # host 0.2.44 (engine v28, shell generation 82), 2026-10-31; was 605cf24b3dff5a2d
 RUNNER = "dbad93c0dcf27fbf"   # the probe writes the first 16 hex digits of its own sha256
 BROWSERS = ("chrome", "firefox")
 SLOTS = {  # slot: (document, gap, chars)
