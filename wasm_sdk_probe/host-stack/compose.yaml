@@ -23,6 +23,14 @@ services:
     restart: "no"
   web:
     image: ddev/ddev-webserver:v1.25.3-litecore-built
+    # The built image carries ddev's labels, and ddev finds "its" containers by them: `ddev stop litecore` removed the rehearsal's
+    # web container, and `ddev poweroff` would take this one.  Overridden so that ddev cannot see this stack at all.
+    labels:
+      com.ddev.platform: own-stack
+      com.ddev.site-name: own-stack
+      com.ddev.approot: own-stack
+      com.ddev.webtag: own-stack
+      com.ddev.app-type: own-stack
     command: ["/start.sh"]
     user: "1000:1000"
     hostname: ${STACK_NAME:?}-web
@@ -55,6 +63,10 @@ services:
     restart: "no"
   router:
     image: ddev/ddev-traefik-router:v1.25.3
+    labels:
+      com.ddev.platform: own-stack
+    healthcheck:
+      disable: true   # the image's check asks ddev's own admin port, which this config does not open
     entrypoint: ["/usr/local/bin/traefik", "--configFile=/etc/traefik/static.yaml"]
     command: []
     volumes:
