@@ -50,3 +50,7 @@ F3-83 run-01's own shape was `formatCacheBefore: 'true'` on the italic arm, so t
 | clear wait changed to the toast (`../../f3-83/diag_clear_wait.py`) | PASS, NE, NE | NE |
 
 So the move is not intermittent on Firefox (run-01 to run-04: 4 of 4), and removing the clear race does not remove it; Chrome then went NE too. Why `repro.py` missed it is open: its 720 arms never showed this shape. Each failing run breaks a different arm, in two shapes: the cache already `true` before the press, so the toggle asks for OFF; or the press correct, cache false to true, and the marker typed right after it does not carry the format. Next: `../../f3-83/diag-format-log/` logs every action and format value inside F3 itself.
+
+## Final (same day): finding 178
+
+The cell's cause was neither this race nor state broadcasts lagging replies: `format_arm` presses each format button twice, and the second press reads a cache v29 has already moved. `repro.py` never showed it because it retypes the procedure and left that line out. The race documented above is real and is a separate, smaller thing. See `findings/178-*.md` and `../../f3-83/README.md`.
