@@ -180,3 +180,20 @@ C2 三輪 PASS。`judge_p2` 第 1 輪 PASS，第 2、3 輪唯一的 FAIL 是 Chr
 **T2 在閘門裡的寫法**：§10 只把 T2 的結果寫在散文裡，沒有判讀工具的輸出，所以閘門直接從 `post-link/idle-*.json` 重算 8 種情況的中位數，並確認紅案（常駐全速）超過同一條公式。
 
 **F3-83 在閘門裡的寫法**：讀 `diag-single-press/equal.json`（`F3_83_EQUAL`、沒有移動、讀法一恰好是 F3-82 的四個問題），另外要求同一批位元組上的原工具仍是 `F3_83_MOVED`：那是這個讀法的紅案（finding 178）。
+
+## 16. 追加 7（2026-11-01，0.2.45 裝上之後）：§7 的結果
+
+0.2.45 已裝在自有 stack（host `eeac22c`、engine `623f51d2…`），Files 52/52，`post-install-identity` 成立。閘門紅案 24 個全紅（`findings/evidence/host-0.2.45/`）。
+
+| §7 項 | 結果 |
+|---|---|
+| 1. 宿主、Files | 52/52 |
+| 2. 擁有者手測打字 | **待擁有者** |
+| 3. `as5` | 6/6，`as5-held` 6/6：finding 177 第二症狀的推論成立，不開新 finding |
+| 4. P 臂 | 6/6 |
+| 5. `FOREIGN_PHASE` | 0.60 → **0.05** |
+| 6. 新 K 規格 | 等 §6 的 `boundaries` commit 門檻決定 |
+
+**`FOREIGN_PHASE`**：v29 上 S1 在按下後 +0.35–0.40 秒 settled，X 再 0.37–0.47 秒，全程最多 0.85 秒，從 .60 按下每次都跨秒（0/6，子句 `premise`）。預測先 commit（`e4725360b`）：改 0.05、`premise` 成立 6/6。結果 6/6，沒有任何紅條款。`premise` 條款沒有改。這不是放寬：相位只決定 X 落不落在 S1 的同一秒，也就是這一輪量不量得到 103。
+
+**本節改了 `tools/check_m3_same_second.py` 一行常數**：它不在 `live-bound-set` 裡，K 0.2.44 當時也是這樣改的；下一份 K 規格重新釘它的 `runnerSha256`。
