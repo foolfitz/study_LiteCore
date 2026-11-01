@@ -155,3 +155,28 @@ finding 177：v23 起打字每字 commit 從 4 ms 變 85 ms，上螢幕 13 ms �
 ## 14. 追加 5（2026-11-01）：T1 的結果
 
 C2 三輪 PASS。`judge_p2` 第 1 輪 PASS，第 2、3 輪唯一的 FAIL 是 Chrome `boundaries` commit 中位數 11.3、12.3 ms（門檻 ≤ 10）；Firefox 三輪 9、9.7、8.7。依 §6 不算 v29 失敗。**門檻要不要為有序引擎重定，等擁有者決定**，在那之前 K6 依 J-b.2 會紅。數字：`findings/evidence/v29-177/t1/`。
+
+## 15. 追加 6（2026-11-01，打包 0.2.45 之前）：宿主 0.2.45 的 delta 與閘門
+
+**§7 的「要 ddev 時段」作廢**：宿主已搬到自有 stack（`SPEC-M3-own-stack`），時段的理由隨 ddev 消失。`install-0.2.45.py` 不再讀 `slot.json`，`slot()` 改成確認 `ddev` 是介面卡、回報的是跑著的 litecore stack；沒有把 `host-stack/bin` 放在 PATH 最前面時，真的 ddev 會列出別的專案，安裝拒絕。
+
+**宣告的 delta**（用 `closure(dist)` 對封存的 0.2.44 MANIFEST 實算，不是用推的）：
+
+| 類別 | 內容 |
+|---|---|
+| 不變 | 40 筆 |
+| 改變，恰好 2 筆 | `e2-editor-app.js`、`e2-editor.html`（圖示工具列） |
+| 新增，恰好 4 筆 | `profiles/e2-editor-v29/` 的四個檔 |
+| 移除，恰好 4 筆 | `profiles/e2-editor-v28/` 的四個檔 |
+| 位元組相同 | `sdk-worker.js`（§2：沿用 v28 的 worker），變了就拒絕 |
+| 必須不同 | `probe.js`、`probe.wasm`、`sdk-manifest.json` |
+
+**這和前幾版不同的地方**：0.2.44 的腳本要求四個 profile 檔全部不同，v29 的 worker 逐位元組相同，照抄會被自己擋下來，所以 `SAME_BYTES` 改成 `sdk-worker.js`。另外 `e2-editor.html` 不在殼層 bundle 裡，打包多綁一條：必須等於身分模組的 `originalHtmlSha256`。
+
+**閘門**：0.2.44 的閘門全留，加上本規格 U、S、M、P、T1、T2、F3-83、F4-83、S4（含六個突變）、merge、寬限兩側、T4、V0′-83、E1-C、工具列，以及 `SPEC-M3-own-stack` 的 ST1、ST2／ST3、ST4。`prepare-release.py` 逐項讀檔，缺檔或值不符就拒絕打包。
+
+**T1 在閘門裡的寫法**：`judge_c2` 三輪 PASS；`judge_p2` 第 1 輪 PASS、第 2、3 輪只能有 `chrome boundaries-gap200 commit median` 這一行 FAIL。第二行 FAIL 出現就拒絕。這不是替擁有者裁定門檻（§14 仍開著），只是記下 §6 已經說過的話。
+
+**T2 在閘門裡的寫法**：§10 只把 T2 的結果寫在散文裡，沒有判讀工具的輸出，所以閘門直接從 `post-link/idle-*.json` 重算 8 種情況的中位數，並確認紅案（常駐全速）超過同一條公式。
+
+**F3-83 在閘門裡的寫法**：讀 `diag-single-press/equal.json`（`F3_83_EQUAL`、沒有移動、讀法一恰好是 F3-82 的四個問題），另外要求同一批位元組上的原工具仍是 `F3_83_MOVED`：那是這個讀法的紅案（finding 178）。

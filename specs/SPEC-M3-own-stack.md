@@ -72,3 +72,23 @@ ddev 是擁有者所有專案共用的，router 也是共用的。別的專案 `
 | 日期 | 修改 |
 |---|---|
 | 2026-11-01 | 草稿；演練一輪。 |
+| 2026-11-01 | 切換完成，ST1–ST4 全過（§9）。 |
+
+## 9. 追加（2026-11-01）：切換與 ST1–ST4 的結果
+
+**取代**檔頭的「切換未做」。擁有者同意後切換完成，宿主在 `https://litecore.localhost:18443`，ddev 的 `litecore` 已停。
+
+| 代號 | 結果 | 證據 |
+|---|---|---|
+| ST1 | 三份受保護文件、鎖表、7731 個檔、版本逐筆相同 | `findings/evidence/own-stack/cutover/` |
+| ST2 | `ST2_ST3_HOLD`：九個 runner 逐格比對 ddev 基線，四格不同都查清，全部是綠在新 stack | `own-stack/st2/reading.json`、`read_st2.py`（紅案 13 個全紅） |
+| ST3 | Files 實流程 52/52，檢查 id 與 0.2.44 相同 | 同上 |
+| ST4 | `ST4_HOLDS`：ddev 起停期間新 stack 的 status 219/219、DAV 45/45，ddev 那側同時段斷線兩次又 404 | `own-stack/st4/`（紅案 9 個全紅） |
+
+**ST2 的四格不同**：`same_second` 兩格是 runner 在基線之後改了按鍵相位（`FOREIGN_PHASE` 0.05 → 0.60，`3d78bd5c6`，錄下的按鍵相位確實從 .05 變 .60，也是這個修法第一次重跑）；`production_ui` 的 P 兩格是 runner 的保留清單在基線之後才補上 `paste-markdown`（`4c4e7b639`）。兩者都是儀器動了，不是 stack。
+
+**`assets` 的紅**：runner 從樹上導出 closure 和 dist 雜湊，樹已是 v29、宿主還是 0.2.44。判讀工具只把樹上導出的欄位換回基線，用 runner 自己的 `score()` 重判就 clean，對照組（弄壞一個 `.gz`）維持紅。這是「切換時樹與宿主不同步」的產物，宿主裝上 0.2.45 之後不再成立。
+
+**具名限制**：ST2 每個 runner 只跑一輪，只出現在重複裡的差異看不到；K 會重複。
+
+**ST1 的方法註記**：第 1 步的 snapshot 是經 PATH 選 stack 的同一支工具，所以比的是同一種讀法。

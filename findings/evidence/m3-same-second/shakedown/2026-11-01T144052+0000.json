@@ -1,0 +1,3190 @@
+{
+ "runner": "check_m3_same_second.py",
+ "runnerSha256": "cda0317a3d8849798a6defa48df6d3cd00be5f2381ad4eff372d22478569199c",
+ "label": "shakedown",
+ "startedAt": "2026-11-01T14:40:52+00:00",
+ "static": {
+  "page": {
+   "dist": "022d0cd0b5152f1ee9cabc74b10f5af2eb55935299228119a419ab717957759b",
+   "web": "022d0cd0b5152f1ee9cabc74b10f5af2eb55935299228119a419ab717957759b"
+  }
+ },
+ "hostRepo": "eeac22c27aa59f99a46cef10b441c196083d9073 Bump version to 0.2.45 for typing without main-loop ticks (finding 177) and the icon toolbar",
+ "hostDirty": "",
+ "hostFiles": {
+  "js/litecore-editor.js": "30bcac9df4c5525479d27db1e2be94805c6bcf66c74bb6309c7c513ed45dca86",
+  "lib/Controller/EditorController.php": "fd6d971a5b4ac6579f366b56ad7e282e849ea7b989699f69ab99531689354670",
+  "templates/editor.php": "3446ec9093d4d63883dd44364845f03cc6991707da1a251f80daa16be84fd36c"
+ },
+ "hostBinding": {
+  "appDir": "/home/jiajun/Projects/Nextcloud_Apps/litecore",
+  "sourceRepo": "/home/jiajun/Projects/Nextcloud_Apps/litecore"
+ },
+ "hostVersion": "0.2.45",
+ "baseUrl": "https://litecore.localhost:18443",
+ "original": {
+  "source": "e1-fixtures/multi-paragraph.odt",
+  "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934"
+ },
+ "intruder": {
+  "source": "e1-fixtures/list-contexts.odt",
+  "sha256": "bf10a4b011e7fab902afa6006253ccc2c08dd20d6c9787e8e97c13c704c23b5d"
+ },
+ "runs": [
+  {
+   "arm": "same-second-foreign",
+   "spec": "R3",
+   "browser": "chrome",
+   "startedAt": "2026-11-01T14:40:52+00:00",
+   "file": {
+    "user": "admin",
+    "path": "M3 同秒 測試.odt",
+    "adminPath": "M3 同秒 測試.odt"
+   },
+   "clearedLocks": "0",
+   "removedOld": 404,
+   "reset": {
+    "upload": 201,
+    "fileId": 27558
+   },
+   "copiesBefore": [],
+   "version": "Chrome/156.0.8078.47",
+   "login": {
+    "status": 200,
+    "url": "https://litecore.localhost:18443/apps/dashboard/"
+   },
+   "filesRow": true,
+   "filesRowSeconds": 0.05,
+   "clickedFrom": "https://litecore.localhost:18443/apps/files/files?dir=/",
+   "landed": "https://litecore.localhost:18443/index.php/apps/litecore/r/623f51d295ff6030-90d7bc2c/e2-editor.html?fileId=27558",
+   "host": {
+    "started": 1793544062788,
+    "done": true,
+    "steps": [
+     {
+      "step": "imported",
+      "at": 255
+     },
+     {
+      "step": "fetched",
+      "at": 338
+     },
+     {
+      "step": "opened",
+      "at": 2056,
+      "state": {
+       "state": "ready",
+       "doc": "M3 同秒 測試.odt",
+       "revision": "0",
+       "toast": "已開啟 M3 同秒 測試.odt"
+      }
+     }
+    ],
+    "saves": [
+     {
+      "at": 3050,
+      "name": "M3 同秒 測試.odt",
+      "bytes": 9732,
+      "attempts": [
+       {
+        "waited": 0,
+        "check": {
+         "at": 3050,
+         "status": 200,
+         "etag": "\"6ae74f7f104f5\"",
+         "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+         "ms": 46
+        },
+        "ifMatch": "\"6ae74f7f104f5\"",
+        "withToken": true,
+        "target": "original",
+        "at": 3096,
+        "respondedAt": 3208,
+        "status": 204
+       }
+      ],
+      "trigger": "manual",
+      "target": "original",
+      "sha256": "6a7e81c84f5ff70ef12e2268fb98021af31d603f2a79daa3c6e59f6a970b9c65",
+      "ifMatch": "\"6ae74f7f104f5\"",
+      "status": 204,
+      "etag": "\"1b6a498a9c65926bfa31906e58c24e3b\"",
+      "outcome": "saved",
+      "settled": true
+     },
+     {
+      "at": 5895,
+      "name": "M3 同秒 測試.odt",
+      "bytes": 9740,
+      "attempts": [
+       {
+        "waited": 0,
+        "check": {
+         "at": 5895,
+         "status": 200,
+         "etag": "\"c944e26b7b7c36aecbfc08b51a3d0e49\"",
+         "sha256": "bf10a4b011e7fab902afa6006253ccc2c08dd20d6c9787e8e97c13c704c23b5d",
+         "ms": 42
+        },
+        "ifMatch": "\"1b6a498a9c65926bfa31906e58c24e3b\"",
+        "withToken": true,
+        "target": "original",
+        "at": 5937,
+        "respondedAt": 5965,
+        "status": 412
+       }
+      ],
+      "trigger": "manual",
+      "target": "M3 同秒 測試（衝突副本 2026-11-01 224108）.odt",
+      "sha256": "aa8f3a13daa93d15f799c96859199897393828675e6dc0ac96143974ab83d784",
+      "ifMatch": "\"1b6a498a9c65926bfa31906e58c24e3b\"",
+      "tokenOnServer": true,
+      "status": 412,
+      "responseEtag": "\"c944e26b7b7c36aecbfc08b51a3d0e49\"",
+      "conflictCopy": {
+       "name": "M3 同秒 測試（衝突副本 2026-11-01 224108）.odt",
+       "url": "/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6%EF%BC%88%E8%A1%9D%E7%AA%81%E5%89%AF%E6%9C%AC%202026-11-01%20224108%EF%BC%89.odt",
+       "status": 201,
+       "etag": "\"4bf77236881eb996e7254dce8dcff97f\"",
+       "respondedAt": 6081
+      },
+      "outcome": "copy",
+      "settled": true
+     }
+    ],
+    "lock": {
+     "state": "held",
+     "status": 200,
+     "at": 288,
+     "refreshes": [],
+     "verified": true
+    },
+    "stranded": null,
+    "notice": "檔案在你開啟之後已被別處修改或移走，沒有覆寫。你的內容存在「M3 同秒 測試（衝突副本 2026-11-01 224108）.odt」，之後的存檔都會存到這份。",
+    "scope": "scoped",
+    "file": {
+     "id": 27558,
+     "name": "M3 同秒 測試.odt",
+     "size": 1343,
+     "etag": "803de6fd624d7858b623fa82828f31d8",
+     "writable": true
+    },
+    "isolation": {
+     "crossOriginIsolated": true,
+     "sharedArrayBuffer": true
+    },
+    "href": "https://litecore.localhost:18443/index.php/apps/litecore/r/623f51d295ff6030-90d7bc2c/e2-editor.html?fileId=27558",
+    "watchingPage": true,
+    "fetched": {
+     "status": 200,
+     "contentType": "application/vnd.oasis.opendocument.text",
+     "etag": "\"6ae74f7f104f5\"",
+     "bytes": 1343,
+     "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+     "at": 338
+    },
+    "handedReadOnly": false,
+    "finished": 2056,
+    "lastSaved": {
+     "at": 6081,
+     "trigger": "manual",
+     "target": "M3 同秒 測試（衝突副本 2026-11-01 224108）.odt"
+    }
+   },
+   "secondsToOpened": 2.53,
+   "pickers": {
+    "fixtureDisabled": true,
+    "openFileDisabled": true,
+    "fileDisabled": true,
+    "fixtureOptions": 0
+   },
+   "bar": {
+    "notice": "",
+    "barHidden": true,
+    "downloadHidden": true
+   },
+   "afterOpen": {
+    "status": 207,
+    "etag": "\"6ae74f7f104f5\"",
+    "fileid": "27558",
+    "lock": "1",
+    "lockOwner": "admin",
+    "lockOwnerType": "2",
+    "token": "opaquelocktoken:9284725f-1e0c-4df2-8c19-cac94767dc5f"
+   },
+   "pressedAt": 1793544065.6,
+   "s1SeenSettledAt": 1793544065.997,
+   "foreignPut": 204,
+   "foreignDoneAt": 1793544066.447,
+   "afterForeign": {
+    "status": 207,
+    "etag": "\"c944e26b7b7c36aecbfc08b51a3d0e49\"",
+    "fileid": "27558",
+    "lock": "1",
+    "lockOwner": "admin",
+    "lockOwnerType": "2",
+    "token": "opaquelocktoken:9284725f-1e0c-4df2-8c19-cac94767dc5f"
+   },
+   "foreignMtime": 1793544066,
+   "save2Seen": 2,
+   "save2State": {
+    "state": "ready",
+    "label": "就緒",
+    "revision": "0",
+    "pending": "0",
+    "checkpoint": "無",
+    "latency": "存回 失敗",
+    "doc": "M3 同秒 測試.odt",
+    "toast": "存回：CONFLICT：檔案在你開啟之後已被別處修改或移走，沒有覆寫。你的內容另存為「M3 同秒 測試（衝突副本 2026-11-01 224108）.odt」。",
+    "buttons": [
+     {
+      "action": "undo",
+      "disabled": false
+     },
+     {
+      "action": "redo",
+      "disabled": false
+     },
+     {
+      "action": "move-character-left",
+      "disabled": false
+     },
+     {
+      "action": "move-character-right",
+      "disabled": false
+     },
+     {
+      "action": "delete-backward",
+      "disabled": false
+     },
+     {
+      "action": "delete-forward",
+      "disabled": false
+     },
+     {
+      "action": "insert-paragraph-break",
+      "disabled": false
+     },
+     {
+      "action": "insert-line-break",
+      "disabled": false
+     },
+     {
+      "action": "set-bold",
+      "disabled": false
+     },
+     {
+      "action": "set-italic",
+      "disabled": false
+     },
+     {
+      "action": "set-underline",
+      "disabled": false
+     },
+     {
+      "action": "set-strikethrough",
+      "disabled": false
+     },
+     {
+      "action": "set-paragraph-heading",
+      "disabled": false
+     },
+     {
+      "action": "set-paragraph-body",
+      "disabled": false
+     },
+     {
+      "action": "set-list-unordered",
+      "disabled": false
+     },
+     {
+      "action": "set-list-ordered",
+      "disabled": false
+     },
+     {
+      "action": "set-list-none",
+      "disabled": false
+     },
+     {
+      "action": "insert-text",
+      "disabled": false
+     },
+     {
+      "action": "paste-markdown",
+      "disabled": false
+     },
+     {
+      "action": "save",
+      "disabled": false
+     }
+    ]
+   },
+   "serverAfter": {
+    "status": 200,
+    "sha256": "bf10a4b011e7fab902afa6006253ccc2c08dd20d6c9787e8e97c13c704c23b5d",
+    "bytes": 1558
+   },
+   "lockAfterSave": {
+    "status": 207,
+    "etag": "\"c944e26b7b7c36aecbfc08b51a3d0e49\"",
+    "fileid": "27558",
+    "lock": "1",
+    "lockOwner": "admin",
+    "lockOwnerType": "2",
+    "token": "opaquelocktoken:9284725f-1e0c-4df2-8c19-cac94767dc5f"
+   },
+   "copiesAfter": [
+    {
+     "name": "M3 同秒 測試（衝突副本 2026-11-01 224108）.odt",
+     "status": 200,
+     "sha256": "aa8f3a13daa93d15f799c96859199897393828675e6dc0ac96143974ab83d784",
+     "bytes": 9740
+    }
+   ],
+   "cdp": {
+    "documents": [
+     {
+      "url": "https://litecore.localhost:18443/index.php/apps/litecore/r/623f51d295ff6030-90d7bc2c/e2-editor.html?fileId=27558",
+      "status": 200,
+      "coop": "same-origin",
+      "coep": "require-corp",
+      "dip": null
+     }
+    ],
+    "loadingFailed": [
+     {
+      "url": "https://litecore.localhost:18443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+      "type": "Fetch",
+      "errorText": "net::ERR_ABORTED",
+      "blockedReason": null,
+      "corsError": null
+     },
+     {
+      "url": "https://litecore.localhost:18443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6%EF%BC%88%E8%A1%9D%E7%AA%81%E5%89%AF%E6%9C%AC%202026-11-01%20224108%EF%BC%89.odt",
+      "type": "Fetch",
+      "errorText": "net::ERR_ABORTED",
+      "blockedReason": null,
+      "corsError": null
+     }
+    ],
+    "errorLogs": [
+     {
+      "source": "network",
+      "text": "Failed to load resource: the server responded with a status of 412 ()",
+      "url": "https://litecore.localhost:18443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt"
+     }
+    ],
+    "exceptions": []
+   },
+   "fixtureRequests": [],
+   "davRequests": [
+    {
+     "method": "LOCK",
+     "url": "https://litecore.localhost:18443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": "Second-300"
+    },
+    {
+     "method": "PROPFIND",
+     "url": "https://litecore.localhost:18443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "GET",
+     "url": "https://litecore.localhost:18443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "GET",
+     "url": "https://litecore.localhost:18443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "PUT",
+     "url": "https://litecore.localhost:18443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": "\"6ae74f7f104f5\"",
+     "if": "(<opaquelocktoken:9284725f-1e0c-4df2-8c19-cac94767dc5f>)",
+     "timeout": null
+    },
+    {
+     "method": "GET",
+     "url": "https://litecore.localhost:18443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "PUT",
+     "url": "https://litecore.localhost:18443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": "\"1b6a498a9c65926bfa31906e58c24e3b\"",
+     "if": "(<opaquelocktoken:9284725f-1e0c-4df2-8c19-cac94767dc5f>)",
+     "timeout": null
+    },
+    {
+     "method": "PROPFIND",
+     "url": "https://litecore.localhost:18443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "PUT",
+     "url": "https://litecore.localhost:18443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6%EF%BC%88%E8%A1%9D%E7%AA%81%E5%89%AF%E6%9C%AC%202026-11-01%20224108%EF%BC%89.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    }
+   ],
+   "clearedAtEnd": "0",
+   "registered": [
+    {
+     "s1": [
+      {
+       "waited": 0,
+       "check": {
+        "at": 3050,
+        "status": 200,
+        "etag": "\"6ae74f7f104f5\"",
+        "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+        "ms": 46
+       },
+       "ifMatch": "\"6ae74f7f104f5\"",
+       "withToken": true,
+       "target": "original",
+       "at": 3096,
+       "respondedAt": 3208,
+       "status": 204
+      }
+     ],
+     "sha256": "6a7e81c84f5ff70ef12e2268fb98021af31d603f2a79daa3c6e59f6a970b9c65"
+    },
+    {
+     "s1": [
+      {
+       "waited": 0,
+       "check": {
+        "at": 5895,
+        "status": 200,
+        "etag": "\"c944e26b7b7c36aecbfc08b51a3d0e49\"",
+        "sha256": "bf10a4b011e7fab902afa6006253ccc2c08dd20d6c9787e8e97c13c704c23b5d",
+        "ms": 42
+       },
+       "ifMatch": "\"1b6a498a9c65926bfa31906e58c24e3b\"",
+       "withToken": true,
+       "target": "original",
+       "at": 5937,
+       "respondedAt": 5965,
+       "status": 412
+      }
+     ],
+     "sha256": "aa8f3a13daa93d15f799c96859199897393828675e6dc0ac96143974ab83d784"
+    }
+   ]
+  },
+  {
+   "arm": "same-second-foreign",
+   "spec": "R3",
+   "browser": "chrome",
+   "startedAt": "2026-11-01T14:41:12+00:00",
+   "file": {
+    "user": "admin",
+    "path": "M3 同秒 測試.odt",
+    "adminPath": "M3 同秒 測試.odt"
+   },
+   "clearedLocks": "0",
+   "removedOld": 204,
+   "reset": {
+    "upload": 201,
+    "fileId": 27562
+   },
+   "copiesBefore": [],
+   "version": "Chrome/156.0.8078.47",
+   "login": {
+    "status": 200,
+    "url": "https://litecore.localhost:18443/apps/dashboard/"
+   },
+   "filesRow": true,
+   "filesRowSeconds": 0.06,
+   "clickedFrom": "https://litecore.localhost:18443/apps/files/files?dir=/",
+   "landed": "https://litecore.localhost:18443/index.php/apps/litecore/r/623f51d295ff6030-90d7bc2c/e2-editor.html?fileId=27562",
+   "host": {
+    "started": 1793544082908,
+    "done": true,
+    "steps": [
+     {
+      "step": "imported",
+      "at": 275
+     },
+     {
+      "step": "fetched",
+      "at": 357
+     },
+     {
+      "step": "opened",
+      "at": 2077,
+      "state": {
+       "state": "ready",
+       "doc": "M3 同秒 測試.odt",
+       "revision": "0",
+       "toast": "已開啟 M3 同秒 測試.odt"
+      }
+     }
+    ],
+    "saves": [
+     {
+      "at": 2925,
+      "name": "M3 同秒 測試.odt",
+      "bytes": 9732,
+      "attempts": [
+       {
+        "waited": 0,
+        "check": {
+         "at": 2925,
+         "status": 200,
+         "etag": "\"6ae74f9332049\"",
+         "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+         "ms": 39
+        },
+        "ifMatch": "\"6ae74f9332049\"",
+        "withToken": true,
+        "target": "original",
+        "at": 2964,
+        "respondedAt": 3067,
+        "status": 204
+       }
+      ],
+      "trigger": "manual",
+      "target": "original",
+      "sha256": "87e1218cd9abd073f2959b4775848d989dcda6faa38e2f9549c9055d159ee12a",
+      "ifMatch": "\"6ae74f9332049\"",
+      "status": 204,
+      "etag": "\"a5a9203e8b83caca37fc8d9fcc8e6a99\"",
+      "outcome": "saved",
+      "settled": true
+     },
+     {
+      "at": 5793,
+      "name": "M3 同秒 測試.odt",
+      "bytes": 9740,
+      "attempts": [
+       {
+        "waited": 0,
+        "check": {
+         "at": 5793,
+         "status": 200,
+         "etag": "\"d763b5a186d5568f24a536df2657ebe8\"",
+         "sha256": "bf10a4b011e7fab902afa6006253ccc2c08dd20d6c9787e8e97c13c704c23b5d",
+         "ms": 45
+        },
+        "ifMatch": "\"a5a9203e8b83caca37fc8d9fcc8e6a99\"",
+        "withToken": true,
+        "target": "original",
+        "at": 5839,
+        "respondedAt": 5867,
+        "status": 412
+       }
+      ],
+      "trigger": "manual",
+      "target": "M3 同秒 測試（衝突副本 2026-11-01 224128）.odt",
+      "sha256": "0f7653f180ca5341a10f7b02a757b245d5adfc0e7f6e382d4d67a70263828233",
+      "ifMatch": "\"a5a9203e8b83caca37fc8d9fcc8e6a99\"",
+      "tokenOnServer": true,
+      "status": 412,
+      "responseEtag": "\"d763b5a186d5568f24a536df2657ebe8\"",
+      "conflictCopy": {
+       "name": "M3 同秒 測試（衝突副本 2026-11-01 224128）.odt",
+       "url": "/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6%EF%BC%88%E8%A1%9D%E7%AA%81%E5%89%AF%E6%9C%AC%202026-11-01%20224128%EF%BC%89.odt",
+       "status": 201,
+       "etag": "\"15fa8cd75f155c250b63a1b26360c84e\"",
+       "respondedAt": 5979
+      },
+      "outcome": "copy",
+      "settled": true
+     }
+    ],
+    "lock": {
+     "state": "held",
+     "status": 200,
+     "at": 307,
+     "refreshes": [],
+     "verified": true
+    },
+    "stranded": null,
+    "notice": "檔案在你開啟之後已被別處修改或移走，沒有覆寫。你的內容存在「M3 同秒 測試（衝突副本 2026-11-01 224128）.odt」，之後的存檔都會存到這份。",
+    "scope": "scoped",
+    "file": {
+     "id": 27562,
+     "name": "M3 同秒 測試.odt",
+     "size": 1343,
+     "etag": "812cb58d241dd5f8540e0177519c46ed",
+     "writable": true
+    },
+    "isolation": {
+     "crossOriginIsolated": true,
+     "sharedArrayBuffer": true
+    },
+    "href": "https://litecore.localhost:18443/index.php/apps/litecore/r/623f51d295ff6030-90d7bc2c/e2-editor.html?fileId=27562",
+    "watchingPage": true,
+    "fetched": {
+     "status": 200,
+     "contentType": "application/vnd.oasis.opendocument.text",
+     "etag": "\"6ae74f9332049\"",
+     "bytes": 1343,
+     "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+     "at": 357
+    },
+    "handedReadOnly": false,
+    "finished": 2077,
+    "lastSaved": {
+     "at": 5979,
+     "trigger": "manual",
+     "target": "M3 同秒 測試（衝突副本 2026-11-01 224128）.odt"
+    }
+   },
+   "secondsToOpened": 2.53,
+   "pickers": {
+    "fixtureDisabled": true,
+    "openFileDisabled": true,
+    "fileDisabled": true,
+    "fixtureOptions": 0
+   },
+   "bar": {
+    "notice": "",
+    "barHidden": true,
+    "downloadHidden": true
+   },
+   "afterOpen": {
+    "status": 207,
+    "etag": "\"6ae74f9332049\"",
+    "fileid": "27562",
+    "lock": "1",
+    "lockOwner": "admin",
+    "lockOwnerType": "2",
+    "token": "opaquelocktoken:e5920d42-9a3e-4ed6-91aa-b102a06a5d43"
+   },
+   "pressedAt": 1793544085.6,
+   "s1SeenSettledAt": 1793544085.977,
+   "foreignPut": 204,
+   "foreignDoneAt": 1793544086.442,
+   "afterForeign": {
+    "status": 207,
+    "etag": "\"d763b5a186d5568f24a536df2657ebe8\"",
+    "fileid": "27562",
+    "lock": "1",
+    "lockOwner": "admin",
+    "lockOwnerType": "2",
+    "token": "opaquelocktoken:e5920d42-9a3e-4ed6-91aa-b102a06a5d43"
+   },
+   "foreignMtime": 1793544086,
+   "save2Seen": 2,
+   "save2State": {
+    "state": "ready",
+    "label": "就緒",
+    "revision": "0",
+    "pending": "0",
+    "checkpoint": "無",
+    "latency": "存回 失敗",
+    "doc": "M3 同秒 測試.odt",
+    "toast": "存回：CONFLICT：檔案在你開啟之後已被別處修改或移走，沒有覆寫。你的內容另存為「M3 同秒 測試（衝突副本 2026-11-01 224128）.odt」。",
+    "buttons": [
+     {
+      "action": "undo",
+      "disabled": false
+     },
+     {
+      "action": "redo",
+      "disabled": false
+     },
+     {
+      "action": "move-character-left",
+      "disabled": false
+     },
+     {
+      "action": "move-character-right",
+      "disabled": false
+     },
+     {
+      "action": "delete-backward",
+      "disabled": false
+     },
+     {
+      "action": "delete-forward",
+      "disabled": false
+     },
+     {
+      "action": "insert-paragraph-break",
+      "disabled": false
+     },
+     {
+      "action": "insert-line-break",
+      "disabled": false
+     },
+     {
+      "action": "set-bold",
+      "disabled": false
+     },
+     {
+      "action": "set-italic",
+      "disabled": false
+     },
+     {
+      "action": "set-underline",
+      "disabled": false
+     },
+     {
+      "action": "set-strikethrough",
+      "disabled": false
+     },
+     {
+      "action": "set-paragraph-heading",
+      "disabled": false
+     },
+     {
+      "action": "set-paragraph-body",
+      "disabled": false
+     },
+     {
+      "action": "set-list-unordered",
+      "disabled": false
+     },
+     {
+      "action": "set-list-ordered",
+      "disabled": false
+     },
+     {
+      "action": "set-list-none",
+      "disabled": false
+     },
+     {
+      "action": "insert-text",
+      "disabled": false
+     },
+     {
+      "action": "paste-markdown",
+      "disabled": false
+     },
+     {
+      "action": "save",
+      "disabled": false
+     }
+    ]
+   },
+   "serverAfter": {
+    "status": 200,
+    "sha256": "bf10a4b011e7fab902afa6006253ccc2c08dd20d6c9787e8e97c13c704c23b5d",
+    "bytes": 1558
+   },
+   "lockAfterSave": {
+    "status": 207,
+    "etag": "\"d763b5a186d5568f24a536df2657ebe8\"",
+    "fileid": "27562",
+    "lock": "1",
+    "lockOwner": "admin",
+    "lockOwnerType": "2",
+    "token": "opaquelocktoken:e5920d42-9a3e-4ed6-91aa-b102a06a5d43"
+   },
+   "copiesAfter": [
+    {
+     "name": "M3 同秒 測試（衝突副本 2026-11-01 224128）.odt",
+     "status": 200,
+     "sha256": "0f7653f180ca5341a10f7b02a757b245d5adfc0e7f6e382d4d67a70263828233",
+     "bytes": 9740
+    }
+   ],
+   "cdp": {
+    "documents": [
+     {
+      "url": "https://litecore.localhost:18443/index.php/apps/litecore/r/623f51d295ff6030-90d7bc2c/e2-editor.html?fileId=27562",
+      "status": 200,
+      "coop": "same-origin",
+      "coep": "require-corp",
+      "dip": null
+     }
+    ],
+    "loadingFailed": [
+     {
+      "url": "https://litecore.localhost:18443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+      "type": "Fetch",
+      "errorText": "net::ERR_ABORTED",
+      "blockedReason": null,
+      "corsError": null
+     },
+     {
+      "url": "https://litecore.localhost:18443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6%EF%BC%88%E8%A1%9D%E7%AA%81%E5%89%AF%E6%9C%AC%202026-11-01%20224128%EF%BC%89.odt",
+      "type": "Fetch",
+      "errorText": "net::ERR_ABORTED",
+      "blockedReason": null,
+      "corsError": null
+     }
+    ],
+    "errorLogs": [
+     {
+      "source": "network",
+      "text": "Failed to load resource: the server responded with a status of 412 ()",
+      "url": "https://litecore.localhost:18443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt"
+     }
+    ],
+    "exceptions": []
+   },
+   "fixtureRequests": [],
+   "davRequests": [
+    {
+     "method": "LOCK",
+     "url": "https://litecore.localhost:18443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": "Second-300"
+    },
+    {
+     "method": "PROPFIND",
+     "url": "https://litecore.localhost:18443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "GET",
+     "url": "https://litecore.localhost:18443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "GET",
+     "url": "https://litecore.localhost:18443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "PUT",
+     "url": "https://litecore.localhost:18443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": "\"6ae74f9332049\"",
+     "if": "(<opaquelocktoken:e5920d42-9a3e-4ed6-91aa-b102a06a5d43>)",
+     "timeout": null
+    },
+    {
+     "method": "GET",
+     "url": "https://litecore.localhost:18443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "PUT",
+     "url": "https://litecore.localhost:18443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": "\"a5a9203e8b83caca37fc8d9fcc8e6a99\"",
+     "if": "(<opaquelocktoken:e5920d42-9a3e-4ed6-91aa-b102a06a5d43>)",
+     "timeout": null
+    },
+    {
+     "method": "PROPFIND",
+     "url": "https://litecore.localhost:18443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "PUT",
+     "url": "https://litecore.localhost:18443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6%EF%BC%88%E8%A1%9D%E7%AA%81%E5%89%AF%E6%9C%AC%202026-11-01%20224128%EF%BC%89.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    }
+   ],
+   "clearedAtEnd": "0",
+   "registered": [
+    {
+     "s1": [
+      {
+       "waited": 0,
+       "check": {
+        "at": 2925,
+        "status": 200,
+        "etag": "\"6ae74f9332049\"",
+        "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+        "ms": 39
+       },
+       "ifMatch": "\"6ae74f9332049\"",
+       "withToken": true,
+       "target": "original",
+       "at": 2964,
+       "respondedAt": 3067,
+       "status": 204
+      }
+     ],
+     "sha256": "87e1218cd9abd073f2959b4775848d989dcda6faa38e2f9549c9055d159ee12a"
+    },
+    {
+     "s1": [
+      {
+       "waited": 0,
+       "check": {
+        "at": 5793,
+        "status": 200,
+        "etag": "\"d763b5a186d5568f24a536df2657ebe8\"",
+        "sha256": "bf10a4b011e7fab902afa6006253ccc2c08dd20d6c9787e8e97c13c704c23b5d",
+        "ms": 45
+       },
+       "ifMatch": "\"a5a9203e8b83caca37fc8d9fcc8e6a99\"",
+       "withToken": true,
+       "target": "original",
+       "at": 5839,
+       "respondedAt": 5867,
+       "status": 412
+      }
+     ],
+     "sha256": "0f7653f180ca5341a10f7b02a757b245d5adfc0e7f6e382d4d67a70263828233"
+    }
+   ]
+  },
+  {
+   "arm": "same-second-foreign",
+   "spec": "R3",
+   "browser": "chrome",
+   "startedAt": "2026-11-01T14:41:32+00:00",
+   "file": {
+    "user": "admin",
+    "path": "M3 同秒 測試.odt",
+    "adminPath": "M3 同秒 測試.odt"
+   },
+   "clearedLocks": "0",
+   "removedOld": 204,
+   "reset": {
+    "upload": 201,
+    "fileId": 27566
+   },
+   "copiesBefore": [],
+   "version": "Chrome/156.0.8078.47",
+   "login": {
+    "status": 200,
+    "url": "https://litecore.localhost:18443/apps/dashboard/"
+   },
+   "filesRow": true,
+   "filesRowSeconds": 0.05,
+   "clickedFrom": "https://litecore.localhost:18443/apps/files/files?dir=/",
+   "landed": "https://litecore.localhost:18443/index.php/apps/litecore/r/623f51d295ff6030-90d7bc2c/e2-editor.html?fileId=27566",
+   "host": {
+    "started": 1793544102983,
+    "done": true,
+    "steps": [
+     {
+      "step": "imported",
+      "at": 249
+     },
+     {
+      "step": "fetched",
+      "at": 331
+     },
+     {
+      "step": "opened",
+      "at": 1850,
+      "state": {
+       "state": "ready",
+       "doc": "M3 同秒 測試.odt",
+       "revision": "0",
+       "toast": null
+      }
+     }
+    ],
+    "saves": [
+     {
+      "at": 2840,
+      "name": "M3 同秒 測試.odt",
+      "bytes": 9732,
+      "attempts": [
+       {
+        "waited": 0,
+        "check": {
+         "at": 2841,
+         "status": 200,
+         "etag": "\"6ae74fa73e88f\"",
+         "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+         "ms": 40
+        },
+        "ifMatch": "\"6ae74fa73e88f\"",
+        "withToken": true,
+        "target": "original",
+        "at": 2881,
+        "respondedAt": 2986,
+        "status": 204
+       }
+      ],
+      "trigger": "manual",
+      "target": "original",
+      "sha256": "9a2f572898b7dd3c92d341bb625596571e1d7cbaa46ac9ff48867a9bf5850e45",
+      "ifMatch": "\"6ae74fa73e88f\"",
+      "status": 204,
+      "etag": "\"fb5dcda7eaa717c5867cbccb76db038c\"",
+      "outcome": "saved",
+      "settled": true
+     },
+     {
+      "at": 5579,
+      "name": "M3 同秒 測試.odt",
+      "bytes": 9740,
+      "attempts": [
+       {
+        "waited": 0,
+        "check": {
+         "at": 5579,
+         "status": 200,
+         "etag": "\"775102c809e69d492104d12f4d651f58\"",
+         "sha256": "bf10a4b011e7fab902afa6006253ccc2c08dd20d6c9787e8e97c13c704c23b5d",
+         "ms": 37
+        },
+        "ifMatch": "\"fb5dcda7eaa717c5867cbccb76db038c\"",
+        "withToken": true,
+        "target": "original",
+        "at": 5616,
+        "respondedAt": 5641,
+        "status": 412
+       }
+      ],
+      "trigger": "manual",
+      "target": "M3 同秒 測試（衝突副本 2026-11-01 224148）.odt",
+      "sha256": "4e6c128be0a40b5cf7d29af71be3009b314aa423f85bfddd708b64a53d35dd75",
+      "ifMatch": "\"fb5dcda7eaa717c5867cbccb76db038c\"",
+      "tokenOnServer": true,
+      "status": 412,
+      "responseEtag": "\"775102c809e69d492104d12f4d651f58\"",
+      "conflictCopy": {
+       "name": "M3 同秒 測試（衝突副本 2026-11-01 224148）.odt",
+       "url": "/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6%EF%BC%88%E8%A1%9D%E7%AA%81%E5%89%AF%E6%9C%AC%202026-11-01%20224148%EF%BC%89.odt",
+       "status": 201,
+       "etag": "\"db4950f17bc0053dddfc8d3b00cfa21c\"",
+       "respondedAt": 5754
+      },
+      "outcome": "copy",
+      "settled": true
+     }
+    ],
+    "lock": {
+     "state": "held",
+     "status": 200,
+     "at": 283,
+     "refreshes": [],
+     "verified": true
+    },
+    "stranded": null,
+    "notice": "檔案在你開啟之後已被別處修改或移走，沒有覆寫。你的內容存在「M3 同秒 測試（衝突副本 2026-11-01 224148）.odt」，之後的存檔都會存到這份。",
+    "scope": "scoped",
+    "file": {
+     "id": 27566,
+     "name": "M3 同秒 測試.odt",
+     "size": 1343,
+     "etag": "0bd25e9e617d5fbba2ca7108dea03bba",
+     "writable": true
+    },
+    "isolation": {
+     "crossOriginIsolated": true,
+     "sharedArrayBuffer": true
+    },
+    "href": "https://litecore.localhost:18443/index.php/apps/litecore/r/623f51d295ff6030-90d7bc2c/e2-editor.html?fileId=27566",
+    "watchingPage": true,
+    "fetched": {
+     "status": 200,
+     "contentType": "application/vnd.oasis.opendocument.text",
+     "etag": "\"6ae74fa73e88f\"",
+     "bytes": 1343,
+     "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+     "at": 331
+    },
+    "handedReadOnly": false,
+    "finished": 1850,
+    "lastSaved": {
+     "at": 5754,
+     "trigger": "manual",
+     "target": "M3 同秒 測試（衝突副本 2026-11-01 224148）.odt"
+    }
+   },
+   "secondsToOpened": 2.23,
+   "pickers": {
+    "fixtureDisabled": true,
+    "openFileDisabled": true,
+    "fileDisabled": true,
+    "fixtureOptions": 0
+   },
+   "bar": {
+    "notice": "",
+    "barHidden": true,
+    "downloadHidden": true
+   },
+   "afterOpen": {
+    "status": 207,
+    "etag": "\"6ae74fa73e88f\"",
+    "fileid": "27566",
+    "lock": "1",
+    "lockOwner": "admin",
+    "lockOwnerType": "2",
+    "token": "opaquelocktoken:9007316e-52ac-457d-ba40-136496e64c1b"
+   },
+   "pressedAt": 1793544105.6,
+   "s1SeenSettledAt": 1793544105.971,
+   "foreignPut": 204,
+   "foreignDoneAt": 1793544106.343,
+   "afterForeign": {
+    "status": 207,
+    "etag": "\"775102c809e69d492104d12f4d651f58\"",
+    "fileid": "27566",
+    "lock": "1",
+    "lockOwner": "admin",
+    "lockOwnerType": "2",
+    "token": "opaquelocktoken:9007316e-52ac-457d-ba40-136496e64c1b"
+   },
+   "foreignMtime": 1793544106,
+   "save2Seen": 2,
+   "save2State": {
+    "state": "ready",
+    "label": "就緒",
+    "revision": "0",
+    "pending": "0",
+    "checkpoint": "無",
+    "latency": "存回 失敗",
+    "doc": "M3 同秒 測試.odt",
+    "toast": "存回：CONFLICT：檔案在你開啟之後已被別處修改或移走，沒有覆寫。你的內容另存為「M3 同秒 測試（衝突副本 2026-11-01 224148）.odt」。",
+    "buttons": [
+     {
+      "action": "undo",
+      "disabled": false
+     },
+     {
+      "action": "redo",
+      "disabled": false
+     },
+     {
+      "action": "move-character-left",
+      "disabled": false
+     },
+     {
+      "action": "move-character-right",
+      "disabled": false
+     },
+     {
+      "action": "delete-backward",
+      "disabled": false
+     },
+     {
+      "action": "delete-forward",
+      "disabled": false
+     },
+     {
+      "action": "insert-paragraph-break",
+      "disabled": false
+     },
+     {
+      "action": "insert-line-break",
+      "disabled": false
+     },
+     {
+      "action": "set-bold",
+      "disabled": false
+     },
+     {
+      "action": "set-italic",
+      "disabled": false
+     },
+     {
+      "action": "set-underline",
+      "disabled": false
+     },
+     {
+      "action": "set-strikethrough",
+      "disabled": false
+     },
+     {
+      "action": "set-paragraph-heading",
+      "disabled": false
+     },
+     {
+      "action": "set-paragraph-body",
+      "disabled": false
+     },
+     {
+      "action": "set-list-unordered",
+      "disabled": false
+     },
+     {
+      "action": "set-list-ordered",
+      "disabled": false
+     },
+     {
+      "action": "set-list-none",
+      "disabled": false
+     },
+     {
+      "action": "insert-text",
+      "disabled": false
+     },
+     {
+      "action": "paste-markdown",
+      "disabled": false
+     },
+     {
+      "action": "save",
+      "disabled": false
+     }
+    ]
+   },
+   "serverAfter": {
+    "status": 200,
+    "sha256": "bf10a4b011e7fab902afa6006253ccc2c08dd20d6c9787e8e97c13c704c23b5d",
+    "bytes": 1558
+   },
+   "lockAfterSave": {
+    "status": 207,
+    "etag": "\"775102c809e69d492104d12f4d651f58\"",
+    "fileid": "27566",
+    "lock": "1",
+    "lockOwner": "admin",
+    "lockOwnerType": "2",
+    "token": "opaquelocktoken:9007316e-52ac-457d-ba40-136496e64c1b"
+   },
+   "copiesAfter": [
+    {
+     "name": "M3 同秒 測試（衝突副本 2026-11-01 224148）.odt",
+     "status": 200,
+     "sha256": "4e6c128be0a40b5cf7d29af71be3009b314aa423f85bfddd708b64a53d35dd75",
+     "bytes": 9740
+    }
+   ],
+   "cdp": {
+    "documents": [
+     {
+      "url": "https://litecore.localhost:18443/index.php/apps/litecore/r/623f51d295ff6030-90d7bc2c/e2-editor.html?fileId=27566",
+      "status": 200,
+      "coop": "same-origin",
+      "coep": "require-corp",
+      "dip": null
+     }
+    ],
+    "loadingFailed": [
+     {
+      "url": "https://litecore.localhost:18443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+      "type": "Fetch",
+      "errorText": "net::ERR_ABORTED",
+      "blockedReason": null,
+      "corsError": null
+     },
+     {
+      "url": "https://litecore.localhost:18443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6%EF%BC%88%E8%A1%9D%E7%AA%81%E5%89%AF%E6%9C%AC%202026-11-01%20224148%EF%BC%89.odt",
+      "type": "Fetch",
+      "errorText": "net::ERR_ABORTED",
+      "blockedReason": null,
+      "corsError": null
+     }
+    ],
+    "errorLogs": [
+     {
+      "source": "network",
+      "text": "Failed to load resource: the server responded with a status of 412 ()",
+      "url": "https://litecore.localhost:18443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt"
+     }
+    ],
+    "exceptions": []
+   },
+   "fixtureRequests": [],
+   "davRequests": [
+    {
+     "method": "LOCK",
+     "url": "https://litecore.localhost:18443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": "Second-300"
+    },
+    {
+     "method": "PROPFIND",
+     "url": "https://litecore.localhost:18443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "GET",
+     "url": "https://litecore.localhost:18443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "GET",
+     "url": "https://litecore.localhost:18443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "PUT",
+     "url": "https://litecore.localhost:18443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": "\"6ae74fa73e88f\"",
+     "if": "(<opaquelocktoken:9007316e-52ac-457d-ba40-136496e64c1b>)",
+     "timeout": null
+    },
+    {
+     "method": "GET",
+     "url": "https://litecore.localhost:18443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "PUT",
+     "url": "https://litecore.localhost:18443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": "\"fb5dcda7eaa717c5867cbccb76db038c\"",
+     "if": "(<opaquelocktoken:9007316e-52ac-457d-ba40-136496e64c1b>)",
+     "timeout": null
+    },
+    {
+     "method": "PROPFIND",
+     "url": "https://litecore.localhost:18443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "PUT",
+     "url": "https://litecore.localhost:18443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6%EF%BC%88%E8%A1%9D%E7%AA%81%E5%89%AF%E6%9C%AC%202026-11-01%20224148%EF%BC%89.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    }
+   ],
+   "clearedAtEnd": "0",
+   "registered": [
+    {
+     "s1": [
+      {
+       "waited": 0,
+       "check": {
+        "at": 2841,
+        "status": 200,
+        "etag": "\"6ae74fa73e88f\"",
+        "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+        "ms": 40
+       },
+       "ifMatch": "\"6ae74fa73e88f\"",
+       "withToken": true,
+       "target": "original",
+       "at": 2881,
+       "respondedAt": 2986,
+       "status": 204
+      }
+     ],
+     "sha256": "9a2f572898b7dd3c92d341bb625596571e1d7cbaa46ac9ff48867a9bf5850e45"
+    },
+    {
+     "s1": [
+      {
+       "waited": 0,
+       "check": {
+        "at": 5579,
+        "status": 200,
+        "etag": "\"775102c809e69d492104d12f4d651f58\"",
+        "sha256": "bf10a4b011e7fab902afa6006253ccc2c08dd20d6c9787e8e97c13c704c23b5d",
+        "ms": 37
+       },
+       "ifMatch": "\"fb5dcda7eaa717c5867cbccb76db038c\"",
+       "withToken": true,
+       "target": "original",
+       "at": 5616,
+       "respondedAt": 5641,
+       "status": 412
+      }
+     ],
+     "sha256": "4e6c128be0a40b5cf7d29af71be3009b314aa423f85bfddd708b64a53d35dd75"
+    }
+   ]
+  },
+  {
+   "arm": "same-second-foreign",
+   "spec": "R3",
+   "browser": "firefox",
+   "startedAt": "2026-11-01T14:41:52+00:00",
+   "file": {
+    "user": "admin",
+    "path": "M3 同秒 測試.odt",
+    "adminPath": "M3 同秒 測試.odt"
+   },
+   "clearedLocks": "0",
+   "removedOld": 204,
+   "reset": {
+    "upload": 201,
+    "fileId": 27570
+   },
+   "copiesBefore": [],
+   "version": "157.0.1",
+   "login": "https://litecore.localhost:18443/apps/dashboard/",
+   "filesRow": true,
+   "filesRowSeconds": 0.01,
+   "clickedFrom": "https://litecore.localhost:18443/apps/files/files?dir=/",
+   "landed": "https://litecore.localhost:18443/index.php/apps/litecore/r/623f51d295ff6030-90d7bc2c/e2-editor.html?fileId=27570",
+   "host": {
+    "started": 1793544119546,
+    "done": true,
+    "steps": [
+     {
+      "step": "imported",
+      "at": 252
+     },
+     {
+      "step": "fetched",
+      "at": 338
+     },
+     {
+      "step": "opened",
+      "at": 2256,
+      "state": {
+       "state": "ready",
+       "doc": "M3 同秒 測試.odt",
+       "revision": "0",
+       "toast": "已開啟 M3 同秒 測試.odt"
+      }
+     }
+    ],
+    "saves": [
+     {
+      "at": 3254,
+      "name": "M3 同秒 測試.odt",
+      "bytes": 9734,
+      "attempts": [
+       {
+        "waited": 0,
+        "check": {
+         "at": 3254,
+         "status": 200,
+         "etag": "\"6ae74fb7c88e0\"",
+         "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+         "ms": 32
+        },
+        "ifMatch": "\"6ae74fb7c88e0\"",
+        "withToken": true,
+        "target": "original",
+        "at": 3286,
+        "respondedAt": 3396,
+        "status": 204
+       }
+      ],
+      "trigger": "manual",
+      "target": "original",
+      "sha256": "114872d9ebfdc5645d6c97237f26dd9eee94e9de2af1332954c0cee930cd48ee",
+      "ifMatch": "\"6ae74fb7c88e0\"",
+      "status": 204,
+      "etag": "\"7fd6ba9e6873ec1cee9acf9a78bcaf59\"",
+      "outcome": "saved",
+      "settled": true
+     },
+     {
+      "at": 6058,
+      "name": "M3 同秒 測試.odt",
+      "bytes": 9743,
+      "attempts": [
+       {
+        "waited": 0,
+        "check": {
+         "at": 6058,
+         "status": 200,
+         "etag": "\"d278cbfe06ec3ffa9d226b1122146a45\"",
+         "sha256": "bf10a4b011e7fab902afa6006253ccc2c08dd20d6c9787e8e97c13c704c23b5d",
+         "ms": 43
+        },
+        "ifMatch": "\"7fd6ba9e6873ec1cee9acf9a78bcaf59\"",
+        "withToken": true,
+        "target": "original",
+        "at": 6101,
+        "respondedAt": 6130,
+        "status": 412
+       }
+      ],
+      "trigger": "manual",
+      "target": "M3 同秒 測試（衝突副本 2026-11-01 224205）.odt",
+      "sha256": "f10ee24ab1c29b71d9e0c5cfd36c333c266bba0379dd3ab029e93f59a4992880",
+      "ifMatch": "\"7fd6ba9e6873ec1cee9acf9a78bcaf59\"",
+      "tokenOnServer": true,
+      "status": 412,
+      "responseEtag": "\"d278cbfe06ec3ffa9d226b1122146a45\"",
+      "conflictCopy": {
+       "name": "M3 同秒 測試（衝突副本 2026-11-01 224205）.odt",
+       "url": "/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6%EF%BC%88%E8%A1%9D%E7%AA%81%E5%89%AF%E6%9C%AC%202026-11-01%20224205%EF%BC%89.odt",
+       "status": 201,
+       "etag": "\"150ff158558bc707a4084957ea99a7b1\"",
+       "respondedAt": 6240
+      },
+      "outcome": "copy",
+      "settled": true
+     }
+    ],
+    "lock": {
+     "state": "held",
+     "status": 200,
+     "at": 283,
+     "refreshes": [],
+     "verified": true
+    },
+    "stranded": null,
+    "notice": "檔案在你開啟之後已被別處修改或移走，沒有覆寫。你的內容存在「M3 同秒 測試（衝突副本 2026-11-01 224205）.odt」，之後的存檔都會存到這份。",
+    "scope": "scoped",
+    "file": {
+     "id": 27570,
+     "name": "M3 同秒 測試.odt",
+     "size": 1343,
+     "etag": "090a02404fbf0dc51af3fef047292765",
+     "writable": true
+    },
+    "isolation": {
+     "crossOriginIsolated": true,
+     "sharedArrayBuffer": true
+    },
+    "href": "https://litecore.localhost:18443/index.php/apps/litecore/r/623f51d295ff6030-90d7bc2c/e2-editor.html?fileId=27570",
+    "watchingPage": true,
+    "fetched": {
+     "status": 200,
+     "contentType": "application/vnd.oasis.opendocument.text",
+     "etag": "\"6ae74fb7c88e0\"",
+     "bytes": 1343,
+     "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+     "at": 338
+    },
+    "handedReadOnly": false,
+    "finished": 2256,
+    "lastSaved": {
+     "at": 6240,
+     "trigger": "manual",
+     "target": "M3 同秒 測試（衝突副本 2026-11-01 224205）.odt"
+    }
+   },
+   "secondsToOpened": 2.8,
+   "pickers": {
+    "fixtureDisabled": true,
+    "openFileDisabled": true,
+    "fileDisabled": true,
+    "fixtureOptions": 0
+   },
+   "bar": {
+    "notice": "",
+    "barHidden": true,
+    "downloadHidden": true
+   },
+   "afterOpen": {
+    "status": 207,
+    "etag": "\"6ae74fb7c88e0\"",
+    "fileid": "27570",
+    "lock": "1",
+    "lockOwner": "admin",
+    "lockOwnerType": "2",
+    "token": "opaquelocktoken:96dbaeac-66f8-4d35-9598-2b218cbc0ef1"
+   },
+   "pressedAt": 1793544122.6,
+   "s1SeenSettledAt": 1793544122.945,
+   "foreignPut": 204,
+   "foreignDoneAt": 1793544123.401,
+   "afterForeign": {
+    "status": 207,
+    "etag": "\"d278cbfe06ec3ffa9d226b1122146a45\"",
+    "fileid": "27570",
+    "lock": "1",
+    "lockOwner": "admin",
+    "lockOwnerType": "2",
+    "token": "opaquelocktoken:96dbaeac-66f8-4d35-9598-2b218cbc0ef1"
+   },
+   "foreignMtime": 1793544123,
+   "save2Seen": 2,
+   "save2State": {
+    "state": "ready",
+    "label": "就緒",
+    "revision": "0",
+    "pending": "0",
+    "checkpoint": "無",
+    "latency": "存回 失敗",
+    "doc": "M3 同秒 測試.odt",
+    "toast": "存回：CONFLICT：檔案在你開啟之後已被別處修改或移走，沒有覆寫。你的內容另存為「M3 同秒 測試（衝突副本 2026-11-01 224205）.odt」。",
+    "buttons": [
+     {
+      "action": "undo",
+      "disabled": false
+     },
+     {
+      "action": "redo",
+      "disabled": false
+     },
+     {
+      "action": "move-character-left",
+      "disabled": false
+     },
+     {
+      "action": "move-character-right",
+      "disabled": false
+     },
+     {
+      "action": "delete-backward",
+      "disabled": false
+     },
+     {
+      "action": "delete-forward",
+      "disabled": false
+     },
+     {
+      "action": "insert-paragraph-break",
+      "disabled": false
+     },
+     {
+      "action": "insert-line-break",
+      "disabled": false
+     },
+     {
+      "action": "set-bold",
+      "disabled": false
+     },
+     {
+      "action": "set-italic",
+      "disabled": false
+     },
+     {
+      "action": "set-underline",
+      "disabled": false
+     },
+     {
+      "action": "set-strikethrough",
+      "disabled": false
+     },
+     {
+      "action": "set-paragraph-heading",
+      "disabled": false
+     },
+     {
+      "action": "set-paragraph-body",
+      "disabled": false
+     },
+     {
+      "action": "set-list-unordered",
+      "disabled": false
+     },
+     {
+      "action": "set-list-ordered",
+      "disabled": false
+     },
+     {
+      "action": "set-list-none",
+      "disabled": false
+     },
+     {
+      "action": "insert-text",
+      "disabled": false
+     },
+     {
+      "action": "paste-markdown",
+      "disabled": false
+     },
+     {
+      "action": "save",
+      "disabled": false
+     }
+    ]
+   },
+   "serverAfter": {
+    "status": 200,
+    "sha256": "bf10a4b011e7fab902afa6006253ccc2c08dd20d6c9787e8e97c13c704c23b5d",
+    "bytes": 1558
+   },
+   "lockAfterSave": {
+    "status": 207,
+    "etag": "\"d278cbfe06ec3ffa9d226b1122146a45\"",
+    "fileid": "27570",
+    "lock": "1",
+    "lockOwner": "admin",
+    "lockOwnerType": "2",
+    "token": "opaquelocktoken:96dbaeac-66f8-4d35-9598-2b218cbc0ef1"
+   },
+   "copiesAfter": [
+    {
+     "name": "M3 同秒 測試（衝突副本 2026-11-01 224205）.odt",
+     "status": 200,
+     "sha256": "f10ee24ab1c29b71d9e0c5cfd36c333c266bba0379dd3ab029e93f59a4992880",
+     "bytes": 9743
+    }
+   ],
+   "clearedAtEnd": "0",
+   "registered": [
+    {
+     "s1": [
+      {
+       "waited": 0,
+       "check": {
+        "at": 3254,
+        "status": 200,
+        "etag": "\"6ae74fb7c88e0\"",
+        "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+        "ms": 32
+       },
+       "ifMatch": "\"6ae74fb7c88e0\"",
+       "withToken": true,
+       "target": "original",
+       "at": 3286,
+       "respondedAt": 3396,
+       "status": 204
+      }
+     ],
+     "sha256": "114872d9ebfdc5645d6c97237f26dd9eee94e9de2af1332954c0cee930cd48ee"
+    },
+    {
+     "s1": [
+      {
+       "waited": 0,
+       "check": {
+        "at": 6058,
+        "status": 200,
+        "etag": "\"d278cbfe06ec3ffa9d226b1122146a45\"",
+        "sha256": "bf10a4b011e7fab902afa6006253ccc2c08dd20d6c9787e8e97c13c704c23b5d",
+        "ms": 43
+       },
+       "ifMatch": "\"7fd6ba9e6873ec1cee9acf9a78bcaf59\"",
+       "withToken": true,
+       "target": "original",
+       "at": 6101,
+       "respondedAt": 6130,
+       "status": 412
+      }
+     ],
+     "sha256": "f10ee24ab1c29b71d9e0c5cfd36c333c266bba0379dd3ab029e93f59a4992880"
+    }
+   ]
+  },
+  {
+   "arm": "same-second-foreign",
+   "spec": "R3",
+   "browser": "firefox",
+   "startedAt": "2026-11-01T14:42:19+00:00",
+   "file": {
+    "user": "admin",
+    "path": "M3 同秒 測試.odt",
+    "adminPath": "M3 同秒 測試.odt"
+   },
+   "clearedLocks": "0",
+   "removedOld": 204,
+   "reset": {
+    "upload": 201,
+    "fileId": 27574
+   },
+   "copiesBefore": [],
+   "version": "157.0.1",
+   "login": "https://litecore.localhost:18443/apps/dashboard/",
+   "filesRow": true,
+   "filesRowSeconds": 0.22,
+   "clickedFrom": "https://litecore.localhost:18443/apps/files/files?dir=/",
+   "landed": "https://litecore.localhost:18443/index.php/apps/litecore/r/623f51d295ff6030-90d7bc2c/e2-editor.html?fileId=27574",
+   "host": {
+    "started": 1793544146700,
+    "done": true,
+    "steps": [
+     {
+      "step": "imported",
+      "at": 240
+     },
+     {
+      "step": "fetched",
+      "at": 324
+     },
+     {
+      "step": "opened",
+      "at": 2277,
+      "state": {
+       "state": "ready",
+       "doc": "M3 同秒 測試.odt",
+       "revision": "0",
+       "toast": "已開啟 M3 同秒 測試.odt"
+      }
+     }
+    ],
+    "saves": [
+     {
+      "at": 3105,
+      "name": "M3 同秒 測試.odt",
+      "bytes": 9733,
+      "attempts": [
+       {
+        "waited": 0,
+        "check": {
+         "at": 3105,
+         "status": 200,
+         "etag": "\"6ae74fd2eb8bc\"",
+         "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+         "ms": 36
+        },
+        "ifMatch": "\"6ae74fd2eb8bc\"",
+        "withToken": true,
+        "target": "original",
+        "at": 3141,
+        "respondedAt": 3252,
+        "status": 204
+       }
+      ],
+      "trigger": "manual",
+      "target": "original",
+      "sha256": "f68203866ce449f293c5f351c9c50fce3271c914539172ac41adcaed6aa0590e",
+      "ifMatch": "\"6ae74fd2eb8bc\"",
+      "status": 204,
+      "etag": "\"5cc1aae905349acff91d8eb9dcfd54b6\"",
+      "outcome": "saved",
+      "settled": true
+     },
+     {
+      "at": 5836,
+      "name": "M3 同秒 測試.odt",
+      "bytes": 9739,
+      "attempts": [
+       {
+        "waited": 0,
+        "check": {
+         "at": 5836,
+         "status": 200,
+         "etag": "\"c9c1d072b7220ad0c41bbbfa0b8f002c\"",
+         "sha256": "bf10a4b011e7fab902afa6006253ccc2c08dd20d6c9787e8e97c13c704c23b5d",
+         "ms": 40
+        },
+        "ifMatch": "\"5cc1aae905349acff91d8eb9dcfd54b6\"",
+        "withToken": true,
+        "target": "original",
+        "at": 5876,
+        "respondedAt": 5904,
+        "status": 412
+       }
+      ],
+      "trigger": "manual",
+      "target": "M3 同秒 測試（衝突副本 2026-11-01 224232）.odt",
+      "sha256": "ea0acdf37b22854004ba9430f48c1096377602a814640fd58e189f3db7172186",
+      "ifMatch": "\"5cc1aae905349acff91d8eb9dcfd54b6\"",
+      "tokenOnServer": true,
+      "status": 412,
+      "responseEtag": "\"c9c1d072b7220ad0c41bbbfa0b8f002c\"",
+      "conflictCopy": {
+       "name": "M3 同秒 測試（衝突副本 2026-11-01 224232）.odt",
+       "url": "/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6%EF%BC%88%E8%A1%9D%E7%AA%81%E5%89%AF%E6%9C%AC%202026-11-01%20224232%EF%BC%89.odt",
+       "status": 201,
+       "etag": "\"ebc6b90819ad85b33d139d58cb5df098\"",
+       "respondedAt": 6015
+      },
+      "outcome": "copy",
+      "settled": true
+     }
+    ],
+    "lock": {
+     "state": "held",
+     "status": 200,
+     "at": 274,
+     "refreshes": [],
+     "verified": true
+    },
+    "stranded": null,
+    "notice": "檔案在你開啟之後已被別處修改或移走，沒有覆寫。你的內容存在「M3 同秒 測試（衝突副本 2026-11-01 224232）.odt」，之後的存檔都會存到這份。",
+    "scope": "scoped",
+    "file": {
+     "id": 27574,
+     "name": "M3 同秒 測試.odt",
+     "size": 1343,
+     "etag": "6d1e99f2b1d805ac93599f54bdd09d57",
+     "writable": true
+    },
+    "isolation": {
+     "crossOriginIsolated": true,
+     "sharedArrayBuffer": true
+    },
+    "href": "https://litecore.localhost:18443/index.php/apps/litecore/r/623f51d295ff6030-90d7bc2c/e2-editor.html?fileId=27574",
+    "watchingPage": true,
+    "fetched": {
+     "status": 200,
+     "contentType": "application/vnd.oasis.opendocument.text",
+     "etag": "\"6ae74fd2eb8bc\"",
+     "bytes": 1343,
+     "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+     "at": 324
+    },
+    "handedReadOnly": false,
+    "finished": 2277,
+    "lastSaved": {
+     "at": 6015,
+     "trigger": "manual",
+     "target": "M3 同秒 測試（衝突副本 2026-11-01 224232）.odt"
+    }
+   },
+   "secondsToOpened": 2.79,
+   "pickers": {
+    "fixtureDisabled": true,
+    "openFileDisabled": true,
+    "fileDisabled": true,
+    "fixtureOptions": 0
+   },
+   "bar": {
+    "notice": "",
+    "barHidden": true,
+    "downloadHidden": true
+   },
+   "afterOpen": {
+    "status": 207,
+    "etag": "\"6ae74fd2eb8bc\"",
+    "fileid": "27574",
+    "lock": "1",
+    "lockOwner": "admin",
+    "lockOwnerType": "2",
+    "token": "opaquelocktoken:a666c823-eff6-4a8f-91db-225e62adf61e"
+   },
+   "pressedAt": 1793544149.6,
+   "s1SeenSettledAt": 1793544149.954,
+   "foreignPut": 204,
+   "foreignDoneAt": 1793544150.337,
+   "afterForeign": {
+    "status": 207,
+    "etag": "\"c9c1d072b7220ad0c41bbbfa0b8f002c\"",
+    "fileid": "27574",
+    "lock": "1",
+    "lockOwner": "admin",
+    "lockOwnerType": "2",
+    "token": "opaquelocktoken:a666c823-eff6-4a8f-91db-225e62adf61e"
+   },
+   "foreignMtime": 1793544150,
+   "save2Seen": 2,
+   "save2State": {
+    "state": "ready",
+    "label": "就緒",
+    "revision": "0",
+    "pending": "0",
+    "checkpoint": "無",
+    "latency": "存回 失敗",
+    "doc": "M3 同秒 測試.odt",
+    "toast": "存回：CONFLICT：檔案在你開啟之後已被別處修改或移走，沒有覆寫。你的內容另存為「M3 同秒 測試（衝突副本 2026-11-01 224232）.odt」。",
+    "buttons": [
+     {
+      "action": "undo",
+      "disabled": false
+     },
+     {
+      "action": "redo",
+      "disabled": false
+     },
+     {
+      "action": "move-character-left",
+      "disabled": false
+     },
+     {
+      "action": "move-character-right",
+      "disabled": false
+     },
+     {
+      "action": "delete-backward",
+      "disabled": false
+     },
+     {
+      "action": "delete-forward",
+      "disabled": false
+     },
+     {
+      "action": "insert-paragraph-break",
+      "disabled": false
+     },
+     {
+      "action": "insert-line-break",
+      "disabled": false
+     },
+     {
+      "action": "set-bold",
+      "disabled": false
+     },
+     {
+      "action": "set-italic",
+      "disabled": false
+     },
+     {
+      "action": "set-underline",
+      "disabled": false
+     },
+     {
+      "action": "set-strikethrough",
+      "disabled": false
+     },
+     {
+      "action": "set-paragraph-heading",
+      "disabled": false
+     },
+     {
+      "action": "set-paragraph-body",
+      "disabled": false
+     },
+     {
+      "action": "set-list-unordered",
+      "disabled": false
+     },
+     {
+      "action": "set-list-ordered",
+      "disabled": false
+     },
+     {
+      "action": "set-list-none",
+      "disabled": false
+     },
+     {
+      "action": "insert-text",
+      "disabled": false
+     },
+     {
+      "action": "paste-markdown",
+      "disabled": false
+     },
+     {
+      "action": "save",
+      "disabled": false
+     }
+    ]
+   },
+   "serverAfter": {
+    "status": 200,
+    "sha256": "bf10a4b011e7fab902afa6006253ccc2c08dd20d6c9787e8e97c13c704c23b5d",
+    "bytes": 1558
+   },
+   "lockAfterSave": {
+    "status": 207,
+    "etag": "\"c9c1d072b7220ad0c41bbbfa0b8f002c\"",
+    "fileid": "27574",
+    "lock": "1",
+    "lockOwner": "admin",
+    "lockOwnerType": "2",
+    "token": "opaquelocktoken:a666c823-eff6-4a8f-91db-225e62adf61e"
+   },
+   "copiesAfter": [
+    {
+     "name": "M3 同秒 測試（衝突副本 2026-11-01 224232）.odt",
+     "status": 200,
+     "sha256": "ea0acdf37b22854004ba9430f48c1096377602a814640fd58e189f3db7172186",
+     "bytes": 9739
+    }
+   ],
+   "clearedAtEnd": "0",
+   "registered": [
+    {
+     "s1": [
+      {
+       "waited": 0,
+       "check": {
+        "at": 3105,
+        "status": 200,
+        "etag": "\"6ae74fd2eb8bc\"",
+        "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+        "ms": 36
+       },
+       "ifMatch": "\"6ae74fd2eb8bc\"",
+       "withToken": true,
+       "target": "original",
+       "at": 3141,
+       "respondedAt": 3252,
+       "status": 204
+      }
+     ],
+     "sha256": "f68203866ce449f293c5f351c9c50fce3271c914539172ac41adcaed6aa0590e"
+    },
+    {
+     "s1": [
+      {
+       "waited": 0,
+       "check": {
+        "at": 5836,
+        "status": 200,
+        "etag": "\"c9c1d072b7220ad0c41bbbfa0b8f002c\"",
+        "sha256": "bf10a4b011e7fab902afa6006253ccc2c08dd20d6c9787e8e97c13c704c23b5d",
+        "ms": 40
+       },
+       "ifMatch": "\"5cc1aae905349acff91d8eb9dcfd54b6\"",
+       "withToken": true,
+       "target": "original",
+       "at": 5876,
+       "respondedAt": 5904,
+       "status": 412
+      }
+     ],
+     "sha256": "ea0acdf37b22854004ba9430f48c1096377602a814640fd58e189f3db7172186"
+    }
+   ]
+  },
+  {
+   "arm": "same-second-foreign",
+   "spec": "R3",
+   "browser": "firefox",
+   "startedAt": "2026-11-01T14:42:46+00:00",
+   "file": {
+    "user": "admin",
+    "path": "M3 同秒 測試.odt",
+    "adminPath": "M3 同秒 測試.odt"
+   },
+   "clearedLocks": "0",
+   "removedOld": 204,
+   "reset": {
+    "upload": 201,
+    "fileId": 27578
+   },
+   "copiesBefore": [],
+   "version": "157.0.1",
+   "login": "https://litecore.localhost:18443/apps/dashboard/",
+   "filesRow": true,
+   "filesRowSeconds": 0.23,
+   "clickedFrom": "https://litecore.localhost:18443/apps/files/files?dir=/",
+   "landed": "https://litecore.localhost:18443/index.php/apps/litecore/r/623f51d295ff6030-90d7bc2c/e2-editor.html?fileId=27578",
+   "host": {
+    "started": 1793544173544,
+    "done": true,
+    "steps": [
+     {
+      "step": "imported",
+      "at": 230
+     },
+     {
+      "step": "fetched",
+      "at": 333
+     },
+     {
+      "step": "opened",
+      "at": 2249,
+      "state": {
+       "state": "ready",
+       "doc": "M3 同秒 測試.odt",
+       "revision": "0",
+       "toast": "已開啟 M3 同秒 測試.odt"
+      }
+     }
+    ],
+    "saves": [
+     {
+      "at": 3269,
+      "name": "M3 同秒 測試.odt",
+      "bytes": 9734,
+      "attempts": [
+       {
+        "waited": 0,
+        "check": {
+         "at": 3270,
+         "status": 200,
+         "etag": "\"6ae74fedc29ef\"",
+         "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+         "ms": 33
+        },
+        "ifMatch": "\"6ae74fedc29ef\"",
+        "withToken": true,
+        "target": "original",
+        "at": 3303,
+        "respondedAt": 3418,
+        "status": 204
+       }
+      ],
+      "trigger": "manual",
+      "target": "original",
+      "sha256": "73343e7e7cdadc3ae91c42b5bc637da39e7669c662f0f26096adb7d1d3667a02",
+      "ifMatch": "\"6ae74fedc29ef\"",
+      "status": 204,
+      "etag": "\"6a71a45e1660d1ff050ef66fb65fd7a2\"",
+      "outcome": "saved",
+      "settled": true
+     },
+     {
+      "at": 5984,
+      "name": "M3 同秒 測試.odt",
+      "bytes": 9740,
+      "attempts": [
+       {
+        "waited": 0,
+        "check": {
+         "at": 5984,
+         "status": 200,
+         "etag": "\"9c787836514d50146c73cadc29185876\"",
+         "sha256": "bf10a4b011e7fab902afa6006253ccc2c08dd20d6c9787e8e97c13c704c23b5d",
+         "ms": 45
+        },
+        "ifMatch": "\"6a71a45e1660d1ff050ef66fb65fd7a2\"",
+        "withToken": true,
+        "target": "original",
+        "at": 6029,
+        "respondedAt": 6058,
+        "status": 412
+       }
+      ],
+      "trigger": "manual",
+      "target": "M3 同秒 測試（衝突副本 2026-11-01 224259）.odt",
+      "sha256": "fef97a8a3030dece1355157f2808e065be7510b14a57d19ecf83eb77b192ee31",
+      "ifMatch": "\"6a71a45e1660d1ff050ef66fb65fd7a2\"",
+      "tokenOnServer": true,
+      "status": 412,
+      "responseEtag": "\"9c787836514d50146c73cadc29185876\"",
+      "conflictCopy": {
+       "name": "M3 同秒 測試（衝突副本 2026-11-01 224259）.odt",
+       "url": "/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6%EF%BC%88%E8%A1%9D%E7%AA%81%E5%89%AF%E6%9C%AC%202026-11-01%20224259%EF%BC%89.odt",
+       "status": 201,
+       "etag": "\"a47ec6d507e4661bdaa9f34816a0c983\"",
+       "respondedAt": 6169
+      },
+      "outcome": "copy",
+      "settled": true
+     }
+    ],
+    "lock": {
+     "state": "held",
+     "status": 200,
+     "at": 281,
+     "refreshes": [],
+     "verified": true
+    },
+    "stranded": null,
+    "notice": "檔案在你開啟之後已被別處修改或移走，沒有覆寫。你的內容存在「M3 同秒 測試（衝突副本 2026-11-01 224259）.odt」，之後的存檔都會存到這份。",
+    "scope": "scoped",
+    "file": {
+     "id": 27578,
+     "name": "M3 同秒 測試.odt",
+     "size": 1343,
+     "etag": "d73d6128c3da795960795006ae28be75",
+     "writable": true
+    },
+    "isolation": {
+     "crossOriginIsolated": true,
+     "sharedArrayBuffer": true
+    },
+    "href": "https://litecore.localhost:18443/index.php/apps/litecore/r/623f51d295ff6030-90d7bc2c/e2-editor.html?fileId=27578",
+    "watchingPage": true,
+    "fetched": {
+     "status": 200,
+     "contentType": "application/vnd.oasis.opendocument.text",
+     "etag": "\"6ae74fedc29ef\"",
+     "bytes": 1343,
+     "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+     "at": 333
+    },
+    "handedReadOnly": false,
+    "finished": 2249,
+    "lastSaved": {
+     "at": 6169,
+     "trigger": "manual",
+     "target": "M3 同秒 測試（衝突副本 2026-11-01 224259）.odt"
+    }
+   },
+   "secondsToOpened": 2.75,
+   "pickers": {
+    "fixtureDisabled": true,
+    "openFileDisabled": true,
+    "fileDisabled": true,
+    "fixtureOptions": 0
+   },
+   "bar": {
+    "notice": "",
+    "barHidden": true,
+    "downloadHidden": true
+   },
+   "afterOpen": {
+    "status": 207,
+    "etag": "\"6ae74fedc29ef\"",
+    "fileid": "27578",
+    "lock": "1",
+    "lockOwner": "admin",
+    "lockOwnerType": "2",
+    "token": "opaquelocktoken:3adb18ac-6357-407c-91cf-276dcd9947cd"
+   },
+   "pressedAt": 1793544176.601,
+   "s1SeenSettledAt": 1793544176.964,
+   "foreignPut": 204,
+   "foreignDoneAt": 1793544177.329,
+   "afterForeign": {
+    "status": 207,
+    "etag": "\"9c787836514d50146c73cadc29185876\"",
+    "fileid": "27578",
+    "lock": "1",
+    "lockOwner": "admin",
+    "lockOwnerType": "2",
+    "token": "opaquelocktoken:3adb18ac-6357-407c-91cf-276dcd9947cd"
+   },
+   "foreignMtime": 1793544177,
+   "save2Seen": 2,
+   "save2State": {
+    "state": "ready",
+    "label": "就緒",
+    "revision": "0",
+    "pending": "0",
+    "checkpoint": "無",
+    "latency": "存回 失敗",
+    "doc": "M3 同秒 測試.odt",
+    "toast": "存回：CONFLICT：檔案在你開啟之後已被別處修改或移走，沒有覆寫。你的內容另存為「M3 同秒 測試（衝突副本 2026-11-01 224259）.odt」。",
+    "buttons": [
+     {
+      "action": "undo",
+      "disabled": false
+     },
+     {
+      "action": "redo",
+      "disabled": false
+     },
+     {
+      "action": "move-character-left",
+      "disabled": false
+     },
+     {
+      "action": "move-character-right",
+      "disabled": false
+     },
+     {
+      "action": "delete-backward",
+      "disabled": false
+     },
+     {
+      "action": "delete-forward",
+      "disabled": false
+     },
+     {
+      "action": "insert-paragraph-break",
+      "disabled": false
+     },
+     {
+      "action": "insert-line-break",
+      "disabled": false
+     },
+     {
+      "action": "set-bold",
+      "disabled": false
+     },
+     {
+      "action": "set-italic",
+      "disabled": false
+     },
+     {
+      "action": "set-underline",
+      "disabled": false
+     },
+     {
+      "action": "set-strikethrough",
+      "disabled": false
+     },
+     {
+      "action": "set-paragraph-heading",
+      "disabled": false
+     },
+     {
+      "action": "set-paragraph-body",
+      "disabled": false
+     },
+     {
+      "action": "set-list-unordered",
+      "disabled": false
+     },
+     {
+      "action": "set-list-ordered",
+      "disabled": false
+     },
+     {
+      "action": "set-list-none",
+      "disabled": false
+     },
+     {
+      "action": "insert-text",
+      "disabled": false
+     },
+     {
+      "action": "paste-markdown",
+      "disabled": false
+     },
+     {
+      "action": "save",
+      "disabled": false
+     }
+    ]
+   },
+   "serverAfter": {
+    "status": 200,
+    "sha256": "bf10a4b011e7fab902afa6006253ccc2c08dd20d6c9787e8e97c13c704c23b5d",
+    "bytes": 1558
+   },
+   "lockAfterSave": {
+    "status": 207,
+    "etag": "\"9c787836514d50146c73cadc29185876\"",
+    "fileid": "27578",
+    "lock": "1",
+    "lockOwner": "admin",
+    "lockOwnerType": "2",
+    "token": "opaquelocktoken:3adb18ac-6357-407c-91cf-276dcd9947cd"
+   },
+   "copiesAfter": [
+    {
+     "name": "M3 同秒 測試（衝突副本 2026-11-01 224259）.odt",
+     "status": 200,
+     "sha256": "fef97a8a3030dece1355157f2808e065be7510b14a57d19ecf83eb77b192ee31",
+     "bytes": 9740
+    }
+   ],
+   "clearedAtEnd": "0",
+   "registered": [
+    {
+     "s1": [
+      {
+       "waited": 0,
+       "check": {
+        "at": 3270,
+        "status": 200,
+        "etag": "\"6ae74fedc29ef\"",
+        "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+        "ms": 33
+       },
+       "ifMatch": "\"6ae74fedc29ef\"",
+       "withToken": true,
+       "target": "original",
+       "at": 3303,
+       "respondedAt": 3418,
+       "status": 204
+      }
+     ],
+     "sha256": "73343e7e7cdadc3ae91c42b5bc637da39e7669c662f0f26096adb7d1d3667a02"
+    },
+    {
+     "s1": [
+      {
+       "waited": 0,
+       "check": {
+        "at": 5984,
+        "status": 200,
+        "etag": "\"9c787836514d50146c73cadc29185876\"",
+        "sha256": "bf10a4b011e7fab902afa6006253ccc2c08dd20d6c9787e8e97c13c704c23b5d",
+        "ms": 45
+       },
+       "ifMatch": "\"6a71a45e1660d1ff050ef66fb65fd7a2\"",
+       "withToken": true,
+       "target": "original",
+       "at": 6029,
+       "respondedAt": 6058,
+       "status": 412
+      }
+     ],
+     "sha256": "fef97a8a3030dece1355157f2808e065be7510b14a57d19ecf83eb77b192ee31"
+    }
+   ]
+  }
+ ],
+ "setup": {
+  "clearedLocks": "0"
+ },
+ "completedAt": "2026-11-01T14:43:14+00:00",
+ "httpLog": [
+  {
+   "step": "reset",
+   "actor": "admin",
+   "method": "DELETE",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試.odt",
+   "sent": {},
+   "status": 404,
+   "headers": {
+    "content-type": "application/xml; charset=utf-8"
+   },
+   "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<d:error xmlns:d=\"DAV:\" xmlns:s=\"http://sabredav.org/ns\">\n  <s:exception>Sabre\\DAV\\Exception\\NotFound</s:exception>\n  <s:message>File with name /M3 同秒 測試.odt could not be located</s:message>\n</d:error>\n"
+  },
+  {
+   "step": "upload",
+   "actor": "admin",
+   "method": "PUT",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試.odt",
+   "sent": {
+    "Content-Type": "application/vnd.oasis.opendocument.text"
+   },
+   "status": 201,
+   "headers": {
+    "content-type": "text/html; charset=UTF-8",
+    "etag": "\"803de6fd624d7858b623fa82828f31d8\"",
+    "oc-etag": "\"803de6fd624d7858b623fa82828f31d8\"",
+    "oc-fileid": "00027558oczcndor1sx6"
+   },
+   "body": null
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 621
+  },
+  {
+   "step": "list",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "",
+   "status": 207,
+   "bytes": 5881
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 944
+  },
+  {
+   "step": "put",
+   "actor": "admin",
+   "method": "PUT",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試.odt",
+   "sent": {
+    "Content-Type": "application/vnd.oasis.opendocument.text",
+    "If": "(<opaquelocktoken:9284725f-1e0c-4df2-8c19-cac94767dc5f>)"
+   },
+   "status": 204,
+   "headers": {
+    "etag": "\"c944e26b7b7c36aecbfc08b51a3d0e49\"",
+    "oc-etag": "\"c944e26b7b7c36aecbfc08b51a3d0e49\"",
+    "oc-fileid": "00027558oczcndor1sx6"
+   },
+   "body": null
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 963
+  },
+  {
+   "step": "mtime after X",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 435
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 963
+  },
+  {
+   "step": "list",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "",
+   "status": 207,
+   "bytes": 6240
+  },
+  {
+   "step": "remove",
+   "actor": "admin",
+   "method": "DELETE",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試（衝突副本 2026-11-01 224108）.odt",
+   "sent": {},
+   "status": 204,
+   "headers": {},
+   "body": null
+  },
+  {
+   "step": "reset",
+   "actor": "admin",
+   "method": "DELETE",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試.odt",
+   "sent": {},
+   "status": 204,
+   "headers": {},
+   "body": null
+  },
+  {
+   "step": "upload",
+   "actor": "admin",
+   "method": "PUT",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試.odt",
+   "sent": {
+    "Content-Type": "application/vnd.oasis.opendocument.text"
+   },
+   "status": 201,
+   "headers": {
+    "content-type": "text/html; charset=UTF-8",
+    "etag": "\"812cb58d241dd5f8540e0177519c46ed\"",
+    "oc-etag": "\"812cb58d241dd5f8540e0177519c46ed\"",
+    "oc-fileid": "00027562oczcndor1sx6"
+   },
+   "body": null
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 621
+  },
+  {
+   "step": "list",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "",
+   "status": 207,
+   "bytes": 5881
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 944
+  },
+  {
+   "step": "put",
+   "actor": "admin",
+   "method": "PUT",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試.odt",
+   "sent": {
+    "Content-Type": "application/vnd.oasis.opendocument.text",
+    "If": "(<opaquelocktoken:e5920d42-9a3e-4ed6-91aa-b102a06a5d43>)"
+   },
+   "status": 204,
+   "headers": {
+    "etag": "\"d763b5a186d5568f24a536df2657ebe8\"",
+    "oc-etag": "\"d763b5a186d5568f24a536df2657ebe8\"",
+    "oc-fileid": "00027562oczcndor1sx6"
+   },
+   "body": null
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 963
+  },
+  {
+   "step": "mtime after X",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 435
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 963
+  },
+  {
+   "step": "list",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "",
+   "status": 207,
+   "bytes": 6240
+  },
+  {
+   "step": "remove",
+   "actor": "admin",
+   "method": "DELETE",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試（衝突副本 2026-11-01 224128）.odt",
+   "sent": {},
+   "status": 204,
+   "headers": {},
+   "body": null
+  },
+  {
+   "step": "reset",
+   "actor": "admin",
+   "method": "DELETE",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試.odt",
+   "sent": {},
+   "status": 204,
+   "headers": {},
+   "body": null
+  },
+  {
+   "step": "upload",
+   "actor": "admin",
+   "method": "PUT",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試.odt",
+   "sent": {
+    "Content-Type": "application/vnd.oasis.opendocument.text"
+   },
+   "status": 201,
+   "headers": {
+    "content-type": "text/html; charset=UTF-8",
+    "etag": "\"0bd25e9e617d5fbba2ca7108dea03bba\"",
+    "oc-etag": "\"0bd25e9e617d5fbba2ca7108dea03bba\"",
+    "oc-fileid": "00027566oczcndor1sx6"
+   },
+   "body": null
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 621
+  },
+  {
+   "step": "list",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "",
+   "status": 207,
+   "bytes": 5881
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 944
+  },
+  {
+   "step": "put",
+   "actor": "admin",
+   "method": "PUT",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試.odt",
+   "sent": {
+    "Content-Type": "application/vnd.oasis.opendocument.text",
+    "If": "(<opaquelocktoken:9007316e-52ac-457d-ba40-136496e64c1b>)"
+   },
+   "status": 204,
+   "headers": {
+    "etag": "\"775102c809e69d492104d12f4d651f58\"",
+    "oc-etag": "\"775102c809e69d492104d12f4d651f58\"",
+    "oc-fileid": "00027566oczcndor1sx6"
+   },
+   "body": null
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 963
+  },
+  {
+   "step": "mtime after X",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 435
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 963
+  },
+  {
+   "step": "list",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "",
+   "status": 207,
+   "bytes": 6240
+  },
+  {
+   "step": "remove",
+   "actor": "admin",
+   "method": "DELETE",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試（衝突副本 2026-11-01 224148）.odt",
+   "sent": {},
+   "status": 204,
+   "headers": {},
+   "body": null
+  },
+  {
+   "step": "reset",
+   "actor": "admin",
+   "method": "DELETE",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試.odt",
+   "sent": {},
+   "status": 204,
+   "headers": {},
+   "body": null
+  },
+  {
+   "step": "upload",
+   "actor": "admin",
+   "method": "PUT",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試.odt",
+   "sent": {
+    "Content-Type": "application/vnd.oasis.opendocument.text"
+   },
+   "status": 201,
+   "headers": {
+    "content-type": "text/html; charset=UTF-8",
+    "etag": "\"090a02404fbf0dc51af3fef047292765\"",
+    "oc-etag": "\"090a02404fbf0dc51af3fef047292765\"",
+    "oc-fileid": "00027570oczcndor1sx6"
+   },
+   "body": null
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 621
+  },
+  {
+   "step": "list",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "",
+   "status": 207,
+   "bytes": 5881
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 944
+  },
+  {
+   "step": "put",
+   "actor": "admin",
+   "method": "PUT",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試.odt",
+   "sent": {
+    "Content-Type": "application/vnd.oasis.opendocument.text",
+    "If": "(<opaquelocktoken:96dbaeac-66f8-4d35-9598-2b218cbc0ef1>)"
+   },
+   "status": 204,
+   "headers": {
+    "etag": "\"d278cbfe06ec3ffa9d226b1122146a45\"",
+    "oc-etag": "\"d278cbfe06ec3ffa9d226b1122146a45\"",
+    "oc-fileid": "00027570oczcndor1sx6"
+   },
+   "body": null
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 963
+  },
+  {
+   "step": "mtime after X",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 435
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 963
+  },
+  {
+   "step": "list",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "",
+   "status": 207,
+   "bytes": 6240
+  },
+  {
+   "step": "remove",
+   "actor": "admin",
+   "method": "DELETE",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試（衝突副本 2026-11-01 224205）.odt",
+   "sent": {},
+   "status": 204,
+   "headers": {},
+   "body": null
+  },
+  {
+   "step": "reset",
+   "actor": "admin",
+   "method": "DELETE",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試.odt",
+   "sent": {},
+   "status": 204,
+   "headers": {},
+   "body": null
+  },
+  {
+   "step": "upload",
+   "actor": "admin",
+   "method": "PUT",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試.odt",
+   "sent": {
+    "Content-Type": "application/vnd.oasis.opendocument.text"
+   },
+   "status": 201,
+   "headers": {
+    "content-type": "text/html; charset=UTF-8",
+    "etag": "\"6d1e99f2b1d805ac93599f54bdd09d57\"",
+    "oc-etag": "\"6d1e99f2b1d805ac93599f54bdd09d57\"",
+    "oc-fileid": "00027574oczcndor1sx6"
+   },
+   "body": null
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 621
+  },
+  {
+   "step": "list",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "",
+   "status": 207,
+   "bytes": 5881
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 944
+  },
+  {
+   "step": "put",
+   "actor": "admin",
+   "method": "PUT",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試.odt",
+   "sent": {
+    "Content-Type": "application/vnd.oasis.opendocument.text",
+    "If": "(<opaquelocktoken:a666c823-eff6-4a8f-91db-225e62adf61e>)"
+   },
+   "status": 204,
+   "headers": {
+    "etag": "\"c9c1d072b7220ad0c41bbbfa0b8f002c\"",
+    "oc-etag": "\"c9c1d072b7220ad0c41bbbfa0b8f002c\"",
+    "oc-fileid": "00027574oczcndor1sx6"
+   },
+   "body": null
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 963
+  },
+  {
+   "step": "mtime after X",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 435
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 963
+  },
+  {
+   "step": "list",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "",
+   "status": 207,
+   "bytes": 6240
+  },
+  {
+   "step": "remove",
+   "actor": "admin",
+   "method": "DELETE",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試（衝突副本 2026-11-01 224232）.odt",
+   "sent": {},
+   "status": 204,
+   "headers": {},
+   "body": null
+  },
+  {
+   "step": "reset",
+   "actor": "admin",
+   "method": "DELETE",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試.odt",
+   "sent": {},
+   "status": 204,
+   "headers": {},
+   "body": null
+  },
+  {
+   "step": "upload",
+   "actor": "admin",
+   "method": "PUT",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試.odt",
+   "sent": {
+    "Content-Type": "application/vnd.oasis.opendocument.text"
+   },
+   "status": 201,
+   "headers": {
+    "content-type": "text/html; charset=UTF-8",
+    "etag": "\"d73d6128c3da795960795006ae28be75\"",
+    "oc-etag": "\"d73d6128c3da795960795006ae28be75\"",
+    "oc-fileid": "00027578oczcndor1sx6"
+   },
+   "body": null
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 621
+  },
+  {
+   "step": "list",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "",
+   "status": 207,
+   "bytes": 5881
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 944
+  },
+  {
+   "step": "put",
+   "actor": "admin",
+   "method": "PUT",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試.odt",
+   "sent": {
+    "Content-Type": "application/vnd.oasis.opendocument.text",
+    "If": "(<opaquelocktoken:3adb18ac-6357-407c-91cf-276dcd9947cd>)"
+   },
+   "status": 204,
+   "headers": {
+    "etag": "\"9c787836514d50146c73cadc29185876\"",
+    "oc-etag": "\"9c787836514d50146c73cadc29185876\"",
+    "oc-fileid": "00027578oczcndor1sx6"
+   },
+   "body": null
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 963
+  },
+  {
+   "step": "mtime after X",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 435
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 963
+  },
+  {
+   "step": "list",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "",
+   "status": 207,
+   "bytes": 6240
+  },
+  {
+   "step": "remove",
+   "actor": "admin",
+   "method": "DELETE",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試（衝突副本 2026-11-01 224259）.odt",
+   "sent": {},
+   "status": 204,
+   "headers": {},
+   "body": null
+  },
+  {
+   "step": "teardown",
+   "actor": "admin",
+   "method": "DELETE",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試.odt",
+   "sent": {},
+   "status": 204,
+   "headers": {},
+   "body": null
+  }
+ ],
+ "score": {
+  "verdict": "red",
+  "tally": {
+   "chrome:same-second-foreign": {
+    "pass": 0,
+    "runs": 3,
+    "problems": [
+     [
+      "premise: X 204, the ETag after X \"c944e26b7b7c36aecbfc08b51a3d0e49\" vs S1's \"1b6a498a9c65926bfa31906e58c24e3b\" -- X did not land in S1's second, so this run measured nothing about 103",
+      "blocked: S2 [(412, True)], want one attempt 'changed' with the token (no PUT)",
+      "wire: 2 PUTs to the file [('\"6ae74f7f104f5\"', '(<opaquelocktoken:9284725f-1e0c-4df2-8c19-cac94767dc5f>)'), ('\"1b6a498a9c65926bfa31906e58c24e3b\"', '(<opaquelocktoken:9284725f-1e0c-4df2-8c19-cac94767dc5f>)')], want only S1's, If-Match \"6ae74f7f104f5\", the server's token"
+     ],
+     [
+      "premise: X 204, the ETag after X \"d763b5a186d5568f24a536df2657ebe8\" vs S1's \"a5a9203e8b83caca37fc8d9fcc8e6a99\" -- X did not land in S1's second, so this run measured nothing about 103",
+      "blocked: S2 [(412, True)], want one attempt 'changed' with the token (no PUT)",
+      "wire: 2 PUTs to the file [('\"6ae74f9332049\"', '(<opaquelocktoken:e5920d42-9a3e-4ed6-91aa-b102a06a5d43>)'), ('\"a5a9203e8b83caca37fc8d9fcc8e6a99\"', '(<opaquelocktoken:e5920d42-9a3e-4ed6-91aa-b102a06a5d43>)')], want only S1's, If-Match \"6ae74f9332049\", the server's token"
+     ],
+     [
+      "premise: X 204, the ETag after X \"775102c809e69d492104d12f4d651f58\" vs S1's \"fb5dcda7eaa717c5867cbccb76db038c\" -- X did not land in S1's second, so this run measured nothing about 103",
+      "blocked: S2 [(412, True)], want one attempt 'changed' with the token (no PUT)",
+      "wire: 2 PUTs to the file [('\"6ae74fa73e88f\"', '(<opaquelocktoken:9007316e-52ac-457d-ba40-136496e64c1b>)'), ('\"fb5dcda7eaa717c5867cbccb76db038c\"', '(<opaquelocktoken:9007316e-52ac-457d-ba40-136496e64c1b>)')], want only S1's, If-Match \"6ae74fa73e88f\", the server's token"
+     ]
+    ]
+   },
+   "firefox:same-second-foreign": {
+    "pass": 0,
+    "runs": 3,
+    "problems": [
+     [
+      "premise: X 204, the ETag after X \"d278cbfe06ec3ffa9d226b1122146a45\" vs S1's \"7fd6ba9e6873ec1cee9acf9a78bcaf59\" -- X did not land in S1's second, so this run measured nothing about 103",
+      "blocked: S2 [(412, True)], want one attempt 'changed' with the token (no PUT)"
+     ],
+     [
+      "premise: X 204, the ETag after X \"c9c1d072b7220ad0c41bbbfa0b8f002c\" vs S1's \"5cc1aae905349acff91d8eb9dcfd54b6\" -- X did not land in S1's second, so this run measured nothing about 103",
+      "blocked: S2 [(412, True)], want one attempt 'changed' with the token (no PUT)"
+     ],
+     [
+      "premise: X 204, the ETag after X \"9c787836514d50146c73cadc29185876\" vs S1's \"6a71a45e1660d1ff050ef66fb65fd7a2\" -- X did not land in S1's second, so this run measured nothing about 103",
+      "blocked: S2 [(412, True)], want one attempt 'changed' with the token (no PUT)"
+     ]
+    ]
+   }
+  },
+  "problems": [
+   "page {'dist': '022d0cd0b5152f1ee9cabc74b10f5af2eb55935299228119a419ab717957759b', 'web': '022d0cd0b5152f1ee9cabc74b10f5af2eb55935299228119a419ab717957759b'}"
+  ]
+ }
+}

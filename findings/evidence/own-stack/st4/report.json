@@ -1,0 +1,113 @@
+{
+ "before": {
+  "containers": {
+   "litecore-own-web-1": "7df104fd1bf5d0b7889700fa07ac469baadb155c5ec4034f30602f5e3b02c077 2026-11-01T11:24:09.082460727Z running own-stack",
+   "litecore-own-db-1": "39c336a1b1975b5340203571a4588014e67c65148fa6af6418086db8ec3b3b7f 2026-11-01T11:23:28.249778513Z running <no value>",
+   "litecore-own-router-1": "0fec57c961b0bbadb493fbbaaccfec12dd3801cd7d66ae902e27ca700929f8ff 2026-11-01T11:26:36.181263988Z running own-stack"
+  },
+  "ddevLabelled": [
+   "ddev-router",
+   "ddev-ssh-agent"
+  ],
+  "probeStatus": "stopped"
+ },
+ "steps": [
+  {
+   "argv": [
+    "ddev",
+    "start",
+    "litecoreprobe"
+   ],
+   "exit": 0,
+   "seconds": 14.2,
+   "stdout": "\n\u001b[106;30m TIP OF THE DAY                                                         \u001b[0m\n\u001b[106;30m DDEV supports Amazee.io's Lagoon hosting platform. 'ddev pull lagoon'. \u001b[0m\n\n\n\u001b[102;30m ❤️ DDEV SPONSORSHIP STATUS                                                   \u001b[0m\n\u001b[102;30m Thanks for your ongoing support! We're up to 85.2% of our $12,000/month     \u001b[0m\n\u001b[102;30m goal ($10,229). Join all the wonderful sponsors at https://ddev.com/sponsor \u001b[0m\n\u001b[102;30m 🚀                                                                          \u001b[0m\n\nStarting litecoreprobe...\nBuilding project images...\u001b[32mProject images built in 2s.\u001b[0m\nWaiting for containers to become ready: [web db]... ready in 2.5s\nStarting ddev-router, pushing config...\nWaiting for ddev-router to become ready... ready in 1.0s\n已連結 app litecoreprobe → /var/www/html/nextcloud/apps-extra/litecoreprobe\n\u001b[32mSuccessfully started litecoreprobe\u001b[0m\n\u001b[32mYour project can be reached at https://litecoreprobe.ddev.site:8443\nSee 'ddev describe' for alternate URLs.\u001b[0m\n",
+   "stderr": "leases/tag/v1.25.5\nto get the upgrade.\nFor upgrade help see\nhttps://docs.ddev.com/en/stable/users/install/ddev-upgrade/\n\u001b[0m\n\u001b[33mCustom configuration detected in project 'litecoreprobe':\n  • Router (global): /home/jiajun/.ddev/traefik/static_config.forwardedheaders.yaml\n  • Config: /home/jiajun/Projects/Nextcloud_Apps/litecoreprobe/.ddev/config.local.yaml\n  • Docker Compose: /home/jiajun/Projects/Nextcloud_Apps/litecoreprobe/.ddev/docker-compose.litecore-dist.yaml\n\nCustom configuration is updated on restart. Run 'ddev restart' if changes don't take effect.\nAdd '#ddev-silent-no-warn' comment to files if you don't want to see these warnings.\u001b[0m\n. Image ddev/ddev-webserver:v1.25.3-litecoreprobe-built Building \n Image ddev/ddev-dbserver-mariadb-11.4:v1.25.3-litecoreprobe-built Building \n Image ddev/ddev-webserver:v1.25.3-litecoreprobe-built Built \n Image ddev/ddev-dbserver-mariadb-11.4:v1.25.3-litecoreprobe-built Built \n\n Network ddev-litecoreprobe_default Creating \n Network ddev-litecoreprobe_default Created \n Container ddev-litecoreprobe-web Creating \n Container ddev-litecoreprobe-db Creating \n Container ddev-litecoreprobe-web Created \n Container ddev-litecoreprobe-db Created \n Container ddev-litecoreprobe-db Starting \n Container ddev-litecoreprobe-web Starting \n Container ddev-litecoreprobe-db Started \n Container ddev-litecoreprobe-web Started \n Container ddev-router Recreate \n Container ddev-router Recreated \n Container ddev-router Starting \n Container ddev-router Started \n"
+  },
+  {
+   "argv": [
+    "ddev",
+    "stop",
+    "litecoreprobe"
+   ],
+   "exit": 0,
+   "seconds": 1.8,
+   "stdout": "\u001b[32mProject litecoreprobe has been stopped.\u001b[0m\n",
+   "stderr": " Container ddev-litecoreprobe-db Stopping \n Container ddev-litecoreprobe-web Stopping \n Container ddev-litecoreprobe-web Stopped \n Container ddev-litecoreprobe-db Stopped \n Container ddev-litecoreprobe-db Stopping \n Container ddev-litecoreprobe-web Stopping \n Container ddev-litecoreprobe-web Stopped \n Container ddev-litecoreprobe-web Removing \n Container ddev-litecoreprobe-db Stopped \n Container ddev-litecoreprobe-db Removing \n Container ddev-litecoreprobe-web Removed \n Container ddev-litecoreprobe-db Removed \n Network ddev-litecoreprobe_default Removing \n Network ddev-litecoreprobe_default Removed \n"
+  },
+  {
+   "argv": [
+    "ddev",
+    "stop",
+    "litecore"
+   ],
+   "exit": 0,
+   "seconds": 1.0,
+   "stdout": "\u001b[32mProject litecore is already stopped.\u001b[0m\n\u001b[32mProject litecore has been stopped.\u001b[0m\n",
+   "stderr": ""
+  }
+ ],
+ "probeStatusDuring": "running",
+ "polls": {
+  "status": {
+   "url": "https://litecore.localhost:18443/status.php",
+   "polls": 219,
+   "outcomes": {
+    "200": 219
+   },
+   "changes": []
+  },
+  "dav": {
+   "url": "https://litecore.localhost:18443/remote.php/dav/files/admin/",
+   "polls": 45,
+   "outcomes": {
+    "207": 45
+   },
+   "changes": []
+  },
+  "ddevSide": {
+   "url": "https://litecoreprobe.ddev.site:8443/status.php",
+   "polls": 114,
+   "outcomes": {
+    "404": 66,
+    "200": 46,
+    "URLError: <urlopen error [Errno 111] Connection refused>": 1,
+    "URLError: <urlopen error [Errno 104] Connection reset by peer>": 1
+   },
+   "changes": [
+    [
+     1793541984.68,
+     200
+    ],
+    [
+     1793541986.46,
+     "URLError: <urlopen error [Errno 111] Connection refused>"
+    ],
+    [
+     1793541986.96,
+     "URLError: <urlopen error [Errno 104] Connection reset by peer>"
+    ],
+    [
+     1793541987.47,
+     200
+    ],
+    [
+     1793542009.81,
+     404
+    ]
+   ]
+  }
+ },
+ "deadPort": "URLError: <urlopen error [Errno 111] Connection refused>",
+ "after": {
+  "containers": {
+   "litecore-own-web-1": "7df104fd1bf5d0b7889700fa07ac469baadb155c5ec4034f30602f5e3b02c077 2026-11-01T11:24:09.082460727Z running own-stack",
+   "litecore-own-db-1": "39c336a1b1975b5340203571a4588014e67c65148fa6af6418086db8ec3b3b7f 2026-11-01T11:23:28.249778513Z running <no value>",
+   "litecore-own-router-1": "0fec57c961b0bbadb493fbbaaccfec12dd3801cd7d66ae902e27ca700929f8ff 2026-11-01T11:26:36.181263988Z running own-stack"
+  },
+  "ddevLabelled": [
+   "ddev-router",
+   "ddev-ssh-agent"
+  ],
+  "probeStatus": "stopped"
+ }
+}

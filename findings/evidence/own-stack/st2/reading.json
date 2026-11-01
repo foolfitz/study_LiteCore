@@ -1,0 +1,126 @@
+{
+ "verdict": "ST2_ST3_HOLD",
+ "problems": [],
+ "unexplained": [],
+ "staleExplanations": [],
+ "differences": [
+  {
+   "runner": "same_second",
+   "cell": "chrome:same-second-foreign",
+   "new": [
+    1,
+    1,
+    []
+   ],
+   "baseline": [
+    0,
+    1,
+    [
+     [
+      "premise: X 204, the ETag after X \"7218cf372951c21f8ac7d5926447081c\" vs S1's \"b640a67dbd55f6dee62172cb4fd99561\" -- X did not land in S1's second, so this run measured nothing about 103",
+      "blocked: S2 [(412, True)], want one attempt 'changed' with the token (no PUT)",
+      "wire: 2 PUTs to the file [('\"6ae608b05c13e\"', '(<opaquelocktoken:20e73d1d-749e-4c89-831d-3142baca3cc9>)'), ('\"b640a67dbd55f6dee62172cb4fd99561\"', '(<opaquelocktoken:20e73d1d-749e-4c89-831d-3142baca3cc9>)')], want only S1's, If-Match \"6ae608b05c13e\", the server's token"
+     ]
+    ]
+   ],
+   "reason": "the instrument, not the stack: the baseline pressed at phase .05, on v28 X crossed S1's second (`premise`). 3d78bd5c6, after the baseline, set FOREIGN_PHASE to 0.60 (SPEC-M3-K-0.2.44 append 2), not re-run until here"
+  },
+  {
+   "runner": "same_second",
+   "cell": "firefox:same-second-foreign",
+   "new": [
+    1,
+    1,
+    []
+   ],
+   "baseline": [
+    0,
+    1,
+    [
+     [
+      "premise: X 204, the ETag after X \"031481bbeed1e2108fb66635c8b313be\" vs S1's \"eeca8d4ef19dbafc8c042c3f0578e24b\" -- X did not land in S1's second, so this run measured nothing about 103",
+      "blocked: S2 [(412, True)], want one attempt 'changed' with the token (no PUT)"
+     ]
+    ]
+   ],
+   "reason": "as chrome:same-second-foreign"
+  },
+  {
+   "runner": "production_ui",
+   "cell": "P/chrome",
+   "new": [
+    1,
+    1,
+    []
+   ],
+   "baseline": [
+    0,
+    1,
+    [
+     [
+      "A3-1: controls ['button[paste-markdown]'] text [{'text': '貼上為 Markdown…', 'in': 'button[paste-markdown]'}] "
+     ]
+    ]
+   ],
+   "reason": "the instrument, not the stack: the baseline's one failure is A3-1 on button[paste-markdown], and 4c4e7b639 (after the baseline) added paste-markdown to KEEP_ACTIONS (SPEC-M3-K-0.2.44 append 3)"
+  },
+  {
+   "runner": "production_ui",
+   "cell": "P/firefox",
+   "new": [
+    1,
+    1,
+    []
+   ],
+   "baseline": [
+    0,
+    1,
+    [
+     [
+      "A3-1: controls ['button[paste-markdown]'] text [{'text': '貼上為 Markdown…', 'in': 'button[paste-markdown]'}] "
+     ]
+    ]
+   ],
+   "reason": "as P/chrome"
+  }
+ ],
+ "as5": {
+  "new": [
+   19,
+   19,
+   19,
+   19
+  ],
+  "baseline": [
+   19,
+   19,
+   19,
+   19
+  ]
+ },
+ "assets": {
+  "verdict": "clean",
+  "problems": [],
+  "hostHalfEqualsBaseline": true,
+  "manifestEqual": true,
+  "wireAddressEqual": true,
+  "controlStaysRed": true
+ },
+ "st3": {
+  "ok": true,
+  "checks": 52,
+  "failed": [],
+  "sameCheckIds": true
+ },
+ "runners": [
+  "host_entry",
+  "locks",
+  "new_document",
+  "page_honesty",
+  "production_ui",
+  "same_second",
+  "versions",
+  "assets",
+  "autosave"
+ ]
+}
