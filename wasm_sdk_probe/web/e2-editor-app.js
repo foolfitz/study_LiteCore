@@ -50,7 +50,7 @@ import { EMPTY_SELECTION_SHAPES, FALLBACK_REFUSED_SHAPES } from "./editor-shell-
 // move together or the page pins one artifact and loads another -- and the
 // expiry screen exists to make exactly that mismatch loud, so a half-move
 // would look like a broken build rather than a mistake.
-const PINNED_WASM_SHA256 = "13f674e498a56c8a";
+const PINNED_WASM_SHA256 = "e61e5890bac5c1d2";
 
 // M3's host entry (specs/SPEC-M3-host-entry.md).  A host that embeds this page
 // -- the Nextcloud app -- puts `globalThis.liteCoreHost = { load, save }` in
@@ -3856,7 +3856,7 @@ el.desk.addEventListener("scroll", onDeskScroll, { passive: true });
 // The harness pages (`e2-c-d*-app.js`) do take `?profile=`; they are harnesses.
 function engineFactory() {
   return createDocumentEngine({
-    workerUrl: "./profiles/e2-editor-v28/sdk-worker.js",
+    workerUrl: "./profiles/e2-editor-v29/sdk-worker.js",
     timeoutMs: 30000,
   });
 }
