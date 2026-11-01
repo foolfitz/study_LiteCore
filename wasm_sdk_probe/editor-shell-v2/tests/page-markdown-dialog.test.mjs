@@ -146,7 +146,8 @@ const refusal = (code, extra = {}) => Object.assign(new Error(code), { code, rec
 // ------------------------------------------------------------------ M8
 
 test("M8 (page): the button is in the markup HIDDEN, before anything has said the profile has it", () => {
-  assert.match(HTML, /<button data-action="paste-markdown" hidden>貼上為 Markdown…<\/button>/);
+  // The icon toolbar (2c807bb25) wraps the label in a span and adds data-tip; what this holds is `hidden` on the button itself.
+  assert.match(HTML, /<button data-action="paste-markdown" hidden[ >](?:(?!<\/button>)[\s\S])*>貼上為 Markdown…<(?:(?!<\/button>)[\s\S])*<\/button>/);
   assert.match(HTML, /<dialog id="markdown-dialog"/);
 });
 
