@@ -91,3 +91,36 @@ K NOT RUN，名義出貨版留 0.2.26。
 | 日期 | 修改 |
 |---|---|
 | 2026-11-02 | 初版、釘死。 |
+| 2026-11-02 | 鏈前工序完成（§11）。 |
+
+## 11. 追加 1（2026-11-02，任何計數之前）：鏈前的結果
+
+§6 的表全部成立，鏈的 preflight 只剩 P5。
+
+| 項 | 結果 |
+|---|---|
+| 普查 | 程式碼值的位置不再有舊身分；`ddev` 呼叫形狀全在介面卡內 |
+| 釘選 | 25 處、11 個檔 |
+| 活的綁定集合 | 50 路徑沒動，`--flip` 紅 |
+| 計數才走的路徑 | 34/34 |
+| T1 重判 | `T1_HOLDS_UNDER_GATE_16`；門檻 10 的紅案是 r2、r3 各一行 FAIL |
+| 頁面把關負向臂 | `LEGACY_V8_CONTROL_REFUSED`，`insertRequests` 1、0 |
+| Enter 重播 | `V24_ENTER_HOLDS`，3 次 |
+| merge smoke | 26/26，逐格讀 `pass`，keying `ordered-abi6` |
+| K 路徑一輪 | 兩瀏覽器 46/46 等於 F3-82，`K_PATH_HOLDS` |
+| 讀取器紅案 | merge 13/13、product-path 16/16；0.2.26 報告餵 merge 讀取器 40 個問題，餵 path 讀取器 STOP |
+| 計數模式試跑 | production UI P 2/2、versions 6/6、assets 9/9、new_document `WORKS`；autosave `binding_problems` 空 |
+
+**三個計數才會炸的洞，鏈開跑前抓到**，都不是產品缺陷：
+
+1. **`SHELL_MANIFEST` 還釘 v82**（`check_m3_production_ui.py`、`check_m3_host_entry.py`）：普查抓到，§3。
+2. **`M8 (page)` 紅**：`make test-e2-c-static` 多一個紅，六支計數 runner 的 `testStatic` 全部不為 0。成因是 2026-11-01 的圖示工具列（`2c807bb25`）把標籤包進 span，測試的字面比對過期；當時只跑了 F4，沒跑靜態測試。`hidden` 屬性還在，所以修比對，不動 HTML。修法第一版被自己的紅案抓到：`data-tip` 裡也有同一串字，標籤移出按鈕也會過，改成要求文字在元素內容裡（`k-0.2.45/m8-fix/`）。**具名紅清單沒有放寬**。
+3. **N9 product paths touched**：new_document 的 N9 不准「改 new-document 工具的 commit」同時碰產品路徑。我把 repin 和 M8 的測試修正放在同一個 commit，於是 K4 會是 `NOT_ESTABLISHED`。計數模式試跑才抓到，shakedown 走不到。未推送，拆成兩個 commit（`857a52990`、`75a19ffdc`），N9 不動，重跑 `WORKS`。
+
+**第 3 項的規矩**：鏈跑之前，碰 `ROUND_PATHS` 的 commit 不得同時碰 `PRODUCT_PATHS`。
+
+**H1 的見證**：`check_counted_paths.py` 的 closure 列改讀 0.2.45 自己的 assets shakedown（`2026-11-01T161343+0000.json`，clean）。舊見證是 v28 時代的報告，拿它比 v29 的 closure 等於比兩個身分。「舊見證仍是紅」那一列留著。
+
+**試跑報告不算 K**：讀取腳本只取鏈 START 之後的報告；試跑的報告已移到 `k-0.2.45/counted-dry-run/`，不留在 `runs/`。
+
+**§34.4**：因執行而修 +4（`SHELL_MANIFEST`、M8、M8 的比對、N9 的 commit），審核 0、裁決 0。
