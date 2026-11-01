@@ -41,3 +41,9 @@ Spec `specs/SPEC-M3-v29-tick-pacing.md` append 6. A relink: `e2-editor-v29` was 
 **Section 7**: `section-7/README.md`.
 
 **Pending: the owner's hand tests** (typing, the toolbar), then the owner's decision whether 0.2.45 replaces 0.2.44 as the daily uncounted candidate. Rollback, if wanted: `rollback-package.sh` with `host-stack/bin` first on PATH (exact 0.2.44 engine, label stays 0.2.45). Accumulated uncounted engine changes since 0.2.26: v22-v29.
+
+## Owner's hand tests and decision (2026-11-02 ~01:35 +0800)
+
+Owner's report, verbatim: 「手測完成，都符合預期 / 請繼續跑」. The eleven items: fast typing on a long document, IME, typing through a save, idle after typing; the icons, tooltips by pointer and by Tab, one press for each format, list and undo, a narrow window; save and reopen, leaving by the X.
+
+**0.2.45 replaces 0.2.44 as the daily uncounted candidate**, as stated with the list of items. The nominal shipped host stays 0.2.26 until K reads. Accumulated uncounted engine changes since 0.2.26: v22-v29.
