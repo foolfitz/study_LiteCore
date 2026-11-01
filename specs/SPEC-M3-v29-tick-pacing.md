@@ -97,3 +97,24 @@ finding 177：v23 起打字每字 commit 從 4 ms 變 85 ms，上螢幕 13 ms �
 **T2 成立，判讀方式追加**：§6 的公式沒有寫一次還是多次。第一輪（`idle-run-01-sum-of-live-processes/`）量出負值，是我的讀法缺陷（加總活著的行程，行程在窗口內結束時總數下降），不算數。改成逐行程取差值後，同一情況單次離群值兩個版本都有（v28 最高 13.72 秒、v29 最高 4.22 秒），所以**每個情況各 3 次、比中位數**：8 種情況全部 v29 ≤ v28 × 1.5 ＋ 0.5 秒。紅案（常駐全速）10.16–13.22 秒。
 
 **還沒做**：P 之後的切頁、generation 83、T1、T3、T4。
+
+## 11. 追加 2（2026-11-01，切頁之後、T1／T3／T4 的任何執行之前）
+
+**切頁與凍結**：頁面 `022d0cd0…`（`3b0a2ebb…` 改兩行），第 83 代 `607b280d…`、檔案 `98371d7f…`，只差頁面，第 82 代的 11 項排除逐字沿用（`findings/evidence/v29-177/cutover/`、`freeze-83/`）。
+
+**§6 沒寫死的部分，這裡釘死（都是把「比照」寫成可判的條件，不改任何既有判準）**：
+
+| 項 | 工具 | 成立 |
+|---|---|---|
+| F3-83 | `run_v83_f3_clipboard.py`（衍生） | `read_v83_f3_equal.py` 對 F3-82 `F3_83_EQUAL`，**宣告的移動：無**；讀法一恰好是 F3-82 的四個問題。v29 只動時間，不動行為，任何一格移動（含變綠）都停下查清 |
+| F4-83 | `run_v83_four_arms.py`、`judge_v83_product_four_arms.py`（衍生） | 兩瀏覽器 24/24 |
+| S4 | `check_v83_last_line_bullet.py`（薄包裝，`check_v82_last_line_bullet.py` 不改，行程內把 `after` 換成 v29；`before` 仍是第 81 代／v27） | `S4_HOLDS`、六個突變都 `S4_MUTATION_CAUGHT`、self-test 全紅 |
+| merge | `run_v83_merge.py`（`run_k_0244_merge.py` 的衍生，K 的 pin 不改；綁定 `t3/merge/binding.json`，只有 wasm 與頁面兩鍵移動） | Chrome、Firefox 全表各一輪，**逐格讀 `pass`**（不數 `outcome`）全過；`--cases C01,C15,C29` 的 instrumented／`--control`／`--pair` 無差異；`m2-1b`（Firefox）、`m2-4`（Chrome）的逐格 `pass` 全過 |
+| 寬限兩側打字 | `t3/typing-gap/gap_order.py`（`probe_typing_latency.py` 不改，行程內加一次存檔） | `--gap 290`、`310` × 兩瀏覽器 × `boundaries`、`owner` × 20 字 × 3 次，共 24 次，每次：`keysSeen` = 20、每字有 commit、存檔裡 `a…t` 依序連續且只出現一次；self-test 全紅。一次跑不算（CLAUDE.md：間歇缺陷次數就是量測） |
+| V0′-83 | `v29-177/v0/run_v0_prime.py`（衍生，加第六階段 v82，git `69c5583a9`） | `V0_PRIME_HOLDS`；在所有用到 `dist/` 的量測之後單獨跑 |
+
+**T4 的判準**（§6 只寫「沒有隨打字線性成長」，這裡定成數字）：`t4/heap_during_typing.py`，Chrome、`boundaries`、間隔 80 ms、700 字（約 60 秒），打字前與每 70 字後各取一次樣本，共 11 個：對每個 worker 先 `HeapProfiler.collectGarbage` 再 `Runtime.getHeapUsage`。**`grows`＝末減首 ≥ 1 MiB 且 10 段裡至少 8 段上升。** 成立＝受測臂（v29）沒有 worker `grows`、紅案臂（v28＋stock immediate，`diag_tick.py` 的 `immediate`，鏡像內改指）至少一個 worker `grows`、兩臂都至少有一個 worker 回答全部 11 次。停在 `Atomics.wait` 的 pthread 不回 CDP，記 `noAnswer`：它沒有事件迴圈可以洩漏。紅案不成立＝儀器看不到洩漏，T4 不成立（不是 v29 過關）。
+
+**T1**：`link-batch-v22/shakedown/desk_gate.py` 每輪前要 clean（量時間的格子，閘門適用）。`judge_c2.py`、`judge_p2.py` 不改，`t1/judge_on_83.py` 在行程內把頁面 pin 換成 `022d0cd0…`（pin 屬於 K 0.2.44 規格）。`boundaries` commit 超過 10 ms 依 §6 記錄、不算 v29 失敗，交擁有者在下一份 K 規格之前決定。
+
+**順序**：T3（F3、F4、S4、merge、寬限兩側）→ T4 → V0′-83；T1 等桌面乾淨。T3／T4 不判時間，桌面不必乾淨。
