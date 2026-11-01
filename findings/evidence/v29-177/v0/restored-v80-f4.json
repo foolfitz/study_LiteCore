@@ -1,0 +1,1772 @@
+{
+ "schema": 1,
+ "rows": 24,
+ "problems": [],
+ "arms": {
+  "insert-then-shift": {
+   "check": "v23-product-insert-then-shift",
+   "outcome": "PASS",
+   "ok": true,
+   "rows": 6,
+   "outcomes": [
+    "PASS",
+    "PASS",
+    "PASS",
+    "PASS",
+    "PASS",
+    "PASS"
+   ]
+  },
+  "merge-then-shift": {
+   "check": "v23-product-merge-then-shift",
+   "outcome": "PASS",
+   "ok": true,
+   "rows": 6,
+   "outcomes": [
+    "PASS",
+    "PASS",
+    "PASS",
+    "PASS",
+    "PASS",
+    "PASS"
+   ]
+  },
+  "held-shift-one-second": {
+   "check": "v23-product-held-shift-one-second",
+   "outcome": "PASS",
+   "ok": true,
+   "rows": 6,
+   "outcomes": [
+    "PASS",
+    "PASS",
+    "PASS",
+    "PASS",
+    "PASS",
+    "PASS"
+   ]
+  },
+  "held-shift-two-seconds": {
+   "check": "v23-product-held-shift-two-seconds",
+   "outcome": "PASS",
+   "ok": true,
+   "rows": 6,
+   "outcomes": [
+    "PASS",
+    "PASS",
+    "PASS",
+    "PASS",
+    "PASS",
+    "PASS"
+   ]
+  }
+ },
+ "runs": [
+  {
+   "dir": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/select-all-v26/f4/chrome/report.v23-four-arms",
+   "browser": "chrome",
+   "rows": [
+    {
+     "arm": "insert-then-shift",
+     "browser": "chrome",
+     "round": 1,
+     "cellId": "chrome-insert-then-shift-r1",
+     "outcome": "PASS",
+     "why": null,
+     "observed": {
+      "insertBeforeExtendTerminal": true,
+      "selectedText": "c",
+      "paragraphs": [
+       "axcd"
+      ]
+     }
+    },
+    {
+     "arm": "insert-then-shift",
+     "browser": "chrome",
+     "round": 2,
+     "cellId": "chrome-insert-then-shift-r2",
+     "outcome": "PASS",
+     "why": null,
+     "observed": {
+      "insertBeforeExtendTerminal": true,
+      "selectedText": "c",
+      "paragraphs": [
+       "axcd"
+      ]
+     }
+    },
+    {
+     "arm": "insert-then-shift",
+     "browser": "chrome",
+     "round": 3,
+     "cellId": "chrome-insert-then-shift-r3",
+     "outcome": "PASS",
+     "why": null,
+     "observed": {
+      "insertBeforeExtendTerminal": true,
+      "selectedText": "c",
+      "paragraphs": [
+       "axcd"
+      ]
+     }
+    },
+    {
+     "arm": "merge-then-shift",
+     "browser": "chrome",
+     "round": 1,
+     "cellId": "chrome-merge-then-shift-r1",
+     "outcome": "PASS",
+     "why": null,
+     "observed": {
+      "insertBeforeExtendTerminal": true,
+      "selectedText": "B",
+      "paragraphs": [
+       "Alpha first paragraphBravo second paragraph",
+       "Charlie third paragraph"
+      ]
+     }
+    },
+    {
+     "arm": "merge-then-shift",
+     "browser": "chrome",
+     "round": 2,
+     "cellId": "chrome-merge-then-shift-r2",
+     "outcome": "PASS",
+     "why": null,
+     "observed": {
+      "insertBeforeExtendTerminal": true,
+      "selectedText": "B",
+      "paragraphs": [
+       "Alpha first paragraphBravo second paragraph",
+       "Charlie third paragraph"
+      ]
+     }
+    },
+    {
+     "arm": "merge-then-shift",
+     "browser": "chrome",
+     "round": 3,
+     "cellId": "chrome-merge-then-shift-r3",
+     "outcome": "PASS",
+     "why": null,
+     "observed": {
+      "insertBeforeExtendTerminal": true,
+      "selectedText": "B",
+      "paragraphs": [
+       "Alpha first paragraphBravo second paragraph",
+       "Charlie third paragraph"
+      ]
+     }
+    },
+    {
+     "arm": "held-shift-one-second",
+     "browser": "chrome",
+     "round": 1,
+     "cellId": "chrome-held-shift-one-second-r1",
+     "outcome": "PASS",
+     "why": null,
+     "observed": {
+      "downs": 18,
+      "repeats": 17,
+      "deliveredMs": [
+       0.0,
+       500.2,
+       530.2,
+       565.3,
+       590.3,
+       623.0,
+       650.4,
+       680.6,
+       710.3,
+       740.2,
+       770.2,
+       800.1,
+       830.2,
+       860.4,
+       890.6,
+       920.6,
+       950.2,
+       980.1
+      ],
+      "scheduledMs": [
+       0,
+       500,
+       530,
+       560,
+       590,
+       620,
+       650,
+       680,
+       710,
+       740,
+       770,
+       800,
+       830,
+       860,
+       890,
+       920,
+       950,
+       980
+      ],
+      "scheduledReleaseMs": 995,
+      "admitted": 11,
+      "posted": 11,
+      "answeredOk": 11,
+      "admittedVersusAnsweredMismatch": false,
+      "releasedRetained": 8,
+      "finalPrefix": 11,
+      "growthAfterRelease": 1,
+      "releaseBoundApplies": false,
+      "release": {
+       "releasePrefix": 10,
+       "answeredAtRelease": 10,
+       "releaseOrdinalMismatch": false,
+       "wirePending": [
+        [
+         23,
+         40
+        ]
+       ],
+       "heldOrQueued": {
+        "unposted": [],
+        "pageRetained": []
+       }
+      },
+      "releaseDeliveredMs": 994.9,
+      "completions": [
+       "documented-callback-text-selection"
+      ],
+      "terminalStatesNotAtTheirOrdinal": 0
+     }
+    },
+    {
+     "arm": "held-shift-one-second",
+     "browser": "chrome",
+     "round": 2,
+     "cellId": "chrome-held-shift-one-second-r2",
+     "outcome": "PASS",
+     "why": null,
+     "observed": {
+      "downs": 18,
+      "repeats": 17,
+      "deliveredMs": [
+       0.0,
+       500.2,
+       530.2,
+       560.7,
+       590.8,
+       627.2,
+       650.3,
+       680.4,
+       711.2,
+       740.7,
+       770.3,
+       800.7,
+       830.3,
+       860.3,
+       890.2,
+       920.3,
+       950.3,
+       980.7
+      ],
+      "scheduledMs": [
+       0,
+       500,
+       530,
+       560,
+       590,
+       620,
+       650,
+       680,
+       710,
+       740,
+       770,
+       800,
+       830,
+       860,
+       890,
+       920,
+       950,
+       980
+      ],
+      "scheduledReleaseMs": 995,
+      "admitted": 11,
+      "posted": 11,
+      "answeredOk": 11,
+      "admittedVersusAnsweredMismatch": false,
+      "releasedRetained": 8,
+      "finalPrefix": 11,
+      "growthAfterRelease": 1,
+      "releaseBoundApplies": false,
+      "release": {
+       "releasePrefix": 10,
+       "answeredAtRelease": 10,
+       "releaseOrdinalMismatch": false,
+       "wirePending": [
+        [
+         24,
+         41
+        ]
+       ],
+       "heldOrQueued": {
+        "unposted": [],
+        "pageRetained": []
+       }
+      },
+      "releaseDeliveredMs": 996.6,
+      "completions": [
+       "documented-callback-text-selection"
+      ],
+      "terminalStatesNotAtTheirOrdinal": 0
+     }
+    },
+    {
+     "arm": "held-shift-one-second",
+     "browser": "chrome",
+     "round": 3,
+     "cellId": "chrome-held-shift-one-second-r3",
+     "outcome": "PASS",
+     "why": null,
+     "observed": {
+      "downs": 18,
+      "repeats": 17,
+      "deliveredMs": [
+       0.0,
+       500.8,
+       531.0,
+       564.3,
+       590.7,
+       622.2,
+       650.7,
+       681.1,
+       710.3,
+       753.2,
+       770.4,
+       803.0,
+       830.2,
+       860.7,
+       890.4,
+       921.0,
+       950.3,
+       980.3
+      ],
+      "scheduledMs": [
+       0,
+       500,
+       530,
+       560,
+       590,
+       620,
+       650,
+       680,
+       710,
+       740,
+       770,
+       800,
+       830,
+       860,
+       890,
+       920,
+       950,
+       980
+      ],
+      "scheduledReleaseMs": 995,
+      "admitted": 11,
+      "posted": 11,
+      "answeredOk": 11,
+      "admittedVersusAnsweredMismatch": false,
+      "releasedRetained": 8,
+      "finalPrefix": 11,
+      "growthAfterRelease": 1,
+      "releaseBoundApplies": false,
+      "release": {
+       "releasePrefix": 10,
+       "answeredAtRelease": 10,
+       "releaseOrdinalMismatch": false,
+       "wirePending": [
+        [
+         25,
+         38
+        ]
+       ],
+       "heldOrQueued": {
+        "unposted": [],
+        "pageRetained": []
+       }
+      },
+      "releaseDeliveredMs": 995.1,
+      "completions": [
+       "documented-callback-text-selection"
+      ],
+      "terminalStatesNotAtTheirOrdinal": 0
+     }
+    },
+    {
+     "arm": "held-shift-two-seconds",
+     "browser": "chrome",
+     "round": 1,
+     "cellId": "chrome-held-shift-two-seconds-r1",
+     "outcome": "PASS",
+     "why": null,
+     "observed": {
+      "downs": 52,
+      "repeats": 51,
+      "deliveredMs": [
+       0.0,
+       500.4,
+       531.1,
+       560.1,
+       590.7,
+       620.1,
+       650.1,
+       680.2,
+       710.5,
+       740.5,
+       770.0,
+       800.1,
+       830.5,
+       860.2,
+       890.7,
+       920.0,
+       950.2,
+       981.2,
+       1010.5,
+       1040.5,
+       1070.4,
+       1101.2,
+       1130.4,
+       1160.8,
+       1193.9,
+       1220.2,
+       1251.6,
+       1282.0,
+       1310.9,
+       1340.4,
+       1372.3,
+       1400.0,
+       1430.0,
+       1460.3,
+       1490.0,
+       1520.5,
+       1550.1,
+       1580.1,
+       1610.1,
+       1640.1,
+       1670.1,
+       1700.1,
+       1730.6,
+       1760.4,
+       1790.1,
+       1820.3,
+       1850.2,
+       1880.1,
+       1910.1,
+       1940.2,
+       1970.1,
+       2000.1
+      ],
+      "scheduledMs": [
+       0,
+       500,
+       530,
+       560,
+       590,
+       620,
+       650,
+       680,
+       710,
+       740,
+       770,
+       800,
+       830,
+       860,
+       890,
+       920,
+       950,
+       980,
+       1010,
+       1040,
+       1070,
+       1100,
+       1130,
+       1160,
+       1190,
+       1220,
+       1250,
+       1280,
+       1310,
+       1340,
+       1370,
+       1400,
+       1430,
+       1460,
+       1490,
+       1520,
+       1550,
+       1580,
+       1610,
+       1640,
+       1670,
+       1700,
+       1730,
+       1760,
+       1790,
+       1820,
+       1850,
+       1880,
+       1910,
+       1940,
+       1970,
+       2000
+      ],
+      "scheduledReleaseMs": 2015,
+      "admitted": 28,
+      "posted": 28,
+      "answeredOk": 28,
+      "admittedVersusAnsweredMismatch": false,
+      "releasedRetained": 25,
+      "finalPrefix": 28,
+      "growthAfterRelease": 1,
+      "releaseBoundApplies": true,
+      "release": {
+       "releasePrefix": 27,
+       "answeredAtRelease": 27,
+       "releaseOrdinalMismatch": false,
+       "wirePending": [
+        [
+         26,
+         72
+        ]
+       ],
+       "heldOrQueued": {
+        "unposted": [],
+        "pageRetained": [
+         3398
+        ]
+       }
+      },
+      "releaseDeliveredMs": 2016.0,
+      "completions": [
+       "documented-callback-text-selection"
+      ],
+      "terminalStatesNotAtTheirOrdinal": 0
+     }
+    },
+    {
+     "arm": "held-shift-two-seconds",
+     "browser": "chrome",
+     "round": 2,
+     "cellId": "chrome-held-shift-two-seconds-r2",
+     "outcome": "PASS",
+     "why": null,
+     "observed": {
+      "downs": 52,
+      "repeats": 51,
+      "deliveredMs": [
+       0.0,
+       500.5,
+       530.4,
+       563.2,
+       590.4,
+       623.0,
+       650.5,
+       680.3,
+       710.2,
+       740.2,
+       770.4,
+       800.2,
+       830.2,
+       860.3,
+       890.6,
+       920.5,
+       950.4,
+       980.5,
+       1010.7,
+       1040.5,
+       1070.6,
+       1100.2,
+       1130.3,
+       1160.2,
+       1190.4,
+       1221.6,
+       1250.4,
+       1280.6,
+       1310.3,
+       1340.4,
+       1373.3,
+       1401.2,
+       1430.8,
+       1460.3,
+       1490.3,
+       1520.6,
+       1550.3,
+       1580.2,
+       1610.4,
+       1640.5,
+       1670.6,
+       1701.1,
+       1730.8,
+       1760.3,
+       1790.1,
+       1820.2,
+       1850.2,
+       1880.8,
+       1910.4,
+       1940.2,
+       1970.2,
+       2000.2
+      ],
+      "scheduledMs": [
+       0,
+       500,
+       530,
+       560,
+       590,
+       620,
+       650,
+       680,
+       710,
+       740,
+       770,
+       800,
+       830,
+       860,
+       890,
+       920,
+       950,
+       980,
+       1010,
+       1040,
+       1070,
+       1100,
+       1130,
+       1160,
+       1190,
+       1220,
+       1250,
+       1280,
+       1310,
+       1340,
+       1370,
+       1400,
+       1430,
+       1460,
+       1490,
+       1520,
+       1550,
+       1580,
+       1610,
+       1640,
+       1670,
+       1700,
+       1730,
+       1760,
+       1790,
+       1820,
+       1850,
+       1880,
+       1910,
+       1940,
+       1970,
+       2000
+      ],
+      "scheduledReleaseMs": 2015,
+      "admitted": 28,
+      "posted": 28,
+      "answeredOk": 28,
+      "admittedVersusAnsweredMismatch": false,
+      "releasedRetained": 25,
+      "finalPrefix": 28,
+      "growthAfterRelease": 1,
+      "releaseBoundApplies": true,
+      "release": {
+       "releasePrefix": 27,
+       "answeredAtRelease": 27,
+       "releaseOrdinalMismatch": false,
+       "wirePending": [
+        [
+         27,
+         72
+        ]
+       ],
+       "heldOrQueued": {
+        "unposted": [],
+        "pageRetained": [
+         4025
+        ]
+       }
+      },
+      "releaseDeliveredMs": 2015.4,
+      "completions": [
+       "documented-callback-text-selection"
+      ],
+      "terminalStatesNotAtTheirOrdinal": 0
+     }
+    },
+    {
+     "arm": "held-shift-two-seconds",
+     "browser": "chrome",
+     "round": 3,
+     "cellId": "chrome-held-shift-two-seconds-r3",
+     "outcome": "PASS",
+     "why": null,
+     "observed": {
+      "downs": 52,
+      "repeats": 51,
+      "deliveredMs": [
+       0.0,
+       500.4,
+       530.4,
+       562.9,
+       590.3,
+       621.6,
+       651.2,
+       683.1,
+       710.4,
+       740.2,
+       770.1,
+       800.2,
+       830.2,
+       860.2,
+       890.3,
+       920.5,
+       950.2,
+       980.3,
+       1010.1,
+       1040.1,
+       1070.2,
+       1100.9,
+       1131.9,
+       1160.5,
+       1191.6,
+       1220.1,
+       1250.4,
+       1280.5,
+       1310.2,
+       1340.2,
+       1373.2,
+       1401.1,
+       1430.3,
+       1460.2,
+       1490.2,
+       1520.2,
+       1550.8,
+       1580.3,
+       1610.2,
+       1640.2,
+       1670.3,
+       1701.7,
+       1730.4,
+       1760.4,
+       1790.4,
+       1820.3,
+       1851.1,
+       1883.7,
+       1910.6,
+       1943.3,
+       1970.2,
+       2000.2
+      ],
+      "scheduledMs": [
+       0,
+       500,
+       530,
+       560,
+       590,
+       620,
+       650,
+       680,
+       710,
+       740,
+       770,
+       800,
+       830,
+       860,
+       890,
+       920,
+       950,
+       980,
+       1010,
+       1040,
+       1070,
+       1100,
+       1130,
+       1160,
+       1190,
+       1220,
+       1250,
+       1280,
+       1310,
+       1340,
+       1370,
+       1400,
+       1430,
+       1460,
+       1490,
+       1520,
+       1550,
+       1580,
+       1610,
+       1640,
+       1670,
+       1700,
+       1730,
+       1760,
+       1790,
+       1820,
+       1850,
+       1880,
+       1910,
+       1940,
+       1970,
+       2000
+      ],
+      "scheduledReleaseMs": 2015,
+      "admitted": 28,
+      "posted": 28,
+      "answeredOk": 28,
+      "admittedVersusAnsweredMismatch": false,
+      "releasedRetained": 25,
+      "finalPrefix": 28,
+      "growthAfterRelease": 1,
+      "releaseBoundApplies": true,
+      "release": {
+       "releasePrefix": 27,
+       "answeredAtRelease": 27,
+       "releaseOrdinalMismatch": false,
+       "wirePending": [
+        [
+         28,
+         72
+        ]
+       ],
+       "heldOrQueued": {
+        "unposted": [],
+        "pageRetained": [
+         4648,
+         4654
+        ]
+       }
+      },
+      "releaseDeliveredMs": 2015.2,
+      "completions": [
+       "documented-callback-text-selection"
+      ],
+      "terminalStatesNotAtTheirOrdinal": 0
+     }
+    }
+   ],
+   "readiness": {
+    "outcome": "PASS",
+    "why": null
+   },
+   "reference": {
+    "outcome": "PASS",
+    "why": null
+   },
+   "pageSha256": "d34b21e59dfd255b2e94fc9099cbdfafa0a4771b0cb4856065c3ec700c32268e",
+   "arms": {
+    "insert-then-shift": {
+     "check": "v23-product-insert-then-shift",
+     "outcome": "PASS",
+     "ok": true,
+     "rows": 3,
+     "outcomes": [
+      "PASS",
+      "PASS",
+      "PASS"
+     ]
+    },
+    "merge-then-shift": {
+     "check": "v23-product-merge-then-shift",
+     "outcome": "PASS",
+     "ok": true,
+     "rows": 3,
+     "outcomes": [
+      "PASS",
+      "PASS",
+      "PASS"
+     ]
+    },
+    "held-shift-one-second": {
+     "check": "v23-product-held-shift-one-second",
+     "outcome": "PASS",
+     "ok": true,
+     "rows": 3,
+     "outcomes": [
+      "PASS",
+      "PASS",
+      "PASS"
+     ]
+    },
+    "held-shift-two-seconds": {
+     "check": "v23-product-held-shift-two-seconds",
+     "outcome": "PASS",
+     "ok": true,
+     "rows": 3,
+     "outcomes": [
+      "PASS",
+      "PASS",
+      "PASS"
+     ]
+    }
+   }
+  },
+  {
+   "dir": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/select-all-v26/f4/firefox/report.v23-four-arms",
+   "browser": "firefox",
+   "rows": [
+    {
+     "arm": "insert-then-shift",
+     "browser": "firefox",
+     "round": 1,
+     "cellId": "firefox-insert-then-shift-r1",
+     "outcome": "PASS",
+     "why": null,
+     "observed": {
+      "insertBeforeExtendTerminal": true,
+      "selectedText": "c",
+      "paragraphs": [
+       "axcd"
+      ]
+     }
+    },
+    {
+     "arm": "insert-then-shift",
+     "browser": "firefox",
+     "round": 2,
+     "cellId": "firefox-insert-then-shift-r2",
+     "outcome": "PASS",
+     "why": null,
+     "observed": {
+      "insertBeforeExtendTerminal": true,
+      "selectedText": "c",
+      "paragraphs": [
+       "axcd"
+      ]
+     }
+    },
+    {
+     "arm": "insert-then-shift",
+     "browser": "firefox",
+     "round": 3,
+     "cellId": "firefox-insert-then-shift-r3",
+     "outcome": "PASS",
+     "why": null,
+     "observed": {
+      "insertBeforeExtendTerminal": true,
+      "selectedText": "c",
+      "paragraphs": [
+       "axcd"
+      ]
+     }
+    },
+    {
+     "arm": "merge-then-shift",
+     "browser": "firefox",
+     "round": 1,
+     "cellId": "firefox-merge-then-shift-r1",
+     "outcome": "PASS",
+     "why": null,
+     "observed": {
+      "insertBeforeExtendTerminal": true,
+      "selectedText": "B",
+      "paragraphs": [
+       "Alpha first paragraphBravo second paragraph",
+       "Charlie third paragraph"
+      ]
+     }
+    },
+    {
+     "arm": "merge-then-shift",
+     "browser": "firefox",
+     "round": 2,
+     "cellId": "firefox-merge-then-shift-r2",
+     "outcome": "PASS",
+     "why": null,
+     "observed": {
+      "insertBeforeExtendTerminal": true,
+      "selectedText": "B",
+      "paragraphs": [
+       "Alpha first paragraphBravo second paragraph",
+       "Charlie third paragraph"
+      ]
+     }
+    },
+    {
+     "arm": "merge-then-shift",
+     "browser": "firefox",
+     "round": 3,
+     "cellId": "firefox-merge-then-shift-r3",
+     "outcome": "PASS",
+     "why": null,
+     "observed": {
+      "insertBeforeExtendTerminal": true,
+      "selectedText": "B",
+      "paragraphs": [
+       "Alpha first paragraphBravo second paragraph",
+       "Charlie third paragraph"
+      ]
+     }
+    },
+    {
+     "arm": "held-shift-one-second",
+     "browser": "firefox",
+     "round": 1,
+     "cellId": "firefox-held-shift-one-second-r1",
+     "outcome": "PASS",
+     "why": null,
+     "observed": {
+      "downs": 18,
+      "repeats": 17,
+      "deliveredMs": [
+       0.0,
+       502.7,
+       535.5,
+       567.2,
+       598.9,
+       631.9,
+       662.8,
+       693.8,
+       725.0,
+       756.9,
+       788.6,
+       819.9,
+       851.2,
+       882.2,
+       916.4,
+       948.0,
+       979.3,
+       1010.7
+      ],
+      "scheduledMs": [
+       0,
+       500,
+       530,
+       560,
+       590,
+       620,
+       650,
+       680,
+       710,
+       740,
+       770,
+       800,
+       830,
+       860,
+       890,
+       920,
+       950,
+       980
+      ],
+      "scheduledReleaseMs": 995,
+      "admitted": 11,
+      "posted": 11,
+      "answeredOk": 11,
+      "admittedVersusAnsweredMismatch": false,
+      "releasedRetained": 8,
+      "finalPrefix": 11,
+      "growthAfterRelease": 1,
+      "releaseBoundApplies": false,
+      "release": {
+       "releasePrefix": 10,
+       "answeredAtRelease": 10,
+       "releaseOrdinalMismatch": false,
+       "wirePending": [
+        [
+         23,
+         39
+        ]
+       ],
+       "heldOrQueued": {
+        "unposted": [],
+        "pageRetained": [
+         2217
+        ]
+       }
+      },
+      "releaseDeliveredMs": 1027.2,
+      "completions": [
+       "documented-callback-text-selection"
+      ],
+      "terminalStatesNotAtTheirOrdinal": 0
+     }
+    },
+    {
+     "arm": "held-shift-one-second",
+     "browser": "firefox",
+     "round": 2,
+     "cellId": "firefox-held-shift-one-second-r2",
+     "outcome": "PASS",
+     "why": null,
+     "observed": {
+      "downs": 18,
+      "repeats": 17,
+      "deliveredMs": [
+       0.0,
+       501.8,
+       533.8,
+       565.2,
+       596.7,
+       627.9,
+       659.1,
+       690.7,
+       721.9,
+       753.8,
+       786.4,
+       817.6,
+       849.0,
+       880.5,
+       914.0,
+       945.3,
+       980.1,
+       1011.6
+      ],
+      "scheduledMs": [
+       0,
+       500,
+       530,
+       560,
+       590,
+       620,
+       650,
+       680,
+       710,
+       740,
+       770,
+       800,
+       830,
+       860,
+       890,
+       920,
+       950,
+       980
+      ],
+      "scheduledReleaseMs": 995,
+      "admitted": 11,
+      "posted": 11,
+      "answeredOk": 11,
+      "admittedVersusAnsweredMismatch": false,
+      "releasedRetained": 8,
+      "finalPrefix": 11,
+      "growthAfterRelease": 1,
+      "releaseBoundApplies": false,
+      "release": {
+       "releasePrefix": 10,
+       "answeredAtRelease": 10,
+       "releaseOrdinalMismatch": false,
+       "wirePending": [
+        [
+         24,
+         38
+        ]
+       ],
+       "heldOrQueued": {
+        "unposted": [],
+        "pageRetained": [
+         2529
+        ]
+       }
+      },
+      "releaseDeliveredMs": 1030.3,
+      "completions": [
+       "documented-callback-text-selection"
+      ],
+      "terminalStatesNotAtTheirOrdinal": 0
+     }
+    },
+    {
+     "arm": "held-shift-one-second",
+     "browser": "firefox",
+     "round": 3,
+     "cellId": "firefox-held-shift-one-second-r3",
+     "outcome": "PASS",
+     "why": null,
+     "observed": {
+      "downs": 18,
+      "repeats": 17,
+      "deliveredMs": [
+       0.0,
+       503.3,
+       536.5,
+       567.8,
+       599.6,
+       630.8,
+       661.9,
+       693.3,
+       725.4,
+       756.7,
+       787.9,
+       818.9,
+       849.9,
+       881.0,
+       924.6,
+       956.1,
+       987.2,
+       1018.9
+      ],
+      "scheduledMs": [
+       0,
+       500,
+       530,
+       560,
+       590,
+       620,
+       650,
+       680,
+       710,
+       740,
+       770,
+       800,
+       830,
+       860,
+       890,
+       920,
+       950,
+       980
+      ],
+      "scheduledReleaseMs": 995,
+      "admitted": 11,
+      "posted": 11,
+      "answeredOk": 11,
+      "admittedVersusAnsweredMismatch": false,
+      "releasedRetained": 8,
+      "finalPrefix": 11,
+      "growthAfterRelease": 1,
+      "releaseBoundApplies": false,
+      "release": {
+       "releasePrefix": 10,
+       "answeredAtRelease": 10,
+       "releaseOrdinalMismatch": false,
+       "wirePending": [
+        [
+         25,
+         39
+        ]
+       ],
+       "heldOrQueued": {
+        "unposted": [],
+        "pageRetained": [
+         2841
+        ]
+       }
+      },
+      "releaseDeliveredMs": 1035.2,
+      "completions": [
+       "documented-callback-text-selection"
+      ],
+      "terminalStatesNotAtTheirOrdinal": 0
+     }
+    },
+    {
+     "arm": "held-shift-two-seconds",
+     "browser": "firefox",
+     "round": 1,
+     "cellId": "firefox-held-shift-two-seconds-r1",
+     "outcome": "PASS",
+     "why": null,
+     "observed": {
+      "downs": 52,
+      "repeats": 51,
+      "deliveredMs": [
+       0.0,
+       503.1,
+       535.7,
+       570.5,
+       601.6,
+       632.6,
+       663.8,
+       695.5,
+       727.0,
+       758.2,
+       789.2,
+       820.3,
+       851.6,
+       883.0,
+       914.1,
+       945.7,
+       978.3,
+       1009.4,
+       1040.6,
+       1071.7,
+       1102.7,
+       1133.7,
+       1164.9,
+       1196.8,
+       1228.1,
+       1259.1,
+       1290.2,
+       1334.6,
+       1366.6,
+       1397.9,
+       1429.6,
+       1461.4,
+       1493.3,
+       1524.3,
+       1560.6,
+       1592.2,
+       1623.3,
+       1658.3,
+       1689.7,
+       1721.3,
+       1752.3,
+       1783.2,
+       1815.0,
+       1846.1,
+       1877.6,
+       1909.6,
+       1941.0,
+       1977.4,
+       2008.6,
+       2040.0,
+       2071.3,
+       2102.3
+      ],
+      "scheduledMs": [
+       0,
+       500,
+       530,
+       560,
+       590,
+       620,
+       650,
+       680,
+       710,
+       740,
+       770,
+       800,
+       830,
+       860,
+       890,
+       920,
+       950,
+       980,
+       1010,
+       1040,
+       1070,
+       1100,
+       1130,
+       1160,
+       1190,
+       1220,
+       1250,
+       1280,
+       1310,
+       1340,
+       1370,
+       1400,
+       1430,
+       1460,
+       1490,
+       1520,
+       1550,
+       1580,
+       1610,
+       1640,
+       1670,
+       1700,
+       1730,
+       1760,
+       1790,
+       1820,
+       1850,
+       1880,
+       1910,
+       1940,
+       1970,
+       2000
+      ],
+      "scheduledReleaseMs": 2015,
+      "admitted": 30,
+      "posted": 30,
+      "answeredOk": 30,
+      "admittedVersusAnsweredMismatch": false,
+      "releasedRetained": 27,
+      "finalPrefix": 30,
+      "growthAfterRelease": 1,
+      "releaseBoundApplies": true,
+      "release": {
+       "releasePrefix": 29,
+       "answeredAtRelease": 29,
+       "releaseOrdinalMismatch": false,
+       "wirePending": [
+        [
+         26,
+         77
+        ]
+       ],
+       "heldOrQueued": {
+        "unposted": [],
+        "pageRetained": []
+       }
+      },
+      "releaseDeliveredMs": 2118.1,
+      "completions": [
+       "documented-callback-text-selection"
+      ],
+      "terminalStatesNotAtTheirOrdinal": 0
+     }
+    },
+    {
+     "arm": "held-shift-two-seconds",
+     "browser": "firefox",
+     "round": 2,
+     "cellId": "firefox-held-shift-two-seconds-r2",
+     "outcome": "PASS",
+     "why": null,
+     "observed": {
+      "downs": 52,
+      "repeats": 51,
+      "deliveredMs": [
+       0.0,
+       504.3,
+       537.2,
+       569.2,
+       600.6,
+       632.2,
+       664.3,
+       695.6,
+       726.9,
+       759.4,
+       790.4,
+       821.5,
+       857.7,
+       889.5,
+       921.7,
+       953.0,
+       984.9,
+       1016.4,
+       1047.9,
+       1080.7,
+       1111.8,
+       1143.2,
+       1174.3,
+       1207.6,
+       1239.7,
+       1272.5,
+       1303.9,
+       1335.1,
+       1366.3,
+       1397.9,
+       1430.0,
+       1461.2,
+       1492.3,
+       1526.3,
+       1560.6,
+       1591.9,
+       1623.0,
+       1654.2,
+       1685.5,
+       1716.5,
+       1748.3,
+       1781.1,
+       1812.4,
+       1843.6,
+       1874.7,
+       1905.9,
+       1938.1,
+       1969.7,
+       2001.9,
+       2035.4,
+       2066.8,
+       2097.9
+      ],
+      "scheduledMs": [
+       0,
+       500,
+       530,
+       560,
+       590,
+       620,
+       650,
+       680,
+       710,
+       740,
+       770,
+       800,
+       830,
+       860,
+       890,
+       920,
+       950,
+       980,
+       1010,
+       1040,
+       1070,
+       1100,
+       1130,
+       1160,
+       1190,
+       1220,
+       1250,
+       1280,
+       1310,
+       1340,
+       1370,
+       1400,
+       1430,
+       1460,
+       1490,
+       1520,
+       1550,
+       1580,
+       1610,
+       1640,
+       1670,
+       1700,
+       1730,
+       1760,
+       1790,
+       1820,
+       1850,
+       1880,
+       1910,
+       1940,
+       1970,
+       2000
+      ],
+      "scheduledReleaseMs": 2015,
+      "admitted": 29,
+      "posted": 29,
+      "answeredOk": 29,
+      "admittedVersusAnsweredMismatch": false,
+      "releasedRetained": 26,
+      "finalPrefix": 29,
+      "growthAfterRelease": 1,
+      "releaseBoundApplies": true,
+      "release": {
+       "releasePrefix": 28,
+       "answeredAtRelease": 28,
+       "releaseOrdinalMismatch": false,
+       "wirePending": [
+        [
+         27,
+         74
+        ]
+       ],
+       "heldOrQueued": {
+        "unposted": [],
+        "pageRetained": [
+         4141,
+         4147
+        ]
+       }
+      },
+      "releaseDeliveredMs": 2114.3,
+      "completions": [
+       "documented-callback-text-selection"
+      ],
+      "terminalStatesNotAtTheirOrdinal": 0
+     }
+    },
+    {
+     "arm": "held-shift-two-seconds",
+     "browser": "firefox",
+     "round": 3,
+     "cellId": "firefox-held-shift-two-seconds-r3",
+     "outcome": "PASS",
+     "why": null,
+     "observed": {
+      "downs": 52,
+      "repeats": 51,
+      "deliveredMs": [
+       0.0,
+       502.5,
+       534.9,
+       566.7,
+       597.8,
+       629.0,
+       664.3,
+       695.5,
+       726.7,
+       758.3,
+       789.8,
+       826.3,
+       857.5,
+       888.7,
+       921.2,
+       952.3,
+       983.5,
+       1014.6,
+       1045.5,
+       1076.7,
+       1107.9,
+       1139.3,
+       1170.6,
+       1205.6,
+       1237.1,
+       1268.3,
+       1299.7,
+       1330.8,
+       1364.4,
+       1396.4,
+       1427.9,
+       1459.5,
+       1490.8,
+       1522.0,
+       1557.3,
+       1589.7,
+       1621.0,
+       1652.4,
+       1684.0,
+       1715.1,
+       1746.4,
+       1777.9,
+       1809.3,
+       1840.8,
+       1872.2,
+       1903.6,
+       1935.8,
+       1967.1,
+       1998.1,
+       2029.4,
+       2061.7,
+       2094.4
+      ],
+      "scheduledMs": [
+       0,
+       500,
+       530,
+       560,
+       590,
+       620,
+       650,
+       680,
+       710,
+       740,
+       770,
+       800,
+       830,
+       860,
+       890,
+       920,
+       950,
+       980,
+       1010,
+       1040,
+       1070,
+       1100,
+       1130,
+       1160,
+       1190,
+       1220,
+       1250,
+       1280,
+       1310,
+       1340,
+       1370,
+       1400,
+       1430,
+       1460,
+       1490,
+       1520,
+       1550,
+       1580,
+       1610,
+       1640,
+       1670,
+       1700,
+       1730,
+       1760,
+       1790,
+       1820,
+       1850,
+       1880,
+       1910,
+       1940,
+       1970,
+       2000
+      ],
+      "scheduledReleaseMs": 2015,
+      "admitted": 29,
+      "posted": 29,
+      "answeredOk": 29,
+      "admittedVersusAnsweredMismatch": false,
+      "releasedRetained": 26,
+      "finalPrefix": 29,
+      "growthAfterRelease": 1,
+      "releaseBoundApplies": true,
+      "release": {
+       "releasePrefix": 28,
+       "answeredAtRelease": 28,
+       "releaseOrdinalMismatch": false,
+       "wirePending": [
+        [
+         28,
+         74
+        ]
+       ],
+       "heldOrQueued": {
+        "unposted": [],
+        "pageRetained": [
+         4787,
+         4793
+        ]
+       }
+      },
+      "releaseDeliveredMs": 2112.3,
+      "completions": [
+       "documented-callback-text-selection"
+      ],
+      "terminalStatesNotAtTheirOrdinal": 0
+     }
+    }
+   ],
+   "readiness": {
+    "outcome": "PASS",
+    "why": null
+   },
+   "reference": {
+    "outcome": "PASS",
+    "why": null
+   },
+   "pageSha256": "c4bc5110f7052ff18c2a3c955d5a98a770f238662dff14f6189558831ed9ea0e",
+   "arms": {
+    "insert-then-shift": {
+     "check": "v23-product-insert-then-shift",
+     "outcome": "PASS",
+     "ok": true,
+     "rows": 3,
+     "outcomes": [
+      "PASS",
+      "PASS",
+      "PASS"
+     ]
+    },
+    "merge-then-shift": {
+     "check": "v23-product-merge-then-shift",
+     "outcome": "PASS",
+     "ok": true,
+     "rows": 3,
+     "outcomes": [
+      "PASS",
+      "PASS",
+      "PASS"
+     ]
+    },
+    "held-shift-one-second": {
+     "check": "v23-product-held-shift-one-second",
+     "outcome": "PASS",
+     "ok": true,
+     "rows": 3,
+     "outcomes": [
+      "PASS",
+      "PASS",
+      "PASS"
+     ]
+    },
+    "held-shift-two-seconds": {
+     "check": "v23-product-held-shift-two-seconds",
+     "outcome": "PASS",
+     "ok": true,
+     "rows": 3,
+     "outcomes": [
+      "PASS",
+      "PASS",
+      "PASS"
+     ]
+    }
+   }
+  }
+ ]
+}

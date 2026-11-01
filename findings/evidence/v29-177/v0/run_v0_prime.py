@@ -8,7 +8,8 @@ generation 82, all from git 69c5583a9), which re-reads F4-82 with `judge_v82_pro
 readers; the generation-82 F3 readings (`read_v25_f3.py` and `read_v82_f3_equal.py` on f3-82/run-01, with the argv their
 committed results were made with) added to the file readers, read on the live tree and in every stage, `read_v25_f3.py`'s
 on F3-82 with its recorded exit 1 -- EXPECTED_EXIT; F4-82's reader recorded among the live reds; the pre-check and the
-put-back target generation 83 (only the page differs from 82) and its bundle line.
+put-back target generation 83 (only the page differs from 82) and its bundle line; web/e2-editor.html among the files every stage
+restores and the put-back checks, because the four-arm readers bind it (`originalHtmlSha256`) and the tree now holds the icon toolbar.
 
   stage v82  page 3b0a2ebb, paragraph client d07a58e0, narrow client 50f5a2ac, narrow session d037eaa4 (git 69c5583a9)
 
@@ -32,10 +33,11 @@ SDK = REPO / 'wasm_sdk_probe'
 EV = REPO / 'findings/evidence'
 PAGE, CLIENT = 'web/e2-editor-app.js', 'editor-shell-v2/paragraph-editor-client.js'
 NCLIENT, NSESSION = 'editor-shell-v2/narrow-editor-v2-client.js', 'editor-shell-v2/narrow-editor-v2-session.js'
-FILES = (PAGE, CLIENT, NCLIENT, NSESSION)
+HTML = 'web/e2-editor.html'
+FILES = (PAGE, CLIENT, NCLIENT, NSESSION, HTML)
 DIST = {PAGE: 'dist/e2-editor-app.js', CLIENT: 'dist/editor-shell-v2/paragraph-editor-client.js',
         NCLIENT: 'dist/editor-shell-v2/narrow-editor-v2-client.js',
-        NSESSION: 'dist/editor-shell-v2/narrow-editor-v2-session.js'}
+        NSESSION: 'dist/editor-shell-v2/narrow-editor-v2-session.js', HTML: 'dist/e2-editor.html'}
 NARROW = {NCLIENT: ('9f084bf06', '34378dec62df9b02af8d85616b038fc176d6c94fad268773bf77eb2d495b9a55'),
           NSESSION: ('9f084bf06', 'a4cf3105835fa57621e1d8afd9a4b9eb5dd44ccf35aa46a9cd5b475ac6746f0d')}
 STAGES = {
@@ -61,7 +63,12 @@ STAGES = {
 V83 = {PAGE: '022d0cd0b5152f1ee9cabc74b10f5af2eb55935299228119a419ab717957759b',
        CLIENT: 'd07a58e0c674dd992e45df9a37ba26ade9a0d53555f284d1eb5cff2c343b5f3b',
        NCLIENT: '50f5a2acd5f34e1db42fc82a0cf8e1a75072e51f0fcc95e7f6e77da3fecd21d5',
-       NSESSION: 'd037eaa4c0b69bd3cc2e52099d461e0a54f3594a6b342c34ab0faca06955aac0'}
+       NSESSION: 'd037eaa4c0b69bd3cc2e52099d461e0a54f3594a6b342c34ab0faca06955aac0',
+       HTML: 'ca58f40f30b7ad115dab51b65ff82ce297724f2185c1cd199c0c16f7a32f601a'}
+# The four-arm readers bind web/e2-editor.html too (`originalHtmlSha256`), and every generation before the icon toolbar has this
+# one page (run-01, which restored only the JS, read NOT_ESTABLISHED in every stage).
+for _files in STAGES.values():
+    _files[HTML] = ('69c5583a9', 'b9c2b9751f57962585bb9788255e2aa42a228c0a8b9983755191d2004bab545a')
 V80 = {PAGE: '3b6c023ea3f8807ef28e2a031e2d49f24c9c08db4278392c4c0d7252bbc51f7b',
        CLIENT: '7d1c1eb22e0baa7ad487d16d02eb0b2cc29ade3653679372bbf9e05b06e94396',
        NCLIENT: '50f5a2acd5f34e1db42fc82a0cf8e1a75072e51f0fcc95e7f6e77da3fecd21d5',

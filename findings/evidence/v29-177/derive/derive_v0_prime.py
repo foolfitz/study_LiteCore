@@ -12,6 +12,7 @@ CLIENT = "d07a58e0c674dd992e45df9a37ba26ade9a0d53555f284d1eb5cff2c343b5f3b"
 NARROW = "50f5a2acd5f34e1db42fc82a0cf8e1a75072e51f0fcc95e7f6e77da3fecd21d5"
 SESSION = "d037eaa4c0b69bd3cc2e52099d461e0a54f3594a6b342c34ab0faca06955aac0"
 COMMIT = "69c5583a9"   # the last commit before the cutover to v29
+HTML_83 = "ca58f40f30b7ad115dab51b65ff82ce297724f2185c1cd199c0c16f7a32f601a"   # the icon toolbar's page, in the tree since 2c807bb25
 
 DOC = '''"""V0' for generation 83 (SPEC-M3-v29-tick-pacing section 6 T3): the carried-over counts and the generation-79, -80, -81 and
 -82 readings still re-read.
@@ -22,7 +23,8 @@ generation 82, all from git 69c5583a9), which re-reads F4-82 with `judge_v82_pro
 readers; the generation-82 F3 readings (`read_v25_f3.py` and `read_v82_f3_equal.py` on f3-82/run-01, with the argv their
 committed results were made with) added to the file readers, read on the live tree and in every stage, `read_v25_f3.py`'s
 on F3-82 with its recorded exit 1 -- EXPECTED_EXIT; F4-82's reader recorded among the live reds; the pre-check and the
-put-back target generation 83 (only the page differs from 82) and its bundle line.
+put-back target generation 83 (only the page differs from 82) and its bundle line; web/e2-editor.html among the files every stage
+restores and the put-back checks, because the four-arm readers bind it (`originalHtmlSha256`) and the tree now holds the icon toolbar.
 
   stage v82  page 3b0a2ebb, paragraph client d07a58e0, narrow client 50f5a2ac, narrow session d037eaa4 (git 69c5583a9)
 
@@ -46,6 +48,17 @@ V82 = {PAGE: '%s',""" % PAGE_82,
             NSESSION: ('%s', '%s')},
 }
 V83 = {PAGE: '%s',""" % (COMMIT, PAGE_82, COMMIT, CLIENT, COMMIT, NARROW, COMMIT, SESSION, PAGE_83), 1),
+    ("FILES = (PAGE, CLIENT, NCLIENT, NSESSION)\n", "HTML = 'web/e2-editor.html'\nFILES = (PAGE, CLIENT, NCLIENT, NSESSION, HTML)\n", 1),
+    ("        NSESSION: 'dist/editor-shell-v2/narrow-editor-v2-session.js'}\n",
+     "        NSESSION: 'dist/editor-shell-v2/narrow-editor-v2-session.js', HTML: 'dist/e2-editor.html'}\n", 1),
+    ("       NSESSION: 'd037eaa4c0b69bd3cc2e52099d461e0a54f3594a6b342c34ab0faca06955aac0'}\nV80 = {",
+     "       NSESSION: 'd037eaa4c0b69bd3cc2e52099d461e0a54f3594a6b342c34ab0faca06955aac0',\n"
+     "       HTML: '%s'}\n"
+     "# The four-arm readers bind web/e2-editor.html too (`originalHtmlSha256`), and every generation before the icon toolbar has this\n"
+     "# one page (run-01, which restored only the JS, read NOT_ESTABLISHED in every stage).\n"
+     "for _files in STAGES.values():\n"
+     "    _files[HTML] = ('%s', 'b9c2b9751f57962585bb9788255e2aa42a228c0a8b9983755191d2004bab545a')\n"
+     "V80 = {" % (HTML_83, COMMIT), 1),
     ("F3_81 = EV / 'v27-176/f3-81'\n",
      "F3_81 = EV / 'v27-176/f3-81'\nF4_82 = EV / 'v28-083/f4-82'\nF3_82 = EV / 'v28-083/f3-82'\n", 1),
     ("""               F4_81 / 'aggregate-judge.json'),

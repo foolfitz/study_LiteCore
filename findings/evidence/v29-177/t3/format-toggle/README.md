@@ -37,3 +37,16 @@ F3-83 run-01's own shape was `formatCacheBefore: 'true'` on the italic arm, so t
 ## For the next K spec
 
 `read_k_0244_product_path.py` wants all 46 cells equal, so this race can turn K7 red with no product cause. The derived F3 runner can wait for the clear's toast, written once after step 4, instead of the label (its REPLACEMENTS list, the bound runner not edited). Not done here: it needs its witness (section 34), and this batch does not change a check to reach green.
+
+## Correction (same day, later): "it is not new on v29" does not hold for F3's cell
+
+**Withdrawn:** the section above is true of what `repro.py` measures, the runner pressing into the clear's loop, but it does not explain F3's cell, and the commit message that said "not a v29 regression" was premature.
+
+| run | Firefox | Chrome |
+|---|---|---|
+| F3-82 (v28) | PASS | PASS |
+| F3-83 run-01, run-02 | NE, NE | PASS, PASS |
+| F3-83 run-03, run-04 | NE, NE | not run |
+| clear wait changed to the toast (`../../f3-83/diag_clear_wait.py`) | PASS, NE, NE | NE |
+
+So the move is not intermittent on Firefox (run-01 to run-04: 4 of 4), and removing the clear race does not remove it; Chrome then went NE too. Why `repro.py` missed it is open: its 720 arms never showed this shape. Each failing run breaks a different arm, in two shapes: the cache already `true` before the press, so the toggle asks for OFF; or the press correct, cache false to true, and the marker typed right after it does not carry the format. Next: `../../f3-83/diag-format-log/` logs every action and format value inside F3 itself.
