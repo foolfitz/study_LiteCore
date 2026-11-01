@@ -1,0 +1,19 @@
+# ddev-router's static config, reduced to the one entry point this stack serves (same traefik, 3.6.13).
+global:
+  sendAnonymousUsage: false
+log:
+  level: ERROR
+accessLog:
+  filters:
+    statusCodes:
+      - 300-510
+entryPoints:
+  https:
+    address: ":8443"
+    forwardedHeaders:
+      trustedIPs:
+        - 172.16.0.0/12
+providers:
+  file:
+    directory: /etc/traefik/dynamic
+    watch: false

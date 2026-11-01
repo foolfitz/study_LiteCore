@@ -1,0 +1,71 @@
+# The LiteCore test host, on its own (owner 2026-11-01: 「本專案不要依賴ddev了，不然每次都互相卡住」).
+# No ddev process, router, network or volume.  The web image is ddev's by bytes, on purpose: same PHP, Apache and FPM pool as
+# the 0.2.26 count, so a count here reads against that one.  docs: README.md.  STACK_* come from an env file (*.env).
+name: ${STACK_NAME:?}
+services:
+  db:
+    image: mariadb:11.4
+    environment:
+      MARIADB_ROOT_PASSWORD: root
+      MARIADB_DATABASE: db
+      MARIADB_USER: db
+      MARIADB_PASSWORD: db
+      TZ: Asia/Taipei
+    volumes:
+      - database:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      start_period: 60s
+      start_interval: 1s
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: "no"
+  web:
+    image: ddev/ddev-webserver:v1.25.3-litecore-built
+    command: ["/start.sh"]
+    user: "1000:1000"
+    hostname: ${STACK_NAME:?}-web
+    working_dir: /var/www/html/
+    environment:
+      TZ: Asia/Taipei
+      CAROOT: /mnt/ddev-global-cache/mkcert
+      TERMINUS_CACHE_DIR: /mnt/ddev-global-cache/terminus/cache
+      DDEV_PROJECT: ${STACK_NAME:?}
+      DDEV_PROJECT_TYPE: php
+      DDEV_PHP_VERSION: "8.4"
+      DDEV_WEBSERVER_TYPE: apache-fpm
+      DDEV_DOCROOT: nextcloud
+      DOCROOT: nextcloud
+      DDEV_XDEBUG_ENABLED: "false"
+      DDEV_PRIMARY_URL: ${STACK_URL:?}
+      DDEV_HOSTNAME: ${STACK_HOST:?}
+      VIRTUAL_HOST: ${STACK_HOST:?}
+      HOSTNAME: ${STACK_NAME:?}-web
+      IS_DDEV_PROJECT: "true"
+      DDEV_VERSION: own-stack
+      USER: jiajun
+    volumes:
+      - ${STACK_ROOT:?}:/var/www/html
+      - ./web-config:/mnt/ddev_config:ro
+      - global-cache:/mnt/ddev-global-cache
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+  router:
+    image: ddev/ddev-traefik-router:v1.25.3
+    entrypoint: ["/usr/local/bin/traefik", "--configFile=/etc/traefik/static.yaml"]
+    command: []
+    volumes:
+      - ./traefik:/etc/traefik:ro
+      - ./certs:/etc/traefik-certs:ro
+    ports:
+      - "127.0.0.1:${STACK_HTTPS_PORT:?}:8443"
+      - "[::1]:${STACK_HTTPS_PORT:?}:8443"
+    depends_on:
+      - web
+    restart: "no"
+volumes:
+  database: {}
+  global-cache: {}
