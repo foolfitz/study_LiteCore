@@ -1,0 +1,1612 @@
+{
+ "argv": [
+  "tools/check_v83_last_line_bullet.py",
+  "--mutation",
+  "wrong-button-b-body",
+  "--out",
+  "../findings/evidence/v29-177/s4/mutation-wrong-button-b-body"
+ ],
+ "tool": "check_v82_last_line_bullet",
+ "config": {
+  "products": [
+   "after"
+  ],
+  "cells": [
+   "b-body"
+  ],
+  "browsers": [
+   "chrome",
+   "firefox"
+  ],
+  "arms": [
+   "noclick",
+   "click"
+  ],
+  "repetitions": 3,
+  "mutation": "wrong-button-b-body"
+ },
+ "marker": "mks4q",
+ "click": [
+  0.8,
+  0.15
+ ],
+ "fixtures": {
+  "two-plain": {
+   "path": "findings/evidence/v27-176/fixture-two-plain/build-01/two-plain.odt",
+   "sha256": "56bc01b03b094b8da784fa98419873009fb887c8bf62953d0574f71c18a497a9"
+  },
+  "bulleted-last": {
+   "path": "findings/evidence/v28-083/fixtures-s4/build-01/bulleted-last.odt",
+   "sha256": "de281bc50308fc1d0623f4ef112071730d288838c118e3bb0b4dcdac74aaf234"
+  },
+  "realheading-last": {
+   "path": "findings/evidence/v28-083/fixtures-s4/build-01/realheading-last.odt",
+   "sha256": "00be627b33ffc4c2f0a00a1954a54736f8a5dc27b242e1b97a896030b75393eb"
+  },
+  "table-then-empty-last": {
+   "path": "findings/evidence/v28-083/fixtures-s4/build-01/table-then-empty-last.odt",
+   "sha256": "42bd8b5b0f22f03414fef0508d2efa86f18ea8b6d1d3a8222ff7cc8fa3fb2c84"
+  }
+ },
+ "blank": {
+  "path": "/home/jiajun/Projects/Nextcloud_Apps/litecore/blank/en-US_zh-TW_A4.odt",
+  "sha256": "7e6221b697d408fc011b820226b98e4ad908afbadce8aac3ded48140349b5475"
+ },
+ "products": {
+  "after": {
+   "product": "after",
+   "profile": "e2-editor-v29",
+   "archive": "build/archive/e2-editor-v29-e61e5890-worker-a5df83db",
+   "generation": "e2/editor-shell-v2-bundle-v81.json",
+   "generationDigest": "6eb7ca108ea77c4ad735f97344ee9befa76a2c3c76fb7a6bce2f6da1bdc5c094",
+   "servedProfile": {
+    "probe.wasm": "e61e5890bac5c1d24144beec6e5907c225b1637e5dc306510deaf5c5e3726b12",
+    "probe.js": "0ca2665cba3b444cdebb5dd152600cba2991d9979f82833a81241a5f8ec0ce83",
+    "sdk-worker.js": "a5df83dbd0bd4df6b67b81d000da141910b76252fbf2bb8636d9a312edfffcba",
+    "sdk-manifest.json": "a0352c83b312b4f3988886936228985bea83aafa6cd0a49ce6af56f519d3432b"
+   },
+   "page": "022d0cd0b5152f1ee9cabc74b10f5af2eb55935299228119a419ab717957759b",
+   "client": "d07a58e0c674dd992e45df9a37ba26ade9a0d53555f284d1eb5cff2c343b5f3b",
+   "shellMismatchesAgainst81": [
+    "editor-shell-v2/paragraph-editor-client.js",
+    "web/e2-editor-app.js"
+   ],
+   "checks": {
+    "pagePointsAtProfile": true,
+    "declaredInGeneration81": true,
+    "profileEqualsArchive": true,
+    "othersEqualGeneration81": true,
+    "pageEqualsTree": true,
+    "pageDiffersFromGeneration81": true,
+    "clientEqualsTree": true,
+    "clientDiffersFromGeneration81": true
+   },
+   "ok": true
+  }
+ },
+ "runs": [
+  {
+   "cell": "b-body",
+   "product": "after",
+   "browser": "chrome",
+   "arm": null,
+   "repetition": 1,
+   "browserVersion": "Chrome/156.0.8078.47",
+   "action": "set-paragraph-heading",
+   "opened": {
+    "pill": "ready",
+    "latency": "—",
+    "toast": "已開啟 realheading-last.odt",
+    "toastBad": false,
+    "revision": "0",
+    "notice": {
+     "show": "0",
+     "text": ""
+    },
+    "requests": 11,
+    "responses": 11,
+    "workers": 2,
+    "blobs": 0,
+    "warns": 0
+   },
+   "clickAt": {
+    "fraction": [
+     0.8,
+     0.15
+    ],
+    "viewport": [
+     962.5,
+     449.790625
+    ]
+   },
+   "caretPlaced": true,
+   "enters": [],
+   "label": "標題",
+   "pressSettled": true,
+   "press": {
+    "pill": "ready",
+    "latency": "標題 36 ms",
+    "toast": "",
+    "toastBad": false,
+    "revision": "1",
+    "notice": {
+     "show": "0",
+     "text": ""
+    },
+    "requests": 17,
+    "responses": 17,
+    "workers": 2,
+    "blobs": 0,
+    "warns": 0
+   },
+   "pressRows": [
+    {
+     "operation": "editorActionV2",
+     "action": "set-paragraph-heading",
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "recovery": null,
+     "completion": "verified-format-readback",
+     "formatBarrier": {
+      "route": "collapsed",
+      "readbackBlockCount": 0,
+      "itemCount": 0,
+      "failureShape": "",
+      "dispatched": true,
+      "selectionResultSeen": true,
+      "undo": {
+       "read": true,
+       "changed": true,
+       "actionsBefore": 0,
+       "actionsAfter": 1
+      },
+      "fallback": {
+       "ran": true,
+       "selectionType": 1,
+       "blockCount": 2,
+       "lastListTag": "",
+       "lastBlockTag": "h1",
+       "refusal": "",
+       "restoreConfirmed": true
+      }
+     },
+     "revision": [
+      0,
+      1
+     ]
+    },
+    {
+     "operation": "paint",
+     "action": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "recovery": null,
+     "completion": null,
+     "formatBarrier": null,
+     "revision": [
+      null,
+      1
+     ]
+    }
+   ],
+   "pressWarns": [],
+   "savedSettled": true,
+   "saved": {
+    "sha256": "45c53114fdf5efcd918012301062dbd82a08c752288355a61966776501e14f3a",
+    "paragraphs": [
+     {
+      "text": "Plain first",
+      "tag": "p",
+      "inList": false,
+      "listStyle": null,
+      "listLevel1": null,
+      "style": "Standard",
+      "inTable": false
+     },
+     {
+      "text": "",
+      "tag": "h",
+      "inList": false,
+      "listStyle": null,
+      "listLevel1": null,
+      "style": "Heading_20_1",
+      "inTable": false
+     }
+    ]
+   },
+   "undo": [
+    {
+     "kind": "ctrl-z",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "復原 28 ms",
+      "toast": "已存出 8.4 KB",
+      "toastBad": false,
+      "revision": "2",
+      "notice": {
+       "show": "0",
+       "text": ""
+      },
+      "requests": 23,
+      "responses": 23,
+      "workers": 2,
+      "blobs": 1,
+      "warns": 0
+     },
+     "rows": [
+      {
+       "operation": "undo",
+       "action": null,
+       "replied": true,
+       "ok": true,
+       "code": null,
+       "message": null,
+       "recovery": null,
+       "completion": null,
+       "formatBarrier": null,
+       "revision": [
+        null,
+        2
+       ]
+      },
+      {
+       "operation": "editorGetStateV2",
+       "action": null,
+       "replied": true,
+       "ok": true,
+       "code": null,
+       "message": null,
+       "recovery": null,
+       "completion": null,
+       "formatBarrier": null,
+       "revision": [
+        null,
+        2
+       ]
+      },
+      {
+       "operation": "paint",
+       "action": null,
+       "replied": true,
+       "ok": true,
+       "code": null,
+       "message": null,
+       "recovery": null,
+       "completion": null,
+       "formatBarrier": null,
+       "revision": [
+        null,
+        2
+       ]
+      }
+     ]
+    }
+   ],
+   "savedAfterUndoSettled": true,
+   "savedAfterUndo": {
+    "sha256": "e6405b83ca4c7dc26ad0e54825e5be71f7432380b4136f1845bf55c3677fd516",
+    "paragraphs": [
+     {
+      "text": "Plain first",
+      "tag": "p",
+      "inList": false,
+      "listStyle": null,
+      "listLevel1": null,
+      "style": "Standard",
+      "inTable": false
+     },
+     {
+      "text": "",
+      "tag": "h",
+      "inList": false,
+      "listStyle": null,
+      "listLevel1": null,
+      "style": "Heading_20_1",
+      "inTable": false
+     }
+    ]
+   },
+   "cleanup": {},
+   "outcome": "FAIL",
+   "clauses": {
+    "ready": true,
+    "no-toast": true,
+    "no-review-line": true,
+    "strip": false,
+    "reply-ok": true,
+    "completion": true,
+    "route": true,
+    "fallback-ran": true,
+    "fallback-two-blocks": true,
+    "restore-confirmed": true,
+    "saved-target-state": false,
+    "saved-neighbours": true,
+    "undo-replies-ok": true,
+    "undo-neighbours": true,
+    "undo-fixture-state": true
+   },
+   "failedClauses": [
+    "saved-target-state",
+    "strip"
+   ]
+  },
+  {
+   "cell": "b-body",
+   "product": "after",
+   "browser": "chrome",
+   "arm": null,
+   "repetition": 2,
+   "browserVersion": "Chrome/156.0.8078.47",
+   "action": "set-paragraph-heading",
+   "opened": {
+    "pill": "ready",
+    "latency": "—",
+    "toast": "已開啟 realheading-last.odt",
+    "toastBad": false,
+    "revision": "0",
+    "notice": {
+     "show": "0",
+     "text": ""
+    },
+    "requests": 11,
+    "responses": 11,
+    "workers": 2,
+    "blobs": 0,
+    "warns": 0
+   },
+   "clickAt": {
+    "fraction": [
+     0.8,
+     0.15
+    ],
+    "viewport": [
+     962.5,
+     449.790625
+    ]
+   },
+   "caretPlaced": true,
+   "enters": [],
+   "label": "標題",
+   "pressSettled": true,
+   "press": {
+    "pill": "ready",
+    "latency": "標題 37 ms",
+    "toast": "",
+    "toastBad": false,
+    "revision": "1",
+    "notice": {
+     "show": "0",
+     "text": ""
+    },
+    "requests": 17,
+    "responses": 17,
+    "workers": 2,
+    "blobs": 0,
+    "warns": 0
+   },
+   "pressRows": [
+    {
+     "operation": "editorActionV2",
+     "action": "set-paragraph-heading",
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "recovery": null,
+     "completion": "verified-format-readback",
+     "formatBarrier": {
+      "route": "collapsed",
+      "readbackBlockCount": 0,
+      "itemCount": 0,
+      "failureShape": "",
+      "dispatched": true,
+      "selectionResultSeen": true,
+      "undo": {
+       "read": true,
+       "changed": true,
+       "actionsBefore": 0,
+       "actionsAfter": 1
+      },
+      "fallback": {
+       "ran": true,
+       "selectionType": 1,
+       "blockCount": 2,
+       "lastListTag": "",
+       "lastBlockTag": "h1",
+       "refusal": "",
+       "restoreConfirmed": true
+      }
+     },
+     "revision": [
+      0,
+      1
+     ]
+    },
+    {
+     "operation": "paint",
+     "action": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "recovery": null,
+     "completion": null,
+     "formatBarrier": null,
+     "revision": [
+      null,
+      1
+     ]
+    }
+   ],
+   "pressWarns": [],
+   "savedSettled": true,
+   "saved": {
+    "sha256": "35f14540bd6073dcc70c8dadf45a30ec0e13a510dca672fddcaaacf58f21f77c",
+    "paragraphs": [
+     {
+      "text": "Plain first",
+      "tag": "p",
+      "inList": false,
+      "listStyle": null,
+      "listLevel1": null,
+      "style": "Standard",
+      "inTable": false
+     },
+     {
+      "text": "",
+      "tag": "h",
+      "inList": false,
+      "listStyle": null,
+      "listLevel1": null,
+      "style": "Heading_20_1",
+      "inTable": false
+     }
+    ]
+   },
+   "undo": [
+    {
+     "kind": "ctrl-z",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "復原 4 ms",
+      "toast": "已存出 8.4 KB",
+      "toastBad": false,
+      "revision": "2",
+      "notice": {
+       "show": "0",
+       "text": ""
+      },
+      "requests": 23,
+      "responses": 23,
+      "workers": 2,
+      "blobs": 1,
+      "warns": 0
+     },
+     "rows": [
+      {
+       "operation": "undo",
+       "action": null,
+       "replied": true,
+       "ok": true,
+       "code": null,
+       "message": null,
+       "recovery": null,
+       "completion": null,
+       "formatBarrier": null,
+       "revision": [
+        null,
+        2
+       ]
+      },
+      {
+       "operation": "editorGetStateV2",
+       "action": null,
+       "replied": true,
+       "ok": true,
+       "code": null,
+       "message": null,
+       "recovery": null,
+       "completion": null,
+       "formatBarrier": null,
+       "revision": [
+        null,
+        2
+       ]
+      },
+      {
+       "operation": "paint",
+       "action": null,
+       "replied": true,
+       "ok": true,
+       "code": null,
+       "message": null,
+       "recovery": null,
+       "completion": null,
+       "formatBarrier": null,
+       "revision": [
+        null,
+        2
+       ]
+      }
+     ]
+    }
+   ],
+   "savedAfterUndoSettled": true,
+   "savedAfterUndo": {
+    "sha256": "0d47ae9588042651aaa672454b262bbc0ddf4aa2cff7769ca9fc1eae2a42d48f",
+    "paragraphs": [
+     {
+      "text": "Plain first",
+      "tag": "p",
+      "inList": false,
+      "listStyle": null,
+      "listLevel1": null,
+      "style": "Standard",
+      "inTable": false
+     },
+     {
+      "text": "",
+      "tag": "h",
+      "inList": false,
+      "listStyle": null,
+      "listLevel1": null,
+      "style": "Heading_20_1",
+      "inTable": false
+     }
+    ]
+   },
+   "cleanup": {},
+   "outcome": "FAIL",
+   "clauses": {
+    "ready": true,
+    "no-toast": true,
+    "no-review-line": true,
+    "strip": false,
+    "reply-ok": true,
+    "completion": true,
+    "route": true,
+    "fallback-ran": true,
+    "fallback-two-blocks": true,
+    "restore-confirmed": true,
+    "saved-target-state": false,
+    "saved-neighbours": true,
+    "undo-replies-ok": true,
+    "undo-neighbours": true,
+    "undo-fixture-state": true
+   },
+   "failedClauses": [
+    "saved-target-state",
+    "strip"
+   ]
+  },
+  {
+   "cell": "b-body",
+   "product": "after",
+   "browser": "chrome",
+   "arm": null,
+   "repetition": 3,
+   "browserVersion": "Chrome/156.0.8078.47",
+   "action": "set-paragraph-heading",
+   "opened": {
+    "pill": "ready",
+    "latency": "—",
+    "toast": "已開啟 realheading-last.odt",
+    "toastBad": false,
+    "revision": "0",
+    "notice": {
+     "show": "0",
+     "text": ""
+    },
+    "requests": 11,
+    "responses": 11,
+    "workers": 2,
+    "blobs": 0,
+    "warns": 0
+   },
+   "clickAt": {
+    "fraction": [
+     0.8,
+     0.15
+    ],
+    "viewport": [
+     962.5,
+     449.790625
+    ]
+   },
+   "caretPlaced": true,
+   "enters": [],
+   "label": "標題",
+   "pressSettled": true,
+   "press": {
+    "pill": "ready",
+    "latency": "標題 32 ms",
+    "toast": "",
+    "toastBad": false,
+    "revision": "1",
+    "notice": {
+     "show": "0",
+     "text": ""
+    },
+    "requests": 17,
+    "responses": 17,
+    "workers": 2,
+    "blobs": 0,
+    "warns": 0
+   },
+   "pressRows": [
+    {
+     "operation": "editorActionV2",
+     "action": "set-paragraph-heading",
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "recovery": null,
+     "completion": "verified-format-readback",
+     "formatBarrier": {
+      "route": "collapsed",
+      "readbackBlockCount": 0,
+      "itemCount": 0,
+      "failureShape": "",
+      "dispatched": true,
+      "selectionResultSeen": true,
+      "undo": {
+       "read": true,
+       "changed": true,
+       "actionsBefore": 0,
+       "actionsAfter": 1
+      },
+      "fallback": {
+       "ran": true,
+       "selectionType": 1,
+       "blockCount": 2,
+       "lastListTag": "",
+       "lastBlockTag": "h1",
+       "refusal": "",
+       "restoreConfirmed": true
+      }
+     },
+     "revision": [
+      0,
+      1
+     ]
+    },
+    {
+     "operation": "paint",
+     "action": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "recovery": null,
+     "completion": null,
+     "formatBarrier": null,
+     "revision": [
+      null,
+      1
+     ]
+    }
+   ],
+   "pressWarns": [],
+   "savedSettled": true,
+   "saved": {
+    "sha256": "40b5a93917224662b22afc1e7e85d89b00e3d177e2a0a99497ff07b2ddae4b55",
+    "paragraphs": [
+     {
+      "text": "Plain first",
+      "tag": "p",
+      "inList": false,
+      "listStyle": null,
+      "listLevel1": null,
+      "style": "Standard",
+      "inTable": false
+     },
+     {
+      "text": "",
+      "tag": "h",
+      "inList": false,
+      "listStyle": null,
+      "listLevel1": null,
+      "style": "Heading_20_1",
+      "inTable": false
+     }
+    ]
+   },
+   "undo": [
+    {
+     "kind": "ctrl-z",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "復原 30 ms",
+      "toast": "已存出 8.4 KB",
+      "toastBad": false,
+      "revision": "2",
+      "notice": {
+       "show": "0",
+       "text": ""
+      },
+      "requests": 23,
+      "responses": 23,
+      "workers": 2,
+      "blobs": 1,
+      "warns": 0
+     },
+     "rows": [
+      {
+       "operation": "undo",
+       "action": null,
+       "replied": true,
+       "ok": true,
+       "code": null,
+       "message": null,
+       "recovery": null,
+       "completion": null,
+       "formatBarrier": null,
+       "revision": [
+        null,
+        2
+       ]
+      },
+      {
+       "operation": "editorGetStateV2",
+       "action": null,
+       "replied": true,
+       "ok": true,
+       "code": null,
+       "message": null,
+       "recovery": null,
+       "completion": null,
+       "formatBarrier": null,
+       "revision": [
+        null,
+        2
+       ]
+      },
+      {
+       "operation": "paint",
+       "action": null,
+       "replied": true,
+       "ok": true,
+       "code": null,
+       "message": null,
+       "recovery": null,
+       "completion": null,
+       "formatBarrier": null,
+       "revision": [
+        null,
+        2
+       ]
+      }
+     ]
+    }
+   ],
+   "savedAfterUndoSettled": true,
+   "savedAfterUndo": {
+    "sha256": "0ecba57ca6a898eef87a705398a1f2449f5a34989c575326b88371147060d931",
+    "paragraphs": [
+     {
+      "text": "Plain first",
+      "tag": "p",
+      "inList": false,
+      "listStyle": null,
+      "listLevel1": null,
+      "style": "Standard",
+      "inTable": false
+     },
+     {
+      "text": "",
+      "tag": "h",
+      "inList": false,
+      "listStyle": null,
+      "listLevel1": null,
+      "style": "Heading_20_1",
+      "inTable": false
+     }
+    ]
+   },
+   "cleanup": {},
+   "outcome": "FAIL",
+   "clauses": {
+    "ready": true,
+    "no-toast": true,
+    "no-review-line": true,
+    "strip": false,
+    "reply-ok": true,
+    "completion": true,
+    "route": true,
+    "fallback-ran": true,
+    "fallback-two-blocks": true,
+    "restore-confirmed": true,
+    "saved-target-state": false,
+    "saved-neighbours": true,
+    "undo-replies-ok": true,
+    "undo-neighbours": true,
+    "undo-fixture-state": true
+   },
+   "failedClauses": [
+    "saved-target-state",
+    "strip"
+   ]
+  },
+  {
+   "cell": "b-body",
+   "product": "after",
+   "browser": "firefox",
+   "arm": null,
+   "repetition": 1,
+   "browserVersion": "157.0.1",
+   "action": "set-paragraph-heading",
+   "opened": {
+    "pill": "ready",
+    "latency": "—",
+    "toast": "已開啟 realheading-last.odt",
+    "toastBad": false,
+    "revision": "0",
+    "notice": {
+     "show": "0",
+     "text": ""
+    },
+    "requests": 11,
+    "responses": 11,
+    "workers": 2,
+    "blobs": 0,
+    "warns": 0
+   },
+   "clickAt": {
+    "fraction": [
+     0.8,
+     0.15
+    ],
+    "viewport": [
+     964.0,
+     451.1000122070312
+    ]
+   },
+   "caretPlaced": true,
+   "enters": [],
+   "label": "標題",
+   "pressSettled": true,
+   "press": {
+    "pill": "ready",
+    "latency": "標題 18 ms",
+    "toast": "",
+    "toastBad": false,
+    "revision": "1",
+    "notice": {
+     "show": "0",
+     "text": ""
+    },
+    "requests": 17,
+    "responses": 17,
+    "workers": 2,
+    "blobs": 0,
+    "warns": 0
+   },
+   "pressRows": [
+    {
+     "operation": "editorActionV2",
+     "action": "set-paragraph-heading",
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "recovery": null,
+     "completion": "verified-format-readback",
+     "formatBarrier": {
+      "route": "collapsed",
+      "readbackBlockCount": 0,
+      "itemCount": 0,
+      "failureShape": "",
+      "dispatched": true,
+      "selectionResultSeen": true,
+      "undo": {
+       "read": true,
+       "changed": true,
+       "actionsBefore": 0,
+       "actionsAfter": 1
+      },
+      "fallback": {
+       "ran": true,
+       "selectionType": 1,
+       "blockCount": 2,
+       "lastListTag": "",
+       "lastBlockTag": "h1",
+       "refusal": "",
+       "restoreConfirmed": true
+      }
+     },
+     "revision": [
+      0,
+      1
+     ]
+    },
+    {
+     "operation": "paint",
+     "action": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "recovery": null,
+     "completion": null,
+     "formatBarrier": null,
+     "revision": [
+      null,
+      1
+     ]
+    }
+   ],
+   "pressWarns": [],
+   "savedSettled": true,
+   "saved": {
+    "sha256": "acc1fe649f6e1f64ec654ec51a7dc16ec48f564cbcf117dbc211eb1687902e1e",
+    "paragraphs": [
+     {
+      "text": "Plain first",
+      "tag": "p",
+      "inList": false,
+      "listStyle": null,
+      "listLevel1": null,
+      "style": "Standard",
+      "inTable": false
+     },
+     {
+      "text": "",
+      "tag": "h",
+      "inList": false,
+      "listStyle": null,
+      "listLevel1": null,
+      "style": "Heading_20_1",
+      "inTable": false
+     }
+    ]
+   },
+   "undo": [
+    {
+     "kind": "ctrl-z",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "復原 4 ms",
+      "toast": "已存出 8.4 KB",
+      "toastBad": false,
+      "revision": "2",
+      "notice": {
+       "show": "0",
+       "text": ""
+      },
+      "requests": 23,
+      "responses": 23,
+      "workers": 2,
+      "blobs": 1,
+      "warns": 0
+     },
+     "rows": [
+      {
+       "operation": "undo",
+       "action": null,
+       "replied": true,
+       "ok": true,
+       "code": null,
+       "message": null,
+       "recovery": null,
+       "completion": null,
+       "formatBarrier": null,
+       "revision": [
+        null,
+        2
+       ]
+      },
+      {
+       "operation": "editorGetStateV2",
+       "action": null,
+       "replied": true,
+       "ok": true,
+       "code": null,
+       "message": null,
+       "recovery": null,
+       "completion": null,
+       "formatBarrier": null,
+       "revision": [
+        null,
+        2
+       ]
+      },
+      {
+       "operation": "paint",
+       "action": null,
+       "replied": true,
+       "ok": true,
+       "code": null,
+       "message": null,
+       "recovery": null,
+       "completion": null,
+       "formatBarrier": null,
+       "revision": [
+        null,
+        2
+       ]
+      }
+     ]
+    }
+   ],
+   "savedAfterUndoSettled": true,
+   "savedAfterUndo": {
+    "sha256": "defc67f80ef47923ab12c30f6decaa2a6565dfc8fc0d179d9504746cec779d66",
+    "paragraphs": [
+     {
+      "text": "Plain first",
+      "tag": "p",
+      "inList": false,
+      "listStyle": null,
+      "listLevel1": null,
+      "style": "Standard",
+      "inTable": false
+     },
+     {
+      "text": "",
+      "tag": "h",
+      "inList": false,
+      "listStyle": null,
+      "listLevel1": null,
+      "style": "Heading_20_1",
+      "inTable": false
+     }
+    ]
+   },
+   "cleanup": {},
+   "outcome": "FAIL",
+   "clauses": {
+    "ready": true,
+    "no-toast": true,
+    "no-review-line": true,
+    "strip": false,
+    "reply-ok": true,
+    "completion": true,
+    "route": true,
+    "fallback-ran": true,
+    "fallback-two-blocks": true,
+    "restore-confirmed": true,
+    "saved-target-state": false,
+    "saved-neighbours": true,
+    "undo-replies-ok": true,
+    "undo-neighbours": true,
+    "undo-fixture-state": true
+   },
+   "failedClauses": [
+    "saved-target-state",
+    "strip"
+   ]
+  },
+  {
+   "cell": "b-body",
+   "product": "after",
+   "browser": "firefox",
+   "arm": null,
+   "repetition": 2,
+   "browserVersion": "157.0.1",
+   "action": "set-paragraph-heading",
+   "opened": {
+    "pill": "ready",
+    "latency": "—",
+    "toast": "已開啟 realheading-last.odt",
+    "toastBad": false,
+    "revision": "0",
+    "notice": {
+     "show": "0",
+     "text": ""
+    },
+    "requests": 11,
+    "responses": 11,
+    "workers": 2,
+    "blobs": 0,
+    "warns": 0
+   },
+   "clickAt": {
+    "fraction": [
+     0.8,
+     0.15
+    ],
+    "viewport": [
+     964.0,
+     451.1000122070312
+    ]
+   },
+   "caretPlaced": true,
+   "enters": [],
+   "label": "標題",
+   "pressSettled": true,
+   "press": {
+    "pill": "ready",
+    "latency": "標題 17 ms",
+    "toast": "",
+    "toastBad": false,
+    "revision": "1",
+    "notice": {
+     "show": "0",
+     "text": ""
+    },
+    "requests": 17,
+    "responses": 17,
+    "workers": 2,
+    "blobs": 0,
+    "warns": 0
+   },
+   "pressRows": [
+    {
+     "operation": "editorActionV2",
+     "action": "set-paragraph-heading",
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "recovery": null,
+     "completion": "verified-format-readback",
+     "formatBarrier": {
+      "route": "collapsed",
+      "readbackBlockCount": 0,
+      "itemCount": 0,
+      "failureShape": "",
+      "dispatched": true,
+      "selectionResultSeen": true,
+      "undo": {
+       "read": true,
+       "changed": true,
+       "actionsBefore": 0,
+       "actionsAfter": 1
+      },
+      "fallback": {
+       "ran": true,
+       "selectionType": 1,
+       "blockCount": 2,
+       "lastListTag": "",
+       "lastBlockTag": "h1",
+       "refusal": "",
+       "restoreConfirmed": true
+      }
+     },
+     "revision": [
+      0,
+      1
+     ]
+    },
+    {
+     "operation": "paint",
+     "action": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "recovery": null,
+     "completion": null,
+     "formatBarrier": null,
+     "revision": [
+      null,
+      1
+     ]
+    }
+   ],
+   "pressWarns": [],
+   "savedSettled": true,
+   "saved": {
+    "sha256": "b6c34e6cad1ef0e6c5f75fb1acc877f7a394d16607f9d805ef2c56476aea19d3",
+    "paragraphs": [
+     {
+      "text": "Plain first",
+      "tag": "p",
+      "inList": false,
+      "listStyle": null,
+      "listLevel1": null,
+      "style": "Standard",
+      "inTable": false
+     },
+     {
+      "text": "",
+      "tag": "h",
+      "inList": false,
+      "listStyle": null,
+      "listLevel1": null,
+      "style": "Heading_20_1",
+      "inTable": false
+     }
+    ]
+   },
+   "undo": [
+    {
+     "kind": "ctrl-z",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "復原 4 ms",
+      "toast": "已存出 8.4 KB",
+      "toastBad": false,
+      "revision": "2",
+      "notice": {
+       "show": "0",
+       "text": ""
+      },
+      "requests": 23,
+      "responses": 23,
+      "workers": 2,
+      "blobs": 1,
+      "warns": 0
+     },
+     "rows": [
+      {
+       "operation": "undo",
+       "action": null,
+       "replied": true,
+       "ok": true,
+       "code": null,
+       "message": null,
+       "recovery": null,
+       "completion": null,
+       "formatBarrier": null,
+       "revision": [
+        null,
+        2
+       ]
+      },
+      {
+       "operation": "editorGetStateV2",
+       "action": null,
+       "replied": true,
+       "ok": true,
+       "code": null,
+       "message": null,
+       "recovery": null,
+       "completion": null,
+       "formatBarrier": null,
+       "revision": [
+        null,
+        2
+       ]
+      },
+      {
+       "operation": "paint",
+       "action": null,
+       "replied": true,
+       "ok": true,
+       "code": null,
+       "message": null,
+       "recovery": null,
+       "completion": null,
+       "formatBarrier": null,
+       "revision": [
+        null,
+        2
+       ]
+      }
+     ]
+    }
+   ],
+   "savedAfterUndoSettled": true,
+   "savedAfterUndo": {
+    "sha256": "6a9ff841d9d4891acaa67638356d4a1bb1379db4d866b10af9ed4793b7bc9669",
+    "paragraphs": [
+     {
+      "text": "Plain first",
+      "tag": "p",
+      "inList": false,
+      "listStyle": null,
+      "listLevel1": null,
+      "style": "Standard",
+      "inTable": false
+     },
+     {
+      "text": "",
+      "tag": "h",
+      "inList": false,
+      "listStyle": null,
+      "listLevel1": null,
+      "style": "Heading_20_1",
+      "inTable": false
+     }
+    ]
+   },
+   "cleanup": {},
+   "outcome": "FAIL",
+   "clauses": {
+    "ready": true,
+    "no-toast": true,
+    "no-review-line": true,
+    "strip": false,
+    "reply-ok": true,
+    "completion": true,
+    "route": true,
+    "fallback-ran": true,
+    "fallback-two-blocks": true,
+    "restore-confirmed": true,
+    "saved-target-state": false,
+    "saved-neighbours": true,
+    "undo-replies-ok": true,
+    "undo-neighbours": true,
+    "undo-fixture-state": true
+   },
+   "failedClauses": [
+    "saved-target-state",
+    "strip"
+   ]
+  },
+  {
+   "cell": "b-body",
+   "product": "after",
+   "browser": "firefox",
+   "arm": null,
+   "repetition": 3,
+   "browserVersion": "157.0.1",
+   "action": "set-paragraph-heading",
+   "opened": {
+    "pill": "ready",
+    "latency": "—",
+    "toast": "已開啟 realheading-last.odt",
+    "toastBad": false,
+    "revision": "0",
+    "notice": {
+     "show": "0",
+     "text": ""
+    },
+    "requests": 11,
+    "responses": 11,
+    "workers": 2,
+    "blobs": 0,
+    "warns": 0
+   },
+   "clickAt": {
+    "fraction": [
+     0.8,
+     0.15
+    ],
+    "viewport": [
+     964.0,
+     451.1000122070312
+    ]
+   },
+   "caretPlaced": true,
+   "enters": [],
+   "label": "標題",
+   "pressSettled": true,
+   "press": {
+    "pill": "ready",
+    "latency": "標題 18 ms",
+    "toast": "",
+    "toastBad": false,
+    "revision": "1",
+    "notice": {
+     "show": "0",
+     "text": ""
+    },
+    "requests": 17,
+    "responses": 17,
+    "workers": 2,
+    "blobs": 0,
+    "warns": 0
+   },
+   "pressRows": [
+    {
+     "operation": "editorActionV2",
+     "action": "set-paragraph-heading",
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "recovery": null,
+     "completion": "verified-format-readback",
+     "formatBarrier": {
+      "route": "collapsed",
+      "readbackBlockCount": 0,
+      "itemCount": 0,
+      "failureShape": "",
+      "dispatched": true,
+      "selectionResultSeen": true,
+      "undo": {
+       "read": true,
+       "changed": true,
+       "actionsBefore": 0,
+       "actionsAfter": 1
+      },
+      "fallback": {
+       "ran": true,
+       "selectionType": 1,
+       "blockCount": 2,
+       "lastListTag": "",
+       "lastBlockTag": "h1",
+       "refusal": "",
+       "restoreConfirmed": true
+      }
+     },
+     "revision": [
+      0,
+      1
+     ]
+    },
+    {
+     "operation": "paint",
+     "action": null,
+     "replied": true,
+     "ok": true,
+     "code": null,
+     "message": null,
+     "recovery": null,
+     "completion": null,
+     "formatBarrier": null,
+     "revision": [
+      null,
+      1
+     ]
+    }
+   ],
+   "pressWarns": [],
+   "savedSettled": true,
+   "saved": {
+    "sha256": "bffd8da8761b0a40b049167c6ccd385236abf967668fdf67b459df042a51267e",
+    "paragraphs": [
+     {
+      "text": "Plain first",
+      "tag": "p",
+      "inList": false,
+      "listStyle": null,
+      "listLevel1": null,
+      "style": "Standard",
+      "inTable": false
+     },
+     {
+      "text": "",
+      "tag": "h",
+      "inList": false,
+      "listStyle": null,
+      "listLevel1": null,
+      "style": "Heading_20_1",
+      "inTable": false
+     }
+    ]
+   },
+   "undo": [
+    {
+     "kind": "ctrl-z",
+     "settled": true,
+     "page": {
+      "pill": "ready",
+      "latency": "復原 4 ms",
+      "toast": "已存出 8.4 KB",
+      "toastBad": false,
+      "revision": "2",
+      "notice": {
+       "show": "0",
+       "text": ""
+      },
+      "requests": 23,
+      "responses": 23,
+      "workers": 2,
+      "blobs": 1,
+      "warns": 0
+     },
+     "rows": [
+      {
+       "operation": "undo",
+       "action": null,
+       "replied": true,
+       "ok": true,
+       "code": null,
+       "message": null,
+       "recovery": null,
+       "completion": null,
+       "formatBarrier": null,
+       "revision": [
+        null,
+        2
+       ]
+      },
+      {
+       "operation": "editorGetStateV2",
+       "action": null,
+       "replied": true,
+       "ok": true,
+       "code": null,
+       "message": null,
+       "recovery": null,
+       "completion": null,
+       "formatBarrier": null,
+       "revision": [
+        null,
+        2
+       ]
+      },
+      {
+       "operation": "paint",
+       "action": null,
+       "replied": true,
+       "ok": true,
+       "code": null,
+       "message": null,
+       "recovery": null,
+       "completion": null,
+       "formatBarrier": null,
+       "revision": [
+        null,
+        2
+       ]
+      }
+     ]
+    }
+   ],
+   "savedAfterUndoSettled": true,
+   "savedAfterUndo": {
+    "sha256": "f46d9268b92acef31be42ed8d9182f8b530204bec301b9433a68830d2266f011",
+    "paragraphs": [
+     {
+      "text": "Plain first",
+      "tag": "p",
+      "inList": false,
+      "listStyle": null,
+      "listLevel1": null,
+      "style": "Standard",
+      "inTable": false
+     },
+     {
+      "text": "",
+      "tag": "h",
+      "inList": false,
+      "listStyle": null,
+      "listLevel1": null,
+      "style": "Heading_20_1",
+      "inTable": false
+     }
+    ]
+   },
+   "cleanup": {},
+   "outcome": "FAIL",
+   "clauses": {
+    "ready": true,
+    "no-toast": true,
+    "no-review-line": true,
+    "strip": false,
+    "reply-ok": true,
+    "completion": true,
+    "route": true,
+    "fallback-ran": true,
+    "fallback-two-blocks": true,
+    "restore-confirmed": true,
+    "saved-target-state": false,
+    "saved-neighbours": true,
+    "undo-replies-ok": true,
+    "undo-neighbours": true,
+    "undo-fixture-state": true
+   },
+   "failedClauses": [
+    "saved-target-state",
+    "strip"
+   ]
+  }
+ ],
+ "preRun": {
+  "kwalletLocked": "b false",
+  "chromeProcesses": "22",
+  "firefoxProcesses": "0",
+  "oursRunning": [],
+  "loadavg": [
+   "1.36",
+   "1.30",
+   "1.90"
+  ],
+  "topCpu": [
+   "PID %CPU COMMAND",
+   "1133616  100 ps",
+   "1133611 38.4 python3",
+   " 852688  1.5 2.1.316",
+   " 468732  1.2 claude",
+   " 791345  1.2 claude"
+  ],
+  "at": "2026-11-01T14:15:58+0800",
+  "refuse": []
+ },
+ "verdict": "S4_MUTATION_CAUGHT",
+ "problems": []
+}

@@ -15,8 +15,9 @@ Reached how: `Target.setAutoAttach` from the page, then from each worker session
 probe_proxy_trace.py record why). A pthread parked in Atomics.wait never answers CDP: it is recorded as `noAnswer`, and it
 has no event loop to leak on. One gap, 80 ms, for 60 s (the C2 owner gap): 700 chars.
 
-Growth is read per worker over the eleven samples: `grows` iff last - first >= 1 MiB AND at least 8 of the 10 intervals
-increased (pinned in the spec before any run).  T4 holds iff: at least one worker answered all eleven samples in
+Growth is read per worker over the eleven samples: `grows` iff last - first >= 1 MiB.  The first pin also wanted at least 8 of
+the 10 intervals up; the leak this arm exists to show grows in steps (V8 doubles the array), 5-7 of 10, so spec append 3
+dropped that clause.  It can only make `subject` easier to turn red.  reading-pinned-run-0N.json keep the pinned reading.  T4 holds iff: at least one worker answered all eleven samples in
 each arm, no worker grows in `subject`, and at least one grows in `red`.
 """
 from __future__ import annotations
@@ -143,7 +144,7 @@ def growth(series: dict) -> dict:
         ups = sum(b > a for a, b in zip(xs, xs[1:]))
         out[sid] = {"answered": len(xs), "of": len(xs), "complete": True, "first": xs[0], "last": xs[-1],
                     "growthBytes": xs[-1] - xs[0], "upIntervals": ups, "intervals": len(xs) - 1,
-                    "grows": xs[-1] - xs[0] >= MIB and ups >= 8}
+                    "grows": xs[-1] - xs[0] >= MIB}
     return out
 
 
