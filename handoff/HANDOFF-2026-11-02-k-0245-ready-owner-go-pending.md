@@ -44,3 +44,15 @@ Checkpoint **2026-11-02 ~01:15 +0800**. Supersedes `HANDOFF-2026-11-01d-own-stac
 ## Conventions
 
 Replies to the owner in Taiwan Traditional Chinese with A/B/C options. Evidence and handoff in English; specs and findings in zh-TW. Linking and compiling `make` stay the owner's. Commit messages: `Co-Authored-By` yes, `Claude-Session` never.
+
+## Addendum (2026-11-02 ~01:40 +0800): the chain is running
+
+The owner: 「手測完成，都符合預期 / 請繼續跑」. 0.2.45 is the daily uncounted candidate (`host-0.2.45/README.md`).
+
+**Started 01:37 +0800, detached, PID 1724100**, log `wasm_sdk_probe/build/m3-count-20261101T173658Z/chain.txt`, tree `fe6c3cc7d`. Preflight P0-P6 ok. About 8-10 hours, so it ends around 09:30-11:30. It survives this session. `start-when-lock-clears.sh` launched it, because the hand-test editor was still holding a live lock at 01:35; it released at 01:36:18.
+
+**Do not, until `DONE`:** open the litecore site; edit anything a runner imports; commit anything that touches `ROUND_PATHS` and `PRODUCT_PATHS` together; run a browser or anything heavy during C2 at the end. A shell line naming a runner makes `new_document` wait on it.
+
+**zen was still open at 01:35** (Chrome 0, the VM closed). If it is open at C2, the rounds are refused by `desk_gate` and run later on a clean desk. Not a red (spec section 5).
+
+**A shakedown that is not clean stops the chain** before any count, about 80 minutes in: read `chain.txt`, it is the STOP line. After `DONE`: `bash findings/evidence/m3-production-ui/runs-0.2.45/read-0.2.45.sh wasm_sdk_probe/build/m3-count-20261101T173658Z`, against K1-K8 (spec section 7).
