@@ -42,3 +42,11 @@ Link is the owner's (`tools/link_v29_*_owner.sh`, agents run `bash -n` only). Af
 ## Section 34.4 this session
 
 Fixed-by-execution: 3 (merge literal, R3 phase, A3-1), plus H1 from the stop. Fixed-by-reading before any run: H2, H3, H4. Fable rulings: 1.
+
+## Addendum (2026-11-01 ~09:45 +0800): v29 is ready for the owner's link; the project moves off ddev
+
+**v29.** Spec pinned, engine in the tree, pre-link evidence `findings/evidence/v29-177/pre-link/`, review `findings/evidence/v29-177/review-opus-1.md`. The link is the owner's: `bash tools/link_v29_tick_pacing_owner.sh`, runbook `handoff/RUNBOOK-relink-v29.md`. After it: spec section 6 (P, cut the page, generation 83, T1-T4 on the mirror). The immediate tick uses a `MessageChannel` inside the engine worker, not emscripten's emulation (review item 1).
+
+**The C2 line.** `boundaries` commit median is 8.4-10.9 ms even at full speed, against a gate of <= 10 ms written on v20 (v21 measured 4.3). It will land on either side of the line. Do not move the gate on v29 and do not tune the grace to fit; whether it is re-set for the ordered engine is decided before the next K spec. On-screen is faster than v21.
+
+**ddev (owner, 2026-11-01): 「本專案不要依賴ddev了，不然每次都互相卡住」.** Inventory: 19 real calls in 9 files (`occ` 9, `exec` 6, `mysql` 2, `describe` 2), most through `check_m3_skeleton_open.Instance`, plus mkcert TLS, the admin password in `.ddev/config.local.yaml`, and the container's Apache access log (K2 reads `%O` from it). Direction: a Docker Compose stack of this project's own, own ports, no ddev router, the runners go through one adapter. It comes after the v29 link and before host 0.2.45, so 0.2.45 and the next K run on it. Leave `.ddev` in place until the new stack has passed the runners.

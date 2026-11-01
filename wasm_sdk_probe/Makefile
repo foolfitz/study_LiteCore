@@ -2520,6 +2520,102 @@ $(E2_V28_DIST)/sdk-manifest.json: $(E2_V28_BUILD)/probe.js $(E2_V28_BUILD)/probe
 $(E2_V28_BUILD) $(E2_V28_DIST):
 	mkdir -p $@
 
+# Focused source/contract tests only; no product objects, link or packaging target.
+.PHONY: test-v29-tick-pacing-static
+test-v29-tick-pacing-static:
+	mkdir -p build
+	$(HOST_CXX) -std=c++17 -Wall -Isrc -o build/main_loop_pacing_test tests/main_loop_pacing_test.cpp
+	build/main_loop_pacing_test
+	python3 tools/check_v29_tick_pacing_contract.py --check-worker-base
+
+# SPEC-M3-v29-tick-pacing, finding 177: no main-loop pacing while there is work.
+# v28's rule verbatim plus OXSDK_E2_V29_TICK_PACING and main_loop_pacing.hpp; editor
+# ABI stays 6, no new export.  The base is the archived v28 profile: its export
+# list, its worker (byte-identical, no new worker source), its manifest.
+E2_V29_BUILD := build/e2/editor-v29
+E2_V29_DIST := dist/profiles/e2-editor-v29
+E2_V29_SOURCES := $(E2_C_SOURCES)
+E2_V29_OBJECTS := $(patsubst src/%.cpp,$(E2_V29_BUILD)/%.o,$(E2_V29_SOURCES))
+E2_V29_MD4C_INCLUDE := $(LOBUILD)/workdir/UnpackedTarball/md4c/src
+# Frozen base identity for the v29 worker: the archived v28 worker.
+E2_V29_ARCHIVE := build/archive/e2-editor-v28-13f674e4-worker-a5df83db
+E2_V29_BASE_WORKER := $(E2_V29_ARCHIVE)/sdk-worker.js
+E2_V29_WORKER_SHA256 := a5df83dbd0bd4df6b67b81d000da141910b76252fbf2bb8636d9a312edfffcba
+
+.PHONY: v29-tick-pacing-worker-preflight
+v29-tick-pacing-worker-preflight:
+	python3 tools/check_v29_tick_pacing_contract.py --check-worker-base \
+		--base-worker $(E2_V29_BASE_WORKER) --base-worker-sha256 $(E2_V29_WORKER_SHA256)
+
+$(E2_V29_BUILD)/%.o: src/%.cpp $(HEADERS) src/editor_api.h \
+		src/editor_discovery_api.h src/format_readback_text.hpp \
+		src/a11y_paragraph_identity.hpp src/merge_key_undo.hpp \
+		src/markdown_paste.hpp src/ordered_command_proof.hpp \
+		src/ordered_delete_route.hpp src/ordered_poll.hpp src/ordered_engine_guards.hpp src/reply_state_reads.hpp \
+		src/ordered_engine_state.inc src/ordered_engine_reply.inc src/ordered_engine_poll.inc \
+		src/ordered_engine_delete.inc src/ordered_format.inc src/main_loop_pacing.hpp $(E2_V29_MD4C_INCLUDE)/md4c.h Makefile \
+		| $(E2_V29_BUILD) v29-tick-pacing-worker-preflight
+	$(CXX) $(E1_CPPFLAGS) $(R5_CXXFLAGS) -I$(E2_V29_MD4C_INCLUDE) \
+		-DOXSDK_EDITOR_DISCOVERY \
+		-DOXSDK_FINDING_016_SELECTION_BARRIER -DOXSDK_E2_FORMAT_BARRIER \
+		-DOXSDK_MERGE_KEY_UNDO -DOXSDK_E2_V20_LINK_BATCH \
+		-DOXSDK_E2_V21_LINK_BATCH -DOXSDK_MAINLOOP_ENGINE \
+		-DOXSDK_E2_V23_LINK_BATCH -DOXSDK_E2_V23_FEATURE_ABI6 \
+		-DOXSDK_E2_V24_TYPED_INSERT -DOXSDK_E2_V25_FORMAT_PROOF \
+		-DOXSDK_E2_V27_FIRST_BLOCK -DOXSDK_E2_V28_LAST_BLOCK \
+		-DOXSDK_E2_V29_TICK_PACING \
+		$(EXTRA_DEFINES) -c $< -o $@
+
+# v28's public export surface, unchanged.
+$(E2_V29_BUILD)/exports.txt: $(E2_V29_ARCHIVE)/exports.txt Makefile | $(E2_V29_BUILD)
+	cp $< $@
+
+# Guarded from the first link, like every product artifact before it.
+$(E2_V29_BUILD)/probe.js: $(E2_V29_OBJECTS) $(EXTRA_OBJECTS) \
+		$(E2_V29_BUILD)/exports.txt $(LINKDEPS) $(FS_PRE_JS) Makefile
+	$(call refuse_unasked_relink,the v29 tick pacing (finding 177 on the v28 engine; ABI 6) -- every link mints a new hash)
+	$(call link_product_stack_1m,$(E2_V29_OBJECTS) $(EXTRA_OBJECTS),$(E2_V29_BUILD)/exports.txt,$@)
+
+$(E2_V29_BUILD)/probe.wasm: $(E2_V29_BUILD)/probe.js
+	@test -s $@
+
+# v28's worker source, byte-identical: this batch changes no wire behaviour.
+$(E2_V29_BUILD)/sdk-worker.js: sdk/v28-last-block-worker.js Makefile | $(E2_V29_BUILD) v29-tick-pacing-worker-preflight
+	cp $< $@
+
+# v28's manifest construction under the v29 name, the select-all leaf, and
+# the three bindings.
+$(E2_V29_DIST)/sdk-manifest.json: $(E2_V29_BUILD)/probe.js $(E2_V29_BUILD)/probe.wasm \
+		$(E2_V29_BUILD)/exports.txt $(E2_V29_BUILD)/sdk-worker.js \
+		$(E2_V29_ARCHIVE)/sdk-manifest.json sdk/v18-writer-review-manifest.json \
+		tools/build_base_no35_pack.py tools/build_r5_profiles.py \
+		tools/build_cjk_subset.py tools/build_cjk_subset_ttc_pack.py \
+		tools/build_cjk_subset_mono_pack.py \
+		tools/build_e2_editor_v5_profile.py tools/build_e2_v23_feature_profile.py \
+		tools/build_e2_v24_feature_profile.py tools/check_v24_feature_contract.py \
+		tools/build_e2_v29_tick_pacing_profile.py tools/check_v29_tick_pacing_contract.py \
+		tools/check_v23_feature_contract.py tools/check_v23_diagnostic_build.py \
+		tools/inspect_wasm_function.py tools/validate_r5_artifacts.py \
+		tools/build_e2_editor_v4_profile.py tools/build_e2_c_profile.py \
+		tools/build_e2_b_profile.py tools/e1_support.py | $(E2_V29_DIST)
+	echo "$(E2_V29_WORKER_SHA256)  $(E2_V29_BASE_WORKER)" | sha256sum -c --quiet
+	python3 tools/build_base_no35_pack.py --check
+	python3 tools/build_cjk_subset_mono_pack.py --check
+	python3 tools/build_e2_v29_tick_pacing_profile.py \
+		--source-manifest sdk/v18-writer-review-manifest.json \
+		--loader $(E2_V29_BUILD)/probe.js --wasm $(E2_V29_BUILD)/probe.wasm \
+		--worker $(E2_V29_BUILD)/sdk-worker.js \
+		--exports $(E2_V29_BUILD)/exports.txt \
+		--profile e2-editor-v29 --inline-range-gestures all \
+		--page-rectangles --paste-markdown \
+		--output $(E2_V29_DIST)
+	@test -s $(E2_V29_DIST)/probe.js
+	@test -s $(E2_V29_DIST)/probe.wasm
+	@test -s $(E2_V29_DIST)/sdk-worker.js
+
+$(E2_V29_BUILD) $(E2_V29_DIST):
+	mkdir -p $@
+
 # Focused source/contract tests only; no product objects, link or packaging
 # target (SPEC-M3-v28-last-line-fallback 7.2).
 .PHONY: test-v28-last-block-static
@@ -5044,6 +5140,7 @@ test-e2-c-static:
 		--carrier E2_V25=probe_engine,sdk_api,editor_api \
 		--carrier E2_V27=probe_engine,sdk_api,editor_api \
 		--carrier E2_V28=probe_engine,sdk_api,editor_api \
+		--carrier E2_V29=probe_engine,sdk_api,editor_api \
 		--carrier ODS_VIEWER_V1=probe_engine,sdk_api \
 		--carrier ODS_VIEWER_V2=probe_engine,sdk_api \
 		--carrier ODS_VIEWER_V3=probe_engine,sdk_api \

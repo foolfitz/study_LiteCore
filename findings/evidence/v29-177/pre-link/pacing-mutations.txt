@@ -1,0 +1,8 @@
+RED 9
+  mutation [s/if (work) {/if (!work) {/] exit 1
+RED 2
+  mutation [s/kGraceMs = 300.0/kGraceMs = 0.0/] exit 1
+RED 4
+  mutation [s/nowMs - state.lastWorkMs >= kGraceMs/nowMs - state.lastWorkMs > kGraceMs * 1000/] exit 1
+RED 2
+  mutation [s/return Change::ToPaced;/return Change::None;/] exit 1

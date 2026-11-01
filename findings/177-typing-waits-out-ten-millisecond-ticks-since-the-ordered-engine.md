@@ -59,11 +59,15 @@ v23 起回覆在 poll 送出（`SPEC-M3-ordered-commands` §5.2）。`.uno:Inser
 | Firefox 長文件 80 ms | 13.2／37.1 ms | 11.8／34.8 ms |
 | Firefox `boundaries` 200 ms | 10.1／15.8 ms | 8.3／14.1 ms |
 
-C2 的門檻都過，**只有** `boundaries` commit 中位數貼著 ≤ 10 ms 的線（Chrome 9.8、Firefox 10.1），v21 是 4.3。這條要在 v29 上實量，不得預設會過。
+長文件三格都過 C2 的門檻。**`boundaries` commit 中位數沒有全過**：≤ 10 ms 這條，這一輪 Chrome 9.8、Firefox 10.1（已超線）；各重複 3 次（`typing-control/reps/`）是 Chrome 9.8–10.9、Firefox 9.2–9.4，v21 是 4.3。
+
+〔更正 2026-11-01，審核第 2 項〕初版寫「C2 的門檻都過，只有 boundaries 貼線」，10.1 其實已經超線，不是貼線。
 
 ## 修法方向（要改引擎）
 
 **immediate 不能原樣出貨**：tick 不等待時，文件閒置也會讓一顆核心空轉。方向是「有工作才全速」：有指令排隊或回覆待送時切到 immediate，連續幾個閒置 tick 之後切回 10 ms 節拍。`emscripten_set_main_loop_timing` 引擎就能呼叫，不用動 core。
+
+**emscripten 原生的 mode 2 也不能用**（審核第 1 項，已核對 `probe.js`）：在 pthread 裡每一拍都往 `Module["setImmediates"]` 推一筆，沒有人消費，是無界洩漏；而且每拍經 `sdk-worker` 轉發一圈，兩條執行緒一起轉。改用引擎 worker 內的 `MessageChannel`：`channel` 三次重複 Chrome 8.4／10.1／8.4 ms、Firefox 9.7／9.5／9.3 ms，與原生同級。
 
 要量的事：閒置時 CPU 回到現狀；切換本身不改變指令順序（`SPEC-M3-ordered-commands` 的硬規則都不動）。
 

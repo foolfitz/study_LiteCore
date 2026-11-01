@@ -6,7 +6,11 @@ from pathlib import Path
 TOOLS = Path(__file__).resolve().parents[5] / "wasm_sdk_probe/tools"
 sys.path.insert(0, str(TOOLS))
 import probe_typing_latency as p
-PATCHES = {"none": "", "immediate": "mode=2;value=0;", "timeout0": "mode=0;value=0;"}
+# channel: review item 1.  The stock mode 2 in a pthread leaks (`Module["setImmediates"]` has no consumer) and hops through
+# sdk-worker on every tick; a MessageChannel inside the engine worker does neither.
+CHANNEL = ("mode=2;value=0;if(!MainLoop.setImmediate){const channel=new MessageChannel();const queue=[];"
+           "channel.port1.onmessage=()=>queue.shift()();MainLoop.setImmediate=tick=>{queue.push(tick);channel.port2.postMessage(0)}}")
+PATCHES = {"none": "", "immediate": "mode=2;value=0;", "timeout0": "mode=0;value=0;", "channel": CHANNEL}
 name, browser, document, gap, chars, out = sys.argv[1:7]
 RELATIVE = "profiles/e2-editor-v28/probe.js"
 MARKER = "var _emscripten_set_main_loop_timing=(mode,value)=>{"

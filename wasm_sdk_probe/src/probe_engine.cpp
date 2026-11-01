@@ -25,6 +25,9 @@
 #if !defined(OXSDK_MAINLOOP_ENGINE) || !defined(OXSDK_E2_V21_LINK_BATCH)
 #error "OXSDK_E2_V23_LINK_BATCH requires MAINLOOP_ENGINE and v21's transitive defines"
 #endif
+#if defined(OXSDK_E2_V29_TICK_PACING) && !defined(OXSDK_E2_V28_LAST_BLOCK)
+#error "OXSDK_E2_V29_TICK_PACING is added to v28's shape, never used alone"
+#endif
 #ifdef OXSDK_FINDING_016_SCHEDULER_PROBE
 #error "ordered commands must not pump the scheduler inside a command"
 #endif
@@ -122,6 +125,9 @@ extern "C" char *oxsdk_a11y_document_outline();
 #endif
 #include <com/sun/star/uno/Exception.hpp>
 #include <emscripten.h>
+#ifdef OXSDK_E2_V29_TICK_PACING
+#include "main_loop_pacing.hpp"
+#endif
 #include <emscripten/heap.h>
 #include <rtl/string.hxx>
 
@@ -7971,6 +7977,47 @@ int mainLoopPollCallbackImpl(void *, int timeoutUs) {
 
 #endif
 
+#ifdef OXSDK_E2_V29_TICK_PACING
+// SPEC-M3-v29-tick-pacing, finding 177: the rule is main_loop_pacing.hpp's.  On
+// the engine thread, inside the poll, so inside the loop whose timing it sets; the
+// new timing takes effect from the next tick.  The ordering rules do not move:
+// one reply or one command per poll, reply first.
+void paceMainLoop(int processed) {
+  static probe::pacing::State pacing;
+  bool waiting;
+  {
+    std::lock_guard<std::mutex> lock(gState.mutex);
+    waiting = !gState.commands.empty();
+  }
+  switch (probe::pacing::step(pacing, processed > 0 || waiting || static_cast<bool>(gOrderedReply),
+                              emscripten_get_now())) {
+  case probe::pacing::Change::ToImmediate:
+    // Before the timing call: stock mode 2 in a pthread pushes every tick onto
+    // Module["setImmediates"], which nothing drains, and posts each tick through
+    // the parent worker.  With MainLoop.setImmediate already set it does neither.
+    // Plain functions: the preprocessor can split `=>` and `===` inside EM_ASM.
+    EM_ASM({
+      if (!MainLoop.setImmediate) {
+        var channel = new MessageChannel();
+        var queue = [];
+        channel.port1.onmessage = function() { queue.shift()(); };
+        MainLoop.setImmediate = function(tick) {
+          queue.push(tick);
+          channel.port2.postMessage(0);
+        };
+      }
+    });
+    emscripten_set_main_loop_timing(EM_TIMING_SETIMMEDIATE, 0);
+    break;
+  case probe::pacing::Change::ToPaced:
+    emscripten_set_main_loop_timing(EM_TIMING_SETTIMEOUT, probe::pacing::kPacedTickMs);
+    break;
+  case probe::pacing::Change::None:
+    break;
+  }
+}
+#endif
+
 // One command at a time is an engine invariant.  A dispatched command can
 // itself pump the scheduler (the combined drain profile runs
 // ProcessEventsToIdle from inside a command), which nests ImplYield and would
@@ -7980,7 +8027,12 @@ int mainLoopPollCallback(void *closure, int timeoutUs) {
   static bool inPollCallback = false;
   if (inPollCallback)
     return 0;
-#ifdef OXSDK_E2_V23_LINK_BATCH
+#ifdef OXSDK_E2_V29_TICK_PACING
+  probe::ordered::FlagScope scope(inPollCallback);
+  const int processed = mainLoopPollCallbackImpl(closure, timeoutUs);
+  paceMainLoop(processed);
+  return processed;
+#elif defined(OXSDK_E2_V23_LINK_BATCH)
   probe::ordered::FlagScope scope(inPollCallback);
   return mainLoopPollCallbackImpl(closure, timeoutUs);
 #else
