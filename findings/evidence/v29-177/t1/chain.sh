@@ -10,9 +10,10 @@ LOG=$F/log.txt
 say() { echo "$(date +%FT%T%z) $*" | tee -a "$LOG"; }
 c2_one() { local out=$1; shift; timeout 600 "$@" --out "$out.json" > "$out.stdout.txt" 2>&1; say "c2 $(basename "$out") exit $?"; }
 say "START tree $(git rev-parse --short HEAD) load $(cut -d' ' -f1-3 /proc/loadavg)"
-for R in 1 2 3; do
+# The gate reads the 1-minute load, which the last round's own browsers raise, so it waits; run r1 of this chain stopped on exactly that.
+for R in ${ROUNDS:-1 2 3}; do
   D=$F/r$R
-  python3 -I findings/evidence/link-batch-v22/shakedown/desk_gate.py > "$F/desk-gate-r$R.txt" 2>&1
+  python3 -I findings/evidence/link-batch-v22/shakedown/desk_gate.py --wait 240 > "$F/desk-gate-r$R.txt" 2>&1
   rc=$?
   say "desk gate r$R exit $rc :: $(tail -1 "$F/desk-gate-r$R.txt" | cut -c1-160)"
   if [ $rc -ne 0 ]; then say "STOP dirty desk before r$R"; exit 3; fi

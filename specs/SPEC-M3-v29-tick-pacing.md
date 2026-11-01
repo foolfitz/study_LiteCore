@@ -151,3 +151,7 @@ finding 177：v23 起打字每字 commit 從 4 ms 變 85 ms，上螢幕 13 ms �
 標「舊」的四項沒有在新 HTML 重跑：HTML 的差異只有工具列的樣式與標記，按鈕文字、順序、動作、無障礙名稱逐一相同（`check_toolbar.py`）。計數時全部都會在最終位元組上重跑。
 
 **T1 還沒跑**：要乾淨桌面，閘門目前擋在擁有者的桌面 Chrome 與 zen。
+
+## 14. 追加 5（2026-11-01）：T1 的結果
+
+C2 三輪 PASS。`judge_p2` 第 1 輪 PASS，第 2、3 輪唯一的 FAIL 是 Chrome `boundaries` commit 中位數 11.3、12.3 ms（門檻 ≤ 10）；Firefox 三輪 9、9.7、8.7。依 §6 不算 v29 失敗。**門檻要不要為有序引擎重定，等擁有者決定**，在那之前 K6 依 J-b.2 會紅。數字：`findings/evidence/v29-177/t1/`。
