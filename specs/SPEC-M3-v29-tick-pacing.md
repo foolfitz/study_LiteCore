@@ -87,3 +87,13 @@ finding 177：v23 起打字每字 commit 從 4 ms 變 85 ms，上螢幕 13 ms �
 |---|---|
 | 2026-11-01 | 初版。 |
 | 2026-11-01 | 審核一輪：immediate 改 `MessageChannel`；§6 T1 改 3 輪、T2 單一公式＋四情況＋紅案、T3 指名活的工具與寬限兩側、T4 改洩漏；限制兩條；釘死。 |
+
+## 10. 追加（2026-11-01，連結之後）
+
+**連結**：擁有者「幫我跑」，agent 代跑，2 分 49 秒；wasm `e61e5890…`、loader `0ca2665c…`、worker `a5df83db…`（與 v28 相同）、manifest `a0352c83…`，`withheld: []`，contract 兩次成立。封存 `build/archive/e2-editor-v29-e61e5890-worker-a5df83db`。
+
+**T1 的先行量測**（頁面未切，鏡像改指向，`findings/evidence/v29-177/post-link/typing_on_v29.py`；不是 T1 本身，T1 要在切頁之後 12 格 3 輪）：`boundaries` commit 中位數 Chrome 10.2／9.0／9.1、Firefox 9.2／9.4／9.4 ms；長文件間隔 80 ms，Chrome 16.1（最大 57.9）、Firefox 14.3（最大 40.4）ms，v28 是 575.8、588.3 ms。
+
+**T2 成立，判讀方式追加**：§6 的公式沒有寫一次還是多次。第一輪（`idle-run-01-sum-of-live-processes/`）量出負值，是我的讀法缺陷（加總活著的行程，行程在窗口內結束時總數下降），不算數。改成逐行程取差值後，同一情況單次離群值兩個版本都有（v28 最高 13.72 秒、v29 最高 4.22 秒），所以**每個情況各 3 次、比中位數**：8 種情況全部 v29 ≤ v28 × 1.5 ＋ 0.5 秒。紅案（常駐全速）10.16–13.22 秒。
+
+**還沒做**：P 之後的切頁、generation 83、T1、T3、T4。
