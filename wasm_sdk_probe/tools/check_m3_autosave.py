@@ -83,10 +83,10 @@ PASS, FAIL, NE = "PASS", "FAIL", "NOT_ESTABLISHED"
 # counted run refuses to start, and a counted report cannot score HOLDS.
 # Re-pointed 2026-10-15 (task 10-15c P4, before binding v20) to host 0.2.23's page (shell v72, engine v20).  The previous pin was
 # d761f1cee9d26c50c0b152348d74c3d05f540e9228927815d93ad6ec161e7dcd (autosave §9.19, 0.2.13/v62; the 0.2.13 and 0.2.14 counts ran on it).
-PAGE_SHA256: str | None = "3b0a2ebb92c3db282f9c832ab194249f963592698cf5c73d771998dc10203a6a"   # host 0.2.44 (engine v28, shell generation 82), 2026-10-31; was 605cf24b3dff5a2d; web/e2-editor-app.js, dist copy and the copy the host serves; was 901dd6a6 (0.2.24), ccb67a52 (0.2.23), d761f1ce
+PAGE_SHA256: str | None = "022d0cd0b5152f1ee9cabc74b10f5af2eb55935299228119a419ab717957759b"   # host 0.2.45 (engine v29, shell generation 83), 2026-11-02; was 3b0a2ebb92c3db28; host 0.2.44 (engine v28, shell generation 82), 2026-10-31; was 605cf24b3dff5a2d; web/e2-editor-app.js, dist copy and the copy the host serves; was 901dd6a6 (0.2.24), ccb67a52 (0.2.23), d761f1ce
 SESSION_SHA256: str | None = "d037eaa4c0b69bd3cc2e52099d461e0a54f3594a6b342c34ab0faca06955aac0"   # host 0.2.44 (engine v28, shell generation 82), 2026-10-31; was f1509ff22e6e2d8d; editor-shell-v2/narrow-editor-v2-session.js, same three places; shell v74 (0.2.26); was f47c80ec (link-batch §17) (0.2.23); was 62a2a20e
-HOST_VERSION: str | None = "0.2.44"   # host 0.2.44 (engine v28, shell generation 82), 2026-10-31; was 0.2.26; appinfo/info.xml <version>; engine v21 + finding 154; was 0.2.24 (finding 145), 0.2.23 (link-batch §17), 0.2.14
-HOST_COMMIT: str | None = "a97724f"   # host 0.2.44 (engine v28, shell generation 82), 2026-10-31; was 3c01876; the host repo's HEAD, a prefix is enough; 0.2.26; was 1479e56 (finding 145), 2ccf1a9 (link-batch §17), 237f2cb
+HOST_VERSION: str | None = "0.2.45"   # host 0.2.45 (engine v29, shell generation 83), 2026-11-02; was 0.2.44; host 0.2.44 (engine v28, shell generation 82), 2026-10-31; was 0.2.26; appinfo/info.xml <version>; engine v21 + finding 154; was 0.2.24 (finding 145), 0.2.23 (link-batch §17), 0.2.14
+HOST_COMMIT: str | None = "eeac22c"   # host 0.2.45 (engine v29, shell generation 83), 2026-11-02; was a97724f; host 0.2.44 (engine v28, shell generation 82), 2026-10-31; was 3c01876; the host repo's HEAD, a prefix is enough; 0.2.26; was 1479e56 (finding 145), 2ccf1a9 (link-batch §17), 237f2cb
 
 # arm -> (criterion, browsers, counted runs per browser)
 PLAN = {

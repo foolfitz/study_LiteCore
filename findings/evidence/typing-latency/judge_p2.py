@@ -11,7 +11,7 @@ lazy-shim reports cannot count), and to the slot's document / gap / chars.  Per 
   on-screen max < 150, both gaps                                            (§15.2, §15.6; ruling cond. 2)
   every key seen on screen and committed (n == chars)                       (otherwise median/max are undefined)
   (ii) allCurrentAfterLastKeyMs is not None, all three reports              (§15.6; ruling cond. 2)
-  boundaries gap 200: median revisionMs <= 10 ms                            (§15.2)
+  boundaries gap 200: median revisionMs <= 16 ms                            (§15.2; SPEC-M3-v29-tick-pacing append 8)
 
 Recorded, not gated (§15.8): per-key backlog b_i = max(0, revisionMs[i-1] - (key_i - key_{i-1})), the
 first-five / last-five medians of revisionMs, and the (ii) times.
@@ -45,7 +45,7 @@ from pathlib import Path
 # Every committed P2 report ran on an earlier page: re-judge them with --page, or with this file from git history.
 # Re-pinned 2026-10-17 to host 0.2.26 (engine v21, shell v74, finding 154's host rule), 2026-10-17.  The previous pin, host 0.2.24's page, was
 # 901dd6a6dbff6ad6f5252814fb4dc09230446a11d75387fb447e8a6a398a68c2 (the 0.2.24 count's P2 ran on it).
-PAGE = "3b0a2ebb92c3db282f9c832ab194249f963592698cf5c73d771998dc10203a6a"   # host 0.2.44 (engine v28, shell generation 82), 2026-10-31; was 605cf24b3dff5a2d
+PAGE = "022d0cd0b5152f1ee9cabc74b10f5af2eb55935299228119a419ab717957759b"   # host 0.2.45 (engine v29, shell generation 83), 2026-11-02; was 3b0a2ebb92c3db28; host 0.2.44 (engine v28, shell generation 82), 2026-10-31; was 605cf24b3dff5a2d
 RUNNER = "dbad93c0dcf27fbf"   # the probe writes the first 16 hex digits of its own sha256
 BROWSERS = ("chrome", "firefox")
 SLOTS = {  # slot: (document, gap, chars)
@@ -55,7 +55,7 @@ SLOTS = {  # slot: (document, gap, chars)
 }
 ON_SCREEN_MEDIAN = {"chrome": 70.0, "firefox": 90.0}
 ON_SCREEN_MAX = 150.0
-BOUNDARIES_COMMIT_MEDIAN = 10.0
+BOUNDARIES_COMMIT_MEDIAN = 16.0   # the owner, 2026-11-02, SPEC-M3-v29-tick-pacing append 8; was 10.0 (set on v20)
 
 
 def median(xs):

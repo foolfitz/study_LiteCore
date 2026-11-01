@@ -86,7 +86,7 @@ SAVED = re.compile(r"^存回 \d+ ms$")
 MARKER = "LC2"
 # The generation served_shell() compares dist/ with.  build_e2_c_shell_bundle.MANIFEST stays v76 (the tool is bound), and
 # against v76 five files differ, so a counted run would refuse.  SPEC-M3-K-0.2.44 append 1, H3.
-SHELL_MANIFEST = Path("e2/editor-shell-v2-bundle-v82.json")
+SHELL_MANIFEST = Path("e2/editor-shell-v2-bundle-v83.json")   # host 0.2.45 (engine v29, shell generation 83), 2026-11-02; was v82
 # `liteCoreHost` replaced before any page script runs (the host script's own
 # assignment then lands on a setter that ignores it).  Two wrong shapes: the
 # spec refuses a host without load() OR without save().

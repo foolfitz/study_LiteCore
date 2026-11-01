@@ -197,3 +197,13 @@ C2 三輪 PASS。`judge_p2` 第 1 輪 PASS，第 2、3 輪唯一的 FAIL 是 Chr
 **`FOREIGN_PHASE`**：v29 上 S1 在按下後 +0.35–0.40 秒 settled，X 再 0.37–0.47 秒，全程最多 0.85 秒，從 .60 按下每次都跨秒（0/6，子句 `premise`）。預測先 commit（`e4725360b`）：改 0.05、`premise` 成立 6/6。結果 6/6，沒有任何紅條款。`premise` 條款沒有改。這不是放寬：相位只決定 X 落不落在 S1 的同一秒，也就是這一輪量不量得到 103。
 
 **本節改了 `tools/check_m3_same_second.py` 一行常數**：它不在 `live-bound-set` 裡，K 0.2.44 當時也是這樣改的；下一份 K 規格重新釘它的 `runnerSha256`。
+
+## 17. 追加 8（2026-11-02）：擁有者裁定 `boundaries` commit 門檻
+
+**擁有者選 A**：`boundaries` commit 中位數的門檻由 ≤ 10 ms 改為 **≤ 16 ms**，上螢幕門檻（Chrome 70、Firefox 90、最大 150 ms）不動。取代 §6 留給擁有者的那句；§6 原文保留。
+
+**這個數字是看過資料才定的**，不假裝是事前定的：T1 的 Chrome 是 8.7、11.3、12.3 ms，Firefox 9、9.7、8.7 ms。16 ms 不是照 12.3 湊的，它是 60 Hz 一幀（16.7 ms）往下取整：每字 commit 在一幀內完成，使用者分不出來。原本的 10 ms 是 v20 時代定的（v21 實測 4.3 ms），當時還沒有有序引擎。
+
+**不是放寬產品行為**：這條門檻守的是「打字不會排隊」，長文件 commit 由 85 ms 降到 24–27 ms、`as5` 由掉字變 6/6，都是同一版的實測。門檻若再被碰到（> 16 ms）就是新的退化，不再調。
+
+**落地**：`judge_p2.py` 的 `BOUNDARIES_COMMIT_MEDIAN` 由下一份 K 的 repin 一次改掉，舊值留註解。T1 的三輪用新門檻重判，證據 `findings/evidence/k-0.2.45/t1-under-gate-16/`。

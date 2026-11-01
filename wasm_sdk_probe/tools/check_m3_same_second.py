@@ -69,7 +69,7 @@ PLAN = {"same-second": ("R2", ("chrome", "firefox"), 3), "same-second-foreign": 
 FOREIGN_PHASE = 0.05
 # ruling D shipped as 0.2.2; SPEC-M3-page-honesty §7.6/§7.11 re-ran it on 0.2.4; SPEC-M3-zstd Z3
 # re-runs it on 0.2.5 (written 2026-09-30 before that run).
-HOST_VERSION = "0.2.44"   # host 0.2.44 (engine v28, shell generation 82), 2026-10-31; was 0.2.26; host 0.2.26 (engine v21, shell v74, finding 154's host rule), 2026-10-17; was 0.2.24 (finding 145, v73), 0.2.23 (SPEC-M3-link-batch §17), 0.2.14, 0.2.13, 0.2.12, 0.2.11, 0.2.10, 0.2.9, 0.2.8, 0.2.7
+HOST_VERSION = "0.2.45"   # host 0.2.45 (engine v29, shell generation 83), 2026-11-02; was 0.2.44; host 0.2.44 (engine v28, shell generation 82), 2026-10-31; was 0.2.26; host 0.2.26 (engine v21, shell v74, finding 154's host rule), 2026-10-17; was 0.2.24 (finding 145, v73), 0.2.23 (SPEC-M3-link-batch §17), 0.2.14, 0.2.13, 0.2.12, 0.2.11, 0.2.10, 0.2.9, 0.2.8, 0.2.7
 PAIRS = 10
 SAVES = 2 * PAIRS + 1 + 2   # the ten pairs, the single save (S21), the restore pair (S22, S23)
 BUTTON = PRESS.replace("ARG_ACTION", "save")
