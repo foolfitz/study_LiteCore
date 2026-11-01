@@ -144,3 +144,25 @@ K NOT RUN，名義出貨版留 0.2.26。
 **same-second R3 的相位**：first contact 兩瀏覽器 0/2，子句 `premise`：v28 的按存檔到位元組從 0.22 秒變 0.61 秒，S1 約 0.67 秒才 settled，X 的 PUT 0.32 秒，從每秒 .05 按下會跨到下一秒，於是根本量不到 103。產品當下是安全的（S2 得到 412）。只改按鍵相位 `FOREIGN_PHASE = 0.60`，`premise` 條款不動。存檔慢了約 0.39 秒是觀察項，不是 K 判準。
 
 **§34.4**：因執行而修 +2（merge 的字面量、R3 的相位）。
+
+## 13. 追加 3（2026-11-01）：first contact 的結論與 K 的狀態
+
+**K 沒有跑。沒有任何計數開始。** 擁有者看過打字退化（finding 177）後選 B：不跑鏈、釋放 ddev、先修延遲。這份規格的識別（宿主 0.2.44、v28、第 82 代）不會有計數結果；名義出貨版留 0.2.26，0.2.44 照舊是日常未計數候選。§8 的預設成立。修好之後要在新識別上重做一份 K 規格，本規格的協定差異（追加 1–3）照抄。
+
+**first contact 結果**（`findings/evidence/k-0.2.44/first-contact/`，全是 shakedown，不算計數）：
+
+| 項 | 結果 | 下一次 K 前要做 |
+|---|---|---|
+| assets | clean（H1 在真站台上成立） | 無 |
+| host_entry | LANDS | 無 |
+| new_document | WORKS | 無 |
+| production UI | 六臂過；P 臂 `A3-1` 紅，因保留清單沒跟上 v22 開放的 `paste-markdown` 入口（有意出貨），清單已修 | **修後沒有重跑**：重跑 P 臂 |
+| same_second | R2 過；R3 `premise` 紅，相位改 0.60 | **修後沒有重跑**；而且 `FOREIGN_PHASE` 是照 v28 的存檔速度定的，**v29 若變快要重定** |
+| C2 | 兩支 judge 都紅 ＝ finding 177 | v29 上重量，`boundaries` commit 貼線 |
+| autosave | 11 臂過；`as5` 紅 ＝ finding 177 的第二個症狀（推論） | v29 上重跑 `as5` |
+| merge | 鏡像證明 20/20；`--control`＋`--pair` 無差異、m2-1b 20/20、m2-4 過 | 無 |
+| 計數才走的 red-cases | page_honesty、locks、versions、assets 全紅；其餘只缺乾淨基準 | 隨上面重跑 |
+
+**教訓**：shakedown 綠不代表計數能跑。這次八個問題有五個（H2、H3、H4、merge 的表、C2）shakedown 走不到，靠讀計數才走的路徑和 first contact 抓到。下一份 K 規格要把「計數才走的路徑普查」列為鏈前工序。
+
+**§34.4**：因執行而修再 +1（A3-1 的保留清單）。

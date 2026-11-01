@@ -1,0 +1,48 @@
+2026-10-31T15:20:42Z START tree a5752f659 load 0.80 0.76 0.49
+2026-10-31T15:20:42Z BEGIN assets :: python3 wasm_sdk_probe/tools/check_m3_assets.py --label shakedown --repeats 1
+2026-10-31T15:22:48Z END   assets exit 0 :: findings/evidence/k-0.2.44/first-contact/assets.stdout.txt:clean [SPEC-M3-asset-delivery+SPEC-M3-zstd+SPEC-M4-ods-in-nextcloud H5] chrome=1/1 firefox=1/1 firefox-nozstd=1/1 problems=[]
+2026-10-31T15:22:48Z BEGIN host_entry :: python3 wasm_sdk_probe/tools/check_m3_host_entry.py --label shakedown --repeats 1
+2026-10-31T15:25:00Z END   host_entry exit 0 :: findings/evidence/k-0.2.44/first-contact/host_entry.stdout.txt:HOST_ENTRY LANDS chrome:open-save=1/1 chrome:conflict=1/1 chrome:broken=1/1 chrome:broken-no-save=1/1 firefox:open-save=1/1 firefox:conflict=1/1 problems=[]
+2026-10-31T15:25:00Z BEGIN same_second :: python3 wasm_sdk_probe/tools/check_m3_same_second.py --label shakedown --repeats 1
+2026-10-31T15:28:54Z END   same_second exit 1 :: findings/evidence/k-0.2.44/first-contact/same_second.stdout.txt:red chrome:same-second=1/1 chrome:same-second-foreign=0/1 firefox:same-second=1/1 firefox:same-second-foreign=0/1 problems=[] red-clauses-per-run=[['blocked', 'premis
+2026-10-31T15:28:54Z BEGIN new_document :: python3 wasm_sdk_probe/tools/check_m3_new_document.py --label shakedown
+2026-10-31T15:31:38Z END   new_document exit 0 :: findings/evidence/k-0.2.44/first-contact/new_document.stdout.txt:NEW-DOCUMENT WORKS EN/chrome=PASS,EN/firefox=PASS,TW/chrome=PASS,TW/firefox=PASS problems=[]
+2026-10-31T15:31:38Z BEGIN production_ui :: python3 wasm_sdk_probe/tools/check_m3_production_ui.py --rounds 1 --arms Kdel,Kbs,Rbs,Rdel,Bctl,S,P --out /home/jiajun/LibreOffice/study_LiteCore/findings/evidence/k-0.2.44/first-contact/production-ui.json
+2026-10-31T15:42:34Z END   production_ui exit 0 :: 
+2026-10-31T15:42:52Z c2 c2-candidate-chrome-owner-gap80 exit 0
+2026-10-31T15:43:10Z c2 c2-candidate-chrome-owner-gap200 exit 0
+2026-10-31T15:43:28Z c2 c2-ratio1.5-chrome-owner-gap80 exit 0
+2026-10-31T15:43:47Z c2 p-candidate-chrome-owner-gap80 exit 0
+2026-10-31T15:44:05Z c2 p-candidate-chrome-owner-gap200 exit 0
+2026-10-31T15:44:23Z c2 p-candidate-chrome-boundaries-gap200 exit 0
+2026-10-31T15:44:49Z c2 c2-candidate-firefox-owner-gap80 exit 0
+2026-10-31T15:45:16Z c2 c2-candidate-firefox-owner-gap200 exit 0
+2026-10-31T15:45:42Z c2 c2-ratio1.5-firefox-owner-gap80 exit 0
+2026-10-31T15:46:08Z c2 p-candidate-firefox-owner-gap80 exit 0
+2026-10-31T15:46:34Z c2 p-candidate-firefox-owner-gap200 exit 0
+2026-10-31T15:47:00Z c2 p-candidate-firefox-boundaries-gap200 exit 0
+2026-10-31T15:47:00Z BEGIN judge_c2 :: python3 -I findings/evidence/c-prime/c2/judge_c2.py --dir findings/evidence/k-0.2.44/first-contact/c2/r1
+2026-10-31T15:47:00Z END   judge_c2 exit 1 :: 
+2026-10-31T15:47:00Z BEGIN judge_p2 :: python3 -I findings/evidence/typing-latency/judge_p2.py --dir findings/evidence/k-0.2.44/first-contact/c2/r1/ratio-1
+2026-10-31T15:47:00Z END   judge_p2 exit 1 :: 
+2026-10-31T15:47:00Z BEGIN autosave :: python3 wasm_sdk_probe/tools/check_m3_autosave.py --label shakedown --repeats 1
+2026-10-31T16:20:49Z END   autosave exit 1 :: findings/evidence/k-0.2.44/first-contact/autosave.stdout.txt:VERDICT red
+2026-10-31T16:20:49Z BEGIN red-page_honesty :: python3 wasm_sdk_probe/tools/check_m3_page_honesty.py --red-cases findings/evidence/m3-page-honesty/shakedown/2026-10-31T055630+0000.json
+2026-10-31T16:20:49Z END   red-page_honesty exit 0 :: findings/evidence/k-0.2.44/first-contact/red-page_honesty.stdout.txt:red cases: 158 red, 0 not red or missing
+2026-10-31T16:20:49Z BEGIN red-locks :: python3 wasm_sdk_probe/tools/check_m3_locks.py --red-cases findings/evidence/m3-locks/shakedown/2026-10-31T061758+0000.json
+2026-10-31T16:20:49Z END   red-locks exit 0 :: 
+2026-10-31T16:20:49Z BEGIN red-versions :: python3 wasm_sdk_probe/tools/check_m3_versions.py --red-cases findings/evidence/m3-versions/shakedown/2026-10-31T065336+0000.json
+2026-10-31T16:20:50Z END   red-versions exit 0 :: 
+2026-10-31T16:20:50Z BEGIN red-assets :: python3 wasm_sdk_probe/tools/check_m3_assets.py --red-cases findings/evidence/m3-assets/shakedown/2026-10-31T152043+0000.json
+2026-10-31T16:20:50Z END   red-assets exit 0 :: 
+2026-10-31T16:20:50Z BEGIN red-host_entry :: python3 wasm_sdk_probe/tools/check_m3_host_entry.py --red-cases findings/evidence/m3-host-entry/shakedown/2026-10-31T152248Z.json
+2026-10-31T16:20:50Z END   red-host_entry exit 0 :: findings/evidence/k-0.2.44/first-contact/red-host_entry.stdout.txt:RED   original-has-heading     HOST_ENTRY NOT_ESTABLISHED chrome:open-save=1/1 chrome:conflict=1/1 chrome:broken=1/1 chrome:broken-no-save=1/1 firefox:open-save=1/
+2026-10-31T16:20:50Z BEGIN red-same_second :: python3 wasm_sdk_probe/tools/check_m3_same_second.py --red-cases findings/evidence/m3-same-second/shakedown/2026-10-31T152501+0000.json
+2026-10-31T16:20:50Z END   red-same_second exit 1 :: 
+2026-10-31T16:20:50Z BEGIN red-autosave :: python3 wasm_sdk_probe/tools/check_m3_autosave.py --red-cases findings/evidence/m3-autosave/shakedown/2026-10-31T154700+0000.json
+2026-10-31T16:20:50Z END   red-autosave exit 1 :: findings/evidence/k-0.2.44/first-contact/red-autosave.stdout.txt:red cases: 6 not red or missing
+2026-10-31T16:20:50Z BEGIN red-new_document :: python3 wasm_sdk_probe/tools/check_m3_new_document.py --red-cases findings/evidence/new-document/shakedown/2026-10-31T152855Z.json
+2026-10-31T16:20:50Z END   red-new_document exit 1 :: findings/evidence/k-0.2.44/first-contact/red-new_document.stdout.txt:RED   settings-restore-failed    NEW-DOCUMENT NOT_ESTABLISHED EN/chrome=PASS,EN/firefox=PASS,TW/chrome=PASS,TW/firefox=PASS problems=["label 'shakedown'", "admin
+2026-10-31T16:20:50Z BEGIN red-production_ui :: python3 wasm_sdk_probe/tools/check_m3_production_ui.py --red-cases findings/evidence/k-0.2.44/first-contact/production-ui.json
+2026-10-31T16:20:50Z END   red-production_ui exit 1 :: findings/evidence/k-0.2.44/first-contact/red-production_ui.stdout.txt:red cases: 20/20
+2026-10-31T16:20:50Z DONE

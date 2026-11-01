@@ -1,0 +1,33 @@
+== chrome
+  PASS  chrome  owner-gap80 every key committed: 20 of 20
+  PASS  chrome  owner-gap80 every key on screen: 20 of 20
+  FAIL  chrome  owner-gap80 on-screen median: 589.3 (needs < 70)
+  FAIL  chrome  owner-gap80 on-screen max: 1032.9 (needs < 150)
+  FAIL  chrome  owner-gap80 (a) every key's commit < 2 x gap: max 982.8 (needs < 160); keys at or over: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+  FAIL  chrome  owner-gap80 (b) median commit < gap: 548.7 (needs < 80)
+  RECORD  chrome  owner-gap80 (ii) whole canvas current after the last key: 1187.2 ms (C3 gates this on C′)
+        chrome  owner-gap80: canvas rows 4380 (width unrecorded)
+  PASS  chrome  owner-gap200 every key committed: 10 of 10
+  PASS  chrome  owner-gap200 every key on screen: 10 of 10
+  FAIL  chrome  owner-gap200 on-screen median: 129.8 (needs < 70)
+  FAIL  chrome  owner-gap200 on-screen max: 166.7 (needs < 150)
+  RECORD  chrome  owner-gap200 (ii) whole canvas current after the last key: 282.7 ms (C3 gates this on C′)
+        chrome  owner-gap200: canvas rows 4380 (width unrecorded)
+  RECORD  chrome  owner-gap80 backlog b_i: [0.0, 12.7, 52.3, 101.8, 146.9, 193.6, 237.1, 281.1, 329.8, 374.6, 414.6, 462.1, 503.8, 545.0, 598.5, 659.0, 701.7, 755.0, 802.6, 847.7]
+  RECORD  chrome  owner-gap80 first-five / last-five median commit: 184.2 / 884.3
+== firefox
+  FAIL  firefox owner-gap80 every key committed: 19 of 20
+  FAIL  firefox owner-gap80 every key on screen: 19 of 20
+  FAIL  firefox owner-gap80 on-screen median: 616.4 (needs < 90)
+  FAIL  firefox owner-gap80 on-screen max: 1045.3 (needs < 150)
+  FAIL  firefox owner-gap80 (a) every key's commit < 2 x gap: max 1004.3 (needs < 160); keys at or over: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]
+  FAIL  firefox owner-gap80 (b) median commit < gap: 574.1 (needs < 80)
+  RECORD  firefox owner-gap80 (ii) whole canvas current after the last key: None ms (C3 gates this on C′)
+        firefox owner-gap80: canvas rows 4092 (width unrecorded)
+  PASS  firefox owner-gap200 every key committed: 10 of 10
+  PASS  firefox owner-gap200 every key on screen: 10 of 10
+  FAIL  firefox owner-gap200 on-screen median: 143.2 (needs < 90)
+  FAIL  firefox owner-gap200 on-screen max: 165.6 (needs < 150)
+  RECORD  firefox owner-gap200 (ii) whole canvas current after the last key: 213.1 ms (C3 gates this on C′)
+        firefox owner-gap200: canvas rows 4092 (width unrecorded)
+FAIL: chrome owner-gap80 on-screen median, chrome owner-gap80 on-screen max, chrome owner-gap80 (a) every key's commit < 2 x gap, chrome owner-gap80 (b) median commit < gap, chrome owner-gap200 on-screen median, chrome owner-gap200 on-screen max, firefox owner-gap80 every key committed, firefox owner-gap80 every key on screen, firefox owner-gap80 on-screen median, firefox owner-gap80 on-screen max, firefox owner-gap80 (a) every key's commit < 2 x gap, firefox owner-gap80 (b) median commit < gap, firefox owner-gap200 on-screen median, firefox owner-gap200 on-screen max

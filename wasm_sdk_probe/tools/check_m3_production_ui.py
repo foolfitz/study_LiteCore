@@ -119,7 +119,9 @@ ORIGINAL_SEQ = "d646dda7c887a8b6830d245ab6a678f38c02488171a0d5ff2ca26064d99180e4
 MERGED_SEQ = "1f53faf461e0349178353f4728a38b139e6b154525822405e51f34a3f104f06e"
 KEY_ARMS = {"Kdel": ("Delete", 1), "Kbs": ("Backspace", 2)}
 REFUSAL_ARMS = ("Rbs", "Rdel")
-KEEP_ACTIONS = ["undo", "redo", "set-bold", "set-italic", "set-underline", "set-strikethrough",
+# paste-markdown: the shipped entry since the v22 shell (SPEC-M3-link-batch-v22 11.1, PASTE_MARKDOWN_ENTRY_SHIPS, 01dd99217), after
+# this list's last count on 0.2.26.  First contact on 0.2.44 read it as a developer control (SPEC-M3-K-0.2.44 append 3).
+KEEP_ACTIONS = ["undo", "redo", "paste-markdown", "set-bold", "set-italic", "set-underline", "set-strikethrough",
                 "set-paragraph-heading", "set-paragraph-body", "set-list-unordered", "set-list-ordered",
                 "set-list-none", "save"]
 KEEP_IDS = ["clear-format", "litecore-host-close", "litecore-host-download", "notice-action"]
