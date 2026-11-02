@@ -177,6 +177,7 @@ const el = {
   a11yDoc: $("#a11y-doc"), a11yPara: $("#a11y-para"),
   a11yStructure: $("#a11y-structure"),
   pageStatus: $("#page-status"),
+  zoomOut: $("#zoom-out"), zoomReset: $("#zoom-reset"), zoomIn: $("#zoom-in"),
   // SPEC-M3-link-batch-v21 4.2 / 9.13 Q1 = A: the Markdown dialog.
   markdownDialog: $("#markdown-dialog"), markdownText: $("#markdown-text"),
   markdownMessage: $("#markdown-message"), markdownInsert: $("#markdown-insert"),
@@ -187,6 +188,13 @@ const el = {
 };
 
 const MAX_BACKING_WIDTH = 2400;
+// SPEC-P-demo-batch-1 3.  `zoomPercent` null is the fit the page always had.
+// 100% is 1 CSS px = 15 twips.  The controls change only the paper's size: the
+// engine repaints at the new scale, nothing reaches the document.
+const ZOOM_STEPS = [50, 75, 100, 125, 150, 200];
+const TWIPS_PER_CSS_PIXEL = 15;
+const VIEW_CONTROLS = new Set(["zoom-out", "zoom-reset", "zoom-in"]);
+let zoomPercent = null;
 const MOVE_ACTIONS = new Set(["move-character-left", "move-character-right"]);
 const FORMAT_ACTIONS = new Set(["set-bold", "set-italic", "set-underline",
   "set-strikethrough"]);
@@ -1101,6 +1109,12 @@ function followCaret() {
   const view = el.desk.getBoundingClientRect();
   if (!paper.height || !view.height) return;
   const scale = paper.height / session.document.heightTwips;
+  // SPEC-P-demo-batch-1 3: a zoomed paper can be wider than the desk.
+  if (paper.width > el.desk.clientWidth) {
+    const x = paper.left + caret.x * paper.width / session.document.widthTwips;
+    if (x < view.left + 24 || x > view.left + el.desk.clientWidth - 24)
+      el.desk.scrollLeft += x - (view.left + el.desk.clientWidth / 2);
+  }
   const top = paper.top + caret.y * scale;
   const bottom = top + Math.max(1, caret.height * scale);
   if (top >= view.top && bottom <= view.bottom) return;
@@ -1164,7 +1178,8 @@ function updateGestureAffordance() {
 function applyControlMutability() {
   if (typeof session?.actionMutates !== "function") return;
   for (const button of el.toolbar.querySelectorAll("button")) {
-    const mutates = session.actionMutates(button.dataset.action ?? button.id);
+    const mutates = !VIEW_CONTROLS.has(button.id)
+      && session.actionMutates(button.dataset.action ?? button.id);
     button.dataset.mutates = mutates ? "1" : "0";
     if (viewOnly && mutates) button.disabled = true;
   }
@@ -1191,6 +1206,7 @@ function applySessionAvailability(snapshot) {
     }
   }
   if (accepting) applyControlMutability();
+  updateZoomControls();
 }
 
 /**
@@ -1280,7 +1296,9 @@ function publishWindow() {
 function layoutCanvas() {
   if (!session?.document) return;
   const available = Math.max(320, el.desk.clientWidth - 40);
-  const cssWidth = Math.min(available, 900);
+  const cssWidth = zoomPercent === null
+    ? Math.min(available, 900)
+    : Math.round(session.document.widthTwips / TWIPS_PER_CSS_PIXEL * zoomPercent / 100);
   const ratio = session.document.heightTwips / session.document.widthTwips;
   const backingWidth = Math.min(MAX_BACKING_WIDTH,
                                 Math.round(cssWidth * (globalThis.devicePixelRatio || 1)));
@@ -1320,6 +1338,53 @@ function layoutCanvas() {
   if (lastProjectedParagraphs) positionProjection(lastProjectedParagraphs);
   // The view's rows changed too: the page number is recomputed, not re-read.
   updatePageStatus();
+  updateZoomControls();
+}
+
+/** The paper's scale as a percentage of 1 CSS px = 15 twips. */
+function shownZoom() {
+  return Math.round(parseFloat(el.paper.style.width) * TWIPS_PER_CSS_PIXEL
+                    / session.document.widthTwips * 100);
+}
+
+function updateZoomControls() {
+  const usable = Boolean(session?.document) && SESSION_ACCEPTS.has(session.state.snapshot.state);
+  const shown = usable ? shownZoom() : 0;
+  if (usable) el.zoomReset.textContent = `${shown}%`;
+  el.zoomReset.disabled = !usable;
+  el.zoomOut.disabled = !usable || shown <= ZOOM_STEPS[0];
+  el.zoomIn.disabled = !usable || shown >= ZOOM_STEPS[ZOOM_STEPS.length - 1];
+}
+
+/**
+ * The document point at the middle of the desk stays there.  layoutCanvas runs
+ * again after the scroll: the canvas is a window and the first run placed it
+ * for the old position, which would leave the paint to the scroll event.
+ */
+function setZoom(percent) {
+  if (!session?.document || percent === zoomPercent) return;
+  const view = el.desk.getBoundingClientRect();
+  const middleX = view.left + el.desk.clientWidth / 2;
+  const middleY = view.top + el.desk.clientHeight / 2;
+  const before = el.paper.getBoundingClientRect();
+  const fractionX = (middleX - before.left) / before.width;
+  const fractionY = (middleY - before.top) / before.height;
+  zoomPercent = percent;
+  layoutCanvas();
+  const after = el.paper.getBoundingClientRect();
+  el.desk.scrollLeft += after.left + fractionX * after.width - middleX;
+  el.desk.scrollTop += after.top + fractionY * after.height - middleY;
+  layoutCanvas();
+  void renderDocument();
+}
+
+function stepZoom(direction) {
+  if (!session?.document) return;
+  const shown = shownZoom();
+  const next = direction > 0
+    ? ZOOM_STEPS.find((step) => step > shown)
+    : ZOOM_STEPS.findLast((step) => step < shown);
+  if (next !== undefined) setZoom(next);
 }
 
 /**
@@ -2591,6 +2656,10 @@ el.toolbar.addEventListener("click", (event) => {
     : null;
   if (handler) void Promise.resolve(handler()).catch(() => {});
 });
+
+el.zoomOut.addEventListener("click", () => stepZoom(-1));
+el.zoomIn.addEventListener("click", () => stepZoom(1));
+el.zoomReset.addEventListener("click", () => setZoom(null));
 
 // Named so a test can compile it (review 2026-10-06b item 2).
 function onNoticeAction() {

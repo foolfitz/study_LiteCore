@@ -144,6 +144,8 @@ function page({ width = 24, shape = SHAPES.whole } = {}) {
      function positionProjection() {}
      // SPEC-M3-link-batch §10.8 (task 2026-10-13l): layoutCanvas recomputes the page number.
      function updatePageStatus() {}
+     // SPEC-P-demo-batch-1 3: zoomPercent null is the fit these tests measure.
+     let zoomPercent = null; const TWIPS_PER_CSS_PIXEL = 15; function updateZoomControls() {}
      ${PARTS}
      return {
        paint, layoutCanvas, renderBands, overlayShapes, RENDER_BAND_HEIGHT,

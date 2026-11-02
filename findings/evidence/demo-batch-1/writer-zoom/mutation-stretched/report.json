@@ -1,0 +1,527 @@
+{
+ "argv": [
+  "tools/check_writer_zoom.py",
+  "--out",
+  "../findings/evidence/demo-batch-1/writer-zoom/mutation-stretched",
+  "--browsers",
+  "chrome",
+  "--mutation",
+  "stretched"
+ ],
+ "tool": "2bd5507ad532827d3c8e47196e3ec96ac199ea9a8b2a36de4f0e5d88c3ffe189",
+ "document": {
+  "name": "t3-long.odt",
+  "sha256": "858d7a0424a1c69a025fc49ff4ff079263af55f3532d573bbe5c6f92e3108e02"
+ },
+ "steps": [
+  50,
+  75,
+  100,
+  125,
+  150,
+  200
+ ],
+ "sources": {
+  "e2-editor-app.js": "c377b9f2a41b1d6223ec67ac8d53fdd2d1920086af2e0f5759aa4118d084edaf",
+  "e2-editor.html": "7d0c1780fbb9d8e8ffe3b84d4c79cbfa94e226a6a122bf8e88a05bf9e3bdc7fb"
+ },
+ "mutation": "stretched",
+ "runs": [
+  {
+   "browser": "chrome",
+   "arm": "wide",
+   "base": "http://127.0.0.1:40981/e2-editor.html",
+   "checks": [
+    {
+     "id": "Z0/fit",
+     "pass": true,
+     "actual": {
+      "paper": 900,
+      "expected": 900,
+      "canvas": {
+       "width": 900,
+       "height": 4092,
+       "window": "27198 0 4092",
+       "bands": "0:0:1023:2 1:1023:1023:2 2:2046:1023:2 3:3069:1023:2"
+      },
+      "docRows": 27198
+     }
+    },
+    {
+     "id": "Z1/up-125",
+     "pass": true,
+     "actual": {
+      "paper": 1040,
+      "expected": 1040,
+      "label": "125%"
+     }
+    },
+    {
+     "id": "Z2/up-125",
+     "pass": false,
+     "actual": {
+      "canvas": 900,
+      "expected": 1040,
+      "lastPaint": 900,
+      "covered": true,
+      "dpr": 1
+     }
+    },
+    {
+     "id": "Z5/up-125",
+     "pass": true,
+     "actual": {
+      "beforeY": 150784.42797264503,
+      "afterY": 150780.0034363168,
+      "lineTwips": 304
+     }
+    },
+    {
+     "id": "Z1/up-150",
+     "pass": true,
+     "actual": {
+      "paper": 1247,
+      "expected": 1247,
+      "label": "150%"
+     }
+    },
+    {
+     "id": "Z2/up-150",
+     "pass": false,
+     "actual": {
+      "canvas": 900,
+      "expected": 1247,
+      "lastPaint": 900,
+      "covered": true,
+      "dpr": 1
+     }
+    },
+    {
+     "id": "Z5/up-150",
+     "pass": true,
+     "actual": {
+      "beforeY": 150780.0034363168,
+      "afterY": 150777.19686878068,
+      "lineTwips": 304
+     }
+    },
+    {
+     "id": "Z1/up-200",
+     "pass": true,
+     "actual": {
+      "paper": 1663,
+      "expected": 1663,
+      "label": "200%"
+     }
+    },
+    {
+     "id": "Z2/up-200",
+     "pass": false,
+     "actual": {
+      "canvas": 900,
+      "expected": 1663,
+      "lastPaint": 900,
+      "covered": true,
+      "dpr": 1
+     }
+    },
+    {
+     "id": "Z5/up-200",
+     "pass": true,
+     "actual": {
+      "beforeY": 150777.19686878068,
+      "afterY": 150720.44149952245,
+      "lineTwips": 304
+     }
+    },
+    {
+     "id": "Z1/down-150",
+     "pass": true,
+     "actual": {
+      "paper": 1247,
+      "expected": 1247,
+      "label": "150%"
+     }
+    },
+    {
+     "id": "Z2/down-150",
+     "pass": false,
+     "actual": {
+      "canvas": 900,
+      "expected": 1247,
+      "lastPaint": 900,
+      "covered": true,
+      "dpr": 1
+     }
+    },
+    {
+     "id": "Z5/down-150",
+     "pass": true,
+     "actual": {
+      "beforeY": 150720.44149952245,
+      "afterY": 150797.2031312193,
+      "lineTwips": 304
+     }
+    },
+    {
+     "id": "Z1/down-125",
+     "pass": true,
+     "actual": {
+      "paper": 1040,
+      "expected": 1040,
+      "label": "125%"
+     }
+    },
+    {
+     "id": "Z2/down-125",
+     "pass": false,
+     "actual": {
+      "canvas": 900,
+      "expected": 1040,
+      "lastPaint": 900,
+      "covered": true,
+      "dpr": 1
+     }
+    },
+    {
+     "id": "Z5/down-125",
+     "pass": true,
+     "actual": {
+      "beforeY": 150797.2031312193,
+      "afterY": 150791.99770912214,
+      "lineTwips": 304
+     }
+    },
+    {
+     "id": "Z1/down-100",
+     "pass": true,
+     "actual": {
+      "paper": 832,
+      "expected": 832,
+      "label": "100%"
+     }
+    },
+    {
+     "id": "Z2/down-100",
+     "pass": false,
+     "actual": {
+      "canvas": 900,
+      "expected": 832,
+      "lastPaint": 900,
+      "covered": true,
+      "dpr": 1
+     }
+    },
+    {
+     "id": "Z5/down-100",
+     "pass": true,
+     "actual": {
+      "beforeY": 150791.99770912214,
+      "afterY": 150799.19436821382,
+      "lineTwips": 304
+     }
+    },
+    {
+     "id": "Z1/down-75",
+     "pass": true,
+     "actual": {
+      "paper": 624,
+      "expected": 624,
+      "label": "75%"
+     }
+    },
+    {
+     "id": "Z2/down-75",
+     "pass": false,
+     "actual": {
+      "canvas": 900,
+      "expected": 624,
+      "lastPaint": 900,
+      "covered": true,
+      "dpr": 1
+     }
+    },
+    {
+     "id": "Z5/down-75",
+     "pass": true,
+     "actual": {
+      "beforeY": 150799.19436821382,
+      "afterY": 150791.19817574378,
+      "lineTwips": 304
+     }
+    },
+    {
+     "id": "Z1/down-50",
+     "pass": true,
+     "actual": {
+      "paper": 416,
+      "expected": 416,
+      "label": "50%"
+     }
+    },
+    {
+     "id": "Z2/down-50",
+     "pass": false,
+     "actual": {
+      "canvas": 900,
+      "expected": 416,
+      "lastPaint": 900,
+      "covered": true,
+      "dpr": 1
+     }
+    },
+    {
+     "id": "Z5/down-50",
+     "pass": true,
+     "actual": {
+      "beforeY": 150791.19817574378,
+      "afterY": 150793.1969455934,
+      "lineTwips": 304
+     }
+    },
+    {
+     "id": "Z3/50",
+     "pass": true,
+     "actual": {
+      "caret": {
+       "x": 9207,
+       "y": 149956,
+       "width": 0,
+       "height": 304
+      },
+      "reference": {
+       "x": 9207,
+       "y": 149956,
+       "width": 0,
+       "height": 304
+      }
+     }
+    },
+    {
+     "id": "Z3/75",
+     "pass": true,
+     "actual": {
+      "caret": {
+       "x": 9207,
+       "y": 149956,
+       "width": 0,
+       "height": 304
+      },
+      "reference": {
+       "x": 9207,
+       "y": 149956,
+       "width": 0,
+       "height": 304
+      }
+     }
+    },
+    {
+     "id": "Z3/100",
+     "pass": true,
+     "actual": {
+      "caret": {
+       "x": 9207,
+       "y": 149956,
+       "width": 0,
+       "height": 304
+      },
+      "reference": {
+       "x": 9207,
+       "y": 149956,
+       "width": 0,
+       "height": 304
+      }
+     }
+    },
+    {
+     "id": "Z3/125",
+     "pass": true,
+     "actual": {
+      "caret": {
+       "x": 9207,
+       "y": 149956,
+       "width": 0,
+       "height": 304
+      },
+      "reference": {
+       "x": 9207,
+       "y": 149956,
+       "width": 0,
+       "height": 304
+      }
+     }
+    },
+    {
+     "id": "Z3/150",
+     "pass": true,
+     "actual": {
+      "caret": {
+       "x": 9207,
+       "y": 149956,
+       "width": 0,
+       "height": 304
+      },
+      "reference": {
+       "x": 9207,
+       "y": 149956,
+       "width": 0,
+       "height": 304
+      }
+     }
+    },
+    {
+     "id": "Z3/200",
+     "pass": true,
+     "actual": {
+      "caret": {
+       "x": 9207,
+       "y": 149956,
+       "width": 0,
+       "height": 304
+      },
+      "reference": {
+       "x": 9207,
+       "y": 149956,
+       "width": 0,
+       "height": 304
+      }
+     }
+    },
+    {
+     "id": "Z8/end-of-long-document",
+     "pass": true,
+     "actual": {
+      "scrollTop": 49607,
+      "window": "27198 23106 4092",
+      "bands": "22:22506:1023:11 23:23529:1023:11 24:24552:1023:11 25:25575:1023:11 26:26598:600:11"
+     }
+    },
+    {
+     "id": "Z7/no-edit-reached-the-engine",
+     "pass": true,
+     "actual": {
+      "operations": [
+       "editorGetStateV2",
+       "editorPlaceCaretV2",
+       "paint"
+      ],
+      "edits": [],
+      "revision": [
+       "0",
+       "0"
+      ]
+     }
+    },
+    {
+     "id": "Z7/saved-text-equals-the-original",
+     "pass": true,
+     "actual": {
+      "paragraphs": 111
+     }
+    }
+   ],
+   "version": "Chrome/156.0.8078.47",
+   "cleanup": {}
+  },
+  {
+   "browser": "chrome",
+   "arm": "narrow",
+   "base": "http://127.0.0.1:40981/e2-editor.html",
+   "checks": [
+    {
+     "id": "Z6/left-edge-reachable",
+     "pass": true,
+     "actual": {
+      "paper": {
+       "left": 20,
+       "top": 101.390625,
+       "width": 1663,
+       "height": 50256,
+       "styleWidth": "1663px"
+      },
+      "desk": {
+       "left": 0,
+       "top": 281.390625,
+       "clientWidth": 885,
+       "clientHeight": 448,
+       "scrollLeft": 0,
+       "scrollTop": 200,
+       "scrollWidth": 1703,
+       "scrollHeight": 50296
+      },
+      "expected": 1663
+     }
+    },
+    {
+     "id": "Z4/end",
+     "pass": true,
+     "actual": {
+      "caretX": 535.3063171396507,
+      "deskLeft": 0,
+      "deskWidth": 885,
+      "scrollLeft": 818,
+      "caret": {
+       "x": 10001,
+       "y": 2997,
+       "width": 0,
+       "height": 304
+      }
+     }
+    },
+    {
+     "id": "Z4/typed",
+     "pass": true,
+     "actual": {
+      "caretX": 225.04200737534072,
+      "deskLeft": 0,
+      "deskWidth": 885,
+      "scrollLeft": 0,
+      "caret": {
+       "x": 1538,
+       "y": 3366,
+       "width": 0,
+       "height": 276
+      }
+     }
+    },
+    {
+     "id": "Z4/home",
+     "pass": true,
+     "actual": {
+      "caretX": 209.0439313772647,
+      "deskLeft": 0,
+      "deskWidth": 885,
+      "scrollLeft": 0,
+      "caret": {
+       "x": 1418,
+       "y": 3366,
+       "width": 0,
+       "height": 276
+      }
+     }
+    }
+   ],
+   "version": "Chrome/156.0.8078.47",
+   "cleanup": {}
+  }
+ ],
+ "preRun": {
+  "refuse": [],
+  "loadavg": [
+   "3.72",
+   "1.86",
+   "1.09"
+  ]
+ },
+ "verdict": "MUTATION_CAUGHT",
+ "red": [
+  "Z2/down-100",
+  "Z2/down-125",
+  "Z2/down-150",
+  "Z2/down-50",
+  "Z2/down-75",
+  "Z2/up-125",
+  "Z2/up-150",
+  "Z2/up-200"
+ ]
+}
