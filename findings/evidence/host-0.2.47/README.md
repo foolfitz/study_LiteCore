@@ -1,6 +1,6 @@
 # Host 0.2.47: the toolbar zoom and each sheet's own view
 
-Spec `specs/SPEC-P-demo-batch-1.md`. Uncounted candidate on the own stack; the nominal shipped host stays 0.2.45. Installed 2026-11-02 ~14:00 +0800.
+Spec `specs/SPEC-P-demo-batch-1.md`. Uncounted candidate on the own stack; the nominal shipped host stays 0.2.45. Installed 2026-11-02 13:51 +0800.
 
 - Host `d6cbbd9`, branch `host-0.2.47`, parent `b9d33d7` (0.2.46); the only source change is `appinfo/info.xml`. Engine `268e3009dbf33a5a`, archive `build/archive/host-0.2.47-engine-268e3009dbf33a5a` (not in git).
 - Writer on `e2-editor-v29`, shell generation 84 (digest `3998f606`), page `c377b9f2`, HTML `6800b2d5`. No engine changed.

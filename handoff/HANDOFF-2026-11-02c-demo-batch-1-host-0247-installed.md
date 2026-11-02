@@ -1,6 +1,6 @@
 # Handoff: demo batch 1 done, host 0.2.47 installed, the owner's hand test is next
 
-Checkpoint **2026-11-02 ~14:10 +0800**. Supersedes `HANDOFF-2026-11-02b-k-0245-holds.md` for what is next; K's numbers there stand.
+Checkpoint **2026-11-02 ~14:00 +0800**. Supersedes `HANDOFF-2026-11-02b-k-0245-holds.md` for what is next; K's numbers there stand.
 
 ## State
 

@@ -1,6 +1,6 @@
 # Host 0.2.46: not a candidate
 
-Spec `specs/SPEC-P-demo-batch-1.md` section 4 and append 1. Packaged, installed on the own stack 2026-11-02 12:58 +0800 and replaced by 0.2.47 about 70 minutes later. Nobody used it.
+Spec `specs/SPEC-P-demo-batch-1.md` section 4 and append 1. Packaged, installed on the own stack 2026-11-02 12:58 +0800 and replaced by 0.2.47 53 minutes later. Nobody used it.
 
 - `prepare-release.py` is hand-written: 0.2.45 is counted, so the gate reads that verdict and then this batch's results. The packaging half is 0.2.45's. The five small scripts are derived by `derive_host_0246.py`.
 - Host `b9d33d7`, engine `99fd34739f4f68a9`. Delta against 0.2.45: `e2-editor-app.js`, `e2-editor.html`, `ods-editor-app.js`, `ods-viewer-app.js`, `spreadsheet-shell/calc-editor-session.js`, nothing else. `DELTA_HOLDS`, `PACKAGE_HOLDS`, `CANDIDATE_INSTALLED`, Files 52/52, post-install `holds: true`.
