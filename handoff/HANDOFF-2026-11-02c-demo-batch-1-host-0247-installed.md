@@ -52,6 +52,16 @@ Each was checked against the commit before the batch.
 
 The owner's hand test passed: 「測試皆通過」. Next item 1 is closed. 0.2.47 stays installed as the daily uncounted candidate; nominal shipped stays 0.2.45. Nothing is waiting on the owner.
 
+## Addendum 2, same day: batch 2, host 0.2.48 installed
+
+The owner asked for Save and Close at the same place on Writer and Calc, as in Collabora. Spec `specs/SPEC-P-demo-batch-2.md`, results in section 6; `findings/evidence/host-0.2.48/README.md`.
+
+- Save is the first toolbar control on both pages, a plain icon. Close is at the far right of the title row on all three pages. Host `0411329`, engine `a632c4463e700493`, HTML `80162183` and Calc `714dba8f`; generation 84 unchanged.
+- The owner's screenshot also showed the dark theme washing the Writer toolbar out: contrast 1.51. Both toolbars now set their own ink. Outside the toolbar nothing changed (`L-toolbar-only-theme`): Calc's formula bar and sheet tabs stay dark, and Nextcloud fades `<em>`, so Calc's `I` reads lighter than `B` and `U`.
+- `capture-after.py` is red on one clause, the lock table, because the owner's two tabs were open and refreshing their locks (`L-capture-after-live-lock-refreshed`). Those tabs still run 0.2.47's page until reloaded.
+- The separator after Save is `.after-save`, deliberately not `.sep`: the host hides by `.sep:nth-of-type(n)`, which counts spans on their own.
+- Waiting on the owner: the hand test.
+
 ## Conventions
 
 Replies to the owner in Taiwan Traditional Chinese with A/B/C options. Evidence and handoff in English, specs in zh-TW. Linking and compiling `make` stay the owner's. Commit messages: `Co-Authored-By` yes, `Claude-Session` never.
