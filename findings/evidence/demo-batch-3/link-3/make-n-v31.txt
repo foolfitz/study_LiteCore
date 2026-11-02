@@ -1,0 +1,63 @@
+mkdir -p build/e2/editor-v31
+python3 tools/check_v31_alignment_contract.py --check-worker-base \
+	--base-worker build/archive/e2-editor-v30-e61e5890-worker-464d129c/sdk-worker.js --base-worker-sha256 464d129c044231c516c666487db32e78f33d3f6393d2afdcc089d36bb0f0fe93
+../wasm-lite/tools/emsdk/upstream/emscripten/em++ -DLOK_USE_UNSTABLE_API -I../libreoffice-26-8/include -I../wasm-lite/build-headless-probe/config_host -I../wasm-lite/build-headless-probe/workdir/UnoApiHeadersTarget/udkapi/comprehensive -I../wasm-lite/build-headless-probe/workdir/UnoApiHeadersTarget/offapi/comprehensive -I../wasm-lite/build-headless-probe/workdir/UnpackedTarball/boost -Oz -pthread -fwasm-exceptions -sSUPPORT_LONGJMP=wasm -I../wasm-lite/build-headless-probe/workdir/UnpackedTarball/md4c/src \
+	-DOXSDK_EDITOR_DISCOVERY \
+	-DOXSDK_FINDING_016_SELECTION_BARRIER -DOXSDK_E2_FORMAT_BARRIER \
+	-DOXSDK_MERGE_KEY_UNDO -DOXSDK_E2_V20_LINK_BATCH \
+	-DOXSDK_E2_V21_LINK_BATCH -DOXSDK_MAINLOOP_ENGINE \
+	-DOXSDK_E2_V23_LINK_BATCH -DOXSDK_E2_V23_FEATURE_ABI6 \
+	-DOXSDK_E2_V24_TYPED_INSERT -DOXSDK_E2_V25_FORMAT_PROOF \
+	-DOXSDK_E2_V27_FIRST_BLOCK -DOXSDK_E2_V28_LAST_BLOCK \
+	-DOXSDK_E2_V29_TICK_PACING -DOXSDK_E2_V31_ALIGNMENT \
+	 -c src/sdk_api.cpp -o build/e2/editor-v31/sdk_api.o
+../wasm-lite/tools/emsdk/upstream/emscripten/em++ -DLOK_USE_UNSTABLE_API -I../libreoffice-26-8/include -I../wasm-lite/build-headless-probe/config_host -I../wasm-lite/build-headless-probe/workdir/UnoApiHeadersTarget/udkapi/comprehensive -I../wasm-lite/build-headless-probe/workdir/UnoApiHeadersTarget/offapi/comprehensive -I../wasm-lite/build-headless-probe/workdir/UnpackedTarball/boost -Oz -pthread -fwasm-exceptions -sSUPPORT_LONGJMP=wasm -I../wasm-lite/build-headless-probe/workdir/UnpackedTarball/md4c/src \
+	-DOXSDK_EDITOR_DISCOVERY \
+	-DOXSDK_FINDING_016_SELECTION_BARRIER -DOXSDK_E2_FORMAT_BARRIER \
+	-DOXSDK_MERGE_KEY_UNDO -DOXSDK_E2_V20_LINK_BATCH \
+	-DOXSDK_E2_V21_LINK_BATCH -DOXSDK_MAINLOOP_ENGINE \
+	-DOXSDK_E2_V23_LINK_BATCH -DOXSDK_E2_V23_FEATURE_ABI6 \
+	-DOXSDK_E2_V24_TYPED_INSERT -DOXSDK_E2_V25_FORMAT_PROOF \
+	-DOXSDK_E2_V27_FIRST_BLOCK -DOXSDK_E2_V28_LAST_BLOCK \
+	-DOXSDK_E2_V29_TICK_PACING -DOXSDK_E2_V31_ALIGNMENT \
+	 -c src/probe_engine.cpp -o build/e2/editor-v31/probe_engine.o
+../wasm-lite/tools/emsdk/upstream/emscripten/em++ -DLOK_USE_UNSTABLE_API -I../libreoffice-26-8/include -I../wasm-lite/build-headless-probe/config_host -I../wasm-lite/build-headless-probe/workdir/UnoApiHeadersTarget/udkapi/comprehensive -I../wasm-lite/build-headless-probe/workdir/UnoApiHeadersTarget/offapi/comprehensive -I../wasm-lite/build-headless-probe/workdir/UnpackedTarball/boost -Oz -pthread -fwasm-exceptions -sSUPPORT_LONGJMP=wasm -I../wasm-lite/build-headless-probe/workdir/UnpackedTarball/md4c/src \
+	-DOXSDK_EDITOR_DISCOVERY \
+	-DOXSDK_FINDING_016_SELECTION_BARRIER -DOXSDK_E2_FORMAT_BARRIER \
+	-DOXSDK_MERGE_KEY_UNDO -DOXSDK_E2_V20_LINK_BATCH \
+	-DOXSDK_E2_V21_LINK_BATCH -DOXSDK_MAINLOOP_ENGINE \
+	-DOXSDK_E2_V23_LINK_BATCH -DOXSDK_E2_V23_FEATURE_ABI6 \
+	-DOXSDK_E2_V24_TYPED_INSERT -DOXSDK_E2_V25_FORMAT_PROOF \
+	-DOXSDK_E2_V27_FIRST_BLOCK -DOXSDK_E2_V28_LAST_BLOCK \
+	-DOXSDK_E2_V29_TICK_PACING -DOXSDK_E2_V31_ALIGNMENT \
+	 -c src/unoembind_stub.cpp -o build/e2/editor-v31/unoembind_stub.o
+../wasm-lite/tools/emsdk/upstream/emscripten/em++ -DLOK_USE_UNSTABLE_API -I../libreoffice-26-8/include -I../wasm-lite/build-headless-probe/config_host -I../wasm-lite/build-headless-probe/workdir/UnoApiHeadersTarget/udkapi/comprehensive -I../wasm-lite/build-headless-probe/workdir/UnoApiHeadersTarget/offapi/comprehensive -I../wasm-lite/build-headless-probe/workdir/UnpackedTarball/boost -Oz -pthread -fwasm-exceptions -sSUPPORT_LONGJMP=wasm -I../wasm-lite/build-headless-probe/workdir/UnpackedTarball/md4c/src \
+	-DOXSDK_EDITOR_DISCOVERY \
+	-DOXSDK_FINDING_016_SELECTION_BARRIER -DOXSDK_E2_FORMAT_BARRIER \
+	-DOXSDK_MERGE_KEY_UNDO -DOXSDK_E2_V20_LINK_BATCH \
+	-DOXSDK_E2_V21_LINK_BATCH -DOXSDK_MAINLOOP_ENGINE \
+	-DOXSDK_E2_V23_LINK_BATCH -DOXSDK_E2_V23_FEATURE_ABI6 \
+	-DOXSDK_E2_V24_TYPED_INSERT -DOXSDK_E2_V25_FORMAT_PROOF \
+	-DOXSDK_E2_V27_FIRST_BLOCK -DOXSDK_E2_V28_LAST_BLOCK \
+	-DOXSDK_E2_V29_TICK_PACING -DOXSDK_E2_V31_ALIGNMENT \
+	 -c src/editor_api.cpp -o build/e2/editor-v31/editor_api.o
+cp build/archive/e2-editor-v30-e61e5890-worker-464d129c/exports.txt build/e2/editor-v31/exports.txt
+if [ "1" != "1" ]; then echo ""; echo "refusing to relink a frozen profile: build/e2/editor-v31/probe.js"; echo "it carries: the v31 alignment (SPEC-P-demo-batch-3 3.2; ABI 6) -- every link mints a new hash"; echo "a new link mints a new artifact and unbinds that (findings 027, 036)."; echo "if that is really what you want:  make ALLOW_FROZEN_RELINK=1 build/e2/editor-v31/probe.js"; echo ""; exit 1; fi
+../wasm-lite/tools/emsdk/upstream/emscripten/em++ build/e2/editor-v31/sdk_api.o build/e2/editor-v31/probe_engine.o build/e2/editor-v31/unoembind_stub.o build/e2/editor-v31/editor_api.o  -L../wasm-lite/build-headless-probe/instdir/program $(cat ../wasm-lite/build-headless-probe/instdir/program/soffice.js.linkdeps) -pthread -fwasm-exceptions -sSUPPORT_LONGJMP=wasm --no-entry -Oz -sMODULARIZE -sEXPORT_NAME=createProbeModule -sTOTAL_MEMORY=1GB -sPTHREAD_POOL_SIZE=7 -sPTHREAD_POOL_SIZE_STRICT=0 -sSTACK_SIZE=131072 -sDEFAULT_PTHREAD_STACK_SIZE=1048576 -sFORCE_FILESYSTEM=1 -sWASM_BIGINT=1 -sERROR_ON_UNDEFINED_SYMBOLS=1 -sFETCH=1 -sASSERTIONS=0 -sEXIT_RUNTIME=0 -sEXPORTED_RUNTIME_METHODS=ccall,FS,HEAPU8 -sEXPORTED_FUNCTIONS=@build/e2/editor-v31/exports.txt -Wl,--wrap=_Z18initJsUnoScriptingv --pre-js ../libreoffice-26-8/static/emscripten/environment.js --pre-js ../wasm-lite/build-headless-probe/workdir/CustomTarget/static/emscripten_fs_image/soffice.data.js.link -o build/e2/editor-v31/probe.js
+test -s build/e2/editor-v31/probe.wasm
+cp sdk/v31-alignment-worker.js build/e2/editor-v31/sdk-worker.js
+mkdir -p dist/profiles/e2-editor-v31
+echo "464d129c044231c516c666487db32e78f33d3f6393d2afdcc089d36bb0f0fe93  build/archive/e2-editor-v30-e61e5890-worker-464d129c/sdk-worker.js" | sha256sum -c --quiet
+python3 tools/build_base_no35_pack.py --check
+python3 tools/build_cjk_subset_mono_pack.py --check
+python3 tools/build_e2_v31_alignment_profile.py \
+	--source-manifest sdk/v18-writer-review-manifest.json \
+	--loader build/e2/editor-v31/probe.js --wasm build/e2/editor-v31/probe.wasm \
+	--worker build/e2/editor-v31/sdk-worker.js \
+	--exports build/e2/editor-v31/exports.txt \
+	--profile e2-editor-v31 --inline-range-gestures all \
+	--page-rectangles --paste-markdown \
+	--output dist/profiles/e2-editor-v31
+test -s dist/profiles/e2-editor-v31/probe.js
+test -s dist/profiles/e2-editor-v31/probe.wasm
+test -s dist/profiles/e2-editor-v31/sdk-worker.js

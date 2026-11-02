@@ -29,8 +29,10 @@ def mirror(out, profile):
     # Keep that private URL valid after the product switches to a successor;
     # successor-specific wrappers rename both the alias and URL together.
     app=root/"ods-editor-app.js"
-    app.write_text(app.read_text().replace('"./profiles/ods-editor-v2/sdk-worker.js"',
-                                         '"./profiles/ods-editor-v1/sdk-worker.js"'))
+    source=app.read_text()
+    for live in ('"./profiles/ods-editor-v2/sdk-worker.js"','"./profiles/ods-editor-v3/sdk-worker.js"'):
+        source=source.replace(live,'"./profiles/ods-editor-v1/sdk-worker.js"')
+    app.write_text(source)
     for directory in ("sdk", "viewer-shell", "spreadsheet-shell"):
         shutil.copytree(PROJECT / directory, root / directory)
     (root / "reader-shell").mkdir()

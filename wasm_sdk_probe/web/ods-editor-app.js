@@ -2,7 +2,7 @@ import { CalcDocumentEngine, CELL_INPUT_LIMIT } from "./spreadsheet-shell/calc-d
 import { CalcEditorSession, inputIntent } from "./spreadsheet-shell/calc-editor-session.js";
 import { CalcAutosave } from "./spreadsheet-shell/calc-autosave.js";
 
-const ENGINE_OPTIONS = Object.freeze({workerUrl:"./profiles/ods-editor-v2/sdk-worker.js",timeoutMs:60000});
+const ENGINE_OPTIONS = Object.freeze({workerUrl:"./profiles/ods-editor-v3/sdk-worker.js",timeoutMs:60000});
 const HOST = globalThis.liteCoreHost ?? null;
 const diagnostics = new URLSearchParams(location.search).get("diagnostics") === "1";
 const $ = id => document.getElementById(id);
@@ -58,14 +58,18 @@ function formatAvailable(state) {
     && !state.busy && !state.selectionPending && !pendingEntry && !dragWork
     && (!state.selection?.multiple || (state.rangeFormattingSupported===true && state.rangeFormat?.writable===true));
 }
+function formatTitle(state,node) {
+  const multiple=state.selection?.multiple,range=state.rangeFormat;
+  return multiple && !state.rangeFormattingSupported ? "目前的引擎尚未支援範圍格式。"
+    : multiple && range?.refusalCode ? formatRefusal(range.refusalCode) : node.getAttribute("aria-label");
+}
 function renderFormatControls(state) {
   for(const node of document.querySelectorAll("[data-format]")) {
     const multiple=state.selection?.multiple,range=state.rangeFormat;
     const value=multiple ? range?.[node.dataset.format] : state.cell?.[node.dataset.format];
     node.disabled=!formatAvailable(state);
     node.setAttribute("aria-pressed",multiple && value==null ? "mixed" : value ? "true":"false");
-    node.title=multiple && !state.rangeFormattingSupported ? "目前的引擎尚未支援範圍格式。"
-      : multiple && range?.refusalCode ? formatRefusal(range.refusalCode) : node.getAttribute("aria-label");
+    node.title=formatTitle(state,node);
   }
   // Here and not in render(): a drag ends by calling this alone, and the styles must come back with the formats.
   renderStyleControls(state);
@@ -131,10 +135,14 @@ function renderStyleControls(state) {
   if(!supported){closeColorPopover();return;}
   const available=formatAvailable(state);
   if(!available)closeColorPopover();
-  for(const node of document.querySelectorAll("[data-color],[data-color-menu]"))node.disabled=!available;
+  for(const node of document.querySelectorAll("[data-color],[data-color-menu]")) {
+    node.disabled=!available;
+    node.title=formatTitle(state,node);
+  }
   const align=currentStyle(state,"horizontalAlign");
   for(const node of document.querySelectorAll("[data-align]")) {
     node.disabled=!available;
+    node.title=formatTitle(state,node);
     node.setAttribute("aria-pressed",state.selection?.multiple && align===null ? "mixed" : align===node.dataset.align ? "true":"false");
   }
 }

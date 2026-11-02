@@ -5,7 +5,14 @@ The owner's path on a private mirror of the live sources: real pointer on the to
 for one claim, because each can be wrong alone: the page's state (what the engine answered), the pixels of the tile under the cell
 (what was painted), and the saved ODS (what the document holds).  Every check is recorded and the run goes on past a red one.
 
-  check_calc_style.py --out DIR --engine DIR [--browsers chrome,firefox]
+The tile's background is the commonest colour inside the cell, not a fixed pixel: run-01 sampled (3,3), which is a glyph in A1.
+
+Added after run-02, from the spec's P2 list: the alignment in the saved file, a range across a merge refused in words and the next
+write still working, the saved file opened again.  The page has no row or column header, so a whole column cannot be selected on it;
+the limit stays native (N1).  --mutate wrong-fill is the instrument's red case: the mirrored page sends black for every fill.
+
+
+  check_calc_style.py --out DIR --engine DIR [--browsers chrome,firefox] [--mutate wrong-fill]
 
 --engine is the profile directory holding the v3 engine: dist/profiles/ods-editor-v3, or build/ods/editor-v3/profile before it is
 frozen.
@@ -31,26 +38,35 @@ from v21_shakedown_common import browser_lock, close_browser, open_browser
 PROJECT = Path(__file__).resolve().parents[1]
 WINDOW = (1440, 1000)
 ROOT = "window.__calcEditor"
+KEYS = {"ArrowDown": (40, "\ue015"), "ArrowRight": (39, "\ue014")}
 PAINT = """(()=>{const [x,y,w,h]=ARGS,out={fill:null,ink:0,left:null,right:null,red:0};
  const canvases=[...document.querySelectorAll('#tiles canvas')];
  const at=(px,py)=>{for(const c of canvases){const r=c.getBoundingClientRect();
    if(px>=r.left&&px<r.right&&py>=r.top&&py<r.bottom){const s=c.width/r.width;
      return c.getContext('2d').getImageData(Math.floor((px-r.left)*s),Math.floor((py-r.top)*s),1,1).data;}}return null;};
  const s=document.querySelector('#surface').getBoundingClientRect();
- const corner=at(s.left+x+3,s.top+y+3);out.fill=corner?[corner[0],corner[1],corner[2]]:null;
+ const seen=new Map();
  for(let py=s.top+y+1;py<s.top+y+h-1;py+=1)for(let px=s.left+x+1;px<s.left+x+w-1;px+=1){const p=at(px,py);if(!p)continue;
-   const same=corner&&Math.abs(p[0]-corner[0])+Math.abs(p[1]-corner[1])+Math.abs(p[2]-corner[2])<40;
+   const k=p[0]+','+p[1]+','+p[2];seen.set(k,(seen.get(k)||0)+1);}
+ const most=[...seen].sort((a,b)=>b[1]-a[1])[0];const back=most?most[0].split(',').map(Number):null;out.fill=back;
+ for(let py=s.top+y+1;py<s.top+y+h-1;py+=1)for(let px=s.left+x+1;px<s.left+x+w-1;px+=1){const p=at(px,py);if(!p)continue;
+   const same=back&&Math.abs(p[0]-back[0])+Math.abs(p[1]-back[1])+Math.abs(p[2]-back[2])<40;
    if(!same){out.ink++;out.left=out.left===null?px-s.left-x:Math.min(out.left,px-s.left-x);out.right=Math.max(out.right??0,px-s.left-x);
      if(p[0]>150&&p[1]<90&&p[2]<90)out.red++;}}
  return out;})()"""
 
 
-def mirror(out, engine):
+def mirror(out, engine, mutate=None):
     root = PROJECT / "build/calc-style" / out.name
     root.mkdir(parents=True, exist_ok=False)
     page = (PROJECT / "web/ods-editor-app.js").read_text(encoding="utf-8")
     for name in ("ods-editor-v2", "ods-editor-v3"):
         page = page.replace(f"./profiles/{name}/sdk-worker.js", "./profiles/under-test/sdk-worker.js")
+    if mutate == "wrong-fill":
+        one = "await session.setStyle(style,value);"
+        if page.count(one) != 1:
+            raise SystemExit("the mutation does not apply")
+        page = page.replace(one, 'await session.setStyle(style,style==="backColor"?"#000000":value);')
     (root / "ods-editor-app.js").write_text(page, encoding="utf-8")
     shutil.copyfile(PROJECT / "web/ods-editor.html", root / "ods-editor.html")
     for directory in ("sdk", "viewer-shell", "spreadsheet-shell"):
@@ -64,8 +80,8 @@ def mirror(out, engine):
 
 
 class Run:
-    def __init__(self, session, record):
-        self.session, self.record, self.hands = session, record, Hands(session)
+    def __init__(self, session, record, url=None, fixture=None):
+        self.session, self.record, self.hands, self.url, self.fixture = session, record, Hands(session), url, fixture
 
     def check(self, name, passed, actual):
         self.record["checks"].append({"id": name, "pass": bool(passed), "actual": actual})
@@ -92,6 +108,17 @@ class Run:
         self.press(f'[data-color-menu="{key}"]')
         wait(self.session, "!document.querySelector('#color-popover').hidden", 5)
         self.press(f'[data-swatch="{color}"]' if color.startswith("#") else "#color-clear")
+        self.idle()
+
+    def shift(self, name):
+        code, webdriver = KEYS[name]
+        if self.hands.chrome:
+            for kind in ("rawKeyDown", "keyUp"):
+                self.session.call("Input.dispatchKeyEvent", {"type": kind, "key": name, "code": name, "windowsVirtualKeyCode": code, "modifiers": 8})
+        else:
+            self.session.command("POST", "/actions", {"actions": [{"type": "key", "id": "keys", "actions": [
+                {"type": "keyDown", "value": "\ue008"}, {"type": "keyDown", "value": webdriver},
+                {"type": "keyUp", "value": webdriver}, {"type": "keyUp", "value": "\ue008"}]}]})
         self.idle()
 
     def select_click(self, x_px, y_px):
@@ -166,6 +193,31 @@ def scenario(run, out, name):
     run.choose("backColor", "#b6d7a8")
     s = run.state()
     run.check("P2/range/whole", s["rangeFormat"]["backColor"] == "#b6d7a8", s["rangeFormat"])
+
+    # Across a merge: B2:C6 holds half of the merged A3:B3 (N1's merge-boundary case, one row further: the third Down skips the hidden
+    # row).  Down from B2 alone would land on the merge, move the focus to column A and swallow it whole, which is a legal range.
+    # The page refuses before any write, as for B, I, U: the button is disabled and its title says why.  The next write works.
+    run.select_click(a1[0] + a1[2] + 20, a1[1] + a1[3] + 8)
+    run.check("setup/b2", [run.state()["cell"]["column"], run.state()["cell"]["row"]] == [1, 1], run.state()["cell"])
+    run.shift("ArrowRight")
+    for _ in range(3):
+        run.shift("ArrowDown")
+    s = run.state()
+    run.check("setup/range-across-the-merge", [s["selection"]["column"], s["selection"]["row"], s["selection"]["endColumn"], s["selection"]["endRow"]] == [1, 1, 2, 5],
+              [s["selection"]["column"], s["selection"]["row"], s["selection"]["endColumn"], s["selection"]["endRow"]])
+    run.check("P2/merge-boundary/refusal-from-the-engine", s["rangeFormat"]["refusalCode"] == "RANGE_MERGE_BOUNDARY", s["rangeFormat"])
+    words = evaluate(session, "['[data-align=\"center\"]','[data-color=\"backColor\"]','[data-color-menu=\"textColor\"]'].map(q=>{const n=document.querySelector(q);return [q,n.disabled,n.title];})")
+    run.check("P2/merge-boundary/refused-in-words", all(disabled is True and "合併格" in title for _, disabled, title in words), words)
+    run.press('[data-align="center"]')
+    run.idle()
+    run.select_click(a1[0] + a1[2] + 20, a1[1] + a1[3] + 8)
+    run.check("P2/merge-boundary/nothing-written", run.state()["cell"]["horizontalAlign"] == "standard", run.state()["cell"].get("horizontalAlign"))
+    run.select_click(a1[0] + 4, a1[1] + 4)
+    run.shift("ArrowRight")
+    run.press('[data-align="center"]')
+    run.idle()
+    s = run.state()
+    run.check("P2/merge-boundary/next-write-works", s["rangeFormat"]["horizontalAlign"] == "center", s["rangeFormat"])
     (out / f"{name}-styled.png").write_bytes(session.screenshot())
 
     run.press("#save-button")
@@ -176,7 +228,16 @@ def scenario(run, out, name):
     saved.write_bytes(base64.b64decode(encoded))
     a, b, c = (cell_style(saved, 0, col, 0) for col in (0, 1, 2))
     run.check("P2/saved", a.get("color") == "#cc0000" and a.get("background") == "#b6d7a8" and b.get("background") == "#b6d7a8"
-              and "background" not in c, {"a1": a, "b1": b, "c1": c})
+              and a.get("align") == b.get("align") == "center" and "background" not in c, {"a1": a, "b1": b, "c1": c})
+
+    # The saved file, opened again in a fresh page.
+    navigate(session, run.url)
+    session.set_file("#file-input", saved)
+    wait(session, f"Boolean({ROOT}.state?.cell)", 120)
+    run.idle()
+    s, painted = run.state(), run.paint()
+    run.check("P2/reopen/state", (s["cell"].get("textColor"), s["cell"].get("backColor"), s["cell"].get("horizontalAlign")) == ("#cc0000", "#b6d7a8", "center"), s["cell"])
+    run.check("P2/reopen/painted", painted["fill"] == [0xb6, 0xd7, 0xa8] and painted["red"] > 0, painted)
 
     # The protected sheet: nothing to press.
     run.press('#tab-strip [data-part="2"]')
@@ -191,15 +252,16 @@ def main():
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--engine", type=Path, required=True)
     parser.add_argument("--browsers", default="chrome,firefox")
+    parser.add_argument("--mutate", choices=("wrong-fill",))
     args = parser.parse_args()
     out = args.out.resolve()
     out.mkdir(parents=True, exist_ok=False)
-    root = mirror(out, args.engine)
+    root = mirror(out, args.engine, args.mutate)
     fixture = create(out / "fixture")
     port = free_port()
     log = (out / "server.txt").open("w")
     server = subprocess.Popen(["python3", str(PROJECT / "web/serve.py"), "--port", str(port), "--root", str(root)], stdout=log, stderr=subprocess.STDOUT)
-    report = {"tool": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(), "engine": str(args.engine),
+    report = {"tool": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(), "engine": str(args.engine), "mutate": args.mutate,
               "wasm": hashlib.sha256((args.engine / "probe.wasm").read_bytes()).hexdigest(), "runs": []}
     try:
         wait_page(f"http://127.0.0.1:{port}/ods-editor.html")
@@ -214,7 +276,7 @@ def main():
                     navigate(session, f"http://127.0.0.1:{port}/ods-editor.html?diagnostics=1")
                     session.set_file("#file-input", fixture)
                     wait(session, f"Boolean({ROOT}.state?.cell)", 120)
-                    scenario(Run(session, record), out, browser)
+                    scenario(Run(session, record, f"http://127.0.0.1:{port}/ods-editor.html?diagnostics=1", fixture), out, browser)
                 except Exception as error:  # noqa: BLE001  a crash is a result; keep the cells already read
                     record["error"] = repr(error)
                     if session:

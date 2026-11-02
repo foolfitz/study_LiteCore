@@ -1,0 +1,27 @@
+python3 -I tests/test_v30_feature_worker_delta.py
+...
+----------------------------------------------------------------------
+Ran 3 tests in 0.001s
+
+OK
+python3 -I tools/check_extend_gate_instances.py --expect-red e2-editor-v29
+{
+ "profiles": [
+  "e2-editor-v23",
+  "e2-editor-v24",
+  "e2-editor-v25",
+  "e2-editor-v26",
+  "e2-editor-v27",
+  "e2-editor-v28",
+  "e2-editor-v29",
+  "e2-editor-v30",
+  "e2-editor-v31"
+ ],
+ "red": [
+  "e2-editor-v29"
+ ],
+ "unexpected": [],
+ "expectedButGreen": []
+}
+python3 -I tools/check_extend_gate_instances.py --self-test
+{"fixedWorkerUnderUnknownName": true, "v29WorkerUnderUnknownName": false}
