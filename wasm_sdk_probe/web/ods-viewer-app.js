@@ -301,6 +301,8 @@ function scheduleViewport() {
   });
 }
 
+const sheetViews = new Map();
+
 // One door for the tab buttons and for anything that wants to try the same path.
 // Resolves with what happened instead of throwing, so a caller can report a
 // typed refusal.
@@ -308,6 +310,7 @@ async function switchPart(k) {
   const session = record.session;
   if (!session) return { ok: false, error: { code: "NO_SESSION" } };
   const before = { tileDraws: record.tileDraws, part: session.state.currentPart };
+  const leaving = { scrollLeft: el.viewport.scrollLeft, scrollTop: el.viewport.scrollTop };
   let outcome = { ok: true, error: null };
   try {
     await session.showPart(k);
@@ -317,10 +320,14 @@ async function switchPart(k) {
   // Repaint only if the session's part actually changed: a refusal leaves the
   // screen exactly as it was.
   if (session.state.state === "ready" && session.state.currentPart !== before.part) {
+    // SPEC-P-demo-batch-1 2: each sheet keeps its view for as long as the
+    // document is open; after fitSurface, or the old sheet's size clamps it.
+    sheetViews.set(before.part, leaving);
+    const view = sheetViews.get(session.state.currentPart);
     el.tiles.replaceChildren();
     fitSurface(session);
-    el.viewport.scrollTop = 0;
-    el.viewport.scrollLeft = 0;
+    el.viewport.scrollTop = view?.scrollTop ?? 0;
+    el.viewport.scrollLeft = view?.scrollLeft ?? 0;
     await paintViewport(session);
   }
   outcome.tilesDrawnBefore = before.tileDraws;
@@ -333,6 +340,7 @@ record.switchPart = switchPart;
 async function closeCurrent() {
   const session = record.session;
   record.session = null;
+  sheetViews.clear();
   el.tiles.replaceChildren();
   if (session) {
     try { await session.close(); } catch { /* the worker is disposed either way */ }

@@ -11,6 +11,12 @@ const ui = Object.fromEntries(["file-input","open-file","save-button","cell-addr
   "tab-strip","state-pill","autosave-status","selection-label","s-doc","s-revision","toast"].map(id=>[id,$(id)]));
 let session = null, composing = false, paintPending = false, paintAgain = false, lastPaint = null, restoreGridFocus = false;
 let pendingEntry = null, autosave = null, manualSaves = 0;
+// SPEC-P-demo-batch-1 2: each sheet keeps its view for as long as the document
+// is open. A switch does not paint until the session has settled on the new
+// sheet, and `pendingView` is applied inside paint, after the surface has its
+// new size: scrolling first would clamp to the sheet being left.
+const sheetViews = new Map();
+let sheetSwitching = false, pendingView = null;
 const record = globalThis.__calcEditor = {schemaVersion:1,session:null,state:null,events:[],lastSave:null};
 if(diagnostics)record.inputState=()=>({composing,pending:pendingEntry ? {replace:pendingEntry.replace,invalid:pendingEntry.invalid===true,textLength:pendingEntry.text.length}:null});
 
@@ -116,14 +122,14 @@ function render(state) {
       button.title=tab.disabledReason || "";
       button.addEventListener("click",()=>{
         if(pendingEntry){notice("請先完成或取消目前的輸入。",true);focusGrid();return;}
-        cancelDrag();void action(async()=>{await session.showPart(tab.index);focusGrid();});
+        cancelDrag();void action(async()=>{await showSheet(tab.index);focusGrid();});
       });
       return button;
     }));
   }
   if(state.error) errorNotice(state.error);
   const paintKey=`${state.currentPart}/${state.revision}`;
-  if(ready && lastPaint!==paintKey) {
+  if(ready && !sheetSwitching && lastPaint!==paintKey) {
     lastPaint=paintKey;ui.tiles.replaceChildren();void paint();
   }
   if(!waiting && restoreGridFocus) {
@@ -163,22 +169,43 @@ function drawTile(entry) {
   canvas.style.width=`${entry.cssWidth}px`;canvas.style.height=`${entry.cssHeight}px`;
   canvas.getContext("2d").putImageData(new ImageData(new Uint8ClampedArray(entry.tile.pixels),entry.tile.width,entry.tile.height),0,0);
 }
+function sheetView() {
+  return {scrollLeft:ui.viewport.scrollLeft,scrollTop:ui.viewport.scrollTop,
+    minWidth:ui.surface.style.minWidth,minHeight:ui.surface.style.minHeight};
+}
+async function showSheet(part) {
+  const from=session.state.currentPart;
+  sheetViews.set(from,sheetView());
+  sheetSwitching=true;
+  try { await session.showPart(part); } finally {
+    sheetSwitching=false;
+    const shown=session.state.currentPart;
+    if(shown!==from)pendingView=sheetViews.get(shown) ?? {scrollLeft:0,scrollTop:0,minWidth:"",minHeight:""};
+    render(session.state);
+  }
+}
 async function paint() {
-  if(!session || session.state.state!=="ready")return;
+  if(!session || session.state.state!=="ready" || sheetSwitching)return;
   if(paintPending){paintAgain=true;return;}
   paintPending=true;
+  const view=pendingView;
   try {
     for(let round=0;round<2;round++) {
       const size=session.scheduler.documentCssSize;
       const focus=session.state.selection?.focus;
       ui.surface.style.width=`${Math.ceil(Math.max(size.width,focus ? (focus.xTwips+focus.widthTwips)/15 : 0))}px`;
       ui.surface.style.height=`${Math.ceil(Math.max(size.height,focus ? (focus.yTwips+focus.heightTwips)/15 : 0))}px`;
+      if(view) {
+        ui.surface.style.minWidth=view.minWidth;ui.surface.style.minHeight=view.minHeight;
+        ui.viewport.scrollLeft=view.scrollLeft;ui.viewport.scrollTop=view.scrollTop;
+      }
       session.scheduleViewport({scrollLeft:ui.viewport.scrollLeft,scrollTop:ui.viewport.scrollTop,
         width:ui.viewport.clientWidth,height:ui.viewport.clientHeight});
       await session.drain();
       if(!session.refit())break;
       ui.tiles.replaceChildren();
     }
+    if(pendingView===view)pendingView=null;
   } catch(error) {errorNotice(error);} finally {
     paintPending=false;
     if(paintAgain){paintAgain=false;void paint();}
@@ -191,6 +218,7 @@ async function openBytes(bytes,name,options={}) {
   if(session)await session.close();
   lastPaint=null;ui.tiles.replaceChildren();ui.viewport.scrollTop=0;ui.viewport.scrollLeft=0;
   ui.surface.style.minWidth="";ui.surface.style.minHeight="";
+  sheetViews.clear();pendingView=null;
   session=new CalcEditorSession({
     engineFactory:async({onEvent})=>{
       const engine=new CalcDocumentEngine({...ENGINE_OPTIONS,debug:diagnostics});

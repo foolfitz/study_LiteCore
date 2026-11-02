@@ -22,6 +22,20 @@ async function opened(readOnly=false) {
   return{session,doc,calls};
 }
 
+test("each sheet keeps its active cell; a sheet not seen before starts at A1 (SPEC-P-demo-batch-1 2)",async()=>{
+  const {session}=await opened();
+  await session.selectAt(1200,100);
+  assert.deepEqual([session.state.cell.part,session.state.cell.column,session.state.cell.row],[0,1,0]);
+  await session.showPart(1);
+  assert.deepEqual([session.state.cell.part,session.state.cell.column,session.state.cell.row],[1,0,0]);
+  await session.showPart(0);
+  assert.deepEqual([session.state.cell.part,session.state.cell.column,session.state.cell.row],[0,1,0]);
+  // The tab of the sheet already shown does not move the cell.
+  await session.showPart(0);
+  assert.deepEqual([session.state.cell.part,session.state.cell.column,session.state.cell.row],[0,1,0]);
+  await session.close();
+});
+
 test("cancelled drafts never enter the engine",async()=>{
   const {session,calls}=await opened();
   session.beginEdit("inline");session.setDraft("取消這份");session.cancelEdit();

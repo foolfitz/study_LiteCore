@@ -26,6 +26,7 @@ export class CalcEditorSession {
   constructor(options) {
     this.document = null;
     this._cell = null;
+    this._sheetCells = new Map();
     this._selection = null;
     this._rangeFormat = null;
     this._draft = "";
@@ -218,8 +219,12 @@ export class CalcEditorSession {
   showPart(part) {
     return this._enqueue(async()=>{
       await this._commitNow();
+      // SPEC-P-demo-batch-1 2: each sheet keeps its active cell for as long as
+      // the document is open; a sheet not seen before starts at A1.
+      if(this._cell)this._sheetCells.set(this._cell.part,{column:this._cell.column,row:this._cell.row});
       await this.viewer.showPart(part);
-      const result=await this.document.readCell(0,0);
+      const cell=this._sheetCells.get(part) ?? {column:0,row:0};
+      const result=await this.document.readCell(cell.column,cell.row);
       this._adopt(result.cell);
       return this.state;
     },{selection:true});
