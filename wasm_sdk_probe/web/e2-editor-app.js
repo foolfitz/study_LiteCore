@@ -3925,7 +3925,7 @@ el.desk.addEventListener("scroll", onDeskScroll, { passive: true });
 // The harness pages (`e2-c-d*-app.js`) do take `?profile=`; they are harnesses.
 function engineFactory() {
   return createDocumentEngine({
-    workerUrl: "./profiles/e2-editor-v29/sdk-worker.js",
+    workerUrl: "./profiles/e2-editor-v30/sdk-worker.js",
     timeoutMs: 30000,
   });
 }
