@@ -6,8 +6,8 @@ The owner's hand test of 0.2.49 reported four points. State at the end of this s
 |---|---|---|
 | 1. Writer Shift+Up/Down refused | **Fixed on the host, 0.2.50** (finding 179) | `shift-lines/`, `../host-0.2.50/` |
 | 2. Does Calc autosave? | Yes; measured on 0.2.50: 30.5 s after a committed cell, trigger `auto` | `../host-0.2.50/host-shift-03/report.json` |
-| 3. Calc text colour and cell fill | Code and native proof done; **waits for the owner's link** | `native-calc-style/`, `calc-preview/` |
-| 4. Alignment, Writer and Calc | Code and native proof done; **waits for the owner's link** | `native-writer-align/`, `native-writer-align-caret/` |
+| 3. Calc text colour and cell fill | **Done on the host, 0.2.51** | `p2/`, `../host-0.2.51/` |
+| 4. Alignment, Writer and Calc | **Done on the host, 0.2.51** | `p1/`, `p2/`, `../host-0.2.51/` |
 
 ## Generation 85 on `e2-editor-v30`
 
@@ -44,3 +44,24 @@ Not run, because they need the link: `tools/check_writer_align.py` and `tools/ch
 `calc-preview/` is a layout preview on a doctored manifest; the buttons do nothing there.
 
 `list-caret-product/` is finding 180, the shipped list and heading buttons, not changed here.
+
+## After the link (2026-11-02, 2026-11-03)
+
+The agent ran the link on the owner's word: `link-3/`, 5 min 7 s, exit 0. Archives `build/archive/e2-editor-v31-809893a9-worker-54352fad`, `build/archive/ods-editor-v3-e6593b2c-worker-6df70322`.
+
+| Read | Result |
+|---|---|
+| P1, `p1/final-86` | `P1_HOLDS`, 108/108 per browser: alignment saved, one undo, reopened, the caret on the product path |
+| P1 red cases | `red-no-undo`, `red-swap-worker`: `P1_RED`. `red-swap`, swapping the attribute in the HTML, held: the attribute is both the tool's selector and the page's action, kept as a dead mutation |
+| P2, `p2/final-dist` | 33/33 per browser on the final bytes |
+| P2 red cases | `red-wrong-fill`, 8 cells; `red-engine-v2`, red at setup |
+| Calc regression, `calc-regression/` | cell 31, range 40, autosave 18, per browser, on v3 |
+| S1 `shift-lines/live-page-86`, Z `writer-zoom/run-86`, C `calc-sheet-view/run-86` | `S1_HOLDS`, `Z_HOLDS`, 4 runs green |
+| F4, `f4-86/` | 24/24 |
+| F3, `f3-86/` | `F3_83_MOVED` on the pinned tool, one Firefox cell; `F3_83_EQUAL`, 46/46, through the clear wait. Read below |
+| V0', `v0-86/` | `V0_PRIME_HOLDS`, nine stages |
+| Units, `post-link/` | shell 569/569, Calc 104/104, format entry 15/15, range 7/7 |
+
+P2's reds in order, kept: `run-01` the sample landed on a glyph; `run-03`, `run-04` the range and the row count were the tool's; `run-05` a real gap, a refused control said nothing, fixed in the page, `run-06` green.
+
+**F3.** Firefox `every-inline-format-reaches-the-document` moved in one of four runs of the pinned tool. It is finding 178's open race: the runner presses into the page's clear loop, seen in the request order in `f3-86/race/natural-v31-firefox.json`. Rate on one shell, two engines: v31 1/120, v30 3/120. Loop width 53 and 56 ms. The four clear-wait runs alone would prove nothing at that rate; the request order does. `PREDICTION.md` was committed first.

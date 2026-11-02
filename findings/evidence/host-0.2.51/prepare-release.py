@@ -5,7 +5,8 @@ verified dist, preserving the live predecessor.
 Derived from findings/evidence/host-0.2.50/prepare-release.py (not edited).  Closed list of differences: this paragraph; the
 predecessor is host 350cc4c (0.2.50) with the exact 0.2.50 engine, and the candidate is build/host-0.2.51; Writer is e2-editor-v31,
 generation 86, Calc is ods-editor-v3, the viewer stays; the delta is the nine page and shell files and the two profile moves; the
-evidence gate reads generation 86, P1, P2 and the Calc regression, and C on this generation; the names.
+evidence gate reads generation 86, P1, P2 and the Calc regression, C on this generation, and F3 through the clear-wait read (finding
+178's append); the names.
 
 0.2.50's docstring follows.
 
@@ -101,8 +102,9 @@ def gate():
     calc_red = load(BATCH / 'calc-sheet-view/red-before/report.json')
     zoom = load(BATCH3 / 'writer-zoom/run-86/report.json')
     f4 = load(BATCH3 / 'f4-86/aggregate-judge.json')
-    equal = json.loads((BATCH3 / 'f3-86/equal.stdout.txt').read_bytes())
-    self_test = json.loads((BATCH3 / 'f3-86/equal-self-test.stdout.txt').read_bytes())
+    equal = json.loads((BATCH3 / 'f3-86/diag-clear-wait/equal.stdout.txt').read_bytes())
+    self_test = json.loads((BATCH3 / 'f3-86/diag-clear-wait/equal-self-test.stdout.txt').read_bytes())
+    original = json.loads((BATCH3 / 'f3-86/equal.stdout.txt').read_bytes())
     v0 = load(BATCH3 / 'v0-86/v0-prime.json')
     e1c = [load(BATCH3 / 'freeze-86/e1-c.json').get('intact'), load(BATCH3 / 'v0-86/e1-c-after-put-back.json').get('intact')]
     shift_red = load(BATCH3 / 'shift-lines/red-on-v29/report.json')
@@ -141,6 +143,7 @@ def gate():
                         ['MUTATION_CAUGHT'] * len(MUTATIONS)),
         'F3-86': (equal.get('verdict'), 'F3_83_EQUAL'),
         'F3-86-self-test': (self_test.get('selfTest'), 'ALL_RED'),
+        'F3-86-moved-cell-stays-on-record': ([m['check'] for m in original['reading2']['moved']], ['every-inline-format-reaches-the-document']),
         'F4-86': ('PASS' if not f4['problems'] and f4['rows'] == 24
                   and all(x['outcome'] == 'PASS' for x in f4['arms'].values()) else 'NOT', 'PASS'),
         'V0prime-86': (v0.get('verdict'), 'V0_PRIME_HOLDS'),

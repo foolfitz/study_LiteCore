@@ -49,6 +49,11 @@ def check(run, name, passed, actual=None):
     run['checks'].append({'id': name, 'pass': bool(passed), 'actual': actual})
 
 
+def leave(session, instance):
+    s.navigate(session, instance.base + '/index.php/apps/files/', timeout=60)
+    time.sleep(3)
+
+
 def box(session, selector):
     return s.evaluate(session, BOX.replace('ARG', json.dumps(selector)))
 
@@ -70,7 +75,7 @@ def save(session, kind, selector):
 
 
 def writer(session, kind, instance, run):
-    layout.go(session, instance, 'align.odt', 'e2-editor.html')
+    layout.go(session, instance, f'align-{kind}.odt', 'e2-editor.html')
     s.wait_until(session, "(() => { const v = document.documentElement.getAttribute('data-litecore'); return v && JSON.parse(v).done && v; })()", 180)
     time.sleep(2)
     shown = {n: box(session, f'[data-action="set-align-{n}"]') for n in ('left', 'center', 'right', 'justify')}
@@ -100,15 +105,15 @@ def writer(session, kind, instance, run):
     time.sleep(1)
     check(run, 'P3/writer/no-red-toast', s.evaluate(session, RED) is None, s.evaluate(session, RED))
     check(run, 'P3/writer/save-settled', save(session, kind, '[data-action="save"]'))
-    raw = instance.dav('GET', f'{FOLDER}/align.odt')[1]
+    raw = instance.dav('GET', f'{FOLDER}/align-{kind}.odt')[1]
     aligns, texts = a.aligns(raw), a.texts(raw)
     check(run, 'P3/writer/the-host-holds-it', aligns[1] == 'right' and texts[1] == 'BRqAVO plain paragraph two', {'align': aligns[1], 'text': texts[1]})
     (OUT / f'{kind}-writer.png').write_bytes(session.screenshot())
-    layout.leave(session, instance)
+    leave(session, instance)
 
 
-def calc_open(session, instance):
-    layout.go(session, instance, 'style.ods', 'ods-editor.html')
+def calc_open(session, kind, instance):
+    layout.go(session, instance, f'style-{kind}.ods', 'ods-editor.html')
     s.wait_until(session, '(() => window.__calcEditor?.state?.state === "ready" && Boolean(window.__calcEditor.state.cell))()', 180)
     time.sleep(2)
 
@@ -123,7 +128,7 @@ def choose(session, kind, key, color):
 
 
 def calc(session, kind, instance, run):
-    calc_open(session, instance)
+    calc_open(session, kind, instance)
     b = box(session, '[data-align="center"]')
     check(run, 'P3/calc/controls-shown', b and b['shown'] and b['hit'] and not b['disabled'], b)
     if not (b and b['shown']):
@@ -138,14 +143,14 @@ def calc(session, kind, instance, run):
     (OUT / f'{kind}-calc.png').write_bytes(session.screenshot())
     check(run, 'P3/calc/save-settled', save(session, kind, '#save-button'))
     path = OUT / f'{kind}-host.ods'
-    path.write_bytes(instance.dav('GET', f'{FOLDER}/style.ods')[1])
+    path.write_bytes(instance.dav('GET', f'{FOLDER}/style-{kind}.ods')[1])
     got = cell_style(path, 0, 0, 0)
     check(run, 'P3/calc/the-host-holds-it', (got.get('color'), got.get('background'), got.get('align')) == ('#cc0000', '#ffe599', 'center'), got)
-    layout.leave(session, instance)
-    calc_open(session, instance)
+    leave(session, instance)
+    calc_open(session, kind, instance)
     cell = s.evaluate(session, 'window.__calcEditor.state.cell')
     check(run, 'P3/calc/opened-again', (cell.get('textColor'), cell.get('backColor'), cell.get('horizontalAlign')) == ('#cc0000', '#ffe599', 'center'), cell)
-    layout.leave(session, instance)
+    leave(session, instance)
 
 
 def main():
@@ -166,8 +171,8 @@ def main():
     report = {'runs': []}
     with tempfile.TemporaryDirectory(dir=ROOT / 'wasm_sdk_probe/build') as scratch:
         for kind in args.browsers.split(','):
-            instance.dav('PUT', f'{FOLDER}/align.odt', a.FIXTURE.read_bytes(), {'Content-Type': ODT})
-            instance.dav('PUT', f'{FOLDER}/style.ods', FIXTURE_ODS.read_bytes(), {'Content-Type': ODS})
+            instance.dav('PUT', f'{FOLDER}/align-{kind}.odt', a.FIXTURE.read_bytes(), {'Content-Type': ODT})
+            instance.dav('PUT', f'{FOLDER}/style-{kind}.ods', FIXTURE_ODS.read_bytes(), {'Content-Type': ODS})
             run = {'browser': kind, 'checks': []}
             report['runs'].append(run)
             session = s.EventChrome('cold') if kind == 'chrome' else s.FirefoxSession('cold', profile_dir=s.firefox_profile(Path(scratch)))

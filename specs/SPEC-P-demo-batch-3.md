@@ -149,3 +149,11 @@ Codex 另外兩點：client 還沒接受四個動作（本來就排在回歸鏈�
 **F3 移動一格，已定案**：Firefox `every-inline-format-reaches-the-document`，是 finding 178 留著的競態，不是 v31 的缺陷。理由和數字寫在 finding 178 的追加。閘門改讀 `f3-86/diag-clear-wait/equal.stdout.txt`（`F3_83_EQUAL`，46/46），原工具的紅留在 `f3-86/equal.stdout.txt`。
 
 **單元與突變**（回歸鏈沒涵蓋，這輪補跑）：殼層 569/569、Calc 104/104。補跑時才發現兩支突變工具從批次 3 起就沒在跑：`applyStyle`、`setStyle` 複製了錨點文字，工具要求錨點唯一，於是拒絕執行。修好之後新增的 `uncertain-refresh-style` 突變沒被抓到，代表 `setStyle` 寫入後讀回失敗的路徑沒有測試，已補。格式入口 15/15、範圍 7/7、自動存檔通過。`page-select-all.test.mjs` 釘死 `e2-editor-v26` 從 v27 起就紅，改成不綁版本。
+
+## 10. 追加 6（2026-11-03，宿主 0.2.51）
+
+0.2.51 裝在自有 stack，host `1b8c667`，engine `60fd728f61134b05`，未計數候選。P3 全過：Files 52/52、`HOST_BATCH_HOLDS`、`LAYOUT_HOLDS`、T6 94 個控制項（色盤打開）。
+
+P3 原文沒有要求新控制項在宿主上存檔。這批加了 `host_batch3.py`：真實按鍵與指標，按儲存，再從 WebDAV 讀回，Chrome 與 Firefox 共 23/23，對 0.2.50 先紅過。理由是 finding 179 的教訓：鏡像綠不代表宿主有量到。
+
+第 1 節到第 4 節的四點至此全部落地。是否成為日常候選、要不要算 K，仍是擁有者的決定。
