@@ -5266,11 +5266,13 @@ test-e2-c-static:
 		--carrier E2_V27=probe_engine,sdk_api,editor_api \
 		--carrier E2_V28=probe_engine,sdk_api,editor_api \
 		--carrier E2_V29=probe_engine,sdk_api,editor_api \
+		--carrier E2_V31=probe_engine,sdk_api,editor_api \
 		--carrier ODS_VIEWER_V1=probe_engine,sdk_api \
 		--carrier ODS_VIEWER_V2=probe_engine,sdk_api \
 		--carrier ODS_VIEWER_V3=probe_engine,sdk_api \
 		--carrier ODS_EDITOR_V1=probe_engine,sdk_api \
-		--carrier ODS_EDITOR_V2=probe_engine,sdk_api
+		--carrier ODS_EDITOR_V2=probe_engine,sdk_api \
+		--carrier ODS_EDITOR_V3=probe_engine,sdk_api
 	# E2-C must never touch what E1-C bound.  Read-only on purpose: a static
 	# target that rewrites verdict-bound evidence has happened here once.
 	python3 tools/check_e1_c_bundle_intact.py > /dev/null

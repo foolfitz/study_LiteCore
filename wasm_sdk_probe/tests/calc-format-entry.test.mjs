@@ -13,8 +13,8 @@ const clean=()=>({state:"ready",cell:{writable:true,bold:false},readOnly:false,u
   selectionPending:false,selection:{multiple:false},rangeFormattingSupported:true,rangeFormat:{writable:true,bold:null}});
 function page(state=clean()) {
   const calls=[],nodes=["bold","italic","underline"].map(format=>({dataset:{format},setAttribute(){},getAttribute(){return format;}}));
-  const context={session:{state,setFormat:(...args)=>calls.push(args)},pendingEntry:null,dragWork:null,
-    document:{querySelectorAll:()=>nodes},formatRefusal:code=>code};
+  const context={session:{state,setFormat:(...args)=>calls.push(args)},pendingEntry:null,dragWork:null,styleRefreshes:0,
+    document:{querySelectorAll:()=>nodes},formatRefusal:code=>code,renderStyleControls(){context.styleRefreshes++;}};
   vm.createContext(context);
   vm.runInContext(["formatAvailable","renderFormatControls","toggleFormat"].map(extract).join("\n"),context);
   return {context,calls,nodes};
@@ -50,8 +50,10 @@ test("drag completion and cancellation refresh actual format controls",async()=>
     ui:{viewport:{hasPointerCapture:()=>false}},flushPendingEntry(){},focusGrid(){}});
   vm.runInContext(["cancelDrag","extendDrag"].map(extract).join("\n"),context);
   context.cancelDrag();assert.equal(refreshes,1);assert.ok(nodes.every(n=>!n.disabled));
+  assert.equal(context.styleRefreshes,1,"the style controls come back with the formats (SPEC-P-demo-batch-3 append 2)");
   const current={start:Promise.resolve(true),active:false,generation:context.gesture};context.dragWork=current;
   await context.extendDrag(current);assert.equal(refreshes,2);assert.equal(context.dragWork,null);
+  assert.equal(context.styleRefreshes,2,"the style controls come back with the formats (SPEC-P-demo-batch-3 append 2)");
   assert.ok(nodes.every(n=>!n.disabled));
 });
 test("actual queued selection cannot consume a shortcut computed for old cell",async()=>{

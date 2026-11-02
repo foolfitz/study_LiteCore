@@ -235,10 +235,10 @@ ptree accessRange(const Reference<sheet::XSpreadsheet> &sheet,
   }
 #ifdef OXSDK_ODS_STYLE
   const bool styling = operation >= 10;
-#else
-  const bool styling = false;
-#endif
   const auto before = operation == 6 || styling ? std::string() : rangeFormat(props, states, operation);
+#else
+  const auto before = operation == 6 ? std::string() : rangeFormat(props, states, operation);
+#endif
   bool changed = false;
 #ifdef OXSDK_ODS_STYLE
   if (styling) {
@@ -254,8 +254,10 @@ ptree accessRange(const Reference<sheet::XSpreadsheet> &sheet,
       changed = true;
     }
   }
-#endif
   if (operation != 6 && !styling) {
+#else
+  if (operation != 6) {
+#endif
     if (!refusal.empty()) throw Refusal(refusal.c_str(), "the entire range is refused before mutation");
     if (before != (enabled ? "on" : "off")) {
       Reference<beans::XMultiPropertySet> multi(range, uno::UNO_QUERY_THROW);

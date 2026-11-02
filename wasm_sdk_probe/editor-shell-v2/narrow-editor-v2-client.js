@@ -23,7 +23,7 @@
 // declaration) survived two shipped artifacts because nothing compared them.
 
 import { DocumentSdkError } from "../sdk/document-sdk.js";
-import { ParagraphEditorClient, EDITOR_V2_PARAGRAPH_ACTIONS }
+import { ParagraphEditorClient, EDITOR_ALIGN_ACTIONS, EDITOR_V2_PARAGRAPH_ACTIONS }
   from "./paragraph-editor-client.js";
 
 /**
@@ -106,12 +106,13 @@ export const EDITOR_SELECT_ALL_ACTIONS = Object.freeze(["select-all"]);
 export const EDITOR_ACCEPTED_ACTIONS = Object.freeze([
   ...EDITOR_V4_ACTIONS,
   ...EDITOR_SELECT_ALL_ACTIONS,
+  ...EDITOR_ALIGN_ACTIONS,
 ]);
 
 const INHERITED = new Set(EDITOR_V2_INHERITED_ACTIONS);
 const APPENDED = new Set([...EDITOR_V3_APPENDED_ACTIONS, ...EDITOR_V4_APPENDED_ACTIONS,
                           ...EDITOR_SELECT_ALL_ACTIONS]);
-const PARAGRAPH = new Set(EDITOR_V2_PARAGRAPH_ACTIONS);
+const PARAGRAPH = new Set([...EDITOR_V2_PARAGRAPH_ACTIONS, ...EDITOR_ALIGN_ACTIONS]);
 const MOVE_ACTIONS = new Set(["move-character-left", "move-character-right"]);
 // Movement by line takes the SAME postcondition as movement by character --
 // revision unchanged, `changed: false`, a documented callback -- because it

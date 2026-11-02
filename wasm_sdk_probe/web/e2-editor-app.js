@@ -39,6 +39,7 @@ import { NarrowEditorV2Session, PageRectanglesScheduler, pageSpanOf, pageStatusT
 // re-derivation produced: finding 054, a flag nothing wrote.
 import { recoveryNotice } from "./editor-shell/recovery-notice.js";
 import { EDITOR_V2_ACTIONS } from "./editor-shell-v2/narrow-editor-v2-client.js";
+import { EDITOR_ALIGN_ACTIONS } from "./editor-shell-v2/paragraph-editor-client.js";
 // Finding 173: finding 083's sentence is chosen from the list the disposition
 // keeps open, not from a copy of it.
 import { EMPTY_SELECTION_SHAPES, FALLBACK_REFUSED_SHAPES } from "./editor-shell-v2/paragraph-editor-client.js";
@@ -198,6 +199,8 @@ let zoomPercent = null;
 const MOVE_ACTIONS = new Set(["move-character-left", "move-character-right"]);
 const FORMAT_ACTIONS = new Set(["set-bold", "set-italic", "set-underline",
   "set-strikethrough"]);
+// The actions whose button this page's toolbar drives directly.
+const TOOLBAR_ACTIONS = [...EDITOR_V2_ACTIONS, ...EDITOR_ALIGN_ACTIONS];
 
 let session = null;
 let documentName = "—";
@@ -1042,6 +1045,7 @@ function updateState(snapshot) {
   }
   updateGestureAffordance();
   updateRedoAffordance();
+  updateAlignAffordance();
   updatePasteMarkdownAffordance();
   applySessionAvailability(snapshot);
   // Finding 058.  The caret arrives as a state update, not as a document
@@ -1145,7 +1149,7 @@ function updateGestureAffordance() {
   if (!session?.editor) return;
   for (const button of el.toolbar.querySelectorAll("button[data-action]")) {
     const action = button.dataset.action;
-    if (!EDITOR_V2_ACTIONS.includes(action)) continue;
+    if (!TOOLBAR_ACTIONS.includes(action)) continue;
     const gestures = session.gesturesFor(action);
     const offered = !Array.isArray(gestures) || gestures.includes(lastSelectionShape);
     button.disabled = !offered;
@@ -1202,7 +1206,7 @@ function applySessionAvailability(snapshot) {
       button.disabled = true;
     } else if (button.dataset.unavailable === "1") {
       delete button.dataset.unavailable;
-      if (!EDITOR_V2_ACTIONS.includes(button.dataset.action)) button.disabled = false;
+      if (!TOOLBAR_ACTIONS.includes(button.dataset.action)) button.disabled = false;
     }
   }
   if (accepting) applyControlMutability();
@@ -1221,6 +1225,13 @@ function applySessionAvailability(snapshot) {
  * The same rule kept Ctrl+A unbound and kept Up/Down out of the key map until
  * the manifest carried their action.
  */
+function updateAlignAffordance() {
+  // SPEC-P-demo-batch-3 3.3: hidden, not disabled, as redo: a profile without
+  // the four has no alignment to offer.  All four come together.
+  const offered = EDITOR_ALIGN_ACTIONS.every((action) => session?.offers?.(action) === true);
+  for (const node of el.toolbar.querySelectorAll("[data-align-group]")) node.hidden = !offered;
+}
+
 function updateRedoAffordance() {
   const button = el.toolbar.querySelector('[data-action="redo"]');
   if (!button) return;
@@ -2652,7 +2663,7 @@ el.toolbar.addEventListener("click", (event) => {
     : action === "insert-text" ? () => insertText()
     : action === "paste-markdown" ? () => openMarkdownDialog()
     : action === "save" ? () => saveDocument()
-    : EDITOR_V2_ACTIONS.includes(action) ? () => editorAction(action)
+    : TOOLBAR_ACTIONS.includes(action) ? () => editorAction(action)
     : null;
   if (handler) void Promise.resolve(handler()).catch(() => {});
 });

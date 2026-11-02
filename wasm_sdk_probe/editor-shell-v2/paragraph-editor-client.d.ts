@@ -21,6 +21,14 @@ export type EditorV2ParagraphAction =
 
 export const EDITOR_V2_PARAGRAPH_ACTIONS: readonly EditorV2ParagraphAction[];
 
+export type EditorAlignAction =
+  | "set-align-left"
+  | "set-align-center"
+  | "set-align-right"
+  | "set-align-justify";
+
+export const EDITOR_ALIGN_ACTIONS: readonly EditorAlignAction[];
+
 /** The selection shapes an action may be dispatched on (SPEC E2-B 9.9). */
 export type EditorV2Gesture = "collapsed" | "range-single" | "range-cross";
 

@@ -10,7 +10,7 @@ import test from "node:test";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
-import { EDITOR_V2_PARAGRAPH_ACTIONS } from "../paragraph-editor-client.js";
+import { EDITOR_ALIGN_ACTIONS, EDITOR_V2_PARAGRAPH_ACTIONS } from "../paragraph-editor-client.js";
 import { EDITOR_V2_ACTIONS, EDITOR_V2_INHERITED_ACTIONS,
          EDITOR_V3_ACTIONS, EDITOR_V3_APPENDED_ACTIONS,
          EDITOR_V4_ACTIONS, EDITOR_V4_APPENDED_ACTIONS }
@@ -142,11 +142,11 @@ test("the granted select-all is named only as the grant, and in no ABI append li
   const name = ["select", "all"].join("-");
   const client = await import("../narrow-editor-v2-client.js");
   assert.deepEqual(client.EDITOR_SELECT_ALL_ACTIONS, [name]);
-  assert.deepEqual(client.EDITOR_ACCEPTED_ACTIONS, [...EDITOR_V4_ACTIONS, name]);
+  assert.deepEqual(client.EDITOR_ACCEPTED_ACTIONS, [...EDITOR_V4_ACTIONS, name, ...EDITOR_ALIGN_ACTIONS]);
   assert.equal(EDITOR_V3_ACTIONS.includes(name), false);
   assert.equal(EDITOR_V4_ACTIONS.includes(name), false);
   assert.deepEqual(unionMembers(productDeclaration, "EditorSelectAllAction"), [name]);
-  assert.match(productDeclaration, /export type EditorAcceptedAction = EditorV4Action \| EditorSelectAllAction;/);
+  assert.match(productDeclaration, /export type EditorAcceptedAction = EditorV4Action \| EditorSelectAllAction \| EditorAlignAction;/);
   assert.match(productDeclaration, /export const EDITOR_SELECT_ALL_ACTIONS: readonly EditorSelectAllAction\[\];/);
   assert.match(productDeclaration, /export const EDITOR_ACCEPTED_ACTIONS: readonly EditorAcceptedAction\[\];/);
 });
@@ -158,7 +158,7 @@ test("the worker's wire ids are the header's, and the header pins them", () => {
   // A renumbering in either file alone is silent and total: the action still
   // dispatches, it just is not the one that was asked for.
   const worker = readFileSync(
-    fileURLToPath(new URL("../../sdk/sdk-worker.js", import.meta.url)), "utf8");
+    fileURLToPath(new URL("../../sdk/v31-alignment-worker.js", import.meta.url)), "utf8");
   const header = readFileSync(
     fileURLToPath(new URL("../../src/editor_api.h", import.meta.url)), "utf8");
 
@@ -168,7 +168,8 @@ test("the worker's wire ids are the header's, and the header pins them", () => {
     headerIds.set(name.toLowerCase().replaceAll("_", "-"), Number(id));
   // Twenty-three since ABI 5 (SPEC-M3-link-batch-v21 4.1): the header's
   // ABI-5 enum carries 22 and 23 under OXSDK_E2_V21_LINK_BATCH.
-  assert.equal(headerIds.size, 23, "expected twenty-three pinned header ids");
+  // Twenty-seven with the four alignments (SPEC-P-demo-batch-3 3.2), the worker read here being theirs.
+  assert.equal(headerIds.size, 27, "expected twenty-seven pinned header ids");
 
   // Scoped to the PRODUCT tables, and the scoping is the point rather than
   // tidiness.  The same file also holds EDITOR_DISCOVERY_ACTION_IDS, which
@@ -194,9 +195,9 @@ test("the worker's wire ids are the header's, and the header pins them", () => {
   // all-permitted, so an id the worker does not know is an action shipped wide
   // open.  The client, in turn, must NOT name it.  Neither number is the other
   // one's mistake.
-  assert.equal(workerIds.size, 23,
+  assert.equal(workerIds.size, 27,
                "the worker must carry every wire id, withheld ones included");
-  assert.equal(EDITOR_V4_ACTIONS.length, workerIds.size - 1,
+  assert.equal(EDITOR_V4_ACTIONS.length + EDITOR_ALIGN_ACTIONS.length, workerIds.size - 1,
                "the client offers every action but the withheld one");
 
   for (const [name, id] of workerIds)
@@ -204,7 +205,7 @@ test("the worker's wire ids are the header's, and the header pins them", () => {
                  `${name} is ${id} in the worker and ${headerIds.get(name)} `
                  + `in editor_api.h`);
   // Every action the client can name must be one the worker has an id for.
-  for (const action of EDITOR_V4_ACTIONS)
+  for (const action of [...EDITOR_V4_ACTIONS, ...EDITOR_ALIGN_ACTIONS])
     assert.equal(workerIds.has(action), true,
                  `${action} is offered by the client with no wire id`);
 });

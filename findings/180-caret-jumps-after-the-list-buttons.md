@@ -2,11 +2,11 @@
 
 | | |
 |---|---|
-| **狀態** | 待產品路徑確認；原生已量到 |
+| **狀態** | 已確認；未修，等擁有者決定 |
 | **Bugzilla** | 不適用 |
 | **發現日** | 2026-11-02（Codex 審核對齊設計時指出機制，N2 量到） |
 | **嚴重度** | 一般：下一個按鍵打在錯的位置，文件內容不遺失 |
-| **可重現** | 原生 6/6 |
+| **可重現** | 原生 6/6；產品頁面（Chrome 鏡像）3/3 |
 | **是否上游** | 否（我方 barrier 的還原方式） |
 
 ## 現象
@@ -17,11 +17,18 @@
 
 `evidence/demo-batch-3/native-writer-align-caret/neighbour/`：`.uno:DefaultBullet`、`.uno:DefaultNumbering` × 段落中間、清單中間、換行段落中間，插入 X 後存檔，和只派送不讀回的結果比，0/6 相同。例：`BRXAVO` 變 `BXRAVO`。
 
-原生 harness 的 `.uno:DefaultBullet` 沒帶引擎用的 `On` 參數，機制相同但不是逐字的產品路徑。產品路徑結果見 `evidence/demo-batch-3/list-caret-product/`。標題動作走同一條路，沒有量。
+原生 harness 的 `.uno:DefaultBullet` 沒帶引擎用的 `On` 參數，所以再到產品頁面量（`evidence/demo-batch-3/list-caret-product/`，出貨頁、真實按鍵、0.2.50 同一批位元組）：游標放在第二段 `BR` 之後，按鈕，打 `q`，存檔。
+
+| 按鈕 | 第二段 |
+|---|---|
+| 不按（對照） | `BRqAVO plain paragraph two` |
+| 項目符號 | `qBRAVO plain paragraph two` |
+| 編號 | `qBRAVO plain paragraph two` |
+| 標題 | `BqRAVO plain paragraph two` |
 
 ## 分析
 
-`ordered_format.inc` 的 `restoreOrderedFormatPoint`，`restorePoint` 取自派送前的 `gEditorState.caret`。對齊用 SPEC-P-demo-batch-3 第 6 節的讀法避開了這件事；清單與標題沒有換，因為那條讀法有 F3、V0′ 綁著。
+`ordered_format.inc` 的 `restoreOrderedFormatPoint`，`restorePoint` 取自派送前的 `gEditorState.caret`。對齊用 SPEC-P-demo-batch-3 第 6 節的讀法避開了這件事；清單與標題沒有換，因為那條讀法有 F3、V0′ 綁著，而且不在這批的要求內。
 
 ## 修法
 

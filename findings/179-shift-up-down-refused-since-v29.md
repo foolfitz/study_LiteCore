@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **狀態** | 已確認（修法見 SPEC-P-demo-batch-3 第 2 節） |
+| **狀態** | 已修：`e2-editor-v30`，宿主 0.2.50（未計數候選，名義出貨版 0.2.45 仍帶著這個缺陷） |
 | **Bugzilla** | 不適用 |
 | **發現日** | 2026-11-02（擁有者手測 0.2.49） |
 | **嚴重度** | 嚴重：出貨功能整組失效，紅字 toast 是開發者句子 |
@@ -55,4 +55,5 @@ SPEC-P-demo-batch-3 第 2 節：`e2-editor-v30`，引擎位元組等於 v29，�
 
 ## 證據
 
-- 重現與修復：`evidence/demo-batch-3/shift-lines/`。
+- 重現與修復：`evidence/demo-batch-3/shift-lines/`（v29 紅 13/25；v30 兩瀏覽器 25/25）。
+- 宿主：`evidence/host-0.2.50/host-shift-03/`，Chrome 量到引擎選取，Firefox 只量到沒有拒絕。

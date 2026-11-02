@@ -26,7 +26,16 @@ export const EDITOR_V2_PARAGRAPH_ACTIONS = Object.freeze([
   "set-paragraph-body",
 ]);
 
-const PARAGRAPH_ACTIONS = new Set(EDITOR_V2_PARAGRAPH_ACTIONS);
+// SPEC-P-demo-batch-3 3.2: route C's reply shape too.  Their own list, so V2 keeps meaning what that ABI added; offered only where a
+// manifest grants them (`offers`), like every other action.
+export const EDITOR_ALIGN_ACTIONS = Object.freeze([
+  "set-align-left",
+  "set-align-center",
+  "set-align-right",
+  "set-align-justify",
+]);
+
+const PARAGRAPH_ACTIONS = new Set([...EDITOR_V2_PARAGRAPH_ACTIONS, ...EDITOR_ALIGN_ACTIONS]);
 
 // SPEC E2-B 5.6.  Route C reports `changed: null` and completes with
 // `verified-format-readback`; the v1 validator requires `changed === true` and
