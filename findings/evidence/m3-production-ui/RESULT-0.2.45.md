@@ -46,8 +46,11 @@ C2, median ms, three rounds:
 |---|---|---|---|
 | `boundaries` commit | 11.0, 9.2, **14.3** | 10.4, 9.5, 8.9 | <= 16 |
 | owner document, gap 80, on screen | 17.5, 16.1, 18.2 | 11.6, 11.8, 10.8 | < 70 / < 90 |
+| owner document, gap 80, dpr 2, commit | 18.0, 16.9, 19.6 | 13.6, 13.6, 13.7 | |
 
-**The `boundaries` commit gate decided K6.** Set at 10 on v20, re-set to 16 by the owner on 2026-11-02 before this run, from T1's 8.7-12.3 (spec v29 append 8). Under 10, rounds 1 and 3 on Chrome would read FAIL. 14.3 is 2 ms under the new gate: this is the cell to watch.
+The last row on v28, the same cell at first contact: Chrome 548.7, Firefox 574.1 ms (`k-0.2.44/first-contact/c2/r1/`).
+
+**The `boundaries` commit gate decided K6.** Set at 10 on v20, re-set to 16 by the owner on 2026-11-02 before this run, from T1's 8.7-12.3 (spec v29 append 8). Under 10, three cells would read FAIL: Chrome rounds 1 and 3, and Firefox round 1 at 10.4. 14.3 is 1.7 ms under the new gate: this is the cell to watch.
 
 ## Two exit codes that are not reds
 

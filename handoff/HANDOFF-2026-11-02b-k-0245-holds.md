@@ -25,10 +25,19 @@ Chain 7 h 20 m. Chrome `boundaries` commit 11.0, 9.2, **14.3** ms against the ow
 - The census and the counted-mode dry run each found a hole shakedown cannot reach; keep both as pre-chain steps. Spec section 6 is the list.
 - The chain's `git add` of evidence is not a formality: `repo_static` reads commits, and a failed glob drops a whole `git add` silently (`2>/dev/null`). Add by exact path.
 
+## Corrections after the count
+
+The release text's subagent, reading across, caught two statements of mine. Both corrected in place or by append:
+- "long document 85 ms" (spec v29 append 8, T1's README, told to the owner). 85 is the short `boundaries` document. The long document's cell on v28 is 548.7 / 574.1 ms. Spec v29 append 9.
+- RESULT named only Chrome under the old gate; Firefox round 1's 10.4 is over 10 too.
+
+Release text: `handoff/RELEASE-TEXT-0.2.27-0.2.45.md`. It lists its own 未量 in section 6. The status lines of findings 137, 151, 168, 174 and 176 are stale; the text reads their bodies. Left as they are.
+
 ## Section 34.4
 
 - **Fixed-by-execution: 6.** The five of the previous handoff, plus the evidence `git add`.
 - **Fixed-by-review: 0. Fable rulings: 0.**
+- Wrong statements, corrected: 2 this checkpoint (the 85 ms, the old-gate count).
 
 ## Conventions
 
