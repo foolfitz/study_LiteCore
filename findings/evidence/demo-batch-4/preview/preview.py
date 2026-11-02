@@ -34,6 +34,9 @@ def main():
     assert app.count(gate) == 1
     overrides = {"e2-editor.html": common.inject(z.HTML.read_text(encoding="utf-8"), [z.OBSERVER, WATCH]).encode(),
                  "e2-editor-app.js": app.replace(gate, "Boolean(session?.document)").encode()}
+    # run-02 was red on one cell, a body paragraph reached from another body paragraph: no broadcast, and the arrow key's reply went through
+    # v31's projection, which drops the three fields.  That is delta item 2 of the v32 worker, so the v32 worker goes in here.
+    overrides["profiles/e2-editor-v31/sdk-worker.js"] = (z.PROJECT / "sdk/v32-paragraph-read-worker.js").read_bytes()
     for name in SHELL:
         overrides[f"editor-shell-v2/{name}"] = (z.PROJECT / "editor-shell-v2" / name).read_bytes()
     report = {"runs": []}
