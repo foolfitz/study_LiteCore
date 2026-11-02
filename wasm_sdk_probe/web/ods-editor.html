@@ -47,6 +47,16 @@ button:disabled { opacity:.4; cursor:default; }
 .sheet-tab { padding:7px 17px; border-radius:0; white-space:nowrap; border-bottom:3px solid transparent; font-size:13px; }
 .sheet-tab[aria-selected="true"] { background:#fff; border-bottom-color:var(--accent); color:var(--accent); font-weight:650; }
 .calc-statusbar { display:flex; align-items:center; gap:12px; min-height:30px; padding:4px 13px; border-top:1px solid var(--line); color:var(--muted); font-size:12px; background:#fff; }
+/* The rest of the page's controls, by id for the same reason as the toolbar: the page is light under any Nextcloud theme, and
+   Nextcloud also colours <em> (SPEC-P-demo-batch-2 append 2). */
+#toolbar em { color:inherit; }
+#cell-address,#formula-input { background:#fff; color:var(--ink); }
+.formula-bar #cancel-button,.formula-bar #commit-button { background:transparent; border-color:transparent; }
+.formula-bar #cancel-button { color:var(--ink); }
+.formula-bar #cancel-button:hover:not(:disabled),.formula-bar #commit-button:hover:not(:disabled) { background:#e7efea; }
+#tab-strip .sheet-tab { background:transparent; color:var(--ink); }
+#tab-strip .sheet-tab:hover:not(:disabled) { background:#e7efea; }
+#tab-strip .sheet-tab[aria-selected="true"] { background:#fff; color:var(--accent); }
 #toast { margin-left:auto; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 #toast.error { color:#a52828; }
 #autosave-status.error { color:#a52828; }
