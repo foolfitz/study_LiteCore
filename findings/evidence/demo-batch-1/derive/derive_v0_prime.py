@@ -3,10 +3,12 @@
 list of replacements, each with the count it must match.  python3 -I derive_v0_prime.py"""
 import hashlib
 from pathlib import Path
+import sys
 
 REPO = Path(__file__).resolve().parents[4]
 PARENT = REPO / "findings/evidence/v29-177/v0/run_v0_prime.py"
-CHILD = REPO / "findings/evidence/demo-batch-1/v0/run_v0_prime.py"
+# The directory is an argument: spec append 1 moved the HTML, and a run's outputs refuse to be rewritten.
+CHILD = REPO / "findings/evidence/demo-batch-1" / (sys.argv[1] if len(sys.argv) > 1 else "v0") / "run_v0_prime.py"
 PAGE_83 = "022d0cd0b5152f1ee9cabc74b10f5af2eb55935299228119a419ab717957759b"
 HTML_83 = "ca58f40f30b7ad115dab51b65ff82ce297724f2185c1cd199c0c16f7a32f601a"
 PAGE_84 = hashlib.sha256((REPO / "wasm_sdk_probe/web/e2-editor-app.js").read_bytes()).hexdigest()

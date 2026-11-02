@@ -95,7 +95,6 @@ PLACE = """(() => { const d = document.querySelector('#desk'), p = document.quer
 
 MUTATIONS = {
     "no-side-follow": ("Z4", APP, "      el.desk.scrollLeft += x - (view.left + el.desk.clientWidth / 2);\n", "      ;\n"),
-    "no-gutter": ("Z10", HTML, " scrollbar-gutter: stable;", ""),
     "no-centre": ("Z5", APP, "  el.desk.scrollTop += after.top + fractionY * after.height - middleY;\n", ""),
     "no-flex-none": ("Z6", HTML, "position: relative; flex: none; margin-inline: auto;", "position: relative;"),
     "stretched": ("Z2", APP, "  const backingWidth = Math.min(MAX_BACKING_WIDTH,\n"
@@ -298,6 +297,8 @@ def wide_run(run, raw, steps, out, name):
 def narrow_run(run, raw, steps, out, name):
     s = run.open(raw)
     opened = s["paper"]["width"]
+    # Spec append 1: green here with or without the fix, the mirror's desk already has its vertical scrollbar when this document
+    # opens.  Z10's red is the host's first open (host-0.2.46/host_batch.py); these two only guard the mirror's own path.
     run.check("Z10/fit-has-no-side-scroll", s["desk"]["scrollWidth"] <= s["desk"]["clientWidth"],
               {"desk": s["desk"], "paper": s["paper"]})
     (out / f"{name}-narrow-fit.png").write_bytes(run.session.screenshot())

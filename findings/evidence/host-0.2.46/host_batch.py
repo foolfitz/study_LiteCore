@@ -5,7 +5,7 @@ Opens scratch documents from Files the way a user does, real pointer and wheel, 
 folder.  The Calc arms reuse tools/check_calc_sheet_view.py's Run and Hands, so the same clauses are read on the host.  Writes
 nothing to a document.  Run with host-stack/bin first on PATH, from anywhere.
 
-  python3 -I host_batch.py [--browsers chrome,firefox]
+  python3 -I host_batch.py [--browsers chrome,firefox] [--out DIR]
 """
 import argparse
 import json
@@ -25,13 +25,14 @@ import v21_input as real  # noqa: E402
 from create_calc_sheet_view_fixture import create  # noqa: E402
 
 HOST = Path('/home/jiajun/Projects/Nextcloud_Apps/litecore')
+OUT = None
 FOLDER = 'LiteCore-demo-batch'
 DOCUMENT = ROOT / 'wasm_sdk_probe/test-docs/t3-long.odt'
 ZOOM = """(() => { const q = s => document.querySelector(s), box = b => { const r = b.getBoundingClientRect();
     return {x: r.x + r.width / 2, y: r.y + r.height / 2, w: r.width, h: r.height, disabled: b.disabled,
             visible: getComputedStyle(b).display !== 'none' && r.width > 0}; };
-  const p = q('#paper'), t = q('#toolbar').getBoundingClientRect();
-  return {zoomOut: box(q('#zoom-out')), zoomReset: box(q('#zoom-reset')), zoomIn: box(q('#zoom-in')), label: q('#zoom-reset').textContent,
+  const p = q('#paper'), t = q('#toolbar').getBoundingClientRect(), d = q('#desk');
+  return {deskScrollWidth: d.scrollWidth, deskClientWidth: d.clientWidth, zoomOut: box(q('#zoom-out')), zoomReset: box(q('#zoom-reset')), zoomIn: box(q('#zoom-in')), label: q('#zoom-reset').textContent,
           paper: p.getBoundingClientRect().width, toolbar: [t.x, t.y, t.width, t.height], viewport: [innerWidth, innerHeight]}; })()"""
 
 
@@ -59,7 +60,10 @@ def writer(session, kind, instance, run):
     before = s.evaluate(session, ZOOM)
     check(run, 'Z9/all-three-visible', all(before[k]['visible'] and not before[k]['disabled'] for k in ('zoomOut', 'zoomReset', 'zoomIn'))
           and all(before[k]['x'] + before[k]['w'] / 2 <= before['viewport'][0] for k in ('zoomOut', 'zoomReset', 'zoomIn')), before)
-    (HERE / 'host-batch' / f'{kind}-writer-rest.png').write_bytes(session.screenshot())
+    # Spec append 1: only here, on an empty desk, is the first layout measured before the vertical scrollbar exists.
+    check(run, 'Z10/fit-has-no-side-scroll', before['deskScrollWidth'] <= before['deskClientWidth'],
+          {'scrollWidth': before['deskScrollWidth'], 'clientWidth': before['deskClientWidth'], 'paper': before['paper']})
+    (OUT / f'{kind}-writer-rest.png').write_bytes(session.screenshot())
     real.click(session, kind, before['zoomIn']['x'], before['zoomIn']['y'])
     time.sleep(1.5)
     bigger = s.evaluate(session, ZOOM)
@@ -73,9 +77,9 @@ def writer(session, kind, instance, run):
     real.click(session, kind, smaller['zoomReset']['x'], smaller['zoomReset']['y'])
     time.sleep(1.5)
     reset = s.evaluate(session, ZOOM)
-    check(run, 'Z9/percent-returns-to-fit', abs(reset['paper'] - before['paper']) < 1 and reset['label'] == before['label'],
+    check(run, 'Z10/fit-returns-to-the-width-it-opened-at', abs(reset['paper'] - before['paper']) < 1 and reset['label'] == before['label'],
           {'before': [before['label'], before['paper']], 'after': [reset['label'], reset['paper']]})
-    (HERE / 'host-batch' / f'{kind}-writer-200.png').write_bytes(session.screenshot())
+    (OUT / f'{kind}-writer-after.png').write_bytes(session.screenshot())
     leave(session, instance)
 
 
@@ -92,7 +96,7 @@ def calc(session, kind, instance, run):
     check(run, 'setup/host-editor-cell', left['cell'] and left['cell'][1] > 20, {'first': first, 'left': left})
     page.first_visit(1, 'host-editor/first-visit-sheet2', page.tab(1))
     page.returned(0, 'host-editor/back-to-sheet1', page.tab(0), left)
-    (HERE / 'host-batch' / f'{kind}-calc-back-to-sheet1.png').write_bytes(session.screenshot())
+    (OUT / f'{kind}-calc-back-to-sheet1.png').write_bytes(session.screenshot())
     leave(session, instance)
 
 
@@ -107,7 +111,7 @@ def one(kind, instance, scratch):
     except Exception:  # noqa: BLE001 -- recorded
         run['fatal'] = traceback.format_exc()
         try:
-            (HERE / 'host-batch' / f'{kind}-fatal.png').write_bytes(session.screenshot())
+            (OUT / f'{kind}-fatal.png').write_bytes(session.screenshot())
         except Exception:  # noqa: BLE001
             pass
     finally:
@@ -118,8 +122,11 @@ def one(kind, instance, scratch):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--browsers', default='chrome,firefox')
+    parser.add_argument('--out', type=Path, default=HERE / 'host-batch')
     args = parser.parse_args()
-    (HERE / 'host-batch').mkdir(exist_ok=True)
+    global OUT
+    OUT = args.out.resolve()
+    OUT.mkdir(parents=True, exist_ok=True)
     instance = s.Instance(HOST)
     instance.dav('MKCOL', FOLDER)
     report = {'runs': []}
@@ -134,7 +141,7 @@ def main():
     report['removed'] = instance.dav('DELETE', FOLDER)[0]
     checks = [c for r in report['runs'] for c in r['checks']]
     report['verdict'] = 'HOST_BATCH_HOLDS' if checks and all(c['pass'] for c in checks) and not any(r.get('fatal') for r in report['runs']) else 'HOST_BATCH_RED'
-    (HERE / 'host-batch' / 'report.json').write_text(json.dumps(report, indent=1, ensure_ascii=False) + '\n')
+    (OUT / 'report.json').write_text(json.dumps(report, indent=1, ensure_ascii=False) + '\n')
     for run in report['runs']:
         print(run['browser'], sum(c['pass'] for c in run['checks']), '/', len(run['checks']), [c['id'] for c in run['checks'] if not c['pass']],
               (run.get('fatal') or '').strip().splitlines()[-1:])

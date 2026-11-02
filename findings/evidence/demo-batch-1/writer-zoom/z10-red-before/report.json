@@ -1,0 +1,153 @@
+{
+ "argv": [
+  "tools/check_writer_zoom.py",
+  "--out",
+  "../findings/evidence/demo-batch-1/writer-zoom/z10-red-before",
+  "--browsers",
+  "chrome",
+  "--arms",
+  "narrow"
+ ],
+ "tool": "87f47d21fc90bece35e2876047432bda7e268988979eb62e3ff62b3d597feca8",
+ "document": {
+  "name": "t3-long.odt",
+  "sha256": "858d7a0424a1c69a025fc49ff4ff079263af55f3532d573bbe5c6f92e3108e02"
+ },
+ "steps": [
+  50,
+  75,
+  100,
+  125,
+  150,
+  200
+ ],
+ "sources": {
+  "e2-editor-app.js": "c377b9f2a41b1d6223ec67ac8d53fdd2d1920086af2e0f5759aa4118d084edaf",
+  "e2-editor.html": "7d0c1780fbb9d8e8ffe3b84d4c79cbfa94e226a6a122bf8e88a05bf9e3bdc7fb"
+ },
+ "mutation": null,
+ "runs": [
+  {
+   "browser": "chrome",
+   "arm": "narrow",
+   "base": "http://127.0.0.1:46091/e2-editor.html",
+   "checks": [
+    {
+     "id": "Z10/fit-has-no-side-scroll",
+     "pass": true,
+     "actual": {
+      "desk": {
+       "left": 0,
+       "top": 281.390625,
+       "clientWidth": 885,
+       "clientHeight": 463,
+       "scrollLeft": 0,
+       "scrollTop": 0,
+       "scrollWidth": 885,
+       "scrollHeight": 25576
+      },
+      "paper": {
+       "left": 20,
+       "top": 301.390625,
+       "width": 845,
+       "height": 25536,
+       "styleWidth": "845px"
+      }
+     }
+    },
+    {
+     "id": "Z10/fit-returns-to-the-width-it-opened-at",
+     "pass": true,
+     "actual": {
+      "opened": 845,
+      "returned": 845,
+      "label": "102%"
+     }
+    },
+    {
+     "id": "Z6/left-edge-reachable",
+     "pass": true,
+     "actual": {
+      "paper": {
+       "left": 20,
+       "top": 98.390625,
+       "width": 1663,
+       "height": 50256,
+       "styleWidth": "1663px"
+      },
+      "desk": {
+       "left": 0,
+       "top": 281.390625,
+       "clientWidth": 885,
+       "clientHeight": 448,
+       "scrollLeft": 0,
+       "scrollTop": 203,
+       "scrollWidth": 1703,
+       "scrollHeight": 50296
+      },
+      "expected": 1663
+     }
+    },
+    {
+     "id": "Z4/end",
+     "pass": true,
+     "actual": {
+      "caretX": 535.3063171396507,
+      "deskLeft": 0,
+      "deskWidth": 885,
+      "scrollLeft": 818,
+      "caret": {
+       "x": 10001,
+       "y": 2997,
+       "width": 0,
+       "height": 304
+      }
+     }
+    },
+    {
+     "id": "Z4/typed",
+     "pass": true,
+     "actual": {
+      "caretX": 225.04200737534072,
+      "deskLeft": 0,
+      "deskWidth": 885,
+      "scrollLeft": 0,
+      "caret": {
+       "x": 1538,
+       "y": 3366,
+       "width": 0,
+       "height": 276
+      }
+     }
+    },
+    {
+     "id": "Z4/home",
+     "pass": true,
+     "actual": {
+      "caretX": 209.0439313772647,
+      "deskLeft": 0,
+      "deskWidth": 885,
+      "scrollLeft": 0,
+      "caret": {
+       "x": 1418,
+       "y": 3366,
+       "width": 0,
+       "height": 276
+      }
+     }
+    }
+   ],
+   "version": "Chrome/156.0.8078.47",
+   "cleanup": {}
+  }
+ ],
+ "preRun": {
+  "refuse": [],
+  "loadavg": [
+   "0.16",
+   "0.72",
+   "0.68"
+  ]
+ },
+ "verdict": "Z_HOLDS"
+}
