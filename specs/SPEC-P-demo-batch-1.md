@@ -98,8 +98,21 @@ C1–C3 同時跑編輯頁與檢視頁，C4、C5 只跑編輯頁。
 - **L-zoom-browser-keys**：Ctrl＋滾輪與 Ctrl＋± 仍是瀏覽器縮放，不攔截。
 - **L-zoom-fractional-fit**：符合寬度的百分比不是整數級，第一下 `+`、`−` 走到相鄰整數級，步幅不等。
 
+## 6. 追加 1（2026-11-02）：Z10，窄視窗的符合寬度
+
+**逼出它的量測**：0.2.46 上 `host_batch.py` 的 `Z9/percent-returns-to-fit`，Chrome 780 px 視窗，開檔 89%（740 px），按回符合寬度變 87%（725 px）。截圖多一條 0.2.45 沒有的橫向捲軸（`host-0.2.45/first-look/chrome-rest.png` 對 `host-0.2.46/host-batch/chrome-writer-rest.png`）。**這是本批引入的退化**：`layoutCanvas` 開檔時量到的 `clientWidth` 還沒有垂直捲軸，之前 flex 把多出的 15 px 壓掉，§3 加的 `flex: none` 讓它浮出來。寬視窗有 900 px 上限，所以鏡像的 Z0–Z8 量不到。
+
+**判準 Z10**（形式一，真瀏覽器、窄視窗）：符合寬度下桌面沒有橫向捲動（`scrollWidth`≦`clientWidth`），而且放大再按回符合寬度，`#paper` 寬等於開檔時的寬度。第一次乾淨的執行之後封閉，不影響 Z0–Z9 的計數。
+
+**處置**：`.desk` 加 `scrollbar-gutter: stable`，從第一次量測起就扣掉捲軸寬度。只改 `web/e2-editor.html`，第 84 代的 digest 不動。HTML 被四臂綁定，所以 F4、F3、V0′ 在新 HTML 上重跑；Z 全部重跑，加一個 `no-gutter` 突變，要紅在 Z10。
+
+**版本**：0.2.46 已經安裝，版本就是身分，不覆寫。修正出 0.2.47，對 0.2.46 只差 `e2-editor.html`。0.2.46 不當候選。
+
+**具名限制**：**L-fit-width-gutter**：垂直捲軸不需要時也保留捲軸寬度，短文件在視窗裡偏左約 7 px。
+
 ## 修訂紀錄
 
 | 日期 | 內容 |
 |---|---|
 | 2026-11-02 | 初版，實作前釘死。 |
+| 2026-11-02 | 追加 1：Z10，0.2.46 的宿主檢查抓到本批引入的窄視窗退化。 |

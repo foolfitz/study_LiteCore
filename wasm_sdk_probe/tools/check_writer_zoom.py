@@ -95,6 +95,7 @@ PLACE = """(() => { const d = document.querySelector('#desk'), p = document.quer
 
 MUTATIONS = {
     "no-side-follow": ("Z4", APP, "      el.desk.scrollLeft += x - (view.left + el.desk.clientWidth / 2);\n", "      ;\n"),
+    "no-gutter": ("Z10", HTML, " scrollbar-gutter: stable;", ""),
     "no-centre": ("Z5", APP, "  el.desk.scrollTop += after.top + fractionY * after.height - middleY;\n", ""),
     "no-flex-none": ("Z6", HTML, "position: relative; flex: none; margin-inline: auto;", "position: relative;"),
     "stretched": ("Z2", APP, "  const backingWidth = Math.min(MAX_BACKING_WIDTH,\n"
@@ -296,6 +297,14 @@ def wide_run(run, raw, steps, out, name):
 
 def narrow_run(run, raw, steps, out, name):
     s = run.open(raw)
+    opened = s["paper"]["width"]
+    run.check("Z10/fit-has-no-side-scroll", s["desk"]["scrollWidth"] <= s["desk"]["clientWidth"],
+              {"desk": s["desk"], "paper": s["paper"]})
+    (out / f"{name}-narrow-fit.png").write_bytes(run.session.screenshot())
+    run.go_to(steps[-1])
+    s = run.go_to(None)
+    run.check("Z10/fit-returns-to-the-width-it-opened-at", abs(s["paper"]["width"] - opened) < 1,
+              {"opened": opened, "returned": s["paper"]["width"], "label": s["label"]})
     run.go_to(steps[-1])
     s = run.settled()
     evaluate(run.session, "(() => { document.querySelector('#desk').scrollLeft = 0; return true; })()")
@@ -374,6 +383,7 @@ def main() -> int:
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--browsers", default="chrome,firefox")
     parser.add_argument("--mutation", choices=sorted(MUTATIONS))
+    parser.add_argument("--arms", help="only these arms, comma separated; a partial run is a diagnostic, never a verdict")
     args = parser.parse_args()
     out = args.out.resolve()
     out.mkdir(parents=True, exist_ok=False)
@@ -391,6 +401,8 @@ def main() -> int:
         sources[path.name] = sources[path.name].replace(old, new)
     else:
         arms += [("dpr2", {"dpr": 2}), ("cost-fit", {"percent": None}), ("cost-200", {"percent": 200})]
+    if args.arms:
+        arms = [a for a in arms if a[0] in args.arms.split(",")]
     scratch = Path(tempfile.mkdtemp(prefix="writer-zoom-", dir=PROJECT / "build"))
     try:
         with common.browser_lock("check_writer_zoom"):
