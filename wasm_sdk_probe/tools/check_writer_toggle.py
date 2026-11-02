@@ -8,7 +8,8 @@ reads the paragraph's tag, heading level, list membership and text.  Every check
   T2  each level: body -> Hn -> body; Hn -> Hm; 內文 from a heading.
   T3  what the document already holds comes off, and a bullet item takes numbering.
   T4  the caret stays (finding 180): place, press, type q, the q is where it was placed.  Paragraph start, middle, end, wrapped lines,
-      an empty paragraph, the last empty paragraph, a list item, a heading.
+      an empty paragraph, the last empty paragraph, a list item, a heading.  Each place has a control with nothing pressed, so a wrong
+      expectation reads red on the control and not on the product (P4 run-01).
   T5  a one-paragraph blank document: both lists and H2 on and off, no notice, the status line never says 失敗.
   T6  ranges: a selection inside a paragraph styles the paragraph and builds no frame; a range from inside a paragraph across two reaches both.
   T7  refusals: numbering on a heading, a selection across a table, more paragraphs than the read will walk: a sentence, the whole document
@@ -198,9 +199,17 @@ def t4(page, raw, caret_raw):
                 p.key("ArrowRight")
         return place
     places = {"body-start": (BODY2, on(BODY2, 0), "qBRAVO plain paragraph two"), "body-middle": (BODY2, on(BODY2, 2), "BRqAVO plain paragraph two"),
-              "bullet-middle": (ITEM, on(ITEM, 2), "GOqLF bullet item"), "heading-middle": (H1, on(H1, 3), "CHAqRLIE heading one"),
+              "bullet-middle": (ITEM, on(ITEM, 2), "GqOLF bullet item"), "heading-middle": (H1, on(H1, 3), "CHAqRLIE heading one"),
               "number-start": (NUMBERED, on(NUMBERED, 0), "qINDIA numbered item")}
     for place_name, (paragraph, place, want) in places.items():
+        # bullet-middle is offset 1: Home on a list item stops in front of the label and the first ArrowRight only clears that (crsrsh.cxx:342).
+        fresh(page, raw)
+        place(page)
+        page.quiet()
+        page.key("q")
+        page.quiet()
+        got = rows_of(page)[paragraph]["text"]
+        page.check(f"T4/{place_name}/control", got == want, got)
         for name, press in presses.items():
             if name == "number" and place_name == "heading-middle":
                 continue  # T7: refused
@@ -222,21 +231,26 @@ def t4(page, raw, caret_raw):
             page.quiet()
             got = rows_of(page)[paragraph]["text"]
             page.check(f"T4/{place_name}/{name}", got == "q", got)
-    for name, press in presses.items():
-        fresh(page, caret_raw)
-        page.key("Home", ("ctrl",))
+    def on_wrapped(p, press):
+        """End stops at the visual line's end, so the place is inside the paragraph; where exactly is what the control measures."""
+        fresh(p, caret_raw)
+        p.key("Home", ("ctrl",))
         for _ in range(4):
-            page.key("ArrowDown")
-        page.key("End")
-        page.key("ArrowLeft")
-        before = evaluate(page.session, "window.__z.caret")
-        press(page)
-        page.quiet()
-        page.key("q")
-        page.quiet()
-        rows = rows_of(page)
-        wrapped = next(r for r in rows if r["text"].startswith("HOTEL"))["text"]
-        page.check(f"T4/wrapped-line/{name}", len(wrapped) > 2 and wrapped[-2] == "q", {"caret": before, "tail": wrapped[-40:]})
+            p.key("ArrowDown")
+        p.key("End")
+        p.key("ArrowLeft")
+        before = evaluate(p.session, "window.__z.caret")
+        press(p)
+        p.quiet()
+        p.key("q")
+        p.quiet()
+        return before, next(r for r in rows_of(p) if r["text"].startswith("HOTEL"))["text"]
+    before, control = on_wrapped(page, lambda p: None)
+    page.check("T4/wrapped-line/control", control.count("q") == 1 and 0 < control.index("q") < len(control) - 1,
+               {"caret": before, "at": control.find("q"), "length": len(control)})
+    for name, press in presses.items():
+        before, wrapped = on_wrapped(page, press)
+        page.check(f"T4/wrapped-line/{name}", wrapped == control, {"caret": before, "at": wrapped.find("q"), "want": control.find("q")})
 
 
 def t5(page, blank):
@@ -495,7 +509,7 @@ def main() -> int:
     out = args.out.resolve()
     out.mkdir(parents=True, exist_ok=False)
     raws = {"levels": LEVELS.read_bytes(), "blank": BLANK.read_bytes(), "table": TABLE.read_bytes(), "caret": CARET.read_bytes(),
-            "long": (EVIDENCE / "long-fixture.odt").read_bytes(), "image": (EVIDENCE / "image-fixture.odt").read_bytes()}
+            "long": (EVIDENCE / "long-fixture.odt").read_bytes(), "image": (EVIDENCE / "image-valid-fixture.odt").read_bytes()}
     only = set(filter(None, args.only.split(",")))
     page = z.APP.read_text(encoding="utf-8")
     if args.profile:
