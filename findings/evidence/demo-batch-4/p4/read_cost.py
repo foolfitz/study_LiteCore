@@ -75,6 +75,7 @@ def main():
                             timed(page, "all-bullet", lambda: page.press(BULLET), rows)
                             timed(page, "all-bullet-off", lambda: page.press(BULLET), rows)
                             timed(page, "all-h2", lambda: page.level("toggle-heading-2"), rows)
+                            page.save()  # the page's beforeunload holds a navigation on an unsaved document
                             result.append({"browser": browser, "paragraphs": n, "rows": rows})
                     finally:
                         common.close_browser(session)

@@ -1,0 +1,210 @@
+{
+ "argv": [
+  "tools/check_writer_toggle.py",
+  "--profile",
+  "e2-editor-v32",
+  "--mutate",
+  "no-second-press",
+  "--only",
+  "T1",
+  "--out",
+  "../findings/evidence/demo-batch-4/p4/red-no-second-press"
+ ],
+ "mutate": "no-second-press",
+ "tool": "0ace31c93a527cc6e5a89aa4478b815309c5b280d97e3681aff5b32c7ea3b8a2",
+ "profile": "e2-editor-v32",
+ "page": "f6fd0b75dbf26a09d1ea0dcc97543cab8ef703a7e9c6eef4841953cff92caa26",
+ "runs": [
+  {
+   "browser": "chrome",
+   "base": "http://127.0.0.1:51893/e2-editor.html",
+   "checks": [
+    {
+     "id": "setup/fixture-reads-as-written",
+     "pass": true,
+     "actual": [
+      {
+       "text": "ALPHA plain paragraph one",
+       "level": 0,
+       "list": false,
+       "kind": null,
+       "style": "Text_20_body"
+      },
+      {
+       "text": "BRAVO plain paragraph two",
+       "level": 0,
+       "list": false,
+       "kind": null,
+       "style": "Text_20_body"
+      },
+      {
+       "text": "CHARLIE heading one",
+       "level": 1,
+       "list": false,
+       "kind": null,
+       "style": "Heading_20_1"
+      },
+      {
+       "text": "DELTA heading two",
+       "level": 2,
+       "list": false,
+       "kind": null,
+       "style": "Heading_20_2"
+      },
+      {
+       "text": "ECHO heading three",
+       "level": 3,
+       "list": false,
+       "kind": null,
+       "style": "Heading_20_3"
+      },
+      {
+       "text": "FOXTROT heading four",
+       "level": 4,
+       "list": false,
+       "kind": null,
+       "style": "Heading_20_4"
+      },
+      {
+       "text": "GOLF bullet item",
+       "level": 0,
+       "list": true,
+       "kind": "ul",
+       "style": "P1"
+      }
+     ]
+    },
+    {
+     "id": "T1/bullet/on-off-on",
+     "pass": false,
+     "actual": [
+      "ul",
+      "ul",
+      null
+     ]
+    },
+    {
+     "id": "T1/bullet/no-red-toast",
+     "pass": true,
+     "actual": null
+    },
+    {
+     "id": "T1/number/on-off-on",
+     "pass": false,
+     "actual": [
+      "ol",
+      "ol",
+      null
+     ]
+    },
+    {
+     "id": "T1/number/no-red-toast",
+     "pass": true,
+     "actual": null
+    }
+   ],
+   "version": "Chrome/156.0.8078.47",
+   "cleanup": {}
+  },
+  {
+   "browser": "firefox",
+   "base": "http://127.0.0.1:51893/e2-editor.html",
+   "checks": [
+    {
+     "id": "setup/fixture-reads-as-written",
+     "pass": true,
+     "actual": [
+      {
+       "text": "ALPHA plain paragraph one",
+       "level": 0,
+       "list": false,
+       "kind": null,
+       "style": "Text_20_body"
+      },
+      {
+       "text": "BRAVO plain paragraph two",
+       "level": 0,
+       "list": false,
+       "kind": null,
+       "style": "Text_20_body"
+      },
+      {
+       "text": "CHARLIE heading one",
+       "level": 1,
+       "list": false,
+       "kind": null,
+       "style": "Heading_20_1"
+      },
+      {
+       "text": "DELTA heading two",
+       "level": 2,
+       "list": false,
+       "kind": null,
+       "style": "Heading_20_2"
+      },
+      {
+       "text": "ECHO heading three",
+       "level": 3,
+       "list": false,
+       "kind": null,
+       "style": "Heading_20_3"
+      },
+      {
+       "text": "FOXTROT heading four",
+       "level": 4,
+       "list": false,
+       "kind": null,
+       "style": "Heading_20_4"
+      },
+      {
+       "text": "GOLF bullet item",
+       "level": 0,
+       "list": true,
+       "kind": "ul",
+       "style": "P1"
+      }
+     ]
+    },
+    {
+     "id": "T1/bullet/on-off-on",
+     "pass": false,
+     "actual": [
+      "ul",
+      "ul",
+      null
+     ]
+    },
+    {
+     "id": "T1/bullet/no-red-toast",
+     "pass": true,
+     "actual": null
+    },
+    {
+     "id": "T1/number/on-off-on",
+     "pass": false,
+     "actual": [
+      "ol",
+      "ol",
+      null
+     ]
+    },
+    {
+     "id": "T1/number/no-red-toast",
+     "pass": true,
+     "actual": null
+    }
+   ],
+   "version": "157.0.1",
+   "cleanup": {}
+  }
+ ],
+ "preRun": {
+  "refuse": [],
+  "loadavg": [
+   "0.87",
+   "1.09",
+   "1.15"
+  ]
+ },
+ "verdict": "P4_RED"
+}

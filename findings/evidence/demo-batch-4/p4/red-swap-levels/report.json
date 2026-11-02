@@ -1,0 +1,208 @@
+{
+ "argv": [
+  "tools/check_writer_toggle.py",
+  "--profile",
+  "e2-editor-v32",
+  "--mutate",
+  "swap-levels",
+  "--only",
+  "T2",
+  "--out",
+  "../findings/evidence/demo-batch-4/p4/red-swap-levels"
+ ],
+ "mutate": "swap-levels",
+ "tool": "0ace31c93a527cc6e5a89aa4478b815309c5b280d97e3681aff5b32c7ea3b8a2",
+ "profile": "e2-editor-v32",
+ "page": "f6fd0b75dbf26a09d1ea0dcc97543cab8ef703a7e9c6eef4841953cff92caa26",
+ "runs": [
+  {
+   "browser": "chrome",
+   "base": "http://127.0.0.1:36373/e2-editor.html",
+   "checks": [
+    {
+     "id": "setup/fixture-reads-as-written",
+     "pass": true,
+     "actual": [
+      {
+       "text": "ALPHA plain paragraph one",
+       "level": 0,
+       "list": false,
+       "kind": null,
+       "style": "Text_20_body"
+      },
+      {
+       "text": "BRAVO plain paragraph two",
+       "level": 0,
+       "list": false,
+       "kind": null,
+       "style": "Text_20_body"
+      },
+      {
+       "text": "CHARLIE heading one",
+       "level": 1,
+       "list": false,
+       "kind": null,
+       "style": "Heading_20_1"
+      },
+      {
+       "text": "DELTA heading two",
+       "level": 2,
+       "list": false,
+       "kind": null,
+       "style": "Heading_20_2"
+      },
+      {
+       "text": "ECHO heading three",
+       "level": 3,
+       "list": false,
+       "kind": null,
+       "style": "Heading_20_3"
+      },
+      {
+       "text": "FOXTROT heading four",
+       "level": 4,
+       "list": false,
+       "kind": null,
+       "style": "Heading_20_4"
+      },
+      {
+       "text": "GOLF bullet item",
+       "level": 0,
+       "list": true,
+       "kind": "ul",
+       "style": "P1"
+      }
+     ]
+    },
+    {
+     "id": "T2/h1/on",
+     "pass": true,
+     "actual": {
+      "text": "BRAVO plain paragraph two",
+      "level": 1,
+      "list": false,
+      "kind": null,
+      "style": "Heading_20_1"
+     }
+    },
+    {
+     "id": "T2/h1/same-level-goes-back-to-body",
+     "pass": true,
+     "actual": {
+      "text": "BRAVO plain paragraph two",
+      "level": 0,
+      "list": false,
+      "kind": null,
+      "style": "Text_20_body"
+     }
+    },
+    {
+     "id": "T2/fatal",
+     "pass": false,
+     "actual": "^^\n  File \"/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/check_writer_toggle.py\", line 134, in rows_of\n    return shape(page.save())\n                 ~~~~~~~~~^^\n  File \"/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/check_writer_align.py\", line 86, in save\n    return base64.b64decode(evaluate(self.session, z.BLOB))\n           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.14/base64.py\", line 80, in b64decode\n    s = _bytes_from_decode_data(s)\n  File \"/usr/lib/python3.14/base64.py\", line 42, in _bytes_from_decode_data\n    raise TypeError(\"argument should be a bytes-like object or ASCII \"\n                    \"string, not %r\" % s.__class__.__name__) from None\nTypeError: argument should be a bytes-like object or ASCII string, not 'dict'\n"
+    }
+   ],
+   "version": "Chrome/156.0.8078.47",
+   "cleanup": {}
+  },
+  {
+   "browser": "firefox",
+   "base": "http://127.0.0.1:36373/e2-editor.html",
+   "checks": [
+    {
+     "id": "setup/fixture-reads-as-written",
+     "pass": true,
+     "actual": [
+      {
+       "text": "ALPHA plain paragraph one",
+       "level": 0,
+       "list": false,
+       "kind": null,
+       "style": "Text_20_body"
+      },
+      {
+       "text": "BRAVO plain paragraph two",
+       "level": 0,
+       "list": false,
+       "kind": null,
+       "style": "Text_20_body"
+      },
+      {
+       "text": "CHARLIE heading one",
+       "level": 1,
+       "list": false,
+       "kind": null,
+       "style": "Heading_20_1"
+      },
+      {
+       "text": "DELTA heading two",
+       "level": 2,
+       "list": false,
+       "kind": null,
+       "style": "Heading_20_2"
+      },
+      {
+       "text": "ECHO heading three",
+       "level": 3,
+       "list": false,
+       "kind": null,
+       "style": "Heading_20_3"
+      },
+      {
+       "text": "FOXTROT heading four",
+       "level": 4,
+       "list": false,
+       "kind": null,
+       "style": "Heading_20_4"
+      },
+      {
+       "text": "GOLF bullet item",
+       "level": 0,
+       "list": true,
+       "kind": "ul",
+       "style": "P1"
+      }
+     ]
+    },
+    {
+     "id": "T2/h1/on",
+     "pass": true,
+     "actual": {
+      "text": "BRAVO plain paragraph two",
+      "level": 1,
+      "list": false,
+      "kind": null,
+      "style": "Heading_20_1"
+     }
+    },
+    {
+     "id": "T2/h1/same-level-goes-back-to-body",
+     "pass": true,
+     "actual": {
+      "text": "BRAVO plain paragraph two",
+      "level": 0,
+      "list": false,
+      "kind": null,
+      "style": "Text_20_body"
+     }
+    },
+    {
+     "id": "T2/fatal",
+     "pass": false,
+     "actual": "^\n  File \"/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/run_browser_probe.py\", line 158, in request\n    return http_json(method, self.base_url + path, payload, timeout)\n  File \"/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/run_browser_probe.py\", line 47, in http_json\n    raise RuntimeError(\n        f\"HTTP {error.code} for {method} {url}: {raw.decode(errors='replace')}\"\n    ) from error\nRuntimeError: HTTP 500 for POST http://127.0.0.1:56607/session/a9e3dd2d-6c6e-4ab2-8ce0-d658152ca5c1/execute/sync: {\"value\":{\"error\":\"javascript error\",\"message\":\"TypeError: can't access property \\\"arrayBuffer\\\", b is undefined\",\"stacktrace\":\"@http://127.0.0.1:36373/e2-editor.html:2:89\\n@http://127.0.0.1:36373/e2-editor.html:3:128\\n@http://127.0.0.1:36373/e2-editor.html:4:8\\n\"}}\n"
+    }
+   ],
+   "version": "157.0.1",
+   "cleanup": {}
+  }
+ ],
+ "preRun": {
+  "refuse": [],
+  "loadavg": [
+   "1.65",
+   "1.65",
+   "1.32"
+  ]
+ },
+ "verdict": "P4_RED"
+}

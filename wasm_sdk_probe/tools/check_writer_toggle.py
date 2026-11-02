@@ -56,11 +56,17 @@ BULLET, NUMBER = '[data-action="toggle-list-unordered"]', '[data-action="toggle-
 # paragraph index on the levels fixture, as arrow-downs from the start
 BODY, BODY2, H1, H2, H3, H4, ITEM, ITEM2, NUMBERED, JULIET, EMPTY_MID, KILO, EMPTY_LAST = range(13)
 WATCH_ACTIONS = """<script>
-(() => { const Native = window.Worker, other = {'toggle-heading-2': 'toggle-heading-3', 'toggle-heading-3': 'toggle-heading-2'};
+(() => { const Native = window.Worker, other = {'toggle-heading-2': 'toggle-heading-3', 'toggle-heading-3': 'toggle-heading-2'}, asked = new Map();
   window.Worker = class extends Native {
     postMessage(m, ...rest) {
-      if (m?.kind === 'request' && m.operation === 'editorActionV2' && other[m.payload.action]) m.payload.action = other[m.payload.action];
-      return super.postMessage(m, ...rest); } };
+      if (m?.kind === 'request' && m.operation === 'editorActionV2' && other[m.payload.action]) {
+        asked.set(m.requestId, m.payload.action);
+        m.payload.action = other[m.payload.action]; }
+      return super.postMessage(m, ...rest); }
+    addEventListener(type, listener, ...rest) {  // the reply says the asked action, or the client's own check stops the run before the file is read
+      if (type !== 'message') return super.addEventListener(type, listener, ...rest);
+      return super.addEventListener(type, ev => { const action = asked.get(ev.data?.requestId);
+        listener(action && ev.data.result ? new MessageEvent('message', {data: {...ev.data, result: {...ev.data.result, action}}}) : ev); }, ...rest); } };
 })();
 </script>"""
 TOOLBAR = """(() => { const q = s => document.querySelector(s), b = q('#heading-menu-button'), m = q('#heading-menu');

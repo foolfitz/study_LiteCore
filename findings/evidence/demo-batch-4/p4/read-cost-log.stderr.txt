@@ -1,0 +1,30 @@
+Traceback (most recent call last):
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/../findings/evidence/demo-batch-4/p4/read_cost.py", line 86, in <module>
+    main()
+    ~~~~^^
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/../findings/evidence/demo-batch-4/p4/read_cost.py", line 71, in main
+    t.fresh(page, cut(n))
+    ~~~~~~~^^^^^^^^^^^^^^
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/check_writer_toggle.py", line 130, in fresh
+    a.fresh(page, raw)
+    ~~~~~~~^^^^^^^^^^^
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/check_writer_align.py", line 104, in fresh
+    page.open(raw)
+    ~~~~~~~~~^^^^^
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/check_writer_zoom.py", line 170, in open
+    navigate(self.session, self.record["base"])
+    ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/run_e2_c_page_smoke.py", line 149, in navigate
+    session.call("Page.navigate", {"url": url})
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/run_browser_probe.py", line 293, in call
+    response = json.loads(self.websocket.recv(timeout=timeout))
+                          ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/websockets/sync/connection.py", line 317, in recv
+    return self.recv_messages.get(timeout, decode)
+           ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/websockets/sync/messages.py", line 169, in get
+    frame = self.get_next_frame(deadline.timeout(raise_if_elapsed=False))
+  File "/usr/lib/python3/dist-packages/websockets/sync/messages.py", line 89, in get_next_frame
+    raise TimeoutError(f"timed out in {timeout:.1f}s") from None
+TimeoutError: timed out in 180.0s

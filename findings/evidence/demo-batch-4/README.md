@@ -1,6 +1,6 @@
 # Demo batch 4 (SPEC-P-demo-batch-4)
 
-H1 to H4 in a menu, heading and list on one button each way, finding 180. One link: `e2-editor-v32`. State at the end of this session: everything up to the link is done; the link has not been run.
+H1 to H4 in a menu, heading and list on one button each way, finding 180. One link: `e2-editor-v32`. The owner linked it on 2026-11-03; `link/`. Reads after the link are in the last section.
 
 ## Measured before the design was pinned
 
@@ -32,3 +32,13 @@ H1 to H4 in a menu, heading and list on one button each way, finding 180. One li
 | Review, `review/` | Codex read-only, 15 points. Spec section 7 has the outcome of each. Fixed: the read's limit, three post-dispatch shapes to review, focus after a keyboard press, the menu on an unavailable session, seven acceptance cells |
 
 Not run, because they need the link: `tools/check_writer_toggle.py` (P4), `tools/check_writer_align.py` against v32 (P1'), the generation 87 chain, the host.
+
+## After the link
+
+| Read | Result |
+|---|---|
+| `p4/run-01` | 106/117 on both browsers, the witness. Ten T4 cells were the tool's expectation; T12 was the fixture's PNG. `p4/diag-t12/` separates them; finding 183 |
+| `p4/run-02` | `P4_HOLDS`, 126/126 on both browsers, with a control with nothing pressed at every T4 place |
+| Red cases | `red-no-undo`, `red-no-second-press` read `P4_RED`. `red-swap-levels` read `P4_RED` on a fatal: the client's own check on the reply stopped the run, so it showed nothing about the reader. `red-swap-levels-02` puts the reply back and is red on exactly `T2/h2/on` and `T2/h3/on`, reading the swapped levels in the file |
+| `p1/run-01` | `P1_HOLDS`, 108/108 on both browsers |
+| `p4/read-cost-02` | The Wasm factor the runbook asked for, the page's own label. A press at a caret: 10 to 24 ms at 100, 250 and 500 paragraphs. All selected at 500: bullet on 257 and 366 ms, heading 273 and 380 ms, bullet off 1.33 and 1.41 s, Chrome and Firefox. `read-cost/` is the tool's failure: an unsaved page's `beforeunload` held the navigation |

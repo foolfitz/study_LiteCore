@@ -1,0 +1,384 @@
+{
+ "argv": [
+  "tools/check_writer_toggle.py",
+  "--profile",
+  "e2-editor-v32",
+  "--mutate",
+  "swap-levels",
+  "--only",
+  "T2",
+  "--out",
+  "../findings/evidence/demo-batch-4/p4/red-swap-levels-02"
+ ],
+ "mutate": "swap-levels",
+ "tool": "6f228694a9e3db18dc057e328056f933eaf2ba051610fb500acb0c8d79691031",
+ "profile": "e2-editor-v32",
+ "page": "f6fd0b75dbf26a09d1ea0dcc97543cab8ef703a7e9c6eef4841953cff92caa26",
+ "runs": [
+  {
+   "browser": "chrome",
+   "base": "http://127.0.0.1:45961/e2-editor.html",
+   "checks": [
+    {
+     "id": "setup/fixture-reads-as-written",
+     "pass": true,
+     "actual": [
+      {
+       "text": "ALPHA plain paragraph one",
+       "level": 0,
+       "list": false,
+       "kind": null,
+       "style": "Text_20_body"
+      },
+      {
+       "text": "BRAVO plain paragraph two",
+       "level": 0,
+       "list": false,
+       "kind": null,
+       "style": "Text_20_body"
+      },
+      {
+       "text": "CHARLIE heading one",
+       "level": 1,
+       "list": false,
+       "kind": null,
+       "style": "Heading_20_1"
+      },
+      {
+       "text": "DELTA heading two",
+       "level": 2,
+       "list": false,
+       "kind": null,
+       "style": "Heading_20_2"
+      },
+      {
+       "text": "ECHO heading three",
+       "level": 3,
+       "list": false,
+       "kind": null,
+       "style": "Heading_20_3"
+      },
+      {
+       "text": "FOXTROT heading four",
+       "level": 4,
+       "list": false,
+       "kind": null,
+       "style": "Heading_20_4"
+      },
+      {
+       "text": "GOLF bullet item",
+       "level": 0,
+       "list": true,
+       "kind": "ul",
+       "style": "P1"
+      }
+     ]
+    },
+    {
+     "id": "T2/h1/on",
+     "pass": true,
+     "actual": {
+      "text": "BRAVO plain paragraph two",
+      "level": 1,
+      "list": false,
+      "kind": null,
+      "style": "Heading_20_1"
+     }
+    },
+    {
+     "id": "T2/h1/same-level-goes-back-to-body",
+     "pass": true,
+     "actual": {
+      "text": "BRAVO plain paragraph two",
+      "level": 0,
+      "list": false,
+      "kind": null,
+      "style": "Text_20_body"
+     }
+    },
+    {
+     "id": "T2/h2/on",
+     "pass": false,
+     "actual": {
+      "text": "BRAVO plain paragraph two",
+      "level": 3,
+      "list": false,
+      "kind": null,
+      "style": "Heading_20_3"
+     }
+    },
+    {
+     "id": "T2/h2/same-level-goes-back-to-body",
+     "pass": true,
+     "actual": {
+      "text": "BRAVO plain paragraph two",
+      "level": 0,
+      "list": false,
+      "kind": null,
+      "style": "Text_20_body"
+     }
+    },
+    {
+     "id": "T2/h3/on",
+     "pass": false,
+     "actual": {
+      "text": "BRAVO plain paragraph two",
+      "level": 2,
+      "list": false,
+      "kind": null,
+      "style": "Heading_20_2"
+     }
+    },
+    {
+     "id": "T2/h3/same-level-goes-back-to-body",
+     "pass": true,
+     "actual": {
+      "text": "BRAVO plain paragraph two",
+      "level": 0,
+      "list": false,
+      "kind": null,
+      "style": "Text_20_body"
+     }
+    },
+    {
+     "id": "T2/h4/on",
+     "pass": true,
+     "actual": {
+      "text": "BRAVO plain paragraph two",
+      "level": 4,
+      "list": false,
+      "kind": null,
+      "style": "Heading_20_4"
+     }
+    },
+    {
+     "id": "T2/h4/same-level-goes-back-to-body",
+     "pass": true,
+     "actual": {
+      "text": "BRAVO plain paragraph two",
+      "level": 0,
+      "list": false,
+      "kind": null,
+      "style": "Text_20_body"
+     }
+    },
+    {
+     "id": "T2/level-to-level",
+     "pass": true,
+     "actual": {
+      "text": "BRAVO plain paragraph two",
+      "level": 4,
+      "list": false,
+      "kind": null,
+      "style": "Heading_20_4"
+     }
+    },
+    {
+     "id": "T2/body-item",
+     "pass": true,
+     "actual": {
+      "text": "BRAVO plain paragraph two",
+      "level": 0,
+      "list": false,
+      "kind": null,
+      "style": "Text_20_body"
+     }
+    },
+    {
+     "id": "T2/no-red-toast",
+     "pass": true,
+     "actual": null
+    }
+   ],
+   "version": "Chrome/156.0.8078.47",
+   "cleanup": {}
+  },
+  {
+   "browser": "firefox",
+   "base": "http://127.0.0.1:45961/e2-editor.html",
+   "checks": [
+    {
+     "id": "setup/fixture-reads-as-written",
+     "pass": true,
+     "actual": [
+      {
+       "text": "ALPHA plain paragraph one",
+       "level": 0,
+       "list": false,
+       "kind": null,
+       "style": "Text_20_body"
+      },
+      {
+       "text": "BRAVO plain paragraph two",
+       "level": 0,
+       "list": false,
+       "kind": null,
+       "style": "Text_20_body"
+      },
+      {
+       "text": "CHARLIE heading one",
+       "level": 1,
+       "list": false,
+       "kind": null,
+       "style": "Heading_20_1"
+      },
+      {
+       "text": "DELTA heading two",
+       "level": 2,
+       "list": false,
+       "kind": null,
+       "style": "Heading_20_2"
+      },
+      {
+       "text": "ECHO heading three",
+       "level": 3,
+       "list": false,
+       "kind": null,
+       "style": "Heading_20_3"
+      },
+      {
+       "text": "FOXTROT heading four",
+       "level": 4,
+       "list": false,
+       "kind": null,
+       "style": "Heading_20_4"
+      },
+      {
+       "text": "GOLF bullet item",
+       "level": 0,
+       "list": true,
+       "kind": "ul",
+       "style": "P1"
+      }
+     ]
+    },
+    {
+     "id": "T2/h1/on",
+     "pass": true,
+     "actual": {
+      "text": "BRAVO plain paragraph two",
+      "level": 1,
+      "list": false,
+      "kind": null,
+      "style": "Heading_20_1"
+     }
+    },
+    {
+     "id": "T2/h1/same-level-goes-back-to-body",
+     "pass": true,
+     "actual": {
+      "text": "BRAVO plain paragraph two",
+      "level": 0,
+      "list": false,
+      "kind": null,
+      "style": "Text_20_body"
+     }
+    },
+    {
+     "id": "T2/h2/on",
+     "pass": false,
+     "actual": {
+      "text": "BRAVO plain paragraph two",
+      "level": 3,
+      "list": false,
+      "kind": null,
+      "style": "Heading_20_3"
+     }
+    },
+    {
+     "id": "T2/h2/same-level-goes-back-to-body",
+     "pass": true,
+     "actual": {
+      "text": "BRAVO plain paragraph two",
+      "level": 0,
+      "list": false,
+      "kind": null,
+      "style": "Text_20_body"
+     }
+    },
+    {
+     "id": "T2/h3/on",
+     "pass": false,
+     "actual": {
+      "text": "BRAVO plain paragraph two",
+      "level": 2,
+      "list": false,
+      "kind": null,
+      "style": "Heading_20_2"
+     }
+    },
+    {
+     "id": "T2/h3/same-level-goes-back-to-body",
+     "pass": true,
+     "actual": {
+      "text": "BRAVO plain paragraph two",
+      "level": 0,
+      "list": false,
+      "kind": null,
+      "style": "Text_20_body"
+     }
+    },
+    {
+     "id": "T2/h4/on",
+     "pass": true,
+     "actual": {
+      "text": "BRAVO plain paragraph two",
+      "level": 4,
+      "list": false,
+      "kind": null,
+      "style": "Heading_20_4"
+     }
+    },
+    {
+     "id": "T2/h4/same-level-goes-back-to-body",
+     "pass": true,
+     "actual": {
+      "text": "BRAVO plain paragraph two",
+      "level": 0,
+      "list": false,
+      "kind": null,
+      "style": "Text_20_body"
+     }
+    },
+    {
+     "id": "T2/level-to-level",
+     "pass": true,
+     "actual": {
+      "text": "BRAVO plain paragraph two",
+      "level": 4,
+      "list": false,
+      "kind": null,
+      "style": "Heading_20_4"
+     }
+    },
+    {
+     "id": "T2/body-item",
+     "pass": true,
+     "actual": {
+      "text": "BRAVO plain paragraph two",
+      "level": 0,
+      "list": false,
+      "kind": null,
+      "style": "Text_20_body"
+     }
+    },
+    {
+     "id": "T2/no-red-toast",
+     "pass": true,
+     "actual": null
+    }
+   ],
+   "version": "157.0.1",
+   "cleanup": {}
+  }
+ ],
+ "preRun": {
+  "refuse": [],
+  "loadavg": [
+   "0.06",
+   "0.58",
+   "0.93"
+  ]
+ },
+ "verdict": "P4_RED"
+}
