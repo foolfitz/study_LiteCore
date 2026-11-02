@@ -39,10 +39,10 @@ import { NarrowEditorV2Session, PageRectanglesScheduler, pageSpanOf, pageStatusT
 // re-derivation produced: finding 054, a flag nothing wrote.
 import { recoveryNotice } from "./editor-shell/recovery-notice.js";
 import { EDITOR_V2_ACTIONS } from "./editor-shell-v2/narrow-editor-v2-client.js";
-import { EDITOR_ALIGN_ACTIONS } from "./editor-shell-v2/paragraph-editor-client.js";
+import { EDITOR_ALIGN_ACTIONS, EDITOR_TOGGLE_ACTIONS, paragraphFormatShown } from "./editor-shell-v2/paragraph-editor-client.js";
 // Finding 173: finding 083's sentence is chosen from the list the disposition
 // keeps open, not from a copy of it.
-import { EMPTY_SELECTION_SHAPES, FALLBACK_REFUSED_SHAPES } from "./editor-shell-v2/paragraph-editor-client.js";
+import { EMPTY_SELECTION_SHAPES, FALLBACK_REFUSED_SHAPES, PARAGRAPH_READ_SHAPES } from "./editor-shell-v2/paragraph-editor-client.js";
 
 // The artifact this page is for.  A page that runs on whatever build happens to
 // be in dist/ is a page that can show behaviour no evidence covers.
@@ -179,6 +179,7 @@ const el = {
   a11yStructure: $("#a11y-structure"),
   pageStatus: $("#page-status"),
   zoomOut: $("#zoom-out"), zoomReset: $("#zoom-reset"), zoomIn: $("#zoom-in"),
+  headingButton: $("#heading-menu-button"), headingMenu: $("#heading-menu"),
   // SPEC-M3-link-batch-v21 4.2 / 9.13 Q1 = A: the Markdown dialog.
   markdownDialog: $("#markdown-dialog"), markdownText: $("#markdown-text"),
   markdownMessage: $("#markdown-message"), markdownInsert: $("#markdown-insert"),
@@ -200,7 +201,7 @@ const MOVE_ACTIONS = new Set(["move-character-left", "move-character-right"]);
 const FORMAT_ACTIONS = new Set(["set-bold", "set-italic", "set-underline",
   "set-strikethrough"]);
 // The actions whose button this page's toolbar drives directly.
-const TOOLBAR_ACTIONS = [...EDITOR_V2_ACTIONS, ...EDITOR_ALIGN_ACTIONS];
+const TOOLBAR_ACTIONS = [...EDITOR_V2_ACTIONS, ...EDITOR_ALIGN_ACTIONS, ...EDITOR_TOGGLE_ACTIONS];
 
 let session = null;
 let documentName = "—";
@@ -266,6 +267,12 @@ function toast(message, bad = false) {
 
 function describeError(error) {
   if (error?.code === "EDITOR_VIEW_ONLY") return VIEW_ONLY_TEXT;
+  // SPEC-P-demo-batch-4: the two refusals a toolbar press can meet.  Nothing was
+  // dispatched, so the sentence says so and names what to do.
+  if (error?.code === "EDITOR_FORMAT_NUMBERING_ON_HEADING")
+    return "標題段落不能加編號。請先把它改回內文，文件沒有變動";
+  if (error?.code === "EDITOR_FORMAT_SELECTION_NOT_READABLE")
+    return "這段選取裡有表格或其他物件，這個動作只能用在段落上，文件沒有變動";
   const code = error?.code ? `${error.code}：` : "";
   return `${code}${error?.message || String(error)}`;
 }
@@ -1170,8 +1177,76 @@ function updateGestureAffordance() {
     if (state === null) button.removeAttribute("aria-pressed");
     else button.setAttribute("aria-pressed", state ? "true" : "false");
   }
+  updateParagraphState();
   applyControlMutability();
 }
+
+// SPEC-P-demo-batch-4.  What the heading menu and the two list buttons show.  The
+// rule above holds: `aria-pressed` only when the answer is known, and a press never
+// reads this; the engine reads the document (paragraphFormatShown says why).
+function updateParagraphState() {
+  const editorState = session?.state?.snapshot?.editorState;
+  const shown = paragraphFormatShown(editorState?.format, editorState?.selection?.collapsed);
+  const press = (node, value) => {
+    if (value === null || value === undefined) node.removeAttribute("aria-pressed");
+    else node.setAttribute("aria-pressed", value ? "true" : "false");
+  };
+  press(el.toolbar.querySelector('[data-action="toggle-list-unordered"]'), shown?.bullet);
+  press(el.toolbar.querySelector('[data-action="toggle-list-ordered"]'), shown?.number);
+  press(el.headingButton, shown ? shown.level > 0 : null);
+  for (const item of el.headingMenu.querySelectorAll("[data-level]")) {
+    const checked = shown !== null && Number(item.dataset.level) === shown.level;
+    item.setAttribute("aria-checked", checked ? "true" : "false");
+  }
+}
+
+function closeHeadingMenu({ refocus = false } = {}) {
+  if (el.headingMenu.hidden) return;
+  el.headingMenu.hidden = true;
+  el.headingButton.setAttribute("aria-expanded", "false");
+  document.removeEventListener("pointerdown", closeHeadingMenuOutside, true);
+  if (refocus) el.headingButton.focus();
+}
+
+function closeHeadingMenuOutside(event) {
+  if (!event.target.closest?.("#heading-menu, #heading-menu-button")) closeHeadingMenu();
+}
+
+function openHeadingMenu({ focusItem = false } = {}) {
+  el.headingMenu.hidden = false;
+  el.headingButton.setAttribute("aria-expanded", "true");
+  document.addEventListener("pointerdown", closeHeadingMenuOutside, true);
+  if (focusItem) (el.headingMenu.querySelector('[aria-checked="true"]')
+                  ?? el.headingMenu.querySelector("button")).focus();
+}
+
+el.headingButton.addEventListener("click", () => {
+  if (el.headingMenu.hidden) openHeadingMenu();
+  else closeHeadingMenu();
+});
+
+// An item's own press goes through the toolbar's click handler, like every action.
+el.headingMenu.addEventListener("click", () => closeHeadingMenu());
+
+el.headingButton.addEventListener("keydown", (event) => {
+  if (event.key !== "ArrowDown" && event.key !== "Enter" && event.key !== " ") return;
+  event.preventDefault();
+  openHeadingMenu({ focusItem: true });
+});
+
+el.headingMenu.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") {
+    event.preventDefault();
+    closeHeadingMenu({ refocus: true });
+  } else if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+    event.preventDefault();
+    const items = [...el.headingMenu.querySelectorAll("button")];
+    const step = event.key === "ArrowDown" ? 1 : items.length - 1;
+    items[(items.indexOf(document.activeElement) + step) % items.length].focus();
+  } else if (event.key === "Tab") {
+    closeHeadingMenu();
+  }
+});
 
 // SPEC-M3-page-honesty §7.1 (V7).  Every toolbar control carries whether it
 // changes the document, asked of the session -- the same set its view-only
@@ -1230,6 +1305,12 @@ function updateAlignAffordance() {
   // the four has no alignment to offer.  All four come together.
   const offered = EDITOR_ALIGN_ACTIONS.every((action) => session?.offers?.(action) === true);
   for (const node of el.toolbar.querySelectorAll("[data-align-group]")) node.hidden = !offered;
+  // SPEC-P-demo-batch-4: the menu and the two toggles replace the five setter
+  // buttons where the profile offers them.  A profile without them keeps the five.
+  const toggles = EDITOR_TOGGLE_ACTIONS.every((action) => session?.offers?.(action) === true);
+  for (const node of el.toolbar.querySelectorAll("[data-toggle-group]")) node.hidden = !toggles;
+  for (const node of el.toolbar.querySelectorAll("[data-setter-group]")) node.hidden = toggles;
+  if (!toggles) closeHeadingMenu();
 }
 
 function updateRedoAffordance() {
@@ -2265,6 +2346,11 @@ async function run(label, operation, { quiet = false } = {}) {
         : FALLBACK_REFUSED_SHAPES.includes(shape)
         ? "動作已送出，但這一段後面沒有可以一起選的段落，檢查改成往前多選一格，"
           + "碰到了表格或其他讀不了的內容，所以無法核對。"
+          + "請看一下結果，不是你要的就按「復原」。這是檢查的極限，不是文件壞了"
+        // SPEC-P-demo-batch-4: the read that worked before the dispatch failed
+        // after it.  Says what happened, and nothing about which paragraph.
+        : PARAGRAPH_READ_SHAPES.includes(shape)
+        ? "動作已送出，但送出之後讀不到段落的狀態，所以無法核對。"
           + "請看一下結果，不是你要的就按「復原」。這是檢查的極限，不是文件壞了"
         // Finding 046's residual.  Says dispatched-and-unverified, and does
         // NOT say it worked -- the barrier did not verify it.  Undo is

@@ -1,0 +1,26 @@
+{
+ "schema": 1,
+ "note": "SPEC-P-demo-batch-4 W1: the closed list of replacements taking the v31 worker (54352fad...) to sdk/v32-paragraph-read-worker.js, applied in order, each occurring exactly once.",
+ "hunks": [
+  {
+   "item": "1 action ids",
+   "old": "// Neither option flag is accepted by the five paragraph actions (N7).\n",
+   "new": "// SPEC-P-demo-batch-4: six appended, the same way.  The engine decides which way a\n// toggle goes from the document; nothing here knows or asks.\nconst EDITOR_V6_ACTION_IDS = Object.freeze({\n  ...EDITOR_V5_ACTION_IDS,\n  \"toggle-heading-1\": 28,\n  \"toggle-heading-2\": 29,\n  \"toggle-heading-3\": 30,\n  \"toggle-heading-4\": 31,\n  \"toggle-list-unordered\": 32,\n  \"toggle-list-ordered\": 33,\n});\n\n// Neither option flag is accepted by the five paragraph actions (N7).\n"
+  },
+  {
+   "item": "1 the lookup",
+   "old": "      const actionId = EDITOR_V5_ACTION_IDS[payload.action];\n",
+   "new": "      const actionId = EDITOR_V6_ACTION_IDS[payload.action];\n"
+  },
+  {
+   "item": "2 the toolbar's three fields",
+   "old": "      strikethrough: typeof value.format?.strikethrough === \"boolean\"\n        ? value.format.strikethrough : null,\n    },\n",
+   "new": "      strikethrough: typeof value.format?.strikethrough === \"boolean\"\n        ? value.format.strikethrough : null,\n      // SPEC-P-demo-batch-4: what the heading menu and the two list buttons show.\n      // The raw announcement already carries them; a reply used to wipe them\n      // until the next one.  For display only: a toggle reads the document.\n      listBullet: typeof value.format?.listBullet === \"boolean\"\n        ? value.format.listBullet : null,\n      listNumber: typeof value.format?.listNumber === \"boolean\"\n        ? value.format.listNumber : null,\n      paragraphStyle: typeof value.format?.paragraphStyle === \"string\"\n        ? value.format.paragraphStyle : null,\n    },\n"
+  },
+  {
+   "item": "3 header comment",
+   "old": "// SPEC-P-demo-batch-3 3.2: the e2-editor-v31 worker.",
+   "new": "// SPEC-P-demo-batch-4: the e2-editor-v32 worker.  The v31 worker plus a closed list\n// (criterion W1, tests/v32-worker-delta.json): the six ids, the one lookup, the three\n// format fields, this comment.\n//\n// SPEC-P-demo-batch-3 3.2: the e2-editor-v31 worker."
+  }
+ ]
+}

@@ -33,7 +33,7 @@
 import { EditorSession, caretIsOnLine, caretDiffers } from "../editor-shell/editor-session.js";
 import { NarrowEditorV2Client, EDITOR_ACCEPTED_ACTIONS }
   from "./narrow-editor-v2-client.js";
-import { EDITOR_ALIGN_ACTIONS, EDITOR_V2_PARAGRAPH_ACTIONS } from "./paragraph-editor-client.js";
+import { EDITOR_ALIGN_ACTIONS, EDITOR_TOGGLE_ACTIONS, EDITOR_V2_PARAGRAPH_ACTIONS } from "./paragraph-editor-client.js";
 import { recoveryFor } from "./paragraph-editor-session.js";
 
 // Finding 140: the engine's place-caret answers that send `placeCaret` down
@@ -43,7 +43,7 @@ import { recoveryFor } from "./paragraph-editor-session.js";
 // operation still pending).  Everything else is the caller's error.
 const PLACE_CARET_FALLBACK_CODES = new Set(["BUSY", "UNSUPPORTED_OPERATION"]);
 
-const PARAGRAPH = new Set([...EDITOR_V2_PARAGRAPH_ACTIONS, ...EDITOR_ALIGN_ACTIONS]);
+const PARAGRAPH = new Set([...EDITOR_V2_PARAGRAPH_ACTIONS, ...EDITOR_ALIGN_ACTIONS, ...EDITOR_TOGGLE_ACTIONS]);
 // EDITOR_V4_ACTIONS (ABI 5's list, SPEC-M3-link-batch-v21 4.1), and before it
 // EDITOR_V3_ACTIONS, not EDITOR_V2_ACTIONS: this set is the SESSION's own
 // allowlist, a second copy of the client's, and it was the layer the ABI 4

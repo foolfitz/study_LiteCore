@@ -100,7 +100,9 @@ test("U1: the client exports the select-all list and the union it accepts", () =
   assert.deepEqual(clientModule.EDITOR_SELECT_ALL_ACTIONS, ["select-all"]);
   assert.deepEqual(clientModule.EDITOR_ACCEPTED_ACTIONS,
                    [...clientModule.EDITOR_V4_ACTIONS, "select-all",
-                    "set-align-left", "set-align-center", "set-align-right", "set-align-justify"]);
+                    "set-align-left", "set-align-center", "set-align-right", "set-align-justify",
+                    "toggle-heading-1", "toggle-heading-2", "toggle-heading-3", "toggle-heading-4",
+                    "toggle-list-unordered", "toggle-list-ordered"]);
 });
 
 test("U1: the client sends select-all with both option flags false and the expected revision", async () => {

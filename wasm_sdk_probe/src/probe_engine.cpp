@@ -88,6 +88,9 @@
 #ifdef OXSDK_EDITOR_DISCOVERY
 #include "editor_discovery_api.h"
 #endif
+#ifdef OXSDK_E2_V32_PARAGRAPH_READ
+#include "writer_caret_bridge.h"
+#endif
 
 /*
  * queue-engine-must-report-core-lacks-accessibility.
@@ -1158,6 +1161,14 @@ struct FormatStateBarrier {
   // block of the read.  Forward: the first.
   bool alignCaretRead = false;
   bool alignReadBack = true;
+#endif
+#ifdef OXSDK_E2_V32_PARAGRAPH_READ
+  // SPEC-P-demo-batch-4: the document's own read.  True once the paragraphs after
+  // the dispatch were read; why not, otherwise.  The verdict itself is in
+  // crossIdentityHeld and crossStateHeld, the fields the worker already forwards.
+  bool paragraphRead = false;
+  bool paragraphReadAfter = false;
+  std::string paragraphReadReason;
 #endif
   // Finding 033's open gap, made reachable by finding 034's repair.
   //
@@ -5388,6 +5399,20 @@ const char *editorActionName(std::uint32_t action) {
   case OXSDK_EDITOR_SET_ALIGN_JUSTIFY:
     return "set-align-justify";
 #endif
+#ifdef OXSDK_E2_V32_PARAGRAPH_READ
+  case OXSDK_EDITOR_TOGGLE_HEADING_1:
+    return "toggle-heading-1";
+  case OXSDK_EDITOR_TOGGLE_HEADING_2:
+    return "toggle-heading-2";
+  case OXSDK_EDITOR_TOGGLE_HEADING_3:
+    return "toggle-heading-3";
+  case OXSDK_EDITOR_TOGGLE_HEADING_4:
+    return "toggle-heading-4";
+  case OXSDK_EDITOR_TOGGLE_LIST_UNORDERED:
+    return "toggle-list-unordered";
+  case OXSDK_EDITOR_TOGGLE_LIST_ORDERED:
+    return "toggle-list-ordered";
+#endif
 #ifdef OXSDK_E2_V21_LINK_BATCH
   case OXSDK_EDITOR_MOVE_DOCUMENT_START:
     return "move-document-start";
@@ -5493,6 +5518,11 @@ void startEditorUnoAction(const Command &command, const char *action,
 
 #ifdef OXSDK_E2_FORMAT_BARRIER
 bool editorActionIsParagraphFormat(std::uint32_t action) {
+#ifdef OXSDK_E2_V32_PARAGRAPH_READ
+  if (action >= OXSDK_EDITOR_TOGGLE_HEADING_1 &&
+      action <= OXSDK_EDITOR_TOGGLE_LIST_ORDERED)
+    return true;
+#endif
 #ifdef OXSDK_E2_V31_ALIGNMENT
   if (action >= OXSDK_EDITOR_SET_ALIGN_LEFT &&
       action <= OXSDK_EDITOR_SET_ALIGN_JUSTIFY)
@@ -5536,6 +5566,17 @@ std::string styleApplyArguments(bool heading) {
          "\"ParagraphStyles\"}}";
 }
 
+#ifdef OXSDK_E2_V32_PARAGRAPH_READ
+// H1 to H4 (SPEC-P-demo-batch-4), the same fixed shape as styleApplyArguments.  The
+// level comes from a closed action, never from a caller.
+std::string headingApplyArguments(int level) {
+  return std::string("{\"Style\":{\"type\":\"string\",\"value\":\"Heading ") +
+         std::to_string(level) +
+         "\"},\"FamilyName\":{\"type\":\"string\",\"value\":"
+         "\"ParagraphStyles\"}}";
+}
+
+#endif
 // Finding 030: dispatched bare, these two commands ask for the *opposite* of
 // what is there.  svx/sdi/svx.sdi:2251 and :4985 declare an `On` boolean
 // (FN_PARAM_1) and sw/source/uibase/shells/txtnum.cxx:81-108 uses it as an
@@ -8685,7 +8726,12 @@ constexpr std::uint32_t kAllEditorGestures =
 #ifdef OXSDK_E2_V21_LINK_BATCH
 // 25 as of ABI 5 (SPEC-M3-link-batch-v21 4.1): the two document moves are
 // internal 24 and 25, and this bound moved with them for the reason above.
-#ifdef OXSDK_E2_V31_ALIGNMENT
+#ifdef OXSDK_E2_V32_PARAGRAPH_READ
+// 35 with the six toggles (SPEC-P-demo-batch-4), for the reason below.
+constexpr std::uint32_t kMaxInternalEditorAction = 35;
+static_assert(kMaxInternalEditorAction == OXSDK_EDITOR_TOGGLE_LIST_ORDERED,
+              "the gesture table's bound must follow the action list");
+#elif defined(OXSDK_E2_V31_ALIGNMENT)
 // 29 with the four alignments (SPEC-P-demo-batch-3 3.2).  Left at 25, the mask
 // call would return silently and editorGesturePermitted would answer false:
 // the manifest grants, the engine refuses.

@@ -66,6 +66,16 @@ typedef enum oxsdk_editor_action {
   OXSDK_EDITOR_SET_ALIGN_RIGHT = 28,
   OXSDK_EDITOR_SET_ALIGN_JUSTIFY = 29
 #endif
+#ifdef OXSDK_E2_V32_PARAGRAPH_READ
+  /* SPEC-P-demo-batch-4: the engine's numbers for the product's 28-33. */
+  ,
+  OXSDK_EDITOR_TOGGLE_HEADING_1 = 30,
+  OXSDK_EDITOR_TOGGLE_HEADING_2 = 31,
+  OXSDK_EDITOR_TOGGLE_HEADING_3 = 32,
+  OXSDK_EDITOR_TOGGLE_HEADING_4 = 33,
+  OXSDK_EDITOR_TOGGLE_LIST_UNORDERED = 34,
+  OXSDK_EDITOR_TOGGLE_LIST_ORDERED = 35
+#endif
 } oxsdk_editor_action;
 
 typedef enum oxsdk_editor_selection_method {

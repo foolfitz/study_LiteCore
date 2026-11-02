@@ -29,6 +29,29 @@ export type EditorAlignAction =
 
 export const EDITOR_ALIGN_ACTIONS: readonly EditorAlignAction[];
 
+export type EditorToggleAction =
+  | "toggle-heading-1"
+  | "toggle-heading-2"
+  | "toggle-heading-3"
+  | "toggle-heading-4"
+  | "toggle-list-unordered"
+  | "toggle-list-ordered";
+
+export const EDITOR_TOGGLE_ACTIONS: readonly EditorToggleAction[];
+
+export interface ParagraphFormatShown {
+  /** 1 to 9 on a heading, 0 otherwise. */
+  level: number;
+  bullet: boolean | null;
+  /** null on a heading: core counts the outline rule. */
+  number: boolean | null;
+}
+
+export function paragraphFormatShown(
+  format: { paragraphStyle?: string | null; listBullet?: boolean | null; listNumber?: boolean | null } | null | undefined,
+  collapsed: boolean | undefined,
+): ParagraphFormatShown | null;
+
 /** The selection shapes an action may be dispatched on (SPEC E2-B 9.9). */
 export type EditorV2Gesture = "collapsed" | "range-single" | "range-cross";
 

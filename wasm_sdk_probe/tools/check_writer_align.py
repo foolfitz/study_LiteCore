@@ -7,8 +7,8 @@ saved document equals the one before the press.  Every check is recorded and the
 
 Two more groups, added after the first run (it held 98/98 without measuring them): P1/reopen, the saved document opened again still
 carries the alignment (the spec's P1 asks for it); P1c, the caret on the product path, the defect spec section 6 pins and N2 measured
-only natively.  Caret after BR, press, type q, save.  The list button is that cell's control: it still moves the caret (finding 180),
-so the cell can tell the two apart.  When finding 180 is fixed the control turns red and goes with it.
+only natively.  Caret after BR, press, type q, save.  The list button was that cell's control until finding 180 was fixed (SPEC-P-demo-batch-4):
+it moved the caret, so the cell could tell the two apart.  From e2-editor-v32 it keeps the caret, and the cell says so.
 
 --mutate is the instrument's red case and touches only this run: swap-center-right exchanges the two actions at the Worker boundary,
 no-undo skips the Ctrl+Z.  (Exchanging the two buttons' data-action in the HTML changes nothing: this tool finds a button by that
@@ -144,12 +144,12 @@ def later_groups(page, raw, base):
                {"text": texts(got)[1], "align": aligns(got)[1]})
     fresh(page, raw)
     after_br(page)
-    page.press('[data-action="set-list-unordered"]')
+    page.press('[data-action="toggle-list-unordered"]')
     page.quiet()
     page.key("q")
     page.quiet()
     control = texts(page.save())[1]
-    page.check("P1c/control/list-button-still-moves-the-caret", control != "BRqAVO plain paragraph two", control)
+    page.check("P1c/list-button-keeps-the-caret", control == "BRqAVO plain paragraph two", control)
 
 
 def run_one(record, raw, out, mutate=None):

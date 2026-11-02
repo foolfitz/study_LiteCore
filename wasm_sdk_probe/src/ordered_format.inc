@@ -273,6 +273,37 @@ void finishOrderedAlignCaretRead() {
 }
 #endif
 
+#ifdef OXSDK_E2_V32_PARAGRAPH_READ
+// SPEC-P-demo-batch-4 (finding 180).  Every paragraph action on all three routes:
+// the document says what the caret or the selection covers, before and after, and
+// nothing selects, moves or restores.  The reply only reads what the command found.
+void finishOrderedParagraphRead() {
+  auto refuse = [](const char *shape, const char *message) {
+    gFormatBarrier.failureShape = shape;
+    failFormatBarrier(kFormatMutationOutcomeUnknown, message);
+  };
+  if (!gFormatBarrier.paragraphReadAfter) {
+    refuse("paragraph-read-failed",
+           "the paragraphs could not be read after the dispatch; the format "
+           "mutation outcome is unknown");
+    return;
+  }
+  if (!gFormatBarrier.crossIdentityHeld) {
+    refuse(gFormatBarrier.postBlockTexts.size() != gFormatBarrier.preBlockTexts.size()
+               ? "block-count-changed" : "block-text-mismatch",
+           "the paragraphs read after the dispatch are not the ones it was sent to");
+    return;
+  }
+  if (!gFormatBarrier.crossStateHeld) {
+    gFormatBarrier.failureShape = "postcondition-not-met";
+    failFormatBarrier("EDITOR_FORMAT_POSTCONDITION_FAILED",
+                      "the document does not show the state this action asked for");
+    return;
+  }
+  completeFormatBarrier();
+}
+
+#endif
 void deferOrderedFormatReply(FormatStateBarrier barrier, bool dispatched,
                              const char *refusalCode = nullptr,
                              const char *refusalMessage = nullptr) {
@@ -297,7 +328,9 @@ void deferOrderedFormatReply(FormatStateBarrier barrier, bool dispatched,
       gFormatBarrier.resultModified =
           modified && std::strncmp(modified, "true", 4) == 0;
     }
-#ifdef OXSDK_E2_V31_ALIGNMENT
+#ifdef OXSDK_E2_V32_PARAGRAPH_READ
+    const bool selects = false;  // nothing the verdict rests on selected anything
+#elif defined(OXSDK_E2_V31_ALIGNMENT)
     const bool selects = barrier.route != FormatBarrierRoute::RangeCross &&
                          !barrier.alignCaretRead;
 #else
@@ -325,6 +358,12 @@ void deferOrderedFormatReply(FormatStateBarrier barrier, bool dispatched,
                         "the matching UNO command result was absent at the first poll");
       return;
     }
+#ifdef OXSDK_E2_V32_PARAGRAPH_READ
+    if (gFormatBarrier.paragraphRead) {
+      finishOrderedParagraphRead();
+      return;
+    }
+#endif
 #ifdef OXSDK_E2_V31_ALIGNMENT
     if (gFormatBarrier.alignCaretRead) {
       finishOrderedAlignCaretRead();
@@ -335,6 +374,160 @@ void deferOrderedFormatReply(FormatStateBarrier barrier, bool dispatched,
   });
 }
 
+#ifdef OXSDK_E2_V32_PARAGRAPH_READ
+void setOrderedListTarget(FormatStateBarrier &barrier, const char *tag) {
+  const bool off = !tag;
+  barrier.target = off ? FormatBarrierTarget::ListNone
+                   : tag[0] == 'u' ? FormatBarrierTarget::ListBullet
+                                   : FormatBarrierTarget::ListNumber;
+  barrier.expected = !off;
+  barrier.expectedListTag = off ? "none" : tag;
+  // The same three commands and arguments as the set-list actions below: finding
+  // 030 measured them as setters, and a toggle here is only the choice between them.
+  barrier.command = off ? ".uno:RemoveBullets"
+                    : tag[0] == 'u' ? ".uno:DefaultBullet" : ".uno:DefaultNumbering";
+  barrier.arguments = off ? "" : kListOnArguments;
+}
+
+void setOrderedStyleTarget(FormatStateBarrier &barrier, int level) {
+  barrier.target = FormatBarrierTarget::ParagraphStyle;
+  barrier.command = ".uno:StyleApply";
+  barrier.arguments = level ? headingApplyArguments(level) : styleApplyArguments(false);
+  barrier.expectedBlockTag = level ? "h" + std::to_string(level) : "p";
+}
+
+// Which way the press goes is the document's answer, read here and nowhere else.
+void resolveOrderedToggle(FormatStateBarrier &barrier, std::uint32_t action,
+                          const std::vector<WriterParagraphRead> &before) {
+  if (action == OXSDK_EDITOR_TOGGLE_LIST_UNORDERED ||
+      action == OXSDK_EDITOR_TOGGLE_LIST_ORDERED) {
+    const char *tag = action == OXSDK_EDITOR_TOGGLE_LIST_UNORDERED ? "ul" : "ol";
+    setOrderedListTarget(barrier, toggleTakesOff(before, tag, "") ? nullptr : tag);
+    return;
+  }
+  const int level = static_cast<int>(action - OXSDK_EDITOR_TOGGLE_HEADING_1) + 1;
+  setOrderedStyleTarget(barrier,
+                        toggleTakesOff(before, "", "h" + std::to_string(level)) ? 0 : level);
+}
+
+void startOrderedParagraphRead(FormatStateBarrier barrier, std::uint32_t action) {
+  barrier.paragraphRead = true;
+  // `selectionObserved` for the reason routeFormatBarrier gives: before core has
+  // reported a selection, "no rectangles" means nobody has said yet.
+  if (!gEditorState.selectionObserved) {
+    barrier.failureShape = "routing-selection-not-observed";
+    deferOrderedFormatReply(barrier, false, "EDITOR_FORMAT_GESTURE_UNSUPPORTED",
+        "no selection has been reported yet, so this action cannot be "
+        "classified; nothing was dispatched and the document is unchanged");
+    return;
+  }
+  std::vector<WriterParagraphRead> before;
+  if (!writerSelectionParagraphs(gState.document, before, barrier.paragraphReadReason)) {
+    barrier.failureShape = "routing-selection-not-readable";
+    deferOrderedFormatReply(barrier, false, "EDITOR_FORMAT_SELECTION_NOT_READABLE",
+        "this selection holds something other than paragraphs, so nothing was "
+        "dispatched and the document is unchanged");
+    return;
+  }
+  barrier.route = gEditorState.selectionRectangles.empty() ? FormatBarrierRoute::Collapsed
+                  : before.size() >= 2 ? FormatBarrierRoute::RangeCross
+                                       : FormatBarrierRoute::RangeSingle;
+  const std::uint32_t gesture =
+      barrier.route == FormatBarrierRoute::Collapsed     ? kGestureCollapsed
+      : barrier.route == FormatBarrierRoute::RangeSingle ? kGestureRangeSingle
+                                                         : kGestureRangeCross;
+  if (!editorGesturePermitted(action, gesture)) {
+    barrier.failureShape = "gesture-not-permitted";
+    deferOrderedFormatReply(barrier, false, "EDITOR_FORMAT_GESTURE_UNSUPPORTED",
+        "this action is not offered for this kind of selection in this "
+        "profile, so nothing was dispatched and the document is unchanged");
+    return;
+  }
+  if (action == OXSDK_EDITOR_TOGGLE_LIST_ORDERED && !toggleTakesOff(before, "ol", "") &&
+      numberingHasNoEffect(before)) {
+    barrier.failureShape = "numbering-on-heading";
+    deferOrderedFormatReply(barrier, false, "EDITOR_FORMAT_NUMBERING_ON_HEADING",
+        "a heading takes no numbering here, so nothing was dispatched and the "
+        "document is unchanged");
+    return;
+  }
+  if (action >= OXSDK_EDITOR_TOGGLE_HEADING_1 && action <= OXSDK_EDITOR_TOGGLE_LIST_ORDERED)
+    resolveOrderedToggle(barrier, action, before);
+  barrier.beforeSequence = gEditorState.sourceSequence;
+  barrier.dispatchSequence = gEditorState.sourceSequence;
+  barrier.dispatchSelectionCollapsed = gEditorState.selectionRectangles.empty();
+  barrier.dispatchSelectionObserved = gEditorState.selectionObserved;
+  barrier.dispatchSelectionRectangles = gEditorState.selectionRectangles.size();
+  barrier.stage = FormatBarrierStage::AwaitingResult;
+  std::string undoBefore;
+  const bool undoBeforeRead = readMergeUndoPayload(undoBefore);
+  gFormatBarrier = barrier;
+  // A paragraph style on the leading part of one paragraph makes core build an
+  // inline heading frame (SwDocShell::MakeInlineHeading) instead of styling the
+  // paragraph.  These buttons style paragraphs, so the selection widens to the
+  // paragraph first, and stays there.  N5 measured it.
+  if (barrier.route == FormatBarrierRoute::RangeSingle &&
+      barrier.target == FormatBarrierTarget::ParagraphStyle) {
+    expectOrderedUno(kFormatBarrierSelectCommand);
+    gState.document->pClass->postUnoCommand(
+        gState.document, kFormatBarrierSelectCommand, nullptr, true);
+    if (!writerSelectionParagraphs(gState.document, before,
+                                   gFormatBarrier.paragraphReadReason) ||
+        before.size() != 1) {
+      barrier = gFormatBarrier;
+      barrier.failureShape = "routing-selection-not-readable";
+      gFormatBarrier = FormatStateBarrier{};
+      deferOrderedFormatReply(barrier, false, "EDITOR_FORMAT_SELECTION_NOT_READABLE",
+          "this selection holds something other than paragraphs, so nothing was "
+          "dispatched and the document is unchanged");
+      return;
+    }
+  }
+  gFormatBarrier.preBlockCount = static_cast<std::uint32_t>(before.size());
+  gFormatBarrier.preBlockCountObserved = true;
+  gFormatBarrier.preBlockTexts.clear();
+  for (const WriterParagraphRead &row : before)
+    gFormatBarrier.preBlockTexts.push_back(row.text);
+  expectOrderedUno(gFormatBarrier.command);
+  gState.document->pClass->postUnoCommand(
+      gState.document, gFormatBarrier.command.c_str(),
+      gFormatBarrier.arguments.empty() ? nullptr : gFormatBarrier.arguments.c_str(), true);
+  std::vector<WriterParagraphRead> after;
+  gFormatBarrier.paragraphReadAfter =
+      writerSelectionParagraphs(gState.document, after, gFormatBarrier.paragraphReadReason);
+  gFormatBarrier.crossChecked = gFormatBarrier.paragraphReadAfter;
+  gFormatBarrier.postBlockCount = static_cast<std::uint32_t>(after.size());
+  gFormatBarrier.postBlockCountObserved = gFormatBarrier.paragraphReadAfter;
+  for (const WriterParagraphRead &row : after)
+    gFormatBarrier.postBlockTexts.push_back(row.text);
+  gFormatBarrier.crossIdentityHeld =
+      gFormatBarrier.postBlockTexts == gFormatBarrier.preBlockTexts;
+  gFormatBarrier.crossStateHeld = everyParagraphMeets(
+      after, gFormatBarrier.expectedListTag, gFormatBarrier.expectedBlockTag,
+      gFormatBarrier.expectedAlign);
+  // Nothing here moved the caret or the selection, so there is nothing to confirm.
+  gFormatBarrier.restoreConfirmed = true;
+  {
+    std::string undoAfter;
+    const bool undoAfterRead = readMergeUndoPayload(undoAfter);
+    const probe::merge::UndoSummary summaryBefore = probe::merge::summarizeUndoPayload(undoBefore);
+    const probe::merge::UndoSummary summaryAfter = probe::merge::summarizeUndoPayload(undoAfter);
+    gFormatBarrier.undoAttempted = true;
+    gFormatBarrier.undoRead =
+        undoBeforeRead && undoAfterRead && summaryBefore.ok && summaryAfter.ok;
+    if (gFormatBarrier.undoRead) {
+      gFormatBarrier.undoChanged = undoBefore != undoAfter;
+      gFormatBarrier.undoActionsBefore = summaryBefore.actions;
+      gFormatBarrier.undoActionsAfter = summaryAfter.actions;
+      gFormatBarrier.undoTop = summaryAfter.topComment;
+    }
+  }
+  barrier = gFormatBarrier;
+  gFormatBarrier = FormatStateBarrier{};
+  deferOrderedFormatReply(std::move(barrier), true);
+}
+
+#endif
 void startOrderedFormatAction(const Command &command, std::uint32_t action,
                               const char *name) {
   FormatStateBarrier barrier;
@@ -403,6 +596,16 @@ void startOrderedFormatAction(const Command &command, std::uint32_t action,
                                                                      : "justify";
     break;
 #endif
+#ifdef OXSDK_E2_V32_PARAGRAPH_READ
+  // SPEC-P-demo-batch-4.  Set from the document in resolveOrderedToggle, below.
+  case OXSDK_EDITOR_TOGGLE_HEADING_1:
+  case OXSDK_EDITOR_TOGGLE_HEADING_2:
+  case OXSDK_EDITOR_TOGGLE_HEADING_3:
+  case OXSDK_EDITOR_TOGGLE_HEADING_4:
+  case OXSDK_EDITOR_TOGGLE_LIST_UNORDERED:
+  case OXSDK_EDITOR_TOGGLE_LIST_ORDERED:
+    break;
+#endif
   default:
     setOrderedReply([command]() {
       emitCommandError(command, "editor-action", "EDITOR_ACTION_UNSUPPORTED",
@@ -414,6 +617,10 @@ void startOrderedFormatAction(const Command &command, std::uint32_t action,
   barrier.requestId = command.requestId;
   barrier.documentHandle = gState.documentHandle;
   barrier.beforeRevision = gState.revision;
+#ifdef OXSDK_E2_V32_PARAGRAPH_READ
+  startOrderedParagraphRead(std::move(barrier), action);
+  return;
+#endif
 
   // Routing happens BEFORE the dispatch, and a refusal here is the cleanest
   // outcome this barrier can produce: nothing was sent, so the document is

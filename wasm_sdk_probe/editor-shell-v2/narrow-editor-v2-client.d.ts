@@ -6,7 +6,7 @@
 
 import type { AbortableOptions, DocumentHandle, RevisionOptions }
   from "../sdk/document-sdk.js";
-import type { EditorAlignAction, EditorV2Gesture, EditorV2ParagraphAction,
+import type { EditorAlignAction, EditorToggleAction, EditorV2Gesture, EditorV2ParagraphAction,
               EditorV2ActionResult } from "./paragraph-editor-client.js";
 
 /** v1's ten, carried into the v2 contract unchanged. */
@@ -59,7 +59,7 @@ export type EditorV4Action = EditorV3Action | EditorV4AppendedAction;
 export type EditorSelectAllAction = "select-all";
 
 /** Everything this client sends: the session's allowlist and D13 read it. */
-export type EditorAcceptedAction = EditorV4Action | EditorSelectAllAction | EditorAlignAction;
+export type EditorAcceptedAction = EditorV4Action | EditorSelectAllAction | EditorAlignAction | EditorToggleAction;
 
 /** The closed postcondition classes (SPEC-M3-link-batch-v21 9.7, 11.1 D13). */
 export type EditorPostconditionClass = "move" | "delete" | "mutation" | "paragraph";

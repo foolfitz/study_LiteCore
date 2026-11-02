@@ -52,6 +52,15 @@ enum InternalEditorAction : std::uint32_t {
   InternalSetAlignRight = 28,
   InternalSetAlignJustify = 29,
 #endif
+#ifdef OXSDK_E2_V32_PARAGRAPH_READ
+  // SPEC-P-demo-batch-4: the ordered format path, like 15-19.
+  InternalToggleHeading1 = 30,
+  InternalToggleHeading2 = 31,
+  InternalToggleHeading3 = 32,
+  InternalToggleHeading4 = 33,
+  InternalToggleListUnordered = 34,
+  InternalToggleListOrdered = 35,
+#endif
 };
 
 // The mask itself lives in the engine (probe::editorSetActionGestures): the
@@ -75,7 +84,12 @@ static_assert(OXSDK_EDITOR_GESTURE_RANGE_CROSS == probe::kGestureRangeCross);
 // all -- and a gesture a manifest cannot restrict is one the binary grants
 // unconditionally, which is the "manifest describes but does not constrain"
 // defect the mask exists to remove.
-#ifdef OXSDK_E2_V31_ALIGNMENT
+#ifdef OXSDK_E2_V32_PARAGRAPH_READ
+// 33 with the six toggles, for the same reason again.
+constexpr std::uint32_t kMaxExternalAction = 33;
+static_assert(kMaxExternalAction == OXSDK_EDITOR_V6_TOGGLE_LIST_ORDERED,
+              "the mask's bound must follow the action list");
+#elif defined(OXSDK_E2_V31_ALIGNMENT)
 // 27 with the four alignments, for the same reason again.
 constexpr std::uint32_t kMaxExternalAction = 27;
 static_assert(kMaxExternalAction == OXSDK_EDITOR_V5_SET_ALIGN_JUSTIFY,
@@ -182,6 +196,20 @@ std::uint32_t internalAction(std::uint32_t action) {
     return InternalSetAlignRight;
   case OXSDK_EDITOR_V5_SET_ALIGN_JUSTIFY:
     return InternalSetAlignJustify;
+#endif
+#ifdef OXSDK_E2_V32_PARAGRAPH_READ
+  case OXSDK_EDITOR_V6_TOGGLE_HEADING_1:
+    return InternalToggleHeading1;
+  case OXSDK_EDITOR_V6_TOGGLE_HEADING_2:
+    return InternalToggleHeading2;
+  case OXSDK_EDITOR_V6_TOGGLE_HEADING_3:
+    return InternalToggleHeading3;
+  case OXSDK_EDITOR_V6_TOGGLE_HEADING_4:
+    return InternalToggleHeading4;
+  case OXSDK_EDITOR_V6_TOGGLE_LIST_UNORDERED:
+    return InternalToggleListUnordered;
+  case OXSDK_EDITOR_V6_TOGGLE_LIST_ORDERED:
+    return InternalToggleListOrdered;
 #endif
   default:
     return 0;

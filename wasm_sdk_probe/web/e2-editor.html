@@ -265,6 +265,22 @@
     width: 32px; height: 32px; min-width: 32px; padding: 0; border-color: transparent; background: transparent; }
   /* `display` above would otherwise beat the user-agent rule for [hidden]: redo and Markdown stay off until declared. */
   .toolbar button[hidden] { display: none; }
+  /* SPEC-P-demo-batch-4: the heading menu.  Spans, not divs: the host hides `.sep` by nth-of-type among #toolbar's divs. */
+  .heading-menu-wrap { position: relative; display: inline-flex; }
+  .heading-menu-wrap[hidden] { display: none; }
+  .toolbar button#heading-menu-button { width: 40px; min-width: 40px; gap: 0; }
+  .toolbar button#heading-menu-button .chevron { width: 12px; height: 12px; margin-left: -2px; fill: currentColor; pointer-events: none; }
+  #heading-menu { position: absolute; top: calc(100% + 4px); left: 0; z-index: 20; display: flex; flex-direction: column; min-width: 148px;
+    padding: 4px; background: #fff; border: 1px solid var(--line); border-radius: 6px; box-shadow: 0 4px 14px rgba(0, 0, 0, .18); }
+  #heading-menu[hidden] { display: none; }
+  .toolbar #heading-menu button { width: 100%; height: auto; min-height: 30px; padding: 3px 10px; justify-content: flex-start; gap: 8px; text-align: left; white-space: nowrap; }
+  #heading-menu button .check { width: 14px; flex: none; font-size: 13px; visibility: hidden; }
+  #heading-menu button[aria-checked="true"] .check { visibility: visible; }
+  #heading-menu button .sample { font-size: 13px; }
+  #heading-menu button[data-level="1"] .sample { font-size: 19px; font-weight: 700; }
+  #heading-menu button[data-level="2"] .sample { font-size: 17px; font-weight: 700; }
+  #heading-menu button[data-level="3"] .sample { font-size: 15px; font-weight: 700; }
+  #heading-menu button[data-level="4"] .sample { font-size: 14px; font-weight: 700; }
   .toolbar button:hover:not(:disabled) { background: #e9eff5; border-color: transparent; }
   .toolbar button[aria-pressed="true"] { background: #dbe7f3; border-color: var(--accent); }
   .toolbar button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
@@ -349,11 +365,25 @@
     <button data-action="set-strikethrough" class="s" data-tip="刪除線"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-format_strikethrough"></use></svg><span class="lbl">S</span></button>
     <button id="clear-format" data-tip="清除格式"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-format_clear"></use></svg><span class="lbl">清除格式</span></button>
     <div class="sep"></div>
-    <button data-action="set-paragraph-heading" data-tip="標題"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-title"></use></svg><span class="lbl">標題</span></button>
-    <button data-action="set-paragraph-body" data-tip="內文"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-format_paragraph"></use></svg><span class="lbl">內文</span></button>
-    <button data-action="set-list-unordered" data-tip="項目符號"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-format_list_bulleted"></use></svg><span class="lbl">• 項目符號</span></button>
-    <button data-action="set-list-ordered" data-tip="編號"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-format_list_numbered"></use></svg><span class="lbl">1. 編號</span></button>
-    <button data-action="set-list-none" data-tip="移除清單"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-playlist_remove"></use></svg><span class="lbl">移除清單</span></button>
+    <button data-setter-group data-action="set-paragraph-heading" data-tip="標題"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-title"></use></svg><span class="lbl">標題</span></button>
+    <button data-setter-group data-action="set-paragraph-body" data-tip="內文"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-format_paragraph"></use></svg><span class="lbl">內文</span></button>
+    <button data-setter-group data-action="set-list-unordered" data-tip="項目符號"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-format_list_bulleted"></use></svg><span class="lbl">• 項目符號</span></button>
+    <button data-setter-group data-action="set-list-ordered" data-tip="編號"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-format_list_numbered"></use></svg><span class="lbl">1. 編號</span></button>
+    <button data-setter-group data-action="set-list-none" data-tip="移除清單"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-playlist_remove"></use></svg><span class="lbl">移除清單</span></button>
+    <!-- SPEC-P-demo-batch-4：profile 宣告了六個切換動作時，這一組取代上面五顆，見 updateAlignAffordance()。
+         舊的五顆留在 DOM：沒有這些動作的 profile 要用，回歸工具也用 data-action 找它們。 -->
+    <span class="heading-menu-wrap" data-toggle-group hidden>
+      <button id="heading-menu-button" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="heading-menu" data-tip="標題"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-title"></use></svg><svg class="chevron" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 10l5 5 5-5z"/></svg><span class="lbl">標題</span></button>
+      <span id="heading-menu" role="menu" aria-label="段落層級" hidden>
+        <button type="button" role="menuitemradio" aria-checked="false" data-level="0" data-action="set-paragraph-body"><span class="check" aria-hidden="true">✓</span><span class="sample">內文</span></button>
+        <button type="button" role="menuitemradio" aria-checked="false" data-level="1" data-action="toggle-heading-1"><span class="check" aria-hidden="true">✓</span><span class="sample">標題 1</span></button>
+        <button type="button" role="menuitemradio" aria-checked="false" data-level="2" data-action="toggle-heading-2"><span class="check" aria-hidden="true">✓</span><span class="sample">標題 2</span></button>
+        <button type="button" role="menuitemradio" aria-checked="false" data-level="3" data-action="toggle-heading-3"><span class="check" aria-hidden="true">✓</span><span class="sample">標題 3</span></button>
+        <button type="button" role="menuitemradio" aria-checked="false" data-level="4" data-action="toggle-heading-4"><span class="check" aria-hidden="true">✓</span><span class="sample">標題 4</span></button>
+      </span>
+    </span>
+    <button data-toggle-group hidden data-action="toggle-list-unordered" data-tip="項目符號"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-format_list_bulleted"></use></svg><span class="lbl">• 項目符號</span></button>
+    <button data-toggle-group hidden data-action="toggle-list-ordered" data-tip="編號"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-format_list_numbered"></use></svg><span class="lbl">1. 編號</span></button>
     <!-- SPEC-P-demo-batch-3 3.3：只有 profile 宣告了四個對齊才顯示，見 updateAlignAffordance()。
          `after-list`，不是 `sep`：理由同 after-save，宿主用 nth-of-type 藏 `.sep`。 -->
     <span class="after-list" data-align-group aria-hidden="true" hidden></span>

@@ -35,7 +35,42 @@ export const EDITOR_ALIGN_ACTIONS = Object.freeze([
   "set-align-justify",
 ]);
 
-const PARAGRAPH_ACTIONS = new Set([...EDITOR_V2_PARAGRAPH_ACTIONS, ...EDITOR_ALIGN_ACTIONS]);
+// SPEC-P-demo-batch-4: one button each way.  The engine reads the document and
+// decides, so these carry no direction; offered only where a manifest grants them.
+export const EDITOR_TOGGLE_ACTIONS = Object.freeze([
+  "toggle-heading-1",
+  "toggle-heading-2",
+  "toggle-heading-3",
+  "toggle-heading-4",
+  "toggle-list-unordered",
+  "toggle-list-ordered",
+]);
+
+const PARAGRAPH_ACTIONS = new Set([...EDITOR_V2_PARAGRAPH_ACTIONS, ...EDITOR_ALIGN_ACTIONS,
+                                   ...EDITOR_TOGGLE_ACTIONS]);
+
+/**
+ * What the toolbar may show about the paragraph at the caret, or null.
+ *
+ * For display only: a press is decided by the document, in the engine.
+ * Measured (findings/evidence/demo-batch-4/cache-freshness/run-02, 144 of 144,
+ * Chrome and Firefox): the three fields follow the caret within 355 ms.  Two
+ * rules come from that run.  `formatStale` is not read: it stays true when the
+ * next paragraph has the same values, 39 of 144 steps while every value was
+ * right.  `listNumber` says nothing on a heading: core counts the outline rule,
+ * so it read true on every heading, and the button shows no state there.
+ * On a range the cache keeps the last caret's values, so nothing is shown.
+ */
+export function paragraphFormatShown(format, collapsed) {
+  if (collapsed === false || typeof format?.paragraphStyle !== "string") return null;
+  const heading = /^Heading ([1-9])$/.exec(format.paragraphStyle);
+  const level = heading ? Number(heading[1]) : 0;
+  return {
+    level,
+    bullet: typeof format.listBullet === "boolean" ? format.listBullet : null,
+    number: level === 0 && typeof format.listNumber === "boolean" ? format.listNumber : null,
+  };
+}
 
 // SPEC E2-B 5.6.  Route C reports `changed: null` and completes with
 // `verified-format-readback`; the v1 validator requires `changed === true` and
@@ -317,6 +352,12 @@ export const FALLBACK_REFUSED_SHAPES = Object.freeze([
   "fallback-readback-refused",
 ]);
 
+// SPEC-P-demo-batch-4.  The engine dispatched, and the read that decides whether it
+// worked failed where the same read before the dispatch had succeeded.  No route
+// narrows this: the action went out and undo is reachable, so the answer is review.
+// Exported for the same two readers as the lists above.
+export const PARAGRAPH_READ_SHAPES = Object.freeze(["paragraph-read-failed"]);
+
 export function formatFailureDisposition(error) {
   const barrier = error?.details?.formatBarrier ?? error?.formatBarrier ?? null;
   if (barrier && barrier.dispatched === false)
@@ -384,6 +425,9 @@ export function formatFailureDisposition(error) {
       && barrier.route === "collapsed"
       && FALLBACK_REFUSED_SHAPES.includes(barrier.failureShape)
       && barrier.selectionResultSeen === true)
+    return "dispatched-unverified";
+  if (barrier && barrier.dispatched === true
+      && PARAGRAPH_READ_SHAPES.includes(barrier.failureShape))
     return "dispatched-unverified";
   if (barrier && barrier.dispatched === true)
     return "dispatched-rollback";

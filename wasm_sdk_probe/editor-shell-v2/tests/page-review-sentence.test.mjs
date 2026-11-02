@@ -40,14 +40,14 @@ async function toastFor(error, { shapes = client.EMPTY_SELECTION_SHAPES } = {}) 
   // eslint-disable-next-line no-new-func
   const run = new Function("el", "session", "toast", "reopenAfterBoundaryRefusal", "renderDocument",
                            "publishWindow", "describeError", "VIEW_ONLY_TEXT", "EMPTY_SELECTION_SHAPES",
-                             "FALLBACK_REFUSED_SHAPES", `
+                             "FALLBACK_REFUSED_SHAPES", "PARAGRAPH_READ_SHAPES", `
     let changes = 0;
     ${fn("deleteUnverified")}
     ${fn("reopensAfterRefusal")}
     ${fn("run")}
     return run;`)(
     el, session, (message, bad) => toasts.push({ message, bad }), () => {}, async () => {}, () => {},
-    (e) => e?.code ?? String(e), "唯讀", shapes, client.FALLBACK_REFUSED_SHAPES);
+    (e) => e?.code ?? String(e), "唯讀", shapes, client.FALLBACK_REFUSED_SHAPES, client.PARAGRAPH_READ_SHAPES);
   const thrown = Object.assign(new Error("failed"), error);
   await assert.rejects(() => run("• 項目符號", () => Promise.reject(thrown)), thrown);
   assert.equal(toasts.length, 1, "run() must raise exactly one toast for a review error");
@@ -92,4 +92,9 @@ test("the assertion has teeth: a page given only 083's name says the wrong sente
                                  { shapes: Object.freeze(["stage-deadline:awaiting-selection"]) });
   assert.ok(message.includes(MULTI) && !message.includes(EMPTY),
             `the mutated list did not change the sentence, so the first test proves nothing: ${message}`);
+});
+
+test("a read that failed after the dispatch says so, on no particular paragraph", async () => {
+  const message = await toastFor(review("paragraph-read-failed"));
+  assert.ok(message.includes("讀不到段落的狀態") && !message.includes(EMPTY) && !message.includes(MULTI) && !message.includes(ROLLBACK), message);
 });

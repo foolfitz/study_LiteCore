@@ -35,7 +35,7 @@ async function run(error) {
     // eslint-disable-next-line no-new-func
     const page = new Function("el", "session", "toast", "reopenAfterBoundaryRefusal", "renderDocument",
                               "publishWindow", "describeError", "VIEW_ONLY_TEXT", "EMPTY_SELECTION_SHAPES",
-                              "FALLBACK_REFUSED_SHAPES", `
+                              "FALLBACK_REFUSED_SHAPES", "PARAGRAPH_READ_SHAPES", `
       let changes = 0;
       ${fn("deleteUnverified")}
       ${fn("reopensAfterRefusal")}
@@ -43,7 +43,7 @@ async function run(error) {
       return run;`)(
       el, session, (message, bad) => toasts.push({ message, bad }), () => {}, async () => {}, () => {},
       (e) => `${e?.code ? `${e.code}：` : ""}${e?.message || String(e)}`, "唯讀", client.EMPTY_SELECTION_SHAPES,
-      client.FALLBACK_REFUSED_SHAPES ?? Object.freeze([]));
+      client.FALLBACK_REFUSED_SHAPES ?? Object.freeze([]), client.PARAGRAPH_READ_SHAPES);
     const thrown = Object.assign(new Error("the fallback selection's readback does not provide a supported "
                                            + "structural proof; the format mutation outcome is unknown"), error);
     await assert.rejects(() => page("• 項目符號", () => Promise.reject(thrown)), thrown);

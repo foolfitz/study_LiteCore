@@ -2734,6 +2734,106 @@ $(E2_V31_DIST)/sdk-manifest.json: $(E2_V31_BUILD)/probe.js $(E2_V31_BUILD)/probe
 $(E2_V31_BUILD) $(E2_V31_DIST):
 	mkdir -p $@
 
+# SPEC-P-demo-batch-4: H1 to H4, the toggles and the paragraph read.  The v31 rule plus OXSDK_E2_V32_PARAGRAPH_READ, and a fifth unit:
+# the Writer caret bridge, the only one that compiles with internal headers.  Editor ABI stays 6, no new export.  The base is the
+# archived v31 profile: its export list, its worker, its manifest.
+E2_V32_BUILD := build/e2/editor-v32
+E2_V32_DIST := dist/profiles/e2-editor-v32
+E2_V32_SOURCES := $(E2_C_SOURCES)
+E2_V32_OBJECTS := $(patsubst src/%.cpp,$(E2_V32_BUILD)/%.o,$(E2_V32_SOURCES))
+# Its own variable, as ods-editor's calc_cell_bridge: the four units above are the ones every Writer rule shares.
+E2_V32_BRIDGE := $(E2_V32_BUILD)/writer_caret_bridge.o
+E2_V32_MD4C_INCLUDE := $(LOBUILD)/workdir/UnpackedTarball/md4c/src
+# Frozen base identity for the v32 worker: the archived v31 worker.
+E2_V32_ARCHIVE := build/archive/e2-editor-v31-809893a9-worker-54352fad
+E2_V32_BASE_WORKER := $(E2_V32_ARCHIVE)/sdk-worker.js
+E2_V32_WORKER_SHA256 := 54352fad3f5434162512d20e64e655a9cce789629495a74cbbe4c8a34e41637e
+
+.PHONY: v32-paragraph-worker-preflight
+v32-paragraph-worker-preflight:
+	python3 tools/check_v32_paragraph_contract.py --check-worker-base \
+		--base-worker $(E2_V32_BASE_WORKER) --base-worker-sha256 $(E2_V32_WORKER_SHA256)
+
+$(E2_V32_BRIDGE): src/writer_caret_bridge.cpp src/writer_caret_bridge.h Makefile \
+		| $(E2_V32_BUILD) v32-paragraph-worker-preflight
+	$(CXX) $(E1_CPPFLAGS) $(R5_CXXFLAGS) -std=c++20 -DLIBO_INTERNAL_ONLY $(EXTRA_DEFINES) -c $< -o $@
+
+$(E2_V32_BUILD)/%.o: src/%.cpp $(HEADERS) src/editor_api.h \
+		src/editor_discovery_api.h src/format_readback_text.hpp \
+		src/a11y_paragraph_identity.hpp src/merge_key_undo.hpp \
+		src/markdown_paste.hpp src/ordered_command_proof.hpp \
+		src/ordered_delete_route.hpp src/ordered_poll.hpp src/ordered_engine_guards.hpp src/reply_state_reads.hpp \
+		src/ordered_engine_state.inc src/ordered_engine_reply.inc src/ordered_engine_poll.inc \
+		src/ordered_engine_delete.inc src/ordered_format.inc src/main_loop_pacing.hpp src/writer_caret_bridge.h \
+		$(E2_V32_MD4C_INCLUDE)/md4c.h Makefile \
+		| $(E2_V32_BUILD) v32-paragraph-worker-preflight
+	$(CXX) $(E1_CPPFLAGS) $(R5_CXXFLAGS) -I$(E2_V32_MD4C_INCLUDE) \
+		-DOXSDK_EDITOR_DISCOVERY \
+		-DOXSDK_FINDING_016_SELECTION_BARRIER -DOXSDK_E2_FORMAT_BARRIER \
+		-DOXSDK_MERGE_KEY_UNDO -DOXSDK_E2_V20_LINK_BATCH \
+		-DOXSDK_E2_V21_LINK_BATCH -DOXSDK_MAINLOOP_ENGINE \
+		-DOXSDK_E2_V23_LINK_BATCH -DOXSDK_E2_V23_FEATURE_ABI6 \
+		-DOXSDK_E2_V24_TYPED_INSERT -DOXSDK_E2_V25_FORMAT_PROOF \
+		-DOXSDK_E2_V27_FIRST_BLOCK -DOXSDK_E2_V28_LAST_BLOCK \
+		-DOXSDK_E2_V29_TICK_PACING -DOXSDK_E2_V31_ALIGNMENT \
+		-DOXSDK_E2_V32_PARAGRAPH_READ \
+		$(EXTRA_DEFINES) -c $< -o $@
+
+# v31's public export surface, unchanged.
+$(E2_V32_BUILD)/exports.txt: $(E2_V32_ARCHIVE)/exports.txt Makefile | $(E2_V32_BUILD)
+	cp $< $@
+
+# Guarded from the first link, like every product artifact before it.
+$(E2_V32_BUILD)/probe.js: $(E2_V32_OBJECTS) $(E2_V32_BRIDGE) $(EXTRA_OBJECTS) \
+		$(E2_V32_BUILD)/exports.txt $(LINKDEPS) $(FS_PRE_JS) Makefile
+	$(call refuse_unasked_relink,the v32 paragraph read (SPEC-P-demo-batch-4; ABI 6) -- every link mints a new hash)
+	$(call link_product_stack_1m,$(E2_V32_OBJECTS) $(E2_V32_BRIDGE) $(EXTRA_OBJECTS),$(E2_V32_BUILD)/exports.txt,$@)
+
+$(E2_V32_BUILD)/probe.wasm: $(E2_V32_BUILD)/probe.js
+	@test -s $@
+
+# The worker with the six toggle ids: v31's plus tests/v32-worker-delta.json.
+$(E2_V32_BUILD)/sdk-worker.js: sdk/v32-paragraph-read-worker.js Makefile | $(E2_V32_BUILD) v32-paragraph-worker-preflight
+	cp $< $@
+
+# v31's manifest construction under the v32 name, the six toggle leaves, and the three bindings.
+$(E2_V32_DIST)/sdk-manifest.json: $(E2_V32_BUILD)/probe.js $(E2_V32_BUILD)/probe.wasm \
+		$(E2_V32_BUILD)/exports.txt $(E2_V32_BUILD)/sdk-worker.js \
+		$(E2_V32_ARCHIVE)/sdk-manifest.json sdk/v18-writer-review-manifest.json \
+		tools/build_base_no35_pack.py tools/build_r5_profiles.py \
+		tools/build_cjk_subset.py tools/build_cjk_subset_ttc_pack.py \
+		tools/build_cjk_subset_mono_pack.py \
+		tools/build_e2_editor_v5_profile.py tools/build_e2_v23_feature_profile.py \
+		tools/build_e2_v24_feature_profile.py tools/check_v24_feature_contract.py \
+		tools/build_e2_v32_paragraph_profile.py tools/check_v32_paragraph_contract.py \
+		tools/check_v23_feature_contract.py tools/check_v23_diagnostic_build.py \
+		tools/inspect_wasm_function.py tools/validate_r5_artifacts.py \
+		tools/build_e2_editor_v4_profile.py tools/build_e2_c_profile.py \
+		tools/build_e2_b_profile.py tools/e1_support.py | $(E2_V32_DIST)
+	echo "$(E2_V32_WORKER_SHA256)  $(E2_V32_BASE_WORKER)" | sha256sum -c --quiet
+	python3 tools/build_base_no35_pack.py --check
+	python3 tools/build_cjk_subset_mono_pack.py --check
+	python3 tools/build_e2_v32_paragraph_profile.py \
+		--source-manifest sdk/v18-writer-review-manifest.json \
+		--loader $(E2_V32_BUILD)/probe.js --wasm $(E2_V32_BUILD)/probe.wasm \
+		--worker $(E2_V32_BUILD)/sdk-worker.js \
+		--exports $(E2_V32_BUILD)/exports.txt \
+		--profile e2-editor-v32 --inline-range-gestures all \
+		--page-rectangles --paste-markdown \
+		--output $(E2_V32_DIST)
+	@test -s $(E2_V32_DIST)/probe.js
+	@test -s $(E2_V32_DIST)/probe.wasm
+	@test -s $(E2_V32_DIST)/sdk-worker.js
+
+$(E2_V32_BUILD) $(E2_V32_DIST):
+	mkdir -p $@
+
+# Focused tests only; no objects, no link.  SPEC-P-demo-batch-4 W1, E2.
+.PHONY: test-demo-batch-4-static
+test-demo-batch-4-static:
+	node tests/v32_paragraph_worker_test.cjs
+	python3 -I tests/test_paragraph_read_v32.py
+
 # Focused tests only; no objects, no link.  SPEC-P-demo-batch-3 W1, W2, E1.
 .PHONY: test-demo-batch-3-static
 test-demo-batch-3-static:
@@ -5267,6 +5367,7 @@ test-e2-c-static:
 		--carrier E2_V28=probe_engine,sdk_api,editor_api \
 		--carrier E2_V29=probe_engine,sdk_api,editor_api \
 		--carrier E2_V31=probe_engine,sdk_api,editor_api \
+		--carrier E2_V32=probe_engine,sdk_api,editor_api \
 		--carrier ODS_VIEWER_V1=probe_engine,sdk_api \
 		--carrier ODS_VIEWER_V2=probe_engine,sdk_api \
 		--carrier ODS_VIEWER_V3=probe_engine,sdk_api \

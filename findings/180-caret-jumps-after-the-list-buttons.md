@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **狀態** | 已確認；未修，2026-11-02 擁有者裁示下一輪修（併入 `specs/SPEC-P-demo-batch-4.md`） |
+| **狀態** | 已確認；修法在 e2-editor-v32，等連結（`specs/SPEC-P-demo-batch-4.md` 第 5 節） |
 | **Bugzilla** | 不適用 |
 | **發現日** | 2026-11-02（Codex 審核對齊設計時指出機制，N2 量到） |
 | **嚴重度** | 一般：下一個按鍵打在錯的位置，文件內容不遺失 |
@@ -39,3 +39,9 @@
 採建議 A：先連結 demo batch 3，180 下一輪修。下一輪的連結本來就要做 H1～H4 與切換鈕（`specs/SPEC-P-demo-batch-4.md`），一起換讀法，F3、F4 只重驗一次。
 
 `tools/check_writer_align.py` 的 `P1c/control/list-button-still-moves-the-caret` 把這個現象釘成對照：修好時它會轉紅，要跟著拿掉。
+
+## 修法的更正（2026-11-03）
+
+上面「同一種選一個字元的讀法」不成立：一個字元的選取讀不到清單標籤（`evidence/demo-batch-4/native-toggle/`）。改用不選取的讀法，`src/writer_caret_bridge.cpp` 從文件讀游標涵蓋的段落，什麼都沒選，所以也沒有東西要還原。N4：168 格的存檔都等於完全不讀的對照。判準 T4。
+
+另外，這份 finding 引用的 `neighbour/` 與 N2 的 `para-start`、`list-start` 位置不在段落開頭，見規格第 5 節。現象本身不受影響。

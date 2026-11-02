@@ -214,6 +214,25 @@ typedef enum oxsdk_editor_v5_action {
 } oxsdk_editor_v5_action;
 #endif
 
+#ifdef OXSDK_E2_V32_PARAGRAPH_READ
+#ifndef OXSDK_E2_V31_ALIGNMENT
+#error "the v32 toggles sit on the v31 paragraph actions"
+#endif
+/*
+ * SPEC-P-demo-batch-4: heading levels 1 to 4 and the two lists, one action each
+ * way.  The engine reads the document and decides, so a client cannot press a
+ * toggle the wrong way on a stale view of it.  The version stays 6, as for v31.
+ */
+typedef enum oxsdk_editor_v6_action {
+  OXSDK_EDITOR_V6_TOGGLE_HEADING_1 = 28,
+  OXSDK_EDITOR_V6_TOGGLE_HEADING_2 = 29,
+  OXSDK_EDITOR_V6_TOGGLE_HEADING_3 = 30,
+  OXSDK_EDITOR_V6_TOGGLE_HEADING_4 = 31,
+  OXSDK_EDITOR_V6_TOGGLE_LIST_UNORDERED = 32,
+  OXSDK_EDITOR_V6_TOGGLE_LIST_ORDERED = 33
+} oxsdk_editor_v6_action;
+#endif
+
 /*
  * Which selection shapes an action may be dispatched on.  The classes are the
  * engine's own routing boundary (SPEC E2-B 9.9), not a separate taxonomy:
