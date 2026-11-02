@@ -1,0 +1,29 @@
+1. **大量選取會失去原有的拒絕界限。** [writer_caret_bridge.cpp:93](/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/src/writer_caret_bridge.cpp:93)：選取十萬段，或含大量欄位的長段落，再按任一繼承動作。舊路徑拒絕 `COMPLEX`／超過 10,000 bytes 的選取；現在逐段無上限地讀取、複製全文，而且 `getString()` 實際進入 ASCII exporter，不是便宜的節點讀取。整段工作同步持有 SolarMutex，可能長時間阻塞或耗盡 Wasm 記憶體；應在派送前限制段數、文字量與讀取成本。
+
+2. **`numberingHasNoEffect` 並未描述 core 的判斷。** [writer_caret_bridge.h:61](/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/src/writer_caret_bridge.h:61)：選取 DOCX 匯入的 Heading 1（普通數字清單規則，非 `Outline`）與項目符號內文，point 留在內文。函式回 true、拒絕派送，但 core 的 `SelectionHasNumber()` 因項目符號回 false，原本可以套上普通編號。反過來，普通 Outline 標題＋非清單內文使函式回 false；point 放在標題，會走 Outline 分支，派送後才因讀不到 `ol` 而進 recovery。應讀取實際規則、層級與 counted 狀態，分開判斷「命令無效」及「產品不支援」。
+
+3. **`NUMBER_NONE` 被誤當成沒有清單，讓 `paragraphMeets`／`crossStateHeld` 誤綠。** [writer_caret_bridge.cpp:65](/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/src/writer_caret_bridge.cpp:65)：段落樣式攜帶清單 R，該層為 `NUMBER_NONE`，段落另外直接指定清單 S。按「移除清單」時，core 的 `DelNumRules()` 可移除 S、重新露出繼承的 R；讀取仍回 `list=""`，`expectedListTag="none"` 因而通過，實際仍屬清單。另對 NONE 清單按編號，`toggleTakesOff` 選擇開啟，但 core 的 `HasNumber()` 將 NONE 算作 enumeration，命令可以不動、最後轉紅。應分開保存清單成員身分與標記種類。
+
+4. **`crossIdentityHeld` 使用會隨排版改變的文字，會把正確操作判紅。** [ordered_format.inc:503](/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/src/ordered_format.inc:503)：建立含頁碼欄位的段落，將 H2 設成段前分頁，再按 H2。樣式正確、段落未換，但頁碼展開值改變，文字比較便可能失敗並要求 recovery。`SwXParagraph::getString()` 匯出整段且展開欄位／註腳標號；應以穩定節點身分及模型內容驗證，將動態展開值排除。
+
+5. **相反方向，文字相等不能證明段落、物件或游標未變。** [ordered_format.inc:508](/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/src/ordered_format.inc:508)：具體紅案突變是在格式派送後，把游標移到同文字、同目標格式的相鄰段落，或只移動同段內的 offset。兩個 cross predicate 都綠，`restoreConfirmed` 又直接設 true；下一個字卻打錯位置。應驗證節點與選取端點；這是證據缺口，不能宣稱目前 core 已實際發生該突變。
+
+6. **鍵盤選取選單項目後，焦點落到被隱藏的節點。** [e2-editor-app.js:1229](/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/web/e2-editor-app.js:1229)：Tab 到標題鈕、ArrowDown、Enter 套用。click 關閉選單，卻沒有轉移焦點；滑鼠的 mousedown 回 sink 修法不會執行，後續打字不能正常進文件。關閉時應明確把焦點交回標題鈕或 sink；T10 完全沒有測鍵盤啟動項目。
+
+7. **選單可以留在已不可用的工具列上。** [e2-editor-app.js:1275](/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/web/e2-editor-app.js:1275)：先開選單，再讓 session 進入 `recoverable-error`／`restart-required`；availability 只停用按鈕，選單仍開著。另以滑鼠開啟時焦點保留 sink，Escape 不會到選單的 keydown handler，因此也關不掉。應在 availability 消失時關閉，並於選單開啟期間統一處理 Escape。
+
+8. **DOCX 編號標題的顯示與按鈕方向相反。** [paragraph-editor-client.js:71](/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/editor-shell-v2/paragraph-editor-client.js:71)：Heading 1 使用非 Outline 的普通數字清單。頁面無條件隱去其編號狀態；引擎卻讀成 `ol`，按這顆沒有顯示作用中的按鈕會移除編號。應只排除 Outline 狀態，不能排除所有標題上的實際編號清單。
+
+9. **清單驗收無法分辨項目符號與編號。** [check_writer_toggle.py:74](/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/check_writer_toggle.py:74)：把兩個引擎動作都錯接成項目符號，`T1/number/on-off-on` 仍可通過。相同盲點涵蓋 T5 的 bullet／number 開關、T6 三個清單開啟格、T11 的清單保存。`T3/bullet-item-takes-numbering` 搜尋整份 XML 的 number 定義，而夾具本來已有編號，保留原項目符號也能綠。應解析該段實際引用的清單樣式與層級。
+
+10. **「文件不變／一次復原」只驗到狹窄投影。** [check_writer_toggle.py:302](/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/check_writer_toggle.py:302)：讓拒絕路徑偷偷改縮排、對齊或清單起始值；兩個 `T7/*/unchanged` 都看不到。五個 T8 格同樣允許這些副作用在 Undo 後殘留。應比較完整且正規化的相關文件結構；目前沒有任何格驗證第 3 項的 NONE／樣式繼承缺陷。
+
+11. **六個 T5 提示格在儲存成功後失去鑑別力。** [check_writer_toggle.py:235](/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/check_writer_toggle.py:235)：操作先顯示「失敗」或 review 提示，`rows_of()` 隨即儲存，覆蓋 latency 與 toast，再執行 `T5/{bullet,number,h2}-{on,off}/no-notice`，仍會綠；而且完全沒檢查已讀取的 `notice`。應在儲存前擷取操作結果及提示歷史。`T5/h2/on-then-off` 也只驗非零，空白文件錯套 H1 仍通過。
+
+12. **另外幾個具名格驗錯事情。** [check_writer_toggle.py:223](/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/check_writer_toggle.py:223)：五個 `T4/wrapped-line/*` 只數 q，游標移到同段其他位置仍綠；應比較精確插入位置。[第 337 行](/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/check_writer_toggle.py:337)的 `T9/before-any-broadcast-nothing-is-claimed` 已先移動游標，且允許內文被勾選；應在首次廣播前量測。[第 365 行](/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/check_writer_toggle.py:365)的 `T10/mouse-open-does-not-take-the-sink` 只要選單仍開著就綠，焦點真的被搶走也通過；應獨立斷言焦點。
+
+13. **選取讀取：指定的基本容器情境，no defect found。** [unotxvw.cxx:256](/home/jiajun/LibreOffice/study_LiteCore/libreoffice-26-8/sw/source/uibase/uno/unotxvw.cxx:256)：註腳、頁首頁尾、文字框內的文字游標走 `SwXTextRanges`；一般 collapsed range 列舉其所在的一段。框／圖片選取、shape 集合、跨儲存格 table cursor、comment 的 PostIt 模式會被目前的型別／屬性檢查拒絕；唯讀區仍可讀，不代表可寫。例外有捕捉。多範圍則按 PaM ring 順序列舉，**不是 header 宣稱的文件順序，也可能重複同一段**；應更正契約或排序去重。成本問題見第 1 項。
+
+14. **目前的一般命令同步順序：no defect found。** [unoctitm.cxx:655](/home/jiajun/LibreOffice/study_LiteCore/libreoffice-26-8/sfx2/source/control/unoctitm.cxx:655)：LOK 註冊 callback handler 且傳入 `true` 時，結果 listener 強制 `SYNCHRON`；所列清單、StyleApply、對齊命令的一般模型修改同步完成。若未來改成非同步，未達目標通常會誤紅，已達目標的 setter 則可能拿舊狀態誤綠；目前不能用 180 ms drain 推論存在此缺陷。SolarMutex 可重入；同執行緒、鎖內查 view 且檢查空值，未找到 stale-view 使用缺陷。
+
+15. **正常擴選、空期望與隱藏按鈕：no defect found。** [ordered_format.inc:469](/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/src/ordered_format.inc:469)：一般單段選取擴為整段可避開 inline heading；欄位／註腳 anchor 不會自行增加外層段落，空段通常走 collapsed 路線。`paragraphMeets` 的空字串是 wildcard、`none` 才是無清單，`toggleTakesOff` 對準確 rows 的全稱判斷本身正確；問題在上述投影及 guard。UNO 樣式名有 programmatic-name 正規化，不能把本地化顯示名直接當引擎缺陷。`hidden` CSS 排除 Tab，view-only gate 仍涵蓋新控制項；busy 可排隊且方向到執行時才讀取。

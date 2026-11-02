@@ -35,7 +35,7 @@ def arms():
     for path in sorted(N4.glob('*/observations.jsonl')):
         for line in path.read_text().splitlines():
             row = json.loads(line)
-            if row['route'] == 'read' and row['post']['ok'] == 1 and path.parent.name != 'range':
+            if row.get('route') == 'read' and row['post']['ok'] == 1 and path.parent.name != 'range':
                 out.append(row)
     return out
 

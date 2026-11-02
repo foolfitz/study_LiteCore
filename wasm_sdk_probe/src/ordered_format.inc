@@ -288,14 +288,18 @@ void finishOrderedParagraphRead() {
            "mutation outcome is unknown");
     return;
   }
+  // Review, not rollback, for the two below (the shell keeps the queue open on all
+  // three shapes).  The read is of the document, so what it says about the document
+  // can be believed: a page number field that moves with a page break changes the
+  // text and a list style with an undefined level misses the target, and neither is
+  // worth the work since the last save.  Finding 182 is what the other answer costs.
   if (!gFormatBarrier.crossIdentityHeld) {
-    refuse(gFormatBarrier.postBlockTexts.size() != gFormatBarrier.preBlockTexts.size()
-               ? "block-count-changed" : "block-text-mismatch",
-           "the paragraphs read after the dispatch are not the ones it was sent to");
+    refuse("paragraph-text-changed",
+           "the paragraphs read after the dispatch differ from those it was sent to");
     return;
   }
   if (!gFormatBarrier.crossStateHeld) {
-    gFormatBarrier.failureShape = "postcondition-not-met";
+    gFormatBarrier.failureShape = "paragraph-target-not-met";
     failFormatBarrier("EDITOR_FORMAT_POSTCONDITION_FAILED",
                       "the document does not show the state this action asked for");
     return;
@@ -423,10 +427,14 @@ void startOrderedParagraphRead(FormatStateBarrier barrier, std::uint32_t action)
   }
   std::vector<WriterParagraphRead> before;
   if (!writerSelectionParagraphs(gState.document, before, barrier.paragraphReadReason)) {
-    barrier.failureShape = "routing-selection-not-readable";
-    deferOrderedFormatReply(barrier, false, "EDITOR_FORMAT_SELECTION_NOT_READABLE",
-        "this selection holds something other than paragraphs, so nothing was "
-        "dispatched and the document is unchanged");
+    const bool tooLong = barrier.paragraphReadReason == kWriterReadTooLong;
+    barrier.failureShape = tooLong ? "selection-too-long" : "routing-selection-not-readable";
+    deferOrderedFormatReply(barrier, false,
+        tooLong ? "EDITOR_FORMAT_SELECTION_TOO_LONG" : "EDITOR_FORMAT_SELECTION_NOT_READABLE",
+        tooLong ? "this selection covers too many paragraphs to check, so nothing was "
+                  "dispatched and the document is unchanged"
+                : "this selection holds something other than paragraphs, so nothing was "
+                  "dispatched and the document is unchanged");
     return;
   }
   barrier.route = gEditorState.selectionRectangles.empty() ? FormatBarrierRoute::Collapsed

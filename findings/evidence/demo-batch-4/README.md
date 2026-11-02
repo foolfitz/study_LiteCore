@@ -13,7 +13,8 @@ H1 to H4 in a menu, heading and list on one button each way, finding 180. One li
 | `native-toggle-sequence/run-01` (N5) | 108 presses in 28 sequences through the v32 decision (`tools/n5_native_writer_toggle_sequence.cpp`): reversal on bullets, numbers and four heading levels, body, list and table caret, empty paragraphs, a blank document, ranges, mixed ranges, the whole document. 105 verified, 3 refused as designed, every saved file agrees with the read |
 | `native-toggle-sequence/run-02-no-drain` | The same with the read straight after the post, as the engine does it. Same outcome, 105 and 3 |
 | `before-v31/run-01` | The shipped page, both browsers: a leading selection builds a frame (finding 181); a range from inside a paragraph ends in `recoverable-error` with save gone (finding 182) |
-| `preview/run-01` to `run-03` | The new controls on the v31 engine with the page's `offers` test forced: T9 and T10. `run-02` is red on one cell on the v31 worker, a body paragraph reached from a body paragraph, because a reply went through the old projection; `run-03` with the v32 worker holds 18/18 on both browsers. Nothing about the actions |
+| `preview/run-01` to `run-06` | The new controls on the v31 engine with the page's `offers` test forced: T9 and T10. `run-02` is red on one cell on the v31 worker, a body paragraph reached from a body paragraph, because a reply went through the old projection; `run-03` with the v32 worker is green. `run-05` is the first run with the keyboard press cells: Chrome's CDP key does not fire a button's default click, so the page now handles Enter itself. `run-06` holds 23/23 on both browsers. Nothing about the actions |
+| `native-caret-read/large` | The read's cost: 8 ms for 100 paragraphs, 329 ms for 1,000, 7.9 s for 5,000, 157 s for 20,000, native. Hence the limit of 500. Nine arms in a paragraph with an as-char frame: target met 9/9, the saved files agree (`postMatchesFile` reads 0 only because the reader's text match trips on the frame's anchor character) |
 
 `native-caret-read/range` was run twice. The first run read 84 arms, every command silently doing nothing and every read agreeing with the file: a harness I had stopped left a `.~lock` beside the fixture and the next run opened it read-only. It was deleted and `run.sh` now copies the fixtures per run.
 
@@ -27,5 +28,7 @@ H1 to H4 in a menu, heading and list on one button each way, finding 180. One li
 | Symbols, `pre-link/symbols.json` | `SYMBOLS_HOLD`: `SfxLokHelper::getViewOfId` and `SfxViewShell::GetCurrentDocument` are defined in this core's archives (llvm-nm, no compile) |
 | Dry run, `pre-link/make-n-owner-line.txt` | `check_v32_paragraph_contract.py --build-log`: `v32 preconditions hold` |
 | W1, E2 | `make test-demo-batch-4-static` |
+
+| Review, `review/` | Codex read-only, 15 points. Spec section 7 has the outcome of each. Fixed: the read's limit, three post-dispatch shapes to review, focus after a keyboard press, the menu on an unavailable session, seven acceptance cells |
 
 Not run, because they need the link: `tools/check_writer_toggle.py` (P4), `tools/check_writer_align.py` against v32 (P1'), the generation 87 chain, the host.

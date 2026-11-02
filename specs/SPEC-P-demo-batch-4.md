@@ -152,3 +152,30 @@
 - **標題套在清單項目上會離開清單**：`bullet-then-heading` 的 `ul → h2 無清單`。這是 Writer 自己的行為（Heading 帶大綱編號規則，`bResetListAttrs`），判準不受影響，記錄下來免得之後當成缺陷。
 - **`preview/run-02`** 量到 worker 投影差異的因果：v31 worker 上，從內文走到內文時回覆把三個欄位洗掉，工具列狀態消失；`run-03` 換 v32 worker 18/18。
 
+
+## 7. 追加 5（2026-11-03，Codex 審核之後、連結之前）
+
+唯讀審核一輪，原文 `findings/evidence/demo-batch-4/review/codex-review.txt`，工單在同一目錄。15 點，只採會改變行為或判準的，一輪釘死。
+
+**改了行為的：**
+
+- **讀法有上限**（第 1 點）。實測成本是超線性的：100 段 8 ms、1,000 段 329 ms、5,000 段 7.9 秒、20,000 段 157 秒（原生，`native-caret-read/large`）。上限 500 段，超過在派送前拒絕，新錯誤碼 `EDITOR_FORMAT_SELECTION_TOO_LONG`，句子「選取的段落太多，無法一次套用。請分段選取，文件沒有變動」。舊路線約 10 KB 文字就拒絕，500 段仍然比舊路線寬。
+- **派送後的三種失敗都走 review，不走 rollback**（第 2、4 點）。第 5 節決定 2 寫的「既有 shape」取消：v32 的 shape 是 `paragraph-read-failed`、`paragraph-text-changed`、`paragraph-target-not-met`，全部 `dispatched-unverified`。理由：讀到的是文件本身，文字隨頁碼欄位改變或清單層級未定義都只是核對沒過，不值得拿使用者未存的內容去換。finding 182 就是另一個答案的代價。v31 以前的 `postcondition-not-met` 維持 rollback。
+- **鍵盤選項目後焦點回 sink**（第 6 點）。先前焦點留在被隱藏的按鈕上，下一個鍵落空。
+- **session 不可用時關選單；滑鼠開的選單 Esc 也關得掉**（第 7 點）。
+- **P4 工具**（第 9–12 點）：清單判讀分得出項目符號與編號；拒絕的「文件不變」比整份 XML；T5 在存檔之前讀提示；換行段落比精確位置。新增 T7 的段落上限與 T12（含 as-char 框的段落，`native-caret-read/large` 九格都和存檔一致）。
+
+**不改，登錄限制：**
+
+- `L-none-list-level`（第 3 點）：清單層級是 `NUMBER_NONE` 時讀成不在清單。按編號可能沒有效果，結果是 review。
+- `L-numbered-heading-state`（第 8 點）：DOCX 帶編號的標題，快取分不出大綱與真清單，所以標題上編號鈕不顯示狀態；按下去由引擎讀文件，會取消編號。方向是對的，只是看不出來。
+- 第 5 點（文字相等不能證明游標沒動）：v32 什麼都不移動，證據由 T4 的精確落點負責。
+- 第 13 點：標頭的「文件順序」改成「選取自己的順序」，這個產品選不出多段範圍。
+
+**第 14 點回答了 N5 也量到的問題**：帶 notify 的 `postUnoCommand` 走 `SYNCHRON`（`sfx2/source/control/unoctitm.cxx:655`），所以派送後立刻讀是對的；`run-02-no-drain` 是同一件事的量測。
+
+**更正第 5 節**：「新開文件在第一次廣播之前三個欄位都是 null」與 `L-state-before-first-broadcast` 是我誤讀 `preview/run-01`。那一格紅的真正原因是 v31 worker 的回覆投影把欄位洗掉（`run-02`、`run-03` 的因果對照）。游標放好之後狀態就有了，`preview/run-06` 的 T9 是 8 格全過。這條限制取消。
+
+**頁面補一處**：`Enter`／空白鍵在選單裡由頁面自己處理，不靠按鈕預設行為。Chrome 的 CDP 按鍵不會觸發預設 click，工具因此抓到這個差異；對使用者沒有差別，但按鍵到動作現在是同一條路。
+
+判準之外新增的格子都在第一次連結之前落地，沒有執行被算進去，符合 CLAUDE.md 第 9 節的「先於滿足」。

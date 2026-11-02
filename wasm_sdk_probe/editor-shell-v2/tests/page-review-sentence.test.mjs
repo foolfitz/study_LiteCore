@@ -94,7 +94,14 @@ test("the assertion has teeth: a page given only 083's name says the wrong sente
             `the mutated list did not change the sentence, so the first test proves nothing: ${message}`);
 });
 
-test("a read that failed after the dispatch says so, on no particular paragraph", async () => {
-  const message = await toastFor(review("paragraph-read-failed"));
-  assert.ok(message.includes("讀不到段落的狀態") && !message.includes(EMPTY) && !message.includes(MULTI) && !message.includes(ROLLBACK), message);
+test("a read that failed, or text that moved, says the check could not be made", async () => {
+  for (const shape of ["paragraph-read-failed", "paragraph-text-changed"]) {
+    const message = await toastFor(review(shape));
+    assert.ok(message.includes("無法核對段落的狀態") && !message.includes(EMPTY) && !message.includes(MULTI) && !message.includes(ROLLBACK), message);
+  }
+});
+
+test("a target not reached says the action fell short, not the check", async () => {
+  const message = await toastFor(review("paragraph-target-not-met", "EDITOR_FORMAT_POSTCONDITION_FAILED"));
+  assert.ok(message.includes("沒有變成這個動作要的狀態") && !message.includes("檢查的極限") && !message.includes(ROLLBACK), message);
 });

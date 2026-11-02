@@ -273,6 +273,8 @@ function describeError(error) {
     return "標題段落不能加編號。請先把它改回內文，文件沒有變動";
   if (error?.code === "EDITOR_FORMAT_SELECTION_NOT_READABLE")
     return "這段選取裡有表格或其他物件，這個動作只能用在段落上，文件沒有變動";
+  if (error?.code === "EDITOR_FORMAT_SELECTION_TOO_LONG")
+    return "選取的段落太多，無法一次套用。請分段選取，文件沒有變動";
   const code = error?.code ? `${error.code}：` : "";
   return `${code}${error?.message || String(error)}`;
 }
@@ -1205,6 +1207,7 @@ function closeHeadingMenu({ refocus = false } = {}) {
   el.headingMenu.hidden = true;
   el.headingButton.setAttribute("aria-expanded", "false");
   document.removeEventListener("pointerdown", closeHeadingMenuOutside, true);
+  document.removeEventListener("keydown", closeHeadingMenuOnEscape, true);
   if (refocus) el.headingButton.focus();
 }
 
@@ -1212,10 +1215,20 @@ function closeHeadingMenuOutside(event) {
   if (!event.target.closest?.("#heading-menu, #heading-menu-button")) closeHeadingMenu();
 }
 
+// Opened with the pointer the focus stays in the sink, so the menu's own key
+// handler never sees this.  Capture, and only while the menu is open.
+function closeHeadingMenuOnEscape(event) {
+  if (event.key !== "Escape") return;
+  event.preventDefault();
+  event.stopPropagation();
+  closeHeadingMenu({ refocus: el.headingMenu.contains(document.activeElement) });
+}
+
 function openHeadingMenu({ focusItem = false } = {}) {
   el.headingMenu.hidden = false;
   el.headingButton.setAttribute("aria-expanded", "true");
   document.addEventListener("pointerdown", closeHeadingMenuOutside, true);
+  document.addEventListener("keydown", closeHeadingMenuOnEscape, true);
   if (focusItem) (el.headingMenu.querySelector('[aria-checked="true"]')
                   ?? el.headingMenu.querySelector("button")).focus();
 }
@@ -1226,7 +1239,13 @@ el.headingButton.addEventListener("click", () => {
 });
 
 // An item's own press goes through the toolbar's click handler, like every action.
-el.headingMenu.addEventListener("click", () => closeHeadingMenu());
+// The focus goes to the sink: a keyboard press has it on the item, which is about to
+// be hidden, and the next key would land nowhere (the pointer's mousedown does this
+// for itself).
+el.headingMenu.addEventListener("click", () => {
+  closeHeadingMenu();
+  if (session) el.sink.focus({ preventScroll: true });
+});
 
 el.headingButton.addEventListener("keydown", (event) => {
   if (event.key !== "ArrowDown" && event.key !== "Enter" && event.key !== " ") return;
@@ -1235,14 +1254,16 @@ el.headingButton.addEventListener("keydown", (event) => {
 });
 
 el.headingMenu.addEventListener("keydown", (event) => {
-  if (event.key === "Escape") {
-    event.preventDefault();
-    closeHeadingMenu({ refocus: true });
-  } else if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+  if (event.key === "ArrowDown" || event.key === "ArrowUp") {
     event.preventDefault();
     const items = [...el.headingMenu.querySelectorAll("button")];
     const step = event.key === "ArrowDown" ? 1 : items.length - 1;
     items[(items.indexOf(document.activeElement) + step) % items.length].focus();
+  } else if (event.key === "Enter" || event.key === " ") {
+    // Said here, not left to the button's default: the press and the focus move
+    // that follows it are one step whatever delivered the key.
+    event.preventDefault();
+    document.activeElement?.click?.();
   } else if (event.key === "Tab") {
     closeHeadingMenu();
   }
@@ -1274,6 +1295,7 @@ function applyControlMutability() {
 // 📂 is not a session operation, and outside a host it is a way out.
 function applySessionAvailability(snapshot) {
   const accepting = SESSION_ACCEPTS.has(snapshot.state);
+  if (!accepting) closeHeadingMenu();
   for (const button of el.toolbar.querySelectorAll("button")) {
     if (button === el.openFile) continue;
     if (!accepting) {
@@ -2347,10 +2369,13 @@ async function run(label, operation, { quiet = false } = {}) {
         ? "動作已送出，但這一段後面沒有可以一起選的段落，檢查改成往前多選一格，"
           + "碰到了表格或其他讀不了的內容，所以無法核對。"
           + "請看一下結果，不是你要的就按「復原」。這是檢查的極限，不是文件壞了"
-        // SPEC-P-demo-batch-4: the read that worked before the dispatch failed
-        // after it.  Says what happened, and nothing about which paragraph.
+        // SPEC-P-demo-batch-4.  The read describes the document, so this one
+        // says the action fell short; the other two say the check did.
+        : shape === "paragraph-target-not-met"
+        ? "動作已送出，但文件沒有變成這個動作要的狀態。"
+          + "請看一下結果，不是你要的就按「復原」"
         : PARAGRAPH_READ_SHAPES.includes(shape)
-        ? "動作已送出，但送出之後讀不到段落的狀態，所以無法核對。"
+        ? "動作已送出，但送出之後無法核對段落的狀態。"
           + "請看一下結果，不是你要的就按「復原」。這是檢查的極限，不是文件壞了"
         // Finding 046's residual.  Says dispatched-and-unverified, and does
         // NOT say it worked -- the barrier did not verify it.  Undo is

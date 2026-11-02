@@ -60,11 +60,13 @@ test("what the toolbar shows: the level, the bullet, and the number where it mea
   assert.equal(paragraphFormatShown({paragraphStyle: "Heading 2", formatStale: true}, true).level, 2, "formatStale is not read: it stays true over right values");
 });
 
-test("paragraph-read-failed keeps the queue open on every route", () => {
+test("the paragraph read's three shapes keep the queue open on every route, and v31's keeps its rollback", () => {
   for (const route of ["collapsed", "range-single", "range-cross"])
-    assert.equal(formatFailureDisposition({details: {formatBarrier: {dispatched: true, route, failureShape: "paragraph-read-failed"}}}), "dispatched-unverified");
+    for (const failureShape of ["paragraph-read-failed", "paragraph-text-changed", "paragraph-target-not-met"])
+      assert.equal(formatFailureDisposition({details: {formatBarrier: {dispatched: true, route, failureShape}}}), "dispatched-unverified");
   assert.equal(formatFailureDisposition({details: {formatBarrier: {dispatched: true, route: "collapsed", failureShape: "postcondition-not-met"}}}), "dispatched-rollback");
   assert.equal(formatFailureDisposition({details: {formatBarrier: {dispatched: false, route: "collapsed", failureShape: "paragraph-read-failed"}}}), "refused-no-mutation");
+  assert.equal(formatFailureDisposition({details: {formatBarrier: {dispatched: false, route: "collapsed", failureShape: "selection-too-long"}}}), "refused-no-mutation");
 });
 
 const html = readFileSync(fileURLToPath(new URL("../../web/e2-editor.html", import.meta.url)), "utf8");

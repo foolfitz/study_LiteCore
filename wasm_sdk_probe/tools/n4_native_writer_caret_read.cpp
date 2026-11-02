@@ -141,6 +141,36 @@ int main(int argc, char **argv) {
       for (const Cmd &cmd : {cmds[0], cmds[1], cmds[4], cmds[9]})
         for (const char *route : {"truth", "read"})
           arm(kit, dir + "/table-caret-fixture.odt", out, "table", where, route, cmd, counter);
+  } else if (part == "large") {
+    // What the read costs on a long selection, no rows printed.
+    auto *d = open(kit, dir + "/long-fixture.odt");
+    uno(d, ".uno:GoToStartOfDoc");
+    for (const int lines : {100, 1000, 5000}) {
+      uno(d, ".uno:GoToStartOfDoc");
+      for (int i = 0; i < 1; ++i) (void)i;
+      const std::string args = "{\"Count\":{\"type\":\"long\",\"value\":" + std::to_string(lines) + "},\"Select\":{\"type\":\"boolean\",\"value\":true}}";
+      uno(d, ".uno:GoDown", args.c_str(), true, 400);
+      std::vector<probe::WriterParagraphRead> rows;
+      std::string reason;
+      const auto started = std::chrono::steady_clock::now();
+      const bool ok = probe::writerSelectionParagraphs(d, rows, reason);
+      const auto us = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - started).count();
+      std::cout << "{\"part\":\"large\",\"lines\":" << lines << ",\"ok\":" << ok << ",\"rows\":" << rows.size() << ",\"us\":" << us << ",\"reason\":\"" << escape(reason) << "\"}" << std::endl;
+    }
+    uno(d, ".uno:SelectAll");
+    {
+      std::vector<probe::WriterParagraphRead> rows;
+      std::string reason;
+      const auto started = std::chrono::steady_clock::now();
+      const bool ok = probe::writerSelectionParagraphs(d, rows, reason);
+      const auto us = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - started).count();
+      std::cout << "{\"part\":\"large\",\"lines\":\"all\",\"ok\":" << ok << ",\"rows\":" << rows.size() << ",\"us\":" << us << ",\"reason\":\"" << escape(reason) << "\"}" << std::endl;
+    }
+    close(d);
+    const std::vector<Place> shapes{{"caret-after-image", "and after", {S, R, R}}, {"selection-over-image", "IMAGE", {S, ".uno:EndOfParaSel"}}, {"across-image", "BEFORE", {S, ".uno:LineDownSel", ".uno:LineDownSel"}}};
+    for (const auto &where : shapes)
+      for (const Cmd &cmd : {cmds[0], cmds[4], cmds[9]})
+        arm(kit, dir + "/image-fixture.odt", out, "large", where, "read", cmd, counter, false);
   } else if (part == "widen") {
     // A paragraph style on a leading part of one paragraph builds an inline heading frame (SwDocShell::MakeInlineHeading).  Selection
     // by keys, three shapes, each with and without the widening: `plain` dispatches on the selection, `widened` selects the paragraph first.

@@ -11,12 +11,13 @@ reads the paragraph's tag, heading level, list membership and text.  Every check
       an empty paragraph, the last empty paragraph, a list item, a heading.
   T5  a one-paragraph blank document: both lists and H2 on and off, no notice, the status line never says 失敗.
   T6  ranges: a selection inside a paragraph styles the paragraph and builds no frame; a range from inside a paragraph across two reaches both.
-  T7  refusals: numbering on a heading, a selection across a table: a sentence, the document unchanged, the session ready.
+  T7  refusals: numbering on a heading, a selection across a table, more paragraphs than the read will walk: a sentence, the whole document
+      unchanged (`body`, not a projection), the session ready.
   T8  one Ctrl+Z undoes each press.
-  T9  what the toolbar shows, after the caret arrives: the menu's check mark and the two buttons' aria-pressed; before the first broadcast
-      of a fresh document it claims nothing.
+  T9  what the toolbar shows, after the caret arrives: the menu's check mark and the two buttons' aria-pressed; a fresh document claims no level.
   T10 the menu: opens, closes on Escape and outside, keyboard reaches an item, an item press does not take the sink's focus.
   T11 reopened: a saved heading and list are still there.
+  T12 a paragraph with an as-char frame: both toggles work, and the frame stays.
 
 --mutate is the instrument's red case and touches only this run: swap-levels exchanges H2 and H3 at the Worker boundary, no-undo skips the
 Ctrl+Z, no-second-press skips T1's second press.
@@ -49,6 +50,7 @@ BLANK = EVIDENCE / "blank-fixture.odt"
 TABLE = EVIDENCE / "table-caret-fixture.odt"
 CARET = EVIDENCE / "caret-fixture.odt"
 TEXT = a.TEXT
+STYLE = a.STYLE
 BULLET, NUMBER = '[data-action="toggle-list-unordered"]', '[data-action="toggle-list-ordered"]'
 # paragraph index on the levels fixture, as arrow-downs from the start
 BODY, BODY2, H1, H2, H3, H4, ITEM, ITEM2, NUMBERED, JULIET, EMPTY_MID, KILO, EMPTY_LAST = range(13)
@@ -76,18 +78,34 @@ def shape(raw):
     with zipfile.ZipFile(io.BytesIO(raw)) as archive:
         root = ET.fromstring(archive.read("content.xml"))
     parents = {child: parent for parent in root.iter() for child in parent}
+    # The list's kind is the style's first level: the arms put the paragraph at level 1.
+    kinds = {}
+    for style in root.iter(TEXT + "list-style"):
+        first = next(iter(style), None)
+        kinds[style.get(STYLE + "name")] = "ul" if first is not None and first.tag.endswith("bullet") else "ol"
     rows = []
     for p in root.iter():
         if p.tag not in (TEXT + "p", TEXT + "h"):
             continue
-        walk, in_list = p, False
+        walk, in_list, named = p, False, None
         while walk in parents:
             walk = parents[walk]
             if walk.tag == TEXT + "list":
                 in_list = True
-                break
-        rows.append({"text": "".join(p.itertext()), "level": int(p.get(TEXT + "outline-level") or 0) if p.tag == TEXT + "h" else 0, "list": in_list})
+                named = walk.get(TEXT + "style-name") or named
+        rows.append({"text": "".join(p.itertext()), "level": int(p.get(TEXT + "outline-level") or 0) if p.tag == TEXT + "h" else 0, "list": in_list,
+                     "kind": kinds.get(named) if in_list else None, "style": p.get(TEXT + "style-name")})
     return rows
+
+
+def body(raw):
+    """The document as a canonical string, with the attributes a save rewrites taken out: two reads are equal only if nothing else moved."""
+    with zipfile.ZipFile(io.BytesIO(raw)) as archive:
+        root = ET.fromstring(archive.read("content.xml"))
+    for node in root.iter():
+        for name in [a for a in node.attrib if a.endswith("rsid") or a.endswith("paragraph-rsid")]:
+            del node.attrib[name]
+    return ET.tostring(root, encoding="unicode")
 
 
 def frames(raw):
@@ -116,7 +134,7 @@ def rows_of(page):
 
 
 def t1(page, raw, mutate):
-    for name, button in (("bullet", BULLET), ("number", NUMBER)):
+    for name, button, kind in (("bullet", BULLET, "ul"), ("number", NUMBER, "ol")):
         fresh(page, raw)
         page.place(BODY2)
         seen = []
@@ -124,8 +142,8 @@ def t1(page, raw, mutate):
             if not (mutate == "no-second-press" and press == 1):
                 page.press(button)
                 page.quiet()
-            seen.append(rows_of(page)[BODY2]["list"])
-        page.check(f"T1/{name}/on-off-on", seen == [True, False, True], seen)
+            seen.append(rows_of(page)[BODY2]["kind"])
+        page.check(f"T1/{name}/on-off-on", seen == [kind, None, kind], seen)
         page.check(f"T1/{name}/no-red-toast", page.toasts() == 0, evaluate(page.session, "window.__s.toasts.at(-1) ?? null"))
 
 
@@ -165,10 +183,8 @@ def t3(page, raw):
     page.place(ITEM)
     page.press(NUMBER)
     page.quiet()
-    saved = page.save()
-    with zipfile.ZipFile(io.BytesIO(saved)) as archive:
-        content = archive.read("content.xml").decode()
-    page.check("T3/bullet-item-takes-numbering", rows_of(page)[ITEM]["list"] and "list-level-style-number" in content, rows_of(page)[ITEM])
+    got = rows_of(page)[ITEM]
+    page.check("T3/bullet-item-takes-numbering", got["kind"] == "ol", got)
 
 
 def t4(page, raw, caret_raw):
@@ -219,29 +235,30 @@ def t4(page, raw, caret_raw):
         page.key("q")
         page.quiet()
         rows = rows_of(page)
-        wrapped = next(r for r in rows if r["text"].startswith("HOTEL"))
-        page.check(f"T4/wrapped-line/{name}", wrapped["text"].count("q") == 1, {"caret": before, "tail": wrapped["text"][-40:]})
+        wrapped = next(r for r in rows if r["text"].startswith("HOTEL"))["text"]
+        page.check(f"T4/wrapped-line/{name}", len(wrapped) > 2 and wrapped[-2] == "q", {"caret": before, "tail": wrapped[-40:]})
 
 
 def t5(page, blank):
-    def clean(name):
+    def clean(name):  # before the save: a save writes over both
         s = page.toolbar()
-        page.check(f"T5/{name}/no-notice", "失敗" not in (s["latency"] or "") and "無法核對" not in s["toast"], {"latency": s["latency"], "toast": s["toast"]})
-    for name, press, first in (("bullet", lambda: page.press(BULLET), "list"), ("number", lambda: page.press(NUMBER), "list"),
-                               ("h2", lambda: page.level("toggle-heading-2"), "level")):
+        page.check(f"T5/{name}/no-notice", "失敗" not in (s["latency"] or "") and "待確認" not in (s["latency"] or "")
+                   and "動作已送出" not in s["toast"] and page.toasts() == 0, {"latency": s["latency"], "toast": s["toast"]})
+    for name, press, field, value in (("bullet", lambda: page.press(BULLET), "kind", "ul"), ("number", lambda: page.press(NUMBER), "kind", "ol"),
+                                      ("h2", lambda: page.level("toggle-heading-2"), "level", 2)):
         fresh(page, blank)
         press()
         page.quiet()
-        on = rows_of(page)[0]
         clean(name + "-on")
+        on = rows_of(page)[0]
         press()
         page.quiet()
-        off = rows_of(page)[0]
         clean(name + "-off")
+        off = rows_of(page)[0]
         page.key("q")
         page.quiet()
         typed = rows_of(page)[0]
-        page.check(f"T5/{name}/on-then-off", bool(on[first]) and not off[first], {"on": on, "off": off})
+        page.check(f"T5/{name}/on-then-off", on[field] == value and not off[field], {"on": on, "off": off})
         page.check(f"T5/{name}/typing-lands", typed["text"] == "q", typed)
 
 
@@ -271,7 +288,7 @@ def t6(page, raw):
     page.press(BULLET)
     page.quiet()
     rows = rows_of(page)
-    page.check("T6/range/bullet-on-both", rows[BODY]["list"] and rows[BODY2]["list"], rows[:2])
+    page.check("T6/range/bullet-on-both", rows[BODY]["kind"] == "ul" and rows[BODY2]["kind"] == "ul", rows[:2])
     page.press(BULLET)
     page.quiet()
     rows = rows_of(page)
@@ -287,22 +304,22 @@ def t6(page, raw):
     page.press(BULLET)
     page.quiet()
     rows = rows_of(page)
-    page.check("T6/range/mixed-goes-on-not-off", rows[BODY]["list"] and rows[BODY2]["list"], rows[:2])
+    page.check("T6/range/mixed-goes-on-not-off", rows[BODY]["kind"] == "ul" and rows[BODY2]["kind"] == "ul", rows[:2])
     page.check("T6/no-red-toast", page.toasts() == 0, evaluate(page.session, "window.__s.toasts.at(-1) ?? null"))
 
 
-def t7(page, raw, table):
+def t7(page, raw, table, long_raw):
     fresh(page, raw)
-    before = rows_of(page)
+    before = body(page.save())
     page.place(H2)
     page.press(NUMBER)
     page.quiet()
     s = page.toolbar()
     page.check("T7/number-on-heading/sentence", "標題段落不能加編號" in s["toast"], s["toast"])
-    page.check("T7/number-on-heading/unchanged", rows_of(page) == before, None)
+    page.check("T7/number-on-heading/unchanged", body(page.save()) == before, None)
     page.check("T7/number-on-heading/ready", evaluate(page.session, "document.querySelector('#state-pill').dataset.state") == "ready", None)
     fresh(page, table)
-    before = rows_of(page)
+    before = body(page.save())
     page.key("Home", ("ctrl",))
     page.key("ArrowDown", ("shift",))
     page.key("ArrowDown", ("shift",))
@@ -310,7 +327,17 @@ def t7(page, raw, table):
     page.quiet()
     s = page.toolbar()
     page.check("T7/selection-across-a-table/sentence", "表格或其他物件" in s["toast"], s["toast"])
-    page.check("T7/selection-across-a-table/unchanged", rows_of(page) == before, None)
+    page.check("T7/selection-across-a-table/unchanged", body(page.save()) == before, None)
+    fresh(page, long_raw)
+    before = body(page.save())
+    page.key("a", ("ctrl",))
+    page.quiet()
+    page.press(BULLET)
+    page.quiet()
+    s = page.toolbar()
+    page.check("T7/too-many-paragraphs/sentence", "選取的段落太多" in s["toast"], s["toast"])
+    page.check("T7/too-many-paragraphs/unchanged", body(page.save()) == before, None)
+    page.check("T7/too-many-paragraphs/ready", evaluate(page.session, "document.querySelector('#state-pill').dataset.state") == "ready", None)
 
 
 def t8(page, raw, mutate):
@@ -326,16 +353,16 @@ def t8(page, raw, mutate):
         if mutate != "no-undo":
             page.key("z", ("ctrl",))
             page.quiet()
-        page.check(f"T8/{name}", changed != base and rows_of(page) == base, {"changed": changed[paragraph], "after": rows_of(page)[paragraph]})
+        after = rows_of(page)
+        page.check(f"T8/{name}", changed != base and [(r["text"], r["level"], r["kind"], r["list"]) for r in after] == [(r["text"], r["level"], r["kind"], r["list"]) for r in base],
+                   {"changed": changed[paragraph], "after": after[paragraph]})
 
 
 def t9(page, raw):
     fresh(page, raw)
-    # A fresh document has had no broadcast yet, so the caches are unknown and the toolbar claims nothing (preview/run-01).
-    page.place(BODY2)
+    # A fresh document, caret placed: body, or nothing yet.  Never a level it does not have.
     first = page.toolbar()
-    page.check("T9/before-any-broadcast-nothing-is-claimed", not any(i["checked"] == "true" for i in first["items"]) or
-               [i["action"] for i in first["items"] if i["checked"] == "true"] == ["set-paragraph-body"], first["items"])
+    page.check("T9/fresh-document-claims-no-level", [i["action"] for i in first["items"] if i["checked"] == "true"] in ([], ["set-paragraph-body"]) and first["pressed"] != "true", first["items"])
     want = {H1: (1, "false", None), H2: (2, "false", None), H3: (3, "false", None), H4: (4, "false", None), BODY2: (0, "false", "false"),
             ITEM: (0, "true", "false"), NUMBERED: (0, "false", "true"), JULIET: (0, "false", "false")}
     for paragraph, (level, bullet, number) in want.items():
@@ -359,13 +386,15 @@ def t10(page, raw):
     s = page.toolbar()
     page.check("T10/opens", s["open"] and s["expanded"] == "true", s["expanded"])
     page.check("T10/inside-the-window", 0 <= s["box"]["left"] and s["box"]["right"] <= s["box"]["innerWidth"] and s["box"]["bottom"] <= s["box"]["innerHeight"], s["box"])
-    page.check("T10/five-items", [i["label"] for i in s["items"]] == ["✓內文", "✓標題 1", "✓標題 2", "✓標題 3", "✓標題 4"], [i["label"] for i in s["items"]])
+    page.check("T10/five-items", [i["label"] for i in s["items"]] == ["內文", "標題 1", "標題 2", "標題 3", "標題 4"], [i["label"] for i in s["items"]])
+    page.check("T10/mouse-open-leaves-the-sink-focused", s["focus"] == "sink", s["focus"])
     real.key(page.session, page.browser, "Escape", ())
     s = page.toolbar()
-    page.check("T10/mouse-open-does-not-take-the-sink", s["open"] or s["focus"] == "sink", {"open": s["open"], "focus": s["focus"]})
-    if s["open"]:
-        page.click_paper(1500, 1500)
-        s = page.toolbar()
+    page.check("T10/escape-closes-a-mouse-open", not s["open"] and s["focus"] == "sink", {"open": s["open"], "focus": s["focus"]})
+    page.press("#heading-menu-button")
+    page.check("T10/opens-again", page.toolbar()["open"], None)
+    page.click_paper(1500, 1500)
+    s = page.toolbar()
     page.check("T10/closes-outside", not s["open"], s["open"])
     evaluate(page.session, "document.querySelector('#heading-menu-button').focus()")
     real.key(page.session, page.browser, "ArrowDown", ())
@@ -377,6 +406,15 @@ def t10(page, raw):
     real.key(page.session, page.browser, "Escape", ())
     s = page.toolbar()
     page.check("T10/escape-closes-and-returns", not s["open"] and s["focus"] == "heading-menu-button", {"open": s["open"], "focus": s["focus"]})
+    real.key(page.session, page.browser, "ArrowDown", ())
+    page.check("T10/keyboard-reopens", page.toolbar()["open"], None)
+    real.key(page.session, page.browser, "Enter", ())
+    page.quiet()
+    s = page.toolbar()
+    page.check("T10/keyboard-press-gives-the-sink-back", not s["open"] and s["focus"] == "sink", {"open": s["open"], "focus": s["focus"]})
+    page.key("q")
+    page.quiet()
+    page.check("T10/typing-after-a-keyboard-press-lands", any("q" in r["text"] for r in rows_of(page)), None)
 
 
 def t11(page, raw):
@@ -392,7 +430,28 @@ def t11(page, raw):
     page.check("T11/reopened", rows[BODY2]["level"] == 4 and rows[JULIET]["list"], [rows[BODY2], rows[JULIET]])
 
 
-GROUPS = ("T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8", "T9", "T10", "T11")
+def t12(page, image):
+    """A paragraph holding an as-char frame: refused before v32 (finding 037's guard), and the read never asks for the selection's text."""
+    fresh(page, image)
+    page.place(1)
+    page.press(BULLET)
+    page.quiet()
+    saved = page.save()
+    page.check("T12/caret-in-a-paragraph-with-a-frame", shape(saved)[1]["kind"] == "ul" and frames(saved) == 1, shape(saved)[1])
+    page.press(BULLET)
+    page.quiet()
+    page.check("T12/second-press", shape(page.save())[1]["kind"] is None, None)
+    page.place(0)
+    page.key("ArrowDown", ("shift",))
+    page.key("End", ("shift",))
+    page.level("toggle-heading-2")
+    saved = page.save()
+    rows = shape(saved)
+    page.check("T12/range-over-a-frame", rows[0]["level"] == 2 and rows[1]["level"] == 2 and frames(saved) == 1, rows[:2])
+    page.check("T12/responsive", evaluate(page.session, "document.querySelector('#state-pill').dataset.state") == "ready", None)
+
+
+GROUPS = ("T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8", "T9", "T10", "T11", "T12")
 
 
 def run_one(record, raws, out, mutate, only):
@@ -408,8 +467,8 @@ def run_one(record, raws, out, mutate, only):
         base = rows_of(page)
         page.check("setup/fixture-reads-as-written", [r["level"] for r in base][:6] == [0, 0, 1, 2, 3, 4] and base[ITEM]["list"], base[:7])
         steps = {"T1": lambda: t1(page, raw, mutate), "T2": lambda: t2(page, raw), "T3": lambda: t3(page, raw), "T4": lambda: t4(page, raw, raws["caret"]),
-                 "T5": lambda: t5(page, raws["blank"]), "T6": lambda: t6(page, raw), "T7": lambda: t7(page, raw, raws["table"]), "T8": lambda: t8(page, raw, mutate),
-                 "T9": lambda: t9(page, raw), "T10": lambda: t10(page, raw), "T11": lambda: t11(page, raw)}
+                 "T5": lambda: t5(page, raws["blank"]), "T6": lambda: t6(page, raw), "T7": lambda: t7(page, raw, raws["table"], raws["long"]), "T8": lambda: t8(page, raw, mutate),
+                 "T9": lambda: t9(page, raw), "T10": lambda: t10(page, raw), "T11": lambda: t11(page, raw), "T12": lambda: t12(page, raws["image"])}
         for group in GROUPS:
             if only and group not in only:
                 continue
@@ -435,7 +494,8 @@ def main() -> int:
     args = parser.parse_args()
     out = args.out.resolve()
     out.mkdir(parents=True, exist_ok=False)
-    raws = {"levels": LEVELS.read_bytes(), "blank": BLANK.read_bytes(), "table": TABLE.read_bytes(), "caret": CARET.read_bytes()}
+    raws = {"levels": LEVELS.read_bytes(), "blank": BLANK.read_bytes(), "table": TABLE.read_bytes(), "caret": CARET.read_bytes(),
+            "long": (EVIDENCE / "long-fixture.odt").read_bytes(), "image": (EVIDENCE / "image-fixture.odt").read_bytes()}
     only = set(filter(None, args.only.split(",")))
     page = z.APP.read_text(encoding="utf-8")
     if args.profile:

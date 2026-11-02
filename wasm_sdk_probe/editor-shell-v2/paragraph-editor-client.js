@@ -352,11 +352,18 @@ export const FALLBACK_REFUSED_SHAPES = Object.freeze([
   "fallback-readback-refused",
 ]);
 
-// SPEC-P-demo-batch-4.  The engine dispatched, and the read that decides whether it
-// worked failed where the same read before the dispatch had succeeded.  No route
-// narrows this: the action went out and undo is reachable, so the answer is review.
+// SPEC-P-demo-batch-4.  The engine dispatched and its read of the document, the same
+// on every route, did not come out as the action wanted: it failed where it had just
+// worked, or the text moved, or the target was not reached.  No route narrows this:
+// the action went out and undo is reachable, so the answer is review.  Rollback would
+// spend the user's unsaved work on a document the read has just described (finding
+// 182).  v31 and earlier report `postcondition-not-met`, which keeps its rollback.
 // Exported for the same two readers as the lists above.
-export const PARAGRAPH_READ_SHAPES = Object.freeze(["paragraph-read-failed"]);
+export const PARAGRAPH_READ_SHAPES = Object.freeze([
+  "paragraph-read-failed",
+  "paragraph-text-changed",
+  "paragraph-target-not-met",
+]);
 
 export function formatFailureDisposition(error) {
   const barrier = error?.details?.formatBarrier ?? error?.formatBarrier ?? null;

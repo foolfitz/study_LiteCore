@@ -14,7 +14,7 @@ TEXT = '{urn:oasis:names:tc:opendocument:xmlns:text:1.0}'
 STYLE = '{urn:oasis:names:tc:opendocument:xmlns:style:1.0}'
 FO = '{urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0}'
 ROOT = Path(sys.argv[1])
-PARTS = sys.argv[2:] or ['blank', 'range', 'table', 'widen', 'caret']
+PARTS = sys.argv[2:] or ['blank', 'range', 'table', 'widen', 'large', 'caret']
 EXPECT = {'bullet-on': ('list', 'ul'), 'number-on': ('list', 'ol'), 'remove': ('list', ''), 'h1': ('block', 'h1'), 'h2': ('block', 'h2'), 'h3': ('block', 'h3'),
           'h4': ('block', 'h4'), 'body': ('block', 'p'), 'left': ('align', 'left'), 'center': ('align', 'center'), 'right': ('align', 'right'), 'justify': ('align', 'justify')}
 
@@ -92,9 +92,9 @@ def agrees(row, para):
 tally = {}
 for part in PARTS:
     data = rows(part)
-    truth = {(r['place'], r['command']): document(r['saved']) for r in data if r['route'] == 'truth'}
+    truth = {(r['place'], r['command']): document(r['saved']) for r in data if r.get('route') == 'truth'}
     for r in data:
-        if r['route'] == 'truth':
+        if r.get('route') in ('truth', None):  # `large` also holds cost rows, which have no route
             continue
         saved = document(r['saved'])
         t = tally.setdefault(part, {'arms': 0, 'readOk': 0, 'postMatchesFile': 0, 'postMeetsCommand': 0, 'textKept': 0, 'sameAsNoRead': 0, 'selectionKept': 0, 'maxUs': 0, 'misses': []})

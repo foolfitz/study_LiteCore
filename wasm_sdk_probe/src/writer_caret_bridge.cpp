@@ -99,6 +99,10 @@ bool readRange(const Reference<text::XTextRange> &range, std::vector<WriterParag
   }
   const Reference<container::XEnumeration> paragraphs = access->createEnumeration();
   while (paragraphs->hasMoreElements()) {
+    if (out.size() >= probe::kWriterParagraphReadLimit) {
+      reason = probe::kWriterReadTooLong;
+      return false;
+    }
     Reference<lang::XServiceInfo> info(paragraphs->nextElement(), uno::UNO_QUERY);
     if (!info.is() || !info->supportsService(u"com.sun.star.text.Paragraph"_ustr)) {
       reason = "the selection holds a table";

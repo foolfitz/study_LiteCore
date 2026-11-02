@@ -6,6 +6,7 @@
 // coordinate is needed.  Writer profiles link this core-internal bridge; only its
 // translation unit uses internal headers.  Calls run on the engine thread under
 // SolarMutex.
+#include <cstddef>
 #include <string>
 #include <vector>
 
@@ -19,8 +20,17 @@ struct WriterParagraphRead {
   std::string text;   // the covered part of the paragraph, UTF-8
 };
 
-// True with one row per paragraph, in document order.  False with `reason` set when
-// the selection is not text (a frame, cells) or holds anything but paragraphs.
+// N4 large: the walk is worse than linear, 8 ms for 100 paragraphs, 329 ms for 1,000,
+// 7.9 s for 5,000, 157 s for 20,000 (native, and the Wasm engine is slower).  It runs
+// under the solar mutex and twice per press, so it stops here and the press is refused
+// before anything is dispatched.  The HTML read it replaced refused at about 10 KB of
+// text, roughly 150 of these paragraphs.
+constexpr std::size_t kWriterParagraphReadLimit = 500;
+constexpr const char *kWriterReadTooLong = "the selection covers too many paragraphs";
+
+// True with one row per paragraph, in the selection's own order (one text range for
+// everything this product can select).  False with `reason` set when the selection is
+// not text (a frame, cells), holds anything but paragraphs, or passes the limit.
 bool writerSelectionParagraphs(void *lokDocument, std::vector<WriterParagraphRead> &out,
                                std::string &reason);
 
@@ -57,7 +67,9 @@ inline bool toggleTakesOff(const std::vector<WriterParagraphRead> &rows, const s
 // `.uno:DefaultNumbering` with On=true does nothing when core's SelectionHasNumber is
 // already true, and that counts a heading's outline rule: a heading alone stays as it
 // was, a heading with a bullet item loses the bullet (N4 range).  True when every
-// paragraph counts as numbered that way and at least one is a heading.
+// paragraph counts as numbered that way and at least one is a heading.  An
+// approximation of core's rule from what the read carries, and it errs towards a clean
+// refusal.  A press it lets through that does nothing ends in review, not rollback.
 inline bool numberingHasNoEffect(const std::vector<WriterParagraphRead> &rows) {
   bool heading = false;
   for (const WriterParagraphRead &row : rows) {

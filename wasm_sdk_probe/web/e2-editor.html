@@ -274,8 +274,10 @@
     padding: 4px; background: #fff; border: 1px solid var(--line); border-radius: 6px; box-shadow: 0 4px 14px rgba(0, 0, 0, .18); }
   #heading-menu[hidden] { display: none; }
   .toolbar #heading-menu button { width: 100%; height: auto; min-height: 30px; padding: 3px 10px; justify-content: flex-start; gap: 8px; text-align: left; white-space: nowrap; }
-  #heading-menu button .check { width: 14px; flex: none; font-size: 13px; visibility: hidden; }
-  #heading-menu button[aria-checked="true"] .check { visibility: visible; }
+  /* The mark is generated: the page's status line reads an action's name from the button's text. */
+  #heading-menu button .check { width: 14px; flex: none; font-size: 13px; }
+  #heading-menu button[aria-checked="true"] .check::before { content: "✓"; }
+  #heading-menu-button[aria-expanded="true"]::after { display: none; }
   #heading-menu button .sample { font-size: 13px; }
   #heading-menu button[data-level="1"] .sample { font-size: 19px; font-weight: 700; }
   #heading-menu button[data-level="2"] .sample { font-size: 17px; font-weight: 700; }
@@ -375,11 +377,11 @@
     <span class="heading-menu-wrap" data-toggle-group hidden>
       <button id="heading-menu-button" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="heading-menu" data-tip="標題"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-title"></use></svg><svg class="chevron" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 10l5 5 5-5z"/></svg><span class="lbl">標題</span></button>
       <span id="heading-menu" role="menu" aria-label="段落層級" hidden>
-        <button type="button" role="menuitemradio" aria-checked="false" data-level="0" data-action="set-paragraph-body"><span class="check" aria-hidden="true">✓</span><span class="sample">內文</span></button>
-        <button type="button" role="menuitemradio" aria-checked="false" data-level="1" data-action="toggle-heading-1"><span class="check" aria-hidden="true">✓</span><span class="sample">標題 1</span></button>
-        <button type="button" role="menuitemradio" aria-checked="false" data-level="2" data-action="toggle-heading-2"><span class="check" aria-hidden="true">✓</span><span class="sample">標題 2</span></button>
-        <button type="button" role="menuitemradio" aria-checked="false" data-level="3" data-action="toggle-heading-3"><span class="check" aria-hidden="true">✓</span><span class="sample">標題 3</span></button>
-        <button type="button" role="menuitemradio" aria-checked="false" data-level="4" data-action="toggle-heading-4"><span class="check" aria-hidden="true">✓</span><span class="sample">標題 4</span></button>
+        <button type="button" role="menuitemradio" aria-checked="false" data-level="0" data-action="set-paragraph-body"><span class="check" aria-hidden="true"></span><span class="sample">內文</span></button>
+        <button type="button" role="menuitemradio" aria-checked="false" data-level="1" data-action="toggle-heading-1"><span class="check" aria-hidden="true"></span><span class="sample">標題 1</span></button>
+        <button type="button" role="menuitemradio" aria-checked="false" data-level="2" data-action="toggle-heading-2"><span class="check" aria-hidden="true"></span><span class="sample">標題 2</span></button>
+        <button type="button" role="menuitemradio" aria-checked="false" data-level="3" data-action="toggle-heading-3"><span class="check" aria-hidden="true"></span><span class="sample">標題 3</span></button>
+        <button type="button" role="menuitemradio" aria-checked="false" data-level="4" data-action="toggle-heading-4"><span class="check" aria-hidden="true"></span><span class="sample">標題 4</span></button>
       </span>
     </span>
     <button data-toggle-group hidden data-action="toggle-list-unordered" data-tip="項目符號"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-format_list_bulleted"></use></svg><span class="lbl">• 項目符號</span></button>
