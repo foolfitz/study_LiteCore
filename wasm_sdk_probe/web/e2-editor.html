@@ -272,6 +272,9 @@
   .toolbar button:disabled { opacity: 1; }
   .toolbar button:disabled .ic { opacity: .4; }
   .toolbar .ic { width: 20px; height: 20px; fill: currentColor; pointer-events: none; }
+  /* The page's own ink: an id, so Nextcloud's dark `button` colour does not reach the white toolbar (SPEC-P-demo-batch-2). */
+  #toolbar button { color: var(--ink); }
+  .toolbar .after-save { width: 1px; height: 22px; background: var(--line); margin: 0 4px; }
   .toolbar .ic.flip { transform: scaleX(-1); }
   .toolbar .lbl { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; border: 0; overflow: hidden;
     clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; pointer-events: none; }
@@ -324,6 +327,10 @@
     <button id="open-file" class="tip-start" data-tip="開啟檔案"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-folder_open"></use></svg><span class="lbl">📂 開啟檔案</span></button>
     <input type="file" id="file" accept=".odt,application/vnd.oasis.opendocument.text" hidden>
     <div class="sep"></div>
+    <!-- SPEC-P-demo-batch-2: first in the toolbar, an icon like its neighbours, as Collabora has it.  `after-save`, not `sep`: the
+         host hides separators by `.sep:nth-of-type(n)`, which counts spans separately, and this would be the first span. -->
+    <button data-action="save" class="tip-start" data-tip="儲存 ODT (Ctrl+S)"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-save"></use></svg><span class="lbl">儲存 ODT</span></button>
+    <span class="after-save" aria-hidden="true"></span>
     <button data-action="undo" class="tip-start" data-tip="復原 (Ctrl+Z)"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-undo"></use></svg><span class="lbl">↶ 復原</span></button>
     <!-- Hidden until the profile carries redo; see updateRedoAffordance(). -->
     <button data-action="redo" hidden data-tip="重做 (Ctrl+Y)"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-redo"></use></svg><span class="lbl">↷ 重做</span></button>
@@ -358,7 +365,6 @@
       <button id="zoom-reset" data-tip="符合寬度" aria-label="縮放比例，按一下回到符合寬度" disabled>100%</button>
       <button id="zoom-in" data-tip="放大" disabled><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-add"></use></svg><span class="lbl">放大</span></button>
     </span>
-    <button data-action="save" class="primary tip-end" data-tip="儲存 ODT (Ctrl+S)"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-save"></use></svg><span class="lbl">儲存 ODT</span></button>
   </div>
 
   <div class="desk" id="desk">

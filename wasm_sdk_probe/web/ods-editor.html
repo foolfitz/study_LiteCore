@@ -13,14 +13,18 @@ button:disabled { opacity:.4; cursor:default; }
 [hidden] { display:none !important; }
 .titlebar { display:flex; align-items:center; gap:14px; min-height:43px; padding:7px 14px; border-bottom:1px solid var(--line); background:var(--wash); }
 .brand { font-size:14px; font-weight:650; letter-spacing:.02em; }
-#toolbar { display:flex; align-items:center; gap:5px; min-height:46px; padding:6px 12px; border-bottom:1px solid var(--line); }
-#toolbar button { min-width:34px; height:32px; padding:3px 9px; }
-#save-button { background:var(--accent); color:#fff; margin-right:7px; }
-#save-button:hover:not(:disabled) { background:#105d40; }
-.separator { width:1px; height:22px; background:var(--line); margin:0 7px; }
+.spacer { flex:1; }
+#toolbar { display:flex; align-items:center; gap:5px; min-height:46px; padding:6px 14px; border-bottom:1px solid var(--line); }
+/* The page's own colours, by id, so Nextcloud's dark `button` rule does not reach the white toolbar (SPEC-P-demo-batch-2). */
+#toolbar button { min-width:34px; height:32px; padding:3px 9px; color:var(--ink); background:transparent; }
+#toolbar button:hover:not(:disabled) { background:#e7efea; }
+#toolbar #save-button { display:inline-flex; align-items:center; justify-content:center; width:32px; min-width:32px; padding:0; }
+#save-button .ic { width:20px; height:20px; fill:currentColor; pointer-events:none; }
+#save-button .lbl { position:absolute; width:1px; height:1px; margin:-1px; padding:0; border:0; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+.separator { width:1px; height:22px; background:var(--line); margin:0 4px; }
 [data-format] { font-family:Georgia,serif; font-size:19px; }
-[data-format][aria-pressed="true"] { background:#d8ecdf; border-color:#8cbda0; color:#105d40; }
-[data-format][aria-pressed="mixed"] { background:#eef1e1; border-color:#a5ae7b; border-style:dashed; }
+#toolbar [data-format][aria-pressed="true"] { background:#d8ecdf; border-color:#8cbda0; color:#105d40; }
+#toolbar [data-format][aria-pressed="mixed"] { background:#eef1e1; border-color:#a5ae7b; border-style:dashed; }
 .formula-bar { display:flex; align-items:flex-start; gap:8px; padding:8px 12px; border-bottom:1px solid var(--line); background:#fff; }
 #cell-address { width:86px; flex:none; min-height:33px; border:1px solid var(--line); border-radius:4px; padding:5px 9px; font-size:13px; }
 .formula-label { flex:none; padding:5px 2px; font-family:Georgia,serif; font-style:italic; color:var(--muted); font-size:18px; }
@@ -49,10 +53,11 @@ button:disabled { opacity:.4; cursor:default; }
 @media(max-width:600px) { .formula-bar { gap:5px; padding:7px; } #cell-address { width:65px; } #toolbar { padding-left:7px; } }
 </style></head>
 <body>
-<div class="titlebar"><span class="brand">LiteCore 試算表</span><span id="s-doc" hidden></span></div>
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true"><symbol id="i-save" viewBox="0 -960 960 960"><path d="M840-683v503q0 24-18 42t-42 18H180q-24 0-42-18t-18-42v-600q0-24 18-42t42-18h503l157 157Zm-60 27L656-780H180v600h600v-476ZM553.5-275.26q30.5-30.27 30.5-73.5 0-43.24-30.26-73.74-30.27-30.5-73.5-30.5-43.24 0-73.74 30.26-30.5 30.27-30.5 73.5 0 43.24 30.26 73.74 30.27 30.5 73.5 30.5 43.24 0 73.74-30.26ZM233-584h358v-143H233v143Zm-53-72v476-600 124Z"/></symbol></svg>
+<div class="titlebar"><span class="brand">LiteCore 試算表</span><span id="s-doc" hidden></span><span class="spacer"></span></div>
 <div id="toolbar" role="toolbar" aria-label="試算表工具列">
 <button id="open-file" type="button">開啟檔案</button><input id="file-input" type="file" accept=".ods" hidden>
-<button id="save-button" type="button" disabled>儲存</button><span class="separator" aria-hidden="true"></span>
+<button id="save-button" type="button" aria-label="儲存" title="儲存（Ctrl／⌘＋S）" disabled><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-save"></use></svg><span class="lbl">儲存</span></button><span class="separator" aria-hidden="true"></span>
 <button type="button" data-format="bold" aria-label="粗體" title="粗體（Ctrl／⌘＋B）" aria-pressed="false" disabled><strong>B</strong></button>
 <button type="button" data-format="italic" aria-label="斜體" title="斜體（Ctrl／⌘＋I）" aria-pressed="false" disabled><em>I</em></button>
 <button type="button" data-format="underline" aria-label="底線" title="底線（Ctrl／⌘＋U）" aria-pressed="false" disabled><u>U</u></button>
