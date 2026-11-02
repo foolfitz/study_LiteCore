@@ -2616,6 +2616,39 @@ $(E2_V29_DIST)/sdk-manifest.json: $(E2_V29_BUILD)/probe.js $(E2_V29_BUILD)/probe
 $(E2_V29_BUILD) $(E2_V29_DIST):
 	mkdir -p $@
 
+# SPEC-P-demo-batch-3 section 2, finding 179: v29's engine, byte for byte, with the worker's extend gate no
+# longer naming a profile.  Nothing here compiles or links: the inputs are the archived v29 files.
+E2_V30_DIST := dist/profiles/e2-editor-v30
+E2_V30_ARCHIVE := build/archive/e2-editor-v29-e61e5890-worker-a5df83db
+
+$(E2_V30_DIST)/sdk-manifest.json: $(E2_V30_ARCHIVE)/probe.js $(E2_V30_ARCHIVE)/probe.wasm \
+		$(E2_V30_ARCHIVE)/exports.txt $(E2_V30_ARCHIVE)/sdk-manifest.json sdk/v30-extend-gate-worker.js \
+		sdk/v18-writer-review-manifest.json tools/build_e2_v30_extend_gate_profile.py \
+		tools/check_v30_extend_gate_contract.py | $(E2_V30_DIST)
+	python3 tools/build_base_no35_pack.py --check
+	python3 tools/build_cjk_subset_mono_pack.py --check
+	python3 tools/build_e2_v30_extend_gate_profile.py \
+		--source-manifest sdk/v18-writer-review-manifest.json \
+		--loader $(E2_V30_ARCHIVE)/probe.js --wasm $(E2_V30_ARCHIVE)/probe.wasm \
+		--worker sdk/v30-extend-gate-worker.js \
+		--exports $(E2_V30_ARCHIVE)/exports.txt \
+		--profile e2-editor-v30 --inline-range-gestures all \
+		--page-rectangles --paste-markdown \
+		--output $(E2_V30_DIST)
+	@test -s $(E2_V30_DIST)/probe.js
+	@test -s $(E2_V30_DIST)/probe.wasm
+	@test -s $(E2_V30_DIST)/sdk-worker.js
+
+$(E2_V30_DIST):
+	mkdir -p $@
+
+# Focused tests only; no link.  v29 stays red in the census: its worker is frozen history (finding 179).
+.PHONY: test-v30-extend-gate-static
+test-v30-extend-gate-static:
+	python3 -I tests/test_v30_feature_worker_delta.py
+	python3 -I tools/check_extend_gate_instances.py --expect-red e2-editor-v29
+	python3 -I tools/check_extend_gate_instances.py --self-test
+
 # Focused source/contract tests only; no product objects, link or packaging
 # target (SPEC-M3-v28-last-line-fallback 7.2).
 .PHONY: test-v28-last-block-static

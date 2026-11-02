@@ -1,0 +1,20 @@
+{
+ "schema": 1,
+ "note": "SPEC-P-demo-batch-3 D1: the closed list of differences between the archived v29 worker (a5df83db...) and sdk/v30-extend-gate-worker.js. tests/test_v30_feature_worker_delta.py applies it.",
+ "hunks": [
+  {
+   "item": "2 header comment",
+   "baseIndex": 2,
+   "baseLines": 0,
+   "old": "",
+   "new": "// SPEC-P-demo-batch-3 section 2: the e2-editor-v30 worker.  Derived from the\n// archived v29 worker (build/archive/e2-editor-v29-e61e5890-worker-a5df83db,\n// a5df83db..., v28's bytes).  The differences are a closed list (criterion D1):\n// (1) featureExtendPermitted no longer names a profile (finding 179: v29 kept\n// v28's name and refused Shift+Up/Down/Home/End); (2) this comment.  v28's own\n// header follows, unchanged.\n//\n"
+  },
+  {
+   "item": "1 no profile name",
+   "baseIndex": 180,
+   "baseLines": 5,
+   "old": "function featureExtendPermitted(action) {\n  return activeManifest?.profile === \"e2-editor-v28\"\n    && activeManifest?.editorContract?.abiVersion === 6\n    && EDITOR_V23_EXTEND_ACTIONS.has(action);\n}\n",
+   "new": "function featureExtendPermitted(action) {\n  return activeManifest?.editorContract?.abiVersion === 6\n    && EDITOR_V23_EXTEND_ACTIONS.has(action);\n}\n"
+  }
+ ]
+}
