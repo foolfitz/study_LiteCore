@@ -141,3 +141,11 @@ Codex 另外兩點：client 還沒接受四個動作（本來就排在回歸鏈�
 **具名限制。** Calc 頁面沒有列標與欄標，選不到整欄，P2 的「整欄」量不到，上限由原生 N1 負責。唯讀同樣由 N1 量，頁面量到的是受保護工作表的停用。
 
 **Calc 新引擎的回歸。** 既有工具指向 ods-editor-v3，各一次（`calc-regression/`）：儲存格 31/31、範圍格式 40/40、自動存檔 18/18，Chrome 與 Firefox 都全過。
+
+## 9. 追加 5（2026-11-03，第 86 代的回歸鏈）
+
+第 86 代 `535c474c`，e2-editor-v31 ＋ ods-editor-v3。S1 25/25、Z、P1 108/108（凍結頁面重跑）、C 兩頁兩瀏覽器、F4 24/24、V0′ 九個階段全過。
+
+**F3 移動一格，已定案**：Firefox `every-inline-format-reaches-the-document`，是 finding 178 留著的競態，不是 v31 的缺陷。理由和數字寫在 finding 178 的追加。閘門改讀 `f3-86/diag-clear-wait/equal.stdout.txt`（`F3_83_EQUAL`，46/46），原工具的紅留在 `f3-86/equal.stdout.txt`。
+
+**單元與突變**（回歸鏈沒涵蓋，這輪補跑）：殼層 569/569、Calc 104/104。補跑時才發現兩支突變工具從批次 3 起就沒在跑：`applyStyle`、`setStyle` 複製了錨點文字，工具要求錨點唯一，於是拒絕執行。修好之後新增的 `uncertain-refresh-style` 突變沒被抓到，代表 `setStyle` 寫入後讀回失敗的路徑沒有測試，已補。格式入口 15/15、範圍 7/7、自動存檔通過。`page-select-all.test.mjs` 釘死 `e2-editor-v26` 從 v27 起就紅，改成不綁版本。

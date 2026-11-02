@@ -155,5 +155,5 @@ test("U2 wiring: the handler takes Ctrl+A before `if (accel) return;`, with a la
   assert.ok(take > 0, "the keydown handler does not call takeSelectAllKey");
   assert.ok(handler.indexOf("if (accel) return;") > take, "takeSelectAllKey runs after the accel bail-out");
   assert.match(slice(PAGE, /^const ACTION_LABELS = \{[\s\S]*?\n\};$/m, "ACTION_LABELS"), /"select-all": "全選"/);
-  assert.match(PAGE, /workerUrl: "\.\/profiles\/e2-editor-v26\/sdk-worker\.js"/);
+  assert.match(PAGE, /workerUrl: "\.\/profiles\/e2-editor-v\d+\/sdk-worker\.js"/);
 });

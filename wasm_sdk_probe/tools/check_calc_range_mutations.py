@@ -13,7 +13,8 @@ MUTATIONS = {
     "reply-target": ("calc-document-sdk", "cell.column!==column", "false"),
     "unconfirmed-draft": ("calc-editor-session", "if(commitDraft)await this._commitNow();", "await this._commitNow();"),
     "explicit-range": ("calc-editor-session", "selected.endColumn,selected.endRow,\n          format", "selected.column,selected.row,\n          format"),
-    "uncertain-refresh": ("calc-editor-session", '"MUTATION_OUTCOME_UNKNOWN",`range applied', '"CELL_RESULT_INVALID",`range applied'),
+    "uncertain-refresh": ("calc-editor-session", '"MUTATION_OUTCOME_UNKNOWN",`range applied', '"CELL_RESULT_INVALID",`range applied', 2, 0),
+    "uncertain-refresh-style": ("calc-editor-session", '"MUTATION_OUTCOME_UNKNOWN",`range applied', '"CELL_RESULT_INVALID",`range applied', 2, 1),
 }
 
 
@@ -21,14 +22,16 @@ def main():
     results = []
     with tempfile.TemporaryDirectory(prefix=".range-red-", dir=ROOT) as directory:
         scratch = Path(directory)
-        for name, (module, before, after) in MUTATIONS.items():
+        for name, (module, before, after, *place) in MUTATIONS.items():
+            occurrences, index = place or (1, 0)  # setFormat and setStyle share a line: name which one
             source = (ROOT / "spreadsheet-shell" / (module + ".js")).read_text()
-            if source.count(before) != 1:
+            if source.count(before) != occurrences:
                 raise RuntimeError("mutation premise is absent or ambiguous: " + name)
             for dependency in ("calc-document-sdk", "calc-editor-session"):
                 (scratch / (dependency + ".js")).write_text((ROOT / "spreadsheet-shell" / (dependency + ".js")).read_text())
             mutant = scratch / (module + ".js")
-            mutant.write_text(source.replace(before, after, 1))
+            parts = source.split(before)
+            mutant.write_text(before.join(parts[:index + 1]) + after + before.join(parts[index + 1:]))
             variable = "CALC_DOCUMENT_MODULE" if module == "calc-document-sdk" else "CALC_SESSION_MODULE"
             result = subprocess.run(["node", "--test", str(ROOT / "tests" / (module + ".test.mjs"))],
                 env={**os.environ, variable: str(mutant)}, text=True, capture_output=True, timeout=15)

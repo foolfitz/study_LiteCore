@@ -140,6 +140,17 @@ test("native range refusal retains selection; post-mutation refresh failure lock
   await session.close();
 });
 
+test("a style written and then not read back locks uncertain state, as a format does",async()=>{
+  const {session,doc}=await opened();doc.rangeFormattingSupported=true;doc.rangeStylingSupported=true;
+  doc.readRange=async(c,r,ec,er)=>({range:{part:0,column:c,row:r,endColumn:ec,endRow:er,writable:true,refusalCode:"",bold:false,italic:false,underline:false}});
+  await session.selectCell(2,3,{extend:true});
+  doc.setRangeStyle=async()=>{doc.revision++;return{range:session.state.rangeFormat};};
+  doc.readCell=async()=>{throw new Error("geometry unavailable");};
+  await assert.rejects(session.setStyle("backColor","#ffe599"),{code:"MUTATION_OUTCOME_UNKNOWN"});
+  assert.equal(session.state.uncertain,true);assert.equal(session.state.dirty,true);
+  await session.close();
+});
+
 test("stale revision keeps the draft and does not start a following sheet switch",async()=>{
   const {session,doc,calls}=await opened();
   doc.setCellInput=async()=>{throw Object.assign(new Error("stale"),{code:"STALE_REVISION"});};

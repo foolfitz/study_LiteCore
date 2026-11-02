@@ -16,7 +16,7 @@ function page(state=clean()) {
   const context={session:{state,setFormat:(...args)=>calls.push(args)},pendingEntry:null,dragWork:null,styleRefreshes:0,
     document:{querySelectorAll:()=>nodes},formatRefusal:code=>code,renderStyleControls(){context.styleRefreshes++;}};
   vm.createContext(context);
-  vm.runInContext(["formatAvailable","renderFormatControls","toggleFormat"].map(extract).join("\n"),context);
+  vm.runInContext(["formatAvailable","formatTitle","renderFormatControls","toggleFormat"].map(extract).join("\n"),context);
   return {context,calls,nodes};
 }
 const refusals={

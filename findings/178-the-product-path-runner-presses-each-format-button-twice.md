@@ -40,3 +40,14 @@
 - 被綁的 `run_e2_c_product_path.py` 不改。第 83 代的 F3 讀法改走 `diag_single_press.py`（`SPEC-M3-v29-tick-pacing` 追加 4）。
 - **下一份 K 規格必須帶這個單按替換**，否則 K7 在 v29 上會無故紅。
 - 另一個競態仍在：runner 等「清除格式」標籤，第一步就滿足。v29 上自然發生率 2/120（Firefox）、0/120（Chrome），v28 是 8/120、4/120。下一份 K 規格一併改等 toast。產品面：按清除後緊接著按格式鍵，可能被清除迴圈蓋掉；長文件上這個窗口 v28 約 470 ms、v29 約 20 ms，人碰不到，不處理。
+
+## 追加（2026-11-03）：v31 上同一個競態又讓 F3 移動一格
+
+F3-86 run-01 的 Firefox `every-inline-format-reaches-the-document` 由 PASS 變 NOT_ESTABLISHED，`MKSTROFF` 的前置條件沒建立。這是本文件「另一個競態仍在」那一段，不是 v31 的缺陷。
+
+- **直接證據**（`evidence/demo-batch-3/f3-86/race/natural-v31-firefox.json`，`MKSTROFF1`）：`set-bold false`（清除第 1 步）、`set-strikethrough false`（runner 的按鍵，快取還是 true）、`set-italic false`（第 2 步）、`set-strikethrough true`（受測按鍵）、`set-underline false`（第 3 步）。runner 按進了頁面自己的迴圈。
+- **發生率沒變**：同一頁面、同一殼層換引擎，Firefox v31 1/120、v30 3/120（v29 當時 2/120），Chrome v31 0/120。清除迴圈寬度中位數 v31 53 ms、v30 56 ms。
+- **原工具不是每次都紅**：同一批位元組 Firefox 4 輪 1 輪紅。所以「改等 toast 之後 4 輪全過」本身鑑別力不足（發生率 1/4 時連過 3 輪有 42% 是運氣），定案靠的是上面的請求序列，不是那 4 輪。
+- **F4 看不到這格**：`f4-86/firefox` 同一格也是 NOT_ESTABLISHED，F4 只判四臂，所以仍是 24/24。這次是普查歷次報告才看到的。
+
+**處置**：F3-86 的閘門讀 `diag-clear-wait/equal.stdout.txt`（等 toast），run-01 的紅留著。下一代的 F3 runner 直接帶等 toast 的替換，否則這格會隔幾輪就紅一次，每次都要重查。

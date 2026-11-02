@@ -21,7 +21,8 @@ for term in terms:
     start=body.start(1)+term.start();end=body.start(1)+term.end()
     mutations.append((term[0],source[:start]+"true"+source[end:]))
 for name,before,after in [
-    ("entry-bypass","if(!session || !formatAvailable(session.state))return;",""),
+    # The toggle's own guard: applyStyle has the same line, and its guard is the same predicate.
+    ("entry-bypass","function toggleFormat(format) {\n  if(!session || !formatAvailable(session.state))return;","function toggleFormat(format) {"),
     ("toolbar-bypass","node.disabled=!formatAvailable(state);","node.disabled=false;"),
 ]:
     assert source.count(before)==1,name
