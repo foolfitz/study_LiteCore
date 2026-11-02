@@ -1,0 +1,1773 @@
+{
+  "checks": [
+    {
+      "id": "owned-folder",
+      "ok": true,
+      "raw": 201
+    },
+    {
+      "id": "readonly-fixture",
+      "ok": true,
+      "raw": 201
+    },
+    {
+      "id": "chrome/upload-ods",
+      "ok": true,
+      "raw": "M4-cell-host-20261102T135119/chrome.ods"
+    },
+    {
+      "id": "chrome/upload-odt",
+      "ok": true,
+      "raw": "M4-cell-host-20261102T135119/chrome.odt"
+    },
+    {
+      "id": "chrome/files-writable-route",
+      "ok": true,
+      "raw": {
+        "from": "https://litecore.localhost:18443/apps/files/files?dir=/M4-cell-host-20261102T135119",
+        "landed": "https://litecore.localhost:18443/index.php/apps/litecore/r/268e3009dbf33a5a-90d7bc2c/ods-editor.html?fileId=29539"
+      }
+    },
+    {
+      "id": "chrome/real-lock",
+      "ok": true,
+      "raw": {
+        "status": 207,
+        "fileId": "29539",
+        "lock": "1"
+      }
+    },
+    {
+      "id": "chrome/lock-refuses-unrelated-write",
+      "ok": true,
+      "raw": 423
+    },
+    {
+      "id": "chrome/formula-before-save",
+      "ok": true,
+      "raw": {
+        "part": 0,
+        "column": 2,
+        "row": 0,
+        "endColumn": 2,
+        "endRow": 0,
+        "xTwips": 2715,
+        "yTwips": 0,
+        "widthTwips": 1694,
+        "heightTwips": 269,
+        "cellType": 3,
+        "formula": "=B1*5",
+        "input": "=B1*5",
+        "text": "85",
+        "writable": true,
+        "bold": false,
+        "boldAsian": false,
+        "boldComplex": false,
+        "italic": false,
+        "italicAsian": false,
+        "italicComplex": false,
+        "underline": false,
+        "value": 85
+      }
+    },
+    {
+      "id": "chrome/conditional-ods-put",
+      "ok": true,
+      "raw": [
+        {
+          "method": "PUT",
+          "url": "/remote.php/dav/files/admin/M4-cell-host-20261102T135119/chrome.ods",
+          "contentType": "application/vnd.oasis.opendocument.spreadsheet",
+          "ifMatch": "\"6ae824e3b26f2\"",
+          "ifNoneMatch": null,
+          "withToken": true,
+          "status": 204
+        }
+      ]
+    },
+    {
+      "id": "chrome/host-saved",
+      "ok": true,
+      "raw": [
+        {
+          "at": 4147,
+          "name": "chrome.ods",
+          "bytes": 12441,
+          "attempts": [
+            {
+              "waited": 0,
+              "check": {
+                "at": 4147,
+                "status": 200,
+                "etag": "\"6ae824e3b26f2\"",
+                "sha256": "7210d8a664a82fd660db06feb004cb52c8f7dd57b0a7f7461b7d416e89d756b2",
+                "ms": 31
+              },
+              "ifMatch": "\"6ae824e3b26f2\"",
+              "withToken": true,
+              "target": "original",
+              "at": 4178,
+              "respondedAt": 4306,
+              "status": 204
+            }
+          ],
+          "trigger": "manual",
+          "target": "original",
+          "sha256": "1094d0c685b539a260a0c1678534086e359dce14577c324a37c14a01b262af30",
+          "ifMatch": "\"6ae824e3b26f2\"",
+          "status": 204,
+          "etag": "\"b336bcde48628a7ea701ac90c8d2d46e\"",
+          "outcome": "saved",
+          "settled": true
+        }
+      ]
+    },
+    {
+      "id": "chrome/server-xml-input",
+      "ok": true,
+      "raw": "Host inline chrome 中文"
+    },
+    {
+      "id": "chrome/server-xml-result",
+      "ok": true,
+      "raw": "85"
+    },
+    {
+      "id": "chrome/server-mimetype",
+      "ok": true,
+      "raw": "application/vnd.oasis.opendocument.spreadsheet"
+    },
+    {
+      "id": "chrome/leave-releases-own-lock",
+      "ok": true,
+      "raw": {
+        "status": 207,
+        "fileId": "29539",
+        "lock": ""
+      }
+    },
+    {
+      "id": "chrome/actual-host-reopen",
+      "ok": true,
+      "raw": {
+        "part": 0,
+        "column": 2,
+        "row": 0,
+        "endColumn": 2,
+        "endRow": 0,
+        "xTwips": 2715,
+        "yTwips": 0,
+        "widthTwips": 1694,
+        "heightTwips": 269,
+        "cellType": 3,
+        "formula": "=B1*5",
+        "input": "=B1*5",
+        "text": "85",
+        "writable": true,
+        "bold": false,
+        "boldAsian": false,
+        "boldComplex": false,
+        "italic": false,
+        "italicAsian": false,
+        "italicComplex": false,
+        "underline": false,
+        "value": 85
+      }
+    },
+    {
+      "id": "chrome/host-reopen-formats",
+      "ok": true,
+      "raw": {
+        "part": 0,
+        "column": 1,
+        "row": 1,
+        "endColumn": 1,
+        "endRow": 1,
+        "xTwips": 1695,
+        "yTwips": 270,
+        "widthTwips": 1019,
+        "heightTwips": 554,
+        "cellType": 2,
+        "formula": "格式測試",
+        "input": "格式測試",
+        "text": "格式測試",
+        "writable": true,
+        "bold": true,
+        "boldAsian": true,
+        "boldComplex": true,
+        "italic": true,
+        "italicAsian": true,
+        "italicComplex": true,
+        "underline": true,
+        "value": 0
+      }
+    },
+    {
+      "id": "chrome/external-owned-write",
+      "ok": true,
+      "raw": 204
+    },
+    {
+      "id": "chrome/ods-conflict-copy",
+      "ok": true,
+      "raw": {
+        "name": "chrome（衝突副本 2026-11-02 135142）.ods",
+        "url": "/remote.php/dav/files/admin/M4-cell-host-20261102T135119/chrome%EF%BC%88%E8%A1%9D%E7%AA%81%E5%89%AF%E6%9C%AC%202026-11-02%20135142%EF%BC%89.ods",
+        "status": 201,
+        "etag": "\"9fc4282ac74f02c9ab7d89418bb866a0\"",
+        "respondedAt": 3037
+      }
+    },
+    {
+      "id": "chrome/conflict-preserves-original",
+      "ok": true,
+      "raw": {
+        "status": 200,
+        "sha256": "7210d8a664a82fd660db06feb004cb52c8f7dd57b0a7f7461b7d416e89d756b2"
+      }
+    },
+    {
+      "id": "chrome/conflict-preserves-local-input",
+      "ok": true,
+      "raw": {
+        "status": 200,
+        "cell": "Conflict local chrome",
+        "contentType": "application/vnd.oasis.opendocument.spreadsheet"
+      }
+    },
+    {
+      "id": "chrome/copy-ods-mimetype",
+      "ok": true,
+      "raw": "application/vnd.oasis.opendocument.spreadsheet"
+    },
+    {
+      "id": "chrome/copy-success-clears-dirty",
+      "ok": true,
+      "raw": {
+        "state": "ready",
+        "evidenceClass": "unbound",
+        "adapterFallbacks": [],
+        "fileName": "chrome.ods",
+        "openName": "chrome.ods",
+        "nameSpoofed": false,
+        "packageProbe": {
+          "readable": true,
+          "encrypted": false,
+          "formControls": false,
+          "reason": null
+        },
+        "packageProbeMs": 2,
+        "formControlsDrawable": null,
+        "engineRequested": true,
+        "documentType": "spreadsheet",
+        "documentTypeKnown": true,
+        "parts": 3,
+        "partNames": [
+          "編輯測試",
+          "另一張表",
+          "保護測試"
+        ],
+        "namesFromEngine": true,
+        "partNamesProblem": null,
+        "canSwitchParts": true,
+        "partVisible": [
+          true,
+          true,
+          true
+        ],
+        "partVisibilityProblem": null,
+        "currentPart": 0,
+        "currentPartReadBack": 0,
+        "tabs": [
+          {
+            "index": 0,
+            "label": "編輯測試",
+            "current": true,
+            "hidden": false,
+            "enabled": true,
+            "disabledReason": null
+          },
+          {
+            "index": 1,
+            "label": "另一張表",
+            "current": false,
+            "hidden": false,
+            "enabled": true,
+            "disabledReason": null
+          },
+          {
+            "index": 2,
+            "label": "保護測試",
+            "current": false,
+            "hidden": false,
+            "enabled": true,
+            "disabledReason": null
+          }
+        ],
+        "widthTwips": 26505,
+        "heightTwips": 13080,
+        "lastRefusal": null,
+        "tileErrors": 0,
+        "lastTileError": null,
+        "error": {
+          "code": "CONFLICT",
+          "message": "檔案在你開啟之後已被別處修改或移走，沒有覆寫。你的內容另存為「chrome（衝突副本 2026-11-02 135142）.ods」。"
+        },
+        "cell": {
+          "part": 0,
+          "column": 0,
+          "row": 0,
+          "endColumn": 0,
+          "endRow": 0,
+          "xTwips": 0,
+          "yTwips": 0,
+          "widthTwips": 1694,
+          "heightTwips": 269,
+          "cellType": 2,
+          "formula": "Conflict local chrome",
+          "input": "Conflict local chrome",
+          "text": "Conflict local chrome",
+          "writable": true,
+          "bold": false,
+          "boldAsian": false,
+          "boldComplex": false,
+          "italic": false,
+          "italicAsian": false,
+          "italicComplex": false,
+          "underline": false,
+          "value": 0
+        },
+        "selection": {
+          "part": 0,
+          "anchor": {
+            "part": 0,
+            "column": 0,
+            "row": 0,
+            "endColumn": 0,
+            "endRow": 0,
+            "xTwips": 0,
+            "yTwips": 0,
+            "widthTwips": 1694,
+            "heightTwips": 269,
+            "cellType": 2,
+            "formula": "Conflict local chrome",
+            "input": "Conflict local chrome",
+            "text": "Conflict local chrome",
+            "writable": true,
+            "bold": false,
+            "boldAsian": false,
+            "boldComplex": false,
+            "italic": false,
+            "italicAsian": false,
+            "italicComplex": false,
+            "underline": false,
+            "value": 0
+          },
+          "focus": {
+            "part": 0,
+            "column": 0,
+            "row": 0,
+            "endColumn": 0,
+            "endRow": 0,
+            "xTwips": 0,
+            "yTwips": 0,
+            "widthTwips": 1694,
+            "heightTwips": 269,
+            "cellType": 2,
+            "formula": "Conflict local chrome",
+            "input": "Conflict local chrome",
+            "text": "Conflict local chrome",
+            "writable": true,
+            "bold": false,
+            "boldAsian": false,
+            "boldComplex": false,
+            "italic": false,
+            "italicAsian": false,
+            "italicComplex": false,
+            "underline": false,
+            "value": 0
+          },
+          "column": 0,
+          "row": 0,
+          "endColumn": 0,
+          "endRow": 0,
+          "xTwips": 0,
+          "yTwips": 0,
+          "widthTwips": 1694,
+          "heightTwips": 269,
+          "multiple": false
+        },
+        "rangeFormat": null,
+        "rangeFormattingSupported": true,
+        "draft": "Conflict local chrome",
+        "editing": null,
+        "readOnly": false,
+        "busy": false,
+        "selectionPending": false,
+        "saving": false,
+        "revision": 1,
+        "dirty": false,
+        "committedDirty": false,
+        "uncertain": false
+      }
+    },
+    {
+      "id": "chrome/later-save-targets-same-copy",
+      "ok": true,
+      "raw": {
+        "at": 3999,
+        "name": "chrome.ods",
+        "bytes": 12497,
+        "attempts": [
+          {
+            "waited": 142,
+            "check": {
+              "at": 4142,
+              "status": 200,
+              "etag": "\"9fc4282ac74f02c9ab7d89418bb866a0\"",
+              "sha256": "51514f364e31da6bdfadb732af4ead4dff40260e9c8743d1c9fb7569ef28617c",
+              "ms": 32
+            },
+            "ifMatch": "\"9fc4282ac74f02c9ab7d89418bb866a0\"",
+            "withToken": false,
+            "target": "chrome（衝突副本 2026-11-02 135142）.ods",
+            "at": 4174,
+            "respondedAt": 4283,
+            "status": 204
+          }
+        ],
+        "trigger": "manual",
+        "target": "chrome（衝突副本 2026-11-02 135142）.ods",
+        "sha256": "b931ebc67ea5897d21da220677845682871fa3f68f31c1c9848271e1ccf3d888",
+        "ifMatch": "\"9fc4282ac74f02c9ab7d89418bb866a0\"",
+        "status": 204,
+        "etag": "\"16dc5c01fcd4221af46749f8d440af41\"",
+        "outcome": "saved",
+        "settled": true
+      }
+    },
+    {
+      "id": "chrome/later-save-preserves-external-original",
+      "ok": true,
+      "raw": "7210d8a664a82fd660db06feb004cb52c8f7dd57b0a7f7461b7d416e89d756b2"
+    },
+    {
+      "id": "chrome/writer-still-opens-saves",
+      "ok": true,
+      "raw": {
+        "status": 200,
+        "sha256": "69a80981d48b1f7c7019a77012862be9245c50ffc3f15859522c2120d2b2b042",
+        "host": {
+          "started": 1793598707729,
+          "done": true,
+          "steps": [
+            {
+              "step": "imported",
+              "at": 240
+            },
+            {
+              "step": "fetched",
+              "at": 333
+            },
+            {
+              "step": "opened",
+              "at": 1842,
+              "state": {
+                "state": "ready",
+                "doc": "chrome.odt",
+                "revision": "0",
+                "toast": "已開啟 chrome.odt"
+              }
+            }
+          ],
+          "saves": [
+            {
+              "at": 2213,
+              "name": "chrome.odt",
+              "bytes": 10071,
+              "attempts": [
+                {
+                  "waited": 0,
+                  "check": {
+                    "at": 2214,
+                    "status": 200,
+                    "etag": "\"6ae824f3f1d8d\"",
+                    "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+                    "ms": 35
+                  },
+                  "ifMatch": "\"6ae824f3f1d8d\"",
+                  "withToken": true,
+                  "target": "original",
+                  "at": 2249,
+                  "respondedAt": 2378,
+                  "status": 204
+                }
+              ],
+              "trigger": "manual",
+              "target": "original",
+              "sha256": "69a80981d48b1f7c7019a77012862be9245c50ffc3f15859522c2120d2b2b042",
+              "ifMatch": "\"6ae824f3f1d8d\"",
+              "status": 204,
+              "etag": "\"4d4590cb426bbd11e0167ede16e870bd\"",
+              "outcome": "saved",
+              "settled": true
+            }
+          ],
+          "lock": {
+            "state": "held",
+            "status": 200,
+            "at": 272,
+            "refreshes": [],
+            "verified": true
+          },
+          "stranded": null,
+          "notice": "",
+          "scope": "scoped",
+          "file": {
+            "id": 29540,
+            "name": "chrome.odt",
+            "size": 1343,
+            "etag": "025fafcf7c7b05ecac287448c943e62f",
+            "writable": true
+          },
+          "isolation": {
+            "crossOriginIsolated": true,
+            "sharedArrayBuffer": true
+          },
+          "href": "https://litecore.localhost:18443/index.php/apps/litecore/r/268e3009dbf33a5a-90d7bc2c/e2-editor.html?fileId=29540",
+          "watchingPage": true,
+          "fetched": {
+            "status": 200,
+            "contentType": "application/vnd.oasis.opendocument.text",
+            "etag": "\"6ae824f3f1d8d\"",
+            "bytes": 1343,
+            "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+            "at": 333
+          },
+          "handedReadOnly": false,
+          "finished": 1842,
+          "lastSaved": {
+            "at": 2378,
+            "trigger": "manual",
+            "target": "original"
+          }
+        }
+      }
+    },
+    {
+      "id": "chrome/readonly-files-route",
+      "ok": true,
+      "raw": {
+        "saveButtons": 0,
+        "hostSave": "undefined",
+        "host": null
+      }
+    },
+    {
+      "id": "chrome/readonly-no-lock",
+      "ok": true,
+      "raw": {
+        "status": 207,
+        "fileId": "29537",
+        "lock": ""
+      }
+    },
+    {
+      "id": "firefox/upload-ods",
+      "ok": true,
+      "raw": "M4-cell-host-20261102T135119/firefox.ods"
+    },
+    {
+      "id": "firefox/upload-odt",
+      "ok": true,
+      "raw": "M4-cell-host-20261102T135119/firefox.odt"
+    },
+    {
+      "id": "firefox/files-writable-route",
+      "ok": true,
+      "raw": {
+        "from": "https://litecore.localhost:18443/apps/files/files?dir=/M4-cell-host-20261102T135119",
+        "landed": "https://litecore.localhost:18443/index.php/apps/litecore/r/268e3009dbf33a5a-90d7bc2c/ods-editor.html?fileId=29617"
+      }
+    },
+    {
+      "id": "firefox/real-lock",
+      "ok": true,
+      "raw": {
+        "status": 207,
+        "fileId": "29617",
+        "lock": "1"
+      }
+    },
+    {
+      "id": "firefox/lock-refuses-unrelated-write",
+      "ok": true,
+      "raw": 423
+    },
+    {
+      "id": "firefox/formula-before-save",
+      "ok": true,
+      "raw": {
+        "part": 0,
+        "column": 2,
+        "row": 0,
+        "endColumn": 2,
+        "endRow": 0,
+        "xTwips": 2715,
+        "yTwips": 0,
+        "widthTwips": 1694,
+        "heightTwips": 269,
+        "cellType": 3,
+        "formula": "=B1*5",
+        "input": "=B1*5",
+        "text": "85",
+        "writable": true,
+        "bold": false,
+        "boldAsian": false,
+        "boldComplex": false,
+        "italic": false,
+        "italicAsian": false,
+        "italicComplex": false,
+        "underline": false,
+        "value": 85
+      }
+    },
+    {
+      "id": "firefox/conditional-ods-put",
+      "ok": true,
+      "raw": [
+        {
+          "method": "PUT",
+          "url": "/remote.php/dav/files/admin/M4-cell-host-20261102T135119/firefox.ods",
+          "contentType": "application/vnd.oasis.opendocument.spreadsheet",
+          "ifMatch": "\"6ae8250ca11f0\"",
+          "ifNoneMatch": null,
+          "withToken": true,
+          "status": 204
+        }
+      ]
+    },
+    {
+      "id": "firefox/host-saved",
+      "ok": true,
+      "raw": [
+        {
+          "at": 4447,
+          "name": "firefox.ods",
+          "bytes": 12475,
+          "attempts": [
+            {
+              "waited": 0,
+              "check": {
+                "at": 4448,
+                "status": 200,
+                "etag": "\"6ae8250ca11f0\"",
+                "sha256": "7210d8a664a82fd660db06feb004cb52c8f7dd57b0a7f7461b7d416e89d756b2",
+                "ms": 32
+              },
+              "ifMatch": "\"6ae8250ca11f0\"",
+              "withToken": true,
+              "target": "original",
+              "at": 4480,
+              "respondedAt": 4593,
+              "status": 204
+            }
+          ],
+          "trigger": "manual",
+          "target": "original",
+          "sha256": "3557f634325ec5831bac861f3449cdd95f869fad009ebee75291d213d755dffb",
+          "ifMatch": "\"6ae8250ca11f0\"",
+          "status": 204,
+          "etag": "\"fc08ab0b5aca8b33e4274fd27a30d718\"",
+          "outcome": "saved",
+          "settled": true
+        }
+      ]
+    },
+    {
+      "id": "firefox/server-xml-input",
+      "ok": true,
+      "raw": "Host inline firefox 中文"
+    },
+    {
+      "id": "firefox/server-xml-result",
+      "ok": true,
+      "raw": "85"
+    },
+    {
+      "id": "firefox/server-mimetype",
+      "ok": true,
+      "raw": "application/vnd.oasis.opendocument.spreadsheet"
+    },
+    {
+      "id": "firefox/leave-releases-own-lock",
+      "ok": true,
+      "raw": {
+        "status": 207,
+        "fileId": "29617",
+        "lock": ""
+      }
+    },
+    {
+      "id": "firefox/actual-host-reopen",
+      "ok": true,
+      "raw": {
+        "part": 0,
+        "column": 2,
+        "row": 0,
+        "endColumn": 2,
+        "endRow": 0,
+        "xTwips": 2715,
+        "yTwips": 0,
+        "widthTwips": 1694,
+        "heightTwips": 269,
+        "cellType": 3,
+        "formula": "=B1*5",
+        "input": "=B1*5",
+        "text": "85",
+        "writable": true,
+        "bold": false,
+        "boldAsian": false,
+        "boldComplex": false,
+        "italic": false,
+        "italicAsian": false,
+        "italicComplex": false,
+        "underline": false,
+        "value": 85
+      }
+    },
+    {
+      "id": "firefox/host-reopen-formats",
+      "ok": true,
+      "raw": {
+        "part": 0,
+        "column": 1,
+        "row": 1,
+        "endColumn": 1,
+        "endRow": 1,
+        "xTwips": 1695,
+        "yTwips": 270,
+        "widthTwips": 1019,
+        "heightTwips": 554,
+        "cellType": 2,
+        "formula": "格式測試",
+        "input": "格式測試",
+        "text": "格式測試",
+        "writable": true,
+        "bold": true,
+        "boldAsian": true,
+        "boldComplex": true,
+        "italic": true,
+        "italicAsian": true,
+        "italicComplex": true,
+        "underline": true,
+        "value": 0
+      }
+    },
+    {
+      "id": "firefox/external-owned-write",
+      "ok": true,
+      "raw": 204
+    },
+    {
+      "id": "firefox/ods-conflict-copy",
+      "ok": true,
+      "raw": {
+        "name": "firefox（衝突副本 2026-11-02 135224）.ods",
+        "url": "/remote.php/dav/files/admin/M4-cell-host-20261102T135119/firefox%EF%BC%88%E8%A1%9D%E7%AA%81%E5%89%AF%E6%9C%AC%202026-11-02%20135224%EF%BC%89.ods",
+        "status": 201,
+        "etag": "\"2fe0c19ddbb95ad545c9644a3114734e\"",
+        "respondedAt": 4077
+      }
+    },
+    {
+      "id": "firefox/conflict-preserves-original",
+      "ok": true,
+      "raw": {
+        "status": 200,
+        "sha256": "7210d8a664a82fd660db06feb004cb52c8f7dd57b0a7f7461b7d416e89d756b2"
+      }
+    },
+    {
+      "id": "firefox/conflict-preserves-local-input",
+      "ok": true,
+      "raw": {
+        "status": 200,
+        "cell": "Conflict local firefox",
+        "contentType": "application/vnd.oasis.opendocument.spreadsheet"
+      }
+    },
+    {
+      "id": "firefox/copy-ods-mimetype",
+      "ok": true,
+      "raw": "application/vnd.oasis.opendocument.spreadsheet"
+    },
+    {
+      "id": "firefox/copy-success-clears-dirty",
+      "ok": true,
+      "raw": {
+        "state": "ready",
+        "evidenceClass": "unbound",
+        "adapterFallbacks": [],
+        "fileName": "firefox.ods",
+        "openName": "firefox.ods",
+        "nameSpoofed": false,
+        "packageProbe": {
+          "readable": true,
+          "encrypted": false,
+          "formControls": false,
+          "reason": null
+        },
+        "packageProbeMs": 1,
+        "formControlsDrawable": null,
+        "engineRequested": true,
+        "documentType": "spreadsheet",
+        "documentTypeKnown": true,
+        "parts": 3,
+        "partNames": [
+          "編輯測試",
+          "另一張表",
+          "保護測試"
+        ],
+        "namesFromEngine": true,
+        "partNamesProblem": null,
+        "canSwitchParts": true,
+        "partVisible": [
+          true,
+          true,
+          true
+        ],
+        "partVisibilityProblem": null,
+        "currentPart": 0,
+        "currentPartReadBack": 0,
+        "tabs": [
+          {
+            "index": 0,
+            "label": "編輯測試",
+            "current": true,
+            "hidden": false,
+            "enabled": true,
+            "disabledReason": null
+          },
+          {
+            "index": 1,
+            "label": "另一張表",
+            "current": false,
+            "hidden": false,
+            "enabled": true,
+            "disabledReason": null
+          },
+          {
+            "index": 2,
+            "label": "保護測試",
+            "current": false,
+            "hidden": false,
+            "enabled": true,
+            "disabledReason": null
+          }
+        ],
+        "widthTwips": 26505,
+        "heightTwips": 13080,
+        "lastRefusal": null,
+        "tileErrors": 0,
+        "lastTileError": null,
+        "error": {
+          "code": "CONFLICT",
+          "message": "檔案在你開啟之後已被別處修改或移走，沒有覆寫。你的內容另存為「firefox（衝突副本 2026-11-02 135224）.ods」。"
+        },
+        "cell": {
+          "part": 0,
+          "column": 0,
+          "row": 0,
+          "endColumn": 0,
+          "endRow": 0,
+          "xTwips": 0,
+          "yTwips": 0,
+          "widthTwips": 1694,
+          "heightTwips": 269,
+          "cellType": 2,
+          "formula": "Conflict local firefox",
+          "input": "Conflict local firefox",
+          "text": "Conflict local firefox",
+          "writable": true,
+          "bold": false,
+          "boldAsian": false,
+          "boldComplex": false,
+          "italic": false,
+          "italicAsian": false,
+          "italicComplex": false,
+          "underline": false,
+          "value": 0
+        },
+        "selection": {
+          "part": 0,
+          "anchor": {
+            "part": 0,
+            "column": 0,
+            "row": 0,
+            "endColumn": 0,
+            "endRow": 0,
+            "xTwips": 0,
+            "yTwips": 0,
+            "widthTwips": 1694,
+            "heightTwips": 269,
+            "cellType": 2,
+            "formula": "Conflict local firefox",
+            "input": "Conflict local firefox",
+            "text": "Conflict local firefox",
+            "writable": true,
+            "bold": false,
+            "boldAsian": false,
+            "boldComplex": false,
+            "italic": false,
+            "italicAsian": false,
+            "italicComplex": false,
+            "underline": false,
+            "value": 0
+          },
+          "focus": {
+            "part": 0,
+            "column": 0,
+            "row": 0,
+            "endColumn": 0,
+            "endRow": 0,
+            "xTwips": 0,
+            "yTwips": 0,
+            "widthTwips": 1694,
+            "heightTwips": 269,
+            "cellType": 2,
+            "formula": "Conflict local firefox",
+            "input": "Conflict local firefox",
+            "text": "Conflict local firefox",
+            "writable": true,
+            "bold": false,
+            "boldAsian": false,
+            "boldComplex": false,
+            "italic": false,
+            "italicAsian": false,
+            "italicComplex": false,
+            "underline": false,
+            "value": 0
+          },
+          "column": 0,
+          "row": 0,
+          "endColumn": 0,
+          "endRow": 0,
+          "xTwips": 0,
+          "yTwips": 0,
+          "widthTwips": 1694,
+          "heightTwips": 269,
+          "multiple": false
+        },
+        "rangeFormat": null,
+        "rangeFormattingSupported": true,
+        "draft": "Conflict local firefox",
+        "editing": null,
+        "readOnly": false,
+        "busy": false,
+        "selectionPending": false,
+        "saving": false,
+        "revision": 1,
+        "dirty": false,
+        "committedDirty": false,
+        "uncertain": false
+      }
+    },
+    {
+      "id": "firefox/later-save-targets-same-copy",
+      "ok": true,
+      "raw": {
+        "at": 5050,
+        "name": "firefox.ods",
+        "bytes": 12530,
+        "attempts": [
+          {
+            "waited": 128,
+            "check": {
+              "at": 5178,
+              "status": 200,
+              "etag": "\"2fe0c19ddbb95ad545c9644a3114734e\"",
+              "sha256": "1c01e3d82061d932308cb5f03215135bab91e55197bde14a07df889d8f9bdf77",
+              "ms": 35
+            },
+            "ifMatch": "\"2fe0c19ddbb95ad545c9644a3114734e\"",
+            "withToken": false,
+            "target": "firefox（衝突副本 2026-11-02 135224）.ods",
+            "at": 5213,
+            "respondedAt": 5331,
+            "status": 204
+          }
+        ],
+        "trigger": "manual",
+        "target": "firefox（衝突副本 2026-11-02 135224）.ods",
+        "sha256": "771853cbf8de822e8a9111aeba2f41de5018a3ac33686f1cabfb08c0d560e52d",
+        "ifMatch": "\"2fe0c19ddbb95ad545c9644a3114734e\"",
+        "status": 204,
+        "etag": "\"4bb44e8dfa2d1b64e7178b46eb67089e\"",
+        "outcome": "saved",
+        "settled": true
+      }
+    },
+    {
+      "id": "firefox/later-save-preserves-external-original",
+      "ok": true,
+      "raw": "7210d8a664a82fd660db06feb004cb52c8f7dd57b0a7f7461b7d416e89d756b2"
+    },
+    {
+      "id": "firefox/writer-still-opens-saves",
+      "ok": true,
+      "raw": {
+        "status": 200,
+        "sha256": "a2b0b447bcee87aadc45c7cd1b717844fcfb07c9044e166595543ef108b83446",
+        "host": {
+          "started": 1793598749403,
+          "done": true,
+          "steps": [
+            {
+              "step": "imported",
+              "at": 243
+            },
+            {
+              "step": "fetched",
+              "at": 331
+            },
+            {
+              "step": "opened",
+              "at": 2252,
+              "state": {
+                "state": "ready",
+                "doc": "firefox.odt",
+                "revision": "1",
+                "toast": "已開啟 firefox.odt"
+              }
+            }
+          ],
+          "saves": [
+            {
+              "at": 2523,
+              "name": "firefox.odt",
+              "bytes": 10081,
+              "attempts": [
+                {
+                  "waited": 0,
+                  "check": {
+                    "at": 2524,
+                    "status": 200,
+                    "etag": "\"6ae8251da46f5\"",
+                    "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+                    "ms": 33
+                  },
+                  "ifMatch": "\"6ae8251da46f5\"",
+                  "withToken": true,
+                  "target": "original",
+                  "at": 2557,
+                  "respondedAt": 2677,
+                  "status": 204
+                }
+              ],
+              "trigger": "manual",
+              "target": "original",
+              "sha256": "a2b0b447bcee87aadc45c7cd1b717844fcfb07c9044e166595543ef108b83446",
+              "ifMatch": "\"6ae8251da46f5\"",
+              "status": 204,
+              "etag": "\"d98313e6139a82c509a8ef91296e8f8e\"",
+              "outcome": "saved",
+              "settled": true
+            }
+          ],
+          "lock": {
+            "state": "held",
+            "status": 200,
+            "at": 280,
+            "refreshes": [],
+            "verified": true
+          },
+          "stranded": null,
+          "notice": "",
+          "scope": "scoped",
+          "file": {
+            "id": 29618,
+            "name": "firefox.odt",
+            "size": 1343,
+            "etag": "f2d03ebcff74e6173b116f99a68fd926",
+            "writable": true
+          },
+          "isolation": {
+            "crossOriginIsolated": true,
+            "sharedArrayBuffer": true
+          },
+          "href": "https://litecore.localhost:18443/index.php/apps/litecore/r/268e3009dbf33a5a-90d7bc2c/e2-editor.html?fileId=29618",
+          "watchingPage": true,
+          "fetched": {
+            "status": 200,
+            "contentType": "application/vnd.oasis.opendocument.text",
+            "etag": "\"6ae8251da46f5\"",
+            "bytes": 1343,
+            "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+            "at": 331
+          },
+          "handedReadOnly": false,
+          "finished": 2252,
+          "lastSaved": {
+            "at": 2677,
+            "trigger": "manual",
+            "target": "original"
+          }
+        }
+      }
+    },
+    {
+      "id": "firefox/readonly-files-route",
+      "ok": true,
+      "raw": {
+        "saveButtons": 0,
+        "hostSave": "undefined",
+        "host": null
+      }
+    },
+    {
+      "id": "firefox/readonly-no-lock",
+      "ok": true,
+      "raw": {
+        "status": 207,
+        "fileId": "29537",
+        "lock": ""
+      }
+    }
+  ],
+  "runs": [
+    {
+      "browser": "chrome",
+      "version": "Chrome/156.0.8078.47",
+      "entry": {
+        "from": "https://litecore.localhost:18443/apps/files/files?dir=/M4-cell-host-20261102T135119",
+        "landed": "https://litecore.localhost:18443/index.php/apps/litecore/r/268e3009dbf33a5a-90d7bc2c/ods-editor.html?fileId=29539"
+      },
+      "openedHost": {
+        "started": 1793598691471,
+        "done": true,
+        "steps": [
+          {
+            "step": "imported",
+            "at": 240
+          },
+          {
+            "step": "fetched",
+            "at": 322
+          },
+          {
+            "step": "opened",
+            "at": 2042,
+            "state": {
+              "state": "ready",
+              "doc": "chrome.ods",
+              "revision": "0",
+              "toast": null
+            }
+          }
+        ],
+        "saves": [],
+        "lock": {
+          "state": "held",
+          "status": 200,
+          "at": 270,
+          "refreshes": [],
+          "verified": true
+        },
+        "stranded": null,
+        "notice": "",
+        "scope": "scoped",
+        "file": {
+          "id": 29539,
+          "name": "chrome.ods",
+          "size": 4267,
+          "etag": "72f0a09f98fb74927c1a31bb96f33916",
+          "writable": true
+        },
+        "isolation": {
+          "crossOriginIsolated": true,
+          "sharedArrayBuffer": true
+        },
+        "href": "https://litecore.localhost:18443/index.php/apps/litecore/r/268e3009dbf33a5a-90d7bc2c/ods-editor.html?fileId=29539",
+        "watchingPage": true,
+        "fetched": {
+          "status": 200,
+          "contentType": "application/vnd.oasis.opendocument.spreadsheet",
+          "etag": "\"6ae824e3b26f2\"",
+          "bytes": 4267,
+          "sha256": "7210d8a664a82fd660db06feb004cb52c8f7dd57b0a7f7461b7d416e89d756b2",
+          "at": 322
+        },
+        "handedReadOnly": false,
+        "finished": 2042
+      },
+      "savedHost": {
+        "started": 1793598691471,
+        "done": true,
+        "steps": [
+          {
+            "step": "imported",
+            "at": 240
+          },
+          {
+            "step": "fetched",
+            "at": 322
+          },
+          {
+            "step": "opened",
+            "at": 2042,
+            "state": {
+              "state": "ready",
+              "doc": "chrome.ods",
+              "revision": "0",
+              "toast": null
+            }
+          }
+        ],
+        "saves": [
+          {
+            "at": 4147,
+            "name": "chrome.ods",
+            "bytes": 12441,
+            "attempts": [
+              {
+                "waited": 0,
+                "check": {
+                  "at": 4147,
+                  "status": 200,
+                  "etag": "\"6ae824e3b26f2\"",
+                  "sha256": "7210d8a664a82fd660db06feb004cb52c8f7dd57b0a7f7461b7d416e89d756b2",
+                  "ms": 31
+                },
+                "ifMatch": "\"6ae824e3b26f2\"",
+                "withToken": true,
+                "target": "original",
+                "at": 4178,
+                "respondedAt": 4306,
+                "status": 204
+              }
+            ],
+            "trigger": "manual",
+            "target": "original",
+            "sha256": "1094d0c685b539a260a0c1678534086e359dce14577c324a37c14a01b262af30",
+            "ifMatch": "\"6ae824e3b26f2\"",
+            "status": 204,
+            "etag": "\"b336bcde48628a7ea701ac90c8d2d46e\"",
+            "outcome": "saved",
+            "settled": true
+          }
+        ],
+        "lock": {
+          "state": "held",
+          "status": 200,
+          "at": 270,
+          "refreshes": [],
+          "verified": true
+        },
+        "stranded": null,
+        "notice": "",
+        "scope": "scoped",
+        "file": {
+          "id": 29539,
+          "name": "chrome.ods",
+          "size": 4267,
+          "etag": "72f0a09f98fb74927c1a31bb96f33916",
+          "writable": true
+        },
+        "isolation": {
+          "crossOriginIsolated": true,
+          "sharedArrayBuffer": true
+        },
+        "href": "https://litecore.localhost:18443/index.php/apps/litecore/r/268e3009dbf33a5a-90d7bc2c/ods-editor.html?fileId=29539",
+        "watchingPage": true,
+        "fetched": {
+          "status": 200,
+          "contentType": "application/vnd.oasis.opendocument.spreadsheet",
+          "etag": "\"6ae824e3b26f2\"",
+          "bytes": 4267,
+          "sha256": "7210d8a664a82fd660db06feb004cb52c8f7dd57b0a7f7461b7d416e89d756b2",
+          "at": 322
+        },
+        "handedReadOnly": false,
+        "finished": 2042,
+        "lastSaved": {
+          "at": 4306,
+          "trigger": "manual",
+          "target": "original"
+        }
+      },
+      "requests": [
+        {
+          "method": "PUT",
+          "url": "/remote.php/dav/files/admin/M4-cell-host-20261102T135119/chrome.ods",
+          "contentType": "application/vnd.oasis.opendocument.spreadsheet",
+          "ifMatch": "\"6ae824e3b26f2\"",
+          "ifNoneMatch": null,
+          "withToken": true,
+          "status": 204
+        }
+      ],
+      "serverSaved": {
+        "status": 200,
+        "sha256": "1094d0c685b539a260a0c1678534086e359dce14577c324a37c14a01b262af30",
+        "contentType": "application/vnd.oasis.opendocument.spreadsheet"
+      },
+      "reentry": {
+        "from": "https://litecore.localhost:18443/apps/files/files?dir=/M4-cell-host-20261102T135119",
+        "landed": "https://litecore.localhost:18443/index.php/apps/litecore/r/268e3009dbf33a5a-90d7bc2c/ods-editor.html?fileId=29539"
+      },
+      "conflictHost": {
+        "started": 1793598699442,
+        "done": true,
+        "steps": [
+          {
+            "step": "imported",
+            "at": 223
+          },
+          {
+            "step": "fetched",
+            "at": 304
+          },
+          {
+            "step": "opened",
+            "at": 1625,
+            "state": {
+              "state": "ready",
+              "doc": "chrome.ods",
+              "revision": "0",
+              "toast": "直接輸入取代內容；F2 編輯；拖曳或 Shift＋方向鍵選取範圍。"
+            }
+          }
+        ],
+        "saves": [
+          {
+            "at": 2853,
+            "name": "chrome.ods",
+            "bytes": 12504,
+            "attempts": [
+              {
+                "waited": 0,
+                "check": {
+                  "at": 2853,
+                  "status": 200,
+                  "etag": "\"ff83660c162d20cca4df11af9c0d47b4\"",
+                  "sha256": "7210d8a664a82fd660db06feb004cb52c8f7dd57b0a7f7461b7d416e89d756b2",
+                  "ms": 35
+                },
+                "ifMatch": "\"6ae824eba773f\"",
+                "withToken": true,
+                "target": "original",
+                "at": 2888,
+                "respondedAt": 2916,
+                "status": 412
+              }
+            ],
+            "trigger": "manual",
+            "target": "chrome（衝突副本 2026-11-02 135142）.ods",
+            "sha256": "51514f364e31da6bdfadb732af4ead4dff40260e9c8743d1c9fb7569ef28617c",
+            "ifMatch": "\"6ae824eba773f\"",
+            "tokenOnServer": true,
+            "status": 412,
+            "responseEtag": "\"ff83660c162d20cca4df11af9c0d47b4\"",
+            "conflictCopy": {
+              "name": "chrome（衝突副本 2026-11-02 135142）.ods",
+              "url": "/remote.php/dav/files/admin/M4-cell-host-20261102T135119/chrome%EF%BC%88%E8%A1%9D%E7%AA%81%E5%89%AF%E6%9C%AC%202026-11-02%20135142%EF%BC%89.ods",
+              "status": 201,
+              "etag": "\"9fc4282ac74f02c9ab7d89418bb866a0\"",
+              "respondedAt": 3037
+            },
+            "outcome": "copy",
+            "settled": true
+          }
+        ],
+        "lock": {
+          "state": "held",
+          "status": 200,
+          "at": 253,
+          "refreshes": [],
+          "verified": true
+        },
+        "stranded": null,
+        "notice": "檔案在你開啟之後已被別處修改或移走，沒有覆寫。你的內容存在「chrome（衝突副本 2026-11-02 135142）.ods」，之後的存檔都會存到這份。",
+        "scope": "scoped",
+        "file": {
+          "id": 29539,
+          "name": "chrome.ods",
+          "size": 12441,
+          "etag": "6ae824e81e622",
+          "writable": true
+        },
+        "isolation": {
+          "crossOriginIsolated": true,
+          "sharedArrayBuffer": true
+        },
+        "href": "https://litecore.localhost:18443/index.php/apps/litecore/r/268e3009dbf33a5a-90d7bc2c/ods-editor.html?fileId=29539",
+        "watchingPage": true,
+        "fetched": {
+          "status": 200,
+          "contentType": "application/vnd.oasis.opendocument.spreadsheet",
+          "etag": "\"6ae824eba773f\"",
+          "bytes": 12441,
+          "sha256": "1094d0c685b539a260a0c1678534086e359dce14577c324a37c14a01b262af30",
+          "at": 304
+        },
+        "handedReadOnly": false,
+        "finished": 1625,
+        "lastSaved": {
+          "at": 3037,
+          "trigger": "manual",
+          "target": "chrome（衝突副本 2026-11-02 135142）.ods"
+        }
+      },
+      "conflictRelease": {
+        "status": 207,
+        "fileId": "29539",
+        "lock": ""
+      },
+      "writerEntry": {
+        "from": "https://litecore.localhost:18443/apps/files/files?dir=/M4-cell-host-20261102T135119",
+        "landed": "https://litecore.localhost:18443/index.php/apps/litecore/r/268e3009dbf33a5a-90d7bc2c/e2-editor.html?fileId=29540"
+      },
+      "writerRelease": {
+        "status": 207,
+        "fileId": "29540",
+        "lock": ""
+      },
+      "screenshot": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/host-0.2.47/files-workflow-01/chrome-host.png",
+      "browserClose": {}
+    },
+    {
+      "browser": "chrome",
+      "kind": "readonly",
+      "version": "Chrome/156.0.8078.47",
+      "entry": {
+        "from": "https://litecore.localhost:18443/apps/files/files?dir=/",
+        "landed": "https://litecore.localhost:18443/index.php/apps/litecore/r/268e3009dbf33a5a-90d7bc2c/ods-viewer.html?fileId=29537"
+      },
+      "browserClose": {}
+    },
+    {
+      "browser": "firefox",
+      "version": "157.0.1",
+      "entry": {
+        "from": "https://litecore.localhost:18443/apps/files/files?dir=/M4-cell-host-20261102T135119",
+        "landed": "https://litecore.localhost:18443/index.php/apps/litecore/r/268e3009dbf33a5a-90d7bc2c/ods-editor.html?fileId=29617"
+      },
+      "openedHost": {
+        "started": 1793598732393,
+        "done": true,
+        "steps": [
+          {
+            "step": "imported",
+            "at": 232
+          },
+          {
+            "step": "fetched",
+            "at": 328
+          },
+          {
+            "step": "opened",
+            "at": 2436,
+            "state": {
+              "state": "ready",
+              "doc": "firefox.ods",
+              "revision": "0",
+              "toast": null
+            }
+          }
+        ],
+        "saves": [],
+        "lock": {
+          "state": "held",
+          "status": 200,
+          "at": 278,
+          "refreshes": [],
+          "verified": true
+        },
+        "stranded": null,
+        "notice": "",
+        "scope": "scoped",
+        "file": {
+          "id": 29617,
+          "name": "firefox.ods",
+          "size": 4267,
+          "etag": "6aae62b8e61c69d267efe47597fd28fc",
+          "writable": true
+        },
+        "isolation": {
+          "crossOriginIsolated": true,
+          "sharedArrayBuffer": true
+        },
+        "href": "https://litecore.localhost:18443/index.php/apps/litecore/r/268e3009dbf33a5a-90d7bc2c/ods-editor.html?fileId=29617",
+        "watchingPage": true,
+        "fetched": {
+          "status": 200,
+          "contentType": "application/vnd.oasis.opendocument.spreadsheet",
+          "etag": "\"6ae8250ca11f0\"",
+          "bytes": 4267,
+          "sha256": "7210d8a664a82fd660db06feb004cb52c8f7dd57b0a7f7461b7d416e89d756b2",
+          "at": 328
+        },
+        "handedReadOnly": false,
+        "finished": 2437
+      },
+      "savedHost": {
+        "started": 1793598732393,
+        "done": true,
+        "steps": [
+          {
+            "step": "imported",
+            "at": 232
+          },
+          {
+            "step": "fetched",
+            "at": 328
+          },
+          {
+            "step": "opened",
+            "at": 2436,
+            "state": {
+              "state": "ready",
+              "doc": "firefox.ods",
+              "revision": "0",
+              "toast": null
+            }
+          }
+        ],
+        "saves": [
+          {
+            "at": 4447,
+            "name": "firefox.ods",
+            "bytes": 12475,
+            "attempts": [
+              {
+                "waited": 0,
+                "check": {
+                  "at": 4448,
+                  "status": 200,
+                  "etag": "\"6ae8250ca11f0\"",
+                  "sha256": "7210d8a664a82fd660db06feb004cb52c8f7dd57b0a7f7461b7d416e89d756b2",
+                  "ms": 32
+                },
+                "ifMatch": "\"6ae8250ca11f0\"",
+                "withToken": true,
+                "target": "original",
+                "at": 4480,
+                "respondedAt": 4593,
+                "status": 204
+              }
+            ],
+            "trigger": "manual",
+            "target": "original",
+            "sha256": "3557f634325ec5831bac861f3449cdd95f869fad009ebee75291d213d755dffb",
+            "ifMatch": "\"6ae8250ca11f0\"",
+            "status": 204,
+            "etag": "\"fc08ab0b5aca8b33e4274fd27a30d718\"",
+            "outcome": "saved",
+            "settled": true
+          }
+        ],
+        "lock": {
+          "state": "held",
+          "status": 200,
+          "at": 278,
+          "refreshes": [],
+          "verified": true
+        },
+        "stranded": null,
+        "notice": "",
+        "scope": "scoped",
+        "file": {
+          "id": 29617,
+          "name": "firefox.ods",
+          "size": 4267,
+          "etag": "6aae62b8e61c69d267efe47597fd28fc",
+          "writable": true
+        },
+        "isolation": {
+          "crossOriginIsolated": true,
+          "sharedArrayBuffer": true
+        },
+        "href": "https://litecore.localhost:18443/index.php/apps/litecore/r/268e3009dbf33a5a-90d7bc2c/ods-editor.html?fileId=29617",
+        "watchingPage": true,
+        "fetched": {
+          "status": 200,
+          "contentType": "application/vnd.oasis.opendocument.spreadsheet",
+          "etag": "\"6ae8250ca11f0\"",
+          "bytes": 4267,
+          "sha256": "7210d8a664a82fd660db06feb004cb52c8f7dd57b0a7f7461b7d416e89d756b2",
+          "at": 328
+        },
+        "handedReadOnly": false,
+        "finished": 2437,
+        "lastSaved": {
+          "at": 4593,
+          "trigger": "manual",
+          "target": "original"
+        }
+      },
+      "requests": [
+        {
+          "method": "PUT",
+          "url": "/remote.php/dav/files/admin/M4-cell-host-20261102T135119/firefox.ods",
+          "contentType": "application/vnd.oasis.opendocument.spreadsheet",
+          "ifMatch": "\"6ae8250ca11f0\"",
+          "ifNoneMatch": null,
+          "withToken": true,
+          "status": 204
+        }
+      ],
+      "serverSaved": {
+        "status": 200,
+        "sha256": "3557f634325ec5831bac861f3449cdd95f869fad009ebee75291d213d755dffb",
+        "contentType": "application/vnd.oasis.opendocument.spreadsheet"
+      },
+      "reentry": {
+        "from": "https://litecore.localhost:18443/apps/files/files?dir=/M4-cell-host-20261102T135119",
+        "landed": "https://litecore.localhost:18443/index.php/apps/litecore/r/268e3009dbf33a5a-90d7bc2c/ods-editor.html?fileId=29617"
+      },
+      "conflictHost": {
+        "started": 1793598740393,
+        "done": true,
+        "steps": [
+          {
+            "step": "imported",
+            "at": 225
+          },
+          {
+            "step": "fetched",
+            "at": 309
+          },
+          {
+            "step": "opened",
+            "at": 2427,
+            "state": {
+              "state": "ready",
+              "doc": "firefox.ods",
+              "revision": "0",
+              "toast": null
+            }
+          }
+        ],
+        "saves": [
+          {
+            "at": 3901,
+            "name": "firefox.ods",
+            "bytes": 12539,
+            "attempts": [
+              {
+                "waited": 0,
+                "check": {
+                  "at": 3901,
+                  "status": 200,
+                  "etag": "\"21ce503cbfe57a47559749a104cfa85a\"",
+                  "sha256": "7210d8a664a82fd660db06feb004cb52c8f7dd57b0a7f7461b7d416e89d756b2",
+                  "ms": 32
+                },
+                "ifMatch": "\"6ae825149caa4\"",
+                "withToken": true,
+                "target": "original",
+                "at": 3933,
+                "respondedAt": 3959,
+                "status": 412
+              }
+            ],
+            "trigger": "manual",
+            "target": "firefox（衝突副本 2026-11-02 135224）.ods",
+            "sha256": "1c01e3d82061d932308cb5f03215135bab91e55197bde14a07df889d8f9bdf77",
+            "ifMatch": "\"6ae825149caa4\"",
+            "tokenOnServer": true,
+            "status": 412,
+            "responseEtag": "\"21ce503cbfe57a47559749a104cfa85a\"",
+            "conflictCopy": {
+              "name": "firefox（衝突副本 2026-11-02 135224）.ods",
+              "url": "/remote.php/dav/files/admin/M4-cell-host-20261102T135119/firefox%EF%BC%88%E8%A1%9D%E7%AA%81%E5%89%AF%E6%9C%AC%202026-11-02%20135224%EF%BC%89.ods",
+              "status": 201,
+              "etag": "\"2fe0c19ddbb95ad545c9644a3114734e\"",
+              "respondedAt": 4077
+            },
+            "outcome": "copy",
+            "settled": true
+          }
+        ],
+        "lock": {
+          "state": "held",
+          "status": 200,
+          "at": 262,
+          "refreshes": [],
+          "verified": true
+        },
+        "stranded": null,
+        "notice": "檔案在你開啟之後已被別處修改或移走，沒有覆寫。你的內容存在「firefox（衝突副本 2026-11-02 135224）.ods」，之後的存檔都會存到這份。",
+        "scope": "scoped",
+        "file": {
+          "id": 29617,
+          "name": "firefox.ods",
+          "size": 12475,
+          "etag": "6ae8251156a36",
+          "writable": true
+        },
+        "isolation": {
+          "crossOriginIsolated": true,
+          "sharedArrayBuffer": true
+        },
+        "href": "https://litecore.localhost:18443/index.php/apps/litecore/r/268e3009dbf33a5a-90d7bc2c/ods-editor.html?fileId=29617",
+        "watchingPage": true,
+        "fetched": {
+          "status": 200,
+          "contentType": "application/vnd.oasis.opendocument.spreadsheet",
+          "etag": "\"6ae825149caa4\"",
+          "bytes": 12475,
+          "sha256": "3557f634325ec5831bac861f3449cdd95f869fad009ebee75291d213d755dffb",
+          "at": 309
+        },
+        "handedReadOnly": false,
+        "finished": 2427,
+        "lastSaved": {
+          "at": 4077,
+          "trigger": "manual",
+          "target": "firefox（衝突副本 2026-11-02 135224）.ods"
+        }
+      },
+      "conflictRelease": {
+        "status": 207,
+        "fileId": "29617",
+        "lock": ""
+      },
+      "writerEntry": {
+        "from": "https://litecore.localhost:18443/apps/files/files?dir=/M4-cell-host-20261102T135119",
+        "landed": "https://litecore.localhost:18443/index.php/apps/litecore/r/268e3009dbf33a5a-90d7bc2c/e2-editor.html?fileId=29618"
+      },
+      "writerRelease": {
+        "status": 207,
+        "fileId": "29618",
+        "lock": ""
+      },
+      "screenshot": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/host-0.2.47/files-workflow-01/firefox-host.png",
+      "browserClose": {}
+    },
+    {
+      "browser": "firefox",
+      "kind": "readonly",
+      "version": "157.0.1",
+      "entry": {
+        "from": "https://litecore.localhost:18443/apps/files/files?dir=/",
+        "landed": "https://litecore.localhost:18443/index.php/apps/litecore/r/268e3009dbf33a5a-90d7bc2c/ods-viewer.html?fileId=29537"
+      },
+      "browserClose": {}
+    }
+  ],
+  "cleanup": {
+    "ownedUnlocks": [],
+    "shareRemoved": true,
+    "userRemoved": true,
+    "folderDeleteStatus": 204
+  },
+  "ownedFolder": "M4-cell-host-20261102T135119",
+  "temporaryUser": "m4_cell_57a511b5",
+  "readonlyShare": {
+    "id": "430",
+    "permissions": 1
+  },
+  "ok": true
+}
