@@ -31,6 +31,12 @@ int main(int argc, char **argv) {
       std::free(raw);
       continue;
     }
+    if (request.get<std::string>("action", "") == "uno") {
+      doc->pClass->postUnoCommand(doc, request.get<std::string>("command").c_str(), nullptr, true);
+      std::this_thread::sleep_for(std::chrono::milliseconds(300));
+      std::cout << "{\"posted\":true}" << std::endl;
+      continue;
+    }
     if (request.get<std::string>("action", "") == "save") {
       const bool ok = doc->pClass->saveAs(doc, request.get<std::string>("url").c_str(), "ods", nullptr);
       std::cout << "{\"saved\":" << (ok ? "true" : "false") << "}" << std::endl;

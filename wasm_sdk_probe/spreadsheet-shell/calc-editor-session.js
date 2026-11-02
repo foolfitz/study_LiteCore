@@ -2,7 +2,7 @@
 // operations are serialized, and an edit's target is captured before it waits.
 import { OdsViewerSession } from "../viewer-shell/ods-viewer-session.js";
 import { DocumentSdkError } from "../sdk/document-sdk.js";
-import { CELL_FORMATS, CELL_INPUT_LIMIT } from "./calc-document-sdk.js";
+import { CELL_FORMATS, CELL_INPUT_LIMIT, CELL_STYLES } from "./calc-document-sdk.js";
 
 export function inputIntent(event) {
   if (event.isComposing || event.keyCode === 229) return null;
@@ -58,7 +58,8 @@ export class CalcEditorSession {
   get scheduler() { return this.viewer.scheduler; }
   get state() {
     return { ...this.viewer.state, cell: this._cell, selection:this._selection, rangeFormat:this._rangeFormat,
-      rangeFormattingSupported:this.document?.rangeFormattingSupported===true, draft: this._draft,
+      rangeFormattingSupported:this.document?.rangeFormattingSupported===true,
+      rangeStylingSupported:this.document?.rangeStylingSupported===true, draft: this._draft,
       editing: this._editing, readOnly: this._readOnly, busy: this._busy > 0,
       selectionPending: this._selecting > 0,
       saving: this._saving > 0, revision: this.document?.revision ?? null,
@@ -179,7 +180,7 @@ export class CalcEditorSession {
     } catch(error) {
       if(error.code!=="RANGE_TOO_LARGE")throw error;
       if(this._selection===selection)this._rangeFormat={...selection,bold:null,italic:null,underline:null,
-        writable:false,refusalCode:error.code};
+        textColor:null,backColor:null,horizontalAlign:null,writable:false,refusalCode:error.code};
     }
     this._emit();
   }
@@ -260,6 +261,44 @@ export class CalcEditorSession {
       this.scheduler.invalidateRevision(this.document.revision);
       this._adopt(result.cell);
       return result.cell;
+    });
+  }
+  // SPEC-P-demo-batch-3 3.1.  The bridge writes styles over a range only, so one cell goes as its merged extent.
+  setStyle(style,value) {
+    return this._enqueue(async()=>{
+      this._assertReady(true);
+      if(!Object.hasOwn(CELL_STYLES,style) || !CELL_STYLES[style](value))
+        throw new DocumentSdkError("INVALID_ARGUMENT","unknown cell style");
+      if(this.document.rangeStylingSupported!==true)
+        throw new DocumentSdkError("RANGE_FORMAT_UNSUPPORTED","this engine does not support cell styles");
+      const selected=this._selection;
+      if(selected?.multiple) {
+        const result=await this.document.setRangeStyle(selected.column,selected.row,selected.endColumn,selected.endRow,
+          style,value,{part:selected.part,expectedRevision:this.document.revision});
+        this.scheduler.invalidateRevision(this.document.revision);
+        try {
+          const {cell:anchor}=await this.document.readCell(selected.anchor.column,selected.anchor.row,{part:selected.part});
+          const {cell:focus}=await this.document.readCell(selected.focus.column,selected.focus.row,{part:selected.part});
+          this._cell=anchor;this._selection=rectangle(anchor,focus);this._rangeFormat=result.range;
+          this._draft=anchor.input;this._draftVersion++;
+        } catch(error) {
+          throw new DocumentSdkError("MUTATION_OUTCOME_UNKNOWN",`range applied but endpoint refresh failed: ${error.message}`);
+        }
+        this._emit();return result.range;
+      }
+      await this._commitNow();
+      const cell=this._cell;
+      await this.document.setRangeStyle(cell.column,cell.row,cell.endColumn,cell.endRow,style,value,
+        {part:cell.part,expectedRevision:this.document.revision});
+      this.scheduler.invalidateRevision(this.document.revision);
+      let refreshed;
+      try {
+        ({cell:refreshed}=await this.document.readCell(cell.column,cell.row,{part:cell.part}));
+      } catch(error) {
+        throw new DocumentSdkError("MUTATION_OUTCOME_UNKNOWN",`style applied but cell refresh failed: ${error.message}`);
+      }
+      this._adopt(refreshed);
+      return refreshed;
     });
   }
   save(target,{commitDraft=true}={}) {

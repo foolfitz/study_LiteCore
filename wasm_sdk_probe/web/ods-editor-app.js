@@ -67,6 +67,76 @@ function renderFormatControls(state) {
     node.title=multiple && !state.rangeFormattingSupported ? "目前的引擎尚未支援範圍格式。"
       : multiple && range?.refusalCode ? formatRefusal(range.refusalCode) : node.getAttribute("aria-label");
   }
+  // Here and not in render(): a drag ends by calling this alone, and the styles must come back with the formats.
+  renderStyleControls(state);
+}
+// SPEC-P-demo-batch-3 3.3.  Ten columns, dark to light: Collabora's picker's base colours and shades (browser/src/control/ColorPicker.ts).
+const COLOR_ROWS=Object.freeze([
+  ["#000000","#5b0f00","#660000","#783f04","#7f6000","#274e13","#0c343d","#073763","#20124d","#4c1130"],
+  ["#434343","#85200c","#990000","#b45f06","#bf9000","#38761d","#134f5c","#0b5394","#351c75","#741b47"],
+  ["#666666","#a61c00","#cc0000","#e69138","#f1c232","#6aa84f","#45818e","#3d85c6","#674ea7","#a64d79"],
+  ["#888888","#980000","#ff0000","#ff9900","#ffff00","#00ff00","#00ffff","#0000ff","#9900ff","#ff00ff"],
+  ["#bbbbbb","#cc4125","#e06666","#f6b26b","#ffd966","#93c47d","#76a5af","#6fa8dc","#8e7cc3","#c27ba0"],
+  ["#dddddd","#dd7e6b","#ea9999","#f9cb9c","#ffe599","#b6d7a8","#a2c4c9","#9fc5e8","#b4a7d6","#d5a6bd"],
+  ["#ffffff","#e6b8af","#f4cccc","#fce5cd","#fff2cc","#d9ead3","#d0e0e3","#cfe2f3","#d9d2e9","#ead1dc"],
+]);
+const lastColor={textColor:"#ff0000",backColor:"#ffff00"};
+const COLOR_NONE={textColor:["auto","自動"],backColor:["none","無填滿"]};
+const colorPopover=$("color-popover"),colorClear=$("color-clear"),colorGrid=$("color-grid");
+let colorTarget=null;
+for(const color of COLOR_ROWS.flat()) {
+  const swatch=document.createElement("button");
+  swatch.type="button";swatch.dataset.swatch=color;swatch.style.background=color;
+  swatch.setAttribute("aria-label",color);swatch.title=color;colorGrid.append(swatch);
+}
+function closeColorPopover(returnFocus=false) {
+  if(colorTarget===null)return;
+  const menu=document.querySelector(`[data-color-menu="${colorTarget}"]`);
+  menu.setAttribute("aria-expanded","false");
+  colorPopover.hidden=true;colorTarget=null;
+  if(returnFocus)menu.focus();
+}
+function openColorPopover(key) {
+  const reopen=colorTarget===key;
+  closeColorPopover();
+  if(reopen)return;
+  const menu=document.querySelector(`[data-color-menu="${key}"]`),box=menu.getBoundingClientRect();
+  colorTarget=key;menu.setAttribute("aria-expanded","true");
+  colorClear.textContent=COLOR_NONE[key][1];
+  colorPopover.hidden=false;
+  colorPopover.style.left=`${Math.max(8,Math.min(box.left,innerWidth-colorPopover.offsetWidth-8))}px`;
+  colorPopover.style.top=`${box.bottom+4}px`;
+  colorClear.focus();
+}
+function applyStyle(style,value) {
+  if(pendingEntry){notice("請先完成或取消目前的輸入。",true);return;}
+  if(!session || !formatAvailable(session.state))return;
+  void action(async()=>{await session.setStyle(style,value);focusGrid();});
+}
+function renderSwatch(key) {
+  document.querySelector(`[data-color="${key}"] .swatch-bar`).style.setProperty("--swatch",lastColor[key]);
+}
+function pickColor(value) {
+  const key=colorTarget;
+  if(value!==COLOR_NONE[key][0]){lastColor[key]=value;renderSwatch(key);}
+  closeColorPopover();
+  applyStyle(key,value);
+}
+function currentStyle(state,key) {
+  return state.selection?.multiple ? state.rangeFormat?.[key] : state.cell?.[key];
+}
+function renderStyleControls(state) {
+  const supported=state.rangeStylingSupported===true;
+  for(const node of document.querySelectorAll("[data-style-group]"))node.hidden=!supported;
+  if(!supported){closeColorPopover();return;}
+  const available=formatAvailable(state);
+  if(!available)closeColorPopover();
+  for(const node of document.querySelectorAll("[data-color],[data-color-menu]"))node.disabled=!available;
+  const align=currentStyle(state,"horizontalAlign");
+  for(const node of document.querySelectorAll("[data-align]")) {
+    node.disabled=!available;
+    node.setAttribute("aria-pressed",state.selection?.multiple && align===null ? "mixed" : align===node.dataset.align ? "true":"false");
+  }
 }
 function render(state) {
   restoreGridFocus ||= document.activeElement===ui["cell-editor"];
@@ -317,6 +387,28 @@ for(const node of document.querySelectorAll("[data-format]"))
   node.addEventListener("click",()=>{
     if(pendingEntry){notice("請先完成或取消目前的輸入。",true);return;}
     void action(()=>toggleFormat(node.dataset.format));
+  });
+for(const key of Object.keys(lastColor)) {
+  renderSwatch(key);
+  document.querySelector(`[data-color="${key}"]`).addEventListener("click",()=>applyStyle(key,lastColor[key]));
+  document.querySelector(`[data-color-menu="${key}"]`).addEventListener("click",()=>openColorPopover(key));
+}
+colorGrid.addEventListener("click",event=>{
+  const value=event.target.dataset?.swatch;
+  if(value)pickColor(value);
+});
+colorClear.addEventListener("click",()=>pickColor(COLOR_NONE[colorTarget][0]));
+colorPopover.addEventListener("keydown",event=>{
+  if(event.key==="Escape"){event.preventDefault();event.stopPropagation();closeColorPopover(true);}
+});
+document.addEventListener("pointerdown",event=>{
+  if(colorTarget!==null && !colorPopover.contains(event.target) && !event.target.closest?.("[data-color-menu]"))closeColorPopover();
+},true);
+// As Collabora's Calc: pressing the alignment a cell already has gives it back.
+for(const node of document.querySelectorAll("[data-align]"))
+  node.addEventListener("click",()=>{
+    if(!session)return;
+    applyStyle("horizontalAlign",currentStyle(session.state,"horizontalAlign")===node.dataset.align ? "standard" : node.dataset.align);
   });
 function formatRefusal(code) {
   return ({RANGE_TOO_LARGE:"請縮小範圍至 65,536 格以內。",RANGE_MERGE_BOUNDARY:"請選取完整合併格後再設定格式。",

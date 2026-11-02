@@ -1,0 +1,41 @@
+{
+ "schema": 1,
+ "note": "SPEC-P-demo-batch-3 W1: the closed list of replacements taking the frozen ods-editor-v2 worker (0bed22bd...) to sdk/ods-editor-v3-worker.js, applied in order, each occurring exactly once.",
+ "hunks": [
+  {
+   "item": "1 capability row",
+   "old": "  [\"rangeFormat\", \"cell-range-formatting\"],\n]);\n",
+   "new": "  [\"rangeFormat\", \"cell-range-formatting\"],\n  [\"rangeStyle\", \"cell-range-styling\"],\n]);\n"
+  },
+  {
+   "item": "2 the operation",
+   "old": "    case \"rangeFormat\": {\n      const indices = [payload.part, payload.column, payload.row];\n      const formats = { bold: 2, italic: 3, underline: 4 };\n      const range = request.operation === \"rangeRead\" || request.operation === \"rangeFormat\";\n",
+   "new": "    case \"rangeFormat\":\n    case \"rangeStyle\": {\n      const indices = [payload.part, payload.column, payload.row];\n      const formats = { bold: 2, italic: 3, underline: 4 };\n      const styles = { textColor: 10, backColor: 11, horizontalAlign: 12 };\n      const range = [\"rangeRead\", \"rangeFormat\", \"rangeStyle\"].includes(request.operation);\n"
+  },
+  {
+   "item": "3 closed values",
+   "old": "          || ([\"cellFormat\",\"rangeFormat\"].includes(request.operation) && (!Object.hasOwn(formats, payload.format) || typeof payload.enabled !== \"boolean\"))) {\n",
+   "new": "          || ([\"cellFormat\",\"rangeFormat\"].includes(request.operation) && (!Object.hasOwn(formats, payload.format) || typeof payload.enabled !== \"boolean\"))\n          || (request.operation === \"rangeStyle\" && !styleValueIsClosed(payload.style, payload.value))) {\n"
+  },
+  {
+   "item": "2 the operation number",
+   "old": "        : request.operation === \"rangeRead\" ? 6\n        : request.operation === \"rangeFormat\" ? formats[payload.format]+5 : formats[payload.format];\n",
+   "new": "        : request.operation === \"rangeRead\" ? 6\n        : request.operation === \"rangeStyle\" ? styles[payload.style]\n        : request.operation === \"rangeFormat\" ? formats[payload.format]+5 : formats[payload.format];\n"
+  },
+  {
+   "item": "2 the value in the payload",
+   "old": "      accept(request, () => range ? withUtf8(JSON.stringify({endColumn:payload.endColumn,endRow:payload.endRow}),invoke)\n",
+   "new": "      accept(request, () => request.operation === \"rangeStyle\"\n        ? withUtf8(JSON.stringify({endColumn:payload.endColumn,endRow:payload.endRow,value:payload.value}),invoke)\n        : range ? withUtf8(JSON.stringify({endColumn:payload.endColumn,endRow:payload.endRow}),invoke)\n"
+  },
+  {
+   "item": "3 closed values helper",
+   "old": "const EDITOR_V1_ACTION_IDS = Object.freeze({\n",
+   "new": "// SPEC-P-demo-batch-3 3.1: the closed spellings the bridge accepts.\nfunction styleValueIsClosed(style, value) {\n  if (typeof value !== \"string\") return false;\n  if (style === \"textColor\") return value === \"auto\" || /^#[0-9a-f]{6}$/.test(value);\n  if (style === \"backColor\") return value === \"none\" || /^#[0-9a-f]{6}$/.test(value);\n  return style === \"horizontalAlign\"\n    && [\"standard\", \"left\", \"center\", \"right\", \"block\"].includes(value);\n}\nconst EDITOR_V1_ACTION_IDS = Object.freeze({\n"
+  },
+  {
+   "item": "4 header comment",
+   "old": "\"use strict\";\n\n",
+   "new": "\"use strict\";\n\n// SPEC-P-demo-batch-3 3.1: the ods-editor-v3 worker.  Derived from the frozen\n// ods-editor-v2 worker (0bed22bd...).  The differences are a closed list\n// (criterion W1, tests/ods-v3-worker-delta.json): the capability row, the\n// rangeStyle operation with its closed values, this comment.\n"
+  }
+ ]
+}

@@ -25,6 +25,24 @@ button:disabled { opacity:.4; cursor:default; }
 [data-format] { font-family:Georgia,serif; font-size:19px; }
 #toolbar [data-format][aria-pressed="true"] { background:#d8ecdf; border-color:#8cbda0; color:#105d40; }
 #toolbar [data-format][aria-pressed="mixed"] { background:#eef1e1; border-color:#a5ae7b; border-style:dashed; }
+/* SPEC-P-demo-batch-3 3.3.  By id, like the rest of the toolbar: Nextcloud's `button` rule sets a size, a margin and colours. */
+#toolbar .ic { width:20px; height:20px; fill:currentColor; pointer-events:none; }
+#toolbar .icon-button { display:inline-flex; align-items:center; justify-content:center; width:32px; min-width:32px; padding:0; }
+#toolbar [data-style-group][hidden] { display:none; }
+#toolbar [data-align][aria-pressed="true"] { background:#d8ecdf; border-color:#8cbda0; color:#105d40; }
+#toolbar [data-align][aria-pressed="mixed"] { background:#eef1e1; border-color:#a5ae7b; border-style:dashed; }
+.color-split { display:inline-flex; align-items:stretch; }
+#toolbar .color-main { position:relative; display:inline-flex; align-items:center; justify-content:center; width:30px; min-width:30px; padding:0; border-radius:5px 0 0 5px; }
+#toolbar .color-main .ic { margin-top:-5px; }
+#toolbar .color-arrow { width:16px; min-width:16px; padding:0; border-radius:0 5px 5px 0; font-size:10px; line-height:1; }
+.swatch-bar { position:absolute; left:6px; right:6px; bottom:4px; height:4px; border-radius:1px; background:var(--swatch); box-shadow:inset 0 0 0 1px rgba(0,0,0,.18); }
+#color-popover { position:fixed; z-index:2000; padding:8px; background:#fff; color:var(--ink); border:1px solid var(--line); border-radius:6px; box-shadow:0 6px 18px rgba(0,0,0,.2); }
+#color-popover[hidden] { display:none; }
+#color-popover #color-clear { display:block; width:100%; height:28px; min-height:0; margin:0 0 6px; padding:0 8px; text-align:left; background:#fff; color:var(--ink); border:1px solid var(--line); border-radius:4px; font-size:13px; }
+#color-popover #color-clear:hover { background:#e7efea; }
+#color-grid { display:grid; grid-template-columns:repeat(10,20px); gap:2px; }
+#color-grid button { width:20px; height:20px; min-width:0; min-height:0; margin:0; padding:0; border:1px solid rgba(0,0,0,.18); border-radius:3px; cursor:pointer; }
+#color-grid button:hover,#color-grid button:focus-visible { outline:2px solid var(--accent); outline-offset:1px; }
 .formula-bar { display:flex; align-items:flex-start; gap:8px; padding:8px 12px; border-bottom:1px solid var(--line); background:#fff; }
 #cell-address { width:86px; flex:none; min-height:33px; border:1px solid var(--line); border-radius:4px; padding:5px 9px; font-size:13px; }
 .formula-label { flex:none; padding:5px 2px; font-family:Georgia,serif; font-style:italic; color:var(--muted); font-size:18px; }
@@ -60,10 +78,10 @@ button:disabled { opacity:.4; cursor:default; }
 #toast { margin-left:auto; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 #toast.error { color:#a52828; }
 #autosave-status.error { color:#a52828; }
-@media(max-width:600px) { .formula-bar { gap:5px; padding:7px; } #cell-address { width:65px; } #toolbar { padding-left:7px; } }
+@media(max-width:600px) { .formula-bar { gap:5px; padding:7px; } #cell-address { width:65px; } #toolbar { padding-left:7px; flex-wrap:wrap; } }
 </style></head>
 <body>
-<svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true"><symbol id="i-save" viewBox="0 -960 960 960"><path d="M840-683v503q0 24-18 42t-42 18H180q-24 0-42-18t-18-42v-600q0-24 18-42t42-18h503l157 157Zm-60 27L656-780H180v600h600v-476ZM553.5-275.26q30.5-30.27 30.5-73.5 0-43.24-30.26-73.74-30.27-30.5-73.5-30.5-43.24 0-73.74 30.26-30.5 30.27-30.5 73.5 0 43.24 30.26 73.74 30.27 30.5 73.5 30.5 43.24 0 73.74-30.26ZM233-584h358v-143H233v143Zm-53-72v476-600 124Z"/></symbol></svg>
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true"><symbol id="i-format_align_left" viewBox="0 -960 960 960"><path d="M120-120v-60h720v60H120Zm0-165v-60h480v60H120Zm0-165v-60h720v60H120Zm0-165v-60h480v60H120Zm0-165v-60h720v60H120Z"/></symbol><symbol id="i-format_align_center" viewBox="0 -960 960 960"><path d="M120-120v-60h720v60H120Zm120-165v-60h480v60H240ZM120-450v-60h720v60H120Zm120-165v-60h480v60H240ZM120-780v-60h720v60H120Z"/></symbol><symbol id="i-format_align_right" viewBox="0 -960 960 960"><path d="M120-120v-60h720v60H120Zm240-165v-60h480v60H360ZM120-450v-60h720v60H120Zm240-165v-60h480v60H360ZM120-780v-60h720v60H120Z"/></symbol><symbol id="i-format_align_justify" viewBox="0 -960 960 960"><path d="M120-120v-60h720v60H120Zm0-165v-60h720v60H120Zm0-165v-60h720v60H120Zm0-165v-60h720v60H120Zm0-165v-60h720v60H120Z"/></symbol><symbol id="i-format_color_text" viewBox="0 -960 960 960"><path d="M200-280 420-840h120l220 560h-84l-54-144H338l-54 144h-84Zm164-216h232L484-754h-8L364-496Z"/></symbol><symbol id="i-format_color_fill" viewBox="0 0 24 24"><path d="M16.56 8.94 7.62 0 6.21 1.41l2.38 2.38-5.15 5.15c-.59.59-.59 1.54 0 2.12l5.5 5.5c.29.29.68.44 1.06.44s.77-.15 1.06-.44l5.5-5.5c.59-.58.59-1.53 0-2.12ZM5.21 10 10 5.21 14.79 10H5.21ZM19 11.5s-2 2.17-2 3.5c0 1.1.9 2 2 2s2-.9 2-2c0-1.33-2-3.5-2-3.5Z"/></symbol><symbol id="i-save" viewBox="0 -960 960 960"><path d="M840-683v503q0 24-18 42t-42 18H180q-24 0-42-18t-18-42v-600q0-24 18-42t42-18h503l157 157Zm-60 27L656-780H180v600h600v-476ZM553.5-275.26q30.5-30.27 30.5-73.5 0-43.24-30.26-73.74-30.27-30.5-73.5-30.5-43.24 0-73.74 30.26-30.5 30.27-30.5 73.5 0 43.24 30.26 73.74 30.27 30.5 73.5 30.5 43.24 0 73.74-30.26ZM233-584h358v-143H233v143Zm-53-72v476-600 124Z"/></symbol></svg>
 <div class="titlebar"><span class="brand">LiteCore 試算表</span><span id="s-doc" hidden></span><span class="spacer"></span></div>
 <div id="toolbar" role="toolbar" aria-label="試算表工具列">
 <button id="open-file" type="button">開啟檔案</button><input id="file-input" type="file" accept=".ods" hidden>
@@ -71,7 +89,16 @@ button:disabled { opacity:.4; cursor:default; }
 <button type="button" data-format="bold" aria-label="粗體" title="粗體（Ctrl／⌘＋B）" aria-pressed="false" disabled><strong>B</strong></button>
 <button type="button" data-format="italic" aria-label="斜體" title="斜體（Ctrl／⌘＋I）" aria-pressed="false" disabled><em>I</em></button>
 <button type="button" data-format="underline" aria-label="底線" title="底線（Ctrl／⌘＋U）" aria-pressed="false" disabled><u>U</u></button>
+<span class="separator" data-style-group aria-hidden="true" hidden></span>
+<span class="color-split" data-style-group hidden><button id="text-color" class="color-main" type="button" data-color="textColor" aria-label="文字顏色" title="文字顏色" disabled><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-format_color_text"></use></svg><span class="swatch-bar" aria-hidden="true"></span></button><button id="text-color-menu" class="color-arrow" type="button" data-color-menu="textColor" aria-label="選擇文字顏色" title="選擇文字顏色" aria-haspopup="dialog" aria-expanded="false" disabled>▾</button></span>
+<span class="color-split" data-style-group hidden><button id="back-color" class="color-main" type="button" data-color="backColor" aria-label="儲存格底色" title="儲存格底色" disabled><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-format_color_fill"></use></svg><span class="swatch-bar" aria-hidden="true"></span></button><button id="back-color-menu" class="color-arrow" type="button" data-color-menu="backColor" aria-label="選擇儲存格底色" title="選擇儲存格底色" aria-haspopup="dialog" aria-expanded="false" disabled>▾</button></span>
+<span class="separator" data-style-group aria-hidden="true" hidden></span>
+<button type="button" class="icon-button" data-align="left" data-style-group aria-label="靠左對齊" title="靠左對齊" aria-pressed="false" disabled hidden><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-format_align_left"></use></svg></button>
+<button type="button" class="icon-button" data-align="center" data-style-group aria-label="置中對齊" title="置中對齊" aria-pressed="false" disabled hidden><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-format_align_center"></use></svg></button>
+<button type="button" class="icon-button" data-align="right" data-style-group aria-label="靠右對齊" title="靠右對齊" aria-pressed="false" disabled hidden><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-format_align_right"></use></svg></button>
+<button type="button" class="icon-button" data-align="block" data-style-group aria-label="左右對齊" title="左右對齊" aria-pressed="false" disabled hidden><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-format_align_justify"></use></svg></button>
 </div>
+<div id="color-popover" role="dialog" aria-label="色盤" hidden><button id="color-clear" type="button">自動</button><div id="color-grid" role="group" aria-label="顏色"></div></div>
 <div class="formula-bar" role="group" aria-label="儲存格輸入列">
 <input id="cell-address" aria-label="儲存格位址" value="A1" spellcheck="false" disabled>
 <span class="formula-label" aria-hidden="true">fx</span>

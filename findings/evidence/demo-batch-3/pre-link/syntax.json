@@ -1,0 +1,189 @@
+{
+ "clean": true,
+ "controls": true,
+ "verdict": "E1_HOLDS",
+ "rows": [
+  {
+   "row": "v31 sdk_api",
+   "argvTail": [
+    "-DOXSDK_E2_V27_FIRST_BLOCK",
+    "-DOXSDK_E2_V28_LAST_BLOCK",
+    "-DOXSDK_E2_V29_TICK_PACING",
+    "-DOXSDK_E2_V31_ALIGNMENT",
+    "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/src/sdk_api.cpp",
+    "-fsyntax-only"
+   ],
+   "exit": 0,
+   "seconds": 0.52,
+   "stderrTail": ""
+  },
+  {
+   "row": "v31 probe_engine",
+   "argvTail": [
+    "-DOXSDK_E2_V27_FIRST_BLOCK",
+    "-DOXSDK_E2_V28_LAST_BLOCK",
+    "-DOXSDK_E2_V29_TICK_PACING",
+    "-DOXSDK_E2_V31_ALIGNMENT",
+    "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/src/probe_engine.cpp",
+    "-fsyntax-only"
+   ],
+   "exit": 0,
+   "seconds": 1.32,
+   "stderrTail": ""
+  },
+  {
+   "row": "v31 unoembind_stub",
+   "argvTail": [
+    "-DOXSDK_E2_V27_FIRST_BLOCK",
+    "-DOXSDK_E2_V28_LAST_BLOCK",
+    "-DOXSDK_E2_V29_TICK_PACING",
+    "-DOXSDK_E2_V31_ALIGNMENT",
+    "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/src/unoembind_stub.cpp",
+    "-fsyntax-only"
+   ],
+   "exit": 0,
+   "seconds": 0.06,
+   "stderrTail": ""
+  },
+  {
+   "row": "v31 editor_api",
+   "argvTail": [
+    "-DOXSDK_E2_V27_FIRST_BLOCK",
+    "-DOXSDK_E2_V28_LAST_BLOCK",
+    "-DOXSDK_E2_V29_TICK_PACING",
+    "-DOXSDK_E2_V31_ALIGNMENT",
+    "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/src/editor_api.cpp",
+    "-fsyntax-only"
+   ],
+   "exit": 0,
+   "seconds": 0.38,
+   "stderrTail": ""
+  },
+  {
+   "row": "ods-v3 sdk_api",
+   "argvTail": [
+    "-DOXSDK_ODS_VIEWER_V2",
+    "-DOXSDK_ODS_EDITOR",
+    "-DOXSDK_ODS_RANGE",
+    "-DOXSDK_ODS_STYLE",
+    "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/src/sdk_api.cpp",
+    "-fsyntax-only"
+   ],
+   "exit": 0,
+   "seconds": 0.38,
+   "stderrTail": ""
+  },
+  {
+   "row": "ods-v3 probe_engine",
+   "argvTail": [
+    "-DOXSDK_ODS_VIEWER_V2",
+    "-DOXSDK_ODS_EDITOR",
+    "-DOXSDK_ODS_RANGE",
+    "-DOXSDK_ODS_STYLE",
+    "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/src/probe_engine.cpp",
+    "-fsyntax-only"
+   ],
+   "exit": 0,
+   "seconds": 0.98,
+   "stderrTail": ""
+  },
+  {
+   "row": "ods-v3 unoembind_stub",
+   "argvTail": [
+    "-DOXSDK_ODS_VIEWER_V2",
+    "-DOXSDK_ODS_EDITOR",
+    "-DOXSDK_ODS_RANGE",
+    "-DOXSDK_ODS_STYLE",
+    "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/src/unoembind_stub.cpp",
+    "-fsyntax-only"
+   ],
+   "exit": 0,
+   "seconds": 0.06,
+   "stderrTail": ""
+  },
+  {
+   "row": "ods-v3 calc_cell_bridge",
+   "argvTail": [
+    "-std=c++20",
+    "-DLIBO_INTERNAL_ONLY",
+    "-DOXSDK_ODS_RANGE",
+    "-DOXSDK_ODS_STYLE",
+    "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/src/calc_cell_bridge.cpp",
+    "-fsyntax-only"
+   ],
+   "exit": 0,
+   "seconds": 1.82,
+   "stderrTail": ""
+  },
+  {
+   "row": "control: v31-only error, with define",
+   "argvTail": [
+    "-DOXSDK_E2_V27_FIRST_BLOCK",
+    "-DOXSDK_E2_V28_LAST_BLOCK",
+    "-DOXSDK_E2_V29_TICK_PACING",
+    "-DOXSDK_E2_V31_ALIGNMENT",
+    "/tmp/s-demo3-x6olun7j/src/probe_engine.cpp",
+    "-fsyntax-only"
+   ],
+   "exit": 1,
+   "seconds": 1.24,
+   "stderrTail": "In file included from /tmp/s-demo3-x6olun7j/src/probe_engine.cpp:6458:\n/tmp/s-demo3-x6olun7j/src/ordered_format.inc:200:3: error: use of undeclared identifier 'this_symbol_does_not_exist_v31'\n  200 |   this_symbol_does_not_exist_v31();\n      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n1 error generated.\n"
+  },
+  {
+   "row": "control: v31-only error, without define",
+   "argvTail": [
+    "-DOXSDK_E2_V25_FORMAT_PROOF",
+    "-DOXSDK_E2_V27_FIRST_BLOCK",
+    "-DOXSDK_E2_V28_LAST_BLOCK",
+    "-DOXSDK_E2_V29_TICK_PACING",
+    "/tmp/s-demo3-x6olun7j/src/probe_engine.cpp",
+    "-fsyntax-only"
+   ],
+   "exit": 0,
+   "seconds": 1.23,
+   "stderrTail": ""
+  },
+  {
+   "row": "control: style-only error, with define",
+   "argvTail": [
+    "-std=c++20",
+    "-DLIBO_INTERNAL_ONLY",
+    "-DOXSDK_ODS_RANGE",
+    "-DOXSDK_ODS_STYLE",
+    "/tmp/s-demo3-x6olun7j/src/calc_cell_bridge.cpp",
+    "-fsyntax-only"
+   ],
+   "exit": 1,
+   "seconds": 1.75,
+   "stderrTail": "/tmp/s-demo3-x6olun7j/src/calc_cell_bridge.cpp:172:3: error: use of undeclared identifier 'this_symbol_does_not_exist_style'\n  172 |   this_symbol_does_not_exist_style();\n      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n1 error generated.\n"
+  },
+  {
+   "row": "control: style-only error, without define",
+   "argvTail": [
+    "-sSUPPORT_LONGJMP=wasm",
+    "-std=c++20",
+    "-DLIBO_INTERNAL_ONLY",
+    "-DOXSDK_ODS_RANGE",
+    "/tmp/s-demo3-x6olun7j/src/calc_cell_bridge.cpp",
+    "-fsyntax-only"
+   ],
+   "exit": 0,
+   "seconds": 1.72,
+   "stderrTail": ""
+  },
+  {
+   "row": "control: v31 define without ABI6 (editor_api.cpp)",
+   "argvTail": [
+    "-DOXSDK_E2_V27_FIRST_BLOCK",
+    "-DOXSDK_E2_V28_LAST_BLOCK",
+    "-DOXSDK_E2_V29_TICK_PACING",
+    "-DOXSDK_E2_V31_ALIGNMENT",
+    "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/src/editor_api.cpp",
+    "-fsyntax-only"
+   ],
+   "exit": 1,
+   "seconds": 0.37,
+   "stderrTail": "t requires the ABI6 feature engine\"\n   67 | #error \"the v24 typed insert requires the ABI6 feature engine\"\n      |  ^\n/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/src/editor_api.h:199:2: error: \"the v31 alignment actions require the ABI6 feature engine\"\n  199 | #error \"the v31 alignment actions require the ABI6 feature engine\"\n      |  ^\n/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/src/editor_api.cpp:222:10: error: use of undeclared identifier 'OXSDK_EDITOR_ABI_VERSION'\n  222 |   return OXSDK_EDITOR_ABI_VERSION;\n      |          ^~~~~~~~~~~~~~~~~~~~~~~~\n3 errors generated.\n"
+  }
+ ]
+}

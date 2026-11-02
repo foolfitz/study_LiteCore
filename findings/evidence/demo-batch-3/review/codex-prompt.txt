@@ -1,0 +1,9 @@
+Review a pending change in /home/jiajun/LibreOffice/study_LiteCore (read-only). Do not edit anything. The diff is in /tmp/claude-1000/-home-jiajun-LibreOffice-study-LiteCore/b28199f2-8247-49f5-bbeb-4d1de0940202/scratchpad/review.diff; also read specs/SPEC-P-demo-batch-3.md (sections 3 and 5), sdk/ods-editor-v3-worker.js is wasm_sdk_probe/sdk/ods-editor-v3-worker.js, wasm_sdk_probe/sdk/v31-alignment-worker.js, wasm_sdk_probe/tools/check_v31_alignment_contract.py.
+
+Context: a WebAssembly build of LibreOffice driven through a closed ABI. The owner must run a slow relink after this change, so a defect found now saves a link. Two features behind new defines:
+(1) OXSDK_E2_V31_ALIGNMENT: four Writer paragraph alignment actions routed through the existing ordered format barrier in wasm_sdk_probe/src/ordered_format.inc and probe_engine.cpp, postcondition read from the HTML selection readback.
+(2) OXSDK_ODS_STYLE: Calc text colour, background colour and horizontal alignment through the UNO range path in wasm_sdk_probe/src/calc_cell_bridge.cpp.
+
+Find correctness defects that would survive the unit tests: places the action list is enumerated and the new actions were missed (bounds, switch statements, classification functions, undo or revision handling, the gesture mask, the worker's reply projection, the mutation classification in handleCell, read-only and protection refusal order); requests the bridge accepts that it should refuse; a refusal that leaves mutationAttempted wrong; code in a shared file that changes behaviour for a build WITHOUT the new define (it must not); a state update on the Calc page that can leave a stale selection or a wrong revision; the merged-cell path in setStyle.
+
+Report only defects you can point at with file:line and a concrete failing scenario. Say what you checked and found fine in one line each. No style remarks. No suggestions beyond defects. Plain text, under 60 lines.

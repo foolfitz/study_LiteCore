@@ -257,3 +257,68 @@ test("geometry refusal leaves selection unchanged and sheet switch resets it",as
   assert.equal(session.state.selection.part,1);assert.equal(session.state.selection.multiple,false);
   await session.close();
 });
+
+// SPEC-P-demo-batch-3 3.1.
+async function styled(opts={}) {
+  const opened_=await opened();
+  const {session,doc,calls}=opened_;
+  const styles={textColor:"auto",backColor:"none",horizontalAlign:"standard"};
+  const cell=doc.cell.bind(doc);
+  doc.cell=(c=0,r=0)=>({...cell(c,r),...styles,...opts.cell});
+  doc.rangeStylingSupported=opts.supported!==false;
+  doc.rangeFormattingSupported=true;
+  doc.setRangeStyle=async(column,row,endColumn,endRow,style,value,options)=>{
+    calls.push(["style",column,row,endColumn,endRow,style,value,options]);
+    if(opts.refuse)throw Object.assign(new Error("refused"),{code:opts.refuse});
+    styles[style]=value;doc.revision++;
+    return{range:{part:0,column,row,endColumn,endRow,bold:false,italic:false,underline:false,...styles,writable:true,refusalCode:""},changed:true,revision:doc.revision};
+  };
+  doc.readRange=async(column,row,endColumn,endRow)=>({range:{part:0,column,row,endColumn,endRow,bold:false,italic:false,underline:false,...styles,writable:true,refusalCode:""}});
+  await session.selectCell(0,0);
+  return{...opened_,styles};
+}
+
+test("one cell is styled as its merged extent, and the cell is read back",async()=>{
+  const {session,calls}=await styled({cell:{endColumn:2,endRow:1}});
+  await session.setStyle("backColor","#ffe599");
+  const call=calls.find(c=>c[0]==="style");
+  assert.deepEqual(call.slice(1,7),[0,0,2,1,"backColor","#ffe599"]);
+  assert.equal(session.state.cell.backColor,"#ffe599");
+});
+
+test("a range is styled whole, keeps its anchor and refreshes its snapshot",async()=>{
+  const {session,calls}=await styled();
+  await session.selectCell(0,0);
+  await session.selectAt(1200,100,{extend:true});
+  assert.equal(session.state.selection.multiple,true);
+  await session.setStyle("horizontalAlign","center");
+  const call=calls.find(c=>c[0]==="style");
+  assert.deepEqual(call.slice(1,7),[0,0,1,0,"horizontalAlign","center"]);
+  assert.equal(session.state.rangeFormat.horizontalAlign,"center");
+  assert.equal(session.state.cell.column,0);
+});
+
+test("a style the contract does not close, or an engine without it, reaches nothing",async()=>{
+  for(const [opts,style,value,code] of [[{},"textColor","red","INVALID_ARGUMENT"],[{},"textColor","none","INVALID_ARGUMENT"],
+      [{},"backColor","auto","INVALID_ARGUMENT"],[{},"horizontalAlign","repeat","INVALID_ARGUMENT"],[{},"font","#000000","INVALID_ARGUMENT"],
+      [{supported:false},"textColor","#000000","RANGE_FORMAT_UNSUPPORTED"]]) {
+    const {session,calls}=await styled(opts);
+    await assert.rejects(session.setStyle(style,value),{code});
+    assert.equal(calls.filter(c=>c[0]==="style").length,0);
+  }
+});
+
+test("a pending cell input is committed before a single-cell style, not lost",async()=>{
+  const {session,calls}=await styled();
+  session.beginEdit("inline");session.setDraft("新內容");
+  await session.setStyle("textColor","#c00000");
+  assert.deepEqual(calls.map(c=>c[0]).filter(n=>n==="input"||n==="style"),["input","style"]);
+});
+
+test("a refused style leaves the revision and the cell alone",async()=>{
+  const {session,doc}=await styled({refuse:"RANGE_MERGE_BOUNDARY"});
+  const before=doc.revision;
+  await assert.rejects(session.setStyle("textColor","#c00000"),{code:"RANGE_MERGE_BOUNDARY"});
+  assert.equal(doc.revision,before);
+  assert.equal(session.state.cell.textColor,"auto");
+});

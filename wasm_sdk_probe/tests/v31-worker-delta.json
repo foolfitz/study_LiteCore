@@ -1,0 +1,21 @@
+{
+ "schema": 1,
+ "note": "SPEC-P-demo-batch-3 W1: the closed list of replacements taking the v30 worker (464d129c...) to sdk/v31-alignment-worker.js, applied in order, each occurring exactly once.",
+ "hunks": [
+  {
+   "item": "1 action ids",
+   "old": "// Neither option flag is accepted by the five paragraph actions (N7).\n",
+   "new": "// SPEC-P-demo-batch-3 3.2: four alignments appended, the same way.  The\n// intersection below still decides: a manifest without these names is refused\n// here before any id reaches the binary.\nconst EDITOR_V5_ACTION_IDS = Object.freeze({\n  ...EDITOR_V4_ACTION_IDS,\n  \"set-align-left\": 24,\n  \"set-align-center\": 25,\n  \"set-align-right\": 26,\n  \"set-align-justify\": 27,\n});\n\n// Neither option flag is accepted by the five paragraph actions (N7).\n"
+  },
+  {
+   "item": "1 the lookup",
+   "old": "      const actionId = EDITOR_V4_ACTION_IDS[payload.action];\n      const forbiddenFields = [\"keyCode\", \"unoCommand\", \"command\"];\n      const hasForbiddenField = forbiddenFields.some((field) =>\n        Object.hasOwn(payload, field));\n      const validRevision = Number.isInteger(payload.expectedRevision)\n        && payload.expectedRevision >= 0\n        && payload.expectedRevision <= 0xffffffff;\n      const typedFlags = typeof payload.extendSelection === \"boolean\"\n        && typeof payload.enabled === \"boolean\";\n      const paragraph = EDITOR_V2_PARAGRAPH_ACTIONS.has(payload.action);\n",
+   "new": "      const actionId = EDITOR_V5_ACTION_IDS[payload.action];\n      const forbiddenFields = [\"keyCode\", \"unoCommand\", \"command\"];\n      const hasForbiddenField = forbiddenFields.some((field) =>\n        Object.hasOwn(payload, field));\n      const validRevision = Number.isInteger(payload.expectedRevision)\n        && payload.expectedRevision >= 0\n        && payload.expectedRevision <= 0xffffffff;\n      const typedFlags = typeof payload.extendSelection === \"boolean\"\n        && typeof payload.enabled === \"boolean\";\n      const paragraph = EDITOR_V2_PARAGRAPH_ACTIONS.has(payload.action);\n"
+  },
+  {
+   "item": "3 header comment",
+   "old": "// SPEC-P-demo-batch-3 section 2: the e2-editor-v30 worker.",
+   "new": "// SPEC-P-demo-batch-3 3.2: the e2-editor-v31 worker.  The v30 worker plus a\n// closed list (criterion W1, tests/v31-worker-delta.json): the four alignment\n// ids, the one lookup, this comment.  The paragraph set stays: a flag on a\n// non-move, non-format action is refused either way.\n//\n// SPEC-P-demo-batch-3 section 2: the e2-editor-v30 worker."
+  }
+ ]
+}

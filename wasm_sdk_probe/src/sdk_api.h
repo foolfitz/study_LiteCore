@@ -59,6 +59,9 @@ typedef enum oxsdk_capability {
 #ifdef OXSDK_ODS_RANGE
   , OXSDK_CAPABILITY_CELL_RANGE_FORMATTING = 1u << 18
 #endif
+#ifdef OXSDK_ODS_STYLE
+  , OXSDK_CAPABILITY_CELL_RANGE_STYLING = 1u << 19
+#endif
 #endif
 } oxsdk_capability;
 

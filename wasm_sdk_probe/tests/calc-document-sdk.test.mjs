@@ -79,3 +79,16 @@ test("range SDK gates v1, bounds work, carries explicit target and distrusts mut
   await assert.rejects(handle.setRangeFormat(1,2,3,4,"bold",true),{code:"MUTATION_OUTCOME_UNKNOWN"});
   next.dispose();
 });
+
+// SPEC-P-demo-batch-3 3.1.
+test("style snapshots: absent on an older engine, closed on a new one, null when mixed",async()=>{
+  const {normalizeRange,normalizeCell}=await import("../spreadsheet-shell/calc-document-sdk.js");
+  const range={part:"0",column:"0",row:"0",endColumn:"1",endRow:"0",bold:"off",italic:"off",underline:"off",writable:"true",refusalCode:""};
+  assert.equal("textColor" in normalizeRange(range),false);
+  const styled=normalizeRange({...range,textColor:"#c00000",backColor:"mixed",horizontalAlign:"other"});
+  assert.deepEqual([styled.textColor,styled.backColor,styled.horizontalAlign],["#c00000",null,"other"]);
+  for(const bad of [{textColor:"red",backColor:"none",horizontalAlign:"left"},{textColor:"auto",backColor:"auto",horizontalAlign:"left"},
+      {textColor:"auto",backColor:"none",horizontalAlign:"repeat"},{textColor:"auto"}])
+    assert.throws(()=>normalizeRange({...range,...bad}),{code:"CELL_RESULT_INVALID"});
+  assert.ok(normalizeCell);
+});

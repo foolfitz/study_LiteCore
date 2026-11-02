@@ -45,6 +45,13 @@ enum InternalEditorAction : std::uint32_t {
   InternalMoveDocumentStart = 24,
   InternalMoveDocumentEnd = 25,
 #endif
+#ifdef OXSDK_E2_V31_ALIGNMENT
+  // SPEC-P-demo-batch-3 3.2: the ordered format path, like 15-19.
+  InternalSetAlignLeft = 26,
+  InternalSetAlignCenter = 27,
+  InternalSetAlignRight = 28,
+  InternalSetAlignJustify = 29,
+#endif
 };
 
 // The mask itself lives in the engine (probe::editorSetActionGestures): the
@@ -68,7 +75,12 @@ static_assert(OXSDK_EDITOR_GESTURE_RANGE_CROSS == probe::kGestureRangeCross);
 // all -- and a gesture a manifest cannot restrict is one the binary grants
 // unconditionally, which is the "manifest describes but does not constrain"
 // defect the mask exists to remove.
-#ifdef OXSDK_E2_V21_LINK_BATCH
+#ifdef OXSDK_E2_V31_ALIGNMENT
+// 27 with the four alignments, for the same reason again.
+constexpr std::uint32_t kMaxExternalAction = 27;
+static_assert(kMaxExternalAction == OXSDK_EDITOR_V5_SET_ALIGN_JUSTIFY,
+              "the mask's bound must follow the action list");
+#elif defined(OXSDK_E2_V21_LINK_BATCH)
 // 23 as of ABI 5 (SPEC-M3-link-batch-v21 4.1), for the same reason: left at
 // 21, the worker's mask call for 22/23 would be refused and the two moves
 // would keep every gesture whatever the manifest says.
@@ -160,6 +172,16 @@ std::uint32_t internalAction(std::uint32_t action) {
     return InternalMoveDocumentStart;
   case OXSDK_EDITOR_V4_MOVE_DOCUMENT_END:
     return InternalMoveDocumentEnd;
+#endif
+#ifdef OXSDK_E2_V31_ALIGNMENT
+  case OXSDK_EDITOR_V5_SET_ALIGN_LEFT:
+    return InternalSetAlignLeft;
+  case OXSDK_EDITOR_V5_SET_ALIGN_CENTER:
+    return InternalSetAlignCenter;
+  case OXSDK_EDITOR_V5_SET_ALIGN_RIGHT:
+    return InternalSetAlignRight;
+  case OXSDK_EDITOR_V5_SET_ALIGN_JUSTIFY:
+    return InternalSetAlignJustify;
 #endif
   default:
     return 0;

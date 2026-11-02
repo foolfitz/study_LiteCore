@@ -714,6 +714,9 @@ enum class FormatBarrierTarget {
   ListNumber,
   ListNone,
   ParagraphStyle,
+#ifdef OXSDK_E2_V31_ALIGNMENT
+  ParagraphAlign,
+#endif
 };
 
 // Route C, revised 2026-08-11 after finding 030.
@@ -802,6 +805,10 @@ struct FormatReadback {
   bool footnoteApparatus = false;
   std::string listTag;   // "ul", "ol", or empty
   std::string blockTag;  // the first block-level structural tag, or empty
+#ifdef OXSDK_E2_V31_ALIGNMENT
+  std::string blockAlign;      // the first block's align attribute, or empty
+  std::string lastBlockAlign;  // the last block's
+#endif
   // Finding 034.  The select step can cover more than one paragraph -- measured
   // on an empty paragraph mid-document, where the selection spans it and the
   // paragraph after it (native 26.8, selecttext-result/, and the same shape
@@ -915,6 +922,11 @@ FormatReadback parseFormatReadback(const std::string &html) {
         ++readback.blockCount;
         if (readback.blockTag.empty())
           readback.blockTag = tag;
+#ifdef OXSDK_E2_V31_ALIGNMENT
+        readback.lastBlockAlign = blockAlignAttribute(attributes);
+        if (readback.blockCount == 1)
+          readback.blockAlign = readback.lastBlockAlign;
+#endif
 #ifdef OXSDK_E2_V28_LAST_BLOCK
         readback.lastBlockTag = tag;
         readback.lastListTag.clear();
@@ -1139,6 +1151,14 @@ struct FormatStateBarrier {
   // makes no claim about that half".
   std::string expectedListTag;   // "ul" / "ol" / "none"
   std::string expectedBlockTag;  // "h1" / "p"
+#ifdef OXSDK_E2_V31_ALIGNMENT
+  std::string expectedAlign;     // "left" / "center" / "right" / "justify"
+  // SPEC-P-demo-batch-3 append 2: the caret read, one character back or, at the
+  // start of the document, forward.  Back: the dispatch paragraph is the LAST
+  // block of the read.  Forward: the first.
+  bool alignCaretRead = false;
+  bool alignReadBack = true;
+#endif
   // Finding 033's open gap, made reachable by finding 034's repair.
   //
   // The barrier had no deadline of its own: a stage that never advanced left it
@@ -1649,6 +1669,10 @@ bool formatBarrierPostconditionMet() {
                      gFormatBarrier.expectedStyles.end(),
                      gEditorState.paragraphStyle) !=
                gFormatBarrier.expectedStyles.end();
+#ifdef OXSDK_E2_V31_ALIGNMENT
+  case FormatBarrierTarget::ParagraphAlign:
+    break;  // the ordered path reads the document (finding 021); no state cache
+#endif
   case FormatBarrierTarget::None:
     break;
   }
@@ -1666,6 +1690,10 @@ bool formatBarrierWatches(const std::string &command) {
            command == ".uno:DefaultNumbering";
   case FormatBarrierTarget::ParagraphStyle:
     return command == ".uno:StyleApply";
+#ifdef OXSDK_E2_V31_ALIGNMENT
+  case FormatBarrierTarget::ParagraphAlign:
+    break;
+#endif
   case FormatBarrierTarget::None:
     break;
   }
@@ -5350,6 +5378,16 @@ const char *editorActionName(std::uint32_t action) {
     return "set-list-unordered";
   case OXSDK_EDITOR_SET_LIST_ORDERED:
     return "set-list-ordered";
+#ifdef OXSDK_E2_V31_ALIGNMENT
+  case OXSDK_EDITOR_SET_ALIGN_LEFT:
+    return "set-align-left";
+  case OXSDK_EDITOR_SET_ALIGN_CENTER:
+    return "set-align-center";
+  case OXSDK_EDITOR_SET_ALIGN_RIGHT:
+    return "set-align-right";
+  case OXSDK_EDITOR_SET_ALIGN_JUSTIFY:
+    return "set-align-justify";
+#endif
 #ifdef OXSDK_E2_V21_LINK_BATCH
   case OXSDK_EDITOR_MOVE_DOCUMENT_START:
     return "move-document-start";
@@ -5455,6 +5493,11 @@ void startEditorUnoAction(const Command &command, const char *action,
 
 #ifdef OXSDK_E2_FORMAT_BARRIER
 bool editorActionIsParagraphFormat(std::uint32_t action) {
+#ifdef OXSDK_E2_V31_ALIGNMENT
+  if (action >= OXSDK_EDITOR_SET_ALIGN_LEFT &&
+      action <= OXSDK_EDITOR_SET_ALIGN_JUSTIFY)
+    return true;
+#endif
   return action >= OXSDK_EDITOR_SET_PARAGRAPH_BODY &&
          action <= OXSDK_EDITOR_SET_LIST_ORDERED;
 }
@@ -5806,6 +5849,12 @@ void checkFormatBarrierCrossParagraph() {
     gFormatBarrier.crossStateHeld =
         everyBlockHasTag(parsedBlocks, gFormatBarrier.expectedBlockTag);
     break;
+#ifdef OXSDK_E2_V31_ALIGNMENT
+  case FormatBarrierTarget::ParagraphAlign:
+    gFormatBarrier.crossStateHeld =
+        everyBlockHasAlign(parsedBlocks, gFormatBarrier.expectedAlign);
+    break;
+#endif
   case FormatBarrierTarget::None:
     gFormatBarrier.crossStateHeld = false;
     break;
@@ -5855,6 +5904,11 @@ bool formatBarrierReadbackSatisfied() {
   if (!gFormatBarrier.expectedBlockTag.empty() &&
       readback.blockTag != gFormatBarrier.expectedBlockTag)
     return false;
+#ifdef OXSDK_E2_V31_ALIGNMENT
+  if (!gFormatBarrier.expectedAlign.empty() &&
+      readback.blockAlign != gFormatBarrier.expectedAlign)
+    return false;
+#endif
   return true;
 }
 #ifdef OXSDK_E2_V28_LAST_BLOCK
@@ -5878,7 +5932,24 @@ bool formatBarrierFallbackReadbackSatisfied() {
   if (!gFormatBarrier.expectedBlockTag.empty() &&
       readback.lastBlockTag != gFormatBarrier.expectedBlockTag)
     return false;
+#ifdef OXSDK_E2_V31_ALIGNMENT
+  if (!gFormatBarrier.expectedAlign.empty() &&
+      readback.lastBlockAlign != gFormatBarrier.expectedAlign)
+    return false;
+#endif
   return true;
+}
+#endif
+#ifdef OXSDK_E2_V31_ALIGNMENT
+
+// SPEC-P-demo-batch-3 append 2.  The block the caret is in: the last of a read
+// that stepped back, the first of one that stepped forward.
+bool formatBarrierAlignCaretReadSatisfied() {
+  const FormatReadback &readback = gFormatBarrier.readback;
+  return readback.parsed &&
+         (gFormatBarrier.alignReadBack ? readback.lastBlockAlign
+                                       : readback.blockAlign) ==
+             gFormatBarrier.expectedAlign;
 }
 #endif
 
@@ -8614,9 +8685,18 @@ constexpr std::uint32_t kAllEditorGestures =
 #ifdef OXSDK_E2_V21_LINK_BATCH
 // 25 as of ABI 5 (SPEC-M3-link-batch-v21 4.1): the two document moves are
 // internal 24 and 25, and this bound moved with them for the reason above.
+#ifdef OXSDK_E2_V31_ALIGNMENT
+// 29 with the four alignments (SPEC-P-demo-batch-3 3.2).  Left at 25, the mask
+// call would return silently and editorGesturePermitted would answer false:
+// the manifest grants, the engine refuses.
+constexpr std::uint32_t kMaxInternalEditorAction = 29;
+static_assert(kMaxInternalEditorAction == OXSDK_EDITOR_SET_ALIGN_JUSTIFY,
+              "the gesture table's bound must follow the action list");
+#else
 constexpr std::uint32_t kMaxInternalEditorAction = 25;
 static_assert(kMaxInternalEditorAction == OXSDK_EDITOR_MOVE_DOCUMENT_END,
               "the gesture table's bound must follow the action list");
+#endif
 #else
 constexpr std::uint32_t kMaxInternalEditorAction = 23;
 #endif

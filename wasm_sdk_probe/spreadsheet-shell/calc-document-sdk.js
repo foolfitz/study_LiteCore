@@ -4,6 +4,12 @@ import { OdsViewerEngine } from "../viewer-shell/ods-document-sdk.js";
 import { DocumentSdkError } from "../sdk/document-sdk.js";
 
 export const CELL_FORMATS = Object.freeze(["bold", "italic", "underline"]);
+// SPEC-P-demo-batch-3 3.1.  Colours are lower-case #rrggbb; "auto" and "none" are not colours.
+export const CELL_STYLES = Object.freeze({
+  textColor: value => value === "auto" || /^#[0-9a-f]{6}$/.test(value),
+  backColor: value => value === "none" || /^#[0-9a-f]{6}$/.test(value),
+  horizontalAlign: value => ["standard", "left", "center", "right", "block"].includes(value),
+});
 export const CELL_INPUT_LIMIT = 32767;
 export const RANGE_CELL_LIMIT = 65536;
 
@@ -21,6 +27,18 @@ function boolean(value, name) {
   if (value === true || value === "true") return true;
   if (value === false || value === "false") return false;
   throw new DocumentSdkError("CELL_RESULT_INVALID", `${name} is not a boolean`);
+}
+
+// An engine without the style contract sends none of these keys; one with it sends all three.
+function styleSnapshot(target,raw,allowMixed) {
+  if(Object.keys(CELL_STYLES).every(key=>raw[key]===undefined))return;
+  for(const key of Object.keys(CELL_STYLES)) {
+    if(allowMixed && raw[key]==="mixed") {target[key]=null;continue;}
+    // A document can hold what the buttons cannot set (REPEAT reads "other").
+    if(!(CELL_STYLES[key](raw[key]) || (key==="horizontalAlign" && raw[key]==="other")))
+      throw new DocumentSdkError("CELL_RESULT_INVALID",`${key} is not a style value`);
+    target[key]=raw[key];
+  }
 }
 
 function rangeBounds(column,row,endColumn,endRow) {
@@ -49,6 +67,7 @@ export function normalizeRange(raw) {
   if(typeof raw.refusalCode!=="string" || range.writable!==(raw.refusalCode===""))
     throw new DocumentSdkError("CELL_RESULT_INVALID","range refusal does not match writability");
   range.refusalCode=raw.refusalCode;
+  styleSnapshot(range,raw,true);
   return Object.freeze(range);
 }
 
@@ -74,6 +93,7 @@ export function normalizeCell(raw) {
   cell.value = Number(raw.value);
   if (raw.value === "" || raw.value === null || !Number.isFinite(cell.value))
     throw new DocumentSdkError("CELL_RESULT_INVALID", "cell value is not finite");
+  styleSnapshot(cell, raw, false);
   return Object.freeze(cell);
 }
 
@@ -104,7 +124,7 @@ export class CalcDocumentEngine extends OdsViewerEngine {
             || cell.column!==column || cell.row!==row || cell.endColumn!==payload.endColumn || cell.endRow!==payload.endRow))
           throw new DocumentSdkError("CELL_RESULT_INVALID","range reply target differs from request");
       } catch(error) {
-        if(operation==="rangeFormat")throw new DocumentSdkError("MUTATION_OUTCOME_UNKNOWN",error.message);
+        if(operation==="rangeFormat" || operation==="rangeStyle")throw new DocumentSdkError("MUTATION_OUTCOME_UNKNOWN",error.message);
         throw error;
       }
       handle.revision = result.revision;
@@ -136,6 +156,13 @@ export class CalcDocumentEngine extends OdsViewerEngine {
     handle.setRangeFormat=(column,row,endColumn,endRow,format,enabled,callOptions)=>{
       if(!CELL_FORMATS.includes(format) || typeof enabled!=="boolean")invalid("invalid range format");
       return rangeRequest("rangeFormat",column,row,endColumn,endRow,{format,enabled},callOptions);
+    };
+    handle.rangeStylingSupported=this.manifest.capabilities.includes("cell-range-styling");
+    handle.setRangeStyle=(column,row,endColumn,endRow,style,value,callOptions)=>{
+      if(!handle.rangeStylingSupported)
+        throw new DocumentSdkError("UNSUPPORTED_OPERATION","this engine has no cell style contract");
+      if(!Object.hasOwn(CELL_STYLES,style) || !CELL_STYLES[style](value))invalid("invalid cell style");
+      return rangeRequest("rangeStyle",column,row,endColumn,endRow,{style,value},callOptions);
     };
     return handle;
   }

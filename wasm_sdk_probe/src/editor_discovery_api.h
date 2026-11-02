@@ -58,6 +58,14 @@ typedef enum oxsdk_editor_action {
   OXSDK_EDITOR_MOVE_DOCUMENT_START = 24,
   OXSDK_EDITOR_MOVE_DOCUMENT_END = 25
 #endif
+#ifdef OXSDK_E2_V31_ALIGNMENT
+  /* SPEC-P-demo-batch-3 3.2: the engine's numbers for the product's 24-27. */
+  ,
+  OXSDK_EDITOR_SET_ALIGN_LEFT = 26,
+  OXSDK_EDITOR_SET_ALIGN_CENTER = 27,
+  OXSDK_EDITOR_SET_ALIGN_RIGHT = 28,
+  OXSDK_EDITOR_SET_ALIGN_JUSTIFY = 29
+#endif
 } oxsdk_editor_action;
 
 typedef enum oxsdk_editor_selection_method {

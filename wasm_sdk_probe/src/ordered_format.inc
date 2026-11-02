@@ -186,6 +186,93 @@ void finishOrderedFormatReadback() {
   completeFormatBarrier();
 }
 
+#ifdef OXSDK_E2_V31_ALIGNMENT
+// SPEC-P-demo-batch-3 append 2.  An alignment moves the text sideways under the
+// caret, so a restore aimed at the rectangle from before the dispatch lands on
+// another character: N2 measured 16 of 33 places wrong, and the next key typed
+// there goes in the wrong place.  This read needs no coordinates.  It extends
+// one character from the caret, reads, and moves back from the point, which
+// drops the selection (finding 129) at the character it started on: 33 of 33.
+// On a range the caller's selection is read where it stands and stays there, as
+// in Writer.  One command, no read, yield or callback wait between the calls.
+void readOrderedAlignCaret() {
+  gFormatBarrier.alignCaretRead = true;
+  expectOrderedUno(kFormatBarrierFallbackCommand);
+  gState.document->pClass->postUnoCommand(
+      gState.document, kFormatBarrierFallbackCommand, nullptr, true);
+  SelectionReadback selected = readSelection();
+  if (selected.type != LOK_SELTYPE_TEXT) {
+    // The start of the document: there is nothing to step back over.
+    gFormatBarrier.alignReadBack = false;
+    expectOrderedUno(".uno:CharRightSel");
+    gState.document->pClass->postUnoCommand(gState.document, ".uno:CharRightSel",
+                                            nullptr, true);
+    selected = readSelection();
+  }
+  gFormatBarrier.selectionType = selected.type;
+  const bool readable = LOK_SELTYPE_TEXT == selected.type;
+  gFormatBarrier.selectionTypeReadable = readable;
+  if (!readable) {
+    // Neither way: a document holding one empty paragraph.  Nothing was
+    // selected, so there is nothing to move back from.
+    gFormatBarrier.restoreConfirmed = selected.type == LOK_SELTYPE_NONE;
+    return;
+  }
+  char *html = gState.document->pClass->getTextSelection(
+      gState.document, "text/html", nullptr);
+  const std::string markup = html ? std::string(html) : std::string();
+  std::free(html);
+  gFormatBarrier.readbackBytes = markup.size();
+  gFormatBarrier.readbackHtml = markup.substr(0, FormatReadbackEvidenceLimit);
+  gFormatBarrier.readback = parseFormatReadback(markup);
+  const char *back = gFormatBarrier.alignReadBack ? ".uno:GoRight" : ".uno:GoLeft";
+  expectOrderedUno(back);
+  gState.document->pClass->postUnoCommand(gState.document, back, nullptr, true);
+  gFormatBarrier.restoreConfirmed = readSelection().type == LOK_SELTYPE_NONE;
+}
+
+void finishOrderedAlignCaretRead() {
+  auto refuse = [](const char *shape, const char *message) {
+    gFormatBarrier.failureShape = shape;
+    failFormatBarrier(kFormatMutationOutcomeUnknown, message);
+  };
+  if (!gFormatBarrier.restoreConfirmed) {
+    refuse("selection-not-restored",
+           "the synchronous read did not confirm NONE after moving back to the caret");
+    return;
+  }
+  if (!gFormatBarrier.selectionTypeReadable) {
+    // L-align-blank-document: a document of one empty paragraph has nothing to
+    // select, so the answer rests on the undo stack being readable and the
+    // command having answered; N2's blank arms saved the alignment.
+    if (gFormatBarrier.resultSeen && gFormatBarrier.undoRead) {
+      completeFormatBarrier();
+      return;
+    }
+    refuse("select-text-returned-none",
+           "the document has nothing to select and the undo stack could not be read");
+    return;
+  }
+  const FormatReadback &readback = gFormatBarrier.readback;
+  if (!readback.parsed || readback.footnoteApparatus || readback.unknownTag ||
+      readback.malformedNesting) {
+    refuse(readback.footnoteApparatus ? "footnote-apparatus-readback"
+           : readback.unknownTag ? "unknown-structural-tag"
+           : readback.malformedNesting ? "malformed-readback-nesting"
+                                      : "block-extraction-failed",
+           "the format readback does not provide a supported structural proof");
+    return;
+  }
+  if (!formatBarrierAlignCaretReadSatisfied()) {
+    gFormatBarrier.failureShape = "postcondition-not-met";
+    failFormatBarrier("EDITOR_FORMAT_POSTCONDITION_FAILED",
+                      "the document does not show the state this action asked for");
+    return;
+  }
+  completeFormatBarrier();
+}
+#endif
+
 void deferOrderedFormatReply(FormatStateBarrier barrier, bool dispatched,
                              const char *refusalCode = nullptr,
                              const char *refusalMessage = nullptr) {
@@ -210,7 +297,12 @@ void deferOrderedFormatReply(FormatStateBarrier barrier, bool dispatched,
       gFormatBarrier.resultModified =
           modified && std::strncmp(modified, "true", 4) == 0;
     }
+#ifdef OXSDK_E2_V31_ALIGNMENT
+    const bool selects = barrier.route != FormatBarrierRoute::RangeCross &&
+                         !barrier.alignCaretRead;
+#else
     const bool selects = barrier.route != FormatBarrierRoute::RangeCross;
+#endif
     gFormatBarrier.selectionResultSeen =
         selects && orderedUnoResult(kFormatBarrierSelectCommand, payload);
 #ifdef OXSDK_E2_V28_LAST_BLOCK
@@ -233,6 +325,12 @@ void deferOrderedFormatReply(FormatStateBarrier barrier, bool dispatched,
                         "the matching UNO command result was absent at the first poll");
       return;
     }
+#ifdef OXSDK_E2_V31_ALIGNMENT
+    if (gFormatBarrier.alignCaretRead) {
+      finishOrderedAlignCaretRead();
+      return;
+    }
+#endif
     finishOrderedFormatReadback();
   });
 }
@@ -286,6 +384,25 @@ void startOrderedFormatAction(const Command &command, std::uint32_t action,
     barrier.expectedBlockTag = heading ? "h1" : "p";
     break;
   }
+#ifdef OXSDK_E2_V31_ALIGNMENT
+  // SPEC-P-demo-batch-3 3.2.  These four set, they do not toggle: the same
+  // press twice leaves the same value (N1, caret-already-centred).  The
+  // postcondition is the align attribute the HTML read carries on the block.
+  case OXSDK_EDITOR_SET_ALIGN_LEFT:
+  case OXSDK_EDITOR_SET_ALIGN_CENTER:
+  case OXSDK_EDITOR_SET_ALIGN_RIGHT:
+  case OXSDK_EDITOR_SET_ALIGN_JUSTIFY:
+    barrier.target = FormatBarrierTarget::ParagraphAlign;
+    barrier.command = action == OXSDK_EDITOR_SET_ALIGN_LEFT ? ".uno:LeftPara"
+                      : action == OXSDK_EDITOR_SET_ALIGN_CENTER ? ".uno:CenterPara"
+                      : action == OXSDK_EDITOR_SET_ALIGN_RIGHT ? ".uno:RightPara"
+                                                               : ".uno:JustifyPara";
+    barrier.expectedAlign = action == OXSDK_EDITOR_SET_ALIGN_LEFT ? "left"
+                            : action == OXSDK_EDITOR_SET_ALIGN_CENTER ? "center"
+                            : action == OXSDK_EDITOR_SET_ALIGN_RIGHT ? "right"
+                                                                     : "justify";
+    break;
+#endif
   default:
     setOrderedReply([command]() {
       emitCommandError(command, "editor-action", "EDITOR_ACTION_UNSUPPORTED",
@@ -334,6 +451,14 @@ void startOrderedFormatAction(const Command &command, std::uint32_t action,
       return;
     }
   }
+#ifdef OXSDK_E2_V31_ALIGNMENT
+  // Append 2: a range of one paragraph is read like a range of several, from
+  // the selection the caller made.  The route's other gift is that nothing
+  // collapses it.
+  const bool aligning = barrier.target == FormatBarrierTarget::ParagraphAlign;
+  if (aligning && barrier.route == FormatBarrierRoute::RangeSingle)
+    barrier.route = FormatBarrierRoute::RangeCross;
+#endif
   barrier.beforeSequence = gEditorState.sourceSequence;
   barrier.dispatchSequence = gEditorState.sourceSequence;
   // Captured before the dispatch, because the dispatch can move the caret and
@@ -374,6 +499,11 @@ void startOrderedFormatAction(const Command &command, std::uint32_t action,
   gState.document->pClass->postUnoCommand(
       gState.document, barrier.command.c_str(),
       barrier.arguments.empty() ? nullptr : barrier.arguments.c_str(), true);
+#ifdef OXSDK_E2_V31_ALIGNMENT
+  if (aligning && barrier.route == FormatBarrierRoute::Collapsed) {
+    readOrderedAlignCaret();
+  } else
+#endif
   if (barrier.route == FormatBarrierRoute::RangeCross) {
     // Preserve the caller's entire range and compare every block by content.
     checkFormatBarrierCrossParagraph();
@@ -441,9 +571,19 @@ void startOrderedFormatAction(const Command &command, std::uint32_t action,
     gFormatBarrier.fallbackRan = gFormatBarrier.fallbackSelectionType >= 0;
 #endif
   }
+#ifdef OXSDK_E2_V31_ALIGNMENT
+  if (aligning) {
+    // The caret read confirmed its own return; the range stays selected.
+    if (barrier.route != FormatBarrierRoute::Collapsed)
+      gFormatBarrier.restoreConfirmed = readSelection().type == LOK_SELTYPE_TEXT;
+  } else {
+#endif
   restoreOrderedFormatPoint();
   gFormatBarrier.restoreConfirmed =
       gFormatBarrier.restorePointValid && readSelection().type == LOK_SELTYPE_NONE;
+#ifdef OXSDK_E2_V31_ALIGNMENT
+  }
+#endif
 #ifdef OXSDK_E2_V27_FIRST_BLOCK
   {
     std::string undoAfter;

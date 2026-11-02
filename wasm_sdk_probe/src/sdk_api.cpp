@@ -72,6 +72,9 @@ extern "C" EMSCRIPTEN_KEEPALIVE std::uint32_t oxsdk_capabilities(void) {
 #ifdef OXSDK_ODS_RANGE
          | OXSDK_CAPABILITY_CELL_RANGE_FORMATTING
 #endif
+#ifdef OXSDK_ODS_STYLE
+         | OXSDK_CAPABILITY_CELL_RANGE_STYLING
+#endif
 #endif
 #if HAVE_FEATURE_DBCONNECTIVITY
          | OXSDK_CAPABILITY_FORM_CONTROLS
@@ -203,7 +206,9 @@ extern "C" EMSCRIPTEN_KEEPALIVE int32_t oxsdk_document_cell(
     std::int32_t row, std::int32_t operation, const char *text,
     std::uint32_t textLength, std::uint32_t enabled) {
   constexpr int maxOperation =
-#ifdef OXSDK_ODS_RANGE
+#ifdef OXSDK_ODS_STYLE
+      12;
+#elif defined(OXSDK_ODS_RANGE)
       9;
 #else
       5;

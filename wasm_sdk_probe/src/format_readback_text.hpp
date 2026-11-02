@@ -57,7 +57,28 @@ inline bool formatTextBlockTag(const std::string &tag) {
 struct ReadbackBlock {
   std::string tag;
   std::string text;
+#ifdef OXSDK_E2_V31_ALIGNMENT
+  std::string align;  // the block's align attribute, or empty
+#endif
 };
+
+#ifdef OXSDK_E2_V31_ALIGNMENT
+// The value of the attribute `align` in a tag's attribute text, or empty.
+// Measured (findings/evidence/demo-batch-3/native-writer-align): Writer writes
+// align="left|center|right|justify" on the <p> or <hN> itself, inside a list
+// item too, and writes it for an explicit left as well.  `text-align: ...`
+// inside style="..." is not this: the read is of the attribute, spelled whole.
+inline std::string blockAlignAttribute(const std::string &attributes) {
+  static const std::string name = " align=\"";
+  const std::size_t found = attributes.find(name);
+  if (found == std::string::npos)
+    return std::string();
+  const std::size_t start = found + name.size();
+  const std::size_t end = attributes.find('"', start);
+  return end == std::string::npos ? std::string()
+                                  : attributes.substr(start, end - start);
+}
+#endif
 
 // The tag and text of each block, with inline markup (<font>, <span>, <b> ...)
 // concatenated away.  Entities are left exactly as the serialiser wrote them:
@@ -74,6 +95,9 @@ inline std::vector<ReadbackBlock> extractBlocks(const std::string &html) {
 
   std::string current;
   std::string openTag;      // empty when not inside a block
+#ifdef OXSDK_E2_V31_ALIGNMENT
+  std::string openAlign;
+#endif
   for (++index; index < html.size(); ++index) {
     if (html[index] != '<') {
       if (!openTag.empty())
@@ -101,7 +125,11 @@ inline std::vector<ReadbackBlock> extractBlocks(const std::string &html) {
     if (end != start && formatTextBlockTag(tag)) {
       if (closing) {
         if (!openTag.empty() && tag == openTag) {
+#ifdef OXSDK_E2_V31_ALIGNMENT
+          blocks.push_back({openTag, current, openAlign});
+#else
           blocks.push_back({openTag, current});
+#endif
           current.clear();
           openTag.clear();
         }
@@ -110,10 +138,19 @@ inline std::vector<ReadbackBlock> extractBlocks(const std::string &html) {
         // than silently merging the two, because a merge would make two
         // paragraphs compare equal to one.
         if (!openTag.empty()) {
+#ifdef OXSDK_E2_V31_ALIGNMENT
+          blocks.push_back({openTag, current, openAlign});
+#else
           blocks.push_back({openTag, current});
+#endif
           current.clear();
         }
         openTag = tag;
+#ifdef OXSDK_E2_V31_ALIGNMENT
+        openAlign = blockAlignAttribute(bracket == std::string::npos
+                                            ? std::string()
+                                            : html.substr(end, bracket - end));
+#endif
       }
     }
     if (bracket == std::string::npos)
@@ -152,6 +189,20 @@ inline bool everyBlockHasTag(const std::vector<ReadbackBlock> &blocks,
       return false;
   return true;
 }
+
+#ifdef OXSDK_E2_V31_ALIGNMENT
+// True when every block carries `align`, with everyBlockHasTag's reading of an
+// empty input.
+inline bool everyBlockHasAlign(const std::vector<ReadbackBlock> &blocks,
+                               const std::string &align) {
+  if (blocks.empty())
+    return false;
+  for (const ReadbackBlock &block : blocks)
+    if (block.align != align)
+      return false;
+  return true;
+}
+#endif
 
 } // namespace probe
 

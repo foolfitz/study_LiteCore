@@ -21,6 +21,9 @@
 #include <com/sun/star/util/CellProtection.hpp>
 #include <com/sun/star/sheet/XCellRangeAddressable.hpp>
 #include <com/sun/star/table/XColumnRowRange.hpp>
+#ifdef OXSDK_ODS_STYLE
+#include <com/sun/star/table/CellHoriJustify.hpp>
+#endif
 #include <com/sun/star/sheet/XSpreadsheet.hpp>
 #include <com/sun/star/sheet/XSpreadsheetDocument.hpp>
 #include <com/sun/star/sheet/XSheetCellCursor.hpp>
@@ -37,8 +40,14 @@
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
+#ifdef OXSDK_ODS_STYLE
+#include <cstdio>
+#endif
 #include <sstream>
 #include <stdexcept>
+#ifdef OXSDK_ODS_STYLE
+#include <utility>
+#endif
 #include <vector>
 
 namespace {
@@ -124,6 +133,69 @@ std::string rangeFormat(const Reference<beans::XPropertySet> &props,
   return previous == 1 ? "on" : "off";
 }
 
+#ifdef OXSDK_ODS_STYLE
+// SPEC-P-demo-batch-3 3.1.  Colours cross as text: write_json turns every number
+// into a string anyway, and -1 is not a colour, it is "automatic" (CharColor) or
+// "no fill" (CellBackColor).
+constexpr sal_Int32 kNoColor = -1;
+
+const char *styleProperty(int operation) {
+  return operation == 10 ? "CharColor" : operation == 11 ? "CellBackColor" : "HoriJustify";
+}
+
+std::string colorName(sal_Int32 value, const char *none) {
+  if (value == kNoColor) return none;
+  char text[8];
+  std::snprintf(text, sizeof text, "#%06x", static_cast<unsigned>(value) & 0xffffffu);
+  return text;
+}
+
+const std::vector<std::pair<const char *, table::CellHoriJustify>> &horizontalAligns() {
+  static const std::vector<std::pair<const char *, table::CellHoriJustify>> names{
+      {"standard", table::CellHoriJustify_STANDARD}, {"left", table::CellHoriJustify_LEFT},
+      {"center", table::CellHoriJustify_CENTER}, {"right", table::CellHoriJustify_RIGHT},
+      {"block", table::CellHoriJustify_BLOCK}};
+  return names;
+}
+
+// What the document says.  A value outside the closed list (REPEAT, set by a
+// desktop application) is reported rather than folded into a neighbour.
+std::string alignName(table::CellHoriJustify value) {
+  for (const auto &entry : horizontalAligns())
+    if (entry.second == value) return entry.first;
+  return "other";
+}
+
+std::string rangeStyle(const Reference<beans::XPropertySet> &props,
+                       const Reference<beans::XPropertyState> &states, int operation) {
+  const OUString name = OUString::createFromAscii(styleProperty(operation));
+  if (states->getPropertyState(name) == beans::PropertyState_AMBIGUOUS_VALUE)
+    return "mixed";
+  if (operation == 12) return alignName(property<table::CellHoriJustify>(props, name));
+  return colorName(property<sal_Int32>(props, name), operation == 10 ? "auto" : "none");
+}
+
+// The closed spelling of a requested value, or a refusal before any mutation.
+uno::Any styleValue(int operation, const std::string &value) {
+  if (operation == 12) {
+    for (const auto &entry : horizontalAligns())
+      if (value == entry.first) return uno::Any(entry.second);
+    throw Refusal("INVALID_ARGUMENT", "unknown horizontal alignment");
+  }
+  if (value == (operation == 10 ? "auto" : "none")) return uno::Any(kNoColor);
+  if (value.size() != 7 || value[0] != '#')
+    throw Refusal("INVALID_ARGUMENT", "a colour is #rrggbb");
+  sal_Int32 rgb = 0;
+  for (std::size_t index = 1; index < 7; ++index) {
+    const char c = value[index];
+    const int digit = c >= '0' && c <= '9' ? c - '0' : c >= 'a' && c <= 'f' ? c - 'a' + 10 : -1;
+    if (digit < 0) throw Refusal("INVALID_ARGUMENT", "a colour is #rrggbb in lower case");
+    rgb = rgb * 16 + digit;
+  }
+  return uno::Any(rgb);
+}
+#endif
+
 ptree accessRange(const Reference<sheet::XSpreadsheet> &sheet,
                   const Reference<frame::XModel> &model, int part, int column, int row,
                   int columns, int rows, int operation, const char *text, int textLength,
@@ -161,9 +233,29 @@ ptree accessRange(const Reference<sheet::XSpreadsheet> &sheet,
         || property<util::CellProtection>(props, u"CellProtection"_ustr).IsLocked)
       refusal = "READ_ONLY";
   }
-  const auto before = operation == 6 ? std::string() : rangeFormat(props, states, operation);
+#ifdef OXSDK_ODS_STYLE
+  const bool styling = operation >= 10;
+#else
+  const bool styling = false;
+#endif
+  const auto before = operation == 6 || styling ? std::string() : rangeFormat(props, states, operation);
   bool changed = false;
-  if (operation != 6) {
+#ifdef OXSDK_ODS_STYLE
+  if (styling) {
+    const std::string wanted = request.get<std::string>("value", "");
+    const uno::Any value = styleValue(operation, wanted);
+    if (!refusal.empty()) throw Refusal(refusal.c_str(), "the entire range is refused before mutation");
+    if (rangeStyle(props, states, operation) != wanted) {
+      Reference<beans::XMultiPropertySet> multi(range, uno::UNO_QUERY_THROW);
+      mutationAttempted = true;
+      multi->setPropertyValues({OUString::createFromAscii(styleProperty(operation))}, {value});
+      if (rangeStyle(props, states, operation) != wanted)
+        throw Refusal("RANGE_POSTCONDITION_FAILED", "native range style did not reach the requested state");
+      changed = true;
+    }
+  }
+#endif
+  if (operation != 6 && !styling) {
     if (!refusal.empty()) throw Refusal(refusal.c_str(), "the entire range is refused before mutation");
     if (before != (enabled ? "on" : "off")) {
       Reference<beans::XMultiPropertySet> multi(range, uno::UNO_QUERY_THROW);
@@ -196,6 +288,11 @@ ptree accessRange(const Reference<sheet::XSpreadsheet> &sheet,
   result.put("bold", rangeFormat(props, states, 7));
   result.put("italic", rangeFormat(props, states, 8));
   result.put("underline", rangeFormat(props, states, 9));
+#ifdef OXSDK_ODS_STYLE
+  result.put("textColor", rangeStyle(props, states, 10));
+  result.put("backColor", rangeStyle(props, states, 11));
+  result.put("horizontalAlign", rangeStyle(props, states, 12));
+#endif
   result.put("changed", changed);
   return result;
 }
@@ -205,7 +302,9 @@ ptree access(LibreOfficeKitDocument *doc, int part, int column, int row, int ope
              const char *text, int textLength, int enabled, bool &mutationAttempted) {
   SolarMutexGuard guard;
   constexpr int maxOperation =
-#ifdef OXSDK_ODS_RANGE
+#ifdef OXSDK_ODS_STYLE
+      12;
+#elif defined(OXSDK_ODS_RANGE)
       9;
 #else
       5;
@@ -354,6 +453,11 @@ ptree access(LibreOfficeKitDocument *doc, int part, int column, int row, int ope
   out.put("italicAsian", property<awt::FontSlant>(props, u"CharPostureAsian"_ustr) != awt::FontSlant_NONE);
   out.put("italicComplex", property<awt::FontSlant>(props, u"CharPostureComplex"_ustr) != awt::FontSlant_NONE);
   out.put("underline", property<sal_Int16>(props, u"CharUnderline"_ustr) != awt::FontUnderline::NONE);
+#ifdef OXSDK_ODS_STYLE
+  out.put("textColor", colorName(property<sal_Int32>(props, u"CharColor"_ustr), "auto"));
+  out.put("backColor", colorName(property<sal_Int32>(props, u"CellBackColor"_ustr), "none"));
+  out.put("horizontalAlign", alignName(property<table::CellHoriJustify>(props, u"HoriJustify"_ustr)));
+#endif
   return out;
 }
 } // namespace

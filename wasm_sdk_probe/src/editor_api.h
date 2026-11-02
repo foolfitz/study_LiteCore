@@ -194,6 +194,26 @@ typedef enum oxsdk_editor_v4_action {
 } oxsdk_editor_v4_action;
 #endif
 
+#ifdef OXSDK_E2_V31_ALIGNMENT
+#ifndef OXSDK_E2_V23_FEATURE_ABI6
+#error "the v31 alignment actions require the ABI6 feature engine"
+#endif
+/*
+ * SPEC-P-demo-batch-3 3.2: four paragraph alignments, appended.  The version
+ * stays 6.  Nothing an ABI 6 client can already send changes meaning, a client
+ * asks for an action through the manifest and does not see these on a profile
+ * without them; and the shell's selection and delete paths are gated on
+ * `abiVersion === 6`, so a bump would turn every one of them off at once
+ * (finding 179 is that defect with a profile name in place of a number).
+ */
+typedef enum oxsdk_editor_v5_action {
+  OXSDK_EDITOR_V5_SET_ALIGN_LEFT = 24,
+  OXSDK_EDITOR_V5_SET_ALIGN_CENTER = 25,
+  OXSDK_EDITOR_V5_SET_ALIGN_RIGHT = 26,
+  OXSDK_EDITOR_V5_SET_ALIGN_JUSTIFY = 27
+} oxsdk_editor_v5_action;
+#endif
+
 /*
  * Which selection shapes an action may be dispatched on.  The classes are the
  * engine's own routing boundary (SPEC E2-B 9.9), not a separate taxonomy:

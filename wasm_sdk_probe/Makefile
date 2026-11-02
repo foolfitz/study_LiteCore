@@ -2649,6 +2649,98 @@ test-v30-extend-gate-static:
 	python3 -I tools/check_extend_gate_instances.py --expect-red e2-editor-v29
 	python3 -I tools/check_extend_gate_instances.py --self-test
 
+# SPEC-P-demo-batch-3 3.2: the four paragraph alignments.  The v29 rule plus OXSDK_E2_V31_ALIGNMENT; editor ABI stays 6, no new
+# export.  The base is the archived v30 profile: its export list, its worker, its manifest.
+E2_V31_BUILD := build/e2/editor-v31
+E2_V31_DIST := dist/profiles/e2-editor-v31
+E2_V31_SOURCES := $(E2_C_SOURCES)
+E2_V31_OBJECTS := $(patsubst src/%.cpp,$(E2_V31_BUILD)/%.o,$(E2_V31_SOURCES))
+E2_V31_MD4C_INCLUDE := $(LOBUILD)/workdir/UnpackedTarball/md4c/src
+# Frozen base identity for the v31 worker: the archived v30 worker.
+E2_V31_ARCHIVE := build/archive/e2-editor-v30-e61e5890-worker-464d129c
+E2_V31_BASE_WORKER := $(E2_V31_ARCHIVE)/sdk-worker.js
+E2_V31_WORKER_SHA256 := 464d129c044231c516c666487db32e78f33d3f6393d2afdcc089d36bb0f0fe93
+
+.PHONY: v31-alignment-worker-preflight
+v31-alignment-worker-preflight:
+	python3 tools/check_v31_alignment_contract.py --check-worker-base \
+		--base-worker $(E2_V31_BASE_WORKER) --base-worker-sha256 $(E2_V31_WORKER_SHA256)
+
+$(E2_V31_BUILD)/%.o: src/%.cpp $(HEADERS) src/editor_api.h \
+		src/editor_discovery_api.h src/format_readback_text.hpp \
+		src/a11y_paragraph_identity.hpp src/merge_key_undo.hpp \
+		src/markdown_paste.hpp src/ordered_command_proof.hpp \
+		src/ordered_delete_route.hpp src/ordered_poll.hpp src/ordered_engine_guards.hpp src/reply_state_reads.hpp \
+		src/ordered_engine_state.inc src/ordered_engine_reply.inc src/ordered_engine_poll.inc \
+		src/ordered_engine_delete.inc src/ordered_format.inc src/main_loop_pacing.hpp $(E2_V31_MD4C_INCLUDE)/md4c.h Makefile \
+		| $(E2_V31_BUILD) v31-alignment-worker-preflight
+	$(CXX) $(E1_CPPFLAGS) $(R5_CXXFLAGS) -I$(E2_V31_MD4C_INCLUDE) \
+		-DOXSDK_EDITOR_DISCOVERY \
+		-DOXSDK_FINDING_016_SELECTION_BARRIER -DOXSDK_E2_FORMAT_BARRIER \
+		-DOXSDK_MERGE_KEY_UNDO -DOXSDK_E2_V20_LINK_BATCH \
+		-DOXSDK_E2_V21_LINK_BATCH -DOXSDK_MAINLOOP_ENGINE \
+		-DOXSDK_E2_V23_LINK_BATCH -DOXSDK_E2_V23_FEATURE_ABI6 \
+		-DOXSDK_E2_V24_TYPED_INSERT -DOXSDK_E2_V25_FORMAT_PROOF \
+		-DOXSDK_E2_V27_FIRST_BLOCK -DOXSDK_E2_V28_LAST_BLOCK \
+		-DOXSDK_E2_V29_TICK_PACING -DOXSDK_E2_V31_ALIGNMENT \
+		$(EXTRA_DEFINES) -c $< -o $@
+
+# v30's public export surface, unchanged.
+$(E2_V31_BUILD)/exports.txt: $(E2_V31_ARCHIVE)/exports.txt Makefile | $(E2_V31_BUILD)
+	cp $< $@
+
+# Guarded from the first link, like every product artifact before it.
+$(E2_V31_BUILD)/probe.js: $(E2_V31_OBJECTS) $(EXTRA_OBJECTS) \
+		$(E2_V31_BUILD)/exports.txt $(LINKDEPS) $(FS_PRE_JS) Makefile
+	$(call refuse_unasked_relink,the v31 alignment (SPEC-P-demo-batch-3 3.2; ABI 6) -- every link mints a new hash)
+	$(call link_product_stack_1m,$(E2_V31_OBJECTS) $(EXTRA_OBJECTS),$(E2_V31_BUILD)/exports.txt,$@)
+
+$(E2_V31_BUILD)/probe.wasm: $(E2_V31_BUILD)/probe.js
+	@test -s $@
+
+# The worker with the four alignment ids: v30's plus tests/v31-worker-delta.json.
+$(E2_V31_BUILD)/sdk-worker.js: sdk/v31-alignment-worker.js Makefile | $(E2_V31_BUILD) v31-alignment-worker-preflight
+	cp $< $@
+
+# v30's manifest construction under the v31 name, the four alignment leaves, and the three bindings.
+$(E2_V31_DIST)/sdk-manifest.json: $(E2_V31_BUILD)/probe.js $(E2_V31_BUILD)/probe.wasm \
+		$(E2_V31_BUILD)/exports.txt $(E2_V31_BUILD)/sdk-worker.js \
+		$(E2_V31_ARCHIVE)/sdk-manifest.json sdk/v18-writer-review-manifest.json \
+		tools/build_base_no35_pack.py tools/build_r5_profiles.py \
+		tools/build_cjk_subset.py tools/build_cjk_subset_ttc_pack.py \
+		tools/build_cjk_subset_mono_pack.py \
+		tools/build_e2_editor_v5_profile.py tools/build_e2_v23_feature_profile.py \
+		tools/build_e2_v24_feature_profile.py tools/check_v24_feature_contract.py \
+		tools/build_e2_v31_alignment_profile.py tools/check_v31_alignment_contract.py \
+		tools/check_v23_feature_contract.py tools/check_v23_diagnostic_build.py \
+		tools/inspect_wasm_function.py tools/validate_r5_artifacts.py \
+		tools/build_e2_editor_v4_profile.py tools/build_e2_c_profile.py \
+		tools/build_e2_b_profile.py tools/e1_support.py | $(E2_V31_DIST)
+	echo "$(E2_V31_WORKER_SHA256)  $(E2_V31_BASE_WORKER)" | sha256sum -c --quiet
+	python3 tools/build_base_no35_pack.py --check
+	python3 tools/build_cjk_subset_mono_pack.py --check
+	python3 tools/build_e2_v31_alignment_profile.py \
+		--source-manifest sdk/v18-writer-review-manifest.json \
+		--loader $(E2_V31_BUILD)/probe.js --wasm $(E2_V31_BUILD)/probe.wasm \
+		--worker $(E2_V31_BUILD)/sdk-worker.js \
+		--exports $(E2_V31_BUILD)/exports.txt \
+		--profile e2-editor-v31 --inline-range-gestures all \
+		--page-rectangles --paste-markdown \
+		--output $(E2_V31_DIST)
+	@test -s $(E2_V31_DIST)/probe.js
+	@test -s $(E2_V31_DIST)/probe.wasm
+	@test -s $(E2_V31_DIST)/sdk-worker.js
+
+$(E2_V31_BUILD) $(E2_V31_DIST):
+	mkdir -p $@
+
+# Focused tests only; no objects, no link.  SPEC-P-demo-batch-3 W1, W2, E1.
+.PHONY: test-demo-batch-3-static
+test-demo-batch-3-static:
+	node tests/ods_v3_worker_test.cjs
+	node tests/v31_alignment_worker_test.cjs
+	python3 -I tests/test_format_readback_v31.py
+
 # Focused source/contract tests only; no product objects, link or packaging
 # target (SPEC-M3-v28-last-line-fallback 7.2).
 .PHONY: test-v28-last-block-static
@@ -5558,6 +5650,71 @@ $(ODS_EDITOR_V2_BUILD)/profile/sdk-manifest.json: $(ODS_EDITOR_V2_BUILD)/probe.j
 $(ODS_EDITOR_V2_BUILD):
 	mkdir -p $@
 
+# ------------------------------- ods-editor-v3, cell styles on the existing v3 core (SPEC-P-demo-batch-3 3.1)
+# Development output is deliberately outside dist; only the final accepted
+# engine is copied to a fresh frozen profile. No existing profile is relinked.
+ODS_EDITOR_V3_CORE := ../wasm-lite/build-ods-viewer-v2
+ODS_EDITOR_V3_BUILD := build/ods/editor-v3
+ODS_EDITOR_V3_DIST := dist/profiles/ods-editor-v3
+ODS_EDITOR_V3_SOURCES := src/sdk_api.cpp src/probe_engine.cpp src/unoembind_stub.cpp
+ODS_EDITOR_V3_OBJECTS := $(patsubst src/%.cpp,$(ODS_EDITOR_V3_BUILD)/%.o,$(ODS_EDITOR_V3_SOURCES))
+ODS_EDITOR_V3_CPPFLAGS := -DLOK_USE_UNSTABLE_API -I$(LOSRC)/include \
+	-I$(ODS_EDITOR_V3_CORE)/config_host \
+	-I$(ODS_EDITOR_V3_CORE)/workdir/UnoApiHeadersTarget/udkapi/comprehensive \
+	-I$(ODS_EDITOR_V3_CORE)/workdir/UnoApiHeadersTarget/offapi/comprehensive \
+	-I$(ODS_EDITOR_V3_CORE)/workdir/UnpackedTarball/boost
+
+$(ODS_EDITOR_V3_BUILD)/%.o: src/%.cpp $(HEADERS) src/ods_viewer.hpp \
+		src/calc_cell_bridge.h Makefile | $(ODS_EDITOR_V3_BUILD)
+	$(CXX) $(ODS_EDITOR_V3_CPPFLAGS) $(R5_CXXFLAGS) -DOXSDK_READER_PROFILE \
+		-DOXSDK_ODS_VIEWER -DOXSDK_ODS_VIEWER_V2 -DOXSDK_ODS_EDITOR -DOXSDK_ODS_RANGE -DOXSDK_ODS_STYLE -c $< -o $@
+
+$(ODS_EDITOR_V3_BUILD)/calc_cell_bridge.o: src/calc_cell_bridge.cpp \
+		src/calc_cell_bridge.h Makefile | $(ODS_EDITOR_V3_BUILD)
+	$(CXX) $(ODS_EDITOR_V3_CPPFLAGS) $(R5_CXXFLAGS) -std=c++20 \
+		-DLIBO_INTERNAL_ONLY -DOXSDK_ODS_RANGE -DOXSDK_ODS_STYLE -c $< -o $@
+
+$(ODS_EDITOR_V3_BUILD)/exports.txt: \
+		$(ODS_EDITOR_V3_CORE)/workdir/CustomTarget/desktop/soffice_bin-emscripten-exports/exports Makefile \
+		| $(ODS_EDITOR_V3_BUILD)
+	grep -v -e '^__ZTI' -e '^_main$$' $< > $@
+	printf '%s\n' __ZTIN3com3sun4star3ucb31InteractiveAugmentedIOExceptionE \
+		_oxsdk_abi_version _oxsdk_capabilities _oxsdk_engine_start \
+		_oxsdk_document_open _oxsdk_document_paint _oxsdk_document_close \
+		_oxsdk_document_search _oxsdk_document_set_part _oxsdk_document_current_part \
+		_oxsdk_document_part_name _oxsdk_document_part_text _oxsdk_document_part_info \
+		_oxsdk_request_cancel _oxsdk_buffer_alloc _oxsdk_buffer_free \
+		_oxsdk_document_save _oxsdk_document_cell >> $@
+
+$(ODS_EDITOR_V3_BUILD)/probe.js: $(ODS_EDITOR_V3_OBJECTS) \
+		$(ODS_EDITOR_V3_BUILD)/calc_cell_bridge.o $(ODS_EDITOR_V3_BUILD)/exports.txt
+	@test ! -e $(ODS_EDITOR_V3_DIST)/sdk-manifest.json || \
+		{ echo "ods-editor-v3 is frozen; use a successor profile"; exit 1; }
+	$(CXX) $(ODS_EDITOR_V3_OBJECTS) $(ODS_EDITOR_V3_BUILD)/calc_cell_bridge.o \
+		-L$(ODS_EDITOR_V3_CORE)/instdir/program \
+		$$(cat $(ODS_EDITOR_V3_CORE)/instdir/program/soffice.js.linkdeps) \
+		-pthread -fwasm-exceptions -sSUPPORT_LONGJMP=wasm --no-entry -Oz \
+		-sMODULARIZE -sEXPORT_NAME=createProbeModule \
+		-sTOTAL_MEMORY=1GB -sPTHREAD_POOL_SIZE=7 -sPTHREAD_POOL_SIZE_STRICT=0 \
+		-sSTACK_SIZE=131072 -sDEFAULT_PTHREAD_STACK_SIZE=1048576 \
+		-sFORCE_FILESYSTEM=1 -sWASM_BIGINT=1 -sERROR_ON_UNDEFINED_SYMBOLS=1 -sFETCH=1 \
+		-sASSERTIONS=0 -sEXIT_RUNTIME=0 -sEXPORTED_RUNTIME_METHODS=ccall,FS,HEAPU8 \
+		-sEXPORTED_FUNCTIONS=@$(ODS_EDITOR_V3_BUILD)/exports.txt \
+		-Wl,--wrap=_Z18initJsUnoScriptingv \
+		--pre-js $(LOSRC)/static/emscripten/environment.js \
+		--pre-js $(ODS_EDITOR_V3_CORE)/workdir/CustomTarget/static/emscripten_fs_image/soffice.data.js.link \
+		-o $@
+
+$(ODS_EDITOR_V3_BUILD)/profile/sdk-manifest.json: $(ODS_EDITOR_V3_BUILD)/probe.js \
+		sdk/ods-editor-v3-worker.js tools/build_calc_style_profile.py
+	python3 tools/build_calc_style_profile.py --development \
+		--loader $(ODS_EDITOR_V3_BUILD)/probe.js --wasm $(ODS_EDITOR_V3_BUILD)/probe.wasm \
+		--worker sdk/ods-editor-v3-worker.js --exports $(ODS_EDITOR_V3_BUILD)/exports.txt \
+		--output $(ODS_EDITOR_V3_BUILD)/profile
+
+$(ODS_EDITOR_V3_BUILD):
+	mkdir -p $@
+
 # Owner-run, small native bridge build against the existing installed core.
 CALC_RANGE_NATIVE_CORE := ../build-native-26-8
 CALC_RANGE_NATIVE_BUILD := build/calc-range-native
@@ -5572,6 +5729,21 @@ $(CALC_RANGE_NATIVE_BUILD)/bridge.o: src/calc_cell_bridge.cpp src/calc_cell_brid
 		-DCPPU_ENV=gcc3 -DUNX -DLINUX -DX86_64 $(CALC_RANGE_NATIVE_FLAGS) -c $< -o $@
 
 $(CALC_RANGE_NATIVE_BUILD)/calc-cell-native: tools/calc_cell_native.cpp $(CALC_RANGE_NATIVE_BUILD)/bridge.o
+	$(HOST_CXX) -std=c++17 -O2 $(CALC_RANGE_NATIVE_FLAGS) $^ \
+		-L$(CALC_RANGE_NATIVE_CORE)/instdir/program -lsfxlo -lvcllo -lcomphelper -ltllo \
+		$(CALC_RANGE_NATIVE_CORE)/instdir/program/libuno_sal.so.3 \
+		$(CALC_RANGE_NATIVE_CORE)/instdir/program/libuno_cppu.so.3 \
+		$(CALC_RANGE_NATIVE_CORE)/instdir/program/libuno_cppuhelpergcc3.so.3 \
+		-Wl,-rpath,$(abspath $(CALC_RANGE_NATIVE_CORE)/instdir/program) -ldl -o $@
+
+# The same small native bridge with the style operations (SPEC-P-demo-batch-3 N1); no core, no link of the engine.
+CALC_STYLE_NATIVE_BUILD := build/calc-style-native
+$(CALC_STYLE_NATIVE_BUILD)/bridge.o: src/calc_cell_bridge.cpp src/calc_cell_bridge.h Makefile
+	mkdir -p $(CALC_STYLE_NATIVE_BUILD)
+	$(HOST_CXX) -std=c++20 -O2 -fPIC -DLIBO_INTERNAL_ONLY -DOXSDK_ODS_RANGE -DOXSDK_ODS_STYLE \
+		-DCPPU_ENV=gcc3 -DUNX -DLINUX -DX86_64 $(CALC_RANGE_NATIVE_FLAGS) -c $< -o $@
+
+$(CALC_STYLE_NATIVE_BUILD)/calc-cell-native: tools/calc_cell_native.cpp $(CALC_STYLE_NATIVE_BUILD)/bridge.o
 	$(HOST_CXX) -std=c++17 -O2 $(CALC_RANGE_NATIVE_FLAGS) $^ \
 		-L$(CALC_RANGE_NATIVE_CORE)/instdir/program -lsfxlo -lvcllo -lcomphelper -ltllo \
 		$(CALC_RANGE_NATIVE_CORE)/instdir/program/libuno_sal.so.3 \
