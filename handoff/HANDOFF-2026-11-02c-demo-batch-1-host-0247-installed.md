@@ -48,6 +48,10 @@ Each was checked against the commit before the batch.
 - **Fixed-by-review: 0. Fable rulings: 0.**
 - Wrong statements, corrected: 2. "The `no-gutter` mutation goes red at Z10" (spec append 1, corrected before the fix). "Never measured" about the ordered arms, corrected to the owner in the same session: native and old-engine measurements exist.
 
+## Addendum, same day
+
+The owner's hand test passed: 「測試皆通過」. Next item 1 is closed. 0.2.47 stays installed as the daily uncounted candidate; nominal shipped stays 0.2.45. Nothing is waiting on the owner.
+
 ## Conventions
 
 Replies to the owner in Taiwan Traditional Chinese with A/B/C options. Evidence and handoff in English, specs in zh-TW. Linking and compiling `make` stay the owner's. Commit messages: `Co-Authored-By` yes, `Claude-Session` never.

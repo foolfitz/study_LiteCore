@@ -20,4 +20,4 @@ The host batch reads C1 to C3 on `ods-editor.html` only. The viewer arm of C ran
 
 Screens read by eye: `host-batch/chrome-writer-rest.png` (controls in the toolbar, no side scrollbar), `host-batch/firefox-calc-back-to-sheet1.png` (表一, P159, row 148 on).
 
-**Pending:** the owner's hand test. Rollback: `rollback-package.sh` with `host-stack/bin` first on PATH restores 0.2.46's engine bytes, which carry the regression above; to go further back use 0.2.45's archive.
+**Owner's hand test, 2026-11-02:** the Writer zoom and the Calc tab steps from the handoff, answered 「測試皆通過」. 0.2.47 stays installed as the daily uncounted candidate; the nominal shipped host stays 0.2.45. Rollback: `rollback-package.sh` with `host-stack/bin` first on PATH restores 0.2.46's engine bytes, which carry the regression above; to go further back use 0.2.45's archive.
