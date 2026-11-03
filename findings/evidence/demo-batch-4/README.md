@@ -42,3 +42,21 @@ Not run, because they need the link: `tools/check_writer_toggle.py` (P4), `tools
 | Red cases | `red-no-undo`, `red-no-second-press` read `P4_RED`. `red-swap-levels` read `P4_RED` on a fatal: the client's own check on the reply stopped the run, so it showed nothing about the reader. `red-swap-levels-02` puts the reply back and is red on exactly `T2/h2/on` and `T2/h3/on`, reading the swapped levels in the file |
 | `p1/run-01` | `P1_HOLDS`, 108/108 on both browsers |
 | `p4/read-cost-02` | The Wasm factor the runbook asked for, the page's own label. A press at a caret: 10 to 24 ms at 100, 250 and 500 paragraphs. All selected at 500: bullet on 257 and 366 ms, heading 273 and 380 ms, bullet off 1.33 and 1.41 s, Chrome and Firefox. `read-cost/` is the tool's failure: an unsaved page's `beforeunload` held the navigation |
+
+## Generation 87
+
+`chain-87.log`, 07:59 to 09:21. Tree `20e836c81`. Page `f6fd0b75`, the bytes P4 run-02 measured.
+
+| Read | Result |
+|---|---|
+| `p4/final-87` | `P4_HOLDS`, 126/126 on both browsers, on the live page |
+| S1, Z, P1, C | `S1_HOLDS` 25/25, `Z_HOLDS`, `P1_HOLDS` 108/108, Calc sheet view all pass |
+| `f4-87` | 24 rows, four arms PASS, no problems |
+| `f3-87` | `F3_83_EQUAL`, 46/46 on both browsers, nothing moved; self-test `ALL_RED`. The runner exits 1 as in every generation since v24, on the two cells the reader expects |
+| `v0-87` | `V0_PRIME_HOLDS`, ten stages, put-back holds |
+| `units/` | Shell 578/578, Calc 104/104, the three mutation tools, both static targets |
+
+The runbook declared moves in F3 and none happened. `bulleting-a-blank-line-does-not-demand-a-rollback` has read FAIL since v25 with the same observation: finding 171 ended the sentence it waits for.
+
+Host: `../host-0.2.52/README.md`.
+

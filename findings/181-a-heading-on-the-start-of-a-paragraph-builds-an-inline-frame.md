@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **狀態** | 已確認；修法在 e2-editor-v32（`specs/SPEC-P-demo-batch-4.md` 第 5 節），等連結 |
+| **狀態** | 已修，等擁有者手測：e2-editor-v32（`specs/SPEC-P-demo-batch-4.md` 第 5 節）；宿主 0.2.52 已裝，P4 的 T6 與 `H4/finding-181-the-whole-paragraph-no-frame` 都過。出貨中的 0.2.45 仍帶這個缺陷 |
 | **Bugzilla** | 不適用 |
 | **發現日** | 2026-11-03（N3 的 complex 選取，讀碼確認成因，出貨頁面重現） |
 | **嚴重度** | 一般：文件結構和使用者預期不同，一個字數不多的詞被拆進框裡，沒有任何提示 |

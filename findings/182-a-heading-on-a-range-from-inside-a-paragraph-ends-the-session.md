@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **狀態** | 已確認；修法在 e2-editor-v32（`specs/SPEC-P-demo-batch-4.md` 第 5 節），等連結 |
+| **狀態** | 已修，等擁有者手測：e2-editor-v32（`specs/SPEC-P-demo-batch-4.md` 第 5 節）；宿主 0.2.52 已裝，P4 的 T6 與 `H4/finding-182-both-paragraphs`、`H4/range-keeps-the-session` 都過。出貨中的 0.2.45 仍帶這個缺陷 |
 | **Bugzilla** | 不適用 |
 | **發現日** | 2026-11-03（N3 看到 HTML 第一塊沒有段落樣式，出貨頁面重現） |
 | **嚴重度** | **高**：很普通的操作，結果是 `recoverable-error`、不能存檔、提示「自上次儲存以來的內容不會回來」 |
