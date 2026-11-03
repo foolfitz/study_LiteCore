@@ -5,6 +5,11 @@ The owner's path, with ../host-0.2.52/host_batch4.py's helpers: open from Files,
 Run on 0.2.52 first: Enter over a selection is refused there and the copy prints its code, and that is the tool's red.  Run with host-stack/bin
 first on PATH.
   python3 -I host_batch5.py --out DIR [--browsers chrome,firefox]
+
+Fixed by execution (2026-11-03, run host-features on 0.2.53): run_e2_c_product_path.CLEAR_TOAST empties #toast's text and leaves its class.  The
+caret copy is refused, so its toast carries .bad; after the clear, h.RED (the text of a toast that has .bad) read '' -- not None -- although Enter
+posted no toast at all.  CLEAR below also drops .bad and .error, so H5/no-red-toast reads only what comes after it.  On 0.2.52 Enter itself posts a
+.bad toast after the clear, so that red (h5-red-on-0252) is untouched by this.
 """
 import argparse
 import importlib.util
@@ -25,6 +30,7 @@ import run_e2_c_product_path as pp  # noqa: E402
 
 FOLDER = 'LiteCore-batch5'
 TOAST = "document.querySelector('#toast')?.textContent ?? ''"
+CLEAR = "(() => { const t = document.querySelector('#toast'); t.textContent = ''; t.classList.remove('bad', 'error'); return true; })()"
 
 
 def writer(session, kind, instance, run):
@@ -33,7 +39,7 @@ def writer(session, kind, instance, run):
     h.time.sleep(.8)
     original = shape(instance.dav('GET', f'{FOLDER}/levels-{kind}.odt')[1])
     h.to_paragraph(session, kind, BODY)
-    s.evaluate(session, pp.CLEAR_TOAST)
+    s.evaluate(session, CLEAR)
     s.evaluate(session, pp.COPY)
     h.time.sleep(1)
     toast = s.evaluate(session, TOAST)
@@ -41,7 +47,7 @@ def writer(session, kind, instance, run):
     h.to_paragraph(session, kind, BODY2)
     h.key(session, kind, 'Home')
     h.key(session, kind, 'ArrowRight', ('shift',), times=5)
-    s.evaluate(session, pp.CLEAR_TOAST)
+    s.evaluate(session, CLEAR)
     h.key(session, kind, 'Enter')
     h.key(session, kind, 'q')
     h.check(run, 'H5/no-red-toast', s.evaluate(session, h.RED) is None, s.evaluate(session, h.RED))
