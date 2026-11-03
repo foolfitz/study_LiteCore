@@ -7,7 +7,9 @@ Closed list of differences from the frozen base manifest:
   writer  base dist/profiles/e2-editor-v32  -> e2-editor-v33: capabilities + open-docx, save-docx; bits 20, 21
   calc    base dist/profiles/ods-editor-v4  -> ods-editor-v5: capabilities + open-xlsx, save-xlsx; bits 22, 23
 
-plus `profile`, `sdkVersion` and a `documentFormatContract` naming the table (src/document_format.hpp).  The export list must equal
+plus `profile`, `sdkVersion`, a `documentFormatContract` naming the table (src/document_format.hpp), and -- Writer only -- the
+editorContract's loaderSha256 / wasmSha256 / workerSha256 recomputed from the copied artifacts (they named v32's; Codex review
+2026-11-03 item 1).  No other field of either base manifest names an engine artifact (the resource packs' sha256 do not move).  The export list must equal
 the base's (no new export), and the base must not already claim either capability.  --development assembles under build/ only;
 without it the output must not already hold a manifest (a frozen profile is never overwritten).
   build_ms_formats_profile.py --profile writer|calc --loader F --wasm F --worker F --exports F --base-exports F --output DIR [--development]
@@ -59,6 +61,13 @@ def main():
         relative = manifest["artifactFiles"][key]
         if relative.startswith("./"):  # Calc carries its image beside the engine; Writer's lives in ../resources
             shutil.copyfile(base / relative[2:], output / relative[2:])
+    sha = lambda name: hashlib.sha256((output / name).read_bytes()).hexdigest()
+    contract = manifest.get("editorContract")
+    if contract is not None:
+        for key, name in (("loaderSha256", "probe.js"), ("wasmSha256", "probe.wasm"), ("workerSha256", "sdk-worker.js")):
+            if key not in contract:
+                raise SystemExit(f"editorContract lacks {key}: the base manifest changed shape")
+            contract[key] = sha(name)
     manifest["profile"] = spec["profile"]
     manifest["sdkVersion"] = "0.6.0-r6-worker+" + spec["profile"]
     manifest["capabilities"] += [f"open-{ms}", f"save-{ms}"]

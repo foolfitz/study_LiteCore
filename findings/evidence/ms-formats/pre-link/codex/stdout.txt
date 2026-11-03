@@ -1,0 +1,15 @@
+1. **[P2] Writer manifest retains v32 artifact hashes** — [tools/build_ms_formats_profile.py:62](/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/build_ms_formats_profile.py:62). The builder copies new artifacts but preserves `editorContract.loaderSha256`, `wasmSha256`, and `workerSha256`. The derived worker already differs: `77be4597…` versus the declared `c394302c…`. Worker init does not enforce these hashes, but artifact validators will reject the profile and manifest-based evidence will identify v32. **Fix:** recompute all three fields from the copied output before writing the manifest.
+
+2. **[P2] Writer’s DOCX save capability can be bypassed through coercion** — [tests/v33-worker-delta.json:18](/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tests/v33-worker-delta.json:18). The gate compares `payload.format === "docx"`, whereas save dispatch uses `String(payload.format || "")`. A read-only worker reproduction with `format: ["docx"]` and only `save-odt` granted reached `oxsdk_document_save` with `"docx"`; the ordinary string was correctly refused. **Fix:** reject non-string formats before capability selection, or normalize once and use that same value for gating and dispatch. Apply the same discipline to Calc’s delta.
+
+3. **[P2, validation gap] F3’s predecessor failures do not establish gate-specific causal controls** — [tests/ms_formats_worker_test.cjs:82](/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tests/ms_formats_worker_test.cjs:82) and [:107](/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tests/ms_formats_worker_test.cjs:107). Both frozen workers fail first because they drop `format`; execution never reaches the refusal assertions. Thus “both predecessors fail” does not fulfill the specified gate-removal red case. **Fix:** retain format forwarding and independently remove each new gate, requiring failure at its corresponding refusal assertion.
+
+Checked and found fine:
+
+- **Q1:** No additional link or init blocker found by inspection. Capability totals match **3147775 / 13629747**; Calc’s generated export set matches v4, Writer retains v32’s exports, and predecessor compile/link flags are preserved. The intended mirror supplies the required `profiles/resources` alias.
+- **Q2:** No unguarded engine token change found. Moving Writer’s semicolon preserves its token sequence. F2 checks syntax without the define; it does **not** compare pre-change and post-change token streams.
+- **Q3:** For ordinary string inputs, suffix acceptance, MEMFS suffix, reported `format`, and manifest grants agree across layers.
+- **Q4:** No save-path defect found. Both builds reach the shared `saveAs(url, format, nullptr)` implementation; local LOK code maps DOCX/XLSX to the stated filters without requiring options. Writer’s deferred reply captures the needed values.
+- **Q5:** No unintended ODF behavior change found in the worker deltas; forwarding the engine’s new `format` field is intentional.
+
+F1’s mutation count is **12 table-generated cases plus six fixed rule cases**, rather than 18 generated cases. No files were modified, builds run, or F1–F3 rerun.

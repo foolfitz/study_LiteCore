@@ -11,7 +11,10 @@ nothing), not rebuilt here.  For every command:
                  OXSDK_MS_FORMATS block must fail with the define and pass without it, or "green" could mean the block was
                  never compiled;
   exports        `-E -P`: every `_oxsdk_*` name in the profile's export list has a function body in the preprocessed sources
-                 (a missing body fails the link and -fsyntax-only cannot see it, memory 2026-11-03).
+                 (a missing body fails the link and -fsyntax-only cannot see it, memory 2026-11-03);
+  tokens         the PREDECESSORS' commands (e2-editor-v32, ods-editor-v4), `-E -P` on src/ as it was at --base-rev and as it is
+                 now: the token streams must be equal, or an edit escaped its `#ifdef OXSDK_MS_FORMATS` (added after the Codex
+                 review of 2026-11-03, which noted that the syntax runs do not show this).
 
 taskset -c 0; refuses while a make runs.  Receipt: --out/report.json (argv, exit, seconds, first errors).
   check_ms_formats_syntax.py --out DIR
@@ -25,6 +28,7 @@ import subprocess
 import time
 
 SDK = Path(__file__).resolve().parents[1]
+PREDECESSORS = {"writer": "build/e2/editor-v32/probe.js", "calc": "build/ods/editor-v4/probe.js"}
 PROFILES = {
     "writer": {"target": "build/e2/editor-v33/probe.js", "exports": "build/archive/e2-editor-v32-54e50093-worker-c394302c/exports.txt"},
     "calc": {"target": "build/ods/editor-v5/probe.js", "exports": "build/ods/editor-v4/exports.txt"},
@@ -68,6 +72,7 @@ def run(argv, label, report):
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--out", type=Path, required=True)
+    parser.add_argument("--base-rev", default="b013dc154", help="the tree before the change (default: the handoff commit)")
     args = parser.parse_args()
     out = args.out.resolve()
     out.mkdir(parents=True, exist_ok=False)
@@ -118,6 +123,25 @@ def main():
             "control-silent-without-define": all(by[f"{profile}/control-without-define/{n}"]["exit"] == 0 for n in controls),
             "exports-have-bodies": bool(exported) and not missing,
         }
+    old_src = scratch / "old" / "src"
+    old_src.mkdir(parents=True)
+    listed = subprocess.run(["git", "ls-tree", "--name-only", args.base_rev, "src/"], capture_output=True, text=True, cwd=SDK, check=True)
+    for path in listed.stdout.split():
+        data = subprocess.run(["git", "show", f"{args.base_rev}:wasm_sdk_probe/{path}"], capture_output=True, cwd=SDK, check=True).stdout
+        (old_src / Path(path).name).write_bytes(data)
+    tokens = lambda text: re.findall(r"[A-Za-z_][A-Za-z0-9_]*|\d[\w.]*|\S", text)
+    report["tokens"] = {}
+    for profile, target in PREDECESSORS.items():
+        same = []
+        for c in compile_commands(target):
+            src = c["source"]
+            now = run(swap(c["argv"], src, ["-E", "-P", src]), f"{profile}-predecessor/tokens-now/{Path(src).name}", report)
+            then = run(swap(c["argv"], src, ["-E", "-P", str(old_src / Path(src).name)]),
+                       f"{profile}-predecessor/tokens-base/{Path(src).name}", report)
+            equal = now.returncode == 0 and then.returncode == 0 and tokens(now.stdout) == tokens(then.stdout)
+            report["tokens"].setdefault(profile, {})[src] = {"equal": equal, "tokens": len(tokens(now.stdout))}
+            same.append(equal)
+        verdict[profile]["predecessor-tokens-unchanged"] = bool(same) and all(same)
     shutil.rmtree(scratch)
     report["verdict"] = verdict
     (out / "report.json").write_text(json.dumps(report, indent=1) + "\n")

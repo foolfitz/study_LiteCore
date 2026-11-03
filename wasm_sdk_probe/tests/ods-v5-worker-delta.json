@@ -15,7 +15,7 @@
   {
    "item": "3 xlsx needs its own capability to open and to save (E4)",
    "old": "  const requiredCapability = request.operation === \"save\" && payload.format === \"ods\"\n    ? \"save-ods\" : OPERATION_CAPABILITIES.get(request.operation);\n",
-   "new": "  // SPEC-P-ms-formats E4: a .xlsx name opens, and xlsx saves, only where the\n  // manifest says so; everything else keeps its row.\n  const requiredCapability = request.operation === \"save\" && payload.format === \"ods\"\n    ? \"save-ods\"\n    : request.operation === \"open\" && /\\.xlsx$/i.test(String(payload.name || \"\")) ? \"open-xlsx\"\n    : request.operation === \"save\" && payload.format === \"xlsx\" ? \"save-xlsx\"\n    : OPERATION_CAPABILITIES.get(request.operation);\n"
+   "new": "  // SPEC-P-ms-formats E4: a .xlsx name opens, and xlsx saves, only where the\n  // manifest says so; everything else keeps its row.  Both compare the\n  // value the dispatch sends (String(...)), so an array cannot slip past (Codex review 2026-11-03).\n  const requiredCapability = request.operation === \"save\" && payload.format === \"ods\"\n    ? \"save-ods\"\n    : request.operation === \"open\" && /\\.xlsx$/i.test(String(payload.name || \"\")) ? \"open-xlsx\"\n    : request.operation === \"save\" && String(payload.format || \"\") === \"xlsx\" ? \"save-xlsx\"\n    : OPERATION_CAPABILITIES.get(request.operation);\n"
   }
  ]
 }

@@ -15,7 +15,7 @@
   {
    "item": "3 docx needs its own capability to open and to save (E4)",
    "old": "  const payload = request.payload || {};\n  const requiredCapability = OPERATION_CAPABILITIES.get(request.operation);\n",
-   "new": "  const payload = request.payload || {};\n  // SPEC-P-ms-formats E4: a .docx name opens, and docx saves, only where the\n  // manifest says so; everything else keeps its row.\n  const requiredCapability =\n    request.operation === \"open\" && /\\.docx$/i.test(String(payload.name || \"\")) ? \"open-docx\"\n    : request.operation === \"save\" && payload.format === \"docx\" ? \"save-docx\"\n    : OPERATION_CAPABILITIES.get(request.operation);\n"
+   "new": "  const payload = request.payload || {};\n  // SPEC-P-ms-formats E4: a .docx name opens, and docx saves, only where the\n  // manifest says so; everything else keeps its row.  Both compare the\n  // value the dispatch sends (String(...)), so an array cannot slip past (Codex review 2026-11-03).\n  const requiredCapability =\n    request.operation === \"open\" && /\\.docx$/i.test(String(payload.name || \"\")) ? \"open-docx\"\n    : request.operation === \"save\" && String(payload.format || \"\") === \"docx\" ? \"save-docx\"\n    : OPERATION_CAPABILITIES.get(request.operation);\n"
   }
  ]
 }

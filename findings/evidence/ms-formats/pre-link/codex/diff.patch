@@ -1,0 +1,636 @@
+diff --git a/wasm_sdk_probe/Makefile b/wasm_sdk_probe/Makefile
+index ecf100034..6fb0aab2d 100644
+--- a/wasm_sdk_probe/Makefile
++++ b/wasm_sdk_probe/Makefile
+@@ -5923,3 +5923,134 @@ $(CALC_STYLE_NATIVE_BUILD)/calc-cell-native: tools/calc_cell_native.cpp $(CALC_S
+ 		$(CALC_RANGE_NATIVE_CORE)/instdir/program/libuno_cppu.so.3 \
+ 		$(CALC_RANGE_NATIVE_CORE)/instdir/program/libuno_cppuhelpergcc3.so.3 \
+ 		-Wl,-rpath,$(abspath $(CALC_RANGE_NATIVE_CORE)/instdir/program) -ldl -o $@
++
++# ------------------------------- Microsoft formats: e2-editor-v33 and ods-editor-v5 (specs/SPEC-P-ms-formats.md 5.1)
++# Each is its predecessor's rule plus OXSDK_MS_FORMATS on every engine object: src/document_format.hpp's table at open, at the
++# MEMFS path, at save, in the capability bits and in the open reply.  No new export, no core change.  Development output under
++# build/, as ods-editor-v4: freezing into dist/ is a separate step after the criteria hold.  Owner-run (the links).
++E2_V33_BUILD := build/e2/editor-v33
++E2_V33_OBJECTS := $(patsubst src/%.cpp,$(E2_V33_BUILD)/%.o,$(E2_C_SOURCES))
++E2_V33_BRIDGE := $(E2_V33_BUILD)/writer_caret_bridge.o
++E2_V33_ARCHIVE := build/archive/e2-editor-v32-54e50093-worker-c394302c
++
++$(E2_V33_BRIDGE): src/writer_caret_bridge.cpp src/writer_caret_bridge.h Makefile | $(E2_V33_BUILD)
++	$(CXX) $(E1_CPPFLAGS) $(R5_CXXFLAGS) -std=c++20 -DLIBO_INTERNAL_ONLY $(EXTRA_DEFINES) -c $< -o $@
++
++$(E2_V33_BUILD)/%.o: src/%.cpp $(HEADERS) src/editor_api.h \
++		src/editor_discovery_api.h src/format_readback_text.hpp \
++		src/a11y_paragraph_identity.hpp src/merge_key_undo.hpp \
++		src/markdown_paste.hpp src/ordered_command_proof.hpp \
++		src/ordered_delete_route.hpp src/ordered_poll.hpp src/ordered_engine_guards.hpp src/reply_state_reads.hpp \
++		src/ordered_engine_state.inc src/ordered_engine_reply.inc src/ordered_engine_poll.inc \
++		src/ordered_engine_delete.inc src/ordered_format.inc src/main_loop_pacing.hpp src/writer_caret_bridge.h \
++		src/document_format.hpp $(E2_V32_MD4C_INCLUDE)/md4c.h Makefile | $(E2_V33_BUILD)
++	$(CXX) $(E1_CPPFLAGS) $(R5_CXXFLAGS) -I$(E2_V32_MD4C_INCLUDE) \
++		-DOXSDK_EDITOR_DISCOVERY \
++		-DOXSDK_FINDING_016_SELECTION_BARRIER -DOXSDK_E2_FORMAT_BARRIER \
++		-DOXSDK_MERGE_KEY_UNDO -DOXSDK_E2_V20_LINK_BATCH \
++		-DOXSDK_E2_V21_LINK_BATCH -DOXSDK_MAINLOOP_ENGINE \
++		-DOXSDK_E2_V23_LINK_BATCH -DOXSDK_E2_V23_FEATURE_ABI6 \
++		-DOXSDK_E2_V24_TYPED_INSERT -DOXSDK_E2_V25_FORMAT_PROOF \
++		-DOXSDK_E2_V27_FIRST_BLOCK -DOXSDK_E2_V28_LAST_BLOCK \
++		-DOXSDK_E2_V29_TICK_PACING -DOXSDK_E2_V31_ALIGNMENT \
++		-DOXSDK_E2_V32_PARAGRAPH_READ -DOXSDK_MS_FORMATS \
++		$(EXTRA_DEFINES) -c $< -o $@
++
++# v32's export surface, unchanged.
++$(E2_V33_BUILD)/exports.txt: $(E2_V33_ARCHIVE)/exports.txt Makefile | $(E2_V33_BUILD)
++	cp $< $@
++
++$(E2_V33_BUILD)/probe.js: $(E2_V33_OBJECTS) $(E2_V33_BRIDGE) $(EXTRA_OBJECTS) \
++		$(E2_V33_BUILD)/exports.txt $(LINKDEPS) $(FS_PRE_JS) Makefile
++	$(call refuse_unasked_relink,DOCX open and save (SPEC-P-ms-formats) -- every link mints a new hash)
++	$(call link_product_stack_1m,$(E2_V33_OBJECTS) $(E2_V33_BRIDGE) $(EXTRA_OBJECTS),$(E2_V33_BUILD)/exports.txt,$@)
++
++$(E2_V33_BUILD)/probe.wasm: $(E2_V33_BUILD)/probe.js
++	@test -s $@
++
++# Derived, not kept in sdk/ (tools/derive_ms_formats_worker.py says why).
++$(E2_V33_BUILD)/sdk-worker.js: dist/profiles/e2-editor-v32/sdk-worker.js tests/v33-worker-delta.json \
++		tools/derive_ms_formats_worker.py | $(E2_V33_BUILD)
++	python3 tools/derive_ms_formats_worker.py --profile writer --out $@
++
++$(E2_V33_BUILD)/profile/sdk-manifest.json: $(E2_V33_BUILD)/probe.js $(E2_V33_BUILD)/sdk-worker.js \
++		$(E2_V33_BUILD)/exports.txt tools/build_ms_formats_profile.py
++	python3 tools/build_ms_formats_profile.py --profile writer --development \
++		--loader $(E2_V33_BUILD)/probe.js --wasm $(E2_V33_BUILD)/probe.wasm \
++		--worker $(E2_V33_BUILD)/sdk-worker.js --exports $(E2_V33_BUILD)/exports.txt \
++		--base-exports $(E2_V33_ARCHIVE)/exports.txt --output $(E2_V33_BUILD)/profile
++
++$(E2_V33_BUILD):
++	mkdir -p $@
++
++ODS_EDITOR_V5_BUILD := build/ods/editor-v5
++ODS_EDITOR_V5_DIST := dist/profiles/ods-editor-v5
++ODS_EDITOR_V5_DEFINES := $(ODS_EDITOR_V4_DEFINES) -DOXSDK_MS_FORMATS
++ODS_EDITOR_V5_OBJECTS := $(patsubst src/%.cpp,$(ODS_EDITOR_V5_BUILD)/%.o,$(ODS_EDITOR_V3_SOURCES))
++
++$(ODS_EDITOR_V5_BUILD)/%.o: src/%.cpp $(HEADERS) src/ods_viewer.hpp src/document_format.hpp \
++		src/calc_cell_bridge.h Makefile | $(ODS_EDITOR_V5_BUILD)
++	$(CXX) $(ODS_EDITOR_V3_CPPFLAGS) $(R5_CXXFLAGS) $(ODS_EDITOR_V5_DEFINES) -c $< -o $@
++
++# The bridge has no format code: v4's flags.
++$(ODS_EDITOR_V5_BUILD)/calc_cell_bridge.o: src/calc_cell_bridge.cpp \
++		src/calc_cell_bridge.h Makefile | $(ODS_EDITOR_V5_BUILD)
++	$(CXX) $(ODS_EDITOR_V3_CPPFLAGS) $(R5_CXXFLAGS) -std=c++20 \
++		-DLIBO_INTERNAL_ONLY -DOXSDK_ODS_RANGE -DOXSDK_ODS_STYLE -DOXSDK_ODS_UNDO -c $< -o $@
++
++# v4's list, made the way v4's rule makes it (not copied from build/ods/editor-v4, whose rule lists this Makefile
++# and would then be remade); the profile builder checks it equals v4's.
++$(ODS_EDITOR_V5_BUILD)/exports.txt: \
++		$(ODS_EDITOR_V3_CORE)/workdir/CustomTarget/desktop/soffice_bin-emscripten-exports/exports Makefile \
++		| $(ODS_EDITOR_V5_BUILD)
++	grep -v -e '^__ZTI' -e '^_main$$' $< > $@
++	printf '%s\n' __ZTIN3com3sun4star3ucb31InteractiveAugmentedIOExceptionE \
++		_oxsdk_abi_version _oxsdk_capabilities _oxsdk_engine_start \
++		_oxsdk_document_open _oxsdk_document_paint _oxsdk_document_close \
++		_oxsdk_document_search _oxsdk_document_set_part _oxsdk_document_current_part \
++		_oxsdk_document_part_name _oxsdk_document_part_text _oxsdk_document_part_info \
++		_oxsdk_request_cancel _oxsdk_buffer_alloc _oxsdk_buffer_free \
++		_oxsdk_document_save _oxsdk_document_cell \
++		_oxsdk_document_undo _oxsdk_document_redo >> $@
++
++$(ODS_EDITOR_V5_BUILD)/probe.js: $(ODS_EDITOR_V5_OBJECTS) \
++		$(ODS_EDITOR_V5_BUILD)/calc_cell_bridge.o $(ODS_EDITOR_V5_BUILD)/exports.txt
++	@test ! -e $(ODS_EDITOR_V5_DIST)/sdk-manifest.json || \
++		{ echo "ods-editor-v5 is frozen; use a successor profile"; exit 1; }
++	$(CXX) $(ODS_EDITOR_V5_OBJECTS) $(ODS_EDITOR_V5_BUILD)/calc_cell_bridge.o \
++		-L$(ODS_EDITOR_V3_CORE)/instdir/program \
++		$$(cat $(ODS_EDITOR_V3_CORE)/instdir/program/soffice.js.linkdeps) \
++		-pthread -fwasm-exceptions -sSUPPORT_LONGJMP=wasm --no-entry -Oz \
++		-sMODULARIZE -sEXPORT_NAME=createProbeModule \
++		-sTOTAL_MEMORY=1GB -sPTHREAD_POOL_SIZE=7 -sPTHREAD_POOL_SIZE_STRICT=0 \
++		-sSTACK_SIZE=131072 -sDEFAULT_PTHREAD_STACK_SIZE=1048576 \
++		-sFORCE_FILESYSTEM=1 -sWASM_BIGINT=1 -sERROR_ON_UNDEFINED_SYMBOLS=1 -sFETCH=1 \
++		-sASSERTIONS=0 -sEXIT_RUNTIME=0 -sEXPORTED_RUNTIME_METHODS=ccall,FS,HEAPU8 \
++		-sEXPORTED_FUNCTIONS=@$(ODS_EDITOR_V5_BUILD)/exports.txt \
++		-Wl,--wrap=_Z18initJsUnoScriptingv \
++		--pre-js $(LOSRC)/static/emscripten/environment.js \
++		--pre-js $(ODS_EDITOR_V3_CORE)/workdir/CustomTarget/static/emscripten_fs_image/soffice.data.js.link \
++		-o $@
++
++$(ODS_EDITOR_V5_BUILD)/sdk-worker.js: dist/profiles/ods-editor-v4/sdk-worker.js \
++		tests/ods-v5-worker-delta.json tools/derive_ms_formats_worker.py | $(ODS_EDITOR_V5_BUILD)
++	python3 tools/derive_ms_formats_worker.py --profile calc --out $@
++
++$(ODS_EDITOR_V5_BUILD)/profile/sdk-manifest.json: $(ODS_EDITOR_V5_BUILD)/probe.js \
++		$(ODS_EDITOR_V5_BUILD)/sdk-worker.js $(ODS_EDITOR_V5_BUILD)/exports.txt tools/build_ms_formats_profile.py
++	python3 tools/build_ms_formats_profile.py --profile calc --development \
++		--loader $(ODS_EDITOR_V5_BUILD)/probe.js --wasm $(ODS_EDITOR_V5_BUILD)/probe.wasm \
++		--worker $(ODS_EDITOR_V5_BUILD)/sdk-worker.js --exports $(ODS_EDITOR_V5_BUILD)/exports.txt \
++		--base-exports $(ODS_EDITOR_V4_BUILD)/exports.txt --output $(ODS_EDITOR_V5_BUILD)/profile
++
++$(ODS_EDITOR_V5_BUILD):
++	mkdir -p $@
++
++# Focused tests only; no objects, no link.  SPEC-P-ms-formats 6.1 F1, F3.
++.PHONY: test-ms-formats-static
++test-ms-formats-static:
++	mkdir -p build/ms-formats-static
++	g++ -std=c++17 -Wall -Wextra -I src tests/document_format_test.cpp -o build/ms-formats-static/document-format-test
++	build/ms-formats-static/document-format-test
++	python3 -I tests/document_format_mutations.py
++	node tests/ms_formats_worker_test.cjs
+diff --git a/wasm_sdk_probe/src/document_format.hpp b/wasm_sdk_probe/src/document_format.hpp
+new file mode 100644
+index 000000000..92bc68f7d
+--- /dev/null
++++ b/wasm_sdk_probe/src/document_format.hpp
+@@ -0,0 +1,105 @@
++#ifndef WASM_SDK_PROBE_DOCUMENT_FORMAT_HPP
++#define WASM_SDK_PROBE_DOCUMENT_FORMAT_HPP
++
++// specs/SPEC-P-ms-formats.md 5.1 E1: which names `oxsdk_document_open` accepts and which formats
++// `oxsdk_document_save` writes, per profile, as one closed table.  Only the OXSDK_MS_FORMATS builds
++// (Writer e2-editor-v33, Calc ods-editor-v5) include it; the older builds keep src/ods_viewer.hpp's
++// acceptedSuffix and the literal checks in src/sdk_api.cpp, byte for byte.
++//
++// Held by tests/document_format_test.cpp (native, no core); its red cases, one per table entry and
++// one per rule, are generated from this file by tests/document_format_mutations.py.
++//
++// finding 013's prescription: the name that passes validation is the name the input file gets in
++// MEMFS, and the format the open reply reports, so validation, path and capability say one thing.
++
++#include <cctype>
++#include <cstddef>
++#include <string>
++
++namespace probe::docformat {
++
++enum class Profile { Writer, Calc };
++
++struct Entry {
++  const char *suffix; // accepted at open, lower-case, with the dot
++  const char *format; // reported by the open reply and accepted by save
++  bool savable;       // the save boundary writes this format
++};
++
++// The table.  Calc keeps `.odt` at open because ods-editor-v4 accepts it (ods_viewer.hpp); it was
++// never savable there, and is not here.
++inline constexpr Entry kWriter[] = {
++    {".odt", "odt", true},
++    {".docx", "docx", true},
++};
++inline constexpr Entry kCalc[] = {
++    {".odt", "odt", false},
++    {".ods", "ods", true},
++    {".xlsx", "xlsx", true},
++};
++
++// The profile this build is: the Calc editor's rules define OXSDK_ODS_EDITOR, the Writer editor's do not.
++#ifdef OXSDK_ODS_EDITOR
++inline constexpr Profile kThisBuild = Profile::Calc;
++#else
++inline constexpr Profile kThisBuild = Profile::Writer;
++#endif
++
++template <std::size_t N>
++constexpr std::size_t countOf(const Entry (&)[N]) { return N; }
++
++inline const Entry *table(Profile profile, std::size_t &count) {
++  if (profile == Profile::Calc) {
++    count = countOf(kCalc);
++    return kCalc;
++  }
++  count = countOf(kWriter);
++  return kWriter;
++}
++
++inline std::string lower(std::string text) {
++  for (char &c : text)
++    c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
++  return text;
++}
++
++// The table entry a name is accepted under, or nullptr.  Case does not matter (`REPORT.DOCX` is the
++// same file); a name must have at least one character before the suffix.
++inline const Entry *acceptedEntry(Profile profile, const std::string &name) {
++  std::size_t count = 0;
++  const Entry *entries = table(profile, count);
++  const std::string lowered = lower(name);
++  for (std::size_t i = 0; i < count; ++i) {
++    const std::string suffix = entries[i].suffix;
++    if (lowered.size() > suffix.size() &&
++        lowered.compare(lowered.size() - suffix.size(), suffix.size(), suffix) == 0)
++      return &entries[i];
++  }
++  return nullptr;
++}
++
++// The suffix a name is accepted under ("" for a refusal), as ods_viewer.hpp's acceptedSuffix.
++inline std::string acceptedSuffix(Profile profile, const std::string &name) {
++  const Entry *entry = acceptedEntry(profile, name);
++  return entry ? entry->suffix : "";
++}
++
++// The format the open reply reports for an accepted name ("" for a refusal).
++inline std::string openFormat(Profile profile, const std::string &name) {
++  const Entry *entry = acceptedEntry(profile, name);
++  return entry ? entry->format : "";
++}
++
++// Whether the save boundary writes `format` (compared as written: the worker sends lower case).
++inline bool savable(Profile profile, const std::string &format) {
++  std::size_t count = 0;
++  const Entry *entries = table(profile, count);
++  for (std::size_t i = 0; i < count; ++i)
++    if (entries[i].savable && format == entries[i].format)
++      return true;
++  return false;
++}
++
++} // namespace probe::docformat
++
++#endif
+diff --git a/wasm_sdk_probe/src/probe_engine.cpp b/wasm_sdk_probe/src/probe_engine.cpp
+index abe399958..15cf494fc 100644
+--- a/wasm_sdk_probe/src/probe_engine.cpp
++++ b/wasm_sdk_probe/src/probe_engine.cpp
+@@ -79,6 +79,9 @@
+ #error "OXSDK_ODS_VIEWER_V2 is added to the viewer's shape, never used alone"
+ #endif
+ #include "sdk_api.h"
++#ifdef OXSDK_MS_FORMATS
++#include "document_format.hpp"
++#endif
+ #ifdef OXSDK_ODS_EDITOR
+ #include "calc_cell_bridge.h"
+ #if !defined(OXSDK_ODS_VIEWER_V2)
+@@ -3650,7 +3653,12 @@ std::uint32_t allocateDocumentHandle() {
+ // under, so documentLoad sees `.ods` for a spreadsheet.  sdk_api.cpp refuses
+ // every other name before the queue; `.odt` is what a non-SDK open gets.
+ std::string inputSuffixFor(const Command &command) {
++#ifdef OXSDK_MS_FORMATS
++  const std::string suffix =
++      probe::docformat::acceptedSuffix(probe::docformat::kThisBuild, command.name);
++#else
+   const std::string suffix = probe::odsviewer::acceptedSuffix(command.name);
++#endif
+   return suffix.empty() ? ".odt" : suffix;
+ }
+ #endif
+@@ -3660,6 +3668,14 @@ bool writeInputFile(const Command &command, std::string &fileUrl) {
+   const std::string path = "/tmp/oxsdk-input-" +
+                            std::to_string(command.requestId) +
+                            inputSuffixFor(command);
++#elif defined(OXSDK_MS_FORMATS)
++  // SPEC-P-ms-formats 5.1 E2: the Writer editor's input file carries the suffix
++  // the name was accepted under, as the viewer's has since review M1.
++  const std::string accepted =
++      probe::docformat::acceptedSuffix(probe::docformat::kThisBuild, command.name);
++  const std::string path = "/tmp/oxsdk-input-" +
++                           std::to_string(command.requestId) +
++                           (accepted.empty() ? ".odt" : accepted);
+ #else
+   const std::string path =
+       "/tmp/oxsdk-input-" + std::to_string(command.requestId) + ".odt";
+@@ -3813,6 +3829,13 @@ void handleOpen(const Command &command) {
+        << probe::odsviewer::documentTypeName(
+               gState.document->pClass->getDocumentType(gState.document))
+        << "\",\"inputSuffix\":\"" << inputSuffixFor(command) << "\"";
++#endif
++#ifdef OXSDK_MS_FORMATS
++  // E5: the format the session saves this document in, from the same table
++  // the name was accepted by ("" for an open that did not come through the SDK).
++  json << ",\"format\":\""
++       << probe::docformat::openFormat(probe::docformat::kThisBuild, command.name)
++       << "\"";
+ #endif
+   if (command.sdk) {
+     json << ",\"schemaVersion\":" << ProtocolSchemaVersion
+diff --git a/wasm_sdk_probe/src/sdk_api.cpp b/wasm_sdk_probe/src/sdk_api.cpp
+index f3662cfcc..9e0cf8f83 100644
+--- a/wasm_sdk_probe/src/sdk_api.cpp
++++ b/wasm_sdk_probe/src/sdk_api.cpp
+@@ -3,6 +3,9 @@
+ #ifdef OXSDK_ODS_VIEWER
+ #include "ods_viewer.hpp"
+ #endif
++#ifdef OXSDK_MS_FORMATS
++#include "document_format.hpp"
++#endif
+ #ifdef OXSDK_ODS_VIEWER_V2
+ #if !defined(OXSDK_ODS_VIEWER)
+ #error "OXSDK_ODS_VIEWER_V2 is added to the viewer's shape, never used alone"
+@@ -80,6 +83,9 @@ extern "C" EMSCRIPTEN_KEEPALIVE std::uint32_t oxsdk_capabilities(void) {
+          // startOdsUndoWalk) and the two exports; redo rides on this bit.
+          | OXSDK_CAPABILITY_UNDO
+ #endif
++#ifdef OXSDK_MS_FORMATS
++         | OXSDK_CAPABILITY_OPEN_XLSX | OXSDK_CAPABILITY_SAVE_XLSX
++#endif
+ #endif
+ #if HAVE_FEATURE_DBCONNECTIVITY
+          | OXSDK_CAPABILITY_FORM_CONTROLS
+@@ -102,7 +108,11 @@ extern "C" EMSCRIPTEN_KEEPALIVE std::uint32_t oxsdk_capabilities(void) {
+          OXSDK_CAPABILITY_CANCEL_QUEUED | OXSDK_CAPABILITY_SEARCH |
+          OXSDK_CAPABILITY_SELECTION_TEXT |
+          OXSDK_CAPABILITY_REPLACE_SELECTION | OXSDK_CAPABILITY_UNDO |
+-         OXSDK_CAPABILITY_COMMENTS | OXSDK_CAPABILITY_TRACKED_CHANGES;
++         OXSDK_CAPABILITY_COMMENTS | OXSDK_CAPABILITY_TRACKED_CHANGES
++#ifdef OXSDK_MS_FORMATS
++         | OXSDK_CAPABILITY_OPEN_DOCX | OXSDK_CAPABILITY_SAVE_DOCX
++#endif
++         ;
+ #endif
+ }
+ 
+@@ -125,7 +135,11 @@ extern "C" EMSCRIPTEN_KEEPALIVE int32_t oxsdk_document_open(
+ 
+   return safeStatus([&] {
+     std::string name(nameUtf8, nameLength);
+-#ifdef OXSDK_ODS_VIEWER
++#ifdef OXSDK_MS_FORMATS
++    // SPEC-P-ms-formats 5.1 E1 (finding 013's narrow surface): the table, per build.
++    if (probe::docformat::acceptedSuffix(probe::docformat::kThisBuild, name).empty())
++      return probe::SubmitStatus::InvalidArgument;
++#elif defined(OXSDK_ODS_VIEWER)
+     // W7a (finding 013's allowlist): `.ods` beside `.odt`, either case.
+     // Content detection still reads the zip's own `mimetype`.
+     if (probe::odsviewer::acceptedSuffix(name).empty())
+@@ -193,7 +207,9 @@ extern "C" EMSCRIPTEN_KEEPALIVE int32_t oxsdk_document_save(
+     return OXSDK_STATUS_INVALID_ARGUMENT;
+   return safeStatus([&] {
+     const std::string format(formatUtf8, formatLength);
+-#ifdef OXSDK_ODS_EDITOR
++#ifdef OXSDK_MS_FORMATS
++    if (!probe::docformat::savable(probe::docformat::kThisBuild, format))
++#elif defined(OXSDK_ODS_EDITOR)
+     if (format != "ods")
+ #else
+     if (format != "odt")
+diff --git a/wasm_sdk_probe/src/sdk_api.h b/wasm_sdk_probe/src/sdk_api.h
+index 0a3772a98..4cacc519e 100644
+--- a/wasm_sdk_probe/src/sdk_api.h
++++ b/wasm_sdk_probe/src/sdk_api.h
+@@ -63,6 +63,14 @@ typedef enum oxsdk_capability {
+   , OXSDK_CAPABILITY_CELL_RANGE_STYLING = 1u << 19
+ #endif
+ #endif
++#ifdef OXSDK_MS_FORMATS
++  /* SPEC-P-ms-formats 5.1 E4: DOCX in the Writer editor, XLSX in the Calc
++     editor (src/document_format.hpp's table); each build returns its pair. */
++  , OXSDK_CAPABILITY_OPEN_DOCX = 1u << 20,
++  OXSDK_CAPABILITY_SAVE_DOCX = 1u << 21,
++  OXSDK_CAPABILITY_OPEN_XLSX = 1u << 22,
++  OXSDK_CAPABILITY_SAVE_XLSX = 1u << 23
++#endif
+ } oxsdk_capability;
+ 
+ uint32_t oxsdk_abi_version(void);
+diff --git a/wasm_sdk_probe/tests/ods-v5-worker-delta.json b/wasm_sdk_probe/tests/ods-v5-worker-delta.json
+new file mode 100644
+index 000000000..6d0c783e4
+--- /dev/null
++++ b/wasm_sdk_probe/tests/ods-v5-worker-delta.json
+@@ -0,0 +1,21 @@
++{
++ "schema": 1,
++ "note": "SPEC-P-ms-formats 5.1 E4, E5: the closed list of replacements taking the frozen ods-editor-v4 worker (dist/profiles/ods-editor-v4/sdk-worker.js) to the ods-editor-v5 worker, applied in order, each occurring exactly once (tools/derive_ms_formats_worker.py).",
++ "hunks": [
++  {
++   "item": "1 header comment",
++   "old": "// SPEC-P-calc-undo 4.2: the ods-editor-v4 worker.  Derived from the frozen\n",
++   "new": "// SPEC-P-ms-formats 5.1: the ods-editor-v5 worker.  The v4 worker plus a closed list\n// (tests/ods-v5-worker-delta.json): the open reply's format, the xlsx gates, this comment.\n//\n// SPEC-P-calc-undo 4.2: the ods-editor-v4 worker.  Derived from the frozen\n"
++  },
++  {
++   "item": "2 the open reply carries the engine's format (E5)",
++   "old": "    ...(typeof event.inputSuffix === \"string\" ? { inputSuffix: event.inputSuffix } : {}),\n",
++   "new": "    ...(typeof event.inputSuffix === \"string\" ? { inputSuffix: event.inputSuffix } : {}),\n    // SPEC-P-ms-formats E5: named, and only when the engine sent it.\n    ...(typeof event.format === \"string\" ? { format: event.format } : {}),\n"
++  },
++  {
++   "item": "3 xlsx needs its own capability to open and to save (E4)",
++   "old": "  const requiredCapability = request.operation === \"save\" && payload.format === \"ods\"\n    ? \"save-ods\" : OPERATION_CAPABILITIES.get(request.operation);\n",
++   "new": "  // SPEC-P-ms-formats E4: a .xlsx name opens, and xlsx saves, only where the\n  // manifest says so; everything else keeps its row.\n  const requiredCapability = request.operation === \"save\" && payload.format === \"ods\"\n    ? \"save-ods\"\n    : request.operation === \"open\" && /\\.xlsx$/i.test(String(payload.name || \"\")) ? \"open-xlsx\"\n    : request.operation === \"save\" && payload.format === \"xlsx\" ? \"save-xlsx\"\n    : OPERATION_CAPABILITIES.get(request.operation);\n"
++  }
++ ]
++}
+diff --git a/wasm_sdk_probe/tests/v33-worker-delta.json b/wasm_sdk_probe/tests/v33-worker-delta.json
+new file mode 100644
+index 000000000..bdf75302a
+--- /dev/null
++++ b/wasm_sdk_probe/tests/v33-worker-delta.json
+@@ -0,0 +1,21 @@
++{
++ "schema": 1,
++ "note": "SPEC-P-ms-formats 5.1 E4, E5: the closed list of replacements taking the frozen e2-editor-v32 worker (dist/profiles/e2-editor-v32/sdk-worker.js) to the e2-editor-v33 worker, applied in order, each occurring exactly once (tools/derive_ms_formats_worker.py).",
++ "hunks": [
++  {
++   "item": "1 header comment",
++   "old": "// SPEC-P-demo-batch-4: the e2-editor-v32 worker.  The v31 worker plus a closed list\n",
++   "new": "// SPEC-P-ms-formats 5.1: the e2-editor-v33 worker.  The v32 worker plus a closed list\n// (tests/v33-worker-delta.json): the open reply's format, the docx gates, this comment.\n//\n// SPEC-P-demo-batch-4: the e2-editor-v32 worker.  The v31 worker plus a closed list\n"
++  },
++  {
++   "item": "2 the open reply carries the engine's format (E5)",
++   "old": "    tileMode: event.tileMode,\n    viewReady: true,\n  });\n  postEvent(\"view-ready\", {",
++   "new": "    tileMode: event.tileMode,\n    viewReady: true,\n    // SPEC-P-ms-formats E5: named, and only when the engine sent it.\n    ...(typeof event.format === \"string\" ? { format: event.format } : {}),\n  });\n  postEvent(\"view-ready\", {"
++  },
++  {
++   "item": "3 docx needs its own capability to open and to save (E4)",
++   "old": "  const payload = request.payload || {};\n  const requiredCapability = OPERATION_CAPABILITIES.get(request.operation);\n",
++   "new": "  const payload = request.payload || {};\n  // SPEC-P-ms-formats E4: a .docx name opens, and docx saves, only where the\n  // manifest says so; everything else keeps its row.\n  const requiredCapability =\n    request.operation === \"open\" && /\\.docx$/i.test(String(payload.name || \"\")) ? \"open-docx\"\n    : request.operation === \"save\" && payload.format === \"docx\" ? \"save-docx\"\n    : OPERATION_CAPABILITIES.get(request.operation);\n"
++  }
++ ]
++}
+diff --git a/wasm_sdk_probe/tools/build_ms_formats_profile.py b/wasm_sdk_probe/tools/build_ms_formats_profile.py
+new file mode 100644
+index 000000000..6a1767153
+--- /dev/null
++++ b/wasm_sdk_probe/tools/build_ms_formats_profile.py
+@@ -0,0 +1,78 @@
++#!/usr/bin/env python3
++"""Assemble the Microsoft-formats successors (specs/SPEC-P-ms-formats.md 5.1) without overwriting a frozen profile.  Derived from
++build_calc_undo_profile.py.
++
++Closed list of differences from the frozen base manifest:
++
++  writer  base dist/profiles/e2-editor-v32  -> e2-editor-v33: capabilities + open-docx, save-docx; bits 20, 21
++  calc    base dist/profiles/ods-editor-v4  -> ods-editor-v5: capabilities + open-xlsx, save-xlsx; bits 22, 23
++
++plus `profile`, `sdkVersion` and a `documentFormatContract` naming the table (src/document_format.hpp).  The export list must equal
++the base's (no new export), and the base must not already claim either capability.  --development assembles under build/ only;
++without it the output must not already hold a manifest (a frozen profile is never overwritten).
++  build_ms_formats_profile.py --profile writer|calc --loader F --wasm F --worker F --exports F --base-exports F --output DIR [--development]
++"""
++import argparse
++import hashlib
++import json
++from pathlib import Path
++import shutil
++
++HERE = Path(__file__).resolve().parents[1]
++PROFILES = {
++    "writer": {"base": HERE / "dist/profiles/e2-editor-v32", "profile": "e2-editor-v33", "ms": "docx",
++               "bits": (1 << 20) | (1 << 21),  # src/sdk_api.h OXSDK_CAPABILITY_OPEN_DOCX, SAVE_DOCX
++               "open": [".odt", ".docx"], "save": ["odt", "docx"]},
++    "calc": {"base": HERE / "dist/profiles/ods-editor-v4", "profile": "ods-editor-v5", "ms": "xlsx",
++             "bits": (1 << 22) | (1 << 23),  # OXSDK_CAPABILITY_OPEN_XLSX, SAVE_XLSX
++             "open": [".odt", ".ods", ".xlsx"], "save": ["ods", "xlsx"]},
++}
++
++
++def main():
++    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
++    parser.add_argument("--profile", choices=sorted(PROFILES), required=True)
++    for name in ("loader", "wasm", "worker", "exports", "base-exports", "output"):
++        parser.add_argument("--" + name, type=Path, required=True)
++    parser.add_argument("--development", action="store_true")
++    args = parser.parse_args()
++    spec = PROFILES[args.profile]
++    base = spec["base"]
++    output = args.output.resolve()
++    if args.development and not output.is_relative_to((HERE / "build").resolve()):
++        raise SystemExit("development assembly must stay under build; frozen profiles are immutable")
++    if (output / "sdk-manifest.json").exists() and not args.development:
++        raise SystemExit("profile already exists; a frozen profile is not overwritten")
++    if output == base.resolve():
++        raise SystemExit("the predecessor profile must never be overwritten")
++    exports, base_exports = set(args.exports.read_text().split()), set(args.base_exports.read_text().split())
++    if exports != base_exports:
++        raise SystemExit(f"the export list moved: added {sorted(exports - base_exports)}, removed {sorted(base_exports - exports)}")
++    manifest = json.loads((base / "sdk-manifest.json").read_text())
++    ms = spec["ms"]
++    if {f"open-{ms}", f"save-{ms}"} & set(manifest["capabilities"]) or manifest["expectedCapabilityBits"] & spec["bits"]:
++        raise SystemExit(f"the base already claims {ms}")
++    output.mkdir(parents=True, exist_ok=True)
++    for name, source in (("probe.js", args.loader), ("probe.wasm", args.wasm), ("sdk-worker.js", args.worker)):
++        shutil.copyfile(source, output / name)
++    for key in ("soffice.data", "soffice.data.js.metadata"):
++        relative = manifest["artifactFiles"][key]
++        if relative.startswith("./"):  # Calc carries its image beside the engine; Writer's lives in ../resources
++            shutil.copyfile(base / relative[2:], output / relative[2:])
++    manifest["profile"] = spec["profile"]
++    manifest["sdkVersion"] = "0.6.0-r6-worker+" + spec["profile"]
++    manifest["capabilities"] += [f"open-{ms}", f"save-{ms}"]
++    manifest["expectedCapabilityBits"] |= spec["bits"]
++    manifest["documentFormatContract"] = {
++        "version": 1, "table": "src/document_format.hpp", "open": spec["open"], "save": spec["save"],
++        "openReply": "format: the accepted suffix's format", "refused": "INVALID_ARGUMENT before the queue",
++    }
++    (output / "sdk-manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
++    print(json.dumps({"profile": spec["profile"], "development": args.development,
++                      "capabilityBits": manifest["expectedCapabilityBits"],
++                      "sha256": {name: hashlib.sha256((output / name).read_bytes()).hexdigest()
++                                 for name in ("probe.js", "probe.wasm", "sdk-worker.js", "sdk-manifest.json")}}, indent=2))
++
++
++if __name__ == "__main__":
++    main()
+diff --git a/wasm_sdk_probe/tools/derive_ms_formats_worker.py b/wasm_sdk_probe/tools/derive_ms_formats_worker.py
+new file mode 100644
+index 000000000..41e3e3ae2
+--- /dev/null
++++ b/wasm_sdk_probe/tools/derive_ms_formats_worker.py
+@@ -0,0 +1,51 @@
++#!/usr/bin/env python3
++"""The Microsoft-formats workers (specs/SPEC-P-ms-formats.md 5.1 E4, E5): a frozen worker plus a closed list of replacements, each
++occurring exactly once, written to --out.
++
++  writer  dist/profiles/e2-editor-v32/sdk-worker.js + tests/v33-worker-delta.json   -> the e2-editor-v33 worker
++  calc    dist/profiles/ods-editor-v4/sdk-worker.js + tests/ods-v5-worker-delta.json -> the ods-editor-v5 worker
++
++Derived at build time instead of living in sdk/, as derive_ods_v4_worker.py: the Writer shell bundle scans sdk/*.js, and a new file
++there turns generation 88's bundle check red.  tests/ms_formats_worker_test.cjs exercises the same derivation.
++  derive_ms_formats_worker.py --profile writer|calc --out FILE
++"""
++import argparse
++import hashlib
++import json
++from pathlib import Path
++
++SDK = Path(__file__).resolve().parents[1]
++BASES = {
++    "writer": (SDK / "dist/profiles/e2-editor-v32/sdk-worker.js",
++               "c394302c589baff3b40ff67a7579e07cf53fc7447dd3f04b26ff9c827280ff36", SDK / "tests/v33-worker-delta.json"),
++    "calc": (SDK / "dist/profiles/ods-editor-v4/sdk-worker.js",
++             "4a06fbe45c458b4c9aa60ab7bcd624894dace729a2b83f009f3e9008ccc8919c", SDK / "tests/ods-v5-worker-delta.json"),
++}
++
++
++def derive(profile):
++    base, sha, delta = BASES[profile]
++    data = base.read_bytes()
++    if hashlib.sha256(data).hexdigest() != sha:
++        raise SystemExit(f"the frozen {profile} base worker moved: {base}")
++    text = data.decode("utf-8")
++    for hunk in json.loads(delta.read_text())["hunks"]:
++        if text.count(hunk["old"]) != 1:
++            raise SystemExit(f"hunk {hunk['item']!r} occurs {text.count(hunk['old'])} times")
++        text = text.replace(hunk["old"], hunk["new"])
++    return text
++
++
++def main():
++    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
++    parser.add_argument("--profile", choices=sorted(BASES), required=True)
++    parser.add_argument("--out", type=Path, required=True)
++    args = parser.parse_args()
++    text = derive(args.profile)
++    args.out.parent.mkdir(parents=True, exist_ok=True)
++    args.out.write_text(text, encoding="utf-8")
++    print(json.dumps({"profile": args.profile, "out": str(args.out), "sha256": hashlib.sha256(text.encode()).hexdigest()}))
++
++
++if __name__ == "__main__":
++    main()
+diff --git a/wasm_sdk_probe/tools/link_ms_formats_owner.sh b/wasm_sdk_probe/tools/link_ms_formats_owner.sh
+new file mode 100755
+index 000000000..0bf23a50b
+--- /dev/null
++++ b/wasm_sdk_probe/tools/link_ms_formats_owner.sh
+@@ -0,0 +1,49 @@
++#!/usr/bin/env bash
++# Owner-run product links (specs/SPEC-P-ms-formats.md 5.1): e2-editor-v33 (DOCX) then ods-editor-v5 (XLSX), development
++# profiles under build/ (freezing into dist/ is a later step, after the criteria hold).  Agents may syntax-check this
++# file, never execute it unless the owner asks.  About 3 minutes per link.
++set -euo pipefail
++cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.."
++
++writer_log=build/link-ms-formats-writer-01.log
++calc_log=build/link-ms-formats-calc-01.log
++for path in "$writer_log" "$calc_log" build/e2/editor-v33/probe.js build/ods/editor-v5/probe.js \
++            dist/profiles/e2-editor-v33 dist/profiles/ods-editor-v5; do
++  if [[ -e "$path" ]]; then
++    echo "Existing attempt found ($path). Preserve its files and report it; do not retry or clean." >&2
++    exit 1
++  fi
++done
++
++# Keep these builds independent of another session's make overrides.
++unset LOSRC LOBUILD EMSDK_ROOT EXTRA_DEFINES EXTRA_OBJECTS HOST_CXX MAKEFLAGS MFLAGS GNUMAKEFLAGS
++started=$(date +%s)
++make -j1 ALLOW_FROZEN_RELINK=1 build/e2/editor-v33/profile/sdk-manifest.json 2>&1 | tee "$writer_log"
++writer_done=$(date +%s)
++make -j1 build/ods/editor-v5/profile/sdk-manifest.json 2>&1 | tee "$calc_log"
++calc_done=$(date +%s)
++python3 - "$((writer_done - started))" "$((calc_done - writer_done))" <<'PY'
++import hashlib
++import json
++import sys
++from pathlib import Path
++
++sha = lambda path: hashlib.sha256(path.read_bytes()).hexdigest()
++expected = {"e2-editor-v33": (2047 | (1 << 20) | (1 << 21), "docx"), "ods-editor-v5": (1046835 | (1 << 22) | (1 << 23), "xlsx")}
++report = {}
++for profile, seconds in (("build/e2/editor-v33/profile", sys.argv[1]), ("build/ods/editor-v5/profile", sys.argv[2])):
++    root = Path(profile)
++    manifest = json.loads((root / "sdk-manifest.json").read_text())
++    bits, ms = expected[manifest["profile"]]
++    report[manifest["profile"]] = {
++        "seconds": int(seconds),
++        "capabilityBits": manifest["expectedCapabilityBits"],
++        "capabilityBitsAsSpecified": manifest["expectedCapabilityBits"] == bits,
++        "msCapabilities": [c for c in manifest["capabilities"] if c.endswith(ms)],
++        **{name.replace(".", "_") + "Sha256": sha(root / name) for name in ("probe.wasm", "probe.js", "sdk-worker.js", "sdk-manifest.json")},
++    }
++print(json.dumps(report, indent=2))
++ok = all(r["capabilityBitsAsSpecified"] and len(r["msCapabilities"]) == 2 for r in report.values())
++print("LINKS_AS_SPECIFIED" if ok else "LINKS_NOT_AS_SPECIFIED")
++sys.exit(0 if ok else 1)
++PY

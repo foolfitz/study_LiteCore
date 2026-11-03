@@ -5,7 +5,14 @@
 //     and the engine is never called);
 //   - the ODF open and save keep their rows;
 //   - the engine's `format` on `opened` reaches the open reply.
-// Causal control: the frozen base runs the same exercise and must fail it (it gates nothing and drops `format`).
+// Causal controls (Codex review 2026-11-03 item 3: the frozen bases fail at `format` first and never reach the gates):
+//   - each of the three additions is removed from the DERIVED worker in turn, and the exercise must fail at that addition's own
+//     assertion (open gate -> the ungranted open, save gate -> the ungranted save, forwarding -> the open reply);
+//   - the frozen base must fail too.
+// A format that is not a string (an array String() turns into "docx") must not pass the save gate either (review item 2).
+// Measured 2026-11-03 against the pre-fix gate (`payload.format === MS`): Writer let the array through (its fallback row,
+// save-odt, is granted); Calc did not (its fallback row is save-odt too, and no Calc manifest grants it), so on Calc this
+// assertion guards a regression that never existed and has no red case of its own.
 //   node tests/ms_formats_worker_test.cjs
 const assert = require('node:assert/strict'), fs = require('node:fs'), vm = require('node:vm'), path = require('node:path');
 const crypto = require('node:crypto'), os = require('node:os'), child = require('node:child_process');
@@ -62,8 +69,11 @@ function sandbox(src, manifestBase, capabilities, profile) {
              call: calls.slice(before).find((c) => c.name === `oxsdk_document_${operation}`) };
   };
   // The buffer is made in the sandbox's realm: the worker checks `instanceof ArrayBuffer`.
-  return { send, buffer: () => vm.runInContext('new ArrayBuffer(8)', context) };
+  return { send, buffer: () => vm.runInContext('new ArrayBuffer(8)', context),
+           array: (text) => vm.runInContext(`[${JSON.stringify(text)}]`, context) };
 }
+
+const vmArray = (box, text) => box.array(text);
 
 const opened = (format) => [
   { type: 'opened', documentHandle: 1, revision: 0, parts: 1, width: 100, height: 100, tileMode: 0, schemaVersion: 1, ...(format ? { format } : {}) },
@@ -91,6 +101,8 @@ async function exercise(name, src) {
   const refusedSave = await plain.send('save', { documentHandle: 1, format: p.ms });
   assert.equal(refusedSave.call, undefined, `${name}: an ungranted ${p.ms} save reached the engine`);
   assert.equal(refusedSave.reply.error.requiredCapability, `save-${p.ms}`);
+  const coerced = await plain.send('save', { documentHandle: 1, format: vmArray(plain, p.ms) });
+  assert.equal(coerced.call, undefined, `${name}: an ungranted ${p.ms} save reached the engine as an array`);
   // ODF keeps its rows, and a reply without `format` keeps its shape.
   const odfOpen = await plain.send('open', { buffer: plain.buffer(), name: `report.${p.odf}` }, opened(null));
   assert.ok(odfOpen.call, `${name}: the .${p.odf} open was refused`);
@@ -100,13 +112,34 @@ async function exercise(name, src) {
   assert.ok(odfSave.call, `${name}: the ${p.odf} save was refused`);
 }
 
+// The three additions of each delta, as text of the derived worker, and the assertion each one alone must make fail.
+const REMOVALS = {
+  writer: [
+    ['open gate', 'request.operation === "open" && /\\.docx$/i.test(String(payload.name || "")) ? "open-docx"\n    : ', /ungranted \.docx open reached/],
+    ['save gate', 'request.operation === "save" && String(payload.format || "") === "docx" ? "save-docx"\n    : ', /ungranted docx save reached/],
+    ['format forwarding', '    ...(typeof event.format === "string" ? { format: event.format } : {}),\n', /did not reach the open reply/],
+  ],
+  calc: [
+    ['open gate', 'request.operation === "open" && /\\.xlsx$/i.test(String(payload.name || "")) ? "open-xlsx"\n    : ', /ungranted \.xlsx open reached/],
+    // Without its gate an xlsx save falls back to v4's `save` row, `save-odt`, which no Calc manifest grants: the GRANTED save is
+    // the one refused.  Either save assertion is this gate's own (first run of this control, 2026-11-03).
+    ['save gate', 'request.operation === "save" && String(payload.format || "") === "xlsx" ? "save-xlsx"\n    : ', /xlsx save (did not reach|reached) the engine/],
+    ['format forwarding', '    ...(typeof event.format === "string" ? { format: event.format } : {}),\n', /did not reach the open reply/],
+  ],
+};
+
 (async () => {
   for (const name of Object.keys(PROFILES)) {
     const { base, source } = derive(name);
     await exercise(name, source);
+    for (const [label, text, expected] of REMOVALS[name]) {
+      assert.equal(source.split(text).length - 1, 1, `${name}: the ${label} is not where the control expects it`);
+      await assert.rejects(exercise(name, source.replace(text, '')), expected, `causal control: ${name} without its ${label} passed`);
+    }
     await assert.rejects(exercise(name, base), /reached the engine|did not reach the open reply/,
                          `causal control: the frozen ${name} base passed`);
   }
   console.log('ms-formats workers: deltas closed and derived by the tool; docx/xlsx open and save only with their capabilities; '
-              + 'ODF rows unchanged; format reaches the open reply; both frozen bases fail the same exercise');
+              + 'ODF rows unchanged; format reaches the open reply; an array format is refused; each addition removed alone fails at its own '
+              + 'assertion; both frozen bases fail the same exercise');
 })().catch((error) => { console.error(error); process.exit(1); });
