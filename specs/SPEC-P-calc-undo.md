@@ -58,3 +58,14 @@
 **預測**（執行前寫下）：`input-*` 各 1；`cell-bold`、`cell-italic` 各 3；`cell-underline` 1；`range-*` 各 1；`draft-then-bold` 4。
 
 **如果永遠沒做**：連結時把頁面的一次 Ctrl+Z 對到引擎的一次 undo，不知道單格粗體、斜體要按三次——使用者會按到兩次「沒反應」。
+
+## 3. 追加 1（2026-11-03，NU 的結果）
+
+`findings/evidence/calc-undo/native-01.md`。NU-0 成立（`zero` 0、`two-inputs` 2），NU-1 每一臂兩個觀測者一致，每一臂都和預測相同：
+
+- `cellInput` 各種輸入、`cell-underline`、所有 `range-*`：**1 次**。
+- `cell-bold`、`cell-italic`：**3 次**。每次 undo 依序還原複雜文字、亞洲、西文各一個屬性。中文格子上第一次按下去畫面沒有變化。〔已實測〕
+- `draft-then-bold`（有草稿時按 Ctrl+B）：**4 次**＝送出 1＋粗體 3。〔已實測〕
+- 同樣三個屬性用一次 `setPropertyValues` 寫（`range-bold`）只要 1 次，所以 op 2、3 照 op 7、8 的寫法就會是 1 次。〔推論：同一個呼叫，單格沒有另外量〕
+
+對連結設計的意思（設計本身之後再寫）：op 2、3 要改成一次 `setPropertyValues`，否則頁面一次 Ctrl+Z 對引擎一次 undo 會在單格粗體、斜體上按兩次沒反應。有草稿時按 Ctrl+B 會留下兩個使用者看得懂的步驟（送出、粗體），和「先 Enter 再 Ctrl+B」相同。
