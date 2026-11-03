@@ -7,7 +7,8 @@ select + Enter + q must save the same document as select + Delete + Enter + q, a
   E1  the shapes, Enter.    E2  the shapes, Shift+Enter, a text:line-break in the file.
   E3  a caret: one insert-paragraph-break, no delete-selection.
   E4  a selection: delete-selection then insert-paragraph-break, with q 10 ms behind Enter landing as it does when it waits.
-  E5  Ctrl+Z, at most twice, is back at the document (`L-enter-range-two-undos`).
+  E5  Ctrl+Z, at most twice, is back at the document (`L-enter-range-two-undos`).  "Back" reads an rsid-only automatic paragraph style as its
+      parent: undo does not take Writer's paragraph-rsid mark back (run-02).
   E6  every arm ends ready with no red toast.
   E7  copy on a caret and over a frame: a sentence, no code, the document unchanged.
 
@@ -45,6 +46,35 @@ PILL = "document.querySelector('#state-pill').dataset.state"
 RED = "(() => { const t = document.querySelector('#toast'); return t?.classList.contains('bad') || t?.classList.contains('error') ? t.textContent : null; })()"
 TOAST = "document.querySelector('#toast')?.textContent ?? ''"
 SENTENCE = "沒有可複製的文字"
+
+
+def canonical(raw):
+    """body(), with each automatic paragraph style that carries nothing but an rsid read as its parent.  Writer marks a paragraph it touched with a
+    new paragraph-rsid, an automatic style, and undo does not take the mark back (P5 run-02's E5 walk).  A style with any other property still differs."""
+    import xml.etree.ElementTree as ET
+    with zipfile.ZipFile(io.BytesIO(raw)) as archive:
+        root = ET.fromstring(archive.read("content.xml"))
+    style_ns, text_ns = "{urn:oasis:names:tc:opendocument:xmlns:style:1.0}", "{urn:oasis:names:tc:opendocument:xmlns:text:1.0}"
+    plain = {}
+    for holder in root.iter():
+        for style in [c for c in holder if c.tag == style_ns + "style" and c.get(style_ns + "family") == "paragraph"]:
+            props = [a for child in style for a in child.attrib]
+            if all(child.tag in (style_ns + "paragraph-properties", style_ns + "text-properties") for child in style) and all("rsid" in a for a in props):
+                plain[style.get(style_ns + "name")] = style.get(style_ns + "parent-style-name")
+                siblings = list(holder)
+                at = siblings.index(style)
+                if style.tail:  # keep the text after it where it was
+                    if at:
+                        siblings[at - 1].tail = (siblings[at - 1].tail or "") + style.tail
+                    else:
+                        holder.text = (holder.text or "") + style.tail
+                holder.remove(style)
+    for node in root.iter():
+        if node.get(text_ns + "style-name") in plain:
+            node.set(text_ns + "style-name", plain[node.get(text_ns + "style-name")])
+        for name in [a for a in node.attrib if a.endswith("rsid")]:
+            del node.attrib[name]
+    return ET.tostring(root, encoding="unicode")
 
 
 def actions(page, mark):
@@ -181,7 +211,7 @@ def e5(page, raws):
             page.quiet()
             now = page.save()
             walk.append(shape(now)[:3])
-            if body(now) == body(original):
+            if canonical(now) == canonical(original):
                 back = press
                 break
         page.check(f"E5/{name}/back-at-the-document", back is not None and back <= 2,
