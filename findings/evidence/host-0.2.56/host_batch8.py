@@ -150,8 +150,13 @@ def type_text(session, kind, text):
     if isinstance(session, ChromeSession):
         session.call('Input.insertText', {'text': text})
     else:
+        # One key at a time, 150 ms apart (2026-11-04).  One send-keys call delivers the whole string in ~20 ms, faster than the engine
+        # takes keys, and the input queue holds 8 (finding 130): ' H8SAVEAS ' came back 'H8SAVEA' 4 of 4 (h8-02, h8-ff-r1..r3).  At 150 ms
+        # a key both browsers keep all ten (diag-burst-01, H10).  This cell measures Save As, not a burst; 130 is the burst's finding.
         element = session.command('GET', '/element/active')['element-6066-11e4-a52e-4f735466cecf']
-        session.command('POST', f'/element/{element}/value', {'text': text})
+        for character in text:
+            session.command('POST', f'/element/{element}/value', {'text': character})
+            time.sleep(.15)
     time.sleep(.8)
 
 
