@@ -20,4 +20,5 @@ Back = every cell of the first sheet equals the zero-write save B in content and
 - `cell-bold` step by step (op 0 read of B2): after the write all three true; undo 1 clears `boldComplex`, undo 2 `boldAsian`, undo 3 `bold`. The bridge's op 2 and op 3 call `setPropertyValue` once per script (`src/calc_cell_bridge.cpp` 400-415), and each call is its own undo action. On a Chinese cell the first undo changes nothing visible and the second makes the Chinese text regular; the Latin script stays bold until the third.
 - `range-bold` writes the same three properties in one `setPropertyValues` and takes one undo. So op 2 and op 3 written the same way would take one; this is inferred from the range arms (the same call), not measured on a single cell.
 - `draft-then-bold` is the page's Ctrl+B with a draft pending (`CalcEditorSession.setFormat` commits first): 1 for the commit plus 3.
+
 Each arm's LOK user profile (`native-01/profile-*`, about 570 KB each, caches only) was deleted after the run and is not in git.
