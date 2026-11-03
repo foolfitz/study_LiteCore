@@ -32,6 +32,8 @@ kept as the witness.
   --part refused                     only the refused names (spec 11.3 R1's live red case)
   --red-recovery-refused             the good file for "then open a good file" carries a refused name too: W3 must read red (R1)
   --self-test REPORT                 R2: three mutations of a green report, each must turn W3 red; runs nothing
+  --live                             after the freeze (spec step 4): dist/ as it is -- the pages already name e2-editor-v33 and
+                                     ods-editor-v5, the profiles are dist/profiles' -- nothing taken from the source tree, nothing repointed
 """
 import argparse
 import gzip
@@ -93,6 +95,25 @@ def sha(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
+def live_mirror(root):
+    """dist/ as it is, every entry a symlink: the bytes a host package is made from."""
+    dist = PROJECT / "dist"
+    root.mkdir(parents=True, exist_ok=False)
+    for entry in dist.iterdir():
+        (root / entry.name).symlink_to(entry)
+    identity = {"baseline": False, "live": True, "served": {}}
+    for page, profile in (("e2-editor-app.js", "e2-editor-v33"), ("ods-editor-app.js", "ods-editor-v5")):
+        if f"./profiles/{profile}/sdk-worker.js" not in (dist / page).read_text(encoding="utf-8"):
+            raise SystemExit(f"dist/{page} does not name {profile}: not the frozen pages")
+    identity["writerWasmSha256"] = sha(dist / "profiles/e2-editor-v33/probe.wasm")
+    identity["calcWasmSha256"] = sha(dist / "profiles/ods-editor-v5/probe.wasm")
+    identity["writerWorkerSha256"] = sha(dist / "profiles/e2-editor-v33/sdk-worker.js")
+    identity["calcWorkerSha256"] = sha(dist / "profiles/ods-editor-v5/sdk-worker.js")
+    for path in sorted([*(dist / n for n in PAGE_FILES), *(p for d in SOURCES if (dist / d).is_dir() for p in (dist / d).rglob("*.js"))]):
+        identity["served"][str(path.relative_to(dist))] = sha(path)
+    return identity
+
+
 def mirror(root, baseline):
     """dist/ with the pages and their modules from the tree; the development profiles aliased."""
     dist = PROJECT / "dist"
@@ -118,6 +139,9 @@ def mirror(root, baseline):
         identity["calcWorkerSha256"] = sha(DEV["calc"] / "sdk-worker.js")
     for name in PAGE_FILES:
         text = (PROJECT / "web" / name).read_text(encoding="utf-8")
+        if baseline and ("e2-editor-v33" in text or "ods-editor-v5" in text):
+            raise SystemExit("the pages already name e2-editor-v33 / ods-editor-v5 (the cutover): --baseline would not be v32 / v4. "
+                             "The red case is run 02's (findings/evidence/ms-formats/w-02/baseline-*)")
         if not baseline and name == "e2-editor-app.js":
             for old, new in [('workerUrl: "./profiles/e2-editor-v32/sdk-worker.js"', 'workerUrl: "./profiles/e2-editor-v33/sdk-worker.js"'),
                              ('const PINNED_WASM_SHA256 = "54e500931de0ee28";', f'const PINNED_WASM_SHA256 = "{pin[:16]}";')]:
@@ -452,6 +476,7 @@ def main():
     parser.add_argument("--part", choices=["all", "refused"], default="all")
     parser.add_argument("--red-recovery-refused", action="store_true")
     parser.add_argument("--self-test", type=Path, help="R2 on a green report.json; runs nothing")
+    parser.add_argument("--live", action="store_true", help="dist/ as frozen; see the docstring")
     args = parser.parse_args()
     if args.self_test:
         return self_test(json.loads(args.self_test.read_text()))
@@ -473,7 +498,9 @@ def main():
         raise SystemExit("empty corpus")
     work = PROJECT / "build/ms-formats-w" / f"{out.parent.name}-{out.name}"
     root = work / "root"
-    identity = mirror(root, args.baseline)
+    if args.live and args.baseline:
+        parser.error("--live measures the frozen pages; the red case is --baseline on the source pages")
+    identity = live_mirror(root) if args.live else mirror(root, args.baseline)
     files_dir, downloads_root = work / "files", work / "downloads"
     files_dir.mkdir()
     downloads_root.mkdir()
