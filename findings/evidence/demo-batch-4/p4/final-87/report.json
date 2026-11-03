@@ -1,0 +1,2538 @@
+{
+ "argv": [
+  "tools/check_writer_toggle.py",
+  "--out",
+  "../findings/evidence/demo-batch-4/p4/final-87"
+ ],
+ "mutate": null,
+ "tool": "6f228694a9e3db18dc057e328056f933eaf2ba051610fb500acb0c8d79691031",
+ "profile": null,
+ "page": "f6fd0b75dbf26a09d1ea0dcc97543cab8ef703a7e9c6eef4841953cff92caa26",
+ "runs": [
+  {
+   "browser": "chrome",
+   "base": "http://127.0.0.1:39589/e2-editor.html",
+   "checks": [
+    {
+     "id": "setup/fixture-reads-as-written",
+     "pass": true,
+     "actual": [
+      {
+       "text": "ALPHA plain paragraph one",
+       "level": 0,
+       "list": false,
+       "kind": null,
+       "style": "Text_20_body"
+      },
+      {
+       "text": "BRAVO plain paragraph two",
+       "level": 0,
+       "list": false,
+       "kind": null,
+       "style": "Text_20_body"
+      },
+      {
+       "text": "CHARLIE heading one",
+       "level": 1,
+       "list": false,
+       "kind": null,
+       "style": "Heading_20_1"
+      },
+      {
+       "text": "DELTA heading two",
+       "level": 2,
+       "list": false,
+       "kind": null,
+       "style": "Heading_20_2"
+      },
+      {
+       "text": "ECHO heading three",
+       "level": 3,
+       "list": false,
+       "kind": null,
+       "style": "Heading_20_3"
+      },
+      {
+       "text": "FOXTROT heading four",
+       "level": 4,
+       "list": false,
+       "kind": null,
+       "style": "Heading_20_4"
+      },
+      {
+       "text": "GOLF bullet item",
+       "level": 0,
+       "list": true,
+       "kind": "ul",
+       "style": "P1"
+      }
+     ]
+    },
+    {
+     "id": "T1/bullet/on-off-on",
+     "pass": true,
+     "actual": [
+      "ul",
+      null,
+      "ul"
+     ]
+    },
+    {
+     "id": "T1/bullet/no-red-toast",
+     "pass": true,
+     "actual": null
+    },
+    {
+     "id": "T1/number/on-off-on",
+     "pass": true,
+     "actual": [
+      "ol",
+      null,
+      "ol"
+     ]
+    },
+    {
+     "id": "T1/number/no-red-toast",
+     "pass": true,
+     "actual": null
+    },
+    {
+     "id": "T2/h1/on",
+     "pass": true,
+     "actual": {
+      "text": "BRAVO plain paragraph two",
+      "level": 1,
+      "list": false,
+      "kind": null,
+      "style": "Heading_20_1"
+     }
+    },
+    {
+     "id": "T2/h1/same-level-goes-back-to-body",
+     "pass": true,
+     "actual": {
+      "text": "BRAVO plain paragraph two",
+      "level": 0,
+      "list": false,
+      "kind": null,
+      "style": "Text_20_body"
+     }
+    },
+    {
+     "id": "T2/h2/on",
+     "pass": true,
+     "actual": {
+      "text": "BRAVO plain paragraph two",
+      "level": 2,
+      "list": false,
+      "kind": null,
+      "style": "Heading_20_2"
+     }
+    },
+    {
+     "id": "T2/h2/same-level-goes-back-to-body",
+     "pass": true,
+     "actual": {
+      "text": "BRAVO plain paragraph two",
+      "level": 0,
+      "list": false,
+      "kind": null,
+      "style": "Text_20_body"
+     }
+    },
+    {
+     "id": "T2/h3/on",
+     "pass": true,
+     "actual": {
+      "text": "BRAVO plain paragraph two",
+      "level": 3,
+      "list": false,
+      "kind": null,
+      "style": "Heading_20_3"
+     }
+    },
+    {
+     "id": "T2/h3/same-level-goes-back-to-body",
+     "pass": true,
+     "actual": {
+      "text": "BRAVO plain paragraph two",
+      "level": 0,
+      "list": false,
+      "kind": null,
+      "style": "Text_20_body"
+     }
+    },
+    {
+     "id": "T2/h4/on",
+     "pass": true,
+     "actual": {
+      "text": "BRAVO plain paragraph two",
+      "level": 4,
+      "list": false,
+      "kind": null,
+      "style": "Heading_20_4"
+     }
+    },
+    {
+     "id": "T2/h4/same-level-goes-back-to-body",
+     "pass": true,
+     "actual": {
+      "text": "BRAVO plain paragraph two",
+      "level": 0,
+      "list": false,
+      "kind": null,
+      "style": "Text_20_body"
+     }
+    },
+    {
+     "id": "T2/level-to-level",
+     "pass": true,
+     "actual": {
+      "text": "BRAVO plain paragraph two",
+      "level": 4,
+      "list": false,
+      "kind": null,
+      "style": "Heading_20_4"
+     }
+    },
+    {
+     "id": "T2/body-item",
+     "pass": true,
+     "actual": {
+      "text": "BRAVO plain paragraph two",
+      "level": 0,
+      "list": false,
+      "kind": null,
+      "style": "Text_20_body"
+     }
+    },
+    {
+     "id": "T2/no-red-toast",
+     "pass": true,
+     "actual": null
+    },
+    {
+     "id": "T3/heading-comes-off",
+     "pass": true,
+     "actual": {
+      "text": "ECHO heading three",
+      "level": 0,
+      "list": false,
+      "kind": null,
+      "style": "Text_20_body"
+     }
+    },
+    {
+     "id": "T3/bullet-comes-off",
+     "pass": true,
+     "actual": {
+      "text": "GOLF bullet item",
+      "level": 0,
+      "list": false,
+      "kind": null,
+      "style": "Standard"
+     }
+    },
+    {
+     "id": "T3/number-comes-off",
+     "pass": true,
+     "actual": {
+      "text": "INDIA numbered item",
+      "level": 0,
+      "list": false,
+      "kind": null,
+      "style": "Standard"
+     }
+    },
+    {
+     "id": "T3/bullet-item-takes-numbering",
+     "pass": true,
+     "actual": {
+      "text": "GOLF bullet item",
+      "level": 0,
+      "list": true,
+      "kind": "ol",
+      "style": "P1"
+     }
+    },
+    {
+     "id": "T4/body-start/control",
+     "pass": true,
+     "actual": "qBRAVO plain paragraph two"
+    },
+    {
+     "id": "T4/body-start/bullet",
+     "pass": true,
+     "actual": "qBRAVO plain paragraph two"
+    },
+    {
+     "id": "T4/body-start/number",
+     "pass": true,
+     "actual": "qBRAVO plain paragraph two"
+    },
+    {
+     "id": "T4/body-start/h2",
+     "pass": true,
+     "actual": "qBRAVO plain paragraph two"
+    },
+    {
+     "id": "T4/body-start/body",
+     "pass": true,
+     "actual": "qBRAVO plain paragraph two"
+    },
+    {
+     "id": "T4/body-start/center",
+     "pass": true,
+     "actual": "qBRAVO plain paragraph two"
+    },
+    {
+     "id": "T4/body-middle/control",
+     "pass": true,
+     "actual": "BRqAVO plain paragraph two"
+    },
+    {
+     "id": "T4/body-middle/bullet",
+     "pass": true,
+     "actual": "BRqAVO plain paragraph two"
+    },
+    {
+     "id": "T4/body-middle/number",
+     "pass": true,
+     "actual": "BRqAVO plain paragraph two"
+    },
+    {
+     "id": "T4/body-middle/h2",
+     "pass": true,
+     "actual": "BRqAVO plain paragraph two"
+    },
+    {
+     "id": "T4/body-middle/body",
+     "pass": true,
+     "actual": "BRqAVO plain paragraph two"
+    },
+    {
+     "id": "T4/body-middle/center",
+     "pass": true,
+     "actual": "BRqAVO plain paragraph two"
+    },
+    {
+     "id": "T4/bullet-middle/control",
+     "pass": true,
+     "actual": "GqOLF bullet item"
+    },
+    {
+     "id": "T4/bullet-middle/bullet",
+     "pass": true,
+     "actual": "GqOLF bullet item"
+    },
+    {
+     "id": "T4/bullet-middle/number",
+     "pass": true,
+     "actual": "GqOLF bullet item"
+    },
+    {
+     "id": "T4/bullet-middle/h2",
+     "pass": true,
+     "actual": "GqOLF bullet item"
+    },
+    {
+     "id": "T4/bullet-middle/body",
+     "pass": true,
+     "actual": "GqOLF bullet item"
+    },
+    {
+     "id": "T4/bullet-middle/center",
+     "pass": true,
+     "actual": "GqOLF bullet item"
+    },
+    {
+     "id": "T4/heading-middle/control",
+     "pass": true,
+     "actual": "CHAqRLIE heading one"
+    },
+    {
+     "id": "T4/heading-middle/bullet",
+     "pass": true,
+     "actual": "CHAqRLIE heading one"
+    },
+    {
+     "id": "T4/heading-middle/h2",
+     "pass": true,
+     "actual": "CHAqRLIE heading one"
+    },
+    {
+     "id": "T4/heading-middle/body",
+     "pass": true,
+     "actual": "CHAqRLIE heading one"
+    },
+    {
+     "id": "T4/heading-middle/center",
+     "pass": true,
+     "actual": "CHAqRLIE heading one"
+    },
+    {
+     "id": "T4/number-start/control",
+     "pass": true,
+     "actual": "qINDIA numbered item"
+    },
+    {
+     "id": "T4/number-start/bullet",
+     "pass": true,
+     "actual": "qINDIA numbered item"
+    },
+    {
+     "id": "T4/number-start/number",
+     "pass": true,
+     "actual": "qINDIA numbered item"
+    },
+    {
+     "id": "T4/number-start/h2",
+     "pass": true,
+     "actual": "qINDIA numbered item"
+    },
+    {
+     "id": "T4/number-start/body",
+     "pass": true,
+     "actual": "qINDIA numbered item"
+    },
+    {
+     "id": "T4/number-start/center",
+     "pass": true,
+     "actual": "qINDIA numbered item"
+    },
+    {
+     "id": "T4/empty-middle/bullet",
+     "pass": true,
+     "actual": "q"
+    },
+    {
+     "id": "T4/empty-last/bullet",
+     "pass": true,
+     "actual": "q"
+    },
+    {
+     "id": "T4/empty-middle/number",
+     "pass": true,
+     "actual": "q"
+    },
+    {
+     "id": "T4/empty-last/number",
+     "pass": true,
+     "actual": "q"
+    },
+    {
+     "id": "T4/empty-middle/h2",
+     "pass": true,
+     "actual": "q"
+    },
+    {
+     "id": "T4/empty-last/h2",
+     "pass": true,
+     "actual": "q"
+    },
+    {
+     "id": "T4/empty-middle/body",
+     "pass": true,
+     "actual": "q"
+    },
+    {
+     "id": "T4/empty-last/body",
+     "pass": true,
+     "actual": "q"
+    },
+    {
+     "id": "T4/empty-middle/center",
+     "pass": true,
+     "actual": "q"
+    },
+    {
+     "id": "T4/empty-last/center",
+     "pass": true,
+     "actual": "q"
+    },
+    {
+     "id": "T4/wrapped-line/control",
+     "pass": true,
+     "actual": {
+      "caret": {
+       "x": 11216,
+       "y": 2614,
+       "width": 0,
+       "height": 276
+      },
+      "at": 84,
+      "length": 726
+     }
+    },
+    {
+     "id": "T4/wrapped-line/bullet",
+     "pass": true,
+     "actual": {
+      "caret": {
+       "x": 11216,
+       "y": 2614,
+       "width": 0,
+       "height": 276
+      },
+      "at": 84,
+      "want": 84
+     }
+    },
+    {
+     "id": "T4/wrapped-line/number",
+     "pass": true,
+     "actual": {
+      "caret": {
+       "x": 11216,
+       "y": 2614,
+       "width": 0,
+       "height": 276
+      },
+      "at": 84,
+      "want": 84
+     }
+    },
+    {
+     "id": "T4/wrapped-line/h2",
+     "pass": true,
+     "actual": {
+      "caret": {
+       "x": 11216,
+       "y": 2614,
+       "width": 0,
+       "height": 276
+      },
+      "at": 84,
+      "want": 84
+     }
+    },
+    {
+     "id": "T4/wrapped-line/body",
+     "pass": true,
+     "actual": {
+      "caret": {
+       "x": 11216,
+       "y": 2614,
+       "width": 0,
+       "height": 276
+      },
+      "at": 84,
+      "want": 84
+     }
+    },
+    {
+     "id": "T4/wrapped-line/center",
+     "pass": true,
+     "actual": {
+      "caret": {
+       "x": 11216,
+       "y": 2614,
+       "width": 0,
+       "height": 276
+      },
+      "at": 84,
+      "want": 84
+     }
+    },
+    {
+     "id": "T5/bullet-on/no-notice",
+     "pass": true,
+     "actual": {
+      "latency": "• 項目符號 19 ms",
+      "toast": "已開啟 t3-long.odt"
+     }
+    },
+    {
+     "id": "T5/bullet-off/no-notice",
+     "pass": true,
+     "actual": {
+      "latency": "• 項目符號 19 ms",
+      "toast": "已存出 8.3 KB"
+     }
+    },
+    {
+     "id": "T5/bullet/on-then-off",
+     "pass": true,
+     "actual": {
+      "on": {
+       "text": "",
+       "level": 0,
+       "list": true,
+       "kind": "ul",
+       "style": "P1"
+      },
+      "off": {
+       "text": "",
+       "level": 0,
+       "list": false,
+       "kind": null,
+       "style": "Standard"
+      }
+     }
+    },
+    {
+     "id": "T5/bullet/typing-lands",
+     "pass": true,
+     "actual": {
+      "text": "q",
+      "level": 0,
+      "list": false,
+      "kind": null,
+      "style": "P1"
+     }
+    },
+    {
+     "id": "T5/number-on/no-notice",
+     "pass": true,
+     "actual": {
+      "latency": "1. 編號 14 ms",
+      "toast": "已開啟 t3-long.odt"
+     }
+    },
+    {
+     "id": "T5/number-off/no-notice",
+     "pass": true,
+     "actual": {
+      "latency": "1. 編號 9 ms",
+      "toast": "已存出 8.2 KB"
+     }
+    },
+    {
+     "id": "T5/number/on-then-off",
+     "pass": true,
+     "actual": {
+      "on": {
+       "text": "",
+       "level": 0,
+       "list": true,
+       "kind": "ol",
+       "style": "P1"
+      },
+      "off": {
+       "text": "",
+       "level": 0,
+       "list": false,
+       "kind": null,
+       "style": "Standard"
+      }
+     }
+    },
+    {
+     "id": "T5/number/typing-lands",
+     "pass": true,
+     "actual": {
+      "text": "q",
+      "level": 0,
+      "list": false,
+      "kind": null,
+      "style": "P1"
+     }
+    },
+    {
+     "id": "T5/h2-on/no-notice",
+     "pass": true,
+     "actual": {
+      "latency": "標題 2 17 ms",
+      "toast": "已開啟 t3-long.odt"
+     }
+    },
+    {
+     "id": "T5/h2-off/no-notice",
+     "pass": true,
+     "actual": {
+      "latency": "標題 2 9 ms",
+      "toast": "已存出 7.3 KB"
+     }
+    },
+    {
+     "id": "T5/h2/on-then-off",
+     "pass": true,
+     "actual": {
+      "on": {
+       "text": "",
+       "level": 2,
+       "list": false,
+       "kind": null,
+       "style": "Heading_20_2"
+      },
+      "off": {
+       "text": "",
+       "level": 0,
+       "list": false,
+       "kind": null,
+       "style": "Text_20_body"
+      }
+     }
+    },
+    {
+     "id": "T5/h2/typing-lands",
+     "pass": true,
+     "actual": {
+      "text": "q",
+      "level": 0,
+      "list": false,
+      "kind": null,
+      "style": "P1"
+     }
+    },
+    {
+     "id": "T6/leading-selection/styles-the-paragraph",
+     "pass": true,
+     "actual": {
+      "text": "BRAVO plain paragraph two",
+      "level": 2,
+      "list": false,
+      "kind": null,
+      "style": "Heading_20_2"
+     }
+    },
+    {
+     "id": "T6/leading-selection/no-frame",
+     "pass": true,
+     "actual": 0
+    },
+    {
+     "id": "T6/range-from-inside/both-styled",
+     "pass": true,
+     "actual": [
+      {
+       "text": "ALPHA plain paragraph one",
+       "level": 3,
+       "list": false,
+       "kind": null,
+       "style": "Heading_20_3"
+      },
+      {
+       "text": "BRAVO plain paragraph two",
+       "level": 3,
+       "list": false,
+       "kind": null,
+       "style": "Heading_20_3"
+      }
+     ]
+    },
+    {
+     "id": "T6/range-from-inside/second-press-both-off",
+     "pass": true,
+     "actual": [
+      {
+       "text": "ALPHA plain paragraph one",
+       "level": 0,
+       "list": false,
+       "kind": null,
+       "style": "Text_20_body"
+      },
+      {
+       "text": "BRAVO plain paragraph two",
+       "level": 0,
+       "list": false,
+       "kind": null,
+       "style": "Text_20_body"
+      }
+     ]
+    },
+    {
+     "id": "T6/range/bullet-on-both",
+     "pass": true,
+     "actual": [
+      {
+       "text": "ALPHA plain paragraph one",
+       "level": 0,
+       "list": true,
+       "kind": "ul",
+       "style": "P1"
+      },
+      {
+       "text": "BRAVO plain paragraph two",
+       "level": 0,
+       "list": true,
+       "kind": "ul",
+       "style": "P1"
+      }
+     ]
+    },
+    {
+     "id": "T6/range/bullet-off-both",
+     "pass": true,
+     "actual": [
+      {
+       "text": "ALPHA plain paragraph one",
+       "level": 0,
+       "list": false,
+       "kind": null,
+       "style": "Text_20_body"
+      },
+      {
+       "text": "BRAVO plain paragraph two",
+       "level": 0,
+       "list": false,
+       "kind": null,
+       "style": "Text_20_body"
+      }
+     ]
+    },
+    {
+     "id": "T6/range/mixed-goes-on-not-off",
+     "pass": true,
+     "actual": [
+      {
+       "text": "ALPHA plain paragraph one",
+       "level": 0,
+       "list": true,
+       "kind": "ul",
+       "style": "P1"
+      },
+      {
+       "text": "BRAVO plain paragraph two",
+       "level": 0,
+       "list": true,
+       "kind": "ul",
+       "style": "P1"
+      }
+     ]
+    },
+    {
+     "id": "T6/no-red-toast",
+     "pass": true,
+     "actual": null
+    },
+    {
+     "id": "T7/number-on-heading/sentence",
+     "pass": true,
+     "actual": "1. 編號：標題段落不能加編號。請先把它改回內文，文件沒有變動"
+    },
+    {
+     "id": "T7/number-on-heading/unchanged",
+     "pass": true,
+     "actual": null
+    },
+    {
+     "id": "T7/number-on-heading/ready",
+     "pass": true,
+     "actual": null
+    },
+    {
+     "id": "T7/selection-across-a-table/sentence",
+     "pass": true,
+     "actual": "• 項目符號：這段選取裡有表格或其他物件，這個動作只能用在段落上，文件沒有變動"
+    },
+    {
+     "id": "T7/selection-across-a-table/unchanged",
+     "pass": true,
+     "actual": null
+    },
+    {
+     "id": "T7/too-many-paragraphs/sentence",
+     "pass": true,
+     "actual": "• 項目符號：選取的段落太多，無法一次套用。請分段選取，文件沒有變動"
+    },
+    {
+     "id": "T7/too-many-paragraphs/unchanged",
+     "pass": true,
+     "actual": null
+    },
+    {
+     "id": "T7/too-many-paragraphs/ready",
+     "pass": true,
+     "actual": null
+    },
+    {
+     "id": "T8/bullet",
+     "pass": true,
+     "actual": {
+      "changed": {
+       "text": "BRAVO plain paragraph two",
+       "level": 0,
+       "list": true,
+       "kind": "ul",
+       "style": "P1"
+      },
+      "after": {
+       "text": "BRAVO plain paragraph two",
+       "level": 0,
+       "list": false,
+       "kind": null,
+       "style": "Text_20_body"
+      }
+     }
+    },
+    {
+     "id": "T8/number",
+     "pass": true,
+     "actual": {
+      "changed": {
+       "text": "BRAVO plain paragraph two",
+       "level": 0,
+       "list": true,
+       "kind": "ol",
+       "style": "P1"
+      },
+      "after": {
+       "text": "BRAVO plain paragraph two",
+       "level": 0,
+       "list": false,
+       "kind": null,
+       "style": "Text_20_body"
+      }
+     }
+    },
+    {
+     "id": "T8/h2",
+     "pass": true,
+     "actual": {
+      "changed": {
+       "text": "BRAVO plain paragraph two",
+       "level": 2,
+       "list": false,
+       "kind": null,
+       "style": "Heading_20_2"
+      },
+      "after": {
+       "text": "BRAVO plain paragraph two",
+       "level": 0,
+       "list": false,
+       "kind": null,
+       "style": "Text_20_body"
+      }
+     }
+    },
+    {
+     "id": "T8/bullet-off",
+     "pass": true,
+     "actual": {
+      "changed": {
+       "text": "GOLF bullet item",
+       "level": 0,
+       "list": false,
+       "kind": null,
+       "style": "Standard"
+      },
+      "after": {
+       "text": "GOLF bullet item",
+       "level": 0,
+       "list": true,
+       "kind": "ul",
+       "style": "P1"
+      }
+     }
+    },
+    {
+     "id": "T8/h3-off",
+     "pass": true,
+     "actual": {
+      "changed": {
+       "text": "ECHO heading three",
+       "level": 0,
+       "list": false,
+       "kind": null,
+       "style": "Text_20_body"
+      },
+      "after": {
+       "text": "ECHO heading three",
+       "level": 3,
+       "list": false,
+       "kind": null,
+       "style": "Heading_20_3"
+      }
+     }
+    },
+    {
+     "id": "T9/fresh-document-claims-no-level",
+     "pass": true,
+     "actual": [
+      {
+       "action": "set-paragraph-body",
+       "checked": "true",
+       "label": "內文"
+      },
+      {
+       "action": "toggle-heading-1",
+       "checked": "false",
+       "label": "標題 1"
+      },
+      {
+       "action": "toggle-heading-2",
+       "checked": "false",
+       "label": "標題 2"
+      },
+      {
+       "action": "toggle-heading-3",
+       "checked": "false",
+       "label": "標題 3"
+      },
+      {
+       "action": "toggle-heading-4",
+       "checked": "false",
+       "label": "標題 4"
+      }
+     ]
+    },
+    {
+     "id": "T9/paragraph-2",
+     "pass": true,
+     "actual": {
+      "checked": [
+       "toggle-heading-1"
+      ],
+      "bullet": "false",
+      "number": null,
+      "pressed": "true"
+     }
+    },
+    {
+     "id": "T9/paragraph-3",
+     "pass": true,
+     "actual": {
+      "checked": [
+       "toggle-heading-2"
+      ],
+      "bullet": "false",
+      "number": null,
+      "pressed": "true"
+     }
+    },
+    {
+     "id": "T9/paragraph-4",
+     "pass": true,
+     "actual": {
+      "checked": [
+       "toggle-heading-3"
+      ],
+      "bullet": "false",
+      "number": null,
+      "pressed": "true"
+     }
+    },
+    {
+     "id": "T9/paragraph-5",
+     "pass": true,
+     "actual": {
+      "checked": [
+       "toggle-heading-4"
+      ],
+      "bullet": "false",
+      "number": null,
+      "pressed": "true"
+     }
+    },
+    {
+     "id": "T9/paragraph-1",
+     "pass": true,
+     "actual": {
+      "checked": [
+       "set-paragraph-body"
+      ],
+      "bullet": "false",
+      "number": "false",
+      "pressed": "false"
+     }
+    },
+    {
+     "id": "T9/paragraph-6",
+     "pass": true,
+     "actual": {
+      "checked": [
+       "set-paragraph-body"
+      ],
+      "bullet": "true",
+      "number": "false",
+      "pressed": "false"
+     }
+    },
+    {
+     "id": "T9/paragraph-8",
+     "pass": true,
+     "actual": {
+      "checked": [
+       "set-paragraph-body"
+      ],
+      "bullet": "false",
+      "number": "true",
+      "pressed": "false"
+     }
+    },
+    {
+     "id": "T9/paragraph-9",
+     "pass": true,
+     "actual": {
+      "checked": [
+       "set-paragraph-body"
+      ],
+      "bullet": "false",
+      "number": "false",
+      "pressed": "false"
+     }
+    },
+    {
+     "id": "T10/setters-hidden-toggles-shown",
+     "pass": true,
+     "actual": {
+      "open": false,
+      "expanded": "false",
+      "pressed": "false",
+      "items": [
+       {
+        "action": "set-paragraph-body",
+        "checked": "true",
+        "label": "內文"
+       },
+       {
+        "action": "toggle-heading-1",
+        "checked": "false",
+        "label": "標題 1"
+       },
+       {
+        "action": "toggle-heading-2",
+        "checked": "false",
+        "label": "標題 2"
+       },
+       {
+        "action": "toggle-heading-3",
+        "checked": "false",
+        "label": "標題 3"
+       },
+       {
+        "action": "toggle-heading-4",
+        "checked": "false",
+        "label": "標題 4"
+       }
+      ],
+      "box": {
+       "left": 0,
+       "top": 0,
+       "right": 0,
+       "bottom": 0,
+       "innerWidth": 1400,
+       "innerHeight": 1000
+      },
+      "bullet": "false",
+      "number": "false",
+      "legacyHidden": true,
+      "toggleHidden": false,
+      "focus": "sink",
+      "latency": "定位游標 418 ms",
+      "notice": "0",
+      "toast": "已開啟 t3-long.odt"
+     }
+    },
+    {
+     "id": "T10/opens",
+     "pass": true,
+     "actual": "true"
+    },
+    {
+     "id": "T10/inside-the-window",
+     "pass": true,
+     "actual": {
+      "left": 885,
+      "top": 198.390625,
+      "right": 1033,
+      "bottom": 368.890625,
+      "innerWidth": 1400,
+      "innerHeight": 1000
+     }
+    },
+    {
+     "id": "T10/five-items",
+     "pass": true,
+     "actual": [
+      "內文",
+      "標題 1",
+      "標題 2",
+      "標題 3",
+      "標題 4"
+     ]
+    },
+    {
+     "id": "T10/mouse-open-leaves-the-sink-focused",
+     "pass": true,
+     "actual": "sink"
+    },
+    {
+     "id": "T10/escape-closes-a-mouse-open",
+     "pass": true,
+     "actual": {
+      "open": false,
+      "focus": "sink"
+     }
+    },
+    {
+     "id": "T10/opens-again",
+     "pass": true,
+     "actual": null
+    },
+    {
+     "id": "T10/closes-outside",
+     "pass": true,
+     "actual": false
+    },
+    {
+     "id": "T10/keyboard-opens-on-an-item",
+     "pass": true,
+     "actual": "set-paragraph-body"
+    },
+    {
+     "id": "T10/arrow-moves",
+     "pass": true,
+     "actual": "toggle-heading-1"
+    },
+    {
+     "id": "T10/escape-closes-and-returns",
+     "pass": true,
+     "actual": {
+      "open": false,
+      "focus": "heading-menu-button"
+     }
+    },
+    {
+     "id": "T10/keyboard-reopens",
+     "pass": true,
+     "actual": null
+    },
+    {
+     "id": "T10/keyboard-press-gives-the-sink-back",
+     "pass": true,
+     "actual": {
+      "open": false,
+      "focus": "sink"
+     }
+    },
+    {
+     "id": "T10/typing-after-a-keyboard-press-lands",
+     "pass": true,
+     "actual": null
+    },
+    {
+     "id": "T11/reopened",
+     "pass": true,
+     "actual": [
+      {
+       "text": "BRAVO plain paragraph two",
+       "level": 4,
+       "list": false,
+       "kind": null,
+       "style": "Heading_20_4"
+      },
+      {
+       "text": "JULIET plain paragraph",
+       "level": 0,
+       "list": true,
+       "kind": "ul",
+       "style": "P3"
+      }
+     ]
+    },
+    {
+     "id": "T12/caret-in-a-paragraph-with-a-frame",
+     "pass": true,
+     "actual": {
+      "text": "IMAGE here and after",
+      "level": 0,
+      "list": true,
+      "kind": "ul",
+      "style": "P1"
+     }
+    },
+    {
+     "id": "T12/second-press",
+     "pass": true,
+     "actual": null
+    },
+    {
+     "id": "T12/range-over-a-frame",
+     "pass": true,
+     "actual": [
+      {
+       "text": "BEFORE plain",
+       "level": 2,
+       "list": false,
+       "kind": null,
+       "style": "Heading_20_2"
+      },
+      {
+       "text": "IMAGE here and after",
+       "level": 2,
+       "list": false,
+       "kind": null,
+       "style": "Heading_20_2"
+      }
+     ]
+    },
+    {
+     "id": "T12/responsive",
+     "pass": true,
+     "actual": null
+    }
+   ],
+   "version": "Chrome/156.0.8078.47",
+   "cleanup": {}
+  },
+  {
+   "browser": "firefox",
+   "base": "http://127.0.0.1:39589/e2-editor.html",
+   "checks": [
+    {
+     "id": "setup/fixture-reads-as-written",
+     "pass": true,
+     "actual": [
+      {
+       "text": "ALPHA plain paragraph one",
+       "level": 0,
+       "list": false,
+       "kind": null,
+       "style": "Text_20_body"
+      },
+      {
+       "text": "BRAVO plain paragraph two",
+       "level": 0,
+       "list": false,
+       "kind": null,
+       "style": "Text_20_body"
+      },
+      {
+       "text": "CHARLIE heading one",
+       "level": 1,
+       "list": false,
+       "kind": null,
+       "style": "Heading_20_1"
+      },
+      {
+       "text": "DELTA heading two",
+       "level": 2,
+       "list": false,
+       "kind": null,
+       "style": "Heading_20_2"
+      },
+      {
+       "text": "ECHO heading three",
+       "level": 3,
+       "list": false,
+       "kind": null,
+       "style": "Heading_20_3"
+      },
+      {
+       "text": "FOXTROT heading four",
+       "level": 4,
+       "list": false,
+       "kind": null,
+       "style": "Heading_20_4"
+      },
+      {
+       "text": "GOLF bullet item",
+       "level": 0,
+       "list": true,
+       "kind": "ul",
+       "style": "P1"
+      }
+     ]
+    },
+    {
+     "id": "T1/bullet/on-off-on",
+     "pass": true,
+     "actual": [
+      "ul",
+      null,
+      "ul"
+     ]
+    },
+    {
+     "id": "T1/bullet/no-red-toast",
+     "pass": true,
+     "actual": null
+    },
+    {
+     "id": "T1/number/on-off-on",
+     "pass": true,
+     "actual": [
+      "ol",
+      null,
+      "ol"
+     ]
+    },
+    {
+     "id": "T1/number/no-red-toast",
+     "pass": true,
+     "actual": null
+    },
+    {
+     "id": "T2/h1/on",
+     "pass": true,
+     "actual": {
+      "text": "BRAVO plain paragraph two",
+      "level": 1,
+      "list": false,
+      "kind": null,
+      "style": "Heading_20_1"
+     }
+    },
+    {
+     "id": "T2/h1/same-level-goes-back-to-body",
+     "pass": true,
+     "actual": {
+      "text": "BRAVO plain paragraph two",
+      "level": 0,
+      "list": false,
+      "kind": null,
+      "style": "Text_20_body"
+     }
+    },
+    {
+     "id": "T2/h2/on",
+     "pass": true,
+     "actual": {
+      "text": "BRAVO plain paragraph two",
+      "level": 2,
+      "list": false,
+      "kind": null,
+      "style": "Heading_20_2"
+     }
+    },
+    {
+     "id": "T2/h2/same-level-goes-back-to-body",
+     "pass": true,
+     "actual": {
+      "text": "BRAVO plain paragraph two",
+      "level": 0,
+      "list": false,
+      "kind": null,
+      "style": "Text_20_body"
+     }
+    },
+    {
+     "id": "T2/h3/on",
+     "pass": true,
+     "actual": {
+      "text": "BRAVO plain paragraph two",
+      "level": 3,
+      "list": false,
+      "kind": null,
+      "style": "Heading_20_3"
+     }
+    },
+    {
+     "id": "T2/h3/same-level-goes-back-to-body",
+     "pass": true,
+     "actual": {
+      "text": "BRAVO plain paragraph two",
+      "level": 0,
+      "list": false,
+      "kind": null,
+      "style": "Text_20_body"
+     }
+    },
+    {
+     "id": "T2/h4/on",
+     "pass": true,
+     "actual": {
+      "text": "BRAVO plain paragraph two",
+      "level": 4,
+      "list": false,
+      "kind": null,
+      "style": "Heading_20_4"
+     }
+    },
+    {
+     "id": "T2/h4/same-level-goes-back-to-body",
+     "pass": true,
+     "actual": {
+      "text": "BRAVO plain paragraph two",
+      "level": 0,
+      "list": false,
+      "kind": null,
+      "style": "Text_20_body"
+     }
+    },
+    {
+     "id": "T2/level-to-level",
+     "pass": true,
+     "actual": {
+      "text": "BRAVO plain paragraph two",
+      "level": 4,
+      "list": false,
+      "kind": null,
+      "style": "Heading_20_4"
+     }
+    },
+    {
+     "id": "T2/body-item",
+     "pass": true,
+     "actual": {
+      "text": "BRAVO plain paragraph two",
+      "level": 0,
+      "list": false,
+      "kind": null,
+      "style": "Text_20_body"
+     }
+    },
+    {
+     "id": "T2/no-red-toast",
+     "pass": true,
+     "actual": null
+    },
+    {
+     "id": "T3/heading-comes-off",
+     "pass": true,
+     "actual": {
+      "text": "ECHO heading three",
+      "level": 0,
+      "list": false,
+      "kind": null,
+      "style": "Text_20_body"
+     }
+    },
+    {
+     "id": "T3/bullet-comes-off",
+     "pass": true,
+     "actual": {
+      "text": "GOLF bullet item",
+      "level": 0,
+      "list": false,
+      "kind": null,
+      "style": "Standard"
+     }
+    },
+    {
+     "id": "T3/number-comes-off",
+     "pass": true,
+     "actual": {
+      "text": "INDIA numbered item",
+      "level": 0,
+      "list": false,
+      "kind": null,
+      "style": "Standard"
+     }
+    },
+    {
+     "id": "T3/bullet-item-takes-numbering",
+     "pass": true,
+     "actual": {
+      "text": "GOLF bullet item",
+      "level": 0,
+      "list": true,
+      "kind": "ol",
+      "style": "P1"
+     }
+    },
+    {
+     "id": "T4/body-start/control",
+     "pass": true,
+     "actual": "qBRAVO plain paragraph two"
+    },
+    {
+     "id": "T4/body-start/bullet",
+     "pass": true,
+     "actual": "qBRAVO plain paragraph two"
+    },
+    {
+     "id": "T4/body-start/number",
+     "pass": true,
+     "actual": "qBRAVO plain paragraph two"
+    },
+    {
+     "id": "T4/body-start/h2",
+     "pass": true,
+     "actual": "qBRAVO plain paragraph two"
+    },
+    {
+     "id": "T4/body-start/body",
+     "pass": true,
+     "actual": "qBRAVO plain paragraph two"
+    },
+    {
+     "id": "T4/body-start/center",
+     "pass": true,
+     "actual": "qBRAVO plain paragraph two"
+    },
+    {
+     "id": "T4/body-middle/control",
+     "pass": true,
+     "actual": "BRqAVO plain paragraph two"
+    },
+    {
+     "id": "T4/body-middle/bullet",
+     "pass": true,
+     "actual": "BRqAVO plain paragraph two"
+    },
+    {
+     "id": "T4/body-middle/number",
+     "pass": true,
+     "actual": "BRqAVO plain paragraph two"
+    },
+    {
+     "id": "T4/body-middle/h2",
+     "pass": true,
+     "actual": "BRqAVO plain paragraph two"
+    },
+    {
+     "id": "T4/body-middle/body",
+     "pass": true,
+     "actual": "BRqAVO plain paragraph two"
+    },
+    {
+     "id": "T4/body-middle/center",
+     "pass": true,
+     "actual": "BRqAVO plain paragraph two"
+    },
+    {
+     "id": "T4/bullet-middle/control",
+     "pass": true,
+     "actual": "GqOLF bullet item"
+    },
+    {
+     "id": "T4/bullet-middle/bullet",
+     "pass": true,
+     "actual": "GqOLF bullet item"
+    },
+    {
+     "id": "T4/bullet-middle/number",
+     "pass": true,
+     "actual": "GqOLF bullet item"
+    },
+    {
+     "id": "T4/bullet-middle/h2",
+     "pass": true,
+     "actual": "GqOLF bullet item"
+    },
+    {
+     "id": "T4/bullet-middle/body",
+     "pass": true,
+     "actual": "GqOLF bullet item"
+    },
+    {
+     "id": "T4/bullet-middle/center",
+     "pass": true,
+     "actual": "GqOLF bullet item"
+    },
+    {
+     "id": "T4/heading-middle/control",
+     "pass": true,
+     "actual": "CHAqRLIE heading one"
+    },
+    {
+     "id": "T4/heading-middle/bullet",
+     "pass": true,
+     "actual": "CHAqRLIE heading one"
+    },
+    {
+     "id": "T4/heading-middle/h2",
+     "pass": true,
+     "actual": "CHAqRLIE heading one"
+    },
+    {
+     "id": "T4/heading-middle/body",
+     "pass": true,
+     "actual": "CHAqRLIE heading one"
+    },
+    {
+     "id": "T4/heading-middle/center",
+     "pass": true,
+     "actual": "CHAqRLIE heading one"
+    },
+    {
+     "id": "T4/number-start/control",
+     "pass": true,
+     "actual": "qINDIA numbered item"
+    },
+    {
+     "id": "T4/number-start/bullet",
+     "pass": true,
+     "actual": "qINDIA numbered item"
+    },
+    {
+     "id": "T4/number-start/number",
+     "pass": true,
+     "actual": "qINDIA numbered item"
+    },
+    {
+     "id": "T4/number-start/h2",
+     "pass": true,
+     "actual": "qINDIA numbered item"
+    },
+    {
+     "id": "T4/number-start/body",
+     "pass": true,
+     "actual": "qINDIA numbered item"
+    },
+    {
+     "id": "T4/number-start/center",
+     "pass": true,
+     "actual": "qINDIA numbered item"
+    },
+    {
+     "id": "T4/empty-middle/bullet",
+     "pass": true,
+     "actual": "q"
+    },
+    {
+     "id": "T4/empty-last/bullet",
+     "pass": true,
+     "actual": "q"
+    },
+    {
+     "id": "T4/empty-middle/number",
+     "pass": true,
+     "actual": "q"
+    },
+    {
+     "id": "T4/empty-last/number",
+     "pass": true,
+     "actual": "q"
+    },
+    {
+     "id": "T4/empty-middle/h2",
+     "pass": true,
+     "actual": "q"
+    },
+    {
+     "id": "T4/empty-last/h2",
+     "pass": true,
+     "actual": "q"
+    },
+    {
+     "id": "T4/empty-middle/body",
+     "pass": true,
+     "actual": "q"
+    },
+    {
+     "id": "T4/empty-last/body",
+     "pass": true,
+     "actual": "q"
+    },
+    {
+     "id": "T4/empty-middle/center",
+     "pass": true,
+     "actual": "q"
+    },
+    {
+     "id": "T4/empty-last/center",
+     "pass": true,
+     "actual": "q"
+    },
+    {
+     "id": "T4/wrapped-line/control",
+     "pass": true,
+     "actual": {
+      "caret": {
+       "x": 11216,
+       "y": 2614,
+       "width": 0,
+       "height": 276
+      },
+      "at": 84,
+      "length": 726
+     }
+    },
+    {
+     "id": "T4/wrapped-line/bullet",
+     "pass": true,
+     "actual": {
+      "caret": {
+       "x": 11216,
+       "y": 2614,
+       "width": 0,
+       "height": 276
+      },
+      "at": 84,
+      "want": 84
+     }
+    },
+    {
+     "id": "T4/wrapped-line/number",
+     "pass": true,
+     "actual": {
+      "caret": {
+       "x": 11216,
+       "y": 2614,
+       "width": 0,
+       "height": 276
+      },
+      "at": 84,
+      "want": 84
+     }
+    },
+    {
+     "id": "T4/wrapped-line/h2",
+     "pass": true,
+     "actual": {
+      "caret": {
+       "x": 11216,
+       "y": 2614,
+       "width": 0,
+       "height": 276
+      },
+      "at": 84,
+      "want": 84
+     }
+    },
+    {
+     "id": "T4/wrapped-line/body",
+     "pass": true,
+     "actual": {
+      "caret": {
+       "x": 11216,
+       "y": 2614,
+       "width": 0,
+       "height": 276
+      },
+      "at": 84,
+      "want": 84
+     }
+    },
+    {
+     "id": "T4/wrapped-line/center",
+     "pass": true,
+     "actual": {
+      "caret": {
+       "x": 11216,
+       "y": 2614,
+       "width": 0,
+       "height": 276
+      },
+      "at": 84,
+      "want": 84
+     }
+    },
+    {
+     "id": "T5/bullet-on/no-notice",
+     "pass": true,
+     "actual": {
+      "latency": "• 項目符號 11 ms",
+      "toast": "已開啟 t3-long.odt"
+     }
+    },
+    {
+     "id": "T5/bullet-off/no-notice",
+     "pass": true,
+     "actual": {
+      "latency": "• 項目符號 5 ms",
+      "toast": "已存出 8.3 KB"
+     }
+    },
+    {
+     "id": "T5/bullet/on-then-off",
+     "pass": true,
+     "actual": {
+      "on": {
+       "text": "",
+       "level": 0,
+       "list": true,
+       "kind": "ul",
+       "style": "P1"
+      },
+      "off": {
+       "text": "",
+       "level": 0,
+       "list": false,
+       "kind": null,
+       "style": "Standard"
+      }
+     }
+    },
+    {
+     "id": "T5/bullet/typing-lands",
+     "pass": true,
+     "actual": {
+      "text": "q",
+      "level": 0,
+      "list": false,
+      "kind": null,
+      "style": "P1"
+     }
+    },
+    {
+     "id": "T5/number-on/no-notice",
+     "pass": true,
+     "actual": {
+      "latency": "1. 編號 17 ms",
+      "toast": "已開啟 t3-long.odt"
+     }
+    },
+    {
+     "id": "T5/number-off/no-notice",
+     "pass": true,
+     "actual": {
+      "latency": "1. 編號 4 ms",
+      "toast": "已存出 8.2 KB"
+     }
+    },
+    {
+     "id": "T5/number/on-then-off",
+     "pass": true,
+     "actual": {
+      "on": {
+       "text": "",
+       "level": 0,
+       "list": true,
+       "kind": "ol",
+       "style": "P1"
+      },
+      "off": {
+       "text": "",
+       "level": 0,
+       "list": false,
+       "kind": null,
+       "style": "Standard"
+      }
+     }
+    },
+    {
+     "id": "T5/number/typing-lands",
+     "pass": true,
+     "actual": {
+      "text": "q",
+      "level": 0,
+      "list": false,
+      "kind": null,
+      "style": "P1"
+     }
+    },
+    {
+     "id": "T5/h2-on/no-notice",
+     "pass": true,
+     "actual": {
+      "latency": "標題 2 10 ms",
+      "toast": "已開啟 t3-long.odt"
+     }
+    },
+    {
+     "id": "T5/h2-off/no-notice",
+     "pass": true,
+     "actual": {
+      "latency": "標題 2 7 ms",
+      "toast": "已存出 7.3 KB"
+     }
+    },
+    {
+     "id": "T5/h2/on-then-off",
+     "pass": true,
+     "actual": {
+      "on": {
+       "text": "",
+       "level": 2,
+       "list": false,
+       "kind": null,
+       "style": "Heading_20_2"
+      },
+      "off": {
+       "text": "",
+       "level": 0,
+       "list": false,
+       "kind": null,
+       "style": "Text_20_body"
+      }
+     }
+    },
+    {
+     "id": "T5/h2/typing-lands",
+     "pass": true,
+     "actual": {
+      "text": "q",
+      "level": 0,
+      "list": false,
+      "kind": null,
+      "style": "P1"
+     }
+    },
+    {
+     "id": "T6/leading-selection/styles-the-paragraph",
+     "pass": true,
+     "actual": {
+      "text": "BRAVO plain paragraph two",
+      "level": 2,
+      "list": false,
+      "kind": null,
+      "style": "Heading_20_2"
+     }
+    },
+    {
+     "id": "T6/leading-selection/no-frame",
+     "pass": true,
+     "actual": 0
+    },
+    {
+     "id": "T6/range-from-inside/both-styled",
+     "pass": true,
+     "actual": [
+      {
+       "text": "ALPHA plain paragraph one",
+       "level": 3,
+       "list": false,
+       "kind": null,
+       "style": "Heading_20_3"
+      },
+      {
+       "text": "BRAVO plain paragraph two",
+       "level": 3,
+       "list": false,
+       "kind": null,
+       "style": "Heading_20_3"
+      }
+     ]
+    },
+    {
+     "id": "T6/range-from-inside/second-press-both-off",
+     "pass": true,
+     "actual": [
+      {
+       "text": "ALPHA plain paragraph one",
+       "level": 0,
+       "list": false,
+       "kind": null,
+       "style": "Text_20_body"
+      },
+      {
+       "text": "BRAVO plain paragraph two",
+       "level": 0,
+       "list": false,
+       "kind": null,
+       "style": "Text_20_body"
+      }
+     ]
+    },
+    {
+     "id": "T6/range/bullet-on-both",
+     "pass": true,
+     "actual": [
+      {
+       "text": "ALPHA plain paragraph one",
+       "level": 0,
+       "list": true,
+       "kind": "ul",
+       "style": "P1"
+      },
+      {
+       "text": "BRAVO plain paragraph two",
+       "level": 0,
+       "list": true,
+       "kind": "ul",
+       "style": "P1"
+      }
+     ]
+    },
+    {
+     "id": "T6/range/bullet-off-both",
+     "pass": true,
+     "actual": [
+      {
+       "text": "ALPHA plain paragraph one",
+       "level": 0,
+       "list": false,
+       "kind": null,
+       "style": "Text_20_body"
+      },
+      {
+       "text": "BRAVO plain paragraph two",
+       "level": 0,
+       "list": false,
+       "kind": null,
+       "style": "Text_20_body"
+      }
+     ]
+    },
+    {
+     "id": "T6/range/mixed-goes-on-not-off",
+     "pass": true,
+     "actual": [
+      {
+       "text": "ALPHA plain paragraph one",
+       "level": 0,
+       "list": true,
+       "kind": "ul",
+       "style": "P1"
+      },
+      {
+       "text": "BRAVO plain paragraph two",
+       "level": 0,
+       "list": true,
+       "kind": "ul",
+       "style": "P1"
+      }
+     ]
+    },
+    {
+     "id": "T6/no-red-toast",
+     "pass": true,
+     "actual": null
+    },
+    {
+     "id": "T7/number-on-heading/sentence",
+     "pass": true,
+     "actual": "1. 編號：標題段落不能加編號。請先把它改回內文，文件沒有變動"
+    },
+    {
+     "id": "T7/number-on-heading/unchanged",
+     "pass": true,
+     "actual": null
+    },
+    {
+     "id": "T7/number-on-heading/ready",
+     "pass": true,
+     "actual": null
+    },
+    {
+     "id": "T7/selection-across-a-table/sentence",
+     "pass": true,
+     "actual": "• 項目符號：這段選取裡有表格或其他物件，這個動作只能用在段落上，文件沒有變動"
+    },
+    {
+     "id": "T7/selection-across-a-table/unchanged",
+     "pass": true,
+     "actual": null
+    },
+    {
+     "id": "T7/too-many-paragraphs/sentence",
+     "pass": true,
+     "actual": "• 項目符號：選取的段落太多，無法一次套用。請分段選取，文件沒有變動"
+    },
+    {
+     "id": "T7/too-many-paragraphs/unchanged",
+     "pass": true,
+     "actual": null
+    },
+    {
+     "id": "T7/too-many-paragraphs/ready",
+     "pass": true,
+     "actual": null
+    },
+    {
+     "id": "T8/bullet",
+     "pass": true,
+     "actual": {
+      "changed": {
+       "text": "BRAVO plain paragraph two",
+       "level": 0,
+       "list": true,
+       "kind": "ul",
+       "style": "P1"
+      },
+      "after": {
+       "text": "BRAVO plain paragraph two",
+       "level": 0,
+       "list": false,
+       "kind": null,
+       "style": "Text_20_body"
+      }
+     }
+    },
+    {
+     "id": "T8/number",
+     "pass": true,
+     "actual": {
+      "changed": {
+       "text": "BRAVO plain paragraph two",
+       "level": 0,
+       "list": true,
+       "kind": "ol",
+       "style": "P1"
+      },
+      "after": {
+       "text": "BRAVO plain paragraph two",
+       "level": 0,
+       "list": false,
+       "kind": null,
+       "style": "Text_20_body"
+      }
+     }
+    },
+    {
+     "id": "T8/h2",
+     "pass": true,
+     "actual": {
+      "changed": {
+       "text": "BRAVO plain paragraph two",
+       "level": 2,
+       "list": false,
+       "kind": null,
+       "style": "Heading_20_2"
+      },
+      "after": {
+       "text": "BRAVO plain paragraph two",
+       "level": 0,
+       "list": false,
+       "kind": null,
+       "style": "Text_20_body"
+      }
+     }
+    },
+    {
+     "id": "T8/bullet-off",
+     "pass": true,
+     "actual": {
+      "changed": {
+       "text": "GOLF bullet item",
+       "level": 0,
+       "list": false,
+       "kind": null,
+       "style": "Standard"
+      },
+      "after": {
+       "text": "GOLF bullet item",
+       "level": 0,
+       "list": true,
+       "kind": "ul",
+       "style": "P1"
+      }
+     }
+    },
+    {
+     "id": "T8/h3-off",
+     "pass": true,
+     "actual": {
+      "changed": {
+       "text": "ECHO heading three",
+       "level": 0,
+       "list": false,
+       "kind": null,
+       "style": "Text_20_body"
+      },
+      "after": {
+       "text": "ECHO heading three",
+       "level": 3,
+       "list": false,
+       "kind": null,
+       "style": "Heading_20_3"
+      }
+     }
+    },
+    {
+     "id": "T9/fresh-document-claims-no-level",
+     "pass": true,
+     "actual": [
+      {
+       "action": "set-paragraph-body",
+       "checked": "true",
+       "label": "內文"
+      },
+      {
+       "action": "toggle-heading-1",
+       "checked": "false",
+       "label": "標題 1"
+      },
+      {
+       "action": "toggle-heading-2",
+       "checked": "false",
+       "label": "標題 2"
+      },
+      {
+       "action": "toggle-heading-3",
+       "checked": "false",
+       "label": "標題 3"
+      },
+      {
+       "action": "toggle-heading-4",
+       "checked": "false",
+       "label": "標題 4"
+      }
+     ]
+    },
+    {
+     "id": "T9/paragraph-2",
+     "pass": true,
+     "actual": {
+      "checked": [
+       "toggle-heading-1"
+      ],
+      "bullet": "false",
+      "number": null,
+      "pressed": "true"
+     }
+    },
+    {
+     "id": "T9/paragraph-3",
+     "pass": true,
+     "actual": {
+      "checked": [
+       "toggle-heading-2"
+      ],
+      "bullet": "false",
+      "number": null,
+      "pressed": "true"
+     }
+    },
+    {
+     "id": "T9/paragraph-4",
+     "pass": true,
+     "actual": {
+      "checked": [
+       "toggle-heading-3"
+      ],
+      "bullet": "false",
+      "number": null,
+      "pressed": "true"
+     }
+    },
+    {
+     "id": "T9/paragraph-5",
+     "pass": true,
+     "actual": {
+      "checked": [
+       "toggle-heading-4"
+      ],
+      "bullet": "false",
+      "number": null,
+      "pressed": "true"
+     }
+    },
+    {
+     "id": "T9/paragraph-1",
+     "pass": true,
+     "actual": {
+      "checked": [
+       "set-paragraph-body"
+      ],
+      "bullet": "false",
+      "number": "false",
+      "pressed": "false"
+     }
+    },
+    {
+     "id": "T9/paragraph-6",
+     "pass": true,
+     "actual": {
+      "checked": [
+       "set-paragraph-body"
+      ],
+      "bullet": "true",
+      "number": "false",
+      "pressed": "false"
+     }
+    },
+    {
+     "id": "T9/paragraph-8",
+     "pass": true,
+     "actual": {
+      "checked": [
+       "set-paragraph-body"
+      ],
+      "bullet": "false",
+      "number": "true",
+      "pressed": "false"
+     }
+    },
+    {
+     "id": "T9/paragraph-9",
+     "pass": true,
+     "actual": {
+      "checked": [
+       "set-paragraph-body"
+      ],
+      "bullet": "false",
+      "number": "false",
+      "pressed": "false"
+     }
+    },
+    {
+     "id": "T10/setters-hidden-toggles-shown",
+     "pass": true,
+     "actual": {
+      "open": false,
+      "expanded": "false",
+      "pressed": "false",
+      "items": [
+       {
+        "action": "set-paragraph-body",
+        "checked": "true",
+        "label": "內文"
+       },
+       {
+        "action": "toggle-heading-1",
+        "checked": "false",
+        "label": "標題 1"
+       },
+       {
+        "action": "toggle-heading-2",
+        "checked": "false",
+        "label": "標題 2"
+       },
+       {
+        "action": "toggle-heading-3",
+        "checked": "false",
+        "label": "標題 3"
+       },
+       {
+        "action": "toggle-heading-4",
+        "checked": "false",
+        "label": "標題 4"
+       }
+      ],
+      "box": {
+       "left": 0,
+       "top": 0,
+       "right": 0,
+       "bottom": 0,
+       "innerWidth": 1400,
+       "innerHeight": 914
+      },
+      "bullet": "false",
+      "number": "false",
+      "legacyHidden": true,
+      "toggleHidden": false,
+      "focus": "sink",
+      "latency": "定位游標 411 ms",
+      "notice": "0",
+      "toast": "已開啟 t3-long.odt"
+     }
+    },
+    {
+     "id": "T10/opens",
+     "pass": true,
+     "actual": "true"
+    },
+    {
+     "id": "T10/inside-the-window",
+     "pass": true,
+     "actual": {
+      "left": 882.61669921875,
+      "top": 198.6999969482422,
+      "right": 1030.61669921875,
+      "bottom": 369.1999969482422,
+      "innerWidth": 1400,
+      "innerHeight": 914
+     }
+    },
+    {
+     "id": "T10/five-items",
+     "pass": true,
+     "actual": [
+      "內文",
+      "標題 1",
+      "標題 2",
+      "標題 3",
+      "標題 4"
+     ]
+    },
+    {
+     "id": "T10/mouse-open-leaves-the-sink-focused",
+     "pass": true,
+     "actual": "sink"
+    },
+    {
+     "id": "T10/escape-closes-a-mouse-open",
+     "pass": true,
+     "actual": {
+      "open": false,
+      "focus": "sink"
+     }
+    },
+    {
+     "id": "T10/opens-again",
+     "pass": true,
+     "actual": null
+    },
+    {
+     "id": "T10/closes-outside",
+     "pass": true,
+     "actual": false
+    },
+    {
+     "id": "T10/keyboard-opens-on-an-item",
+     "pass": true,
+     "actual": "set-paragraph-body"
+    },
+    {
+     "id": "T10/arrow-moves",
+     "pass": true,
+     "actual": "toggle-heading-1"
+    },
+    {
+     "id": "T10/escape-closes-and-returns",
+     "pass": true,
+     "actual": {
+      "open": false,
+      "focus": "heading-menu-button"
+     }
+    },
+    {
+     "id": "T10/keyboard-reopens",
+     "pass": true,
+     "actual": null
+    },
+    {
+     "id": "T10/keyboard-press-gives-the-sink-back",
+     "pass": true,
+     "actual": {
+      "open": false,
+      "focus": "sink"
+     }
+    },
+    {
+     "id": "T10/typing-after-a-keyboard-press-lands",
+     "pass": true,
+     "actual": null
+    },
+    {
+     "id": "T11/reopened",
+     "pass": true,
+     "actual": [
+      {
+       "text": "BRAVO plain paragraph two",
+       "level": 4,
+       "list": false,
+       "kind": null,
+       "style": "Heading_20_4"
+      },
+      {
+       "text": "JULIET plain paragraph",
+       "level": 0,
+       "list": true,
+       "kind": "ul",
+       "style": "P3"
+      }
+     ]
+    },
+    {
+     "id": "T12/caret-in-a-paragraph-with-a-frame",
+     "pass": true,
+     "actual": {
+      "text": "IMAGE here and after",
+      "level": 0,
+      "list": true,
+      "kind": "ul",
+      "style": "P1"
+     }
+    },
+    {
+     "id": "T12/second-press",
+     "pass": true,
+     "actual": null
+    },
+    {
+     "id": "T12/range-over-a-frame",
+     "pass": true,
+     "actual": [
+      {
+       "text": "BEFORE plain",
+       "level": 2,
+       "list": false,
+       "kind": null,
+       "style": "Heading_20_2"
+      },
+      {
+       "text": "IMAGE here and after",
+       "level": 2,
+       "list": false,
+       "kind": null,
+       "style": "Heading_20_2"
+      }
+     ]
+    },
+    {
+     "id": "T12/responsive",
+     "pass": true,
+     "actual": null
+    }
+   ],
+   "version": "157.0.1",
+   "cleanup": {}
+  }
+ ],
+ "preRun": {
+  "refuse": [],
+  "loadavg": [
+   "0.42",
+   "0.68",
+   "0.91"
+  ]
+ },
+ "verdict": "P4_HOLDS"
+}
