@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **狀態** | **已確認（量測）；已裁決**（fable 裁決 1，2026-10-17，擁有者授權）：Ctrl+Home／End 那一半修（v74 出貨）；方向鍵那一半登錄，留給「有序指令」那一批 |
+| **狀態** | **已修，兩半都量過**：Ctrl+Home／End 隨 v74 出貨，方向鍵那半由有序指令移除成因，2026-11-03 在 0.2.52 量到（見文末追加）。〔原狀態：已確認（量測）；已裁決（fable 裁決 1，2026-10-17，擁有者授權），方向鍵那半留給「有序指令」那一批〕 |
 | **影響版本** | **Ctrl+Home／End**：v21 未計數候選（頁面 `3d511216…`、殼層原始碼 digest `e0252c0b…`、引擎 `e2-editor-v21` wasm `db3408f5…`）。**改動後的第一下方向鍵**：**0.2.24（名義出貨版）就有**，v21 也有（`diag-dirty-move/` V8d：0.2.24 打的字落在移動前那一行，Chrome 3/3、Firefox 3/3） |
 | **所在** | session `editor-shell-v2/narrow-editor-v2-session.js` `action()`（約 `:1004-1006`）：`BOUNDARY_CAPABLE_MOVES` 裡的移動，在文件有未存改動時先存檢查點（finding 096）。引擎的 `move-document-*` 在 250 ms 內沒等到游標回呼就以快取完成（`verified-move-readback`，規格 §9.1） |
 | **發現日** | 2026-10-17，v21 shakedown 的 item 1 smoke（D11b-dirty、D6、D8 (e) 都出現「回覆帶舊游標」）；落點由 `findings/evidence/link-batch-v21/shakedown/diag-dirty-move/` 量出 |
@@ -54,3 +54,17 @@ fable 另外指出：方向鍵「會卡死」的前提在這顆引擎上同樣�
    - 根治在「有序指令」那一批，需要引擎改動與重新連結。
 
 **發佈說明用的一句**：改過內容之後的**第一下方向鍵**，如果緊接著打字（約 0.3 秒內），字可能落在移動之前的位置。0.2.24 就有，0.2.25 也還有，根治要等下一批引擎改動。0.2.25 新增的 Ctrl+Home／End 沒有這個問題；但存檔後不到 0.3 秒就按，也可能發生。
+
+## 追加（2026-11-03）：方向鍵那半在 0.2.52 上量到了
+
+之前只有「由構造關閉」，沒有產品量測（`SPEC-M3-ordered-commands.md` 第 1 節第 3 列）。盤點時發現這是唯一留在一般打字路徑上的未定項，所以補量。預測先 commit（`evidence/151-on-0252/PREDICTION.md`），再跑。
+
+`evidence/151-on-0252/run-01/`，V8d 照原工具 `tools/diag_v21_dirty_move.py`，只換頁面，同一次執行帶 0.2.24 當紅對照，真實按鍵，存檔讀回，Chrome、Firefox：
+
+| 臂 | 0.2.52（`f6fd0b75`，v32） | 0.2.24（v20，紅對照） |
+|---|---|---|
+| 改字、方向鍵、30 ms 後打字（V8d） | P3，移動後的行，6/6 | P2，移動前的行，6/6 |
+| 改字、Ctrl+End、30 ms 後打字（V1） | 文件尾 6/6 | 未跑 |
+| 存檔、0／300／1000／3000 ms 後 Ctrl+End、再打字（V7） | 文件尾 16/16 | 未跑 |
+
+差別在移動的完成方式：0.2.24 是 `verified-move-readback`，帶舊游標；0.2.52 是 `documented-callback-visible-cursor`。請求順序 `save`、`move-line-down`、`insertText`，檢查點仍在，但不再把舊游標帶回來。〔已實測〕
