@@ -3,6 +3,9 @@
 #ifdef OXSDK_ODS_VIEWER
 #include "ods_viewer.hpp"
 #endif
+#ifdef OXSDK_MS_FORMATS
+#include "document_format.hpp"
+#endif
 #ifdef OXSDK_ODS_VIEWER_V2
 #if !defined(OXSDK_ODS_VIEWER)
 #error "OXSDK_ODS_VIEWER_V2 is added to the viewer's shape, never used alone"
@@ -80,6 +83,9 @@ extern "C" EMSCRIPTEN_KEEPALIVE std::uint32_t oxsdk_capabilities(void) {
          // startOdsUndoWalk) and the two exports; redo rides on this bit.
          | OXSDK_CAPABILITY_UNDO
 #endif
+#ifdef OXSDK_MS_FORMATS
+         | OXSDK_CAPABILITY_OPEN_XLSX | OXSDK_CAPABILITY_SAVE_XLSX
+#endif
 #endif
 #if HAVE_FEATURE_DBCONNECTIVITY
          | OXSDK_CAPABILITY_FORM_CONTROLS
@@ -102,7 +108,11 @@ extern "C" EMSCRIPTEN_KEEPALIVE std::uint32_t oxsdk_capabilities(void) {
          OXSDK_CAPABILITY_CANCEL_QUEUED | OXSDK_CAPABILITY_SEARCH |
          OXSDK_CAPABILITY_SELECTION_TEXT |
          OXSDK_CAPABILITY_REPLACE_SELECTION | OXSDK_CAPABILITY_UNDO |
-         OXSDK_CAPABILITY_COMMENTS | OXSDK_CAPABILITY_TRACKED_CHANGES;
+         OXSDK_CAPABILITY_COMMENTS | OXSDK_CAPABILITY_TRACKED_CHANGES
+#ifdef OXSDK_MS_FORMATS
+         | OXSDK_CAPABILITY_OPEN_DOCX | OXSDK_CAPABILITY_SAVE_DOCX
+#endif
+         ;
 #endif
 }
 
@@ -125,7 +135,11 @@ extern "C" EMSCRIPTEN_KEEPALIVE int32_t oxsdk_document_open(
 
   return safeStatus([&] {
     std::string name(nameUtf8, nameLength);
-#ifdef OXSDK_ODS_VIEWER
+#ifdef OXSDK_MS_FORMATS
+    // SPEC-P-ms-formats 5.1 E1 (finding 013's narrow surface): the table, per build.
+    if (probe::docformat::acceptedSuffix(probe::docformat::kThisBuild, name).empty())
+      return probe::SubmitStatus::InvalidArgument;
+#elif defined(OXSDK_ODS_VIEWER)
     // W7a (finding 013's allowlist): `.ods` beside `.odt`, either case.
     // Content detection still reads the zip's own `mimetype`.
     if (probe::odsviewer::acceptedSuffix(name).empty())
@@ -193,7 +207,9 @@ extern "C" EMSCRIPTEN_KEEPALIVE int32_t oxsdk_document_save(
     return OXSDK_STATUS_INVALID_ARGUMENT;
   return safeStatus([&] {
     const std::string format(formatUtf8, formatLength);
-#ifdef OXSDK_ODS_EDITOR
+#ifdef OXSDK_MS_FORMATS
+    if (!probe::docformat::savable(probe::docformat::kThisBuild, format))
+#elif defined(OXSDK_ODS_EDITOR)
     if (format != "ods")
 #else
     if (format != "odt")

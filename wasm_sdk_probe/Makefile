@@ -5923,3 +5923,123 @@ $(CALC_STYLE_NATIVE_BUILD)/calc-cell-native: tools/calc_cell_native.cpp $(CALC_S
 		$(CALC_RANGE_NATIVE_CORE)/instdir/program/libuno_cppu.so.3 \
 		$(CALC_RANGE_NATIVE_CORE)/instdir/program/libuno_cppuhelpergcc3.so.3 \
 		-Wl,-rpath,$(abspath $(CALC_RANGE_NATIVE_CORE)/instdir/program) -ldl -o $@
+
+# ------------------------------- Microsoft formats: e2-editor-v33 and ods-editor-v5 (specs/SPEC-P-ms-formats.md 5.1)
+# Each is its predecessor's rule plus OXSDK_MS_FORMATS on every engine object: src/document_format.hpp's table at open, at the
+# MEMFS path, at save, in the capability bits and in the open reply.  No new export, no core change.  Development output under
+# build/, as ods-editor-v4: freezing into dist/ is a separate step after the criteria hold.  Owner-run (the links).
+E2_V33_BUILD := build/e2/editor-v33
+E2_V33_OBJECTS := $(patsubst src/%.cpp,$(E2_V33_BUILD)/%.o,$(E2_C_SOURCES))
+E2_V33_BRIDGE := $(E2_V33_BUILD)/writer_caret_bridge.o
+E2_V33_ARCHIVE := build/archive/e2-editor-v32-54e50093-worker-c394302c
+
+$(E2_V33_BRIDGE): src/writer_caret_bridge.cpp src/writer_caret_bridge.h Makefile | $(E2_V33_BUILD)
+	$(CXX) $(E1_CPPFLAGS) $(R5_CXXFLAGS) -std=c++20 -DLIBO_INTERNAL_ONLY $(EXTRA_DEFINES) -c $< -o $@
+
+$(E2_V33_BUILD)/%.o: src/%.cpp $(HEADERS) src/editor_api.h \
+		src/editor_discovery_api.h src/format_readback_text.hpp \
+		src/a11y_paragraph_identity.hpp src/merge_key_undo.hpp \
+		src/markdown_paste.hpp src/ordered_command_proof.hpp \
+		src/ordered_delete_route.hpp src/ordered_poll.hpp src/ordered_engine_guards.hpp src/reply_state_reads.hpp \
+		src/ordered_engine_state.inc src/ordered_engine_reply.inc src/ordered_engine_poll.inc \
+		src/ordered_engine_delete.inc src/ordered_format.inc src/main_loop_pacing.hpp src/writer_caret_bridge.h \
+		src/document_format.hpp $(E2_V32_MD4C_INCLUDE)/md4c.h Makefile | $(E2_V33_BUILD)
+	$(CXX) $(E1_CPPFLAGS) $(R5_CXXFLAGS) -I$(E2_V32_MD4C_INCLUDE) \
+		-DOXSDK_EDITOR_DISCOVERY \
+		-DOXSDK_FINDING_016_SELECTION_BARRIER -DOXSDK_E2_FORMAT_BARRIER \
+		-DOXSDK_MERGE_KEY_UNDO -DOXSDK_E2_V20_LINK_BATCH \
+		-DOXSDK_E2_V21_LINK_BATCH -DOXSDK_MAINLOOP_ENGINE \
+		-DOXSDK_E2_V23_LINK_BATCH -DOXSDK_E2_V23_FEATURE_ABI6 \
+		-DOXSDK_E2_V24_TYPED_INSERT -DOXSDK_E2_V25_FORMAT_PROOF \
+		-DOXSDK_E2_V27_FIRST_BLOCK -DOXSDK_E2_V28_LAST_BLOCK \
+		-DOXSDK_E2_V29_TICK_PACING -DOXSDK_E2_V31_ALIGNMENT \
+		-DOXSDK_E2_V32_PARAGRAPH_READ -DOXSDK_MS_FORMATS \
+		$(EXTRA_DEFINES) -c $< -o $@
+
+# v32's export surface, unchanged.
+$(E2_V33_BUILD)/exports.txt: $(E2_V33_ARCHIVE)/exports.txt Makefile | $(E2_V33_BUILD)
+	cp $< $@
+
+$(E2_V33_BUILD)/probe.js: $(E2_V33_OBJECTS) $(E2_V33_BRIDGE) $(EXTRA_OBJECTS) \
+		$(E2_V33_BUILD)/exports.txt $(LINKDEPS) $(FS_PRE_JS) Makefile
+	$(call refuse_unasked_relink,DOCX open and save (SPEC-P-ms-formats) -- every link mints a new hash)
+	$(call link_product_stack_1m,$(E2_V33_OBJECTS) $(E2_V33_BRIDGE) $(EXTRA_OBJECTS),$(E2_V33_BUILD)/exports.txt,$@)
+
+$(E2_V33_BUILD)/probe.wasm: $(E2_V33_BUILD)/probe.js
+	@test -s $@
+
+# Derived, not kept in sdk/ (tools/derive_ms_formats_worker.py says why).
+$(E2_V33_BUILD)/sdk-worker.js: dist/profiles/e2-editor-v32/sdk-worker.js tests/v33-worker-delta.json \
+		tools/derive_ms_formats_worker.py | $(E2_V33_BUILD)
+	python3 tools/derive_ms_formats_worker.py --profile writer --out $@
+
+$(E2_V33_BUILD)/profile/sdk-manifest.json: $(E2_V33_BUILD)/probe.js $(E2_V33_BUILD)/sdk-worker.js \
+		$(E2_V33_BUILD)/exports.txt tools/build_ms_formats_profile.py
+	python3 tools/build_ms_formats_profile.py --profile writer --development \
+		--loader $(E2_V33_BUILD)/probe.js --wasm $(E2_V33_BUILD)/probe.wasm \
+		--worker $(E2_V33_BUILD)/sdk-worker.js --exports $(E2_V33_BUILD)/exports.txt \
+		--base-exports $(E2_V33_ARCHIVE)/exports.txt --output $(E2_V33_BUILD)/profile
+
+$(E2_V33_BUILD):
+	mkdir -p $@
+
+ODS_EDITOR_V5_BUILD := build/ods/editor-v5
+ODS_EDITOR_V5_DIST := dist/profiles/ods-editor-v5
+ODS_EDITOR_V5_DEFINES := $(ODS_EDITOR_V4_DEFINES) -DOXSDK_MS_FORMATS
+ODS_EDITOR_V5_OBJECTS := $(patsubst src/%.cpp,$(ODS_EDITOR_V5_BUILD)/%.o,$(ODS_EDITOR_V3_SOURCES))
+
+$(ODS_EDITOR_V5_BUILD)/%.o: src/%.cpp $(HEADERS) src/ods_viewer.hpp src/document_format.hpp \
+		src/calc_cell_bridge.h Makefile | $(ODS_EDITOR_V5_BUILD)
+	$(CXX) $(ODS_EDITOR_V3_CPPFLAGS) $(R5_CXXFLAGS) $(ODS_EDITOR_V5_DEFINES) -c $< -o $@
+
+# The bridge has no format code: v4's flags.
+$(ODS_EDITOR_V5_BUILD)/calc_cell_bridge.o: src/calc_cell_bridge.cpp \
+		src/calc_cell_bridge.h Makefile | $(ODS_EDITOR_V5_BUILD)
+	$(CXX) $(ODS_EDITOR_V3_CPPFLAGS) $(R5_CXXFLAGS) -std=c++20 \
+		-DLIBO_INTERNAL_ONLY -DOXSDK_ODS_RANGE -DOXSDK_ODS_STYLE -DOXSDK_ODS_UNDO -c $< -o $@
+
+# v4's list, unchanged (v4's own rule makes it from the core's exports).
+$(ODS_EDITOR_V5_BUILD)/exports.txt: $(ODS_EDITOR_V4_BUILD)/exports.txt Makefile | $(ODS_EDITOR_V5_BUILD)
+	cp $< $@
+
+$(ODS_EDITOR_V5_BUILD)/probe.js: $(ODS_EDITOR_V5_OBJECTS) \
+		$(ODS_EDITOR_V5_BUILD)/calc_cell_bridge.o $(ODS_EDITOR_V5_BUILD)/exports.txt
+	@test ! -e $(ODS_EDITOR_V5_DIST)/sdk-manifest.json || \
+		{ echo "ods-editor-v5 is frozen; use a successor profile"; exit 1; }
+	$(CXX) $(ODS_EDITOR_V5_OBJECTS) $(ODS_EDITOR_V5_BUILD)/calc_cell_bridge.o \
+		-L$(ODS_EDITOR_V3_CORE)/instdir/program \
+		$$(cat $(ODS_EDITOR_V3_CORE)/instdir/program/soffice.js.linkdeps) \
+		-pthread -fwasm-exceptions -sSUPPORT_LONGJMP=wasm --no-entry -Oz \
+		-sMODULARIZE -sEXPORT_NAME=createProbeModule \
+		-sTOTAL_MEMORY=1GB -sPTHREAD_POOL_SIZE=7 -sPTHREAD_POOL_SIZE_STRICT=0 \
+		-sSTACK_SIZE=131072 -sDEFAULT_PTHREAD_STACK_SIZE=1048576 \
+		-sFORCE_FILESYSTEM=1 -sWASM_BIGINT=1 -sERROR_ON_UNDEFINED_SYMBOLS=1 -sFETCH=1 \
+		-sASSERTIONS=0 -sEXIT_RUNTIME=0 -sEXPORTED_RUNTIME_METHODS=ccall,FS,HEAPU8 \
+		-sEXPORTED_FUNCTIONS=@$(ODS_EDITOR_V5_BUILD)/exports.txt \
+		-Wl,--wrap=_Z18initJsUnoScriptingv \
+		--pre-js $(LOSRC)/static/emscripten/environment.js \
+		--pre-js $(ODS_EDITOR_V3_CORE)/workdir/CustomTarget/static/emscripten_fs_image/soffice.data.js.link \
+		-o $@
+
+$(ODS_EDITOR_V5_BUILD)/sdk-worker.js: dist/profiles/ods-editor-v4/sdk-worker.js \
+		tests/ods-v5-worker-delta.json tools/derive_ms_formats_worker.py | $(ODS_EDITOR_V5_BUILD)
+	python3 tools/derive_ms_formats_worker.py --profile calc --out $@
+
+$(ODS_EDITOR_V5_BUILD)/profile/sdk-manifest.json: $(ODS_EDITOR_V5_BUILD)/probe.js \
+		$(ODS_EDITOR_V5_BUILD)/sdk-worker.js $(ODS_EDITOR_V5_BUILD)/exports.txt tools/build_ms_formats_profile.py
+	python3 tools/build_ms_formats_profile.py --profile calc --development \
+		--loader $(ODS_EDITOR_V5_BUILD)/probe.js --wasm $(ODS_EDITOR_V5_BUILD)/probe.wasm \
+		--worker $(ODS_EDITOR_V5_BUILD)/sdk-worker.js --exports $(ODS_EDITOR_V5_BUILD)/exports.txt \
+		--base-exports $(ODS_EDITOR_V4_BUILD)/exports.txt --output $(ODS_EDITOR_V5_BUILD)/profile
+
+$(ODS_EDITOR_V5_BUILD):
+	mkdir -p $@
+
+# Focused tests only; no objects, no link.  SPEC-P-ms-formats 6.1 F1, F3.
+.PHONY: test-ms-formats-static
+test-ms-formats-static:
+	mkdir -p build/ms-formats-static
+	g++ -std=c++17 -Wall -Wextra -I src tests/document_format_test.cpp -o build/ms-formats-static/document-format-test
+	build/ms-formats-static/document-format-test
+	python3 -I tests/document_format_mutations.py
+	node tests/ms_formats_worker_test.cjs

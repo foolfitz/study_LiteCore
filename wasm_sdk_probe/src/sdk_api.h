@@ -63,6 +63,14 @@ typedef enum oxsdk_capability {
   , OXSDK_CAPABILITY_CELL_RANGE_STYLING = 1u << 19
 #endif
 #endif
+#ifdef OXSDK_MS_FORMATS
+  /* SPEC-P-ms-formats 5.1 E4: DOCX in the Writer editor, XLSX in the Calc
+     editor (src/document_format.hpp's table); each build returns its pair. */
+  , OXSDK_CAPABILITY_OPEN_DOCX = 1u << 20,
+  OXSDK_CAPABILITY_SAVE_DOCX = 1u << 21,
+  OXSDK_CAPABILITY_OPEN_XLSX = 1u << 22,
+  OXSDK_CAPABILITY_SAVE_XLSX = 1u << 23
+#endif
 } oxsdk_capability;
 
 uint32_t oxsdk_abi_version(void);

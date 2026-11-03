@@ -79,6 +79,9 @@
 #error "OXSDK_ODS_VIEWER_V2 is added to the viewer's shape, never used alone"
 #endif
 #include "sdk_api.h"
+#ifdef OXSDK_MS_FORMATS
+#include "document_format.hpp"
+#endif
 #ifdef OXSDK_ODS_EDITOR
 #include "calc_cell_bridge.h"
 #if !defined(OXSDK_ODS_VIEWER_V2)
@@ -3650,7 +3653,12 @@ std::uint32_t allocateDocumentHandle() {
 // under, so documentLoad sees `.ods` for a spreadsheet.  sdk_api.cpp refuses
 // every other name before the queue; `.odt` is what a non-SDK open gets.
 std::string inputSuffixFor(const Command &command) {
+#ifdef OXSDK_MS_FORMATS
+  const std::string suffix =
+      probe::docformat::acceptedSuffix(probe::docformat::kThisBuild, command.name);
+#else
   const std::string suffix = probe::odsviewer::acceptedSuffix(command.name);
+#endif
   return suffix.empty() ? ".odt" : suffix;
 }
 #endif
@@ -3660,6 +3668,14 @@ bool writeInputFile(const Command &command, std::string &fileUrl) {
   const std::string path = "/tmp/oxsdk-input-" +
                            std::to_string(command.requestId) +
                            inputSuffixFor(command);
+#elif defined(OXSDK_MS_FORMATS)
+  // SPEC-P-ms-formats 5.1 E2: the Writer editor's input file carries the suffix
+  // the name was accepted under, as the viewer's has since review M1.
+  const std::string accepted =
+      probe::docformat::acceptedSuffix(probe::docformat::kThisBuild, command.name);
+  const std::string path = "/tmp/oxsdk-input-" +
+                           std::to_string(command.requestId) +
+                           (accepted.empty() ? ".odt" : accepted);
 #else
   const std::string path =
       "/tmp/oxsdk-input-" + std::to_string(command.requestId) + ".odt";
@@ -3813,6 +3829,13 @@ void handleOpen(const Command &command) {
        << probe::odsviewer::documentTypeName(
               gState.document->pClass->getDocumentType(gState.document))
        << "\",\"inputSuffix\":\"" << inputSuffixFor(command) << "\"";
+#endif
+#ifdef OXSDK_MS_FORMATS
+  // E5: the format the session saves this document in, from the same table
+  // the name was accepted by ("" for an open that did not come through the SDK).
+  json << ",\"format\":\""
+       << probe::docformat::openFormat(probe::docformat::kThisBuild, command.name)
+       << "\"";
 #endif
   if (command.sdk) {
     json << ",\"schemaVersion\":" << ProtocolSchemaVersion

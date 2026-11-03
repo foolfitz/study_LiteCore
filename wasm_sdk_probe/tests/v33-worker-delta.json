@@ -1,0 +1,21 @@
+{
+ "schema": 1,
+ "note": "SPEC-P-ms-formats 5.1 E4, E5: the closed list of replacements taking the frozen e2-editor-v32 worker (dist/profiles/e2-editor-v32/sdk-worker.js) to the e2-editor-v33 worker, applied in order, each occurring exactly once (tools/derive_ms_formats_worker.py).",
+ "hunks": [
+  {
+   "item": "1 header comment",
+   "old": "// SPEC-P-demo-batch-4: the e2-editor-v32 worker.  The v31 worker plus a closed list\n",
+   "new": "// SPEC-P-ms-formats 5.1: the e2-editor-v33 worker.  The v32 worker plus a closed list\n// (tests/v33-worker-delta.json): the open reply's format, the docx gates, this comment.\n//\n// SPEC-P-demo-batch-4: the e2-editor-v32 worker.  The v31 worker plus a closed list\n"
+  },
+  {
+   "item": "2 the open reply carries the engine's format (E5)",
+   "old": "    tileMode: event.tileMode,\n    viewReady: true,\n  });\n  postEvent(\"view-ready\", {",
+   "new": "    tileMode: event.tileMode,\n    viewReady: true,\n    // SPEC-P-ms-formats E5: named, and only when the engine sent it.\n    ...(typeof event.format === \"string\" ? { format: event.format } : {}),\n  });\n  postEvent(\"view-ready\", {"
+  },
+  {
+   "item": "3 docx needs its own capability to open and to save (E4)",
+   "old": "  const payload = request.payload || {};\n  const requiredCapability = OPERATION_CAPABILITIES.get(request.operation);\n",
+   "new": "  const payload = request.payload || {};\n  // SPEC-P-ms-formats E4: a .docx name opens, and docx saves, only where the\n  // manifest says so; everything else keeps its row.\n  const requiredCapability =\n    request.operation === \"open\" && /\\.docx$/i.test(String(payload.name || \"\")) ? \"open-docx\"\n    : request.operation === \"save\" && payload.format === \"docx\" ? \"save-docx\"\n    : OPERATION_CAPABILITIES.get(request.operation);\n"
+  }
+ ]
+}

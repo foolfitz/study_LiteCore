@@ -1,0 +1,21 @@
+{
+ "schema": 1,
+ "note": "SPEC-P-ms-formats 5.1 E4, E5: the closed list of replacements taking the frozen ods-editor-v4 worker (dist/profiles/ods-editor-v4/sdk-worker.js) to the ods-editor-v5 worker, applied in order, each occurring exactly once (tools/derive_ms_formats_worker.py).",
+ "hunks": [
+  {
+   "item": "1 header comment",
+   "old": "// SPEC-P-calc-undo 4.2: the ods-editor-v4 worker.  Derived from the frozen\n",
+   "new": "// SPEC-P-ms-formats 5.1: the ods-editor-v5 worker.  The v4 worker plus a closed list\n// (tests/ods-v5-worker-delta.json): the open reply's format, the xlsx gates, this comment.\n//\n// SPEC-P-calc-undo 4.2: the ods-editor-v4 worker.  Derived from the frozen\n"
+  },
+  {
+   "item": "2 the open reply carries the engine's format (E5)",
+   "old": "    ...(typeof event.inputSuffix === \"string\" ? { inputSuffix: event.inputSuffix } : {}),\n",
+   "new": "    ...(typeof event.inputSuffix === \"string\" ? { inputSuffix: event.inputSuffix } : {}),\n    // SPEC-P-ms-formats E5: named, and only when the engine sent it.\n    ...(typeof event.format === \"string\" ? { format: event.format } : {}),\n"
+  },
+  {
+   "item": "3 xlsx needs its own capability to open and to save (E4)",
+   "old": "  const requiredCapability = request.operation === \"save\" && payload.format === \"ods\"\n    ? \"save-ods\" : OPERATION_CAPABILITIES.get(request.operation);\n",
+   "new": "  // SPEC-P-ms-formats E4: a .xlsx name opens, and xlsx saves, only where the\n  // manifest says so; everything else keeps its row.\n  const requiredCapability = request.operation === \"save\" && payload.format === \"ods\"\n    ? \"save-ods\"\n    : request.operation === \"open\" && /\\.xlsx$/i.test(String(payload.name || \"\")) ? \"open-xlsx\"\n    : request.operation === \"save\" && payload.format === \"xlsx\" ? \"save-xlsx\"\n    : OPERATION_CAPABILITIES.get(request.operation);\n"
+  }
+ ]
+}

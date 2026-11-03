@@ -1,0 +1,26 @@
+Thread 1 (Thread 0x7fffee76be00 (LWP 417964) "msformat-native"):
+#0  0x00007fff936e6f08 in mdds::mtv::soa::multi_type_vector<sc::CellStoreTraits>::cend() const () at build-native-26-8/instdir/program/../program/libsclo.so
+#1  0x00007fff938eebb1 in ScQueryCellIteratorBase<(ScQueryCellIteratorAccess)0, (ScQueryCellIteratorType)1>::PerformQuery() () at build-native-26-8/instdir/program/../program/libsclo.so
+#2  0x00007fff938efa93 in ScCountIfCellIterator<(ScQueryCellIteratorAccess)0>::GetCount() () at build-native-26-8/instdir/program/../program/libsclo.so
+#3  0x00007fff93a21ac6 in ScInterpreter::ScCountIf() () at build-native-26-8/instdir/program/../program/libsclo.so
+#4  0x00007fff93a70167 in ScInterpreter::Interpret() () at build-native-26-8/instdir/program/../program/libsclo.so
+#5  0x00007fff938941c9 in ScFormulaCell::InterpretTail(ScInterpreterContext&, ScFormulaCell::ScInterpretTailParameter) () at build-native-26-8/instdir/program/../program/libsclo.so
+#6  0x00007fff9389aadb in ScFormulaCell::Interpret(int, int) () at build-native-26-8/instdir/program/../program/libsclo.so
+#7  0x00007fff9389c1c2 in ScFormulaCell::GetErrCode() () at build-native-26-8/instdir/program/../program/libsclo.so
+#8  0x00007fff93996871 in ScCellFormat::GetString(ScRefCellValue const&, unsigned int, Color const**, ScInterpreterContext*, ScDocument const&, bool, bool, bool) () at build-native-26-8/instdir/program/../program/libsclo.so
+#9  0x00007fff9372a642 in ScColumn::UpdateScriptType(sc::CellTextAttr&, int, mdds::mtv::soa::detail::iterator_base<mdds::mtv::soa::multi_type_vector<sc::CellStoreTraits>::iterator_trait>&) () at build-native-26-8/instdir/program/../program/
+#10 0x00007fff93708cbd in ScColumn::GetRangeScriptType(mdds::mtv::soa::detail::iterator_base<mdds::mtv::soa::multi_type_vector<sc::CellTextAttrTraits>::iterator_trait>&, int, int, mdds::mtv::soa::detail::iterator_base<mdds::mtv::soa::multi_
+#11 0x00007fff936d19bb in ScColumn::HasEditCells(int, int, int&) () at build-native-26-8/instdir/program/../program/libsclo.so
+#12 0x00007fff93713ed5 in ScColumn::GetOptimalHeight(sc::RowHeightContext&, int, int, unsigned short, int) () at build-native-26-8/instdir/program/../program/libsclo.so
+#13 0x00007fff93913b31 in (anonymous namespace)::GetOptimalHeightsInColumn(sc::RowHeightContext&, ScColContainer&, int, int, ScProgress*, unsigned long) () at build-native-26-8/instdir/program/../program/libsclo.so
+#14 0x00007fff93914d51 in ScTable::SetOptimalHeight(sc::RowHeightContext&, int, int, bool, ScProgress*, unsigned long) () at build-native-26-8/instdir/program/../program/libsclo.so
+#15 0x00007fff9377ac89 in ScDocRowHeightUpdater::update(bool) () at build-native-26-8/instdir/program/../program/libsclo.so
+#16 0x00007fff93c1a408 in ScXMLImport::endDocument() () at build-native-26-8/instdir/program/../program/libsclo.so
+#17 0x00007ffff5477597 in sax_fastparser::FastSaxParserImpl::parseStream(com::sun::star::xml::sax::InputSource const&) () at build-native-26-8/instdir/program/libsaxlo.so
+#18 0x00007fffeca991e5 in SvXMLImport::parseStream(com::sun::star::xml::sax::InputSource const&) () at build-native-26-8/instdir/program/libxolo.so
+#19 0x00007fff93c39100 in ScXMLImportWrapper::ImportFromComponent(com::sun::star::uno::Reference<com::sun::star::uno::XComponentContext> const&, com::sun::star::uno::Reference<com::sun::star::frame::XModel> const&, com::sun::star::xml::sax:
+#20 0x00007fff935a11a1 in ScXMLImportWrapper::Import(ImportFlags, ErrCodeMsg&) [clone .cold] () at build-native-26-8/instdir/program/../program/libsclo.so
+#21 0x00007fff93d868ce in ScDocShell::LoadXML(SfxMedium*, com::sun::star::uno::Reference<com::sun::star::embed::XStorage> const&) () at build-native-26-8/instdir/program/../program/libsclo.so
+#22 0x00007fff93d8760d in ScDocShell::Load(SfxMedium&) () at build-native-26-8/instdir/program/../program/libsclo.so
+#23 0x00007ffff79ae458 in SfxObjectShell::LoadOwnFormat(SfxMedium&) () at build-native-26-8/instdir/program/libsfxlo.so
+#24 0x00007ffff7c831b6 in SfxObjectShell::DoLoad(SfxMedium*) () at build-native-26-8/instdir/program/libsfxlo.so
