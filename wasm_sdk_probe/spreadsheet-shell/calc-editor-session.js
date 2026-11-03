@@ -304,7 +304,7 @@ export class CalcEditorSession {
   }
   // SPEC-P-calc-undo 4.3 and 5.  An entry not yet sent is the newest change:
   // undo drops it and sends nothing (sending it first would only make the undo
-  // take it back again).  Redo waits until the entry is committed or cancelled.
+  // take it back again).  Redo leaves it and answers {draftPending}.
   _draftPending() { return this._editing!==null && this._draft!==this._cell?.input; }
   undo() {
     if(this._draftPending()) {
@@ -314,8 +314,7 @@ export class CalcEditorSession {
     return this._walk("undo");
   }
   redo() {
-    if(this._draftPending())
-      return Promise.reject(new DocumentSdkError("DRAFT_PENDING","commit or cancel the cell entry first"));
+    if(this._draftPending())return Promise.resolve({draftPending:true});
     return this._walk("redo");
   }
   _walk(direction) {
@@ -324,6 +323,9 @@ export class CalcEditorSession {
       if(this._readOnly)throw new DocumentSdkError("READ_ONLY","this spreadsheet cannot be edited");
       if(this.document.undoSupported!==true)
         throw new DocumentSdkError("UNSUPPORTED_OPERATION","this engine has no document undo");
+      // Codex review 3: an entry begun while this waited in the queue (behind a
+      // save, say) was not the change this press meant; keep it, send nothing.
+      if(this._draftPending())return {draftPending:true};
       this._editing=null;
       let result;
       try {
@@ -335,15 +337,14 @@ export class CalcEditorSession {
       }
       this.scheduler.invalidateRevision(this.document.revision);
       // The engine's cell cursor moves to the restored cell for an input undo and
-      // stays for an attribute undo (NU-2); the page follows a move only.  A move
-      // to another sheet shows that sheet, keeping the active cell of the one left.
+      // stays for an attribute undo (NU-2); the session follows a move only.  A
+      // move to another sheet is answered {otherSheet}: the caller switches the
+      // way a sheet tab does (showPart, then selectCell), so its own view of the
+      // sheet left is kept (Codex review 5).
       const cursor=result.cursor;
+      if(cursor?.moved===true && cursor.part!==this._cell.part)return {...result,otherSheet:true};
       try {
         if(cursor?.moved===true) {
-          if(cursor.part!==this._cell.part) {
-            this._sheetCells.set(this._cell.part,{column:this._cell.column,row:this._cell.row});
-            await this.viewer.showPart(cursor.part);
-          }
           const {cell}=await this.document.readCell(cursor.column,cursor.row,{part:cursor.part});
           this._adopt(cell);
         } else if(this._selection?.multiple) {

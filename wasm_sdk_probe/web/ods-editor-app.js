@@ -437,7 +437,20 @@ function walk(direction) {
   }
   cancelDrag();
   void action(async()=>{
-    const result=await session[direction]();
+    // As in showSheet: no paint until the session has settled.  An undo whose
+    // restored cell is on another sheet switches the way a tab does, keeping the
+    // view of the sheet left (Codex review 5).
+    const from=session.state.currentPart,view=sheetView();
+    let result;
+    sheetSwitching=true;
+    try { result=await session[direction](); } finally { sheetSwitching=false; }
+    if(result?.otherSheet) {
+      sheetViews.set(from,view);
+      await showSheet(result.cursor.part);
+      await session.selectCell(result.cursor.column,result.cursor.row);
+    }
+    render(session.state);
+    if(result?.draftPending){notice("請先完成或取消目前的輸入。",true);return;}
     notice(result?.draftDiscarded ? "已取消輸入中的內容，文件沒有變動。"
       : result?.nothing ? (direction==="undo" ? "沒有可以復原的動作。" : "沒有可以重做的動作。")
       : direction==="undo" ? "已復原。" : "已重做。");

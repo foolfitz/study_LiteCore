@@ -269,7 +269,12 @@ extern "C" EMSCRIPTEN_KEEPALIVE int32_t oxsdk_document_replace_selection(
                                    std::string(utf8, utf8Length));
   });
 }
+#endif
 
+// SPEC-P-calc-undo 4.2 E2 (Codex review 1): undo and redo are compiled for the
+// Calc editor too when it carries OXSDK_ODS_UNDO; the rest of this reader-
+// excluded block (selection, comments, tracked changes) stays Writer's.
+#if !defined(OXSDK_READER_PROFILE) || defined(OXSDK_ODS_UNDO)
 extern "C" EMSCRIPTEN_KEEPALIVE int32_t oxsdk_document_undo(
     oxsdk_request_id requestId, oxsdk_document_handle documentHandle,
     std::uint32_t expectedRevision) {
@@ -289,7 +294,9 @@ extern "C" EMSCRIPTEN_KEEPALIVE int32_t oxsdk_document_redo(
     return probe::redo(requestId, documentHandle, expectedRevision);
   });
 }
+#endif
 
+#ifndef OXSDK_READER_PROFILE
 extern "C" EMSCRIPTEN_KEEPALIVE int32_t oxsdk_document_add_comment(
     oxsdk_request_id requestId, oxsdk_document_handle documentHandle,
     std::uint32_t expectedRevision, const char *textUtf8,

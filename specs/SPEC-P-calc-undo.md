@@ -127,3 +127,16 @@
 - **NU-2 的七條前提全部成立**，E4 與頁面設計照原樣：新文件是空的、一次寫入加一筆、沒改到東西的寫入不加、undo 把一筆移到 redo、redo 移回來、undo 後再寫入清空 redo、存檔不清堆疊。〔已實測〕
 - **完成回呼沒有資訊**：`.uno:Undo`／`.uno:Redo` 不論有沒有做事都立刻回 `success: false`。E4 的理由改成這個量測（不再是「空堆疊時有沒有回呼還沒量過」——有，而且立刻回）。E4 的設計不變：派送前後各讀一次清單，用數量判定。〔已實測〕
 - **游標，取代 4.3「若 NU-2 量到……」那一句**：輸入的 undo 會把引擎的游標拉回被還原的格子，屬性的 undo 不會。E4 在 undo 前後各讀一次 `.uno:CellCursor`（字串最後兩個數是欄、列），回覆帶 `cursor: {column, row, moved}`；`moved` 為真時頁面選取跟過去，否則不動。和 LibreOffice 的行為相同。〔已實測：A1 → F1；範圍粗體的 undo 游標不動〕
+
+## 6. 追加 4（2026-11-03，實作與 Codex 唯讀審核之後，連結之前）
+
+`findings/evidence/calc-undo/review/README.md`。取代 4.2、4.3 的下列細節，原文留著：
+
+- **E2 補一處**：`sdk_api.cpp` 的 undo／redo 原本包在 `#ifndef OXSDK_READER_PROFILE` 裡，Calc 組態有這個定義，函式根本不存在，連結會失敗（Codex 抓到；`-fsyntax-only` 看不到）。改成 `!OXSDK_READER_PROFILE || OXSDK_ODS_UNDO` 時編入。新增連結前檢查 `check_calc_undo_ships.py`：v4 匯出規則裡每個名字在 v4 組態前置處理後都要有函式本體，附紅案。
+- **E4 補兩處**：walk 進行中 `dispatch()` 擋下驗證步驟、圖塊繪製以外的所有命令（BUSY），驗證步驟帶序號；派送後讀 `getError`，派送失敗當場以 `LOK_COMMAND_FAILED` 收尾。
+- **具名限制 `L-undo-no-deadline`**：派送既沒失敗也沒回呼（例如 `isCommandAllowed` 靜默擋下）時沒有期限；SDK 60 秒逾時讓頁面進入 uncertain。〔推論，未觀測到實例〕
+- **worker**：4.2 寫「與 v3 位元組相同，除非 NU-2 逼出差異」。實作時逼出了兩處差異：worker 收到 `undone` 只轉 `revision`，計數與游標到不了頁面。v4 worker＝凍結的 v3 worker 加 `tests/ods-v4-worker-delta.json` 的兩段，**不放在 `sdk/`**，連結時由 `tools/derive_ods_v4_worker.py` 產生：Writer 的 shell bundle 會掃 `sdk/*.js`，放進去會讓第 88 代的 bundle 檢查轉紅。
+- **草稿，取代 4.3 的對應句**：按下時有草稿 → 復原丟掉草稿、重做回 `{draftPending}`（不再是錯誤）；草稿是在排隊等待期間才出現的 → 兩者都回 `{draftPending}`，草稿留著、不送引擎。頁面提示「請先完成或取消目前的輸入。」
+- **跨表，取代 5 的游標那條的後半**：游標移到別的工作表時，session 回 `{otherSheet}` 不自己換表；頁面照分頁標籤的流程換表（保存離開那張表的檢視），再選取被還原的格子。
+- **頁面指向 v4**：連結並凍結 `dist/profiles/ods-editor-v4` 之後才改頁面的 `ENGINE_OPTIONS`，和 Writer 換 profile 相同。
+- **新增判準 CU-9**（被第 5 點逼出，先於任何連結）：在 Sheet2 寫入、切回 Sheet1、按復原：顯示 Sheet2 且選取被還原的格子；切回 Sheet1 時捲動位置是離開前的位置。

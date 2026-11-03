@@ -388,8 +388,10 @@ struct OdsUndoWalk {
   int partBefore = 0;
   int columnBefore = 0;
   int rowBefore = 0;
+  std::uint64_t serial = 0;  // the verify step carries it (Codex review 2)
 };
 OdsUndoWalk gOdsUndo;
+std::uint64_t gOdsUndoSerial = 0;
 
 // commandResultMatches is the editor's (OXSDK_EDITOR_DISCOVERY); Calc has none.
 // The payload is LOK's {"commandName": ".uno:Undo", "success": false, ...}.
@@ -3560,6 +3562,7 @@ void onLokCallback(int type, const char *payload, void *) {
         Command step{CommandType::OdsUndoVerify};
         step.requestId = requestId;
         step.documentHandle = documentHandle;
+        step.correlation = gOdsUndo.serial;
         if (submit(std::move(step)) != SubmitStatus::Ok) {
           const bool redo = gOdsUndo.redo;
           gOdsUndo = OdsUndoWalk{};
@@ -5412,12 +5415,35 @@ void startOdsUndoWalk(const Command &command, bool redo) {
   walk.redoBefore = redoCount;
   walk.cursorBefore =
       readOdsCellCursor(walk.partBefore, walk.columnBefore, walk.rowBefore);
+  walk.serial = ++gOdsUndoSerial;
   // Before the dispatch: the result can arrive inside postUnoCommand.
   gOdsUndo = walk;
   startUnoMutation(command, operation, redo ? ".uno:Redo" : ".uno:Undo", {});
+  // Codex review 6.  postUnoCommand clears LibreOfficeKit's error on entry and
+  // sets it when the dispatch fails (desktop/source/lib/init.cxx,
+  // doc_postUnoCommand), and then no result ever comes.  Nothing was
+  // dispatched: end the walk here rather than leave it waiting.
+  if (gUnoRequestId.load(std::memory_order_acquire) == command.requestId &&
+      gState.kit && gState.kit->pClass && gState.kit->pClass->getError) {
+    char *error = gState.kit->pClass->getError(gState.kit);
+    const std::string message = error ? error : "";
+    if (error && gState.kit->pClass->freeError)
+      gState.kit->pClass->freeError(error);
+    if (!message.empty()) {
+      gUnoRequestId.store(0, std::memory_order_release);
+      gUnoOperation.clear();
+      gOdsUndo = OdsUndoWalk{};
+      emitCommandError(command, operation, "LOK_COMMAND_FAILED",
+                       "nothing was dispatched: " + message);
+      finishAsynchronous(command.requestId);
+    }
+  }
 }
 
-void handleOdsUndoVerify(const Command &) {
+void handleOdsUndoVerify(const Command &command) {
+  // A step left over from a walk that already ended is not this walk's.
+  if (!gOdsUndo.active || command.correlation != gOdsUndo.serial)
+    return;
   const OdsUndoWalk walk = gOdsUndo;
   gOdsUndo = OdsUndoWalk{};
   const char *operation = walk.redo ? "redone" : "undone";
@@ -7702,6 +7728,18 @@ void dispatch(const Command &command) {
 #endif
     emitCommandError(command, "selection-barrier", "BUSY",
                      "a verified selection delete is still in flight");
+    return;
+  }
+#endif
+#ifdef OXSDK_ODS_UNDO
+  // SPEC-P-calc-undo, Codex review 2.  Between an undo's dispatch and its
+  // verification nothing may move the undo lists, the cell cursor or the
+  // document (a cell read moves the cursor too); a paint may.
+  if (gOdsUndo.active && command.type != CommandType::OdsUndoVerify &&
+      command.type != CommandType::PaintTile &&
+      command.type != CommandType::EmitReady) {
+    emitCommandError(command, gOdsUndo.redo ? "redone" : "undone", "BUSY",
+                     "an undo or redo is still being verified");
     return;
   }
 #endif

@@ -356,11 +356,26 @@ test("undo with an entry not yet sent drops it and sends nothing",async()=>{
   await session.close();
 });
 
-test("redo with an entry not yet sent is refused and sends nothing",async()=>{
+test("redo with an entry not yet sent leaves it and sends nothing",async()=>{
   const {session,calls}=await withUndo();
   session.beginEdit("inline");session.setDraft("沒送出");
-  await assert.rejects(session.redo(),{code:"DRAFT_PENDING"});
+  assert.deepEqual(await session.redo(),{draftPending:true});
   assert.equal(session.state.draft,"沒送出");assert.deepEqual(calls,[]);
+  assert.equal(session.state.error,null);
+  await session.close();
+});
+
+test("an entry begun while the undo waited in the queue is kept, and nothing is sent (Codex review 3)",async()=>{
+  const {session,calls}=await withUndo();
+  let release;
+  const held=session.save(()=>new Promise(r=>release=r));
+  await new Promise(r=>setTimeout(r,0));
+  const undo=session.undo();
+  session.beginEdit("inline");session.setDraft("排隊時打的");
+  release();await held;
+  assert.deepEqual(await undo,{draftPending:true});
+  assert.equal(session.state.draft,"排隊時打的");
+  assert.deepEqual(calls.filter(c=>c[0]==="undo"),[]);
   await session.close();
 });
 
@@ -384,11 +399,14 @@ test("an undo that left the cursor keeps the selection and re-reads it",async()=
   await session.close();
 });
 
-test("an undo whose cursor moved to another sheet shows that sheet",async()=>{
+test("an undo whose cursor moved to another sheet says so and leaves the switch to the caller",async()=>{
   const {session,doc,calls}=await withUndo();
   doc.next.push({cursor:{part:1,column:2,row:4,moved:true}});
-  await session.redo();
-  assert.ok(calls.some(c=>c[0]==="part"&&c[1]===1),"the sheet was not shown");
+  const result=await session.redo();
+  assert.equal(result.otherSheet,true);
+  assert.ok(!calls.some(c=>c[0]==="part"),"the session switched sheets itself");
+  // The caller switches the way a tab does, then selects the restored cell.
+  await session.showPart(1);await session.selectCell(2,4);
   assert.deepEqual([session.state.cell.part,session.state.cell.column,session.state.cell.row],[1,2,4]);
   await session.close();
 });
