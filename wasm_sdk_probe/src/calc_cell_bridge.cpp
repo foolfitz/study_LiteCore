@@ -398,6 +398,34 @@ ptree access(LibreOfficeKitDocument *doc, int part, int column, int row, int ope
       }
     } else {
       const bool on = enabled != 0;
+#ifdef OXSDK_ODS_UNDO
+      // SPEC-P-calc-undo 4.2 E3.  One setPropertyValue per script was one undo
+      // action each: a single-cell bold took three undos (NU, native-01).  The
+      // properties that differ are written in ONE setPropertyValues, the way
+      // op 7 and 8 write a range, so the cell's bold or italic is one undo.
+      if (operation == 2 || operation == 3) {
+        const auto weight = on ? awt::FontWeight::BOLD : awt::FontWeight::NORMAL;
+        const auto slant = on ? awt::FontSlant_ITALIC : awt::FontSlant_NONE;
+        std::vector<OUString> names;
+        std::vector<uno::Any> values;
+        for (const auto &key : operation == 2
+                 ? std::vector<OUString>{u"CharWeight"_ustr, u"CharWeightAsian"_ustr, u"CharWeightComplex"_ustr}
+                 : std::vector<OUString>{u"CharPosture"_ustr, u"CharPostureAsian"_ustr, u"CharPostureComplex"_ustr}) {
+          const bool differs = operation == 2 ? property<float>(props, key) != weight
+                                              : property<awt::FontSlant>(props, key) != slant;
+          if (differs) {
+            names.push_back(key);
+            values.push_back(operation == 2 ? uno::Any(weight) : uno::Any(slant));
+          }
+        }
+        if (!names.empty()) {
+          mutationAttempted = changed = true;
+          Reference<beans::XMultiPropertySet> multi(cursor, uno::UNO_QUERY_THROW);
+          multi->setPropertyValues(uno::Sequence<OUString>(names.data(), names.size()),
+                                   uno::Sequence<uno::Any>(values.data(), values.size()));
+        }
+      } else
+#endif
       if (operation == 2) {
         const float value = on ? awt::FontWeight::BOLD : awt::FontWeight::NORMAL;
         for (const auto &key : {u"CharWeight"_ustr, u"CharWeightAsian"_ustr, u"CharWeightComplex"_ustr}) {

@@ -5,12 +5,17 @@ Per arm, a fresh cell-editing.ods: save with no write (B), the arm's writes, a r
 by an op 0 read of the target cell and a save (U_k).  Back = every cell of the first sheet has B's content (value type, value, formula, text) and B's resolved
 automatic style (every attribute of the style element and of its property children, the name aside).  Steps = the least k whose U_k is back.
 This script never compiles.
-  probe_calc_undo_native.py --out DIR
+  probe_calc_undo_native.py --out DIR [--binary PATH]
+
+--binary (SPEC-P-calc-undo 4.4, NU-3): another driver with calc_cell_native's protocol, such as build/calc-undo-native/{undo,control}/
+calc-undo-native from build_calc_undo_native.py.  Without it the binary is build/calc-style-native/calc-cell-native, as for native-01.
 """
 import argparse
 import hashlib
 import json
+import os
 import shutil
+import subprocess
 from pathlib import Path
 import xml.etree.ElementTree as ET
 import zipfile
@@ -91,6 +96,36 @@ def sheet_state(path):
     return state
 
 
+BINARY = None
+
+
+def run_driver(out, name, file, requests):
+    """run_calc_cell_native.run with the binary as a parameter; the same files, the same checks."""
+    profile = out / f"profile-{name}"
+    profile.mkdir()
+    inputs = "".join(json.dumps(r, ensure_ascii=False) + "\n" for r in requests)
+    (out / f"{name}-requests.jsonl").write_text(inputs)
+    command = [str(BINARY), str(native.CORE / "instdir/program"), profile.as_uri(), file.as_uri()]
+    with (out / f"{name}-stderr.txt").open("w") as err:
+        result = subprocess.run(command, input=inputs, stdout=subprocess.PIPE, stderr=err, text=True, timeout=90,
+                                env={**os.environ, "SAL_USE_VCLPLUGIN": "svp"})
+    (out / f"{name}-observations.jsonl").write_text(result.stdout)
+    if result.returncode:
+        raise RuntimeError(f"{name} driver exit {result.returncode}")
+    # Successive JSON values, not lines: command-values for .uno:Undo comes back pretty-printed over several lines (NU-2, first run).
+    observations, at, decoder = [], 0, json.JSONDecoder()
+    while True:
+        while at < len(result.stdout) and result.stdout[at].isspace():
+            at += 1
+        if at >= len(result.stdout):
+            break
+        value, at = decoder.raw_decode(result.stdout, at)
+        observations.append(value)
+    if len(observations) != len(requests):
+        raise RuntimeError(f"{name}: {len(observations)} replies for {len(requests)} requests")
+    return observations
+
+
 def run_arm(out, fixture, name, writes, target):
     read = dict(part=0, column=target[0], row=target[1], operation=0, enabled=0, text="")
     saves = {"B": out / f"{name}-B.ods", "U0": out / f"{name}-U0.ods"}
@@ -100,7 +135,7 @@ def run_arm(out, fixture, name, writes, target):
         requests += [{"action": "uno", "command": ".uno:Undo"}, read, {"action": "save", "url": saves[f"U{k}"].as_uri()}]
     own = out / f"{name}-fixture.ods"  # a copy per arm: an aborted LOK run leaves .~lock and the next opens read-only
     shutil.copyfile(fixture, own)
-    replies = native.run(out, name, own, requests)
+    replies = run_driver(out, name, own, requests)
     base_read = {k: replies[0].get(k) for k in READ_KEYS}
     write_replies = replies[2:2 + len(writes)]
     after_write = {k: replies[2 + len(writes)].get(k) for k in READ_KEYS}
@@ -129,16 +164,17 @@ def run_arm(out, fixture, name, writes, target):
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--out", type=Path, required=True)
+    parser.add_argument("--binary", type=Path)
     args = parser.parse_args()
-    native.BUILD = native.ROOT / "wasm_sdk_probe/build/calc-style-native"
-    binary = native.BUILD / "calc-cell-native"
+    global BINARY
+    binary = BINARY = (args.binary or native.ROOT / "wasm_sdk_probe/build/calc-style-native/calc-cell-native").resolve()
     if not binary.is_file():
-        raise SystemExit("build/calc-style-native/calc-cell-native is missing; this script never compiles")
+        raise SystemExit(f"{binary} is missing; this script never compiles")
     out = args.out.resolve()
     out.mkdir(parents=True, exist_ok=False)
     fixture = create(out / "fixture")
     report = {"toolSha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
-              "binarySha256": hashlib.sha256(binary.read_bytes()).hexdigest(), "maxUndo": MAX_UNDO, "arms": []}
+              "binary": str(binary), "binarySha256": hashlib.sha256(binary.read_bytes()).hexdigest(), "maxUndo": MAX_UNDO, "arms": []}
     for name, writes, target in ARMS:
         report["arms"].append(run_arm(out, fixture, name, writes, target))
     by = {a["arm"]: a for a in report["arms"]}

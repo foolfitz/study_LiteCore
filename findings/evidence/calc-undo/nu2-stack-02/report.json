@@ -1,0 +1,801 @@
+{
+ "binary": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/build/calc-undo-native/undo/calc-undo-native",
+ "binarySha256": "5789156465602b0fec7e7750d0baaf6ebe5a59d864d772e52eab2cde29e37640",
+ "toolSha256": "756b8c4f7e14c9a85cb10a7aa0c5aefbc9544927a1a8486cb75214cf0ebab62d",
+ "counts": {
+  "fresh": [
+   0,
+   0
+  ],
+  "cursor-to-A1": [
+   0,
+   0
+  ],
+  "undo-on-empty": [
+   0,
+   0
+  ],
+  "redo-on-empty": [
+   0,
+   0
+  ],
+  "input-F1": [
+   1,
+   0
+  ],
+  "input-F1-same": [
+   1,
+   0
+  ],
+  "range-bold": [
+   2,
+   0
+  ],
+  "range-bold-again": [
+   2,
+   0
+  ],
+  "save": [
+   2,
+   0
+  ],
+  "cursor-before-undo": [
+   2,
+   0
+  ],
+  "undo-1": [
+   1,
+   1
+  ],
+  "cursor-to-A1-again": [
+   1,
+   1
+  ],
+  "undo-2": [
+   0,
+   2
+  ],
+  "redo-1": [
+   1,
+   1
+  ],
+  "input-F2-after-undo": [
+   2,
+   0
+  ],
+  "redo-after-new-write": [
+   2,
+   0
+  ],
+  "geometry": [
+   2,
+   0
+  ]
+ },
+ "preconditions": {
+  "fresh-is-empty": true,
+  "a-write-adds-one": true,
+  "an-unchanged-write-adds-none": true,
+  "undo-moves-one-to-redo": true,
+  "redo-moves-one-back": true,
+  "a-write-after-undo-clears-redo": true,
+  "save-keeps-the-stack": true
+ },
+ "steps": [
+  {
+   "step": "fresh",
+   "replies": [],
+   "undo": [],
+   "redo": []
+  },
+  {
+   "step": "cursor-to-A1",
+   "replies": [
+    {
+     "cursor": {
+      "commandName": ".uno:CellCursor",
+      "commandValues": "0, 0, 1698, 269, 0, 0"
+     }
+    }
+   ],
+   "undo": [],
+   "redo": []
+  },
+  {
+   "step": "undo-on-empty",
+   "replies": [
+    {
+     "resultCame": true,
+     "waitedMs": 0,
+     "result": {
+      "commandName": ".uno:Undo",
+      "success": false,
+      "result": {
+       "type": "void"
+      },
+      "wasModified": false,
+      "startUnixTimeMics": 18316670024,
+      "saveDurationMics": 113
+     }
+    }
+   ],
+   "undo": [],
+   "redo": []
+  },
+  {
+   "step": "redo-on-empty",
+   "replies": [
+    {
+     "resultCame": true,
+     "waitedMs": 0,
+     "result": {
+      "commandName": ".uno:Redo",
+      "success": false,
+      "result": {
+       "type": "void"
+      },
+      "wasModified": false,
+      "startUnixTimeMics": 18316670204,
+      "saveDurationMics": 14
+     }
+    }
+   ],
+   "undo": [],
+   "redo": []
+  },
+  {
+   "step": "input-F1",
+   "replies": [
+    {
+     "ok": "true",
+     "part": "0",
+     "column": "5",
+     "row": "0",
+     "endColumn": "5",
+     "endRow": "0",
+     "formula": "ONE",
+     "input": "ONE",
+     "text": "ONE",
+     "value": "0",
+     "cellType": "2",
+     "writable": "true",
+     "changed": "true",
+     "xTwips": "6105",
+     "yTwips": "0",
+     "widthTwips": "1274",
+     "heightTwips": "269",
+     "bold": "false",
+     "boldAsian": "false",
+     "boldComplex": "false",
+     "italic": "false",
+     "italicAsian": "false",
+     "italicComplex": "false",
+     "underline": "false",
+     "textColor": "auto",
+     "backColor": "none",
+     "horizontalAlign": "standard",
+     "mutationAttempted": "true"
+    }
+   ],
+   "undo": [
+    "Input"
+   ],
+   "redo": []
+  },
+  {
+   "step": "input-F1-same",
+   "replies": [
+    {
+     "ok": "true",
+     "part": "0",
+     "column": "5",
+     "row": "0",
+     "endColumn": "5",
+     "endRow": "0",
+     "formula": "ONE",
+     "input": "ONE",
+     "text": "ONE",
+     "value": "0",
+     "cellType": "2",
+     "writable": "true",
+     "changed": "false",
+     "xTwips": "6105",
+     "yTwips": "0",
+     "widthTwips": "1274",
+     "heightTwips": "269",
+     "bold": "false",
+     "boldAsian": "false",
+     "boldComplex": "false",
+     "italic": "false",
+     "italicAsian": "false",
+     "italicComplex": "false",
+     "underline": "false",
+     "textColor": "auto",
+     "backColor": "none",
+     "horizontalAlign": "standard",
+     "mutationAttempted": "false"
+    }
+   ],
+   "undo": [
+    "Input"
+   ],
+   "redo": []
+  },
+  {
+   "step": "range-bold",
+   "replies": [
+    {
+     "ok": "true",
+     "part": "0",
+     "column": "0",
+     "row": "0",
+     "endColumn": "2",
+     "endRow": "1",
+     "writable": "true",
+     "refusalCode": "",
+     "bold": "on",
+     "italic": "off",
+     "underline": "off",
+     "textColor": "auto",
+     "backColor": "none",
+     "horizontalAlign": "standard",
+     "changed": "true",
+     "mutationAttempted": "true"
+    }
+   ],
+   "undo": [
+    "Attributes",
+    "Input"
+   ],
+   "redo": []
+  },
+  {
+   "step": "range-bold-again",
+   "replies": [
+    {
+     "ok": "true",
+     "part": "0",
+     "column": "0",
+     "row": "0",
+     "endColumn": "2",
+     "endRow": "1",
+     "writable": "true",
+     "refusalCode": "",
+     "bold": "on",
+     "italic": "off",
+     "underline": "off",
+     "textColor": "auto",
+     "backColor": "none",
+     "horizontalAlign": "standard",
+     "changed": "false",
+     "mutationAttempted": "false"
+    }
+   ],
+   "undo": [
+    "Attributes",
+    "Input"
+   ],
+   "redo": []
+  },
+  {
+   "step": "save",
+   "replies": [
+    {
+     "saved": true
+    }
+   ],
+   "undo": [
+    "Attributes",
+    "Input"
+   ],
+   "redo": []
+  },
+  {
+   "step": "cursor-before-undo",
+   "replies": [
+    {
+     "commandName": ".uno:CellCursor",
+     "commandValues": "6105, 0, 1274, 269, 5, 0"
+    }
+   ],
+   "undo": [
+    "Attributes",
+    "Input"
+   ],
+   "redo": []
+  },
+  {
+   "step": "undo-1",
+   "replies": [
+    {
+     "resultCame": true,
+     "waitedMs": 0,
+     "result": {
+      "commandName": ".uno:Undo",
+      "success": false,
+      "result": {
+       "type": "void"
+      },
+      "wasModified": true,
+      "startUnixTimeMics": 18316805375,
+      "saveDurationMics": 387
+     }
+    },
+    {
+     "commandName": ".uno:CellCursor",
+     "commandValues": "6105, 0, 1274, 269, 5, 0"
+    }
+   ],
+   "undo": [
+    "Input"
+   ],
+   "redo": [
+    "Attributes"
+   ]
+  },
+  {
+   "step": "cursor-to-A1-again",
+   "replies": [
+    {
+     "cursor": {
+      "commandName": ".uno:CellCursor",
+      "commandValues": "0, 0, 1694, 269, 0, 0"
+     }
+    }
+   ],
+   "undo": [
+    "Input"
+   ],
+   "redo": [
+    "Attributes"
+   ]
+  },
+  {
+   "step": "undo-2",
+   "replies": [
+    {
+     "resultCame": true,
+     "waitedMs": 0,
+     "result": {
+      "commandName": ".uno:Undo",
+      "success": false,
+      "result": {
+       "type": "void"
+      },
+      "wasModified": true,
+      "startUnixTimeMics": 18316956282,
+      "saveDurationMics": 890
+     }
+    },
+    {
+     "commandName": ".uno:CellCursor",
+     "commandValues": "6105, 0, 1274, 269, 5, 0"
+    }
+   ],
+   "undo": [],
+   "redo": [
+    "Attributes",
+    "Input"
+   ]
+  },
+  {
+   "step": "redo-1",
+   "replies": [
+    {
+     "resultCame": true,
+     "waitedMs": 0,
+     "result": {
+      "commandName": ".uno:Redo",
+      "success": false,
+      "result": {
+       "type": "void"
+      },
+      "wasModified": true,
+      "startUnixTimeMics": 18316957420,
+      "saveDurationMics": 130
+     }
+    },
+    {
+     "commandName": ".uno:CellCursor",
+     "commandValues": "6105, 0, 1274, 269, 5, 0"
+    }
+   ],
+   "undo": [
+    "Input"
+   ],
+   "redo": [
+    "Attributes"
+   ]
+  },
+  {
+   "step": "input-F2-after-undo",
+   "replies": [
+    {
+     "ok": "true",
+     "part": "0",
+     "column": "5",
+     "row": "1",
+     "endColumn": "5",
+     "endRow": "1",
+     "formula": "NEW",
+     "input": "NEW",
+     "text": "NEW",
+     "value": "0",
+     "cellType": "2",
+     "writable": "true",
+     "changed": "true",
+     "xTwips": "6105",
+     "yTwips": "270",
+     "widthTwips": "1274",
+     "heightTwips": "554",
+     "bold": "false",
+     "boldAsian": "false",
+     "boldComplex": "false",
+     "italic": "false",
+     "italicAsian": "false",
+     "italicComplex": "false",
+     "underline": "false",
+     "textColor": "auto",
+     "backColor": "none",
+     "horizontalAlign": "standard",
+     "mutationAttempted": "true"
+    }
+   ],
+   "undo": [
+    "Input",
+    "Input"
+   ],
+   "redo": []
+  },
+  {
+   "step": "redo-after-new-write",
+   "replies": [
+    {
+     "resultCame": true,
+     "waitedMs": 0,
+     "result": {
+      "commandName": ".uno:Redo",
+      "success": false,
+      "result": {
+       "type": "void"
+      },
+      "wasModified": true,
+      "startUnixTimeMics": 18316958012,
+      "saveDurationMics": 21
+     }
+    }
+   ],
+   "undo": [
+    "Input",
+    "Input"
+   ],
+   "redo": []
+  },
+  {
+   "step": "geometry",
+   "replies": [
+    {
+     "ok": "true",
+     "part": "0",
+     "column": "5",
+     "row": "0",
+     "endColumn": "5",
+     "endRow": "0",
+     "formula": "ONE",
+     "input": "ONE",
+     "text": "ONE",
+     "value": "0",
+     "cellType": "2",
+     "writable": "true",
+     "changed": "false",
+     "xTwips": "6105",
+     "yTwips": "0",
+     "widthTwips": "1274",
+     "heightTwips": "269",
+     "bold": "false",
+     "boldAsian": "false",
+     "boldComplex": "false",
+     "italic": "false",
+     "italicAsian": "false",
+     "italicComplex": "false",
+     "underline": "false",
+     "textColor": "auto",
+     "backColor": "none",
+     "horizontalAlign": "standard",
+     "mutationAttempted": "false"
+    },
+    {
+     "ok": "true",
+     "part": "0",
+     "column": "5",
+     "row": "1",
+     "endColumn": "5",
+     "endRow": "1",
+     "formula": "NEW",
+     "input": "NEW",
+     "text": "NEW",
+     "value": "0",
+     "cellType": "2",
+     "writable": "true",
+     "changed": "false",
+     "xTwips": "6105",
+     "yTwips": "270",
+     "widthTwips": "1274",
+     "heightTwips": "554",
+     "bold": "false",
+     "boldAsian": "false",
+     "boldComplex": "false",
+     "italic": "false",
+     "italicAsian": "false",
+     "italicComplex": "false",
+     "underline": "false",
+     "textColor": "auto",
+     "backColor": "none",
+     "horizontalAlign": "standard",
+     "mutationAttempted": "false"
+    },
+    {
+     "ok": "true",
+     "part": "0",
+     "column": "0",
+     "row": "0",
+     "endColumn": "0",
+     "endRow": "0",
+     "formula": "原始中文 Alpha",
+     "input": "原始中文 Alpha",
+     "text": "原始中文 Alpha",
+     "value": "0",
+     "cellType": "2",
+     "writable": "true",
+     "changed": "false",
+     "xTwips": "0",
+     "yTwips": "0",
+     "widthTwips": "1694",
+     "heightTwips": "269",
+     "bold": "false",
+     "boldAsian": "false",
+     "boldComplex": "false",
+     "italic": "false",
+     "italicAsian": "false",
+     "italicComplex": "false",
+     "underline": "false",
+     "textColor": "auto",
+     "backColor": "none",
+     "horizontalAlign": "standard",
+     "mutationAttempted": "false"
+    },
+    {
+     "ok": "true",
+     "part": "0",
+     "column": "1",
+     "row": "1",
+     "endColumn": "1",
+     "endRow": "1",
+     "formula": "格式測試",
+     "input": "格式測試",
+     "text": "格式測試",
+     "value": "0",
+     "cellType": "2",
+     "writable": "true",
+     "changed": "false",
+     "xTwips": "1695",
+     "yTwips": "270",
+     "widthTwips": "1019",
+     "heightTwips": "554",
+     "bold": "false",
+     "boldAsian": "false",
+     "boldComplex": "false",
+     "italic": "false",
+     "italicAsian": "false",
+     "italicComplex": "false",
+     "underline": "false",
+     "textColor": "auto",
+     "backColor": "none",
+     "horizontalAlign": "standard",
+     "mutationAttempted": "false"
+    }
+   ],
+   "undo": [
+    "Input",
+    "Input"
+   ],
+   "redo": []
+  }
+ ],
+ "emptyStack": {
+  "undo": {
+   "resultCame": true,
+   "waitedMs": 0,
+   "result": {
+    "commandName": ".uno:Undo",
+    "success": false,
+    "result": {
+     "type": "void"
+    },
+    "wasModified": false,
+    "startUnixTimeMics": 18316670024,
+    "saveDurationMics": 113
+   }
+  },
+  "redo": {
+   "resultCame": true,
+   "waitedMs": 0,
+   "result": {
+    "commandName": ".uno:Redo",
+    "success": false,
+    "result": {
+     "type": "void"
+    },
+    "wasModified": false,
+    "startUnixTimeMics": 18316670204,
+    "saveDurationMics": 14
+   }
+  },
+  "redoAfterNewWrite": {
+   "resultCame": true,
+   "waitedMs": 0,
+   "result": {
+    "commandName": ".uno:Redo",
+    "success": false,
+    "result": {
+     "type": "void"
+    },
+    "wasModified": true,
+    "startUnixTimeMics": 18316958012,
+    "saveDurationMics": 21
+   }
+  }
+ },
+ "cursor": {
+  "cursor-to-A1": {
+   "cursor": {
+    "commandName": ".uno:CellCursor",
+    "commandValues": "0, 0, 1698, 269, 0, 0"
+   }
+  },
+  "cursor-before-undo": {
+   "commandName": ".uno:CellCursor",
+   "commandValues": "6105, 0, 1274, 269, 5, 0"
+  },
+  "undo-1": {
+   "commandName": ".uno:CellCursor",
+   "commandValues": "6105, 0, 1274, 269, 5, 0"
+  },
+  "cursor-to-A1-again": {
+   "cursor": {
+    "commandName": ".uno:CellCursor",
+    "commandValues": "0, 0, 1694, 269, 0, 0"
+   }
+  },
+  "undo-2": {
+   "commandName": ".uno:CellCursor",
+   "commandValues": "6105, 0, 1274, 269, 5, 0"
+  },
+  "redo-1": {
+   "commandName": ".uno:CellCursor",
+   "commandValues": "6105, 0, 1274, 269, 5, 0"
+  }
+ },
+ "geometry": [
+  {
+   "ok": "true",
+   "part": "0",
+   "column": "5",
+   "row": "0",
+   "endColumn": "5",
+   "endRow": "0",
+   "formula": "ONE",
+   "input": "ONE",
+   "text": "ONE",
+   "value": "0",
+   "cellType": "2",
+   "writable": "true",
+   "changed": "false",
+   "xTwips": "6105",
+   "yTwips": "0",
+   "widthTwips": "1274",
+   "heightTwips": "269",
+   "bold": "false",
+   "boldAsian": "false",
+   "boldComplex": "false",
+   "italic": "false",
+   "italicAsian": "false",
+   "italicComplex": "false",
+   "underline": "false",
+   "textColor": "auto",
+   "backColor": "none",
+   "horizontalAlign": "standard",
+   "mutationAttempted": "false"
+  },
+  {
+   "ok": "true",
+   "part": "0",
+   "column": "5",
+   "row": "1",
+   "endColumn": "5",
+   "endRow": "1",
+   "formula": "NEW",
+   "input": "NEW",
+   "text": "NEW",
+   "value": "0",
+   "cellType": "2",
+   "writable": "true",
+   "changed": "false",
+   "xTwips": "6105",
+   "yTwips": "270",
+   "widthTwips": "1274",
+   "heightTwips": "554",
+   "bold": "false",
+   "boldAsian": "false",
+   "boldComplex": "false",
+   "italic": "false",
+   "italicAsian": "false",
+   "italicComplex": "false",
+   "underline": "false",
+   "textColor": "auto",
+   "backColor": "none",
+   "horizontalAlign": "standard",
+   "mutationAttempted": "false"
+  },
+  {
+   "ok": "true",
+   "part": "0",
+   "column": "0",
+   "row": "0",
+   "endColumn": "0",
+   "endRow": "0",
+   "formula": "原始中文 Alpha",
+   "input": "原始中文 Alpha",
+   "text": "原始中文 Alpha",
+   "value": "0",
+   "cellType": "2",
+   "writable": "true",
+   "changed": "false",
+   "xTwips": "0",
+   "yTwips": "0",
+   "widthTwips": "1694",
+   "heightTwips": "269",
+   "bold": "false",
+   "boldAsian": "false",
+   "boldComplex": "false",
+   "italic": "false",
+   "italicAsian": "false",
+   "italicComplex": "false",
+   "underline": "false",
+   "textColor": "auto",
+   "backColor": "none",
+   "horizontalAlign": "standard",
+   "mutationAttempted": "false"
+  },
+  {
+   "ok": "true",
+   "part": "0",
+   "column": "1",
+   "row": "1",
+   "endColumn": "1",
+   "endRow": "1",
+   "formula": "格式測試",
+   "input": "格式測試",
+   "text": "格式測試",
+   "value": "0",
+   "cellType": "2",
+   "writable": "true",
+   "changed": "false",
+   "xTwips": "1695",
+   "yTwips": "270",
+   "widthTwips": "1019",
+   "heightTwips": "554",
+   "bold": "false",
+   "boldAsian": "false",
+   "boldComplex": "false",
+   "italic": "false",
+   "italicAsian": "false",
+   "italicComplex": "false",
+   "underline": "false",
+   "textColor": "auto",
+   "backColor": "none",
+   "horizontalAlign": "standard",
+   "mutationAttempted": "false"
+  }
+ ]
+}
