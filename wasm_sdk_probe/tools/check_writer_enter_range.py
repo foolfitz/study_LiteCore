@@ -143,6 +143,7 @@ def e3(page, raws):
     page.quiet()
     got = actions(page, mark)
     page.check("E3/caret-one-break", got == ["insert-paragraph-break"], got)
+    page.save()  # the page's beforeunload holds the next navigation on an unsaved document (run-01)
 
 
 def e4(page, raws):
@@ -173,13 +174,18 @@ def e5(page, raws):
         select(page)
         page.key("Enter")
         page.quiet()
-        presses = 0
-        for presses in range(1, 4):
+        mark = mark_of(page)
+        walk, back = [], None
+        for press in range(1, 5):
             page.key("z", ("ctrl",))
             page.quiet()
-            if body(page.save()) == body(original):
+            now = page.save()
+            walk.append(shape(now)[:3])
+            if body(now) == body(original):
+                back = press
                 break
-        page.check(f"E5/{name}/back-at-the-document", body(page.save()) == body(original) and presses <= 2, {"presses": presses})
+        page.check(f"E5/{name}/back-at-the-document", back is not None and back <= 2,
+                   {"presses": back, "walk": walk, "sent": actions(page, mark), "original": shape(original)[:3]})
 
 
 def e7(page, raws):
