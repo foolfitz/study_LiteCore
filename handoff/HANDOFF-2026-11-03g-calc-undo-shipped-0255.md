@@ -39,3 +39,7 @@ Since `HANDOFF-2026-11-03f`.
 ## Conventions
 
 Replies to the owner in Taiwan Traditional Chinese with A/B/C options. Evidence and handoff in English, specs and findings in zh-TW. Compiling `make` and the link stay the owner's unless the owner asks (the owner asked for this link). Commit messages: `Co-Authored-By` yes, `Claude-Session` never. Codex through `codex exec` only.
+
+## The owner's choice for the next session (2026-11-03 18:45)
+
+**Open Microsoft documents** (the owner's demo list, 11-02: "開微軟文件（可參考 Collabora）"). Not started; this session stopped here only because its context passed the soft limit. Start from spec, criteria before code, as every batch here: what Collabora does for .docx/.xlsx (the `cool-26-04` reference checkout, memory `cool-26-04-reference-checkout`), what the host's file action and routes accept today (`src/files.js` maps only ODT and ODS), what the engine profiles can load (the Writer and Calc builds were linked for ODF; check which import filters the cores carry before promising a format), and whether saving goes back as the Microsoft format or as ODF. Measure the import natively before any link.
