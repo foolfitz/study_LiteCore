@@ -234,12 +234,10 @@ def pre_run_checks(runner=_run) -> dict:
            "loadavg": Path("/proc/loadavg").read_text().split()[:3],
            "topCpu": runner(["ps", "-eo", "pid,pcpu,comm", "--sort=-pcpu"]).splitlines()[:6],
            "at": now_iso()}
-    refuse = []
-    if locked.strip() == "b true":
-        refuse.append("KWallet is locked; headless Chrome would hang")
-    if not locked.strip().startswith("b "):
-        refuse.append(f"KWallet state unreadable: {locked!r}")
-    out["refuse"] = refuse
+    # The wallet is recorded, never a reason to refuse (2026-11-04): every Chrome we start runs with
+    # --password-store=basic (run_browser_probe.ChromeSession, 2026-10-22), so a locked or absent wallet
+    # no longer reaches it -- F3's Chrome arm ran 9 min with no secrets service on 2026-11-03 23:11.
+    out["refuse"] = []
     return out
 
 

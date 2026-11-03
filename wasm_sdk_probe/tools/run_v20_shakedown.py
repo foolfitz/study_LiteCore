@@ -1126,8 +1126,6 @@ def main() -> int:
         raise SystemExit("--trace-worker serves diagnostic bytes; run p2c alone on it")
     window = tuple(int(v) for v in args.window.split("x"))
     pre = pre_run_checks()
-    if pre["kwalletLocked"].strip() == "b true":
-        raise SystemExit("KWallet is locked; headless Chrome would hang (CLAUDE.md memory)")
     if pre["oursRunning"]:
         raise SystemExit(f"another runner of ours is active: {pre['oursRunning']}")
 

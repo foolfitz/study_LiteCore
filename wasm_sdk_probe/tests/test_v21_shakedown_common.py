@@ -67,14 +67,17 @@ class PreRunTest(unittest.TestCase):
             return ""
         return runner
 
-    def test_locked_wallet_refuses(self):
-        self.assertTrue(c.pre_run_checks(self.fake("b true"))["refuse"])
+    # 2026-11-04: the wallet is recorded, never a refusal (Chrome runs with --password-store=basic).
+    def test_wallet_state_never_refuses(self):
+        for wallet in ("b true", "b false", "unreadable: no bus"):
+            checks = c.pre_run_checks(self.fake(wallet))
+            self.assertEqual(checks["refuse"], [], wallet)
+            self.assertEqual(checks["kwalletLocked"], wallet)
 
-    def test_unreadable_wallet_refuses(self):
-        self.assertTrue(c.pre_run_checks(self.fake("unreadable: no bus"))["refuse"])
-
-    def test_unlocked_wallet_does_not(self):
-        self.assertEqual(c.pre_run_checks(self.fake("b false"))["refuse"], [])
+    def test_every_chrome_launcher_skips_the_wallet(self):
+        import run_browser_probe, v21_network
+        for module in (run_browser_probe, v21_network):
+            self.assertIn('"--password-store=basic"', Path(module.__file__).read_text(), module.__name__)
 
 
 class MirrorTest(unittest.TestCase):

@@ -625,9 +625,6 @@ def main() -> int:
         "ownerText": shape(OWNER_TEXT.read_text(encoding="utf-8")) if OWNER_TEXT.is_file() else None,
         "runs": [],
     }
-    if flight["kwalletLocked"] == "b true":
-        print("kwallet is locked; refusing to start a browser", file=sys.stderr)
-        return 2
     if flight["otherRunners"]:
         print(f"other runners are running: {flight['otherRunners']}", file=sys.stderr)
         return 2

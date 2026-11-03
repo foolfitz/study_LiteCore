@@ -965,10 +965,7 @@ def main() -> int:
             report["settingsChanges"].append({"arm": arm, "lang": set_user_setting(args.ddev_root, "admin", "lang", spec["lang"]),
                                               "locale": set_user_setting(args.ddev_root, "admin", "locale", spec["locale"])})
             for kind in args.browsers.split(","):
-                flight = wait_for_runners(report["preflight"], arm=arm, browser=kind)
-                if flight["kwalletLocked"] == "b true":
-                    report["stopped"] = "kwallet locked"
-                    break
+                flight = wait_for_runners(report["preflight"], arm=arm, browser=kind)  # wallet recorded, not a stop (2026-11-04)
                 report["runs"].append(run_once(arm, kind, instance, admin, SCRATCH / f"{arm}-{kind}"))
                 report["log"] = log
     finally:

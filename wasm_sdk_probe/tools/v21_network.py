@@ -302,7 +302,7 @@ class ProxiedChrome(rbp.ChromeSession):
             [chrome, "--headless=new", f"--remote-debugging-port={self.port}", "--remote-allow-origins=*",
              f"--user-data-dir={self.profile_dir}", "--no-first-run", "--no-default-browser-check",
              f"--proxy-server=http://127.0.0.1:{proxy_port}", "--proxy-bypass-list=<-loopback>",
-             *QUIET_CHROME, "about:blank"],
+             "--password-store=basic", *QUIET_CHROME, "about:blank"],
             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, text=True)
         self.base_url = f"http://127.0.0.1:{self.port}"
         version = rbp.wait_http(f"{self.base_url}/json/version")
