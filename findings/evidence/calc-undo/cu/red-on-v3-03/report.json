@@ -1,0 +1,517 @@
+{
+ "engine": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/dist/profiles/ods-editor-v3",
+ "mutate": null,
+ "runs": [
+  {
+   "browser": "chrome",
+   "checks": [
+    {
+     "id": "CU-1/input",
+     "pass": false,
+     "actual": {
+      "button": false,
+      "D9": "CU1"
+     }
+    },
+    {
+     "id": "CU-1/cell-bold",
+     "pass": false,
+     "actual": {
+      "button": false,
+      "boldBefore": true,
+      "A1": {
+       "kind": "table-cell",
+       "type": "string",
+       "value": null,
+       "formula": null,
+       "text": "原始中文 Alpha",
+       "style": {
+        "attrs": {
+         "{urn:oasis:names:tc:opendocument:xmlns:style:1.0}family": "table-cell",
+         "{urn:oasis:names:tc:opendocument:xmlns:style:1.0}parent-style-name": "Default"
+        },
+        "props": {
+         "{urn:oasis:names:tc:opendocument:xmlns:style:1.0}text-properties": {
+          "{urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0}font-weight": "bold",
+          "{urn:oasis:names:tc:opendocument:xmlns:style:1.0}font-weight-asian": "bold",
+          "{urn:oasis:names:tc:opendocument:xmlns:style:1.0}font-weight-complex": "bold"
+         }
+        }
+       }
+      }
+     }
+    },
+    {
+     "id": "CU-1/range-fill",
+     "pass": false,
+     "actual": {
+      "button": false,
+      "range": true,
+      "filled": true,
+      "B2": {
+       "kind": "table-cell",
+       "type": "string",
+       "value": null,
+       "formula": null,
+       "text": "格式測試",
+       "style": {
+        "attrs": {
+         "{urn:oasis:names:tc:opendocument:xmlns:style:1.0}family": "table-cell",
+         "{urn:oasis:names:tc:opendocument:xmlns:style:1.0}parent-style-name": "Default"
+        },
+        "props": {
+         "{urn:oasis:names:tc:opendocument:xmlns:style:1.0}table-cell-properties": {
+          "{urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0}background-color": "#ffe599"
+         }
+        }
+       }
+      }
+     }
+    },
+    {
+     "id": "CU-2/ctrl-z-input",
+     "pass": false,
+     "actual": {
+      "D9": "CU2",
+      "sent": [
+       "save"
+      ]
+     }
+    },
+    {
+     "id": "CU-2/ctrl-y-input",
+     "pass": false,
+     "actual": "CU2"
+    },
+    {
+     "id": "CU-2/ctrl-z-bold",
+     "pass": false,
+     "actual": {
+      "kind": "table-cell",
+      "type": "string",
+      "value": null,
+      "formula": null,
+      "text": "原始中文 Alpha",
+      "style": {
+       "attrs": {
+        "{urn:oasis:names:tc:opendocument:xmlns:style:1.0}family": "table-cell",
+        "{urn:oasis:names:tc:opendocument:xmlns:style:1.0}parent-style-name": "Default"
+       },
+       "props": {
+        "{urn:oasis:names:tc:opendocument:xmlns:style:1.0}text-properties": {
+         "{urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0}font-weight": "bold",
+         "{urn:oasis:names:tc:opendocument:xmlns:style:1.0}font-weight-asian": "bold",
+         "{urn:oasis:names:tc:opendocument:xmlns:style:1.0}font-weight-complex": "bold"
+        }
+       }
+      }
+     }
+    },
+    {
+     "id": "CU-2/ctrl-shift-z-bold",
+     "pass": false,
+     "actual": {
+      "kind": "table-cell",
+      "type": "string",
+      "value": null,
+      "formula": null,
+      "text": "原始中文 Alpha",
+      "style": {
+       "attrs": {
+        "{urn:oasis:names:tc:opendocument:xmlns:style:1.0}family": "table-cell",
+        "{urn:oasis:names:tc:opendocument:xmlns:style:1.0}parent-style-name": "Default"
+       },
+       "props": {
+        "{urn:oasis:names:tc:opendocument:xmlns:style:1.0}text-properties": {
+         "{urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0}font-weight": "bold",
+         "{urn:oasis:names:tc:opendocument:xmlns:style:1.0}font-weight-asian": "bold",
+         "{urn:oasis:names:tc:opendocument:xmlns:style:1.0}font-weight-complex": "bold"
+        }
+       }
+      }
+     }
+    },
+    {
+     "id": "CU-3/field-keeps-its-undo",
+     "pass": true,
+     "actual": {
+      "sent": [],
+      "focus": "formula-input"
+     }
+    },
+    {
+     "id": "CU-4/draft-dropped",
+     "pass": false,
+     "actual": {
+      "button": false,
+      "sent": [],
+      "formula": "DRAFT",
+      "toast": {
+       "text": "已交給瀏覽器下載，請確認檔案已存好。",
+       "error": false
+      }
+     }
+    },
+    {
+     "id": "CU-4/second-press-undoes-the-write",
+     "pass": false,
+     "actual": "FIRST"
+    },
+    {
+     "id": "CU-5/nothing-to-undo",
+     "pass": false,
+     "actual": {
+      "button": false,
+      "toast": {
+       "text": "直接輸入取代內容；F2 編輯；拖曳或 Shift＋方向鍵選取範圍。",
+       "error": false
+      }
+     }
+    },
+    {
+     "id": "CU-5/nothing-to-redo",
+     "pass": false,
+     "actual": {
+      "button": false,
+      "toast": {
+       "text": "直接輸入取代內容；F2 編輯；拖曳或 Shift＋方向鍵選取範圍。",
+       "error": false
+      }
+     }
+    },
+    {
+     "id": "CU-6/follows-the-restored-cell",
+     "pass": false,
+     "actual": {
+      "cell": [
+       0,
+       0
+      ],
+      "formula": "原始中文 Alpha"
+     }
+    },
+    {
+     "id": "CU-6/bold-button-shows-the-restored-state",
+     "pass": false,
+     "actual": {
+      "before": "true",
+      "after": "true"
+     }
+    },
+    {
+     "id": "CU-7/undo-after-save",
+     "pass": false,
+     "actual": "SEVEN"
+    },
+    {
+     "id": "CU-9/shows-the-sheet-and-cell",
+     "pass": false,
+     "actual": {
+      "button": false,
+      "shown": [
+       0,
+       25,
+       59
+      ],
+      "viewBeforeUndo": [
+       767,
+       247
+      ]
+     }
+    },
+    {
+     "id": "CU-9/the-sheet-left-keeps-its-view",
+     "pass": false,
+     "actual": {
+      "view": [
+       767,
+       247
+      ],
+      "back": [
+       767,
+       247
+      ],
+      "again": [
+       767,
+       247
+      ]
+     }
+    },
+    {
+     "id": "CU-9/the-file",
+     "pass": false,
+     "actual": {
+      "written": "S2",
+      "after": {
+       "kind": "table-cell",
+       "type": "string",
+       "value": null,
+       "formula": null,
+       "text": "S2",
+       "style": null
+      }
+     }
+    }
+   ],
+   "fatal": {},
+   "version": "Chrome/156.0.8078.47",
+   "cleanup": {}
+  },
+  {
+   "browser": "firefox",
+   "checks": [
+    {
+     "id": "CU-1/input",
+     "pass": false,
+     "actual": {
+      "button": false,
+      "D9": "CU1"
+     }
+    },
+    {
+     "id": "CU-1/cell-bold",
+     "pass": false,
+     "actual": {
+      "button": false,
+      "boldBefore": true,
+      "A1": {
+       "kind": "table-cell",
+       "type": "string",
+       "value": null,
+       "formula": null,
+       "text": "原始中文 Alpha",
+       "style": {
+        "attrs": {
+         "{urn:oasis:names:tc:opendocument:xmlns:style:1.0}family": "table-cell",
+         "{urn:oasis:names:tc:opendocument:xmlns:style:1.0}parent-style-name": "Default"
+        },
+        "props": {
+         "{urn:oasis:names:tc:opendocument:xmlns:style:1.0}text-properties": {
+          "{urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0}font-weight": "bold",
+          "{urn:oasis:names:tc:opendocument:xmlns:style:1.0}font-weight-asian": "bold",
+          "{urn:oasis:names:tc:opendocument:xmlns:style:1.0}font-weight-complex": "bold"
+         }
+        }
+       }
+      }
+     }
+    },
+    {
+     "id": "CU-1/range-fill",
+     "pass": false,
+     "actual": {
+      "button": false,
+      "range": true,
+      "filled": true,
+      "B2": {
+       "kind": "table-cell",
+       "type": "string",
+       "value": null,
+       "formula": null,
+       "text": "格式測試",
+       "style": {
+        "attrs": {
+         "{urn:oasis:names:tc:opendocument:xmlns:style:1.0}family": "table-cell",
+         "{urn:oasis:names:tc:opendocument:xmlns:style:1.0}parent-style-name": "Default"
+        },
+        "props": {
+         "{urn:oasis:names:tc:opendocument:xmlns:style:1.0}table-cell-properties": {
+          "{urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0}background-color": "#ffe599"
+         }
+        }
+       }
+      }
+     }
+    },
+    {
+     "id": "CU-2/ctrl-z-input",
+     "pass": false,
+     "actual": {
+      "D9": "CU2",
+      "sent": [
+       "save"
+      ]
+     }
+    },
+    {
+     "id": "CU-2/ctrl-y-input",
+     "pass": false,
+     "actual": "CU2"
+    },
+    {
+     "id": "CU-2/ctrl-z-bold",
+     "pass": false,
+     "actual": {
+      "kind": "table-cell",
+      "type": "string",
+      "value": null,
+      "formula": null,
+      "text": "原始中文 Alpha",
+      "style": {
+       "attrs": {
+        "{urn:oasis:names:tc:opendocument:xmlns:style:1.0}family": "table-cell",
+        "{urn:oasis:names:tc:opendocument:xmlns:style:1.0}parent-style-name": "Default"
+       },
+       "props": {
+        "{urn:oasis:names:tc:opendocument:xmlns:style:1.0}text-properties": {
+         "{urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0}font-weight": "bold",
+         "{urn:oasis:names:tc:opendocument:xmlns:style:1.0}font-weight-asian": "bold",
+         "{urn:oasis:names:tc:opendocument:xmlns:style:1.0}font-weight-complex": "bold"
+        }
+       }
+      }
+     }
+    },
+    {
+     "id": "CU-2/ctrl-shift-z-bold",
+     "pass": false,
+     "actual": {
+      "kind": "table-cell",
+      "type": "string",
+      "value": null,
+      "formula": null,
+      "text": "原始中文 Alpha",
+      "style": {
+       "attrs": {
+        "{urn:oasis:names:tc:opendocument:xmlns:style:1.0}family": "table-cell",
+        "{urn:oasis:names:tc:opendocument:xmlns:style:1.0}parent-style-name": "Default"
+       },
+       "props": {
+        "{urn:oasis:names:tc:opendocument:xmlns:style:1.0}text-properties": {
+         "{urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0}font-weight": "bold",
+         "{urn:oasis:names:tc:opendocument:xmlns:style:1.0}font-weight-asian": "bold",
+         "{urn:oasis:names:tc:opendocument:xmlns:style:1.0}font-weight-complex": "bold"
+        }
+       }
+      }
+     }
+    },
+    {
+     "id": "CU-3/field-keeps-its-undo",
+     "pass": true,
+     "actual": {
+      "sent": [],
+      "focus": "formula-input"
+     }
+    },
+    {
+     "id": "CU-4/draft-dropped",
+     "pass": false,
+     "actual": {
+      "button": false,
+      "sent": [],
+      "formula": "DRAFT",
+      "toast": {
+       "text": "已交給瀏覽器下載，請確認檔案已存好。",
+       "error": false
+      }
+     }
+    },
+    {
+     "id": "CU-4/second-press-undoes-the-write",
+     "pass": false,
+     "actual": "FIRST"
+    },
+    {
+     "id": "CU-5/nothing-to-undo",
+     "pass": false,
+     "actual": {
+      "button": false,
+      "toast": {
+       "text": "直接輸入取代內容；F2 編輯；拖曳或 Shift＋方向鍵選取範圍。",
+       "error": false
+      }
+     }
+    },
+    {
+     "id": "CU-5/nothing-to-redo",
+     "pass": false,
+     "actual": {
+      "button": false,
+      "toast": {
+       "text": "直接輸入取代內容；F2 編輯；拖曳或 Shift＋方向鍵選取範圍。",
+       "error": false
+      }
+     }
+    },
+    {
+     "id": "CU-6/follows-the-restored-cell",
+     "pass": false,
+     "actual": {
+      "cell": [
+       0,
+       0
+      ],
+      "formula": "原始中文 Alpha"
+     }
+    },
+    {
+     "id": "CU-6/bold-button-shows-the-restored-state",
+     "pass": false,
+     "actual": {
+      "before": "true",
+      "after": "true"
+     }
+    },
+    {
+     "id": "CU-7/undo-after-save",
+     "pass": false,
+     "actual": "SEVEN"
+    },
+    {
+     "id": "CU-9/shows-the-sheet-and-cell",
+     "pass": false,
+     "actual": {
+      "button": false,
+      "shown": [
+       0,
+       25,
+       59
+      ],
+      "viewBeforeUndo": [
+       924,
+       435
+      ]
+     }
+    },
+    {
+     "id": "CU-9/the-sheet-left-keeps-its-view",
+     "pass": false,
+     "actual": {
+      "view": [
+       924,
+       435
+      ],
+      "back": [
+       924,
+       435
+      ],
+      "again": [
+       924,
+       435
+      ]
+     }
+    },
+    {
+     "id": "CU-9/the-file",
+     "pass": false,
+     "actual": {
+      "written": "S2",
+      "after": {
+       "kind": "table-cell",
+       "type": "string",
+       "value": null,
+       "formula": null,
+       "text": "S2",
+       "style": null
+      }
+     }
+    }
+   ],
+   "fatal": {},
+   "version": "157.0.1",
+   "cleanup": {}
+  }
+ ],
+ "verdict": "CU_RED"
+}
