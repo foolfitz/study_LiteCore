@@ -5998,9 +5998,20 @@ $(ODS_EDITOR_V5_BUILD)/calc_cell_bridge.o: src/calc_cell_bridge.cpp \
 	$(CXX) $(ODS_EDITOR_V3_CPPFLAGS) $(R5_CXXFLAGS) -std=c++20 \
 		-DLIBO_INTERNAL_ONLY -DOXSDK_ODS_RANGE -DOXSDK_ODS_STYLE -DOXSDK_ODS_UNDO -c $< -o $@
 
-# v4's list, unchanged (v4's own rule makes it from the core's exports).
-$(ODS_EDITOR_V5_BUILD)/exports.txt: $(ODS_EDITOR_V4_BUILD)/exports.txt Makefile | $(ODS_EDITOR_V5_BUILD)
-	cp $< $@
+# v4's list, made the way v4's rule makes it (not copied from build/ods/editor-v4, whose rule lists this Makefile
+# and would then be remade); the profile builder checks it equals v4's.
+$(ODS_EDITOR_V5_BUILD)/exports.txt: \
+		$(ODS_EDITOR_V3_CORE)/workdir/CustomTarget/desktop/soffice_bin-emscripten-exports/exports Makefile \
+		| $(ODS_EDITOR_V5_BUILD)
+	grep -v -e '^__ZTI' -e '^_main$$' $< > $@
+	printf '%s\n' __ZTIN3com3sun4star3ucb31InteractiveAugmentedIOExceptionE \
+		_oxsdk_abi_version _oxsdk_capabilities _oxsdk_engine_start \
+		_oxsdk_document_open _oxsdk_document_paint _oxsdk_document_close \
+		_oxsdk_document_search _oxsdk_document_set_part _oxsdk_document_current_part \
+		_oxsdk_document_part_name _oxsdk_document_part_text _oxsdk_document_part_info \
+		_oxsdk_request_cancel _oxsdk_buffer_alloc _oxsdk_buffer_free \
+		_oxsdk_document_save _oxsdk_document_cell \
+		_oxsdk_document_undo _oxsdk_document_redo >> $@
 
 $(ODS_EDITOR_V5_BUILD)/probe.js: $(ODS_EDITOR_V5_OBJECTS) \
 		$(ODS_EDITOR_V5_BUILD)/calc_cell_bridge.o $(ODS_EDITOR_V5_BUILD)/exports.txt
