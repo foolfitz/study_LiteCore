@@ -69,3 +69,52 @@
 - 同樣三個屬性用一次 `setPropertyValues` 寫（`range-bold`）只要 1 次，所以 op 2、3 照 op 7、8 的寫法就會是 1 次。〔推論：同一個呼叫，單格沒有另外量〕
 
 對連結設計的意思（設計本身之後再寫）：op 2、3 要改成一次 `setPropertyValues`，否則頁面一次 Ctrl+Z 對引擎一次 undo 會在單格粗體、斜體上按兩次沒反應。有草稿時按 Ctrl+B 會留下兩個使用者看得懂的步驟（送出、粗體），和「先 Enter 再 Ctrl+B」相同。
+
+## 4. 追加 2（2026-11-03，連結設計，實作之前）
+
+### 4.1 已經有的，不用動
+
+讀碼結果〔已讀碼〕：
+
+- **SDK**：`CalcDocumentEngine` 的 document handle 繼承 `DocumentHandle.undo()`／`redo()`（`sdk/document-sdk.js` 617–640 行），送 `undo`／`redo` request。
+- **worker**：v3 worker 已有 `undo`、`redo` 兩個 case 與 `undone`／`redone` 完成事件，由 manifest 的 `undo` capability 把關（`redo` 共用它）。U5 拿到的 `UNSUPPORTED_OPERATION` 就是這道關。worker 沒有依 profile 名字分支的行為。
+- **引擎**：`handleUndo`／`handleRedo` 與 UNO 完成回呼在 Calc 的組態（`OXSDK_READER_PROFILE` ＋ `OXSDK_ODS_*`，沒有 `OXSDK_E2_V23_LINK_BATCH`）都有編進去。缺的是兩個匯出、capability bit。
+
+### 4.2 連結要改的（全部在新定義 `OXSDK_ODS_UNDO` 之下，只進新的 Calc build）
+
+- **E1 capability**：ODS 編輯器那一支加 `OXSDK_CAPABILITY_UNDO`。manifest 的 `expectedCapabilityBits` 跟著加，capabilities 加 `undo`。
+- **E2 匯出**：`_oxsdk_document_undo`、`_oxsdk_document_redo`。仍然不得出現 `_oxsdk_editor_*`。
+- **E3 bridge**：op 2、3 把要改的屬性收成**一次** `setPropertyValues`（op 7、8 的寫法），沒變的屬性不寫，`changed` 的意思不變。依據：NU 的 `range-bold` 一步。
+- **E4 復原的前後讀取**：派送 `.uno:Undo`／`.uno:Redo` 之前，先讀 `getCommandValues(".uno:Undo")`／`(".uno:Redo")`。是空的 → 錯誤 `NOTHING_TO_UNDO`／`NOTHING_TO_REDO`、`dispatched: false`，不派送。完成回呼之後再讀一次：undo 數少 1、redo 數多 1（redo 反之）→ `undone`／`redone`，附 `undoCount`、`redoCount`。否則 → `MUTATION_OUTCOME_UNKNOWN`、`dispatched: true`。理由：現行通用路徑不管成功與否都把完成回呼當完成，空堆疊時有沒有回呼還沒量過；finding 071 的教訓是會卡住 session 的能力比沒有更糟。
+- 新 profile `ods-editor-v4`，從 v3 衍生；worker 與 v3 位元組相同，除非 NU-2 逼出差異。
+- ABI 與 protocol 不動。Writer 不動。
+
+### 4.3 頁面
+
+- 工具列：存檔鈕之後加「復原 (Ctrl+Z)」「重做 (Ctrl+Y)」，圖示、文字與 Writer 頁面相同。只在 manifest 有 `undo` 時顯示。唯讀時和其他寫入鈕一起停用。
+- 鍵盤：焦點在格線（不在編輯）時，Ctrl+Z＝復原，Ctrl+Y 與 Ctrl+Shift+Z＝重做。焦點在公式列或格內編輯時不攔，維持瀏覽器自己的文字復原（U4 的現況）。
+- **有草稿時按復原鈕**：丟掉草稿（`cancelEdit`），不送引擎。理由：沒送出的打字是最新的變更，和 LibreOffice 在編輯模式中按復原只回退編輯中文字一致。**不先送出**，否則復原只是把剛送出的那筆收回去，還多一筆重做。有草稿時按重做鈕：不動作，提示請先送出或取消。
+- **復原之後**：用新 revision 讓圖塊全部失效；重讀目前格（公式列、粗斜底線、顏色、對齊）；多格選取時重讀範圍；重新量文件大小（`refit`）。若 NU-2 量到引擎的游標在復原後移到被還原的格子，頁面選取跟過去（和 LibreOffice 相同）；否則選取不動。
+- 沒有可復原的：提示「沒有可以復原的動作」（重做：「沒有可以重做的動作」），不是紅色錯誤，session 維持 ready。
+- 按鈕一律可按（Writer 頁面相同），不靠頁面自己數堆疊。
+
+### 4.4 原生量測（連結之前）
+
+用新的原生 driver（`tools/calc_undo_native.cpp`：`calc_cell_native.cpp` 加回呼與「派送並等完成回呼」）和帶 `OXSDK_ODS_UNDO` 的 bridge 原生編譯。單檔 g++，照 AGENTS.md 由 agent 自己編，留 receipt。
+
+- **NU-2 堆疊**：新文件的 undo／redo 讀取是空的；op 1 寫入後 undo 數 1；`.uno:Undo` 之後 undo 0、redo 1；`.uno:Redo` 之後回來；undo 之後再寫入，redo 清空；`changed: false` 的寫入不加堆疊；存檔（`saveAs`，引擎用的同一個呼叫）之後堆疊不變；空堆疊派送 `.uno:Undo` 時完成回呼來不來、內容是什麼；復原前後 `.uno:CellCursor`。這一項是**量測**，結果登錄。前四條與「存檔之後不變」是 E4 和頁面設計的前提，任一不成立就停下來改設計，不連結。
+- **NU-3 修法**：帶 `OXSDK_ODS_UNDO` 的 bridge 跑 NU 同一組臂：`cell-bold`、`cell-italic` 變 1，其他臂與 `native-01` 相同（`draft-then-bold` 變 2）。另跑不帶該定義的同一份原始碼當對照：`cell-bold` 仍是 3（證明差別出自定義，不是重編）。
+
+### 4.5 連結之後的判準（瀏覽器，Chrome 與 Firefox，真按鍵與指標，存檔讀回）
+
+- **CU-1**：`cellInput`、單格粗體、範圍底色各一次寫入，按一次復原鈕，存檔讀回與零編輯存檔在被動到的格子相同。
+- **CU-2**：同樣用 Ctrl+Z；再按 Ctrl+Y 回到寫入後的狀態。
+- **CU-3**：公式列有草稿時按 Ctrl+Z，是文字復原，文件沒有變動（與 U4 相同）。
+- **CU-4**：有草稿時按復原鈕，草稿消失、文件沒有變動；再按一次，收回上一筆已送出的寫入。
+- **CU-5**：新開的文件按復原，出現「沒有可以復原的動作」，沒有紅色提示，session 是 ready。
+- **CU-6**：復原之後，公式列與粗斜底線的狀態是被還原後的格子，不是復原前的。
+- **CU-7**：存檔之後還能復原；復原後存檔，檔案是被還原的狀態。
+- **CU-8 回歸**：v4 上 Calc 的 P2、C、Calc regression 三臂照過，Writer 不動。
+- **紅案**：同一工具在現行 v3 頁面上，CU-1、CU-2 紅（沒有按鈕、Ctrl+Z 沒有送出）。
+
+**如果永遠沒做**：Calc 頁面維持沒有文件復原，只有公式列裡的文字復原。
