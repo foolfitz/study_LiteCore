@@ -1,0 +1,27 @@
+mkdir -p build/ms-formats-static
+g++ -std=c++17 -Wall -Wextra -I src tests/document_format_test.cpp -o build/ms-formats-static/document-format-test
+build/ms-formats-static/document-format-test
+ok
+python3 -I tests/document_format_mutations.py
+control: {'exit': 0, 'pass': True}
+kWriter-drop.odt: {'red': True, 'exit': 1, 'family': 'T1', 'firstFailure': 'FAIL T1 writer has 2 entries'}
+kWriter-flip.odt: {'red': True, 'exit': 1, 'family': 'T1', 'firstFailure': 'FAIL T1 writer entry 0 is .odt'}
+kWriter-drop.docx: {'red': True, 'exit': 1, 'family': 'T1', 'firstFailure': 'FAIL T1 writer has 2 entries'}
+kWriter-flip.docx: {'red': True, 'exit': 1, 'family': 'T1', 'firstFailure': 'FAIL T1 writer entry 1 is .docx'}
+kWriter-add.doc: {'red': True, 'exit': 1, 'family': 'T1', 'firstFailure': 'FAIL T1 writer has 2 entries'}
+kCalc-drop.odt: {'red': True, 'exit': 1, 'family': 'T1', 'firstFailure': 'FAIL T1 calc has 3 entries'}
+kCalc-flip.odt: {'red': True, 'exit': 1, 'family': 'T1', 'firstFailure': 'FAIL T1 calc entry 0 is .odt'}
+kCalc-drop.ods: {'red': True, 'exit': 1, 'family': 'T1', 'firstFailure': 'FAIL T1 calc has 3 entries'}
+kCalc-flip.ods: {'red': True, 'exit': 1, 'family': 'T1', 'firstFailure': 'FAIL T1 calc entry 1 is .ods'}
+kCalc-drop.xlsx: {'red': True, 'exit': 1, 'family': 'T1', 'firstFailure': 'FAIL T1 calc has 3 entries'}
+kCalc-flip.xlsx: {'red': True, 'exit': 1, 'family': 'T1', 'firstFailure': 'FAIL T1 calc entry 2 is .xlsx'}
+kCalc-add.doc: {'red': True, 'exit': 1, 'family': 'T1', 'firstFailure': 'FAIL T1 calc has 3 entries'}
+case-sensitive: {'red': True, 'exit': 1, 'family': 'A1', 'firstFailure': 'FAIL A1 writer upper case .odt'}
+no-stem-required: {'red': True, 'exit': 1, 'family': 'R1', 'firstFailure': 'FAIL R1 writer refuses the bare .odt'}
+suffix-anywhere: {'red': True, 'exit': 1, 'family': 'R1', 'firstFailure': "FAIL R1 writer refuses 'a.docx.zip'"}
+profiles-swapped: {'red': True, 'exit': 1, 'family': 'T1', 'firstFailure': 'FAIL T1 writer has 2 entries'}
+save-ignores-savable: {'red': True, 'exit': 1, 'family': 'S1', 'firstFailure': 'FAIL S1 calc save odt'}
+save-any-case: {'red': True, 'exit': 1, 'family': 'S1', 'firstFailure': 'FAIL S1 writer save is compared as written: ODT'}
+18 mutations; ALL RED, control green
+node tests/ms_formats_worker_test.cjs
+ms-formats workers: deltas closed and derived by the tool; docx/xlsx open and save only with their capabilities; ODF rows unchanged; format reaches the open reply; an array format is refused; each addition removed alone fails at its own assertion; both frozen bases fail the same exercise
