@@ -22,6 +22,9 @@ The owner chose this order: A the census, B fixes that need no link, C ordered-c
 3. **Measure finding 151's arrow half on 0.2.52**: `tools/diag_v21_dirty_move.py` V8d, whose page is pinned to `v21`/`dist0224` (`:663`), so it needs a page family for 0.2.52. N=3, both browsers. Green closes it. Red: read which layer before fixing.
 4. **The refusal sentences**: `web/e2-editor-app.js:2394` prints `describeError` for non-review refusals, so Enter over a selection reads like old finding 174. Page only: a new generation, no link.
 5. C, the ordered-commands product arms.
+6. **Calc undo, the owner asked for it on 2026-11-03.** The Calc page has no document undo: no control, Ctrl+Z sends nothing, the Worker refuses `undo` on `ods-editor-v3`, and the Calc engine's `oxsdk_capabilities` lacks `OXSDK_CAPABILITY_UNDO` (`findings/evidence/calc-undo/README.md`). It needs a link, so it goes into the next link batch, not into B: the capability bit in the Calc build, a new Calc profile whose manifest and worker carry `undo`/`redo`, then the page's 復原/取消復原 buttons and Ctrl+Z/Ctrl+Y. Core undoes a Calc write in one step natively (`demo-batch-3/native-calc-style/run-01`), so measure natively first which Calc actions take more than one step (a range format, an entry that recalculates). Pin the criteria in a spec before the code.
+
+Progress since the reboot: the own stack's stale log FIFO fixed (`specs/SPEC-M3-own-stack.md`, last section); finding 151 closed on 0.2.52; B is on the tree (`specs/SPEC-P-demo-batch-5.md`, Enter over a selection and the empty-copy sentence), P5 run-02 is the next read.
 
 Keep 169 out of a demo script. Do not rewrite the stale finding headers: the census is the record.
 
