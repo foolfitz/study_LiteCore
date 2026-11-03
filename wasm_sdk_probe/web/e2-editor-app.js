@@ -275,6 +275,10 @@ function describeError(error) {
     return "這段選取裡有表格或其他物件，這個動作只能用在段落上，文件沒有變動";
   if (error?.code === "EDITOR_FORMAT_SELECTION_TOO_LONG")
     return "選取的段落太多，無法一次套用。請分段選取，文件沒有變動";
+  // SPEC-P-demo-batch-5.  A caret has no text to copy, and neither has a range
+  // whose text the engine cannot read out (`L-complex-copy`, an as-char frame).
+  if (error?.code === "CLIPBOARD_EMPTY_SELECTION")
+    return "沒有可複製的文字。圖片和其他物件目前不能複製，文件沒有變動";
   const code = error?.code ? `${error.code}：` : "";
   return `${code}${error?.message || String(error)}`;
 }
@@ -3432,6 +3436,14 @@ el.sink.addEventListener("keydown", (event) => {
   if (event.key === "Enter" && !event.isComposing) {
     event.preventDefault();
     if (!accel) {
+      // SPEC-P-demo-batch-5.  A break replaces a selection, as Writer's
+      // SwWrtShell::SplitNode does; the profile offers the break on a caret
+      // only.  Both go into the session's queue in this tick: waiting for the
+      // delete would let the next key overtake the break.  Two actions, so two
+      // undos (`L-enter-range-two-undos`).
+      const shape = selectionShapeOf({ state: session.state.snapshot.editorState }) ?? lastSelectionShape;
+      if (shape !== "collapsed" && session.offers("delete-selection"))
+        void editorAction("delete-selection").catch(() => {});
       void editorAction(event.shiftKey ? "insert-line-break"
                                        : "insert-paragraph-break").catch(() => {});
     }

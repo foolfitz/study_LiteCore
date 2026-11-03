@@ -1,0 +1,1174 @@
+{
+ "argv": [
+  "tools/check_writer_enter_range.py",
+  "--page-rev",
+  "1e4f2b3b7",
+  "--only",
+  "E1,E7",
+  "--out",
+  "../findings/evidence/demo-batch-5/p5/red-on-generation-87"
+ ],
+ "tool": "ea4c3463e5221b7f01c7128fe40b23af5bb1ba6eea52356cefb083231bebaed8",
+ "profile": "e2-editor-v32",
+ "pageRev": "1e4f2b3b7",
+ "page": "f6fd0b75dbf26a09d1ea0dcc97543cab8ef703a7e9c6eef4841953cff92caa26",
+ "runs": [
+  {
+   "browser": "chrome",
+   "base": "http://127.0.0.1:52585/e2-editor.html",
+   "checks": [
+    {
+     "id": "E1/word/equals-delete-then-enter",
+     "pass": false,
+     "actual": {
+      "pressed": [
+       {
+        "text": "ALPHA plain paragraph one",
+        "level": 0,
+        "list": false,
+        "kind": null,
+        "style": "Text_20_body"
+       },
+       {
+        "text": "q plain paragraph two",
+        "level": 0,
+        "list": false,
+        "kind": null,
+        "style": "Text_20_body"
+       },
+       {
+        "text": "CHARLIE heading one",
+        "level": 1,
+        "list": false,
+        "kind": null,
+        "style": "Heading_20_1"
+       },
+       {
+        "text": "DELTA heading two",
+        "level": 2,
+        "list": false,
+        "kind": null,
+        "style": "Heading_20_2"
+       }
+      ],
+      "control": [
+       {
+        "text": "ALPHA plain paragraph one",
+        "level": 0,
+        "list": false,
+        "kind": null,
+        "style": "Text_20_body"
+       },
+       {
+        "text": "",
+        "level": 0,
+        "list": false,
+        "kind": null,
+        "style": "Text_20_body"
+       },
+       {
+        "text": "q plain paragraph two",
+        "level": 0,
+        "list": false,
+        "kind": null,
+        "style": "Text_20_body"
+       },
+       {
+        "text": "CHARLIE heading one",
+        "level": 1,
+        "list": false,
+        "kind": null,
+        "style": "Heading_20_1"
+       }
+      ]
+     }
+    },
+    {
+     "id": "E1/word/control-changed-the-document",
+     "pass": true,
+     "actual": {
+      "state": [
+       "ready",
+       null
+      ]
+     }
+    },
+    {
+     "id": "E6/E1/word/ready-no-red",
+     "pass": false,
+     "actual": [
+      "ready",
+      "↵ 分段：EDITOR_FORMAT_GESTURE_UNSUPPORTED：this action is not offered for this kind of selection in this profile, so nothing was dispatched and the document is unchanged"
+     ]
+    },
+    {
+     "id": "E1/across/equals-delete-then-enter",
+     "pass": false,
+     "actual": {
+      "pressed": [
+       {
+        "text": "ALqAVO plain paragraph two",
+        "level": 0,
+        "list": false,
+        "kind": null,
+        "style": "Text_20_body"
+       },
+       {
+        "text": "CHARLIE heading one",
+        "level": 1,
+        "list": false,
+        "kind": null,
+        "style": "Heading_20_1"
+       },
+       {
+        "text": "DELTA heading two",
+        "level": 2,
+        "list": false,
+        "kind": null,
+        "style": "Heading_20_2"
+       },
+       {
+        "text": "ECHO heading three",
+        "level": 3,
+        "list": false,
+        "kind": null,
+        "style": "Heading_20_3"
+       }
+      ],
+      "control": [
+       {
+        "text": "AL",
+        "level": 0,
+        "list": false,
+        "kind": null,
+        "style": "P1"
+       },
+       {
+        "text": "qAVO plain paragraph two",
+        "level": 0,
+        "list": false,
+        "kind": null,
+        "style": "P1"
+       },
+       {
+        "text": "CHARLIE heading one",
+        "level": 1,
+        "list": false,
+        "kind": null,
+        "style": "Heading_20_1"
+       },
+       {
+        "text": "DELTA heading two",
+        "level": 2,
+        "list": false,
+        "kind": null,
+        "style": "Heading_20_2"
+       }
+      ]
+     }
+    },
+    {
+     "id": "E1/across/control-changed-the-document",
+     "pass": true,
+     "actual": {
+      "state": [
+       "ready",
+       null
+      ]
+     }
+    },
+    {
+     "id": "E6/E1/across/ready-no-red",
+     "pass": false,
+     "actual": [
+      "ready",
+      "↵ 分段：EDITOR_FORMAT_GESTURE_UNSUPPORTED：this action is not offered for this kind of selection in this profile, so nothing was dispatched and the document is unchanged"
+     ]
+    },
+    {
+     "id": "E1/everything/equals-delete-then-enter",
+     "pass": false,
+     "actual": {
+      "pressed": [
+       {
+        "text": "q",
+        "level": 0,
+        "list": false,
+        "kind": null,
+        "style": "P1"
+       }
+      ],
+      "control": [
+       {
+        "text": "",
+        "level": 0,
+        "list": false,
+        "kind": null,
+        "style": "Text_20_body"
+       },
+       {
+        "text": "q",
+        "level": 0,
+        "list": false,
+        "kind": null,
+        "style": "P1"
+       }
+      ]
+     }
+    },
+    {
+     "id": "E1/everything/control-changed-the-document",
+     "pass": true,
+     "actual": {
+      "state": [
+       "ready",
+       null
+      ]
+     }
+    },
+    {
+     "id": "E6/E1/everything/ready-no-red",
+     "pass": false,
+     "actual": [
+      "ready",
+      "↵ 分段：EDITOR_FORMAT_GESTURE_UNSUPPORTED：this action is not offered for this kind of selection in this profile, so nothing was dispatched and the document is unchanged"
+     ]
+    },
+    {
+     "id": "E1/in-heading/equals-delete-then-enter",
+     "pass": false,
+     "actual": {
+      "pressed": [
+       {
+        "text": "ALPHA plain paragraph one",
+        "level": 0,
+        "list": false,
+        "kind": null,
+        "style": "Text_20_body"
+       },
+       {
+        "text": "BRAVO plain paragraph two",
+        "level": 0,
+        "list": false,
+        "kind": null,
+        "style": "Text_20_body"
+       },
+       {
+        "text": "CHqIE heading one",
+        "level": 1,
+        "list": false,
+        "kind": null,
+        "style": "Heading_20_1"
+       },
+       {
+        "text": "DELTA heading two",
+        "level": 2,
+        "list": false,
+        "kind": null,
+        "style": "Heading_20_2"
+       }
+      ],
+      "control": [
+       {
+        "text": "ALPHA plain paragraph one",
+        "level": 0,
+        "list": false,
+        "kind": null,
+        "style": "Text_20_body"
+       },
+       {
+        "text": "BRAVO plain paragraph two",
+        "level": 0,
+        "list": false,
+        "kind": null,
+        "style": "Text_20_body"
+       },
+       {
+        "text": "CH",
+        "level": 1,
+        "list": false,
+        "kind": null,
+        "style": "P1"
+       },
+       {
+        "text": "qIE heading one",
+        "level": 1,
+        "list": false,
+        "kind": null,
+        "style": "P1"
+       }
+      ]
+     }
+    },
+    {
+     "id": "E1/in-heading/control-changed-the-document",
+     "pass": true,
+     "actual": {
+      "state": [
+       "ready",
+       null
+      ]
+     }
+    },
+    {
+     "id": "E6/E1/in-heading/ready-no-red",
+     "pass": false,
+     "actual": [
+      "ready",
+      "↵ 分段：EDITOR_FORMAT_GESTURE_UNSUPPORTED：this action is not offered for this kind of selection in this profile, so nothing was dispatched and the document is unchanged"
+     ]
+    },
+    {
+     "id": "E1/in-item/equals-delete-then-enter",
+     "pass": false,
+     "actual": {
+      "pressed": [
+       {
+        "text": "ALPHA plain paragraph one",
+        "level": 0,
+        "list": false,
+        "kind": null,
+        "style": "Text_20_body"
+       },
+       {
+        "text": "BRAVO plain paragraph two",
+        "level": 0,
+        "list": false,
+        "kind": null,
+        "style": "Text_20_body"
+       },
+       {
+        "text": "CHARLIE heading one",
+        "level": 1,
+        "list": false,
+        "kind": null,
+        "style": "Heading_20_1"
+       },
+       {
+        "text": "DELTA heading two",
+        "level": 2,
+        "list": false,
+        "kind": null,
+        "style": "Heading_20_2"
+       }
+      ],
+      "control": [
+       {
+        "text": "ALPHA plain paragraph one",
+        "level": 0,
+        "list": false,
+        "kind": null,
+        "style": "Text_20_body"
+       },
+       {
+        "text": "BRAVO plain paragraph two",
+        "level": 0,
+        "list": false,
+        "kind": null,
+        "style": "Text_20_body"
+       },
+       {
+        "text": "CHARLIE heading one",
+        "level": 1,
+        "list": false,
+        "kind": null,
+        "style": "Heading_20_1"
+       },
+       {
+        "text": "DELTA heading two",
+        "level": 2,
+        "list": false,
+        "kind": null,
+        "style": "Heading_20_2"
+       }
+      ]
+     }
+    },
+    {
+     "id": "E1/in-item/control-changed-the-document",
+     "pass": true,
+     "actual": {
+      "state": [
+       "ready",
+       null
+      ]
+     }
+    },
+    {
+     "id": "E6/E1/in-item/ready-no-red",
+     "pass": false,
+     "actual": [
+      "ready",
+      "↵ 分段：EDITOR_FORMAT_GESTURE_UNSUPPORTED：this action is not offered for this kind of selection in this profile, so nothing was dispatched and the document is unchanged"
+     ]
+    },
+    {
+     "id": "E1/over-frame/equals-delete-then-enter",
+     "pass": false,
+     "actual": {
+      "pressed": [
+       {
+        "text": "BEFORE plain",
+        "level": 0,
+        "list": false,
+        "kind": null,
+        "style": "Standard"
+       },
+       {
+        "text": "q",
+        "level": 0,
+        "list": false,
+        "kind": null,
+        "style": "P1"
+       },
+       {
+        "text": "AFTER plain",
+        "level": 0,
+        "list": false,
+        "kind": null,
+        "style": "Standard"
+       }
+      ],
+      "control": [
+       {
+        "text": "BEFORE plain",
+        "level": 0,
+        "list": false,
+        "kind": null,
+        "style": "Standard"
+       },
+       {
+        "text": "",
+        "level": 0,
+        "list": false,
+        "kind": null,
+        "style": "Standard"
+       },
+       {
+        "text": "q",
+        "level": 0,
+        "list": false,
+        "kind": null,
+        "style": "P1"
+       },
+       {
+        "text": "AFTER plain",
+        "level": 0,
+        "list": false,
+        "kind": null,
+        "style": "Standard"
+       }
+      ]
+     }
+    },
+    {
+     "id": "E1/over-frame/control-changed-the-document",
+     "pass": true,
+     "actual": {
+      "state": [
+       "ready",
+       null
+      ]
+     }
+    },
+    {
+     "id": "E6/E1/over-frame/ready-no-red",
+     "pass": false,
+     "actual": [
+      "ready",
+      "↵ 分段：EDITOR_FORMAT_GESTURE_UNSUPPORTED：this action is not offered for this kind of selection in this profile, so nothing was dispatched and the document is unchanged"
+     ]
+    },
+    {
+     "id": "E1/in-cell/equals-delete-then-enter",
+     "pass": false,
+     "actual": {
+      "pressed": [
+       {
+        "text": "BEFORE the table",
+        "level": 0,
+        "list": false,
+        "kind": null,
+        "style": "Standard"
+       },
+       {
+        "text": "qLA first",
+        "level": 0,
+        "list": false,
+        "kind": null,
+        "style": "Standard"
+       },
+       {
+        "text": "CELLB second",
+        "level": 0,
+        "list": false,
+        "kind": null,
+        "style": "Standard"
+       },
+       {
+        "text": "CELLC third",
+        "level": 0,
+        "list": false,
+        "kind": null,
+        "style": "Standard"
+       }
+      ],
+      "control": [
+       {
+        "text": "BEFORE the table",
+        "level": 0,
+        "list": false,
+        "kind": null,
+        "style": "Standard"
+       },
+       {
+        "text": "",
+        "level": 0,
+        "list": false,
+        "kind": null,
+        "style": "Standard"
+       },
+       {
+        "text": "qLA first",
+        "level": 0,
+        "list": false,
+        "kind": null,
+        "style": "Standard"
+       },
+       {
+        "text": "CELLB second",
+        "level": 0,
+        "list": false,
+        "kind": null,
+        "style": "Standard"
+       }
+      ]
+     }
+    },
+    {
+     "id": "E1/in-cell/control-changed-the-document",
+     "pass": true,
+     "actual": {
+      "state": [
+       "ready",
+       null
+      ]
+     }
+    },
+    {
+     "id": "E6/E1/in-cell/ready-no-red",
+     "pass": false,
+     "actual": [
+      "ready",
+      "↵ 分段：EDITOR_FORMAT_GESTURE_UNSUPPORTED：this action is not offered for this kind of selection in this profile, so nothing was dispatched and the document is unchanged"
+     ]
+    },
+    {
+     "id": "E7/caret/a-sentence",
+     "pass": false,
+     "actual": "複製：CLIPBOARD_EMPTY_SELECTION：there is no selected text to copy"
+    },
+    {
+     "id": "E7/caret/unchanged",
+     "pass": true,
+     "actual": null
+    },
+    {
+     "id": "E7/over-frame/a-sentence",
+     "pass": false,
+     "actual": "複製：CLIPBOARD_EMPTY_SELECTION：there is no selected text to copy"
+    },
+    {
+     "id": "E7/over-frame/unchanged",
+     "pass": true,
+     "actual": null
+    }
+   ],
+   "version": "Chrome/156.0.8078.47",
+   "cleanup": {}
+  },
+  {
+   "browser": "firefox",
+   "base": "http://127.0.0.1:52585/e2-editor.html",
+   "checks": [
+    {
+     "id": "E1/word/equals-delete-then-enter",
+     "pass": false,
+     "actual": {
+      "pressed": [
+       {
+        "text": "ALPHA plain paragraph one",
+        "level": 0,
+        "list": false,
+        "kind": null,
+        "style": "Text_20_body"
+       },
+       {
+        "text": "q plain paragraph two",
+        "level": 0,
+        "list": false,
+        "kind": null,
+        "style": "Text_20_body"
+       },
+       {
+        "text": "CHARLIE heading one",
+        "level": 1,
+        "list": false,
+        "kind": null,
+        "style": "Heading_20_1"
+       },
+       {
+        "text": "DELTA heading two",
+        "level": 2,
+        "list": false,
+        "kind": null,
+        "style": "Heading_20_2"
+       }
+      ],
+      "control": [
+       {
+        "text": "ALPHA plain paragraph one",
+        "level": 0,
+        "list": false,
+        "kind": null,
+        "style": "Text_20_body"
+       },
+       {
+        "text": "",
+        "level": 0,
+        "list": false,
+        "kind": null,
+        "style": "Text_20_body"
+       },
+       {
+        "text": "q plain paragraph two",
+        "level": 0,
+        "list": false,
+        "kind": null,
+        "style": "Text_20_body"
+       },
+       {
+        "text": "CHARLIE heading one",
+        "level": 1,
+        "list": false,
+        "kind": null,
+        "style": "Heading_20_1"
+       }
+      ]
+     }
+    },
+    {
+     "id": "E1/word/control-changed-the-document",
+     "pass": true,
+     "actual": {
+      "state": [
+       "ready",
+       null
+      ]
+     }
+    },
+    {
+     "id": "E6/E1/word/ready-no-red",
+     "pass": false,
+     "actual": [
+      "ready",
+      "↵ 分段：EDITOR_FORMAT_GESTURE_UNSUPPORTED：this action is not offered for this kind of selection in this profile, so nothing was dispatched and the document is unchanged"
+     ]
+    },
+    {
+     "id": "E1/across/equals-delete-then-enter",
+     "pass": false,
+     "actual": {
+      "pressed": [
+       {
+        "text": "ALqAVO plain paragraph two",
+        "level": 0,
+        "list": false,
+        "kind": null,
+        "style": "Text_20_body"
+       },
+       {
+        "text": "CHARLIE heading one",
+        "level": 1,
+        "list": false,
+        "kind": null,
+        "style": "Heading_20_1"
+       },
+       {
+        "text": "DELTA heading two",
+        "level": 2,
+        "list": false,
+        "kind": null,
+        "style": "Heading_20_2"
+       },
+       {
+        "text": "ECHO heading three",
+        "level": 3,
+        "list": false,
+        "kind": null,
+        "style": "Heading_20_3"
+       }
+      ],
+      "control": [
+       {
+        "text": "AL",
+        "level": 0,
+        "list": false,
+        "kind": null,
+        "style": "P1"
+       },
+       {
+        "text": "qAVO plain paragraph two",
+        "level": 0,
+        "list": false,
+        "kind": null,
+        "style": "P1"
+       },
+       {
+        "text": "CHARLIE heading one",
+        "level": 1,
+        "list": false,
+        "kind": null,
+        "style": "Heading_20_1"
+       },
+       {
+        "text": "DELTA heading two",
+        "level": 2,
+        "list": false,
+        "kind": null,
+        "style": "Heading_20_2"
+       }
+      ]
+     }
+    },
+    {
+     "id": "E1/across/control-changed-the-document",
+     "pass": true,
+     "actual": {
+      "state": [
+       "ready",
+       null
+      ]
+     }
+    },
+    {
+     "id": "E6/E1/across/ready-no-red",
+     "pass": false,
+     "actual": [
+      "ready",
+      "↵ 分段：EDITOR_FORMAT_GESTURE_UNSUPPORTED：this action is not offered for this kind of selection in this profile, so nothing was dispatched and the document is unchanged"
+     ]
+    },
+    {
+     "id": "E1/everything/equals-delete-then-enter",
+     "pass": false,
+     "actual": {
+      "pressed": [
+       {
+        "text": "q",
+        "level": 0,
+        "list": false,
+        "kind": null,
+        "style": "P1"
+       }
+      ],
+      "control": [
+       {
+        "text": "",
+        "level": 0,
+        "list": false,
+        "kind": null,
+        "style": "Text_20_body"
+       },
+       {
+        "text": "q",
+        "level": 0,
+        "list": false,
+        "kind": null,
+        "style": "P1"
+       }
+      ]
+     }
+    },
+    {
+     "id": "E1/everything/control-changed-the-document",
+     "pass": true,
+     "actual": {
+      "state": [
+       "ready",
+       null
+      ]
+     }
+    },
+    {
+     "id": "E6/E1/everything/ready-no-red",
+     "pass": false,
+     "actual": [
+      "ready",
+      "↵ 分段：EDITOR_FORMAT_GESTURE_UNSUPPORTED：this action is not offered for this kind of selection in this profile, so nothing was dispatched and the document is unchanged"
+     ]
+    },
+    {
+     "id": "E1/in-heading/equals-delete-then-enter",
+     "pass": false,
+     "actual": {
+      "pressed": [
+       {
+        "text": "ALPHA plain paragraph one",
+        "level": 0,
+        "list": false,
+        "kind": null,
+        "style": "Text_20_body"
+       },
+       {
+        "text": "BRAVO plain paragraph two",
+        "level": 0,
+        "list": false,
+        "kind": null,
+        "style": "Text_20_body"
+       },
+       {
+        "text": "CHqIE heading one",
+        "level": 1,
+        "list": false,
+        "kind": null,
+        "style": "Heading_20_1"
+       },
+       {
+        "text": "DELTA heading two",
+        "level": 2,
+        "list": false,
+        "kind": null,
+        "style": "Heading_20_2"
+       }
+      ],
+      "control": [
+       {
+        "text": "ALPHA plain paragraph one",
+        "level": 0,
+        "list": false,
+        "kind": null,
+        "style": "Text_20_body"
+       },
+       {
+        "text": "BRAVO plain paragraph two",
+        "level": 0,
+        "list": false,
+        "kind": null,
+        "style": "Text_20_body"
+       },
+       {
+        "text": "CH",
+        "level": 1,
+        "list": false,
+        "kind": null,
+        "style": "P1"
+       },
+       {
+        "text": "qIE heading one",
+        "level": 1,
+        "list": false,
+        "kind": null,
+        "style": "P1"
+       }
+      ]
+     }
+    },
+    {
+     "id": "E1/in-heading/control-changed-the-document",
+     "pass": true,
+     "actual": {
+      "state": [
+       "ready",
+       null
+      ]
+     }
+    },
+    {
+     "id": "E6/E1/in-heading/ready-no-red",
+     "pass": false,
+     "actual": [
+      "ready",
+      "↵ 分段：EDITOR_FORMAT_GESTURE_UNSUPPORTED：this action is not offered for this kind of selection in this profile, so nothing was dispatched and the document is unchanged"
+     ]
+    },
+    {
+     "id": "E1/in-item/equals-delete-then-enter",
+     "pass": false,
+     "actual": {
+      "pressed": [
+       {
+        "text": "ALPHA plain paragraph one",
+        "level": 0,
+        "list": false,
+        "kind": null,
+        "style": "Text_20_body"
+       },
+       {
+        "text": "BRAVO plain paragraph two",
+        "level": 0,
+        "list": false,
+        "kind": null,
+        "style": "Text_20_body"
+       },
+       {
+        "text": "CHARLIE heading one",
+        "level": 1,
+        "list": false,
+        "kind": null,
+        "style": "Heading_20_1"
+       },
+       {
+        "text": "DELTA heading two",
+        "level": 2,
+        "list": false,
+        "kind": null,
+        "style": "Heading_20_2"
+       }
+      ],
+      "control": [
+       {
+        "text": "ALPHA plain paragraph one",
+        "level": 0,
+        "list": false,
+        "kind": null,
+        "style": "Text_20_body"
+       },
+       {
+        "text": "BRAVO plain paragraph two",
+        "level": 0,
+        "list": false,
+        "kind": null,
+        "style": "Text_20_body"
+       },
+       {
+        "text": "CHARLIE heading one",
+        "level": 1,
+        "list": false,
+        "kind": null,
+        "style": "Heading_20_1"
+       },
+       {
+        "text": "DELTA heading two",
+        "level": 2,
+        "list": false,
+        "kind": null,
+        "style": "Heading_20_2"
+       }
+      ]
+     }
+    },
+    {
+     "id": "E1/in-item/control-changed-the-document",
+     "pass": true,
+     "actual": {
+      "state": [
+       "ready",
+       null
+      ]
+     }
+    },
+    {
+     "id": "E6/E1/in-item/ready-no-red",
+     "pass": false,
+     "actual": [
+      "ready",
+      "↵ 分段：EDITOR_FORMAT_GESTURE_UNSUPPORTED：this action is not offered for this kind of selection in this profile, so nothing was dispatched and the document is unchanged"
+     ]
+    },
+    {
+     "id": "E1/over-frame/equals-delete-then-enter",
+     "pass": false,
+     "actual": {
+      "pressed": [
+       {
+        "text": "BEFORE plain",
+        "level": 0,
+        "list": false,
+        "kind": null,
+        "style": "Standard"
+       },
+       {
+        "text": "q",
+        "level": 0,
+        "list": false,
+        "kind": null,
+        "style": "P1"
+       },
+       {
+        "text": "AFTER plain",
+        "level": 0,
+        "list": false,
+        "kind": null,
+        "style": "Standard"
+       }
+      ],
+      "control": [
+       {
+        "text": "BEFORE plain",
+        "level": 0,
+        "list": false,
+        "kind": null,
+        "style": "Standard"
+       },
+       {
+        "text": "",
+        "level": 0,
+        "list": false,
+        "kind": null,
+        "style": "Standard"
+       },
+       {
+        "text": "q",
+        "level": 0,
+        "list": false,
+        "kind": null,
+        "style": "P1"
+       },
+       {
+        "text": "AFTER plain",
+        "level": 0,
+        "list": false,
+        "kind": null,
+        "style": "Standard"
+       }
+      ]
+     }
+    },
+    {
+     "id": "E1/over-frame/control-changed-the-document",
+     "pass": true,
+     "actual": {
+      "state": [
+       "ready",
+       null
+      ]
+     }
+    },
+    {
+     "id": "E6/E1/over-frame/ready-no-red",
+     "pass": false,
+     "actual": [
+      "ready",
+      "↵ 分段：EDITOR_FORMAT_GESTURE_UNSUPPORTED：this action is not offered for this kind of selection in this profile, so nothing was dispatched and the document is unchanged"
+     ]
+    },
+    {
+     "id": "E1/in-cell/equals-delete-then-enter",
+     "pass": false,
+     "actual": {
+      "pressed": [
+       {
+        "text": "BEFORE the table",
+        "level": 0,
+        "list": false,
+        "kind": null,
+        "style": "Standard"
+       },
+       {
+        "text": "qLA first",
+        "level": 0,
+        "list": false,
+        "kind": null,
+        "style": "Standard"
+       },
+       {
+        "text": "CELLB second",
+        "level": 0,
+        "list": false,
+        "kind": null,
+        "style": "Standard"
+       },
+       {
+        "text": "CELLC third",
+        "level": 0,
+        "list": false,
+        "kind": null,
+        "style": "Standard"
+       }
+      ],
+      "control": [
+       {
+        "text": "BEFORE the table",
+        "level": 0,
+        "list": false,
+        "kind": null,
+        "style": "Standard"
+       },
+       {
+        "text": "",
+        "level": 0,
+        "list": false,
+        "kind": null,
+        "style": "Standard"
+       },
+       {
+        "text": "qLA first",
+        "level": 0,
+        "list": false,
+        "kind": null,
+        "style": "Standard"
+       },
+       {
+        "text": "CELLB second",
+        "level": 0,
+        "list": false,
+        "kind": null,
+        "style": "Standard"
+       }
+      ]
+     }
+    },
+    {
+     "id": "E1/in-cell/control-changed-the-document",
+     "pass": true,
+     "actual": {
+      "state": [
+       "ready",
+       null
+      ]
+     }
+    },
+    {
+     "id": "E6/E1/in-cell/ready-no-red",
+     "pass": false,
+     "actual": [
+      "ready",
+      "↵ 分段：EDITOR_FORMAT_GESTURE_UNSUPPORTED：this action is not offered for this kind of selection in this profile, so nothing was dispatched and the document is unchanged"
+     ]
+    },
+    {
+     "id": "E7/caret/a-sentence",
+     "pass": false,
+     "actual": "複製：CLIPBOARD_EMPTY_SELECTION：there is no selected text to copy"
+    },
+    {
+     "id": "E7/caret/unchanged",
+     "pass": true,
+     "actual": null
+    },
+    {
+     "id": "E7/over-frame/a-sentence",
+     "pass": false,
+     "actual": "複製：CLIPBOARD_EMPTY_SELECTION：there is no selected text to copy"
+    },
+    {
+     "id": "E7/over-frame/unchanged",
+     "pass": true,
+     "actual": null
+    }
+   ],
+   "version": "157.0.1",
+   "cleanup": {}
+  }
+ ],
+ "preRun": {
+  "refuse": [],
+  "loadavg": [
+   "1.52",
+   "1.54",
+   "1.13"
+  ]
+ },
+ "verdict": "P5_RED"
+}
