@@ -503,6 +503,12 @@ export class DocumentHandle {
     this.widthTwips = metadata.width;
     this.heightTwips = metadata.height;
     this.tileMode = metadata.tileMode;
+    // SPEC-P-ms-formats E5: the format the engine accepted the document as
+    // (odt, docx, ods, xlsx), from the open reply.  A worker that does not say
+    // -- every profile before e2-editor-v33 / ods-editor-v5 -- leaves it null,
+    // and the caller decides what null means; this never guesses from a name.
+    this.format = typeof metadata.format === "string" && metadata.format !== ""
+      ? metadata.format : null;
   }
 
   _assertUsable() {

@@ -8,7 +8,15 @@ const diagnostics = new URLSearchParams(location.search).get("diagnostics") === 
 const $ = id => document.getElementById(id);
 const ui = Object.fromEntries(["file-input","open-file","save-button","undo-button","redo-button","cell-address","formula-input",
   "cancel-button","commit-button","viewport","surface","tiles","selection","active-cell","cell-editor","empty",
-  "tab-strip","state-pill","autosave-status","selection-label","s-doc","s-revision","toast"].map(id=>[id,$(id)]));
+  "tab-strip","state-pill","autosave-status","selection-label","s-doc","s-revision","toast",
+  "save-as-button","save-as-dialog","save-as-name","save-as-suffix","save-as-formats","save-as-message","save-as-cancel",
+  "save-as-confirm"].map(id=>[id,$(id)]));
+// SPEC-P-ms-formats 5.2: what each format this page writes is called and carries. A spreadsheet is saved in ITS format
+// (the session's documentFormat(), from the engine's open reply); Save As offers ODF, and the original for an XLSX.
+const CALC_FORMATS=Object.freeze({ods:{suffix:".ods",mime:"application/vnd.oasis.opendocument.spreadsheet"},
+  xlsx:{suffix:".xlsx",mime:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}});
+// A Save As the host placed: it is opening the new file and the original's lock is being let go (spec 5.3).
+let handedOver=false;
 let session = null, composing = false, paintPending = false, paintAgain = false, lastPaint = null, restoreGridFocus = false;
 let pendingEntry = null, autosave = null, manualSaves = 0;
 // SPEC-P-demo-batch-1 2: each sheet keeps its view for as long as the document
@@ -159,6 +167,9 @@ function render(state) {
   ui["s-revision"].textContent=String(state.revision ?? "");
   ui.empty.hidden=ready;
   ui["save-button"].disabled=!ready || state.readOnly || state.busy || state.uncertain;
+  // SPEC-P-ms-formats 5.2: no Save As on a read-only document (L-saveas-readonly) or with a host that cannot place a file.
+  ui["save-as-button"].hidden=!ready || !saveAsOffered(state);
+  ui["save-as-button"].disabled=ui["save-button"].disabled || handedOver;
   // SPEC-P-calc-undo 4.3: shown when the profile carries undo; usable whenever a write would be, and with an entry
   // pending too (undo then drops the entry).
   ui["undo-button"].hidden=ui["redo-button"].hidden=!state.undoSupported;
@@ -358,12 +369,17 @@ async function save(trigger="manual",conditions,owner=session) {
   } catch(error) {controller?.manualFailed(error);throw error;}
   finally {manualSaves--;controller?.update();}
 }
+function handToBrowser(bytes,name,format) {
+  const url=URL.createObjectURL(new Blob([bytes],{type:CALC_FORMATS[format].mime}));
+  const link=document.createElement("a");link.href=url;link.download=name;link.click();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
 async function saveToHost(owner,trigger,conditions) {
-  const saved=await owner.save(async(bytes,{name})=>{
-    if(HOST)return HOST.save(bytes,{name,trigger,conditions});
-    const url=URL.createObjectURL(new Blob([bytes],{type:"application/vnd.oasis.opendocument.spreadsheet"}));
-    const link=document.createElement("a");link.href=url;link.download=name;link.click();
-    setTimeout(()=>URL.revokeObjectURL(url),1000);
+  // SPEC-P-ms-formats 5.3: after a Save As the host is opening the copy; nothing more goes to the original.
+  if(handedOver){notice("已另存新檔，正在開啟新檔。");return;}
+  const saved=await owner.save(async(bytes,{name,format})=>{
+    if(HOST)return HOST.save(bytes,{name,trigger,conditions,format});
+    handToBrowser(bytes,name,format);
     return{name};
   },{commitDraft:trigger!=="auto"});
   record.lastSave={revision:saved.revision,bytes:saved.bytes.byteLength,result:saved.result,trigger};
@@ -394,6 +410,88 @@ ui["file-input"].addEventListener("change",()=>{
   if(file)void action(async()=>openBytes(await file.arrayBuffer(),file.name));
 });
 ui["save-button"].addEventListener("click",()=>action(()=>save()));
+
+// SPEC-P-ms-formats 5.2, Save As. The page's own dialog: a name (the document's, less its suffix) and the format -- ODF
+// always, the original too for an XLSX, ODF preselected (the owner's use is converting to ODF); ODS to XLSX is not in this
+// batch (L-saveas-ms-from-odf). Confirmed: the pending entry is put back first, as a manual save does; the engine writes the
+// copy once (the session's saveCopy, in its queue) and it goes to HOST.saveAs -- NAME_TAKEN keeps the dialog open and says
+// so -- or, without a host, to a download. A copy is not a save of this document: its edits still count as unsaved.
+function saveAsOffered(state) {
+  return !state.readOnly && (!HOST || typeof HOST.saveAs==="function");
+}
+function stemOf(name) { return String(name ?? "").replace(/\.(?:ods|xlsx)$/i,""); }
+function saveAsChoices(format) {
+  const choices=[{format:"ods",text:"ODF 試算表（.ods）"}];
+  if(format!=="ods" && CALC_FORMATS[format])choices.push({format,text:`原格式（${CALC_FORMATS[format].suffix}）`});
+  return choices;
+}
+function saveAsFileName(typed,format) {
+  const stem=stemOf(String(typed ?? "").trim()).trim();
+  if(stem==="")return {error:"請輸入檔名"};
+  if(/[\\/\u0000-\u001f\u007f]/.test(stem))return {error:"檔名不能含有 / 或 \\"};
+  return {name:stem+CALC_FORMATS[format].suffix};
+}
+function saveAsRefusalText(error,name) {
+  if(error?.code==="NAME_TAKEN")return `這個資料夾已經有「${name}」，請換一個檔名`;
+  return `另存新檔沒有完成：${error?.message || String(error)}`;
+}
+const chosenSaveAsFormat=()=>ui["save-as-formats"].querySelector('input[name="save-as-format"]:checked')?.value ?? "ods";
+function showSaveAsMessage(text) { ui["save-as-message"].textContent=text;ui["save-as-message"].hidden=false; }
+function openSaveAsDialog() {
+  if(!session || session.state.state!=="ready" || !saveAsOffered(session.state) || handedOver)return;
+  const legend=ui["save-as-formats"].querySelector("legend");
+  ui["save-as-formats"].replaceChildren(...(legend ? [legend] : []),...saveAsChoices(session.documentFormat()).map((choice,index)=>{
+    const label=document.createElement("label"),radio=document.createElement("input");
+    radio.type="radio";radio.name="save-as-format";radio.value=choice.format;radio.checked=index===0;
+    label.append(radio,choice.text);return label;
+  }));
+  ui["save-as-name"].value=stemOf(session.state.fileName);
+  ui["save-as-suffix"].textContent=CALC_FORMATS[chosenSaveAsFormat()].suffix;
+  ui["save-as-message"].hidden=true;ui["save-as-message"].textContent="";
+  ui["save-as-confirm"].disabled=false;
+  if(!ui["save-as-dialog"].open)ui["save-as-dialog"].showModal();
+  ui["save-as-name"].focus();ui["save-as-name"].select();
+}
+function closeSaveAsDialog() {
+  if(ui["save-as-dialog"].open)ui["save-as-dialog"].close();
+  ui["save-as-message"].hidden=true;ui["save-as-message"].textContent="";
+  ui["save-as-confirm"].disabled=false;
+  focusGrid();
+}
+async function saveAs(name,format,owner=session) {
+  manualSaves++;autosave?.update();
+  try {
+    await owner.whenIdle();
+    if(owner!==session)return;
+    const entryWasPending=pendingEntry!==null,flushed=await flushPendingEntry();
+    if(entryWasPending && flushed!==true)throw new Error("輸入尚未接回儲存格，請先完成或取消輸入。");
+    if(pendingEntry || composing)throw new Error("請先完成輸入或取消尚未寫入的內容，再另存新檔。");
+    const saved=await owner.saveCopy(format,async bytes=>{
+      if(!HOST){handToBrowser(bytes,name,format);return {name};}
+      return HOST.saveAs(bytes,{name,format});
+    });
+    if(HOST){handedOver=true;autosave?.dispose();autosave=null;render(owner.state);}
+    notice(HOST ? `已另存為 ${saved.result?.name ?? name}，正在開啟新檔。` : `已交給瀏覽器下載 ${name}，請確認檔案已存好。`);
+    return saved;
+  } finally {manualSaves--;autosave?.update();}
+}
+async function confirmSaveAs() {
+  if(ui["save-as-confirm"].disabled)return;
+  const format=chosenSaveAsFormat(),{name,error}=saveAsFileName(ui["save-as-name"].value,format);
+  if(error){showSaveAsMessage(error);return;}
+  ui["save-as-confirm"].disabled=true;ui["save-as-message"].hidden=true;
+  try {await saveAs(name,format);closeSaveAsDialog();}
+  catch(failure) {ui["save-as-confirm"].disabled=false;showSaveAsMessage(saveAsRefusalText(failure,name));}
+}
+ui["save-as-button"].addEventListener("click",()=>openSaveAsDialog());
+ui["save-as-formats"].addEventListener("change",()=>{ui["save-as-suffix"].textContent=CALC_FORMATS[chosenSaveAsFormat()].suffix;});
+ui["save-as-name"].addEventListener("keydown",event=>{
+  if(event.key!=="Enter" || event.isComposing)return;
+  event.preventDefault();void confirmSaveAs();
+});
+ui["save-as-cancel"].addEventListener("click",closeSaveAsDialog);
+ui["save-as-dialog"].addEventListener("cancel",event=>{event.preventDefault();closeSaveAsDialog();});
+ui["save-as-confirm"].addEventListener("click",()=>void confirmSaveAs());
 ui["commit-button"].addEventListener("click",()=>action(async()=>{await session.commit();focusGrid();}));
 ui["cancel-button"].addEventListener("click",()=>{session.cancelEdit();focusGrid();});
 for(const node of document.querySelectorAll("[data-format]"))

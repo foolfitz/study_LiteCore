@@ -43,6 +43,16 @@ import { recoveryFor } from "./paragraph-editor-session.js";
 // operation still pending).  Everything else is the caller's error.
 const PLACE_CARET_FALLBACK_CODES = new Set(["BUSY", "UNSUPPORTED_OPERATION"]);
 
+/**
+ * SPEC-P-ms-formats 5.2: the format a document's saves are written in -- what
+ * the engine said it opened (`DocumentHandle.format`, E5), or `odt` when it
+ * said nothing (every Writer profile before e2-editor-v33).
+ */
+export function documentFormatOf(document) {
+  const format = document?.format;
+  return typeof format === "string" && format !== "" ? format : "odt";
+}
+
 const PARAGRAPH = new Set([...EDITOR_V2_PARAGRAPH_ACTIONS, ...EDITOR_ALIGN_ACTIONS, ...EDITOR_TOGGLE_ACTIONS]);
 // EDITOR_V4_ACTIONS (ABI 5's list, SPEC-M3-link-batch-v21 4.1), and before it
 // EDITOR_V3_ACTIONS, not EDITOR_V2_ACTIONS: this set is the SESSION's own
@@ -1206,6 +1216,121 @@ export class NarrowEditorV2Session extends EditorSession {
   hasUnsavedEdits() {
     const snapshot = this.state.snapshot;
     return snapshot.dirty === true || (snapshot.pending ?? 0) > 0;
+  }
+
+  /**
+   * SPEC-P-ms-formats 5.2: the format this document is saved in -- the one the
+   * engine accepted it as (E5), read from the open document.  `odt` when the
+   * engine does not say, which is every profile before e2-editor-v33: those
+   * open nothing else.
+   */
+  documentFormat() {
+    return documentFormatOf(this.document);
+  }
+
+  /**
+   * SPEC-P-ms-formats 5.2: a save writes the document's own format -- a DOCX
+   * goes back as DOCX, to the same file (the owner's ruling 1).
+   *
+   * THE BASE CLASS's `save()` WITH ONE TOKEN CHANGED.  `EditorSession.save()`
+   * passes `{ format: "odt" }`, and editor-shell/editor-session.js is bound by
+   * E1-C's verdict (check_e1_c_bundle_intact.py), so the format cannot be
+   * passed through it.  Everything else is the base's code (its comments are
+   * at editor-shell/editor-session.js:558): the same queue label, the same
+   * timeout, the same finalize.  Because the base is frozen
+   * the copy cannot drift from it; narrow-editor-v2-session.test.mjs runs the
+   * base's method and this one side by side on an ODT document and requires
+   * the same requests and the same state.
+   */
+  save(options = {}) {
+    return this._enqueue("save", async ({ document }) => {
+      const bytes = await document.save(
+        { format: documentFormatOf(document) },
+        { timeoutMs: options.timeoutMs ?? 180000, signal: options.signal },
+      );
+      return { bytes, revision: document.revision, contentStamp: this._currentContentStamp };
+    }, { finalize: (result) => {
+      const { bytes, contentStamp } = result;
+      this._authorityBytes = bytes.slice(0);
+      this._authorityStamp = contentStamp;
+      this._checkpointBytes = null;
+      this._checkpointRevision = null;
+      this._checkpointStamp = null;
+      this._checkpointError = null;
+      this.state.update({
+        dirty: false,
+        hasSavedBytes: true,
+        hasCheckpoint: false,
+        checkpointRevision: null,
+        checkpointError: null,
+      });
+      return result;
+    } });
+  }
+
+  /**
+   * SPEC-P-ms-formats 5.2: checkpoints are in the document's own format too.
+   *
+   * WHY NOT LEAVE THEM ODT.  A checkpoint is reopened under the document's
+   * name (`_openFresh` passes `_authorityName`), and at the generation ceiling
+   * `takeContentForRescue()` hands it to the host, which writes it over the
+   * user's file.  An ODT checkpoint of a DOCX would put ODT bytes into
+   * `report.docx`.  In the document's format, the bytes and the name agree on
+   * every path that reuses them.
+   *
+   * The base class's method with one token changed, for the same reason as
+   * `save()` above and tested the same way.
+   */
+  async _checkpointBeforeSelection(document) {
+    const revision = document.revision;
+    const contentStamp = this._currentContentStamp;
+    if (!this.state.snapshot.dirty || contentStamp === this._checkpointStamp)
+      return;
+    try {
+      const bytes = await document.save(
+        { format: documentFormatOf(document) },
+        { timeoutMs: this._selectionTimeoutMs },
+      );
+      if (document !== this.document || contentStamp !== this._currentContentStamp)
+        return;
+      this._checkpointBytes = bytes.slice(0);
+      this._checkpointRevision = revision;
+      this._checkpointStamp = contentStamp;
+      this._checkpointError = null;
+      this.state.update({
+        hasCheckpoint: true,
+        checkpointRevision: revision,
+        checkpointError: null,
+      });
+    } catch (error) {
+      this._checkpointError = {
+        code: error?.code || "CHECKPOINT_FAILED",
+        message: error?.message || String(error),
+        details: error?.details || {},
+      };
+      this.state.update({ checkpointError: this._checkpointError });
+    }
+  }
+
+  /**
+   * SPEC-P-ms-formats 5.2, Save As: the document's content in `format`, as a
+   * copy.  Through the queue, so it holds everything typed before it; NOT a
+   * save of this document -- nothing here is marked clean, and the bytes are
+   * never this session's authority or checkpoint (they are in a format the
+   * document was not opened as, so a reopen under this document's name would
+   * read them as the wrong thing).  What happens to the copy is the caller's.
+   */
+  saveCopy(format, options = {}) {
+    if (typeof format !== "string" || format === "")
+      return Promise.reject(Object.assign(new Error("saveCopy requires a format"),
+                                          { code: "INVALID_ARGUMENT", recovery: "none" }));
+    return this._enqueue("save-copy", async ({ document }) => {
+      const bytes = await document.save(
+        { format },
+        { timeoutMs: options.timeoutMs ?? 180000, signal: options.signal },
+      );
+      return { bytes, format, revision: document.revision };
+    });
   }
 
   _enqueue(label, operation, options = {}) {

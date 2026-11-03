@@ -22,6 +22,17 @@ function rectangle(anchor, focus = anchor) {
     multiple:anchor.column!==focus.column || anchor.row!==focus.row});
 }
 
+// SPEC-P-ms-formats 5.2: the formats a spreadsheet is saved in.  The engine's
+// open reply names the one it accepted (E5); a Calc engine also reports `odt`
+// for a document it opened under a .odt name (v4's path, spec 5.1 E1), which it
+// cannot save as -- that document is saved as ODS, as it always was, and so is
+// one from an engine that does not say (every profile before ods-editor-v5).
+export const CALC_SAVE_FORMATS = Object.freeze(["ods", "xlsx"]);
+export function calcDocumentFormatOf(document) {
+  const format = document?.format;
+  return CALC_SAVE_FORMATS.includes(format) ? format : "ods";
+}
+
 export class CalcEditorSession {
   constructor(options) {
     this.document = null;
@@ -375,13 +386,38 @@ export class CalcEditorSession {
       const revision=this.document.revision;
       this._saving++;this._emit();
       try {
-        const bytes=await this.document.save({format:"ods"});
-        const result=await target(bytes,{name:this.state.fileName});
+        const format=this.documentFormat();
+        const bytes=await this.document.save({format});
+        const result=await target(bytes,{name:this.state.fileName,format});
         this._savedRevision=revision;
         return {bytes,result,revision};
       } catch (error) {
         if (error.outcome==="copy") this._savedRevision=revision;
         throw error;
+      } finally { this._saving--;this._emit(); }
+    });
+  }
+  /** SPEC-P-ms-formats 5.2: the format this document's saves are written in. */
+  documentFormat() { return calcDocumentFormatOf(this.document); }
+  /**
+   * SPEC-P-ms-formats 5.2, Save As: the spreadsheet in `format`, as a copy.  In
+   * the session's queue, after the draft is committed the way a save commits
+   * it; NOT a save of this document: the saved revision does not move, so the
+   * edits still count as unsaved.  What happens to the copy is the caller's.
+   */
+  saveCopy(format,target) {
+    return this._enqueue(async()=>{
+      this._assertReady();
+      if (this._readOnly)
+        throw new DocumentSdkError("READ_ONLY", "this spreadsheet cannot be saved");
+      if (!CALC_SAVE_FORMATS.includes(format))
+        throw new DocumentSdkError("INVALID_ARGUMENT", `a spreadsheet is not saved as ${format}`);
+      await this._commitNow();
+      this._saving++;this._emit();
+      try {
+        const bytes=await this.document.save({format});
+        const result=await target(bytes,{format});
+        return {bytes,result,format};
       } finally { this._saving--;this._emit(); }
     });
   }

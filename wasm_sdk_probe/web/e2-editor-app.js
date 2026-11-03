@@ -63,6 +63,21 @@ const PINNED_WASM_SHA256 = "54e500931de0ee28";
 const HOST = globalThis.liteCoreHost ?? null;
 let hostSaves = Promise.resolve();
 
+// SPEC-P-ms-formats 5.2.  The formats this page writes, for a download (no
+// host) and for Save As.  A document is saved in ITS format -- the one the
+// engine opened it as (`session.documentFormat()`, from the open reply, E5),
+// never one this page guesses from the name; `odt` on every profile before
+// e2-editor-v33, which opens nothing else.
+const WRITER_FORMATS = Object.freeze({
+  odt: Object.freeze({ suffix: ".odt", mime: "application/vnd.oasis.opendocument.text" }),
+  docx: Object.freeze({ suffix: ".docx",
+    mime: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" }),
+});
+let documentFormat = "odt";
+// A Save As the host placed: it is opening the new file, and this page writes
+// nothing more -- the original's lock is being let go (spec 5.3).
+let handedOver = false;
+
 // ITEM 2, paste as Markdown (SPEC-M3-link-batch-v22 §11; fable ruling 5).  It
 // ships from v22: the v22 link gives the engine thread a 1 MiB stack, and
 // finding 153's inputs complete in both browsers there (v22 criterion C1).  In
@@ -184,6 +199,11 @@ const el = {
   markdownDialog: $("#markdown-dialog"), markdownText: $("#markdown-text"),
   markdownMessage: $("#markdown-message"), markdownInsert: $("#markdown-insert"),
   markdownCancel: $("#markdown-cancel"),
+  // SPEC-P-ms-formats 5.2: Save As.
+  saveAs: $("#save-as"), saveAsDialog: $("#save-as-dialog"), saveAsName: $("#save-as-name"),
+  saveAsSuffix: $("#save-as-suffix"), saveAsFormats: $("#save-as-formats"),
+  saveAsMessage: $("#save-as-message"), saveAsCancel: $("#save-as-cancel"),
+  saveAsConfirm: $("#save-as-confirm"),
   s: { state: $("#s-state"), revision: $("#s-revision"), pending: $("#s-pending"),
        generation: $("#s-generation"), checkpoint: $("#s-checkpoint"),
        latency: $("#s-latency"), doc: $("#s-doc") },
@@ -2660,6 +2680,12 @@ function saveDocument(take = takeSavedContent, options = {}) {
     toast(VIEW_ONLY_TEXT, true);
     return Promise.resolve();
   }
+  // SPEC-P-ms-formats 5.3: after a Save As the host let the original go and is
+  // opening the copy; a save now would write to a file this page no longer holds.
+  if (handedOver) {
+    toast("已另存新檔，正在開啟新檔");
+    return Promise.resolve();
+  }
   savesUnsettled += 1;
   // Once, at the moment the save ends -- when the host's write settles (or the
   // download is handed over), NOT when `run()` has also repainted: a runner or a
@@ -2709,7 +2735,10 @@ async function saveOnce(settle = () => {}, take = takeSavedContent, options = {}
     try {
       saved = await run(auto ? "自動存回" : "存回",
                         () => HOST.save(bytes, { name: documentName, trigger: auto ? "auto" : "manual",
-                                                 conditions: options.conditions })
+                                                 conditions: options.conditions,
+                                                 // SPEC-P-ms-formats 5.3: what the bytes are, so a
+                                                 // host can refuse bytes that are not its file's format.
+                                                 format: documentFormat })
                           .finally(settle),
                         { quiet: auto });
     } catch (error) {
@@ -2725,16 +2754,167 @@ async function saveOnce(settle = () => {}, take = takeSavedContent, options = {}
       toast(`已存回 ${saved?.name ?? documentName}（${(bytes.byteLength / 1024).toFixed(1)} KB）`);
     return;
   }
-  const url = URL.createObjectURL(
-    new Blob([bytes], { type: "application/vnd.oasis.opendocument.text" }));
-  const anchor = document.createElement("a");
-  anchor.href = url;
-  anchor.download = documentName.replace(/\.odt$/i, "") + "-v2.odt";
-  anchor.click();
+  // SPEC-P-ms-formats 5.2: the download keeps the document's own suffix.
+  handToBrowser(bytes, `${stemOf(documentName)}-v2${WRITER_FORMATS[documentFormat].suffix}`, documentFormat);
   settle();
-  setTimeout(() => URL.revokeObjectURL(url), 10000);
   toast(`已存出 ${(bytes.byteLength / 1024).toFixed(1)} KB`);
 }
+
+/** Without a host: the bytes as a download, named and typed by their format. */
+function handToBrowser(bytes, name, format) {
+  const url = URL.createObjectURL(new Blob([bytes], { type: WRITER_FORMATS[format].mime }));
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = name;
+  anchor.click();
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
+}
+
+/** A name without the suffix of any format this page writes. */
+function stemOf(name) {
+  return String(name ?? "").replace(/\.(?:odt|docx)$/i, "");
+}
+
+/* ---------------------------------------------------------------- save as */
+
+// SPEC-P-ms-formats 5.2.  The page's own dialog: a name (the document's, less
+// its suffix), and the format -- ODF always; the original too when the document
+// is DOCX, and then ODF is preselected (the owner's use is converting to ODF).
+// An ODF document has ODF only, which is a copy; ODT to DOCX is not in this
+// batch (L-saveas-ms-from-odf).  Not offered on a view-only document
+// (L-saveas-readonly), nor with a host that has no `saveAs` (it cannot place a
+// new file).  Confirmed, the engine writes the copy once (the session's
+// `saveCopy`, through its queue) and it goes to `HOST.saveAs` -- which refuses a
+// name that is taken (NAME_TAKEN: the dialog stays and says so) and otherwise
+// opens the new file -- or, with no host, to a download.
+
+function saveAsOffered() {
+  return !viewOnly && (!HOST || typeof HOST.saveAs === "function");
+}
+
+function updateSaveAsAffordance() {
+  el.saveAs.hidden = !session?.document || !saveAsOffered();
+}
+
+/** The formats offered for this document, the preselected one first. */
+function saveAsChoices(format) {
+  const choices = [{ format: "odt", text: "ODF 文字文件（.odt）" }];
+  if (format !== "odt" && WRITER_FORMATS[format])
+    choices.push({ format, text: `原格式（${WRITER_FORMATS[format].suffix}）` });
+  return choices;
+}
+
+/** The file name a typed name and a format make, or why there is none. */
+function saveAsFileName(typed, format) {
+  const stem = stemOf(String(typed ?? "").trim()).trim();
+  if (stem === "") return { error: "請輸入檔名" };
+  if (/[\\/\u0000-\u001f\u007f]/.test(stem)) return { error: "檔名不能含有 / 或 \\" };
+  return { name: stem + WRITER_FORMATS[format].suffix };
+}
+
+function saveAsRefusalText(error, name) {
+  if (error?.code === "NAME_TAKEN") return `這個資料夾已經有「${name}」，請換一個檔名`;
+  return `另存新檔沒有完成：${describeError(error)}`;
+}
+
+function chosenSaveAsFormat() {
+  return el.saveAsFormats.querySelector('input[name="save-as-format"]:checked')?.value ?? "odt";
+}
+
+function showSaveAsMessage(text) {
+  el.saveAsMessage.textContent = text;
+  el.saveAsMessage.hidden = false;
+}
+
+function openSaveAsDialog() {
+  if (!session?.document || !saveAsOffered() || handedOver) return;
+  const legend = el.saveAsFormats.querySelector("legend");
+  el.saveAsFormats.replaceChildren(...(legend ? [legend] : []),
+    ...saveAsChoices(documentFormat).map((choice, index) => {
+      const label = document.createElement("label");
+      const radio = document.createElement("input");
+      radio.type = "radio";
+      radio.name = "save-as-format";
+      radio.value = choice.format;
+      radio.checked = index === 0;
+      label.append(radio, choice.text);
+      return label;
+    }));
+  el.saveAsName.value = stemOf(documentName);
+  el.saveAsSuffix.textContent = WRITER_FORMATS[chosenSaveAsFormat()].suffix;
+  el.saveAsMessage.hidden = true;
+  el.saveAsMessage.textContent = "";
+  el.saveAsConfirm.disabled = false;
+  if (!el.saveAsDialog.open) el.saveAsDialog.showModal();
+  el.saveAsName.focus();
+  el.saveAsName.select();
+}
+
+/** Close the dialog; the caret's sink gets the focus back (finding 152's way). */
+function closeSaveAsDialog() {
+  if (el.saveAsDialog.open) el.saveAsDialog.close();
+  el.saveAsMessage.hidden = true;
+  el.saveAsMessage.textContent = "";
+  el.saveAsConfirm.disabled = false;
+  if (session) { el.sink.blur(); el.sink.focus({ preventScroll: true }); }
+}
+
+/**
+ * The copy, written and handed over.  With a host, in the same one-at-a-time
+ * line as every save (`hostSaves`): a Save As never overlaps an autosave of
+ * the original.
+ */
+function saveAsDocument(name, format) {
+  const once = async () => {
+    const { bytes } = await run("另存新檔", () => session.saveCopy(format), { quiet: true });
+    if (!HOST) {
+      handToBrowser(bytes, name, format);
+      toast(`已存出 ${name}（${(bytes.byteLength / 1024).toFixed(1)} KB）`);
+      return;
+    }
+    const placed = await HOST.saveAs(bytes, { name, format });
+    handedOver = true;
+    clearTimeout(autosave.timer);
+    autosave.timer = null;
+    toast(`已另存為 ${placed?.name ?? name}，正在開啟新檔`);
+  };
+  if (!HOST) return once();
+  const turn = hostSaves.then(once);
+  hostSaves = turn.catch(() => {});
+  return turn;
+}
+
+async function confirmSaveAs() {
+  if (el.saveAsConfirm.disabled) return;
+  const format = chosenSaveAsFormat();
+  const { name, error } = saveAsFileName(el.saveAsName.value, format);
+  if (error) { showSaveAsMessage(error); return; }
+  el.saveAsConfirm.disabled = true;
+  el.saveAsMessage.hidden = true;
+  try {
+    await saveAsDocument(name, format);
+    closeSaveAsDialog();
+  } catch (failure) {
+    el.saveAsConfirm.disabled = false;
+    showSaveAsMessage(saveAsRefusalText(failure, name));
+  }
+}
+
+el.saveAs.addEventListener("click", () => openSaveAsDialog());
+el.saveAsFormats.addEventListener("change", () => {
+  el.saveAsSuffix.textContent = WRITER_FORMATS[chosenSaveAsFormat()].suffix;
+});
+el.saveAsName.addEventListener("keydown", (event) => {
+  if (event.key !== "Enter" || event.isComposing) return;
+  event.preventDefault();
+  void confirmSaveAs();
+});
+el.saveAsCancel.addEventListener("click", closeSaveAsDialog);
+el.saveAsDialog.addEventListener("cancel", (event) => {
+  event.preventDefault();
+  closeSaveAsDialog();
+});
+el.saveAsConfirm.addEventListener("click", () => void confirmSaveAs());
 
 // FINDING 066.  A mouse click on a toolbar button moves the keyboard onto the
 // button -- ordinary <button> behaviour -- and this page never gave it back.
@@ -4178,6 +4358,13 @@ async function openDocument(bytes, name, { readOnly = false } = {}) {
                         { code: "PAGE_BUILD_MISMATCH" });
   }
   documentName = name;
+  // SPEC-P-ms-formats 5.2: what the engine opened it as decides every save.  A
+  // format this page cannot write (none today) would be a page/profile mismatch,
+  // and is refused the way a wrong wasm is rather than saved as something else.
+  documentFormat = session.documentFormat?.() ?? "odt";
+  if (!WRITER_FORMATS[documentFormat])
+    throw Object.assign(new Error(`這個頁面不會寫 ${documentFormat} 格式`), { code: "PAGE_FORMAT_UNKNOWN" });
+  updateSaveAsAffordance();
   el.s.doc.textContent = viewOnly ? `${name}（${VIEW_ONLY_TEXT}）` : name;
   // A read-only sink: typing and IME never start, arrow keys still arrive.
   el.sink.readOnly = viewOnly;

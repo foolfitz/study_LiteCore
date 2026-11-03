@@ -168,3 +168,41 @@ Files 對微軟文件沒有「Open in LiteCore」；要先在別處轉成 ODF �
   - 拒絕的名字 `.doc`、`.docm`、`.xls`、`.xlsm`：打不開，通知列 `INVALID_ARGUMENT：open was rejected before queueing`。
   - **紅案**（同一支工具，出貨的 v32／v4）：真檔名 27 份一份都打不開。
 - 新增具名限制 `L-external-links`：活頁簿指向其他檔案的外部連結，存回 XLSX 時目標被改寫成相對於引擎暫存路徑（`/tmp/oxsdk-output-…`）的相對路徑，在 Excel 裡會失效。LibreOffice 原生也這樣（「相對儲存檔案系統網址」預設開）。不在本批修。
+
+## 10. 追加 2（2026-11-03 22:10，頁面改完、W 跑之前）
+
+### 10.1 實作時定下、5.2 沒寫到的設計
+
+- **Writer 的存檔格式在 `editor-shell-v2` 覆寫。**`editor-shell/editor-session.js` 被 E1-C 判定綁住（`check_e1_c_bundle_intact.py`），它的 `save()` 與 `_checkpointBeforeSelection()` 寫死 `{ format: "odt" }`。`NarrowEditorV2Session` 覆寫這兩個方法：程式碼照抄基底，只把格式換成 `documentFormatOf(document)`（開檔回覆的 `format`，沒有就是 `odt`）；另加 `documentFormat()`、`saveCopy(format)`。基底凍結，所以抄本不會漂移；單元測試把基底的方法與覆寫並排跑在 ODT 文件上，要求同樣的請求與同樣的狀態。
+- **checkpoint 也用文件自己的格式。**理由：checkpoint 會用文件的名字重開（`_openFresh` 傳 `_authorityName`），世代上限時 `takeContentForRescue()` 把它交給宿主寫回原檔。ODT 的 checkpoint 會把 ODT 位元組寫進 `報告.docx`。
+- **SDK：**`DocumentHandle.format` 收開檔回覆的 E5；不是非空字串就是 `null`，不從檔名猜。
+- **Calc：**引擎對 `.odt` 檔名回報 `odt`（v4 既有的路徑，5.1 E1 的表），但 Calc 存不了 `odt`。session 只採用 `ods`、`xlsx`，其餘（含 `null`）照 v4 存 ODS。
+- **另存新檔是副本**：不清 dirty、不成為 authority 或 checkpoint，下一次存檔仍存原格式。有宿主時，`HOST.saveAs` 成功之後頁面不再存任何東西（宿主正在放掉原檔的鎖、改開新檔）。
+- **另存新檔按鈕**在唯讀文件、以及宿主沒有 `saveAs()`（0.2.55 以前）時隱藏。
+- **宿主介面**：`HOST.save(bytes, {…, format})` 多帶 `format`，讓宿主可以拒絕格式與檔案不符的位元組；`HOST.saveAs(bytes, { name, format })` 的 `name` 是完整檔名（含副檔名）。
+- **沒有宿主時的下載**：Writer 存檔 `<主檔名>-v2.<格式>`（沿用既有的 `-v2`），Calc 用原檔名；另存新檔 `<輸入的名字>.<格式>`。
+- **檔名欄**：去掉頁面認得的副檔名，再加上選定格式的副檔名；空白、含 `/`、`\` 或控制字元時對話框說明，不送出。
+
+### 10.2 單元判準（已跑，2026-11-03 22:00）
+
+- `editor-shell-v2/tests/ms-formats-session.test.mjs` 7 項、`tests/calc-ms-formats.test.mjs` 6 項，全過。
+- 紅案 `tools/check_ms_formats_shell_mutations.py`：Writer 9 個、Calc 8 個突變，每個都紅在為它寫的那一項（第一版有一個存活：存檔前沒有 checkpoint，「存檔不清 checkpoint」看不出來；補了之後才全紅）。
+- 既有：`editor-shell-v2/tests` 585/585、`tests/` 128/128、`sdk/tests` 131/131、`editor-shell/tests` 全過，E1-C intact，`check_calc_{format_entry,range,autosave}_mutations.py` pass。
+
+### 10.3 W 工具
+
+`wasm_sdk_probe/tools/run_ms_formats_w.py`，一個瀏覽器跑一份檔。鏡像是 dist/，兩個頁面與它們 import 的模組取自原始碼樹，profiles 加上兩個開發版的別名；Writer 頁面指向 v33（worker 網址與 wasm 釘選），Calc 指向 v5。沒有宿主：經頁面自己的檔案選擇器給**真檔名**，存檔是**真的瀏覽器下載**（Chrome `Page.setDownloadBehavior`、Firefox 下載偏好），從磁碟讀回。按鈕用真指標按。`--read` 只讀報告給判定。
+
+### 10.4 W 的判讀（跑之前釘死）
+
+- **W1**：每份可開的 DOCX／XLSX 都開成功；按「儲存」得到一個下載，是 OOXML；原生 harness 讀它，與 M0 同一份檔的原格式來回（`true-name/out/saved.<格式>.dump.txt`）相同。**唯一允許的差異**：兩份 dump 行數相同，且每一行不同的行在兩邊都是外部連結參照（`<格>\t='file:///…'#…`），同一格、檔名相同、`#` 之後相同——這是第 9 節量到的 `L-external-links`（`empty_ext_defined_name.xlsx`），連結目標被解析到存檔位置。其他任何差異都判 W1 不成立。
+- **W2**：對話框兩個選項，ODF 在前且預選，原格式在後未選；確定後得到一個下載，第一個成員是 `mimetype`、值對；原生 harness 讀它，與 M0 的 ODF 來回相同。`forum-mso-en4-134670.xlsx` 判 NOT_ESTABLISHED（finding 184）：只驗位元組是 ODF，不讀。
+- **截斷的 DOCX**：開不起來，通知列標紅、以 `代碼：` 開頭；之後同一頁開正常檔成功。
+- **W3**：`.doc`、`.docm`、`.rtf`（Writer）與 `.xls`、`.xlsm`（Calc），內容是正常檔的位元組：開不起來、通知列含 `INVALID_ARGUMENT`；之後同一頁用真檔名開正常檔成功。
+- **紅案**：`--baseline`（同一份頁面原始碼，profile 留在 v32／v4）可開的檔數要是 0、W1 與 W2 都不成立（`W_RED`）。
+- **W_HOLDS**＝Chrome 與 Firefox 都是 W1、W2、截斷、W3 成立，而且紅案是 `W_RED`。沒跑或沒跑完：NOT_ESTABLISHED。
+- W4（既有回歸網在兩個新 profile 上）在第 4 步凍結之前跑，要先讓那些鏡像工具認得新的 profile 名字。
+
+### 10.5 觀察（不是判準）
+
+- 開檔失敗之後，Writer 狀態列的檔名仍是上一份文件（`#s-doc`）。既有行為，只有鏡像看得到（宿主只開一份）。不在本批修。
