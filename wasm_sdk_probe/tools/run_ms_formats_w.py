@@ -24,6 +24,14 @@ file.  Per corpus DOCX / XLSX (run_msformat_native.corpus(), M0's list):
 
   run_ms_formats_w.py --browser chrome|firefox --native-m0 DIR --harness FILE --out DIR [--baseline] [--only NAME]
 Writes only under --out and build/ms-formats-w/.  Observations; the verdict is read by --read on the report (W_HOLDS / W_RED / ...).
+
+Spec 11.3 (fable's ruling, 2026-11-03) replaces W3's reading and the recovery reading: a Calc open fails only when the page's own state
+record (`__calcEditor.state`) is `error` FOR THIS FILE (fileName equal), and W3's code is read there (`error.code`); a later open of the good
+file counts only when the page's state names that file and is ready.  Run 01 (findings/evidence/ms-formats/w/) was read the old way and is
+kept as the witness.
+  --part refused                     only the refused names (spec 11.3 R1's live red case)
+  --red-recovery-refused             the good file for "then open a good file" carries a refused name too: W3 must read red (R1)
+  --self-test REPORT                 R2: three mutations of a green report, each must turn W3 red; runs nothing
 """
 import argparse
 import gzip
@@ -69,7 +77,9 @@ TOAST = ("(()=>{const t=document.querySelector('#toast');return t?{text:t.textCo
          "bad:t.classList.contains('bad')||t.classList.contains('error')}:null})()")
 WRITER_OPEN = ("(()=>{const p=document.querySelector('#state-pill'),d=document.querySelector('#s-doc');"
                "return {state:p&&p.dataset.state,doc:d&&d.textContent}})()")
-CALC_STATE = "(()=>{const s=window.__calcEditor&&window.__calcEditor.state;return s?{state:s.state,fileName:s.fileName,busy:s.busy}:null})()"
+CALC_STATE = ("(()=>{const s=window.__calcEditor&&window.__calcEditor.state;"
+              "return s?{state:s.state,fileName:s.fileName,busy:s.busy,error:s.error||null}:null})()")
+REFUSED_KIND = {"doc": "writer", "docm": "writer", "rtf": "writer", "xls": "calc", "xlsm": "calc"}
 DIALOG = ("(()=>{const d=document.querySelector('#save-as-dialog');const r=[...document.querySelectorAll("
           "'#save-as-formats input[name=\"save-as-format\"]')];return {open:!!(d&&d.open),"
           "name:(document.querySelector('#save-as-name')||{}).value,suffix:(document.querySelector('#save-as-suffix')||{}).textContent,"
@@ -214,10 +224,16 @@ class Page:
             expr = (f"(()=>{{const t={TOAST},s={WRITER_OPEN};if(t&&t.text==={json.dumps('已開啟 ' + name)}&&s.state==='ready')"
                     f"return {{opened:true,toast:t,state:s}};if(t&&t.bad)return {{opened:false,toast:t,state:s}};return null}})()")
         else:
+            # Spec 11.3 G1: a failure is THIS file's session in `error`; a toast alone is not (a closing session re-shows its error).
             expr = (f"(()=>{{const t={TOAST},s={CALC_STATE};if(s&&s.state==='ready'&&s.fileName==={json.dumps(name)}&&!s.busy)"
-                    f"return {{opened:true,toast:t,state:s}};if(t&&t.bad)return {{opened:false,toast:t,state:s}};return null}})()")
+                    f"return {{opened:true,toast:t,state:s}};if(s&&s.state==='error'&&s.fileName==={json.dumps(name)})"
+                    f"return {{opened:false,toast:t,state:s}};return null}})()")
         result = wait(self.session, expr, timeout)
-        return result or {"opened": False, "timeout": True, "toast": evaluate(self.session, TOAST), "toastBefore": before}
+        if result and kind == "calc" and not result.get("opened"):
+            time.sleep(.5)  # the notice is written by the same render; read it again after it settles
+            result["toast"] = evaluate(self.session, TOAST)
+        return result or {"opened": False, "timeout": True, "toast": evaluate(self.session, TOAST), "toastBefore": before,
+                          "state": evaluate(self.session, WRITER_OPEN if kind == "writer" else CALC_STATE)}
 
     def close(self):
         return close_browser(self.session)
@@ -291,8 +307,54 @@ def one_file(page, item, native_dir, harness, base, files_dir):
     return entry
 
 
+def recovered(kind, record, name):
+    """Spec 11.3 G2: the page's own state names the good file and is ready."""
+    rec = record.get("recovery") or {}
+    state = rec.get("state") or {}
+    if kind == "writer":
+        ok = (rec.get("opened") is True and state.get("state") == "ready" and state.get("doc") == name
+              and (rec.get("toast") or {}).get("text") == f"已開啟 {name}")
+    else:
+        ok = state.get("state") == "ready" and state.get("fileName") == name and not state.get("busy")
+    return ok, (None if ok else f"recovery not {name} ready: {json.dumps({'opened': rec.get('opened'), 'state': state, 'timeout': rec.get('timeout')}, ensure_ascii=False)}")
+
+
+def refused_holds(record):
+    """Spec 11.3 G1 (Calc) and 10.4 (Writer) for one refused name, and G2 for the open after it; every failed condition named."""
+    name = record["name"]
+    kind = REFUSED_KIND[name.rsplit(".", 1)[1].lower()]
+    opened = record.get("open") or {}
+    toast, state = opened.get("toast") or {}, opened.get("state") or {}
+    why = []
+    if record.get("error"):
+        why.append(f"error {record['error']}")
+    if opened.get("opened") is not False:
+        why.append("opened (or no answer)")
+    if not toast.get("bad"):
+        why.append("toast not in error style")
+    if kind == "writer":
+        if "INVALID_ARGUMENT" not in (toast.get("text") or ""):
+            why.append("toast names no INVALID_ARGUMENT")
+    else:
+        if state.get("state") != "error" or state.get("fileName") != name:
+            why.append(f"page state is not error for {name}: {state.get('state')} {state.get('fileName')}")
+        code = (state.get("error") or {}).get("code") if isinstance(state.get("error"), dict) else None
+        if code != "INVALID_ARGUMENT":
+            why.append("error.code missing" if code is None else f"error.code {code}")
+    sample = record.get("recoveryName") or SAMPLE["docx" if kind == "writer" else "xlsx"].name
+    ok, reason = recovered(kind, record, sample)
+    if not ok:
+        why.append(reason)
+    return not why, [f"{name}: {w}" for w in why]
+
+
 def read(report):
     """The verdict, from the report alone."""
+    if report.get("part") == "refused":
+        results = [refused_holds(r) for r in report["refused"]]
+        w3 = bool(results) and all(ok for ok, _ in results)
+        return {"part": "refused", "W3": w3, "problems": [p for _, ps in results for p in ps],
+                "redRecovery": report.get("redRecovery", False), "verdict": "W3_HOLDS" if w3 else "W3_RED"}
     files = report["files"]
     problems = []
     if not files:
@@ -321,11 +383,18 @@ def read(report):
             w2 = False
             problems.append(f"{f['name']}: W2 offered={offered} {json.dumps({k: b.get(k) for k in ('arrived', 'odf')})} "
                             f"{json.dumps(b.get('vsNative'), ensure_ascii=False)[:300]} button={b.get('button')}")
-    truncated = all(not f.get("opened") and (f.get("open") or {}).get("toast", {}).get("bad")
-                    and re.match(r"^[A-Z][A-Z0-9_]+：", ((f.get("open") or {}).get("toast") or {}).get("text") or "")
-                    and (f.get("recovery") or {}).get("opened") for f in bad) and bool(bad)
-    w3 = bool(report["refused"]) and all(not r["open"].get("opened") and "INVALID_ARGUMENT" in ((r["open"].get("toast") or {}).get("text") or "")
-                                         and (r.get("recovery") or {}).get("opened") for r in report["refused"])
+    truncated = bool(bad)
+    for f in bad:
+        sample = f.get("recoveryName") or SAMPLE[f["name"].rsplit(".", 1)[1]].name
+        ok, reason = recovered(f.get("kind") or KIND[f["name"].rsplit(".", 1)[1]], f, sample)
+        if not (not f.get("opened") and (f.get("open") or {}).get("toast", {}).get("bad")
+                and re.match(r"^[A-Z][A-Z0-9_]+：", ((f.get("open") or {}).get("toast") or {}).get("text") or "") and ok):
+            truncated = False
+            problems.append(f"{f['name']}: truncated clause {reason or (f.get('open') or {}).get('toast')}")
+    results = [refused_holds(r) for r in report["refused"]]
+    w3 = bool(results) and all(ok for ok, _ in results)
+    for _, why in results:
+        problems.extend(why)
     opened = sum(1 for f in good if f.get("opened"))
     verdict = {"files": len(files), "comparable": len(good), "opened": opened, "W1": w1 and bool(good), "W2": w2 and bool(good),
                "truncated": truncated, "W3": w3,
@@ -339,6 +408,38 @@ def read(report):
     return verdict
 
 
+def self_test(report):
+    """Spec 11.3 R2: the green report, then three mutations of it in memory; each must turn W3 red."""
+    import copy
+    base = read(report)
+    out = {"base": {k: base[k] for k in ("W3", "verdict")}, "mutations": {}}
+    calc = lambda r: REFUSED_KIND[r["name"].rsplit(".", 1)[1].lower()] == "calc"
+
+    def code(rep):
+        for r in rep["refused"]:
+            if calc(r) and isinstance((r["open"].get("state") or {}).get("error"), dict):
+                r["open"]["state"]["error"]["code"] = "OPEN_FAILED"
+
+    def opening(rep):
+        for r in rep["refused"]:
+            if calc(r):
+                r["recovery"]["state"]["state"] = "opening"
+
+    def no_code(rep):
+        for r in rep["refused"]:
+            if not calc(r):
+                r["open"]["toast"]["text"] = (r["open"]["toast"]["text"] or "").replace("INVALID_ARGUMENT：", "")
+
+    for name, mutate in (("calc-code-OPEN_FAILED", code), ("calc-recovery-opening", opening), ("writer-toast-without-code", no_code)):
+        mutated = copy.deepcopy(report)
+        mutate(mutated)
+        verdict = read(mutated)
+        out["mutations"][name] = {"W3": verdict["W3"], "verdict": verdict["verdict"], "problems": verdict["problems"][:6]}
+    out["pass"] = base["verdict"] == "W_HOLDS" and all(m["W3"] is False and m["verdict"] != "W_HOLDS" for m in out["mutations"].values())
+    print(json.dumps(out, ensure_ascii=False, indent=1))
+    return 0 if out["pass"] else 1
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--browser", choices=["chrome", "firefox"])
@@ -348,7 +449,12 @@ def main():
     parser.add_argument("--baseline", action="store_true")
     parser.add_argument("--only")
     parser.add_argument("--read", type=Path, help="read a report.json and print its verdict; runs nothing")
+    parser.add_argument("--part", choices=["all", "refused"], default="all")
+    parser.add_argument("--red-recovery-refused", action="store_true")
+    parser.add_argument("--self-test", type=Path, help="R2 on a green report.json; runs nothing")
     args = parser.parse_args()
+    if args.self_test:
+        return self_test(json.loads(args.self_test.read_text()))
     if args.read:
         report = json.loads(args.read.read_text())
         verdict = read(report)
@@ -361,7 +467,9 @@ def main():
     native_m0 = json.loads((args.native_m0 / "report.json").read_text())
     native_dirs = {f["name"]: args.native_m0 / f"{i:02d}-{f['name']}" for i, f in enumerate(native_m0["files"])}
     items = [i for i in m0.corpus() if i["suffix"] in KIND and i["name"] in native_dirs and (not args.only or i["name"] == args.only)]
-    if not items:
+    if args.part == "refused":
+        items = []
+    elif not items:
         raise SystemExit("empty corpus")
     work = PROJECT / "build/ms-formats-w" / f"{out.parent.name}-{out.name}"
     root = work / "root"
@@ -371,7 +479,7 @@ def main():
     downloads_root.mkdir()
     report = {"schema": 1, "tool": "run_ms_formats_w.py", "toolSha256": sha(__file__), "browser": args.browser, "identity": identity,
               "harness": str(args.harness), "harnessSha256": sha(args.harness), "nativeM0": str(args.native_m0),
-              "work": str(work), "files": [], "refused": []}
+              "work": str(work), "files": [], "refused": [], "part": args.part, "redRecovery": args.red_recovery_refused}
     port = free_port()
     log = (out / "server.txt").open("w")
     server = subprocess.Popen([sys.executable, str(PROJECT / "web/serve.py"), "--port", str(port), "--root", str(root)],
@@ -393,6 +501,7 @@ def main():
                     if not entry["m0Opened"]:
                         sample = files_dir / SAMPLE[item["suffix"]].name
                         shutil.copyfile(SAMPLE[item["suffix"]], sample)
+                        entry["recoveryName"] = sample.name
                         entry["recovery"] = page.open(KIND[item["suffix"]], sample)
                     shots = work / "shots"  # outside the evidence: a picture per file is megabytes and is never read by the verdict
                     shots.mkdir(exist_ok=True)
@@ -422,8 +531,11 @@ def main():
                         page.go(kind)
                         record["open"] = page.open(kind, disguised, timeout=120)
                         sample = files_dir / SAMPLE[suffix].name
+                        if args.red_recovery_refused:  # R1: the "good" file under a refused name, so the open after must fail
+                            sample = files_dir / (SAMPLE[suffix].stem + ".red." + name.rsplit(".", 1)[1])
                         shutil.copyfile(SAMPLE[suffix], sample)
-                        record["recovery"] = page.open(kind, sample)
+                        record["recoveryName"] = sample.name
+                        record["recovery"] = page.open(kind, sample, timeout=120 if args.red_recovery_refused else 240)
                     except Exception as error:  # noqa: BLE001
                         record["error"] = repr(error)
                     finally:
