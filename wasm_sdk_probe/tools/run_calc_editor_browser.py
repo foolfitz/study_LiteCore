@@ -30,7 +30,8 @@ def mirror(out, profile):
     # successor-specific wrappers rename both the alias and URL together.
     app=root/"ods-editor-app.js"
     source=app.read_text()
-    for live in ('"./profiles/ods-editor-v2/sdk-worker.js"','"./profiles/ods-editor-v3/sdk-worker.js"'):
+    # ods-editor-v4 added 2026-11-03 when the page moved to it (SPEC-P-calc-undo); a page URL this list lacks loads nothing.
+    for live in ('"./profiles/ods-editor-v2/sdk-worker.js"','"./profiles/ods-editor-v3/sdk-worker.js"','"./profiles/ods-editor-v4/sdk-worker.js"'):
         source=source.replace(live,'"./profiles/ods-editor-v1/sdk-worker.js"')
     app.write_text(source)
     for directory in ("sdk", "viewer-shell", "spreadsheet-shell"):
