@@ -26,6 +26,7 @@ file.  Per corpus DOCX / XLSX (run_msformat_native.corpus(), M0's list):
 Writes only under --out and build/ms-formats-w/.  Observations; the verdict is read by --read on the report (W_HOLDS / W_RED / ...).
 """
 import argparse
+import gzip
 import hashlib
 import io
 import json
@@ -230,6 +231,9 @@ def native(harness, data, suffix, work):
     lines = m0.dump(work / "dump/out/source.dump.txt")
     shutil.rmtree(work / "dump/profile", ignore_errors=True)
     saved.unlink()
+    for text in (work / "dump/out").glob("*.txt"):  # lean evidence, as M0's: m0.dump() reads the .gz
+        text.with_name(text.name + ".gz").write_bytes(gzip.compress(text.read_bytes(), mtime=0))
+        text.unlink()
     return dumped, lines
 
 
@@ -390,7 +394,9 @@ def main():
                         sample = files_dir / SAMPLE[item["suffix"]].name
                         shutil.copyfile(SAMPLE[item["suffix"]], sample)
                         entry["recovery"] = page.open(KIND[item["suffix"]], sample)
-                    (base / "page.png").write_bytes(page.session.screenshot())
+                    shots = work / "shots"  # outside the evidence: a picture per file is megabytes and is never read by the verdict
+                    shots.mkdir(exist_ok=True)
+                    (shots / f"{index:02d}-{item['name']}.png").write_bytes(page.session.screenshot())
                 except Exception as error:  # noqa: BLE001
                     entry = {"name": item["name"], "error": repr(error)}
                 finally:
