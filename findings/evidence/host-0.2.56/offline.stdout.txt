@@ -1,0 +1,126 @@
+{
+ "scope": "Offline package only; no full K binding or credit",
+ "buildId": "1b8dda1e17dd078c",
+ "problems": [],
+ "redCases": [
+  {
+   "clause": "K0-1",
+   "label": "the manifest lists a file the closure does not",
+   "red": true
+  },
+  {
+   "clause": "K0-1",
+   "label": "the closure has a file the manifest does not",
+   "red": true
+  },
+  {
+   "clause": "K0-2",
+   "label": "a .gz decodes to other bytes",
+   "red": true
+  },
+  {
+   "clause": "K0-2",
+   "label": "a .gz is not the manifest's",
+   "red": true
+  },
+  {
+   "clause": "K0-2",
+   "label": "dist changed since packaging",
+   "red": true
+  },
+  {
+   "clause": "K0-3",
+   "label": "the build id is not the files'",
+   "red": true
+  },
+  {
+   "clause": "K0-4",
+   "label": "dist is still in the app tree",
+   "red": true
+  },
+  {
+   "clause": "K0-4",
+   "label": "dist is still tracked",
+   "red": true
+  },
+  {
+   "clause": "K0-5",
+   "label": "the wasm grew past Firefox's measured cache room",
+   "red": true
+  },
+  {
+   "clause": "K0-6",
+   "label": "a host script changed after the last version bump",
+   "red": true
+  },
+  {
+   "clause": "K0-6",
+   "label": "no version bump found",
+   "red": true
+  },
+  {
+   "clause": "Z0-1",
+   "label": "a .zst is not the manifest's",
+   "red": true
+  },
+  {
+   "clause": "Z0-1",
+   "label": "a .zst decodes to other bytes",
+   "red": true
+  },
+  {
+   "clause": "Z0-1",
+   "label": "a .zst is missing",
+   "red": true
+  },
+  {
+   "clause": "Z0-2",
+   "label": "a 16 MiB window, read from a real frame (level 1, window_log 24)",
+   "red": true
+  },
+  {
+   "clause": "Z0-2",
+   "label": "trailing bytes after the frame",
+   "red": true
+  },
+  {
+   "clause": "Z0-3",
+   "label": "a .zst over Firefox's measured cache room",
+   "red": true
+  },
+  {
+   "clause": "Z0-4",
+   "label": "a schema-1 manifest",
+   "red": true
+  },
+  {
+   "clause": "Z0-4",
+   "label": "a schema-2 manifest (before the page table)",
+   "red": true
+  },
+  {
+   "clause": "H5-1",
+   "label": "a one-page manifest under schema 3",
+   "red": true
+  },
+  {
+   "clause": "H5-1",
+   "label": "the viewer page's wasm is not packaged",
+   "red": true
+  },
+  {
+   "clause": "Z0-4",
+   "label": "another engine",
+   "red": true
+  }
+ ],
+ "verdict": "PACKAGE_HOLDS",
+ "tool": {
+  "path": "wasm_sdk_probe/tools/host_release.py",
+  "sha256": "f413df6690397694ba46f4b6c00e32bf432872f7050c6edc2a619b31f158afc2",
+  "argv": [
+   "offline",
+   "../findings/evidence/host-0.2.56"
+  ]
+ }
+}

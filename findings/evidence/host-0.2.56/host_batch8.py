@@ -3,7 +3,8 @@
 action), real pointer and keys, 儲存 and 另存新檔 through the pages' own buttons and dialog, every file read back over WebDAV.
 
 Per browser, in the tool's own folder (LiteCore-batch8): d-<b>.docx (l1-plain.docx), c-<b>.xlsx (formats.xlsx), o-<b>.odt and s-<b>.ods
-(the ODF controls), and w-<b>.odt -- the name a Save As of d-<b>.docx offers by default, so the first confirm meets a taken name.
+(the ODF controls), and d-<b>.odt -- the name a Save As of d-<b>.docx offers by default, so the first confirm meets a taken name
+(it was w-<b>.odt until 2026-11-04: not the default name, so the first confirm saved as d-<b>.odt; run h8/ is that witness).
   H8/action-*           the row's name opens the file in the right editor and it reaches ready: .docx and .odt in Writer, .xlsx and .ods in Calc
   H8/save-docx          typed text, 儲存: the file read back is OOXML holding the text; its name and type unchanged; nothing new in the folder
   H8/save-as-taken      另存新檔 with the default name, which is taken: the dialog stays and says so; that file and the original unchanged
@@ -200,7 +201,7 @@ def save_as(session, kind, run, dav, typed_name=None):
 
 
 def writer_flow(session, kind, instance, run, dav):
-    name, taken, new = f'd-{kind}.docx', f'w-{kind}.odt', f'w-{kind}-odf.odt'
+    name, taken, new = f'd-{kind}.docx', f'd-{kind}.odt', f'w-{kind}-odf.odt'
     before = dav.listing()
     entry = open_row(session, instance, name, 'e2-editor.html')
     state = writer_ready(session, name) if entry.get('landed') else None
@@ -375,7 +376,7 @@ def main():
         report['userCreated'] = True
         with tempfile.TemporaryDirectory(dir=b6.SDK / 'build') as scratch:
             for kind in args.browsers.split(','):
-                for prefix, ext in (('d', 'docx'), ('c', 'xlsx'), ('o', 'odt'), ('s', 'ods'), ('w', 'odt'), ('r', 'docx'), ('r', 'xlsx')):
+                for prefix, ext in (('d', 'docx'), ('c', 'xlsx'), ('o', 'odt'), ('s', 'ods'), ('d', 'odt'), ('r', 'docx'), ('r', 'xlsx')):
                     dav.dav('PUT', f'{FOLDER}/{prefix}-{kind}.{ext}', FIXTURES[ext].read_bytes(), {'Content-Type': MIMES[ext]})
                 for ext in ('docx', 'xlsx'):
                     share = dav.ocs('POST', 'apps/files_sharing/api/v1/shares', {'path': f'/{FOLDER}/r-{kind}.{ext}', 'shareType': 0,
