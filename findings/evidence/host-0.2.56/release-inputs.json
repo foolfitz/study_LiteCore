@@ -1,0 +1,218 @@
+{
+ "version": "0.2.56",
+ "branch": "host-0.2.56",
+ "predecessor": "host-0.2.55",
+ "hostSourceDelta": [
+  "appinfo/info.xml",
+  "js/litecore-editor.js",
+  "js/litecore-files.mjs",
+  "lib/Controller/EditorController.php",
+  "src/files.js"
+ ],
+ "served": {
+  "changed": [
+   "e2-editor-app.js",
+   "e2-editor.html",
+   "editor-shell-v2/narrow-editor-v2-session.js",
+   "ods-editor-app.js",
+   "ods-editor.html",
+   "sdk/document-sdk.js",
+   "spreadsheet-shell/calc-editor-session.js"
+  ],
+  "profileMoves": {
+   "e2-editor.html": [
+    "e2-editor-v32",
+    "e2-editor-v33"
+   ],
+   "ods-editor.html": [
+    "ods-editor-v4",
+    "ods-editor-v5"
+   ]
+  }
+ },
+ "pages": {
+  "e2-editor.html": {
+   "profile": "e2-editor-v33",
+   "wasmSha256": "444519df2a779a44352ff5c6faf07825bab6abcc9d086a1cc2ddab14ac0d5952",
+   "moduleSha256": "08c474eaf9690508891ccf23d395ce6a07f7d1b2afe4f85a59fb3bc8b64fa6a1"
+  },
+  "ods-editor.html": {
+   "profile": "ods-editor-v5",
+   "wasmSha256": "4faad0af8e4d7f49c82fc483d0476fccdce7f2496e194e5a2ed2641434a06f0c",
+   "moduleSha256": "a0c40e4df212b66607e3b470b4e568153fa235057f8724c6d42c6f6f0fe4d7aa"
+  }
+ },
+ "writerIdentity": {
+  "module": "v89_four_arms_identity",
+  "profile": "e2-editor-v33",
+  "generation": 89
+ },
+ "gate": [
+  {
+   "id": "W-chrome",
+   "path": "findings/evidence/ms-formats/w-02/read-chrome.stdout.txt",
+   "read": "verdict",
+   "want": "W_HOLDS"
+  },
+  {
+   "id": "W-red-on-v32-v4-chrome",
+   "path": "findings/evidence/ms-formats/w-02/read-baseline-chrome.stdout.txt",
+   "read": "verdict",
+   "want": "W_RED"
+  },
+  {
+   "id": "W-live-frozen-chrome",
+   "path": "findings/evidence/ms-formats/gen-89/w-live/read-chrome.stdout.txt",
+   "read": "verdict",
+   "want": "W_HOLDS"
+  },
+  {
+   "id": "W-firefox",
+   "path": "findings/evidence/ms-formats/w-02/read-firefox.stdout.txt",
+   "read": "verdict",
+   "want": "W_HOLDS"
+  },
+  {
+   "id": "W-red-on-v32-v4-firefox",
+   "path": "findings/evidence/ms-formats/w-02/read-baseline-firefox.stdout.txt",
+   "read": "verdict",
+   "want": "W_RED"
+  },
+  {
+   "id": "W-live-frozen-firefox",
+   "path": "findings/evidence/ms-formats/gen-89/w-live/read-firefox.stdout.txt",
+   "read": "verdict",
+   "want": "W_HOLDS"
+  },
+  {
+   "id": "F3-89",
+   "path": "findings/evidence/ms-formats/gen-89/f3-89/equal.stdout.txt",
+   "read": "verdict",
+   "want": "F3_83_EQUAL"
+  },
+  {
+   "id": "F3-89-moved",
+   "path": "findings/evidence/ms-formats/gen-89/f3-89/equal.stdout.txt",
+   "read": "key:reading2.moved",
+   "want": []
+  },
+  {
+   "id": "F3-89-self-test",
+   "path": "findings/evidence/ms-formats/gen-89/f3-89/equal-self-test.stdout.txt",
+   "read": "key:selfTest",
+   "want": "ALL_RED"
+  },
+  {
+   "id": "V0prime-89",
+   "path": "findings/evidence/ms-formats/v0-89/v0-prime.json",
+   "read": "verdict",
+   "want": "V0_PRIME_HOLDS"
+  },
+  {
+   "id": "E1-C-freeze-89",
+   "path": "findings/evidence/ms-formats/freeze-89/e1-c.json",
+   "read": "key:intact",
+   "want": true
+  },
+  {
+   "id": "E1-C-after-put-back",
+   "path": "findings/evidence/ms-formats/v0-89/e1-c-after-put-back.json",
+   "read": "key:intact",
+   "want": true
+  },
+  {
+   "id": "C-89",
+   "path": "findings/evidence/ms-formats/gen-89/calc-sheet-view/run-89/report.json",
+   "read": "all_pass",
+   "want": true
+  },
+  {
+   "id": "C-v5",
+   "path": "findings/evidence/ms-formats/calc-after-freeze/calc-sheet-view-v5/report.json",
+   "read": "all_pass",
+   "want": true
+  },
+  {
+   "id": "CU-v5",
+   "path": "findings/evidence/ms-formats/calc-after-freeze/cu-v5/report.json",
+   "read": "verdict",
+   "want": "CU_HOLDS"
+  },
+  {
+   "id": "Calc-cell-v5",
+   "path": "findings/evidence/ms-formats/calc-after-freeze/cell-v5/report.json",
+   "read": "all_pass",
+   "want": true
+  },
+  {
+   "id": "Calc-range-v5",
+   "path": "findings/evidence/ms-formats/calc-after-freeze/range-v5/report.json",
+   "read": "all_pass",
+   "want": true
+  },
+  {
+   "id": "Calc-auto-v5",
+   "path": "findings/evidence/ms-formats/calc-after-freeze/auto-v5/report.json",
+   "read": "all_pass",
+   "want": true
+  },
+  {
+   "id": "Calc-p2-v5",
+   "path": "findings/evidence/ms-formats/calc-after-freeze/p2-v5/report.json",
+   "read": "all_pass",
+   "want": true
+  },
+  {
+   "id": "P5-89",
+   "path": "findings/evidence/ms-formats/gen-89/rerun-01/p5/final-89/report.json",
+   "read": "verdict",
+   "want": "P5_HOLDS"
+  },
+  {
+   "id": "P4-89",
+   "path": "findings/evidence/ms-formats/gen-89/rerun-01/p4/final-89/report.json",
+   "read": "verdict",
+   "want": "P4_HOLDS"
+  },
+  {
+   "id": "S1-89",
+   "path": "findings/evidence/ms-formats/gen-89/rerun-01/shift-lines/live-page-89/report.json",
+   "read": "verdict",
+   "want": "S1_HOLDS"
+  },
+  {
+   "id": "Z-89",
+   "path": "findings/evidence/ms-formats/gen-89/rerun-01/writer-zoom/run-89/report.json",
+   "read": "verdict",
+   "want": "Z_HOLDS"
+  },
+  {
+   "id": "P1-89",
+   "path": "findings/evidence/ms-formats/gen-89/rerun-01/p1/final-89/report.json",
+   "read": "verdict",
+   "want": "P1_HOLDS"
+  },
+  {
+   "id": "F4-89-rows",
+   "path": "findings/evidence/ms-formats/gen-89/rerun-01/f4-89/aggregate-judge.json",
+   "read": "key:rows",
+   "want": 24
+  },
+  {
+   "id": "F4-89-problems",
+   "path": "findings/evidence/ms-formats/gen-89/rerun-01/f4-89/aggregate-judge.json",
+   "read": "key:problems",
+   "want": []
+  },
+  {
+   "id": "F4-89-outcomes",
+   "path": "findings/evidence/ms-formats/gen-89/rerun-01/f4-89/aggregate-judge.json",
+   "read": "values:arms:outcome",
+   "want": [
+    "PASS"
+   ]
+  }
+ ],
+ "attribution": "Writer on e2-editor-v33, shell generation 89, Calc on ods-editor-v5: Word and Excel files open, save in their own format, Save As (SPEC-P-ms-formats). Uncounted candidate.",
+ "note": "Served delta measured with the packager closure (probe_m3_assets.closure) against host-0.2.55 archive MANIFEST.json before writing this: 7 changed, 10 added, 10 removed, 29 the same. The first release made with wasm_sdk_probe/tools/host_release.py."
+}
