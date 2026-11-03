@@ -1,0 +1,31 @@
+[
+ {
+  "argv": [
+   "git",
+   "merge",
+   "--ff-only",
+   "host-0.2.54"
+  ],
+  "output": "Updating 6b1660c..8c95b50\nFast-forward\n LICENSES/MPL-2.0.txt                             | 373 ++++++++++++++++++++\n appinfo/info.xml                                 |   2 +-\n blank-ods/MANIFEST.json                          | 430 +++++++++++++++++++++++\n blank-ods/de-DE_zh-TW_A4.ods                     | Bin 0 -> 4036 bytes\n blank-ods/de-DE_zh-TW_Letter.ods                 | Bin 0 -> 4035 bytes\n blank-ods/en-GB_zh-TW_A4.ods                     | Bin 0 -> 4036 bytes\n blank-ods/en-GB_zh-TW_Letter.ods                 | Bin 0 -> 4035 bytes\n blank-ods/en-US_ja-JP_A4.ods                     | Bin 0 -> 4036 bytes\n blank-ods/en-US_ja-JP_Letter.ods                 | Bin 0 -> 4035 bytes\n blank-ods/en-US_ko-KR_A4.ods                     | Bin 0 -> 4036 bytes\n blank-ods/en-US_ko-KR_Letter.ods                 | Bin 0 -> 4035 bytes\n blank-ods/en-US_zh-CN_A4.ods                     | Bin 0 -> 4036 bytes\n blank-ods/en-US_zh-CN_Letter.ods                 | Bin 0 -> 4035 bytes\n blank-ods/en-US_zh-HK_A4.ods                     | Bin 0 -> 4036 bytes\n blank-ods/en-US_zh-HK_Letter.ods                 | Bin 0 -> 4035 bytes\n blank-ods/en-US_zh-TW_A4.ods                     | Bin 0 -> 4036 bytes\n blank-ods/en-US_zh-TW_Letter.ods                 | Bin 0 -> 4035 bytes\n blank-ods/es-EC_zh-TW_A4.ods                     | Bin 0 -> 4036 bytes\n blank-ods/es-EC_zh-TW_Letter.ods                 | Bin 0 -> 4035 bytes\n blank-ods/es-ES_zh-TW_A4.ods                     | Bin 0 -> 4036 bytes\n blank-ods/es-ES_zh-TW_Letter.ods                 | Bin 0 -> 4035 bytes\n blank-ods/es-MX_zh-TW_A4.ods                     | Bin 0 -> 4036 bytes\n blank-ods/es-MX_zh-TW_Letter.ods                 | Bin 0 -> 4035 bytes\n blank-ods/fr-FR_zh-TW_A4.ods                     | Bin 0 -> 4036 bytes\n blank-ods/fr-FR_zh-TW_Letter.ods                 | Bin 0 -> 4035 bytes\n blank-ods/it-IT_zh-TW_A4.ods                     | Bin 0 -> 4036 bytes\n blank-ods/it-IT_zh-TW_Letter.ods                 | Bin 0 -> 4035 bytes\n blank-ods/nl-NL_zh-TW_A4.ods                     | Bin 0 -> 4036 bytes\n blank-ods/nl-NL_zh-TW_Letter.ods                 | Bin 0 -> 4035 bytes\n blank-ods/pt-BR_zh-TW_A4.ods                     | Bin 0 -> 4036 bytes\n blank-ods/pt-BR_zh-TW_Letter.ods                 | Bin 0 -> 4035 bytes\n blank-ods/pt-PT_zh-TW_A4.ods                     | Bin 0 -> 4036 bytes\n blank-ods/pt-PT_zh-TW_Letter.ods                 | Bin 0 -> 4035 bytes\n img/README.md                                    |  11 +\n img/oasis-spreadsheet.svg                        |   1 +\n img/oasis-text.svg                               |   1 +\n l10n/zh_TW.js                                    |   3 +-\n l10n/zh_TW.json                                  |   3 +-\n lib/Listener/FileCreatedFromTemplateListener.php |   9 +-\n lib/Listener/RegisterTemplateCreatorListener.php |  34 +-\n lib/Template/BlankDocument.php                   |  24 +-\n 41 files changed, 873 insertions(+), 18 deletions(-)\n create mode 100644 LICENSES/MPL-2.0.txt\n create mode 100644 blank-ods/MANIFEST.json\n create mode 100644 blank-ods/de-DE_zh-TW_A4.ods\n create mode 100644 blank-ods/de-DE_zh-TW_Letter.ods\n create mode 100644 blank-ods/en-GB_zh-TW_A4.ods\n create mode 100644 blank-ods/en-GB_zh-TW_Letter.ods\n create mode 100644 blank-ods/en-US_ja-JP_A4.ods\n create mode 100644 blank-ods/en-US_ja-JP_Letter.ods\n create mode 100644 blank-ods/en-US_ko-KR_A4.ods\n create mode 100644 blank-ods/en-US_ko-KR_Letter.ods\n create mode 100644 blank-ods/en-US_zh-CN_A4.ods\n create mode 100644 blank-ods/en-US_zh-CN_Letter.ods\n create mode 100644 blank-ods/en-US_zh-HK_A4.ods\n create mode 100644 blank-ods/en-US_zh-HK_Letter.ods\n create mode 100644 blank-ods/en-US_zh-TW_A4.ods\n create mode 100644 blank-ods/en-US_zh-TW_Letter.ods\n create mode 100644 blank-ods/es-EC_zh-TW_A4.ods\n create mode 100644 blank-ods/es-EC_zh-TW_Letter.ods\n create mode 100644 blank-ods/es-ES_zh-TW_A4.ods\n create mode 100644 blank-ods/es-ES_zh-TW_Letter.ods\n create mode 100644 blank-ods/es-MX_zh-TW_A4.ods\n create mode 100644 blank-ods/es-MX_zh-TW_Letter.ods\n create mode 100644 blank-ods/fr-FR_zh-TW_A4.ods\n create mode 100644 blank-ods/fr-FR_zh-TW_Letter.ods\n create mode 100644 blank-ods/it-IT_zh-TW_A4.ods\n create mode 100644 blank-ods/it-IT_zh-TW_Letter.ods\n create mode 100644 blank-ods/nl-NL_zh-TW_A4.ods\n create mode 100644 blank-ods/nl-NL_zh-TW_Letter.ods\n create mode 100644 blank-ods/pt-BR_zh-TW_A4.ods\n create mode 100644 blank-ods/pt-BR_zh-TW_Letter.ods\n create mode 100644 blank-ods/pt-PT_zh-TW_A4.ods\n create mode 100644 blank-ods/pt-PT_zh-TW_Letter.ods\n create mode 100644 img/README.md\n create mode 100644 img/oasis-spreadsheet.svg\n create mode 100644 img/oasis-text.svg"
+ },
+ {
+  "argv": [
+   "rsync",
+   "-a",
+   "--delete",
+   "--exclude",
+   "ATTRIBUTION.md",
+   "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/build/archive/host-0.2.54-engine-89860962782b3a21/",
+   "/home/jiajun/Projects/Nextcloud_Apps/litecore/engine/"
+  ],
+  "output": ""
+ },
+ {
+  "argv": [
+   "ddev",
+   "occ",
+   "upgrade"
+  ],
+  "output": "Setting log level to debug\nTurned on maintenance mode\nUpdating database schema\nUpdated database\nUpdating <litecore> ...\nUpdated <litecore> to 0.2.54\nStarting code integrity check...\nFinished code integrity check\nUpdate successful\nTurned off maintenance mode\nResetting log level"
+ }
+]

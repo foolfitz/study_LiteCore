@@ -6,6 +6,15 @@ WebDAV.  The blank file a user gets is compared with what the host's own BlankDo
 check_new_document_choice.php_choose reads it.  Run on 0.2.53 first: there is no New spreadsheet there, and that is the tool's red.  Run with
 host-stack/bin first on PATH.
   python3 -I host_batch6.py --out DIR [--browsers chrome,firefox]
+
+Fixed by review before the first run (2026-11-03): with no New spreadsheet entry the scenario returned at once, so on 0.2.53 H6/create-ods was
+never recorded (the spec's red names it) and the upload and New document cells were never reached.  Now the missing entry is recorded as
+H6/create-ods/the-chosen-blank false, the creation and its save are skipped, and the upload and New document cells run on every host.
+
+Fixed by execution (2026-11-03, h6-red-on-0253): the routes were '/apps/litecore/r/ods-editor.html', but the route redirects to a versioned
+path, /apps/litecore/r/<buildId>-<hash>/ods-editor.html, so the wait never matched and returned its timeout record, a dict, which bool() reads
+as true: every `landed` half was vacuous and cost 60 to 90 s.  The routes are now the page names, as host_layout.go waits for them, and a cell
+takes `landed` only as the href string the wait returns on a match.
 """
 import argparse
 import hashlib
@@ -43,7 +52,7 @@ from run_calc_editor_browser import key as box_key, select, type_text  # noqa: E
 
 FOLDER = 'LiteCore-batch6'
 ODS_MIME = 'application/vnd.oasis.opendocument.spreadsheet'
-CALC_ROUTE, WRITER_ROUTE = '/apps/litecore/r/ods-editor.html', '/apps/litecore/r/e2-editor.html'
+CALC_ROUTE, WRITER_ROUTE = '/ods-editor.html', '/e2-editor.html'
 BLUE, GREEN = '#1a85d1', '#'  # the green is read from the icon file at start
 UPLOAD_INPUT = '[data-cy-upload-picker-input]'
 ENTRIES = """(() => [...document.querySelectorAll('[data-cy-upload-picker-menu-entry]')].map(e => ({id: e.getAttribute('data-cy-upload-picker-menu-entry'),
@@ -145,10 +154,16 @@ def scenario(session, kind, instance, run, expected, scratch):
           {'document': (doc or {}).get('svg', '')[:120], 'spreadsheet': (sheet or {}).get('svg', '')[:120]})
     s.evaluate(session, "document.activeElement?.blur()")
     if sheet is None:
-        return
+        check(run, 'H6/create-ods/the-chosen-blank', False, 'no New spreadsheet entry to create from')
+    else:
+        create_ods(session, kind, instance, run, expected, sheet)
+    upload_and_new_odt(session, kind, instance, run, expected, scratch, doc)
+
+
+def create_ods(session, kind, instance, run, expected, sheet):
     name = f'H6-new-{kind}.ods'
     landed, ready = create(session, kind, instance, sheet['id'], name, CALC_ROUTE, CALC_READY)
-    check(run, 'H6/opens-in-calc', bool(landed) and ready is True, {'landed': landed, 'ready': ready})
+    check(run, 'H6/opens-in-calc', isinstance(landed, str) and ready is True, {'landed': landed, 'ready': ready})
     raw = instance.dav('GET', f'{FOLDER}/{name}')[1]
     blank = (ROOT / 'wasm_sdk_probe/build/host-0.2.54/litecore/blank-ods' / expected['spreadsheet'].get('file', '-'))
     check(run, 'H6/create-ods/the-chosen-blank', blank.is_file() and hashlib.sha256(raw).hexdigest() == hashlib.sha256(blank.read_bytes()).hexdigest(),
@@ -166,9 +181,11 @@ def scenario(session, kind, instance, run, expected, scratch):
         check(run, 'H6/edit-save/defaults-kept', record and not ods.compare(record, described), ods.compare(record, described) if record else 'no record')
         (h.OUT / f'{kind}-calc.png').write_bytes(session.screenshot())
 
+
+def upload_and_new_odt(session, kind, instance, run, expected, scratch, doc):
     seen, landed, ready = upload_and_open(session, kind, instance, FIXTURE_ODS, f'H6-upload-{kind}.ods', CALC_ROUTE, CALC_READY, scratch)
     first = s.evaluate(session, "(() => window.__calcEditor?.state?.cell?.input ?? null)()") if ready is True else None
-    check(run, 'H6/upload-ods/opens-in-calc', seen and bool(landed) and ready is True, {'row': seen, 'landed': landed, 'ready': ready, 'a1': first})
+    check(run, 'H6/upload-ods/opens-in-calc', seen and isinstance(landed, str) and ready is True, {'row': seen, 'landed': landed, 'ready': ready, 'a1': first})
     if ready is True:
         select(session, 'D9')
         type_text(session, '#formula-input', 'UPLOADED')
@@ -183,13 +200,13 @@ def scenario(session, kind, instance, run, expected, scratch):
             d9 = table.get((0, 3, 8))
         check(run, 'H6/upload-ods/the-host-holds-it', d9 is not None and ''.join(d9.itertext()) == 'UPLOADED', None if d9 is None else ''.join(d9.itertext()))
     seen, landed, ready = upload_and_open(session, kind, instance, h.t.LEVELS, f'H6-upload-{kind}.odt', WRITER_ROUTE, WRITER_READY, scratch)
-    check(run, 'H6/upload-odt/opens-in-writer', seen and bool(landed) and ready is True, {'row': seen, 'landed': landed, 'ready': ready})
+    check(run, 'H6/upload-odt/opens-in-writer', seen and isinstance(landed, str) and ready is True, {'row': seen, 'landed': landed, 'ready': ready})
 
     name = f'H6-new-{kind}.odt'
     landed, ready = create(session, kind, instance, doc['id'], name, WRITER_ROUTE, WRITER_READY)
     raw = instance.dav('GET', f'{FOLDER}/{name}')[1]
     blank = HOST / 'blank' / expected['document'].get('file', '-')
-    check(run, 'H6/new-odt-still-works', bool(landed) and ready is True and blank.is_file()
+    check(run, 'H6/new-odt-still-works', isinstance(landed, str) and ready is True and blank.is_file()
           and hashlib.sha256(raw).hexdigest() == hashlib.sha256(blank.read_bytes()).hexdigest(), {'landed': landed, 'ready': ready, 'choice': expected['document']})
     h.leave(session, instance)
 
