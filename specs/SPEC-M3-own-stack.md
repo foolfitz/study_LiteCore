@@ -92,3 +92,12 @@ ddev 是擁有者所有專案共用的，router 也是共用的。別的專案 `
 **具名限制**：ST2 每個 runner 只跑一輪，只出現在重複裡的差異看不到；K 會重複。
 
 **ST1 的方法註記**：第 1 步的 snapshot 是經 PATH 選 stack 的同一支工具，所以比的是同一種讀法。
+
+## 追加（2026-11-03，第一次冷開機）
+
+搬到自有 stack 之後第一次重開機，`docker compose up -d` 成功，但 `/status.php` 一直 502，web 容器永遠 `health: starting`。
+
+- **成因**：`/start.sh:146` 只在 `/var/tmp/logpipe` 不存在時才建立 FIFO 並起讀取端。ddev 每次重建容器，所以碰不到；這個 stack 重用容器，FIFO 留著、沒有讀取端，supervisord 打開它當 php-fpm 的日誌就卡住（PID 1 的 `wchan` 是 `wait_for_partner`，沒有 apache、沒有 php-fpm）。〔已實測，已讀碼〕
+- **修法**：`web-config/web-entrypoint.d/clear-stale-logpipe.sh`。`ddev_custom_init_scripts` 在那個檢查之前執行，移除舊 FIFO，`start.sh` 就會重建它和讀取端。不動映像、不重建容器。
+- **驗證**：連續兩次 `docker restart`，第二次 FIFO 已經存在，正好是這個缺陷的情境：2–3 秒回 200，FIFO 時間戳每次都換，讀取端在。〔已實測〕
+- **沒有改的**：三個服務仍是 `restart: "no"`，開機不會自動起來，要手動 `docker compose --env-file litecore.env up -d`。
