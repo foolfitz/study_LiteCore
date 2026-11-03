@@ -206,3 +206,32 @@ Files 對微軟文件沒有「Open in LiteCore」；要先在別處轉成 ODF �
 ### 10.5 觀察（不是判準）
 
 - 開檔失敗之後，Writer 狀態列的檔名仍是上一份文件（`#s-doc`）。既有行為，只有鏡像看得到（宿主只開一份）。不在本批修。
+
+## 11. 追加 3（2026-11-03 22:35）：W 第一輪、W3 的讀法更正
+
+### 11.1 第一輪（`findings/evidence/ms-formats/w/`，`49a86424d`，留作證人）
+
+- 開發版，Chrome 與 Firefox 相同：可開的 26 份全部開成功；**W1 成立**（`empty_ext_defined_name.xlsx` 只差那一格外部連結，依 10.4 判 `L-external-links`）；**W2 成立**（`forum-mso-en4-134670.xlsx` NE）；截斷的 DOCX 成立；**W3 不成立**：Writer 三個名字都成立，Calc 兩個（`.xls`、`.xlsm`）紅。
+- 紅案（同一份頁面原始碼、v32／v4）：兩個瀏覽器都是 `W_RED`，26 份 0 份開成功。
+
+### 11.2 W3 紅在讀法，不在引擎
+
+- **Calc 的通知列不印代碼。**`web/ods-editor-app.js` 的 `errorNotice()` 對認得的代碼給中文句子，其他顯示 `error.message`；Writer 的 `describeError()` 印 `代碼：訊息`。10.4 的「通知列含 `INVALID_ARGUMENT`」是照 Writer 的形狀（和用假宿主跑的冒煙）寫的，在 Calc 頁面上不論引擎怎麼做都不會成立。
+- **「之後開正常檔」那格是工具誤判。**Calc 頁面開新檔前先關掉上一個（失敗的）session；`OdsViewerSession.close()` 沒有清掉 `_error`，`render()`（`if(state.error) errorNotice(state.error)`）在關閉時把舊錯誤又顯示一次。工具的 Calc 失敗條件只看「通知列是錯誤樣式」，在新檔還在 `opening` 時就被這則舊通知滿足了。
+
+### 11.3 裁決（fable，擁有者授權代為決策，2026-11-03）
+
+**白話理由：**W3 問的是「引擎有沒有用 `INVALID_ARGUMENT` 拒絕這個名字、之後還健康」。10.4 透過通知列去看，而 Calc 的通知列從來不帶代碼，還把正在關閉的舊 session 重新顯示的錯誤當成下一次開檔失敗——兩個都是讀法的錯，不是引擎的錯。所以讀法改到頁面自己的狀態紀錄（SDK 的錯誤本身），而且變得更嚴；6.2 的判準不變。第一輪紅的留作證人；W_HOLDS 要由同一版工具一次簽 W1～W3。
+
+這是**更正，不是放寬**（AGENTS 驗收判準第 7、10 節）。新增判準的四個條件（第 9 節）不適用：沒有新增判準。把 Calc 頁面改成印代碼被駁回（第 4 節：造機械去維持宣稱）。
+
+**10.4 的 W3 由下列讀法取代（10.4 原文保留）：**
+
+- **G1** Writer 照舊。Calc 每個被拒的名字：頁面狀態 `__calcEditor.state` 是 `error`、`fileName` 等於這個名字、`error.code === "INVALID_ARGUMENT"`、通知列是錯誤樣式；整份 `state.error` 記進報告。
+- **G2** 之後的正常檔：頁面狀態指名那份檔且是 ready（Writer：通知 `已開啟 <名字>` 且 pill 是 ready；Calc：ready、`fileName` 相同、不忙）；逾時算失敗。Calc 若在拒絕之後永遠到不了 ready，W3 判紅並當成產品 finding，不得解釋掉。
+- **G3** **整條鏈重跑**（W1、W2、截斷、W3，兩個瀏覽器，兩個紅案）到新目錄 `w-02/`，同一版工具。
+
+**條件：**
+- **P1** `chain.log` 寫出 DONE 之前不動 `tools/`、`web/`、`spreadsheet-shell/`、`sdk/`（已守）。**P2** 第一輪原封不動；交接記「因執行而修 1、因審核而修 0」。
+- **R1（先紅）** 新判讀讀第一輪的 Chrome 報告：W3 為假，並指名缺 `error.code`，不得當掉。實跑一次 Calc、讓「之後的正常檔」也帶被拒的名字：報告要記 `recovery.opened=false`、狀態 `error`、`fileName` 相同，W3 紅。
+- **R2（綠之後）** 在記憶體裡改綠報告：Calc 的 `error.code` 改成 `OPEN_FAILED`；之後那次開檔的狀態改成 `opening`；Writer 通知拿掉代碼。三個各自要讓 W3 轉紅，輸出存在 verdict 旁邊。
