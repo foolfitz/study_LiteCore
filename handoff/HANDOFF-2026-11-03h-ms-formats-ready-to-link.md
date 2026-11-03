@@ -1,4 +1,4 @@
-# Handoff: opening Microsoft documents -- spec pinned, measured, engine ready to link
+# Handoff: opening Microsoft documents -- spec pinned, measured, engines linked (development profiles)
 
 Checkpoint **2026-11-03 20:50**. Supersedes `HANDOFF-2026-11-03g-calc-undo-shipped-0255.md` (its state and cautions still stand:
 0.2.55 installed on the own stack, nothing pushed, the owner's hand test of 0.2.52-0.2.55 not done).
@@ -47,10 +47,12 @@ Spec: `specs/SPEC-P-ms-formats.md` (zh-TW, append-only from commit `05f311d1f` o
 
 ## Next, in order
 
-1. **The link (owner's)**: `cd wasm_sdk_probe && bash tools/link_ms_formats_owner.sh` (about 6 minutes, two links). It refuses if
-   any attempt exists, logs to `build/link-ms-formats-{writer,calc}-01.log`, and must print `LINKS_AS_SPECIFIED` (capability bits
-   2047|bits 20,21 = 3147775 for v33; 1046835|bits 22,23 = 13629747 for v5). If the owner asks the agent to run it: `uptime`,
-   `pgrep -a make` first.
+1. ~~The link~~ **Done 21:10-21:15** (the owner asked the agent to run it; load 0.00, no make): 4 min 27 s, `LINKS_AS_SPECIFIED`.
+   v33 wasm `444519df` (bits 3147775), v5 wasm `4faad0af` (13629747), development profiles `build/e2/editor-v33/profile`,
+   `build/ods/editor-v5/profile`, **not frozen** (`findings/evidence/ms-formats/link/`). Smoke `tools/smoke_ms_formats_dev.py`
+   (spec section 9): 26/26 open under true names, ODF saves 25/25 equal native, Calc XLSX saves 10/10 OOXML and 9/10 equal native --
+   the tenth is an external link LibreOffice relativizes to the save location in both builds (limit `L-external-links`); refused
+   names refused; red on v32 / v4 (0/27 open). Writer DOCX saves not yet measured (the generation-88 page exposes no session).
 2. **Pages** (spec 5.2): format from the open reply drives every save; Writer's "儲存 ODT" becomes "儲存"; Save As dialog (name, ODF /
    original format) in both pages; `HOST.saveAs(bytes, {name, format})`; without a host, a download; file input `accept` gains
    .docx / .xlsx. The Writer page is generation 89: follow the generation-88 freeze (`c3f49e137`,

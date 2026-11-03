@@ -157,3 +157,14 @@
 ## 8. 如果永遠沒做
 
 Files 對微軟文件沒有「Open in LiteCore」；要先在別處轉成 ODF 再上傳。同事 demo 時只能開 ODT／ODS。
+
+## 9. 追加 1（2026-11-03 21:15，連結與開發版冒煙）
+
+- 擁有者要我代跑連結：`tools/link_ms_formats_owner.sh`，4 分 27 秒，exit 0，`LINKS_AS_SPECIFIED`。Writer `e2-editor-v33` wasm `444519df`（capability 位元 3147775），Calc `ods-editor-v5` wasm `4faad0af`（13629747）。開發 profile 在 `build/e2/editor-v33/profile`、`build/ods/editor-v5/profile`，**未凍結**。證據 `findings/evidence/ms-formats/link/`。
+- 開發版冒煙（**不是第 6.2 節的 W 判準**：頁面仍是第 88 代與 v4 的 Calc 頁面，只會存 ODF）：`tools/smoke_ms_formats_dev.py`，Chrome，鏡像把頁面的 worker 改指開發 profile、Writer 頁面釘住的 wasm 雜湊改成 v33 的。證據 `findings/evidence/ms-formats/post-link-dev/`。
+  - 真檔名：可開的 26 份 DOCX／XLSX **全部打開**；頁面存出的 ODF 與 M0 原生 ODF 來回相同 25／25（`forum-mso-en4-134670.xlsx` 依 finding 184 不可比）。截斷的 DOCX 打不開。
+  - Calc 經頁面上的 session 直接存 XLSX：10／10 是 OOXML；內容與 M0 原生「存回原格式」相同 9／10。不同的一份是**外部連結**：原檔的目標 `file:///D:/%06personal.xlsx` 存檔時被改寫成相對於存檔位置的路徑——原生寫成 `../../../../../../../D:/%06personal.xlsx`，WASM 寫成 `../D:/%06personal.xlsx`——重開後解析到不同地方。原生也這樣改寫，所以不是 WASM 引擎的差異，是 LibreOffice 匯出把絕對檔案網址相對化的行為。新增限制 `L-external-links`（下）。
+  - Writer 存 DOCX 還沒量：第 88 代頁面不對外露出 session，要等頁面改完（W1）。
+  - 拒絕的名字 `.doc`、`.docm`、`.xls`、`.xlsm`：打不開，通知列 `INVALID_ARGUMENT：open was rejected before queueing`。
+  - **紅案**（同一支工具，出貨的 v32／v4）：真檔名 27 份一份都打不開。
+- 新增具名限制 `L-external-links`：活頁簿指向其他檔案的外部連結，存回 XLSX 時目標被改寫成相對於引擎暫存路徑（`/tmp/oxsdk-output-…`）的相對路徑，在 Excel 裡會失效。LibreOffice 原生也這樣（「相對儲存檔案系統網址」預設開）。不在本批修。

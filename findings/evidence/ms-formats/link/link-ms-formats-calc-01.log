@@ -1,0 +1,36 @@
+../wasm-lite/tools/emsdk/upstream/emscripten/em++ -DLOK_USE_UNSTABLE_API -I../libreoffice-26-8/include -I../wasm-lite/build-ods-viewer-v2/config_host -I../wasm-lite/build-ods-viewer-v2/workdir/UnoApiHeadersTarget/udkapi/comprehensive -I../wasm-lite/build-ods-viewer-v2/workdir/UnoApiHeadersTarget/offapi/comprehensive -I../wasm-lite/build-ods-viewer-v2/workdir/UnpackedTarball/boost -Oz -pthread -fwasm-exceptions -sSUPPORT_LONGJMP=wasm -DOXSDK_READER_PROFILE -DOXSDK_ODS_VIEWER -DOXSDK_ODS_VIEWER_V2 -DOXSDK_ODS_EDITOR -DOXSDK_ODS_RANGE -DOXSDK_ODS_STYLE -DOXSDK_ODS_UNDO -DOXSDK_MS_FORMATS -c src/sdk_api.cpp -o build/ods/editor-v5/sdk_api.o
+../wasm-lite/tools/emsdk/upstream/emscripten/em++ -DLOK_USE_UNSTABLE_API -I../libreoffice-26-8/include -I../wasm-lite/build-ods-viewer-v2/config_host -I../wasm-lite/build-ods-viewer-v2/workdir/UnoApiHeadersTarget/udkapi/comprehensive -I../wasm-lite/build-ods-viewer-v2/workdir/UnoApiHeadersTarget/offapi/comprehensive -I../wasm-lite/build-ods-viewer-v2/workdir/UnpackedTarball/boost -Oz -pthread -fwasm-exceptions -sSUPPORT_LONGJMP=wasm -DOXSDK_READER_PROFILE -DOXSDK_ODS_VIEWER -DOXSDK_ODS_VIEWER_V2 -DOXSDK_ODS_EDITOR -DOXSDK_ODS_RANGE -DOXSDK_ODS_STYLE -DOXSDK_ODS_UNDO -DOXSDK_MS_FORMATS -c src/probe_engine.cpp -o build/ods/editor-v5/probe_engine.o
+../wasm-lite/tools/emsdk/upstream/emscripten/em++ -DLOK_USE_UNSTABLE_API -I../libreoffice-26-8/include -I../wasm-lite/build-ods-viewer-v2/config_host -I../wasm-lite/build-ods-viewer-v2/workdir/UnoApiHeadersTarget/udkapi/comprehensive -I../wasm-lite/build-ods-viewer-v2/workdir/UnoApiHeadersTarget/offapi/comprehensive -I../wasm-lite/build-ods-viewer-v2/workdir/UnpackedTarball/boost -Oz -pthread -fwasm-exceptions -sSUPPORT_LONGJMP=wasm -DOXSDK_READER_PROFILE -DOXSDK_ODS_VIEWER -DOXSDK_ODS_VIEWER_V2 -DOXSDK_ODS_EDITOR -DOXSDK_ODS_RANGE -DOXSDK_ODS_STYLE -DOXSDK_ODS_UNDO -DOXSDK_MS_FORMATS -c src/unoembind_stub.cpp -o build/ods/editor-v5/unoembind_stub.o
+../wasm-lite/tools/emsdk/upstream/emscripten/em++ -DLOK_USE_UNSTABLE_API -I../libreoffice-26-8/include -I../wasm-lite/build-ods-viewer-v2/config_host -I../wasm-lite/build-ods-viewer-v2/workdir/UnoApiHeadersTarget/udkapi/comprehensive -I../wasm-lite/build-ods-viewer-v2/workdir/UnoApiHeadersTarget/offapi/comprehensive -I../wasm-lite/build-ods-viewer-v2/workdir/UnpackedTarball/boost -Oz -pthread -fwasm-exceptions -sSUPPORT_LONGJMP=wasm -std=c++20 \
+	-DLIBO_INTERNAL_ONLY -DOXSDK_ODS_RANGE -DOXSDK_ODS_STYLE -DOXSDK_ODS_UNDO -c src/calc_cell_bridge.cpp -o build/ods/editor-v5/calc_cell_bridge.o
+../wasm-lite/tools/emsdk/upstream/emscripten/em++ build/ods/editor-v5/sdk_api.o build/ods/editor-v5/probe_engine.o build/ods/editor-v5/unoembind_stub.o build/ods/editor-v5/calc_cell_bridge.o \
+	-L../wasm-lite/build-ods-viewer-v2/instdir/program \
+	$(cat ../wasm-lite/build-ods-viewer-v2/instdir/program/soffice.js.linkdeps) \
+	-pthread -fwasm-exceptions -sSUPPORT_LONGJMP=wasm --no-entry -Oz \
+	-sMODULARIZE -sEXPORT_NAME=createProbeModule \
+	-sTOTAL_MEMORY=1GB -sPTHREAD_POOL_SIZE=7 -sPTHREAD_POOL_SIZE_STRICT=0 \
+	-sSTACK_SIZE=131072 -sDEFAULT_PTHREAD_STACK_SIZE=1048576 \
+	-sFORCE_FILESYSTEM=1 -sWASM_BIGINT=1 -sERROR_ON_UNDEFINED_SYMBOLS=1 -sFETCH=1 \
+	-sASSERTIONS=0 -sEXIT_RUNTIME=0 -sEXPORTED_RUNTIME_METHODS=ccall,FS,HEAPU8 \
+	-sEXPORTED_FUNCTIONS=@build/ods/editor-v5/exports.txt \
+	-Wl,--wrap=_Z18initJsUnoScriptingv \
+	--pre-js ../libreoffice-26-8/static/emscripten/environment.js \
+	--pre-js ../wasm-lite/build-ods-viewer-v2/workdir/CustomTarget/static/emscripten_fs_image/soffice.data.js.link \
+	-o build/ods/editor-v5/probe.js
+python3 tools/derive_ms_formats_worker.py --profile calc --out build/ods/editor-v5/sdk-worker.js
+{"profile": "calc", "out": "build/ods/editor-v5/sdk-worker.js", "sha256": "79bbafb4b56f17766177772898dc96ea8f50bded15068dfabcb80d176fff72f6"}
+python3 tools/build_ms_formats_profile.py --profile calc --development \
+	--loader build/ods/editor-v5/probe.js --wasm build/ods/editor-v5/probe.wasm \
+	--worker build/ods/editor-v5/sdk-worker.js --exports build/ods/editor-v5/exports.txt \
+	--base-exports build/ods/editor-v4/exports.txt --output build/ods/editor-v5/profile
+{
+  "profile": "ods-editor-v5",
+  "development": true,
+  "capabilityBits": 13629747,
+  "sha256": {
+    "probe.js": "c66b7e86215dacfb6d6631ad8aa958d4948d50eda2ab9f08b3965413a432a639",
+    "probe.wasm": "4faad0af8e4d7f49c82fc483d0476fccdce7f2496e194e5a2ed2641434a06f0c",
+    "sdk-worker.js": "79bbafb4b56f17766177772898dc96ea8f50bded15068dfabcb80d176fff72f6",
+    "sdk-manifest.json": "fcec61cc791c7868c99561589824c06362b107dd3212104a5eb326a32230b8eb"
+  }
+}

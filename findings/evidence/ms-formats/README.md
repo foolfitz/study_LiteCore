@@ -8,6 +8,9 @@ pages and frozen profiles.
 | `native-m0/` | M0: `tools/run_msformat_native.py` driving `tools/msformat_native.cpp` (build `build/msformat-native-2`, sha256 `6a55e9ab…c2c9`, built by `tools/build_msformat_native.py`, 3.4 s, receipt in that build dir) on `build-native-26-8`, core `671c848b`. |
 | `wasm-m1/` | M1: `tools/run_msformat_wasm.py` on `dist/` (Writer `e2-editor-v32`, Calc `ods-editor-v4`), Chrome 156.0.8078.47, comparing against `native-m0/`. |
 | `f184-ods-reload/` | Finding 184: the ODS that never finishes loading, its backtrace, three timings. |
+| `pre-link/` | F2 em++ checks (`em-checks/`, `em-checks-02/` with the predecessors' token comparison) and the Codex review (`codex/`). |
+| `link/` | The two links (owner asked the agent to run them): script stdout, logs, SHA256SUMS of both development profiles. |
+| `post-link-dev/` | `tools/smoke_ms_formats_dev.py` on the development profiles (`smoke-v33-v5/`) and, as the red case, on the shipped v32 / v4 (`baseline-v32-v4/`). |
 | `collabora-reading.md` | How COOL co-26.04 and richdocuments 31.1.1 handle MS formats (code reading). |
 | `native-m0.stdout.txt`, `wasm-m1.stdout.txt` | The one-line-per-file summaries the two runs printed. |
 
@@ -62,3 +65,18 @@ which the harness also reports.
 - DOCX / XLSX saved by the WASM engine: the shipped save boundary accepts `odt` / `ods` only. After the link (spec 6.2 W1).
 - Firefox.
 - Opening the finding-184 ODS in WASM.
+
+## After the link: development-profile smoke (not the W criteria)
+
+The pages are still generation 88 and the v4 Calc page (ODF saves only). The mirror points their worker URLs at the development
+profiles and pins v33's wasm in the Writer page. True names, Chrome, the page's host contract.
+
+- Opened: all 26 loadable DOCX / XLSX (the truncated DOCX does not). The red case on shipped v32 / v4 opens none of the 27.
+- ODF saved by the page vs M0's native ODF round trip: 25 of 25 comparable equal (`forum-mso-en4-134670.xlsx` is finding 184).
+- XLSX saved through `__calcEditor.session.document.save({format: "xlsx"})`: 10 of 10 OOXML; 9 of 10 equal M0's native own-format
+  round trip. The tenth, `empty_ext_defined_name.xlsx`, differs in one cell: its external link `file:///D:/%06personal.xlsx` is
+  rewritten relative to where the file is saved -- native writes `../../../../../../../D:/%06personal.xlsx`, WASM `../D:/%06personal.xlsx`
+  (from a `--keep` rerun in scratch, not kept) -- so the reloaded formula points somewhere else. LibreOffice's export does this in
+  both; spec limit `L-external-links`.
+- Writer DOCX saves: not measured; the generation-88 page exposes no session.
+- `.doc`, `.docm`, `.xls`, `.xlsm`: refused before the queue on both the development and the shipped profiles.
