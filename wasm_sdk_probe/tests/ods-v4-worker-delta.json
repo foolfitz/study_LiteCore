@@ -1,0 +1,16 @@
+{
+ "schema": 1,
+ "note": "SPEC-P-calc-undo 4.2: the closed list of replacements taking the frozen ods-editor-v3 worker (dist/profiles/ods-editor-v3/sdk-worker.js) to sdk/ods-editor-v4-worker.js, applied in order, each occurring exactly once.",
+ "hunks": [
+  {
+   "item": "1 header comment",
+   "old": "// SPEC-P-demo-batch-3 3.1: the ods-editor-v3 worker.  Derived from the frozen\n// ods-editor-v2 worker (0bed22bd...).  The differences are a closed list\n// (criterion W1, tests/ods-v3-worker-delta.json): the capability row, the\n// rangeStyle operation with its closed values, this comment.\n",
+   "new": "// SPEC-P-calc-undo 4.2: the ods-editor-v4 worker.  Derived from the frozen\n// ods-editor-v3 worker (dist/profiles/ods-editor-v3/sdk-worker.js).  The\n// differences are a closed list (tests/ods-v4-worker-delta.json): the undo\n// walk's reply carries the engine's counts and cell cursor, this comment.\n"
+  },
+  {
+   "item": "2 the undo walk's reply",
+   "old": "    case \"replaced\":\n    case \"undone\":\n    // FINDING 071.  The engine has emitted `redone` since redo was added and\n    // nothing here listened, so the request never completed: the session sat\n    // busy forever, the toolbar's `run()` never resolved so not even a failure\n    // toast appeared, and the next save queued behind it and timed out. A\n    // capability that hangs the session is worse than one that is absent.\n    //\n    // Fourth layer of the same lag the ABI 4 link has now found three times --\n    // client, session allowlist, page label map, and here. Each one was a\n    // separate list of what exists, and each was updated on its own.\n    case \"redone\":\n    case \"comment-added\":\n    case \"track-changes-set\":\n      if (requestId)\n        complete(requestId, { revision: event.revision });\n      break;\n",
+   "new": "    case \"undone\":\n    case \"redone\":\n      // SPEC-P-calc-undo 4.2 E4 and 5: the engine counted the undo and redo\n      // lists around the walk and read the cell cursor; named fields only.\n      // FINDING 071, below, is why redone is listened for at all.\n      if (requestId)\n        complete(requestId, {\n          revision: event.revision,\n          undoCount: event.undoCount,\n          redoCount: event.redoCount,\n          cursor: event.cursor ? { part: event.cursor.part, column: event.cursor.column,\n            row: event.cursor.row, moved: event.cursor.moved === true } : null,\n        });\n      break;\n    case \"replaced\":\n    // FINDING 071.  The engine has emitted `redone` since redo was added and\n    // nothing here listened, so the request never completed: the session sat\n    // busy forever, the toolbar's `run()` never resolved so not even a failure\n    // toast appeared, and the next save queued behind it and timed out. A\n    // capability that hangs the session is worse than one that is absent.\n    //\n    // Fourth layer of the same lag the ABI 4 link has now found three times --\n    // client, session allowlist, page label map, and here. Each one was a\n    // separate list of what exists, and each was updated on its own.\n    case \"comment-added\":\n    case \"track-changes-set\":\n      if (requestId)\n        complete(requestId, { revision: event.revision });\n      break;\n"
+  }
+ ]
+}

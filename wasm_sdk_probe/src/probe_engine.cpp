@@ -325,6 +325,9 @@ enum class CommandType {
   EditorDrainScheduler,
 #endif
 #endif
+#ifdef OXSDK_ODS_UNDO
+  OdsUndoVerify,
+#endif
   Key,
   Save,
   Close
@@ -371,6 +374,36 @@ std::atomic<std::uint32_t> gCallbackRevision{0};
 std::atomic<std::uint32_t> gOpenRequestId{0};
 std::atomic<std::uint32_t> gSearchRequestId{0};
 std::atomic<std::uint32_t> gUnoRequestId{0};
+#ifdef OXSDK_ODS_UNDO
+// SPEC-P-calc-undo 4.2 E4: written on the engine loop before gUnoRequestId is
+// stored (release), read by the callback after loading it (acquire).
+struct OdsUndoWalk {
+  bool active = false;
+  bool redo = false;
+  std::uint32_t requestId = 0;
+  std::uint32_t documentHandle = 0;
+  std::size_t undoBefore = 0;
+  std::size_t redoBefore = 0;
+  bool cursorBefore = false;
+  int partBefore = 0;
+  int columnBefore = 0;
+  int rowBefore = 0;
+};
+OdsUndoWalk gOdsUndo;
+
+// commandResultMatches is the editor's (OXSDK_EDITOR_DISCOVERY); Calc has none.
+// The payload is LOK's {"commandName": ".uno:Undo", "success": false, ...}.
+bool odsUndoResultIs(const char *payload, const char *command) {
+  const char *name = payload ? std::strstr(payload, "\"commandName\"") : nullptr;
+  if (!name || !(name = std::strchr(name + 13, ':')))
+    return false;
+  while (*++name == ' ')
+    ;
+  const std::size_t length = std::strlen(command);
+  return *name == '"' && std::strncmp(name + 1, command, length) == 0 &&
+         name[1 + length] == '"';
+}
+#endif
 std::string gSearchQuery;
 std::string gUnoOperation;
 const char *gStage = "not-started";
@@ -3517,6 +3550,27 @@ void onLokCallback(int type, const char *payload, void *) {
                                                 nullptr, false);
         return;
       }
+#ifdef OXSDK_ODS_UNDO
+      if (gOdsUndo.active && (gUnoOperation == "undone" || gUnoOperation == "redone")) {
+        // Another command's result is not this walk's; wait for its own.
+        if (!odsUndoResultIs(payload, gOdsUndo.redo ? ".uno:Redo" : ".uno:Undo"))
+          return;
+        gUnoRequestId.store(0, std::memory_order_release);
+        gUnoOperation.clear();
+        Command step{CommandType::OdsUndoVerify};
+        step.requestId = requestId;
+        step.documentHandle = documentHandle;
+        if (submit(std::move(step)) != SubmitStatus::Ok) {
+          const bool redo = gOdsUndo.redo;
+          gOdsUndo = OdsUndoWalk{};
+          emitSdkError(requestId, documentHandle, redo ? "redone" : "undone",
+                       "MUTATION_OUTCOME_UNKNOWN",
+                       "the undo was dispatched but its lists could not be read");
+          finishAsynchronous(requestId);
+        }
+        return;
+      }
+#endif
       gUnoRequestId.store(0, std::memory_order_release);
       const std::string operation = std::move(gUnoOperation);
       gUnoOperation.clear();
@@ -5266,18 +5320,168 @@ void startUnoMutation(const Command &command, const char *operation,
 #endif
 }
 
+#ifdef OXSDK_ODS_UNDO
+// SPEC-P-calc-undo 4.2 E4 and 5.  Calc's .uno:Undo and .uno:Redo answer
+// success:false at once whether or not they did anything (NU-2), so the
+// command result is only the signal to look: the undo and redo lists are
+// counted before the dispatch and again after it, on this loop (getCommandValues
+// takes the SolarMutex; the callback may not be this thread).  An empty list is
+// refused before anything is dispatched.  The cell cursor is read on both sides
+// too: an input undo moves it to the restored cell, an attribute undo does not,
+// and the page follows only a move.  The walk's state is declared beside
+// gUnoRequestId, which the callback reads first.
+
+bool readOdsUndoCount(const char *unoCommand, std::size_t &count) {
+  char *values =
+      gState.document->pClass->getCommandValues(gState.document, unoCommand);
+  if (!values)
+    return false;
+  bool read = false;
+  try {
+    // {"actions": ""} when empty, {"actions": [{...}, ...]} otherwise.
+    boost::property_tree::ptree tree;
+    std::istringstream input(values);
+    boost::property_tree::read_json(input, tree);
+    const auto actions = tree.get_child_optional("actions");
+    count = actions ? actions->size() : 0;
+    read = true;
+  } catch (...) {
+  }
+  std::free(values);
+  return read;
+}
+
+// {"commandName": ".uno:CellCursor", "commandValues": "x, y, w, h, column, row"}
+bool readOdsCellCursor(int &part, int &column, int &row) {
+  char *values = gState.document->pClass->getCommandValues(gState.document,
+                                                           ".uno:CellCursor");
+  if (!values)
+    return false;
+  bool read = false;
+  try {
+    boost::property_tree::ptree tree;
+    std::istringstream input(values);
+    boost::property_tree::read_json(input, tree);
+    std::istringstream fields(tree.get<std::string>("commandValues"));
+    std::vector<long> numbers;
+    std::string field;
+    while (std::getline(fields, field, ','))
+      numbers.push_back(std::stol(field));
+    if (numbers.size() == 6) {
+      column = static_cast<int>(numbers[4]);
+      row = static_cast<int>(numbers[5]);
+      part = gState.document->pClass->getPart(gState.document);
+      read = true;
+    }
+  } catch (...) {
+  }
+  std::free(values);
+  return read;
+}
+
+void startOdsUndoWalk(const Command &command, bool redo) {
+  const char *operation = redo ? "redone" : "undone";
+  if (!requireDocument(command, operation) ||
+      !requireRevision(command, redo ? "redo" : "undo"))
+    return;
+  if (gOdsUndo.active || gUnoRequestId.load(std::memory_order_acquire) != 0) {
+    emitCommandError(command, operation, "BUSY",
+                     "another undo or UNO mutation is still in flight");
+    return;
+  }
+  std::size_t undo = 0, redoCount = 0;
+  if (!readOdsUndoCount(".uno:Undo", undo) ||
+      !readOdsUndoCount(".uno:Redo", redoCount)) {
+    emitCommandError(command, operation, "EDITOR_STATE_UNAVAILABLE",
+                     "the undo lists could not be read; nothing was dispatched");
+    return;
+  }
+  if ((redo ? redoCount : undo) == 0) {
+    emitCommandError(command, operation,
+                     redo ? "NOTHING_TO_REDO" : "NOTHING_TO_UNDO",
+                     redo ? "there is nothing to redo; nothing was dispatched"
+                          : "there is nothing to undo; nothing was dispatched");
+    return;
+  }
+  OdsUndoWalk walk;
+  walk.active = true;
+  walk.redo = redo;
+  walk.requestId = command.requestId;
+  walk.documentHandle = command.documentHandle;
+  walk.undoBefore = undo;
+  walk.redoBefore = redoCount;
+  walk.cursorBefore =
+      readOdsCellCursor(walk.partBefore, walk.columnBefore, walk.rowBefore);
+  // Before the dispatch: the result can arrive inside postUnoCommand.
+  gOdsUndo = walk;
+  startUnoMutation(command, operation, redo ? ".uno:Redo" : ".uno:Undo", {});
+}
+
+void handleOdsUndoVerify(const Command &) {
+  const OdsUndoWalk walk = gOdsUndo;
+  gOdsUndo = OdsUndoWalk{};
+  const char *operation = walk.redo ? "redone" : "undone";
+  std::size_t undo = 0, redo = 0;
+  const bool read = gState.document && readOdsUndoCount(".uno:Undo", undo) &&
+                    readOdsUndoCount(".uno:Redo", redo);
+  const bool walked =
+      read && (walk.redo ? undo == walk.undoBefore + 1 && redo + 1 == walk.redoBefore
+                         : undo + 1 == walk.undoBefore && redo == walk.redoBefore + 1);
+  // Dispatched either way: the document may have moved, so the revision does.
+  advanceRevision();
+  if (!walked) {
+    emitSdkError(walk.requestId, walk.documentHandle, operation,
+                 "MUTATION_OUTCOME_UNKNOWN",
+                 read ? "the undo lists did not move by exactly one"
+                      : "the undo lists could not be read after the dispatch");
+    finishAsynchronous(walk.requestId);
+    return;
+  }
+  int part = 0, column = 0, row = 0;
+  const bool cursor = gState.document && readOdsCellCursor(part, column, row);
+  std::ostringstream json;
+  json << "{\"schemaVersion\":" << ProtocolSchemaVersion << ",\"type\":\""
+       << operation << "\",\"requestId\":" << walk.requestId
+       << ",\"documentHandle\":" << walk.documentHandle
+       << ",\"revision\":" << gState.revision << ",\"undoCount\":" << undo
+       << ",\"redoCount\":" << redo << ",\"cursor\":";
+  if (cursor)
+    json << "{\"part\":" << part << ",\"column\":" << column
+         << ",\"row\":" << row << ",\"moved\":"
+         << (walk.cursorBefore && (part != walk.partBefore ||
+                                   column != walk.columnBefore ||
+                                   row != walk.rowBefore)
+                 ? "true"
+                 : "false")
+         << "}";
+  else
+    json << "null";
+  json << "}";
+  emitJson(json.str());
+  finishAsynchronous(walk.requestId);
+}
+#endif
+
 void handleUndo(const Command &command) {
+#ifdef OXSDK_ODS_UNDO
+  startOdsUndoWalk(command, false);
+#else
   if (!requireDocument(command, "undone") ||
       !requireRevision(command, "undo"))
     return;
   startUnoMutation(command, "undone", ".uno:Undo", {});
+#endif
 }
 
 void handleRedo(const Command &command) {
+#ifdef OXSDK_ODS_UNDO
+  startOdsUndoWalk(command, true);
+#else
   if (!requireDocument(command, "redone") ||
       !requireRevision(command, "redo"))
     return;
   startUnoMutation(command, "redone", ".uno:Redo", {});
+#endif
 }
 
 void handleAddComment(const Command &command) {
@@ -7558,6 +7762,11 @@ void dispatch(const Command &command) {
   case CommandType::Redo:
     handleRedo(command);
     break;
+#ifdef OXSDK_ODS_UNDO
+  case CommandType::OdsUndoVerify:
+    handleOdsUndoVerify(command);
+    break;
+#endif
   case CommandType::AddComment:
     handleAddComment(command);
     break;

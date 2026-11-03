@@ -75,6 +75,11 @@ extern "C" EMSCRIPTEN_KEEPALIVE std::uint32_t oxsdk_capabilities(void) {
 #ifdef OXSDK_ODS_STYLE
          | OXSDK_CAPABILITY_CELL_RANGE_STYLING
 #endif
+#ifdef OXSDK_ODS_UNDO
+         // SPEC-P-calc-undo 4.2 E1: the engine's undo walk (probe_engine.cpp,
+         // startOdsUndoWalk) and the two exports; redo rides on this bit.
+         | OXSDK_CAPABILITY_UNDO
+#endif
 #endif
 #if HAVE_FEATURE_DBCONNECTIVITY
          | OXSDK_CAPABILITY_FORM_CONTROLS

@@ -333,3 +333,88 @@ test("a refused style leaves the revision and the cell alone",async()=>{
   assert.equal(doc.revision,before);
   assert.equal(session.state.cell.textColor,"auto");
 });
+
+// SPEC-P-calc-undo 4.3 and 5: the session's undo and redo on a document that has them.
+async function withUndo({readOnly=false,supported=true}={}) {
+  const opened_=await opened(readOnly);
+  const {doc,calls}=opened_;
+  doc.undoSupported=supported;
+  doc.next=[];
+  for(const direction of ["undo","redo"])
+    doc[direction]=async options=>{calls.push([direction,options.expectedRevision]);const step=doc.next.shift();
+      if(step instanceof Error)throw step;doc.revision++;return{revision:doc.revision,undoCount:0,redoCount:1,...step};};
+  return opened_;
+}
+const refused=code=>Object.assign(new Error(code),{code});
+
+test("undo with an entry not yet sent drops it and sends nothing",async()=>{
+  const {session,calls}=await withUndo();
+  session.beginEdit("inline");session.setDraft("沒送出");
+  assert.deepEqual(await session.undo(),{draftDiscarded:true});
+  assert.equal(session.state.draft,"原始內容");assert.equal(session.state.editing,null);
+  assert.deepEqual(calls,[]);
+  await session.close();
+});
+
+test("redo with an entry not yet sent is refused and sends nothing",async()=>{
+  const {session,calls}=await withUndo();
+  session.beginEdit("inline");session.setDraft("沒送出");
+  await assert.rejects(session.redo(),{code:"DRAFT_PENDING"});
+  assert.equal(session.state.draft,"沒送出");assert.deepEqual(calls,[]);
+  await session.close();
+});
+
+test("an undo that moved the engine's cursor moves the selection there",async()=>{
+  const {session,doc,calls}=await withUndo();
+  doc.next.push({cursor:{part:0,column:3,row:2,moved:true}});
+  const revision=doc.revision;
+  await session.undo();
+  assert.deepEqual(calls.at(-1),["undo",revision]);
+  assert.deepEqual([session.state.cell.column,session.state.cell.row],[3,2]);
+  assert.equal(session.state.error,null);
+  await session.close();
+});
+
+test("an undo that left the cursor keeps the selection and re-reads it",async()=>{
+  const {session,doc}=await withUndo();
+  await session.selectAt(1200,100);
+  doc.next.push({cursor:{part:0,column:3,row:2,moved:false}});
+  await session.undo();
+  assert.deepEqual([session.state.cell.column,session.state.cell.row],[1,0]);
+  await session.close();
+});
+
+test("an undo whose cursor moved to another sheet shows that sheet",async()=>{
+  const {session,doc,calls}=await withUndo();
+  doc.next.push({cursor:{part:1,column:2,row:4,moved:true}});
+  await session.redo();
+  assert.ok(calls.some(c=>c[0]==="part"&&c[1]===1),"the sheet was not shown");
+  assert.deepEqual([session.state.cell.part,session.state.cell.column,session.state.cell.row],[1,2,4]);
+  await session.close();
+});
+
+test("nothing to undo or redo is an answer, not an error state",async()=>{
+  const {session,doc}=await withUndo();
+  doc.next.push(refused("NOTHING_TO_UNDO"),refused("NOTHING_TO_REDO"));
+  assert.deepEqual(await session.undo(),{nothing:"undo"});
+  assert.deepEqual(await session.redo(),{nothing:"redo"});
+  assert.equal(session.state.error,null);assert.equal(session.state.uncertain,false);
+  await session.close();
+});
+
+test("an undo whose outcome is unknown leaves the session uncertain",async()=>{
+  const {session,doc}=await withUndo();
+  doc.next.push(refused("MUTATION_OUTCOME_UNKNOWN"));
+  await assert.rejects(session.undo(),{code:"MUTATION_OUTCOME_UNKNOWN"});
+  assert.equal(session.state.uncertain,true);
+  await session.close();
+});
+
+test("without the capability, or read-only, undo is refused before the engine",async()=>{
+  for(const [options,code] of [[{supported:false},"UNSUPPORTED_OPERATION"],[{readOnly:true},"READ_ONLY"]]) {
+    const {session,calls}=await withUndo(options);
+    await assert.rejects(session.undo(),{code});
+    assert.deepEqual(calls.filter(c=>c[0]==="undo"),[]);
+    await session.close();
+  }
+});

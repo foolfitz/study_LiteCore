@@ -5818,6 +5818,76 @@ $(ODS_EDITOR_V3_BUILD)/profile/sdk-manifest.json: $(ODS_EDITOR_V3_BUILD)/probe.j
 $(ODS_EDITOR_V3_BUILD):
 	mkdir -p $@
 
+# ------------------------------- ods-editor-v4, document undo on the existing v3 core (SPEC-P-calc-undo 4.2)
+# v3's rules with OXSDK_ODS_UNDO added to every object (the capability bit, the
+# engine's undo walk, the bridge's one-call bold and italic) and the two undo
+# exports.  Development output outside dist, as for v3; the frozen guard below
+# refuses once dist/profiles/ods-editor-v4 exists.  Owner-run (the link).
+ODS_EDITOR_V4_BUILD := build/ods/editor-v4
+ODS_EDITOR_V4_DIST := dist/profiles/ods-editor-v4
+ODS_EDITOR_V4_DEFINES := -DOXSDK_READER_PROFILE -DOXSDK_ODS_VIEWER -DOXSDK_ODS_VIEWER_V2 -DOXSDK_ODS_EDITOR \
+	-DOXSDK_ODS_RANGE -DOXSDK_ODS_STYLE -DOXSDK_ODS_UNDO
+ODS_EDITOR_V4_OBJECTS := $(patsubst src/%.cpp,$(ODS_EDITOR_V4_BUILD)/%.o,$(ODS_EDITOR_V3_SOURCES))
+
+$(ODS_EDITOR_V4_BUILD)/%.o: src/%.cpp $(HEADERS) src/ods_viewer.hpp \
+		src/calc_cell_bridge.h Makefile | $(ODS_EDITOR_V4_BUILD)
+	$(CXX) $(ODS_EDITOR_V3_CPPFLAGS) $(R5_CXXFLAGS) $(ODS_EDITOR_V4_DEFINES) -c $< -o $@
+
+$(ODS_EDITOR_V4_BUILD)/calc_cell_bridge.o: src/calc_cell_bridge.cpp \
+		src/calc_cell_bridge.h Makefile | $(ODS_EDITOR_V4_BUILD)
+	$(CXX) $(ODS_EDITOR_V3_CPPFLAGS) $(R5_CXXFLAGS) -std=c++20 \
+		-DLIBO_INTERNAL_ONLY -DOXSDK_ODS_RANGE -DOXSDK_ODS_STYLE -DOXSDK_ODS_UNDO -c $< -o $@
+
+# v3's list, written here rather than copied from build/ods/editor-v3 (which this
+# Makefile would then regenerate), plus the two undo exports.
+$(ODS_EDITOR_V4_BUILD)/exports.txt: \
+		$(ODS_EDITOR_V3_CORE)/workdir/CustomTarget/desktop/soffice_bin-emscripten-exports/exports Makefile \
+		| $(ODS_EDITOR_V4_BUILD)
+	grep -v -e '^__ZTI' -e '^_main$$' $< > $@
+	printf '%s\n' __ZTIN3com3sun4star3ucb31InteractiveAugmentedIOExceptionE \
+		_oxsdk_abi_version _oxsdk_capabilities _oxsdk_engine_start \
+		_oxsdk_document_open _oxsdk_document_paint _oxsdk_document_close \
+		_oxsdk_document_search _oxsdk_document_set_part _oxsdk_document_current_part \
+		_oxsdk_document_part_name _oxsdk_document_part_text _oxsdk_document_part_info \
+		_oxsdk_request_cancel _oxsdk_buffer_alloc _oxsdk_buffer_free \
+		_oxsdk_document_save _oxsdk_document_cell \
+		_oxsdk_document_undo _oxsdk_document_redo >> $@
+
+$(ODS_EDITOR_V4_BUILD)/probe.js: $(ODS_EDITOR_V4_OBJECTS) \
+		$(ODS_EDITOR_V4_BUILD)/calc_cell_bridge.o $(ODS_EDITOR_V4_BUILD)/exports.txt
+	@test ! -e $(ODS_EDITOR_V4_DIST)/sdk-manifest.json || \
+		{ echo "ods-editor-v4 is frozen; use a successor profile"; exit 1; }
+	$(CXX) $(ODS_EDITOR_V4_OBJECTS) $(ODS_EDITOR_V4_BUILD)/calc_cell_bridge.o \
+		-L$(ODS_EDITOR_V3_CORE)/instdir/program \
+		$$(cat $(ODS_EDITOR_V3_CORE)/instdir/program/soffice.js.linkdeps) \
+		-pthread -fwasm-exceptions -sSUPPORT_LONGJMP=wasm --no-entry -Oz \
+		-sMODULARIZE -sEXPORT_NAME=createProbeModule \
+		-sTOTAL_MEMORY=1GB -sPTHREAD_POOL_SIZE=7 -sPTHREAD_POOL_SIZE_STRICT=0 \
+		-sSTACK_SIZE=131072 -sDEFAULT_PTHREAD_STACK_SIZE=1048576 \
+		-sFORCE_FILESYSTEM=1 -sWASM_BIGINT=1 -sERROR_ON_UNDEFINED_SYMBOLS=1 -sFETCH=1 \
+		-sASSERTIONS=0 -sEXIT_RUNTIME=0 -sEXPORTED_RUNTIME_METHODS=ccall,FS,HEAPU8 \
+		-sEXPORTED_FUNCTIONS=@$(ODS_EDITOR_V4_BUILD)/exports.txt \
+		-Wl,--wrap=_Z18initJsUnoScriptingv \
+		--pre-js $(LOSRC)/static/emscripten/environment.js \
+		--pre-js $(ODS_EDITOR_V3_CORE)/workdir/CustomTarget/static/emscripten_fs_image/soffice.data.js.link \
+		-o $@
+
+# The worker is derived, not kept in sdk/: the Writer shell bundle scans sdk/*.js
+# (tools/derive_ods_v4_worker.py says why).
+$(ODS_EDITOR_V4_BUILD)/sdk-worker.js: dist/profiles/ods-editor-v3/sdk-worker.js \
+		tests/ods-v4-worker-delta.json tools/derive_ods_v4_worker.py | $(ODS_EDITOR_V4_BUILD)
+	python3 tools/derive_ods_v4_worker.py --out $@
+
+$(ODS_EDITOR_V4_BUILD)/profile/sdk-manifest.json: $(ODS_EDITOR_V4_BUILD)/probe.js \
+		$(ODS_EDITOR_V4_BUILD)/sdk-worker.js tools/build_calc_undo_profile.py
+	python3 tools/build_calc_undo_profile.py --development \
+		--loader $(ODS_EDITOR_V4_BUILD)/probe.js --wasm $(ODS_EDITOR_V4_BUILD)/probe.wasm \
+		--worker $(ODS_EDITOR_V4_BUILD)/sdk-worker.js --exports $(ODS_EDITOR_V4_BUILD)/exports.txt \
+		--output $(ODS_EDITOR_V4_BUILD)/profile
+
+$(ODS_EDITOR_V4_BUILD):
+	mkdir -p $@
+
 # Owner-run, small native bridge build against the existing installed core.
 CALC_RANGE_NATIVE_CORE := ../build-native-26-8
 CALC_RANGE_NATIVE_BUILD := build/calc-range-native

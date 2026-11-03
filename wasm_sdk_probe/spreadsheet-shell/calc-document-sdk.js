@@ -157,6 +157,9 @@ export class CalcDocumentEngine extends OdsViewerEngine {
       if(!CELL_FORMATS.includes(format) || typeof enabled!=="boolean")invalid("invalid range format");
       return rangeRequest("rangeFormat",column,row,endColumn,endRow,{format,enabled},callOptions);
     };
+    // SPEC-P-calc-undo 4.3: undo and redo are DocumentHandle's own (document-sdk.js); the worker refuses them without
+    // the `undo` capability, and the page shows its buttons only when this is true.
+    handle.undoSupported=this.manifest.capabilities.includes("undo");
     handle.rangeStylingSupported=this.manifest.capabilities.includes("cell-range-styling");
     handle.setRangeStyle=(column,row,endColumn,endRow,style,value,callOptions)=>{
       if(!handle.rangeStylingSupported)

@@ -6,7 +6,7 @@ const ENGINE_OPTIONS = Object.freeze({workerUrl:"./profiles/ods-editor-v3/sdk-wo
 const HOST = globalThis.liteCoreHost ?? null;
 const diagnostics = new URLSearchParams(location.search).get("diagnostics") === "1";
 const $ = id => document.getElementById(id);
-const ui = Object.fromEntries(["file-input","open-file","save-button","cell-address","formula-input",
+const ui = Object.fromEntries(["file-input","open-file","save-button","undo-button","redo-button","cell-address","formula-input",
   "cancel-button","commit-button","viewport","surface","tiles","selection","active-cell","cell-editor","empty",
   "tab-strip","state-pill","autosave-status","selection-label","s-doc","s-revision","toast"].map(id=>[id,$(id)]));
 let session = null, composing = false, paintPending = false, paintAgain = false, lastPaint = null, restoreGridFocus = false;
@@ -159,6 +159,11 @@ function render(state) {
   ui["s-revision"].textContent=String(state.revision ?? "");
   ui.empty.hidden=ready;
   ui["save-button"].disabled=!ready || state.readOnly || state.busy || state.uncertain;
+  // SPEC-P-calc-undo 4.3: shown when the profile carries undo; usable whenever a write would be, and with an entry
+  // pending too (undo then drops the entry).
+  ui["undo-button"].hidden=ui["redo-button"].hidden=!state.undoSupported;
+  ui["undo-button"].disabled=ui["redo-button"].disabled=!ready || state.readOnly || state.uncertain || waiting
+    || state.selectionPending;
   ui["cell-address"].disabled=!ready || state.busy;
   ui["formula-input"].disabled=!editable || waiting;
   ui["cell-editor"].disabled=state.selectionPending || pendingEntry
@@ -422,6 +427,25 @@ function formatRefusal(code) {
   return ({RANGE_TOO_LARGE:"請縮小範圍至 65,536 格以內。",RANGE_MERGE_BOUNDARY:"請選取完整合併格後再設定格式。",
     RANGE_PROTECTED:"選取範圍含受保護的儲存格。",READ_ONLY:"此範圍無法編輯。"})[code] || "目前無法設定此範圍的格式。";
 }
+// SPEC-P-calc-undo 4.3 and 5.  An entry not yet sent is the newest change: undo drops it, redo waits for it.
+function walk(direction) {
+  if(!session?.state.undoSupported)return;
+  const entry=pendingEntry!==null || (session.state.editing!==null && session.state.draft!==session.state.cell?.input);
+  if(entry && direction==="redo"){notice("請先完成或取消目前的輸入。",true);return;}
+  if(entry && pendingEntry!==null) {
+    pendingEntry=null;session.cancelEdit();focusGrid();notice("已取消輸入中的內容，文件沒有變動。");return;
+  }
+  cancelDrag();
+  void action(async()=>{
+    const result=await session[direction]();
+    notice(result?.draftDiscarded ? "已取消輸入中的內容，文件沒有變動。"
+      : result?.nothing ? (direction==="undo" ? "沒有可以復原的動作。" : "沒有可以重做的動作。")
+      : direction==="undo" ? "已復原。" : "已重做。");
+    revealCell(session.state.cell);focusGrid();
+  });
+}
+ui["undo-button"].addEventListener("click",()=>walk("undo"));
+ui["redo-button"].addEventListener("click",()=>walk("redo"));
 function toggleFormat(format) {
   if(!session || !formatAvailable(session.state))return;
   const s=session.state,value=s.selection?.multiple ? s.rangeFormat?.[format] : s.cell[format];
@@ -578,6 +602,13 @@ window.addEventListener("keydown",event=>{
   if(!session || event.isComposing || event.keyCode===229 || !(event.ctrlKey||event.metaKey) || event.repeat)return;
   const key=event.key.toLowerCase();
   if(key==="s"){event.preventDefault();void action(()=>save());return;}
+  // SPEC-P-calc-undo 4.3: the document's undo from the grid; inside an entry, the formula bar or the address box the
+  // field keeps its own text undo.  Without the capability nothing changes from before.
+  if((key==="z" || key==="y") && session.state.undoSupported) {
+    const field=[ui["formula-input"],ui["cell-address"]].includes(document.activeElement);
+    if(field || session.state.editing!==null || pendingEntry!==null)return;
+    event.preventDefault();walk(key==="y" || event.shiftKey ? "redo" : "undo");return;
+  }
   const format={b:"bold",i:"italic",u:"underline"}[key];
   if(format){event.preventDefault();if(pendingEntry){notice("請先完成或取消目前的輸入。",true);return;}void action(()=>toggleFormat(format));}
 });

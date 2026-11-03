@@ -59,7 +59,8 @@ export class CalcEditorSession {
   get state() {
     return { ...this.viewer.state, cell: this._cell, selection:this._selection, rangeFormat:this._rangeFormat,
       rangeFormattingSupported:this.document?.rangeFormattingSupported===true,
-      rangeStylingSupported:this.document?.rangeStylingSupported===true, draft: this._draft,
+      rangeStylingSupported:this.document?.rangeStylingSupported===true,
+      undoSupported:this.document?.undoSupported===true, draft: this._draft,
       editing: this._editing, readOnly: this._readOnly, busy: this._busy > 0,
       selectionPending: this._selecting > 0,
       saving: this._saving > 0, revision: this.document?.revision ?? null,
@@ -299,6 +300,69 @@ export class CalcEditorSession {
       }
       this._adopt(refreshed);
       return refreshed;
+    });
+  }
+  // SPEC-P-calc-undo 4.3 and 5.  An entry not yet sent is the newest change:
+  // undo drops it and sends nothing (sending it first would only make the undo
+  // take it back again).  Redo waits until the entry is committed or cancelled.
+  _draftPending() { return this._editing!==null && this._draft!==this._cell?.input; }
+  undo() {
+    if(this._draftPending()) {
+      this.cancelEdit();
+      return Promise.resolve({draftDiscarded:true});
+    }
+    return this._walk("undo");
+  }
+  redo() {
+    if(this._draftPending())
+      return Promise.reject(new DocumentSdkError("DRAFT_PENDING","commit or cancel the cell entry first"));
+    return this._walk("redo");
+  }
+  _walk(direction) {
+    return this._enqueue(async()=>{
+      this._assertReady();
+      if(this._readOnly)throw new DocumentSdkError("READ_ONLY","this spreadsheet cannot be edited");
+      if(this.document.undoSupported!==true)
+        throw new DocumentSdkError("UNSUPPORTED_OPERATION","this engine has no document undo");
+      this._editing=null;
+      let result;
+      try {
+        result=await this.document[direction]({expectedRevision:this.document.revision});
+      } catch(error) {
+        // Refused before anything was dispatched: a sentence, not an error state.
+        if(error.code===(direction==="undo" ? "NOTHING_TO_UNDO" : "NOTHING_TO_REDO"))return {nothing:direction};
+        throw error;
+      }
+      this.scheduler.invalidateRevision(this.document.revision);
+      // The engine's cell cursor moves to the restored cell for an input undo and
+      // stays for an attribute undo (NU-2); the page follows a move only.  A move
+      // to another sheet shows that sheet, keeping the active cell of the one left.
+      const cursor=result.cursor;
+      try {
+        if(cursor?.moved===true) {
+          if(cursor.part!==this._cell.part) {
+            this._sheetCells.set(this._cell.part,{column:this._cell.column,row:this._cell.row});
+            await this.viewer.showPart(cursor.part);
+          }
+          const {cell}=await this.document.readCell(cursor.column,cursor.row,{part:cursor.part});
+          this._adopt(cell);
+        } else if(this._selection?.multiple) {
+          const selected=this._selection;
+          const {cell:anchor}=await this.document.readCell(selected.anchor.column,selected.anchor.row,{part:selected.part});
+          const {cell:focus}=await this.document.readCell(selected.focus.column,selected.focus.row,{part:selected.part});
+          this._cell=anchor;this._selection=rectangle(anchor,focus);this._rangeFormat=null;
+          this._draft=anchor.input;this._draftVersion++;
+          await this._refreshRangeFormat();
+        } else {
+          const cell=this._cell;
+          const {cell:refreshed}=await this.document.readCell(cell.column,cell.row,{part:cell.part});
+          this._adopt(refreshed);
+        }
+      } catch(error) {
+        throw new DocumentSdkError("MUTATION_OUTCOME_UNKNOWN",`${direction} applied but the cell refresh failed: ${error.message}`);
+      }
+      this._emit();
+      return result;
     });
   }
   save(target,{commitDraft=true}={}) {
