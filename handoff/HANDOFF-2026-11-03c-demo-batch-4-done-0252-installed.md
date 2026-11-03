@@ -13,6 +13,18 @@ Checkpoint **2026-11-03 09:40**. Supersedes `HANDOFF-2026-11-03b-demo-batch-4-li
 1. **The owner's hand test on 0.2.52**: the list at the end of the runbook. Reload open tabs. Whether it becomes the daily candidate is the owner's.
 2. Ordered-commands product arms (the owner put them behind the demo); Microsoft formats and Calc zoom only when asked.
 
+## After the reboot (added 2026-11-03, the owner is rebooting and cannot hand test yet)
+
+The owner chose this order: A the census, B fixes that need no link, C ordered-commands. A's reading half is done: `research/RESEARCH-2026-11-03-open-findings-census-0.2.52.md`. Of 21 findings whose headers look open, 16 are fixed; only five are not, and only 151 is on the ordinary typing path.
+
+1. **Bring the stack up, it does not restart by itself** (`restart: "no"`): from `wasm_sdk_probe/host-stack`, `docker compose --env-file litecore.env up -d`, then `curl -sk -o /dev/null -w "%{http_code}\n" https://litecore.localhost:18443/status.php` must read 200.
+2. KWallet is locked after a reboot. `ChromeSession` carries `--password-store=basic`; the four preflights that do not go through it need it unlocked.
+3. **Measure finding 151's arrow half on 0.2.52**: `tools/diag_v21_dirty_move.py` V8d, whose page is pinned to `v21`/`dist0224` (`:663`), so it needs a page family for 0.2.52. N=3, both browsers. Green closes it. Red: read which layer before fixing.
+4. **The refusal sentences**: `web/e2-editor-app.js:2394` prints `describeError` for non-review refusals, so Enter over a selection reads like old finding 174. Page only: a new generation, no link.
+5. C, the ordered-commands product arms.
+
+Keep 169 out of a demo script. Do not rewrite the stale finding headers: the census is the record.
+
 ## What the link settled
 
 - **The bridge works on Wasm.** It had only run natively. A press at a caret is 10 to 24 ms at any document size tried; 500 paragraphs selected is 0.26 to 0.38 s, and taking bullets off all 500 is 1.4 s, the worst the page allows. `p4/read-cost-02`, spec section 8.
