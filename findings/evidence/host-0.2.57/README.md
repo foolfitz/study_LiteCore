@@ -40,4 +40,4 @@ script's `zoom-diag/` folder on admin (it is created before the browser); delete
 Rollback: `host_release.py rollback findings/evidence/host-0.2.57` with `host-stack/bin` first on PATH restores 0.2.56's engine bytes
 (the page with the white zoom); the host label stays 0.2.57.
 
-**Pending:** the owner's re-test of hand-test item 1 on `手測-0.2.56/1-writer.odt`.
+**The owner's re-test of hand-test item 1** (2026-11-04, after the install, on `手測-0.2.56/1-writer.odt`): "縮放OK了" -- zoom passes. Item 1 of 0.2.56's hand test is closed on 0.2.57. The fixture folder `手測-0.2.56/` is still on admin (its deletion is the owner's call; see the handoff).
