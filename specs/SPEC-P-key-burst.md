@@ -51,8 +51,19 @@
 
 連打超過 8 鍵，第 9 鍵起照丟，頁面會跳提示（0.2.57 的現況）。
 
+## 6. 追加 1（2026-11-05 01:40）：結果
+
+dev 鏡像，`findings/evidence/key-burst/`，工具 `tools/check_key_burst.py`。〔已觀察〕
+
+- `kb-01`（工作樹的 session）：`KB_HOLDS`，Chrome 10/10、Firefox 10/10。連打 40 鍵在 Chrome 只送 2 次 `insertText`、Firefox 3 次，一個字都沒掉、沒有提示；K3 是 `abdxe`。
+- 紅案全紅在指名的格：基準（generation 90 的 session）K1 兩格只留前 8 鍵並跳提示；`no-seal` 只紅 K3（`abcde`）；`no-merge` 同基準。
+- K6 的參考臂（每鍵 150 ms）按一次 Ctrl+Z 拿掉 `gh`；合併成 2 次請求的連打也是拿掉 `gh`。Writer 對一次 `.uno:InsertText` 的整串字，復原的分組與逐字打相同。
+- K2（每鍵 30 ms、60 鍵）在基準上也全到：這台機器上引擎跟得上按住鍵的速度，所以 K2 只守「不退化」，沒有鑑別力；鑑別力在 K1。
+- 單元測試 11 格；整棵樹的 node 測試 1025/1025；E1-C `intact: true`。
+
 ## 修訂紀錄
 
 | 日期 | 內容 |
 |---|---|
 | 2026-11-05 | 初版：判準 K1–K6、三個紅案，實作前釘死 |
+| 2026-11-05 | 追加 1：結果（`KB_HOLDS`，三個紅案紅在指名的格） |

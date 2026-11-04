@@ -53,6 +53,85 @@ export function documentFormatOf(document) {
   return typeof format === "string" && format !== "" ? format : "odt";
 }
 
+// SPEC-P-key-burst (finding 130's limit).  The adapter commits one character
+// at a time and refuses the ninth one waiting (INPUT_BACKPRESSURE), so a burst
+// faster than the engine lost every key past eight -- measured on host 0.2.56,
+// both browsers (findings/evidence/host-0.2.56/diag-burst-01/).  The adapter is
+// E1-C's and is bound byte for byte (e1/editor-shell-bundle-v2.json), so the
+// fix is here, on this session's own adapter INSTANCE: typed text that arrives
+// while an earlier character is still waiting is appended to that waiting
+// entry instead of queued behind it.  The one in flight is never touched.
+//
+// Only the typed route merges (the SDK's `.uno:InsertText`, document-sdk.js
+// insertRoute): `beforeinput` + `insertText`, no line break or NUL.  Line
+// breaks, IME commits and pastes keep one entry each, and the limit of eight
+// still applies to them.  `seal()` closes every waiting entry; the session
+// calls it for every operation that is not typed text, so a key keeps its
+// place behind exactly the characters typed before it (finding 111's barrier).
+//
+// Depends on the adapter's private fields (`_queue` kept as one array,
+// `_requestCount`, `_generation`, `_blocked`, `_maxUtf8Bytes`, `_trace`) the
+// way this file's header explains for the base session: pinned by
+// tests/key-burst.test.mjs, not assumed.
+const TYPED_BURST = Symbol("typed-burst");
+const TYPED_BURST_REFUSED = /[\u0000\n\r]/;
+const burstUtf8 = new TextEncoder();
+
+function mergesAsTyped(text, metadata) {
+  return typeof text === "string" && text.length > 0
+    && metadata?.source === "beforeinput" && metadata?.inputType === "insertText"
+    && !TYPED_BURST_REFUSED.test(text);
+}
+
+export function coalesceTypedText(adapter) {
+  if (adapter?.[TYPED_BURST]) return adapter[TYPED_BURST];
+  const queue = adapter?._queue;
+  if (!Array.isArray(queue) || typeof adapter.commitText !== "function")
+    throw new TypeError("coalesceTypedText needs a HostInputAdapter");
+  const commitOne = adapter.commitText;
+  const record = { merged: 0, sealed: 0 };
+  adapter.commitText = function commitText(text, metadata = {}) {
+    const tail = queue[queue.length - 1];
+    if (mergesAsTyped(text, metadata) && tail?.[TYPED_BURST] === true
+        && this._blocked !== true && tail.generation === this._generation) {
+      const bytes = burstUtf8.encode(text).byteLength;
+      if (tail.bytes + bytes <= this._maxUtf8Bytes) {
+        tail.text += text;
+        tail.bytes += bytes;
+        record.merged += 1;
+        this._trace(null, "commit-merged", { requestNumber: tail.requestNumber, text, metadata });
+        return new Promise((resolve, reject) => {
+          const resolved = tail.resolve, rejected = tail.reject;
+          tail.resolve = (value) => { resolved(value); resolve(value); };
+          tail.reject = (error) => { rejected(error); reject(error); };
+        });
+      }
+    }
+    const before = this._requestCount;
+    const pending = commitOne.call(this, text, metadata);
+    const last = queue[queue.length - 1];
+    // Queued, not sent at once (the pump shifts an entry the moment nothing
+    // is in flight): only a waiting entry can take more text.
+    if (mergesAsTyped(text, metadata) && this._requestCount === before + 1
+        && last?.requestNumber === this._requestCount)
+      last[TYPED_BURST] = true;
+    return pending;
+  };
+  const burst = {
+    record,
+    seal() {
+      for (const item of queue) {
+        if (item[TYPED_BURST] === true) {
+          item[TYPED_BURST] = false;
+          record.sealed += 1;
+        }
+      }
+    },
+  };
+  adapter[TYPED_BURST] = burst;
+  return burst;
+}
+
 const PARAGRAPH = new Set([...EDITOR_V2_PARAGRAPH_ACTIONS, ...EDITOR_ALIGN_ACTIONS, ...EDITOR_TOGGLE_ACTIONS]);
 // EDITOR_V4_ACTIONS (ABI 5's list, SPEC-M3-link-batch-v21 4.1), and before it
 // EDITOR_V3_ACTIONS, not EDITOR_V2_ACTIONS: this set is the SESSION's own
@@ -500,6 +579,8 @@ export class NarrowEditorV2Session extends EditorSession {
     this._guardEditorStateAgainstStaleWrites();
     // Ruling 6 Q3 (condition 47): see _enqueueOwned.
     this._watchQueue();
+    // SPEC-P-key-burst: see coalesceTypedText; sealed in _enqueue.
+    this.typedBurst = coalesceTypedText(this.input);
   }
 
   /**
@@ -1350,6 +1431,10 @@ export class NarrowEditorV2Session extends EditorSession {
     //   * `enqueueCount` then counts this one, so a host can ask "is the last
     //     thing I sent still the last thing enqueued?" (rule 1).
     // After the view-only gate: a refused mutation is not enqueued.
+    // SPEC-P-key-burst 2.3: characters typed before this operation stay in
+    // entries that close here, so none typed after it can join them.  First,
+    // before the host's held presses go out: they are operations too.
+    if (label !== "commit-text") this.typedBurst?.seal();
     this._beforeEnqueue?.(label);
     this.enqueueCount += 1;
     // FINDING 111.  Typed text waits in the input adapter's own queue and

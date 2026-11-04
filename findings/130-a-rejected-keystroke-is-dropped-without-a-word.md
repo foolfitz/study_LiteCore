@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **狀態** | **提示已修、上限未動**（2026-11-04 更新：頁面的提示條件改比對 `type`，佇列滿時跳「有字沒有輸入：打得比引擎處理得快」；佇列上限仍是 8，連發第 9 鍵起仍被丟掉，見下方〈2026-11-04 量測〉） |
+| **狀態** | **上限已在 dev 修好、未發布**（2026-11-05：殼層 v2 把排隊中的打字併成一筆，連打 40 鍵不掉字，兩個瀏覽器 `KB_HOLDS`，見 `specs/SPEC-P-key-burst.md` 與 `evidence/key-burst/`；換行、輸入法、貼上仍一筆一筆，上限 8 照舊適用於它們。2026-11-04：提示已修，頁面的提示條件改比對 `type`） |
 | **所在** | 我們的頁面 `wasm_sdk_probe/web/e2-editor-app.js`（`8909564e…`）`onInputTrace`（:2600–2607）：只在 `entry.action === "composition-rejected"` 或 `entry.status === "failed"` 時跳提示。而 `input/input-adapter.js` 把事件名寫在 `type`（`composition-rejected`、`commit-rejected`、`commit-error`），`status` 只有 idle／composing／blocked／committing／recoverable-error，**從來沒有 `failed`** |
 | **發現日** | 2026-10-12（寫 0.2.13 自動儲存規格時的存檔路徑普查帶出來；主 session 讀原始碼並重播確認） |
 | **嚴重度** | 一般：**無聲的資料遺失**，但條件窄。輸入 adapter 的佇列上限是 8（`DEFAULT_MAX_QUEUE_DEPTH`），引擎忙的時候（存檔 0.5–0.7 秒、檢查點）打的字會排隊，第 9 個起被 `INPUT_BACKPRESSURE` 拒絕；`beforeinput` 已經 `preventDefault`，字也不會留在輸入框裡——就這樣消失，畫面上什麼都沒有。按住一個鍵（重複約每秒 30 下）或很快的打字在存檔時最容易碰到 |
@@ -45,6 +45,17 @@
 
 H8 的處置：工具在 Firefox 上改成每鍵 150 ms（`host_batch8.py` 的 `type_text`），那一格量的是另存新檔，不是連發。
 
+## 2026-11-05：上限的修法（dev，未發布）
+
+adapter 被 E1-C 的殼層 bundle 逐位元組綁著，所以不改它：殼層 v2 的 session 在自己的 adapter 實例上包一層，新來的打字（`beforeinput`＋`insertText`、不含換行）接到還沒送出的那一筆後面；任何不是打字的操作排進來時，現有的每一筆封口，保住 finding 111 的順序。`findings/evidence/key-burst/`：〔已觀察〕
+
+| | 基準（generation 90） | 修法 |
+|---|---|---|
+| 背靠背 14 鍵 | 只留前 8 鍵＋提示（兩個瀏覽器） | 全到，2 次請求 |
+| 背靠背 40 鍵 | 只留前 8 鍵＋提示（兩個瀏覽器） | 全到，2–3 次請求 |
+| `abc`⌫`de`←`x` | `abdxe` | `abdxe`（拿掉封口的突變：`abcde`） |
+| 連打後 Ctrl+Z 一次 | — | 與每鍵 150 ms 的慢打相同（拿掉最後一個字） |
+
 ## 修訂紀錄
 
 | 日期 | 內容 |
@@ -52,3 +63,4 @@ H8 的處置：工具在 Firefox 上改成每鍵 150 ms（`host_batch8.py` 的 `
 | 2026-10-12 | 初版：存檔路徑普查帶出、主 session 讀 `input-adapter.js` 與頁面並以 node 重播確認提示條件不觸發 |
 | 2026-10-12 | M1：在宿主 0.2.12 的產品路徑上兩個瀏覽器都量到無聲丟字（`evidence/130/m1/`，混淆變因照實記） |
 | 2026-11-04 | 狀態改為「提示已修、上限未動」；補 0.2.56 上的連發量測（`evidence/host-0.2.56/diag-burst-01/`、`diag-typing-01/`） |
+| 2026-11-05 | 上限在殼層 v2 修好（dev，未發布）；狀態更新；補 `evidence/key-burst/` 的量測 |

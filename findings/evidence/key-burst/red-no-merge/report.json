@@ -1,0 +1,387 @@
+{
+ "argv": [
+  "tools/check_key_burst.py",
+  "--out",
+  "../findings/evidence/key-burst/red-no-merge",
+  "--mutation",
+  "no-merge"
+ ],
+ "tool": "38d105a32b0039e470af18e63cb5a3d34c8ba20bc23a6af5617edb6c0a62d811",
+ "document": {
+  "name": "t1-plain-zh.odt",
+  "sha256": "bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02"
+ },
+ "subject": "live",
+ "mutation": "no-merge",
+ "sources": {
+  "e2-editor.html": "5a19396104c34dba7d0fa1ec7975103c360cf0a4e1217f82887b2cc0df31e364",
+  "e2-editor-app.js": "0749bb9184437e6ce04c6eeb95ca98792a774981602062655fe2e1f570c445d8",
+  "editor-shell-v2/narrow-editor-v2-session.js": {
+   "from": "editor-shell-v2/narrow-editor-v2-session.js",
+   "sha256": "52b7a7afa25d1d7d5a601b5b67569c983826996a41662cb8d88f3f29cb315611"
+  }
+ },
+ "runs": [
+  {
+   "browser": "chrome",
+   "base": "http://127.0.0.1:43487/e2-editor.html",
+   "cells": [
+    {
+     "id": "K1/burst-14",
+     "presses": 14,
+     "how": "chain",
+     "insertText": 8,
+     "toasts": [
+      "有字沒有輸入：打得比引擎處理得快，請檢查最後打的字",
+      "已存出 18.8 KB"
+     ],
+     "first": "qwertyuiR1 純文字中英混排測試",
+     "restUnchanged": true,
+     "expectedFirst": "qwertyuiop1234R1 純文字中英混排測試"
+    },
+    {
+     "id": "K1/burst-40",
+     "presses": 40,
+     "how": "chain",
+     "insertText": 8,
+     "toasts": [
+      "有字沒有輸入：打得比引擎處理得快，請檢查最後打的字",
+      "已存出 18.8 KB"
+     ],
+     "first": "abcdefghR1 純文字中英混排測試",
+     "restUnchanged": true,
+     "expectedFirst": "abcdefghijklmnopqrstuvwxyz0123456789 xyzR1 純文字中英混排測試"
+    },
+    {
+     "id": "K2/paced-30ms-60",
+     "presses": 60,
+     "how": 30,
+     "insertText": 60,
+     "toasts": [
+      "已存出 21.9 KB"
+     ],
+     "first": "abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwxR1 純文字中英混排測試",
+     "restUnchanged": true,
+     "expectedFirst": "abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwxR1 純文字中英混排測試"
+    },
+    {
+     "id": "K3/order",
+     "presses": 8,
+     "how": "chain",
+     "insertText": 6,
+     "toasts": [
+      "已存出 18.7 KB"
+     ],
+     "first": "abdxeR1 純文字中英混排測試",
+     "restUnchanged": true,
+     "expectedFirst": "abdxeR1 純文字中英混排測試"
+    },
+    {
+     "id": "K6/undo-burst",
+     "presses": 11,
+     "how": "chain",
+     "insertText": 8,
+     "toasts": [
+      "有字沒有輸入：打得比引擎處理得快，請檢查最後打的字",
+      "已存出 18.6 KB"
+     ],
+     "first": "ab cd R1 純文字中英混排測試",
+     "restUnchanged": true
+    },
+    {
+     "id": "K6/undo-paced-150ms",
+     "presses": 11,
+     "how": 150,
+     "insertText": 11,
+     "toasts": [
+      "已存出 18.7 KB"
+     ],
+     "first": "ab cd ef R1 純文字中英混排測試",
+     "restUnchanged": true
+    }
+   ],
+   "checks": [
+    {
+     "id": "K1/burst-14",
+     "pass": false,
+     "actual": {
+      "first": "qwertyuiR1 純文字中英混排測試",
+      "expectedFirst": "qwertyuiop1234R1 純文字中英混排測試",
+      "restUnchanged": true,
+      "insertText": 8
+     }
+    },
+    {
+     "id": "K4/K1/burst-14",
+     "pass": false,
+     "actual": [
+      "有字沒有輸入：打得比引擎處理得快，請檢查最後打的字",
+      "已存出 18.8 KB"
+     ]
+    },
+    {
+     "id": "K1/burst-40",
+     "pass": false,
+     "actual": {
+      "first": "abcdefghR1 純文字中英混排測試",
+      "expectedFirst": "abcdefghijklmnopqrstuvwxyz0123456789 xyzR1 純文字中英混排測試",
+      "restUnchanged": true,
+      "insertText": 8
+     }
+    },
+    {
+     "id": "K4/K1/burst-40",
+     "pass": false,
+     "actual": [
+      "有字沒有輸入：打得比引擎處理得快，請檢查最後打的字",
+      "已存出 18.8 KB"
+     ]
+    },
+    {
+     "id": "K2/paced-30ms-60",
+     "pass": true,
+     "actual": {
+      "first": "abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwxR1 純文字中英混排測試",
+      "expectedFirst": "abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwxR1 純文字中英混排測試",
+      "restUnchanged": true,
+      "insertText": 60
+     }
+    },
+    {
+     "id": "K4/K2/paced-30ms-60",
+     "pass": true,
+     "actual": [
+      "已存出 21.9 KB"
+     ]
+    },
+    {
+     "id": "K3/order",
+     "pass": true,
+     "actual": {
+      "first": "abdxeR1 純文字中英混排測試",
+      "expectedFirst": "abdxeR1 純文字中英混排測試",
+      "restUnchanged": true,
+      "insertText": 6
+     }
+    },
+    {
+     "id": "K4/K3/order",
+     "pass": true,
+     "actual": [
+      "已存出 18.7 KB"
+     ]
+    },
+    {
+     "id": "K5/burst-40-merged",
+     "pass": true,
+     "actual": {
+      "insertText": 8,
+      "presses": 40
+     }
+    },
+    {
+     "id": "K6/undo-same-as-paced",
+     "pass": false,
+     "actual": {
+      "burst": "ab cd R1 純文字中英混排測試",
+      "paced": "ab cd ef R1 純文字中英混排測試",
+      "original": "R1 純文字中英混排測試"
+     }
+    }
+   ],
+   "version": "Chrome/156.0.8078.47",
+   "cleanup": {}
+  },
+  {
+   "browser": "firefox",
+   "base": "http://127.0.0.1:43487/e2-editor.html",
+   "cells": [
+    {
+     "id": "K1/burst-14",
+     "presses": 14,
+     "how": "chain",
+     "insertText": 8,
+     "toasts": [
+      "有字沒有輸入：打得比引擎處理得快，請檢查最後打的字",
+      "已存出 18.8 KB"
+     ],
+     "first": "qwertyuiR1 純文字中英混排測試",
+     "restUnchanged": true,
+     "expectedFirst": "qwertyuiop1234R1 純文字中英混排測試"
+    },
+    {
+     "id": "K1/burst-40",
+     "presses": 40,
+     "how": "chain",
+     "insertText": 8,
+     "toasts": [
+      "有字沒有輸入：打得比引擎處理得快，請檢查最後打的字",
+      "已存出 18.8 KB"
+     ],
+     "first": "abcdefghR1 純文字中英混排測試",
+     "restUnchanged": true,
+     "expectedFirst": "abcdefghijklmnopqrstuvwxyz0123456789 xyzR1 純文字中英混排測試"
+    },
+    {
+     "id": "K2/paced-30ms-60",
+     "presses": 60,
+     "how": 30,
+     "insertText": 60,
+     "toasts": [
+      "已存出 21.9 KB"
+     ],
+     "first": "abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwxR1 純文字中英混排測試",
+     "restUnchanged": true,
+     "expectedFirst": "abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwxR1 純文字中英混排測試"
+    },
+    {
+     "id": "K3/order",
+     "presses": 8,
+     "how": "chain",
+     "insertText": 6,
+     "toasts": [
+      "已存出 18.7 KB"
+     ],
+     "first": "abdxeR1 純文字中英混排測試",
+     "restUnchanged": true,
+     "expectedFirst": "abdxeR1 純文字中英混排測試"
+    },
+    {
+     "id": "K6/undo-burst",
+     "presses": 11,
+     "how": "chain",
+     "insertText": 8,
+     "toasts": [
+      "有字沒有輸入：打得比引擎處理得快，請檢查最後打的字",
+      "已存出 18.6 KB"
+     ],
+     "first": "ab cd R1 純文字中英混排測試",
+     "restUnchanged": true
+    },
+    {
+     "id": "K6/undo-paced-150ms",
+     "presses": 11,
+     "how": 150,
+     "insertText": 11,
+     "toasts": [
+      "已存出 18.7 KB"
+     ],
+     "first": "ab cd ef R1 純文字中英混排測試",
+     "restUnchanged": true
+    }
+   ],
+   "checks": [
+    {
+     "id": "K1/burst-14",
+     "pass": false,
+     "actual": {
+      "first": "qwertyuiR1 純文字中英混排測試",
+      "expectedFirst": "qwertyuiop1234R1 純文字中英混排測試",
+      "restUnchanged": true,
+      "insertText": 8
+     }
+    },
+    {
+     "id": "K4/K1/burst-14",
+     "pass": false,
+     "actual": [
+      "有字沒有輸入：打得比引擎處理得快，請檢查最後打的字",
+      "已存出 18.8 KB"
+     ]
+    },
+    {
+     "id": "K1/burst-40",
+     "pass": false,
+     "actual": {
+      "first": "abcdefghR1 純文字中英混排測試",
+      "expectedFirst": "abcdefghijklmnopqrstuvwxyz0123456789 xyzR1 純文字中英混排測試",
+      "restUnchanged": true,
+      "insertText": 8
+     }
+    },
+    {
+     "id": "K4/K1/burst-40",
+     "pass": false,
+     "actual": [
+      "有字沒有輸入：打得比引擎處理得快，請檢查最後打的字",
+      "已存出 18.8 KB"
+     ]
+    },
+    {
+     "id": "K2/paced-30ms-60",
+     "pass": true,
+     "actual": {
+      "first": "abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwxR1 純文字中英混排測試",
+      "expectedFirst": "abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwxR1 純文字中英混排測試",
+      "restUnchanged": true,
+      "insertText": 60
+     }
+    },
+    {
+     "id": "K4/K2/paced-30ms-60",
+     "pass": true,
+     "actual": [
+      "已存出 21.9 KB"
+     ]
+    },
+    {
+     "id": "K3/order",
+     "pass": true,
+     "actual": {
+      "first": "abdxeR1 純文字中英混排測試",
+      "expectedFirst": "abdxeR1 純文字中英混排測試",
+      "restUnchanged": true,
+      "insertText": 6
+     }
+    },
+    {
+     "id": "K4/K3/order",
+     "pass": true,
+     "actual": [
+      "已存出 18.7 KB"
+     ]
+    },
+    {
+     "id": "K5/burst-40-merged",
+     "pass": true,
+     "actual": {
+      "insertText": 8,
+      "presses": 40
+     }
+    },
+    {
+     "id": "K6/undo-same-as-paced",
+     "pass": false,
+     "actual": {
+      "burst": "ab cd R1 純文字中英混排測試",
+      "paced": "ab cd ef R1 純文字中英混排測試",
+      "original": "R1 純文字中英混排測試"
+     }
+    }
+   ],
+   "version": "157.0.1",
+   "cleanup": {}
+  }
+ ],
+ "preRun": {
+  "refuse": [],
+  "loadavg": [
+   "1.16",
+   "1.14",
+   "0.82"
+  ]
+ },
+ "red": [
+  "chrome:K1/burst-14",
+  "chrome:K1/burst-40",
+  "chrome:K4/K1/burst-14",
+  "chrome:K4/K1/burst-40",
+  "chrome:K6/undo-same-as-paced",
+  "firefox:K1/burst-14",
+  "firefox:K1/burst-40",
+  "firefox:K4/K1/burst-14",
+  "firefox:K4/K1/burst-40",
+  "firefox:K6/undo-same-as-paced"
+ ],
+ "verdict": "RED_AS_NAMED"
+}
