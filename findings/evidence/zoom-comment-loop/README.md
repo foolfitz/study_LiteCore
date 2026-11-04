@@ -39,3 +39,5 @@ the new helpers (`layoutTwips`, `sizeReportMovesLayout`).
 Two mutation anchors in `tools/run_e2_c_product_path.py` moved with the lines they name (`ignore-a-document-that-grew`,
 `caret-off-by-one-line`). Not this change's: four Writer mutations there (`paragraph-action-swallowed`, `paragraph-action-misrouted`,
 `toolbar-drops-the-list-action`, `copy-lies`) already had no anchor on HEAD's page.
+
+**Released (appended 2026-11-04 16:30):** frozen as shell generation 90 (`gen-90/`) and installed as host 0.2.57 (`../host-0.2.57/`), on the owner's word. On the host, the same l1 zoom is blank at 100-150 percent on 0.2.56 and painted at every step on 0.2.57, both browsers.

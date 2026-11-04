@@ -21,8 +21,10 @@ release-inputs.json:
   hostSourceDelta            exactly `git diff --name-only parent candidate` in the host repo
   served.changed             served files whose bytes change (sorted)
   served.profileMoves        {page: [old profile, new profile]}; every file of the old profile goes, every file of the new comes
-  pages                      {page: {profile, wasmSha256, moduleSha256}} for each moved page; every other page keeps its record
-  writerIdentity             optional {module, profile, generation}: the generation's identity module, as prepare-release read it
+  pages                      {page: {profile, wasmSha256, moduleSha256}} for each moved page, and for each page whose module
+                             changed in place (0.2.57: the Writer page, profile unchanged); every other page keeps its record
+  writerIdentity             optional {module, profile, generation}: the generation's identity module, as prepare-release read it;
+                             module "four_arms_identity" reads e2/generations/generation-N.json (generation 90 on)
   gate                       [{id, path, read, want}]; path is from the repo root; read is "verdict", "all_pass", "key:a.b.c",
                              "values:a.b:field" (distinct values of field over a dict/list) or "failed" ({failed ids, fatal})
   attribution                one paragraph for the archive's ATTRIBUTION.md
@@ -158,7 +160,7 @@ def judge(rel, old, new):
     for page, record in old['source']['pages'].items():
         now = new['source']['pages'].get(page, {})
         want = rel.inputs['pages'].get(page)
-        if page in moves:
+        if page in moves or want is not None:  # moved, or verified in place (its module changed, its profile did not)
             if {k: now.get(k) for k in ('profile', 'wasmSha256', 'moduleSha256')} != want:
                 problems.append(f'{page} is not the verified page')
         elif now != record:
@@ -172,8 +174,8 @@ def delta(rel):
     new = load(Path(release['archive']) / 'MANIFEST.json')
     d, problems = judge(rel, old, new)
     moves = rel.inputs['served']['profileMoves']
-    moved_pages = sorted(moves)
-    still = sorted(p for p in new['source']['pages'] if p not in moves)
+    moved_pages = sorted(rel.inputs['pages'])  # the pages the inputs verify: moved ones, or ones changed in place
+    still = sorted(p for p in new['source']['pages'] if p not in rel.inputs['pages'])
     other = next(n for n in new['files'] if n not in d['changed'] and not n.startswith('profiles/'))
     kept_profile = next((n for n in new['files'] if n.startswith('profiles/') and n not in d['added']), None)
 
@@ -231,7 +233,11 @@ def package_release(rel, reuse):
     ident = rel.inputs.get('writerIdentity')
     want = None
     if ident:
-        want = __import__(ident['module']).identity()
+        if ident['module'] == 'four_arms_identity':  # generation 90 on: one tool, the generation from e2/generations/
+            from four_arms_identity import Generation
+            want = Generation(ident['generation']).identity()
+        else:
+            want = __import__(ident['module']).identity()
         if want['profile'] != ident['profile'] or want['shell'].get('generation') != ident['generation']:
             raise ValueError(f"identity module does not name {ident['profile']} / generation {ident['generation']}")
     old_dir = Path(rel.pred['archive'])

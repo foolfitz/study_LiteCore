@@ -1,0 +1,128 @@
+{
+ "version": "0.2.57",
+ "branch": "host-0.2.57",
+ "predecessor": "host-0.2.56",
+ "hostSourceDelta": [
+  "appinfo/info.xml"
+ ],
+ "served": {
+  "changed": [
+   "e2-editor-app.js"
+  ],
+  "profileMoves": {}
+ },
+ "pages": {
+  "e2-editor.html": {
+   "profile": "e2-editor-v33",
+   "wasmSha256": "444519df2a779a44352ff5c6faf07825bab6abcc9d086a1cc2ddab14ac0d5952",
+   "moduleSha256": "0749bb9184437e6ce04c6eeb95ca98792a774981602062655fe2e1f570c445d8"
+  }
+ },
+ "writerIdentity": {
+  "module": "four_arms_identity",
+  "profile": "e2-editor-v33",
+  "generation": 90
+ },
+ "gate": [
+  {
+   "id": "Z-l1-red-on-0.2.56-page",
+   "path": "findings/evidence/zoom-comment-loop/red-on-current-page/report.json",
+   "read": "verdict",
+   "want": "Z_RED"
+  },
+  {
+   "id": "Z-l1-90",
+   "path": "findings/evidence/zoom-comment-loop/gen-90/writer-zoom/l1/report.json",
+   "read": "verdict",
+   "want": "Z_HOLDS"
+  },
+  {
+   "id": "Z-t3-90",
+   "path": "findings/evidence/zoom-comment-loop/gen-90/writer-zoom/t3/report.json",
+   "read": "verdict",
+   "want": "Z_HOLDS"
+  },
+  {
+   "id": "P5-90",
+   "path": "findings/evidence/zoom-comment-loop/gen-90/p5/final-90/report.json",
+   "read": "verdict",
+   "want": "P5_HOLDS"
+  },
+  {
+   "id": "P4-90",
+   "path": "findings/evidence/zoom-comment-loop/gen-90/p4/final-90/report.json",
+   "read": "verdict",
+   "want": "P4_HOLDS"
+  },
+  {
+   "id": "S1-90",
+   "path": "findings/evidence/zoom-comment-loop/gen-90/shift-lines/live-page-90/report.json",
+   "read": "verdict",
+   "want": "S1_HOLDS"
+  },
+  {
+   "id": "P1-90",
+   "path": "findings/evidence/zoom-comment-loop/gen-90/p1/final-90/report.json",
+   "read": "verdict",
+   "want": "P1_HOLDS"
+  },
+  {
+   "id": "F4-90-rows",
+   "path": "findings/evidence/zoom-comment-loop/gen-90/f4-90-r2/aggregate-judge.json",
+   "read": "key:rows",
+   "want": 24
+  },
+  {
+   "id": "F4-90-problems",
+   "path": "findings/evidence/zoom-comment-loop/gen-90/f4-90-r2/aggregate-judge.json",
+   "read": "key:problems",
+   "want": []
+  },
+  {
+   "id": "F4-90-outcomes",
+   "path": "findings/evidence/zoom-comment-loop/gen-90/f4-90-r2/aggregate-judge.json",
+   "read": "values:arms:outcome",
+   "want": [
+    "PASS"
+   ]
+  },
+  {
+   "id": "F3-90",
+   "path": "findings/evidence/zoom-comment-loop/gen-90/f3-90/equal.stdout.txt",
+   "read": "verdict",
+   "want": "F3_83_EQUAL"
+  },
+  {
+   "id": "F3-90-moved",
+   "path": "findings/evidence/zoom-comment-loop/gen-90/f3-90/equal.stdout.txt",
+   "read": "key:reading2.moved",
+   "want": []
+  },
+  {
+   "id": "F3-90-self-test",
+   "path": "findings/evidence/zoom-comment-loop/gen-90/f3-90/equal-self-test.stdout.txt",
+   "read": "key:selfTest",
+   "want": "ALL_RED"
+  },
+  {
+   "id": "V0prime-90",
+   "path": "findings/evidence/zoom-comment-loop/gen-90/v0/v0-prime.json",
+   "read": "verdict",
+   "want": "V0_PRIME_HOLDS"
+  },
+  {
+   "id": "E1-C-freeze-90",
+   "path": "findings/evidence/zoom-comment-loop/gen-90/freeze/e1-c-after.json",
+   "read": "key:intact",
+   "want": true
+  },
+  {
+   "id": "E1-C-after-put-back-90",
+   "path": "findings/evidence/zoom-comment-loop/gen-90/v0/e1-c-after-put-back.json",
+   "read": "key:intact",
+   "want": true
+  }
+ ],
+ "attribution": "Writer on e2-editor-v33, shell generation 90 (generation 89 with the zoom fix for documents with comments, finding 185); Calc on ods-editor-v5, unchanged. Uncounted candidate.",
+ "note": "Served delta measured with the packager closure (probe_m3_assets.closure) against the host-0.2.56 archive MANIFEST.json before writing this: 1 changed (e2-editor-app.js), 0 added, 0 removed, 45 the same. Calc nets not in the gate: no Calc-served byte changes. host_release.py changed for this release (a page verified in place; writerIdentity via four_arms_identity); witness tool-witness-0.2.56/."
+}

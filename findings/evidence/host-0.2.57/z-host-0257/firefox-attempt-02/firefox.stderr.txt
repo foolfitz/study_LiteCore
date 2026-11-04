@@ -1,0 +1,47 @@
+Traceback (most recent call last):
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/run_browser_probe.py", line 43, in http_json
+    with urllib.request.urlopen(request, timeout=timeout) as response:
+         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/urllib/request.py", line 187, in urlopen
+    return opener.open(url, data, timeout)
+           ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/urllib/request.py", line 493, in open
+    response = meth(req, response)
+  File "/usr/lib/python3.14/urllib/request.py", line 602, in http_response
+    response = self.parent.error(
+        'http', request, response, code, msg, hdrs)
+  File "/usr/lib/python3.14/urllib/request.py", line 531, in error
+    return self._call_chain(*args)
+           ~~~~~~~~~~~~~~~~^^^^^^^
+  File "/usr/lib/python3.14/urllib/request.py", line 464, in _call_chain
+    result = func(*args)
+  File "/usr/lib/python3.14/urllib/request.py", line 611, in http_error_default
+    raise HTTPError(req.full_url, code, msg, hdrs, fp)
+urllib.error.HTTPError: HTTP Error 500: Internal Server Error
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/../findings/evidence/zoom-comment-loop/fit-narrow-on-fix/zoom_host2.py", line 143, in <module>
+    main()
+    ~~~~^^
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/../findings/evidence/zoom-comment-loop/fit-narrow-on-fix/zoom_host2.py", line 93, in main
+    session = s.EventChrome('cold') if KIND == 'chrome' else s.FirefoxSession('cold', profile_dir=s.firefox_profile(Path(scratch) / KIND))
+                                                             ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/run_browser_probe.py", line 138, in __init__
+    response = self.request(
+               ~~~~~~~~~~~~^
+        "POST",
+        ^^^^^^^
+    ...<11 lines>...
+        },
+        ^^
+    )["value"]
+    ^
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/run_browser_probe.py", line 158, in request
+    return http_json(method, self.base_url + path, payload, timeout)
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/run_browser_probe.py", line 47, in http_json
+    raise RuntimeError(
+        f"HTTP {error.code} for {method} {url}: {raw.decode(errors='replace')}"
+    ) from error
+RuntimeError: HTTP 500 for POST http://127.0.0.1:43475/session: {"value":{"error":"session not created","message":"Failed to set preferences: unknown error","stacktrace":""}}
