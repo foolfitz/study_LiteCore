@@ -29,6 +29,10 @@ const fn = (name) => slice(new RegExp(`^(async )?function ${name}\\([^)]*\\) \\{
 // when the page has it, so that on a page without it U2 fails by name rather
 // than this whole file failing to load.
 const optional = (name) => SOURCE.match(new RegExp(`^function ${name}\\([^)]*\\) \\{[\\s\\S]*?\\n\\}$`, "m"))?.[0] ?? "";
+// The page's laid-out size (host 0.2.56 hand test, item 1): the functions under test map through it.
+const LAYOUT = [SOURCE.match(/^const RESIZE_TOLERANCE_PX = .*;$/m)[0], SOURCE.match(/^let laidOut = null;$/m)[0],
+  ...["layoutTwips", "sizeReportMovesLayout"].map((name) =>
+    SOURCE.match(new RegExp(`^function ${name}\\([^)]*\\) \\{[\\s\\S]*?\\n\\}$`, "m"))[0])].join("\n");
 const PARTS = [
   slice(/^const MAX_TILE_HEIGHT = .*;$/m, "MAX_TILE_HEIGHT"),
   slice(/^const RENDER_BAND_HEIGHT = .*;$/m, "RENDER_BAND_HEIGHT"),
@@ -100,13 +104,17 @@ function page({ height = 22256, width = 10, view = [9000, 11000], onRender = nul
      function updatePageStatus() {}
      function showScrollBubble() {}   // SPEC-M3-scroll-page-bubble: onDeskScroll's second line; the bubble has its own tests
      const pageRectangles = { sizeChangeReported() {} };
+     ${LAYOUT}
      ${PARTS}
      ${LISTENER}
      return { renderDocument, renderBands, bandOrder, paint, RENDER_BAND_HEIGHT, windowRows, onDeskScroll,
               moveWindow,
               // What a document-invalidated does on the real page, less the repaint it asks for.
               change() { changes += 1; publishWindow(); },
-              state: () => ({ rendering, renderAgain, lastTiles, changes, winTop, docRows }) };`)(
+              state: () => ({ rendering, renderAgain, lastTiles, changes, winTop, docRows }),
+              // What layoutCanvas records of the size it laid the canvas out for.
+              layOut() { laidOut = { document: session.document, widthTwips: session.document.widthTwips,
+                                     heightTwips: session.document.heightTwips }; } };`)(
     session, el, (tile) => painted(tile), FakeImageData, () => { layouts += 1; },
     (message) => toasts.push(message), (error) => error?.code ?? String(error));
   const scrollTo = (a, b) => { shown = [a, b]; made.onDeskScroll(); };
@@ -259,6 +267,37 @@ test("122 B5: a document whose size changed is laid out again and painted in ful
   await quiet(p);
   assert.equal(p.layouts(), 1);
   assert.equal(p.requests.length, 1 + bandsIn(22256), "the pass after the relayout did not cover every band");
+});
+
+test("0.2.56 hand test, item 1: a width that moves with the paint scale does not re-lay out; a real change does", async () => {
+  // Writer with a comment: every reply says the size changed, the width tens of twips either way (the SDK has updated the
+  // handle by the time render() returns).  At 1000 canvas pixels across 12,474 twips, 8 pixels are about 100 twips.
+  // Bounded, so that a page that follows every report (the defect) ends red instead of spinning the test forever.
+  const jitter = (by) => async (request, reply, api) => {
+    if (api.requests.length > 200) return;
+    api.session.document.widthTwips = 12474 + (api.requests.length % 2 ? by : 0);
+    reply.documentSizeChanged = true;
+  };
+  const p = page({ width: 1000, onRender: jitter(43) });
+  p.layOut();
+  await p.renderDocument();
+  await quiet(p);
+  assert.equal(p.layouts(), 0, "a width inside the tolerance re-laid the canvas out");
+  assert.equal(p.requests.length, bandsIn(22256), "every band once, none thrown away");
+  assert.ok(p.requests.every((r) => r.widthTwips === 12474), "a band was asked against a width the canvas was not laid out for");
+  // Positive controls: a sidebar appearing (about 4,500 twips), and a height that moved at all.
+  const wider = page({ width: 1000, onRender: jitter(4530) });
+  wider.layOut();
+  await wider.renderDocument();
+  await quiet(wider);
+  assert.ok(wider.layouts() >= 1, "a real width change was not followed");
+  let once = false;
+  const taller = page({ width: 1000, onRender: async (request, reply, api) => {
+    if (!once) { once = true; api.session.document.heightTwips += 1; reply.documentSizeChanged = true; } } });
+  taller.layOut();
+  await taller.renderDocument();
+  await quiet(taller);
+  assert.equal(taller.layouts(), 1, "a height change was not followed");
 });
 
 test("122 B6: a band the engine did not paint still raises TILE_NOT_PAINTED", async () => {

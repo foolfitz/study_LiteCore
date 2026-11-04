@@ -9,7 +9,9 @@ Z7 (no edit reached the engine) are read from.
 
 Every check is recorded and the run goes on past a red one.
 
-  check_writer_zoom.py --out DIR [--browsers chrome,firefox] [--mutation NAME]
+  check_writer_zoom.py --out DIR [--browsers chrome,firefox] [--mutation NAME] [--document ODT]
+  --document: t3-long.odt by default.  r7-compat/l1-layout-table-image.odt carries a comment, and Writer's
+  reported width then moves with the paint scale (the comment sidebar; the owner's hand test of host 0.2.56).
   --mutation applies one named source change and exits 0 only if its clause turns red.
 """
 from __future__ import annotations
@@ -42,6 +44,7 @@ PROJECT = Path(__file__).resolve().parents[1]
 APP = PROJECT / "web/e2-editor-app.js"
 HTML = PROJECT / "web/e2-editor.html"
 DOCUMENT = PROJECT / "test-docs/t3-long.odt"
+QUIET = 1.0
 TWIPS = 15
 CAP = 2400
 TEXT_P = "{urn:oasis:names:tc:opendocument:xmlns:text:1.0}p"
@@ -49,7 +52,7 @@ EDITS = {"editorActionV1", "editorActionV2", "insertText", "replaceSelection", "
 
 OBSERVER = """<script>
 (() => {
-  const rec = window.__z = {requests: [], posted: {}, responses: 0, caret: null, doc: null, blobs: [], workers: 0};
+  const rec = window.__z = {requests: [], posted: {}, responses: 0, caret: null, doc: null, widths: [], blobs: [], workers: 0};
   const Native = window.Worker;
   window.Worker = class extends Native {
     constructor(url, options) { super(url, options); rec.workers += 1;
@@ -58,7 +61,11 @@ OBSERVER = """<script>
           const row = rec.posted[m.requestId];
           if (row) { row.ms = performance.now() - row.at; row.ok = m.ok; delete rec.posted[m.requestId]; }
           const r = m.result;
-          if (r && typeof r.documentWidthTwips === 'number') rec.doc = {width: r.documentWidthTwips, height: r.documentHeightTwips}; }
+          // The open's reply names the size as width/height (document-sdk.js DocumentHandle); the page lays out for it first.
+          if (row?.op === 'open' && r && typeof r.width === 'number') { rec.doc = {width: r.width, height: r.height};
+            if (!rec.widths.includes(r.width)) rec.widths.push(r.width); }
+          if (r && typeof r.documentWidthTwips === 'number') { rec.doc = {width: r.documentWidthTwips, height: r.documentHeightTwips};
+            if (!rec.widths.includes(r.documentWidthTwips)) rec.widths.push(r.documentWidthTwips); } }
         if (m?.kind === 'event' && m.event === 'editor-state' && m.caret) rec.caret = m.caret;
       }); }
     postMessage(m, ...rest) {
@@ -83,7 +90,8 @@ STATE = """(() => { const q = s => document.querySelector(s), d = q('#desk'), p 
     label: q('#zoom-reset')?.textContent ?? null, zoomOutDisabled: q('#zoom-out')?.disabled ?? null,
     zoomInDisabled: q('#zoom-in')?.disabled ?? null, dpr: devicePixelRatio,
     pill: q('#state-pill')?.dataset.state, revision: q('#s-revision')?.textContent, toast: q('#toast')?.textContent,
-    requests: z.requests.length, responses: z.responses, caret: z.caret, doc: z.doc, workers: z.workers, blobs: z.blobs.length,
+    requests: z.requests.length, responses: z.responses, caret: z.caret, doc: z.doc, widths: z.widths, workers: z.workers, blobs: z.blobs.length,
+    paints: z.requests.filter(r => r.op === 'paint').length,
     lastPaintWidth: [...z.requests].reverse().find(r => r.op === 'paint')?.canvasWidthPx ?? null}; })()"""
 BLOB = """(async () => { const b = window.__z.blobs.at(-1); const u = new Uint8Array(await b.arrayBuffer());
   let s = ''; for (let i = 0; i < u.length; i += 8192) s += String.fromCharCode(...u.subarray(i, i + 8192)); return btoa(s); })()"""
@@ -204,22 +212,40 @@ class Run:
         return self.state()
 
 
-def width_for(percent, s):
-    return round(s["doc"]["width"] / TWIPS * percent / 100)
-
-
 def backing_for(css, s):
     return min(CAP, round(css * s["dpr"]))
 
 
+def laid_out_widths(s):
+    """The widths the page may be laid out for: reported by the engine and within 1 percent of the last report.
+
+    The page follows a report only past a few canvas pixels (the 0.2.56 hand test's fix), so with a comment it keeps an
+    earlier width; one stuck at the width it opened with, or one that missed a real change (a sidebar is about 27
+    percent), falls outside.  Without comments the engine reports one width and this is that width alone.
+    """
+    last = s["doc"]["width"]
+    return [w for w in s["widths"] if abs(w - last) <= 0.01 * last]
+
+
+def paper_for(percent, s, paper):
+    """Whether `paper` is Math.round of the level applied to one of those widths (compared unrounded: Python's round is
+    the banker's, the page's Math.round is not -- 1698.5 is 1698 here and 1699 there)."""
+    return any(abs(paper - w / TWIPS * percent / 100) <= 0.5 for w in laid_out_widths(s))
+
+
 def level_checks(run, percent, s, tag):
-    css = width_for(percent, s)
-    run.check(f"Z1/{tag}", abs(s["paper"]["width"] - css) < 1 and s["label"] == f"{percent}%",
-              {"paper": s["paper"]["width"], "expected": css, "label": s["label"]})
+    # The paper is the level applied to a width the engine reported.  One width for a document without comments (t3), as
+    # before; with a comment Writer reports a few, tens of twips apart, depending on the scale it last painted at.
+    run.check(f"Z1/{tag}", paper_for(percent, s, s["paper"]["width"]) and s["label"] == f"{percent}%",
+              {"paper": s["paper"]["width"], "widths": laid_out_widths(s), "reported": s["widths"], "label": s["label"]})
     backing = backing_for(s["paper"]["width"], s)
-    run.check(f"Z2/{tag}", s["canvas"]["width"] == backing and s["lastPaintWidth"] == backing and covered(s),
+    # ... and once covered the page stops asking: no paint for QUIET seconds.  The defect this is red on painted forever.
+    time.sleep(QUIET)
+    later = run.state()
+    run.check(f"Z2/{tag}", s["canvas"]["width"] == backing and s["lastPaintWidth"] == backing and covered(s)
+              and later["paints"] == s["paints"],
               {"canvas": s["canvas"]["width"], "expected": backing, "lastPaint": s["lastPaintWidth"],
-               "covered": covered(s), "dpr": s["dpr"]})
+               "covered": covered(s), "dpr": s["dpr"], "paintsWhileQuiet": later["paints"] - s["paints"]})
 
 
 def ladder(run, steps, positions=True):
@@ -256,9 +282,9 @@ def wide_run(run, raw, steps, out, name):
     s = run.open(raw)
     desk_width = s["desk"]["clientWidth"]
     expected = min(max(320, desk_width - 40), 900)
-    rows = round(backing_for(expected, s) * s["doc"]["height"] / s["doc"]["width"])
+    rows = [backing_for(expected, s) * s["doc"]["height"] / w for w in laid_out_widths(s)]
     run.check("Z0/fit", abs(s["paper"]["width"] - expected) < 1 and s["canvas"]["width"] == backing_for(expected, s)
-              and int(s["canvas"]["window"].split()[0]) == rows,
+              and any(abs(int(s["canvas"]["window"].split()[0]) - r) <= 0.5 for r in rows),
               {"paper": s["paper"]["width"], "expected": expected, "canvas": s["canvas"], "docRows": rows})
     revision, start = s["revision"], s["requests"]
     # A caret first: its height is Z5's line, and Z3's point comes from where it landed.
@@ -310,10 +336,9 @@ def narrow_run(run, raw, steps, out, name):
     s = run.settled()
     evaluate(run.session, "(() => { document.querySelector('#desk').scrollLeft = 0; return true; })()")
     s = run.settled()
-    expected = width_for(steps[-1], s)
-    run.check("Z6/left-edge-reachable", s["paper"]["left"] >= s["desk"]["left"] and abs(s["paper"]["width"] - expected) < 1
+    run.check("Z6/left-edge-reachable", s["paper"]["left"] >= s["desk"]["left"] and paper_for(steps[-1], s, s["paper"]["width"])
               and s["desk"]["scrollWidth"] > s["desk"]["clientWidth"],
-              {"paper": s["paper"], "desk": s["desk"], "expected": expected})
+              {"paper": s["paper"], "desk": s["desk"], "widths": laid_out_widths(s)})
     (out / f"{name}-narrow-left-edge.png").write_bytes(run.session.screenshot())
 
     def visible(s):
@@ -380,14 +405,17 @@ def run_one(record, raw, steps, out, config):
 
 
 def main() -> int:
+    global DOCUMENT
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--browsers", default="chrome,firefox")
     parser.add_argument("--mutation", choices=sorted(MUTATIONS))
     parser.add_argument("--arms", help="only these arms, comma separated; a partial run is a diagnostic, never a verdict")
+    parser.add_argument("--document", type=Path, default=DOCUMENT)
     args = parser.parse_args()
     out = args.out.resolve()
     out.mkdir(parents=True, exist_ok=False)
+    DOCUMENT = args.document.resolve()
     raw, steps = DOCUMENT.read_bytes(), steps_from_source()
     sources = {APP.name: APP.read_text(encoding="utf-8"), HTML.name: HTML.read_text(encoding="utf-8")}
     report = {"argv": sys.argv, "tool": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),

@@ -1711,10 +1711,10 @@ MUTATIONS = {
         "path": "e2-editor-app.js",
         "find": "    yTwips: Math.max(0, Math.round(\n"
                 "      (event.clientY - rectangle.top) / rectangle.height\n"
-                "      * session.document.heightTwips)),",
+                "      * layoutTwips().heightTwips)),",
         "replace": "    yTwips: Math.max(0, 390 + Math.round(\n"
                    "      (event.clientY - rectangle.top) / rectangle.height\n"
-                   "      * session.document.heightTwips)),",
+                   "      * layoutTwips().heightTwips)),",
         "reintroduces": "an editor that formats the paragraph below the one you "
                         "clicked",
         # Declared collateral, measured 2026-08-19 rather than predicted: this
@@ -1849,7 +1849,7 @@ MUTATIONS = {
     "ignore-a-document-that-grew": {
         "check": "the-canvas-follows-a-document-that-grew",
         "path": "e2-editor-app.js",
-        "find": "      if (tile.documentSizeChanged) { documentResized = true; break; }",
+        "find": "      if (tile.documentSizeChanged && sizeReportMovesLayout()) { documentResized = true; break; }",
         "replace": "      if (false) { documentResized = true; break; }",
         "reintroduces": "an editor whose page count is frozen at the moment you "
                         "opened the file",

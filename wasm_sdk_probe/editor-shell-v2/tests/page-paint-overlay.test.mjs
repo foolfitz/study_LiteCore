@@ -30,6 +30,10 @@ function slice(pattern, what) {
 }
 
 const fn = (name) => slice(new RegExp(`^(async )?function ${name}\\([^)]*\\) \\{[\\s\\S]*?\\n\\}$`, "m"), `${name}()`);
+// The page's laid-out size (host 0.2.56 hand test, item 1): the functions under test map through it.
+const LAYOUT = [SOURCE.match(/^const RESIZE_TOLERANCE_PX = .*;$/m)[0], SOURCE.match(/^let laidOut = null;$/m)[0],
+  ...["layoutTwips", "sizeReportMovesLayout"].map((name) =>
+    SOURCE.match(new RegExp(`^function ${name}\\([^)]*\\) \\{[\\s\\S]*?\\n\\}$`, "m"))[0])].join("\n");
 const PARTS = [
   slice(/^const MAX_TILE_HEIGHT = .*;$/m, "MAX_TILE_HEIGHT"),
   slice(/^const RENDER_BAND_HEIGHT = .*;$/m, "RENDER_BAND_HEIGHT"),
@@ -37,6 +41,7 @@ const PARTS = [
   fn("renderBands"), fn("paint"), fn("overlayAreas"), fn("paintBand"), fn("overlayShapes"), fn("drawOverlay"),
   fn("layoutCanvas"), fn("windowRows"), fn("windowTopFor"), fn("placeCanvas"), fn("publishWindow"),
   fn("visibleDocRows"),
+  LAYOUT,
   // SPEC-M3-held-key §3.3 (H3): the state the overlay draws, and what it keeps.
   // Taken when the page has them, so that on a page without them U5 fails by
   // name rather than this whole file failing to load.

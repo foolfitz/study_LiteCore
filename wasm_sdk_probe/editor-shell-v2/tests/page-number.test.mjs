@@ -553,6 +553,10 @@ function slice(source, pattern, what) {
   return match[0];
 }
 const pageFn = (name) => slice(PAGE, new RegExp(`^(async )?function ${name}\\([^)]*\\) \\{[\\s\\S]*?\\n\\}$`, "m"), `${name}()`);
+// The page's laid-out size (host 0.2.56 hand test, item 1): the functions under test map through it.
+const LAYOUT = [PAGE.match(/^const RESIZE_TOLERANCE_PX = .*;$/m)[0], PAGE.match(/^let laidOut = null;$/m)[0],
+  ...["layoutTwips", "sizeReportMovesLayout"].map((name) =>
+    PAGE.match(new RegExp(`^function ${name}\\([^)]*\\) \\{[\\s\\S]*?\\n\\}$`, "m"))[0])].join("\n");
 
 test("html: #page-status is its own element after #desk and before .statusbar, hidden, not a live region", () => {
   const element = slice(HTML, /<div id="page-status"[^>]*>/, "#page-status");
@@ -607,6 +611,7 @@ function pageStatusModel({ rectangles, top, bottom, docRows = 1000, widthTwips =
   // eslint-disable-next-line no-new-func
   const made = new Function("el", "session", "pageStatus", "docRows", "visibleDocRows",
                             "pageSpanOf", "pageStatusText", "visibleRegionTwips", `
+    ${LAYOUT}
     ${pageFn("hidePageStatus")}
     ${pageFn("updatePageStatus")}
     return updatePageStatus;`)(

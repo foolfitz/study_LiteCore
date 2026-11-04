@@ -80,3 +80,24 @@ Over the filecache and the data directory, not the owner's eyes:
 - No row in `oc_files_lock` created in the three hours before the read: nothing left locked by the test.
 
 The folder `手測-0.2.56/` stays in admin's Files until item 1 is re-tested.
+
+## Item 1's engine-side cause (fable, 2026-11-04; checked by the main session)
+
+- `l1-layout-table-image.odt` holds one `office:annotation`; `t3-long.odt` none (unzipped). Writer's document width includes the comment
+  sidebar when the document has notes (`SwPageFrame::GetSidebarBorderWidth`, `SwRootFrame::CheckViewLayout`).
+- `SwPostItMgr::GetSidebarWidth` (`libreoffice-26-8/sw/source/uibase/docvw/PostItMgr.cxx:2453-2474`, read by the main session): under LOK
+  with the tile as the output device, `nZoom = fScaleX * 100` into a `sal_uInt16` (truncated), times `DisplayWidthFactor` (3), then back to
+  twips through the tile's map mode. So the sidebar's width in twips depends on the tile's scale, i.e. on the canvas width the page asked for.
+- fable's 30-line model of that formula (session scratchpad `fable-zoom/sim.py`, re-run by the main session) gives the measured sequences:
+  fit settles at 16985; 100 percent has no fixed point over 16960/16961/17002/17003 (the measured cycle); 125 and 150 no fixed point; 200
+  settles after 2 changes. It also predicts the 800x600 fit blank: at fit `cssWidth` is the desk's width, and about every 11 px of desk
+  width a 3 px band has no fixed point (fable measured 780x600 blank with 758 size changes in 759 paints, 784x600 settled).
+- Consequence beyond the hand test: any Writer document with a comment can blank at 100-150 percent, and at fit in some window widths
+  without any zoom. Word files carry comments often.
+- The Calc pages bound their refit (`ods-editor-app.js` two rounds, the viewer one); only the Writer page's loop is unbounded.
+
+## Item 1 fixed on the dev page (2026-11-04, owner's pick A)
+
+The page keeps one laid-out size and follows a report only when the height moves or the width moves by more than 8 canvas pixels.
+Red and green runs: `../../zoom-comment-loop/README.md`. Not released: it waits for the next hand-test slot, where item 1 is re-tested on
+`手測-0.2.56/1-writer.odt`.

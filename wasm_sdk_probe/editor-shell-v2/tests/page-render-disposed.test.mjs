@@ -31,6 +31,10 @@ const RETRIES_DECL = slice(/^const RENDER_BUSY_RETRIES = \d+;$/m, "RENDER_BUSY_R
 // its band helpers come with it.  The assertions below are unchanged.
 // Release C′ (§17.2): and its window helpers; the canvas here is the whole
 // ten-row document.
+// The page's laid-out size (host 0.2.56 hand test, item 1): the functions under test map through it.
+const LAYOUT = [SOURCE.match(/^const RESIZE_TOLERANCE_PX = .*;$/m)[0], SOURCE.match(/^let laidOut = null;$/m)[0],
+  ...["layoutTwips", "sizeReportMovesLayout"].map((name) =>
+    SOURCE.match(new RegExp(`^function ${name}\\([^)]*\\) \\{[\\s\\S]*?\\n\\}$`, "m"))[0])].join("\n");
 const BAND_PARTS = [
   slice(/^const RENDER_BAND_HEIGHT = .*;$/m, "RENDER_BAND_HEIGHT"),
   ...["renderBands", "bandOrder", "visibleDocRows", "bandInWindow", "publishWindow"].map((name) =>
@@ -57,6 +61,7 @@ function renderer(render) {
      let docRows = 10, winTop = 0, changes = 0;
      const MAX_TILE_HEIGHT = 32767;
      ${RETRIES_DECL}
+     ${LAYOUT}
      ${BAND_PARTS}
      ${RENDER_FN}
      return { renderDocument, change() { changes += 1; } };`)(

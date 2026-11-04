@@ -250,6 +250,36 @@ let lastTiles = [];
 // it; only where the rows are drawn changed.
 let docRows = 0;
 let winTop = 0;
+// The owner's hand test of host 0.2.56, item 1: a document with a comment went
+// white from 100 percent.  Writer's width takes in the comment sidebar, and
+// under LOK the sidebar is sized from the tile's scale truncated to a whole
+// percent (SwPostItMgr::GetSidebarWidth), so the width the engine reports
+// moves by up to about 3 canvas pixels with the canvas width it last painted
+// at.  A zoomed canvas width followed that report, every reply said
+// `documentSizeChanged`, and every pass ended in a re-layout that cleared the
+// bands: nothing was ever kept.  So the canvas is laid out for one size,
+// `laidOut`, every band is asked against it and every point is mapped with it;
+// a report re-lays out only when the height moves at all or the width moves by
+// more than RESIZE_TOLERANCE_PX canvas pixels (`sizeReportMovesLayout`).  A
+// real width change is hundreds of times that: a comment's sidebar appearing
+// adds about 4,500 twips, a landscape page about 4,900.
+const RESIZE_TOLERANCE_PX = 8;
+let laidOut = null;
+
+/** The size the canvas was laid out for: twips across and down. */
+function layoutTwips() {
+  return laidOut?.document === session?.document ? laidOut : session.document;
+}
+
+/** Whether the size the engine reported last is one the layout must follow. */
+function sizeReportMovesLayout() {
+  const reported = session.document;
+  const at = layoutTwips();
+  if (reported === at) return true;
+  if (reported.heightTwips !== at.heightTwips) return true;
+  const tolerance = RESIZE_TOLERANCE_PX * at.widthTwips / Math.max(1, el.canvas.width);
+  return Math.abs(reported.widthTwips - at.widthTwips) > tolerance;
+}
 // §17.9 (c): the page's own change counter.  Every `document-invalidated` and
 // every completed `run()` adds one; a band is stamped with it when it is asked
 // for, and a band stamped below it is stale.  Not the engine's revision: the
@@ -380,7 +410,8 @@ function updatePageStatus() {
     return;
   }
   const [top, bottom] = visibleDocRows();
-  const region = visibleRegionTwips(top, bottom, docRows, document.widthTwips, document.heightTwips);
+  const at = layoutTwips();
+  const region = visibleRegionTwips(top, bottom, docRows, at.widthTwips, at.heightTwips);
   const text = pageStatusText(pageSpanOf(rectangles, region));
   if (text === null) { hidePageStatus(); return; }
   if (el.pageStatus.textContent !== text) el.pageStatus.textContent = text;
@@ -733,8 +764,8 @@ function positionProjection(paragraphs) {
   const width = el.paper.clientWidth;
   const height = el.paper.clientHeight;
   const scalable = Boolean(width && height && session?.document);
-  const scaleX = scalable ? width / session.document.widthTwips : 0;
-  const scaleY = scalable ? height / session.document.heightTwips : 0;
+  const scaleX = scalable ? width / layoutTwips().widthTwips : 0;
+  const scaleY = scalable ? height / layoutTwips().heightTwips : 0;
   // `carried` counts the PAYLOAD and not the placement, so a page that has not
   // been laid out yet cannot be mistaken for an engine that sent nothing.
   let carried = 0;
@@ -1145,10 +1176,10 @@ function followCaret() {
   const paper = el.paper.getBoundingClientRect();
   const view = el.desk.getBoundingClientRect();
   if (!paper.height || !view.height) return;
-  const scale = paper.height / session.document.heightTwips;
+  const scale = paper.height / layoutTwips().heightTwips;
   // SPEC-P-demo-batch-1 3: a zoomed paper can be wider than the desk.
   if (paper.width > el.desk.clientWidth) {
-    const x = paper.left + caret.x * paper.width / session.document.widthTwips;
+    const x = paper.left + caret.x * paper.width / layoutTwips().widthTwips;
     if (x < view.left + 24 || x > view.left + el.desk.clientWidth - 24)
       el.desk.scrollLeft += x - (view.left + el.desk.clientWidth / 2);
   }
@@ -1433,11 +1464,13 @@ function publishWindow() {
 
 function layoutCanvas() {
   if (!session?.document) return;
+  laidOut = { document: session.document, widthTwips: session.document.widthTwips,
+              heightTwips: session.document.heightTwips };
   const available = Math.max(320, el.desk.clientWidth - 40);
   const cssWidth = zoomPercent === null
     ? Math.min(available, 900)
-    : Math.round(session.document.widthTwips / TWIPS_PER_CSS_PIXEL * zoomPercent / 100);
-  const ratio = session.document.heightTwips / session.document.widthTwips;
+    : Math.round(laidOut.widthTwips / TWIPS_PER_CSS_PIXEL * zoomPercent / 100);
+  const ratio = laidOut.heightTwips / laidOut.widthTwips;
   const backingWidth = Math.min(MAX_BACKING_WIDTH,
                                 Math.round(cssWidth * (globalThis.devicePixelRatio || 1)));
   const cssHeight = Math.round(cssWidth * ratio);
@@ -1482,7 +1515,7 @@ function layoutCanvas() {
 /** The paper's scale as a percentage of 1 CSS px = 15 twips. */
 function shownZoom() {
   return Math.round(parseFloat(el.paper.style.width) * TWIPS_PER_CSS_PIXEL
-                    / session.document.widthTwips * 100);
+                    / layoutTwips().widthTwips * 100);
 }
 
 function updateZoomControls() {
@@ -1659,7 +1692,7 @@ function bandOrder(bands, [visibleTop, visibleBottom], caretRows = null) {
 /** The document rows the engine's caret covers, or null when it has not said. */
 function caretDocRows() {
   const caret = session?.state?.snapshot?.editorState?.caret;
-  const heightTwips = session?.document?.heightTwips;
+  const heightTwips = session?.document ? layoutTwips().heightTwips : undefined;
   if (!caret || !heightTwips || !docRows) return null;
   const scale = docRows / heightTwips;
   return [Math.floor(caret.y * scale), Math.ceil((caret.y + caret.height) * scale)];
@@ -1726,7 +1759,8 @@ async function renderDocument(retriesLeft = RENDER_BUSY_RETRIES) {
     // behaviour, confined to the window.
     let documentResized = false;
     const total = docRows;
-    const documentHeight = session.document.heightTwips;
+    const documentHeight = layoutTwips().heightTwips;
+    const documentWidth = layoutTwips().widthTwips;
     const bands = renderBands(total);
     if (lastTiles.length !== bands.length) lastTiles = new Array(bands.length).fill(null);
     const stale = (band) => !lastTiles[band.index] || lastTiles[band.index].label < changes;
@@ -1739,7 +1773,7 @@ async function renderDocument(retriesLeft = RENDER_BUSY_RETRIES) {
       const endTwips = Math.round(((band.top + band.rows) / total) * documentHeight);
       const tile = await session.document.render({
         xTwips: 0, yTwips,
-        widthTwips: session.document.widthTwips,
+        widthTwips: documentWidth,
         heightTwips: endTwips - yTwips,
         canvasWidthPx: el.canvas.width,
         canvasHeightPx: band.rows,
@@ -1758,7 +1792,11 @@ async function renderDocument(retriesLeft = RENDER_BUSY_RETRIES) {
       // stop, re-lay out, ask again.  The engine reports a change once, so the
       // next reply says false and a genuinely unpainted band (062) is still
       // caught, one request on.
-      if (tile.documentSizeChanged) { documentResized = true; break; }
+      //
+      // Item 1 of the 0.2.56 hand test: and only a change the layout must
+      // follow (`sizeReportMovesLayout`).  The band was asked against
+      // `laidOut`, so it is a fair answer whatever width came back with it.
+      if (tile.documentSizeChanged && sizeReportMovesLayout()) { documentResized = true; break; }
       if (!tileWasPainted(tile)) {
         throw Object.assign(
           new Error("引擎回了一張沒有畫進去的圖"),
@@ -2003,8 +2041,9 @@ function overlayShapes() {
   // Rectangles are twips in document space; the canvas holds document rows
   // [winTop, winTop + height) since release C′, so a rectangle sits `winTop`
   // rows higher on it (on the P page the canvas was the whole document).
-  const scaleX = el.canvas.width / session.document.widthTwips;
-  const scaleY = docRows / session.document.heightTwips;
+  const at = layoutTwips();
+  const scaleX = el.canvas.width / at.widthTwips;
+  const scaleY = docRows / at.heightTwips;
   const box = (r) => [r.x * scaleX, r.y * scaleY - winTop,
                       Math.max(1, r.width * scaleX),
                       Math.max(1, r.height * scaleY)];
@@ -2023,7 +2062,7 @@ function overlayShapes() {
     shapes.caretTwips = caret;
   }
   shapes.key = JSON.stringify([el.canvas.width, el.canvas.height, winTop, docRows,
-                               session.document.widthTwips, session.document.heightTwips,
+                               at.widthTwips, at.heightTwips,
                                shapes.selection, shapes.caret]);
   return shapes;
 }
@@ -2067,8 +2106,8 @@ function moveSinkToCaret(caret) {
   const width = el.paper.clientWidth;
   const height = el.paper.clientHeight;
   if (!width || !height || !session?.document) return;
-  const scaleX = width / session.document.widthTwips;
-  const scaleY = height / session.document.heightTwips;
+  const scaleX = width / layoutTwips().widthTwips;
+  const scaleY = height / layoutTwips().heightTwips;
   el.sink.style.left = `${Math.round(caret.x * scaleX)}px`;
   el.sink.style.top = `${Math.round(caret.y * scaleY)}px`;
   // Matching the caret's height rather than staying 1px tall: an IME places
@@ -2085,10 +2124,10 @@ function pointToTwips(event) {
   return {
     xTwips: Math.max(0, Math.round(
       (event.clientX - rectangle.left) / rectangle.width
-      * session.document.widthTwips)),
+      * layoutTwips().widthTwips)),
     yTwips: Math.max(0, Math.round(
       (event.clientY - rectangle.top) / rectangle.height
-      * session.document.heightTwips)),
+      * layoutTwips().heightTwips)),
   };
 }
 

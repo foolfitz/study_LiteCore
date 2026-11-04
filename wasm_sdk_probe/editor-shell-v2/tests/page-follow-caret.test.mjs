@@ -10,6 +10,10 @@ import { fileURLToPath } from "node:url";
 
 const SOURCE = readFileSync(fileURLToPath(new URL("../../web/e2-editor-app.js", import.meta.url)), "utf8");
 const FOLLOW = SOURCE.match(/^let followedCaret = null;\n\nfunction followCaret\(\) \{[\s\S]*?\n\}$/m)?.[0];
+// The page's laid-out size (host 0.2.56 hand test, item 1): the functions under test map through it.
+const LAYOUT = [SOURCE.match(/^const RESIZE_TOLERANCE_PX = .*;$/m)[0], SOURCE.match(/^let laidOut = null;$/m)[0],
+  ...["layoutTwips", "sizeReportMovesLayout"].map((name) =>
+    SOURCE.match(new RegExp(`^function ${name}\\([^)]*\\) \\{[\\s\\S]*?\\n\\}$`, "m"))[0])].join("\n");
 
 /**
  * A desk 500 px tall over a paper 20,000 px tall (padding 20), 10 twips a CSS
@@ -32,7 +36,7 @@ function page() {
   const session = { document: { heightTwips: 200000 }, state: { snapshot: { editorState: null } } };
   const drag = { active: false };
   // eslint-disable-next-line no-new-func
-  const followCaret = new Function("session", "el", "drag", `${FOLLOW}\nreturn followCaret;`)(session, el, drag);
+  const followCaret = new Function("session", "el", "drag", `${LAYOUT}\n${FOLLOW}\nreturn followCaret;`)(session, el, drag);
   return {
     desk, drag, writes,
     caret(yPx, heightPx = 18) {
