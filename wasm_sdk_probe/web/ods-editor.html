@@ -50,7 +50,23 @@ button:disabled { opacity:.4; cursor:default; }
 .formula-bar button { width:32px; height:33px; font-size:20px; }
 #commit-button { color:var(--accent); }
 #viewport { flex:1; min-height:0; overflow:auto; position:relative; background:#edf1ee; outline:none; }
-#surface { position:relative; background:#fff; min-width:100%; min-height:100%; }
+/* SPEC-P-calc-headers 3.4: the row and column headers stick to the viewport's edges; without the engine's header contract
+   the two tracks are 0 px wide and the surface sits where it always did. */
+#sheet-frame { display:grid; grid-template-columns:var(--row-header-width,0px) 1fr; grid-template-rows:var(--column-header-height,0px) 1fr;
+  width:max-content; height:max-content; min-width:100%; min-height:100%; }
+#sheet-frame.with-headers { --row-header-width:48px; --column-header-height:20px; }
+#corner-header { grid-area:1/1; position:sticky; top:0; left:0; z-index:6; width:48px; height:20px; min-width:0; min-height:0; margin:0;
+  padding:0; border:0; border-right:1px solid var(--line); border-bottom:1px solid var(--line); border-radius:0; background:var(--wash); color:var(--muted); }
+#column-headers { grid-area:1/2; position:sticky; top:0; z-index:5; height:20px; background:var(--wash); border-bottom:1px solid var(--line); }
+#row-headers { grid-area:2/1; position:sticky; left:0; z-index:5; width:48px; background:var(--wash); border-right:1px solid var(--line); }
+#column-headers .sheet-header,#row-headers .sheet-header { position:absolute; box-sizing:border-box; min-width:0; min-height:0; margin:0; padding:0;
+  border:0; border-radius:0; background:transparent; color:var(--muted); font-size:12px; line-height:19px; white-space:nowrap; overflow:hidden; cursor:pointer; }
+#column-headers .sheet-header { top:0; height:20px; border-right:1px solid var(--line); text-align:center; }
+#row-headers .sheet-header { left:0; width:48px; border-bottom:1px solid var(--line); text-align:right; padding-right:6px; }
+#column-headers .sheet-header:hover,#row-headers .sheet-header:hover,#corner-header:hover { background:#e7efea; }
+#column-headers .sheet-header[data-highlight],#row-headers .sheet-header[data-highlight] { background:#dbe9e1; color:var(--ink); font-weight:600; }
+#column-headers .sheet-header[aria-selected="true"],#row-headers .sheet-header[aria-selected="true"],#corner-header[aria-selected="true"] { background:var(--accent); color:#fff; }
+#surface { grid-area:2/2; position:relative; background:#fff; min-width:100%; min-height:100%; }
 #tiles canvas { position:absolute; display:block; }
 #selection { position:absolute; border:2px solid var(--accent); background:#18745218; pointer-events:none; z-index:2; }
 #active-cell { position:absolute; border:2px solid var(--accent); pointer-events:none; z-index:2; }
@@ -125,7 +141,12 @@ button:disabled { opacity:.4; cursor:default; }
 <button id="commit-button" type="button" aria-label="確認編輯" title="確認（Enter）" disabled>✓</button>
 </div>
 <div id="viewport" tabindex="0" aria-label="試算表儲存格，直接輸入取代內容，F2 或連按兩下編輯">
+<div id="sheet-frame">
+<button id="corner-header" type="button" tabindex="-1" aria-label="選取整張工作表" aria-selected="false" hidden></button>
+<div id="column-headers" role="row" aria-label="欄標" hidden></div>
+<div id="row-headers" role="rowgroup" aria-label="列標" hidden></div>
 <div id="surface"><div id="tiles"></div><div id="selection" hidden></div><div id="active-cell" hidden></div><textarea id="cell-editor" aria-label="原地編輯儲存格" spellcheck="false" hidden></textarea></div>
+</div>
 <div id="empty"><strong>開啟試算表，開始編輯</strong><span>選取儲存格後，可連按兩下編輯或使用上方輸入欄。</span></div>
 </div>
 <div id="tab-strip" role="tablist" aria-label="工作表"></div>

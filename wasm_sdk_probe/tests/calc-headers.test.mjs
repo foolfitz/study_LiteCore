@@ -102,3 +102,58 @@ test("with it, a whole column goes to the worker", async () => {
   assert.equal(range.endRow, SHEET_ROWS - 1); assert.equal(range.bold, true);
   assert.ok(worker.calls.some(c => c.operation === "rangeFormat" && c.payload.endRow === SHEET_ROWS - 1));
 });
+
+// The session: whole selections by index, kept whole through a format's endpoint refresh; refused without the contract.
+const { CalcEditorSession } = await import(process.env.CALC_SESSION_MODULE || "../spreadsheet-shell/calc-editor-session.js");
+async function session(headers = true) {
+  const calls = [];
+  const doc = {revision: 0, parts: 1, documentType: "spreadsheet", partNames: ["S"], partVisible: [true], currentPart: 0,
+    widthTwips: 9000, heightTwips: 9000, headersSupported: headers, rangeFormattingSupported: true,
+    async setPart(part) { return {part, widthTwips: 9000, heightTwips: 9000}; }, async close() {}, async render() {},
+    cell(c, r) { return {part: 0, column: c, row: r, endColumn: c, endRow: r, input: "", formula: "", text: "", writable: true,
+      bold: false, italic: false, underline: false, xTwips: c * 1000, yTwips: r * 300, widthTwips: 999, heightTwips: 299}; },
+    async readCell(c, r) { calls.push(["read", c, r]); return {cell: this.cell(c, r)}; },
+    async readRange(c, r, ec, er) { calls.push(["readRange", c, r, ec, er]);
+      return {range: {part: 0, column: c, row: r, endColumn: ec, endRow: er, bold: false, italic: false, underline: false, writable: true, refusalCode: ""}}; },
+    async setRangeFormat(c, r, ec, er, format, enabled) { calls.push(["format", c, r, ec, er, format, enabled]); this.revision++;
+      return {range: {part: 0, column: c, row: r, endColumn: ec, endRow: er, bold: enabled, italic: false, underline: false, writable: true, refusalCode: ""}}; },
+  };
+  const s = new CalcEditorSession({engineFactory: async () => ({manifest: {capabilities: ["open-ods"]}, open: async () => doc, dispose() {}})});
+  await s.open({bytes: new ArrayBuffer(8), name: "t.ods"});
+  return {s, calls};
+}
+
+test("a whole column is the indices asked for, anchored in row 1, never read at the sheet's end", async () => {
+  const {s, calls} = await session();
+  await s.selectWhole("columns", 4, 2);
+  const range = s.state.selection;
+  assert.deepEqual([range.whole, range.column, range.row, range.endColumn, range.endRow], ["columns", 2, 0, 4, SHEET_ROWS - 1]);
+  assert.deepEqual([s.state.cell.column, s.state.cell.row], [4, 0]);
+  assert.ok(!calls.some(c => c[0] === "read" && c[2] > 0), "no cell below row 1 was read");
+  assert.deepEqual(calls.at(-1), ["readRange", 2, 0, 4, SHEET_ROWS - 1]);
+  await s.selectWhole("rows", 9, 9);
+  assert.deepEqual([s.state.selection.column, s.state.selection.endColumn, s.state.selection.row, s.state.selection.endRow],
+    [0, SHEET_COLUMNS - 1, 9, 9]);
+  await s.selectWhole("sheet", 7, 7);
+  assert.deepEqual([s.state.selection.whole, s.state.selection.endColumn, s.state.selection.endRow, s.state.cell.column],
+    ["sheet", SHEET_COLUMNS - 1, SHEET_ROWS - 1, 0]);
+  await s.close();
+});
+
+test("a format on a whole column writes the whole column and the selection stays whole", async () => {
+  const {s, calls} = await session();
+  await s.selectWhole("columns", 2, 2);
+  await s.setFormat("bold", true);
+  assert.ok(calls.some(c => c[0] === "format" && c[1] === 2 && c[3] === 2 && c[4] === SHEET_ROWS - 1));
+  assert.equal(s.state.selection.whole, "columns");
+  assert.equal(s.state.selection.endRow, SHEET_ROWS - 1);
+  assert.equal(s.state.rangeFormat.bold, true);
+  await s.close();
+});
+
+test("without the header contract a whole selection is refused", async () => {
+  const {s} = await session(false);
+  await assert.rejects(s.selectWhole("columns", 1, 1), /UNSUPPORTED_OPERATION|header contract/);
+  await assert.rejects(s.selectWhole("diagonal", 1, 1), /INVALID_ARGUMENT|columns, rows or the sheet/);
+  await s.close();
+});

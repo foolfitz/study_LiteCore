@@ -2,7 +2,7 @@
 // operations are serialized, and an edit's target is captured before it waits.
 import { OdsViewerSession } from "../viewer-shell/ods-viewer-session.js";
 import { DocumentSdkError } from "../sdk/document-sdk.js";
-import { CELL_FORMATS, CELL_INPUT_LIMIT, CELL_STYLES } from "./calc-document-sdk.js";
+import { CELL_FORMATS, CELL_INPUT_LIMIT, CELL_STYLES, SHEET_COLUMNS, SHEET_ROWS } from "./calc-document-sdk.js";
 
 export function inputIntent(event) {
   if (event.isComposing || event.keyCode === 229) return null;
@@ -20,6 +20,22 @@ function rectangle(anchor, focus = anchor) {
     widthTwips:Math.max(anchor.xTwips+anchor.widthTwips,focus.xTwips+focus.widthTwips)-Math.min(anchor.xTwips,focus.xTwips),
     heightTwips:Math.max(anchor.yTwips+anchor.heightTwips,focus.yTwips+focus.heightTwips)-Math.min(anchor.yTwips,focus.yTwips),
     multiple:anchor.column!==focus.column || anchor.row!==focus.row});
+}
+
+// SPEC-P-calc-headers 3.4: whole columns (kind "columns"), whole rows ("rows") or the sheet.  The address rectangle is the
+// indices asked for, first..last; anchor and focus are the cells in row 1 (columns) or column A (rows), read there and never at
+// the sheet's end (a read at row 1048576 would stretch the engine's tiled area).  The drawn box spans the document's extent.
+function wholeRectangle(kind, first, last, anchor, focus, extent) {
+  const columns = kind === "columns", rows = kind === "rows";
+  const low = Math.min(first, last), high = Math.max(first, last);
+  const x0 = Math.min(anchor.xTwips, focus.xTwips), x1 = Math.max(anchor.xTwips + anchor.widthTwips, focus.xTwips + focus.widthTwips);
+  const y0 = Math.min(anchor.yTwips, focus.yTwips), y1 = Math.max(anchor.yTwips + anchor.heightTwips, focus.yTwips + focus.heightTwips);
+  return Object.freeze({part: anchor.part, anchor, focus, whole: kind, first, last,
+    column: columns ? low : 0, endColumn: columns ? high : SHEET_COLUMNS - 1,
+    row: rows ? low : 0, endRow: rows ? high : SHEET_ROWS - 1,
+    xTwips: columns ? x0 : 0, widthTwips: columns ? x1 - x0 : Math.max(extent.widthTwips, x1),
+    yTwips: rows ? y0 : 0, heightTwips: rows ? y1 - y0 : Math.max(extent.heightTwips, y1),
+    multiple: true});
 }
 
 // SPEC-P-ms-formats 5.2: the formats a spreadsheet is saved in.  The engine's
@@ -71,6 +87,7 @@ export class CalcEditorSession {
     return { ...this.viewer.state, cell: this._cell, selection:this._selection, rangeFormat:this._rangeFormat,
       rangeFormattingSupported:this.document?.rangeFormattingSupported===true,
       rangeStylingSupported:this.document?.rangeStylingSupported===true,
+      headersSupported:this.document?.headersSupported===true,
       undoSupported:this.document?.undoSupported===true, draft: this._draft,
       editing: this._editing, readOnly: this._readOnly, busy: this._busy > 0,
       selectionPending: this._selecting > 0,
@@ -196,6 +213,40 @@ export class CalcEditorSession {
     }
     this._emit();
   }
+  _extent() {
+    const size=this.scheduler?.documentCssSize ?? {width:0,height:0};
+    return {widthTwips:Math.ceil(size.width*15),heightTwips:Math.ceil(size.height*15)};
+  }
+  _reselect(selected,anchor,focus) {
+    return selected.whole ? wholeRectangle(selected.whole,selected.first,selected.last,anchor,focus,this._extent()) : rectangle(anchor,focus);
+  }
+  // SPEC-P-calc-headers 3.4: select whole columns first..last, whole rows, or the sheet ("sheet", 0, 0).
+  selectWhole(kind,first,last,{valid=()=>true}={}) {
+    return this._enqueue(async()=>{
+      if(!["columns","rows","sheet"].includes(kind) || !Number.isInteger(first) || !Number.isInteger(last) || first<0 || last<0
+          || first>=(kind==="rows" ? SHEET_ROWS : SHEET_COLUMNS) || last>=(kind==="rows" ? SHEET_ROWS : SHEET_COLUMNS))
+        throw new DocumentSdkError("INVALID_ARGUMENT","a whole selection is columns, rows or the sheet, by index");
+      if(this.document.headersSupported!==true)
+        throw new DocumentSdkError("UNSUPPORTED_OPERATION","this engine has no header contract");
+      if(!valid())return;
+      await this._commitNow();
+      if(kind==="sheet")first=last=0;
+      const at=index=>kind==="rows" ? [0,index] : kind==="columns" ? [index,0] : [0,0];
+      const {cell:anchor}=await this.document.readCell(...at(first));
+      const focus=first===last ? anchor : (await this.document.readCell(...at(last))).cell;
+      if(!valid())return;
+      this._cell=anchor;this._draft=anchor.input;this._draftVersion++;this._editing=null;
+      this._selection=wholeRectangle(kind,first,last,anchor,focus,this._extent());this._rangeFormat=null;
+      this._emit();
+      await this._refreshRangeFormat();
+      return anchor;
+    },{selection:true});
+  }
+  // SPEC-P-calc-headers 3.1: the visible headers, outside the edit queue (a read the bridge serves without selecting anything).
+  readHeaders(rectangle) {
+    if(this._closed || this.viewer.state.state!=="ready" || this.document?.headersSupported!==true)return Promise.resolve(null);
+    return this.document.readHeaders(rectangle,{part:this.viewer.state.currentPart});
+  }
   selectAt(xTwips,yTwips,{extend=false,valid=()=>true}={}) {
     return this._enqueue(async()=>{
       if(!valid())return;
@@ -259,7 +310,7 @@ export class CalcEditorSession {
         try {
           const {cell:anchor}=await this.document.readCell(selected.anchor.column,selected.anchor.row,{part:selected.part});
           const {cell:focus}=await this.document.readCell(selected.focus.column,selected.focus.row,{part:selected.part});
-          this._cell=anchor;this._selection=rectangle(anchor,focus);this._rangeFormat=result.range;
+          this._cell=anchor;this._selection=this._reselect(selected,anchor,focus);this._rangeFormat=result.range;
           this._draft=anchor.input;this._draftVersion++;
         } catch(error) {
           throw new DocumentSdkError("MUTATION_OUTCOME_UNKNOWN",`range applied but endpoint refresh failed: ${error.message}`);
@@ -291,7 +342,7 @@ export class CalcEditorSession {
         try {
           const {cell:anchor}=await this.document.readCell(selected.anchor.column,selected.anchor.row,{part:selected.part});
           const {cell:focus}=await this.document.readCell(selected.focus.column,selected.focus.row,{part:selected.part});
-          this._cell=anchor;this._selection=rectangle(anchor,focus);this._rangeFormat=result.range;
+          this._cell=anchor;this._selection=this._reselect(selected,anchor,focus);this._rangeFormat=result.range;
           this._draft=anchor.input;this._draftVersion++;
         } catch(error) {
           throw new DocumentSdkError("MUTATION_OUTCOME_UNKNOWN",`range applied but endpoint refresh failed: ${error.message}`);
@@ -362,7 +413,7 @@ export class CalcEditorSession {
           const selected=this._selection;
           const {cell:anchor}=await this.document.readCell(selected.anchor.column,selected.anchor.row,{part:selected.part});
           const {cell:focus}=await this.document.readCell(selected.focus.column,selected.focus.row,{part:selected.part});
-          this._cell=anchor;this._selection=rectangle(anchor,focus);this._rangeFormat=null;
+          this._cell=anchor;this._selection=this._reselect(selected,anchor,focus);this._rangeFormat=null;
           this._draft=anchor.input;this._draftVersion++;
           await this._refreshRangeFormat();
         } else {

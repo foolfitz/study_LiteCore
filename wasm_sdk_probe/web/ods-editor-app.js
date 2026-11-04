@@ -10,7 +10,7 @@ const ui = Object.fromEntries(["file-input","open-file","save-button","undo-butt
   "cancel-button","commit-button","viewport","surface","tiles","selection","active-cell","cell-editor","empty",
   "tab-strip","state-pill","autosave-status","selection-label","s-doc","s-revision","toast",
   "save-as-button","save-as-dialog","save-as-name","save-as-suffix","save-as-formats","save-as-message","save-as-cancel",
-  "save-as-confirm"].map(id=>[id,$(id)]));
+  "save-as-confirm","sheet-frame","corner-header","column-headers","row-headers"].map(id=>[id,$(id)]));
 // SPEC-P-ms-formats 5.2: what each format this page writes is called and carries. A spreadsheet is saved in ITS format
 // (the session's documentFormat(), from the engine's open reply); Save As offers ODF, and the original for an XLSX.
 const CALC_FORMATS=Object.freeze({ods:{suffix:".ods",mime:"application/vnd.oasis.opendocument.spreadsheet"},
@@ -32,6 +32,18 @@ function cellAddress(column,row) {
   let text="";
   for(let n=column;n>=0;n=Math.floor(n/26)-1) text=String.fromCharCode(65+n%26)+text;
   return text+(row+1);
+}
+function columnName(column){return cellAddress(column,0).replace(/[0-9]+$/,"");}
+// SPEC-P-calc-headers 3.4: the header strips cover the viewport's top and left edges; the surface shows what is left.
+const HEADER_LEFT=48,HEADER_TOP=20;
+function headersOn(){return session?.state.headersSupported===true;}
+function visibleWidth(){return Math.max(1,ui.viewport.clientWidth-(headersOn() ? HEADER_LEFT : 0));}
+function visibleHeight(){return Math.max(1,ui.viewport.clientHeight-(headersOn() ? HEADER_TOP : 0));}
+function selectionText(range,address) {
+  if(range?.whole==="sheet")return `全部儲存格 · 作用中 ${address}`;
+  if(range?.whole==="columns")return `${columnName(range.column)}:${columnName(range.endColumn)} · 作用中 ${address}`;
+  if(range?.whole==="rows")return `${range.row+1}:${range.endRow+1} · 作用中 ${address}`;
+  return null;
 }
 function notice(text,error=false) {
   ui.toast.textContent=text;
@@ -194,15 +206,15 @@ function render(state) {
     const address=cellAddress(state.cell.column,state.cell.row);
     if(document.activeElement!==ui["cell-address"])ui["cell-address"].value=address;
     const range=state.selection;
-    ui["selection-label"].textContent=range?.multiple
-      ? `${cellAddress(range.column,range.row)}:${cellAddress(range.endColumn,range.endRow)} · 作用中 ${address}${state.rangeFormattingSupported ? "" : "（範圍格式尚未支援）"}` : address;
+    ui["selection-label"].textContent=selectionText(range,address) ?? (range?.multiple
+      ? `${cellAddress(range.column,range.row)}:${cellAddress(range.endColumn,range.endRow)} · 作用中 ${address}${state.rangeFormattingSupported ? "" : "（範圍格式尚未支援）"}` : address);
     ui["selection-label"].title="範圍依兩端儲存格框選；交界合併格不自動擴張。";
     place(ui.selection,range || state.cell);place(ui["active-cell"],state.cell);place(ui["cell-editor"],state.cell);
     if(state.editing!=="inline") {
       // A focused, real textarea receives beforeinput and IME without moving
       // focus midway through the first character. Keep its idle caret in view.
-      ui["cell-editor"].style.left=`${Math.max(ui.viewport.scrollLeft,Math.min(state.cell.xTwips/15,ui.viewport.scrollLeft+ui.viewport.clientWidth-4))}px`;
-      ui["cell-editor"].style.top=`${Math.max(ui.viewport.scrollTop,Math.min(state.cell.yTwips/15,ui.viewport.scrollTop+ui.viewport.clientHeight-4))}px`;
+      ui["cell-editor"].style.left=`${Math.max(ui.viewport.scrollLeft,Math.min(state.cell.xTwips/15,ui.viewport.scrollLeft+visibleWidth()-4))}px`;
+      ui["cell-editor"].style.top=`${Math.max(ui.viewport.scrollTop,Math.min(state.cell.yTwips/15,ui.viewport.scrollTop+visibleHeight()-4))}px`;
       if(!composing && !pendingEntry)ui["cell-editor"].value="";
     }
   }
@@ -222,6 +234,7 @@ function render(state) {
     }));
   }
   if(state.error) errorNotice(state.error);
+  renderHeaders(state);
   const paintKey=`${state.currentPart}/${state.revision}`;
   if(ready && !sheetSwitching && lastPaint!==paintKey) {
     lastPaint=paintKey;ui.tiles.replaceChildren();void paint();
@@ -294,7 +307,7 @@ async function paint() {
         ui.viewport.scrollLeft=view.scrollLeft;ui.viewport.scrollTop=view.scrollTop;
       }
       session.scheduleViewport({scrollLeft:ui.viewport.scrollLeft,scrollTop:ui.viewport.scrollTop,
-        width:ui.viewport.clientWidth,height:ui.viewport.clientHeight});
+        width:visibleWidth(),height:visibleHeight()});
       await session.drain();
       if(!session.refit())break;
       ui.tiles.replaceChildren();
@@ -303,7 +316,71 @@ async function paint() {
   } catch(error) {errorNotice(error);} finally {
     paintPending=false;
     if(paintAgain){paintAgain=false;void paint();}
+    void refreshHeaders();
   }
+}
+// SPEC-P-calc-headers 3.4: the visible headers, read when the visible rectangle, the sheet or the revision moved.  Labels and
+// edges are the engine's (op 13); a hidden column or row has no element.  The newest reply is kept for the measurement
+// (record.headers) with the rectangle it answered.
+let headerKey=null,headerData=null,headerPending=false,headerAgain=false;
+function headerRectangle() {
+  const clamp=v=>Math.min(245760,Math.max(0,Math.round(v)));
+  return {x:Math.max(0,Math.round(ui.viewport.scrollLeft*15)),y:Math.max(0,Math.round(ui.viewport.scrollTop*15)),
+    width:clamp(visibleWidth()*15),height:clamp(visibleHeight()*15)};
+}
+async function refreshHeaders() {
+  if(!session || session.state.state!=="ready" || sheetSwitching || !headersOn())return;
+  if(headerPending){headerAgain=true;return;}
+  const rect=headerRectangle(),owner=session;
+  const key=`${session.state.currentPart}/${session.state.revision}/${rect.x}/${rect.y}/${rect.width}/${rect.height}`;
+  if(key===headerKey)return;
+  headerPending=true;
+  try {
+    const reply=await owner.readHeaders(rect);
+    if(reply && owner===session) {
+      headerKey=key;headerData=reply.headers;
+      record.headers={rectangle:rect,part:reply.headers.part,revision:session.state.revision,reply:reply.headers};
+      drawHeaders();renderHeaders(session.state);
+    }
+  } catch(error) {errorNotice(error);} finally {
+    headerPending=false;
+    if(headerAgain){headerAgain=false;void refreshHeaders();}
+  }
+}
+function headerButton(axis,entry) {
+  const node=document.createElement("button");
+  node.type="button";node.tabIndex=-1;node.className="sheet-header";
+  node.dataset.axis=axis;node.dataset.index=String(entry.index);node.textContent=entry.label;
+  node.setAttribute("role",axis==="column" ? "columnheader" : "rowheader");
+  node.setAttribute("aria-label",axis==="column" ? `欄 ${entry.label}` : `列 ${entry.label}`);
+  node.setAttribute("aria-selected","false");
+  const size=`${entry.endPx-entry.startPx}px`,start=`${entry.startPx}px`;
+  if(axis==="column"){node.style.left=start;node.style.width=size;} else {node.style.top=start;node.style.height=size;}
+  return node;
+}
+function drawHeaders() {
+  if(!headerData)return;
+  ui["column-headers"].replaceChildren(...headerData.columns.filter(e=>!e.hidden).map(e=>headerButton("column",e)));
+  ui["row-headers"].replaceChildren(...headerData.rows.filter(e=>!e.hidden).map(e=>headerButton("row",e)));
+}
+function renderHeaders(state) {
+  const on=state.headersSupported===true && state.state==="ready";
+  ui["sheet-frame"].classList.toggle("with-headers",on);
+  for(const node of [ui["corner-header"],ui["column-headers"],ui["row-headers"]])node.hidden=!on;
+  if(!on)return;
+  if(headerData && headerData.part!==state.currentPart){ui["column-headers"].replaceChildren();ui["row-headers"].replaceChildren();}
+  const range=state.selection,cell=state.cell;
+  const mark=(node,low,high,whole,currentLow,currentHigh)=>{
+    const index=Number(node.dataset.index);
+    node.setAttribute("aria-selected",String(!!whole && index>=low && index<=high));
+    node.toggleAttribute("data-highlight",!!range && index>=low && index<=high);
+    node.toggleAttribute("data-current",!!cell && index>=currentLow && index<=currentHigh);
+  };
+  for(const node of ui["column-headers"].children)
+    mark(node,range?.column,range?.endColumn,range?.whole==="columns" || range?.whole==="sheet",cell?.column,cell?.endColumn);
+  for(const node of ui["row-headers"].children)
+    mark(node,range?.row,range?.endRow,range?.whole==="rows" || range?.whole==="sheet",cell?.row,cell?.endRow);
+  ui["corner-header"].setAttribute("aria-selected",String(range?.whole==="sheet"));
 }
 async function openBytes(bytes,name,options={}) {
   if((pendingEntry || session?.hasUnsavedEdits()) && !confirm("尚有修改未儲存，仍要開啟其他檔案嗎？"))return;
@@ -313,6 +390,7 @@ async function openBytes(bytes,name,options={}) {
   lastPaint=null;ui.tiles.replaceChildren();ui.viewport.scrollTop=0;ui.viewport.scrollLeft=0;
   ui.surface.style.minWidth="";ui.surface.style.minHeight="";
   sheetViews.clear();pendingView=null;
+  headerKey=null;headerData=null;ui["column-headers"].replaceChildren();ui["row-headers"].replaceChildren();
   session=new CalcEditorSession({
     engineFactory:async({onEvent})=>{
       const engine=new CalcDocumentEngine({...ENGINE_OPTIONS,debug:diagnostics});
@@ -396,9 +474,9 @@ function revealCell(cell) {
   const left=cell.xTwips/15,top=cell.yTwips/15,right=left+cell.widthTwips/15,bottom=top+cell.heightTwips/15;
   ui.surface.style.minWidth=`${Math.ceil(right)}px`;ui.surface.style.minHeight=`${Math.ceil(bottom)}px`;
   if(left<ui.viewport.scrollLeft)ui.viewport.scrollLeft=Math.floor(left);
-  else if(right>ui.viewport.scrollLeft+ui.viewport.clientWidth)ui.viewport.scrollLeft=Math.ceil(right-ui.viewport.clientWidth);
+  else if(right>ui.viewport.scrollLeft+visibleWidth())ui.viewport.scrollLeft=Math.ceil(right-visibleWidth());
   if(top<ui.viewport.scrollTop)ui.viewport.scrollTop=Math.floor(top);
-  else if(bottom>ui.viewport.scrollTop+ui.viewport.clientHeight)ui.viewport.scrollTop=Math.ceil(bottom-ui.viewport.clientHeight);
+  else if(bottom>ui.viewport.scrollTop+visibleHeight())ui.viewport.scrollTop=Math.ceil(bottom-visibleHeight());
 }
 ui.viewport.addEventListener("focus",focusGrid);
 document.addEventListener("focusin",event=>{
@@ -657,6 +735,89 @@ async function extendDrag(current) {
     }
   }
 }
+// SPEC-P-calc-headers 3.4: click, shift-click and drag on the headers; the corner selects the sheet.
+let headerDrag=null;
+function announceWhole(kind,first,last) {
+  const low=Math.min(first,last),high=Math.max(first,last);
+  notice(kind==="sheet" ? "已選取整張工作表" : kind==="columns"
+    ? (low===high ? `已選取整欄 ${columnName(low)}` : `已選取第 ${columnName(low)} 到 ${columnName(high)} 欄`)
+    : (low===high ? `已選取整列 ${low+1}` : `已選取第 ${low+1} 到 ${high+1} 列`));
+}
+function selectWhole(kind,first,last,valid=()=>true) {
+  return action(async()=>{
+    const cell=await session.selectWhole(kind,first,last,{valid});
+    if(cell && valid())announceWhole(kind,first,last);
+    return cell;
+  });
+}
+function headerIndexAt(kind,event) {
+  if(!headerData)return null;
+  const strip=kind==="columns" ? ui["column-headers"] : ui["row-headers"],rect=strip.getBoundingClientRect();
+  const at=kind==="columns" ? event.clientX-rect.left : event.clientY-rect.top;
+  const entry=(kind==="columns" ? headerData.columns : headerData.rows).find(e=>!e.hidden && at>=e.startPx && at<e.endPx);
+  return entry ? entry.index : null;
+}
+async function pumpHeaderDrag(current) {
+  if(current.pumping)return;
+  current.pumping=true;
+  try {
+    await current.start;
+    while(current.latest!==null && current.latest!==current.shown && current.generation===gesture) {
+      const index=current.latest;current.shown=index;
+      await selectWhole(current.kind,current.first,index,()=>current.generation===gesture);
+    }
+  } finally {current.pumping=false;}
+}
+for(const [strip,kind] of [[ui["column-headers"],"columns"],[ui["row-headers"],"rows"]]) {
+  strip.addEventListener("pointerdown",event=>{
+    const node=event.target.closest?.(".sheet-header");
+    event.stopPropagation();
+    if(!session || !node || event.button!==0)return;
+    event.preventDefault();
+    if(pendingEntry){notice("請先完成或取消目前的輸入。",true);return;}
+    cancelDrag();
+    const index=Number(node.dataset.index),range=session.state.selection,cell=session.state.cell;
+    const first=!event.shiftKey ? index : range?.whole===kind ? range.first : kind==="columns" ? cell.column : cell.row;
+    const current={kind,first,pointer:event.pointerId,generation:gesture,latest:null,shown:index,pumping:false};
+    headerDrag=current;strip.setPointerCapture(event.pointerId);
+    current.start=selectWhole(kind,first,index,()=>current.generation===gesture);
+    focusGrid();
+  });
+  strip.addEventListener("pointermove",event=>{
+    if(!headerDrag || headerDrag.kind!==kind || event.pointerId!==headerDrag.pointer)return;
+    const index=headerIndexAt(kind,event);
+    if(index!==null){headerDrag.latest=index;void pumpHeaderDrag(headerDrag);}
+  });
+  const end=event=>{
+    if(!headerDrag || event.pointerId!==headerDrag.pointer)return;
+    if(strip.hasPointerCapture(event.pointerId))strip.releasePointerCapture(event.pointerId);
+    const current=headerDrag;headerDrag=null;
+    void pumpHeaderDrag(current).then(()=>focusGrid());
+  };
+  strip.addEventListener("pointerup",end);strip.addEventListener("pointercancel",end);
+}
+ui["corner-header"].addEventListener("pointerdown",event=>event.stopPropagation());
+ui["corner-header"].addEventListener("click",()=>{
+  if(!session)return;
+  if(pendingEntry){notice("請先完成或取消目前的輸入。",true);focusGrid();return;}
+  cancelDrag();void selectWhole("sheet",0,0).then(()=>focusGrid());
+});
+// Ctrl+Space and Ctrl+Shift+Space (Calc's own zh-TW key; input methods often take Ctrl+Space) select the columns of the
+// selection, Shift+Space its rows.  Caught on keydown: the typing focus is #cell-editor, where a space would start an entry.
+function wholeKey(event) {
+  if(!session || !(event.key===" " || event.code==="Space") || event.altKey || event.metaKey)return;
+  const kind=event.ctrlKey ? "columns" : event.shiftKey ? "rows" : null;
+  if(!kind || !headersOn() || session.state.editing || composing || event.isComposing || event.keyCode===229)return;
+  event.preventDefault();event.stopPropagation();
+  if(pendingEntry){notice("請先完成或取消目前的輸入。",true);return;}
+  const range=session.state.selection;
+  if(!range)return;
+  const [first,last]=kind==="columns" ? [range.column,range.whole==="rows" || range.whole==="sheet" ? range.column : range.endColumn]
+    : [range.row,range.whole==="columns" || range.whole==="sheet" ? range.row : range.endRow];
+  cancelDrag();void selectWhole(kind,first,last).then(()=>focusGrid());
+}
+ui["cell-editor"].addEventListener("keydown",wholeKey);
+ui.viewport.addEventListener("keydown",event=>{if(event.target!==ui["cell-editor"])wholeKey(event);});
 ui.viewport.addEventListener("pointerdown",event=>{
   if(!session || event.button!==0 || event.target===ui["cell-editor"] || !inViewport(event))return;
   if(pendingEntry){event.preventDefault();notice("正在接收前一個儲存格的輸入，請稍候。",true);return;}
