@@ -56,7 +56,8 @@ function errorNotice(error) {
     PART_HIDDEN:"這張工作表已隱藏。",RANGE_FORMAT_UNSUPPORTED:"目前的引擎尚未支援範圍格式。",
     RANGE_TOO_LARGE:"一次最多可設定 65,536 個儲存格的格式，請縮小選取範圍。",
     RANGE_MERGE_BOUNDARY:"選取範圍跨過合併格邊界，請選取完整的合併格後重試。",
-    RANGE_PROTECTED:"選取範圍含有受保護的儲存格，無法變更格式。"};
+    RANGE_PROTECTED:"選取範圍含有受保護的儲存格，無法變更格式。",
+    STRUCTURE_REFUSED:"LibreOffice 拒絕了這個插入或刪除：資料會被推出工作表、會切開陣列公式，或範圍被鎖定。文件沒有變動。"};
   notice(messages[error.code] || error.message || String(error),true);
 }
 function autosaveState(state) {
@@ -802,6 +803,133 @@ ui["corner-header"].addEventListener("click",()=>{
   if(pendingEntry){notice("請先完成或取消目前的輸入。",true);focusGrid();return;}
   cancelDrag();void selectWhole("sheet",0,0).then(()=>focusGrid());
 });
+// SPEC-P-calc-structure 2.2-2.4, 3.3: insert and delete rows or columns.  A right click on a row or column header lists that
+// axis's three items, on a cell all six; outside the selection it first selects there (desktop Calc).  Shift+F10 or the menu
+// key opens it at the active cell; Ctrl+＋ / Ctrl+－ act on a whole-row or whole-column selection.
+const structureMenu=$("structure-menu");
+const STRUCTURE_ITEMS=Object.freeze([
+  ["rows","insert","before","上方插入列"],["rows","insert","after","下方插入列"],["rows","delete","before","刪除列"],
+  ["columns","insert","before","左方插入欄"],["columns","insert","after","右方插入欄"],["columns","delete","before","刪除欄"]]);
+let structureReturn=null;
+function structureOn(){return session?.state.structureSupported===true && session.state.state==="ready";}
+function structureReason(axis,act,where) {
+  const state=session.state;
+  if(state.readOnly)return "這份試算表是唯讀的，不能插入或刪除欄列。";
+  if(state.cell?.writable!==true)return "工作表受保護，不能插入或刪除欄列。";
+  if(state.uncertain)return "無法確認剛才的修改，請保留此頁。";
+  if(state.busy || state.selectionPending || pendingEntry || dragWork)return "請先完成目前的輸入或選取。";
+  const plan=session.structurePlan(axis,act,where);
+  return plan.refused==="WHOLE_AXIS" ? (axis==="rows" ? "選取範圍涵蓋所有列，不能再插入或刪除列。" : "選取範圍涵蓋所有欄，不能再插入或刪除欄。")
+    : plan.refused==="PAST_THE_END" ? "插入的位置超出工作表。" : plan.refused ? "目前不能插入或刪除欄列。" : null;
+}
+function closeStructureMenu(returnFocus=false) {
+  if(structureMenu.hidden)return;
+  structureMenu.hidden=true;structureMenu.replaceChildren();
+  if(returnFocus)focusGrid();
+}
+function openStructureMenu(axes,x,y) {
+  closeColorPopover();
+  const items=[];
+  for(const [axis,act,where,label] of STRUCTURE_ITEMS) {
+    if(!axes.includes(axis))continue;
+    if(items.length && items.at(-1).dataset.axis!==axis){const line=document.createElement("div");line.setAttribute("role","separator");items.push(line);}
+    const node=document.createElement("button");
+    node.type="button";node.tabIndex=-1;node.setAttribute("role","menuitem");node.textContent=label;
+    node.dataset.structure=`${axis}-${act}${act==="insert" ? `-${where}` : ""}`;node.dataset.axis=axis;
+    const reason=structureReason(axis,act,where);
+    node.setAttribute("aria-disabled",String(reason!==null));node.title=reason ?? label;
+    node.addEventListener("click",()=>runStructure(axis,act,where,node));
+    items.push(node);
+  }
+  structureMenu.replaceChildren(...items);structureMenu.hidden=false;
+  structureMenu.style.left=`${Math.max(8,Math.min(x,innerWidth-structureMenu.offsetWidth-8))}px`;
+  structureMenu.style.top=`${Math.max(8,Math.min(y,innerHeight-structureMenu.offsetHeight-8))}px`;
+  structureMenu.querySelector('[role="menuitem"]')?.focus({preventScroll:true});
+}
+function structureSentence(result) {
+  const rows=result.axis==="rows",name=index=>rows ? `第 ${index+1} 列` : ` ${columnName(index)} 欄`;
+  const unit=rows ? "列" : "欄",last=result.index+result.count-1;
+  if(result.action==="delete")return result.count===1 ? `已刪除${name(result.index)}。`
+    : `已刪除${rows ? `第 ${result.index+1} 到 ${last+1} 列` : ` ${columnName(result.index)} 到 ${columnName(last)} 欄`}。`;
+  return result.where==="after" ? `已在${name(result.index-1)}${rows ? "下方" : "右方"}插入 ${result.count} ${unit}。`
+    : `已在${name(result.index)}${rows ? "上方" : "左方"}插入 ${result.count} ${unit}。`;
+}
+function runStructure(axis,act,where,node=null) {
+  if(node?.getAttribute("aria-disabled")==="true"){notice(node.title,true);return;}
+  closeStructureMenu();
+  const reason=structureReason(axis,act,where);
+  if(reason){notice(reason,true);focusGrid();return;}
+  cancelDrag();
+  void (async()=>{
+    try {
+      const result=await session.changeStructure(axis,act,where);
+      render(session.state);void refreshHeaders();
+      notice(structureSentence(result));
+    } catch(error) {
+      if(error.code==="READ_ONLY")notice("工作表受保護或文件是唯讀的，不能插入或刪除欄列。",true);
+      else errorNotice(error);
+      if(session)render(session.state);
+    }
+    focusGrid();
+  })();
+}
+async function structureAt(kind,event) {
+  // The header or cell under the pointer joins the selection first unless it is already in it.
+  const range=session.state.selection;
+  if(kind==="rows" || kind==="columns") {
+    const index=headerIndexAt(kind,event);
+    if(index===null)return false;
+    const low=kind==="rows" ? range?.row : range?.column,high=kind==="rows" ? range?.endRow : range?.endColumn;
+    const covers=range && (range.whole===kind || range.whole==="sheet") && index>=low && index<=high;
+    if(!covers)await selectWhole(kind,index,index);
+    return true;
+  }
+  const [x,y]=point(event);
+  const inside=range && x>=range.xTwips && x<range.xTwips+range.widthTwips && y>=range.yTwips && y<range.yTwips+range.heightTwips;
+  if(!inside)await action(()=>session.selectAt(x,y));
+  return true;
+}
+for(const [target,kind] of [[ui["row-headers"],"rows"],[ui["column-headers"],"columns"],[ui.viewport,"cells"]]) {
+  target.addEventListener("contextmenu",event=>{
+    if(!structureOn())return;
+    event.preventDefault();event.stopPropagation();
+    if(session.state.editing || pendingEntry){notice("請先完成或取消目前的輸入。",true);return;}
+    if(kind==="cells" && (event.target.closest?.(".sheet-header,#corner-header") || !inViewport(event)))return;
+    cancelDrag();
+    const x=event.clientX,y=event.clientY;
+    void structureAt(kind,event).then(ok=>{if(ok)openStructureMenu(kind==="cells" ? ["rows","columns"] : [kind],x,y);});
+  });
+}
+structureMenu.addEventListener("keydown",event=>{
+  const items=[...structureMenu.querySelectorAll('[role="menuitem"]')];
+  const at=items.indexOf(document.activeElement);
+  if(event.key==="Escape" || event.key==="Tab"){event.preventDefault();closeStructureMenu(true);return;}
+  const next={ArrowDown:at+1,ArrowUp:at-1,Home:0,End:items.length-1}[event.key];
+  if(next!==undefined){event.preventDefault();items[(next+items.length)%items.length]?.focus({preventScroll:true});return;}
+  if(event.key==="Enter" || event.key===" "){event.preventDefault();document.activeElement?.click();}
+});
+document.addEventListener("pointerdown",event=>{if(!structureMenu.hidden && !structureMenu.contains(event.target))closeStructureMenu();},true);
+function structureKey(event) {
+  if(!structureOn() || session.state.editing || composing || event.isComposing || event.keyCode===229)return false;
+  if(event.key==="ContextMenu" || (event.key==="F10" && event.shiftKey && !event.ctrlKey && !event.altKey && !event.metaKey)) {
+    event.preventDefault();event.stopPropagation();
+    if(pendingEntry){notice("請先完成或取消目前的輸入。",true);return true;}
+    const box=ui["active-cell"].getBoundingClientRect();
+    openStructureMenu(["rows","columns"],box.left,box.bottom+2);
+    return true;
+  }
+  if(!(event.ctrlKey || event.metaKey) || event.altKey)return false;
+  const insert=event.key==="+" || (event.key==="=" && event.shiftKey),remove=event.key==="-" || event.key==="_";
+  if(!insert && !remove)return false;
+  event.preventDefault();event.stopPropagation();
+  if(event.repeat)return true;
+  const range=session.state.selection,axis=range?.whole==="rows" ? "rows" : range?.whole==="columns" ? "columns" : null;
+  if(!axis){notice("整列或整欄選取時才能用 Ctrl+＋／Ctrl+－；其他選取請用右鍵選單。",true);return true;}
+  runStructure(axis,insert ? "insert" : "delete","before");
+  return true;
+}
+ui["cell-editor"].addEventListener("keydown",structureKey);
+ui.viewport.addEventListener("keydown",event=>{if(event.target!==ui["cell-editor"])structureKey(event);});
 // Ctrl+Space and Ctrl+Shift+Space (Calc's own zh-TW key; input methods often take Ctrl+Space) select the columns of the
 // selection, Shift+Space its rows.  Caught on keydown: the typing focus is #cell-editor, where a space would start an entry.
 function wholeKey(event) {

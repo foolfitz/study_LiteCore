@@ -87,3 +87,39 @@ test("control: the frozen v5 worker has neither", () => {
                "INVALID_ARGUMENT");
   assert.deepEqual(w.cells(), []);
 });
+
+// SPEC-P-calc-structure 3.2: cellStructure, cell operation 14, on the same unreleased v6 worker.
+const STRUCTURE = [...ALL, "cell-structure"];
+
+test("cellStructure needs cell-structure and never touches WASM without it", () => {
+  const w = worker(v6, ALL);
+  assert.equal(w.request("cellStructure", {change: {axis: "rows", action: "insert", index: 1, count: 2}}).error.code,
+               "UNSUPPORTED_OPERATION");
+  assert.deepEqual(w.cells(), []);
+});
+
+test("cellStructure is cell operation 14 with the change as the bridge's JSON", () => {
+  const w = worker(v6, STRUCTURE);
+  assert.equal(w.request("cellStructure", {change: {axis: "columns", action: "delete", index: 3, count: 2, extra: 1}}), undefined);
+  const [call] = w.cells();
+  assert.equal(call.args[6], 14);
+  assert.deepEqual(JSON.parse(call.text), {axis: "columns", action: "delete", index: 3, count: 2});
+});
+
+test("a change the bridge would refuse is refused before ccall", () => {
+  for (const change of [undefined, {axis: "x", action: "insert", index: 0, count: 1}, {axis: "rows", action: "move", index: 0, count: 1},
+                        {axis: "rows", action: "insert", index: 0, count: 0}, {axis: "rows", action: "insert", index: -1, count: 1},
+                        {axis: "rows", action: "insert", index: ROWS - 1, count: 2}, {axis: "columns", action: "delete", index: COLUMNS, count: 1},
+                        {axis: "rows", action: "insert", index: 0.5, count: 1}]) {
+    const w = worker(v6, STRUCTURE);
+    assert.equal(w.request("cellStructure", {change}).error.code, "INVALID_ARGUMENT", JSON.stringify(change));
+    assert.deepEqual(w.cells(), []);
+  }
+});
+
+test("control: the frozen v5 worker has no cellStructure", () => {
+  const w = worker(v5, STRUCTURE);
+  assert.equal(w.request("cellStructure", {change: {axis: "rows", action: "insert", index: 1, count: 1}}).error.code,
+               "UNKNOWN_OPERATION");
+  assert.deepEqual(w.cells(), []);
+});

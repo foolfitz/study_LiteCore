@@ -88,6 +88,7 @@ export class CalcEditorSession {
       rangeFormattingSupported:this.document?.rangeFormattingSupported===true,
       rangeStylingSupported:this.document?.rangeStylingSupported===true,
       headersSupported:this.document?.headersSupported===true,
+      structureSupported:this.document?.structureSupported===true,
       undoSupported:this.document?.undoSupported===true, draft: this._draft,
       editing: this._editing, readOnly: this._readOnly, busy: this._busy > 0,
       selectionPending: this._selecting > 0,
@@ -362,6 +363,49 @@ export class CalcEditorSession {
       }
       this._adopt(refreshed);
       return refreshed;
+    });
+  }
+  // SPEC-P-calc-structure 2.2/2.5/3.2: what a structure change would do with the current selection, or why it cannot --
+  // for the page's menu (enabled items, reasons) and for changeStructure itself.  `where` is "before" or "after" (insert).
+  structurePlan(axis,action,where="before") {
+    const selected=this._selection;
+    if(this.document?.structureSupported!==true)return {refused:"UNSUPPORTED_OPERATION"};
+    if(!selected)return {refused:"NOT_READY"};
+    if(this._readOnly)return {refused:"READ_ONLY"};
+    if(!["rows","columns"].includes(axis) || !["insert","delete"].includes(action) || !["before","after"].includes(where))
+      return {refused:"INVALID_ARGUMENT"};
+    const rows=axis==="rows", max=rows ? SHEET_ROWS : SHEET_COLUMNS;
+    const low=rows ? selected.row : selected.column, high=rows ? selected.endRow : selected.endColumn;
+    const count=high-low+1;
+    if(count>=max)return {refused:"WHOLE_AXIS"};
+    const index=action==="insert" && where==="after" ? high+1 : low;
+    if(index+count>max)return {refused:"PAST_THE_END"};
+    return {axis,action,where,index,count,part:selected.part};
+  }
+  changeStructure(axis,action,where="before") {
+    return this._enqueue(async()=>{
+      this._assertReady(true);
+      const plan=this.structurePlan(axis,action,where);
+      if(plan.refused)throw new DocumentSdkError(plan.refused==="UNSUPPORTED_OPERATION" || plan.refused==="READ_ONLY"
+        ? plan.refused : "INVALID_ARGUMENT",`this structure change is not available: ${plan.refused}`);
+      await this._commitNow();
+      const selected=this._selection;
+      const result=await this.document.changeStructure({axis,action,index:plan.index,count:plan.count},
+        {part:plan.part,expectedRevision:this.document.revision});
+      this.scheduler.invalidateRevision(this.document.revision);
+      // 2.5: the same indices stay selected; the cells there are read again (they now hold other content).  A hidden row
+      // or column reads like any other (its cursor is 14 twips: measured natively, spec append 3).
+      try {
+        const {cell:anchor}=await this.document.readCell(selected.anchor.column,selected.anchor.row,{part:selected.part});
+        const {cell:focus}=await this.document.readCell(selected.focus.column,selected.focus.row,{part:selected.part});
+        this._cell=anchor;this._selection=this._reselect(selected,anchor,focus);this._rangeFormat=null;
+        this._draft=anchor.input;this._draftVersion++;this._editing=null;
+        await this._refreshRangeFormat();
+      } catch(error) {
+        throw new DocumentSdkError("MUTATION_OUTCOME_UNKNOWN",`structure changed but the cell refresh failed: ${error.message}`);
+      }
+      this._emit();
+      return {...result.structure,where,revision:result.revision};
     });
   }
   // SPEC-P-calc-undo 4.3 and 5.  An entry not yet sent is the newest change:

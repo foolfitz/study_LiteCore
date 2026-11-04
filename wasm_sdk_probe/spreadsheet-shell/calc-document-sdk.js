@@ -108,6 +108,26 @@ export function normalizeHeaders(raw) {
   return Object.freeze(out);
 }
 
+// SPEC-P-calc-structure 3.1/3.2: the bridge's op 14 reply, closed.
+export const STRUCTURE_AXES = Object.freeze(["rows", "columns"]);
+export const STRUCTURE_ACTIONS = Object.freeze(["insert", "delete"]);
+export function normalizeStructure(raw) {
+  if(!raw || typeof raw!=="object")throw new DocumentSdkError("CELL_RESULT_INVALID","structure reply is missing");
+  const integer=(value,name)=>{
+    if(typeof value!=="number" && !(typeof value==="string" && /^[0-9]+$/.test(value)))
+      throw new DocumentSdkError("CELL_RESULT_INVALID",`${name} is not an integer`);
+    return unsigned(Number(value),name);
+  };
+  const out={part:integer(raw.part,"part"),axis:raw.axis,action:raw.action,index:integer(raw.index,"index"),
+    count:integer(raw.count,"count"),maxColumns:integer(raw.maxColumns,"maxColumns"),maxRows:integer(raw.maxRows,"maxRows"),
+    changed:boolean(raw.changed,"changed")};
+  if(!STRUCTURE_AXES.includes(out.axis) || !STRUCTURE_ACTIONS.includes(out.action) || out.count<1 || out.changed!==true)
+    throw new DocumentSdkError("CELL_RESULT_INVALID","structure reply is not a change that happened");
+  if(out.maxColumns!==SHEET_COLUMNS || out.maxRows!==SHEET_ROWS)
+    throw new DocumentSdkError("CELL_RESULT_INVALID","the sheet is not 16384 x 1048576 (jumbo sheets are a named limit)");
+  return Object.freeze(out);
+}
+
 export function normalizeCell(raw) {
   if (!raw || typeof raw !== "object")
     throw new DocumentSdkError("CELL_RESULT_INVALID", "cell reply has no model snapshot");
@@ -161,7 +181,8 @@ export class CalcDocumentEngine extends OdsViewerEngine {
             || cell.column!==column || cell.row!==row || cell.endColumn!==payload.endColumn || cell.endRow!==payload.endRow))
           throw new DocumentSdkError("CELL_RESULT_INVALID","range reply target differs from request");
       } catch(error) {
-        if(operation==="rangeFormat" || operation==="rangeStyle")throw new DocumentSdkError("MUTATION_OUTCOME_UNKNOWN",error.message);
+        if(operation==="rangeFormat" || operation==="rangeStyle" || operation==="cellStructure")
+          throw new DocumentSdkError("MUTATION_OUTCOME_UNKNOWN",error.message);
         throw error;
       }
       handle.revision = result.revision;
@@ -209,6 +230,23 @@ export class CalcDocumentEngine extends OdsViewerEngine {
     handle.setRangeFormat=(column,row,endColumn,endRow,format,enabled,callOptions)=>{
       if(!CELL_FORMATS.includes(format) || typeof enabled!=="boolean")invalid("invalid range format");
       return rangeRequest("rangeFormat",column,row,endColumn,endRow,{format,enabled},callOptions);
+    };
+    // SPEC-P-calc-structure 3.2: insert or delete whole rows or columns, one undo step each.
+    handle.structureSupported=this.manifest.capabilities.includes("cell-structure");
+    handle.changeStructure=(change,callOptions)=>{
+      if(!handle.structureSupported)
+        throw new DocumentSdkError("UNSUPPORTED_OPERATION","this engine has no structure contract");
+      const c=change ?? {};
+      if(!STRUCTURE_AXES.includes(c.axis) || !STRUCTURE_ACTIONS.includes(c.action))invalid("invalid structure change");
+      unsigned(c.index,"index"); unsigned(c.count,"count");
+      if(c.count<1 || c.index+c.count>(c.axis==="rows" ? SHEET_ROWS : SHEET_COLUMNS))invalid("invalid structure change");
+      const part=callOptions?.part ?? handle.currentPart;
+      return request("cellStructure",0,0,{change:{axis:c.axis,action:c.action,index:c.index,count:c.count}},callOptions,
+        normalizeStructure).then(({cell,changed,revision})=>{
+          if(cell.part!==part || cell.axis!==c.axis || cell.action!==c.action || cell.index!==c.index || cell.count!==c.count)
+            throw new DocumentSdkError("MUTATION_OUTCOME_UNKNOWN","structure reply target differs from request");
+          return {structure:cell,changed,revision};
+        });
     };
     // SPEC-P-calc-undo 4.3: undo and redo are DocumentHandle's own (document-sdk.js); the worker refuses them without
     // the `undo` capability, and the page shows its buttons only when this is true.

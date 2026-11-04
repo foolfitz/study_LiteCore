@@ -24,3 +24,5 @@ What the cells read (both browsers the same unless noted):
 
 Unit tests: `wasm_sdk_probe/editor-shell-v2/tests/key-burst.test.mjs` (11). All node tests in the tree: 1025/1025.
 E1-C bundle: `intact: true` (the adapter file is not changed; the merge wraps the session's adapter instance).
+
+Adversarial review (Codex, read-only, 2026-11-05): no lost, duplicated or reordered character that the parent commit does not also have, over 4,096 session/adapter interleavings, 6,561 with the page's held-input functions and 8 lifecycle cases against a stub engine. It confirms the pre-existing held-second-Backspace edge named in the spec (section 4). Checks changed because of review: 0.

@@ -38,6 +38,13 @@ button:disabled { opacity:.4; cursor:default; }
 .swatch-bar { position:absolute; left:6px; right:6px; bottom:4px; height:4px; border-radius:1px; background:var(--swatch); box-shadow:inset 0 0 0 1px rgba(0,0,0,.18); }
 #color-popover { position:fixed; z-index:2000; padding:8px; background:#fff; color:var(--ink); border:1px solid var(--line); border-radius:6px; box-shadow:0 6px 18px rgba(0,0,0,.2); }
 #color-popover[hidden] { display:none; }
+/* SPEC-P-calc-structure 3.3: the insert/delete menu, opened by a right click on a header or a cell, Shift+F10 or the menu key. */
+#structure-menu { position:fixed; z-index:2000; min-width:150px; padding:4px 0; background:#fff; color:var(--ink); border:1px solid var(--line); border-radius:6px; box-shadow:0 6px 18px rgba(0,0,0,.2); }
+#structure-menu[hidden] { display:none; }
+#structure-menu [role="menuitem"] { display:block; width:100%; min-height:0; height:28px; margin:0; padding:0 14px; border:0; border-radius:0; background:#fff; color:var(--ink); text-align:left; font-size:13px; }
+#structure-menu [role="menuitem"]:hover,#structure-menu [role="menuitem"]:focus { background:#e7efea; outline:none; }
+#structure-menu [role="menuitem"][aria-disabled="true"] { color:#8a8f8c; }
+#structure-menu [role="separator"] { height:1px; margin:4px 0; background:var(--line); }
 #color-popover #color-clear { display:block; width:100%; height:28px; min-height:0; margin:0 0 6px; padding:0 8px; text-align:left; background:#fff; color:var(--ink); border:1px solid var(--line); border-radius:4px; font-size:13px; }
 #color-popover #color-clear:hover { background:#e7efea; }
 #color-grid { display:grid; grid-template-columns:repeat(10,20px); gap:2px; }
@@ -132,6 +139,7 @@ button:disabled { opacity:.4; cursor:default; }
 <button type="button" class="icon-button" data-align="right" data-style-group aria-label="靠右對齊" title="靠右對齊" aria-pressed="false" disabled hidden><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-format_align_right"></use></svg></button>
 <button type="button" class="icon-button" data-align="block" data-style-group aria-label="左右對齊" title="左右對齊" aria-pressed="false" disabled hidden><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-format_align_justify"></use></svg></button>
 </div>
+<div id="structure-menu" role="menu" aria-label="插入或刪除欄列" hidden></div>
 <div id="color-popover" role="dialog" aria-label="色盤" hidden><button id="color-clear" type="button">自動</button><div id="color-grid" role="group" aria-label="顏色"></div></div>
 <div class="formula-bar" role="group" aria-label="儲存格輸入列">
 <input id="cell-address" aria-label="儲存格位址" value="A1" spellcheck="false" disabled>
