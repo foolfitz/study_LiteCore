@@ -62,6 +62,11 @@ typedef enum oxsdk_capability {
 #ifdef OXSDK_ODS_STYLE
   , OXSDK_CAPABILITY_CELL_RANGE_STYLING = 1u << 19
 #endif
+#ifdef OXSDK_ODS_HEADERS
+  /* SPEC-P-calc-headers: cell operation 13 (visible row/column headers) and
+     whole column/row/sheet ranges. */
+  , OXSDK_CAPABILITY_CELL_HEADERS = 1u << 24
+#endif
 #endif
 #ifdef OXSDK_MS_FORMATS
   /* SPEC-P-ms-formats 5.1 E4: DOCX in the Writer editor, XLSX in the Calc

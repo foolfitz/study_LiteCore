@@ -7594,7 +7594,8 @@ bool readOutputBuffer(const std::string &path, void *&pointer,
 void handleCell(const Command &command) {
   if (!requireDocument(command, "cell")) return;
   const int operation = command.values[3];
-  const bool mutation = (operation >= 1 && operation <= 4) || operation >= 7;
+  // 13 (SPEC-P-calc-headers) reads headers: neither a mutation nor revision-bound.
+  const bool mutation = (operation >= 1 && operation <= 4) || (operation >= 7 && operation <= 12);
   if ((mutation || operation == 6) && !requireRevision(command, "cell")) return;
   char *raw = oxsdk_calc_cell_model(gState.document, command.values[0],
       command.values[1], command.values[2], operation, command.text.data(),

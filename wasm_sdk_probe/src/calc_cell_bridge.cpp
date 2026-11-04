@@ -108,6 +108,86 @@ int headerIndex(const ptree &headers, int coordinate, bool columns) {
   throw Refusal("CELL_GEOMETRY_UNAVAILABLE", "point is outside the returned cell headers");
 }
 
+#ifdef OXSDK_ODS_HEADERS
+// SPEC-P-calc-headers 3.1: core's per-entry cumulative pixel ends, the first entry
+// being the start (its text is nStart + 1), turned into one closed entry per index.
+// Core sends one entry per index unless LOK range headers are on (they are not in
+// this engine); anything else is refused rather than guessed.
+ptree headerEntries(const ptree &items, bool columns) {
+  ptree out;
+  bool first = true;
+  long previousIndex = -1;
+  long previousSize = 0;
+  for (const auto &item : items) {
+    const auto label = item.second.get<std::string>("text");
+    const long size = item.second.get<long>("size");
+    if (first) {
+      previousIndex = std::stol(label) - 1;
+      previousSize = size;
+      first = false;
+      continue;
+    }
+    long index = 0;
+    if (columns) {
+      for (char c : label) {
+        if (c < 'A' || c > 'Z')
+          throw Refusal("CELL_GEOMETRY_UNAVAILABLE", "column header label is not a column name");
+        index = index * 26 + c - 'A' + 1;
+      }
+      --index;
+    } else {
+      index = std::stol(label) - 1;
+    }
+    if (index != previousIndex + 1 || size < previousSize)
+      throw Refusal("CELL_GEOMETRY_UNAVAILABLE", "header entries are not one per index");
+    ptree entry;
+    entry.put("index", index);
+    entry.put("label", label);
+    entry.put("startPx", previousSize);
+    entry.put("endPx", size);
+    entry.put("hidden", size == previousSize);
+    out.push_back({"", entry});
+    previousIndex = index;
+    previousSize = size;
+  }
+  return out;
+}
+
+constexpr long kHeaderRectangleLimit = 15L * 16384;
+
+ptree accessHeaders(LibreOfficeKitDocument *doc, const Reference<frame::XModel> &model,
+                    const Reference<sheet::XSpreadsheet> &sheet, int part, int columns,
+                    int rows, const char *text, int textLength) {
+  if (!text || textLength <= 0)
+    throw Refusal("INVALID_ARGUMENT", "header rectangle payload is required");
+  ptree request;
+  std::istringstream input(std::string(text, textLength));
+  boost::property_tree::read_json(input, request);
+  const long x = request.get<long>("x"), y = request.get<long>("y");
+  const long width = request.get<long>("width"), height = request.get<long>("height");
+  if (x < 0 || y < 0 || width < 0 || height < 0 || (width == 0 && height == 0)
+      || width > kHeaderRectangleLimit || height > kHeaderRectangleLimit)
+    throw Refusal("INVALID_ARGUMENT", "invalid header rectangle");
+  // The same view state as the cell operations (same sheet, 1 CSS px = 15 twips),
+  // and nothing else: no select(), no cursor read.
+  Reference<sheet::XSpreadsheetView> view(model->getCurrentController(), uno::UNO_QUERY_THROW);
+  view->setActiveSheet(sheet);
+  doc->pClass->setClientZoom(doc, 256, 256, 3840, 3840);
+  const auto headers = commandValues(doc, ".uno:ViewRowColumnHeaders?x=" + std::to_string(x)
+      + "&y=" + std::to_string(y) + "&width=" + std::to_string(width)
+      + "&height=" + std::to_string(height));
+  ptree result;
+  result.put("ok", true);
+  result.put("part", part);
+  result.put("maxColumns", columns);
+  result.put("maxRows", rows);
+  result.add_child("columns", headerEntries(headers.get_child("columns"), true));
+  result.add_child("rows", headerEntries(headers.get_child("rows"), false));
+  result.put("changed", false);
+  return result;
+}
+#endif
+
 #ifdef OXSDK_ODS_RANGE
 // A bounded, explicit rectangle. UNO collects the three script-family items
 // into one pattern and calls ApplyAttributes once; never issue per-cell writes.
@@ -210,7 +290,15 @@ ptree accessRange(const Reference<sheet::XSpreadsheet> &sheet,
     throw Refusal("INVALID_ARGUMENT", "invalid range endpoints");
   const auto area = static_cast<std::uint64_t>(endColumn - column + 1)
       * static_cast<std::uint64_t>(endRow - row + 1);
-  if (area > kRangeCellLimit)
+#ifdef OXSDK_ODS_HEADERS
+  // SPEC-P-calc-headers 3.2: whole columns, whole rows and the whole sheet pass the
+  // cell limit and the merge boundary (as desktop Calc applies them); protection and
+  // read-only still refuse.  Every other rectangle keeps both rules.
+  const bool whole = (row == 0 && endRow == rows - 1) || (column == 0 && endColumn == columns - 1);
+#else
+  const bool whole = false;
+#endif
+  if (area > kRangeCellLimit && !whole)
     throw Refusal("RANGE_TOO_LARGE", "range exceeds 65536 logical cells");
   auto range = sheet->getCellRangeByPosition(column, row, endColumn, endRow);
   auto cursor = sheet->createCursorByRange(
@@ -226,7 +314,7 @@ ptree accessRange(const Reference<sheet::XSpreadsheet> &sheet,
   Reference<frame::XStorable> storable(model, uno::UNO_QUERY_THROW);
   std::string refusal;
   if (storable->isReadonly()) refusal = "READ_ONLY";
-  else if (crossesMerge) refusal = "RANGE_MERGE_BOUNDARY";
+  else if (crossesMerge && !whole) refusal = "RANGE_MERGE_BOUNDARY";
   else if (protection->isProtected()) {
     // An ambiguous protection struct is not proof that every cell is unlocked.
     if (states->getPropertyState(u"CellProtection"_ustr) == beans::PropertyState_AMBIGUOUS_VALUE
@@ -304,7 +392,9 @@ ptree access(LibreOfficeKitDocument *doc, int part, int column, int row, int ope
              const char *text, int textLength, int enabled, bool &mutationAttempted) {
   SolarMutexGuard guard;
   constexpr int maxOperation =
-#ifdef OXSDK_ODS_STYLE
+#ifdef OXSDK_ODS_HEADERS
+      13;
+#elif defined(OXSDK_ODS_STYLE)
       12;
 #elif defined(OXSDK_ODS_RANGE)
       9;
@@ -334,6 +424,10 @@ ptree access(LibreOfficeKitDocument *doc, int part, int column, int row, int ope
   Reference<table::XColumnRowRange> dimensions(sheet, uno::UNO_QUERY_THROW);
   const int columns = dimensions->getColumns()->getCount();
   const int rows = dimensions->getRows()->getCount();
+#ifdef OXSDK_ODS_HEADERS
+  if (operation == 13)
+    return accessHeaders(doc, model, sheet, part, columns, rows, text, textLength);
+#endif
 #ifdef OXSDK_ODS_RANGE
   if (operation >= 6)
     return accessRange(sheet, model, part, column, row, columns, rows, operation,

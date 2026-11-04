@@ -1,0 +1,160 @@
+{
+ "schema": 1,
+ "uptime": "00:05:06 up 14:35,  6 users,  load average: 0.22, 0.14, 0.12",
+ "makes": "",
+ "compiler": "g++ (Ubuntu 15.2.0-16ubuntu1) 15.2.0",
+ "sources": {
+  "bridge": "b46eadf70fe47615069f17656b280770dcf43af4fe3743d3531baff4eba32205",
+  "header": "9e1114e4f47487aa7d5c7c8e835d0cafa17146a6ab3b1b004bc4950bc4f73187",
+  "driver": "9bf73e4c9b6f40bee32a5fcf27149c9cfdb5cdfb55ea99576c7fdfbe5842783d"
+ },
+ "steps": [
+  {
+   "variant": "headers",
+   "argv": [
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-fPIC",
+    "-DLIBO_INTERNAL_ONLY",
+    "-DOXSDK_ODS_RANGE",
+    "-DOXSDK_ODS_STYLE",
+    "-DOXSDK_ODS_UNDO",
+    "-DOXSDK_ODS_HEADERS",
+    "-DCPPU_ENV=gcc3",
+    "-DUNX",
+    "-DLINUX",
+    "-DX86_64",
+    "-I/home/jiajun/LibreOffice/study_LiteCore/libreoffice-26-8/include",
+    "-I/home/jiajun/LibreOffice/study_LiteCore/build-native-26-8/config_host",
+    "-I/home/jiajun/LibreOffice/study_LiteCore/build-native-26-8/workdir/UnoApiHeadersTarget/udkapi/comprehensive",
+    "-I/home/jiajun/LibreOffice/study_LiteCore/build-native-26-8/workdir/UnoApiHeadersTarget/offapi/comprehensive",
+    "-I/home/jiajun/LibreOffice/study_LiteCore/build-native-26-8/workdir/UnpackedTarball/boost",
+    "-c",
+    "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/calc-headers/native-build-01/source/src/calc_cell_bridge.cpp",
+    "-o",
+    "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/calc-headers/native-build-01/headers/bridge.o"
+   ],
+   "exit": 0,
+   "seconds": 4.14
+  },
+  {
+   "variant": "headers",
+   "argv": [
+    "g++",
+    "-std=c++17",
+    "-O2",
+    "-I/home/jiajun/LibreOffice/study_LiteCore/libreoffice-26-8/include",
+    "-I/home/jiajun/LibreOffice/study_LiteCore/build-native-26-8/config_host",
+    "-I/home/jiajun/LibreOffice/study_LiteCore/build-native-26-8/workdir/UnoApiHeadersTarget/udkapi/comprehensive",
+    "-I/home/jiajun/LibreOffice/study_LiteCore/build-native-26-8/workdir/UnoApiHeadersTarget/offapi/comprehensive",
+    "-I/home/jiajun/LibreOffice/study_LiteCore/build-native-26-8/workdir/UnpackedTarball/boost",
+    "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/calc-headers/native-build-01/source/tools/calc_undo_native.cpp",
+    "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/calc-headers/native-build-01/headers/bridge.o",
+    "-L/home/jiajun/LibreOffice/study_LiteCore/build-native-26-8/instdir/program",
+    "-lsfxlo",
+    "-lvcllo",
+    "-lcomphelper",
+    "-ltllo",
+    "/home/jiajun/LibreOffice/study_LiteCore/build-native-26-8/instdir/program/libuno_sal.so.3",
+    "/home/jiajun/LibreOffice/study_LiteCore/build-native-26-8/instdir/program/libuno_cppu.so.3",
+    "/home/jiajun/LibreOffice/study_LiteCore/build-native-26-8/instdir/program/libuno_cppuhelpergcc3.so.3",
+    "-Wl,-rpath,/home/jiajun/LibreOffice/study_LiteCore/build-native-26-8/instdir/program",
+    "-ldl",
+    "-o",
+    "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/calc-headers/native-build-01/headers/calc-undo-native"
+   ],
+   "exit": 0,
+   "seconds": 1.5
+  },
+  {
+   "variant": "v5",
+   "argv": [
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-fPIC",
+    "-DLIBO_INTERNAL_ONLY",
+    "-DOXSDK_ODS_RANGE",
+    "-DOXSDK_ODS_STYLE",
+    "-DOXSDK_ODS_UNDO",
+    "-DCPPU_ENV=gcc3",
+    "-DUNX",
+    "-DLINUX",
+    "-DX86_64",
+    "-I/home/jiajun/LibreOffice/study_LiteCore/libreoffice-26-8/include",
+    "-I/home/jiajun/LibreOffice/study_LiteCore/build-native-26-8/config_host",
+    "-I/home/jiajun/LibreOffice/study_LiteCore/build-native-26-8/workdir/UnoApiHeadersTarget/udkapi/comprehensive",
+    "-I/home/jiajun/LibreOffice/study_LiteCore/build-native-26-8/workdir/UnoApiHeadersTarget/offapi/comprehensive",
+    "-I/home/jiajun/LibreOffice/study_LiteCore/build-native-26-8/workdir/UnpackedTarball/boost",
+    "-c",
+    "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/calc-headers/native-build-01/source/src/calc_cell_bridge.cpp",
+    "-o",
+    "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/calc-headers/native-build-01/v5/bridge.o"
+   ],
+   "exit": 0,
+   "seconds": 3.84
+  },
+  {
+   "variant": "v5",
+   "argv": [
+    "g++",
+    "-std=c++17",
+    "-O2",
+    "-I/home/jiajun/LibreOffice/study_LiteCore/libreoffice-26-8/include",
+    "-I/home/jiajun/LibreOffice/study_LiteCore/build-native-26-8/config_host",
+    "-I/home/jiajun/LibreOffice/study_LiteCore/build-native-26-8/workdir/UnoApiHeadersTarget/udkapi/comprehensive",
+    "-I/home/jiajun/LibreOffice/study_LiteCore/build-native-26-8/workdir/UnoApiHeadersTarget/offapi/comprehensive",
+    "-I/home/jiajun/LibreOffice/study_LiteCore/build-native-26-8/workdir/UnpackedTarball/boost",
+    "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/calc-headers/native-build-01/source/tools/calc_undo_native.cpp",
+    "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/calc-headers/native-build-01/v5/bridge.o",
+    "-L/home/jiajun/LibreOffice/study_LiteCore/build-native-26-8/instdir/program",
+    "-lsfxlo",
+    "-lvcllo",
+    "-lcomphelper",
+    "-ltllo",
+    "/home/jiajun/LibreOffice/study_LiteCore/build-native-26-8/instdir/program/libuno_sal.so.3",
+    "/home/jiajun/LibreOffice/study_LiteCore/build-native-26-8/instdir/program/libuno_cppu.so.3",
+    "/home/jiajun/LibreOffice/study_LiteCore/build-native-26-8/instdir/program/libuno_cppuhelpergcc3.so.3",
+    "-Wl,-rpath,/home/jiajun/LibreOffice/study_LiteCore/build-native-26-8/instdir/program",
+    "-ldl",
+    "-o",
+    "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/calc-headers/native-build-01/v5/calc-undo-native"
+   ],
+   "exit": 0,
+   "seconds": 1.47
+  }
+ ],
+ "variants": {
+  "headers": [
+   "-DOXSDK_ODS_RANGE",
+   "-DOXSDK_ODS_STYLE",
+   "-DOXSDK_ODS_UNDO",
+   "-DOXSDK_ODS_HEADERS"
+  ],
+  "v5": [
+   "-DOXSDK_ODS_RANGE",
+   "-DOXSDK_ODS_STYLE",
+   "-DOXSDK_ODS_UNDO"
+  ]
+ },
+ "argv": [
+  "--out",
+  "../findings/evidence/calc-headers/native-build-01",
+  "--variant",
+  "headers=-DOXSDK_ODS_RANGE,-DOXSDK_ODS_STYLE,-DOXSDK_ODS_UNDO,-DOXSDK_ODS_HEADERS",
+  "--variant",
+  "v5=-DOXSDK_ODS_RANGE,-DOXSDK_ODS_STYLE,-DOXSDK_ODS_UNDO"
+ ],
+ "outputs": {
+  "headers": {
+   "bridge.o": "8cada865ba933f622366f4d853839cc01008600425ad852af7da60fca854bdb8",
+   "calc-undo-native": "8916191740c372d27f6b64aabd0c9c059b2a8f21b52d664cde655a2c90fe143f"
+  },
+  "v5": {
+   "bridge.o": "29ff621751abbd9744c26e42556db0b2d0ae292793c69c2fdae273f6fbeb26a7",
+   "calc-undo-native": "5789156465602b0fec7e7750d0baaf6ebe5a59d864d772e52eab2cde29e37640"
+  }
+ },
+ "sourcesUnchanged": true
+}

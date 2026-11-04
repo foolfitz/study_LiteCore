@@ -1,0 +1,3112 @@
+{
+ "tool": {
+  "path": "wasm_sdk_probe/tools/check_calc_headers_native.py",
+  "sha256": "1703679562cb934fc2933b322b1ea8c06828f02ca593d3095187426fdfae7467",
+  "argv": [
+   "--harness",
+   "../findings/evidence/calc-headers/native-build-01/headers/calc-undo-native",
+   "--control",
+   "../findings/evidence/calc-headers/native-build-01/v5/calc-undo-native",
+   "--out",
+   "../findings/evidence/calc-headers/n-01"
+  ]
+ },
+ "harness": {
+  "path": "../findings/evidence/calc-headers/native-build-01/headers/calc-undo-native",
+  "sha256": "8916191740c372d27f6b64aabd0c9c059b2a8f21b52d664cde655a2c90fe143f"
+ },
+ "control": {
+  "op13Code": "INVALID_ARGUMENT",
+  "wholeColumnCode": "RANGE_TOO_LARGE",
+  "ok": true
+ },
+ "bridgeSourceSha256": "b46eadf70fe47615069f17656b280770dcf43af4fe3743d3531baff4eba32205",
+ "uptime": "00:06:47 up 14:36,  6 users,  load average: 1.63, 0.50, 0.24",
+ "fixtureSha256": "60676c0726a1e3bf17312a7fd363fd22d543949ed7854898ea447d78b3a48e0c",
+ "fixture": {
+  "cells": [
+   {
+    "cell": [
+     26,
+     0
+    ],
+    "want": "AA 欄",
+    "got": "AA 欄"
+   },
+   {
+    "cell": [
+     0,
+     999
+    ],
+    "want": "第 1000 列",
+    "got": "第 1000 列"
+   },
+   {
+    "cell": [
+     4,
+     0
+    ],
+    "want": "隱藏欄之後",
+    "got": "隱藏欄之後"
+   },
+   {
+    "cell": [
+     0,
+     4
+    ],
+    "want": "隱藏列之後",
+    "got": "隱藏列之後"
+   }
+  ],
+  "ok": true
+ },
+ "N-H1": {
+  "rows": [
+   {
+    "rect": "top-left",
+    "ms": 0.757,
+    "ok_reply": true,
+    "cursorBefore": "0, 1095, 1694, 254, 0, 4",
+    "cursorAfter": "0, 1095, 1694, 254, 0, 4",
+    "cursorUnchanged": true,
+    "shape": true,
+    "columns": 14,
+    "rows": 26,
+    "cells": [
+     {
+      "axis": "columns",
+      "index": 0,
+      "label": "A",
+      "got": [
+       0,
+       1694
+      ],
+      "want": [
+       0,
+       1694
+      ],
+      "ok": true
+     },
+     {
+      "axis": "columns",
+      "index": 1,
+      "label": "B",
+      "got": [
+       1695,
+       1019
+      ],
+      "want": [
+       1695,
+       1019
+      ],
+      "ok": true
+     },
+     {
+      "axis": "columns",
+      "index": 2,
+      "label": "C",
+      "got": [
+       2715,
+       1694
+      ],
+      "want": [
+       2715,
+       1694
+      ],
+      "ok": true
+     },
+     {
+      "axis": "columns",
+      "index": 3,
+      "hidden": true,
+      "expectedHidden": true,
+      "ok": true
+     },
+     {
+      "axis": "columns",
+      "index": 4,
+      "label": "E",
+      "got": [
+       4410,
+       1694
+      ],
+      "want": [
+       4410,
+       1694
+      ],
+      "ok": true
+     },
+     {
+      "axis": "columns",
+      "index": 5,
+      "label": "F",
+      "got": [
+       6105,
+       1274
+      ],
+      "want": [
+       6105,
+       1274
+      ],
+      "ok": true
+     },
+     {
+      "axis": "columns",
+      "index": 6,
+      "label": "G",
+      "got": [
+       7380,
+       1274
+      ],
+      "want": [
+       7380,
+       1274
+      ],
+      "ok": true
+     },
+     {
+      "axis": "columns",
+      "index": 7,
+      "label": "H",
+      "got": [
+       8655,
+       1274
+      ],
+      "want": [
+       8655,
+       1274
+      ],
+      "ok": true
+     },
+     {
+      "axis": "columns",
+      "index": 8,
+      "label": "I",
+      "got": [
+       9930,
+       1274
+      ],
+      "want": [
+       9930,
+       1274
+      ],
+      "ok": true
+     },
+     {
+      "axis": "columns",
+      "index": 9,
+      "label": "J",
+      "got": [
+       11205,
+       1274
+      ],
+      "want": [
+       11205,
+       1274
+      ],
+      "ok": true
+     },
+     {
+      "axis": "columns",
+      "index": 10,
+      "label": "K",
+      "got": [
+       12480,
+       1274
+      ],
+      "want": [
+       12480,
+       1274
+      ],
+      "ok": true
+     },
+     {
+      "axis": "columns",
+      "index": 11,
+      "label": "L",
+      "got": [
+       13755,
+       1274
+      ],
+      "want": [
+       13755,
+       1274
+      ],
+      "ok": true
+     },
+     {
+      "axis": "columns",
+      "index": 12,
+      "label": "M",
+      "got": [
+       15030,
+       1274
+      ],
+      "want": [
+       15030,
+       1274
+      ],
+      "ok": true
+     },
+     {
+      "axis": "columns",
+      "index": 13,
+      "label": "N",
+      "got": [
+       16305,
+       1274
+      ],
+      "want": [
+       16305,
+       1274
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 0,
+      "label": "1",
+      "got": [
+       0,
+       269
+      ],
+      "want": [
+       0,
+       269
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 1,
+      "label": "2",
+      "got": [
+       270,
+       554
+      ],
+      "want": [
+       270,
+       554
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 2,
+      "label": "3",
+      "got": [
+       825,
+       269
+      ],
+      "want": [
+       825,
+       269
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 3,
+      "hidden": true,
+      "expectedHidden": true,
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 4,
+      "label": "5",
+      "got": [
+       1095,
+       254
+      ],
+      "want": [
+       1095,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 5,
+      "label": "6",
+      "got": [
+       1350,
+       254
+      ],
+      "want": [
+       1350,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 6,
+      "label": "7",
+      "got": [
+       1605,
+       254
+      ],
+      "want": [
+       1605,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 7,
+      "label": "8",
+      "got": [
+       1860,
+       254
+      ],
+      "want": [
+       1860,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 8,
+      "label": "9",
+      "got": [
+       2115,
+       254
+      ],
+      "want": [
+       2115,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 9,
+      "label": "10",
+      "got": [
+       2370,
+       254
+      ],
+      "want": [
+       2370,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 10,
+      "label": "11",
+      "got": [
+       2625,
+       254
+      ],
+      "want": [
+       2625,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 11,
+      "label": "12",
+      "got": [
+       2880,
+       254
+      ],
+      "want": [
+       2880,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 12,
+      "label": "13",
+      "got": [
+       3135,
+       254
+      ],
+      "want": [
+       3135,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 13,
+      "label": "14",
+      "got": [
+       3390,
+       254
+      ],
+      "want": [
+       3390,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 14,
+      "label": "15",
+      "got": [
+       3645,
+       254
+      ],
+      "want": [
+       3645,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 15,
+      "label": "16",
+      "got": [
+       3900,
+       254
+      ],
+      "want": [
+       3900,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 16,
+      "label": "17",
+      "got": [
+       4155,
+       254
+      ],
+      "want": [
+       4155,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 17,
+      "label": "18",
+      "got": [
+       4410,
+       254
+      ],
+      "want": [
+       4410,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 18,
+      "label": "19",
+      "got": [
+       4665,
+       254
+      ],
+      "want": [
+       4665,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 19,
+      "label": "20",
+      "got": [
+       4920,
+       254
+      ],
+      "want": [
+       4920,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 20,
+      "label": "21",
+      "got": [
+       5175,
+       254
+      ],
+      "want": [
+       5175,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 21,
+      "label": "22",
+      "got": [
+       5430,
+       254
+      ],
+      "want": [
+       5430,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 22,
+      "label": "23",
+      "got": [
+       5685,
+       254
+      ],
+      "want": [
+       5685,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 23,
+      "label": "24",
+      "got": [
+       5940,
+       254
+      ],
+      "want": [
+       5940,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 24,
+      "label": "25",
+      "got": [
+       6195,
+       254
+      ],
+      "want": [
+       6195,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 25,
+      "label": "26",
+      "got": [
+       6450,
+       254
+      ],
+      "want": [
+       6450,
+       254
+      ],
+      "ok": true
+     }
+    ],
+    "ok": true
+   },
+   {
+    "rect": "middle",
+    "ms": 0.289,
+    "ok_reply": true,
+    "cursorBefore": "0, 6450, 1694, 254, 0, 25",
+    "cursorAfter": "0, 6450, 1694, 254, 0, 25",
+    "cursorUnchanged": true,
+    "shape": true,
+    "columns": 11,
+    "rows": 20,
+    "cells": [
+     {
+      "axis": "columns",
+      "index": 2,
+      "label": "C",
+      "got": [
+       2715,
+       1694
+      ],
+      "want": [
+       2715,
+       1694
+      ],
+      "ok": true
+     },
+     {
+      "axis": "columns",
+      "index": 3,
+      "hidden": true,
+      "expectedHidden": true,
+      "ok": true
+     },
+     {
+      "axis": "columns",
+      "index": 4,
+      "label": "E",
+      "got": [
+       4410,
+       1694
+      ],
+      "want": [
+       4410,
+       1694
+      ],
+      "ok": true
+     },
+     {
+      "axis": "columns",
+      "index": 5,
+      "label": "F",
+      "got": [
+       6105,
+       1274
+      ],
+      "want": [
+       6105,
+       1274
+      ],
+      "ok": true
+     },
+     {
+      "axis": "columns",
+      "index": 6,
+      "label": "G",
+      "got": [
+       7380,
+       1274
+      ],
+      "want": [
+       7380,
+       1274
+      ],
+      "ok": true
+     },
+     {
+      "axis": "columns",
+      "index": 7,
+      "label": "H",
+      "got": [
+       8655,
+       1274
+      ],
+      "want": [
+       8655,
+       1274
+      ],
+      "ok": true
+     },
+     {
+      "axis": "columns",
+      "index": 8,
+      "label": "I",
+      "got": [
+       9930,
+       1274
+      ],
+      "want": [
+       9930,
+       1274
+      ],
+      "ok": true
+     },
+     {
+      "axis": "columns",
+      "index": 9,
+      "label": "J",
+      "got": [
+       11205,
+       1274
+      ],
+      "want": [
+       11205,
+       1274
+      ],
+      "ok": true
+     },
+     {
+      "axis": "columns",
+      "index": 10,
+      "label": "K",
+      "got": [
+       12480,
+       1274
+      ],
+      "want": [
+       12480,
+       1274
+      ],
+      "ok": true
+     },
+     {
+      "axis": "columns",
+      "index": 11,
+      "label": "L",
+      "got": [
+       13755,
+       1274
+      ],
+      "want": [
+       13755,
+       1274
+      ],
+      "ok": true
+     },
+     {
+      "axis": "columns",
+      "index": 12,
+      "label": "M",
+      "got": [
+       15030,
+       1274
+      ],
+      "want": [
+       15030,
+       1274
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 2,
+      "label": "3",
+      "got": [
+       825,
+       269
+      ],
+      "want": [
+       825,
+       269
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 3,
+      "hidden": true,
+      "expectedHidden": true,
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 4,
+      "label": "5",
+      "got": [
+       1095,
+       254
+      ],
+      "want": [
+       1095,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 5,
+      "label": "6",
+      "got": [
+       1350,
+       254
+      ],
+      "want": [
+       1350,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 6,
+      "label": "7",
+      "got": [
+       1605,
+       254
+      ],
+      "want": [
+       1605,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 7,
+      "label": "8",
+      "got": [
+       1860,
+       254
+      ],
+      "want": [
+       1860,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 8,
+      "label": "9",
+      "got": [
+       2115,
+       254
+      ],
+      "want": [
+       2115,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 9,
+      "label": "10",
+      "got": [
+       2370,
+       254
+      ],
+      "want": [
+       2370,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 10,
+      "label": "11",
+      "got": [
+       2625,
+       254
+      ],
+      "want": [
+       2625,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 11,
+      "label": "12",
+      "got": [
+       2880,
+       254
+      ],
+      "want": [
+       2880,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 12,
+      "label": "13",
+      "got": [
+       3135,
+       254
+      ],
+      "want": [
+       3135,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 13,
+      "label": "14",
+      "got": [
+       3390,
+       254
+      ],
+      "want": [
+       3390,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 14,
+      "label": "15",
+      "got": [
+       3645,
+       254
+      ],
+      "want": [
+       3645,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 15,
+      "label": "16",
+      "got": [
+       3900,
+       254
+      ],
+      "want": [
+       3900,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 16,
+      "label": "17",
+      "got": [
+       4155,
+       254
+      ],
+      "want": [
+       4155,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 17,
+      "label": "18",
+      "got": [
+       4410,
+       254
+      ],
+      "want": [
+       4410,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 18,
+      "label": "19",
+      "got": [
+       4665,
+       254
+      ],
+      "want": [
+       4665,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 19,
+      "label": "20",
+      "got": [
+       4920,
+       254
+      ],
+      "want": [
+       4920,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 20,
+      "label": "21",
+      "got": [
+       5175,
+       254
+      ],
+      "want": [
+       5175,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 21,
+      "label": "22",
+      "got": [
+       5430,
+       254
+      ],
+      "want": [
+       5430,
+       254
+      ],
+      "ok": true
+     }
+    ],
+    "ok": true
+   },
+   {
+    "rect": "row-1000",
+    "ms": 0.421,
+    "ok_reply": true,
+    "cursorBefore": "0, 5430, 1694, 254, 0, 21",
+    "cursorAfter": "0, 5430, 1694, 254, 0, 21",
+    "cursorUnchanged": true,
+    "shape": true,
+    "columns": 14,
+    "rows": 29,
+    "cells": [
+     {
+      "axis": "columns",
+      "index": 0,
+      "label": "A",
+      "got": [
+       0,
+       1694
+      ],
+      "want": [
+       0,
+       1694
+      ],
+      "ok": true
+     },
+     {
+      "axis": "columns",
+      "index": 1,
+      "label": "B",
+      "got": [
+       1695,
+       1019
+      ],
+      "want": [
+       1695,
+       1019
+      ],
+      "ok": true
+     },
+     {
+      "axis": "columns",
+      "index": 2,
+      "label": "C",
+      "got": [
+       2715,
+       1694
+      ],
+      "want": [
+       2715,
+       1694
+      ],
+      "ok": true
+     },
+     {
+      "axis": "columns",
+      "index": 3,
+      "hidden": true,
+      "expectedHidden": true,
+      "ok": true
+     },
+     {
+      "axis": "columns",
+      "index": 4,
+      "label": "E",
+      "got": [
+       4410,
+       1694
+      ],
+      "want": [
+       4410,
+       1694
+      ],
+      "ok": true
+     },
+     {
+      "axis": "columns",
+      "index": 5,
+      "label": "F",
+      "got": [
+       6105,
+       1274
+      ],
+      "want": [
+       6105,
+       1274
+      ],
+      "ok": true
+     },
+     {
+      "axis": "columns",
+      "index": 6,
+      "label": "G",
+      "got": [
+       7380,
+       1274
+      ],
+      "want": [
+       7380,
+       1274
+      ],
+      "ok": true
+     },
+     {
+      "axis": "columns",
+      "index": 7,
+      "label": "H",
+      "got": [
+       8655,
+       1274
+      ],
+      "want": [
+       8655,
+       1274
+      ],
+      "ok": true
+     },
+     {
+      "axis": "columns",
+      "index": 8,
+      "label": "I",
+      "got": [
+       9930,
+       1274
+      ],
+      "want": [
+       9930,
+       1274
+      ],
+      "ok": true
+     },
+     {
+      "axis": "columns",
+      "index": 9,
+      "label": "J",
+      "got": [
+       11205,
+       1274
+      ],
+      "want": [
+       11205,
+       1274
+      ],
+      "ok": true
+     },
+     {
+      "axis": "columns",
+      "index": 10,
+      "label": "K",
+      "got": [
+       12480,
+       1274
+      ],
+      "want": [
+       12480,
+       1274
+      ],
+      "ok": true
+     },
+     {
+      "axis": "columns",
+      "index": 11,
+      "label": "L",
+      "got": [
+       13755,
+       1274
+      ],
+      "want": [
+       13755,
+       1274
+      ],
+      "ok": true
+     },
+     {
+      "axis": "columns",
+      "index": 12,
+      "label": "M",
+      "got": [
+       15030,
+       1274
+      ],
+      "want": [
+       15030,
+       1274
+      ],
+      "ok": true
+     },
+     {
+      "axis": "columns",
+      "index": 13,
+      "label": "N",
+      "got": [
+       16305,
+       1274
+      ],
+      "want": [
+       16305,
+       1274
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 993,
+      "label": "994",
+      "got": [
+       253290,
+       254
+      ],
+      "want": [
+       253290,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 994,
+      "label": "995",
+      "got": [
+       253545,
+       254
+      ],
+      "want": [
+       253545,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 995,
+      "label": "996",
+      "got": [
+       253800,
+       254
+      ],
+      "want": [
+       253800,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 996,
+      "label": "997",
+      "got": [
+       254055,
+       254
+      ],
+      "want": [
+       254055,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 997,
+      "label": "998",
+      "got": [
+       254310,
+       254
+      ],
+      "want": [
+       254310,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 998,
+      "label": "999",
+      "got": [
+       254565,
+       254
+      ],
+      "want": [
+       254565,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 999,
+      "label": "1000",
+      "got": [
+       254820,
+       299
+      ],
+      "want": [
+       254820,
+       299
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 1000,
+      "label": "1001",
+      "got": [
+       255120,
+       254
+      ],
+      "want": [
+       255120,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 1001,
+      "label": "1002",
+      "got": [
+       255375,
+       254
+      ],
+      "want": [
+       255375,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 1002,
+      "label": "1003",
+      "got": [
+       255630,
+       254
+      ],
+      "want": [
+       255630,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 1003,
+      "label": "1004",
+      "got": [
+       255885,
+       254
+      ],
+      "want": [
+       255885,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 1004,
+      "label": "1005",
+      "got": [
+       256140,
+       254
+      ],
+      "want": [
+       256140,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 1005,
+      "label": "1006",
+      "got": [
+       256395,
+       254
+      ],
+      "want": [
+       256395,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 1006,
+      "label": "1007",
+      "got": [
+       256650,
+       254
+      ],
+      "want": [
+       256650,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 1007,
+      "label": "1008",
+      "got": [
+       256905,
+       254
+      ],
+      "want": [
+       256905,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 1008,
+      "label": "1009",
+      "got": [
+       257160,
+       254
+      ],
+      "want": [
+       257160,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 1009,
+      "label": "1010",
+      "got": [
+       257415,
+       254
+      ],
+      "want": [
+       257415,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 1010,
+      "label": "1011",
+      "got": [
+       257670,
+       254
+      ],
+      "want": [
+       257670,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 1011,
+      "label": "1012",
+      "got": [
+       257925,
+       254
+      ],
+      "want": [
+       257925,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 1012,
+      "label": "1013",
+      "got": [
+       258180,
+       254
+      ],
+      "want": [
+       258180,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 1013,
+      "label": "1014",
+      "got": [
+       258435,
+       254
+      ],
+      "want": [
+       258435,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 1014,
+      "label": "1015",
+      "got": [
+       258690,
+       254
+      ],
+      "want": [
+       258690,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 1015,
+      "label": "1016",
+      "got": [
+       258945,
+       254
+      ],
+      "want": [
+       258945,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 1016,
+      "label": "1017",
+      "got": [
+       259200,
+       254
+      ],
+      "want": [
+       259200,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 1017,
+      "label": "1018",
+      "got": [
+       259455,
+       254
+      ],
+      "want": [
+       259455,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 1018,
+      "label": "1019",
+      "got": [
+       259710,
+       254
+      ],
+      "want": [
+       259710,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 1019,
+      "label": "1020",
+      "got": [
+       259965,
+       254
+      ],
+      "want": [
+       259965,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 1020,
+      "label": "1021",
+      "got": [
+       260220,
+       254
+      ],
+      "want": [
+       260220,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 1021,
+      "label": "1022",
+      "got": [
+       260475,
+       254
+      ],
+      "want": [
+       260475,
+       254
+      ],
+      "ok": true
+     }
+    ],
+    "ok": true
+   },
+   {
+    "rect": "columns-only",
+    "ms": 0.124,
+    "ok_reply": true,
+    "cursorBefore": "0, 260475, 1694, 254, 0, 1021",
+    "cursorAfter": "0, 260475, 1694, 254, 0, 1021",
+    "cursorUnchanged": true,
+    "shape": true,
+    "columns": 14,
+    "rows": 0,
+    "cells": [
+     {
+      "axis": "columns",
+      "index": 0,
+      "label": "A",
+      "got": [
+       0,
+       1694
+      ],
+      "want": [
+       0,
+       1694
+      ],
+      "ok": true
+     },
+     {
+      "axis": "columns",
+      "index": 1,
+      "label": "B",
+      "got": [
+       1695,
+       1019
+      ],
+      "want": [
+       1695,
+       1019
+      ],
+      "ok": true
+     },
+     {
+      "axis": "columns",
+      "index": 2,
+      "label": "C",
+      "got": [
+       2715,
+       1694
+      ],
+      "want": [
+       2715,
+       1694
+      ],
+      "ok": true
+     },
+     {
+      "axis": "columns",
+      "index": 3,
+      "hidden": true,
+      "expectedHidden": true,
+      "ok": true
+     },
+     {
+      "axis": "columns",
+      "index": 4,
+      "label": "E",
+      "got": [
+       4410,
+       1694
+      ],
+      "want": [
+       4410,
+       1694
+      ],
+      "ok": true
+     },
+     {
+      "axis": "columns",
+      "index": 5,
+      "label": "F",
+      "got": [
+       6105,
+       1274
+      ],
+      "want": [
+       6105,
+       1274
+      ],
+      "ok": true
+     },
+     {
+      "axis": "columns",
+      "index": 6,
+      "label": "G",
+      "got": [
+       7380,
+       1274
+      ],
+      "want": [
+       7380,
+       1274
+      ],
+      "ok": true
+     },
+     {
+      "axis": "columns",
+      "index": 7,
+      "label": "H",
+      "got": [
+       8655,
+       1274
+      ],
+      "want": [
+       8655,
+       1274
+      ],
+      "ok": true
+     },
+     {
+      "axis": "columns",
+      "index": 8,
+      "label": "I",
+      "got": [
+       9930,
+       1274
+      ],
+      "want": [
+       9930,
+       1274
+      ],
+      "ok": true
+     },
+     {
+      "axis": "columns",
+      "index": 9,
+      "label": "J",
+      "got": [
+       11205,
+       1274
+      ],
+      "want": [
+       11205,
+       1274
+      ],
+      "ok": true
+     },
+     {
+      "axis": "columns",
+      "index": 10,
+      "label": "K",
+      "got": [
+       12480,
+       1274
+      ],
+      "want": [
+       12480,
+       1274
+      ],
+      "ok": true
+     },
+     {
+      "axis": "columns",
+      "index": 11,
+      "label": "L",
+      "got": [
+       13755,
+       1274
+      ],
+      "want": [
+       13755,
+       1274
+      ],
+      "ok": true
+     },
+     {
+      "axis": "columns",
+      "index": 12,
+      "label": "M",
+      "got": [
+       15030,
+       1274
+      ],
+      "want": [
+       15030,
+       1274
+      ],
+      "ok": true
+     },
+     {
+      "axis": "columns",
+      "index": 13,
+      "label": "N",
+      "got": [
+       16305,
+       1274
+      ],
+      "want": [
+       16305,
+       1274
+      ],
+      "ok": true
+     }
+    ],
+    "ok": true
+   },
+   {
+    "rect": "rows-only",
+    "ms": 0.289,
+    "ok_reply": true,
+    "cursorBefore": "16305, 0, 1274, 269, 13, 0",
+    "cursorAfter": "16305, 0, 1274, 269, 13, 0",
+    "cursorUnchanged": true,
+    "shape": true,
+    "columns": 0,
+    "rows": 26,
+    "cells": [
+     {
+      "axis": "rows",
+      "index": 0,
+      "label": "1",
+      "got": [
+       0,
+       269
+      ],
+      "want": [
+       0,
+       269
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 1,
+      "label": "2",
+      "got": [
+       270,
+       554
+      ],
+      "want": [
+       270,
+       554
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 2,
+      "label": "3",
+      "got": [
+       825,
+       269
+      ],
+      "want": [
+       825,
+       269
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 3,
+      "hidden": true,
+      "expectedHidden": true,
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 4,
+      "label": "5",
+      "got": [
+       1095,
+       254
+      ],
+      "want": [
+       1095,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 5,
+      "label": "6",
+      "got": [
+       1350,
+       254
+      ],
+      "want": [
+       1350,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 6,
+      "label": "7",
+      "got": [
+       1605,
+       254
+      ],
+      "want": [
+       1605,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 7,
+      "label": "8",
+      "got": [
+       1860,
+       254
+      ],
+      "want": [
+       1860,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 8,
+      "label": "9",
+      "got": [
+       2115,
+       254
+      ],
+      "want": [
+       2115,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 9,
+      "label": "10",
+      "got": [
+       2370,
+       254
+      ],
+      "want": [
+       2370,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 10,
+      "label": "11",
+      "got": [
+       2625,
+       254
+      ],
+      "want": [
+       2625,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 11,
+      "label": "12",
+      "got": [
+       2880,
+       254
+      ],
+      "want": [
+       2880,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 12,
+      "label": "13",
+      "got": [
+       3135,
+       254
+      ],
+      "want": [
+       3135,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 13,
+      "label": "14",
+      "got": [
+       3390,
+       254
+      ],
+      "want": [
+       3390,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 14,
+      "label": "15",
+      "got": [
+       3645,
+       254
+      ],
+      "want": [
+       3645,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 15,
+      "label": "16",
+      "got": [
+       3900,
+       254
+      ],
+      "want": [
+       3900,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 16,
+      "label": "17",
+      "got": [
+       4155,
+       254
+      ],
+      "want": [
+       4155,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 17,
+      "label": "18",
+      "got": [
+       4410,
+       254
+      ],
+      "want": [
+       4410,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 18,
+      "label": "19",
+      "got": [
+       4665,
+       254
+      ],
+      "want": [
+       4665,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 19,
+      "label": "20",
+      "got": [
+       4920,
+       254
+      ],
+      "want": [
+       4920,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 20,
+      "label": "21",
+      "got": [
+       5175,
+       254
+      ],
+      "want": [
+       5175,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 21,
+      "label": "22",
+      "got": [
+       5430,
+       254
+      ],
+      "want": [
+       5430,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 22,
+      "label": "23",
+      "got": [
+       5685,
+       254
+      ],
+      "want": [
+       5685,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 23,
+      "label": "24",
+      "got": [
+       5940,
+       254
+      ],
+      "want": [
+       5940,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 24,
+      "label": "25",
+      "got": [
+       6195,
+       254
+      ],
+      "want": [
+       6195,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 25,
+      "label": "26",
+      "got": [
+       6450,
+       254
+      ],
+      "want": [
+       6450,
+       254
+      ],
+      "ok": true
+     }
+    ],
+    "ok": true
+   },
+   {
+    "rect": "past-z",
+    "ms": 0.307,
+    "ok_reply": true,
+    "cursorBefore": "0, 6450, 1694, 254, 0, 25",
+    "cursorAfter": "0, 6450, 1694, 254, 0, 25",
+    "cursorUnchanged": true,
+    "shape": true,
+    "columns": 17,
+    "rows": 14,
+    "cells": [
+     {
+      "axis": "columns",
+      "index": 15,
+      "label": "P",
+      "got": [
+       18855,
+       1274
+      ],
+      "want": [
+       18855,
+       1274
+      ],
+      "ok": true
+     },
+     {
+      "axis": "columns",
+      "index": 16,
+      "label": "Q",
+      "got": [
+       20130,
+       1274
+      ],
+      "want": [
+       20130,
+       1274
+      ],
+      "ok": true
+     },
+     {
+      "axis": "columns",
+      "index": 17,
+      "label": "R",
+      "got": [
+       21405,
+       1274
+      ],
+      "want": [
+       21405,
+       1274
+      ],
+      "ok": true
+     },
+     {
+      "axis": "columns",
+      "index": 18,
+      "label": "S",
+      "got": [
+       22680,
+       1274
+      ],
+      "want": [
+       22680,
+       1274
+      ],
+      "ok": true
+     },
+     {
+      "axis": "columns",
+      "index": 19,
+      "label": "T",
+      "got": [
+       23955,
+       1274
+      ],
+      "want": [
+       23955,
+       1274
+      ],
+      "ok": true
+     },
+     {
+      "axis": "columns",
+      "index": 20,
+      "label": "U",
+      "got": [
+       25230,
+       1274
+      ],
+      "want": [
+       25230,
+       1274
+      ],
+      "ok": true
+     },
+     {
+      "axis": "columns",
+      "index": 21,
+      "label": "V",
+      "got": [
+       26505,
+       1274
+      ],
+      "want": [
+       26505,
+       1274
+      ],
+      "ok": true
+     },
+     {
+      "axis": "columns",
+      "index": 22,
+      "label": "W",
+      "got": [
+       27780,
+       1274
+      ],
+      "want": [
+       27780,
+       1274
+      ],
+      "ok": true
+     },
+     {
+      "axis": "columns",
+      "index": 23,
+      "label": "X",
+      "got": [
+       29055,
+       1274
+      ],
+      "want": [
+       29055,
+       1274
+      ],
+      "ok": true
+     },
+     {
+      "axis": "columns",
+      "index": 24,
+      "label": "Y",
+      "got": [
+       30330,
+       1274
+      ],
+      "want": [
+       30330,
+       1274
+      ],
+      "ok": true
+     },
+     {
+      "axis": "columns",
+      "index": 25,
+      "label": "Z",
+      "got": [
+       31605,
+       1274
+      ],
+      "want": [
+       31605,
+       1274
+      ],
+      "ok": true
+     },
+     {
+      "axis": "columns",
+      "index": 26,
+      "label": "AA",
+      "got": [
+       32880,
+       1274
+      ],
+      "want": [
+       32880,
+       1274
+      ],
+      "ok": true
+     },
+     {
+      "axis": "columns",
+      "index": 27,
+      "label": "AB",
+      "got": [
+       34155,
+       1274
+      ],
+      "want": [
+       34155,
+       1274
+      ],
+      "ok": true
+     },
+     {
+      "axis": "columns",
+      "index": 28,
+      "label": "AC",
+      "got": [
+       35430,
+       1274
+      ],
+      "want": [
+       35430,
+       1274
+      ],
+      "ok": true
+     },
+     {
+      "axis": "columns",
+      "index": 29,
+      "label": "AD",
+      "got": [
+       36705,
+       1274
+      ],
+      "want": [
+       36705,
+       1274
+      ],
+      "ok": true
+     },
+     {
+      "axis": "columns",
+      "index": 30,
+      "label": "AE",
+      "got": [
+       37980,
+       1274
+      ],
+      "want": [
+       37980,
+       1274
+      ],
+      "ok": true
+     },
+     {
+      "axis": "columns",
+      "index": 31,
+      "label": "AF",
+      "got": [
+       39255,
+       1274
+      ],
+      "want": [
+       39255,
+       1274
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 0,
+      "label": "1",
+      "got": [
+       0,
+       269
+      ],
+      "want": [
+       0,
+       269
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 1,
+      "label": "2",
+      "got": [
+       270,
+       554
+      ],
+      "want": [
+       270,
+       554
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 2,
+      "label": "3",
+      "got": [
+       825,
+       269
+      ],
+      "want": [
+       825,
+       269
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 3,
+      "hidden": true,
+      "expectedHidden": true,
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 4,
+      "label": "5",
+      "got": [
+       1095,
+       254
+      ],
+      "want": [
+       1095,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 5,
+      "label": "6",
+      "got": [
+       1350,
+       254
+      ],
+      "want": [
+       1350,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 6,
+      "label": "7",
+      "got": [
+       1605,
+       254
+      ],
+      "want": [
+       1605,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 7,
+      "label": "8",
+      "got": [
+       1860,
+       254
+      ],
+      "want": [
+       1860,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 8,
+      "label": "9",
+      "got": [
+       2115,
+       254
+      ],
+      "want": [
+       2115,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 9,
+      "label": "10",
+      "got": [
+       2370,
+       254
+      ],
+      "want": [
+       2370,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 10,
+      "label": "11",
+      "got": [
+       2625,
+       254
+      ],
+      "want": [
+       2625,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 11,
+      "label": "12",
+      "got": [
+       2880,
+       254
+      ],
+      "want": [
+       2880,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 12,
+      "label": "13",
+      "got": [
+       3135,
+       254
+      ],
+      "want": [
+       3135,
+       254
+      ],
+      "ok": true
+     },
+     {
+      "axis": "rows",
+      "index": 13,
+      "label": "14",
+      "got": [
+       3390,
+       254
+      ],
+      "want": [
+       3390,
+       254
+      ],
+      "ok": true
+     }
+    ],
+    "ok": true
+   }
+  ],
+  "holds": true
+ },
+ "N-H2": {
+  "rows": [
+   {
+    "id": "column-A",
+    "range": [
+     0,
+     0,
+     0,
+     1048575
+    ],
+    "reply": {
+     "ok": "true",
+     "code": null,
+     "changed": "true",
+     "bold": "on"
+    },
+    "ms": 6.859,
+    "boldAfter": [
+     "on",
+     "on",
+     "on"
+    ],
+    "boldAfterUndo": [
+     "off",
+     "off",
+     "off"
+    ],
+    "undoResultCame": true,
+    "ok": true
+   },
+   {
+    "id": "column-B",
+    "range": [
+     1,
+     0,
+     1,
+     1048575
+    ],
+    "reply": {
+     "ok": "true",
+     "code": null,
+     "changed": "true",
+     "bold": "on"
+    },
+    "ms": 0.311,
+    "boldAfter": [
+     "on",
+     "on",
+     "on"
+    ],
+    "boldAfterUndo": [
+     "off",
+     "off",
+     "off"
+    ],
+    "undoResultCame": true,
+    "ok": true
+   },
+   {
+    "id": "column-C",
+    "range": [
+     2,
+     0,
+     2,
+     1048575
+    ],
+    "reply": {
+     "ok": "true",
+     "code": null,
+     "changed": "true",
+     "bold": "on"
+    },
+    "ms": 0.297,
+    "boldAfter": [
+     "on",
+     "on",
+     "on"
+    ],
+    "boldAfterUndo": [
+     "off",
+     "off",
+     "off"
+    ],
+    "undoResultCame": true,
+    "ok": true
+   },
+   {
+    "id": "column-D",
+    "range": [
+     3,
+     0,
+     3,
+     1048575
+    ],
+    "reply": {
+     "ok": "true",
+     "code": null,
+     "changed": "true",
+     "bold": "on"
+    },
+    "ms": 0.316,
+    "boldAfter": [
+     "on",
+     "on",
+     "on"
+    ],
+    "boldAfterUndo": [
+     "off",
+     "off",
+     "off"
+    ],
+    "undoResultCame": true,
+    "ok": true
+   },
+   {
+    "id": "column-E",
+    "range": [
+     4,
+     0,
+     4,
+     1048575
+    ],
+    "reply": {
+     "ok": "true",
+     "code": null,
+     "changed": "true",
+     "bold": "on"
+    },
+    "ms": 0.357,
+    "boldAfter": [
+     "on",
+     "on",
+     "on"
+    ],
+    "boldAfterUndo": [
+     "off",
+     "off",
+     "off"
+    ],
+    "undoResultCame": true,
+    "ok": true
+   },
+   {
+    "id": "column-F",
+    "range": [
+     5,
+     0,
+     5,
+     1048575
+    ],
+    "reply": {
+     "ok": "true",
+     "code": null,
+     "changed": "true",
+     "bold": "on"
+    },
+    "ms": 0.331,
+    "boldAfter": [
+     "on",
+     "on",
+     "on"
+    ],
+    "boldAfterUndo": [
+     "off",
+     "off",
+     "off"
+    ],
+    "undoResultCame": true,
+    "ok": true
+   },
+   {
+    "id": "column-AA",
+    "range": [
+     26,
+     0,
+     26,
+     1048575
+    ],
+    "reply": {
+     "ok": "true",
+     "code": null,
+     "changed": "true",
+     "bold": "on"
+    },
+    "ms": 0.333,
+    "boldAfter": [
+     "on",
+     "on",
+     "on"
+    ],
+    "boldAfterUndo": [
+     "off",
+     "off",
+     "off"
+    ],
+    "undoResultCame": true,
+    "ok": true
+   },
+   {
+    "id": "row-1",
+    "range": [
+     0,
+     0,
+     16383,
+     0
+    ],
+    "reply": {
+     "ok": "true",
+     "code": null,
+     "changed": "true",
+     "bold": "on"
+    },
+    "ms": 0.594,
+    "boldAfter": [
+     "on",
+     "on",
+     "on"
+    ],
+    "boldAfterUndo": [
+     "off",
+     "off",
+     "off"
+    ],
+    "undoResultCame": true,
+    "ok": true
+   },
+   {
+    "id": "row-3",
+    "range": [
+     0,
+     2,
+     16383,
+     2
+    ],
+    "reply": {
+     "ok": "true",
+     "code": null,
+     "changed": "true",
+     "bold": "on"
+    },
+    "ms": 0.441,
+    "boldAfter": [
+     "on",
+     "on",
+     "on"
+    ],
+    "boldAfterUndo": [
+     "off",
+     "off",
+     "off"
+    ],
+    "undoResultCame": true,
+    "ok": true
+   },
+   {
+    "id": "row-1000",
+    "range": [
+     0,
+     999,
+     16383,
+     999
+    ],
+    "reply": {
+     "ok": "true",
+     "code": null,
+     "changed": "true",
+     "bold": "on"
+    },
+    "ms": 0.499,
+    "boldAfter": [
+     "on",
+     "on",
+     "on"
+    ],
+    "boldAfterUndo": [
+     "off",
+     "off",
+     "off"
+    ],
+    "undoResultCame": true,
+    "ok": true
+   },
+   {
+    "id": "sheet",
+    "range": [
+     0,
+     0,
+     16383,
+     1048575
+    ],
+    "reply": {
+     "ok": "true",
+     "code": null,
+     "changed": "true",
+     "bold": "on"
+    },
+    "ms": 0.508,
+    "boldAfter": [
+     "on",
+     "on",
+     "on"
+    ],
+    "boldAfterUndo": [
+     "off",
+     "off",
+     "off"
+    ],
+    "undoResultCame": true,
+    "ok": true
+   }
+  ],
+  "holds": true
+ },
+ "N-H3": {
+  "rows": [
+   {
+    "id": "protected-whole-column",
+    "code": "READ_ONLY",
+    "boldAfter": "off",
+    "ok": true
+   },
+   {
+    "id": "non-whole-80000-cells",
+    "code": "RANGE_TOO_LARGE",
+    "ok": true
+   },
+   {
+    "id": "non-whole-across-merge",
+    "code": "RANGE_MERGE_BOUNDARY",
+    "ok": true
+   },
+   {
+    "id": "whole-column-A-through-A3:B3",
+    "code": null,
+    "a3Bold": "on",
+    "ok": true
+   }
+  ],
+  "holds": true
+ },
+ "N-H4": {
+  "op13Ms": [
+   0.757,
+   0.289,
+   0.421,
+   0.124,
+   0.289,
+   0.307
+  ],
+  "wholeMs": {
+   "column-A": 6.859,
+   "column-B": 0.311,
+   "column-C": 0.297,
+   "column-D": 0.316,
+   "column-E": 0.357,
+   "column-F": 0.331,
+   "column-AA": 0.333,
+   "row-1": 0.594,
+   "row-3": 0.441,
+   "row-1000": 0.499,
+   "sheet": 0.508
+  }
+ },
+ "redCases": [
+  {
+   "case": "op 0 in place of op 13 for \"the cursor does not move\"",
+   "cursorUnchanged": false,
+   "red": true
+  },
+  {
+   "case": "whole column with endRow = maxRows - 2",
+   "code": "RANGE_TOO_LARGE",
+   "red": true
+  },
+  {
+   "case": "the pre-zoom core reply (A = 110 px) against the cursor",
+   "mismatched": [
+    {
+     "axis": "columns",
+     "index": 0,
+     "label": "A",
+     "got": [
+      0,
+      1694
+     ],
+     "want": [
+      0,
+      1649
+     ],
+     "ok": false
+    },
+    {
+     "axis": "columns",
+     "index": 1,
+     "label": "B",
+     "got": [
+      1695,
+      1019
+     ],
+     "want": [
+      1650,
+      989
+     ],
+     "ok": false
+    },
+    {
+     "axis": "columns",
+     "index": 2,
+     "label": "C",
+     "got": [
+      2715,
+      1694
+     ],
+     "want": [
+      2640,
+      1649
+     ],
+     "ok": false
+    }
+   ],
+   "red": true
+  }
+ ],
+ "headersExit": 0,
+ "controlExit": 0,
+ "verdict": "N_HOLDS"
+}

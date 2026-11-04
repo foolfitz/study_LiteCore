@@ -5,7 +5,9 @@ native core (build-native-26-8), in two variants -- `undo` with OXSDK_ODS_UNDO a
 Single-file g++ builds of a small harness, no core build: the agent runs it after checking `uptime` and `pgrep -a make` (AGENTS.md,
 2026-10-28), and so does this script, refusing when a make is running.  The commands are the Makefile's calc-style-native rule with the
 driver swapped and, for `undo`, one define added.  Receipt: build-receipt.json in --out (argv, exit, seconds, source and output sha256).
-  build_calc_undo_native.py --out DIR
+  build_calc_undo_native.py --out DIR [--variant NAME=-DDEF,-DDEF ...]
+--variant (repeatable, 2026-11-05 for SPEC-P-calc-headers) replaces the two default variants with the named define sets; without it
+the tool builds exactly what it built before.
 """
 import argparse
 import hashlib
@@ -32,7 +34,16 @@ def sha(path):
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--out", type=Path, required=True)
+    parser.add_argument("--variant", action="append", default=[], metavar="NAME=-DDEF,-DDEF")
     args = parser.parse_args()
+    variants = VARIANTS
+    if args.variant:
+        variants = {}
+        for spec in args.variant:
+            name, _, defines = spec.partition("=")
+            if not name or not defines or not all(d.startswith("-D") for d in defines.split(",")):
+                parser.error("--variant is NAME=-DDEF[,-DDEF...]")
+            variants[name] = defines.split(",")
     out = args.out.resolve()
     if out.exists():
         parser.error("build output must be fresh")
@@ -48,7 +59,9 @@ def main():
     receipt = {"schema": 1, "uptime": subprocess.check_output(["uptime"], text=True).strip(), "makes": makes.stdout,
                "compiler": subprocess.check_output(["g++", "--version"], text=True).splitlines()[0],
                "sources": {k: sha(v) for k, v in SOURCES.items()}, "steps": []}
-    for variant, defines in VARIANTS.items():
+    receipt["variants"] = variants
+    receipt["argv"] = __import__("sys").argv[1:]
+    for variant, defines in variants.items():
         target = out / variant
         target.mkdir()
         commands = [

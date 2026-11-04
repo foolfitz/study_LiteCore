@@ -11,6 +11,10 @@
 // alignment, range only: JSON {endColumn,endRow,value}, where value is "#rrggbb"
 // or "auto" (10), "#rrggbb" or "none" (11), standard|left|center|right|block (12).
 // Snapshots then carry textColor, backColor and horizontalAlign.
+// OXSDK_ODS_HEADERS (SPEC-P-calc-headers) appends 13, read-only: JSON {x,y,width,height}
+// in twips; returns maxColumns, maxRows and the visible columns/rows as
+// {index,label,startPx,endPx,hidden}, without selecting a cell.  With it, whole
+// columns, rows and the sheet pass the range cell limit and the merge boundary.
 // Old operation values and the frozen v1 identity retain their contracts.
 extern "C" char *oxsdk_calc_cell_model(void *lokDocument, int part, int column,
                                       int row, int operation,
