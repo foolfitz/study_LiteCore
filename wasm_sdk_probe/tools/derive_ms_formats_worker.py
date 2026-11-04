@@ -4,6 +4,8 @@ occurring exactly once, written to --out.
 
   writer  dist/profiles/e2-editor-v32/sdk-worker.js + tests/v33-worker-delta.json   -> the e2-editor-v33 worker
   calc    dist/profiles/ods-editor-v4/sdk-worker.js + tests/ods-v5-worker-delta.json -> the ods-editor-v5 worker
+  calc-headers  dist/profiles/ods-editor-v5/sdk-worker.js + tests/ods-v6-worker-delta.json -> the ods-editor-v6 worker
+                (SPEC-P-calc-headers 3.3; one more entry in this tool's table, not a new tool)
 
 Derived at build time instead of living in sdk/, as derive_ods_v4_worker.py: the Writer shell bundle scans sdk/*.js, and a new file
 there turns generation 88's bundle check red.  tests/ms_formats_worker_test.cjs exercises the same derivation.
@@ -20,6 +22,8 @@ BASES = {
                "c394302c589baff3b40ff67a7579e07cf53fc7447dd3f04b26ff9c827280ff36", SDK / "tests/v33-worker-delta.json"),
     "calc": (SDK / "dist/profiles/ods-editor-v4/sdk-worker.js",
              "4a06fbe45c458b4c9aa60ab7bcd624894dace729a2b83f009f3e9008ccc8919c", SDK / "tests/ods-v5-worker-delta.json"),
+    "calc-headers": (SDK / "dist/profiles/ods-editor-v5/sdk-worker.js",
+                     "79bbafb4b56f17766177772898dc96ea8f50bded15068dfabcb80d176fff72f6", SDK / "tests/ods-v6-worker-delta.json"),
 }
 
 

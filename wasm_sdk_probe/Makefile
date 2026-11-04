@@ -6046,6 +6046,77 @@ $(ODS_EDITOR_V5_BUILD)/profile/sdk-manifest.json: $(ODS_EDITOR_V5_BUILD)/probe.j
 $(ODS_EDITOR_V5_BUILD):
 	mkdir -p $@
 
+# ------------------------------- Calc row/column headers: ods-editor-v6 (specs/SPEC-P-calc-headers.md 3.1-3.3)
+# v5's rules plus OXSDK_ODS_HEADERS on every object: cell operation 13 (the visible headers, read-only) and whole
+# column/row/sheet ranges past the 65,536-cell limit; capability bit 24.  No new export.  Development output under
+# build/ only, as v5's was: dist/ waits for the owner's hand-test slot (CLAUDE.md, cadence).  Owner-run (the link):
+#   make ods-editor-v6-dev
+ODS_EDITOR_V6_BUILD := build/ods/editor-v6
+ODS_EDITOR_V6_DIST := dist/profiles/ods-editor-v6
+ODS_EDITOR_V6_DEFINES := $(ODS_EDITOR_V5_DEFINES) -DOXSDK_ODS_HEADERS
+ODS_EDITOR_V6_OBJECTS := $(patsubst src/%.cpp,$(ODS_EDITOR_V6_BUILD)/%.o,$(ODS_EDITOR_V3_SOURCES))
+
+$(ODS_EDITOR_V6_BUILD)/%.o: src/%.cpp $(HEADERS) src/ods_viewer.hpp src/document_format.hpp \
+		src/calc_cell_bridge.h Makefile | $(ODS_EDITOR_V6_BUILD)
+	$(CXX) $(ODS_EDITOR_V3_CPPFLAGS) $(R5_CXXFLAGS) $(ODS_EDITOR_V6_DEFINES) -c $< -o $@
+
+$(ODS_EDITOR_V6_BUILD)/calc_cell_bridge.o: src/calc_cell_bridge.cpp \
+		src/calc_cell_bridge.h Makefile | $(ODS_EDITOR_V6_BUILD)
+	$(CXX) $(ODS_EDITOR_V3_CPPFLAGS) $(R5_CXXFLAGS) -std=c++20 \
+		-DLIBO_INTERNAL_ONLY -DOXSDK_ODS_RANGE -DOXSDK_ODS_STYLE -DOXSDK_ODS_UNDO -DOXSDK_ODS_HEADERS -c $< -o $@
+
+# v5's list, made the way v5's rule makes it; the profile builder checks it equals v5's.
+$(ODS_EDITOR_V6_BUILD)/exports.txt: \
+		$(ODS_EDITOR_V3_CORE)/workdir/CustomTarget/desktop/soffice_bin-emscripten-exports/exports Makefile \
+		| $(ODS_EDITOR_V6_BUILD)
+	grep -v -e '^__ZTI' -e '^_main$$' $< > $@
+	printf '%s\n' __ZTIN3com3sun4star3ucb31InteractiveAugmentedIOExceptionE \
+		_oxsdk_abi_version _oxsdk_capabilities _oxsdk_engine_start \
+		_oxsdk_document_open _oxsdk_document_paint _oxsdk_document_close \
+		_oxsdk_document_search _oxsdk_document_set_part _oxsdk_document_current_part \
+		_oxsdk_document_part_name _oxsdk_document_part_text _oxsdk_document_part_info \
+		_oxsdk_request_cancel _oxsdk_buffer_alloc _oxsdk_buffer_free \
+		_oxsdk_document_save _oxsdk_document_cell \
+		_oxsdk_document_undo _oxsdk_document_redo >> $@
+
+$(ODS_EDITOR_V6_BUILD)/probe.js: $(ODS_EDITOR_V6_OBJECTS) \
+		$(ODS_EDITOR_V6_BUILD)/calc_cell_bridge.o $(ODS_EDITOR_V6_BUILD)/exports.txt
+	@test ! -e $(ODS_EDITOR_V6_DIST)/sdk-manifest.json || \
+		{ echo "ods-editor-v6 is frozen; use a successor profile"; exit 1; }
+	$(CXX) $(ODS_EDITOR_V6_OBJECTS) $(ODS_EDITOR_V6_BUILD)/calc_cell_bridge.o \
+		-L$(ODS_EDITOR_V3_CORE)/instdir/program \
+		$$(cat $(ODS_EDITOR_V3_CORE)/instdir/program/soffice.js.linkdeps) \
+		-pthread -fwasm-exceptions -sSUPPORT_LONGJMP=wasm --no-entry -Oz \
+		-sMODULARIZE -sEXPORT_NAME=createProbeModule \
+		-sTOTAL_MEMORY=1GB -sPTHREAD_POOL_SIZE=7 -sPTHREAD_POOL_SIZE_STRICT=0 \
+		-sSTACK_SIZE=131072 -sDEFAULT_PTHREAD_STACK_SIZE=1048576 \
+		-sFORCE_FILESYSTEM=1 -sWASM_BIGINT=1 -sERROR_ON_UNDEFINED_SYMBOLS=1 -sFETCH=1 \
+		-sASSERTIONS=0 -sEXIT_RUNTIME=0 -sEXPORTED_RUNTIME_METHODS=ccall,FS,HEAPU8 \
+		-sEXPORTED_FUNCTIONS=@$(ODS_EDITOR_V6_BUILD)/exports.txt \
+		-Wl,--wrap=_Z18initJsUnoScriptingv \
+		--pre-js $(LOSRC)/static/emscripten/environment.js \
+		--pre-js $(ODS_EDITOR_V3_CORE)/workdir/CustomTarget/static/emscripten_fs_image/soffice.data.js.link \
+		-o $@
+
+$(ODS_EDITOR_V6_BUILD)/sdk-worker.js: dist/profiles/ods-editor-v5/sdk-worker.js \
+		tests/ods-v6-worker-delta.json tools/derive_ms_formats_worker.py | $(ODS_EDITOR_V6_BUILD)
+	python3 tools/derive_ms_formats_worker.py --profile calc-headers --out $@
+
+# --base-exports names v5's list as an argument, not a prerequisite: v5's rule lists this Makefile, and
+# remaking it would reach for v5's frozen link.
+$(ODS_EDITOR_V6_BUILD)/profile/sdk-manifest.json: $(ODS_EDITOR_V6_BUILD)/probe.js \
+		$(ODS_EDITOR_V6_BUILD)/sdk-worker.js $(ODS_EDITOR_V6_BUILD)/exports.txt tools/build_ms_formats_profile.py
+	python3 tools/build_ms_formats_profile.py --profile calc-headers --development \
+		--loader $(ODS_EDITOR_V6_BUILD)/probe.js --wasm $(ODS_EDITOR_V6_BUILD)/probe.wasm \
+		--worker $(ODS_EDITOR_V6_BUILD)/sdk-worker.js --exports $(ODS_EDITOR_V6_BUILD)/exports.txt \
+		--base-exports $(ODS_EDITOR_V5_BUILD)/exports.txt --output $(ODS_EDITOR_V6_BUILD)/profile
+
+$(ODS_EDITOR_V6_BUILD):
+	mkdir -p $@
+
+.PHONY: ods-editor-v6-dev
+ods-editor-v6-dev: $(ODS_EDITOR_V6_BUILD)/profile/sdk-manifest.json
+
 # Focused tests only; no objects, no link.  SPEC-P-ms-formats 6.1 F1, F3.
 .PHONY: test-ms-formats-static
 test-ms-formats-static:

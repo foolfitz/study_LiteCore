@@ -6,6 +6,8 @@ Closed list of differences from the frozen base manifest:
 
   writer  base dist/profiles/e2-editor-v32  -> e2-editor-v33: capabilities + open-docx, save-docx; bits 20, 21
   calc    base dist/profiles/ods-editor-v4  -> ods-editor-v5: capabilities + open-xlsx, save-xlsx; bits 22, 23
+  calc-headers  base dist/profiles/ods-editor-v5 -> ods-editor-v6: capabilities + cell-headers; bit 24; a `headersContract`
+          (SPEC-P-calc-headers 3.3, 2026-11-05: an entry in this table, not a new tool; writer and calc build as before)
 
 plus `profile`, `sdkVersion`, a `documentFormatContract` naming the table (src/document_format.hpp), and -- Writer only -- the
 editorContract's loaderSha256 / wasmSha256 / workerSha256 recomputed from the copied artifacts (they named v32's; Codex review
@@ -28,7 +30,22 @@ PROFILES = {
     "calc": {"base": HERE / "dist/profiles/ods-editor-v4", "profile": "ods-editor-v5", "ms": "xlsx",
              "bits": (1 << 22) | (1 << 23),  # OXSDK_CAPABILITY_OPEN_XLSX, SAVE_XLSX
              "open": [".odt", ".ods", ".xlsx"], "save": ["ods", "xlsx"]},
+    "calc-headers": {"base": HERE / "dist/profiles/ods-editor-v5", "profile": "ods-editor-v6",
+                     "capabilities": ["cell-headers"], "bits": 1 << 24,  # src/sdk_api.h OXSDK_CAPABILITY_CELL_HEADERS
+                     "contract": ("headersContract", {
+                         "version": 1, "spec": "specs/SPEC-P-calc-headers.md",
+                         "operation": "cellHeaders: cell operation 13, read-only, no cell selected",
+                         "rectangle": "twips {x, y, width, height}, non-negative integers, width and height not both 0, each at most 245760",
+                         "reply": "{maxColumns, maxRows, columns, rows}; entries {index, label, startPx, endPx, hidden}; 1 CSS px = 15 twips",
+                         "wholeRanges": "a whole column (rows 0..maxRows-1), whole row (columns 0..maxColumns-1) or the sheet "
+                                        "passes the 65536-cell limit and the merge boundary; protection and read-only still refuse"})},
 }
+for _spec in PROFILES.values():  # the Microsoft-formats entries, in the general form
+    if "ms" in _spec:
+        _spec["capabilities"] = [f"open-{_spec['ms']}", f"save-{_spec['ms']}"]
+        _spec["contract"] = ("documentFormatContract", {
+            "version": 1, "table": "src/document_format.hpp", "open": _spec["open"], "save": _spec["save"],
+            "openReply": "format: the accepted suffix's format", "refused": "INVALID_ARGUMENT before the queue"})
 
 
 def main():
@@ -51,9 +68,8 @@ def main():
     if exports != base_exports:
         raise SystemExit(f"the export list moved: added {sorted(exports - base_exports)}, removed {sorted(base_exports - exports)}")
     manifest = json.loads((base / "sdk-manifest.json").read_text())
-    ms = spec["ms"]
-    if {f"open-{ms}", f"save-{ms}"} & set(manifest["capabilities"]) or manifest["expectedCapabilityBits"] & spec["bits"]:
-        raise SystemExit(f"the base already claims {ms}")
+    if set(spec["capabilities"]) & set(manifest["capabilities"]) or manifest["expectedCapabilityBits"] & spec["bits"]:
+        raise SystemExit(f"the base already claims {spec['capabilities']}")
     output.mkdir(parents=True, exist_ok=True)
     for name, source in (("probe.js", args.loader), ("probe.wasm", args.wasm), ("sdk-worker.js", args.worker)):
         shutil.copyfile(source, output / name)
@@ -70,12 +86,10 @@ def main():
             contract[key] = sha(name)
     manifest["profile"] = spec["profile"]
     manifest["sdkVersion"] = "0.6.0-r6-worker+" + spec["profile"]
-    manifest["capabilities"] += [f"open-{ms}", f"save-{ms}"]
+    manifest["capabilities"] += spec["capabilities"]
     manifest["expectedCapabilityBits"] |= spec["bits"]
-    manifest["documentFormatContract"] = {
-        "version": 1, "table": "src/document_format.hpp", "open": spec["open"], "save": spec["save"],
-        "openReply": "format: the accepted suffix's format", "refused": "INVALID_ARGUMENT before the queue",
-    }
+    key, value = spec["contract"]
+    manifest[key] = value
     (output / "sdk-manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
     print(json.dumps({"profile": spec["profile"], "development": args.development,
                       "capabilityBits": manifest["expectedCapabilityBits"],

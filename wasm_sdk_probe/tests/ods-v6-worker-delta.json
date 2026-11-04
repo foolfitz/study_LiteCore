@@ -1,0 +1,41 @@
+{
+ "schema": 1,
+ "note": "SPEC-P-calc-headers 3.3: the closed list of replacements taking the frozen ods-editor-v5 worker (dist/profiles/ods-editor-v5/sdk-worker.js) to the ods-editor-v6 worker, applied in order, each occurring exactly once (tools/derive_ms_formats_worker.py --profile calc-headers).",
+ "hunks": [
+  {
+   "item": "1 header comment",
+   "old": "// SPEC-P-ms-formats 5.1: the ods-editor-v5 worker.  The v4 worker plus a closed list\n",
+   "new": "// SPEC-P-calc-headers 3.3: the ods-editor-v6 worker.  The v5 worker plus a closed list\n// (tests/ods-v6-worker-delta.json): cellHeaders (cell op 13), whole column/row/sheet ranges, this comment.\n//\n// SPEC-P-ms-formats 5.1: the ods-editor-v5 worker.  The v4 worker plus a closed list\n"
+  },
+  {
+   "item": "2 cellHeaders needs the cell-headers capability",
+   "old": "  [\"rangeStyle\", \"cell-range-styling\"],\n]);",
+   "new": "  [\"rangeStyle\", \"cell-range-styling\"],\n  [\"cellHeaders\", \"cell-headers\"],\n]);"
+  },
+  {
+   "item": "3 the header rectangle the bridge accepts",
+   "old": "// SPEC-P-demo-batch-3 3.1: the closed spellings the bridge accepts.\nfunction styleValueIsClosed(",
+   "new": "// SPEC-P-calc-headers 3.1: the header rectangle in twips, as the bridge accepts it.\nfunction headerRectangleIsClosed(r) {\n  if (!r || typeof r !== \"object\") return false;\n  if (![\"x\", \"y\", \"width\", \"height\"].every(k => Number.isInteger(r[k]) && r[k] >= 0 && r[k] <= 0x7fffffff)) return false;\n  return (r.width > 0 || r.height > 0) && r.width <= 245760 && r.height <= 245760;\n}\n// SPEC-P-demo-batch-3 3.1: the closed spellings the bridge accepts.\nfunction styleValueIsClosed("
+  },
+  {
+   "item": "4 cellHeaders joins the cell requests",
+   "old": "    case \"rangeFormat\":\n    case \"rangeStyle\": {",
+   "new": "    case \"rangeFormat\":\n    case \"rangeStyle\":\n    case \"cellHeaders\": {"
+  },
+  {
+   "item": "5 whole columns, rows and the sheet pass the cell limit; the rectangle is closed",
+   "old": "            || (payload.endColumn-payload.column+1)*(payload.endRow-payload.row+1)>65536))",
+   "new": "            || ((payload.endColumn-payload.column+1)*(payload.endRow-payload.row+1)>65536\n              && !((payload.row===0&&payload.endRow===1048575)||(payload.column===0&&payload.endColumn===16383)))))\n          || (request.operation === \"cellHeaders\" && !headerRectangleIsClosed(payload.rectangle))"
+  },
+  {
+   "item": "6 cellHeaders is cell op 13",
+   "old": "      const operation = request.operation === \"cellRead\" ? 0",
+   "new": "      const operation = request.operation === \"cellHeaders\" ? 13\n        : request.operation === \"cellRead\" ? 0"
+  },
+  {
+   "item": "7 the rectangle travels as the bridge's JSON",
+   "old": "      accept(request, () => request.operation === \"rangeStyle\"",
+   "new": "      accept(request, () => request.operation === \"cellHeaders\"\n        ? withUtf8(JSON.stringify({x:payload.rectangle.x,y:payload.rectangle.y,width:payload.rectangle.width,height:payload.rectangle.height}),invoke)\n        : request.operation === \"rangeStyle\""
+  }
+ ]
+}
