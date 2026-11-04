@@ -54,6 +54,15 @@ Checkpoint **2026-11-04 16:45**. Supersedes `HANDOFF-2026-11-04b-hand-test-0256-
   `test_v21_shakedown_common.py::test_the_real_mirror_reproduces_the_round_identity` red from before; submissions on hold; never check out
   a candidate in the host repo's working copy (it is the live app).
 
+## Appended after the re-test (owner's requests)
+
+- `手測-0.2.56/` deleted on the owner's word (DAV 204); admin's trash bin emptied (`occ trashbin:cleanup admin`), so it cannot be restored.
+- Disk cleanup (owner chose A-D): identical files in `wasm_sdk_probe/build/archive` hardlinked (`hardlink -t -m 1048576`, 8.54 GiB, all
+  3900 sha256 unchanged) -- **never write an archive file in place**, it would change every linked copy; old host candidates removed
+  (worktrees 0.2.54 / 0.2.55, clone 0.2.56; stale worktree records pruned; branches and archives kept; 0.2.45 and 0.2.57 kept).
+  Docker **not** touched: the stopped containers and unused images are the owner's other projects (some hold state, e.g.
+  `modaodfweb-rhtest` 3.1 GB writable layer; many images are built locally). Free space 49 -> 58 GB.
+
 ## Section 34.4
 
 Checks changed because of review: 0.
