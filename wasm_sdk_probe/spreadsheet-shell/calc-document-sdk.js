@@ -12,6 +12,14 @@ export const CELL_STYLES = Object.freeze({
 });
 export const CELL_INPUT_LIMIT = 32767;
 export const RANGE_CELL_LIMIT = 65536;
+// SPEC-P-calc-headers 3.2: a sheet's fixed size (no jumbo sheets); whole columns, rows and the sheet pass the cell limit.
+export const SHEET_COLUMNS = 16384;
+export const SHEET_ROWS = 1048576;
+export const HEADER_RECTANGLE_LIMIT = 245760;  // twips per side, the bridge's limit
+
+export function isWholeRange(column,row,endColumn,endRow) {
+  return (row===0 && endRow===SHEET_ROWS-1) || (column===0 && endColumn===SHEET_COLUMNS-1);
+}
 
 function invalid(message) {
   throw new DocumentSdkError("INVALID_ARGUMENT", message);
@@ -41,10 +49,10 @@ function styleSnapshot(target,raw,allowMixed) {
   }
 }
 
-function rangeBounds(column,row,endColumn,endRow) {
+function rangeBounds(column,row,endColumn,endRow,allowWhole=false) {
   for(const [key,value] of Object.entries({column,row,endColumn,endRow}))unsigned(value,key);
   if(endColumn<column || endRow<row)invalid("range endpoints are reversed");
-  if((endColumn-column+1)*(endRow-row+1)>RANGE_CELL_LIMIT)
+  if((endColumn-column+1)*(endRow-row+1)>RANGE_CELL_LIMIT && !(allowWhole && isWholeRange(column,row,endColumn,endRow)))
     throw new DocumentSdkError("RANGE_TOO_LARGE",`range exceeds ${RANGE_CELL_LIMIT} logical cells`);
   return {column,row,endColumn,endRow};
 }
@@ -57,7 +65,7 @@ export function normalizeRange(raw) {
       throw new DocumentSdkError("CELL_RESULT_INVALID",`range ${key} is not an integer`);
     range[key]=unsigned(Number(raw[key]),key);
   }
-  rangeBounds(range.column,range.row,range.endColumn,range.endRow);
+  rangeBounds(range.column,range.row,range.endColumn,range.endRow,true);
   for(const key of CELL_FORMATS) {
     if(!["on","off","mixed"].includes(raw[key]))
       throw new DocumentSdkError("CELL_RESULT_INVALID",`range ${key} is not a tristate`);
@@ -69,6 +77,35 @@ export function normalizeRange(raw) {
   range.refusalCode=raw.refusalCode;
   styleSnapshot(range,raw,true);
   return Object.freeze(range);
+}
+
+// SPEC-P-calc-headers 3.1/3.3: the bridge's op 13 reply, closed.  An empty array arrives as "" (boost's JSON writer).
+export function normalizeHeaders(raw) {
+  if(!raw || typeof raw!=="object")throw new DocumentSdkError("CELL_RESULT_INVALID","header reply is missing");
+  const integer=(value,name)=>{
+    if(typeof value!=="number" && !(typeof value==="string" && /^[0-9]+$/.test(value)))
+      throw new DocumentSdkError("CELL_RESULT_INVALID",`${name} is not an integer`);
+    return unsigned(Number(value),name);
+  };
+  const out={part:integer(raw.part,"part"),maxColumns:integer(raw.maxColumns,"maxColumns"),maxRows:integer(raw.maxRows,"maxRows")};
+  if(out.maxColumns!==SHEET_COLUMNS || out.maxRows!==SHEET_ROWS)
+    throw new DocumentSdkError("CELL_RESULT_INVALID","the sheet is not 16384 x 1048576 (jumbo sheets are a named limit)");
+  for(const [axis,label] of [["columns",/^[A-Z]+$/],["rows",/^[1-9][0-9]*$/]]) {
+    const list=raw[axis]==="" ? [] : raw[axis];
+    if(!Array.isArray(list))throw new DocumentSdkError("CELL_RESULT_INVALID",`${axis} is not a list`);
+    let previous=null;
+    out[axis]=Object.freeze(list.map(entry=>{
+      const e={index:integer(entry?.index,"index"),label:entry?.label,startPx:integer(entry?.startPx,"startPx"),
+        endPx:integer(entry?.endPx,"endPx"),hidden:boolean(entry?.hidden,"hidden")};
+      if(typeof e.label!=="string" || !label.test(e.label) || e.startPx>e.endPx || e.hidden!==(e.startPx===e.endPx)
+          || (previous && (e.index!==previous.index+1 || e.startPx!==previous.endPx))
+          || e.index>=(axis==="columns" ? out.maxColumns : out.maxRows))
+        throw new DocumentSdkError("CELL_RESULT_INVALID",`${axis} entries are not one closed run`);
+      previous=e;
+      return Object.freeze(e);
+    }));
+  }
+  return Object.freeze(out);
 }
 
 export function normalizeCell(raw) {
@@ -144,10 +181,26 @@ export class CalcDocumentEngine extends OdsViewerEngine {
       return request("cellFormat", column, row, {format, enabled}, callOptions);
     };
     handle.rangeFormattingSupported=this.manifest.capabilities.includes("cell-range-formatting");
+    // SPEC-P-calc-headers: op 13 and whole ranges ride on one capability.
+    handle.headersSupported=this.manifest.capabilities.includes("cell-headers");
+    handle.readHeaders=(rectangle,callOptions)=>{
+      if(!handle.headersSupported)
+        throw new DocumentSdkError("UNSUPPORTED_OPERATION","this engine has no header contract");
+      const r=rectangle ?? {};
+      for(const key of ["x","y","width","height"])unsigned(r[key],key);
+      if((r.width===0 && r.height===0) || r.width>HEADER_RECTANGLE_LIMIT || r.height>HEADER_RECTANGLE_LIMIT)
+        invalid("invalid header rectangle");
+      return request("cellHeaders",0,0,{rectangle:{x:r.x,y:r.y,width:r.width,height:r.height}},callOptions,normalizeHeaders)
+        .then(({cell,revision})=>{
+          if(cell.part!==(callOptions?.part ?? handle.currentPart))
+            throw new DocumentSdkError("CELL_RESULT_INVALID","header reply part differs from request");
+          return {headers:cell,revision};
+        });
+    };
     const rangeRequest=(operation,column,row,endColumn,endRow,payload,callOptions)=>{
       if(!handle.rangeFormattingSupported)
         throw new DocumentSdkError("UNSUPPORTED_OPERATION","this engine has no range formatting contract");
-      rangeBounds(column,row,endColumn,endRow);
+      rangeBounds(column,row,endColumn,endRow,handle.headersSupported);
       return request(operation,column,row,{endColumn,endRow,...payload},callOptions,normalizeRange)
         .then(({cell,changed,revision})=>({range:cell,changed,revision}));
     };
