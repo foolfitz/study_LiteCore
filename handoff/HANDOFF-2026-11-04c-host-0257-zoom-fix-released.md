@@ -1,6 +1,6 @@
-# Handoff: host 0.2.57 released -- Writer zoom on documents with comments fixed live; the owner's re-test passes
+# Handoff: host 0.2.57 released (zoom fix), then Calc row/column headers built on a dev profile (P and N hold)
 
-Checkpoint **2026-11-04 16:45**. Supersedes `HANDOFF-2026-11-04b-hand-test-0256-zoom-comment-fix.md`. One handoff for this session.
+Checkpoint **2026-11-05 00:50** (first part written 2026-11-04 16:45). Supersedes `HANDOFF-2026-11-04b-hand-test-0256-zoom-comment-fix.md`. One handoff for this session.
 
 ## The owner's decisions this session
 
@@ -62,6 +62,45 @@ Checkpoint **2026-11-04 16:45**. Supersedes `HANDOFF-2026-11-04b-hand-test-0256-
   (worktrees 0.2.54 / 0.2.55, clone 0.2.56; stale worktree records pruned; branches and archives kept; 0.2.45 and 0.2.57 kept).
   Docker **not** touched: the stopped containers and unused images are the owner's other projects (some hold state, e.g.
   `modaodfweb-rhtest` 3.1 GB writable layer; many images are built locally). Free space 49 -> 58 GB.
+
+## Part 2 (2026-11-04 evening to 11-05 00:50): Calc row/column headers -- START HERE
+
+The owner noticed the Calc page has no row/column headers (named limit, SPEC-P-demo-batch-3 141), leaned to B (headers + whole
+column/row selection, "core functionality"), sent it to fable (`research/RESEARCH-2026-11-04-calc-row-column-headers.md`), then said
+"照fable建議" (Q1-Q6 all A) and "請動工". Spec: **`specs/SPEC-P-calc-headers.md`** (criteria pinned before any run; append-only).
+
+Done, all committed:
+- E1 (native, no build): header px x 15 = cursor twips to row 1000; header reads never move the cursor (`findings/evidence/calc-headers/e1/`).
+- Engine (`src/calc_cell_bridge.cpp`, `sdk_api.*`, `probe_engine.cpp`), under `OXSDK_ODS_HEADERS`: cell op 13 (visible headers, read-only)
+  and whole column/row/sheet past the 65,536 limit and the merge boundary; capability bit 24. `probe_engine` now counts only ops 7..12 as
+  mutations. N on the native core: `N_HOLDS`, reds red, control refuses (`calc-headers/n-01/`); whole sheet bold 0.5 ms.
+- Worker = v5 + `tests/ods-v6-worker-delta.json` via `derive_ms_formats_worker.py --profile calc-headers`; profile via
+  `build_ms_formats_profile.py --profile calc-headers` (both tools generalised, v5 outputs reproduced byte for byte); Makefile
+  `make ods-editor-v6-dev`. **Linked** by the agent on the owner's word: `build/ods/editor-v6/profile`, wasm `bd85b751`, archived
+  `build/archive/ods-editor-v6-dev-bd85b751`.
+- SDK `readHeaders` / `normalizeHeaders` / whole ranges (`spreadsheet-shell/calc-document-sdk.js`); session `selectWhole`, whole selections
+  kept through format/style/undo (`calc-editor-session.js`); page header strips, click/shift/drag/corner, Ctrl+Space, Ctrl+Shift+Space,
+  Shift+Space (`web/ods-editor.html`, `web/ods-editor-app.js`). Without `cell-headers` (v5) the strips are 0 px and nothing moves.
+- P on the dev profile (`tools/check_calc_headers.py`): `P_HOLDS` Chrome 145/145, Firefox 121/121; four page reds each red in their cell
+  (`calc-headers/p-01/`, `p-red-*/`). Node suite 866/866; Calc mutation tools reject all; Writer generation 90 untouched.
+
+### Next, in order
+
+1. **Not released**: the page's pointer is still `ods-editor-v5` (cadence rule 1). Ask the owner for a hand-test slot. At the slot:
+   freeze `ods-editor-v6` into `dist/profiles/` (copy the dev profile; check its sums against the archive), repoint
+   `web/ods-editor-app.js` `ENGINE_OPTIONS.workerUrl` v5 -> v6, run the Calc release regression on the new page (C, CU, cell, range,
+   autosave, P2 -- see `host-0.2.56/release-inputs.json` for the tools and their v5 evidence) plus P on dist, then host 0.2.58 with
+   `host_release.py` (served delta: the Calc page files and `profiles/ods-editor-v5 -> v6`; Writer unchanged, so no Writer nets).
+2. Owner hand test for headers (zh-TW when handing over): open an .ods; headers A.. and 1..; hidden column/row skipped; click C, shift-click
+   E, drag; corner; bold a whole column and undo; Ctrl+Space / Shift+Space; scroll far right/down and the headers follow.
+3. Named limits (spec 5): frozen panes, Ctrl+click multi-select, resize by drag, insert/delete columns, filtered rows written through,
+   jumbo sheets, header invalidation callback (revision only).
+
+### Cautions (part 2)
+- `build/archive` files are hardlinked (dedup): never write an archive file in place.
+- `check_calc_headers.py` writes its mirror under `build/calc-headers/<out name>`; `--mutate` runs exit 0 only when the named checks are red.
+- The Bash safety check refuses a shell heredoc that contains Makefile command substitution text; edit the Makefile with the Edit tool,
+  and put long generated text in a script file first.
 
 ## Section 34.4
 
