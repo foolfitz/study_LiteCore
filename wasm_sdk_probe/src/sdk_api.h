@@ -67,6 +67,11 @@ typedef enum oxsdk_capability {
      whole column/row/sheet ranges. */
   , OXSDK_CAPABILITY_CELL_HEADERS = 1u << 24
 #endif
+#ifdef OXSDK_ODS_STRUCTURE
+  /* SPEC-P-calc-structure: cell operation 14 (insert/delete whole rows or
+     columns). */
+  , OXSDK_CAPABILITY_CELL_STRUCTURE = 1u << 25
+#endif
 #endif
 #ifdef OXSDK_MS_FORMATS
   /* SPEC-P-ms-formats 5.1 E4: DOCX in the Writer editor, XLSX in the Calc

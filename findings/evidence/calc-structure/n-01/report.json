@@ -1,0 +1,1045 @@
+{
+ "argv": [
+  "tools/check_calc_structure_native.py",
+  "--harness",
+  "../findings/evidence/calc-structure/native-build-01/structure/calc-undo-native",
+  "--control",
+  "../findings/evidence/calc-structure/native-build-01/headers/calc-undo-native",
+  "--out",
+  "../findings/evidence/calc-structure/n-01"
+ ],
+ "tool": "3ee164803469e4cf2d783b9534880934909805c631fcf492ef3acfc99f003ccb",
+ "harness": {
+  "path": "../findings/evidence/calc-structure/native-build-01/structure/calc-undo-native",
+  "sha256": "85e95d5dc3e8700355c6d25dcf4a216c4298312fa7e2f0fb314840ca1e5c1b73"
+ },
+ "control": {
+  "reply": {
+   "ok": "false",
+   "code": "INVALID_ARGUMENT"
+  },
+  "A2": "鄰格必須保留",
+  "ok": true
+ },
+ "cells": {
+  "N-S1": {
+   "id": "N-S1",
+   "change": [
+    "rows",
+    "insert",
+    1,
+    2
+   ],
+   "asBuilt": {
+    "0,1": "鄰格必須保留",
+    "0,2": "合併格",
+    "0,999": "第 1000 列",
+    "4,0": "隱藏欄之後",
+    "26,0": "AA 欄",
+    "1,0": "42",
+    "merge": [
+     "1",
+     "2"
+    ],
+    "C1": [
+     "=B1*2",
+     "84"
+    ],
+    "hidden": {
+     "columns": [
+      3
+     ],
+     "rows": [
+      3
+     ]
+    }
+   },
+   "reply": {
+    "ok": "true",
+    "code": null,
+    "changed": "true",
+    "mutationAttempted": "false",
+    "maxRows": "1048576",
+    "maxColumns": "16384"
+   },
+   "ms": 8.537,
+   "undoBefore": 0,
+   "undoAfter": 1,
+   "after": {
+    "A2": "",
+    "A3": "",
+    "A4": "鄰格必須保留",
+    "merge": [
+     "合併格",
+     "1",
+     "4"
+    ],
+    "hiddenRows": [
+     5
+    ],
+    "A1002": "第 1000 列",
+    "C1": "=B1*2"
+   },
+   "afterWant": {
+    "A2": "",
+    "A3": "",
+    "A4": "鄰格必須保留",
+    "merge": [
+     "合併格",
+     "1",
+     "4"
+    ],
+    "hiddenRows": [
+     5
+    ],
+    "A1002": "第 1000 列",
+    "C1": "=B1*2"
+   },
+   "undo": {
+    "resultCame": true,
+    "waitedMs": 1
+   },
+   "undone": {
+    "0,1": "鄰格必須保留",
+    "0,2": "合併格",
+    "0,999": "第 1000 列",
+    "4,0": "隱藏欄之後",
+    "26,0": "AA 欄",
+    "1,0": "42",
+    "merge": [
+     "1",
+     "2"
+    ],
+    "C1": [
+     "=B1*2",
+     "84"
+    ],
+    "hidden": {
+     "columns": [
+      3
+     ],
+     "rows": [
+      3
+     ]
+    }
+   },
+   "undoAfterUndo": 0,
+   "checks": {
+    "asBuilt": true,
+    "applied": true,
+    "after": true,
+    "oneUndoAction": true,
+    "undoneToOriginal": true
+   },
+   "ok": true
+  },
+  "N-S2": {
+   "id": "N-S2",
+   "change": [
+    "columns",
+    "insert",
+    1,
+    1
+   ],
+   "asBuilt": {
+    "0,1": "鄰格必須保留",
+    "0,2": "合併格",
+    "0,999": "第 1000 列",
+    "4,0": "隱藏欄之後",
+    "26,0": "AA 欄",
+    "1,0": "42",
+    "merge": [
+     "1",
+     "2"
+    ],
+    "C1": [
+     "=B1*2",
+     "84"
+    ],
+    "hidden": {
+     "columns": [
+      3
+     ],
+     "rows": [
+      3
+     ]
+    }
+   },
+   "reply": {
+    "ok": "true",
+    "code": null,
+    "changed": "true",
+    "mutationAttempted": "false",
+    "maxRows": "1048576",
+    "maxColumns": "16384"
+   },
+   "ms": 8.795,
+   "undoBefore": 0,
+   "undoAfter": 1,
+   "after": {
+    "B1": "",
+    "C1": "42",
+    "D1": [
+     "=C1*2",
+     "84"
+    ],
+    "hiddenColumns": [
+     4
+    ],
+    "F1": "隱藏欄之後",
+    "AB1": "AA 欄",
+    "merge": [
+     "合併格",
+     "2",
+     "2"
+    ]
+   },
+   "afterWant": {
+    "B1": "",
+    "C1": "42",
+    "D1": [
+     "=C1*2",
+     "84"
+    ],
+    "hiddenColumns": [
+     4
+    ],
+    "F1": "隱藏欄之後",
+    "AB1": "AA 欄",
+    "merge": [
+     "合併格",
+     "2",
+     "2"
+    ]
+   },
+   "undo": {
+    "resultCame": true,
+    "waitedMs": 73
+   },
+   "undone": {
+    "0,1": "鄰格必須保留",
+    "0,2": "合併格",
+    "0,999": "第 1000 列",
+    "4,0": "隱藏欄之後",
+    "26,0": "AA 欄",
+    "1,0": "42",
+    "merge": [
+     "1",
+     "2"
+    ],
+    "C1": [
+     "=B1*2",
+     "84"
+    ],
+    "hidden": {
+     "columns": [
+      3
+     ],
+     "rows": [
+      3
+     ]
+    }
+   },
+   "undoAfterUndo": 0,
+   "checks": {
+    "asBuilt": true,
+    "applied": true,
+    "after": true,
+    "oneUndoAction": true,
+    "undoneToOriginal": true
+   },
+   "ok": true
+  },
+  "N-S3": {
+   "id": "N-S3",
+   "change": [
+    "rows",
+    "delete",
+    1,
+    1
+   ],
+   "asBuilt": {
+    "0,1": "鄰格必須保留",
+    "0,2": "合併格",
+    "0,999": "第 1000 列",
+    "4,0": "隱藏欄之後",
+    "26,0": "AA 欄",
+    "1,0": "42",
+    "merge": [
+     "1",
+     "2"
+    ],
+    "C1": [
+     "=B1*2",
+     "84"
+    ],
+    "hidden": {
+     "columns": [
+      3
+     ],
+     "rows": [
+      3
+     ]
+    }
+   },
+   "reply": {
+    "ok": "true",
+    "code": null,
+    "changed": "true",
+    "mutationAttempted": "false",
+    "maxRows": "1048576",
+    "maxColumns": "16384"
+   },
+   "ms": 2.26,
+   "undoBefore": 0,
+   "undoAfter": 1,
+   "after": {
+    "A2": [
+     "合併格",
+     "1",
+     "1"
+    ],
+    "A999": "第 1000 列",
+    "hiddenRows": [
+     2
+    ]
+   },
+   "afterWant": {
+    "A2": [
+     "合併格",
+     "1",
+     "1"
+    ],
+    "A999": "第 1000 列",
+    "hiddenRows": [
+     2
+    ]
+   },
+   "undo": {
+    "resultCame": true,
+    "waitedMs": 3
+   },
+   "undone": {
+    "0,1": "鄰格必須保留",
+    "0,2": "合併格",
+    "0,999": "第 1000 列",
+    "4,0": "隱藏欄之後",
+    "26,0": "AA 欄",
+    "1,0": "42",
+    "merge": [
+     "1",
+     "2"
+    ],
+    "C1": [
+     "=B1*2",
+     "84"
+    ],
+    "hidden": {
+     "columns": [
+      3
+     ],
+     "rows": [
+      3
+     ]
+    }
+   },
+   "undoAfterUndo": 0,
+   "checks": {
+    "asBuilt": true,
+    "applied": true,
+    "after": true,
+    "oneUndoAction": true,
+    "undoneToOriginal": true
+   },
+   "ok": true
+  },
+  "N-S4": {
+   "id": "N-S4",
+   "change": [
+    "columns",
+    "delete",
+    1,
+    1
+   ],
+   "asBuilt": {
+    "0,1": "鄰格必須保留",
+    "0,2": "合併格",
+    "0,999": "第 1000 列",
+    "4,0": "隱藏欄之後",
+    "26,0": "AA 欄",
+    "1,0": "42",
+    "merge": [
+     "1",
+     "2"
+    ],
+    "C1": [
+     "=B1*2",
+     "84"
+    ],
+    "hidden": {
+     "columns": [
+      3
+     ],
+     "rows": [
+      3
+     ]
+    }
+   },
+   "reply": {
+    "ok": "true",
+    "code": null,
+    "changed": "true",
+    "mutationAttempted": "false",
+    "maxRows": "1048576",
+    "maxColumns": "16384"
+   },
+   "ms": 9.073,
+   "undoBefore": 0,
+   "undoAfter": 1,
+   "after": {
+    "B1": [
+     "=#REF!1*2",
+     true
+    ]
+   },
+   "afterWant": null,
+   "undo": {
+    "resultCame": true,
+    "waitedMs": 179
+   },
+   "undone": {
+    "0,1": "鄰格必須保留",
+    "0,2": "合併格",
+    "0,999": "第 1000 列",
+    "4,0": "隱藏欄之後",
+    "26,0": "AA 欄",
+    "1,0": "42",
+    "merge": [
+     "1",
+     "2"
+    ],
+    "C1": [
+     "=B1*2",
+     "84"
+    ],
+    "hidden": {
+     "columns": [
+      3
+     ],
+     "rows": [
+      3
+     ]
+    }
+   },
+   "undoAfterUndo": 0,
+   "checks": {
+    "asBuilt": true,
+    "applied": true,
+    "after": true,
+    "oneUndoAction": true,
+    "undoneToOriginal": true
+   },
+   "ok": true
+  },
+  "N-S5": {
+   "id": "N-S5",
+   "cases": [
+    {
+     "id": "protected-insert-rows",
+     "part": 2,
+     "change": [
+      "rows",
+      "insert",
+      0,
+      1
+     ],
+     "want": "READ_ONLY",
+     "reply": {
+      "ok": "false",
+      "code": "READ_ONLY",
+      "mutationAttempted": "false",
+      "message": "the sheet is protected or the document is read-only"
+     },
+     "ms": 0.138,
+     "undo": [
+      0,
+      0
+     ],
+     "reads": [
+      {
+       "ok": "true",
+       "text": "鎖定內容",
+       "formula": "鎖定內容",
+       "value": "0",
+       "endColumn": "0",
+       "endRow": "0"
+      },
+      {
+       "ok": "true",
+       "text": "可編輯",
+       "formula": "可編輯",
+       "value": "0",
+       "endColumn": "1",
+       "endRow": "0"
+      }
+     ],
+     "readsUnchanged": true,
+     "ok": true
+    },
+    {
+     "id": "protected-delete-columns",
+     "part": 2,
+     "change": [
+      "columns",
+      "delete",
+      0,
+      1
+     ],
+     "want": "READ_ONLY",
+     "reply": {
+      "ok": "false",
+      "code": "READ_ONLY",
+      "mutationAttempted": "false",
+      "message": "the sheet is protected or the document is read-only"
+     },
+     "ms": 0.123,
+     "undo": [
+      0,
+      0
+     ],
+     "reads": [
+      {
+       "ok": "true",
+       "text": "鎖定內容",
+       "formula": "鎖定內容",
+       "value": "0",
+       "endColumn": "0",
+       "endRow": "0"
+      },
+      {
+       "ok": "true",
+       "text": "可編輯",
+       "formula": "可編輯",
+       "value": "0",
+       "endColumn": "1",
+       "endRow": "0"
+      }
+     ],
+     "readsUnchanged": true,
+     "ok": true
+    },
+    {
+     "id": "edge-insert-rows",
+     "part": 3,
+     "change": [
+      "rows",
+      "insert",
+      0,
+      1
+     ],
+     "want": "STRUCTURE_REFUSED",
+     "reply": {
+      "ok": "false",
+      "code": "STRUCTURE_REFUSED",
+      "mutationAttempted": "false",
+      "message": "LibreOffice refused the change (data would leave the sheet, an array formula would be split, or the area is locked)"
+     },
+     "ms": 1.06,
+     "undo": [
+      0,
+      0
+     ],
+     "reads": [
+      {
+       "ok": "true",
+       "text": "邊界",
+       "formula": "邊界",
+       "value": "0",
+       "endColumn": "0",
+       "endRow": "0"
+      },
+      {
+       "ok": "true",
+       "text": "最後一列",
+       "formula": "最後一列",
+       "value": "0",
+       "endColumn": "0",
+       "endRow": "1048575"
+      },
+      {
+       "ok": "true",
+       "text": "最後一欄",
+       "formula": "最後一欄",
+       "value": "0",
+       "endColumn": "16383",
+       "endRow": "0"
+      }
+     ],
+     "readsUnchanged": true,
+     "ok": true
+    },
+    {
+     "id": "edge-insert-columns",
+     "part": 3,
+     "change": [
+      "columns",
+      "insert",
+      0,
+      1
+     ],
+     "want": "STRUCTURE_REFUSED",
+     "reply": {
+      "ok": "false",
+      "code": "STRUCTURE_REFUSED",
+      "mutationAttempted": "false",
+      "message": "LibreOffice refused the change (data would leave the sheet, an array formula would be split, or the area is locked)"
+     },
+     "ms": 0.251,
+     "undo": [
+      0,
+      0
+     ],
+     "reads": [
+      {
+       "ok": "true",
+       "text": "邊界",
+       "formula": "邊界",
+       "value": "0",
+       "endColumn": "0",
+       "endRow": "0"
+      },
+      {
+       "ok": "true",
+       "text": "最後一列",
+       "formula": "最後一列",
+       "value": "0",
+       "endColumn": "0",
+       "endRow": "1048575"
+      },
+      {
+       "ok": "true",
+       "text": "最後一欄",
+       "formula": "最後一欄",
+       "value": "0",
+       "endColumn": "16383",
+       "endRow": "0"
+      }
+     ],
+     "readsUnchanged": true,
+     "ok": true
+    },
+    {
+     "id": "array-split-insert-column",
+     "part": 4,
+     "change": [
+      "columns",
+      "insert",
+      2,
+      1
+     ],
+     "want": "STRUCTURE_REFUSED",
+     "reply": {
+      "ok": "false",
+      "code": "STRUCTURE_REFUSED",
+      "mutationAttempted": "false",
+      "message": "LibreOffice refused the change (data would leave the sheet, an array formula would be split, or the area is locked)"
+     },
+     "ms": 0.083,
+     "undo": [
+      0,
+      0
+     ],
+     "reads": [
+      {
+       "ok": "true",
+       "text": "2",
+       "formula": "{=E2:F3*2}",
+       "value": "2",
+       "endColumn": "1",
+       "endRow": "1"
+      },
+      {
+       "ok": "true",
+       "text": "4",
+       "formula": "{=E2:F3*2}",
+       "value": "4",
+       "endColumn": "2",
+       "endRow": "1"
+      },
+      {
+       "ok": "true",
+       "text": "6",
+       "formula": "{=E2:F3*2}",
+       "value": "6",
+       "endColumn": "1",
+       "endRow": "2"
+      },
+      {
+       "ok": "true",
+       "text": "8",
+       "formula": "{=E2:F3*2}",
+       "value": "8",
+       "endColumn": "2",
+       "endRow": "2"
+      }
+     ],
+     "readsUnchanged": true,
+     "ok": true
+    },
+    {
+     "id": "count-0",
+     "part": 0,
+     "change": [
+      "rows",
+      "insert",
+      1,
+      0
+     ],
+     "want": "INVALID_ARGUMENT",
+     "reply": {
+      "ok": "false",
+      "code": "INVALID_ARGUMENT",
+      "mutationAttempted": "false",
+      "message": "invalid structure change"
+     },
+     "ms": 0.036,
+     "undo": [
+      0,
+      0
+     ],
+     "reads": [
+      {
+       "ok": "true",
+       "text": "鄰格必須保留",
+       "formula": "鄰格必須保留",
+       "value": "0",
+       "endColumn": "0",
+       "endRow": "1"
+      },
+      {
+       "ok": "true",
+       "text": "84",
+       "formula": "=B1*2",
+       "value": "84",
+       "endColumn": "2",
+       "endRow": "0"
+      }
+     ],
+     "readsUnchanged": true,
+     "ok": true
+    },
+    {
+     "id": "past-max",
+     "part": 0,
+     "change": [
+      "rows",
+      "insert",
+      1048576,
+      1
+     ],
+     "want": "INVALID_ARGUMENT",
+     "reply": {
+      "ok": "false",
+      "code": "INVALID_ARGUMENT",
+      "mutationAttempted": "false",
+      "message": "invalid structure change"
+     },
+     "ms": 0.039,
+     "undo": [
+      0,
+      0
+     ],
+     "reads": [
+      {
+       "ok": "true",
+       "text": "鄰格必須保留",
+       "formula": "鄰格必須保留",
+       "value": "0",
+       "endColumn": "0",
+       "endRow": "1"
+      },
+      {
+       "ok": "true",
+       "text": "84",
+       "formula": "=B1*2",
+       "value": "84",
+       "endColumn": "2",
+       "endRow": "0"
+      }
+     ],
+     "readsUnchanged": true,
+     "ok": true
+    },
+    {
+     "id": "axis-x",
+     "part": 0,
+     "change": [
+      "x",
+      "insert",
+      1,
+      1
+     ],
+     "want": "INVALID_ARGUMENT",
+     "reply": {
+      "ok": "false",
+      "code": "INVALID_ARGUMENT",
+      "mutationAttempted": "false",
+      "message": "invalid structure change"
+     },
+     "ms": 0.035,
+     "undo": [
+      0,
+      0
+     ],
+     "reads": [
+      {
+       "ok": "true",
+       "text": "鄰格必須保留",
+       "formula": "鄰格必須保留",
+       "value": "0",
+       "endColumn": "0",
+       "endRow": "1"
+      },
+      {
+       "ok": "true",
+       "text": "84",
+       "formula": "=B1*2",
+       "value": "84",
+       "endColumn": "2",
+       "endRow": "0"
+      }
+     ],
+     "readsUnchanged": true,
+     "ok": true
+    }
+   ],
+   "arrayFormula": "{=E2:F3*2}",
+   "ok": true
+  }
+ },
+ "N-S6": {
+  "N-S1": 8.537,
+  "N-S2": 8.795,
+  "N-S3": 2.26,
+  "N-S4": 9.073
+ },
+ "reds": {
+  "a-index-off-by-one": {
+   "record": {
+    "id": "red-a-index-2",
+    "change": [
+     "rows",
+     "insert",
+     2,
+     2
+    ],
+    "asBuilt": {
+     "0,1": "鄰格必須保留",
+     "0,2": "合併格",
+     "0,999": "第 1000 列",
+     "4,0": "隱藏欄之後",
+     "26,0": "AA 欄",
+     "1,0": "42",
+     "merge": [
+      "1",
+      "2"
+     ],
+     "C1": [
+      "=B1*2",
+      "84"
+     ],
+     "hidden": {
+      "columns": [
+       3
+      ],
+      "rows": [
+       3
+      ]
+     }
+    },
+    "reply": {
+     "ok": "true",
+     "code": null,
+     "changed": "true",
+     "mutationAttempted": "false",
+     "maxRows": "1048576",
+     "maxColumns": "16384"
+    },
+    "ms": 8.701,
+    "undoBefore": 0,
+    "undoAfter": 1,
+    "after": {
+     "A2": "鄰格必須保留",
+     "A3": "",
+     "A4": "",
+     "merge": [
+      "合併格",
+      "1",
+      "4"
+     ],
+     "hiddenRows": [
+      5
+     ],
+     "A1002": "第 1000 列",
+     "C1": "=B1*2"
+    },
+    "afterWant": {
+     "A2": "",
+     "A3": "",
+     "A4": "鄰格必須保留",
+     "merge": [
+      "合併格",
+      "1",
+      "4"
+     ],
+     "hiddenRows": [
+      5
+     ],
+     "A1002": "第 1000 列",
+     "C1": "=B1*2"
+    },
+    "undo": {
+     "resultCame": true,
+     "waitedMs": 1
+    },
+    "undone": {
+     "0,1": "鄰格必須保留",
+     "0,2": "合併格",
+     "0,999": "第 1000 列",
+     "4,0": "隱藏欄之後",
+     "26,0": "AA 欄",
+     "1,0": "42",
+     "merge": [
+      "1",
+      "2"
+     ],
+     "C1": [
+      "=B1*2",
+      "84"
+     ],
+     "hidden": {
+      "columns": [
+       3
+      ],
+      "rows": [
+       3
+      ]
+     }
+    },
+    "undoAfterUndo": 0,
+    "checks": {
+     "asBuilt": true,
+     "applied": true,
+     "after": false,
+     "oneUndoAction": true,
+     "undoneToOriginal": true
+    },
+    "ok": false
+   },
+   "red": true
+  },
+  "b-no-undo": {
+   "record": {
+    "id": "red-b-no-undo",
+    "change": [
+     "rows",
+     "delete",
+     1,
+     1
+    ],
+    "asBuilt": {
+     "0,1": "鄰格必須保留",
+     "0,2": "合併格",
+     "0,999": "第 1000 列",
+     "4,0": "隱藏欄之後",
+     "26,0": "AA 欄",
+     "1,0": "42",
+     "merge": [
+      "1",
+      "2"
+     ],
+     "C1": [
+      "=B1*2",
+      "84"
+     ],
+     "hidden": {
+      "columns": [
+       3
+      ],
+      "rows": [
+       3
+      ]
+     }
+    },
+    "reply": {
+     "ok": "true",
+     "code": null,
+     "changed": "true",
+     "mutationAttempted": "false",
+     "maxRows": "1048576",
+     "maxColumns": "16384"
+    },
+    "ms": 2.521,
+    "undoBefore": 0,
+    "undoAfter": 1,
+    "after": {
+     "A2": [
+      "合併格",
+      "1",
+      "1"
+     ],
+     "A999": "第 1000 列",
+     "hiddenRows": [
+      2
+     ]
+    },
+    "afterWant": {
+     "A2": [
+      "合併格",
+      "1",
+      "1"
+     ],
+     "A999": "第 1000 列",
+     "hiddenRows": [
+      2
+     ]
+    },
+    "undone": {
+     "0,1": "合併格",
+     "0,2": "隱藏列",
+     "0,999": "",
+     "4,0": "隱藏欄之後",
+     "26,0": "AA 欄",
+     "1,0": "42",
+     "merge": [
+      "0",
+      "2"
+     ],
+     "C1": [
+      "=B1*2",
+      "84"
+     ],
+     "hidden": {
+      "columns": [
+       3
+      ],
+      "rows": [
+       2
+      ]
+     }
+    },
+    "undoAfterUndo": 1,
+    "checks": {
+     "asBuilt": true,
+     "applied": true,
+     "after": true,
+     "oneUndoAction": true,
+     "undoneToOriginal": false
+    },
+    "ok": false
+   },
+   "red": true
+  }
+ },
+ "verdict": "N_HOLDS"
+}

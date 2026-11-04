@@ -81,6 +81,9 @@ extern "C" EMSCRIPTEN_KEEPALIVE std::uint32_t oxsdk_capabilities(void) {
 #ifdef OXSDK_ODS_HEADERS
          | OXSDK_CAPABILITY_CELL_HEADERS
 #endif
+#ifdef OXSDK_ODS_STRUCTURE
+         | OXSDK_CAPABILITY_CELL_STRUCTURE
+#endif
 #ifdef OXSDK_ODS_UNDO
          // SPEC-P-calc-undo 4.2 E1: the engine's undo walk (probe_engine.cpp,
          // startOdsUndoWalk) and the two exports; redo rides on this bit.
@@ -230,7 +233,9 @@ extern "C" EMSCRIPTEN_KEEPALIVE int32_t oxsdk_document_cell(
     std::int32_t row, std::int32_t operation, const char *text,
     std::uint32_t textLength, std::uint32_t enabled) {
   constexpr int maxOperation =
-#ifdef OXSDK_ODS_HEADERS
+#ifdef OXSDK_ODS_STRUCTURE
+      14;
+#elif defined(OXSDK_ODS_HEADERS)
       13;
 #elif defined(OXSDK_ODS_STYLE)
       12;

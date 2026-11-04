@@ -21,6 +21,10 @@
 #include <com/sun/star/util/CellProtection.hpp>
 #include <com/sun/star/sheet/XCellRangeAddressable.hpp>
 #include <com/sun/star/table/XColumnRowRange.hpp>
+#ifdef OXSDK_ODS_STRUCTURE
+#include <com/sun/star/table/XTableColumns.hpp>
+#include <com/sun/star/table/XTableRows.hpp>
+#endif
 #ifdef OXSDK_ODS_STYLE
 #include <com/sun/star/table/CellHoriJustify.hpp>
 #endif
@@ -184,6 +188,64 @@ ptree accessHeaders(LibreOfficeKitDocument *doc, const Reference<frame::XModel> 
   result.add_child("columns", headerEntries(headers.get_child("columns"), true));
   result.add_child("rows", headerEntries(headers.get_child("rows"), false));
   result.put("changed", false);
+  return result;
+}
+#endif
+
+#ifdef OXSDK_ODS_STRUCTURE
+// SPEC-P-calc-structure 3.1: insert or delete whole rows/columns through UNO's
+// insertByIndex/removeByIndex, which run ScDocFunc::InsertCells/DeleteCells with
+// undo recorded and references adjusted.  The core refuses by throwing (bApi:
+// no dialog) and restores what it touched on that path (InsertCellsOperation
+// re-merges and drops its undo action), so a refusal is reported as clean;
+// N-S5 measures that the document is unchanged after one.
+ptree accessStructure(const Reference<sheet::XSpreadsheet> &sheet,
+                      const Reference<frame::XModel> &model, int part, int columns, int rows,
+                      const char *text, int textLength, bool &mutationAttempted) {
+  if (!text || textLength <= 0)
+    throw Refusal("INVALID_ARGUMENT", "structure payload is required");
+  ptree request;
+  std::istringstream input(std::string(text, textLength));
+  boost::property_tree::read_json(input, request);
+  const std::string axis = request.get<std::string>("axis", "");
+  const std::string action = request.get<std::string>("action", "");
+  const long index = request.get<long>("index", -1), count = request.get<long>("count", 0);
+  const bool onRows = axis == "rows";
+  const long limit = onRows ? rows : columns;
+  if ((!onRows && axis != "columns") || (action != "insert" && action != "delete")
+      || count < 1 || index < 0 || index + count > limit)
+    throw Refusal("INVALID_ARGUMENT", "invalid structure change");
+  Reference<frame::XStorable> storable(model, uno::UNO_QUERY_THROW);
+  Reference<util::XProtectable> protection(sheet, uno::UNO_QUERY_THROW);
+  if (storable->isReadonly() || protection->isProtected())
+    throw Refusal("READ_ONLY", "the sheet is protected or the document is read-only");
+  Reference<table::XColumnRowRange> dimensions(sheet, uno::UNO_QUERY_THROW);
+  try {
+    if (onRows) {
+      const Reference<table::XTableRows> lines = dimensions->getRows();
+      if (action == "insert") lines->insertByIndex(index, count);
+      else lines->removeByIndex(index, count);
+    } else {
+      const Reference<table::XTableColumns> lines = dimensions->getColumns();
+      if (action == "insert") lines->insertByIndex(index, count);
+      else lines->removeByIndex(index, count);
+    }
+  } catch (const uno::RuntimeException &) {
+    throw Refusal("STRUCTURE_REFUSED",
+                  "LibreOffice refused the change (data would leave the sheet, an array "
+                  "formula would be split, or the area is locked)");
+  }
+  (void)mutationAttempted;
+  ptree result;
+  result.put("ok", true);
+  result.put("part", part);
+  result.put("axis", axis);
+  result.put("action", action);
+  result.put("index", index);
+  result.put("count", count);
+  result.put("maxColumns", dimensions->getColumns()->getCount());
+  result.put("maxRows", dimensions->getRows()->getCount());
+  result.put("changed", true);
   return result;
 }
 #endif
@@ -392,7 +454,9 @@ ptree access(LibreOfficeKitDocument *doc, int part, int column, int row, int ope
              const char *text, int textLength, int enabled, bool &mutationAttempted) {
   SolarMutexGuard guard;
   constexpr int maxOperation =
-#ifdef OXSDK_ODS_HEADERS
+#ifdef OXSDK_ODS_STRUCTURE
+      14;
+#elif defined(OXSDK_ODS_HEADERS)
       13;
 #elif defined(OXSDK_ODS_STYLE)
       12;
@@ -427,6 +491,11 @@ ptree access(LibreOfficeKitDocument *doc, int part, int column, int row, int ope
 #ifdef OXSDK_ODS_HEADERS
   if (operation == 13)
     return accessHeaders(doc, model, sheet, part, columns, rows, text, textLength);
+#endif
+#ifdef OXSDK_ODS_STRUCTURE
+  if (operation == 14)
+    return accessStructure(sheet, model, part, columns, rows, text, textLength,
+                           mutationAttempted);
 #endif
 #ifdef OXSDK_ODS_RANGE
   if (operation >= 6)

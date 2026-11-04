@@ -6,8 +6,9 @@ Closed list of differences from the frozen base manifest:
 
   writer  base dist/profiles/e2-editor-v32  -> e2-editor-v33: capabilities + open-docx, save-docx; bits 20, 21
   calc    base dist/profiles/ods-editor-v4  -> ods-editor-v5: capabilities + open-xlsx, save-xlsx; bits 22, 23
-  calc-headers  base dist/profiles/ods-editor-v5 -> ods-editor-v6: capabilities + cell-headers; bit 24; a `headersContract`
-          (SPEC-P-calc-headers 3.3, 2026-11-05: an entry in this table, not a new tool; writer and calc build as before)
+  calc-headers  base dist/profiles/ods-editor-v5 -> ods-editor-v6: capabilities + cell-headers, cell-structure; bits 24, 25;
+          a `headersContract` and a `structureContract` (SPEC-P-calc-headers 3.3, 2026-11-05: an entry in this table, not a new
+          tool; SPEC-P-calc-structure 3.2 adds the second capability to the same, unreleased profile)
 
 plus `profile`, `sdkVersion`, a `documentFormatContract` naming the table (src/document_format.hpp), and -- Writer only -- the
 editorContract's loaderSha256 / wasmSha256 / workerSha256 recomputed from the copied artifacts (they named v32's; Codex review
@@ -31,7 +32,14 @@ PROFILES = {
              "bits": (1 << 22) | (1 << 23),  # OXSDK_CAPABILITY_OPEN_XLSX, SAVE_XLSX
              "open": [".odt", ".ods", ".xlsx"], "save": ["ods", "xlsx"]},
     "calc-headers": {"base": HERE / "dist/profiles/ods-editor-v5", "profile": "ods-editor-v6",
-                     "capabilities": ["cell-headers"], "bits": 1 << 24,  # src/sdk_api.h OXSDK_CAPABILITY_CELL_HEADERS
+                     "capabilities": ["cell-headers", "cell-structure"],
+                     "bits": (1 << 24) | (1 << 25),  # src/sdk_api.h OXSDK_CAPABILITY_CELL_HEADERS, CELL_STRUCTURE
+                     "contracts": [("structureContract", {
+                         "version": 1, "spec": "specs/SPEC-P-calc-structure.md",
+                         "operation": "cellStructure: cell operation 14, a mutation",
+                         "change": "{axis: rows|columns, action: insert|delete, index, count}; count >= 1, index + count <= max",
+                         "reply": "{axis, action, index, count, maxColumns, maxRows, changed: true}",
+                         "refused": "READ_ONLY (read-only or protected sheet), STRUCTURE_REFUSED (the core refused; nothing changed)"})],
                      "contract": ("headersContract", {
                          "version": 1, "spec": "specs/SPEC-P-calc-headers.md",
                          "operation": "cellHeaders: cell operation 13, read-only, no cell selected",
@@ -88,8 +96,8 @@ def main():
     manifest["sdkVersion"] = "0.6.0-r6-worker+" + spec["profile"]
     manifest["capabilities"] += spec["capabilities"]
     manifest["expectedCapabilityBits"] |= spec["bits"]
-    key, value = spec["contract"]
-    manifest[key] = value
+    for key, value in [spec["contract"], *spec.get("contracts", [])]:
+        manifest[key] = value
     (output / "sdk-manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
     print(json.dumps({"profile": spec["profile"], "development": args.development,
                       "capabilityBits": manifest["expectedCapabilityBits"],

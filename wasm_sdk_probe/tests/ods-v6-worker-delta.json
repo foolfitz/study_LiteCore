@@ -1,11 +1,11 @@
 {
  "schema": 1,
- "note": "SPEC-P-calc-headers 3.3: the closed list of replacements taking the frozen ods-editor-v5 worker (dist/profiles/ods-editor-v5/sdk-worker.js) to the ods-editor-v6 worker, applied in order, each occurring exactly once (tools/derive_ms_formats_worker.py --profile calc-headers).",
+ "note": "SPEC-P-calc-headers 3.3 and SPEC-P-calc-structure 3.2: the closed list of replacements taking the frozen ods-editor-v5 worker (dist/profiles/ods-editor-v5/sdk-worker.js) to the ods-editor-v6 worker, applied in order, each occurring exactly once (tools/derive_ms_formats_worker.py --profile calc-headers).",
  "hunks": [
   {
    "item": "1 header comment",
    "old": "// SPEC-P-ms-formats 5.1: the ods-editor-v5 worker.  The v4 worker plus a closed list\n",
-   "new": "// SPEC-P-calc-headers 3.3: the ods-editor-v6 worker.  The v5 worker plus a closed list\n// (tests/ods-v6-worker-delta.json): cellHeaders (cell op 13), whole column/row/sheet ranges, this comment.\n//\n// SPEC-P-ms-formats 5.1: the ods-editor-v5 worker.  The v4 worker plus a closed list\n"
+   "new": "// SPEC-P-calc-headers 3.3: the ods-editor-v6 worker.  The v5 worker plus a closed list\n// (tests/ods-v6-worker-delta.json): cellHeaders (cell op 13), whole column/row/sheet ranges,\n// cellStructure (cell op 14, SPEC-P-calc-structure 3.2), this comment.\n//\n// SPEC-P-ms-formats 5.1: the ods-editor-v5 worker.  The v4 worker plus a closed list\n"
   },
   {
    "item": "2 cellHeaders needs the cell-headers capability",
@@ -36,6 +36,36 @@
    "item": "7 the rectangle travels as the bridge's JSON",
    "old": "      accept(request, () => request.operation === \"rangeStyle\"",
    "new": "      accept(request, () => request.operation === \"cellHeaders\"\n        ? withUtf8(JSON.stringify({x:payload.rectangle.x,y:payload.rectangle.y,width:payload.rectangle.width,height:payload.rectangle.height}),invoke)\n        : request.operation === \"rangeStyle\""
+  },
+  {
+   "item": "8 cellStructure needs the cell-structure capability",
+   "old": "  [\"cellHeaders\", \"cell-headers\"],\n]);",
+   "new": "  [\"cellHeaders\", \"cell-headers\"],\n  [\"cellStructure\", \"cell-structure\"],\n]);"
+  },
+  {
+   "item": "9 the structure change the bridge accepts",
+   "old": "// SPEC-P-demo-batch-3 3.1: the closed spellings the bridge accepts.\nfunction styleValueIsClosed(",
+   "new": "// SPEC-P-calc-structure 3.1: the structure change, as the bridge accepts it (16384 x 1048576 sheets).\nfunction structureChangeIsClosed(c) {\n  if (!c || typeof c !== \"object\") return false;\n  const max = c.axis === \"rows\" ? 1048576 : c.axis === \"columns\" ? 16384 : 0;\n  return max > 0 && (c.action === \"insert\" || c.action === \"delete\")\n    && Number.isInteger(c.index) && Number.isInteger(c.count) && c.index >= 0 && c.count >= 1 && c.index + c.count <= max;\n}\n// SPEC-P-demo-batch-3 3.1: the closed spellings the bridge accepts.\nfunction styleValueIsClosed("
+  },
+  {
+   "item": "10 cellStructure joins the cell requests",
+   "old": "    case \"cellHeaders\": {",
+   "new": "    case \"cellHeaders\":\n    case \"cellStructure\": {"
+  },
+  {
+   "item": "11 the change is closed",
+   "old": "          || (request.operation === \"cellHeaders\" && !headerRectangleIsClosed(payload.rectangle))\n",
+   "new": "          || (request.operation === \"cellHeaders\" && !headerRectangleIsClosed(payload.rectangle))\n          || (request.operation === \"cellStructure\" && !structureChangeIsClosed(payload.change))\n"
+  },
+  {
+   "item": "12 cellStructure is cell op 14",
+   "old": "      const operation = request.operation === \"cellHeaders\" ? 13\n",
+   "new": "      const operation = request.operation === \"cellStructure\" ? 14\n        : request.operation === \"cellHeaders\" ? 13\n"
+  },
+  {
+   "item": "13 the change travels as the bridge's JSON",
+   "old": "      accept(request, () => request.operation === \"cellHeaders\"\n",
+   "new": "      accept(request, () => request.operation === \"cellStructure\"\n        ? withUtf8(JSON.stringify({axis:payload.change.axis,action:payload.change.action,index:payload.change.index,count:payload.change.count}),invoke)\n        : request.operation === \"cellHeaders\"\n"
   }
  ]
 }

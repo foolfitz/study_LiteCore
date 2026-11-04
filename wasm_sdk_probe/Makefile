@@ -6051,9 +6051,12 @@ $(ODS_EDITOR_V5_BUILD):
 # column/row/sheet ranges past the 65,536-cell limit; capability bit 24.  No new export.  Development output under
 # build/ only, as v5's was: dist/ waits for the owner's hand-test slot (CLAUDE.md, cadence).  Owner-run (the link):
 #   make ods-editor-v6-dev
+# 2026-11-05, SPEC-P-calc-structure 2.6: the same unreleased profile also takes OXSDK_ODS_STRUCTURE -- cell
+# operation 14 (insert/delete whole rows or columns), capability bit 25.  The headers-only link is archived as
+# build/archive/ods-editor-v6-dev-bd85b751.
 ODS_EDITOR_V6_BUILD := build/ods/editor-v6
 ODS_EDITOR_V6_DIST := dist/profiles/ods-editor-v6
-ODS_EDITOR_V6_DEFINES := $(ODS_EDITOR_V5_DEFINES) -DOXSDK_ODS_HEADERS
+ODS_EDITOR_V6_DEFINES := $(ODS_EDITOR_V5_DEFINES) -DOXSDK_ODS_HEADERS -DOXSDK_ODS_STRUCTURE
 ODS_EDITOR_V6_OBJECTS := $(patsubst src/%.cpp,$(ODS_EDITOR_V6_BUILD)/%.o,$(ODS_EDITOR_V3_SOURCES))
 
 $(ODS_EDITOR_V6_BUILD)/%.o: src/%.cpp $(HEADERS) src/ods_viewer.hpp src/document_format.hpp \
@@ -6063,7 +6066,8 @@ $(ODS_EDITOR_V6_BUILD)/%.o: src/%.cpp $(HEADERS) src/ods_viewer.hpp src/document
 $(ODS_EDITOR_V6_BUILD)/calc_cell_bridge.o: src/calc_cell_bridge.cpp \
 		src/calc_cell_bridge.h Makefile | $(ODS_EDITOR_V6_BUILD)
 	$(CXX) $(ODS_EDITOR_V3_CPPFLAGS) $(R5_CXXFLAGS) -std=c++20 \
-		-DLIBO_INTERNAL_ONLY -DOXSDK_ODS_RANGE -DOXSDK_ODS_STYLE -DOXSDK_ODS_UNDO -DOXSDK_ODS_HEADERS -c $< -o $@
+		-DLIBO_INTERNAL_ONLY -DOXSDK_ODS_RANGE -DOXSDK_ODS_STYLE -DOXSDK_ODS_UNDO -DOXSDK_ODS_HEADERS \
+		-DOXSDK_ODS_STRUCTURE -c $< -o $@
 
 # v5's list, made the way v5's rule makes it; the profile builder checks it equals v5's.
 $(ODS_EDITOR_V6_BUILD)/exports.txt: \
