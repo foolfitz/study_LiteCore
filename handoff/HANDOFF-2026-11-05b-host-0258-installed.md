@@ -1,4 +1,4 @@
-# Handoff: host 0.2.58 installed (Calc headers, Calc structure, Writer key bursts); waiting for the owner's hand test
+# Handoff: host 0.2.58 installed and hand-tested (Calc headers, Calc structure, Writer key bursts); paused
 
 Checkpoint **2026-11-05 12:55**. Supersedes `HANDOFF-2026-11-05-key-burst-and-calc-structure.md`. One handoff for this session.
 
@@ -25,13 +25,22 @@ Checkpoint **2026-11-05 12:55**. Supersedes `HANDOFF-2026-11-05-key-burst-and-ca
 - The hand-test fixtures are in admin's Files under `手測-0.2.58/` (`1-calc.ods` = `create_calc_structure_fixture.py`'s output,
   `2-writer.odt` = `test-docs/t1-plain-zh.odt`). The script is `HANDTEST-2026-11-05-host-0.2.58.md` (repo root, zh-TW, 10 items).
 
-## Next, in order
+## Hand test (2026-11-05, after the install)
 
-1. **The owner's hand test** of 0.2.58 with `HANDTEST-2026-11-05-host-0.2.58.md`. Record it the way 0.2.56's was recorded
-   (`findings/evidence/host-0.2.56/handtest-2026-11-04/README.md`). Afterwards, ask whether to delete `手測-0.2.58/`. My DAV DELETE
-   may be refused by the classifier, so let the owner decide.
-2. Next features after the hand test (the owner picks): drag to resize column width and row height; freeze panes. The named
-   limits of this release are in the hand-test script's last section.
+The owner: "手測全部通過" -- all 10 items pass. Record: `findings/evidence/host-0.2.58/handtest-2026-11-05/README.md`. Then:
+"我們暫時告一段落吧" -- the work pauses here. `手測-0.2.58/` is still on admin (deleting it is the owner's call).
+
+## Next, when the owner resumes (the owner picks)
+
+Calc candidates the owner added with the result (not started, not specified further):
+1. Ctrl+C copies cells, whole columns and whole rows.
+2. Ctrl+click adds cells to the selection (multi-range; a named limit of SPEC-P-calc-structure).
+3. Naming (renaming) sheets.
+4. Seeing a sheet's identity, and referencing data from another sheet.
+
+Earlier candidates still open: drag to resize column width and row height; freeze panes. Before specifying any of them, measure
+what the engine and the page already do. For example, a formula like `=$另一張表.A1` typed in the formula bar may already work;
+only the UI to see or pick it may be missing. Each one is a fresh spec with its first measurement and one red case.
 
 ## Cautions
 
