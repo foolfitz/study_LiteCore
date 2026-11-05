@@ -31,9 +31,9 @@ def mirror(out, profile):
     app=root/"ods-editor-app.js"
     source=app.read_text()
     # ods-editor-v4 added 2026-11-03 when the page moved to it (SPEC-P-calc-undo); a page URL this list lacks loads nothing.
-    # ods-editor-v5 added the same day for the same reason (SPEC-P-ms-formats).
+    # ods-editor-v5 added the same day for the same reason (SPEC-P-ms-formats); ods-editor-v6 2026-11-05 (headers, structure).
     for live in ('"./profiles/ods-editor-v2/sdk-worker.js"','"./profiles/ods-editor-v3/sdk-worker.js"','"./profiles/ods-editor-v4/sdk-worker.js"',
-                 '"./profiles/ods-editor-v5/sdk-worker.js"'):
+                 '"./profiles/ods-editor-v5/sdk-worker.js"','"./profiles/ods-editor-v6/sdk-worker.js"'):
         source=source.replace(live,'"./profiles/ods-editor-v1/sdk-worker.js"')
     app.write_text(source)
     for directory in ("sdk", "viewer-shell", "spreadsheet-shell"):
