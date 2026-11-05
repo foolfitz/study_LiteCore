@@ -1,0 +1,641 @@
+{
+ "tool": {
+  "path": "wasm_sdk_probe/tools/check_calc_structure.py",
+  "sha256": "e7f3fec49e9375dab0577d95b615fc82b9e928848ea0527ffbcb29e49145ab17",
+  "argv": [
+   "--engine",
+   "dist/profiles/ods-editor-v6",
+   "--out",
+   "../findings/evidence/release-0.2.58/calc-v6/structure-v6"
+  ]
+ },
+ "engine": "dist/profiles/ods-editor-v6",
+ "wasm": "47e3792c5b5369b3ecf09c3b14548c29f04b49caa73ae2ca4117bfcea608912e",
+ "worker": "cbf3c1efe1300672dc94136bf655ce22bb430d1aabc45ec6808643c18d606da3",
+ "page": {
+  "ods-editor-app.js": "5c195cf51e50bbd3e043ef8fcf4d9fcbe8a100b7300319726237fac5aaaa963d",
+  "ods-editor.html": "183189a6f26eb812c62f7c960d81d0782ca2623fefe3df2fdf8f722634f221bb",
+  "spreadsheet-shell/calc-editor-session.js": "19c9e2850d67c7f172ce0dd8a8e1383f7df63d15bd4e256fa3eb0cf2f3c0dc31",
+  "spreadsheet-shell/calc-document-sdk.js": "18ea366a0978a05eda41db4d003a7cd07b6bc85aff7f98b1eafeb93d19bfc347"
+ },
+ "mutate": null,
+ "fixture": "88f47aa196194fd7184cb49b1f069b9bd1232480e4c73e7ee080b9b0ea7dab85",
+ "runs": [
+  {
+   "browser": "chrome",
+   "checks": [
+    {
+     "id": "P-S1/menu",
+     "pass": true,
+     "actual": {
+      "items": [
+       "rows-insert-before",
+       "rows-insert-after",
+       "rows-delete"
+      ],
+      "focused": "rows-insert-before",
+      "hidden": false
+     }
+    },
+    {
+     "id": "P-S1/inserted-above-3",
+     "pass": true,
+     "actual": {
+      "A3,A4": [
+       "",
+       "合併格"
+      ],
+      "selection": {
+       "whole": "rows",
+       "column": 0,
+       "row": 2,
+       "endColumn": 16383,
+       "endRow": 2
+      },
+      "rowLabelsContiguous": true,
+      "toast": "已在第 3 列上方插入 1 列。"
+     }
+    },
+    {
+     "id": "P-S1/undo",
+     "pass": true,
+     "actual": {
+      "A3,A5": [
+       "合併格",
+       "隱藏列之後"
+      ]
+     }
+    },
+    {
+     "id": "P-S2/menu",
+     "pass": true,
+     "actual": {
+      "items": [
+       "columns-insert-before",
+       "columns-insert-after",
+       "columns-delete"
+      ]
+     }
+    },
+    {
+     "id": "P-S2/inserted-right-of-C",
+     "pass": true,
+     "actual": {
+      "D1,F1,C1": [
+       "",
+       "隱藏欄之後",
+       "84"
+      ],
+      "selection": {
+       "whole": "columns",
+       "column": 2,
+       "row": 0,
+       "endColumn": 2,
+       "endRow": 1048575
+      },
+      "toast": "已在 C 欄右方插入 1 欄。"
+     }
+    },
+    {
+     "id": "P-S2/undo",
+     "pass": true,
+     "actual": {
+      "E1,F1": [
+       "隱藏欄之後",
+       ""
+      ]
+     }
+    },
+    {
+     "id": "P-S3/deleted-2-3",
+     "pass": true,
+     "actual": {
+      "A3,A1": [
+       "隱藏列之後",
+       "原始中文 Alpha"
+      ],
+      "rowLabels": [
+       "1",
+       "3",
+       "4",
+       "5",
+       "6",
+       "7"
+      ],
+      "selection": {
+       "whole": "rows",
+       "column": 0,
+       "row": 1,
+       "endColumn": 16383,
+       "endRow": 2
+      },
+      "toast": "已刪除第 2 到 3 列。"
+     }
+    },
+    {
+     "id": "P-S3/undo",
+     "pass": true,
+     "actual": {
+      "A2,A3": [
+       "鄰格必須保留",
+       "合併格"
+      ]
+     }
+    },
+    {
+     "id": "P-S4/menu",
+     "pass": true,
+     "actual": {
+      "items": [
+       "rows-insert-before",
+       "rows-insert-after",
+       "rows-delete",
+       "columns-insert-before",
+       "columns-insert-after",
+       "columns-delete"
+      ],
+      "cell": [
+       1,
+       1
+      ]
+     }
+    },
+    {
+     "id": "P-S4/inserted-left-of-B",
+     "pass": true,
+     "actual": {
+      "B2,C2": [
+       "",
+       "格式測試"
+      ],
+      "toast": "已在 B 欄左方插入 1 欄。"
+     }
+    },
+    {
+     "id": "P-S4/undo",
+     "pass": true,
+     "actual": {
+      "B2,C2": [
+       "格式測試",
+       "待清除"
+      ]
+     }
+    },
+    {
+     "id": "P-S5/ctrl-minus-deletes-C",
+     "pass": true,
+     "actual": {
+      "D1": [
+       "隱藏欄之後"
+      ],
+      "columnLabels": [
+       "A",
+       "B",
+       "D",
+       "E",
+       "F",
+       "G"
+      ],
+      "toast": "已刪除 C 欄。"
+     }
+    },
+    {
+     "id": "P-S5/ctrl-plus-inserts-above-2",
+     "pass": true,
+     "actual": {
+      "A2,A3": [
+       "",
+       "鄰格必須保留"
+      ],
+      "toast": "已在第 2 列上方插入 1 列。"
+     }
+    },
+    {
+     "id": "P-S5/partial-selection-changes-nothing",
+     "pass": true,
+     "actual": {
+      "revision": [
+       12,
+       12
+      ],
+      "B2,A2": [
+       "格式測試",
+       "鄰格必須保留"
+      ],
+      "toast": "整列或整欄選取時才能用 Ctrl+＋／Ctrl+－；其他選取請用右鍵選單。"
+     }
+    },
+    {
+     "id": "P-S6/whole-column-disables-row-items",
+     "pass": true,
+     "actual": {
+      "rows": [
+       [
+        "rows-insert-before",
+        "true",
+        "選取範圍涵蓋所有列，不能再插入或刪除列。"
+       ],
+       [
+        "rows-insert-after",
+        "true",
+        "選取範圍涵蓋所有列，不能再插入或刪除列。"
+       ],
+       [
+        "rows-delete",
+        "true",
+        "選取範圍涵蓋所有列，不能再插入或刪除列。"
+       ]
+      ]
+     }
+    },
+    {
+     "id": "P-S6/protected-sheet",
+     "pass": true,
+     "actual": {
+      "items": [
+       [
+        "rows-insert-before",
+        "true",
+        "工作表受保護，不能插入或刪除欄列。"
+       ],
+       [
+        "rows-insert-after",
+        "true",
+        "工作表受保護，不能插入或刪除欄列。"
+       ],
+       [
+        "rows-delete",
+        "true",
+        "工作表受保護，不能插入或刪除欄列。"
+       ],
+       [
+        "columns-insert-before",
+        "true",
+        "工作表受保護，不能插入或刪除欄列。"
+       ],
+       [
+        "columns-insert-after",
+        "true",
+        "工作表受保護，不能插入或刪除欄列。"
+       ],
+       [
+        "columns-delete",
+        "true",
+        "工作表受保護，不能插入或刪除欄列。"
+       ]
+      ],
+      "revision": [
+       12,
+       12
+      ],
+      "A1": [
+       "鎖定內容"
+      ],
+      "toast": "工作表受保護，不能插入或刪除欄列。"
+     }
+    },
+    {
+     "id": "P-S6/core-refusal",
+     "pass": true,
+     "actual": {
+      "toast": "LibreOffice 拒絕了這個插入或刪除：資料會被推出工作表、會切開陣列公式，或範圍被鎖定。文件沒有變動。",
+      "revision": [
+       12,
+       12
+      ],
+      "A1": [
+       "邊界"
+      ],
+      "sameSession": true,
+      "uncertain": false
+     }
+    },
+    {
+     "id": "P-S7/keyboard",
+     "pass": true,
+     "actual": {
+      "opened": true,
+      "focused": [
+       "rows-insert-before",
+       "rows-insert-after"
+      ],
+      "closed": true,
+      "active": "cell-editor"
+     }
+    }
+   ],
+   "error": null,
+   "version": "Chrome/156.0.8078.47",
+   "cleanup": {}
+  },
+  {
+   "browser": "firefox",
+   "checks": [
+    {
+     "id": "P-S1/menu",
+     "pass": true,
+     "actual": {
+      "items": [
+       "rows-insert-before",
+       "rows-insert-after",
+       "rows-delete"
+      ],
+      "focused": "rows-insert-before",
+      "hidden": false
+     }
+    },
+    {
+     "id": "P-S1/inserted-above-3",
+     "pass": true,
+     "actual": {
+      "A3,A4": [
+       "",
+       "合併格"
+      ],
+      "selection": {
+       "whole": "rows",
+       "column": 0,
+       "row": 2,
+       "endColumn": 16383,
+       "endRow": 2
+      },
+      "rowLabelsContiguous": true,
+      "toast": "已在第 3 列上方插入 1 列。"
+     }
+    },
+    {
+     "id": "P-S1/undo",
+     "pass": true,
+     "actual": {
+      "A3,A5": [
+       "合併格",
+       "隱藏列之後"
+      ]
+     }
+    },
+    {
+     "id": "P-S2/menu",
+     "pass": true,
+     "actual": {
+      "items": [
+       "columns-insert-before",
+       "columns-insert-after",
+       "columns-delete"
+      ]
+     }
+    },
+    {
+     "id": "P-S2/inserted-right-of-C",
+     "pass": true,
+     "actual": {
+      "D1,F1,C1": [
+       "",
+       "隱藏欄之後",
+       "84"
+      ],
+      "selection": {
+       "whole": "columns",
+       "column": 2,
+       "row": 0,
+       "endColumn": 2,
+       "endRow": 1048575
+      },
+      "toast": "已在 C 欄右方插入 1 欄。"
+     }
+    },
+    {
+     "id": "P-S2/undo",
+     "pass": true,
+     "actual": {
+      "E1,F1": [
+       "隱藏欄之後",
+       ""
+      ]
+     }
+    },
+    {
+     "id": "P-S3/deleted-2-3",
+     "pass": true,
+     "actual": {
+      "A3,A1": [
+       "隱藏列之後",
+       "原始中文 Alpha"
+      ],
+      "rowLabels": [
+       "1",
+       "3",
+       "4",
+       "5",
+       "6",
+       "7"
+      ],
+      "selection": {
+       "whole": "rows",
+       "column": 0,
+       "row": 1,
+       "endColumn": 16383,
+       "endRow": 2
+      },
+      "toast": "已刪除第 2 到 3 列。"
+     }
+    },
+    {
+     "id": "P-S3/undo",
+     "pass": true,
+     "actual": {
+      "A2,A3": [
+       "鄰格必須保留",
+       "合併格"
+      ]
+     }
+    },
+    {
+     "id": "P-S4/menu",
+     "pass": true,
+     "actual": {
+      "items": [
+       "rows-insert-before",
+       "rows-insert-after",
+       "rows-delete",
+       "columns-insert-before",
+       "columns-insert-after",
+       "columns-delete"
+      ],
+      "cell": [
+       1,
+       1
+      ]
+     }
+    },
+    {
+     "id": "P-S4/inserted-left-of-B",
+     "pass": true,
+     "actual": {
+      "B2,C2": [
+       "",
+       "格式測試"
+      ],
+      "toast": "已在 B 欄左方插入 1 欄。"
+     }
+    },
+    {
+     "id": "P-S4/undo",
+     "pass": true,
+     "actual": {
+      "B2,C2": [
+       "格式測試",
+       "待清除"
+      ]
+     }
+    },
+    {
+     "id": "P-S5/ctrl-minus-deletes-C",
+     "pass": true,
+     "actual": {
+      "D1": [
+       "隱藏欄之後"
+      ],
+      "columnLabels": [
+       "A",
+       "B",
+       "D",
+       "E",
+       "F",
+       "G"
+      ],
+      "toast": "已刪除 C 欄。"
+     }
+    },
+    {
+     "id": "P-S5/ctrl-plus-inserts-above-2",
+     "pass": true,
+     "actual": {
+      "A2,A3": [
+       "",
+       "鄰格必須保留"
+      ],
+      "toast": "已在第 2 列上方插入 1 列。"
+     }
+    },
+    {
+     "id": "P-S5/partial-selection-changes-nothing",
+     "pass": true,
+     "actual": {
+      "revision": [
+       12,
+       12
+      ],
+      "B2,A2": [
+       "格式測試",
+       "鄰格必須保留"
+      ],
+      "toast": "整列或整欄選取時才能用 Ctrl+＋／Ctrl+－；其他選取請用右鍵選單。"
+     }
+    },
+    {
+     "id": "P-S6/whole-column-disables-row-items",
+     "pass": true,
+     "actual": {
+      "rows": [
+       [
+        "rows-insert-before",
+        "true",
+        "選取範圍涵蓋所有列，不能再插入或刪除列。"
+       ],
+       [
+        "rows-insert-after",
+        "true",
+        "選取範圍涵蓋所有列，不能再插入或刪除列。"
+       ],
+       [
+        "rows-delete",
+        "true",
+        "選取範圍涵蓋所有列，不能再插入或刪除列。"
+       ]
+      ]
+     }
+    },
+    {
+     "id": "P-S6/protected-sheet",
+     "pass": true,
+     "actual": {
+      "items": [
+       [
+        "rows-insert-before",
+        "true",
+        "工作表受保護，不能插入或刪除欄列。"
+       ],
+       [
+        "rows-insert-after",
+        "true",
+        "工作表受保護，不能插入或刪除欄列。"
+       ],
+       [
+        "rows-delete",
+        "true",
+        "工作表受保護，不能插入或刪除欄列。"
+       ],
+       [
+        "columns-insert-before",
+        "true",
+        "工作表受保護，不能插入或刪除欄列。"
+       ],
+       [
+        "columns-insert-after",
+        "true",
+        "工作表受保護，不能插入或刪除欄列。"
+       ],
+       [
+        "columns-delete",
+        "true",
+        "工作表受保護，不能插入或刪除欄列。"
+       ]
+      ],
+      "revision": [
+       12,
+       12
+      ],
+      "A1": [
+       "鎖定內容"
+      ],
+      "toast": "工作表受保護，不能插入或刪除欄列。"
+     }
+    },
+    {
+     "id": "P-S6/core-refusal",
+     "pass": true,
+     "actual": {
+      "toast": "LibreOffice 拒絕了這個插入或刪除：資料會被推出工作表、會切開陣列公式，或範圍被鎖定。文件沒有變動。",
+      "revision": [
+       12,
+       12
+      ],
+      "A1": [
+       "邊界"
+      ],
+      "sameSession": true,
+      "uncertain": false
+     }
+    },
+    {
+     "id": "P-S7/keyboard",
+     "pass": true,
+     "actual": {
+      "opened": true,
+      "focused": [
+       "rows-insert-before",
+       "rows-insert-after"
+      ],
+      "closed": true,
+      "active": "cell-editor"
+     }
+    }
+   ],
+   "error": null,
+   "version": "157.0.1",
+   "cleanup": {}
+  }
+ ],
+ "verdict": "P_HOLDS",
+ "redCriteria": []
+}

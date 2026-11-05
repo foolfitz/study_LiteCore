@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **狀態** | **上限已在 dev 修好、未發布**（2026-11-05：殼層 v2 把排隊中的打字併成一筆，連打 40 鍵不掉字，兩個瀏覽器 `KB_HOLDS`，見 `specs/SPEC-P-key-burst.md` 與 `evidence/key-burst/`；換行、輸入法、貼上仍一筆一筆，上限 8 照舊適用於它們。2026-11-04：提示已修，頁面的提示條件改比對 `type`） |
+| **狀態** | **上限已修好，隨宿主 0.2.58（殼層第 91 代）上線**（2026-11-05 12:19；dist 上 `KB_HOLDS` 兩個瀏覽器各 10/10，見 `evidence/release-0.2.58/`。2026-11-05：殼層 v2 把排隊中的打字併成一筆，連打 40 鍵不掉字，兩個瀏覽器 `KB_HOLDS`，見 `specs/SPEC-P-key-burst.md` 與 `evidence/key-burst/`；換行、輸入法、貼上仍一筆一筆，上限 8 照舊適用於它們。2026-11-04：提示已修，頁面的提示條件改比對 `type`） |
 | **所在** | 我們的頁面 `wasm_sdk_probe/web/e2-editor-app.js`（`8909564e…`）`onInputTrace`（:2600–2607）：只在 `entry.action === "composition-rejected"` 或 `entry.status === "failed"` 時跳提示。而 `input/input-adapter.js` 把事件名寫在 `type`（`composition-rejected`、`commit-rejected`、`commit-error`），`status` 只有 idle／composing／blocked／committing／recoverable-error，**從來沒有 `failed`** |
 | **發現日** | 2026-10-12（寫 0.2.13 自動儲存規格時的存檔路徑普查帶出來；主 session 讀原始碼並重播確認） |
 | **嚴重度** | 一般：**無聲的資料遺失**，但條件窄。輸入 adapter 的佇列上限是 8（`DEFAULT_MAX_QUEUE_DEPTH`），引擎忙的時候（存檔 0.5–0.7 秒、檢查點）打的字會排隊，第 9 個起被 `INPUT_BACKPRESSURE` 拒絕；`beforeinput` 已經 `preventDefault`，字也不會留在輸入框裡——就這樣消失，畫面上什麼都沒有。按住一個鍵（重複約每秒 30 下）或很快的打字在存檔時最容易碰到 |
@@ -64,3 +64,4 @@ adapter 被 E1-C 的殼層 bundle 逐位元組綁著，所以不改它：殼層 
 | 2026-10-12 | M1：在宿主 0.2.12 的產品路徑上兩個瀏覽器都量到無聲丟字（`evidence/130/m1/`，混淆變因照實記） |
 | 2026-11-04 | 狀態改為「提示已修、上限未動」；補 0.2.56 上的連發量測（`evidence/host-0.2.56/diag-burst-01/`、`diag-typing-01/`） |
 | 2026-11-05 | 上限在殼層 v2 修好（dev，未發布）；狀態更新；補 `evidence/key-burst/` 的量測 |
+| 2026-11-05 | 凍成殼層第 91 代、隨宿主 0.2.58 上線；狀態更新 |

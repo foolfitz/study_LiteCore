@@ -1,0 +1,110 @@
+{
+ "tool": {
+  "path": "findings/evidence/host-0.2.58/calc-host-arm/calc_host_arm.py",
+  "sha256": "5ce03bc78078639114dd3807990acef8ffd4553aa7ca58cce3b6ad45b9eac3b4",
+  "argv": [
+   "--out",
+   "../findings/evidence/host-0.2.58/calc-host-arm/run-01"
+  ]
+ },
+ "reused": {
+  "check_calc_headers": "88ab38bd136161008e89a38742573521b8b6eb574c5745d7dfb19733323b695a",
+  "check_calc_structure": "e7f3fec49e9375dab0577d95b615fc82b9e928848ea0527ffbcb29e49145ab17",
+  "run_calc_editor_host": "433c36d7fecf72e6adefafc22bfbaa4c7cb82c745a2e1b33bd9952972628e6ee"
+ },
+ "fixtures": {
+  "headers": "60676c0726a1e3bf17312a7fd363fd22d543949ed7854898ea447d78b3a48e0c",
+  "structure": "88f47aa196194fd7184cb49b1f069b9bd1232480e4c73e7ee080b9b0ea7dab85"
+ },
+ "runs": [
+  {
+   "browser": "chrome",
+   "arm": "headers",
+   "version": "Chrome/156.0.8078.47",
+   "login": {
+    "result": {
+     "status": 200,
+     "url": "https://litecore.localhost:18443/apps/dashboard/"
+    }
+   },
+   "checks": [],
+   "error": "RuntimeError('CDP evaluation failed: {\\'type\\': \\'object\\', \\'subtype\\': \\'error\\', \\'className\\': \\'TypeError\\', \\'description\\': \"TypeError: Cannot read properties of undefined (reading \\'state\\')\\\\n    at <anonymous>:1:29\", \\'objectId\\': \\'-1129378943999553283.1.1\\'}')",
+   "put": 201,
+   "entry": {
+    "from": "https://litecore.localhost:18443/apps/files/files?dir=/M4-calc-arm-20261105T122427",
+    "landed": "https://litecore.localhost:18443/index.php/apps/litecore/r/9e9310e329d23db4-90d7bc2c/ods-editor.html?fileId=32002"
+   },
+   "traceback": "Traceback (most recent call last):\n  File \"/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/../findings/evidence/host-0.2.58/calc-host-arm/calc_host_arm.py\", line 80, in main\n    wait(session, f'Boolean({ROOT}.state?.cell) && {ROOT}.state.{flag}===true', 180)\n    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/run_calc_editor_browser.py\", line 56, in wait\n    last = evaluate(session, expression)\n  File \"/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/r7_support.py\", line 96, in evaluate\n    return session.evaluate(expression)\n           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^\n  File \"/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/run_browser_probe.py\", line 310, in evaluate\n    raise RuntimeError(f\"CDP evaluation failed: {result}\")\nRuntimeError: CDP evaluation failed: {'type': 'object', 'subtype': 'error', 'className': 'TypeError', 'description': \"TypeError: Cannot read properties of undefined (reading 'state')\\n    at <anonymous>:1:29\", 'objectId': '-1129378943999553283.1.1'}\n",
+   "leaveError": "RuntimeError('CDP evaluation failed: {\\'type\\': \\'object\\', \\'subtype\\': \\'error\\', \\'className\\': \\'TypeError\\', \\'description\\': \"TypeError: Cannot read properties of undefined (reading \\'state\\')\\\\n    at <anonymous>:1:21\", \\'objectId\\': \\'-1129378943999553283.1.3\\'}')"
+  },
+  {
+   "browser": "chrome",
+   "arm": "structure",
+   "version": "Chrome/156.0.8078.47",
+   "login": {
+    "result": {
+     "status": 200,
+     "url": "https://litecore.localhost:18443/apps/dashboard/"
+    }
+   },
+   "checks": [],
+   "error": "RuntimeError('CDP evaluation failed: {\\'type\\': \\'object\\', \\'subtype\\': \\'error\\', \\'className\\': \\'TypeError\\', \\'description\\': \"TypeError: Cannot read properties of undefined (reading \\'state\\')\\\\n    at <anonymous>:1:29\", \\'objectId\\': \\'5815154872370298152.1.1\\'}')",
+   "put": 201,
+   "entry": {
+    "from": "https://litecore.localhost:18443/apps/files/files?dir=/M4-calc-arm-20261105T122427",
+    "landed": "https://litecore.localhost:18443/index.php/apps/litecore/r/9e9310e329d23db4-90d7bc2c/ods-editor.html?fileId=32003"
+   },
+   "traceback": "Traceback (most recent call last):\n  File \"/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/../findings/evidence/host-0.2.58/calc-host-arm/calc_host_arm.py\", line 80, in main\n    wait(session, f'Boolean({ROOT}.state?.cell) && {ROOT}.state.{flag}===true', 180)\n    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/run_calc_editor_browser.py\", line 56, in wait\n    last = evaluate(session, expression)\n  File \"/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/r7_support.py\", line 96, in evaluate\n    return session.evaluate(expression)\n           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^\n  File \"/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/run_browser_probe.py\", line 310, in evaluate\n    raise RuntimeError(f\"CDP evaluation failed: {result}\")\nRuntimeError: CDP evaluation failed: {'type': 'object', 'subtype': 'error', 'className': 'TypeError', 'description': \"TypeError: Cannot read properties of undefined (reading 'state')\\n    at <anonymous>:1:29\", 'objectId': '5815154872370298152.1.1'}\n",
+   "leaveError": "RuntimeError('CDP evaluation failed: {\\'type\\': \\'object\\', \\'subtype\\': \\'error\\', \\'className\\': \\'TypeError\\', \\'description\\': \"TypeError: Cannot read properties of undefined (reading \\'state\\')\\\\n    at <anonymous>:1:21\", \\'objectId\\': \\'5815154872370298152.1.3\\'}')"
+  },
+  {
+   "browser": "firefox",
+   "arm": "headers",
+   "version": "157.0.1",
+   "login": {
+    "result": "https://litecore.localhost:18443/apps/dashboard/"
+   },
+   "checks": [],
+   "error": "RuntimeError('HTTP 500 for POST http://127.0.0.1:49971/session/f199f6c4-53df-4cde-895f-8a0e9147b9d9/execute/sync: {\"value\":{\"error\":\"javascript error\",\"message\":\"TypeError: can\\'t access property \\\\\"state\\\\\", window.__calcEditor is undefined\",\"stacktrace\":\"@https://litecore.localhost:18443/index.php/apps/litecore/r/9e9310e329d23db4-90d7bc2c/ods-editor.html?fileId=32004:2:22\\\\n@https://litecore.localhost:18443/index.php/apps/litecore/r/9e9310e329d23db4-90d7bc2c/ods-editor.html?fileId=32004:3:8\\\\n\"}}')",
+   "put": 201,
+   "entry": {
+    "from": "https://litecore.localhost:18443/apps/files/files?dir=/M4-calc-arm-20261105T122427",
+    "landed": "https://litecore.localhost:18443/index.php/apps/litecore/r/9e9310e329d23db4-90d7bc2c/ods-editor.html?fileId=32004"
+   },
+   "traceback": "Traceback (most recent call last):\n  File \"/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/run_browser_probe.py\", line 43, in http_json\n    with urllib.request.urlopen(request, timeout=timeout) as response:\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.14/urllib/request.py\", line 187, in urlopen\n    return opener.open(url, data, timeout)\n           ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.14/urllib/request.py\", line 493, in open\n    response = meth(req, response)\n  File \"/usr/lib/python3.14/urllib/request.py\", line 602, in http_response\n    response = self.parent.error(\n        'http', request, response, code, msg, hdrs)\n  File \"/usr/lib/python3.14/urllib/request.py\", line 531, in error\n    return self._call_chain(*args)\n           ~~~~~~~~~~~~~~~~^^^^^^^\n  File \"/usr/lib/python3.14/urllib/request.py\", line 464, in _call_chain\n    result = func(*args)\n  File \"/usr/lib/python3.14/urllib/request.py\", line 611, in http_error_default\n    raise HTTPError(req.full_url, code, msg, hdrs, fp)\nurllib.error.HTTPError: HTTP Error 500: Internal Server Error\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/../findings/evidence/host-0.2.58/calc-host-arm/calc_host_arm.py\", line 80, in main\n    wait(session, f'Boolean({ROOT}.state?.cell) && {ROOT}.state.{flag}===true', 180)\n    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/run_calc_editor_browser.py\", line 56, in wait\n    last = evaluate(session, expression)\n  File \"/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/r7_support.py\", line 108, in evaluate\n    return session.execute(f\"return {expression.strip()};\")\n           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/run_browser_probe.py\", line 170, in execute\n    return self.command(\n           ~~~~~~~~~~~~^\n        \"POST\", \"/execute/sync\", {\"script\": script, \"args\": arguments or []}\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File \"/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/run_browser_probe.py\", line 162, in command\n    return self.request(\n           ~~~~~~~~~~~~^\n        method, f\"/session/{self.session_id}{suffix}\", payload\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )[\"value\"]\n    ^\n  File \"/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/run_browser_probe.py\", line 158, in request\n    return http_json(method, self.base_url + path, payload, timeout)\n  File \"/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/run_browser_probe.py\", line 47, in http_json\n    raise RuntimeError(\n        f\"HTTP {error.code} for {method} {url}: {raw.decode(errors='replace')}\"\n    ) from error\nRuntimeError: HTTP 500 for POST http://127.0.0.1:49971/session/f199f6c4-53df-4cde-895f-8a0e9147b9d9/execute/sync: {\"value\":{\"error\":\"javascript error\",\"message\":\"TypeError: can't access property \\\"state\\\", window.__calcEditor is undefined\",\"stacktrace\":\"@https://litecore.localhost:18443/index.php/apps/litecore/r/9e9310e329d23db4-90d7bc2c/ods-editor.html?fileId=32004:2:22\\n@https://litecore.localhost:18443/index.php/apps/litecore/r/9e9310e329d23db4-90d7bc2c/ods-editor.html?fileId=32004:3:8\\n\"}}\n",
+   "leaveError": "RuntimeError('HTTP 500 for POST http://127.0.0.1:49971/session/f199f6c4-53df-4cde-895f-8a0e9147b9d9/execute/sync: {\"value\":{\"error\":\"javascript error\",\"message\":\"TypeError: can\\'t access property \\\\\"state\\\\\", window.__calcEditor is undefined\",\"stacktrace\":\"@https://litecore.localhost:18443/index.php/apps/litecore/r/9e9310e329d23db4-90d7bc2c/ods-editor.html?fileId=32004:2:7\\\\n@https://litecore.localhost:18443/index.php/apps/litecore/r/9e9310e329d23db4-90d7bc2c/ods-editor.html?fileId=32004:3:8\\\\n\"}}')"
+  },
+  {
+   "browser": "firefox",
+   "arm": "structure",
+   "version": "157.0.1",
+   "login": {
+    "result": "https://litecore.localhost:18443/apps/dashboard/"
+   },
+   "checks": [],
+   "error": "RuntimeError('HTTP 500 for POST http://127.0.0.1:49971/session/f199f6c4-53df-4cde-895f-8a0e9147b9d9/execute/sync: {\"value\":{\"error\":\"javascript error\",\"message\":\"TypeError: can\\'t access property \\\\\"state\\\\\", window.__calcEditor is undefined\",\"stacktrace\":\"@https://litecore.localhost:18443/index.php/apps/litecore/r/9e9310e329d23db4-90d7bc2c/ods-editor.html?fileId=32005:2:22\\\\n@https://litecore.localhost:18443/index.php/apps/litecore/r/9e9310e329d23db4-90d7bc2c/ods-editor.html?fileId=32005:3:8\\\\n\"}}')",
+   "put": 201,
+   "entry": {
+    "from": "https://litecore.localhost:18443/apps/files/files?dir=/M4-calc-arm-20261105T122427",
+    "landed": "https://litecore.localhost:18443/index.php/apps/litecore/r/9e9310e329d23db4-90d7bc2c/ods-editor.html?fileId=32005"
+   },
+   "traceback": "Traceback (most recent call last):\n  File \"/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/run_browser_probe.py\", line 43, in http_json\n    with urllib.request.urlopen(request, timeout=timeout) as response:\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.14/urllib/request.py\", line 187, in urlopen\n    return opener.open(url, data, timeout)\n           ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.14/urllib/request.py\", line 493, in open\n    response = meth(req, response)\n  File \"/usr/lib/python3.14/urllib/request.py\", line 602, in http_response\n    response = self.parent.error(\n        'http', request, response, code, msg, hdrs)\n  File \"/usr/lib/python3.14/urllib/request.py\", line 531, in error\n    return self._call_chain(*args)\n           ~~~~~~~~~~~~~~~~^^^^^^^\n  File \"/usr/lib/python3.14/urllib/request.py\", line 464, in _call_chain\n    result = func(*args)\n  File \"/usr/lib/python3.14/urllib/request.py\", line 611, in http_error_default\n    raise HTTPError(req.full_url, code, msg, hdrs, fp)\nurllib.error.HTTPError: HTTP Error 500: Internal Server Error\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/../findings/evidence/host-0.2.58/calc-host-arm/calc_host_arm.py\", line 80, in main\n    wait(session, f'Boolean({ROOT}.state?.cell) && {ROOT}.state.{flag}===true', 180)\n    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/run_calc_editor_browser.py\", line 56, in wait\n    last = evaluate(session, expression)\n  File \"/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/r7_support.py\", line 108, in evaluate\n    return session.execute(f\"return {expression.strip()};\")\n           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/run_browser_probe.py\", line 170, in execute\n    return self.command(\n           ~~~~~~~~~~~~^\n        \"POST\", \"/execute/sync\", {\"script\": script, \"args\": arguments or []}\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File \"/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/run_browser_probe.py\", line 162, in command\n    return self.request(\n           ~~~~~~~~~~~~^\n        method, f\"/session/{self.session_id}{suffix}\", payload\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )[\"value\"]\n    ^\n  File \"/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/run_browser_probe.py\", line 158, in request\n    return http_json(method, self.base_url + path, payload, timeout)\n  File \"/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/run_browser_probe.py\", line 47, in http_json\n    raise RuntimeError(\n        f\"HTTP {error.code} for {method} {url}: {raw.decode(errors='replace')}\"\n    ) from error\nRuntimeError: HTTP 500 for POST http://127.0.0.1:49971/session/f199f6c4-53df-4cde-895f-8a0e9147b9d9/execute/sync: {\"value\":{\"error\":\"javascript error\",\"message\":\"TypeError: can't access property \\\"state\\\", window.__calcEditor is undefined\",\"stacktrace\":\"@https://litecore.localhost:18443/index.php/apps/litecore/r/9e9310e329d23db4-90d7bc2c/ods-editor.html?fileId=32005:2:22\\n@https://litecore.localhost:18443/index.php/apps/litecore/r/9e9310e329d23db4-90d7bc2c/ods-editor.html?fileId=32005:3:8\\n\"}}\n",
+   "leaveError": "RuntimeError('HTTP 500 for POST http://127.0.0.1:49971/session/f199f6c4-53df-4cde-895f-8a0e9147b9d9/execute/sync: {\"value\":{\"error\":\"javascript error\",\"message\":\"TypeError: can\\'t access property \\\\\"state\\\\\", window.__calcEditor is undefined\",\"stacktrace\":\"@https://litecore.localhost:18443/index.php/apps/litecore/r/9e9310e329d23db4-90d7bc2c/ods-editor.html?fileId=32005:2:7\\\\n@https://litecore.localhost:18443/index.php/apps/litecore/r/9e9310e329d23db4-90d7bc2c/ods-editor.html?fileId=32005:3:8\\\\n\"}}')"
+  }
+ ],
+ "cleanup": {
+  "ownedUnlocks": [
+   {
+    "name": "M4-calc-arm-20261105T122427/chrome-headers.ods",
+    "status": 204
+   }
+  ],
+  "folderDeleteStatus": 204
+ },
+ "ownedFolder": "M4-calc-arm-20261105T122427",
+ "browserClose": {
+  "chrome": {},
+  "firefox": {}
+ },
+ "verdict": "H_CALC_RED"
+}
