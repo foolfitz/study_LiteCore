@@ -106,13 +106,20 @@ class Run(cs.Run):
 
 def p_c1_c3(run):
     opened = run.state()["revision"]
+    undo_at_open = run.dom()["undo"]["disabled"]  # spec append 1: recorded, not judged (the page never disables it by depth)
     run.drag(run.cell_center("B", "1"), run.cell_center("C", "2"))
     clip, toast = run.copy()
     run.check("P-C1/rectangle", clip == WANT_C1 and "B1:C2" in toast, {"clipboard": clip, "toast": toast})
-    state, dom = run.state(), run.dom()
+    state = run.state()
     unsaved = evaluate(run.session, f"{ROOT}.session.hasUnsavedEdits()")
-    run.check("P-C3/clean", dom["undo"]["disabled"] is True and unsaved is False and state["revision"] == opened,
-              {"undoDisabled": dom["undo"]["disabled"], "hasUnsavedEdits": unsaved, "revision": [opened, state["revision"]]})
+    # Spec append 1: the copy left no undo step -- one undo finds nothing, and nothing moves.
+    evaluate(run.session, "document.querySelector('#toast').textContent='',true")
+    run.undo()
+    after_undo, undo_toast = run.state()["revision"], evaluate(run.session, "document.querySelector('#toast').textContent")
+    run.check("P-C3/clean", unsaved is False and state["revision"] == opened and undo_toast == "沒有可以復原的動作。"
+              and after_undo == opened,
+              {"hasUnsavedEdits": unsaved, "revision": [opened, state["revision"], after_undo], "undoToast": undo_toast,
+               "undoDisabledAtOpen": undo_at_open})
 
 
 def p_c2(run):

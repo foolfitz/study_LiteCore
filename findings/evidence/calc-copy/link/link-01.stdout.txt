@@ -1,0 +1,47 @@
+mkdir -p build/ods/editor-v7
+../wasm-lite/tools/emsdk/upstream/emscripten/em++ -DLOK_USE_UNSTABLE_API -I../libreoffice-26-8/include -I../wasm-lite/build-ods-viewer-v2/config_host -I../wasm-lite/build-ods-viewer-v2/workdir/UnoApiHeadersTarget/udkapi/comprehensive -I../wasm-lite/build-ods-viewer-v2/workdir/UnoApiHeadersTarget/offapi/comprehensive -I../wasm-lite/build-ods-viewer-v2/workdir/UnpackedTarball/boost -Oz -pthread -fwasm-exceptions -sSUPPORT_LONGJMP=wasm -DOXSDK_READER_PROFILE -DOXSDK_ODS_VIEWER -DOXSDK_ODS_VIEWER_V2 -DOXSDK_ODS_EDITOR -DOXSDK_ODS_RANGE -DOXSDK_ODS_STYLE -DOXSDK_ODS_UNDO -DOXSDK_MS_FORMATS -DOXSDK_ODS_HEADERS -DOXSDK_ODS_STRUCTURE -DOXSDK_ODS_COPY -c src/sdk_api.cpp -o build/ods/editor-v7/sdk_api.o
+../wasm-lite/tools/emsdk/upstream/emscripten/em++ -DLOK_USE_UNSTABLE_API -I../libreoffice-26-8/include -I../wasm-lite/build-ods-viewer-v2/config_host -I../wasm-lite/build-ods-viewer-v2/workdir/UnoApiHeadersTarget/udkapi/comprehensive -I../wasm-lite/build-ods-viewer-v2/workdir/UnoApiHeadersTarget/offapi/comprehensive -I../wasm-lite/build-ods-viewer-v2/workdir/UnpackedTarball/boost -Oz -pthread -fwasm-exceptions -sSUPPORT_LONGJMP=wasm -DOXSDK_READER_PROFILE -DOXSDK_ODS_VIEWER -DOXSDK_ODS_VIEWER_V2 -DOXSDK_ODS_EDITOR -DOXSDK_ODS_RANGE -DOXSDK_ODS_STYLE -DOXSDK_ODS_UNDO -DOXSDK_MS_FORMATS -DOXSDK_ODS_HEADERS -DOXSDK_ODS_STRUCTURE -DOXSDK_ODS_COPY -c src/probe_engine.cpp -o build/ods/editor-v7/probe_engine.o
+../wasm-lite/tools/emsdk/upstream/emscripten/em++ -DLOK_USE_UNSTABLE_API -I../libreoffice-26-8/include -I../wasm-lite/build-ods-viewer-v2/config_host -I../wasm-lite/build-ods-viewer-v2/workdir/UnoApiHeadersTarget/udkapi/comprehensive -I../wasm-lite/build-ods-viewer-v2/workdir/UnoApiHeadersTarget/offapi/comprehensive -I../wasm-lite/build-ods-viewer-v2/workdir/UnpackedTarball/boost -Oz -pthread -fwasm-exceptions -sSUPPORT_LONGJMP=wasm -DOXSDK_READER_PROFILE -DOXSDK_ODS_VIEWER -DOXSDK_ODS_VIEWER_V2 -DOXSDK_ODS_EDITOR -DOXSDK_ODS_RANGE -DOXSDK_ODS_STYLE -DOXSDK_ODS_UNDO -DOXSDK_MS_FORMATS -DOXSDK_ODS_HEADERS -DOXSDK_ODS_STRUCTURE -DOXSDK_ODS_COPY -c src/unoembind_stub.cpp -o build/ods/editor-v7/unoembind_stub.o
+../wasm-lite/tools/emsdk/upstream/emscripten/em++ -DLOK_USE_UNSTABLE_API -I../libreoffice-26-8/include -I../wasm-lite/build-ods-viewer-v2/config_host -I../wasm-lite/build-ods-viewer-v2/workdir/UnoApiHeadersTarget/udkapi/comprehensive -I../wasm-lite/build-ods-viewer-v2/workdir/UnoApiHeadersTarget/offapi/comprehensive -I../wasm-lite/build-ods-viewer-v2/workdir/UnpackedTarball/boost -Oz -pthread -fwasm-exceptions -sSUPPORT_LONGJMP=wasm -std=c++20 \
+	-DLIBO_INTERNAL_ONLY -DOXSDK_ODS_RANGE -DOXSDK_ODS_STYLE -DOXSDK_ODS_UNDO -DOXSDK_ODS_HEADERS \
+	-DOXSDK_ODS_STRUCTURE -DOXSDK_ODS_COPY -c src/calc_cell_bridge.cpp -o build/ods/editor-v7/calc_cell_bridge.o
+grep -v -e '^__ZTI' -e '^_main$' ../wasm-lite/build-ods-viewer-v2/workdir/CustomTarget/desktop/soffice_bin-emscripten-exports/exports > build/ods/editor-v7/exports.txt
+printf '%s\n' __ZTIN3com3sun4star3ucb31InteractiveAugmentedIOExceptionE \
+	_oxsdk_abi_version _oxsdk_capabilities _oxsdk_engine_start \
+	_oxsdk_document_open _oxsdk_document_paint _oxsdk_document_close \
+	_oxsdk_document_search _oxsdk_document_set_part _oxsdk_document_current_part \
+	_oxsdk_document_part_name _oxsdk_document_part_text _oxsdk_document_part_info \
+	_oxsdk_request_cancel _oxsdk_buffer_alloc _oxsdk_buffer_free \
+	_oxsdk_document_save _oxsdk_document_cell \
+	_oxsdk_document_undo _oxsdk_document_redo >> build/ods/editor-v7/exports.txt
+../wasm-lite/tools/emsdk/upstream/emscripten/em++ build/ods/editor-v7/sdk_api.o build/ods/editor-v7/probe_engine.o build/ods/editor-v7/unoembind_stub.o build/ods/editor-v7/calc_cell_bridge.o \
+	-L../wasm-lite/build-ods-viewer-v2/instdir/program \
+	$(cat ../wasm-lite/build-ods-viewer-v2/instdir/program/soffice.js.linkdeps) \
+	-pthread -fwasm-exceptions -sSUPPORT_LONGJMP=wasm --no-entry -Oz \
+	-sMODULARIZE -sEXPORT_NAME=createProbeModule \
+	-sTOTAL_MEMORY=1GB -sPTHREAD_POOL_SIZE=7 -sPTHREAD_POOL_SIZE_STRICT=0 \
+	-sSTACK_SIZE=131072 -sDEFAULT_PTHREAD_STACK_SIZE=1048576 \
+	-sFORCE_FILESYSTEM=1 -sWASM_BIGINT=1 -sERROR_ON_UNDEFINED_SYMBOLS=1 -sFETCH=1 \
+	-sASSERTIONS=0 -sEXIT_RUNTIME=0 -sEXPORTED_RUNTIME_METHODS=ccall,FS,HEAPU8 \
+	-sEXPORTED_FUNCTIONS=@build/ods/editor-v7/exports.txt \
+	-Wl,--wrap=_Z18initJsUnoScriptingv \
+	--pre-js ../libreoffice-26-8/static/emscripten/environment.js \
+	--pre-js ../wasm-lite/build-ods-viewer-v2/workdir/CustomTarget/static/emscripten_fs_image/soffice.data.js.link \
+	-o build/ods/editor-v7/probe.js
+python3 tools/derive_ms_formats_worker.py --profile calc-copy --out build/ods/editor-v7/sdk-worker.js
+{"profile": "calc-copy", "out": "build/ods/editor-v7/sdk-worker.js", "sha256": "8b49b46eae30912851160cceb3679a27a249b77bf66db6e28abee24eb6a6ac97"}
+python3 tools/build_ms_formats_profile.py --profile calc-copy --development \
+	--loader build/ods/editor-v7/probe.js --wasm build/ods/editor-v7/probe.wasm \
+	--worker build/ods/editor-v7/sdk-worker.js --exports build/ods/editor-v7/exports.txt \
+	--base-exports build/ods/editor-v6/exports.txt --output build/ods/editor-v7/profile
+{
+  "profile": "ods-editor-v7",
+  "development": true,
+  "capabilityBits": 131070259,
+  "sha256": {
+    "probe.js": "e835968e18e75cb6910c2ce30f6798791e71e58d2cda90645d0152f27d3f2f22",
+    "probe.wasm": "36d0e1b8d971d04c550b7b48c2648b4210165a8eb96ea1cc65067a4d6ff248d9",
+    "sdk-worker.js": "8b49b46eae30912851160cceb3679a27a249b77bf66db6e28abee24eb6a6ac97",
+    "sdk-manifest.json": "5544d79263575b1b89dc744f689a04fa9e42b672e85baeeb5477d16a8cdf7b7f"
+  }
+}

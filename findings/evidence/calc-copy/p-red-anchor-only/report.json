@@ -1,0 +1,101 @@
+{
+ "tool": {
+  "path": "wasm_sdk_probe/tools/check_calc_copy.py",
+  "sha256": "e2f545815c1571b82566b3a7bbeea7dfb7e50ed994ff323f2437d64ce6c3b82e",
+  "argv": [
+   "--out",
+   "../../findings/evidence/calc-copy/p-red-anchor-only",
+   "--engine",
+   "../build/ods/editor-v7/profile",
+   "--browsers",
+   "chrome",
+   "--mutate",
+   "anchor-only"
+  ]
+ },
+ "engine": "../build/ods/editor-v7/profile",
+ "wasm": "36d0e1b8d971d04c550b7b48c2648b4210165a8eb96ea1cc65067a4d6ff248d9",
+ "worker": "8b49b46eae30912851160cceb3679a27a249b77bf66db6e28abee24eb6a6ac97",
+ "page": {
+  "ods-editor-app.js": "ab89256f3cd29b7592ecc3406e8e094e4a0d35decc6b486b1495ed82be633ad5",
+  "ods-editor.html": "89e1d1b1f4e1ee14a28a8f93594bbd5af383af88a6ca59b9f869debd2e883f4d",
+  "spreadsheet-shell/calc-editor-session.js": "57b9c509095410ebb9d44f96592650b5754fce69a46f038c078e6ea69a1286ad",
+  "spreadsheet-shell/calc-document-sdk.js": "026a1ee784dc0975c05602e219ea535a2b0d8984660e88dd3a359f72cabda749"
+ },
+ "mutate": "anchor-only",
+ "fixture": "88f47aa196194fd7184cb49b1f069b9bd1232480e4c73e7ee080b9b0ea7dab85",
+ "runs": [
+  {
+   "browser": "chrome",
+   "checks": [
+    {
+     "id": "P-C1/rectangle",
+     "pass": false,
+     "actual": {
+      "clipboard": "42",
+      "toast": "已複製 B1"
+     }
+    },
+    {
+     "id": "P-C3/clean",
+     "pass": true,
+     "actual": {
+      "hasUnsavedEdits": false,
+      "revision": [
+       0,
+       0,
+       0
+      ],
+      "undoToast": "沒有可以復原的動作。",
+      "undoDisabledAtOpen": false
+     }
+    },
+    {
+     "id": "P-C2/column",
+     "pass": false,
+     "actual": {
+      "lines": 0,
+      "first": "原始中文 Alpha",
+      "line1000": null,
+      "toast": "已複製 A1"
+     }
+    },
+    {
+     "id": "P-C2/row",
+     "pass": false,
+     "actual": {
+      "start": "鄰格必須保留",
+      "toast": "已複製 A2"
+     }
+    },
+    {
+     "id": "P-C4/field",
+     "pass": true,
+     "actual": {
+      "clipboard": "42",
+      "toast": ""
+     }
+    },
+    {
+     "id": "P-C5/empty",
+     "pass": true,
+     "actual": {
+      "clipboard": "標記-P-C5",
+      "toast": "這個範圍沒有可以複製的文字。"
+     }
+    }
+   ],
+   "error": null,
+   "version": "Chrome/156.0.8078.47",
+   "clipboardGrant": {
+    "granted": true
+   },
+   "cleanup": {}
+  }
+ ],
+ "verdict": "MUTATION_RED",
+ "redCriteria": [
+  "P-C1",
+  "P-C2"
+ ]
+}
