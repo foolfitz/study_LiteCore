@@ -24,12 +24,21 @@ Checkpoint **2026-11-06**. Supersedes `HANDOFF-2026-11-05b-host-0258-installed.m
   `p-red-anchor-only` is red in P-C1.
 - `v7-regression/`: sheets 9/9, headers 145/121, structure 18/18, all **P_HOLDS** on v7 (`60e8786da`).
 
-## Next (the owner picks)
+## Release 0.2.59 (the owner chose A, "現在發布給你手測")
 
-A hand-test slot for Calc copy and sheets means a release: freeze `ods-editor-v7` into `dist/profiles/`, point the page at v7, run the
-release regression and the host package (0.2.59), and install. Writer did not move (generation 91). Without a named slot nothing is frozen
-(CLAUDE.md, cadence), and the next candidate is specified instead. Still open from the owner's list: Ctrl+click multi-selection, renaming
-sheets, dragging column widths and row heights, and freezing panes. Renaming and widths need a link; batch them.
+- `8f064145e`: `ods-editor-v7` frozen into dist (`FROZEN_EQUAL`), the page points at v7, and six mirror tools learned v7's URL.
+- `findings/evidence/release-0.2.59/`: node 1052/1052, the Calc mutation tools pass, and the Calc release regression (10 nets, 15 min)
+  holds on dist v7. Writer was not re-run: its bytes are 0.2.58's (generation 91), so the gate reads 0.2.58's records (cadence item 5).
+- `findings/evidence/host-0.2.59/` (`71b69d389`): host `480ba6b`, engine `a2e67f21`. Gate 32/32, `DELTA_HOLDS`, `PACKAGE_HOLDS`,
+  `CANDIDATE_INSTALLED` (12:44), Files 52/52, capture holds. New arm `tools/calc_host_arm.py --arms sheets copy`: `H_CALC_HOLDS`.
+- The hand-test script is `HANDTEST-2026-11-06-host-0.2.59.md` (10 items). The fixtures are in admin's `手測-0.2.59/`.
+
+## Next
+
+Waiting for the owner's hand test of 0.2.59. Record the result as `findings/evidence/host-0.2.59/handtest-2026-11-06/README.md`, the
+way 0.2.58's was. Items 1 and 2 matter most: only a real browser shows whether a real Ctrl+C may write the clipboard after the engine
+round trip. Still open from the owner's list: Ctrl+click multi-selection, renaming sheets, dragging column widths and row heights,
+and freezing panes. Renaming and widths need a link; batch them.
 
 ## Cautions
 
