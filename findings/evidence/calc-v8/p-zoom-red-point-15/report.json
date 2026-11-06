@@ -1,0 +1,760 @@
+{
+ "tool": {
+  "path": "wasm_sdk_probe/tools/check_calc_zoom.py",
+  "sha256": "0b15dc0b47b155cf1cb956d1714a5b12ee3269cc69893ce31607d47707e13d04",
+  "argv": [
+   "--out",
+   "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/calc-v8/p-zoom-red-point-15",
+   "--engine",
+   "../build/ods/editor-v8/profile",
+   "--browsers",
+   "chrome",
+   "--mutate",
+   "point-15"
+  ]
+ },
+ "engine": "../build/ods/editor-v8/profile",
+ "wasm": "61e2a06908eb321ebcbd17dfd42b70f9857990155fa38e029e0ffe58c025cccc",
+ "worker": "91d514f1b18aa948360dbd7fa8e98260d7a5a03011176e65ae3dfc6ba537ac22",
+ "page": {
+  "ods-editor-app.js": "64b9f5bbb3e4fd12d566f7c83602f3990b1111e3406bd2245c590e6a490badd7",
+  "ods-editor.html": "d5be0e6038454683dceb32fc3e9d147e8a7a264de970f9ecbc5e897f9fc9443e",
+  "spreadsheet-shell/calc-editor-session.js": "15db6ce1d23e0821df15b189816656b9eb7ea5cea11f3733f444656987308dca",
+  "spreadsheet-shell/calc-document-sdk.js": "bb27a1262657199c3ef1b6d0e57624ede655c17a2c766c12cdcecc8028453bb3",
+  "viewer-shell/ods-viewer-session.js": "9e8bee4b40c2aa21def58a7e5476ad5db88a85a1215bd4bf47095bd57070b2a4"
+ },
+ "mutate": "point-15",
+ "fixture": "88f47aa196194fd7184cb49b1f069b9bd1232480e4c73e7ee080b9b0ea7dab85",
+ "runs": [
+  {
+   "browser": "chrome",
+   "checks": [
+    {
+     "id": "P-Z1/controls",
+     "pass": true,
+     "actual": {
+      "atOpen": {
+       "out": {
+        "center": [
+         691.015625,
+         65.5
+        ],
+        "disabled": false,
+        "visible": true,
+        "text": "−"
+       },
+       "level": {
+        "center": [
+         743.7109375,
+         65.5
+        ],
+        "disabled": false,
+        "visible": true,
+        "text": "100%"
+       },
+       "in": {
+        "center": [
+         796.40625,
+         65.5
+        ],
+        "disabled": false,
+        "visible": true,
+        "text": "+"
+       },
+       "zoom": 100
+      },
+      "down": [
+       "75%",
+       "50%"
+      ],
+      "up": [
+       "75%",
+       "100%",
+       "125%",
+       "150%",
+       "200%"
+      ],
+      "back": "100%",
+      "levels": [
+       50,
+       75,
+       100,
+       125,
+       150,
+       200
+      ]
+     }
+    },
+    {
+     "id": "P-Z7/zoom-only",
+     "pass": true,
+     "actual": {
+      "revision": [
+       0,
+       0
+      ],
+      "hasUnsavedEdits": false,
+      "lastSave": null
+     }
+    },
+    {
+     "id": "P-Z2/100",
+     "pass": true,
+     "actual": {
+      "scale": "1.0000",
+      "tiles": 28,
+      "badTiles": [],
+      "surface": 8397,
+      "documentCss": 8397
+     }
+    },
+    {
+     "id": "P-Z3/100",
+     "pass": true,
+     "actual": {
+      "before": [
+       5,
+       100
+      ],
+      "after": [
+       5,
+       99
+      ],
+      "redBox": [
+       47,
+       882,
+       133,
+       900
+      ],
+      "activeBox": [
+       48,
+       883,
+       132.921875,
+       899.921875
+      ]
+     }
+    },
+    {
+     "id": "P-Z4/100",
+     "pass": true,
+     "actual": {
+      "column": [
+       48,
+       133
+      ],
+      "row": [
+       883,
+       900
+      ],
+      "active": [
+       48,
+       883,
+       132.921875,
+       899.921875
+      ]
+     }
+    },
+    {
+     "id": "P-Z7/100",
+     "pass": true,
+     "actual": {
+      "revision": 1,
+      "painted": 1
+     }
+    },
+    {
+     "id": "P-Z9/100",
+     "pass": true,
+     "actual": {
+      "in": false,
+      "out": false,
+      "zoom": 100
+     }
+    },
+    {
+     "id": "P-Z5/out-75",
+     "pass": true,
+     "actual": {
+      "label": "75%",
+      "before": {
+       "column": 8,
+       "row": 99,
+       "scrollLeft": 0,
+       "scrollTop": 1317,
+       "atEdge": true,
+       "maxLeft": 7020
+      },
+      "after": {
+       "column": 10,
+       "row": 99,
+       "scrollLeft": 0,
+       "scrollTop": 823,
+       "atEdge": true,
+       "maxLeft": 4945
+      }
+     }
+    },
+    {
+     "id": "P-Z2/75",
+     "pass": true,
+     "actual": {
+      "scale": "0.7500",
+      "tiles": 24,
+      "badTiles": [],
+      "surface": 6322,
+      "documentCss": 6322
+     }
+    },
+    {
+     "id": "P-Z3/75",
+     "pass": false,
+     "actual": {
+      "before": [
+       5,
+       100
+      ],
+      "after": [
+       4,
+       74
+      ],
+      "redBox": [
+       353,
+       531,
+       418,
+       544
+      ],
+      "activeBox": [
+       269,
+       232,
+       353.9375,
+       243.9375
+      ]
+     }
+    },
+    {
+     "id": "P-Z4/75",
+     "pass": false,
+     "actual": {
+      "column": [
+       354,
+       418
+      ],
+      "row": [
+       532,
+       544
+      ],
+      "active": [
+       269,
+       232,
+       353.9375,
+       243.9375
+      ]
+     }
+    },
+    {
+     "id": "P-Z7/75",
+     "pass": true,
+     "actual": {
+      "revision": 1,
+      "painted": 1
+     }
+    },
+    {
+     "id": "P-Z9/75",
+     "pass": true,
+     "actual": {
+      "in": false,
+      "out": false,
+      "zoom": 75
+     }
+    },
+    {
+     "id": "P-Z5/out-50",
+     "pass": true,
+     "actual": {
+      "label": "50%",
+      "before": {
+       "column": 10,
+       "row": 99,
+       "scrollLeft": 0,
+       "scrollTop": 823,
+       "atEdge": true,
+       "maxLeft": 4945
+      },
+      "after": {
+       "column": 16,
+       "row": 99,
+       "scrollLeft": 0,
+       "scrollTop": 421,
+       "atEdge": true,
+       "maxLeft": 2773
+      }
+     }
+    },
+    {
+     "id": "P-Z2/50",
+     "pass": true,
+     "actual": {
+      "scale": "0.5000",
+      "tiles": 24,
+      "badTiles": [],
+      "surface": 4150,
+      "documentCss": 4150
+     }
+    },
+    {
+     "id": "P-Z3/50",
+     "pass": false,
+     "actual": {
+      "before": [
+       5,
+       100
+      ],
+      "after": [
+       2,
+       49
+      ],
+      "redBox": [
+       249,
+       533,
+       292,
+       542
+      ],
+      "activeBox": [
+       138,
+       134,
+       193.953125,
+       141.953125
+      ]
+     }
+    },
+    {
+     "id": "P-Z4/50",
+     "pass": false,
+     "actual": {
+      "column": [
+       250,
+       292
+      ],
+      "row": [
+       534,
+       542
+      ],
+      "active": [
+       138,
+       134,
+       193.953125,
+       141.953125
+      ]
+     }
+    },
+    {
+     "id": "P-Z7/50",
+     "pass": true,
+     "actual": {
+      "revision": 1,
+      "painted": 1
+     }
+    },
+    {
+     "id": "P-Z9/50",
+     "pass": true,
+     "actual": {
+      "in": false,
+      "out": true,
+      "zoom": 50
+     }
+    },
+    {
+     "id": "P-Z5/in-75",
+     "pass": true,
+     "actual": {
+      "label": "75%",
+      "before": {
+       "column": 16,
+       "row": 99,
+       "scrollLeft": 0,
+       "scrollTop": 421,
+       "atEdge": true,
+       "maxLeft": 2773
+      },
+      "after": {
+       "column": 16,
+       "row": 99,
+       "scrollLeft": 359,
+       "scrollTop": 823,
+       "atEdge": false,
+       "maxLeft": 4945
+      }
+     }
+    },
+    {
+     "id": "P-Z5/in-100",
+     "pass": true,
+     "actual": {
+      "label": "100%",
+      "before": {
+       "column": 10,
+       "row": 99,
+       "scrollLeft": 0,
+       "scrollTop": 823,
+       "atEdge": true,
+       "maxLeft": 4945
+      },
+      "after": {
+       "column": 10,
+       "row": 99,
+       "scrollLeft": 227,
+       "scrollTop": 1318,
+       "atEdge": false,
+       "maxLeft": 7020
+      }
+     }
+    },
+    {
+     "id": "P-Z5/in-125",
+     "pass": true,
+     "actual": {
+      "label": "125%",
+      "before": {
+       "column": 8,
+       "row": 99,
+       "scrollLeft": 0,
+       "scrollTop": 1317,
+       "atEdge": true,
+       "maxLeft": 7020
+      },
+      "after": {
+       "column": 8,
+       "row": 99,
+       "scrollLeft": 171,
+       "scrollTop": 1719,
+       "atEdge": false,
+       "maxLeft": 9095
+      }
+     }
+    },
+    {
+     "id": "P-Z2/125",
+     "pass": true,
+     "actual": {
+      "scale": "1.2500",
+      "tiles": 28,
+      "badTiles": [],
+      "surface": 10472,
+      "documentCss": 10472
+     }
+    },
+    {
+     "id": "P-Z3/125",
+     "pass": false,
+     "actual": {
+      "before": [
+       5,
+       100
+      ],
+      "after": [
+       6,
+       124
+      ],
+      "redBox": [
+       384,
+       527,
+       491,
+       549
+      ],
+      "activeBox": [
+       491,
+       1053,
+       596.90625,
+       1073.90625
+      ]
+     }
+    },
+    {
+     "id": "P-Z4/125",
+     "pass": false,
+     "actual": {
+      "column": [
+       385,
+       491
+      ],
+      "row": [
+       528,
+       549
+      ],
+      "active": [
+       491,
+       1053,
+       596.90625,
+       1073.90625
+      ]
+     }
+    },
+    {
+     "id": "P-Z7/125",
+     "pass": true,
+     "actual": {
+      "revision": 1,
+      "painted": 1
+     }
+    },
+    {
+     "id": "P-Z9/125",
+     "pass": true,
+     "actual": {
+      "in": false,
+      "out": false,
+      "zoom": 125
+     }
+    },
+    {
+     "id": "P-Z5/in-150",
+     "pass": true,
+     "actual": {
+      "label": "150%",
+      "before": {
+       "column": 6,
+       "row": 99,
+       "scrollLeft": 0,
+       "scrollTop": 1719,
+       "atEdge": true,
+       "maxLeft": 9095
+      },
+      "after": {
+       "column": 6,
+       "row": 99,
+       "scrollLeft": 141,
+       "scrollTop": 2120,
+       "atEdge": false,
+       "maxLeft": 11267
+      }
+     }
+    },
+    {
+     "id": "P-Z2/150",
+     "pass": true,
+     "actual": {
+      "scale": "1.5000",
+      "tiles": 24,
+      "badTiles": [],
+      "surface": 12644,
+      "documentCss": 12644
+     }
+    },
+    {
+     "id": "P-Z3/150",
+     "pass": false,
+     "actual": {
+      "before": [
+       5,
+       100
+      ],
+      "after": [
+       8,
+       149
+      ],
+      "redBox": [
+       518,
+       525,
+       647,
+       551
+      ],
+      "activeBox": [
+       903,
+       1776,
+       1030.890625,
+       1800.890625
+      ]
+     }
+    },
+    {
+     "id": "P-Z4/150",
+     "pass": false,
+     "actual": {
+      "column": [
+       519,
+       647
+      ],
+      "row": [
+       526,
+       551
+      ],
+      "active": [
+       903,
+       1776,
+       1030.890625,
+       1800.890625
+      ]
+     }
+    },
+    {
+     "id": "P-Z7/150",
+     "pass": true,
+     "actual": {
+      "revision": 1,
+      "painted": 1
+     }
+    },
+    {
+     "id": "P-Z9/150",
+     "pass": true,
+     "actual": {
+      "in": false,
+      "out": false,
+      "zoom": 150
+     }
+    },
+    {
+     "id": "P-Z5/in-200",
+     "pass": true,
+     "actual": {
+      "label": "200%",
+      "before": {
+       "column": 5,
+       "row": 99,
+       "scrollLeft": 0,
+       "scrollTop": 2120,
+       "atEdge": true,
+       "maxLeft": 11267
+      },
+      "after": {
+       "column": 5,
+       "row": 99,
+       "scrollLeft": 227,
+       "scrollTop": 3016,
+       "atEdge": false,
+       "maxLeft": 15417
+      }
+     }
+    },
+    {
+     "id": "P-Z2/200",
+     "pass": true,
+     "actual": {
+      "scale": "2.0000",
+      "tiles": 28,
+      "badTiles": [],
+      "surface": 16794,
+      "documentCss": 16794
+     }
+    },
+    {
+     "id": "P-Z3/200",
+     "pass": false,
+     "actual": {
+      "before": [
+       5,
+       100
+      ],
+      "after": [
+       10,
+       199
+      ],
+      "redBox": [
+       634,
+       521,
+       805,
+       556
+      ],
+      "activeBox": [
+       1485,
+       3922.0625,
+       1654.859375,
+       3955.921875
+      ]
+     }
+    },
+    {
+     "id": "P-Z4/200",
+     "pass": false,
+     "actual": {
+      "column": [
+       635,
+       805
+      ],
+      "row": [
+       522,
+       556
+      ],
+      "active": [
+       1485,
+       3922.0625,
+       1654.859375,
+       3955.921875
+      ]
+     }
+    },
+    {
+     "id": "P-Z7/200",
+     "pass": true,
+     "actual": {
+      "revision": 1,
+      "painted": 1
+     }
+    },
+    {
+     "id": "P-Z9/200",
+     "pass": true,
+     "actual": {
+      "in": true,
+      "out": false,
+      "zoom": 200
+     }
+    },
+    {
+     "id": "P-Z6/type",
+     "pass": true,
+     "actual": {
+      "zoom": 150,
+      "fontSize": "21px",
+      "F100": {
+       "text": "縮放",
+       "backColor": "#ff0000"
+      }
+     }
+    },
+    {
+     "id": "P-Z8/sheets",
+     "pass": false,
+     "actual": {
+      "label": "75%",
+      "after": [
+       4,
+       74
+      ],
+      "redBox": [
+       353,
+       531,
+       418,
+       544
+      ],
+      "activeBox": [
+       269,
+       232,
+       353.9375,
+       243.9375
+      ]
+     }
+    }
+   ],
+   "error": null,
+   "version": "Chrome/156.0.8078.47",
+   "levels": [
+    50,
+    75,
+    100,
+    125,
+    150,
+    200
+   ],
+   "cleanup": {}
+  }
+ ],
+ "verdict": "MUTATION_RED",
+ "redCriteria": [
+  "P-Z3",
+  "P-Z4",
+  "P-Z8"
+ ]
+}

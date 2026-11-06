@@ -1,0 +1,209 @@
+{
+ "tool": {
+  "path": "wasm_sdk_probe/tools/check_calc_copy.py",
+  "sha256": "547978cf05997d40706ac30d89e6c96e66d0850ae12f067192199b5d6bb175d0",
+  "argv": [
+   "--html",
+   "--mutate",
+   "plain-only",
+   "--browsers",
+   "chrome",
+   "--out",
+   "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/calc-v8/p-copy-red-plain-only-2",
+   "--engine",
+   "../build/ods/editor-v8/profile",
+   "--native-harness",
+   "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/calc-v8/native-build-01/v8/calc-undo-native"
+  ]
+ },
+ "engine": "../build/ods/editor-v8/profile",
+ "wasm": "61e2a06908eb321ebcbd17dfd42b70f9857990155fa38e029e0ffe58c025cccc",
+ "worker": "91d514f1b18aa948360dbd7fa8e98260d7a5a03011176e65ae3dfc6ba537ac22",
+ "page": {
+  "ods-editor-app.js": "3ef2ab5836314dfe2a356221f6de73c3d4e32296b067f97a40b5b3740176491a",
+  "ods-editor.html": "d5be0e6038454683dceb32fc3e9d147e8a7a264de970f9ecbc5e897f9fc9443e",
+  "spreadsheet-shell/calc-editor-session.js": "15db6ce1d23e0821df15b189816656b9eb7ea5cea11f3733f444656987308dca",
+  "spreadsheet-shell/calc-document-sdk.js": "bb27a1262657199c3ef1b6d0e57624ede655c17a2c766c12cdcecc8028453bb3"
+ },
+ "mutate": "plain-only",
+ "html": true,
+ "fixture": "88f47aa196194fd7184cb49b1f069b9bd1232480e4c73e7ee080b9b0ea7dab85",
+ "runs": [
+  {
+   "browser": "chrome",
+   "checks": [
+    {
+     "id": "P-C1/rectangle",
+     "pass": true,
+     "actual": {
+      "clipboard": "42\t84\n格式測試\t待清除\n",
+      "toast": "已複製 B1:C2"
+     }
+    },
+    {
+     "id": "P-C3/clean",
+     "pass": true,
+     "actual": {
+      "hasUnsavedEdits": false,
+      "revision": [
+       0,
+       0,
+       0
+      ],
+      "undoToast": "沒有可以復原的動作。",
+      "undoDisabledAtOpen": false
+     }
+    },
+    {
+     "id": "P-C2/column",
+     "pass": true,
+     "actual": {
+      "lines": 1000,
+      "first": "原始中文 Alpha",
+      "line1000": "第 1000 列",
+      "toast": "已複製 A 欄"
+     }
+    },
+    {
+     "id": "P-C2/row",
+     "pass": true,
+     "actual": {
+      "start": "鄰格必須保留\t格式測試\t待清除\n",
+      "toast": "已複製 第 2 列"
+     }
+    },
+    {
+     "id": "P-C4/field",
+     "pass": true,
+     "actual": {
+      "clipboard": "42",
+      "toast": ""
+     }
+    },
+    {
+     "id": "P-C5/empty",
+     "pass": true,
+     "actual": {
+      "clipboard": "標記-P-C5",
+      "toast": "這個範圍沒有可以複製的文字。"
+     }
+    },
+    {
+     "id": "P-H1/both-formats",
+     "pass": false,
+     "actual": {
+      "types": [
+       "text/plain"
+      ],
+      "plain": "42\t84\n格式測試\t待清除\n",
+      "table": {
+       "tables": 0,
+       "rows": []
+      },
+      "lastCopy": {
+       "formats": [
+        "text/plain"
+       ],
+       "htmlRefused": null
+      },
+      "toast": "已複製 B1:C2",
+      "error": null
+     }
+    },
+    {
+     "id": "P-H2/column",
+     "pass": false,
+     "actual": {
+      "rows": 0,
+      "first": [],
+      "types": [
+       "text/plain"
+      ],
+      "lastCopy": {
+       "formats": [
+        "text/plain"
+       ],
+       "htmlRefused": null
+      },
+      "toast": "已複製 A 欄"
+     }
+    },
+    {
+     "id": "P-H3/fallback",
+     "pass": true,
+     "actual": {
+      "ClipboardItem": "undefined",
+      "types": [
+       "text/plain"
+      ],
+      "plain": "42\t84\n格式測試\t待清除\n",
+      "lastCopy": {
+       "formats": [
+        "text/plain"
+       ],
+       "htmlRefused": null
+      },
+      "toast": "已複製 B1:C2"
+     }
+    },
+    {
+     "id": "P-H4/paste-back",
+     "pass": false,
+     "detail": {
+      "exit": 1,
+      "L20": "",
+      "target": {
+       "0,0": "",
+       "1,0": "",
+       "2,0": "",
+       "0,1": "",
+       "1,1": "",
+       "2,1": ""
+      },
+      "stderr": ""
+     }
+    }
+   ],
+   "error": null,
+   "version": "Chrome/156.0.8078.47",
+   "clipboardGrant": {
+    "granted": true
+   },
+   "P-H1-html": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/calc-v8/p-copy-red-plain-only-2/chrome-P-H1.html",
+   "P-H1-registration": {
+    "browserBytes": 0,
+    "browserStyle": false,
+    "browserOrigin": false,
+    "engine": {
+     "bytes": 1276,
+     "style": true,
+     "origin": true
+    }
+   },
+   "P-H4-html": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/calc-v8/p-copy-red-plain-only-2/chrome-P-H4-source.html",
+   "P-H4-source": {
+    "types": [
+     "text/plain"
+    ],
+    "table": {
+     "tables": 0,
+     "rows": []
+    },
+    "toast": "已複製 A1:C2",
+    "lastCopy": {
+     "formats": [
+      "text/plain"
+     ],
+     "htmlRefused": null
+    }
+   },
+   "cleanup": {}
+  }
+ ],
+ "verdict": "MUTATION_RED",
+ "redCriteria": [
+  "P-H1",
+  "P-H2",
+  "P-H4"
+ ]
+}
