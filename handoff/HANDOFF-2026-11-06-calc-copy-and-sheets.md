@@ -15,16 +15,21 @@ Checkpoint **2026-11-06**. Supersedes `HANDOFF-2026-11-05b-host-0258-installed.m
 - `aa169eca1`: `tools/check_calc_copy.py` (P-C1..P-C5 plus the `anchor-only` red case), ready, and `tests/calc-copy.test.mjs` 7/7.
 - The node suite (every `*.test.mjs` outside build/ and dist/) passes 1045/1045 after `983ad536a`, and 1052 with `calc-copy.test.mjs`. The three Calc mutation tools pass; `!state.away` is now one of the 12 format predicates.
 
-## Waiting on the owner
+## The link and the page runs (2026-11-06, after the link)
 
-The link, owner-run: `bash ~/LibreOffice/study_LiteCore/findings/evidence/calc-copy/link/link.sh`. It writes `link-01.*` and `profile-SHA256SUMS` beside itself. The v6 link took 2 m 30 s.
+- The owner ran `link.sh`: exit 0, 2 m 52 s. `build/ods/editor-v7/profile`, wasm `36d0e1b8`, worker `8b49b46e`, archived read-only as
+  `build/archive/ods-editor-v7-dev-36d0e1b8`.
+- `findings/evidence/calc-copy/p-01` was red in P-C3 only, because of the spec: "the undo button stays disabled" assumed something the page
+  never does. Spec append 1 withdrew it and measures one undo finding nothing. `p-02` is **P_HOLDS** 6/6 in each browser.
+  `p-red-anchor-only` is red in P-C1.
+- `v7-regression/`: sheets 9/9, headers 145/121, structure 18/18, all **P_HOLDS** on v7 (`60e8786da`).
 
-## Next, once the link is in
+## Next (the owner picks)
 
-1. Check `link-01.exit.txt` is 0. Archive the profile (`build/archive/ods-editor-v7-dev-<wasm8>`, `cp` then read-only; never rewrite an archived file in place).
-2. `cd wasm_sdk_probe/tools && python3 check_calc_copy.py --out ../../findings/evidence/calc-copy/p-01 --engine ../build/ods/editor-v7/profile`, then `--mutate anchor-only` into `p-red-anchor-only` (it must be red in P-C1).
-3. On the v7 profile, also rerun `check_calc_sheets.py --engine ../build/ods/editor-v7/profile` (the page is the same, but the engine moved) and the headers and structure P (`check_calc_headers.py`, `check_calc_structure.py`) as the regression on the new link.
-4. Then offer the owner a hand-test slot (copy + sheets). A release follows only from a named slot (CLAUDE.md, cadence). The page still points at `ods-editor-v6`; the freeze moves it to v7.
+A hand-test slot for Calc copy and sheets means a release: freeze `ods-editor-v7` into `dist/profiles/`, point the page at v7, run the
+release regression and the host package (0.2.59), and install. Writer did not move (generation 91). Without a named slot nothing is frozen
+(CLAUDE.md, cadence), and the next candidate is specified instead. Still open from the owner's list: Ctrl+click multi-selection, renaming
+sheets, dragging column widths and row heights, and freezing panes. Renaming and widths need a link; batch them.
 
 ## Cautions
 
