@@ -1,0 +1,263 @@
+{
+ "argv": [
+  "tools/check_calc_copy_native.py",
+  "--html",
+  "--harness",
+  "../findings/evidence/calc-v8/native-build-01/v8/calc-undo-native",
+  "--control",
+  "../findings/evidence/calc-v8/native-build-01/v7/calc-undo-native",
+  "--out",
+  "../findings/evidence/calc-v8/n-copy-01"
+ ],
+ "tool": "e6e95f23bef3565ac6a32283a664b824ff89c16334dc946bf9191be2b6a5c397",
+ "harness": {
+  "path": "../findings/evidence/calc-v8/native-build-01/v8/calc-undo-native",
+  "sha256": "9d5f115723fa910b7a8d8c1701849281016e20afbdf1631dc229a0c4713d153c"
+ },
+ "control": {
+  "path": "../findings/evidence/calc-v8/native-build-01/v7/calc-undo-native",
+  "sha256": "ed248be7e0c161bbc5e69906ece4855b1063f271caf5eab1896534abc25b9713"
+ },
+ "cells": {
+  "N-C1": {
+   "plainText": "42\t84\n格式測試\t待清除\n",
+   "changed": "false",
+   "ok": true
+  },
+  "N-C2": {
+   "endsInNewline": true,
+   "lines": 1000,
+   "line1": "原始中文 Alpha",
+   "line4": "隱藏列",
+   "line1000": "第 1000 列",
+   "changed": "false",
+   "ok": true
+  },
+  "N-C3": {
+   "row1": "原始中文 Alpha\t42\t84\t\t隱藏欄之後\t\t\t第一行 第二行\t有\"引號\" 與定位\t0.333333333333333\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tAA 欄\n",
+   "fields": 27,
+   "sheetLine1": "原始中文 Alpha\t42\t84\t\t隱藏欄之後\t\t\t第一行 第二行\t有\"引號\" 與定位\t0.333333333333333\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tAA 欄",
+   "changed": [
+    "false",
+    "false"
+   ],
+   "ok": true
+  },
+  "N-C4": {
+   "C1": "84",
+   "other A1": "第二表不應改動",
+   "protected A1:B1": "鎖定內容\t可編輯\n",
+   "changed": [
+    "false",
+    "false",
+    "false"
+   ],
+   "ok": true
+  },
+  "N-C5": {
+   "cursorBefore": "1695, 270, 1019, 554, 1, 1",
+   "cursorAfter": "1695, 270, 1019, 554, 1, 1",
+   "undoBefore": 3,
+   "undoAfter": 3,
+   "changed": [
+    "false",
+    "false",
+    "false",
+    "false",
+    "false",
+    "false",
+    "false",
+    "false"
+   ],
+   "ok": true
+  },
+  "N-C6": {
+   "empty L10:M11": {
+    "ok": "false",
+    "code": "COPY_UNAVAILABLE",
+    "mutationAttempted": "false",
+    "want": "COPY_UNAVAILABLE"
+   },
+   "A1:Z3000": {
+    "ok": "false",
+    "code": "RANGE_TOO_LARGE",
+    "mutationAttempted": "false",
+    "want": "RANGE_TOO_LARGE"
+   },
+   "reversed": {
+    "ok": "false",
+    "code": "INVALID_ARGUMENT",
+    "mutationAttempted": "false",
+    "want": "INVALID_ARGUMENT"
+   },
+   "ok": true
+  },
+  "N-H1": {
+   "table": {
+    "tables": 1,
+    "rows": [
+     [
+      "42",
+      "84"
+     ],
+     [
+      "格式測試",
+      "待清除"
+     ]
+    ]
+   },
+   "plainText": "42\t84\n格式測試\t待清除\n",
+   "ok": true
+  },
+  "N-H2": {
+   "A1:A2": {
+    "tables": 1,
+    "rows": [
+     [
+      "原始中文 Alpha"
+     ],
+     [
+      "鄰格必須保留"
+     ]
+    ]
+   },
+   "H1:I1": {
+    "tables": 1,
+    "rows": [
+     [
+      "第一行\n第二行",
+      "有\"引號\"\t與定位"
+     ]
+    ]
+   },
+   "ok": true
+  },
+  "N-H4": {
+   "columnRows": 999,
+   "columnRow1": [
+    "原始中文 Alpha"
+   ],
+   "columnRow4": [
+    "隱藏列之後"
+   ],
+   "columnLast": [
+    "第 1000 列"
+   ],
+   "hiddenRowText": false,
+   "sheetRow1Cells": 26,
+   "sheetRow1Cell4": "隱藏欄之後",
+   "protected": [
+    [
+     "鎖定內容",
+     "可編輯"
+    ]
+   ],
+   "ok": true
+  },
+  "N-H7": {
+   "B1:C2": {
+    "htmlBytes": 1271,
+    "ms": 1.926
+   },
+   "column A": {
+    "htmlBytes": 123943,
+    "ms": 180.786
+   },
+   "sheet": {
+    "htmlBytes": 2571920,
+    "ms": 229.564
+   }
+  },
+  "N-H5": {
+   "N-C5": true,
+   "undoBefore": 3,
+   "undoAfter": 3,
+   "ok": true
+  },
+  "N-H6": {
+   "N-C6": true,
+   "htmlText": {
+    "empty L10:M11": false,
+    "A1:Z3000": false,
+    "reversed": false
+   },
+   "ok": true
+  },
+  "N-H3": {
+   "cursor": {
+    "commandName": ".uno:CellCursor",
+    "commandValues": "13755, 4920, 1274, 254, 11, 19"
+   },
+   "pasted": true,
+   "source": {
+    "0,0": "原始中文 Alpha",
+    "1,0": "42",
+    "2,0": "84",
+    "0,1": "鄰格必須保留",
+    "1,1": "格式測試",
+    "2,1": "待清除"
+   },
+   "target": {
+    "0,0": "原始中文 Alpha",
+    "1,0": "42",
+    "2,0": "84",
+    "0,1": "鄰格必須保留",
+    "1,1": "格式測試",
+    "2,1": "待清除"
+   },
+   "L20": "原始中文 Alpha",
+   "ok": true
+  }
+ },
+ "N-C7": {
+  "B1:C2": 1.926,
+  "column A": 180.786,
+  "sheet": 229.564
+ },
+ "red": {
+  "plainText": "42\t84\n",
+  "red": true
+ },
+ "N-H3": {
+  "cursor": {
+   "commandName": ".uno:CellCursor",
+   "commandValues": "13755, 4920, 1274, 254, 11, 19"
+  },
+  "pasted": true,
+  "source": {
+   "0,0": "原始中文 Alpha",
+   "1,0": "42",
+   "2,0": "84",
+   "0,1": "鄰格必須保留",
+   "1,1": "格式測試",
+   "2,1": "待清除"
+  },
+  "target": {
+   "0,0": "原始中文 Alpha",
+   "1,0": "42",
+   "2,0": "84",
+   "0,1": "鄰格必須保留",
+   "1,1": "格式測試",
+   "2,1": "待清除"
+  },
+  "L20": "原始中文 Alpha",
+  "ok": true
+ },
+ "redHtml": {
+  "table": {
+   "tables": 0,
+   "rows": []
+  },
+  "red": true
+ },
+ "controlBuild": {
+  "reply": {
+   "ok": "true",
+   "code": null,
+   "plainText": "42\t84\n格式測試\t待清除\n"
+  },
+  "htmlText": false,
+  "ok": true
+ },
+ "verdict": "N_HOLDS"
+}

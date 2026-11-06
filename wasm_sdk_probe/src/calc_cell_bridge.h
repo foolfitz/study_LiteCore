@@ -21,6 +21,12 @@
 // OXSDK_ODS_COPY (SPEC-P-calc-copy, requires STRUCTURE) appends 15, read-only: JSON
 // {endColumn,endRow}; returns plainText, the core's own copy text for the range
 // (getTextSelection after selecting it), and the marked range; the selection is restored.
+// OXSDK_ODS_COPY_HTML (SPEC-P-calc-copy append 2, requires COPY) adds htmlText to 15's reply:
+// the core's own text/html for the same selection, absent when the core gives none.
+// OXSDK_ODS_ZOOM (SPEC-P-calc-zoom, requires COPY) appends 16, read-only for the document:
+// JSON {tileTwips} in {7680,5120,3840,3072,2560,1920} (50..200%); every later operation sets
+// the view's client zoom to 256 px per tileTwips (3840 before, and without the define);
+// replies with the document size in twips at that zoom.
 // Old operation values and the frozen v1 identity retain their contracts.
 extern "C" char *oxsdk_calc_cell_model(void *lokDocument, int part, int column,
                                       int row, int operation,

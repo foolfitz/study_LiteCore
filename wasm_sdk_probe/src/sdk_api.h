@@ -77,6 +77,16 @@ typedef enum oxsdk_capability {
      read-only). */
   , OXSDK_CAPABILITY_CELL_COPY = 1u << 26
 #endif
+#ifdef OXSDK_ODS_COPY_HTML
+  /* SPEC-P-calc-copy append 2: operation 15's reply also carries the core's
+     text/html for the range. */
+  , OXSDK_CAPABILITY_CELL_COPY_HTML = 1u << 27
+#endif
+#ifdef OXSDK_ODS_ZOOM
+  /* SPEC-P-calc-zoom: cell operation 16 (the view's zoom; later operations
+     and tiles follow it). */
+  , OXSDK_CAPABILITY_CELL_ZOOM = 1u << 28
+#endif
 #endif
 #ifdef OXSDK_MS_FORMATS
   /* SPEC-P-ms-formats 5.1 E4: DOCX in the Writer editor, XLSX in the Calc

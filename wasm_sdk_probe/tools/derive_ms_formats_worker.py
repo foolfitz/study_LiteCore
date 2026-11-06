@@ -8,6 +8,8 @@ occurring exactly once, written to --out.
                 (SPEC-P-calc-headers 3.3; one more entry in this tool's table, not a new tool)
   calc-copy     dist/profiles/ods-editor-v6/sdk-worker.js + tests/ods-v7-worker-delta.json -> the ods-editor-v7 worker
                 (SPEC-P-calc-copy 3.2)
+  calc-html-zoom  dist/profiles/ods-editor-v7/sdk-worker.js + tests/ods-v8-worker-delta.json -> the ods-editor-v8 worker
+                (SPEC-P-calc-zoom 3.2; copy's text/html needs no worker change)
 
 Derived at build time instead of living in sdk/, as derive_ods_v4_worker.py: the Writer shell bundle scans sdk/*.js, and a new file
 there turns generation 88's bundle check red.  tests/ms_formats_worker_test.cjs exercises the same derivation.
@@ -28,6 +30,8 @@ BASES = {
                      "79bbafb4b56f17766177772898dc96ea8f50bded15068dfabcb80d176fff72f6", SDK / "tests/ods-v6-worker-delta.json"),
     "calc-copy": (SDK / "dist/profiles/ods-editor-v6/sdk-worker.js",
                   "cbf3c1efe1300672dc94136bf655ce22bb430d1aabc45ec6808643c18d606da3", SDK / "tests/ods-v7-worker-delta.json"),
+    "calc-html-zoom": (SDK / "dist/profiles/ods-editor-v7/sdk-worker.js",
+                       "8b49b46eae30912851160cceb3679a27a249b77bf66db6e28abee24eb6a6ac97", SDK / "tests/ods-v8-worker-delta.json"),
 }
 
 

@@ -11,6 +11,8 @@ Closed list of differences from the frozen base manifest:
           tool; SPEC-P-calc-structure 3.2 adds the second capability to the same, unreleased profile)
   calc-copy  base dist/profiles/ods-editor-v6 -> ods-editor-v7: capabilities + cell-copy; bit 26; a `copyContract`
           (SPEC-P-calc-copy 3.1-3.2)
+  calc-html-zoom  base dist/profiles/ods-editor-v7 -> ods-editor-v8: capabilities + cell-copy-html, cell-zoom; bits 27, 28;
+          a `copyHtmlContract` and a `zoomContract` (SPEC-P-calc-copy 9.1, SPEC-P-calc-zoom 3.1-3.2)
 
 plus `profile`, `sdkVersion`, a `documentFormatContract` naming the table (src/document_format.hpp), and -- Writer only -- the
 editorContract's loaderSha256 / wasmSha256 / workerSha256 recomputed from the copied artifacts (they named v32's; Codex review
@@ -60,6 +62,21 @@ PROFILES = {
                                "the core's own copy text (getTextSelection text/plain;charset=utf-8)",
                       "refused": "COPY_UNAVAILABLE (no text: an empty range), RANGE_TOO_LARGE, COPY_REFUSED (the range was not "
                                  "selected)"})},
+    "calc-html-zoom": {"base": HERE / "dist/profiles/ods-editor-v7", "profile": "ods-editor-v8",
+                       "capabilities": ["cell-copy-html", "cell-zoom"],
+                       "bits": (1 << 27) | (1 << 28),  # src/sdk_api.h OXSDK_CAPABILITY_CELL_COPY_HTML, _CELL_ZOOM
+                       "contract": ("copyHtmlContract", {
+                           "version": 1, "spec": "specs/SPEC-P-calc-copy.md 9",
+                           "reply": "cellCopy's reply also carries htmlText, the core's text/html for the same selection "
+                                    "(getTextSelection text/html), kept as it came; absent when the core gives none"}),
+                       "contracts": [("zoomContract", {
+                           "version": 1, "spec": "specs/SPEC-P-calc-zoom.md",
+                           "operation": "cellZoom: cell operation 16, read-only for the document; every later operation and "
+                                        "the page's tiles use 256 px per tileTwips",
+                           "tileTwips": [7680, 5120, 3840, 3072, 2560, 1920],
+                           "reply": "{tileTwips, percent: 384000 / tileTwips, widthTwips, heightTwips (getDocumentSize at that "
+                                    "zoom), changed: false}",
+                           "refused": "INVALID_ARGUMENT (tileTwips outside the list)"})]},
 }
 for _spec in PROFILES.values():  # the Microsoft-formats entries, in the general form
     if "ms" in _spec:

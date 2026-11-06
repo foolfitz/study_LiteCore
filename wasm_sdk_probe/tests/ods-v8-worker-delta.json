@@ -1,0 +1,36 @@
+{
+ "schema": 1,
+ "note": "SPEC-P-calc-zoom 2.4 / 3.2: the closed list of replacements taking the frozen ods-editor-v7 worker (dist/profiles/ods-editor-v7/sdk-worker.js) to the ods-editor-v8 worker, applied in order, each occurring exactly once (tools/derive_ms_formats_worker.py --profile calc-html-zoom).  Copy's text/html (SPEC-P-calc-copy 9.1.2) needs no worker change: op 15's reply is passed through.",
+ "hunks": [
+  {
+   "item": "1 header comment",
+   "old": "// SPEC-P-calc-copy 3.2: the ods-editor-v7 worker.  The v6 worker plus a closed list\n",
+   "new": "// SPEC-P-calc-zoom 3.2: the ods-editor-v8 worker.  The v7 worker plus a closed list\n// (tests/ods-v8-worker-delta.json): cellZoom (cell op 16, the view's zoom), this comment.\n// Op 15's text/html (SPEC-P-calc-copy 9) rides in the reply this worker already passes through.\n//\n// SPEC-P-calc-copy 3.2: the ods-editor-v7 worker.  The v6 worker plus a closed list\n"
+  },
+  {
+   "item": "2 cellZoom needs the cell-zoom capability",
+   "old": "  [\"cellCopy\", \"cell-copy\"],\n]);",
+   "new": "  [\"cellCopy\", \"cell-copy\"],\n  [\"cellZoom\", \"cell-zoom\"],\n]);"
+  },
+  {
+   "item": "3 cellZoom joins the cell requests",
+   "old": "    case \"cellCopy\": {",
+   "new": "    case \"cellCopy\":\n    case \"cellZoom\": {"
+  },
+  {
+   "item": "4 cellZoom's tileTwips is the bridge's closed list",
+   "old": "          || (request.operation === \"rangeStyle\" && !styleValueIsClosed(payload.style, payload.value))) {",
+   "new": "          || (request.operation === \"rangeStyle\" && !styleValueIsClosed(payload.style, payload.value))\n          || (request.operation === \"cellZoom\" && ![7680, 5120, 3840, 3072, 2560, 1920].includes(payload.tileTwips))) {"
+  },
+  {
+   "item": "5 cellZoom is cell op 16",
+   "old": "      const operation = request.operation === \"cellCopy\" ? 15\n",
+   "new": "      const operation = request.operation === \"cellZoom\" ? 16\n        : request.operation === \"cellCopy\" ? 15\n"
+  },
+  {
+   "item": "6 cellZoom sends {tileTwips}",
+   "old": "      accept(request, () => request.operation === \"cellStructure\"\n",
+   "new": "      accept(request, () => request.operation === \"cellZoom\"\n        ? withUtf8(JSON.stringify({tileTwips:payload.tileTwips}),invoke)\n        : request.operation === \"cellStructure\"\n"
+  }
+ ]
+}

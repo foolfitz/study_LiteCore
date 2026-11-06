@@ -1,6 +1,10 @@
 // SPEC-P-calc-undo 4.4 (NU-2, NU-3): calc_cell_native.cpp (SPEC-M4-cell-editing-v1, not edited) plus a
 // document callback and one action, "uno-wait": post the command with notification and wait for its
 // LOK_CALLBACK_UNO_COMMAND_RESULT, reporting the payload or that none came.  Observations, not verdicts.
+// 2026-11-07, SPEC-P-calc-copy append 2: one more action, "paste": LOK paste(mimeType, data) at the cell
+// cursor, which puts the data on the view's clipboard and dispatches .uno:Paste (init.cxx doc_paste).
+// SPEC-P-calc-zoom: "paint": LOK paintTile into a width x height buffer for the tile at x, y of
+// tileWidth x tileHeight twips, written raw (the core's BGRA) to "file".
 #define LOK_USE_UNSTABLE_API
 #include <LibreOfficeKit/LibreOfficeKit.h>
 #include <LibreOfficeKit/LibreOfficeKitEnums.h>
@@ -9,7 +13,9 @@
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <cstdlib>
+#include <fstream>
 #include <iostream>
+#include <vector>
 #include <sstream>
 #include <thread>
 #include <chrono>
@@ -75,6 +81,24 @@ int main(int argc, char **argv) {
       doc->pClass->postUnoCommand(doc, request.get<std::string>("command").c_str(), nullptr, true);
       std::this_thread::sleep_for(std::chrono::milliseconds(300));
       std::cout << "{\"posted\":true}" << std::endl;
+      continue;
+    }
+    if (request.get<std::string>("action", "") == "paste") {
+      const auto mimeType = request.get<std::string>("mimeType");
+      const auto data = request.get<std::string>("data");
+      const bool ok = doc->pClass->paste(doc, mimeType.c_str(), data.data(), data.size());
+      std::cout << "{\"pasted\":" << (ok ? "true" : "false") << "}" << std::endl;
+      continue;
+    }
+    if (request.get<std::string>("action", "") == "paint") {
+      const int width = request.get<int>("width"), height = request.get<int>("height");
+      std::vector<unsigned char> buffer(static_cast<std::size_t>(width) * height * 4);
+      doc->pClass->paintTile(doc, buffer.data(), width, height, request.get<int>("x"),
+                             request.get<int>("y"), request.get<int>("tileWidth"),
+                             request.get<int>("tileHeight"));
+      std::ofstream(request.get<std::string>("file"), std::ios::binary)
+          .write(reinterpret_cast<const char *>(buffer.data()), static_cast<std::streamsize>(buffer.size()));
+      std::cout << "{\"painted\":true,\"bytes\":" << buffer.size() << "}" << std::endl;
       continue;
     }
     if (request.get<std::string>("action", "") == "save") {

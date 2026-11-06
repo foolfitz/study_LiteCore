@@ -40,6 +40,10 @@
 
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
+#ifdef OXSDK_ODS_ZOOM
+#include <algorithm>
+#include <iterator>
+#endif
 #include <cmath>
 #include <cstdint>
 #include <cstdlib>
@@ -84,11 +88,27 @@ ptree commandValues(LibreOfficeKitDocument *doc, const std::string &command) {
   return values;
 }
 
+// SPEC-P-calc-zoom: the view's twips per 256-pixel tile.  3840 is 100% (1 CSS px = 15
+// twips), the only value before OXSDK_ODS_ZOOM.  Every operation sets the view's client
+// zoom from it, and the page asks for tiles of the same twips, so the core lays rows and
+// columns out at the zoom it paints at (row edges are floored pixel by pixel at that
+// zoom, gridwin4.cxx PaintTile -> ScViewData::SetZoom; 100% positions cannot be scaled).
+#ifdef OXSDK_ODS_ZOOM
+int gTileTwips = 3840;
+#else
+constexpr int gTileTwips = 3840;
+#endif
+
+void applyClientZoom(LibreOfficeKitDocument *doc) {
+  doc->pClass->setClientZoom(doc, 256, 256, gTileTwips, gTileTwips);
+}
+
 int headerIndex(const ptree &headers, int coordinate, bool columns) {
   int previousIndex = -1;
   double previousSize = 0;
   bool first = true;
-  const double pixel = coordinate / 15.0;
+  // Twips to the core's pixels at the view's zoom; at 3840 this is coordinate / 15.
+  const double pixel = coordinate * 256.0 / gTileTwips;
   for (const auto &item : headers) {
     const auto label = item.second.get<std::string>("text");
     int lastIndex = 0;
@@ -172,11 +192,11 @@ ptree accessHeaders(LibreOfficeKitDocument *doc, const Reference<frame::XModel> 
   if (x < 0 || y < 0 || width < 0 || height < 0 || (width == 0 && height == 0)
       || width > kHeaderRectangleLimit || height > kHeaderRectangleLimit)
     throw Refusal("INVALID_ARGUMENT", "invalid header rectangle");
-  // The same view state as the cell operations (same sheet, 1 CSS px = 15 twips),
+  // The same view state as the cell operations (same sheet, the view's zoom),
   // and nothing else: no select(), no cursor read.
   Reference<sheet::XSpreadsheetView> view(model->getCurrentController(), uno::UNO_QUERY_THROW);
   view->setActiveSheet(sheet);
-  doc->pClass->setClientZoom(doc, 256, 256, 3840, 3840);
+  applyClientZoom(doc);
   const auto headers = commandValues(doc, ".uno:ViewRowColumnHeaders?x=" + std::to_string(x)
       + "&y=" + std::to_string(y) + "&width=" + std::to_string(width)
       + "&height=" + std::to_string(height));
@@ -297,6 +317,14 @@ ptree accessCopy(LibreOfficeKitDocument *doc, const Reference<sheet::XSpreadshee
     throw Refusal("COPY_REFUSED", "LibreOffice did not select the range to copy");
   }
   char *raw = doc->pClass->getTextSelection(doc, "text/plain;charset=utf-8", nullptr);
+#ifdef OXSDK_ODS_COPY_HTML
+  // SPEC-P-calc-copy append 2: the core's own HTML for the same selection, read while the
+  // range is still selected.  Desktop Calc pastes HTML before plain text
+  // (viewfun3.cxx PasteFromSystem), so cells keep their boundaries; plain multi-line text
+  // goes through the Text Import dialog with the user's last separators.  Kept as the core
+  // gives it; absent when the core gives none.
+  char *html = raw ? doc->pClass->getTextSelection(doc, "text/html", nullptr) : nullptr;
+#endif
   restore();
   if (!raw)
     throw Refusal("COPY_UNAVAILABLE", "LibreOffice returned no text for the range");
@@ -314,6 +342,47 @@ ptree accessCopy(LibreOfficeKitDocument *doc, const Reference<sheet::XSpreadshee
   result.put("markedEndColumn", marked.EndColumn);
   result.put("markedEndRow", marked.EndRow);
   result.put("plainText", plain);
+#ifdef OXSDK_ODS_COPY_HTML
+  if (html) {
+    result.put("htmlText", std::string(html));
+    std::free(html);
+  }
+#endif
+  result.put("changed", false);
+  return result;
+}
+#endif
+
+#ifdef OXSDK_ODS_ZOOM
+// SPEC-P-calc-zoom: op 16 sets the view's zoom, read-only for the document.  The tile
+// twips are a closed list: 384000 / percent for 50, 75, 100, 125, 150, 200, each a whole
+// number, so the page's tiles (256 px of tileTwips) have exactly the client zoom's ratio.
+// Replies with the document size at the new zoom (getDocumentSize, twips at that zoom).
+ptree accessZoom(LibreOfficeKitDocument *doc, const Reference<frame::XModel> &model,
+                 const Reference<sheet::XSpreadsheet> &sheet, int part, const char *text,
+                 int textLength) {
+  if (!text || textLength <= 0)
+    throw Refusal("INVALID_ARGUMENT", "zoom payload is required");
+  ptree request;
+  std::istringstream input(std::string(text, textLength));
+  boost::property_tree::read_json(input, request);
+  const int tileTwips = request.get<int>("tileTwips", 0);
+  constexpr int kTileTwips[] = {7680, 5120, 3840, 3072, 2560, 1920};
+  if (std::find(std::begin(kTileTwips), std::end(kTileTwips), tileTwips) == std::end(kTileTwips))
+    throw Refusal("INVALID_ARGUMENT", "tileTwips is one of 7680 5120 3840 3072 2560 1920");
+  Reference<sheet::XSpreadsheetView> view(model->getCurrentController(), uno::UNO_QUERY_THROW);
+  view->setActiveSheet(sheet);
+  gTileTwips = tileTwips;
+  applyClientZoom(doc);
+  long width = 0, height = 0;
+  doc->pClass->getDocumentSize(doc, &width, &height);
+  ptree result;
+  result.put("ok", true);
+  result.put("part", part);
+  result.put("tileTwips", tileTwips);
+  result.put("percent", 384000 / tileTwips);
+  result.put("widthTwips", width);
+  result.put("heightTwips", height);
   result.put("changed", false);
   return result;
 }
@@ -523,7 +592,9 @@ ptree access(LibreOfficeKitDocument *doc, int part, int column, int row, int ope
              const char *text, int textLength, int enabled, bool &mutationAttempted) {
   SolarMutexGuard guard;
   constexpr int maxOperation =
-#ifdef OXSDK_ODS_COPY
+#ifdef OXSDK_ODS_ZOOM
+      16;
+#elif defined(OXSDK_ODS_COPY)
       15;
 #elif defined(OXSDK_ODS_STRUCTURE)
       14;
@@ -572,6 +643,10 @@ ptree access(LibreOfficeKitDocument *doc, int part, int column, int row, int ope
   if (operation == 15)
     return accessCopy(doc, sheet, model, part, column, row, columns, rows, text, textLength);
 #endif
+#ifdef OXSDK_ODS_ZOOM
+  if (operation == 16)
+    return accessZoom(doc, model, sheet, part, text, textLength);
+#endif
 #ifdef OXSDK_ODS_RANGE
   if (operation >= 6)
     return accessRange(sheet, model, part, column, row, columns, rows, operation,
@@ -579,9 +654,10 @@ ptree access(LibreOfficeKitDocument *doc, int part, int column, int row, int ope
 #endif
   Reference<sheet::XSpreadsheetView> view(model->getCurrentController(), uno::UNO_QUERY_THROW);
   view->setActiveSheet(sheet);
-  // Match the page's fixed 1 CSS px = 15 twips; screen-aligned row heights
-  // accumulate rounding and cannot be reconstructed from UNO millimetres.
-  doc->pClass->setClientZoom(doc, 256, 256, 3840, 3840);
+  // Match the page's tiles (1 CSS px = 15 twips at 100%, gTileTwips / 256 at the view's
+  // zoom); screen-aligned row heights accumulate rounding and cannot be reconstructed
+  // from UNO millimetres.
+  applyClientZoom(doc);
   if (operation == 5) {
     const auto headers = commandValues(doc, ".uno:ViewRowColumnHeaders?x="
         + std::to_string(column) + "&y=" + std::to_string(row) + "&width=60&height=60");
