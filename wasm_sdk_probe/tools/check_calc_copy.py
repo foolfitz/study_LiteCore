@@ -14,6 +14,7 @@ Without --mutate: exit 0 iff every check of every browser passes.
 
 2026-11-07, SPEC-P-calc-copy 9.2 (ods-editor-v8): --html adds P-H1..P-H3 after P-C1..P-C5, reading the clipboard back with
 navigator.clipboard.read() (both browsers' versions are in the report), and P-H4: the text/html each browser read back in P-H1
+(spec append 4: a separate copy of A1:C2, the range whose A1 holds a space)
 is saved beside the report and pasted at L20 by the native harness (check_calc_copy_native.py --paste-html, --native-harness).
 --mutate plain-only drops the page's ClipboardItem write; it must turn P-H1 red.
   check_calc_copy.py --html --out NEW_DIR --engine build/ods/editor-v8/profile --native-harness BUILD/v8/calc-undo-native
@@ -211,8 +212,23 @@ def p_h2(run):
               {"rows": len(rows), "first": rows[:1], "types": clip["types"], "lastCopy": last, "toast": toast})
 
 
+def p_h4_source(run):
+    """Spec append 4: P-H4 pastes the browser's read-back of A1:C2 (A1 holds the space), not P-H1's B1:C2."""
+    run.drag(run.cell_center("A", "1"), run.cell_center("C", "2"))
+    clip, toast, last = copy_items(run)
+    saved = run.out / f"{run.record['browser']}-P-H4-source.html"
+    saved.write_text(clip.get("html") or "", encoding="utf-8")
+    run.record["P-H4-html"] = str(saved)
+    run.record["P-H4-source"] = {"types": clip["types"], "table": cell_table(clip.get("html")), "toast": toast, "lastCopy": last}
+
+
 def p_h3(run):
-    removed = evaluate(run.session, "(delete globalThis.ClipboardItem, typeof globalThis.ClipboardItem)")
+    # Spec append 5: Firefox's WebDriver scripts run in a sandbox whose global is not the page's, so the change is made by a
+    # script element in the page's own world, which also reports what the page now sees.
+    removed = evaluate(run.session, """(()=>{const s=document.createElement('script');
+      s.textContent="Object.defineProperty(window,'ClipboardItem',{value:undefined,configurable:true,writable:true});"
+        +"document.documentElement.dataset.clipboardItem=typeof window.ClipboardItem;";
+      document.head.append(s);s.remove();return document.documentElement.dataset.clipboardItem;})()""")
     run.drag(run.cell_center("B", "1"), run.cell_center("C", "2"))
     clip, toast, last = copy_items(run)
     run.check("P-H3/fallback", removed == "undefined" and clip["types"] == ["text/plain"] and clip["plain"] == WANT_C1
@@ -221,7 +237,7 @@ def p_h3(run):
 
 
 def scenario(run, html=False):
-    for step in (p_c1_c3, p_c2, p_c4, p_c5) + ((p_h1, p_h2, p_h3) if html else ()):
+    for step in (p_c1_c3, p_c2, p_c4, p_c5) + ((p_h1, p_h2, p_h4_source, p_h3) if html else ()):
         try:
             step(run)
         except Exception as error:  # noqa: BLE001  one cell's crash is that cell's red; the next cell runs
@@ -289,7 +305,7 @@ def main():
         log.close()
     if args.html:  # P-H4: what each browser read back, pasted by the native core (no browser involved)
         for r in report["runs"]:
-            saved = r.get("P-H1-html")
+            saved = r.get("P-H4-html")
             paste_out = out / f"{r['browser']}-P-H4"
             proc = subprocess.run(["python3", str(PROJECT / "tools/check_calc_copy_native.py"), "--paste-html", str(saved or "/dev/null"),
                                    "--harness", str(args.native_harness), "--out", str(paste_out)], capture_output=True, text=True,
