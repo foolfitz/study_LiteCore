@@ -87,9 +87,58 @@ Calc 頁面不能把格子複製到別的地方，要到桌面版做。
 
 `p-01`（連結後的 `ods-editor-v7`，wasm `36d0e1b8`）裡，P-C1、C2、C4、C5 在兩個瀏覽器都過了，只有 P-C3 紅：revision 0→0，`hasUnsavedEdits()` 是 false，但復原鈕沒有停用。原因是這一句的前提是錯的。頁面的復原鈕從來不看復原堆疊（`render()` 的停用條件是 `!ready || readOnly || uncertain || waiting || selectionPending`），開檔後本來就可以按〔已觀察，原始碼〕。依〈驗收判準的形式〉§4，**撤回這一句**，換成直接量規格 2.5「不記 undo」：P-C1 之後按一次工具列的復原，`#toast` 是「沒有可以復原的動作。」，而且 revision 不變。P-C3 的另外兩項照舊。工具同時記下開檔時復原鈕的狀態，用量測佐證前提錯了。`p-01` 照實留著，結果是紅的；更正之後的是 `p-02`。
 
+## 9. 追加 2（2026-11-07）：同時放 `text/html`（擁有者裁示 A：照 Collabora，連結一次）
+
+**起因**：0.2.59 手測，整欄複製貼到桌面 Calc 會在空格處拆格（`findings/evidence/host-0.2.59/handtest-2026-11-06/README.md`）。剪貼簿上的 TSV 是對的；桌面 Calc 收到多行 `STRING` 會走「匯入文字」對話框、套用者上次的分隔符號，同時有 HTML 時則先貼 HTML（`viewfun3.cxx` `PasteFromSystem`）。Collabora 兩種都放（`Clipboard.js`）。〔已觀察〕
+
+**試跑**（scratchpad，不計數；原生 26.8＋本節的 bridge 改動，同一個結構夾具）：B1:C2 的 `text/html` 是 `ScTransferObj` 匯出的整份 HTML，一個 `<table>`、每格一個 `<td>`、格內文字照原樣（C1 另帶 `data-sheets-formula`），H1 的換行變成 `<br>`。整欄 A 124 KB／181 ms，整張表 2.5 MB／233 ms。空白範圍照舊 `COPY_UNAVAILABLE`。把 A1:C2 的 HTML 用 LOK `paste("text/html")` 貼到 L20：L20:N21 六格都對，L20 是完整的「原始中文 Alpha」，42、84 是數值。〔已觀察〕
+
+### 9.1 決定（取代第 2.2 條「只放純文字」）
+
+1. **引擎**：op 15 在範圍還選著時（放回選取之前）再呼叫一次 `getTextSelection(doc, "text/html")`，回覆多一個 `htmlText`（字串，照核心給的原樣）；核心給 null 時沒有這個欄位。新 define `OXSDK_ODS_COPY_HTML`（需要 `OXSDK_ODS_COPY`），能力位元 27 `cell-copy-html`。
+2. **profile**：`ods-editor-v8`＝v7 的 define 再加 `OXSDK_ODS_COPY_HTML`（與 `SPEC-P-calc-zoom.md` 的 `OXSDK_ODS_ZOOM` 同一次連結），dev profile 放 `build/`。**這一項不需要改 worker**：op 15 的回覆原樣轉交，worker 沒有能力白名單，`activeManifest.profile` 只出現在錯誤訊息裡（已查，finding 179 的那種名字閘門不存在）。v8 的 worker 因為縮放的 `cellZoom` 而衍生（見該規格 2.4），衍生清單裡沒有複製的條目。manifest 由 `build_ms_formats_profile.py` 多一筆（base v7）產生，能力加 `cell-copy-html`。
+3. **SDK／session**：`normalizeCopy` 收選擇性的 `htmlText`（有就必須是字串）；`copySelection()` 回 `{plainText, htmlText, range}`，沒有時 `htmlText` 是 null。
+4. **頁面**：有 `htmlText` 且有 `ClipboardItem` 時，`navigator.clipboard.write([new ClipboardItem({"text/plain", "text/html"})])`；沒有，或 `write` 被拒，就照舊 `writeText(plainText)`。`#toast` 不變。頁面把走了哪條路記在 `__calcEditor.lastCopy`（寫入的格式、被拒的原因），給 P 讀。
+5. **寫入時機不變**：仍是等引擎回覆後才寫。Collabora 是先把 promise 塞進 `ClipboardItem` 再等（為了 Safari 的使用者啟用規則）；0.2.59 手測裡「等回覆再寫」是成功的，Safari 不在支援範圍，所以不改。
+
+### 9.2 判準（實作前釘死）
+
+**原生（N，build-native-26-8，原始碼就是要連結的 bridge）**。`htmlText` 用 Python `html.parser` 解析：取第一個 `<table>`，每個 `<tr>` 的每個 `<td>` 的文字（`<br>` 算 `\n`、其餘空白原樣），得到「格文字表」。
+
+| id | 判準 | 如果永遠沒做 |
+|---|---|---|
+| N-H1 表格 | B1:C2 → 剛好一個 `<table>`，格文字表＝`[[42, 84], [格式測試, 待清除]]`；`plainText` 仍＝N-C1 的文字 | 貼到桌面 Calc 照舊拆格 |
+| N-H2 空格、換行、定位 | A1:A2 → `[[原始中文 Alpha], [鄰格必須保留]]`；H1:I1 → `[[第一行⏎第二行, 有"引號"⇥與定位]]` | 同上 |
+| N-H3 貼回去不拆格 | 另一個 session：A1:C2 的 `htmlText` 用 LOK `paste("text/html")` 貼到 L20，L20:N21 的 op 0 文字逐格等於 A1:C2 的文字 | 同上（這是要的性質；桌面貼上走同一個 `.uno:Paste`） |
+| N-H4 整欄、整表、受保護表 | 整欄 A → 1000 個 `<tr>`，第 1 列「原始中文 Alpha」、第 1000 列「第 1000 列」；整表第 1 列有 27 格；第 3 張表 A1:B1 → `[[鎖定內容, 可編輯]]` | 同上 |
+| N-H5 沒有副作用 | N-C5 照舊成立（讀 HTML 也不動游標、不記 undo、`changed: false`） | 複製會動到文件 |
+| N-H6 拒絕照舊 | N-C6 照舊成立，拒絕的回覆沒有 `htmlText` | — |
+| N-H7 成本（量測登錄） | B1:C2、整欄 A、整表的 ms 與 `htmlText` 位元組數 | — |
+
+N-C1–C6 在同一個 session 照舊判一次（原始碼改了，原判準要重現）。紅案：把 LOK 在核心不給 HTML 時的退路（`init.cxx` `encodeTextAsHTML`：`<pre>` 包住純文字）餵給 N-H1 的判讀 → N-H1 紅。這是 wasm 上真正的風險（HTML 匯出沒進連結時，LOK 會靜靜地回這個）。對照組：同一份原始碼用 v7 的 define → op 15 成功但沒有 `htmlText`。
+
+**頁面（P，連結後的 `ods-editor-v8`，Chrome 與 Firefox，鏡像）**。剪貼簿用 `navigator.clipboard.read()` 讀回，記下兩個瀏覽器的版本。
+
+| id | 判準 | 如果永遠沒做 |
+|---|---|---|
+| P-H1 兩種格式 | 從 B1 拖到 C2、Ctrl+C：剪貼簿有 `text/plain` 與 `text/html`；`text/plain`＝N-C1 的文字；`text/html` 的格文字表＝N-H1；`lastCopy` 寫的是兩種 | 只有原生證據 |
+| P-H2 整欄 | 點欄標 A、Ctrl+C：`text/html` 有 1000 個 `<tr>`，第 1 列「原始中文 Alpha」 | 同上 |
+| P-H3 退路 | 頁面上拿掉 `window.ClipboardItem` 再做 P-H1：剪貼簿只有 `text/plain`、等於 N-C1 的文字，`#toast` 仍是「已複製 B1:C2」 | 舊瀏覽器上複製整個失效 |
+| P-H4 瀏覽器讀回的 HTML 貼回去 | P-H1 從瀏覽器讀回的 `text/html`（瀏覽器可能消毒過），用 N-H3 的原生 session 貼到 L20：逐格等於 A1:C2 | 消毒過的 HTML 桌面可能讀不出格子 |
+| P-C1–C5 | 原判準在 v8 上重跑（P-C1、C2 讀的是 `text/plain`） | — |
+
+紅案（頁面突變，紅要紅在那一格）：只寫純文字（`write` 那一支拿掉）→ P-H1 紅。登錄（不是判準）：瀏覽器讀回的 HTML 與引擎給的相比，`<style>`、`<google-sheets-html-origin>` 留下沒有、位元組數。
+
+**手測**：擁有者把整欄貼到桌面 Calc，格子不拆開。P 沒辦法看到桌面的貼上，這一格只有手測。
+
+### 9.3 具名限制（更新第 5 節）
+
+第 5 節的「不放 `text/html`」由本節取代。新增：HTML 照核心原樣放上去，頁面不改寫（瀏覽器會不會消毒、消毒成什麼，量測登錄）；HTML 匯出含字型與欄寬，貼到別處時格式跟著走；整表的 HTML 約 2.5 MB；Safari 不在範圍（第 9.1.5 條）。
+
 ## 修訂紀錄
 
 | 日期 | 內容 |
 |---|---|
 | 2026-11-06 | 初版：決定 1–6、判準 N-C1–C7、P-C1–C5 與紅案，實作前釘死（試跑在 scratchpad，不計數） |
 | 2026-11-06 | 追加 1：撤回 P-C3「復原鈕仍停用」（頁面從不依堆疊停用復原鈕），改量「按復原沒有東西可復原」 |
+| 2026-11-07 | 追加 2：同時放 `text/html`（擁有者裁示 A）；決定 9.1、判準 N-H1–H7、P-H1–H4 與紅案，實作前釘死 |
