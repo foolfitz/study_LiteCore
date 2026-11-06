@@ -1,0 +1,226 @@
+{
+ "argv": [
+  "tools/probe_calc_sheets_native.py",
+  "--harness",
+  "../findings/evidence/calc-copy/native-build-01/copy/calc-undo-native",
+  "--out",
+  "../findings/evidence/calc-sheets/e1"
+ ],
+ "tool": "419ba9bcbb2e30191038fd77101690dde523b82dc9655f58d2c8a2a4c4bf80b1",
+ "harness": {
+  "path": "../findings/evidence/calc-copy/native-build-01/copy/calc-undo-native",
+  "sha256": "7f46661d2487bc24a2908450346bc54d9db3a5162a3216ac9e2a9a1912435001"
+ },
+ "fixtureA1": {
+  "有 空白": {
+   "ok": "true",
+   "code": null,
+   "formula": "有 空白",
+   "text": "有 空白",
+   "value": "0",
+   "cellType": "2"
+  },
+  "2026": {
+   "ok": "true",
+   "code": null,
+   "formula": "'2026",
+   "text": "2026",
+   "value": "0",
+   "cellType": "2"
+  },
+  "O'Neil": {
+   "ok": "true",
+   "code": null,
+   "formula": "O'Neil",
+   "text": "O'Neil",
+   "value": "0",
+   "cellType": "2"
+  },
+  "Sheet_3": {
+   "ok": "true",
+   "code": null,
+   "formula": "Sheet_3",
+   "text": "Sheet_3",
+   "value": "0",
+   "cellType": "2"
+  }
+ },
+ "written": [
+  {
+   "typed": "=$另一張表.A1",
+   "read": {
+    "ok": "true",
+    "code": null,
+    "formula": "=$另一張表.A1",
+    "text": "第二表不應改動",
+    "value": "0",
+    "cellType": "3"
+   }
+  },
+  {
+   "typed": "=另一張表.A1",
+   "read": {
+    "ok": "true",
+    "code": null,
+    "formula": "=另一張表.A1",
+    "text": "第二表不應改動",
+    "value": "0",
+    "cellType": "3"
+   }
+  },
+  {
+   "typed": "='另一張表'.A1",
+   "read": {
+    "ok": "true",
+    "code": null,
+    "formula": "=另一張表.A1",
+    "text": "第二表不應改動",
+    "value": "0",
+    "cellType": "3"
+   }
+  },
+  {
+   "typed": "=另一張表!A1",
+   "read": {
+    "ok": "true",
+    "code": null,
+    "formula": "=另一張表!A1",
+    "text": "#NAME?",
+    "value": "0",
+    "cellType": "3"
+   }
+  },
+  {
+   "typed": "=$'有 空白'.B1",
+   "read": {
+    "ok": "true",
+    "code": null,
+    "formula": "=$'有 空白'.B1",
+    "text": "10",
+    "value": "10",
+    "cellType": "3"
+   }
+  },
+  {
+   "typed": "=$有 空白.B1",
+   "read": {
+    "ok": "true",
+    "code": null,
+    "formula": "=$有 空白.b1",
+    "text": "Err:509",
+    "value": "0",
+    "cellType": "3"
+   }
+  },
+  {
+   "typed": "=$'2026'.B1",
+   "read": {
+    "ok": "true",
+    "code": null,
+    "formula": "=$'2026'.B1",
+    "text": "10",
+    "value": "10",
+    "cellType": "3"
+   }
+  },
+  {
+   "typed": "=$2026.B1",
+   "read": {
+    "ok": "true",
+    "code": null,
+    "formula": "=$'2026'.B1",
+    "text": "10",
+    "value": "10",
+    "cellType": "3"
+   }
+  },
+  {
+   "typed": "=$'O''Neil'.B1",
+   "read": {
+    "ok": "true",
+    "code": null,
+    "formula": "=$'O''Neil'.B1",
+    "text": "10",
+    "value": "10",
+    "cellType": "3"
+   }
+  },
+  {
+   "typed": "=$O'Neil.B1",
+   "read": {
+    "ok": "true",
+    "code": null,
+    "formula": "=$o'neil.b1",
+    "text": "Err:509",
+    "value": "0",
+    "cellType": "3"
+   }
+  },
+  {
+   "typed": "=$Sheet_3.B1",
+   "read": {
+    "ok": "true",
+    "code": null,
+    "formula": "=$Sheet_3.B1",
+    "text": "10",
+    "value": "10",
+    "cellType": "3"
+   }
+  },
+  {
+   "typed": "=$'Sheet_3'.B1",
+   "read": {
+    "ok": "true",
+    "code": null,
+    "formula": "=$Sheet_3.B1",
+    "text": "10",
+    "value": "10",
+    "cellType": "3"
+   }
+  },
+  {
+   "typed": "=$sheet_3.B1",
+   "read": {
+    "ok": "true",
+    "code": null,
+    "formula": "=$Sheet_3.B1",
+    "text": "10",
+    "value": "10",
+    "cellType": "3"
+   }
+  },
+  {
+   "typed": "=SUM($'有 空白'.B1:B1)",
+   "read": {
+    "ok": "true",
+    "code": null,
+    "formula": "=SUM($'有 空白'.B1:B1)",
+    "text": "10",
+    "value": "10",
+    "cellType": "3"
+   }
+  },
+  {
+   "typed": "=SUM($'有 空白'.B1:$'2026'.B1)",
+   "read": {
+    "ok": "true",
+    "code": null,
+    "formula": "=SUM($'有 空白'.B1:$'2026'.B1)",
+    "text": "20",
+    "value": "20",
+    "cellType": "3"
+   }
+  },
+  {
+   "typed": "=$不存在的表.A1",
+   "read": {
+    "ok": "true",
+    "code": null,
+    "formula": "=$不存在的表.a1",
+    "text": "#NAME?",
+    "value": "0",
+    "cellType": "3"
+   }
+  }
+ ]
+}

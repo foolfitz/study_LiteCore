@@ -128,6 +128,21 @@ export function normalizeStructure(raw) {
   return Object.freeze(out);
 }
 
+// SPEC-P-calc-copy 3.2: the copy reply, closed.  plainText is the core's text, kept as it came.
+export function normalizeCopy(raw) {
+  if(!raw || typeof raw!=="object")throw new DocumentSdkError("CELL_RESULT_INVALID","copy reply is missing");
+  const out={};
+  for(const key of ["part","column","row","endColumn","endRow","markedColumn","markedRow","markedEndColumn","markedEndRow"]) {
+    if(typeof raw[key]!=="number" && !(typeof raw[key]==="string" && /^[0-9]+$/.test(raw[key])))
+      throw new DocumentSdkError("CELL_RESULT_INVALID",`${key} is not an integer`);
+    out[key]=unsigned(Number(raw[key]),key);
+  }
+  if(typeof raw.plainText!=="string")throw new DocumentSdkError("CELL_RESULT_INVALID","plainText is not text");
+  if(boolean(raw.changed,"changed")!==false)throw new DocumentSdkError("CELL_RESULT_INVALID","a copy does not change the document");
+  out.plainText=raw.plainText;
+  return Object.freeze(out);
+}
+
 export function normalizeCell(raw) {
   if (!raw || typeof raw !== "object")
     throw new DocumentSdkError("CELL_RESULT_INVALID", "cell reply has no model snapshot");
@@ -248,6 +263,36 @@ export class CalcDocumentEngine extends OdsViewerEngine {
           return {structure:cell,changed,revision};
         });
     };
+    // SPEC-P-calc-copy 3.2: the core's copy text for a range, cell op 15; whole columns, rows and the sheet pass the limit.
+    handle.copySupported=this.manifest.capabilities.includes("cell-copy");
+    handle.copyRange=(column,row,endColumn,endRow,callOptions)=>{
+      if(!handle.copySupported)
+        throw new DocumentSdkError("UNSUPPORTED_OPERATION","this engine has no copy contract");
+      rangeBounds(column,row,endColumn,endRow,true);
+      const part=callOptions?.part ?? handle.currentPart;
+      return request("cellCopy",column,row,{endColumn,endRow},callOptions,normalizeCopy).then(({cell})=>{
+        if(part!==cell.part || column!==cell.column || row!==cell.row || endColumn!==cell.endColumn || endRow!==cell.endRow)
+          throw new DocumentSdkError("CELL_RESULT_INVALID","copy reply target differs from request");
+        return {copy:cell};
+      });
+    };
+    // SPEC-P-calc-sheets 2.1: which sheets are protected, from the core's getPartInfo ("protected": 0 or 1).  The open does
+    // not fail on it: the handle then says null and why, and the page draws no lock.
+    handle.partProtected=null;
+    if(this.manifest.capabilities.includes("part-info")) {
+      try {
+        const flags=[];
+        for(let part=0;part<handle.parts;part++) {
+          const info=JSON.parse((await this._request("partInfo",{documentHandle:handle.handle,part})).info);
+          if(![0,1,"0","1"].includes(info?.protected))
+            throw new DocumentSdkError("PART_INFO_UNPARSEABLE",`part ${part}: protected is ${JSON.stringify(info?.protected)}`);
+          flags.push(String(info.protected)==="1");
+        }
+        handle.partProtected=Object.freeze(flags);
+      } catch(error) {
+        handle.partProtectedProblem=`${error?.code || "ERROR"}: ${error?.message || String(error)}`;
+      }
+    }
     // SPEC-P-calc-undo 4.3: undo and redo are DocumentHandle's own (document-sdk.js); the worker refuses them without
     // the `undo` capability, and the page shows its buttons only when this is true.
     handle.undoSupported=this.manifest.capabilities.includes("undo");

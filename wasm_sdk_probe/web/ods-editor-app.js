@@ -1,5 +1,6 @@
 import { CalcDocumentEngine, CELL_INPUT_LIMIT } from "./spreadsheet-shell/calc-document-sdk.js";
-import { CalcEditorSession, inputIntent } from "./spreadsheet-shell/calc-editor-session.js";
+import { CalcEditorSession, inputIntent, parseCellTarget, referenceSlot, sheetReference }
+  from "./spreadsheet-shell/calc-editor-session.js";
 import { CalcAutosave } from "./spreadsheet-shell/calc-autosave.js";
 
 const ENGINE_OPTIONS = Object.freeze({workerUrl:"./profiles/ods-editor-v6/sdk-worker.js",timeoutMs:60000});
@@ -10,7 +11,8 @@ const ui = Object.fromEntries(["file-input","open-file","save-button","undo-butt
   "cancel-button","commit-button","viewport","surface","tiles","selection","active-cell","cell-editor","empty",
   "tab-strip","state-pill","autosave-status","selection-label","s-doc","s-revision","toast",
   "save-as-button","save-as-dialog","save-as-name","save-as-suffix","save-as-formats","save-as-message","save-as-cancel",
-  "save-as-confirm","sheet-frame","corner-header","column-headers","row-headers"].map(id=>[id,$(id)]));
+  "save-as-confirm","sheet-frame","corner-header","column-headers","row-headers","reference-box","sheet-position"]
+  .map(id=>[id,$(id)]));
 // SPEC-P-ms-formats 5.2: what each format this page writes is called and carries. A spreadsheet is saved in ITS format
 // (the session's documentFormat(), from the engine's open reply); Save As offers ODF, and the original for an XLSX.
 const CALC_FORMATS=Object.freeze({ods:{suffix:".ods",mime:"application/vnd.oasis.opendocument.spreadsheet"},
@@ -49,6 +51,34 @@ function notice(text,error=false) {
   ui.toast.textContent=text;
   ui.toast.classList.toggle("error",error);
 }
+// SPEC-P-calc-sheets 2.3-2.4: pointed references.  `pointRef` is the span of the draft the last point inserted
+// ({start, end, text}); `pointBox` the range it names, drawn on its own sheet.  `browsing` is a formula being written while
+// another sheet than its cell's is shown; `away` is that sheet being shown at all (also for the moment after an Esc).
+let pointRef=null, pointBox=null, pointWork=null, pointBusy=0, pointed=false, tabSlot=null;
+const BROWSING_NOTICE="正在別張工作表上點選參照：請先按 Enter 完成，或按 Esc 取消公式的輸入。";
+const HOME_VIEW=Object.freeze({scrollLeft:0,scrollTop:0,minWidth:"",minHeight:""});
+function away(state=session?.state){return state?.away===true;}
+function browsing(state=session?.state){return away(state) && state.editing!==null;}
+function sheetNames(state){const names=[];for(const tab of state.tabs)names[tab.index]=tab.label;return names;}
+function draftField() {
+  const active=document.activeElement;
+  return active===ui["formula-input"] || (active===ui["cell-editor"] && session?.state.editing==="inline") ? active : null;
+}
+function pointSlot() {
+  const s=session?.state;
+  if(!s || s.state!=="ready" || !s.editing || pendingEntry || composing || s.readOnly || s.cell?.writable!==true)return null;
+  const field=draftField();
+  if(!field)return null;
+  const slot=referenceSlot(s.draft,field.selectionStart,field.selectionEnd,pointRef);
+  return slot ? {...slot,field} : null;
+}
+function insertReference(slot,text) {
+  const draft=session.state.draft,next=draft.slice(0,slot.start)+text+draft.slice(slot.end);
+  session.setDraft(next);
+  pointRef={start:slot.start,end:slot.start+text.length,text};
+  const field=slot.field===ui["cell-editor"] && !browsing() ? ui["cell-editor"] : ui["formula-input"];
+  field.value=next;field.focus({preventScroll:true});field.setSelectionRange(pointRef.end,pointRef.end);
+}
 function errorNotice(error) {
   const messages={READ_ONLY:"這個儲存格無法編輯。",CELL_TEXT_TOO_LONG:"儲存格內容超過 32,767 個字元，尚未寫入。",
     STALE_REVISION:"文件狀態已改變；你的輸入已保留，請先儲存或重新開啟。",
@@ -76,7 +106,7 @@ function place(node,cell) {
 }
 function formatAvailable(state) {
   return state.state==="ready" && state.cell?.writable===true && !state.readOnly && !state.uncertain
-    && !state.busy && !state.selectionPending && !pendingEntry && !dragWork
+    && !state.busy && !state.selectionPending && !pendingEntry && !dragWork && !state.away
     && (!state.selection?.multiple || (state.rangeFormattingSupported===true && state.rangeFormat?.writable===true));
 }
 function formatTitle(state,node) {
@@ -189,7 +219,8 @@ function render(state) {
   ui["undo-button"].disabled=ui["redo-button"].disabled=!ready || state.readOnly || state.uncertain || waiting
     || state.selectionPending;
   ui["cell-address"].disabled=!ready || state.busy;
-  ui["formula-input"].disabled=!editable || waiting;
+  // A point or a sheet shown for one keeps the formula bar, which holds the caret (SPEC-P-calc-sheets 2.4).
+  ui["formula-input"].disabled=!editable || (waiting && pointBusy===0);
   ui["cell-editor"].disabled=state.selectionPending || pendingEntry
     ? !ready || state.readOnly || state.uncertain : !editable || waiting;
   ui["commit-button"].disabled=!editable || !state.editing || waiting;
@@ -199,9 +230,15 @@ function render(state) {
     if(ui["formula-input"].value!==state.draft)ui["formula-input"].value=state.draft;
     if(!pendingEntry && ui["cell-editor"].value!==state.draft)ui["cell-editor"].value=state.draft;
   }
-  ui.selection.hidden=!ready || !state.cell;
+  ui.selection.hidden=!ready || !state.cell || away(state);
   ui["active-cell"].hidden=ui.selection.hidden;
-  ui["cell-editor"].hidden=!ready || !state.cell;
+  ui["cell-editor"].hidden=!ready || !state.cell || away(state);
+  if(!state.editing){pointRef=null;pointBox=null;}
+  const showBox=pointBox && pointRef && pointBox.part===state.currentPart && state.draft.slice(pointRef.start,pointRef.end)===pointRef.text;
+  ui["reference-box"].hidden=!showBox;
+  if(showBox)place(ui["reference-box"],pointBox);
+  // SPEC-P-calc-sheets 2.1: the sheet's position, as Collabora's status bar has it.
+  ui["sheet-position"].textContent=ready && state.tabs.length ? `工作表 ${state.currentPart+1}／${state.tabs.length}` : "";
   ui["cell-editor"].classList.toggle("grid-input",state.editing!=="inline");
   if(state.cell) {
     const address=cellAddress(state.cell.column,state.cell.row);
@@ -219,7 +256,7 @@ function render(state) {
       if(!composing && !pendingEntry)ui["cell-editor"].value="";
     }
   }
-  const signature=state.tabs.map(t=>`${t.index}:${t.current}:${t.enabled}`).join("|");
+  const signature=state.tabs.map(t=>`${t.index}:${t.current}:${t.enabled}:${state.partProtected?.[t.index]===true}`).join("|");
   if(ui["tab-strip"].dataset.signature!==signature) {
     ui["tab-strip"].dataset.signature=signature;
     ui["tab-strip"].replaceChildren(...state.tabs.map(tab=>{
@@ -227,8 +264,21 @@ function render(state) {
       button.textContent=tab.label;button.dataset.part=tab.index;button.setAttribute("role","tab");
       button.setAttribute("aria-selected",String(tab.current));button.disabled=!tab.enabled;
       button.title=tab.disabledReason || "";
-      button.addEventListener("click",()=>{
+      // SPEC-P-calc-sheets 2.1: a protected sheet's tab carries a lock and says so.
+      if(state.partProtected?.[tab.index]===true) {
+        button.insertAdjacentHTML("beforeend",'<svg class="lock" aria-hidden="true" focusable="false"><use href="#i-lock"></use></svg>');
+        button.dataset.protected="true";button.setAttribute("aria-label",`${tab.label}（受保護的工作表）`);
+        if(!button.title)button.title="受保護的工作表";
+      }
+      // SPEC-P-calc-sheets 2.3: with the caret where a reference can go, a tab only shows its sheet.  The slot is read on
+      // pointerdown, while the formula still has the focus.
+      button.addEventListener("pointerdown",event=>{tabSlot=event.button===0 ? pointSlot() : null;if(tabSlot)event.preventDefault();});
+      button.addEventListener("click",event=>{
+        // A keyboard activation (detail 0) never reuses a slot left by a pointer gesture that did not click.
+        const slot=event.detail>0 ? tabSlot : null;tabSlot=null;
         if(pendingEntry){notice("請先完成或取消目前的輸入。",true);focusGrid();return;}
+        if(slot || (browsing() && tab.index===session.state.cell.part)){void browseTo(tab.index,slot);return;}
+        if(browsing()){notice(BROWSING_NOTICE,true);return;}
         cancelDrag();void action(async()=>{await showSheet(tab.index);focusGrid();});
       });
       return button;
@@ -291,6 +341,42 @@ async function showSheet(part) {
     if(shown!==from)pendingView=sheetViews.get(shown) ?? {scrollLeft:0,scrollTop:0,minWidth:"",minHeight:""};
     render(session.state);
   }
+}
+// SPEC-P-calc-sheets 2.3: show `part` without committing; the formula goes on in the formula bar, caret kept.
+async function viewPart(part,work) {
+  const from=session.state.currentPart;
+  sheetViews.set(from,sheetView());
+  sheetSwitching=true;pointBusy++;
+  try { return await action(work); } finally {
+    pointBusy--;sheetSwitching=false;
+    const shown=session.state.currentPart;
+    if(shown!==from)pendingView=sheetViews.get(shown) ?? HOME_VIEW;
+    render(session.state);
+  }
+}
+async function browseTo(part,slot) {
+  const field=slot?.field ?? draftField() ?? ui["formula-input"];
+  const [start,end]=slot ? [slot.start,slot.end] : [field.selectionStart,field.selectionEnd];
+  cancelDrag();
+  if(session.state.editing==="inline" && part!==session.state.cell.part)session.beginEdit("formula");
+  await viewPart(part,()=>session.browsePart(part));
+  if(!session.state.editing)return;
+  const node=ui["formula-input"];
+  node.value=session.state.draft;node.focus({preventScroll:true});node.setSelectionRange(start,end);
+}
+// Enter, the commit button, Esc and the cancel button while another sheet is shown: home first, as desktop Calc.
+function commitEntry() {
+  return action(async()=>{
+    if(away())await viewPart(session.state.cell.part,()=>session.commit());
+    else await session.commit();
+    focusGrid();
+  });
+}
+function cancelEntry() {
+  const home=session.state.cell?.part,wasAway=away();
+  session.cancelEdit();
+  if(wasAway)void viewPart(home,()=>session.browsePart(home)).then(()=>focusGrid());
+  else focusGrid();
 }
 async function paint() {
   if(!session || session.state.state!=="ready" || sheetSwitching)return;
@@ -488,7 +574,7 @@ ui["file-input"].addEventListener("change",()=>{
   const file=ui["file-input"].files[0];
   if(file)void action(async()=>openBytes(await file.arrayBuffer(),file.name));
 });
-ui["save-button"].addEventListener("click",()=>action(()=>save()));
+ui["save-button"].addEventListener("click",()=>{if(browsing()){notice(BROWSING_NOTICE,true);return;}void action(()=>save());});
 
 // SPEC-P-ms-formats 5.2, Save As. The page's own dialog: a name (the document's, less its suffix) and the format -- ODF
 // always, the original too for an XLSX, ODF preselected (the owner's use is converting to ODF); ODS to XLSX is not in this
@@ -571,8 +657,8 @@ ui["save-as-name"].addEventListener("keydown",event=>{
 ui["save-as-cancel"].addEventListener("click",closeSaveAsDialog);
 ui["save-as-dialog"].addEventListener("cancel",event=>{event.preventDefault();closeSaveAsDialog();});
 ui["save-as-confirm"].addEventListener("click",()=>void confirmSaveAs());
-ui["commit-button"].addEventListener("click",()=>action(async()=>{await session.commit();focusGrid();}));
-ui["cancel-button"].addEventListener("click",()=>{session.cancelEdit();focusGrid();});
+ui["commit-button"].addEventListener("click",()=>void commitEntry());
+ui["cancel-button"].addEventListener("click",()=>cancelEntry());
 for(const node of document.querySelectorAll("[data-format]"))
   node.addEventListener("click",()=>{
     if(pendingEntry){notice("請先完成或取消目前的輸入。",true);return;}
@@ -607,6 +693,7 @@ function formatRefusal(code) {
 // SPEC-P-calc-undo 4.3 and 5.  An entry not yet sent is the newest change: undo drops it, redo waits for it.
 function walk(direction) {
   if(!session?.state.undoSupported)return;
+  if(browsing()){notice(BROWSING_NOTICE,true);return;}
   const entry=pendingEntry!==null || (session.state.editing!==null && session.state.draft!==session.state.cell?.input);
   if(entry && direction==="redo"){notice("請先完成或取消目前的輸入。",true);return;}
   if(entry && pendingEntry!==null) {
@@ -683,8 +770,8 @@ for(const node of [ui["formula-input"],ui["cell-editor"]]) {
       else {pendingEntry.commit=true;flushPendingEntry();}
       return;
     }
-    if(intent==="cancel"){session.cancelEdit();focusGrid();}
-    else void action(async()=>{await session.commit();focusGrid();});
+    if(intent==="cancel")cancelEntry();
+    else void commitEntry();
   });
 }
 ui["formula-input"].addEventListener("focus",()=>{
@@ -698,10 +785,15 @@ ui["cell-address"].addEventListener("blur",()=>{
 ui["cell-address"].addEventListener("keydown",event=>{
   if(event.key!=="Enter")return;event.preventDefault();
   if(pendingEntry){notice("請先完成或取消目前的輸入。",true);focusGrid();return;}
-  const match=/^([A-Z]+)([1-9][0-9]*)$/.exec(ui["cell-address"].value.trim().toUpperCase());
-  if(!match){notice("請輸入儲存格位址，例如 A1。",true);return;}
-  let column=0;for(const char of match[1])column=column*26+char.charCodeAt(0)-64;
-  cancelDrag();void action(async()=>{const cell=await session.selectCell(column-1,Number(match[2])-1);revealCell(cell);focusGrid();});
+  if(browsing()){notice(BROWSING_NOTICE,true);return;}
+  // SPEC-P-calc-sheets 2.2: A1, $A$1, Sheet.A1, 'Sheet name'.A1 and Excel's Sheet!A1.
+  const target=parseCellTarget(ui["cell-address"].value,sheetNames(session.state));
+  if(target.error==="UNKNOWN_SHEET"){notice(`找不到名為「${target.sheet}」的工作表。`,true);return;}
+  if(target.error){notice("請輸入儲存格位址，例如 A1 或 另一張表.A1。",true);return;}
+  cancelDrag();void action(async()=>{
+    if(target.part!==null && target.part!==session.state.currentPart)await showSheet(target.part);
+    const cell=await session.selectCell(target.column,target.row);revealCell(cell);focusGrid();
+  });
 });
 function point(event){const rect=ui.surface.getBoundingClientRect();return[Math.max(0,Math.round((event.clientX-rect.left)*15)),Math.max(0,Math.round((event.clientY-rect.top)*15))];}
 let drag=null, dragWork=null, gesture=0;
@@ -776,6 +868,7 @@ for(const [strip,kind] of [[ui["column-headers"],"columns"],[ui["row-headers"],"
     if(!session || !node || event.button!==0)return;
     event.preventDefault();
     if(pendingEntry){notice("請先完成或取消目前的輸入。",true);return;}
+    if(browsing()){notice(BROWSING_NOTICE,true);return;}
     cancelDrag();
     const index=Number(node.dataset.index),range=session.state.selection,cell=session.state.cell;
     const first=!event.shiftKey ? index : range?.whole===kind ? range.first : kind==="columns" ? cell.column : cell.row;
@@ -801,6 +894,7 @@ ui["corner-header"].addEventListener("pointerdown",event=>event.stopPropagation(
 ui["corner-header"].addEventListener("click",()=>{
   if(!session)return;
   if(pendingEntry){notice("請先完成或取消目前的輸入。",true);focusGrid();return;}
+  if(browsing()){notice(BROWSING_NOTICE,true);return;}
   cancelDrag();void selectWhole("sheet",0,0).then(()=>focusGrid());
 });
 // SPEC-P-calc-structure 2.2-2.4, 3.3: insert and delete rows or columns.  A right click on a row or column header lists that
@@ -949,6 +1043,10 @@ ui.viewport.addEventListener("keydown",event=>{if(event.target!==ui["cell-editor
 ui.viewport.addEventListener("pointerdown",event=>{
   if(!session || event.button!==0 || event.target===ui["cell-editor"] || !inViewport(event))return;
   if(pendingEntry){event.preventDefault();notice("正在接收前一個儲存格的輸入，請稍候。",true);return;}
+  const slot=pointSlot();
+  if(slot){event.preventDefault();startPoint(event,slot);return;}
+  if(browsing()){event.preventDefault();notice(BROWSING_NOTICE,true);return;}
+  pointed=false;
   cancelDrag();
   const [x,y]=point(event), current={owner:session,generation:gesture,pointer:event.pointerId,active:true,latest:null,pumping:false};
   drag=dragWork=current;ui.viewport.setPointerCapture(event.pointerId);
@@ -983,8 +1081,64 @@ function gridKey(event) {
   void action(async()=>{const cell=await session.moveSelection(...direction,{extend:event.shiftKey});revealCell(cell);focusGrid();});
 }
 ui.viewport.addEventListener("keydown",gridKey);
+// SPEC-P-calc-sheets 2.3: a click (or a drag) inserts the reference; the edited cell and the selection stay.
+function pointRange(anchor,focus) {
+  if(anchor.column===focus.column && anchor.row===focus.row)
+    return {range:{part:anchor.part,column:anchor.column,row:anchor.row},box:anchor};
+  const x0=Math.min(anchor.xTwips,focus.xTwips),y0=Math.min(anchor.yTwips,focus.yTwips);
+  return {range:{part:anchor.part,column:Math.min(anchor.column,focus.column),row:Math.min(anchor.row,focus.row),
+      endColumn:Math.max(anchor.endColumn,focus.endColumn),endRow:Math.max(anchor.endRow,focus.endRow)},
+    box:{xTwips:x0,yTwips:y0,widthTwips:Math.max(anchor.xTwips+anchor.widthTwips,focus.xTwips+focus.widthTwips)-x0,
+      heightTwips:Math.max(anchor.yTwips+anchor.heightTwips,focus.yTwips+focus.heightTwips)-y0}};
+}
+function applyPoint(current,focus) {
+  if(pointWork!==current && current.active)return;
+  const {range,box}=pointRange(current.anchor,focus),s=session.state;
+  const slot=current.inserted ? {start:pointRef.start,end:pointRef.end,field:current.slot.field} : current.slot;
+  try { insertReference(slot,sheetReference(sheetNames(s),s.cell.part,range)); } catch(error){errorNotice(error);return;}
+  current.inserted=true;current.focus=focus;pointBox={part:range.part,...box};
+  render(session.state);
+}
+function startPoint(event,slot) {
+  cancelDrag();pointed=true;
+  const [x,y]=point(event),current={pointer:event.pointerId,slot,anchor:null,focus:null,latest:null,active:true,pumping:false,inserted:false};
+  pointWork=current;ui.viewport.setPointerCapture(event.pointerId);pointBusy++;
+  current.start=action(()=>session.pointAt(x,y,{valid:()=>pointWork===current})).then(cell=>{
+    if(cell){current.anchor=cell;applyPoint(current,cell);}
+    return cell;
+  }).finally(()=>pointBusy--);
+}
+async function pumpPoint(current) {
+  if(current.pumping)return;
+  current.pumping=true;pointBusy++;
+  try {
+    if(!await current.start)return;
+    while(current.latest) {
+      const [x,y]=current.latest;current.latest=null;
+      const cell=await action(()=>session.pointAt(x,y,{valid:()=>true}));
+      if(cell && (cell.column!==current.focus?.column || cell.row!==current.focus?.row))applyPoint(current,cell);
+    }
+  } finally {
+    current.pumping=false;pointBusy--;
+    if(!current.active){if(pointWork===current)pointWork=null;render(session.state);}
+  }
+}
+ui.viewport.addEventListener("pointermove",event=>{
+  if(!pointWork || event.pointerId!==pointWork.pointer || !inViewport(event))return;
+  pointWork.latest=point(event);void pumpPoint(pointWork);
+});
+for(const name of ["pointerup","pointercancel"])
+  ui.viewport.addEventListener(name,event=>{
+    if(!pointWork || event.pointerId!==pointWork.pointer)return;
+    const current=pointWork;current.active=false;
+    if(name==="pointerup" && inViewport(event))current.latest=point(event);
+    if(ui.viewport.hasPointerCapture(event.pointerId))ui.viewport.releasePointerCapture(event.pointerId);
+    void pumpPoint(current);
+  });
 ui.viewport.addEventListener("dblclick",event=>{
   if(!session || event.target===ui["cell-editor"])return;
+  // The second click of a double click on a pointed cell is a point too, never an edit of that cell.
+  if(pointed || browsing()){event.preventDefault();return;}
   if(pendingEntry){event.preventDefault();notice("請先完成或取消目前的輸入。",true);focusGrid();return;}
   event.preventDefault();cancelDrag();const [x,y]=point(event);
   void action(async()=>{
@@ -1001,6 +1155,15 @@ window.addEventListener("keydown",event=>{
   }
   if(!session || event.isComposing || event.keyCode===229 || !(event.ctrlKey||event.metaKey) || event.repeat)return;
   const key=event.key.toLowerCase();
+  // SPEC-P-calc-copy 2.4: Ctrl+C / Ctrl+Insert on the grid copies the selection; in a field it is the browser's own copy.
+  if((key==="c" || key==="insert") && session.state.copySupported) {
+    const active=document.activeElement;
+    if(session.state.editing!==null || pendingEntry!==null || composing
+        || (active && active!==ui["cell-editor"] && active!==ui.viewport && active.matches?.("input,textarea,select,[contenteditable]")))return;
+    event.preventDefault();void copyCells();return;
+  }
+  // Ctrl+Z / Ctrl+Y fall through: in the formula bar they are its own text undo, and walk() refuses the document's.
+  if(browsing() && ["s","b","i","u"].includes(key)){event.preventDefault();notice(BROWSING_NOTICE,true);return;}
   if(key==="s"){event.preventDefault();void action(()=>save());return;}
   // SPEC-P-calc-undo 4.3: the document's undo from the grid; inside an entry, the formula bar or the address box the
   // field keeps its own text undo.  Without the capability nothing changes from before.
@@ -1012,6 +1175,29 @@ window.addEventListener("keydown",event=>{
   const format={b:"bold",i:"italic",u:"underline"}[key];
   if(format){event.preventDefault();if(pendingEntry){notice("請先完成或取消目前的輸入。",true);return;}void action(()=>toggleFormat(format));}
 });
+// SPEC-P-calc-copy 3.3: the core's own copy text for the selection, written to the clipboard as plain text.
+function copyLabel(range) {
+  if(range.whole==="sheet")return "整張工作表";
+  if(range.whole==="columns")return range.column===range.endColumn ? `${columnName(range.column)} 欄`
+    : `${columnName(range.column)} 到 ${columnName(range.endColumn)} 欄`;
+  if(range.whole==="rows")return range.row===range.endRow ? `第 ${range.row+1} 列` : `第 ${range.row+1} 到 ${range.endRow+1} 列`;
+  const first=cellAddress(range.column,range.row);
+  return range.endColumn===range.column && range.endRow===range.row ? first : `${first}:${cellAddress(range.endColumn,range.endRow)}`;
+}
+async function copyCells() {
+  let result;
+  try { result=await session.copySelection(); } catch(error) {
+    notice(error.code==="COPY_UNAVAILABLE" ? "這個範圍沒有可以複製的文字。"
+      : error.code==="RANGE_TOO_LARGE" ? "一次最多可複製 65,536 個儲存格，請縮小選取範圍（整欄、整列與整張工作表不受此限）。"
+      : `無法複製：${error.message || error}`,true);
+    return;
+  }
+  try { await navigator.clipboard.writeText(result.plainText); } catch(error) {
+    notice(`瀏覽器沒有讓頁面寫入剪貼簿（${error?.name || error}），請再按一次 Ctrl+C。`,true);
+    return;
+  }
+  notice(`已複製 ${copyLabel(result.range)}`);
+}
 const unsaved=()=>pendingEntry!==null || session?.hasUnsavedEdits()===true;
 if(HOST?.watchUnsaved)HOST.watchUnsaved(unsaved);
 else window.addEventListener("beforeunload",event=>{if(unsaved()){event.preventDefault();event.returnValue="";}});

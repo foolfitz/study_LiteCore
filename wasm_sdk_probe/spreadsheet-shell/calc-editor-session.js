@@ -11,6 +11,53 @@ export function inputIntent(event) {
   return null;
 }
 
+// SPEC-P-calc-sheets 3.  A1-style addresses; columns A..XFD, rows 1..1048576.
+export function columnLetters(column) {
+  let text = "";
+  for (let n = column; n >= 0; n = Math.floor(n / 26) - 1) text = String.fromCharCode(65 + n % 26) + text;
+  return text;
+}
+// E1: the core quotes a sheet name unless it is a plain name (letters -- CJK included --, digits and underscores, not starting
+// with a digit), doubling an apostrophe.  Quoting is always accepted, so anything else is quoted.
+function sheetName(name) {
+  return /^[\p{L}_][\p{L}\p{N}_]*$/u.test(name) ? name : `'${name.replaceAll("'", "''")}'`;
+}
+// The text a click (or a drag) inserts: B1, B1:C2, or $Sheet.B1 / $Sheet.B1:C2 for another sheet than the edited cell's.
+export function sheetReference(names, home, range) {
+  const first = columnLetters(range.column) + (range.row + 1);
+  const end = range.endColumn ?? range.column, endRow = range.endRow ?? range.row;
+  const address = end === range.column && endRow === range.row ? first : `${first}:${columnLetters(end)}${endRow + 1}`;
+  return range.part === home ? address : `$${sheetName(names[range.part])}.${address}`;
+}
+// Where a pointed reference goes, or null: the span to replace in a formula draft.  `last` is the span the previous point
+// inserted ({start, end, text}); a caret right after it replaces it, as desktop Calc does.
+const SLOT_BEFORE = new Set(["=", "(", ",", ";", ":", "!", "~", "+", "-", "*", "/", "^", "&", "<", ">"]);
+export function referenceSlot(text, start, end = start, last = null) {
+  if (typeof text !== "string" || !text.startsWith("=") || start < 1 || end < start || end > text.length) return null;
+  if (last && start === end && last.end === start && text.slice(last.start, last.end) === last.text)
+    return {start: last.start, end: last.end};
+  let before = start - 1;
+  while (before > 0 && text[before] === " ") before--;
+  return SLOT_BEFORE.has(text[before]) ? {start, end} : null;
+}
+// The name box: A1, $A$1, Sheet.A1, $Sheet.A1, 'Sheet name'.A1, and Excel's Sheet!A1.  Sheet names compare without case,
+// as the core's references do (E1).
+export function parseCellTarget(text, names) {
+  const value = String(text ?? "").trim();
+  const match = /^(?:\$?(?:'((?:[^']|'')+)'|([^.!'$][^.!']*))[.!])?\$?([A-Za-z]{1,3})\$?([0-9]+)$/u.exec(value);
+  if (!match) return {error: "INVALID_ADDRESS"};
+  let column = 0;
+  for (const char of match[3].toUpperCase()) column = column * 26 + char.charCodeAt(0) - 64;
+  const row = Number(match[4]);
+  if (column > SHEET_COLUMNS || row < 1 || row > SHEET_ROWS || !/^[1-9]/.test(match[4])) return {error: "INVALID_ADDRESS"};
+  const target = {column: column - 1, row: row - 1, part: null};
+  const wanted = match[1] !== undefined ? match[1].replaceAll("''", "'") : match[2];
+  if (wanted === undefined) return target;
+  let part = names.indexOf(wanted);
+  if (part < 0) part = names.findIndex(name => name.toLocaleLowerCase() === wanted.toLocaleLowerCase());
+  return part < 0 ? {error: "UNKNOWN_SHEET", sheet: wanted} : {...target, part};
+}
+
 // Address rectangle with endpoint merge extents, not recursive merge closure.
 function rectangle(anchor, focus = anchor) {
   return Object.freeze({part:anchor.part,anchor,focus,
@@ -89,6 +136,11 @@ export class CalcEditorSession {
       rangeStylingSupported:this.document?.rangeStylingSupported===true,
       headersSupported:this.document?.headersSupported===true,
       structureSupported:this.document?.structureSupported===true,
+      copySupported:this.document?.copySupported===true,
+      // SPEC-P-calc-sheets 2.3: another sheet than the edited (or selected) cell's is shown.
+      away:this._cell!==null && this.viewer.state.currentPart!==this._cell.part,
+      // SPEC-P-calc-sheets 2.1: which sheets are protected, from part-info (null when the engine could not say).
+      partProtected:this.document?.partProtected ?? null,
       undoSupported:this.document?.undoSupported===true, draft: this._draft,
       editing: this._editing, readOnly: this._readOnly, busy: this._busy > 0,
       selectionPending: this._selecting > 0,
@@ -178,6 +230,8 @@ export class CalcEditorSession {
     if (!this._editing) return;
     this._assertReady(true);
     const cell = this._cell, text = this._draft, version = this._draftVersion;
+    // SPEC-P-calc-sheets 2.3: a formula written while another sheet is shown goes home first, then into its own cell.
+    if (this.viewer.state.currentPart !== cell.part) await this.viewer.showPart(cell.part);
     if (text === cell.input) { this._editing=null;this._emit();return; }
     const result = await this.document.setCellInput(cell.column,cell.row,text,
       {part:cell.part,expectedRevision:this.document.revision});
@@ -280,6 +334,34 @@ export class CalcEditorSession {
       const result=await this.document.hitCell(x,y);
       this._selectResult(result.cell,extend);await this._refreshRangeFormat();return result.cell;
     },{selection:true});
+  }
+  // SPEC-P-calc-sheets 2.3: show another sheet while a formula is written, for its references.  Nothing is committed and
+  // the edited cell, its draft and the selection stay; going back to the edited cell's own sheet is always allowed.
+  browsePart(part) {
+    return this._enqueue(async()=>{
+      if(part!==this._cell?.part && !this._editing)
+        throw new DocumentSdkError("INVALID_ARGUMENT","only a cell being edited can look at another sheet");
+      if(this.viewer.state.currentPart!==part)await this.viewer.showPart(part);
+      return this.state;
+    },{selection:true});
+  }
+  // The cell under a point of the sheet shown, for a reference.  Read-only: nothing is committed or selected here.
+  pointAt(xTwips,yTwips,{valid=()=>true}={}) {
+    return this._enqueue(async()=>{
+      if(!valid() || !this._editing)return null;
+      const result=await this.document.hitCell(xTwips,yTwips);
+      return valid() ? result.cell : null;
+    },{selection:true});
+  }
+  // SPEC-P-calc-copy 3.2: the core's copy text for the selection.  A read: not a mutation, no revision moves.
+  copySelection() {
+    return this._enqueue(async()=>{
+      if(!this.document?.copySupported)
+        throw new DocumentSdkError("UNSUPPORTED_OPERATION","this engine has no copy contract");
+      const range=this._selection ?? rectangle(this._cell);
+      const {copy}=await this.document.copyRange(range.column,range.row,range.endColumn,range.endRow,{part:range.part});
+      return {plainText:copy.plainText,range};
+    });
   }
   showPart(part) {
     return this._enqueue(async()=>{

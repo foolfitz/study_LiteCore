@@ -25,6 +25,8 @@ const refusals={
   unsupported:s=>{s.selection.multiple=true;s.rangeFormattingSupported=false;},
   protectedRange:s=>{s.selection.multiple=true;s.rangeFormat.writable=false;},
   unknownRange:s=>{s.selection.multiple=true;s.rangeFormat=null;},
+  // SPEC-P-calc-sheets 2.3: another sheet than the cell's is shown (the session's state.away).
+  away:s=>{s.away=true;},
 };
 for(const [name,mutate] of Object.entries(refusals))test(`actual page refuses ${name} in toolbar and shortcut`,()=>{
   const state=clean();mutate(state);const {context,calls,nodes}=page(state);
