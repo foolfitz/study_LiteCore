@@ -9,6 +9,8 @@ Closed list of differences from the frozen base manifest:
   calc-headers  base dist/profiles/ods-editor-v5 -> ods-editor-v6: capabilities + cell-headers, cell-structure; bits 24, 25;
           a `headersContract` and a `structureContract` (SPEC-P-calc-headers 3.3, 2026-11-05: an entry in this table, not a new
           tool; SPEC-P-calc-structure 3.2 adds the second capability to the same, unreleased profile)
+  calc-copy  base dist/profiles/ods-editor-v6 -> ods-editor-v7: capabilities + cell-copy; bit 26; a `copyContract`
+          (SPEC-P-calc-copy 3.1-3.2)
 
 plus `profile`, `sdkVersion`, a `documentFormatContract` naming the table (src/document_format.hpp), and -- Writer only -- the
 editorContract's loaderSha256 / wasmSha256 / workerSha256 recomputed from the copied artifacts (they named v32's; Codex review
@@ -47,6 +49,17 @@ PROFILES = {
                          "reply": "{maxColumns, maxRows, columns, rows}; entries {index, label, startPx, endPx, hidden}; 1 CSS px = 15 twips",
                          "wholeRanges": "a whole column (rows 0..maxRows-1), whole row (columns 0..maxColumns-1) or the sheet "
                                         "passes the 65536-cell limit and the merge boundary; protection and read-only still refuse"})},
+    "calc-copy": {"base": HERE / "dist/profiles/ods-editor-v6", "profile": "ods-editor-v7",
+                  "capabilities": ["cell-copy"],
+                  "bits": 1 << 26,  # src/sdk_api.h OXSDK_CAPABILITY_CELL_COPY
+                  "contract": ("copyContract", {
+                      "version": 1, "spec": "specs/SPEC-P-calc-copy.md",
+                      "operation": "cellCopy: cell operation 15, read-only, the selection is restored",
+                      "range": "{column, row, endColumn, endRow}; at most 65536 cells unless a whole column, row or the sheet",
+                      "reply": "{plainText, markedColumn, markedRow, markedEndColumn, markedEndRow, changed: false}; plainText is "
+                               "the core's own copy text (getTextSelection text/plain;charset=utf-8)",
+                      "refused": "COPY_UNAVAILABLE (no text: an empty range), RANGE_TOO_LARGE, COPY_REFUSED (the range was not "
+                                 "selected)"})},
 }
 for _spec in PROFILES.values():  # the Microsoft-formats entries, in the general form
     if "ms" in _spec:

@@ -18,6 +18,9 @@
 // OXSDK_ODS_STRUCTURE (SPEC-P-calc-structure, requires HEADERS) appends 14: JSON
 // {axis:"rows"|"columns",action:"insert"|"delete",index,count}; whole rows or
 // columns through UNO insertByIndex/removeByIndex; STRUCTURE_REFUSED when the core refuses.
+// OXSDK_ODS_COPY (SPEC-P-calc-copy, requires STRUCTURE) appends 15, read-only: JSON
+// {endColumn,endRow}; returns plainText, the core's own copy text for the range
+// (getTextSelection after selecting it), and the marked range; the selection is restored.
 // Old operation values and the frozen v1 identity retain their contracts.
 extern "C" char *oxsdk_calc_cell_model(void *lokDocument, int part, int column,
                                       int row, int operation,

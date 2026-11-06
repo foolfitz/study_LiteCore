@@ -7596,6 +7596,7 @@ void handleCell(const Command &command) {
   const int operation = command.values[3];
   // 13 (SPEC-P-calc-headers) reads headers: neither a mutation nor revision-bound.
   // 14 (SPEC-P-calc-structure) inserts/deletes rows or columns: a mutation.
+  // 15 (SPEC-P-calc-copy) reads the core's copy text: neither, like 13.
   const bool mutation = (operation >= 1 && operation <= 4) || (operation >= 7 && operation <= 12)
       || operation == 14;
   if ((mutation || operation == 6) && !requireRevision(command, "cell")) return;

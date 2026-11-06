@@ -1,0 +1,112 @@
+{
+ "argv": [
+  "tools/check_calc_copy_native.py",
+  "--harness",
+  "../findings/evidence/calc-copy/native-build-01/copy/calc-undo-native",
+  "--control",
+  "../findings/evidence/calc-copy/native-build-01/control/calc-undo-native",
+  "--out",
+  "../findings/evidence/calc-copy/n-01"
+ ],
+ "tool": "e46fede96cc02386b86475d11b96f543b0f959d8e393605f91348778a8089583",
+ "harness": {
+  "path": "../findings/evidence/calc-copy/native-build-01/copy/calc-undo-native",
+  "sha256": "7f46661d2487bc24a2908450346bc54d9db3a5162a3216ac9e2a9a1912435001"
+ },
+ "control": {
+  "path": "../findings/evidence/calc-copy/native-build-01/control/calc-undo-native",
+  "sha256": "85e95d5dc3e8700355c6d25dcf4a216c4298312fa7e2f0fb314840ca1e5c1b73"
+ },
+ "cells": {
+  "N-C1": {
+   "plainText": "42\t84\n格式測試\t待清除\n",
+   "changed": "false",
+   "ok": true
+  },
+  "N-C2": {
+   "endsInNewline": true,
+   "lines": 1000,
+   "line1": "原始中文 Alpha",
+   "line4": "隱藏列",
+   "line1000": "第 1000 列",
+   "changed": "false",
+   "ok": true
+  },
+  "N-C3": {
+   "row1": "原始中文 Alpha\t42\t84\t\t隱藏欄之後\t\t\t第一行 第二行\t有\"引號\" 與定位\t0.333333333333333\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tAA 欄\n",
+   "fields": 27,
+   "sheetLine1": "原始中文 Alpha\t42\t84\t\t隱藏欄之後\t\t\t第一行 第二行\t有\"引號\" 與定位\t0.333333333333333\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tAA 欄",
+   "changed": [
+    "false",
+    "false"
+   ],
+   "ok": true
+  },
+  "N-C4": {
+   "C1": "84",
+   "other A1": "第二表不應改動",
+   "protected A1:B1": "鎖定內容\t可編輯\n",
+   "changed": [
+    "false",
+    "false",
+    "false"
+   ],
+   "ok": true
+  },
+  "N-C5": {
+   "cursorBefore": "1695, 270, 1019, 554, 1, 1",
+   "cursorAfter": "1695, 270, 1019, 554, 1, 1",
+   "undoBefore": 3,
+   "undoAfter": 3,
+   "changed": [
+    "false",
+    "false",
+    "false",
+    "false",
+    "false",
+    "false",
+    "false",
+    "false"
+   ],
+   "ok": true
+  },
+  "N-C6": {
+   "empty L10:M11": {
+    "ok": "false",
+    "code": "COPY_UNAVAILABLE",
+    "mutationAttempted": "false",
+    "want": "COPY_UNAVAILABLE"
+   },
+   "A1:Z3000": {
+    "ok": "false",
+    "code": "RANGE_TOO_LARGE",
+    "mutationAttempted": "false",
+    "want": "RANGE_TOO_LARGE"
+   },
+   "reversed": {
+    "ok": "false",
+    "code": "INVALID_ARGUMENT",
+    "mutationAttempted": "false",
+    "want": "INVALID_ARGUMENT"
+   },
+   "ok": true
+  }
+ },
+ "N-C7": {
+  "B1:C2": 1.033,
+  "column A": 219.547,
+  "sheet": 204.651
+ },
+ "red": {
+  "plainText": "42\t84\n",
+  "red": true
+ },
+ "controlBuild": {
+  "reply": {
+   "ok": "false",
+   "code": "INVALID_ARGUMENT"
+  },
+  "ok": true
+ },
+ "verdict": "N_HOLDS"
+}

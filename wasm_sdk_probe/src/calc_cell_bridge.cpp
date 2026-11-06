@@ -250,6 +250,75 @@ ptree accessStructure(const Reference<sheet::XSpreadsheet> &sheet,
 }
 #endif
 
+#ifdef OXSDK_ODS_COPY
+// SPEC-P-calc-copy 3.1: the plain text desktop Calc puts on the clipboard for a
+// range.  The range is selected in the core and LOK's getTextSelection takes it
+// the way .uno:Copy does (ScModelObj::getSelection -> CopyToTransferable ->
+// ScTransferObj's text export, which shrinks whole columns/rows to the used
+// area: transobj.cxx lcl_reduceBlock).  Read-only: the selection that was there
+// is put back, nothing is recorded, the revision does not move.
+constexpr std::uint64_t kCopyCellLimit = 65536;
+
+ptree accessCopy(LibreOfficeKitDocument *doc, const Reference<sheet::XSpreadsheet> &sheet,
+                 const Reference<frame::XModel> &model, int part, int column, int row,
+                 int columns, int rows, const char *text, int textLength) {
+  if (!text || textLength <= 0)
+    throw Refusal("INVALID_ARGUMENT", "copy payload is required");
+  ptree request;
+  std::istringstream input(std::string(text, textLength));
+  boost::property_tree::read_json(input, request);
+  const int endColumn = request.get<int>("endColumn", -1), endRow = request.get<int>("endRow", -1);
+  if (endColumn < column || endRow < row || endColumn >= columns || endRow >= rows)
+    throw Refusal("INVALID_ARGUMENT", "invalid range endpoints");
+  const bool whole = (row == 0 && endRow == rows - 1) || (column == 0 && endColumn == columns - 1);
+  const auto area = static_cast<std::uint64_t>(endColumn - column + 1)
+      * static_cast<std::uint64_t>(endRow - row + 1);
+  if (area > kCopyCellLimit && !whole)
+    throw Refusal("RANGE_TOO_LARGE", "range exceeds 65536 logical cells");
+  Reference<sheet::XSpreadsheetView> view(model->getCurrentController(), uno::UNO_QUERY_THROW);
+  view->setActiveSheet(sheet);
+  Reference<view::XSelectionSupplier> selection(model->getCurrentController(), uno::UNO_QUERY_THROW);
+  const uno::Any previous = selection->getSelection();
+  const auto restore = [&] { try { selection->select(previous); } catch (const uno::Exception &) {} };
+  const auto range = sheet->getCellRangeByPosition(column, row, endColumn, endRow);
+  table::CellRangeAddress marked{};
+  bool covered = false;
+  if (selection->select(uno::Any(range))) {
+    // The core may widen the mark over a merged area; it must not narrow it.
+    Reference<sheet::XCellRangeAddressable> now(selection->getSelection(), uno::UNO_QUERY);
+    if (now.is()) {
+      marked = now->getRangeAddress();
+      covered = marked.Sheet == part && marked.StartColumn <= column && marked.StartRow <= row
+          && marked.EndColumn >= endColumn && marked.EndRow >= endRow;
+    }
+  }
+  if (!covered) {
+    restore();
+    throw Refusal("COPY_REFUSED", "LibreOffice did not select the range to copy");
+  }
+  char *raw = doc->pClass->getTextSelection(doc, "text/plain;charset=utf-8", nullptr);
+  restore();
+  if (!raw)
+    throw Refusal("COPY_UNAVAILABLE", "LibreOffice returned no text for the range");
+  const std::string plain(raw);
+  std::free(raw);
+  ptree result;
+  result.put("ok", true);
+  result.put("part", part);
+  result.put("column", column);
+  result.put("row", row);
+  result.put("endColumn", endColumn);
+  result.put("endRow", endRow);
+  result.put("markedColumn", marked.StartColumn);
+  result.put("markedRow", marked.StartRow);
+  result.put("markedEndColumn", marked.EndColumn);
+  result.put("markedEndRow", marked.EndRow);
+  result.put("plainText", plain);
+  result.put("changed", false);
+  return result;
+}
+#endif
+
 #ifdef OXSDK_ODS_RANGE
 // A bounded, explicit rectangle. UNO collects the three script-family items
 // into one pattern and calls ApplyAttributes once; never issue per-cell writes.
@@ -454,7 +523,9 @@ ptree access(LibreOfficeKitDocument *doc, int part, int column, int row, int ope
              const char *text, int textLength, int enabled, bool &mutationAttempted) {
   SolarMutexGuard guard;
   constexpr int maxOperation =
-#ifdef OXSDK_ODS_STRUCTURE
+#ifdef OXSDK_ODS_COPY
+      15;
+#elif defined(OXSDK_ODS_STRUCTURE)
       14;
 #elif defined(OXSDK_ODS_HEADERS)
       13;
@@ -496,6 +567,10 @@ ptree access(LibreOfficeKitDocument *doc, int part, int column, int row, int ope
   if (operation == 14)
     return accessStructure(sheet, model, part, columns, rows, text, textLength,
                            mutationAttempted);
+#endif
+#ifdef OXSDK_ODS_COPY
+  if (operation == 15)
+    return accessCopy(doc, sheet, model, part, column, row, columns, rows, text, textLength);
 #endif
 #ifdef OXSDK_ODS_RANGE
   if (operation >= 6)

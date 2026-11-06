@@ -1,0 +1,171 @@
+{
+ "argv": [
+  "check_v7_syntax.py",
+  "--out",
+  "../findings/evidence/calc-copy/pre-link-syntax"
+ ],
+ "uptime": "10:39:04 up 2 days,  1:09,  6 users,  load average: 0.45, 0.64, 0.54",
+ "makes": "",
+ "compiles": [
+  {
+   "name": "sdk_api",
+   "argv": [
+    "../wasm-lite/tools/emsdk/upstream/emscripten/em++",
+    "-DLOK_USE_UNSTABLE_API",
+    "-I../libreoffice-26-8/include",
+    "-I../wasm-lite/build-ods-viewer-v2/config_host",
+    "-I../wasm-lite/build-ods-viewer-v2/workdir/UnoApiHeadersTarget/udkapi/comprehensive",
+    "-I../wasm-lite/build-ods-viewer-v2/workdir/UnoApiHeadersTarget/offapi/comprehensive",
+    "-I../wasm-lite/build-ods-viewer-v2/workdir/UnpackedTarball/boost",
+    "-Oz",
+    "-pthread",
+    "-fwasm-exceptions",
+    "-sSUPPORT_LONGJMP=wasm",
+    "-DOXSDK_READER_PROFILE",
+    "-DOXSDK_ODS_VIEWER",
+    "-DOXSDK_ODS_VIEWER_V2",
+    "-DOXSDK_ODS_EDITOR",
+    "-DOXSDK_ODS_RANGE",
+    "-DOXSDK_ODS_STYLE",
+    "-DOXSDK_ODS_UNDO",
+    "-DOXSDK_MS_FORMATS",
+    "-DOXSDK_ODS_HEADERS",
+    "-DOXSDK_ODS_STRUCTURE",
+    "-DOXSDK_ODS_COPY",
+    "-fsyntax-only",
+    "src/sdk_api.cpp"
+   ],
+   "exit": 0,
+   "seconds": 0.43,
+   "stderrTail": ""
+  },
+  {
+   "name": "probe_engine",
+   "argv": [
+    "../wasm-lite/tools/emsdk/upstream/emscripten/em++",
+    "-DLOK_USE_UNSTABLE_API",
+    "-I../libreoffice-26-8/include",
+    "-I../wasm-lite/build-ods-viewer-v2/config_host",
+    "-I../wasm-lite/build-ods-viewer-v2/workdir/UnoApiHeadersTarget/udkapi/comprehensive",
+    "-I../wasm-lite/build-ods-viewer-v2/workdir/UnoApiHeadersTarget/offapi/comprehensive",
+    "-I../wasm-lite/build-ods-viewer-v2/workdir/UnpackedTarball/boost",
+    "-Oz",
+    "-pthread",
+    "-fwasm-exceptions",
+    "-sSUPPORT_LONGJMP=wasm",
+    "-DOXSDK_READER_PROFILE",
+    "-DOXSDK_ODS_VIEWER",
+    "-DOXSDK_ODS_VIEWER_V2",
+    "-DOXSDK_ODS_EDITOR",
+    "-DOXSDK_ODS_RANGE",
+    "-DOXSDK_ODS_STYLE",
+    "-DOXSDK_ODS_UNDO",
+    "-DOXSDK_MS_FORMATS",
+    "-DOXSDK_ODS_HEADERS",
+    "-DOXSDK_ODS_STRUCTURE",
+    "-DOXSDK_ODS_COPY",
+    "-fsyntax-only",
+    "src/probe_engine.cpp"
+   ],
+   "exit": 0,
+   "seconds": 1.04,
+   "stderrTail": ""
+  },
+  {
+   "name": "unoembind_stub",
+   "argv": [
+    "../wasm-lite/tools/emsdk/upstream/emscripten/em++",
+    "-DLOK_USE_UNSTABLE_API",
+    "-I../libreoffice-26-8/include",
+    "-I../wasm-lite/build-ods-viewer-v2/config_host",
+    "-I../wasm-lite/build-ods-viewer-v2/workdir/UnoApiHeadersTarget/udkapi/comprehensive",
+    "-I../wasm-lite/build-ods-viewer-v2/workdir/UnoApiHeadersTarget/offapi/comprehensive",
+    "-I../wasm-lite/build-ods-viewer-v2/workdir/UnpackedTarball/boost",
+    "-Oz",
+    "-pthread",
+    "-fwasm-exceptions",
+    "-sSUPPORT_LONGJMP=wasm",
+    "-DOXSDK_READER_PROFILE",
+    "-DOXSDK_ODS_VIEWER",
+    "-DOXSDK_ODS_VIEWER_V2",
+    "-DOXSDK_ODS_EDITOR",
+    "-DOXSDK_ODS_RANGE",
+    "-DOXSDK_ODS_STYLE",
+    "-DOXSDK_ODS_UNDO",
+    "-DOXSDK_MS_FORMATS",
+    "-DOXSDK_ODS_HEADERS",
+    "-DOXSDK_ODS_STRUCTURE",
+    "-DOXSDK_ODS_COPY",
+    "-fsyntax-only",
+    "src/unoembind_stub.cpp"
+   ],
+   "exit": 0,
+   "seconds": 0.06,
+   "stderrTail": ""
+  },
+  {
+   "name": "calc_cell_bridge",
+   "argv": [
+    "-DOXSDK_ODS_STRUCTURE",
+    "-DOXSDK_ODS_COPY",
+    "-fsyntax-only",
+    "src/calc_cell_bridge.cpp"
+   ],
+   "exit": 127,
+   "seconds": 0.0,
+   "stderrTail": "taskset: failed to execute -DOXSDK_ODS_STRUCTURE: No such file or directory\n"
+  }
+ ],
+ "controls": [
+  {
+   "name": "control-calc_cell_bridge",
+   "argv": [
+    "-DOXSDK_ODS_STRUCTURE",
+    "-DOXSDK_ODS_COPY",
+    "-fsyntax-only",
+    "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/calc-copy/pre-link-syntax/control-calc_cell_bridge.cpp",
+    "-I",
+    "src"
+   ],
+   "exit": 127,
+   "seconds": 0.0,
+   "stderrTail": "taskset: failed to execute -DOXSDK_ODS_STRUCTURE: No such file or directory\n"
+  },
+  {
+   "name": "control-sdk_api",
+   "argv": [
+    "../wasm-lite/tools/emsdk/upstream/emscripten/em++",
+    "-DLOK_USE_UNSTABLE_API",
+    "-I../libreoffice-26-8/include",
+    "-I../wasm-lite/build-ods-viewer-v2/config_host",
+    "-I../wasm-lite/build-ods-viewer-v2/workdir/UnoApiHeadersTarget/udkapi/comprehensive",
+    "-I../wasm-lite/build-ods-viewer-v2/workdir/UnoApiHeadersTarget/offapi/comprehensive",
+    "-I../wasm-lite/build-ods-viewer-v2/workdir/UnpackedTarball/boost",
+    "-Oz",
+    "-pthread",
+    "-fwasm-exceptions",
+    "-sSUPPORT_LONGJMP=wasm",
+    "-DOXSDK_READER_PROFILE",
+    "-DOXSDK_ODS_VIEWER",
+    "-DOXSDK_ODS_VIEWER_V2",
+    "-DOXSDK_ODS_EDITOR",
+    "-DOXSDK_ODS_RANGE",
+    "-DOXSDK_ODS_STYLE",
+    "-DOXSDK_ODS_UNDO",
+    "-DOXSDK_MS_FORMATS",
+    "-DOXSDK_ODS_HEADERS",
+    "-DOXSDK_ODS_STRUCTURE",
+    "-DOXSDK_ODS_COPY",
+    "-fsyntax-only",
+    "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/calc-copy/pre-link-syntax/control-sdk_api.cpp",
+    "-I",
+    "src"
+   ],
+   "exit": 1,
+   "seconds": 0.41,
+   "stderrTail": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/calc-copy/pre-link-syntax/control-sdk_api.cpp:88:2: error: positive control: the copy block is compiled\n   88 | #error positive control: the copy block is compiled\n      |  ^\n1 error generated.\n"
+  }
+ ],
+ "green": false,
+ "controlsRed": false
+}

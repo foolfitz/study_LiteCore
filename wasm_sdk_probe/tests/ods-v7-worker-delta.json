@@ -1,0 +1,31 @@
+{
+ "schema": 1,
+ "note": "SPEC-P-calc-copy 3.2: the closed list of replacements taking the frozen ods-editor-v6 worker (dist/profiles/ods-editor-v6/sdk-worker.js) to the ods-editor-v7 worker, applied in order, each occurring exactly once (tools/derive_ms_formats_worker.py --profile calc-copy).",
+ "hunks": [
+  {
+   "item": "1 header comment",
+   "old": "// SPEC-P-calc-headers 3.3: the ods-editor-v6 worker.  The v5 worker plus a closed list\n",
+   "new": "// SPEC-P-calc-copy 3.2: the ods-editor-v7 worker.  The v6 worker plus a closed list\n// (tests/ods-v7-worker-delta.json): cellCopy (cell op 15, read-only), this comment.\n//\n// SPEC-P-calc-headers 3.3: the ods-editor-v6 worker.  The v5 worker plus a closed list\n"
+  },
+  {
+   "item": "2 cellCopy needs the cell-copy capability",
+   "old": "  [\"cellStructure\", \"cell-structure\"],\n]);",
+   "new": "  [\"cellStructure\", \"cell-structure\"],\n  [\"cellCopy\", \"cell-copy\"],\n]);"
+  },
+  {
+   "item": "3 cellCopy joins the cell requests",
+   "old": "    case \"cellStructure\": {",
+   "new": "    case \"cellStructure\":\n    case \"cellCopy\": {"
+  },
+  {
+   "item": "4 cellCopy takes a range's endpoints, limit and JSON",
+   "old": "      const range = [\"rangeRead\", \"rangeFormat\", \"rangeStyle\"].includes(request.operation);",
+   "new": "      const range = [\"rangeRead\", \"rangeFormat\", \"rangeStyle\", \"cellCopy\"].includes(request.operation);"
+  },
+  {
+   "item": "5 cellCopy is cell op 15",
+   "old": "      const operation = request.operation === \"cellStructure\" ? 14\n",
+   "new": "      const operation = request.operation === \"cellCopy\" ? 15\n        : request.operation === \"cellStructure\" ? 14\n"
+  }
+ ]
+}
