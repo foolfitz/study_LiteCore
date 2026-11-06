@@ -2,7 +2,7 @@
 // operations are serialized, and an edit's target is captured before it waits.
 import { OdsViewerSession } from "../viewer-shell/ods-viewer-session.js";
 import { DocumentSdkError } from "../sdk/document-sdk.js";
-import { CELL_FORMATS, CELL_INPUT_LIMIT, CELL_STYLES, SHEET_COLUMNS, SHEET_ROWS } from "./calc-document-sdk.js";
+import { CELL_FORMATS, CELL_INPUT_LIMIT, CELL_STYLES, SHEET_COLUMNS, SHEET_ROWS, ZOOM_PERCENTS } from "./calc-document-sdk.js";
 
 export function inputIntent(event) {
   if (event.isComposing || event.keyCode === 229) return null;
@@ -114,6 +114,7 @@ export class CalcEditorSession {
     this._error = null;
     this._closed = false;
     this._uncertain = false;
+    this._zoom = 100;  // SPEC-P-calc-zoom: percent; the engine starts at 3840 twips per tile
     this._chain = Promise.resolve();
     this._onState = options.onState || (() => {});
     this.viewer = new OdsViewerSession({ ...options,
@@ -137,6 +138,8 @@ export class CalcEditorSession {
       headersSupported:this.document?.headersSupported===true,
       structureSupported:this.document?.structureSupported===true,
       copySupported:this.document?.copySupported===true,
+      copyHtmlSupported:this.document?.copyHtmlSupported===true,
+      zoomSupported:this.document?.zoomSupported===true, zoom:this._zoom,
       // SPEC-P-calc-sheets 2.3: another sheet than the edited (or selected) cell's is shown.
       away:this._cell!==null && this.viewer.state.currentPart!==this._cell.part,
       // SPEC-P-calc-sheets 2.1: which sheets are protected, from part-info (null when the engine could not say).
@@ -269,8 +272,8 @@ export class CalcEditorSession {
     this._emit();
   }
   _extent() {
-    const size=this.scheduler?.documentCssSize ?? {width:0,height:0};
-    return {widthTwips:Math.ceil(size.width*15),heightTwips:Math.ceil(size.height*15)};
+    const size=this.scheduler?.documentCssSize ?? {width:0,height:0}, scale=this.viewer.scale ?? 1;
+    return {widthTwips:Math.ceil(size.width*15/scale),heightTwips:Math.ceil(size.height*15/scale)};
   }
   _reselect(selected,anchor,focus) {
     return selected.whole ? wholeRectangle(selected.whole,selected.first,selected.last,anchor,focus,this._extent()) : rectangle(anchor,focus);
@@ -360,8 +363,45 @@ export class CalcEditorSession {
         throw new DocumentSdkError("UNSUPPORTED_OPERATION","this engine has no copy contract");
       const range=this._selection ?? rectangle(this._cell);
       const {copy}=await this.document.copyRange(range.column,range.row,range.endColumn,range.endRow,{part:range.part});
-      return {plainText:copy.plainText,range};
+      return {plainText:copy.plainText,htmlText:copy.htmlText ?? null,range};
     });
+  }
+  // SPEC-P-calc-zoom 2.7: the engine's zoom first (op 16), then the active cell and the selection's ends read again at it --
+  // every rectangle in twips moves with the zoom -- then the tiles at the new scale for the size the engine gave.
+  // `centre` ({column,row}, optional) is the cell under the viewport's centre: its rectangle before and after comes back as
+  // {centre:{before,after}} so the page can put the same spot back in the centre (spec 2.6).  A rectangle at one zoom cannot
+  // be scaled into another: rows are whole pixels at each zoom (spec 1).
+  setZoom(percent,{centre=null}={}) {
+    return this._enqueue(async()=>{
+      if(!this.document?.zoomSupported)
+        throw new DocumentSdkError("UNSUPPORTED_OPERATION","this engine has no zoom contract");
+      if(!ZOOM_PERCENTS.includes(percent))
+        throw new DocumentSdkError("INVALID_ARGUMENT","the zoom is not one of the levels");
+      if(this._editing!==null)
+        throw new DocumentSdkError("EDIT_IN_PROGRESS","finish or cancel the entry before zooming");
+      const part=this.document.currentPart;
+      const target=centre && Number.isInteger(centre.column) && Number.isInteger(centre.row) ? centre : null;
+      const before=target ? (await this.document.readCell(target.column,target.row)).cell : null;
+      const {zoom}=await this.document.setZoom(384000/percent,{part});
+      this._zoom=percent;
+      const after=target ? (await this.document.readCell(target.column,target.row)).cell : null;
+      const selected=this._selection, cell=this._cell;
+      if(cell && cell.part===part) {
+        const anchor=(await this.document.readCell(cell.column,cell.row)).cell;
+        let focus=anchor;
+        if(selected?.focus && selected.part===part && (selected.focus.column!==cell.column || selected.focus.row!==cell.row))
+          focus=(await this.document.readCell(selected.focus.column,selected.focus.row)).cell;
+        this._cell=anchor;
+        this._selection=selected?.part===part ? this._reselectAt(selected,anchor,focus,zoom) : rectangle(anchor);
+      }
+      this.viewer.setScale(percent/100,{widthTwips:zoom.widthTwips,heightTwips:zoom.heightTwips});
+      this._emit();
+      return {zoom:percent,centre:before && after ? {before,after} : null};
+    },{selection:true});
+  }
+  _reselectAt(selected,anchor,focus,zoom) {
+    return selected.whole ? wholeRectangle(selected.whole,selected.first,selected.last,anchor,focus,
+      {widthTwips:zoom.widthTwips,heightTwips:zoom.heightTwips}) : rectangle(anchor,focus);
   }
   showPart(part) {
     return this._enqueue(async()=>{

@@ -29,6 +29,9 @@ button:disabled { opacity:.4; cursor:default; }
 #toolbar .ic { width:20px; height:20px; fill:currentColor; pointer-events:none; }
 #toolbar .icon-button { display:inline-flex; align-items:center; justify-content:center; width:32px; min-width:32px; padding:0; }
 #toolbar [data-style-group][hidden] { display:none; }
+/* SPEC-P-calc-zoom 2.6: the zoom group, last on the toolbar, shown only with the cell-zoom capability. */
+#toolbar [data-zoom-group][hidden] { display:none; }
+#toolbar #zoom-level { min-width:52px; font-variant-numeric:tabular-nums; }
 #toolbar [data-align][aria-pressed="true"] { background:#d8ecdf; border-color:#8cbda0; color:#105d40; }
 #toolbar [data-align][aria-pressed="mixed"] { background:#eef1e1; border-color:#a5ae7b; border-style:dashed; }
 .color-split { display:inline-flex; align-items:stretch; }
@@ -85,6 +88,8 @@ button:disabled { opacity:.4; cursor:default; }
 #cell-editor { user-select:text; }
 /* Pair text and caret with the white document canvas under host themes. */
 #cell-editor { position:absolute; z-index:3; min-width:80px; min-height:30px; margin:0; border:2px solid var(--accent); border-radius:0; background:#fff; color:var(--ink); caret-color:currentColor; color-scheme:light; padding:3px 5px; font-size:14px; line-height:21px; resize:none; box-shadow:0 3px 12px #163d2320; }
+/* SPEC-P-calc-zoom 2.6: the entry's text at the view's zoom, like the tiles under it (--calc-zoom is set on #surface). */
+#cell-editor { font-size:calc(14px * var(--calc-zoom, 1)); line-height:calc(21px * var(--calc-zoom, 1)); min-height:calc(30px * var(--calc-zoom, 1)); }
 #cell-editor.grid-input { width:1px !important; height:1px !important; min-width:0; min-height:0; padding:0; border:0; opacity:0; box-shadow:none; pointer-events:none; }
 #empty { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; color:var(--muted); pointer-events:none; }
 #empty strong { color:var(--ink); font-size:21px; font-weight:550; }
@@ -142,6 +147,7 @@ button:disabled { opacity:.4; cursor:default; }
 <button type="button" class="icon-button" data-align="center" data-style-group aria-label="置中對齊" title="置中對齊" aria-pressed="false" disabled hidden><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-format_align_center"></use></svg></button>
 <button type="button" class="icon-button" data-align="right" data-style-group aria-label="靠右對齊" title="靠右對齊" aria-pressed="false" disabled hidden><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-format_align_right"></use></svg></button>
 <button type="button" class="icon-button" data-align="block" data-style-group aria-label="左右對齊" title="左右對齊" aria-pressed="false" disabled hidden><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-format_align_justify"></use></svg></button>
+<span class="separator" data-zoom-group aria-hidden="true" hidden></span><button id="zoom-out" type="button" data-zoom-group aria-label="縮小" title="縮小" disabled hidden>−</button><button id="zoom-level" type="button" data-zoom-group aria-label="縮放比例（按一下回到 100%）" title="回到 100%" disabled hidden>100%</button><button id="zoom-in" type="button" data-zoom-group aria-label="放大" title="放大" disabled hidden>+</button>
 </div>
 <div id="structure-menu" role="menu" aria-label="插入或刪除欄列" hidden></div>
 <div id="color-popover" role="dialog" aria-label="色盤" hidden><button id="color-clear" type="button">自動</button><div id="color-grid" role="group" aria-label="顏色"></div></div>

@@ -16,6 +16,9 @@ export const RANGE_CELL_LIMIT = 65536;
 export const SHEET_COLUMNS = 16384;
 export const SHEET_ROWS = 1048576;
 export const HEADER_RECTANGLE_LIMIT = 245760;  // twips per side, the bridge's limit
+// SPEC-P-calc-zoom 2.2: the bridge's closed list (kTileTwips), twips per 256-px tile; percent = 384000 / tileTwips.
+export const ZOOM_TILE_TWIPS = Object.freeze([7680, 5120, 3840, 3072, 2560, 1920]);
+export const ZOOM_PERCENTS = Object.freeze(ZOOM_TILE_TWIPS.map(t => 384000 / t));
 
 export function isWholeRange(column,row,endColumn,endRow) {
   return (row===0 && endRow===SHEET_ROWS-1) || (column===0 && endColumn===SHEET_COLUMNS-1);
@@ -140,6 +143,27 @@ export function normalizeCopy(raw) {
   if(typeof raw.plainText!=="string")throw new DocumentSdkError("CELL_RESULT_INVALID","plainText is not text");
   if(boolean(raw.changed,"changed")!==false)throw new DocumentSdkError("CELL_RESULT_INVALID","a copy does not change the document");
   out.plainText=raw.plainText;
+  // SPEC-P-calc-copy 9.1.3: the core's text/html, present only when the engine has cell-copy-html and the core gave some.
+  if(raw.htmlText!==undefined) {
+    if(typeof raw.htmlText!=="string")throw new DocumentSdkError("CELL_RESULT_INVALID","htmlText is not text");
+    out.htmlText=raw.htmlText;
+  }
+  return Object.freeze(out);
+}
+
+// SPEC-P-calc-zoom 3.2: the zoom reply, closed.
+export function normalizeZoom(raw) {
+  if(!raw || typeof raw!=="object")throw new DocumentSdkError("CELL_RESULT_INVALID","zoom reply is missing");
+  const out={};
+  for(const key of ["part","tileTwips","percent","widthTwips","heightTwips"]) {
+    if(typeof raw[key]!=="number" && !(typeof raw[key]==="string" && /^[0-9]+$/.test(raw[key])))
+      throw new DocumentSdkError("CELL_RESULT_INVALID",`${key} is not an integer`);
+    out[key]=unsigned(Number(raw[key]),key);
+  }
+  if(!ZOOM_TILE_TWIPS.includes(out.tileTwips) || out.percent!==384000/out.tileTwips)
+    throw new DocumentSdkError("CELL_RESULT_INVALID","zoom reply is not one of the levels");
+  if(out.widthTwips===0 || out.heightTwips===0)throw new DocumentSdkError("CELL_RESULT_INVALID","zoom reply has no document size");
+  if(boolean(raw.changed,"changed")!==false)throw new DocumentSdkError("CELL_RESULT_INVALID","a zoom does not change the document");
   return Object.freeze(out);
 }
 
@@ -274,6 +298,20 @@ export class CalcDocumentEngine extends OdsViewerEngine {
         if(part!==cell.part || column!==cell.column || row!==cell.row || endColumn!==cell.endColumn || endRow!==cell.endRow)
           throw new DocumentSdkError("CELL_RESULT_INVALID","copy reply target differs from request");
         return {copy:cell};
+      });
+    };
+    handle.copyHtmlSupported=handle.copySupported && this.manifest.capabilities.includes("cell-copy-html");
+    // SPEC-P-calc-zoom 3.2: the view's zoom, cell op 16; later operations and the page's tiles follow it.
+    handle.zoomSupported=this.manifest.capabilities.includes("cell-zoom");
+    handle.setZoom=(tileTwips,callOptions)=>{
+      if(!handle.zoomSupported)
+        throw new DocumentSdkError("UNSUPPORTED_OPERATION","this engine has no zoom contract");
+      if(!ZOOM_TILE_TWIPS.includes(tileTwips))invalid("tileTwips is not one of the levels");
+      const part=callOptions?.part ?? handle.currentPart;
+      return request("cellZoom",0,0,{tileTwips},callOptions,normalizeZoom).then(({cell})=>{
+        if(cell.part!==part || cell.tileTwips!==tileTwips)
+          throw new DocumentSdkError("CELL_RESULT_INVALID","zoom reply differs from request");
+        return {zoom:cell};
       });
     };
     // SPEC-P-calc-sheets 2.1: which sheets are protected, from the core's getPartInfo ("protected": 0 or 1).  The open does

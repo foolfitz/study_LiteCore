@@ -66,6 +66,7 @@ export class OdsViewerSession {
     this._currentPart = null;
     this._readBack = null;
     this._fitted = null;
+    this._scale = 1;  // SPEC-P-calc-zoom: 1 unless an editor sets the view's zoom
     this._lastRefusal = null;
     this._error = null;
     this._liveGeneration = null;
@@ -271,7 +272,7 @@ export class OdsViewerSession {
       documentVersion: this._documentVersion,
       revision: this._view.revision,
       part,
-      scale: 1,
+      scale: this._scale,
       widthTwips: dimensions.widthTwips,
       heightTwips: dimensions.heightTwips,
     });
@@ -289,6 +290,21 @@ export class OdsViewerSession {
     }
     this._onTile(entry);
   }
+
+  // SPEC-P-calc-zoom 3.2: tiles at `scale` from now on (256 CSS px of 3840 / scale twips), sized by the document size the
+  // engine gave at that zoom.  The caller has already set the engine's zoom; like a part switch, every tile is forgotten.
+  setScale(scale, dimensions) {
+    if (this._state !== "ready" || !this._scheduler)
+      throw new ViewerError("NOT_READY", `viewer cannot zoom in state ${this._state}`);
+    if (!Number.isFinite(scale) || scale <= 0 || !Number.isInteger(dimensions?.widthTwips)
+        || !Number.isInteger(dimensions?.heightTwips))
+      throw new ViewerError("INVALID_ARGUMENT", "setScale takes a positive scale and the document size in twips");
+    this._scale = scale;
+    this._applyPart(this._currentPart, this._readBack, dimensions);
+    this._emit();
+  }
+
+  get scale() { return this._scale; }
 
   scheduleViewport(viewport) {
     if (this._state !== "ready" || !this._scheduler)

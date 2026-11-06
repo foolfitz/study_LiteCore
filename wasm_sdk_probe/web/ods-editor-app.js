@@ -1,4 +1,4 @@
-import { CalcDocumentEngine, CELL_INPUT_LIMIT } from "./spreadsheet-shell/calc-document-sdk.js";
+import { CalcDocumentEngine, CELL_INPUT_LIMIT, ZOOM_PERCENTS } from "./spreadsheet-shell/calc-document-sdk.js";
 import { CalcEditorSession, inputIntent, parseCellTarget, referenceSlot, sheetReference }
   from "./spreadsheet-shell/calc-editor-session.js";
 import { CalcAutosave } from "./spreadsheet-shell/calc-autosave.js";
@@ -11,7 +11,8 @@ const ui = Object.fromEntries(["file-input","open-file","save-button","undo-butt
   "cancel-button","commit-button","viewport","surface","tiles","selection","active-cell","cell-editor","empty",
   "tab-strip","state-pill","autosave-status","selection-label","s-doc","s-revision","toast",
   "save-as-button","save-as-dialog","save-as-name","save-as-suffix","save-as-formats","save-as-message","save-as-cancel",
-  "save-as-confirm","sheet-frame","corner-header","column-headers","row-headers","reference-box","sheet-position"]
+  "save-as-confirm","sheet-frame","corner-header","column-headers","row-headers","reference-box","sheet-position",
+  "zoom-out","zoom-level","zoom-in"]
   .map(id=>[id,$(id)]));
 // SPEC-P-ms-formats 5.2: what each format this page writes is called and carries. A spreadsheet is saved in ITS format
 // (the session's documentFormat(), from the engine's open reply); Save As offers ODF, and the original for an XLSX.
@@ -26,8 +27,9 @@ let pendingEntry = null, autosave = null, manualSaves = 0;
 // sheet, and `pendingView` is applied inside paint, after the surface has its
 // new size: scrolling first would clamp to the sheet being left.
 const sheetViews = new Map();
-let sheetSwitching = false, pendingView = null;
-const record = globalThis.__calcEditor = {schemaVersion:1,session:null,state:null,events:[],lastSave:null};
+let sheetSwitching = false, pendingView = null, zooming = false;
+const record = globalThis.__calcEditor = {schemaVersion:1,session:null,state:null,events:[],lastSave:null,lastCopy:null,
+  get zoom(){return session?.state.zoom ?? null;}};
 if(diagnostics)record.inputState=()=>({composing,pending:pendingEntry ? {replace:pendingEntry.replace,invalid:pendingEntry.invalid===true,textLength:pendingEntry.text.length}:null});
 
 function cellAddress(column,row) {
@@ -38,6 +40,10 @@ function cellAddress(column,row) {
 function columnName(column){return cellAddress(column,0).replace(/[0-9]+$/,"");}
 // SPEC-P-calc-headers 3.4: the header strips cover the viewport's top and left edges; the surface shows what is left.
 const HEADER_LEFT=48,HEADER_TOP=20;
+// SPEC-P-calc-zoom 3.3: twips per CSS px at the view's zoom (15 at 100%).  Every rectangle the engine gives is in twips of the
+// layout at that zoom, so dividing by tw() lands on the tiles drawn at it.
+function zoomScale(){return (session?.state.zoom ?? 100)/100;}
+function tw(){return 15/zoomScale();}
 function headersOn(){return session?.state.headersSupported===true;}
 function visibleWidth(){return Math.max(1,ui.viewport.clientWidth-(headersOn() ? HEADER_LEFT : 0));}
 function visibleHeight(){return Math.max(1,ui.viewport.clientHeight-(headersOn() ? HEADER_TOP : 0));}
@@ -100,9 +106,10 @@ async function action(work) {
   try { return await work(); } catch(error) { errorNotice(error); return null; }
 }
 function place(node,cell) {
-  node.style.left=`${cell.xTwips/15}px`;node.style.top=`${cell.yTwips/15}px`;
-  node.style.width=`${Math.max(1,cell.widthTwips/15)}px`;
-  node.style.height=`${Math.max(1,cell.heightTwips/15)}px`;
+  const t=tw();
+  node.style.left=`${cell.xTwips/t}px`;node.style.top=`${cell.yTwips/t}px`;
+  node.style.width=`${Math.max(1,cell.widthTwips/t)}px`;
+  node.style.height=`${Math.max(1,cell.heightTwips/t)}px`;
 }
 function formatAvailable(state) {
   return state.state==="ready" && state.cell?.writable===true && !state.readOnly && !state.uncertain
@@ -251,8 +258,8 @@ function render(state) {
     if(state.editing!=="inline") {
       // A focused, real textarea receives beforeinput and IME without moving
       // focus midway through the first character. Keep its idle caret in view.
-      ui["cell-editor"].style.left=`${Math.max(ui.viewport.scrollLeft,Math.min(state.cell.xTwips/15,ui.viewport.scrollLeft+visibleWidth()-4))}px`;
-      ui["cell-editor"].style.top=`${Math.max(ui.viewport.scrollTop,Math.min(state.cell.yTwips/15,ui.viewport.scrollTop+visibleHeight()-4))}px`;
+      ui["cell-editor"].style.left=`${Math.max(ui.viewport.scrollLeft,Math.min(state.cell.xTwips/tw(),ui.viewport.scrollLeft+visibleWidth()-4))}px`;
+      ui["cell-editor"].style.top=`${Math.max(ui.viewport.scrollTop,Math.min(state.cell.yTwips/tw(),ui.viewport.scrollTop+visibleHeight()-4))}px`;
       if(!composing && !pendingEntry)ui["cell-editor"].value="";
     }
   }
@@ -286,8 +293,9 @@ function render(state) {
   }
   if(state.error) errorNotice(state.error);
   renderHeaders(state);
-  const paintKey=`${state.currentPart}/${state.revision}`;
-  if(ready && !sheetSwitching && lastPaint!==paintKey) {
+  renderZoom(state);
+  const paintKey=`${state.currentPart}/${state.revision}/${state.zoom}`;
+  if(ready && !sheetSwitching && !zooming && lastPaint!==paintKey) {
     lastPaint=paintKey;ui.tiles.replaceChildren();void paint();
   }
   if(!waiting && restoreGridFocus) {
@@ -379,7 +387,7 @@ function cancelEntry() {
   else focusGrid();
 }
 async function paint() {
-  if(!session || session.state.state!=="ready" || sheetSwitching)return;
+  if(!session || session.state.state!=="ready" || sheetSwitching || zooming)return;
   if(paintPending){paintAgain=true;return;}
   paintPending=true;
   const view=pendingView;
@@ -387,8 +395,8 @@ async function paint() {
     for(let round=0;round<2;round++) {
       const size=session.scheduler.documentCssSize;
       const focus=session.state.selection?.focus;
-      ui.surface.style.width=`${Math.ceil(Math.max(size.width,focus ? (focus.xTwips+focus.widthTwips)/15 : 0))}px`;
-      ui.surface.style.height=`${Math.ceil(Math.max(size.height,focus ? (focus.yTwips+focus.heightTwips)/15 : 0))}px`;
+      ui.surface.style.width=`${Math.ceil(Math.max(size.width,focus ? (focus.xTwips+focus.widthTwips)/tw() : 0))}px`;
+      ui.surface.style.height=`${Math.ceil(Math.max(size.height,focus ? (focus.yTwips+focus.heightTwips)/tw() : 0))}px`;
       if(view) {
         ui.surface.style.minWidth=view.minWidth;ui.surface.style.minHeight=view.minHeight;
         ui.viewport.scrollLeft=view.scrollLeft;ui.viewport.scrollTop=view.scrollTop;
@@ -412,21 +420,22 @@ async function paint() {
 let headerKey=null,headerData=null,headerPending=false,headerAgain=false;
 function headerRectangle() {
   const clamp=v=>Math.min(245760,Math.max(0,Math.round(v)));
-  return {x:Math.max(0,Math.round(ui.viewport.scrollLeft*15)),y:Math.max(0,Math.round(ui.viewport.scrollTop*15)),
-    width:clamp(visibleWidth()*15),height:clamp(visibleHeight()*15)};
+  const t=tw();
+  return {x:Math.max(0,Math.round(ui.viewport.scrollLeft*t)),y:Math.max(0,Math.round(ui.viewport.scrollTop*t)),
+    width:clamp(visibleWidth()*t),height:clamp(visibleHeight()*t)};
 }
 async function refreshHeaders() {
   if(!session || session.state.state!=="ready" || sheetSwitching || !headersOn())return;
   if(headerPending){headerAgain=true;return;}
   const rect=headerRectangle(),owner=session;
-  const key=`${session.state.currentPart}/${session.state.revision}/${rect.x}/${rect.y}/${rect.width}/${rect.height}`;
+  const key=`${session.state.currentPart}/${session.state.revision}/${session.state.zoom}/${rect.x}/${rect.y}/${rect.width}/${rect.height}`;
   if(key===headerKey)return;
   headerPending=true;
   try {
     const reply=await owner.readHeaders(rect);
     if(reply && owner===session) {
       headerKey=key;headerData=reply.headers;
-      record.headers={rectangle:rect,part:reply.headers.part,revision:session.state.revision,reply:reply.headers};
+      record.headers={rectangle:rect,part:reply.headers.part,revision:session.state.revision,zoom:session.state.zoom,reply:reply.headers};
       drawHeaders();renderHeaders(session.state);
     }
   } catch(error) {errorNotice(error);} finally {
@@ -468,6 +477,61 @@ function renderHeaders(state) {
   for(const node of ui["row-headers"].children)
     mark(node,range?.row,range?.endRow,range?.whole==="rows" || range?.whole==="sheet",cell?.row,cell?.endRow);
   ui["corner-header"].setAttribute("aria-selected",String(range?.whole==="sheet"));
+}
+// SPEC-P-calc-zoom 2.6: the zoom group at the toolbar's end; not while an entry is open (L-calc-zoom-not-while-editing).
+function zoomBlocked(state) {
+  return state.state!=="ready" || state.zoomSupported!==true || state.busy || state.selectionPending || state.editing!==null
+    || pendingEntry!==null || !!dragWork || away(state) || sheetSwitching || zooming;
+}
+function renderZoom(state) {
+  const on=state.state==="ready" && state.zoomSupported===true;
+  for(const node of document.querySelectorAll("[data-zoom-group]"))node.hidden=!on;
+  ui.surface.style.setProperty("--calc-zoom",String(zoomScale()));
+  if(!on)return;
+  const blocked=zoomBlocked(state);
+  ui["zoom-out"].disabled=blocked || state.zoom<=ZOOM_PERCENTS[0];
+  ui["zoom-in"].disabled=blocked || state.zoom>=ZOOM_PERCENTS.at(-1);
+  ui["zoom-level"].disabled=blocked;
+  ui["zoom-level"].textContent=`${state.zoom}%`;
+}
+// The cell under the viewport's centre, from the headers drawn now (document px at the current zoom).
+function centreCell() {
+  if(!headerData || headerData.part!==session.state.currentPart)return null;
+  const x=ui.viewport.scrollLeft+visibleWidth()/2,y=ui.viewport.scrollTop+visibleHeight()/2;
+  const column=headerData.columns.find(e=>!e.hidden && x>=e.startPx && x<e.endPx);
+  const row=headerData.rows.find(e=>!e.hidden && y>=e.startPx && y<e.endPx);
+  return column && row ? {column:column.index,row:row.index,x,y} : null;
+}
+// The same spot of the centre cell goes back to the centre: rows are whole pixels at each zoom, so a scroll position cannot
+// be scaled (spec 1); without headers the ratio is the fallback.  Other sheets' remembered scrolls are scaled.
+async function zoomTo(percent) {
+  if(!session || zoomBlocked(session.state) || percent===session.state.zoom || !ZOOM_PERCENTS.includes(percent))return;
+  cancelDrag();
+  const from=zoomScale(),to=percent/100,centre=centreCell();
+  let x=(ui.viewport.scrollLeft+visibleWidth()/2)*to/from,y=(ui.viewport.scrollTop+visibleHeight()/2)*to/from;
+  zooming=true;
+  try {
+    const result=await session.setZoom(percent,{centre});
+    if(centre && result.centre) {
+      const {before,after}=result.centre,oldTw=15/from,newTw=15/to;
+      const fx=(centre.x*oldTw-before.xTwips)/before.widthTwips,fy=(centre.y*oldTw-before.yTwips)/before.heightTwips;
+      x=(after.xTwips+fx*after.widthTwips)/newTw;y=(after.yTwips+fy*after.heightTwips)/newTw;
+    }
+    for(const [part,view] of sheetViews)
+      sheetViews.set(part,{scrollLeft:view.scrollLeft*to/from,scrollTop:view.scrollTop*to/from,minWidth:"",minHeight:""});
+    pendingView={scrollLeft:Math.max(0,Math.round(x-visibleWidth()/2)),scrollTop:Math.max(0,Math.round(y-visibleHeight()/2)),
+      minWidth:"",minHeight:""};
+    headerKey=null;
+  } catch(error) {errorNotice(error);} finally {
+    zooming=false;
+    render(session.state);
+  }
+  focusGrid();
+}
+function stepZoom(direction) {
+  const zoom=session?.state.zoom ?? 100;
+  const next=direction>0 ? ZOOM_PERCENTS.find(p=>p>zoom) : [...ZOOM_PERCENTS].reverse().find(p=>p<zoom);
+  if(next!==undefined)void zoomTo(next);
 }
 async function openBytes(bytes,name,options={}) {
   if((pendingEntry || session?.hasUnsavedEdits()) && !confirm("尚有修改未儲存，仍要開啟其他檔案嗎？"))return;
@@ -558,7 +622,7 @@ function focusGrid(){
 }
 function revealCell(cell) {
   if(!cell)return;
-  const left=cell.xTwips/15,top=cell.yTwips/15,right=left+cell.widthTwips/15,bottom=top+cell.heightTwips/15;
+  const t=tw(),left=cell.xTwips/t,top=cell.yTwips/t,right=left+cell.widthTwips/t,bottom=top+cell.heightTwips/t;
   ui.surface.style.minWidth=`${Math.ceil(right)}px`;ui.surface.style.minHeight=`${Math.ceil(bottom)}px`;
   if(left<ui.viewport.scrollLeft)ui.viewport.scrollLeft=Math.floor(left);
   else if(right>ui.viewport.scrollLeft+visibleWidth())ui.viewport.scrollLeft=Math.ceil(right-visibleWidth());
@@ -721,6 +785,9 @@ function walk(direction) {
     revealCell(session.state.cell);focusGrid();
   });
 }
+ui["zoom-in"].addEventListener("click",()=>stepZoom(1));
+ui["zoom-out"].addEventListener("click",()=>stepZoom(-1));
+ui["zoom-level"].addEventListener("click",()=>void zoomTo(100));
 ui["undo-button"].addEventListener("click",()=>walk("undo"));
 ui["redo-button"].addEventListener("click",()=>walk("redo"));
 function toggleFormat(format) {
@@ -795,7 +862,7 @@ ui["cell-address"].addEventListener("keydown",event=>{
     const cell=await session.selectCell(target.column,target.row);revealCell(cell);focusGrid();
   });
 });
-function point(event){const rect=ui.surface.getBoundingClientRect();return[Math.max(0,Math.round((event.clientX-rect.left)*15)),Math.max(0,Math.round((event.clientY-rect.top)*15))];}
+function point(event){const rect=ui.surface.getBoundingClientRect(),t=tw();return[Math.max(0,Math.round((event.clientX-rect.left)*t)),Math.max(0,Math.round((event.clientY-rect.top)*t))];}
 let drag=null, dragWork=null, gesture=0;
 function cancelDrag(){
   if(pendingEntry && dragWork)pendingEntry.invalid=true;
@@ -1175,7 +1242,20 @@ window.addEventListener("keydown",event=>{
   const format={b:"bold",i:"italic",u:"underline"}[key];
   if(format){event.preventDefault();if(pendingEntry){notice("請先完成或取消目前的輸入。",true);return;}void action(()=>toggleFormat(format));}
 });
-// SPEC-P-calc-copy 3.3: the core's own copy text for the selection, written to the clipboard as plain text.
+// SPEC-P-calc-copy 3.3: the core's own copy text for the selection, written to the clipboard as plain text; 9.1.4: with the
+// core's text/html beside it when the engine gives one and the browser has ClipboardItem, plain text alone otherwise.
+async function writeClipboard(result) {
+  let refused=null;
+  if(typeof result.htmlText==="string" && typeof globalThis.ClipboardItem==="function" && navigator.clipboard?.write) {
+    try {
+      await navigator.clipboard.write([new ClipboardItem({"text/plain":new Blob([result.plainText],{type:"text/plain"}),
+        "text/html":new Blob([result.htmlText],{type:"text/html"})})]);
+      return {formats:["text/plain","text/html"],htmlRefused:null};
+    } catch(error) {refused=String(error?.name || error);}
+  }
+  await navigator.clipboard.writeText(result.plainText);
+  return {formats:["text/plain"],htmlRefused:refused};
+}
 function copyLabel(range) {
   if(range.whole==="sheet")return "整張工作表";
   if(range.whole==="columns")return range.column===range.endColumn ? `${columnName(range.column)} 欄`
@@ -1192,7 +1272,8 @@ async function copyCells() {
       : `無法複製：${error.message || error}`,true);
     return;
   }
-  try { await navigator.clipboard.writeText(result.plainText); } catch(error) {
+  try { record.lastCopy=await writeClipboard(result); } catch(error) {
+    record.lastCopy={formats:[],error:String(error?.name || error)};
     notice(`瀏覽器沒有讓頁面寫入剪貼簿（${error?.name || error}），請再按一次 Ctrl+C。`,true);
     return;
   }

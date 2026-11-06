@@ -11,6 +11,12 @@ a named limit of this instrument; the owner's hand test is the observer for it.
 
 --mutate anchor-only copies the active cell whatever the selection; it must turn P-C1 red.
 Without --mutate: exit 0 iff every check of every browser passes.
+
+2026-11-07, SPEC-P-calc-copy 9.2 (ods-editor-v8): --html adds P-H1..P-H3 after P-C1..P-C5, reading the clipboard back with
+navigator.clipboard.read() (both browsers' versions are in the report), and P-H4: the text/html each browser read back in P-H1
+is saved beside the report and pasted at L20 by the native harness (check_calc_copy_native.py --paste-html, --native-harness).
+--mutate plain-only drops the page's ClipboardItem write; it must turn P-H1 red.
+  check_calc_copy.py --html --out NEW_DIR --engine build/ods/editor-v8/profile --native-harness BUILD/v8/calc-undo-native
 """
 import argparse
 import hashlib
@@ -22,6 +28,7 @@ import sys
 import time
 
 import check_calc_structure as cs
+from check_calc_copy_native import WANT_H1, cell_table
 from check_calc_sheet_view import wait
 from create_calc_structure_fixture import create
 from r7_support import evaluate, wait_page
@@ -33,10 +40,20 @@ from v21_shakedown_common import browser_lock, close_browser, open_browser
 PROJECT = Path(__file__).resolve().parents[1]
 ROOT = "window.__calcEditor"
 MUTATIONS = {"anchor-only": ("spreadsheet-shell/calc-editor-session.js", "const range=this._selection ?? rectangle(this._cell);",
-                             "const range=rectangle(this._cell);", ["P-C1"])}
+                             "const range=rectangle(this._cell);", ["P-C1"]),
+             "plain-only": ("ods-editor-app.js",
+                            'if(typeof result.htmlText==="string" && typeof globalThis.ClipboardItem==="function" && navigator.clipboard?.write) {',
+                            "if(false) {", ["P-H1"])}
 cs.KEYS["c"] = ("c", "KeyC", 67, "c")
 WANT_C1 = "42\t84\n格式測試\t待清除\n"
 CLIP = "navigator.clipboard.readText()"
+READ = """(async()=>{const items=await navigator.clipboard.read();const out={types:[],plain:null,html:null};
+  for(const item of items){out.types.push(...item.types);
+    if(item.types.includes('text/plain'))out.plain=await (await item.getType('text/plain')).text();
+    if(item.types.includes('text/html'))out.html=await (await item.getType('text/html')).text();}
+  return out;})()"""
+ENGINE_HTML = """(async()=>{const r=await %s.session.copySelection();const h=r.htmlText||'';
+  return {bytes:new TextEncoder().encode(h).length,style:h.includes('<style'),origin:h.includes('google-sheets-html-origin')};})()""" % ROOT
 
 
 def sha(path):
@@ -49,7 +66,7 @@ def mirror(out, engine, mutate):
     for directory in ("sdk", "viewer-shell", "spreadsheet-shell"):
         shutil.copytree(PROJECT / directory, root / directory)
     page = (PROJECT / "web/ods-editor-app.js").read_text(encoding="utf-8")
-    for name in ("ods-editor-v6", "ods-editor-v7"):
+    for name in ("ods-editor-v6", "ods-editor-v7", "ods-editor-v8"):
         page = page.replace(f"./profiles/{name}/sdk-worker.js", "./profiles/under-test/sdk-worker.js")
     if "./profiles/under-test/sdk-worker.js" not in page:
         raise SystemExit("the page names no engine this tool knows")
@@ -154,8 +171,57 @@ def p_c5(run):
     run.check("P-C5/empty", clip == "標記-P-C5" and "沒有可以複製的文字" in toast, {"clipboard": clip, "toast": toast})
 
 
-def scenario(run):
-    for step in (p_c1_c3, p_c2, p_c4, p_c5):
+def items(run):
+    try:
+        return evaluate(run.session, READ)
+    except Exception as error:  # noqa: BLE001  a failed read is that check's red, with its reason
+        return {"types": [], "plain": None, "html": None, "error": f"{type(error).__name__}: {error}"}
+
+
+def copy_items(run):
+    evaluate(run.session, "document.querySelector('#toast').textContent='',true")
+    run.key("c", ("ctrl",))
+    time.sleep(1.0)
+    run.idle()
+    return items(run), evaluate(run.session, "document.querySelector('#toast').textContent"), evaluate(run.session, f"{ROOT}.lastCopy")
+
+
+def p_h1(run):
+    run.drag(run.cell_center("B", "1"), run.cell_center("C", "2"))
+    clip, toast, last = copy_items(run)
+    table = cell_table(clip.get("html"))
+    saved = run.out / f"{run.record['browser']}-P-H1.html"
+    saved.write_text(clip.get("html") or "", encoding="utf-8")
+    run.record["P-H1-html"] = str(saved)
+    browser_html = clip.get("html") or ""
+    run.record["P-H1-registration"] = {"browserBytes": len(browser_html.encode()), "browserStyle": "<style" in browser_html,
+                                       "browserOrigin": "google-sheets-html-origin" in browser_html,
+                                       "engine": evaluate(run.session, ENGINE_HTML)}
+    run.check("P-H1/both-formats", "text/plain" in clip["types"] and "text/html" in clip["types"] and clip["plain"] == WANT_C1
+              and table["tables"] == 1 and table["rows"] == WANT_H1 and (last or {}).get("formats") == ["text/plain", "text/html"],
+              {"types": clip["types"], "plain": clip["plain"], "table": table, "lastCopy": last, "toast": toast,
+               "error": clip.get("error")})
+
+
+def p_h2(run):
+    run.click(*run.header("columns", "A")["center"])
+    clip, toast, last = copy_items(run)
+    rows = cell_table(clip.get("html"))["rows"]
+    run.check("P-H2/column", len(rows) == 999 and rows[:1] == [["原始中文 Alpha"]] and "A 欄" in toast,
+              {"rows": len(rows), "first": rows[:1], "types": clip["types"], "lastCopy": last, "toast": toast})
+
+
+def p_h3(run):
+    removed = evaluate(run.session, "(delete globalThis.ClipboardItem, typeof globalThis.ClipboardItem)")
+    run.drag(run.cell_center("B", "1"), run.cell_center("C", "2"))
+    clip, toast, last = copy_items(run)
+    run.check("P-H3/fallback", removed == "undefined" and clip["types"] == ["text/plain"] and clip["plain"] == WANT_C1
+              and "B1:C2" in toast and (last or {}).get("formats") == ["text/plain"],
+              {"ClipboardItem": removed, "types": clip["types"], "plain": clip["plain"], "lastCopy": last, "toast": toast})
+
+
+def scenario(run, html=False):
+    for step in (p_c1_c3, p_c2, p_c4, p_c5) + ((p_h1, p_h2, p_h3) if html else ()):
         try:
             step(run)
         except Exception as error:  # noqa: BLE001  one cell's crash is that cell's red; the next cell runs
@@ -168,7 +234,11 @@ def main():
     parser.add_argument("--engine", type=Path, required=True)
     parser.add_argument("--browsers", default="chrome,firefox")
     parser.add_argument("--mutate", choices=sorted(MUTATIONS))
+    parser.add_argument("--html", action="store_true")
+    parser.add_argument("--native-harness", type=Path)
     args = parser.parse_args()
+    if args.html and not args.native_harness:
+        parser.error("--html needs --native-harness (P-H4)")
     out = args.out.resolve()
     out.mkdir(parents=True, exist_ok=False)
     root = mirror(out, args.engine, args.mutate)
@@ -181,7 +251,7 @@ def main():
               "engine": str(args.engine), "wasm": sha(args.engine / "probe.wasm"), "worker": sha(args.engine / "sdk-worker.js"),
               "page": {n: sha(root / n) for n in ("ods-editor-app.js", "ods-editor.html", "spreadsheet-shell/calc-editor-session.js",
                                                    "spreadsheet-shell/calc-document-sdk.js")},
-              "mutate": args.mutate, "fixture": sha(fixture), "runs": []}
+              "mutate": args.mutate, "html": args.html, "fixture": sha(fixture), "runs": []}
     try:
         wait_page(f"http://127.0.0.1:{port}/ods-editor.html")
         with browser_lock("calc-copy", wait_s=0):
@@ -201,7 +271,9 @@ def main():
                     wait(session, "document.querySelectorAll('#row-headers [role=rowheader]').length>0", 30)
                     if not evaluate(session, f"{ROOT}.state.copySupported===true"):
                         raise RuntimeError("the engine under test has no cell-copy capability")
-                    scenario(Run(session, record))
+                    run = Run(session, record)
+                    run.out, run.record = out, record
+                    scenario(run, args.html)
                 except Exception as error:  # noqa: BLE001  a crash is a result; keep the cells already read
                     record["error"] = repr(error)
                     if session:
@@ -215,6 +287,17 @@ def main():
         server.terminate()
         server.wait(timeout=10)
         log.close()
+    if args.html:  # P-H4: what each browser read back, pasted by the native core (no browser involved)
+        for r in report["runs"]:
+            saved = r.get("P-H1-html")
+            paste_out = out / f"{r['browser']}-P-H4"
+            proc = subprocess.run(["python3", str(PROJECT / "tools/check_calc_copy_native.py"), "--paste-html", str(saved or "/dev/null"),
+                                   "--harness", str(args.native_harness), "--out", str(paste_out)], capture_output=True, text=True,
+                                  timeout=300) if saved else None
+            detail = json.loads((paste_out / "report.json").read_text())["P-H4"] if saved and (paste_out / "report.json").exists() else None
+            r["checks"].append({"id": "P-H4/paste-back", "pass": bool(proc and proc.returncode == 0 and detail and detail["ok"]),
+                                "detail": {"exit": proc.returncode if proc else None, "L20": detail and detail["L20"],
+                                           "target": detail and detail["target"], "stderr": proc.stderr[-400:] if proc else None}})
     red = sorted({c["id"].split("/")[0] for r in report["runs"] for c in r["checks"] if not c["pass"]})
     if args.mutate:
         wanted = MUTATIONS[args.mutate][3]

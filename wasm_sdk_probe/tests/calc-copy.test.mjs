@@ -133,3 +133,29 @@ test("copySelection without the capability is refused", async () => {
   assert.deepEqual(calls, []);
   await s.close();
 });
+
+// SPEC-P-calc-copy 9.1.3: the core's text/html rides in the same reply (findings/evidence/calc-v8/n-copy-01, B1:C2's reply,
+// shortened); absent on a v7 engine.
+const HTML = '<!DOCTYPE html>\n<html><body><table cellspacing="0" border="0"><tr><td>42</td><td>84</td></tr></table></body></html>\n';
+
+test("htmlText is kept as it came when the engine sends it, and must be text", () => {
+  assert.equal(normalizeCopy({...NATIVE, htmlText: HTML}).htmlText, HTML);
+  assert.equal("htmlText" in normalizeCopy(NATIVE), false);
+  for (const htmlText of [null, 42, {}])
+    assert.throws(() => normalizeCopy({...NATIVE, htmlText}), {code: "CELL_RESULT_INVALID"}, String(htmlText));
+});
+
+test("copySelection hands the page htmlText, or null from an engine without it", async () => {
+  const {s, doc} = await session();
+  assert.equal((await s.copySelection()).htmlText, null);
+  const copyRange = doc.copyRange.bind(doc);
+  doc.copyRange = (...args) => copyRange(...args).then(({copy}) => ({copy: {...copy, htmlText: HTML}}));
+  assert.equal((await s.copySelection()).htmlText, HTML);
+  await s.close();
+});
+
+test("copyHtmlSupported needs cell-copy-html on top of cell-copy", async () => {
+  assert.equal((await opened(["cell-copy", "cell-copy-html"])).handle.copyHtmlSupported, true);
+  assert.equal((await opened(["cell-copy"])).handle.copyHtmlSupported, false);
+  assert.equal((await opened(["cell-copy-html"])).handle.copyHtmlSupported, false);
+});
