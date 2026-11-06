@@ -4,6 +4,7 @@
 # zoom (SPEC-P-calc-zoom 3.3), so every Calc net runs, not only sheets/headers/structure.  Copy is not repeated here: it is
 # p-copy-03 (P_HOLDS, with P-C1..P-C5).  check_calc_sheet_view.py and probe_calc_autosave.py take no engine: they load the
 # page's own engine (frozen v7 / v1 from dist), i.e. the new page on an old engine.
+# 2026-11-07: headers/structure/sheets renamed -v8 after their mirrors collided with v7-regression's names (build/calc-*/<name>).
 # Add no file under sdk/, editor-shell-v2/, web/ or spreadsheet-shell/ while it runs.
 set -u
 cd /home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe || exit 9
@@ -20,9 +21,9 @@ step $E/cell python3 tools/run_calc_editor_browser.py --profile $V8 --repeats 1 
 step $E/range python3 tools/probe_calc_range_format.py --profile $V8 --repeats 1 --out $E/range
 step $E/auto python3 tools/probe_calc_autosave.py --repeats 1 --out $E/auto
 step $E/p2 python3 tools/check_calc_style.py --engine $V8 --out $E/p2
-step $E/headers python3 tools/check_calc_headers.py --engine $V8 --out $E/headers
-step $E/structure python3 tools/check_calc_structure.py --engine $V8 --out $E/structure
+step $E/headers-v8 python3 tools/check_calc_headers.py --engine $V8 --out $E/headers-v8
+step $E/structure-v8 python3 tools/check_calc_structure.py --engine $V8 --out $E/structure-v8
 cd tools
-step $E/sheets python3 check_calc_sheets.py --engine $V8 --out $E/sheets
+step $E/sheets-v8 python3 check_calc_sheets.py --engine $V8 --out $E/sheets-v8
 cd ..
 say "DONE load $(cut -d' ' -f1-3 /proc/loadavg)"
