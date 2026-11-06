@@ -1,6 +1,6 @@
 # Handoff: Calc copy (engine side done, link with the owner) and Calc sheets (done on dev)
 
-Checkpoint **2026-11-06**. Supersedes `HANDOFF-2026-11-05b-host-0258-installed.md`. One handoff for this session.
+Checkpoint **2026-11-06**, last updated **2026-11-07** after the 0.2.59 hand test. Supersedes `HANDOFF-2026-11-05b-host-0258-installed.md`. One handoff for this session.
 
 ## The owner's decisions this session
 
@@ -33,12 +33,39 @@ Checkpoint **2026-11-06**. Supersedes `HANDOFF-2026-11-05b-host-0258-installed.m
   `CANDIDATE_INSTALLED` (12:44), Files 52/52, capture holds. New arm `tools/calc_host_arm.py --arms sheets copy`: `H_CALC_HOLDS`.
 - The hand-test script is `HANDTEST-2026-11-06-host-0.2.59.md` (10 items). The fixtures are in admin's `手測-0.2.59/`.
 
-## Next
+## Hand test of 0.2.59 (2026-11-06/07)
 
-Waiting for the owner's hand test of 0.2.59. Record the result as `findings/evidence/host-0.2.59/handtest-2026-11-06/README.md`, the
-way 0.2.58's was. Items 1 and 2 matter most: only a real browser shows whether a real Ctrl+C may write the clipboard after the engine
-round trip. Still open from the owner's list: Ctrl+click multi-selection, renaming sheets, dragging column widths and row heights,
-and freezing panes. Renaming and widths need a link; batch them.
+Record: `findings/evidence/host-0.2.59/handtest-2026-11-06/README.md` (`25f1035f8`, `52e333467`).
+
+- Owner: "測完了，writer 沒問題". Asked about the other Calc items, the owner said all are normal ("都正常").
+- One finding: copying a column (a multi-row range) and pasting it into desktop LibreOffice Calc splits cells at spaces (A1 `原始中文 Alpha` -> `原始中文` | `Alpha`). One cell or one row does not split.
+- Cause, measured: the clipboard text is correct TSV. Desktop Calc sends multi-line `STRING` through the Text Import dialog with the user's last-used separators (`libreoffice-26-8/sc/source/ui/view/viewfun5.cxx` around line 760, `SC_PASTETEXT`, `SaveParameters`), but pastes HTML before `STRING` when both are offered (`sc/source/ui/view/viewfun3.cxx`, `PasteFromSystem`). Collabora puts `text/html` and `text/plain` (`cool-26-04/browser/src/map/Clipboard.js`).
+- Owner's decision: **A, "照 Collabora，連結一次"**. The engine's copy op also returns the core's own `text/html`, and the page writes both formats.
+- Owner's added request, verbatim: "如果要連結的話，幫我加一個功能，Calc沒有頁面放大縮小". That is Calc page zoom, in the same link.
+- Still open from the owner's earlier list: Ctrl+click multi-selection, renaming sheets, dragging column widths and row heights, freezing panes.
+
+## Next session: the ods-editor-v8 link batch (copy text/html + Calc zoom)
+
+Work order, in this order. Both items go into one link that the owner runs.
+
+**1. Copy `text/html`.** Write SPEC-P-calc-copy append 2 first. The spec is append-only, and its criteria are pinned before any measurement that counts.
+
+- Engine: op 15 is `accessCopy` in `wasm_sdk_probe/src/calc_cell_bridge.cpp`. It selects the range, calls `doc->pClass->getTextSelection(doc, "text/plain;charset=utf-8", nullptr)`, then restores the selection. Add a `text/html` read while the range is still selected (before `restore()`), under a new define (suggested `OXSDK_ODS_COPY_HTML`), with capability bit 27. Bits 0-26 are taken in `src/sdk_api.h` (checked: 26 is `OXSDK_CAPABILITY_CELL_COPY`, nothing at 27-31).
+- Profile: a new dev profile `ods-editor-v8`. v7 is frozen in `dist/profiles/ods-editor-v7` and released in host 0.2.59.
+- Worker: derive the delta from the frozen v7 worker (`dist/profiles/ods-editor-v7/sdk-worker.js`) with a new entry in `tools/derive_ms_formats_worker.py`, plus a new entry in `tools/build_ms_formats_profile.py`. In both, v7's entry is `calc-copy` (base v6).
+- Makefile: a v8 block modelled on the v7 block (`ods-editor-v7-dev`, around line 6124). The bridge object's rule there lists its defines by hand, not through `ODS_EDITOR_V7_DEFINES`, so add the new define in both places.
+- Pre-link syntax check: make the define and the marked blocks parameters of `tools/check_v7_syntax.py` (its `MARK` is hardcoded to `OXSDK_ODS_COPY`). Parametrise it, do not copy it (cadence item 2).
+- Page: `web/ods-editor-app.js` currently calls `navigator.clipboard.writeText(result.plainText)` (around line 1195). Change it to `navigator.clipboard.write([new ClipboardItem({...text/plain, text/html...})])`, with `writeText` as the fallback. Measure on both browsers whether `ClipboardItem` with `text/html` works (record the Firefox version) and what Chrome's HTML sanitising leaves. In P, read back with `navigator.clipboard.read()`.
+- Native first measurement: the pattern is `tools/build_calc_undo_native.py` + `tools/check_calc_copy_native.py` (`findings/evidence/calc-copy/n-01`). It should show that the core's HTML parses into one `<td>` per cell with the cells' texts, which is the property that matters. If feasible, also try a native LOK paste of that HTML into a sheet.
+
+**2. Calc zoom.** Nothing is measured yet.
+
+- Known: the bridge forces `doc->pClass->setClientZoom(doc, 256, 256, 3840, 3840)` ("1 CSS px = 15 twips") in `access()` of `calc_cell_bridge.cpp`, and again in `accessHeaders` (op 13), which depends on that mapping. `SPEC-P-demo-batch-1.md` line 12 cites it as `calc_cell_bridge.cpp:245`; that line number is stale.
+- Known: `web/ods-editor-app.js` converts with a fixed 15 throughout: `place()` and `revealCell()` divide twips by 15, so do the cell editor placement and the surface size; `point()` multiplies pixels by 15. The header gutter is in fixed CSS px (`HEADER_LEFT=48`, `HEADER_TOP=20`).
+- Writer has a zoom: `specs/SPEC-P-demo-batch-1.md` section 3 (its named limit `L-calc-zoom-not-done` is this item), and `wasm_sdk_probe/tools/check_writer_zoom.py` (Z0-Z8).
+- Before specifying, measure what the engine and the page do, and read how Collabora zooms Calc (`cool-26-04/browser/src`). It probably needs the engine, hence the same link, but establish that first.
+
+**3. Link and release.** The owner runs the link (`findings/evidence/calc-copy/link/link.sh` is the v7 pattern). Then P on v8 with its red cases, and the Calc regression on v8 (`findings/evidence/calc-copy/v7-regression/` is the pattern). Then offer the owner a hand-test slot. Release 0.2.60 only on a named slot (CLAUDE.md, cadence).
 
 ## Cautions
 
@@ -46,6 +73,7 @@ and freezing panes. Renaming and widths need a link; batch them.
 - While another sheet is shown for a formula, do not read cells through `readCell` in tools: it asks the engine for the cell on the sheet then shown. Judge "nothing committed" by the revision instead (spec append 1).
 - `check_calc_format_entry_mutations.py` parses `formatAvailable` and accepts only `state.*`, `!pendingEntry` and `!dragWork` terms. Write any new eligibility term as a state field, the way `state.away` is. `check_calc_range_mutations.py` needs `cell.column!==column` to occur once in `calc-document-sdk.js`.
 - The P tools' mirrors live under `build/calc-sheets/` and `build/calc-copy/`. Snap Firefox cannot read fixtures under `/tmp`, so give `--out` paths outside it.
+- `git add` of a native-run evidence folder stages the harness's `session-*/profile/` directories. Unstage them: earlier commits keep only fixtures, reports and observations.
 - Unchanged: submissions are on hold; `build/archive` is hardlinked or read-only; never check out a candidate in the host repo's working copy.
 
 ## Section 34.4
