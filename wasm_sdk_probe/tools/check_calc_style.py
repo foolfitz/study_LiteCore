@@ -60,7 +60,7 @@ def mirror(out, engine, mutate=None):
     root = PROJECT / "build/calc-style" / out.name
     root.mkdir(parents=True, exist_ok=False)
     page = (PROJECT / "web/ods-editor-app.js").read_text(encoding="utf-8")
-    for name in ("ods-editor-v2", "ods-editor-v3", "ods-editor-v4", "ods-editor-v5", "ods-editor-v6"):  # v4, v5 added 2026-11-03 with the page (SPEC-P-calc-undo, SPEC-P-ms-formats); v6 2026-11-05
+    for name in ("ods-editor-v2", "ods-editor-v3", "ods-editor-v4", "ods-editor-v5", "ods-editor-v6", "ods-editor-v7"):  # v4, v5 added 2026-11-03 with the page (SPEC-P-calc-undo, SPEC-P-ms-formats); v6 2026-11-05; v7 2026-11-06
         page = page.replace(f"./profiles/{name}/sdk-worker.js", "./profiles/under-test/sdk-worker.js")
     if mutate == "wrong-fill":
         one = "await session.setStyle(style,value);"

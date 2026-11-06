@@ -55,7 +55,7 @@ def mirror(out, engine, mutate=None):
     root = PROJECT / "build/calc-undo-cu" / out.name
     root.mkdir(parents=True, exist_ok=False)
     page = (PROJECT / "web/ods-editor-app.js").read_text(encoding="utf-8")
-    for name in ("ods-editor-v2", "ods-editor-v3", "ods-editor-v4", "ods-editor-v5", "ods-editor-v6"):  # v5: SPEC-P-ms-formats; v6: 2026-11-05 (headers, structure)
+    for name in ("ods-editor-v2", "ods-editor-v3", "ods-editor-v4", "ods-editor-v5", "ods-editor-v6", "ods-editor-v7"):  # v5: SPEC-P-ms-formats; v6: 2026-11-05 (headers, structure); v7: 2026-11-06 (copy)
         page = page.replace(f"./profiles/{name}/sdk-worker.js", "./profiles/under-test/sdk-worker.js")
     if "./profiles/under-test/sdk-worker.js" not in page:
         raise SystemExit("the page names no profile this mirror knows")
