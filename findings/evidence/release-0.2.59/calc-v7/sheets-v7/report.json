@@ -1,0 +1,383 @@
+{
+ "tool": {
+  "path": "wasm_sdk_probe/tools/check_calc_sheets.py",
+  "sha256": "bfd659e242b0fe02c6d9e63005cea2c9f9746070910fbfa12ad25ba00fb1bc24",
+  "argv": [
+   "--engine",
+   "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/dist/profiles/ods-editor-v7",
+   "--out",
+   "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/release-0.2.59/calc-v7/sheets-v7"
+  ]
+ },
+ "engine": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/dist/profiles/ods-editor-v7",
+ "wasm": "36d0e1b8d971d04c550b7b48c2648b4210165a8eb96ea1cc65067a4d6ff248d9",
+ "worker": "8b49b46eae30912851160cceb3679a27a249b77bf66db6e28abee24eb6a6ac97",
+ "page": {
+  "ods-editor-app.js": "ab89256f3cd29b7592ecc3406e8e094e4a0d35decc6b486b1495ed82be633ad5",
+  "ods-editor.html": "89e1d1b1f4e1ee14a28a8f93594bbd5af383af88a6ca59b9f869debd2e883f4d",
+  "spreadsheet-shell/calc-editor-session.js": "ba4d408c1b9f2b52ab7c373671fc3e7b82e22cd327fdcac3c94da884cd9d3dc9",
+  "spreadsheet-shell/calc-document-sdk.js": "026a1ee784dc0975c05602e219ea535a2b0d8984660e88dd3a359f72cabda749"
+ },
+ "mutate": null,
+ "fixture": "bcf1dc427006dfe2f300c0db023b51aa5b1a7b0eb7d2a09629d38b514d1bb820",
+ "runs": [
+  {
+   "browser": "chrome",
+   "checks": [
+    {
+     "id": "P-T1/lock",
+     "pass": true,
+     "actual": {
+      "locked": [
+       "保護測試"
+      ],
+      "protectedTab": {
+       "text": "保護測試",
+       "protected": "true",
+       "aria": "保護測試（受保護的工作表）",
+       "lock": true,
+       "selected": "false"
+      },
+      "tabs": 9
+     }
+    },
+    {
+     "id": "P-T2/position",
+     "pass": true,
+     "actual": {
+      "atOpen": "工作表 1／9",
+      "afterTab2": "工作表 2／9"
+     }
+    },
+    {
+     "id": "P-T3/name-box",
+     "pass": true,
+     "actual": {
+      "另一張表.A1": {
+       "part": 1,
+       "cell": [
+        0,
+        0
+       ],
+       "toast": "直接輸入取代內容；F2 編輯；拖曳或 Shift＋方向鍵選取範圍。"
+      },
+      "'有 空白'.B1": {
+       "part": 5,
+       "cell": [
+        1,
+        0
+       ],
+       "toast": "直接輸入取代內容；F2 編輯；拖曳或 Shift＋方向鍵選取範圍。"
+      },
+      "另一張表!A1": {
+       "part": 1,
+       "cell": [
+        0,
+        0
+       ],
+       "toast": "直接輸入取代內容；F2 編輯；拖曳或 Shift＋方向鍵選取範圍。"
+      },
+      "不存在.A1": {
+       "part": 1,
+       "cell": [
+        0,
+        0
+       ],
+       "toast": "找不到名為「不存在」的工作表。"
+      }
+     }
+    },
+    {
+     "id": "P-T4/same-sheet",
+     "pass": true,
+     "actual": {
+      "afterB1": {
+       "formula": "=B1",
+       "position": "工作表 1／9",
+       "toast": "找不到名為「不存在」的工作表。",
+       "active": "cell-editor",
+       "box": true
+      },
+      "afterC1": {
+       "formula": "=B1+C1",
+       "position": "工作表 1／9",
+       "toast": "找不到名為「不存在」的工作表。",
+       "active": "cell-editor",
+       "box": true
+      },
+      "H1": {
+       "formula": "=B1+C1",
+       "value": 126,
+       "text": "126"
+      }
+     }
+    },
+    {
+     "id": "P-T5/other-sheet",
+     "pass": true,
+     "actual": {
+      "browsing": {
+       "part": 1,
+       "editing": "formula",
+       "formula": "=",
+       "revision": [
+        1,
+        1
+       ]
+      },
+      "pointed": {
+       "formula": "=$另一張表.A1",
+       "position": "工作表 2／9",
+       "toast": "找不到名為「不存在」的工作表。",
+       "active": "formula-input",
+       "box": true
+      },
+      "afterEnter": 0,
+      "H2": {
+       "formula": "=$另一張表.A1",
+       "text": "第二表不應改動"
+      }
+     }
+    },
+    {
+     "id": "P-T6/quoted",
+     "pass": true,
+     "actual": {
+      "pointed": "=$'有 空白'.B1",
+      "H3": {
+       "formula": "=$'有 空白'.B1",
+       "value": 10,
+       "text": "10"
+      }
+     }
+    },
+    {
+     "id": "P-T7/drag-range",
+     "pass": true,
+     "actual": {
+      "dragged": {
+       "formula": "=SUM(B1:C1",
+       "position": "工作表 1／9",
+       "toast": "找不到名為「不存在」的工作表。",
+       "active": "cell-editor",
+       "box": true
+      },
+      "H7": {
+       "formula": "=SUM(B1:C1)",
+       "value": 126,
+       "text": "126"
+      }
+     }
+    },
+    {
+     "id": "P-T8/escape",
+     "pass": true,
+     "actual": {
+      "shown": 1,
+      "after": 0,
+      "editing": null,
+      "revision": [
+       4,
+       4
+      ],
+      "H5": ""
+     }
+    },
+    {
+     "id": "P-T9/not-a-slot",
+     "pass": true,
+     "actual": {
+      "H6": "5",
+      "cell": [
+       1,
+       0
+      ]
+     }
+    }
+   ],
+   "error": null,
+   "version": "Chrome/156.0.8078.47",
+   "cleanup": {}
+  },
+  {
+   "browser": "firefox",
+   "checks": [
+    {
+     "id": "P-T1/lock",
+     "pass": true,
+     "actual": {
+      "locked": [
+       "保護測試"
+      ],
+      "protectedTab": {
+       "text": "保護測試",
+       "protected": "true",
+       "aria": "保護測試（受保護的工作表）",
+       "lock": true,
+       "selected": "false"
+      },
+      "tabs": 9
+     }
+    },
+    {
+     "id": "P-T2/position",
+     "pass": true,
+     "actual": {
+      "atOpen": "工作表 1／9",
+      "afterTab2": "工作表 2／9"
+     }
+    },
+    {
+     "id": "P-T3/name-box",
+     "pass": true,
+     "actual": {
+      "另一張表.A1": {
+       "part": 1,
+       "cell": [
+        0,
+        0
+       ],
+       "toast": "直接輸入取代內容；F2 編輯；拖曳或 Shift＋方向鍵選取範圍。"
+      },
+      "'有 空白'.B1": {
+       "part": 5,
+       "cell": [
+        1,
+        0
+       ],
+       "toast": "直接輸入取代內容；F2 編輯；拖曳或 Shift＋方向鍵選取範圍。"
+      },
+      "另一張表!A1": {
+       "part": 1,
+       "cell": [
+        0,
+        0
+       ],
+       "toast": "直接輸入取代內容；F2 編輯；拖曳或 Shift＋方向鍵選取範圍。"
+      },
+      "不存在.A1": {
+       "part": 1,
+       "cell": [
+        0,
+        0
+       ],
+       "toast": "找不到名為「不存在」的工作表。"
+      }
+     }
+    },
+    {
+     "id": "P-T4/same-sheet",
+     "pass": true,
+     "actual": {
+      "afterB1": {
+       "formula": "=B1",
+       "position": "工作表 1／9",
+       "toast": "找不到名為「不存在」的工作表。",
+       "active": "cell-editor",
+       "box": true
+      },
+      "afterC1": {
+       "formula": "=B1+C1",
+       "position": "工作表 1／9",
+       "toast": "找不到名為「不存在」的工作表。",
+       "active": "cell-editor",
+       "box": true
+      },
+      "H1": {
+       "formula": "=B1+C1",
+       "value": 126,
+       "text": "126"
+      }
+     }
+    },
+    {
+     "id": "P-T5/other-sheet",
+     "pass": true,
+     "actual": {
+      "browsing": {
+       "part": 1,
+       "editing": "formula",
+       "formula": "=",
+       "revision": [
+        1,
+        1
+       ]
+      },
+      "pointed": {
+       "formula": "=$另一張表.A1",
+       "position": "工作表 2／9",
+       "toast": "找不到名為「不存在」的工作表。",
+       "active": "formula-input",
+       "box": true
+      },
+      "afterEnter": 0,
+      "H2": {
+       "formula": "=$另一張表.A1",
+       "text": "第二表不應改動"
+      }
+     }
+    },
+    {
+     "id": "P-T6/quoted",
+     "pass": true,
+     "actual": {
+      "pointed": "=$'有 空白'.B1",
+      "H3": {
+       "formula": "=$'有 空白'.B1",
+       "value": 10,
+       "text": "10"
+      }
+     }
+    },
+    {
+     "id": "P-T7/drag-range",
+     "pass": true,
+     "actual": {
+      "dragged": {
+       "formula": "=SUM(B1:C1",
+       "position": "工作表 1／9",
+       "toast": "找不到名為「不存在」的工作表。",
+       "active": "cell-editor",
+       "box": true
+      },
+      "H7": {
+       "formula": "=SUM(B1:C1)",
+       "value": 126,
+       "text": "126"
+      }
+     }
+    },
+    {
+     "id": "P-T8/escape",
+     "pass": true,
+     "actual": {
+      "shown": 1,
+      "after": 0,
+      "editing": null,
+      "revision": [
+       4,
+       4
+      ],
+      "H5": ""
+     }
+    },
+    {
+     "id": "P-T9/not-a-slot",
+     "pass": true,
+     "actual": {
+      "H6": "5",
+      "cell": [
+       1,
+       0
+      ]
+     }
+    }
+   ],
+   "error": null,
+   "version": "157.0.1",
+   "cleanup": {}
+  }
+ ],
+ "verdict": "P_HOLDS",
+ "redCriteria": []
+}

@@ -1,0 +1,441 @@
+{
+ "engine": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/dist/profiles/ods-editor-v7",
+ "mutate": null,
+ "runs": [
+  {
+   "browser": "chrome",
+   "checks": [
+    {
+     "id": "CU-1/input",
+     "pass": true,
+     "actual": {
+      "button": true,
+      "D9": null
+     }
+    },
+    {
+     "id": "CU-1/cell-bold",
+     "pass": true,
+     "actual": {
+      "button": true,
+      "boldBefore": true,
+      "A1": {
+       "kind": "table-cell",
+       "type": "string",
+       "value": null,
+       "formula": null,
+       "text": "原始中文 Alpha",
+       "style": null
+      }
+     }
+    },
+    {
+     "id": "CU-1/range-fill",
+     "pass": true,
+     "actual": {
+      "button": true,
+      "range": true,
+      "filled": true,
+      "B2": {
+       "kind": "table-cell",
+       "type": "string",
+       "value": null,
+       "formula": null,
+       "text": "格式測試",
+       "style": null
+      }
+     }
+    },
+    {
+     "id": "CU-2/ctrl-z-input",
+     "pass": true,
+     "actual": {
+      "D9": null,
+      "sent": [
+       "undo",
+       "cellRead",
+       "paint",
+       "paint"
+      ]
+     }
+    },
+    {
+     "id": "CU-2/ctrl-y-input",
+     "pass": true,
+     "actual": "CU2"
+    },
+    {
+     "id": "CU-2/ctrl-z-bold",
+     "pass": true,
+     "actual": {
+      "kind": "table-cell",
+      "type": "string",
+      "value": null,
+      "formula": null,
+      "text": "原始中文 Alpha",
+      "style": null
+     }
+    },
+    {
+     "id": "CU-2/ctrl-shift-z-bold",
+     "pass": true,
+     "actual": {
+      "kind": "table-cell",
+      "type": "string",
+      "value": null,
+      "formula": null,
+      "text": "原始中文 Alpha",
+      "style": {
+       "attrs": {
+        "{urn:oasis:names:tc:opendocument:xmlns:style:1.0}family": "table-cell",
+        "{urn:oasis:names:tc:opendocument:xmlns:style:1.0}parent-style-name": "Default"
+       },
+       "props": {
+        "{urn:oasis:names:tc:opendocument:xmlns:style:1.0}text-properties": {
+         "{urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0}font-weight": "bold",
+         "{urn:oasis:names:tc:opendocument:xmlns:style:1.0}font-weight-asian": "bold",
+         "{urn:oasis:names:tc:opendocument:xmlns:style:1.0}font-weight-complex": "bold"
+        }
+       }
+      }
+     }
+    },
+    {
+     "id": "CU-3/field-keeps-its-undo",
+     "pass": true,
+     "actual": {
+      "sent": [],
+      "focus": "formula-input"
+     }
+    },
+    {
+     "id": "CU-4/draft-dropped",
+     "pass": true,
+     "actual": {
+      "button": true,
+      "sent": [],
+      "formula": "",
+      "toast": {
+       "text": "已交給瀏覽器下載，請確認檔案已存好。",
+       "error": false
+      }
+     }
+    },
+    {
+     "id": "CU-4/second-press-undoes-the-write",
+     "pass": true,
+     "actual": null
+    },
+    {
+     "id": "CU-5/nothing-to-undo",
+     "pass": true,
+     "actual": {
+      "button": true,
+      "toast": {
+       "text": "沒有可以復原的動作。",
+       "error": false
+      }
+     }
+    },
+    {
+     "id": "CU-5/nothing-to-redo",
+     "pass": true,
+     "actual": {
+      "button": true,
+      "toast": {
+       "text": "沒有可以重做的動作。",
+       "error": false
+      }
+     }
+    },
+    {
+     "id": "CU-6/follows-the-restored-cell",
+     "pass": true,
+     "actual": {
+      "cell": [
+       3,
+       8
+      ],
+      "formula": ""
+     }
+    },
+    {
+     "id": "CU-6/bold-button-shows-the-restored-state",
+     "pass": true,
+     "actual": {
+      "before": "true",
+      "after": "false"
+     }
+    },
+    {
+     "id": "CU-7/undo-after-save",
+     "pass": true,
+     "actual": null
+    },
+    {
+     "id": "CU-9/shows-the-sheet-and-cell",
+     "pass": true,
+     "actual": {
+      "button": true,
+      "shown": [
+       1,
+       1,
+       1
+      ],
+      "viewBeforeUndo": [
+       815,
+       267
+      ]
+     }
+    },
+    {
+     "id": "CU-9/the-sheet-left-keeps-its-view",
+     "pass": true,
+     "actual": {
+      "view": [
+       815,
+       267
+      ],
+      "back": [
+       815,
+       267
+      ],
+      "again": [
+       815,
+       267
+      ]
+     }
+    },
+    {
+     "id": "CU-9/the-file",
+     "pass": true,
+     "actual": {
+      "written": "S2",
+      "after": null
+     }
+    }
+   ],
+   "fatal": {},
+   "version": "Chrome/156.0.8078.47",
+   "cleanup": {}
+  },
+  {
+   "browser": "firefox",
+   "checks": [
+    {
+     "id": "CU-1/input",
+     "pass": true,
+     "actual": {
+      "button": true,
+      "D9": null
+     }
+    },
+    {
+     "id": "CU-1/cell-bold",
+     "pass": true,
+     "actual": {
+      "button": true,
+      "boldBefore": true,
+      "A1": {
+       "kind": "table-cell",
+       "type": "string",
+       "value": null,
+       "formula": null,
+       "text": "原始中文 Alpha",
+       "style": null
+      }
+     }
+    },
+    {
+     "id": "CU-1/range-fill",
+     "pass": true,
+     "actual": {
+      "button": true,
+      "range": true,
+      "filled": true,
+      "B2": {
+       "kind": "table-cell",
+       "type": "string",
+       "value": null,
+       "formula": null,
+       "text": "格式測試",
+       "style": null
+      }
+     }
+    },
+    {
+     "id": "CU-2/ctrl-z-input",
+     "pass": true,
+     "actual": {
+      "D9": null,
+      "sent": [
+       "undo",
+       "cellRead",
+       "paint",
+       "paint"
+      ]
+     }
+    },
+    {
+     "id": "CU-2/ctrl-y-input",
+     "pass": true,
+     "actual": "CU2"
+    },
+    {
+     "id": "CU-2/ctrl-z-bold",
+     "pass": true,
+     "actual": {
+      "kind": "table-cell",
+      "type": "string",
+      "value": null,
+      "formula": null,
+      "text": "原始中文 Alpha",
+      "style": null
+     }
+    },
+    {
+     "id": "CU-2/ctrl-shift-z-bold",
+     "pass": true,
+     "actual": {
+      "kind": "table-cell",
+      "type": "string",
+      "value": null,
+      "formula": null,
+      "text": "原始中文 Alpha",
+      "style": {
+       "attrs": {
+        "{urn:oasis:names:tc:opendocument:xmlns:style:1.0}family": "table-cell",
+        "{urn:oasis:names:tc:opendocument:xmlns:style:1.0}parent-style-name": "Default"
+       },
+       "props": {
+        "{urn:oasis:names:tc:opendocument:xmlns:style:1.0}text-properties": {
+         "{urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0}font-weight": "bold",
+         "{urn:oasis:names:tc:opendocument:xmlns:style:1.0}font-weight-asian": "bold",
+         "{urn:oasis:names:tc:opendocument:xmlns:style:1.0}font-weight-complex": "bold"
+        }
+       }
+      }
+     }
+    },
+    {
+     "id": "CU-3/field-keeps-its-undo",
+     "pass": true,
+     "actual": {
+      "sent": [],
+      "focus": "formula-input"
+     }
+    },
+    {
+     "id": "CU-4/draft-dropped",
+     "pass": true,
+     "actual": {
+      "button": true,
+      "sent": [],
+      "formula": "",
+      "toast": {
+       "text": "已交給瀏覽器下載，請確認檔案已存好。",
+       "error": false
+      }
+     }
+    },
+    {
+     "id": "CU-4/second-press-undoes-the-write",
+     "pass": true,
+     "actual": null
+    },
+    {
+     "id": "CU-5/nothing-to-undo",
+     "pass": true,
+     "actual": {
+      "button": true,
+      "toast": {
+       "text": "沒有可以復原的動作。",
+       "error": false
+      }
+     }
+    },
+    {
+     "id": "CU-5/nothing-to-redo",
+     "pass": true,
+     "actual": {
+      "button": true,
+      "toast": {
+       "text": "沒有可以重做的動作。",
+       "error": false
+      }
+     }
+    },
+    {
+     "id": "CU-6/follows-the-restored-cell",
+     "pass": true,
+     "actual": {
+      "cell": [
+       3,
+       8
+      ],
+      "formula": ""
+     }
+    },
+    {
+     "id": "CU-6/bold-button-shows-the-restored-state",
+     "pass": true,
+     "actual": {
+      "before": "true",
+      "after": "false"
+     }
+    },
+    {
+     "id": "CU-7/undo-after-save",
+     "pass": true,
+     "actual": null
+    },
+    {
+     "id": "CU-9/shows-the-sheet-and-cell",
+     "pass": true,
+     "actual": {
+      "button": true,
+      "shown": [
+       1,
+       1,
+       1
+      ],
+      "viewBeforeUndo": [
+       972,
+       455
+      ]
+     }
+    },
+    {
+     "id": "CU-9/the-sheet-left-keeps-its-view",
+     "pass": true,
+     "actual": {
+      "view": [
+       972,
+       455
+      ],
+      "back": [
+       972,
+       455
+      ],
+      "again": [
+       972,
+       455
+      ]
+     }
+    },
+    {
+     "id": "CU-9/the-file",
+     "pass": true,
+     "actual": {
+      "written": "S2",
+      "after": null
+     }
+    }
+   ],
+   "fatal": {},
+   "version": "157.0.1",
+   "cleanup": {}
+  }
+ ],
+ "verdict": "CU_HOLDS"
+}

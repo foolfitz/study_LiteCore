@@ -1,0 +1,163 @@
+{
+ "tool": {
+  "path": "wasm_sdk_probe/tools/check_calc_copy.py",
+  "sha256": "e2f545815c1571b82566b3a7bbeea7dfb7e50ed994ff323f2437d64ce6c3b82e",
+  "argv": [
+   "--engine",
+   "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/dist/profiles/ods-editor-v7",
+   "--out",
+   "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/release-0.2.59/calc-v7/copy-v7"
+  ]
+ },
+ "engine": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/dist/profiles/ods-editor-v7",
+ "wasm": "36d0e1b8d971d04c550b7b48c2648b4210165a8eb96ea1cc65067a4d6ff248d9",
+ "worker": "8b49b46eae30912851160cceb3679a27a249b77bf66db6e28abee24eb6a6ac97",
+ "page": {
+  "ods-editor-app.js": "ab89256f3cd29b7592ecc3406e8e094e4a0d35decc6b486b1495ed82be633ad5",
+  "ods-editor.html": "89e1d1b1f4e1ee14a28a8f93594bbd5af383af88a6ca59b9f869debd2e883f4d",
+  "spreadsheet-shell/calc-editor-session.js": "ba4d408c1b9f2b52ab7c373671fc3e7b82e22cd327fdcac3c94da884cd9d3dc9",
+  "spreadsheet-shell/calc-document-sdk.js": "026a1ee784dc0975c05602e219ea535a2b0d8984660e88dd3a359f72cabda749"
+ },
+ "mutate": null,
+ "fixture": "88f47aa196194fd7184cb49b1f069b9bd1232480e4c73e7ee080b9b0ea7dab85",
+ "runs": [
+  {
+   "browser": "chrome",
+   "checks": [
+    {
+     "id": "P-C1/rectangle",
+     "pass": true,
+     "actual": {
+      "clipboard": "42\t84\n格式測試\t待清除\n",
+      "toast": "已複製 B1:C2"
+     }
+    },
+    {
+     "id": "P-C3/clean",
+     "pass": true,
+     "actual": {
+      "hasUnsavedEdits": false,
+      "revision": [
+       0,
+       0,
+       0
+      ],
+      "undoToast": "沒有可以復原的動作。",
+      "undoDisabledAtOpen": false
+     }
+    },
+    {
+     "id": "P-C2/column",
+     "pass": true,
+     "actual": {
+      "lines": 1000,
+      "first": "原始中文 Alpha",
+      "line1000": "第 1000 列",
+      "toast": "已複製 A 欄"
+     }
+    },
+    {
+     "id": "P-C2/row",
+     "pass": true,
+     "actual": {
+      "start": "鄰格必須保留\t格式測試\t待清除\n",
+      "toast": "已複製 第 2 列"
+     }
+    },
+    {
+     "id": "P-C4/field",
+     "pass": true,
+     "actual": {
+      "clipboard": "42",
+      "toast": ""
+     }
+    },
+    {
+     "id": "P-C5/empty",
+     "pass": true,
+     "actual": {
+      "clipboard": "標記-P-C5",
+      "toast": "這個範圍沒有可以複製的文字。"
+     }
+    }
+   ],
+   "error": null,
+   "version": "Chrome/156.0.8078.47",
+   "clipboardGrant": {
+    "granted": true
+   },
+   "cleanup": {}
+  },
+  {
+   "browser": "firefox",
+   "checks": [
+    {
+     "id": "P-C1/rectangle",
+     "pass": true,
+     "actual": {
+      "clipboard": "42\t84\n格式測試\t待清除\n",
+      "toast": "已複製 B1:C2"
+     }
+    },
+    {
+     "id": "P-C3/clean",
+     "pass": true,
+     "actual": {
+      "hasUnsavedEdits": false,
+      "revision": [
+       0,
+       0,
+       0
+      ],
+      "undoToast": "沒有可以復原的動作。",
+      "undoDisabledAtOpen": false
+     }
+    },
+    {
+     "id": "P-C2/column",
+     "pass": true,
+     "actual": {
+      "lines": 1000,
+      "first": "原始中文 Alpha",
+      "line1000": "第 1000 列",
+      "toast": "已複製 A 欄"
+     }
+    },
+    {
+     "id": "P-C2/row",
+     "pass": true,
+     "actual": {
+      "start": "鄰格必須保留\t格式測試\t待清除\n",
+      "toast": "已複製 第 2 列"
+     }
+    },
+    {
+     "id": "P-C4/field",
+     "pass": true,
+     "actual": {
+      "clipboard": "42",
+      "toast": ""
+     }
+    },
+    {
+     "id": "P-C5/empty",
+     "pass": true,
+     "actual": {
+      "clipboard": "標記-P-C5",
+      "toast": "這個範圍沒有可以複製的文字。"
+     }
+    }
+   ],
+   "error": null,
+   "version": "157.0.1",
+   "clipboardGrant": {
+    "firefoxPref": {
+     "dom.events.testing.asyncClipboard": true
+    }
+   },
+   "cleanup": {}
+  }
+ ],
+ "verdict": "P_HOLDS",
+ "redCriteria": []
+}
