@@ -2,7 +2,7 @@
 
 The script is `HANDTEST-2026-11-06-host-0.2.59.md` (repo root, 10 items), run on `https://litecore.localhost:18443` with 0.2.59 installed (host `480ba6b`, engine `a2e67f21`). The fixtures are in admin's `手測-0.2.59/` (`../handtest-fixtures/put.json`).
 
-The result, in the owner's words: "測完了，writer 沒問題". Calc has one finding.
+The result, in the owner's words: "測完了，writer 沒問題". Asked about the other Calc items (copying one cell or a row, an empty range, the lock, the sheet position, the name box, pointed references, a dragged range, Esc), the owner answered that all are normal (A, "都正常"). Calc has one finding.
 
 ## The finding: a column copied into desktop Calc splits cells at spaces
 
@@ -14,4 +14,4 @@ Measured afterwards, the copy is correct, and the split is desktop Calc's text i
 - `sc/source/ui/view/viewfun5.cxx:760`: pasting `STRING` with a newline anywhere but the last character opens the Text Import dialog (`SC_PASTETEXT`), and it uses the separator options last used (`SaveParameters`, config `Office.Calc/Dialogs/ClipboardTextImport`). One cell has no newline, and one row has its only newline at the end, so neither opens the dialog: hence no split.〔observed, source〕
 - `sc/source/ui/view/viewfun3.cxx` `PasteFromSystem`: when the clipboard also has HTML, Calc pastes that before `STRING`, so the text import dialog never runs. Collabora puts `text/html` and `text/plain` on the clipboard (`cool-26-04/browser/src/map/Clipboard.js`); this page puts only `text/plain` (SPEC-P-calc-copy 2.2, a named limit).〔observed, source〕
 
-So the named limit "no `text/html`" has a practical consequence: a multi-row copy into desktop LibreOffice goes through Text Import, where whichever separators the user last used apply. The fix is the owner's choice (the handoff for this session).
+So the named limit "no `text/html`" has a practical consequence: a multi-row copy into desktop LibreOffice goes through Text Import, where whichever separators the user last used apply. The owner chose A, Collabora's way: the engine's copy also returns the core's own `text/html`, and the page writes both (one link). See SPEC-P-calc-copy append 2.
