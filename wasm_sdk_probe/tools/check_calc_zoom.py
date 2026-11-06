@@ -14,7 +14,8 @@ getBoundingClientRect().
   check_calc_zoom.py --out NEW_DIR --engine PROFILE_DIR [--browsers chrome,firefox] [--mutate NAME]
 
 --mutate point-15 keeps point()'s 15 (P-Z3 red off 100); no-op16 changes the tiles' scale without op 16 (P-Z3 or P-Z4 red at 75);
-no-centre keeps the scroll position on zoom (P-Z5 red).  Without --mutate: exit 0 iff every check of every browser passes.
+no-centre keeps the scroll position on zoom (P-Z5 red); drag-no-zoom does not redraw the zoom group at the end of a drag (P-Z9 red,
+spec append 3).  Without --mutate: exit 0 iff every check of every browser passes.
 """
 import argparse
 import hashlib
@@ -41,6 +42,9 @@ MUTATIONS = {
                  "function point(event){const rect=ui.surface.getBoundingClientRect(),t=15;", ["P-Z3"], "all"),
     "no-op16": ("spreadsheet-shell/calc-editor-session.js", "const {zoom}=await this.document.setZoom(384000/percent,{part});",
                 "const zoom={widthTwips:this.document.widthTwips,heightTwips:this.document.heightTwips};", ["P-Z3", "P-Z4"], "any"),
+    # Spec append 3 (Codex review 3): the end of a drag does not redraw the zoom group.
+    "drag-no-zoom": ("ods-editor-app.js", "  renderStyleControls(state);\n  // So must the zoom group, which a drag disables too (SPEC-P-calc-zoom append 3, Codex review 3).\n  renderZoom(state);\n}",
+                     "  renderStyleControls(state);\n}", ["P-Z9"], "all"),
     "no-centre": ("ods-editor-app.js",
                   "pendingView={scrollLeft:Math.max(0,Math.round(x-visibleWidth()/2)),scrollTop:Math.max(0,Math.round(y-visibleHeight()/2)),",
                   "pendingView={scrollLeft:ui.viewport.scrollLeft,scrollTop:ui.viewport.scrollTop,", ["P-Z5"], "all"),
@@ -69,13 +73,14 @@ MEASURE = """(()=>{const s=window.__calcEditor.state,scale=(s.zoom/100).toFixed(
     surface:parseFloat(document.querySelector('#surface').style.width),
     documentCss:window.__calcEditor.session.scheduler.documentCssSize.width,cell:[s.cell.column,s.cell.row],
     revision:s.revision,zoom:s.zoom};})()"""
-CENTRE = """(()=>{const v=document.querySelector('#viewport'),s=document.querySelector('#surface').getBoundingClientRect();
+CENTRE = """(()=>{const v=document.querySelector('#viewport'),s=document.querySelector('#surface').getBoundingClientRect(),
+  maxLeft=v.scrollWidth-v.clientWidth;
   const left=window.__calcEditor.state.headersSupported?48:0,top=window.__calcEditor.state.headersSupported?20:0;
   const x=s.left+v.scrollLeft+(v.clientWidth-left)/2,y=s.top+v.scrollTop+(v.clientHeight-top)/2;
   const hit=(sel,lo,hi,p)=>{for(const n of document.querySelectorAll(sel)){const b=n.getBoundingClientRect();
     if(p>=b[lo]&&p<b[hi])return +n.dataset.index;}return null;};
   return {column:hit('#column-headers [role=columnheader]','left','right',x),row:hit('#row-headers [role=rowheader]','top','bottom',y),
-    scrollLeft:v.scrollLeft,scrollTop:v.scrollTop};})()"""
+    scrollLeft:v.scrollLeft,scrollTop:v.scrollTop,atEdge:v.scrollLeft<=0||v.scrollLeft>=maxLeft-1,maxLeft};})()"""
 # Setup, not the act: put F100's centre in the viewport's centre (the cell's rectangle at this zoom, from the active cell).
 CENTRE_ON = """(()=>{const c=window.__calcEditor.state.cell,z=window.__calcEditor.state.zoom/100,t=15/z,v=document.querySelector('#viewport');
   const left=window.__calcEditor.state.headersSupported?48:0,top=window.__calcEditor.state.headersSupported?20:0;
@@ -125,10 +130,12 @@ class Run(cs.Run):
         time.sleep(1.0)
 
     def press(self, button):
-        """One click on a zoom control; returns the label after it settles."""
+        """One click on a zoom control; returns the label after it settles.  Raises when the zoom does not change (append 4:
+        a disabled control used to keep the caller's loop waiting for ever)."""
         before = self.controls()["zoom"]
         self.click(*self.controls()[button]["center"])
-        wait(self.session, f"{ROOT}.zoom!=={before}", 30)
+        if not wait(self.session, f"{ROOT}.zoom!=={before}", 30):
+            raise RuntimeError(f"the zoom did not change after {button} at {before}: {self.controls()}")
         after = self.controls()["zoom"]
         self.settle(after)
         return self.controls()["level"]["text"]
@@ -214,6 +221,12 @@ def level_checks(run, zoom, painted):
               and near((clicked or m)["row"], [a[1], a[3]], 1),
               {"column": (clicked or m)["column"], "row": (clicked or m)["row"], "active": a})
     run.check(f"P-Z7/{zoom}", m["revision"] == painted, {"revision": m["revision"], "painted": painted})
+    # P-Z9 (spec append 3): after that real click, the zoom group is usable again.
+    c = run.controls()
+    top, bottom = max(run.record["levels"]), min(run.record["levels"])
+    run.check(f"P-Z9/{zoom}", clicked is not None and (zoom == top or not c["in"]["disabled"])
+              and (zoom == bottom or not c["out"]["disabled"]),
+              {"in": c["in"]["disabled"], "out": c["out"]["disabled"], "zoom": c["zoom"]})
 
 
 def zoom_walk(run, levels, painted):
@@ -230,8 +243,11 @@ def zoom_walk(run, levels, painted):
         before = evaluate(run.session, CENTRE)
         label = run.press(button)
         after = evaluate(run.session, CENTRE)
-        ok = (label == f"{target}%" and None not in (before["row"], after["row"], before["column"], after["column"])
-              and abs(after["row"] - before["row"]) <= 1 and abs(after["column"] - before["column"]) <= 1)
+        # Append 4: the row always; the column only away from the scroll range's ends, where the scroll must sit on the end.
+        column_ok = (after["atEdge"] if after["column"] is None or before["column"] is None
+                     or abs(after["column"] - before["column"]) > 1 else True)
+        ok = (label == f"{target}%" and None not in (before["row"], after["row"])
+              and abs(after["row"] - before["row"]) <= 1 and column_ok)
         run.check(f"P-Z5/{button}-{target}", ok, {"label": label, "before": before, "after": after})
         if target not in seen:
             seen.add(target)
@@ -239,7 +255,9 @@ def zoom_walk(run, levels, painted):
 
 
 def p_z6(run):
-    while run.controls()["zoom"] > 150:
+    for _ in range(10):
+        if run.controls()["zoom"] <= 150:
+            break
         run.press("out")
     run.goto("F100", *F100)
     run.hands.text("縮放")
@@ -254,7 +272,9 @@ def p_z6(run):
 
 
 def p_z8(run):
-    while run.controls()["zoom"] > 75:
+    for _ in range(10):
+        if run.controls()["zoom"] <= 75:
+            break
         run.press("out")
     tabs = run.dom()["tabs"]
     run.click(*tabs[1]["center"])

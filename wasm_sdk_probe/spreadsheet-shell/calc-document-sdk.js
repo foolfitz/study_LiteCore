@@ -311,6 +311,9 @@ export class CalcDocumentEngine extends OdsViewerEngine {
       return request("cellZoom",0,0,{tileTwips},callOptions,normalizeZoom).then(({cell})=>{
         if(cell.part!==part || cell.tileTwips!==tileTwips)
           throw new DocumentSdkError("CELL_RESULT_INVALID","zoom reply differs from request");
+        // The size follows the zoom reply as it follows every paint reply, so a refit after a paint that ended before the zoom
+        // does not put the old size back (Codex review 2026-11-07).
+        handle.widthTwips=cell.widthTwips;handle.heightTwips=cell.heightTwips;
         return {zoom:cell};
       });
     };

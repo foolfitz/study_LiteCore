@@ -131,6 +131,8 @@ function renderFormatControls(state) {
   }
   // Here and not in render(): a drag ends by calling this alone, and the styles must come back with the formats.
   renderStyleControls(state);
+  // So must the zoom group, which a drag disables too (SPEC-P-calc-zoom append 3, Codex review 3).
+  renderZoom(state);
 }
 // SPEC-P-demo-batch-3 3.3.  Ten columns, dark to light: Collabora's picker's base colours and shades (browser/src/control/ColorPicker.ts).
 const COLOR_ROWS=Object.freeze([
@@ -494,25 +496,23 @@ function renderZoom(state) {
   ui["zoom-level"].disabled=blocked;
   ui["zoom-level"].textContent=`${state.zoom}%`;
 }
-// The cell under the viewport's centre, from the headers drawn now (document px at the current zoom).
-function centreCell() {
-  if(!headerData || headerData.part!==session.state.currentPart)return null;
-  const x=ui.viewport.scrollLeft+visibleWidth()/2,y=ui.viewport.scrollTop+visibleHeight()/2;
-  const column=headerData.columns.find(e=>!e.hidden && x>=e.startPx && x<e.endPx);
-  const row=headerData.rows.find(e=>!e.hidden && y>=e.startPx && y<e.endPx);
-  return column && row ? {column:column.index,row:row.index,x,y} : null;
+// The viewport's centre in CSS px of the surface and in twips at the current zoom; the session asks the engine which cell is
+// there (op 5), so it does not depend on headers that may still describe another place (Codex review 2026-11-07).
+function centrePoint() {
+  const x=ui.viewport.scrollLeft+visibleWidth()/2,y=ui.viewport.scrollTop+visibleHeight()/2,t=tw();
+  return {x,y,xTwips:Math.round(x*t),yTwips:Math.round(y*t)};
 }
 // The same spot of the centre cell goes back to the centre: rows are whole pixels at each zoom, so a scroll position cannot
 // be scaled (spec 1); without headers the ratio is the fallback.  Other sheets' remembered scrolls are scaled.
 async function zoomTo(percent) {
   if(!session || zoomBlocked(session.state) || percent===session.state.zoom || !ZOOM_PERCENTS.includes(percent))return;
   cancelDrag();
-  const from=zoomScale(),to=percent/100,centre=centreCell();
+  const from=zoomScale(),to=percent/100,centre=centrePoint();
   let x=(ui.viewport.scrollLeft+visibleWidth()/2)*to/from,y=(ui.viewport.scrollTop+visibleHeight()/2)*to/from;
   zooming=true;
   try {
-    const result=await session.setZoom(percent,{centre});
-    if(centre && result.centre) {
+    const result=await session.setZoom(percent,{centre:{xTwips:centre.xTwips,yTwips:centre.yTwips}});
+    if(result.centre) {
       const {before,after}=result.centre,oldTw=15/from,newTw=15/to;
       const fx=(centre.x*oldTw-before.xTwips)/before.widthTwips,fy=(centre.y*oldTw-before.yTwips)/before.heightTwips;
       x=(after.xTwips+fx*after.widthTwips)/newTw;y=(after.yTwips+fy*after.heightTwips)/newTw;
@@ -1035,6 +1035,7 @@ function runStructure(axis,act,where,node=null) {
   })();
 }
 async function structureAt(kind,event) {
+  if(zooming)return false;
   // The header or cell under the pointer joins the selection first unless it is already in it.
   const range=session.state.selection;
   if(kind==="rows" || kind==="columns") {
@@ -1109,6 +1110,8 @@ ui["cell-editor"].addEventListener("keydown",wholeKey);
 ui.viewport.addEventListener("keydown",event=>{if(event.target!==ui["cell-editor"])wholeKey(event);});
 ui.viewport.addEventListener("pointerdown",event=>{
   if(!session || event.button!==0 || event.target===ui["cell-editor"] || !inViewport(event))return;
+  // A point taken during a zoom would be converted at the old zoom and hit-tested at the new one (Codex review 2026-11-07).
+  if(zooming){event.preventDefault();return;}
   if(pendingEntry){event.preventDefault();notice("正在接收前一個儲存格的輸入，請稍候。",true);return;}
   const slot=pointSlot();
   if(slot){event.preventDefault();startPoint(event,slot);return;}
@@ -1204,6 +1207,7 @@ for(const name of ["pointerup","pointercancel"])
   });
 ui.viewport.addEventListener("dblclick",event=>{
   if(!session || event.target===ui["cell-editor"])return;
+  if(zooming){event.preventDefault();return;}
   // The second click of a double click on a pointed cell is a point too, never an edit of that cell.
   if(pointed || browsing()){event.preventDefault();return;}
   if(pendingEntry){event.preventDefault();notice("請先完成或取消目前的輸入。",true);focusGrid();return;}
@@ -1244,7 +1248,9 @@ window.addEventListener("keydown",event=>{
 });
 // SPEC-P-calc-copy 3.3: the core's own copy text for the selection, written to the clipboard as plain text; 9.1.4: with the
 // core's text/html beside it when the engine gives one and the browser has ClipboardItem, plain text alone otherwise.
+let copyGeneration=0;
 async function writeClipboard(result) {
+  const generation=++copyGeneration;
   let refused=null;
   if(typeof result.htmlText==="string" && typeof globalThis.ClipboardItem==="function" && navigator.clipboard?.write) {
     try {
@@ -1252,6 +1258,8 @@ async function writeClipboard(result) {
         "text/html":new Blob([result.htmlText],{type:"text/html"})})]);
       return {formats:["text/plain","text/html"],htmlRefused:null};
     } catch(error) {refused=String(error?.name || error);}
+    // A newer Ctrl+C has written since: its content stands (Codex review 2026-11-07).
+    if(generation!==copyGeneration)return {formats:[],htmlRefused:refused,superseded:true};
   }
   await navigator.clipboard.writeText(result.plainText);
   return {formats:["text/plain"],htmlRefused:refused};

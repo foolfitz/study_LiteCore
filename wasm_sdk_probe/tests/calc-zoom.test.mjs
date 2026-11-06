@@ -88,11 +88,21 @@ async function session({zoom = true} = {}) {
         bold: false, italic: false, underline: false, xTwips: Math.round(c * columnPx / px), yTwips: Math.round(r * rowPx / px),
         widthTwips: Math.round(columnPx / px), heightTwips: Math.round(rowPx / px)};
     },
-    async readCell(c, r) { reads.push([this.tile, c, r]); return {cell: this.cell(c, r)}; },
+    async readCell(c, r) {
+      reads.push([this.tile, c, r]);
+      if (this.failAt?.(this.tile, c, r)) throw Object.assign(new Error("no geometry"), {code: "CELL_GEOMETRY_UNAVAILABLE"});
+      return {cell: this.cell(c, r)};
+    },
+    async hitCell(x, y) {  // op 5 at the current zoom: the cell whose rectangle holds the point
+      const probe = this.cell(1, 1), c = Math.floor(x / probe.xTwips), r = Math.floor(y / probe.yTwips);
+      reads.push([this.tile, "hit", c, r]);
+      return {cell: this.cell(c, r)};
+    },
     async readRange(c, r, ec, er) { return {range: {part: 0, column: c, row: r, endColumn: ec, endRow: er, bold: false,
       italic: false, underline: false, writable: true, refusalCode: ""}}; },
     async setZoom(tileTwips, options) {
       this.tile = tileTwips;
+      this.zooms = [...(this.zooms ?? []), tileTwips];
       return {zoom: {part: options.part, tileTwips, percent: 384000 / tileTwips, widthTwips: 8000, heightTwips: 7000}};
     },
   };
@@ -107,8 +117,9 @@ test("setZoom: op 16, then the selection's ends read at the new zoom; tiles at t
   await s.selectCell(1, 1);
   await s.selectCell(3, 40, {extend: true});
   reads.length = 0;
-  const result = await s.setZoom(75, {centre: {column: 2, row: 20}});
-  assert.deepEqual(reads, [[3840, 2, 20], [5120, 2, 20], [5120, 1, 1], [5120, 3, 40]]);
+  const centre = doc.cell(2, 20);
+  const result = await s.setZoom(75, {centre: {xTwips: centre.xTwips + 10, yTwips: centre.yTwips + 10}});
+  assert.deepEqual(reads, [[3840, "hit", 2, 20], [5120, 2, 20], [5120, 1, 1], [5120, 3, 40]]);
   assert.equal(s.state.zoom, 75);
   assert.equal(s.viewer.scale, 0.75);
   assert.deepEqual(s.scheduler.documentCssSize, {width: 8000 / 15 * 0.75, height: 7000 / 15 * 0.75});
@@ -141,4 +152,24 @@ test("a whole-column selection is redrawn over the document's extent at the new 
   assert.equal(s.state.selection.whole, "columns");
   assert.equal(s.state.selection.heightTwips, 7000);
   await s.close();
+});
+
+test("a read failing after op 16 sends op 16 back to the previous zoom; nothing on the page moves", async () => {
+  const {s, doc} = await session();
+  await s.selectCell(1, 1);
+  doc.failAt = (tile, c, r) => tile === 2560 && c === 1 && r === 1;
+  await assert.rejects(s.setZoom(150), {code: "CELL_GEOMETRY_UNAVAILABLE"});
+  assert.deepEqual(doc.zooms, [2560, 3840]);
+  assert.equal(doc.tile, 3840);
+  assert.equal(s.state.zoom, 100);
+  assert.equal(s.viewer.scale, 1);
+  assert.equal(s.state.uncertain, false);
+  await s.close();
+});
+
+test("the handle's size follows the zoom reply (a refit after an old paint keeps it)", async () => {
+  const {worker, handle} = await opened(["cell-zoom"]);
+  worker.reply = {...NATIVE};
+  await handle.setZoom(5120);
+  assert.deepEqual([handle.widthTwips, handle.heightTwips], [34280, 240220]);
 });

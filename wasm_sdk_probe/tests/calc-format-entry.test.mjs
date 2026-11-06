@@ -14,7 +14,8 @@ const clean=()=>({state:"ready",cell:{writable:true,bold:false},readOnly:false,u
 function page(state=clean()) {
   const calls=[],nodes=["bold","italic","underline"].map(format=>({dataset:{format},setAttribute(){},getAttribute(){return format;}}));
   const context={session:{state,setFormat:(...args)=>calls.push(args)},pendingEntry:null,dragWork:null,styleRefreshes:0,
-    document:{querySelectorAll:()=>nodes},formatRefusal:code=>code,renderStyleControls(){context.styleRefreshes++;}};
+    document:{querySelectorAll:()=>nodes},formatRefusal:code=>code,renderStyleControls(){context.styleRefreshes++;},
+    zoomRefreshes:0,renderZoom(){context.zoomRefreshes++;}};
   vm.createContext(context);
   vm.runInContext(["formatAvailable","formatTitle","renderFormatControls","toggleFormat"].map(extract).join("\n"),context);
   return {context,calls,nodes};
@@ -56,6 +57,7 @@ test("drag completion and cancellation refresh actual format controls",async()=>
   const current={start:Promise.resolve(true),active:false,generation:context.gesture};context.dragWork=current;
   await context.extendDrag(current);assert.equal(refreshes,2);assert.equal(context.dragWork,null);
   assert.equal(context.styleRefreshes,2,"the style controls come back with the formats (SPEC-P-demo-batch-3 append 2)");
+  assert.equal(context.zoomRefreshes,2,"the zoom group comes back with the formats (SPEC-P-calc-zoom append 3)");
   assert.ok(nodes.every(n=>!n.disabled));
 });
 test("actual queued selection cannot consume a shortcut computed for old cell",async()=>{

@@ -368,9 +368,11 @@ export class CalcEditorSession {
   }
   // SPEC-P-calc-zoom 2.7: the engine's zoom first (op 16), then the active cell and the selection's ends read again at it --
   // every rectangle in twips moves with the zoom -- then the tiles at the new scale for the size the engine gave.
-  // `centre` ({column,row}, optional) is the cell under the viewport's centre: its rectangle before and after comes back as
-  // {centre:{before,after}} so the page can put the same spot back in the centre (spec 2.6).  A rectangle at one zoom cannot
-  // be scaled into another: rows are whole pixels at each zoom (spec 1).
+  // `centre` ({xTwips,yTwips} at the current zoom, optional) is the viewport's centre: the engine says which cell is there
+  // (op 5), and that cell's rectangle before and after comes back as {centre:{before,after}} so the page can put the same
+  // spot back in the centre (spec 2.6).  A rectangle at one zoom cannot be scaled into another (spec 1).  If a read after op 16
+  // fails, op 16 is sent again with the previous zoom so the engine and the page agree; if that fails too, the session is
+  // uncertain (Codex review 2026-11-07).
   setZoom(percent,{centre=null}={}) {
     return this._enqueue(async()=>{
       if(!this.document?.zoomSupported)
@@ -379,21 +381,26 @@ export class CalcEditorSession {
         throw new DocumentSdkError("INVALID_ARGUMENT","the zoom is not one of the levels");
       if(this._editing!==null)
         throw new DocumentSdkError("EDIT_IN_PROGRESS","finish or cancel the entry before zooming");
-      const part=this.document.currentPart;
-      const target=centre && Number.isInteger(centre.column) && Number.isInteger(centre.row) ? centre : null;
-      const before=target ? (await this.document.readCell(target.column,target.row)).cell : null;
+      const part=this.document.currentPart,previous=this._zoom;
+      const at=centre && Number.isInteger(centre.xTwips) && Number.isInteger(centre.yTwips) ? centre : null;
+      const before=at ? (await this.document.hitCell(at.xTwips,at.yTwips)).cell : null;
       const {zoom}=await this.document.setZoom(384000/percent,{part});
-      this._zoom=percent;
-      const after=target ? (await this.document.readCell(target.column,target.row)).cell : null;
-      const selected=this._selection, cell=this._cell;
-      if(cell && cell.part===part) {
-        const anchor=(await this.document.readCell(cell.column,cell.row)).cell;
-        let focus=anchor;
-        if(selected?.focus && selected.part===part && (selected.focus.column!==cell.column || selected.focus.row!==cell.row))
-          focus=(await this.document.readCell(selected.focus.column,selected.focus.row)).cell;
-        this._cell=anchor;
-        this._selection=selected?.part===part ? this._reselectAt(selected,anchor,focus,zoom) : rectangle(anchor);
+      let after=null,anchor=null,focus=null;
+      const selected=this._selection,cell=this._cell;
+      try {
+        if(before)after=(await this.document.readCell(before.column,before.row)).cell;
+        if(cell && cell.part===part) {
+          anchor=(await this.document.readCell(cell.column,cell.row)).cell;
+          focus=anchor;
+          if(selected?.focus && selected.part===part && (selected.focus.column!==cell.column || selected.focus.row!==cell.row))
+            focus=(await this.document.readCell(selected.focus.column,selected.focus.row)).cell;
+        }
+      } catch(error) {
+        try { await this.document.setZoom(384000/previous,{part}); } catch { this._uncertain=true; }
+        throw error;
       }
+      this._zoom=percent;
+      if(anchor){this._cell=anchor;this._selection=selected?.part===part ? this._reselectAt(selected,anchor,focus,zoom) : rectangle(anchor);}
       this.viewer.setScale(percent/100,{widthTwips:zoom.widthTwips,heightTwips:zoom.heightTwips});
       this._emit();
       return {zoom:percent,centre:before && after ? {before,after} : null};

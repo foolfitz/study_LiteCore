@@ -1,0 +1,24 @@
+Traceback (most recent call last):
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/check_calc_zoom.py", line 367, in <module>
+    (out / "report.json").write_text(json.dumps(report, ensure_ascii=False, indent=1) + "\n")
+                     ^^^^^^
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/check_calc_zoom.py", line 333, in main
+    report["runs"].append(record)
+        ~~~~~~~~~~~~~~~~~^^^^^^^^
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/check_calc_zoom.py", line 292, in scenario
+    def scenario(run, record):
+                ^^^^^^
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/check_calc_zoom.py", line 290, in <lambda>
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/check_calc_zoom.py", line 243, in p_z6
+    ok = (label == f"{target}%" and None not in (before["row"], after["row"], before["column"], after["column"])
+    ^^^^^^^^^^^^^^^^
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/check_calc_zoom.py", line 133, in press
+    before = self.controls()["zoom"]
+    ^^^^^^^^^^^^^^^^^^
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/check_calc_zoom.py", line 124, in settle
+    return evaluate(self.session, CONTROLS)
+    ^^^^^^^^^^^
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/check_calc_structure.py", line 107, in idle
+    time.sleep(.4)
+    ~~~~~~~~~~^^^^
+KeyboardInterrupt
