@@ -49,7 +49,7 @@ def mirror(out):
     (root / "reader-shell").mkdir()
     shutil.copyfile(PROJECT / "reader-shell/tile-scheduler.js", root / "reader-shell/tile-scheduler.js")
     (root / "profiles").mkdir()
-    for name in ("ods-editor-v2", "ods-editor-v3", "ods-editor-v4", "ods-editor-v5", "ods-editor-v6", "ods-editor-v7", "ods-viewer-v3", "resources"):  # v4, v5: 2026-11-03; v6: 2026-11-05; v7: 2026-11-06
+    for name in ("ods-editor-v2", "ods-editor-v3", "ods-editor-v4", "ods-editor-v5", "ods-editor-v6", "ods-editor-v7", "ods-editor-v8", "ods-viewer-v3", "resources"):  # v4, v5: 2026-11-03; v6: 2026-11-05; v7: 2026-11-06; v8: 2026-11-07
         (root / "profiles" / name).symlink_to(PROJECT / "dist/profiles" / name, target_is_directory=True)
     hashes = {str(p.relative_to(root)): hashlib.sha256(p.read_bytes()).hexdigest()
               for p in sorted(root.rglob("*")) if p.is_file() and not p.is_symlink()

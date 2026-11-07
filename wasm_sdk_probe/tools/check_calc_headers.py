@@ -68,7 +68,7 @@ def mirror(out, engine, mutate):
     for directory in ("sdk", "viewer-shell", "spreadsheet-shell"):
         shutil.copytree(PROJECT / directory, root / directory)
     page = (PROJECT / "web/ods-editor-app.js").read_text(encoding="utf-8")
-    for name in ("ods-editor-v5", "ods-editor-v6", "ods-editor-v7"):
+    for name in ("ods-editor-v5", "ods-editor-v6", "ods-editor-v7", "ods-editor-v8"):
         page = page.replace(f"./profiles/{name}/sdk-worker.js", "./profiles/under-test/sdk-worker.js")
     if "./profiles/under-test/sdk-worker.js" not in page:
         raise SystemExit("the page names no engine this tool knows")

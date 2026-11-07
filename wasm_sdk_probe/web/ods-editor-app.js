@@ -3,7 +3,7 @@ import { CalcEditorSession, inputIntent, parseCellTarget, referenceSlot, sheetRe
   from "./spreadsheet-shell/calc-editor-session.js";
 import { CalcAutosave } from "./spreadsheet-shell/calc-autosave.js";
 
-const ENGINE_OPTIONS = Object.freeze({workerUrl:"./profiles/ods-editor-v7/sdk-worker.js",timeoutMs:60000});
+const ENGINE_OPTIONS = Object.freeze({workerUrl:"./profiles/ods-editor-v8/sdk-worker.js",timeoutMs:60000});
 const HOST = globalThis.liteCoreHost ?? null;
 const diagnostics = new URLSearchParams(location.search).get("diagnostics") === "1";
 const $ = id => document.getElementById(id);
