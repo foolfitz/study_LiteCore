@@ -9,13 +9,19 @@ owner's way: admin logs in, each arm's own fixture is PUT into an owned folder (
 Files is clicked, and the host route opens it with its lock.
 
   calc_host_arm.py --out NEW_DIR --arms sheets copy [--browsers chrome firefox]      (host-stack/bin first on PATH)
+  calc_host_arm.py --out NEW_DIR --arms zoom copy-html --native-harness BUILD/v8/calc-undo-native
 
   headers    check_calc_headers.scenario     fixture create_calc_headers_fixture
   structure  check_calc_structure.scenario   fixture create_calc_structure_fixture
   sheets     check_calc_sheets.scenario      fixture create_calc_sheets_fixture     (SPEC-P-calc-sheets)
   copy       check_calc_copy.scenario        fixture create_calc_structure_fixture  (SPEC-P-calc-copy)
+  copy-html  check_calc_copy.scenario(html)  fixture create_calc_structure_fixture  (SPEC-P-calc-copy 9-12; 0.2.60)
+  zoom       check_calc_zoom.scenario        fixture create_calc_structure_fixture  (SPEC-P-calc-zoom; 0.2.60)
 
-With the copy arm, Chrome is granted clipboard permission for the host origin and Firefox runs with
+copy-html is the mirror's --html: P-C1..P-C5, then P-H1..P-H3 on the host page, and P-H4 after the browsers close, as the mirror
+does it: each browser's read-back HTML of A1:C2 pasted by the native core (check_calc_copy_native.py --paste-html, --native-harness).
+
+With a copy arm, Chrome is granted clipboard permission for the host origin and Firefox runs with
 dom.events.testing.asyncClipboard (tools/v21_clipboard.py), the mirror tool's own instrument and its named limit (user activation
 is relaxed).  Before leaving a file the page's own save is pressed if the document is dirty.  Cleanup: UNLOCK only this run's
 files, DELETE the owned folder.  Verdict H_CALC_HOLDS iff every arm of every browser ran without an error, has checks, and every
@@ -26,6 +32,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import subprocess
 import sys
 import tempfile
 import time
@@ -38,6 +45,7 @@ import check_calc_copy as copy_tool  # noqa: E402
 import check_calc_headers as headers  # noqa: E402
 import check_calc_sheets as sheets  # noqa: E402
 import check_calc_structure as structure  # noqa: E402
+import check_calc_zoom as zoom_tool  # noqa: E402
 from create_calc_headers_fixture import create as create_headers  # noqa: E402
 from create_calc_sheets_fixture import create as create_sheets  # noqa: E402
 from create_calc_structure_fixture import create as create_structure  # noqa: E402
@@ -50,7 +58,34 @@ from v21_shakedown_common import browser_lock, open_browser, close_browser  # no
 
 ROOT = 'window.__calcEditor'
 ARMS = {'headers': (create_headers, headers, 'headersSupported'), 'structure': (create_structure, structure, 'structureSupported'),
-        'sheets': (create_sheets, sheets, 'headersSupported'), 'copy': (create_structure, copy_tool, 'copySupported')}
+        'sheets': (create_sheets, sheets, 'headersSupported'), 'copy': (create_structure, copy_tool, 'copySupported'),
+        'copy-html': (create_structure, copy_tool, 'copySupported'), 'zoom': (create_structure, zoom_tool, 'zoomSupported')}
+
+
+def run_scenario(arm, module, run, record, out):
+    """Each mirror tool's scenario(), called the way its own main() calls it."""
+    if arm == 'copy-html':
+        run.out, run.record = out, record
+        return module.scenario(run, True)
+    if arm == 'zoom':
+        return module.scenario(run, record)
+    return module.scenario(run)
+
+
+def paste_back(report, out, harness):
+    """check_calc_copy.py main()'s P-H4 step: each copy-html run's read-back HTML of A1:C2, pasted by the native core."""
+    for r in report['runs']:
+        if r['arm'] != 'copy-html':
+            continue
+        saved = r.get('P-H4-html')
+        paste_out = out / f"{r['browser']}-P-H4"
+        proc = subprocess.run(['python3', str(SDK / 'tools/check_calc_copy_native.py'), '--paste-html', str(saved or '/dev/null'),
+                               '--harness', str(harness), '--out', str(paste_out)], capture_output=True, text=True,
+                              timeout=300) if saved else None
+        detail = json.loads((paste_out / 'report.json').read_text())['P-H4'] if saved and (paste_out / 'report.json').exists() else None
+        r['checks'].append({'id': 'P-H4/paste-back', 'pass': bool(proc and proc.returncode == 0 and detail and detail['ok']),
+                            'detail': {'exit': proc.returncode if proc else None, 'L20': detail and detail['L20'],
+                                       'target': detail and detail['target'], 'stderr': proc.stderr[-400:] if proc else None}})
 
 
 def sha(path):
@@ -75,11 +110,14 @@ def main():
     p.add_argument('--out', type=Path, required=True)
     p.add_argument('--arms', nargs='+', choices=sorted(ARMS), required=True)
     p.add_argument('--browsers', nargs='+', choices=['chrome', 'firefox'], default=['chrome', 'firefox'])
+    p.add_argument('--native-harness', type=Path)
     args = p.parse_args()
+    if 'copy-html' in args.arms and not args.native_harness:
+        p.error('copy-html needs --native-harness (P-H4)')
     out = args.out.resolve()
     out.mkdir(parents=True, exist_ok=False)
     arms = [(name, ARMS[name][0](out / f'fixture-{name}'), ARMS[name][1], ARMS[name][2]) for name in args.arms]
-    clipboard = 'copy' in args.arms
+    clipboard = bool({'copy', 'copy-html'} & set(args.arms))
     report = {'tool': {'path': 'wasm_sdk_probe/tools/calc_host_arm.py', 'sha256': sha(__file__), 'argv': sys.argv[1:]},
               'reused': {m.__name__: sha(m.__file__) for m in (*{a[2] for a in arms}, host)},
               'fixtures': {a: sha(f) for a, f, _, _ in arms}, 'runs': [], 'cleanup': {}}
@@ -116,7 +154,7 @@ def main():
                             wait(session, f'Boolean({ROOT}?.state?.cell) && {ROOT}.state.{flag}===true', 180)
                             wait(session, "document.querySelectorAll('#row-headers [role=rowheader]').length>0", 30)
                             record['lockAtOpen'] = {k: v for k, v in h.props(name).items() if k != 'token'}
-                            module.scenario(module.Run(session, record))
+                            run_scenario(arm, module, module.Run(session, record), record, out)
                         except Exception as error:  # noqa: BLE001  a crash is a result; keep the checks already read
                             record['error'] = repr(error)
                             record['traceback'] = traceback.format_exc()
@@ -150,6 +188,8 @@ def main():
                     cleanup.setdefault('errors', []).append(repr(error))
             if created:
                 cleanup['folderDeleteStatus'] = h.dav('DELETE', h.folder)[0]
+    if 'copy-html' in args.arms:
+        paste_back(report, out, args.native_harness.resolve())
     ok = (not report.get('error') and not report['cleanup'].get('errors') and len(report['runs']) == len(arms) * len(args.browsers)
           and all(not r['error'] and r['checks'] and all(c['pass'] for c in r['checks']) for r in report['runs']))
     report['verdict'] = 'H_CALC_HOLDS' if ok else 'H_CALC_RED'

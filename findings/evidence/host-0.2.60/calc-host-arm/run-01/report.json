@@ -1,0 +1,1968 @@
+{
+ "tool": {
+  "path": "wasm_sdk_probe/tools/calc_host_arm.py",
+  "sha256": "bf802e801c94c589bf32efd9960774e3f34df869c238f709656ef8e790732c61",
+  "argv": [
+   "--out",
+   "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/host-0.2.60/calc-host-arm/run-01",
+   "--arms",
+   "zoom",
+   "copy-html",
+   "--native-harness",
+   "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/calc-v8/native-build-01/v8/calc-undo-native"
+  ]
+ },
+ "reused": {
+  "check_calc_zoom": "0b15dc0b47b155cf1cb956d1714a5b12ee3269cc69893ce31607d47707e13d04",
+  "check_calc_copy": "547978cf05997d40706ac30d89e6c96e66d0850ae12f067192199b5d6bb175d0",
+  "run_calc_editor_host": "433c36d7fecf72e6adefafc22bfbaa4c7cb82c745a2e1b33bd9952972628e6ee"
+ },
+ "fixtures": {
+  "zoom": "88f47aa196194fd7184cb49b1f069b9bd1232480e4c73e7ee080b9b0ea7dab85",
+  "copy-html": "88f47aa196194fd7184cb49b1f069b9bd1232480e4c73e7ee080b9b0ea7dab85"
+ },
+ "runs": [
+  {
+   "browser": "chrome",
+   "arm": "zoom",
+   "version": "Chrome/156.0.8078.47",
+   "login": {
+    "result": {
+     "status": 200,
+     "url": "https://litecore.localhost:18443/apps/dashboard/"
+    }
+   },
+   "checks": [
+    {
+     "id": "P-Z1/controls",
+     "pass": true,
+     "actual": {
+      "atOpen": {
+       "out": {
+        "center": [
+         655,
+         131
+        ],
+        "disabled": false,
+        "visible": true,
+        "text": "−"
+       },
+       "level": {
+        "center": [
+         709.5,
+         131
+        ],
+        "disabled": false,
+        "visible": true,
+        "text": "100%"
+       },
+       "in": {
+        "center": [
+         764,
+         131
+        ],
+        "disabled": false,
+        "visible": true,
+        "text": "+"
+       },
+       "zoom": 100
+      },
+      "down": [
+       "75%",
+       "50%"
+      ],
+      "up": [
+       "75%",
+       "100%",
+       "125%",
+       "150%",
+       "200%"
+      ],
+      "back": "100%",
+      "levels": [
+       50,
+       75,
+       100,
+       125,
+       150,
+       200
+      ]
+     }
+    },
+    {
+     "id": "P-Z7/zoom-only",
+     "pass": true,
+     "actual": {
+      "revision": [
+       0,
+       0
+      ],
+      "hasUnsavedEdits": false,
+      "lastSave": null
+     }
+    },
+    {
+     "id": "P-Z2/100",
+     "pass": true,
+     "actual": {
+      "scale": "1.0000",
+      "tiles": 18,
+      "badTiles": [],
+      "surface": 8397,
+      "documentCss": 8397
+     }
+    },
+    {
+     "id": "P-Z3/100",
+     "pass": true,
+     "actual": {
+      "before": [
+       5,
+       100
+      ],
+      "after": [
+       5,
+       99
+      ],
+      "redBox": [
+       55,
+       871,
+       141,
+       889
+      ],
+      "activeBox": [
+       56,
+       872,
+       140.921875,
+       888.921875
+      ]
+     }
+    },
+    {
+     "id": "P-Z4/100",
+     "pass": true,
+     "actual": {
+      "column": [
+       56,
+       141
+      ],
+      "row": [
+       872,
+       889
+      ],
+      "active": [
+       56,
+       872,
+       140.921875,
+       888.921875
+      ]
+     }
+    },
+    {
+     "id": "P-Z7/100",
+     "pass": true,
+     "actual": {
+      "revision": 1,
+      "painted": 1
+     }
+    },
+    {
+     "id": "P-Z9/100",
+     "pass": true,
+     "actual": {
+      "in": false,
+      "out": false,
+      "zoom": 100
+     }
+    },
+    {
+     "id": "P-Z5/out-75",
+     "pass": true,
+     "actual": {
+      "label": "75%",
+      "before": {
+       "column": 8,
+       "row": 99,
+       "scrollLeft": 0,
+       "scrollTop": 1361,
+       "atEdge": true,
+       "maxLeft": 7036
+      },
+      "after": {
+       "column": 10,
+       "row": 99,
+       "scrollLeft": 0,
+       "scrollTop": 866,
+       "atEdge": true,
+       "maxLeft": 4961
+      }
+     }
+    },
+    {
+     "id": "P-Z2/75",
+     "pass": true,
+     "actual": {
+      "scale": "0.7500",
+      "tiles": 24,
+      "badTiles": [],
+      "surface": 6322,
+      "documentCss": 6322
+     }
+    },
+    {
+     "id": "P-Z3/75",
+     "pass": true,
+     "actual": {
+      "before": [
+       5,
+       100
+      ],
+      "after": [
+       5,
+       99
+      ],
+      "redBox": [
+       361,
+       564,
+       426,
+       577
+      ],
+      "activeBox": [
+       362,
+       565,
+       425.9375,
+       576.9375
+      ]
+     }
+    },
+    {
+     "id": "P-Z4/75",
+     "pass": true,
+     "actual": {
+      "column": [
+       362,
+       426
+      ],
+      "row": [
+       565,
+       577
+      ],
+      "active": [
+       362,
+       565,
+       425.9375,
+       576.9375
+      ]
+     }
+    },
+    {
+     "id": "P-Z7/75",
+     "pass": true,
+     "actual": {
+      "revision": 1,
+      "painted": 1
+     }
+    },
+    {
+     "id": "P-Z9/75",
+     "pass": true,
+     "actual": {
+      "in": false,
+      "out": false,
+      "zoom": 75
+     }
+    },
+    {
+     "id": "P-Z5/out-50",
+     "pass": true,
+     "actual": {
+      "label": "50%",
+      "before": {
+       "column": 10,
+       "row": 99,
+       "scrollLeft": 0,
+       "scrollTop": 866,
+       "atEdge": true,
+       "maxLeft": 4961
+      },
+      "after": {
+       "column": 16,
+       "row": 99,
+       "scrollLeft": 0,
+       "scrollTop": 464,
+       "atEdge": true,
+       "maxLeft": 2789
+      }
+     }
+    },
+    {
+     "id": "P-Z2/50",
+     "pass": true,
+     "actual": {
+      "scale": "0.5000",
+      "tiles": 24,
+      "badTiles": [],
+      "surface": 4150,
+      "documentCss": 4150
+     }
+    },
+    {
+     "id": "P-Z3/50",
+     "pass": true,
+     "actual": {
+      "before": [
+       5,
+       100
+      ],
+      "after": [
+       5,
+       99
+      ],
+      "redBox": [
+       257,
+       566,
+       300,
+       575
+      ],
+      "activeBox": [
+       258,
+       567,
+       299.953125,
+       574.953125
+      ]
+     }
+    },
+    {
+     "id": "P-Z4/50",
+     "pass": true,
+     "actual": {
+      "column": [
+       258,
+       300
+      ],
+      "row": [
+       567,
+       575
+      ],
+      "active": [
+       258,
+       567,
+       299.953125,
+       574.953125
+      ]
+     }
+    },
+    {
+     "id": "P-Z7/50",
+     "pass": true,
+     "actual": {
+      "revision": 1,
+      "painted": 1
+     }
+    },
+    {
+     "id": "P-Z9/50",
+     "pass": true,
+     "actual": {
+      "in": false,
+      "out": true,
+      "zoom": 50
+     }
+    },
+    {
+     "id": "P-Z5/in-75",
+     "pass": true,
+     "actual": {
+      "label": "75%",
+      "before": {
+       "column": 16,
+       "row": 99,
+       "scrollLeft": 0,
+       "scrollTop": 464,
+       "atEdge": true,
+       "maxLeft": 2789
+      },
+      "after": {
+       "column": 16,
+       "row": 99,
+       "scrollLeft": 355,
+       "scrollTop": 866,
+       "atEdge": false,
+       "maxLeft": 4961
+      }
+     }
+    },
+    {
+     "id": "P-Z5/in-100",
+     "pass": true,
+     "actual": {
+      "label": "100%",
+      "before": {
+       "column": 10,
+       "row": 99,
+       "scrollLeft": 0,
+       "scrollTop": 866,
+       "atEdge": true,
+       "maxLeft": 4961
+      },
+      "after": {
+       "column": 10,
+       "row": 99,
+       "scrollLeft": 224,
+       "scrollTop": 1360,
+       "atEdge": false,
+       "maxLeft": 7036
+      }
+     }
+    },
+    {
+     "id": "P-Z5/in-125",
+     "pass": true,
+     "actual": {
+      "label": "125%",
+      "before": {
+       "column": 8,
+       "row": 99,
+       "scrollLeft": 0,
+       "scrollTop": 1361,
+       "atEdge": true,
+       "maxLeft": 7036
+      },
+      "after": {
+       "column": 8,
+       "row": 99,
+       "scrollLeft": 169,
+       "scrollTop": 1763,
+       "atEdge": false,
+       "maxLeft": 9111
+      }
+     }
+    },
+    {
+     "id": "P-Z2/125",
+     "pass": true,
+     "actual": {
+      "scale": "1.2500",
+      "tiles": 28,
+      "badTiles": [],
+      "surface": 10472,
+      "documentCss": 10472
+     }
+    },
+    {
+     "id": "P-Z3/125",
+     "pass": true,
+     "actual": {
+      "before": [
+       5,
+       100
+      ],
+      "after": [
+       5,
+       99
+      ],
+      "redBox": [
+       394,
+       559,
+       501,
+       581
+      ],
+      "activeBox": [
+       395,
+       560,
+       500.90625,
+       580.90625
+      ]
+     }
+    },
+    {
+     "id": "P-Z4/125",
+     "pass": true,
+     "actual": {
+      "column": [
+       395,
+       501
+      ],
+      "row": [
+       560,
+       581
+      ],
+      "active": [
+       395,
+       560,
+       500.90625,
+       580.90625
+      ]
+     }
+    },
+    {
+     "id": "P-Z7/125",
+     "pass": true,
+     "actual": {
+      "revision": 1,
+      "painted": 1
+     }
+    },
+    {
+     "id": "P-Z9/125",
+     "pass": true,
+     "actual": {
+      "in": false,
+      "out": false,
+      "zoom": 125
+     }
+    },
+    {
+     "id": "P-Z5/in-150",
+     "pass": true,
+     "actual": {
+      "label": "150%",
+      "before": {
+       "column": 6,
+       "row": 99,
+       "scrollLeft": 0,
+       "scrollTop": 1763,
+       "atEdge": true,
+       "maxLeft": 9111
+      },
+      "after": {
+       "column": 6,
+       "row": 99,
+       "scrollLeft": 140,
+       "scrollTop": 2164,
+       "atEdge": false,
+       "maxLeft": 11283
+      }
+     }
+    },
+    {
+     "id": "P-Z2/150",
+     "pass": true,
+     "actual": {
+      "scale": "1.5000",
+      "tiles": 24,
+      "badTiles": [],
+      "surface": 12644,
+      "documentCss": 12644
+     }
+    },
+    {
+     "id": "P-Z3/150",
+     "pass": true,
+     "actual": {
+      "before": [
+       5,
+       100
+      ],
+      "after": [
+       5,
+       99
+      ],
+      "redBox": [
+       527,
+       557,
+       656,
+       583
+      ],
+      "activeBox": [
+       528,
+       558,
+       655.890625,
+       582.890625
+      ]
+     }
+    },
+    {
+     "id": "P-Z4/150",
+     "pass": true,
+     "actual": {
+      "column": [
+       528,
+       656
+      ],
+      "row": [
+       558,
+       583
+      ],
+      "active": [
+       528,
+       558,
+       655.890625,
+       582.890625
+      ]
+     }
+    },
+    {
+     "id": "P-Z7/150",
+     "pass": true,
+     "actual": {
+      "revision": 1,
+      "painted": 1
+     }
+    },
+    {
+     "id": "P-Z9/150",
+     "pass": true,
+     "actual": {
+      "in": false,
+      "out": false,
+      "zoom": 150
+     }
+    },
+    {
+     "id": "P-Z5/in-200",
+     "pass": true,
+     "actual": {
+      "label": "200%",
+      "before": {
+       "column": 5,
+       "row": 99,
+       "scrollLeft": 0,
+       "scrollTop": 2164,
+       "atEdge": true,
+       "maxLeft": 11283
+      },
+      "after": {
+       "column": 5,
+       "row": 99,
+       "scrollLeft": 224,
+       "scrollTop": 3061,
+       "atEdge": false,
+       "maxLeft": 15433
+      }
+     }
+    },
+    {
+     "id": "P-Z2/200",
+     "pass": true,
+     "actual": {
+      "scale": "2.0000",
+      "tiles": 28,
+      "badTiles": [],
+      "surface": 16794,
+      "documentCss": 16794
+     }
+    },
+    {
+     "id": "P-Z3/200",
+     "pass": true,
+     "actual": {
+      "before": [
+       5,
+       100
+      ],
+      "after": [
+       5,
+       99
+      ],
+      "redBox": [
+       645,
+       552,
+       816,
+       587
+      ],
+      "activeBox": [
+       646,
+       553.0625,
+       815.859375,
+       586.921875
+      ]
+     }
+    },
+    {
+     "id": "P-Z4/200",
+     "pass": true,
+     "actual": {
+      "column": [
+       646,
+       816
+      ],
+      "row": [
+       553,
+       587
+      ],
+      "active": [
+       646,
+       553.0625,
+       815.859375,
+       586.921875
+      ]
+     }
+    },
+    {
+     "id": "P-Z7/200",
+     "pass": true,
+     "actual": {
+      "revision": 1,
+      "painted": 1
+     }
+    },
+    {
+     "id": "P-Z9/200",
+     "pass": true,
+     "actual": {
+      "in": true,
+      "out": false,
+      "zoom": 200
+     }
+    },
+    {
+     "id": "P-Z6/type",
+     "pass": true,
+     "actual": {
+      "zoom": 150,
+      "fontSize": "21px",
+      "F100": {
+       "text": "縮放",
+       "backColor": "#ff0000"
+      }
+     }
+    },
+    {
+     "id": "P-Z8/sheets",
+     "pass": true,
+     "actual": {
+      "label": "75%",
+      "after": [
+       5,
+       99
+      ],
+      "redBox": [
+       361,
+       564,
+       426,
+       577
+      ],
+      "activeBox": [
+       362,
+       565,
+       425.9375,
+       576.9375
+      ]
+     }
+    }
+   ],
+   "error": null,
+   "put": 201,
+   "entry": {
+    "from": "https://litecore.localhost:18443/apps/files/files?dir=/M4-calc-arm-20261107T235510",
+    "landed": "https://litecore.localhost:18443/index.php/apps/litecore/r/e231564f02f2db7d-90d7bc2c/ods-editor.html?fileId=32226"
+   },
+   "lockAtOpen": {
+    "status": 207,
+    "fileId": "32226",
+    "lock": "1"
+   },
+   "levels": [
+    50,
+    75,
+    100,
+    125,
+    150,
+    200
+   ],
+   "savedBeforeLeave": true,
+   "leave": {
+    "status": 207,
+    "fileId": "32226",
+    "lock": ""
+   }
+  },
+  {
+   "browser": "chrome",
+   "arm": "copy-html",
+   "version": "Chrome/156.0.8078.47",
+   "login": {
+    "result": {
+     "status": 200,
+     "url": "https://litecore.localhost:18443/apps/dashboard/"
+    }
+   },
+   "checks": [
+    {
+     "id": "P-C1/rectangle",
+     "pass": true,
+     "actual": {
+      "clipboard": "42\t84\n格式測試\t待清除\n",
+      "toast": "已複製 B1:C2"
+     }
+    },
+    {
+     "id": "P-C3/clean",
+     "pass": true,
+     "actual": {
+      "hasUnsavedEdits": false,
+      "revision": [
+       0,
+       0,
+       0
+      ],
+      "undoToast": "沒有可以復原的動作。",
+      "undoDisabledAtOpen": false
+     }
+    },
+    {
+     "id": "P-C2/column",
+     "pass": true,
+     "actual": {
+      "lines": 1000,
+      "first": "原始中文 Alpha",
+      "line1000": "第 1000 列",
+      "toast": "已複製 A 欄"
+     }
+    },
+    {
+     "id": "P-C2/row",
+     "pass": true,
+     "actual": {
+      "start": "鄰格必須保留\t格式測試\t待清除\n",
+      "toast": "已複製 第 2 列"
+     }
+    },
+    {
+     "id": "P-C4/field",
+     "pass": true,
+     "actual": {
+      "clipboard": "42",
+      "toast": ""
+     }
+    },
+    {
+     "id": "P-C5/empty",
+     "pass": true,
+     "actual": {
+      "clipboard": "標記-P-C5",
+      "toast": "這個範圍沒有可以複製的文字。"
+     }
+    },
+    {
+     "id": "P-H1/both-formats",
+     "pass": true,
+     "actual": {
+      "types": [
+       "text/plain",
+       "text/html"
+      ],
+      "plain": "42\t84\n格式測試\t待清除\n",
+      "table": {
+       "tables": 1,
+       "rows": [
+        [
+         "42",
+         "84"
+        ],
+        [
+         "格式測試",
+         "待清除"
+        ]
+       ]
+      },
+      "lastCopy": {
+       "formats": [
+        "text/plain",
+        "text/html"
+       ],
+       "htmlRefused": null
+      },
+      "toast": "已複製 B1:C2",
+      "error": null
+     }
+    },
+    {
+     "id": "P-H2/column",
+     "pass": true,
+     "actual": {
+      "rows": 999,
+      "first": [
+       [
+        "原始中文 Alpha"
+       ]
+      ],
+      "types": [
+       "text/plain",
+       "text/html"
+      ],
+      "lastCopy": {
+       "formats": [
+        "text/plain",
+        "text/html"
+       ],
+       "htmlRefused": null
+      },
+      "toast": "已複製 A 欄"
+     }
+    },
+    {
+     "id": "P-H3/fallback",
+     "pass": true,
+     "actual": {
+      "ClipboardItem": "undefined",
+      "types": [
+       "text/plain"
+      ],
+      "plain": "42\t84\n格式測試\t待清除\n",
+      "lastCopy": {
+       "formats": [
+        "text/plain"
+       ],
+       "htmlRefused": null
+      },
+      "toast": "已複製 B1:C2"
+     }
+    },
+    {
+     "id": "P-H4/paste-back",
+     "pass": true,
+     "detail": {
+      "exit": 0,
+      "L20": "原始中文 Alpha",
+      "target": {
+       "0,0": "原始中文 Alpha",
+       "1,0": "42",
+       "2,0": "84",
+       "0,1": "鄰格必須保留",
+       "1,1": "格式測試",
+       "2,1": "待清除"
+      },
+      "stderr": ""
+     }
+    }
+   ],
+   "error": null,
+   "put": 201,
+   "entry": {
+    "from": "https://litecore.localhost:18443/apps/files/files?dir=/M4-calc-arm-20261107T235510",
+    "landed": "https://litecore.localhost:18443/index.php/apps/litecore/r/e231564f02f2db7d-90d7bc2c/ods-editor.html?fileId=32229"
+   },
+   "lockAtOpen": {
+    "status": 207,
+    "fileId": "32229",
+    "lock": "1"
+   },
+   "P-H1-html": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/host-0.2.60/calc-host-arm/run-01/chrome-P-H1.html",
+   "P-H1-registration": {
+    "browserBytes": 1673,
+    "browserStyle": false,
+    "browserOrigin": true,
+    "engine": {
+     "bytes": 1276,
+     "style": true,
+     "origin": true
+    }
+   },
+   "P-H4-html": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/host-0.2.60/calc-host-arm/run-01/chrome-P-H4-source.html",
+   "P-H4-source": {
+    "types": [
+     "text/plain",
+     "text/html"
+    ],
+    "table": {
+     "tables": 1,
+     "rows": [
+      [
+       "原始中文 Alpha",
+       "42",
+       "84"
+      ],
+      [
+       "鄰格必須保留",
+       "格式測試",
+       "待清除"
+      ]
+     ]
+    },
+    "toast": "已複製 A1:C2",
+    "lastCopy": {
+     "formats": [
+      "text/plain",
+      "text/html"
+     ],
+     "htmlRefused": null
+    }
+   },
+   "leave": {
+    "status": 207,
+    "fileId": "32229",
+    "lock": ""
+   }
+  },
+  {
+   "browser": "firefox",
+   "arm": "zoom",
+   "version": "157.0.1",
+   "login": {
+    "result": "https://litecore.localhost:18443/apps/dashboard/"
+   },
+   "checks": [
+    {
+     "id": "P-Z1/controls",
+     "pass": true,
+     "actual": {
+      "atOpen": {
+       "out": {
+        "center": [
+         655,
+         131
+        ],
+        "disabled": false,
+        "visible": true,
+        "text": "−"
+       },
+       "level": {
+        "center": [
+         709.5,
+         131
+        ],
+        "disabled": false,
+        "visible": true,
+        "text": "100%"
+       },
+       "in": {
+        "center": [
+         764,
+         131
+        ],
+        "disabled": false,
+        "visible": true,
+        "text": "+"
+       },
+       "zoom": 100
+      },
+      "down": [
+       "75%",
+       "50%"
+      ],
+      "up": [
+       "75%",
+       "100%",
+       "125%",
+       "150%",
+       "200%"
+      ],
+      "back": "100%",
+      "levels": [
+       50,
+       75,
+       100,
+       125,
+       150,
+       200
+      ]
+     }
+    },
+    {
+     "id": "P-Z7/zoom-only",
+     "pass": true,
+     "actual": {
+      "revision": [
+       0,
+       0
+      ],
+      "hasUnsavedEdits": false,
+      "lastSave": null
+     }
+    },
+    {
+     "id": "P-Z2/100",
+     "pass": true,
+     "actual": {
+      "scale": "1.0000",
+      "tiles": 18,
+      "badTiles": [],
+      "surface": 8142,
+      "documentCss": 8142
+     }
+    },
+    {
+     "id": "P-Z3/100",
+     "pass": true,
+     "actual": {
+      "before": [
+       5,
+       100
+      ],
+      "after": [
+       5,
+       99
+      ],
+      "redBox": [
+       55,
+       788,
+       141,
+       806
+      ],
+      "activeBox": [
+       56,
+       789,
+       140.93333435058594,
+       805.9333343505859
+      ]
+     }
+    },
+    {
+     "id": "P-Z4/100",
+     "pass": true,
+     "actual": {
+      "column": [
+       56,
+       141
+      ],
+      "row": [
+       789,
+       806
+      ],
+      "active": [
+       56,
+       789,
+       140.93333435058594,
+       805.9333343505859
+      ]
+     }
+    },
+    {
+     "id": "P-Z7/100",
+     "pass": true,
+     "actual": {
+      "revision": 1,
+      "painted": 1
+     }
+    },
+    {
+     "id": "P-Z9/100",
+     "pass": true,
+     "actual": {
+      "in": false,
+      "out": false,
+      "zoom": 100
+     }
+    },
+    {
+     "id": "P-Z5/out-75",
+     "pass": true,
+     "actual": {
+      "label": "75%",
+      "before": {
+       "column": 8,
+       "row": 99,
+       "scrollLeft": 0,
+       "scrollTop": 1402,
+       "atEdge": true,
+       "maxLeft": 6818
+      },
+      "after": {
+       "column": 10,
+       "row": 99,
+       "scrollLeft": 0,
+       "scrollTop": 908,
+       "atEdge": true,
+       "maxLeft": 4806
+      }
+     }
+    },
+    {
+     "id": "P-Z2/75",
+     "pass": true,
+     "actual": {
+      "scale": "0.7500",
+      "tiles": 18,
+      "badTiles": [],
+      "surface": 6130,
+      "documentCss": 6130
+     }
+    },
+    {
+     "id": "P-Z3/75",
+     "pass": true,
+     "actual": {
+      "before": [
+       5,
+       100
+      ],
+      "after": [
+       5,
+       99
+      ],
+      "redBox": [
+       361,
+       522,
+       426,
+       535
+      ],
+      "activeBox": [
+       362,
+       523,
+       425.9499969482422,
+       534.9499969482422
+      ]
+     }
+    },
+    {
+     "id": "P-Z4/75",
+     "pass": true,
+     "actual": {
+      "column": [
+       362,
+       426
+      ],
+      "row": [
+       523,
+       535
+      ],
+      "active": [
+       362,
+       523,
+       425.9499969482422,
+       534.9499969482422
+      ]
+     }
+    },
+    {
+     "id": "P-Z7/75",
+     "pass": true,
+     "actual": {
+      "revision": 1,
+      "painted": 1
+     }
+    },
+    {
+     "id": "P-Z9/75",
+     "pass": true,
+     "actual": {
+      "in": false,
+      "out": false,
+      "zoom": 75
+     }
+    },
+    {
+     "id": "P-Z5/out-50",
+     "pass": true,
+     "actual": {
+      "label": "50%",
+      "before": {
+       "column": 10,
+       "row": 99,
+       "scrollLeft": 0,
+       "scrollTop": 908,
+       "atEdge": true,
+       "maxLeft": 4806
+      },
+      "after": {
+       "column": 15,
+       "row": 99,
+       "scrollLeft": 0,
+       "scrollTop": 506,
+       "atEdge": true,
+       "maxLeft": 2700
+      }
+     }
+    },
+    {
+     "id": "P-Z2/50",
+     "pass": true,
+     "actual": {
+      "scale": "0.5000",
+      "tiles": 24,
+      "badTiles": [],
+      "surface": 4024,
+      "documentCss": 4024
+     }
+    },
+    {
+     "id": "P-Z3/50",
+     "pass": true,
+     "actual": {
+      "before": [
+       5,
+       100
+      ],
+      "after": [
+       5,
+       99
+      ],
+      "redBox": [
+       257,
+       524,
+       300,
+       533
+      ],
+      "activeBox": [
+       258,
+       525,
+       299.96665954589844,
+       532.9666595458984
+      ]
+     }
+    },
+    {
+     "id": "P-Z4/50",
+     "pass": true,
+     "actual": {
+      "column": [
+       258,
+       300
+      ],
+      "row": [
+       525,
+       533
+      ],
+      "active": [
+       258,
+       525,
+       299.96665954589844,
+       532.9666595458984
+      ]
+     }
+    },
+    {
+     "id": "P-Z7/50",
+     "pass": true,
+     "actual": {
+      "revision": 1,
+      "painted": 1
+     }
+    },
+    {
+     "id": "P-Z9/50",
+     "pass": true,
+     "actual": {
+      "in": false,
+      "out": true,
+      "zoom": 50
+     }
+    },
+    {
+     "id": "P-Z5/in-75",
+     "pass": true,
+     "actual": {
+      "label": "75%",
+      "before": {
+       "column": 15,
+       "row": 99,
+       "scrollLeft": 0,
+       "scrollTop": 506,
+       "atEdge": true,
+       "maxLeft": 2700
+      },
+      "after": {
+       "column": 15,
+       "row": 99,
+       "scrollLeft": 345,
+       "scrollTop": 908,
+       "atEdge": false,
+       "maxLeft": 4806
+      }
+     }
+    },
+    {
+     "id": "P-Z5/in-100",
+     "pass": true,
+     "actual": {
+      "label": "100%",
+      "before": {
+       "column": 10,
+       "row": 99,
+       "scrollLeft": 0,
+       "scrollTop": 908,
+       "atEdge": true,
+       "maxLeft": 4806
+      },
+      "after": {
+       "column": 10,
+       "row": 99,
+       "scrollLeft": 218,
+       "scrollTop": 1403,
+       "atEdge": false,
+       "maxLeft": 6818
+      }
+     }
+    },
+    {
+     "id": "P-Z5/in-125",
+     "pass": true,
+     "actual": {
+      "label": "125%",
+      "before": {
+       "column": 8,
+       "row": 99,
+       "scrollLeft": 0,
+       "scrollTop": 1402,
+       "atEdge": true,
+       "maxLeft": 6818
+      },
+      "after": {
+       "column": 8,
+       "row": 99,
+       "scrollLeft": 164,
+       "scrollTop": 1804,
+       "atEdge": false,
+       "maxLeft": 8830
+      }
+     }
+    },
+    {
+     "id": "P-Z2/125",
+     "pass": true,
+     "actual": {
+      "scale": "1.2500",
+      "tiles": 24,
+      "badTiles": [],
+      "surface": 10154,
+      "documentCss": 10154
+     }
+    },
+    {
+     "id": "P-Z3/125",
+     "pass": true,
+     "actual": {
+      "before": [
+       5,
+       100
+      ],
+      "after": [
+       5,
+       99
+      ],
+      "redBox": [
+       399,
+       518,
+       506,
+       540
+      ],
+      "activeBox": [
+       400,
+       519,
+       505.9166717529297,
+       539.9166717529297
+      ]
+     }
+    },
+    {
+     "id": "P-Z4/125",
+     "pass": true,
+     "actual": {
+      "column": [
+       400,
+       506
+      ],
+      "row": [
+       519,
+       540
+      ],
+      "active": [
+       400,
+       519,
+       505.9166717529297,
+       539.9166717529297
+      ]
+     }
+    },
+    {
+     "id": "P-Z7/125",
+     "pass": true,
+     "actual": {
+      "revision": 1,
+      "painted": 1
+     }
+    },
+    {
+     "id": "P-Z9/125",
+     "pass": true,
+     "actual": {
+      "in": false,
+      "out": false,
+      "zoom": 125
+     }
+    },
+    {
+     "id": "P-Z5/in-150",
+     "pass": true,
+     "actual": {
+      "label": "150%",
+      "before": {
+       "column": 6,
+       "row": 99,
+       "scrollLeft": 0,
+       "scrollTop": 1804,
+       "atEdge": true,
+       "maxLeft": 8830
+      },
+      "after": {
+       "column": 6,
+       "row": 99,
+       "scrollLeft": 136,
+       "scrollTop": 2205,
+       "atEdge": false,
+       "maxLeft": 10936
+      }
+     }
+    },
+    {
+     "id": "P-Z2/150",
+     "pass": true,
+     "actual": {
+      "scale": "1.5000",
+      "tiles": 18,
+      "badTiles": [],
+      "surface": 12260,
+      "documentCss": 12260
+     }
+    },
+    {
+     "id": "P-Z3/150",
+     "pass": true,
+     "actual": {
+      "before": [
+       5,
+       100
+      ],
+      "after": [
+       5,
+       99
+      ],
+      "redBox": [
+       531,
+       516,
+       660,
+       542
+      ],
+      "activeBox": [
+       532,
+       517,
+       659.8999938964844,
+       541.8999938964844
+      ]
+     }
+    },
+    {
+     "id": "P-Z4/150",
+     "pass": true,
+     "actual": {
+      "column": [
+       532,
+       660
+      ],
+      "row": [
+       517,
+       542
+      ],
+      "active": [
+       532,
+       517,
+       659.8999938964844,
+       541.8999938964844
+      ]
+     }
+    },
+    {
+     "id": "P-Z7/150",
+     "pass": true,
+     "actual": {
+      "revision": 1,
+      "painted": 1
+     }
+    },
+    {
+     "id": "P-Z9/150",
+     "pass": true,
+     "actual": {
+      "in": false,
+      "out": false,
+      "zoom": 150
+     }
+    },
+    {
+     "id": "P-Z5/in-200",
+     "pass": true,
+     "actual": {
+      "label": "200%",
+      "before": {
+       "column": 5,
+       "row": 99,
+       "scrollLeft": 14,
+       "scrollTop": 2205,
+       "atEdge": false,
+       "maxLeft": 10936
+      },
+      "after": {
+       "column": 5,
+       "row": 99,
+       "scrollLeft": 237,
+       "scrollTop": 3101,
+       "atEdge": false,
+       "maxLeft": 14960
+      }
+     }
+    },
+    {
+     "id": "P-Z2/200",
+     "pass": true,
+     "actual": {
+      "scale": "2.0000",
+      "tiles": 21,
+      "badTiles": [],
+      "surface": 16284,
+      "documentCss": 16284
+     }
+    },
+    {
+     "id": "P-Z3/200",
+     "pass": true,
+     "actual": {
+      "before": [
+       5,
+       100
+      ],
+      "after": [
+       5,
+       99
+      ],
+      "redBox": [
+       632,
+       512,
+       803,
+       547
+      ],
+      "activeBox": [
+       633,
+       513.066650390625,
+       802.8666687011719,
+       546.9333190917969
+      ]
+     }
+    },
+    {
+     "id": "P-Z4/200",
+     "pass": true,
+     "actual": {
+      "column": [
+       633,
+       803
+      ],
+      "row": [
+       513,
+       547
+      ],
+      "active": [
+       633,
+       513.066650390625,
+       802.8666687011719,
+       546.9333190917969
+      ]
+     }
+    },
+    {
+     "id": "P-Z7/200",
+     "pass": true,
+     "actual": {
+      "revision": 1,
+      "painted": 1
+     }
+    },
+    {
+     "id": "P-Z9/200",
+     "pass": true,
+     "actual": {
+      "in": true,
+      "out": false,
+      "zoom": 200
+     }
+    },
+    {
+     "id": "P-Z6/type",
+     "pass": true,
+     "actual": {
+      "zoom": 150,
+      "fontSize": "21px",
+      "F100": {
+       "text": "縮放",
+       "backColor": "#ff0000"
+      }
+     }
+    },
+    {
+     "id": "P-Z8/sheets",
+     "pass": true,
+     "actual": {
+      "label": "75%",
+      "after": [
+       5,
+       99
+      ],
+      "redBox": [
+       361,
+       522,
+       426,
+       535
+      ],
+      "activeBox": [
+       362,
+       523,
+       425.9499969482422,
+       534.9499969482422
+      ]
+     }
+    }
+   ],
+   "error": null,
+   "put": 201,
+   "entry": {
+    "from": "https://litecore.localhost:18443/apps/files/files?dir=/M4-calc-arm-20261107T235510",
+    "landed": "https://litecore.localhost:18443/index.php/apps/litecore/r/e231564f02f2db7d-90d7bc2c/ods-editor.html?fileId=32230"
+   },
+   "lockAtOpen": {
+    "status": 207,
+    "fileId": "32230",
+    "lock": "1"
+   },
+   "levels": [
+    50,
+    75,
+    100,
+    125,
+    150,
+    200
+   ],
+   "savedBeforeLeave": true,
+   "leave": {
+    "status": 207,
+    "fileId": "32230",
+    "lock": ""
+   }
+  },
+  {
+   "browser": "firefox",
+   "arm": "copy-html",
+   "version": "157.0.1",
+   "login": {
+    "result": "https://litecore.localhost:18443/apps/dashboard/"
+   },
+   "checks": [
+    {
+     "id": "P-C1/rectangle",
+     "pass": true,
+     "actual": {
+      "clipboard": "42\t84\n格式測試\t待清除\n",
+      "toast": "已複製 B1:C2"
+     }
+    },
+    {
+     "id": "P-C3/clean",
+     "pass": true,
+     "actual": {
+      "hasUnsavedEdits": false,
+      "revision": [
+       0,
+       0,
+       0
+      ],
+      "undoToast": "沒有可以復原的動作。",
+      "undoDisabledAtOpen": false
+     }
+    },
+    {
+     "id": "P-C2/column",
+     "pass": true,
+     "actual": {
+      "lines": 1000,
+      "first": "原始中文 Alpha",
+      "line1000": "第 1000 列",
+      "toast": "已複製 A 欄"
+     }
+    },
+    {
+     "id": "P-C2/row",
+     "pass": true,
+     "actual": {
+      "start": "鄰格必須保留\t格式測試\t待清除\n",
+      "toast": "已複製 第 2 列"
+     }
+    },
+    {
+     "id": "P-C4/field",
+     "pass": true,
+     "actual": {
+      "clipboard": "42",
+      "toast": ""
+     }
+    },
+    {
+     "id": "P-C5/empty",
+     "pass": true,
+     "actual": {
+      "clipboard": "標記-P-C5",
+      "toast": "這個範圍沒有可以複製的文字。"
+     }
+    },
+    {
+     "id": "P-H1/both-formats",
+     "pass": true,
+     "actual": {
+      "types": [
+       "text/html",
+       "text/plain"
+      ],
+      "plain": "42\t84\n格式測試\t待清除\n",
+      "table": {
+       "tables": 1,
+       "rows": [
+        [
+         "42",
+         "84"
+        ],
+        [
+         "格式測試",
+         "待清除"
+        ]
+       ]
+      },
+      "lastCopy": {
+       "formats": [
+        "text/plain",
+        "text/html"
+       ],
+       "htmlRefused": null
+      },
+      "toast": "已複製 B1:C2",
+      "error": null
+     }
+    },
+    {
+     "id": "P-H2/column",
+     "pass": true,
+     "actual": {
+      "rows": 999,
+      "first": [
+       [
+        "原始中文 Alpha"
+       ]
+      ],
+      "types": [
+       "text/html",
+       "text/plain"
+      ],
+      "lastCopy": {
+       "formats": [
+        "text/plain",
+        "text/html"
+       ],
+       "htmlRefused": null
+      },
+      "toast": "已複製 A 欄"
+     }
+    },
+    {
+     "id": "P-H3/fallback",
+     "pass": true,
+     "actual": {
+      "ClipboardItem": "undefined",
+      "types": [
+       "text/plain"
+      ],
+      "plain": "42\t84\n格式測試\t待清除\n",
+      "lastCopy": {
+       "formats": [
+        "text/plain"
+       ],
+       "htmlRefused": null
+      },
+      "toast": "已複製 B1:C2"
+     }
+    },
+    {
+     "id": "P-H4/paste-back",
+     "pass": true,
+     "detail": {
+      "exit": 0,
+      "L20": "原始中文 Alpha",
+      "target": {
+       "0,0": "原始中文 Alpha",
+       "1,0": "42",
+       "2,0": "84",
+       "0,1": "鄰格必須保留",
+       "1,1": "格式測試",
+       "2,1": "待清除"
+      },
+      "stderr": ""
+     }
+    }
+   ],
+   "error": null,
+   "put": 201,
+   "entry": {
+    "from": "https://litecore.localhost:18443/apps/files/files?dir=/M4-calc-arm-20261107T235510",
+    "landed": "https://litecore.localhost:18443/index.php/apps/litecore/r/e231564f02f2db7d-90d7bc2c/ods-editor.html?fileId=32232"
+   },
+   "lockAtOpen": {
+    "status": 207,
+    "fileId": "32232",
+    "lock": "1"
+   },
+   "P-H1-html": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/host-0.2.60/calc-host-arm/run-01/firefox-P-H1.html",
+   "P-H1-registration": {
+    "browserBytes": 1127,
+    "browserStyle": true,
+    "browserOrigin": false,
+    "engine": {
+     "bytes": 1276,
+     "style": true,
+     "origin": true
+    }
+   },
+   "P-H4-html": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/host-0.2.60/calc-host-arm/run-01/firefox-P-H4-source.html",
+   "P-H4-source": {
+    "types": [
+     "text/html",
+     "text/plain"
+    ],
+    "table": {
+     "tables": 1,
+     "rows": [
+      [
+       "原始中文 Alpha",
+       "42",
+       "84"
+      ],
+      [
+       "鄰格必須保留",
+       "格式測試",
+       "待清除"
+      ]
+     ]
+    },
+    "toast": "已複製 A1:C2",
+    "lastCopy": {
+     "formats": [
+      "text/plain",
+      "text/html"
+     ],
+     "htmlRefused": null
+    }
+   },
+   "leave": {
+    "status": 207,
+    "fileId": "32232",
+    "lock": ""
+   }
+  }
+ ],
+ "cleanup": {
+  "ownedUnlocks": [],
+  "folderDeleteStatus": 204
+ },
+ "ownedFolder": "M4-calc-arm-20261107T235510",
+ "clipboardGrant": {
+  "chrome": {
+   "granted": true
+  },
+  "firefox": {
+   "firefoxPref": {
+    "dom.events.testing.asyncClipboard": true
+   }
+  }
+ },
+ "browserClose": {
+  "chrome": {},
+  "firefox": {}
+ },
+ "verdict": "H_CALC_HOLDS"
+}
