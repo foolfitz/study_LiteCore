@@ -13,9 +13,16 @@ getBoundingClientRect().
 
   check_calc_zoom.py --out NEW_DIR --engine PROFILE_DIR [--browsers chrome,firefox] [--mutate NAME]
 
+Spec append 5 (2026-11-08, after the owner's hand test of 0.2.60): the zoom's fixed point is the active cell's top-left corner
+while it is in view, else the view's top-left.  P-Z5 is judged on every press of P-Z1 (fresh document: A1, scroll 0,0) and of the
+walk (F100 centred first, setup): #active-cell's top-left keeps its client position within 1 px per axis, or that axis's scroll
+sits at an end.  P-Z10, after the walk: F100 scrolled below the view before each press (setup), then - and +: the view's top-left
+cell (from the headers) moves at most one row and one column.
+
 --mutate point-15 keeps point()'s 15 (P-Z3 red off 100); no-op16 changes the tiles' scale without op 16 (P-Z3 or P-Z4 red at 75);
-no-centre keeps the scroll position on zoom (P-Z5 red); drag-no-zoom does not redraw the zoom group at the end of a drag (P-Z9 red,
-spec append 3).  Without --mutate: exit 0 iff every check of every browser passes.
+drag-no-zoom does not redraw the zoom group at the end of a drag (P-Z9 red, spec append 3); centre-anchor zooms about the view's
+centre, 0.2.60's page (P-Z5 red); fallback-centre falls back to the view's centre, Collabora's fallback (P-Z10 red).  Spec append 5
+retired no-centre with the code it changed.  Without --mutate: exit 0 iff every check of every browser passes.
 """
 import argparse
 import hashlib
@@ -45,9 +52,13 @@ MUTATIONS = {
     # Spec append 3 (Codex review 3): the end of a drag does not redraw the zoom group.
     "drag-no-zoom": ("ods-editor-app.js", "  renderStyleControls(state);\n  // So must the zoom group, which a drag disables too (SPEC-P-calc-zoom append 3, Codex review 3).\n  renderZoom(state);\n}",
                      "  renderStyleControls(state);\n}", ["P-Z9"], "all"),
-    "no-centre": ("ods-editor-app.js",
-                  "pendingView={scrollLeft:Math.max(0,Math.round(x-visibleWidth()/2)),scrollTop:Math.max(0,Math.round(y-visibleHeight()/2)),",
-                  "pendingView={scrollLeft:ui.viewport.scrollLeft,scrollTop:ui.viewport.scrollTop,", ["P-Z5"], "all"),
+    # Spec append 5: 0.2.60's anchor, the view's centre.
+    "centre-anchor": ("ods-editor-app.js", "anchor=zoomAnchor();",
+                      "anchor=(()=>{const ox=visibleWidth()/2,oy=visibleHeight()/2,l=ui.viewport.scrollLeft,t=ui.viewport.scrollTop;"
+                      "return {cell:false,x:l+ox,y:t+oy,ox,oy,xTwips:Math.round((l+ox)*tw()),yTwips:Math.round((t+oy)*tw())};})();",
+                      ["P-Z5"], "all"),
+    # Spec append 5: Collabora's fallback when the active cell is out of view, the view's centre.
+    "fallback-centre": ("ods-editor-app.js", "const ox=0,oy=0;", "const ox=visibleWidth()/2,oy=visibleHeight()/2;", ["P-Z10"], "all"),
 }
 cs.KEYS["Enter"] = ("Enter", "Enter", 13, "")
 F100 = (5, 99)
@@ -73,19 +84,27 @@ MEASURE = """(()=>{const s=window.__calcEditor.state,scale=(s.zoom/100).toFixed(
     surface:parseFloat(document.querySelector('#surface').style.width),
     documentCss:window.__calcEditor.session.scheduler.documentCssSize.width,cell:[s.cell.column,s.cell.row],
     revision:s.revision,zoom:s.zoom};})()"""
-CENTRE = """(()=>{const v=document.querySelector('#viewport'),s=document.querySelector('#surface').getBoundingClientRect(),
-  maxLeft=v.scrollWidth-v.clientWidth;
-  const left=window.__calcEditor.state.headersSupported?48:0,top=window.__calcEditor.state.headersSupported?20:0;
-  const x=s.left+v.scrollLeft+(v.clientWidth-left)/2,y=s.top+v.scrollTop+(v.clientHeight-top)/2;
-  const hit=(sel,lo,hi,p)=>{for(const n of document.querySelectorAll(sel)){const b=n.getBoundingClientRect();
-    if(p>=b[lo]&&p<b[hi])return +n.dataset.index;}return null;};
-  return {column:hit('#column-headers [role=columnheader]','left','right',x),row:hit('#row-headers [role=rowheader]','top','bottom',y),
-    scrollLeft:v.scrollLeft,scrollTop:v.scrollTop,atEdge:v.scrollLeft<=0||v.scrollLeft>=maxLeft-1,maxLeft};})()"""
 # Setup, not the act: put F100's centre in the viewport's centre (the cell's rectangle at this zoom, from the active cell).
 CENTRE_ON = """(()=>{const c=window.__calcEditor.state.cell,z=window.__calcEditor.state.zoom/100,t=15/z,v=document.querySelector('#viewport');
   const left=window.__calcEditor.state.headersSupported?48:0,top=window.__calcEditor.state.headersSupported?20:0;
   v.scrollLeft=Math.max(0,(c.xTwips+c.widthTwips/2)/t-(v.clientWidth-left)/2);
   v.scrollTop=Math.max(0,(c.yTwips+c.heightTwips/2)/t-(v.clientHeight-top)/2);return [v.scrollLeft,v.scrollTop];})()"""
+# Spec append 5: the active cell's top-left in client px, whether it is inside the visible grid, the view's top-left cell (from
+# the headers) and the scroll with its range.
+ANCHOR = """(()=>{const v=document.querySelector('#viewport'),s=document.querySelector('#surface').getBoundingClientRect(),
+  a=document.querySelector('#active-cell').getBoundingClientRect(),vr=v.getBoundingClientRect();
+  const left=window.__calcEditor.state.headersSupported?48:0,top=window.__calcEditor.state.headersSupported?20:0;
+  const gx=s.left+v.scrollLeft,gy=s.top+v.scrollTop;
+  const hit=(sel,lo,hi,p)=>{for(const n of document.querySelectorAll(sel)){const b=n.getBoundingClientRect();
+    if(p>=b[lo]&&p<b[hi])return +n.dataset.index;}return null;};
+  return {active:[a.left,a.top],inView:a.left>=gx&&a.left<gx+v.clientWidth-left&&a.top>=gy&&a.top<gy+v.clientHeight-top,
+    corner:{column:hit('#column-headers [role=columnheader]','left','right',gx+1),row:hit('#row-headers [role=rowheader]','top','bottom',gy+1)},
+    scroll:[v.scrollLeft,v.scrollTop],max:[v.scrollWidth-v.clientWidth,v.scrollHeight-v.clientHeight],
+    cell:[window.__calcEditor.state.cell.column,window.__calcEditor.state.cell.row]};})()"""
+# Setup, not the act: put the active cell below the visible grid (its top a few rows under the view's bottom).
+BELOW = """(()=>{const c=window.__calcEditor.state.cell,z=window.__calcEditor.state.zoom/100,t=15/z,v=document.querySelector('#viewport');
+  const top=window.__calcEditor.state.headersSupported?20:0;
+  v.scrollTop=Math.max(0,c.yTwips/t-(v.clientHeight-top)-60);return v.scrollTop;})()"""
 CELL = ("(async()=>{const {cell}=await window.__calcEditor.session.document.readCell(%d,%d);"
         "return {text:cell.text,backColor:cell.backColor};})()")
 
@@ -158,15 +177,31 @@ def near(a, b, tolerance):
     return a is not None and b is not None and all(abs(x - y) <= tolerance for x, y in zip(a, b))
 
 
+def end(m, axis):
+    return m["scroll"][axis] <= 0 or m["scroll"][axis] >= m["max"][axis] - 1
+
+
+def anchored(run, button, where):
+    """One press, judged by P-Z5 (spec append 5): the active cell is in view before, and its top-left keeps its client
+    position within 1 px per axis unless that axis's scroll sits at an end afterwards."""
+    before = evaluate(run.session, ANCHOR)
+    label = run.press(button)
+    after = evaluate(run.session, ANCHOR)
+    axes = [abs(after["active"][i] - before["active"][i]) <= 1 or end(after, i) for i in (0, 1)]
+    run.check(f"P-Z5/{where}-{button}-{label.rstrip('%')}", before["inView"] and after["cell"] == before["cell"] and all(axes),
+              {"label": label, "before": before, "after": after, "axes": axes})
+    return label
+
+
 def p_z1_z7a(run, levels, record):
     c = run.controls()
     opened = run.state()
     labels_down, labels_up = [], []
     while not run.controls()["out"]["disabled"] and len(labels_down) < 10:
-        labels_down.append(run.press("out"))
+        labels_down.append(anchored(run, "out", "home"))
     while not run.controls()["in"]["disabled"] and len(labels_up) < 10:
-        labels_up.append(run.press("in"))
-    back = run.press("level")
+        labels_up.append(anchored(run, "in", "home"))
+    back = anchored(run, "level", "home")
     want_down = [f"{p}%" for p in sorted((p for p in levels if p < 100), reverse=True)]
     want_up = [f"{p}%" for p in levels[1:]]
     run.check("P-Z1/controls", all(c[k]["visible"] for k in ("out", "level", "in")) and c["level"]["text"] == "100%"
@@ -240,18 +275,29 @@ def zoom_walk(run, levels, painted):
         evaluate(run.session, CENTRE_ON)
         time.sleep(1.0)
         run.idle()
-        before = evaluate(run.session, CENTRE)
-        label = run.press(button)
-        after = evaluate(run.session, CENTRE)
-        # Append 4: the row always; the column only away from the scroll range's ends, where the scroll must sit on the end.
-        column_ok = (after["atEdge"] if after["column"] is None or before["column"] is None
-                     or abs(after["column"] - before["column"]) > 1 else True)
-        ok = (label == f"{target}%" and None not in (before["row"], after["row"])
-              and abs(after["row"] - before["row"]) <= 1 and column_ok)
-        run.check(f"P-Z5/{button}-{target}", ok, {"label": label, "before": before, "after": after})
+        label = anchored(run, button, "walk")
+        if label != f"{target}%":
+            run.check(f"P-Z5/walk-{button}-{target}-label", False, {"label": label})
         if target not in seen:
             seen.add(target)
             level_checks(run, target, painted)
+
+
+def p_z10(run):
+    """Spec append 5: with the active cell out of view, the view's top-left cell stays (one row / column of slack)."""
+    for button in ("out", "in"):
+        run.goto("F100", *F100)
+        evaluate(run.session, BELOW)
+        time.sleep(1.0)
+        run.idle()
+        before = evaluate(run.session, ANCHOR)
+        label = run.press(button)
+        after = evaluate(run.session, ANCHOR)
+        b, a = before["corner"], after["corner"]
+        row_ok = None not in (b["row"], a["row"]) and abs(a["row"] - b["row"]) <= 1
+        column_ok = None not in (b["column"], a["column"]) and (abs(a["column"] - b["column"]) <= 1 or end(after, 0))
+        run.check(f"P-Z10/{button}-{label.rstrip('%')}", not before["inView"] and row_ok and column_ok,
+                  {"label": label, "before": before, "after": after})
 
 
 def p_z6(run):
@@ -307,7 +353,7 @@ def scenario(run, record):
     except Exception as error:  # noqa: BLE001  one cell's crash is that cell's red; the next cell runs
         run.check("P-Z1/crash", False, repr(error))
     painted = paint_f100(run)
-    for step in (lambda: zoom_walk(run, levels, painted), lambda: p_z6(run), lambda: p_z8(run)):
+    for step in (lambda: zoom_walk(run, levels, painted), lambda: p_z10(run), lambda: p_z6(run), lambda: p_z8(run)):
         try:
             step()
         except Exception as error:  # noqa: BLE001

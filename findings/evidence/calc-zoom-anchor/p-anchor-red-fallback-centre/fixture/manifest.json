@@ -1,0 +1,43 @@
+{
+  "file": "calc-structure.ods",
+  "sheets": [
+    "編輯測試",
+    "另一張表",
+    "保護測試",
+    "邊界測試",
+    "陣列測試"
+  ],
+  "expected": {
+    "protectedPart": 2,
+    "edgePart": 3,
+    "arrayPart": 4,
+    "edgeCells": [
+      {
+        "column": 0,
+        "row": 1048575,
+        "text": "最後一列"
+      },
+      {
+        "column": 16383,
+        "row": 0,
+        "text": "最後一欄"
+      }
+    ],
+    "array": {
+      "column": 1,
+      "row": 1,
+      "endColumn": 2,
+      "endRow": 2,
+      "values": [
+        [
+          2,
+          4
+        ],
+        [
+          6,
+          8
+        ]
+      ]
+    }
+  }
+}

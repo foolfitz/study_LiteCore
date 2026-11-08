@@ -496,30 +496,43 @@ function renderZoom(state) {
   ui["zoom-level"].disabled=blocked;
   ui["zoom-level"].textContent=`${state.zoom}%`;
 }
-// The viewport's centre in CSS px of the surface and in twips at the current zoom; the session asks the engine which cell is
-// there (op 5), so it does not depend on headers that may still describe another place (Codex review 2026-11-07).
-function centrePoint() {
-  const x=ui.viewport.scrollLeft+visibleWidth()/2,y=ui.viewport.scrollTop+visibleHeight()/2,t=tw();
-  return {x,y,xTwips:Math.round(x*t),yTwips:Math.round(y*t)};
+// The zoom's fixed point (SPEC-P-calc-zoom append 5, the owner's choice after the 0.2.60 hand test): the active cell's
+// top-left corner while it is in view, otherwise the view's top-left corner.  It keeps its place on screen; `ox`, `oy` are
+// its offset from the view's top-left in CSS px.
+// Differs from Collabora (browser/src/map/Map.js, getDesktopCalcZoomCenter): Collabora also anchors on the cell cursor's
+// top-left, but falls back to the selection's centre and then to the view's centre.  We fall back to the view's top-left,
+// as desktop LibreOffice Calc keeps its top-left cell, so a sheet whose data fills only the top rows never zooms into the
+// empty cells of the view's centre.
+function zoomAnchor() {
+  const left=ui.viewport.scrollLeft,top=ui.viewport.scrollTop,t=tw(),c=session.state.cell;
+  const cx=c ? c.xTwips/t : NaN,cy=c ? c.yTwips/t : NaN;
+  if(c && !session.state.away && cx>=left && cx<left+visibleWidth() && cy>=top && cy<top+visibleHeight())
+    return {cell:true,x:cx,y:cy,ox:cx-left,oy:cy-top};
+  const ox=0,oy=0;
+  return {cell:false,x:left+ox,y:top+oy,ox,oy,xTwips:Math.round((left+ox)*t),yTwips:Math.round((top+oy)*t)};
 }
-// The same spot of the centre cell goes back to the centre: rows are whole pixels at each zoom, so a scroll position cannot
-// be scaled (spec 1); without headers the ratio is the fallback.  Other sheets' remembered scrolls are scaled.
+// Rows are whole pixels at each zoom, so a scroll position cannot be scaled (spec 1).  The active cell's new place comes from
+// the session, which reads it again at the new zoom; for the view's corner the session asks the engine which cell is there
+// (op 5) and the same spot of that cell goes back to the corner.  Without either the ratio is the fallback.  Other sheets'
+// remembered scrolls are scaled.
 async function zoomTo(percent) {
   if(!session || zoomBlocked(session.state) || percent===session.state.zoom || !ZOOM_PERCENTS.includes(percent))return;
   cancelDrag();
-  const from=zoomScale(),to=percent/100,centre=centrePoint();
-  let x=(ui.viewport.scrollLeft+visibleWidth()/2)*to/from,y=(ui.viewport.scrollTop+visibleHeight()/2)*to/from;
+  const from=zoomScale(),to=percent/100,anchor=zoomAnchor();
+  let x=anchor.x*to/from,y=anchor.y*to/from;
   zooming=true;
   try {
-    const result=await session.setZoom(percent,{centre:{xTwips:centre.xTwips,yTwips:centre.yTwips}});
-    if(result.centre) {
-      const {before,after}=result.centre,oldTw=15/from,newTw=15/to;
-      const fx=(centre.x*oldTw-before.xTwips)/before.widthTwips,fy=(centre.y*oldTw-before.yTwips)/before.heightTwips;
+    const result=await session.setZoom(percent,anchor.cell ? {} : {centre:{xTwips:anchor.xTwips,yTwips:anchor.yTwips}});
+    const oldTw=15/from,newTw=15/to,cell=session.state.cell;
+    if(anchor.cell && cell){x=cell.xTwips/newTw;y=cell.yTwips/newTw;}
+    else if(result.centre) {
+      const {before,after}=result.centre;
+      const fx=(anchor.x*oldTw-before.xTwips)/before.widthTwips,fy=(anchor.y*oldTw-before.yTwips)/before.heightTwips;
       x=(after.xTwips+fx*after.widthTwips)/newTw;y=(after.yTwips+fy*after.heightTwips)/newTw;
     }
     for(const [part,view] of sheetViews)
       sheetViews.set(part,{scrollLeft:view.scrollLeft*to/from,scrollTop:view.scrollTop*to/from,minWidth:"",minHeight:""});
-    pendingView={scrollLeft:Math.max(0,Math.round(x-visibleWidth()/2)),scrollTop:Math.max(0,Math.round(y-visibleHeight()/2)),
+    pendingView={scrollLeft:Math.max(0,Math.round(x-anchor.ox)),scrollTop:Math.max(0,Math.round(y-anchor.oy)),
       minWidth:"",minHeight:""};
     headerKey=null;
   } catch(error) {errorNotice(error);} finally {
