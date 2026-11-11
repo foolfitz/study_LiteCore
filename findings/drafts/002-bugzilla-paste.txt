@@ -34,6 +34,8 @@ Probable origin, from reading the history only (we did not build an older tree):
 
 Also seen on libreoffice-26-8 at 671c848b (2026-07-31): the same console error, and vcldemo.js had no loader in each of the three configurations we built there. The files involved are unchanged in libreoffice-26.8.2.2 and libreoffice-26.8.3.1; for those two tags we read the source but did not run them.
 
+vcldemo seems worth keeping usable in the browser: it is the smallest program that exercises VCL drawing, text layout and input through Qt there, without the framework, the Start Center or a document, so it helps to tell whether a WASM rendering or input problem is in VCL and below or higher up.
+
 Fix, tested on 2a2335cf by relinking only vcldemo in the same build. Two changes are needed, one in the link and one in vcldemo.cxx:
 
 (1) In vcl/Executable_vcldemo.mk, add the same EMSCRIPTEN block that desktop/Executable_soffice_bin.mk has (the link-target dependency on soffice.data.js.link and the two gb_Executable_add_prejs calls), with soffice_bin replaced by vcldemo. This changes only how vcldemo is linked, so the node case that cf0b0f0dd04f fixed is not affected. With this alone, vcldemo requests soffice.data and gets past UNO bootstrap, but the canvas stays blank.
