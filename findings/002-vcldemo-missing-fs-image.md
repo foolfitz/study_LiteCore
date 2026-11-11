@@ -73,6 +73,23 @@ $ grep -c 'soffice\.data\|loadPackage' soffice.js      → 11
 
 **已觀察**（master `2a2335cf`）：`vcl/Module_vcl.mk:40-41` 在 EMSCRIPTEN＋Qt5 時**特地**建 `Executable_vcldemo`；`unxgcc.mk:184-195` 對 EMSCRIPTEN 的每個 Executable／CppunitTest 產生 `qt_<名稱>.html` 並複製 `soffice.data`。
 
+### 修法實測（2026-11-11）
+
+證據：`evidence/002/fix-2a2335cf/README.txt`；判準與預測在第一次探測前已 commit（`293468b1b`）。
+
+**已觀察**：在 master `2a2335cf` 上全新建置一棵樹，只重連結 vcldemo，結果如下。
+- **F1**（草稿的修法 (a)，補上兩個 pre-js）：
+  - vcldemo 會去要 `soffice.data`，`Cannot open uno ini` 消失，並且建出視窗；
+  - 但 90 秒內一行 `DemoWin::Paint` 都沒有，畫面空白，也沒有任何錯誤。
+- **F1＋F2**（再加上 soffice 的 `-sPROXY_TO_PTHREAD` 等旗標）：main 改到 worker 上跑，但結果相同。
+- **對照**（同一棵樹）：未修版重現 `Cannot open uno ini`，`qt_soffice.html` 正常走到開始中心。
+
+**結論**：
+- F1 是必要的：它修掉了這張單回報的錯誤。
+- F1 不足以讓 vcldemo 能用，加上 F2 也不夠。
+- 為什麼建出視窗後不畫，**還不知道**。照規劃的停損條件，停在這裡。
+- 我原本預測「F1 不畫，是因為沒有執行緒池」。前半句應驗了，理由卻不成立：拿掉那個條件的 F1＋F2 一樣不畫。
+
 ## 環境
 
 同 001（見 `./env-snapshot.sh`）。
@@ -102,3 +119,4 @@ $ grep -c 'soffice\.data\|loadPackage' soffice.js      → 11
 - 2026-11-10 靜態複查：26.8.2.2（`9dea406a`）、26.8.3.1（`861effc5`）、master（`2a2335cf`）上，README 仍叫人跑 `qt_vcldemo.html`，`vcl/Executable_vcldemo.mk` 仍沒有 fs image 的 pre-js（只有 `soffice_bin` 有）。成因原樣存在。收據：`evidence/002/upstream-recheck-2026-11-10.txt`
 - 2026-11-10 執行期在 master `2a2335cf` 上重現（stock 組態、無本地修改）：`qt_vcldemo.html` 從頭到尾沒請求 `soffice.data`，0.6 秒出現 `Bootstrap exception Cannot open uno ini file:///instdir/program/unorc`，白畫面；`vcldemo.js` 的 `soffice.data`／`loadPackage` 計數仍是 0。與 7/31 逐項相同。證據：`evidence/002/master-2a2335cf/`
 - 2026-11-11 用 Bugzilla REST 查重複，沒有找到；查欄位值時發現 Component「Build tooling」不存在，改成 `LibreOffice`。讀歷史找到可能的起點 `cf0b0f0dd04f`（推論，沒有實際建置）。寫好 `drafts/002-bugzilla.txt`，送出仍擱置
+- 2026-11-11 下午 擁有者要求真的修一次並代跑建置。`e42678e7` 的 configure 失敗（gtk3＋qt5，推論是 `d98a796946ff` 造成的，另案），改用 `2a2335cf`，建置 52 分 51 秒。F1 過了 bootstrap、建出視窗，但不畫；F1＋F2 也一樣。草稿的修法 (a) 改寫成實測結果。證據：`evidence/002/fix-2a2335cf/`
