@@ -108,7 +108,7 @@ $ grep -c 'soffice\.data\|loadPackage' soffice.js      → 11
 - **最終修法**：F1＋F3，一個 commit（`1c96c7bfd8af`，分支 `finding002-vcldemo-fix`，`.mk` +8 行、`.cxx` +17 行），patch 是 `evidence/002/fix-2a2335cf/fix-final.patch`。
 - **判準**：
   - 用 11-10 同一支正式探針跑，判準 1–4 全過：要了 `soffice.data`、沒有 bootstrap 例外、1.0 秒出現 `DemoWin::Paint(0,0,1164,669)`、截圖 146 KB 是格子圖。
-  - 判準 5（擁有者本人看）待做。
+  - 判準 5（擁有者本人看）：2026-11-11 下午通過——擁有者在自己的瀏覽器看到格子，點一格會放大。縮圖與放大不同是設計如此（7 項繪圖放大時畫另一套）。圖示那格的縮圖是空的，沒查。
 - **沒驗的**：`--widgets`、`--popup`、`--font`、`--threads` 這幾個模式。
 
 ## 環境

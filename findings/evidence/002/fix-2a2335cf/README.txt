@@ -125,3 +125,6 @@ Not established
   Whether the --widgets, --popup, --font and --threads modes work. The patch also leaks the widget and popup windows, but only the default mode was run.
     --threads may need -sPTHREAD_POOL_SIZE in main-thread mode (static/README.wasm.md); not tried.
   Whether vcldemo worked before cf0b0f0dd04f: still not built.
+
+2026-11-11 (owner, afternoon): criterion 5 met. The owner opened http://127.0.0.1:6970/qt_vcldemo.html in their own browser, saw the grid, and confirmed that clicking a tile enlarges it. emrun stopped afterwards.
+  The owner noticed that some tiles look different enlarged than as thumbnails. By design: DrawLines, DrawText, DrawCheckered, DrawEllipse, DrawGradient, DrawToVirtualDevice and DrawIcons branch on rCtx.meStyle == RENDER_EXPANDED and draw a fuller set of cases there (vcldemo.cxx:245, 333, 637, 736, 755, 1104, 1345). FetchDrawBitmap re-renders the thumbnails itself. Whether each enlarged view is drawn correctly was not checked: there is no native reference here. The icons thumbnail is blank in every screenshot; not investigated.
