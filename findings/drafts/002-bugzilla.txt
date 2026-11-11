@@ -6,10 +6,10 @@ Attachments: none needed, the log is quoted inline. If attaching findings/eviden
 Local tree: the master tree had no local changes (git status clean), so "no local changes" below is accurate. The 2026-07-31 libreoffice-26-8 tree was also clean.
 Not claimed: that vcldemo worked before cf0b0f0dd04f (no older tree was built); that the --widgets, --popup, --font or --threads modes work (only the default mode was run). Everything in "Probable origin" can be deleted without weakening the report.
 Fix: tested 2026-11-11 on 2a2335cf, evidence findings/evidence/002/fix-2a2335cf/README.txt (second part). Patch: findings/evidence/002/fix-2a2335cf/fix-final.patch = local commit 1c96c7bfd8af on branch finding002-vcldemo-fix in wasm-lite/upstream-master/src. LibreOffice takes patches through Gerrit, not as Bugzilla attachments; first-time contributors also send the license statement to the dev list. Decide at submission time whether the commit keeps its Co-Authored-By trailer, and rebase onto current master (the files are unchanged in e42678e7).
-History of this draft: the 13:15 version said fix (a) "does not make vcldemo usable" and that we did not know why. The 15:00 investigation found the second cause (stack unwinding in QApplication::exec()), so that paragraph was replaced.
+History of this draft: the 13:15 version said fix (a) "does not make vcldemo usable" and that we did not know why. The 15:00 investigation found the second cause (stack unwinding in QApplication::exec()), so that paragraph was replaced. 2026-11-11 the owner found the Summary too long; it now states only the symptom (the earlier one also named the first cause, but there are two).
 === End of internal note ===
 
-Summary: WASM: qt_vcldemo.html, which static/README.wasm.md says to run, fails with "Cannot open uno ini" because vcldemo is linked without the filesystem image loader
+Summary: WASM: qt_vcldemo.html fails with "Cannot open uno ini"
 
 Description:
 
