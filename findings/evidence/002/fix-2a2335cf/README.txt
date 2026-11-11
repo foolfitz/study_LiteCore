@@ -57,3 +57,71 @@ What is established
 Not established
   Why vcldemo stops after creating its window.
   Whether F2 is needed at all.
+
+=====================================================================
+Continued 2026-11-11 14:45-15:15: the owner chose to dig further (option A after the stop)
+=====================================================================
+
+Summary
+  The missing paint has a second cause, in vcldemo.cxx and not in the link.
+    On Emscripten (without JSPI), Application::Execute() ends in QApplication::exec().
+    QApplication::exec() unwinds the stack with a JS exception (simulateInfiniteLoop).
+    With -fwasm-exceptions, that unwinding runs the destructors of the objects vcldemo's Main() keeps on the stack. The main window is disposed right after it has been shown.
+    desktop/source/app/sofficemain.cxx documents the same problem for soffice. It leaks its desktop::Desktop on purpose.
+  Fix F3 leaks vcldemo's renderer and windows the same way.
+  F1+F3 paints the demo grid, zooms on a click and returns on Escape. F2 is not needed.
+  Final patch: fix-final.patch (sha256 32e97d257c50819f...), one commit 1c96c7bfd8af on the local branch finding002-vcldemo-fix. It touches vcl/Executable_vcldemo.mk (+8) and vcl/workben/vcldemo.cxx (+17).
+
+Method and order (all on the same build-nosym tree; each step relinks only vcldemo, about 3 min)
+  Not possible: SAL_LOG. This stock configuration has ENABLE_SAL_LOG empty, so SAL_INFO/SAL_WARN are compiled out.
+  1 DIAG1-3, branch finding002-vcldemo-fs-image (acd78966f80d)
+      F1+F2 plus fprintf trace lines prefixed "VCLDEMO-DIAG" in Init/Main.
+      Positive control: the strings are present in vcldemo.wasm.
+      Three runs, all identical:
+        bootstrap ok
+        Main reached
+        DemoWin constructed
+        Show()
+        DemoWin::Paint(0,0,1164,669)
+        visible=1, size 1165x670
+        "before Execute"
+        then nothing; canvas blank
+      Correction to the first part of this README: F1 and F12 did create and paint the window.
+        The "QObject::connect(QWindow, QtSvpSalFrame)" line is printed by QtFrame::Show().
+        Without the trace lines no Paint line appeared at all (F12 run).
+        Inference, not tested: the first paint is an idle task, and the trace lines (synchronous stderr writes from the pthread) let it run inside Show().
+  2 CLICK1, same build, diag/probe_click.js (a separate script, not probe.js): load, 15 s, screenshot, click (300,200), screenshot, Escape, screenshot.
+      The click aborts the program:
+        Aborted(Assertion failed: false && "emscripten_proxy_async failed", at: .../html5/callback.c,40,_emscripten_run_callback_on_thread)
+      The page then shows Qt's "Application exit" text.
+      In emsdk's proxying code this fails when the target thread's mailbox is closed, or when an allocation fails.
+  3 DIAG4 (8bb65ea8ffae): a trace line in DemoWin::dispose().
+      Output: "VCLDEMO-DIAG before Execute", then "VCLDEMO-DIAG DemoWin::dispose" in the same 0.1 s.
+      H1 (the unwind disposes the window) holds.
+      svmain.cxx has no catch(...), so the unwind goes through every frame up to the top.
+  4 CLICK2, F1+F2+F3 (c61485e81baf): grid painted; the click zooms on the text tile with a new Paint line; Escape returns to the grid. No dispose, no abort.
+  5 CLICK3, F1+F3 with F2 removed (8fdf8afffafb): same as CLICK2. The window appears at 0.9 s, against 2.3 s with F2. So F2 is not needed.
+  6 FINAL, clean branch finding002-vcldemo-fix (1c96c7bfd8af = F1 + F3, no trace lines; 0 "VCLDEMO-DIAG" in vcldemo.wasm).
+      Relink log: relink-FINAL.log.gz.
+      Outputs:
+        vcldemo.js 297,061 B (sha256 53c5e826cfdff671...)
+        vcldemo.wasm 149,667,185 B (8dd59df9044afcbd...)
+        no _emscripten_proxy_main
+      FINAL-qt_vcldemo.* (probe.js unchanged, 90 s):
+        soffice.data.js.metadata and soffice.data requested at 0.5 s
+        no Bootstrap exception
+        DemoWin::Paint(0,0,1164,669) at 1.0 s
+        screenshot 146,266 B showing the demo grid
+      FINAL-click*: Paint after the click (zoomed text tile) and after Escape (grid again), no error.
+
+Criteria (PREDICTIONS.txt) for the final patch
+  1 met (network)
+  2 met (no Bootstrap exception; DemoWin::Paint with w,h > 0)
+  3 met (screenshot shows the grid, 146,266 B against 4,254 B blank)
+  4 met (C0 red, C1 green, same tree, same probe; recorded above)
+  5 pending: the owner's own browser. emrun was left serving the final build at http://127.0.0.1:6970/qt_vcldemo.html (wasm-lite/upstream-master/emrun-owner.pid).
+
+Not established
+  Whether the --widgets, --popup, --font and --threads modes work. The patch also leaks the widget and popup windows, but only the default mode was run.
+    --threads may need -sPTHREAD_POOL_SIZE in main-thread mode (static/README.wasm.md); not tried.
+  Whether vcldemo worked before cf0b0f0dd04f: still not built.

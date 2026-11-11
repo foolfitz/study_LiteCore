@@ -1,0 +1,92 @@
+From 1c96c7bfd8af43d60971f0efa5509692580c894e Mon Sep 17 00:00:00 2001
+From: foolfitz <foolfitz@gmail.com>
+Date: Wed, 11 Nov 2026 15:07:50 +0800
+Subject: [PATCH] WASM: Make qt_vcldemo.html from static/README.wasm.md work
+ again
+
+Two things kept it from working:
+
+* Since cf0b0f0dd04f "Emscripten: Only add the --pre-js code to the
+  soffice executable", vcldemo is linked without the file_packager loader
+  for soffice.data. So it starts with an empty file system and stops at
+  "Bootstrap exception Cannot open uno ini file:///instdir/program/unorc".
+  Add the same two pre-js files that soffice_bin uses.
+
+* On Emscripten (without JSPI), QApplication::exec() unwinds the stack via
+  a JS exception, which with -fwasm-exceptions destroys the renderer and
+  the main window that vcldemo's Main() keeps on the stack, right after
+  the window has been shown. Leak them there, as
+  desktop/source/app/sofficemain.cxx does for its desktop::Desktop.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ vcl/Executable_vcldemo.mk |  8 ++++++++
+ vcl/workben/vcldemo.cxx   | 17 +++++++++++++++++
+ 2 files changed, 25 insertions(+)
+
+diff --git a/vcl/Executable_vcldemo.mk b/vcl/Executable_vcldemo.mk
+index f09f9fffeb12..2af65a3739d4 100644
+--- a/vcl/Executable_vcldemo.mk
++++ b/vcl/Executable_vcldemo.mk
+@@ -43,4 +43,12 @@ $(eval $(call gb_Executable_add_exception_objects,vcldemo,\
+     vcl/workben/vcldemo \
+ ))
+ 
++ifeq ($(OS),EMSCRIPTEN)
++$(call gb_LinkTarget_get_target,$(call gb_Executable_get_linktarget,vcldemo)) : $(gb_CustomTarget_workdir)/static/emscripten_fs_image/soffice.data.js.link
++
++# don't sort; later can override previous settings!
++$(eval $(call gb_Executable_add_prejs,vcldemo,$(SRCDIR)/static/emscripten/environment.js))
++$(eval $(call gb_Executable_add_prejs,vcldemo,$(gb_CustomTarget_workdir)/static/emscripten_fs_image/soffice.data.js.link))
++endif
++
+ # vim: set noet sw=4 ts=4:
+diff --git a/vcl/workben/vcldemo.cxx b/vcl/workben/vcldemo.cxx
+index f886a2dcff72..86667de8cca6 100644
+--- a/vcl/workben/vcldemo.cxx
++++ b/vcl/workben/vcldemo.cxx
+@@ -9,6 +9,8 @@
+ 
+ #include <sal/config.h>
+ 
++#include <config_emscripten.h>
++
+ #include <thread>
+ 
+ #include <rtl/math.hxx>
+@@ -2121,7 +2123,15 @@ public:
+             bool bWidgets = false;
+             bool bThreads = false;
+             bool bPopup = false;
++#if defined __EMSCRIPTEN__ && !HAVE_EMSCRIPTEN_JSPI
++            // Application::Execute() unwinds the stack via a JS exception here (see the comment
++            // about the deliberately leaked desktop::Desktop in
++            // desktop/source/app/sofficemain.cxx), which with -fwasm-exceptions would destroy the
++            // renderer and the windows right after they have been shown, so leak them:
++            DemoRenderer& aRenderer = *new DemoRenderer;
++#else
+             DemoRenderer aRenderer;
++#endif
+             std::vector<OUString> aFontNames;
+ 
+             for (sal_uInt16 i = 0; i < GetCommandLineParamCount(); ++i)
+@@ -2160,9 +2170,16 @@ public:
+                 }
+             }
+ 
++#if defined __EMSCRIPTEN__ && !HAVE_EMSCRIPTEN_JSPI
++            ScopedVclPtrInstance<DemoWin>& aMainWin
++                = *new ScopedVclPtrInstance<DemoWin>(aRenderer, bThreads);
++            VclPtr<DemoWidgets>& xWidgets = *new VclPtr<DemoWidgets>;
++            VclPtr<DemoPopup>& xPopup = *new VclPtr<DemoPopup>;
++#else
+             ScopedVclPtrInstance<DemoWin> aMainWin(aRenderer, bThreads);
+             VclPtr<DemoWidgets> xWidgets;
+             VclPtr<DemoPopup> xPopup;
++#endif
+ 
+             aMainWin->SetText(u"Interactive VCL demo #1"_ustr);
+             if (bWidgets)
+-- 
+2.53.0
+

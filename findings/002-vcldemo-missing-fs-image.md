@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **狀態** | 可送出（根因完全確定，不依賴精簡組態） |
+| **狀態** | 可送出（根因完全確定，不依賴精簡組態）；2026-11-11 起附測過的修法（F1＋F3） |
 | **Bugzilla** | tdf#______ |
 | **發現日** | 2026-07-31 |
 | **嚴重度** | 一般（影響的是官方文件指定的測試路徑） |
@@ -90,6 +90,27 @@ $ grep -c 'soffice\.data\|loadPackage' soffice.js      → 11
 - 為什麼建出視窗後不畫，**還不知道**。照規劃的停損條件，停在這裡。
 - 我原本預測「F1 不畫，是因為沒有執行緒池」。前半句應驗了，理由卻不成立：拿掉那個條件的 F1＋F2 一樣不畫。
 
+### 第二個原因與完整修法（2026-11-11 14:45–15:15，擁有者選 A 繼續追）
+
+上一段「原因未知」已經解開。證據在 `evidence/002/fix-2a2335cf/README.txt` 的第二部分。
+
+- **SAL_LOG 這條路不通**（已觀察）：這個發行組態的 `ENABLE_SAL_LOG` 是空的，log 在編譯時就被拿掉了。改成在 vcldemo.cxx 裡加 `fprintf` 探針，只重編一個檔再重連結，每輪約 3 分鐘。
+- **上一段的一個判讀要更正**：`QObject::connect(QWindow, QtSvpSalFrame)` 那一行是 `QtFrame::Show()` 印的，所以 F1／F1＋F2 其實都建出了主視窗。加了探針之後，`DemoWin::Paint` 也會出現一次，但 canvas 仍是空的。
+- **點擊會讓它中止**（已觀察）：`emscripten_proxy_async failed`（emsdk `html5/callback.c:40`），畫面變成 Qt 的「Application exit」。
+- **第二個原因**：
+  - 已觀察：在 `DemoWin::dispose()` 加探針，它緊接在 `before Execute` 之後印出來。
+  - 文：在 Emscripten（非 JSPI）上，`Application::Execute()` → `QApplication::exec()` 會用 JS 例外拆掉整個堆疊；LibreOffice 用 `-fwasm-exceptions`，所以堆疊上物件的解構子會被執行。
+  - vcldemo 的 `Main()` 把 `DemoRenderer` 和主視窗都放在堆疊上，所以主視窗剛顯示就被銷毀了。soffice 為了同一個原因，故意洩漏它的 `desktop::Desktop`（`desktop/source/app/sofficemain.cxx` 的註解）。
+- **F3**：照 soffice 的做法，在 `#if defined __EMSCRIPTEN__ && !HAVE_EMSCRIPTEN_JSPI` 下把這些物件改成用 `new` 配置、刻意洩漏。
+- **結果**（已觀察）：
+  - F1＋F3 畫出 14 格繪圖測試，點一格會放大，按 Escape 回到格子，沒有任何錯誤。
+  - F1＋F2＋F3 也一樣，所以 **F2 不需要**。
+- **最終修法**：F1＋F3，一個 commit（`1c96c7bfd8af`，分支 `finding002-vcldemo-fix`，`.mk` +8 行、`.cxx` +17 行），patch 是 `evidence/002/fix-2a2335cf/fix-final.patch`。
+- **判準**：
+  - 用 11-10 同一支正式探針跑，判準 1–4 全過：要了 `soffice.data`、沒有 bootstrap 例外、1.0 秒出現 `DemoWin::Paint(0,0,1164,669)`、截圖 146 KB 是格子圖。
+  - 判準 5（擁有者本人看）待做。
+- **沒驗的**：`--widgets`、`--popup`、`--font`、`--threads` 這幾個模式。
+
 ## 環境
 
 同 001（見 `./env-snapshot.sh`）。
@@ -120,3 +141,4 @@ $ grep -c 'soffice\.data\|loadPackage' soffice.js      → 11
 - 2026-11-10 執行期在 master `2a2335cf` 上重現（stock 組態、無本地修改）：`qt_vcldemo.html` 從頭到尾沒請求 `soffice.data`，0.6 秒出現 `Bootstrap exception Cannot open uno ini file:///instdir/program/unorc`，白畫面；`vcldemo.js` 的 `soffice.data`／`loadPackage` 計數仍是 0。與 7/31 逐項相同。證據：`evidence/002/master-2a2335cf/`
 - 2026-11-11 用 Bugzilla REST 查重複，沒有找到；查欄位值時發現 Component「Build tooling」不存在，改成 `LibreOffice`。讀歷史找到可能的起點 `cf0b0f0dd04f`（推論，沒有實際建置）。寫好 `drafts/002-bugzilla.txt`，送出仍擱置
 - 2026-11-11 下午 擁有者要求真的修一次並代跑建置。`e42678e7` 的 configure 失敗（gtk3＋qt5，推論是 `d98a796946ff` 造成的，另案），改用 `2a2335cf`，建置 52 分 51 秒。F1 過了 bootstrap、建出視窗，但不畫；F1＋F2 也一樣。草稿的修法 (a) 改寫成實測結果。證據：`evidence/002/fix-2a2335cf/`
+- 2026-11-11 14:45–15:15 擁有者選 A 繼續追：找到第二個原因（`QApplication::exec()` 拆堆疊時把主視窗銷毀），加上 F3 之後 vcldemo 正常運作；F2 不需要。最終修法 F1＋F3（`fix-final.patch`），判準 1–4 過，5 待擁有者看。草稿改成「附測過的修法」
