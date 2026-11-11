@@ -129,6 +129,16 @@ F2 的前提已經查過（已觀察）：Qt5 的 `wasm_shell.html:33` 的畫布
 
 預設用今天的 master（`e42678e7`）建，因為 Gerrit 的 patch 要以最新 master 為底。
 
+**實際（2026-11-11 12:00 更正）**：擁有者選 A，並要我代跑建置。改用 `2a2335cf` 建，原因是 `e42678e7` 的 configure 直接失敗：
+
+- 錯誤訊息：`VCLplugs to be built: gtk3 qt5` → `Can't build --disable-dynamic-loading without --disable-gui and a single VCL plugin`。
+- 已觀察：同一份 `autogen.input` 在 11-10 的 `2a2335cf` 上 configure 只選了 qt5，沒有出錯。
+- 推論（只讀了原始碼）：兩者之間唯一的 commit `d98a796946ff` 把 emscripten 標成 Unix 桌面，WASM 建置因此不再自動關掉 gtk3。這是上游今天剛出現的回歸，可能值得另開一張 finding。
+- 這次修的檔案在兩個 commit 之間完全相同，兩個 patch 在兩邊都能乾淨套用。
+
+預測與判準在 `findings/evidence/002/fix-2a2335cf/PREDICTIONS.txt`。
+
 ## 修訂紀錄
 
 - 2026-11-11：初版。
+- 2026-11-11 12:05：擁有者選 A、要我代跑建置；`e42678e7` 的 configure 失敗，改用 `2a2335cf`（第 7 節）。

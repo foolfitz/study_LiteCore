@@ -1,0 +1,15 @@
+--- a/vcl/Executable_vcldemo.mk
++++ b/vcl/Executable_vcldemo.mk
+@@ -43,4 +43,12 @@
+     vcl/workben/vcldemo \
+ ))
+ 
++ifeq ($(OS),EMSCRIPTEN)
++$(call gb_LinkTarget_get_target,$(call gb_Executable_get_linktarget,vcldemo)) : $(gb_CustomTarget_workdir)/static/emscripten_fs_image/soffice.data.js.link
++
++# don't sort; later can override previous settings!
++$(eval $(call gb_Executable_add_prejs,vcldemo,$(SRCDIR)/static/emscripten/environment.js))
++$(eval $(call gb_Executable_add_prejs,vcldemo,$(gb_CustomTarget_workdir)/static/emscripten_fs_image/soffice.data.js.link))
++endif
++
+ # vim: set noet sw=4 ts=4:

@@ -1,0 +1,48 @@
+Finding 002 fix run: arms, criteria and predictions
+Written 2026-11-11 about 12:05 +08:00, while the unpatched build of 2a2335cf was running (started 12:02:59). No page from this tree had been loaded yet. Committed before the first probe.
+
+Tree
+  Source  wasm-lite/upstream-master/src, detached worktree of LibreOffice core at 2a2335cf (master, 2026-11-10), no local changes at build start (build.sh logs dirty=0).
+  Build   wasm-lite/upstream-master/build-nosym, new directory and new ccache. autogen.input is byte-identical to ../../001/rebuild-2026-11-10/config/build-nosym.autogen.input (stock --with-distro=LibreOfficeWASM32 + --disable-symbols). Driver: ../../001/rebuild-2026-11-10/build.sh, unchanged.
+  The build was started by the agent at the owner's explicit request ("也請你幫我建置"), 2026-11-11.
+
+Why 2a2335cf and not e42678e7 (master 2026-11-11, which the plan named)
+  Observed: on e42678e7 configure stops with
+    configure: VCLplugs to be built: gtk3 qt5
+    configure: error: Can't build --disable-dynamic-loading without --disable-gui and a single VCL plugin"
+  with the same autogen.input that configured 2a2335cf on 2026-11-10 ("VCLplugs to be built: qt5"). Log: e42678e7-configure-fail.log.
+  Inference from reading the source only: the one commit between them, d98a796946ff ("tdf#146153 Enable building the GUI --without-x"), sets using_unix_desktop=yes for emscripten and moves test_gtk3=no out of disable_x11_tests() into disable_unix_desktop_tests(). The WASM build still clears USING_X11, but USING_UNIX_DESKTOP stays TRUE, so gtk3 is no longer disabled. Not verified by a build with that commit reverted.
+  The files the fix touches or depends on (vcl/Executable_vcldemo.mk, desktop/Executable_soffice_bin.mk, solenv/gbuild/platform/EMSCRIPTEN_INTEL_GCC.mk, solenv/gbuild/platform/unxgcc.mk, static/emscripten/*, vcl/workben/vcldemo.cxx) are identical in 2a2335cf and e42678e7. Both patches pass git apply --check on both commits.
+
+Patches (same bytes as wasm-lite/upstream-master/patches/)
+  f1.patch    sha256 1d4aa82c17527d31...  F1: dependency on soffice.data.js.link + prejs environment.js + prejs soffice.data.js.link
+  f1f2.patch  sha256 e297dd85214b6082...  F1 + F2: also -sPROXY_TO_PTHREAD=1 -sOFFSCREENCANVAS_SUPPORT=1 -sOFFSCREENCANVASES_TO_PTHREAD=#qtcanvas when ENABLE_EMSCRIPTEN_PROXY_TO_PTHREAD
+
+Arms
+  C0   unpatched qt_vcldemo.html (red control)
+  C1   unpatched qt_soffice.html (green control: the build and the serving work)
+  R1   preview, no rebuild: copy of unpatched vcldemo.js with environment.js and soffice.data.js.link pasted right after the "var Module = ..." line, which is where emcc puts --pre-js (emsdk src/shell.js:130-132). Checked against soffice.js of the same build before use. NOT evidence: it only decides whether the relink is F1 or F1+F2.
+  F1   vcldemo relinked with f1.patch
+  F12  vcldemo relinked with f1f2.patch (only if F1 misses the criteria)
+  H    the owner opens the final arm in their own browser
+
+Probe
+  wasm-lite/tools/pw/probe.js unchanged (sha256 5629a2b02db417b3), driven by ../../001/rebuild-2026-11-10/run_probe.sh unchanged; emrun with COOP/COEP. 90 s per run (probe default).
+  Worker console lines are captured: in the 2026-11-10 qt_soffice.html control (soffice main runs in a worker under PROXY_TO_PTHREAD) lines such as 'Thread name: "configmgrWriter"' appear (../../001/master-2a2335cf/nosym-qt_soffice.txt).
+
+Criteria for "fixed" (all of them; from PLAN-2026-11-11-finding-002-vcldemo-fix.md section 5, commit ef1b3d4ef)
+  1 Network: qt_vcldemo.html requests soffice.data.js.metadata and soffice.data.
+  2 Console: no "Bootstrap exception", and at least one "DemoWin::Paint(x,y,w,h)" with w > 0 and h > 0 (vcl/workben/vcldemo.cxx:1758 prints it on every paint).
+  3 Screenshot: not blank (the 2026-11-10 blank reference is a 4254-byte PNG).
+  4 Controls: C0 red and C1 green, same tree, same probe.
+  5 The owner sees the tiles in their own browser, and clicking a tile enlarges it.
+  If never met: send the existing draft (findings/drafts/002-bugzilla.txt) unchanged, with no claim that a fix works.
+  Stop rule: if F12 also misses, record where it stops and do not dig further unless the owner asks.
+
+Predictions
+  C0   Same as 2026-11-10: no request for soffice.data or its metadata; "Bootstrap exception Cannot open uno ini file:///instdir/program/unorc" at about 0.6 s; blank canvas.
+  C1   soffice.data.js.metadata and soffice.data requested at about 0.6 s; Start Center.
+  R1, F1
+       soffice.data.js.metadata and soffice.data are requested (high confidence), and "Cannot open uno ini" is gone (high confidence).
+       Painting: I lean NO (roughly 55-60%). vcldemo still runs Qt on the JS main thread. Because ENABLE_EMSCRIPTEN_PROXY_TO_PTHREAD=TRUE, it is also linked without -sPTHREAD_POOL_SIZE (EMSCRIPTEN_INTEL_GCC.mk:20-22). static/README.wasm.md says main-thread mode needs that pool for pthread spawning. Expected failure: a stall with no DemoWin::Paint line, possibly with Emscripten's warning that the thread pool is exhausted.
+  F12  DemoWin::Paint lines appear (lean yes, roughly 65%). A further problem with Qt5 in a worker, such as input or cursor handling, is possible.
