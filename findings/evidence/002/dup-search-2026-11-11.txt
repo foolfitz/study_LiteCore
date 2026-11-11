@@ -1,0 +1,40 @@
+Duplicate search for finding 002, 2026-11-11 (Asia/Taipei)
+Tracker: https://bugs.documentfoundation.org, REST API (/rest/bug), plain curl, no login.
+Read-only. Raw JSON was kept in the session scratchpad only; the hit lists below are complete.
+
+Comment text (f1=longdesc, o1=substring; matches the phrase as typed):
+  "Cannot open uno ini"            1 hit:  159502 CLOSED FIXED Installation "missing XML2 version"
+                                            (native AlmaLinux install; 0 mentions of wasm/emscripten in its 23 comments)
+  "vcldemo"                        10 hits; the two about vcldemo itself are native:
+                                            146478 NEW framework "vcldemo and other vcl examples exit with Aborted"
+                                              (Linux ./bin/run vcldemo; 0 mentions of wasm/emscripten in 10 comments)
+                                            169688 RESOLVED WORKSFORME graphics stack "VCL demo applications do not
+                                              display any window on macOS" (0 mentions of wasm/emscripten in 12 comments)
+                                          the other 8 mention vcldemo in passing (OpenGL, gbuild move, range-for).
+  "XMLHttpRequest is not defined"  0 hits
+
+Comment text (longdesc_type=substring, single token):
+  "vcldemo.html"          0
+  "emscripten_fs_image"   0
+  "soffice.data"          0
+  "README.wasm"           1   169649 RESOLVED FIXED LibreOffice "Mistake in static/README.wasm.md" (a typo fix)
+  "qt_vcldemo"            0   (longdesc_type=allwordssubstr)
+  "soffice.data.js.link"  0   (longdesc_type=allwordssubstr)
+
+Summary text (short_desc, product LibreOffice):
+  "vcldemo"               1   146478 (above)
+  "wasm" or "emscripten"  2   169649 (above, component LibreOffice); 172679 RESOLVED INVALID Draw "pptx(wasm): text autoscale bug"
+
+Note: longdesc with allwordssubstr and a multi-word phrase matches each word separately and returned unrelated
+bugs (24 and 17 hits for "vcldemo wasm" / "vcldemo emscripten"; a 30000-row cap for "Cannot open uno ini").
+Those queries are not counted above; the f1/o1/v1 substring form was used instead.
+
+Field values (GET /rest/product?names=LibreOffice, /rest/field/bug/<name>):
+  Components include LibreOffice, Installation, framework, graphics stack, ci-infra, sdk, Documentation.
+  There is no "Build tooling" component.
+  26.8/27.2 versions offered: 26.8.0.0 alpha0+ master, 26.8.0.3 release, 26.8.1.1 release, 26.8.2.2 release,
+  27.2.0.0 alpha0+ master. 24.8.0.0 alpha0+ also exists. There is no "26.8.0.1 rc".
+  op_sys: All, Linux (All), ... (no WASM/browser value). rep_platform: All, x86-64 (AMD64), ...
+
+Conclusion: no existing report of qt_vcldemo.html failing in the WASM build was found.
+Re-run before sending; this receipt goes stale.

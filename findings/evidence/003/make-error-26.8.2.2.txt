@@ -1,0 +1,33 @@
+Finding 003 seen again, 2026-11-10, on a clean libreoffice-26.8.2.2 tree (9dea406ab7695df6325b11b0e19fdca8db4b7276, no local modifications).
+Fresh build directory, first make, --with-parallelism=10, Emscripten cross build; it stopped 6 s into make in the cross-toolset stage.
+The rule at solenv/gbuild/UnpackedTarball.mk:170 still has no order-only dependency on the .dir target (git show 9dea406a:solenv/gbuild/UnpackedTarball.mk, lines 166-172 below). Re-running make went past it.
+
+--- log lines (wasm-lite/upstream-master/build-2682-lite-nosym.attempt1-finding003-race.log:1074-1080)
+[build DEP] LNK:Library/libunoidllo.so.d
+[build DEP] LNK:Library/libutllo.so.d
+[build DEP] LNK:Library/libxmlreaderlo.so.d
+/bin/sh: 1: cannot create /home/jiajun/LibreOffice/study_LiteCore/wasm-lite/upstream-master/build-2682-lite-nosym/workdir_for_build/UnpackedTarball/dragonbox.version: Directory nonexistent
+make[1]: *** [/home/jiajun/LibreOffice/study_LiteCore/wasm-lite/upstream-master/src-26.8.2.2/solenv/gbuild/UnpackedTarball.mk:170: /home/jiajun/LibreOffice/study_LiteCore/wasm-lite/upstream-master/build-2682-lite-nosym/workdir_for_build/UnpackedTarball/dragonbox.version] Error 2
+make[1]: *** Waiting for unfinished jobs....
+make: *** [Makefile:326: cross-toolset] Error 2
+
+--- solenv/gbuild/UnpackedTarball.mk at 9dea406a, lines 166-172
+$(dir $(call gb_UnpackedTarball_get_target,%)).dir :
+	$(if $(wildcard $(dir $@)),,mkdir -p $(dir $@))
+
+$(call gb_UnpackedTarball_get_version_target,%) : $(gb_Helper_PHONY)
+	$(if $(and $(wildcard $@),$(filter $(UNPACKED_TARBALL),$(file < $@))),,\
+		printf $(UNPACKED_TARBALL) > $@)
+
+
+--- same rule on master 2a2335cf
+169:$(call gb_UnpackedTarball_get_version_target,%) : $(gb_Helper_PHONY)
+170-	$(if $(and $(wildcard $@),$(filter $(UNPACKED_TARBALL),$(file < $@))),,\
+171-		printf $(UNPACKED_TARBALL) > $@)
+
+--- second occurrence, same day: fresh build directory build-2682-july-nosym (same 26.8.2.2 tree, now with two fs-image patches applied), first make stopped at 2 s:
+1057:/bin/sh: 1: cannot create /home/jiajun/LibreOffice/study_LiteCore/wasm-lite/upstream-master/build-2682-july-nosym/workdir_for_build/UnpackedTarball/dragonbox.version: Directory nonexistent
+1058-make[1]: *** [/home/jiajun/LibreOffice/study_LiteCore/wasm-lite/upstream-master/src-26.8.2.2/solenv/gbuild/UnpackedTarball.mk:170: /home/jiajun/LibreOffice/study_LiteCore/wasm-lite/upstream-master/build-2682-july-nosym/workdi
+Tally on 2026-11-10: 26.8.2.2 fresh build dirs 2 of 2 hit the race on the first make; master 2a2335cf fresh build dirs 0 of 2 (same machine, same -j10). Re-running make passed each time.
+
+2026-11-10 cleanup: wasm-lite/upstream-master was deleted after this was written; its logs, scripts and configure inputs are in findings/evidence/001/rebuild-2026-11-10/ (see the path mapping in its README.txt).

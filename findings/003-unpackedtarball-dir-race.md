@@ -136,3 +136,4 @@ configure     --with-distro=LibreOfficeWASM32 --enable-symbols --enable-ccache
 - 2026-08-01 `build-headless-probe` 全新目錄首次 `make -j12` 再次停在
   `dragonbox.version`；父目錄建立後直接重跑即正常越過（見
   `evidence/003/make-error-headless-probe.txt`）
+- 2026-11-10 在乾淨的 26.8.2.2（`9dea406a`，無本地修改）全新建置目錄第一次 `make`（`-j10`、Emscripten 交叉建置）又停在 `dragonbox.version`；`UnpackedTarball.mk:170` 的規則在 26.8.2.2 與 master `2a2335cf` 上都還沒有 `.dir` 的相依。重跑即越過。見 `evidence/003/make-error-26.8.2.2.txt`

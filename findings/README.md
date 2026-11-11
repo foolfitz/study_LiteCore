@@ -10,8 +10,8 @@
 
 | # | 標題 | 狀態 | 嚴重度 | 上游？ | tdf# |
 |---|---|---|---|---|---|
-| [001](001-wasm-configmgrwriter-crash.md) | WASM `--disable-symbols` 破壞 C++ 例外處理，啟動即崩潰 | **可送出** | 阻斷 | 是 | — |
-| [002](002-vcldemo-missing-fs-image.md) | qt_vcldemo.html 沒連結 fs image，README 卻要人跑它 | 可送出 | 一般 | 是 | — |
+| [001](001-wasm-configmgrwriter-crash.md) | ~~WASM `--disable-symbols` 破壞 C++ 例外處理，啟動即崩潰~~ | **撤銷（2026-11-10）**：從原始碼重建 0／5 重現；7/31 那棵樹殘留 LTO bitcode | 阻斷 | 否 | 不送 |
+| [002](002-vcldemo-missing-fs-image.md) | qt_vcldemo.html 沒連結 fs image，README 卻要人跑它 | 可送出（草稿 `drafts/002-bugzilla.txt`，2026-11-11；送出擱置） | 一般 | 是 | — |
 | [003](003-unpackedtarball-dir-race.md) | UnpackedTarball.mk 的 .version 缺 .dir 相依，-j 下 race | 可送出 | 一般 | 是 | — |
 | [004](004-emscripten-install-partial-symbols.md) | Emscripten 部分符號建置未產生 soffice `.dwp`，封裝失敗 | 待驗證 | 一般 | 未確認 | — |
 | [005](005-qt5-wasm-no-input-context.md) | Qt5 WASM 無 input context，CJK 輸入完全不可行 | 可送出 | 嚴重 | 是 | — |

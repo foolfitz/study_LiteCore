@@ -67,6 +67,12 @@ $ grep -c 'soffice\.data\|loadPackage' soffice.js      → 11
 1. 讓 `vcldemo` 這類 Executable 也連結 `soffice.data.js.link` 這個 pre-js
 2. 如果 vcldemo 本來就不該依賴 fs image，那就從 `README.wasm.md` 拿掉那一行，並停止複製 `soffice.data` 過去
 
+### 可能的起點（2026-11-11 補充）
+
+**推論**（只讀了歷史，沒有建置更舊的樹）：`cf0b0f0dd04f`（Stephan Bergmann，2024-04-30，「Emscripten: Only add the --pre-js code to the soffice executable」，最早進 24.8）之前，`solenv/gbuild/platform/EMSCRIPTEN_INTEL_GCC.mk` 會把 `gb_EMSCRIPTEN_PRE_JS_FILES`（`environment.js`、`soffice.data.js.link`）加到**每一個** Executable 與 CppunitTest，所以 vcldemo 當時應該有載入器。那個 commit 為了讓 node 底下執行的 `uri-encode.js` 不再因 `XMLHttpRequest is not defined` 失敗，把 pre-js 收到只有 `soffice_bin`。它的 commit message 自己寫了 unxgcc.mk 的 `cp` 還留著、「can probably be cleaned up further in a next step」。README 的那一行更早（`12a6b57c74aa`，2022-01），之後一直沒動。
+
+**已觀察**（master `2a2335cf`）：`vcl/Module_vcl.mk:40-41` 在 EMSCRIPTEN＋Qt5 時**特地**建 `Executable_vcldemo`；`unxgcc.mk:184-195` 對 EMSCRIPTEN 的每個 Executable／CppunitTest 產生 `qt_<名稱>.html` 並複製 `soffice.data`。
+
 ## 環境
 
 同 001（見 `./env-snapshot.sh`）。
@@ -76,19 +82,23 @@ $ grep -c 'soffice\.data\|loadPackage' soffice.js      → 11
 ## 還缺什麼才能送
 
 - [x] 在 `build-stock/` 與 `build-t3/` 上覆驗 → 兩者 `vcldemo.js` 的 `soffice.data`/`loadPackage` 出現次數皆為 **0**，`soffice.js` 為 13。確認與組態無關
-- [ ] 搜尋 Bugzilla 是否已有重複
-- [ ] 確認 Component
+- [x] 搜尋 Bugzilla 是否已有重複 → 2026-11-11 用 REST API 查，沒有重複。提到 vcldemo 的 10 張都是原生的（146478、169688 等），`qt_vcldemo`／`soffice.data`／`emscripten_fs_image` 全部 0 筆。收據：`evidence/002/dup-search-2026-11-11.txt`。**送出前要重查**
+- [x] 確認 Component → TDF Bugzilla **沒有「Build tooling」這個 component**（2026-11-11 查欄位值）。改填 `LibreOffice`：README.wasm.md 的錯字單 tdf#169649 也歸在那裡
+- [x] Bugzilla 草稿 → `drafts/002-bugzilla.txt`（2026-11-11）。送出仍擱置
 
 ## Bugzilla 欄位
 
 | 欄位 | 值 |
 |---|---|
 | Product | LibreOffice |
-| Component | Build tooling（送出前查證） |
-| Version | 26.8.0.1 rc |
-| Hardware / OS | x86-64 / Linux (Ubuntu 26.04) |
-| Summary | WASM: qt_vcldemo.html is unusable — fs image loader is not linked in, contrary to README.wasm.md |
+| Component | LibreOffice（2026-11-11 修正：原本寫的 Build tooling 不存在） |
+| Version | 27.2.0.0 alpha0+ master（2026-11-11 修正：選單裡沒有 26.8.0.1 rc；乾淨的執行期重現是在 master 上做的） |
+| Hardware / OS | All / All（2026-11-11 修正：OS 選單沒有 WASM 這個值，而問題跟建置主機無關） |
+| Summary | 以 `drafts/002-bugzilla.txt` 為準（2026-11-11） |
 
 ## 時間軸
 
 - 2026-07-31 為了切開 001 的問題層次而跑 vcldemo，發現它以完全不同的原因失敗
+- 2026-11-10 靜態複查：26.8.2.2（`9dea406a`）、26.8.3.1（`861effc5`）、master（`2a2335cf`）上，README 仍叫人跑 `qt_vcldemo.html`，`vcl/Executable_vcldemo.mk` 仍沒有 fs image 的 pre-js（只有 `soffice_bin` 有）。成因原樣存在。收據：`evidence/002/upstream-recheck-2026-11-10.txt`
+- 2026-11-10 執行期在 master `2a2335cf` 上重現（stock 組態、無本地修改）：`qt_vcldemo.html` 從頭到尾沒請求 `soffice.data`，0.6 秒出現 `Bootstrap exception Cannot open uno ini file:///instdir/program/unorc`，白畫面；`vcldemo.js` 的 `soffice.data`／`loadPackage` 計數仍是 0。與 7/31 逐項相同。證據：`evidence/002/master-2a2335cf/`
+- 2026-11-11 用 Bugzilla REST 查重複，沒有找到；查欄位值時發現 Component「Build tooling」不存在，改成 `LibreOffice`。讀歷史找到可能的起點 `cf0b0f0dd04f`（推論，沒有實際建置）。寫好 `drafts/002-bugzilla.txt`，送出仍擱置

@@ -1,0 +1,45 @@
+Static upstream re-check, 2026-11-10T09:36Z
+Repository: /home/jiajun/LibreOffice/lo-submit (remote: https://github.com/LibreOffice/core.git)
+Found at:   671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb 2026-07-30
+Compared:   libreoffice-26.8.2.2 = 9dea406ab7695df6325b11b0e19fdca8db4b7276 2026-10-22
+Compared:   libreoffice-26.8.3.1 = 861effc5289d539f15c4c18d1ba8579ffd78728b 2026-11-09
+Compared:   origin/master = 2a2335cf091104f36d44809b2fb70a9cd32258df 2026-11-10
+Method: git diff / git grep on committed trees. Nothing was built or run for this receipt.
+
+Finding 002: README.wasm.md tells you to run qt_vcldemo.html, which is linked without the fs image pre-js.
+671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb:
+  README lines naming Executable/qt_vcldemo.html: 24:    $ emrun --hostname 127.0.0.1 --serve_after_close workdir/LinkTarget/Executable/qt_vcldemo.html 
+  vcl/Executable_vcldemo.mk lines with prejs|fs_image|soffice.data: 0
+  desktop/Executable_soffice_bin.mk fs-image pre-js: 36:$(eval $(call gb_Executable_add_prejs,soffice_bin,$(gb_CustomTarget_workdir)/static/emscripten_fs_image/soffice.data.
+libreoffice-26.8.2.2:
+  README lines naming Executable/qt_vcldemo.html: 24:    $ emrun --hostname 127.0.0.1 --serve_after_close workdir/LinkTarget/Executable/qt_vcldemo.html 
+  vcl/Executable_vcldemo.mk lines with prejs|fs_image|soffice.data: 0
+  desktop/Executable_soffice_bin.mk fs-image pre-js: 36:$(eval $(call gb_Executable_add_prejs,soffice_bin,$(gb_CustomTarget_workdir)/static/emscripten_fs_image/soffice.data.
+libreoffice-26.8.3.1:
+  README lines naming Executable/qt_vcldemo.html: 24:    $ emrun --hostname 127.0.0.1 --serve_after_close workdir/LinkTarget/Executable/qt_vcldemo.html 
+  vcl/Executable_vcldemo.mk lines with prejs|fs_image|soffice.data: 0
+  desktop/Executable_soffice_bin.mk fs-image pre-js: 36:$(eval $(call gb_Executable_add_prejs,soffice_bin,$(gb_CustomTarget_workdir)/static/emscripten_fs_image/soffice.data.
+origin/master:
+  README lines naming Executable/qt_vcldemo.html: 24:    $ emrun --hostname 127.0.0.1 --serve_after_close workdir/LinkTarget/Executable/qt_vcldemo.html 
+  vcl/Executable_vcldemo.mk lines with prejs|fs_image|soffice.data: 0
+  desktop/Executable_soffice_bin.mk fs-image pre-js: 36:$(eval $(call gb_Executable_add_prejs,soffice_bin,$(gb_CustomTarget_workdir)/static/emscripten_fs_image/soffice.data.
+
+Files involved:
+  libreoffice-26.8.2.2: identical to 671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb
+  libreoffice-26.8.3.1: identical to 671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb
+  origin/master:  1 file changed, 1 insertion(+)
+
+$ git -C /home/jiajun/LibreOffice/lo-submit diff 671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb origin/master -- static/README.wasm.md vcl/Executable_vcldemo.mk desktop/Executable_soffice_bin.mk solenv/gbuild/platform/unxgcc.mk static/CustomTarget_emscripten_fs_image.mk
+diff --git a/static/CustomTarget_emscripten_fs_image.mk b/static/CustomTarget_emscripten_fs_image.mk
+index 7e4057ec9765..6c46c95b2eb1 100644
+--- a/static/CustomTarget_emscripten_fs_image.mk
++++ b/static/CustomTarget_emscripten_fs_image.mk
+@@ -1535,6 +1535,7 @@ gb_emscripten_fs_image_files += \
+     $(INSTROOT)/$(LIBO_SHARE_FOLDER)/config/soffice.cfg/svx/ui/findbox.ui \
+     $(INSTROOT)/$(LIBO_SHARE_FOLDER)/config/soffice.cfg/svx/ui/findreplacedialog.ui \
+     $(INSTROOT)/$(LIBO_SHARE_FOLDER)/config/soffice.cfg/svx/ui/floatingareastyle.ui \
++    $(INSTROOT)/$(LIBO_SHARE_FOLDER)/config/soffice.cfg/svx/ui/floatingborderstyle.ui \
+     $(INSTROOT)/$(LIBO_SHARE_FOLDER)/config/soffice.cfg/svx/ui/floatingcontour.ui \
+     $(INSTROOT)/$(LIBO_SHARE_FOLDER)/config/soffice.cfg/svx/ui/floatingframeborder.ui \
+     $(INSTROOT)/$(LIBO_SHARE_FOLDER)/config/soffice.cfg/svx/ui/floatinglineend.ui \
+

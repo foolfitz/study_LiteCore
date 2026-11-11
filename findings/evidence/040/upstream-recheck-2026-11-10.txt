@@ -1,0 +1,125 @@
+Static upstream re-check, 2026-11-10T09:36Z
+Repository: /home/jiajun/LibreOffice/lo-submit (remote: https://github.com/LibreOffice/core.git)
+Found at:   671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb 2026-07-30
+Compared:   libreoffice-26.8.2.2 = 9dea406ab7695df6325b11b0e19fdca8db4b7276 2026-10-22
+Compared:   libreoffice-26.8.3.1 = 861effc5289d539f15c4c18d1ba8579ffd78728b 2026-11-09
+Compared:   origin/master = 2a2335cf091104f36d44809b2fb70a9cd32258df 2026-11-10
+Method: git diff / git grep on committed trees. Nothing was built or run for this receipt.
+
+Finding 040: Scheduler::IdlesLockGuard constructed off the main thread waits on m_inExecuteCondtion,
+which is only set() in the fallback loop of Application::Execute that an Emscripten build never enters.
+Files involved:
+  libreoffice-26.8.2.2: identical to 671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb
+  libreoffice-26.8.3.1: identical to 671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb
+  origin/master:  2 files changed, 6 insertions(+), 7 deletions(-)
+
+671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb:
+  vcl/headless/svpinst.cxx:315:    emscripten_set_main_loop_arg(loop, this, 100, 1);
+  vcl/source/app/scheduler.cxx:292:        pSVData->m_inExecuteCondtion.reset();
+  vcl/source/app/scheduler.cxx:297:        pSVData->m_inExecuteCondtion.wait();
+  vcl/source/app/svapp.cxx:366:            pSVData->m_inExecuteCondtion.set();
+libreoffice-26.8.2.2:
+  vcl/headless/svpinst.cxx:315:    emscripten_set_main_loop_arg(loop, this, 100, 1);
+  vcl/source/app/scheduler.cxx:292:        pSVData->m_inExecuteCondtion.reset();
+  vcl/source/app/scheduler.cxx:297:        pSVData->m_inExecuteCondtion.wait();
+  vcl/source/app/svapp.cxx:366:            pSVData->m_inExecuteCondtion.set();
+libreoffice-26.8.3.1:
+  vcl/headless/svpinst.cxx:315:    emscripten_set_main_loop_arg(loop, this, 100, 1);
+  vcl/source/app/scheduler.cxx:292:        pSVData->m_inExecuteCondtion.reset();
+  vcl/source/app/scheduler.cxx:297:        pSVData->m_inExecuteCondtion.wait();
+  vcl/source/app/svapp.cxx:366:            pSVData->m_inExecuteCondtion.set();
+origin/master:
+  vcl/headless/svpinst.cxx:315:    emscripten_set_main_loop_arg(loop, this, 100, 1);
+  vcl/source/app/scheduler.cxx:292:        pSVData->m_inExecuteCondtion.reset();
+  vcl/source/app/scheduler.cxx:297:        pSVData->m_inExecuteCondtion.wait();
+  vcl/source/app/svapp.cxx:365:            pSVData->m_inExecuteCondtion.set();
+
+$ git -C /home/jiajun/LibreOffice/lo-submit diff 671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb origin/master -- vcl/source/app/scheduler.cxx vcl/source/app/svapp.cxx vcl/inc/svdata.hxx vcl/headless/svpinst.cxx
+diff --git a/vcl/headless/svpinst.cxx b/vcl/headless/svpinst.cxx
+index 33f2ba9f825b..04b0c7fbab77 100644
+--- a/vcl/headless/svpinst.cxx
++++ b/vcl/headless/svpinst.cxx
+@@ -305,7 +305,7 @@ static void loop(void * arg) {
+     static_cast<SvpSalInstance *>(arg)->ImplYield(comphelper::LibreOfficeKit::isActive(), false);
+ }
+ 
+-bool SvpSalInstance::DoExecute(int &) {
++bool SvpSalInstance::DoExecute() {
+     assert(Application::IsUseSystemEventLoop());
+     // emscripten_set_main_loop will unwind the stack by throwing a JavaScript exception, so we need
+     // to manually undo the call of AcquireYieldMutex() done in InitVCL:
+diff --git a/vcl/source/app/svapp.cxx b/vcl/source/app/svapp.cxx
+index 69735741a773..b4f90e3d20bf 100644
+--- a/vcl/source/app/svapp.cxx
++++ b/vcl/source/app/svapp.cxx
+@@ -351,8 +351,7 @@ void Application::Execute()
+     pSVData->maAppData.mbInAppExecute = true;
+     pSVData->maAppData.mbAppQuit = false;
+ 
+-    int nExitCode = 0;
+-    if (!pSVData->mpDefInst->DoExecute(nExitCode))
++    if (!pSVData->mpDefInst->DoExecute())
+     {
+         if (Application::IsUseSystemEventLoop())
+         {
+@@ -842,8 +841,8 @@ ImplSVEvent* Application::PostGestureEvent(VclEventId nEvent, vcl::Window* pWin,
+     {
+         Point aTransformedPosition(pGestureEvent->mnX, pGestureEvent->mnY);
+ 
+-        aTransformedPosition.AdjustX(pWin->GetOutOffXPixel());
+-        aTransformedPosition.AdjustY(pWin->GetOutOffYPixel());
++        aTransformedPosition.AdjustX(pWin->GetDeviceOriginX());
++        aTransformedPosition.AdjustY(pWin->GetDeviceOriginY());
+ 
+         const GestureEventPan aGestureEvent(
+             sal_Int32(aTransformedPosition.X()),
+@@ -949,8 +948,8 @@ ImplSVEvent* Application::PostMouseEvent( VclEventId nEvent, vcl::Window *pWin,
+         // LOK uses (0, 0) as the origin of all windows; don't offset.
+         if (!comphelper::LibreOfficeKit::isActive())
+         {
+-            aTransformedPos.AdjustX(pWin->GetOutOffXPixel());
+-            aTransformedPos.AdjustY(pWin->GetOutOffYPixel());
++            aTransformedPos.AdjustX(pWin->GetDeviceOriginX());
++            aTransformedPos.AdjustY(pWin->GetDeviceOriginY());
+         }
+ 
+         const MouseEvent aTransformedEvent( aTransformedPos, pMouseEvent->GetClicks(), pMouseEvent->GetMode(),
+
+origin/master vcl/headless/svpinst.cxx, SvpSalInstance::DoExecute:
+  308: bool SvpSalInstance::DoExecute() {
+  309:     assert(Application::IsUseSystemEventLoop());
+  310:     // emscripten_set_main_loop will unwind the stack by throwing a JavaScript exception, so we need
+  311:     // to manually undo the call of AcquireYieldMutex() done in InitVCL:
+  312:     ReleaseYieldMutex(false);
+  313:     // Somewhat randomly use an fps=100 argument so the loop callback is called 100 times per
+  314:     // second:
+  315:     emscripten_set_main_loop_arg(loop, this, 100, 1);
+  316:     O3TL_UNREACHABLE;
+  317: }
+
+origin/master vcl/source/app/svapp.cxx, Application::Execute:
+  348: void Application::Execute()
+  349: {
+  350:     ImplSVData* pSVData = ImplGetSVData();
+  351:     pSVData->maAppData.mbInAppExecute = true;
+  352:     pSVData->maAppData.mbAppQuit = false;
+  353: 
+  354:     if (!pSVData->mpDefInst->DoExecute())
+  355:     {
+  356:         if (Application::IsUseSystemEventLoop())
+  357:         {
+  358:             SAL_WARN("vcl.schedule", "Can't omit DoExecute when running on system event loop!");
+  359:             std::abort();
+  360:         }
+  361:         while (!pSVData->maAppData.mbAppQuit)
+  362:         {
+  363:             Application::Yield();
+  364:             SolarMutexReleaser releaser; // Give a chance for the waiting threads to lock the mutex
+  365:             pSVData->m_inExecuteCondtion.set();
+  366:         }
+  367:     }
+  368: 
+  369:     pSVData->maAppData.mbInAppExecute = false;
+  370: 
+  371:     GetpApp()->Shutdown();
+  372: }

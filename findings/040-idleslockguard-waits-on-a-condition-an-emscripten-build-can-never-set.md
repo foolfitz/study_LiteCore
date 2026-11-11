@@ -360,3 +360,7 @@ out-parameter（`init.cxx:6028`），但**堆疊不告訴我們它走到哪一�
 已改為分開記 `proxyHookFiredInControl`，並新增
 `proxy-hook-unproven-only-mailbox-in-control` 這一種具名結果。這一輪該欄位為 true，
 所以結論不受影響——但那個洞本來會讓一個錯的排除看起來像量測。
+
+## 九、上游複查（2026-11-10，只追加）
+
+靜態複查，沒有重跑死結。`scheduler.cxx`、`svdata.hxx` 在 26.8.2.2（`9dea406a`）、26.8.3.1（`861effc5`）、master（`2a2335cf`）上與 `671c848b` 相同；`m_inExecuteCondtion.set()` 仍然只有 `svapp.cxx` 那一處，而且在 `DoExecute()` 回傳 false 才會進的退路迴圈裡。master 上 Emscripten 的 `SvpSalInstance::DoExecute()` 呼叫 `emscripten_set_main_loop_arg(loop, this, 100, 1)` 之後是 `O3TL_UNREACHABLE`，不會回到那個迴圈。master 的改動只有 `DoExecute` 拿掉一個沒用到的參數，以及改名。收據：`evidence/040/upstream-recheck-2026-11-10.txt`

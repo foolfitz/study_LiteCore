@@ -1,0 +1,34 @@
+Finding 001, 2026-11-10: why the 2026-07-31 crash build differs from every clean rebuild
+
+Source of these lines: wasm-lite/logs/build.log (the July crash build 'wasm-lite/build', log written 2026-07-31 13:04, sha256 dbc8e4f2ffec29bb…) and the July configure records in wasm-lite/retired-builds/build/.
+
+1. The build directory was first configured with --enable-lto, then reconfigured without it at 12:21:
+   $ diff retired-builds/build/autogen.lastrun.bak retired-builds/build/autogen.lastrun
+   32d31
+   < --enable-lto
+
+2. Counts per build log:
+   logs/build.log                                       localedata_*.cxx compiled:   0 | lines naming *.wasm.lto.*: 10262 | wasm-ld signature-mismatch warnings: 10262
+   logs/build-t2.log                                    localedata_*.cxx compiled: 285 | lines naming *.wasm.lto.*:     0 | wasm-ld signature-mismatch warnings:     0
+   logs/build-t3.log                                    localedata_*.cxx compiled: 285 | lines naming *.wasm.lto.*:     0 | wasm-ld signature-mismatch warnings:     0
+   upstream-master/build-671c-july-nosym.log            localedata_*.cxx compiled: 285 | lines naming *.wasm.lto.*:     0 | wasm-ld signature-mismatch warnings:     0
+   upstream-master/build-2682-july-nosym.log            localedata_*.cxx compiled: 285 | lines naming *.wasm.lto.*:     0 | wasm-ld signature-mismatch warnings:     0
+   upstream-master/build-lite-nosym.log                 localedata_*.cxx compiled: 285 | lines naming *.wasm.lto.*:     0 | wasm-ld signature-mismatch warnings:     0
+   upstream-master/build-nosym.log                      localedata_*.cxx compiled: 285 | lines naming *.wasm.lto.*:     0 | wasm-ld signature-mismatch warnings:     0
+   (the crash build is the only one that never compiled the 285 locale-data sources and the only one whose link ran LTO on bitcode members)
+
+3. LTO-compiled archives named in the crash build's link (soffice.wasm):
+      2592 soffice.wasm.lto.liblocaledata_others.a
+      1710 soffice.wasm.lto.liblocaledata_euro.a
+       433 soffice.wasm.lto.liblocaledata_en.a
+       396 soffice.wasm.lto.liblocaledata_es.a
+
+4. First warning, verbatim (build.log lines 12730-12733):
+   wasm-ld: warning: function signature mismatch: getDateAcceptancePatterns_ar_KW
+   >>> defined as () -> void in /home/jiajun/LibreOffice/study_LiteCore/wasm-lite/build/instdir/program/liblocaledata_others.a(localedata_ar_KW.o)
+   >>> defined as (i32) -> i32 in /home/jiajun/LibreOffice/study_LiteCore/wasm-lite/build/instdir/program/vcldemo.wasm.lto.liblocaledata_others.a(localedata_ar_KW.o at 455740).o
+   
+
+Reading: the four liblocaledata_*.a archives in the crash tree held LLVM bitcode compiled while --enable-lto was configured; after the reconfigure gbuild did not rebuild them (it does not track compiler flags), so the final link mixed LTO bitcode with non-LTO objects and wasm-ld reported 10262 signature mismatches. The July t3 'control' was a fresh directory without these objects, so it differed from the crash build in this respect as well as in --enable-symbols. NOT VERIFIED causally (the mixed state was not re-created on purpose); supported by: all five clean builds on 2026-11-10, including an exact replica at 671c848b, start normally.
+
+2026-11-10 cleanup: wasm-lite/upstream-master was deleted after this was written; its logs, scripts and configure inputs are in findings/evidence/001/rebuild-2026-11-10/ (see the path mapping in its README.txt).

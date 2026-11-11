@@ -2,12 +2,35 @@
 
 | | |
 |---|---|
-| **狀態** | **可送出** —— 根因已隔離到單一變因 |
-| **Bugzilla** | tdf#______ |
+| **狀態** | **撤銷（2026-11-10）** —— 崩潰無法從原始碼重現；7/31 那棵樹殘留了 `--enable-lto` 時期編的語系資料 bitcode，見〈撤銷〉。~~可送出 —— 根因已隔離到單一變因~~ |
+| **Bugzilla** | 不送 |
 | **發現日** | 2026-07-31 |
 | **嚴重度** | 阻斷（整個 WASM 版本無法使用） |
-| **可重現** | 100%（含 pthread 位址在內，每次堆疊完全相同） |
-| **是否上游** | **是** —— 由 `--disable-symbols` 觸發，任何要出貨的 WASM release build 都會中 |
+| **可重現** | 同一份 7/31 產物 100%；從原始碼重建 0／5（2026-11-10，含 `671c848b` 原樣重建） |
+| **是否上游** | **否**（我方建置目錄狀態：重新 configure 後殘留的 LTO 目的檔）。~~是 —— 由 `--disable-symbols` 觸發，任何要出貨的 WASM release build 都會中~~ |
+
+## 撤銷（2026-11-10）
+
+擁有者要我確認 001 在 26.8.2 與 master 上是否仍存在。2026-11-10 建了五棵，都用 7/31 同一支 `wasm-lite/tools/pw/probe.js`、同一版 Chromium 151，**沒有一棵崩潰**，全部正常進到 Start Center：
+
+| 原始碼 | 組態 | 結果 |
+| --- | --- | --- |
+| master `2a2335cf` | stock（`--with-distro=LibreOfficeWASM32`）＋`--disable-symbols` | 正常 |
+| master `2a2335cf` | 7/31 的 lite 旗標，語言只留 en-US，不套 patch | 正常 |
+| 26.8.2.2 `9dea406a` | 同上 | 正常 |
+| 26.8.2.2 `9dea406a` | 7/31 原樣：zh-TW＋兩個 fs image patch＋`LITE_EXTRA_FONTS_DIR` | 正常 |
+| `671c848b`（7/31 的 commit） | 7/31 原樣 | 正常；`soffice.data` 與 7/31 同為 102,087,692 B |
+
+7/31 會崩的那棵 `wasm-lite/build` 和其他每一棵都不同。**已觀察**（`evidence/001/july-crash-build-stale-lto.txt`）：
+
+- 它最早用 `--enable-lto` configure，12:21 拿掉後重新 configure（`retired-builds/build/autogen.lastrun.bak`）。
+- 它的 `build.log` 裡 285 個 `localedata_*.cxx` 一個都沒有編；其他每一棵都編了 285 個。
+- 它的最終連結對 `liblocaledata_{others,euro,en,es}.a` 做了 LTO，並印出 10,262 條 `wasm-ld: warning: function signature mismatch`；其他每一棵都是 0。
+- 同 commit、同旗標，它的 `soffice.wasm` 比今天的原樣重建小 3,390,587 B，其中只有 586 B 能用路徑長度解釋。
+
+**推論**：`--enable-lto` 那次 configure 之後編出的語系資料目的檔是 LLVM bitcode；重新 configure 後 gbuild 不追蹤編譯旗標，沒有重編它們，最後的連結把 bitcode 與一般目的檔混在一起。7/31 的 t3 是全新目錄、沒有這批殘留，所以「t3 只差符號」的對照其實同時差了這一項，「`--disable-symbols` 就是元凶」的結論不成立。**未驗證**的部分：沒有刻意重造那個混合狀態來讓它再崩一次；devlog 07-31 第 130 行寫「LTO 從來沒有真的跑過」，與這些 log 矛盾，較可能的解釋是那次 LTO 建置沒跑完就中止。
+
+不送上游。`drafts/001-bugzilla.txt` 作廢。教訓：換 configure 旗標要用全新的建置目錄，否則對照組會帶著看不見的差異。
 
 ## 現象
 
@@ -205,3 +228,9 @@ wasm-opt 後處理，而該後處理破壞了 C++ 例外處理的型別比對 �
 - 2026-07-31 `build-t1` 排除 `--with-wasm-module=writer`
 - 2026-07-31 `build-t2` 排除 `--enable-release-build` → 排除法指向 `--disable-symbols`
 - 2026-07-31 `build-t3` 直接驗證 → **確認 `--disable-symbols` 為根因，且差異隔離在最終連結**
+- 2026-11-10 靜態複查（沒有重新建置）：決定最終連結的 gbuild 檔（`EMSCRIPTEN_INTEL_GCC.mk`、`LinkTarget.mk`、`com_GCC_defs.mk`、`unxgcc.mk`）在 26.8.2.2（`9dea406a`）、26.8.3.1（`861effc5`）、master（`2a2335cf`）上與 `671c848b` 逐位元組相同；configure.ac 沒有碰到符號／Emscripten 的改動；README 仍建議 emsdk 4.0.10。master 的 `components.cxx` 寫入執行緒多了「寫完後若有新變更就再寫一次」，`try`／`catch` 結構沒變。**崩潰本身沒有重現過**，仍要擁有者建一次。收據：`evidence/001/upstream-recheck-2026-11-10.txt`
+- 2026-11-10 master `2a2335cf` 上以 README 建議的 stock 組態（`--with-distro=LibreOfficeWASM32`）加 `--disable-symbols` 建置並開 `qt_soffice.html`：**不崩潰**，Start Center 與 7/31 stock 版截圖相同。這個組合在 7/31 從沒建過（stock 當時帶 `--enable-symbols`），所以「任何不帶符號的 WASM release build 都會中」這句沒有證據支持，草稿 `drafts/001-bugzilla.txt` 的 Steps to Reproduce 第 2 步也不成立，送出前必改。7/31 的 lite 旗標在 master 上的重建進行中。證據：`evidence/001/master-2a2335cf/`
+- 2026-11-10 同一天在 master 上用 7/31 會崩的 lite 旗標原樣重建（只把語言縮成 en-US、不套兩個 fs image patch）：**也不崩潰**，正常進到 Start Center。master 上兩種組態都重現不了。接著用相同組態建 26.8.2.2，區分「26.8 之後修掉了」與「需要 zh-TW 等被省略的條件」。證據：`evidence/001/master-2a2335cf/README.txt`
+- 2026-11-10 26.8.2.2（`9dea406a`）用與 master 相同的 lite 組態（en-US、不套 patch）：**也不崩潰**。剩下的差別只有 zh-TW 語言與兩個 fs image patch（7/31 的 t3 也有，所以不是單獨的開關）。照 7/31 原樣（zh-TW＋兩個 patch＋`LITE_EXTRA_FONTS_DIR`）在 26.8.2.2 上的重建進行中。證據：`evidence/001/26.8.2.2-9dea406a/`
+- 2026-11-10 26.8.2.2 照 7/31 原樣（zh-TW＋兩個 fs image patch＋`LITE_EXTRA_FONTS_DIR`，configure 參數只差平行度）：**仍不崩潰**；fs image metadata 的大小與 7/31 崩潰那次完全相同（150,276 B）。剩下的差別只有原始碼版本，另有一個要正視的假說：同源同旗標的 WASM 建置不可重現（032／036），7/31 的崩潰版與 t3 各只建過一次，崩潰可能是那一次產物的偶發性質。下一步在 `671c848b` 照原樣重建來分開兩者。證據：`evidence/001/26.8.2.2-9dea406a/README.txt`
+- 2026-11-10 `671c848b` 照 7/31 原樣重建（全新目錄）：**不崩潰**，`soffice.data` 與 7/31 同為 102,087,692 B，`soffice.wasm` 卻大 3.39 MB。比對 log 找到差別：7/31 那棵沒編過任何 `localedata_*.cxx`，連結時對四個語系資料函式庫做了 LTO 並印出 10,262 條 signature mismatch，其他每一棵都是 0。**撤銷**，見〈撤銷〉。證據：`evidence/001/671c848b-rebuild/`、`evidence/001/july-crash-build-stale-lto.txt`

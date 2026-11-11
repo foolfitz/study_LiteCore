@@ -1,0 +1,52 @@
+=== Internal note (not sent) ===
+Status: draft only; upstream submissions are on hold (since 2026-08-15). Written 2026-11-11 from findings/002-vcldemo-missing-fs-image.md and findings/evidence/002/.
+Before sending: re-run the duplicate search (receipt: findings/evidence/002/dup-search-2026-11-11.txt). Fetch master and re-check static/README.wasm.md, vcl/Executable_vcldemo.mk and desktop/Executable_soffice_bin.mk; if any changed, re-read this text against them.
+Fields: Product LibreOffice. Component LibreOffice (TDF Bugzilla has no build-system component; the README.wasm.md typo, tdf#169649, was filed under LibreOffice). Version 27.2.0.0 alpha0+ master (the stock runtime reproduction; triagers move Version to the earliest affected release themselves). Hardware All. OS All (there is no WASM value). Severity normal.
+Attachments: none needed, the log is quoted inline. If attaching findings/evidence/002/master-2a2335cf/nosym-qt_vcldemo.txt or the qt_soffice control log, remove the local absolute paths in their headers first.
+Local tree: the master tree had no local changes (git status clean), so "no local changes" below is accurate. The 2026-07-31 libreoffice-26-8 tree was also clean.
+Not claimed: that vcldemo worked before cf0b0f0dd04f (no older tree was built); that vcldemo runs correctly once it gets the image; that fix (a) works (not built). Everything after "Probable origin" can be deleted without weakening the report.
+=== End of internal note ===
+
+Summary: WASM: qt_vcldemo.html, which static/README.wasm.md says to run, fails with "Cannot open uno ini" because vcldemo is linked without the filesystem image loader
+
+Description:
+
+static/README.wasm.md, section "Status of LibreOffice as WASM with Qt", says that after the build "You should be able to run either" workdir/installation/LibreOffice/emscripten/qt_soffice.html or workdir/LinkTarget/Executable/qt_vcldemo.html. The first one works. The second one stops at UNO bootstrap: the canvas stays blank and the console shows
+
+    Bootstrap exception Cannot open uno ini file:///instdir/program/unorc
+
+The page never requests soffice.data or soffice.data.js.metadata. Both files are present next to vcldemo.js (in an Emscripten build, solenv/gbuild/platform/unxgcc.mk copies them next to every Executable and CppunitTest, together with a generated qt_<name>.html when Qt is enabled), but vcldemo.js contains no code that loads them. So vcldemo's virtual file system has no /instdir, and cppu bootstrap finds no unorc.
+
+Steps to reproduce:
+1. Build master for WASM with Qt5 as static/README.wasm.md describes. We used --with-distro=LibreOfficeWASM32 --disable-symbols, emsdk 4.0.10 and Qt 5.15.2 from allotropia's qt5 repository, on master 2a2335cf with no local changes.
+2. In workdir/LinkTarget/Executable, run:
+
+    emrun --hostname 127.0.0.1 --serve_after_close qt_vcldemo.html
+
+3. Open the page in a new tab.
+
+Actual: blank canvas; the console line above appears about 0.6 s after load.
+Expected: the vcldemo rendering tests, or README.wasm.md not listing qt_vcldemo.html as something to run.
+
+Network requests and console output of step 3 (headless Chromium 151, served with COOP/COEP):
+
+    [0.0s] 200      3229 B  qt_vcldemo.html
+    [0.0s] 200      3047 B  qtlogo.svg
+    [0.0s] 200     22298 B  qtloader.js
+    [0.2s] 200    282679 B  vcldemo.js
+    [0.2s] 200 149670792 B  vcldemo.wasm
+    [0.6s] Bootstrap exception Cannot open uno ini file:///instdir/program/unorc
+
+Control in the same build, served the same way: qt_soffice.html requests soffice.data.js.metadata and soffice.data at 0.6 s and reaches the Start Center.
+
+The build output shows the same difference without a browser: grep for "soffice.data" or "loadPackage" matches nothing in vcldemo.js and matches in soffice.js.
+
+Source (master 2a2335cf): the loader is file_packager's output soffice.data.js.link. It is added as --pre-js only in desktop/Executable_soffice_bin.mk, inside ifeq ($(OS),EMSCRIPTEN), together with static/emscripten/environment.js. vcl/Executable_vcldemo.mk adds no pre-js. vcl/Module_vcl.mk builds Executable_vcldemo for EMSCRIPTEN with Qt5 explicitly, so vcldemo looks intended to run in the browser.
+
+Probable origin, from reading the history only (we did not build an older tree): before commit cf0b0f0dd04f ("Emscripten: Only add the --pre-js code to the soffice executable", 2024-04-30, first in 24.8), solenv/gbuild/platform/EMSCRIPTEN_INTEL_GCC.mk added gb_EMSCRIPTEN_PRE_JS_FILES (environment.js and soffice.data.js.link) to every Executable and CppunitTest, so vcldemo would have had the loader. That commit restricted the pre-js to soffice_bin, so that executables run under node, such as uri-encode.js, no longer fail with "XMLHttpRequest is not defined". Its message notes that every executable still depends on soffice.data and soffice.data.js.metadata for the cp instructions in unxgcc.mk, and that this "can probably be cleaned up further in a next step". The README line is older (12a6b57c74aa, 2022-01) and has stayed since.
+
+Also seen on libreoffice-26-8 at 671c848b (2026-07-31): the same console error, and vcldemo.js had no loader in each of the three configurations we built there. The files involved are unchanged in libreoffice-26.8.2.2 and libreoffice-26.8.3.1; for those two tags we read the source but did not run them.
+
+Possible fixes, depending on whether vcldemo is still meant to run in the browser. We have tested neither.
+(a) If it is: in vcl/Executable_vcldemo.mk, add the same EMSCRIPTEN block that desktop/Executable_soffice_bin.mk has (the link-target dependency on soffice.data.js.link and the two gb_Executable_add_prejs calls), with soffice_bin replaced by vcldemo. This changes only how vcldemo is linked, so the node case that cf0b0f0dd04f fixed is not affected. We have not checked whether vcldemo runs correctly once it has the image.
+(b) If it is not: remove the qt_vcldemo.html line from README.wasm.md, and perhaps stop building Executable_vcldemo for EMSCRIPTEN.

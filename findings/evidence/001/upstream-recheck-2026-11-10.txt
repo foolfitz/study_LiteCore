@@ -1,0 +1,47 @@
+Static upstream re-check, 2026-11-10T09:36Z
+Repository: /home/jiajun/LibreOffice/lo-submit (remote: https://github.com/LibreOffice/core.git)
+Found at:   671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb 2026-07-30
+Compared:   libreoffice-26.8.2.2 = 9dea406ab7695df6325b11b0e19fdca8db4b7276 2026-10-22
+Compared:   libreoffice-26.8.3.1 = 861effc5289d539f15c4c18d1ba8579ffd78728b 2026-11-09
+Compared:   origin/master = 2a2335cf091104f36d44809b2fb70a9cd32258df 2026-11-10
+Method: git diff / git grep on committed trees. Nothing was built or run for this receipt.
+
+Finding 001: --disable-symbols WASM build crashes at startup (configmgrWriter).
+Files that decide the final link and the thread that crashed:
+  libreoffice-26.8.2.2: identical to 671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb
+  libreoffice-26.8.3.1: identical to 671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb
+  origin/master:  1 file changed, 8 insertions(+)
+
+$ git -C /home/jiajun/LibreOffice/lo-submit diff 671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb origin/master -- solenv/gbuild/platform/EMSCRIPTEN_INTEL_GCC.mk solenv/gbuild/LinkTarget.mk solenv/gbuild/platform/com_GCC_defs.mk solenv/gbuild/platform/unxgcc.mk configmgr/source/components.cxx configmgr/source/writemodfile.cxx
+diff --git a/configmgr/source/components.cxx b/configmgr/source/components.cxx
+index 85e66a1f27f6..ec85508232b2 100644
+--- a/configmgr/source/components.cxx
++++ b/configmgr/source/components.cxx
+@@ -216,6 +216,14 @@ void Components::WriteThread::execute() {
+         if (!delayOrTerminate_.check()) {
+             continue;
+         }
++        {
++            std::scoped_lock l(triggerMutex_);
++            if (triggered_) {
++                // A change committed while the file was being written is still waiting, so
++                // write the file once more. The delay is over, so this writes right away.
++                continue;
++            }
++        }
+         reference_->clear();
+         break;
+     }
+
+671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb: README 'Qt 5.15.2 with Emscripten 4.0.10.' | EMSCRIPTEN_MIN 3.1.46
+libreoffice-26.8.2.2: README 'Qt 5.15.2 with Emscripten 4.0.10.' | EMSCRIPTEN_MIN 3.1.46
+libreoffice-26.8.3.1: README 'Qt 5.15.2 with Emscripten 4.0.10.' | EMSCRIPTEN_MIN 3.1.46
+origin/master: README 'Qt 5.15.2 with Emscripten 4.0.10.' | EMSCRIPTEN_MIN 3.1.46
+
+configure.ac 671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb..libreoffice-26.8.2.2, changed lines mentioning symbol/emscripten/wasm:
+  (none)
+configure.ac 671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb..libreoffice-26.8.3.1, changed lines mentioning symbol/emscripten/wasm:
+  (none)
+configure.ac 671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb..origin/master, changed lines mentioning symbol/emscripten/wasm:
+-    if test "$_os" = "Emscripten"; then
++    Emscripten)
