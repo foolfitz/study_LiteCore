@@ -1,6 +1,6 @@
 === Internal note (not sent) ===
 Status: draft only; upstream submissions are on hold (since 2026-08-15). Written 2026-11-11 from findings/002-vcldemo-missing-fs-image.md and findings/evidence/002/.
-Before sending: re-run the duplicate search (receipt: findings/evidence/002/dup-search-2026-11-11.txt). Fetch master and re-check static/README.wasm.md, vcl/Executable_vcldemo.mk and desktop/Executable_soffice_bin.mk; if any changed, re-read this text against them.
+Before sending: re-run the duplicate search (receipt: findings/evidence/002/dup-search-2026-11-11.txt; re-run done 2026-11-11 afternoon, no duplicate, master 137884614536 re-checked). Paste-ready text: findings/drafts/002-bugzilla-paste.txt (generated from this file; regenerate it after any edit here). Fetch master and re-check static/README.wasm.md, vcl/Executable_vcldemo.mk and desktop/Executable_soffice_bin.mk; if any changed, re-read this text against them.
 Fields: Product LibreOffice. Component LibreOffice (TDF Bugzilla has no build-system component; the README.wasm.md typo, tdf#169649, was filed under LibreOffice). Version 27.2.0.0 alpha0+ master (the stock runtime reproduction; triagers move Version to the earliest affected release themselves). Hardware All. OS All (there is no WASM value). Severity normal.
 Attachments: none needed, the log is quoted inline. If attaching findings/evidence/002/master-2a2335cf/nosym-qt_vcldemo.txt or the qt_soffice control log, remove the local absolute paths in their headers first.
 Local tree: the master tree had no local changes (git status clean), so "no local changes" below is accurate. The 2026-07-31 libreoffice-26-8 tree was also clean.
@@ -20,7 +20,7 @@ static/README.wasm.md, section "Status of LibreOffice as WASM with Qt", says tha
 The page never requests soffice.data or soffice.data.js.metadata. Both files are present next to vcldemo.js (in an Emscripten build, solenv/gbuild/platform/unxgcc.mk copies them next to every Executable and CppunitTest, together with a generated qt_<name>.html when Qt is enabled), but vcldemo.js contains no code that loads them. So vcldemo's virtual file system has no /instdir, and cppu bootstrap finds no unorc.
 
 Steps to reproduce:
-1. Build master for WASM with Qt5 as static/README.wasm.md describes. We used --with-distro=LibreOfficeWASM32 --disable-symbols, emsdk 4.0.10 and Qt 5.15.2 from allotropia's qt5 repository, on master 2a2335cf with no local changes.
+1. Build master for WASM with Qt5 as static/README.wasm.md describes. We used --with-distro=LibreOfficeWASM32 --disable-symbols, emsdk 4.0.10 and Qt 5.15.2 from allotropia's qt5 repository, on master 2a2335cf with no local changes. (On e42678e7 of 2026-11-11, configure with the same options stops with "Can't build --disable-dynamic-loading without --disable-gui and a single VCL plugin", after "VCLplugs to be built: gtk3 qt5"; that is why we stayed on 2a2335cf.)
 2. In workdir/LinkTarget/Executable, run:
 
     emrun --hostname 127.0.0.1 --serve_after_close qt_vcldemo.html

@@ -38,3 +38,19 @@ Field values (GET /rest/product?names=LibreOffice, /rest/field/bug/<name>):
 
 Conclusion: no existing report of qt_vcldemo.html failing in the WASM build was found.
 Re-run before sending; this receipt goes stale.
+
+Re-run 2026-11-11 afternoon, before sending (owner asked to report 002). Same tracker, same query forms (f1=longdesc / f1=short_desc, o1=substring):
+  longdesc "Cannot open uno ini"   1   159502 (as before)
+  longdesc "vcldemo"              10   same ten bugs as before; 145538 (range-for easy hack) was updated today by a commit notice, 0 of its 120 comments mention wasm/emscripten
+  longdesc "qt_vcldemo"            0
+  longdesc "vcldemo.html"          0
+  longdesc "soffice.data"          0
+  longdesc "emscripten_fs_image"   0
+  longdesc "README.wasm"           1   169649 (as before)
+  longdesc "QApplication::exec"    0   (new: the second cause)
+  longdesc "simulateInfiniteLoop"  0   (new)
+  summary  "vcldemo"               1   146478 (as before)
+  summary  "wasm"                  2   169649, 172679 (as before)
+  summary  "emscripten"            0
+Master re-check: origin/master 137884614536 (2026-11-11 09:50 +0100). Since 2a2335cf, none of static/README.wasm.md, vcl/Executable_vcldemo.mk, desktop/Executable_soffice_bin.mk, vcl/workben/vcldemo.cxx, desktop/source/app/sofficemain.cxx, unxgcc.mk, EMSCRIPTEN_INTEL_GCC.mk or vcl/qt5/QtInstance.cxx changed. vcl/Module_vcl.mk changed only in d98a796946ff, outside the vcldemo lines. configure.ac has no change after e42678e7, so the WASM configure failure noted in the draft still applies.
+Conclusion: still no duplicate.

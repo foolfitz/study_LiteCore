@@ -142,3 +142,4 @@ $ grep -c 'soffice\.data\|loadPackage' soffice.js      → 11
 - 2026-11-11 用 Bugzilla REST 查重複，沒有找到；查欄位值時發現 Component「Build tooling」不存在，改成 `LibreOffice`。讀歷史找到可能的起點 `cf0b0f0dd04f`（推論，沒有實際建置）。寫好 `drafts/002-bugzilla.txt`，送出仍擱置
 - 2026-11-11 下午 擁有者要求真的修一次並代跑建置。`e42678e7` 的 configure 失敗（gtk3＋qt5，推論是 `d98a796946ff` 造成的，另案），改用 `2a2335cf`，建置 52 分 51 秒。F1 過了 bootstrap、建出視窗，但不畫；F1＋F2 也一樣。草稿的修法 (a) 改寫成實測結果。證據：`evidence/002/fix-2a2335cf/`
 - 2026-11-11 14:45–15:15 擁有者選 A 繼續追：找到第二個原因（`QApplication::exec()` 拆堆疊時把主視窗銷毀），加上 F3 之後 vcldemo 正常運作；F2 不需要。最終修法 F1＋F3（`fix-final.patch`），判準 1–4 過，5 待擁有者看。草稿改成「附測過的修法」
+- 2026-11-11 下午 擁有者指示「這個 finding 先回報」（只解除 002 的擱置）。重查重複單：仍無；master `13788461` 上相關檔案未變。草稿加註今天 master 的 configure 失敗（只寫觀察到的訊息）。可直接貼上的文字：`drafts/002-bugzilla-paste.txt`。由擁有者用自己的帳號送出，拿到單號後填回上方 Bugzilla 欄
