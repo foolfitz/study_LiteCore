@@ -105,7 +105,7 @@ LibreOffice 的 WASM 建置說明（`static/README.wasm.md`）列了兩個「建
 
 - 2026-11-11 早上用 Bugzilla 的 REST API 查留言全文：`qt_vcldemo`、`vcldemo.html`、`soffice.data`、`emscripten_fs_image` 都是 0 筆。提到 vcldemo 的 10 張全是原生版的問題（例如 Linux 上關視窗時 assert、macOS 上不開視窗），沒有 WASM 的。
 - 下午送出前又重查一次，加查了第二個原因的關鍵字（`QApplication::exec`、`simulateInfiniteLoop`），還是沒有重複。最新 master（`13788461`）上相關檔案都沒變。收據放在 `findings/evidence/002/dup-search-2026-11-11.txt`。
-- **送出**：2026-08-15 起擱置的上游送出，你在 11-11 下午指示「這個 finding 先回報」，只解除 002。由你用自己的帳號送；送出後把單號告訴我，我填回 finding。修法要不要送 Gerrit，之後再談。
+- **送出**：2026-08-15 起擱置的上游送出，你在 11-11 下午指示「這個 finding 先回報」，只解除 002。你已經送出：**tdf#174440**。修法的 Gerrit commit 也準備好了（標題帶 `tdf#174440`），由你自己推。
 
 ## 順帶發現
 
@@ -121,3 +121,4 @@ LibreOffice 的 WASM 建置說明（`static/README.wasm.md`）列了兩個「建
 - 2026-11-11 上午：初版（只有第一個原因，修法未測）。
 - 2026-11-11 下午：補上 vcldemo 是什麼、第二個原因、修好之後的結果、送出狀態，以及兩項順帶發現；標題改成「我們把它修好了」。
 - 2026-11-11 下午：草稿加一句除錯價值。
+- 2026-11-11 晚上：記上 tdf#174440 與 Gerrit 準備狀態。

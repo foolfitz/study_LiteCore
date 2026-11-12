@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **狀態** | 可送出（根因完全確定，不依賴精簡組態）；2026-11-11 起附測過的修法（F1＋F3） |
-| **Bugzilla** | tdf#______ |
+| **Bugzilla** | [tdf#174440](https://bugs.documentfoundation.org/show_bug.cgi?id=174440)（2026-11-11 擁有者送出） |
 | **發現日** | 2026-07-31 |
 | **嚴重度** | 一般（影響的是官方文件指定的測試路徑） |
 | **可重現** | 100% |
@@ -143,3 +143,4 @@ $ grep -c 'soffice\.data\|loadPackage' soffice.js      → 11
 - 2026-11-11 下午 擁有者要求真的修一次並代跑建置。`e42678e7` 的 configure 失敗（gtk3＋qt5，推論是 `d98a796946ff` 造成的，另案），改用 `2a2335cf`，建置 52 分 51 秒。F1 過了 bootstrap、建出視窗，但不畫；F1＋F2 也一樣。草稿的修法 (a) 改寫成實測結果。證據：`evidence/002/fix-2a2335cf/`
 - 2026-11-11 14:45–15:15 擁有者選 A 繼續追：找到第二個原因（`QApplication::exec()` 拆堆疊時把主視窗銷毀），加上 F3 之後 vcldemo 正常運作；F2 不需要。最終修法 F1＋F3（`fix-final.patch`），判準 1–4 過，5 待擁有者看。草稿改成「附測過的修法」
 - 2026-11-11 下午 擁有者指示「這個 finding 先回報」（只解除 002 的擱置）。重查重複單：仍無；master `13788461` 上相關檔案未變。草稿加註今天 master 的 configure 失敗（只寫觀察到的訊息）。可直接貼上的文字：`drafts/002-bugzilla-paste.txt`。由擁有者用自己的帳號送出，拿到單號後填回上方 Bugzilla 欄
+- 2026-11-11 擁有者送出 Bugzilla：tdf#174440（UNCONFIRMED，內容與 `drafts/002-bugzilla-paste.txt` 相同）。Gerrit：commit `6d9c3bcad32c`（base master `6962faa8`，作者 Jiajun Xu，Change-Id `I4048607f1b9eb3eeed9698985379d658afcef97c`，patch 存為 `evidence/002/fix-2a2335cf/gerrit-0001-tdf174440.patch`），由擁有者自己推（選 B），reviewer 建議 Stephan Bergmann
