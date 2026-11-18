@@ -2,8 +2,8 @@
 
 | | |
 |---|---|
-| **狀態** | **已確認、成因已定（靜態讀出，可查核）**（2026-10-20 深夜）；**2026-11-18 在 stock 上游 master 建置上執行期重現，bridge 的例外訊息原文讀到**（見〈2026-11-18〉）；修法已在我們的產品（0.2.32 起），上游 commit 已備（未推），修法在 master 上的執行期驗證等擁有者重建 |
-| **Bugzilla** | 未開。草稿 `findings/drafts/159-bugzilla.txt`（修法段待重建結果）。~~未在上游 build 上重現~~（2026-11-18 已重現） |
+| **狀態** | **已確認、成因已定（靜態讀出，可查核）**（2026-10-20 深夜）；**2026-11-18 在 stock 上游 master 建置上執行期重現，bridge 的例外訊息原文讀到**（見〈2026-11-18〉）；修法已在我們的產品（0.2.32 起）；**同日在 master 上重建並執行期驗證修法成立**；上游 commit 已備（未推），Bugzilla 草稿只差 Gerrit 連結 |
+| **Bugzilla** | 未開。草稿 `findings/drafts/159-bugzilla.txt`（只差 Gerrit 連結；順序：先推 Gerrit、填連結、開單、再把 `tdf#` 加進 commit 標題推新 patch set）。~~未在上游 build 上重現~~（2026-11-18 已重現） |
 | **發現日** | 2026-10-20（`phase-e/report-2026-10-20T133240Z.json`；探針 `phase-e/159-diagnosis/`） |
 | **嚴重度** | 高：使用者看到整欄 `#VALUE!`（財務函數、YEARFRAC、SERIESSUM…），而檔案本身帶著正確的快取值 |
 | **可重現** | 語料 2 份檔 × 3 次執行；探針檔 1 次，20 格裡 add-in 的 5 格全 `#VALUE!`、核心函數全對 |
@@ -80,7 +80,7 @@ Bugzilla 查重複（關鍵字 `wasm` `add-in` `#VALUE!` `wasmbridgegen`）。�
 
 **修法的離線部分**：用 build-186-R 自己的 build-side `wasmbridgegen` 與 rdb 手動跑（0.1 秒，不編譯）。不加 scaddins：三個輸出與建置產物逐位元組相同（正向對照）。加了：52 → 77 個簽章，嚴格超集，`exports` 不變，scaddins 114 個方法全在表內。
 
-**上游 commit**：`wasm-lite/upstream-master/src-186-R` 的分支 `finding159-test-on-R`，現為 `4a59e013bf53`（R 之上一個 commit，只改 `bridges/CustomTarget_gcc3_wasm.mk`）。要推上 Gerrit 時從 `origin/master` 另做一個分支（不帶 186 的 commit；兩者互不相依）。
+**上游 commit**：要推的是 `wasm-lite/upstream-master/submit` 的分支 **`emscripten-bridge-scaddins`（`ab916909bf26`）**，直接接在 `origin/master`（`ac53621f`）上、不帶 186 的 commit，Change-Id `I2f56dc9c…`。建置測試用的是 `src-186-R` 的分支 `finding159-test-on-R`（R 之上；建置時是 `4a59e013bf53`，之後只改 message 成 `f5b94b8ad868`），兩邊的 diff 逐位元組相同。
 
 **codex 審查（一輪）**，原文 `findings/evidence/159/stock-runtime/review-codex-2026-11-18.txt`，對象是第一版 `7a22cea9016c`：
 
@@ -91,6 +91,14 @@ Bugzilla 查重複（關鍵字 `wasm` `add-in` `#VALUE!` `wasmbridgegen`）。�
 
 因審核而改的檢查數：0（改的是 diff、commit message、重建腳本的流程）。
 
-**還沒做的**：修法在 master 上的執行期驗證。要重建 `build-186-R`（會編譯，擁有者跑 `findings/evidence/159/stock-runtime/rebuild_159_fix.sh`），之後同一支探針與判讀工具（換成新表的簽章 TSV）再跑一次。重建前的產物已複製到 `wasm-lite/upstream-master/archive-186-R-products-before-159/`。
+**修法的執行期驗證（同日，擁有者說「請你幫我跑重建」）**〔已觀察〕：預測 F0–F5 先 commit（`PREDICTIONS-fix.txt`），`rebuild_159_fix.sh` 增量重建 `build-186-R` 317 秒，make exit 0。
+
+- F0 成立：沒有先刪產出，make 自己重產了簽章表——審查加的「`.mk` 本身為前置條件」生效（其餘前置條件都比產出舊）。
+- F1、F2 成立：三個產出與離線結果逐位元組相同，77 個簽章，114 個方法全在表內。
+- **F3 部分失準**：除了 `soffice.wasm`／`soffice.js`，`soffice.data` 也變了。查下去只有 `setuprc`、`versionrc` 兩個檔的 `buildid=` 從 `4847e69…` 變成 `4a59e013…`——映像帶著原始碼樹 HEAD 的 commit，任何新 commit 都會改它。不是修法帶來的，是我預測時漏想。
+- F4 成立：三次執行（兩次 en-US、一次 zh-TW），原本 `#VALUE!` 的 8 格都變成桌面版的值，直接呼叫的 3 個不再丟例外；全部 `not as expected: 0`。
+- F5 成立（對照）：同樣的修後結果拿 stock 的表來判，三次都正好紅在 A1–A8、D4–D6。
+
+`build-186-R` 現在是 R＋159，不再是純 R；重建前的產物在 `wasm-lite/upstream-master/archive-186-R-products-before-159/`（附 SHA256SUMS）。
 
 **沒有涵蓋**：帶快取值的文件（本檔「載入時重算」那一半，另一件事）；其餘 95 個 add-in 函數只有計算分類、沒有實跑；建置組態只有預設模組組合。

@@ -1,0 +1,102 @@
+# cases: cells core=5 IN_TABLE=18 ABSENT=0; direct IN_TABLE=6 ABSENT=0; signatures from sig-fixed-186R.tsv
+
+## run-fix-01/R159-en-US.json  (navigator.language=en-US)
+id   signature          expect typed: err value/string            API: err value/string              ok
+C1   core               value    0 '2'                              0 '2'                            yes
+C2   core               value    0 '3'                              0 '3'                            yes
+C3   core               value    0 '01/01/01'                       0 '01/01/01'                     yes
+C4   core               value    0 '23'                             0 '23'                           yes
+C5   core               value    0 'TRUE'                           0 'TRUE'                         yes
+I1   dii IN_TABLE       value    0 '15'                             0 '15'                           yes
+I2   did IN_TABLE       value    0 '1.77245385090552'               0 '1.77245385090552'             yes
+I3   iiiii IN_TABLE     value    0 '36950'                          0 '36950'                        yes
+I4   iiiii IN_TABLE     value    0 '36950'                          0 '36950'                        yes
+I5   iiiiii IN_TABLE    value    0 '36899'                          0 '36899'                        yes
+I6   dii IN_TABLE       value    0 '10'                             0 '10'                           yes
+I7   dii IN_TABLE       value    0 '5'                              0 '5'                            yes
+I8   iiii IN_TABLE      value    0 '28'                             0 '28'                           yes
+I9   iiii IN_TABLE      value    0 '1'                              0 '1'                            yes
+I10  viii IN_TABLE      value    0 'nop'                            0 'nop'                          yes
+A1   diiii IN_TABLE     value    0 '10'                             0 '10'                           yes
+A2   didddi IN_TABLE    value    0 '24'                             0 '24'                           yes
+A3   diiiii IN_TABLE    value    0 '0.495890410958904'              0 '0.495890410958904'            yes
+A4   diiiiii IN_TABLE   value    0 '181'                            0 '181'                          yes
+A5   didd IN_TABLE      value    0 '3'                              0 '3'                            yes
+A6   didd IN_TABLE      value    0 '9'                              0 '9'                            yes
+A7   didi IN_TABLE      value    0 '0.981666428577908'              0 '0.981666428577908'            yes
+A8   didddddd IN_TABLE  value    0 '0.63042366514157'               0 '0.63042366514157'             yes
+id   signature          expect result
+D1   dii IN_TABLE       value  returned 15  yes
+D2   did IN_TABLE       value  returned 1.7724538509055159  yes
+D3   viii IN_TABLE      value  returned 'nop'  yes
+D4   didd IN_TABLE      value  returned 3  yes
+D5   didi IN_TABLE      value  returned 0.9816664285779076  yes
+D6   didddddd IN_TABLE  value  returned 0.6304236651415704  yes
+
+## run-fix-02/R159-en-US.json  (navigator.language=en-US)
+id   signature          expect typed: err value/string            API: err value/string              ok
+C1   core               value    0 '2'                              0 '2'                            yes
+C2   core               value    0 '3'                              0 '3'                            yes
+C3   core               value    0 '01/01/01'                       0 '01/01/01'                     yes
+C4   core               value    0 '23'                             0 '23'                           yes
+C5   core               value    0 'TRUE'                           0 'TRUE'                         yes
+I1   dii IN_TABLE       value    0 '15'                             0 '15'                           yes
+I2   did IN_TABLE       value    0 '1.77245385090552'               0 '1.77245385090552'             yes
+I3   iiiii IN_TABLE     value    0 '36950'                          0 '36950'                        yes
+I4   iiiii IN_TABLE     value    0 '36950'                          0 '36950'                        yes
+I5   iiiiii IN_TABLE    value    0 '36899'                          0 '36899'                        yes
+I6   dii IN_TABLE       value    0 '10'                             0 '10'                           yes
+I7   dii IN_TABLE       value    0 '5'                              0 '5'                            yes
+I8   iiii IN_TABLE      value    0 '28'                             0 '28'                           yes
+I9   iiii IN_TABLE      value    0 '1'                              0 '1'                            yes
+I10  viii IN_TABLE      value    0 'nop'                            0 'nop'                          yes
+A1   diiii IN_TABLE     value    0 '10'                             0 '10'                           yes
+A2   didddi IN_TABLE    value    0 '24'                             0 '24'                           yes
+A3   diiiii IN_TABLE    value    0 '0.495890410958904'              0 '0.495890410958904'            yes
+A4   diiiiii IN_TABLE   value    0 '181'                            0 '181'                          yes
+A5   didd IN_TABLE      value    0 '3'                              0 '3'                            yes
+A6   didd IN_TABLE      value    0 '9'                              0 '9'                            yes
+A7   didi IN_TABLE      value    0 '0.981666428577908'              0 '0.981666428577908'            yes
+A8   didddddd IN_TABLE  value    0 '0.63042366514157'               0 '0.63042366514157'             yes
+id   signature          expect result
+D1   dii IN_TABLE       value  returned 15  yes
+D2   did IN_TABLE       value  returned 1.7724538509055159  yes
+D3   viii IN_TABLE      value  returned 'nop'  yes
+D4   didd IN_TABLE      value  returned 3  yes
+D5   didi IN_TABLE      value  returned 0.9816664285779076  yes
+D6   didddddd IN_TABLE  value  returned 0.6304236651415704  yes
+
+## run-fix-03/R159-default.json  (navigator.language=zh-TW)
+id   signature          expect typed: err value/string            API: err value/string              ok
+C1   core               value    0 '2'                              0 '2'                            yes
+C2   core               value    0 '3'                              0 '3'                            yes
+C3   core               value    0 '2001/1/1'                       0 '2001/1/1'                     yes
+C4   core               value    0 '23'                             0 '23'                           yes
+C5   core               value    0 '真'                              0 '真'                            yes
+I1   dii IN_TABLE       value    0 '15'                             0 '15'                           yes
+I2   did IN_TABLE       value    0 '1.77245385090552'               0 '1.77245385090552'             yes
+I3   iiiii IN_TABLE     value    0 '36950'                          0 '36950'                        yes
+I4   iiiii IN_TABLE     value    0 '36950'                          0 '36950'                        yes
+I5   iiiiii IN_TABLE    value    0 '36899'                          0 '36899'                        yes
+I6   dii IN_TABLE       value    0 '10'                             0 '10'                           yes
+I7   dii IN_TABLE       value    0 '5'                              0 '5'                            yes
+I8   iiii IN_TABLE      value    0 '28'                             0 '28'                           yes
+I9   iiii IN_TABLE      value    0 '1'                              0 '1'                            yes
+I10  viii IN_TABLE      value    0 'nop'                            0 'nop'                          yes
+A1   diiii IN_TABLE     value    0 '10'                             0 '10'                           yes
+A2   didddi IN_TABLE    value    0 '24'                             0 '24'                           yes
+A3   diiiii IN_TABLE    value    0 '0.495890410958904'              0 '0.495890410958904'            yes
+A4   diiiiii IN_TABLE   value    0 '181'                            0 '181'                          yes
+A5   didd IN_TABLE      value    0 '3'                              0 '3'                            yes
+A6   didd IN_TABLE      value    0 '9'                              0 '9'                            yes
+A7   didi IN_TABLE      value    0 '0.981666428577908'              0 '0.981666428577908'            yes
+A8   didddddd IN_TABLE  value    0 '0.63042366514157'               0 '0.63042366514157'             yes
+id   signature          expect result
+D1   dii IN_TABLE       value  returned 15  yes
+D2   did IN_TABLE       value  returned 1.7724538509055159  yes
+D3   viii IN_TABLE      value  returned 'nop'  yes
+D4   didd IN_TABLE      value  returned 3  yes
+D5   didi IN_TABLE      value  returned 0.9816664285779076  yes
+D6   didddddd IN_TABLE  value  returned 0.6304236651415704  yes
+
+# not as expected: 0

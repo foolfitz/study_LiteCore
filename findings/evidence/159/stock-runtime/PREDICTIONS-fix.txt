@@ -21,3 +21,16 @@ F0  rebuild_159_fix.sh no longer deletes the generated files: the incremental ma
     (receipt: regenerated_by_incremental_make=yes). In build-186-R scaddins.rdb (03:02:17), udkapi.rdb, offapi.rdb
     and wasmbridgegen are all older than generated-cxx.cxx (03:02:19), so only the makefile prerequisite can cause
     that. F1 is unchanged: the generator arguments are the same as in the first version.
+
+Outcome (2026-11-18 11:46-12:00; the owner said "請你幫我跑重建", rebuild_159_fix.sh ran 317 s, make exit 0):
+F0  held: regenerated_by_incremental_make=yes, no fallback (rebuild-159-fix.receipt.txt).
+F1  held: the three generated files have exactly the offline sha256 (e0b5a924, a118d7d8, 714c419f); 77 signatures.
+F2  held: sig-fixed-186R.tsv, 114 of 114 IN_TABLE, byte-identical to sig-patched-offline.tsv.
+F3  MISSED in part: soffice.wasm and soffice.js changed, but soffice.data changed too. The metadata is identical and
+    only two of its 1598 files differ, /instdir/program/setuprc and versionrc, in "buildid=": 4847e69dd326... before,
+    4a59e013bf53... after. The image carries the source tree's HEAD commit, so any new commit changes it. Not caused by
+    the change itself; the prediction overlooked the build id.
+F4  held: verdict-fixed-186R.txt, three runs (run-fix-01, run-fix-02 en-US, run-fix-03 zh-TW), not as expected: 0.
+    The 8 cells that were #VALUE! give the desktop values on both paths; D4-D6 return 3, 0.9816664285779076,
+    0.6304236651415704.
+F5  held: verdict-fixed-runs-vs-stock-table.txt, red in exactly A1-A8 and D4-D6 in each of the three runs.

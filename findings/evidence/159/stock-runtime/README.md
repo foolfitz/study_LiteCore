@@ -45,9 +45,20 @@ $G $O/base/generated-cxx.cxx $O/base/generated-asm.s $O/base/exports +$U/udkapi.
 $G $O/scaddins/generated-cxx.cxx $O/scaddins/generated-asm.s $O/scaddins/exports +$U/udkapi.rdb +$U/offapi.rdb +$U/scaddins.rdb
 ```
 
+## The fix, at run time (same day)
+
+`PREDICTIONS-fix.txt` (F0-F5, committed before the rebuild; outcome appended at its end). `rebuild_159_fix.sh` rebuilt build-186-R incrementally from src-186-R branch `finding159-test-on-R` at `4a59e013bf53` (317 s, make exit 0; `rebuild-159-fix.receipt.txt`, `rebuild-159-fix.log.gz`). That commit's message was amended afterwards (`f5b94b8ad868`, same tree); the upstream branch is `emscripten-bridge-scaddins` (`ab916909bf26`) on `origin/master` without the configure fix, same diff.
+
+- F0: make regenerated the table by itself, through the new makefile prerequisite (nothing else was newer).
+- F1, F2: the generated files equal the offline run byte for byte; 77 signatures; all 114 methods IN_TABLE (`sig-fixed-186R.tsv`).
+- F3 missed in part: `soffice.data` changed as well, but only `setuprc` and `versionrc`, whose `buildid=` is the source tree's HEAD commit.
+- F4: `verdict-fixed-186R.txt`, three runs (`run-fix-01`, `run-fix-02` en-US, `run-fix-03` zh-TW), everything as the fixed table predicts, the 8 former `#VALUE!` cells and the 3 former exceptions included.
+- F5: the same runs judged against the stock table are red in exactly A1-A8 and D4-D6 (`verdict-fixed-runs-vs-stock-table.txt`).
+
+The products of build-186-R before the rebuild are in `wasm-lite/upstream-master/archive-186-R-products-before-159/` (SHA256SUMS there); build-186-R itself is now R plus this change.
+
 ## Not shown here
 
-- The fix at run time on master. `rebuild_159_fix.sh` rebuilds build-186-R with the change (owner runs it); its products before are in `wasm-lite/upstream-master/archive-186-R-products-before-159/`.
 - Documents that carry cached values (the corpus files of finding 159): Calc recalculating at load on WASM is a separate question; here every formula is entered fresh.
 - Functions other than the 18 add-in functions tested. The other 95 are classified by `addin_signatures.py` only.
 - Creating `com.sun.star.sheet.addin.Analysis` through the remote service manager of desktop 26.8 ended that soffice process (`oracle_native.py` docstring); not looked into, the oracle uses cells only.
