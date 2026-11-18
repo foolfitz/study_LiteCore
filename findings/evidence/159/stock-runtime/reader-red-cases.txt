@@ -1,0 +1,8 @@
+# read_159.py red cases, 2026-11-18T11:04:37+08:00; reader sha256 3225d64525106873
+# expected: a, b, c exit 1 with exactly the doctored id NO; d exit 2 (VACUOUS);
+# e (the unmodified stock run judged against a table where every method is IN_TABLE) exit 1 with A1-A8, D4-D6 NO
+a-I1-typed-519: exit=1 NO=[I1 ] 
+b-D4-wrong-signature: exit=1 NO=[D4 ] 
+c-A3-api-gives-value: exit=1 NO=[A3 ] 
+d-last-row-missing: exit=2 NO=[] VACUOUS: /tmp/tmp.yHjbF4f5pf/d-last-row-missing.json has 22 rows and 6 direct results
+e-stock-run-vs-all-in-table: exit=1 NO=[A1 A2 A3 A4 A5 A6 A7 A8 D4 D5 D6 ]

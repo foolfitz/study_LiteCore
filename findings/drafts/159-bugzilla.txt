@@ -1,0 +1,51 @@
+=== Internal note (not sent) ===
+Status: DRAFT 2026-11-18. Not filed. The fix section below waits for the run-time check of the fix on master (findings/evidence/159/stock-runtime/rebuild_159_fix.sh, owner runs it); until then the last two paragraphs must not be sent as they are.
+Written from findings/159-functions-recalculated-at-load-give-value-errors-on-the-viewer-core.md and findings/evidence/159/stock-runtime/ (README.md there).
+Fields: Product LibreOffice. Component Calc? or LibreOffice (tdf#174440, also WASM, was filed under LibreOffice; this one is user-visible in Calc, but the cause is in bridges/ and the build). Version 27.2.0.0 alpha0+ master. Keywords: none needed. Platform: Other / All.
+Before sending: re-run the duplicate search (2026-11-18 research note: wasmbridgegen, "wasm add-in VALUE", "wasm YEARFRAC", the bridge message, all 0). Bugzilla has only 3 bugs with wasm in the title.
+Not claimed: anything about documents with cached values (Calc recalculating them at load on WASM is a separate question, finding 159's second half); that the 95 untested add-in functions behave as classified (the classification is computed, 18 were run); Impress/Draw or other WASM configurations.
+Names: six of the 57 affected add-in functions (GCD, LCM, EFFECT, NOMINAL, CUMIPMT, CUMPRINC) also exist as core functions, and typing the plain name gives the core one (scaddins/source/analysis/analysishelper.cxx marks them DOUBLE; analysis.cxx appends _ADD or _EXCEL2003 to the add-in's UI name). So for those only the suffixed names are affected. CONVERT and DURATION are the add-in in the UI grammar (core's are CONVERT_OOO and PDURATION there), so they are affected as typed.
+=== End of internal note ===
+
+Summary: WASM: about half of Calc's add-in functions (YEARFRAC, MULTINOMIAL, COUPDAYS, ...) give #VALUE!
+
+Description:
+
+In the WASM build (qt_soffice.html), many functions that Calc gets from its add-ins (scaddins: Analysis, DateFunctions, PricingFunctions) evaluate to #VALUE! instead of a number, for example YEARFRAC, MULTINOMIAL, SERIESSUM, COUPDAYS, QUOTIENT, MROUND, BESSELI and OPT_PROB_HIT. Other add-in functions work, for example EOMONTH, EDATE, WORKDAY, FACTDOUBLE, BIN2DEC, IMABS, DAYSINMONTH and ROT13. Core functions are not affected. Nothing is logged.
+
+Steps to reproduce:
+1. Build master for WASM with Qt5 as static/README.wasm.md describes. We used --with-distro=LibreOfficeWASM32 --disable-symbols, emsdk 4.0.10 and Qt 5.15.2, on master ac53621f plus only a local fix for the configure failure since d98a796946ff (it changes only configure.ac; without it master does not configure for WASM).
+2. Open qt_soffice.html and click Calc Spreadsheet in the Start Center.
+3. Type =MULTINOMIAL(2,3) into A1 and press Enter.
+
+Actual: #VALUE!
+Expected: 10, as in desktop LibreOffice.
+
+Results in a new Calc document, typed in the en-US UI (the same with XCell.setFormula, and the same in three runs, two with browser locale en-US and one with zh-TW); the expected values are from desktop LibreOffice 26.8.1.1 with the same formulas:
+
+    =MULTINOMIAL(2,3)                          #VALUE!   expected 10
+    =SERIESSUM(2,3,2,3)                        #VALUE!   expected 24
+    =YEARFRAC(DATE(2001,1,1),DATE(2001,7,1),1) #VALUE!   expected 0.495890410958904
+    =COUPDAYS(DATE(2001,1,25),DATE(2001,11,15),2,1)   #VALUE!   expected 181
+    =QUOTIENT(7,2)                             #VALUE!   expected 3
+    =MROUND(10,3)                              #VALUE!   expected 9
+    =BESSELI(1.5,1)                            #VALUE!   expected 0.981666428577908
+    =OPT_PROB_HIT(100,0.2,0.05,1,80,120)       #VALUE!   expected 0.63042366514157
+    =FACTDOUBLE(5)                             15
+    =SQRTPI(1)                                 1.77245385090552
+    =EOMONTH(DATE(2001,1,15),1)                36950
+    =EDATE(DATE(2001,1,31),1)                  36950
+    =WORKDAY(DATE(2001,1,1),5)                 36899
+    =BIN2DEC("1010")                           10
+    =IMABS("3+4i")                             5
+    =DAYSINMONTH(DATE(2001,2,1))               28
+    =ISLEAPYEAR(DATE(2000,1,1))                1
+    =ROT13("abc")                              nop
+
+Cause: Calc calls an add-in function through XIdlMethod::invoke (ScUnoAddInCall::ExecuteCallWithArgs in sc/source/core/tool/addincol.cxx). On Emscripten that call goes through the gcc3_wasm C++ UNO bridge: call() in bridges/source/cpp_uno/gcc3_wasm/uno2cpp.cxx builds a signature string from the method's return and parameter types and passes it to callVirtualFunction(), which can only call signatures that are in the table wasmbridgegen generates at build time. bridges/CustomTarget_gcc3_wasm.mk runs wasmbridgegen on udkapi and offapi only. The add-in interfaces (XAnalysis, XDateFunctions, XMiscFunctions, XPricingFunctions) are in scaddins' own internal API (scaddins/InternalUnoApi_scaddins.mk), so a method whose signature no udkapi or offapi method happens to share makes the bridge throw RuntimeException "Wasm bridge cannot call virtual function with signature ...". ExecuteCallWithArgs turns that into FormulaError::NoValue, i.e. #VALUE!.
+
+Calling the add-in methods directly from JavaScript (Embind UNO, css.script.Invocation on the add-in object, in the LO main thread's worker) shows the bridge's message: getFactdouble(5) returns 15, while getQuotient(7, 2) throws InvocationTargetException wrapping RuntimeException "Wasm bridge cannot call virtual function with signature didd" (getBesseli: "didi", getOptProbHit: "didddddd").
+
+That also explains which functions fail. Computing each scaddins method's signature with the rule of uno2cpp.cxx call() and looking it up in this build's workdir/CustomTarget/bridges/gcc3_wasm/generated-cxx.cxx (52 signatures), 57 of the 113 add-in functions are not in the table and 56 are. All 8 tested functions from the first group gave #VALUE! and all 10 from the second group gave the right result. The first group is YEARFRAC, MULTINOMIAL, SERIESSUM, QUOTIENT, MROUND, RANDBETWEEN, BESSELI, BESSELJ, BESSELK, BESSELY, DEC2HEX, ERF, COMPLEX, CONVERT, AMORDEGRC, AMORLINC, ACCRINT, ACCRINTM, RECEIVED, DISC, DURATION, MDURATION, PRICE, PRICEDISC, PRICEMAT, YIELD, YIELDDISC, YIELDMAT, TBILLEQ, TBILLPRICE, TBILLYIELD, ODDFPRICE, ODDFYIELD, ODDLPRICE, ODDLYIELD, XIRR, XNPV, INTRATE, COUPNCD, COUPDAYS, COUPDAYSNC, COUPDAYBS, COUPPCD, COUPNUM, FVSCHEDULE, DOLLARFR, DOLLARDE, OPT_BARRIER, OPT_TOUCH, OPT_PROB_HIT, OPT_PROB_INMONEY, and the add-in variants GCD_EXCEL2003, LCM_EXCEL2003, EFFECT_ADD, NOMINAL_ADD, CUMIPMT_ADD and CUMPRINC_ADD (the plain names GCD, LCM, EFFECT, NOMINAL, CUMIPMT and CUMPRINC are core functions and work).
+
+Fix: also run wasmbridgegen on scaddins' rdb when Calc is built. Run by hand with the build's own wasmbridgegen and rdbs, that gives 77 signatures instead of 52 (a superset; the exports file does not change), and then the signatures of all 114 scaddins methods are in the table. [PENDING: result of the rebuild on master, and the Gerrit link.]

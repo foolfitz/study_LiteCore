@@ -1,0 +1,102 @@
+# cases: cells core=5 IN_TABLE=10 ABSENT=8; direct IN_TABLE=3 ABSENT=3; signatures from sig-stock-186R.tsv
+
+## run-01/R-en-US.json  (navigator.language=en-US)
+id   signature          expect typed: err value/string            API: err value/string              ok
+C1   core               value    0 '2'                              0 '2'                            yes
+C2   core               value    0 '3'                              0 '3'                            yes
+C3   core               value    0 '01/01/01'                       0 '01/01/01'                     yes
+C4   core               value    0 '23'                             0 '23'                           yes
+C5   core               value    0 'TRUE'                           0 'TRUE'                         yes
+I1   dii IN_TABLE       value    0 '15'                             0 '15'                           yes
+I2   did IN_TABLE       value    0 '1.77245385090552'               0 '1.77245385090552'             yes
+I3   iiiii IN_TABLE     value    0 '36950'                          0 '36950'                        yes
+I4   iiiii IN_TABLE     value    0 '36950'                          0 '36950'                        yes
+I5   iiiiii IN_TABLE    value    0 '36899'                          0 '36899'                        yes
+I6   dii IN_TABLE       value    0 '10'                             0 '10'                           yes
+I7   dii IN_TABLE       value    0 '5'                              0 '5'                            yes
+I8   iiii IN_TABLE      value    0 '28'                             0 '28'                           yes
+I9   iiii IN_TABLE      value    0 '1'                              0 '1'                            yes
+I10  viii IN_TABLE      value    0 'nop'                            0 'nop'                          yes
+A1   diiii ABSENT       519    519 '#VALUE!'                      519 '#VALUE!'                      yes
+A2   didddi ABSENT      519    519 '#VALUE!'                      519 '#VALUE!'                      yes
+A3   diiiii ABSENT      519    519 '#VALUE!'                      519 '#VALUE!'                      yes
+A4   diiiiii ABSENT     519    519 '#VALUE!'                      519 '#VALUE!'                      yes
+A5   didd ABSENT        519    519 '#VALUE!'                      519 '#VALUE!'                      yes
+A6   didd ABSENT        519    519 '#VALUE!'                      519 '#VALUE!'                      yes
+A7   didi ABSENT        519    519 '#VALUE!'                      519 '#VALUE!'                      yes
+A8   didddddd ABSENT    519    519 '#VALUE!'                      519 '#VALUE!'                      yes
+id   signature          expect result
+D1   dii IN_TABLE       value  returned 15  yes
+D2   did IN_TABLE       value  returned 1.7724538509055159  yes
+D3   viii IN_TABLE      value  returned 'nop'  yes
+D4   didd ABSENT        throw  'exception occurred during invocation!' / 'Wasm bridge cannot call virtual function with signature didd'  yes
+D5   didi ABSENT        throw  'exception occurred during invocation!' / 'Wasm bridge cannot call virtual function with signature didi'  yes
+D6   didddddd ABSENT    throw  'exception occurred during invocation!' / 'Wasm bridge cannot call virtual function with signature didddddd'  yes
+
+## run-02/R-en-US.json  (navigator.language=en-US)
+id   signature          expect typed: err value/string            API: err value/string              ok
+C1   core               value    0 '2'                              0 '2'                            yes
+C2   core               value    0 '3'                              0 '3'                            yes
+C3   core               value    0 '01/01/01'                       0 '01/01/01'                     yes
+C4   core               value    0 '23'                             0 '23'                           yes
+C5   core               value    0 'TRUE'                           0 'TRUE'                         yes
+I1   dii IN_TABLE       value    0 '15'                             0 '15'                           yes
+I2   did IN_TABLE       value    0 '1.77245385090552'               0 '1.77245385090552'             yes
+I3   iiiii IN_TABLE     value    0 '36950'                          0 '36950'                        yes
+I4   iiiii IN_TABLE     value    0 '36950'                          0 '36950'                        yes
+I5   iiiiii IN_TABLE    value    0 '36899'                          0 '36899'                        yes
+I6   dii IN_TABLE       value    0 '10'                             0 '10'                           yes
+I7   dii IN_TABLE       value    0 '5'                              0 '5'                            yes
+I8   iiii IN_TABLE      value    0 '28'                             0 '28'                           yes
+I9   iiii IN_TABLE      value    0 '1'                              0 '1'                            yes
+I10  viii IN_TABLE      value    0 'nop'                            0 'nop'                          yes
+A1   diiii ABSENT       519    519 '#VALUE!'                      519 '#VALUE!'                      yes
+A2   didddi ABSENT      519    519 '#VALUE!'                      519 '#VALUE!'                      yes
+A3   diiiii ABSENT      519    519 '#VALUE!'                      519 '#VALUE!'                      yes
+A4   diiiiii ABSENT     519    519 '#VALUE!'                      519 '#VALUE!'                      yes
+A5   didd ABSENT        519    519 '#VALUE!'                      519 '#VALUE!'                      yes
+A6   didd ABSENT        519    519 '#VALUE!'                      519 '#VALUE!'                      yes
+A7   didi ABSENT        519    519 '#VALUE!'                      519 '#VALUE!'                      yes
+A8   didddddd ABSENT    519    519 '#VALUE!'                      519 '#VALUE!'                      yes
+id   signature          expect result
+D1   dii IN_TABLE       value  returned 15  yes
+D2   did IN_TABLE       value  returned 1.7724538509055159  yes
+D3   viii IN_TABLE      value  returned 'nop'  yes
+D4   didd ABSENT        throw  'exception occurred during invocation!' / 'Wasm bridge cannot call virtual function with signature didd'  yes
+D5   didi ABSENT        throw  'exception occurred during invocation!' / 'Wasm bridge cannot call virtual function with signature didi'  yes
+D6   didddddd ABSENT    throw  'exception occurred during invocation!' / 'Wasm bridge cannot call virtual function with signature didddddd'  yes
+
+## run-03/R-default.json  (navigator.language=zh-TW)
+id   signature          expect typed: err value/string            API: err value/string              ok
+C1   core               value    0 '2'                              0 '2'                            yes
+C2   core               value    0 '3'                              0 '3'                            yes
+C3   core               value    0 '2001/1/1'                       0 '2001/1/1'                     yes
+C4   core               value    0 '23'                             0 '23'                           yes
+C5   core               value    0 '真'                              0 '真'                            yes
+I1   dii IN_TABLE       value    0 '15'                             0 '15'                           yes
+I2   did IN_TABLE       value    0 '1.77245385090552'               0 '1.77245385090552'             yes
+I3   iiiii IN_TABLE     value    0 '36950'                          0 '36950'                        yes
+I4   iiiii IN_TABLE     value    0 '36950'                          0 '36950'                        yes
+I5   iiiiii IN_TABLE    value    0 '36899'                          0 '36899'                        yes
+I6   dii IN_TABLE       value    0 '10'                             0 '10'                           yes
+I7   dii IN_TABLE       value    0 '5'                              0 '5'                            yes
+I8   iiii IN_TABLE      value    0 '28'                             0 '28'                           yes
+I9   iiii IN_TABLE      value    0 '1'                              0 '1'                            yes
+I10  viii IN_TABLE      value    0 'nop'                            0 'nop'                          yes
+A1   diiii ABSENT       519    519 '#VALUE!'                      519 '#VALUE!'                      yes
+A2   didddi ABSENT      519    519 '#VALUE!'                      519 '#VALUE!'                      yes
+A3   diiiii ABSENT      519    519 '#VALUE!'                      519 '#VALUE!'                      yes
+A4   diiiiii ABSENT     519    519 '#VALUE!'                      519 '#VALUE!'                      yes
+A5   didd ABSENT        519    519 '#VALUE!'                      519 '#VALUE!'                      yes
+A6   didd ABSENT        519    519 '#VALUE!'                      519 '#VALUE!'                      yes
+A7   didi ABSENT        519    519 '#VALUE!'                      519 '#VALUE!'                      yes
+A8   didddddd ABSENT    519    519 '#VALUE!'                      519 '#VALUE!'                      yes
+id   signature          expect result
+D1   dii IN_TABLE       value  returned 15  yes
+D2   did IN_TABLE       value  returned 1.7724538509055159  yes
+D3   viii IN_TABLE      value  returned 'nop'  yes
+D4   didd ABSENT        throw  'exception occurred during invocation!' / 'Wasm bridge cannot call virtual function with signature didd'  yes
+D5   didi ABSENT        throw  'exception occurred during invocation!' / 'Wasm bridge cannot call virtual function with signature didi'  yes
+D6   didddddd ABSENT    throw  'exception occurred during invocation!' / 'Wasm bridge cannot call virtual function with signature didddddd'  yes
+
+# not as expected: 0

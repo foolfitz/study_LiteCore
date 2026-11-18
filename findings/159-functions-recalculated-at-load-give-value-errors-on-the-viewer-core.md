@@ -1,13 +1,13 @@
-# 159 — Calc 的 add-in 函數（Analysis／Date／Pricing）在 wasm 核心上一律 `#VALUE!`：`gcc3_wasm` bridge 的呼叫簽章表只從 udkapi＋offapi 產生，scaddins 自己的 IDL 不在裡面；而且檢視引擎載入時重算、不用檔內快取值
+# 159 — Calc 的 add-in 函數（Analysis／Date／Pricing）在 wasm 核心上約一半 `#VALUE!`（2026-11-18 更正：原寫「一律」）：`gcc3_wasm` bridge 的呼叫簽章表只從 udkapi＋offapi 產生，scaddins 自己的 IDL 不在裡面；而且檢視引擎載入時重算、不用檔內快取值
 
 | | |
 |---|---|
-| **狀態** | **已確認、成因已定（靜態讀出，可查核）**（2026-10-20 深夜）；未修（要重建核心） |
-| **Bugzilla** | 無。**強烈指向上游 wasm 建置**：`bridges/CustomTarget_gcc3_wasm.mk` 在上游樹裡就只餵 udkapi＋offapi 給 `wasmbridgegen`；未在上游 build 上重現 |
+| **狀態** | **已確認、成因已定（靜態讀出，可查核）**（2026-10-20 深夜）；**2026-11-18 在 stock 上游 master 建置上執行期重現，bridge 的例外訊息原文讀到**（見〈2026-11-18〉）；修法已在我們的產品（0.2.32 起），上游 commit 已備（未推），修法在 master 上的執行期驗證等擁有者重建 |
+| **Bugzilla** | 未開。草稿 `findings/drafts/159-bugzilla.txt`（修法段待重建結果）。~~未在上游 build 上重現~~（2026-11-18 已重現） |
 | **發現日** | 2026-10-20（`phase-e/report-2026-10-20T133240Z.json`；探針 `phase-e/159-diagnosis/`） |
 | **嚴重度** | 高：使用者看到整欄 `#VALUE!`（財務函數、YEARFRAC、SERIESSUM…），而檔案本身帶著正確的快取值 |
 | **可重現** | 語料 2 份檔 × 3 次執行；探針檔 1 次，20 格裡 add-in 的 5 格全 `#VALUE!`、核心函數全對 |
-| **是否上游** | **未確認**（缺上游 build 的重現；機制本身是上游原始碼的） |
+| **是否上游** | **是**（2026-11-18：stock master `ac53621f`＋finding 186 的 configure 修正，執行期重現；證據 `findings/evidence/159/stock-runtime/`） |
 
 ## 現象
 
@@ -57,3 +57,31 @@
 
 機制在上游樹裡（`CustomTarget_gcc3_wasm.mk` 只餵 udkapi＋offapi 是上游的寫法），上游的 wasm build 理論上同樣出事。缺：上游組態的 build 一次、
 Bugzilla 查重複（關鍵字 `wasm` `add-in` `#VALUE!` `wasmbridgegen`）。上游送出擱置（2026-08-15 起）；只登錄。
+
+## 2026-11-18：stock 上游 master 上的執行期重現〔已觀察〕
+
+建置：`wasm-lite/upstream-master/build-186-R`（master `ac53621f`＋finding 186 的 configure 修正，只改 `configure.ac`，沒碰 `bridges/`、`scaddins/`）。證據與工具在 `findings/evidence/159/stock-runtime/`（README 是英文）。
+
+**換了一種問法。**「add-in 在 wasm 上壞了」和「bridge 的簽章表缺簽章」兩種說法，在「add-in 全錯」這個現象上分不開。成因的說法多預測一件事：**簽章剛好在表裡的 add-in 方法應該能算**（因為 udkapi／offapi 裡有別的方法用同一個簽章）。`addin_signatures.py` 照 `uno2cpp.cxx` `call()` 的規則算出 scaddins 全部 114 個方法的簽章，對 stock 的 `generated-cxx.cxx`（52 個簽章）查：**57 個在表內、57 個不在**。預測先 commit（`d71d500b2`）再跑。
+
+**結果**：三次執行（兩次 en-US、一次 zh-TW），打字與 `XCell.setFormula` 兩條路，全部照預測：
+
+- 核心函數 5 格：對。
+- 簽章在表內的 add-in 10 格（FACTDOUBLE、SQRTPI、EOMONTH、EDATE、WORKDAY、BIN2DEC、IMABS、DAYSINMONTH、ISLEAPYEAR、ROT13）：與桌面 26.8.1.1 相同。
+- 簽章不在表內的 8 格（MULTINOMIAL、SERIESSUM、YEARFRAC、COUPDAYS、QUOTIENT、MROUND、BESSELI、OPT_PROB_HIT）：錯誤碼 519，`#VALUE!`。
+- 繞過 Calc、用 `css.script.Invocation` 從 JS 直接呼叫 add-in：表內的回傳正確值；表外的丟 `InvocationTargetException`，包著 `RuntimeException("Wasm bridge cannot call virtual function with signature didd")`（getQuotient；getBesseli 是 `didi`、getOptProbHit 是 `didddddd`）。**bridge 的訊息是讀到的，不是推的**；從例外到 `#VALUE!` 那一步仍是讀 `addincol.cxx`。
+
+判讀工具 `read_159.py` 的期望值由 oracle 與簽章表推出，不是手寫；紅案（`reader-red-cases.txt`）五個都紅在被改的那一格，包括「拿 stock 的結果當成修好的表來判」會紅在 A1–A8、D4–D6。
+
+**這推翻了兩句話**：
+
+1. 本檔標題的「一律」。實際是 113 個 add-in 函數裡 57 個受影響。其中 GCD、LCM、EFFECT、NOMINAL、CUMIPMT、CUMPRINC 這六個在核心也有同名函數，使用者打原名拿到的是核心版，只有 `_ADD`／`_EXCEL2003` 版受影響（`analysishelper.cxx` 標 DOUBLE）。
+2. `RESEARCH-2026-11-18-next-upstream-wasm-contribution.md` 寫「EOMONTH、NETWORKDAYS、YEARFRAC、XIRR 這一整類一律 `#VALUE!`」：EOMONTH 簽章在表內、能算；NETWORKDAYS 打原名是核心函數。YEARFRAC、XIRR 確實受影響。
+
+**修法的離線部分**：用 build-186-R 自己的 build-side `wasmbridgegen` 與 rdb 手動跑（0.1 秒，不編譯）。不加 scaddins：三個輸出與建置產物逐位元組相同（正向對照）。加了：52 → 77 個簽章，嚴格超集，`exports` 不變，scaddins 114 個方法全在表內。
+
+**上游 commit**：`wasm-lite/upstream-master/src-186-R` 的分支 `finding159-test-on-R`（R 之上一個 commit，只改 `bridges/CustomTarget_gcc3_wasm.mk`）。`.mk` 的註解把我們 26.8 patch 裡「every add-in function」改成「簽章沒有剛好與 udkapi／offapi 共用的 add-in 函數」。要推上 Gerrit 時從 `origin/master` 另做一個分支（不帶 186 的 commit；兩者互不相依）。
+
+**還沒做的**：修法在 master 上的執行期驗證。要重建 `build-186-R`（會編譯，擁有者跑 `findings/evidence/159/stock-runtime/rebuild_159_fix.sh`），之後同一支探針與判讀工具（換成新表的簽章 TSV）再跑一次。重建前的產物已複製到 `wasm-lite/upstream-master/archive-186-R-products-before-159/`。
+
+**沒有涵蓋**：帶快取值的文件（本檔「載入時重算」那一半，另一件事）；其餘 95 個 add-in 函數只有計算分類、沒有實跑；建置組態只有預設模組組合。

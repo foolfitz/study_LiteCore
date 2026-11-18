@@ -37,3 +37,8 @@ a different defect); a D4-D6 message naming a different signature or none.
 Consequence for the 2026-11-18 research note: if P2 holds, its sentence that EOMONTH and NETWORKDAYS are among the
 functions that always give #VALUE! on wasm is wrong (EOMONTH is IN_TABLE; NETWORKDAYS is a core opcode), and the
 Bugzilla text must not say "all add-in functions".
+
+Correction (2026-11-18, after the runs, found while drafting the commit message; the per-case predictions P1-P5 are
+unchanged): "61 of 114 methods are IN_TABLE, 53 ABSENT" above is wrong. sig-stock-186R.tsv has 57 IN_TABLE and 57
+ABSENT; 53 is the ABSENT count of XAnalysis alone (plus the 4 of XPricingFunctions). Of the 113 add-in functions
+(the 114 methods without XCompatibilityNames.getCompatibilityNames), 57 are ABSENT and 56 IN_TABLE.
