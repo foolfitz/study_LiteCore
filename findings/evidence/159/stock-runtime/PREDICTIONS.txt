@@ -1,0 +1,39 @@
+Finding 159, stock run-time reproduction: predictions, written 2026-11-18 before the wasm probe was first run on
+build-186-R (upstream master ac53621f754f + the finding 186 configure fix, nothing else changed; the configure fix
+does not touch bridges/ or scaddins/).
+
+Mechanism under test (finding 159): Calc calls an add-in function through XIdlMethod::invoke, which reaches the
+gcc3_wasm bridge (bridges/source/cpp_uno/gcc3_wasm/uno2cpp.cxx). The bridge builds a signature string from the
+method's types and looks it up in a table that wasmbridgegen generated at build time from udkapi + offapi only. A
+signature that is not in the table throws RuntimeException("Wasm bridge cannot call virtual function with signature
+..."); Calc's ScUnoAddInCall::ExecuteCallWithArgs turns that into FormulaError::NoValue (519, #VALUE!).
+
+What the mechanism predicts that "add-ins are broken on wasm" does not: an add-in method whose signature happens to be
+in the table (because some offapi/udkapi method has the same one) must work. addin_signatures.py computes every
+scaddins method's signature and looks it up in build-186-R's generated-cxx.cxx: sig-stock-186R.tsv. 61 of 114 methods
+are IN_TABLE, 53 ABSENT (all four XPricingFunctions methods are ABSENT).
+
+Oracle: oracle-native.json (desktop LibreOffice 26.8.1.1, same formulas through XCell.setFormula): all 23 cells
+error 0 with the values listed there.
+
+P1  Core functions C1-C5 (=1+1, SUM, DATE, NETWORKDAYS and ISEVEN, the last two being core opcodes even though the
+    Analysis add-in also has them): error 0, value = oracle.
+P2  Add-in functions whose signature is IN_TABLE, I1-I10 (FACTDOUBLE dii, SQRTPI did, EOMONTH iiiii, EDATE iiiii,
+    WORKDAY iiiiii, BIN2DEC dii, IMABS dii, DAYSINMONTH iiii, ISLEAPYEAR iiii, ROT13 viii; Analysis, DateFunctions and
+    the Misc interface of DateFunctions): error 0, value (ROT13: string) = oracle.
+P3  Add-in functions whose signature is ABSENT, A1-A8 (MULTINOMIAL diiii, SERIESSUM didddi, YEARFRAC diiiii, COUPDAYS
+    diiiiii, QUOTIENT didd, MROUND didd, BESSELI didi, OPT_PROB_HIT didddddd; Analysis and Pricing): error 519.
+P4  The typed path (keyboard into column A, en-US UI, ',' separator) and the API path (XCell.setFormula into column B)
+    give the same error code for every row.
+P5  Direct calls through css.script.Invocation on the add-in objects, outside Calc: D1-D3 (IN_TABLE: getFactdouble,
+    getSqrtpi, getRot13) return the oracle value; D4-D6 (ABSENT: getQuotient didd, getBesseli didi, getOptProbHit
+    didddddd) throw, and the message of the exception or of an exception it wraps contains
+    "Wasm bridge cannot call virtual function with signature <sig>" with exactly that method's signature.
+
+What would refute the mechanism: any I cell with error 519 (add-ins fail for some other reason as well); any A cell
+with a value (the table is not what decides); error 525 (#NAME?) in any add-in cell (the add-in is not registered,
+a different defect); a D4-D6 message naming a different signature or none.
+
+Consequence for the 2026-11-18 research note: if P2 holds, its sentence that EOMONTH and NETWORKDAYS are among the
+functions that always give #VALUE! on wasm is wrong (EOMONTH is IN_TABLE; NETWORKDAYS is a core opcode), and the
+Bugzilla text must not say "all add-in functions".

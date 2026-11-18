@@ -1,0 +1,36 @@
+{
+  "about": "Finding 159 stock run-time cases. 'formula' is in API grammar (English names, ';' separator); the typed path replaces ';' with ',' (en-US UI). 'method' is the scaddins IDL method the add-in function calls (null for core functions); its bridge signature and IN_TABLE/ABSENT come from addin_signatures.py, not from this file.",
+  "cells": [
+    {"id": "C1", "formula": "=1+1", "method": null},
+    {"id": "C2", "formula": "=SUM(1;2)", "method": null},
+    {"id": "C3", "formula": "=DATE(2001;1;1)", "method": null},
+    {"id": "C4", "formula": "=NETWORKDAYS(DATE(2001;1;1);DATE(2001;1;31))", "method": null},
+    {"id": "C5", "formula": "=ISEVEN(4)", "method": null},
+    {"id": "I1", "formula": "=FACTDOUBLE(5)", "method": "XAnalysis.getFactdouble"},
+    {"id": "I2", "formula": "=SQRTPI(1)", "method": "XAnalysis.getSqrtpi"},
+    {"id": "I3", "formula": "=EOMONTH(DATE(2001;1;15);1)", "method": "XAnalysis.getEomonth"},
+    {"id": "I4", "formula": "=EDATE(DATE(2001;1;31);1)", "method": "XAnalysis.getEdate"},
+    {"id": "I5", "formula": "=WORKDAY(DATE(2001;1;1);5)", "method": "XAnalysis.getWorkday"},
+    {"id": "I6", "formula": "=BIN2DEC(\"1010\")", "method": "XAnalysis.getBin2Dec"},
+    {"id": "I7", "formula": "=IMABS(\"3+4i\")", "method": "XAnalysis.getImabs"},
+    {"id": "I8", "formula": "=DAYSINMONTH(DATE(2001;2;1))", "method": "XDateFunctions.getDaysInMonth"},
+    {"id": "I9", "formula": "=ISLEAPYEAR(DATE(2000;1;1))", "method": "XDateFunctions.getIsLeapYear"},
+    {"id": "I10", "formula": "=ROT13(\"abc\")", "method": "XMiscFunctions.getRot13"},
+    {"id": "A1", "formula": "=MULTINOMIAL(2;3)", "method": "XAnalysis.getMultinomial"},
+    {"id": "A2", "formula": "=SERIESSUM(2;3;2;3)", "method": "XAnalysis.getSeriessum"},
+    {"id": "A3", "formula": "=YEARFRAC(DATE(2001;1;1);DATE(2001;7;1);1)", "method": "XAnalysis.getYearfrac"},
+    {"id": "A4", "formula": "=COUPDAYS(DATE(2001;1;25);DATE(2001;11;15);2;1)", "method": "XAnalysis.getCoupdays"},
+    {"id": "A5", "formula": "=QUOTIENT(7;2)", "method": "XAnalysis.getQuotient"},
+    {"id": "A6", "formula": "=MROUND(10;3)", "method": "XAnalysis.getMround"},
+    {"id": "A7", "formula": "=BESSELI(1.5;1)", "method": "XAnalysis.getBesseli"},
+    {"id": "A8", "formula": "=OPT_PROB_HIT(100;0.2;0.05;1;80;120)", "method": "XPricingFunctions.getOptProbHit"}
+  ],
+  "direct": [
+    {"id": "D1", "oracle_cell": "I1", "service": "com.sun.star.sheet.addin.Analysis", "method": "XAnalysis.getFactdouble", "args": [["Long", 5]]},
+    {"id": "D2", "oracle_cell": "I2", "service": "com.sun.star.sheet.addin.Analysis", "method": "XAnalysis.getSqrtpi", "args": [["Double", 1.0]]},
+    {"id": "D3", "oracle_cell": "I10", "service": "com.sun.star.sheet.addin.DateFunctions", "method": "XMiscFunctions.getRot13", "args": [["String", "abc"]]},
+    {"id": "D4", "oracle_cell": "A5", "service": "com.sun.star.sheet.addin.Analysis", "method": "XAnalysis.getQuotient", "args": [["Double", 7.0], ["Double", 2.0]]},
+    {"id": "D5", "oracle_cell": "A7", "service": "com.sun.star.sheet.addin.Analysis", "method": "XAnalysis.getBesseli", "args": [["Double", 1.5], ["Long", 1]]},
+    {"id": "D6", "oracle_cell": "A8", "service": "com.sun.star.sheet.addin.PricingFunctions", "method": "XPricingFunctions.getOptProbHit", "args": [["Double", 100.0], ["Double", 0.2], ["Double", 0.05], ["Double", 1.0], ["Double", 80.0], ["Double", 120.0]]}
+  ]
+}
