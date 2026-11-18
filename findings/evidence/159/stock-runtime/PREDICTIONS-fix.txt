@@ -1,0 +1,16 @@
+Finding 159, run-time check of the fix: predictions, written 2026-11-18 before build-186-R was rebuilt with the
+change (src-186-R branch finding159-test-on-R, rebuild_159_fix.sh).
+
+F1  The rebuilt workdir/CustomTarget/bridges/gcc3_wasm/{generated-cxx.cxx,generated-asm.s,exports} are byte-identical
+    to the offline run with +scaddins.rdb (bridgegen-offline/outputs.sha256: e0b5a924..., a118d7d8..., 714c419f...).
+    77 signatures.
+F2  addin_signatures.py on the rebuilt generated-cxx.cxx: all 114 methods IN_TABLE (as sig-patched-offline.tsv).
+F3  soffice.wasm changes; soffice.data does not (the change touches no file in the file system image).
+F4  probe_159.js on the rebuilt build, judged by read_159.py with the rebuilt build's TSV: "not as expected: 0" in
+    every run, i.e. all 23 cells error 0 with the desktop value on both paths, and all 6 direct calls return the
+    desktop value, D4-D6 included.
+F5  Control: the same runs judged with the stock TSV (sig-stock-186R.tsv) are red in exactly A1-A8 and D4-D6 (those
+    are now values where the stock table predicts #VALUE! and exceptions).
+
+What would refute the fix: any add-in cell still 519, or a D4-D6 call still throwing; F1 failing would mean the build
+ran the generator differently from the offline run (then the table, not the probe, is the first thing to look at).
