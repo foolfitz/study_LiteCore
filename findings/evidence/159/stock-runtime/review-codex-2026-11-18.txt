@@ -1,0 +1,65 @@
+# codex exec -s read-only (codex-cli 0.167.0), 2026-11-18 ~11:00-11:10, on src-186-R at 7a22cea9016c (the first version of the commit).
+# Prompt: review-codex-2026-11-18.prompt.txt. Output verbatim below; local absolute paths left as codex wrote them.
+
+### 1. gbuild correctness — NOTE
+
+**The fresh full-build wiring is correct.** `gb_UnoApiTarget_get_target,scaddins` names the actual `.rdb`; `InternalUnoApi` wraps that target with a `.done` stamp. See [TargetLocations.mk:205](/home/jiajun/LibreOffice/study_LiteCore/wasm-lite/upstream-master/src-186-R/solenv/gbuild/TargetLocations.mk:205), [InternalUnoApi.mk:27](/home/jiajun/LibreOffice/study_LiteCore/wasm-lite/upstream-master/src-186-R/solenv/gbuild/InternalUnoApi.mk:27), and [InternalUnoApi_scaddins.mk:10](/home/jiajun/LibreOffice/study_LiteCore/wasm-lite/upstream-master/src-186-R/scaddins/InternalUnoApi_scaddins.mk:10). A normal file prerequisite suffices when its complete rule is loaded.
+
+The condition exactly matches scaddins’ module inclusion in [RepositoryModule_host.mk:134](/home/jiajun/LibreOffice/study_LiteCore/wasm-lite/upstream-master/src-186-R/RepositoryModule_host.mk:134); that module unconditionally registers its internal API at [Module_scaddins.mk:22](/home/jiajun/LibreOffice/study_LiteCore/wasm-lite/upstream-master/src-186-R/scaddins/Module_scaddins.mk:22). I found no configuration mismatch.
+
+Two caveats:
+
+- **Fresh partial builds are not guaranteed.** `make bridges` and `make bridges.build` load the bridges module, not scaddins’ declarations. This is documented behavior: prerequisite modules are excluded; `.allbuild` includes them. See [partial_build.mk:36](/home/jiajun/LibreOffice/study_LiteCore/wasm-lite/upstream-master/src-186-R/solenv/gbuild/partial_build.mk:36) and [gbuild.help.txt:57](/home/jiajun/LibreOffice/study_LiteCore/wasm-lite/upstream-master/src-186-R/solenv/gbuild/gbuild.help.txt:57). This does not require adding a module dependency to this patch.
+- **Incremental application can leave the old table.** The generated outputs do not depend on this makefile. If existing outputs are newer than `scaddins.rdb`, the changed generator arguments alone do not trigger regeneration. `CustomTarget` adds no automatic makefile dependency: [CustomTarget.mk:43](/home/jiajun/LibreOffice/study_LiteCore/wasm-lite/upstream-master/src-186-R/solenv/gbuild/CustomTarget.mk:43). I would add `$(SRCDIR)/bridges/CustomTarget_gcc3_wasm.mk` to the shared prerequisites.
+
+### 2. Variable/style — NOTE
+
+I found no basis for rejecting `gb_` as strictly reserved for files under `solenv/gbuild`: [CustomTarget_emscripten_fs_image.mk:13](/home/jiajun/LibreOffice/study_LiteCore/wasm-lite/upstream-master/src-186-R/static/CustomTarget_emscripten_fs_image.mk:13) already uses it for module variables.
+
+Nevertheless, one optional API does not need a list variable and two `foreach` expressions. My preferred minimal additions are:
+
+```make
+# File prerequisite:
+$(if $(ENABLE_WASM_STRIP_CALC),,$(call gb_UnoApiTarget_get_target,scaddins))
+
+# Generator argument:
+$(if $(ENABLE_WASM_STRIP_CALC),,+$(call gb_UnoApiTarget_get_target,scaddins))
+```
+
+Keep a short explanatory comment. This is a simplification preference, not a correctness objection.
+
+### 3. Other internal APIs — OK
+
+**I found no additional affected production `InternalUnoApi` requiring expansion of this fix.**
+
+The default module selection is `calc writer`; the remaining main-module strip flags are established in [configure.ac:2369](/home/jiajun/LibreOffice/study_LiteCore/wasm-lite/upstream-master/src-186-R/configure.ac:2369) and [configure.ac:4395](/home/jiajun/LibreOffice/study_LiteCore/wasm-lite/upstream-master/src-186-R/configure.ac:4395).
+
+The other six targets are:
+
+- **`cppuhelper`:** production API containing `XExceptionThrower`. It does cross the bridge through exception helpers, including [exc_thrower.cxx:278](/home/jiajun/LibreOffice/study_LiteCore/wasm-lite/upstream-master/src-186-R/cppuhelper/source/exc_thrower.cxx:278). Its methods need only `vii` and `vi`, already supplied by public APIs—for example `XOutputStream::writeBytes` and `flush`: [XExceptionThrower.idl:23](/home/jiajun/LibreOffice/study_LiteCore/wasm-lite/upstream-master/src-186-R/cppuhelper/unotypes/cppuhelper/detail/XExceptionThrower.idl:23), [XOutputStream.idl:33](/home/jiajun/LibreOffice/study_LiteCore/wasm-lite/upstream-master/src-186-R/udkapi/com/sun/star/io/XOutputStream.idl:33).
+- **`cppu_qa_types`, `cppu_qa_cppumaker_types`:** registered as build targets, but their implementations/consumers are QA, not shipped Calc-like reflection services: [Module_cppu.mk:13](/home/jiajun/LibreOffice/study_LiteCore/wasm-lite/upstream-master/src-186-R/cppu/Module_cppu.mk:13).
+- **`bridgetest`, `performance`:** excluded when cross-compiling: [Module_testtools.mk:12](/home/jiajun/LibreOffice/study_LiteCore/wasm-lite/upstream-master/src-186-R/testtools/Module_testtools.mk:12).
+- **`test_urp`:** Java-only check target: [Module_ridljar.mk:12](/home/jiajun/LibreOffice/study_LiteCore/wasm-lite/upstream-master/src-186-R/ridljar/Module_ridljar.mk:12). The WASM distro disables scripting, which also disables Java: [LibreOfficeWASM32.conf:4](/home/jiajun/LibreOffice/study_LiteCore/wasm-lite/upstream-master/src-186-R/distro-configs/LibreOfficeWASM32.conf:4), [configure.ac:3866](/home/jiajun/LibreOffice/study_LiteCore/wasm-lite/upstream-master/src-186-R/configure.ac:3866).
+
+### 4. Commit message — PROBLEM
+
+**The mechanism is accurate; the user-visible scope needs qualification.**
+
+The signature represents the lowered C++/Wasm ABI: return convention, possible hidden return pointer, `this`, and lowered parameters—not interface identity. See [uno2cpp.cxx:52](/home/jiajun/LibreOffice/study_LiteCore/wasm-lite/upstream-master/src-186-R/bridges/source/cpp_uno/gcc3_wasm/uno2cpp.cxx:52), [uno2cpp.cxx:114](/home/jiajun/LibreOffice/study_LiteCore/wasm-lite/upstream-master/src-186-R/bridges/source/cpp_uno/gcc3_wasm/uno2cpp.cxx:114), and [wasmbridgegen.cxx:381](/home/jiajun/LibreOffice/study_LiteCore/wasm-lite/upstream-master/src-186-R/static/source/wasmbridgegen/wasmbridgegen.cxx:381). Missing signatures throw the stated exception at [wasmbridgegen.cxx:726](/home/jiajun/LibreOffice/study_LiteCore/wasm-lite/upstream-master/src-186-R/static/source/wasmbridgegen/wasmbridgegen.cxx:726).
+
+Reflection wraps dispatcher exceptions in `InvocationTargetException`, and Calc maps this case to `NoValue`, error 519 / `#VALUE!`: [criface.cxx:591](/home/jiajun/LibreOffice/study_LiteCore/wasm-lite/upstream-master/src-186-R/stoc/source/corereflection/criface.cxx:591), [addincol.cxx:1541](/home/jiajun/LibreOffice/study_LiteCore/wasm-lite/upstream-master/src-186-R/sc/source/core/tool/addincol.cxx:1541), [errorcodes.hxx:50](/home/jiajun/LibreOffice/study_LiteCore/wasm-lite/upstream-master/src-186-R/include/formula/errorcodes.hxx:50).
+
+**113 is a defensible worksheet-function denominator.** The additional method in the 114-method internal-API inventory is compatibility-name metadata: [XCompatibilityNames.idl:33](/home/jiajun/LibreOffice/study_LiteCore/wasm-lite/upstream-master/src-186-R/scaddins/idl/com/sun/star/sheet/addin/XCompatibilityNames.idl:33).
+
+However, **57 missing method signatures does not mean 57 ordinary typed function names fail**. Core opcode lookup precedes add-in lookup: [compiler.cxx:3117](/home/jiajun/LibreOffice/study_LiteCore/wasm-lite/upstream-master/src-186-R/sc/source/core/tool/compiler.cxx:3117), [compiler.cxx:3250](/home/jiajun/LibreOffice/study_LiteCore/wasm-lite/upstream-master/src-186-R/sc/source/core/tool/compiler.cxx:3250). Plain `ISEVEN`, `ISODD`, `WEEKNUM`, `NETWORKDAYS`, `GCD`, `LCM`, `EFFECT`, and `NOMINAL` select core functions. The corresponding add-in names use `_ADD` or `_EXCEL2003`; see [analysishelper.cxx:64](/home/jiajun/LibreOffice/study_LiteCore/wasm-lite/upstream-master/src-186-R/scaddins/source/analysis/analysishelper.cxx:64), [analysishelper.cxx:132](/home/jiajun/LibreOffice/study_LiteCore/wasm-lite/upstream-master/src-186-R/scaddins/source/analysis/analysishelper.cxx:132), and suffix handling at [analysis.cxx:172](/home/jiajun/LibreOffice/study_LiteCore/wasm-lite/upstream-master/src-186-R/scaddins/source/analysis/analysis.cxx:172). In particular, the message’s unsuffixed `GCD`, `LCM`, `EFFECT`, and `NOMINAL` examples are misleading.
+
+Your evidence supports signature coverage and the sampled runtime diagnosis. It does **not** establish that all other 56 functions work, or that the integrated fixed build passes. Replace “work only because” with “already have signatures represented in the table,” and identify 52→77 as the manual generator result.
+
+### 5. Non-Emscripten builds — OK
+
+The custom target is registered only for `OS=EMSCRIPTEN`: [Module_bridges.mk:24](/home/jiajun/LibreOffice/study_LiteCore/wasm-lite/upstream-master/src-186-R/bridges/Module_bridges.mk:24). The generated bridge objects are likewise selected only there: [Library_cpp_uno.mk:84](/home/jiajun/LibreOffice/study_LiteCore/wasm-lite/upstream-master/src-186-R/bridges/Library_cpp_uno.mk:84). No non-Emscripten regression identified.
+
+Changes I would make:
+
+- **Diff:** add the makefile prerequisite; optionally inline the two conditionals and shorten the comment. Keep the existing gate and RDB accessor.
+- **Message:** describe **57 of 113 worksheet methods lacking signature coverage**; correct or remove ambiguous function-name examples; describe the other 56 as covered signatures; distinguish manual generation from the still-unbuilt, unrun fixed build.

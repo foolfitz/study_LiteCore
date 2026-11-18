@@ -80,7 +80,16 @@ Bugzilla 查重複（關鍵字 `wasm` `add-in` `#VALUE!` `wasmbridgegen`）。�
 
 **修法的離線部分**：用 build-186-R 自己的 build-side `wasmbridgegen` 與 rdb 手動跑（0.1 秒，不編譯）。不加 scaddins：三個輸出與建置產物逐位元組相同（正向對照）。加了：52 → 77 個簽章，嚴格超集，`exports` 不變，scaddins 114 個方法全在表內。
 
-**上游 commit**：`wasm-lite/upstream-master/src-186-R` 的分支 `finding159-test-on-R`（R 之上一個 commit，只改 `bridges/CustomTarget_gcc3_wasm.mk`）。`.mk` 的註解把我們 26.8 patch 裡「every add-in function」改成「簽章沒有剛好與 udkapi／offapi 共用的 add-in 函數」。要推上 Gerrit 時從 `origin/master` 另做一個分支（不帶 186 的 commit；兩者互不相依）。
+**上游 commit**：`wasm-lite/upstream-master/src-186-R` 的分支 `finding159-test-on-R`，現為 `4a59e013bf53`（R 之上一個 commit，只改 `bridges/CustomTarget_gcc3_wasm.mk`）。要推上 Gerrit 時從 `origin/master` 另做一個分支（不帶 186 的 commit；兩者互不相依）。
+
+**codex 審查（一輪）**，原文 `findings/evidence/159/stock-runtime/review-codex-2026-11-18.txt`，對象是第一版 `7a22cea9016c`：
+
+- 成立：gbuild 的目標名與條件（`ENABLE_WASM_STRIP_CALC` 與 scaddins 模組的納入條件一致）、非 Emscripten 不受影響、預設 WASM 組態裡沒有別的 InternalUnoApi 會中同一個 bug。
+- **採納（改變行為）**：產生的三個檔原本只依賴 rdb；新加的 `scaddins.rdb` 在既有建置目錄裡比產出舊，**既有的 WASM 建置目錄 `git pull` 之後不會重產簽章表，修法在增量建置裡靜默失效**。加上 `$(SRCDIR)/bridges/CustomTarget_gcc3_wasm.mk` 為前置條件（上游 pyuno、jvmfwk、oox、postprocess 都有這樣做的前例）。重建腳本因此不再先刪產出，順便驗這條增量路徑（`PREDICTIONS-fix.txt` 的 F0）。
+- 採納：兩個條件式直接 inline（不用變數與 `foreach`）；commit message 裡 GCD、LCM、EFFECT、NOMINAL 打原名是核心函數，改寫成只有 `_ADD`／`_EXCEL2003` 版受影響；「work only because」改成「簽章剛好已在表內」。
+- 未採納：無。
+
+因審核而改的檢查數：0（改的是 diff、commit message、重建腳本的流程）。
 
 **還沒做的**：修法在 master 上的執行期驗證。要重建 `build-186-R`（會編譯，擁有者跑 `findings/evidence/159/stock-runtime/rebuild_159_fix.sh`），之後同一支探針與判讀工具（換成新表的簽章 TSV）再跑一次。重建前的產物已複製到 `wasm-lite/upstream-master/archive-186-R-products-before-159/`。
 

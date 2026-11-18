@@ -6,8 +6,10 @@
 # commit to bridges/CustomTarget_gcc3_wasm.mk. Build dir: build-186-R, the stock build the probe ran on.
 # The products of build-186-R before this were copied to archive-186-R-products-before-159/ (SHA256SUMS there).
 #
-# The change adds a prerequisite (workdir/UnoApiTarget/scaddins.rdb) that is older than the generated files, so make
-# would not regenerate them by itself: the three generated files are deleted first. A fresh build does not need that.
+# The change makes the generated files depend on the makefile itself (codex review 2026-11-18: otherwise the new,
+# older scaddins.rdb prerequisite would not make an existing tree regenerate them). So this run does NOT delete them
+# first: it is also the test of that incremental path. If make leaves generated-cxx.cxx untouched anyway, the receipt
+# says so, the three files are deleted and make runs once more (fallback).
 # usage: rebuild_159_fix.sh            (no arguments; writes rebuild-159-fix.receipt.txt next to itself)
 set -u
 U=/home/jiajun/LibreOffice/study_LiteCore/wasm-lite/upstream-master
@@ -22,7 +24,7 @@ ARCH=$U/archive-186-R-products-before-159
 fatal() { echo "FATAL: $*"; exit 2; }
 [ "$(git -C "$SRC" rev-parse --abbrev-ref HEAD)" = finding159-test-on-R ] || fatal "$SRC is not on finding159-test-on-R"
 [ "$(git -C "$SRC" status --short --untracked-files=no | wc -l)" = 0 ] || fatal "$SRC has uncommitted changes"
-grep -q 'gb_bridges_gcc3_wasm_internal_apis' "$SRC/bridges/CustomTarget_gcc3_wasm.mk" || fatal "the change is not in $SRC"
+grep -q 'gb_UnoApiTarget_get_target,scaddins' "$SRC/bridges/CustomTarget_gcc3_wasm.mk" || fatal "the change is not in $SRC"
 [ -f "$ARCH/SHA256SUMS" ] || fatal "no archive of the products before the change at $ARCH"
 pgrep -x make >/dev/null && fatal "another make is running: $(pgrep -a make | head -3)"
 {
@@ -32,13 +34,22 @@ pgrep -x make >/dev/null && fatal "another make is running: $(pgrep -a make | he
   echo "src_parent=$(git -C "$SRC" log -1 --format='%H %s' HEAD~1)"
   echo "start=$(date -Is)"
   echo "load_at_start=$(cut -d' ' -f1-3 /proc/loadavg)"
-  echo "deleted=$(cd "$GEN" && ls generated-cxx.cxx generated-asm.s exports 2>/dev/null | tr '\n' ' ')"
+  echo "generated_before=$(stat -c '%Y' "$GEN/generated-cxx.cxx") $(sha256sum "$GEN/generated-cxx.cxx" | cut -c1-16)"
 } > "$RECEIPT"
-rm -f "$GEN/generated-cxx.cxx" "$GEN/generated-asm.s" "$GEN/exports"
+before=$(stat -c '%Y' "$GEN/generated-cxx.cxx")
 SECONDS=0
 "$U/build.sh" "$B" "$SRC" > "$LOG" 2>&1; rc=$?
+echo "make_exit=$rc seconds=$SECONDS" >> "$RECEIPT"
+if [ "$(stat -c '%Y' "$GEN/generated-cxx.cxx" 2>/dev/null)" = "$before" ]; then
+  echo "regenerated_by_incremental_make=no -> fallback: deleting the three generated files, make once more" >> "$RECEIPT"
+  rm -f "$GEN/generated-cxx.cxx" "$GEN/generated-asm.s" "$GEN/exports"
+  echo "=== fallback make after deleting the generated files $(date -Is)" >> "$LOG"
+  "$U/build.sh" "$B" "$SRC" >> "$LOG" 2>&1; rc=$?
+  echo "fallback_make_exit=$rc total_seconds=$SECONDS" >> "$RECEIPT"
+else
+  echo "regenerated_by_incremental_make=yes" >> "$RECEIPT"
+fi
 {
-  echo "make_exit=$rc seconds=$SECONDS"
   echo "end=$(date -Is)"
   echo "log=$LOG"
   echo "generated_signatures=$(grep -cE '^extern "C" void callVirtualFunction_' "$GEN/generated-cxx.cxx" 2>/dev/null)"
