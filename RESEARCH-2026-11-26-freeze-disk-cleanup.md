@@ -203,6 +203,15 @@ study_COOL 的引用路徑（§6 的 `cool-26-04`）：study_COOL 的 session �
 
 結果：可用空間 132,429 MiB → 174,448 MiB，**回收 41.0 GiB**。今天兩輪合計 62.4 GiB，硬碟可用空間從 108 GiB 增加到 171 GiB。§3 的 hardlink 合併尚未執行。
 
+### 收尾（同日，擁有者同意）
+
+- **`cool-26-04` 已刪。**study_COOL 的引用已改成 commit＋路徑，commit 在 `study_COOL/co-26.04`，用 tag `snapshot/co-26.04-2026-07-31` 釘住。刪之前我獨立驗證了一次：從 online.mirror 只抓 `c64a7343a5c6` 的 tree（`--filter=blob:none`），再把本機 81,957 個檔用暫時 index（`update-index --info-only`）算出 tree hash。結果 `718f5be4a5a9…` 與上游完全相同，沒有子模組，也沒有多出來的檔（已觀察）。還原：`git -C ~/LibreOffice/study_COOL/co-26.04 archive c64a7343a5c6 | tar -x -C <dir>`。回收 1.8 GiB。
+- `codex-claude-code-delegation.md` 已刪（與本專案無關，從未 commit）。
+- **hardlink 合併已做**（§3）：`hardlink -c -O dist/profiles build/archive`，只對目錄暫時開寫入，做完 `chmod -R a-w`。合併 771 個檔，回收 9.61 GiB；inode 1,291 → 634。合併前後 1,473 個路徑的 sha256 清單逐行相同，正向對照（改一個字元）會報不同。**恢復開發前的注意事項寫在 `docs/ARTIFACT-BACKUP.md` 末段。**
+- `native-lok-26-8/*.md` 與 `libreoffice-26-8` 的兩份未追蹤 md：擁有者決定不收進 git。
+
+**今天合計**：硬碟可用空間 108 GiB → 182 GiB。
+
 ## 修訂紀錄
 
 | 日期 | 變更 |
@@ -210,3 +219,4 @@ study_COOL 的引用路徑（§6 的 `cool-26-04`）：study_COOL 的 session �
 | 2026-11-26 | 初版 |
 | 2026-11-26 | 加 §9 執行紀錄（A 級已刪，回收 21.4 GiB） |
 | 2026-11-26 | §9 補 B 級執行結果（回收 41.0 GiB；emsdk／qt5-wasm／pw 因上游工作保留） |
+| 2026-11-26 | §9 補收尾：`cool-26-04` 經 tree hash 驗證後刪除、hardlink 合併（回收 9.61 GiB） |

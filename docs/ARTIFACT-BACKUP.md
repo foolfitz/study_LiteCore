@@ -36,3 +36,13 @@ zstd -dc <檔案> | tar -xO profiles/e1-editor-v1/sdk-manifest.json | \
 
 **每次重新凍結 artifact 就要重做一份**（改 hash ＝ 換出貨物）。歷史備份不要刪：
 舊證據綁的是舊 hash。
+
+## 2026-11-26：已 hardlink 合併並設唯讀（恢復開發前必讀）
+
+專案凍結時，`wasm_sdk_probe/dist/profiles/` 與 `wasm_sdk_probe/build/archive/` 裡內容相同的檔案用 `hardlink -c -O` 合併成同一個 inode，再 `chmod -R a-w`。合併前後兩邊共 1,473 個路徑的 sha256 清單逐行相同；佔用從 19,053 MiB 降到 9,209 MiB。
+
+**後果**：一個 profile 的檔案，現在可能和其他 profile 或 `build/archive` 的封存共用同一份位元組。
+
+- **不要**先 `chmod -R u+w` 再跑會寫 `dist/profiles` 的 `make`。`cp` 會原地覆寫，連結在一起的每個副本（包括封存）都會一起被改掉。
+- 恢復開發時，先把要被重寫的 profile 斷開連結：對每個檔做 `cp -p f f.new && mv f.new f`（`mv` 換成新的 inode），再對該目錄解除唯讀。
+- 備份或搬移時用保留 hardlink 的方式（`tar`、`rsync -H`），否則會還原成兩份（不會壞，只是不省空間）。
