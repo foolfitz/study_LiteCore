@@ -1,0 +1,32 @@
+Finding 186 -- Jenkins Verified-1 on Gerrit 214345 patch set 2 (2026-11-19 03:54 UTC), and why it is unrelated
+
+Source: https://ci.libreoffice.org/job/gerrit_master_ml_p/10396/ -> gerrit_linux_clang_dbgutil #215732 (consoleText, read
+2026-11-19 ~12:00 +0800). The other platforms of 10396 were not listed as failing.
+
+The failure (#215732, lines 24871-24890 and the summary after the suite)
+  sc/qa/unit/SwarmSolverTest.cxx:681:(anonymous namespace)::SwarmSolverTest::testRepeatedSolveResetsState
+  double equality assertion failed
+  - Expected: 3
+  - Actual  : 2.9999871145969
+  - Delta   : 1e-05
+  Run: 17   Failure total: 1   Failures: 1   Errors: 0
+
+Why it is not caused by the change
+  1. Same builder, same parent, built as-is:
+       #215652 (patch set 1)  tb99  "Checking out Revision b7f3bd7eb41c... (refs/changes/45/214345/1)"  SUCCESS
+       #215732 (patch set 2)  tb99  "Checking out Revision 399a9df475a7... (refs/changes/45/214345/2)"  FAILURE
+     Both patch sets have parent ac53621f754f. Both runs ran 691 cppunit targets; #215652 ran sc_swarmsolvertest
+     ("[build CUT] sc_swarmsolvertest", line 24672) and the build succeeded.
+  2. The only difference between the two patch sets is in configure.ac code that runs for Emscripten only
+     (patch set 1: inside `if test "$_os" = Emscripten`; patch set 2: inside the `emscripten)` arm of the host case).
+     A Linux configure evaluates neither, so the Linux build of both patch sets is the same.
+  3. The solver is not deterministic: sc/source/solver/Swarm.hxx:55-69 (master 970e4f219461) seeds its std::mt19937 from
+     std::random_device, and the test asserts the solution to within 1e-5. The run missed by 1.29e-5.
+
+How common is it
+  The last 100 builds of gerrit_linux_clang_dbgutil (#215635-#215734, 2026-11-17 22:34 to 2026-11-19 08:03 UTC) had 17
+  failures; in their logs, "SwarmSolverTest.cxx:<n>:Assertion" occurs only in #215732. So it is rare, not a known
+  constant failure. testRepeatedSolveResetsState was added by eb0bacce10a2 (Tomaz Vajngerl).
+
+What to do (owner's own rule, study_OxODF/upstream-libreoffice/README.md, "送出之後"): do not rebase or push another patch
+set to retrigger CI; ask someone with Jenkins rights to retrigger (IRC #libreoffice-dev), or say so on the change.

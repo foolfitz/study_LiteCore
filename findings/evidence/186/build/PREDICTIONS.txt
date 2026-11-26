@@ -1,0 +1,38 @@
+Finding 186 -- predictions for the two full builds, written 2026-11-18 about 02:20 +0800, after the M build was started
+and before any of its output was read. Source of every prediction: reading the makefiles and configure.ac, nothing run.
+
+Arms (both on upstream master ac53621f754f, fresh build directories, same environment and flags)
+  M  099c40da1a99  test_gtk3=no, test_gtk4=no in the emscripten platform block. USING_UNIX_DESKTOP stays TRUE.
+  R  4847e69dd326  USING_UNIX_DESKTOP cleared for Emscripten. This is the commit prepared for Gerrit.
+
+What would count as what
+  M fails, R builds, at a place that only exists with USING_UNIX_DESKTOP=TRUE  -> M is not a working fix; say so upstream.
+  Both fail at the same place                                                   -> master is broken for WASM independently
+                                                                                   of this fix; neither arm says anything
+                                                                                   about M versus R until that is understood.
+  Both build                                                                    -> compare the products and how they start.
+
+P1  M: make completes (exit 0).  Confidence: moderate, about two in three.
+    Why it may: canvas and slideshow are not built with the default module set (ENABLE_WASM_STRIP_CANVAS,
+    ENABLE_WASM_STRIP_BASIC_DRAW_MATH_IMPRESS), so OGLTrans and oglcanvas are not built; desktopdetector.cxx includes only
+    generic headers; the unit tests, whose Unix branch depends on vclplug_gen, are not part of a cross build's default target.
+    Where it may not: the postprocess registry takes the Unix-desktop branch (nine extra .xcu files that their modules must
+    have delivered); Package_fontunxppds / Package_fontunxpsprint and the six desktop s*_sh packages are built and
+    registered for install; vcl uses the externals dbus and valgrind; five vcl sources compile their HAVE_FEATURE_OPENGL parts.
+P2  R: make completes (exit 0).  Confidence: fairly high. Its configuration equals that of the 2a2335cf build that
+    completed on 2026-11-11; what could break it is one of the 255 commits since then, not this fix.
+P3  If both build: the M product differs from R in at least
+    (a) instdir/share/registry/main.xcd -- M contains the Unix-desktop entries (Inet-unixdesktop, Accelerators-unxwnt,
+        Common-UseOOoFileDialogs, Common-unixdesktop, Common-unx, Paths-unixdesktop, Paths-unxwnt, UserProfile-unixdesktop,
+        VCL-unixdesktop);
+    (b) files that exist only in M's instdir: PPD files, the s*_sh launcher scripts;
+    (c) soffice.wasm: M is not smaller than R (desktop detector and the OpenGL parts add code).
+    No prediction about the size of the difference.
+P4  If both build: qt_soffice.html of R reaches the Start Center as the 2a2335cf build did (probe run C1 of 2026-11-11).
+    For M no prediction: with different registry content it may start the same, start differently, or not start.
+
+How each will be judged
+  P1/P2: final_exit in build-186-<arm>.receipt.txt, and the "=== make exit=" line of the log.
+  P3: compare_builds.sh (file lists, sha256 and sizes; main.xcd compared by content).
+  P4: the unchanged probe wasm-lite/tools/pw/probe.js via run_probe.sh on each arm's qt_soffice.html, same duration as
+      the 2026-11-11 control; console text and screenshot.

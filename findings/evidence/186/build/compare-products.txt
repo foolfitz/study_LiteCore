@@ -1,0 +1,90 @@
+
+==================== receipts
+--- M
+arm=M
+src=/home/jiajun/LibreOffice/study_LiteCore/wasm-lite/upstream-master/src-186-M
+src_commit=099c40da1a9941956e91c0b06b1905b0a1fb04b7 TEST ONLY, not for upstream: Emscripten: only set test_gtk3/test_gtk4=no
+src_dirty=0
+configure_ac_sha256=1f6ff193a21d742c648f061f6c40f3972ad81ceb34895601446a9a7c6ac410f9
+start=2026-11-18T02:12:59+08:00
+load_at_start=0.37 0.33 0.45
+first_make_exit=0 seconds=2794
+retried_for_finding_003=no
+final_exit=0
+total_seconds=2794
+end=2026-11-18T02:59:33+08:00
+--- R
+arm=R
+src=/home/jiajun/LibreOffice/study_LiteCore/wasm-lite/upstream-master/src-186-R
+src_commit=4847e69dd326c1abf36f60e836505fb9355e3baf Emscripten: Fix configure of GUI builds (no Unix desktop there)
+src_dirty=0
+configure_ac_sha256=ba1268b77ed2f116b741f2d3c8ce6e9cd324edd50eb81ec8ca15ac7550e1dbb5
+start=2026-11-18T02:59:56+08:00
+load_at_start=6.06 8.84 9.48
+first_make_exit=0 seconds=2813
+retried_for_finding_003=no
+final_exit=0
+total_seconds=2813
+end=2026-11-18T03:46:49+08:00
+
+==================== main products (bytes, sha256 prefix)
+M     157427819  1b672dbd53456b86  workdir/installation/LibreOffice/emscripten/soffice.wasm
+R     157427267  41749425416d7f4f  workdir/installation/LibreOffice/emscripten/soffice.wasm
+M        838641  df9974a701025f79  workdir/installation/LibreOffice/emscripten/soffice.js
+R        838641  0e726ced3e0ce869  workdir/installation/LibreOffice/emscripten/soffice.js
+M      86756016  d673212047c61baa  workdir/installation/LibreOffice/emscripten/soffice.data
+R      86738178  799de70092a2525a  workdir/installation/LibreOffice/emscripten/soffice.data
+M        179246  ee2fa41422e01a2f  workdir/installation/LibreOffice/emscripten/soffice.data.js.metadata
+R        179246  02170a98df2ecd89  workdir/installation/LibreOffice/emscripten/soffice.data.js.metadata
+soffice.wasm: M - R = 552 bytes
+
+==================== instdir file lists
+files: M 2660  R 2652
+only in M: 8   only in R: 0
+--- only in M (first 60)
+./program/sbase
+./program/scalc
+./program/sdraw
+./program/simpress
+./program/smath
+./program/swriter
+./share/psprint/driver/SGENPRT.PS
+./share/psprint/psprint.conf
+--- only in R (first 60)
+
+==================== registry (instdir/share/registry/*.xcd)
+same       M      8683  R      8683  instdir/share/registry/base.xcd
+same       M    175440  R    175440  instdir/share/registry/calc.xcd
+same       M      1136  R      1136  instdir/share/registry/cjk.xcd
+same       M       180  R       180  instdir/share/registry/ctlseqcheck.xcd
+same       M       533  R       533  instdir/share/registry/ctl.xcd
+same       M      3729  R      3729  instdir/share/registry/draw.xcd
+same       M     75917  R     75917  instdir/share/registry/graphicfilter.xcd
+same       M     28945  R     28945  instdir/share/registry/impress.xcd
+same       M       481  R       481  instdir/share/registry/Langpack-en-US.xcd
+same       M      2112  R      2112  instdir/share/registry/lingucomponent.xcd
+DIFFERENT  M   1986597  R   1968759  instdir/share/registry/main.xcd
+same       M      4624  R      4624  instdir/share/registry/math.xcd
+same       M       672  R       672  instdir/share/registry/ogltrans.xcd
+same       M      2898  R      2898  instdir/share/registry/static.xcd
+same       M    350433  R    350433  instdir/share/registry/writer.xcd
+same       M     14149  R     14149  instdir/share/registry/xsltfilter.xcd
+same       M     25308  R     25308  instdir/share/registry/res/fcfg_langpack_en-US.xcd
+same       M      5297  R      5297  instdir/share/registry/res/registry_en-US.xcd
+--- main.xcd: occurrences of names that only the Unix-desktop .xcu files set
+UseSystemFileDialog          M 3  R 3
+UseSystemPrintDialog         M 2  R 2
+oor:name="ooName"            M 2  R 2
+main.xcd formatted diff: 686 lines only in M, 0 lines only in R
+
+==================== file system image (soffice.data.js.metadata)
+files in image: M 1598  R 1598
+only in M: 0   only in R: 0
+same name, different size: 1
+  /instdir/share/registry/main.xcd  M 1986597  R 1968759  (M-R 17838)
+
+==================== objects that exist only with USING_UNIX_DESKTOP=TRUE
+M  desktopdetect objects: 1
+R  desktopdetect objects: 0
+M  config: export ENABLE_GTK3= export ENABLE_OPENGL_TRANSITIONS=TRUE export ENABLE_OPENGL_CANVAS=TRUE export ENABLE_QT5=TRUE export USING_UNIX_DESKTOP=TRUE export USING_X11= 
+R  config: export ENABLE_GTK3= export ENABLE_OPENGL_TRANSITIONS= export ENABLE_OPENGL_CANVAS= export ENABLE_QT5=TRUE export USING_UNIX_DESKTOP= export USING_X11= 

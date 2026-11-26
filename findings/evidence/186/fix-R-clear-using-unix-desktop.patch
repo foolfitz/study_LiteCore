@@ -1,0 +1,17 @@
+diff --git a/configure.ac b/configure.ac
+index 69ffe92f79fe..4a1889f73637 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -6080,6 +6080,12 @@ if test "$with_x" = "no"; then
+     USING_X11=
+ fi
+ 
++if test "$_os" = Emscripten; then
++    # Emscripten is no Unix desktop; its using_unix_desktop=yes is what
++    # lets --disable-gui pass the check above
++    USING_UNIX_DESKTOP=
++fi
++
+ if test -z "$USING_X11" -a "$enable_qt5" = "yes" -a "$enable_gen" = "yes"; then
+     AC_MSG_ERROR([Can't select gen VCL plugin, if --without-x is used!])
+ fi

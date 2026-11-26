@@ -1,0 +1,60 @@
+Finding 186 -- upstream state as queried on 2026-11-18
+
+Master
+  Gerrit refs/heads/master and the GitHub mirror both at ac53621f754f88ae4c9d3c02dacc5f91d93bc978.
+  git diff e42678e7 ac53621f -- configure.ac: one hunk, at line 15630 (DEFAULT_BRAND_IMAGES). The failing logic is unchanged
+  since the failure recorded on 2026-11-11.
+
+The regressing change
+  d98a796946ff8c1fae58c742567f7172c3520075 "tdf#146153 Enable building the GUI --without-x"
+  https://gerrit.libreoffice.org/c/core/+/211916  submitted 2026-11-10 12:02 UTC.
+  Not in 2a2335cf0911 (2026-11-10 10:11 +0100); in e42678e7 (2026-11-11).
+
+Review comment on that change after it was merged (Gerrit REST /changes/211916/comments)
+  Christian Lohmaier, 2026-11-17 14:29 UTC, on configure.ac:
+  "having that set here will cause the vclplugins to get auto-tested but the emscripten variant implies disable-dynloading
+  and that in turn only allows for a single VCL-plugin to be compiled in (the qt5 one), so when using it here, the test_gtk*
+  should be explicitly set here as well."
+  A second comment by him the same minute, on config_host.mk.in: "there's no need to export those variables if they're only
+  used in makefiles."
+
+Reply on 211916 by the change's author, Chris Mayo, 2026-11-17 19:26 UTC, to the comment above (seen 2026-11-18 15:40 +0800):
+  "That's not something new caused by this MR is it? There was already `using_x11=yes`. This has just split that with
+  `using_unix_desktop=yes`."  Answered by arms B1/B2 (README.txt): configure passes on the parent, fails on d98a796946ff.
+Re-checked 2026-11-18 15:40 +0800: master 5b55ba4d4746 (25 commits after ac53621f754f); configure.ac changed only by
+e5774e074ae7 (libeot) and e19467cb879f (CoinMP); the fix still applies; no Gerrit change since 11-17 mentions emscripten
+or wasm; Change-Id Ic9cba4af... unused.
+
+Is anyone fixing it? (Gerrit REST /changes/?q=project:core+file:configure.ac+after:2026-11-08, 7 results)
+  214318 NEW     replace bundled CoinMP 1.8.4 with current Cbc and Clp
+  211916 MERGED  tdf#146153 Enable building the GUI --without-x
+  214161 MERGED  Resolves tdf#174451 - Improve the design of the donation banner
+  208347 NEW     tdf#172896 qt: use the real Wayland output scale for fractional HiDPI
+  212569 MERGED  tdf#146153 Don't check for legacy libGL
+  213954 MERGED  update libexttextcat to 3.4.9 (libreoffice-26-8)
+  213941 MERGED  update libexttextcat to 3.4.9
+  None of them addresses the Emscripten configure failure.
+  Changes mentioning emscripten or wasm since 2026-10-25: 214058 (ours, tdf#174440), 213058, 213057 (desktop splash).
+
+Bugzilla
+  tdf#146153 RESOLVED FIXED since 2026-11-12; its last comments do not mention Emscripten.
+  Quicksearch (ALL): "emscripten configure gtk3", "\"disable-dynamic-loading\" VCL plugin", "wasm configure \"single VCL plugin\"",
+  "emscripten \"using_unix_desktop\"" (0 hits), comment:"Can't build --disable-dynamic-loading".
+  The only report that mentions the failure is our own tdf#174440, in its steps to reproduce.
+
+Our earlier change
+  https://gerrit.libreoffice.org/c/core/+/214058 (tdf#174440) NEW, Jenkins Verified+1, no reviewer yet. Its commit message
+  says it was tested on 2a2335cf; anyone trying it on current master with the WASM distro config hits this failure first.
+
+Later the same day and 2026-11-19 (Gerrit REST, read 2026-11-19 ~10:00 +0800)
+  Christian Lohmaier, 2026-11-18 16:20 UTC, on configure.ac, replying to our comment: confirms the cause (enable_wasm_strip=yes ->
+  with_x=no -> USING_X11 unset -> the shortened disable_x11_tests no longer disables the VCL plugin checks); "to fix the
+  corresponding wasm tinderbox job I explicitly added configure option to disable the gtk plugin."
+  Christian Lohmaier, 2026-11-18 16:20 UTC, patch-set level: "I think it is beneficial if it is more full-featured than before, so I
+  don't mind more stuff being included (although I didn't really look into how much changed), so I prefer to just disable the gtk
+  (and other) vcl plugins to fix the build-break."
+  Christian Lohmaier, 2026-11-18 16:20 UTC, on config_host.mk.in: not removing, but not exporting (use :=); Windows "environment is
+  too large for exec". Chris Mayo, 19:54 UTC: "Existing issue with USING_X11 too then" -> Gerrit 214404 "Don't export
+  USING_UNIX_DESKTOP and USING_X11" (config_host.mk.in only; unrelated to 214345).
+  214345: patch set 1 Jenkins Verified+1 (2026-11-18 10:42 UTC); patch set 2 (variant A) uploaded 2026-11-19 02:44 UTC, Jenkins
+  queued (job 10396); reviewers: Christian Lohmaier, Jenkins. Our reply to Lohmaier on 211916: 2026-11-19 02:52 UTC.

@@ -1,0 +1,59 @@
+**C3 — BROKEN. Two statements are overstated.**
+
+> “That also turns on HAVE_FEATURE_OPENGL, ENABLE_OPENGL_TRANSITIONS and ENABLE_OPENGL_CANVAS, and the Unix desktop parts in Repository.mk, desktop and vcl, none of which were in an Emscripten build before.”
+
+The three OpenGL switches do change as stated; the M comparison records empty→`TRUE` and `0`→`1` (`evidence/186/cmp/pre-vs-fixM-gui.config_host.mk.diff:5`, `pre-vs-fixM-gui.headers.diff:1`). The makefile assertion needs narrower wording:
+
+- PPD packages, application shell launchers and VCL desktop-detector objects were previously excluded: [Repository.mk:989](/home/jiajun/LibreOffice/study_LiteCore/wasm-lite/upstream-master/submit/Repository.mk:989), [Repository.mk:1128](/home/jiajun/LibreOffice/study_LiteCore/wasm-lite/upstream-master/submit/Repository.mk:1128), [desktop/Module_desktop.mk:57](/home/jiajun/LibreOffice/study_LiteCore/wasm-lite/upstream-master/submit/desktop/Module_desktop.mk:57), [vcl/Library_vcl.mk:695](/home/jiajun/LibreOffice/study_LiteCore/wasm-lite/upstream-master/submit/vcl/Library_vcl.mk:695). Their pre-d98 guards were `USING_X11`.
+- Fontconfig packaging was already enabled through `USE_HEADLESS_CODE` and the explicit Emscripten alternative: [Repository.mk:1055](/home/jiajun/LibreOffice/study_LiteCore/wasm-lite/upstream-master/submit/Repository.mk:1055), [postprocess/Module_postprocess.mk:43](/home/jiajun/LibreOffice/study_LiteCore/wasm-lite/upstream-master/submit/postprocess/Module_postprocess.mk:43).
+- LibreOfficeKit objects were already included. The condition at [desktop/Library_sofficeapp.mk:152](/home/jiajun/LibreOffice/study_LiteCore/wasm-lite/upstream-master/submit/desktop/Library_sofficeapp.mk:152), also present before d98, contains literal `($filter EMSCRIPTEN,$(OS))`, leaving a nonempty condition even with both Boolean variables empty.
+- Generic VCL OpenGL objects and its epoxy dependency already existed independently of those three switches (`d98a796946ff^:vcl/Library_vcl.mk:722`).
+
+The earlier phrase “whatever else depended on USING_X11” has the same overbreadth: an alternative condition can keep a branch enabled.
+
+> “With --with-distro=LibreOfficeWASM32, config_host.mk and the 52 config_host/*.h now are the same as for 2a2335cf0911 (master shortly before the above commit), apart from the new USING_UNIX_DESKTOP (empty resp. 0) and the unrelated DEFAULT_BRAND_IMAGES.”
+
+It also needs to acknowledge path normalisation, `PATH` ordering and `SOURCE_DATE_EPOCH`. The latter two remain visible in [pre-vs-fixR-gui.config_host.mk.diff:7](/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/186/cmp/pre-vs-fixR-gui.config_host.mk.diff:7).
+
+The other configuration statements checked out:
+
+- Platform assignments, `--disable-gui` eligibility and stripping’s `with_x=no`: `configure.ac:1314`, `1323`, `3526`, `6067`.
+- The old disabling function explicitly covered GTK, KF, CUPS and DBus (`d98a796946ff^:configure.ac:1359`).
+- GTK3 alone suffices for the documented default options; GTK4 has no automatic enablement (`configure.ac:1946`). This is not a general promise for explicitly enabled GTK4.
+- Logs record emsdk 4.0.10, Qt 5.15.2, successful R configurations and 52 target headers. The harness invokes only autogen (`evidence/186/conf_arm.sh:27`); both saved no-GUI comparisons are empty.
+
+**C1 — HOLDS for the d98-related configuration decisions; no additional behavioural counterexample found.**
+
+- Early consumers exist: defaults and GTK/KF adjustments at `configure.ac:1341`, `1356`, `1363`, `1944`. They initially see `yes`, but their old `using_x11` defaults also saw `yes` (`d98a796946ff^:configure.ac:1302`, `1328`). No newly enabled early dependency probe was found.
+- Both Qt tests are restored to `yes` after disabling desktop tests: [configure.ac:6109](/home/jiajun/LibreOffice/study_LiteCore/wasm-lite/upstream-master/submit/configure.ac:6109), matching `d98a796946ff^:configure.ac:6066`. Qt6 therefore retains the previous test eligibility with or without JSPI. Enabling both Qt plugins still encounters the existing single-plugin restriction (`configure.ac:12759`).
+- `--disable-gui` still passes its eligibility check. `--enable-headless` does not disable GUI (`configure.ac:2038`); module selection changes stripping variables independently (`configure.ac:4395`).
+- `--disable-wasm-strip` cannot produce a counterexample here: the platform assignment overwrites it at `configure.ac:1323`; the argument declaration at `2364` does not restore its earlier value. Consequently `with_x=no` still follows at `3526`.
+- 8299’s epoxy requirement is inside the now-false desktop branch (`configure.ac:13092`). The earlier epoxy-selection call already existed; this follow-up introduces no newly reached check under R.
+
+**C2 — HOLDS.** `_os=Emscripten` is assigned only in the exact `emscripten)` platform arm (`configure.ac:1310`, `1326`). No subsequent reassignment precedes the exact comparison at `6083`. Other platforms skip all six added lines.
+
+**C4 — HOLDS.** The comment accurately describes the current eligibility check: setting lowercase `using_unix_desktop=no` would reject `--disable-gui` at `configure.ac:6067`. Clearing only the uppercase output preserves that eligibility.
+
+**C5 — HOLDS for the supplied comparisons, with harness limitations.** Distinct inputs feed both sides (`compare.sh:19`, `30`), nonempty makefiles are required (`39`), and M provides a positive control: real OpenGL differences survive. Normalisation rewrites source/build prefixes only (`13`); it demonstrably leaves feature values, `PATH` ordering and epoch differences visible.
+
+The harness is not exhaustive: headers existing only on the right are counted but not diffed (`compare.sh:27`, `35`), and process-substitution failures are not reliably propagated. Those are limitations, not evidence that these recorded comparisons were vacuous.
+
+**D1.** For the documented Qt5 GUI options, N below includes explicit `test_qt6=yes` and an Emscripten exception to the no-GUI eligibility check. Without those additions, the one-line N defaults Qt6 testing to `no` and rejects `--disable-gui`.
+
+| Observable | R | M | N |
+|---|---|---|---|
+| `using_unix_desktop` | `yes` | `yes` | `no` |
+| `USING_UNIX_DESKTOP` / macro | empty / `0` | `TRUE` / `1` | empty / `0` |
+| Default `enable_gtk3` | `yes`, later test-disabled | `no` | `no` |
+| Final `test_cpdb`, `test_cups`, `test_kf5`, `test_kf6` | `no` | `yes` | `no` |
+| `test_qt5`, `test_qt6` | `yes` | `yes` | `yes` |
+| `HAVE_FEATURE_OPENGL`; transitions/canvas | `0`; empty | `1`; `TRUE` | `0`; empty |
+| PPD packages, application shell launchers, Unix registry additions, VCL desktop-detector branch | off | on | off |
+| Unix branch in `gb_CppunitTest__use_vcl`, including non-headless gen dependency | off | on | off |
+| Fontconfig packaging and sofficeapp LibreOfficeKit objects | on | on | on |
+
+Variable evidence: `configure.ac:1341`, `1365`, `1372`, `6109`, `13078`. Additional makefile conditions: `postprocess/CustomTarget_registry.mk:286`, `solenv/gbuild/CppunitTest.mk:264`. All three retain empty `USING_X11` and macro `0`.
+
+**D2.** No clear idiom or trailer violation appeared. The new `if test "$_os" = Emscripten` matches `configure.ac:2377`; empty assignment matches `6070`. Keeping lowercase platform capability unchanged also follows `configure.ac:1011`.
+
+The likely objections are the C3 overstatements and vague “there”/“it” wording. Naming `using_unix_desktop=yes` explicitly would improve the comment. The recent log permits varied subject styles and includes the same AI coauthor-trailer form in `1d4e6ecb23c0`; there is no basis in those 20 messages to reject this trailer convention.
